@@ -35,6 +35,9 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
         'idle' | 'connecting' | 'connected' | 'error' | 'disconnected'
     >('idle')
     const [showScrollButton, setShowScrollButton] = useState(false)
+    const connectRef = useRef<() => void>(() => {})
+
+    const cleanupListenersRef = useRef<(() => void)[]>([])
 
     const cleanup = useCallback(() => {
         connectIdRef.current = ++connectCounter
@@ -50,36 +53,20 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
             wsRef.current.close()
             wsRef.current = null
         }
+        cleanupListenersRef.current.forEach((fn) => fn())
+        cleanupListenersRef.current = []
+        const electronAPI = (window as { electronAPI?: { invoke: (channel: string, ...args: unknown[]) => Promise<unknown> } }).electronAPI
+        if (electronAPI) {
+            electronAPI.invoke('terminal:kill', clawId)
+        }
         if (terminalRef.current) {
             terminalRef.current.dispose()
             terminalRef.current = null
         }
         fitAddonRef.current = null
-    }, [])
+    }, [clawId])
 
-    const connect = useCallback(async () => {
-        cleanup()
-        reconnectAttemptsRef.current = 0
-        if (!containerRef.current) return
-
-        const myId = connectIdRef.current
-        setStatus('connecting')
-
-        const token = await getCachedToken()
-
-        if (connectIdRef.current !== myId) return
-
-        if (!token) {
-            setStatus('error')
-            return
-        }
-
-        const container = containerRef.current
-        if (!container) {
-            setStatus('error')
-            return
-        }
-
+    const createTerminal = useCallback((container: HTMLElement) => {
         const styles = getComputedStyle(document.documentElement)
         const bgL = parseFloat(
             styles.getPropertyValue('--background').trim().split(/\s+/).pop() ||
@@ -155,6 +142,73 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
         observer.observe(container)
         observerRef.current = observer
 
+        terminal.onScroll(() => {
+            const buf = terminal.buffer.active
+            setShowScrollButton(buf.viewportY < buf.baseY)
+        })
+
+        return { terminal, fitAndCrop }
+    }, [])
+
+    const connectDesktop = useCallback(async (myId: number, container: HTMLElement) => {
+        const electronAPI = (window as { electronAPI?: { invoke: (channel: string, ...args: unknown[]) => Promise<unknown>; onTerminalData: (cb: (id: string, data: string) => void) => () => void; onTerminalExit: (cb: (id: string) => void) => () => void } }).electronAPI
+        if (!electronAPI) {
+            setStatus('error')
+            return
+        }
+
+        const { terminal, fitAndCrop } = createTerminal(container)
+
+        try {
+            await electronAPI.invoke('terminal:spawn', clawId, terminal.cols, terminal.rows)
+        } catch {
+            setStatus('error')
+            return
+        }
+
+        if (connectIdRef.current !== myId) return
+
+        const removeDataListener = electronAPI.onTerminalData((id, data) => {
+            if (id === clawId) {
+                terminal.write(data)
+            }
+        })
+        cleanupListenersRef.current.push(removeDataListener)
+
+        const removeExitListener = electronAPI.onTerminalExit((id) => {
+            if (id === clawId && connectIdRef.current === myId) {
+                setStatus('disconnected')
+            }
+        })
+        cleanupListenersRef.current.push(removeExitListener)
+
+        setStatus('connected')
+        requestAnimationFrame(() => {
+            fitAndCrop()
+            terminal.focus()
+        })
+
+        terminal.onData((data) => {
+            electronAPI.invoke('terminal:write', clawId, data)
+        })
+
+        terminal.onResize(({ cols, rows }) => {
+            electronAPI.invoke('terminal:resize', clawId, cols, rows)
+        })
+    }, [clawId, createTerminal])
+
+    const connectCloud = useCallback(async (myId: number, container: HTMLElement) => {
+        const token = await getCachedToken()
+
+        if (connectIdRef.current !== myId) return
+
+        if (!token) {
+            setStatus('error')
+            return
+        }
+
+        const { terminal, fitAndCrop } = createTerminal(container)
+
         const apiUrl = import.meta.env.VITE_API_URL || ''
         const wsUrl = apiUrl.startsWith('http')
             ? `${apiUrl.replace(/^http/, 'ws')}/claws/${clawId}/terminal?token=${encodeURIComponent(token)}`
@@ -194,7 +248,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                 setStatus('connecting')
                 reconnectTimerRef.current = setTimeout(() => {
                     if (connectIdRef.current === myId) {
-                        connect()
+                        connectRef.current()
                     }
                 }, RECONNECT_DELAY)
             } else {
@@ -217,12 +271,31 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                 ws.send(JSON.stringify({ type: 'resize', cols, rows }))
             }
         })
+    }, [clawId, createTerminal])
 
-        terminal.onScroll(() => {
-            const buf = terminal.buffer.active
-            setShowScrollButton(buf.viewportY < buf.baseY)
-        })
-    }, [clawId, cleanup])
+    const connect = useCallback(async () => {
+        cleanup()
+        reconnectAttemptsRef.current = 0
+        if (!containerRef.current) return
+
+        const myId = connectIdRef.current
+        setStatus('connecting')
+
+        const container = containerRef.current
+        if (!container) {
+            setStatus('error')
+            return
+        }
+
+        const electronAPI = (window as { electronAPI?: { isDesktop?: boolean } }).electronAPI
+        if (electronAPI?.isDesktop) {
+            await connectDesktop(myId, container)
+        } else {
+            await connectCloud(myId, container)
+        }
+    }, [cleanup, connectDesktop, connectCloud])
+
+    connectRef.current = connect
 
     useEffect(() => {
         if (enabled) {

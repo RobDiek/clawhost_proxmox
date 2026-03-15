@@ -12,7 +12,11 @@ const Footer: FC = (): ReactNode => {
                 <div className='flex flex-col items-center justify-between gap-4 sm:flex-row'>
                     <p className='text-muted-foreground text-sm'>
                         &copy; {new Date().getFullYear()}{' '}
-                        {t('footer.copyright')}
+                        {t('footer.copyrightName')}{' '}
+                        <span className='text-muted-foreground/60 text-[11px]'>
+                            ({__APP_VERSION__})
+                        </span>
+                        . {t('footer.copyrightRights')}
                     </p>
                     <nav aria-label={t('nav.footerNavigation')}>
                         <div className='flex items-center gap-6'>

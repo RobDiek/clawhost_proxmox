@@ -34,7 +34,10 @@
     "pnpm": {
         "overrides": {
             "@types/react": "18.3.28"
-        }
+        },
+        "onlyBuiltDependencies": [
+            "node-pty"
+        ]
     },
     "packageManager": "pnpm@10.29.3",
     "engines": {

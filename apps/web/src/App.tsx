@@ -8,8 +8,8 @@ import { TooltipProvider } from '@/components/ui'
 import { ROUTES } from '@/lib'
 import { useThemeEffect, useLanguageEffect } from '@/hooks'
 
-const Go = lazy(() => import('@/pages/Go'))
-const Landing = lazy(() => import('@/pages/Landing'))
+import Go from '@/pages/Go'
+import Landing from '@/pages/Landing'
 const Login = lazy(() => import('@/pages/Login'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const SSHKeys = lazy(() => import('@/pages/SSHKeys'))

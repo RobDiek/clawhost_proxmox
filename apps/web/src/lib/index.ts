@@ -7,6 +7,7 @@ import {
     DASHBOARD_TABS,
     LANGUAGES,
     ROUTES,
+    SCROLL_SECTIONS,
     THEMES
 } from '@/lib/constants'
 import getBaseDomain from '@/lib/getBaseDomain'
@@ -20,6 +21,7 @@ export {
     cn,
     PATHS,
     ROUTES,
+    SCROLL_SECTIONS,
     DASHBOARD_TABS,
     AGENT_DETAIL_TABS,
     CLAW_DETAIL_TABS,

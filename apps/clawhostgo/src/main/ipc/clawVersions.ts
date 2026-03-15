@@ -1,7 +1,7 @@
 import type { IpcMainInvokeEvent } from 'electron'
 
 import { ipcMain } from 'electron'
-import { configStore, versionManager } from '@/main/services'
+import { configStore, versionManager, processManager } from '@/main/services'
 
 const registerClawVersionHandlers = (): void => {
     ipcMain.handle(
@@ -36,14 +36,19 @@ const registerClawVersionHandlers = (): void => {
             const claw = configStore.findClaw(id)
             if (!claw) throw new Error('Claw not found')
 
-            await versionManager.installVersion(version)
+            const clawDir = configStore.getClawDir(claw.name)
+            await versionManager.installVersionTo(version, clawDir)
 
             configStore.updateClaw(id, { version })
 
-            const config = configStore.readConfig()
-            if (!config.defaultVersion) {
-                config.defaultVersion = version
-                configStore.writeConfig(config)
+            if (processManager.isRunning(id)) {
+                await processManager.restartGateway(
+                    id,
+                    clawDir,
+                    claw.port,
+                    version,
+                    claw.gatewayToken
+                )
             }
 
             return { success: true, version }

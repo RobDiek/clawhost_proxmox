@@ -27,7 +27,9 @@ const es: Translations = {
         beta: 'Beta',
         brandName: 'ClawHost',
         legalEmail: 'legal@clawhost.cloud',
-        scrollToBottom: 'Ir al final'
+        scrollToBottom: 'Ir al final',
+        second: 'segundo',
+        seconds: 'segundos'
     },
     setup: {
         welcomeTitle: 'Bienvenido a ClawHost Go',
@@ -153,7 +155,8 @@ const es: Translations = {
     },
     footer: {
         website: 'Sitio web',
-        copyright: 'ClawHost. Todos los derechos reservados.',
+        copyrightName: 'ClawHost',
+        copyrightRights: 'Todos los derechos reservados.',
         termsOfService: 'Términos de servicio',
         privacyPolicy: 'Política de privacidad',
         getInTouch: 'Contáctanos',
@@ -458,7 +461,7 @@ const es: Translations = {
         waitlistJoined: 'Te has unido a la lista de espera.',
         waitlistAlreadyJoined: 'Ya estás en la lista de espera.',
         waitlistJoinFailed: '¡Error al unirse a la lista de espera!',
-        waitlistRateLimited: '¡Vas demasiado rápido! Por favor, inténtalo de nuevo en {{seconds}} segundos.',
+        waitlistRateLimited: '¡Vas demasiado rápido! Por favor, inténtalo de nuevo en {{seconds}} {{unit}}.',
         waitlistStatusFetched: 'Estado de la lista de espera obtenido.',
         waitlistCheckFailed: '¡Error al verificar el estado de la lista de espera!'
     },
@@ -787,6 +790,13 @@ const es: Translations = {
         gateTitle: 'Licencia requerida',
         gateDescription: 'Necesitas una licencia ClawHost Go para desplegar y gestionar instancias de OpenClaw localmente.'
     },
+    network: {
+        unstable: 'Conexión inestable',
+        unstableDescription: 'Tu conexión a internet es inestable. Algunas funciones podrían no funcionar correctamente.',
+        offline: 'Sin conexión a internet',
+        offlineDescription: 'Actualmente estás sin conexión. Las funciones que requieren acceso a internet no estarán disponibles.',
+        dismiss: 'Cerrar'
+    },
     dashboard: {
         title: 'Claws',
         description:
@@ -909,6 +919,7 @@ const es: Translations = {
         exportData: 'Exportar Claw (.zip)',
         exportStarted:
             'Preparando la exportación, esto puede tardar un momento...',
+        exportSuccess: 'Claw exportado con éxito.',
         exportFailed: 'Error al exportar los datos del claw!',
         exportRateLimited: 'Puedes exportar de nuevo en {{minutes}} minutos!',
         exportRateLimitedSeconds:
@@ -2025,7 +2036,7 @@ const es: Translations = {
         productHunt: 'Product Hunt',
         celebrate: 'Apóyanos y disfruta',
         discount: '10% de descuento',
-        yourFirstMonth: 'en tu primer mes',
+        yourFirstMonth: 'en tu primer pedido',
         upvoteNow: 'Vótanos'
     },
     compare: {

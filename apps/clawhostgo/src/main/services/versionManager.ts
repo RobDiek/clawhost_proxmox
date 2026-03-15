@@ -151,10 +151,46 @@ const getVersionBinaryPath = (version: string): string => {
     )
 }
 
+const installVersionTo = (version: string, targetDir: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+        const nodePath = nodeBinary.getNodeBinaryPath()
+        const npmPath = nodeBinary.getNpmPath()
+
+        execFile(
+            npmPath,
+            ['install', `openclaw@${version}`, '--prefix', targetDir],
+            {
+                env: {
+                    ...process.env,
+                    PATH: `${path.dirname(nodePath)}:${process.env.PATH}`
+                },
+                timeout: 120000
+            },
+            (error) => {
+                if (error) {
+                    reject(
+                        new Error(
+                            `Failed to install OpenClaw ${version}: ${error.message}`
+                        )
+                    )
+                    return
+                }
+                resolve()
+            }
+        )
+    })
+}
+
+const getClawBinaryPath = (clawDir: string): string => {
+    return path.join(clawDir, 'node_modules', '.bin', 'openclaw')
+}
+
 export default {
     listInstalled,
     installVersion,
+    installVersionTo,
     getAvailableVersions,
     getLatestVersion,
-    getVersionBinaryPath
+    getVersionBinaryPath,
+    getClawBinaryPath
 }

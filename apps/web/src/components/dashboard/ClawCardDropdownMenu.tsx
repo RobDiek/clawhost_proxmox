@@ -93,7 +93,7 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                                     claw.provider === clawProvider.local
                                         ? `${subdomain}.clawhost`
                                         : `${subdomain}.${getBaseDomain()}`
-                                const url = `https://${domain}${claw.gatewayToken ? `/#token=${claw.gatewayToken}` : ''}`
+                                const url = `https://${domain}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`
                                 window.open(url, '_blank')
                             }}
                         >
@@ -133,12 +133,10 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                             <FolderSimpleIcon className='mr-2 h-4 w-4' />
                             {t('dashboard.fileExplorer')}
                         </DropdownMenuItem>
-                        {claw.provider !== clawProvider.local && (
-                            <DropdownMenuItem onClick={actions.onExport}>
-                                <ExportIcon className='mr-2 h-4 w-4' />
-                                {t('dashboard.exportData')}
-                            </DropdownMenuItem>
-                        )}
+                        <DropdownMenuItem onClick={actions.onExport}>
+                            <ExportIcon className='mr-2 h-4 w-4' />
+                            {t('dashboard.exportData')}
+                        </DropdownMenuItem>
                         {claw.provider !== clawProvider.local && isAdmin && (
                             <DropdownMenuItem
                                 onClick={actions.onUpdateInstance}

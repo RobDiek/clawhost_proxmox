@@ -23,7 +23,8 @@ const ensureClawConfig = (clawDir: string, subdomain: string): void => {
         }
         const expectedOrigins = [
             `https://${subdomain}.clawhost`,
-            `http://${subdomain}.clawhost`
+            `http://${subdomain}.clawhost`,
+            'http://localhost:*'
         ]
         const current = config.gateway.controlUi.allowedOrigins
         if (!current || JSON.stringify(current) !== JSON.stringify(expectedOrigins)) {

@@ -5,6 +5,7 @@ import { useRef, useState, useEffect, useCallback, type FormEvent } from 'react'
 import { useScroll, useTransform } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { goLicense } from '@openclaw/shared'
+import { SCROLL_SECTIONS } from '@/lib'
 import { Button, Input } from '@/components/ui'
 import {
     PageTitle,
@@ -205,7 +206,7 @@ const Go: FC = (): ReactNode => {
                 setActiveSection('')
                 return
             }
-            const sections = ['faq', 'comparison', 'pricing', 'features']
+            const sections = SCROLL_SECTIONS
             for (const section of sections) {
                 const el = document.getElementById(section)
                 if (el && window.scrollY >= el.offsetTop - 100) {

@@ -205,7 +205,11 @@ const LandingFooter: FC = (): ReactNode => {
                         </div>
                         <p className='text-muted-foreground mt-4 text-sm'>
                             &copy; {new Date().getFullYear()}{' '}
-                            {t('footer.copyright')}
+                            {t('footer.copyrightName')}{' '}
+                            <span className='text-muted-foreground/60 text-[11px]'>
+                                ({__APP_VERSION__})
+                            </span>
+                            . {t('footer.copyrightRights')}
                         </p>
                     </div>
 

@@ -31,17 +31,21 @@ import {
     usePlanAvailability,
     useAllClawAgents,
     usePlaygroundGraph,
-    useProfile
+    useProfile,
+    useNetworkStatus
 } from '@/hooks'
 import {
     AnnouncementBanner,
+    BetaBadge,
     EmptyState,
     ErrorState,
+    NetworkStatus,
     PageTitle,
     ActionButton,
     ClawMascot,
     LanguageSelector,
     Logo,
+    ProductHuntBanner,
     ThemeToggle,
     UserDropdown
 } from '@/components'
@@ -126,17 +130,22 @@ const Dashboard: FC = (): ReactNode => {
         enabled: !!user,
         staleTime: 1000 * 60 * 5
     })
+    const isOffline = useNetworkStatus()
     const isAdmin = profile?.role === userRole.admin
     const adminMode = !!isAdmin && adminModeRaw
 
     const [dnsSetup, setDnsSetup] = useState<boolean | null>(null)
     const [dnsLoading, setDnsLoading] = useState(false)
+    const [appVersion, setAppVersion] = useState('')
 
     useEffect(() => {
         if (!isLocal) return
         const api = (window as unknown as ElectronWindow).electronAPI
         if (api?.getDnsStatus) {
             api.getDnsStatus().then(setDnsSetup)
+        }
+        if (api?.getAppVersion) {
+            api.getAppVersion().then((v) => setAppVersion(`v${v}`))
         }
     }, [isLocal])
 
@@ -476,7 +485,14 @@ const Dashboard: FC = (): ReactNode => {
             transition={{ duration: 0.2 }}
             className={`bg-background text-foreground fixed inset-0 flex flex-col ${showFullBackground && !isLocal ? 'playground-grid' : ''}`}
         >
-            <AnnouncementBanner />
+            {isOffline ? (
+                <NetworkStatus />
+            ) : (
+                <>
+                    <ProductHuntBanner />
+                    {!isLocal && <AnnouncementBanner />}
+                </>
+            )}
             {isLocal && showFullBackground && (
                 <div className='playground-grid pointer-events-none fixed inset-0 opacity-50' />
             )}
@@ -498,6 +514,9 @@ const Dashboard: FC = (): ReactNode => {
             <div className='border-border bg-background md:bg-background/80 relative z-10 flex items-center justify-between border-b px-6 py-3 md:backdrop-blur-xl'>
                 <div className='flex items-center gap-3'>
                     <Logo />
+                    {(window as unknown as ElectronWindow).electronAPI?.isDesktop && (
+                        <BetaBadge />
+                    )}
                     <div className='border-border flex items-center rounded-lg border p-0.5'>
                         <button
                             onClick={() => setDashboardTab(DASHBOARD_TABS.CHAT)}
@@ -593,6 +612,7 @@ const Dashboard: FC = (): ReactNode => {
                         openLinksWindowed={
                             isLocal ? openLinksWindowed : undefined
                         }
+                        appVersion={appVersion || undefined}
                     />
                 </div>
             </div>

@@ -1,4 +1,5 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow } from 'electron'
+import { execFile } from 'child_process'
 import path from 'path'
 import {
     configStore,
@@ -39,7 +40,7 @@ if (!gotLock) {
         })
 
         mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-            shell.openExternal(url)
+            execFile('open', [url])
             return { action: 'deny' }
         })
 

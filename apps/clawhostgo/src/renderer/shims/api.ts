@@ -216,7 +216,9 @@ const api = {
         invoke('getClawEnvVars', id) as Promise<ClawEnvVarsResponse>,
     updateClawEnvVars: (id: string, data: UpdateClawEnvVarsData) =>
         invoke('updateClawEnvVars', id, data) as Promise<void>,
-    exportClaw: async (_id: string, _filename: string) => {},
+    exportClaw: async (id: string, filename: string) => {
+        await invoke('exportClaw', id, filename)
+    },
     listClawFiles: (id: string) =>
         invoke('listClawFiles', id) as Promise<ClawFilesResponse>,
     readClawFile: (id: string, filePath: string) =>

@@ -25,7 +25,9 @@ const en = {
         beta: 'Beta',
         brandName: 'ClawHost',
         legalEmail: 'legal@clawhost.cloud',
-        scrollToBottom: 'Scroll to Bottom'
+        scrollToBottom: 'Scroll to Bottom',
+        second: 'second',
+        seconds: 'seconds'
     },
     setup: {
         welcomeTitle: 'Welcome to ClawHost Go',
@@ -151,7 +153,8 @@ const en = {
     },
     footer: {
         website: 'Website',
-        copyright: 'ClawHost. All rights reserved.',
+        copyrightName: 'ClawHost',
+        copyrightRights: 'All rights reserved.',
         termsOfService: 'Terms of Service',
         privacyPolicy: 'Privacy Policy',
         getInTouch: 'Get in Touch',
@@ -431,7 +434,7 @@ const en = {
         waitlistJoined: 'Successfully joined the waitlist.',
         waitlistAlreadyJoined: 'Already on the waitlist.',
         waitlistJoinFailed: 'Failed to join waitlist!',
-        waitlistRateLimited: 'You\'re going too fast! Please try again in {{seconds}} seconds.',
+        waitlistRateLimited: 'You\'re going too fast! Please try again in {{seconds}} {{unit}}.',
         waitlistStatusFetched: 'Waitlist status fetched.',
         waitlistCheckFailed: 'Failed to check waitlist status!'
     },
@@ -754,6 +757,13 @@ const en = {
         gateTitle: 'License Required',
         gateDescription: 'You need a ClawHost Go License to deploy and manage OpenClaw instances locally.'
     },
+    network: {
+        unstable: 'Unstable Connection',
+        unstableDescription: 'Your internet connection is unstable. Some features may not work as expected.',
+        offline: 'No Internet Connection',
+        offlineDescription: 'You are currently offline. Features requiring internet access will be unavailable.',
+        dismiss: 'Dismiss'
+    },
     dashboard: {
         title: 'Claws',
         description:
@@ -874,6 +884,7 @@ const en = {
         openControlPanel: 'Open Control Panel',
         exportData: 'Export Claw (.zip)',
         exportStarted: 'Preparing export, this may take a moment...',
+        exportSuccess: 'Claw exported successfully.',
         exportFailed: 'Failed to export claw data!',
         exportRateLimited: 'You can export again in {{minutes}} minutes.',
         exportRateLimitedSeconds:
@@ -1957,7 +1968,7 @@ const en = {
         productHunt: 'Product Hunt',
         celebrate: 'Support us & enjoy',
         discount: '10% off',
-        yourFirstMonth: 'your first month',
+        yourFirstMonth: 'your first order',
         upvoteNow: 'Upvote Us'
     },
     compare: {

@@ -1,12 +1,13 @@
 import type { FC, ReactNode } from 'react'
 import type {
     CreateSSHKeyModalProps,
+    ElectronWindow,
     GeneratedKeyPair,
     SSHKeyCardProps
 } from '@/ts/Interfaces'
 import type { CopiedFieldType, SSHKeyModalMode } from '@/ts/Types'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
@@ -618,6 +619,16 @@ const SSHKeys: FC = (): ReactNode => {
         staleTime: 1000 * 60 * 5
     })
 
+    const [appVersion, setAppVersion] = useState('')
+
+    useEffect(() => {
+        if (!isLocal) return
+        const api = (window as unknown as ElectronWindow).electronAPI
+        if (api?.getAppVersion) {
+            api.getAppVersion().then((v) => setAppVersion(`v${v}`))
+        }
+    }, [isLocal])
+
     const localDisplayName =
         profile?.name || cachedProfile?.name || t('account.noNameSet')
     const dropdownFooterLinks = useMemo(() => {
@@ -671,6 +682,7 @@ const SSHKeys: FC = (): ReactNode => {
                             hideSignOut
                             footerLinks={dropdownFooterLinks}
                             openLinksWindowed={openLinksWindowed}
+                            appVersion={appVersion || undefined}
                         />
                     </div>
                 </div>

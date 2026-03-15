@@ -24,8 +24,8 @@ const joinWaitlist = async (c: Context) => {
         if (ip) {
             const retryAfter = await checkRateLimit(`waitlist:ip:${ip}`, RATE_LIMIT_WINDOW)
             if (retryAfter > 0) {
-                const seconds = Math.ceil(retryAfter / 1000)
-                return fail(c, t('api.waitlistRateLimited', { seconds: String(seconds) }), 429)
+                const unit = retryAfter === 1 ? t('common.second') : t('common.seconds')
+                return fail(c, t('api.waitlistRateLimited', { seconds: String(retryAfter), unit }), 429)
             }
         }
 

@@ -34,7 +34,8 @@ const UserDropdown: FC<UserDropdownProps> = ({
     hideSSHKeys,
     hideSignOut,
     footerLinks,
-    openLinksWindowed
+    openLinksWindowed,
+    appVersion
 }): ReactNode => {
     const navigate = useNavigate()
     const location = useLocation()
@@ -140,6 +141,14 @@ const UserDropdown: FC<UserDropdownProps> = ({
                                 {link.label}
                             </DropdownMenuItem>
                         ))}
+                        {appVersion && (
+                            <>
+                                <DropdownMenuSeparator className='bg-border' />
+                                <p className='text-muted-foreground/40 px-2 py-0.5 text-center text-[10px] tracking-wider'>
+                                    ClawHost Go {appVersion}
+                                </p>
+                            </>
+                        )}
                     </>
                 )}
                 {!hideSignOut && (

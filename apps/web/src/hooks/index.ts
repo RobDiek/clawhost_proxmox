@@ -71,6 +71,7 @@ import useGatewayState from '@/hooks/useGatewayState'
 import useScrollToBottom from '@/hooks/useScrollToBottom'
 import useSpeechRecognition from '@/hooks/useSpeechRecognition'
 import useTextToSpeech from '@/hooks/useTextToSpeech'
+import useNetworkStatus from '@/hooks/useNetworkStatus'
 import useThemeEffect from '@/hooks/useThemeEffect'
 import useLanguageEffect from '@/hooks/useLanguageEffect'
 
@@ -126,6 +127,7 @@ export {
     usePlaygroundGraph,
     PLAYGROUND_AGENTS_QUERY_KEY,
     useAgentChat,
+    useNetworkStatus,
     useGatewayState,
     useScrollToBottom,
     useSpeechRecognition,

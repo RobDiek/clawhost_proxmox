@@ -41,8 +41,24 @@ const handleRequest = (
         return
     }
 
-    const isHtmlRequest = req.url === '/' || req.url === '' || req.url?.startsWith('/?')
-    const shouldInjectToken = isHtmlRequest && !!claw.gatewayToken
+    const needsToken = !!claw.gatewayToken &&
+        req.method === 'GET' &&
+        !(req.url || '').includes('token=')
+
+    if (needsToken) {
+        const url = req.url || '/'
+        const separator = url.includes('?') ? '&' : '?'
+        res.writeHead(302, { Location: `${url}${separator}token=${claw.gatewayToken}` })
+        res.end()
+        return
+    }
+
+    const proxyHeaders = {
+        ...req.headers,
+        'x-real-ip': '127.0.0.1',
+        'x-forwarded-for': '127.0.0.1',
+        'x-forwarded-proto': 'https'
+    }
 
     const proxyReq = http.request(
         {
@@ -50,27 +66,11 @@ const handleRequest = (
             port: claw.port,
             path: req.url,
             method: req.method,
-            headers: req.headers
+            headers: proxyHeaders
         },
         (proxyRes) => {
-            const contentType = proxyRes.headers['content-type'] || ''
-            if (shouldInjectToken && contentType.includes('text/html')) {
-                const chunks: Buffer[] = []
-                proxyRes.on('data', (chunk: Buffer) => chunks.push(chunk))
-                proxyRes.on('end', () => {
-                    let html = Buffer.concat(chunks).toString('utf-8')
-                    const tokenScript = `<script>if(!location.hash||!location.hash.includes("token=")){location.hash="token=${claw.gatewayToken}";}</script>`
-                    html = html.replace('<head>', `<head>${tokenScript}`)
-                    const headers = { ...proxyRes.headers }
-                    headers['content-length'] = String(Buffer.byteLength(html))
-                    delete headers['content-encoding']
-                    res.writeHead(proxyRes.statusCode || 200, headers)
-                    res.end(html)
-                })
-            } else {
-                res.writeHead(proxyRes.statusCode || 502, proxyRes.headers)
-                proxyRes.pipe(res)
-            }
+            res.writeHead(proxyRes.statusCode || 502, proxyRes.headers)
+            proxyRes.pipe(res)
         }
     )
 
@@ -105,6 +105,9 @@ const handleUpgrade = (
         for (let i = 0; i < req.rawHeaders.length; i += 2) {
             headers += `${req.rawHeaders[i]}: ${req.rawHeaders[i + 1]}\r\n`
         }
+        headers += 'X-Real-IP: 127.0.0.1\r\n'
+        headers += 'X-Forwarded-For: 127.0.0.1\r\n'
+        headers += 'X-Forwarded-Proto: https\r\n'
         proxySocket.write(requestLine + headers + '\r\n')
         if (head.length > 0) {
             proxySocket.write(head)

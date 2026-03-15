@@ -1,5 +1,6 @@
 import AnnouncementBanner from '@/components/AnnouncementBanner'
 import ActionButton from '@/components/ActionButton'
+import BetaBadge from '@/components/BetaBadge'
 import BlogCard from '@/components/BlogCard'
 import BlogCTA from '@/components/BlogCTA'
 import ClawAvatar from '@/components/ClawAvatar'
@@ -24,6 +25,7 @@ import LandingFooter from '@/components/LandingFooter'
 import LicenseCard from '@/components/LicenseCard'
 import LicenseRequired from '@/components/LicenseRequired'
 import Logo from '@/components/Logo'
+import NetworkStatus from '@/components/NetworkStatus'
 import MacosDesktopPreview from '@/components/MacosDesktopPreview'
 import PageBackground from '@/components/PageBackground'
 import PageHeader from '@/components/PageHeader'
@@ -49,6 +51,7 @@ import VideoModal from '@/components/VideoModal'
 export {
     AnnouncementBanner,
     ActionButton,
+    BetaBadge,
     BlogCard,
     BlogCTA,
     ClawAvatar,
@@ -73,6 +76,7 @@ export {
     LicenseCard,
     LicenseRequired,
     Logo,
+    NetworkStatus,
     MacosDesktopPreview,
     PageBackground,
     PageHeader,

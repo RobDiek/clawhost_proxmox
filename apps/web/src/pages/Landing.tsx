@@ -24,7 +24,7 @@ import {
     VideoModal,
     JsonLd
 } from '@/components'
-import { getBaseDomain } from '@/lib'
+import { getBaseDomain, SCROLL_SECTIONS } from '@/lib'
 import {
     TWITTER_URL,
     FACEBOOK_URL,
@@ -189,12 +189,7 @@ const Landing: FC = (): ReactNode => {
                 setActiveSection('')
                 return
             }
-            const sections = [
-                'faq',
-                'comparison',
-                'pricing',
-                'features'
-            ]
+            const sections = SCROLL_SECTIONS
             for (const section of sections) {
                 const el = document.getElementById(section)
                 if (el && window.scrollY >= el.offsetTop - 100) {

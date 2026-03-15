@@ -84,7 +84,9 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
                         PROFILE_CACHE_KEY,
                         JSON.stringify(fresh)
                     )
-                } catch {}
+                } catch {
+                    await firebaseSignOut(auth)
+                }
             } else {
                 localStorage.removeItem(AUTH_STORAGE_KEY)
                 localStorage.removeItem(PROFILE_CACHE_KEY)

@@ -267,7 +267,7 @@ const Login: FC = (): ReactNode => {
     return (
         <div className='bg-background text-foreground relative min-h-screen'>
             <AnnouncementBanner />
-            <div className='flex min-h-screen items-center justify-center px-4 pb-24'>
+            <div className='flex min-h-screen items-center justify-center px-4'>
             <PageTitle
                 title={
                     step === 'email'

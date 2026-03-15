@@ -1,12 +1,13 @@
 import type { IpcMainInvokeEvent } from 'electron'
 import type { CreateClawData, RenameClawData } from '@/ts/Interfaces'
 
-import { ipcMain } from 'electron'
+import { ipcMain, dialog, BrowserWindow } from 'electron'
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 import os from 'os'
-import { clawProvider, clawStatus } from '@openclaw/shared'
+import { execFile } from 'child_process'
+import { clawProvider, clawStatus, OPENCLAW_VERSION } from '@openclaw/shared'
 import {
     configStore,
     processManager,
@@ -43,7 +44,8 @@ const DEFAULT_OPENCLAW_CONFIG = (subdomain: string, gatewayToken?: string) => ({
             dangerouslyDisableDeviceAuth: true,
             allowedOrigins: [
                 `https://${subdomain}.clawhost`,
-                `http://${subdomain}.clawhost`
+                `http://${subdomain}.clawhost`,
+                'http://localhost:*'
             ]
         },
         trustedProxies: ['127.0.0.1', '::1']
@@ -130,32 +132,7 @@ const registerClawHandlers = (): void => {
                 throw new Error('A claw with this name already exists.')
             }
 
-            let version = config.defaultVersion || ''
-
-            if (!version) {
-                const installed = versionManager.listInstalled()
-                if (installed.length > 0) {
-                    version = installed[0]
-                } else {
-                    try {
-                        const latest = await versionManager.getLatestVersion()
-                        if (latest) {
-                            await versionManager.installVersion(latest)
-                            version = latest
-                        }
-                    } catch {
-                        version = ''
-                    }
-                }
-            }
-
-            if (version) {
-                const freshConfig = configStore.readConfig()
-                if (!freshConfig.defaultVersion) {
-                    freshConfig.defaultVersion = version
-                    configStore.writeConfig(freshConfig)
-                }
-            }
+            const version = OPENCLAW_VERSION
 
             const id = crypto.randomUUID()
             const port = configStore.getNextAvailablePort()
@@ -167,6 +144,8 @@ const registerClawHandlers = (): void => {
             fs.mkdirSync(path.join(clawDir, 'agents', 'main', 'agent'), {
                 recursive: true
             })
+
+            await versionManager.installVersionTo(version, clawDir)
 
             const openclawConfig = DEFAULT_OPENCLAW_CONFIG(subdomain, gatewayToken || undefined)
             fs.writeFileSync(
@@ -337,6 +316,36 @@ const registerClawHandlers = (): void => {
     ipcMain.handle('getNextAvailablePort', () => {
         return configStore.getNextAvailablePort()
     })
+
+    ipcMain.handle(
+        'exportClaw',
+        async (_event: IpcMainInvokeEvent, id: string, filename: string) => {
+            const claw = configStore.findClaw(id)
+            if (!claw) throw new Error('Claw not found')
+
+            const clawDir = configStore.getClawDir(claw.name)
+            if (!fs.existsSync(clawDir)) throw new Error('Claw directory not found')
+
+            const win = BrowserWindow.getFocusedWindow()
+            const result = await dialog.showSaveDialog(win!, {
+                defaultPath: filename,
+                filters: [{ name: 'Tar Archive', extensions: ['tar.gz'] }]
+            })
+
+            if (result.canceled || !result.filePath) return
+
+            await new Promise<void>((resolve, reject) => {
+                execFile(
+                    'tar',
+                    ['-czf', result.filePath!, '-C', path.dirname(clawDir), path.basename(clawDir)],
+                    (error) => {
+                        if (error) reject(new Error('Export failed'))
+                        else resolve()
+                    }
+                )
+            })
+        }
+    )
 }
 
 export default registerClawHandlers

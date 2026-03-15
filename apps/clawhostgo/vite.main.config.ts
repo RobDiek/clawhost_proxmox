@@ -23,7 +23,8 @@ export default defineConfig({
                 'util',
                 'events',
                 'stream',
-                'buffer'
+                'buffer',
+                'node-pty'
             ]
         }
     }

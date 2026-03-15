@@ -68,13 +68,10 @@ const startGateway = async (
         await stopGateway(clawId)
     }
 
+    const clawBin = path.join(clawDir, 'node_modules', '.bin', 'openclaw')
     const versionDir = configStore.getVersionDir(version)
-    const openclawBin = path.join(
-        versionDir,
-        'node_modules',
-        '.bin',
-        'openclaw'
-    )
+    const sharedBin = path.join(versionDir, 'node_modules', '.bin', 'openclaw')
+    const openclawBin = fs.existsSync(clawBin) ? clawBin : sharedBin
 
     if (!fs.existsSync(openclawBin)) {
         throw new Error(`OpenClaw version ${version} is not installed`)

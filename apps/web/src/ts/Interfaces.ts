@@ -289,6 +289,7 @@ export interface UserDropdownProps {
     hideSignOut?: boolean
     footerLinks?: FooterLink[]
     openLinksWindowed?: boolean
+    appVersion?: string
 }
 
 export interface EmptyStateProps {
@@ -1501,8 +1502,10 @@ export interface CompareCategory {
 
 export interface ElectronAPI {
     isDesktop?: boolean
+    getAppVersion: () => Promise<string>
     openExternal: (url: string) => Promise<void>
     openWindowed: (url: string) => Promise<void>
+    checkNetwork: () => Promise<'online' | 'unstable' | 'offline'>
     getDnsStatus: () => Promise<boolean>
     setupDns: () => Promise<boolean>
 }
