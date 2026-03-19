@@ -24,6 +24,13 @@ const en = {
         closeNotification: 'Close notification',
         beta: 'Beta',
         brandName: 'ClawHost',
+        brandNameGo: 'ClawHost Go',
+        brandNameGoVersion: 'ClawHost Go {{version}}',
+        menuFile: 'File',
+        menuEdit: 'Edit',
+        menuView: 'View',
+        menuWindow: 'Window',
+        menuHelp: 'Help',
         legalEmail: 'legal@clawhost.cloud',
         scrollToBottom: 'Scroll to Bottom',
         second: 'second',
@@ -42,6 +49,16 @@ const en = {
         fr: 'Français',
         es: 'Español',
         de: 'Deutsch',
+        zh: '中文',
+        hi: 'हिन्दी',
+        ar: 'العربية',
+        ru: 'Русский',
+        ja: '日本語',
+        tr: 'Türkçe',
+        it: 'Italiano',
+        pl: 'Polski',
+        nl: 'Nederlands',
+        pt: 'Português',
         switchLanguage: 'Language'
     },
     theme: {
@@ -144,12 +161,16 @@ const en = {
         statsZeroConfig: 'Zero Config',
         ctaTitle: 'Run OpenClaw Locally',
         ctaDescription: 'One-time payment, lifetime license. Deploy OpenClaw on your own machine — no cloud, no subscriptions, no limits. Your data, your rules.',
+        ctaButton: 'Get ClawHost Go',
         joinWaitlist: 'Join Waitlist',
         joinedWaitlist: 'Joined Waitlist',
         waitlistJoinedToast: 'You\'ve joined the waitlist.',
         waitlistAlreadyJoinedToast: 'This email is already on the list.',
         waitlistFailedToast: 'Failed to join waitlist!',
-        waitlistEmailPlaceholder: 'Enter your email'
+        waitlistEmailPlaceholder: 'Enter your email',
+        updateAvailable: 'Version {{version}} is available.',
+        updateDownload: 'Download',
+        updateDismiss: 'Later'
     },
     footer: {
         website: 'Website',
@@ -568,10 +589,10 @@ const en = {
             },
             multiLanguage: {
                 subject: 'Did you know? ClawHost speaks your language',
-                preview: 'Use ClawHost in English, French, Spanish, or German',
+                preview: 'Use ClawHost in 14 languages',
                 heading: 'ClawHost in your language',
                 description:
-                    'Switch the entire ClawHost dashboard to English, French, Spanish, or German. Everything from buttons to error messages — fully translated.',
+                    'Switch the entire ClawHost dashboard to any of 14 languages. Everything from buttons to error messages — fully translated.',
                 cta: 'Change Language'
             },
             subdomain: {
@@ -966,6 +987,7 @@ const en = {
         advancedOptions: 'Advanced Optional Options',
         rootPassword: 'Root Password',
         rootPasswordPlaceholder: 'Enter password or generate one',
+        gatewayTokenPlaceholder: 'e.g. a1b2c3d4e5f6...',
         autoGenerateGatewayTokenHint:
             'Optional. No gateway token if left empty.',
         autoGeneratePasswordHint:
@@ -1290,13 +1312,11 @@ const en = {
             'Track updates, new features, and improvements to ClawHost.',
         subtitle: 'All updates, new features, and improvements to ClawHost.',
         upcomingRelease: 'In Process',
-        upcomingReleaseTitle: 'Mobile, Desktop & More',
+        upcomingReleaseTitle: 'Mobile App & More',
         upcomingReleaseDescription:
-            'Manage your OpenClaw instances from anywhere. Native mobile and desktop apps, plus ongoing platform improvements.',
+            'Manage your OpenClaw instances from anywhere. A native mobile app, plus ongoing platform improvements.',
         upcomingReleaseFeature1:
             'Native mobile app to monitor and manage your OpenClaw instances on the go',
-        upcomingReleaseFeature2:
-            'Local desktop app to self-host OpenClaw locally on macOS, Windows, and Linux',
         upcomingReleaseFeature3: 'Dark and light theme support',
         upcomingReleaseFeature4:
             'Performance, stability, and responsiveness enhancements',
@@ -1314,6 +1334,16 @@ const en = {
             'Reinstall OpenClaw on your instance to start fresh, available once per day',
         upcomingReleaseFeature11:
             'Landing page for ClawHost Go, local hosting with ClawHost',
+        upcomingReleaseFeature12:
+            'Desktop app for macOS and Windows to deploy OpenClaw locally with one click',
+        release13Date: 'March 19, 2026',
+        release13Title: 'New Languages & ClawHost Go Beta',
+        release13Description:
+            '10 new languages and ClawHost Go beta for local one-click OpenClaw deployment on macOS and Windows.',
+        release13Feature1:
+            'Added 10 new languages: Chinese, Hindi, Arabic, Russian, Japanese, Turkish, Italian, Polish, Dutch, and Portuguese',
+        release13Feature2:
+            'Beta release of ClawHost Go for macOS and Windows, deploy OpenClaw locally with one click',
         release12Date: 'March 14, 2026',
         release12Title: 'Yearly Plans, Voice Mode & More',
         release12Description:
@@ -1669,10 +1699,15 @@ const en = {
             'Scan this QR code with WhatsApp to link your device.',
         channelsWhatsAppScanInstructions:
             'Open WhatsApp > Settings > Linked Devices > Link a Device',
+        channelsWhatsAppQrRefreshed:
+            'Previous QR code expired. Scan the new one below.',
         channelsWhatsAppPaired: 'WhatsApp paired successfully.',
         channelsWhatsAppPairFailed: 'Pairing failed. Please try again!',
         channelsWhatsAppAlreadyPaired: 'WhatsApp is already paired!',
         channelsWhatsAppUnpair: 'Unpair',
+        channelsWhatsAppConnected: 'Connected',
+        channelsWhatsAppRepair: 'Re-pair',
+        channelsWhatsAppChecking: 'Checking connection...',
         channelsWhatsAppUnsupported:
             'WhatsApp pairing is not available on this instance. Update OpenClaw to a newer version to enable it.',
         channelsTelegram: 'Telegram',
@@ -1723,7 +1758,7 @@ const en = {
         skillsSaved: 'Skills updated successfully.',
         skillsSaveFailed: 'Failed to update skills!',
         skillsLoading: 'Loading skills...',
-        skillsLoadFailed: 'Failed to load skills.',
+        skillsLoadFailed: 'Failed to load skills!',
         skillsLoadFailedDescription:
             'Could not retrieve skills configuration. Please try again.',
         agentSkillsDescription: 'Skills installed in this agent workspace.',
@@ -1760,7 +1795,7 @@ const en = {
         clawHubBy: 'by {{author}}',
         clawHubDownloads: '{{count}} downloads',
         clawHubVersion: 'v{{version}}',
-        clawHubLoadFailed: 'Failed to load ClawHub.',
+        clawHubLoadFailed: 'Failed to load ClawHub!',
         clawHubLoadFailedDescription:
             'Could not connect to ClawHub marketplace. Please try again.',
         tabVersions: 'Versions',
@@ -1768,7 +1803,7 @@ const en = {
         versionsEmpty: 'No versions found',
         versionsEmptyDescription: 'No versions match your search.',
         versionsErrorDescription:
-            'Failed to load versions. Please check your connection and try again.',
+            'Failed to load versions. Please check your connection and try again!',
         versionsChangelog: 'View changelogs on npm',
         versionCurrent: 'Current',
         versionLatest: 'Latest',
@@ -1795,7 +1830,15 @@ const en = {
         subdomainUpdateFailed: 'Failed to update subdomain!',
         subdomainInUse: 'This subdomain is used by another claw!',
         settingsSave: 'Save',
-        settingsSaving: 'Saving...'
+        settingsSaving: 'Saving...',
+        mockLogStarting: 'Starting OpenClaw agent...',
+        mockLogLoadingModel: 'Loading model: claude-sonnet-4-5',
+        mockLogAgentReady: 'Agent ready on port 3000',
+        mockLogConnected: 'Connected to gateway',
+        mockLogRequestReceived: 'Request received: /chat',
+        mockLogResponseSent1: 'Response sent (1.2s)',
+        mockLogResponseSent2: 'Response sent (1.8s)',
+        mockLogHealthCheck: 'Health check passed'
     },
     privacy: {
         title: 'Privacy Policy',

@@ -173,9 +173,9 @@ const api = {
         client.post<ClawChannelsResponse>(`/claws/${id}/channels`),
     updateClawChannels: (id: string, data: UpdateClawChannelsData) =>
         client.put<void>(`/claws/${id}/channels`, data),
-    pairWhatsApp: (id: string) =>
+    pairWhatsApp: (id: string, force?: boolean) =>
         client.post<WhatsAppPairResponse>(
-            `/claws/${id}/channels/whatsapp/pair`
+            `/claws/${id}/channels/whatsapp/pair${force ? '?force=true' : ''}`
         ),
     pairWhatsAppStatus: (id: string) =>
         client.post<WhatsAppPairStatusResponse>(

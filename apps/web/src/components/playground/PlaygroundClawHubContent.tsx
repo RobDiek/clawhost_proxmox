@@ -5,7 +5,8 @@ import type {
     PlaygroundClawHubContentProps
 } from '@/ts/Interfaces'
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useDebouncedValue } from '@/hooks'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
 import {
@@ -21,7 +22,7 @@ import {
 import { PanelPlaceholder, TruncateTooltip } from '@/components'
 import { Skeleton } from '@/components/ui'
 import { api, getLocale } from '@/lib'
-import { useUIStore } from '@/lib/store'
+import { useUIStore, useClawHubStore } from '@/lib/store'
 
 const PAGE_SIZE = 50
 
@@ -30,23 +31,17 @@ const PlaygroundClawHubContent: FC<PlaygroundClawHubContentProps> = ({
     agentId
 }): ReactNode => {
     const [search, setSearch] = useState('')
-    const [debouncedSearch, setDebouncedSearch] = useState('')
-    const [page, setPage] = useState(1)
-    const [pendingSlug, setPendingSlug] = useState<string | null>(null)
+    const debouncedSearch = useDebouncedValue(search.trim(), 400)
+    const {
+        pendingSlug,
+        setPendingSlug,
+        page,
+        setPage
+    } = useClawHubStore()
     const { showToast } = useUIStore()
     const queryClient = useQueryClient()
-    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-    useEffect(() => {
-        if (debounceRef.current) clearTimeout(debounceRef.current)
-        debounceRef.current = setTimeout(() => {
-            setDebouncedSearch(search.trim())
-            setPage(1)
-        }, 400)
-        return () => {
-            if (debounceRef.current) clearTimeout(debounceRef.current)
-        }
-    }, [search])
+    useEffect(() => { setPage(1) }, [debouncedSearch, setPage])
 
     const browseKey = ['clawhub-browse', clawId, debouncedSearch, page]
     const installedKey = ['clawhub-installed', clawId, agentId]

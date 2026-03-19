@@ -135,7 +135,7 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
                                     value={gatewayToken}
                                     onChange={(e) => setGatewayToken(e.target.value)}
                                     type={showToken ? 'text' : 'password'}
-                                    placeholder='e.g. a1b2c3d4e5f6...'
+                                    placeholder={t('createClaw.gatewayTokenPlaceholder')}
                                     className='pr-9'
                                 />
                                 <button
@@ -173,7 +173,7 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     type={showPassword ? 'text' : 'password'}
-                                    placeholder='e.g. sun-wolf-42'
+                                    placeholder={t('createClaw.rootPasswordPlaceholder')}
                                     className='pr-9'
                                 />
                                 <button

@@ -31,6 +31,7 @@ import {
     Header,
     LandingFooter,
     LicenseCard,
+    LocalBackground,
     Logo,
     LanguageSelector,
     ThemeToggle,
@@ -233,12 +234,7 @@ const Account: FC = (): ReactNode => {
         <div
             className={`bg-background text-foreground ${isLocal ? 'fixed inset-0 flex flex-col overflow-hidden' : 'relative flex min-h-screen flex-col'}`}
         >
-            {isLocal && (
-                <div className='playground-grid pointer-events-none fixed inset-0 opacity-50' />
-            )}
-            {isLocal && (
-                <div className='playground-gradient pointer-events-none fixed inset-0 opacity-30' />
-            )}
+            {isLocal && <LocalBackground />}
             <PageTitle
                 title={t('account.title')}
                 description={t('account.description')}

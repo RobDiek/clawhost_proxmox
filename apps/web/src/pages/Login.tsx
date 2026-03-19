@@ -7,10 +7,11 @@ import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { inputValidation } from '@openclaw/shared'
 import { useAuth } from '@/lib/auth'
+import { useNetworkStatus } from '@/hooks'
 import { useUIStore } from '@/lib/store'
 import { ROUTES } from '@/lib'
 import { Button, Input, Label } from '@/components/ui'
-import { AnnouncementBanner, Logo, PageBackground, PageTitle } from '@/components'
+import { AnnouncementBanner, Logo, NetworkStatus, PageBackground, PageTitle, ProductHuntBanner } from '@/components'
 import {
     EnvelopeIcon,
     CircleNotchIcon,
@@ -46,9 +47,11 @@ const Login: FC = (): ReactNode => {
         sendOtp,
         verifyOtp,
         signInWithGoogle,
-        signInWithGithub
+        signInWithGithub,
+        isLocal
     } = useAuth()
     const { showToast } = useUIStore()
+    const isOffline = useNetworkStatus()
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
     const planParam = searchParams.get('plan')
@@ -265,8 +268,15 @@ const Login: FC = (): ReactNode => {
     }
 
     return (
-        <div className='bg-background text-foreground relative min-h-screen'>
-            <AnnouncementBanner />
+        <div className={`bg-background text-foreground ${isLocal ? 'fixed inset-0 flex flex-col overflow-hidden' : 'relative min-h-screen'}`}>
+            {isOffline ? (
+                <NetworkStatus />
+            ) : (
+                <>
+                    <ProductHuntBanner />
+                    {!isLocal && <AnnouncementBanner />}
+                </>
+            )}
             <div className='flex min-h-screen items-center justify-center px-4'>
             <PageTitle
                 title={

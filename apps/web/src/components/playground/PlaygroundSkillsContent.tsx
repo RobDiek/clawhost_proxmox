@@ -10,6 +10,7 @@ import type {
 } from '@/ts/Interfaces'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useDebouncedValue } from '@/hooks'
 import {
     useQuery,
     useInfiniteQuery,
@@ -30,7 +31,7 @@ import {
 import { PanelPlaceholder, TruncateTooltip } from '@/components'
 import { Skeleton } from '@/components/ui'
 import { api, getLocale } from '@/lib'
-import { useUIStore } from '@/lib/store'
+import { useUIStore, useSkillsStore } from '@/lib/store'
 
 const PAGE_SIZE = 50
 
@@ -42,24 +43,17 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
     const [skills, setSkills] = useState<BundledSkillInfo[]>([])
     const [entries, setEntries] = useState<Record<string, SkillEntryConfig>>({})
     const [search, setSearch] = useState('')
-    const [debouncedSearch, setDebouncedSearch] = useState('')
-    const [pendingSkill, setPendingSkill] = useState<string | null>(null)
-    const [pendingSlug, setPendingSlug] = useState<string | null>(null)
+    const debouncedSearch = useDebouncedValue(search.trim(), 400)
+    const {
+        pendingSkill,
+        setPendingSkill,
+        pendingSlug,
+        setPendingSlug
+    } = useSkillsStore()
     const { showToast } = useUIStore()
     const queryClient = useQueryClient()
-    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const sentinelRef = useRef<HTMLDivElement | null>(null)
     const scrollRef = useRef<HTMLDivElement | null>(null)
-
-    useEffect(() => {
-        if (debounceRef.current) clearTimeout(debounceRef.current)
-        debounceRef.current = setTimeout(() => {
-            setDebouncedSearch(search.trim())
-        }, 400)
-        return () => {
-            if (debounceRef.current) clearTimeout(debounceRef.current)
-        }
-    }, [search])
 
     const clawQueryKey = ['claw-skills', clawId]
     const agentQueryKey = ['agent-skills', clawId, agentId]

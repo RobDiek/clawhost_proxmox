@@ -2,11 +2,9 @@ import type { UpdateClawEnvVarsBody } from '@/ts/Interfaces'
 import type { AuthenticatedContext } from '@/ts/Types'
 
 import executeSSH from '@/services/ssh'
-import { findUserClaw, validateEnvVars } from '@/controllers/claws/helpers'
+import { BASE_DIR, findUserClaw, validateEnvVars } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
-
-const BASE_DIR = '/home/openclaw/.openclaw'
 
 const updateClawEnvVars = async (c: AuthenticatedContext) => {
     try {

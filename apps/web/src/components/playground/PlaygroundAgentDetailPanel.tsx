@@ -11,49 +11,27 @@ import type { TranslationKey } from '@openclaw/i18n'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { AGENT_DETAIL_TABS } from '@/lib/constants'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
 import {
-    XIcon,
     ChatCircleIcon,
     GearSixIcon,
-    CircleNotchIcon,
-    EyeIcon,
-    EyeSlashIcon,
-    CopyIcon,
-    CheckIcon,
-    TrashIcon,
     LightningIcon,
-    ChatsCircleIcon,
-    ArrowsOutIcon,
-    ArrowsInIcon
+    ChatsCircleIcon
 } from '@phosphor-icons/react'
-import {
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent,
-    Select,
-    SelectTrigger,
-    SelectContent,
-    SelectItem,
-    SelectGroup,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    Skeleton,
-    Checkbox
-} from '@/components/ui'
 import {
     AgentChat,
     PlaygroundSkillsContent,
     PlaygroundBindingsContent
 } from '@/components/playground'
-import { ClawAvatar, PanelPlaceholder } from '@/components'
-import { api, TRUNCATE_LENGTHS, copyToClipboard } from '@/lib'
+import {
+    AgentDetailHeader,
+    AgentDetailConfigTab,
+    AgentDeleteDialog
+} from '@/components/playground/agent-detail'
+import { api } from '@/lib'
 import { useUIStore } from '@/lib/store'
-import { aiModels, validateAgentName } from '@/lib/claw-utils'
+import { aiModels } from '@/lib/claw-utils'
 import { PLAYGROUND_AGENTS_QUERY_KEY } from '@/hooks'
 
 const agentTabStateMap: Record<string, PlaygroundAgentDetailTab> = {}
@@ -127,49 +105,12 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
         }
     }, [initialTab, agent.id])
     const [, setRenderKey] = useState(0)
-    const [agentName, setAgentName] = useState('')
-    const [nameError, setNameError] = useState<TranslationKey | null>(null)
-    const [selectedModel, setSelectedModel] = useState<string>('')
-    const [apiKeyValue, setApiKeyValue] = useState('')
-    const [hasChanges, setHasChanges] = useState(false)
-    const [showApiKey, setShowApiKey] = useState(false)
-    const [copied, setCopied] = useState(false)
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-    const [dontAskAgain, setDontAskAgain] = useState(false)
     const [isExpanded, setIsExpanded] = useState(false)
     const [, setDeleteRenderKey] = useState(0)
     const { showToast } = useUIStore()
     const queryClient = useQueryClient()
     const isDeleting = deletingAgentIds.has(agent.id)
-
-    const existingAgentNames = useMemo(() => {
-        const cached = queryClient.getQueryData<ClawAgentsResponse>([
-            PLAYGROUND_AGENTS_QUERY_KEY,
-            clawId
-        ])
-        return cached?.agents.map((a) => a.name) || []
-    }, [queryClient, clawId])
-
-    const modelsByProvider = useMemo(() => {
-        const grouped: Record<string, typeof aiModels> = {}
-        aiModels.forEach((model) => {
-            if (!grouped[model.provider]) {
-                grouped[model.provider] = []
-            }
-            grouped[model.provider].push(model)
-        })
-        return grouped
-    }, [])
-
-    const providerKeys = useMemo(
-        () => Object.keys(modelsByProvider),
-        [modelsByProvider]
-    )
-
-    const selectedModelOption = useMemo(
-        () => aiModels.find((m) => m.id === selectedModel),
-        [selectedModel]
-    )
 
     const mockConfigData: AgentConfigResponse | undefined = readOnly
         ? {
@@ -211,89 +152,6 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
         }
     }, [activeTab, queryClient, clawId, agent.id])
 
-    useEffect(() => {
-        if (configData) {
-            setAgentName(agent.name)
-            setNameError(null)
-
-            const model =
-                configData.agent.model || configData.defaultModel || ''
-            setSelectedModel(model)
-
-            const modelOption = aiModels.find((m) => m.id === model)
-            if (modelOption) {
-                setApiKeyValue(configData.envVars[modelOption.envVar] || '')
-            } else {
-                setApiKeyValue('')
-            }
-
-            setHasChanges(false)
-        }
-    }, [configData, agent.name])
-
-    const saveMutation = useMutation({
-        mutationFn: () => {
-            const envVarsObj: Record<string, string> = {}
-            if (selectedModelOption && apiKeyValue) {
-                envVarsObj[selectedModelOption.envVar] = apiKeyValue
-            }
-
-            const nameChanged = agentName !== agent.name
-
-            return api.updateClawAgentConfig(clawId, {
-                agentId: agent.id,
-                name: nameChanged ? agentName : undefined,
-                model: selectedModel || null,
-                envVars: envVarsObj
-            })
-        },
-        onSuccess: () => {
-            showToast(t('playground.configurationSaved'), 'success')
-            setHasChanges(false)
-
-            const newName = agentName
-            queryClient.setQueryData<ClawAgentsResponse>(
-                [PLAYGROUND_AGENTS_QUERY_KEY, clawId],
-                (old) => {
-                    if (!old) return old
-                    return {
-                        ...old,
-                        agents: old.agents.map((a) =>
-                            a.id === agent.id
-                                ? {
-                                      ...a,
-                                      name: newName,
-                                      model: selectedModel || null
-                                  }
-                                : a
-                        )
-                    }
-                }
-            )
-
-            queryClient.setQueryData<AgentConfigResponse>(
-                ['agent-config', clawId, agent.id],
-                (old) => {
-                    if (!old) return old
-                    return {
-                        ...old,
-                        agent: {
-                            ...old.agent,
-                            name: newName,
-                            model: selectedModel || null
-                        }
-                    }
-                }
-            )
-            queryClient.invalidateQueries({
-                queryKey: ['claw-env', clawId]
-            })
-        },
-        onError: () => {
-            showToast(t('playground.configurationSaveFailed'), 'error')
-        }
-    })
-
     const executeDelete = useCallback(() => {
         const agentId = agent.id
         deletingAgentIds.add(agentId)
@@ -328,67 +186,15 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
             executeDelete()
         } else {
             setShowDeleteConfirm(true)
-            setDontAskAgain(false)
         }
     }, [executeDelete])
 
-    const handleConfirmDelete = useCallback(() => {
-        if (dontAskAgain) {
+    const handleConfirmDelete = useCallback((skipFuture: boolean) => {
+        if (skipFuture) {
             skipAgentDeleteConfirmation = true
         }
         executeDelete()
-    }, [dontAskAgain, executeDelete])
-
-    const handleNameChange = useCallback(
-        (value: string) => {
-            setAgentName(value)
-            setHasChanges(true)
-            const error = validateAgentName(
-                value,
-                existingAgentNames,
-                agent.name
-            )
-            setNameError(error)
-        },
-        [existingAgentNames, agent.name]
-    )
-
-    const handleSave = useCallback(() => {
-        const error = validateAgentName(
-            agentName,
-            existingAgentNames,
-            agent.name
-        )
-        if (error) {
-            setNameError(error)
-            return
-        }
-        saveMutation.mutate()
-    }, [agentName, existingAgentNames, agent.name, saveMutation])
-
-    const handleModelChange = useCallback(
-        (model: string) => {
-            setSelectedModel(model)
-            setHasChanges(true)
-
-            const modelOption = aiModels.find((m) => m.id === model)
-            if (modelOption && configData) {
-                setApiKeyValue(configData.envVars[modelOption.envVar] || '')
-            } else {
-                setApiKeyValue('')
-            }
-            setShowApiKey(false)
-        },
-        [configData]
-    )
-
-    const handleCopyApiKey = useCallback(async () => {
-        if (apiKeyValue) {
-            await copyToClipboard(apiKeyValue)
-            setCopied(true)
-            setTimeout(() => setCopied(false), 2000)
-        }
-    }, [apiKeyValue])
+    }, [executeDelete])
 
     return (
         <motion.div
@@ -403,127 +209,19 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
             }
         >
             <div className='bg-background md:border-border md:bg-background/95 flex h-full w-full flex-col md:border-l md:backdrop-blur-xl'>
-                <div className='border-border flex items-center justify-between border-b px-5 py-2.5'>
-                    <div className='flex items-center gap-2.5'>
-                        <ClawAvatar />
-                        <div className='space-y-0'>
-                            <h3 className='text-foreground text-sm font-semibold leading-tight'>
-                                {agent.name.length >
-                                TRUNCATE_LENGTHS.PANEL_NAME ? (
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <span>
-                                                {agent.name.slice(
-                                                    0,
-                                                    TRUNCATE_LENGTHS.PANEL_NAME
-                                                )}
-                                                ...
-                                            </span>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            {agent.name}
-                                        </TooltipContent>
-                                    </Tooltip>
-                                ) : (
-                                    agent.name
-                                )}
-                            </h3>
-                            <span className='text-muted-foreground block text-xs leading-tight'>
-                                {clawName.length >
-                                TRUNCATE_LENGTHS.PANEL_CLAW_SUBTITLE ? (
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <span>
-                                                {t('playground.agentOnClaw', {
-                                                    clawName:
-                                                        clawName.slice(
-                                                            0,
-                                                            TRUNCATE_LENGTHS.PANEL_CLAW_SUBTITLE
-                                                        ) + '...'
-                                                })}
-                                            </span>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            {clawName}
-                                        </TooltipContent>
-                                    </Tooltip>
-                                ) : (
-                                    t('playground.agentOnClaw', { clawName })
-                                )}
-                            </span>
-                        </div>
-                    </div>
-                    <div className='flex items-center gap-1'>
-                        {!hideChatTab &&
-                            (activeTab === AGENT_DETAIL_TABS.CHAT ||
-                                isExpanded) && (
-                                <button
-                                    onClick={() => setIsExpanded(!isExpanded)}
-                                    className='text-muted-foreground hover:bg-foreground/10 hover:text-foreground rounded-lg p-1.5 transition-colors'
-                                >
-                                    {isExpanded ? (
-                                        <ArrowsInIcon
-                                            className='h-4 w-4'
-                                            weight='bold'
-                                        />
-                                    ) : (
-                                        <ArrowsOutIcon
-                                            className='h-4 w-4'
-                                            weight='bold'
-                                        />
-                                    )}
-                                </button>
-                            )}
-                        {!readOnly &&
-                            (agent.id === 'main' || isOnlyAgent ? (
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <span className='inline-flex'>
-                                            <button
-                                                disabled
-                                                className='text-muted-foreground cursor-not-allowed rounded-lg p-1.5 opacity-50 transition-colors'
-                                            >
-                                                <TrashIcon
-                                                    className='h-4 w-4'
-                                                    weight='bold'
-                                                />
-                                            </button>
-                                        </span>
-                                    </TooltipTrigger>
-                                    <TooltipContent side='bottom'>
-                                        <p>
-                                            {t(
-                                                'playground.cannotDeleteDefaultAgent'
-                                            )}
-                                        </p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            ) : (
-                                <button
-                                    onClick={() =>
-                                        !isDeleting && handleDeleteClick()
-                                    }
-                                    disabled={isDeleting}
-                                    className='text-muted-foreground hover:bg-foreground/10 hover:text-foreground rounded-lg p-1.5 transition-colors disabled:cursor-not-allowed'
-                                >
-                                    {isDeleting ? (
-                                        <CircleNotchIcon className='text-foreground h-4 w-4 animate-spin' />
-                                    ) : (
-                                        <TrashIcon
-                                            className='h-4 w-4'
-                                            weight='bold'
-                                        />
-                                    )}
-                                </button>
-                            ))}
-                        <button
-                            onClick={onClose}
-                            className='text-muted-foreground hover:bg-foreground/10 hover:text-foreground rounded-lg p-1.5 transition-colors'
-                        >
-                            <XIcon className='h-4 w-4' weight='bold' />
-                        </button>
-                    </div>
-                </div>
+                <AgentDetailHeader
+                    agent={agent}
+                    clawName={clawName}
+                    isOnlyAgent={isOnlyAgent}
+                    isExpanded={isExpanded}
+                    isDeleting={isDeleting}
+                    readOnly={readOnly}
+                    hideChatTab={hideChatTab}
+                    activeTab={activeTab}
+                    onToggleExpand={() => setIsExpanded(!isExpanded)}
+                    onDeleteClick={handleDeleteClick}
+                    onClose={onClose}
+                />
 
                 <AnimatePresence>
                     {!isExpanded && (
@@ -584,326 +282,24 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
 
                     {!isExpanded &&
                         activeTab === AGENT_DETAIL_TABS.CONFIGURATION && (
-                            <div className='h-full overflow-y-auto p-5'>
-                                {isConfigLoading ? (
-                                    <div className='space-y-5'>
-                                        <div>
-                                            <Skeleton className='mb-2 h-4 w-16' />
-                                            <Skeleton className='h-9 w-full rounded-md' />
-                                            <Skeleton className='mt-1.5 h-3 w-48' />
-                                        </div>
-                                        <div>
-                                            <Skeleton className='mb-2 h-4 w-14' />
-                                            <Skeleton className='h-9 w-full rounded-md' />
-                                            <Skeleton className='mt-1.5 h-3 w-56' />
-                                        </div>
-                                        <Skeleton className='h-10 w-full rounded-lg' />
-                                    </div>
-                                ) : isConfigError ? (
-                                    <PanelPlaceholder
-                                        icon={
-                                            <GearSixIcon
-                                                className='text-muted-foreground h-6 w-6'
-                                                weight='duotone'
-                                            />
-                                        }
-                                        title={t(
-                                            'playground.configurationLoadFailed'
-                                        )}
-                                        description={t(
-                                            'playground.configurationLoadFailedDescription'
-                                        )}
-                                    />
-                                ) : (
-                                    <div className='space-y-5'>
-                                        <div>
-                                            <label className='text-muted-foreground mb-2 block text-xs font-medium'>
-                                                {t(
-                                                    'playground.configurationName'
-                                                )}
-                                            </label>
-                                            <input
-                                                type='text'
-                                                value={agentName}
-                                                onChange={(e) =>
-                                                    handleNameChange(
-                                                        e.target.value
-                                                    )
-                                                }
-                                                onKeyDown={(e) => {
-                                                    if (
-                                                        e.key === 'Enter' &&
-                                                        !readOnly &&
-                                                        !saveMutation.isPending &&
-                                                        hasChanges &&
-                                                        !nameError
-                                                    ) {
-                                                        handleSave()
-                                                    }
-                                                }}
-                                                placeholder={t(
-                                                    'playground.configurationNamePlaceholder'
-                                                )}
-                                                className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border px-3 py-2 text-sm outline-none transition-colors focus:border-[#ef5350]/50 ${
-                                                    nameError
-                                                        ? 'border-red-500/50'
-                                                        : 'border-border'
-                                                }`}
-                                            />
-                                            {nameError ? (
-                                                <p className='mt-1.5 text-[11px] text-red-600 dark:text-red-400'>
-                                                    {t(nameError)}
-                                                </p>
-                                            ) : (
-                                                <p className='text-muted-foreground mt-1.5 text-[11px]'>
-                                                    {t(
-                                                        'playground.configurationNameDescription'
-                                                    )}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        <div>
-                                            <label className='text-muted-foreground mb-2 block text-xs font-medium'>
-                                                {t(
-                                                    'playground.configurationModel'
-                                                )}
-                                            </label>
-                                            <Select
-                                                value={selectedModel}
-                                                onValueChange={
-                                                    handleModelChange
-                                                }
-                                                displayValue={
-                                                    selectedModelOption?.name
-                                                }
-                                            >
-                                                <SelectTrigger
-                                                    placeholder={t(
-                                                        'playground.configurationModelPlaceholder'
-                                                    )}
-                                                    className='border-border bg-foreground/5 text-foreground h-9 text-sm'
-                                                />
-                                                <SelectContent className='max-h-[300px] overflow-y-auto'>
-                                                    {providerKeys.map(
-                                                        (provider, index) => (
-                                                            <SelectGroup
-                                                                key={provider}
-                                                                label={provider}
-                                                                isLast={
-                                                                    index ===
-                                                                    providerKeys.length -
-                                                                        1
-                                                                }
-                                                            >
-                                                                {modelsByProvider[
-                                                                    provider
-                                                                ].map(
-                                                                    (model) => (
-                                                                        <SelectItem
-                                                                            key={
-                                                                                model.id
-                                                                            }
-                                                                            value={
-                                                                                model.id
-                                                                            }
-                                                                        >
-                                                                            {
-                                                                                model.name
-                                                                            }
-                                                                        </SelectItem>
-                                                                    )
-                                                                )}
-                                                            </SelectGroup>
-                                                        )
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                            <p className='text-muted-foreground mt-1.5 text-[11px]'>
-                                                {t(
-                                                    'playground.configurationModelDescription'
-                                                )}
-                                            </p>
-                                        </div>
-
-                                        {selectedModelOption && (
-                                            <div>
-                                                <div className='mb-2 flex items-center justify-between'>
-                                                    <label className='text-muted-foreground text-xs font-medium'>
-                                                        {t(
-                                                            'playground.configurationApiKey'
-                                                        )}
-                                                    </label>
-                                                    <div className='flex items-center gap-1'>
-                                                        <Tooltip>
-                                                            <TooltipTrigger
-                                                                asChild
-                                                            >
-                                                                <button
-                                                                    type='button'
-                                                                    onClick={() =>
-                                                                        setShowApiKey(
-                                                                            !showApiKey
-                                                                        )
-                                                                    }
-                                                                    className='text-muted-foreground hover:text-foreground/80 rounded p-1 transition-colors'
-                                                                >
-                                                                    {showApiKey ? (
-                                                                        <EyeSlashIcon className='h-3.5 w-3.5' />
-                                                                    ) : (
-                                                                        <EyeIcon className='h-3.5 w-3.5' />
-                                                                    )}
-                                                                </button>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>
-                                                                {showApiKey
-                                                                    ? t(
-                                                                          'common.hide'
-                                                                      )
-                                                                    : t(
-                                                                          'common.show'
-                                                                      )}
-                                                            </TooltipContent>
-                                                        </Tooltip>
-                                                        {apiKeyValue && (
-                                                            <Tooltip>
-                                                                <TooltipTrigger
-                                                                    asChild
-                                                                >
-                                                                    <button
-                                                                        type='button'
-                                                                        onClick={
-                                                                            handleCopyApiKey
-                                                                        }
-                                                                        className='text-muted-foreground hover:text-foreground/80 rounded p-1 transition-colors'
-                                                                    >
-                                                                        {copied ? (
-                                                                            <CheckIcon className='h-3.5 w-3.5 text-green-600 dark:text-green-400' />
-                                                                        ) : (
-                                                                            <CopyIcon className='h-3.5 w-3.5' />
-                                                                        )}
-                                                                    </button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    {t(
-                                                                        'common.copy'
-                                                                    )}
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <input
-                                                    type={
-                                                        showApiKey
-                                                            ? 'text'
-                                                            : 'password'
-                                                    }
-                                                    value={apiKeyValue}
-                                                    onChange={(e) => {
-                                                        setApiKeyValue(
-                                                            e.target.value
-                                                        )
-                                                        setHasChanges(true)
-                                                    }}
-                                                    onKeyDown={(e) => {
-                                                        if (
-                                                            e.key === 'Enter' &&
-                                                            !readOnly &&
-                                                            !saveMutation.isPending &&
-                                                            hasChanges &&
-                                                            !nameError
-                                                        ) {
-                                                            handleSave()
-                                                        }
-                                                    }}
-                                                    placeholder={t(
-                                                        'playground.configurationApiKeyPlaceholder'
-                                                    )}
-                                                    className='border-border bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border px-3 py-2 font-mono text-[11px] outline-none transition-colors focus:border-[#ef5350]/50'
-                                                />
-                                                <p className='text-muted-foreground mt-1.5 text-[11px]'>
-                                                    <span className='text-muted-foreground font-mono'>
-                                                        {
-                                                            selectedModelOption.envVar
-                                                        }
-                                                    </span>
-                                                    {' — '}
-                                                    {t(
-                                                        'playground.configurationApiKeyDescription',
-                                                        {
-                                                            modelName:
-                                                                selectedModelOption.name
-                                                        }
-                                                    )}
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        <button
-                                            onClick={handleSave}
-                                            disabled={
-                                                readOnly ||
-                                                saveMutation.isPending ||
-                                                !hasChanges ||
-                                                !!nameError
-                                            }
-                                            className='flex w-full items-center justify-center gap-2 rounded-lg bg-[#ef5350] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#e53935] disabled:cursor-not-allowed disabled:opacity-50'
-                                        >
-                                            {saveMutation.isPending && (
-                                                <CircleNotchIcon className='h-4 w-4 animate-spin' />
-                                            )}
-                                            {t('playground.configurationSave')}
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                            <AgentDetailConfigTab
+                                agent={agent}
+                                clawId={clawId}
+                                configData={configData}
+                                isConfigLoading={isConfigLoading}
+                                isConfigError={isConfigError}
+                                readOnly={readOnly}
+                            />
                         )}
                 </div>
             </div>
 
-            <Dialog
+            <AgentDeleteDialog
                 open={showDeleteConfirm}
                 onOpenChange={setShowDeleteConfirm}
-            >
-                <DialogContent className='max-w-sm'>
-                    <DialogHeader>
-                        <DialogTitle>
-                            {t('playground.deleteAgentTitle')}
-                        </DialogTitle>
-                        <DialogDescription className='w-[90%]'>
-                            {t('playground.deleteAgentDescription', {
-                                agentName: agent.name
-                            })}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <label className='mt-3 flex cursor-pointer items-center gap-2.5'>
-                        <Checkbox
-                            checked={dontAskAgain}
-                            onCheckedChange={(checked) =>
-                                setDontAskAgain(!!checked)
-                            }
-                        />
-                        <span className='text-muted-foreground text-xs'>
-                            {t('playground.agentDontAskAgain')}
-                        </span>
-                    </label>
-                    <div className='mt-4 flex justify-end gap-3'>
-                        <button
-                            onClick={() => setShowDeleteConfirm(false)}
-                            className='text-muted-foreground hover:text-foreground rounded-lg px-4 py-2 text-sm font-medium transition-colors'
-                        >
-                            {t('common.cancel')}
-                        </button>
-                        <button
-                            onClick={handleConfirmDelete}
-                            className='rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700'
-                        >
-                            {t('playground.deleteAgentConfirm')}
-                        </button>
-                    </div>
-                </DialogContent>
-            </Dialog>
+                agentName={agent.name}
+                onConfirm={handleConfirmDelete}
+            />
         </motion.div>
     )
 }

@@ -14,11 +14,13 @@ import FaqSection from '@/components/FaqSection'
 import FeaturesGrid from '@/components/FeaturesGrid'
 import Footer from '@/components/Footer'
 import GoPricingCard from '@/components/GoPricingCard'
+import GoWaitlistCTA from '@/components/GoWaitlistCTA'
 import Header from '@/components/Header'
 import HeroBadge from '@/components/HeroBadge'
 import HeroButtons from '@/components/HeroButtons'
 import HeroTitle from '@/components/HeroTitle'
 import JsonLd from '@/components/JsonLd'
+import LocalBackground from '@/components/LocalBackground'
 import LandingCTA from '@/components/LandingCTA'
 import LanguageSelector from '@/components/LanguageSelector'
 import LandingFooter from '@/components/LandingFooter'
@@ -65,11 +67,13 @@ export {
     FeaturesGrid,
     Footer,
     GoPricingCard,
+    GoWaitlistCTA,
     Header,
     HeroBadge,
     HeroButtons,
     HeroTitle,
     JsonLd,
+    LocalBackground,
     LandingCTA,
     LanguageSelector,
     LandingFooter,

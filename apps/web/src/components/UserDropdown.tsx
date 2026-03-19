@@ -145,7 +145,7 @@ const UserDropdown: FC<UserDropdownProps> = ({
                             <>
                                 <DropdownMenuSeparator className='bg-border' />
                                 <p className='text-muted-foreground/40 px-2 py-0.5 text-center text-[10px] tracking-wider'>
-                                    ClawHost Go {appVersion}
+                                    {t('common.brandNameGoVersion', { version: appVersion })}
                                 </p>
                             </>
                         )}

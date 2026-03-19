@@ -69,6 +69,13 @@ interface VersionEntry extends NpmVersionEntry {
     installed: boolean
 }
 
+interface AppUpdateInfo {
+    hasUpdate: boolean
+    currentVersion: string
+    latestVersion?: string
+    downloadUrl?: string
+}
+
 export type {
     ElectronAPI,
     LocalClawConfig,
@@ -79,5 +86,6 @@ export type {
     ReadClawFileData,
     UpdateProfileData,
     NpmVersionEntry,
-    VersionEntry
+    VersionEntry,
+    AppUpdateInfo
 }

@@ -2,6 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { MacosDesktopPreviewProps } from '@/ts/Interfaces'
 
 import { lazy, Suspense } from 'react'
+import { t } from '@openclaw/i18n'
 import { motion } from 'framer-motion'
 import {
     EnvelopeSimpleIcon,
@@ -40,12 +41,12 @@ const MacosDesktopPreview: FC<MacosDesktopPreviewProps> = ({ previewRef, preview
                 >
                     <div className='flex items-center justify-between bg-black/30 px-4 py-1 backdrop-blur-xl'>
                         <div className='flex items-center gap-4'>
-                            <span className='text-[11px] font-semibold text-white/90'>ClawHost Go</span>
-                            <span className='hidden text-[11px] text-white/60 sm:inline'>File</span>
-                            <span className='hidden text-[11px] text-white/60 sm:inline'>Edit</span>
-                            <span className='hidden text-[11px] text-white/60 sm:inline'>View</span>
-                            <span className='hidden text-[11px] text-white/60 md:inline'>Window</span>
-                            <span className='hidden text-[11px] text-white/60 md:inline'>Help</span>
+                            <span className='text-[11px] font-semibold text-white/90'>{t('common.brandNameGo')}</span>
+                            <span className='hidden text-[11px] text-white/60 sm:inline'>{t('common.menuFile')}</span>
+                            <span className='hidden text-[11px] text-white/60 sm:inline'>{t('common.menuEdit')}</span>
+                            <span className='hidden text-[11px] text-white/60 sm:inline'>{t('common.menuView')}</span>
+                            <span className='hidden text-[11px] text-white/60 md:inline'>{t('common.menuWindow')}</span>
+                            <span className='hidden text-[11px] text-white/60 md:inline'>{t('common.menuHelp')}</span>
                         </div>
                         <div className='flex items-center gap-3'>
                             <WifiHighIcon className='h-3.5 w-3.5 text-white/70' weight='bold' />
@@ -64,7 +65,7 @@ const MacosDesktopPreview: FC<MacosDesktopPreviewProps> = ({ previewRef, preview
                                     <div className='h-3 w-3 rounded-full bg-[#28c840]' />
                                 </div>
                                 <span className='flex-1 text-center text-xs text-white/50'>
-                                    ClawHost Go
+                                    {t('common.brandNameGo')}
                                 </span>
                                 <div className='w-[54px]' />
                             </div>
@@ -74,7 +75,7 @@ const MacosDesktopPreview: FC<MacosDesktopPreviewProps> = ({ previewRef, preview
                                         <div className='border-border bg-muted/50 h-3 w-3 animate-pulse rounded-full' />
                                     </div>
                                 }>
-                                    <LazyDemoPreview urlOverride='ClawHost Go' hideTitleBar />
+                                    <LazyDemoPreview urlOverride={t('common.brandNameGo')} hideTitleBar />
                                 </Suspense>
                             </div>
                         </div>

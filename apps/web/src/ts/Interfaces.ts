@@ -5,6 +5,7 @@ import type { UseQueryResult } from '@tanstack/react-query'
 import type { TranslationKey } from '@openclaw/i18n'
 import type {
     AuthMethod,
+    BillingInterval,
     ChatMessageRole,
     ChatMessageStatus,
     ClawAvatarSize,
@@ -20,6 +21,7 @@ import type {
     ChatSidebarViewMode,
     ChatTypingIndicator,
     CompareFeatureStatus,
+    TerminalStatus,
     ToastType,
     UserRole,
     Product
@@ -189,6 +191,102 @@ export interface PreferencesState {
     setChatSidebarView: (view: ChatSidebarViewMode) => void
     product: Product
     setProduct: (product: Product) => void
+}
+
+export interface ChannelsState {
+    isPairing: boolean
+    setIsPairing: (value: boolean) => void
+    pollEnabled: boolean
+    setPollEnabled: (value: boolean) => void
+    pairUnsupported: boolean
+    setPairUnsupported: (value: boolean) => void
+    isWhatsAppPaired: boolean
+    setIsWhatsAppPaired: (value: boolean) => void
+    isRepairing: boolean
+    setIsRepairing: (value: boolean) => void
+    initialCheckDone: boolean
+    setInitialCheckDone: (value: boolean) => void
+    visibleSecrets: Record<string, boolean>
+    toggleSecret: (fieldId: string) => void
+    resetPairingState: () => void
+}
+
+export interface SkillsState {
+    pendingSkill: string | null
+    setPendingSkill: (value: string | null) => void
+    pendingSlug: string | null
+    setPendingSlug: (value: string | null) => void
+    resetSkillsState: () => void
+}
+
+export interface VersionsState {
+    installingVersion: string | null
+    setInstallingVersion: (value: string | null) => void
+    confirmVersion: string | null
+    setConfirmVersion: (value: string | null) => void
+    resetVersionsState: () => void
+}
+
+export interface VariablesState {
+    showValues: Record<string, boolean>
+    toggleValue: (key: string) => void
+    copiedKey: string | null
+    setCopiedKey: (value: string | null) => void
+    showErrors: boolean
+    setShowErrors: (value: boolean) => void
+    deleteIndex: number | null
+    setDeleteIndex: (value: number | null) => void
+    dontAskAgain: boolean
+    setDontAskAgain: (value: boolean) => void
+    resetVariablesState: () => void
+}
+
+export interface ClawHubState {
+    pendingSlug: string | null
+    setPendingSlug: (value: string | null) => void
+    page: number
+    setPage: (value: number | ((prev: number) => number)) => void
+    resetClawHubState: () => void
+}
+
+export interface TerminalState {
+    status: TerminalStatus
+    setStatus: (value: TerminalStatus | ((prev: TerminalStatus) => TerminalStatus)) => void
+    showScrollButton: boolean
+    setShowScrollButton: (value: boolean) => void
+    resetTerminalState: () => void
+}
+
+export interface DashboardState {
+    selectedClawId: string | null
+    setSelectedClawId: (value: string | null) => void
+    selectedAgentId: string | null
+    setSelectedAgentId: (value: string | null) => void
+    selectedAgentClawId: string | null
+    setSelectedAgentClawId: (value: string | null) => void
+    chatSelectedAgent: ChatSelectedAgent | null
+    setChatSelectedAgent: (value: ChatSelectedAgent | null) => void
+    chatSettingsClawId: string | null
+    setChatSettingsClawId: (value: string | null) => void
+    chatAgentTab: PlaygroundAgentDetailTab | null
+    setChatAgentTab: (value: PlaygroundAgentDetailTab | null) => void
+    playgroundAgentTab: PlaygroundAgentDetailTab | null
+    setPlaygroundAgentTab: (value: PlaygroundAgentDetailTab | null) => void
+    playgroundClawTab: PlaygroundDetailTab | null
+    setPlaygroundClawTab: (value: PlaygroundDetailTab | null) => void
+    chatClawTab: PlaygroundDetailTab | null
+    setChatClawTab: (value: PlaygroundDetailTab | null) => void
+    showCreate: boolean
+    setShowCreate: (value: boolean) => void
+    preselectedPlanId: string | null
+    setPreselectedPlanId: (value: string | null) => void
+    preselectedProvider: ProviderType | null
+    setPreselectedProvider: (value: ProviderType | null) => void
+    createAgentClawId: string | null
+    setCreateAgentClawId: (value: string | null) => void
+    createAgentClawName: string
+    setCreateAgentClawName: (value: string) => void
+    resetDashboardState: () => void
 }
 
 export interface CachedProfile {
@@ -845,6 +943,36 @@ export interface PlaygroundAgentDetailPanelProps {
     initialTab?: PlaygroundAgentDetailTab
     onTabChange?: (tab: PlaygroundAgentDetailTab) => void
     hideChatTab?: boolean
+}
+
+export interface AgentDetailHeaderProps {
+    agent: ClawAgent
+    clawName: string
+    isOnlyAgent: boolean
+    isExpanded: boolean
+    isDeleting: boolean
+    readOnly?: boolean
+    hideChatTab?: boolean
+    activeTab: PlaygroundAgentDetailTab
+    onToggleExpand: () => void
+    onDeleteClick: () => void
+    onClose: () => void
+}
+
+export interface AgentDetailConfigTabProps {
+    agent: ClawAgent
+    clawId: string
+    configData: AgentConfigResponse | undefined
+    isConfigLoading: boolean
+    isConfigError: boolean
+    readOnly?: boolean
+}
+
+export interface AgentDeleteDialogProps {
+    open: boolean
+    onOpenChange: (open: boolean) => void
+    agentName: string
+    onConfirm: (skipFuture: boolean) => void
 }
 
 export interface ClawEnvVarsResponse {
@@ -1640,4 +1768,69 @@ export interface ComparisonTableProps {
     rows: ComparisonRow[]
     showFullComparisonLink?: boolean
     logoSuffix?: string
+}
+
+export interface ProviderSelectorProps {
+    provider: ProviderType
+    atCapacity: boolean
+    isProviderUnavailable: (p: ProviderType) => boolean
+    onProviderChange: (p: ProviderType) => void
+}
+
+export interface LocationSelectorProps {
+    locations: Location[]
+    location: string
+    planId: string
+    atCapacity: boolean
+    isLoading: boolean
+    isLocationAvailableForPlan: (locationId: string, planId: string) => boolean
+    onLocationChange: (location: string) => void
+    onPlanChange: (planId: string) => void
+    plans: Plan[]
+    isPlanAvailable: (id: string) => boolean
+}
+
+export interface BillingIntervalSelectorProps {
+    billingCycle: BillingInterval
+    onBillingCycleChange: (cycle: BillingInterval) => void
+}
+
+export interface PlanSelectorProps {
+    plans: Plan[]
+    planId: string
+    location: string
+    provider: ProviderType
+    billingCycle: BillingInterval
+    isLoading: boolean
+    isLocationAvailableForPlan: (locationId: string, planId: string) => boolean
+    isPlanAvailable: (id: string) => boolean
+    onPlanChange: (planId: string) => void
+    onLocationChange: (location: string) => void
+    getFirstAvailableLocation: (planId: string) => string
+}
+
+export interface AdvancedOptionsProps {
+    showAdvanced: boolean
+    onToggleAdvanced: () => void
+    password: string
+    onPasswordChange: (password: string) => void
+    showPassword: boolean
+    onToggleShowPassword: () => void
+    sshKeys: SSHKey[]
+    selectedSshKeyId: string
+    onSshKeyChange: (id: string) => void
+    onNavigateToSSHKeys: () => void
+    volumePricing?: VolumePricing
+    volumeSize: number
+    onVolumeSizeChange: (size: number) => void
+}
+
+export interface OrderSummaryProps {
+    selectedPlan: Plan
+    name: string
+    location: string
+    locations: Location[]
+    billingCycle: BillingInterval
+    volumeSize: number
+    volumePricing?: VolumePricing
 }

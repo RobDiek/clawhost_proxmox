@@ -2,11 +2,9 @@ import type { DeleteClawAgentBody } from '@/ts/Interfaces'
 import type { AuthenticatedContext } from '@/ts/Types'
 
 import executeSSH from '@/services/ssh'
-import { applyToolsDefaults, findUserClaw } from '@/controllers/claws/helpers'
+import { applyToolsDefaults, BASE_DIR, findUserClaw } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
-
-const BASE_DIR = '/home/openclaw/.openclaw'
 
 const deleteClawAgent = async (c: AuthenticatedContext) => {
     try {

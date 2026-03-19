@@ -50,3 +50,5 @@ export type PiperVoiceQuality = 'low' | 'medium' | 'high'
 export type BillingInterval = (typeof billingInterval)[keyof typeof billingInterval]
 
 export type PolarPriceMap = Record<string, Record<string, number>>
+
+export type ClawRow = typeof import('@/db/schema').claws.$inferSelect

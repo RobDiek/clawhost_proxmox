@@ -81,7 +81,7 @@ const Changelog: FC = (): ReactNode => {
                                         weight='fill'
                                     />
                                     <span className='text-foreground text-sm'>
-                                        {t('changelog.upcomingReleaseFeature2')}
+                                        {t('changelog.upcomingReleaseFeature12')}
                                     </span>
                                 </li>
                             </ul>

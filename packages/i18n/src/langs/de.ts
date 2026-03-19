@@ -26,6 +26,13 @@ const de: Translations = {
         closeNotification: 'Benachrichtigung schließen',
         beta: 'Beta',
         brandName: 'ClawHost',
+        brandNameGo: 'ClawHost Go',
+        brandNameGoVersion: 'ClawHost Go {{version}}',
+        menuFile: 'Ablage',
+        menuEdit: 'Bearbeiten',
+        menuView: 'Darstellung',
+        menuWindow: 'Fenster',
+        menuHelp: 'Hilfe',
         legalEmail: 'legal@clawhost.cloud',
         scrollToBottom: 'Nach unten scrollen',
         second: 'Sekunde',
@@ -44,6 +51,16 @@ const de: Translations = {
         fr: 'Français',
         es: 'Español',
         de: 'Deutsch',
+        zh: '中文',
+        hi: 'हिन्दी',
+        ar: 'العربية',
+        ru: 'Русский',
+        ja: '日本語',
+        tr: 'Türkçe',
+        it: 'Italiano',
+        pl: 'Polski',
+        nl: 'Nederlands',
+        pt: 'Português',
         switchLanguage: 'Sprache'
     },
     theme: {
@@ -146,12 +163,16 @@ const de: Translations = {
         statsZeroConfig: 'Null Konfiguration',
         ctaTitle: 'OpenClaw lokal ausführen',
         ctaDescription: 'Einmalige Zahlung, lebenslange Lizenz. Stellen Sie OpenClaw auf Ihrem eigenen Gerät bereit — kein Cloud, keine Abonnements, keine Grenzen. Ihre Daten, Ihre Regeln.',
+        ctaButton: 'ClawHost Go holen',
         joinWaitlist: 'Warteliste beitreten',
         joinedWaitlist: 'Auf der Warteliste',
         waitlistJoinedToast: 'Sie sind der Warteliste beigetreten.',
         waitlistAlreadyJoinedToast: 'Diese E-Mail ist bereits auf der Liste.',
         waitlistFailedToast: 'Beitritt zur Warteliste fehlgeschlagen!',
-        waitlistEmailPlaceholder: 'E-Mail eingeben'
+        waitlistEmailPlaceholder: 'E-Mail eingeben',
+        updateAvailable: 'Version {{version}} ist verfügbar.',
+        updateDownload: 'Herunterladen',
+        updateDismiss: 'Später'
     },
     footer: {
         website: 'Webseite',
@@ -596,10 +617,10 @@ const de: Translations = {
             },
             multiLanguage: {
                 subject: 'Wusstest du schon? ClawHost spricht deine Sprache',
-                preview: 'Nutze ClawHost auf Englisch, Französisch, Spanisch oder Deutsch',
+                preview: 'Nutze ClawHost in 14 Sprachen',
                 heading: 'ClawHost in deiner Sprache',
                 description:
-                    'Stelle das gesamte ClawHost-Dashboard auf Englisch, Französisch, Spanisch oder Deutsch um. Von Buttons bis Fehlermeldungen — alles übersetzt.',
+                    'Stelle das gesamte ClawHost-Dashboard auf eine von 14 Sprachen um. Von Buttons bis Fehlermeldungen — alles übersetzt.',
                 cta: 'Sprache ändern'
             },
             subdomain: {
@@ -1009,6 +1030,7 @@ const de: Translations = {
         advancedOptions: 'Erweiterte optionale Optionen',
         rootPassword: 'Root-Passwort',
         rootPasswordPlaceholder: 'Passwort eingeben oder generieren',
+        gatewayTokenPlaceholder: 'z.B. a1b2c3d4e5f6...',
         autoGenerateGatewayTokenHint:
             'Optional. Kein Token, wenn leer gelassen.',
         autoGeneratePasswordHint:
@@ -1338,13 +1360,11 @@ const de: Translations = {
         subtitle:
             'Alle Updates, neue Funktionen und Verbesserungen an ClawHost.',
         upcomingRelease: 'In Bearbeitung',
-        upcomingReleaseTitle: 'Mobil, Desktop & Mehr',
+        upcomingReleaseTitle: 'Mobile App & Mehr',
         upcomingReleaseDescription:
-            'Verwalte deine OpenClaw-Instanzen von überall. Native Mobil- und Desktop-Apps sowie fortlaufende Plattformverbesserungen.',
+            'Verwalte deine OpenClaw-Instanzen von überall. Eine native mobile App sowie fortlaufende Plattformverbesserungen.',
         upcomingReleaseFeature1:
             'Native mobile App zur Überwachung und Verwaltung deiner OpenClaw-Instanzen unterwegs',
-        upcomingReleaseFeature2:
-            'Lokale Desktop-App zum Self-Hosting von OpenClaw auf macOS, Windows und Linux',
         upcomingReleaseFeature3: 'Unterstützung für dunkles und helles Design',
         upcomingReleaseFeature4:
             'Verbesserungen bei Leistung, Stabilität und Reaktionsfähigkeit',
@@ -1362,6 +1382,16 @@ const de: Translations = {
             'OpenClaw auf Ihrer Instanz neu installieren, um von vorne zu beginnen, einmal pro Tag verfügbar',
         upcomingReleaseFeature11:
             'Landingpage für ClawHost Go, lokales Hosting mit ClawHost',
+        upcomingReleaseFeature12:
+            'Desktop-App für macOS und Windows, um OpenClaw lokal mit einem Klick bereitzustellen',
+        release13Date: '19. März 2026',
+        release13Title: 'Neue Sprachen & ClawHost Go Beta',
+        release13Description:
+            '10 neue Sprachen und ClawHost Go Beta für lokales OpenClaw-Deployment auf macOS und Windows mit einem Klick.',
+        release13Feature1:
+            '10 neue Sprachen hinzugefügt: Chinesisch, Hindi, Arabisch, Russisch, Japanisch, Türkisch, Italienisch, Polnisch, Niederländisch und Portugiesisch',
+        release13Feature2:
+            'Beta-Version von ClawHost Go für macOS und Windows, OpenClaw lokal mit einem Klick deployen',
         release12Date: '14. März 2026',
         release12Title: 'Jahresabonnements, Sprachmodus & mehr',
         release12Description:
@@ -1732,11 +1762,16 @@ const de: Translations = {
             'Scanne diesen QR-Code mit WhatsApp, um dein Gerät zu koppeln.',
         channelsWhatsAppScanInstructions:
             'Öffne WhatsApp > Einstellungen > Verknüpfte Geräte > Gerät hinzufügen',
+        channelsWhatsAppQrRefreshed:
+            'Der vorherige QR-Code ist abgelaufen. Scanne den neuen unten.',
         channelsWhatsAppPaired: 'WhatsApp erfolgreich gekoppelt.',
         channelsWhatsAppPairFailed:
             'Kopplung fehlgeschlagen. Bitte versuche es erneut!',
         channelsWhatsAppAlreadyPaired: 'WhatsApp ist bereits gekoppelt!',
         channelsWhatsAppUnpair: 'Entkoppeln',
+        channelsWhatsAppConnected: 'Verbunden',
+        channelsWhatsAppRepair: 'Neu koppeln',
+        channelsWhatsAppChecking: 'Verbindung wird überprüft...',
         channelsWhatsAppUnsupported:
             'WhatsApp-Kopplung ist auf dieser Instanz nicht verfügbar. Aktualisiere OpenClaw auf eine neuere Version, um sie zu aktivieren!',
         channelsTelegram: 'Telegram',
@@ -1863,7 +1898,15 @@ const de: Translations = {
         subdomainInUse:
             'Diese Subdomain wird bereits von einem anderen Claw verwendet!',
         settingsSave: 'Speichern',
-        settingsSaving: 'Speichern...'
+        settingsSaving: 'Speichern...',
+        mockLogStarting: 'Starting OpenClaw agent...',
+        mockLogLoadingModel: 'Loading model: claude-sonnet-4-5',
+        mockLogAgentReady: 'Agent ready on port 3000',
+        mockLogConnected: 'Connected to gateway',
+        mockLogRequestReceived: 'Request received: /chat',
+        mockLogResponseSent1: 'Response sent (1.2s)',
+        mockLogResponseSent2: 'Response sent (1.8s)',
+        mockLogHealthCheck: 'Health check passed'
     },
     privacy: {
         title: 'Datenschutzerklärung',

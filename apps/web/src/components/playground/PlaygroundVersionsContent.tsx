@@ -1,7 +1,8 @@
 import type { FC, ReactNode } from 'react'
 import type { PlaygroundVersionsContentProps } from '@/ts/Interfaces'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef } from 'react'
+import { useDebouncedValue } from '@/hooks'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
 import {
@@ -21,7 +22,7 @@ import {
     Skeleton
 } from '@/components/ui'
 import { api, getLocale } from '@/lib'
-import { useUIStore } from '@/lib/store'
+import { useUIStore, useVersionsStore } from '@/lib/store'
 
 const CHANGELOG_BASE_URL = 'https://www.npmjs.com/package/openclaw/v/'
 
@@ -29,25 +30,16 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
     clawId
 }): ReactNode => {
     const [search, setSearch] = useState('')
-    const [debouncedSearch, setDebouncedSearch] = useState('')
-    const [installingVersion, setInstallingVersion] = useState<string | null>(
-        null
-    )
-    const [confirmVersion, setConfirmVersion] = useState<string | null>(null)
+    const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300)
+    const {
+        installingVersion,
+        setInstallingVersion,
+        confirmVersion,
+        setConfirmVersion
+    } = useVersionsStore()
     const { showToast } = useUIStore()
     const queryClient = useQueryClient()
-    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const scrollRef = useRef<HTMLDivElement | null>(null)
-
-    useEffect(() => {
-        if (debounceRef.current) clearTimeout(debounceRef.current)
-        debounceRef.current = setTimeout(() => {
-            setDebouncedSearch(search.trim().toLowerCase())
-        }, 300)
-        return () => {
-            if (debounceRef.current) clearTimeout(debounceRef.current)
-        }
-    }, [search])
 
     const {
         data: versionsData,

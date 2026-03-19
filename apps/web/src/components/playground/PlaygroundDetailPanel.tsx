@@ -666,7 +666,7 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                             embedded
                             mockLogs={
                                 readOnly
-                                    ? '2026-02-14T10:23:41Z Starting OpenClaw agent...\n2026-02-14T10:23:42Z Loading model: claude-sonnet-4-5\n2026-02-14T10:23:43Z Agent ready on port 3000\n2026-02-14T10:23:44Z Connected to gateway\n2026-02-14T10:24:01Z Request received: /chat\n2026-02-14T10:24:03Z Response sent (1.2s)\n2026-02-14T10:25:12Z Request received: /chat\n2026-02-14T10:25:14Z Response sent (1.8s)\n2026-02-14T10:26:30Z Health check passed'
+                                    ? `2026-02-14T10:23:41Z ${t('playground.mockLogStarting')}\n2026-02-14T10:23:42Z ${t('playground.mockLogLoadingModel')}\n2026-02-14T10:23:43Z ${t('playground.mockLogAgentReady')}\n2026-02-14T10:23:44Z ${t('playground.mockLogConnected')}\n2026-02-14T10:24:01Z ${t('playground.mockLogRequestReceived')}\n2026-02-14T10:24:03Z ${t('playground.mockLogResponseSent1')}\n2026-02-14T10:25:12Z ${t('playground.mockLogRequestReceived')}\n2026-02-14T10:25:14Z ${t('playground.mockLogResponseSent2')}\n2026-02-14T10:26:30Z ${t('playground.mockLogHealthCheck')}`
                                     : undefined
                             }
                         />

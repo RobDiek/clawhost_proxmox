@@ -7,7 +7,7 @@ import registerClawFileHandlers from '@/main/ipc/clawFiles'
 import registerClawVersionHandlers from '@/main/ipc/clawVersions'
 import registerStubHandlers from '@/main/ipc/stubs'
 import registerClawTerminalHandlers from '@/main/ipc/clawTerminal'
-import { dnsResolver } from '@/main/services'
+import { appUpdater, dnsResolver } from '@/main/services'
 
 const registerAllHandlers = (): void => {
     ipcMain.handle('get-app-version', () => app.getVersion())
@@ -45,6 +45,7 @@ const registerAllHandlers = (): void => {
     })
     ipcMain.handle('getDnsStatus', () => dnsResolver.isDnsSetup())
     ipcMain.handle('setupDns', () => dnsResolver.setupResolver())
+    ipcMain.handle('check-app-update', () => appUpdater.checkForUpdate())
     registerClawHandlers()
     registerClawProcessHandlers()
     registerClawConfigHandlers()

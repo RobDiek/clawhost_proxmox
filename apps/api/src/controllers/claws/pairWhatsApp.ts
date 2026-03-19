@@ -1,13 +1,9 @@
 import type { AuthenticatedContext } from '@/ts/Types'
 
 import executeSSH from '@/services/ssh'
-import { findUserClaw } from '@/controllers/claws/helpers'
+import { findUserClaw, WHATSAPP_PATHS } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
-
-const PAIR_LOG = '/tmp/openclaw-wa-pair.log'
-const PAIR_PID = '/tmp/openclaw-wa-pair.pid'
-const CREDS_DIR = '/home/openclaw/.openclaw/credentials/whatsapp'
 
 const pairWhatsApp = async (c: AuthenticatedContext) => {
     try {
@@ -28,18 +24,20 @@ const pairWhatsApp = async (c: AuthenticatedContext) => {
                 executeSSH(
                     claw.ip,
                     claw.rootPassword,
-                    `ls ${CREDS_DIR}/*/creds.json 2>/dev/null && echo "HAS_CREDS" || echo "NO_CREDS"`,
+                    `ls ${WHATSAPP_PATHS.CREDS_DIR}/*/creds.json 2>/dev/null && echo "HAS_CREDS" || echo "NO_CREDS"`,
                     5000
                 ),
                 executeSSH(
                     claw.ip,
                     claw.rootPassword,
-                    'su - openclaw -c "openclaw channels login --help" 2>&1 || true',
+                    'su - openclaw -c "openclaw channels login --help" 2>&1; echo "EXIT:$?"',
                     8000
                 )
             ])
 
-            if (credsCheck.includes('HAS_CREDS')) {
+            const force = c.req.query('force') === 'true'
+
+            if (credsCheck.includes('HAS_CREDS') && !force) {
                 return ok(
                     c,
                     { status: 'already_paired' },
@@ -47,8 +45,20 @@ const pairWhatsApp = async (c: AuthenticatedContext) => {
                 )
             }
 
+            if (credsCheck.includes('HAS_CREDS') && force) {
+                await executeSSH(
+                    claw.ip,
+                    claw.rootPassword,
+                    `rm -rf ${WHATSAPP_PATHS.CREDS_DIR}`,
+                    5000
+                )
+            }
+
+            const helpLower = helpCheck.toLowerCase()
             const supportsWhatsApp =
-                helpCheck.includes('whatsapp') || helpCheck.includes('WhatsApp')
+                helpLower.includes('whatsapp') ||
+                helpLower.includes('channels login') ||
+                helpCheck.includes('EXIT:0')
 
             if (!supportsWhatsApp) {
                 return ok(
@@ -61,14 +71,22 @@ const pairWhatsApp = async (c: AuthenticatedContext) => {
             await executeSSH(
                 claw.ip,
                 claw.rootPassword,
-                [
-                    `kill $(cat ${PAIR_PID} 2>/dev/null) 2>/dev/null`,
-                    `rm -f ${PAIR_LOG} ${PAIR_PID}`,
-                    `touch ${PAIR_LOG}`,
-                    `nohup su - openclaw -c "openclaw channels login --channel whatsapp" > ${PAIR_LOG} 2>&1 &`,
-                    `echo $! > ${PAIR_PID}`
-                ].join('; '),
-                10000
+                `kill $(cat ${WHATSAPP_PATHS.PAIR_PID} 2>/dev/null) 2>/dev/null; rm -f ${WHATSAPP_PATHS.PAIR_LOG} ${WHATSAPP_PATHS.PAIR_PID} ${WHATSAPP_PATHS.PAIR_SCRIPT}`,
+                5000
+            ).catch(() => {})
+
+            await executeSSH(
+                claw.ip,
+                claw.rootPassword,
+                `cat > ${WHATSAPP_PATHS.PAIR_SCRIPT} << 'PAIREOF'\n#!/bin/bash\nscript -qfc 'su - openclaw -c "openclaw channels login --channel whatsapp"' ${WHATSAPP_PATHS.PAIR_LOG}\nPAIREOF\nchmod +x ${WHATSAPP_PATHS.PAIR_SCRIPT}`,
+                5000
+            )
+
+            await executeSSH(
+                claw.ip,
+                claw.rootPassword,
+                `nohup ${WHATSAPP_PATHS.PAIR_SCRIPT} < /dev/null > /dev/null 2>&1 & echo $! > ${WHATSAPP_PATHS.PAIR_PID}; sleep 3`,
+                15000
             )
 
             return ok(c, { status: 'started' }, t('api.whatsappPairStarted'))

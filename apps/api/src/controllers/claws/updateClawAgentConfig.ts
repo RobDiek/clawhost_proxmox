@@ -4,13 +4,13 @@ import type { AuthenticatedContext } from '@/ts/Types'
 import executeSSH from '@/services/ssh'
 import {
     applyToolsDefaults,
+    BASE_DIR,
     findUserClaw,
     validateEnvVars
 } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 
-const BASE_DIR = '/home/openclaw/.openclaw'
 const ENV_SEPARATOR = '---ENV_SEPARATOR---'
 
 const updateClawAgentConfig = async (c: AuthenticatedContext) => {

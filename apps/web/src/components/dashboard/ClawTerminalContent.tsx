@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { ClawTerminalContentProps } from '@/ts/Interfaces'
 
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import { t } from '@openclaw/i18n'
@@ -13,6 +13,7 @@ import {
 } from '@phosphor-icons/react'
 import { Button } from '@/components/ui'
 import { ScrollToBottomButton } from '@/components'
+import { useTerminalStore } from '@/lib/store'
 import '@xterm/xterm/css/xterm.css'
 
 let connectCounter = 0
@@ -31,10 +32,12 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
     const connectIdRef = useRef(0)
     const reconnectAttemptsRef = useRef(0)
     const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-    const [status, setStatus] = useState<
-        'idle' | 'connecting' | 'connected' | 'error' | 'disconnected'
-    >('idle')
-    const [showScrollButton, setShowScrollButton] = useState(false)
+    const {
+        status,
+        setStatus,
+        showScrollButton,
+        setShowScrollButton
+    } = useTerminalStore()
     const connectRef = useRef<() => void>(() => {})
 
     const cleanupListenersRef = useRef<(() => void)[]>([])

@@ -93,9 +93,7 @@ const VoiceModeOverlay: FC<VoiceModeOverlayProps> = ({
                 .then((stream) => {
                     stream.getTracks().forEach((track) => track.stop())
                 })
-        } catch {
-            /* empty */
-        }
+        } catch {}
 
         try {
             const devices = await navigator.mediaDevices.enumerateDevices()
@@ -113,9 +111,7 @@ const VoiceModeOverlay: FC<VoiceModeOverlayProps> = ({
                     return prev
                 return outputs[0]?.deviceId || ''
             })
-        } catch {
-            /* empty */
-        }
+        } catch {}
     }, [])
 
     useEffect(() => {
@@ -183,9 +179,7 @@ const VoiceModeOverlay: FC<VoiceModeOverlayProps> = ({
                     if (text) {
                         sendMessageRef.current(text)
                     }
-                } catch {
-                    /* empty */
-                } finally {
+                } catch {} finally {
                     setIsTranscribing(false)
                     stoppingRef.current = false
                     resolve()
@@ -228,9 +222,7 @@ const VoiceModeOverlay: FC<VoiceModeOverlayProps> = ({
             setIsRecording(true)
 
             getTranscriber()
-        } catch {
-            /* empty */
-        }
+        } catch {}
     }, [hasNoInput])
 
     useEffect(() => {

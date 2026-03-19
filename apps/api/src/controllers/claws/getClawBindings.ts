@@ -2,11 +2,9 @@ import type { AuthenticatedContext } from '@/ts/Types'
 import type { ClawBindingEntry, ClawBindingAgent } from '@/ts/Interfaces'
 
 import executeSSH from '@/services/ssh'
-import { findUserClaw } from '@/controllers/claws/helpers'
+import { BASE_DIR, findUserClaw } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
-
-const BASE_DIR = '/home/openclaw/.openclaw'
 
 const getClawBindings = async (c: AuthenticatedContext) => {
     try {

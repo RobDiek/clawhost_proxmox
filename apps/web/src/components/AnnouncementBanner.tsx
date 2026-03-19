@@ -49,12 +49,8 @@ const AnnouncementBanner: FC = (): ReactNode => {
     const { phBannerVisible } = useUIStore()
 
     const unavailableProviders = Array.from(lockedProviders.current)
-
     const visible = !phBannerVisible && unavailableProviders.length > 0
-
-    const providersText = unavailableProviders
-        .map((p) => providerLabels[p])
-        .join(', ')
+    const providersText = unavailableProviders.map((p) => providerLabels[p]).join(', ')
 
     if (!visible) return null
 

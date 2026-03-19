@@ -1,3 +1,10 @@
+interface AppUpdateInfo {
+    hasUpdate: boolean
+    currentVersion: string
+    latestVersion?: string
+    downloadUrl?: string
+}
+
 interface ElectronAPI {
     invoke: (channel: string, ...args: unknown[]) => Promise<unknown>
     isDesktop: boolean
@@ -10,6 +17,7 @@ interface ElectronAPI {
     setupDns: () => Promise<boolean>
     onTerminalData: (callback: (id: string, data: string) => void) => () => void
     onTerminalExit: (callback: (id: string) => void) => () => void
+    checkAppUpdate: () => Promise<AppUpdateInfo>
 }
 
 interface Window {

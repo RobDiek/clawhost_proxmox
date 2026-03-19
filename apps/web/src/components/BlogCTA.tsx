@@ -1,23 +1,31 @@
 import type { FC, ReactNode } from 'react'
 
 import { t } from '@openclaw/i18n'
-import { HeroButtons } from '@/components'
+import { HeroButtons, GoWaitlistCTA } from '@/components'
+import usePreferencesStore from '@/lib/store/usePreferencesStore'
 
 const BlogCTA: FC = (): ReactNode => {
+    const product = usePreferencesStore((s) => s.product)
+    const isGo = product === 'go'
+
     return (
         <div className='border-border/50 mt-16 rounded-2xl border bg-gradient-to-b from-white/[0.03] to-transparent px-6 py-12 text-center'>
             <h2 className='font-clash mb-4 text-3xl font-bold'>
-                {t('blog.ctaTitle')}
+                {isGo ? t('go.ctaTitle') : t('blog.ctaTitle')}
             </h2>
             <p className='text-muted-foreground mx-auto mb-8 max-w-xl text-base'>
-                {t('blog.ctaDescription')}
+                {isGo ? t('go.ctaDescription') : t('blog.ctaDescription')}
             </p>
             <div className='flex flex-col items-center justify-center gap-4 sm:flex-row'>
-                <HeroButtons
-                    deployLabel={t('blog.ctaDeploy')}
-                    githubLabel={t('blog.ctaGitHub')}
-                    showStars={true}
-                />
+                {isGo ? (
+                    <GoWaitlistCTA />
+                ) : (
+                    <HeroButtons
+                        deployLabel={t('blog.ctaDeploy')}
+                        githubLabel={t('blog.ctaGitHub')}
+                        showStars={true}
+                    />
+                )}
             </div>
         </div>
     )

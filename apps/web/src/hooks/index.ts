@@ -71,9 +71,12 @@ import useGatewayState from '@/hooks/useGatewayState'
 import useScrollToBottom from '@/hooks/useScrollToBottom'
 import useSpeechRecognition from '@/hooks/useSpeechRecognition'
 import useTextToSpeech from '@/hooks/useTextToSpeech'
+import useDebouncedValue from '@/hooks/useDebouncedValue'
 import useNetworkStatus from '@/hooks/useNetworkStatus'
 import useThemeEffect from '@/hooks/useThemeEffect'
 import useLanguageEffect from '@/hooks/useLanguageEffect'
+import useAppVersion from '@/hooks/useAppVersion'
+import useLocalFooterLinks from '@/hooks/useLocalFooterLinks'
 
 export {
     useClaws,
@@ -127,11 +130,14 @@ export {
     usePlaygroundGraph,
     PLAYGROUND_AGENTS_QUERY_KEY,
     useAgentChat,
+    useDebouncedValue,
     useNetworkStatus,
     useGatewayState,
     useScrollToBottom,
     useSpeechRecognition,
     useTextToSpeech,
     useThemeEffect,
-    useLanguageEffect
+    useLanguageEffect,
+    useAppVersion,
+    useLocalFooterLinks
 }

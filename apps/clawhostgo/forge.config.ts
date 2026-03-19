@@ -1,9 +1,24 @@
 import type { ForgeConfig } from '@electron-forge/shared-types'
 
-import { MakerDMG } from '@electron-forge/maker-dmg'
+import path from 'path'
+import fs from 'fs'
 import { MakerZIP } from '@electron-forge/maker-zip'
 import { MakerDeb } from '@electron-forge/maker-deb'
 import { VitePlugin } from '@electron-forge/plugin-vite'
+
+const copyNodePty = (buildPath: string, _electronVersion: string, _platform: string, _arch: string, callback: (err?: Error) => void) => {
+    const rootNodeModules = path.resolve(__dirname, '../../node_modules')
+    const src = path.join(rootNodeModules, 'node-pty')
+    const dest = path.join(buildPath, 'node_modules', 'node-pty')
+
+    if (!fs.existsSync(src)) {
+        callback(new Error('node-pty not found in root node_modules'))
+        return
+    }
+
+    fs.cpSync(src, dest, { recursive: true })
+    callback()
+}
 
 const config: ForgeConfig = {
     packagerConfig: {
@@ -12,9 +27,13 @@ const config: ForgeConfig = {
         },
         name: 'ClawHostGo',
         icon: './resources/icon',
-        extraResource: ['./resources/node']
+        extraResource: ['./resources/node'],
+        afterCopy: [copyNodePty]
     },
-    makers: [new MakerDMG({}), new MakerZIP({}, ['darwin']), new MakerDeb({})],
+    makers: [
+        new MakerZIP({}, ['darwin', 'win32']),
+        new MakerDeb({})
+    ],
     plugins: [
         new VitePlugin({
             build: [

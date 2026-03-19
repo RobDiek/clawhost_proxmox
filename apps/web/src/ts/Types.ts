@@ -79,6 +79,8 @@ export type ChatSidebarViewMode = 'tree' | 'list'
 
 export type Product = 'cloud' | 'go'
 
+export type TerminalStatus = 'idle' | 'connecting' | 'connected' | 'error' | 'disconnected'
+
 export type ChatTypingIndicator = 'thinking' | 'writing' | null
 
 export type TranscriberFunction = (

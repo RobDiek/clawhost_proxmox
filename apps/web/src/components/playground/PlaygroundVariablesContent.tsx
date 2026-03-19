@@ -33,7 +33,7 @@ import {
     TooltipContent
 } from '@/components/ui'
 import { api, copyToClipboard } from '@/lib'
-import { useUIStore } from '@/lib/store'
+import { useUIStore, useVariablesStore } from '@/lib/store'
 import { PanelPlaceholder } from '@/components'
 import { PLAYGROUND_AGENTS_QUERY_KEY } from '@/hooks'
 
@@ -45,11 +45,18 @@ const PlaygroundVariablesContent: FC<PlaygroundVariablesContentProps> = ({
 }): ReactNode => {
     const [envVars, setEnvVars] = useState<Array<EnvVar>>([])
     const [hasChanges, setHasChanges] = useState(false)
-    const [showValues, setShowValues] = useState<Record<string, boolean>>({})
-    const [copiedKey, setCopiedKey] = useState<string | null>(null)
-    const [showErrors, setShowErrors] = useState(false)
-    const [deleteIndex, setDeleteIndex] = useState<number | null>(null)
-    const [dontAskAgain, setDontAskAgain] = useState(false)
+    const {
+        showValues,
+        toggleValue,
+        copiedKey,
+        setCopiedKey,
+        showErrors,
+        setShowErrors,
+        deleteIndex,
+        setDeleteIndex,
+        dontAskAgain,
+        setDontAskAgain
+    } = useVariablesStore()
     const { showToast } = useUIStore()
     const queryClient = useQueryClient()
 
@@ -220,8 +227,8 @@ const PlaygroundVariablesContent: FC<PlaygroundVariablesContentProps> = ({
     )
 
     const handleToggleVisibility = useCallback((key: string) => {
-        setShowValues((prev) => ({ ...prev, [key]: !prev[key] }))
-    }, [])
+        toggleValue(key)
+    }, [toggleValue])
 
     const handleCopyValue = useCallback(async (key: string, value: string) => {
         await copyToClipboard(value)

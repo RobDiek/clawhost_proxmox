@@ -1,5 +1,5 @@
 import type { FC, ReactNode } from 'react'
-import type { Claw, ChatSelectedAgent, ElectronWindow } from '@/ts/Interfaces'
+import type { Claw, ElectronWindow } from '@/ts/Interfaces'
 import type {
     DashboardTab,
     PlaygroundAgentDetailTab,
@@ -12,14 +12,13 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { userRole } from '@openclaw/shared'
-import { useUIStore, usePreferencesStore } from '@/lib/store'
+import { useUIStore, usePreferencesStore, useDashboardStore } from '@/lib/store'
 import {
     ROUTES,
     DASHBOARD_TABS,
     AGENT_DETAIL_TABS,
     CLAW_DETAIL_TABS,
-    fireConfetti,
-    getBaseDomain
+    fireConfetti
 } from '@/lib'
 import {
     useClaws,
@@ -32,7 +31,9 @@ import {
     useAllClawAgents,
     usePlaygroundGraph,
     useProfile,
-    useNetworkStatus
+    useNetworkStatus,
+    useAppVersion,
+    useLocalFooterLinks
 } from '@/hooks'
 import {
     AnnouncementBanner,
@@ -65,44 +66,44 @@ import {
     CreateAgentModal
 } from '@/components/playground'
 import { ChatView } from '@/components/chat'
-import { getLegalLinks } from '@/data'
 import { useAuth } from '@/lib/auth'
 
 const Dashboard: FC = (): ReactNode => {
     const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams()
-    const [showCreate, setShowCreate] = useState(false)
-    const [preselectedPlanId, setPreselectedPlanId] = useState<string | null>(
-        null
-    )
-    const [preselectedProvider, setPreselectedProvider] =
-        useState<ProviderType | null>(null)
     const [awaitingClaw, setAwaitingClaw] = useState(
         () => searchParams.get('payment') === 'success'
     )
-    const [selectedClawId, setSelectedClawId] = useState<string | null>(null)
-    const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
-    const [selectedAgentClawId, setSelectedAgentClawId] = useState<
-        string | null
-    >(null)
-    const [chatSelectedAgent, setChatSelectedAgent] =
-        useState<ChatSelectedAgent | null>(null)
-    const [chatSettingsClawId, setChatSettingsClawId] = useState<string | null>(
-        null
-    )
-    const [chatAgentTab, setChatAgentTab] =
-        useState<PlaygroundAgentDetailTab | null>(null)
-    const [playgroundAgentTab, setPlaygroundAgentTab] =
-        useState<PlaygroundAgentDetailTab | null>(null)
-    const [playgroundClawTab, setPlaygroundClawTab] =
-        useState<PlaygroundDetailTab | null>(null)
-    const [chatClawTab, setChatClawTab] = useState<PlaygroundDetailTab | null>(
-        null
-    )
-    const [createAgentClawId, setCreateAgentClawId] = useState<string | null>(
-        null
-    )
-    const [createAgentClawName, setCreateAgentClawName] = useState('')
+    const {
+        selectedClawId,
+        setSelectedClawId,
+        selectedAgentId,
+        setSelectedAgentId,
+        selectedAgentClawId,
+        setSelectedAgentClawId,
+        chatSelectedAgent,
+        setChatSelectedAgent,
+        chatSettingsClawId,
+        setChatSettingsClawId,
+        chatAgentTab,
+        setChatAgentTab,
+        playgroundAgentTab,
+        setPlaygroundAgentTab,
+        playgroundClawTab,
+        setPlaygroundClawTab,
+        chatClawTab,
+        setChatClawTab,
+        showCreate,
+        setShowCreate,
+        preselectedPlanId,
+        setPreselectedPlanId,
+        preselectedProvider,
+        setPreselectedProvider,
+        createAgentClawId,
+        setCreateAgentClawId,
+        createAgentClawName,
+        setCreateAgentClawName
+    } = useDashboardStore()
     const isRestoringFromUrl = useRef(false)
     const { showToast } = useUIStore()
     const {
@@ -136,16 +137,14 @@ const Dashboard: FC = (): ReactNode => {
 
     const [dnsSetup, setDnsSetup] = useState<boolean | null>(null)
     const [dnsLoading, setDnsLoading] = useState(false)
-    const [appVersion, setAppVersion] = useState('')
+    const appVersion = useAppVersion(!!isLocal)
+    const dropdownFooterLinks = useLocalFooterLinks(!!isLocal)
 
     useEffect(() => {
         if (!isLocal) return
         const api = (window as unknown as ElectronWindow).electronAPI
         if (api?.getDnsStatus) {
             api.getDnsStatus().then(setDnsSetup)
-        }
-        if (api?.getAppVersion) {
-            api.getAppVersion().then((v) => setAppVersion(`v${v}`))
         }
     }, [isLocal])
 
@@ -173,21 +172,6 @@ const Dashboard: FC = (): ReactNode => {
         (isLocal
             ? t('account.noNameSet')
             : user?.email || cachedProfile?.email || '')
-
-    const dropdownFooterLinks = useMemo(() => {
-        if (!isLocal) return undefined
-        const BASE_URL = `https://${getBaseDomain()}`
-        return [
-            { label: t('footer.website'), href: BASE_URL, external: true },
-            ...getLegalLinks().map((link) => ({
-                ...link,
-                href: link.href.startsWith('mailto:')
-                    ? link.href
-                    : `${BASE_URL}${link.href}`,
-                external: true
-            }))
-        ]
-    }, [isLocal])
 
     useEffect(() => {
         if (awaitingClaw) {

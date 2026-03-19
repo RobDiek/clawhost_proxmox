@@ -20,7 +20,17 @@ const LANGUAGE_OPTIONS: LanguageOption[] = [
     { value: LANGUAGES.EN, label: 'English', flag: '🇺🇸' },
     { value: LANGUAGES.FR, label: 'Français', flag: '🇫🇷' },
     { value: LANGUAGES.ES, label: 'Español', flag: '🇪🇸' },
-    { value: LANGUAGES.DE, label: 'Deutsch', flag: '🇩🇪' }
+    { value: LANGUAGES.DE, label: 'Deutsch', flag: '🇩🇪' },
+    { value: LANGUAGES.ZH, label: '中文', flag: '🇨🇳' },
+    { value: LANGUAGES.HI, label: 'हिन्दी', flag: '🇮🇳' },
+    { value: LANGUAGES.AR, label: 'العربية', flag: '🇸🇦' },
+    { value: LANGUAGES.RU, label: 'Русский', flag: '🇷🇺' },
+    { value: LANGUAGES.JA, label: '日本語', flag: '🇯🇵' },
+    { value: LANGUAGES.TR, label: 'Türkçe', flag: '🇹🇷' },
+    { value: LANGUAGES.IT, label: 'Italiano', flag: '🇮🇹' },
+    { value: LANGUAGES.PL, label: 'Polski', flag: '🇵🇱' },
+    { value: LANGUAGES.NL, label: 'Nederlands', flag: '🇳🇱' },
+    { value: LANGUAGES.PT, label: 'Português', flag: '🇧🇷' }
 ]
 
 const LanguageSelector: FC = (): ReactNode => {
@@ -46,7 +56,7 @@ const LanguageSelector: FC = (): ReactNode => {
                     <p>{t('language.switchLanguage')}</p>
                 </TooltipContent>
             </Tooltip>
-            <DropdownMenuContent align='end' className='w-44'>
+            <DropdownMenuContent align='end' className='max-h-80 w-44 overflow-y-auto'>
                 {LANGUAGE_OPTIONS.map((lang) => (
                     <DropdownMenuItem
                         key={lang.value}

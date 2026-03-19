@@ -20,5 +20,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
         const listener = (_event: Electron.IpcRendererEvent, id: string) => callback(id)
         ipcRenderer.on('terminal:exit', listener)
         return () => ipcRenderer.removeListener('terminal:exit', listener)
-    }
+    },
+    checkAppUpdate: () => ipcRenderer.invoke('check-app-update')
 })

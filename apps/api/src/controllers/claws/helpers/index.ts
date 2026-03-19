@@ -14,7 +14,9 @@ import ensureClawHub from '@/controllers/claws/helpers/ensureClawHub'
 import applyToolsDefaults from '@/controllers/claws/helpers/applyToolsDefaults'
 import BASE_DIR from '@/controllers/claws/helpers/baseDir'
 import DOMAIN from '@/controllers/claws/helpers/constants'
+import syncClawServers from '@/controllers/claws/helpers/syncClawServers'
 import OPENCLAW_VERSION from '@/controllers/claws/helpers/openclawVersion'
+import WHATSAPP_PATHS from '@/controllers/claws/helpers/whatsappPaths'
 
 export {
     applyToolsDefaults,
@@ -33,5 +35,7 @@ export {
     ensureClawHub,
     BASE_DIR,
     DOMAIN,
-    OPENCLAW_VERSION
+    syncClawServers,
+    OPENCLAW_VERSION,
+    WHATSAPP_PATHS
 }
