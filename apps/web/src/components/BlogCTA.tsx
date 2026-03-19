@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 
 import { t } from '@openclaw/i18n'
 import { HeroButtons, GoWaitlistCTA } from '@/components'
-import usePreferencesStore from '@/lib/store/usePreferencesStore'
+import { usePreferencesStore } from '@/lib/store'
 
 const BlogCTA: FC = (): ReactNode => {
     const product = usePreferencesStore((s) => s.product)

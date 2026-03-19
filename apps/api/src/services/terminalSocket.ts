@@ -3,7 +3,7 @@ import type { Server } from 'http'
 import { WebSocketServer, WebSocket } from 'ws'
 import { Client } from 'ssh2'
 import { verifyToken } from '@/services/firebase'
-import findUserClaw from '@/controllers/claws/helpers/findUserClaw'
+import { findUserClaw } from '@/controllers/claws/helpers'
 
 const setupTerminalSocket = (server: Server) => {
     const wss = new WebSocketServer({ noServer: true })

@@ -6,7 +6,7 @@ import type {
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { t } from '@openclaw/i18n'
 import { getCachedToken } from '@/lib/firebase'
-import useUIStore from '@/lib/store/useUIStore'
+import { useUIStore } from '@/lib/store'
 
 const BASE_URL = import.meta.env.VITE_API_URL || '/api'
 const BUFFER_THRESHOLD = 4096

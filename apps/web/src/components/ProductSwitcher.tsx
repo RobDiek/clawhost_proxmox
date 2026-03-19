@@ -3,7 +3,7 @@ import type { FC, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { ROUTES } from '@/lib'
-import usePreferencesStore from '@/lib/store/usePreferencesStore'
+import { usePreferencesStore } from '@/lib/store'
 
 const ProductSwitcher: FC = (): ReactNode => {
     const product = usePreferencesStore((s) => s.product)

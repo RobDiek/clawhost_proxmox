@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
 import { useUIStore } from '@/lib/store'
-import api from '@/lib/api'
+import { api } from '@/lib'
 import { Button, Input } from '@/components/ui'
 import {
     EnvelopeSimpleIcon,

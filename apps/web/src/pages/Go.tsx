@@ -21,10 +21,9 @@ import {
     GoPricingCard,
     LandingCTA
 } from '@/components'
-import usePreferencesStore from '@/lib/store/usePreferencesStore'
-import useAuth from '@/lib/auth/useAuth'
-import useUIStore from '@/lib/store/useUIStore'
-import api from '@/lib/api'
+import { usePreferencesStore, useUIStore } from '@/lib/store'
+import { useAuth } from '@/lib/auth'
+import { api } from '@/lib'
 import {
     ClockIcon,
     LockIcon,

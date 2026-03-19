@@ -39,7 +39,7 @@ import {
 } from '@/hooks'
 import ChatSidebar from '@/components/chat/ChatSidebar'
 import ChatEmptyState from '@/components/chat/ChatEmptyState'
-import ChatSkeleton from '@/components/playground/AgentChat/ChatSkeleton'
+import { ChatSkeleton } from '@/components/playground/AgentChat'
 import {
     ClawCardDropdownMenu,
     ClawCardDialogs,

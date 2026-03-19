@@ -34,8 +34,7 @@ import {
     TUTORIAL_URL
 } from '@/lib/links'
 import { usePlans, GITHUB_REPO_URL } from '@/hooks'
-import { useUIStore } from '@/lib/store'
-import usePreferencesStore from '@/lib/store/usePreferencesStore'
+import { useUIStore, usePreferencesStore } from '@/lib/store'
 import {
     ShieldCheckIcon,
     GlobeIcon,

@@ -12,7 +12,7 @@ import {
     CheckIcon
 } from '@phosphor-icons/react'
 import { getLocale, copyToClipboard } from '@/lib'
-import useUIStore from '@/lib/store/useUIStore'
+import { useUIStore } from '@/lib/store'
 import ChatMarkdown from '@/components/playground/AgentChat/ChatMarkdown'
 import ChatLightbox from '@/components/playground/AgentChat/ChatLightbox'
 import ChatSpeechButton from '@/components/playground/AgentChat/ChatSpeechButton'
