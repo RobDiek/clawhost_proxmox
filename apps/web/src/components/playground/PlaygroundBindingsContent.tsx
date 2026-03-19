@@ -1,6 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type {
     Binding,
+    ChannelConfig,
     ChannelMetaEntry,
     PlaygroundBindingsContentProps
 } from '@/ts/Interfaces'
@@ -30,6 +31,23 @@ const CHANNEL_META: Record<string, ChannelMetaEntry> = {
     signal: { icon: ChatCircleIcon, label: 'playground.channelsSignal' }
 }
 
+const CHANNEL_REQUIRED_FIELDS: Record<string, string[]> = {
+    whatsapp: [],
+    telegram: ['botToken'],
+    discord: ['token'],
+    slack: ['botToken', 'appToken'],
+    signal: ['account']
+}
+
+const isChannelConfigured = (key: string, config: ChannelConfig): boolean => {
+    if (!config.enabled) return false
+    const required = CHANNEL_REQUIRED_FIELDS[key] || []
+    return required.every((field) => {
+        const value = config[field as keyof ChannelConfig]
+        return typeof value === 'string' && value.trim().length > 0
+    })
+}
+
 const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
     clawId,
     agentId
@@ -56,7 +74,7 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
     const enabledChannels = useMemo(() => {
         if (!query.data) return []
         return Object.entries(query.data.channels)
-            .filter(([, config]) => config.enabled)
+            .filter(([key, config]) => isChannelConfigured(key, config as ChannelConfig))
             .map(([key]) => key)
     }, [query.data])
 
