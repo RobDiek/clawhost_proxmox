@@ -1,5 +1,5 @@
 const goLicense = {
-    PRICE: 40
+    PRICE: 50
 } as const
 
 export default goLicense

@@ -55,7 +55,7 @@ const CreateClawModal: FC<CreateClawModalProps> = ({ onClose }): ReactNode => {
     const queryClient = useQueryClient()
     const showToast = useUIStore((s) => s.showToast)
 
-    const nameValid = /^[a-zA-Z0-9-]+$/.test(name) && name.length > 0
+    const nameValid = name.length === 0 || /^[a-zA-Z0-9-]+$/.test(name)
 
     const handleCreate = async (): Promise<void> => {
         if (!nameValid) {
@@ -120,7 +120,7 @@ const CreateClawModal: FC<CreateClawModalProps> = ({ onClose }): ReactNode => {
                             autoFocus
                         />
                         <p className='text-muted-foreground text-xs'>
-                            {t('createClaw.clawNameInvalidChars')}
+                            {t('createClaw.autoGenerateNameHint')}
                         </p>
                     </div>
 

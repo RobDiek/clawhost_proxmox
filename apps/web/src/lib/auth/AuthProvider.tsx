@@ -3,7 +3,9 @@ import type { User, OAuthCredential } from 'firebase/auth'
 import type {
     AuthProviderProps,
     CachedProfile,
-    FirebaseErrorLike
+    ElectronWindow,
+    FirebaseErrorLike,
+    OAuthWindowResult
 } from '@/ts/Interfaces'
 
 import { useCallback, useEffect, useState } from 'react'
@@ -13,6 +15,7 @@ import {
     GithubAuthProvider,
     onAuthStateChanged,
     signInWithCustomToken,
+    signInWithCredential,
     signInWithPopup,
     linkWithPopup,
     unlink,
@@ -120,7 +123,41 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
         []
     )
 
+    const electronOAuth = useCallback(async (providerUrl: string, callbackPrefix: string) => {
+        const electronAPI = (window as unknown as ElectronWindow).electronAPI
+        const result = await electronAPI!.invoke('oauth-window', providerUrl, callbackPrefix, t('auth.signIn')) as OAuthWindowResult
+        return result
+    }, [])
+
     const signInWithGoogle = useCallback(async () => {
+        const electronAPI = (window as unknown as ElectronWindow).electronAPI
+
+        if (electronAPI?.isDesktop) {
+            const authDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN
+            const clientId = import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID
+            const redirectUri = `https://${authDomain}/__/auth/handler`
+            const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=openid+email+profile&prompt=select_account`
+
+            const result = await electronOAuth(url, redirectUri)
+            if (!result?.accessToken) throw new Error('OAuth failed')
+
+            const credential = GoogleAuthProvider.credential(null, result.accessToken)
+            try {
+                await signInWithCredential(auth, credential)
+            } catch (error) {
+                const firebaseError = error as FirebaseErrorLike
+                if (firebaseError.code === 'auth/account-exists-with-different-credential') {
+                    const resolved = await resolveConflict(
+                        GoogleAuthProvider.credentialFromError(error as Parameters<typeof GoogleAuthProvider.credentialFromError>[0]),
+                        'google.com'
+                    )
+                    if (resolved) return
+                }
+                throw error
+            }
+            return
+        }
+
         try {
             await signInWithPopup(auth, new GoogleAuthProvider())
         } catch (error) {
@@ -139,9 +176,40 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
             }
             throw error
         }
-    }, [resolveConflict])
+    }, [resolveConflict, electronOAuth])
 
     const signInWithGithub = useCallback(async () => {
+        const electronAPI = (window as unknown as ElectronWindow).electronAPI
+
+        if (electronAPI?.isDesktop) {
+            const authDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN
+            const clientId = import.meta.env.VITE_GITHUB_OAUTH_CLIENT_ID
+            const redirectUri = `https://${authDomain}/__/auth/handler`
+            const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`
+
+            const result = await electronOAuth(url, redirectUri)
+            if (!result?.code) throw new Error('OAuth failed')
+
+            const tokenResult = await electronAPI.invoke('oauth-github-exchange', result.code) as OAuthWindowResult
+            if (!tokenResult?.accessToken) throw new Error('OAuth failed')
+
+            const credential = GithubAuthProvider.credential(tokenResult.accessToken)
+            try {
+                await signInWithCredential(auth, credential)
+            } catch (error) {
+                const firebaseError = error as FirebaseErrorLike
+                if (firebaseError.code === 'auth/account-exists-with-different-credential') {
+                    const resolved = await resolveConflict(
+                        GithubAuthProvider.credentialFromError(error as Parameters<typeof GithubAuthProvider.credentialFromError>[0]),
+                        'github.com'
+                    )
+                    if (resolved) return
+                }
+                throw error
+            }
+            return
+        }
+
         try {
             await signInWithPopup(auth, new GithubAuthProvider())
         } catch (error) {
@@ -160,7 +228,7 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
             }
             throw error
         }
-    }, [resolveConflict])
+    }, [resolveConflict, electronOAuth])
 
     const linkGoogle = useCallback(async () => {
         if (!user) return

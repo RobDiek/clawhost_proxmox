@@ -4,6 +4,7 @@ import { ipcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
 import { configStore, processManager } from '@/main/services'
+import { t } from '@openclaw/i18n'
 
 const readOpenclawConfig = (clawDir: string): Record<string, unknown> => {
     const configPath = path.join(clawDir, 'openclaw.json')
@@ -60,7 +61,7 @@ const registerClawConfigHandlers = (): void => {
         'getClawAgents',
         (_event: IpcMainInvokeEvent, id: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -115,11 +116,11 @@ const registerClawConfigHandlers = (): void => {
             }
         ) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const nameRegex = /^[a-zA-Z0-9-]+$/
             if (!data.name || !nameRegex.test(data.name)) {
-                throw new Error('Invalid agent name.')
+                throw new Error(t('go.invalidAgentName'))
             }
 
             const clawDir = configStore.getClawDir(claw.name)
@@ -135,7 +136,7 @@ const registerClawConfigHandlers = (): void => {
                     data.name.toLowerCase()
             )
             if (duplicate)
-                throw new Error('An agent with this name already exists.')
+                throw new Error(t('go.agentNameAlreadyExists'))
 
             const agentId = `${data.name.toLowerCase()}-${Date.now()}`
             const newAgent = {
@@ -186,7 +187,7 @@ const registerClawConfigHandlers = (): void => {
             data: { agentId: string }
         ) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -212,7 +213,7 @@ const registerClawConfigHandlers = (): void => {
         'getClawAgentConfig',
         (_event: IpcMainInvokeEvent, id: string, data: { agentId: string }) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -253,7 +254,7 @@ const registerClawConfigHandlers = (): void => {
             }
         ) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -295,7 +296,7 @@ const registerClawConfigHandlers = (): void => {
         'getClawSkills',
         (_event: IpcMainInvokeEvent, id: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -373,7 +374,7 @@ const registerClawConfigHandlers = (): void => {
             data: { entries: Record<string, Record<string, unknown>> }
         ) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -389,7 +390,7 @@ const registerClawConfigHandlers = (): void => {
         'getAgentSkills',
         (_event: IpcMainInvokeEvent, id: string, agentId: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -416,7 +417,7 @@ const registerClawConfigHandlers = (): void => {
             data: { action: string; skillName: string }
         ) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -462,7 +463,7 @@ const registerClawConfigHandlers = (): void => {
         'getClawChannels',
         (_event: IpcMainInvokeEvent, id: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -478,7 +479,7 @@ const registerClawConfigHandlers = (): void => {
             data: { channels: Record<string, unknown> }
         ) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -494,7 +495,7 @@ const registerClawConfigHandlers = (): void => {
         'getClawBindings',
         (_event: IpcMainInvokeEvent, id: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -521,7 +522,7 @@ const registerClawConfigHandlers = (): void => {
             data: { bindings: Array<Record<string, unknown>> }
         ) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -537,7 +538,7 @@ const registerClawConfigHandlers = (): void => {
         'getClawEnvVars',
         (_event: IpcMainInvokeEvent, id: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             const envPath = path.join(clawDir, '.env')
@@ -554,7 +555,7 @@ const registerClawConfigHandlers = (): void => {
             data: { envVars: Record<string, string> }
         ) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             const envPath = path.join(clawDir, '.env')

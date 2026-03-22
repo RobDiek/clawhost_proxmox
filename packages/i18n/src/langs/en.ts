@@ -39,7 +39,7 @@ const en = {
     setup: {
         welcomeTitle: 'Welcome to ClawHost Go',
         welcomeDescription: 'Set up your profile to get started.',
-        whatsYourName: "What's your name?",
+        whatsYourName: "What\'s your name?",
         namePlaceholder: 'Enter your name',
         nameHint: 'You can always set it later.',
         getStarted: 'Get Started'
@@ -170,7 +170,34 @@ const en = {
         waitlistEmailPlaceholder: 'Enter your email',
         updateAvailable: 'Version {{version}} is available.',
         updateDownload: 'Download',
-        updateDismiss: 'Later'
+        updateDismiss: 'Later',
+        clawNotFound: 'Claw not found!',
+        invalidClawName: 'Invalid claw name. Use only letters, numbers, and hyphens!',
+        clawNameAlreadyExists: 'A claw with this name already exists!',
+        invalidSubdomain: 'Invalid subdomain. Use 3-20 lowercase letters and numbers!',
+        subdomainAlreadyInUse: 'This subdomain is already in use!',
+        clawDirectoryNotFound: 'Claw directory not found!',
+        noVersionInstalled: 'No OpenClaw version installed. Go to the Versions tab and install one first!',
+        failedToStartClaw: 'Failed to start claw!',
+        noVersionAssigned: 'No OpenClaw version assigned to this claw!',
+        invalidAgentName: 'Invalid agent name!',
+        agentNameAlreadyExists: 'An agent with this name already exists!',
+        invalidPath: 'Invalid path!',
+        fileNotFound: 'File not found!',
+        purchasingNotAvailable: 'Purchasing is not available in local mode!',
+        exportFailed: 'Export failed!',
+        versionNotInstalled: 'OpenClaw version {{version}} is not installed!',
+        failedToStartProcess: 'Failed to start process: {{reason}}!',
+        processExitedImmediately: 'Process exited immediately. Logs:\n{{logs}}',
+        processExitedImmediatelyNoLogs: 'Process exited immediately after starting!',
+        processExitedWithCode: 'Process exited with code {{code}}. Logs:\n{{logs}}',
+        processExitedWithCodeNoLogs: 'Process exited with code {{code}}!',
+        processExitedUnexpectedly: 'Process exited unexpectedly!',
+        failedToInstallVersion: 'Failed to install OpenClaw {{version}}: {{reason}}!',
+        oauthCancelled: 'Authentication cancelled!',
+        diskFull: 'No space left on device!',
+        permissionDenied: 'Permission denied!',
+        networkTimeout: 'Network request timed out!'
     },
     footer: {
         website: 'Website',
@@ -207,17 +234,17 @@ const en = {
     },
     errors: {
         somethingWentWrong: 'Something went wrong!',
-        couldNotLoadData: "We couldn't load the data. Please try again!",
+        couldNotLoadData: "We couldn\'t load the data. Please try again!",
         notFound: 'Page not found!',
         pageNotFoundDescription:
-            "The page you're looking for doesn't exist or has been moved.",
+            "The page you\'re looking for doesn\'t exist or has been moved.",
         goToHomepage: 'Go to Homepage',
         failedToLoadClaws: 'Failed to load claws!',
         failedToLoadClawsDescription:
-            "We couldn't load your Claws. Please check your connection and try again!",
+            "We couldn\'t load your Claws. Please check your connection and try again!",
         failedToLoadSSHKeys: 'Failed to load SSH keys!',
         failedToLoadSSHKeysDescription:
-            "We couldn't load your SSH keys. Please check your connection and try again!",
+            "We couldn\'t load your SSH keys. Please check your connection and try again!",
         failedToUpdateProfile: 'Failed to update profile!',
         failedToAddSSHKey: 'Failed to add SSH key!',
         failedToCreateClaw: 'Failed to create claw!',
@@ -230,9 +257,9 @@ const en = {
         unableToLoadPricing: 'Unable to load pricing. Please try again later!',
         noPasswordAvailable: 'No password available for this claw!',
         clawLimitReached:
-            "You've reached the limit of {{max}} claws. Please contact support to increase this limit!",
+            "You\'ve reached the limit of {{max}} claws. Please contact support to increase this limit!",
         sshKeyLimitReached:
-            "You've reached the limit of {{max}} SSH keys. Please contact support to increase this limit!"
+            "You\'ve reached the limit of {{max}} SSH keys. Please contact support to increase this limit!"
     },
     api: {
         missingRequiredFields: 'Missing required fields!',
@@ -244,9 +271,9 @@ const en = {
         pendingClawNotFound: 'Pending claw not found!',
         clawNotScheduledForDeletion: 'Claw is not scheduled for deletion!',
         clawLimitReached:
-            "You've reached the limit of {{max}} claws. Please contact support to increase this limit!",
+            "You\'ve reached the limit of {{max}} claws. Please contact support to increase this limit!",
         sshKeyLimitReached:
-            "You've reached the limit of {{max}} SSH keys. Please contact support to increase this limit!",
+            "You\'ve reached the limit of {{max}} SSH keys. Please contact support to increase this limit!",
         volumeSizeInvalid:
             'Volume size must be between {{min}} and {{max}} GB!',
         paymentNotConfigured: 'Payment not configured for this plan!',
@@ -464,16 +491,16 @@ const en = {
         otpPreview: 'Your ClawHost sign-in code: {{code}}',
         otpHeading: 'Your sign-in code is:',
         otpExpiry:
-            'Code expires in 10 minutes. If this wasn’t you, ignore this email.',
-        changelogSubject: "What's New at ClawHost",
+            'Code expires in 10 minutes. If this wasn\'t you, ignore this email.',
+        changelogSubject: "What\'s New at ClawHost",
         changelogPreview: 'Check out the latest updates to ClawHost: {{title}}',
-        changelogHeading: "What's New",
+        changelogHeading: "What\'s New",
         changelogButton: 'View Changelog',
         changelogVisitButton: 'Visit ClawHost',
         changelogFooter:
-            "You're receiving this because you have a ClawHost account.",
+            "You\'re receiving this because you have a ClawHost account.",
         featureFooter:
-            "You're receiving this because you have a ClawHost account.",
+            "You\'re receiving this because you have a ClawHost account.",
         features: {
             terminal: {
                 subject: 'Did you know? You have a web terminal',
@@ -643,7 +670,7 @@ const en = {
         emailAddress: 'Email Address',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'Continue with Email',
-        otpDescription: "We'll send you a code to sign in. No password needed.",
+        otpDescription: "We\'ll send you a code to sign in. No password needed.",
         welcomeBack: 'Welcome back.',
         resendIn: 'Resend in {{seconds}}s',
         resendCode: 'Resend code',
@@ -745,7 +772,7 @@ const en = {
             'You have no payments history, once you deploy your first claw you should see your billings here.',
         failedToLoadBilling: 'Failed to load billing history!',
         failedToLoadBillingDescription:
-            "We couldn't load your billing history. Please check your connection and try again!",
+            "We couldn\'t load your billing history. Please check your connection and try again!",
         viewInvoice: 'View Invoice',
         failedToLoadInvoice: 'Failed to load invoice!',
         couponApplied: 'Coupon: {{name}}',
@@ -773,7 +800,7 @@ const en = {
         featureUpdates: 'Forever Updates',
         featureSupport: 'Priority Support',
         featureCloud: 'All Cloud Features, Locally',
-        whatsIncluded: "What's included",
+        whatsIncluded: "What\'s included",
         permanentNote: 'Licenses are permanent and non-revocable. Once purchased, you own it forever.',
         gateTitle: 'License Required',
         gateDescription: 'You need a ClawHost Go License to deploy and manage OpenClaw instances locally.'
@@ -967,6 +994,7 @@ const en = {
         clawName: 'Name',
         clawNamePlaceholder: 'e.g. cozy-panda',
         clawNameInvalidChars: 'Only letters, numbers, and dashes are allowed!',
+        autoGenerateNameHint: 'Leave empty to auto-generate a name.',
         provider: 'Provider',
         providerHetzner: 'Hetzner',
         providerDigitalOcean: 'DigitalOcean',
@@ -1060,7 +1088,7 @@ const en = {
         publicKeyPathOr: 'or',
         publicKeyPath2: '~/.ssh/id_rsa.pub',
         important: 'Important:',
-        dontHaveSshKey: "Don't have an SSH key? Generate one:",
+        dontHaveSshKey: "Don\'t have an SSH key? Generate one:",
         sshKeygenCommand: 'ssh-keygen -t ed25519 -C "your-email@example.com"',
         keyName: 'Key Name',
         keyNamePlaceholder: 'My Generated Key',
@@ -1111,14 +1139,14 @@ const en = {
         step2Title: 'Auto-Installation',
         step2Description:
             'OpenClaw is pre-installed with a direct link and VPS details. No setup required.',
-        step3Title: "It's Yours",
+        step3Title: "It\'s Yours",
         step3Description:
             'Full access to OpenClaw and the VPS, with no limits on what you can achieve.',
         features: 'Features',
         whyClawHost: 'All-in-One Features',
-        featuresDescription: 'Why we’re worth a try, features don’t lie here.',
+        featuresDescription: 'Why we\'re worth a try, features don\'t lie here.',
         zeroConfigDescription:
-            'Skip hours of server and OpenClaw setup. It’s pre-installed and ready within minutes.',
+            'Skip hours of server and OpenClaw setup. It\'s pre-installed and ready within minutes.',
         ownedData: '100% Owned Data',
         ownedDataDescription:
             'Your own server, your data. No shared infrastructure, no logs, no third parties. Online 24/7.',
@@ -1164,9 +1192,9 @@ const en = {
         testimonials: 'Testimonials',
         whatPeopleSay: 'What People Are Saying',
         testimonialsDescription:
-            'Don’t just take our word for it. See how others deploy OpenClaw.',
+            'Don\'t just take our word for it. See how others deploy OpenClaw.',
         testimonial1Quote:
-            "Finally, my own AI server. Setup took 30 seconds and I've been running it for months without issues.",
+            "Finally, my own AI server. Setup took 30 seconds and I\'ve been running it for months without issues.",
         testimonial1Author: 'Alex Chen',
         testimonial1Role: 'Software Developer',
         testimonial2Quote:
@@ -1174,11 +1202,11 @@ const en = {
         testimonial2Author: 'Maria Santos',
         testimonial2Role: 'Digital Nomad',
         testimonial3Quote:
-            "The one-click deploy is legit. I'm not technical at all but got my OpenClaw running in under a minute.",
+            "The one-click deploy is legit. I\'m not technical at all but got my OpenClaw running in under a minute.",
         testimonial3Author: 'James Wilson',
         testimonial3Role: 'Freelancer',
         testimonial4Quote:
-            "Love that I can see exactly what's running on my server. Full control over my AI setup.",
+            "Love that I can see exactly what\'s running on my server. Full control over my AI setup.",
         testimonial4Author: 'Sophie Kim',
         testimonial4Role: 'AI Enthusiast',
         pricing: 'Pricing',
@@ -1218,11 +1246,11 @@ const en = {
             'ClawHost is a platform built to make OpenClaw accessible to everyone. It lets both non-technical users and developers run OpenClaw without managing infrastructure. We handle servers, uptime, security, and maintenance — you just use OpenClaw.',
         faq2Question: 'What is OpenClaw?',
         faq2Answer:
-            'OpenClaw is a self-hosted secure access layer for your AI tools and services. It’s pre-configured for security and performance, so you can deploy it and connect instantly.',
+            'OpenClaw is a self-hosted secure access layer for your AI tools and services. It\'s pre-configured for security and performance, so you can deploy it and connect instantly.',
         faq3Question:
             'How is this different from other AI tools or hosted platforms?',
         faq3Answer:
-            'Unlike hosted AI tools, ClawHost gives you a real server with OpenClaw installed. You own the infrastructure, control everything, and aren’t limited by a shared platform or model.',
+            'Unlike hosted AI tools, ClawHost gives you a real server with OpenClaw installed. You own the infrastructure, control everything, and aren\'t limited by a shared platform or model.',
         faq4Question: 'Do I need technical knowledge?',
         faq4Answer:
             'No. We handle all infrastructure, setup, and maintenance. You can configure and manage OpenClaw through its UI, connect to channels, and customize usage — without touching servers or infrastructure.',
@@ -1239,9 +1267,9 @@ const en = {
         faq8Answer:
             'All servers are hosted on Hetzner Cloud, DigitalOcean, and Vultr, trusted cloud providers known for high-performance hardware and excellent uptime, used by large-scale infrastructures.',
         comparison: 'Comparison',
-        comparisonTitle: 'How We’re Different',
+        comparisonTitle: 'How We\'re Different',
         comparisonDescription:
-            'There’s only one comparable platform, and our approach focuses on real servers and full ownership instead of limitations.',
+            'There\'s only one comparable platform, and our approach focuses on real servers and full ownership instead of limitations.',
         others: 'Others',
         comparisonOpenClawUs: 'Full access to OpenClaw',
         comparisonOpenClawOthers: 'Only chat, no management',
@@ -1254,7 +1282,7 @@ const en = {
         comparisonInfraUs: 'On-demand infrastructure',
         comparisonInfraOthers: 'Limited servers',
         comparisonDataUs: 'Own your data',
-        comparisonDataOthers: "Don't own your data",
+        comparisonDataOthers: "Don\'t own your data",
         comparisonMultipleUs: 'Multiple OpenClaw, one Claw',
         comparisonMultipleOthers: 'Single OpenClaw only',
         comparisonAgentsUs: 'Multiple agents per Claw',
@@ -1576,7 +1604,7 @@ const en = {
             'Are you sure you want to delete {{key}}? This will immediately remove it from the instance.',
         variablesDeleteConfirm: 'Delete',
         variablesDontAskAgain:
-            "Don't ask again when deleting variables this session",
+            "Don\'t ask again when deleting variables this session",
         variablesDeleted: 'Variable deleted.',
         variablesOperationPending:
             'Disabled while a previous operation completes.',
@@ -1602,7 +1630,7 @@ const en = {
         deleteAgentDescription:
             'Are you sure you want to delete the agent "{{agentName}}"? This action cannot be undone. Environment variables will not be removed.',
         deleteAgentConfirm: 'Delete',
-        agentDontAskAgain: "Don't ask again when deleting agents this session",
+        agentDontAskAgain: "Don\'t ask again when deleting agents this session",
         deleteAgentDeleting: 'Deleting...',
         deleteAgentSuccess: 'Agent deleted successfully.',
         deleteAgentFailed: 'Failed to delete agent!',
@@ -1642,7 +1670,7 @@ const en = {
             'This is a preview! Deploy your own OpenClaw with one click and start chatting with your AI agents in minutes!',
         chatReadOnlyUser2: 'Can you run the test suite and check for failures?',
         chatReadOnlyAssistant2:
-            "Sure! I'll run all tests now. 3 passed, 0 failed. Everything looks good — all assertions are passing.",
+            "Sure! I\'ll run all tests now. 3 passed, 0 failed. Everything looks good — all assertions are passing.",
         chatReadOnlyGoUser: 'Hey, can you help me automate my deployment pipeline?',
         chatReadOnlyGoAssistant:
             'Absolutely! I can set up a CI/CD pipeline for you. Want me to start with a GitHub Actions workflow that builds, tests, and deploys automatically?',
@@ -1980,7 +2008,7 @@ const en = {
         enterEmail: 'Email Address',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'Continue with Email',
-        otpDescription: "We'll send you a code to sign in. No password needed.",
+        otpDescription: "We\'ll send you a code to sign in. No password needed.",
         sending: 'Sending...',
         checkYourEmail: 'Check your email',
         codeSentTo: 'We sent a 6-digit code to',

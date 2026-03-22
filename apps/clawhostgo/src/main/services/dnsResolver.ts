@@ -12,6 +12,9 @@ const RESOLVER_DIR = '/etc/resolver'
 const RESOLVER_PATH = path.join(RESOLVER_DIR, 'clawhost')
 
 let server: dgram.Socket | null = null
+let retryCount = 0
+const MAX_RETRIES = 3
+const RETRY_DELAY = 2000
 
 const buildResponse = (query: Buffer): Buffer => {
     const response = Buffer.alloc(512)
@@ -103,9 +106,18 @@ const startDns = (): void => {
         server?.send(response, rinfo.port, rinfo.address)
     })
 
-    server.on('error', () => {
+    server.on('error', (err) => {
+        console.error('[dns] server error:', err.message)
         server?.close()
         server = null
+        if (retryCount < MAX_RETRIES) {
+            retryCount++
+            setTimeout(startDns, RETRY_DELAY)
+        }
+    })
+
+    server.on('listening', () => {
+        retryCount = 0
     })
 
     server.bind(DNS_PORT, '127.0.0.1')
@@ -138,22 +150,30 @@ const isDnsSetup = (): boolean => {
 
 const ensurePortRedirect = (): void => {
     if (!isDnsSetup()) return
-    const script = [
-        '#!/bin/bash',
-        `printf '${PF_RULE_HTTP}\\n${PF_RULE_HTTPS}\\n' | pfctl -a "${PF_ANCHOR}" -f - 2>/dev/null`,
-        'pfctl -e 2>/dev/null',
-        'exit 0'
-    ].join('\n')
-    const tmpScript = path.join(os.tmpdir(), 'clawhost-pf.sh')
-    fs.writeFileSync(tmpScript, script, { mode: 0o755 })
-    exec(
-        `osascript -e 'do shell script "${tmpScript}" with administrator privileges'`,
-        () => {
-            try {
-                fs.unlinkSync(tmpScript)
-            } catch {}
+    exec('pfctl -a com.clawhost -sr 2>/dev/null', (err, stdout) => {
+        if (!err && stdout.includes('rdr pass') && stdout.includes(String(PROXY_PORT))) {
+            return
         }
-    )
+        const script = [
+            '#!/bin/bash',
+            `printf '${PF_RULE_HTTP}\\n${PF_RULE_HTTPS}\\n' | pfctl -a "${PF_ANCHOR}" -f - 2>/dev/null`,
+            'pfctl -e 2>/dev/null',
+            'exit 0'
+        ].join('\n')
+        const tmpScript = path.join(os.tmpdir(), 'clawhost-pf.sh')
+        fs.writeFileSync(tmpScript, script, { mode: 0o755 })
+        exec(
+            `osascript -e 'do shell script "${tmpScript}" with administrator privileges'`,
+            (pfErr) => {
+                if (pfErr) {
+                    console.error('[dns] pfctl setup failed:', pfErr.message)
+                }
+                try {
+                    fs.unlinkSync(tmpScript)
+                } catch {}
+            }
+        )
+    })
 }
 
 const setupResolver = (): Promise<boolean> => {

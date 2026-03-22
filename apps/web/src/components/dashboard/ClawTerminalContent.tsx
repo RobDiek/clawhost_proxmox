@@ -164,7 +164,8 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
 
         try {
             await electronAPI.invoke('terminal:spawn', clawId, terminal.cols, terminal.rows)
-        } catch {
+        } catch (err) {
+            console.error('[terminal] spawn failed:', err)
             setStatus('error')
             return
         }

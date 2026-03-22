@@ -3,6 +3,7 @@ import { execFile } from 'child_process'
 import path from 'path'
 import {
     configStore,
+    processManager,
     nodeBinary,
     reverseProxy,
     dnsResolver,
@@ -27,6 +28,7 @@ if (!gotLock) {
             height: 800,
             minWidth: 900,
             minHeight: 600,
+            show: false,
             backgroundColor: '#0a0a0f',
             titleBarStyle: 'hiddenInset',
             trafficLightPosition: { x: 16, y: 13 },
@@ -37,6 +39,10 @@ if (!gotLock) {
                 nodeIntegration: false,
                 devTools: true
             }
+        })
+
+        mainWindow.once('ready-to-show', () => {
+            mainWindow?.show()
         })
 
         mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -65,13 +71,14 @@ if (!gotLock) {
 
     app.whenReady().then(() => {
         configStore.ensureDirectories()
+        processManager.cleanOrphanedProcesses()
+        registerAllHandlers()
+        createWindow()
         certManager.ensureCerts()
         nodeBinary.ensureNode()
-        registerAllHandlers()
         reverseProxy.start()
         dnsResolver.startDns()
         dnsResolver.ensurePortRedirect()
-        createWindow()
     })
 
     app.on('before-quit', () => {

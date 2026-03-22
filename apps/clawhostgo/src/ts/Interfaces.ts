@@ -42,7 +42,7 @@ interface CertPaths {
 }
 
 interface CreateClawData {
-    name: string
+    name?: string
     gatewayToken?: string
     password?: string
 }

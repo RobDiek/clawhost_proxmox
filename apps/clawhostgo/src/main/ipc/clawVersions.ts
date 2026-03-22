@@ -1,15 +1,17 @@
 import type { IpcMainInvokeEvent } from 'electron'
 
 import { ipcMain } from 'electron'
+import { OPENCLAW_VERSION } from '@openclaw/shared'
 import { configStore, versionManager, processManager } from '@/main/services'
+import { t } from '@openclaw/i18n'
 
 const registerClawVersionHandlers = (): void => {
     ipcMain.handle(
         'getClawVersion',
         (_event: IpcMainInvokeEvent, id: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
-            return { version: claw.version || null }
+            if (!claw) throw new Error(t('go.clawNotFound'))
+            return { version: claw.version || OPENCLAW_VERSION }
         }
     )
 
@@ -17,7 +19,7 @@ const registerClawVersionHandlers = (): void => {
         'getClawVersions',
         async (_event: IpcMainInvokeEvent, id: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const available = await versionManager.getAvailableVersions()
             const latest = await versionManager.getLatestVersion()
@@ -34,7 +36,7 @@ const registerClawVersionHandlers = (): void => {
         'installClawVersion',
         async (_event: IpcMainInvokeEvent, id: string, version: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             await versionManager.installVersionTo(version, clawDir)
@@ -63,7 +65,7 @@ const registerClawVersionHandlers = (): void => {
             data?: { agentId?: string }
         ) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             try {
                 const body = data?.agentId ? { agentId: data.agentId } : {}
@@ -90,7 +92,7 @@ const registerClawVersionHandlers = (): void => {
             data: Record<string, unknown>
         ) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const res = await fetch(
                 `http://localhost:${claw.port}/clawhub/install`,
@@ -112,7 +114,7 @@ const registerClawVersionHandlers = (): void => {
             data: Record<string, unknown>
         ) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const res = await fetch(
                 `http://localhost:${claw.port}/clawhub/remove`,
@@ -134,7 +136,7 @@ const registerClawVersionHandlers = (): void => {
             data: Record<string, unknown>
         ) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const res = await fetch(
                 `http://localhost:${claw.port}/clawhub/update`,
@@ -156,7 +158,7 @@ const registerClawVersionHandlers = (): void => {
             data?: { agentId?: string }
         ) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             try {
                 const body = data?.agentId ? { agentId: data.agentId } : {}

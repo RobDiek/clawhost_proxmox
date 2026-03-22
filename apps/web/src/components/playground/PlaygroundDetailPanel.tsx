@@ -418,7 +418,7 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                                     <button
                                         type='button'
                                         onClick={() => {
-                                            const url = `https://${claw.subdomain}.clawhost${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`
+                                            const url = `http://127.0.0.1:${claw.port}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`
                                             const eApi = (
                                                 window as unknown as ElectronWindow
                                             ).electronAPI

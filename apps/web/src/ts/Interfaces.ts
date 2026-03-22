@@ -1636,6 +1636,7 @@ export interface ElectronAPI {
     checkNetwork: () => Promise<'online' | 'unstable' | 'offline'>
     getDnsStatus: () => Promise<boolean>
     setupDns: () => Promise<boolean>
+    invoke: (channel: string, ...args: unknown[]) => Promise<unknown>
 }
 
 export interface ScrollToBottomButtonProps {
@@ -1650,6 +1651,12 @@ export interface UseScrollToBottomOptions {
 
 export interface ElectronWindow {
     electronAPI?: ElectronAPI
+}
+
+export interface OAuthWindowResult {
+    accessToken: string | null
+    idToken: string | null
+    code: string | null
 }
 
 export interface RenameClawMutationParams extends RenameClawData {

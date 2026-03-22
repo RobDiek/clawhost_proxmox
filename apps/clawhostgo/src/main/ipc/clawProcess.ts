@@ -3,11 +3,13 @@ import type { IpcMainInvokeEvent } from 'electron'
 import { ipcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
-import os from 'os'
 import { clawProvider, clawStatus } from '@openclaw/shared'
+import { t } from '@openclaw/i18n'
 import { configStore, processManager } from '@/main/services'
 
-const ensureClawConfig = (clawDir: string, subdomain: string): void => {
+const POST_START_CONFIG_DELAY = 5000
+
+const ensureClawConfig = (clawDir: string): void => {
     const configPath = path.join(clawDir, 'openclaw.json')
     if (!fs.existsSync(configPath)) return
     try {
@@ -21,14 +23,9 @@ const ensureClawConfig = (clawDir: string, subdomain: string): void => {
             config.gateway.controlUi.allowInsecureAuth = true
             changed = true
         }
-        const expectedOrigins = [
-            `https://${subdomain}.clawhost`,
-            `http://${subdomain}.clawhost`,
-            'http://localhost:*'
-        ]
         const current = config.gateway.controlUi.allowedOrigins
-        if (!current || JSON.stringify(current) !== JSON.stringify(expectedOrigins)) {
-            config.gateway.controlUi.allowedOrigins = expectedOrigins
+        if (!current || JSON.stringify(current) !== JSON.stringify(['*'])) {
+            config.gateway.controlUi.allowedOrigins = ['*']
             changed = true
         }
         if (changed) {
@@ -37,16 +34,10 @@ const ensureClawConfig = (clawDir: string, subdomain: string): void => {
     } catch {}
 }
 
-const getDeviceIp = (): string => {
-    const interfaces = os.networkInterfaces()
-    for (const name of Object.keys(interfaces)) {
-        for (const iface of interfaces[name] || []) {
-            if (iface.family === 'IPv4' && !iface.internal) {
-                return iface.address
-            }
-        }
-    }
-    return '127.0.0.1'
+const schedulePostStartConfigFix = (clawDir: string): void => {
+    setTimeout(() => {
+        ensureClawConfig(clawDir)
+    }, POST_START_CONFIG_DELAY)
 }
 
 const registerClawProcessHandlers = (): void => {
@@ -54,16 +45,14 @@ const registerClawProcessHandlers = (): void => {
         'startClaw',
         async (_event: IpcMainInvokeEvent, id: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             if (!claw.version) {
-                throw new Error(
-                    'No OpenClaw version installed. Go to the Versions tab and install one first.'
-                )
+                throw new Error(t('go.noVersionInstalled'))
             }
 
             const clawDir = configStore.getClawDir(claw.name)
-            ensureClawConfig(clawDir, claw.subdomain)
+            ensureClawConfig(clawDir)
             try {
                 await processManager.startGateway(
                     claw.id,
@@ -72,9 +61,10 @@ const registerClawProcessHandlers = (): void => {
                     claw.version,
                     claw.gatewayToken
                 )
+                schedulePostStartConfigFix(clawDir)
             } catch (err) {
                 throw new Error(
-                    err instanceof Error ? err.message : 'Failed to start claw.'
+                    err instanceof Error ? err.message : t('go.failedToStartClaw')
                 )
             }
 
@@ -83,7 +73,7 @@ const registerClawProcessHandlers = (): void => {
                 name: claw.name,
                 provider: clawProvider.local,
                 status: clawStatus.running,
-                ip: getDeviceIp(),
+                ip: '127.0.0.1',
                 planId: clawProvider.local,
                 location: clawProvider.local,
                 rootPassword: null,
@@ -108,7 +98,7 @@ const registerClawProcessHandlers = (): void => {
         'stopClaw',
         async (_event: IpcMainInvokeEvent, id: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             await processManager.stopGateway(id)
 
@@ -117,7 +107,7 @@ const registerClawProcessHandlers = (): void => {
                 name: claw.name,
                 provider: clawProvider.local,
                 status: clawStatus.stopped,
-                ip: getDeviceIp(),
+                ip: '127.0.0.1',
                 planId: clawProvider.local,
                 location: clawProvider.local,
                 rootPassword: null,
@@ -142,14 +132,14 @@ const registerClawProcessHandlers = (): void => {
         'restartClaw',
         async (_event: IpcMainInvokeEvent, id: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             if (!claw.version) {
-                throw new Error('No OpenClaw version assigned to this claw.')
+                throw new Error(t('go.noVersionAssigned'))
             }
 
             const clawDir = configStore.getClawDir(claw.name)
-            ensureClawConfig(clawDir, claw.subdomain)
+            ensureClawConfig(clawDir)
             await processManager.restartGateway(
                 claw.id,
                 clawDir,
@@ -157,13 +147,14 @@ const registerClawProcessHandlers = (): void => {
                 claw.version,
                 claw.gatewayToken
             )
+            schedulePostStartConfigFix(clawDir)
 
             return {
                 id: claw.id,
                 name: claw.name,
                 provider: clawProvider.local,
                 status: clawStatus.running,
-                ip: getDeviceIp(),
+                ip: '127.0.0.1',
                 planId: clawProvider.local,
                 location: clawProvider.local,
                 rootPassword: null,
@@ -188,7 +179,7 @@ const registerClawProcessHandlers = (): void => {
         'getClawDiagnostics',
         (_event: IpcMainInvokeEvent, id: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const running = processManager.isRunning(id)
             const info = processManager.getProcessInfo(id)
@@ -210,7 +201,7 @@ const registerClawProcessHandlers = (): void => {
 
     ipcMain.handle('getClawLogs', (_event: IpcMainInvokeEvent, id: string) => {
         const claw = configStore.findClaw(id)
-        if (!claw) throw new Error('Claw not found')
+        if (!claw) throw new Error(t('go.clawNotFound'))
 
         const clawDir = configStore.getClawDir(claw.name)
         const logs = processManager.getLogs(clawDir, 100)
@@ -221,14 +212,14 @@ const registerClawProcessHandlers = (): void => {
         'repairClaw',
         async (_event: IpcMainInvokeEvent, id: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             if (!claw.version) {
-                throw new Error('No OpenClaw version assigned.')
+                throw new Error(t('go.noVersionAssigned'))
             }
 
             const clawDir = configStore.getClawDir(claw.name)
-            ensureClawConfig(clawDir, claw.subdomain)
+            ensureClawConfig(clawDir)
             await processManager.restartGateway(
                 claw.id,
                 clawDir,
@@ -236,6 +227,7 @@ const registerClawProcessHandlers = (): void => {
                 claw.version,
                 claw.gatewayToken
             )
+            schedulePostStartConfigFix(clawDir)
 
             return { success: true }
         }
@@ -245,7 +237,7 @@ const registerClawProcessHandlers = (): void => {
         'reinstallClaw',
         async (_event: IpcMainInvokeEvent, id: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             if (processManager.isRunning(id)) {
                 await processManager.stopGateway(id)
@@ -253,7 +245,7 @@ const registerClawProcessHandlers = (): void => {
 
             if (claw.version) {
                 const clawDir = configStore.getClawDir(claw.name)
-                ensureClawConfig(clawDir, claw.subdomain)
+                ensureClawConfig(clawDir)
                 await processManager.startGateway(
                     claw.id,
                     clawDir,
@@ -261,6 +253,7 @@ const registerClawProcessHandlers = (): void => {
                     claw.version,
                     claw.gatewayToken
                 )
+                schedulePostStartConfigFix(clawDir)
             }
 
             return { success: true }

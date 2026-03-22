@@ -54,20 +54,18 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
     const [showToken, setShowToken] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
-    const [error, setError] = useState('')
     const queryClient = useQueryClient()
     const showToast = useUIStore((s) => s.showToast)
 
-    const nameValid = /^[a-zA-Z0-9-]+$/.test(name) && name.length > 0
+    const nameValid = name.length === 0 || /^[a-zA-Z0-9-]+$/.test(name)
 
     const handleCreate = async (): Promise<void> => {
         if (!nameValid) {
-            setError(t('createClaw.clawNameInvalidChars'))
+            showToast(t('createClaw.clawNameInvalidChars'), 'error')
             return
         }
 
         setLoading(true)
-        setError('')
 
         try {
             await api.createClaw({
@@ -83,7 +81,7 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
                 err instanceof Error
                     ? err.message
                     : t('errors.somethingWentWrong')
-            setError(message)
+            showToast(message, 'error')
         } finally {
             setLoading(false)
         }
@@ -106,10 +104,7 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
                         <Label>{t('createClaw.clawName')}</Label>
                         <Input
                             value={name}
-                            onChange={(e) => {
-                                setName(e.target.value)
-                                setError('')
-                            }}
+                            onChange={(e) => setName(e.target.value)}
                             onKeyDown={(e) => {
                                 if (
                                     e.key === 'Enter' &&
@@ -123,7 +118,7 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
                             autoFocus
                         />
                         <p className='text-muted-foreground text-xs'>
-                            {t('createClaw.clawNameInvalidChars')}
+                            {t('createClaw.autoGenerateNameHint')}
                         </p>
                     </div>
 
@@ -206,7 +201,6 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
                         </p>
                     </div>
 
-                    {error && <p className='text-sm text-red-400'>{error}</p>}
                 </div>
 
                 <DialogFooter>

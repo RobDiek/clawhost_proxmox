@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
 import { clawProvider } from '@openclaw/shared'
+import { t } from '@openclaw/i18n'
 import { configStore } from '@/main/services'
 
 const registerStubHandlers = (): void => {
@@ -53,7 +54,7 @@ const registerStubHandlers = (): void => {
     })
 
     ipcMain.handle('purchaseClaw', () => {
-        throw new Error('Purchasing is not available in local mode.')
+        throw new Error(t('go.purchasingNotAvailable'))
     })
 
     ipcMain.handle('getAdminClaws', () => {

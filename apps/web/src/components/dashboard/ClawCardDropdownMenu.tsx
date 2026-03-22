@@ -87,13 +87,15 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                     <>
                         <DropdownMenuItem
                             onClick={() => {
-                                const subdomain =
-                                    claw.subdomain || generateSlug(claw.id)
-                                const domain =
-                                    claw.provider === clawProvider.local
-                                        ? `${subdomain}.clawhost`
-                                        : `${subdomain}.${getBaseDomain()}`
-                                const url = `https://${domain}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`
+                                let url: string
+                                if (claw.provider === clawProvider.local && claw.port) {
+                                    url = `http://127.0.0.1:${claw.port}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`
+                                } else {
+                                    const subdomain =
+                                        claw.subdomain || generateSlug(claw.id)
+                                    const domain = `${subdomain}.${getBaseDomain()}`
+                                    url = `https://${domain}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`
+                                }
                                 window.open(url, '_blank')
                             }}
                         >

@@ -4,6 +4,7 @@ import type { IPty } from 'node-pty'
 import { ipcMain, BrowserWindow } from 'electron'
 import * as pty from 'node-pty'
 import { configStore } from '@/main/services'
+import { t } from '@openclaw/i18n'
 
 const terminals: Map<string, IPty> = new Map()
 
@@ -12,7 +13,7 @@ const registerClawTerminalHandlers = (): void => {
         'terminal:spawn',
         (_event: IpcMainInvokeEvent, id: string, cols: number, rows: number) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             if (terminals.has(id)) {
                 terminals.get(id)!.kill()
@@ -22,16 +23,22 @@ const registerClawTerminalHandlers = (): void => {
             const clawDir = configStore.getClawDir(claw.name)
             const shell = process.env.SHELL || '/bin/zsh'
 
-            const term = pty.spawn(shell, [], {
-                name: 'xterm-256color',
-                cols: cols || 80,
-                rows: rows || 24,
-                cwd: clawDir,
-                env: {
-                    ...process.env,
-                    TERM: 'xterm-256color'
-                } as Record<string, string>
-            })
+            let term: IPty
+            try {
+                term = pty.spawn(shell, [], {
+                    name: 'xterm-256color',
+                    cols: cols || 80,
+                    rows: rows || 24,
+                    cwd: clawDir,
+                    env: {
+                        ...process.env,
+                        TERM: 'xterm-256color'
+                    } as Record<string, string>
+                })
+            } catch (err) {
+                console.error('[terminal] spawn failed:', err)
+                throw err
+            }
 
             terminals.set(id, term)
 

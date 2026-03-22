@@ -5,6 +5,16 @@ import fs from 'fs'
 import path from 'path'
 import configStore from '@/main/services/configStore'
 import nodeBinary from '@/main/services/nodeBinary'
+import { t } from '@openclaw/i18n'
+
+const extractNpmError = (raw: string): string => {
+    if (raw.includes('ENOSPC')) return t('go.diskFull')
+    if (raw.includes('EACCES')) return t('go.permissionDenied')
+    if (raw.includes('ETIMEOUT') || raw.includes('ETIMEDOUT')) return t('go.networkTimeout')
+    const errLine = raw.split('\n').find((l) => l.startsWith('npm error') || l.startsWith('npm ERR!'))
+    if (errLine) return errLine.slice(0, 200)
+    return raw.slice(0, 200)
+}
 
 const listInstalled = (): string[] => {
     const versionsDir = path.join(configStore.getBaseDir(), 'versions')
@@ -48,7 +58,7 @@ const installVersion = (version: string): Promise<void> => {
                     } catch {}
                     reject(
                         new Error(
-                            `Failed to install OpenClaw ${version}: ${error.message}`
+                            t('go.failedToInstallVersion', { version, reason: extractNpmError(error.message) })
                         )
                     )
                     return
@@ -170,7 +180,7 @@ const installVersionTo = (version: string, targetDir: string): Promise<void> => 
                 if (error) {
                     reject(
                         new Error(
-                            `Failed to install OpenClaw ${version}: ${error.message}`
+                            t('go.failedToInstallVersion', { version, reason: extractNpmError(error.message) })
                         )
                     )
                     return
