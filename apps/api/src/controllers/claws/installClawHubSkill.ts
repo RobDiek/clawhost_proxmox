@@ -15,7 +15,7 @@ const SLUG_REGEX = /^[a-zA-Z0-9_-]+(?:\/[a-zA-Z0-9_-]+)?$/
 const installClawHubSkill = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const body = await c.req.json<ClawHubInstallBody>()
 
         if (!body.slug || !SLUG_REGEX.test(body.slug)) {

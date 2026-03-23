@@ -17,7 +17,7 @@ const SUPPORTED_CHANNELS = new Set([
 const updateClawBindings = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const body = await c.req.json<UpdateClawBindingsBody>()
 
         if (!Array.isArray(body.bindings)) {

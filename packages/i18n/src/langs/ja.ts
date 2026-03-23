@@ -977,9 +977,9 @@ const ja: Translations = {
     },
     chat: {
         explorer: 'エクスプローラー',
-        selectAgent: 'エージェントを選択',
+        selectAgent: '未選択',
         selectAgentDescription:
-            'サイドバーからエージェントを選んでチャットを開始。',
+            'サイドバーからクローまたはエージェントを選択してください。',
         noAgents: '利用可能なエージェントなし',
         noAgentsDescription: 'Clawをデプロイしてエージェントとのチャットを開始。',
         openSidebar: 'サイドバーを開く',
@@ -1619,7 +1619,7 @@ const ja: Translations = {
         addAgentName: '名前',
         addAgentNamePlaceholder: 'エージェント名を入力',
         addAgentModel: 'モデル',
-        addAgentModelPlaceholder: 'モデルを選択（任意）',
+        addAgentModelPlaceholder: 'モデルを選択',
         addAgentApiKey: 'APIキー',
         addAgentApiKeyPlaceholder: 'APIキーを入力（任意）',
         addAgentApiKeyConfigured:
@@ -1655,7 +1655,7 @@ const ja: Translations = {
         chatRemoveAttachment: '添付を削除',
         chatThinking: '考え中',
         chatLoadingHistory: 'メッセージを読み込み中...',
-        chatNoMessages: 'メッセージはまだありません。',
+        chatNoMessages: 'メッセージなし',
         chatNoMessagesDescription:
             'メッセージを送信してこのエージェントとの会話を開始。',
         chatErrorMessage: '応答の生成中にエラーが発生しました！',

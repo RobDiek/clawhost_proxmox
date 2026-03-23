@@ -1015,9 +1015,9 @@ const de: Translations = {
     },
     chat: {
         explorer: 'Explorer',
-        selectAgent: 'Wähle einen Agenten',
+        selectAgent: 'Keine Auswahl',
         selectAgentDescription:
-            'Wähle einen Agenten aus der Seitenleiste, um den Chat zu starten',
+            'Wähle ein Claw oder einen Agenten aus der Seitenleiste.',
         noAgents: 'Keine Agenten verfügbar',
         noAgentsDescription:
             'Stelle einen Claw bereit, um mit Agenten zu chatten',
@@ -1673,7 +1673,7 @@ const de: Translations = {
         addAgentName: 'Name',
         addAgentNamePlaceholder: 'Agentennamen eingeben',
         addAgentModel: 'Modell',
-        addAgentModelPlaceholder: 'Modell auswählen (optional)',
+        addAgentModelPlaceholder: 'Modell auswählen',
         addAgentApiKey: 'API-Schlüssel',
         addAgentApiKeyPlaceholder: 'API-Schlüssel eingeben (optional)',
         addAgentApiKeyConfigured:
@@ -1712,7 +1712,7 @@ const de: Translations = {
         chatRemoveAttachment: 'Anhang entfernen',
         chatThinking: 'Denkt nach',
         chatLoadingHistory: 'Nachrichten werden geladen...',
-        chatNoMessages: 'Noch keine Nachrichten.',
+        chatNoMessages: 'Keine Nachrichten',
         chatNoMessagesDescription:
             'Sende eine Nachricht, um eine Unterhaltung mit diesem Agenten zu starten.',
         chatErrorMessage:

@@ -977,9 +977,9 @@ const tr: Translations = {
     },
     chat: {
         explorer: 'Gezgin',
-        selectAgent: 'Bir ajan seçin',
+        selectAgent: 'Seçim yok',
         selectAgentDescription:
-            'Sohbete başlamak için kenar çubuğundan bir ajan seçin.',
+            'Kenar çubuğundan bir claw veya ajan seçin.',
         noAgents: 'Mevcut ajan yok',
         noAgentsDescription: 'Ajanlarla sohbet etmeye başlamak için bir claw dağıtın.',
         openSidebar: 'Kenar çubuğunu aç',
@@ -1619,7 +1619,7 @@ const tr: Translations = {
         addAgentName: 'Ad',
         addAgentNamePlaceholder: 'Ajan adını girin',
         addAgentModel: 'Model',
-        addAgentModelPlaceholder: 'Bir model seçin (isteğe bağlı)',
+        addAgentModelPlaceholder: 'Bir model seçin',
         addAgentApiKey: 'API Anahtarı',
         addAgentApiKeyPlaceholder: 'API anahtarınızı girin (isteğe bağlı)',
         addAgentApiKeyConfigured:
@@ -1655,7 +1655,7 @@ const tr: Translations = {
         chatRemoveAttachment: 'Eki kaldır',
         chatThinking: 'Düşünüyor',
         chatLoadingHistory: 'Mesajlar yükleniyor...',
-        chatNoMessages: 'Henüz mesaj yok.',
+        chatNoMessages: 'Mesaj yok',
         chatNoMessagesDescription:
             'Bu ajanla bir sohbet başlatmak için mesaj gönderin.',
         chatErrorMessage: 'Yanıt oluşturulurken bir hata oluştu!',

@@ -975,9 +975,9 @@ const en = {
     },
     chat: {
         explorer: 'Explorer',
-        selectAgent: 'Select an agent',
+        selectAgent: 'No Selection',
         selectAgentDescription:
-            'Choose an agent from the sidebar to start chatting.',
+            'Select a claw or agent from the sidebar.',
         noAgents: 'No agents available',
         noAgentsDescription: 'Deploy a claw to start chatting with agents.',
         openSidebar: 'Open sidebar',
@@ -1617,7 +1617,7 @@ const en = {
         addAgentName: 'Name',
         addAgentNamePlaceholder: 'Enter agent name',
         addAgentModel: 'Model',
-        addAgentModelPlaceholder: 'Select a model (optional)',
+        addAgentModelPlaceholder: 'Select a model',
         addAgentApiKey: 'API Key',
         addAgentApiKeyPlaceholder: 'Enter your API key (optional)',
         addAgentApiKeyConfigured:
@@ -1653,7 +1653,7 @@ const en = {
         chatRemoveAttachment: 'Remove attachment',
         chatThinking: 'Thinking',
         chatLoadingHistory: 'Loading messages...',
-        chatNoMessages: 'No messages yet.',
+        chatNoMessages: 'No messages',
         chatNoMessagesDescription:
             'Send a message to start a conversation with this agent.',
         chatErrorMessage: 'An error occurred while generating a response!',

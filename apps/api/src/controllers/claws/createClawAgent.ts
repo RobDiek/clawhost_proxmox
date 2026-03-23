@@ -16,7 +16,7 @@ const ENV_SEPARATOR = '---ENV_SEPARATOR---'
 const createClawAgent = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const body = await c.req.json<CreateClawAgentBody>()
 
         if (!body.name || typeof body.name !== 'string') {

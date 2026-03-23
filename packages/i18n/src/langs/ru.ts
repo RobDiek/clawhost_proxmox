@@ -977,9 +977,9 @@ const ru: Translations = {
     },
     chat: {
         explorer: 'Обозреватель',
-        selectAgent: 'Выберите агента',
+        selectAgent: 'Ничего не выбрано',
         selectAgentDescription:
-            'Выберите агента на боковой панели, чтобы начать общение.',
+            'Выберите claw или агента на боковой панели.',
         noAgents: 'Нет доступных агентов',
         noAgentsDescription: 'Разверните клоу, чтобы начать общение с агентами.',
         openSidebar: 'Открыть боковую панель',
@@ -1619,7 +1619,7 @@ const ru: Translations = {
         addAgentName: 'Имя',
         addAgentNamePlaceholder: 'Введите имя агента',
         addAgentModel: 'Модель',
-        addAgentModelPlaceholder: 'Выберите модель (необязательно)',
+        addAgentModelPlaceholder: 'Выберите модель',
         addAgentApiKey: 'API-ключ',
         addAgentApiKeyPlaceholder: 'Введите ваш API-ключ (необязательно)',
         addAgentApiKeyConfigured:
@@ -1655,7 +1655,7 @@ const ru: Translations = {
         chatRemoveAttachment: 'Удалить вложение',
         chatThinking: 'Думает',
         chatLoadingHistory: 'Загрузка сообщений...',
-        chatNoMessages: 'Сообщений пока нет.',
+        chatNoMessages: 'Нет сообщений',
         chatNoMessagesDescription:
             'Отправьте сообщение, чтобы начать разговор с этим агентом.',
         chatErrorMessage: 'Произошла ошибка при генерации ответа !',

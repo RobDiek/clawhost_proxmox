@@ -12,7 +12,7 @@ import { ok, fail } from '@/lib/response'
 const renameClaw = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const body = await c.req.json<RenameClawBody>()
 
         const name = body.name?.trim()

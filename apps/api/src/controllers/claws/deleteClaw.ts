@@ -15,7 +15,7 @@ import { ok, fail } from '@/lib/response'
 const deleteClaw = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
 
         if (id.startsWith('pending-')) {
             const pendingId = id.replace('pending-', '')

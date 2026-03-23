@@ -11,7 +11,7 @@ import { t } from '@openclaw/i18n'
 const getClaw = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const sync = c.req.query('sync') === 'true'
         const claw = await findUserClaw(userId, id)
 

@@ -977,9 +977,9 @@ const pl: Translations = {
     },
     chat: {
         explorer: 'Eksplorator',
-        selectAgent: 'Wybierz agenta',
+        selectAgent: 'Brak wyboru',
         selectAgentDescription:
-            'Wybierz agenta z panelu bocznego, aby rozpocząć czat.',
+            'Wybierz claw lub agenta z panelu bocznego.',
         noAgents: 'Brak dostępnych agentów',
         noAgentsDescription: 'Wdróż claw, aby rozpocząć czat z agentami.',
         openSidebar: 'Otwórz panel boczny',
@@ -1619,7 +1619,7 @@ const pl: Translations = {
         addAgentName: 'Nazwa',
         addAgentNamePlaceholder: 'Wpisz nazwę agenta',
         addAgentModel: 'Model',
-        addAgentModelPlaceholder: 'Wybierz model (opcjonalnie)',
+        addAgentModelPlaceholder: 'Wybierz model',
         addAgentApiKey: 'Klucz API',
         addAgentApiKeyPlaceholder: 'Wpisz klucz API (opcjonalnie)',
         addAgentApiKeyConfigured:
@@ -1655,7 +1655,7 @@ const pl: Translations = {
         chatRemoveAttachment: 'Usuń załącznik',
         chatThinking: 'Myślenie',
         chatLoadingHistory: 'Ładowanie wiadomości...',
-        chatNoMessages: 'Brak wiadomości.',
+        chatNoMessages: 'Brak wiadomości',
         chatNoMessagesDescription:
             'Wyślij wiadomość, aby rozpocząć rozmowę z tym agentem.',
         chatErrorMessage: 'Wystąpił błąd podczas generowania odpowiedzi !',

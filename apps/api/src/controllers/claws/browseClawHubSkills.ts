@@ -8,7 +8,7 @@ import { browseSkills } from '@/services/clawhub'
 const browseClawHubSkills = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
 
         const claw = await findUserClaw(userId, id)
 

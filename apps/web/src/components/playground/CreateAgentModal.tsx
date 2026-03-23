@@ -325,9 +325,13 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                             }`}
                             autoFocus={!needsClawPicker}
                         />
-                        {nameError && (
+                        {nameError ? (
                             <p className='mt-1.5 text-[11px] text-red-600 dark:text-red-400'>
                                 {t(nameError)}
+                            </p>
+                        ) : (
+                            <p className='text-muted-foreground mt-1.5 text-[11px]'>
+                                {t('playground.settingsNameDescription')}
                             </p>
                         )}
                     </div>

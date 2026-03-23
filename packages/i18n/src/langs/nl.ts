@@ -977,9 +977,9 @@ const nl: Translations = {
     },
     chat: {
         explorer: 'Verkenner',
-        selectAgent: 'Selecteer een agent',
+        selectAgent: 'Geen selectie',
         selectAgentDescription:
-            'Kies een agent uit de zijbalk om te beginnen met chatten.',
+            'Selecteer een claw of agent uit de zijbalk.',
         noAgents: 'Geen agents beschikbaar',
         noAgentsDescription: 'Deploy een claw om te beginnen met chatten met agents.',
         openSidebar: 'Zijbalk openen',
@@ -1619,7 +1619,7 @@ const nl: Translations = {
         addAgentName: 'Naam',
         addAgentNamePlaceholder: 'Voer agentnaam in',
         addAgentModel: 'Model',
-        addAgentModelPlaceholder: 'Selecteer een model (optioneel)',
+        addAgentModelPlaceholder: 'Selecteer een model',
         addAgentApiKey: 'API-sleutel',
         addAgentApiKeyPlaceholder: 'Voer je API-sleutel in (optioneel)',
         addAgentApiKeyConfigured:
@@ -1655,7 +1655,7 @@ const nl: Translations = {
         chatRemoveAttachment: 'Bijlage verwijderen',
         chatThinking: 'Nadenken',
         chatLoadingHistory: 'Berichten laden...',
-        chatNoMessages: 'Nog geen berichten.',
+        chatNoMessages: 'Geen berichten',
         chatNoMessagesDescription:
             'Stuur een bericht om een gesprek met deze agent te starten.',
         chatErrorMessage: 'Er is een fout opgetreden bij het genereren van een antwoord!',

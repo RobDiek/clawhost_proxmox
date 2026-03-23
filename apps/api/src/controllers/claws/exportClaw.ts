@@ -14,7 +14,7 @@ const EXPORT_RATE_LIMIT_WINDOW = 3_600_000
 const exportClaw = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const claw = await findUserClaw(userId, id)
 
         if (!claw) {

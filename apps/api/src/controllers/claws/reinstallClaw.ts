@@ -22,7 +22,7 @@ const REINSTALL_WINDOW = 86_400_000
 const reinstallClaw = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const claw = await db
             .select()
             .from(claws)

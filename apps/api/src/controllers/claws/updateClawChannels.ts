@@ -46,7 +46,7 @@ const sanitizeChannels = (
 const updateClawChannels = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const body = await c.req.json<UpdateClawChannelsBody>()
 
         if (!body.channels || typeof body.channels !== 'object') {

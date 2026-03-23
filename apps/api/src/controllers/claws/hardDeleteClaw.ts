@@ -10,7 +10,7 @@ import { t } from '@openclaw/i18n'
 
 const hardDeleteClaw = async (c: AuthenticatedContext) => {
     try {
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const claw = await db
             .select()
             .from(claws)

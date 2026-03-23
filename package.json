@@ -36,7 +36,12 @@
             "@types/react": "18.3.28"
         },
         "onlyBuiltDependencies": [
-            "node-pty"
+            "node-pty",
+            "esbuild",
+            "ssh2",
+            "protobufjs",
+            "sharp",
+            "cpu-features"
         ]
     },
     "packageManager": "pnpm@10.29.3",

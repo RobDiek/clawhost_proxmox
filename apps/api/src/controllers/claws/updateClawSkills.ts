@@ -9,7 +9,7 @@ import { ok, fail } from '@/lib/response'
 const updateClawSkills = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const body = await c.req.json<UpdateClawSkillsBody>()
 
         if (!body.entries || typeof body.entries !== 'object') {

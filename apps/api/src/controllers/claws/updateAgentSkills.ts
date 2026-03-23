@@ -11,7 +11,7 @@ const SKILL_NAME_REGEX = /^[a-zA-Z0-9_-]+$/
 const updateAgentSkills = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const body = await c.req.json<UpdateAgentSkillsBody>()
 
         if (!body.skillName || !body.action) {
@@ -32,7 +32,7 @@ const updateAgentSkills = async (c: AuthenticatedContext) => {
             return fail(c, t('api.agentSkillsUpdateFailed'), 400)
         }
 
-        const agentId = c.req.param('agentId')
+        const agentId = c.req.param('agentId')!
         if (!agentId) {
             return fail(c, t('api.missingRequiredFields'), 400)
         }

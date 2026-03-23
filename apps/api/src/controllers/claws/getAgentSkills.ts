@@ -9,7 +9,7 @@ import { ok, fail } from '@/lib/response'
 const getAgentSkills = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const body = await c.req.json<GetAgentSkillsBody>()
 
         if (!body.agentId || typeof body.agentId !== 'string') {

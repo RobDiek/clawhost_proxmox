@@ -16,7 +16,7 @@ const ENV_SEPARATOR = '---ENV_SEPARATOR---'
 const updateClawAgentConfig = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const body = await c.req.json<UpdateAgentConfigBody>()
 
         if (!body.agentId || typeof body.agentId !== 'string') {

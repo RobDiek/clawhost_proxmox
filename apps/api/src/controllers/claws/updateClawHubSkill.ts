@@ -15,7 +15,7 @@ const SLUG_REGEX = /^[a-zA-Z0-9_-]+(?:\/[a-zA-Z0-9_-]+)?$/
 const updateClawHubSkill = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const body = await c.req.json<ClawHubUpdateBody>()
 
         if (!body.slug && !body.all) {

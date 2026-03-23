@@ -17,7 +17,7 @@ const NPM_REGISTRY_URL = 'https://registry.npmjs.org/openclaw'
 
 const installClawVersion = async (c: AuthenticatedContext) => {
     try {
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const { version } = await c.req.json<InstallVersionBody>()
 
         if (!version || !VERSION_REGEX.test(version)) {

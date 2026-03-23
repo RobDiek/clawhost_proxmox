@@ -977,9 +977,9 @@ const zh: Translations = {
     },
     chat: {
         explorer: '浏览器',
-        selectAgent: '选择一个代理',
+        selectAgent: '未选择',
         selectAgentDescription:
-            '从侧边栏选择一个代理开始聊天。',
+            '从侧边栏选择一个 Claw 或代理。',
         noAgents: '暂无可用代理',
         noAgentsDescription: '部署一个 Claw 开始与代理聊天。',
         openSidebar: '打开侧边栏',
@@ -1619,7 +1619,7 @@ const zh: Translations = {
         addAgentName: '名称',
         addAgentNamePlaceholder: '输入代理名称',
         addAgentModel: '模型',
-        addAgentModelPlaceholder: '选择模型（可选）',
+        addAgentModelPlaceholder: '选择模型',
         addAgentApiKey: 'API 密钥',
         addAgentApiKeyPlaceholder: '输入您的 API 密钥（可选）',
         addAgentApiKeyConfigured:
@@ -1655,7 +1655,7 @@ const zh: Translations = {
         chatRemoveAttachment: '移除附件',
         chatThinking: '思考中',
         chatLoadingHistory: '正在加载消息...',
-        chatNoMessages: '暂无消息。',
+        chatNoMessages: '暂无消息',
         chatNoMessagesDescription:
             '发送消息以开始与此代理的对话。',
         chatErrorMessage: '生成回复时发生错误！',

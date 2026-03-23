@@ -10,7 +10,7 @@ import { t } from '@openclaw/i18n'
 const deleteSSHKey = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
 
         const key = await db
             .select()

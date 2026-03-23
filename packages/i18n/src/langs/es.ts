@@ -1010,9 +1010,9 @@ const es: Translations = {
     },
     chat: {
         explorer: 'Explorador',
-        selectAgent: 'Selecciona un agente',
+        selectAgent: 'Sin selección',
         selectAgentDescription:
-            'Elige un agente de la barra lateral para comenzar a chatear',
+            'Selecciona un claw o agente de la barra lateral.',
         noAgents: 'No hay agentes disponibles',
         noAgentsDescription:
             'Despliega un claw para comenzar a chatear con agentes',
@@ -1672,7 +1672,7 @@ const es: Translations = {
         addAgentName: 'Nombre',
         addAgentNamePlaceholder: 'Ingresa el nombre del agente',
         addAgentModel: 'Modelo',
-        addAgentModelPlaceholder: 'Selecciona un modelo (opcional)',
+        addAgentModelPlaceholder: 'Selecciona un modelo',
         addAgentApiKey: 'Clave API',
         addAgentApiKeyPlaceholder: 'Ingresa tu clave API (opcional)',
         addAgentApiKeyConfigured:
@@ -1709,7 +1709,7 @@ const es: Translations = {
         chatRemoveAttachment: 'Eliminar archivo adjunto',
         chatThinking: 'Pensando',
         chatLoadingHistory: 'Cargando mensajes...',
-        chatNoMessages: 'Sin mensajes aún.',
+        chatNoMessages: 'Sin mensajes',
         chatNoMessagesDescription:
             'Envía un mensaje para iniciar una conversación con este agente.',
         chatErrorMessage: 'Ocurrió un error al generar una respuesta!',

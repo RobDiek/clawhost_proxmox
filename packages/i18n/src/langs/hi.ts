@@ -977,9 +977,9 @@ const hi: Translations = {
     },
     chat: {
         explorer: 'एक्सप्लोरर',
-        selectAgent: 'एक एजेंट चुनें',
+        selectAgent: 'कोई चयन नहीं',
         selectAgentDescription:
-            'चैटिंग शुरू करने के लिए साइडबार से एक एजेंट चुनें.',
+            'साइडबार से एक क्लॉ या एजेंट चुनें।',
         noAgents: 'कोई एजेंट उपलब्ध नहीं',
         noAgentsDescription: 'एजेंट से चैट शुरू करने के लिए एक क्लॉ डिप्लॉय करें.',
         openSidebar: 'साइडबार खोलें',
@@ -1619,7 +1619,7 @@ const hi: Translations = {
         addAgentName: 'नाम',
         addAgentNamePlaceholder: 'एजेंट नाम दर्ज करें',
         addAgentModel: 'मॉडल',
-        addAgentModelPlaceholder: 'एक मॉडल चुनें (वैकल्पिक)',
+        addAgentModelPlaceholder: 'एक मॉडल चुनें',
         addAgentApiKey: 'API कुंजी',
         addAgentApiKeyPlaceholder: 'अपनी API कुंजी दर्ज करें (वैकल्पिक)',
         addAgentApiKeyConfigured:
@@ -1655,7 +1655,7 @@ const hi: Translations = {
         chatRemoveAttachment: 'अटैचमेंट हटाएँ',
         chatThinking: 'सोच रहा है',
         chatLoadingHistory: 'संदेश लोड हो रहे हैं...',
-        chatNoMessages: 'अभी तक कोई संदेश नहीं.',
+        chatNoMessages: 'कोई संदेश नहीं',
         chatNoMessagesDescription:
             'इस एजेंट के साथ बातचीत शुरू करने के लिए एक संदेश भेजें.',
         chatErrorMessage: 'प्रतिक्रिया जनरेट करते समय एक त्रुटि हुई!',

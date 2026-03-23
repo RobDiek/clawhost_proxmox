@@ -977,9 +977,9 @@ const ar: Translations = {
     },
     chat: {
         explorer: 'المستكشف',
-        selectAgent: 'اختر وكيلاً',
+        selectAgent: 'لا يوجد تحديد',
         selectAgentDescription:
-            'اختر وكيلاً من الشريط الجانبي لبدء المحادثة.',
+            'اختر claw أو وكيلاً من الشريط الجانبي.',
         noAgents: 'لا يوجد وكلاء متاحون',
         noAgentsDescription: 'انشر مخلباً لبدء المحادثة مع الوكلاء.',
         openSidebar: 'فتح الشريط الجانبي',
@@ -1619,7 +1619,7 @@ const ar: Translations = {
         addAgentName: 'الاسم',
         addAgentNamePlaceholder: 'أدخل اسم الوكيل',
         addAgentModel: 'النموذج',
-        addAgentModelPlaceholder: 'اختر نموذجاً (اختياري)',
+        addAgentModelPlaceholder: 'اختر نموذجاً',
         addAgentApiKey: 'مفتاح API',
         addAgentApiKeyPlaceholder: 'أدخل مفتاح API (اختياري)',
         addAgentApiKeyConfigured:
@@ -1655,7 +1655,7 @@ const ar: Translations = {
         chatRemoveAttachment: 'إزالة المرفق',
         chatThinking: 'يفكر',
         chatLoadingHistory: 'جارٍ تحميل الرسائل...',
-        chatNoMessages: 'لا توجد رسائل بعد.',
+        chatNoMessages: 'لا توجد رسائل',
         chatNoMessagesDescription:
             'أرسل رسالة لبدء محادثة مع هذا الوكيل.',
         chatErrorMessage: 'حدث خطأ أثناء توليد الرد !',

@@ -11,7 +11,7 @@ const VALID_METHODS = ['google', 'github'] as const
 const disconnectAuthMethod = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const method = c.req.param('method')
+        const method = c.req.param('method')!
 
         if (!VALID_METHODS.includes(method as (typeof VALID_METHODS)[number])) {
             return fail(c, t('api.invalidAuthMethod'), 400)

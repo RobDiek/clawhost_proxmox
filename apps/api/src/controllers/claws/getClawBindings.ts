@@ -9,7 +9,7 @@ import { ok, fail } from '@/lib/response'
 const getClawBindings = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const claw = await findUserClaw(userId, id)
 
         if (!claw) {
