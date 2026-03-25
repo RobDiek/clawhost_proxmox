@@ -10,7 +10,6 @@ const HostingDashboard: FC = (): ReactNode => {
     const { data: instances, isLoading } = useInstances()
     const restartMutation = useRestartInstance()
     const deleteMutation = useDeleteInstance()
-    const checkoutMutation = useCheckout()
     const [showConfigurator, setShowConfigurator] = useState(false)
 
     const handleDeploy = async (config: {
