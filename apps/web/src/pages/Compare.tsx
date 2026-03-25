@@ -18,7 +18,7 @@ import {
     SelectContent,
     SelectItem,
     SelectTrigger
-} from '@/components/ui/select'
+} from '@/components/ui'
 import { PATHS, getBaseDomain } from '@/lib'
 import { getCompareData } from '@/data'
 import { GITHUB_REPO_URL } from '@/hooks'

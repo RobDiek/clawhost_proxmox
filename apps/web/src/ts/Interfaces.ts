@@ -1059,6 +1059,20 @@ export interface PricingSectionProps {
     allDoneLoading: boolean
 }
 
+export interface SimplePlanFeature {
+    label: string
+    included: boolean
+}
+
+export interface SimplePlanCardProps {
+    name: string
+    description: string
+    price: number
+    planId: string
+    popular?: boolean
+    features: SimplePlanFeature[]
+}
+
 export interface PlaygroundTabConfig<T extends string = string> {
     id: T
     label: string

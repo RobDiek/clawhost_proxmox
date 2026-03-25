@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth'
 import { useUIStore } from '@/lib/store'
 import { api, getLocale } from '@/lib'
 import { useUserStats, useBillingHistory } from '@/hooks'
-import { Badge, Card, CardContent, Skeleton, Button } from '@/components/ui'
+import { Badge, Card, CardContent, Button } from '@/components/ui'
 import {
     Header,
     LandingFooter,
@@ -25,28 +25,7 @@ import {
     DownloadSimpleIcon,
     ArrowSquareOutIcon
 } from '@phosphor-icons/react'
-
-const BillingSkeleton: FC = (): ReactNode => {
-    return (
-        <Card>
-            <CardContent className='py-4'>
-                <div className='flex items-center justify-between'>
-                    <div className='flex items-center gap-4'>
-                        <div className='space-y-2'>
-                            <Skeleton className='h-5 w-32' />
-                            <Skeleton className='h-4 w-24' />
-                        </div>
-                    </div>
-                    <div className='flex items-center gap-4'>
-                        <Skeleton className='h-4 w-16' />
-                        <Skeleton className='h-5 w-14 rounded-full' />
-                        <Skeleton className='h-8 w-8' />
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    )
-}
+import BillingSkeleton from '@/pages/BillingSkeleton'
 
 const Billing: FC = (): ReactNode => {
     const { loading: authLoading } = useAuth()

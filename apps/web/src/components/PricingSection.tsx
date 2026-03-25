@@ -1,15 +1,169 @@
 import type { FC, ReactNode } from 'react'
-import type { PricingSectionProps } from '@/ts/Interfaces'
+import type {
+    PricingSectionProps,
+    SimplePlanCardProps,
+    SimplePlanFeature
+} from '@/ts/Interfaces'
 
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { clawProvider } from '@openclaw/shared'
 import { Button, Badge } from '@/components/ui'
-import { ProviderIcon, PlansSkeleton } from '@/components'
+import { PlansSkeleton } from '@/components'
 import { useAuth } from '@/lib/auth'
 import { ROUTES } from '@/lib'
-import { CheckIcon } from '@phosphor-icons/react'
+import {
+    CheckIcon,
+    XIcon,
+    CaretDownIcon,
+    CaretUpIcon
+} from '@phosphor-icons/react'
+
+const buildSimplePlans = (): Array<{
+    planId: string
+    name: string
+    desc: string
+    price: number
+    popular: boolean
+    features: SimplePlanFeature[]
+}> => {
+    const common: SimplePlanFeature[] = [
+        { label: t('landing.featurePreinstalled'), included: true },
+        { label: t('landing.featureBandwidth'), included: true },
+        { label: t('landing.featureSsh'), included: true },
+        { label: t('landing.featureUptime'), included: true }
+    ]
+
+    return [
+        {
+            planId: 'cx23',
+            name: t('landing.planStarter'),
+            desc: t('landing.planStarterDesc'),
+            price: 25,
+            popular: false,
+            features: [
+                ...common,
+                { label: t('landing.featureSharedCpu'), included: true },
+                { label: t('landing.featureInfraSupport'), included: false }
+            ]
+        },
+        {
+            planId: 'cpx21',
+            name: t('landing.planGrowth'),
+            desc: t('landing.planGrowthDesc'),
+            price: 40,
+            popular: true,
+            features: [
+                ...common,
+                { label: t('landing.featureSharedCpu'), included: true },
+                { label: t('landing.featureInfraSupport'), included: false }
+            ]
+        },
+        {
+            planId: 'ccx23',
+            name: t('landing.planPro'),
+            desc: t('landing.planProDesc'),
+            price: 60,
+            popular: false,
+            features: [
+                ...common,
+                { label: t('landing.featureDedicatedCpu'), included: true },
+                { label: t('landing.featureInfraSupport'), included: true }
+            ]
+        },
+        {
+            planId: 'ccx33',
+            name: t('landing.planBusiness'),
+            desc: t('landing.planBusinessDesc'),
+            price: 90,
+            popular: false,
+            features: [
+                ...common,
+                { label: t('landing.featureDedicatedCpu'), included: true },
+                { label: t('landing.featureInfraSupport'), included: true }
+            ]
+        }
+    ]
+}
+
+const SimplePlanCard: FC<SimplePlanCardProps> = ({
+    name,
+    description,
+    price,
+    planId,
+    popular,
+    features
+}): ReactNode => {
+    const { user } = useAuth()
+
+    return (
+        <div
+            className={`border-border relative flex flex-col rounded-xl border p-6 transition-all hover:border-white/20 ${popular ? 'border-[#ef5350]/50 bg-[#ef5350]/5' : 'bg-foreground/[0.02]'}`}
+        >
+            {popular && (
+                <Badge className='absolute -top-2.5 left-1/2 -translate-x-1/2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-xs text-white'>
+                    {t('landing.mostPopular')}
+                </Badge>
+            )}
+            <div className='mb-4'>
+                <h3 className='font-clash text-foreground text-lg font-semibold'>
+                    {name}
+                </h3>
+                <p className='text-muted-foreground mt-1 text-sm'>
+                    {description}
+                </p>
+            </div>
+            <div className='mb-4 flex items-baseline gap-1'>
+                <span className='font-clash text-foreground text-4xl font-bold'>
+                    ${price}
+                </span>
+                <span className='text-muted-foreground text-sm'>
+                    {t('landing.perMonth')}
+                </span>
+            </div>
+            <div className='mb-6 flex flex-col gap-2'>
+                {features.map((feature) => (
+                    <div
+                        key={feature.label}
+                        className='flex items-center gap-2'
+                    >
+                        {feature.included ? (
+                            <CheckIcon
+                                size={14}
+                                className='shrink-0 text-green-600 dark:text-green-400'
+                            />
+                        ) : (
+                            <XIcon
+                                size={14}
+                                className='text-muted-foreground/40 shrink-0'
+                            />
+                        )}
+                        <span
+                            className={`text-xs ${feature.included ? 'text-foreground/70' : 'text-muted-foreground/40'}`}
+                        >
+                            {feature.label}
+                        </span>
+                    </div>
+                ))}
+            </div>
+            <Button
+                className={`mt-auto w-full gap-2 ${popular ? 'border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-white hover:opacity-90' : 'bg-foreground/10 text-foreground hover:bg-foreground/20 border-0'}`}
+                asChild
+            >
+                <Link
+                    to={
+                        user
+                            ? `${ROUTES.CLAWS}?plan=${planId}&provider=${clawProvider.hetzner}`
+                            : `${ROUTES.LOGIN}?plan=${planId}&provider=${clawProvider.hetzner}`
+                    }
+                >
+                    {user ? t('landing.deploy') : t('landing.choosePlan')}
+                </Link>
+            </Button>
+        </div>
+    )
+}
 
 const PricingSection: FC<PricingSectionProps> = ({
     plans,
@@ -17,6 +171,7 @@ const PricingSection: FC<PricingSectionProps> = ({
     allDoneLoading
 }): ReactNode => {
     const { user } = useAuth()
+    const [showAllPlans, setShowAllPlans] = useState(false)
 
     return (
         <section
@@ -37,220 +192,253 @@ const PricingSection: FC<PricingSectionProps> = ({
                     <p className='text-muted-foreground mx-auto max-w-xl text-lg'>
                         {t('landing.pricingDescription')}
                     </p>
-
-                    <div className='mt-8 flex justify-center'>
-                        <div className='border-border bg-foreground/5 flex items-center gap-2 rounded-lg border px-4 py-2'>
-                            <ProviderIcon
-                                provider={clawProvider.hetzner}
-                                className='h-4 w-4'
-                            />
-                            <span className='text-foreground text-sm font-medium'>
-                                {t('createClaw.providerHetzner')}
-                            </span>
-                        </div>
-                    </div>
                 </div>
 
                 {plansLoading || (!allDoneLoading && !plans?.length) ? (
                     <PlansSkeleton />
                 ) : plans && plans.length > 0 ? (
                     <>
-                        <div className='overflow-x-auto'>
-                            <table className='w-full border-collapse'>
-                                <thead>
-                                    <tr className='border-border border-b'>
-                                        <th className='font-clash text-foreground px-4 py-4 text-left font-semibold'>
-                                            {t('landing.planColumn')}
-                                        </th>
-                                        <th className='font-clash text-foreground whitespace-nowrap px-4 py-4 text-center font-semibold'>
-                                            {t('landing.vCpuColumn')}
-                                        </th>
-                                        <th className='font-clash text-foreground whitespace-nowrap px-4 py-4 text-center font-semibold'>
-                                            {t('landing.ramColumn')}
-                                        </th>
-                                        <th className='font-clash text-foreground whitespace-nowrap px-4 py-4 text-center font-semibold'>
-                                            {t('landing.storageColumn')}
-                                        </th>
-                                        <th className='font-clash text-foreground whitespace-nowrap px-4 py-4 text-center font-semibold'>
-                                            {t('landing.monthlyColumn')}
-                                        </th>
-                                        <th className='px-4 py-4 text-right'></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {plans.map((plan, index) => {
-                                        const totalMonthly = Math.round(
-                                            plan.priceMonthly
-                                        )
-                                        const totalYearly = Math.round(
-                                            plan.priceYearly
-                                        )
-                                        const isRecommended =
-                                            plan.id === 'cax41'
-                                        const tierStarts: Record<
-                                            string,
-                                            string
-                                        > = {
-                                            cx23: t('landing.tierShared'),
-                                            cax11: t('landing.tierArm'),
-                                            ccx13: t('landing.tierDedicated')
-                                        }
+                        {!showAllPlans ? (
+                            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+                                {buildSimplePlans().map((sp) => (
+                                    <SimplePlanCard
+                                        key={sp.planId}
+                                        name={sp.name}
+                                        description={sp.desc}
+                                        price={sp.price}
+                                        planId={sp.planId}
+                                        popular={sp.popular}
+                                        features={sp.features}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className='overflow-x-auto'>
+                                <table className='w-full border-collapse'>
+                                    <thead>
+                                        <tr className='border-border border-b'>
+                                            <th className='font-clash text-foreground px-4 py-4 text-left font-semibold'>
+                                                {t('landing.planColumn')}
+                                            </th>
+                                            <th className='font-clash text-foreground whitespace-nowrap px-4 py-4 text-center font-semibold'>
+                                                {t('landing.vCpuColumn')}
+                                            </th>
+                                            <th className='font-clash text-foreground whitespace-nowrap px-4 py-4 text-center font-semibold'>
+                                                {t('landing.ramColumn')}
+                                            </th>
+                                            <th className='font-clash text-foreground whitespace-nowrap px-4 py-4 text-center font-semibold'>
+                                                {t('landing.storageColumn')}
+                                            </th>
+                                            <th className='font-clash text-foreground whitespace-nowrap px-4 py-4 text-center font-semibold'>
+                                                {t('landing.monthlyColumn')}
+                                            </th>
+                                            <th className='px-4 py-4 text-right'></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {plans.map((plan, index) => {
+                                            const totalMonthly = Math.round(
+                                                plan.priceMonthly
+                                            )
+                                            const totalYearly = Math.round(
+                                                plan.priceYearly
+                                            )
+                                            const isRecommended =
+                                                plan.id === 'cax41'
+                                            const tierStarts: Record<
+                                                string,
+                                                string
+                                            > = {
+                                                cx23: t('landing.tierShared'),
+                                                cax11: t('landing.tierArm'),
+                                                ccx13: t(
+                                                    'landing.tierDedicated'
+                                                )
+                                            }
 
-                                        const providerTiers = tierStarts
-                                        const tierLabel =
-                                            providerTiers?.[plan.id]
-                                        const showTier = tierLabel && index > 0
+                                            const providerTiers = tierStarts
+                                            const tierLabel =
+                                                providerTiers?.[plan.id]
+                                            const showTier =
+                                                tierLabel && index > 0
 
-                                        return (
-                                            <Fragment key={plan.id}>
-                                                {showTier && (
-                                                    <tr>
-                                                        <td
-                                                            colSpan={6}
-                                                            className='px-4 pb-2 pt-6'
-                                                        >
-                                                            <span className='font-clash text-muted-foreground text-xs font-semibold uppercase tracking-wider'>
-                                                                {tierLabel}
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                                <tr
-                                                    className={`border-border border-b ${
-                                                        isRecommended
-                                                            ? 'bg-[#ef5350]/5'
-                                                            : ''
-                                                    }`}
-                                                >
-                                                    <td className='px-4 py-4'>
-                                                        <div className='flex items-center gap-2'>
-                                                            <span className='text-foreground font-medium'>
-                                                                {plan.name.replace(
-                                                                    /([A-Za-z])(\d)/,
-                                                                    '$1 $2'
-                                                                )}
-                                                            </span>
-                                                            {isRecommended && (
-                                                                <Badge className='border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-xs text-white'>
-                                                                    {t(
-                                                                        'landing.recommended'
+                                            return (
+                                                <Fragment key={plan.id}>
+                                                    {showTier && (
+                                                        <tr>
+                                                            <td
+                                                                colSpan={6}
+                                                                className='px-4 pb-2 pt-6'
+                                                            >
+                                                                <span className='font-clash text-muted-foreground text-xs font-semibold uppercase tracking-wider'>
+                                                                    {tierLabel}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                    <tr
+                                                        className={`border-border border-b ${
+                                                            isRecommended
+                                                                ? 'bg-[#ef5350]/5'
+                                                                : ''
+                                                        }`}
+                                                    >
+                                                        <td className='px-4 py-4'>
+                                                            <div className='flex items-center gap-2'>
+                                                                <span className='text-foreground font-medium'>
+                                                                    {plan.name.replace(
+                                                                        /([A-Za-z])(\d)/,
+                                                                        '$1 $2'
                                                                     )}
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                    <td className='text-foreground/80 px-4 py-4 text-center'>
-                                                        {plan.cpu}
-                                                    </td>
-                                                    <td className='text-foreground/80 whitespace-nowrap px-4 py-4 text-center'>
-                                                        {plan.memory} GB
-                                                    </td>
-                                                    <td className='text-foreground/80 whitespace-nowrap px-4 py-4 text-center'>
-                                                        {plan.disk} GB
-                                                    </td>
-                                                    <td className='whitespace-nowrap px-4 py-4 text-center'>
-                                                        <div className='flex items-baseline justify-center gap-1'>
-                                                            <span className='font-clash text-foreground font-bold'>
-                                                                ${totalMonthly}
-                                                            </span>
-                                                            <span className='text-muted-foreground text-sm'>
-                                                                {t(
-                                                                    'landing.perMonth'
+                                                                </span>
+                                                                {isRecommended && (
+                                                                    <Badge className='border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-xs text-white'>
+                                                                        {t(
+                                                                            'landing.recommended'
+                                                                        )}
+                                                                    </Badge>
                                                                 )}
-                                                            </span>
-                                                            <span className='text-muted-foreground/40 text-xs'>
-                                                                ($
-                                                                {Math.round(
-                                                                    totalYearly /
-                                                                        12
-                                                                )}
-                                                                {t(
-                                                                    'landing.perYear'
-                                                                )}
-                                                                )
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    <td className='px-4 py-4 text-right'>
-                                                        <Button
-                                                            size='sm'
-                                                            className={`gap-2 px-4 ${
-                                                                isRecommended
-                                                                    ? 'border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-white hover:opacity-90'
-                                                                    : 'bg-foreground/10 text-foreground hover:bg-foreground/20 border-0'
-                                                            }`}
-                                                            asChild
-                                                        >
-                                                            <Link
-                                                                to={
-                                                                    user
-                                                                        ? `${ROUTES.CLAWS}?plan=${plan.id}&provider=${clawProvider.hetzner}`
-                                                                        : `${ROUTES.LOGIN}?plan=${plan.id}&provider=${clawProvider.hetzner}`
-                                                                }
-                                                                aria-label={
-                                                                    user
+                                                            </div>
+                                                        </td>
+                                                        <td className='text-foreground/80 px-4 py-4 text-center'>
+                                                            {plan.cpu}
+                                                        </td>
+                                                        <td className='text-foreground/80 whitespace-nowrap px-4 py-4 text-center'>
+                                                            {plan.memory} GB
+                                                        </td>
+                                                        <td className='text-foreground/80 whitespace-nowrap px-4 py-4 text-center'>
+                                                            {plan.disk} GB
+                                                        </td>
+                                                        <td className='whitespace-nowrap px-4 py-4 text-center'>
+                                                            <div className='flex items-baseline justify-center gap-1'>
+                                                                <span className='font-clash text-foreground font-bold'>
+                                                                    $
+                                                                    {
+                                                                        totalMonthly
+                                                                    }
+                                                                </span>
+                                                                <span className='text-muted-foreground text-sm'>
+                                                                    {t(
+                                                                        'landing.perMonth'
+                                                                    )}
+                                                                </span>
+                                                                <span className='text-muted-foreground/40 text-xs'>
+                                                                    ($
+                                                                    {Math.round(
+                                                                        totalYearly /
+                                                                            12
+                                                                    )}
+                                                                    {t(
+                                                                        'landing.perYear'
+                                                                    )}
+                                                                    )
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className='px-4 py-4 text-right'>
+                                                            <Button
+                                                                size='sm'
+                                                                className={`gap-2 px-4 ${
+                                                                    isRecommended
+                                                                        ? 'border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-white hover:opacity-90'
+                                                                        : 'bg-foreground/10 text-foreground hover:bg-foreground/20 border-0'
+                                                                }`}
+                                                                asChild
+                                                            >
+                                                                <Link
+                                                                    to={
+                                                                        user
+                                                                            ? `${ROUTES.CLAWS}?plan=${plan.id}&provider=${clawProvider.hetzner}`
+                                                                            : `${ROUTES.LOGIN}?plan=${plan.id}&provider=${clawProvider.hetzner}`
+                                                                    }
+                                                                    aria-label={
+                                                                        user
+                                                                            ? t(
+                                                                                  'landing.deployPlanLabel',
+                                                                                  {
+                                                                                      plan: plan.name
+                                                                                  }
+                                                                              )
+                                                                            : t(
+                                                                                  'landing.selectPlanLabel',
+                                                                                  {
+                                                                                      plan: plan.name
+                                                                                  }
+                                                                              )
+                                                                    }
+                                                                >
+                                                                    {user
                                                                         ? t(
-                                                                              'landing.deployPlanLabel',
-                                                                              {
-                                                                                  plan: plan.name
-                                                                              }
+                                                                              'landing.deploy'
                                                                           )
                                                                         : t(
-                                                                              'landing.selectPlanLabel',
-                                                                              {
-                                                                                  plan: plan.name
-                                                                              }
-                                                                          )
-                                                                }
-                                                            >
-                                                                {user
-                                                                    ? t(
-                                                                          'landing.deploy'
-                                                                      )
-                                                                    : t(
-                                                                          'landing.select'
-                                                                      )}
-                                                            </Link>
-                                                        </Button>
-                                                    </td>
-                                                </tr>
-                                            </Fragment>
-                                        )
-                                    })}
-                                </tbody>
-                            </table>
+                                                                              'landing.select'
+                                                                          )}
+                                                                </Link>
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                </Fragment>
+                                            )
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        <div className='mt-6 flex justify-center'>
+                            <Button
+                                variant='ghost'
+                                className='text-muted-foreground hover:text-foreground gap-2 text-sm'
+                                onClick={() => setShowAllPlans(!showAllPlans)}
+                            >
+                                {showAllPlans
+                                    ? t('landing.simplePricing')
+                                    : t('landing.showAllPlans')}
+                                {showAllPlans ? (
+                                    <CaretUpIcon size={14} />
+                                ) : (
+                                    <CaretDownIcon size={14} />
+                                )}
+                            </Button>
                         </div>
 
-                        <div className='border-border bg-foreground/[0.02] mt-8 rounded-xl border p-4'>
-                            <div className='text-muted-foreground flex flex-wrap items-center justify-center gap-6 text-sm'>
-                                <div className='flex items-center gap-2'>
-                                    <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
-                                    <span>
-                                        {t('landing.openClawPreinstalled')}
-                                    </span>
-                                </div>
-                                <div className='flex items-center gap-2'>
-                                    <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
-                                    <span>
-                                        {t('landing.unlimitedBandwidth')}
-                                    </span>
-                                </div>
-                                <div className='flex items-center gap-2'>
-                                    <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
-                                    <span>{t('landing.rootSshAccess')}</span>
-                                </div>
-                                <div className='flex items-center gap-2'>
-                                    <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
-                                    <span>{t('landing.onlineAllDay')}</span>
-                                </div>
-                                <div className='flex items-center gap-2'>
-                                    <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
-                                    <span>
-                                        {t('landing.highQualityInternet')}
-                                    </span>
+                        {showAllPlans && (
+                            <div className='border-border bg-foreground/[0.02] mt-8 rounded-xl border p-4'>
+                                <div className='text-muted-foreground flex flex-wrap items-center justify-center gap-6 text-sm'>
+                                    <div className='flex items-center gap-2'>
+                                        <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
+                                        <span>
+                                            {t('landing.openClawPreinstalled')}
+                                        </span>
+                                    </div>
+                                    <div className='flex items-center gap-2'>
+                                        <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
+                                        <span>
+                                            {t('landing.unlimitedBandwidth')}
+                                        </span>
+                                    </div>
+                                    <div className='flex items-center gap-2'>
+                                        <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
+                                        <span>
+                                            {t('landing.rootSshAccess')}
+                                        </span>
+                                    </div>
+                                    <div className='flex items-center gap-2'>
+                                        <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
+                                        <span>{t('landing.onlineAllDay')}</span>
+                                    </div>
+                                    <div className='flex items-center gap-2'>
+                                        <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
+                                        <span>{t('landing.fastInternet')}</span>
+                                    </div>
+                                    <div className='flex items-center gap-2'>
+                                        <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
+                                        <span>{t('landing.emailSupport')}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </>
                 ) : (
                     <div className='text-muted-foreground py-12 text-center'>

@@ -139,5 +139,7 @@ export type {
     LandingCTAProps,
     VideoModalProps,
     PricingSectionProps,
-    SelfHostButtonProps
+    SelfHostButtonProps,
+    SimplePlanCardProps,
+    SimplePlanFeature
 } from '@/ts/Interfaces'
