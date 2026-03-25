@@ -302,6 +302,7 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                         location={location}
                         billingCycle={billingCycle}
                         isLoading={isProviderLoading}
+                        preselectedPlanId={preselectedPlanId}
                         isLocationAvailableForPlan={isLocationAvailableForPlan}
                         isPlanAvailable={isPlanAvailable}
                         onPlanChange={setPlanId}

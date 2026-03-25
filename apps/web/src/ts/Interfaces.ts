@@ -1807,6 +1807,7 @@ export interface PlanSelectorProps {
     location: string
     billingCycle: BillingInterval
     isLoading: boolean
+    preselectedPlanId?: string | null
     isLocationAvailableForPlan: (locationId: string, planId: string) => boolean
     isPlanAvailable: (id: string) => boolean
     onPlanChange: (planId: string) => void
