@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useInstances, useRestartInstance, useDeleteInstance, useCheckout } from '@/hooks/useInstances'
+import { useInstances, useRestartInstance, useDeleteInstance } from '@/hooks/useInstances'
 import InstanceCard from '@/components/hosting/InstanceCard'
 import Configurator from '@/components/hosting/Configurator'
 

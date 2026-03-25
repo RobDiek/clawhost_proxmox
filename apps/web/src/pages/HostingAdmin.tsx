@@ -1,6 +1,5 @@
 import type { FC, ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { RequestClient } from '@openclaw/shared'
 import type { HostingInstance } from '@/hooks/useInstances'
 
 const STATUS_COLORS: Record<string, string> = {

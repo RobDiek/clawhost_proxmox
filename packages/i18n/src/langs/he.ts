@@ -42,7 +42,6 @@ const he: Translations = {
     },
     language: {
         ...en.language,
-        he: 'עברית',
         switchLanguage: 'שפה'
     },
     theme: {
@@ -91,50 +90,28 @@ const he: Translations = {
     },
     auth: {
         ...en.auth,
-        loginTitle: 'כניסה',
-        loginSubtitle: 'היכנסו לחשבון שלכם כדי לנהל את הסוכנים.',
-        emailPlaceholder: 'האימייל שלכם',
-        sendCode: 'שלח קוד',
-        enterCode: 'הכניסו את הקוד',
+        signIn: 'כניסה',
+        signInDescription: 'היכנסו לחשבון שלכם כדי לנהל את הסוכנים.',
         verifyCode: 'אימות',
-        codeSent: 'קוד אימות נשלח למייל שלכם.',
-        codeExpired: 'הקוד פג תוקף. נסו שוב.',
-        invalidCode: 'קוד לא תקין!'
     },
     billing: {
         ...en.billing,
         title: 'חיוב',
-        currentPlan: 'תוכנית נוכחית',
-        cancelSubscription: 'ביטול מנוי',
-        paymentHistory: 'היסטוריית תשלומים'
     },
     dashboard: {
         ...en.dashboard,
         title: 'הסוכנים שלי',
-        noClaw: 'אין סוכנים עדיין',
-        noClawDescription: 'צרו את הסוכן הראשון שלכם כדי להתחיל.'
     },
     landing: {
         ...en.landing,
-        heroTitle1: 'סוכן AI',
-        heroTitle2: 'שעובד בשבילכם 24/7',
         heroDescription: 'הקימו סוכן OpenClaw על שרת ייעודי בענן — עם טלגרם, Google, אוטומציות וניתוב מודלים. ללא שורת קוד אחת.',
-        heroDescription2: 'בחרו את הסוכנים שלכם, שלמו, ותוך 3 דקות הכל עובד.',
-        deployNow: 'הפעילו עכשיו',
-        learnMore: 'למדו עוד',
-        featuresTitle: 'מה כלול',
         featuresDescription: 'כל מה שצריך כדי להריץ סוכן AI מקצועי.',
-        pricingTitle: 'מחירים',
         pricingDescription: 'התוכנית נבחרת אוטומטית לפי הסוכנים שבחרתם.',
-        pricingMonthly: '₪{{price}}/חודש',
         faqTitle: 'שאלות נפוצות',
-        faqHeading: 'שאלות נפוצות',
         faqDescription: 'כל מה שצריך לדעת על OpenClaw Hosting.'
     },
     createClaw: {
         ...en.createClaw,
-        title: 'הפעלת סוכן חדש',
-        deploy: 'הפעלה'
     }
 }
 

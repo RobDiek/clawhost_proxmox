@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { calcTotal, PLANS, COMPONENTS } from '@openclaw/shared'
+import { calcTotal, COMPONENTS } from '@openclaw/shared'
 import { useCheckout } from '@/hooks/useInstances'
 
 const Checkout: FC = (): ReactNode => {

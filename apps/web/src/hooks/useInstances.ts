@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { RequestClient } from '@openclaw/shared'
 
-const getAuthHeaders = async () => {
+const getAuthHeaders = async (): Promise<Record<string, string>> => {
     const { getAuth } = await import('firebase/auth')
     const auth = getAuth()
     const user = auth.currentUser
