@@ -43,22 +43,13 @@ import { COLORS, SPACING, TYPOGRAPHY } from '@/lib/theme'
 import ProviderIcon from '@/components/ProviderIcon'
 
 const PROVIDERS: { id: ProviderType; label: string; recommended?: boolean }[] =
-    [
-        { id: 'hetzner', label: 'Hetzner', recommended: true },
-        { id: 'digitalocean', label: 'DigitalOcean' },
-        { id: 'vultr', label: 'Vultr' }
-    ]
+    [{ id: 'hetzner', label: 'Hetzner', recommended: true }]
 
 const TIER_STARTS: Record<string, Record<string, string>> = {
     hetzner: {
         cx23: t('landing.tierShared'),
         cax11: t('landing.tierArm'),
         ccx13: t('landing.tierDedicated')
-    },
-    vultr: {
-        'vc2-2c-4gb': t('landing.tierRegular'),
-        'vhp-2c-4gb-amd': t('landing.tierHighPerformance'),
-        'vhf-3c-8gb': t('landing.tierHighFrequency')
     }
 }
 

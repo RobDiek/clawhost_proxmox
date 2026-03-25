@@ -9,7 +9,7 @@ import type {
     LANGUAGES
 } from '@/lib/constants'
 
-export type ProviderType = 'hetzner' | 'digitalocean' | 'vultr' | 'local'
+export type ProviderType = 'hetzner' | 'local'
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
 
@@ -35,7 +35,8 @@ export type PlaygroundAgentDetailTab =
 
 export type CompareFeatureStatus = 'yes' | 'no' | 'partial'
 
-export type BillingInterval = (typeof billingInterval)[keyof typeof billingInterval]
+export type BillingInterval =
+    (typeof billingInterval)[keyof typeof billingInterval]
 
 export type ClawAvatarSize = 'sm' | 'md' | 'lg'
 
@@ -79,7 +80,12 @@ export type ChatSidebarViewMode = 'tree' | 'list'
 
 export type Product = 'cloud' | 'go'
 
-export type TerminalStatus = 'idle' | 'connecting' | 'connected' | 'error' | 'disconnected'
+export type TerminalStatus =
+    | 'idle'
+    | 'connecting'
+    | 'connected'
+    | 'error'
+    | 'disconnected'
 
 export type ChatTypingIndicator = 'thinking' | 'writing' | null
 

@@ -30,49 +30,10 @@ const hetznerPlanOrder = [
     'ccx63'
 ]
 
-const digitaloceanPlanOrder = [
-    's-1vcpu-512mb-10gb',
-    's-1vcpu-1gb',
-    's-1vcpu-2gb',
-    's-2vcpu-2gb',
-    's-2vcpu-4gb',
-    's-4vcpu-8gb',
-    's-8vcpu-16gb'
-]
-
-const vultrPlanOrder = [
-    'vc2-1c-1gb',
-    'vc2-1c-2gb',
-    'vc2-2c-2gb',
-    'vc2-2c-4gb',
-    'vc2-4c-8gb',
-    'vc2-6c-16gb',
-    'vc2-8c-32gb',
-    'vc2-16c-64gb',
-    'vhp-1c-1gb-amd',
-    'vhp-1c-2gb-amd',
-    'vhp-2c-2gb-amd',
-    'vhp-2c-4gb-amd',
-    'vhp-4c-8gb-amd',
-    'vhp-4c-12gb-amd',
-    'vhp-8c-16gb-amd',
-    'vhp-12c-24gb-amd',
-    'vhf-1c-2gb',
-    'vhf-2c-4gb',
-    'vhf-3c-8gb',
-    'vhf-4c-16gb',
-    'vhf-8c-32gb',
-    'vhf-12c-48gb'
-]
-
-const providerLimits: Partial<Record<ProviderType, number>> = {
-    hetzner: 100
-}
+const serverLimit = Number(process.env.SERVER_LIMIT) || 300
 
 const planOrders: Record<ProviderType, PlanOrder> = {
-    hetzner: { order: hetznerPlanOrder },
-    digitalocean: { order: digitaloceanPlanOrder },
-    vultr: { order: vultrPlanOrder }
+    hetzner: { order: hetznerPlanOrder }
 }
 
 const getPlans = async (c: Context) => {
@@ -86,17 +47,16 @@ const getPlans = async (c: Context) => {
         }
 
         const provider = getProvider(providerName)
-        const limit = providerLimits[providerName]
 
         const [serverTypes, servers, priceMap] = await Promise.all([
             provider.getServerTypes(),
-            limit
+            serverLimit
                 ? provider.getServers().catch(() => null)
                 : Promise.resolve(null),
             getPlanPrices()
         ])
 
-        const atCapacity = servers && limit ? servers.size >= limit : false
+        const atCapacity = servers ? servers.size >= serverLimit : false
         const prices = priceMap[providerName] ?? {}
 
         const ANNUAL_DISCOUNT_MONTHS = 10

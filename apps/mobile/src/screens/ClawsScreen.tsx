@@ -28,15 +28,9 @@ const ClawsScreen: FC = (): ReactNode => {
         refetch
     } = useClaws(user)
     const { data: hetznerPlans } = usePlans(user, 'hetzner')
-    const { data: digitaloceanPlans } = usePlans(user, 'digitalocean')
-    const { data: vultrPlans } = usePlans(user, 'vultr')
     const [showCreateModal, setShowCreateModal] = useState(false)
 
-    const plans: Plan[] = [
-        ...(hetznerPlans?.plans || []),
-        ...(digitaloceanPlans?.plans || []),
-        ...(vultrPlans?.plans || [])
-    ]
+    const plans: Plan[] = [...(hetznerPlans?.plans || [])]
 
     const findPlan = (planId: string): Plan | undefined => {
         return plans.find((p) => p.id === planId)

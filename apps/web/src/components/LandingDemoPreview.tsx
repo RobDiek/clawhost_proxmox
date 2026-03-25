@@ -15,11 +15,7 @@ import {
 } from '@/components/playground'
 import { ChatSidebar, ChatEmptyState } from '@/components/chat'
 import { DASHBOARD_TABS, getBaseDomain } from '@/lib'
-import {
-    LockIcon,
-    ChatCircleDotsIcon,
-    GraphIcon
-} from '@phosphor-icons/react'
+import { LockIcon, ChatCircleDotsIcon, GraphIcon } from '@phosphor-icons/react'
 
 const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
     urlOverride,
@@ -150,7 +146,9 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                     </div>
                     <div className='flex flex-1 justify-center'>
                         {urlOverride ? (
-                            <span className='text-muted-foreground text-xs'>{urlOverride}</span>
+                            <span className='text-muted-foreground text-xs'>
+                                {urlOverride}
+                            </span>
                         ) : (
                             <div className='text-muted-foreground bg-foreground/10 flex items-center gap-2 rounded-lg px-4 py-1.5 text-xs'>
                                 <LockIcon
@@ -173,17 +171,14 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                     <div className='border-border flex items-center rounded-lg border p-0.5'>
                         <button
                             onClick={() =>
-                                setDemoPreviewTab(
-                                    DASHBOARD_TABS.CHAT
-                                )
+                                setDemoPreviewTab(DASHBOARD_TABS.CHAT)
                             }
                             className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${demoPreviewTab === DASHBOARD_TABS.CHAT ? 'bg-foreground/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                             <ChatCircleDotsIcon
                                 className='h-3.5 w-3.5'
                                 weight={
-                                    demoPreviewTab ===
-                                    DASHBOARD_TABS.CHAT
+                                    demoPreviewTab === DASHBOARD_TABS.CHAT
                                         ? 'fill'
                                         : 'regular'
                                 }
@@ -194,17 +189,14 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                         </button>
                         <button
                             onClick={() =>
-                                setDemoPreviewTab(
-                                    DASHBOARD_TABS.PLAYGROUND
-                                )
+                                setDemoPreviewTab(DASHBOARD_TABS.PLAYGROUND)
                             }
                             className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${demoPreviewTab === DASHBOARD_TABS.PLAYGROUND ? 'bg-foreground/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                             <GraphIcon
                                 className='h-3.5 w-3.5'
                                 weight={
-                                    demoPreviewTab ===
-                                    DASHBOARD_TABS.PLAYGROUND
+                                    demoPreviewTab === DASHBOARD_TABS.PLAYGROUND
                                         ? 'fill'
                                         : 'regular'
                                 }
@@ -223,12 +215,8 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                         <div className='relative min-w-0 flex-1'>
                             <div className='playground-grid h-full'>
                                 <PlaygroundCanvas
-                                    initialNodes={
-                                        mobileDemoData.nodes
-                                    }
-                                    initialEdges={
-                                        mobileDemoData.edges
-                                    }
+                                    initialNodes={mobileDemoData.nodes}
+                                    initialEdges={mobileDemoData.edges}
                                     initialZoom={1.25}
                                     allowPageScroll
                                     onNodeClick={(clawId) => {
@@ -240,10 +228,7 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                                                 : clawId
                                         )
                                     }}
-                                    onAgentClick={(
-                                        agentId,
-                                        clawId
-                                    ) => {
+                                    onAgentClick={(agentId, clawId) => {
                                         setDemoClawId(null)
                                         setDemoAgentId(
                                             demoAgentId === agentId
@@ -257,9 +242,7 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                                         setDemoAgentId(null)
                                         setDemoAgentClawId(null)
                                     }}
-                                    panelOpen={
-                                        !!demoClaw || !!demoAgent
-                                    }
+                                    panelOpen={!!demoClaw || !!demoAgent}
                                     selectedClawId={demoClawId}
                                     selectedAgentId={demoAgentId}
                                 />
@@ -273,9 +256,7 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                                     claw={demoClaw}
                                     plans={[]}
                                     sshKeys={[]}
-                                    onClose={() =>
-                                        setDemoClawId(null)
-                                    }
+                                    onClose={() => setDemoClawId(null)}
                                     readOnly
                                 />
                             )}
@@ -286,9 +267,7 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                                     agent={demoAgent}
                                     clawId={demoAgentClaw.id}
                                     clawName={demoAgentClaw.name}
-                                    isOnlyAgent={
-                                        demoAgentList.length <= 1
-                                    }
+                                    isOnlyAgent={demoAgentList.length <= 1}
                                     onClose={() => {
                                         setDemoAgentId(null)
                                         setDemoAgentClawId(null)
@@ -302,9 +281,7 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                     <div className='relative flex min-w-0 flex-1 overflow-hidden'>
                         <div className='playground-grid pointer-events-none absolute inset-0 opacity-50' />
                         <ChatSidebar
-                            clawsWithAgents={
-                                demoChatClawsWithAgents
-                            }
+                            clawsWithAgents={demoChatClawsWithAgents}
                             selectedAgent={
                                 demoChatAgentId && demoChatClaw
                                     ? {
@@ -318,8 +295,7 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                             readOnly
                             onAgentSelect={(selection) => {
                                 setDemoChatAgentId(
-                                    demoChatAgentId ===
-                                        selection.agentId
+                                    demoChatAgentId === selection.agentId
                                         ? null
                                         : selection.agentId
                                 )
@@ -335,8 +311,7 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                             onCreateAgent={() => {}}
                             onOpenClawSettings={(clawId) => {
                                 setDemoChatSettingsClawId(
-                                    demoChatSettingsClawId ===
-                                        clawId
+                                    demoChatSettingsClawId === clawId
                                         ? null
                                         : clawId
                                 )
@@ -347,17 +322,14 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                         />
                         <div className='relative flex min-h-0 min-w-0 flex-1 translate-x-0 overflow-hidden'>
                             <div className='min-w-0 flex-1'>
-                                {demoChatSettingsClaw &&
-                                !demoChatAgentId ? (
+                                {demoChatSettingsClaw && !demoChatAgentId ? (
                                     <PlaygroundDetailPanel
                                         key={`chat-settings-${demoChatSettingsClaw.id}`}
                                         claw={demoChatSettingsClaw}
                                         plans={[]}
                                         sshKeys={[]}
                                         onClose={() =>
-                                            setDemoChatSettingsClawId(
-                                                null
-                                            )
+                                            setDemoChatSettingsClawId(null)
                                         }
                                         readOnly
                                         fullScreen
@@ -366,15 +338,11 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                                     <AgentChat
                                         key={demoChatAgent.id}
                                         agentId={demoChatAgent.id}
-                                        agentName={
-                                            demoChatAgent.name
-                                        }
+                                        agentName={demoChatAgent.name}
                                         clawId={demoChatClaw.id}
                                         subdomain={null}
                                         gatewayToken={null}
-                                        agentModel={
-                                            demoChatAgent.model
-                                        }
+                                        agentModel={demoChatAgent.model}
                                         readOnly
                                     />
                                 ) : (
@@ -382,36 +350,24 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                                 )}
                             </div>
                             <AnimatePresence>
-                                {demoChatConfigAgent &&
-                                    demoChatConfigClaw && (
-                                        <PlaygroundAgentDetailPanel
-                                            key={`chat-config-${demoChatConfigAgent.id}`}
-                                            agent={
-                                                demoChatConfigAgent
-                                            }
-                                            clawId={
-                                                demoChatConfigClaw.id
-                                            }
-                                            clawName={
-                                                demoChatConfigClaw.name
-                                            }
-                                            isOnlyAgent={
-                                                demoChatConfigAgentList.length <=
-                                                1
-                                            }
-                                            onClose={() => {
-                                                setDemoChatConfigAgentId(
-                                                    null
-                                                )
-                                                setDemoChatConfigClawId(
-                                                    null
-                                                )
-                                            }}
-                                            readOnly
-                                            hideChatTab
-                                            initialTab='configuration'
-                                        />
-                                    )}
+                                {demoChatConfigAgent && demoChatConfigClaw && (
+                                    <PlaygroundAgentDetailPanel
+                                        key={`chat-config-${demoChatConfigAgent.id}`}
+                                        agent={demoChatConfigAgent}
+                                        clawId={demoChatConfigClaw.id}
+                                        clawName={demoChatConfigClaw.name}
+                                        isOnlyAgent={
+                                            demoChatConfigAgentList.length <= 1
+                                        }
+                                        onClose={() => {
+                                            setDemoChatConfigAgentId(null)
+                                            setDemoChatConfigClawId(null)
+                                        }}
+                                        readOnly
+                                        hideChatTab
+                                        initialTab='configuration'
+                                    />
+                                )}
                             </AnimatePresence>
                         </div>
                     </div>

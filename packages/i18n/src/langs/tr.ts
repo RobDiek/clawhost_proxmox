@@ -39,7 +39,7 @@ const tr: Translations = {
         seconds: 'saniye'
     },
     setup: {
-        welcomeTitle: 'ClawHost Go\'ya Hoş Geldiniz',
+        welcomeTitle: "ClawHost Go'ya Hoş Geldiniz",
         welcomeDescription: 'Başlamak için profilinizi ayarlayın.',
         whatsYourName: 'Adınız nedir?',
         namePlaceholder: 'Adınızı girin',
@@ -70,7 +70,7 @@ const tr: Translations = {
         toggleTheme: 'Temayı değiştir'
     },
     nav: {
-        claws: 'Claw\'lar',
+        claws: "Claw'lar",
         playground: 'Playground',
         sshKeys: 'SSH Anahtarları',
         account: 'Hesap',
@@ -95,25 +95,34 @@ const tr: Translations = {
         heroTitle2: 'Yerel. Anında.',
         badge: 'Yakında',
         comingSoon: 'Yakında',
-        description: 'OpenClaw örneklerinizi yönetmek için hafif bir masaüstü istemcisi. Claw\'larınızı doğrudan bilgisayarınızdan dağıtın, izleyin ve kontrol edin.',
+        description:
+            "OpenClaw örneklerinizi yönetmek için hafif bir masaüstü istemcisi. Claw'larınızı doğrudan bilgisayarınızdan dağıtın, izleyin ve kontrol edin.",
         download: '{{os}} için İndir',
         downloadWindows: 'Windows',
         downloadMac: 'macOS',
         selfHostInstead: 'Kendi Sunucunda Barındır',
         features: 'Özellikler',
         whyClawHostGo: 'Hepsi Bir Arada Özellikler',
-        featuresDescription: 'Neden denemeye değeriz, özellikler burada yalan söylemez.',
-        zeroConfigDescription: 'Kur ve çalıştır. Sunucu kurulumu yok, bulut yapılandırması yok. OpenClaw saniyeler içinde hazır.',
-        ownedDataDescription: 'Her şey cihazınızda çalışır. Bulut sunucusu yok, üçüncü taraf yok, verileriniz cihazınızdan çıkmaz.',
-        terminalAccessDescription: 'OpenClaw örneğinizin terminaline doğrudan uygulamadan erişin. Harici SSH istemcisi gerekmez.',
+        featuresDescription:
+            'Neden denemeye değeriz, özellikler burada yalan söylemez.',
+        zeroConfigDescription:
+            'Kur ve çalıştır. Sunucu kurulumu yok, bulut yapılandırması yok. OpenClaw saniyeler içinde hazır.',
+        ownedDataDescription:
+            'Her şey cihazınızda çalışır. Bulut sunucusu yok, üçüncü taraf yok, verileriniz cihazınızdan çıkmaz.',
+        terminalAccessDescription:
+            'OpenClaw örneğinizin terminaline doğrudan uygulamadan erişin. Harici SSH istemcisi gerekmez.',
         simplePricing: 'Basit Fiyatlandırma',
-        simplePricingDescription: 'Tek lisans, sınırsız her şey. Aylık fatura yok, kullanım limiti yok, gizli ücret yok.',
+        simplePricingDescription:
+            'Tek lisans, sınırsız her şey. Aylık fatura yok, kullanım limiti yok, gizli ücret yok.',
         localDomain: 'Özel Yerel Alan Adı',
-        localDomainDescription: 'OpenClaw\'a özel markalı yerel alan adıyla erişin. Kendi ağınızda temiz URL\'ler.',
-        secureDescription: 'Verileriniz asla cihazınızdan ayrılmaz. Tamamen izole, tamamen şifreli, tamamen sizin.',
+        localDomainDescription:
+            "OpenClaw'a özel markalı yerel alan adıyla erişin. Kendi ağınızda temiz URL'ler.",
+        secureDescription:
+            'Verileriniz asla cihazınızdan ayrılmaz. Tamamen izole, tamamen şifreli, tamamen sizin.',
         pricing: 'Fiyatlandırma',
         pricingTitle: 'Basit, Tek Seferlik Fiyatlandırma',
-        pricingDescription: 'Abonelik yok, gizli ücret yok. Tek lisans, sınırsız kullanım.',
+        pricingDescription:
+            'Abonelik yok, gizli ücret yok. Tek lisans, sınırsız kullanım.',
         pricingPrice: '${{price}}',
         pricingLabel: 'Tek Seferlik Ödeme',
         pricingFeature1: 'Ömür boyu lisans',
@@ -122,10 +131,11 @@ const tr: Translations = {
         pricingFeature4: 'Kullanım limiti yok',
         pricingFeature5: 'Öncelikli destek',
         pricingFeature6: 'Özel yerel alan adı',
-        pricingCta: 'ClawHost Go\'yu Edinin',
+        pricingCta: "ClawHost Go'yu Edinin",
         comparison: 'Karşılaştırma',
         comparisonTitle: 'Go ve Cloud',
-        comparisonDescription: 'Size uygun olanı seçin. Go yerel çalışır, Cloud özel sunucularda çalışır.',
+        comparisonDescription:
+            'Size uygun olanı seçin. Go yerel çalışır, Cloud özel sunucularda çalışır.',
         comparisonLocalUs: 'Tamamen cihazınızda çalışır',
         comparisonLocalOthers: 'Uzak sunucularda çalışır',
         comparisonPricingUs: 'Tek seferlik ödeme',
@@ -142,17 +152,23 @@ const tr: Translations = {
         faqHeading: 'Sık Sorulan Sorular',
         faqDescription: 'ClawHost Go hakkında bilmeniz gereken her şey.',
         faq1Question: 'ClawHost Go nedir?',
-        faq1Answer: 'ClawHost Go, OpenClaw\'u kendi bilgisayarınızda yerel olarak çalıştırmanızı sağlayan hafif bir masaüstü uygulamasıdır. Bulut sunucusu gerekmez — kurun, başlatın ve OpenClaw\'u saniyeler içinde kullanmaya başlayın.',
-        faq2Question: 'Go, ClawHost Cloud\'dan nasıl farklıdır?',
-        faq2Answer: 'ClawHost Cloud, OpenClaw\'u 7/24 çalışma süresi ve küresel erişimle özel uzak sunuculara dağıtır. ClawHost Go her şeyi cihazınızda yerel olarak çalıştırır — gizlilik, çevrimdışı kullanım ve basit kurulumlar için idealdir.',
+        faq1Answer:
+            "ClawHost Go, OpenClaw'u kendi bilgisayarınızda yerel olarak çalıştırmanızı sağlayan hafif bir masaüstü uygulamasıdır. Bulut sunucusu gerekmez — kurun, başlatın ve OpenClaw'u saniyeler içinde kullanmaya başlayın.",
+        faq2Question: "Go, ClawHost Cloud'dan nasıl farklıdır?",
+        faq2Answer:
+            "ClawHost Cloud, OpenClaw'u 7/24 çalışma süresi ve küresel erişimle özel uzak sunuculara dağıtır. ClawHost Go her şeyi cihazınızda yerel olarak çalıştırır — gizlilik, çevrimdışı kullanım ve basit kurulumlar için idealdir.",
         faq3Question: 'İnternet bağlantısına ihtiyacım var mı?',
-        faq3Answer: 'ClawHost Go yerel kullanım için çevrimdışı çalışır. İnternet bağlantısı yalnızca ilk kurulum, güncellemeler ve harici API çağrıları gerektiren özellikler için gereklidir.',
+        faq3Answer:
+            'ClawHost Go yerel kullanım için çevrimdışı çalışır. İnternet bağlantısı yalnızca ilk kurulum, güncellemeler ve harici API çağrıları gerektiren özellikler için gereklidir.',
         faq4Question: 'Lisans tek seferlik bir ödeme mi?',
-        faq4Answer: 'Evet. Bir kez ödersiniz ve tüm gelecek güncellemeler dahil ClawHost Go\'ya ömür boyu erişim elde edersiniz. Abonelik yok, tekrarlayan ücret yok.',
+        faq4Answer:
+            "Evet. Bir kez ödersiniz ve tüm gelecek güncellemeler dahil ClawHost Go'ya ömür boyu erişim elde edersiniz. Abonelik yok, tekrarlayan ücret yok.",
         faq5Question: 'Hangi işletim sistemleri destekleniyor?',
-        faq5Answer: 'ClawHost Go, Windows ve macOS\'u destekler. Her iki platform da aynı özelliklere sahiptir ve güncellemeleri aynı anda alır.',
-        faq6Question: 'Daha sonra Go\'dan Cloud\'a geçebilir miyim?',
-        faq6Answer: 'Kesinlikle. OpenClaw yapılandırmanızı Go\'dan dışa aktarabilir ve istediğiniz zaman ClawHost Cloud\'a dağıtabilirsiniz. Her iki platform tamamen uyumludur.',
+        faq5Answer:
+            "ClawHost Go, Windows ve macOS'u destekler. Her iki platform da aynı özelliklere sahiptir ve güncellemeleri aynı anda alır.",
+        faq6Question: "Daha sonra Go'dan Cloud'a geçebilir miyim?",
+        faq6Answer:
+            "Kesinlikle. OpenClaw yapılandırmanızı Go'dan dışa aktarabilir ve istediğiniz zaman ClawHost Cloud'a dağıtabilirsiniz. Her iki platform tamamen uyumludur.",
         statsPrice: '${{price}}',
         statsLifetime: 'Ömür Boyu',
         statsOneTime: 'Tek Seferlik',
@@ -161,9 +177,10 @@ const tr: Translations = {
         statsLocally: 'Yerel Çalışır',
         statsZero: 'Sıfır',
         statsZeroConfig: 'Sıfır Yapılandırma',
-        ctaTitle: 'OpenClaw\'u Yerel Çalıştırın',
-        ctaDescription: 'Tek seferlik ödeme, ömür boyu lisans. OpenClaw\'u kendi bilgisayarınıza dağıtın — bulut yok, abonelik yok, limit yok. Verileriniz, kurallarınız.',
-        ctaButton: 'ClawHost Go\'yu Edinin',
+        ctaTitle: "OpenClaw'u Yerel Çalıştırın",
+        ctaDescription:
+            "Tek seferlik ödeme, ömür boyu lisans. OpenClaw'u kendi bilgisayarınıza dağıtın — bulut yok, abonelik yok, limit yok. Verileriniz, kurallarınız.",
+        ctaButton: "ClawHost Go'yu Edinin",
         joinWaitlist: 'Bekleme Listesine Katıl',
         joinedWaitlist: 'Bekleme Listesine Katıldı',
         waitlistJoinedToast: 'Bekleme listesine katıldınız.',
@@ -174,14 +191,17 @@ const tr: Translations = {
         updateDownload: 'İndir',
         updateDismiss: 'Sonra',
         clawNotFound: 'Claw bulunamadı!',
-        invalidClawName: 'Geçersiz claw adı. Yalnızca harf, rakam ve tire kullanın!',
+        invalidClawName:
+            'Geçersiz claw adı. Yalnızca harf, rakam ve tire kullanın!',
         clawNameAlreadyExists: 'Bu isimde bir claw zaten var!',
-        invalidSubdomain: 'Geçersiz alt alan adı. 3-20 küçük harf ve rakam kullanın!',
+        invalidSubdomain:
+            'Geçersiz alt alan adı. 3-20 küçük harf ve rakam kullanın!',
         subdomainAlreadyInUse: 'Bu alt alan adı zaten kullanımda!',
         clawDirectoryNotFound: 'Claw dizini bulunamadı!',
-        noVersionInstalled: 'OpenClaw sürümü yüklü değil. Sürümler sekmesine gidin ve önce bir tane yükleyin!',
+        noVersionInstalled:
+            'OpenClaw sürümü yüklü değil. Sürümler sekmesine gidin ve önce bir tane yükleyin!',
         failedToStartClaw: 'Claw başlatılamadı!',
-        noVersionAssigned: 'Bu claw\'a atanmış OpenClaw sürümü yok!',
+        noVersionAssigned: "Bu claw'a atanmış OpenClaw sürümü yok!",
         invalidAgentName: 'Geçersiz ajan adı!',
         agentNameAlreadyExists: 'Bu isimde bir ajan zaten var!',
         invalidPath: 'Geçersiz yol!',
@@ -191,8 +211,10 @@ const tr: Translations = {
         versionNotInstalled: 'OpenClaw sürümü {{version}} yüklü değil!',
         failedToStartProcess: 'İşlem başlatılamadı: {{reason}}!',
         processExitedImmediately: 'İşlem hemen sonlandı. Günlükler:\n{{logs}}',
-        processExitedImmediatelyNoLogs: 'İşlem başladıktan hemen sonra sonlandı!',
-        processExitedWithCode: 'İşlem {{code}} koduyla sonlandı. Günlükler:\n{{logs}}',
+        processExitedImmediatelyNoLogs:
+            'İşlem başladıktan hemen sonra sonlandı!',
+        processExitedWithCode:
+            'İşlem {{code}} koduyla sonlandı. Günlükler:\n{{logs}}',
         processExitedWithCodeNoLogs: 'İşlem {{code}} koduyla sonlandı!',
         processExitedUnexpectedly: 'İşlem beklenmedik şekilde sonlandı!',
         failedToInstallVersion: 'OpenClaw {{version}} yüklenemedi: {{reason}}!',
@@ -209,7 +231,7 @@ const tr: Translations = {
         privacyPolicy: 'Gizlilik Politikası',
         getInTouch: 'İletişime Geçin',
         brandDescription:
-            'OpenClaw\'u tek tıkla kendi VPS\'inize dağıtın. Tam gizlilik, özel kaynaklar, paylaşımlı altyapı yok.',
+            "OpenClaw'u tek tıkla kendi VPS'inize dağıtın. Tam gizlilik, özel kaynaklar, paylaşımlı altyapı yok.",
         builtBy: 'Yapımcı',
         supportedBy: 'Destekleyen',
         product: 'Ürün',
@@ -224,8 +246,8 @@ const tr: Translations = {
         documentation: 'Belgeler',
         productDescription:
             'OpenClaw ajanlarını bulutta veya yerel olarak tek tıkla dağıtın — ClawHost ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
-        downloadAndroid: 'Google Play\'den İndirin',
-        downloadIos: 'App Store\'dan İndirin',
+        downloadAndroid: "Google Play'den İndirin",
+        downloadIos: "App Store'dan İndirin",
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -238,12 +260,11 @@ const tr: Translations = {
         somethingWentWrong: 'Bir şeyler ters gitti!',
         couldNotLoadData: 'Veriler yüklenemedi. Lütfen tekrar deneyin!',
         notFound: 'Sayfa bulunamadı!',
-        pageNotFoundDescription:
-            'Aradığınız sayfa mevcut değil veya taşınmış.',
+        pageNotFoundDescription: 'Aradığınız sayfa mevcut değil veya taşınmış.',
         goToHomepage: 'Ana Sayfaya Git',
-        failedToLoadClaws: 'Claw\'lar yüklenemedi!',
+        failedToLoadClaws: "Claw'lar yüklenemedi!",
         failedToLoadClawsDescription:
-            'Claw\'larınız yüklenemedi. Lütfen bağlantınızı kontrol edip tekrar deneyin!',
+            "Claw'larınız yüklenemedi. Lütfen bağlantınızı kontrol edip tekrar deneyin!",
         failedToLoadSSHKeys: 'SSH anahtarları yüklenemedi!',
         failedToLoadSSHKeysDescription:
             'SSH anahtarlarınız yüklenemedi. Lütfen bağlantınızı kontrol edip tekrar deneyin!',
@@ -256,7 +277,8 @@ const tr: Translations = {
         invalidLocation: 'Lütfen bir konum seçin!',
         failedToGenerateKeyPair:
             'Anahtar çifti oluşturulamadı. Lütfen anahtarları yerel olarak oluşturun!',
-        unableToLoadPricing: 'Fiyatlandırma yüklenemiyor. Lütfen daha sonra tekrar deneyin!',
+        unableToLoadPricing:
+            'Fiyatlandırma yüklenemiyor. Lütfen daha sonra tekrar deneyin!',
         noPasswordAvailable: 'Bu claw için şifre mevcut değil!',
         clawLimitReached:
             '{{max}} claw sınırına ulaştınız. Bu limiti artırmak için lütfen destekle iletişime geçin!',
@@ -280,7 +302,8 @@ const tr: Translations = {
             'Birim boyutu {{min}} ile {{max}} GB arasında olmalıdır!',
         paymentNotConfigured: 'Bu plan için ödeme yapılandırılmamış!',
         invalidSshKeyFormat: 'Geçersiz SSH açık anahtar biçimi!',
-        sshKeyInUse: 'Bu SSH anahtarı şu anda bir veya daha fazla claw tarafından kullanılıyor!',
+        sshKeyInUse:
+            'Bu SSH anahtarı şu anda bir veya daha fazla claw tarafından kullanılıyor!',
         inputTooLong: 'Girdi izin verilen maksimum uzunluğu aşıyor!',
         invalidEnvVars: 'Geçersiz ortam değişkeni adları veya değerleri!',
         invalidEmailFormat: 'Geçersiz e-posta biçimi!',
@@ -302,8 +325,7 @@ const tr: Translations = {
         failedToDeleteClaw: 'Claw silinemedi!',
         failedToCreateClaw: 'Claw oluşturulamadı!',
         invalidProvider: 'Geçersiz sağlayıcı!',
-        providerNotAllowed:
-            'Hetzner etkinken bu sağlayıcı kullanılamaz!',
+        providerNotAllowed: 'Hetzner etkinken bu sağlayıcı kullanılamaz!',
         invalidPlan: 'Geçersiz plan seçildi!',
         planBelowMinimumMemory:
             'Bu plan minimum bellek gereksinimini karşılamıyor!',
@@ -314,8 +336,7 @@ const tr: Translations = {
         failedToInitiatePurchase: 'Satın alma başlatılamadı!',
         failedToCancelDeletion: 'Silme iptal edilemedi!',
         failedToHardDeleteClaw: 'Claw kalıcı olarak silinemedi!',
-        failedToCancelScheduledDeletion:
-            'Planlanmış silme iptal edilemedi!',
+        failedToCancelScheduledDeletion: 'Planlanmış silme iptal edilemedi!',
         failedToCreateSshKey: 'SSH anahtarı oluşturulamadı!',
         failedToDeleteSshKey: 'SSH anahtarı silinemedi!',
         failedToUpdateProfile: 'Profil güncellenemedi!',
@@ -378,7 +399,7 @@ const tr: Translations = {
         accountLinked: 'Hesap başarıyla bağlandı.',
         webhookProcessingFailed: 'Webhook işleme başarısız!',
         adminAccessDenied: 'Yönetici erişimi gerekli!',
-        clawsFetched: 'Claw\'lar başarıyla getirildi.',
+        clawsFetched: "Claw'lar başarıyla getirildi.",
         clawFetched: 'Claw başarıyla getirildi.',
         clawSynced: 'Claw başarıyla senkronize edildi.',
         clawStarted: 'Claw başarıyla başlatıldı.',
@@ -415,8 +436,7 @@ const tr: Translations = {
         agentDeleted: 'Ajan başarıyla silindi.',
         agentDeleteFailed: 'Örnekten ajan silinemedi!',
         cannotDeleteMainAgent: 'Kalan tek ajan silinemez!',
-        agentNameInvalid:
-            'Ajan adı yalnızca harf, rakam ve tire içermelidir!',
+        agentNameInvalid: 'Ajan adı yalnızca harf, rakam ve tire içermelidir!',
         agentNameDuplicate: 'Bu isimde bir ajan zaten var!',
         diagnosticsFetched: 'Tanılama başarıyla getirildi.',
         logsFetched: 'Günlükler başarıyla getirildi.',
@@ -437,7 +457,8 @@ const tr: Translations = {
         whatsappPairStarted: 'WhatsApp eşleştirme başlatıldı.',
         whatsappPairFailed: 'WhatsApp eşleştirme başarısız!',
         whatsappAlreadyPaired: 'WhatsApp zaten eşleştirilmiş!',
-        whatsappVersionUnsupported: 'Bu sürüm panelden kanal yapılandırmasını desteklemiyor. Manuel olarak yapılandırmak için Terminal sekmesini kullanın veya OpenClaw\'ı güncelleyin.',
+        whatsappVersionUnsupported:
+            "Bu sürüm panelden kanal yapılandırmasını desteklemiyor. Manuel olarak yapılandırmak için Terminal sekmesini kullanın veya OpenClaw'ı güncelleyin.",
         bindingsFetched: 'Bağlamalar başarıyla getirildi.',
         bindingsFetchFailed: 'Bağlamalar getirilemedi!',
         bindingsUpdated: 'Bağlamalar başarıyla güncellendi.',
@@ -460,8 +481,8 @@ const tr: Translations = {
         clawHubSearchFailed: 'ClawHub aranamadı!',
         clawHubFetched: 'ClawHub yetenekleri getirildi.',
         clawHubFetchFailed: 'ClawHub yetenekleri getirilemedi!',
-        clawHubInstalled: 'Yetenek ClawHub\'dan yüklendi.',
-        clawHubInstallFailed: 'ClawHub\'dan yetenek yüklenemedi!',
+        clawHubInstalled: "Yetenek ClawHub'dan yüklendi.",
+        clawHubInstallFailed: "ClawHub'dan yetenek yüklenemedi!",
         clawHubRemoved: 'ClawHub yeteneği kaldırıldı.',
         clawHubRemoveFailed: 'ClawHub yeteneği kaldırılamadı!',
         clawHubUpdated: 'Yetenek güncellendi.',
@@ -471,9 +492,11 @@ const tr: Translations = {
         invalidAuthMethod: 'Geçersiz kimlik doğrulama yöntemi!',
         authMethodNotConnected: 'Bu kimlik doğrulama yöntemi bağlı değil!',
         authMethodConnected: 'Kimlik doğrulama yöntemi başarıyla bağlandı.',
-        authMethodDisconnected: 'Kimlik doğrulama yöntemi başarıyla bağlantısı kesildi.',
+        authMethodDisconnected:
+            'Kimlik doğrulama yöntemi başarıyla bağlantısı kesildi.',
         failedToConnectAuthMethod: 'Kimlik doğrulama yöntemi bağlanamadı!',
-        failedToDisconnectAuthMethod: 'Kimlik doğrulama yöntemi bağlantısı kesilemedi!',
+        failedToDisconnectAuthMethod:
+            'Kimlik doğrulama yöntemi bağlantısı kesilemedi!',
         textRequired: 'Metin gereklidir!',
         voiceNotFound: 'Ses modeli bulunamadı!',
         ttsGenerationFailed: 'Konuşma oluşturulamadı!',
@@ -484,7 +507,8 @@ const tr: Translations = {
         waitlistJoined: 'Bekleme listesine başarıyla katıldınız.',
         waitlistAlreadyJoined: 'Zaten bekleme listesinde.',
         waitlistJoinFailed: 'Bekleme listesine katılma başarısız!',
-        waitlistRateLimited: 'Çok hızlısınız! Lütfen {{seconds}} {{unit}} sonra tekrar deneyin.',
+        waitlistRateLimited:
+            'Çok hızlısınız! Lütfen {{seconds}} {{unit}} sonra tekrar deneyin.',
         waitlistStatusFetched: 'Bekleme listesi durumu getirildi.',
         waitlistCheckFailed: 'Bekleme listesi durumu kontrol edilemedi!'
     },
@@ -494,11 +518,12 @@ const tr: Translations = {
         otpHeading: 'Giriş kodunuz:',
         otpExpiry:
             'Kodun süresi 10 dakika içinde dolar. Bu siz değilseniz, bu e-postayı görmezden gelin.',
-        changelogSubject: 'ClawHost\'taki Yenilikler',
-        changelogPreview: 'ClawHost\'un son güncellemelerine göz atın: {{title}}',
+        changelogSubject: "ClawHost'taki Yenilikler",
+        changelogPreview:
+            "ClawHost'un son güncellemelerine göz atın: {{title}}",
         changelogHeading: 'Yenilikler',
         changelogButton: 'Değişiklik Günlüğünü Görüntüle',
-        changelogVisitButton: 'ClawHost\'u Ziyaret Et',
+        changelogVisitButton: "ClawHost'u Ziyaret Et",
         changelogFooter:
             'Bu e-postayı ClawHost hesabınız olduğu için alıyorsunuz.',
         featureFooter:
@@ -509,11 +534,12 @@ const tr: Translations = {
                 preview: 'Sunucunuza doğrudan tarayıcıdan erişin',
                 heading: 'Sunucunuz bir tık uzağınızda',
                 description:
-                    'Yerleşik terminalimizle sunucunuza doğrudan tarayıcınızdan erişin. SSH istemcisi gerekmez — ClawHost\'u açın ve komut yazmaya başlayın.',
+                    "Yerleşik terminalimizle sunucunuza doğrudan tarayıcınızdan erişin. SSH istemcisi gerekmez — ClawHost'u açın ve komut yazmaya başlayın.",
                 cta: 'Terminali Aç'
             },
             logs: {
-                subject: 'Biliyor muydunuz? Panelinizdeki gerçek zamanlı günlükler',
+                subject:
+                    'Biliyor muydunuz? Panelinizdeki gerçek zamanlı günlükler',
                 preview: 'Sunucu günlüklerinizi tarayıcıdan ayrılmadan izleyin',
                 heading: 'Sunucunuzun ne yaptığını görün',
                 description:
@@ -521,15 +547,18 @@ const tr: Translations = {
                 cta: 'Günlükleri Görüntüle'
             },
             channels: {
-                subject: 'Biliyor muydunuz? Ajanları Discord, Slack ve daha fazlasına bağlayın',
-                preview: 'Yapay zeka ajanlarınızı iletişim kanallarına bağlayın',
+                subject:
+                    'Biliyor muydunuz? Ajanları Discord, Slack ve daha fazlasına bağlayın',
+                preview:
+                    'Yapay zeka ajanlarınızı iletişim kanallarına bağlayın',
                 heading: 'Ajanlarınız, her yerde',
                 description:
                     'Yapay zeka ajanlarınızı Discord, Slack, WhatsApp ve daha fazlasına bağlayın. Kanalları yapılandırın ve ajanlara bağlayın — hepsi ClawHost panelinden.',
                 cta: 'Kanalları Ayarla'
             },
             fileExplorer: {
-                subject: 'Biliyor muydunuz? Sunucu dosyalarını tarayıcıdan düzenleyin',
+                subject:
+                    'Biliyor muydunuz? Sunucu dosyalarını tarayıcıdan düzenleyin',
                 preview: 'SSH olmadan dosyaları göz atın, okuyun ve düzenleyin',
                 heading: 'Dosyalarınız, parmaklarınızın ucunda',
                 description:
@@ -538,14 +567,16 @@ const tr: Translations = {
             },
             playground: {
                 subject: 'Biliyor muydunuz? Altyapınızı görselleştirin',
-                preview: 'Claw\'larınızı ve ajanlarınızı etkileşimli bir tuvalde görün',
+                preview:
+                    "Claw'larınızı ve ajanlarınızı etkileşimli bir tuvalde görün",
                 heading: 'Büyük resmi görün',
                 description:
-                    'Playground, tüm claw\'larınızı ve ajanlarınızı gösteren etkileşimli bir grafik tuval sunar. Yönetmek için herhangi bir düğüme tıklayın — altyapınız için görsel bir komut merkezi.',
-                cta: 'Playground\'u Aç'
+                    "Playground, tüm claw'larınızı ve ajanlarınızı gösteren etkileşimli bir grafik tuval sunar. Yönetmek için herhangi bir düğüme tıklayın — altyapınız için görsel bir komut merkezi.",
+                cta: "Playground'u Aç"
             },
             agentChat: {
-                subject: 'Biliyor muydunuz? Yapay zeka ajanlarınızla sohbet edin',
+                subject:
+                    'Biliyor muydunuz? Yapay zeka ajanlarınızla sohbet edin',
                 preview: 'Ajanlarınızla doğrudan panelden konuşun',
                 heading: 'Ajanlarınızla konuşun',
                 description:
@@ -554,31 +585,36 @@ const tr: Translations = {
             },
             voiceMode: {
                 subject: 'Biliyor muydunuz? Ajanlarınızla sesli konuşun',
-                preview: 'Ajanlarınızla konuşmadan metne ve metinden konuşmaya özelliğini kullanın',
+                preview:
+                    'Ajanlarınızla konuşmadan metne ve metinden konuşmaya özelliğini kullanın',
                 heading: 'Konuşun, yazmayın',
                 description:
                     'Yapay zeka ajanlarınızla eller serbest konuşmak için ses modunu kullanın. Girdi için konuşmadan metne, yanıtlar için metinden konuşmaya — birden fazla ses arasından seçim yapın.',
                 cta: 'Ses Modunu Deneyin'
             },
             skills: {
-                subject: 'Biliyor muydunuz? ClawHub\'da 5.000\'den fazla yetenek',
-                preview: 'Topluluk yeteneklerini tek tıkla göz atın ve yükleyin',
+                subject: "Biliyor muydunuz? ClawHub'da 5.000'den fazla yetenek",
+                preview:
+                    'Topluluk yeteneklerini tek tıkla göz atın ve yükleyin',
                 heading: 'Ajanlarınızı anında genişletin',
                 description:
-                    'ClawHub\'da 5.000\'den fazla hazır yeteneği göz atın ve tek tıkla yükleyin. Web araması, kod çalıştırma, görsel oluşturma ve çok daha fazlası.',
-                cta: 'ClawHub\'ı Göz Atın'
+                    "ClawHub'da 5.000'den fazla hazır yeteneği göz atın ve tek tıkla yükleyin. Web araması, kod çalıştırma, görsel oluşturma ve çok daha fazlası.",
+                cta: "ClawHub'ı Göz Atın"
             },
             bindings: {
-                subject: 'Biliyor muydunuz? Ajanları belirli kanallara bağlayın',
-                preview: 'Hangi ajanın hangi kanalda yanıt vereceğini kontrol edin',
+                subject:
+                    'Biliyor muydunuz? Ajanları belirli kanallara bağlayın',
+                preview:
+                    'Hangi ajanın hangi kanalda yanıt vereceğini kontrol edin',
                 heading: 'Kanal başına bir ajan',
                 description:
-                    'Belirli ajanları belirli kanallara bağlayın. Destek ajanınız Discord\'da, asistanınız WhatsApp\'ta — kimin nerede yanıt vereceğine siz karar verin.',
+                    "Belirli ajanları belirli kanallara bağlayın. Destek ajanınız Discord'da, asistanınız WhatsApp'ta — kimin nerede yanıt vereceğine siz karar verin.",
                 cta: 'Bağlamaları Yapılandır'
             },
             envVars: {
                 subject: 'Biliyor muydunuz? Ortam değişkenlerini yönetin',
-                preview: 'SSH olmadan API anahtarları ve yapılandırma ayarlayın',
+                preview:
+                    'SSH olmadan API anahtarları ve yapılandırma ayarlayın',
                 heading: 'SSH olmadan yapılandırın',
                 description:
                     'ClawHost panelinden ortam değişkenlerini doğrudan ekleyin, düzenleyin ve kaldırın. API anahtarları, gizli bilgiler ve yapılandırma ayarlayın — terminal gerekmez.',
@@ -589,36 +625,30 @@ const tr: Translations = {
                 preview: 'Sunucu sağlığını panelden izleyin',
                 heading: 'Sunucunuzun sağlıklı olduğunu bilin',
                 description:
-                    'Servis durumu, bellek kullanımı ve port erişilebilirliğini kontrol etmek için claw\'ınızda tanılama çalıştırın. Sorunları problem olmadan önce tespit edin.',
+                    "Servis durumu, bellek kullanımı ve port erişilebilirliğini kontrol etmek için claw'ınızda tanılama çalıştırın. Sorunları problem olmadan önce tespit edin.",
                 cta: 'Tanılama Çalıştır'
             },
             sshKeys: {
-                subject: 'Biliyor muydunuz? ClawHost\'tan SSH anahtarlarını yönetin',
+                subject:
+                    "Biliyor muydunuz? ClawHost'tan SSH anahtarlarını yönetin",
                 preview: 'Panelde SSH anahtar çiftleri oluşturun ve yönetin',
                 heading: 'SSH anahtarları, basitleştirilmiş',
                 description:
-                    'SSH anahtar çiftleri oluşturun, açık anahtarları kopyalayın ve özel anahtarları indirin — hepsi ClawHost panelinden. Güvenli erişim için anahtarları claw\'lara atayın.',
+                    "SSH anahtar çiftleri oluşturun, açık anahtarları kopyalayın ve özel anahtarları indirin — hepsi ClawHost panelinden. Güvenli erişim için anahtarları claw'lara atayın.",
                 cta: 'SSH Anahtarlarını Yönet'
             },
             exportConfig: {
                 subject: 'Biliyor muydunuz? Claw yapılandırmanızı dışa aktarın',
-                preview: 'Claw kurulumunuzu taşınabilir yapılandırma olarak indirin',
+                preview:
+                    'Claw kurulumunuzu taşınabilir yapılandırma olarak indirin',
                 heading: 'Yapılandırmanızı yanınızda taşıyın',
                 description:
                     'Claw yapılandırmanızı ve ayarlarınızı indirilebilir bir dosya olarak dışa aktarın. Kurulumunuzu yedekleyin veya ortamınızı çoğaltmak için kullanın.',
                 cta: 'Yapılandırmayı Dışa Aktar'
             },
-            multiProvider: {
-                subject: 'Biliyor muydunuz? 3 bulut sağlayıcısında dağıtın',
-                preview: 'Hetzner, DigitalOcean ve Vultr arasından seçim yapın',
-                heading: 'Bulutunuz, tercihiniz',
-                description:
-                    'Claw\'larınızı Hetzner, DigitalOcean veya Vultr\'a dağıtın. Fiyatlandırma, konumlar ve özellikleri karşılaştırın — sonra ihtiyaçlarınıza uygun sağlayıcıyı seçin.',
-                cta: 'Sağlayıcıları Karşılaştır'
-            },
             multiLanguage: {
                 subject: 'Biliyor muydunuz? ClawHost sizin dilinizi konuşuyor',
-                preview: 'ClawHost\'u 14 dilde kullanın',
+                preview: "ClawHost'u 14 dilde kullanın",
                 heading: 'Kendi dilinizde ClawHost',
                 description:
                     'Tüm ClawHost panelini 14 dilden herhangi birine geçirin. Düğmelerden hata mesajlarına kadar her şey — tamamen çevrilmiş.',
@@ -626,14 +656,14 @@ const tr: Translations = {
             },
             subdomain: {
                 subject: 'Biliyor muydunuz? Her claw kendi alt alan adını alır',
-                preview: 'Claw\'ınıza her yerden özel bir URL ile erişin',
+                preview: "Claw'ınıza her yerden özel bir URL ile erişin",
                 heading: 'Her yerden erişin',
                 description:
                     'Her claw benzersiz bir alt alan adı alır, böylece OpenClaw örneğinize her yerden erişebilirsiniz. Port yönlendirme yok, yerel ağ yok — sadece bir URL.',
                 cta: 'Alt Alan Adınızı Görüntüleyin'
             },
             darkMode: {
-                subject: 'Biliyor muydunuz? ClawHost\'un koyu modu var',
+                subject: "Biliyor muydunuz? ClawHost'un koyu modu var",
                 preview: 'Açık ve koyu temalar arasında geçiş yapın',
                 heading: 'Göze hoş gelen',
                 description:
@@ -641,8 +671,10 @@ const tr: Translations = {
                 cta: 'Koyu Modu Deneyin'
             },
             reinstall: {
-                subject: 'Biliyor muydunuz? OpenClaw\'u tek tıkla yeniden yükleyin',
-                preview: 'Sunucunuzu kaybetmeden OpenClaw örneğinizi sıfırlayın',
+                subject:
+                    "Biliyor muydunuz? OpenClaw'u tek tıkla yeniden yükleyin",
+                preview:
+                    'Sunucunuzu kaybetmeden OpenClaw örneğinizi sıfırlayın',
                 heading: 'Temiz başlangıç, aynı sunucu',
                 description:
                     'Mevcut sunucunuzda OpenClaw çalışma zamanını tek tıkla yeniden yükleyin. Sunucunuz olduğu gibi kalır — sadece OpenClaw temiz bir kurulum alır.',
@@ -672,7 +704,8 @@ const tr: Translations = {
         emailAddress: 'E-posta Adresi',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'E-posta ile Devam Et',
-        otpDescription: 'Giriş yapmanız için size bir kod göndereceğiz. Şifre gerekmez.',
+        otpDescription:
+            'Giriş yapmanız için size bir kod göndereceğiz. Şifre gerekmez.',
         welcomeBack: 'Tekrar hoş geldiniz.',
         resendIn: '{{seconds}}s sonra tekrar gönder',
         resendCode: 'Kodu tekrar gönder',
@@ -722,7 +755,7 @@ const tr: Translations = {
         billingReasonSubscriptionUpdate: 'Abonelik Güncelleme',
         noBillingHistory: 'Fatura Yok',
         noBillingHistoryDescription:
-            'Ödeme geçmişiniz yok, ilk claw\'ınızı dağıttığınızda faturalarınızı burada görebilirsiniz.',
+            "Ödeme geçmişiniz yok, ilk claw'ınızı dağıttığınızda faturalarınızı burada görebilirsiniz.",
         failedToLoadBilling: 'Faturalama geçmişi yüklenemedi!',
         viewInvoice: 'Faturayı Görüntüle',
         failedToLoadInvoice: 'Fatura yüklenemedi!',
@@ -746,7 +779,7 @@ const tr: Translations = {
             'Yalnızca aynı e-posta adresini kullanan hesapları bağlayabilirsiniz!',
         settings: 'Ayarlar',
         settingsDescription: 'Panel tercihlerinizi yönetin.',
-        showAllClaws: 'Tüm kullanıcılardan tüm claw\'ları göster',
+        showAllClaws: "Tüm kullanıcılardan tüm claw'ları göster",
         openLinksWindowed: 'Bağlantıları pencereli görünümde aç',
         openLinksWindowedDescription:
             'Etkinleştirildiğinde, harici bağlantılar sistem tarayıcısı yerine uygulama içinde açılır.'
@@ -755,7 +788,8 @@ const tr: Translations = {
         title: 'Faturalama',
         description: 'Ödeme geçmişinizi görüntüleyin ve faturalamayı yönetin.',
         billingHistory: 'Faturalama',
-        manageYourBilling: 'Ödeme geçmişinizi görüntüleyin ve faturaları yönetin.',
+        manageYourBilling:
+            'Ödeme geçmişinizi görüntüleyin ve faturaları yönetin.',
         billingDescription: 'Ödeme geçmişiniz ve faturalarınız',
         date: 'Tarih',
         product: 'Ürün',
@@ -771,7 +805,7 @@ const tr: Translations = {
         billingReasonSubscriptionUpdate: 'Abonelik Güncelleme',
         noBillingHistory: 'Fatura Yok',
         noBillingHistoryDescription:
-            'Ödeme geçmişiniz yok, ilk claw\'ınızı dağıttığınızda faturalarınızı burada görebilirsiniz.',
+            "Ödeme geçmişiniz yok, ilk claw'ınızı dağıttığınızda faturalarınızı burada görebilirsiniz.",
         failedToLoadBilling: 'Faturalama geçmişi yüklenemedi!',
         failedToLoadBillingDescription:
             'Faturalama geçmişiniz yüklenemedi. Lütfen bağlantınızı kontrol edip tekrar deneyin!',
@@ -785,7 +819,8 @@ const tr: Translations = {
         title: 'Lisans',
         description: 'OpenClaw lisansınızı yönetin.',
         pageTitle: 'Lisans',
-        pageDescription: 'Go uygulamamızla OpenClaw örneklerini yerel olarak barındırmak için lisansınızı satın alın.',
+        pageDescription:
+            'Go uygulamamızla OpenClaw örneklerini yerel olarak barındırmak için lisansınızı satın alın.',
         planName: 'ClawHost Go Lisansı',
         oneTimePurchase: 'Tek seferlik satın alma',
         price: '${{price}}',
@@ -793,7 +828,8 @@ const tr: Translations = {
         purchaseLicense: 'Lisans Satın Al',
         purchasing: 'Yönlendiriliyor...',
         activated: 'Lisans Aktif',
-        activatedDescription: 'Lisansınız aktif. Desteğiniz için teşekkür ederiz.',
+        activatedDescription:
+            'Lisansınız aktif. Desteğiniz için teşekkür ederiz.',
         paymentSuccess: 'Ödeme başarılı. Lisansınız artık aktif.',
         failedToPurchase: 'Ödeme sayfası başlatılamadı!',
         featureUnlimitedClaws: 'Sınırsız OpenClaw',
@@ -803,19 +839,23 @@ const tr: Translations = {
         featureSupport: 'Öncelikli Destek',
         featureCloud: 'Tüm Bulut Özellikleri, Yerel Olarak',
         whatsIncluded: 'Neler dahil',
-        permanentNote: 'Lisanslar kalıcıdır ve geri alınamaz. Satın aldıktan sonra sonsuza kadar sizindir.',
+        permanentNote:
+            'Lisanslar kalıcıdır ve geri alınamaz. Satın aldıktan sonra sonsuza kadar sizindir.',
         gateTitle: 'Lisans Gerekli',
-        gateDescription: 'OpenClaw örneklerini yerel olarak dağıtmak ve yönetmek için ClawHost Go Lisansına ihtiyacınız var.'
+        gateDescription:
+            'OpenClaw örneklerini yerel olarak dağıtmak ve yönetmek için ClawHost Go Lisansına ihtiyacınız var.'
     },
     network: {
         unstable: 'Kararsız Bağlantı',
-        unstableDescription: 'İnternet bağlantınız kararsız. Bazı özellikler beklendiği gibi çalışmayabilir.',
+        unstableDescription:
+            'İnternet bağlantınız kararsız. Bazı özellikler beklendiği gibi çalışmayabilir.',
         offline: 'İnternet Bağlantısı Yok',
-        offlineDescription: 'Şu anda çevrimdışısınız. İnternet erişimi gerektiren özellikler kullanılamayacak.',
+        offlineDescription:
+            'Şu anda çevrimdışısınız. İnternet erişimi gerektiren özellikler kullanılamayacak.',
         dismiss: 'Kapat'
     },
     dashboard: {
-        title: 'Claw\'lar',
+        title: "Claw'lar",
         description:
             'Dağıtılmış OpenClaw örneklerinizi görüntüleyin ve yönetin. VPS sunucularınızı başlatın, durdurun, yeniden başlatın ve izleyin.',
         claw: 'claw',
@@ -826,8 +866,8 @@ const tr: Translations = {
         clawActions: 'Claw işlemleri',
         noClawsYet: 'Claw Yok',
         noClawsDescription:
-            'Dağıtılmış claw bulunamadı. Ancak ilk claw\'ınızı $25/ay\'dan başlayan fiyatlarla istediğiniz zaman dağıtabilirsiniz. Yapay zeka ile yapın.',
-        deleteClaw: 'Claw\'u Sil',
+            "Dağıtılmış claw bulunamadı. Ancak ilk claw'ınızı $25/ay'dan başlayan fiyatlarla istediğiniz zaman dağıtabilirsiniz. Yapay zeka ile yapın.",
+        deleteClaw: "Claw'u Sil",
         deleteClawConfirmation: 'Silmek istediğinizden emin misiniz:',
         deleteClawWarning:
             'Aboneliğiniz iptal edilecek ve sunucu mevcut faturalama döneminizin sonunda silinecek. O zamana kadar kullanmaya devam edebilirsiniz.',
@@ -835,10 +875,10 @@ const tr: Translations = {
         start: 'Başlat',
         stop: 'Durdur',
         restart: 'Yeniden Başlat',
-        stopClaw: 'Claw\'u Durdur',
+        stopClaw: "Claw'u Durdur",
         stopClawConfirmation:
             'Sunucuyu durdurmak istediğinizden emin misiniz? Bu, OpenClaw dahil çalışan her şeyi sonlandırır, ancak istediğiniz zaman başlatabilirsiniz. Durdurmak faturalamayı durdurmaz — ücretlendirilmeyi durdurmak için sunucuyu silin.',
-        restartClaw: 'Claw\'u Yeniden Başlat',
+        restartClaw: "Claw'u Yeniden Başlat",
         restartClawConfirmation:
             'Sunucuyu yeniden başlatmak istediğinizden emin misiniz? Bu, OpenClaw dahil çalışan her şeyi sonlandırır.',
         copyPassword: 'Şifreyi Kopyala',
@@ -871,7 +911,7 @@ const tr: Translations = {
         version: 'Sürüm',
         gatewayToken: 'Ağ Geçidi Token',
         gatewayTokenDescription:
-            'Ağ geçidinizle kimlik doğrulamak için bu token\'ı kullanın',
+            "Ağ geçidinizle kimlik doğrulamak için bu token'ı kullanın",
         scheduledForDeletion: 'Silme Planlandı',
         scheduledDeletionShort: '{{date}} tarihinde silinecek',
         deletionDate: 'Bu claw {{date}} tarihinde silinecek',
@@ -885,7 +925,7 @@ const tr: Translations = {
         hardDelete: 'Zorla Sil',
         hardDeleteClaw: 'Zorla Sil',
         hardDeleteConfirmation:
-            'Bu claw\'u hemen silmek istediğinizden emin misiniz? Mevcut faturalama döneminizde kalan süreyi kaybedeceksiniz. Bu işlem geri alınamaz.',
+            "Bu claw'u hemen silmek istediğinizden emin misiniz? Mevcut faturalama döneminizde kalan süreyi kaybedeceksiniz. Bu işlem geri alınamaz.",
         diagnostics: 'Tanılama',
         diagnosticsDescription: 'OpenClaw örneğinizin sağlığını kontrol edin.',
         diagnosticsStatus: 'Durum',
@@ -928,22 +968,23 @@ const tr: Translations = {
         reinstallInstance: 'Örneği Yeniden Yükle',
         reinstallClaw: 'Örneği Yeniden Yükle',
         reinstallClawConfirmation:
-            'Bu, OpenClaw\'u bu örnekte tamamen yeniden yükleyecektir. Tüm yapılandırmalar, ajanlar ve veriler sıfırlanacaktır. Bu işlem geri alınamaz. Devam edilsin mi?',
+            "Bu, OpenClaw'u bu örnekte tamamen yeniden yükleyecektir. Tüm yapılandırmalar, ajanlar ve veriler sıfırlanacaktır. Bu işlem geri alınamaz. Devam edilsin mi?",
         reinstallInstanceSuccess: 'Örnek başarıyla yeniden yüklendi.',
         reinstallInstanceFailed: 'Örnek yeniden yüklenemedi!',
         openControlPanel: 'Kontrol Panelini Aç',
-        exportData: 'Claw\'u Dışa Aktar (.zip)',
+        exportData: "Claw'u Dışa Aktar (.zip)",
         exportStarted: 'Dışa aktarma hazırlanıyor, bu biraz zaman alabilir...',
         exportSuccess: 'Claw başarıyla dışa aktarıldı.',
         exportFailed: 'Claw verileri dışa aktarılamadı!',
-        exportRateLimited: '{{minutes}} dakika sonra tekrar dışa aktarabilirsiniz.',
+        exportRateLimited:
+            '{{minutes}} dakika sonra tekrar dışa aktarabilirsiniz.',
         exportRateLimitedSeconds:
             '{{seconds}} saniye sonra tekrar dışa aktarabilirsiniz.',
         configuringTooltip:
-            'Bu biraz zaman alabilir. OpenClaw, sunucu konumu ve Cloudflare DNS\'e bağlıdır.',
-        paymentSuccess: 'Claw\'ınız oluşturuluyor ve yapılandırılıyor.',
+            "Bu biraz zaman alabilir. OpenClaw, sunucu konumu ve Cloudflare DNS'e bağlıdır.",
+        paymentSuccess: "Claw'ınız oluşturuluyor ve yapılandırılıyor.",
         dnsSetupBanner:
-            'Claw\'larınıza subdomain.clawhost üzerinden erişmek için yerel DNS ayarlayın.',
+            "Claw'larınıza subdomain.clawhost üzerinden erişmek için yerel DNS ayarlayın.",
         dnsSetupButton: 'DNS Ayarla',
         dnsSetupSuccess: 'DNS çözümleyici başarıyla yapılandırıldı.',
         dnsSetupError: 'DNS çözümleyici yapılandırılamadı!',
@@ -952,7 +993,7 @@ const tr: Translations = {
         userTab: 'Kullanıcı',
         adminTab: 'Yönetici',
         adminTitle: 'Yönetici',
-        adminDescription: 'Platformdaki tüm claw\'ları yönetin.',
+        adminDescription: "Platformdaki tüm claw'ları yönetin.",
         adminNoClaws: 'Platformda henüz claw yok.',
         adminAccessDenied: 'Bu sayfaya erişim izniniz yok.',
         owner: 'Sahip',
@@ -978,10 +1019,10 @@ const tr: Translations = {
     chat: {
         explorer: 'Gezgin',
         selectAgent: 'Seçim yok',
-        selectAgentDescription:
-            'Kenar çubuğundan bir claw veya ajan seçin.',
+        selectAgentDescription: 'Kenar çubuğundan bir claw veya ajan seçin.',
         noAgents: 'Mevcut ajan yok',
-        noAgentsDescription: 'Ajanlarla sohbet etmeye başlamak için bir claw dağıtın.',
+        noAgentsDescription:
+            'Ajanlarla sohbet etmeye başlamak için bir claw dağıtın.',
         openSidebar: 'Kenar çubuğunu aç',
         clawNotReady: 'Claw henüz hazır değil',
         notConfigured: 'Yapılandırılmamış',
@@ -992,15 +1033,14 @@ const tr: Translations = {
     },
     createClaw: {
         title: 'OpenClaw Dağıt',
-        description: 'Sunucunuzu yapılandırın ve yapay zeka ile inşa etmeye başlayın.',
+        description:
+            'Sunucunuzu yapılandırın ve yapay zeka ile inşa etmeye başlayın.',
         clawName: 'Ad',
         clawNamePlaceholder: 'örn. cozy-panda',
         clawNameInvalidChars: 'Yalnızca harf, rakam ve tire kullanılabilir!',
         autoGenerateNameHint: 'Otomatik ad oluşturmak için boş bırakın.',
         provider: 'Sağlayıcı',
         providerHetzner: 'Hetzner',
-        providerDigitalOcean: 'DigitalOcean',
-        providerVultr: 'Vultr',
         providerLocal: 'Yerel',
         providerAws: 'AWS',
         comingSoon: 'Yakında',
@@ -1019,14 +1059,14 @@ const tr: Translations = {
         rootPasswordPlaceholder: 'Şifre girin veya oluşturun',
         gatewayTokenPlaceholder: 'örn. a1b2c3d4e5f6...',
         autoGenerateGatewayTokenHint:
-            'İsteğe bağlı. Boş bırakılırsa ağ geçidi token\'ı olmaz.',
-        autoGeneratePasswordHint:
-            'İsteğe bağlı. Boş bırakılırsa şifre olmaz.',
+            "İsteğe bağlı. Boş bırakılırsa ağ geçidi token'ı olmaz.",
+        autoGeneratePasswordHint: 'İsteğe bağlı. Boş bırakılırsa şifre olmaz.',
         regeneratePassword: 'Şifreyi yeniden oluştur',
         sshKeyOptional: 'SSH Anahtarı',
         noSshKeyPasswordOnly: 'SSH anahtarı yok (yalnızca şifre)',
         noSshKeysConfigured: 'SSH anahtarı yapılandırılmamış',
-        addSshKeyForPasswordlessLogin: 'Şifresiz giriş için SSH anahtarı ekleyin',
+        addSshKeyForPasswordlessLogin:
+            'Şifresiz giriş için SSH anahtarı ekleyin',
         additionalStorageOptional: 'Ek Depolama',
         volumeStorage: 'Birim Depolama',
         vpsServer: 'VPS Sunucu',
@@ -1071,8 +1111,9 @@ const tr: Translations = {
         step4Suffix: '- şifre gerekmez.',
         noSshKeysYet: 'SSH Anahtarı Yok',
         noSshKeysDescription:
-            'Hesabınızda eklenmiş SSH anahtarı yok, istediğiniz zaman ekleyebilir ve dağıtılmış claw\'larınıza bağlanabilirsiniz.',
-        deleteConfirmation: 'Bu SSH anahtarını silmek istediğinizden emin misiniz?',
+            "Hesabınızda eklenmiş SSH anahtarı yok, istediğiniz zaman ekleyebilir ve dağıtılmış claw'larınıza bağlanabilirsiniz.",
+        deleteConfirmation:
+            'Bu SSH anahtarını silmek istediğinizden emin misiniz?',
         deleteKey: 'SSH Anahtarını Sil',
         deleteKeyConfirmation: 'Silmek istediğinizden emin misiniz:',
         sshKeyAddedSuccessfully: 'SSH anahtarı başarıyla eklendi.',
@@ -1111,7 +1152,7 @@ const tr: Translations = {
     landing: {
         title: 'OpenClaw Dağıt. Tek tık. Tamam.',
         description:
-            'OpenClaw\'u tek tıkla kendi VPS\'inize dağıtın. Tam root erişimi, küresel konumlar ve şeffaf fiyatlandırma ile kendi kendine barındırılabilir bulut barındırma.',
+            "OpenClaw'u tek tıkla kendi VPS'inize dağıtın. Tam root erişimi, küresel konumlar ve şeffaf fiyatlandırma ile kendi kendine barındırılabilir bulut barındırma.",
         badge: 'OpenClaw Basitleştirilmiş',
         tutorialBadge: 'İzle. Dağıt.',
         tutorialVideoThumbnail: 'ClawHost eğitim videosu küçük resmi',
@@ -1119,34 +1160,35 @@ const tr: Translations = {
         heroTitle2: 'Tek tık. Tamam.',
         heroDescription:
             'OpenClaw ajanlarını bulutta veya yerel olarak tek tıkla dağıtın — ClawHost ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
-        goToClaws: 'Claw\'lara Git',
+        goToClaws: "Claw'lara Git",
         selfHost: 'Açık Kaynak',
         startingPrice: 'Başlangıç',
         locations: 'Konumlar',
         servers: 'Sunucular',
         zeroCount: 'Sıfır',
         zeroConfig: 'Sıfır Yapılandırma',
-        dashboardPreviewTitle: 'Claw\'lar',
+        dashboardPreviewTitle: "Claw'lar",
         dashboardPreviewSubtitle: '5 eklenmiş claw',
         deployNew: 'Yeni Dağıt',
         running: 'Çalışıyor',
         latency: 'gecikme',
         howItWorks: 'Nasıl Çalışır',
-        threeStepsToPrivacy: 'OpenClaw\'a Üç Adım',
+        threeStepsToPrivacy: "OpenClaw'a Üç Adım",
         howItWorksDescription:
-            'Sıfırdan tam erişimle 7/24 kullanabileceğiniz tamamen dağıtılmış bir OpenClaw\'a.',
+            "Sıfırdan tam erişimle 7/24 kullanabileceğiniz tamamen dağıtılmış bir OpenClaw'a.",
         step1Title: 'Sunucu Seçin',
         step1Description:
-            'Üç sağlayıcı genelinde 30\'dan fazla küresel konumdan seçim yapın. Saniyeler içinde sizin için özel bir VPS oluşturuyoruz.',
+            "Üç sağlayıcı genelinde 30'dan fazla küresel konumdan seçim yapın. Saniyeler içinde sizin için özel bir VPS oluşturuyoruz.",
         step2Title: 'Otomatik Kurulum',
         step2Description:
             'OpenClaw doğrudan bağlantı ve VPS detaylarıyla önceden yüklü gelir. Kurulum gerekmez.',
         step3Title: 'Sizin Oldu',
         step3Description:
-            'OpenClaw ve VPS\'e tam erişim, başarabilecekleriniz konusunda hiçbir sınır yok.',
+            "OpenClaw ve VPS'e tam erişim, başarabilecekleriniz konusunda hiçbir sınır yok.",
         features: 'Özellikler',
         whyClawHost: 'Hepsi Bir Arada Özellikler',
-        featuresDescription: 'Neden denemeye değeriz, özellikler burada yalan söylemez.',
+        featuresDescription:
+            'Neden denemeye değeriz, özellikler burada yalan söylemez.',
         zeroConfigDescription:
             'Saatlerce süren sunucu ve OpenClaw kurulumunu atlayın. Dakikalar içinde önceden yüklü ve hazır.',
         ownedData: '%100 Sahip Olunan Veri',
@@ -1157,7 +1199,7 @@ const tr: Translations = {
             'Özel VPS kaynakları, kısıtlama yok, tam bant genişliği ve yıldırım hızında internet demektir.',
         globalLocations: 'Küresel Konumlar',
         globalLocationsDescription:
-            'OpenClaw\'u Hetzner, DigitalOcean veya Vultr üzerinde 30\'dan fazla küresel bölgede dağıtın ve size en yakın konumu seçin.',
+            "OpenClaw'u Hetzner Cloud üzerinde birden fazla küresel bölgede dağıtın ve size en yakın konumu seçin.",
         fullSshAccess: 'Doğrudan SSH Erişimi',
         fullSshAccessDescription:
             'Sunucu terminalinize doğrudan platformdan erişin. Harici SSH istemcisi gerekmez.',
@@ -1169,19 +1211,19 @@ const tr: Translations = {
             'İhtiyacınıza göre fiyatlandırma. Düşük kaliteli sunucular için zorunlu yüksek fatura yok. İstediğiniz zaman iptal edin.',
         customSubdomains: 'Çevrimiçi Erişim',
         customSubdomainsDescription:
-            'Yerel ağları unutun. OpenClaw\'unuza bir alt alan adıyla her yerden güvenli erişin.',
+            "Yerel ağları unutun. OpenClaw'unuza bir alt alan adıyla her yerden güvenli erişin.",
         autoUpdates: 'Sürüm Kontrolü',
         autoUpdatesDescription:
             'Tek tıkla herhangi bir OpenClaw sürümüne geçin. Her zaman güncel kalın veya gerektiğinde geri dönün.',
         openclawControl: 'OpenClaw Kontrolü',
         openclawControlDescription:
-            'Yerel OpenClaw paneline doğrudan ClawHost\'tan erişin. OpenClaw\'un sunduğu her şeye tam düzenleme erişimi.',
+            "Yerel OpenClaw paneline doğrudan ClawHost'tan erişin. OpenClaw'un sunduğu her şeye tam düzenleme erişimi.",
         clawHostControl: 'ClawHost Kontrolü',
         clawHostControlDescription:
             'Dosyaları, güncellemeleri, kanalları, değişkenleri, yetenekleri ve daha fazla yapılandırma seçeneğini doğrudan platformdan yönetin.',
         skillsMarketplace: '5.000+ Yetenek',
         skillsMarketplaceDescription:
-            '5.000\'den fazla hazır yeteneği tek tıkla göz atın ve yükleyin. OpenClaw\'unuzu anında genişletin.',
+            "5.000'den fazla hazır yeteneği tek tıkla göz atın ve yükleyin. OpenClaw'unuzu anında genişletin.",
         directChat: 'Doğrudan Sohbet',
         directChatDescription:
             'Yapay zeka ajanlarınızla doğrudan platformdan sohbet edin. Harici araç veya arayüz gerekmez.',
@@ -1194,7 +1236,7 @@ const tr: Translations = {
         testimonials: 'Referanslar',
         whatPeopleSay: 'İnsanlar Ne Diyor',
         testimonialsDescription:
-            'Sadece bizim sözümüze güvenmeyin. Diğerlerinin OpenClaw\'u nasıl dağıttığını görün.',
+            "Sadece bizim sözümüze güvenmeyin. Diğerlerinin OpenClaw'u nasıl dağıttığını görün.",
         testimonial1Quote:
             'Sonunda, kendi yapay zeka sunucum. Kurulum 30 saniye sürdü ve aylardır sorunsuz çalıştırıyorum.',
         testimonial1Author: 'Alex Chen',
@@ -1204,7 +1246,7 @@ const tr: Translations = {
         testimonial2Author: 'Maria Santos',
         testimonial2Role: 'Dijital Göçebe',
         testimonial3Quote:
-            'Tek tıkla dağıtım gerçekten işe yarıyor. Hiç teknik değilim ama OpenClaw\'umu bir dakikadan kısa sürede çalıştırdım.',
+            "Tek tıkla dağıtım gerçekten işe yarıyor. Hiç teknik değilim ama OpenClaw'umu bir dakikadan kısa sürede çalıştırdım.",
         testimonial3Author: 'James Wilson',
         testimonial3Role: 'Serbest Çalışan',
         testimonial4Quote:
@@ -1214,7 +1256,7 @@ const tr: Translations = {
         pricing: 'Fiyatlandırma',
         simpleTransparentPricing: 'Basit, Şeffaf Fiyatlandırma',
         pricingDescription:
-            'İhtiyaçlarınıza göre sağlayıcılarımız genelinde 45\'ten fazla sunucudan seçim yapın.',
+            'İhtiyaçlarınıza göre Hetzner Cloud sunucularımız arasından seçim yapın.',
         planColumn: 'Sunucu',
         vCpuColumn: 'vCPU',
         ramColumn: 'RAM',
@@ -1245,7 +1287,7 @@ const tr: Translations = {
         faqDescription: 'Her sık sorulan soru, cevaplanmış.',
         faq1Question: 'ClawHost nedir?',
         faq1Answer:
-            'ClawHost, OpenClaw\'u herkes için erişilebilir kılmak amacıyla oluşturulmuş bir platformdur. Hem teknik olmayan kullanıcıların hem de geliştiricilerin altyapı yönetmeden OpenClaw çalıştırmasını sağlar. Sunucuları, çalışma süresini, güvenliği ve bakımı biz yönetiyoruz — siz sadece OpenClaw\'u kullanın.',
+            "ClawHost, OpenClaw'u herkes için erişilebilir kılmak amacıyla oluşturulmuş bir platformdur. Hem teknik olmayan kullanıcıların hem de geliştiricilerin altyapı yönetmeden OpenClaw çalıştırmasını sağlar. Sunucuları, çalışma süresini, güvenliği ve bakımı biz yönetiyoruz — siz sadece OpenClaw'u kullanın.",
         faq2Question: 'OpenClaw nedir?',
         faq2Answer:
             'OpenClaw, yapay zeka araçlarınız ve hizmetleriniz için kendi kendine barındırılan güvenli bir erişim katmanıdır. Güvenlik ve performans için önceden yapılandırılmıştır, böylece dağıtabilir ve anında bağlanabilirsiniz.',
@@ -1255,25 +1297,25 @@ const tr: Translations = {
             'Barındırılan yapay zeka araçlarından farklı olarak, ClawHost size OpenClaw yüklü gerçek bir sunucu verir. Altyapının sahibi sizsiniz, her şeyi kontrol edersiniz ve paylaşımlı bir platform veya model tarafından sınırlanmazsınız.',
         faq4Question: 'Teknik bilgiye ihtiyacım var mı?',
         faq4Answer:
-            'Hayır. Tüm altyapı, kurulum ve bakımı biz yönetiyoruz. OpenClaw\'u arayüzü üzerinden yapılandırabilir ve yönetebilir, kanallara bağlanabilir ve kullanımı özelleştirebilirsiniz — sunuculara veya altyapıya dokunmadan.',
+            "Hayır. Tüm altyapı, kurulum ve bakımı biz yönetiyoruz. OpenClaw'u arayüzü üzerinden yapılandırabilir ve yönetebilir, kanallara bağlanabilir ve kullanımı özelleştirebilirsiniz — sunuculara veya altyapıya dokunmadan.",
         faq5Question: 'Hangi konumlar mevcut?',
         faq5Answer:
-            'ABD, Avrupa, Asya ve daha fazlası dahil Hetzner, DigitalOcean ve Vultr genelinde dünya çapında 30\'dan fazla sunucu konumu sunuyoruz. Gerekirse farklı bölgelerde birden fazla sunucuya OpenClaw dağıtabilirsiniz.',
+            "Hetzner Cloud aracılığıyla ABD, Avrupa ve daha fazlası dahil olmak üzere dünya genelinde birden fazla sunucu konumu sunuyoruz. Gerekirse OpenClaw'u farklı bölgelerdeki birden fazla sunucuda dağıtabilirsiniz.",
         faq6Question: 'Maliyeti ne kadar?',
         faq6Answer:
-            'Fiyatlandırma seçtiğiniz sunucuya göre belirlenir. Üç sağlayıcı genelinde giriş seviyesinden yüksek performansa kadar 45\'ten fazla sunucu seçeneğiyle, ihtiyaçlarınıza ve bütçenize uygun olanı seçersiniz.',
+            'Fiyatlar seçtiğiniz sunucuya bağlıdır. Giriş seviyesinden yüksek performansa kadar birden fazla sunucu seçeneğiyle, ihtiyaçlarınıza ve bütçenize uygun olanı seçersiniz.',
         faq7Question: 'Sunucuma doğrudan erişebilir miyim?',
         faq7Answer:
-            'Evet. Alt alan adı URL\'si üzerinden OpenClaw erişiminin yanı sıra, sunucuya ve temel altyapısına tam erişiminiz vardır, bu da ihtiyacınız olan her şeyi özelleştirme ve çalıştırma özgürlüğü verir.',
+            "Evet. Alt alan adı URL'si üzerinden OpenClaw erişiminin yanı sıra, sunucuya ve temel altyapısına tam erişiminiz vardır, bu da ihtiyacınız olan her şeyi özelleştirme ve çalıştırma özgürlüğü verir.",
         faq8Question: 'Sunucular nerede barındırılıyor?',
         faq8Answer:
-            'Tüm sunucular, büyük ölçekli altyapılar tarafından kullanılan, yüksek performanslı donanım ve mükemmel çalışma süresiyle bilinen güvenilir bulut sağlayıcıları Hetzner Cloud, DigitalOcean ve Vultr üzerinde barındırılmaktadır.',
+            'Tüm sunucular, yüksek performanslı donanımı ve mükemmel çalışma süresi ile tanınan, büyük ölçekli altyapılar tarafından kullanılan güvenilir bir bulut sağlayıcısı olan Hetzner Cloud üzerinde barındırılmaktadır.',
         comparison: 'Karşılaştırma',
         comparisonTitle: 'Nasıl Farklıyız',
         comparisonDescription:
             'Yalnızca bir karşılaştırılabilir platform var ve yaklaşımımız sınırlamalar yerine gerçek sunuculara ve tam sahipliğe odaklanıyor.',
         others: 'Diğerleri',
-        comparisonOpenClawUs: 'OpenClaw\'a tam erişim',
+        comparisonOpenClawUs: "OpenClaw'a tam erişim",
         comparisonOpenClawOthers: 'Yalnızca sohbet, yönetim yok',
         comparisonPricingUs: 'Şeffaf fiyatlandırma, net özellikler',
         comparisonPricingOthers: 'Gizli özellikler, belirsiz fiyatlandırma',
@@ -1291,13 +1333,13 @@ const tr: Translations = {
         comparisonAgentsOthers: 'Yalnızca tek ajan',
         comparisonOpenSourceUs: 'Tamamen açık kaynak',
         comparisonOpenSourceOthers: 'Kapalı kaynak',
-        comparisonExportUs: 'OpenClaw\'unuzu her yere dışa aktarın',
+        comparisonExportUs: "OpenClaw'unuzu her yere dışa aktarın",
         comparisonExportOthers: 'Satıcı bağımlılığı',
         comparisonProvidersUs: 'Birden fazla sunucu sağlayıcısı',
         comparisonProvidersOthers: 'Yalnızca tek sağlayıcı',
         comparisonSocialsUs: 'Sosyal medya varlığı',
         comparisonSocialsOthers: 'Sosyal medya yok',
-        comparisonChatUs: 'Claw\'ınızla doğrudan sohbet',
+        comparisonChatUs: "Claw'ınızla doğrudan sohbet",
         comparisonChatOthers: 'Yalnızca kanallar üzerinden sohbet',
         comparisonVersionUs: 'Tek tıkla sürüm değiştirme',
         comparisonVersionOthers: 'Yalnızca manuel güncellemeler',
@@ -1308,7 +1350,7 @@ const tr: Translations = {
             'SimpleClaw, MyClaw.ai ve daha fazlasıyla özellik özellik karşılaştırıyoruz.',
         readyToOwnYourPrivacy: 'OpenClaw dağıtmaya hazır mısınız?',
         ctaDescription:
-            'OpenClaw önceden yüklü özel bir sunucu edinin. Tam root erişimi, küresel konumlar ve dakikalar içinde hazır. Her zaman sahibi sizsiniz. $25\'tan başlayan fiyatlar.',
+            "OpenClaw önceden yüklü özel bir sunucu edinin. Tam root erişimi, küresel konumlar ve dakikalar içinde hazır. Her zaman sahibi sizsiniz. $25'tan başlayan fiyatlar.",
         deployOpenClawNow: 'OpenClaw Dağıt',
         selfHostInstead: 'Kendi Sunucunda Barındır',
         noCreditCardRequired: 'Anında Kurulum',
@@ -1327,20 +1369,22 @@ const tr: Translations = {
         readingTime: '{{minutes}} dk okuma',
         publishedOn: '{{date}} tarihinde yayınlandı',
         writtenBy: '{{author}} tarafından',
-        backToBlog: 'Blog\'a Dön',
+        backToBlog: "Blog'a Dön",
         noPosts: 'Henüz Yazı Yok',
-        noPostsDescription: 'Blog yazıları yakında gelecek. Daha sonra tekrar kontrol edin.',
-        ctaTitle: 'OpenClaw\'u Tek Tıkla Dağıtın',
+        noPostsDescription:
+            'Blog yazıları yakında gelecek. Daha sonra tekrar kontrol edin.',
+        ctaTitle: "OpenClaw'u Tek Tıkla Dağıtın",
         ctaDescription:
-            'OpenClaw önceden yüklü özel bir sunucu edinin. Tam root erişimi, küresel konumlar ve dakikalar içinde hazır. Her zaman sahibi sizsiniz. $25\'tan başlayan fiyatlar.',
+            "OpenClaw önceden yüklü özel bir sunucu edinin. Tam root erişimi, küresel konumlar ve dakikalar içinde hazır. Her zaman sahibi sizsiniz. $25'tan başlayan fiyatlar.",
         ctaDeploy: 'OpenClaw Dağıt',
-        ctaGitHub: 'GitHub\'da Görüntüle'
+        ctaGitHub: "GitHub'da Görüntüle"
     },
     changelog: {
         title: 'Değişiklik Günlüğü',
         description:
             'ClawHost güncellemelerini, yeni özelliklerini ve iyileştirmelerini takip edin.',
-        subtitle: 'ClawHost\'un tüm güncellemeleri, yeni özellikleri ve iyileştirmeleri.',
+        subtitle:
+            "ClawHost'un tüm güncellemeleri, yeni özellikleri ve iyileştirmeleri.",
         upcomingRelease: 'Süreçte',
         upcomingReleaseTitle: 'Mobil Uygulama ve Daha Fazlası',
         upcomingReleaseDescription:
@@ -1359,9 +1403,9 @@ const tr: Translations = {
         upcomingReleaseFeature8:
             'OpenClaw ajanları tarafından otomatik olarak yönetilen ve yayınlanan özellik istekleri',
         upcomingReleaseFeature9:
-            'ClawHost\'ta barındırılan OpenClaw ajanlarıyla etkileşim için Ses Modu (Beta)',
+            "ClawHost'ta barındırılan OpenClaw ajanlarıyla etkileşim için Ses Modu (Beta)",
         upcomingReleaseFeature10:
-            'Temiz başlangıç için örneğinizde OpenClaw\'u yeniden yükleyin, günde bir kez kullanılabilir',
+            "Temiz başlangıç için örneğinizde OpenClaw'u yeniden yükleyin, günde bir kez kullanılabilir",
         upcomingReleaseFeature11:
             'ClawHost Go için açılış sayfası, ClawHost ile yerel barındırma',
         upcomingReleaseFeature12:
@@ -1378,25 +1422,28 @@ const tr: Translations = {
         release12Title: 'Yıllık Planlar, Ses Modu ve Daha Fazlası',
         release12Description:
             '2 ay ücretsiz yıllık abonelikler, ses modu, örnek yeniden yükleme ve ClawHost Go için ilk açılış sayfası.',
-        release12Feature1: 'ClawHost Go için açılış sayfası, ClawHost ile yerel barındırma',
+        release12Feature1:
+            'ClawHost Go için açılış sayfası, ClawHost ile yerel barındırma',
         release12Feature2:
             'Yıllık abone olduğunuzda 2 ay ücretsiz yıllık abonelik desteği',
         release12Feature3:
-            'ClawHost\'ta barındırılan OpenClaw ajanlarıyla etkileşim için Ses Modu',
+            "ClawHost'ta barındırılan OpenClaw ajanlarıyla etkileşim için Ses Modu",
         release12Feature4:
-            'Temiz başlangıç için örneğinizde OpenClaw\'u yeniden yükleyin, günde bir kez kullanılabilir',
+            "Temiz başlangıç için örneğinizde OpenClaw'u yeniden yükleyin, günde bir kez kullanılabilir",
         release11Date: '28 Şubat 2026',
-        release11Title: 'Metinden Konuşmaya, Terminal, Sohbet Sekmeleri ve Dosya Gezgini',
+        release11Title:
+            'Metinden Konuşmaya, Terminal, Sohbet Sekmeleri ve Dosya Gezgini',
         release11Description:
-            'Metinden konuşmaya ile ajan yanıtlarını dinleyin, terminal üzerinden VPS\'inizle doğrudan etkileşime geçin, kenar çubuğu görünüm sekmeleriyle sohbetlerde daha hızlı gezinin ve geliştirilmiş dosya gezginiyle dosyaları keşfedin.',
-        release11Feature1: 'Playground\'da ajan mesajlarında metinden konuşmaya',
+            "Metinden konuşmaya ile ajan yanıtlarını dinleyin, terminal üzerinden VPS'inizle doğrudan etkileşime geçin, kenar çubuğu görünüm sekmeleriyle sohbetlerde daha hızlı gezinin ve geliştirilmiş dosya gezginiyle dosyaları keşfedin.",
+        release11Feature1: "Playground'da ajan mesajlarında metinden konuşmaya",
         release11Feature2:
             'Panelden doğrudan VPS örneklerinizle etkileşim için terminal',
         release11Feature3:
             'Kolay erişim ve gezinme için sohbet kenar çubuğu görünüm sekmeleri',
         release11Feature4:
             'Dosyalar arasında arama yapmak için arama çubuğuyla dosya gezgini iyileştirmeleri',
-        release11Feature5: 'Mesaj zaman damgalarının gerçek zamanı yansıtmaması düzeltildi',
+        release11Feature5:
+            'Mesaj zaman damgalarının gerçek zamanı yansıtmaması düzeltildi',
         release11Dropped1: 'Sadeleştirme için özellik istekleri kaldırıldı',
         release10Date: '23 Şubat 2026',
         release10Title: 'Özellik İstekleri, Dosya Gezgini ve Hata Düzeltmeleri',
@@ -1413,7 +1460,8 @@ const tr: Translations = {
         release10Feature5:
             'TypeScript, Markdown ve düz metin dosyaları artık Dosya Gezgininde düzenlenebilir',
         release9Date: '21 Şubat 2026',
-        release9Title: 'Karşılaştırmalar, Playground Yeniden Düzenleme ve Daha Fazlası',
+        release9Title:
+            'Karşılaştırmalar, Playground Yeniden Düzenleme ve Daha Fazlası',
         release9Description:
             'Rakip karşılaştırma sayfaları, playground özellik yeniden yapılandırması, çoklu dil desteği ve genel performans iyileştirmeleri.',
         release9Feature1: 'Koyu ve açık tema desteği',
@@ -1443,7 +1491,7 @@ const tr: Translations = {
         release7Feature2:
             'Sohbetlerle sesli etkileşim, doğrudan tarayıcıda konuşma kaydedin ve yazıya dökün',
         release7Feature3:
-            '5.000\'den fazla yüklenebilir ve yönetilebilir yetenekle ClawHub yetenekleri entegrasyonu',
+            "5.000'den fazla yüklenebilir ve yönetilebilir yetenekle ClawHub yetenekleri entegrasyonu",
         release7Feature4:
             'Ajanlar için ek görünümü ve kullanımı, sohbette resim ve belge gönderin',
         release6Date: '16 Şubat 2026',
@@ -1455,39 +1503,34 @@ const tr: Translations = {
         release6Feature2:
             'Yetenekleri doğrudan yönetin, panelden ajan yeteneklerini yükleyin, güncelleyin ve düzenleyin',
         release6Feature3:
-            'Playground\'dan ajanlarınızla sohbet edin, herhangi bir ajanla gerçek zamanlı etkileşime geçin',
+            "Playground'dan ajanlarınızla sohbet edin, herhangi bir ajanla gerçek zamanlı etkileşime geçin",
         release6Feature4:
             'Google veya GitHub ile giriş yapın, e-posta kodları olmadan hızlı, güvenli kimlik doğrulama',
         release1Date: '8 Şubat 2026',
         release1Title: 'İlk Sürüm',
         release1Description:
-            'ClawHost\'un ilk resmi sürümü. OpenClaw\'u tek tıkla kendi VPS\'inize dağıtın.',
+            "ClawHost'un ilk resmi sürümü. OpenClaw'u tek tıkla kendi VPS'inize dağıtın.",
         release1Feature1: 'Hetzner Cloud üzerinde tek tıkla OpenClaw dağıtımı',
         release1Feature2:
-            'Claw\'ları yönetmek, örnekleri başlatmak, durdurmak, yeniden başlatmak ve silmek için panel',
+            "Claw'ları yönetmek, örnekleri başlatmak, durdurmak, yeniden başlatmak ve silmek için panel",
         release1Feature3:
             'Özel vCPU, RAM ve depolama seçenekleriyle 18 Hetzner sunucu planı',
         release1Feature4:
             'ABD, Avrupa ve Asya genelinde 6 Hetzner sunucu konumu',
         release1Feature5: 'Şifresiz sunucu erişimi için SSH anahtar yönetimi',
-        release1Feature6: '10 TB\'a kadar ek birim depolama desteği',
+        release1Feature6: "10 TB'a kadar ek birim depolama desteği",
         release1Feature7: 'Sihirli bağlantı kimlik doğrulaması, şifre gerekmez',
-        release1Feature8: 'Güvenli alt alan adları aracılığıyla OpenClaw\'a çevrimiçi erişim',
+        release1Feature8:
+            "Güvenli alt alan adları aracılığıyla OpenClaw'a çevrimiçi erişim",
         release1Feature9:
             'Şeffaf sunucu başına fiyatlandırma ile ödeme entegrasyonu',
         release1Feature10: 'Faturalama geçmişi ve fatura yönetimi',
         release1Feature11:
             'OpenClaw önceden yüklü ve yapılandırılmış otomatik hazırlama',
         release2Date: '8 Şubat 2026',
-        release2Title: 'DigitalOcean ve Daha Fazlası',
-        release2Description:
-            'Çoklu sağlayıcı altyapısı ve ClawHost hakkındaki her şeyden haberdar olmanın yeni bir yolu.',
-        release2Feature1: 'İkinci bulut sağlayıcı olarak DigitalOcean',
-        release2Feature2:
-            'Özel vCPU, RAM ve depolama seçenekleriyle 7 DigitalOcean sunucu planı',
-        release2Feature3:
-            'ABD, Avrupa, Asya ve daha fazlası genelinde 10\'dan fazla DigitalOcean sunucu konumu',
-        release2Feature4:
+        release2Title: 'Changelog ve Daha Fazlası',
+        release2Description: 'ClawHost hakkında güncel kalmanın yeni bir yolu.',
+        release2Feature1:
             'Tüm platform güncellemelerini ve sürümlerini takip etmek için değişiklik günlüğü sayfası',
         release3Date: '10 Şubat 2026',
         release3Title: 'Sunucu Bilgileri',
@@ -1499,34 +1542,26 @@ const tr: Translations = {
             'Servis sorunları için tek tıkla otomatik onarımlı sunucu tanılama',
         release3Feature3:
             'Sunucu yapılandırma dosyaları için yerleşik dosya gezgini ve JSON düzenleyici',
-        release4Date: '11 Şubat 2026',
-        release4Title: 'Vultr Sağlayıcısı',
+        release4Date: '14 Şubat 2026',
+        release4Title: 'Ajanlar ve Veri Dışa Aktarma',
         release4Description:
-            '22 sunucu planı ve 30\'dan fazla küresel konumla üçüncü bulut sağlayıcı olarak Vultr.',
-        release4Feature1: 'Üçüncü bulut sağlayıcı olarak Vultr',
-        release4Feature2:
-            'Normal, Yüksek Performans ve Yüksek Frekans katmanlarında 22 Vultr sunucu planı',
-        release4Feature3:
-            'ABD, Avrupa, Asya ve daha fazlası genelinde 30\'dan fazla Vultr sunucu konumu',
-        release5Date: '14 Şubat 2026',
-        release5Title: 'Ajanlar ve Veri Dışa Aktarma',
-        release5Description:
             'Ajan playground, çoklu ajan yönetimi ve OpenClaw örnekleriniz için taşınabilir veri dışa aktarma.',
-        release5Feature1:
+        release4Feature1:
             'Tek tıkla ajan playground ve genel bakış, birden fazla ajan ekleme ve yönetme',
-        release5Feature2: 'OpenClaw\'unuzu taşınabilir zip arşivi olarak dışa aktarın',
-        release5Feature3:
-            'Claw\'ların ve ajanların grafik tabanlı görselleştirmesiyle etkileşimli playground',
-        release5Feature4:
+        release4Feature2:
+            "OpenClaw'unuzu taşınabilir zip arşivi olarak dışa aktarın",
+        release4Feature3:
+            "Claw'ların ve ajanların grafik tabanlı görselleştirmesiyle etkileşimli playground",
+        release4Feature4:
             'Birleşik panel düzeni lehine ızgara ve liste görünümü geçişi kaldırıldı'
     },
     playground: {
         title: 'Playground',
         description:
-            'Claw\'larınızı ve ajanlarını etkileşimli bir grafikte görselleştirin.',
+            "Claw'larınızı ve ajanlarını etkileşimli bir grafikte görselleştirin.",
         subtitle: 'Altyapınız genelinde ajan topolojisi',
         noClawsYet: 'Claw Yok',
-        noClawsDescription: 'Etkileşime geçmek için ilk Claw\'ınızı dağıtın.',
+        noClawsDescription: "Etkileşime geçmek için ilk Claw'ınızı dağıtın.",
         loadingAgents: 'Ajanlar yükleniyor',
         unreachable: 'Erişilemiyor',
         offline: 'Çevrimdışı',
@@ -1536,7 +1571,7 @@ const tr: Translations = {
         agentModel: 'Model',
         zoomLabel: '{{percent}}%',
         fitView: 'Ortala',
-        nodesOutOfView: 'Görünüm dışında claw\'lar',
+        nodesOutOfView: "Görünüm dışında claw'lar",
         nodeOutOfView: 'Görünüm dışında claw',
         addAgent: 'Ajan ekle',
         closeDetails: 'Kapat',
@@ -1553,7 +1588,7 @@ const tr: Translations = {
         tabDisabledAwaitingPayment: 'Ödeme işlendikten sonra kullanılabilir.',
         loadingTip1:
             'Tek bir OpenClaw içinde birden fazla ajan çalıştırabileceğinizi biliyor muydunuz?',
-        loadingTip2: 'OpenClaw\'un açık kaynak olduğunu biliyor muydunuz?',
+        loadingTip2: "OpenClaw'un açık kaynak olduğunu biliyor muydunuz?",
         loadingTip3:
             'ClawHost, tek tıkla OpenClaw barındırmaya izin veren ilk projedir.',
         tabChat: 'Sohbet',
@@ -1605,11 +1640,9 @@ const tr: Translations = {
         variablesDeleteDescription:
             '{{key}} değişkenini silmek istediğinizden emin misiniz? Bu, örnekten hemen kaldırılacaktır.',
         variablesDeleteConfirm: 'Sil',
-        variablesDontAskAgain:
-            'Bu oturumda değişken silerken tekrar sorma',
+        variablesDontAskAgain: 'Bu oturumda değişken silerken tekrar sorma',
         variablesDeleted: 'Değişken silindi.',
-        variablesOperationPending:
-            'Önceki işlem tamamlanırken devre dışı.',
+        variablesOperationPending: 'Önceki işlem tamamlanırken devre dışı.',
         addAgentTitle: 'Ajan Ekle',
         addAgentDescription: '{{clawName}} üzerine yeni bir ajan ekleyin.',
         addAgentDescriptionNoClaw:
@@ -1664,26 +1697,30 @@ const tr: Translations = {
         chatReplaySpeech: 'Tekrar oynat',
         chatStopSpeech: 'Durdur',
         chatSpeechFailed: 'Konuşma oluşturulamadı!',
-        chatReadOnlyPlaceholder: 'Sohbet kendi Claw\'larınızda kullanılabilir.',
-        chatReadOnlyUser: 'Merhaba! Node.js projesi kurmama yardım edebilir misiniz?',
+        chatReadOnlyPlaceholder: "Sohbet kendi Claw'larınızda kullanılabilir.",
+        chatReadOnlyUser:
+            'Merhaba! Node.js projesi kurmama yardım edebilir misiniz?',
         chatReadOnlyAssistant:
             'Tabii ki! Yeni bir Node.js projesi başlatmanıza yardımcı olabilirim. Yaygın bağımlılıklarla bir package.json oluşturmamı ister misiniz?',
         chatReadOnlyReply:
-            'Bu bir önizleme! Kendi OpenClaw\'unuzu tek tıkla dağıtın ve dakikalar içinde yapay zeka ajanlarınızla sohbet etmeye başlayın!',
-        chatReadOnlyUser2: 'Test paketini çalıştırıp hataları kontrol edebilir misin?',
+            "Bu bir önizleme! Kendi OpenClaw'unuzu tek tıkla dağıtın ve dakikalar içinde yapay zeka ajanlarınızla sohbet etmeye başlayın!",
+        chatReadOnlyUser2:
+            'Test paketini çalıştırıp hataları kontrol edebilir misin?',
         chatReadOnlyAssistant2:
             'Tabii! Tüm testleri şimdi çalıştıracağım. 3 geçti, 0 başarısız. Her şey iyi görünüyor — tüm doğrulamalar geçiyor.',
-        chatReadOnlyGoUser: 'Hey, dağıtım hattımı otomatikleştirmeme yardım edebilir misin?',
+        chatReadOnlyGoUser:
+            'Hey, dağıtım hattımı otomatikleştirmeme yardım edebilir misin?',
         chatReadOnlyGoAssistant:
             'Kesinlikle! Sizin için bir CI/CD hattı kurabilirim. Otomatik olarak derleyen, test eden ve dağıtan bir GitHub Actions iş akışıyla başlamamı ister misiniz?',
         chatReadOnlyGoReply:
-            'Bu bir önizleme! ClawHost Go edinin ve OpenClaw\'u yerel olarak çalıştırın — sizin makineniz, sizin verileriniz, bulut gerekmez.',
-        chatReadOnlyGoUser2: 'Yerel servislerimi izleyebilir ve bir şey çökerse beni uyarabilir misin?',
+            "Bu bir önizleme! ClawHost Go edinin ve OpenClaw'u yerel olarak çalıştırın — sizin makineniz, sizin verileriniz, bulut gerekmez.",
+        chatReadOnlyGoUser2:
+            'Yerel servislerimi izleyebilir ve bir şey çökerse beni uyarabilir misin?',
         chatReadOnlyGoAssistant2:
             'Üzerindeyim! Tüm servisleriniz için sağlık kontrolleri ayarlayacağım. Şu anda 4 uç noktayı izliyorum — hepsi sağlıklı ve yanıt veriyor.',
         chatConnectionFailed: 'Bu ajana bağlanılamadı!',
         chatConnectionFailedDescription:
-            'Claw\'ın çalıştığından ve erişilebilir olduğundan emin olun.',
+            "Claw'ın çalıştığından ve erişilebilir olduğundan emin olun.",
         chatNotConfigured: 'Ajan yapılandırılmamış.',
         chatNotConfiguredDescription:
             'Sohbete başlamak için Yapılandırma sekmesinde bir model seçin ve API anahtarı ayarlayın.',
@@ -1693,7 +1730,8 @@ const tr: Translations = {
         chatExpandFullscreen: 'Sohbeti genişlet',
         chatAttachFile: 'Dosya ekle',
         chatDropFiles: 'Eklemek için dosyaları bırakın',
-        chatDropFilesDescription: 'Resimler, PDF\'ler ve metin dosyaları, 5 MB\'a kadar.',
+        chatDropFilesDescription:
+            "Resimler, PDF'ler ve metin dosyaları, 5 MB'a kadar.",
         chatVoiceInput: 'Sesli giriş',
         chatVoiceListening: 'Dinleniyor...',
         chatVoiceNotSupported: 'Bu tarayıcıda sesli giriş desteklenmiyor.',
@@ -1708,8 +1746,7 @@ const tr: Translations = {
         chatVoiceModeSpeaking: 'Konuşuyor...',
         chatVoiceModeInputDevice: 'Mikrofon',
         chatVoiceModeOutputDevice: 'Hoparlör',
-        chatVoiceModeNotSupported:
-            'Bu tarayıcıda ses tanıma desteklenmiyor.',
+        chatVoiceModeNotSupported: 'Bu tarayıcıda ses tanıma desteklenmiyor.',
         chatVoiceModeNoMicrophone:
             'Mikrofon algılanmadı. Ses modunu kullanmak için bir tane bağlayın.',
         chatVoiceModeNoSpeaker:
@@ -1728,17 +1765,19 @@ const tr: Translations = {
         channelsWhatsAppScanQr:
             'Cihazınızı bağlamak için bu QR kodunu WhatsApp ile tarayın.',
         channelsWhatsAppScanInstructions:
-            'WhatsApp\'ı açın > Ayarlar > Bağlı Cihazlar > Cihaz Bağla',
+            "WhatsApp'ı açın > Ayarlar > Bağlı Cihazlar > Cihaz Bağla",
         channelsWhatsAppQrRefreshed:
             'Önceki QR kodunun süresi doldu. Aşağıdaki yeni kodu tarayın.',
         channelsWhatsAppPaired: 'WhatsApp başarıyla eşleştirildi.',
-        channelsWhatsAppPairFailed: 'Eşleştirme başarısız. Lütfen tekrar deneyin!',
+        channelsWhatsAppPairFailed:
+            'Eşleştirme başarısız. Lütfen tekrar deneyin!',
         channelsWhatsAppAlreadyPaired: 'WhatsApp zaten eşleştirilmiş!',
         channelsWhatsAppUnpair: 'Eşleştirmeyi Kaldır',
         channelsWhatsAppConnected: 'Bağlı',
         channelsWhatsAppRepair: 'Yeniden Eşleştir',
         channelsWhatsAppChecking: 'Bağlantı kontrol ediliyor...',
-        channelsVersionUnsupported: 'Bu sürümde kanal yapılandırması mevcut değil. Terminal sekmesini kullanarak manuel olarak bağlanabilir veya OpenClaw\'ı güncelleyebilirsiniz.',
+        channelsVersionUnsupported:
+            "Bu sürümde kanal yapılandırması mevcut değil. Terminal sekmesini kullanarak manuel olarak bağlanabilir veya OpenClaw'ı güncelleyebilirsiniz.",
         channelsVersionUnsupportedDocs: 'Kurulum kılavuzunu görüntüle',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
@@ -1761,7 +1800,8 @@ const tr: Translations = {
         channelsDmPolicyAllowlist: 'İzin Listesi',
         channelsDmPolicyDisabled: 'Devre Dışı',
         channelsAllowFrom: 'Şuradan İzin Ver',
-        channelsAllowFromPlaceholder: 'İzin verilen kimlikler, virgülle ayrılmış',
+        channelsAllowFromPlaceholder:
+            'İzin verilen kimlikler, virgülle ayrılmış',
         channelsSave: 'Kaydet',
         channelsSaved: 'Kanallar başarıyla güncellendi.',
         channelsSaveFailed: 'Kanallar güncellenemedi!',
@@ -1808,18 +1848,18 @@ const tr: Translations = {
         skillsBundledTab: 'Paketlenmiş',
         skillsClawHubTab: 'ClawHub',
         clawHubSearch: 'ClawHub yeteneklerini ara...',
-        clawHubNoResults: 'ClawHub\'da yetenek bulunamadı.',
+        clawHubNoResults: "ClawHub'da yetenek bulunamadı.",
         clawHubEmpty: 'Yüklü ClawHub yeteneği yok.',
         clawHubEmptyDescription:
             'ClawHub pazaryerinden yetenek arayın ve yükleyin.',
         clawHubInstall: 'Yükle',
-        clawHubInstalled: 'Yetenek ClawHub\'dan yüklendi.',
-        clawHubInstallFailed: 'ClawHub\'dan yetenek yüklenemedi!',
+        clawHubInstalled: "Yetenek ClawHub'dan yüklendi.",
+        clawHubInstallFailed: "ClawHub'dan yetenek yüklenemedi!",
         clawHubRemove: 'Kaldır',
         clawHubRemoved: 'ClawHub yeteneği kaldırıldı.',
         clawHubRemoveFailed: 'ClawHub yeteneği kaldırılamadı!',
         clawHubUpdate: 'Güncelle',
-        clawHubUpdated: 'Yetenek ClawHub\'dan güncellendi.',
+        clawHubUpdated: "Yetenek ClawHub'dan güncellendi.",
         clawHubUpdateFailed: 'ClawHub yeteneği güncellenemedi!',
         clawHubUpdateAvailable: 'v{{version}} mevcut',
         clawHubBy: '{{author}} tarafından',
@@ -1858,12 +1898,13 @@ const tr: Translations = {
             'Yalnızca {{min}}-{{max}} küçük harf ve rakam kullanın.',
         subdomainUpdated: 'Alt alan adı başarıyla güncellendi.',
         subdomainUpdateFailed: 'Alt alan adı güncellenemedi!',
-        subdomainInUse: 'Bu alt alan adı başka bir claw tarafından kullanılıyor!',
+        subdomainInUse:
+            'Bu alt alan adı başka bir claw tarafından kullanılıyor!',
         settingsSave: 'Kaydet',
         settingsSaving: 'Kaydediliyor...',
         mockLogStarting: 'OpenClaw ajanı başlatılıyor...',
         mockLogLoadingModel: 'Model yükleniyor: claude-sonnet-4-5',
-        mockLogAgentReady: 'Ajan port 3000\'de hazır',
+        mockLogAgentReady: "Ajan port 3000'de hazır",
         mockLogConnected: 'Ağ geçidine bağlandı',
         mockLogRequestReceived: 'İstek alındı: /chat',
         mockLogResponseSent1: 'Yanıt gönderildi (1.2s)',
@@ -1873,7 +1914,7 @@ const tr: Translations = {
     privacy: {
         title: 'Gizlilik Politikası',
         description:
-            'ClawHost\'un kişisel verilerinizi nasıl topladığını, kullandığını ve koruduğunu öğrenin.',
+            "ClawHost'un kişisel verilerinizi nasıl topladığını, kullandığını ve koruduğunu öğrenin.",
         lastUpdated: 'Son güncelleme: 14 Mart 2026',
         introTitle: '1. Giriş',
         introText:
@@ -1884,8 +1925,7 @@ const tr: Translations = {
         collectTitle: '3. Topladığımız Bilgiler',
         collectText: 'Bilgileri aşağıdaki yollarla topluyoruz:',
         personalInfoTitle: 'Kişisel Bilgiler',
-        personalInfoEmail:
-            'E-posta adresi (hesap oluşturma ve iletişim için)',
+        personalInfoEmail: 'E-posta adresi (hesap oluşturma ve iletişim için)',
         personalInfoName: 'Ad (isteğe bağlı, kişiselleştirme için)',
         personalInfoPayment:
             'Ödeme bilgileri (üçüncü taraf sağlayıcılar tarafından güvenli şekilde işlenir)',
@@ -1897,11 +1937,14 @@ const tr: Translations = {
         useTitle: '4. Bilgilerinizi Nasıl Kullanıyoruz',
         useText: 'Toplanan bilgileri şunlar için kullanıyoruz:',
         useProvide: 'Hizmetimizi sağlamak ve sürdürmek',
-        useTransactions: 'İşlemleri gerçekleştirmek ve faturalama bilgisi göndermek',
+        useTransactions:
+            'İşlemleri gerçekleştirmek ve faturalama bilgisi göndermek',
         useNotices: 'Önemli bildirimler ve güncellemeler göndermek',
         useSupport: 'Müşteri destek taleplerine yanıt vermek',
-        useAnalyze: 'Hizmetimizi geliştirmek için kullanım kalıplarını izlemek ve analiz etmek',
-        useFraud: 'Dolandırıcılık veya kötüye kullanımı tespit etmek ve önlemek',
+        useAnalyze:
+            'Hizmetimizi geliştirmek için kullanım kalıplarını izlemek ve analiz etmek',
+        useFraud:
+            'Dolandırıcılık veya kötüye kullanımı tespit etmek ve önlemek',
         sharingTitle: '5. Veri Paylaşımı ve İfşa',
         sharingText:
             'Kişisel bilgilerinizi satmıyoruz. Bilgileri şunlarla paylaşabiliriz:',
@@ -1954,11 +1997,10 @@ const tr: Translations = {
             'ClawHost, özel sunucularda tek tıkla OpenClaw dağıtımı sağlar. Kullanıcıların tam root erişimi ve özel kaynaklarla önceden yapılandırılmış OpenClaw örneklerini dağıtmasını, yönetmesini ve erişmesini sağlıyoruz.',
         authTitle: '3. Kimlik Doğrulama',
         authText:
-            'ClawHost, giriş yönetimi için Google Firebase Authentication kullanır. E-posta, Google veya GitHub ile kimlik doğrulayabilirsiniz. Bu yöntemleri kullanarak, Google ve GitHub\'ın ilgili şartlarını ve gizlilik politikalarını kabul edersiniz. Bu sağlayıcılar e-posta adresiniz, adınız ve cihaz verileriniz gibi temel bilgiler toplayabilir.',
+            "ClawHost, giriş yönetimi için Google Firebase Authentication kullanır. E-posta, Google veya GitHub ile kimlik doğrulayabilirsiniz. Bu yöntemleri kullanarak, Google ve GitHub'ın ilgili şartlarını ve gizlilik politikalarını kabul edersiniz. Bu sağlayıcılar e-posta adresiniz, adınız ve cihaz verileriniz gibi temel bilgiler toplayabilir.",
         responsibilitiesTitle: '4. Kullanıcı Sorumlulukları',
         responsibilitiesText: 'Şunları kabul edersiniz:',
-        responsibilitiesAccurate:
-            'Doğru ve eksiksiz kayıt bilgileri sağlamak',
+        responsibilitiesAccurate: 'Doğru ve eksiksiz kayıt bilgileri sağlamak',
         responsibilitiesSecurity:
             'Hesap kimlik bilgilerinizin güvenliğini sağlamak',
         responsibilitiesCompliance:
@@ -1971,17 +2013,17 @@ const tr: Translations = {
         prohibitedText: 'Hizmetimizi şunlar için kullanamazsınız:',
         prohibitedMalware:
             'Kötü amaçlı yazılım, virüs veya zararlı yazılım dağıtmak',
-        prohibitedDos: 'Hizmet reddi saldırıları veya ağ kötüye kullanımı yapmak',
+        prohibitedDos:
+            'Hizmet reddi saldırıları veya ağ kötüye kullanımı yapmak',
         prohibitedSpam: 'Spam veya istenmeyen iletişimler göndermek',
         prohibitedIllegal: 'Yasadışı içerik barındırmak veya dağıtmak',
-        prohibitedIp:
-            'Fikri mülkiyet dahil üçüncü taraf haklarını ihlal etmek',
+        prohibitedIp: 'Fikri mülkiyet dahil üçüncü taraf haklarını ihlal etmek',
         prohibitedMining: 'Kripto para madenciliği yapmak',
         prohibitedOther:
             'Takdirimize bağlı olarak uygunsuz olarak belirleyebileceğimiz diğer yasadışı veya zararlı faaliyetler',
         paymentTitle: '6. Ödeme ve Faturalama',
         paymentText:
-            'Hizmetler sabit aylık veya yıllık bazda faturalandırılır. İstediğiniz zaman aylık ve yıllık faturalama arasında geçiş yapabilirsiniz, değişiklik bir sonraki faturalama döneminin başında yürürlüğe girer. Tüm ödemeler iade edilemez. Bir sunucu için ödeme yaptığınızda, tam faturalama dönemi boyunca erişiminiz vardır. İptal ederseniz, iptal mevcut faturalama döneminin sonunda yürürlüğe girer. Fiyatlar değişebilir, ancak herhangi bir değişiklik yalnızca yeni dağıtılan claw\'lar için geçerli olacak ve zaten dağıtılmış olanları etkilemeyecektir. Ödeme yapılmaması hesabınızın askıya alınması veya sonlandırılmasıyla sonuçlanabilir.',
+            "Hizmetler sabit aylık veya yıllık bazda faturalandırılır. İstediğiniz zaman aylık ve yıllık faturalama arasında geçiş yapabilirsiniz, değişiklik bir sonraki faturalama döneminin başında yürürlüğe girer. Tüm ödemeler iade edilemez. Bir sunucu için ödeme yaptığınızda, tam faturalama dönemi boyunca erişiminiz vardır. İptal ederseniz, iptal mevcut faturalama döneminin sonunda yürürlüğe girer. Fiyatlar değişebilir, ancak herhangi bir değişiklik yalnızca yeni dağıtılan claw'lar için geçerli olacak ve zaten dağıtılmış olanları etkilemeyecektir. Ödeme yapılmaması hesabınızın askıya alınması veya sonlandırılmasıyla sonuçlanabilir.",
         availabilityTitle: '7. Hizmet Kullanılabilirliği',
         availabilityText:
             'Yüksek kullanılabilirlik sağlamaya çalışıyoruz ancak Hizmete kesintisiz erişimi garanti etmiyoruz. Hizmetin herhangi bir bölümünü, bildirimli veya bildirimsiz, istediğimiz zaman değiştirme, askıya alma veya sonlandırma hakkımızı saklı tutuyoruz.',
@@ -2003,14 +2045,14 @@ const tr: Translations = {
         settings: 'Ayarlar',
         comingSoon: 'Yakında',
         messagesPlaceholder: 'Mesajlar ve bildirimler burada görünecek.',
-        settingsPlaceholder:
-            'Hesap ayarları ve tercihleri burada görünecek.',
+        settingsPlaceholder: 'Hesap ayarları ve tercihleri burada görünecek.',
         signIn: 'Giriş Yap',
         signInDescription: 'OpenClaw örneklerinizi yönetmek için giriş yapın.',
         enterEmail: 'E-posta Adresi',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'E-posta ile Devam Et',
-        otpDescription: 'Giriş yapmanız için size bir kod göndereceğiz. Şifre gerekmez.',
+        otpDescription:
+            'Giriş yapmanız için size bir kod göndereceğiz. Şifre gerekmez.',
         sending: 'Gönderiliyor...',
         checkYourEmail: 'E-postanızı kontrol edin',
         codeSentTo: '6 haneli bir kod gönderdik:',
@@ -2024,9 +2066,9 @@ const tr: Translations = {
         signOut: 'Çıkış Yap',
         signedInAs: 'Giriş yapılan hesap:',
         loadMore: 'Daha Fazla Yükle',
-        chatWithYourClaw: 'Claw\'ınızla sohbet edin',
+        chatWithYourClaw: "Claw'ınızla sohbet edin",
         deployClaw: 'Claw Dağıt',
-        deployYourFirstClaw: 'İlk Claw\'ınızı dağıtın',
+        deployYourFirstClaw: "İlk Claw'ınızı dağıtın",
         voiceMode: 'Ses Modu',
         voiceListening: 'Dinleniyor...',
         voiceTapToSpeak: 'Başlamak için küreye dokunun'
@@ -2034,7 +2076,7 @@ const tr: Translations = {
     announcement: {
         title: 'Hizmet Bildirimi',
         message:
-            'Yoğun talep nedeniyle {{providers}} dağıtımları geçici olarak kullanılamıyor. Mevcut claw\'lar normal çalışıyor.'
+            "Yoğun talep nedeniyle {{providers}} dağıtımları geçici olarak kullanılamıyor. Mevcut claw'lar normal çalışıyor."
     },
     productHunt: {
         liveOn: 'Yayında',
@@ -2047,7 +2089,7 @@ const tr: Translations = {
     compare: {
         title: 'Tam Karşılaştırma',
         description:
-            'ClawHost\'un diğer OpenClaw barındırma platformlarıyla nasıl karşılaştırıldığını görün.',
+            "ClawHost'un diğer OpenClaw barındırma platformlarıyla nasıl karşılaştırıldığını görün.",
         badge: 'Karşılaştırma',
         feature: 'Platform',
         compareWith: 'Şununla karşılaştır:',
@@ -2105,7 +2147,7 @@ const tr: Translations = {
         sharedContainers: 'Paylaşımlı konteynerler',
         isolatedContainers: 'İzole konteynerler',
         cloudWorkspaces: 'Bulut çalışma alanları',
-        threeProviders: 'Hetzner, DigitalOcean, Vultr',
+        threeProviders: 'Hetzner Cloud',
         singleProvider: 'Tek sağlayıcı',
         fullyDedicated: 'Tamamen özel',
         shared: 'Paylaşımlı',
@@ -2115,7 +2157,7 @@ const tr: Translations = {
         thirtyPlusLocations: '30+ konum',
         limitedLocations: 'Sınırlı',
         fourLocations: '4 konum',
-        fromTwentyFiveMonth: '$25/ay\'dan',
+        fromTwentyFiveMonth: "$25/ay'dan",
         aboutFortyFourMonth: '~$44/ay ort.',
         fromNineteenMonth: '$19–79/ay',
         nineteenMonth: '$19/ay',
@@ -2174,7 +2216,7 @@ const tr: Translations = {
         github: 'GitHub',
         ctaTitle: 'Farkı görmeye hazır mısınız?',
         ctaDescription:
-            'OpenClaw\'u kendi özel sunucunuza dağıtın. Tam sahiplik, şeffaf fiyatlandırma ve dakikalar içinde hazır.'
+            "OpenClaw'u kendi özel sunucunuza dağıtın. Tam sahiplik, şeffaf fiyatlandırma ve dakikalar içinde hazır."
     }
 } as const
 

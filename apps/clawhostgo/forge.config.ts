@@ -6,7 +6,13 @@ import { MakerZIP } from '@electron-forge/maker-zip'
 import { MakerDeb } from '@electron-forge/maker-deb'
 import { VitePlugin } from '@electron-forge/plugin-vite'
 
-const copyNodePty = (buildPath: string, _electronVersion: string, _platform: string, _arch: string, callback: (err?: Error) => void) => {
+const copyNodePty = (
+    buildPath: string,
+    _electronVersion: string,
+    _platform: string,
+    _arch: string,
+    callback: (err?: Error) => void
+) => {
     const rootNodeModules = path.resolve(__dirname, '../../node_modules')
     const src = path.join(rootNodeModules, 'node-pty')
     const dest = path.join(buildPath, 'node_modules', 'node-pty')
@@ -30,10 +36,7 @@ const config: ForgeConfig = {
         extraResource: ['./resources/node'],
         afterCopy: [copyNodePty]
     },
-    makers: [
-        new MakerZIP({}, ['darwin', 'win32']),
-        new MakerDeb({})
-    ],
+    makers: [new MakerZIP({}, ['darwin', 'win32']), new MakerDeb({})],
     plugins: [
         new VitePlugin({
             build: [

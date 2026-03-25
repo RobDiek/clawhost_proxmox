@@ -30,9 +30,15 @@ export default defineConfig({
             ),
             '@/': path.resolve(__dirname, '../web/src') + '/',
             '@electron/': path.resolve(__dirname, './src/renderer') + '/',
-            'react': path.resolve(__dirname, '../../node_modules/react'),
-            'react-dom': path.resolve(__dirname, '../../node_modules/react-dom'),
-            '@tanstack/react-query': path.resolve(__dirname, '../../node_modules/@tanstack/react-query')
+            react: path.resolve(__dirname, '../../node_modules/react'),
+            'react-dom': path.resolve(
+                __dirname,
+                '../../node_modules/react-dom'
+            ),
+            '@tanstack/react-query': path.resolve(
+                __dirname,
+                '../../node_modules/@tanstack/react-query'
+            )
         }
     }
 })

@@ -1,18 +1,11 @@
 import type { FC, ReactNode } from 'react'
-import type { PricingSectionProps, ProviderOption } from '@/ts/Interfaces'
+import type { PricingSectionProps } from '@/ts/Interfaces'
 
 import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { clawProvider } from '@openclaw/shared'
-import {
-    Button,
-    Badge,
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent,
-    TooltipProvider
-} from '@/components/ui'
+import { Button, Badge } from '@/components/ui'
 import { ProviderIcon, PlansSkeleton } from '@/components'
 import { useAuth } from '@/lib/auth'
 import { ROUTES } from '@/lib'
@@ -21,10 +14,7 @@ import { CheckIcon } from '@phosphor-icons/react'
 const PricingSection: FC<PricingSectionProps> = ({
     plans,
     plansLoading,
-    allDoneLoading,
-    pricingProvider,
-    onProviderChange,
-    isProviderUnavailable
+    allDoneLoading
 }): ReactNode => {
     const { user } = useAuth()
 
@@ -49,62 +39,15 @@ const PricingSection: FC<PricingSectionProps> = ({
                     </p>
 
                     <div className='mt-8 flex justify-center'>
-                        <TooltipProvider delayDuration={200}>
-                            <div className='border-border bg-foreground/5 flex rounded-lg border p-1'>
-                                {(
-                                    [
-                                        {
-                                            key: clawProvider.hetzner,
-                                            label: t('createClaw.providerHetzner')
-                                        },
-                                        {
-                                            key: clawProvider.digitalocean,
-                                            label: t('createClaw.providerDigitalOcean')
-                                        },
-                                        {
-                                            key: clawProvider.vultr,
-                                            label: t('createClaw.providerVultr')
-                                        }
-                                    ] as ProviderOption[]
-                                ).map((p) => {
-                                    const unavailable = isProviderUnavailable(p.key)
-                                    const btn = (
-                                        <button
-                                            disabled={unavailable}
-                                            onClick={() => onProviderChange(p.key)}
-                                            className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition ${
-                                                unavailable
-                                                    ? 'cursor-not-allowed opacity-50'
-                                                    : pricingProvider === p.key
-                                                      ? 'bg-foreground/10 text-foreground shadow-sm'
-                                                      : 'text-muted-foreground hover:text-foreground'
-                                            }`}
-                                        >
-                                            <ProviderIcon
-                                                provider={p.key}
-                                                className='h-4 w-4'
-                                            />
-                                            {p.label}
-                                        </button>
-                                    )
-
-                                    if (unavailable) {
-                                        return (
-                                            <Tooltip key={p.key}>
-                                                <TooltipTrigger asChild>
-                                                    <div>{btn}</div>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    {t('createClaw.providerUnavailable')}
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        )
-                                    }
-
-                                    return <div key={p.key}>{btn}</div>
-                                })}
-                            </div>
-                        </TooltipProvider>
+                        <div className='border-border bg-foreground/5 flex items-center gap-2 rounded-lg border px-4 py-2'>
+                            <ProviderIcon
+                                provider={clawProvider.hetzner}
+                                className='h-4 w-4'
+                            />
+                            <span className='text-foreground text-sm font-medium'>
+                                {t('createClaw.providerHetzner')}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -136,29 +79,26 @@ const PricingSection: FC<PricingSectionProps> = ({
                                 </thead>
                                 <tbody>
                                     {plans.map((plan, index) => {
-                                        const totalMonthly = Math.round(plan.priceMonthly)
-                                        const totalYearly = Math.round(plan.priceYearly)
-                                        const recommendedPlans: Record<string, string> = {
-                                            hetzner: 'cax41',
-                                            digitalocean: 's-4vcpu-8gb',
-                                            vultr: 'vhp-4c-8gb-amd'
-                                        }
-                                        const isRecommended = plan.id === recommendedPlans[pricingProvider]
-                                        const tierStarts: Record<string, Record<string, string>> = {
-                                            hetzner: {
-                                                cx23: t('landing.tierShared'),
-                                                cax11: t('landing.tierArm'),
-                                                ccx13: t('landing.tierDedicated')
-                                            },
-                                            vultr: {
-                                                'vc2-2c-4gb': t('landing.tierRegular'),
-                                                'vhp-2c-4gb-amd': t('landing.tierHighPerformance'),
-                                                'vhf-3c-8gb': t('landing.tierHighFrequency')
-                                            }
+                                        const totalMonthly = Math.round(
+                                            plan.priceMonthly
+                                        )
+                                        const totalYearly = Math.round(
+                                            plan.priceYearly
+                                        )
+                                        const isRecommended =
+                                            plan.id === 'cax41'
+                                        const tierStarts: Record<
+                                            string,
+                                            string
+                                        > = {
+                                            cx23: t('landing.tierShared'),
+                                            cax11: t('landing.tierArm'),
+                                            ccx13: t('landing.tierDedicated')
                                         }
 
-                                        const providerTiers = tierStarts[pricingProvider]
-                                        const tierLabel = providerTiers?.[plan.id]
+                                        const providerTiers = tierStarts
+                                        const tierLabel =
+                                            providerTiers?.[plan.id]
                                         const showTier = tierLabel && index > 0
 
                                         return (
@@ -192,7 +132,9 @@ const PricingSection: FC<PricingSectionProps> = ({
                                                             </span>
                                                             {isRecommended && (
                                                                 <Badge className='border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-xs text-white'>
-                                                                    {t('landing.recommended')}
+                                                                    {t(
+                                                                        'landing.recommended'
+                                                                    )}
                                                                 </Badge>
                                                             )}
                                                         </div>
@@ -212,10 +154,20 @@ const PricingSection: FC<PricingSectionProps> = ({
                                                                 ${totalMonthly}
                                                             </span>
                                                             <span className='text-muted-foreground text-sm'>
-                                                                {t('landing.perMonth')}
+                                                                {t(
+                                                                    'landing.perMonth'
+                                                                )}
                                                             </span>
                                                             <span className='text-muted-foreground/40 text-xs'>
-                                                                (${Math.round(totalYearly / 12)}{t('landing.perYear')})
+                                                                ($
+                                                                {Math.round(
+                                                                    totalYearly /
+                                                                        12
+                                                                )}
+                                                                {t(
+                                                                    'landing.perYear'
+                                                                )}
+                                                                )
                                                             </span>
                                                         </div>
                                                     </td>
@@ -232,18 +184,32 @@ const PricingSection: FC<PricingSectionProps> = ({
                                                             <Link
                                                                 to={
                                                                     user
-                                                                        ? `${ROUTES.CLAWS}?plan=${plan.id}&provider=${pricingProvider}`
-                                                                        : `${ROUTES.LOGIN}?plan=${plan.id}&provider=${pricingProvider}`
+                                                                        ? `${ROUTES.CLAWS}?plan=${plan.id}&provider=${clawProvider.hetzner}`
+                                                                        : `${ROUTES.LOGIN}?plan=${plan.id}&provider=${clawProvider.hetzner}`
                                                                 }
                                                                 aria-label={
                                                                     user
-                                                                        ? t('landing.deployPlanLabel', { plan: plan.name })
-                                                                        : t('landing.selectPlanLabel', { plan: plan.name })
+                                                                        ? t(
+                                                                              'landing.deployPlanLabel',
+                                                                              {
+                                                                                  plan: plan.name
+                                                                              }
+                                                                          )
+                                                                        : t(
+                                                                              'landing.selectPlanLabel',
+                                                                              {
+                                                                                  plan: plan.name
+                                                                              }
+                                                                          )
                                                                 }
                                                             >
                                                                 {user
-                                                                    ? t('landing.deploy')
-                                                                    : t('landing.select')}
+                                                                    ? t(
+                                                                          'landing.deploy'
+                                                                      )
+                                                                    : t(
+                                                                          'landing.select'
+                                                                      )}
                                                             </Link>
                                                         </Button>
                                                     </td>
@@ -259,11 +225,15 @@ const PricingSection: FC<PricingSectionProps> = ({
                             <div className='text-muted-foreground flex flex-wrap items-center justify-center gap-6 text-sm'>
                                 <div className='flex items-center gap-2'>
                                     <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
-                                    <span>{t('landing.openClawPreinstalled')}</span>
+                                    <span>
+                                        {t('landing.openClawPreinstalled')}
+                                    </span>
                                 </div>
                                 <div className='flex items-center gap-2'>
                                     <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
-                                    <span>{t('landing.unlimitedBandwidth')}</span>
+                                    <span>
+                                        {t('landing.unlimitedBandwidth')}
+                                    </span>
                                 </div>
                                 <div className='flex items-center gap-2'>
                                     <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
@@ -275,7 +245,9 @@ const PricingSection: FC<PricingSectionProps> = ({
                                 </div>
                                 <div className='flex items-center gap-2'>
                                     <CheckIcon className='h-4 w-4 text-green-600 dark:text-green-400' />
-                                    <span>{t('landing.highQualityInternet')}</span>
+                                    <span>
+                                        {t('landing.highQualityInternet')}
+                                    </span>
                                 </div>
                             </div>
                         </div>

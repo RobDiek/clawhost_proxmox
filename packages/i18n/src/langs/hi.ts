@@ -95,25 +95,34 @@ const hi: Translations = {
         heroTitle2: 'स्थानीय रूप से. तुरंत.',
         badge: 'जल्द आ रहा है',
         comingSoon: 'जल्द आ रहा है',
-        description: 'अपने OpenClaw इंस्टेंस प्रबंधित करने के लिए एक हल्का डेस्कटॉप क्लाइंट. अपनी मशीन से ही डिप्लॉय, मॉनिटर और नियंत्रित करें.',
+        description:
+            'अपने OpenClaw इंस्टेंस प्रबंधित करने के लिए एक हल्का डेस्कटॉप क्लाइंट. अपनी मशीन से ही डिप्लॉय, मॉनिटर और नियंत्रित करें.',
         download: '{{os}} के लिए डाउनलोड करें',
         downloadWindows: 'Windows',
         downloadMac: 'macOS',
         selfHostInstead: 'स्वयं होस्ट करें',
         features: 'विशेषताएँ',
         whyClawHostGo: 'ऑल-इन-वन विशेषताएँ',
-        featuresDescription: 'हम क्यों आज़माने लायक हैं, विशेषताएँ झूठ नहीं बोलतीं.',
-        zeroConfigDescription: 'इंस्टॉल करें और चलाएँ. कोई सर्वर सेटअप नहीं, कोई क्लाउड कॉन्फ़िगरेशन नहीं. OpenClaw सेकंडों में तैयार.',
-        ownedDataDescription: 'सब कुछ आपके डिवाइस पर चलता है. कोई क्लाउड सर्वर नहीं, कोई तृतीय पक्ष नहीं, कोई डेटा आपकी मशीन से बाहर नहीं जाता.',
-        terminalAccessDescription: 'अपने OpenClaw इंस्टेंस टर्मिनल को सीधे ऐप से एक्सेस करें. किसी बाहरी SSH क्लाइंट की ज़रूरत नहीं.',
+        featuresDescription:
+            'हम क्यों आज़माने लायक हैं, विशेषताएँ झूठ नहीं बोलतीं.',
+        zeroConfigDescription:
+            'इंस्टॉल करें और चलाएँ. कोई सर्वर सेटअप नहीं, कोई क्लाउड कॉन्फ़िगरेशन नहीं. OpenClaw सेकंडों में तैयार.',
+        ownedDataDescription:
+            'सब कुछ आपके डिवाइस पर चलता है. कोई क्लाउड सर्वर नहीं, कोई तृतीय पक्ष नहीं, कोई डेटा आपकी मशीन से बाहर नहीं जाता.',
+        terminalAccessDescription:
+            'अपने OpenClaw इंस्टेंस टर्मिनल को सीधे ऐप से एक्सेस करें. किसी बाहरी SSH क्लाइंट की ज़रूरत नहीं.',
         simplePricing: 'सरल मूल्य निर्धारण',
-        simplePricingDescription: 'एक लाइसेंस, असीमित सब कुछ. कोई मासिक बिल नहीं, कोई उपयोग सीमा नहीं, कोई छिपी फ़ीस नहीं.',
+        simplePricingDescription:
+            'एक लाइसेंस, असीमित सब कुछ. कोई मासिक बिल नहीं, कोई उपयोग सीमा नहीं, कोई छिपी फ़ीस नहीं.',
         localDomain: 'कस्टम लोकल डोमेन',
-        localDomainDescription: 'कस्टम ब्रांडेड लोकल डोमेन के ज़रिए अपने OpenClaw तक पहुँचें. आपके अपने नेटवर्क पर साफ़ URL.',
-        secureDescription: 'आपका डेटा कभी आपके डिवाइस से बाहर नहीं जाता. पूरी तरह अलग, पूरी तरह एन्क्रिप्टेड, पूरी तरह आपका.',
+        localDomainDescription:
+            'कस्टम ब्रांडेड लोकल डोमेन के ज़रिए अपने OpenClaw तक पहुँचें. आपके अपने नेटवर्क पर साफ़ URL.',
+        secureDescription:
+            'आपका डेटा कभी आपके डिवाइस से बाहर नहीं जाता. पूरी तरह अलग, पूरी तरह एन्क्रिप्टेड, पूरी तरह आपका.',
         pricing: 'मूल्य निर्धारण',
         pricingTitle: 'सरल, एक बार का मूल्य',
-        pricingDescription: 'कोई सब्सक्रिप्शन नहीं, कोई छिपी फ़ीस नहीं. एक लाइसेंस, असीमित उपयोग.',
+        pricingDescription:
+            'कोई सब्सक्रिप्शन नहीं, कोई छिपी फ़ीस नहीं. एक लाइसेंस, असीमित उपयोग.',
         pricingPrice: '${{price}}',
         pricingLabel: 'एक बार का भुगतान',
         pricingFeature1: 'आजीवन लाइसेंस',
@@ -125,7 +134,8 @@ const hi: Translations = {
         pricingCta: 'ClawHost Go प्राप्त करें',
         comparison: 'तुलना',
         comparisonTitle: 'Go बनाम Cloud',
-        comparisonDescription: 'जो आपके लिए सही हो वह चुनें. Go स्थानीय रूप से चलता है, Cloud समर्पित सर्वर पर.',
+        comparisonDescription:
+            'जो आपके लिए सही हो वह चुनें. Go स्थानीय रूप से चलता है, Cloud समर्पित सर्वर पर.',
         comparisonLocalUs: 'पूरी तरह आपके डिवाइस पर चलता है',
         comparisonLocalOthers: 'रिमोट सर्वर पर चलता है',
         comparisonPricingUs: 'एक बार का भुगतान',
@@ -140,19 +150,26 @@ const hi: Translations = {
         comparisonAgentsOthers: 'एकाधिक एजेंट',
         faqTitle: 'प्रश्न',
         faqHeading: 'सामान्य प्रश्न',
-        faqDescription: 'ClawHost Go के बारे में वह सब कुछ जो आपको जानना चाहिए.',
+        faqDescription:
+            'ClawHost Go के बारे में वह सब कुछ जो आपको जानना चाहिए.',
         faq1Question: 'ClawHost Go क्या है?',
-        faq1Answer: 'ClawHost Go एक हल्का डेस्कटॉप एप्लिकेशन है जो आपको अपनी मशीन पर स्थानीय रूप से OpenClaw चलाने देता है. कोई क्लाउड सर्वर नहीं चाहिए — इंस्टॉल करें, लॉन्च करें और सेकंडों में OpenClaw का उपयोग शुरू करें.',
+        faq1Answer:
+            'ClawHost Go एक हल्का डेस्कटॉप एप्लिकेशन है जो आपको अपनी मशीन पर स्थानीय रूप से OpenClaw चलाने देता है. कोई क्लाउड सर्वर नहीं चाहिए — इंस्टॉल करें, लॉन्च करें और सेकंडों में OpenClaw का उपयोग शुरू करें.',
         faq2Question: 'Go, ClawHost Cloud से कैसे अलग है?',
-        faq2Answer: 'ClawHost Cloud, OpenClaw को 24/7 अपटाइम और वैश्विक पहुँच के साथ समर्पित रिमोट सर्वर पर डिप्लॉय करता है. ClawHost Go सब कुछ आपके डिवाइस पर स्थानीय रूप से चलाता है — गोपनीयता, ऑफ़लाइन उपयोग और सरल सेटअप के लिए बढ़िया.',
+        faq2Answer:
+            'ClawHost Cloud, OpenClaw को 24/7 अपटाइम और वैश्विक पहुँच के साथ समर्पित रिमोट सर्वर पर डिप्लॉय करता है. ClawHost Go सब कुछ आपके डिवाइस पर स्थानीय रूप से चलाता है — गोपनीयता, ऑफ़लाइन उपयोग और सरल सेटअप के लिए बढ़िया.',
         faq3Question: 'क्या मुझे इंटरनेट कनेक्शन चाहिए?',
-        faq3Answer: 'ClawHost Go स्थानीय उपयोग के लिए ऑफ़लाइन काम करता है. इंटरनेट कनेक्शन केवल प्रारंभिक सेटअप, अपडेट और बाहरी API कॉल वाली सुविधाओं के लिए आवश्यक है.',
+        faq3Answer:
+            'ClawHost Go स्थानीय उपयोग के लिए ऑफ़लाइन काम करता है. इंटरनेट कनेक्शन केवल प्रारंभिक सेटअप, अपडेट और बाहरी API कॉल वाली सुविधाओं के लिए आवश्यक है.',
         faq4Question: 'क्या लाइसेंस एक बार का भुगतान है?',
-        faq4Answer: 'हाँ. आप एक बार भुगतान करते हैं और सभी भविष्य के अपडेट सहित ClawHost Go तक आजीवन पहुँच प्राप्त करते हैं. कोई सब्सक्रिप्शन नहीं, कोई आवर्ती शुल्क नहीं.',
+        faq4Answer:
+            'हाँ. आप एक बार भुगतान करते हैं और सभी भविष्य के अपडेट सहित ClawHost Go तक आजीवन पहुँच प्राप्त करते हैं. कोई सब्सक्रिप्शन नहीं, कोई आवर्ती शुल्क नहीं.',
         faq5Question: 'कौन से ऑपरेटिंग सिस्टम समर्थित हैं?',
-        faq5Answer: 'ClawHost Go, Windows और macOS को सपोर्ट करता है. दोनों प्लेटफ़ॉर्म पर समान सुविधाएँ मिलती हैं और एक साथ अपडेट आते हैं.',
+        faq5Answer:
+            'ClawHost Go, Windows और macOS को सपोर्ट करता है. दोनों प्लेटफ़ॉर्म पर समान सुविधाएँ मिलती हैं और एक साथ अपडेट आते हैं.',
         faq6Question: 'क्या मैं बाद में Go से Cloud पर स्विच कर सकता हूँ?',
-        faq6Answer: 'बिल्कुल. आप Go से अपना OpenClaw कॉन्फ़िगरेशन निर्यात कर सकते हैं और इसे कभी भी ClawHost Cloud पर डिप्लॉय कर सकते हैं. दोनों प्लेटफ़ॉर्म पूरी तरह संगत हैं.',
+        faq6Answer:
+            'बिल्कुल. आप Go से अपना OpenClaw कॉन्फ़िगरेशन निर्यात कर सकते हैं और इसे कभी भी ClawHost Cloud पर डिप्लॉय कर सकते हैं. दोनों प्लेटफ़ॉर्म पूरी तरह संगत हैं.',
         statsPrice: '${{price}}',
         statsLifetime: 'आजीवन',
         statsOneTime: 'एक बार',
@@ -162,7 +179,8 @@ const hi: Translations = {
         statsZero: 'शून्य',
         statsZeroConfig: 'शून्य कॉन्फ़िग',
         ctaTitle: 'OpenClaw स्थानीय रूप से चलाएँ',
-        ctaDescription: 'एक बार का भुगतान, आजीवन लाइसेंस. अपनी मशीन पर OpenClaw डिप्लॉय करें — कोई क्लाउड नहीं, कोई सब्सक्रिप्शन नहीं, कोई सीमा नहीं. आपका डेटा, आपके नियम.',
+        ctaDescription:
+            'एक बार का भुगतान, आजीवन लाइसेंस. अपनी मशीन पर OpenClaw डिप्लॉय करें — कोई क्लाउड नहीं, कोई सब्सक्रिप्शन नहीं, कोई सीमा नहीं. आपका डेटा, आपके नियम.',
         ctaButton: 'ClawHost Go प्राप्त करें',
         joinWaitlist: 'प्रतीक्षा सूची में शामिल हों',
         joinedWaitlist: 'प्रतीक्षा सूची में शामिल हो गए',
@@ -174,14 +192,18 @@ const hi: Translations = {
         updateDownload: 'डाउनलोड',
         updateDismiss: 'बाद में',
         clawNotFound: 'क्लॉ नहीं मिला!',
-        invalidClawName: 'अमान्य क्लॉ नाम. केवल अक्षर, संख्याएँ और हाइफ़न का उपयोग करें!',
+        invalidClawName:
+            'अमान्य क्लॉ नाम. केवल अक्षर, संख्याएँ और हाइफ़न का उपयोग करें!',
         clawNameAlreadyExists: 'इस नाम का एक क्लॉ पहले से मौजूद है!',
-        invalidSubdomain: 'अमान्य सबडोमेन. 3-20 छोटे अक्षर और संख्याएँ उपयोग करें!',
+        invalidSubdomain:
+            'अमान्य सबडोमेन. 3-20 छोटे अक्षर और संख्याएँ उपयोग करें!',
         subdomainAlreadyInUse: 'यह सबडोमेन पहले से उपयोग में है!',
         clawDirectoryNotFound: 'क्लॉ डायरेक्टरी नहीं मिली!',
-        noVersionInstalled: 'कोई OpenClaw संस्करण इंस्टॉल नहीं है. Versions टैब पर जाएँ और पहले एक इंस्टॉल करें!',
+        noVersionInstalled:
+            'कोई OpenClaw संस्करण इंस्टॉल नहीं है. Versions टैब पर जाएँ और पहले एक इंस्टॉल करें!',
         failedToStartClaw: 'क्लॉ शुरू करने में विफल!',
-        noVersionAssigned: 'इस क्लॉ को कोई OpenClaw संस्करण असाइन नहीं किया गया है!',
+        noVersionAssigned:
+            'इस क्लॉ को कोई OpenClaw संस्करण असाइन नहीं किया गया है!',
         invalidAgentName: 'अमान्य एजेंट नाम!',
         agentNameAlreadyExists: 'इस नाम का एक एजेंट पहले से मौजूद है!',
         invalidPath: 'अमान्य पथ!',
@@ -191,11 +213,14 @@ const hi: Translations = {
         versionNotInstalled: 'OpenClaw संस्करण {{version}} इंस्टॉल नहीं है!',
         failedToStartProcess: 'प्रक्रिया शुरू करने में विफल: {{reason}}!',
         processExitedImmediately: 'प्रक्रिया तुरंत बंद हो गई. लॉग:\n{{logs}}',
-        processExitedImmediatelyNoLogs: 'शुरू होने के तुरंत बाद प्रक्रिया बंद हो गई!',
-        processExitedWithCode: 'प्रक्रिया कोड {{code}} के साथ बंद हुई. लॉग:\n{{logs}}',
+        processExitedImmediatelyNoLogs:
+            'शुरू होने के तुरंत बाद प्रक्रिया बंद हो गई!',
+        processExitedWithCode:
+            'प्रक्रिया कोड {{code}} के साथ बंद हुई. लॉग:\n{{logs}}',
         processExitedWithCodeNoLogs: 'प्रक्रिया कोड {{code}} के साथ बंद हुई!',
         processExitedUnexpectedly: 'प्रक्रिया अप्रत्याशित रूप से बंद हो गई!',
-        failedToInstallVersion: 'OpenClaw {{version}} इंस्टॉल करने में विफल: {{reason}}!',
+        failedToInstallVersion:
+            'OpenClaw {{version}} इंस्टॉल करने में विफल: {{reason}}!',
         oauthCancelled: 'प्रमाणीकरण रद्द कर दिया गया!',
         diskFull: 'डिवाइस पर कोई जगह नहीं बची!',
         permissionDenied: 'अनुमति अस्वीकृत!',
@@ -250,13 +275,15 @@ const hi: Translations = {
         failedToUpdateProfile: 'प्रोफ़ाइल अपडेट करने में विफल!',
         failedToAddSSHKey: 'SSH कुंजी जोड़ने में विफल!',
         failedToCreateClaw: 'क्लॉ बनाने में विफल!',
-        failedToLoadLocations: 'स्थान लोड करने में विफल. कृपया पुनः प्रयास करें!',
+        failedToLoadLocations:
+            'स्थान लोड करने में विफल. कृपया पुनः प्रयास करें!',
         failedToLoadPlans: 'प्लान लोड करने में विफल. कृपया पुनः प्रयास करें!',
         invalidPlan: 'अमान्य प्लान चयनित!',
         invalidLocation: 'कृपया एक स्थान चुनें!',
         failedToGenerateKeyPair:
             'कुंजी जोड़ी बनाने में विफल. कृपया स्थानीय रूप से कुंजियाँ बनाएँ!',
-        unableToLoadPricing: 'मूल्य निर्धारण लोड करने में असमर्थ. कृपया बाद में पुनः प्रयास करें!',
+        unableToLoadPricing:
+            'मूल्य निर्धारण लोड करने में असमर्थ. कृपया बाद में पुनः प्रयास करें!',
         noPasswordAvailable: 'इस क्लॉ के लिए कोई पासवर्ड उपलब्ध नहीं!',
         clawLimitReached:
             'आप {{max}} क्लॉज़ की सीमा तक पहुँच गए हैं. कृपया इस सीमा को बढ़ाने के लिए सहायता से संपर्क करें!',
@@ -280,7 +307,8 @@ const hi: Translations = {
             'वॉल्यूम का आकार {{min}} और {{max}} GB के बीच होना चाहिए!',
         paymentNotConfigured: 'इस प्लान के लिए भुगतान कॉन्फ़िगर नहीं है!',
         invalidSshKeyFormat: 'अमान्य SSH सार्वजनिक कुंजी प्रारूप!',
-        sshKeyInUse: 'यह SSH कुंजी वर्तमान में एक या अधिक क्लॉज़ द्वारा उपयोग में है!',
+        sshKeyInUse:
+            'यह SSH कुंजी वर्तमान में एक या अधिक क्लॉज़ द्वारा उपयोग में है!',
         inputTooLong: 'इनपुट अधिकतम अनुमत लंबाई से अधिक है!',
         invalidEnvVars: 'अमान्य एनवायरनमेंट वेरिएबल नाम या मान!',
         invalidEmailFormat: 'अमान्य ईमेल प्रारूप!',
@@ -363,7 +391,8 @@ const hi: Translations = {
         fileNotEditable: 'इस फ़ाइल प्रकार को संपादित नहीं किया जा सकता!',
         invalidJsonConfig: 'अमान्य JSON!',
         fileSaveSuccess: 'फ़ाइल सहेजी गई.',
-        rateLimitExceeded: 'कृपया एक और कोड अनुरोध करने से पहले प्रतीक्षा करें!',
+        rateLimitExceeded:
+            'कृपया एक और कोड अनुरोध करने से पहले प्रतीक्षा करें!',
         otpExpiredOrNotFound:
             'कोड समाप्त हो गया या नहीं मिला. कृपया नया अनुरोध करें!',
         otpMaxAttemptsReached:
@@ -406,7 +435,8 @@ const hi: Translations = {
         volumePricingFetched: 'वॉल्यूम मूल्य सफलतापूर्वक प्राप्त हुआ.',
         planAvailabilityFetched: 'प्लान उपलब्धता सफलतापूर्वक प्राप्त हुई.',
         agentsFetched: 'एजेंट सफलतापूर्वक प्राप्त हुए.',
-        agentsFetchFailed: 'एजेंट प्राप्त करने के लिए इंस्टेंस तक नहीं पहुँच सके!',
+        agentsFetchFailed:
+            'एजेंट प्राप्त करने के लिए इंस्टेंस तक नहीं पहुँच सके!',
         agentConfigFetched: 'एजेंट कॉन्फ़िगरेशन सफलतापूर्वक प्राप्त हुआ.',
         agentConfigUpdated: 'एजेंट कॉन्फ़िगरेशन सफलतापूर्वक अपडेट हुआ.',
         agentConfigUpdateFailed: 'एजेंट कॉन्फ़िगरेशन अपडेट नहीं हो सका!',
@@ -437,7 +467,8 @@ const hi: Translations = {
         whatsappPairStarted: 'WhatsApp पेयरिंग शुरू हुई.',
         whatsappPairFailed: 'WhatsApp पेयरिंग विफल!',
         whatsappAlreadyPaired: 'WhatsApp पहले से पेयर है!',
-        whatsappVersionUnsupported: 'यह संस्करण डैशबोर्ड से चैनल कॉन्फ़िगरेशन का समर्थन नहीं करता। मैन्युअल रूप से कॉन्फ़िगर करने के लिए टर्मिनल टैब का उपयोग करें या OpenClaw अपग्रेड करें।',
+        whatsappVersionUnsupported:
+            'यह संस्करण डैशबोर्ड से चैनल कॉन्फ़िगरेशन का समर्थन नहीं करता। मैन्युअल रूप से कॉन्फ़िगर करने के लिए टर्मिनल टैब का उपयोग करें या OpenClaw अपग्रेड करें।',
         bindingsFetched: 'बाइंडिंग सफलतापूर्वक प्राप्त हुईं.',
         bindingsFetchFailed: 'बाइंडिंग प्राप्त नहीं हो सकीं!',
         bindingsUpdated: 'बाइंडिंग सफलतापूर्वक अपडेट हुईं.',
@@ -473,7 +504,8 @@ const hi: Translations = {
         authMethodConnected: 'प्रमाणीकरण विधि सफलतापूर्वक कनेक्ट हुई.',
         authMethodDisconnected: 'प्रमाणीकरण विधि सफलतापूर्वक डिस्कनेक्ट हुई.',
         failedToConnectAuthMethod: 'प्रमाणीकरण विधि कनेक्ट करने में विफल!',
-        failedToDisconnectAuthMethod: 'प्रमाणीकरण विधि डिस्कनेक्ट करने में विफल!',
+        failedToDisconnectAuthMethod:
+            'प्रमाणीकरण विधि डिस्कनेक्ट करने में विफल!',
         textRequired: 'टेक्स्ट आवश्यक है!',
         voiceNotFound: 'वॉइस मॉडल नहीं मिला!',
         ttsGenerationFailed: 'स्पीच जनरेट करने में विफल!',
@@ -484,7 +516,8 @@ const hi: Translations = {
         waitlistJoined: 'प्रतीक्षा सूची में सफलतापूर्वक शामिल हुए.',
         waitlistAlreadyJoined: 'पहले से प्रतीक्षा सूची में हैं.',
         waitlistJoinFailed: 'प्रतीक्षा सूची में शामिल होने में विफल!',
-        waitlistRateLimited: 'आप बहुत तेज़ी से जा रहे हैं! कृपया {{seconds}} {{unit}} में पुनः प्रयास करें.',
+        waitlistRateLimited:
+            'आप बहुत तेज़ी से जा रहे हैं! कृपया {{seconds}} {{unit}} में पुनः प्रयास करें.',
         waitlistStatusFetched: 'प्रतीक्षा सूची स्थिति प्राप्त हुई.',
         waitlistCheckFailed: 'प्रतीक्षा सूची स्थिति जाँचने में विफल!'
     },
@@ -521,7 +554,8 @@ const hi: Translations = {
                 cta: 'लॉग देखें'
             },
             channels: {
-                subject: 'क्या आप जानते हैं? एजेंट को Discord, Slack और अन्य से कनेक्ट करें',
+                subject:
+                    'क्या आप जानते हैं? एजेंट को Discord, Slack और अन्य से कनेक्ट करें',
                 preview: 'अपने AI एजेंट को संचार चैनलों से जोड़ें',
                 heading: 'आपके एजेंट, हर जगह',
                 description:
@@ -529,15 +563,18 @@ const hi: Translations = {
                 cta: 'चैनल सेट करें'
             },
             fileExplorer: {
-                subject: 'क्या आप जानते हैं? ब्राउज़र से सर्वर फ़ाइलें संपादित करें',
-                preview: 'SSH के बिना फ़ाइलें ब्राउज़ करें, पढ़ें और संपादित करें',
+                subject:
+                    'क्या आप जानते हैं? ब्राउज़र से सर्वर फ़ाइलें संपादित करें',
+                preview:
+                    'SSH के बिना फ़ाइलें ब्राउज़ करें, पढ़ें और संपादित करें',
                 heading: 'आपकी फ़ाइलें, आपकी उँगलियों पर',
                 description:
                     'ClawHost डैशबोर्ड से सीधे अपने सर्वर पर फ़ाइलें ब्राउज़ करें, पढ़ें और संपादित करें. सिंटैक्स हाइलाइटिंग, खोज और तुरंत सहेजना — कोई SSH नहीं चाहिए.',
                 cta: 'फ़ाइल एक्सप्लोरर खोलें'
             },
             playground: {
-                subject: 'क्या आप जानते हैं? अपने बुनियादी ढाँचे को विज़ुअलाइज़ करें',
+                subject:
+                    'क्या आप जानते हैं? अपने बुनियादी ढाँचे को विज़ुअलाइज़ करें',
                 preview: 'इंटरैक्टिव कैनवास पर अपने क्लॉज़ और एजेंट देखें',
                 heading: 'पूरी तस्वीर देखें',
                 description:
@@ -554,7 +591,8 @@ const hi: Translations = {
             },
             voiceMode: {
                 subject: 'क्या आप जानते हैं? वॉइस से अपने एजेंट से बात करें',
-                preview: 'अपने एजेंट के साथ स्पीच-टू-टेक्स्ट और टेक्स्ट-टू-स्पीच का उपयोग करें',
+                preview:
+                    'अपने एजेंट के साथ स्पीच-टू-टेक्स्ट और टेक्स्ट-टू-स्पीच का उपयोग करें',
                 heading: 'बोलें, टाइप न करें',
                 description:
                     'वॉइस मोड का उपयोग करके हैंड्स-फ़्री अपने AI एजेंट से बात करें. इनपुट के लिए स्पीच-टू-टेक्स्ट, प्रतिक्रियाओं के लिए टेक्स्ट-टू-स्पीच — कई वॉइस में से चुनें.',
@@ -570,7 +608,8 @@ const hi: Translations = {
             },
             bindings: {
                 subject: 'क्या आप जानते हैं? एजेंट को विशिष्ट चैनलों से जोड़ें',
-                preview: 'नियंत्रित करें कि कौन सा एजेंट किस चैनल पर प्रतिक्रिया दे',
+                preview:
+                    'नियंत्रित करें कि कौन सा एजेंट किस चैनल पर प्रतिक्रिया दे',
                 heading: 'प्रति चैनल एक एजेंट',
                 description:
                     'विशिष्ट एजेंट को विशिष्ट चैनलों से जोड़ें. Discord पर आपका सहायता एजेंट, WhatsApp पर आपका सहायक — आप तय करें कि कौन कहाँ जवाब दे.',
@@ -593,7 +632,8 @@ const hi: Translations = {
                 cta: 'डायग्नोस्टिक्स चलाएँ'
             },
             sshKeys: {
-                subject: 'क्या आप जानते हैं? ClawHost से SSH कुंजियाँ प्रबंधित करें',
+                subject:
+                    'क्या आप जानते हैं? ClawHost से SSH कुंजियाँ प्रबंधित करें',
                 preview: 'डैशबोर्ड में SSH कुंजी जोड़ी बनाएँ और प्रबंधित करें',
                 heading: 'SSH कुंजियाँ, सरलीकृत',
                 description:
@@ -601,20 +641,14 @@ const hi: Translations = {
                 cta: 'SSH कुंजियाँ प्रबंधित करें'
             },
             exportConfig: {
-                subject: 'क्या आप जानते हैं? अपना क्लॉ कॉन्फ़िगरेशन निर्यात करें',
-                preview: 'अपना क्लॉ सेटअप पोर्टेबल कॉन्फ़िग के रूप में डाउनलोड करें',
+                subject:
+                    'क्या आप जानते हैं? अपना क्लॉ कॉन्फ़िगरेशन निर्यात करें',
+                preview:
+                    'अपना क्लॉ सेटअप पोर्टेबल कॉन्फ़िग के रूप में डाउनलोड करें',
                 heading: 'अपना कॉन्फ़िग साथ ले जाएँ',
                 description:
                     'अपना क्लॉ कॉन्फ़िगरेशन और सेटिंग्स डाउनलोड करने योग्य फ़ाइल के रूप में निर्यात करें. अपना सेटअप बैकअप करें या अपने वातावरण की प्रतिकृति बनाने के लिए उपयोग करें.',
                 cta: 'कॉन्फ़िग निर्यात करें'
-            },
-            multiProvider: {
-                subject: 'क्या आप जानते हैं? 3 क्लाउड प्रदाताओं पर डिप्लॉय करें',
-                preview: 'Hetzner, DigitalOcean और Vultr में से चुनें',
-                heading: 'आपका क्लाउड, आपकी पसंद',
-                description:
-                    'अपने क्लॉज़ को Hetzner, DigitalOcean या Vultr पर डिप्लॉय करें. मूल्य, स्थान और स्पेक्स की तुलना करें — फिर वह प्रदाता चुनें जो आपकी ज़रूरतों के अनुकूल हो.',
-                cta: 'प्रदाताओं की तुलना करें'
             },
             multiLanguage: {
                 subject: 'क्या आप जानते हैं? ClawHost आपकी भाषा बोलता है',
@@ -641,8 +675,10 @@ const hi: Translations = {
                 cta: 'डार्क मोड आज़माएँ'
             },
             reinstall: {
-                subject: 'क्या आप जानते हैं? एक क्लिक में OpenClaw पुनः इंस्टॉल करें',
-                preview: 'अपना सर्वर खोए बिना अपना OpenClaw इंस्टेंस रीसेट करें',
+                subject:
+                    'क्या आप जानते हैं? एक क्लिक में OpenClaw पुनः इंस्टॉल करें',
+                preview:
+                    'अपना सर्वर खोए बिना अपना OpenClaw इंस्टेंस रीसेट करें',
                 heading: 'नई शुरुआत, वही सर्वर',
                 description:
                     'एक क्लिक में अपने मौजूदा सर्वर पर OpenClaw रनटाइम पुनः इंस्टॉल करें. आपका सर्वर बरकरार रहता है — केवल OpenClaw को क्लीन इंस्टॉलेशन मिलता है.',
@@ -672,7 +708,8 @@ const hi: Translations = {
         emailAddress: 'ईमेल पता',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'ईमेल से जारी रखें',
-        otpDescription: 'हम आपको साइन इन करने के लिए एक कोड भेजेंगे. कोई पासवर्ड नहीं चाहिए.',
+        otpDescription:
+            'हम आपको साइन इन करने के लिए एक कोड भेजेंगे. कोई पासवर्ड नहीं चाहिए.',
         welcomeBack: 'वापसी पर स्वागत है.',
         resendIn: '{{seconds}}s में पुनः भेजें',
         resendCode: 'कोड पुनः भेजें',
@@ -785,7 +822,8 @@ const hi: Translations = {
         title: 'लाइसेंस',
         description: 'अपना OpenClaw लाइसेंस प्रबंधित करें.',
         pageTitle: 'लाइसेंस',
-        pageDescription: 'हमारे Go ऐप के साथ स्थानीय रूप से OpenClaw इंस्टेंस सेल्फ-होस्ट करने के लिए अपना लाइसेंस खरीदें.',
+        pageDescription:
+            'हमारे Go ऐप के साथ स्थानीय रूप से OpenClaw इंस्टेंस सेल्फ-होस्ट करने के लिए अपना लाइसेंस खरीदें.',
         planName: 'ClawHost Go लाइसेंस',
         oneTimePurchase: 'एक बार की खरीद',
         price: '${{price}}',
@@ -793,7 +831,8 @@ const hi: Translations = {
         purchaseLicense: 'लाइसेंस खरीदें',
         purchasing: 'रीडायरेक्ट हो रहा है...',
         activated: 'लाइसेंस सक्रिय',
-        activatedDescription: 'आपका लाइसेंस सक्रिय है. आपके समर्थन के लिए धन्यवाद.',
+        activatedDescription:
+            'आपका लाइसेंस सक्रिय है. आपके समर्थन के लिए धन्यवाद.',
         paymentSuccess: 'भुगतान सफल. आपका लाइसेंस अब सक्रिय है.',
         failedToPurchase: 'चेकआउट शुरू करने में विफल!',
         featureUnlimitedClaws: 'असीमित OpenClaws',
@@ -803,15 +842,19 @@ const hi: Translations = {
         featureSupport: 'प्राथमिकता सहायता',
         featureCloud: 'सभी क्लाउड सुविधाएँ, स्थानीय रूप से',
         whatsIncluded: 'क्या शामिल है',
-        permanentNote: 'लाइसेंस स्थायी और अप्रतिसंहरणीय हैं. एक बार खरीदने के बाद, आप इसे हमेशा के लिए रखते हैं.',
+        permanentNote:
+            'लाइसेंस स्थायी और अप्रतिसंहरणीय हैं. एक बार खरीदने के बाद, आप इसे हमेशा के लिए रखते हैं.',
         gateTitle: 'लाइसेंस आवश्यक',
-        gateDescription: 'स्थानीय रूप से OpenClaw इंस्टेंस डिप्लॉय और प्रबंधित करने के लिए आपको ClawHost Go लाइसेंस की आवश्यकता है.'
+        gateDescription:
+            'स्थानीय रूप से OpenClaw इंस्टेंस डिप्लॉय और प्रबंधित करने के लिए आपको ClawHost Go लाइसेंस की आवश्यकता है.'
     },
     network: {
         unstable: 'अस्थिर कनेक्शन',
-        unstableDescription: 'आपका इंटरनेट कनेक्शन अस्थिर है. कुछ सुविधाएँ अपेक्षानुसार काम नहीं कर सकतीं.',
+        unstableDescription:
+            'आपका इंटरनेट कनेक्शन अस्थिर है. कुछ सुविधाएँ अपेक्षानुसार काम नहीं कर सकतीं.',
         offline: 'कोई इंटरनेट कनेक्शन नहीं',
-        offlineDescription: 'आप वर्तमान में ऑफ़लाइन हैं. इंटरनेट एक्सेस की आवश्यकता वाली सुविधाएँ अनुपलब्ध होंगी.',
+        offlineDescription:
+            'आप वर्तमान में ऑफ़लाइन हैं. इंटरनेट एक्सेस की आवश्यकता वाली सुविधाएँ अनुपलब्ध होंगी.',
         dismiss: 'खारिज करें'
     },
     dashboard: {
@@ -936,7 +979,8 @@ const hi: Translations = {
         exportStarted: 'निर्यात तैयार हो रहा है, इसमें कुछ समय लग सकता है...',
         exportSuccess: 'क्लॉ सफलतापूर्वक निर्यात हुआ.',
         exportFailed: 'क्लॉ डेटा निर्यात करने में विफल!',
-        exportRateLimited: 'आप {{minutes}} मिनट में फिर से निर्यात कर सकते हैं.',
+        exportRateLimited:
+            'आप {{minutes}} मिनट में फिर से निर्यात कर सकते हैं.',
         exportRateLimitedSeconds:
             'आप {{seconds}} सेकंड में फिर से निर्यात कर सकते हैं.',
         configuringTooltip:
@@ -978,10 +1022,10 @@ const hi: Translations = {
     chat: {
         explorer: 'एक्सप्लोरर',
         selectAgent: 'कोई चयन नहीं',
-        selectAgentDescription:
-            'साइडबार से एक क्लॉ या एजेंट चुनें।',
+        selectAgentDescription: 'साइडबार से एक क्लॉ या एजेंट चुनें।',
         noAgents: 'कोई एजेंट उपलब्ध नहीं',
-        noAgentsDescription: 'एजेंट से चैट शुरू करने के लिए एक क्लॉ डिप्लॉय करें.',
+        noAgentsDescription:
+            'एजेंट से चैट शुरू करने के लिए एक क्लॉ डिप्लॉय करें.',
         openSidebar: 'साइडबार खोलें',
         clawNotReady: 'क्लॉ अभी तैयार नहीं है',
         notConfigured: 'कॉन्फ़िगर नहीं है',
@@ -992,15 +1036,14 @@ const hi: Translations = {
     },
     createClaw: {
         title: 'OpenClaw डिप्लॉय करें',
-        description: 'अपना सर्वर कॉन्फ़िगर करें और AI के साथ निर्माण शुरू करें.',
+        description:
+            'अपना सर्वर कॉन्फ़िगर करें और AI के साथ निर्माण शुरू करें.',
         clawName: 'नाम',
         clawNamePlaceholder: 'उदा. cozy-panda',
         clawNameInvalidChars: 'केवल अक्षर, संख्याएँ और डैश की अनुमति है!',
         autoGenerateNameHint: 'स्वतः नाम बनाने के लिए खाली छोड़ें.',
         provider: 'प्रदाता',
         providerHetzner: 'Hetzner',
-        providerDigitalOcean: 'DigitalOcean',
-        providerVultr: 'Vultr',
         providerLocal: 'स्थानीय',
         providerAws: 'AWS',
         comingSoon: 'जल्द',
@@ -1020,13 +1063,13 @@ const hi: Translations = {
         gatewayTokenPlaceholder: 'उदा. a1b2c3d4e5f6...',
         autoGenerateGatewayTokenHint:
             'वैकल्पिक. खाली छोड़ने पर कोई गेटवे टोकन नहीं.',
-        autoGeneratePasswordHint:
-            'वैकल्पिक. खाली छोड़ने पर कोई पासवर्ड नहीं.',
+        autoGeneratePasswordHint: 'वैकल्पिक. खाली छोड़ने पर कोई पासवर्ड नहीं.',
         regeneratePassword: 'पासवर्ड पुनः जनरेट करें',
         sshKeyOptional: 'SSH कुंजी',
         noSshKeyPasswordOnly: 'कोई SSH कुंजी नहीं (केवल पासवर्ड)',
         noSshKeysConfigured: 'कोई SSH कुंजियाँ कॉन्फ़िगर नहीं',
-        addSshKeyForPasswordlessLogin: 'पासवर्ड-रहित लॉगिन के लिए SSH कुंजी जोड़ें',
+        addSshKeyForPasswordlessLogin:
+            'पासवर्ड-रहित लॉगिन के लिए SSH कुंजी जोड़ें',
         additionalStorageOptional: 'अतिरिक्त स्टोरेज',
         volumeStorage: 'वॉल्यूम स्टोरेज',
         vpsServer: 'VPS सर्वर',
@@ -1146,7 +1189,8 @@ const hi: Translations = {
             'OpenClaw और VPS तक पूर्ण एक्सेस, जो आप हासिल कर सकते हैं उस पर कोई सीमा नहीं.',
         features: 'विशेषताएँ',
         whyClawHost: 'ऑल-इन-वन विशेषताएँ',
-        featuresDescription: 'हम क्यों आज़माने लायक हैं, विशेषताएँ झूठ नहीं बोलतीं.',
+        featuresDescription:
+            'हम क्यों आज़माने लायक हैं, विशेषताएँ झूठ नहीं बोलतीं.',
         zeroConfigDescription:
             'घंटों के सर्वर और OpenClaw सेटअप को छोड़ दें. यह मिनटों में पूर्व-इंस्टॉल और तैयार है.',
         ownedData: '100% स्वामित्व वाला डेटा',
@@ -1157,7 +1201,7 @@ const hi: Translations = {
             'समर्पित VPS संसाधन का मतलब है कोई थ्रॉटलिंग नहीं, पूर्ण बैंडविड्थ और बिजली जैसा तेज़ इंटरनेट.',
         globalLocations: 'वैश्विक स्थान',
         globalLocationsDescription:
-            'Hetzner, DigitalOcean या Vultr पर 30+ वैश्विक क्षेत्रों में OpenClaw डिप्लॉय करें और अपने निकटतम स्थान चुनें.',
+            'Hetzner Cloud पर कई वैश्विक क्षेत्रों में OpenClaw तैनात करें और अपने सबसे करीबी स्थान चुनें.',
         fullSshAccess: 'सीधा SSH एक्सेस',
         fullSshAccessDescription:
             'प्लेटफ़ॉर्म से सीधे अपने सर्वर टर्मिनल तक पहुँचें. किसी बाहरी SSH क्लाइंट की ज़रूरत नहीं.',
@@ -1214,7 +1258,7 @@ const hi: Translations = {
         pricing: 'मूल्य निर्धारण',
         simpleTransparentPricing: 'सरल, पारदर्शी मूल्य निर्धारण',
         pricingDescription:
-            'अपनी ज़रूरतों के आधार पर हमारे प्रदाताओं में 45+ सर्वरों में से चुनें.',
+            'अपनी आवश्यकताओं के अनुसार हमारे Hetzner Cloud सर्वर चुनें.',
         planColumn: 'सर्वर',
         vCpuColumn: 'vCPU',
         ramColumn: 'RAM',
@@ -1249,8 +1293,7 @@ const hi: Translations = {
         faq2Question: 'OpenClaw क्या है?',
         faq2Answer:
             'OpenClaw आपके AI टूल और सेवाओं के लिए एक सेल्फ-होस्टेड सुरक्षित एक्सेस लेयर है. यह सुरक्षा और प्रदर्शन के लिए पूर्व-कॉन्फ़िगर है, ताकि आप इसे डिप्लॉय करें और तुरंत कनेक्ट हों.',
-        faq3Question:
-            'यह अन्य AI टूल या होस्टेड प्लेटफ़ॉर्म से कैसे अलग है?',
+        faq3Question: 'यह अन्य AI टूल या होस्टेड प्लेटफ़ॉर्म से कैसे अलग है?',
         faq3Answer:
             'होस्टेड AI टूल के विपरीत, ClawHost आपको OpenClaw इंस्टॉल के साथ एक वास्तविक सर्वर देता है. आप बुनियादी ढाँचे के मालिक हैं, सब कुछ नियंत्रित करते हैं और किसी साझा प्लेटफ़ॉर्म या मॉडल से सीमित नहीं हैं.',
         faq4Question: 'क्या मुझे तकनीकी ज्ञान चाहिए?',
@@ -1258,16 +1301,16 @@ const hi: Translations = {
             'नहीं. हम सभी बुनियादी ढाँचा, सेटअप और रखरखाव संभालते हैं. आप OpenClaw को इसके UI के माध्यम से कॉन्फ़िगर और प्रबंधित कर सकते हैं, चैनलों से कनेक्ट कर सकते हैं और उपयोग को अनुकूलित कर सकते हैं — बिना सर्वर या बुनियादी ढाँचे को छुए.',
         faq5Question: 'कौन से स्थान उपलब्ध हैं?',
         faq5Answer:
-            'हम Hetzner, DigitalOcean और Vultr पर दुनिया भर में 30+ सर्वर स्थान प्रदान करते हैं, जिसमें अमेरिका, यूरोप, एशिया और अन्य शामिल हैं. ज़रूरत पड़ने पर आप विभिन्न क्षेत्रों में कई सर्वरों पर OpenClaw डिप्लॉय कर सकते हैं.',
+            'हम Hetzner Cloud के माध्यम से दुनिया भर में कई सर्वर स्थान प्रदान करते हैं, जिनमें यूएसए, यूरोप और अन्य शामिल हैं. आवश्यकता होने पर आप विभिन्न क्षेत्रों में कई सर्वरों पर OpenClaw तैनात कर सकते हैं.',
         faq6Question: 'इसकी कीमत कितनी है?',
         faq6Answer:
-            'मूल्य निर्धारण आपके द्वारा चुने गए सर्वर पर आधारित है. तीन प्रदाताओं में एंट्री-लेवल से लेकर उच्च-प्रदर्शन तक 45+ सर्वर विकल्पों के साथ, आप वह चुनें जो आपकी ज़रूरतों और बजट के अनुकूल हो.',
+            'कीमतें आपके द्वारा चुने गए सर्वर पर निर्भर करती हैं. बेसिक से लेकर उच्च प्रदर्शन तक कई सर्वर विकल्पों के साथ, आप अपनी आवश्यकताओं और बजट के अनुसार चुनें.',
         faq7Question: 'क्या मैं अपने सर्वर को सीधे एक्सेस कर सकता हूँ?',
         faq7Answer:
             'हाँ. सबडोमेन URL के माध्यम से OpenClaw एक्सेस के साथ, आपके पास सर्वर और इसके अंतर्निहित बुनियादी ढाँचे तक पूर्ण एक्सेस है, जो आपको अनुकूलित करने और जो चाहें चलाने की पूर्ण स्वतंत्रता देता है.',
         faq8Question: 'सर्वर कहाँ होस्ट किए जाते हैं?',
         faq8Answer:
-            'सभी सर्वर Hetzner Cloud, DigitalOcean और Vultr पर होस्ट किए जाते हैं, विश्वसनीय क्लाउड प्रदाता जो उच्च-प्रदर्शन हार्डवेयर और उत्कृष्ट अपटाइम के लिए जाने जाते हैं, जिनका उपयोग बड़े पैमाने के बुनियादी ढाँचों द्वारा किया जाता है.',
+            'सभी सर्वर Hetzner Cloud पर होस्ट किए जाते हैं, जो उच्च प्रदर्शन वाले हार्डवेयर और उत्कृष्ट अपटाइम के लिए जाना जाने वाला विश्वसनीय क्लाउड प्रदाता है, जिसे बड़ी अवसंरचनाएं उपयोग करती हैं.',
         comparison: 'तुलना',
         comparisonTitle: 'हम कैसे अलग हैं',
         comparisonDescription:
@@ -1338,8 +1381,7 @@ const hi: Translations = {
     },
     changelog: {
         title: 'परिवर्तन लॉग',
-        description:
-            'ClawHost के अपडेट, नई सुविधाएँ और सुधारों को ट्रैक करें.',
+        description: 'ClawHost के अपडेट, नई सुविधाएँ और सुधारों को ट्रैक करें.',
         subtitle: 'ClawHost के सभी अपडेट, नई सुविधाएँ और सुधार.',
         upcomingRelease: 'प्रक्रिया में',
         upcomingReleaseTitle: 'मोबाइल ऐप और अधिक',
@@ -1378,7 +1420,8 @@ const hi: Translations = {
         release12Title: 'वार्षिक प्लान, वॉइस मोड और अधिक',
         release12Description:
             '2 महीने मुफ़्त के साथ वार्षिक सब्सक्रिप्शन, वॉइस मोड, इंस्टेंस पुनः इंस्टॉल और ClawHost Go के लिए प्रारंभिक लैंडिंग पेज.',
-        release12Feature1: 'ClawHost Go के लिए लैंडिंग पेज, ClawHost के साथ स्थानीय होस्टिंग',
+        release12Feature1:
+            'ClawHost Go के लिए लैंडिंग पेज, ClawHost के साथ स्थानीय होस्टिंग',
         release12Feature2:
             'वार्षिक सब्सक्रिप्शन समर्थन, वार्षिक सब्सक्राइब करने पर 2 महीने मुफ़्त',
         release12Feature3:
@@ -1386,17 +1429,18 @@ const hi: Translations = {
         release12Feature4:
             'नई शुरुआत के लिए अपने इंस्टेंस पर OpenClaw पुनः इंस्टॉल करें, प्रति दिन एक बार उपलब्ध',
         release11Date: '28 फ़रवरी 2026',
-        release11Title: 'टेक्स्ट-टू-स्पीच, टर्मिनल, चैट टैब और फ़ाइल एक्सप्लोरर',
+        release11Title:
+            'टेक्स्ट-टू-स्पीच, टर्मिनल, चैट टैब और फ़ाइल एक्सप्लोरर',
         release11Description:
             'टेक्स्ट-टू-स्पीच से एजेंट प्रतिक्रियाएँ सुनें, टर्मिनल के माध्यम से सीधे अपने VPS से बातचीत करें, साइडबार व्यू टैब से तेज़ी से चैट नेविगेट करें और बेहतर फ़ाइल एक्सप्लोरर से फ़ाइलें एक्सप्लोर करें.',
         release11Feature1: 'प्लेग्राउंड में एजेंट संदेशों पर टेक्स्ट-टू-स्पीच',
         release11Feature2:
             'डैशबोर्ड से सीधे अपने VPS इंस्टेंस के साथ बातचीत करने के लिए टर्मिनल',
-        release11Feature3:
-            'आसान पहुँच और नेविगेशन के लिए चैट साइडबार व्यू टैब',
+        release11Feature3: 'आसान पहुँच और नेविगेशन के लिए चैट साइडबार व्यू टैब',
         release11Feature4:
             'फ़ाइलों में खोजने के लिए सर्च बार के साथ फ़ाइल एक्सप्लोरर सुधार',
-        release11Feature5: 'संदेश टाइमस्टैम्प वास्तविक समय को न दर्शाने की समस्या ठीक की',
+        release11Feature5:
+            'संदेश टाइमस्टैम्प वास्तविक समय को न दर्शाने की समस्या ठीक की',
         release11Dropped1: 'सरलीकरण के लिए फ़ीचर अनुरोध हटाए गए',
         release10Date: '23 फ़रवरी 2026',
         release10Title: 'फ़ीचर अनुरोध, फ़ाइल एक्सप्लोरर और बग फ़िक्स',
@@ -1408,8 +1452,7 @@ const hi: Translations = {
             'ClawHub मार्केटप्लेस से स्किल कभी-कभी इंस्टॉल न होने की समस्या ठीक की',
         release10Feature3:
             'मॉडल प्रदाता स्विचिंग प्रतिबिंबित न होने और अभी भी प्रारंभिक मॉडल का उपयोग करने की समस्या ठीक की',
-        release10Feature4:
-            'प्लेटफ़ॉर्म भर में कई सुधार और बग फ़िक्स',
+        release10Feature4: 'प्लेटफ़ॉर्म भर में कई सुधार और बग फ़िक्स',
         release10Feature5:
             'TypeScript, Markdown और सादा टेक्स्ट फ़ाइलें अब फ़ाइल एक्सप्लोरर में संपादन योग्य हैं',
         release9Date: '21 फ़रवरी 2026',
@@ -1423,10 +1466,8 @@ const hi: Translations = {
             'प्रतिस्पर्धियों के विरुद्ध पूर्ण विश्लेषण के साथ तुलना पृष्ठ',
         release9Feature4:
             'OpenClaw संस्करण, एक क्लिक से अपग्रेड करें या तुरंत कोई भी संस्करण इंस्टॉल करें',
-        release9Feature5:
-            'प्लेग्राउंड सुविधा संरचना का पुनर्गठन और सरलीकरण',
-        release9Feature6:
-            'प्रदर्शन, स्थिरता और प्रतिक्रियाशीलता में सुधार',
+        release9Feature5: 'प्लेग्राउंड सुविधा संरचना का पुनर्गठन और सरलीकरण',
+        release9Feature6: 'प्रदर्शन, स्थिरता और प्रतिक्रियाशीलता में सुधार',
         release8Date: '18 फ़रवरी 2026',
         release8Title: 'लाइट थीम, प्रदर्शन और स्थिरता',
         release8Description:
@@ -1467,27 +1508,20 @@ const hi: Translations = {
             'क्लॉज़ प्रबंधित करने, इंस्टेंस शुरू, बंद, पुनः शुरू और हटाने के लिए डैशबोर्ड',
         release1Feature3:
             'समर्पित vCPU, RAM और स्टोरेज विकल्पों के साथ 18 Hetzner सर्वर प्लान',
-        release1Feature4:
-            'अमेरिका, यूरोप और एशिया में 6 Hetzner सर्वर स्थान',
+        release1Feature4: 'अमेरिका, यूरोप और एशिया में 6 Hetzner सर्वर स्थान',
         release1Feature5: 'पासवर्ड-रहित सर्वर एक्सेस के लिए SSH कुंजी प्रबंधन',
         release1Feature6: '10 TB तक अतिरिक्त वॉल्यूम स्टोरेज सपोर्ट',
         release1Feature7: 'मैजिक लिंक प्रमाणीकरण, कोई पासवर्ड नहीं चाहिए',
-        release1Feature8: 'सुरक्षित सबडोमेन के माध्यम से OpenClaw तक ऑनलाइन एक्सेस',
-        release1Feature9:
-            'पारदर्शी प्रति-सर्वर मूल्य के साथ भुगतान एकीकरण',
+        release1Feature8:
+            'सुरक्षित सबडोमेन के माध्यम से OpenClaw तक ऑनलाइन एक्सेस',
+        release1Feature9: 'पारदर्शी प्रति-सर्वर मूल्य के साथ भुगतान एकीकरण',
         release1Feature10: 'बिलिंग इतिहास और चालान प्रबंधन',
         release1Feature11:
             'OpenClaw पूर्व-इंस्टॉल और कॉन्फ़िगर के साथ स्वतः प्रावधान',
         release2Date: '8 फ़रवरी 2026',
-        release2Title: 'DigitalOcean और अधिक',
-        release2Description:
-            'बहु-प्रदाता बुनियादी ढाँचा और ClawHost के बारे में अपडेट रहने का एक नया तरीका.',
-        release2Feature1: 'दूसरे क्लाउड प्रदाता के रूप में DigitalOcean',
-        release2Feature2:
-            'समर्पित vCPU, RAM और स्टोरेज विकल्पों के साथ 7 DigitalOcean सर्वर प्लान',
-        release2Feature3:
-            'अमेरिका, यूरोप, एशिया और अन्य में 10+ DigitalOcean सर्वर स्थान',
-        release2Feature4:
+        release2Title: 'Changelog और अधिक',
+        release2Description: 'ClawHost के बारे में अपडेट रहने का एक नया तरीका.',
+        release2Feature1:
             'सभी प्लेटफ़ॉर्म अपडेट और रिलीज़ ट्रैक करने के लिए परिवर्तन लॉग पृष्ठ',
         release3Date: '10 फ़रवरी 2026',
         release3Title: 'सर्वर इनसाइट्स',
@@ -1499,25 +1533,17 @@ const hi: Translations = {
             'सर्विस समस्याओं के लिए एक-क्लिक स्वचालित मरम्मत के साथ सर्वर डायग्नोस्टिक्स',
         release3Feature3:
             'सर्वर कॉन्फ़िगरेशन फ़ाइलों के लिए बिल्ट-इन फ़ाइल एक्सप्लोरर और JSON संपादक',
-        release4Date: '11 फ़रवरी 2026',
-        release4Title: 'Vultr प्रदाता',
+        release4Date: '14 फ़रवरी 2026',
+        release4Title: 'एजेंट और डेटा निर्यात',
         release4Description:
-            '22 सर्वर प्लान और 30+ वैश्विक स्थानों के साथ तीसरे क्लाउड प्रदाता के रूप में Vultr.',
-        release4Feature1: 'तीसरे क्लाउड प्रदाता के रूप में Vultr',
-        release4Feature2:
-            'सामान्य, उच्च प्रदर्शन और उच्च आवृत्ति टियर में 22 Vultr सर्वर प्लान',
-        release4Feature3:
-            'अमेरिका, यूरोप, एशिया और अन्य में 30+ Vultr सर्वर स्थान',
-        release5Date: '14 फ़रवरी 2026',
-        release5Title: 'एजेंट और डेटा निर्यात',
-        release5Description:
             'एजेंट प्लेग्राउंड, बहु-एजेंट प्रबंधन और आपके OpenClaw इंस्टेंस के लिए पोर्टेबल डेटा निर्यात.',
-        release5Feature1:
+        release4Feature1:
             'एक-क्लिक एजेंट प्लेग्राउंड और अवलोकन, एकाधिक एजेंट जोड़ें और प्रबंधित करें',
-        release5Feature2: 'अपने OpenClaw को पोर्टेबल zip आर्काइव के रूप में निर्यात करें',
-        release5Feature3:
+        release4Feature2:
+            'अपने OpenClaw को पोर्टेबल zip आर्काइव के रूप में निर्यात करें',
+        release4Feature3:
             'क्लॉज़ और एजेंट के ग्राफ़-आधारित विज़ुअलाइज़ेशन के साथ इंटरैक्टिव प्लेग्राउंड',
-        release5Feature4:
+        release4Feature4:
             'एकीकृत डैशबोर्ड लेआउट के पक्ष में ग्रिड और सूची व्यू टॉगल हटाया गया'
     },
     playground: {
@@ -1526,7 +1552,8 @@ const hi: Translations = {
             'इंटरैक्टिव ग्राफ़ में अपने क्लॉज़ और उनके एजेंट विज़ुअलाइज़ करें.',
         subtitle: 'आपके बुनियादी ढाँचे में एजेंट टोपोलॉजी',
         noClawsYet: 'कोई क्लॉज़ नहीं',
-        noClawsDescription: 'इसके साथ बातचीत करने के लिए अपना पहला क्लॉ डिप्लॉय करें.',
+        noClawsDescription:
+            'इसके साथ बातचीत करने के लिए अपना पहला क्लॉ डिप्लॉय करें.',
         loadingAgents: 'एजेंट लोड हो रहे हैं',
         unreachable: 'अप्राप्य',
         offline: 'ऑफ़लाइन',
@@ -1605,11 +1632,9 @@ const hi: Translations = {
         variablesDeleteDescription:
             'क्या आप वाकई {{key}} हटाना चाहते हैं? यह तुरंत इंस्टेंस से हटा दिया जाएगा.',
         variablesDeleteConfirm: 'हटाएँ',
-        variablesDontAskAgain:
-            'इस सत्र में वेरिएबल हटाते समय दोबारा न पूछें',
+        variablesDontAskAgain: 'इस सत्र में वेरिएबल हटाते समय दोबारा न पूछें',
         variablesDeleted: 'वेरिएबल हटाया गया.',
-        variablesOperationPending:
-            'पिछली कार्रवाई पूरी होने तक अक्षम.',
+        variablesOperationPending: 'पिछली कार्रवाई पूरी होने तक अक्षम.',
         addAgentTitle: 'एजेंट जोड़ें',
         addAgentDescription: '{{clawName}} में एक नया एजेंट जोड़ें.',
         addAgentDescriptionNoClaw:
@@ -1665,20 +1690,24 @@ const hi: Translations = {
         chatStopSpeech: 'रोकें',
         chatSpeechFailed: 'स्पीच जनरेट करने में विफल!',
         chatReadOnlyPlaceholder: 'चैट आपके अपने क्लॉज़ पर उपलब्ध है.',
-        chatReadOnlyUser: 'नमस्ते! क्या आप मुझे Node.js प्रोजेक्ट सेटअप करने में मदद कर सकते हैं?',
+        chatReadOnlyUser:
+            'नमस्ते! क्या आप मुझे Node.js प्रोजेक्ट सेटअप करने में मदद कर सकते हैं?',
         chatReadOnlyAssistant:
             'बिल्कुल! मैं आपको एक नया Node.js प्रोजेक्ट शुरू करने में मदद कर सकता हूँ. क्या आप चाहेंगे कि मैं कुछ सामान्य डिपेंडेंसी के साथ package.json बनाऊँ?',
         chatReadOnlyReply:
             'यह एक प्रीव्यू है! एक क्लिक में अपना OpenClaw डिप्लॉय करें और मिनटों में अपने AI एजेंट से चैटिंग शुरू करें!',
-        chatReadOnlyUser2: 'क्या आप टेस्ट सूट चला सकते हैं और विफलताओं की जाँच कर सकते हैं?',
+        chatReadOnlyUser2:
+            'क्या आप टेस्ट सूट चला सकते हैं और विफलताओं की जाँच कर सकते हैं?',
         chatReadOnlyAssistant2:
             'ज़रूर! मैं अभी सभी टेस्ट चलाता हूँ. 3 पास, 0 फ़ेल. सब कुछ अच्छा दिख रहा है — सभी अभिकथन पास हो रहे हैं.',
-        chatReadOnlyGoUser: 'हेलो, क्या आप मेरी डिप्लॉयमेंट पाइपलाइन ऑटोमेट करने में मदद कर सकते हैं?',
+        chatReadOnlyGoUser:
+            'हेलो, क्या आप मेरी डिप्लॉयमेंट पाइपलाइन ऑटोमेट करने में मदद कर सकते हैं?',
         chatReadOnlyGoAssistant:
             'बिल्कुल! मैं आपके लिए CI/CD पाइपलाइन सेट कर सकता हूँ. क्या आप चाहेंगे कि मैं एक GitHub Actions वर्कफ़्लो से शुरू करूँ जो स्वचालित रूप से बिल्ड, टेस्ट और डिप्लॉय करे?',
         chatReadOnlyGoReply:
             'यह एक प्रीव्यू है! ClawHost Go प्राप्त करें और OpenClaw स्थानीय रूप से चलाएँ — आपकी मशीन, आपका डेटा, कोई क्लाउड नहीं चाहिए.',
-        chatReadOnlyGoUser2: 'क्या आप मेरी स्थानीय सेवाओं को मॉनिटर कर सकते हैं और कुछ डाउन होने पर मुझे अलर्ट कर सकते हैं?',
+        chatReadOnlyGoUser2:
+            'क्या आप मेरी स्थानीय सेवाओं को मॉनिटर कर सकते हैं और कुछ डाउन होने पर मुझे अलर्ट कर सकते हैं?',
         chatReadOnlyGoAssistant2:
             'काम पर हूँ! मैं आपकी सभी सेवाओं के लिए हेल्थ चेक सेट करता हूँ. वर्तमान में 4 एंडपॉइंट मॉनिटर हो रहे हैं — सभी स्वस्थ और प्रतिक्रिया दे रहे हैं.',
         chatConnectionFailed: 'इस एजेंट से कनेक्ट करने में विफल!',
@@ -1738,7 +1767,8 @@ const hi: Translations = {
         channelsWhatsAppConnected: 'कनेक्टेड',
         channelsWhatsAppRepair: 'पुनः पेयर करें',
         channelsWhatsAppChecking: 'कनेक्शन जाँच हो रही है...',
-        channelsVersionUnsupported: 'इस संस्करण में चैनल कॉन्फ़िगरेशन उपलब्ध नहीं है। आप टर्मिनल टैब का उपयोग करके मैन्युअल रूप से कनेक्ट कर सकते हैं या OpenClaw अपग्रेड कर सकते हैं।',
+        channelsVersionUnsupported:
+            'इस संस्करण में चैनल कॉन्फ़िगरेशन उपलब्ध नहीं है। आप टर्मिनल टैब का उपयोग करके मैन्युअल रूप से कनेक्ट कर सकते हैं या OpenClaw अपग्रेड कर सकते हैं।',
         channelsVersionUnsupportedDocs: 'सेटअप गाइड देखें',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
@@ -1852,8 +1882,7 @@ const hi: Translations = {
         settingsNameDescription: 'केवल अक्षर, संख्याएँ और डैश.',
         subdomain: 'सबडोमेन',
         subdomainPlaceholder: 'सबडोमेन दर्ज करें',
-        subdomainDescription:
-            'छोटे अक्षर और संख्याएँ, {{min}}-{{max}} अक्षर.',
+        subdomainDescription: 'छोटे अक्षर और संख्याएँ, {{min}}-{{max}} अक्षर.',
         subdomainInvalid:
             'केवल {{min}}-{{max}} छोटे अक्षर और संख्याएँ उपयोग करें.',
         subdomainUpdated: 'सबडोमेन सफलतापूर्वक अपडेट हुआ.',
@@ -1884,8 +1913,7 @@ const hi: Translations = {
         collectTitle: '3. हम कौन सी जानकारी एकत्र करते हैं',
         collectText: 'हम निम्नलिखित तरीकों से जानकारी एकत्र करते हैं:',
         personalInfoTitle: 'व्यक्तिगत जानकारी',
-        personalInfoEmail:
-            'ईमेल पता (खाता निर्माण और संचार के लिए)',
+        personalInfoEmail: 'ईमेल पता (खाता निर्माण और संचार के लिए)',
         personalInfoName: 'नाम (वैकल्पिक, वैयक्तिकरण के लिए)',
         personalInfoPayment:
             'भुगतान जानकारी (तृतीय-पक्ष प्रदाताओं द्वारा सुरक्षित रूप से प्रोसेस की जाती है)',
@@ -1900,7 +1928,8 @@ const hi: Translations = {
         useTransactions: 'लेनदेन प्रोसेस करने और बिलिंग जानकारी भेजने के लिए',
         useNotices: 'महत्वपूर्ण सूचनाएँ और अपडेट भेजने के लिए',
         useSupport: 'ग्राहक सहायता अनुरोधों का जवाब देने के लिए',
-        useAnalyze: 'हमारी सेवा में सुधार के लिए उपयोग पैटर्न की निगरानी और विश्लेषण करने के लिए',
+        useAnalyze:
+            'हमारी सेवा में सुधार के लिए उपयोग पैटर्न की निगरानी और विश्लेषण करने के लिए',
         useFraud: 'धोखाधड़ी या दुरुपयोग का पता लगाने और रोकने के लिए',
         sharingTitle: '5. डेटा साझाकरण और प्रकटीकरण',
         sharingText:
@@ -1918,7 +1947,8 @@ const hi: Translations = {
         retentionText:
             'हम आपकी व्यक्तिगत जानकारी तब तक बनाए रखते हैं जब तक आपका खाता सक्रिय है या आपको सेवाएँ प्रदान करने के लिए आवश्यक है. हम कानून द्वारा आवश्यक या वैध व्यावसायिक उद्देश्यों के लिए कुछ जानकारी बनाए रख सकते हैं.',
         rightsTitle: '8. आपके अधिकार',
-        rightsText: 'आपके स्थान के आधार पर, आपको निम्नलिखित का अधिकार हो सकता है:',
+        rightsText:
+            'आपके स्थान के आधार पर, आपको निम्नलिखित का अधिकार हो सकता है:',
         rightsAccess: 'अपने व्यक्तिगत डेटा तक पहुँच',
         rightsCorrect: 'गलत डेटा को सही करना',
         rightsDelete: 'अपने डेटा को हटाने का अनुरोध करना',
@@ -1957,8 +1987,7 @@ const hi: Translations = {
             'ClawHost साइन-इन प्रबंधित करने के लिए Google Firebase Authentication का उपयोग करता है. आप ईमेल, Google या GitHub से प्रमाणित कर सकते हैं. इन विधियों का उपयोग करके, आप Google और GitHub की संबंधित शर्तों और गोपनीयता नीतियों से सहमत होते हैं. ये प्रदाता आपके ईमेल पते, नाम और डिवाइस डेटा जैसी बुनियादी जानकारी एकत्र कर सकते हैं.',
         responsibilitiesTitle: '4. उपयोगकर्ता ज़िम्मेदारियाँ',
         responsibilitiesText: 'आप सहमत होते हैं:',
-        responsibilitiesAccurate:
-            'सटीक और पूर्ण पंजीकरण जानकारी प्रदान करना',
+        responsibilitiesAccurate: 'सटीक और पूर्ण पंजीकरण जानकारी प्रदान करना',
         responsibilitiesSecurity:
             'अपने खाते के क्रेडेंशियल की सुरक्षा बनाए रखना',
         responsibilitiesCompliance:
@@ -1968,7 +1997,8 @@ const hi: Translations = {
         responsibilitiesAccess:
             'किसी भी सिस्टम या नेटवर्क तक अनधिकृत पहुँच प्राप्त करने का प्रयास नहीं करना',
         prohibitedTitle: '5. निषिद्ध उपयोग',
-        prohibitedText: 'आप हमारी सेवा का उपयोग निम्नलिखित के लिए नहीं कर सकते:',
+        prohibitedText:
+            'आप हमारी सेवा का उपयोग निम्नलिखित के लिए नहीं कर सकते:',
         prohibitedMalware:
             'मैलवेयर, वायरस या कोई हानिकारक सॉफ़्टवेयर वितरित करना',
         prohibitedDos: 'डिनायल-ऑफ़-सर्विस हमले या नेटवर्क दुरुपयोग करना',
@@ -2003,14 +2033,15 @@ const hi: Translations = {
         settings: 'सेटिंग्स',
         comingSoon: 'जल्द आ रहा है',
         messagesPlaceholder: 'संदेश और सूचनाएँ यहाँ दिखाई देंगी.',
-        settingsPlaceholder:
-            'खाता सेटिंग्स और प्राथमिकताएँ यहाँ दिखाई देंगी.',
+        settingsPlaceholder: 'खाता सेटिंग्स और प्राथमिकताएँ यहाँ दिखाई देंगी.',
         signIn: 'साइन इन',
-        signInDescription: 'अपने OpenClaw इंस्टेंस प्रबंधित करने के लिए साइन इन करें.',
+        signInDescription:
+            'अपने OpenClaw इंस्टेंस प्रबंधित करने के लिए साइन इन करें.',
         enterEmail: 'ईमेल पता',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'ईमेल से जारी रखें',
-        otpDescription: 'हम आपको साइन इन करने के लिए एक कोड भेजेंगे. कोई पासवर्ड नहीं चाहिए.',
+        otpDescription:
+            'हम आपको साइन इन करने के लिए एक कोड भेजेंगे. कोई पासवर्ड नहीं चाहिए.',
         sending: 'भेजा जा रहा है...',
         checkYourEmail: 'अपना ईमेल जाँचें',
         codeSentTo: 'हमने 6 अंकों का कोड भेजा है',
@@ -2105,7 +2136,7 @@ const hi: Translations = {
         sharedContainers: 'साझा कंटेनर',
         isolatedContainers: 'पृथक कंटेनर',
         cloudWorkspaces: 'क्लाउड वर्कस्पेस',
-        threeProviders: 'Hetzner, DigitalOcean, Vultr',
+        threeProviders: 'Hetzner Cloud',
         singleProvider: 'एकल प्रदाता',
         fullyDedicated: 'पूरी तरह समर्पित',
         shared: 'साझा',

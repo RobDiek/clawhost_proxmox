@@ -1,7 +1,11 @@
 import type { FC, ReactNode } from 'react'
 import type { LandingCTAProps } from '@/ts/Interfaces'
 
-const LandingCTA: FC<LandingCTAProps> = ({ title, description, children }): ReactNode => {
+const LandingCTA: FC<LandingCTAProps> = ({
+    title,
+    description,
+    children
+}): ReactNode => {
     return (
         <section className='border-border relative border-t px-6 py-32'>
             <div className='mx-auto max-w-4xl text-center'>

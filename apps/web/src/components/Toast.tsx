@@ -35,10 +35,13 @@ const Toast: FC = (): ReactNode => {
     useEffect(() => {
         if (toast) {
             setExiting(false)
-            const timer = setTimeout(() => {
-                setExiting(true)
-                setTimeout(hideToast, 150)
-            }, (toast.duration || 5000) - 150)
+            const timer = setTimeout(
+                () => {
+                    setExiting(true)
+                    setTimeout(hideToast, 150)
+                },
+                (toast.duration || 5000) - 150
+            )
             return () => clearTimeout(timer)
         }
         setExiting(false)

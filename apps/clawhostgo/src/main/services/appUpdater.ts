@@ -29,7 +29,7 @@ const checkForUpdate = async (): Promise<AppUpdateInfo> => {
 
     try {
         const response = await net.fetch(RELEASES_URL, {
-            headers: { 'Accept': 'application/vnd.github.v3+json' }
+            headers: { Accept: 'application/vnd.github.v3+json' }
         })
 
         if (!response.ok) {
@@ -37,12 +37,16 @@ const checkForUpdate = async (): Promise<AppUpdateInfo> => {
         }
 
         const releases = await response.json()
-        const goRelease = releases.find((r: { tag_name: string; draft: boolean; prerelease: boolean }) =>
-            r.tag_name.startsWith('go-v') && !r.draft && !r.prerelease
+        const goRelease = releases.find(
+            (r: { tag_name: string; draft: boolean; prerelease: boolean }) =>
+                r.tag_name.startsWith('go-v') && !r.draft && !r.prerelease
         )
 
         if (!goRelease) {
-            cachedUpdate = { hasUpdate: false, currentVersion: app.getVersion() }
+            cachedUpdate = {
+                hasUpdate: false,
+                currentVersion: app.getVersion()
+            }
             lastCheck = now
             return cachedUpdate
         }

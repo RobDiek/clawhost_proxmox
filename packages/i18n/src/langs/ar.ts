@@ -95,7 +95,8 @@ const ar: Translations = {
         heroTitle2: 'محلياً. فوراً.',
         badge: 'قريباً',
         comingSoon: 'قريباً',
-        description: 'تطبيق سطح مكتب خفيف لإدارة مثيلات OpenClaw الخاصة بك. انشر وراقب وتحكم في claws الخاصة بك — مباشرة من جهازك.',
+        description:
+            'تطبيق سطح مكتب خفيف لإدارة مثيلات OpenClaw الخاصة بك. انشر وراقب وتحكم في claws الخاصة بك — مباشرة من جهازك.',
         download: 'تحميل لنظام {{os}}',
         downloadWindows: 'Windows',
         downloadMac: 'macOS',
@@ -103,17 +104,24 @@ const ar: Translations = {
         features: 'الميزات',
         whyClawHostGo: 'ميزات شاملة',
         featuresDescription: 'لماذا نستحق التجربة، الميزات لا تكذب.',
-        zeroConfigDescription: 'ثبّت وشغّل. لا إعداد خوادم، لا تهيئة سحابية. OpenClaw جاهز في ثوانٍ.',
-        ownedDataDescription: 'كل شيء يعمل على جهازك. لا خوادم سحابية، لا أطراف ثالثة، لا بيانات تغادر جهازك.',
-        terminalAccessDescription: 'ادخل إلى طرفية مثيل OpenClaw مباشرة من التطبيق. لا حاجة لعملاء SSH خارجيين.',
+        zeroConfigDescription:
+            'ثبّت وشغّل. لا إعداد خوادم، لا تهيئة سحابية. OpenClaw جاهز في ثوانٍ.',
+        ownedDataDescription:
+            'كل شيء يعمل على جهازك. لا خوادم سحابية، لا أطراف ثالثة، لا بيانات تغادر جهازك.',
+        terminalAccessDescription:
+            'ادخل إلى طرفية مثيل OpenClaw مباشرة من التطبيق. لا حاجة لعملاء SSH خارجيين.',
         simplePricing: 'أسعار بسيطة',
-        simplePricingDescription: 'ترخيص واحد، كل شيء بلا حدود. لا فواتير شهرية، لا حدود استخدام، لا رسوم مخفية.',
+        simplePricingDescription:
+            'ترخيص واحد، كل شيء بلا حدود. لا فواتير شهرية، لا حدود استخدام، لا رسوم مخفية.',
         localDomain: 'نطاق محلي مخصص',
-        localDomainDescription: 'ادخل إلى OpenClaw عبر نطاق محلي مخصص. عناوين URL نظيفة على شبكتك الخاصة.',
-        secureDescription: 'بياناتك لا تغادر جهازك أبداً. معزولة بالكامل، مشفرة بالكامل، ملكك بالكامل.',
+        localDomainDescription:
+            'ادخل إلى OpenClaw عبر نطاق محلي مخصص. عناوين URL نظيفة على شبكتك الخاصة.',
+        secureDescription:
+            'بياناتك لا تغادر جهازك أبداً. معزولة بالكامل، مشفرة بالكامل، ملكك بالكامل.',
         pricing: 'الأسعار',
         pricingTitle: 'أسعار بسيطة، دفعة واحدة',
-        pricingDescription: 'لا اشتراكات، لا رسوم مخفية. ترخيص واحد، استخدام غير محدود.',
+        pricingDescription:
+            'لا اشتراكات، لا رسوم مخفية. ترخيص واحد، استخدام غير محدود.',
         pricingPrice: '${{price}}',
         pricingLabel: 'دفعة واحدة',
         pricingFeature1: 'ترخيص مدى الحياة',
@@ -125,7 +133,8 @@ const ar: Translations = {
         pricingCta: 'احصل على ClawHost Go',
         comparison: 'المقارنة',
         comparisonTitle: 'Go مقابل Cloud',
-        comparisonDescription: 'اختر ما يناسبك. Go يعمل محلياً، Cloud يعمل على خوادم مخصصة.',
+        comparisonDescription:
+            'اختر ما يناسبك. Go يعمل محلياً، Cloud يعمل على خوادم مخصصة.',
         comparisonLocalUs: 'يعمل بالكامل على جهازك',
         comparisonLocalOthers: 'يعمل على خوادم بعيدة',
         comparisonPricingUs: 'دفعة واحدة',
@@ -142,17 +151,23 @@ const ar: Translations = {
         faqHeading: 'أسئلة شائعة',
         faqDescription: 'كل ما تحتاج معرفته عن ClawHost Go.',
         faq1Question: 'ما هو ClawHost Go؟',
-        faq1Answer: 'ClawHost Go هو تطبيق سطح مكتب خفيف يتيح لك تشغيل OpenClaw محلياً على جهازك. لا حاجة لخوادم سحابية — ثبّت وشغّل وابدأ استخدام OpenClaw في ثوانٍ.',
+        faq1Answer:
+            'ClawHost Go هو تطبيق سطح مكتب خفيف يتيح لك تشغيل OpenClaw محلياً على جهازك. لا حاجة لخوادم سحابية — ثبّت وشغّل وابدأ استخدام OpenClaw في ثوانٍ.',
         faq2Question: 'كيف يختلف Go عن ClawHost Cloud؟',
-        faq2Answer: 'ClawHost Cloud ينشر OpenClaw على خوادم بعيدة مخصصة مع تشغيل على مدار الساعة ووصول عالمي. ClawHost Go يشغّل كل شيء محلياً على جهازك — مثالي للخصوصية والاستخدام دون اتصال والإعدادات البسيطة.',
+        faq2Answer:
+            'ClawHost Cloud ينشر OpenClaw على خوادم بعيدة مخصصة مع تشغيل على مدار الساعة ووصول عالمي. ClawHost Go يشغّل كل شيء محلياً على جهازك — مثالي للخصوصية والاستخدام دون اتصال والإعدادات البسيطة.',
         faq3Question: 'هل أحتاج إلى اتصال بالإنترنت؟',
-        faq3Answer: 'ClawHost Go يعمل بدون اتصال للاستخدام المحلي. الاتصال بالإنترنت مطلوب فقط للإعداد الأولي والتحديثات وأي ميزات تتطلب استدعاءات API خارجية.',
+        faq3Answer:
+            'ClawHost Go يعمل بدون اتصال للاستخدام المحلي. الاتصال بالإنترنت مطلوب فقط للإعداد الأولي والتحديثات وأي ميزات تتطلب استدعاءات API خارجية.',
         faq4Question: 'هل الترخيص دفعة واحدة؟',
-        faq4Answer: 'نعم. تدفع مرة واحدة وتحصل على وصول مدى الحياة إلى ClawHost Go، بما في ذلك جميع التحديثات المستقبلية. لا اشتراكات، لا رسوم متكررة.',
+        faq4Answer:
+            'نعم. تدفع مرة واحدة وتحصل على وصول مدى الحياة إلى ClawHost Go، بما في ذلك جميع التحديثات المستقبلية. لا اشتراكات، لا رسوم متكررة.',
         faq5Question: 'ما أنظمة التشغيل المدعومة؟',
-        faq5Answer: 'ClawHost Go يدعم Windows وmacOS. كلا النظامين يحصلان على نفس الميزات ويتلقيان التحديثات في وقت واحد.',
+        faq5Answer:
+            'ClawHost Go يدعم Windows وmacOS. كلا النظامين يحصلان على نفس الميزات ويتلقيان التحديثات في وقت واحد.',
         faq6Question: 'هل يمكنني الانتقال من Go إلى Cloud لاحقاً؟',
-        faq6Answer: 'بالتأكيد. يمكنك تصدير إعدادات OpenClaw من Go ونشرها على ClawHost Cloud في أي وقت. كلا المنصتين متوافقتان بالكامل.',
+        faq6Answer:
+            'بالتأكيد. يمكنك تصدير إعدادات OpenClaw من Go ونشرها على ClawHost Cloud في أي وقت. كلا المنصتين متوافقتان بالكامل.',
         statsPrice: '${{price}}',
         statsLifetime: 'مدى الحياة',
         statsOneTime: 'دفعة واحدة',
@@ -162,24 +177,29 @@ const ar: Translations = {
         statsZero: 'صفر',
         statsZeroConfig: 'بدون إعداد',
         ctaTitle: 'شغّل OpenClaw محلياً',
-        ctaDescription: 'دفعة واحدة، ترخيص مدى الحياة. انشر OpenClaw على جهازك — بدون سحابة، بدون اشتراكات، بدون حدود. بياناتك، قواعدك.',
+        ctaDescription:
+            'دفعة واحدة، ترخيص مدى الحياة. انشر OpenClaw على جهازك — بدون سحابة، بدون اشتراكات، بدون حدود. بياناتك، قواعدك.',
         ctaButton: 'احصل على ClawHost Go',
         joinWaitlist: 'انضم لقائمة الانتظار',
         joinedWaitlist: 'تم الانضمام لقائمة الانتظار',
         waitlistJoinedToast: 'لقد انضممت إلى قائمة الانتظار.',
-        waitlistAlreadyJoinedToast: 'هذا البريد الإلكتروني موجود بالفعل في القائمة.',
+        waitlistAlreadyJoinedToast:
+            'هذا البريد الإلكتروني موجود بالفعل في القائمة.',
         waitlistFailedToast: 'فشل الانضمام لقائمة الانتظار !',
         waitlistEmailPlaceholder: 'أدخل بريدك الإلكتروني',
         updateAvailable: 'الإصدار {{version}} متاح.',
         updateDownload: 'تحميل',
         updateDismiss: 'لاحقاً',
         clawNotFound: 'لم يتم العثور على Claw !',
-        invalidClawName: 'اسم claw غير صالح. استخدم الحروف والأرقام والشرطات فقط !',
+        invalidClawName:
+            'اسم claw غير صالح. استخدم الحروف والأرقام والشرطات فقط !',
         clawNameAlreadyExists: 'يوجد claw بهذا الاسم بالفعل !',
-        invalidSubdomain: 'نطاق فرعي غير صالح. استخدم 3-20 حرفاً صغيراً وأرقاماً !',
+        invalidSubdomain:
+            'نطاق فرعي غير صالح. استخدم 3-20 حرفاً صغيراً وأرقاماً !',
         subdomainAlreadyInUse: 'هذا النطاق الفرعي مستخدم بالفعل !',
         clawDirectoryNotFound: 'لم يتم العثور على مجلد Claw !',
-        noVersionInstalled: 'لم يتم تثبيت أي إصدار من OpenClaw. انتقل إلى تبويب الإصدارات وثبّت واحداً أولاً !',
+        noVersionInstalled:
+            'لم يتم تثبيت أي إصدار من OpenClaw. انتقل إلى تبويب الإصدارات وثبّت واحداً أولاً !',
         failedToStartClaw: 'فشل تشغيل Claw !',
         noVersionAssigned: 'لم يتم تعيين إصدار OpenClaw لهذا الـ Claw !',
         invalidAgentName: 'اسم الوكيل غير صالح !',
@@ -276,8 +296,7 @@ const ar: Translations = {
             'لقد وصلت إلى الحد الأقصى وهو {{max}} claws. يرجى التواصل مع الدعم لزيادة هذا الحد !',
         sshKeyLimitReached:
             'لقد وصلت إلى الحد الأقصى وهو {{max}} مفاتيح SSH. يرجى التواصل مع الدعم لزيادة هذا الحد !',
-        volumeSizeInvalid:
-            'يجب أن يكون حجم التخزين بين {{min}} و{{max}} GB !',
+        volumeSizeInvalid: 'يجب أن يكون حجم التخزين بين {{min}} و{{max}} GB !',
         paymentNotConfigured: 'الدفع غير مهيأ لهذه الخطة !',
         invalidSshKeyFormat: 'تنسيق مفتاح SSH العام غير صالح !',
         sshKeyInUse: 'مفتاح SSH هذا مستخدم حالياً بواسطة claw واحد أو أكثر !',
@@ -302,8 +321,7 @@ const ar: Translations = {
         failedToDeleteClaw: 'فشل حذف Claw !',
         failedToCreateClaw: 'فشل إنشاء Claw !',
         invalidProvider: 'مزود غير صالح !',
-        providerNotAllowed:
-            'هذا المزود غير متاح عندما يكون Hetzner نشطاً !',
+        providerNotAllowed: 'هذا المزود غير متاح عندما يكون Hetzner نشطاً !',
         invalidPlan: 'الخطة المحددة غير صالحة !',
         planBelowMinimumMemory:
             'هذه الخطة لا تلبي الحد الأدنى لمتطلبات الذاكرة !',
@@ -314,8 +332,7 @@ const ar: Translations = {
         failedToInitiatePurchase: 'فشل بدء الشراء !',
         failedToCancelDeletion: 'فشل إلغاء الحذف !',
         failedToHardDeleteClaw: 'فشل الحذف النهائي لـ Claw !',
-        failedToCancelScheduledDeletion:
-            'فشل إلغاء الحذف المجدول !',
+        failedToCancelScheduledDeletion: 'فشل إلغاء الحذف المجدول !',
         failedToCreateSshKey: 'فشل إنشاء مفتاح SSH !',
         failedToDeleteSshKey: 'فشل حذف مفتاح SSH !',
         failedToUpdateProfile: 'فشل تحديث الملف الشخصي !',
@@ -366,8 +383,7 @@ const ar: Translations = {
         rateLimitExceeded: 'يرجى الانتظار قبل طلب رمز آخر !',
         otpExpiredOrNotFound:
             'انتهت صلاحية الرمز أو غير موجود. يرجى طلب رمز جديد !',
-        otpMaxAttemptsReached:
-            'محاولات فاشلة كثيرة جداً. يرجى طلب رمز جديد !',
+        otpMaxAttemptsReached: 'محاولات فاشلة كثيرة جداً. يرجى طلب رمز جديد !',
         otpInvalidCode: 'رمز غير صالح. يرجى المحاولة مجدداً !',
         licenseAlreadyPurchased: 'تم شراء الترخيص بالفعل !',
         licenseNotAvailable: 'منتج الترخيص غير متاح !',
@@ -437,7 +453,8 @@ const ar: Translations = {
         whatsappPairStarted: 'بدأ اقتران WhatsApp.',
         whatsappPairFailed: 'فشل اقتران WhatsApp !',
         whatsappAlreadyPaired: 'WhatsApp مقترن بالفعل !',
-        whatsappVersionUnsupported: 'هذا الإصدار لا يدعم تكوين القنوات من لوحة التحكم. استخدم علامة تبويب الطرفية للتكوين يدوياً أو قم بترقية OpenClaw.',
+        whatsappVersionUnsupported:
+            'هذا الإصدار لا يدعم تكوين القنوات من لوحة التحكم. استخدم علامة تبويب الطرفية للتكوين يدوياً أو قم بترقية OpenClaw.',
         bindingsFetched: 'تم جلب الربط بنجاح.',
         bindingsFetchFailed: 'تعذر جلب الربط !',
         bindingsUpdated: 'تم تحديث الربط بنجاح.',
@@ -484,7 +501,8 @@ const ar: Translations = {
         waitlistJoined: 'تم الانضمام إلى قائمة الانتظار بنجاح.',
         waitlistAlreadyJoined: 'موجود بالفعل في قائمة الانتظار.',
         waitlistJoinFailed: 'فشل الانضمام لقائمة الانتظار !',
-        waitlistRateLimited: 'أنت سريع جداً ! يرجى المحاولة مجدداً بعد {{seconds}} {{unit}}.',
+        waitlistRateLimited:
+            'أنت سريع جداً ! يرجى المحاولة مجدداً بعد {{seconds}} {{unit}}.',
         waitlistStatusFetched: 'تم جلب حالة قائمة الانتظار.',
         waitlistCheckFailed: 'فشل التحقق من حالة قائمة الانتظار !'
     },
@@ -499,10 +517,8 @@ const ar: Translations = {
         changelogHeading: 'ما الجديد',
         changelogButton: 'عرض سجل التغييرات',
         changelogVisitButton: 'زيارة ClawHost',
-        changelogFooter:
-            'تتلقى هذا البريد لأن لديك حساباً في ClawHost.',
-        featureFooter:
-            'تتلقى هذا البريد لأن لديك حساباً في ClawHost.',
+        changelogFooter: 'تتلقى هذا البريد لأن لديك حساباً في ClawHost.',
+        featureFooter: 'تتلقى هذا البريد لأن لديك حساباً في ClawHost.',
         features: {
             terminal: {
                 subject: 'هل تعلم؟ لديك طرفية ويب',
@@ -608,14 +624,6 @@ const ar: Translations = {
                     'صدّر إعدادات مخلبك وتهيئته كملف قابل للتنزيل. احفظ نسخة احتياطية أو استخدمها لتكرار بيئتك.',
                 cta: 'تصدير الإعدادات'
             },
-            multiProvider: {
-                subject: 'هل تعلم؟ انشر على 3 مزودي سحابة',
-                preview: 'اختر بين Hetzner وDigitalOcean وVultr',
-                heading: 'سحابتك، خيارك',
-                description:
-                    'انشر مخالبك على Hetzner أو DigitalOcean أو Vultr. قارن الأسعار والمواقع والمواصفات — ثم اختر المزود المناسب لاحتياجاتك.',
-                cta: 'مقارنة المزودين'
-            },
             multiLanguage: {
                 subject: 'هل تعلم؟ ClawHost يتحدث لغتك',
                 preview: 'استخدم ClawHost بـ 14 لغة',
@@ -667,8 +675,7 @@ const ar: Translations = {
         checkYourEmail: 'تحقق من بريدك الإلكتروني',
         checkYourEmailHeading: 'تحقق من بريدك الإلكتروني',
         codeSentTo: 'أرسلنا رمزاً مكوناً من 6 أرقام إلى',
-        signInToDeployOpenClaw:
-            'سجّل الدخول لإدارة ونشر نسخ OpenClaw.',
+        signInToDeployOpenClaw: 'سجّل الدخول لإدارة ونشر نسخ OpenClaw.',
         emailAddress: 'البريد الإلكتروني',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'المتابعة بالبريد الإلكتروني',
@@ -691,8 +698,7 @@ const ar: Translations = {
     },
     account: {
         title: 'الحساب',
-        description:
-            'إدارة إعدادات حساب ClawHost ومعلومات الملف الشخصي.',
+        description: 'إدارة إعدادات حساب ClawHost ومعلومات الملف الشخصي.',
         accountSettings: 'الحساب',
         manageYourAccount: 'إدارة ملفك الشخصي وإعدادات الحساب.',
         profileInformation: 'معلومات الملف الشخصي',
@@ -730,8 +736,7 @@ const ar: Translations = {
         manageBilling: 'إدارة الفواتير',
         failedToLoadPortal: 'فشل في فتح بوابة الفواتير !',
         connectedAccounts: 'الحسابات المتصلة',
-        connectedAccountsDescription:
-            'إدارة طرق تسجيل الدخول المرتبطة بحسابك.',
+        connectedAccountsDescription: 'إدارة طرق تسجيل الدخول المرتبطة بحسابك.',
         authEmail: 'البريد الإلكتروني',
         authGoogle: 'Google',
         authGithub: 'GitHub',
@@ -785,7 +790,8 @@ const ar: Translations = {
         title: 'الترخيص',
         description: 'إدارة ترخيص OpenClaw الخاص بك.',
         pageTitle: 'الترخيص',
-        pageDescription: 'اشترِ ترخيصك لاستضافة نسخ OpenClaw محلياً باستخدام تطبيق Go.',
+        pageDescription:
+            'اشترِ ترخيصك لاستضافة نسخ OpenClaw محلياً باستخدام تطبيق Go.',
         planName: 'ترخيص ClawHost Go',
         oneTimePurchase: 'شراء لمرة واحدة',
         price: '${{price}}',
@@ -803,15 +809,19 @@ const ar: Translations = {
         featureSupport: 'دعم ذو أولوية',
         featureCloud: 'جميع ميزات السحابة محلياً',
         whatsIncluded: 'ما يتضمنه',
-        permanentNote: 'التراخيص دائمة وغير قابلة للإلغاء. بمجرد الشراء، تمتلكه للأبد.',
+        permanentNote:
+            'التراخيص دائمة وغير قابلة للإلغاء. بمجرد الشراء، تمتلكه للأبد.',
         gateTitle: 'مطلوب ترخيص',
-        gateDescription: 'تحتاج ترخيص ClawHost Go لنشر وإدارة نسخ OpenClaw محلياً.'
+        gateDescription:
+            'تحتاج ترخيص ClawHost Go لنشر وإدارة نسخ OpenClaw محلياً.'
     },
     network: {
         unstable: 'اتصال غير مستقر',
-        unstableDescription: 'اتصالك بالإنترنت غير مستقر. قد لا تعمل بعض الميزات كما هو متوقع.',
+        unstableDescription:
+            'اتصالك بالإنترنت غير مستقر. قد لا تعمل بعض الميزات كما هو متوقع.',
         offline: 'لا يوجد اتصال بالإنترنت',
-        offlineDescription: 'أنت حالياً غير متصل بالإنترنت. الميزات التي تتطلب اتصالاً بالإنترنت لن تكون متاحة.',
+        offlineDescription:
+            'أنت حالياً غير متصل بالإنترنت. الميزات التي تتطلب اتصالاً بالإنترنت لن تكون متاحة.',
         dismiss: 'تجاهل'
     },
     dashboard: {
@@ -875,8 +885,7 @@ const ar: Translations = {
         scheduledForDeletion: 'مجدول للحذف',
         scheduledDeletionShort: 'يُحذف في {{date}}',
         deletionDate: 'سيتم حذف هذا المخلب في {{date}}',
-        deletionTooltip:
-            'مجدول للحذف في {{date}}. للإلغاء، استخدم القائمة.',
+        deletionTooltip: 'مجدول للحذف في {{date}}. للإلغاء، استخدم القائمة.',
         cancelDeletion: 'إلغاء الحذف',
         deletionCancelled: 'تم إلغاء الحذف.',
         scheduleDeletion: 'جدولة الحذف',
@@ -894,17 +903,14 @@ const ar: Translations = {
         diagnosticsRepairDescription:
             'إزالة حدود الذاكرة وتطبيق أحدث تهيئة للخدمة وإعادة تشغيل البوابة. هذا يصلح معظم المشاكل الشائعة.',
         diagnosticsRepairSuccess: 'تم إصلاح النسخة بنجاح.',
-        diagnosticsRepairFailed:
-            'تم تطبيق الإصلاح لكن البوابة لا تستجيب بعد !',
+        diagnosticsRepairFailed: 'تم تطبيق الإصلاح لكن البوابة لا تستجيب بعد !',
         diagnosticsLoading: 'جارٍ الاتصال بالنسخة...',
-        diagnosticsNoLogs:
-            'لا توجد سجلات متاحة. شغّل نسختك لتوليد السجلات.',
+        diagnosticsNoLogs: 'لا توجد سجلات متاحة. شغّل نسختك لتوليد السجلات.',
         diagnosticsIssueDetected: 'تم اكتشاف مشكلة في نسختك.',
         diagnosticsHealthy: 'نسختك تعمل بشكل طبيعي.',
         diagnosticsPort: 'Port 18789',
         diagnosticsMemory: 'الذاكرة',
-        logsDescription:
-            'آخر 100 سطر من سجل البوابة، يتم التحديث تلقائياً.',
+        logsDescription: 'آخر 100 سطر من سجل البوابة، يتم التحديث تلقائياً.',
         fileExplorer: 'مستكشف الملفات',
         fileExplorerRoot: 'openclaw',
         fileExplorerDescription:
@@ -978,8 +984,7 @@ const ar: Translations = {
     chat: {
         explorer: 'المستكشف',
         selectAgent: 'لا يوجد تحديد',
-        selectAgentDescription:
-            'اختر claw أو وكيلاً من الشريط الجانبي.',
+        selectAgentDescription: 'اختر claw أو وكيلاً من الشريط الجانبي.',
         noAgents: 'لا يوجد وكلاء متاحون',
         noAgentsDescription: 'انشر مخلباً لبدء المحادثة مع الوكلاء.',
         openSidebar: 'فتح الشريط الجانبي',
@@ -999,8 +1004,6 @@ const ar: Translations = {
         autoGenerateNameHint: 'اتركه فارغاً لتوليد اسم تلقائياً.',
         provider: 'المزود',
         providerHetzner: 'Hetzner',
-        providerDigitalOcean: 'DigitalOcean',
-        providerVultr: 'Vultr',
         providerLocal: 'محلي',
         providerAws: 'AWS',
         comingSoon: 'قريباً',
@@ -1018,15 +1021,14 @@ const ar: Translations = {
         rootPassword: 'كلمة مرور Root',
         rootPasswordPlaceholder: 'أدخل كلمة المرور أو أنشئ واحدة',
         gatewayTokenPlaceholder: 'مثال: a1b2c3d4e5f6...',
-        autoGenerateGatewayTokenHint:
-            'اختياري. لا رمز بوابة إذا تُرك فارغاً.',
-        autoGeneratePasswordHint:
-            'اختياري. لا كلمة مرور إذا تُركت فارغة.',
+        autoGenerateGatewayTokenHint: 'اختياري. لا رمز بوابة إذا تُرك فارغاً.',
+        autoGeneratePasswordHint: 'اختياري. لا كلمة مرور إذا تُركت فارغة.',
         regeneratePassword: 'إعادة توليد كلمة المرور',
         sshKeyOptional: 'مفتاح SSH',
         noSshKeyPasswordOnly: 'بدون مفتاح SSH (كلمة مرور فقط)',
         noSshKeysConfigured: 'لم يتم تهيئة مفاتيح SSH',
-        addSshKeyForPasswordlessLogin: 'أضف مفتاح SSH لتسجيل دخول بدون كلمة مرور',
+        addSshKeyForPasswordlessLogin:
+            'أضف مفتاح SSH لتسجيل دخول بدون كلمة مرور',
         additionalStorageOptional: 'تخزين إضافي',
         volumeStorage: 'تخزين الحجم',
         vpsServer: 'خادم VPS',
@@ -1077,8 +1079,7 @@ const ar: Translations = {
         deleteKeyConfirmation: 'هل أنت متأكد أنك تريد حذف',
         sshKeyAddedSuccessfully: 'تم إضافة مفتاح SSH بنجاح.',
         addSshKeyModalTitle: 'إضافة مفتاح SSH',
-        addSshKeyModalDescription:
-            'أضف مفتاح SSH للمصادقة بدون كلمة مرور',
+        addSshKeyModalDescription: 'أضف مفتاح SSH للمصادقة بدون كلمة مرور',
         iHaveAnSshKey: 'مفتاح موجود',
         generateNewKey: 'إنشاء جديد',
         name: 'الاسم',
@@ -1099,8 +1100,7 @@ const ar: Translations = {
         generateKeyPair: 'إنشاء زوج مفاتيح',
         orGenerateLocallyRecommended: 'أو أنشئ محلياً (موصى به)',
         runThisInYourTerminal: 'شغّل هذا في الطرفية:',
-        thenSwitchToIHave:
-            'ثم انتقل إلى "مفتاح موجود" والصق المفتاح العام.',
+        thenSwitchToIHave: 'ثم انتقل إلى "مفتاح موجود" والصق المفتاح العام.',
         savePrivateKeyNow:
             'احفظ مفتاحك الخاص الآن! نزّله قبل إغلاق هذا الحوار. لن تتمكن من رؤيته مرة أخرى.',
         privateKeyKeepSecret: 'المفتاح الخاص (احتفظ به سراً!)',
@@ -1157,7 +1157,7 @@ const ar: Translations = {
             'موارد VPS مخصصة تعني عدم وجود اختناق ونطاق ترددي كامل وإنترنت فائق السرعة.',
         globalLocations: 'مواقع عالمية',
         globalLocationsDescription:
-            'انشر OpenClaw عبر أكثر من 30 منطقة عالمية على Hetzner أو DigitalOcean أو Vultr واختر الموقع الأقرب إليك.',
+            'انشر OpenClaw في عدة مناطق عالمية على Hetzner Cloud واختر الموقع الأقرب إليك.',
         fullSshAccess: 'وصول SSH مباشر',
         fullSshAccessDescription:
             'الوصول إلى طرفية خادمك مباشرة من المنصة. لا حاجة لعملاء SSH خارجيين.',
@@ -1213,8 +1213,7 @@ const ar: Translations = {
         testimonial4Role: 'متحمسة للذكاء الاصطناعي',
         pricing: 'الأسعار',
         simpleTransparentPricing: 'أسعار بسيطة وشفافة',
-        pricingDescription:
-            'اختر من أكثر من 45 خادماً عبر مزودينا بناءً على احتياجاتك.',
+        pricingDescription: 'اختر من خوادم Hetzner Cloud بناءً على احتياجاتك.',
         planColumn: 'الخادم',
         vCpuColumn: 'vCPU',
         ramColumn: 'RAM',
@@ -1258,16 +1257,16 @@ const ar: Translations = {
             'لا. نحن نتولى كل البنية التحتية والإعداد والصيانة. يمكنك تهيئة وإدارة OpenClaw عبر واجهته والاتصال بالقنوات وتخصيص الاستخدام — بدون لمس الخوادم أو البنية التحتية.',
         faq5Question: 'ما المواقع المتاحة؟',
         faq5Answer:
-            'نقدم أكثر من 30 موقع خادم حول العالم عبر Hetzner وDigitalOcean وVultr، بما في ذلك أمريكا وأوروبا وآسيا والمزيد. يمكنك نشر OpenClaw على خوادم متعددة في مناطق مختلفة عند الحاجة.',
+            'نقدم عدة مواقع خوادم حول العالم عبر Hetzner Cloud، بما في ذلك الولايات المتحدة وأوروبا والمزيد. يمكنك نشر OpenClaw على عدة خوادم في مناطق مختلفة إذا لزم الأمر.',
         faq6Question: 'كم التكلفة؟',
         faq6Answer:
-            'الأسعار مبنية على الخادم الذي تختاره. مع أكثر من 45 خيار خادم تتراوح من المبتدئ إلى عالي الأداء عبر ثلاثة مزودين، تختار ما يناسب احتياجاتك وميزانيتك.',
+            'تعتمد الأسعار على الخادم الذي تختاره. مع عدة خيارات للخوادم من المستوى الأساسي إلى الأداء العالي، تختار ما يناسب احتياجاتك وميزانيتك.',
         faq7Question: 'هل يمكنني الوصول إلى خادمي مباشرة؟',
         faq7Answer:
             'نعم. إلى جانب الوصول إلى OpenClaw عبر رابط النطاق الفرعي، لديك وصول كامل إلى الخادم وبنيته التحتية الأساسية، مما يمنحك حرية كاملة للتخصيص وتشغيل أي شيء تحتاجه.',
         faq8Question: 'أين تُستضاف الخوادم؟',
         faq8Answer:
-            'جميع الخوادم مستضافة على Hetzner Cloud وDigitalOcean وVultr، مزودي سحابة موثوقين معروفين بالعتاد عالي الأداء ووقت التشغيل الممتاز، يستخدمها بنى تحتية واسعة النطاق.',
+            'جميع الخوادم مستضافة على Hetzner Cloud، مزود سحابي موثوق معروف بأجهزته عالية الأداء ووقت تشغيل ممتاز، يستخدمه البنى التحتية واسعة النطاق.',
         comparison: 'المقارنة',
         comparisonTitle: 'كيف نختلف',
         comparisonDescription:
@@ -1338,8 +1337,7 @@ const ar: Translations = {
     },
     changelog: {
         title: 'سجل التغييرات',
-        description:
-            'تتبع التحديثات والميزات الجديدة والتحسينات في ClawHost.',
+        description: 'تتبع التحديثات والميزات الجديدة والتحسينات في ClawHost.',
         subtitle: 'جميع التحديثات والميزات الجديدة والتحسينات في ClawHost.',
         upcomingRelease: 'قيد التنفيذ',
         upcomingReleaseTitle: 'تطبيق الهاتف والمزيد',
@@ -1348,14 +1346,11 @@ const ar: Translations = {
         upcomingReleaseFeature1:
             'تطبيق هاتف أصلي لمراقبة وإدارة نسخ OpenClaw أثناء التنقل',
         upcomingReleaseFeature3: 'دعم السمات الداكنة والفاتحة',
-        upcomingReleaseFeature4:
-            'تحسينات في الأداء والاستقرار والاستجابة',
+        upcomingReleaseFeature4: 'تحسينات في الأداء والاستقرار والاستجابة',
         upcomingReleaseFeature5:
             'دعم متعدد اللغات مع الإنجليزية والفرنسية والإسبانية والألمانية',
-        upcomingReleaseFeature6:
-            'صفحات مقارنة مع تفصيلات كاملة ضد المنافسين',
-        upcomingReleaseFeature7:
-            'إعادة هيكلة بنية ميزة Playground وتبسيطات',
+        upcomingReleaseFeature6: 'صفحات مقارنة مع تفصيلات كاملة ضد المنافسين',
+        upcomingReleaseFeature7: 'إعادة هيكلة بنية ميزة Playground وتبسيطات',
         upcomingReleaseFeature8:
             'طلبات الميزات تُدار وتُنشر تلقائياً بواسطة وكلاء OpenClaw',
         upcomingReleaseFeature9:
@@ -1378,7 +1373,8 @@ const ar: Translations = {
         release12Title: 'خطط سنوية ووضع الصوت والمزيد',
         release12Description:
             'اشتراكات سنوية مع شهرين مجاناً ووضع الصوت وإعادة تثبيت النسخة وصفحة هبوط أولية لـ ClawHost Go.',
-        release12Feature1: 'صفحة هبوط لـ ClawHost Go، الاستضافة المحلية مع ClawHost',
+        release12Feature1:
+            'صفحة هبوط لـ ClawHost Go، الاستضافة المحلية مع ClawHost',
         release12Feature2:
             'دعم الاشتراك السنوي مع شهرين مجاناً عند الاشتراك سنوياً',
         release12Feature3:
@@ -1386,12 +1382,12 @@ const ar: Translations = {
         release12Feature4:
             'إعادة تثبيت OpenClaw على نسختك للبدء من جديد، متاح مرة واحدة يومياً',
         release11Date: '28 فبراير 2026',
-        release11Title: 'تحويل النص لكلام والطرفية وتبويبات المحادثة ومستكشف الملفات',
+        release11Title:
+            'تحويل النص لكلام والطرفية وتبويبات المحادثة ومستكشف الملفات',
         release11Description:
             'استمع لردود الوكلاء بتحويل النص لكلام وتفاعل مع VPS مباشرة عبر الطرفية وتنقّل في المحادثات أسرع مع تبويبات الشريط الجانبي واستكشف الملفات بمستكشف الملفات المحسّن.',
         release11Feature1: 'تحويل النص لكلام على رسائل الوكلاء في Playground',
-        release11Feature2:
-            'طرفية للتفاعل مع نسخ VPS مباشرة من لوحة التحكم',
+        release11Feature2: 'طرفية للتفاعل مع نسخ VPS مباشرة من لوحة التحكم',
         release11Feature3:
             'تبويبات عرض الشريط الجانبي للمحادثة للوصول والتنقل السهل',
         release11Feature4:
@@ -1404,12 +1400,10 @@ const ar: Translations = {
             'طلبات ميزات مدفوعة من المجتمع ودعم موسّع لتحرير الملفات وإصلاحات متنوعة.',
         release10Feature1:
             'طلبات الميزات تُدار وتُنشر تلقائياً بواسطة وكلاء OpenClaw',
-        release10Feature2:
-            'إصلاح فشل تثبيت المهارات أحياناً من سوق ClawHub',
+        release10Feature2: 'إصلاح فشل تثبيت المهارات أحياناً من سوق ClawHub',
         release10Feature3:
             'إصلاح تبديل مزود النموذج الذي لم يكن ينعكس واستمرار استخدام النموذج الأولي',
-        release10Feature4:
-            'عدة تحسينات وإصلاحات عبر المنصة',
+        release10Feature4: 'عدة تحسينات وإصلاحات عبر المنصة',
         release10Feature5:
             'ملفات TypeScript وMarkdown والنص العادي أصبحت قابلة للتحرير في مستكشف الملفات',
         release9Date: '21 فبراير 2026',
@@ -1419,14 +1413,11 @@ const ar: Translations = {
         release9Feature1: 'دعم السمات الداكنة والفاتحة',
         release9Feature2:
             'دعم متعدد اللغات مع الإنجليزية والفرنسية والإسبانية والألمانية',
-        release9Feature3:
-            'صفحات مقارنة مع تفصيلات كاملة ضد المنافسين',
+        release9Feature3: 'صفحات مقارنة مع تفصيلات كاملة ضد المنافسين',
         release9Feature4:
             'إصدارات OpenClaw، ترقية بنقرة واحدة أو تثبيت أي إصدار فوراً',
-        release9Feature5:
-            'إعادة هيكلة بنية ميزة Playground وتبسيطات',
-        release9Feature6:
-            'تحسينات في الأداء والاستقرار والاستجابة',
+        release9Feature5: 'إعادة هيكلة بنية ميزة Playground وتبسيطات',
+        release9Feature6: 'تحسينات في الأداء والاستقرار والاستجابة',
         release8Date: '18 فبراير 2026',
         release8Title: 'السمة الفاتحة والأداء والاستقرار',
         release8Description:
@@ -1467,27 +1458,20 @@ const ar: Translations = {
             'لوحة تحكم لإدارة المخالب وتشغيل وإيقاف وإعادة تشغيل وحذف النسخ',
         release1Feature3:
             '18 خطة خادم Hetzner مع vCPU وRAM وخيارات تخزين مخصصة',
-        release1Feature4:
-            '6 مواقع خادم Hetzner عبر أمريكا وأوروبا وآسيا',
+        release1Feature4: '6 مواقع خادم Hetzner عبر أمريكا وأوروبا وآسيا',
         release1Feature5: 'إدارة مفاتيح SSH للوصول بدون كلمة مرور',
         release1Feature6: 'دعم تخزين حجم إضافي حتى 10 TB',
         release1Feature7: 'مصادقة بالرابط السحري، لا حاجة لكلمات مرور',
-        release1Feature8: 'وصول عبر الإنترنت إلى OpenClaw عبر نطاقات فرعية آمنة',
-        release1Feature9:
-            'تكامل الدفع مع أسعار شفافة لكل خادم',
+        release1Feature8:
+            'وصول عبر الإنترنت إلى OpenClaw عبر نطاقات فرعية آمنة',
+        release1Feature9: 'تكامل الدفع مع أسعار شفافة لكل خادم',
         release1Feature10: 'سجل الفواتير وإدارة الفواتير',
-        release1Feature11:
-            'توفير تلقائي مع OpenClaw مثبت ومهيأ مسبقاً',
+        release1Feature11: 'توفير تلقائي مع OpenClaw مثبت ومهيأ مسبقاً',
         release2Date: '8 فبراير 2026',
-        release2Title: 'DigitalOcean والمزيد',
+        release2Title: 'سجل التغييرات والمزيد',
         release2Description:
-            'بنية تحتية متعددة المزودين وطريقة جديدة للبقاء محدّثاً بكل ما يتعلق بـ ClawHost.',
-        release2Feature1: 'DigitalOcean كمزود سحابة ثانٍ',
-        release2Feature2:
-            '7 خطط خادم DigitalOcean مع vCPU وRAM وخيارات تخزين مخصصة',
-        release2Feature3:
-            'أكثر من 10 مواقع خادم DigitalOcean عبر أمريكا وأوروبا وآسيا والمزيد',
-        release2Feature4:
+            'طريقة جديدة للبقاء على اطلاع بكل ما يتعلق بـ ClawHost.',
+        release2Feature1:
             'صفحة سجل التغييرات لتتبع جميع تحديثات وإصدارات المنصة',
         release3Date: '10 فبراير 2026',
         release3Title: 'رؤى الخادم',
@@ -1497,33 +1481,21 @@ const ar: Translations = {
             'سجلات الخادم في الوقت الفعلي تُبث مباشرة في لوحة التحكم',
         release3Feature2:
             'تشخيصات الخادم مع إصلاح آلي بنقرة واحدة لمشاكل الخدمة',
-        release3Feature3:
-            'مستكشف ملفات مدمج ومحرر JSON لملفات تهيئة الخادم',
-        release4Date: '11 فبراير 2026',
-        release4Title: 'مزود Vultr',
+        release3Feature3: 'مستكشف ملفات مدمج ومحرر JSON لملفات تهيئة الخادم',
+        release4Date: '14 فبراير 2026',
+        release4Title: 'الوكلاء وتصدير البيانات',
         release4Description:
-            'Vultr كمزود سحابة ثالث مع 22 خطة خادم وأكثر من 30 موقعاً عالمياً.',
-        release4Feature1: 'Vultr كمزود سحابة ثالث',
-        release4Feature2:
-            '22 خطة خادم Vultr عبر فئات الأداء العادي والعالي والتردد العالي',
-        release4Feature3:
-            'أكثر من 30 موقع خادم Vultr عبر أمريكا وأوروبا وآسيا والمزيد',
-        release5Date: '14 فبراير 2026',
-        release5Title: 'الوكلاء وتصدير البيانات',
-        release5Description:
             'ملعب الوكلاء وإدارة وكلاء متعددين وتصدير بيانات قابل للنقل لنسخ OpenClaw.',
-        release5Feature1:
+        release4Feature1:
             'ملعب ونظرة عامة على الوكلاء بنقرة واحدة، إضافة وإدارة وكلاء متعددين',
-        release5Feature2: 'صدّر OpenClaw كأرشيف zip قابل للنقل',
-        release5Feature3:
-            'ملعب تفاعلي مع تصور بياني للمخالب والوكلاء',
-        release5Feature4:
+        release4Feature2: 'صدّر OpenClaw كأرشيف zip قابل للنقل',
+        release4Feature3: 'ملعب تفاعلي مع تصور بياني للمخالب والوكلاء',
+        release4Feature4:
             'إزالة تبديل العرض الشبكي والقائمة لصالح تخطيط لوحة تحكم موحد'
     },
     playground: {
         title: 'Playground',
-        description:
-            'تصور المخالب ووكلائها في رسم بياني تفاعلي.',
+        description: 'تصور المخالب ووكلائها في رسم بياني تفاعلي.',
         subtitle: 'بنية الوكلاء عبر بنيتك التحتية',
         noClawsYet: 'لا توجد مخالب',
         noClawsDescription: 'انشر أول مخلب للتفاعل معه.',
@@ -1548,14 +1520,11 @@ const ar: Translations = {
         terminalDisconnected: 'تم قطع اتصال الطرفية.',
         terminalError: 'فشل الاتصال بالطرفية !',
         terminalReconnect: 'إعادة الاتصال',
-        tabDisabledConfiguring:
-            'متاح بمجرد انتهاء تهيئة النسخة.',
+        tabDisabledConfiguring: 'متاح بمجرد انتهاء تهيئة النسخة.',
         tabDisabledAwaitingPayment: 'متاح بمجرد معالجة الدفع.',
-        loadingTip1:
-            'هل تعلم أنه يمكنك تشغيل وكلاء متعددين في OpenClaw واحد؟',
+        loadingTip1: 'هل تعلم أنه يمكنك تشغيل وكلاء متعددين في OpenClaw واحد؟',
         loadingTip2: 'هل تعلم أن OpenClaw مفتوح المصدر؟',
-        loadingTip3:
-            'ClawHost هو أول مشروع يتيح استضافة OpenClaw بنقرة واحدة.',
+        loadingTip3: 'ClawHost هو أول مشروع يتيح استضافة OpenClaw بنقرة واحدة.',
         tabChat: 'المحادثة',
         tabConfiguration: 'التهيئة',
         tabSettings: 'الإعدادات',
@@ -1608,12 +1577,10 @@ const ar: Translations = {
         variablesDontAskAgain:
             'لا تسأل مرة أخرى عند حذف المتغيرات في هذه الجلسة',
         variablesDeleted: 'تم حذف المتغير.',
-        variablesOperationPending:
-            'معطّل أثناء اكتمال عملية سابقة.',
+        variablesOperationPending: 'معطّل أثناء اكتمال عملية سابقة.',
         addAgentTitle: 'إضافة وكيل',
         addAgentDescription: 'إضافة وكيل جديد إلى {{clawName}}.',
-        addAgentDescriptionNoClaw:
-            'اختر مخلباً وهيئ وكيلك الجديد.',
+        addAgentDescriptionNoClaw: 'اختر مخلباً وهيئ وكيلك الجديد.',
         addAgentSelectClaw: 'المخلب',
         addAgentSelectClawPlaceholder: 'اختر مخلباً',
         addAgentName: 'الاسم',
@@ -1656,8 +1623,7 @@ const ar: Translations = {
         chatThinking: 'يفكر',
         chatLoadingHistory: 'جارٍ تحميل الرسائل...',
         chatNoMessages: 'لا توجد رسائل',
-        chatNoMessagesDescription:
-            'أرسل رسالة لبدء محادثة مع هذا الوكيل.',
+        chatNoMessagesDescription: 'أرسل رسالة لبدء محادثة مع هذا الوكيل.',
         chatErrorMessage: 'حدث خطأ أثناء توليد الرد !',
         chatAbortedMessage: 'تم إيقاف الرد.',
         chatPlaySpeech: 'قراءة بصوت عالٍ',
@@ -1670,15 +1636,18 @@ const ar: Translations = {
             'بالطبع! يمكنني مساعدتك في تهيئة مشروع Node.js جديد. هل تريد مني إنشاء package.json مع بعض التبعيات الشائعة؟',
         chatReadOnlyReply:
             'هذه معاينة! انشر OpenClaw الخاص بك بنقرة واحدة وابدأ المحادثة مع وكلاء الذكاء الاصطناعي في دقائق!',
-        chatReadOnlyUser2: 'هل يمكنك تشغيل مجموعة الاختبارات والتحقق من الأخطاء؟',
+        chatReadOnlyUser2:
+            'هل يمكنك تشغيل مجموعة الاختبارات والتحقق من الأخطاء؟',
         chatReadOnlyAssistant2:
             'بالتأكيد! سأشغّل جميع الاختبارات الآن. 3 نجحت، 0 فشلت. كل شيء يبدو جيداً — جميع التأكيدات ناجحة.',
-        chatReadOnlyGoUser: 'مرحباً، هل يمكنك مساعدتي في أتمتة خط أنابيب النشر؟',
+        chatReadOnlyGoUser:
+            'مرحباً، هل يمكنك مساعدتي في أتمتة خط أنابيب النشر؟',
         chatReadOnlyGoAssistant:
             'بالتأكيد! يمكنني إعداد خط أنابيب CI/CD لك. هل تريد أن أبدأ بسير عمل GitHub Actions يبني ويختبر وينشر تلقائياً؟',
         chatReadOnlyGoReply:
             'هذه معاينة! احصل على ClawHost Go وشغّل OpenClaw محلياً — جهازك، بياناتك، بدون سحابة.',
-        chatReadOnlyGoUser2: 'هل يمكنك مراقبة خدماتي المحلية وتنبيهي إذا توقف شيء؟',
+        chatReadOnlyGoUser2:
+            'هل يمكنك مراقبة خدماتي المحلية وتنبيهي إذا توقف شيء؟',
         chatReadOnlyGoAssistant2:
             'على الفور! سأعدّ فحوصات صحية لجميع خدماتك. أراقب حالياً 4 نقاط نهاية — جميعها سليمة وتستجيب.',
         chatConnectionFailed: 'فشل الاتصال بهذا الوكيل !',
@@ -1708,8 +1677,7 @@ const ar: Translations = {
         chatVoiceModeSpeaking: 'جارٍ التحدث...',
         chatVoiceModeInputDevice: 'الميكروفون',
         chatVoiceModeOutputDevice: 'مكبر الصوت',
-        chatVoiceModeNotSupported:
-            'التعرف على الصوت غير مدعوم في هذا المتصفح.',
+        chatVoiceModeNotSupported: 'التعرف على الصوت غير مدعوم في هذا المتصفح.',
         chatVoiceModeNoMicrophone:
             'لم يتم اكتشاف ميكروفون. قم بتوصيل واحد لاستخدام وضع الصوت.',
         chatVoiceModeNoSpeaker:
@@ -1725,8 +1693,7 @@ const ar: Translations = {
         channelsWhatsApp: 'WhatsApp',
         channelsWhatsAppPairDevice: 'ربط الجهاز',
         channelsWhatsAppPairing: 'في انتظار رمز QR...',
-        channelsWhatsAppScanQr:
-            'امسح رمز QR هذا بـ WhatsApp لربط جهازك.',
+        channelsWhatsAppScanQr: 'امسح رمز QR هذا بـ WhatsApp لربط جهازك.',
         channelsWhatsAppScanInstructions:
             'افتح WhatsApp > الإعدادات > الأجهزة المرتبطة > ربط جهاز',
         channelsWhatsAppQrRefreshed:
@@ -1738,7 +1705,8 @@ const ar: Translations = {
         channelsWhatsAppConnected: 'متصل',
         channelsWhatsAppRepair: 'إعادة الربط',
         channelsWhatsAppChecking: 'جارٍ فحص الاتصال...',
-        channelsVersionUnsupported: 'تكوين القنوات غير متاح في هذا الإصدار. يمكنك الاتصال يدوياً باستخدام علامة تبويب الطرفية أو ترقية OpenClaw.',
+        channelsVersionUnsupported:
+            'تكوين القنوات غير متاح في هذا الإصدار. يمكنك الاتصال يدوياً باستخدام علامة تبويب الطرفية أو ترقية OpenClaw.',
         channelsVersionUnsupportedDocs: 'عرض دليل الإعداد',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
@@ -1799,8 +1767,7 @@ const ar: Translations = {
         agentSkillsRemoved: 'تم إزالة المهارة بنجاح.',
         agentSkillsRemoveFailed: 'فشل في إزالة المهارة !',
         agentSkillsEmpty: 'لم يتم تثبيت مهارات.',
-        agentSkillsEmptyDescription:
-            'ثبّت مهارة لتوسيع قدرات هذا الوكيل.',
+        agentSkillsEmptyDescription: 'ثبّت مهارة لتوسيع قدرات هذا الوكيل.',
         agentSkillsNamePlaceholder: 'اسم المهارة',
         agentSkillsConfirmRemove: 'إزالة المهارة "{{skillName}}"؟',
         agentSkillsConfirmRemoveDescription:
@@ -1810,8 +1777,7 @@ const ar: Translations = {
         clawHubSearch: 'البحث في مهارات ClawHub...',
         clawHubNoResults: 'لم يتم العثور على مهارات في ClawHub.',
         clawHubEmpty: 'لم يتم تثبيت مهارات ClawHub.',
-        clawHubEmptyDescription:
-            'ابحث وثبّت المهارات من سوق ClawHub.',
+        clawHubEmptyDescription: 'ابحث وثبّت المهارات من سوق ClawHub.',
         clawHubInstall: 'تثبيت',
         clawHubInstalled: 'تم تثبيت المهارة من ClawHub.',
         clawHubInstallFailed: 'فشل في تثبيت المهارة من ClawHub !',
@@ -1852,10 +1818,8 @@ const ar: Translations = {
         settingsNameDescription: 'أحرف وأرقام وشرطات فقط.',
         subdomain: 'النطاق الفرعي',
         subdomainPlaceholder: 'أدخل النطاق الفرعي',
-        subdomainDescription:
-            'أحرف صغيرة وأرقام، {{min}}-{{max}} حرفاً.',
-        subdomainInvalid:
-            'استخدم {{min}}-{{max}} أحرف صغيرة وأرقام فقط.',
+        subdomainDescription: 'أحرف صغيرة وأرقام، {{min}}-{{max}} حرفاً.',
+        subdomainInvalid: 'استخدم {{min}}-{{max}} أحرف صغيرة وأرقام فقط.',
         subdomainUpdated: 'تم تحديث النطاق الفرعي بنجاح.',
         subdomainUpdateFailed: 'فشل في تحديث النطاق الفرعي !',
         subdomainInUse: 'هذا النطاق الفرعي مستخدم من مخلب آخر !',
@@ -1884,14 +1848,11 @@ const ar: Translations = {
         collectTitle: '3. المعلومات التي نجمعها',
         collectText: 'نجمع المعلومات بالطرق التالية:',
         personalInfoTitle: 'المعلومات الشخصية',
-        personalInfoEmail:
-            'عنوان البريد الإلكتروني (لإنشاء الحساب والتواصل)',
+        personalInfoEmail: 'عنوان البريد الإلكتروني (لإنشاء الحساب والتواصل)',
         personalInfoName: 'الاسم (اختياري، للتخصيص)',
-        personalInfoPayment:
-            'معلومات الدفع (تُعالج بأمان عبر مزودين خارجيين)',
+        personalInfoPayment: 'معلومات الدفع (تُعالج بأمان عبر مزودين خارجيين)',
         serverInfoTitle: 'معلومات الخادم',
-        serverInfoConfig:
-            'تهيئة الخادم وحالته (مستضاف على Hetzner Cloud)',
+        serverInfoConfig: 'تهيئة الخادم وحالته (مستضاف على Hetzner Cloud)',
         serverInfoIp: 'عنوان IP للخادم وموقعه',
         serverInfoResources: 'تخصيص الموارد (CPU وRAM والتخزين)',
         useTitle: '4. كيف نستخدم معلوماتك',
@@ -1903,8 +1864,7 @@ const ar: Translations = {
         useAnalyze: 'مراقبة وتحليل أنماط الاستخدام لتحسين خدمتنا',
         useFraud: 'اكتشاف ومنع الاحتيال أو إساءة الاستخدام',
         sharingTitle: '5. مشاركة البيانات والإفصاح',
-        sharingText:
-            'نحن لا نبيع معلوماتك الشخصية. قد نشارك المعلومات مع:',
+        sharingText: 'نحن لا نبيع معلوماتك الشخصية. قد نشارك المعلومات مع:',
         sharingProviders:
             'مزودي الخدمة الذين يساعدون في تشغيل خدمتنا (مثل مزودي البنية التحتية السحابية)',
         sharingLegal:
@@ -1943,8 +1903,7 @@ const ar: Translations = {
     },
     terms: {
         title: 'شروط الخدمة',
-        description:
-            'اقرأ الشروط والأحكام لاستخدام خدمات ClawHost.',
+        description: 'اقرأ الشروط والأحكام لاستخدام خدمات ClawHost.',
         lastUpdated: 'آخر تحديث: 14 مارس 2026',
         acceptanceTitle: '1. قبول الشروط',
         acceptanceText:
@@ -1957,10 +1916,8 @@ const ar: Translations = {
             'يستخدم ClawHost مصادقة Google Firebase لإدارة تسجيل الدخول. يمكنك المصادقة بالبريد الإلكتروني أو Google أو GitHub. باستخدام هذه الطرق، توافق على الشروط وسياسات الخصوصية الخاصة بـ Google وGitHub. قد يجمع هؤلاء المزودون معلومات أساسية مثل عنوان بريدك الإلكتروني واسمك وبيانات الجهاز.',
         responsibilitiesTitle: '4. مسؤوليات المستخدم',
         responsibilitiesText: 'أنت توافق على:',
-        responsibilitiesAccurate:
-            'تقديم معلومات تسجيل دقيقة وكاملة',
-        responsibilitiesSecurity:
-            'الحفاظ على أمان بيانات اعتماد حسابك',
+        responsibilitiesAccurate: 'تقديم معلومات تسجيل دقيقة وكاملة',
+        responsibilitiesSecurity: 'الحفاظ على أمان بيانات اعتماد حسابك',
         responsibilitiesCompliance:
             'استخدام الخدمة بما يتوافق مع جميع القوانين المعمول بها',
         responsibilitiesLegal:
@@ -1974,8 +1931,7 @@ const ar: Translations = {
         prohibitedDos: 'تنفيذ هجمات رفض الخدمة أو إساءة استخدام الشبكة',
         prohibitedSpam: 'إرسال رسائل عشوائية أو اتصالات غير مرغوب فيها',
         prohibitedIllegal: 'استضافة أو توزيع محتوى غير قانوني',
-        prohibitedIp:
-            'انتهاك أي حقوق لأطراف ثالثة بما في ذلك الملكية الفكرية',
+        prohibitedIp: 'انتهاك أي حقوق لأطراف ثالثة بما في ذلك الملكية الفكرية',
         prohibitedMining: 'تعدين العملات المشفرة',
         prohibitedOther:
             'أي أنشطة أخرى غير قانونية أو ضارة نراها غير مناسبة حسب تقديرنا',
@@ -1995,16 +1951,14 @@ const ar: Translations = {
         changesToTermsText:
             'نحتفظ بالحق في تعديل هذه الشروط في أي وقت. سنخطر المستخدمين بأي تغييرات جوهرية عبر البريد الإلكتروني أو من خلال الخدمة. الاستمرار في استخدام الخدمة بعد هذه التعديلات يشكل قبولاً للشروط المحدّثة.',
         contactTitle: '11. معلومات الاتصال',
-        contactText:
-            'إذا كانت لديك أسئلة حول هذه الشروط، يرجى التواصل معنا على'
+        contactText: 'إذا كانت لديك أسئلة حول هذه الشروط، يرجى التواصل معنا على'
     },
     mobile: {
         messages: 'الرسائل',
         settings: 'الإعدادات',
         comingSoon: 'قريباً',
         messagesPlaceholder: 'ستظهر الرسائل والإشعارات هنا.',
-        settingsPlaceholder:
-            'ستظهر إعدادات الحساب والتفضيلات هنا.',
+        settingsPlaceholder: 'ستظهر إعدادات الحساب والتفضيلات هنا.',
         signIn: 'تسجيل الدخول',
         signInDescription: 'سجّل الدخول لإدارة نسخ OpenClaw.',
         enterEmail: 'البريد الإلكتروني',
@@ -2046,8 +2000,7 @@ const ar: Translations = {
     },
     compare: {
         title: 'المقارنة الكاملة',
-        description:
-            'شاهد كيف يقارن ClawHost بمنصات استضافة OpenClaw الأخرى.',
+        description: 'شاهد كيف يقارن ClawHost بمنصات استضافة OpenClaw الأخرى.',
         badge: 'مقارنة',
         feature: 'المنصة',
         compareWith: 'قارن مع',
@@ -2105,7 +2058,7 @@ const ar: Translations = {
         sharedContainers: 'حاويات مشتركة',
         isolatedContainers: 'حاويات معزولة',
         cloudWorkspaces: 'مساحات عمل سحابية',
-        threeProviders: 'Hetzner، DigitalOcean، Vultr',
+        threeProviders: 'Hetzner Cloud',
         singleProvider: 'مزود واحد',
         fullyDedicated: 'مخصص بالكامل',
         shared: 'مشترك',

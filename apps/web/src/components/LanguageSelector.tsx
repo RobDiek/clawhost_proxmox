@@ -56,7 +56,10 @@ const LanguageSelector: FC = (): ReactNode => {
                     <p>{t('language.switchLanguage')}</p>
                 </TooltipContent>
             </Tooltip>
-            <DropdownMenuContent align='end' className='max-h-80 w-44 overflow-y-auto'>
+            <DropdownMenuContent
+                align='end'
+                className='max-h-80 w-44 overflow-y-auto'
+            >
                 {LANGUAGE_OPTIONS.map((lang) => (
                     <DropdownMenuItem
                         key={lang.value}

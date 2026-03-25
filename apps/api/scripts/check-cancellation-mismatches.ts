@@ -105,7 +105,9 @@ const run = async () => {
                     subscriptionStatus: 'canceled'
                 })
                 .where(eq(claws.id, claw.id))
-            console.log(`    ✓ Fixed: deletionScheduledAt → ${polarDate.toISOString()}, subscriptionStatus → canceled`)
+            console.log(
+                `    ✓ Fixed: deletionScheduledAt → ${polarDate.toISOString()}, subscriptionStatus → canceled`
+            )
             fixed++
         }
 
@@ -122,7 +124,9 @@ const run = async () => {
         if (shouldFix) {
             console.log(`Fixed ${fixed} claw(s).`)
         } else {
-            console.log('Run with --fix to update claws to match their subscriptions.')
+            console.log(
+                'Run with --fix to update claws to match their subscriptions.'
+            )
         }
     }
 }

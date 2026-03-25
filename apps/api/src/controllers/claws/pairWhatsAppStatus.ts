@@ -64,7 +64,8 @@ const pairWhatsAppStatus = async (c: AuthenticatedContext) => {
 
             if (hasLogContent) {
                 const logLines = logSection.split('\n')
-                const qrPattern = /[\u2580\u2584\u2588\u258C\u2590\u2591\u2592\u2593\u25A0\u25A1\u25AA\u25AB\u2503\u2501\u250F\u2513\u2517\u251B\u2B1B\u2B1C]/
+                const qrPattern =
+                    /[\u2580\u2584\u2588\u258C\u2590\u2591\u2592\u2593\u25A0\u25A1\u25AA\u25AB\u2503\u2501\u250F\u2513\u2517\u251B\u2B1B\u2B1C]/
                 let lastQrEnd = -1
                 for (let i = logLines.length - 1; i >= 0; i--) {
                     if (qrPattern.test(logLines[i])) {
@@ -79,9 +80,15 @@ const pairWhatsAppStatus = async (c: AuthenticatedContext) => {
                         if (!qrPattern.test(logLines[i])) break
                         lastQrStart = i
                     }
-                    const lastQrLines = logLines.slice(lastQrStart, lastQrEnd + 1)
+                    const lastQrLines = logLines.slice(
+                        lastQrStart,
+                        lastQrEnd + 1
+                    )
                     if (lastQrLines.length > 5) {
-                        return ok(c, { status: 'qr_ready', qr: lastQrLines.join('\n') })
+                        return ok(c, {
+                            status: 'qr_ready',
+                            qr: lastQrLines.join('\n')
+                        })
                     }
                 }
 
@@ -90,10 +97,15 @@ const pairWhatsAppStatus = async (c: AuthenticatedContext) => {
                 )
                 if (scanLine) {
                     const qrBlock = logLines.filter(
-                        (line) => line.trim().length > 10 && !/^[\w\s:.,[\](){}/<>-]+$/.test(line)
+                        (line) =>
+                            line.trim().length > 10 &&
+                            !/^[\w\s:.,[\](){}/<>-]+$/.test(line)
                     )
                     if (qrBlock.length > 5) {
-                        return ok(c, { status: 'qr_ready', qr: qrBlock.join('\n') })
+                        return ok(c, {
+                            status: 'qr_ready',
+                            qr: qrBlock.join('\n')
+                        })
                     }
                 }
             }

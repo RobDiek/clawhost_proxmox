@@ -31,7 +31,10 @@ const handlePolarWebhook = async (c: Context) => {
                     return
                 }
 
-                if (data.metadata?.type === 'license' && data.metadata?.userId) {
+                if (
+                    data.metadata?.type === 'license' &&
+                    data.metadata?.userId
+                ) {
                     const currentEnv = getEnvironment(c)
                     const eventEnv = data.metadata?.environment || PROD
 

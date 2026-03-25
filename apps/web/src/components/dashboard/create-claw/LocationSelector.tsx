@@ -28,18 +28,12 @@ const LocationSelector: FC<LocationSelectorProps> = ({
         <div className='space-y-2'>
             <Label>
                 {t('createClaw.location')}
-                <span className='text-red-600 dark:text-red-400'>
-                    {' '}
-                    *
-                </span>
+                <span className='text-red-600 dark:text-red-400'> *</span>
             </Label>
             {isLoading ? (
                 <div className='grid grid-cols-2 gap-2'>
                     {Array.from({ length: 6 }).map((_, i) => (
-                        <Skeleton
-                            key={i}
-                            className='h-10 rounded-lg'
-                        />
+                        <Skeleton key={i} className='h-10 rounded-lg' />
                     ))}
                 </div>
             ) : (
@@ -47,28 +41,18 @@ const LocationSelector: FC<LocationSelectorProps> = ({
                     <div className='grid grid-cols-2 gap-2'>
                         {locations.map((loc) => {
                             const isSelected = location === loc.id
-                            const locFlag =
-                                locationFlags[loc.id] || ''
+                            const locFlag = locationFlags[loc.id] || ''
                             const unavailableForPlan =
-                                !isLocationAvailableForPlan(
-                                    loc.id,
-                                    planId
-                                )
+                                !isLocationAvailableForPlan(loc.id, planId)
                             const isDisabled =
-                                loc.disabled ||
-                                unavailableForPlan ||
-                                atCapacity
+                                loc.disabled || unavailableForPlan || atCapacity
                             const locationLabel = loc.country
                                 ? `${loc.city}, ${loc.country}`
                                 : loc.city
 
                             const tooltipText = loc.disabled
-                                ? t(
-                                      'createClaw.locationUnavailable'
-                                  )
-                                : t(
-                                      'createClaw.locationUnavailableForPlan'
-                                  )
+                                ? t('createClaw.locationUnavailable')
+                                : t('createClaw.locationUnavailableForPlan')
 
                             const card = (
                                 <label
@@ -87,11 +71,8 @@ const LocationSelector: FC<LocationSelectorProps> = ({
                                         checked={isSelected}
                                         disabled={isDisabled}
                                         onChange={(e) => {
-                                            const newLocation =
-                                                e.target.value
-                                            onLocationChange(
-                                                newLocation
-                                            )
+                                            const newLocation = e.target.value
+                                            onLocationChange(newLocation)
                                             if (
                                                 !isLocationAvailableForPlan(
                                                     newLocation,

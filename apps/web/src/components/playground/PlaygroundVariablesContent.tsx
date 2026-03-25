@@ -226,9 +226,12 @@ const PlaygroundVariablesContent: FC<PlaygroundVariablesContentProps> = ({
         []
     )
 
-    const handleToggleVisibility = useCallback((key: string) => {
-        toggleValue(key)
-    }, [toggleValue])
+    const handleToggleVisibility = useCallback(
+        (key: string) => {
+            toggleValue(key)
+        },
+        [toggleValue]
+    )
 
     const handleCopyValue = useCallback(async (key: string, value: string) => {
         await copyToClipboard(value)

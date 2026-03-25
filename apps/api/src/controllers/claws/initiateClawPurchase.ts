@@ -1,9 +1,17 @@
 import type { InitiateClawPurchaseBody } from '@/ts/Interfaces'
-import type { AuthenticatedContext, BillingInterval, ProviderType } from '@/ts/Types'
+import type {
+    AuthenticatedContext,
+    BillingInterval,
+    ProviderType
+} from '@/ts/Types'
 
 import crypto from 'crypto'
 import { eq, and, count, lt } from 'drizzle-orm'
-import { inputValidation, clawProvider, billingInterval } from '@openclaw/shared'
+import {
+    inputValidation,
+    clawProvider,
+    billingInterval
+} from '@openclaw/shared'
 import { db } from '@/db'
 import { users, sshKeys, claws, pendingClaws } from '@/db/schema'
 import { checkouts, customers } from '@/lib/polar'
@@ -105,54 +113,25 @@ const generateClawName = (): string => {
 }
 
 const PLAN_TO_POLAR: Record<string, string> = {
-    'cx23': 'CX23',
-    'cx33': 'CX33',
-    'cx43': 'CX43',
-    'cx53': 'CX53',
-    'cpx11': 'CPX11',
-    'cpx21': 'CPX21',
-    'cpx31': 'CPX31',
-    'cpx41': 'CPX41',
-    'cpx51': 'CPX51',
-    'cax11': 'CAX11',
-    'cax21': 'CAX21',
-    'cax31': 'CAX31',
-    'cax41': 'CAX41',
-    'ccx13': 'CCX13',
-    'ccx23': 'CCX23',
-    'ccx33': 'CCX33',
-    'ccx43': 'CCX43',
-    'ccx53': 'CCX53',
-    'ccx63': 'CCX63',
-    's-1vcpu-512mb-10gb': 'DC11',
-    's-1vcpu-1gb': 'DC12',
-    's-1vcpu-2gb': 'DC13',
-    's-2vcpu-2gb': 'DC21',
-    's-2vcpu-4gb': 'DC22',
-    's-4vcpu-8gb': 'DC41',
-    's-8vcpu-16gb': 'DC81',
-    'vc2-1c-1gb': 'VC11',
-    'vc2-1c-2gb': 'VC12',
-    'vc2-2c-2gb': 'VC21',
-    'vc2-2c-4gb': 'VC22',
-    'vc2-4c-8gb': 'VC41',
-    'vc2-6c-16gb': 'VC61',
-    'vc2-8c-32gb': 'VC81',
-    'vc2-16c-64gb': 'VC161',
-    'vhf-1c-2gb': 'VF11',
-    'vhf-2c-4gb': 'VF21',
-    'vhf-3c-8gb': 'VF31',
-    'vhf-4c-16gb': 'VF41',
-    'vhf-8c-32gb': 'VF81',
-    'vhf-12c-48gb': 'VF121',
-    'vhp-1c-1gb-amd': 'VA11',
-    'vhp-1c-2gb-amd': 'VA12',
-    'vhp-2c-2gb-amd': 'VA21',
-    'vhp-2c-4gb-amd': 'VA22',
-    'vhp-4c-8gb-amd': 'VA41',
-    'vhp-4c-12gb-amd': 'VA42',
-    'vhp-8c-16gb-amd': 'VA81',
-    'vhp-12c-24gb-amd': 'VA121'
+    cx23: 'CX23',
+    cx33: 'CX33',
+    cx43: 'CX43',
+    cx53: 'CX53',
+    cpx11: 'CPX11',
+    cpx21: 'CPX21',
+    cpx31: 'CPX31',
+    cpx41: 'CPX41',
+    cpx51: 'CPX51',
+    cax11: 'CAX11',
+    cax21: 'CAX21',
+    cax31: 'CAX31',
+    cax41: 'CAX41',
+    ccx13: 'CCX13',
+    ccx23: 'CCX23',
+    ccx33: 'CCX33',
+    ccx43: 'CCX43',
+    ccx53: 'CCX53',
+    ccx63: 'CCX63'
 }
 
 const getPolarProductId = (
@@ -192,37 +171,20 @@ const initiateClawPurchase = async (c: AuthenticatedContext) => {
             billingInterval: rawBillingInterval
         } = await c.req.json<InitiateClawPurchaseBody>()
 
-        const billingCycle = rawBillingInterval === billingInterval.YEAR ? billingInterval.YEAR : billingInterval.MONTH
+        const billingCycle =
+            rawBillingInterval === billingInterval.YEAR
+                ? billingInterval.YEAR
+                : billingInterval.MONTH
 
         if (!planId || !location || !priceMonthly) {
             return fail(c, t('api.missingRequiredFields'), 400)
         }
 
-        const validProviders: ProviderType[] = [
-            'hetzner',
-            'digitalocean',
-            'vultr'
-        ]
-        if (
-            providerName &&
-            !validProviders.includes(providerName as ProviderType)
-        ) {
+        if (providerName && providerName !== clawProvider.hetzner) {
             return fail(c, t('api.invalidProvider'), 400)
         }
 
-        const resolvedProvider = (providerName ||
-            clawProvider.hetzner) as ProviderType
-        if (resolvedProvider !== clawProvider.hetzner) {
-            try {
-                const hetznerService = getProvider(
-                    clawProvider.hetzner as ProviderType
-                )
-                const hetznerTypes = await hetznerService.getServerTypes()
-                if (hetznerTypes.length > 0) {
-                    return fail(c, t('api.providerNotAllowed'), 400)
-                }
-            } catch {}
-        }
+        const resolvedProvider = clawProvider.hetzner as ProviderType
 
         const provider = getProvider(resolvedProvider)
         const [serverTypes, locations] = await Promise.all([
@@ -250,9 +212,7 @@ const initiateClawPurchase = async (c: AuthenticatedContext) => {
                 provider.getRawServerTypes(),
                 provider.getDatacenters()
             ])
-            const serverTypeId = rawTypes.find(
-                (st) => st.name === planId
-            )?.id
+            const serverTypeId = rawTypes.find((st) => st.name === planId)?.id
             if (serverTypeId) {
                 const available = datacenters.some(
                     (dc) =>

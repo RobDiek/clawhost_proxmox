@@ -1,4 +1,4 @@
-export type ProviderType = 'hetzner' | 'digitalocean' | 'vultr'
+export type ProviderType = 'hetzner'
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
 

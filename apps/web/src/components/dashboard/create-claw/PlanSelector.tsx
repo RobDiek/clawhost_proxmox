@@ -16,7 +16,6 @@ const PlanSelector: FC<PlanSelectorProps> = ({
     plans,
     planId,
     location,
-    provider,
     billingCycle,
     isLoading,
     isLocationAvailableForPlan,
@@ -29,18 +28,12 @@ const PlanSelector: FC<PlanSelectorProps> = ({
         <div className='space-y-2'>
             <Label>
                 {t('createClaw.plan')}
-                <span className='text-red-600 dark:text-red-400'>
-                    {' '}
-                    *
-                </span>
+                <span className='text-red-600 dark:text-red-400'> *</span>
             </Label>
             {isLoading ? (
                 <div className='space-y-2'>
                     {Array.from({ length: 4 }).map((_, i) => (
-                        <Skeleton
-                            key={i}
-                            className='h-14 rounded-lg'
-                        />
+                        <Skeleton key={i} className='h-14 rounded-lg' />
                     ))}
                 </div>
             ) : (
@@ -50,42 +43,19 @@ const PlanSelector: FC<PlanSelectorProps> = ({
                             const isSelected = planId === plan.id
                             const unavailableForLocation =
                                 location &&
-                                !isLocationAvailableForPlan(
-                                    location,
-                                    plan.id
-                                )
+                                !isLocationAvailableForPlan(location, plan.id)
                             const isDisabled =
                                 plan.disabled ||
                                 !isPlanAvailable(plan.id) ||
                                 !!unavailableForLocation
 
-                            const tierStarts: Record<
-                                string,
-                                Record<string, string>
-                            > = {
-                                hetzner: {
-                                    cx23: t('landing.tierShared'),
-                                    cax11: t('landing.tierArm'),
-                                    ccx13: t(
-                                        'landing.tierDedicated'
-                                    )
-                                },
-                                vultr: {
-                                    'vc2-2c-4gb': t(
-                                        'landing.tierRegular'
-                                    ),
-                                    'vhp-2c-4gb-amd': t(
-                                        'landing.tierHighPerformance'
-                                    ),
-                                    'vhf-3c-8gb': t(
-                                        'landing.tierHighFrequency'
-                                    )
-                                }
+                            const tierStarts: Record<string, string> = {
+                                cx23: t('landing.tierShared'),
+                                cax11: t('landing.tierArm'),
+                                ccx13: t('landing.tierDedicated')
                             }
-                            const providerTiers =
-                                tierStarts[provider]
-                            const tierLabel =
-                                providerTiers?.[plan.id]
+                            const providerTiers = tierStarts
+                            const tierLabel = providerTiers?.[plan.id]
 
                             const card = (
                                 <label
@@ -105,8 +75,7 @@ const PlanSelector: FC<PlanSelectorProps> = ({
                                             checked={isSelected}
                                             disabled={isDisabled}
                                             onChange={(e) => {
-                                                const newPlanId =
-                                                    e.target.value
+                                                const newPlanId = e.target.value
                                                 onPlanChange(newPlanId)
                                                 if (
                                                     !isLocationAvailableForPlan(
@@ -131,20 +100,11 @@ const PlanSelector: FC<PlanSelectorProps> = ({
                                                 )}
                                             </p>
                                             <p className='text-muted-foreground text-xs'>
-                                                {t(
-                                                    'createClaw.planSpec',
-                                                    {
-                                                        cpu: String(
-                                                            plan.cpu
-                                                        ),
-                                                        memory: String(
-                                                            plan.memory
-                                                        ),
-                                                        disk: String(
-                                                            plan.disk
-                                                        )
-                                                    }
-                                                )}
+                                                {t('createClaw.planSpec', {
+                                                    cpu: String(plan.cpu),
+                                                    memory: String(plan.memory),
+                                                    disk: String(plan.disk)
+                                                })}
                                             </p>
                                         </div>
                                     </div>
@@ -173,14 +133,9 @@ const PlanSelector: FC<PlanSelectorProps> = ({
                                 ) : null
 
                             if (isDisabled) {
-                                const tooltipText =
-                                    unavailableForLocation
-                                        ? t(
-                                              'createClaw.planUnavailableForLocation'
-                                          )
-                                        : t(
-                                              'createClaw.planUnavailable'
-                                          )
+                                const tooltipText = unavailableForLocation
+                                    ? t('createClaw.planUnavailableForLocation')
+                                    : t('createClaw.planUnavailable')
                                 return (
                                     <>
                                         {separator}

@@ -9,11 +9,7 @@ import {
     ArrowsOutIcon,
     ArrowsInIcon
 } from '@phosphor-icons/react'
-import {
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent
-} from '@/components/ui'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
 import { ClawAvatar } from '@/components'
 import { TRUNCATE_LENGTHS } from '@/lib'
 import { AGENT_DETAIL_TABS } from '@/lib/constants'
@@ -37,8 +33,7 @@ const AgentDetailHeader: FC<AgentDetailHeaderProps> = ({
                 <ClawAvatar />
                 <div className='space-y-0'>
                     <h3 className='text-foreground text-sm font-semibold leading-tight'>
-                        {agent.name.length >
-                        TRUNCATE_LENGTHS.PANEL_NAME ? (
+                        {agent.name.length > TRUNCATE_LENGTHS.PANEL_NAME ? (
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <span>
@@ -49,9 +44,7 @@ const AgentDetailHeader: FC<AgentDetailHeaderProps> = ({
                                         ...
                                     </span>
                                 </TooltipTrigger>
-                                <TooltipContent>
-                                    {agent.name}
-                                </TooltipContent>
+                                <TooltipContent>{agent.name}</TooltipContent>
                             </Tooltip>
                         ) : (
                             agent.name
@@ -72,9 +65,7 @@ const AgentDetailHeader: FC<AgentDetailHeaderProps> = ({
                                         })}
                                     </span>
                                 </TooltipTrigger>
-                                <TooltipContent>
-                                    {clawName}
-                                </TooltipContent>
+                                <TooltipContent>{clawName}</TooltipContent>
                             </Tooltip>
                         ) : (
                             t('playground.agentOnClaw', { clawName })
@@ -84,8 +75,7 @@ const AgentDetailHeader: FC<AgentDetailHeaderProps> = ({
             </div>
             <div className='flex items-center gap-1'>
                 {!hideChatTab &&
-                    (activeTab === AGENT_DETAIL_TABS.CHAT ||
-                        isExpanded) && (
+                    (activeTab === AGENT_DETAIL_TABS.CHAT || isExpanded) && (
                         <button
                             onClick={onToggleExpand}
                             className='text-muted-foreground hover:bg-foreground/10 hover:text-foreground rounded-lg p-1.5 transition-colors'
@@ -121,27 +111,20 @@ const AgentDetailHeader: FC<AgentDetailHeaderProps> = ({
                             </TooltipTrigger>
                             <TooltipContent side='bottom'>
                                 <p>
-                                    {t(
-                                        'playground.cannotDeleteDefaultAgent'
-                                    )}
+                                    {t('playground.cannotDeleteDefaultAgent')}
                                 </p>
                             </TooltipContent>
                         </Tooltip>
                     ) : (
                         <button
-                            onClick={() =>
-                                !isDeleting && onDeleteClick()
-                            }
+                            onClick={() => !isDeleting && onDeleteClick()}
                             disabled={isDeleting}
                             className='text-muted-foreground hover:bg-foreground/10 hover:text-foreground rounded-lg p-1.5 transition-colors disabled:cursor-not-allowed'
                         >
                             {isDeleting ? (
                                 <CircleNotchIcon className='text-foreground h-4 w-4 animate-spin' />
                             ) : (
-                                <TrashIcon
-                                    className='h-4 w-4'
-                                    weight='bold'
-                                />
+                                <TrashIcon className='h-4 w-4' weight='bold' />
                             )}
                         </button>
                     ))}

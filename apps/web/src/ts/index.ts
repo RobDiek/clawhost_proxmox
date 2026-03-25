@@ -127,8 +127,6 @@ export type {
     FirebaseErrorLike,
     ErrorWithMessage,
     ErrorResponse,
-    ProviderOptionWithIcon,
-    ProviderOption,
     TranscriptionResult,
     AudioContextWithSinkId,
     StatItem,

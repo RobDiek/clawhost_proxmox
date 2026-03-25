@@ -25,10 +25,7 @@ const AgentDeleteDialog: FC<AgentDeleteDialogProps> = ({
     }, [dontAskAgain, onConfirm])
 
     return (
-        <Dialog
-            open={open}
-            onOpenChange={onOpenChange}
-        >
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className='max-w-sm'>
                 <DialogHeader>
                     <DialogTitle>

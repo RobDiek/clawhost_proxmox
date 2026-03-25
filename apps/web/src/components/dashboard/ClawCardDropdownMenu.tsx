@@ -48,7 +48,12 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                 <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />
             </button>
         ) : (
-            <Button variant='ghost' size='icon' disabled aria-label={t('common.loading')}>
+            <Button
+                variant='ghost'
+                size='icon'
+                disabled
+                aria-label={t('common.loading')}
+            >
                 <CircleNotchIcon className='h-5 w-5 animate-spin' />
             </Button>
         )
@@ -68,7 +73,11 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                         />
                     </button>
                 ) : (
-                    <Button variant='ghost' size='icon' aria-label={t('dashboard.clawActions')}>
+                    <Button
+                        variant='ghost'
+                        size='icon'
+                        aria-label={t('dashboard.clawActions')}
+                    >
                         <DotsThreeOutlineIcon className='h-5 w-5' />
                     </Button>
                 )}
@@ -88,7 +97,10 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                         <DropdownMenuItem
                             onClick={() => {
                                 let url: string
-                                if (claw.provider === clawProvider.local && claw.port) {
+                                if (
+                                    claw.provider === clawProvider.local &&
+                                    claw.port
+                                ) {
                                     url = `http://127.0.0.1:${claw.port}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`
                                 } else {
                                     const subdomain =

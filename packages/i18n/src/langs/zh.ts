@@ -95,7 +95,8 @@ const zh: Translations = {
         heroTitle2: '本地. 即时.',
         badge: '即将推出',
         comingSoon: '即将推出',
-        description: '一款轻量级桌面客户端，用于管理您的 OpenClaw 实例。部署、监控和控制您的 claws — 直接在您的设备上完成.',
+        description:
+            '一款轻量级桌面客户端，用于管理您的 OpenClaw 实例。部署、监控和控制您的 claws — 直接在您的设备上完成.',
         download: '下载 {{os}} 版',
         downloadWindows: 'Windows',
         downloadMac: 'macOS',
@@ -103,14 +104,20 @@ const zh: Translations = {
         features: '功能',
         whyClawHostGo: '一体化功能',
         featuresDescription: '为什么值得一试，功能不会说谎.',
-        zeroConfigDescription: '安装即运行。无需服务器配置，无需云端设置。OpenClaw 几秒内即可就绪.',
-        ownedDataDescription: '一切在您的设备上运行。无云服务器，无第三方，数据不会离开您的设备.',
-        terminalAccessDescription: '直接从应用中访问您的 OpenClaw 实例终端。无需外部 SSH 客户端.',
+        zeroConfigDescription:
+            '安装即运行。无需服务器配置，无需云端设置。OpenClaw 几秒内即可就绪.',
+        ownedDataDescription:
+            '一切在您的设备上运行。无云服务器，无第三方，数据不会离开您的设备.',
+        terminalAccessDescription:
+            '直接从应用中访问您的 OpenClaw 实例终端。无需外部 SSH 客户端.',
         simplePricing: '简单定价',
-        simplePricingDescription: '一个许可证，无限使用。无月费，无使用限制，无隐藏费用.',
+        simplePricingDescription:
+            '一个许可证，无限使用。无月费，无使用限制，无隐藏费用.',
         localDomain: '自定义本地域名',
-        localDomainDescription: '通过自定义品牌本地域名访问您的 OpenClaw。在您自己的网络上使用简洁的 URL.',
-        secureDescription: '您的数据永远不会离开您的设备。完全隔离，完全加密，完全属于您.',
+        localDomainDescription:
+            '通过自定义品牌本地域名访问您的 OpenClaw。在您自己的网络上使用简洁的 URL.',
+        secureDescription:
+            '您的数据永远不会离开您的设备。完全隔离，完全加密，完全属于您.',
         pricing: '定价',
         pricingTitle: '简单的一次性定价',
         pricingDescription: '无订阅，无隐藏费用。一个许可证，无限使用.',
@@ -125,7 +132,8 @@ const zh: Translations = {
         pricingCta: '获取 ClawHost Go',
         comparison: '对比',
         comparisonTitle: 'Go 与 Cloud 对比',
-        comparisonDescription: '选择适合您的方案。Go 在本地运行，Cloud 在专用服务器上运行.',
+        comparisonDescription:
+            '选择适合您的方案。Go 在本地运行，Cloud 在专用服务器上运行.',
         comparisonLocalUs: '完全在您的设备上运行',
         comparisonLocalOthers: '在远程服务器上运行',
         comparisonPricingUs: '一次性付款',
@@ -142,17 +150,23 @@ const zh: Translations = {
         faqHeading: '常见问题',
         faqDescription: '关于 ClawHost Go 您需要了解的一切.',
         faq1Question: '什么是 ClawHost Go？',
-        faq1Answer: 'ClawHost Go 是一款轻量级桌面应用程序，让您可以在自己的设备上本地运行 OpenClaw。无需云服务器 — 安装、启动，几秒内即可开始使用 OpenClaw.',
+        faq1Answer:
+            'ClawHost Go 是一款轻量级桌面应用程序，让您可以在自己的设备上本地运行 OpenClaw。无需云服务器 — 安装、启动，几秒内即可开始使用 OpenClaw.',
         faq2Question: 'Go 与 ClawHost Cloud 有什么不同？',
-        faq2Answer: 'ClawHost Cloud 将 OpenClaw 部署在专用远程服务器上，提供 24/7 正常运行时间和全球访问。ClawHost Go 在您的设备上本地运行一切 — 非常适合隐私保护、离线使用和简单设置.',
+        faq2Answer:
+            'ClawHost Cloud 将 OpenClaw 部署在专用远程服务器上，提供 24/7 正常运行时间和全球访问。ClawHost Go 在您的设备上本地运行一切 — 非常适合隐私保护、离线使用和简单设置.',
         faq3Question: '我需要互联网连接吗？',
-        faq3Answer: 'ClawHost Go 本地使用时可以离线工作。仅在初始设置、更新以及需要外部 API 调用的功能时才需要互联网连接.',
+        faq3Answer:
+            'ClawHost Go 本地使用时可以离线工作。仅在初始设置、更新以及需要外部 API 调用的功能时才需要互联网连接.',
         faq4Question: '许可证是一次性付款吗？',
-        faq4Answer: '是的。您只需支付一次，即可终身使用 ClawHost Go，包括所有未来更新。无订阅，无重复费用.',
+        faq4Answer:
+            '是的。您只需支付一次，即可终身使用 ClawHost Go，包括所有未来更新。无订阅，无重复费用.',
         faq5Question: '支持哪些操作系统？',
-        faq5Answer: 'ClawHost Go 支持 Windows 和 macOS。两个平台拥有相同的功能并同时接收更新.',
+        faq5Answer:
+            'ClawHost Go 支持 Windows 和 macOS。两个平台拥有相同的功能并同时接收更新.',
         faq6Question: '以后可以从 Go 切换到 Cloud 吗？',
-        faq6Answer: '当然可以。您可以随时从 Go 导出您的 OpenClaw 配置并部署到 ClawHost Cloud。两个平台完全兼容.',
+        faq6Answer:
+            '当然可以。您可以随时从 Go 导出您的 OpenClaw 配置并部署到 ClawHost Cloud。两个平台完全兼容.',
         statsPrice: '${{price}}',
         statsLifetime: '终身',
         statsOneTime: '一次性',
@@ -162,7 +176,8 @@ const zh: Translations = {
         statsZero: '零',
         statsZeroConfig: '零配置',
         ctaTitle: '在本地运行 OpenClaw',
-        ctaDescription: '一次性付款，终身许可证。在您自己的设备上部署 OpenClaw — 无云端，无订阅，无限制。您的数据，您做主.',
+        ctaDescription:
+            '一次性付款，终身许可证。在您自己的设备上部署 OpenClaw — 无云端，无订阅，无限制。您的数据，您做主.',
         ctaButton: '获取 ClawHost Go',
         joinWaitlist: '加入等待列表',
         joinedWaitlist: '已加入等待列表',
@@ -238,8 +253,7 @@ const zh: Translations = {
         somethingWentWrong: '出了点问题!',
         couldNotLoadData: '无法加载数据。请重试!',
         notFound: '页面未找到!',
-        pageNotFoundDescription:
-            '您要查找的页面不存在或已被移动.',
+        pageNotFoundDescription: '您要查找的页面不存在或已被移动.',
         goToHomepage: '返回首页',
         failedToLoadClaws: '加载 claws 失败!',
         failedToLoadClawsDescription:
@@ -254,8 +268,7 @@ const zh: Translations = {
         failedToLoadPlans: '加载套餐失败。请重试!',
         invalidPlan: '所选套餐无效!',
         invalidLocation: '请选择一个地区!',
-        failedToGenerateKeyPair:
-            '生成密钥对失败。请改为在本地生成密钥!',
+        failedToGenerateKeyPair: '生成密钥对失败。请改为在本地生成密钥!',
         unableToLoadPricing: '无法加载定价信息。请稍后重试!',
         noPasswordAvailable: '此 claw 没有可用的密码!',
         clawLimitReached:
@@ -276,16 +289,14 @@ const zh: Translations = {
             '您已达到 {{max}} 个 claws 的限制。请联系支持团队以提高此限制!',
         sshKeyLimitReached:
             '您已达到 {{max}} 个 SSH 密钥的限制。请联系支持团队以提高此限制!',
-        volumeSizeInvalid:
-            '卷大小必须在 {{min}} 到 {{max}} GB 之间!',
+        volumeSizeInvalid: '卷大小必须在 {{min}} 到 {{max}} GB 之间!',
         paymentNotConfigured: '此套餐未配置支付!',
         invalidSshKeyFormat: '无效的 SSH 公钥格式!',
         sshKeyInUse: '此 SSH 密钥目前正被一个或多个 claws 使用!',
         inputTooLong: '输入超过最大允许长度!',
         invalidEnvVars: '无效的环境变量名称或值!',
         invalidEmailFormat: '无效的邮箱格式!',
-        plusAddressingNotAllowed:
-            '邮箱登录不允许使用加号地址!',
+        plusAddressingNotAllowed: '邮箱登录不允许使用加号地址!',
         invalidRedirectUrl: '无效的重定向 URL!',
         fileTooLarge: '文件内容超过最大允许大小!',
         nameAndKeyRequired: '名称和公钥是必填项!',
@@ -302,11 +313,9 @@ const zh: Translations = {
         failedToDeleteClaw: '删除 claw 失败!',
         failedToCreateClaw: '创建 claw 失败!',
         invalidProvider: '无效的提供商!',
-        providerNotAllowed:
-            '当 Hetzner 处于活动状态时，此提供商不可用!',
+        providerNotAllowed: '当 Hetzner 处于活动状态时，此提供商不可用!',
         invalidPlan: '所选套餐无效!',
-        planBelowMinimumMemory:
-            '此套餐不满足最低内存要求!',
+        planBelowMinimumMemory: '此套餐不满足最低内存要求!',
         invalidLocation: '所选地区无效!',
         planNotAvailableAtLocation: '此套餐在所选地区不可用!',
         failedToSyncClaw: '同步服务器状态失败!',
@@ -314,8 +323,7 @@ const zh: Translations = {
         failedToInitiatePurchase: '发起购买失败!',
         failedToCancelDeletion: '取消删除失败!',
         failedToHardDeleteClaw: '永久删除 claw 失败!',
-        failedToCancelScheduledDeletion:
-            '取消计划删除失败!',
+        failedToCancelScheduledDeletion: '取消计划删除失败!',
         failedToCreateSshKey: '创建 SSH 密钥失败!',
         failedToDeleteSshKey: '删除 SSH 密钥失败!',
         failedToUpdateProfile: '更新个人资料失败!',
@@ -339,8 +347,7 @@ const zh: Translations = {
         failedToGetDiagnosticsDescription:
             '无法获取诊断信息。实例可能已离线或正在启动中.',
         failedToGetLogs: '加载日志失败!',
-        failedToGetLogsDescription:
-            '无法获取此实例的日志。请稍后重试.',
+        failedToGetLogsDescription: '无法获取此实例的日志。请稍后重试.',
         failedToRepairClaw: '修复实例失败!',
         repairSuccess: '实例修复成功.',
         repairGatewayNotResponding:
@@ -354,8 +361,7 @@ const zh: Translations = {
             '重新安装已完成，但网关尚未响应。可能需要更多时间启动.',
         failedToExportClaw: '导出 claw 数据失败!',
         clawNotReady: 'Claw 尚未准备好导出!',
-        exportRateLimited:
-            '此 claw 最近已导出过。请等待后再次导出!',
+        exportRateLimited: '此 claw 最近已导出过。请等待后再次导出!',
         failedToListFiles: '列出实例文件失败!',
         failedToReadFile: '读取文件失败!',
         failedToUpdateFile: '保存文件失败!',
@@ -364,10 +370,8 @@ const zh: Translations = {
         invalidJsonConfig: '无效的 JSON!',
         fileSaveSuccess: '文件已保存.',
         rateLimitExceeded: '请等待后再请求新的验证码!',
-        otpExpiredOrNotFound:
-            '验证码已过期或未找到。请重新请求!',
-        otpMaxAttemptsReached:
-            '失败尝试次数过多。请重新请求验证码!',
+        otpExpiredOrNotFound: '验证码已过期或未找到。请重新请求!',
+        otpMaxAttemptsReached: '失败尝试次数过多。请重新请求验证码!',
         otpInvalidCode: '无效的验证码。请重试!',
         licenseAlreadyPurchased: '许可证已购买!',
         licenseNotAvailable: '许可证产品不可用!',
@@ -415,8 +419,7 @@ const zh: Translations = {
         agentDeleted: '代理删除成功.',
         agentDeleteFailed: '无法从实例中删除代理!',
         cannotDeleteMainAgent: '无法删除唯一剩余的代理!',
-        agentNameInvalid:
-            '代理名称只能包含字母、数字和连字符!',
+        agentNameInvalid: '代理名称只能包含字母、数字和连字符!',
         agentNameDuplicate: '已存在同名的代理!',
         diagnosticsFetched: '诊断信息获取成功.',
         logsFetched: '日志获取成功.',
@@ -437,7 +440,8 @@ const zh: Translations = {
         whatsappPairStarted: 'WhatsApp 配对已开始.',
         whatsappPairFailed: 'WhatsApp 配对失败!',
         whatsappAlreadyPaired: 'WhatsApp 已配对!',
-        whatsappVersionUnsupported: '此版本不支持从仪表板配置频道。请使用终端选项卡手动配置或升级 OpenClaw。',
+        whatsappVersionUnsupported:
+            '此版本不支持从仪表板配置频道。请使用终端选项卡手动配置或升级 OpenClaw。',
         bindingsFetched: '绑定获取成功.',
         bindingsFetchFailed: '无法获取绑定!',
         bindingsUpdated: '绑定更新成功.',
@@ -453,8 +457,7 @@ const zh: Translations = {
         agentSkillsUpdated: '代理技能更新成功.',
         agentSkillsUpdateFailed: '无法更新代理技能!',
         agentSkillsFetchFailed: '无法获取代理技能!',
-        invalidSkillName:
-            '技能名称只能包含字母、数字、连字符和下划线!',
+        invalidSkillName: '技能名称只能包含字母、数字、连字符和下划线!',
         skillNotFound: '技能未找到!',
         clawHubSearchSuccess: 'ClawHub 搜索完成.',
         clawHubSearchFailed: '无法搜索 ClawHub!',
@@ -499,10 +502,8 @@ const zh: Translations = {
         changelogHeading: '最新动态',
         changelogButton: '查看更新日志',
         changelogVisitButton: '访问 ClawHost',
-        changelogFooter:
-            '您收到此邮件是因为您拥有 ClawHost 账户。',
-        featureFooter:
-            '您收到此邮件是因为您拥有 ClawHost 账户。',
+        changelogFooter: '您收到此邮件是因为您拥有 ClawHost 账户。',
+        featureFooter: '您收到此邮件是因为您拥有 ClawHost 账户。',
         features: {
             terminal: {
                 subject: '您知道吗？您拥有一个网页终端',
@@ -608,14 +609,6 @@ const zh: Translations = {
                     '将您的 Claw 配置和设置导出为可下载文件。备份您的设置或用它来复制您的环境。',
                 cta: '导出配置'
             },
-            multiProvider: {
-                subject: '您知道吗？可以在 3 个云提供商上部署',
-                preview: '在 Hetzner、DigitalOcean 和 Vultr 之间选择',
-                heading: '您的云，您做主',
-                description:
-                    '在 Hetzner、DigitalOcean 或 Vultr 上部署您的 Claws。比较价格、位置和规格——然后选择最适合您需求的提供商。',
-                cta: '比较提供商'
-            },
             multiLanguage: {
                 subject: '您知道吗？ClawHost 支持您的语言',
                 preview: '使用 14 种语言操作 ClawHost',
@@ -660,15 +653,13 @@ const zh: Translations = {
     },
     auth: {
         signIn: '登录',
-        signInDescription:
-            '登录您的 ClawHost 账户以管理您的 OpenClaw 实例。',
+        signInDescription: '登录您的 ClawHost 账户以管理您的 OpenClaw 实例。',
         signingIn: '正在登录...',
         verifyCode: '验证代码',
         checkYourEmail: '检查您的邮箱',
         checkYourEmailHeading: '检查您的邮箱',
         codeSentTo: '我们已向以下地址发送了 6 位验证码',
-        signInToDeployOpenClaw:
-            '登录以管理和部署 OpenClaw 实例。',
+        signInToDeployOpenClaw: '登录以管理和部署 OpenClaw 实例。',
         emailAddress: '电子邮箱',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: '使用邮箱继续',
@@ -679,8 +670,7 @@ const zh: Translations = {
         changeEmail: '更改邮箱',
         invalidCode: '验证码无效！',
         invalidEmailFormat: '请输入有效的电子邮箱地址！',
-        plusAddressingNotAllowed:
-            '邮箱登录不允许使用加号地址！',
+        plusAddressingNotAllowed: '邮箱登录不允许使用加号地址！',
         or: '或',
         continueWithGoogle: '使用 Google 继续',
         continueWithGithub: '使用 GitHub 继续',
@@ -691,8 +681,7 @@ const zh: Translations = {
     },
     account: {
         title: '账户',
-        description:
-            '管理您的 ClawHost 账户设置和个人资料信息。',
+        description: '管理您的 ClawHost 账户设置和个人资料信息。',
         accountSettings: '账户',
         manageYourAccount: '管理您的个人资料和账户设置。',
         profileInformation: '个人资料',
@@ -730,20 +719,17 @@ const zh: Translations = {
         manageBilling: '管理账单',
         failedToLoadPortal: '打开账单门户失败！',
         connectedAccounts: '已关联账户',
-        connectedAccountsDescription:
-            '管理与您账户关联的登录方式。',
+        connectedAccountsDescription: '管理与您账户关联的登录方式。',
         authEmail: '邮箱',
         authGoogle: 'Google',
         authGithub: 'GitHub',
         authConnected: '已关联',
         authConnect: '关联',
         authDisconnect: '取消关联',
-        emailCannotBeDisconnected:
-            '邮箱始终作为您的主要登录方式关联。',
+        emailCannotBeDisconnected: '邮箱始终作为您的主要登录方式关联。',
         providerConnected: '{{provider}} 关联成功。',
         providerDisconnected: '{{provider}} 取消关联成功。',
-        providerEmailMismatch:
-            '您只能关联使用相同电子邮箱地址的账户！',
+        providerEmailMismatch: '您只能关联使用相同电子邮箱地址的账户！',
         settings: '设置',
         settingsDescription: '管理您的仪表板偏好设置。',
         showAllClaws: '显示所有用户的所有 Claws',
@@ -785,7 +771,8 @@ const zh: Translations = {
         title: '许可证',
         description: '管理您的 OpenClaw 许可证。',
         pageTitle: '许可证',
-        pageDescription: '购买许可证，使用我们的 Go 应用在本地自托管 OpenClaw 实例。',
+        pageDescription:
+            '购买许可证，使用我们的 Go 应用在本地自托管 OpenClaw 实例。',
         planName: 'ClawHost Go 许可证',
         oneTimePurchase: '一次性购买',
         price: '${{price}}',
@@ -805,7 +792,8 @@ const zh: Translations = {
         whatsIncluded: '包含内容',
         permanentNote: '许可证是永久且不可撤销的。一旦购买，您将永远拥有它。',
         gateTitle: '需要许可证',
-        gateDescription: '您需要 ClawHost Go 许可证才能在本地部署和管理 OpenClaw 实例。'
+        gateDescription:
+            '您需要 ClawHost Go 许可证才能在本地部署和管理 OpenClaw 实例。'
     },
     network: {
         unstable: '连接不稳定',
@@ -847,8 +835,7 @@ const zh: Translations = {
         connect: '复制 SSH 命令',
         viewServerCredentials: '查看服务器凭据',
         serverCredentials: '服务器凭据',
-        serverCredentialsDescription:
-            '使用这些凭据通过 SSH 连接到您的服务器。',
+        serverCredentialsDescription: '使用这些凭据通过 SSH 连接到您的服务器。',
         sshCommand: 'SSH 命令',
         rootPassword: 'Root 密码',
         sshCommandCopied: 'SSH 命令已复制。',
@@ -870,13 +857,11 @@ const zh: Translations = {
         lastBilling: '上次计费',
         version: '版本',
         gatewayToken: '网关令牌',
-        gatewayTokenDescription:
-            '使用此令牌对您的网关进行身份验证',
+        gatewayTokenDescription: '使用此令牌对您的网关进行身份验证',
         scheduledForDeletion: '已计划删除',
         scheduledDeletionShort: '{{date}} 删除',
         deletionDate: '此 Claw 将于 {{date}} 删除',
-        deletionTooltip:
-            '计划于 {{date}} 删除。如需取消，请使用菜单。',
+        deletionTooltip: '计划于 {{date}} 删除。如需取消，请使用菜单。',
         cancelDeletion: '取消删除',
         deletionCancelled: '删除已取消。',
         scheduleDeletion: '计划删除',
@@ -894,17 +879,14 @@ const zh: Translations = {
         diagnosticsRepairDescription:
             '移除内存限制，应用最新服务配置，并重启网关。这可以修复大多数常见问题。',
         diagnosticsRepairSuccess: '实例修复成功。',
-        diagnosticsRepairFailed:
-            '修复已应用但网关尚未响应！',
+        diagnosticsRepairFailed: '修复已应用但网关尚未响应！',
         diagnosticsLoading: '正在连接到实例...',
-        diagnosticsNoLogs:
-            '暂无日志。启动您的实例以生成日志。',
+        diagnosticsNoLogs: '暂无日志。启动您的实例以生成日志。',
         diagnosticsIssueDetected: '检测到您的实例存在问题。',
         diagnosticsHealthy: '您的实例运行正常。',
         diagnosticsPort: '端口 18789',
         diagnosticsMemory: '内存',
-        logsDescription:
-            '网关日志的最新 100 行，自动刷新。',
+        logsDescription: '网关日志的最新 100 行，自动刷新。',
         fileExplorer: '文件浏览器',
         fileExplorerRoot: 'openclaw',
         fileExplorerDescription:
@@ -913,8 +895,7 @@ const zh: Translations = {
         fileExplorerReadOnly: '只读',
         fileExplorerSave: '保存',
         fileExplorerSaved: '文件已保存。',
-        fileExplorerInvalidJson:
-            '无效的 JSON。请在保存前修复语法错误！',
+        fileExplorerInvalidJson: '无效的 JSON。请在保存前修复语法错误！',
         fileExplorerNoFiles: '未找到文件',
         fileExplorerSearchFiles: '搜索文件...',
         fileExplorerNoSearchResults: '没有匹配的文件。',
@@ -937,8 +918,7 @@ const zh: Translations = {
         exportSuccess: 'Claw 导出成功。',
         exportFailed: '导出 Claw 数据失败！',
         exportRateLimited: '您可以在 {{minutes}} 分钟后再次导出。',
-        exportRateLimitedSeconds:
-            '您可以在 {{seconds}} 秒后再次导出。',
+        exportRateLimitedSeconds: '您可以在 {{seconds}} 秒后再次导出。',
         configuringTooltip:
             '这可能需要一些时间。取决于 OpenClaw、服务器位置和 Cloudflare DNS。',
         paymentSuccess: '您的 Claw 正在创建和配置中。',
@@ -978,8 +958,7 @@ const zh: Translations = {
     chat: {
         explorer: '浏览器',
         selectAgent: '未选择',
-        selectAgentDescription:
-            '从侧边栏选择一个 Claw 或代理。',
+        selectAgentDescription: '从侧边栏选择一个 Claw 或代理。',
         noAgents: '暂无可用代理',
         noAgentsDescription: '部署一个 Claw 开始与代理聊天。',
         openSidebar: '打开侧边栏',
@@ -999,8 +978,6 @@ const zh: Translations = {
         autoGenerateNameHint: '留空将自动生成名称。',
         provider: '提供商',
         providerHetzner: 'Hetzner',
-        providerDigitalOcean: 'DigitalOcean',
-        providerVultr: 'Vultr',
         providerLocal: '本地',
         providerAws: 'AWS',
         comingSoon: '即将推出',
@@ -1018,10 +995,8 @@ const zh: Translations = {
         rootPassword: 'Root 密码',
         rootPasswordPlaceholder: '输入密码或生成一个',
         gatewayTokenPlaceholder: '例如 a1b2c3d4e5f6...',
-        autoGenerateGatewayTokenHint:
-            '可选。留空则不设置网关令牌。',
-        autoGeneratePasswordHint:
-            '可选。留空则不设置密码。',
+        autoGenerateGatewayTokenHint: '可选。留空则不设置网关令牌。',
+        autoGeneratePasswordHint: '可选。留空则不设置密码。',
         regeneratePassword: '重新生成密码',
         sshKeyOptional: 'SSH 密钥',
         noSshKeyPasswordOnly: '不使用 SSH 密钥（仅密码）',
@@ -1057,8 +1032,7 @@ const zh: Translations = {
     },
     sshKeys: {
         title: 'SSH 密钥',
-        description:
-            '管理您的 SSH 密钥，实现对 OpenClaw 实例的安全免密访问。',
+        description: '管理您的 SSH 密钥，实现对 OpenClaw 实例的安全免密访问。',
         key: 'SSH 密钥',
         keys: 'SSH 密钥',
         addSshKey: '添加 SSH 密钥',
@@ -1077,8 +1051,7 @@ const zh: Translations = {
         deleteKeyConfirmation: '您确定要删除',
         sshKeyAddedSuccessfully: 'SSH 密钥添加成功。',
         addSshKeyModalTitle: '添加 SSH 密钥',
-        addSshKeyModalDescription:
-            '添加 SSH 密钥以实现免密认证',
+        addSshKeyModalDescription: '添加 SSH 密钥以实现免密认证',
         iHaveAnSshKey: '已有密钥',
         generateNewKey: '创建新密钥',
         name: '名称',
@@ -1099,8 +1072,7 @@ const zh: Translations = {
         generateKeyPair: '生成密钥对',
         orGenerateLocallyRecommended: '或在本地生成（推荐）',
         runThisInYourTerminal: '在终端中运行：',
-        thenSwitchToIHave:
-            '然后切换到"已有密钥"并粘贴公钥。',
+        thenSwitchToIHave: '然后切换到"已有密钥"并粘贴公钥。',
         savePrivateKeyNow:
             '立即保存您的私钥！在关闭此对话框之前下载它。您将无法再次查看。',
         privateKeyKeepSecret: '私钥（请保密！）',
@@ -1142,8 +1114,7 @@ const zh: Translations = {
         step2Description:
             'OpenClaw 已预装，附带直接链接和 VPS 详细信息。无需设置。',
         step3Title: '属于您的',
-        step3Description:
-            '完全访问 OpenClaw 和 VPS，您可以做的没有限制。',
+        step3Description: '完全访问 OpenClaw 和 VPS，您可以做的没有限制。',
         features: '功能',
         whyClawHost: '一站式功能',
         featuresDescription: '为什么值得一试，功能不会说谎。',
@@ -1157,13 +1128,12 @@ const zh: Translations = {
             '专用 VPS 资源意味着无限流、全带宽和闪电般的网速。',
         globalLocations: '全球位置',
         globalLocationsDescription:
-            '在 Hetzner、DigitalOcean 或 Vultr 的 30+ 个全球区域部署 OpenClaw，选择离您最近的位置。',
+            '在 Hetzner Cloud 的多个全球区域部署 OpenClaw，选择离您最近的位置.',
         fullSshAccess: '直接 SSH 访问',
         fullSshAccessDescription:
             '直接从平台访问您的服务器终端。无需外部 SSH 客户端。',
         secure: '安全',
-        secureDescription:
-            '默认受到 SSL 漏洞、恶意软件和常见安全威胁的保护。',
+        secureDescription: '默认受到 SSL 漏洞、恶意软件和常见安全威胁的保护。',
         payAsYouGo: '简单定价',
         payAsYouGoDescription:
             '基于您的需求定价。无强制高额账单，无低质量服务器。随时取消。',
@@ -1213,8 +1183,7 @@ const zh: Translations = {
         testimonial4Role: 'AI 爱好者',
         pricing: '定价',
         simpleTransparentPricing: '简单、透明的定价',
-        pricingDescription:
-            '根据您的需求从我们提供商的 45+ 台服务器中选择。',
+        pricingDescription: '根据您的需求从我们的 Hetzner Cloud 服务器中选择.',
         planColumn: '服务器',
         vCpuColumn: 'vCPU',
         ramColumn: 'RAM',
@@ -1249,8 +1218,7 @@ const zh: Translations = {
         faq2Question: '什么是 OpenClaw？',
         faq2Answer:
             'OpenClaw 是一个自托管的安全访问层，用于您的 AI 工具和服务。它已预配置安全性和性能，因此您可以部署后即刻连接。',
-        faq3Question:
-            '这与其他 AI 工具或托管平台有什么不同？',
+        faq3Question: '这与其他 AI 工具或托管平台有什么不同？',
         faq3Answer:
             '与托管 AI 工具不同，ClawHost 为您提供一台安装了 OpenClaw 的真实服务器。您拥有基础设施，控制一切，不受共享平台或模型的限制。',
         faq4Question: '我需要技术知识吗？',
@@ -1258,16 +1226,16 @@ const zh: Translations = {
             '不需要。我们处理所有基础设施、设置和维护。您可以通过其 UI 配置和管理 OpenClaw，连接到频道并自定义使用——无需触碰服务器或基础设施。',
         faq5Question: '有哪些可用位置？',
         faq5Answer:
-            '我们通过 Hetzner、DigitalOcean 和 Vultr 在全球提供 30+ 个服务器位置，包括美国、欧洲、亚洲等。如果需要，您可以在不同区域的多台服务器上部署 OpenClaw。',
+            '我们通过 Hetzner Cloud 在全球提供多个服务器位置，包括美国、欧洲等. 如有需要，您可以在不同地区的多台服务器上部署 OpenClaw.',
         faq6Question: '费用是多少？',
         faq6Answer:
-            '定价基于您选择的服务器。通过三个提供商的 45+ 种服务器选项，从入门级到高性能，您可以选择适合您需求和预算的方案。',
+            '价格取决于您选择的服务器. 从入门级到高性能有多种服务器选项，您可以选择适合自己需求和预算的方案.',
         faq7Question: '我可以直接访问服务器吗？',
         faq7Answer:
             '可以。除了通过子域名 URL 访问 OpenClaw 外，您还拥有对服务器及其底层基础设施的完全访问权限，让您可以自由自定义和运行任何所需内容。',
         faq8Question: '服务器托管在哪里？',
         faq8Answer:
-            '所有服务器托管在 Hetzner Cloud、DigitalOcean 和 Vultr 上，这些是以高性能硬件和出色正常运行时间闻名的可信云提供商，被大规模基础设施所使用。',
+            '所有服务器都托管在 Hetzner Cloud 上，这是一家以高性能硬件和出色正常运行时间而闻名的可靠云服务提供商，被大规模基础设施所使用.',
         comparison: '对比',
         comparisonTitle: '我们的不同之处',
         comparisonDescription:
@@ -1304,8 +1272,7 @@ const zh: Translations = {
         comparisonTerminalUs: '内置网页终端',
         comparisonTerminalOthers: '需要 SSH 客户端',
         seeFullComparison: '查看完整对比',
-        comparisonCtaText:
-            '我们与 SimpleClaw、MyClaw.ai 等逐项对比。',
+        comparisonCtaText: '我们与 SimpleClaw、MyClaw.ai 等逐项对比。',
         readyToOwnYourPrivacy: '准备部署 OpenClaw 了吗？',
         ctaDescription:
             '获取预装 OpenClaw 的专用服务器。完整 root 访问权限、全球位置，几分钟内就绪。您始终拥有它。起价 $25。',
@@ -1322,8 +1289,7 @@ const zh: Translations = {
     },
     blog: {
         title: '博客',
-        description:
-            '关于 OpenClaw 和自托管基础设施的指南、教程和新闻。',
+        description: '关于 OpenClaw 和自托管基础设施的指南、教程和新闻。',
         readingTime: '{{minutes}} 分钟阅读',
         publishedOn: '发布于 {{date}}',
         writtenBy: '作者 {{author}}',
@@ -1338,8 +1304,7 @@ const zh: Translations = {
     },
     changelog: {
         title: '更新日志',
-        description:
-            '跟踪 ClawHost 的更新、新功能和改进。',
+        description: '跟踪 ClawHost 的更新、新功能和改进。',
         subtitle: 'ClawHost 的所有更新、新功能和改进。',
         upcomingRelease: '进行中',
         upcomingReleaseTitle: '移动应用及更多',
@@ -1348,20 +1313,14 @@ const zh: Translations = {
         upcomingReleaseFeature1:
             '原生移动应用，随时监控和管理您的 OpenClaw 实例',
         upcomingReleaseFeature3: '深色和浅色主题支持',
-        upcomingReleaseFeature4:
-            '性能、稳定性和响应性增强',
-        upcomingReleaseFeature5:
-            '多语言支持，包括英语、法语、西班牙语和德语',
-        upcomingReleaseFeature6:
-            '与竞争对手的完整对比页面',
-        upcomingReleaseFeature7:
-            '工作台功能结构重构和简化',
-        upcomingReleaseFeature8:
-            '由 OpenClaw 代理自动管理和发布的功能请求',
+        upcomingReleaseFeature4: '性能、稳定性和响应性增强',
+        upcomingReleaseFeature5: '多语言支持，包括英语、法语、西班牙语和德语',
+        upcomingReleaseFeature6: '与竞争对手的完整对比页面',
+        upcomingReleaseFeature7: '工作台功能结构重构和简化',
+        upcomingReleaseFeature8: '由 OpenClaw 代理自动管理和发布的功能请求',
         upcomingReleaseFeature9:
             '语音模式，与 ClawHost 上托管的 OpenClaw 代理交互（测试版）',
-        upcomingReleaseFeature10:
-            '重新安装 OpenClaw 以全新开始，每天可用一次',
+        upcomingReleaseFeature10: '重新安装 OpenClaw 以全新开始，每天可用一次',
         upcomingReleaseFeature11:
             'ClawHost Go 着陆页，使用 ClawHost 进行本地托管',
         upcomingReleaseFeature12:
@@ -1379,37 +1338,27 @@ const zh: Translations = {
         release12Description:
             '年付订阅免费 2 个月、语音模式、实例重装以及 ClawHost Go 初始着陆页。',
         release12Feature1: 'ClawHost Go 着陆页，使用 ClawHost 进行本地托管',
-        release12Feature2:
-            '年付订阅支持，年付可享 2 个月免费',
-        release12Feature3:
-            '语音模式，与 ClawHost 上托管的 OpenClaw 代理交互',
-        release12Feature4:
-            '重新安装 OpenClaw 以全新开始，每天可用一次',
+        release12Feature2: '年付订阅支持，年付可享 2 个月免费',
+        release12Feature3: '语音模式，与 ClawHost 上托管的 OpenClaw 代理交互',
+        release12Feature4: '重新安装 OpenClaw 以全新开始，每天可用一次',
         release11Date: '2026年2月28日',
         release11Title: '文字转语音、终端、聊天标签和文件浏览器',
         release11Description:
             '使用文字转语音收听代理回复，通过终端直接与 VPS 交互，使用侧边栏视图标签更快地导航聊天，以及改进的文件浏览器。',
         release11Feature1: '工作台中代理消息的文字转语音',
-        release11Feature2:
-            '终端，直接从仪表板与您的 VPS 实例交互',
-        release11Feature3:
-            '聊天侧边栏视图标签，方便访问和导航',
-        release11Feature4:
-            '文件浏览器改进，添加搜索栏以搜索文件',
+        release11Feature2: '终端，直接从仪表板与您的 VPS 实例交互',
+        release11Feature3: '聊天侧边栏视图标签，方便访问和导航',
+        release11Feature4: '文件浏览器改进，添加搜索栏以搜索文件',
         release11Feature5: '修复了消息时间戳未反映实际时间的问题',
         release11Dropped1: '为简化而移除了功能请求',
         release10Date: '2026年2月23日',
         release10Title: '功能请求、文件浏览器和错误修复',
         release10Description:
             '社区驱动的功能请求、扩展的文件编辑支持以及各种错误修复。',
-        release10Feature1:
-            '由 OpenClaw 代理自动管理和发布的功能请求',
-        release10Feature2:
-            '修复了从 ClawHub 市场安装技能有时失败的问题',
-        release10Feature3:
-            '修复了模型提供商切换未生效且仍使用初始模型的问题',
-        release10Feature4:
-            '平台各项改进和错误修复',
+        release10Feature1: '由 OpenClaw 代理自动管理和发布的功能请求',
+        release10Feature2: '修复了从 ClawHub 市场安装技能有时失败的问题',
+        release10Feature3: '修复了模型提供商切换未生效且仍使用初始模型的问题',
+        release10Feature4: '平台各项改进和错误修复',
         release10Feature5:
             'TypeScript、Markdown 和纯文本文件现在可以在文件浏览器中编辑',
         release9Date: '2026年2月21日',
@@ -1417,16 +1366,11 @@ const zh: Translations = {
         release9Description:
             '竞争对手对比页面、工作台功能重构、多语言支持以及整体性能改进。',
         release9Feature1: '深色和浅色主题支持',
-        release9Feature2:
-            '多语言支持，包括英语、法语、西班牙语和德语',
-        release9Feature3:
-            '与竞争对手的完整对比页面',
-        release9Feature4:
-            'OpenClaw 版本，一键升级或即刻安装任何版本',
-        release9Feature5:
-            '工作台功能结构重构和简化',
-        release9Feature6:
-            '性能、稳定性和响应性增强',
+        release9Feature2: '多语言支持，包括英语、法语、西班牙语和德语',
+        release9Feature3: '与竞争对手的完整对比页面',
+        release9Feature4: 'OpenClaw 版本，一键升级或即刻安装任何版本',
+        release9Feature5: '工作台功能结构重构和简化',
+        release9Feature6: '性能、稳定性和响应性增强',
         release8Date: '2026年2月18日',
         release8Title: '浅色主题、性能和稳定性',
         release8Description:
@@ -1438,24 +1382,18 @@ const zh: Translations = {
         release7Title: '聊天重构和语音输入',
         release7Description:
             '聊天和工作台的重大改进，语音交互、ClawHub 技能市场和代理文件附件。',
-        release7Feature1:
-            '聊天和工作台重构，体验更流畅、更快速',
-        release7Feature2:
-            '聊天中的语音交互，直接在浏览器中录制和转录语音',
-        release7Feature3:
-            'ClawHub 技能集成，5,000+ 技能可供安装和管理',
-        release7Feature4:
-            '代理的附件查看和使用，在聊天中发送图片和文档',
+        release7Feature1: '聊天和工作台重构，体验更流畅、更快速',
+        release7Feature2: '聊天中的语音交互，直接在浏览器中录制和转录语音',
+        release7Feature3: 'ClawHub 技能集成，5,000+ 技能可供安装和管理',
+        release7Feature4: '代理的附件查看和使用，在聊天中发送图片和文档',
         release6Date: '2026年2月16日',
         release6Title: '频道、技能和代理聊天',
         release6Description:
             '完全控制您的 OpenClaw 频道、技能和代理。直接从仪表板管理和聊天。',
         release6Feature1:
             '直接管理频道，无需触碰服务器即可添加、删除和配置频道',
-        release6Feature2:
-            '直接管理技能，从仪表板安装、更新和组织代理技能',
-        release6Feature3:
-            '在工作台中与您的代理聊天，实时与任何代理交互',
+        release6Feature2: '直接管理技能，从仪表板安装、更新和组织代理技能',
+        release6Feature3: '在工作台中与您的代理聊天，实时与任何代理交互',
         release6Feature4:
             '使用 Google 或 GitHub 登录，快速安全的认证，无需邮箱验证码',
         release1Date: '2026年2月8日',
@@ -1463,67 +1401,39 @@ const zh: Translations = {
         release1Description:
             'ClawHost 的首个正式版本。一键在您自己的 VPS 上部署 OpenClaw.',
         release1Feature1: '在 Hetzner Cloud 上一键部署 OpenClaw',
-        release1Feature2:
-            '仪表板管理 claws，启动、停止、重启和删除实例',
+        release1Feature2: '仪表板管理 claws，启动、停止、重启和删除实例',
         release1Feature3:
             '18 种 Hetzner 服务器方案，提供专用 vCPU、RAM 和存储选项',
-        release1Feature4:
-            '6 个 Hetzner 服务器位置，覆盖美国、欧洲和亚洲',
+        release1Feature4: '6 个 Hetzner 服务器位置，覆盖美国、欧洲和亚洲',
         release1Feature5: 'SSH 密钥管理，实现免密服务器访问',
         release1Feature6: '附加存储卷支持，最高可达 10 TB',
         release1Feature7: '魔术链接认证，无需密码',
         release1Feature8: '通过安全子域名在线访问 OpenClaw',
-        release1Feature9:
-            '支付集成，透明的按服务器定价',
+        release1Feature9: '支付集成，透明的按服务器定价',
         release1Feature10: '账单历史和发票管理',
-        release1Feature11:
-            '自动配置，OpenClaw 预装并已配置',
+        release1Feature11: '自动配置，OpenClaw 预装并已配置',
         release2Date: '2026年2月8日',
-        release2Title: 'DigitalOcean 及更多',
-        release2Description:
-            '多提供商基础设施，以及关注 ClawHost 所有动态的新方式.',
-        release2Feature1: 'DigitalOcean 作为第二个云提供商',
-        release2Feature2:
-            '7 种 DigitalOcean 服务器方案，提供专用 vCPU、RAM 和存储选项',
-        release2Feature3:
-            '10+ 个 DigitalOcean 服务器位置，覆盖美国、欧洲、亚洲等地区',
-        release2Feature4:
-            '更新日志页面，跟踪所有平台更新和发布',
+        release2Title: '更新日志及更多',
+        release2Description: '了解 ClawHost 最新动态的全新方式.',
+        release2Feature1: '更新日志页面，跟踪所有平台更新和发布',
         release3Date: '2026年2月10日',
         release3Title: '服务器洞察',
-        release3Description:
-            '直接从仪表板更深入地了解和控制您的服务器.',
-        release3Feature1:
-            '实时服务器日志直接在仪表板中流式传输',
-        release3Feature2:
-            '服务器诊断，一键自动修复服务问题',
-        release3Feature3:
-            '内置文件浏览器和 JSON 编辑器，用于服务器配置文件',
-        release4Date: '2026年2月11日',
-        release4Title: 'Vultr 提供商',
+        release3Description: '直接从仪表板更深入地了解和控制您的服务器.',
+        release3Feature1: '实时服务器日志直接在仪表板中流式传输',
+        release3Feature2: '服务器诊断，一键自动修复服务问题',
+        release3Feature3: '内置文件浏览器和 JSON 编辑器，用于服务器配置文件',
+        release4Date: '2026年2月14日',
+        release4Title: '代理和数据导出',
         release4Description:
-            'Vultr 作为第三个云提供商，提供 22 种服务器方案和 30+ 个全球位置.',
-        release4Feature1: 'Vultr 作为第三个云提供商',
-        release4Feature2:
-            '22 种 Vultr 服务器方案，覆盖常规、高性能和高频三个层级',
-        release4Feature3:
-            '30+ 个 Vultr 服务器位置，覆盖美国、欧洲、亚洲等地区',
-        release5Date: '2026年2月14日',
-        release5Title: '代理和数据导出',
-        release5Description:
             '代理工作台、多代理管理和 OpenClaw 实例的便携数据导出.',
-        release5Feature1:
-            '一键代理工作台和概览，添加和管理多个代理',
-        release5Feature2: '将您的 OpenClaw 导出为便携式 zip 归档',
-        release5Feature3:
-            '交互式工作台，基于图形的 Claws 和代理可视化',
-        release5Feature4:
-            '移除网格和列表视图切换，改用统一的仪表板布局'
+        release4Feature1: '一键代理工作台和概览，添加和管理多个代理',
+        release4Feature2: '将您的 OpenClaw 导出为便携式 zip 归档',
+        release4Feature3: '交互式工作台，基于图形的 Claws 和代理可视化',
+        release4Feature4: '移除网格和列表视图切换，改用统一的仪表板布局'
     },
     playground: {
         title: '工作台',
-        description:
-            '在交互式图形中可视化您的 Claws 及其代理.',
+        description: '在交互式图形中可视化您的 Claws 及其代理.',
         subtitle: '基础设施中的代理拓扑',
         noClawsYet: '暂无 Claws',
         noClawsDescription: '部署您的第一个 Claw 并与其交互.',
@@ -1548,14 +1458,11 @@ const zh: Translations = {
         terminalDisconnected: '终端已断开.',
         terminalError: '连接终端失败!',
         terminalReconnect: '重新连接',
-        tabDisabledConfiguring:
-            '实例配置完成后可用.',
+        tabDisabledConfiguring: '实例配置完成后可用.',
         tabDisabledAwaitingPayment: '付款处理完成后可用.',
-        loadingTip1:
-            '您知道吗？您可以在一个 OpenClaw 中运行多个代理.',
+        loadingTip1: '您知道吗？您可以在一个 OpenClaw 中运行多个代理.',
         loadingTip2: '您知道吗？OpenClaw 是开源的.',
-        loadingTip3:
-            'ClawHost 是首个支持一键 OpenClaw 托管的项目.',
+        loadingTip3: 'ClawHost 是首个支持一键 OpenClaw 托管的项目.',
         tabChat: '聊天',
         tabConfiguration: '配置',
         tabSettings: '设置',
@@ -1586,8 +1493,7 @@ const zh: Translations = {
             '{{modelName}} 需要此密钥。此密钥存储在实例的 ~/.openclaw/.env 中。',
         configurationApiKeyPlaceholder: '输入您的 API 密钥',
         tabVariables: '变量',
-        variablesDescription:
-            '存储在此实例 ~/.openclaw/.env 中的环境变量。',
+        variablesDescription: '存储在此实例 ~/.openclaw/.env 中的环境变量。',
         variablesEmpty: '未找到环境变量。',
         variablesAddVariable: '添加变量',
         variablesSave: '保存变量',
@@ -1596,8 +1502,7 @@ const zh: Translations = {
         variablesSaveFailed: '保存环境变量失败！',
         variablesLoading: '正在加载变量...',
         variablesLoadFailed: '加载环境变量失败！',
-        variablesLoadFailedDescription:
-            '无法获取此实例的变量。请稍后重试。',
+        variablesLoadFailedDescription: '无法获取此实例的变量。请稍后重试。',
         variablesInvalidKey: '仅允许字母、数字和下划线！',
         variablesEmptyValue: '值不能为空！',
         variablesDuplicateKey: '变量名重复！',
@@ -1605,15 +1510,12 @@ const zh: Translations = {
         variablesDeleteDescription:
             '您确定要删除 {{key}} 吗？这将立即从实例中删除它。',
         variablesDeleteConfirm: '删除',
-        variablesDontAskAgain:
-            '本次会话中删除变量时不再询问',
+        variablesDontAskAgain: '本次会话中删除变量时不再询问',
         variablesDeleted: '变量已删除。',
-        variablesOperationPending:
-            '前一个操作完成前禁用。',
+        variablesOperationPending: '前一个操作完成前禁用。',
         addAgentTitle: '添加代理',
         addAgentDescription: '向 {{clawName}} 添加新代理。',
-        addAgentDescriptionNoClaw:
-            '选择一个 Claw 并配置您的新代理。',
+        addAgentDescriptionNoClaw: '选择一个 Claw 并配置您的新代理。',
         addAgentSelectClaw: 'Claw',
         addAgentSelectClawPlaceholder: '选择一个 Claw',
         addAgentName: '名称',
@@ -1656,8 +1558,7 @@ const zh: Translations = {
         chatThinking: '思考中',
         chatLoadingHistory: '正在加载消息...',
         chatNoMessages: '暂无消息',
-        chatNoMessagesDescription:
-            '发送消息以开始与此代理的对话。',
+        chatNoMessagesDescription: '发送消息以开始与此代理的对话。',
         chatErrorMessage: '生成回复时发生错误！',
         chatAbortedMessage: '回复已停止。',
         chatPlaySpeech: '朗读',
@@ -1682,8 +1583,7 @@ const zh: Translations = {
         chatReadOnlyGoAssistant2:
             '没问题！我会为您所有的服务设置健康检查。目前监控 4 个端点——全部健康并正常响应。',
         chatConnectionFailed: '连接此代理失败！',
-        chatConnectionFailedDescription:
-            '请确保 Claw 正在运行且可访问。',
+        chatConnectionFailedDescription: '请确保 Claw 正在运行且可访问。',
         chatNotConfigured: '代理未配置。',
         chatNotConfiguredDescription:
             '在配置标签中选择模型并设置 API 密钥以开始聊天。',
@@ -1708,25 +1608,21 @@ const zh: Translations = {
         chatVoiceModeSpeaking: '正在播放...',
         chatVoiceModeInputDevice: '麦克风',
         chatVoiceModeOutputDevice: '扬声器',
-        chatVoiceModeNotSupported:
-            '此浏览器不支持语音识别。',
+        chatVoiceModeNotSupported: '此浏览器不支持语音识别。',
         chatVoiceModeNoMicrophone:
             '未检测到麦克风。请连接麦克风以使用语音模式。',
-        chatVoiceModeNoSpeaker:
-            '未检测到扬声器。请连接扬声器以使用语音模式。',
+        chatVoiceModeNoSpeaker: '未检测到扬声器。请连接扬声器以使用语音模式。',
         chatAttachmentNotSupported:
             '不支持此文件类型。请使用图片、PDF 或文本文件。',
         chatNoPreview: '无可用预览。',
         chatDownloadFile: '下载文件',
         chatCopyMessage: '复制消息',
         tabChannels: '频道',
-        channelsDescription:
-            '为此实例配置消息频道。消息通过绑定路由到代理。',
+        channelsDescription: '为此实例配置消息频道。消息通过绑定路由到代理。',
         channelsWhatsApp: 'WhatsApp',
         channelsWhatsAppPairDevice: '配对设备',
         channelsWhatsAppPairing: '等待二维码...',
-        channelsWhatsAppScanQr:
-            '使用 WhatsApp 扫描此二维码以链接您的设备。',
+        channelsWhatsAppScanQr: '使用 WhatsApp 扫描此二维码以链接您的设备。',
         channelsWhatsAppScanInstructions:
             '打开 WhatsApp > 设置 > 已关联的设备 > 关联设备',
         channelsWhatsAppQrRefreshed:
@@ -1738,7 +1634,8 @@ const zh: Translations = {
         channelsWhatsAppConnected: '已连接',
         channelsWhatsAppRepair: '重新配对',
         channelsWhatsAppChecking: '正在检查连接...',
-        channelsVersionUnsupported: '此版本不支持频道配置。您可以通过终端选项卡手动连接或升级 OpenClaw。',
+        channelsVersionUnsupported:
+            '此版本不支持频道配置。您可以通过终端选项卡手动连接或升级 OpenClaw。',
         channelsVersionUnsupportedDocs: '查看配置指南',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
@@ -1767,8 +1664,7 @@ const zh: Translations = {
         channelsSaveFailed: '更新频道失败！',
         channelsLoading: '正在加载频道...',
         channelsLoadFailed: '加载频道失败！',
-        channelsLoadFailedDescription:
-            '无法获取频道配置。请重试。',
+        channelsLoadFailedDescription: '无法获取频道配置。请重试。',
         channelsNoChanges: '没有需要保存的更改。',
         bindingsDescription:
             '为此代理分配消息频道。每个频道一次只能路由到一个代理。',
@@ -1779,8 +1675,7 @@ const zh: Translations = {
         bindingsSaved: '绑定更新成功。',
         bindingsSaveFailed: '更新绑定失败！',
         tabSkills: '技能',
-        skillsDescription:
-            '管理此实例上所有代理可用的共享技能。',
+        skillsDescription: '管理此实例上所有代理可用的共享技能。',
         skillsSearch: '搜索技能...',
         skillsNoResults: '没有匹配您搜索的技能。',
         skillsEmpty: '暂无技能',
@@ -1789,8 +1684,7 @@ const zh: Translations = {
         skillsSaveFailed: '更新技能失败！',
         skillsLoading: '正在加载技能...',
         skillsLoadFailed: '加载技能失败！',
-        skillsLoadFailedDescription:
-            '无法获取技能配置。请重试。',
+        skillsLoadFailedDescription: '无法获取技能配置。请重试。',
         agentSkillsDescription: '此代理工作区中已安装的技能。',
         agentSkillsInstalling: '正在安装...',
         agentSkillsInstalled: '技能安装成功。',
@@ -1799,19 +1693,16 @@ const zh: Translations = {
         agentSkillsRemoved: '技能移除成功。',
         agentSkillsRemoveFailed: '移除技能失败！',
         agentSkillsEmpty: '暂无已安装的技能。',
-        agentSkillsEmptyDescription:
-            '安装技能以扩展此代理的功能。',
+        agentSkillsEmptyDescription: '安装技能以扩展此代理的功能。',
         agentSkillsNamePlaceholder: '技能名称',
         agentSkillsConfirmRemove: '移除技能 "{{skillName}}"？',
-        agentSkillsConfirmRemoveDescription:
-            '这将从代理工作区中删除该技能。',
+        agentSkillsConfirmRemoveDescription: '这将从代理工作区中删除该技能。',
         skillsBundledTab: '内置',
         skillsClawHubTab: 'ClawHub',
         clawHubSearch: '搜索 ClawHub 技能...',
         clawHubNoResults: 'ClawHub 上未找到技能。',
         clawHubEmpty: '未安装 ClawHub 技能。',
-        clawHubEmptyDescription:
-            '从 ClawHub 市场搜索和安装技能。',
+        clawHubEmptyDescription: '从 ClawHub 市场搜索和安装技能。',
         clawHubInstall: '安装',
         clawHubInstalled: '已从 ClawHub 安装技能。',
         clawHubInstallFailed: '从 ClawHub 安装技能失败！',
@@ -1826,14 +1717,12 @@ const zh: Translations = {
         clawHubDownloads: '{{count}} 次下载',
         clawHubVersion: 'v{{version}}',
         clawHubLoadFailed: '加载 ClawHub 失败！',
-        clawHubLoadFailedDescription:
-            '无法连接到 ClawHub 市场。请重试。',
+        clawHubLoadFailedDescription: '无法连接到 ClawHub 市场。请重试。',
         tabVersions: '版本',
         versionsSearch: '搜索版本...',
         versionsEmpty: '未找到版本',
         versionsEmptyDescription: '没有匹配您搜索的版本。',
-        versionsErrorDescription:
-            '加载版本失败。请检查您的连接并重试！',
+        versionsErrorDescription: '加载版本失败。请检查您的连接并重试！',
         versionsChangelog: '在 npm 上查看更新日志',
         versionCurrent: '当前',
         versionLatest: '最新',
@@ -1852,10 +1741,8 @@ const zh: Translations = {
         settingsNameDescription: '仅允许字母、数字和连字符。',
         subdomain: '子域名',
         subdomainPlaceholder: '输入子域名',
-        subdomainDescription:
-            '小写字母和数字，{{min}}-{{max}} 个字符。',
-        subdomainInvalid:
-            '仅使用 {{min}}-{{max}} 个小写字母和数字。',
+        subdomainDescription: '小写字母和数字，{{min}}-{{max}} 个字符。',
+        subdomainInvalid: '仅使用 {{min}}-{{max}} 个小写字母和数字。',
         subdomainUpdated: '子域名更新成功。',
         subdomainUpdateFailed: '更新子域名失败！',
         subdomainInUse: '此子域名已被其他 Claw 使用！',
@@ -1872,8 +1759,7 @@ const zh: Translations = {
     },
     privacy: {
         title: '隐私政策',
-        description:
-            '了解 ClawHost 如何收集、使用和保护您的个人数据。',
+        description: '了解 ClawHost 如何收集、使用和保护您的个人数据。',
         lastUpdated: '最后更新：2026年3月14日',
         introTitle: '1. 简介',
         introText:
@@ -1884,14 +1770,11 @@ const zh: Translations = {
         collectTitle: '3. 我们收集的信息',
         collectText: '我们通过以下方式收集信息：',
         personalInfoTitle: '个人信息',
-        personalInfoEmail:
-            '电子邮箱地址（用于账户创建和通信）',
+        personalInfoEmail: '电子邮箱地址（用于账户创建和通信）',
         personalInfoName: '姓名（可选，用于个性化）',
-        personalInfoPayment:
-            '支付信息（由第三方提供商安全处理）',
+        personalInfoPayment: '支付信息（由第三方提供商安全处理）',
         serverInfoTitle: '服务器信息',
-        serverInfoConfig:
-            '服务器配置和状态（托管在 Hetzner Cloud 上）',
+        serverInfoConfig: '服务器配置和状态（托管在 Hetzner Cloud 上）',
         serverInfoIp: '服务器 IP 地址和位置',
         serverInfoResources: '资源分配（CPU、RAM、存储）',
         useTitle: '4. 我们如何使用您的信息',
@@ -1903,14 +1786,11 @@ const zh: Translations = {
         useAnalyze: '监控和分析使用模式以改进我们的服务',
         useFraud: '检测和防止欺诈或滥用',
         sharingTitle: '5. 数据共享和披露',
-        sharingText:
-            '我们不会出售您的个人信息。我们可能会与以下方共享信息：',
+        sharingText: '我们不会出售您的个人信息。我们可能会与以下方共享信息：',
         sharingProviders:
             '协助运营我们服务的服务提供商（例如，云基础设施提供商）',
-        sharingLegal:
-            '法律要求或为保护我们权利时的法律机构',
-        sharingBusiness:
-            '合并、收购或资产出售情况下的商业伙伴',
+        sharingLegal: '法律要求或为保护我们权利时的法律机构',
+        sharingBusiness: '合并、收购或资产出售情况下的商业伙伴',
         securityTitle: '6. 数据安全',
         securityText:
             '我们实施适当的技术和组织措施来保护您的个人信息免受未经授权的访问、更改、披露或破坏。这包括加密、安全服务器和定期安全评估。',
@@ -1932,8 +1812,7 @@ const zh: Translations = {
         transfersText:
             '您的信息可能会被传输到您所在国家以外的国家并在那里处理。我们确保采取适当的保障措施，按照本隐私政策保护您的数据。',
         eligibilityTitle: '11. 资格',
-        eligibilityText:
-            '我们的服务对所有人开放。使用 ClawHost 没有年龄限制。',
+        eligibilityText: '我们的服务对所有人开放。使用 ClawHost 没有年龄限制。',
         changesTitle: '12. 本政策的变更',
         changesText:
             '我们可能会不时更新本隐私政策。我们将通过在此页面发布新的隐私政策并更新"最后更新"日期来通知您任何变更。',
@@ -1943,8 +1822,7 @@ const zh: Translations = {
     },
     terms: {
         title: '服务条款',
-        description:
-            '阅读使用 ClawHost 服务的条款和条件。',
+        description: '阅读使用 ClawHost 服务的条款和条件。',
         lastUpdated: '最后更新：2026年3月14日',
         acceptanceTitle: '1. 条款接受',
         acceptanceText:
@@ -1957,28 +1835,20 @@ const zh: Translations = {
             'ClawHost 使用 Google Firebase Authentication 管理登录。您可以使用电子邮箱、Google 或 GitHub 进行身份验证。使用这些方法即表示您同意 Google 和 GitHub 各自的条款和隐私政策。这些提供商可能会收集您的电子邮箱地址、姓名和设备数据等基本信息。',
         responsibilitiesTitle: '4. 用户责任',
         responsibilitiesText: '您同意：',
-        responsibilitiesAccurate:
-            '提供准确和完整的注册信息',
-        responsibilitiesSecurity:
-            '维护您账户凭据的安全',
-        responsibilitiesCompliance:
-            '遵守所有适用法律使用本服务',
-        responsibilitiesLegal:
-            '不将本服务用于任何非法或未授权的目的',
-        responsibilitiesAccess:
-            '不试图未经授权访问任何系统或网络',
+        responsibilitiesAccurate: '提供准确和完整的注册信息',
+        responsibilitiesSecurity: '维护您账户凭据的安全',
+        responsibilitiesCompliance: '遵守所有适用法律使用本服务',
+        responsibilitiesLegal: '不将本服务用于任何非法或未授权的目的',
+        responsibilitiesAccess: '不试图未经授权访问任何系统或网络',
         prohibitedTitle: '5. 禁止使用',
         prohibitedText: '您不得使用我们的服务来：',
-        prohibitedMalware:
-            '分发恶意软件、病毒或任何有害软件',
+        prohibitedMalware: '分发恶意软件、病毒或任何有害软件',
         prohibitedDos: '进行拒绝服务攻击或网络滥用',
         prohibitedSpam: '发送垃圾邮件或未经请求的通信',
         prohibitedIllegal: '托管或分发非法内容',
-        prohibitedIp:
-            '侵犯任何第三方权利，包括知识产权',
+        prohibitedIp: '侵犯任何第三方权利，包括知识产权',
         prohibitedMining: '挖掘加密货币',
-        prohibitedOther:
-            '我们可能自行判断为不当的任何其他非法或有害活动',
+        prohibitedOther: '我们可能自行判断为不当的任何其他非法或有害活动',
         paymentTitle: '6. 付款和计费',
         paymentText:
             '服务按固定的月度或年度计费。您可以随时在月付和年付之间切换，更改将在下一个计费周期开始时生效。所有付款不可退款。当您为服务器付款时，您在整个计费周期内都有访问权限。如果您取消，取消将在当前计费周期结束时生效。价格可能会变更，但任何变更仅适用于新部署的 Claws，不会影响已部署的 Claws。未付款可能导致您的账户被暂停或终止。',
@@ -1995,16 +1865,14 @@ const zh: Translations = {
         changesToTermsText:
             '我们保留随时修改这些条款的权利。我们将通过电子邮件或通过服务通知用户任何重大变更。在此类修改后继续使用服务即构成对更新条款的接受。',
         contactTitle: '11. 联系信息',
-        contactText:
-            '如果您对这些条款有任何疑问，请通过以下方式联系我们'
+        contactText: '如果您对这些条款有任何疑问，请通过以下方式联系我们'
     },
     mobile: {
         messages: '消息',
         settings: '设置',
         comingSoon: '即将推出',
         messagesPlaceholder: '消息和通知将显示在这里。',
-        settingsPlaceholder:
-            '账户设置和偏好将显示在这里。',
+        settingsPlaceholder: '账户设置和偏好将显示在这里。',
         signIn: '登录',
         signInDescription: '登录以管理您的 OpenClaw 实例。',
         enterEmail: '电子邮箱',
@@ -2046,8 +1914,7 @@ const zh: Translations = {
     },
     compare: {
         title: '完整对比',
-        description:
-            '了解 ClawHost 与其他 OpenClaw 托管平台的对比。',
+        description: '了解 ClawHost 与其他 OpenClaw 托管平台的对比。',
         badge: '对比',
         feature: '平台',
         compareWith: '对比',
@@ -2105,7 +1972,7 @@ const zh: Translations = {
         sharedContainers: '共享容器',
         isolatedContainers: '隔离容器',
         cloudWorkspaces: '云工作区',
-        threeProviders: 'Hetzner、DigitalOcean、Vultr',
+        threeProviders: 'Hetzner Cloud',
         singleProvider: '单一提供商',
         fullyDedicated: '完全专用',
         shared: '共享',

@@ -20,9 +20,7 @@ const transitionCompletedBy: Record<string, string[]> = {
 }
 
 const syncClawServers = async (clawList: ClawRow[]): Promise<ClawRow[]> => {
-    const providers = new Set(
-        clawList.map((c) => c.provider as ProviderType)
-    )
+    const providers = new Set(clawList.map((c) => c.provider as ProviderType))
     const serverMaps = new Map<ProviderType, Map<string, ServerStatus>>()
 
     await Promise.all(
@@ -109,10 +107,7 @@ const syncClawServers = async (clawList: ClawRow[]): Promise<ClawRow[]> => {
             }
 
             const completionStates = transitionCompletedBy[claw.status]
-            if (
-                completionStates &&
-                !completionStates.includes(live.status)
-            ) {
+            if (completionStates && !completionStates.includes(live.status)) {
                 return { ...claw, ip: live.ip }
             }
 

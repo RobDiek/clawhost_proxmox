@@ -3,7 +3,11 @@ import type { GoPricingCardProps } from '@/ts/Interfaces'
 
 import { CheckIcon } from '@phosphor-icons/react'
 
-const GoPricingCard: FC<GoPricingCardProps> = ({ price, label, features }): ReactNode => {
+const GoPricingCard: FC<GoPricingCardProps> = ({
+    price,
+    label,
+    features
+}): ReactNode => {
     return (
         <div className='border-border mx-auto max-w-2xl rounded-2xl border bg-gradient-to-b from-white/[0.03] to-transparent p-8'>
             <div className='flex flex-col items-center gap-8 md:flex-row md:items-start'>
@@ -22,7 +26,9 @@ const GoPricingCard: FC<GoPricingCardProps> = ({ price, label, features }): Reac
                     {features.map((feature) => (
                         <div key={feature} className='flex items-center gap-2'>
                             <CheckIcon className='h-3.5 w-3.5 shrink-0 text-green-600 dark:text-green-400' />
-                            <span className='text-foreground/80 text-sm'>{feature}</span>
+                            <span className='text-foreground/80 text-sm'>
+                                {feature}
+                            </span>
                         </div>
                     ))}
                 </div>

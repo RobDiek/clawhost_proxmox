@@ -95,25 +95,34 @@ const it: Translations = {
         heroTitle2: 'Localmente. Istantaneamente.',
         badge: 'In arrivo',
         comingSoon: 'In arrivo',
-        description: 'Un client desktop leggero per gestire le tue istanze OpenClaw. Distribuisci, monitora e controlla i tuoi claw — direttamente dal tuo computer.',
+        description:
+            'Un client desktop leggero per gestire le tue istanze OpenClaw. Distribuisci, monitora e controlla i tuoi claw — direttamente dal tuo computer.',
         download: 'Scarica per {{os}}',
         downloadWindows: 'Windows',
         downloadMac: 'macOS',
         selfHostInstead: 'Self-host invece',
         features: 'Funzionalit\u00e0',
         whyClawHostGo: 'Funzionalit\u00e0 tutto-in-uno',
-        featuresDescription: 'Perch\u00e9 vale la pena provare, le funzionalit\u00e0 parlano da sole.',
-        zeroConfigDescription: 'Installa e avvia. Nessuna configurazione server, nessuna configurazione cloud. OpenClaw \u00e8 pronto in pochi secondi.',
-        ownedDataDescription: 'Tutto funziona sul tuo dispositivo. Nessun server cloud, nessuna terza parte, nessun dato che lascia il tuo computer.',
-        terminalAccessDescription: 'Accedi al terminale della tua istanza OpenClaw direttamente dall\'app. Nessun client SSH esterno necessario.',
+        featuresDescription:
+            'Perch\u00e9 vale la pena provare, le funzionalit\u00e0 parlano da sole.',
+        zeroConfigDescription:
+            'Installa e avvia. Nessuna configurazione server, nessuna configurazione cloud. OpenClaw \u00e8 pronto in pochi secondi.',
+        ownedDataDescription:
+            'Tutto funziona sul tuo dispositivo. Nessun server cloud, nessuna terza parte, nessun dato che lascia il tuo computer.',
+        terminalAccessDescription:
+            "Accedi al terminale della tua istanza OpenClaw direttamente dall'app. Nessun client SSH esterno necessario.",
         simplePricing: 'Prezzi semplici',
-        simplePricingDescription: 'Una licenza, tutto illimitato. Nessun costo mensile, nessun limite di utilizzo, nessun costo nascosto.',
+        simplePricingDescription:
+            'Una licenza, tutto illimitato. Nessun costo mensile, nessun limite di utilizzo, nessun costo nascosto.',
         localDomain: 'Dominio locale personalizzato',
-        localDomainDescription: 'Accedi a OpenClaw tramite un dominio locale personalizzato. URL puliti sulla tua rete.',
-        secureDescription: 'I tuoi dati non lasciano mai il tuo dispositivo. Completamente isolato, completamente crittografato, completamente tuo.',
+        localDomainDescription:
+            'Accedi a OpenClaw tramite un dominio locale personalizzato. URL puliti sulla tua rete.',
+        secureDescription:
+            'I tuoi dati non lasciano mai il tuo dispositivo. Completamente isolato, completamente crittografato, completamente tuo.',
         pricing: 'Prezzi',
         pricingTitle: 'Prezzi semplici, pagamento unico',
-        pricingDescription: 'Nessun abbonamento, nessun costo nascosto. Una licenza, utilizzo illimitato.',
+        pricingDescription:
+            'Nessun abbonamento, nessun costo nascosto. Una licenza, utilizzo illimitato.',
         pricingPrice: '${{price}}',
         pricingLabel: 'Pagamento unico',
         pricingFeature1: 'Licenza a vita',
@@ -125,7 +134,8 @@ const it: Translations = {
         pricingCta: 'Ottieni ClawHost Go',
         comparison: 'Confronto',
         comparisonTitle: 'Go vs Cloud',
-        comparisonDescription: 'Scegli ci\u00f2 che funziona per te. Go funziona localmente, Cloud funziona su server dedicati.',
+        comparisonDescription:
+            'Scegli ci\u00f2 che funziona per te. Go funziona localmente, Cloud funziona su server dedicati.',
         comparisonLocalUs: 'Funziona interamente sul tuo dispositivo',
         comparisonLocalOthers: 'Funziona su server remoti',
         comparisonPricingUs: 'Pagamento unico',
@@ -141,18 +151,24 @@ const it: Translations = {
         faqTitle: 'Domande',
         faqHeading: 'Domande frequenti',
         faqDescription: 'Tutto ci\u00f2 che devi sapere su ClawHost Go.',
-        faq1Question: 'Cos\'\u00e8 ClawHost Go?',
-        faq1Answer: 'ClawHost Go \u00e8 un\'applicazione desktop leggera che ti permette di eseguire OpenClaw localmente sul tuo computer. Nessun server cloud necessario — installa, avvia e inizia a usare OpenClaw in pochi secondi.',
+        faq1Question: "Cos'\u00e8 ClawHost Go?",
+        faq1Answer:
+            "ClawHost Go \u00e8 un'applicazione desktop leggera che ti permette di eseguire OpenClaw localmente sul tuo computer. Nessun server cloud necessario — installa, avvia e inizia a usare OpenClaw in pochi secondi.",
         faq2Question: 'In cosa Go \u00e8 diverso da ClawHost Cloud?',
-        faq2Answer: 'ClawHost Cloud distribuisce OpenClaw su server remoti dedicati con uptime 24/7 e accesso globale. ClawHost Go esegue tutto localmente sul tuo dispositivo — ideale per la privacy, l\'uso offline e configurazioni semplici.',
+        faq2Answer:
+            "ClawHost Cloud distribuisce OpenClaw su server remoti dedicati con uptime 24/7 e accesso globale. ClawHost Go esegue tutto localmente sul tuo dispositivo — ideale per la privacy, l'uso offline e configurazioni semplici.",
         faq3Question: 'Ho bisogno di una connessione internet?',
-        faq3Answer: 'ClawHost Go funziona offline per l\'uso locale. Una connessione internet \u00e8 necessaria solo per la configurazione iniziale, gli aggiornamenti e le funzionalit\u00e0 che richiedono chiamate API esterne.',
+        faq3Answer:
+            "ClawHost Go funziona offline per l'uso locale. Una connessione internet \u00e8 necessaria solo per la configurazione iniziale, gli aggiornamenti e le funzionalit\u00e0 che richiedono chiamate API esterne.",
         faq4Question: 'La licenza \u00e8 un pagamento unico?',
-        faq4Answer: 'S\u00ec. Paghi una volta e ottieni l\'accesso a vita a ClawHost Go, inclusi tutti gli aggiornamenti futuri. Nessun abbonamento, nessun costo ricorrente.',
+        faq4Answer:
+            "S\u00ec. Paghi una volta e ottieni l'accesso a vita a ClawHost Go, inclusi tutti gli aggiornamenti futuri. Nessun abbonamento, nessun costo ricorrente.",
         faq5Question: 'Quali sistemi operativi sono supportati?',
-        faq5Answer: 'ClawHost Go supporta Windows e macOS. Entrambe le piattaforme hanno le stesse funzionalit\u00e0 e ricevono aggiornamenti contemporaneamente.',
+        faq5Answer:
+            'ClawHost Go supporta Windows e macOS. Entrambe le piattaforme hanno le stesse funzionalit\u00e0 e ricevono aggiornamenti contemporaneamente.',
         faq6Question: 'Posso passare da Go a Cloud in seguito?',
-        faq6Answer: 'Assolutamente. Puoi esportare la tua configurazione OpenClaw da Go e distribuirla su ClawHost Cloud in qualsiasi momento. Entrambe le piattaforme sono completamente compatibili.',
+        faq6Answer:
+            'Assolutamente. Puoi esportare la tua configurazione OpenClaw da Go e distribuirla su ClawHost Cloud in qualsiasi momento. Entrambe le piattaforme sono completamente compatibili.',
         statsPrice: '${{price}}',
         statsLifetime: 'A vita',
         statsOneTime: 'Unico',
@@ -162,40 +178,53 @@ const it: Translations = {
         statsZero: 'Zero',
         statsZeroConfig: 'Zero configurazione',
         ctaTitle: 'Esegui OpenClaw localmente',
-        ctaDescription: 'Pagamento unico, licenza a vita. Distribuisci OpenClaw sul tuo computer — nessun cloud, nessun abbonamento, nessun limite. I tuoi dati, le tue regole.',
+        ctaDescription:
+            'Pagamento unico, licenza a vita. Distribuisci OpenClaw sul tuo computer — nessun cloud, nessun abbonamento, nessun limite. I tuoi dati, le tue regole.',
         ctaButton: 'Ottieni ClawHost Go',
-        joinWaitlist: 'Iscriviti alla lista d\'attesa',
-        joinedWaitlist: 'Iscritto alla lista d\'attesa',
-        waitlistJoinedToast: 'Ti sei iscritto alla lista d\'attesa.',
+        joinWaitlist: "Iscriviti alla lista d'attesa",
+        joinedWaitlist: "Iscritto alla lista d'attesa",
+        waitlistJoinedToast: "Ti sei iscritto alla lista d'attesa.",
         waitlistAlreadyJoinedToast: 'Questa email \u00e8 gi\u00e0 nella lista.',
-        waitlistFailedToast: 'Iscrizione alla lista d\'attesa fallita!',
+        waitlistFailedToast: "Iscrizione alla lista d'attesa fallita!",
         waitlistEmailPlaceholder: 'Inserisci la tua email',
         updateAvailable: 'La versione {{version}} \u00e8 disponibile.',
         updateDownload: 'Scarica',
         updateDismiss: 'Pi\u00f9 tardi',
         clawNotFound: 'Claw non trovato!',
-        invalidClawName: 'Nome claw non valido. Usa solo lettere, numeri e trattini!',
+        invalidClawName:
+            'Nome claw non valido. Usa solo lettere, numeri e trattini!',
         clawNameAlreadyExists: 'Un claw con questo nome esiste gi\u00e0!',
-        invalidSubdomain: 'Sottodominio non valido. Usa 3-20 lettere minuscole e numeri!',
+        invalidSubdomain:
+            'Sottodominio non valido. Usa 3-20 lettere minuscole e numeri!',
         subdomainAlreadyInUse: 'Questo sottodominio \u00e8 gi\u00e0 in uso!',
         clawDirectoryNotFound: 'Directory del claw non trovata!',
-        noVersionInstalled: 'Nessuna versione di OpenClaw installata. Vai alla scheda Versioni e installane una prima!',
+        noVersionInstalled:
+            'Nessuna versione di OpenClaw installata. Vai alla scheda Versioni e installane una prima!',
         failedToStartClaw: 'Impossibile avviare il claw!',
-        noVersionAssigned: 'Nessuna versione di OpenClaw assegnata a questo claw!',
+        noVersionAssigned:
+            'Nessuna versione di OpenClaw assegnata a questo claw!',
         invalidAgentName: 'Nome agente non valido!',
         agentNameAlreadyExists: 'Un agente con questo nome esiste gi\u00e0!',
         invalidPath: 'Percorso non valido!',
         fileNotFound: 'File non trovato!',
-        purchasingNotAvailable: 'L\'acquisto non \u00e8 disponibile in modalit\u00e0 locale!',
+        purchasingNotAvailable:
+            "L'acquisto non \u00e8 disponibile in modalit\u00e0 locale!",
         exportFailed: 'Esportazione fallita!',
-        versionNotInstalled: 'La versione {{version}} di OpenClaw non \u00e8 installata!',
+        versionNotInstalled:
+            'La versione {{version}} di OpenClaw non \u00e8 installata!',
         failedToStartProcess: 'Impossibile avviare il processo: {{reason}}!',
-        processExitedImmediately: 'Il processo \u00e8 terminato immediatamente. Log:\n{{logs}}',
-        processExitedImmediatelyNoLogs: 'Il processo \u00e8 terminato immediatamente dopo l\'avvio!',
-        processExitedWithCode: 'Il processo \u00e8 terminato con codice {{code}}. Log:\n{{logs}}',
-        processExitedWithCodeNoLogs: 'Il processo \u00e8 terminato con codice {{code}}!',
-        processExitedUnexpectedly: 'Il processo \u00e8 terminato inaspettatamente!',
-        failedToInstallVersion: 'Impossibile installare OpenClaw {{version}}: {{reason}}!',
+        processExitedImmediately:
+            'Il processo \u00e8 terminato immediatamente. Log:\n{{logs}}',
+        processExitedImmediatelyNoLogs:
+            "Il processo \u00e8 terminato immediatamente dopo l'avvio!",
+        processExitedWithCode:
+            'Il processo \u00e8 terminato con codice {{code}}. Log:\n{{logs}}',
+        processExitedWithCodeNoLogs:
+            'Il processo \u00e8 terminato con codice {{code}}!',
+        processExitedUnexpectedly:
+            'Il processo \u00e8 terminato inaspettatamente!',
+        failedToInstallVersion:
+            'Impossibile installare OpenClaw {{version}}: {{reason}}!',
         oauthCancelled: 'Autenticazione annullata!',
         diskFull: 'Nessuno spazio disponibile sul dispositivo!',
         permissionDenied: 'Permesso negato!',
@@ -225,7 +254,7 @@ const it: Translations = {
         productDescription:
             'Distribuisci agenti OpenClaw nel cloud o localmente con un clic \u2014 crea, connetti e scala i tuoi agenti AI pi\u00f9 velocemente con ClawHost.',
         downloadAndroid: 'Scarica su Google Play',
-        downloadIos: 'Scarica sull\'App Store',
+        downloadIos: "Scarica sull'App Store",
         ariaGithub: 'GitHub',
         ariaX: 'X',
         ariaFacebook: 'Facebook',
@@ -256,7 +285,8 @@ const it: Translations = {
         invalidLocation: 'Seleziona una posizione!',
         failedToGenerateKeyPair:
             'Impossibile generare la coppia di chiavi. Genera le chiavi localmente!',
-        unableToLoadPricing: 'Impossibile caricare i prezzi. Riprova pi\u00f9 tardi!',
+        unableToLoadPricing:
+            'Impossibile caricare i prezzi. Riprova pi\u00f9 tardi!',
         noPasswordAvailable: 'Nessuna password disponibile per questo claw!',
         clawLimitReached:
             'Hai raggiunto il limite di {{max}} claw. Contatta il supporto per aumentare questo limite!',
@@ -267,11 +297,13 @@ const it: Translations = {
         missingRequiredFields: 'Campi obbligatori mancanti!',
         clawNotFound: 'Claw non trovato!',
         clawRenamed: 'Claw rinominato con successo.',
-        invalidClawName: 'Il nome del claw deve essere tra 1 e {{max}} caratteri!',
+        invalidClawName:
+            'Il nome del claw deve essere tra 1 e {{max}} caratteri!',
         userNotFound: 'Utente non trovato!',
         sshKeyNotFound: 'Chiave SSH non trovata!',
         pendingClawNotFound: 'Claw in attesa non trovato!',
-        clawNotScheduledForDeletion: 'Il claw non \u00e8 programmato per l\'eliminazione!',
+        clawNotScheduledForDeletion:
+            "Il claw non \u00e8 programmato per l'eliminazione!",
         clawLimitReached:
             'Hai raggiunto il limite di {{max}} claw. Contatta il supporto per aumentare questo limite!',
         sshKeyLimitReached:
@@ -280,14 +312,16 @@ const it: Translations = {
             'La dimensione del volume deve essere tra {{min}} e {{max}} GB!',
         paymentNotConfigured: 'Pagamento non configurato per questo piano!',
         invalidSshKeyFormat: 'Formato della chiave pubblica SSH non valido!',
-        sshKeyInUse: 'Questa chiave SSH \u00e8 attualmente in uso da uno o pi\u00f9 claw!',
-        inputTooLong: 'L\'input supera la lunghezza massima consentita!',
-        invalidEnvVars: 'Nomi o valori delle variabili d\'ambiente non validi!',
+        sshKeyInUse:
+            'Questa chiave SSH \u00e8 attualmente in uso da uno o pi\u00f9 claw!',
+        inputTooLong: "L'input supera la lunghezza massima consentita!",
+        invalidEnvVars: "Nomi o valori delle variabili d'ambiente non validi!",
         invalidEmailFormat: 'Formato email non valido!',
         plusAddressingNotAllowed:
-            'L\'indirizzamento plus non \u00e8 consentito per l\'accesso via email!',
+            "L'indirizzamento plus non \u00e8 consentito per l'accesso via email!",
         invalidRedirectUrl: 'URL di reindirizzamento non valido!',
-        fileTooLarge: 'Il contenuto del file supera la dimensione massima consentita!',
+        fileTooLarge:
+            'Il contenuto del file supera la dimensione massima consentita!',
         nameAndKeyRequired: 'Nome e chiave pubblica sono obbligatori!',
         nameTooLong: 'Il nome deve essere di {{max}} caratteri o meno!',
         noBillingAccount: 'Nessun account di fatturazione trovato!',
@@ -308,55 +342,63 @@ const it: Translations = {
         planBelowMinimumMemory:
             'Questo piano non soddisfa il requisito minimo di memoria!',
         invalidLocation: 'Posizione selezionata non valida!',
-        planNotAvailableAtLocation: 'Questo piano non \u00e8 disponibile nella posizione selezionata!',
+        planNotAvailableAtLocation:
+            'Questo piano non \u00e8 disponibile nella posizione selezionata!',
         failedToSyncClaw: 'Impossibile sincronizzare lo stato del server!',
-        failedToProvisionClaw: 'Impossibile effettuare il provisioning del claw!',
-        failedToInitiatePurchase: 'Impossibile avviare l\'acquisto!',
-        failedToCancelDeletion: 'Impossibile annullare l\'eliminazione!',
-        failedToHardDeleteClaw: 'Impossibile eliminare definitivamente il claw!',
+        failedToProvisionClaw:
+            'Impossibile effettuare il provisioning del claw!',
+        failedToInitiatePurchase: "Impossibile avviare l'acquisto!",
+        failedToCancelDeletion: "Impossibile annullare l'eliminazione!",
+        failedToHardDeleteClaw:
+            'Impossibile eliminare definitivamente il claw!',
         failedToCancelScheduledDeletion:
-            'Impossibile annullare l\'eliminazione programmata!',
+            "Impossibile annullare l'eliminazione programmata!",
         failedToCreateSshKey: 'Impossibile creare la chiave SSH!',
         failedToDeleteSshKey: 'Impossibile eliminare la chiave SSH!',
         failedToUpdateProfile: 'Impossibile aggiornare il profilo!',
         failedToGetProfile: 'Impossibile ottenere il profilo!',
         failedToGetInvoice: 'Impossibile ottenere la fattura!',
         failedToGetCustomerPortal: 'Impossibile ottenere il portale clienti!',
-        failedToGetBillingHistory: 'Impossibile ottenere lo storico fatturazione!',
+        failedToGetBillingHistory:
+            'Impossibile ottenere lo storico fatturazione!',
         failedToGetStats: 'Impossibile ottenere le statistiche!',
         failedToFetchLocations: 'Impossibile recuperare le posizioni!',
         failedToFetchPlans: 'Impossibile recuperare i piani!',
-        failedToFetchVolumePricing: 'Impossibile recuperare i prezzi dei volumi!',
-        failedToFetchPlanAvailability: 'Impossibile recuperare la disponibilit\u00e0 dei piani!',
-        failedToSendEmail: 'Impossibile inviare l\'email!',
+        failedToFetchVolumePricing:
+            'Impossibile recuperare i prezzi dei volumi!',
+        failedToFetchPlanAvailability:
+            'Impossibile recuperare la disponibilit\u00e0 dei piani!',
+        failedToSendEmail: "Impossibile inviare l'email!",
         failedToGetVersion: 'Impossibile ottenere la versione!',
         failedToGetVersions: 'Impossibile ottenere le versioni!',
         failedToInstallVersion: 'Impossibile installare la versione!',
         installVersionSuccess: 'Versione installata con successo.',
         invalidVersion: 'Formato versione non valido!',
-        outdatedVersion: 'Questa versione \u00e8 obsoleta e non pu\u00f2 essere installata!',
-        failedToGetDiagnostics: 'Impossibile connettersi all\'istanza!',
+        outdatedVersion:
+            'Questa versione \u00e8 obsoleta e non pu\u00f2 essere installata!',
+        failedToGetDiagnostics: "Impossibile connettersi all'istanza!",
         failedToGetDiagnosticsDescription:
-            'Impossibile recuperare la diagnostica. L\'istanza potrebbe essere offline o in fase di avvio.',
+            "Impossibile recuperare la diagnostica. L'istanza potrebbe essere offline o in fase di avvio.",
         failedToGetLogs: 'Impossibile caricare i log!',
         failedToGetLogsDescription:
             'Impossibile recuperare i log per questa istanza. Riprova pi\u00f9 tardi.',
-        failedToRepairClaw: 'Impossibile riparare l\'istanza!',
+        failedToRepairClaw: "Impossibile riparare l'istanza!",
         repairSuccess: 'Istanza riparata con successo.',
         repairGatewayNotResponding:
             'Riparazione applicata ma il gateway non risponde ancora. Potrebbe aver bisogno di più tempo per avviarsi.',
-        failedToReinstallClaw: 'Impossibile reinstallare l\'istanza!',
+        failedToReinstallClaw: "Impossibile reinstallare l'istanza!",
         reinstallSuccess: 'Istanza reinstallata con successo.',
         reinstallRateLimited:
             'Puoi reinstallare solo una volta ogni 24 ore. Contatta il team se vuoi rimuovere questo limite.',
-        clawBusy: 'Il claw è attualmente in fase di provisioning o eliminazione!',
+        clawBusy:
+            'Il claw è attualmente in fase di provisioning o eliminazione!',
         reinstallGatewayNotResponding:
             'Reinstallazione completata ma il gateway non risponde ancora. Potrebbe aver bisogno di più tempo per avviarsi.',
         failedToExportClaw: 'Impossibile esportare i dati del claw!',
-        clawNotReady: 'Il claw non è pronto per l\'esportazione!',
+        clawNotReady: "Il claw non è pronto per l'esportazione!",
         exportRateLimited:
             'Questo claw è stato esportato di recente. Attendi prima di esportare di nuovo!',
-        failedToListFiles: 'Impossibile elencare i file dell\'istanza!',
+        failedToListFiles: "Impossibile elencare i file dell'istanza!",
         failedToReadFile: 'Impossibile leggere il file!',
         failedToUpdateFile: 'Impossibile salvare il file!',
         invalidFilePath: 'Percorso file non valido!',
@@ -372,7 +414,8 @@ const it: Translations = {
         licenseAlreadyPurchased: 'Licenza già acquistata!',
         licenseNotAvailable: 'Il prodotto licenza non è disponibile!',
         licenseCheckoutCreated: 'Checkout licenza creato.',
-        failedToPurchaseLicense: 'Impossibile creare il checkout della licenza!',
+        failedToPurchaseLicense:
+            'Impossibile creare il checkout della licenza!',
         internalServerError: 'Si è verificato un errore interno!',
         invalidCredentials: 'Credenziali non valide!',
         accountLinked: 'Account collegato con successo.',
@@ -390,7 +433,7 @@ const it: Translations = {
         clawDeletionCancelled: 'Eliminazione del claw annullata.',
         clawHardDeleted: 'Claw eliminato definitivamente.',
         pendingClawCancelled: 'Acquisto annullato.',
-        failedToCancelPendingClaw: 'Impossibile annullare l\'acquisto!',
+        failedToCancelPendingClaw: "Impossibile annullare l'acquisto!",
         clawPurchaseInitiated: 'Acquisto avviato con successo.',
         sshKeysFetched: 'Chiavi SSH recuperate con successo.',
         sshKeyCreated: 'Chiave SSH creata con successo.',
@@ -404,19 +447,22 @@ const it: Translations = {
         plansFetched: 'Piani recuperati con successo.',
         locationsFetched: 'Posizioni recuperate con successo.',
         volumePricingFetched: 'Prezzi dei volumi recuperati con successo.',
-        planAvailabilityFetched: 'Disponibilità dei piani recuperata con successo.',
+        planAvailabilityFetched:
+            'Disponibilità dei piani recuperata con successo.',
         agentsFetched: 'Agenti recuperati con successo.',
-        agentsFetchFailed: 'Impossibile raggiungere l\'istanza per recuperare gli agenti!',
+        agentsFetchFailed:
+            "Impossibile raggiungere l'istanza per recuperare gli agenti!",
         agentConfigFetched: 'Configurazione agente recuperata con successo.',
         agentConfigUpdated: 'Configurazione agente aggiornata con successo.',
-        agentConfigUpdateFailed: 'Impossibile aggiornare la configurazione dell\'agente!',
+        agentConfigUpdateFailed:
+            "Impossibile aggiornare la configurazione dell'agente!",
         agentCreated: 'Agente creato con successo.',
-        agentCreateFailed: 'Impossibile creare l\'agente sull\'istanza!',
+        agentCreateFailed: "Impossibile creare l'agente sull'istanza!",
         agentDeleted: 'Agente eliminato con successo.',
-        agentDeleteFailed: 'Impossibile eliminare l\'agente dall\'istanza!',
-        cannotDeleteMainAgent: 'Impossibile eliminare l\'unico agente rimasto!',
+        agentDeleteFailed: "Impossibile eliminare l'agente dall'istanza!",
+        cannotDeleteMainAgent: "Impossibile eliminare l'unico agente rimasto!",
         agentNameInvalid:
-            'Il nome dell\'agente deve contenere solo lettere, numeri e trattini!',
+            "Il nome dell'agente deve contenere solo lettere, numeri e trattini!",
         agentNameDuplicate: 'Un agente con questo nome esiste già!',
         diagnosticsFetched: 'Diagnostica recuperata con successo.',
         logsFetched: 'Log recuperati con successo.',
@@ -433,26 +479,29 @@ const it: Translations = {
         channelsUpdated: 'Canali aggiornati con successo.',
         channelsUpdateFailed: 'Impossibile aggiornare i canali!',
         channelsFetchFailed: 'Impossibile recuperare i canali!',
-        channelMissingRequired: 'Campi obbligatori mancanti per il canale abilitato!',
+        channelMissingRequired:
+            'Campi obbligatori mancanti per il canale abilitato!',
         whatsappPairStarted: 'Associazione WhatsApp avviata.',
         whatsappPairFailed: 'Associazione WhatsApp fallita!',
         whatsappAlreadyPaired: 'WhatsApp è già associato!',
-        whatsappVersionUnsupported: 'Questa versione non supporta la configurazione dei canali dalla dashboard. Usa la scheda Terminale per configurare manualmente o aggiorna OpenClaw.',
+        whatsappVersionUnsupported:
+            'Questa versione non supporta la configurazione dei canali dalla dashboard. Usa la scheda Terminale per configurare manualmente o aggiorna OpenClaw.',
         bindingsFetched: 'Binding recuperati con successo.',
         bindingsFetchFailed: 'Impossibile recuperare i binding!',
         bindingsUpdated: 'Binding aggiornati con successo.',
         bindingsUpdateFailed: 'Impossibile aggiornare i binding!',
         bindingsInvalidFormat: 'Formato binding non valido!',
         bindingsInvalidChannel: 'Canale non supportato nel binding!',
-        bindingsDuplicateChannel: 'Un canale può essere associato a un solo agente!',
+        bindingsDuplicateChannel:
+            'Un canale può essere associato a un solo agente!',
         skillsFetched: 'Skill recuperate con successo.',
         skillsUpdated: 'Skill aggiornate con successo.',
         skillsUpdateFailed: 'Impossibile aggiornare le skill!',
         skillsFetchFailed: 'Impossibile recuperare le skill!',
-        agentSkillsFetched: 'Skill dell\'agente recuperate con successo.',
-        agentSkillsUpdated: 'Skill dell\'agente aggiornate con successo.',
-        agentSkillsUpdateFailed: 'Impossibile aggiornare le skill dell\'agente!',
-        agentSkillsFetchFailed: 'Impossibile recuperare le skill dell\'agente!',
+        agentSkillsFetched: "Skill dell'agente recuperate con successo.",
+        agentSkillsUpdated: "Skill dell'agente aggiornate con successo.",
+        agentSkillsUpdateFailed: "Impossibile aggiornare le skill dell'agente!",
+        agentSkillsFetchFailed: "Impossibile recuperare le skill dell'agente!",
         invalidSkillName:
             'Il nome della skill deve contenere solo lettere, numeri, trattini e underscore!',
         skillNotFound: 'Skill non trovata!',
@@ -469,11 +518,15 @@ const it: Translations = {
         clawHubUpdatesFetched: 'Controllo aggiornamenti completato.',
         clawHubUpdatesFailed: 'Impossibile verificare gli aggiornamenti!',
         invalidAuthMethod: 'Metodo di autenticazione non valido!',
-        authMethodNotConnected: 'Questo metodo di autenticazione non è connesso!',
+        authMethodNotConnected:
+            'Questo metodo di autenticazione non è connesso!',
         authMethodConnected: 'Metodo di autenticazione connesso con successo.',
-        authMethodDisconnected: 'Metodo di autenticazione disconnesso con successo.',
-        failedToConnectAuthMethod: 'Impossibile connettere il metodo di autenticazione!',
-        failedToDisconnectAuthMethod: 'Impossibile disconnettere il metodo di autenticazione!',
+        authMethodDisconnected:
+            'Metodo di autenticazione disconnesso con successo.',
+        failedToConnectAuthMethod:
+            'Impossibile connettere il metodo di autenticazione!',
+        failedToDisconnectAuthMethod:
+            'Impossibile disconnettere il metodo di autenticazione!',
         textRequired: 'Il testo è obbligatorio!',
         voiceNotFound: 'Modello vocale non trovato!',
         ttsGenerationFailed: 'Impossibile generare il parlato!',
@@ -481,12 +534,14 @@ const it: Translations = {
         featureEmailsSent: 'Email funzionalità inviate con successo.',
         featureEmailsFailed: 'Impossibile inviare le email funzionalità!',
         invalidFeatureKey: 'Chiave funzionalità non valida!',
-        waitlistJoined: 'Iscrizione alla lista d\'attesa completata.',
-        waitlistAlreadyJoined: 'Già nella lista d\'attesa.',
-        waitlistJoinFailed: 'Impossibile iscriversi alla lista d\'attesa!',
-        waitlistRateLimited: 'Stai andando troppo veloce! Riprova tra {{seconds}} {{unit}}.',
-        waitlistStatusFetched: 'Stato lista d\'attesa recuperato.',
-        waitlistCheckFailed: 'Impossibile verificare lo stato della lista d\'attesa!'
+        waitlistJoined: "Iscrizione alla lista d'attesa completata.",
+        waitlistAlreadyJoined: "Già nella lista d'attesa.",
+        waitlistJoinFailed: "Impossibile iscriversi alla lista d'attesa!",
+        waitlistRateLimited:
+            'Stai andando troppo veloce! Riprova tra {{seconds}} {{unit}}.',
+        waitlistStatusFetched: "Stato lista d'attesa recuperato.",
+        waitlistCheckFailed:
+            "Impossibile verificare lo stato della lista d'attesa!"
     },
     emails: {
         otpSubject: 'Il tuo codice di accesso ClawHost',
@@ -495,14 +550,13 @@ const it: Translations = {
         otpExpiry:
             'Il codice scade tra 10 minuti. Se non sei stato tu, ignora questa email.',
         changelogSubject: 'Novità su ClawHost',
-        changelogPreview: 'Scopri gli ultimi aggiornamenti di ClawHost: {{title}}',
+        changelogPreview:
+            'Scopri gli ultimi aggiornamenti di ClawHost: {{title}}',
         changelogHeading: 'Novità',
         changelogButton: 'Vedi il Changelog',
         changelogVisitButton: 'Visita ClawHost',
-        changelogFooter:
-            'Ricevi questa email perché hai un account ClawHost.',
-        featureFooter:
-            'Ricevi questa email perché hai un account ClawHost.',
+        changelogFooter: 'Ricevi questa email perché hai un account ClawHost.',
+        featureFooter: 'Ricevi questa email perché hai un account ClawHost.',
         features: {
             terminal: {
                 subject: 'Lo sapevi? Hai un terminale web',
@@ -514,14 +568,16 @@ const it: Translations = {
             },
             logs: {
                 subject: 'Lo sapevi? Log in tempo reale nella tua dashboard',
-                preview: 'Monitora i log del tuo server senza lasciare il browser',
+                preview:
+                    'Monitora i log del tuo server senza lasciare il browser',
                 heading: 'Vedi cosa sta facendo il tuo server',
                 description:
                     'Monitora i log del tuo server in tempo reale dalla dashboard ClawHost. Diagnostica problemi, segui i deployment e fai debug delle applicazioni senza lasciare il browser.',
                 cta: 'Vedi Log'
             },
             channels: {
-                subject: 'Lo sapevi? Connetti gli agenti a Discord, Slack e altro',
+                subject:
+                    'Lo sapevi? Connetti gli agenti a Discord, Slack e altro',
                 preview: 'Collega i tuoi agenti AI ai canali di comunicazione',
                 heading: 'I tuoi agenti, ovunque',
                 description:
@@ -554,18 +610,19 @@ const it: Translations = {
             },
             voiceMode: {
                 subject: 'Lo sapevi? Parla con i tuoi agenti tramite voce',
-                preview: 'Usa il riconoscimento vocale e la sintesi vocale con i tuoi agenti',
+                preview:
+                    'Usa il riconoscimento vocale e la sintesi vocale con i tuoi agenti',
                 heading: 'Parla, non scrivere',
                 description:
-                    'Usa la modalità vocale per parlare con i tuoi agenti AI a mani libere. Riconoscimento vocale per l\'input, sintesi vocale per le risposte — scegli tra più voci.',
+                    "Usa la modalità vocale per parlare con i tuoi agenti AI a mani libere. Riconoscimento vocale per l'input, sintesi vocale per le risposte — scegli tra più voci.",
                 cta: 'Prova Modalità Vocale'
             },
             skills: {
                 subject: 'Lo sapevi? Oltre 5.000 skill su ClawHub',
                 preview: 'Sfoglia e installa skill della community con un clic',
-                heading: 'Estendi i tuoi agenti all\'istante',
+                heading: "Estendi i tuoi agenti all'istante",
                 description:
-                    'Sfoglia oltre 5.000 skill pronte all\'uso su ClawHub e installale con un singolo clic. Ricerca web, esecuzione codice, generazione immagini e molto altro.',
+                    "Sfoglia oltre 5.000 skill pronte all'uso su ClawHub e installale con un singolo clic. Ricerca web, esecuzione codice, generazione immagini e molto altro.",
                 cta: 'Sfoglia ClawHub'
             },
             bindings: {
@@ -577,11 +634,11 @@ const it: Translations = {
                 cta: 'Configura Associazioni'
             },
             envVars: {
-                subject: 'Lo sapevi? Gestisci le variabili d\'ambiente',
+                subject: "Lo sapevi? Gestisci le variabili d'ambiente",
                 preview: 'Imposta chiavi API e configurazioni senza SSH',
                 heading: 'Configura senza SSH',
                 description:
-                    'Aggiungi, modifica e rimuovi variabili d\'ambiente direttamente dalla dashboard ClawHost. Imposta chiavi API, segreti e configurazioni — nessun terminale necessario.',
+                    "Aggiungi, modifica e rimuovi variabili d'ambiente direttamente dalla dashboard ClawHost. Imposta chiavi API, segreti e configurazioni — nessun terminale necessario.",
                 cta: 'Gestisci Variabili'
             },
             diagnostics: {
@@ -589,12 +646,13 @@ const it: Translations = {
                 preview: 'Monitora la salute del tuo server dalla dashboard',
                 heading: 'Assicurati che il tuo server sia sano',
                 description:
-                    'Esegui la diagnostica sul tuo claw per verificare lo stato dei servizi, l\'uso della memoria e la disponibilità delle porte. Individua i problemi prima che diventino gravi.',
+                    "Esegui la diagnostica sul tuo claw per verificare lo stato dei servizi, l'uso della memoria e la disponibilità delle porte. Individua i problemi prima che diventino gravi.",
                 cta: 'Esegui Diagnostica'
             },
             sshKeys: {
                 subject: 'Lo sapevi? Gestisci le chiavi SSH da ClawHost',
-                preview: 'Genera e gestisci coppie di chiavi SSH nella dashboard',
+                preview:
+                    'Genera e gestisci coppie di chiavi SSH nella dashboard',
                 heading: 'Chiavi SSH, semplificate',
                 description:
                     'Genera coppie di chiavi SSH, copia le chiavi pubbliche e scarica le chiavi private — tutto dalla dashboard ClawHost. Assegna le chiavi ai claw per un accesso sicuro.',
@@ -602,31 +660,25 @@ const it: Translations = {
             },
             exportConfig: {
                 subject: 'Lo sapevi? Esporta la configurazione del tuo claw',
-                preview: 'Scarica la configurazione del tuo claw come file portatile',
+                preview:
+                    'Scarica la configurazione del tuo claw come file portatile',
                 heading: 'Porta con te la tua configurazione',
                 description:
                     'Esporta la configurazione e le impostazioni del tuo claw come file scaricabile. Fai un backup della tua configurazione o usala per replicare il tuo ambiente.',
                 cta: 'Esporta Configurazione'
-            },
-            multiProvider: {
-                subject: 'Lo sapevi? Distribuisci su 3 provider cloud',
-                preview: 'Scegli tra Hetzner, DigitalOcean e Vultr',
-                heading: 'Il tuo cloud, la tua scelta',
-                description:
-                    'Distribuisci i tuoi claw su Hetzner, DigitalOcean o Vultr. Confronta prezzi, posizioni e specifiche — poi scegli il provider più adatto alle tue esigenze.',
-                cta: 'Confronta Provider'
             },
             multiLanguage: {
                 subject: 'Lo sapevi? ClawHost parla la tua lingua',
                 preview: 'Usa ClawHost in 14 lingue',
                 heading: 'ClawHost nella tua lingua',
                 description:
-                    'Cambia l\'intera dashboard ClawHost in una delle 14 lingue. Dai pulsanti ai messaggi di errore — completamente tradotto.',
+                    "Cambia l'intera dashboard ClawHost in una delle 14 lingue. Dai pulsanti ai messaggi di errore — completamente tradotto.",
                 cta: 'Cambia Lingua'
             },
             subdomain: {
                 subject: 'Lo sapevi? Ogni claw ha il suo sottodominio',
-                preview: 'Accedi al tuo claw da qualsiasi luogo con un URL personalizzato',
+                preview:
+                    'Accedi al tuo claw da qualsiasi luogo con un URL personalizzato',
                 heading: 'Accedi da qualsiasi luogo',
                 description:
                     'Ogni claw ottiene un sottodominio unico così puoi accedere alla tua istanza OpenClaw da qualsiasi luogo. Nessun port forwarding, nessuna rete locale — solo un URL.',
@@ -642,7 +694,8 @@ const it: Translations = {
             },
             reinstall: {
                 subject: 'Lo sapevi? Reinstalla OpenClaw con un clic',
-                preview: 'Ripristina la tua istanza OpenClaw senza perdere il server',
+                preview:
+                    'Ripristina la tua istanza OpenClaw senza perdere il server',
                 heading: 'Nuovo inizio, stesso server',
                 description:
                     'Reinstalla il runtime OpenClaw sul tuo server esistente con un singolo clic. Il tuo server resta intatto — solo OpenClaw viene reinstallato da zero.',
@@ -672,7 +725,8 @@ const it: Translations = {
         emailAddress: 'Indirizzo Email',
         emailPlaceholder: 'esempio@clawhost.cloud',
         continueWithEmail: 'Continua con Email',
-        otpDescription: 'Ti invieremo un codice per accedere. Nessuna password necessaria.',
+        otpDescription:
+            'Ti invieremo un codice per accedere. Nessuna password necessaria.',
         welcomeBack: 'Bentornato.',
         resendIn: 'Reinvia tra {{seconds}}s',
         resendCode: 'Reinvia codice',
@@ -680,7 +734,7 @@ const it: Translations = {
         invalidCode: 'Codice non valido!',
         invalidEmailFormat: 'Inserisci un indirizzo email valido!',
         plusAddressingNotAllowed:
-            'L\'indirizzamento plus non è consentito per l\'accesso via email!',
+            "L'indirizzamento plus non è consentito per l'accesso via email!",
         or: 'o',
         continueWithGoogle: 'Continua con Google',
         continueWithGithub: 'Continua con GitHub',
@@ -694,9 +748,11 @@ const it: Translations = {
         description:
             'Gestisci le impostazioni del tuo account ClawHost e le informazioni del profilo.',
         accountSettings: 'Account',
-        manageYourAccount: 'Gestisci il tuo profilo e le impostazioni dell\'account.',
+        manageYourAccount:
+            "Gestisci il tuo profilo e le impostazioni dell'account.",
         profileInformation: 'Informazioni Profilo',
-        profileDescription: 'Le tue informazioni personali e il nome visualizzato.',
+        profileDescription:
+            'Le tue informazioni personali e il nome visualizzato.',
         noNameSet: 'Nessun nome impostato',
         joined: 'Iscritto',
         claws: 'claw',
@@ -704,7 +760,7 @@ const it: Translations = {
         displayName: 'Nome Visualizzato',
         enterYourName: 'Inserisci il tuo nome',
         emailAddress: 'Indirizzo Email',
-        emailNotEditable: 'L\'email non è modificabile. Contatta il supporto.',
+        emailNotEditable: "L'email non è modificabile. Contatta il supporto.",
         profileUpdatedSuccessfully: 'Profilo aggiornato con successo.',
         billingHistory: 'Storico Fatturazione',
         billingDescription: 'La tua cronologia pagamenti e fatture',
@@ -739,7 +795,7 @@ const it: Translations = {
         authConnect: 'Collega',
         authDisconnect: 'Scollega',
         emailCannotBeDisconnected:
-            'L\'email è sempre collegata come metodo di accesso principale.',
+            "L'email è sempre collegata come metodo di accesso principale.",
         providerConnected: '{{provider}} collegato con successo.',
         providerDisconnected: '{{provider}} scollegato con successo.',
         providerEmailMismatch:
@@ -749,13 +805,15 @@ const it: Translations = {
         showAllClaws: 'Mostra tutti i claw di tutti gli utenti',
         openLinksWindowed: 'Apri i link in una vista a finestra',
         openLinksWindowedDescription:
-            'Quando attivato, i link esterni si aprono all\'interno dell\'app invece che nel browser di sistema.'
+            "Quando attivato, i link esterni si aprono all'interno dell'app invece che nel browser di sistema."
     },
     billing: {
         title: 'Fatturazione',
-        description: 'Visualizza la cronologia pagamenti e gestisci la fatturazione.',
+        description:
+            'Visualizza la cronologia pagamenti e gestisci la fatturazione.',
         billingHistory: 'Fatturazione',
-        manageYourBilling: 'Visualizza la cronologia pagamenti e gestisci le fatture.',
+        manageYourBilling:
+            'Visualizza la cronologia pagamenti e gestisci le fatture.',
         billingDescription: 'La tua cronologia pagamenti e fatture',
         date: 'Data',
         product: 'Prodotto',
@@ -785,7 +843,8 @@ const it: Translations = {
         title: 'Licenza',
         description: 'Gestisci la tua licenza OpenClaw.',
         pageTitle: 'Licenza',
-        pageDescription: 'Acquista la licenza per ospitare istanze OpenClaw in locale con la nostra app Go.',
+        pageDescription:
+            'Acquista la licenza per ospitare istanze OpenClaw in locale con la nostra app Go.',
         planName: 'Licenza ClawHost Go',
         oneTimePurchase: 'Acquisto una tantum',
         price: '${{price}}',
@@ -793,7 +852,8 @@ const it: Translations = {
         purchaseLicense: 'Acquista Licenza',
         purchasing: 'Reindirizzamento...',
         activated: 'Licenza Attiva',
-        activatedDescription: 'La tua licenza è attiva. Grazie per il tuo supporto.',
+        activatedDescription:
+            'La tua licenza è attiva. Grazie per il tuo supporto.',
         paymentSuccess: 'Pagamento effettuato. La tua licenza è ora attiva.',
         failedToPurchase: 'Impossibile avviare il checkout!',
         featureUnlimitedClaws: 'OpenClaw Illimitati',
@@ -803,15 +863,19 @@ const it: Translations = {
         featureSupport: 'Supporto Prioritario',
         featureCloud: 'Tutte le Funzionalità Cloud, in Locale',
         whatsIncluded: 'Cosa include',
-        permanentNote: 'Le licenze sono permanenti e non revocabili. Una volta acquistata, è tua per sempre.',
+        permanentNote:
+            'Le licenze sono permanenti e non revocabili. Una volta acquistata, è tua per sempre.',
         gateTitle: 'Licenza Necessaria',
-        gateDescription: 'Hai bisogno di una Licenza ClawHost Go per distribuire e gestire istanze OpenClaw in locale.'
+        gateDescription:
+            'Hai bisogno di una Licenza ClawHost Go per distribuire e gestire istanze OpenClaw in locale.'
     },
     network: {
         unstable: 'Connessione Instabile',
-        unstableDescription: 'La tua connessione internet è instabile. Alcune funzionalità potrebbero non funzionare correttamente.',
+        unstableDescription:
+            'La tua connessione internet è instabile. Alcune funzionalità potrebbero non funzionare correttamente.',
         offline: 'Nessuna Connessione Internet',
-        offlineDescription: 'Sei attualmente offline. Le funzionalità che richiedono accesso a internet non saranno disponibili.',
+        offlineDescription:
+            'Sei attualmente offline. Le funzionalità che richiedono accesso a internet non saranno disponibili.',
         dismiss: 'Chiudi'
     },
     dashboard: {
@@ -826,7 +890,7 @@ const it: Translations = {
         clawActions: 'Azioni claw',
         noClawsYet: 'Nessun Claw',
         noClawsDescription:
-            'Nessun claw distribuito trovato. Ma puoi distribuire il tuo primo claw in qualsiasi momento a partire da $25/m. Basta l\'AI.',
+            "Nessun claw distribuito trovato. Ma puoi distribuire il tuo primo claw in qualsiasi momento a partire da $25/m. Basta l'AI.",
         deleteClaw: 'Elimina Claw',
         deleteClawConfirmation: 'Sei sicuro di voler eliminare',
         deleteClawWarning:
@@ -887,19 +951,21 @@ const it: Translations = {
         hardDeleteConfirmation:
             'Sei sicuro di voler eliminare questo claw immediatamente? Perderai il tempo rimanente del tuo periodo di fatturazione corrente. Questa azione non può essere annullata.',
         diagnostics: 'Diagnostica',
-        diagnosticsDescription: 'Controlla la salute della tua istanza OpenClaw.',
+        diagnosticsDescription:
+            'Controlla la salute della tua istanza OpenClaw.',
         diagnosticsStatus: 'Stato',
         diagnosticsLogs: 'Log',
         diagnosticsRepair: 'Ripara',
         diagnosticsRepairDescription:
-            'Rimuovi i limiti di memoria, applica l\'ultima configurazione del servizio e riavvia il gateway. Questo risolve la maggior parte dei problemi comuni.',
+            "Rimuovi i limiti di memoria, applica l'ultima configurazione del servizio e riavvia il gateway. Questo risolve la maggior parte dei problemi comuni.",
         diagnosticsRepairSuccess: 'Istanza riparata con successo.',
         diagnosticsRepairFailed:
             'Riparazione applicata ma il gateway non risponde ancora!',
-        diagnosticsLoading: 'Connessione all\'istanza...',
+        diagnosticsLoading: "Connessione all'istanza...",
         diagnosticsNoLogs:
             'Nessun log disponibile. Avvia la tua istanza per generare log.',
-        diagnosticsIssueDetected: 'È stato rilevato un problema con la tua istanza.',
+        diagnosticsIssueDetected:
+            'È stato rilevato un problema con la tua istanza.',
         diagnosticsHealthy: 'La tua istanza funziona normalmente.',
         diagnosticsPort: 'Porta 18789',
         diagnosticsMemory: 'Memoria',
@@ -909,7 +975,8 @@ const it: Translations = {
         fileExplorerRoot: 'openclaw',
         fileExplorerDescription:
             'Sfoglia e modifica i file di configurazione di OpenClaw. Modifiche errate possono danneggiare la tua istanza.',
-        fileExplorerSelectFile: 'Seleziona un file per visualizzarne il contenuto.',
+        fileExplorerSelectFile:
+            'Seleziona un file per visualizzarne il contenuto.',
         fileExplorerReadOnly: 'Sola lettura',
         fileExplorerSave: 'Salva',
         fileExplorerSaved: 'File salvato.',
@@ -920,7 +987,7 @@ const it: Translations = {
         fileExplorerNoSearchResults: 'Nessun file corrispondente.',
         updateInstance: 'Aggiorna Istanza',
         updateInstanceSuccess: 'Istanza aggiornata con successo.',
-        updateInstanceFailed: 'Impossibile aggiornare l\'istanza!',
+        updateInstanceFailed: "Impossibile aggiornare l'istanza!",
         startFailed: 'Impossibile avviare il claw!',
         renameSuccess: 'Claw rinominato con successo.',
         renameFailed: 'Impossibile rinominare il claw!',
@@ -930,10 +997,11 @@ const it: Translations = {
         reinstallClawConfirmation:
             'Questo reinstallerà completamente OpenClaw su questa istanza. Tutte le configurazioni, gli agenti e i dati verranno reimpostati. Questa azione non può essere annullata. Continuare?',
         reinstallInstanceSuccess: 'Istanza reinstallata con successo.',
-        reinstallInstanceFailed: 'Impossibile reinstallare l\'istanza!',
+        reinstallInstanceFailed: "Impossibile reinstallare l'istanza!",
         openControlPanel: 'Apri Pannello di Controllo',
         exportData: 'Esporta Claw (.zip)',
-        exportStarted: 'Preparazione esportazione, potrebbe richiedere un momento...',
+        exportStarted:
+            'Preparazione esportazione, potrebbe richiedere un momento...',
         exportSuccess: 'Claw esportato con successo.',
         exportFailed: 'Impossibile esportare i dati del claw!',
         exportRateLimited: 'Puoi esportare di nuovo tra {{minutes}} minuti.',
@@ -981,7 +1049,8 @@ const it: Translations = {
         selectAgentDescription:
             'Seleziona un claw o un agente dalla barra laterale.',
         noAgents: 'Nessun agente disponibile',
-        noAgentsDescription: 'Distribuisci un claw per iniziare a chattare con gli agenti.',
+        noAgentsDescription:
+            'Distribuisci un claw per iniziare a chattare con gli agenti.',
         openSidebar: 'Apri barra laterale',
         clawNotReady: 'Il claw non è ancora pronto',
         notConfigured: 'Non configurato',
@@ -992,15 +1061,15 @@ const it: Translations = {
     },
     createClaw: {
         title: 'Distribuisci OpenClaw',
-        description: 'Configura il tuo server e inizia a costruire con l\'AI.',
+        description: "Configura il tuo server e inizia a costruire con l'AI.",
         clawName: 'Nome',
         clawNamePlaceholder: 'es. cozy-panda',
-        clawNameInvalidChars: 'Sono consentiti solo lettere, numeri e trattini!',
-        autoGenerateNameHint: 'Lascia vuoto per generare un nome automaticamente.',
+        clawNameInvalidChars:
+            'Sono consentiti solo lettere, numeri e trattini!',
+        autoGenerateNameHint:
+            'Lascia vuoto per generare un nome automaticamente.',
         provider: 'Provider',
         providerHetzner: 'Hetzner',
-        providerDigitalOcean: 'DigitalOcean',
-        providerVultr: 'Vultr',
         providerLocal: 'Locale',
         providerAws: 'AWS',
         comingSoon: 'Presto',
@@ -1013,7 +1082,7 @@ const it: Translations = {
         providerUnavailable: 'Questo provider non è attualmente disponibile.',
         providerDisabledHetznerRecommended: 'Non disponibile',
         providerAtCapacity:
-            'A causa dell\'elevata domanda, abbiamo temporaneamente esaurito i server di questo provider. Stiamo lavorando attivamente per risolvere.',
+            "A causa dell'elevata domanda, abbiamo temporaneamente esaurito i server di questo provider. Stiamo lavorando attivamente per risolvere.",
         advancedOptions: 'Opzioni Avanzate Opzionali',
         rootPassword: 'Password Root',
         rootPasswordPlaceholder: 'Inserisci password o generane una',
@@ -1026,7 +1095,8 @@ const it: Translations = {
         sshKeyOptional: 'Chiave SSH',
         noSshKeyPasswordOnly: 'Nessuna chiave SSH (solo password)',
         noSshKeysConfigured: 'Nessuna chiave SSH configurata',
-        addSshKeyForPasswordlessLogin: 'Aggiungi una chiave SSH per l\'accesso senza password',
+        addSshKeyForPasswordlessLogin:
+            "Aggiungi una chiave SSH per l'accesso senza password",
         additionalStorageOptional: 'Archiviazione Aggiuntiva',
         volumeStorage: 'Archiviazione Volume',
         vpsServer: 'Server VPS',
@@ -1078,7 +1148,7 @@ const it: Translations = {
         sshKeyAddedSuccessfully: 'Chiave SSH aggiunta con successo.',
         addSshKeyModalTitle: 'Aggiungi Chiave SSH',
         addSshKeyModalDescription:
-            'Aggiungi una chiave SSH per l\'autenticazione senza password',
+            "Aggiungi una chiave SSH per l'autenticazione senza password",
         iHaveAnSshKey: 'Chiave Esistente',
         generateNewKey: 'Crea Nuova',
         name: 'Nome',
@@ -1146,7 +1216,8 @@ const it: Translations = {
             'Accesso completo a OpenClaw e al VPS, senza limiti su ciò che puoi realizzare.',
         features: 'Funzionalità',
         whyClawHost: 'Funzionalità Tutto-in-Uno',
-        featuresDescription: 'Perché vale la pena provare, le funzionalità parlano da sole.',
+        featuresDescription:
+            'Perché vale la pena provare, le funzionalità parlano da sole.',
         zeroConfigDescription:
             'Salta ore di configurazione server e OpenClaw. È preinstallato e pronto in pochi minuti.',
         ownedData: 'Dati 100% di Proprietà',
@@ -1157,7 +1228,7 @@ const it: Translations = {
             'Risorse VPS dedicate significano nessun rallentamento, banda completa e internet ultraveloce.',
         globalLocations: 'Posizioni Globali',
         globalLocationsDescription:
-            'Distribuisci OpenClaw in oltre 30 regioni globali su Hetzner, DigitalOcean o Vultr e scegli la posizione più vicina a te.',
+            'Distribuisci OpenClaw in più regioni globali su Hetzner Cloud e scegli la posizione più vicina a te.',
         fullSshAccess: 'Accesso SSH Diretto',
         fullSshAccessDescription:
             'Accedi al terminale del tuo server direttamente dalla piattaforma. Nessun client SSH esterno necessario.',
@@ -1181,7 +1252,7 @@ const it: Translations = {
             'Gestisci file, aggiornamenti, canali, variabili, skill e altre opzioni di configurazione direttamente dalla piattaforma.',
         skillsMarketplace: 'Oltre 5.000 Skill',
         skillsMarketplaceDescription:
-            'Sfoglia e installa tra oltre 5.000 skill pronte all\'uso con un singolo clic. Estendi il tuo OpenClaw istantaneamente.',
+            "Sfoglia e installa tra oltre 5.000 skill pronte all'uso con un singolo clic. Estendi il tuo OpenClaw istantaneamente.",
         directChat: 'Chat Diretta',
         directChatDescription:
             'Chatta con i tuoi agenti AI direttamente dalla piattaforma. Nessun bisogno di strumenti o interfacce esterne.',
@@ -1190,7 +1261,7 @@ const it: Translations = {
             'Esegui e gestisci più agenti AI su una singola istanza. Ognuno con la propria configurazione e scopo.',
         multipleClaws: 'Claw Multipli',
         multipleClawsDescription:
-            'Distribuisci e gestisci più istanze OpenClaw da un\'unica dashboard. Scala man mano che cresci.',
+            "Distribuisci e gestisci più istanze OpenClaw da un'unica dashboard. Scala man mano che cresci.",
         testimonials: 'Testimonianze',
         whatPeopleSay: 'Cosa Dice la Gente',
         testimonialsDescription:
@@ -1214,7 +1285,7 @@ const it: Translations = {
         pricing: 'Prezzi',
         simpleTransparentPricing: 'Prezzi Semplici e Trasparenti',
         pricingDescription:
-            'Scegli tra oltre 45 server dei nostri provider in base alle tue esigenze.',
+            'Scegli tra i nostri server Hetzner Cloud in base alle tue esigenze.',
         planColumn: 'Server',
         vCpuColumn: 'vCPU',
         ramColumn: 'RAM',
@@ -1243,35 +1314,35 @@ const it: Translations = {
         faqTitle: 'Domande',
         frequentlyAskedQuestions: 'Domande Frequenti',
         faqDescription: 'Ogni singola domanda frequente, con risposta.',
-        faq1Question: 'Cos\'è ClawHost?',
+        faq1Question: "Cos'è ClawHost?",
         faq1Answer:
-            'ClawHost è una piattaforma creata per rendere OpenClaw accessibile a tutti. Permette sia agli utenti non tecnici che agli sviluppatori di eseguire OpenClaw senza gestire l\'infrastruttura. Noi gestiamo server, uptime, sicurezza e manutenzione — tu usi semplicemente OpenClaw.',
-        faq2Question: 'Cos\'è OpenClaw?',
+            "ClawHost è una piattaforma creata per rendere OpenClaw accessibile a tutti. Permette sia agli utenti non tecnici che agli sviluppatori di eseguire OpenClaw senza gestire l'infrastruttura. Noi gestiamo server, uptime, sicurezza e manutenzione — tu usi semplicemente OpenClaw.",
+        faq2Question: "Cos'è OpenClaw?",
         faq2Answer:
             'OpenClaw è un livello di accesso sicuro self-hosted per i tuoi strumenti e servizi AI. È preconfigurato per sicurezza e prestazioni, quindi puoi distribuirlo e connetterti istantaneamente.',
         faq3Question:
             'In cosa è diverso da altri strumenti AI o piattaforme hosted?',
         faq3Answer:
-            'A differenza degli strumenti AI hosted, ClawHost ti dà un vero server con OpenClaw installato. Possiedi l\'infrastruttura, controlli tutto e non sei limitato da una piattaforma o modello condiviso.',
+            "A differenza degli strumenti AI hosted, ClawHost ti dà un vero server con OpenClaw installato. Possiedi l'infrastruttura, controlli tutto e non sei limitato da una piattaforma o modello condiviso.",
         faq4Question: 'Ho bisogno di conoscenze tecniche?',
         faq4Answer:
-            'No. Gestiamo tutta l\'infrastruttura, la configurazione e la manutenzione. Puoi configurare e gestire OpenClaw tramite la sua interfaccia, connetterti ai canali e personalizzare l\'utilizzo — senza toccare server o infrastruttura.',
+            "No. Gestiamo tutta l'infrastruttura, la configurazione e la manutenzione. Puoi configurare e gestire OpenClaw tramite la sua interfaccia, connetterti ai canali e personalizzare l'utilizzo — senza toccare server o infrastruttura.",
         faq5Question: 'Quali posizioni sono disponibili?',
         faq5Answer:
-            'Offriamo oltre 30 posizioni server in tutto il mondo su Hetzner, DigitalOcean e Vultr, inclusi USA, Europa, Asia e altro. Puoi distribuire OpenClaw su più server in diverse regioni se necessario.',
+            'Offriamo più posizioni server in tutto il mondo tramite Hetzner Cloud, inclusi Stati Uniti, Europa e altro. Puoi distribuire OpenClaw su più server in diverse regioni se necessario.',
         faq6Question: 'Quanto costa?',
         faq6Answer:
-            'Il prezzo è basato sul server che selezioni. Con oltre 45 opzioni server che vanno dall\'entry-level alle alte prestazioni su tre provider, scegli ciò che si adatta alle tue esigenze e al tuo budget.',
+            'I prezzi dipendono dal server selezionato. Con più opzioni server dal livello base alle alte prestazioni, scegli ciò che si adatta alle tue esigenze e al tuo budget.',
         faq7Question: 'Posso accedere direttamente al mio server?',
         faq7Answer:
-            'Sì. Oltre all\'accesso a OpenClaw tramite URL sottodominio, hai accesso completo al server e alla sua infrastruttura sottostante, dandoti completa libertà di personalizzare e eseguire tutto ciò di cui hai bisogno.',
+            "Sì. Oltre all'accesso a OpenClaw tramite URL sottodominio, hai accesso completo al server e alla sua infrastruttura sottostante, dandoti completa libertà di personalizzare e eseguire tutto ciò di cui hai bisogno.",
         faq8Question: 'Dove sono ospitati i server?',
         faq8Answer:
-            'Tutti i server sono ospitati su Hetzner Cloud, DigitalOcean e Vultr, provider cloud affidabili noti per hardware ad alte prestazioni e uptime eccellente, utilizzati da infrastrutture su larga scala.',
+            'Tutti i server sono ospitati su Hetzner Cloud, un provider cloud affidabile noto per hardware ad alte prestazioni ed eccellente disponibilità, utilizzato da infrastrutture su larga scala.',
         comparison: 'Confronto',
         comparisonTitle: 'In Cosa Siamo Diversi',
         comparisonDescription:
-            'C\'è solo una piattaforma comparabile, e il nostro approccio si concentra su server reali e proprietà completa invece di limitazioni.',
+            "C'è solo una piattaforma comparabile, e il nostro approccio si concentra su server reali e proprietà completa invece di limitazioni.",
         others: 'Altri',
         comparisonOpenClawUs: 'Accesso completo a OpenClaw',
         comparisonOpenClawOthers: 'Solo chat, nessuna gestione',
@@ -1329,7 +1400,8 @@ const it: Translations = {
         writtenBy: 'Di {{author}}',
         backToBlog: 'Torna al Blog',
         noPosts: 'Nessun Articolo',
-        noPostsDescription: 'Gli articoli del blog arriveranno presto. Torna più tardi.',
+        noPostsDescription:
+            'Gli articoli del blog arriveranno presto. Torna più tardi.',
         ctaTitle: 'Distribuisci OpenClaw con Un Clic',
         ctaDescription:
             'Ottieni un server dedicato con OpenClaw preinstallato. Accesso root completo, posizioni globali e pronto in pochi minuti. Lo possiedi in ogni momento. A partire da $25.',
@@ -1340,11 +1412,12 @@ const it: Translations = {
         title: 'Changelog',
         description:
             'Segui aggiornamenti, nuove funzionalità e miglioramenti di ClawHost.',
-        subtitle: 'Tutti gli aggiornamenti, le nuove funzionalità e i miglioramenti di ClawHost.',
+        subtitle:
+            'Tutti gli aggiornamenti, le nuove funzionalità e i miglioramenti di ClawHost.',
         upcomingRelease: 'In Corso',
         upcomingReleaseTitle: 'App Mobile e Altro',
         upcomingReleaseDescription:
-            'Gestisci le tue istanze OpenClaw da qualsiasi luogo. Un\'app mobile nativa, più miglioramenti continui della piattaforma.',
+            "Gestisci le tue istanze OpenClaw da qualsiasi luogo. Un'app mobile nativa, più miglioramenti continui della piattaforma.",
         upcomingReleaseFeature1:
             'App mobile nativa per monitorare e gestire le tue istanze OpenClaw in mobilità',
         upcomingReleaseFeature3: 'Supporto tema chiaro e scuro',
@@ -1378,7 +1451,8 @@ const it: Translations = {
         release12Title: 'Piani Annuali, Modalità Vocale e Altro',
         release12Description:
             'Abbonamenti annuali con 2 mesi gratis, modalità vocale, reinstallazione istanza e una pagina di presentazione iniziale per ClawHost Go.',
-        release12Feature1: 'Pagina di presentazione per ClawHost Go, hosting locale con ClawHost',
+        release12Feature1:
+            'Pagina di presentazione per ClawHost Go, hosting locale con ClawHost',
         release12Feature2:
             'Supporto abbonamento annuale con 2 mesi gratis quando ti abboni annualmente',
         release12Feature3:
@@ -1388,18 +1462,22 @@ const it: Translations = {
         release11Date: '28 febbraio 2026',
         release11Title: 'Sintesi Vocale, Terminale, Tab Chat ed Esplora File',
         release11Description:
-            'Ascolta le risposte degli agenti con la sintesi vocale, interagisci con il tuo VPS direttamente dal terminale, naviga le chat più velocemente con i tab nella barra laterale e sfoglia i file con l\'esplora file migliorato.',
-        release11Feature1: 'Sintesi vocale sui messaggi degli agenti nel playground',
+            "Ascolta le risposte degli agenti con la sintesi vocale, interagisci con il tuo VPS direttamente dal terminale, naviga le chat più velocemente con i tab nella barra laterale e sfoglia i file con l'esplora file migliorato.",
+        release11Feature1:
+            'Sintesi vocale sui messaggi degli agenti nel playground',
         release11Feature2:
             'Terminale per interagire con le tue istanze VPS direttamente dalla dashboard',
         release11Feature3:
             'Tab vista barra laterale chat per accesso e navigazione facili',
         release11Feature4:
             'Miglioramenti esplora file con barra di ricerca per cercare tra i file',
-        release11Feature5: 'Corretti i timestamp dei messaggi che non riflettevano il tempo reale',
-        release11Dropped1: 'Rimosse le richieste di funzionalit\u00E0 per semplificazione',
+        release11Feature5:
+            'Corretti i timestamp dei messaggi che non riflettevano il tempo reale',
+        release11Dropped1:
+            'Rimosse le richieste di funzionalit\u00E0 per semplificazione',
         release10Date: '23 febbraio 2026',
-        release10Title: 'Richieste funzionalit\u00E0, esplora file e correzioni bug',
+        release10Title:
+            'Richieste funzionalit\u00E0, esplora file e correzioni bug',
         release10Description:
             'Richieste di funzionalit\u00E0 della community, supporto espanso per la modifica dei file e varie correzioni bug.',
         release10Feature1:
@@ -1411,7 +1489,7 @@ const it: Translations = {
         release10Feature4:
             'Diversi miglioramenti e correzioni bug in tutta la piattaforma',
         release10Feature5:
-            'I file TypeScript, Markdown e testo semplice sono ora modificabili nell\'esplora file',
+            "I file TypeScript, Markdown e testo semplice sono ora modificabili nell'esplora file",
         release9Date: '21 febbraio 2026',
         release9Title: 'Confronti, refactoring del playground e altro',
         release9Description:
@@ -1439,7 +1517,7 @@ const it: Translations = {
         release7Description:
             'Importanti miglioramenti a chat e playground con interazione vocale, marketplace skill ClawHub e allegati file per gli agenti.',
         release7Feature1:
-            'Refactoring di chat e playground per un\'esperienza pi\u00F9 fluida e reattiva',
+            "Refactoring di chat e playground per un'esperienza pi\u00F9 fluida e reattiva",
         release7Feature2:
             'Interazione vocale con le chat, registra e trascrivi il parlato direttamente nel browser',
         release7Feature3:
@@ -1467,27 +1545,25 @@ const it: Translations = {
             'Dashboard per gestire i claw, avviare, fermare, riavviare ed eliminare istanze',
         release1Feature3:
             '18 piani server Hetzner con vCPU dedicata, RAM e opzioni di archiviazione',
-        release1Feature4:
-            '6 posizioni server Hetzner in USA, Europa e Asia',
-        release1Feature5: 'Gestione chiavi SSH per accesso server senza password',
-        release1Feature6: 'Supporto archiviazione volume aggiuntiva fino a 10 TB',
-        release1Feature7: 'Autenticazione con magic link, nessuna password necessaria',
-        release1Feature8: 'Accesso online a OpenClaw tramite sottodomini sicuri',
+        release1Feature4: '6 posizioni server Hetzner in USA, Europa e Asia',
+        release1Feature5:
+            'Gestione chiavi SSH per accesso server senza password',
+        release1Feature6:
+            'Supporto archiviazione volume aggiuntiva fino a 10 TB',
+        release1Feature7:
+            'Autenticazione con magic link, nessuna password necessaria',
+        release1Feature8:
+            'Accesso online a OpenClaw tramite sottodomini sicuri',
         release1Feature9:
             'Integrazione pagamenti con prezzi trasparenti per server',
         release1Feature10: 'Storico fatturazione e gestione fatture',
         release1Feature11:
             'Provisioning automatico con OpenClaw preinstallato e configurato',
         release2Date: '8 febbraio 2026',
-        release2Title: 'DigitalOcean e altro',
+        release2Title: 'Changelog e altro',
         release2Description:
-            'Infrastruttura multi-provider e un nuovo modo per restare aggiornati su tutto ClawHost.',
-        release2Feature1: 'DigitalOcean come secondo provider cloud',
-        release2Feature2:
-            '7 piani server DigitalOcean con vCPU dedicata, RAM e opzioni di archiviazione',
-        release2Feature3:
-            'Oltre 10 posizioni server DigitalOcean in USA, Europa, Asia e altro',
-        release2Feature4:
+            'Un nuovo modo per restare aggiornati su ClawHost.',
+        release2Feature1:
             'Pagina changelog per seguire tutti gli aggiornamenti e i rilasci della piattaforma',
         release3Date: '10 febbraio 2026',
         release3Title: 'Approfondimenti server',
@@ -1499,25 +1575,16 @@ const it: Translations = {
             'Diagnostica server con riparazione automatica con un clic per problemi di servizio',
         release3Feature3:
             'Esplora file integrato ed editor JSON per i file di configurazione del server',
-        release4Date: '11 febbraio 2026',
-        release4Title: 'Provider Vultr',
+        release4Date: '14 febbraio 2026',
+        release4Title: 'Agenti ed esportazione dati',
         release4Description:
-            'Vultr come terzo provider cloud con 22 piani server e oltre 30 posizioni globali.',
-        release4Feature1: 'Vultr come terzo provider cloud',
-        release4Feature2:
-            '22 piani server Vultr tra livelli Regular, High Performance e High Frequency',
-        release4Feature3:
-            'Oltre 30 posizioni server Vultr in USA, Europa, Asia e altro',
-        release5Date: '14 febbraio 2026',
-        release5Title: 'Agenti ed esportazione dati',
-        release5Description:
             'Playground agenti, gestione multi-agente ed esportazione dati portatile per le tue istanze OpenClaw.',
-        release5Feature1:
+        release4Feature1:
             'Playground agenti con un clic e panoramica, aggiungi e gestisci pi\u00F9 agenti',
-        release5Feature2: 'Esporta il tuo OpenClaw come archivio zip portatile',
-        release5Feature3:
+        release4Feature2: 'Esporta il tuo OpenClaw come archivio zip portatile',
+        release4Feature3:
             'Playground interattivo con visualizzazione a grafo di Claw e agenti',
-        release5Feature4:
+        release4Feature4:
             'Rimossa la vista griglia e lista in favore di un layout dashboard unificato'
     },
     playground: {
@@ -1526,7 +1593,8 @@ const it: Translations = {
             'Visualizza i tuoi Claw e i loro agenti in un grafo interattivo.',
         subtitle: 'Topologia degli agenti nella tua infrastruttura',
         noClawsYet: 'Nessun claw',
-        noClawsDescription: 'Distribuisci il tuo primo Claw per interagire con esso.',
+        noClawsDescription:
+            'Distribuisci il tuo primo Claw per interagire con esso.',
         loadingAgents: 'Caricamento agenti',
         unreachable: 'Non raggiungibile',
         offline: 'Offline',
@@ -1549,53 +1617,57 @@ const it: Translations = {
         terminalError: 'Impossibile connettersi al terminale !',
         terminalReconnect: 'Riconnetti',
         tabDisabledConfiguring:
-            'Disponibile una volta completata la configurazione dell\'istanza.',
-        tabDisabledAwaitingPayment: 'Disponibile una volta elaborato il pagamento.',
+            "Disponibile una volta completata la configurazione dell'istanza.",
+        tabDisabledAwaitingPayment:
+            'Disponibile una volta elaborato il pagamento.',
         loadingTip1:
-            'Sapevi che puoi eseguire pi\u00F9 agenti all\'interno di un singolo OpenClaw?',
+            "Sapevi che puoi eseguire pi\u00F9 agenti all'interno di un singolo OpenClaw?",
         loadingTip2: 'Sapevi che OpenClaw \u00E8 open source?',
         loadingTip3:
-            'ClawHost \u00E8 il primo progetto in assoluto a permettere l\'hosting OpenClaw con un clic.',
+            "ClawHost \u00E8 il primo progetto in assoluto a permettere l'hosting OpenClaw con un clic.",
         tabChat: 'Chat',
         tabConfiguration: 'Configurazione',
         tabSettings: 'Impostazioni',
         tabEnvs: 'Variabili',
         agentOnClaw: 'su {{clawName}}',
-        cannotDeleteDefaultAgent: 'L\'agente predefinito non pu\u00F2 essere rimosso !',
+        cannotDeleteDefaultAgent:
+            "L'agente predefinito non pu\u00F2 essere rimosso !",
         configurationModel: 'Modello',
         configurationModelPlaceholder: 'Seleziona un modello',
         configurationModelDescription:
-            'Il modello AI che questo agente utilizza. Cambiare il modello potrebbe richiedere l\'impostazione della chiave API corrispondente.',
-        configurationEnvVars: 'Variabili d\'Ambiente',
+            "Il modello AI che questo agente utilizza. Cambiare il modello potrebbe richiedere l'impostazione della chiave API corrispondente.",
+        configurationEnvVars: "Variabili d'Ambiente",
         configurationEnvVarsDescription:
-            'Chiavi API e variabili d\'ambiente memorizzate in ~/.openclaw/.env sull\'istanza.',
+            "Chiavi API e variabili d'ambiente memorizzate in ~/.openclaw/.env sull'istanza.",
         configurationAddEnvVar: 'Aggiungi Variabile',
         configurationKeyPlaceholder: 'NOME_VARIABILE',
         configurationValuePlaceholder: 'valore',
         configurationSave: 'Salva',
         configurationSaving: 'Salvataggio...',
         configurationSaved: 'Configurazione agente salvata.',
-        configurationSaveFailed: 'Impossibile salvare la configurazione dell\'agente!',
+        configurationSaveFailed:
+            "Impossibile salvare la configurazione dell'agente!",
         configurationLoading: 'Caricamento configurazione...',
-        configurationLoadFailed: 'Impossibile caricare la configurazione dell\'agente!',
+        configurationLoadFailed:
+            "Impossibile caricare la configurazione dell'agente!",
         configurationLoadFailedDescription:
             'Impossibile recuperare la configurazione per questo agente. Riprova più tardi.',
         configurationRemoveVar: 'Rimuovi',
         configurationApiKey: 'Chiave API',
         configurationApiKeyDescription:
-            'Necessaria per {{modelName}}. Questa chiave è memorizzata in ~/.openclaw/.env sull\'istanza.',
+            "Necessaria per {{modelName}}. Questa chiave è memorizzata in ~/.openclaw/.env sull'istanza.",
         configurationApiKeyPlaceholder: 'Inserisci la tua chiave API',
         tabVariables: 'Variabili',
         variablesDescription:
-            'Variabili d\'ambiente memorizzate in ~/.openclaw/.env su questa istanza.',
-        variablesEmpty: 'Nessuna variabile d\'ambiente trovata.',
+            "Variabili d'ambiente memorizzate in ~/.openclaw/.env su questa istanza.",
+        variablesEmpty: "Nessuna variabile d'ambiente trovata.",
         variablesAddVariable: 'Aggiungi Variabile',
         variablesSave: 'Salva Variabili',
         variablesSaving: 'Salvataggio...',
-        variablesSaved: 'Variabili d\'ambiente salvate.',
-        variablesSaveFailed: 'Impossibile salvare le variabili d\'ambiente!',
+        variablesSaved: "Variabili d'ambiente salvate.",
+        variablesSaveFailed: "Impossibile salvare le variabili d'ambiente!",
         variablesLoading: 'Caricamento variabili...',
-        variablesLoadFailed: 'Impossibile caricare le variabili d\'ambiente!',
+        variablesLoadFailed: "Impossibile caricare le variabili d'ambiente!",
         variablesLoadFailedDescription:
             'Impossibile recuperare le variabili per questa istanza. Riprova più tardi.',
         variablesInvalidKey: 'Solo lettere, numeri e underscore!',
@@ -1603,13 +1675,13 @@ const it: Translations = {
         variablesDuplicateKey: 'Nome variabile duplicato!',
         variablesDeleteTitle: 'Elimina Variabile',
         variablesDeleteDescription:
-            'Sei sicuro di voler eliminare {{key}}? Verrà rimossa immediatamente dall\'istanza.',
+            "Sei sicuro di voler eliminare {{key}}? Verrà rimossa immediatamente dall'istanza.",
         variablesDeleteConfirm: 'Elimina',
         variablesDontAskAgain:
             'Non chiedere più quando elimini variabili in questa sessione',
         variablesDeleted: 'Variabile eliminata.',
         variablesOperationPending:
-            'Disabilitato durante il completamento di un\'operazione precedente.',
+            "Disabilitato durante il completamento di un'operazione precedente.",
         addAgentTitle: 'Aggiungi Agente',
         addAgentDescription: 'Aggiungi un nuovo agente a {{clawName}}.',
         addAgentDescriptionNoClaw:
@@ -1623,24 +1695,26 @@ const it: Translations = {
         addAgentApiKey: 'Chiave API',
         addAgentApiKeyPlaceholder: 'Inserisci la tua chiave API (opzionale)',
         addAgentApiKeyConfigured:
-            '{{envVar}} già impostata. Modifica nel tab Variabili dopo l\'aggiunta.',
+            "{{envVar}} già impostata. Modifica nel tab Variabili dopo l'aggiunta.",
         addAgentSubmit: 'Aggiungi Agente',
         addAgentSuccess: 'Agente aggiunto con successo.',
-        addAgentFailed: 'Impossibile aggiungere l\'agente!',
+        addAgentFailed: "Impossibile aggiungere l'agente!",
         deleteAgent: 'Elimina Agente',
         deleteAgentTitle: 'Elimina Agente',
         deleteAgentDescription:
             'Sei sicuro di voler eliminare l\'agente "{{agentName}}"? Questa azione non può essere annullata. Le variabili d\'ambiente non verranno rimosse.',
         deleteAgentConfirm: 'Elimina',
-        agentDontAskAgain: 'Non chiedere più quando elimini agenti in questa sessione',
+        agentDontAskAgain:
+            'Non chiedere più quando elimini agenti in questa sessione',
         deleteAgentDeleting: 'Eliminazione...',
         deleteAgentSuccess: 'Agente eliminato con successo.',
-        deleteAgentFailed: 'Impossibile eliminare l\'agente!',
+        deleteAgentFailed: "Impossibile eliminare l'agente!",
         configurationName: 'Nome',
         configurationNamePlaceholder: 'Inserisci nome agente',
         configurationNameDescription: 'Solo lettere, numeri e trattini.',
-        agentNameRequired: 'Il nome dell\'agente è obbligatorio!',
-        agentNameInvalidChars: 'Sono consentiti solo lettere, numeri e trattini!',
+        agentNameRequired: "Il nome dell'agente è obbligatorio!",
+        agentNameInvalidChars:
+            'Sono consentiti solo lettere, numeri e trattini!',
         agentNameDuplicate: 'Un agente con questo nome esiste già!',
         chatConnecting: 'Connessione...',
         chatAuthenticating: 'Autenticazione...',
@@ -1658,27 +1732,32 @@ const it: Translations = {
         chatNoMessages: 'Nessun messaggio',
         chatNoMessagesDescription:
             'Invia un messaggio per iniziare una conversazione con questo agente.',
-        chatErrorMessage: 'Si è verificato un errore durante la generazione della risposta!',
+        chatErrorMessage:
+            'Si è verificato un errore durante la generazione della risposta!',
         chatAbortedMessage: 'Risposta interrotta.',
         chatPlaySpeech: 'Leggi ad alta voce',
         chatReplaySpeech: 'Riproduci',
         chatStopSpeech: 'Ferma',
         chatSpeechFailed: 'Impossibile generare la sintesi vocale!',
         chatReadOnlyPlaceholder: 'Chat disponibile sui tuoi Claw.',
-        chatReadOnlyUser: 'Ciao! Puoi aiutarmi a configurare un progetto Node.js?',
+        chatReadOnlyUser:
+            'Ciao! Puoi aiutarmi a configurare un progetto Node.js?',
         chatReadOnlyAssistant:
             'Certo! Posso aiutarti a inizializzare un nuovo progetto Node.js. Vuoi che crei un package.json con alcune dipendenze comuni?',
         chatReadOnlyReply:
-            'Questa è un\'anteprima! Distribuisci il tuo OpenClaw con un clic e inizia a chattare con i tuoi agenti AI in pochi minuti!',
-        chatReadOnlyUser2: 'Puoi eseguire la suite di test e verificare i fallimenti?',
+            "Questa è un'anteprima! Distribuisci il tuo OpenClaw con un clic e inizia a chattare con i tuoi agenti AI in pochi minuti!",
+        chatReadOnlyUser2:
+            'Puoi eseguire la suite di test e verificare i fallimenti?',
         chatReadOnlyAssistant2:
             'Certo! Eseguo tutti i test ora. 3 superati, 0 falliti. Tutto a posto — tutte le asserzioni passano.',
-        chatReadOnlyGoUser: 'Ehi, puoi aiutarmi ad automatizzare la mia pipeline di deployment?',
+        chatReadOnlyGoUser:
+            'Ehi, puoi aiutarmi ad automatizzare la mia pipeline di deployment?',
         chatReadOnlyGoAssistant:
             'Assolutamente! Posso configurare una pipeline CI/CD per te. Vuoi che inizi con un workflow GitHub Actions che compila, testa e distribuisce automaticamente?',
         chatReadOnlyGoReply:
-            'Questa è un\'anteprima! Ottieni ClawHost Go e esegui OpenClaw in locale — la tua macchina, i tuoi dati, nessun cloud necessario.',
-        chatReadOnlyGoUser2: 'Puoi monitorare i miei servizi locali e avvisarmi se qualcosa smette di funzionare?',
+            "Questa è un'anteprima! Ottieni ClawHost Go e esegui OpenClaw in locale — la tua macchina, i tuoi dati, nessun cloud necessario.",
+        chatReadOnlyGoUser2:
+            'Puoi monitorare i miei servizi locali e avvisarmi se qualcosa smette di funzionare?',
         chatReadOnlyGoAssistant2:
             'Ci penso io! Imposterò controlli di salute per tutti i tuoi servizi. Attualmente monitoro 4 endpoint — tutti sani e operativi.',
         chatConnectionFailed: 'Impossibile connettersi a questo agente!',
@@ -1696,7 +1775,8 @@ const it: Translations = {
         chatDropFilesDescription: 'Immagini, PDF e file di testo fino a 5 MB.',
         chatVoiceInput: 'Input vocale',
         chatVoiceListening: 'In ascolto...',
-        chatVoiceNotSupported: 'L\'input vocale non è supportato in questo browser.',
+        chatVoiceNotSupported:
+            "L'input vocale non è supportato in questo browser.",
         chatVoiceMode: 'Modalità Vocale',
         chatVoiceModeTapToSpeak: 'Tocca per iniziare a parlare',
         chatVoiceModeListening: 'In ascolto...',
@@ -1738,7 +1818,8 @@ const it: Translations = {
         channelsWhatsAppConnected: 'Connesso',
         channelsWhatsAppRepair: 'Riassocia',
         channelsWhatsAppChecking: 'Verifica connessione...',
-        channelsVersionUnsupported: 'La configurazione dei canali non è disponibile in questa versione. Puoi collegarti manualmente usando la scheda Terminale o aggiornare OpenClaw.',
+        channelsVersionUnsupported:
+            'La configurazione dei canali non è disponibile in questa versione. Puoi collegarti manualmente usando la scheda Terminale o aggiornare OpenClaw.',
         channelsVersionUnsupportedDocs: 'Vedi guida alla configurazione',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
@@ -1774,7 +1855,7 @@ const it: Translations = {
             'Assegna canali di messaggistica a questo agente. Ogni canale può essere indirizzato a un solo agente alla volta.',
         bindingsNoChannels: 'Nessun canale abilitato.',
         bindingsNoChannelsDescription:
-            'Abilita prima i canali nelle impostazioni dell\'istanza, poi assegnali agli agenti qui.',
+            "Abilita prima i canali nelle impostazioni dell'istanza, poi assegnali agli agenti qui.",
         bindingsSaving: 'Salvataggio...',
         bindingsSaved: 'Associazioni aggiornate con successo.',
         bindingsSaveFailed: 'Impossibile aggiornare le associazioni!',
@@ -1791,7 +1872,8 @@ const it: Translations = {
         skillsLoadFailed: 'Impossibile caricare le skill!',
         skillsLoadFailedDescription:
             'Impossibile recuperare la configurazione delle skill. Riprova.',
-        agentSkillsDescription: 'Skill installate nello workspace di questo agente.',
+        agentSkillsDescription:
+            'Skill installate nello workspace di questo agente.',
         agentSkillsInstalling: 'Installazione...',
         agentSkillsInstalled: 'Skill installata con successo.',
         agentSkillsInstallFailed: 'Impossibile installare la skill!',
@@ -1804,7 +1886,7 @@ const it: Translations = {
         agentSkillsNamePlaceholder: 'Nome skill',
         agentSkillsConfirmRemove: 'Rimuovere la skill "{{skillName}}"?',
         agentSkillsConfirmRemoveDescription:
-            'Questo eliminerà la skill dallo workspace dell\'agente.',
+            "Questo eliminerà la skill dallo workspace dell'agente.",
         skillsBundledTab: 'Incluse',
         skillsClawHubTab: 'ClawHub',
         clawHubSearch: 'Cerca skill ClawHub...',
@@ -1831,7 +1913,8 @@ const it: Translations = {
         tabVersions: 'Versioni',
         versionsSearch: 'Cerca versioni...',
         versionsEmpty: 'Nessuna versione trovata',
-        versionsEmptyDescription: 'Nessuna versione corrisponde alla tua ricerca.',
+        versionsEmptyDescription:
+            'Nessuna versione corrisponde alla tua ricerca.',
         versionsErrorDescription:
             'Impossibile caricare le versioni. Controlla la connessione e riprova!',
         versionsChangelog: 'Vedi changelog su npm',
@@ -1854,8 +1937,7 @@ const it: Translations = {
         subdomainPlaceholder: 'Inserisci sottodominio',
         subdomainDescription:
             'Lettere minuscole e numeri, {{min}}-{{max}} caratteri.',
-        subdomainInvalid:
-            'Usa {{min}}-{{max}} lettere minuscole e numeri.',
+        subdomainInvalid: 'Usa {{min}}-{{max}} lettere minuscole e numeri.',
         subdomainUpdated: 'Sottodominio aggiornato con successo.',
         subdomainUpdateFailed: 'Impossibile aggiornare il sottodominio!',
         subdomainInUse: 'Questo sottodominio è usato da un altro claw!',
@@ -1885,7 +1967,7 @@ const it: Translations = {
         collectText: 'Raccogliamo informazioni nei seguenti modi:',
         personalInfoTitle: 'Informazioni Personali',
         personalInfoEmail:
-            'Indirizzo email (per la creazione dell\'account e la comunicazione)',
+            "Indirizzo email (per la creazione dell'account e la comunicazione)",
         personalInfoName: 'Nome (opzionale, per la personalizzazione)',
         personalInfoPayment:
             'Informazioni di pagamento (elaborate in sicurezza da provider terzi)',
@@ -1897,10 +1979,12 @@ const it: Translations = {
         useTitle: '4. Come Utilizziamo le Tue Informazioni',
         useText: 'Utilizziamo le informazioni raccolte per:',
         useProvide: 'Fornire e mantenere il nostro Servizio',
-        useTransactions: 'Elaborare transazioni e inviare informazioni di fatturazione',
+        useTransactions:
+            'Elaborare transazioni e inviare informazioni di fatturazione',
         useNotices: 'Inviare avvisi e aggiornamenti importanti',
         useSupport: 'Rispondere alle richieste di assistenza clienti',
-        useAnalyze: 'Monitorare e analizzare i modelli di utilizzo per migliorare il nostro Servizio',
+        useAnalyze:
+            'Monitorare e analizzare i modelli di utilizzo per migliorare il nostro Servizio',
         useFraud: 'Rilevare e prevenire frodi o abusi',
         sharingTitle: '5. Condivisione e Divulgazione dei Dati',
         sharingText:
@@ -1918,7 +2002,8 @@ const it: Translations = {
         retentionText:
             'Conserviamo le tue informazioni personali per tutto il tempo in cui il tuo account è attivo o secondo necessità per fornirti servizi. Potremmo conservare determinate informazioni come richiesto dalla legge o per scopi aziendali legittimi.',
         rightsTitle: '8. I Tuoi Diritti',
-        rightsText: 'A seconda della tua posizione, potresti avere il diritto di:',
+        rightsText:
+            'A seconda della tua posizione, potresti avere il diritto di:',
         rightsAccess: 'Accedere ai tuoi dati personali',
         rightsCorrect: 'Correggere dati inesatti',
         rightsDelete: 'Richiedere la cancellazione dei tuoi dati',
@@ -1927,13 +2012,13 @@ const it: Translations = {
         rightsWithdraw: 'Revocare il consenso in qualsiasi momento',
         cookiesTitle: '9. Cookie e Tracciamento',
         cookiesText:
-            'Non utilizziamo cookie. L\'autenticazione è gestita tramite Firebase e non si basa su cookie memorizzati nel tuo browser.',
+            "Non utilizziamo cookie. L'autenticazione è gestita tramite Firebase e non si basa su cookie memorizzati nel tuo browser.",
         transfersTitle: '10. Trasferimenti Internazionali di Dati',
         transfersText:
             'Le tue informazioni possono essere trasferite e trattate in paesi diversi dal tuo. Garantiamo che siano in atto garanzie appropriate per proteggere i tuoi dati in conformità con questa Informativa sulla Privacy.',
         eligibilityTitle: '11. Idoneità',
         eligibilityText:
-            'Il nostro Servizio è disponibile per chiunque. Non ci sono restrizioni di età per l\'utilizzo di ClawHost.',
+            "Il nostro Servizio è disponibile per chiunque. Non ci sono restrizioni di età per l'utilizzo di ClawHost.",
         changesTitle: '12. Modifiche a Questa Informativa',
         changesText:
             'Potremmo aggiornare questa Informativa sulla Privacy di tanto in tanto. Ti notificheremo eventuali modifiche pubblicando la nuova Informativa sulla Privacy su questa pagina e aggiornando la data di "Ultimo aggiornamento".',
@@ -1944,7 +2029,7 @@ const it: Translations = {
     terms: {
         title: 'Termini di Servizio',
         description:
-            'Leggi i termini e le condizioni per l\'utilizzo dei servizi ClawHost.',
+            "Leggi i termini e le condizioni per l'utilizzo dei servizi ClawHost.",
         lastUpdated: 'Ultimo aggiornamento: 14 marzo 2026',
         acceptanceTitle: '1. Accettazione dei Termini',
         acceptanceText:
@@ -1954,8 +2039,8 @@ const it: Translations = {
             'ClawHost fornisce il deployment di OpenClaw con un clic su server dedicati. Permettiamo agli utenti di distribuire, gestire e accedere a istanze OpenClaw preconfigurate con accesso root completo e risorse dedicate.',
         authTitle: '3. Autenticazione',
         authText:
-            'ClawHost utilizza Google Firebase Authentication per gestire l\'accesso. Puoi autenticarti con email, Google o GitHub. Utilizzando questi metodi, accetti i rispettivi termini e informative sulla privacy di Google e GitHub. Questi provider possono raccogliere informazioni di base come indirizzo email, nome e dati del dispositivo.',
-        responsibilitiesTitle: '4. Responsabilità dell\'Utente',
+            "ClawHost utilizza Google Firebase Authentication per gestire l'accesso. Puoi autenticarti con email, Google o GitHub. Utilizzando questi metodi, accetti i rispettivi termini e informative sulla privacy di Google e GitHub. Questi provider possono raccogliere informazioni di base come indirizzo email, nome e dati del dispositivo.",
+        responsibilitiesTitle: "4. Responsabilità dell'Utente",
         responsibilitiesText: 'Accetti di:',
         responsibilitiesAccurate:
             'Fornire informazioni di registrazione accurate e complete',
@@ -1981,22 +2066,21 @@ const it: Translations = {
             'Qualsiasi altra attività illegale o dannosa che potremmo determinare inappropriata a nostra discrezione',
         paymentTitle: '6. Pagamento e Fatturazione',
         paymentText:
-            'I servizi vengono fatturati su base mensile o annuale fissa. Puoi passare dalla fatturazione mensile a quella annuale in qualsiasi momento, con il cambio che ha effetto all\'inizio del prossimo periodo di fatturazione. Tutti i pagamenti non sono rimborsabili. Quando paghi per un server, hai accesso ad esso per l\'intero periodo di fatturazione. Se cancelli, la cancellazione ha effetto alla fine del periodo di fatturazione corrente. I prezzi sono soggetti a modifiche, ma eventuali cambiamenti si applicheranno solo ai claw appena distribuiti e non influenzeranno quelli già distribuiti. Il mancato pagamento può comportare la sospensione o la chiusura del tuo account.',
+            "I servizi vengono fatturati su base mensile o annuale fissa. Puoi passare dalla fatturazione mensile a quella annuale in qualsiasi momento, con il cambio che ha effetto all'inizio del prossimo periodo di fatturazione. Tutti i pagamenti non sono rimborsabili. Quando paghi per un server, hai accesso ad esso per l'intero periodo di fatturazione. Se cancelli, la cancellazione ha effetto alla fine del periodo di fatturazione corrente. I prezzi sono soggetti a modifiche, ma eventuali cambiamenti si applicheranno solo ai claw appena distribuiti e non influenzeranno quelli già distribuiti. Il mancato pagamento può comportare la sospensione o la chiusura del tuo account.",
         availabilityTitle: '7. Disponibilità del Servizio',
         availabilityText:
-            'Ci impegniamo a mantenere un\'alta disponibilità ma non garantiamo accesso ininterrotto al Servizio. Ci riserviamo il diritto di modificare, sospendere o interrompere qualsiasi parte del Servizio in qualsiasi momento con o senza preavviso.',
+            "Ci impegniamo a mantenere un'alta disponibilità ma non garantiamo accesso ininterrotto al Servizio. Ci riserviamo il diritto di modificare, sospendere o interrompere qualsiasi parte del Servizio in qualsiasi momento con o senza preavviso.",
         liabilityTitle: '8. Limitazione di Responsabilità',
         liabilityText:
             'Nella misura massima consentita dalla legge, ClawHost non sarà responsabile per danni indiretti, incidentali, speciali, consequenziali o punitivi, o per qualsiasi perdita di profitti o ricavi, sia sostenuti direttamente che indirettamente.',
         terminationTitle: '9. Risoluzione',
         terminationText:
-            'Potremmo terminare o sospendere il tuo account e l\'accesso al Servizio immediatamente, senza preavviso, per condotta che riteniamo violi questi Termini o sia dannosa per altri utenti, per noi o per terze parti, o per qualsiasi altro motivo.',
+            "Potremmo terminare o sospendere il tuo account e l'accesso al Servizio immediatamente, senza preavviso, per condotta che riteniamo violi questi Termini o sia dannosa per altri utenti, per noi o per terze parti, o per qualsiasi altro motivo.",
         changesToTermsTitle: '10. Modifiche ai Termini',
         changesToTermsText:
-            'Ci riserviamo il diritto di modificare questi termini in qualsiasi momento. Notificheremo agli utenti eventuali modifiche sostanziali via email o tramite il Servizio. L\'uso continuato del Servizio dopo tali modifiche costituisce accettazione dei termini aggiornati.',
+            "Ci riserviamo il diritto di modificare questi termini in qualsiasi momento. Notificheremo agli utenti eventuali modifiche sostanziali via email o tramite il Servizio. L'uso continuato del Servizio dopo tali modifiche costituisce accettazione dei termini aggiornati.",
         contactTitle: '11. Informazioni di Contatto',
-        contactText:
-            'Se hai domande su questi Termini, contattaci a'
+        contactText: 'Se hai domande su questi Termini, contattaci a'
     },
     mobile: {
         messages: 'Messaggi',
@@ -2010,7 +2094,8 @@ const it: Translations = {
         enterEmail: 'Indirizzo Email',
         emailPlaceholder: 'esempio@clawhost.cloud',
         continueWithEmail: 'Continua con Email',
-        otpDescription: 'Ti invieremo un codice per accedere. Nessuna password necessaria.',
+        otpDescription:
+            'Ti invieremo un codice per accedere. Nessuna password necessaria.',
         sending: 'Invio...',
         checkYourEmail: 'Controlla la tua email',
         codeSentTo: 'Abbiamo inviato un codice a 6 cifre a',
@@ -2029,12 +2114,12 @@ const it: Translations = {
         deployYourFirstClaw: 'Distribuisci il tuo primo Claw',
         voiceMode: 'Modalità Vocale',
         voiceListening: 'In ascolto...',
-        voiceTapToSpeak: 'Tocca l\'orb per iniziare'
+        voiceTapToSpeak: "Tocca l'orb per iniziare"
     },
     announcement: {
         title: 'Avviso di Servizio',
         message:
-            'A causa dell\'elevata domanda, i deployment {{providers}} sono temporaneamente non disponibili. I claw esistenti funzionano normalmente.'
+            "A causa dell'elevata domanda, i deployment {{providers}} sono temporaneamente non disponibili. I claw esistenti funzionano normalmente."
     },
     productHunt: {
         liveOn: 'Live su',
@@ -2105,7 +2190,7 @@ const it: Translations = {
         sharedContainers: 'Container condivisi',
         isolatedContainers: 'Container isolati',
         cloudWorkspaces: 'Workspace cloud',
-        threeProviders: 'Hetzner, DigitalOcean, Vultr',
+        threeProviders: 'Hetzner Cloud',
         singleProvider: 'Provider singolo',
         fullyDedicated: 'Completamente dedicato',
         shared: 'Condiviso',

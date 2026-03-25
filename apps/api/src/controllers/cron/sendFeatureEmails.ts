@@ -18,13 +18,19 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 const sendFeatureEmails = async (c: Context) => {
     try {
-        const featureParam = c.req.query('feature') as FeatureEmailKey | undefined
+        const featureParam = c.req.query('feature') as
+            | FeatureEmailKey
+            | undefined
         const batchParam = c.req.query('batch')
-        const batchSize = batchParam ? Math.min(parseInt(batchParam, 10), 50) : BATCH_SIZE
+        const batchSize = batchParam
+            ? Math.min(parseInt(batchParam, 10), 50)
+            : BATCH_SIZE
         const resend = getResend()
 
         if (featureParam) {
-            const targetFeature = FEATURE_EMAILS.find((f) => f.key === featureParam)
+            const targetFeature = FEATURE_EMAILS.find(
+                (f) => f.key === featureParam
+            )
             if (!targetFeature) {
                 return fail(c, t('api.invalidFeatureKey'), 400)
             }
@@ -65,11 +71,15 @@ const sendFeatureEmails = async (c: Context) => {
                 await sleep(BATCH_DELAY_MS)
             }
 
-            return ok(c, {
-                feature: featureParam,
-                sent: totalSent,
-                done: pendingUsers.length < batchSize
-            }, t('api.featureEmailsSent'))
+            return ok(
+                c,
+                {
+                    feature: featureParam,
+                    sent: totalSent,
+                    done: pendingUsers.length < batchSize
+                },
+                t('api.featureEmailsSent')
+            )
         }
 
         const pendingUsers = await db
@@ -93,7 +103,9 @@ const sendFeatureEmails = async (c: Context) => {
 
             const sentFeatures = new Set(sentEmails.map((e) => e.feature))
 
-            const nextFeature = FEATURE_EMAILS.find((f) => !sentFeatures.has(f.key))
+            const nextFeature = FEATURE_EMAILS.find(
+                (f) => !sentFeatures.has(f.key)
+            )
             if (!nextFeature) continue
 
             const { error } = await resend.emails.send({
@@ -118,10 +130,14 @@ const sendFeatureEmails = async (c: Context) => {
             await sleep(BATCH_DELAY_MS)
         }
 
-        return ok(c, {
-            sent: totalSent,
-            done: pendingUsers.length < batchSize
-        }, t('api.featureEmailsSent'))
+        return ok(
+            c,
+            {
+                sent: totalSent,
+                done: pendingUsers.length < batchSize
+            },
+            t('api.featureEmailsSent')
+        )
     } catch {
         return fail(c, t('api.featureEmailsFailed'), 500)
     }

@@ -394,13 +394,7 @@ const Dashboard: FC = (): ReactNode => {
     }, [claws, adminMode, adminClaws])
 
     const { plans: hetznerPlans } = usePlans('hetzner')
-    const { plans: digitaloceanPlans } = usePlans('digitalocean')
-    const { plans: vultrPlans } = usePlans('vultr')
-    const plans = [
-        ...(hetznerPlans || []),
-        ...(digitaloceanPlans || []),
-        ...(vultrPlans || [])
-    ]
+    const plans = [...(hetznerPlans || [])]
     const { data: locations } = useLocations()
     const { data: sshKeys } = useSSHKeys()
     const { data: volumePricing } = useVolumePricing()
@@ -498,9 +492,8 @@ const Dashboard: FC = (): ReactNode => {
             <div className='border-border bg-background md:bg-background/80 relative z-10 flex items-center justify-between border-b px-6 py-3 md:backdrop-blur-xl'>
                 <div className='flex items-center gap-3'>
                     <Logo />
-                    {(window as unknown as ElectronWindow).electronAPI?.isDesktop && (
-                        <BetaBadge />
-                    )}
+                    {(window as unknown as ElectronWindow).electronAPI
+                        ?.isDesktop && <BetaBadge />}
                     <div className='border-border flex items-center rounded-lg border p-0.5'>
                         <button
                             onClick={() => setDashboardTab(DASHBOARD_TABS.CHAT)}

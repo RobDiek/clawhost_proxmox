@@ -95,7 +95,8 @@ const ja: Translations = {
         heroTitle2: 'ローカルで. 即座に.',
         badge: '近日公開',
         comingSoon: '近日公開',
-        description: 'OpenClawインスタンスを管理する軽量デスクトップクライアント。デプロイ、監視、制御をお手元のマシンから.',
+        description:
+            'OpenClawインスタンスを管理する軽量デスクトップクライアント。デプロイ、監視、制御をお手元のマシンから.',
         download: '{{os}}用をダウンロード',
         downloadWindows: 'Windows',
         downloadMac: 'macOS',
@@ -103,17 +104,24 @@ const ja: Translations = {
         features: '機能',
         whyClawHostGo: 'オールインワン機能',
         featuresDescription: '試す価値がある理由、機能が証明します.',
-        zeroConfigDescription: 'インストールして実行するだけ。サーバー設定もクラウド設定も不要。OpenClawが数秒で準備完了.',
-        ownedDataDescription: 'すべてがお使いのデバイスで動作。クラウドサーバーなし、第三者なし、データが外部に出ることはありません.',
-        terminalAccessDescription: 'アプリから直接OpenClawインスタンスのターミナルにアクセス。外部SSHクライアントは不要.',
+        zeroConfigDescription:
+            'インストールして実行するだけ。サーバー設定もクラウド設定も不要。OpenClawが数秒で準備完了.',
+        ownedDataDescription:
+            'すべてがお使いのデバイスで動作。クラウドサーバーなし、第三者なし、データが外部に出ることはありません.',
+        terminalAccessDescription:
+            'アプリから直接OpenClawインスタンスのターミナルにアクセス。外部SSHクライアントは不要.',
         simplePricing: 'シンプルな料金',
-        simplePricingDescription: '1つのライセンスですべて無制限。月額料金なし、使用制限なし、隠れた費用なし.',
+        simplePricingDescription:
+            '1つのライセンスですべて無制限。月額料金なし、使用制限なし、隠れた費用なし.',
         localDomain: 'カスタムローカルドメイン',
-        localDomainDescription: 'カスタムブランドのローカルドメインでOpenClawにアクセス。自分のネットワーク上でクリーンなURL.',
-        secureDescription: 'データがデバイスから出ることはありません。完全に隔離され、完全に暗号化され、完全にあなたのもの.',
+        localDomainDescription:
+            'カスタムブランドのローカルドメインでOpenClawにアクセス。自分のネットワーク上でクリーンなURL.',
+        secureDescription:
+            'データがデバイスから出ることはありません。完全に隔離され、完全に暗号化され、完全にあなたのもの.',
         pricing: '料金',
         pricingTitle: 'シンプルな一回払い',
-        pricingDescription: 'サブスクリプションなし、隠れた費用なし。1つのライセンスで無制限に使用.',
+        pricingDescription:
+            'サブスクリプションなし、隠れた費用なし。1つのライセンスで無制限に使用.',
         pricingPrice: '${{price}}',
         pricingLabel: '一回払い',
         pricingFeature1: '永久ライセンス',
@@ -125,7 +133,8 @@ const ja: Translations = {
         pricingCta: 'ClawHost Goを入手',
         comparison: '比較',
         comparisonTitle: 'Go vs Cloud',
-        comparisonDescription: '自分に合うものを選択。Goはローカルで動作、Cloudは専用サーバーで動作.',
+        comparisonDescription:
+            '自分に合うものを選択。Goはローカルで動作、Cloudは専用サーバーで動作.',
         comparisonLocalUs: 'お使いのデバイスで完全に動作',
         comparisonLocalOthers: 'リモートサーバーで動作',
         comparisonPricingUs: '一回払い',
@@ -142,17 +151,23 @@ const ja: Translations = {
         faqHeading: 'よくある質問',
         faqDescription: 'ClawHost Goについて知っておくべきすべてのこと.',
         faq1Question: 'ClawHost Goとは？',
-        faq1Answer: 'ClawHost Goは、お手元のマシンでOpenClawをローカルに実行できる軽量デスクトップアプリケーションです。クラウドサーバーは不要 — インストールして起動するだけで、数秒でOpenClawを使い始められます.',
+        faq1Answer:
+            'ClawHost Goは、お手元のマシンでOpenClawをローカルに実行できる軽量デスクトップアプリケーションです。クラウドサーバーは不要 — インストールして起動するだけで、数秒でOpenClawを使い始められます.',
         faq2Question: 'GoとClawHost Cloudの違いは？',
-        faq2Answer: 'ClawHost CloudはOpenClawを24時間365日稼働のグローバルアクセス可能な専用リモートサーバーにデプロイします。ClawHost Goはすべてをお使いのデバイスでローカルに実行します — プライバシー、オフライン使用、シンプルなセットアップに最適です.',
+        faq2Answer:
+            'ClawHost CloudはOpenClawを24時間365日稼働のグローバルアクセス可能な専用リモートサーバーにデプロイします。ClawHost Goはすべてをお使いのデバイスでローカルに実行します — プライバシー、オフライン使用、シンプルなセットアップに最適です.',
         faq3Question: 'インターネット接続は必要ですか？',
-        faq3Answer: 'ClawHost Goはローカル使用であればオフラインで動作します。インターネット接続は初期設定、アップデート、外部APIコールが必要な機能にのみ必要です.',
+        faq3Answer:
+            'ClawHost Goはローカル使用であればオフラインで動作します。インターネット接続は初期設定、アップデート、外部APIコールが必要な機能にのみ必要です.',
         faq4Question: 'ライセンスは一回払いですか？',
-        faq4Answer: 'はい。一度支払えば、すべての将来のアップデートを含むClawHost Goへの永久アクセスを取得できます。サブスクリプションなし、継続料金なし.',
+        faq4Answer:
+            'はい。一度支払えば、すべての将来のアップデートを含むClawHost Goへの永久アクセスを取得できます。サブスクリプションなし、継続料金なし.',
         faq5Question: 'どのOSに対応していますか？',
-        faq5Answer: 'ClawHost GoはWindowsとmacOSに対応しています。両プラットフォームとも同じ機能を備え、同時にアップデートを受け取れます.',
+        faq5Answer:
+            'ClawHost GoはWindowsとmacOSに対応しています。両プラットフォームとも同じ機能を備え、同時にアップデートを受け取れます.',
         faq6Question: '後からGoからCloudに切り替えられますか？',
-        faq6Answer: 'もちろんです。GoからOpenClawの設定をエクスポートし、いつでもClawHost Cloudにデプロイできます。両プラットフォームは完全に互換性があります.',
+        faq6Answer:
+            'もちろんです。GoからOpenClawの設定をエクスポートし、いつでもClawHost Cloudにデプロイできます。両プラットフォームは完全に互換性があります.',
         statsPrice: '${{price}}',
         statsLifetime: '永久',
         statsOneTime: '一回',
@@ -162,40 +177,50 @@ const ja: Translations = {
         statsZero: 'ゼロ',
         statsZeroConfig: '設定不要',
         ctaTitle: 'OpenClawをローカルで実行',
-        ctaDescription: '一回払い、永久ライセンス。お手元のマシンにOpenClawをデプロイ — クラウドなし、サブスクリプションなし、制限なし。あなたのデータ、あなたのルール.',
+        ctaDescription:
+            '一回払い、永久ライセンス。お手元のマシンにOpenClawをデプロイ — クラウドなし、サブスクリプションなし、制限なし。あなたのデータ、あなたのルール.',
         ctaButton: 'ClawHost Goを入手',
         joinWaitlist: 'ウェイトリストに参加',
         joinedWaitlist: 'ウェイトリスト参加済み',
         waitlistJoinedToast: 'ウェイトリストに参加しました.',
-        waitlistAlreadyJoinedToast: 'このメールアドレスは既にリストに登録されています.',
+        waitlistAlreadyJoinedToast:
+            'このメールアドレスは既にリストに登録されています.',
         waitlistFailedToast: 'ウェイトリストへの参加に失敗しました!',
         waitlistEmailPlaceholder: 'メールアドレスを入力',
         updateAvailable: 'バージョン{{version}}が利用可能です.',
         updateDownload: 'ダウンロード',
         updateDismiss: '後で',
         clawNotFound: 'Clawが見つかりません!',
-        invalidClawName: '無効なClaw名です。英字、数字、ハイフンのみ使用できます!',
+        invalidClawName:
+            '無効なClaw名です。英字、数字、ハイフンのみ使用できます!',
         clawNameAlreadyExists: 'この名前のClawは既に存在します!',
-        invalidSubdomain: '無効なサブドメインです。3〜20文字の小文字英字と数字を使用してください!',
+        invalidSubdomain:
+            '無効なサブドメインです。3〜20文字の小文字英字と数字を使用してください!',
         subdomainAlreadyInUse: 'このサブドメインは既に使用されています!',
         clawDirectoryNotFound: 'Clawディレクトリが見つかりません!',
-        noVersionInstalled: 'OpenClawバージョンがインストールされていません。バージョンタブに移動して最初にインストールしてください!',
+        noVersionInstalled:
+            'OpenClawバージョンがインストールされていません。バージョンタブに移動して最初にインストールしてください!',
         failedToStartClaw: 'Clawの起動に失敗しました!',
-        noVersionAssigned: 'このClawにOpenClawバージョンが割り当てられていません!',
+        noVersionAssigned:
+            'このClawにOpenClawバージョンが割り当てられていません!',
         invalidAgentName: '無効なエージェント名です!',
         agentNameAlreadyExists: 'この名前のエージェントは既に存在します!',
         invalidPath: '無効なパスです!',
         fileNotFound: 'ファイルが見つかりません!',
         purchasingNotAvailable: 'ローカルモードでは購入できません!',
         exportFailed: 'エクスポートに失敗しました!',
-        versionNotInstalled: 'OpenClawバージョン{{version}}はインストールされていません!',
+        versionNotInstalled:
+            'OpenClawバージョン{{version}}はインストールされていません!',
         failedToStartProcess: 'プロセスの起動に失敗しました: {{reason}}!',
-        processExitedImmediately: 'プロセスが即座に終了しました。ログ:\n{{logs}}',
+        processExitedImmediately:
+            'プロセスが即座に終了しました。ログ:\n{{logs}}',
         processExitedImmediatelyNoLogs: 'プロセスが起動直後に終了しました!',
-        processExitedWithCode: 'プロセスがコード{{code}}で終了しました。ログ:\n{{logs}}',
+        processExitedWithCode:
+            'プロセスがコード{{code}}で終了しました。ログ:\n{{logs}}',
         processExitedWithCodeNoLogs: 'プロセスがコード{{code}}で終了しました!',
         processExitedUnexpectedly: 'プロセスが予期せず終了しました!',
-        failedToInstallVersion: 'OpenClaw {{version}}のインストールに失敗しました: {{reason}}!',
+        failedToInstallVersion:
+            'OpenClaw {{version}}のインストールに失敗しました: {{reason}}!',
         oauthCancelled: '認証がキャンセルされました!',
         diskFull: 'デバイスに空き容量がありません!',
         permissionDenied: 'アクセスが拒否されました!',
@@ -236,7 +261,8 @@ const ja: Translations = {
     },
     errors: {
         somethingWentWrong: '問題が発生しました!',
-        couldNotLoadData: 'データを読み込めませんでした。もう一度お試しください!',
+        couldNotLoadData:
+            'データを読み込めませんでした。もう一度お試しください!',
         notFound: 'ページが見つかりません!',
         pageNotFoundDescription:
             'お探しのページは存在しないか、移動されました.',
@@ -250,13 +276,16 @@ const ja: Translations = {
         failedToUpdateProfile: 'プロフィールの更新に失敗しました!',
         failedToAddSSHKey: 'SSHキーの追加に失敗しました!',
         failedToCreateClaw: 'Clawの作成に失敗しました!',
-        failedToLoadLocations: 'ロケーションの読み込みに失敗しました。もう一度お試しください!',
-        failedToLoadPlans: 'プランの読み込みに失敗しました。もう一度お試しください!',
+        failedToLoadLocations:
+            'ロケーションの読み込みに失敗しました。もう一度お試しください!',
+        failedToLoadPlans:
+            'プランの読み込みに失敗しました。もう一度お試しください!',
         invalidPlan: '無効なプランが選択されました!',
         invalidLocation: 'ロケーションを選択してください!',
         failedToGenerateKeyPair:
             'キーペアの生成に失敗しました。代わりにローカルでキーを生成してください!',
-        unableToLoadPricing: '料金情報を読み込めません。後でもう一度お試しください!',
+        unableToLoadPricing:
+            '料金情報を読み込めません。後でもう一度お試しください!',
         noPasswordAvailable: 'このClawで利用可能なパスワードがありません!',
         clawLimitReached:
             'Clawsの上限{{max}}件に達しました。上限を引き上げるにはサポートにお問い合わせください!',
@@ -305,10 +334,10 @@ const ja: Translations = {
         providerNotAllowed:
             'Hetznerが有効な場合、このプロバイダーは利用できません!',
         invalidPlan: '無効なプランが選択されました!',
-        planBelowMinimumMemory:
-            'このプランは最小メモリ要件を満たしていません!',
+        planBelowMinimumMemory: 'このプランは最小メモリ要件を満たしていません!',
         invalidLocation: '無効なロケーションが選択されました!',
-        planNotAvailableAtLocation: '選択したロケーションではこのプランは利用できません!',
+        planNotAvailableAtLocation:
+            '選択したロケーションではこのプランは利用できません!',
         failedToSyncClaw: 'サーバーステータスの同期に失敗しました!',
         failedToProvisionClaw: 'Clawのプロビジョニングに失敗しました!',
         failedToInitiatePurchase: '購入の開始に失敗しました!',
@@ -327,7 +356,8 @@ const ja: Translations = {
         failedToFetchLocations: 'ロケーションの取得に失敗しました!',
         failedToFetchPlans: 'プランの取得に失敗しました!',
         failedToFetchVolumePricing: 'ボリューム料金の取得に失敗しました!',
-        failedToFetchPlanAvailability: 'プランの利用可能状況の取得に失敗しました!',
+        failedToFetchPlanAvailability:
+            'プランの利用可能状況の取得に失敗しました!',
         failedToSendEmail: 'メールの送信に失敗しました!',
         failedToGetVersion: 'バージョンの取得に失敗しました!',
         failedToGetVersions: 'バージョン一覧の取得に失敗しました!',
@@ -372,7 +402,8 @@ const ja: Translations = {
         licenseAlreadyPurchased: 'ライセンスは既に購入済みです!',
         licenseNotAvailable: 'ライセンス製品は利用できません!',
         licenseCheckoutCreated: 'ライセンスのチェックアウトを作成しました.',
-        failedToPurchaseLicense: 'ライセンスのチェックアウト作成に失敗しました!',
+        failedToPurchaseLicense:
+            'ライセンスのチェックアウト作成に失敗しました!',
         internalServerError: '内部エラーが発生しました!',
         invalidCredentials: '無効な認証情報です!',
         accountLinked: 'アカウントを連携しました.',
@@ -406,14 +437,16 @@ const ja: Translations = {
         volumePricingFetched: 'ボリューム料金を取得しました.',
         planAvailabilityFetched: 'プランの利用可能状況を取得しました.',
         agentsFetched: 'エージェントを取得しました.',
-        agentsFetchFailed: 'インスタンスに接続してエージェントを取得できませんでした!',
+        agentsFetchFailed:
+            'インスタンスに接続してエージェントを取得できませんでした!',
         agentConfigFetched: 'エージェント設定を取得しました.',
         agentConfigUpdated: 'エージェント設定を更新しました.',
         agentConfigUpdateFailed: 'エージェント設定を更新できませんでした!',
         agentCreated: 'エージェントを作成しました.',
         agentCreateFailed: 'インスタンスでエージェントを作成できませんでした!',
         agentDeleted: 'エージェントを削除しました.',
-        agentDeleteFailed: 'インスタンスからエージェントを削除できませんでした!',
+        agentDeleteFailed:
+            'インスタンスからエージェントを削除できませんでした!',
         cannotDeleteMainAgent: '最後のエージェントは削除できません!',
         agentNameInvalid:
             'エージェント名は英字、数字、ハイフンのみ使用できます!',
@@ -433,18 +466,22 @@ const ja: Translations = {
         channelsUpdated: 'チャンネルを更新しました.',
         channelsUpdateFailed: 'チャンネルを更新できませんでした!',
         channelsFetchFailed: 'チャンネルを取得できませんでした!',
-        channelMissingRequired: '有効なチャンネルに必須フィールドが不足しています!',
+        channelMissingRequired:
+            '有効なチャンネルに必須フィールドが不足しています!',
         whatsappPairStarted: 'WhatsAppペアリングを開始しました.',
         whatsappPairFailed: 'WhatsAppペアリングに失敗しました!',
         whatsappAlreadyPaired: 'WhatsAppは既にペアリング済みです!',
-        whatsappVersionUnsupported: 'このバージョンではダッシュボードからのチャンネル設定はサポートされていません。ターミナルタブから手動で設定するか、OpenClawをアップグレードしてください。',
+        whatsappVersionUnsupported:
+            'このバージョンではダッシュボードからのチャンネル設定はサポートされていません。ターミナルタブから手動で設定するか、OpenClawをアップグレードしてください。',
         bindingsFetched: 'バインディングを取得しました.',
         bindingsFetchFailed: 'バインディングを取得できませんでした!',
         bindingsUpdated: 'バインディングを更新しました.',
         bindingsUpdateFailed: 'バインディングを更新できませんでした!',
         bindingsInvalidFormat: '無効なバインディング形式です!',
-        bindingsInvalidChannel: 'バインディングにサポートされていないチャンネルがあります!',
-        bindingsDuplicateChannel: '1つのチャンネルは1つのエージェントにのみバインドできます!',
+        bindingsInvalidChannel:
+            'バインディングにサポートされていないチャンネルがあります!',
+        bindingsDuplicateChannel:
+            '1つのチャンネルは1つのエージェントにのみバインドできます!',
         skillsFetched: 'スキルを取得しました.',
         skillsUpdated: 'スキルを更新しました.',
         skillsUpdateFailed: 'スキルを更新できませんでした!',
@@ -461,7 +498,8 @@ const ja: Translations = {
         clawHubFetched: 'ClawHubスキルを取得しました.',
         clawHubFetchFailed: 'ClawHubスキルを取得できませんでした!',
         clawHubInstalled: 'ClawHubからスキルをインストールしました.',
-        clawHubInstallFailed: 'ClawHubからスキルをインストールできませんでした!',
+        clawHubInstallFailed:
+            'ClawHubからスキルをインストールできませんでした!',
         clawHubRemoved: 'ClawHubスキルを削除しました.',
         clawHubRemoveFailed: 'ClawHubスキルを削除できませんでした!',
         clawHubUpdated: 'スキルを更新しました.',
@@ -484,7 +522,8 @@ const ja: Translations = {
         waitlistJoined: 'ウェイトリストに参加しました.',
         waitlistAlreadyJoined: '既にウェイトリストに登録済みです.',
         waitlistJoinFailed: 'ウェイトリストへの参加に失敗しました!',
-        waitlistRateLimited: '操作が速すぎます! {{seconds}} {{unit}}後に再試行してください.',
+        waitlistRateLimited:
+            '操作が速すぎます! {{seconds}} {{unit}}後に再試行してください.',
         waitlistStatusFetched: 'ウェイトリストのステータスを取得しました.',
         waitlistCheckFailed: 'ウェイトリストのステータス確認に失敗しました!'
     },
@@ -522,7 +561,8 @@ const ja: Translations = {
             },
             channels: {
                 subject: 'ご存知ですか？エージェントをDiscord、Slackなどに接続',
-                preview: 'AIエージェントをコミュニケーションチャンネルにバインド',
+                preview:
+                    'AIエージェントをコミュニケーションチャンネルにバインド',
                 heading: 'エージェントをどこでも',
                 description:
                     'AIエージェントをDiscord、Slack、WhatsAppなどに接続。チャンネルの設定とエージェントへのバインド — すべてClawHostダッシュボードから。',
@@ -569,7 +609,8 @@ const ja: Translations = {
                 cta: 'ClawHubを閲覧'
             },
             bindings: {
-                subject: 'ご存知ですか？エージェントを特定のチャンネルにバインド',
+                subject:
+                    'ご存知ですか？エージェントを特定のチャンネルにバインド',
                 preview: 'どのエージェントがどのチャンネルで応答するかを制御',
                 heading: 'チャンネルごとに1エージェント',
                 description:
@@ -607,14 +648,6 @@ const ja: Translations = {
                 description:
                     'Clawの設定とセッティングをダウンロード可能なファイルとしてエクスポート。セットアップのバックアップや環境の複製に使用。',
                 cta: '設定をエクスポート'
-            },
-            multiProvider: {
-                subject: 'ご存知ですか？3つのクラウドプロバイダーにデプロイ',
-                preview: 'Hetzner、DigitalOcean、Vultrから選択',
-                heading: 'あなたのクラウド、あなたの選択',
-                description:
-                    'Hetzner、DigitalOcean、またはVultrにClawをデプロイ。料金、ロケーション、スペックを比較 — ニーズに合ったプロバイダーを選択。',
-                cta: 'プロバイダーを比較'
             },
             multiLanguage: {
                 subject: 'ご存知ですか？ClawHostはあなたの言語に対応',
@@ -691,8 +724,7 @@ const ja: Translations = {
     },
     account: {
         title: 'アカウント',
-        description:
-            'ClawHostアカウントの設定とプロフィール情報を管理。',
+        description: 'ClawHostアカウントの設定とプロフィール情報を管理。',
         accountSettings: 'アカウント',
         manageYourAccount: 'プロフィールとアカウント設定を管理。',
         profileInformation: 'プロフィール情報',
@@ -704,7 +736,8 @@ const ja: Translations = {
         displayName: '表示名',
         enterYourName: '名前を入力',
         emailAddress: 'メールアドレス',
-        emailNotEditable: 'メールアドレスは編集できません。サポートにお問い合わせください。',
+        emailNotEditable:
+            'メールアドレスは編集できません。サポートにお問い合わせください。',
         profileUpdatedSuccessfully: 'プロフィールを更新しました。',
         billingHistory: '請求履歴',
         billingDescription: 'お支払い履歴と請求書',
@@ -785,7 +818,8 @@ const ja: Translations = {
         title: 'ライセンス',
         description: 'OpenClawライセンスを管理。',
         pageTitle: 'ライセンス',
-        pageDescription: 'Goアプリでローカルにセルフホストする場合にOpenClawインスタンスのライセンスを購入。',
+        pageDescription:
+            'Goアプリでローカルにセルフホストする場合にOpenClawインスタンスのライセンスを購入。',
         planName: 'ClawHost Goライセンス',
         oneTimePurchase: '一回限りの購入',
         price: '${{price}}',
@@ -793,7 +827,8 @@ const ja: Translations = {
         purchaseLicense: 'ライセンスを購入',
         purchasing: 'リダイレクト中...',
         activated: 'ライセンス有効',
-        activatedDescription: 'ライセンスは有効です。ご支援ありがとうございます。',
+        activatedDescription:
+            'ライセンスは有効です。ご支援ありがとうございます。',
         paymentSuccess: '支払いが完了しました。ライセンスが有効になりました。',
         failedToPurchase: 'チェックアウトの開始に失敗しました！',
         featureUnlimitedClaws: '無制限のOpenClaw',
@@ -803,15 +838,19 @@ const ja: Translations = {
         featureSupport: '優先サポート',
         featureCloud: 'すべてのクラウド機能をローカルで',
         whatsIncluded: '含まれるもの',
-        permanentNote: 'ライセンスは永久で取消不可です。購入すれば永久に所有できます。',
+        permanentNote:
+            'ライセンスは永久で取消不可です。購入すれば永久に所有できます。',
         gateTitle: 'ライセンスが必要',
-        gateDescription: 'ローカルでOpenClawインスタンスをデプロイ・管理するにはClawHost Goライセンスが必要です。'
+        gateDescription:
+            'ローカルでOpenClawインスタンスをデプロイ・管理するにはClawHost Goライセンスが必要です。'
     },
     network: {
         unstable: '不安定な接続',
-        unstableDescription: 'インターネット接続が不安定です。一部の機能が正常に動作しない場合があります。',
+        unstableDescription:
+            'インターネット接続が不安定です。一部の機能が正常に動作しない場合があります。',
         offline: 'インターネット接続なし',
-        offlineDescription: '現在オフラインです。インターネットアクセスが必要な機能は利用できません。',
+        offlineDescription:
+            '現在オフラインです。インターネットアクセスが必要な機能は利用できません。',
         dismiss: '閉じる'
     },
     dashboard: {
@@ -852,8 +891,10 @@ const ja: Translations = {
         sshCommand: 'SSHコマンド',
         rootPassword: 'Rootパスワード',
         sshCommandCopied: 'SSHコマンドをコピーしました。',
-        sshCommandWithPasswordCopied: 'パスワード付きSSHコマンドをコピーしました。',
-        passwordCopiedToClipboard: 'パスワードをクリップボードにコピーしました。',
+        sshCommandWithPasswordCopied:
+            'パスワード付きSSHコマンドをコピーしました。',
+        passwordCopiedToClipboard:
+            'パスワードをクリップボードにコピーしました。',
         plan: 'サーバー',
         location: 'ロケーション',
         ip: 'IP',
@@ -903,8 +944,7 @@ const ja: Translations = {
         diagnosticsHealthy: 'インスタンスは正常に動作しています。',
         diagnosticsPort: 'ポート 18789',
         diagnosticsMemory: 'メモリ',
-        logsDescription:
-            'ゲートウェイログの最新100行、自動更新。',
+        logsDescription: 'ゲートウェイログの最新100行、自動更新。',
         fileExplorer: 'ファイルエクスプローラー',
         fileExplorerRoot: 'openclaw',
         fileExplorerDescription:
@@ -937,8 +977,7 @@ const ja: Translations = {
         exportSuccess: 'Clawをエクスポートしました。',
         exportFailed: 'Clawデータのエクスポートに失敗しました！',
         exportRateLimited: '{{minutes}}分後に再度エクスポートできます。',
-        exportRateLimitedSeconds:
-            '{{seconds}}秒後に再度エクスポートできます。',
+        exportRateLimitedSeconds: '{{seconds}}秒後に再度エクスポートできます。',
         configuringTooltip:
             '時間がかかる場合があります。OpenClaw、サーバーロケーション、Cloudflare DNSに依存します。',
         paymentSuccess: 'Clawを作成・設定中です。',
@@ -981,7 +1020,8 @@ const ja: Translations = {
         selectAgentDescription:
             'サイドバーからクローまたはエージェントを選択してください。',
         noAgents: '利用可能なエージェントなし',
-        noAgentsDescription: 'Clawをデプロイしてエージェントとのチャットを開始。',
+        noAgentsDescription:
+            'Clawをデプロイしてエージェントとのチャットを開始。',
         openSidebar: 'サイドバーを開く',
         clawNotReady: 'Clawはまだ準備ができていません',
         notConfigured: '未設定',
@@ -999,8 +1039,6 @@ const ja: Translations = {
         autoGenerateNameHint: '空のままにすると自動生成されます。',
         provider: 'プロバイダー',
         providerHetzner: 'Hetzner',
-        providerDigitalOcean: 'DigitalOcean',
-        providerVultr: 'Vultr',
         providerLocal: 'ローカル',
         providerAws: 'AWS',
         comingSoon: '近日',
@@ -1020,13 +1058,13 @@ const ja: Translations = {
         gatewayTokenPlaceholder: '例: a1b2c3d4e5f6...',
         autoGenerateGatewayTokenHint:
             '任意。空のままにするとゲートウェイトークンなし。',
-        autoGeneratePasswordHint:
-            '任意。空のままにするとパスワードなし。',
+        autoGeneratePasswordHint: '任意。空のままにするとパスワードなし。',
         regeneratePassword: 'パスワードを再生成',
         sshKeyOptional: 'SSHキー',
         noSshKeyPasswordOnly: 'SSHキーなし（パスワードのみ）',
         noSshKeysConfigured: 'SSHキーが設定されていません',
-        addSshKeyForPasswordlessLogin: 'パスワードレスログイン用のSSHキーを追加',
+        addSshKeyForPasswordlessLogin:
+            'パスワードレスログイン用のSSHキーを追加',
         additionalStorageOptional: '追加ストレージ',
         volumeStorage: 'ボリュームストレージ',
         vpsServer: 'VPSサーバー',
@@ -1077,8 +1115,7 @@ const ja: Translations = {
         deleteKeyConfirmation: '本当に削除しますか',
         sshKeyAddedSuccessfully: 'SSHキーを追加しました。',
         addSshKeyModalTitle: 'SSHキーを追加',
-        addSshKeyModalDescription:
-            'パスワードレス認証用のSSHキーを追加',
+        addSshKeyModalDescription: 'パスワードレス認証用のSSHキーを追加',
         iHaveAnSshKey: '既存のキー',
         generateNewKey: '新規作成',
         name: '名前',
@@ -1157,7 +1194,7 @@ const ja: Translations = {
             '専用VPSリソースで、スロットリングなし、フル帯域幅、超高速インターネット。',
         globalLocations: 'グローバルロケーション',
         globalLocationsDescription:
-            'Hetzner、DigitalOcean、またはVultrで30以上のグローバルリージョンにOpenClawをデプロイし、最寄りのロケーションを選択。',
+            'Hetzner Cloud上の複数のグローバルリージョンにOpenClawをデプロイし、最寄りのロケーションを選択.',
         fullSshAccess: 'ダイレクトSSHアクセス',
         fullSshAccessDescription:
             'プラットフォームから直接サーバーターミナルにアクセス。外部SSHクライアント不要。',
@@ -1214,7 +1251,7 @@ const ja: Translations = {
         pricing: '料金',
         simpleTransparentPricing: 'シンプルで透明な料金',
         pricingDescription:
-            'ニーズに基づいてプロバイダーにわたる45以上のサーバーから選択。',
+            'ニーズに合わせてHetzner Cloudサーバーからお選びください.',
         planColumn: 'サーバー',
         vCpuColumn: 'vCPU',
         ramColumn: 'RAM',
@@ -1249,8 +1286,7 @@ const ja: Translations = {
         faq2Question: 'OpenClawとは？',
         faq2Answer:
             'OpenClawは、AIツールやサービスのためのセルフホスト型セキュアアクセスレイヤーです。セキュリティとパフォーマンスのために事前設定されているので、デプロイして即座に接続できます.',
-        faq3Question:
-            '他のAIツールやホスティングプラットフォームとの違いは？',
+        faq3Question: '他のAIツールやホスティングプラットフォームとの違いは？',
         faq3Answer:
             'ホスティングされたAIツールとは異なり、ClawHostはOpenClawがインストールされた実際のサーバーを提供します。インフラを所有し、すべてをコントロールし、共有プラットフォームやモデルに制限されません.',
         faq4Question: '技術的な知識は必要ですか？',
@@ -1258,16 +1294,16 @@ const ja: Translations = {
             'いいえ。インフラ、セットアップ、メンテナンスはすべて私たちが対応します。UIを通じてOpenClawの設定と管理、チャンネルへの接続、使い方のカスタマイズができます — サーバーやインフラに触れる必要はありません.',
         faq5Question: 'どのロケーションが利用可能ですか？',
         faq5Answer:
-            'Hetzner、DigitalOcean、Vultrを通じて、米国、ヨーロッパ、アジアなどを含む30以上のサーバーロケーションを世界中で提供しています。必要に応じて、異なるリージョンの複数のサーバーにOpenClawをデプロイできます.',
+            'Hetzner Cloudを通じて米国、ヨーロッパなど世界中に複数のサーバーロケーションを提供しています. 必要に応じて、異なるリージョンの複数のサーバーにOpenClawをデプロイできます.',
         faq6Question: '料金はいくらですか？',
         faq6Answer:
-            '選択するサーバーに基づいた料金です。3つのプロバイダーにわたるエントリーレベルから高パフォーマンスまで45以上のサーバーオプションから、ニーズと予算に合ったものを選択.',
+            '価格は選択するサーバーによって異なります. エントリーレベルからハイパフォーマンスまで複数のサーバーオプションがあり、ニーズと予算に合ったものを選択できます.',
         faq7Question: 'サーバーに直接アクセスできますか？',
         faq7Answer:
             'はい。サブドメインURL経由のOpenClawアクセスに加えて、サーバーとその基盤インフラへのフルアクセスがあり、カスタマイズや必要なものの実行に完全な自由を提供します.',
         faq8Question: 'サーバーはどこにホスティングされていますか？',
         faq8Answer:
-            'すべてのサーバーは、大規模インフラで使用される高パフォーマンスハードウェアと優れた稼働時間で知られる信頼できるクラウドプロバイダー、Hetzner Cloud、DigitalOcean、Vultrでホスティングされています.',
+            'すべてのサーバーは、高性能ハードウェアと優れた稼働率で知られ、大規模インフラストラクチャに使用されている信頼性の高いクラウドプロバイダーであるHetzner Cloudでホストされています.',
         comparison: '比較',
         comparisonTitle: '私たちの違い',
         comparisonDescription:
@@ -1304,8 +1340,7 @@ const ja: Translations = {
         comparisonTerminalUs: '内蔵Webターミナル',
         comparisonTerminalOthers: 'SSHクライアントが必要',
         seeFullComparison: '完全比較を見る',
-        comparisonCtaText:
-            'SimpleClaw、MyClaw.aiなどと機能ごとに比較.',
+        comparisonCtaText: 'SimpleClaw、MyClaw.aiなどと機能ごとに比較.',
         readyToOwnYourPrivacy: 'OpenClawをデプロイする準備はできましたか？',
         ctaDescription:
             'OpenClawプリインストール済みの専用サーバーを取得。フルルートアクセス、グローバルロケーション、数分で準備完了。常にあなたのもの。$25から.',
@@ -1329,7 +1364,8 @@ const ja: Translations = {
         writtenBy: '{{author}}による',
         backToBlog: 'ブログに戻る',
         noPosts: '投稿はまだありません',
-        noPostsDescription: 'ブログ記事は近日公開予定です。後でまた確認してください.',
+        noPostsDescription:
+            'ブログ記事は近日公開予定です。後でまた確認してください.',
         ctaTitle: 'ワンクリックでOpenClawをデプロイ',
         ctaDescription:
             'OpenClawプリインストール済みの専用サーバーを取得。フルルートアクセス、グローバルロケーション、数分で準備完了。常にあなたのもの。$25から.',
@@ -1338,8 +1374,7 @@ const ja: Translations = {
     },
     changelog: {
         title: '変更履歴',
-        description:
-            'ClawHostのアップデート、新機能、改善を追跡。',
+        description: 'ClawHostのアップデート、新機能、改善を追跡。',
         subtitle: 'ClawHostのすべてのアップデート、新機能、改善。',
         upcomingRelease: '進行中',
         upcomingReleaseTitle: 'モバイルアプリ & その他',
@@ -1348,14 +1383,11 @@ const ja: Translations = {
         upcomingReleaseFeature1:
             '外出先でOpenClawインスタンスを監視・管理するネイティブモバイルアプリ',
         upcomingReleaseFeature3: 'ダーク・ライトテーマ対応',
-        upcomingReleaseFeature4:
-            'パフォーマンス、安定性、レスポンシブの向上',
+        upcomingReleaseFeature4: 'パフォーマンス、安定性、レスポンシブの向上',
         upcomingReleaseFeature5:
             '英語、フランス語、スペイン語、ドイツ語の多言語対応',
-        upcomingReleaseFeature6:
-            '競合他社との詳細な比較ページ',
-        upcomingReleaseFeature7:
-            'Playground機能構造のリファクタリングと簡素化',
+        upcomingReleaseFeature6: '競合他社との詳細な比較ページ',
+        upcomingReleaseFeature7: 'Playground機能構造のリファクタリングと簡素化',
         upcomingReleaseFeature8:
             'OpenClawエージェントによる自動管理・公開の機能リクエスト',
         upcomingReleaseFeature9:
@@ -1378,15 +1410,16 @@ const ja: Translations = {
         release12Title: '年間プラン、ボイスモード & その他',
         release12Description:
             '2ヶ月無料の年間サブスクリプション、ボイスモード、インスタンス再インストール、ClawHost Goの初期ランディングページ。',
-        release12Feature1: 'ClawHost Goのランディングページ、ClawHostでローカルホスティング',
-        release12Feature2:
-            '年間契約で2ヶ月無料の年間サブスクリプション対応',
+        release12Feature1:
+            'ClawHost Goのランディングページ、ClawHostでローカルホスティング',
+        release12Feature2: '年間契約で2ヶ月無料の年間サブスクリプション対応',
         release12Feature3:
             'ClawHostでホストされたOpenClawエージェントとのボイスモード',
         release12Feature4:
             'インスタンスにOpenClawを再インストールして新しく開始、1日1回利用可能',
         release11Date: '2026年2月28日',
-        release11Title: '音声合成、ターミナル、チャットタブ & ファイルエクスプローラー',
+        release11Title:
+            '音声合成、ターミナル、チャットタブ & ファイルエクスプローラー',
         release11Description:
             '音声合成でエージェントの応答を聞き、ターミナル経由でVPSと直接やり取りし、サイドバービュータブでチャットを素早くナビゲートし、改善されたファイルエクスプローラーでファイルを探索。',
         release11Feature1: 'Playgroundでのエージェントメッセージの音声合成',
@@ -1394,9 +1427,9 @@ const ja: Translations = {
             'ダッシュボードから直接VPSインスタンスとやり取りするターミナル',
         release11Feature3:
             '簡単なアクセスとナビゲーションのためのチャットサイドバービュータブ',
-        release11Feature4:
-            'ファイル検索バー付きファイルエクスプローラーの改善',
-        release11Feature5: 'メッセージのタイムスタンプがリアルタイムを反映しない問題を修正',
+        release11Feature4: 'ファイル検索バー付きファイルエクスプローラーの改善',
+        release11Feature5:
+            'メッセージのタイムスタンプがリアルタイムを反映しない問題を修正',
         release11Dropped1: '簡素化のため機能リクエストを廃止',
         release10Date: '2026年2月23日',
         release10Title: '機能リクエスト、ファイルエクスプローラー & バグ修正',
@@ -1408,8 +1441,7 @@ const ja: Translations = {
             'ClawHubマーケットプレイスからのスキルインストールが時々失敗する問題を修正',
         release10Feature3:
             'モデルプロバイダーの切り替えが反映されず初期モデルを使い続ける問題を修正',
-        release10Feature4:
-            'プラットフォーム全体の改善とバグ修正',
+        release10Feature4: 'プラットフォーム全体の改善とバグ修正',
         release10Feature5:
             'TypeScript、Markdown、プレーンテキストファイルがファイルエクスプローラーで編集可能に',
         release9Date: '2026年2月21日',
@@ -1417,16 +1449,12 @@ const ja: Translations = {
         release9Description:
             '競合他社の比較ページ、Playground機能の再構築、多言語対応、全体的なパフォーマンス改善。',
         release9Feature1: 'ダーク・ライトテーマ対応',
-        release9Feature2:
-            '英語、フランス語、スペイン語、ドイツ語の多言語対応',
-        release9Feature3:
-            '競合他社との詳細な比較ページ',
+        release9Feature2: '英語、フランス語、スペイン語、ドイツ語の多言語対応',
+        release9Feature3: '競合他社との詳細な比較ページ',
         release9Feature4:
             'OpenClawバージョン、ワンクリックでアップグレードまたは任意のバージョンを即座にインストール',
-        release9Feature5:
-            'Playground機能構造のリファクタリングと簡素化',
-        release9Feature6:
-            'パフォーマンス、安定性、レスポンシブの向上',
+        release9Feature5: 'Playground機能構造のリファクタリングと簡素化',
+        release9Feature6: 'パフォーマンス、安定性、レスポンシブの向上',
         release8Date: '2026年2月18日',
         release8Title: 'ライトテーマ、パフォーマンス & 安定性',
         release8Description:
@@ -1472,22 +1500,16 @@ const ja: Translations = {
         release1Feature5: 'パスワードレスサーバーアクセスのためのSSHキー管理',
         release1Feature6: '最大10 TBの追加ボリュームストレージサポート',
         release1Feature7: 'マジックリンク認証、パスワード不要',
-        release1Feature8: 'セキュアなサブドメイン経由のOpenClawオンラインアクセス',
-        release1Feature9:
-            'サーバーごとの透明な料金による決済統合',
+        release1Feature8:
+            'セキュアなサブドメイン経由のOpenClawオンラインアクセス',
+        release1Feature9: 'サーバーごとの透明な料金による決済統合',
         release1Feature10: '請求履歴と請求書管理',
         release1Feature11:
             'OpenClawプリインストール・設定済みの自動プロビジョニング',
         release2Date: '2026年2月8日',
-        release2Title: 'DigitalOcean & その他',
-        release2Description:
-            'マルチプロバイダーインフラとClawHostの最新情報を追跡する新しい方法。',
-        release2Feature1: '第2のクラウドプロバイダーとしてDigitalOcean',
-        release2Feature2:
-            '専用vCPU、RAM、ストレージオプションを備えた7つのDigitalOceanサーバープラン',
-        release2Feature3:
-            '米国、ヨーロッパ、アジアなどにわたる10以上のDigitalOceanサーバーロケーション',
-        release2Feature4:
+        release2Title: 'Changelog & その他',
+        release2Description: 'ClawHostに関する最新情報を確認する新しい方法.',
+        release2Feature1:
             'プラットフォームのすべてのアップデートとリリースを追跡する変更履歴ページ',
         release3Date: '2026年2月10日',
         release3Title: 'サーバーインサイト',
@@ -1495,35 +1517,24 @@ const ja: Translations = {
             'ダッシュボードから直接、サーバーのより深い可視性とコントロール。',
         release3Feature1:
             'ダッシュボードに直接ストリーミングされるリアルタイムサーバーログ',
-        release3Feature2:
-            'サービス問題のワンクリック自動修復付きサーバー診断',
+        release3Feature2: 'サービス問題のワンクリック自動修復付きサーバー診断',
         release3Feature3:
             'サーバー設定ファイル用の内蔵ファイルエクスプローラーとJSONエディター',
-        release4Date: '2026年2月11日',
-        release4Title: 'Vultrプロバイダー',
+        release4Date: '2026年2月14日',
+        release4Title: 'エージェント & データエクスポート',
         release4Description:
-            '22のサーバープランと30以上のグローバルロケーションを持つ第3のクラウドプロバイダーとしてVultr。',
-        release4Feature1: '第3のクラウドプロバイダーとしてVultr',
-        release4Feature2:
-            '通常、ハイパフォーマンス、ハイフリークエンシーティアにわたる22のVultrサーバープラン',
-        release4Feature3:
-            '米国、ヨーロッパ、アジアなどにわたる30以上のVultrサーバーロケーション',
-        release5Date: '2026年2月14日',
-        release5Title: 'エージェント & データエクスポート',
-        release5Description:
             'エージェントPlayground、マルチエージェント管理、OpenClawインスタンスのポータブルデータエクスポート。',
-        release5Feature1:
+        release4Feature1:
             'ワンクリックエージェントPlaygroundと概要、複数エージェントの追加・管理',
-        release5Feature2: 'OpenClawをポータブルzipアーカイブとしてエクスポート',
-        release5Feature3:
+        release4Feature2: 'OpenClawをポータブルzipアーカイブとしてエクスポート',
+        release4Feature3:
             'Clawとエージェントのグラフベース視覚化を備えたインタラクティブPlayground',
-        release5Feature4:
+        release4Feature4:
             '統一ダッシュボードレイアウトに伴いグリッド・リスト表示の切り替えを削除'
     },
     playground: {
         title: 'Playground',
-        description:
-            'インタラクティブグラフでClawとエージェントを視覚化。',
+        description: 'インタラクティブグラフでClawとエージェントを視覚化。',
         subtitle: 'インフラ全体のエージェントトポロジー',
         noClawsYet: 'Clawなし',
         noClawsDescription: '最初のClawをデプロイしてやり取りを開始。',
@@ -1608,12 +1619,10 @@ const ja: Translations = {
         variablesDontAskAgain:
             'このセッションで変数を削除する際に再度確認しない',
         variablesDeleted: '変数を削除しました。',
-        variablesOperationPending:
-            '前の操作が完了するまで無効です。',
+        variablesOperationPending: '前の操作が完了するまで無効です。',
         addAgentTitle: 'エージェントを追加',
         addAgentDescription: '{{clawName}}に新しいエージェントを追加。',
-        addAgentDescriptionNoClaw:
-            'Clawを選択して新しいエージェントを設定。',
+        addAgentDescriptionNoClaw: 'Clawを選択して新しいエージェントを設定。',
         addAgentSelectClaw: 'Claw',
         addAgentSelectClawPlaceholder: 'Clawを選択',
         addAgentName: '名前',
@@ -1632,7 +1641,8 @@ const ja: Translations = {
         deleteAgentDescription:
             'エージェント「{{agentName}}」を削除してもよろしいですか？この操作は元に戻せません。環境変数は削除されません。',
         deleteAgentConfirm: '削除',
-        agentDontAskAgain: 'このセッションでエージェントを削除する際に再度確認しない',
+        agentDontAskAgain:
+            'このセッションでエージェントを削除する際に再度確認しない',
         deleteAgentDeleting: '削除中...',
         deleteAgentSuccess: 'エージェントを削除しました。',
         deleteAgentFailed: 'エージェントの削除に失敗しました！',
@@ -1665,20 +1675,24 @@ const ja: Translations = {
         chatStopSpeech: '停止',
         chatSpeechFailed: '音声の生成に失敗しました！',
         chatReadOnlyPlaceholder: 'チャットは自分のClawで利用可能です。',
-        chatReadOnlyUser: 'こんにちは！Node.jsプロジェクトのセットアップを手伝ってもらえますか？',
+        chatReadOnlyUser:
+            'こんにちは！Node.jsプロジェクトのセットアップを手伝ってもらえますか？',
         chatReadOnlyAssistant:
             'もちろん！新しいNode.jsプロジェクトの初期化をお手伝いします。一般的な依存関係を含むpackage.jsonを作成しましょうか？',
         chatReadOnlyReply:
             'これはプレビューです！ワンクリックで自分のOpenClawをデプロイし、数分でAIエージェントとのチャットを開始！',
-        chatReadOnlyUser2: 'テストスイートを実行して失敗がないか確認できますか？',
+        chatReadOnlyUser2:
+            'テストスイートを実行して失敗がないか確認できますか？',
         chatReadOnlyAssistant2:
             'はい！今すぐすべてのテストを実行します。3件パス、0件失敗。すべて正常 — すべてのアサーションが通過しています。',
-        chatReadOnlyGoUser: 'デプロイパイプラインの自動化を手伝ってもらえますか？',
+        chatReadOnlyGoUser:
+            'デプロイパイプラインの自動化を手伝ってもらえますか？',
         chatReadOnlyGoAssistant:
             'もちろん！CI/CDパイプラインをセットアップできます。ビルド、テスト、自動デプロイを行うGitHub Actionsワークフローから始めましょうか？',
         chatReadOnlyGoReply:
             'これはプレビューです！ClawHost Goを入手してOpenClawをローカルで実行 — あなたのマシン、あなたのデータ、クラウド不要。',
-        chatReadOnlyGoUser2: 'ローカルサービスを監視して、何かダウンした場合にアラートを出せますか？',
+        chatReadOnlyGoUser2:
+            'ローカルサービスを監視して、何かダウンした場合にアラートを出せますか？',
         chatReadOnlyGoAssistant2:
             '了解！すべてのサービスにヘルスチェックをセットアップします。現在4つのエンドポイントを監視中 — すべて正常で応答しています。',
         chatConnectionFailed: 'このエージェントへの接続に失敗しました！',
@@ -1696,7 +1710,8 @@ const ja: Translations = {
         chatDropFilesDescription: '画像、PDF、テキストファイル（最大5 MB）。',
         chatVoiceInput: '音声入力',
         chatVoiceListening: '聞いています...',
-        chatVoiceNotSupported: 'このブラウザでは音声入力がサポートされていません。',
+        chatVoiceNotSupported:
+            'このブラウザでは音声入力がサポートされていません。',
         chatVoiceMode: 'ボイスモード',
         chatVoiceModeTapToSpeak: 'タップして話し始める',
         chatVoiceModeListening: '聞いています...',
@@ -1732,13 +1747,15 @@ const ja: Translations = {
         channelsWhatsAppQrRefreshed:
             '前のQRコードの有効期限が切れました。下の新しいコードをスキャンしてください。',
         channelsWhatsAppPaired: 'WhatsAppをペアリングしました。',
-        channelsWhatsAppPairFailed: 'ペアリングに失敗しました。再試行してください！',
+        channelsWhatsAppPairFailed:
+            'ペアリングに失敗しました。再試行してください！',
         channelsWhatsAppAlreadyPaired: 'WhatsAppは既にペアリングされています！',
         channelsWhatsAppUnpair: 'ペアリング解除',
         channelsWhatsAppConnected: '接続済み',
         channelsWhatsAppRepair: '再ペアリング',
         channelsWhatsAppChecking: '接続を確認中...',
-        channelsVersionUnsupported: 'このバージョンではチャンネル設定は利用できません。ターミナルタブから手動で接続するか、OpenClawをアップグレードしてください。',
+        channelsVersionUnsupported:
+            'このバージョンではチャンネル設定は利用できません。ターミナルタブから手動で接続するか、OpenClawをアップグレードしてください。',
         channelsVersionUnsupportedDocs: 'セットアップガイドを見る',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
@@ -1791,7 +1808,8 @@ const ja: Translations = {
         skillsLoadFailed: 'スキルの読み込みに失敗しました！',
         skillsLoadFailedDescription:
             'スキル設定を取得できませんでした。再試行してください。',
-        agentSkillsDescription: 'このエージェントワークスペースにインストールされたスキル。',
+        agentSkillsDescription:
+            'このエージェントワークスペースにインストールされたスキル。',
         agentSkillsInstalling: 'インストール中...',
         agentSkillsInstalled: 'スキルをインストールしました。',
         agentSkillsInstallFailed: 'スキルのインストールに失敗しました！',
@@ -1852,8 +1870,7 @@ const ja: Translations = {
         settingsNameDescription: '英字、数字、ダッシュのみ。',
         subdomain: 'サブドメイン',
         subdomainPlaceholder: 'サブドメインを入力',
-        subdomainDescription:
-            '小文字と数字、{{min}}-{{max}}文字。',
+        subdomainDescription: '小文字と数字、{{min}}-{{max}}文字。',
         subdomainInvalid:
             '{{min}}-{{max}}文字の小文字と数字のみ使用してください。',
         subdomainUpdated: 'サブドメインを更新しました。',
@@ -1887,11 +1904,9 @@ const ja: Translations = {
         personalInfoEmail:
             'メールアドレス（アカウント作成とコミュニケーション用）',
         personalInfoName: '名前（任意、パーソナライズ用）',
-        personalInfoPayment:
-            '支払い情報（第三者プロバイダーにより安全に処理）',
+        personalInfoPayment: '支払い情報（第三者プロバイダーにより安全に処理）',
         serverInfoTitle: 'サーバー情報',
-        serverInfoConfig:
-            'サーバー設定とステータス（Hetzner Cloudでホスト）',
+        serverInfoConfig: 'サーバー設定とステータス（Hetzner Cloudでホスト）',
         serverInfoIp: 'サーバーIPアドレスとロケーション',
         serverInfoResources: 'リソース割り当て（CPU、RAM、ストレージ）',
         useTitle: '4. 情報の使用方法',
@@ -1909,8 +1924,7 @@ const ja: Translations = {
             'サービスの運営を支援するサービスプロバイダー（例: クラウドインフラプロバイダー）',
         sharingLegal:
             '法律で要求される場合または当社の権利を保護するために法的機関',
-        sharingBusiness:
-            '合併、買収、または資産売却の場合のビジネスパートナー',
+        sharingBusiness: '合併、買収、または資産売却の場合のビジネスパートナー',
         securityTitle: '6. データセキュリティ',
         securityText:
             '当社は、お客様の個人情報を不正アクセス、改ざん、開示、破壊から保護するために適切な技術的・組織的措置を講じています。これには暗号化、セキュアなサーバー、定期的なセキュリティ評価が含まれます。',
@@ -1943,8 +1957,7 @@ const ja: Translations = {
     },
     terms: {
         title: '利用規約',
-        description:
-            'ClawHostサービスの利用規約をお読みください。',
+        description: 'ClawHostサービスの利用規約をお読みください。',
         lastUpdated: '最終更新: 2026年3月14日',
         acceptanceTitle: '1. 規約の承諾',
         acceptanceText:
@@ -1957,14 +1970,12 @@ const ja: Translations = {
             'ClawHostは、サインインの管理にGoogle Firebase Authenticationを使用しています。メール、Google、またはGitHubで認証できます。これらの方法を使用することで、GoogleおよびGitHubのそれぞれの利用規約とプライバシーポリシーに同意したものとみなされます。これらのプロバイダーは、メールアドレス、名前、デバイスデータなどの基本情報を収集する場合があります。',
         responsibilitiesTitle: '4. ユーザーの責任',
         responsibilitiesText: 'お客様は以下に同意します:',
-        responsibilitiesAccurate:
-            '正確で完全な登録情報を提供すること',
+        responsibilitiesAccurate: '正確で完全な登録情報を提供すること',
         responsibilitiesSecurity:
             'アカウント認証情報のセキュリティを維持すること',
         responsibilitiesCompliance:
             'すべての適用法に準拠してサービスを使用すること',
-        responsibilitiesLegal:
-            '違法または不正な目的でサービスを使用しないこと',
+        responsibilitiesLegal: '違法または不正な目的でサービスを使用しないこと',
         responsibilitiesAccess:
             'システムまたはネットワークへの不正アクセスを試みないこと',
         prohibitedTitle: '5. 禁止事項',
@@ -1974,8 +1985,7 @@ const ja: Translations = {
         prohibitedDos: 'サービス拒否攻撃またはネットワーク悪用の実行',
         prohibitedSpam: 'スパムまたは未承諾のコミュニケーションの送信',
         prohibitedIllegal: '違法コンテンツのホストまたは配布',
-        prohibitedIp:
-            '知的財産を含む第三者の権利の侵害',
+        prohibitedIp: '知的財産を含む第三者の権利の侵害',
         prohibitedMining: '暗号通貨のマイニング',
         prohibitedOther:
             '当社の裁量で不適切と判断するその他の違法または有害な活動',
@@ -2003,8 +2013,7 @@ const ja: Translations = {
         settings: '設定',
         comingSoon: '近日公開',
         messagesPlaceholder: 'メッセージと通知がここに表示されます。',
-        settingsPlaceholder:
-            'アカウント設定と環境設定がここに表示されます。',
+        settingsPlaceholder: 'アカウント設定と環境設定がここに表示されます。',
         signIn: 'サインイン',
         signInDescription: 'サインインしてOpenClawインスタンスを管理。',
         enterEmail: 'メールアドレス',
@@ -2019,7 +2028,8 @@ const ja: Translations = {
         resendIn: '{{seconds}}秒後に再送信',
         changeEmail: 'メールアドレスを変更',
         invalidCode: '無効なコードです！',
-        codeExpired: 'コードの有効期限が切れました。新しいコードをリクエストしてください。',
+        codeExpired:
+            'コードの有効期限が切れました。新しいコードをリクエストしてください。',
         signingIn: 'サインイン中...',
         signOut: 'サインアウト',
         signedInAs: 'ログイン中:',
@@ -2105,7 +2115,7 @@ const ja: Translations = {
         sharedContainers: '共有コンテナ',
         isolatedContainers: '分離コンテナ',
         cloudWorkspaces: 'クラウドワークスペース',
-        threeProviders: 'Hetzner、DigitalOcean、Vultr',
+        threeProviders: 'Hetzner Cloud',
         singleProvider: '単一プロバイダー',
         fullyDedicated: '完全専用',
         shared: '共有',

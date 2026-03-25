@@ -20,11 +20,7 @@ const SelfHostButton: FC<SelfHostButtonProps> = ({
             className={`border-border bg-foreground/5 text-foreground hover:bg-foreground/10 gap-2 ${large ? 'px-8 py-6 text-lg' : 'px-6'} ${className || ''}`}
             asChild
         >
-            <a
-                href={GITHUB_REPO_URL}
-                target='_blank'
-                rel='noopener noreferrer'
-            >
+            <a href={GITHUB_REPO_URL} target='_blank' rel='noopener noreferrer'>
                 <GithubLogoIcon className='h-5 w-5' weight='fill' />
                 {label}
 

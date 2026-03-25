@@ -20,7 +20,10 @@ import {
 
 const LazyDemoPreview = lazy(() => import('@/components/LandingDemoPreview'))
 
-const MacosDesktopPreview: FC<MacosDesktopPreviewProps> = ({ previewRef, previewScale }): ReactNode => {
+const MacosDesktopPreview: FC<MacosDesktopPreviewProps> = ({
+    previewRef,
+    previewScale
+}): ReactNode => {
     return (
         <div ref={previewRef} className='mx-auto mb-32 max-w-6xl px-6'>
             <motion.div
@@ -41,18 +44,41 @@ const MacosDesktopPreview: FC<MacosDesktopPreviewProps> = ({ previewRef, preview
                 >
                     <div className='flex items-center justify-between bg-black/30 px-4 py-1 backdrop-blur-xl'>
                         <div className='flex items-center gap-4'>
-                            <span className='text-[11px] font-semibold text-white/90'>{t('common.brandNameGo')}</span>
-                            <span className='hidden text-[11px] text-white/60 sm:inline'>{t('common.menuFile')}</span>
-                            <span className='hidden text-[11px] text-white/60 sm:inline'>{t('common.menuEdit')}</span>
-                            <span className='hidden text-[11px] text-white/60 sm:inline'>{t('common.menuView')}</span>
-                            <span className='hidden text-[11px] text-white/60 md:inline'>{t('common.menuWindow')}</span>
-                            <span className='hidden text-[11px] text-white/60 md:inline'>{t('common.menuHelp')}</span>
+                            <span className='text-[11px] font-semibold text-white/90'>
+                                {t('common.brandNameGo')}
+                            </span>
+                            <span className='hidden text-[11px] text-white/60 sm:inline'>
+                                {t('common.menuFile')}
+                            </span>
+                            <span className='hidden text-[11px] text-white/60 sm:inline'>
+                                {t('common.menuEdit')}
+                            </span>
+                            <span className='hidden text-[11px] text-white/60 sm:inline'>
+                                {t('common.menuView')}
+                            </span>
+                            <span className='hidden text-[11px] text-white/60 md:inline'>
+                                {t('common.menuWindow')}
+                            </span>
+                            <span className='hidden text-[11px] text-white/60 md:inline'>
+                                {t('common.menuHelp')}
+                            </span>
                         </div>
                         <div className='flex items-center gap-3'>
-                            <WifiHighIcon className='h-3.5 w-3.5 text-white/70' weight='bold' />
-                            <MagnifyingGlassIcon className='h-3.5 w-3.5 text-white/70' weight='bold' />
-                            <BatteryFullIcon className='h-3.5 w-3.5 text-white/70' weight='fill' />
-                            <span className='text-[11px] text-white/70'>10:12 PM</span>
+                            <WifiHighIcon
+                                className='h-3.5 w-3.5 text-white/70'
+                                weight='bold'
+                            />
+                            <MagnifyingGlassIcon
+                                className='h-3.5 w-3.5 text-white/70'
+                                weight='bold'
+                            />
+                            <BatteryFullIcon
+                                className='h-3.5 w-3.5 text-white/70'
+                                weight='fill'
+                            />
+                            <span className='text-[11px] text-white/70'>
+                                10:12 PM
+                            </span>
                         </div>
                     </div>
 
@@ -70,12 +96,17 @@ const MacosDesktopPreview: FC<MacosDesktopPreviewProps> = ({ previewRef, preview
                                 <div className='w-[54px]' />
                             </div>
                             <div className='bg-background flex flex-1 flex-col overflow-hidden'>
-                                <Suspense fallback={
-                                    <div className='flex flex-1 items-center justify-center'>
-                                        <div className='border-border bg-muted/50 h-3 w-3 animate-pulse rounded-full' />
-                                    </div>
-                                }>
-                                    <LazyDemoPreview urlOverride={t('common.brandNameGo')} hideTitleBar />
+                                <Suspense
+                                    fallback={
+                                        <div className='flex flex-1 items-center justify-center'>
+                                            <div className='border-border bg-muted/50 h-3 w-3 animate-pulse rounded-full' />
+                                        </div>
+                                    }
+                                >
+                                    <LazyDemoPreview
+                                        urlOverride={t('common.brandNameGo')}
+                                        hideTitleBar
+                                    />
                                 </Suspense>
                             </div>
                         </div>
@@ -83,28 +114,52 @@ const MacosDesktopPreview: FC<MacosDesktopPreviewProps> = ({ previewRef, preview
 
                     <div className='absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-2xl border border-white/20 bg-white/10 px-2.5 py-1 backdrop-blur-xl'>
                         <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-400 to-blue-600'>
-                            <GlobeSimpleIcon className='h-5 w-5 text-white' weight='fill' />
+                            <GlobeSimpleIcon
+                                className='h-5 w-5 text-white'
+                                weight='fill'
+                            />
                         </div>
                         <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600'>
-                            <EnvelopeSimpleIcon className='h-5 w-5 text-white' weight='fill' />
+                            <EnvelopeSimpleIcon
+                                className='h-5 w-5 text-white'
+                                weight='fill'
+                            />
                         </div>
                         <div className='hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-400 to-red-600 sm:flex'>
-                            <MusicNoteIcon className='h-5 w-5 text-white' weight='fill' />
+                            <MusicNoteIcon
+                                className='h-5 w-5 text-white'
+                                weight='fill'
+                            />
                         </div>
                         <div className='hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 sm:flex'>
-                            <NoteIcon className='h-5 w-5 text-white' weight='fill' />
+                            <NoteIcon
+                                className='h-5 w-5 text-white'
+                                weight='fill'
+                            />
                         </div>
                         <div className='hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 md:flex'>
-                            <CalendarIcon className='h-5 w-5 text-white' weight='fill' />
+                            <CalendarIcon
+                                className='h-5 w-5 text-white'
+                                weight='fill'
+                            />
                         </div>
                         <div className='hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-400 to-violet-600 md:flex'>
-                            <ImageIcon className='h-5 w-5 text-white' weight='fill' />
+                            <ImageIcon
+                                className='h-5 w-5 text-white'
+                                weight='fill'
+                            />
                         </div>
                         <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#1e1e1e]'>
-                            <TerminalIcon className='h-5 w-5 text-white' weight='fill' />
+                            <TerminalIcon
+                                className='h-5 w-5 text-white'
+                                weight='fill'
+                            />
                         </div>
                         <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-blue-600'>
-                            <FolderIcon className='h-5 w-5 text-white' weight='fill' />
+                            <FolderIcon
+                                className='h-5 w-5 text-white'
+                                weight='fill'
+                            />
                         </div>
                         <div className='mx-0.5 h-7 w-px shrink-0 bg-white/20' />
                         <img

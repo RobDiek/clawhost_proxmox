@@ -170,7 +170,10 @@ const Go: FC = (): ReactNode => {
                     showToast(t('go.waitlistAlreadyJoinedToast'), 'info')
                 }
             } catch (error) {
-                const message = error instanceof Error ? error.message : t('go.waitlistFailedToast')
+                const message =
+                    error instanceof Error
+                        ? error.message
+                        : t('go.waitlistFailedToast')
                 showToast(message, 'error')
             } finally {
                 setIsJoining(false)
@@ -490,7 +493,10 @@ const Go: FC = (): ReactNode => {
                                         weight='bold'
                                     />
                                 ) : (
-                                    <BellIcon className='h-5 w-5' weight='bold' />
+                                    <BellIcon
+                                        className='h-5 w-5'
+                                        weight='bold'
+                                    />
                                 )}
                                 {hasJoined
                                     ? t('go.joinedWaitlist')

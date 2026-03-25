@@ -74,7 +74,9 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
     const enabledChannels = useMemo(() => {
         if (!query.data) return []
         return Object.entries(query.data.channels)
-            .filter(([key, config]) => isChannelConfigured(key, config as ChannelConfig))
+            .filter(([key, config]) =>
+                isChannelConfigured(key, config as ChannelConfig)
+            )
             .map(([key]) => key)
     }, [query.data])
 

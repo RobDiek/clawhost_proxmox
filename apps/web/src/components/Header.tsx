@@ -50,7 +50,8 @@ const Header: FC<HeaderProps> = ({
         return () => window.removeEventListener('scroll', onScroll)
     }, [mobileMenuOpen])
 
-    const isDesktop = !!(window as unknown as ElectronWindow).electronAPI?.isDesktop
+    const isDesktop = !!(window as unknown as ElectronWindow).electronAPI
+        ?.isDesktop
 
     const { data: profile } = useProfile({
         enabled: !!user
@@ -63,7 +64,8 @@ const Header: FC<HeaderProps> = ({
         cachedProfile?.email ||
         ''
 
-    const isLandingPage = location.pathname === ROUTES.HOME || location.pathname === ROUTES.GO
+    const isLandingPage =
+        location.pathname === ROUTES.HOME || location.pathname === ROUTES.GO
 
     return (
         <>
@@ -81,7 +83,9 @@ const Header: FC<HeaderProps> = ({
                 <div className='mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4'>
                     <div className='flex items-center gap-3'>
                         <Logo />
-                        {(isDesktop || location.pathname === ROUTES.GO) && <BetaBadge />}
+                        {(isDesktop || location.pathname === ROUTES.GO) && (
+                            <BetaBadge />
+                        )}
                         <ProductSwitcher />
                     </div>
 

@@ -18,10 +18,7 @@ const PlaygroundEmail: FC = (): ReactNode => {
             </Text>
 
             <Section style={buttonContainer}>
-                <Button
-                    href='https://clawhost.cloud'
-                    style={button}
-                >
+                <Button href='https://clawhost.cloud' style={button}>
                     {t('emails.features.playground.cta')}
                 </Button>
             </Section>

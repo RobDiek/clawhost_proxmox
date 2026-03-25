@@ -251,7 +251,9 @@ export interface ClawHubState {
 
 export interface TerminalState {
     status: TerminalStatus
-    setStatus: (value: TerminalStatus | ((prev: TerminalStatus) => TerminalStatus)) => void
+    setStatus: (
+        value: TerminalStatus | ((prev: TerminalStatus) => TerminalStatus)
+    ) => void
     showScrollButton: boolean
     setShowScrollButton: (value: boolean) => void
     resetTerminalState: () => void
@@ -1055,9 +1057,6 @@ export interface PricingSectionProps {
     plans: Plan[] | undefined
     plansLoading: boolean
     allDoneLoading: boolean
-    pricingProvider: ProviderType
-    onProviderChange: (provider: ProviderType) => void
-    isProviderUnavailable: (provider: ProviderType) => boolean
 }
 
 export interface PlaygroundTabConfig<T extends string = string> {
@@ -1729,17 +1728,6 @@ export interface ErrorResponse {
     error?: string
 }
 
-export interface ProviderOptionWithIcon {
-    key: ProviderType
-    label: string
-    icon: ReactNode
-}
-
-export interface ProviderOption {
-    key: ProviderType
-    label: string
-}
-
 export interface TranscriptionResult {
     text: string
 }
@@ -1778,10 +1766,7 @@ export interface ComparisonTableProps {
 }
 
 export interface ProviderSelectorProps {
-    provider: ProviderType
     atCapacity: boolean
-    isProviderUnavailable: (p: ProviderType) => boolean
-    onProviderChange: (p: ProviderType) => void
 }
 
 export interface LocationSelectorProps {
@@ -1806,7 +1791,6 @@ export interface PlanSelectorProps {
     plans: Plan[]
     planId: string
     location: string
-    provider: ProviderType
     billingCycle: BillingInterval
     isLoading: boolean
     isLocationAvailableForPlan: (locationId: string, planId: string) => boolean

@@ -123,11 +123,20 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
         []
     )
 
-    const electronOAuth = useCallback(async (providerUrl: string, callbackPrefix: string) => {
-        const electronAPI = (window as unknown as ElectronWindow).electronAPI
-        const result = await electronAPI!.invoke('oauth-window', providerUrl, callbackPrefix, t('auth.signIn')) as OAuthWindowResult
-        return result
-    }, [])
+    const electronOAuth = useCallback(
+        async (providerUrl: string, callbackPrefix: string) => {
+            const electronAPI = (window as unknown as ElectronWindow)
+                .electronAPI
+            const result = (await electronAPI!.invoke(
+                'oauth-window',
+                providerUrl,
+                callbackPrefix,
+                t('auth.signIn')
+            )) as OAuthWindowResult
+            return result
+        },
+        []
+    )
 
     const signInWithGoogle = useCallback(async () => {
         const electronAPI = (window as unknown as ElectronWindow).electronAPI
@@ -141,14 +150,24 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
             const result = await electronOAuth(url, redirectUri)
             if (!result?.accessToken) throw new Error('OAuth failed')
 
-            const credential = GoogleAuthProvider.credential(null, result.accessToken)
+            const credential = GoogleAuthProvider.credential(
+                null,
+                result.accessToken
+            )
             try {
                 await signInWithCredential(auth, credential)
             } catch (error) {
                 const firebaseError = error as FirebaseErrorLike
-                if (firebaseError.code === 'auth/account-exists-with-different-credential') {
+                if (
+                    firebaseError.code ===
+                    'auth/account-exists-with-different-credential'
+                ) {
                     const resolved = await resolveConflict(
-                        GoogleAuthProvider.credentialFromError(error as Parameters<typeof GoogleAuthProvider.credentialFromError>[0]),
+                        GoogleAuthProvider.credentialFromError(
+                            error as Parameters<
+                                typeof GoogleAuthProvider.credentialFromError
+                            >[0]
+                        ),
                         'google.com'
                     )
                     if (resolved) return
@@ -190,17 +209,29 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
             const result = await electronOAuth(url, redirectUri)
             if (!result?.code) throw new Error('OAuth failed')
 
-            const tokenResult = await electronAPI.invoke('oauth-github-exchange', result.code) as OAuthWindowResult
+            const tokenResult = (await electronAPI.invoke(
+                'oauth-github-exchange',
+                result.code
+            )) as OAuthWindowResult
             if (!tokenResult?.accessToken) throw new Error('OAuth failed')
 
-            const credential = GithubAuthProvider.credential(tokenResult.accessToken)
+            const credential = GithubAuthProvider.credential(
+                tokenResult.accessToken
+            )
             try {
                 await signInWithCredential(auth, credential)
             } catch (error) {
                 const firebaseError = error as FirebaseErrorLike
-                if (firebaseError.code === 'auth/account-exists-with-different-credential') {
+                if (
+                    firebaseError.code ===
+                    'auth/account-exists-with-different-credential'
+                ) {
                     const resolved = await resolveConflict(
-                        GithubAuthProvider.credentialFromError(error as Parameters<typeof GithubAuthProvider.credentialFromError>[0]),
+                        GithubAuthProvider.credentialFromError(
+                            error as Parameters<
+                                typeof GithubAuthProvider.credentialFromError
+                            >[0]
+                        ),
                         'github.com'
                     )
                     if (resolved) return
@@ -276,7 +307,8 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
         await firebaseSignOut(auth)
     }, [])
 
-    const isLocal = document.documentElement.getAttribute('data-electron') === 'true'
+    const isLocal =
+        document.documentElement.getAttribute('data-electron') === 'true'
 
     return (
         <AuthContext.Provider

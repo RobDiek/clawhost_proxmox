@@ -1,7 +1,11 @@
 import type { AuthenticatedContext } from '@/ts/Types'
 
 import executeSSH from '@/services/ssh'
-import { findUserClaw, WHATSAPP_PATHS, isVersionAtLeast } from '@/controllers/claws/helpers'
+import {
+    findUserClaw,
+    WHATSAPP_PATHS,
+    isVersionAtLeast
+} from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 

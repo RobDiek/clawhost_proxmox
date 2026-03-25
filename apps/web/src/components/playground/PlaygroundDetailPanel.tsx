@@ -532,15 +532,7 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                                     value={
                                         claw.provider === clawProvider.local
                                             ? t('createClaw.providerLocal')
-                                            : claw.provider ===
-                                                clawProvider.hetzner
-                                              ? t('createClaw.providerHetzner')
-                                              : claw.provider ===
-                                                  clawProvider.vultr
-                                                ? t('createClaw.providerVultr')
-                                                : t(
-                                                      'createClaw.providerDigitalOcean'
-                                                  )
+                                            : t('createClaw.providerHetzner')
                                     }
                                     icon={
                                         <ProviderIcon
@@ -573,7 +565,8 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                                         <CopyableField
                                             label={t('dashboard.planCost')}
                                             value={
-                                                claw.billingInterval === 'year' && plan
+                                                claw.billingInterval ===
+                                                    'year' && plan
                                                     ? `$${plan.priceYearly.toFixed(0)}${t('landing.perYear')}`
                                                     : `$${monthlyPrice.toFixed(0)}${t('landing.perMonth')}`
                                             }

@@ -44,55 +44,13 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
     volumePricing: initialVolumePricing,
     planAvailability: initialPlanAvailability,
     preselectedPlanId,
-    preselectedProvider,
     onClose,
     onNavigateToSSHKeys
 }): ReactNode => {
     const [name, setName] = useState('')
     const [nameError, setNameError] = useState('')
 
-    const { plans: hetznerPlans, isLoading: hetznerLoading } = usePlans(
-        clawProvider.hetzner
-    )
-    const { plans: digitaloceanPlans, isLoading: digitaloceanLoading } =
-        usePlans(clawProvider.digitalocean)
-    const { plans: vultrPlans, isLoading: vultrLoading } = usePlans(
-        clawProvider.vultr
-    )
-
-    const hetznerAvailable = !hetznerLoading && !!hetznerPlans?.length
-
-    const isProviderUnavailable = (p: ProviderType): boolean => {
-        if (p === clawProvider.hetzner)
-            return !hetznerLoading && !hetznerPlans?.length
-        if (p === clawProvider.digitalocean)
-            return (
-                hetznerAvailable ||
-                (!digitaloceanLoading && !digitaloceanPlans?.length)
-            )
-        if (p === clawProvider.vultr)
-            return hetznerAvailable || (!vultrLoading && !vultrPlans?.length)
-        return false
-    }
-
-    const autoProvider: ProviderType =
-        preselectedProvider && !isProviderUnavailable(preselectedProvider)
-            ? preselectedProvider
-            : hetznerPlans?.length
-              ? clawProvider.hetzner
-              : digitaloceanPlans?.length
-                ? clawProvider.digitalocean
-                : vultrPlans?.length
-                  ? clawProvider.vultr
-                  : clawProvider.hetzner
-
-    const [userSelectedProvider, setUserSelectedProvider] =
-        useState<ProviderType | null>(null)
-
-    const provider =
-        userSelectedProvider && !isProviderUnavailable(userSelectedProvider)
-            ? userSelectedProvider
-            : autoProvider
+    const provider: ProviderType = clawProvider.hetzner
 
     const {
         plans: providerPlans,
@@ -156,17 +114,12 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
     const [showPassword, setShowPassword] = useState(false)
     const [selectedSshKeyId, setSelectedSshKeyId] = useState<string>('')
     const [volumeSize, setVolumeSize] = useState<number>(0)
-    const [billingCycle, setBillingCycle] = useState<BillingInterval>(billingInterval.YEAR)
+    const [billingCycle, setBillingCycle] = useState<BillingInterval>(
+        billingInterval.YEAR
+    )
     const [showAdvanced, setShowAdvanced] = useState(false)
     const [agreedToTerms, setAgreedToTerms] = useState(false)
     const { showToast } = useUIStore()
-
-    const handleProviderChange = (newProvider: ProviderType) => {
-        setUserSelectedProvider(newProvider)
-        setPlanId('')
-        setLocation('')
-        setVolumeSize(0)
-    }
 
     useEffect(() => {
         if (!planId && plans.length > 0) {
@@ -219,14 +172,16 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
             return
         }
 
-        const planPrice = billingCycle === billingInterval.YEAR
-            ? selectedPlanData.priceYearly
-            : selectedPlanData.priceMonthly
+        const planPrice =
+            billingCycle === billingInterval.YEAR
+                ? selectedPlanData.priceYearly
+                : selectedPlanData.priceMonthly
         let totalPrice = planPrice
         if (volumeSize > 0 && volumePricing) {
-            const volumePrice = billingCycle === billingInterval.YEAR
-                ? volumeSize * volumePricing.pricePerGbMonthly * 10
-                : volumeSize * volumePricing.pricePerGbMonthly
+            const volumePrice =
+                billingCycle === billingInterval.YEAR
+                    ? volumeSize * volumePricing.pricePerGbMonthly * 10
+                    : volumeSize * volumePricing.pricePerGbMonthly
             totalPrice += volumePrice
         }
 
@@ -267,15 +222,15 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
 
     const totalAmount = selectedPlan
         ? (billingCycle === billingInterval.YEAR
-            ? selectedPlan.priceYearly +
-              (volumeSize > 0 && volumePricing
-                  ? volumeSize * volumePricing.pricePerGbMonthly * 10
-                  : 0)
-            : selectedPlan.priceMonthly +
-              (volumeSize > 0 && volumePricing
-                  ? volumeSize * volumePricing.pricePerGbMonthly
-                  : 0)
-        ).toFixed(2)
+              ? selectedPlan.priceYearly +
+                (volumeSize > 0 && volumePricing
+                    ? volumeSize * volumePricing.pricePerGbMonthly * 10
+                    : 0)
+              : selectedPlan.priceMonthly +
+                (volumeSize > 0 && volumePricing
+                    ? volumeSize * volumePricing.pricePerGbMonthly
+                    : 0)
+          ).toFixed(2)
         : '0.00'
 
     return (
@@ -321,12 +276,7 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                         )}
                     </div>
 
-                    <ProviderSelector
-                        provider={provider}
-                        atCapacity={atCapacity}
-                        isProviderUnavailable={isProviderUnavailable}
-                        onProviderChange={handleProviderChange}
-                    />
+                    <ProviderSelector atCapacity={atCapacity} />
 
                     <LocationSelector
                         locations={locations}
@@ -350,7 +300,6 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                         plans={plans}
                         planId={planId}
                         location={location}
-                        provider={provider}
                         billingCycle={billingCycle}
                         isLoading={isProviderLoading}
                         isLocationAvailableForPlan={isLocationAvailableForPlan}
@@ -366,7 +315,9 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                         password={password}
                         onPasswordChange={setPassword}
                         showPassword={showPassword}
-                        onToggleShowPassword={() => setShowPassword(!showPassword)}
+                        onToggleShowPassword={() =>
+                            setShowPassword(!showPassword)
+                        }
                         sshKeys={sshKeys}
                         selectedSshKeyId={selectedSshKeyId}
                         onSshKeyChange={setSelectedSshKeyId}

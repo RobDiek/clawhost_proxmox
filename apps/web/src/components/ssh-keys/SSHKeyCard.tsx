@@ -14,11 +14,7 @@ import {
     DialogHeader,
     DialogTitle
 } from '@/components/ui'
-import {
-    KeyIcon,
-    TrashIcon,
-    CircleNotchIcon
-} from '@phosphor-icons/react'
+import { KeyIcon, TrashIcon, CircleNotchIcon } from '@phosphor-icons/react'
 
 const SSHKeyCard: FC<SSHKeyCardProps> = ({ sshKey }): ReactNode => {
     const [showDeleteModal, setShowDeleteModal] = useState(false)

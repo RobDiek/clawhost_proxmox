@@ -1,7 +1,11 @@
 import type { FC, ReactNode } from 'react'
 import type { HeroTitleProps } from '@/ts/Interfaces'
 
-const HeroTitle: FC<HeroTitleProps> = ({ line1, line2, description }): ReactNode => {
+const HeroTitle: FC<HeroTitleProps> = ({
+    line1,
+    line2,
+    description
+}): ReactNode => {
     return (
         <>
             <h1 className='font-clash mb-6 text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl lg:text-8xl'>

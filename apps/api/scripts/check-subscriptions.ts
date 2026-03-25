@@ -76,7 +76,7 @@ const run = async () => {
 
     console.log('To reconcile, run:')
     console.log(
-        '  tsx scripts/reconcile-subscription.ts <subscription-id> [--provider hetzner|digitalocean|vultr]'
+        '  tsx scripts/reconcile-subscription.ts <subscription-id> [--provider hetzner]'
     )
 }
 

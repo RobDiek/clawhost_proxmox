@@ -47,36 +47,10 @@ const createSSHKey = async (c: AuthenticatedContext) => {
 
         const keyLabel = `${name}-${userId.slice(0, 8)}`
 
-        const [hetznerResult, doResult, vultrResult] = await Promise.allSettled(
-            [
-                getProvider('hetzner').createSSHKey(keyLabel, publicKey),
-                getProvider('digitalocean').createSSHKey(keyLabel, publicKey),
-                getProvider('vultr').createSSHKey(keyLabel, publicKey)
-            ]
+        const hetznerKey = await getProvider('hetzner').createSSHKey(
+            keyLabel,
+            publicKey
         )
-
-        if (hetznerResult.status === 'rejected') {
-            throw hetznerResult.reason
-        }
-
-        const hetznerKey = hetznerResult.value
-        const digitaloceanKeyId =
-            doResult.status === 'fulfilled' ? doResult.value.id : null
-        const vultrKeyId =
-            vultrResult.status === 'fulfilled' ? vultrResult.value.id : null
-
-        if (doResult.status === 'rejected') {
-            console.error(
-                'Failed to register SSH key with DigitalOcean:',
-                doResult.reason
-            )
-        }
-        if (vultrResult.status === 'rejected') {
-            console.error(
-                'Failed to register SSH key with Vultr:',
-                vultrResult.reason
-            )
-        }
 
         const id = crypto.randomUUID()
         await db.insert(sshKeys).values({
@@ -85,9 +59,7 @@ const createSSHKey = async (c: AuthenticatedContext) => {
             name,
             publicKey,
             fingerprint: hetznerKey.fingerprint,
-            providerKeyId: hetznerKey.id,
-            digitaloceanKeyId,
-            vultrKeyId
+            providerKeyId: hetznerKey.id
         })
 
         return ok(

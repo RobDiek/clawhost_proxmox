@@ -44,12 +44,8 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
     const [entries, setEntries] = useState<Record<string, SkillEntryConfig>>({})
     const [search, setSearch] = useState('')
     const debouncedSearch = useDebouncedValue(search.trim(), 400)
-    const {
-        pendingSkill,
-        setPendingSkill,
-        pendingSlug,
-        setPendingSlug
-    } = useSkillsStore()
+    const { pendingSkill, setPendingSkill, pendingSlug, setPendingSlug } =
+        useSkillsStore()
     const { showToast } = useUIStore()
     const queryClient = useQueryClient()
     const sentinelRef = useRef<HTMLDivElement | null>(null)

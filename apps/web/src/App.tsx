@@ -33,11 +33,14 @@ const App: FC = (): ReactNode => {
             <AuthProvider>
                 <ScrollToTop />
                 <Toast />
-                <Suspense key={language} fallback={
-                    <div className='bg-background flex min-h-screen items-center justify-center'>
-                        <div className='h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent opacity-50' />
-                    </div>
-                }>
+                <Suspense
+                    key={language}
+                    fallback={
+                        <div className='bg-background flex min-h-screen items-center justify-center'>
+                            <div className='h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent opacity-50' />
+                        </div>
+                    }
+                >
                     <Routes>
                         <Route path={ROUTES.HOME} element={<Landing />} />
                         <Route path={ROUTES.GO} element={<Go />} />

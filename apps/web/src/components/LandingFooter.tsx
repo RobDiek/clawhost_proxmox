@@ -25,12 +25,7 @@ import {
     YoutubeLogoIcon
 } from '@phosphor-icons/react'
 
-const LANDING_SECTIONS = [
-    'features',
-    'pricing',
-    'comparison',
-    'faq'
-]
+const LANDING_SECTIONS = ['features', 'pricing', 'comparison', 'faq']
 
 const LandingFooter: FC = (): ReactNode => {
     const { pathname } = useLocation()

@@ -1,7 +1,7 @@
 import type { Context } from 'hono'
 import type { billingInterval, userRole } from '@openclaw/shared'
 
-export type ProviderType = 'hetzner' | 'digitalocean' | 'vultr'
+export type ProviderType = 'hetzner'
 
 export type HonoEnv = { Variables: { userId: string; isAdmin: boolean } }
 
@@ -47,7 +47,8 @@ export type ClawFileType =
 
 export type PiperVoiceQuality = 'low' | 'medium' | 'high'
 
-export type BillingInterval = (typeof billingInterval)[keyof typeof billingInterval]
+export type BillingInterval =
+    (typeof billingInterval)[keyof typeof billingInterval]
 
 export type PolarPriceMap = Record<string, Record<string, number>>
 
@@ -67,7 +68,6 @@ export type FeatureEmailKey =
     | 'diagnostics'
     | 'sshKeys'
     | 'exportConfig'
-    | 'multiProvider'
     | 'multiLanguage'
     | 'subdomain'
     | 'darkMode'

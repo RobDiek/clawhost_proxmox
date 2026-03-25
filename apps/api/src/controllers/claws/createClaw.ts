@@ -36,25 +36,11 @@ const createClaw = async (c: AuthenticatedContext) => {
             return fail(c, t('api.missingRequiredFields'), 400)
         }
 
-        const validProviders = [
-            clawProvider.hetzner,
-            clawProvider.digitalocean,
-            clawProvider.vultr
-        ]
-        if (providerName && !validProviders.includes(providerName)) {
+        if (providerName && providerName !== clawProvider.hetzner) {
             return fail(c, t('api.invalidProvider'), 400)
         }
 
-        const resolvedProvider = providerName || clawProvider.hetzner
-        if (resolvedProvider !== clawProvider.hetzner) {
-            try {
-                const hetznerService = getProvider(clawProvider.hetzner)
-                const hetznerTypes = await hetznerService.getServerTypes()
-                if (hetznerTypes.length > 0) {
-                    return fail(c, t('api.providerNotAllowed'), 400)
-                }
-            } catch {}
-        }
+        const resolvedProvider = clawProvider.hetzner
 
         if (
             volumeSize !== undefined &&
@@ -119,14 +105,8 @@ const createClaw = async (c: AuthenticatedContext) => {
 
         let providerSshKeyIds: number[] | undefined
         if (sshKeyResult && sshKeyResult[0]) {
-            const keyId =
-                providerName === 'digitalocean'
-                    ? sshKeyResult[0].digitaloceanKeyId
-                    : providerName === 'vultr'
-                      ? sshKeyResult[0].vultrKeyId
-                      : sshKeyResult[0].providerKeyId
-            if (keyId) {
-                providerSshKeyIds = [keyId]
+            if (sshKeyResult[0].providerKeyId) {
+                providerSshKeyIds = [sshKeyResult[0].providerKeyId]
             }
         }
 

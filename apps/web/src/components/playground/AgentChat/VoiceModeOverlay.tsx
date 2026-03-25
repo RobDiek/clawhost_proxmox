@@ -179,7 +179,8 @@ const VoiceModeOverlay: FC<VoiceModeOverlayProps> = ({
                     if (text) {
                         sendMessageRef.current(text)
                     }
-                } catch {} finally {
+                } catch {
+                } finally {
                     setIsTranscribing(false)
                     stoppingRef.current = false
                     resolve()

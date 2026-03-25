@@ -20,7 +20,11 @@ const features = [
     () => t('license.featureCloud')
 ]
 
-const LicenseCard: FC<LicenseCardProps> = ({ hasLicense, isPurchasing, onPurchase }): ReactNode => {
+const LicenseCard: FC<LicenseCardProps> = ({
+    hasLicense,
+    isPurchasing,
+    onPurchase
+}): ReactNode => {
     return (
         <div className='border-border bg-foreground/[0.02] flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between'>
             <div>
@@ -45,7 +49,10 @@ const LicenseCard: FC<LicenseCardProps> = ({ hasLicense, isPurchasing, onPurchas
                                 key={feature}
                                 className='flex items-center gap-1.5'
                             >
-                                <CheckIcon className='text-primary h-3.5 w-3.5 shrink-0' weight='bold' />
+                                <CheckIcon
+                                    className='text-primary h-3.5 w-3.5 shrink-0'
+                                    weight='bold'
+                                />
                                 <span className='text-foreground/70 text-xs'>
                                     {feature}
                                 </span>
@@ -56,7 +63,10 @@ const LicenseCard: FC<LicenseCardProps> = ({ hasLicense, isPurchasing, onPurchas
             </div>
             {hasLicense ? (
                 <div className='flex items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-4 py-2'>
-                    <CheckCircleIcon className='h-4 w-4 shrink-0 text-green-500' weight='fill' />
+                    <CheckCircleIcon
+                        className='h-4 w-4 shrink-0 text-green-500'
+                        weight='fill'
+                    />
                     <span className='text-sm font-medium text-green-600 dark:text-green-400'>
                         {t('license.activated')}
                     </span>

@@ -18,10 +18,7 @@ const VoiceModeEmail: FC = (): ReactNode => {
             </Text>
 
             <Section style={buttonContainer}>
-                <Button
-                    href='https://clawhost.cloud'
-                    style={button}
-                >
+                <Button href='https://clawhost.cloud' style={button}>
                     {t('emails.features.voiceMode.cta')}
                 </Button>
             </Section>

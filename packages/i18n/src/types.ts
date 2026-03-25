@@ -16,7 +16,21 @@ type NestedKeyOf<T> = T extends object
 
 export type TranslationKey = NestedKeyOf<Translations>
 
-export type Languages = 'en' | 'fr' | 'es' | 'de' | 'zh' | 'hi' | 'ar' | 'ru' | 'ja' | 'tr' | 'it' | 'pl' | 'nl' | 'pt'
+export type Languages =
+    | 'en'
+    | 'fr'
+    | 'es'
+    | 'de'
+    | 'zh'
+    | 'hi'
+    | 'ar'
+    | 'ru'
+    | 'ja'
+    | 'tr'
+    | 'it'
+    | 'pl'
+    | 'nl'
+    | 'pt'
 
 export interface I18nState {
     languages: Record<Languages, Translations>

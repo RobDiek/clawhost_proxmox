@@ -1,5 +1,9 @@
 import type { FC, ReactNode } from 'react'
-import type { AgentDetailConfigTabProps, AgentConfigResponse, ClawAgentsResponse } from '@/ts/Interfaces'
+import type {
+    AgentDetailConfigTabProps,
+    AgentConfigResponse,
+    ClawAgentsResponse
+} from '@/ts/Interfaces'
 import type { TranslationKey } from '@openclaw/i18n'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
@@ -241,9 +245,7 @@ const AgentDetailConfigTab: FC<AgentDetailConfigTabProps> = ({
                             weight='duotone'
                         />
                     }
-                    title={t(
-                        'playground.configurationLoadFailed'
-                    )}
+                    title={t('playground.configurationLoadFailed')}
                     description={t(
                         'playground.configurationLoadFailedDescription'
                     )}
@@ -257,18 +259,12 @@ const AgentDetailConfigTab: FC<AgentDetailConfigTabProps> = ({
             <div className='space-y-5'>
                 <div>
                     <label className='text-muted-foreground mb-2 block text-xs font-medium'>
-                        {t(
-                            'playground.configurationName'
-                        )}
+                        {t('playground.configurationName')}
                     </label>
                     <input
                         type='text'
                         value={agentName}
-                        onChange={(e) =>
-                            handleNameChange(
-                                e.target.value
-                            )
-                        }
+                        onChange={(e) => handleNameChange(e.target.value)}
                         onKeyDown={(e) => {
                             if (
                                 e.key === 'Enter' &&
@@ -284,9 +280,7 @@ const AgentDetailConfigTab: FC<AgentDetailConfigTabProps> = ({
                             'playground.configurationNamePlaceholder'
                         )}
                         className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border px-3 py-2 text-sm outline-none transition-colors focus:border-[#ef5350]/50 ${
-                            nameError
-                                ? 'border-red-500/50'
-                                : 'border-border'
+                            nameError ? 'border-red-500/50' : 'border-border'
                         }`}
                     />
                     {nameError ? (
@@ -295,27 +289,19 @@ const AgentDetailConfigTab: FC<AgentDetailConfigTabProps> = ({
                         </p>
                     ) : (
                         <p className='text-muted-foreground mt-1.5 text-[11px]'>
-                            {t(
-                                'playground.configurationNameDescription'
-                            )}
+                            {t('playground.configurationNameDescription')}
                         </p>
                     )}
                 </div>
 
                 <div>
                     <label className='text-muted-foreground mb-2 block text-xs font-medium'>
-                        {t(
-                            'playground.configurationModel'
-                        )}
+                        {t('playground.configurationModel')}
                     </label>
                     <Select
                         value={selectedModel}
-                        onValueChange={
-                            handleModelChange
-                        }
-                        displayValue={
-                            selectedModelOption?.name
-                        }
+                        onValueChange={handleModelChange}
+                        displayValue={selectedModelOption?.name}
                     >
                         <SelectTrigger
                             placeholder={t(
@@ -324,44 +310,26 @@ const AgentDetailConfigTab: FC<AgentDetailConfigTabProps> = ({
                             className='border-border bg-foreground/5 text-foreground h-9 text-sm'
                         />
                         <SelectContent className='max-h-[300px] overflow-y-auto'>
-                            {providerKeys.map(
-                                (provider, index) => (
-                                    <SelectGroup
-                                        key={provider}
-                                        label={provider}
-                                        isLast={
-                                            index ===
-                                            providerKeys.length -
-                                                1
-                                        }
-                                    >
-                                        {modelsByProvider[
-                                            provider
-                                        ].map(
-                                            (model) => (
-                                                <SelectItem
-                                                    key={
-                                                        model.id
-                                                    }
-                                                    value={
-                                                        model.id
-                                                    }
-                                                >
-                                                    {
-                                                        model.name
-                                                    }
-                                                </SelectItem>
-                                            )
-                                        )}
-                                    </SelectGroup>
-                                )
-                            )}
+                            {providerKeys.map((provider, index) => (
+                                <SelectGroup
+                                    key={provider}
+                                    label={provider}
+                                    isLast={index === providerKeys.length - 1}
+                                >
+                                    {modelsByProvider[provider].map((model) => (
+                                        <SelectItem
+                                            key={model.id}
+                                            value={model.id}
+                                        >
+                                            {model.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectGroup>
+                            ))}
                         </SelectContent>
                     </Select>
                     <p className='text-muted-foreground mt-1.5 text-[11px]'>
-                        {t(
-                            'playground.configurationModelDescription'
-                        )}
+                        {t('playground.configurationModelDescription')}
                     </p>
                 </div>
 
@@ -369,21 +337,15 @@ const AgentDetailConfigTab: FC<AgentDetailConfigTabProps> = ({
                     <div>
                         <div className='mb-2 flex items-center justify-between'>
                             <label className='text-muted-foreground text-xs font-medium'>
-                                {t(
-                                    'playground.configurationApiKey'
-                                )}
+                                {t('playground.configurationApiKey')}
                             </label>
                             <div className='flex items-center gap-1'>
                                 <Tooltip>
-                                    <TooltipTrigger
-                                        asChild
-                                    >
+                                    <TooltipTrigger asChild>
                                         <button
                                             type='button'
                                             onClick={() =>
-                                                setShowApiKey(
-                                                    !showApiKey
-                                                )
+                                                setShowApiKey(!showApiKey)
                                             }
                                             className='text-muted-foreground hover:text-foreground/80 rounded p-1 transition-colors'
                                         >
@@ -396,24 +358,16 @@ const AgentDetailConfigTab: FC<AgentDetailConfigTabProps> = ({
                                     </TooltipTrigger>
                                     <TooltipContent>
                                         {showApiKey
-                                            ? t(
-                                                  'common.hide'
-                                              )
-                                            : t(
-                                                  'common.show'
-                                              )}
+                                            ? t('common.hide')
+                                            : t('common.show')}
                                     </TooltipContent>
                                 </Tooltip>
                                 {apiKeyValue && (
                                     <Tooltip>
-                                        <TooltipTrigger
-                                            asChild
-                                        >
+                                        <TooltipTrigger asChild>
                                             <button
                                                 type='button'
-                                                onClick={
-                                                    handleCopyApiKey
-                                                }
+                                                onClick={handleCopyApiKey}
                                                 className='text-muted-foreground hover:text-foreground/80 rounded p-1 transition-colors'
                                             >
                                                 {copied ? (
@@ -424,25 +378,17 @@ const AgentDetailConfigTab: FC<AgentDetailConfigTabProps> = ({
                                             </button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            {t(
-                                                'common.copy'
-                                            )}
+                                            {t('common.copy')}
                                         </TooltipContent>
                                     </Tooltip>
                                 )}
                             </div>
                         </div>
                         <input
-                            type={
-                                showApiKey
-                                    ? 'text'
-                                    : 'password'
-                            }
+                            type={showApiKey ? 'text' : 'password'}
                             value={apiKeyValue}
                             onChange={(e) => {
-                                setApiKeyValue(
-                                    e.target.value
-                                )
+                                setApiKeyValue(e.target.value)
                                 setHasChanges(true)
                             }}
                             onKeyDown={(e) => {
@@ -463,18 +409,12 @@ const AgentDetailConfigTab: FC<AgentDetailConfigTabProps> = ({
                         />
                         <p className='text-muted-foreground mt-1.5 text-[11px]'>
                             <span className='text-muted-foreground font-mono'>
-                                {
-                                    selectedModelOption.envVar
-                                }
+                                {selectedModelOption.envVar}
                             </span>
                             {' — '}
-                            {t(
-                                'playground.configurationApiKeyDescription',
-                                {
-                                    modelName:
-                                        selectedModelOption.name
-                                }
-                            )}
+                            {t('playground.configurationApiKeyDescription', {
+                                modelName: selectedModelOption.name
+                            })}
                         </p>
                     </div>
                 )}

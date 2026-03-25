@@ -29,18 +29,14 @@ const OrderSummary: FC<OrderSummaryProps> = ({
                         {t('createClaw.location')}
                     </span>
                     <span>
-                        {locations.find(
-                            (l) => l.id === location
-                        )?.city || location}
+                        {locations.find((l) => l.id === location)?.city ||
+                            location}
                     </span>
                 </div>
             )}
             <div className='flex justify-between text-sm'>
                 <span className='text-muted-foreground'>
-                    {selectedPlan.name.replace(
-                        /([A-Za-z])(\d)/,
-                        '$1 $2'
-                    )}
+                    {selectedPlan.name.replace(/([A-Za-z])(\d)/, '$1 $2')}
                 </span>
                 <span>
                     $
@@ -55,8 +51,7 @@ const OrderSummary: FC<OrderSummaryProps> = ({
             {volumeSize > 0 && volumePricing && (
                 <div className='flex justify-between text-sm'>
                     <span className='text-muted-foreground'>
-                        {t('createClaw.storageWithSize')} (
-                        {volumeSize} GB)
+                        {t('createClaw.storageWithSize')} ({volumeSize} GB)
                     </span>
                     <span>
                         +$
@@ -72,15 +67,16 @@ const OrderSummary: FC<OrderSummaryProps> = ({
             )}
             {billingCycle === billingInterval.YEAR && (
                 <div className='flex justify-between text-sm text-emerald-600 dark:text-emerald-400'>
-                    <span>
-                        {t('createClaw.yearlySavings')}
-                    </span>
+                    <span>{t('createClaw.yearlySavings')}</span>
                     <span>
                         -$
                         {(
-                            (selectedPlan.priceMonthly * 12 - selectedPlan.priceYearly) +
+                            selectedPlan.priceMonthly * 12 -
+                            selectedPlan.priceYearly +
                             (volumeSize > 0 && volumePricing
-                                ? volumeSize * volumePricing.pricePerGbMonthly * 2
+                                ? volumeSize *
+                                  volumePricing.pricePerGbMonthly *
+                                  2
                                 : 0)
                         ).toFixed(2)}
                     </span>
@@ -97,7 +93,9 @@ const OrderSummary: FC<OrderSummaryProps> = ({
                     {(billingCycle === billingInterval.YEAR
                         ? selectedPlan.priceYearly +
                           (volumeSize > 0 && volumePricing
-                              ? volumeSize * volumePricing.pricePerGbMonthly * 10
+                              ? volumeSize *
+                                volumePricing.pricePerGbMonthly *
+                                10
                               : 0)
                         : selectedPlan.priceMonthly +
                           (volumeSize > 0 && volumePricing

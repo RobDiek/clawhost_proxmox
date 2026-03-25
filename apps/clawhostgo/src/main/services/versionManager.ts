@@ -10,8 +10,11 @@ import { t } from '@openclaw/i18n'
 const extractNpmError = (raw: string): string => {
     if (raw.includes('ENOSPC')) return t('go.diskFull')
     if (raw.includes('EACCES')) return t('go.permissionDenied')
-    if (raw.includes('ETIMEOUT') || raw.includes('ETIMEDOUT')) return t('go.networkTimeout')
-    const errLine = raw.split('\n').find((l) => l.startsWith('npm error') || l.startsWith('npm ERR!'))
+    if (raw.includes('ETIMEOUT') || raw.includes('ETIMEDOUT'))
+        return t('go.networkTimeout')
+    const errLine = raw
+        .split('\n')
+        .find((l) => l.startsWith('npm error') || l.startsWith('npm ERR!'))
     if (errLine) return errLine.slice(0, 200)
     return raw.slice(0, 200)
 }
@@ -58,7 +61,10 @@ const installVersion = (version: string): Promise<void> => {
                     } catch {}
                     reject(
                         new Error(
-                            t('go.failedToInstallVersion', { version, reason: extractNpmError(error.message) })
+                            t('go.failedToInstallVersion', {
+                                version,
+                                reason: extractNpmError(error.message)
+                            })
                         )
                     )
                     return
@@ -161,7 +167,10 @@ const getVersionBinaryPath = (version: string): string => {
     )
 }
 
-const installVersionTo = (version: string, targetDir: string): Promise<void> => {
+const installVersionTo = (
+    version: string,
+    targetDir: string
+): Promise<void> => {
     return new Promise((resolve, reject) => {
         const nodePath = nodeBinary.getNodeBinaryPath()
         const npmPath = nodeBinary.getNpmPath()
@@ -180,7 +189,10 @@ const installVersionTo = (version: string, targetDir: string): Promise<void> => 
                 if (error) {
                     reject(
                         new Error(
-                            t('go.failedToInstallVersion', { version, reason: extractNpmError(error.message) })
+                            t('go.failedToInstallVersion', {
+                                version,
+                                reason: extractNpmError(error.message)
+                            })
                         )
                     )
                     return

@@ -23,12 +23,13 @@ import {
     logo
 } from '@/emails/styles'
 
-const FeatureEmailLayout: FC<FeatureEmailLayoutProps> = ({ preview, children }): ReactNode => {
+const FeatureEmailLayout: FC<FeatureEmailLayoutProps> = ({
+    preview,
+    children
+}): ReactNode => {
     return (
         <Html>
-            <Preview>
-                {preview}
-            </Preview>
+            <Preview>{preview}</Preview>
 
             <Body style={main}>
                 <Container style={container}>

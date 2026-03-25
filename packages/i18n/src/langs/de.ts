@@ -95,25 +95,34 @@ const de: Translations = {
         heroTitle2: 'Lokal. Sofort.',
         badge: 'Demnächst verfügbar',
         comingSoon: 'Demnächst verfügbar',
-        description: 'Ein leichtgewichtiger Desktop-Client zur Verwaltung Ihrer OpenClaw-Instanzen. Bereitstellen, überwachen und steuern Sie Ihre Claws — direkt von Ihrem Rechner.',
+        description:
+            'Ein leichtgewichtiger Desktop-Client zur Verwaltung Ihrer OpenClaw-Instanzen. Bereitstellen, überwachen und steuern Sie Ihre Claws — direkt von Ihrem Rechner.',
         download: 'Herunterladen für {{os}}',
         downloadWindows: 'Windows',
         downloadMac: 'macOS',
         selfHostInstead: 'Stattdessen selbst hosten',
         features: 'Funktionen',
         whyClawHostGo: 'Alles-in-einem-Funktionen',
-        featuresDescription: 'Warum es sich lohnt – Funktionen sprechen für sich.',
-        zeroConfigDescription: 'Installieren und starten. Keine Server- oder Cloud-Konfiguration. OpenClaw ist in Sekunden bereit.',
-        ownedDataDescription: 'Alles läuft auf Ihrem Gerät. Keine Cloud-Server, keine Drittanbieter, keine Daten verlassen Ihren Rechner.',
-        terminalAccessDescription: 'Greifen Sie direkt aus der App auf das Terminal Ihrer OpenClaw-Instanz zu. Kein externer SSH-Client erforderlich.',
+        featuresDescription:
+            'Warum es sich lohnt – Funktionen sprechen für sich.',
+        zeroConfigDescription:
+            'Installieren und starten. Keine Server- oder Cloud-Konfiguration. OpenClaw ist in Sekunden bereit.',
+        ownedDataDescription:
+            'Alles läuft auf Ihrem Gerät. Keine Cloud-Server, keine Drittanbieter, keine Daten verlassen Ihren Rechner.',
+        terminalAccessDescription:
+            'Greifen Sie direkt aus der App auf das Terminal Ihrer OpenClaw-Instanz zu. Kein externer SSH-Client erforderlich.',
         simplePricing: 'Einfache Preise',
-        simplePricingDescription: 'Eine Lizenz, alles unbegrenzt. Keine monatlichen Rechnungen, keine Nutzungslimits, keine versteckten Gebühren.',
+        simplePricingDescription:
+            'Eine Lizenz, alles unbegrenzt. Keine monatlichen Rechnungen, keine Nutzungslimits, keine versteckten Gebühren.',
         localDomain: 'Benutzerdefinierte lokale Domain',
-        localDomainDescription: 'Greifen Sie über eine benutzerdefinierte lokale Domain auf Ihr OpenClaw zu. Saubere URLs in Ihrem eigenen Netzwerk.',
-        secureDescription: 'Ihre Daten verlassen niemals Ihr Gerät. Vollständig isoliert, vollständig verschlüsselt, vollständig Ihres.',
+        localDomainDescription:
+            'Greifen Sie über eine benutzerdefinierte lokale Domain auf Ihr OpenClaw zu. Saubere URLs in Ihrem eigenen Netzwerk.',
+        secureDescription:
+            'Ihre Daten verlassen niemals Ihr Gerät. Vollständig isoliert, vollständig verschlüsselt, vollständig Ihres.',
         pricing: 'Preise',
         pricingTitle: 'Einfacher Einmalpreis',
-        pricingDescription: 'Keine Abonnements, keine versteckten Gebühren. Eine Lizenz, unbegrenzte Nutzung.',
+        pricingDescription:
+            'Keine Abonnements, keine versteckten Gebühren. Eine Lizenz, unbegrenzte Nutzung.',
         pricingPrice: '{{price}} $',
         pricingLabel: 'Einmalzahlung',
         pricingFeature1: 'Lebenslange Lizenz',
@@ -125,7 +134,8 @@ const de: Translations = {
         pricingCta: 'ClawHost Go holen',
         comparison: 'Vergleich',
         comparisonTitle: 'Go vs Cloud',
-        comparisonDescription: 'Wählen Sie, was für Sie funktioniert. Go läuft lokal, Cloud auf dedizierten Servern.',
+        comparisonDescription:
+            'Wählen Sie, was für Sie funktioniert. Go läuft lokal, Cloud auf dedizierten Servern.',
         comparisonLocalUs: 'Läuft vollständig auf Ihrem Gerät',
         comparisonLocalOthers: 'Läuft auf Remote-Servern',
         comparisonPricingUs: 'Einmalzahlung',
@@ -142,17 +152,23 @@ const de: Translations = {
         faqHeading: 'Häufige Fragen',
         faqDescription: 'Alles, was Sie über ClawHost Go wissen müssen.',
         faq1Question: 'Was ist ClawHost Go?',
-        faq1Answer: 'ClawHost Go ist eine leichtgewichtige Desktop-Anwendung, mit der Sie OpenClaw lokal auf Ihrem Gerät ausführen können. Keine Cloud-Server nötig — installieren, starten und OpenClaw in Sekunden nutzen.',
+        faq1Answer:
+            'ClawHost Go ist eine leichtgewichtige Desktop-Anwendung, mit der Sie OpenClaw lokal auf Ihrem Gerät ausführen können. Keine Cloud-Server nötig — installieren, starten und OpenClaw in Sekunden nutzen.',
         faq2Question: 'Wie unterscheidet sich Go von ClawHost Cloud?',
-        faq2Answer: 'ClawHost Cloud stellt OpenClaw auf dedizierten Remote-Servern mit 24/7-Verfügbarkeit und globalem Zugriff bereit. ClawHost Go führt alles lokal auf Ihrem Gerät aus — ideal für Datenschutz, Offline-Nutzung und einfache Setups.',
+        faq2Answer:
+            'ClawHost Cloud stellt OpenClaw auf dedizierten Remote-Servern mit 24/7-Verfügbarkeit und globalem Zugriff bereit. ClawHost Go führt alles lokal auf Ihrem Gerät aus — ideal für Datenschutz, Offline-Nutzung und einfache Setups.',
         faq3Question: 'Brauche ich eine Internetverbindung?',
-        faq3Answer: 'ClawHost Go funktioniert offline für lokale Nutzung. Eine Internetverbindung wird nur für die Ersteinrichtung, Updates und Funktionen benötigt, die externe API-Aufrufe erfordern.',
+        faq3Answer:
+            'ClawHost Go funktioniert offline für lokale Nutzung. Eine Internetverbindung wird nur für die Ersteinrichtung, Updates und Funktionen benötigt, die externe API-Aufrufe erfordern.',
         faq4Question: 'Ist die Lizenz eine Einmalzahlung?',
-        faq4Answer: 'Ja. Sie zahlen einmal und erhalten lebenslangen Zugang zu ClawHost Go, einschließlich aller zukünftigen Updates. Keine Abonnements, keine wiederkehrenden Gebühren.',
+        faq4Answer:
+            'Ja. Sie zahlen einmal und erhalten lebenslangen Zugang zu ClawHost Go, einschließlich aller zukünftigen Updates. Keine Abonnements, keine wiederkehrenden Gebühren.',
         faq5Question: 'Welche Betriebssysteme werden unterstützt?',
-        faq5Answer: 'ClawHost Go unterstützt Windows und macOS. Beide Plattformen erhalten die gleichen Funktionen und Updates gleichzeitig.',
+        faq5Answer:
+            'ClawHost Go unterstützt Windows und macOS. Beide Plattformen erhalten die gleichen Funktionen und Updates gleichzeitig.',
         faq6Question: 'Kann ich später von Go zu Cloud wechseln?',
-        faq6Answer: 'Absolut. Sie können Ihre OpenClaw-Konfiguration aus Go exportieren und jederzeit auf ClawHost Cloud bereitstellen. Beide Plattformen sind vollständig kompatibel.',
+        faq6Answer:
+            'Absolut. Sie können Ihre OpenClaw-Konfiguration aus Go exportieren und jederzeit auf ClawHost Cloud bereitstellen. Beide Plattformen sind vollständig kompatibel.',
         statsPrice: '{{price}} $',
         statsLifetime: 'Lebenslang',
         statsOneTime: 'Einmalig',
@@ -162,7 +178,8 @@ const de: Translations = {
         statsZero: 'Null',
         statsZeroConfig: 'Null Konfiguration',
         ctaTitle: 'OpenClaw lokal ausführen',
-        ctaDescription: 'Einmalige Zahlung, lebenslange Lizenz. Stellen Sie OpenClaw auf Ihrem eigenen Gerät bereit — kein Cloud, keine Abonnements, keine Grenzen. Ihre Daten, Ihre Regeln.',
+        ctaDescription:
+            'Einmalige Zahlung, lebenslange Lizenz. Stellen Sie OpenClaw auf Ihrem eigenen Gerät bereit — kein Cloud, keine Abonnements, keine Grenzen. Ihre Daten, Ihre Regeln.',
         ctaButton: 'ClawHost Go holen',
         joinWaitlist: 'Warteliste beitreten',
         joinedWaitlist: 'Auf der Warteliste',
@@ -174,12 +191,15 @@ const de: Translations = {
         updateDownload: 'Herunterladen',
         updateDismiss: 'Später',
         clawNotFound: 'Claw nicht gefunden!',
-        invalidClawName: 'Ungültiger Claw-Name. Verwende nur Buchstaben, Zahlen und Bindestriche!',
+        invalidClawName:
+            'Ungültiger Claw-Name. Verwende nur Buchstaben, Zahlen und Bindestriche!',
         clawNameAlreadyExists: 'Ein Claw mit diesem Namen existiert bereits!',
-        invalidSubdomain: 'Ungültige Subdomain. Verwende 3-20 Kleinbuchstaben und Zahlen!',
+        invalidSubdomain:
+            'Ungültige Subdomain. Verwende 3-20 Kleinbuchstaben und Zahlen!',
         subdomainAlreadyInUse: 'Diese Subdomain wird bereits verwendet!',
         clawDirectoryNotFound: 'Claw-Verzeichnis nicht gefunden!',
-        noVersionInstalled: 'Keine OpenClaw-Version installiert. Gehe zum Tab Versionen und installiere zuerst eine!',
+        noVersionInstalled:
+            'Keine OpenClaw-Version installiert. Gehe zum Tab Versionen und installiere zuerst eine!',
         failedToStartClaw: 'Claw konnte nicht gestartet werden!',
         noVersionAssigned: 'Keine OpenClaw-Version diesem Claw zugewiesen!',
         invalidAgentName: 'Ungültiger Agentenname!',
@@ -188,14 +208,20 @@ const de: Translations = {
         fileNotFound: 'Datei nicht gefunden!',
         purchasingNotAvailable: 'Kauf ist im lokalen Modus nicht verfügbar!',
         exportFailed: 'Export fehlgeschlagen!',
-        versionNotInstalled: 'OpenClaw Version {{version}} ist nicht installiert!',
-        failedToStartProcess: 'Prozess konnte nicht gestartet werden: {{reason}}!',
-        processExitedImmediately: 'Prozess wurde sofort beendet. Logs:\n{{logs}}',
-        processExitedImmediatelyNoLogs: 'Prozess wurde sofort nach dem Start beendet!',
-        processExitedWithCode: 'Prozess wurde mit Code {{code}} beendet. Logs:\n{{logs}}',
+        versionNotInstalled:
+            'OpenClaw Version {{version}} ist nicht installiert!',
+        failedToStartProcess:
+            'Prozess konnte nicht gestartet werden: {{reason}}!',
+        processExitedImmediately:
+            'Prozess wurde sofort beendet. Logs:\n{{logs}}',
+        processExitedImmediatelyNoLogs:
+            'Prozess wurde sofort nach dem Start beendet!',
+        processExitedWithCode:
+            'Prozess wurde mit Code {{code}} beendet. Logs:\n{{logs}}',
         processExitedWithCodeNoLogs: 'Prozess wurde mit Code {{code}} beendet!',
         processExitedUnexpectedly: 'Prozess wurde unerwartet beendet!',
-        failedToInstallVersion: 'Installation von OpenClaw {{version}} fehlgeschlagen: {{reason}}!',
+        failedToInstallVersion:
+            'Installation von OpenClaw {{version}} fehlgeschlagen: {{reason}}!',
         oauthCancelled: 'Authentifizierung abgebrochen!',
         diskFull: 'Kein Speicherplatz mehr auf dem Gerät!',
         permissionDenied: 'Zugriff verweigert!',
@@ -315,7 +341,8 @@ const de: Translations = {
         planBelowMinimumMemory:
             'Dieser Plan erfüllt nicht die Mindestanforderung an Arbeitsspeicher!',
         invalidLocation: 'Ungültiger Standort ausgewählt!',
-        planNotAvailableAtLocation: 'Dieser Plan ist am ausgewählten Standort nicht verfügbar!',
+        planNotAvailableAtLocation:
+            'Dieser Plan ist am ausgewählten Standort nicht verfügbar!',
         failedToSyncClaw: 'Serverstatus konnte nicht synchronisiert werden!',
         failedToProvisionClaw: 'Claw konnte nicht bereitgestellt werden!',
         failedToInitiatePurchase: 'Kauf konnte nicht eingeleitet werden!',
@@ -454,7 +481,8 @@ const de: Translations = {
         whatsappPairStarted: 'WhatsApp-Kopplung gestartet.',
         whatsappPairFailed: 'WhatsApp-Kopplung fehlgeschlagen!',
         whatsappAlreadyPaired: 'WhatsApp ist bereits gekoppelt!',
-        whatsappVersionUnsupported: 'Diese Version unterstützt die Kanalkonfiguration über das Dashboard nicht. Verwenden Sie den Terminal-Tab zur manuellen Konfiguration oder aktualisieren Sie OpenClaw.',
+        whatsappVersionUnsupported:
+            'Diese Version unterstützt die Kanalkonfiguration über das Dashboard nicht. Verwenden Sie den Terminal-Tab zur manuellen Konfiguration oder aktualisieren Sie OpenClaw.',
         bindingsFetched: 'Bindungen erfolgreich abgerufen.',
         bindingsFetchFailed: 'Bindungen konnten nicht abgerufen werden!',
         bindingsUpdated: 'Bindungen erfolgreich aktualisiert.',
@@ -509,7 +537,8 @@ const de: Translations = {
         waitlistJoined: 'Erfolgreich der Warteliste beigetreten.',
         waitlistAlreadyJoined: 'Bereits auf der Warteliste.',
         waitlistJoinFailed: 'Beitritt zur Warteliste fehlgeschlagen!',
-        waitlistRateLimited: 'Du bist zu schnell! Bitte versuche es in {{seconds}} {{unit}} erneut.',
+        waitlistRateLimited:
+            'Du bist zu schnell! Bitte versuche es in {{seconds}} {{unit}} erneut.',
         waitlistStatusFetched: 'Wartelisten-Status abgerufen.',
         waitlistCheckFailed: 'Fehler beim Überprüfen des Wartelisten-Status!'
     },
@@ -547,7 +576,8 @@ const de: Translations = {
                 cta: 'Logs anzeigen'
             },
             channels: {
-                subject: 'Wusstest du schon? Verbinde Agenten mit Discord, Slack & mehr',
+                subject:
+                    'Wusstest du schon? Verbinde Agenten mit Discord, Slack & mehr',
                 preview: 'Verknüpfe deine KI-Agenten mit Kommunikationskanälen',
                 heading: 'Deine Agenten, überall',
                 description:
@@ -555,7 +585,8 @@ const de: Translations = {
                 cta: 'Kanäle einrichten'
             },
             fileExplorer: {
-                subject: 'Wusstest du schon? Bearbeite Server-Dateien im Browser',
+                subject:
+                    'Wusstest du schon? Bearbeite Server-Dateien im Browser',
                 preview: 'Durchsuche, lese und bearbeite Dateien ohne SSH',
                 heading: 'Deine Dateien, griffbereit',
                 description:
@@ -564,7 +595,8 @@ const de: Translations = {
             },
             playground: {
                 subject: 'Wusstest du schon? Visualisiere deine Infrastruktur',
-                preview: 'Sieh deine Claws und Agenten auf einem interaktiven Canvas',
+                preview:
+                    'Sieh deine Claws und Agenten auf einem interaktiven Canvas',
                 heading: 'Sieh das große Ganze',
                 description:
                     'Der Playground bietet dir ein interaktives Canvas mit all deinen Claws und Agenten. Klicke auf einen Knoten, um ihn zu verwalten — ein visuelles Kommandozentrum für deine Infrastruktur.',
@@ -579,7 +611,8 @@ const de: Translations = {
                 cta: 'Chat starten'
             },
             voiceMode: {
-                subject: 'Wusstest du schon? Sprich per Stimme mit deinen Agenten',
+                subject:
+                    'Wusstest du schon? Sprich per Stimme mit deinen Agenten',
                 preview: 'Nutze Spracherkennung mit deinen Agenten',
                 heading: 'Sprich, statt zu tippen',
                 description:
@@ -588,7 +621,8 @@ const de: Translations = {
             },
             skills: {
                 subject: 'Wusstest du schon? Über 5.000 Skills auf ClawHub',
-                preview: 'Durchsuche und installiere Community-Skills mit einem Klick',
+                preview:
+                    'Durchsuche und installiere Community-Skills mit einem Klick',
                 heading: 'Erweitere deine Agenten sofort',
                 description:
                     'Durchsuche über 5.000 fertige Skills auf ClawHub und installiere sie mit einem einzigen Klick. Websuche, Code-Ausführung, Bildgenerierung und vieles mehr.',
@@ -619,28 +653,23 @@ const de: Translations = {
                 cta: 'Diagnose starten'
             },
             sshKeys: {
-                subject: 'Wusstest du schon? SSH-Schlüssel über ClawHost verwalten',
-                preview: 'Generiere und verwalte SSH-Schlüsselpaare im Dashboard',
+                subject:
+                    'Wusstest du schon? SSH-Schlüssel über ClawHost verwalten',
+                preview:
+                    'Generiere und verwalte SSH-Schlüsselpaare im Dashboard',
                 heading: 'SSH-Schlüssel, vereinfacht',
                 description:
                     'Generiere SSH-Schlüsselpaare, kopiere öffentliche Schlüssel und lade private Schlüssel herunter — alles im ClawHost-Dashboard. Weise Schlüssel deinen Claws für sicheren Zugang zu.',
                 cta: 'SSH-Schlüssel verwalten'
             },
             exportConfig: {
-                subject: 'Wusstest du schon? Exportiere deine Claw-Konfiguration',
+                subject:
+                    'Wusstest du schon? Exportiere deine Claw-Konfiguration',
                 preview: 'Lade dein Setup als portable Datei herunter',
                 heading: 'Nimm deine Konfiguration mit',
                 description:
                     'Exportiere die Konfiguration und Einstellungen deines Claws als herunterladbare Datei. Sichere dein Setup oder nutze es, um deine Umgebung zu replizieren.',
                 cta: 'Konfiguration exportieren'
-            },
-            multiProvider: {
-                subject: 'Wusstest du schon? Deploye auf 3 Cloud-Anbietern',
-                preview: 'Wähle zwischen Hetzner, DigitalOcean und Vultr',
-                heading: 'Deine Cloud, deine Wahl',
-                description:
-                    'Deploye deine Claws auf Hetzner, DigitalOcean oder Vultr. Vergleiche Preise, Standorte und Specs — und wähle den Anbieter, der zu dir passt.',
-                cta: 'Anbieter vergleichen'
             },
             multiLanguage: {
                 subject: 'Wusstest du schon? ClawHost spricht deine Sprache',
@@ -651,8 +680,10 @@ const de: Translations = {
                 cta: 'Sprache ändern'
             },
             subdomain: {
-                subject: 'Wusstest du schon? Jeder Claw hat seine eigene Subdomain',
-                preview: 'Greife von überall auf deinen Claw zu — mit einer eigenen URL',
+                subject:
+                    'Wusstest du schon? Jeder Claw hat seine eigene Subdomain',
+                preview:
+                    'Greife von überall auf deinen Claw zu — mit einer eigenen URL',
                 heading: 'Zugriff von überall',
                 description:
                     'Jeder Claw erhält eine eigene Subdomain, um von überall auf deine OpenClaw-Instanz zuzugreifen. Kein Port-Forwarding, kein lokales Netzwerk — nur eine URL.',
@@ -667,8 +698,10 @@ const de: Translations = {
                 cta: 'Dark Mode testen'
             },
             reinstall: {
-                subject: 'Wusstest du schon? OpenClaw mit einem Klick neu installieren',
-                preview: 'Setze deine OpenClaw-Instanz zurück, ohne den Server zu verlieren',
+                subject:
+                    'Wusstest du schon? OpenClaw mit einem Klick neu installieren',
+                preview:
+                    'Setze deine OpenClaw-Instanz zurück, ohne den Server zu verlieren',
                 heading: 'Neustart, gleicher Server',
                 description:
                     'Installiere die OpenClaw-Runtime auf deinem bestehenden Server mit einem einzigen Klick neu. Dein Server bleibt intakt — nur OpenClaw bekommt eine saubere Installation.',
@@ -815,7 +848,8 @@ const de: Translations = {
         title: 'Lizenz',
         description: 'Verwalte deine OpenClaw-Lizenz.',
         pageTitle: 'Lizenz',
-        pageDescription: 'Kaufe deine Lizenz für das lokale Self-Hosting von OpenClaw-Instanzen mit unserer Go-App.',
+        pageDescription:
+            'Kaufe deine Lizenz für das lokale Self-Hosting von OpenClaw-Instanzen mit unserer Go-App.',
         planName: 'ClawHost Go Lizenz',
         oneTimePurchase: 'Einmalkauf',
         price: '{{price}} $',
@@ -823,7 +857,8 @@ const de: Translations = {
         purchaseLicense: 'Lizenz kaufen',
         purchasing: 'Weiterleitung...',
         activated: 'Lizenz aktiv',
-        activatedDescription: 'Deine Lizenz ist aktiv. Danke für deine Unterstützung.',
+        activatedDescription:
+            'Deine Lizenz ist aktiv. Danke für deine Unterstützung.',
         paymentSuccess: 'Zahlung erfolgreich. Deine Lizenz ist jetzt aktiv.',
         failedToPurchase: 'Checkout konnte nicht gestartet werden!',
         featureUnlimitedClaws: 'Unbegrenzte OpenClaws',
@@ -833,15 +868,19 @@ const de: Translations = {
         featureSupport: 'Prioritäts-Support',
         featureCloud: 'Alle Cloud-Funktionen, lokal',
         whatsIncluded: 'Was enthalten ist',
-        permanentNote: 'Lizenzen sind dauerhaft und unwiderruflich. Einmal gekauft, gehört sie dir für immer.',
+        permanentNote:
+            'Lizenzen sind dauerhaft und unwiderruflich. Einmal gekauft, gehört sie dir für immer.',
         gateTitle: 'Lizenz erforderlich',
-        gateDescription: 'Du benötigst eine ClawHost Go Lizenz, um OpenClaw-Instanzen lokal bereitzustellen und zu verwalten.'
+        gateDescription:
+            'Du benötigst eine ClawHost Go Lizenz, um OpenClaw-Instanzen lokal bereitzustellen und zu verwalten.'
     },
     network: {
         unstable: 'Instabile Verbindung',
-        unstableDescription: 'Deine Internetverbindung ist instabil. Einige Funktionen funktionieren möglicherweise nicht wie erwartet.',
+        unstableDescription:
+            'Deine Internetverbindung ist instabil. Einige Funktionen funktionieren möglicherweise nicht wie erwartet.',
         offline: 'Keine Internetverbindung',
-        offlineDescription: 'Du bist derzeit offline. Funktionen, die Internetzugang erfordern, sind nicht verfügbar.',
+        offlineDescription:
+            'Du bist derzeit offline. Funktionen, die Internetzugang erfordern, sind nicht verfügbar.',
         dismiss: 'Schließen'
     },
     dashboard: {
@@ -1037,11 +1076,10 @@ const de: Translations = {
         clawNamePlaceholder: 'z. B. cozy-panda',
         clawNameInvalidChars:
             'Nur Buchstaben, Zahlen und Bindestriche sind erlaubt!',
-        autoGenerateNameHint: 'Leer lassen, um automatisch einen Namen zu generieren.',
+        autoGenerateNameHint:
+            'Leer lassen, um automatisch einen Namen zu generieren.',
         provider: 'Anbieter',
         providerHetzner: 'Hetzner',
-        providerDigitalOcean: 'DigitalOcean',
-        providerVultr: 'Vultr',
         providerLocal: 'Lokal',
         providerAws: 'AWS',
         comingSoon: 'Bald',
@@ -1201,7 +1239,7 @@ const de: Translations = {
             'Dedizierte VPS-Ressourcen bedeuten kein Drosseln, volle Bandbreite und blitzschnelles Internet.',
         globalLocations: 'Globale Standorte',
         globalLocationsDescription:
-            'Stelle OpenClaw in über 30 globalen Regionen auf Hetzner, DigitalOcean oder Vultr bereit und wähle den nächstgelegenen Standort.',
+            'Deploye OpenClaw in mehreren globalen Regionen auf Hetzner Cloud und wähle den nächstgelegenen Standort.',
         fullSshAccess: 'Direkter SSH-Zugriff',
         fullSshAccessDescription:
             'Greife direkt von der Plattform auf das Terminal deines Servers zu. Keine externen SSH-Clients nötig.',
@@ -1258,7 +1296,7 @@ const de: Translations = {
         pricing: 'Preise',
         simpleTransparentPricing: 'Einfache, transparente Preise',
         pricingDescription:
-            'Wähle aus über 45 Servern bei unseren Anbietern nach deinen Bedürfnissen.',
+            'Wähle aus unseren Hetzner Cloud Servern basierend auf deinen Anforderungen.',
         planColumn: 'Server',
         vCpuColumn: 'vCPU',
         ramColumn: 'RAM',
@@ -1302,16 +1340,16 @@ const de: Translations = {
             'Nein. Wir kümmern uns um die gesamte Infrastruktur, Einrichtung und Wartung. Du kannst OpenClaw über die Benutzeroberfläche konfigurieren und verwalten, Kanäle verbinden und die Nutzung anpassen – ohne Server oder Infrastruktur anfassen zu müssen.',
         faq5Question: 'Welche Standorte sind verfügbar?',
         faq5Answer:
-            'Wir bieten über 30 Serverstandorte weltweit auf Hetzner, DigitalOcean und Vultr, darunter USA, Europa, Asien und mehr. Du kannst OpenClaw bei Bedarf auf mehreren Servern in verschiedenen Regionen bereitstellen.',
+            'Wir bieten mehrere Serverstandorte weltweit über Hetzner Cloud an, darunter die USA, Europa und mehr. Du kannst OpenClaw bei Bedarf auf mehreren Servern in verschiedenen Regionen deployen.',
         faq6Question: 'Wie viel kostet es?',
         faq6Answer:
-            'Die Preise basieren auf dem gewählten Server. Mit über 45 Serveroptionen von Einsteiger bis Hochleistung bei drei Anbietern wählst du, was zu deinen Bedürfnissen und deinem Budget passt.',
+            'Die Preise hängen vom gewählten Server ab. Mit mehreren Serveroptionen von Einsteiger bis Hochleistung wählst du das, was zu deinen Anforderungen und deinem Budget passt.',
         faq7Question: 'Kann ich direkt auf meinen Server zugreifen?',
         faq7Answer:
             'Ja. Neben dem OpenClaw-Zugriff über eine Subdomain-URL hast du vollen Zugriff auf den Server und seine zugrunde liegende Infrastruktur, was dir vollständige Freiheit gibt, alles anzupassen und alles auszuführen, was du brauchst.',
         faq8Question: 'Wo werden die Server gehostet?',
         faq8Answer:
-            'Alle Server werden auf Hetzner Cloud, DigitalOcean und Vultr gehostet – vertrauenswürdige Cloud-Anbieter, bekannt für leistungsstarke Hardware und exzellente Verfügbarkeit, genutzt von großen Infrastrukturen.',
+            'Alle Server werden auf Hetzner Cloud gehostet, einem vertrauenswürdigen Cloud-Anbieter, bekannt für leistungsstarke Hardware und hervorragende Verfügbarkeit, genutzt von großen Infrastrukturen.',
         comparison: 'Vergleich',
         comparisonTitle: 'Wie wir uns unterscheiden',
         comparisonDescription:
@@ -1424,7 +1462,8 @@ const de: Translations = {
         release12Title: 'Jahresabonnements, Sprachmodus & mehr',
         release12Description:
             'Jahresabonnements mit 2 Monaten gratis, Sprachmodus, Instanz-Neuinstallation und eine erste Landingpage für ClawHost Go.',
-        release12Feature1: 'Landingpage für ClawHost Go, lokales Hosting mit ClawHost',
+        release12Feature1:
+            'Landingpage für ClawHost Go, lokales Hosting mit ClawHost',
         release12Feature2:
             'Jahresabonnement-Support mit 2 Monaten gratis bei jährlicher Buchung',
         release12Feature3:
@@ -1529,15 +1568,10 @@ const de: Translations = {
         release1Feature11:
             'Automatische Bereitstellung mit vorinstalliertem und konfiguriertem OpenClaw',
         release2Date: '8. Februar 2026',
-        release2Title: 'DigitalOcean & mehr',
+        release2Title: 'Changelog & mehr',
         release2Description:
-            'Multi-Anbieter-Infrastruktur und eine neue Möglichkeit, über alles bei ClawHost auf dem Laufenden zu bleiben.',
-        release2Feature1: 'DigitalOcean als zweiter Cloud-Anbieter',
-        release2Feature2:
-            '7 DigitalOcean-Serverpläne mit dedizierter vCPU, RAM und Speicheroptionen',
-        release2Feature3:
-            '10+ DigitalOcean-Serverstandorte in den USA, Europa, Asien und mehr',
-        release2Feature4:
+            'Eine neue Möglichkeit, über alles rund um ClawHost informiert zu bleiben.',
+        release2Feature1:
             'Änderungsprotokoll-Seite zur Verfolgung aller Plattform-Updates und -Veröffentlichungen',
         release3Date: '10. Februar 2026',
         release3Title: 'Server-Einblicke',
@@ -1548,25 +1582,16 @@ const de: Translations = {
             'Serverdiagnose mit automatischer Ein-Klick-Reparatur bei Dienstproblemen',
         release3Feature3:
             'Integrierter Datei-Explorer und JSON-Editor für Serverkonfigurationsdateien',
-        release4Date: '11. Februar 2026',
-        release4Title: 'Vultr-Anbieter',
+        release4Date: '14. Februar 2026',
+        release4Title: 'Agenten & Datenexport',
         release4Description:
-            'Vultr als dritter Cloud-Anbieter mit 22 Serverplänen und über 30 globalen Standorten.',
-        release4Feature1: 'Vultr als dritter Cloud-Anbieter',
-        release4Feature2:
-            '22 Vultr-Serverpläne in den Kategorien Regulär, Hohe Leistung und Hohe Frequenz',
-        release4Feature3:
-            '30+ Vultr-Serverstandorte in den USA, Europa, Asien und mehr',
-        release5Date: '14. Februar 2026',
-        release5Title: 'Agenten & Datenexport',
-        release5Description:
             'Agenten-Playground, Multi-Agenten-Verwaltung und portabler Datenexport für deine OpenClaw-Instanzen.',
-        release5Feature1:
+        release4Feature1:
             'Ein-Klick-Agenten-Playground und -Übersicht, mehrere Agenten hinzufügen und verwalten',
-        release5Feature2: 'Exportiere dein OpenClaw als portables ZIP-Archiv',
-        release5Feature3:
+        release4Feature2: 'Exportiere dein OpenClaw als portables ZIP-Archiv',
+        release4Feature3:
             'Interaktiver Playground mit graphbasierter Visualisierung von Claws und Agenten',
-        release5Feature4:
+        release4Feature4:
             'Raster- und Listenansicht-Umschalter zugunsten eines einheitlichen Dashboard-Layouts entfernt'
     },
     playground: {
@@ -1733,12 +1758,14 @@ const de: Translations = {
             'Kannst du die Testsuite ausführen und auf Fehler prüfen?',
         chatReadOnlyAssistant2:
             'Klar! Ich führe jetzt alle Tests aus. 3 bestanden, 0 fehlgeschlagen. Alles in Ordnung — alle Assertions bestehen.',
-        chatReadOnlyGoUser: 'Hey, kannst du mir helfen, meine Deployment-Pipeline zu automatisieren?',
+        chatReadOnlyGoUser:
+            'Hey, kannst du mir helfen, meine Deployment-Pipeline zu automatisieren?',
         chatReadOnlyGoAssistant:
             'Auf jeden Fall! Ich kann eine CI/CD-Pipeline für dich einrichten. Soll ich mit einem GitHub Actions Workflow beginnen, der automatisch baut, testet und deployt?',
         chatReadOnlyGoReply:
             'Dies ist eine Vorschau! Hol dir ClawHost Go und führe OpenClaw lokal aus — dein Rechner, deine Daten, kein Cloud nötig.',
-        chatReadOnlyGoUser2: 'Kannst du meine lokalen Services überwachen und mich warnen, wenn etwas ausfällt?',
+        chatReadOnlyGoUser2:
+            'Kannst du meine lokalen Services überwachen und mich warnen, wenn etwas ausfällt?',
         chatReadOnlyGoAssistant2:
             'Bin dran! Ich richte Health-Checks für alle deine Services ein. Überwache aktuell 4 Endpoints — alle gesund und erreichbar.',
         chatConnectionFailed: 'Verbindung zu diesem Agenten fehlgeschlagen!',
@@ -1800,7 +1827,8 @@ const de: Translations = {
         channelsWhatsAppConnected: 'Verbunden',
         channelsWhatsAppRepair: 'Neu koppeln',
         channelsWhatsAppChecking: 'Verbindung wird überprüft...',
-        channelsVersionUnsupported: 'Die Kanalkonfiguration ist in dieser Version nicht verfügbar. Sie können manuell über den Terminal-Tab verbinden oder OpenClaw aktualisieren.',
+        channelsVersionUnsupported:
+            'Die Kanalkonfiguration ist in dieser Version nicht verfügbar. Sie können manuell über den Terminal-Tab verbinden oder OpenClaw aktualisieren.',
         channelsVersionUnsupportedDocs: 'Einrichtungsanleitung anzeigen',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
@@ -2177,7 +2205,7 @@ const de: Translations = {
         sharedContainers: 'Geteilte Container',
         isolatedContainers: 'Isolierte Container',
         cloudWorkspaces: 'Cloud-Arbeitsbereiche',
-        threeProviders: 'Hetzner, DigitalOcean, Vultr',
+        threeProviders: 'Hetzner Cloud',
         singleProvider: 'Einzelner Anbieter',
         fullyDedicated: 'Vollständig dediziert',
         shared: 'Geteilt',

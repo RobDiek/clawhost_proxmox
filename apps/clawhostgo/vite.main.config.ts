@@ -6,8 +6,12 @@ export default defineConfig(({ mode }) => {
 
     return {
         define: {
-            'process.env.GITHUB_CLIENT_ID': JSON.stringify(env.GITHUB_CLIENT_ID || ''),
-            'process.env.GITHUB_CLIENT_SECRET': JSON.stringify(env.GITHUB_CLIENT_SECRET || '')
+            'process.env.GITHUB_CLIENT_ID': JSON.stringify(
+                env.GITHUB_CLIENT_ID || ''
+            ),
+            'process.env.GITHUB_CLIENT_SECRET': JSON.stringify(
+                env.GITHUB_CLIENT_SECRET || ''
+            )
         },
         resolve: {
             alias: {

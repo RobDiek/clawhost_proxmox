@@ -58,17 +58,11 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
             {showAdvanced && (
                 <div className='border-border/50 space-y-5 border-t p-4'>
                     <div className='space-y-2'>
-                        <Label>
-                            {t('createClaw.rootPassword')}
-                        </Label>
+                        <Label>{t('createClaw.rootPassword')}</Label>
                         <div className='flex items-center gap-2'>
                             <div className='relative flex-1'>
                                 <Input
-                                    type={
-                                        showPassword
-                                            ? 'text'
-                                            : 'password'
-                                    }
+                                    type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={(e) =>
                                         onPasswordChange(e.target.value)
@@ -106,13 +100,9 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
                                         variant='ghost'
                                         size='icon'
                                         onClick={async () => {
-                                            await copyToClipboard(
-                                                password
-                                            )
+                                            await copyToClipboard(password)
                                             showToast(
-                                                t(
-                                                    'createClaw.passwordCopied'
-                                                ),
+                                                t('createClaw.passwordCopied'),
                                                 'success'
                                             )
                                         }}
@@ -141,24 +131,18 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        {t(
-                                            'createClaw.regeneratePassword'
-                                        )}
+                                        {t('createClaw.regeneratePassword')}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
                         </div>
                         <p className='text-muted-foreground text-xs'>
-                            {t(
-                                'createClaw.autoGeneratePasswordHint'
-                            )}
+                            {t('createClaw.autoGeneratePasswordHint')}
                         </p>
                     </div>
 
                     <div className='space-y-2'>
-                        <Label>
-                            {t('createClaw.sshKeyOptional')}
-                        </Label>
+                        <Label>{t('createClaw.sshKeyOptional')}</Label>
                         {sshKeys.length > 0 ? (
                             <div className='space-y-2'>
                                 <label
@@ -172,26 +156,19 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
                                         type='radio'
                                         name='sshKey'
                                         value=''
-                                        checked={
-                                            selectedSshKeyId === ''
-                                        }
-                                        onChange={() =>
-                                            onSshKeyChange('')
-                                        }
+                                        checked={selectedSshKeyId === ''}
+                                        onChange={() => onSshKeyChange('')}
                                         className='sr-only'
                                     />
                                     <span className='text-sm'>
-                                        {t(
-                                            'createClaw.noSshKeyPasswordOnly'
-                                        )}
+                                        {t('createClaw.noSshKeyPasswordOnly')}
                                     </span>
                                 </label>
                                 {sshKeys.map((key) => (
                                     <label
                                         key={key.id}
                                         className={`flex cursor-pointer items-center rounded-lg p-3 transition ${
-                                            selectedSshKeyId ===
-                                            key.id
+                                            selectedSshKeyId === key.id
                                                 ? 'border border-[#ef5350]/50 bg-[#ef5350]/20'
                                                 : 'bg-muted hover:bg-muted/80 border border-transparent'
                                         }`}
@@ -201,13 +178,10 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
                                             name='sshKey'
                                             value={key.id}
                                             checked={
-                                                selectedSshKeyId ===
-                                                key.id
+                                                selectedSshKeyId === key.id
                                             }
                                             onChange={() =>
-                                                onSshKeyChange(
-                                                    key.id
-                                                )
+                                                onSshKeyChange(key.id)
                                             }
                                             className='sr-only'
                                         />
@@ -230,9 +204,7 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
                                 </div>
                                 <div className='flex-1'>
                                     <p className='text-sm font-medium'>
-                                        {t(
-                                            'createClaw.noSshKeysConfigured'
-                                        )}
+                                        {t('createClaw.noSshKeysConfigured')}
                                     </p>
                                     <p className='text-muted-foreground text-xs'>
                                         {t(
@@ -255,9 +227,7 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
                     {volumePricing && (
                         <div className='space-y-2'>
                             <Label>
-                                {t(
-                                    'createClaw.additionalStorageOptional'
-                                )}
+                                {t('createClaw.additionalStorageOptional')}
                             </Label>
                             <div
                                 className={`bg-muted space-y-4 rounded-lg p-4`}
@@ -266,9 +236,7 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
                                     <div className='flex items-center gap-2'>
                                         <ClawMascot className='h-4 w-4' />
                                         <span className='text-sm font-medium'>
-                                            {t(
-                                                'createClaw.volumeStorage'
-                                            )}
+                                            {t('createClaw.volumeStorage')}
                                         </span>
                                     </div>
                                     <span className='text-sm font-semibold'>
@@ -289,47 +257,34 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
                                     />
                                     <div className='flex items-center justify-between'>
                                         <span className='text-muted-foreground text-xs'>
-                                            {t(
-                                                'createClaw.volumeMin'
-                                            )}
+                                            {t('createClaw.volumeMin')}
                                         </span>
                                         <div className='flex items-center gap-2'>
                                             <Input
                                                 type='number'
                                                 min={0}
-                                                max={
-                                                    volumePricing.maxSize
-                                                }
+                                                max={volumePricing.maxSize}
                                                 value={volumeSize}
                                                 onChange={(e) => {
-                                                    const val =
-                                                        Math.min(
-                                                            Math.max(
-                                                                0,
-                                                                Number(
-                                                                    e
-                                                                        .target
-                                                                        .value
-                                                                )
-                                                            ),
-                                                            volumePricing.maxSize
-                                                        )
-                                                    onVolumeSizeChange(
-                                                        val
+                                                    const val = Math.min(
+                                                        Math.max(
+                                                            0,
+                                                            Number(
+                                                                e.target.value
+                                                            )
+                                                        ),
+                                                        volumePricing.maxSize
                                                     )
+                                                    onVolumeSizeChange(val)
                                                 }}
                                                 className='h-8 w-20 text-center text-sm'
                                             />
                                             <span className='text-muted-foreground text-sm'>
-                                                {t(
-                                                    'createClaw.volumeUnit'
-                                                )}
+                                                {t('createClaw.volumeUnit')}
                                             </span>
                                         </div>
                                         <span className='text-muted-foreground text-xs'>
-                                            {t(
-                                                'createClaw.volumeMax'
-                                            )}
+                                            {t('createClaw.volumeMax')}
                                         </span>
                                     </div>
                                 </div>

@@ -45,12 +45,7 @@ const ClawCard: FC<ClawCardProps> = ({ claw, plan }): ReactNode => {
         ? locationNames[claw.location] || claw.location
         : ''
 
-    const providerLabel =
-        claw.provider === 'hetzner'
-            ? t('createClaw.providerHetzner')
-            : claw.provider === 'vultr'
-              ? t('createClaw.providerVultr')
-              : t('createClaw.providerDigitalOcean')
+    const providerLabel = t('createClaw.providerHetzner')
 
     const planLabel = plan
         ? `${plan.name.replace(/([A-Za-z])(\d)/, '$1 $2')} (${plan.cpu} vCPU, ${plan.memory}GB RAM, ${plan.disk}GB SSD)`

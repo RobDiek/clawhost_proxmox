@@ -28,12 +28,12 @@ import {
     PageHeader,
     ActionButton
 } from '@/components'
-import { SSHKeySkeleton, SSHKeyCard, CreateSSHKeyModal } from '@/components/ssh-keys'
 import {
-    PlusCircleIcon,
-    KeyIcon,
-    CaretDownIcon
-} from '@phosphor-icons/react'
+    SSHKeySkeleton,
+    SSHKeyCard,
+    CreateSSHKeyModal
+} from '@/components/ssh-keys'
+import { PlusCircleIcon, KeyIcon, CaretDownIcon } from '@phosphor-icons/react'
 
 const SSHKeys: FC = (): ReactNode => {
     const [showCreate, setShowCreate] = useState(false)

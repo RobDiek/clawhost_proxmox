@@ -14,7 +14,20 @@ import nl from '../src/langs/nl'
 import pt from '../src/langs/pt'
 
 const languages: Record<string, Record<string, unknown>> = {
-    en, fr, es, de, zh, hi, ar, ru, ja, tr, it, pl, nl, pt
+    en,
+    fr,
+    es,
+    de,
+    zh,
+    hi,
+    ar,
+    ru,
+    ja,
+    tr,
+    it,
+    pl,
+    nl,
+    pt
 }
 
 const getKeys = (obj: Record<string, unknown>, prefix = ''): string[] => {
@@ -22,7 +35,11 @@ const getKeys = (obj: Record<string, unknown>, prefix = ''): string[] => {
     for (const key of Object.keys(obj)) {
         const fullKey = prefix ? `${prefix}.${key}` : key
         const value = obj[key]
-        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        if (
+            typeof value === 'object' &&
+            value !== null &&
+            !Array.isArray(value)
+        ) {
             keys.push(...getKeys(value as Record<string, unknown>, fullKey))
         } else {
             keys.push(fullKey)
@@ -39,12 +56,14 @@ for (const [lang, translations] of Object.entries(languages)) {
 
     const langKeys = new Set(getKeys(translations))
 
-    const missing = [...enKeys].filter(k => !langKeys.has(k))
-    const extra = [...langKeys].filter(k => !enKeys.has(k))
+    const missing = [...enKeys].filter((k) => !langKeys.has(k))
+    const extra = [...langKeys].filter((k) => !enKeys.has(k))
 
     if (missing.length > 0) {
         hasErrors = true
-        console.error(`\n❌ ${lang.toUpperCase()} is missing ${missing.length} key(s):`)
+        console.error(
+            `\n❌ ${lang.toUpperCase()} is missing ${missing.length} key(s):`
+        )
         for (const key of missing) {
             console.error(`   - ${key}`)
         }
@@ -52,7 +71,9 @@ for (const [lang, translations] of Object.entries(languages)) {
 
     if (extra.length > 0) {
         hasErrors = true
-        console.error(`\n⚠️  ${lang.toUpperCase()} has ${extra.length} extra key(s):`)
+        console.error(
+            `\n⚠️  ${lang.toUpperCase()} has ${extra.length} extra key(s):`
+        )
         for (const key of extra) {
             console.error(`   - ${key}`)
         }
@@ -60,7 +81,9 @@ for (const [lang, translations] of Object.entries(languages)) {
 }
 
 if (hasErrors) {
-    console.error('\n🚫 i18n validation failed! All language files must have the same keys as en.ts\n')
+    console.error(
+        '\n🚫 i18n validation failed! All language files must have the same keys as en.ts\n'
+    )
     process.exit(1)
 } else {
     console.log('✅ All 14 language files have matching keys.')

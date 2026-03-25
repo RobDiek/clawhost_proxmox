@@ -24,11 +24,36 @@ import api from '@/lib/api'
 
 const generateReadablePassword = (): string => {
     const words = [
-        'sun', 'moon', 'star', 'rain', 'snow', 'wind',
-        'fire', 'wave', 'leaf', 'tree', 'rock', 'bird',
-        'fish', 'bear', 'wolf', 'fox', 'deer', 'hawk',
-        'rose', 'sage', 'mint', 'pine', 'oak', 'elm',
-        'blue', 'red', 'gold', 'jade', 'ruby', 'onyx'
+        'sun',
+        'moon',
+        'star',
+        'rain',
+        'snow',
+        'wind',
+        'fire',
+        'wave',
+        'leaf',
+        'tree',
+        'rock',
+        'bird',
+        'fish',
+        'bear',
+        'wolf',
+        'fox',
+        'deer',
+        'hawk',
+        'rose',
+        'sage',
+        'mint',
+        'pine',
+        'oak',
+        'elm',
+        'blue',
+        'red',
+        'gold',
+        'jade',
+        'ruby',
+        'onyx'
     ]
     const pick = () => words[Math.floor(Math.random() * words.length)]
     const num = Math.floor(Math.random() * 90 + 10)
@@ -130,9 +155,13 @@ const CreateClawModal: FC<CreateClawModalProps> = ({ onClose }): ReactNode => {
                             <div className='relative flex-1'>
                                 <Input
                                     value={gatewayToken}
-                                    onChange={(e) => setGatewayToken(e.target.value)}
+                                    onChange={(e) =>
+                                        setGatewayToken(e.target.value)
+                                    }
                                     type={showToken ? 'text' : 'password'}
-                                    placeholder={t('createClaw.gatewayTokenPlaceholder')}
+                                    placeholder={t(
+                                        'createClaw.gatewayTokenPlaceholder'
+                                    )}
                                     className='pr-9'
                                 />
                                 <button
@@ -168,14 +197,20 @@ const CreateClawModal: FC<CreateClawModalProps> = ({ onClose }): ReactNode => {
                             <div className='relative flex-1'>
                                 <Input
                                     value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    onChange={(e) =>
+                                        setPassword(e.target.value)
+                                    }
                                     type={showPassword ? 'text' : 'password'}
-                                    placeholder={t('createClaw.rootPasswordPlaceholder')}
+                                    placeholder={t(
+                                        'createClaw.rootPasswordPlaceholder'
+                                    )}
                                     className='pr-9'
                                 />
                                 <button
                                     type='button'
-                                    onClick={() => setShowPassword(!showPassword)}
+                                    onClick={() =>
+                                        setShowPassword(!showPassword)
+                                    }
                                     className='text-muted-foreground hover:text-foreground absolute right-2.5 top-1/2 -translate-y-1/2'
                                 >
                                     {showPassword ? (

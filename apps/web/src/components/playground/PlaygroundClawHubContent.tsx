@@ -32,16 +32,13 @@ const PlaygroundClawHubContent: FC<PlaygroundClawHubContentProps> = ({
 }): ReactNode => {
     const [search, setSearch] = useState('')
     const debouncedSearch = useDebouncedValue(search.trim(), 400)
-    const {
-        pendingSlug,
-        setPendingSlug,
-        page,
-        setPage
-    } = useClawHubStore()
+    const { pendingSlug, setPendingSlug, page, setPage } = useClawHubStore()
     const { showToast } = useUIStore()
     const queryClient = useQueryClient()
 
-    useEffect(() => { setPage(1) }, [debouncedSearch, setPage])
+    useEffect(() => {
+        setPage(1)
+    }, [debouncedSearch, setPage])
 
     const browseKey = ['clawhub-browse', clawId, debouncedSearch, page]
     const installedKey = ['clawhub-installed', clawId, agentId]

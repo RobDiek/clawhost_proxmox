@@ -8,7 +8,9 @@ import { heading, paragraph, button, buttonContainer } from '@/emails/styles'
 
 const MultiLanguageEmail: FC = (): ReactNode => {
     return (
-        <FeatureEmailLayout preview={t('emails.features.multiLanguage.preview')}>
+        <FeatureEmailLayout
+            preview={t('emails.features.multiLanguage.preview')}
+        >
             <Text style={heading}>
                 {t('emails.features.multiLanguage.heading')}
             </Text>
@@ -18,10 +20,7 @@ const MultiLanguageEmail: FC = (): ReactNode => {
             </Text>
 
             <Section style={buttonContainer}>
-                <Button
-                    href='https://clawhost.cloud'
-                    style={button}
-                >
+                <Button href='https://clawhost.cloud' style={button}>
                     {t('emails.features.multiLanguage.cta')}
                 </Button>
             </Section>

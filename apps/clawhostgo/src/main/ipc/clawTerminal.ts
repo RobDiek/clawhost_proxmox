@@ -11,7 +11,12 @@ const terminals: Map<string, IPty> = new Map()
 const registerClawTerminalHandlers = (): void => {
     ipcMain.handle(
         'terminal:spawn',
-        (_event: IpcMainInvokeEvent, id: string, cols: number, rows: number) => {
+        (
+            _event: IpcMainInvokeEvent,
+            id: string,
+            cols: number,
+            rows: number
+        ) => {
             const claw = configStore.findClaw(id)
             if (!claw) throw new Error(t('go.clawNotFound'))
 
@@ -70,7 +75,12 @@ const registerClawTerminalHandlers = (): void => {
 
     ipcMain.handle(
         'terminal:resize',
-        (_event: IpcMainInvokeEvent, id: string, cols: number, rows: number) => {
+        (
+            _event: IpcMainInvokeEvent,
+            id: string,
+            cols: number,
+            rows: number
+        ) => {
             const term = terminals.get(id)
             if (term) {
                 term.resize(cols, rows)

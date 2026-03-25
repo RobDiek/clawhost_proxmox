@@ -12,7 +12,9 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 const run = async () => {
     const resend = getResend()
-    const allUsers = await db.select({ id: users.id, email: users.email }).from(users)
+    const allUsers = await db
+        .select({ id: users.id, email: users.email })
+        .from(users)
 
     let totalSent = 0
 

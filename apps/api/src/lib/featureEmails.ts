@@ -14,7 +14,6 @@ import EnvVarsEmail from '@/emails/features/EnvVarsEmail'
 import DiagnosticsEmail from '@/emails/features/DiagnosticsEmail'
 import SshKeysEmail from '@/emails/features/SshKeysEmail'
 import ExportConfigEmail from '@/emails/features/ExportConfigEmail'
-import MultiProviderEmail from '@/emails/features/MultiProviderEmail'
 import MultiLanguageEmail from '@/emails/features/MultiLanguageEmail'
 import SubdomainEmail from '@/emails/features/SubdomainEmail'
 import DarkModeEmail from '@/emails/features/DarkModeEmail'
@@ -86,11 +85,6 @@ const FEATURE_EMAILS: FeatureEmailDefinition[] = [
         key: 'exportConfig',
         subject: t('emails.features.exportConfig.subject'),
         render: () => ExportConfigEmail({})
-    },
-    {
-        key: 'multiProvider',
-        subject: t('emails.features.multiProvider.subject'),
-        render: () => MultiProviderEmail({})
     },
     {
         key: 'multiLanguage',

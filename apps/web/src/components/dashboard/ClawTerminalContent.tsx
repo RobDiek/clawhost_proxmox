@@ -32,12 +32,8 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
     const connectIdRef = useRef(0)
     const reconnectAttemptsRef = useRef(0)
     const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-    const {
-        status,
-        setStatus,
-        showScrollButton,
-        setShowScrollButton
-    } = useTerminalStore()
+    const { status, setStatus, showScrollButton, setShowScrollButton } =
+        useTerminalStore()
     const connectRef = useRef<() => void>(() => {})
 
     const cleanupListenersRef = useRef<(() => void)[]>([])
@@ -58,7 +54,16 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
         }
         cleanupListenersRef.current.forEach((fn) => fn())
         cleanupListenersRef.current = []
-        const electronAPI = (window as { electronAPI?: { invoke: (channel: string, ...args: unknown[]) => Promise<unknown> } }).electronAPI
+        const electronAPI = (
+            window as {
+                electronAPI?: {
+                    invoke: (
+                        channel: string,
+                        ...args: unknown[]
+                    ) => Promise<unknown>
+                }
+            }
+        ).electronAPI
         if (electronAPI) {
             electronAPI.invoke('terminal:kill', clawId)
         }
@@ -153,129 +158,160 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
         return { terminal, fitAndCrop }
     }, [])
 
-    const connectDesktop = useCallback(async (myId: number, container: HTMLElement) => {
-        const electronAPI = (window as { electronAPI?: { invoke: (channel: string, ...args: unknown[]) => Promise<unknown>; onTerminalData: (cb: (id: string, data: string) => void) => () => void; onTerminalExit: (cb: (id: string) => void) => () => void } }).electronAPI
-        if (!electronAPI) {
-            setStatus('error')
-            return
-        }
-
-        const { terminal, fitAndCrop } = createTerminal(container)
-
-        try {
-            await electronAPI.invoke('terminal:spawn', clawId, terminal.cols, terminal.rows)
-        } catch (err) {
-            console.error('[terminal] spawn failed:', err)
-            setStatus('error')
-            return
-        }
-
-        if (connectIdRef.current !== myId) return
-
-        const removeDataListener = electronAPI.onTerminalData((id, data) => {
-            if (id === clawId) {
-                terminal.write(data)
-            }
-        })
-        cleanupListenersRef.current.push(removeDataListener)
-
-        const removeExitListener = electronAPI.onTerminalExit((id) => {
-            if (id === clawId && connectIdRef.current === myId) {
-                setStatus('disconnected')
-            }
-        })
-        cleanupListenersRef.current.push(removeExitListener)
-
-        setStatus('connected')
-        requestAnimationFrame(() => {
-            fitAndCrop()
-            terminal.focus()
-        })
-
-        terminal.onData((data) => {
-            electronAPI.invoke('terminal:write', clawId, data)
-        })
-
-        terminal.onResize(({ cols, rows }) => {
-            electronAPI.invoke('terminal:resize', clawId, cols, rows)
-        })
-    }, [clawId, createTerminal])
-
-    const connectCloud = useCallback(async (myId: number, container: HTMLElement) => {
-        const token = await getCachedToken()
-
-        if (connectIdRef.current !== myId) return
-
-        if (!token) {
-            setStatus('error')
-            return
-        }
-
-        const { terminal, fitAndCrop } = createTerminal(container)
-
-        const apiUrl = import.meta.env.VITE_API_URL || ''
-        const wsUrl = apiUrl.startsWith('http')
-            ? `${apiUrl.replace(/^http/, 'ws')}/claws/${clawId}/terminal?token=${encodeURIComponent(token)}`
-            : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/claws/${clawId}/terminal?token=${encodeURIComponent(token)}`
-        const ws = new WebSocket(wsUrl)
-        wsRef.current = ws
-
-        let connected = false
-
-        ws.onopen = () => {
-            ws.send(
-                JSON.stringify({
-                    type: 'resize',
-                    cols: terminal.cols,
-                    rows: terminal.rows
-                })
-            )
-            requestAnimationFrame(fitAndCrop)
-        }
-
-        ws.onmessage = (event) => {
-            if (!connected) {
-                connected = true
-                reconnectAttemptsRef.current = 0
-                setStatus('connected')
-                requestAnimationFrame(() => {
-                    terminal.focus()
-                })
-            }
-            terminal.write(event.data)
-        }
-
-        ws.onclose = () => {
-            if (connectIdRef.current !== myId) return
-            if (connected && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
-                reconnectAttemptsRef.current++
-                setStatus('connecting')
-                reconnectTimerRef.current = setTimeout(() => {
-                    if (connectIdRef.current === myId) {
-                        connectRef.current()
+    const connectDesktop = useCallback(
+        async (myId: number, container: HTMLElement) => {
+            const electronAPI = (
+                window as {
+                    electronAPI?: {
+                        invoke: (
+                            channel: string,
+                            ...args: unknown[]
+                        ) => Promise<unknown>
+                        onTerminalData: (
+                            cb: (id: string, data: string) => void
+                        ) => () => void
+                        onTerminalExit: (cb: (id: string) => void) => () => void
                     }
-                }, RECONNECT_DELAY)
-            } else {
-                setStatus((prev) => (prev === 'error' ? 'error' : 'disconnected'))
+                }
+            ).electronAPI
+            if (!electronAPI) {
+                setStatus('error')
+                return
             }
-        }
 
-        ws.onerror = () => {
-            setStatus('error')
-        }
+            const { terminal, fitAndCrop } = createTerminal(container)
 
-        terminal.onData((data) => {
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(data)
+            try {
+                await electronAPI.invoke(
+                    'terminal:spawn',
+                    clawId,
+                    terminal.cols,
+                    terminal.rows
+                )
+            } catch (err) {
+                console.error('[terminal] spawn failed:', err)
+                setStatus('error')
+                return
             }
-        })
 
-        terminal.onResize(({ cols, rows }) => {
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'resize', cols, rows }))
+            if (connectIdRef.current !== myId) return
+
+            const removeDataListener = electronAPI.onTerminalData(
+                (id, data) => {
+                    if (id === clawId) {
+                        terminal.write(data)
+                    }
+                }
+            )
+            cleanupListenersRef.current.push(removeDataListener)
+
+            const removeExitListener = electronAPI.onTerminalExit((id) => {
+                if (id === clawId && connectIdRef.current === myId) {
+                    setStatus('disconnected')
+                }
+            })
+            cleanupListenersRef.current.push(removeExitListener)
+
+            setStatus('connected')
+            requestAnimationFrame(() => {
+                fitAndCrop()
+                terminal.focus()
+            })
+
+            terminal.onData((data) => {
+                electronAPI.invoke('terminal:write', clawId, data)
+            })
+
+            terminal.onResize(({ cols, rows }) => {
+                electronAPI.invoke('terminal:resize', clawId, cols, rows)
+            })
+        },
+        [clawId, createTerminal]
+    )
+
+    const connectCloud = useCallback(
+        async (myId: number, container: HTMLElement) => {
+            const token = await getCachedToken()
+
+            if (connectIdRef.current !== myId) return
+
+            if (!token) {
+                setStatus('error')
+                return
             }
-        })
-    }, [clawId, createTerminal])
+
+            const { terminal, fitAndCrop } = createTerminal(container)
+
+            const apiUrl = import.meta.env.VITE_API_URL || ''
+            const wsUrl = apiUrl.startsWith('http')
+                ? `${apiUrl.replace(/^http/, 'ws')}/claws/${clawId}/terminal?token=${encodeURIComponent(token)}`
+                : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/claws/${clawId}/terminal?token=${encodeURIComponent(token)}`
+            const ws = new WebSocket(wsUrl)
+            wsRef.current = ws
+
+            let connected = false
+
+            ws.onopen = () => {
+                ws.send(
+                    JSON.stringify({
+                        type: 'resize',
+                        cols: terminal.cols,
+                        rows: terminal.rows
+                    })
+                )
+                requestAnimationFrame(fitAndCrop)
+            }
+
+            ws.onmessage = (event) => {
+                if (!connected) {
+                    connected = true
+                    reconnectAttemptsRef.current = 0
+                    setStatus('connected')
+                    requestAnimationFrame(() => {
+                        terminal.focus()
+                    })
+                }
+                terminal.write(event.data)
+            }
+
+            ws.onclose = () => {
+                if (connectIdRef.current !== myId) return
+                if (
+                    connected &&
+                    reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS
+                ) {
+                    reconnectAttemptsRef.current++
+                    setStatus('connecting')
+                    reconnectTimerRef.current = setTimeout(() => {
+                        if (connectIdRef.current === myId) {
+                            connectRef.current()
+                        }
+                    }, RECONNECT_DELAY)
+                } else {
+                    setStatus((prev) =>
+                        prev === 'error' ? 'error' : 'disconnected'
+                    )
+                }
+            }
+
+            ws.onerror = () => {
+                setStatus('error')
+            }
+
+            terminal.onData((data) => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(data)
+                }
+            })
+
+            terminal.onResize(({ cols, rows }) => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ type: 'resize', cols, rows }))
+                }
+            })
+        },
+        [clawId, createTerminal]
+    )
 
     const connect = useCallback(async () => {
         cleanup()
@@ -291,7 +327,9 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
             return
         }
 
-        const electronAPI = (window as { electronAPI?: { isDesktop?: boolean } }).electronAPI
+        const electronAPI = (
+            window as { electronAPI?: { isDesktop?: boolean } }
+        ).electronAPI
         if (electronAPI?.isDesktop) {
             await connectDesktop(myId, container)
         } else {

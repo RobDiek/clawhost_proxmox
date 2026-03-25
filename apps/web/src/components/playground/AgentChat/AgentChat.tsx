@@ -137,34 +137,45 @@ const AgentChat: FC<AgentChatProps> = ({
         }
     }, [])
 
-    const getInitialMessages = useCallback((id: string, name?: string) => {
-        if (!readOnlyChatStore[id]) {
-            const now = new Date().toLocaleTimeString(getLocale(), {
-                hour: '2-digit',
-                minute: '2-digit'
-            })
-            const isAlt = name && name.toLowerCase().includes('test')
-            const userKey = isGo
-                ? (isAlt ? 'playground.chatReadOnlyGoUser2' : 'playground.chatReadOnlyGoUser')
-                : (isAlt ? 'playground.chatReadOnlyUser2' : 'playground.chatReadOnlyUser')
-            const assistantKey = isGo
-                ? (isAlt ? 'playground.chatReadOnlyGoAssistant2' : 'playground.chatReadOnlyGoAssistant')
-                : (isAlt ? 'playground.chatReadOnlyAssistant2' : 'playground.chatReadOnlyAssistant')
-            readOnlyChatStore[id] = [
-                {
-                    role: 'user',
-                    text: t(userKey),
-                    time: now
-                },
-                {
-                    role: 'assistant',
-                    text: t(assistantKey),
-                    time: now
-                }
-            ]
-        }
-        return readOnlyChatStore[id]
-    }, [isGo])
+    const getInitialMessages = useCallback(
+        (id: string, name?: string) => {
+            if (!readOnlyChatStore[id]) {
+                const now = new Date().toLocaleTimeString(getLocale(), {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+                const isAlt = name && name.toLowerCase().includes('test')
+                const userKey = isGo
+                    ? isAlt
+                        ? 'playground.chatReadOnlyGoUser2'
+                        : 'playground.chatReadOnlyGoUser'
+                    : isAlt
+                      ? 'playground.chatReadOnlyUser2'
+                      : 'playground.chatReadOnlyUser'
+                const assistantKey = isGo
+                    ? isAlt
+                        ? 'playground.chatReadOnlyGoAssistant2'
+                        : 'playground.chatReadOnlyGoAssistant'
+                    : isAlt
+                      ? 'playground.chatReadOnlyAssistant2'
+                      : 'playground.chatReadOnlyAssistant'
+                readOnlyChatStore[id] = [
+                    {
+                        role: 'user',
+                        text: t(userKey),
+                        time: now
+                    },
+                    {
+                        role: 'assistant',
+                        text: t(assistantKey),
+                        time: now
+                    }
+                ]
+            }
+            return readOnlyChatStore[id]
+        },
+        [isGo]
+    )
     const [readOnlyMessages, setReadOnlyMessages] = useState(() =>
         getInitialMessages(agentId, agentName)
     )
@@ -210,7 +221,11 @@ const AgentChat: FC<AgentChatProps> = ({
                 ...prev,
                 {
                     role: 'assistant',
-                    text: t(isGo ? 'playground.chatReadOnlyGoReply' : 'playground.chatReadOnlyReply'),
+                    text: t(
+                        isGo
+                            ? 'playground.chatReadOnlyGoReply'
+                            : 'playground.chatReadOnlyReply'
+                    ),
                     time: replyTime
                 }
             ])

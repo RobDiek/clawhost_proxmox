@@ -7,7 +7,14 @@ import { t } from '@openclaw/i18n'
 import { Badge } from '@/components/ui'
 import { ROUTES } from '@/lib'
 
-const ComparisonTable: FC<ComparisonTableProps> = ({ badge, heading, description, rows, showFullComparisonLink = true, logoSuffix }): ReactNode => {
+const ComparisonTable: FC<ComparisonTableProps> = ({
+    badge,
+    heading,
+    description,
+    rows,
+    showFullComparisonLink = true,
+    logoSuffix
+}): ReactNode => {
     return (
         <section
             id='comparison'
@@ -61,7 +68,11 @@ const ComparisonTable: FC<ComparisonTableProps> = ({ badge, heading, description
                             {rows.map((row, index) => (
                                 <tr
                                     key={index}
-                                    className={index % 2 !== 0 ? 'bg-foreground/[0.01]' : undefined}
+                                    className={
+                                        index % 2 !== 0
+                                            ? 'bg-foreground/[0.01]'
+                                            : undefined
+                                    }
                                 >
                                     <td className='px-6 py-4'>
                                         <div className='flex items-center gap-3'>

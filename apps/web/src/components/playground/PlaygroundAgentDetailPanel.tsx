@@ -189,12 +189,15 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
         }
     }, [executeDelete])
 
-    const handleConfirmDelete = useCallback((skipFuture: boolean) => {
-        if (skipFuture) {
-            skipAgentDeleteConfirmation = true
-        }
-        executeDelete()
-    }, [executeDelete])
+    const handleConfirmDelete = useCallback(
+        (skipFuture: boolean) => {
+            if (skipFuture) {
+                skipAgentDeleteConfirmation = true
+            }
+            executeDelete()
+        },
+        [executeDelete]
+    )
 
     return (
         <motion.div

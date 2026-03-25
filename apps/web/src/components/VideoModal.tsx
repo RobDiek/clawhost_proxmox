@@ -4,7 +4,11 @@ import type { VideoModalProps } from '@/ts/Interfaces'
 import { AnimatePresence, motion } from 'framer-motion'
 import { XIcon } from '@phosphor-icons/react'
 
-const VideoModal: FC<VideoModalProps> = ({ open, onClose, videoUrl }): ReactNode => {
+const VideoModal: FC<VideoModalProps> = ({
+    open,
+    onClose,
+    videoUrl
+}): ReactNode => {
     return (
         <AnimatePresence>
             {open && (
@@ -33,10 +37,8 @@ const VideoModal: FC<VideoModalProps> = ({ open, onClose, videoUrl }): ReactNode
                         <div className='aspect-video w-full overflow-hidden rounded-xl'>
                             <iframe
                                 src={
-                                    videoUrl.replace(
-                                        'watch?v=',
-                                        'embed/'
-                                    ) + '?autoplay=1&rel=0'
+                                    videoUrl.replace('watch?v=', 'embed/') +
+                                    '?autoplay=1&rel=0'
                                 }
                                 className='h-full w-full'
                                 allow='autoplay; encrypted-media'

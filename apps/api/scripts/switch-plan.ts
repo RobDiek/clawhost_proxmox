@@ -26,11 +26,7 @@ const run = async () => {
     }
 
     const [[claw], product] = await Promise.all([
-        db
-            .select()
-            .from(claws)
-            .where(eq(claws.id, clawId))
-            .limit(1),
+        db.select().from(claws).where(eq(claws.id, clawId)).limit(1),
         products.get(newProductId)
     ])
 

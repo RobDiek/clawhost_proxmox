@@ -106,7 +106,9 @@ const License: FC = (): ReactNode => {
                                 <div className='mb-8'>
                                     <div className='flex items-baseline gap-1'>
                                         <span className='font-clash text-5xl font-bold'>
-                                            {t('license.price', { price: goLicense.PRICE })}
+                                            {t('license.price', {
+                                                price: goLicense.PRICE
+                                            })}
                                         </span>
                                     </div>
                                     <p className='text-muted-foreground mt-1 text-sm'>

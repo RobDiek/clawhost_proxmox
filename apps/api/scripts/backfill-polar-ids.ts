@@ -27,10 +27,7 @@ const run = async () => {
         .where(
             and(
                 isNotNull(claws.polarSubscriptionId),
-                or(
-                    isNull(claws.polarProductId),
-                    isNull(claws.polarCustomerId)
-                )
+                or(isNull(claws.polarProductId), isNull(claws.polarCustomerId))
             )
         )
 
@@ -91,7 +88,9 @@ const run = async () => {
                 .update(claws)
                 .set({
                     ...(productChanged ? { polarProductId: newProductId } : {}),
-                    ...(customerChanged ? { polarCustomerId: newCustomerId } : {})
+                    ...(customerChanged
+                        ? { polarCustomerId: newCustomerId }
+                        : {})
                 })
                 .where(eq(claws.id, claw.id))
             console.log('    UPDATED')

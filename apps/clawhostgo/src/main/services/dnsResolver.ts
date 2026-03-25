@@ -151,7 +151,11 @@ const isDnsSetup = (): boolean => {
 const ensurePortRedirect = (): void => {
     if (!isDnsSetup()) return
     exec('pfctl -a com.clawhost -sr 2>/dev/null', (err, stdout) => {
-        if (!err && stdout.includes('rdr pass') && stdout.includes(String(PROXY_PORT))) {
+        if (
+            !err &&
+            stdout.includes('rdr pass') &&
+            stdout.includes(String(PROXY_PORT))
+        ) {
             return
         }
         const script = [

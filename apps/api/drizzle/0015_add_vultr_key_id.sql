@@ -1,1 +1,0 @@
-ALTER TABLE "ssh_keys" ADD COLUMN "vultr_key_id" integer;

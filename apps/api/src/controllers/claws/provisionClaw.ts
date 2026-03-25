@@ -76,14 +76,8 @@ const provisionClaw = async (
 
         let providerSshKeyIds: number[] | undefined
         if (sshKeyResult && sshKeyResult[0]) {
-            const keyId =
-                providerName === 'digitalocean'
-                    ? sshKeyResult[0].digitaloceanKeyId
-                    : providerName === 'vultr'
-                      ? sshKeyResult[0].vultrKeyId
-                      : sshKeyResult[0].providerKeyId
-            if (keyId) {
-                providerSshKeyIds = [keyId]
+            if (sshKeyResult[0].providerKeyId) {
+                providerSshKeyIds = [sshKeyResult[0].providerKeyId]
             }
         }
 

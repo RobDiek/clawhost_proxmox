@@ -6,7 +6,10 @@ import { motion } from 'framer-motion'
 
 const LazyDemoPreview = lazy(() => import('@/components/LandingDemoPreview'))
 
-const DemoPreviewSection: FC<DemoPreviewSectionProps> = ({ previewRef, previewScale }): ReactNode => {
+const DemoPreviewSection: FC<DemoPreviewSectionProps> = ({
+    previewRef,
+    previewScale
+}): ReactNode => {
     return (
         <div ref={previewRef} className='mx-auto mb-32 max-w-6xl px-6'>
             <motion.div
@@ -17,11 +20,13 @@ const DemoPreviewSection: FC<DemoPreviewSectionProps> = ({ previewRef, previewSc
                 style={{ scale: previewScale }}
                 className='border-border bg-background flex h-[80vh] flex-col overflow-hidden rounded-2xl border'
             >
-                <Suspense fallback={
-                    <div className='flex flex-1 items-center justify-center'>
-                        <div className='border-border bg-muted/50 h-3 w-3 animate-pulse rounded-full' />
-                    </div>
-                }>
+                <Suspense
+                    fallback={
+                        <div className='flex flex-1 items-center justify-center'>
+                            <div className='border-border bg-muted/50 h-3 w-3 animate-pulse rounded-full' />
+                        </div>
+                    }
+                >
                     <LazyDemoPreview />
                 </Suspense>
             </motion.div>

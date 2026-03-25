@@ -18,14 +18,14 @@ import {
     DOMAIN
 } from '@/controllers/claws/helpers'
 
-const VALID_PROVIDERS: ProviderType[] = ['hetzner', 'digitalocean', 'vultr']
+const VALID_PROVIDERS: ProviderType[] = ['hetzner']
 
 const run = async () => {
     const subscriptionId = process.argv[2]
 
     if (!subscriptionId) {
         console.error(
-            'Usage: tsx scripts/reconcile-subscription.ts <subscription-id> [--provider hetzner|digitalocean|vultr] [--plan <plan-id>] [--location <location-id>]'
+            'Usage: tsx scripts/reconcile-subscription.ts <subscription-id> [--provider hetzner] [--plan <plan-id>] [--location <location-id>]'
         )
         process.exit(1)
     }
@@ -167,7 +167,6 @@ const run = async () => {
     }
 
     if (rawTypes && datacenters) {
-
         const serverTypeId = rawTypes.find((st) => st.name === planId)?.id
         if (serverTypeId) {
             const locationDcs = datacenters.filter(

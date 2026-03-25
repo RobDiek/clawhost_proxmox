@@ -135,8 +135,7 @@ const registerClawConfigHandlers = (): void => {
                     String(a.name || a.id).toLowerCase() ===
                     data.name.toLowerCase()
             )
-            if (duplicate)
-                throw new Error(t('go.agentNameAlreadyExists'))
+            if (duplicate) throw new Error(t('go.agentNameAlreadyExists'))
 
             const agentId = `${data.name.toLowerCase()}-${Date.now()}`
             const newAgent = {

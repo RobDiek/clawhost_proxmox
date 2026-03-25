@@ -4,17 +4,16 @@ import type { HeroBadgeProps } from '@/ts/Interfaces'
 import { t } from '@openclaw/i18n'
 import { SparkleIcon, PlayCircleIcon } from '@phosphor-icons/react'
 
-const HeroBadge: FC<HeroBadgeProps> = ({ label, tutorialBadge, onTutorialClick }): ReactNode => {
+const HeroBadge: FC<HeroBadgeProps> = ({
+    label,
+    tutorialBadge,
+    onTutorialClick
+}): ReactNode => {
     return (
         <div className='mb-8 flex flex-wrap items-center justify-center gap-3'>
             <div className='glow-border border-border bg-foreground/5 inline-flex items-center gap-2 rounded-full border px-4 py-2'>
-                <SparkleIcon
-                    className='h-4 w-4 text-[#ef5350]'
-                    weight='fill'
-                />
-                <span className='text-foreground/80 text-sm'>
-                    {label}
-                </span>
+                <SparkleIcon className='h-4 w-4 text-[#ef5350]' weight='fill' />
+                <span className='text-foreground/80 text-sm'>{label}</span>
             </div>
             {tutorialBadge && onTutorialClick && (
                 <button

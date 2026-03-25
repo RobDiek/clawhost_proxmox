@@ -6,7 +6,12 @@ import { CaretDownIcon } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Badge } from '@/components/ui'
 
-const FaqSection: FC<FaqSectionProps> = ({ badge, heading, description, faqs }): ReactNode => {
+const FaqSection: FC<FaqSectionProps> = ({
+    badge,
+    heading,
+    description,
+    faqs
+}): ReactNode => {
     const [openFaq, setOpenFaq] = useState<number | null>(null)
 
     return (
@@ -47,9 +52,7 @@ const FaqSection: FC<FaqSectionProps> = ({ badge, heading, description, faqs }):
                                 </span>
                                 <CaretDownIcon
                                     className={`text-muted-foreground h-5 w-5 flex-shrink-0 transition-transform duration-200 ${
-                                        openFaq === i
-                                            ? 'rotate-180'
-                                            : ''
+                                        openFaq === i ? 'rotate-180' : ''
                                     }`}
                                 />
                             </button>

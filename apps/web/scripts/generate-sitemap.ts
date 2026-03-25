@@ -52,8 +52,8 @@ const urls = [
         return {
             loc: `${SITE_URL}/${PATHS.BLOG}/${slug}`,
             lastmod:
-                (data as BlogPostFrontmatter).updatedAt
-                    ?? (data as BlogPostFrontmatter).publishedAt,
+                (data as BlogPostFrontmatter).updatedAt ??
+                (data as BlogPostFrontmatter).publishedAt,
             priority: '0.6',
             changefreq: 'monthly'
         }

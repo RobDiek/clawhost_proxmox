@@ -1,6 +1,5 @@
 import type { FC, ReactNode } from 'react'
 import type { Faq } from '@/ts/Interfaces'
-import type { ProviderType } from '@/ts/Types'
 
 import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -100,65 +99,16 @@ const Landing: FC = (): ReactNode => {
         isLoading: hetznerLoading,
         atCapacity: hetznerAtCapacity
     } = usePlans(clawProvider.hetzner)
-    const {
-        plans: digitaloceanPlans,
-        isLoading: digitaloceanLoading,
-        atCapacity: digitaloceanAtCapacity
-    } = usePlans(clawProvider.digitalocean)
-    const {
-        plans: vultrPlans,
-        isLoading: vultrLoading,
-        atCapacity: vultrAtCapacity
-    } = usePlans(clawProvider.vultr)
-
-    const isProviderUnavailable = (p: ProviderType): boolean => {
-        if (p === clawProvider.hetzner)
-            return !hetznerLoading && !hetznerPlans?.length
-        if (p === clawProvider.digitalocean)
-            return !digitaloceanLoading && !digitaloceanPlans?.length
-        if (p === clawProvider.vultr)
-            return !vultrLoading && !vultrPlans?.length
-        return false
-    }
 
     const announcementVisible =
         !phBannerVisible &&
-        ((!hetznerLoading && (!hetznerPlans?.length || hetznerAtCapacity)) ||
-            (!digitaloceanLoading &&
-                (!digitaloceanPlans?.length || digitaloceanAtCapacity)) ||
-            (!vultrLoading && (!vultrPlans?.length || vultrAtCapacity)))
+        !hetznerLoading &&
+        (!hetznerPlans?.length || hetznerAtCapacity)
 
-    const allDoneLoading =
-        !hetznerLoading && !digitaloceanLoading && !vultrLoading
+    const allDoneLoading = !hetznerLoading
 
-    const autoProvider: ProviderType = hetznerPlans?.length
-        ? clawProvider.hetzner
-        : digitaloceanPlans?.length
-          ? clawProvider.digitalocean
-          : vultrPlans?.length
-            ? clawProvider.vultr
-            : clawProvider.hetzner
-
-    const [userSelectedProvider, setUserSelectedProvider] =
-        useState<ProviderType | null>(null)
-
-    const pricingProvider =
-        userSelectedProvider && !isProviderUnavailable(userSelectedProvider)
-            ? userSelectedProvider
-            : autoProvider
-
-    const providerPlansMap: Record<string, typeof hetznerPlans> = {
-        [clawProvider.hetzner]: hetznerPlans,
-        [clawProvider.digitalocean]: digitaloceanPlans,
-        [clawProvider.vultr]: vultrPlans
-    }
-    const providerLoadingMap: Record<string, boolean> = {
-        [clawProvider.hetzner]: hetznerLoading,
-        [clawProvider.digitalocean]: digitaloceanLoading,
-        [clawProvider.vultr]: vultrLoading
-    }
-    const plans = providerPlansMap[pricingProvider]
-    const plansLoading = providerLoadingMap[pricingProvider]
+    const plans = hetznerPlans
+    const plansLoading = hetznerLoading
 
     const [activeSection, setActiveSection] = useState('')
 
@@ -295,12 +245,26 @@ const Landing: FC = (): ReactNode => {
                                 />
                             </div>
 
-                            <StatsRow stats={[
-                                { value: `$25${t('landing.perMonth')}`, label: t('landing.startingPrice') },
-                                { value: '30+', label: t('landing.locations') },
-                                { value: '45+', label: t('landing.servers') },
-                                { value: t('landing.zeroCount'), label: t('landing.zeroConfig') }
-                            ]} />
+                            <StatsRow
+                                stats={[
+                                    {
+                                        value: `$25${t('landing.perMonth')}`,
+                                        label: t('landing.startingPrice')
+                                    },
+                                    {
+                                        value: '30+',
+                                        label: t('landing.locations')
+                                    },
+                                    {
+                                        value: '45+',
+                                        label: t('landing.servers')
+                                    },
+                                    {
+                                        value: t('landing.zeroCount'),
+                                        label: t('landing.zeroConfig')
+                                    }
+                                ]}
+                            />
                         </div>
                     </div>
                 </section>
@@ -348,7 +312,9 @@ const Landing: FC = (): ReactNode => {
                         {
                             icon: LinkIcon,
                             title: t('landing.customSubdomains'),
-                            description: t('landing.customSubdomainsDescription')
+                            description: t(
+                                'landing.customSubdomainsDescription'
+                            )
                         },
                         {
                             icon: ShieldCheckIcon,
@@ -373,7 +339,9 @@ const Landing: FC = (): ReactNode => {
                         {
                             icon: PuzzlePieceIcon,
                             title: t('landing.skillsMarketplace'),
-                            description: t('landing.skillsMarketplaceDescription')
+                            description: t(
+                                'landing.skillsMarketplaceDescription'
+                            )
                         },
                         {
                             icon: ChatCircleDotsIcon,
@@ -397,9 +365,6 @@ const Landing: FC = (): ReactNode => {
                     plans={plans}
                     plansLoading={plansLoading}
                     allDoneLoading={allDoneLoading}
-                    pricingProvider={pricingProvider}
-                    onProviderChange={setUserSelectedProvider}
-                    isProviderUnavailable={isProviderUnavailable}
                 />
 
                 <ComparisonTable
@@ -407,21 +372,66 @@ const Landing: FC = (): ReactNode => {
                     heading={t('landing.comparisonTitle')}
                     description={t('landing.comparisonDescription')}
                     rows={[
-                        { us: t('nav.cloudSubtitle'), others: t('nav.goSubtitle') },
-                        { us: t('landing.comparisonOpenClawUs'), others: t('landing.comparisonOpenClawOthers') },
-                        { us: t('landing.comparisonPricingUs'), others: t('landing.comparisonPricingOthers') },
-                        { us: t('landing.comparisonOwnershipUs'), others: t('landing.comparisonOwnershipOthers') },
-                        { us: t('landing.comparisonSubdomainUs'), others: t('landing.comparisonSubdomainOthers') },
-                        { us: t('landing.comparisonInfraUs'), others: t('landing.comparisonInfraOthers') },
-                        { us: t('landing.comparisonDataUs'), others: t('landing.comparisonDataOthers') },
-                        { us: t('landing.comparisonMultipleUs'), others: t('landing.comparisonMultipleOthers') },
-                        { us: t('landing.comparisonAgentsUs'), others: t('landing.comparisonAgentsOthers') },
-                        { us: t('landing.comparisonOpenSourceUs'), others: t('landing.comparisonOpenSourceOthers') },
-                        { us: t('landing.comparisonExportUs'), others: t('landing.comparisonExportOthers') },
-                        { us: t('landing.comparisonProvidersUs'), others: t('landing.comparisonProvidersOthers') },
-                        { us: t('landing.comparisonChatUs'), others: t('landing.comparisonChatOthers') },
-                        { us: t('landing.comparisonVersionUs'), others: t('landing.comparisonVersionOthers') },
-                        { us: t('landing.comparisonTerminalUs'), others: t('landing.comparisonTerminalOthers') }
+                        {
+                            us: t('nav.cloudSubtitle'),
+                            others: t('nav.goSubtitle')
+                        },
+                        {
+                            us: t('landing.comparisonOpenClawUs'),
+                            others: t('landing.comparisonOpenClawOthers')
+                        },
+                        {
+                            us: t('landing.comparisonPricingUs'),
+                            others: t('landing.comparisonPricingOthers')
+                        },
+                        {
+                            us: t('landing.comparisonOwnershipUs'),
+                            others: t('landing.comparisonOwnershipOthers')
+                        },
+                        {
+                            us: t('landing.comparisonSubdomainUs'),
+                            others: t('landing.comparisonSubdomainOthers')
+                        },
+                        {
+                            us: t('landing.comparisonInfraUs'),
+                            others: t('landing.comparisonInfraOthers')
+                        },
+                        {
+                            us: t('landing.comparisonDataUs'),
+                            others: t('landing.comparisonDataOthers')
+                        },
+                        {
+                            us: t('landing.comparisonMultipleUs'),
+                            others: t('landing.comparisonMultipleOthers')
+                        },
+                        {
+                            us: t('landing.comparisonAgentsUs'),
+                            others: t('landing.comparisonAgentsOthers')
+                        },
+                        {
+                            us: t('landing.comparisonOpenSourceUs'),
+                            others: t('landing.comparisonOpenSourceOthers')
+                        },
+                        {
+                            us: t('landing.comparisonExportUs'),
+                            others: t('landing.comparisonExportOthers')
+                        },
+                        {
+                            us: t('landing.comparisonProvidersUs'),
+                            others: t('landing.comparisonProvidersOthers')
+                        },
+                        {
+                            us: t('landing.comparisonChatUs'),
+                            others: t('landing.comparisonChatOthers')
+                        },
+                        {
+                            us: t('landing.comparisonVersionUs'),
+                            others: t('landing.comparisonVersionOthers')
+                        },
+                        {
+                            us: t('landing.comparisonTerminalUs'),
+                            others: t('landing.comparisonTerminalOthers')
+                        }
                     ]}
                 />
 

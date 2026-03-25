@@ -69,7 +69,9 @@ const run = async () => {
         if (sub.metadata?.billingInterval) {
             interval = sub.metadata.billingInterval
         } else if (sub.currentPeriodStart && sub.currentPeriodEnd) {
-            const diffMs = sub.currentPeriodEnd.getTime() - sub.currentPeriodStart.getTime()
+            const diffMs =
+                sub.currentPeriodEnd.getTime() -
+                sub.currentPeriodStart.getTime()
             const diffDays = diffMs / (1000 * 60 * 60 * 24)
             interval = diffDays > 60 ? 'year' : 'month'
         }

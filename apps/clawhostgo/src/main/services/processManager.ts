@@ -60,10 +60,10 @@ const parseEnvFile = (envPath: string): Record<string, string> => {
 
 const killProcessOnPort = (port: number): void => {
     try {
-        const output = execSync(
-            `lsof -ti :${port}`,
-            { encoding: 'utf-8', timeout: 3000 }
-        ).trim()
+        const output = execSync(`lsof -ti :${port}`, {
+            encoding: 'utf-8',
+            timeout: 3000
+        }).trim()
         if (!output) return
         for (const pidStr of output.split('\n')) {
             const pid = parseInt(pidStr.trim(), 10)
@@ -127,7 +127,9 @@ const startGateway = async (
     const pid = child.pid
     if (!pid) {
         fs.closeSync(logFd)
-        throw new Error(t('go.failedToStartProcess', { reason: 'no PID assigned' }))
+        throw new Error(
+            t('go.failedToStartProcess', { reason: 'no PID assigned' })
+        )
     }
 
     writePid(clawDir, pid)
@@ -173,13 +175,20 @@ const startGateway = async (
                     reject(
                         new Error(
                             logs
-                                ? t('go.processExitedWithCode', { code: String(code), logs })
-                                : t('go.processExitedWithCodeNoLogs', { code: String(code) })
+                                ? t('go.processExitedWithCode', {
+                                      code: String(code),
+                                      logs
+                                  })
+                                : t('go.processExitedWithCodeNoLogs', {
+                                      code: String(code)
+                                  })
                         )
                     )
                 )
             } else {
-                settle(() => reject(new Error(t('go.processExitedUnexpectedly'))))
+                settle(() =>
+                    reject(new Error(t('go.processExitedUnexpectedly')))
+                )
             }
         })
 
@@ -188,7 +197,11 @@ const startGateway = async (
             removePid(clawDir)
             childRefs.delete(clawId)
             settle(() =>
-                reject(new Error(t('go.failedToStartProcess', { reason: err.message })))
+                reject(
+                    new Error(
+                        t('go.failedToStartProcess', { reason: err.message })
+                    )
+                )
             )
         })
     })

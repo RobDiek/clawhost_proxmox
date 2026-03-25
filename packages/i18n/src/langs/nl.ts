@@ -95,25 +95,34 @@ const nl: Translations = {
         heroTitle2: 'Lokaal. Direct.',
         badge: 'Binnenkort beschikbaar',
         comingSoon: 'Binnenkort beschikbaar',
-        description: 'Een lichte desktopclient om je OpenClaw-instanties te beheren. Deploy, monitor en beheer je claws — rechtstreeks vanaf je computer.',
+        description:
+            'Een lichte desktopclient om je OpenClaw-instanties te beheren. Deploy, monitor en beheer je claws — rechtstreeks vanaf je computer.',
         download: 'Downloaden voor {{os}}',
         downloadWindows: 'Windows',
         downloadMac: 'macOS',
         selfHostInstead: 'Zelf hosten',
         features: 'Functies',
         whyClawHostGo: 'Alles-in-één functies',
-        featuresDescription: 'Waarom we het proberen waard zijn, functies liegen hier niet.',
-        zeroConfigDescription: 'Installeren en starten. Geen serverinstellingen, geen cloudconfiguratie. OpenClaw is binnen seconden klaar.',
-        ownedDataDescription: 'Alles draait op jouw apparaat. Geen cloudservers, geen derden, geen gegevens die je apparaat verlaten.',
-        terminalAccessDescription: 'Krijg rechtstreeks vanuit de app toegang tot de terminal van je OpenClaw-instantie. Geen externe SSH-clients nodig.',
+        featuresDescription:
+            'Waarom we het proberen waard zijn, functies liegen hier niet.',
+        zeroConfigDescription:
+            'Installeren en starten. Geen serverinstellingen, geen cloudconfiguratie. OpenClaw is binnen seconden klaar.',
+        ownedDataDescription:
+            'Alles draait op jouw apparaat. Geen cloudservers, geen derden, geen gegevens die je apparaat verlaten.',
+        terminalAccessDescription:
+            'Krijg rechtstreeks vanuit de app toegang tot de terminal van je OpenClaw-instantie. Geen externe SSH-clients nodig.',
         simplePricing: 'Eenvoudige prijzen',
-        simplePricingDescription: 'Eén licentie, onbeperkt alles. Geen maandelijkse rekeningen, geen gebruikslimieten, geen verborgen kosten.',
+        simplePricingDescription:
+            'Eén licentie, onbeperkt alles. Geen maandelijkse rekeningen, geen gebruikslimieten, geen verborgen kosten.',
         localDomain: 'Aangepast lokaal domein',
-        localDomainDescription: 'Toegang tot je OpenClaw via een aangepast lokaal domein. Nette URL\'s op je eigen netwerk.',
-        secureDescription: 'Je gegevens verlaten nooit je apparaat. Volledig geïsoleerd, volledig versleuteld, volledig van jou.',
+        localDomainDescription:
+            "Toegang tot je OpenClaw via een aangepast lokaal domein. Nette URL's op je eigen netwerk.",
+        secureDescription:
+            'Je gegevens verlaten nooit je apparaat. Volledig geïsoleerd, volledig versleuteld, volledig van jou.',
         pricing: 'Prijzen',
         pricingTitle: 'Eenvoudige, eenmalige prijs',
-        pricingDescription: 'Geen abonnementen, geen verborgen kosten. Eén licentie, onbeperkt gebruik.',
+        pricingDescription:
+            'Geen abonnementen, geen verborgen kosten. Eén licentie, onbeperkt gebruik.',
         pricingPrice: '${{price}}',
         pricingLabel: 'Eenmalige betaling',
         pricingFeature1: 'Levenslange licentie',
@@ -125,7 +134,8 @@ const nl: Translations = {
         pricingCta: 'ClawHost Go ophalen',
         comparison: 'Vergelijking',
         comparisonTitle: 'Go vs Cloud',
-        comparisonDescription: 'Kies wat voor jou werkt. Go draait lokaal, Cloud draait op dedicated servers.',
+        comparisonDescription:
+            'Kies wat voor jou werkt. Go draait lokaal, Cloud draait op dedicated servers.',
         comparisonLocalUs: 'Draait volledig op je apparaat',
         comparisonLocalOthers: 'Draait op externe servers',
         comparisonPricingUs: 'Eenmalige betaling',
@@ -142,17 +152,23 @@ const nl: Translations = {
         faqHeading: 'Veelgestelde vragen',
         faqDescription: 'Alles wat je moet weten over ClawHost Go.',
         faq1Question: 'Wat is ClawHost Go?',
-        faq1Answer: 'ClawHost Go is een lichte desktopapplicatie waarmee je OpenClaw lokaal op je eigen computer kunt draaien. Geen cloudservers nodig — installeren, starten en binnen seconden OpenClaw gebruiken.',
+        faq1Answer:
+            'ClawHost Go is een lichte desktopapplicatie waarmee je OpenClaw lokaal op je eigen computer kunt draaien. Geen cloudservers nodig — installeren, starten en binnen seconden OpenClaw gebruiken.',
         faq2Question: 'Hoe verschilt Go van ClawHost Cloud?',
-        faq2Answer: 'ClawHost Cloud deployt OpenClaw op dedicated externe servers met 24/7 uptime en wereldwijde toegang. ClawHost Go draait alles lokaal op je apparaat — ideaal voor privacy, offline gebruik en eenvoudige opstellingen.',
+        faq2Answer:
+            'ClawHost Cloud deployt OpenClaw op dedicated externe servers met 24/7 uptime en wereldwijde toegang. ClawHost Go draait alles lokaal op je apparaat — ideaal voor privacy, offline gebruik en eenvoudige opstellingen.',
         faq3Question: 'Heb ik een internetverbinding nodig?',
-        faq3Answer: 'ClawHost Go werkt offline voor lokaal gebruik. Een internetverbinding is alleen nodig voor de eerste installatie, updates en functies die externe API-aanroepen vereisen.',
+        faq3Answer:
+            'ClawHost Go werkt offline voor lokaal gebruik. Een internetverbinding is alleen nodig voor de eerste installatie, updates en functies die externe API-aanroepen vereisen.',
         faq4Question: 'Is de licentie een eenmalige betaling?',
-        faq4Answer: 'Ja. Je betaalt eenmalig en krijgt levenslange toegang tot ClawHost Go, inclusief alle toekomstige updates. Geen abonnementen, geen terugkerende kosten.',
+        faq4Answer:
+            'Ja. Je betaalt eenmalig en krijgt levenslange toegang tot ClawHost Go, inclusief alle toekomstige updates. Geen abonnementen, geen terugkerende kosten.',
         faq5Question: 'Welke besturingssystemen worden ondersteund?',
-        faq5Answer: 'ClawHost Go ondersteunt Windows en macOS. Beide platformen krijgen dezelfde functies en ontvangen gelijktijdig updates.',
+        faq5Answer:
+            'ClawHost Go ondersteunt Windows en macOS. Beide platformen krijgen dezelfde functies en ontvangen gelijktijdig updates.',
         faq6Question: 'Kan ik later overstappen van Go naar Cloud?',
-        faq6Answer: 'Absoluut. Je kunt je OpenClaw-configuratie exporteren vanuit Go en op elk moment deployen op ClawHost Cloud. Beide platformen zijn volledig compatibel.',
+        faq6Answer:
+            'Absoluut. Je kunt je OpenClaw-configuratie exporteren vanuit Go en op elk moment deployen op ClawHost Cloud. Beide platformen zijn volledig compatibel.',
         statsPrice: '${{price}}',
         statsLifetime: 'Levenslang',
         statsOneTime: 'Eenmalig',
@@ -162,7 +178,8 @@ const nl: Translations = {
         statsZero: 'Nul',
         statsZeroConfig: 'Geen configuratie',
         ctaTitle: 'Draai OpenClaw lokaal',
-        ctaDescription: 'Eenmalige betaling, levenslange licentie. Deploy OpenClaw op je eigen computer — geen cloud, geen abonnementen, geen limieten. Jouw gegevens, jouw regels.',
+        ctaDescription:
+            'Eenmalige betaling, levenslange licentie. Deploy OpenClaw op je eigen computer — geen cloud, geen abonnementen, geen limieten. Jouw gegevens, jouw regels.',
         ctaButton: 'ClawHost Go ophalen',
         joinWaitlist: 'Wachtlijst',
         joinedWaitlist: 'Op de wachtlijst',
@@ -174,28 +191,37 @@ const nl: Translations = {
         updateDownload: 'Downloaden',
         updateDismiss: 'Later',
         clawNotFound: 'Claw niet gevonden!',
-        invalidClawName: 'Ongeldige clawnaam. Gebruik alleen letters, cijfers en koppeltekens!',
+        invalidClawName:
+            'Ongeldige clawnaam. Gebruik alleen letters, cijfers en koppeltekens!',
         clawNameAlreadyExists: 'Er bestaat al een claw met deze naam!',
-        invalidSubdomain: 'Ongeldig subdomein. Gebruik 3-20 kleine letters en cijfers!',
+        invalidSubdomain:
+            'Ongeldig subdomein. Gebruik 3-20 kleine letters en cijfers!',
         subdomainAlreadyInUse: 'Dit subdomein is al in gebruik!',
         clawDirectoryNotFound: 'Claw-map niet gevonden!',
-        noVersionInstalled: 'Geen OpenClaw-versie geïnstalleerd. Ga naar het tabblad Versies en installeer er eerst een!',
+        noVersionInstalled:
+            'Geen OpenClaw-versie geïnstalleerd. Ga naar het tabblad Versies en installeer er eerst een!',
         failedToStartClaw: 'Claw starten mislukt!',
         noVersionAssigned: 'Geen OpenClaw-versie toegewezen aan deze claw!',
         invalidAgentName: 'Ongeldige agentnaam!',
         agentNameAlreadyExists: 'Er bestaat al een agent met deze naam!',
         invalidPath: 'Ongeldig pad!',
         fileNotFound: 'Bestand niet gevonden!',
-        purchasingNotAvailable: 'Aankopen zijn niet beschikbaar in lokale modus!',
+        purchasingNotAvailable:
+            'Aankopen zijn niet beschikbaar in lokale modus!',
         exportFailed: 'Export mislukt!',
-        versionNotInstalled: 'OpenClaw-versie {{version}} is niet geïnstalleerd!',
+        versionNotInstalled:
+            'OpenClaw-versie {{version}} is niet geïnstalleerd!',
         failedToStartProcess: 'Proces starten mislukt: {{reason}}!',
-        processExitedImmediately: 'Proces onmiddellijk beëindigd. Logs:\n{{logs}}',
-        processExitedImmediatelyNoLogs: 'Proces onmiddellijk beëindigd na het starten!',
-        processExitedWithCode: 'Proces beëindigd met code {{code}}. Logs:\n{{logs}}',
+        processExitedImmediately:
+            'Proces onmiddellijk beëindigd. Logs:\n{{logs}}',
+        processExitedImmediatelyNoLogs:
+            'Proces onmiddellijk beëindigd na het starten!',
+        processExitedWithCode:
+            'Proces beëindigd met code {{code}}. Logs:\n{{logs}}',
         processExitedWithCodeNoLogs: 'Proces beëindigd met code {{code}}!',
         processExitedUnexpectedly: 'Proces onverwacht beëindigd!',
-        failedToInstallVersion: 'Installatie van OpenClaw {{version}} mislukt: {{reason}}!',
+        failedToInstallVersion:
+            'Installatie van OpenClaw {{version}} mislukt: {{reason}}!',
         oauthCancelled: 'Authenticatie geannuleerd!',
         diskFull: 'Geen ruimte meer op het apparaat!',
         permissionDenied: 'Toegang geweigerd!',
@@ -236,7 +262,8 @@ const nl: Translations = {
     },
     errors: {
         somethingWentWrong: 'Er is iets misgegaan!',
-        couldNotLoadData: 'We konden de gegevens niet laden. Probeer het opnieuw!',
+        couldNotLoadData:
+            'We konden de gegevens niet laden. Probeer het opnieuw!',
         notFound: 'Pagina niet gevonden!',
         pageNotFoundDescription:
             'De pagina die je zoekt bestaat niet of is verplaatst.',
@@ -256,7 +283,8 @@ const nl: Translations = {
         invalidLocation: 'Selecteer een locatie!',
         failedToGenerateKeyPair:
             'Sleutelpaar genereren mislukt. Genereer de sleutels lokaal!',
-        unableToLoadPricing: 'Prijzen laden mislukt. Probeer het later opnieuw!',
+        unableToLoadPricing:
+            'Prijzen laden mislukt. Probeer het later opnieuw!',
         noPasswordAvailable: 'Geen wachtwoord beschikbaar voor deze claw!',
         clawLimitReached:
             'Je hebt de limiet van {{max}} claws bereikt. Neem contact op met support om deze limiet te verhogen!',
@@ -280,14 +308,16 @@ const nl: Translations = {
             'Volumegrootte moet tussen {{min}} en {{max}} GB zijn!',
         paymentNotConfigured: 'Betaling niet geconfigureerd voor dit plan!',
         invalidSshKeyFormat: 'Ongeldig SSH publieke sleutelformaat!',
-        sshKeyInUse: 'Deze SSH-sleutel wordt momenteel gebruikt door een of meer claws!',
+        sshKeyInUse:
+            'Deze SSH-sleutel wordt momenteel gebruikt door een of meer claws!',
         inputTooLong: 'Invoer overschrijdt de maximaal toegestane lengte!',
         invalidEnvVars: 'Ongeldige omgevingsvariabele namen of waarden!',
         invalidEmailFormat: 'Ongeldig e-mailformaat!',
         plusAddressingNotAllowed:
             'Plus-adressering is niet toegestaan voor e-mailinlog!',
         invalidRedirectUrl: 'Ongeldige redirect-URL!',
-        fileTooLarge: 'Bestandsinhoud overschrijdt de maximaal toegestane grootte!',
+        fileTooLarge:
+            'Bestandsinhoud overschrijdt de maximaal toegestane grootte!',
         nameAndKeyRequired: 'Naam en publieke sleutel zijn vereist!',
         nameTooLong: 'Naam mag maximaal {{max}} tekens bevatten!',
         noBillingAccount: 'Geen facturatieaccount gevonden!',
@@ -308,7 +338,8 @@ const nl: Translations = {
         planBelowMinimumMemory:
             'Dit plan voldoet niet aan de minimale geheugenvereiste!',
         invalidLocation: 'Ongeldige locatie geselecteerd!',
-        planNotAvailableAtLocation: 'Dit plan is niet beschikbaar op de geselecteerde locatie!',
+        planNotAvailableAtLocation:
+            'Dit plan is niet beschikbaar op de geselecteerde locatie!',
         failedToSyncClaw: 'Serverstatus synchroniseren mislukt!',
         failedToProvisionClaw: 'Claw inrichten mislukt!',
         failedToInitiatePurchase: 'Aankoop starten mislukt!',
@@ -334,7 +365,8 @@ const nl: Translations = {
         failedToInstallVersion: 'Versie installeren mislukt!',
         installVersionSuccess: 'Versie succesvol geïnstalleerd.',
         invalidVersion: 'Ongeldig versieformaat!',
-        outdatedVersion: 'Deze versie is verouderd en kan niet worden geïnstalleerd!',
+        outdatedVersion:
+            'Deze versie is verouderd en kan niet worden geïnstalleerd!',
         failedToGetDiagnostics: 'Verbinding met de instantie mislukt!',
         failedToGetDiagnosticsDescription:
             'Kon diagnostiek niet ophalen. De instantie is mogelijk offline of aan het opstarten.',
@@ -406,7 +438,8 @@ const nl: Translations = {
         volumePricingFetched: 'Volumeprijzen succesvol opgehaald.',
         planAvailabilityFetched: 'Planbeschikbaarheid succesvol opgehaald.',
         agentsFetched: 'Agents succesvol opgehaald.',
-        agentsFetchFailed: 'Kon de instantie niet bereiken om agents op te halen!',
+        agentsFetchFailed:
+            'Kon de instantie niet bereiken om agents op te halen!',
         agentConfigFetched: 'Agentconfiguratie succesvol opgehaald.',
         agentConfigUpdated: 'Agentconfiguratie succesvol bijgewerkt.',
         agentConfigUpdateFailed: 'Agentconfiguratie bijwerken mislukt!',
@@ -414,7 +447,8 @@ const nl: Translations = {
         agentCreateFailed: 'Kon agent niet aanmaken op de instantie!',
         agentDeleted: 'Agent succesvol verwijderd.',
         agentDeleteFailed: 'Kon agent niet verwijderen van de instantie!',
-        cannotDeleteMainAgent: 'Kan de enige overgebleven agent niet verwijderen!',
+        cannotDeleteMainAgent:
+            'Kan de enige overgebleven agent niet verwijderen!',
         agentNameInvalid:
             'Agentnaam mag alleen letters, cijfers en koppeltekens bevatten!',
         agentNameDuplicate: 'Er bestaat al een agent met deze naam!',
@@ -433,18 +467,21 @@ const nl: Translations = {
         channelsUpdated: 'Kanalen succesvol bijgewerkt.',
         channelsUpdateFailed: 'Kanalen bijwerken mislukt!',
         channelsFetchFailed: 'Kanalen ophalen mislukt!',
-        channelMissingRequired: 'Verplichte velden ontbreken voor ingeschakeld kanaal!',
+        channelMissingRequired:
+            'Verplichte velden ontbreken voor ingeschakeld kanaal!',
         whatsappPairStarted: 'WhatsApp-koppeling gestart.',
         whatsappPairFailed: 'WhatsApp-koppeling mislukt!',
         whatsappAlreadyPaired: 'WhatsApp is al gekoppeld!',
-        whatsappVersionUnsupported: 'Deze versie ondersteunt geen kanaalconfiguratie vanuit het dashboard. Gebruik het Terminal-tabblad om handmatig te configureren of werk OpenClaw bij.',
+        whatsappVersionUnsupported:
+            'Deze versie ondersteunt geen kanaalconfiguratie vanuit het dashboard. Gebruik het Terminal-tabblad om handmatig te configureren of werk OpenClaw bij.',
         bindingsFetched: 'Bindingen succesvol opgehaald.',
         bindingsFetchFailed: 'Bindingen ophalen mislukt!',
         bindingsUpdated: 'Bindingen succesvol bijgewerkt.',
         bindingsUpdateFailed: 'Bindingen bijwerken mislukt!',
         bindingsInvalidFormat: 'Ongeldig bindingsformaat!',
         bindingsInvalidChannel: 'Niet-ondersteund kanaal in binding!',
-        bindingsDuplicateChannel: 'Een kanaal kan slechts aan één agent worden gekoppeld!',
+        bindingsDuplicateChannel:
+            'Een kanaal kan slechts aan één agent worden gekoppeld!',
         skillsFetched: 'Skills succesvol opgehaald.',
         skillsUpdated: 'Skills succesvol bijgewerkt.',
         skillsUpdateFailed: 'Skills bijwerken mislukt!',
@@ -473,7 +510,8 @@ const nl: Translations = {
         authMethodConnected: 'Authenticatiemethode succesvol verbonden.',
         authMethodDisconnected: 'Authenticatiemethode succesvol ontkoppeld.',
         failedToConnectAuthMethod: 'Authenticatiemethode verbinden mislukt!',
-        failedToDisconnectAuthMethod: 'Authenticatiemethode ontkoppelen mislukt!',
+        failedToDisconnectAuthMethod:
+            'Authenticatiemethode ontkoppelen mislukt!',
         textRequired: 'Tekst is vereist!',
         voiceNotFound: 'Stemmodel niet gevonden!',
         ttsGenerationFailed: 'Spraak genereren mislukt!',
@@ -484,7 +522,8 @@ const nl: Translations = {
         waitlistJoined: 'Succesvol aangemeld voor de wachtlijst.',
         waitlistAlreadyJoined: 'Al op de wachtlijst.',
         waitlistJoinFailed: 'Aanmelden voor wachtlijst mislukt!',
-        waitlistRateLimited: 'Je gaat te snel! Probeer het opnieuw over {{seconds}} {{unit}}.',
+        waitlistRateLimited:
+            'Je gaat te snel! Probeer het opnieuw over {{seconds}} {{unit}}.',
         waitlistStatusFetched: 'Wachtlijststatus opgehaald.',
         waitlistCheckFailed: 'Wachtlijststatus controleren mislukt!'
     },
@@ -499,10 +538,8 @@ const nl: Translations = {
         changelogHeading: 'Wat is er nieuw',
         changelogButton: 'Changelog bekijken',
         changelogVisitButton: 'ClawHost bezoeken',
-        changelogFooter:
-            'Je ontvangt dit omdat je een ClawHost-account hebt.',
-        featureFooter:
-            'Je ontvangt dit omdat je een ClawHost-account hebt.',
+        changelogFooter: 'Je ontvangt dit omdat je een ClawHost-account hebt.',
+        featureFooter: 'Je ontvangt dit omdat je een ClawHost-account hebt.',
         features: {
             terminal: {
                 subject: 'Wist je dat? Je hebt een webterminal',
@@ -521,7 +558,8 @@ const nl: Translations = {
                 cta: 'Logs bekijken'
             },
             channels: {
-                subject: 'Wist je dat? Verbind agents met Discord, Slack en meer',
+                subject:
+                    'Wist je dat? Verbind agents met Discord, Slack en meer',
                 preview: 'Koppel je AI-agents aan communicatiekanalen',
                 heading: 'Je agents, overal',
                 description:
@@ -529,7 +567,8 @@ const nl: Translations = {
                 cta: 'Kanalen instellen'
             },
             fileExplorer: {
-                subject: 'Wist je dat? Bewerk serverbestanden vanuit je browser',
+                subject:
+                    'Wist je dat? Bewerk serverbestanden vanuit je browser',
                 preview: 'Blader, lees en bewerk bestanden zonder SSH',
                 heading: 'Je bestanden, binnen handbereik',
                 description:
@@ -554,7 +593,8 @@ const nl: Translations = {
             },
             voiceMode: {
                 subject: 'Wist je dat? Praat met je agents via spraak',
-                preview: 'Gebruik spraak-naar-tekst en tekst-naar-spraak met je agents',
+                preview:
+                    'Gebruik spraak-naar-tekst en tekst-naar-spraak met je agents',
                 heading: 'Spreek, typ niet',
                 description:
                     'Gebruik de spraakmodus om handsfree met je AI-agents te praten. Spraak-naar-tekst voor invoer, tekst-naar-spraak voor antwoorden \u2014 kies uit meerdere stemmen.',
@@ -562,7 +602,8 @@ const nl: Translations = {
             },
             skills: {
                 subject: 'Wist je dat? 5.000+ skills op ClawHub',
-                preview: 'Blader en installeer communityskills met \u00e9\u00e9n klik',
+                preview:
+                    'Blader en installeer communityskills met \u00e9\u00e9n klik',
                 heading: 'Breid je agents direct uit',
                 description:
                     'Blader door meer dan 5.000 kant-en-klare skills op ClawHub en installeer ze met \u00e9\u00e9n klik. Zoeken op het web, code-uitvoering, afbeeldingen genereren en nog veel meer.',
@@ -586,7 +627,8 @@ const nl: Translations = {
             },
             diagnostics: {
                 subject: 'Wist je dat? Ingebouwde gezondheidscontroles',
-                preview: 'Monitor de gezondheid van je server vanuit het dashboard',
+                preview:
+                    'Monitor de gezondheid van je server vanuit het dashboard',
                 heading: 'Weet dat je server gezond is',
                 description:
                     'Voer diagnostiek uit op je claw om de servicestatus, geheugengebruik en poortbeschikbaarheid te controleren. Ontdek problemen voordat ze groter worden.',
@@ -602,19 +644,12 @@ const nl: Translations = {
             },
             exportConfig: {
                 subject: 'Wist je dat? Exporteer je claw-configuratie',
-                preview: 'Download je claw-instellingen als een draagbare configuratie',
+                preview:
+                    'Download je claw-instellingen als een draagbare configuratie',
                 heading: 'Neem je configuratie mee',
                 description:
                     'Exporteer je claw-configuratie en instellingen als een downloadbaar bestand. Maak een back-up van je setup of gebruik het om je omgeving te repliceren.',
                 cta: 'Configuratie exporteren'
-            },
-            multiProvider: {
-                subject: 'Wist je dat? Deploy op 3 cloudproviders',
-                preview: 'Kies tussen Hetzner, DigitalOcean en Vultr',
-                heading: 'Jouw cloud, jouw keuze',
-                description:
-                    'Deploy je claws op Hetzner, DigitalOcean of Vultr. Vergelijk prijzen, locaties en specificaties \u2014 en kies de provider die bij je past.',
-                cta: 'Providers vergelijken'
             },
             multiLanguage: {
                 subject: 'Wist je dat? ClawHost spreekt jouw taal',
@@ -626,7 +661,8 @@ const nl: Translations = {
             },
             subdomain: {
                 subject: 'Wist je dat? Elke claw krijgt een eigen subdomein',
-                preview: 'Toegang tot je claw vanaf overal met een aangepaste URL',
+                preview:
+                    'Toegang tot je claw vanaf overal met een aangepaste URL',
                 heading: 'Toegang vanaf overal',
                 description:
                     'Elke claw krijgt een uniek subdomein zodat je overal toegang hebt tot je OpenClaw-instantie. Geen port forwarding, geen lokale netwerken \u2014 gewoon een URL.',
@@ -641,8 +677,10 @@ const nl: Translations = {
                 cta: 'Donkere modus proberen'
             },
             reinstall: {
-                subject: 'Wist je dat? Herinstalleer OpenClaw met \u00e9\u00e9n klik',
-                preview: 'Reset je OpenClaw-instantie zonder je server te verliezen',
+                subject:
+                    'Wist je dat? Herinstalleer OpenClaw met \u00e9\u00e9n klik',
+                preview:
+                    'Reset je OpenClaw-instantie zonder je server te verliezen',
                 heading: 'Nieuwe start, dezelfde server',
                 description:
                     'Herinstalleer de OpenClaw-runtime op je bestaande server met \u00e9\u00e9n klik. Je server blijft intact \u2014 alleen OpenClaw krijgt een schone installatie.',
@@ -650,7 +688,8 @@ const nl: Translations = {
             },
             yearlyPlans: {
                 subject: 'Wist je dat? Bespaar met jaarplannen',
-                preview: 'Schakel over naar jaarlijkse facturering en betaal minder',
+                preview:
+                    'Schakel over naar jaarlijkse facturering en betaal minder',
                 heading: 'Betaal minder, krijg meer',
                 description:
                     'Schakel over naar jaarlijkse facturering en bespaar op je claw-abonnement. Dezelfde geweldige service, lagere prijs \u2014 annuleer wanneer je wilt.',
@@ -672,7 +711,8 @@ const nl: Translations = {
         emailAddress: 'E-mailadres',
         emailPlaceholder: 'voorbeeld@clawhost.cloud',
         continueWithEmail: 'Doorgaan met e-mail',
-        otpDescription: 'We sturen je een code om in te loggen. Geen wachtwoord nodig.',
+        otpDescription:
+            'We sturen je een code om in te loggen. Geen wachtwoord nodig.',
         welcomeBack: 'Welkom terug.',
         resendIn: 'Opnieuw verzenden in {{seconds}}s',
         resendCode: 'Code opnieuw verzenden',
@@ -704,7 +744,8 @@ const nl: Translations = {
         displayName: 'Weergavenaam',
         enterYourName: 'Voer je naam in',
         emailAddress: 'E-mailadres',
-        emailNotEditable: 'E-mail is niet bewerkbaar. Neem contact op met support.',
+        emailNotEditable:
+            'E-mail is niet bewerkbaar. Neem contact op met support.',
         profileUpdatedSuccessfully: 'Profiel succesvol bijgewerkt.',
         billingHistory: 'Factureringsgeschiedenis',
         billingDescription: 'Je betalingsgeschiedenis en facturen',
@@ -753,9 +794,11 @@ const nl: Translations = {
     },
     billing: {
         title: 'Facturering',
-        description: 'Bekijk je betalingsgeschiedenis en beheer je facturering.',
+        description:
+            'Bekijk je betalingsgeschiedenis en beheer je facturering.',
         billingHistory: 'Facturering',
-        manageYourBilling: 'Bekijk je betalingsgeschiedenis en beheer facturen.',
+        manageYourBilling:
+            'Bekijk je betalingsgeschiedenis en beheer facturen.',
         billingDescription: 'Je betalingsgeschiedenis en facturen',
         date: 'Datum',
         product: 'Product',
@@ -785,7 +828,8 @@ const nl: Translations = {
         title: 'Licentie',
         description: 'Beheer je OpenClaw-licentie.',
         pageTitle: 'Licentie',
-        pageDescription: 'Koop je licentie voor het zelf hosten van OpenClaw-instanties lokaal met onze Go-app.',
+        pageDescription:
+            'Koop je licentie voor het zelf hosten van OpenClaw-instanties lokaal met onze Go-app.',
         planName: 'ClawHost Go Licentie',
         oneTimePurchase: 'Eenmalige aankoop',
         price: '${{price}}',
@@ -803,15 +847,19 @@ const nl: Translations = {
         featureSupport: 'Prioriteitsondersteuning',
         featureCloud: 'Alle cloudfuncties, lokaal',
         whatsIncluded: 'Wat is inbegrepen',
-        permanentNote: 'Licenties zijn permanent en niet-herroepbaar. Eenmaal gekocht, bezit je het voor altijd.',
+        permanentNote:
+            'Licenties zijn permanent en niet-herroepbaar. Eenmaal gekocht, bezit je het voor altijd.',
         gateTitle: 'Licentie vereist',
-        gateDescription: 'Je hebt een ClawHost Go Licentie nodig om OpenClaw-instanties lokaal te deployen en te beheren.'
+        gateDescription:
+            'Je hebt een ClawHost Go Licentie nodig om OpenClaw-instanties lokaal te deployen en te beheren.'
     },
     network: {
         unstable: 'Onstabiele verbinding',
-        unstableDescription: 'Je internetverbinding is onstabiel. Sommige functies werken mogelijk niet naar verwachting.',
+        unstableDescription:
+            'Je internetverbinding is onstabiel. Sommige functies werken mogelijk niet naar verwachting.',
         offline: 'Geen internetverbinding',
-        offlineDescription: 'Je bent momenteel offline. Functies die internettoegang vereisen, zijn niet beschikbaar.',
+        offlineDescription:
+            'Je bent momenteel offline. Functies die internettoegang vereisen, zijn niet beschikbaar.',
         dismiss: 'Sluiten'
     },
     dashboard: {
@@ -887,7 +935,8 @@ const nl: Translations = {
         hardDeleteConfirmation:
             'Weet je zeker dat je deze claw onmiddellijk wilt verwijderen? Je verliest de resterende tijd van je huidige factureringsperiode. Deze actie kan niet ongedaan worden gemaakt.',
         diagnostics: 'Diagnostiek',
-        diagnosticsDescription: 'Controleer de gezondheid van je OpenClaw-instantie.',
+        diagnosticsDescription:
+            'Controleer de gezondheid van je OpenClaw-instantie.',
         diagnosticsStatus: 'Status',
         diagnosticsLogs: 'Logs',
         diagnosticsRepair: 'Repareren',
@@ -899,7 +948,8 @@ const nl: Translations = {
         diagnosticsLoading: 'Verbinden met instantie...',
         diagnosticsNoLogs:
             'Geen logs beschikbaar. Start je instantie om logs te genereren.',
-        diagnosticsIssueDetected: 'Er is een probleem gedetecteerd met je instantie.',
+        diagnosticsIssueDetected:
+            'Er is een probleem gedetecteerd met je instantie.',
         diagnosticsHealthy: 'Je instantie draait normaal.',
         diagnosticsPort: 'Poort 18789',
         diagnosticsMemory: 'Geheugen',
@@ -909,7 +959,8 @@ const nl: Translations = {
         fileExplorerRoot: 'openclaw',
         fileExplorerDescription:
             'Blader en bewerk je OpenClaw-configuratiebestanden. Verkeerde wijzigingen kunnen je instantie kapotmaken.',
-        fileExplorerSelectFile: 'Selecteer een bestand om de inhoud te bekijken.',
+        fileExplorerSelectFile:
+            'Selecteer een bestand om de inhoud te bekijken.',
         fileExplorerReadOnly: 'Alleen-lezen',
         fileExplorerSave: 'Opslaan',
         fileExplorerSaved: 'Bestand opgeslagen.',
@@ -924,7 +975,8 @@ const nl: Translations = {
         startFailed: 'Claw starten mislukt!',
         renameSuccess: 'Claw succesvol hernoemd.',
         renameFailed: 'Claw hernoemen mislukt!',
-        renameInvalidChars: 'Alleen letters, cijfers en streepjes zijn toegestaan!',
+        renameInvalidChars:
+            'Alleen letters, cijfers en streepjes zijn toegestaan!',
         reinstallInstance: 'Instantie herinstalleren',
         reinstallClaw: 'Instantie herinstalleren',
         reinstallClawConfirmation:
@@ -936,7 +988,8 @@ const nl: Translations = {
         exportStarted: 'Export wordt voorbereid, dit kan even duren...',
         exportSuccess: 'Claw succesvol ge\u00ebxporteerd.',
         exportFailed: 'Claw-gegevens exporteren mislukt!',
-        exportRateLimited: 'Je kunt opnieuw exporteren over {{minutes}} minuten.',
+        exportRateLimited:
+            'Je kunt opnieuw exporteren over {{minutes}} minuten.',
         exportRateLimitedSeconds:
             'Je kunt opnieuw exporteren over {{seconds}} seconden.',
         configuringTooltip:
@@ -978,10 +1031,10 @@ const nl: Translations = {
     chat: {
         explorer: 'Verkenner',
         selectAgent: 'Geen selectie',
-        selectAgentDescription:
-            'Selecteer een claw of agent uit de zijbalk.',
+        selectAgentDescription: 'Selecteer een claw of agent uit de zijbalk.',
         noAgents: 'Geen agents beschikbaar',
-        noAgentsDescription: 'Deploy een claw om te beginnen met chatten met agents.',
+        noAgentsDescription:
+            'Deploy een claw om te beginnen met chatten met agents.',
         openSidebar: 'Zijbalk openen',
         clawNotReady: 'Claw is nog niet gereed',
         notConfigured: 'Niet geconfigureerd',
@@ -995,12 +1048,11 @@ const nl: Translations = {
         description: 'Configureer je server en begin met bouwen met AI.',
         clawName: 'Naam',
         clawNamePlaceholder: 'bijv. cozy-panda',
-        clawNameInvalidChars: 'Alleen letters, cijfers en streepjes zijn toegestaan!',
+        clawNameInvalidChars:
+            'Alleen letters, cijfers en streepjes zijn toegestaan!',
         autoGenerateNameHint: 'Laat leeg om automatisch een naam te genereren.',
         provider: 'Provider',
         providerHetzner: 'Hetzner',
-        providerDigitalOcean: 'DigitalOcean',
-        providerVultr: 'Vultr',
         providerLocal: 'Lokaal',
         providerAws: 'AWS',
         comingSoon: 'Binnenkort',
@@ -1026,7 +1078,8 @@ const nl: Translations = {
         sshKeyOptional: 'SSH-sleutel',
         noSshKeyPasswordOnly: 'Geen SSH-sleutel (alleen wachtwoord)',
         noSshKeysConfigured: 'Geen SSH-sleutels geconfigureerd',
-        addSshKeyForPasswordlessLogin: 'Voeg een SSH-sleutel toe voor inloggen zonder wachtwoord',
+        addSshKeyForPasswordlessLogin:
+            'Voeg een SSH-sleutel toe voor inloggen zonder wachtwoord',
         additionalStorageOptional: 'Extra opslag',
         volumeStorage: 'Volume-opslag',
         vpsServer: 'VPS-server',
@@ -1072,7 +1125,8 @@ const nl: Translations = {
         noSshKeysYet: 'Geen SSH-sleutels',
         noSshKeysDescription:
             'Geen SSH-sleutels toegevoegd aan je account. Je kunt ze op elk moment toevoegen en verbinden met je gedeployde claws.',
-        deleteConfirmation: 'Weet je zeker dat je deze SSH-sleutel wilt verwijderen?',
+        deleteConfirmation:
+            'Weet je zeker dat je deze SSH-sleutel wilt verwijderen?',
         deleteKey: 'SSH-sleutel verwijderen',
         deleteKeyConfirmation: 'Weet je zeker dat je wilt verwijderen',
         sshKeyAddedSuccessfully: 'SSH-sleutel succesvol toegevoegd.',
@@ -1146,7 +1200,8 @@ const nl: Translations = {
             'Volledige toegang tot OpenClaw en de VPS, zonder limieten op wat je kunt bereiken.',
         features: 'Functies',
         whyClawHost: 'Alles-in-\u00e9\u00e9n functies',
-        featuresDescription: 'Waarom we het proberen waard zijn, functies liegen niet.',
+        featuresDescription:
+            'Waarom we het proberen waard zijn, functies liegen niet.',
         zeroConfigDescription:
             'Sla uren server- en OpenClaw-configuratie over. Het is voorge\u00efnstalleerd en klaar binnen minuten.',
         ownedData: '100% eigen data',
@@ -1157,7 +1212,7 @@ const nl: Translations = {
             'Dedicated VPS-resources betekenen geen throttling, volledige bandbreedte en razendsnel internet.',
         globalLocations: 'Wereldwijde locaties',
         globalLocationsDescription:
-            'Deploy OpenClaw in 30+ wereldwijde regio\'s op Hetzner, DigitalOcean of Vultr en kies de locatie die het dichtst bij je is.',
+            "Implementeer OpenClaw in meerdere wereldwijde regio's op Hetzner Cloud en kies de locatie die het dichtst bij je is.",
         fullSshAccess: 'Directe SSH-toegang',
         fullSshAccessDescription:
             'Krijg direct toegang tot je serverterminal vanuit het platform. Geen externe SSH-clients nodig.',
@@ -1214,7 +1269,7 @@ const nl: Translations = {
         pricing: 'Prijzen',
         simpleTransparentPricing: 'Eenvoudige, transparante prijzen',
         pricingDescription:
-            'Kies uit 45+ servers bij onze providers op basis van je behoeften.',
+            'Kies uit onze Hetzner Cloud servers op basis van je behoeften.',
         planColumn: 'Server',
         vCpuColumn: 'vCPU',
         ramColumn: 'RAM',
@@ -1258,16 +1313,16 @@ const nl: Translations = {
             'Nee. Wij regelen alle infrastructuur, installatie en onderhoud. Je kunt OpenClaw configureren en beheren via de UI, verbinden met kanalen en gebruik aanpassen \u2014 zonder servers of infrastructuur aan te raken.',
         faq5Question: 'Welke locaties zijn beschikbaar?',
         faq5Answer:
-            'We bieden 30+ serverlocaties wereldwijd bij Hetzner, DigitalOcean en Vultr, inclusief VS, Europa, Azi\u00eb en meer. Je kunt OpenClaw op meerdere servers in verschillende regio\'s deployen indien nodig.',
+            "We bieden meerdere serverlocaties wereldwijd via Hetzner Cloud, waaronder de VS, Europa en meer. Je kunt OpenClaw indien nodig op meerdere servers in verschillende regio's implementeren.",
         faq6Question: 'Hoeveel kost het?',
         faq6Answer:
-            'De prijs is gebaseerd op de server die je selecteert. Met 45+ serveropties van instapniveau tot hoge prestaties bij drie providers, kies je wat bij je behoeften en budget past.',
+            'De prijzen zijn afhankelijk van de server die je selecteert. Met meerdere serveropties van instapniveau tot hoge prestaties kies je wat past bij je behoeften en budget.',
         faq7Question: 'Kan ik mijn server direct benaderen?',
         faq7Answer:
             'Ja. Naast OpenClaw-toegang via subdomein-URL heb je volledige toegang tot de server en de onderliggende infrastructuur, wat je complete vrijheid geeft om alles aan te passen en te draaien wat je nodig hebt.',
         faq8Question: 'Waar worden de servers gehost?',
         faq8Answer:
-            'Alle servers worden gehost op Hetzner Cloud, DigitalOcean en Vultr, vertrouwde cloudproviders die bekend staan om hoogwaardige hardware en uitstekende uptime, gebruikt door grootschalige infrastructuren.',
+            'Alle servers worden gehost op Hetzner Cloud, een betrouwbare cloudprovider die bekendstaat om krachtige hardware en uitstekende beschikbaarheid, gebruikt door grootschalige infrastructuren.',
         comparison: 'Vergelijking',
         comparisonTitle: 'Hoe wij anders zijn',
         comparisonDescription:
@@ -1276,7 +1331,8 @@ const nl: Translations = {
         comparisonOpenClawUs: 'Volledige toegang tot OpenClaw',
         comparisonOpenClawOthers: 'Alleen chat, geen beheer',
         comparisonPricingUs: 'Transparante prijzen, duidelijke specificaties',
-        comparisonPricingOthers: 'Verborgen specificaties, onduidelijke prijzen',
+        comparisonPricingOthers:
+            'Verborgen specificaties, onduidelijke prijzen',
         comparisonOwnershipUs: 'Je bezit je server volledig',
         comparisonOwnershipOthers: 'Je bezit niets',
         comparisonSubdomainUs: 'Toegang via subdomein',
@@ -1340,7 +1396,8 @@ const nl: Translations = {
         title: 'Changelog',
         description:
             'Volg updates, nieuwe functies en verbeteringen aan ClawHost.',
-        subtitle: 'Alle updates, nieuwe functies en verbeteringen aan ClawHost.',
+        subtitle:
+            'Alle updates, nieuwe functies en verbeteringen aan ClawHost.',
         upcomingRelease: 'In ontwikkeling',
         upcomingReleaseTitle: 'Mobiele app & meer',
         upcomingReleaseDescription:
@@ -1353,7 +1410,7 @@ const nl: Translations = {
         upcomingReleaseFeature5:
             'Meertalige ondersteuning met Engels, Frans, Spaans en Duits',
         upcomingReleaseFeature6:
-            'Vergelijkingspagina\'s met volledige uitsplitsingen tegen concurrenten',
+            "Vergelijkingspagina's met volledige uitsplitsingen tegen concurrenten",
         upcomingReleaseFeature7:
             'Herstructurering van de playground-functiestructuur en vereenvoudigingen',
         upcomingReleaseFeature8:
@@ -1378,7 +1435,8 @@ const nl: Translations = {
         release12Title: 'Jaarplannen, spraakmodus & meer',
         release12Description:
             'Jaarabonnementen met 2 maanden gratis, spraakmodus, instantie herinstallatie en een eerste landingspagina voor ClawHost Go.',
-        release12Feature1: 'Landingspagina voor ClawHost Go, lokale hosting met ClawHost',
+        release12Feature1:
+            'Landingspagina voor ClawHost Go, lokale hosting met ClawHost',
         release12Feature2:
             'Jaarabonnement met 2 maanden gratis bij jaarlijks abonneren',
         release12Feature3:
@@ -1386,10 +1444,12 @@ const nl: Translations = {
         release12Feature4:
             'Herinstalleer OpenClaw op je instantie voor een nieuwe start, eenmaal per dag beschikbaar',
         release11Date: '28 februari 2026',
-        release11Title: 'Tekst-naar-spraak, terminal, chattabbladen & bestandsverkenner',
+        release11Title:
+            'Tekst-naar-spraak, terminal, chattabbladen & bestandsverkenner',
         release11Description:
             'Luister naar agent-antwoorden met tekst-naar-spraak, communiceer direct met je VPS via terminal, navigeer sneller door chats met zijbalktabbladen en verken bestanden met de verbeterde bestandsverkenner.',
-        release11Feature1: 'Tekst-naar-spraak op agent-berichten in de playground',
+        release11Feature1:
+            'Tekst-naar-spraak op agent-berichten in de playground',
         release11Feature2:
             'Terminal om direct vanuit het dashboard met je VPS-instanties te communiceren',
         release11Feature3:
@@ -1415,12 +1475,12 @@ const nl: Translations = {
         release9Date: '21 februari 2026',
         release9Title: 'Vergelijkingen, playground-herstructurering & meer',
         release9Description:
-            'Vergelijkingspagina\'s met concurrenten, herstructurering van playground-functies, meertalige ondersteuning en algemene prestatieverbeteringen.',
+            "Vergelijkingspagina's met concurrenten, herstructurering van playground-functies, meertalige ondersteuning en algemene prestatieverbeteringen.",
         release9Feature1: 'Ondersteuning voor donker en licht thema',
         release9Feature2:
             'Meertalige ondersteuning met Engels, Frans, Spaans en Duits',
         release9Feature3:
-            'Vergelijkingspagina\'s met volledige uitsplitsingen tegen concurrenten',
+            "Vergelijkingspagina's met volledige uitsplitsingen tegen concurrenten",
         release9Feature4:
             'OpenClaw-versies, upgrade met \u00e9\u00e9n klik of installeer elke versie direct',
         release9Feature5:
@@ -1462,7 +1522,8 @@ const nl: Translations = {
         release1Title: 'Eerste release',
         release1Description:
             'De eerste offici\u00eble release van ClawHost. Deploy OpenClaw op je eigen VPS met \u00e9\u00e9n klik.',
-        release1Feature1: 'OpenClaw-deployment met \u00e9\u00e9n klik op Hetzner Cloud',
+        release1Feature1:
+            'OpenClaw-deployment met \u00e9\u00e9n klik op Hetzner Cloud',
         release1Feature2:
             'Dashboard om claws te beheren, instanties starten, stoppen, herstarten en verwijderen',
         release1Feature3:
@@ -1472,22 +1533,18 @@ const nl: Translations = {
         release1Feature5: 'SSH-sleutelbeheer voor wachtwoordloze servertoegang',
         release1Feature6: 'Ondersteuning voor extra volume-opslag tot 10 TB',
         release1Feature7: 'Magic link-authenticatie, geen wachtwoorden nodig',
-        release1Feature8: 'Online toegang tot OpenClaw via beveiligde subdomeinen',
+        release1Feature8:
+            'Online toegang tot OpenClaw via beveiligde subdomeinen',
         release1Feature9:
             'Betalingsintegratie met transparante prijzen per server',
         release1Feature10: 'Factureringsgeschiedenis en factuurbeheer',
         release1Feature11:
             'Automatische provisioning met OpenClaw voorge\u00efnstalleerd en geconfigureerd',
         release2Date: '8 februari 2026',
-        release2Title: 'DigitalOcean & meer',
+        release2Title: 'Changelog & meer',
         release2Description:
-            'Multi-provider infrastructuur en een nieuwe manier om op de hoogte te blijven van alles rondom ClawHost.',
-        release2Feature1: 'DigitalOcean als tweede cloudprovider',
-        release2Feature2:
-            '7 DigitalOcean-serverplannen met dedicated vCPU, RAM en opslagopties',
-        release2Feature3:
-            '10+ DigitalOcean-serverlocaties in de VS, Europa, Azi\u00eb en meer',
-        release2Feature4:
+            'Een nieuwe manier om op de hoogte te blijven van alles rondom ClawHost.',
+        release2Feature1:
             'Changelogpagina om alle platformupdates en releases te volgen',
         release3Date: '10 februari 2026',
         release3Title: 'Server-inzichten',
@@ -1499,25 +1556,16 @@ const nl: Translations = {
             'Serverdiagnostiek met geautomatiseerde reparatie met \u00e9\u00e9n klik voor serviceproblemen',
         release3Feature3:
             'Ingebouwde bestandsverkenner en JSON-editor voor serverconfigiuratiebestanden',
-        release4Date: '11 februari 2026',
-        release4Title: 'Vultr-provider',
+        release4Date: '14 februari 2026',
+        release4Title: 'Agents & data-export',
         release4Description:
-            'Vultr als derde cloudprovider met 22 serverplannen en 30+ wereldwijde locaties.',
-        release4Feature1: 'Vultr als derde cloudprovider',
-        release4Feature2:
-            '22 Vultr-serverplannen in Regulier, Hoge Prestaties en Hoge Frequentie categorie\u00ebn',
-        release4Feature3:
-            '30+ Vultr-serverlocaties in de VS, Europa, Azi\u00eb en meer',
-        release5Date: '14 februari 2026',
-        release5Title: 'Agents & data-export',
-        release5Description:
             'Agent-playground, multi-agentbeheer en draagbare data-export voor je OpenClaw-instanties.',
-        release5Feature1:
+        release4Feature1:
             'Agent-playground en overzicht met \u00e9\u00e9n klik, voeg meerdere agents toe en beheer ze',
-        release5Feature2: 'Exporteer je OpenClaw als een draagbaar ziparchief',
-        release5Feature3:
+        release4Feature2: 'Exporteer je OpenClaw als een draagbaar ziparchief',
+        release4Feature3:
             'Interactieve playground met grafiekgebaseerde visualisatie van Claws en agents',
-        release5Feature4:
+        release4Feature4:
             'Raster- en lijstweergave-schakelaar verwijderd ten gunste van een uniforme dashboardindeling'
     },
     playground: {
@@ -1550,7 +1598,8 @@ const nl: Translations = {
         terminalReconnect: 'Opnieuw verbinden',
         tabDisabledConfiguring:
             'Beschikbaar zodra de instantie klaar is met configureren.',
-        tabDisabledAwaitingPayment: 'Beschikbaar zodra de betaling is verwerkt.',
+        tabDisabledAwaitingPayment:
+            'Beschikbaar zodra de betaling is verwerkt.',
         loadingTip1:
             'Wist je dat je meerdere agents kunt draaien binnen \u00e9\u00e9n OpenClaw?',
         loadingTip2: 'Wist je dat OpenClaw open-source is?',
@@ -1632,7 +1681,8 @@ const nl: Translations = {
         deleteAgentDescription:
             'Weet je zeker dat je de agent "{{agentName}}" wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt. Omgevingsvariabelen worden niet verwijderd.',
         deleteAgentConfirm: 'Verwijderen',
-        agentDontAskAgain: 'Niet meer vragen bij het verwijderen van agents deze sessie',
+        agentDontAskAgain:
+            'Niet meer vragen bij het verwijderen van agents deze sessie',
         deleteAgentDeleting: 'Verwijderen...',
         deleteAgentSuccess: 'Agent succesvol verwijderd.',
         deleteAgentFailed: 'Agent verwijderen mislukt!',
@@ -1640,7 +1690,8 @@ const nl: Translations = {
         configurationNamePlaceholder: 'Voer agentnaam in',
         configurationNameDescription: 'Alleen letters, cijfers en streepjes.',
         agentNameRequired: 'Agentnaam is verplicht!',
-        agentNameInvalidChars: 'Alleen letters, cijfers en streepjes zijn toegestaan!',
+        agentNameInvalidChars:
+            'Alleen letters, cijfers en streepjes zijn toegestaan!',
         agentNameDuplicate: 'Een agent met deze naam bestaat al!',
         chatConnecting: 'Verbinden...',
         chatAuthenticating: 'Authenticeren...',
@@ -1658,27 +1709,32 @@ const nl: Translations = {
         chatNoMessages: 'Geen berichten',
         chatNoMessagesDescription:
             'Stuur een bericht om een gesprek met deze agent te starten.',
-        chatErrorMessage: 'Er is een fout opgetreden bij het genereren van een antwoord!',
+        chatErrorMessage:
+            'Er is een fout opgetreden bij het genereren van een antwoord!',
         chatAbortedMessage: 'Antwoord is gestopt.',
         chatPlaySpeech: 'Voorlezen',
         chatReplaySpeech: 'Opnieuw afspelen',
         chatStopSpeech: 'Stoppen',
         chatSpeechFailed: 'Spraak genereren mislukt!',
         chatReadOnlyPlaceholder: 'Chat beschikbaar op je eigen Claws.',
-        chatReadOnlyUser: 'Hallo! Kun je me helpen een Node.js-project op te zetten?',
+        chatReadOnlyUser:
+            'Hallo! Kun je me helpen een Node.js-project op te zetten?',
         chatReadOnlyAssistant:
             'Natuurlijk! Ik kan je helpen een nieuw Node.js-project te initialiseren. Wil je dat ik een package.json maak met enkele veelgebruikte dependencies?',
         chatReadOnlyReply:
             'Dit is een preview! Deploy je eigen OpenClaw met \u00e9\u00e9n klik en begin binnen minuten met chatten met je AI-agents!',
-        chatReadOnlyUser2: 'Kun je de testsuite uitvoeren en controleren op fouten?',
+        chatReadOnlyUser2:
+            'Kun je de testsuite uitvoeren en controleren op fouten?',
         chatReadOnlyAssistant2:
             'Zeker! Ik voer nu alle tests uit. 3 geslaagd, 0 gefaald. Alles ziet er goed uit \u2014 alle asserties slagen.',
-        chatReadOnlyGoUser: 'Hoi, kun je me helpen mijn deployment-pipeline te automatiseren?',
+        chatReadOnlyGoUser:
+            'Hoi, kun je me helpen mijn deployment-pipeline te automatiseren?',
         chatReadOnlyGoAssistant:
             'Absoluut! Ik kan een CI/CD-pipeline voor je opzetten. Zal ik beginnen met een GitHub Actions-workflow die automatisch bouwt, test en deployt?',
         chatReadOnlyGoReply:
             'Dit is een preview! Download ClawHost Go en draai OpenClaw lokaal \u2014 jouw machine, jouw data, geen cloud nodig.',
-        chatReadOnlyGoUser2: 'Kun je mijn lokale services monitoren en me waarschuwen als er iets uitvalt?',
+        chatReadOnlyGoUser2:
+            'Kun je mijn lokale services monitoren en me waarschuwen als er iets uitvalt?',
         chatReadOnlyGoAssistant2:
             'Ik ben ermee bezig! Ik stel gezondheidscontroles in voor al je services. Momenteel monitor ik 4 endpoints \u2014 allemaal gezond en reagerend.',
         chatConnectionFailed: 'Verbinden met deze agent mislukt!',
@@ -1693,10 +1749,12 @@ const nl: Translations = {
         chatExpandFullscreen: 'Chat uitvouwen',
         chatAttachFile: 'Bestand bijvoegen',
         chatDropFiles: 'Sleep bestanden om bij te voegen',
-        chatDropFilesDescription: 'Afbeeldingen, PDF\'s en tekstbestanden tot 5 MB.',
+        chatDropFilesDescription:
+            "Afbeeldingen, PDF's en tekstbestanden tot 5 MB.",
         chatVoiceInput: 'Spraakinvoer',
         chatVoiceListening: 'Luisteren...',
-        chatVoiceNotSupported: 'Spraakinvoer wordt niet ondersteund in deze browser.',
+        chatVoiceNotSupported:
+            'Spraakinvoer wordt niet ondersteund in deze browser.',
         chatVoiceMode: 'Spraakmodus',
         chatVoiceModeTapToSpeak: 'Tik om te beginnen met spreken',
         chatVoiceModeListening: 'Luisteren...',
@@ -1715,7 +1773,7 @@ const nl: Translations = {
         chatVoiceModeNoSpeaker:
             'Geen speaker gedetecteerd. Sluit er een aan om de spraakmodus te gebruiken.',
         chatAttachmentNotSupported:
-            'Dit bestandstype wordt niet ondersteund. Gebruik afbeeldingen, PDF\'s of tekstbestanden.',
+            "Dit bestandstype wordt niet ondersteund. Gebruik afbeeldingen, PDF's of tekstbestanden.",
         chatNoPreview: 'Geen voorbeeld beschikbaar.',
         chatDownloadFile: 'Bestand downloaden',
         chatCopyMessage: 'Bericht kopi\u00ebren',
@@ -1738,7 +1796,8 @@ const nl: Translations = {
         channelsWhatsAppConnected: 'Verbonden',
         channelsWhatsAppRepair: 'Opnieuw koppelen',
         channelsWhatsAppChecking: 'Verbinding controleren...',
-        channelsVersionUnsupported: 'Kanaalconfiguratie is niet beschikbaar in deze versie. Je kunt handmatig verbinden via het Terminal-tabblad of OpenClaw bijwerken.',
+        channelsVersionUnsupported:
+            'Kanaalconfiguratie is niet beschikbaar in deze versie. Je kunt handmatig verbinden via het Terminal-tabblad of OpenClaw bijwerken.',
         channelsVersionUnsupportedDocs: 'Installatiehandleiding bekijken',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
@@ -1761,7 +1820,8 @@ const nl: Translations = {
         channelsDmPolicyAllowlist: 'Toestaanlijst',
         channelsDmPolicyDisabled: 'Uitgeschakeld',
         channelsAllowFrom: 'Toestaan van',
-        channelsAllowFromPlaceholder: 'Toegestane ID\'s, gescheiden door komma\'s',
+        channelsAllowFromPlaceholder:
+            "Toegestane ID's, gescheiden door komma's",
         channelsSave: 'Opslaan',
         channelsSaved: 'Kanalen succesvol bijgewerkt.',
         channelsSaveFailed: 'Kanalen bijwerken mislukt!',
@@ -1791,7 +1851,8 @@ const nl: Translations = {
         skillsLoadFailed: 'Skills laden mislukt!',
         skillsLoadFailedDescription:
             'Kon skillsconfiguratie niet ophalen. Probeer het opnieuw.',
-        agentSkillsDescription: 'Skills ge\u00efnstalleerd in deze agent-werkruimte.',
+        agentSkillsDescription:
+            'Skills ge\u00efnstalleerd in deze agent-werkruimte.',
         agentSkillsInstalling: 'Installeren...',
         agentSkillsInstalled: 'Skill succesvol ge\u00efnstalleerd.',
         agentSkillsInstallFailed: 'Skill installeren mislukt!',
@@ -1831,7 +1892,8 @@ const nl: Translations = {
         tabVersions: 'Versies',
         versionsSearch: 'Versies zoeken...',
         versionsEmpty: 'Geen versies gevonden',
-        versionsEmptyDescription: 'Geen versies komen overeen met je zoekopdracht.',
+        versionsEmptyDescription:
+            'Geen versies komen overeen met je zoekopdracht.',
         versionsErrorDescription:
             'Versies laden mislukt. Controleer je verbinding en probeer het opnieuw!',
         versionsChangelog: 'Changelogs bekijken op npm',
@@ -1839,7 +1901,8 @@ const nl: Translations = {
         versionLatest: 'Nieuwste',
         versionInstall: 'Installeren',
         versionInstalling: 'Installeren...',
-        versionInstallSuccess: 'Versie {{version}} succesvol ge\u00efnstalleerd.',
+        versionInstallSuccess:
+            'Versie {{version}} succesvol ge\u00efnstalleerd.',
         versionInstallFailed: 'Versie installeren mislukt!',
         versionDownloads: '{{count}} downloads',
         versionChangelog: 'Changelog',
@@ -1854,8 +1917,7 @@ const nl: Translations = {
         subdomainPlaceholder: 'Voer subdomein in',
         subdomainDescription:
             'Kleine letters en cijfers, {{min}}-{{max}} tekens.',
-        subdomainInvalid:
-            'Gebruik {{min}}-{{max}} kleine letters en cijfers.',
+        subdomainInvalid: 'Gebruik {{min}}-{{max}} kleine letters en cijfers.',
         subdomainUpdated: 'Subdomein succesvol bijgewerkt.',
         subdomainUpdateFailed: 'Subdomein bijwerken mislukt!',
         subdomainInUse: 'Dit subdomein wordt gebruikt door een andere claw!',
@@ -1884,8 +1946,7 @@ const nl: Translations = {
         collectTitle: '3. Informatie die wij verzamelen',
         collectText: 'Wij verzamelen informatie op de volgende manieren:',
         personalInfoTitle: 'Persoonlijke informatie',
-        personalInfoEmail:
-            'E-mailadres (voor accountaanmaak en communicatie)',
+        personalInfoEmail: 'E-mailadres (voor accountaanmaak en communicatie)',
         personalInfoName: 'Naam (optioneel, voor personalisatie)',
         personalInfoPayment:
             'Betalingsinformatie (veilig verwerkt door externe providers)',
@@ -1897,10 +1958,12 @@ const nl: Translations = {
         useTitle: '4. Hoe wij je informatie gebruiken',
         useText: 'Wij gebruiken de verzamelde informatie om:',
         useProvide: 'Onze Service te leveren en te onderhouden',
-        useTransactions: 'Transacties te verwerken en factureringsinformatie te verzenden',
+        useTransactions:
+            'Transacties te verwerken en factureringsinformatie te verzenden',
         useNotices: 'Belangrijke mededelingen en updates te versturen',
         useSupport: 'Te reageren op klantenserviceverzoeken',
-        useAnalyze: 'Gebruikspatronen te monitoren en analyseren om onze Service te verbeteren',
+        useAnalyze:
+            'Gebruikspatronen te monitoren en analyseren om onze Service te verbeteren',
         useFraud: 'Fraude of misbruik te detecteren en voorkomen',
         sharingTitle: '5. Gegevens delen en openbaar maken',
         sharingText:
@@ -1971,7 +2034,8 @@ const nl: Translations = {
         prohibitedText: 'Je mag onze Service niet gebruiken om:',
         prohibitedMalware:
             'Malware, virussen of schadelijke software te verspreiden',
-        prohibitedDos: 'Denial-of-service-aanvallen of netwerkmisbruik uit te voeren',
+        prohibitedDos:
+            'Denial-of-service-aanvallen of netwerkmisbruik uit te voeren',
         prohibitedSpam: 'Spam of ongewenste communicatie te verzenden',
         prohibitedIllegal: 'Illegale inhoud te hosten of verspreiden',
         prohibitedIp:
@@ -2010,7 +2074,8 @@ const nl: Translations = {
         enterEmail: 'E-mailadres',
         emailPlaceholder: 'voorbeeld@clawhost.cloud',
         continueWithEmail: 'Doorgaan met e-mail',
-        otpDescription: 'We sturen je een code om in te loggen. Geen wachtwoord nodig.',
+        otpDescription:
+            'We sturen je een code om in te loggen. Geen wachtwoord nodig.',
         sending: 'Verzenden...',
         checkYourEmail: 'Controleer je e-mail',
         codeSentTo: 'We hebben een 6-cijferige code gestuurd naar',
@@ -2105,7 +2170,7 @@ const nl: Translations = {
         sharedContainers: 'Gedeelde containers',
         isolatedContainers: 'Ge\u00efsoleerde containers',
         cloudWorkspaces: 'Cloudwerkruimtes',
-        threeProviders: 'Hetzner, DigitalOcean, Vultr',
+        threeProviders: 'Hetzner Cloud',
         singleProvider: 'E\u00e9n provider',
         fullyDedicated: 'Volledig dedicated',
         shared: 'Gedeeld',

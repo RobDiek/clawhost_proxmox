@@ -95,25 +95,34 @@ const ru: Translations = {
         heroTitle2: 'Локально. Мгновенно.',
         badge: 'Скоро',
         comingSoon: 'Скоро',
-        description: 'Лёгкий настольный клиент для управления вашими экземплярами OpenClaw. Разворачивайте, отслеживайте и управляйте claws — прямо с вашего компьютера.',
+        description:
+            'Лёгкий настольный клиент для управления вашими экземплярами OpenClaw. Разворачивайте, отслеживайте и управляйте claws — прямо с вашего компьютера.',
         download: 'Скачать для {{os}}',
         downloadWindows: 'Windows',
         downloadMac: 'macOS',
         selfHostInstead: 'Развернуть на своём сервере',
         features: 'Возможности',
         whyClawHostGo: 'Все возможности в одном месте',
-        featuresDescription: 'Почему стоит попробовать — возможности говорят сами за себя.',
-        zeroConfigDescription: 'Установите и запустите. Никакой настройки сервера, никакой конфигурации облака. OpenClaw готов за секунды.',
-        ownedDataDescription: 'Всё работает на вашем устройстве. Никаких облачных серверов, третьих сторон и утечки данных.',
-        terminalAccessDescription: 'Получите доступ к терминалу вашего экземпляра OpenClaw прямо из приложения. Внешние SSH-клиенты не нужны.',
+        featuresDescription:
+            'Почему стоит попробовать — возможности говорят сами за себя.',
+        zeroConfigDescription:
+            'Установите и запустите. Никакой настройки сервера, никакой конфигурации облака. OpenClaw готов за секунды.',
+        ownedDataDescription:
+            'Всё работает на вашем устройстве. Никаких облачных серверов, третьих сторон и утечки данных.',
+        terminalAccessDescription:
+            'Получите доступ к терминалу вашего экземпляра OpenClaw прямо из приложения. Внешние SSH-клиенты не нужны.',
         simplePricing: 'Простые цены',
-        simplePricingDescription: 'Одна лицензия, безлимитное использование. Без ежемесячных платежей, ограничений и скрытых комиссий.',
+        simplePricingDescription:
+            'Одна лицензия, безлимитное использование. Без ежемесячных платежей, ограничений и скрытых комиссий.',
         localDomain: 'Пользовательский локальный домен',
-        localDomainDescription: 'Получите доступ к OpenClaw через собственный локальный домен. Чистые URL-адреса в вашей сети.',
-        secureDescription: 'Ваши данные никогда не покидают устройство. Полная изоляция, полное шифрование, полный контроль.',
+        localDomainDescription:
+            'Получите доступ к OpenClaw через собственный локальный домен. Чистые URL-адреса в вашей сети.',
+        secureDescription:
+            'Ваши данные никогда не покидают устройство. Полная изоляция, полное шифрование, полный контроль.',
         pricing: 'Цены',
         pricingTitle: 'Просто и разово',
-        pricingDescription: 'Без подписок, без скрытых комиссий. Одна лицензия, безлимитное использование.',
+        pricingDescription:
+            'Без подписок, без скрытых комиссий. Одна лицензия, безлимитное использование.',
         pricingPrice: '${{price}}',
         pricingLabel: 'Разовый платёж',
         pricingFeature1: 'Пожизненная лицензия',
@@ -125,7 +134,8 @@ const ru: Translations = {
         pricingCta: 'Получить ClawHost Go',
         comparison: 'Сравнение',
         comparisonTitle: 'Go vs Cloud',
-        comparisonDescription: 'Выберите то, что подходит вам. Go работает локально, Cloud — на выделенных серверах.',
+        comparisonDescription:
+            'Выберите то, что подходит вам. Go работает локально, Cloud — на выделенных серверах.',
         comparisonLocalUs: 'Полностью работает на вашем устройстве',
         comparisonLocalOthers: 'Работает на удалённых серверах',
         comparisonPricingUs: 'Разовый платёж',
@@ -142,17 +152,23 @@ const ru: Translations = {
         faqHeading: 'Частые вопросы',
         faqDescription: 'Всё, что нужно знать о ClawHost Go.',
         faq1Question: 'Что такое ClawHost Go?',
-        faq1Answer: 'ClawHost Go — это лёгкое настольное приложение, позволяющее запускать OpenClaw локально на вашем компьютере. Облачные серверы не нужны — установите, запустите и начните использовать OpenClaw за секунды.',
+        faq1Answer:
+            'ClawHost Go — это лёгкое настольное приложение, позволяющее запускать OpenClaw локально на вашем компьютере. Облачные серверы не нужны — установите, запустите и начните использовать OpenClaw за секунды.',
         faq2Question: 'Чем Go отличается от ClawHost Cloud?',
-        faq2Answer: 'ClawHost Cloud разворачивает OpenClaw на выделенных удалённых серверах с круглосуточной доступностью и глобальным доступом. ClawHost Go запускает всё локально на вашем устройстве — идеально для конфиденциальности, автономной работы и простых сценариев.',
+        faq2Answer:
+            'ClawHost Cloud разворачивает OpenClaw на выделенных удалённых серверах с круглосуточной доступностью и глобальным доступом. ClawHost Go запускает всё локально на вашем устройстве — идеально для конфиденциальности, автономной работы и простых сценариев.',
         faq3Question: 'Нужно ли интернет-соединение?',
-        faq3Answer: 'ClawHost Go работает офлайн для локального использования. Интернет-соединение необходимо только для первоначальной настройки, обновлений и функций, требующих внешних API-вызовов.',
+        faq3Answer:
+            'ClawHost Go работает офлайн для локального использования. Интернет-соединение необходимо только для первоначальной настройки, обновлений и функций, требующих внешних API-вызовов.',
         faq4Question: 'Лицензия оплачивается разово?',
-        faq4Answer: 'Да. Вы платите один раз и получаете пожизненный доступ к ClawHost Go, включая все будущие обновления. Без подписок, без периодических платежей.',
+        faq4Answer:
+            'Да. Вы платите один раз и получаете пожизненный доступ к ClawHost Go, включая все будущие обновления. Без подписок, без периодических платежей.',
         faq5Question: 'Какие операционные системы поддерживаются?',
-        faq5Answer: 'ClawHost Go поддерживает Windows и macOS. Обе платформы получают одинаковые функции и обновления одновременно.',
+        faq5Answer:
+            'ClawHost Go поддерживает Windows и macOS. Обе платформы получают одинаковые функции и обновления одновременно.',
         faq6Question: 'Можно ли перейти с Go на Cloud позже?',
-        faq6Answer: 'Конечно. Вы можете экспортировать конфигурацию OpenClaw из Go и развернуть её в ClawHost Cloud в любое время. Обе платформы полностью совместимы.',
+        faq6Answer:
+            'Конечно. Вы можете экспортировать конфигурацию OpenClaw из Go и развернуть её в ClawHost Cloud в любое время. Обе платформы полностью совместимы.',
         statsPrice: '${{price}}',
         statsLifetime: 'Навсегда',
         statsOneTime: 'Разово',
@@ -162,7 +178,8 @@ const ru: Translations = {
         statsZero: 'Ноль',
         statsZeroConfig: 'Без настройки',
         ctaTitle: 'Запустите OpenClaw локально',
-        ctaDescription: 'Разовый платёж, пожизненная лицензия. Разверните OpenClaw на своём компьютере — без облака, без подписок, без ограничений. Ваши данные, ваши правила.',
+        ctaDescription:
+            'Разовый платёж, пожизненная лицензия. Разверните OpenClaw на своём компьютере — без облака, без подписок, без ограничений. Ваши данные, ваши правила.',
         ctaButton: 'Получить ClawHost Go',
         joinWaitlist: 'Записаться в лист ожидания',
         joinedWaitlist: 'Вы в листе ожидания',
@@ -174,12 +191,15 @@ const ru: Translations = {
         updateDownload: 'Скачать',
         updateDismiss: 'Позже',
         clawNotFound: 'Claw не найден!',
-        invalidClawName: 'Недопустимое имя claw. Используйте только буквы, цифры и дефисы!',
+        invalidClawName:
+            'Недопустимое имя claw. Используйте только буквы, цифры и дефисы!',
         clawNameAlreadyExists: 'Claw с таким именем уже существует!',
-        invalidSubdomain: 'Недопустимый поддомен. Используйте 3-20 строчных букв и цифр!',
+        invalidSubdomain:
+            'Недопустимый поддомен. Используйте 3-20 строчных букв и цифр!',
         subdomainAlreadyInUse: 'Этот поддомен уже используется!',
         clawDirectoryNotFound: 'Директория claw не найдена!',
-        noVersionInstalled: 'Версия OpenClaw не установлена. Перейдите на вкладку «Версии» и установите одну!',
+        noVersionInstalled:
+            'Версия OpenClaw не установлена. Перейдите на вкладку «Версии» и установите одну!',
         failedToStartClaw: 'Не удалось запустить claw!',
         noVersionAssigned: 'Этому claw не назначена версия OpenClaw!',
         invalidAgentName: 'Недопустимое имя агента!',
@@ -191,11 +211,14 @@ const ru: Translations = {
         versionNotInstalled: 'Версия OpenClaw {{version}} не установлена!',
         failedToStartProcess: 'Не удалось запустить процесс: {{reason}}!',
         processExitedImmediately: 'Процесс завершился сразу. Логи:\n{{logs}}',
-        processExitedImmediatelyNoLogs: 'Процесс завершился сразу после запуска!',
-        processExitedWithCode: 'Процесс завершился с кодом {{code}}. Логи:\n{{logs}}',
+        processExitedImmediatelyNoLogs:
+            'Процесс завершился сразу после запуска!',
+        processExitedWithCode:
+            'Процесс завершился с кодом {{code}}. Логи:\n{{logs}}',
         processExitedWithCodeNoLogs: 'Процесс завершился с кодом {{code}}!',
         processExitedUnexpectedly: 'Процесс завершился неожиданно!',
-        failedToInstallVersion: 'Не удалось установить OpenClaw {{version}}: {{reason}}!',
+        failedToInstallVersion:
+            'Не удалось установить OpenClaw {{version}}: {{reason}}!',
         oauthCancelled: 'Аутентификация отменена!',
         diskFull: 'На устройстве нет свободного места!',
         permissionDenied: 'Доступ запрещён!',
@@ -236,7 +259,8 @@ const ru: Translations = {
     },
     errors: {
         somethingWentWrong: 'Что-то пошло не так!',
-        couldNotLoadData: 'Не удалось загрузить данные. Пожалуйста, попробуйте снова!',
+        couldNotLoadData:
+            'Не удалось загрузить данные. Пожалуйста, попробуйте снова!',
         notFound: 'Страница не найдена!',
         pageNotFoundDescription:
             'Страница, которую вы ищете, не существует или была перемещена.',
@@ -250,8 +274,10 @@ const ru: Translations = {
         failedToUpdateProfile: 'Не удалось обновить профиль!',
         failedToAddSSHKey: 'Не удалось добавить SSH-ключ!',
         failedToCreateClaw: 'Не удалось создать claw!',
-        failedToLoadLocations: 'Не удалось загрузить локации. Пожалуйста, попробуйте снова!',
-        failedToLoadPlans: 'Не удалось загрузить тарифы. Пожалуйста, попробуйте снова!',
+        failedToLoadLocations:
+            'Не удалось загрузить локации. Пожалуйста, попробуйте снова!',
+        failedToLoadPlans:
+            'Не удалось загрузить тарифы. Пожалуйста, попробуйте снова!',
         invalidPlan: 'Выбран недопустимый тариф!',
         invalidLocation: 'Пожалуйста, выберите локацию!',
         failedToGenerateKeyPair:
@@ -276,8 +302,7 @@ const ru: Translations = {
             'Вы достигли лимита в {{max}} claws. Свяжитесь с поддержкой для увеличения лимита!',
         sshKeyLimitReached:
             'Вы достигли лимита в {{max}} SSH-ключей. Свяжитесь с поддержкой для увеличения лимита!',
-        volumeSizeInvalid:
-            'Размер тома должен быть от {{min}} до {{max}} ГБ!',
+        volumeSizeInvalid: 'Размер тома должен быть от {{min}} до {{max}} ГБ!',
         paymentNotConfigured: 'Оплата не настроена для этого тарифа!',
         invalidSshKeyFormat: 'Недопустимый формат публичного SSH-ключа!',
         sshKeyInUse: 'Этот SSH-ключ используется одним или несколькими claws!',
@@ -287,7 +312,8 @@ const ru: Translations = {
         plusAddressingNotAllowed:
             'Plus-адресация не разрешена для входа по email!',
         invalidRedirectUrl: 'Недопустимый URL перенаправления!',
-        fileTooLarge: 'Содержимое файла превышает максимально допустимый размер!',
+        fileTooLarge:
+            'Содержимое файла превышает максимально допустимый размер!',
         nameAndKeyRequired: 'Имя и публичный ключ обязательны!',
         nameTooLong: 'Имя должно содержать не более {{max}} символов!',
         noBillingAccount: 'Платёжный аккаунт не найден!',
@@ -302,13 +328,13 @@ const ru: Translations = {
         failedToDeleteClaw: 'Не удалось удалить claw!',
         failedToCreateClaw: 'Не удалось создать claw!',
         invalidProvider: 'Недопустимый провайдер!',
-        providerNotAllowed:
-            'Этот провайдер недоступен при активном Hetzner!',
+        providerNotAllowed: 'Этот провайдер недоступен при активном Hetzner!',
         invalidPlan: 'Выбран недопустимый тариф!',
         planBelowMinimumMemory:
             'Этот тариф не соответствует минимальным требованиям к памяти!',
         invalidLocation: 'Выбрана недопустимая локация!',
-        planNotAvailableAtLocation: 'Этот тариф недоступен в выбранной локации!',
+        planNotAvailableAtLocation:
+            'Этот тариф недоступен в выбранной локации!',
         failedToSyncClaw: 'Не удалось синхронизировать статус сервера!',
         failedToProvisionClaw: 'Не удалось подготовить claw!',
         failedToInitiatePurchase: 'Не удалось инициировать покупку!',
@@ -327,7 +353,8 @@ const ru: Translations = {
         failedToFetchLocations: 'Не удалось загрузить локации!',
         failedToFetchPlans: 'Не удалось загрузить тарифы!',
         failedToFetchVolumePricing: 'Не удалось загрузить цены на тома!',
-        failedToFetchPlanAvailability: 'Не удалось загрузить доступность тарифов!',
+        failedToFetchPlanAvailability:
+            'Не удалось загрузить доступность тарифов!',
         failedToSendEmail: 'Не удалось отправить email!',
         failedToGetVersion: 'Не удалось получить версию!',
         failedToGetVersions: 'Не удалось получить список версий!',
@@ -364,8 +391,7 @@ const ru: Translations = {
         invalidJsonConfig: 'Недопустимый JSON!',
         fileSaveSuccess: 'Файл сохранён.',
         rateLimitExceeded: 'Подождите перед запросом нового кода!',
-        otpExpiredOrNotFound:
-            'Код истёк или не найден. Запросите новый!',
+        otpExpiredOrNotFound: 'Код истёк или не найден. Запросите новый!',
         otpMaxAttemptsReached:
             'Слишком много неудачных попыток. Запросите новый код!',
         otpInvalidCode: 'Недопустимый код. Попробуйте снова!',
@@ -406,7 +432,8 @@ const ru: Translations = {
         volumePricingFetched: 'Цены на тома успешно загружены.',
         planAvailabilityFetched: 'Доступность тарифов успешно загружена.',
         agentsFetched: 'Агенты успешно загружены.',
-        agentsFetchFailed: 'Не удалось подключиться к экземпляру для загрузки агентов!',
+        agentsFetchFailed:
+            'Не удалось подключиться к экземпляру для загрузки агентов!',
         agentConfigFetched: 'Конфигурация агента успешно загружена.',
         agentConfigUpdated: 'Конфигурация агента успешно обновлена.',
         agentConfigUpdateFailed: 'Не удалось обновить конфигурацию агента!',
@@ -414,7 +441,8 @@ const ru: Translations = {
         agentCreateFailed: 'Не удалось создать агента на экземпляре!',
         agentDeleted: 'Агент успешно удалён.',
         agentDeleteFailed: 'Не удалось удалить агента с экземпляра!',
-        cannotDeleteMainAgent: 'Невозможно удалить единственного оставшегося агента!',
+        cannotDeleteMainAgent:
+            'Невозможно удалить единственного оставшегося агента!',
         agentNameInvalid:
             'Имя агента может содержать только буквы, цифры и дефисы!',
         agentNameDuplicate: 'Агент с таким именем уже существует!',
@@ -433,18 +461,21 @@ const ru: Translations = {
         channelsUpdated: 'Каналы успешно обновлены.',
         channelsUpdateFailed: 'Не удалось обновить каналы!',
         channelsFetchFailed: 'Не удалось загрузить каналы!',
-        channelMissingRequired: 'Отсутствуют обязательные поля для включённого канала!',
+        channelMissingRequired:
+            'Отсутствуют обязательные поля для включённого канала!',
         whatsappPairStarted: 'Сопряжение WhatsApp начато.',
         whatsappPairFailed: 'Сопряжение WhatsApp не удалось!',
         whatsappAlreadyPaired: 'WhatsApp уже сопряжён!',
-        whatsappVersionUnsupported: 'Эта версия не поддерживает настройку каналов через панель управления. Используйте вкладку «Терминал» для ручной настройки или обновите OpenClaw.',
+        whatsappVersionUnsupported:
+            'Эта версия не поддерживает настройку каналов через панель управления. Используйте вкладку «Терминал» для ручной настройки или обновите OpenClaw.',
         bindingsFetched: 'Привязки успешно загружены.',
         bindingsFetchFailed: 'Не удалось загрузить привязки!',
         bindingsUpdated: 'Привязки успешно обновлены.',
         bindingsUpdateFailed: 'Не удалось обновить привязки!',
         bindingsInvalidFormat: 'Недопустимый формат привязки!',
         bindingsInvalidChannel: 'Неподдерживаемый канал в привязке!',
-        bindingsDuplicateChannel: 'Канал может быть привязан только к одному агенту!',
+        bindingsDuplicateChannel:
+            'Канал может быть привязан только к одному агенту!',
         skillsFetched: 'Навыки успешно загружены.',
         skillsUpdated: 'Навыки успешно обновлены.',
         skillsUpdateFailed: 'Не удалось обновить навыки!',
@@ -472,8 +503,10 @@ const ru: Translations = {
         authMethodNotConnected: 'Этот метод аутентификации не подключён!',
         authMethodConnected: 'Метод аутентификации успешно подключён.',
         authMethodDisconnected: 'Метод аутентификации успешно отключён.',
-        failedToConnectAuthMethod: 'Не удалось подключить метод аутентификации!',
-        failedToDisconnectAuthMethod: 'Не удалось отключить метод аутентификации!',
+        failedToConnectAuthMethod:
+            'Не удалось подключить метод аутентификации!',
+        failedToDisconnectAuthMethod:
+            'Не удалось отключить метод аутентификации!',
         textRequired: 'Текст обязателен!',
         voiceNotFound: 'Голосовая модель не найдена!',
         ttsGenerationFailed: 'Не удалось сгенерировать речь!',
@@ -484,7 +517,8 @@ const ru: Translations = {
         waitlistJoined: 'Вы успешно записались в лист ожидания.',
         waitlistAlreadyJoined: 'Вы уже в листе ожидания.',
         waitlistJoinFailed: 'Не удалось записаться в лист ожидания!',
-        waitlistRateLimited: 'Слишком быстро! Попробуйте снова через {{seconds}} {{unit}}.',
+        waitlistRateLimited:
+            'Слишком быстро! Попробуйте снова через {{seconds}} {{unit}}.',
         waitlistStatusFetched: 'Статус листа ожидания загружен.',
         waitlistCheckFailed: 'Не удалось проверить статус листа ожидания!'
     },
@@ -521,7 +555,8 @@ const ru: Translations = {
                 cta: 'Просмотреть логи'
             },
             channels: {
-                subject: 'Знаете ли вы? Подключите агентов к Discord, Slack и другим',
+                subject:
+                    'Знаете ли вы? Подключите агентов к Discord, Slack и другим',
                 preview: 'Привяжите ваших ИИ-агентов к каналам связи',
                 heading: 'Ваши агенты — везде',
                 description:
@@ -562,14 +597,16 @@ const ru: Translations = {
             },
             skills: {
                 subject: 'Знаете ли вы? 5 000+ навыков на ClawHub',
-                preview: 'Просматривайте и устанавливайте навыки сообщества в один клик',
+                preview:
+                    'Просматривайте и устанавливайте навыки сообщества в один клик',
                 heading: 'Расширяйте агентов мгновенно',
                 description:
                     'Просмотрите более 5 000 готовых навыков на ClawHub и установите их одним кликом. Веб-поиск, выполнение кода, генерация изображений и многое другое.',
                 cta: 'Обзор ClawHub'
             },
             bindings: {
-                subject: 'Знаете ли вы? Привяжите агентов к определённым каналам',
+                subject:
+                    'Знаете ли вы? Привяжите агентов к определённым каналам',
                 preview: 'Контролируйте, какой агент отвечает на каком канале',
                 heading: 'Один агент на канал',
                 description:
@@ -608,14 +645,6 @@ const ru: Translations = {
                     'Экспортируйте конфигурацию и настройки клоу в виде загружаемого файла. Создайте резервную копию или используйте для воспроизведения окружения.',
                 cta: 'Экспорт конфигурации'
             },
-            multiProvider: {
-                subject: 'Знаете ли вы? Развёртывание на 3 облачных провайдерах',
-                preview: 'Выбирайте между Hetzner, DigitalOcean и Vultr',
-                heading: 'Ваше облако, ваш выбор',
-                description:
-                    'Развёртывайте клоу на Hetzner, DigitalOcean или Vultr. Сравнивайте цены, локации и характеристики — и выбирайте подходящего провайдера.',
-                cta: 'Сравнить провайдеров'
-            },
             multiLanguage: {
                 subject: 'Знаете ли вы? ClawHost говорит на вашем языке',
                 preview: 'Используйте ClawHost на 14 языках',
@@ -626,7 +655,8 @@ const ru: Translations = {
             },
             subdomain: {
                 subject: 'Знаете ли вы? Каждый клоу получает свой поддомен',
-                preview: 'Доступ к клоу из любой точки мира по пользовательскому URL',
+                preview:
+                    'Доступ к клоу из любой точки мира по пользовательскому URL',
                 heading: 'Доступ отовсюду',
                 description:
                     'Каждый клоу получает уникальный поддомен, чтобы вы могли получить доступ к экземпляру OpenClaw из любого места. Без проброса портов, без локальных сетей — просто URL.',
@@ -755,7 +785,8 @@ const ru: Translations = {
         title: 'Платежи',
         description: 'Просматривайте историю платежей и управляйте оплатой.',
         billingHistory: 'Платежи',
-        manageYourBilling: 'Просматривайте историю платежей и управляйте счетами.',
+        manageYourBilling:
+            'Просматривайте историю платежей и управляйте счетами.',
         billingDescription: 'История платежей и счета',
         date: 'Дата',
         product: 'Продукт',
@@ -785,7 +816,8 @@ const ru: Translations = {
         title: 'Лицензия',
         description: 'Управляйте лицензией OpenClaw.',
         pageTitle: 'Лицензия',
-        pageDescription: 'Приобретите лицензию для локального хостинга экземпляров OpenClaw с помощью нашего приложения Go.',
+        pageDescription:
+            'Приобретите лицензию для локального хостинга экземпляров OpenClaw с помощью нашего приложения Go.',
         planName: 'Лицензия ClawHost Go',
         oneTimePurchase: 'Единоразовая покупка',
         price: '${{price}}',
@@ -803,15 +835,19 @@ const ru: Translations = {
         featureSupport: 'Приоритетная поддержка',
         featureCloud: 'Все облачные функции — локально',
         whatsIncluded: 'Что включено',
-        permanentNote: 'Лицензии постоянные и безотзывные. После покупки она ваша навсегда.',
+        permanentNote:
+            'Лицензии постоянные и безотзывные. После покупки она ваша навсегда.',
         gateTitle: 'Требуется лицензия',
-        gateDescription: 'Вам нужна лицензия ClawHost Go для развёртывания и управления экземплярами OpenClaw локально.'
+        gateDescription:
+            'Вам нужна лицензия ClawHost Go для развёртывания и управления экземплярами OpenClaw локально.'
     },
     network: {
         unstable: 'Нестабильное соединение',
-        unstableDescription: 'Ваше интернет-соединение нестабильно. Некоторые функции могут работать некорректно.',
+        unstableDescription:
+            'Ваше интернет-соединение нестабильно. Некоторые функции могут работать некорректно.',
         offline: 'Нет подключения к интернету',
-        offlineDescription: 'Вы сейчас не в сети. Функции, требующие подключения к интернету, будут недоступны.',
+        offlineDescription:
+            'Вы сейчас не в сети. Функции, требующие подключения к интернету, будут недоступны.',
         dismiss: 'Закрыть'
     },
     dashboard: {
@@ -887,7 +923,8 @@ const ru: Translations = {
         hardDeleteConfirmation:
             'Вы уверены, что хотите немедленно удалить этот клоу? Вы потеряете оставшееся время текущего расчётного периода. Это действие нельзя отменить.',
         diagnostics: 'Диагностика',
-        diagnosticsDescription: 'Проверьте состояние вашего экземпляра OpenClaw.',
+        diagnosticsDescription:
+            'Проверьте состояние вашего экземпляра OpenClaw.',
         diagnosticsStatus: 'Статус',
         diagnosticsLogs: 'Логи',
         diagnosticsRepair: 'Восстановление',
@@ -903,8 +940,7 @@ const ru: Translations = {
         diagnosticsHealthy: 'Ваш экземпляр работает нормально.',
         diagnosticsPort: 'Порт 18789',
         diagnosticsMemory: 'Память',
-        logsDescription:
-            'Последние 100 строк лога шлюза, автообновление.',
+        logsDescription: 'Последние 100 строк лога шлюза, автообновление.',
         fileExplorer: 'Проводник',
         fileExplorerRoot: 'openclaw',
         fileExplorerDescription:
@@ -933,10 +969,12 @@ const ru: Translations = {
         reinstallInstanceFailed: 'Не удалось переустановить экземпляр !',
         openControlPanel: 'Открыть панель управления',
         exportData: 'Экспорт клоу (.zip)',
-        exportStarted: 'Подготовка экспорта, это может занять некоторое время...',
+        exportStarted:
+            'Подготовка экспорта, это может занять некоторое время...',
         exportSuccess: 'Клоу успешно экспортирован.',
         exportFailed: 'Не удалось экспортировать данные клоу !',
-        exportRateLimited: 'Вы сможете экспортировать снова через {{minutes}} минут.',
+        exportRateLimited:
+            'Вы сможете экспортировать снова через {{minutes}} минут.',
         exportRateLimitedSeconds:
             'Вы сможете экспортировать снова через {{seconds}} секунд.',
         configuringTooltip:
@@ -978,10 +1016,10 @@ const ru: Translations = {
     chat: {
         explorer: 'Обозреватель',
         selectAgent: 'Ничего не выбрано',
-        selectAgentDescription:
-            'Выберите claw или агента на боковой панели.',
+        selectAgentDescription: 'Выберите claw или агента на боковой панели.',
         noAgents: 'Нет доступных агентов',
-        noAgentsDescription: 'Разверните клоу, чтобы начать общение с агентами.',
+        noAgentsDescription:
+            'Разверните клоу, чтобы начать общение с агентами.',
         openSidebar: 'Открыть боковую панель',
         clawNotReady: 'Клоу ещё не готов',
         notConfigured: 'Не настроен',
@@ -999,8 +1037,6 @@ const ru: Translations = {
         autoGenerateNameHint: 'Оставьте пустым для автогенерации имени.',
         provider: 'Провайдер',
         providerHetzner: 'Hetzner',
-        providerDigitalOcean: 'DigitalOcean',
-        providerVultr: 'Vultr',
         providerLocal: 'Локальный',
         providerAws: 'AWS',
         comingSoon: 'Скоро',
@@ -1097,7 +1133,8 @@ const ru: Translations = {
         importantAfterGenerating:
             'После генерации вы должны скачать и сохранить закрытый ключ. Мы не сможем его восстановить, если вы его потеряете !',
         generateKeyPair: 'Сгенерировать пару ключей',
-        orGenerateLocallyRecommended: 'Или сгенерируйте локально (рекомендуется)',
+        orGenerateLocallyRecommended:
+            'Или сгенерируйте локально (рекомендуется)',
         runThisInYourTerminal: 'Выполните в терминале:',
         thenSwitchToIHave:
             'Затем переключитесь на «Существующий ключ» и вставьте открытый ключ.',
@@ -1146,7 +1183,8 @@ const ru: Translations = {
             'Полный доступ к OpenClaw и VPS без ограничений на то, что вы можете делать.',
         features: 'Возможности',
         whyClawHost: 'Всё в одном',
-        featuresDescription: 'Почему стоит попробовать — возможности говорят сами за себя.',
+        featuresDescription:
+            'Почему стоит попробовать — возможности говорят сами за себя.',
         zeroConfigDescription:
             'Пропустите часы настройки сервера и OpenClaw. Всё предустановлено и готово за минуты.',
         ownedData: '100% ваши данные',
@@ -1157,7 +1195,7 @@ const ru: Translations = {
             'Выделенные ресурсы VPS означают отсутствие ограничений, полную пропускную способность и молниеносный интернет.',
         globalLocations: 'Глобальные локации',
         globalLocationsDescription:
-            'Разверните OpenClaw в 30+ глобальных регионах на Hetzner, DigitalOcean или Vultr и выберите ближайшую локацию.',
+            'Разверните OpenClaw в нескольких глобальных регионах на Hetzner Cloud и выберите ближайшую к вам локацию.',
         fullSshAccess: 'Прямой SSH-доступ',
         fullSshAccessDescription:
             'Получите доступ к терминалу сервера прямо из платформы. Внешние SSH-клиенты не нужны.',
@@ -1214,7 +1252,7 @@ const ru: Translations = {
         pricing: 'Цены',
         simpleTransparentPricing: 'Простые, прозрачные цены',
         pricingDescription:
-            'Выбирайте из 45+ серверов наших провайдеров в зависимости от ваших потребностей.',
+            'Выбирайте из наших серверов Hetzner Cloud в соответствии с вашими потребностями.',
         planColumn: 'Сервер',
         vCpuColumn: 'vCPU',
         ramColumn: 'RAM',
@@ -1258,16 +1296,16 @@ const ru: Translations = {
             'Нет. Мы берём на себя всю инфраструктуру, настройку и обслуживание. Вы можете настраивать и управлять OpenClaw через его интерфейс, подключать каналы и настраивать использование — не касаясь серверов или инфраструктуры.',
         faq5Question: 'Какие локации доступны?',
         faq5Answer:
-            'Мы предлагаем 30+ серверных локаций по всему миру через Hetzner, DigitalOcean и Vultr, включая США, Европу, Азию и другие. Вы можете развернуть OpenClaw на нескольких серверах в разных регионах при необходимости.',
+            'Мы предлагаем несколько серверных локаций по всему миру через Hetzner Cloud, включая США, Европу и другие. При необходимости вы можете развернуть OpenClaw на нескольких серверах в разных регионах.',
         faq6Question: 'Сколько это стоит?',
         faq6Answer:
-            'Цена зависит от выбранного сервера. С 45+ вариантами серверов от начального уровня до высокопроизводительных у трёх провайдеров, вы выбираете то, что подходит вашим потребностям и бюджету.',
+            'Цены зависят от выбранного сервера. С несколькими вариантами серверов от начального уровня до высокопроизводительных вы выбираете то, что соответствует вашим потребностям и бюджету.',
         faq7Question: 'Могу ли я получить прямой доступ к серверу?',
         faq7Answer:
             'Да. Помимо доступа к OpenClaw через URL поддомена, у вас есть полный доступ к серверу и его базовой инфраструктуре, что даёт вам полную свободу настройки и запуска всего необходимого.',
         faq8Question: 'Где размещены серверы?',
         faq8Answer:
-            'Все серверы размещены на Hetzner Cloud, DigitalOcean и Vultr — проверенных облачных провайдерах, известных высокопроизводительным оборудованием и отличным аптаймом, используемых крупномасштабными инфраструктурами.',
+            'Все серверы размещены на Hetzner Cloud — надёжном облачном провайдере, известном высокопроизводительным оборудованием и отличной доступностью, используемом крупными инфраструктурами.',
         comparison: 'Сравнение',
         comparisonTitle: 'Чем мы отличаемся',
         comparisonDescription:
@@ -1354,8 +1392,7 @@ const ru: Translations = {
             'Мультиязычная поддержка: английский, французский, испанский и немецкий',
         upcomingReleaseFeature6:
             'Страницы сравнения с подробным разбором конкурентов',
-        upcomingReleaseFeature7:
-            'Рефакторинг структуры Playground и упрощения',
+        upcomingReleaseFeature7: 'Рефакторинг структуры Playground и упрощения',
         upcomingReleaseFeature8:
             'Запросы функций, автоматически управляемые и публикуемые агентами OpenClaw',
         upcomingReleaseFeature9:
@@ -1378,7 +1415,8 @@ const ru: Translations = {
         release12Title: 'Годовые тарифы, голосовой режим и другое',
         release12Description:
             'Годовые подписки с 2 бесплатными месяцами, голосовой режим, переустановка экземпляра и начальный лендинг для ClawHost Go.',
-        release12Feature1: 'Лендинг для ClawHost Go, локальный хостинг с ClawHost',
+        release12Feature1:
+            'Лендинг для ClawHost Go, локальный хостинг с ClawHost',
         release12Feature2:
             'Поддержка годовых подписок с 2 бесплатными месяцами при годовой оплате',
         release12Feature3:
@@ -1394,9 +1432,9 @@ const ru: Translations = {
             'Терминал для взаимодействия с VPS-экземплярами прямо из панели',
         release11Feature3:
             'Вкладки бокового меню чата для удобного доступа и навигации',
-        release11Feature4:
-            'Улучшения проводника с поиском по файлам',
-        release11Feature5: 'Исправлены метки времени сообщений, не отражавшие реальное время',
+        release11Feature4: 'Улучшения проводника с поиском по файлам',
+        release11Feature5:
+            'Исправлены метки времени сообщений, не отражавшие реальное время',
         release11Dropped1: 'Удалены запросы функций для упрощения',
         release10Date: '23 февраля 2026',
         release10Title: 'Запросы функций, проводник и исправления',
@@ -1419,12 +1457,10 @@ const ru: Translations = {
         release9Feature1: 'Поддержка тёмной и светлой тем',
         release9Feature2:
             'Мультиязычная поддержка: английский, французский, испанский и немецкий',
-        release9Feature3:
-            'Страницы сравнения с подробным разбором конкурентов',
+        release9Feature3: 'Страницы сравнения с подробным разбором конкурентов',
         release9Feature4:
             'Версии OpenClaw, обновление в один клик или мгновенная установка любой версии',
-        release9Feature5:
-            'Рефакторинг структуры Playground и упрощения',
+        release9Feature5: 'Рефакторинг структуры Playground и упрощения',
         release9Feature6:
             'Улучшения производительности, стабильности и отзывчивости',
         release8Date: '18 февраля 2026',
@@ -1467,57 +1503,42 @@ const ru: Translations = {
             'Панель управления клоу: запуск, остановка, перезапуск и удаление экземпляров',
         release1Feature3:
             '18 серверных тарифов Hetzner с выделенными vCPU, RAM и вариантами хранилища',
-        release1Feature4:
-            '6 серверных локаций Hetzner в США, Европе и Азии',
-        release1Feature5: 'Управление SSH-ключами для беспарольного доступа к серверу',
-        release1Feature6: 'Поддержка дополнительного объёмного хранилища до 10 ТБ',
+        release1Feature4: '6 серверных локаций Hetzner в США, Европе и Азии',
+        release1Feature5:
+            'Управление SSH-ключами для беспарольного доступа к серверу',
+        release1Feature6:
+            'Поддержка дополнительного объёмного хранилища до 10 ТБ',
         release1Feature7: 'Аутентификация по магической ссылке, без паролей',
         release1Feature8: 'Онлайн-доступ к OpenClaw через безопасные поддомены',
-        release1Feature9:
-            'Интеграция платежей с прозрачной ценой за сервер',
+        release1Feature9: 'Интеграция платежей с прозрачной ценой за сервер',
         release1Feature10: 'История платежей и управление счетами',
         release1Feature11:
             'Автоматическое развёртывание с предустановленным и настроенным OpenClaw',
         release2Date: '8 февраля 2026',
-        release2Title: 'DigitalOcean и другое',
+        release2Title: 'Changelog и другое',
         release2Description:
-            'Мультипровайдерная инфраструктура и новый способ быть в курсе всего о ClawHost.',
-        release2Feature1: 'DigitalOcean как второй облачный провайдер',
-        release2Feature2:
-            '7 серверных тарифов DigitalOcean с выделенными vCPU, RAM и вариантами хранилища',
-        release2Feature3:
-            '10+ серверных локаций DigitalOcean в США, Европе, Азии и других регионах',
-        release2Feature4:
+            'Новый способ быть в курсе всего, что касается ClawHost.',
+        release2Feature1:
             'Страница журнала изменений для отслеживания всех обновлений и релизов платформы',
         release3Date: '10 февраля 2026',
         release3Title: 'Информация о сервере',
         release3Description:
             'Глубокая видимость и контроль над серверами прямо из панели.',
-        release3Feature1:
-            'Логи сервера в реальном времени прямо в панели',
+        release3Feature1: 'Логи сервера в реальном времени прямо в панели',
         release3Feature2:
             'Диагностика сервера с автоматическим восстановлением в один клик для проблем с сервисами',
         release3Feature3:
             'Встроенный проводник и JSON-редактор для конфигурационных файлов сервера',
-        release4Date: '11 февраля 2026',
-        release4Title: 'Провайдер Vultr',
+        release4Date: '14 февраля 2026',
+        release4Title: 'Агенты и экспорт данных',
         release4Description:
-            'Vultr как третий облачный провайдер с 22 серверными тарифами и 30+ глобальными локациями.',
-        release4Feature1: 'Vultr как третий облачный провайдер',
-        release4Feature2:
-            '22 серверных тарифа Vultr: обычная, высокая производительность и высокая частота',
-        release4Feature3:
-            '30+ серверных локаций Vultr в США, Европе, Азии и других регионах',
-        release5Date: '14 февраля 2026',
-        release5Title: 'Агенты и экспорт данных',
-        release5Description:
             'Playground для агентов, управление несколькими агентами и переносимый экспорт данных для экземпляров OpenClaw.',
-        release5Feature1:
+        release4Feature1:
             'Playground для агентов в один клик, добавление и управление несколькими агентами',
-        release5Feature2: 'Экспорт OpenClaw как переносимого zip-архива',
-        release5Feature3:
+        release4Feature2: 'Экспорт OpenClaw как переносимого zip-архива',
+        release4Feature3:
             'Интерактивный Playground с граф-визуализацией клоу и агентов',
-        release5Feature4:
+        release4Feature4:
             'Удалён переключатель вида сетка/список в пользу единого макета панели'
     },
     playground: {
@@ -1526,7 +1547,8 @@ const ru: Translations = {
             'Визуализируйте ваши клоу и их агентов на интерактивном графе.',
         subtitle: 'Топология агентов вашей инфраструктуры',
         noClawsYet: 'Нет клоу',
-        noClawsDescription: 'Разверните свой первый клоу, чтобы взаимодействовать с ним.',
+        noClawsDescription:
+            'Разверните свой первый клоу, чтобы взаимодействовать с ним.',
         loadingAgents: 'Загрузка агентов',
         unreachable: 'Недоступен',
         offline: 'Не в сети',
@@ -1612,8 +1634,7 @@ const ru: Translations = {
             'Отключено, пока выполняется предыдущая операция.',
         addAgentTitle: 'Добавить агента',
         addAgentDescription: 'Добавить нового агента в {{clawName}}.',
-        addAgentDescriptionNoClaw:
-            'Выберите клоу и настройте нового агента.',
+        addAgentDescriptionNoClaw: 'Выберите клоу и настройте нового агента.',
         addAgentSelectClaw: 'Клоу',
         addAgentSelectClawPlaceholder: 'Выберите клоу',
         addAgentName: 'Имя',
@@ -1632,7 +1653,8 @@ const ru: Translations = {
         deleteAgentDescription:
             'Вы уверены, что хотите удалить агента «{{agentName}}»? Это действие нельзя отменить. Переменные окружения не будут удалены.',
         deleteAgentConfirm: 'Удалить',
-        agentDontAskAgain: 'Не спрашивать снова при удалении агентов в этой сессии',
+        agentDontAskAgain:
+            'Не спрашивать снова при удалении агентов в этой сессии',
         deleteAgentDeleting: 'Удаление...',
         deleteAgentSuccess: 'Агент успешно удалён.',
         deleteAgentFailed: 'Не удалось удалить агента !',
@@ -1673,12 +1695,14 @@ const ru: Translations = {
         chatReadOnlyUser2: 'Можешь запустить набор тестов и проверить ошибки?',
         chatReadOnlyAssistant2:
             'Конечно! Запускаю все тесты. 3 пройдено, 0 ошибок. Всё в порядке — все проверки проходят.',
-        chatReadOnlyGoUser: 'Привет, можешь помочь автоматизировать мой пайплайн развёртывания?',
+        chatReadOnlyGoUser:
+            'Привет, можешь помочь автоматизировать мой пайплайн развёртывания?',
         chatReadOnlyGoAssistant:
             'Безусловно! Я могу настроить CI/CD-пайплайн для вас. Начнём с GitHub Actions, который собирает, тестирует и деплоит автоматически?',
         chatReadOnlyGoReply:
             'Это превью! Получите ClawHost Go и запустите OpenClaw локально — ваша машина, ваши данные, без облака.',
-        chatReadOnlyGoUser2: 'Можешь мониторить мои локальные сервисы и оповещать, если что-то упадёт?',
+        chatReadOnlyGoUser2:
+            'Можешь мониторить мои локальные сервисы и оповещать, если что-то упадёт?',
         chatReadOnlyGoAssistant2:
             'Уже на этом! Настрою проверки состояния для всех ваших сервисов. Сейчас мониторю 4 эндпоинта — все здоровы и отвечают.',
         chatConnectionFailed: 'Не удалось подключиться к этому агенту !',
@@ -1696,7 +1720,8 @@ const ru: Translations = {
         chatDropFilesDescription: 'Изображения, PDF и текстовые файлы до 5 МБ.',
         chatVoiceInput: 'Голосовой ввод',
         chatVoiceListening: 'Слушаю...',
-        chatVoiceNotSupported: 'Голосовой ввод не поддерживается в этом браузере.',
+        chatVoiceNotSupported:
+            'Голосовой ввод не поддерживается в этом браузере.',
         chatVoiceMode: 'Голосовой режим',
         chatVoiceModeTapToSpeak: 'Нажмите, чтобы начать говорить',
         chatVoiceModeListening: 'Слушаю...',
@@ -1738,7 +1763,8 @@ const ru: Translations = {
         channelsWhatsAppConnected: 'Подключён',
         channelsWhatsAppRepair: 'Связать заново',
         channelsWhatsAppChecking: 'Проверка соединения...',
-        channelsVersionUnsupported: 'Настройка каналов недоступна в этой версии. Вы можете подключиться вручную через вкладку «Терминал» или обновить OpenClaw.',
+        channelsVersionUnsupported:
+            'Настройка каналов недоступна в этой версии. Вы можете подключиться вручную через вкладку «Терминал» или обновить OpenClaw.',
         channelsVersionUnsupportedDocs: 'Руководство по настройке',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
@@ -1791,7 +1817,8 @@ const ru: Translations = {
         skillsLoadFailed: 'Не удалось загрузить навыки !',
         skillsLoadFailedDescription:
             'Не удалось получить конфигурацию навыков. Попробуйте снова.',
-        agentSkillsDescription: 'Навыки, установленные в рабочем пространстве этого агента.',
+        agentSkillsDescription:
+            'Навыки, установленные в рабочем пространстве этого агента.',
         agentSkillsInstalling: 'Установка...',
         agentSkillsInstalled: 'Навык успешно установлен.',
         agentSkillsInstallFailed: 'Не удалось установить навык !',
@@ -1854,8 +1881,7 @@ const ru: Translations = {
         subdomainPlaceholder: 'Введите поддомен',
         subdomainDescription:
             'Строчные буквы и цифры, {{min}}-{{max}} символов.',
-        subdomainInvalid:
-            'Используйте {{min}}-{{max}} строчных букв и цифр.',
+        subdomainInvalid: 'Используйте {{min}}-{{max}} строчных букв и цифр.',
         subdomainUpdated: 'Поддомен успешно обновлён.',
         subdomainUpdateFailed: 'Не удалось обновить поддомен !',
         subdomainInUse: 'Этот поддомен используется другим клоу !',
@@ -1900,8 +1926,10 @@ const ru: Translations = {
         useTransactions: 'Обработки транзакций и отправки платёжной информации',
         useNotices: 'Отправки важных уведомлений и обновлений',
         useSupport: 'Ответа на запросы службы поддержки',
-        useAnalyze: 'Мониторинга и анализа паттернов использования для улучшения нашего Сервиса',
-        useFraud: 'Обнаружения и предотвращения мошенничества или злоупотреблений',
+        useAnalyze:
+            'Мониторинга и анализа паттернов использования для улучшения нашего Сервиса',
+        useFraud:
+            'Обнаружения и предотвращения мошенничества или злоупотреблений',
         sharingTitle: '5. Обмен данными и раскрытие информации',
         sharingText:
             'Мы не продаём вашу персональную информацию. Мы можем делиться информацией с:',
@@ -1918,7 +1946,8 @@ const ru: Translations = {
         retentionText:
             'Мы храним вашу персональную информацию до тех пор, пока ваш аккаунт активен или пока это необходимо для предоставления услуг. Мы можем хранить определённую информацию по требованию закона или для законных деловых целей.',
         rightsTitle: '8. Ваши права',
-        rightsText: 'В зависимости от вашего местоположения вы можете иметь право:',
+        rightsText:
+            'В зависимости от вашего местоположения вы можете иметь право:',
         rightsAccess: 'Получить доступ к вашим персональным данным',
         rightsCorrect: 'Исправить неточные данные',
         rightsDelete: 'Запросить удаление ваших данных',
@@ -1973,7 +2002,8 @@ const ru: Translations = {
             'Распространения вредоносного ПО, вирусов или любого вредоносного программного обеспечения',
         prohibitedDos: 'Проведения DDoS-атак или сетевых злоупотреблений',
         prohibitedSpam: 'Отправки спама или нежелательных сообщений',
-        prohibitedIllegal: 'Размещения или распространения нелегального контента',
+        prohibitedIllegal:
+            'Размещения или распространения нелегального контента',
         prohibitedIp:
             'Нарушения прав третьих лиц, включая интеллектуальную собственность',
         prohibitedMining: 'Майнинга криптовалют',
@@ -2002,7 +2032,8 @@ const ru: Translations = {
         messages: 'Сообщения',
         settings: 'Настройки',
         comingSoon: 'Скоро',
-        messagesPlaceholder: 'Сообщения и уведомления будут отображаться здесь.',
+        messagesPlaceholder:
+            'Сообщения и уведомления будут отображаться здесь.',
         settingsPlaceholder:
             'Настройки аккаунта и предпочтения будут отображаться здесь.',
         signIn: 'Войти',
@@ -2105,7 +2136,7 @@ const ru: Translations = {
         sharedContainers: 'Общие контейнеры',
         isolatedContainers: 'Изолированные контейнеры',
         cloudWorkspaces: 'Облачные рабочие пространства',
-        threeProviders: 'Hetzner, DigitalOcean, Vultr',
+        threeProviders: 'Hetzner Cloud',
         singleProvider: 'Один провайдер',
         fullyDedicated: 'Полностью выделенный',
         shared: 'Общий',

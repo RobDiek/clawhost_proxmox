@@ -52,30 +52,6 @@ const deleteSSHKey = async (c: AuthenticatedContext) => {
                     )
             )
         }
-        if (key[0].digitaloceanKeyId) {
-            providerDeletions.push(
-                getProvider('digitalocean')
-                    .deleteSSHKey(key[0].digitaloceanKeyId)
-                    .catch((err) =>
-                        console.error(
-                            'Failed to delete SSH key from DigitalOcean:',
-                            err
-                        )
-                    )
-            )
-        }
-        if (key[0].vultrKeyId) {
-            providerDeletions.push(
-                getProvider('vultr')
-                    .deleteSSHKey(key[0].vultrKeyId)
-                    .catch((err) =>
-                        console.error(
-                            'Failed to delete SSH key from Vultr:',
-                            err
-                        )
-                    )
-            )
-        }
         await Promise.all([
             ...providerDeletions,
             db.delete(sshKeys).where(eq(sshKeys.id, id))

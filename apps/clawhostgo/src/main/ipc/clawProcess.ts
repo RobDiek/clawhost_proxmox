@@ -64,7 +64,9 @@ const registerClawProcessHandlers = (): void => {
                 schedulePostStartConfigFix(clawDir)
             } catch (err) {
                 throw new Error(
-                    err instanceof Error ? err.message : t('go.failedToStartClaw')
+                    err instanceof Error
+                        ? err.message
+                        : t('go.failedToStartClaw')
                 )
             }
 

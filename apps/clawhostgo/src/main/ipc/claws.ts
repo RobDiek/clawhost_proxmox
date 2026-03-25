@@ -17,17 +17,69 @@ import {
 } from '@/main/services'
 
 const adjectives = [
-    'cozy', 'swift', 'brave', 'calm', 'tiny', 'wild', 'warm', 'cool',
-    'happy', 'lucky', 'fuzzy', 'snowy', 'dusty', 'misty', 'sunny', 'sleepy',
-    'clever', 'gentle', 'mighty', 'silent', 'golden', 'cosmic', 'polar', 'rusty',
-    'nimble', 'jolly', 'witty', 'noble', 'vivid', 'crisp'
+    'cozy',
+    'swift',
+    'brave',
+    'calm',
+    'tiny',
+    'wild',
+    'warm',
+    'cool',
+    'happy',
+    'lucky',
+    'fuzzy',
+    'snowy',
+    'dusty',
+    'misty',
+    'sunny',
+    'sleepy',
+    'clever',
+    'gentle',
+    'mighty',
+    'silent',
+    'golden',
+    'cosmic',
+    'polar',
+    'rusty',
+    'nimble',
+    'jolly',
+    'witty',
+    'noble',
+    'vivid',
+    'crisp'
 ]
 
 const nouns = [
-    'claw', 'panda', 'otter', 'fox', 'wolf', 'bear', 'falcon', 'lynx',
-    'raven', 'crane', 'pike', 'owl', 'hare', 'frog', 'moth', 'finch',
-    'cedar', 'maple', 'birch', 'reef', 'dune', 'peak', 'brook', 'grove',
-    'ember', 'spark', 'drift', 'frost', 'cloud', 'storm'
+    'claw',
+    'panda',
+    'otter',
+    'fox',
+    'wolf',
+    'bear',
+    'falcon',
+    'lynx',
+    'raven',
+    'crane',
+    'pike',
+    'owl',
+    'hare',
+    'frog',
+    'moth',
+    'finch',
+    'cedar',
+    'maple',
+    'birch',
+    'reef',
+    'dune',
+    'peak',
+    'brook',
+    'grove',
+    'ember',
+    'spark',
+    'drift',
+    'frost',
+    'cloud',
+    'storm'
 ]
 
 const generateClawName = (): string => {
@@ -41,11 +93,11 @@ const DEFAULT_OPENCLAW_CONFIG = (subdomain: string, gatewayToken?: string) => ({
         mode: 'local',
         ...(gatewayToken
             ? {
-                auth: {
-                    mode: 'token',
-                    token: gatewayToken
-                }
-            }
+                  auth: {
+                      mode: 'token',
+                      token: gatewayToken
+                  }
+              }
             : {}),
         controlUi: {
             allowInsecureAuth: true,
@@ -78,10 +130,15 @@ const DEFAULT_OPENCLAW_CONFIG = (subdomain: string, gatewayToken?: string) => ({
     }
 })
 
-const resolveGatewayToken = (claw: NonNullable<ReturnType<typeof configStore.findClaw>>): string => {
+const resolveGatewayToken = (
+    claw: NonNullable<ReturnType<typeof configStore.findClaw>>
+): string => {
     if (claw.gatewayToken) return claw.gatewayToken
     try {
-        const configPath = path.join(configStore.getClawDir(claw.name), 'openclaw.json')
+        const configPath = path.join(
+            configStore.getClawDir(claw.name),
+            'openclaw.json'
+        )
         const raw = fs.readFileSync(configPath, 'utf-8')
         const cfg = JSON.parse(raw)
         const token = cfg?.gateway?.auth?.token
@@ -155,7 +212,8 @@ const registerClawHandlers = (): void => {
 
             const id = crypto.randomUUID()
             const port = configStore.getNextAvailablePort()
-            const gatewayToken = data.gatewayToken || crypto.randomBytes(24).toString('hex')
+            const gatewayToken =
+                data.gatewayToken || crypto.randomBytes(24).toString('hex')
             const subdomain = configStore.generateSlug(id)
 
             const clawDir = configStore.getClawDir(name)
@@ -166,7 +224,10 @@ const registerClawHandlers = (): void => {
 
             await versionManager.installVersionTo(version, clawDir)
 
-            const openclawConfig = DEFAULT_OPENCLAW_CONFIG(subdomain, gatewayToken || undefined)
+            const openclawConfig = DEFAULT_OPENCLAW_CONFIG(
+                subdomain,
+                gatewayToken || undefined
+            )
             fs.writeFileSync(
                 path.join(clawDir, 'openclaw.json'),
                 JSON.stringify(openclawConfig, null, 4)
@@ -206,9 +267,15 @@ const registerClawHandlers = (): void => {
                             const cfg = JSON.parse(raw)
                             if (!cfg.gateway?.controlUi) return
                             const origins = cfg.gateway.controlUi.allowedOrigins
-                            if (JSON.stringify(origins) !== JSON.stringify(['*'])) {
+                            if (
+                                JSON.stringify(origins) !==
+                                JSON.stringify(['*'])
+                            ) {
                                 cfg.gateway.controlUi.allowedOrigins = ['*']
-                                fs.writeFileSync(configPath, JSON.stringify(cfg, null, 4))
+                                fs.writeFileSync(
+                                    configPath,
+                                    JSON.stringify(cfg, null, 4)
+                                )
                             }
                         } catch {}
                     }, 5000)
@@ -352,7 +419,8 @@ const registerClawHandlers = (): void => {
             if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
-            if (!fs.existsSync(clawDir)) throw new Error(t('go.clawDirectoryNotFound'))
+            if (!fs.existsSync(clawDir))
+                throw new Error(t('go.clawDirectoryNotFound'))
 
             const win = BrowserWindow.getFocusedWindow()
             const result = await dialog.showSaveDialog(win!, {
@@ -365,7 +433,13 @@ const registerClawHandlers = (): void => {
             await new Promise<void>((resolve, reject) => {
                 execFile(
                     'tar',
-                    ['-czf', result.filePath!, '-C', path.dirname(clawDir), path.basename(clawDir)],
+                    [
+                        '-czf',
+                        result.filePath!,
+                        '-C',
+                        path.dirname(clawDir),
+                        path.basename(clawDir)
+                    ],
                     (error) => {
                         if (error) reject(new Error(t('go.exportFailed')))
                         else resolve()

@@ -9,19 +9,14 @@ import { heading, paragraph, button, buttonContainer } from '@/emails/styles'
 const TerminalEmail: FC = (): ReactNode => {
     return (
         <FeatureEmailLayout preview={t('emails.features.terminal.preview')}>
-            <Text style={heading}>
-                {t('emails.features.terminal.heading')}
-            </Text>
+            <Text style={heading}>{t('emails.features.terminal.heading')}</Text>
 
             <Text style={paragraph}>
                 {t('emails.features.terminal.description')}
             </Text>
 
             <Section style={buttonContainer}>
-                <Button
-                    href='https://clawhost.cloud'
-                    style={button}
-                >
+                <Button href='https://clawhost.cloud' style={button}>
                     {t('emails.features.terminal.cta')}
                 </Button>
             </Section>

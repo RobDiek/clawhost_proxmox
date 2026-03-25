@@ -11,7 +11,9 @@ import viteMdxSanitize from './src/plugins/vite-mdx-sanitize'
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd())
-    const pkg = JSON.parse(readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'))
+    const pkg = JSON.parse(
+        readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')
+    )
 
     return {
         define: {
@@ -56,10 +58,7 @@ export default defineConfig(({ mode }) => {
                             '@codemirror/lang-json'
                         ],
                         phosphor: ['@phosphor-icons/react'],
-                        firebase: [
-                            'firebase/app',
-                            'firebase/auth'
-                        ],
+                        firebase: ['firebase/app', 'firebase/auth'],
                         tanstack: [
                             '@tanstack/react-query',
                             '@tanstack/react-query-persist-client',

@@ -17,7 +17,9 @@ const extractSubdomain = (host: string | undefined): string | null => {
     return hostname.replace('.clawhost', '')
 }
 
-const resolveClaw = (subdomain: string): { port: number; gatewayToken: string } | null => {
+const resolveClaw = (
+    subdomain: string
+): { port: number; gatewayToken: string } | null => {
     const claw = configStore.findClawBySubdomain(subdomain)
     if (!claw) return null
     return { port: claw.port, gatewayToken: claw.gatewayToken }
@@ -41,14 +43,17 @@ const handleRequest = (
         return
     }
 
-    const needsToken = !!claw.gatewayToken &&
+    const needsToken =
+        !!claw.gatewayToken &&
         req.method === 'GET' &&
         !(req.url || '').includes('token=')
 
     if (needsToken) {
         const url = req.url || '/'
         const separator = url.includes('?') ? '&' : '?'
-        res.writeHead(302, { Location: `${url}${separator}token=${claw.gatewayToken}` })
+        res.writeHead(302, {
+            Location: `${url}${separator}token=${claw.gatewayToken}`
+        })
         res.end()
         return
     }
