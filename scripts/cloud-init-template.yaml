@@ -1,0 +1,151 @@
+#cloud-config
+
+# OpenClaw Hosting by Flowmatic — Instance Auto-Configuration
+# Variables (Mustache): {{INSTANCE_ID}} {{OPENCLAW_TOKEN}}
+# {{AUTOMATION_TOOL}} {{AUTOMATION_PORT}} {{AUTOMATION_PASSWORD}}
+# {{HAS_OLLAMA}} {{ROOT_PASSWORD}}
+
+chpasswd:
+    list: |
+        root:{{ROOT_PASSWORD}}
+    expire: false
+
+package_update: true
+
+packages:
+    - docker.io
+    - docker-compose-plugin
+    - nginx
+    - certbot
+    - python3-certbot-nginx
+    - ufw
+    - curl
+    - jq
+
+write_files:
+    - path: /opt/openclaw/docker-compose.yml
+      content: |
+          services:
+              openclaw:
+                  image: openclaw/openclaw:latest
+                  restart: unless-stopped
+                  ports: ["127.0.0.1:3000:3000"]
+                  volumes: ["/opt/openclaw/data/openclaw:/home/user/.openclaw"]
+                  environment:
+                      - OPENCLAW_AUTH_TOKEN={{OPENCLAW_TOKEN}}
+                      - OPENCLAW_BIND=0.0.0.0:3000
+
+              n8n:
+                  image: n8nio/n8n:latest
+                  restart: unless-stopped
+                  profiles: ["n8n"]
+                  ports: ["127.0.0.1:5678:5678"]
+                  volumes: ["/opt/openclaw/data/n8n:/home/node/.n8n"]
+                  environment:
+                      - N8N_BASIC_AUTH_ACTIVE=true
+                      - N8N_BASIC_AUTH_USER=admin
+                      - N8N_BASIC_AUTH_PASSWORD={{AUTOMATION_PASSWORD}}
+                      - WEBHOOK_URL=https://flows.{{INSTANCE_ID}}.openclaw.flowmatic.co.il
+                      - N8N_HOST=flows.{{INSTANCE_ID}}.openclaw.flowmatic.co.il
+
+              activepieces:
+                  image: activepieces/activepieces:latest
+                  restart: unless-stopped
+                  profiles: ["activepieces"]
+                  ports: ["127.0.0.1:8080:80"]
+                  volumes: ["/opt/openclaw/data/ap:/root/.activepieces"]
+                  environment:
+                      - AP_FRONTEND_URL=https://flows.{{INSTANCE_ID}}.openclaw.flowmatic.co.il
+
+              {{#HAS_OLLAMA}}
+              ollama:
+                  image: ollama/ollama:latest
+                  restart: unless-stopped
+                  ports: ["127.0.0.1:11434:11434"]
+                  volumes: ["/opt/openclaw/data/ollama:/root/.ollama"]
+              {{/HAS_OLLAMA}}
+
+    - path: /etc/nginx/sites-available/openclaw
+      content: |
+          server {
+              listen 80;
+              server_name agent.{{INSTANCE_ID}}.openclaw.flowmatic.co.il;
+              location / {
+                  proxy_pass http://127.0.0.1:3000;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  proxy_read_timeout 300s;
+              }
+          }
+          server {
+              listen 80;
+              server_name flows.{{INSTANCE_ID}}.openclaw.flowmatic.co.il;
+              location / {
+                  proxy_pass http://127.0.0.1:{{AUTOMATION_PORT}};
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+          }
+
+    - path: /opt/openclaw/health.sh
+      permissions: '0755'
+      content: |
+          #!/bin/bash
+          echo '{"status":"ok","instance":"{{INSTANCE_ID}}"}' | \
+            curl -s -X POST https://api.openclaw.flowmatic.co.il/health/heartbeat \
+            -H "Content-Type: application/json" -d @-
+
+runcmd:
+    # Firewall
+    - ufw allow 22/tcp && ufw allow 80/tcp && ufw allow 443/tcp && ufw --force enable
+
+    # Create directories
+    - mkdir -p /opt/openclaw/data/{openclaw,n8n,ap,ollama}
+
+    # Start services
+    - |
+        cd /opt/openclaw
+        docker compose --profile {{AUTOMATION_TOOL}} up -d
+        docker compose up -d openclaw
+        {{#HAS_OLLAMA}}
+        docker compose up -d ollama
+        sleep 30 && docker exec ollama ollama pull llama3.1:8b
+        {{/HAS_OLLAMA}}
+
+    # Nginx
+    - ln -sf /etc/nginx/sites-available/openclaw /etc/nginx/sites-enabled/
+    - rm -f /etc/nginx/sites-enabled/default
+    - nginx -t && systemctl enable nginx && systemctl start nginx
+
+    # SSL — polling until DNS propagates
+    - |
+        for i in $(seq 1 40); do
+          certbot --nginx \
+            -d agent.{{INSTANCE_ID}}.openclaw.flowmatic.co.il \
+            -d flows.{{INSTANCE_ID}}.openclaw.flowmatic.co.il \
+            --non-interactive --agree-tos \
+            -m devops@flowmatic.co.il && break
+          echo "SSL attempt $i failed, waiting 15s..."
+          sleep 15
+        done
+
+    # Auto-update daily at 3am
+    - |
+        echo "0 3 * * * root cd /opt/openclaw && docker compose pull && \
+        docker compose up -d --remove-orphans >> /var/log/openclaw-update.log 2>&1" \
+        > /etc/cron.d/openclaw-update
+
+    # Heartbeat every 5 min
+    - echo "*/5 * * * * root /opt/openclaw/health.sh" > /etc/cron.d/openclaw-health
+
+final_message: 'OpenClaw instance {{INSTANCE_ID}} ready!'

@@ -33,3 +33,6 @@ clawhost-articles.json
 
 # Piper TTS models (large binary files, deployed separately)
 apps/api/models/
+# Environment
+.env
+.env.local
