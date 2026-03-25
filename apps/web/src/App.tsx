@@ -23,6 +23,7 @@ const Blog = lazy(() => import('@/pages/Blog'))
 const BlogPost = lazy(() => import('@/pages/BlogPost'))
 const Compare = lazy(() => import('@/pages/Compare'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
+const Onboarding = lazy(() => import('@/pages/Onboarding'))
 
 const App: FC = (): ReactNode => {
     useThemeEffect()
@@ -51,6 +52,14 @@ const App: FC = (): ReactNode => {
                         <Route path={ROUTES.BLOG} element={<Blog />} />
                         <Route path={ROUTES.BLOG_POST} element={<BlogPost />} />
                         <Route path={ROUTES.COMPARE} element={<Compare />} />
+                        <Route
+                            path='/onboarding/:instanceId'
+                            element={
+                                <ProtectedRoute>
+                                    <Onboarding />
+                                </ProtectedRoute>
+                            }
+                        />
                         <Route
                             path={ROUTES.CLAWS}
                             element={
