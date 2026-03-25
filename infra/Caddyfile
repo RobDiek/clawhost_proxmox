@@ -1,0 +1,11 @@
+openclaw.flowmatic.co.il {
+    reverse_proxy web:3000
+}
+
+api.openclaw.flowmatic.co.il {
+    reverse_proxy api:3001
+}
+
+status.openclaw.flowmatic.co.il {
+    reverse_proxy uptime-kuma:3001
+}

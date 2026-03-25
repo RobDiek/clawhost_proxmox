@@ -8,7 +8,11 @@ import {
     getInstance,
     getInstanceStatus,
     restartInstance,
-    deleteInstance
+    deleteInstance,
+    adminGetInstances,
+    adminGetRevenue,
+    adminSuspendInstance,
+    adminTerminateInstance
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -25,5 +29,11 @@ app.get('/instances/:id', getInstance)
 app.get('/instances/:id/status', getInstanceStatus)
 app.post('/instances/:id/restart', restartInstance)
 app.delete('/instances/:id', deleteInstance)
+
+// Admin routes
+app.get('/admin/instances', adminGetInstances)
+app.get('/admin/revenue', adminGetRevenue)
+app.post('/admin/instances/:id/suspend', adminSuspendInstance)
+app.post('/admin/instances/:id/terminate', adminTerminateInstance)
 
 export default app

@@ -24,6 +24,9 @@ const BlogPost = lazy(() => import('@/pages/BlogPost'))
 const Compare = lazy(() => import('@/pages/Compare'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
 const Onboarding = lazy(() => import('@/pages/Onboarding'))
+const HostingDashboard = lazy(() => import('@/pages/HostingDashboard'))
+const Checkout = lazy(() => import('@/pages/Checkout'))
+const HostingAdmin = lazy(() => import('@/pages/HostingAdmin'))
 
 const App: FC = (): ReactNode => {
     useThemeEffect()
@@ -57,6 +60,30 @@ const App: FC = (): ReactNode => {
                             element={
                                 <ProtectedRoute>
                                     <Onboarding />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path='/hosting'
+                            element={
+                                <ProtectedRoute>
+                                    <HostingDashboard />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path='/checkout'
+                            element={
+                                <ProtectedRoute>
+                                    <Checkout />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path='/hosting/admin'
+                            element={
+                                <ProtectedRoute>
+                                    <HostingAdmin />
                                 </ProtectedRoute>
                             }
                         />

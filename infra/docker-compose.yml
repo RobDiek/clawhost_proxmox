@@ -1,0 +1,48 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    env_file: ../.env
+    ports: ["127.0.0.1:3001:3001"]
+    depends_on: [postgres]
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    ports: ["127.0.0.1:3000:3000"]
+    environment:
+      - NODE_ENV=production
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes: ["./data/postgres:/var/lib/postgresql/data"]
+    environment:
+      POSTGRES_DB: openclaw
+      POSTGRES_USER: openclaw
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+    ports: ["127.0.0.1:5432:5432"]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./data/caddy:/data
+      - ./data/caddy_config:/config
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    restart: unless-stopped
+    volumes: ["./data/kuma:/app/data"]
+    ports: ["127.0.0.1:3002:3001"]
