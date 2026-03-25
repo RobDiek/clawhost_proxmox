@@ -1,6 +1,7 @@
+import type { Translations } from '../types'
 import en from './en'
 
-const he: typeof en = {
+const he: Translations = {
     ...en,
     common: {
         ...en.common,
