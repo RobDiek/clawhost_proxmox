@@ -842,7 +842,7 @@ export interface UpdateClawChannelsBody {
 }
 
 export interface WhatsAppPairResponse {
-    status: 'started' | 'already_paired' | 'unsupported'
+    status: 'started' | 'already_paired' | 'version_unsupported'
 }
 
 export interface WhatsAppPairStatusResponse {
@@ -1113,8 +1113,13 @@ export interface WaitlistStatusResponse {
     joined: boolean
 }
 
+export interface FeatureEmailLayoutProps {
+    preview: string
+    children: import('react').ReactNode
+}
+
 export interface FeatureEmailDefinition {
-    key: string
+    key: import('@/ts/Types').FeatureEmailKey
     subject: string
     render: () => import('react').ReactNode
 }

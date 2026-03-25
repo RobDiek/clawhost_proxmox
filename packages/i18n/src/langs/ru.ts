@@ -437,8 +437,7 @@ const ru: Translations = {
         whatsappPairStarted: 'Сопряжение WhatsApp начато.',
         whatsappPairFailed: 'Сопряжение WhatsApp не удалось!',
         whatsappAlreadyPaired: 'WhatsApp уже сопряжён!',
-        whatsappUnsupported:
-            'Этот экземпляр пока не поддерживает сопряжение WhatsApp!',
+        whatsappVersionUnsupported: 'Эта версия не поддерживает настройку каналов через панель управления. Используйте вкладку «Терминал» для ручной настройки или обновите OpenClaw.',
         bindingsFetched: 'Привязки успешно загружены.',
         bindingsFetchFailed: 'Не удалось загрузить привязки!',
         bindingsUpdated: 'Привязки успешно обновлены.',
@@ -481,6 +480,7 @@ const ru: Translations = {
         voicesFetched: 'Голоса успешно загружены.',
         featureEmailsSent: 'Информационные письма успешно отправлены.',
         featureEmailsFailed: 'Не удалось отправить информационные письма!',
+        invalidFeatureKey: 'Недействительный ключ функции!',
         waitlistJoined: 'Вы успешно записались в лист ожидания.',
         waitlistAlreadyJoined: 'Вы уже в листе ожидания.',
         waitlistJoinFailed: 'Не удалось записаться в лист ожидания!',
@@ -1738,8 +1738,8 @@ const ru: Translations = {
         channelsWhatsAppConnected: 'Подключён',
         channelsWhatsAppRepair: 'Связать заново',
         channelsWhatsAppChecking: 'Проверка соединения...',
-        channelsWhatsAppUnsupported:
-            'Связывание WhatsApp недоступно на этом экземпляре. Обновите OpenClaw до более новой версии, чтобы включить его.',
+        channelsVersionUnsupported: 'Настройка каналов недоступна в этой версии. Вы можете подключиться вручную через вкладку «Терминал» или обновить OpenClaw.',
+        channelsVersionUnsupportedDocs: 'Руководство по настройке',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

@@ -9,8 +9,8 @@ const useChannelsStore = create<ChannelsState>((set) => ({
     pollEnabled: false,
     setPollEnabled: (value) => set({ pollEnabled: value }),
 
-    pairUnsupported: false,
-    setPairUnsupported: (value) => set({ pairUnsupported: value }),
+    versionUnsupported: false,
+    setVersionUnsupported: (value) => set({ versionUnsupported: value }),
 
     isWhatsAppPaired: false,
     setIsWhatsAppPaired: (value) => set({ isWhatsAppPaired: value }),
@@ -34,7 +34,7 @@ const useChannelsStore = create<ChannelsState>((set) => ({
         set({
             isPairing: false,
             pollEnabled: false,
-            pairUnsupported: false,
+            versionUnsupported: false,
             isRepairing: false
         })
 }))

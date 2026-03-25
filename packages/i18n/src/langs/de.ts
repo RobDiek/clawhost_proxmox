@@ -454,8 +454,7 @@ const de: Translations = {
         whatsappPairStarted: 'WhatsApp-Kopplung gestartet.',
         whatsappPairFailed: 'WhatsApp-Kopplung fehlgeschlagen!',
         whatsappAlreadyPaired: 'WhatsApp ist bereits gekoppelt!',
-        whatsappUnsupported:
-            'Diese Instanz unterstützt die WhatsApp-Kopplung noch nicht!',
+        whatsappVersionUnsupported: 'Diese Version unterstützt die Kanalkonfiguration über das Dashboard nicht. Verwenden Sie den Terminal-Tab zur manuellen Konfiguration oder aktualisieren Sie OpenClaw.',
         bindingsFetched: 'Bindungen erfolgreich abgerufen.',
         bindingsFetchFailed: 'Bindungen konnten nicht abgerufen werden!',
         bindingsUpdated: 'Bindungen erfolgreich aktualisiert.',
@@ -506,6 +505,7 @@ const de: Translations = {
         voicesFetched: 'Stimmen erfolgreich abgerufen.',
         featureEmailsSent: 'Feature-E-Mails erfolgreich gesendet.',
         featureEmailsFailed: 'Fehler beim Senden der Feature-E-Mails!',
+        invalidFeatureKey: 'Ungültiger Feature-Schlüssel!',
         waitlistJoined: 'Erfolgreich der Warteliste beigetreten.',
         waitlistAlreadyJoined: 'Bereits auf der Warteliste.',
         waitlistJoinFailed: 'Beitritt zur Warteliste fehlgeschlagen!',
@@ -1800,8 +1800,8 @@ const de: Translations = {
         channelsWhatsAppConnected: 'Verbunden',
         channelsWhatsAppRepair: 'Neu koppeln',
         channelsWhatsAppChecking: 'Verbindung wird überprüft...',
-        channelsWhatsAppUnsupported:
-            'WhatsApp-Kopplung ist auf dieser Instanz nicht verfügbar. Aktualisiere OpenClaw auf eine neuere Version, um sie zu aktivieren!',
+        channelsVersionUnsupported: 'Die Kanalkonfiguration ist in dieser Version nicht verfügbar. Sie können manuell über den Terminal-Tab verbinden oder OpenClaw aktualisieren.',
+        channelsVersionUnsupportedDocs: 'Einrichtungsanleitung anzeigen',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

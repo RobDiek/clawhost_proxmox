@@ -17,6 +17,7 @@ import DOMAIN from '@/controllers/claws/helpers/constants'
 import syncClawServers from '@/controllers/claws/helpers/syncClawServers'
 import OPENCLAW_VERSION from '@/controllers/claws/helpers/openclawVersion'
 import WHATSAPP_PATHS from '@/controllers/claws/helpers/whatsappPaths'
+import isVersionAtLeast from '@/controllers/claws/helpers/isVersionAtLeast'
 
 export {
     applyToolsDefaults,
@@ -37,5 +38,6 @@ export {
     DOMAIN,
     syncClawServers,
     OPENCLAW_VERSION,
-    WHATSAPP_PATHS
+    WHATSAPP_PATHS,
+    isVersionAtLeast
 }

@@ -437,8 +437,7 @@ const ja: Translations = {
         whatsappPairStarted: 'WhatsAppペアリングを開始しました.',
         whatsappPairFailed: 'WhatsAppペアリングに失敗しました!',
         whatsappAlreadyPaired: 'WhatsAppは既にペアリング済みです!',
-        whatsappUnsupported:
-            'このインスタンスはまだWhatsAppペアリングに対応していません!',
+        whatsappVersionUnsupported: 'このバージョンではダッシュボードからのチャンネル設定はサポートされていません。ターミナルタブから手動で設定するか、OpenClawをアップグレードしてください。',
         bindingsFetched: 'バインディングを取得しました.',
         bindingsFetchFailed: 'バインディングを取得できませんでした!',
         bindingsUpdated: 'バインディングを更新しました.',
@@ -481,6 +480,7 @@ const ja: Translations = {
         voicesFetched: '音声を取得しました.',
         featureEmailsSent: '機能メールを送信しました.',
         featureEmailsFailed: '機能メールの送信に失敗しました!',
+        invalidFeatureKey: '無効な機能キーです!',
         waitlistJoined: 'ウェイトリストに参加しました.',
         waitlistAlreadyJoined: '既にウェイトリストに登録済みです.',
         waitlistJoinFailed: 'ウェイトリストへの参加に失敗しました!',
@@ -1738,8 +1738,8 @@ const ja: Translations = {
         channelsWhatsAppConnected: '接続済み',
         channelsWhatsAppRepair: '再ペアリング',
         channelsWhatsAppChecking: '接続を確認中...',
-        channelsWhatsAppUnsupported:
-            'このインスタンスではWhatsAppペアリングは利用できません。有効にするにはOpenClawを新しいバージョンに更新してください。',
+        channelsVersionUnsupported: 'このバージョンではチャンネル設定は利用できません。ターミナルタブから手動で接続するか、OpenClawをアップグレードしてください。',
+        channelsVersionUnsupportedDocs: 'セットアップガイドを見る',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

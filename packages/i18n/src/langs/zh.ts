@@ -437,8 +437,7 @@ const zh: Translations = {
         whatsappPairStarted: 'WhatsApp 配对已开始.',
         whatsappPairFailed: 'WhatsApp 配对失败!',
         whatsappAlreadyPaired: 'WhatsApp 已配对!',
-        whatsappUnsupported:
-            '此实例尚不支持 WhatsApp 配对!',
+        whatsappVersionUnsupported: '此版本不支持从仪表板配置频道。请使用终端选项卡手动配置或升级 OpenClaw。',
         bindingsFetched: '绑定获取成功.',
         bindingsFetchFailed: '无法获取绑定!',
         bindingsUpdated: '绑定更新成功.',
@@ -481,6 +480,7 @@ const zh: Translations = {
         voicesFetched: '语音获取成功.',
         featureEmailsSent: '功能邮件发送成功.',
         featureEmailsFailed: '发送功能邮件失败!',
+        invalidFeatureKey: '无效的功能键!',
         waitlistJoined: '成功加入等待列表.',
         waitlistAlreadyJoined: '已在等待列表中.',
         waitlistJoinFailed: '加入等待列表失败!',
@@ -1738,8 +1738,8 @@ const zh: Translations = {
         channelsWhatsAppConnected: '已连接',
         channelsWhatsAppRepair: '重新配对',
         channelsWhatsAppChecking: '正在检查连接...',
-        channelsWhatsAppUnsupported:
-            '此实例不支持 WhatsApp 配对。请更新 OpenClaw 到较新版本以启用。',
+        channelsVersionUnsupported: '此版本不支持频道配置。您可以通过终端选项卡手动连接或升级 OpenClaw。',
+        channelsVersionUnsupportedDocs: '查看配置指南',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

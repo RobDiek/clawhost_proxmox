@@ -186,8 +186,8 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
         setIsPairing,
         pollEnabled,
         setPollEnabled,
-        pairUnsupported,
-        setPairUnsupported,
+        versionUnsupported,
+        setVersionUnsupported,
         isWhatsAppPaired,
         setIsWhatsAppPaired,
         isRepairing,
@@ -203,8 +203,8 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
             setIsPairing: s.setIsPairing,
             pollEnabled: s.pollEnabled,
             setPollEnabled: s.setPollEnabled,
-            pairUnsupported: s.pairUnsupported,
-            setPairUnsupported: s.setPairUnsupported,
+            versionUnsupported: s.versionUnsupported,
+            setVersionUnsupported: s.setVersionUnsupported,
             isWhatsAppPaired: s.isWhatsAppPaired,
             setIsWhatsAppPaired: s.setIsWhatsAppPaired,
             isRepairing: s.isRepairing,
@@ -388,8 +388,8 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
                 )
                 return
             }
-            if (res.status === 'unsupported') {
-                setPairUnsupported(true)
+            if (res.status === 'version_unsupported') {
+                setVersionUnsupported(true)
                 return
             }
             setIsPairing(true)
@@ -566,12 +566,24 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
                                                     )}
                                                 </button>
                                             </div>
-                                        ) : pairUnsupported ? (
-                                            <p className='text-muted-foreground text-[11px]'>
-                                                {t(
-                                                    'playground.channelsWhatsAppUnsupported'
-                                                )}
-                                            </p>
+                                        ) : versionUnsupported ? (
+                                            <div className='space-y-1.5'>
+                                                <p className='text-muted-foreground text-[11px]'>
+                                                    {t(
+                                                        'playground.channelsVersionUnsupported'
+                                                    )}
+                                                </p>
+                                                <a
+                                                    href='https://docs.openclaw.ai/channels/whatsapp'
+                                                    target='_blank'
+                                                    rel='noopener noreferrer'
+                                                    className='text-[11px] text-[#25D366] underline'
+                                                >
+                                                    {t(
+                                                        'playground.channelsVersionUnsupportedDocs'
+                                                    )}
+                                                </a>
+                                            </div>
                                         ) : isWhatsAppPaired ? (
                                             <button
                                                 type='button'

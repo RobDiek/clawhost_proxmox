@@ -437,8 +437,7 @@ const tr: Translations = {
         whatsappPairStarted: 'WhatsApp eşleştirme başlatıldı.',
         whatsappPairFailed: 'WhatsApp eşleştirme başarısız!',
         whatsappAlreadyPaired: 'WhatsApp zaten eşleştirilmiş!',
-        whatsappUnsupported:
-            'Bu örnek henüz WhatsApp eşleştirmeyi desteklemiyor!',
+        whatsappVersionUnsupported: 'Bu sürüm panelden kanal yapılandırmasını desteklemiyor. Manuel olarak yapılandırmak için Terminal sekmesini kullanın veya OpenClaw\'ı güncelleyin.',
         bindingsFetched: 'Bağlamalar başarıyla getirildi.',
         bindingsFetchFailed: 'Bağlamalar getirilemedi!',
         bindingsUpdated: 'Bağlamalar başarıyla güncellendi.',
@@ -481,6 +480,7 @@ const tr: Translations = {
         voicesFetched: 'Sesler başarıyla getirildi.',
         featureEmailsSent: 'Özellik e-postaları başarıyla gönderildi.',
         featureEmailsFailed: 'Özellik e-postaları gönderilemedi!',
+        invalidFeatureKey: 'Geçersiz özellik anahtarı!',
         waitlistJoined: 'Bekleme listesine başarıyla katıldınız.',
         waitlistAlreadyJoined: 'Zaten bekleme listesinde.',
         waitlistJoinFailed: 'Bekleme listesine katılma başarısız!',
@@ -1738,8 +1738,8 @@ const tr: Translations = {
         channelsWhatsAppConnected: 'Bağlı',
         channelsWhatsAppRepair: 'Yeniden Eşleştir',
         channelsWhatsAppChecking: 'Bağlantı kontrol ediliyor...',
-        channelsWhatsAppUnsupported:
-            'Bu örnekte WhatsApp eşleştirme mevcut değil. Etkinleştirmek için OpenClaw\'u daha yeni bir sürüme güncelleyin.',
+        channelsVersionUnsupported: 'Bu sürümde kanal yapılandırması mevcut değil. Terminal sekmesini kullanarak manuel olarak bağlanabilir veya OpenClaw\'ı güncelleyebilirsiniz.',
+        channelsVersionUnsupportedDocs: 'Kurulum kılavuzunu görüntüle',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

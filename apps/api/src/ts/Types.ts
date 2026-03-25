@@ -52,3 +52,24 @@ export type BillingInterval = (typeof billingInterval)[keyof typeof billingInter
 export type PolarPriceMap = Record<string, Record<string, number>>
 
 export type ClawRow = typeof import('@/db/schema').claws.$inferSelect
+
+export type FeatureEmailKey =
+    | 'terminal'
+    | 'logs'
+    | 'channels'
+    | 'fileExplorer'
+    | 'playground'
+    | 'agentChat'
+    | 'voiceMode'
+    | 'skills'
+    | 'bindings'
+    | 'envVars'
+    | 'diagnostics'
+    | 'sshKeys'
+    | 'exportConfig'
+    | 'multiProvider'
+    | 'multiLanguage'
+    | 'subdomain'
+    | 'darkMode'
+    | 'reinstall'
+    | 'yearlyPlans'

@@ -437,8 +437,7 @@ const pt: Translations = {
         whatsappPairStarted: 'Pareamento do WhatsApp iniciado.',
         whatsappPairFailed: 'Falha no pareamento do WhatsApp!',
         whatsappAlreadyPaired: 'WhatsApp já está pareado!',
-        whatsappUnsupported:
-            'Esta instância ainda não suporta pareamento com WhatsApp!',
+        whatsappVersionUnsupported: 'Esta versão não suporta a configuração de canais pelo painel. Use a aba Terminal para configurar manualmente ou atualize o OpenClaw.',
         bindingsFetched: 'Vínculos obtidos com sucesso.',
         bindingsFetchFailed: 'Não foi possível buscar os vínculos!',
         bindingsUpdated: 'Vínculos atualizados com sucesso.',
@@ -481,6 +480,7 @@ const pt: Translations = {
         voicesFetched: 'Vozes obtidas com sucesso.',
         featureEmailsSent: 'E-mails de recursos enviados com sucesso.',
         featureEmailsFailed: 'Falha ao enviar e-mails de recursos!',
+        invalidFeatureKey: 'Chave de recurso inválida!',
         waitlistJoined: 'Inscrito na lista de espera com sucesso.',
         waitlistAlreadyJoined: 'Já está na lista de espera.',
         waitlistJoinFailed: 'Falha ao entrar na lista de espera!',
@@ -1738,8 +1738,8 @@ const pt: Translations = {
         channelsWhatsAppConnected: 'Conectado',
         channelsWhatsAppRepair: 'Parear novamente',
         channelsWhatsAppChecking: 'Verificando conexão...',
-        channelsWhatsAppUnsupported:
-            'O pareamento do WhatsApp não está disponível nesta instância. Atualize o OpenClaw para uma versão mais recente para habilitá-lo.',
+        channelsVersionUnsupported: 'A configuração de canais não está disponível nesta versão. Você pode conectar manualmente usando a aba Terminal ou atualizar o OpenClaw.',
+        channelsVersionUnsupportedDocs: 'Ver guia de configuração',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

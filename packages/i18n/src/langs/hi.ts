@@ -437,8 +437,7 @@ const hi: Translations = {
         whatsappPairStarted: 'WhatsApp पेयरिंग शुरू हुई.',
         whatsappPairFailed: 'WhatsApp पेयरिंग विफल!',
         whatsappAlreadyPaired: 'WhatsApp पहले से पेयर है!',
-        whatsappUnsupported:
-            'यह इंस्टेंस अभी तक WhatsApp पेयरिंग का समर्थन नहीं करता!',
+        whatsappVersionUnsupported: 'यह संस्करण डैशबोर्ड से चैनल कॉन्फ़िगरेशन का समर्थन नहीं करता। मैन्युअल रूप से कॉन्फ़िगर करने के लिए टर्मिनल टैब का उपयोग करें या OpenClaw अपग्रेड करें।',
         bindingsFetched: 'बाइंडिंग सफलतापूर्वक प्राप्त हुईं.',
         bindingsFetchFailed: 'बाइंडिंग प्राप्त नहीं हो सकीं!',
         bindingsUpdated: 'बाइंडिंग सफलतापूर्वक अपडेट हुईं.',
@@ -481,6 +480,7 @@ const hi: Translations = {
         voicesFetched: 'वॉइस सफलतापूर्वक प्राप्त हुईं.',
         featureEmailsSent: 'फ़ीचर ईमेल सफलतापूर्वक भेजे गए.',
         featureEmailsFailed: 'फ़ीचर ईमेल भेजने में विफल!',
+        invalidFeatureKey: 'अमान्य फ़ीचर कुंजी!',
         waitlistJoined: 'प्रतीक्षा सूची में सफलतापूर्वक शामिल हुए.',
         waitlistAlreadyJoined: 'पहले से प्रतीक्षा सूची में हैं.',
         waitlistJoinFailed: 'प्रतीक्षा सूची में शामिल होने में विफल!',
@@ -1738,8 +1738,8 @@ const hi: Translations = {
         channelsWhatsAppConnected: 'कनेक्टेड',
         channelsWhatsAppRepair: 'पुनः पेयर करें',
         channelsWhatsAppChecking: 'कनेक्शन जाँच हो रही है...',
-        channelsWhatsAppUnsupported:
-            'इस इंस्टेंस पर WhatsApp पेयरिंग उपलब्ध नहीं है. इसे सक्षम करने के लिए OpenClaw को नए संस्करण में अपडेट करें.',
+        channelsVersionUnsupported: 'इस संस्करण में चैनल कॉन्फ़िगरेशन उपलब्ध नहीं है। आप टर्मिनल टैब का उपयोग करके मैन्युअल रूप से कनेक्ट कर सकते हैं या OpenClaw अपग्रेड कर सकते हैं।',
+        channelsVersionUnsupportedDocs: 'सेटअप गाइड देखें',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

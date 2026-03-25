@@ -437,8 +437,7 @@ const pl: Translations = {
         whatsappPairStarted: 'Parowanie WhatsApp rozpoczęte.',
         whatsappPairFailed: 'Parowanie WhatsApp nie powiodło się !',
         whatsappAlreadyPaired: 'WhatsApp jest już sparowany !',
-        whatsappUnsupported:
-            'Ta instancja nie obsługuje jeszcze parowania WhatsApp !',
+        whatsappVersionUnsupported: 'Ta wersja nie obsługuje konfiguracji kanałów z poziomu panelu. Użyj karty Terminal, aby skonfigurować ręcznie, lub zaktualizuj OpenClaw.',
         bindingsFetched: 'Powiązania pobrane pomyślnie.',
         bindingsFetchFailed: 'Nie udało się pobrać powiązań !',
         bindingsUpdated: 'Powiązania zaktualizowane pomyślnie.',
@@ -481,6 +480,7 @@ const pl: Translations = {
         voicesFetched: 'Głosy pobrane pomyślnie.',
         featureEmailsSent: 'Emaile o funkcjach wysłane pomyślnie.',
         featureEmailsFailed: 'Nie udało się wysłać emaili o funkcjach !',
+        invalidFeatureKey: 'Nieprawidłowy klucz funkcji !',
         waitlistJoined: 'Pomyślnie dołączono do listy oczekujących.',
         waitlistAlreadyJoined: 'Już na liście oczekujących.',
         waitlistJoinFailed: 'Nie udało się dołączyć do listy oczekujących !',
@@ -1738,8 +1738,8 @@ const pl: Translations = {
         channelsWhatsAppConnected: 'Połączony',
         channelsWhatsAppRepair: 'Sparuj ponownie',
         channelsWhatsAppChecking: 'Sprawdzanie połączenia...',
-        channelsWhatsAppUnsupported:
-            'Parowanie WhatsApp nie jest dostępne na tej instancji. Zaktualizuj OpenClaw do nowszej wersji, aby to włączyć.',
+        channelsVersionUnsupported: 'Konfiguracja kanałów nie jest dostępna w tej wersji. Możesz połączyć się ręcznie za pomocą karty Terminal lub zaktualizować OpenClaw.',
+        channelsVersionUnsupportedDocs: 'Zobacz przewodnik konfiguracji',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

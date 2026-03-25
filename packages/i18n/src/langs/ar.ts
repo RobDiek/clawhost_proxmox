@@ -437,8 +437,7 @@ const ar: Translations = {
         whatsappPairStarted: 'بدأ اقتران WhatsApp.',
         whatsappPairFailed: 'فشل اقتران WhatsApp !',
         whatsappAlreadyPaired: 'WhatsApp مقترن بالفعل !',
-        whatsappUnsupported:
-            'هذا المثيل لا يدعم اقتران WhatsApp بعد !',
+        whatsappVersionUnsupported: 'هذا الإصدار لا يدعم تكوين القنوات من لوحة التحكم. استخدم علامة تبويب الطرفية للتكوين يدوياً أو قم بترقية OpenClaw.',
         bindingsFetched: 'تم جلب الربط بنجاح.',
         bindingsFetchFailed: 'تعذر جلب الربط !',
         bindingsUpdated: 'تم تحديث الربط بنجاح.',
@@ -481,6 +480,7 @@ const ar: Translations = {
         voicesFetched: 'تم جلب الأصوات بنجاح.',
         featureEmailsSent: 'تم إرسال رسائل الميزات بنجاح.',
         featureEmailsFailed: 'فشل إرسال رسائل الميزات !',
+        invalidFeatureKey: 'مفتاح ميزة غير صالح !',
         waitlistJoined: 'تم الانضمام إلى قائمة الانتظار بنجاح.',
         waitlistAlreadyJoined: 'موجود بالفعل في قائمة الانتظار.',
         waitlistJoinFailed: 'فشل الانضمام لقائمة الانتظار !',
@@ -1738,8 +1738,8 @@ const ar: Translations = {
         channelsWhatsAppConnected: 'متصل',
         channelsWhatsAppRepair: 'إعادة الربط',
         channelsWhatsAppChecking: 'جارٍ فحص الاتصال...',
-        channelsWhatsAppUnsupported:
-            'ربط WhatsApp غير متاح على هذه النسخة. حدّث OpenClaw إلى إصدار أحدث لتفعيله.',
+        channelsVersionUnsupported: 'تكوين القنوات غير متاح في هذا الإصدار. يمكنك الاتصال يدوياً باستخدام علامة تبويب الطرفية أو ترقية OpenClaw.',
+        channelsVersionUnsupportedDocs: 'عرض دليل الإعداد',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

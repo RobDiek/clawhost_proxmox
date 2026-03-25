@@ -198,8 +198,8 @@ export interface ChannelsState {
     setIsPairing: (value: boolean) => void
     pollEnabled: boolean
     setPollEnabled: (value: boolean) => void
-    pairUnsupported: boolean
-    setPairUnsupported: (value: boolean) => void
+    versionUnsupported: boolean
+    setVersionUnsupported: (value: boolean) => void
     isWhatsAppPaired: boolean
     setIsWhatsAppPaired: (value: boolean) => void
     isRepairing: boolean
@@ -1315,7 +1315,7 @@ export interface UpdateClawChannelsData {
 }
 
 export interface WhatsAppPairResponse {
-    status: 'started' | 'already_paired' | 'unsupported'
+    status: 'started' | 'already_paired' | 'version_unsupported'
 }
 
 export interface WhatsAppPairStatusResponse {

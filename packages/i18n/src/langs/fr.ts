@@ -459,8 +459,7 @@ const fr: Translations = {
         whatsappPairStarted: 'Couplage WhatsApp démarré.',
         whatsappPairFailed: 'Échec du couplage WhatsApp !',
         whatsappAlreadyPaired: 'WhatsApp est déjà couplé !',
-        whatsappUnsupported:
-            'Cette instance ne prend pas encore en charge le couplage WhatsApp !',
+        whatsappVersionUnsupported: 'Cette version ne prend pas en charge la configuration des canaux depuis le tableau de bord. Utilisez l\'onglet Terminal pour configurer manuellement ou mettez à jour OpenClaw.',
         bindingsFetched: 'Liaisons récupérées avec succès.',
         bindingsFetchFailed: 'Impossible de récupérer les liaisons !',
         bindingsUpdated: 'Liaisons mises à jour avec succès.',
@@ -513,6 +512,7 @@ const fr: Translations = {
         voicesFetched: 'Voix récupérées avec succès.',
         featureEmailsSent: 'Emails de fonctionnalités envoyés avec succès.',
         featureEmailsFailed: 'Échec de l\'envoi des emails de fonctionnalités !',
+        invalidFeatureKey: 'Clé de fonctionnalité invalide !',
         waitlistJoined: 'Inscription à la liste d\'attente réussie.',
         waitlistAlreadyJoined: 'Déjà inscrit à la liste d\'attente.',
         waitlistJoinFailed: 'Échec de l\'inscription à la liste d\'attente !',
@@ -1817,8 +1817,8 @@ const fr: Translations = {
         channelsWhatsAppConnected: 'Connecté',
         channelsWhatsAppRepair: 'Re-coupler',
         channelsWhatsAppChecking: 'Vérification de la connexion...',
-        channelsWhatsAppUnsupported:
-            "Le couplage WhatsApp n\'est pas disponible sur cette instance. Mettez à jour OpenClaw pour l\'activer !",
+        channelsVersionUnsupported: 'La configuration des canaux n\'est pas disponible sur cette version. Vous pouvez connecter manuellement via l\'onglet Terminal ou mettre à jour OpenClaw.',
+        channelsVersionUnsupportedDocs: 'Voir le guide de configuration',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

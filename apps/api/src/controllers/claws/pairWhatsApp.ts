@@ -1,9 +1,11 @@
 import type { AuthenticatedContext } from '@/ts/Types'
 
 import executeSSH from '@/services/ssh'
-import { findUserClaw, WHATSAPP_PATHS } from '@/controllers/claws/helpers'
+import { findUserClaw, WHATSAPP_PATHS, isVersionAtLeast } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
+
+const WHATSAPP_MIN_VERSION = '2026.3.23-1'
 
 const pairWhatsApp = async (c: AuthenticatedContext) => {
     try {
@@ -20,20 +22,27 @@ const pairWhatsApp = async (c: AuthenticatedContext) => {
         }
 
         try {
-            const [credsCheck, helpCheck] = await Promise.all([
-                executeSSH(
-                    claw.ip,
-                    claw.rootPassword,
-                    `ls ${WHATSAPP_PATHS.CREDS_DIR}/*/creds.json 2>/dev/null && echo "HAS_CREDS" || echo "NO_CREDS"`,
-                    5000
-                ),
-                executeSSH(
-                    claw.ip,
-                    claw.rootPassword,
-                    'su - openclaw -c "openclaw channels login --help" 2>&1; echo "EXIT:$?"',
-                    8000
+            const versionOutput = await executeSSH(
+                claw.ip,
+                claw.rootPassword,
+                'su - openclaw -c "openclaw --version" 2>/dev/null || echo "unknown"',
+                8000
+            )
+
+            if (!isVersionAtLeast(versionOutput, WHATSAPP_MIN_VERSION)) {
+                return ok(
+                    c,
+                    { status: 'version_unsupported' },
+                    t('api.whatsappVersionUnsupported')
                 )
-            ])
+            }
+
+            const credsCheck = await executeSSH(
+                claw.ip,
+                claw.rootPassword,
+                `ls ${WHATSAPP_PATHS.CREDS_DIR}/*/creds.json 2>/dev/null && echo "HAS_CREDS" || echo "NO_CREDS"`,
+                5000
+            )
 
             const force = c.req.query('force') === 'true'
 
@@ -54,19 +63,12 @@ const pairWhatsApp = async (c: AuthenticatedContext) => {
                 )
             }
 
-            const helpLower = helpCheck.toLowerCase()
-            const supportsWhatsApp =
-                helpLower.includes('whatsapp') ||
-                helpLower.includes('channels login') ||
-                helpCheck.includes('EXIT:0')
-
-            if (!supportsWhatsApp) {
-                return ok(
-                    c,
-                    { status: 'unsupported' },
-                    t('api.whatsappUnsupported')
-                )
-            }
+            await executeSSH(
+                claw.ip,
+                claw.rootPassword,
+                'su - openclaw -c "openclaw channels add --channel whatsapp" 2>&1',
+                15000
+            )
 
             await executeSSH(
                 claw.ip,

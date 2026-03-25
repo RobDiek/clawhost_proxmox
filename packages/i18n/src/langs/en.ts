@@ -435,8 +435,7 @@ const en = {
         whatsappPairStarted: 'WhatsApp pairing started.',
         whatsappPairFailed: 'WhatsApp pairing failed!',
         whatsappAlreadyPaired: 'WhatsApp is already paired!',
-        whatsappUnsupported:
-            'This instance does not support WhatsApp pairing yet!',
+        whatsappVersionUnsupported: 'This version does not support channel configuration from the dashboard. Use the Terminal tab to configure manually or upgrade OpenClaw.',
         bindingsFetched: 'Bindings fetched successfully.',
         bindingsFetchFailed: 'Could not fetch bindings!',
         bindingsUpdated: 'Bindings updated successfully.',
@@ -479,6 +478,7 @@ const en = {
         voicesFetched: 'Voices fetched successfully.',
         featureEmailsSent: 'Feature emails sent successfully.',
         featureEmailsFailed: 'Failed to send feature emails!',
+        invalidFeatureKey: 'Invalid feature key!',
         waitlistJoined: 'Successfully joined the waitlist.',
         waitlistAlreadyJoined: 'Already on the waitlist.',
         waitlistJoinFailed: 'Failed to join waitlist!',
@@ -1736,8 +1736,8 @@ const en = {
         channelsWhatsAppConnected: 'Connected',
         channelsWhatsAppRepair: 'Re-pair',
         channelsWhatsAppChecking: 'Checking connection...',
-        channelsWhatsAppUnsupported:
-            'WhatsApp pairing is not available on this instance. Update OpenClaw to a newer version to enable it.',
+        channelsVersionUnsupported: 'Channel configuration is not available on this version. You can connect manually using the Terminal tab or upgrade OpenClaw.',
+        channelsVersionUnsupportedDocs: 'View setup guide',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

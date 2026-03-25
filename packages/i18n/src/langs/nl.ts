@@ -437,8 +437,7 @@ const nl: Translations = {
         whatsappPairStarted: 'WhatsApp-koppeling gestart.',
         whatsappPairFailed: 'WhatsApp-koppeling mislukt!',
         whatsappAlreadyPaired: 'WhatsApp is al gekoppeld!',
-        whatsappUnsupported:
-            'Deze instantie ondersteunt WhatsApp-koppeling nog niet!',
+        whatsappVersionUnsupported: 'Deze versie ondersteunt geen kanaalconfiguratie vanuit het dashboard. Gebruik het Terminal-tabblad om handmatig te configureren of werk OpenClaw bij.',
         bindingsFetched: 'Bindingen succesvol opgehaald.',
         bindingsFetchFailed: 'Bindingen ophalen mislukt!',
         bindingsUpdated: 'Bindingen succesvol bijgewerkt.',
@@ -481,6 +480,7 @@ const nl: Translations = {
         voicesFetched: 'Stemmen succesvol opgehaald.',
         featureEmailsSent: 'Feature-e-mails succesvol verzonden.',
         featureEmailsFailed: 'Feature-e-mails verzenden mislukt!',
+        invalidFeatureKey: 'Ongeldige feature-sleutel!',
         waitlistJoined: 'Succesvol aangemeld voor de wachtlijst.',
         waitlistAlreadyJoined: 'Al op de wachtlijst.',
         waitlistJoinFailed: 'Aanmelden voor wachtlijst mislukt!',
@@ -1738,8 +1738,8 @@ const nl: Translations = {
         channelsWhatsAppConnected: 'Verbonden',
         channelsWhatsAppRepair: 'Opnieuw koppelen',
         channelsWhatsAppChecking: 'Verbinding controleren...',
-        channelsWhatsAppUnsupported:
-            'WhatsApp-koppeling is niet beschikbaar op deze instantie. Werk OpenClaw bij naar een nieuwere versie om het in te schakelen.',
+        channelsVersionUnsupported: 'Kanaalconfiguratie is niet beschikbaar in deze versie. Je kunt handmatig verbinden via het Terminal-tabblad of OpenClaw bijwerken.',
+        channelsVersionUnsupportedDocs: 'Installatiehandleiding bekijken',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

@@ -437,8 +437,7 @@ const it: Translations = {
         whatsappPairStarted: 'Associazione WhatsApp avviata.',
         whatsappPairFailed: 'Associazione WhatsApp fallita!',
         whatsappAlreadyPaired: 'WhatsApp è già associato!',
-        whatsappUnsupported:
-            'Questa istanza non supporta ancora l\'associazione WhatsApp!',
+        whatsappVersionUnsupported: 'Questa versione non supporta la configurazione dei canali dalla dashboard. Usa la scheda Terminale per configurare manualmente o aggiorna OpenClaw.',
         bindingsFetched: 'Binding recuperati con successo.',
         bindingsFetchFailed: 'Impossibile recuperare i binding!',
         bindingsUpdated: 'Binding aggiornati con successo.',
@@ -481,6 +480,7 @@ const it: Translations = {
         voicesFetched: 'Voci recuperate con successo.',
         featureEmailsSent: 'Email funzionalità inviate con successo.',
         featureEmailsFailed: 'Impossibile inviare le email funzionalità!',
+        invalidFeatureKey: 'Chiave funzionalità non valida!',
         waitlistJoined: 'Iscrizione alla lista d\'attesa completata.',
         waitlistAlreadyJoined: 'Già nella lista d\'attesa.',
         waitlistJoinFailed: 'Impossibile iscriversi alla lista d\'attesa!',
@@ -1738,8 +1738,8 @@ const it: Translations = {
         channelsWhatsAppConnected: 'Connesso',
         channelsWhatsAppRepair: 'Riassocia',
         channelsWhatsAppChecking: 'Verifica connessione...',
-        channelsWhatsAppUnsupported:
-            'L\'associazione WhatsApp non è disponibile su questa istanza. Aggiorna OpenClaw a una versione più recente per abilitarla.',
+        channelsVersionUnsupported: 'La configurazione dei canali non è disponibile in questa versione. Puoi collegarti manualmente usando la scheda Terminale o aggiornare OpenClaw.',
+        channelsVersionUnsupportedDocs: 'Vedi guida alla configurazione',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',
