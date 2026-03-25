@@ -2,6 +2,7 @@ import aiRoutes from '@/routes/ai'
 import authRoutes from '@/routes/auth'
 import clawsRoutes from '@/routes/claws'
 import cronRoutes from '@/routes/cron'
+import hostingRoutes from '@/routes/hosting'
 import plansRoutes from '@/routes/plans'
 import sshKeysRoutes from '@/routes/ssh-keys'
 import usersRoutes from '@/routes/users'
@@ -13,6 +14,7 @@ export {
     authRoutes,
     clawsRoutes,
     cronRoutes,
+    hostingRoutes,
     plansRoutes,
     sshKeysRoutes,
     usersRoutes,

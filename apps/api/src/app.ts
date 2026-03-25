@@ -16,12 +16,14 @@ import {
     authRoutes,
     clawsRoutes,
     cronRoutes,
+    hostingRoutes,
     plansRoutes,
     sshKeysRoutes,
     usersRoutes,
     waitlistRoutes,
     webhooksRoutes
 } from '@/routes'
+import { configureInstance, handleAllpayWebhook } from '@/controllers/hosting'
 import { browseSkills } from '@/services/clawhub'
 
 const app = new Hono<HonoEnv>()
@@ -35,10 +37,15 @@ app.use(
             ? [
                   'https://clawhost.cloud',
                   'https://www.clawhost.cloud',
+                  'https://openclaw.flowmatic.co.il',
                   'http://localhost:1111',
                   'http://localhost:3333'
               ]
-            : ['https://clawhost.cloud', 'https://www.clawhost.cloud'],
+            : [
+                  'https://clawhost.cloud',
+                  'https://www.clawhost.cloud',
+                  'https://openclaw.flowmatic.co.il'
+              ],
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowHeaders: ['Content-Type', 'Authorization'],
         exposeHeaders: ['X-Sample-Rate', 'X-Channels', 'X-Audio-Format'],
@@ -64,6 +71,10 @@ app.route('/cron', cronRoutes)
 app.route('/plans', plansRoutes)
 app.route('/waitlist', waitlistRoutes)
 app.route('/webhooks', webhooksRoutes)
+
+// Hosting public routes (no auth)
+app.post('/hosting/configure', configureInstance)
+app.post('/hosting/webhooks/allpay', handleAllpayWebhook)
 app.get('/clawhub/skills', async (c) => {
     try {
         const result = await browseSkills({
@@ -187,6 +198,7 @@ app.use('/*', async (c, next) => {
 
 app.route('/ai', aiRoutes)
 app.route('/claws', clawsRoutes)
+app.route('/hosting', hostingRoutes)
 app.route('/ssh-keys', sshKeysRoutes)
 app.route('/users', usersRoutes)
 

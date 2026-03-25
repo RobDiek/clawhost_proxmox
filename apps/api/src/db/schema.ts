@@ -4,6 +4,8 @@ import {
     timestamp,
     integer,
     boolean,
+    decimal,
+    jsonb,
     index,
     unique
 } from 'drizzle-orm/pg-core'
@@ -211,5 +213,110 @@ export const volumes = pgTable(
     (table) => [
         index('volumes_user_id_idx').on(table.userId),
         index('volumes_claw_id_idx').on(table.clawId)
+    ]
+)
+
+// ═══════════════════════════════════════════════════
+// OpenClaw Hosting by Flowmatic — custom tables
+// ═══════════════════════════════════════════════════
+
+export const instances = pgTable(
+    'instances',
+    {
+        id: text('id').primaryKey(),
+        userId: text('user_id')
+            .notNull()
+            .references(() => users.id, { onDelete: 'cascade' }),
+
+        // Config (from configurator)
+        selectedComponents: jsonb('selected_components').$type<string[]>(),
+        automationTool: text('automation_tool'),
+        aiProvider: text('ai_provider'),
+        storageGb: integer('storage_gb').default(0),
+
+        // Plan (auto-calculated)
+        planKey: text('plan_key').notNull(),
+        priceIls: decimal('price_ils', { precision: 10, scale: 2 }),
+
+        // Infrastructure
+        status: text('status').notNull().default('provisioning'),
+        hetznerServerId: text('hetzner_server_id'),
+        ip: text('ip'),
+        subdomainAgent: text('subdomain_agent'),
+        subdomainFlows: text('subdomain_flows'),
+
+        // Credentials (encrypted at rest)
+        openclawToken: text('openclaw_token'),
+        automationPassword: text('automation_password'),
+        rootPassword: text('root_password'),
+
+        // Billing (AllPay)
+        allpaySubscriptionId: text('allpay_subscription_id'),
+        allpayOrderId: text('allpay_order_id'),
+        subscriptionStatus: text('subscription_status').default('pending'),
+        nextBillingAt: timestamp('next_billing_at', { withTimezone: true }),
+
+        // Onboarding
+        onboardingStep: integer('onboarding_step').default(0),
+        onboardingCompleted: boolean('onboarding_completed').default(false),
+
+        // Research (for MATEH)
+        researchData: jsonb('research_data'),
+
+        // Telegram
+        telegramChatId: text('telegram_chat_id'),
+        telegramBotToken: text('telegram_bot_token'),
+
+        createdAt: timestamp('created_at', { withTimezone: true })
+            .defaultNow()
+            .notNull(),
+        suspendedAt: timestamp('suspended_at', { withTimezone: true })
+    },
+    (table) => [
+        index('instances_user_id_idx').on(table.userId),
+        index('instances_status_idx').on(table.status),
+        index('instances_allpay_order_id_idx').on(table.allpayOrderId)
+    ]
+)
+
+export const payments = pgTable(
+    'payments',
+    {
+        id: text('id').primaryKey(),
+        instanceId: text('instance_id')
+            .notNull()
+            .references(() => instances.id, { onDelete: 'cascade' }),
+        allpayOrderId: text('allpay_order_id'),
+        amountIls: decimal('amount_ils', { precision: 10, scale: 2 }),
+        status: text('status').notNull().default('pending'),
+        paidAt: timestamp('paid_at', { withTimezone: true }),
+        createdAt: timestamp('created_at', { withTimezone: true })
+            .defaultNow()
+            .notNull()
+    },
+    (table) => [
+        index('payments_instance_id_idx').on(table.instanceId),
+        index('payments_allpay_order_id_idx').on(table.allpayOrderId)
+    ]
+)
+
+export const instanceAddons = pgTable(
+    'instance_addons',
+    {
+        id: text('id').primaryKey(),
+        instanceId: text('instance_id')
+            .notNull()
+            .references(() => instances.id, { onDelete: 'cascade' }),
+        addonType: text('addon_type').notNull(),
+        storageGb: integer('storage_gb'),
+        priceIls: decimal('price_ils', { precision: 10, scale: 2 }),
+        allpaySubscriptionId: text('allpay_subscription_id'),
+        status: text('status').notNull().default('active'),
+        createdAt: timestamp('created_at', { withTimezone: true })
+            .defaultNow()
+            .notNull()
+    },
+    (table) => [
+        index('instance_addons_instance_id_idx').on(table.instanceId)
     ]
 )
