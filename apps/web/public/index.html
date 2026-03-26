@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>OpenClaw Hosting — הסוכן שלכם, מוכן תוך 3 דקות | by Flowmatic</title>
 <meta name="description" content="פלטפורמת אירוח לסוכני OpenClaw AI. בחרו את הסוכנים שלכם, שלמו — ה-VPS מוכן תוך 3 דקות. ללא הגדרות, ללא מגבלות."/>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23ef5350'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='900' font-size='26' fill='white'>OC</text></svg>" type="image/svg+xml"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%232563EB'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' font-weight='900' font-size='28' fill='white'>OC</text></svg>"/>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 /* ═══════════════════════════════════════════════════
    RESET & BASE
@@ -14,29 +15,28 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: Arial, 'Arial Hebrew', Helvetica, sans-serif !important;
+  font-family: 'Heebo', system-ui, sans-serif;
 }
 :root {
-  --primary: #ef5350;
-  --primary-dark: #c62828;
-  --primary-glow: rgba(239,83,80,0.18);
-  --bg: #0f0f0f;
-  --bg-2: #1a1a1a;
-  --bg-card: #1e1e1e;
-  --surface: #252525;
-  --border: #2a2a2a;
-  --border-light: #333;
-  --text: #e8e8e8;
-  --text-2: #a0a0a0;
-  --text-3: #666;
-  --success: #4caf50;
-  --warning: #ff9800;
-  --danger: #f44336;
+  --primary: #2563EB;
+  --primary-dark: #1D4ED8;
+  --primary-light: #EFF6FF;
+  --bg: #FAFAFA;
+  --bg-2: #F5F5F5;
+  --surface: #FFFFFF;
+  --border: #E5E7EB;
+  --border-light: #D1D5DB;
+  --text: #111827;
+  --text-2: #4B5563;
+  --text-3: #9CA3AF;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
   --radius: 10px;
   --radius-lg: 14px;
-  --shadow: 0 1px 3px rgba(0,0,0,.2), 0 1px 2px rgba(0,0,0,.15);
-  --shadow-md: 0 4px 12px rgba(0,0,0,.3);
-  --shadow-lg: 0 10px 30px rgba(0,0,0,.4);
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,.1);
 }
 html { scroll-behavior: smooth; }
 body {
@@ -64,16 +64,15 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 /* ═══════════════════════════════════════════════════
-   HEADER (48px)
+   HEADER (52px)
 ═══════════════════════════════════════════════════ */
 .header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(15,15,15,0.92);
-  backdrop-filter: blur(12px);
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
-  height: 48px;
+  height: 52px;
   flex-shrink: 0;
 }
 .header-inner {
@@ -86,27 +85,21 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   gap: 16px;
 }
 .logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: block;
   text-decoration: none;
   flex-shrink: 0;
 }
-.logo-mark {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-}
-.logo-text { line-height: 1.1; }
 .logo-name {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--text);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #111827;
   display: block;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
-.logo-by {
-  font-size: 0.62rem;
-  color: var(--text-3);
+.logo-sub {
+  font-size: 0.65rem;
+  color: #9CA3AF;
   display: block;
 }
 .header-nav {
@@ -162,24 +155,13 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 /* ═══════════════════════════════════════════════════
-   TITLE BAR (~50px)
+   TITLE BAR (~56px)
 ═══════════════════════════════════════════════════ */
 .title-bar {
   flex-shrink: 0;
-  background: linear-gradient(135deg, #141414 0%, #1a1a1a 50%, #1e1e1e 100%);
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
-  padding: 8px 0;
-  position: relative;
-}
-.title-bar::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--primary), transparent);
-  opacity: 0.3;
+  padding: 10px 0;
 }
 .title-bar-inner {
   max-width: 1100px;
@@ -190,14 +172,14 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   gap: 14px;
 }
 .title-bar h2 {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: var(--text);
   letter-spacing: -.01em;
   white-space: nowrap;
 }
 .title-bar p {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--text-2);
   line-height: 1.4;
 }
@@ -220,16 +202,16 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   flex: 3;
   overflow-y: auto;
   padding: 14px 18px 14px 12px;
-  background: var(--bg-2);
+  background: var(--bg);
   scrollbar-width: thin;
-  scrollbar-color: #444 transparent;
+  scrollbar-color: #ccc transparent;
 }
 .cfg-list::-webkit-scrollbar { width: 4px; }
-.cfg-list::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+.cfg-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
 
 .cat-block { margin-bottom: 14px; }
 .cat-title {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--text-3);
   text-transform: uppercase;
@@ -246,7 +228,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   font-weight: 600;
   padding: 1px 7px;
   border-radius: 10px;
-  background: rgba(239,83,80,0.15);
+  background: rgba(37,99,235,0.1);
   color: var(--primary);
   text-transform: none;
   letter-spacing: 0;
@@ -263,7 +245,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   align-items: flex-start;
   gap: 7px;
   padding: 8px 11px;
-  background: var(--bg-card);
+  background: var(--surface);
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
   margin-bottom: 4px;
@@ -273,16 +255,15 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   user-select: none;
 }
 .opt-card:hover:not(.disabled) {
-  border-color: #555;
-  box-shadow: 0 2px 10px rgba(239,83,80,.08);
+  box-shadow: var(--shadow-md);
 }
 .opt-card.selected {
   border-color: var(--primary);
-  background: rgba(239,83,80,0.06);
-  box-shadow: 0 0 0 3px rgba(239,83,80,.08), var(--shadow);
+  background: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.08), var(--shadow);
 }
 .opt-card.disabled {
-  opacity: .42;
+  opacity: .5;
   cursor: not-allowed;
 }
 
@@ -292,7 +273,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   flex-shrink: 0;
   margin-top: 1px;
   border-radius: 50%;
-  border: 1.5px solid #444;
+  border: 1.5px solid var(--border-light);
   background: none;
   font-size: 8px;
   font-weight: 800;
@@ -308,7 +289,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .info-btn:hover {
   border-color: var(--primary);
   color: var(--primary);
-  background: rgba(239,83,80,0.1);
+  background: rgba(37,99,235,0.08);
 }
 
 .checkbox {
@@ -316,12 +297,12 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   height: 14px;
   flex-shrink: 0;
   margin-top: 1px;
-  border: 2px solid #444;
+  border: 2px solid var(--border-light);
   border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-card);
+  background: var(--surface);
   transition: all .12s;
 }
 .opt-card.selected .checkbox {
@@ -333,12 +314,12 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   height: 14px;
   flex-shrink: 0;
   margin-top: 1px;
-  border: 2px solid #444;
+  border: 2px solid var(--border-light);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-card);
+  background: var(--surface);
   transition: all .12s;
 }
 .opt-card.selected .radio-btn {
@@ -363,8 +344,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   flex-wrap: wrap;
   margin-bottom: 1px;
 }
-.opt-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
-.opt-desc { font-size: 0.82rem; color: var(--text-2); line-height: 1.45; }
+.opt-name { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+.opt-desc { font-size: 0.85rem; color: var(--text-2); line-height: 1.45; }
 
 .badge {
   font-size: 7px;
@@ -373,8 +354,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   border-radius: 20px;
   flex-shrink: 0;
 }
-.badge-soon { background: rgba(255,152,0,0.15); color: var(--warning); }
-.badge-adv { background: rgba(156,39,176,0.15); color: #ce93d8; }
+.badge-soon { background: rgba(245,158,11,0.12); color: var(--warning); }
+.badge-adv { background: rgba(156,39,176,0.12); color: #9C27B0; }
 .opt-price-tag {
   font-size: 9px;
   color: var(--text-3);
@@ -406,15 +387,15 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   flex: 2;
   min-width: 280px;
   max-width: 340px;
-  background: var(--bg);
+  background: var(--surface);
   display: flex;
   flex-direction: column;
   padding: 14px 16px;
   overflow: hidden;
-  border-right: 1px solid var(--border);
+  border-right: 4px solid var(--primary);
 }
 .sum-label {
-  font-size: 9px;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--text-3);
   text-transform: uppercase;
@@ -422,7 +403,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   margin-bottom: 8px;
 }
 .plan-card {
-  background: #2a1515;
+  background: var(--primary-light);
   border: 1px solid var(--primary);
   border-radius: var(--radius);
   padding: 9px 11px;
@@ -430,26 +411,26 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   transition: all .3s;
 }
 .plan-name {
-  font-size: 12px;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: white;
+  color: var(--text);
   margin-bottom: 2px;
 }
 .plan-specs {
-  font-size: 9px;
-  color: #ef9a9a;
+  font-size: 0.82rem;
+  color: var(--primary);
 }
 .ram-row {
   display: flex;
   justify-content: space-between;
-  font-size: 9px;
+  font-size: 0.82rem;
   color: var(--text-3);
   margin-bottom: 3px;
 }
-.ram-val { color: var(--text-2); }
+.ram-val { color: var(--text-2); font-weight: 500; }
 .ram-bar {
   height: 3px;
-  background: var(--surface);
+  background: var(--bg-2);
   border-radius: 2px;
   overflow: hidden;
   margin-bottom: 10px;
@@ -469,7 +450,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .sum-items::-webkit-scrollbar { display: none; }
 .sum-empty {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-3);
   text-align: center;
   padding: 14px 0;
@@ -478,22 +459,22 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .sum-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 0;
+  gap: 8px;
+  padding: 6px 0;
   border-bottom: 1px solid var(--border);
-  font-size: 0.85rem;
-  color: var(--text-2);
+  font-size: 0.95rem;
+  color: var(--text);
 }
 .sum-item:last-child { border: none; }
 .sum-dot {
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
   background: var(--success);
   border-radius: 50%;
   flex-shrink: 0;
 }
-.sum-item-name { flex: 1; }
-.sum-item-price { color: var(--text-3); font-size: 9px; }
+.sum-item-name { flex: 1; font-weight: 500; }
+.sum-item-price { color: var(--text-2); font-size: 0.85rem; }
 
 /* Billing toggle */
 .billing-toggle-row {
@@ -515,10 +496,10 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   position: relative;
   width: 36px;
   height: 18px;
-  background: var(--surface);
+  background: var(--bg-2);
   border-radius: 9px;
   cursor: pointer;
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border);
   transition: background .2s;
 }
 .billing-switch.annual { background: var(--primary); border-color: var(--primary); }
@@ -531,6 +512,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   background: white;
   border-radius: 50%;
   transition: transform .2s;
+  box-shadow: 0 1px 2px rgba(0,0,0,.15);
 }
 .billing-switch.annual .billing-switch-knob { transform: translateX(-18px); }
 .billing-savings {
@@ -551,15 +533,15 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .sum-price-row {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-3);
   margin-bottom: 2px;
 }
 .sum-price-val { color: var(--text-2); }
 .sum-total {
-  font-size: 26px;
+  font-size: 2.2rem;
   font-weight: 800;
-  color: white;
+  color: var(--text);
   margin: 4px 0 10px;
   line-height: 1;
   transition: all .3s;
@@ -568,9 +550,9 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 .deploy-btn {
   width: 100%;
-  padding: 11px 0;
+  padding: 14px 0;
   border-radius: var(--radius);
-  font-size: 13px;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: .01em;
   transition: all .2s;
@@ -580,15 +562,15 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .deploy-btn.active {
   background: var(--primary);
   color: white;
-  box-shadow: 0 4px 16px rgba(239,83,80,.5);
+  box-shadow: 0 4px 16px rgba(37,99,235,.35);
 }
 .deploy-btn.active:hover {
   background: var(--primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(239,83,80,.6);
+  box-shadow: 0 6px 22px rgba(37,99,235,.45);
 }
 .deploy-btn.inactive {
-  background: var(--surface);
+  background: var(--bg-2);
   color: var(--text-3);
   cursor: not-allowed;
 }
@@ -609,11 +591,11 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 /* ═══════════════════════════════════════════════════
-   TRUST STRIP (80px, 2 rows)
+   TRUST STRIP (2 rows)
 ═══════════════════════════════════════════════════ */
 .trust-strip {
   flex-shrink: 0;
-  background: #111;
+  background: var(--surface);
   border-top: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -622,24 +604,24 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   padding: 6px 0 5px;
 }
 .trust-row-1 {
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   color: var(--text-3);
   text-align: center;
   white-space: nowrap;
   margin-bottom: 3px;
 }
 .trust-row-2 {
-  font-size: 0.6rem;
-  color: #444;
+  font-size: 0.78rem;
+  color: var(--text-3);
   text-align: center;
   line-height: 1.4;
 }
 .trust-row-2 a {
-  color: #555;
+  color: var(--text-2);
   text-decoration: none;
   transition: color .15s;
 }
-.trust-row-2 a:hover { color: var(--text-2); }
+.trust-row-2 a:hover { color: var(--primary); }
 
 /* ═══════════════════════════════════════════════════
    POPUP
@@ -647,7 +629,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.75);
+  background: rgba(0,0,0,.4);
   z-index: 999;
   display: none;
   align-items: center;
@@ -657,8 +639,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .overlay.open { display: flex; }
 .popup {
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   max-width: 480px;
   width: 100%;
@@ -667,7 +649,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   padding: 24px;
   position: relative;
   direction: rtl;
-  box-shadow: 0 25px 60px rgba(0,0,0,.6);
+  box-shadow: var(--shadow-lg);
   animation: popIn .2s ease;
 }
 @keyframes popIn {
@@ -691,7 +673,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   justify-content: center;
   transition: all .13s;
 }
-.popup-close:hover { background: var(--surface); color: var(--text); }
+.popup-close:hover { background: var(--bg-2); color: var(--text); }
 .popup-tag {
   display: inline-block;
   font-size: 9px;
@@ -701,7 +683,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   margin-bottom: 9px;
 }
 .popup-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 7px; }
-.popup-desc { font-size: 13px; color: var(--text-2); line-height: 1.65; margin-bottom: 14px; }
+.popup-desc { font-size: 0.9rem; color: var(--text-2); line-height: 1.65; margin-bottom: 14px; }
 .popup-section-title {
   font-size: 9px;
   font-weight: 800;
@@ -716,7 +698,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   align-items: flex-start;
   padding: 5px 0;
   border-bottom: 1px solid var(--border);
-  font-size: 12px;
+  font-size: 0.9rem;
   color: var(--text);
 }
 .popup-feature:last-child { border: none; }
@@ -745,7 +727,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.75);
+  background: rgba(0,0,0,.4);
   z-index: 1000;
   display: none;
   align-items: center;
@@ -755,8 +737,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .modal-overlay.open { display: flex; }
 .modal {
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   max-width: 500px;
   width: 100%;
@@ -765,7 +747,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   padding: 24px;
   position: relative;
   direction: rtl;
-  box-shadow: 0 25px 60px rgba(0,0,0,.6);
+  box-shadow: var(--shadow-lg);
   animation: popIn .2s ease;
 }
 .modal-close {
@@ -785,7 +767,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   justify-content: center;
   transition: all .13s;
 }
-.modal-close:hover { background: var(--surface); color: var(--text); }
+.modal-close:hover { background: var(--bg-2); color: var(--text); }
 .modal h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
 .modal h4 { font-size: 14px; font-weight: 700; color: var(--primary); margin: 14px 0 6px; }
 .modal p { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 8px; }
@@ -799,9 +781,9 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .modal-form input, .modal-form textarea {
   width: 100%;
   padding: 8px 10px;
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--surface);
+  background: var(--bg-2);
   color: var(--text);
   font-size: 13px;
   transition: border-color .15s;
@@ -860,26 +842,12 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 <div class="page">
 
-<!-- ══════════════════ HEADER (48px) ══════════════════ -->
+<!-- ══════════════════ HEADER (52px) ══════════════════ -->
 <header class="header">
 <div class="header-inner">
   <a href="/" class="logo">
-    <div class="logo-mark">
-      <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="30" height="30" rx="8" fill="#1a1a1a"/>
-        <circle cx="15" cy="13" r="7" fill="none" stroke="#ef5350" stroke-width="1.5"/>
-        <circle cx="12" cy="11" r="1.2" fill="#ef5350"/>
-        <circle cx="18" cy="11" r="1.2" fill="#ef5350"/>
-        <circle cx="15" cy="15" r="1" fill="#ef5350"/>
-        <path d="M10.5 18 L8 24" stroke="#ef5350" stroke-width="1.3" stroke-linecap="round"/>
-        <path d="M15 19 L15 25" stroke="#ef5350" stroke-width="1.3" stroke-linecap="round"/>
-        <path d="M19.5 18 L22 24" stroke="#ef5350" stroke-width="1.3" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div class="logo-text">
-      <span class="logo-name">OpenClaw</span>
-      <span class="logo-by">Hosting &middot; by Flowmatic</span>
-    </div>
+    <span class="logo-name">OpenClaw</span>
+    <span class="logo-sub">Hosting &middot; by Flowmatic</span>
   </a>
   <nav class="header-nav">
     <a href="https://flowmatic.co.il" target="_blank" id="nav-flowmatic">flowmatic.co.il &#8599;</a>
@@ -896,7 +864,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 </div>
 </header>
 
-<!-- ══════════════════ TITLE BAR (~50px) ══════════════════ -->
+<!-- ══════════════════ TITLE BAR (~56px) ══════════════════ -->
 <div class="title-bar">
   <div class="title-bar-inner">
     <h2 id="cfg-h2">&#1489;&#1504;&#1493; &#1488;&#1514; &#1492;&#1505;&#1489;&#1497;&#1489;&#1492; &#1513;&#1500;&#1499;&#1501;</h2>
@@ -963,14 +931,13 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   </div>
   <div class="trust-row-2">
     OpenClaw Hosting &middot; by Flowmatic &nbsp;|&nbsp;
-    <a href="#" id="fl-terms">&#1514;&#1504;&#1488;&#1497; &#1513;&#1497;&#1502;&#1493;&#1513;</a> &nbsp;|&nbsp;
-    <a href="#" id="fl-privacy">&#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1508;&#1512;&#1496;&#1497;&#1493;&#1514;</a> &nbsp;|&nbsp;
-    <a href="#" id="fl-cancel">&#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1489;&#1497;&#1496;&#1493;&#1500;</a> &nbsp;|&nbsp;
-    <a href="#" id="fl-disclosure">&#1490;&#1497;&#1500;&#1493;&#1497; &#1504;&#1488;&#1493;&#1514;</a> &nbsp;|&nbsp;
+    <a href="/terms.html" id="fl-terms">&#1514;&#1504;&#1488;&#1497; &#1513;&#1497;&#1502;&#1493;&#1513;</a> &nbsp;|&nbsp;
+    <a href="/privacy.html" id="fl-privacy">&#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1508;&#1512;&#1496;&#1497;&#1493;&#1514;</a> &nbsp;|&nbsp;
+    <a href="/cancellation.html" id="fl-cancel">&#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1489;&#1497;&#1496;&#1493;&#1500;</a> &nbsp;|&nbsp;
+    <a href="/disclosure.html" id="fl-disclosure">&#1490;&#1497;&#1500;&#1493;&#1497; &#1504;&#1488;&#1493;&#1514;</a> &nbsp;|&nbsp;
     <a href="mailto:support@flowmatic.co.il">support@flowmatic.co.il</a>
-    <br/>
-    <span id="footer-copy">&copy; 2026 Flowmatic &middot; &#1506;&#1493;&#1505;&#1511; &#1502;&#1493;&#1512;&#1513;&#1492; 324503853 &middot; &#1513;&#1500;&#1502;&#1492; &#1492;&#1502;&#1500;&#1498; 18, &#1504;&#1514;&#1504;&#1497;&#1492; &middot; &#1497;&#1513;&#1512;&#1488;&#1500;</span> &nbsp;|&nbsp;
-    GDPR &middot; PCI DSS &middot; SSL &middot; AllPay
+    &nbsp;|&nbsp;
+    <span>&copy; 2026 Flowmatic</span>
   </div>
 </div>
 
@@ -1452,7 +1419,7 @@ function submitSupport(e) {
   const contact = document.getElementById('support-contact-input').value;
   const message = document.getElementById('support-message-input').value;
 
-  fetch('/hosting/support', {
+  fetch('https://api.openclaw.flowmatic.co.il/hosting/support', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, contact, message }),

@@ -23,7 +23,7 @@ import {
     waitlistRoutes,
     webhooksRoutes
 } from '@/routes'
-import { configureInstance, handleAllpayWebhook } from '@/controllers/hosting'
+import { configureInstance, handleAllpayWebhook, submitSupportRequest } from '@/controllers/hosting'
 import { browseSkills } from '@/services/clawhub'
 
 const app = new Hono<HonoEnv>()
@@ -75,6 +75,7 @@ app.route('/webhooks', webhooksRoutes)
 // Hosting public routes (no auth)
 app.post('/hosting/configure', configureInstance)
 app.post('/hosting/webhooks/allpay', handleAllpayWebhook)
+app.post('/hosting/support', submitSupportRequest)
 app.get('/clawhub/skills', async (c) => {
     try {
         const result = await browseSkills({
