@@ -1016,10 +1016,10 @@ const STORAGE_OPTIONS = [
 ];
 
 const PLANS = [
-  { key: 'personal',  he: '\u05D0\u05D9\u05E9\u05D9',  en: 'Personal',  ram: 4,  cpu: '2 vCPU',    price: 79,  ded: false },
-  { key: 'business',  he: '\u05E2\u05E1\u05E7\u05D9',  en: 'Business',  ram: 8,  cpu: '4 vCPU',    price: 169, ded: false },
-  { key: 'pro',       he: '\u05E4\u05E8\u05D5',   en: 'Pro',        ram: 16, cpu: '4 vCPU \u26A1', price: 349, ded: true  },
-  { key: 'developer', he: '\u05DE\u05E4\u05EA\u05D7',  en: 'Developer',  ram: 32, cpu: '8 vCPU \u26A1', price: 599, ded: true  },
+  { key: 'personal',  he: 'אישי',  en: 'Personal',  ram: 4,  cpu: 2, cpuType: 'shared',    nvme: 40,  price: 79  },
+  { key: 'business',  he: 'עסקי',  en: 'Business',  ram: 8,  cpu: 4, cpuType: 'shared',    nvme: 80,  price: 169 },
+  { key: 'pro',       he: 'פרו',   en: 'Pro',        ram: 16, cpu: 4, cpuType: 'dedicated', nvme: 160, price: 349 },
+  { key: 'developer', he: 'מפתח',  en: 'Developer',  ram: 32, cpu: 8, cpuType: 'dedicated', nvme: 240, price: 599 },
 ];
 
 const COMPONENT_RAM = {
@@ -1625,9 +1625,10 @@ function renderSummary() {
 
   // Plan card
   document.getElementById('plan-name').textContent = `${t('sum-plan-lbl')} ${planName}`;
-  const specParts = [`${s.plan.cpu}`, `${s.plan.ram}GB RAM`];
-  if (s.plan.ded) specParts.push(t('dedicated'));
-  document.getElementById('plan-specs').textContent = specParts.join(' \u00B7 ');
+  const cpuLabel = s.plan.cpu + ' vCPU' + (s.plan.cpuType === 'dedicated' ? ' ⚡' : '');
+  const specParts = [cpuLabel, s.plan.ram + 'GB RAM', s.plan.nvme + 'GB NVMe'];
+  if (s.plan.cpuType === 'dedicated') specParts.push('Dedicated');
+  document.getElementById('plan-specs').textContent = specParts.join(' · ');
 
   // RAM bar
   document.getElementById('ram-label').textContent = t('ram-label');
