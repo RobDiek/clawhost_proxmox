@@ -108,6 +108,9 @@ setInterval(() => {
 }, AUTH_CACHE_CLEANUP_INTERVAL)
 
 app.use('/*', async (c, next) => {
+    // Skip auth for WebSocket paths
+    if (c.req.path.startsWith('/ws/')) return next()
+
     try {
         const authHeader = c.req.header('Authorization')
         if (!authHeader?.startsWith('Bearer ')) {
