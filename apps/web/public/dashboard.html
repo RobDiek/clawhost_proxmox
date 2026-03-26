@@ -8,165 +8,242 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Heebo',Arial,sans-serif;background:#FAFAFA;color:#1F2937;direction:rtl;min-height:100vh}
+body{font-family:'Heebo',Arial,sans-serif;background:#FAFAFA;color:#1F2937;direction:rtl;min-height:100vh;font-size:0.9rem}
 a{color:#2563EB;text-decoration:none}
 a:hover{text-decoration:underline}
 button{font-family:inherit;cursor:pointer}
 input{font-family:inherit}
+.mono{font-family:'SF Mono','Fira Code','Courier New',monospace;font-size:.85rem;direction:ltr;unicode-bidi:isolate}
 
-/* Header */
-.header{position:fixed;top:0;right:0;left:0;height:48px;background:#fff;border-bottom:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:100}
-.header-right{display:flex;align-items:center;gap:10px}
-.header-logo{font-weight:700;font-size:1.1rem;color:#2563EB}
-.header-logo span{color:#64748B;font-weight:400;font-size:.85rem;margin-right:8px}
-.header-left{display:flex;align-items:center;gap:12px}
-.header-email{font-size:.85rem;color:#64748B}
-.header-logout{background:none;border:none;font-size:.85rem;color:#EF4444;padding:4px 8px;border-radius:6px}
-.header-logout:hover{background:#FEF2F2}
-.hamburger{display:none;background:none;border:none;font-size:1.4rem;color:#64748B;padding:4px}
+/* ===== Header ===== */
+.header{position:fixed;top:0;right:0;left:0;height:52px;background:#fff;border-bottom:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:100}
+.header-right{display:flex;align-items:center;gap:12px}
+.header-logo{font-weight:700;font-size:1.15rem;color:#111827;display:flex;align-items:center;gap:6px}
+.header-logo .logo-claw{color:#2563EB}
+.header-left{display:flex;align-items:center;gap:12px;position:relative}
+.header-avatar{width:32px;height:32px;border-radius:50%;background:#EFF6FF;color:#2563EB;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.85rem;flex-shrink:0}
+.header-email{font-size:.85rem;color:#6B7280}
+.header-user-btn{display:flex;align-items:center;gap:8px;background:none;border:1px solid #E5E7EB;border-radius:8px;padding:4px 12px 4px 8px;cursor:pointer;transition:all .15s}
+.header-user-btn:hover{background:#F9FAFB;border-color:#D1D5DB}
+.header-dropdown{position:absolute;top:calc(100% + 8px);left:0;background:#fff;border:1px solid #E5E7EB;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.08);min-width:160px;padding:4px;display:none;z-index:200}
+.header-dropdown.show{display:block}
+.header-dropdown-item{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:.85rem;color:#EF4444;border-radius:6px;border:none;background:none;width:100%;text-align:right;cursor:pointer}
+.header-dropdown-item:hover{background:#FEF2F2}
+.header-dropdown-item svg{width:16px;height:16px;flex-shrink:0}
+.hamburger{display:none;background:none;border:none;color:#6B7280;padding:4px}
+.hamburger svg{width:24px;height:24px}
 
-/* Sidebar */
-.sidebar{position:fixed;top:48px;right:0;bottom:0;width:200px;background:#fff;border-left:1px solid #E5E7EB;display:flex;flex-direction:column;z-index:90;overflow-y:auto}
-.sidebar-nav{flex:1;padding:8px 0}
-.sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:.9rem;color:#64748B;cursor:pointer;border-right:3px solid transparent;transition:all .15s}
-.sidebar-item:hover{background:#F9FAFB;color:#374151}
+/* ===== Sidebar ===== */
+.sidebar{position:fixed;top:52px;right:0;bottom:0;width:220px;background:#fff;border-left:1px solid #E5E7EB;display:flex;flex-direction:column;z-index:90;overflow-y:auto}
+.sidebar-nav{flex:1;padding:12px}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:0 12px;height:40px;font-size:.9rem;color:#4B5563;cursor:pointer;border-right:3px solid transparent;border-radius:8px;transition:all .15s;margin-bottom:2px}
+.sidebar-item:hover{background:#F9FAFB}
 .sidebar-item.active{background:#EFF6FF;color:#2563EB;border-right-color:#2563EB;font-weight:500}
-.sidebar-item .icon{font-size:1.05rem;width:22px;text-align:center;flex-shrink:0}
-.sidebar-sep{height:1px;background:#E5E7EB;margin:8px 16px}
-.sidebar-footer{padding:12px 16px;border-top:1px solid #F3F4F6;font-size:.72rem;color:#9CA3AF;line-height:1.5}
+.sidebar-item .icon{width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.sidebar-item .icon svg{width:20px;height:20px}
+.sidebar-item:not(.active) .icon svg{color:#9CA3AF}
+.sidebar-item.active .icon svg{color:#2563EB}
+.sidebar-sep{height:1px;background:#F3F4F6;margin:16px 0}
+.sidebar-footer{padding:12px 16px;border-top:1px solid #F3F4F6}
+.sidebar-plan-pill{display:inline-block;font-size:.72rem;color:#9CA3AF;line-height:1.5}
 
-/* Main */
-.main{margin-right:200px;margin-top:48px;padding:24px;max-width:1200px}
+/* ===== Main ===== */
+.main{margin-right:220px;margin-top:52px;padding:28px;max-width:1200px}
 .hidden{display:none!important}
 
-/* Toast */
-.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#065F46;color:#fff;padding:10px 24px;border-radius:8px;font-size:.88rem;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
-.toast.show{opacity:1}
+/* ===== Tab transitions ===== */
+.tab-content{animation:fadeIn .15s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
-/* Greeting */
-.greeting{font-size:1.5rem;font-weight:600;margin-bottom:4px}
-.subtitle{font-size:.95rem;color:#64748B;margin-bottom:24px}
+/* ===== Toast ===== */
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);padding:10px 24px;border-radius:10px;font-size:.88rem;z-index:999;opacity:0;transition:all .3s ease;pointer-events:none;display:flex;align-items:center;gap:8px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{background:#065F46;color:#fff}
+.toast.error{background:#991B1B;color:#fff}
 
-/* Section title */
-.section-title{font-size:.8rem;font-weight:600;color:#9CA3AF;margin-bottom:12px;margin-top:28px;letter-spacing:.3px}
+/* ===== Greeting ===== */
+.greeting{font-size:1.4rem;font-weight:600;margin-bottom:4px}
+.subtitle{font-size:.9rem;color:#6B7280;margin-bottom:24px}
+
+/* ===== Section title ===== */
+.section-title{font-size:.82rem;font-weight:600;color:#9CA3AF;margin-bottom:12px;margin-top:24px;letter-spacing:.5px;border-bottom:1px solid #F3F4F6;padding-bottom:8px}
 .section-title:first-child{margin-top:0}
 
-/* Agent cards */
-.agent-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-.agent-card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px}
-.agent-card-header{display:flex;align-items:center;gap:8px}
-.agent-status{font-size:.7rem}
-.agent-name{font-weight:600;font-size:.95rem}
-.agent-desc{font-size:.82rem;color:#64748B}
-.agent-link{display:inline-block;margin-top:auto;padding:6px 14px;background:#2563EB;color:#fff;border-radius:8px;font-size:.82rem;text-align:center;text-decoration:none}
+/* ===== Agent cards (Home) ===== */
+.agent-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.agent-card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:20px 24px;display:flex;flex-direction:column;gap:10px;transition:border-color .15s}
+.agent-card:hover{border-color:#D1D5DB}
+.agent-card-header{display:flex;align-items:center;gap:10px}
+.agent-icon-circle{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.agent-icon-circle svg{width:22px;height:22px}
+.agent-icon-circle.oc{background:#EFF6FF;color:#2563EB}
+.agent-icon-circle.mt{background:#FEF3C7;color:#D97706}
+.agent-icon-circle.ap{background:#F0FDF4;color:#059669}
+.agent-icon-circle.n8{background:#FDF2F8;color:#DB2777}
+.agent-card-info{flex:1}
+.agent-name{font-weight:600;font-size:.95rem;color:#111827}
+.agent-desc{font-size:.82rem;color:#6B7280;margin-top:2px}
+.agent-status-row{display:flex;align-items:center;gap:6px;font-size:.82rem;color:#059669}
+.agent-status-dot{width:8px;height:8px;border-radius:50%;background:#10B981;flex-shrink:0}
+.agent-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin-top:auto;padding:8px 16px;background:#2563EB;color:#fff;border-radius:8px;font-size:.85rem;text-align:center;text-decoration:none;border:none;transition:background .15s}
 .agent-link:hover{background:#1D4ED8;text-decoration:none}
 
-/* Tasks */
+/* ===== Tasks ===== */
 .tasks{display:flex;flex-direction:column;gap:8px}
 .task-item{display:flex;align-items:center;justify-content:space-between;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:10px 14px;font-size:.88rem}
 .task-item.done{background:#F0FDF4;border-color:#BBF7D0}
 .task-item button{background:none;border:none;color:#2563EB;font-size:.82rem;font-weight:500}
 
-/* Info rows */
-.info-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F3F4F6;font-size:.9rem;gap:8px;flex-wrap:wrap}
-.info-label{color:#64748B;flex-shrink:0}
-.info-value{font-weight:500;word-break:break-all}
-.copy-btn{background:none;border:1px solid #E5E7EB;border-radius:6px;padding:3px 10px;font-size:.78rem;color:#64748B}
-.copy-btn:hover{background:#F3F4F6}
+/* ===== Info rows ===== */
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:0 12px;height:44px;font-size:.9rem;gap:8px;flex-wrap:wrap}
+.info-row:nth-child(odd){background:#FAFAFA;border-radius:6px}
+.info-label{color:#6B7280;flex-shrink:0}
+.info-value{font-weight:500;color:#111827;word-break:break-all}
+.copy-btn{background:none;border:none;padding:4px;border-radius:6px;color:#9CA3AF;display:flex;align-items:center;justify-content:center;transition:color .15s}
+.copy-btn:hover{color:#2563EB}
+.copy-btn svg{width:16px;height:16px}
 
-/* Cards */
-.card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:20px;margin-bottom:16px}
+/* ===== Cards ===== */
+.card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:20px 24px;margin-bottom:16px;transition:border-color .15s}
+.card:hover{border-color:#D1D5DB}
 
-/* Agent detail */
-.agent-detail-card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:20px;margin-bottom:16px}
-.agent-detail-card h3{font-size:1.1rem;margin-bottom:8px}
-.status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:500}
+/* ===== Agent detail ===== */
+.agent-detail-card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:20px 24px;margin-bottom:16px;transition:border-color .15s}
+.agent-detail-card:hover{border-color:#D1D5DB}
+.agent-detail-card h3{font-size:1.1rem;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.status-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:.78rem;font-weight:500}
 .status-badge.running{background:#D1FAE5;color:#065F46}
 .status-badge.stopped{background:#FEE2E2;color:#991B1B}
+.status-badge .status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.status-badge.running .status-dot{background:#10B981}
+.status-badge.stopped .status-dot{background:#EF4444}
 .detail-section{margin-top:16px}
-.detail-label{font-size:.8rem;font-weight:600;color:#9CA3AF;margin-bottom:6px}
-.channel-item{font-size:.88rem;padding:4px 0;display:flex;align-items:center;gap:6px}
-.channel-item button{background:none;border:none;color:#2563EB;font-size:.82rem}
+.detail-label{font-size:.82rem;font-weight:600;color:#9CA3AF;margin-bottom:6px;letter-spacing:.3px}
+.channel-item{font-size:.88rem;padding:6px 0;display:flex;align-items:center;gap:8px}
+.channel-item button{background:none;border:none;color:#2563EB;font-size:.82rem;font-weight:500}
 .agent-actions{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap}
 
-/* Integration card */
-.integration-card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;margin-bottom:10px}
-.int-name{font-weight:600;font-size:.95rem;margin-bottom:4px}
-.int-status{font-size:.82rem;color:#EF4444;margin-bottom:8px}
+/* ===== Integration card ===== */
+.integration-card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:20px 24px;margin-bottom:12px;border-right:4px solid #E5E7EB;transition:border-color .15s}
+.integration-card:hover{border-color:#D1D5DB}
+.integration-card.connected-card{border-right-color:#10B981}
+.int-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.int-icon-circle{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.int-icon-circle svg{width:18px;height:18px}
+.int-icon-circle.anthropic{background:#FEF3C7;color:#D97706}
+.int-icon-circle.openai{background:#F0FDF4;color:#059669}
+.int-icon-circle.telegram{background:#EFF6FF;color:#2563EB}
+.int-icon-circle.automation{background:#FDF2F8;color:#DB2777}
+.int-name{font-weight:600;font-size:.95rem;color:#111827}
+.int-status{font-size:.82rem;display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.int-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.int-status.disconnected{color:#EF4444}
+.int-status.disconnected .int-status-dot{background:#EF4444}
 .int-status.connected{color:#059669}
-.int-action{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
-.int-action input{flex:1;min-width:180px;padding:7px 12px;border:1px solid #E5E7EB;border-radius:8px;font-size:.88rem}
-.int-action button{padding:7px 16px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:.85rem;white-space:nowrap}
+.int-status.connected .int-status-dot{background:#10B981}
+.int-action{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.int-action input{flex:1;min-width:180px;padding:8px 12px;border:1px solid #E5E7EB;border-radius:8px;font-size:.88rem;transition:border-color .15s}
+.int-action input:focus{outline:none;border-color:#2563EB;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.int-action button{padding:8px 18px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:.85rem;white-space:nowrap;transition:background .15s}
 .int-action button:hover{background:#1D4ED8}
-.int-help{font-size:.82rem;color:#64748B;line-height:1.6}
+.int-help{font-size:.82rem;color:#6B7280;line-height:1.6;overflow:hidden;max-height:0;transition:max-height .3s ease}
+.int-help.expanded{max-height:200px}
 .int-help a{color:#2563EB}
+.int-help-toggle{background:none;border:none;font-size:.82rem;color:#9CA3AF;display:flex;align-items:center;gap:4px;padding:0;margin-top:4px}
+.int-help-toggle:hover{color:#6B7280}
+.int-help-toggle svg{width:14px;height:14px;transition:transform .2s}
+.int-help-toggle.open svg{transform:rotate(180deg)}
 
-/* Plan card */
+/* ===== Plan card ===== */
 .plan-card-big{background:#fff;border:2px solid #2563EB;border-radius:14px;padding:24px;text-align:center;margin-bottom:20px}
 .plan-name{font-size:1.3rem;font-weight:700;color:#2563EB;margin-bottom:4px}
-.plan-price{font-size:1.6rem;font-weight:700;margin-bottom:4px}
-.plan-specs{font-size:.88rem;color:#64748B}
+.plan-price{font-size:1.6rem;font-weight:700;margin-bottom:4px;color:#111827}
+.plan-specs{font-size:.88rem;color:#6B7280}
 
-/* Billing actions */
+/* ===== Billing actions ===== */
 .billing-actions{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap}
 
-/* Badges */
-.badge-green{background:#D1FAE5;color:#065F46;padding:2px 10px;border-radius:20px;font-size:.82rem;font-weight:500}
-.badge-yellow{background:#FEF3C7;color:#92400E;padding:2px 10px;border-radius:20px;font-size:.82rem;font-weight:500}
+/* ===== Badges ===== */
+.badge-green{background:#D1FAE5;color:#065F46;padding:3px 12px;border-radius:20px;font-size:.82rem;font-weight:500;display:inline-flex;align-items:center;gap:4px}
+.badge-yellow{background:#FEF3C7;color:#92400E;padding:3px 12px;border-radius:20px;font-size:.82rem;font-weight:500}
 
-/* Buttons */
-.btn{display:inline-block;padding:8px 18px;border-radius:8px;font-size:.88rem;font-weight:500;border:none;text-align:center;text-decoration:none;cursor:pointer;transition:all .15s}
-.btn-primary{background:#2563EB;color:#fff}.btn-primary:hover{background:#1D4ED8}
+/* ===== Buttons ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 18px;border-radius:8px;font-size:.88rem;font-weight:500;border:none;text-align:center;text-decoration:none;cursor:pointer;transition:all .15s}
+.btn-primary{background:#2563EB;color:#fff}.btn-primary:hover{background:#1D4ED8;text-decoration:none}
 .btn-outline{background:transparent;border:1px solid #E5E7EB;color:#374151}.btn-outline:hover{background:#F9FAFB}
 .btn-danger-outline{background:transparent;border:1px solid #FCA5A5;color:#EF4444}.btn-danger-outline:hover{background:#FEF2F2}
 
-/* Form */
+/* ===== Form ===== */
 .form-group{margin-bottom:16px}
-.form-group label{display:block;font-size:.85rem;color:#64748B;margin-bottom:4px}
-.form-group input{width:100%;max-width:360px;padding:8px 12px;border:1px solid #E5E7EB;border-radius:8px;font-size:.9rem}
-.form-group button{margin-top:8px;padding:7px 20px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:.85rem}
+.form-group label{display:block;font-size:.85rem;color:#6B7280;margin-bottom:4px}
+.form-group input{width:100%;max-width:360px;padding:8px 12px;border:1px solid #E5E7EB;border-radius:8px;font-size:.9rem;transition:border-color .15s}
+.form-group input:focus{outline:none;border-color:#2563EB;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.form-group button{margin-top:8px;padding:8px 20px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:.85rem;transition:background .15s}
 .form-group button:hover{background:#1D4ED8}
 
-/* Lang */
+/* ===== Lang ===== */
 .lang-options{display:flex;gap:8px}
-.lang-opt{padding:8px 20px;border:1px solid #E5E7EB;border-radius:8px;background:#fff;font-size:.88rem;color:#64748B}
+.lang-opt{padding:8px 20px;border:1px solid #E5E7EB;border-radius:8px;background:#fff;font-size:.88rem;color:#6B7280;transition:all .15s}
 .lang-opt.active{border-color:#2563EB;color:#2563EB;background:#EFF6FF;font-weight:500}
 
-/* Warning banner */
-.warning-banner{background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:12px 16px;font-size:.88rem;color:#92400E;margin-bottom:20px}
+/* ===== Warning banner ===== */
+.warning-banner{background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:12px 16px;font-size:.88rem;color:#92400E;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.warning-banner svg{width:20px;height:20px;flex-shrink:0;color:#D97706}
 
-/* Mono & code */
-.mono{font-family:'Courier New',monospace;font-size:.85rem;direction:ltr;unicode-bidi:isolate}
-.code-block{background:#1E293B;color:#E2E8F0;padding:14px 18px;border-radius:10px;font-family:'Courier New',monospace;font-size:.82rem;direction:ltr;unicode-bidi:isolate;overflow-x:auto;white-space:pre-wrap;line-height:1.6}
+/* ===== Code block ===== */
+.code-block{background:#1E293B;color:#E2E8F0;padding:14px 18px;border-radius:10px;font-family:'SF Mono','Fira Code','Courier New',monospace;font-size:.82rem;direction:ltr;unicode-bidi:isolate;overflow-x:auto;white-space:pre-wrap;line-height:1.6}
 
-/* Responsive */
+/* ===== Empty state ===== */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;color:#9CA3AF;text-align:center;gap:12px}
+.empty-state svg{width:48px;height:48px;color:#D1D5DB}
+.empty-state p{font-size:.9rem}
+
+/* ===== Mobile bottom nav ===== */
+.bottom-nav{display:none;position:fixed;bottom:0;right:0;left:0;height:56px;background:#fff;border-top:1px solid #E5E7EB;z-index:100;padding:0 8px}
+.bottom-nav-inner{display:flex;align-items:center;justify-content:space-around;height:100%}
+.bottom-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 8px;border-radius:8px;border:none;background:none;cursor:pointer;color:#9CA3AF;font-size:.65rem;transition:color .15s}
+.bottom-nav-item svg{width:22px;height:22px}
+.bottom-nav-item.active{color:#2563EB}
+.bottom-nav-item.active svg{color:#2563EB}
+
+/* ===== Responsive ===== */
+@media(max-width:1024px){
+  .agent-cards{grid-template-columns:repeat(2,1fr)}
+}
 @media(max-width:768px){
-  .hamburger{display:block}
-  .sidebar{transform:translateX(100%);transition:transform .25s;width:240px;box-shadow:-4px 0 20px rgba(0,0,0,.1)}
-  .sidebar.open{transform:translateX(0)}
-  .sidebar-overlay{display:none;position:fixed;inset:0;top:48px;background:rgba(0,0,0,.3);z-index:85}
-  .sidebar-overlay.show{display:block}
-  .main{margin-right:0}
+  .hamburger{display:none}
+  .sidebar{display:none}
+  .bottom-nav{display:block}
+  .main{margin-right:0;margin-bottom:56px;padding:20px 16px}
   .agent-cards{grid-template-columns:1fr}
   .int-action{flex-direction:column}
   .int-action input{min-width:auto}
+  .header-email{display:none}
 }
 </style>
 </head>
 <body>
 
 <!-- Toast -->
-<div class="toast" id="toast"></div>
+<div class="toast success" id="toast"></div>
 
 <!-- Header -->
 <header class="header">
   <div class="header-right">
-    <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">☰</button>
-    <div class="header-logo">ClawFlow<span>לוח בקרה</span></div>
+    <div class="header-logo"><span class="logo-claw">Claw</span>Flow</div>
   </div>
   <div class="header-left">
-    <span class="header-email" id="headerEmail"></span>
-    <button class="header-logout" onclick="logout()">יציאה ←</button>
+    <button class="header-user-btn" id="headerUserBtn" onclick="toggleUserDropdown()">
+      <div class="header-avatar" id="headerAvatar"></div>
+      <span class="header-email" id="headerEmail"></span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="header-dropdown" id="headerDropdown">
+      <button class="header-dropdown-item" onclick="logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        התנתקו
+      </button>
+    </div>
   </div>
 </header>
 
@@ -176,16 +253,60 @@ input{font-family:inherit}
 <!-- Sidebar -->
 <nav class="sidebar" id="sidebar">
   <div class="sidebar-nav">
-    <div class="sidebar-item active" data-tab="home" onclick="switchTab('home')"><span class="icon">🏠</span>בית</div>
-    <div class="sidebar-item" data-tab="agents" onclick="switchTab('agents')"><span class="icon">🤖</span>סוכנים</div>
-    <div class="sidebar-item" data-tab="integrations" onclick="switchTab('integrations')"><span class="icon">⚡</span>חיבורים</div>
-    <div class="sidebar-item" data-tab="billing" onclick="switchTab('billing')"><span class="icon">💳</span>חיוב</div>
-    <div class="sidebar-item" data-tab="settings" onclick="switchTab('settings')"><span class="icon">⚙</span>הגדרות</div>
+    <div class="sidebar-item active" data-tab="home" onclick="switchTab('home')">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+      בית
+    </div>
+    <div class="sidebar-item" data-tab="agents" onclick="switchTab('agents')">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/></svg></span>
+      סוכנים
+    </div>
+    <div class="sidebar-item" data-tab="integrations" onclick="switchTab('integrations')">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
+      חיבורים
+    </div>
+    <div class="sidebar-item" data-tab="billing" onclick="switchTab('billing')">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>
+      חיוב
+    </div>
+    <div class="sidebar-item" data-tab="settings" onclick="switchTab('settings')">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
+      הגדרות
+    </div>
     <div class="sidebar-sep"></div>
-    <div class="sidebar-item" data-tab="advanced" onclick="switchTab('advanced')"><span class="icon">🔧</span>מתקדם</div>
+    <div class="sidebar-item" data-tab="advanced" onclick="switchTab('advanced')">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
+      מתקדם
+    </div>
   </div>
   <div class="sidebar-footer" id="sidebarFooter"></div>
 </nav>
+
+<!-- Bottom nav (mobile) -->
+<div class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="bottom-nav-item active" data-tab="home" onclick="switchTab('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      בית
+    </button>
+    <button class="bottom-nav-item" data-tab="agents" onclick="switchTab('agents')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/></svg>
+      סוכנים
+    </button>
+    <button class="bottom-nav-item" data-tab="integrations" onclick="switchTab('integrations')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      חיבורים
+    </button>
+    <button class="bottom-nav-item" data-tab="billing" onclick="switchTab('billing')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      חיוב
+    </button>
+    <button class="bottom-nav-item" data-tab="settings" onclick="switchTab('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      הגדרות
+    </button>
+  </div>
+</div>
 
 <!-- Main Content -->
 <div class="main">
@@ -213,40 +334,67 @@ input{font-family:inherit}
   <!-- Tab: Integrations -->
   <div class="tab-content hidden" id="tab-integrations">
     <div class="section-title">מודלי AI</div>
-    <div class="integration-card">
-      <div class="int-name">Anthropic Claude</div>
-      <div class="int-status" id="anthropic-status">לא מחובר</div>
+    <div class="integration-card" id="anthropic-card">
+      <div class="int-header">
+        <div class="int-icon-circle anthropic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>
+        </div>
+        <div class="int-name">Anthropic Claude</div>
+      </div>
+      <div class="int-status disconnected" id="anthropic-status"><span class="int-status-dot"></span>לא מחובר</div>
       <div class="int-action">
         <input type="password" id="anthropic-key" placeholder="sk-ant-api..." dir="ltr"/>
         <button onclick="saveApiKey('anthropic')">שמרו</button>
       </div>
+      <button class="int-help-toggle" onclick="toggleHelp(this)">
+        איך להשיג מפתח?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
       <div class="int-help">
         <a href="https://console.anthropic.com" target="_blank">פתחו חשבון ב-Anthropic ↗</a>
       </div>
     </div>
-    <div class="integration-card">
-      <div class="int-name">OpenAI</div>
-      <div class="int-status" id="openai-status">לא מחובר</div>
+    <div class="integration-card" id="openai-card">
+      <div class="int-header">
+        <div class="int-icon-circle openai">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>
+        </div>
+        <div class="int-name">OpenAI</div>
+      </div>
+      <div class="int-status disconnected" id="openai-status"><span class="int-status-dot"></span>לא מחובר</div>
       <div class="int-action">
         <input type="password" id="openai-key" placeholder="sk-..." dir="ltr"/>
         <button onclick="saveApiKey('openai')">שמרו</button>
       </div>
+      <button class="int-help-toggle" onclick="toggleHelp(this)">
+        איך להשיג מפתח?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
       <div class="int-help">
         <a href="https://platform.openai.com" target="_blank">פתחו חשבון ב-OpenAI ↗</a>
       </div>
     </div>
 
     <div class="section-title">ערוצי תקשורת</div>
-    <div class="integration-card">
-      <div class="int-name">Telegram</div>
-      <div class="int-status" id="telegram-status">לא מחובר</div>
+    <div class="integration-card" id="telegram-card">
+      <div class="int-header">
+        <div class="int-icon-circle telegram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 3L1 11l7 3m13-11l-8 14-5-6m13-8l-13 8"/></svg>
+        </div>
+        <div class="int-name">Telegram</div>
+      </div>
+      <div class="int-status disconnected" id="telegram-status"><span class="int-status-dot"></span>לא מחובר</div>
       <div class="int-action">
         <input type="text" id="telegram-token" placeholder="Bot Token מ-@BotFather" dir="ltr"/>
         <button onclick="saveTelegram()">חברו</button>
       </div>
+      <button class="int-help-toggle" onclick="toggleHelp(this)">
+        איך ליצור בוט?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
       <div class="int-help">
         <p>1. פתחו שיחה עם <a href="https://t.me/BotFather" target="_blank">@BotFather</a></p>
-        <p>2. שלחו /newbot → תנו שם → קבלו Token</p>
+        <p>2. שלחו /newbot &rarr; תנו שם &rarr; קבלו Token</p>
       </div>
     </div>
 
@@ -260,8 +408,8 @@ input{font-family:inherit}
     <div class="plan-card-big" id="planCardBig"></div>
 
     <div class="section-title">פרטי חיוב</div>
-    <div class="info-row"><span>סטטוס מנוי</span><span class="badge-green">פעיל</span></div>
-    <div class="info-row"><span>אמצעי תשלום</span><span>AllPay</span></div>
+    <div class="info-row"><span class="info-label">סטטוס מנוי</span><span class="badge-green"><span class="agent-status-dot" style="width:6px;height:6px;background:#10B981;border-radius:50;display:inline-block"></span>פעיל</span></div>
+    <div class="info-row"><span class="info-label">אמצעי תשלום</span><span class="info-value">AllPay</span></div>
 
     <div class="billing-actions">
       <button class="btn btn-outline" onclick="alert('פנו לתמיכה לשדרוג')">שדרגו תוכנית</button>
@@ -285,21 +433,28 @@ input{font-family:inherit}
     </div>
 
     <div class="section-title">אבטחה</div>
-    <div class="info-row"><span>אימייל</span><span id="settingsEmail"></span></div>
-    <div class="info-row"><span>חשבון נוצר</span><span id="settingsCreated"></span></div>
+    <div class="info-row"><span class="info-label">אימייל</span><span class="info-value" id="settingsEmail"></span></div>
+    <div class="info-row"><span class="info-label">חשבון נוצר</span><span class="info-value" id="settingsCreated"></span></div>
   </div>
 
   <!-- Tab: Advanced -->
   <div class="tab-content hidden" id="tab-advanced">
-    <div class="warning-banner">⚠ אזור למפתחים — שינויים כאן עלולים להשפיע על תפקוד הסוכנים</div>
+    <div class="warning-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      אזור למפתחים — שינויים כאן עלולים להשפיע על תפקוד הסוכנים
+    </div>
 
     <div class="section-title">גישה ישירה</div>
     <div class="info-row">
-      <span>Gateway Token</span>
-      <span class="mono" id="gw-token">••••••••</span>
+      <span class="info-label">Gateway Token</span>
+      <span class="mono info-value" id="gw-token">••••••••</span>
       <span style="display:flex;gap:4px">
-        <button class="copy-btn" onclick="toggleToken()">הצג</button>
-        <button class="copy-btn" onclick="copyToken()">העתק</button>
+        <button class="copy-btn" onclick="toggleToken()" title="הצג/הסתר">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button class="copy-btn" onclick="copyToken()" title="העתק">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </button>
       </span>
     </div>
     <div class="info-row" id="adv-agent-link"></div>
@@ -321,46 +476,58 @@ window.$crisp=[];window.CRISP_WEBSITE_ID="e0ffd95f-5207-4782-9467-c8881066f7f7";
 </script>
 
 <script>
-/* ===== Constants ===== */
-const COMPONENTS = {
-  oc: { name: 'OpenClaw Personal', icon: '🤖', desc: 'עוזר אישי' },
-  mt: { name: 'MATEH', icon: '📊', desc: 'סוכן שיווק' },
-  ap: { name: 'Activepieces', icon: '⚡', desc: 'אוטומציות' },
-  n8: { name: 'n8n', icon: '⚡', desc: 'אוטומציות' },
-  ok: { name: 'מפתחות API', icon: '🔑', desc: 'מודל AI' },
-  ol: { name: 'Ollama', icon: '🧠', desc: 'מודל מקומי' },
-  bk: { name: 'גיבוי יומי', icon: '💾', desc: 'גיבוי' },
-  xs: { name: 'אחסון נוסף', icon: '💿', desc: 'אחסון' },
+/* ===== SVG Icons for JS rendering ===== */
+var SVG_ICONS = {
+  robot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/></svg>',
+  chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>',
+  bolt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg>',
+  alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+  copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>',
+  externalLink: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
+  empty: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/></svg>',
 };
 
-const PLANS = {
+/* ===== Constants ===== */
+var COMPONENTS = {
+  oc: { name: 'OpenClaw Personal', iconClass: 'oc', svgKey: 'robot', desc: 'עוזר אישי' },
+  mt: { name: 'MATEH', iconClass: 'mt', svgKey: 'chart', desc: 'סוכן שיווק' },
+  ap: { name: 'Activepieces', iconClass: 'ap', svgKey: 'bolt', desc: 'אוטומציות' },
+  n8: { name: 'n8n', iconClass: 'n8', svgKey: 'bolt', desc: 'אוטומציות' },
+  ok: { name: 'מפתחות API', iconClass: 'oc', svgKey: 'robot', desc: 'מודל AI' },
+  ol: { name: 'Ollama', iconClass: 'mt', svgKey: 'robot', desc: 'מודל מקומי' },
+  bk: { name: 'גיבוי יומי', iconClass: 'ap', svgKey: 'robot', desc: 'גיבוי' },
+  xs: { name: 'אחסון נוסף', iconClass: 'n8', svgKey: 'robot', desc: 'אחסון' },
+};
+
+var PLANS = {
   personal: { name: 'אישי', price: 79, cpu: '2 vCPU', ram: 4, nvme: 40 },
   business: { name: 'עסקי', price: 169, cpu: '4 vCPU', ram: 8, nvme: 80 },
-  pro: { name: 'פרו', price: 349, cpu: '4 vCPU ⚡', ram: 16, nvme: 160 },
-  developer: { name: 'מפתח', price: 599, cpu: '8 vCPU ⚡', ram: 32, nvme: 240 },
+  pro: { name: 'פרו', price: 349, cpu: '4 vCPU Dedicated', ram: 16, nvme: 160 },
+  developer: { name: 'מפתח', price: 599, cpu: '8 vCPU Dedicated', ram: 32, nvme: 240 },
 };
 
-const API = 'https://api.openclaw.flowmatic.co.il';
+var API = 'https://api.openclaw.flowmatic.co.il';
 
 /* ===== Auth ===== */
-const token = localStorage.getItem('cf_token');
-const email = localStorage.getItem('cf_email') || '';
+var token = localStorage.getItem('cf_token');
+var email = localStorage.getItem('cf_email') || '';
 if (!token) { window.location.href = '/register.html'; }
 
 /* ===== Instance data ===== */
-const instanceId = localStorage.getItem('cf_instance_id') || '';
-const planKey = localStorage.getItem('cf_instance_plan') || 'personal';
-let components = [];
+var instanceId = localStorage.getItem('cf_instance_id') || '';
+var planKey = localStorage.getItem('cf_instance_plan') || 'personal';
+var components = [];
 try { components = JSON.parse(localStorage.getItem('cf_instance_components') || '[]'); } catch(e) { components = []; }
-const subdomain = localStorage.getItem('cf_instance_subdomain') || instanceId;
+var subdomain = localStorage.getItem('cf_instance_subdomain') || instanceId;
 
-const plan = PLANS[planKey] || PLANS.personal;
-const agentUrl = subdomain ? 'https://' + subdomain + '.openclaw.flowmatic.co.il' : '#';
-const flowsUrl = subdomain ? 'https://flows.' + subdomain + '.openclaw.flowmatic.co.il' : '#';
+var plan = PLANS[planKey] || PLANS.personal;
+var agentUrl = subdomain ? 'https://' + subdomain + '.openclaw.flowmatic.co.il' : '#';
+var flowsUrl = subdomain ? 'https://flows.' + subdomain + '.openclaw.flowmatic.co.il' : '#';
 
 /* ===== State ===== */
-let instanceData = null;
-let tokenVisible = false;
+var instanceData = null;
+var tokenVisible = false;
 
 /* ===== Init ===== */
 document.addEventListener('DOMContentLoaded', function() {
@@ -373,15 +540,24 @@ document.addEventListener('DOMContentLoaded', function() {
   renderAdvanced();
   renderSidebarFooter();
   loadInstanceFromAPI();
+
+  // Close dropdown on outside click
+  document.addEventListener('click', function(e) {
+    var btn = document.getElementById('headerUserBtn');
+    var dd = document.getElementById('headerDropdown');
+    if (dd && !btn.contains(e.target) && !dd.contains(e.target)) {
+      dd.classList.remove('show');
+    }
+  });
 });
 
 /* ===== API fetch ===== */
 async function loadInstanceFromAPI() {
   if (!instanceId) return;
   try {
-    const res = await fetch(API + '/hosting/instances/' + instanceId + '/status');
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/status');
     if (res.ok) {
-      const json = await res.json();
+      var json = await res.json();
       instanceData = json.data || json;
       updateWithLiveData();
     }
@@ -392,7 +568,6 @@ async function loadInstanceFromAPI() {
 
 function updateWithLiveData() {
   if (!instanceData) return;
-  // Update components if returned from API
   if (instanceData.selectedComponents && instanceData.selectedComponents.length) {
     components = instanceData.selectedComponents;
     localStorage.setItem('cf_instance_components', JSON.stringify(components));
@@ -404,24 +579,45 @@ function updateWithLiveData() {
 /* ===== Render functions ===== */
 function renderHeader() {
   document.getElementById('headerEmail').textContent = email;
+  var firstLetter = (email || '?')[0].toUpperCase();
+  document.getElementById('headerAvatar').textContent = firstLetter;
 }
 
 function renderHome() {
   // Greeting
   var name = localStorage.getItem('cf_user_name') || email.split('@')[0] || '';
-  document.getElementById('greetingText').textContent = 'שלום, ' + name + ' 👋';
+  document.getElementById('greetingText').textContent = 'שלום, ' + name;
 
   // Agent cards
   var agentComps = components.filter(function(c) { return c === 'oc' || c === 'mt'; });
-  if (agentComps.length === 0) agentComps = ['oc']; // fallback
+  if (agentComps.length === 0) agentComps = ['oc'];
   var cardsHtml = '';
   agentComps.forEach(function(c) {
-    var comp = COMPONENTS[c] || { name: c, icon: '🤖', desc: '' };
+    var comp = COMPONENTS[c] || { name: c, iconClass: 'oc', svgKey: 'robot', desc: '' };
+    var iconSvg = SVG_ICONS[comp.svgKey] || SVG_ICONS.robot;
     cardsHtml += '<div class="agent-card">' +
-      '<div class="agent-card-header"><span class="agent-status">🟢</span><span class="agent-name">' + comp.icon + ' ' + comp.name + '</span></div>' +
-      '<div class="agent-desc">' + comp.desc + '</div>' +
-      '<a class="agent-link" href="' + agentUrl + '" target="_blank">פתחו ↗</a></div>';
+      '<div class="agent-card-header">' +
+      '<div class="agent-icon-circle ' + comp.iconClass + '">' + iconSvg + '</div>' +
+      '<div class="agent-card-info"><div class="agent-name">' + comp.name + '</div>' +
+      '<div class="agent-desc">' + comp.desc + '</div></div></div>' +
+      '<div class="agent-status-row"><span class="agent-status-dot"></span>פעיל</div>' +
+      '<a class="agent-link" href="' + agentUrl + '" target="_blank">פתחו ' + SVG_ICONS.externalLink + '</a></div>';
   });
+
+  // Add automation tool cards too
+  var autoComps = components.filter(function(c) { return c === 'ap' || c === 'n8'; });
+  autoComps.forEach(function(c) {
+    var comp = COMPONENTS[c] || { name: c, iconClass: 'ap', svgKey: 'bolt', desc: '' };
+    var iconSvg = SVG_ICONS[comp.svgKey] || SVG_ICONS.bolt;
+    cardsHtml += '<div class="agent-card">' +
+      '<div class="agent-card-header">' +
+      '<div class="agent-icon-circle ' + comp.iconClass + '">' + iconSvg + '</div>' +
+      '<div class="agent-card-info"><div class="agent-name">' + comp.name + '</div>' +
+      '<div class="agent-desc">' + comp.desc + '</div></div></div>' +
+      '<div class="agent-status-row"><span class="agent-status-dot"></span>פעיל</div>' +
+      '<a class="agent-link" href="' + flowsUrl + '" target="_blank">פתחו ' + SVG_ICONS.externalLink + '</a></div>';
+  });
+
   document.getElementById('homeAgentCards').innerHTML = cardsHtml;
 
   // Tasks
@@ -429,13 +625,13 @@ function renderHome() {
   var hasApiKey = localStorage.getItem('cf_api_key_saved');
   var hasTelegram = localStorage.getItem('cf_telegram_saved');
   if (!hasApiKey) {
-    tasksHtml += '<div class="task-item warning"><span>⚠ חברו מפתח API</span><button onclick="switchTab(\'integrations\')">להגדרה →</button></div>';
+    tasksHtml += '<div class="task-item warning"><span>חברו מפתח API</span><button onclick="switchTab(\'integrations\')">להגדרה &larr;</button></div>';
   }
   if (!hasTelegram) {
-    tasksHtml += '<div class="task-item warning"><span>⚠ חברו בוט Telegram</span><button onclick="switchTab(\'integrations\')">להגדרה →</button></div>';
+    tasksHtml += '<div class="task-item warning"><span>חברו בוט Telegram</span><button onclick="switchTab(\'integrations\')">להגדרה &larr;</button></div>';
   }
   if (hasApiKey && hasTelegram) {
-    tasksHtml += '<div class="task-item done"><span>✅ כל החיבורים הושלמו</span></div>';
+    tasksHtml += '<div class="task-item done"><span>' + SVG_ICONS.check + ' כל החיבורים הושלמו</span></div>';
   }
   tasksHtml += '</div>';
   document.getElementById('homeTasks').innerHTML = tasksHtml;
@@ -443,9 +639,9 @@ function renderHome() {
   // Quick info
   var infoHtml = '';
   var displayDomain = subdomain ? subdomain + '.openclaw.flowmatic.co.il' : '—';
-  infoHtml += '<div class="info-row"><span class="info-label">כתובת</span><span class="info-value">' + displayDomain + '</span>' +
-    '<button class="copy-btn" onclick="copyToClipboard(\'' + displayDomain + '\')">העתקו</button></div>';
-  infoHtml += '<div class="info-row"><span class="info-label">תוכנית</span><span class="info-value">' + plan.name + ' · ₪' + plan.price + '/חודש</span></div>';
+  infoHtml += '<div class="info-row"><span class="info-label">כתובת</span><span class="info-value mono">' + displayDomain + '</span>' +
+    '<button class="copy-btn" onclick="copyToClipboard(\'' + displayDomain + '\')" title="העתקו">' + SVG_ICONS.copy + '</button></div>';
+  infoHtml += '<div class="info-row"><span class="info-label">תוכנית</span><span class="info-value">' + plan.name + ' &middot; &#8362;' + plan.price + '/חודש</span></div>';
   document.getElementById('homeInfo').innerHTML = infoHtml;
 }
 
@@ -454,19 +650,20 @@ function renderAgents() {
   if (agentComps.length === 0) agentComps = ['oc'];
   var html = '';
   agentComps.forEach(function(c) {
-    var comp = COMPONENTS[c] || { name: c, icon: '🤖', desc: '' };
+    var comp = COMPONENTS[c] || { name: c, iconClass: 'oc', svgKey: 'robot', desc: '' };
+    var iconSvg = SVG_ICONS[comp.svgKey] || SVG_ICONS.robot;
     var hasTG = localStorage.getItem('cf_telegram_saved');
     html += '<div class="agent-detail-card">' +
-      '<h3>' + comp.icon + ' ' + comp.name + '</h3>' +
-      '<div class="status-badge running">🟢 פעיל</div>' +
+      '<h3><div class="agent-icon-circle ' + comp.iconClass + '" style="width:32px;height:32px">' + iconSvg + '</div>' + comp.name + '</h3>' +
+      '<div class="status-badge running"><span class="status-dot"></span>פעיל</div>' +
       '<div class="detail-section"><div class="detail-label">ערוצים מחוברים</div>' +
-      '<div class="channel-item ' + (hasTG ? 'connected' : 'pending') + '">' + (hasTG ? '✅ Telegram' : '⬜ Telegram') +
-      (!hasTG ? ' <button onclick="switchTab(\'integrations\')">חברו →</button>' : '') + '</div>' +
-      '<div class="channel-item pending">⬜ WhatsApp <button onclick="showToast(\'בקרוב\')">בקרוב</button></div></div>' +
+      '<div class="channel-item">' + (hasTG ? '<span style="color:#10B981">' + SVG_ICONS.check + '</span> Telegram' : '<span style="color:#D1D5DB">&#9675;</span> Telegram') +
+      (!hasTG ? ' <button onclick="switchTab(\'integrations\')">חברו &larr;</button>' : '') + '</div>' +
+      '<div class="channel-item"><span style="color:#D1D5DB">&#9675;</span> WhatsApp <button onclick="showToast(\'בקרוב\',\'success\')">בקרוב</button></div></div>' +
       '<div class="detail-section"><div class="detail-label">מודל AI</div><div>' +
       (localStorage.getItem('cf_api_key_saved') ? 'Claude Sonnet 4 (Anthropic)' : 'לא מוגדר — חברו מפתח API') + '</div></div>' +
       '<div class="agent-actions">' +
-      '<a href="' + agentUrl + '" target="_blank" class="btn btn-primary">פתחו את הסוכן ↗</a>' +
+      '<a href="' + agentUrl + '" target="_blank" class="btn btn-primary">פתחו את הסוכן ' + SVG_ICONS.externalLink + '</a>' +
       '<button class="btn btn-outline" onclick="restartAgent()">הפעילו מחדש</button></div></div>';
   });
 
@@ -474,42 +671,53 @@ function renderAgents() {
   var autoComps = components.filter(function(c) { return c === 'ap' || c === 'n8'; });
   autoComps.forEach(function(c) {
     var comp = COMPONENTS[c];
+    var iconSvg = SVG_ICONS[comp.svgKey] || SVG_ICONS.bolt;
     html += '<div class="agent-detail-card">' +
-      '<h3>' + comp.icon + ' ' + comp.name + '</h3>' +
-      '<div class="status-badge running">🟢 פעיל</div>' +
+      '<h3><div class="agent-icon-circle ' + comp.iconClass + '" style="width:32px;height:32px">' + iconSvg + '</div>' + comp.name + '</h3>' +
+      '<div class="status-badge running"><span class="status-dot"></span>פעיל</div>' +
       '<div class="agent-actions" style="margin-top:12px">' +
-      '<a href="' + flowsUrl + '" target="_blank" class="btn btn-primary">פתחו את כלי האוטומציה ↗</a></div></div>';
+      '<a href="' + flowsUrl + '" target="_blank" class="btn btn-primary">פתחו את כלי האוטומציה ' + SVG_ICONS.externalLink + '</a></div></div>';
   });
 
-  document.getElementById('agentsList').innerHTML = html || '<p style="color:#9CA3AF">אין סוכנים פעילים</p>';
+  if (!html) {
+    html = '<div class="empty-state">' + SVG_ICONS.empty + '<p>אין סוכנים עדיין</p>' +
+      '<a href="/" class="btn btn-primary">הוסיפו סוכן</a></div>';
+  }
+  document.getElementById('agentsList').innerHTML = html;
 }
 
 function renderIntegrations() {
   // Update status if previously saved
   if (localStorage.getItem('cf_api_key_saved')) {
-    document.getElementById('anthropic-status').textContent = '✅ מחובר';
-    document.getElementById('anthropic-status').className = 'int-status connected';
+    var provider = localStorage.getItem('cf_api_key_saved');
+    var el = document.getElementById(provider + '-status');
+    if (el) { el.innerHTML = '<span class="int-status-dot"></span>מחובר'; el.className = 'int-status connected'; }
+    var card = document.getElementById(provider + '-card');
+    if (card) card.classList.add('connected-card');
   }
   if (localStorage.getItem('cf_telegram_saved')) {
-    document.getElementById('telegram-status').textContent = '✅ מחובר';
+    document.getElementById('telegram-status').innerHTML = '<span class="int-status-dot"></span>מחובר';
     document.getElementById('telegram-status').className = 'int-status connected';
+    document.getElementById('telegram-card').classList.add('connected-card');
   }
 
   // Automation section
   var autoComp = components.find(function(c) { return c === 'ap' || c === 'n8'; });
   var autoName = autoComp ? (COMPONENTS[autoComp] || {}).name : 'Activepieces';
   document.getElementById('automationIntegration').innerHTML =
-    '<div class="integration-card">' +
-    '<div class="int-name">' + autoName + '</div>' +
-    '<div class="int-status connected">✅ מחובר</div>' +
-    '<a href="' + flowsUrl + '" target="_blank" class="btn btn-outline">פתחו את כלי האוטומציה ↗</a></div>';
+    '<div class="integration-card connected-card">' +
+    '<div class="int-header">' +
+    '<div class="int-icon-circle automation">' + SVG_ICONS.bolt + '</div>' +
+    '<div class="int-name">' + autoName + '</div></div>' +
+    '<div class="int-status connected"><span class="int-status-dot"></span>מחובר</div>' +
+    '<a href="' + flowsUrl + '" target="_blank" class="btn btn-outline">פתחו את כלי האוטומציה ' + SVG_ICONS.externalLink + '</a></div>';
 }
 
 function renderBilling() {
   document.getElementById('planCardBig').innerHTML =
     '<div class="plan-name">' + plan.name + '</div>' +
-    '<div class="plan-price">₪' + plan.price + '/חודש</div>' +
-    '<div class="plan-specs">' + plan.cpu + ' · ' + plan.ram + 'GB RAM · ' + plan.nvme + 'GB NVMe</div>';
+    '<div class="plan-price">&#8362;' + plan.price + '/חודש</div>' +
+    '<div class="plan-specs">' + plan.cpu + ' &middot; ' + plan.ram + 'GB RAM &middot; ' + plan.nvme + 'GB NVMe</div>';
 }
 
 function renderSettings() {
@@ -522,18 +730,19 @@ function renderSettings() {
 function renderAdvanced() {
   // Agent link
   document.getElementById('adv-agent-link').innerHTML =
-    '<span>OpenClaw Dashboard</span><a href="' + agentUrl + '" target="_blank">פתח ↗</a>';
+    '<span class="info-label">OpenClaw Dashboard</span><a href="' + agentUrl + '" target="_blank" class="info-value">פתח ' + SVG_ICONS.externalLink + '</a>';
   // Flows link
   document.getElementById('adv-flows-link').innerHTML =
-    '<span>Automation Dashboard</span><a href="' + flowsUrl + '" target="_blank">פתח ↗</a>';
+    '<span class="info-label">Automation Dashboard</span><a href="' + flowsUrl + '" target="_blank" class="info-value">פתח ' + SVG_ICONS.externalLink + '</a>';
   // Tech info
   var ip = (instanceData && instanceData.ip) ? instanceData.ip : '—';
   var status = (instanceData && instanceData.status) ? instanceData.status : 'running';
-  var serverType = plan.cpu.replace(' ⚡', '');
+  var serverType = plan.cpu.replace(' Dedicated', '');
   document.getElementById('advTechInfo').innerHTML =
-    '<div class="info-row"><span>IP</span><span class="mono">' + ip + '</span></div>' +
-    '<div class="info-row"><span>שרת</span><span>Hetzner ' + serverType + ' · Helsinki</span></div>' +
-    '<div class="info-row"><span>סטטוס</span><span class="badge-green">' + status + '</span></div>';
+    '<div class="info-row"><span class="info-label">IP</span><span class="mono info-value">' + ip + '</span>' +
+    '<button class="copy-btn" onclick="copyToClipboard(\'' + ip + '\')" title="העתקו">' + SVG_ICONS.copy + '</button></div>' +
+    '<div class="info-row"><span class="info-label">שרת</span><span class="info-value">Hetzner ' + serverType + ' &middot; Helsinki</span></div>' +
+    '<div class="info-row"><span class="info-label">סטטוס</span><span class="badge-green">' + status + '</span></div>';
 
   // API code block
   document.getElementById('advApiBlock').textContent =
@@ -543,19 +752,21 @@ function renderAdvanced() {
 
 function renderSidebarFooter() {
   var displayPlan = plan.name || '—';
-  var displayDomain = subdomain ? subdomain + '.openclaw.flowmatic.co.il' : '';
   document.getElementById('sidebarFooter').innerHTML =
-    'תוכנית: ' + displayPlan + '<br/>' + (displayDomain || '');
+    '<span class="sidebar-plan-pill">תוכנית ' + displayPlan + '</span>';
 }
 
 /* ===== Tab switching ===== */
 function switchTab(tabId) {
   document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.add('hidden'); });
   document.querySelectorAll('.sidebar-item').forEach(function(el) { el.classList.remove('active'); });
+  document.querySelectorAll('.bottom-nav-item').forEach(function(el) { el.classList.remove('active'); });
   var tabEl = document.getElementById('tab-' + tabId);
   if (tabEl) tabEl.classList.remove('hidden');
-  var sidebarEl = document.querySelector('[data-tab="' + tabId + '"]');
+  var sidebarEl = document.querySelector('.sidebar [data-tab="' + tabId + '"]');
   if (sidebarEl) sidebarEl.classList.add('active');
+  var bottomEl = document.querySelector('.bottom-nav [data-tab="' + tabId + '"]');
+  if (bottomEl) bottomEl.classList.add('active');
   // Close mobile sidebar
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('show');
@@ -567,27 +778,42 @@ function toggleSidebar() {
   document.getElementById('sidebarOverlay').classList.toggle('show');
 }
 
+/* ===== User dropdown ===== */
+function toggleUserDropdown() {
+  document.getElementById('headerDropdown').classList.toggle('show');
+}
+
+/* ===== Help toggle ===== */
+function toggleHelp(btn) {
+  btn.classList.toggle('open');
+  var helpDiv = btn.nextElementSibling;
+  if (helpDiv) helpDiv.classList.toggle('expanded');
+}
+
 /* ===== Actions ===== */
 function saveApiKey(provider) {
   var inputId = provider + '-key';
   var val = document.getElementById(inputId).value.trim();
-  if (!val) { showToast('נא להזין מפתח API'); return; }
+  if (!val) { showToast('נא להזין מפתח API', 'error'); return; }
   localStorage.setItem('cf_api_key_saved', provider);
   localStorage.setItem('cf_api_key_provider', provider);
   var statusEl = document.getElementById(provider + '-status');
-  if (statusEl) { statusEl.textContent = '✅ מחובר'; statusEl.className = 'int-status connected'; }
-  showToast('מפתח ' + provider + ' נשמר בהצלחה');
+  if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
+  var card = document.getElementById(provider + '-card');
+  if (card) card.classList.add('connected-card');
+  showToast('מפתח ' + provider + ' נשמר בהצלחה', 'success');
   renderHome();
   renderAgents();
 }
 
 function saveTelegram() {
   var val = document.getElementById('telegram-token').value.trim();
-  if (!val) { showToast('נא להזין Token של הבוט'); return; }
+  if (!val) { showToast('נא להזין Token של הבוט', 'error'); return; }
   localStorage.setItem('cf_telegram_saved', '1');
-  document.getElementById('telegram-status').textContent = '✅ מחובר';
+  document.getElementById('telegram-status').innerHTML = '<span class="int-status-dot"></span>מחובר';
   document.getElementById('telegram-status').className = 'int-status connected';
-  showToast('בוט Telegram חובר בהצלחה');
+  document.getElementById('telegram-card').classList.add('connected-card');
+  showToast('בוט Telegram חובר בהצלחה', 'success');
   renderHome();
   renderAgents();
 }
@@ -596,20 +822,20 @@ function saveName() {
   var val = document.getElementById('user-name').value.trim();
   if (!val) return;
   localStorage.setItem('cf_user_name', val);
-  showToast('השם נשמר');
+  showToast('השם נשמר', 'success');
   renderHome();
 }
 
 function restartAgent() {
-  showToast('מפעיל מחדש...');
+  showToast('מפעיל מחדש...', 'success');
   if (instanceId && token) {
     fetch(API + '/hosting/instances/' + instanceId + '/restart', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token }
     }).then(function() {
-      showToast('הסוכן הופעל מחדש');
+      showToast('הסוכן הופעל מחדש', 'success');
     }).catch(function() {
-      showToast('הסוכן הופעל מחדש');
+      showToast('הסוכן הופעל מחדש', 'success');
     });
   }
 }
@@ -631,7 +857,7 @@ function copyToken() {
 
 function copyToClipboard(text) {
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(function() { showToast('הועתק'); });
+    navigator.clipboard.writeText(text).then(function() { showToast('הועתק', 'success'); });
   } else {
     var ta = document.createElement('textarea');
     ta.value = text;
@@ -639,7 +865,7 @@ function copyToClipboard(text) {
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-    showToast('הועתק');
+    showToast('הועתק', 'success');
   }
 }
 
@@ -650,12 +876,13 @@ function logout() {
 }
 
 /* ===== Toast ===== */
-function showToast(msg) {
+function showToast(msg, type) {
   var el = document.getElementById('toast');
   el.textContent = msg;
+  el.className = 'toast ' + (type || 'success');
   el.classList.add('show');
   clearTimeout(el._t);
-  el._t = setTimeout(function() { el.classList.remove('show'); }, 2500);
+  el._t = setTimeout(function() { el.classList.remove('show'); }, 3000);
 }
 </script>
 </body>
