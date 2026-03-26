@@ -23,7 +23,7 @@ import {
     waitlistRoutes,
     webhooksRoutes
 } from '@/routes'
-import { configureInstance, handleAllpayWebhook, submitSupportRequest, sendOtpHosting, verifyOtpHosting, checkout, getInstanceStatus } from '@/controllers/hosting'
+import { configureInstance, handleAllpayWebhook, submitSupportRequest, sendOtpHosting, verifyOtpHosting, checkout, getInstanceStatus, checkSubdomain } from '@/controllers/hosting'
 import { browseSkills } from '@/services/clawhub'
 
 const app = new Hono<HonoEnv>()
@@ -80,6 +80,7 @@ app.post('/hosting/checkout', checkout)
 app.post('/hosting/webhooks/allpay', handleAllpayWebhook)
 app.post('/hosting/support', submitSupportRequest)
 app.get('/hosting/instances/:id/status', getInstanceStatus)
+app.get('/hosting/subdomain/check', checkSubdomain)
 app.get('/clawhub/skills', async (c) => {
     try {
         const result = await browseSkills({

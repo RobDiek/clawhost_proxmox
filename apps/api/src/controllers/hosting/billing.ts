@@ -49,7 +49,8 @@ export const checkout = async (c: Context<HonoEnv>) => {
             addons,
             customerEmail,
             customerName,
-            customerPhone
+            customerPhone,
+            subdomainName
         } = body as {
             components: string[]
             automationTool: 'n8n' | 'activepieces'
@@ -57,6 +58,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
             customerEmail: string
             customerName: string
             customerPhone: string
+            subdomainName?: string
         }
 
         if (!components?.length) {
@@ -80,6 +82,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
             priceIls: String(pricing.totalPrice),
             status: 'awaiting_payment',
             allpayOrderId: orderId,
+            subdomainName: subdomainName || null,
             onboardingStep: 0,
             onboardingCompleted: false
         })
@@ -138,6 +141,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
                     planKey: pricing.planKey,
                     automationTool: autoTool,
                     hasOllama,
+                    subdomainName: subdomainName || undefined,
                 }).then(async (result) => {
                     await db.update(instances).set({
                         status: 'initializing',

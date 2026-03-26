@@ -11,6 +11,7 @@ interface ProvisionParams {
     automationTool: 'n8n' | 'activepieces'
     hasOllama: boolean
     telegramChatId?: string
+    subdomainName?: string
 }
 
 interface ProvisionResult {
@@ -37,8 +38,11 @@ const provisioner = {
         const automationPassword = generatePassword()
         const rootPassword = generatePassword()
 
+        const name = params.subdomainName || params.instanceId
+
         const cloudInitScript = renderCloudInit({
             INSTANCE_ID: params.instanceId,
+            SUBDOMAIN_NAME: name,
             OPENCLAW_TOKEN: openclawToken,
             AUTOMATION_TOOL: params.automationTool,
             AUTOMATION_PASSWORD: automationPassword,
@@ -61,8 +65,8 @@ const provisioner = {
             cloudInitScript
         )
 
-        const subdomainAgent = `agent.${params.instanceId}.openclaw`
-        const subdomainFlows = `flows.${params.instanceId}.openclaw`
+        const subdomainAgent = `${name}.openclaw`
+        const subdomainFlows = `${name}-flows.openclaw`
 
         await Promise.all([
             cloudflare.createDNSRecord(subdomainAgent, server.ip),

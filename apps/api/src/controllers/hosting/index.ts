@@ -4,3 +4,4 @@ export { getInstances, getInstance, getInstanceStatus, restartInstance, deleteIn
 export { adminGetInstances, adminGetRevenue, adminSuspendInstance, adminTerminateInstance } from './admin'
 export { submitSupportRequest } from './support'
 export { sendOtpHosting, verifyOtpHosting, getMe } from './auth'
+export { checkSubdomain } from './subdomain'

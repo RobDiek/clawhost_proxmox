@@ -3,6 +3,7 @@ import { resolve } from 'path'
 
 interface CloudInitVars {
     INSTANCE_ID: string
+    SUBDOMAIN_NAME: string
     OPENCLAW_TOKEN: string
     AUTOMATION_TOOL: 'n8n' | 'activepieces'
     AUTOMATION_PASSWORD: string
@@ -19,7 +20,8 @@ export function renderCloudInit(vars: CloudInitVars): string {
     const templatePath = resolve(process.cwd(), '../../scripts/cloud-init-template.yaml')
     let template = readFileSync(templatePath, 'utf-8')
 
-    template = template.replace(/\{\{INSTANCE_ID\}\}/g, vars.INSTANCE_ID)
+    // Use subdomain name for URLs (human-readable)
+    template = template.replace(/\{\{INSTANCE_ID\}\}/g, vars.SUBDOMAIN_NAME)
     template = template.replace(/\{\{OPENCLAW_TOKEN\}\}/g, vars.OPENCLAW_TOKEN)
     template = template.replace(/\{\{AUTOMATION_TOOL\}\}/g, vars.AUTOMATION_TOOL)
     template = template.replace(/\{\{AUTOMATION_PORT\}\}/g, String(AUTOMATION_PORTS[vars.AUTOMATION_TOOL]))

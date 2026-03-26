@@ -263,6 +263,9 @@ export const instances = pgTable(
         // Research (for MATEH)
         researchData: jsonb('research_data'),
 
+        // Custom subdomain (e.g. "sergei" -> sergei.openclaw.flowmatic.co.il)
+        subdomainName: text('subdomain_name').unique(),
+
         // Telegram
         telegramChatId: text('telegram_chat_id'),
         telegramBotToken: text('telegram_bot_token'),

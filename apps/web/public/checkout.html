@@ -307,8 +307,15 @@ const planKey = params.get('plan') || 'personal';
 const components = (params.get('components') || '').split(',').filter(Boolean);
 const storageGb = parseInt(params.get('storage') || '0', 10);
 const billingPeriod = params.get('billing') || 'monthly';
+const subdomainName = params.get('subdomain') || '';
 
 const plan = PLANS[planKey] || PLANS.personal;
+
+// Show subdomain if available
+if (subdomainName) {
+  const addrEl = document.getElementById('address-display');
+  if (addrEl) addrEl.textContent = subdomainName + '.openclaw.flowmatic.co.il';
+}
 
 // Render components list
 const listEl = document.getElementById('component-list');
@@ -388,7 +395,8 @@ async function handleCheckout() {
         addons: addons,
         customerEmail: email,
         customerName: name,
-        customerPhone: phone
+        customerPhone: phone,
+        subdomainName: subdomainName || undefined
       })
     });
 
