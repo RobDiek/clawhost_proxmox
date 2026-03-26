@@ -853,7 +853,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     <a href="#" id="nav-partners" onclick="openPartnersModal(event)">שותפים</a>
     <a href="#" id="nav-docs" onclick="openDocsModal(event)">תיעוד</a>
     <a href="https://flowmatic.co.il" target="_blank" id="nav-flowmatic">flowmatic.co.il &#8599;</a>
-    <a href="#" id="nav-support" onclick="$crisp.push(['do', 'chat:open']); event.preventDefault();">תמיכה</a>
+    <a href="#" id="nav-support" onclick="openSupportModal(event)">תמיכה</a>
   </nav>
   <div class="header-actions">
     <div class="lang-switcher">
@@ -1788,6 +1788,5 @@ document.getElementById('deploy-btn').addEventListener('click', function() {
 applyTranslations();
 renderAll();
 </script>
-<script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="e0ffd95f-5207-4782-9467-c8881066f7f7";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
 </body>
 </html>
