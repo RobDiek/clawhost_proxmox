@@ -409,6 +409,14 @@ async function handleCheckout() {
       return;
     }
 
+    // Save instance data for dashboard
+    if (data.data) {
+      localStorage.setItem('cf_instance_id', data.data.instanceId || '');
+      localStorage.setItem('cf_instance_plan', planKey);
+      localStorage.setItem('cf_instance_components', JSON.stringify(components));
+      localStorage.setItem('cf_instance_subdomain', subdomainName || '');
+    }
+
     // Redirect to AllPay payment page
     if (data.data && data.data.paymentUrl) {
       window.location.href = data.data.paymentUrl;
