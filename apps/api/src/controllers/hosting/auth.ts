@@ -9,7 +9,7 @@ import { ok, fail } from '@/lib/response'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me'
 const RESEND_API_KEY = process.env.RESEND_API_KEY || ''
-const FROM_EMAIL = process.env.FROM_EMAIL || 'ClawFlow <noreply@flowmatic.co.il>'
+const FROM_EMAIL = process.env.FROM_EMAIL || 'ClawFlow <onboarding@resend.dev>'
 const OTP_EXPIRY_MS = 10 * 60 * 1000 // 10 minutes
 const MAX_ATTEMPTS = 5
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
