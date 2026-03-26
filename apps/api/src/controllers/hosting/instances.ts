@@ -61,12 +61,11 @@ export const getInstance = async (c: Context<HonoEnv>) => {
 
 export const getInstanceStatus = async (c: Context<HonoEnv>) => {
     try {
-        const userId = c.get('userId')
         const instanceId = c.req.param('id')
 
         const [instance] = await db.select()
             .from(instances)
-            .where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
+            .where(eq(instances.id, instanceId))
 
         if (!instance) {
             return fail(c, 'Instance not found.', 404)
