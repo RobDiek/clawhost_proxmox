@@ -9,6 +9,7 @@ import { resolve } from 'path'
 import app from '@/app'
 import setupTerminalSocket from '@/services/terminalSocket'
 import { startOnboardingBot } from '@/services/onboardingBot'
+import { setupChatWebSocket } from '@/services/chatServer'
 
 const port = Number(process.env.PORT)
 const pkg = JSON.parse(
@@ -43,4 +44,5 @@ const server = serve(
 )
 
 setupTerminalSocket(server as Server)
-startOnboardingBot()
+setupChatWebSocket(server as Server)
+// startOnboardingBot() // disabled: conflicts with chat server Telegram polling
