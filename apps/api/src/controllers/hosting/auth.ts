@@ -8,6 +8,8 @@ import { ok, fail } from '@/lib/response'
 // ── Simple JWT (no external deps) ──────────────────────────
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me'
+const RESEND_API_KEY = process.env.RESEND_API_KEY || ''
+const FROM_EMAIL = process.env.FROM_EMAIL || 'ClawFlow <noreply@flowmatic.co.il>'
 const OTP_EXPIRY_MS = 10 * 60 * 1000 // 10 minutes
 const MAX_ATTEMPTS = 5
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -66,12 +68,41 @@ export const sendOtpHosting = async (c: Context) => {
             expiresAt: new Date(Date.now() + OTP_EXPIRY_MS)
         })
 
-        // MVP: log to console instead of sending email
-        console.log(`\n╔══════════════════════════════════════╗`)
-        console.log(`║  OTP for ${normalizedEmail}`)
-        console.log(`║  Code: ${code}`)
-        console.log(`║  Expires: ${new Date(Date.now() + OTP_EXPIRY_MS).toISOString()}`)
-        console.log(`╚══════════════════════════════════════╝\n`)
+        // Send OTP via Resend
+        if (RESEND_API_KEY) {
+            const res = await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${RESEND_API_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    from: FROM_EMAIL,
+                    to: normalizedEmail,
+                    subject: `${code} — קוד אימות ClawFlow`,
+                    html: `
+                        <div dir="rtl" style="font-family:Arial,'Arial Hebrew',sans-serif;max-width:400px;margin:0 auto;padding:32px;text-align:center">
+                            <h2 style="color:#111827;margin-bottom:8px">ClawFlow</h2>
+                            <p style="color:#6B7280;font-size:14px;margin-bottom:24px">הקוד שלכם לכניסה לחשבון</p>
+                            <div style="background:#EFF6FF;border:2px solid #2563EB;border-radius:12px;padding:20px;margin-bottom:24px">
+                                <span style="font-size:32px;font-weight:700;letter-spacing:8px;color:#2563EB">${code}</span>
+                            </div>
+                            <p style="color:#9CA3AF;font-size:12px">הקוד תקף ל-10 דקות. אם לא ביקשתם קוד — התעלמו מהודעה זו.</p>
+                        </div>
+                    `,
+                }),
+            })
+
+            if (!res.ok) {
+                console.error('Resend error:', await res.text())
+                return fail(c, 'Failed to send email.', 500)
+            }
+        } else {
+            // Fallback: log to console
+            console.log(`\n╔══════════════════════════════════════╗`)
+            console.log(`║  OTP for ${normalizedEmail}: ${code}`)
+            console.log(`╚══════════════════════════════════════╝\n`)
+        }
 
         return ok(c, null, 'OTP sent successfully.')
     } catch (err) {
