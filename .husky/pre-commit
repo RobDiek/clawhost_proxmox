@@ -1,4 +1,5 @@
 pnpm --filter i18n validate
+pnpm test
 pnpm check
 pnpm version:patch
 git add apps/api/package.json apps/web/package.json apps/mobile/package.json apps/clawhostgo/package.json

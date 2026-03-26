@@ -21,5 +21,6 @@
         },
         "types": ["vite/client"]
     },
-    "include": ["src/renderer", "../web/src"]
+    "include": ["src/renderer", "../web/src"],
+    "exclude": ["../web/src/**/*.test.ts", "../web/src/**/*.test.tsx"]
 }

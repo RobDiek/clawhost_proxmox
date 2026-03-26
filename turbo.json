@@ -8,6 +8,14 @@
         "build": {
             "dependsOn": ["^build"],
             "outputs": ["dist/**"]
+        },
+        "test": {
+            "dependsOn": ["^build"],
+            "cache": false
+        },
+        "test:watch": {
+            "cache": false,
+            "persistent": true
         }
     }
 }

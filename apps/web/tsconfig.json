@@ -19,5 +19,6 @@
             "@/*": ["./src/*"]
         }
     },
-    "include": ["src", "scripts", "content"]
+    "include": ["src", "scripts", "content"],
+    "exclude": ["node_modules", "src/**/*.test.ts", "src/**/*.test.tsx"]
 }

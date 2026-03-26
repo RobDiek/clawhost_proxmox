@@ -1,6 +1,6 @@
 {
     "name": "web",
-    "version": "0.0.154",
+    "version": "0.0.155",
     "private": true,
     "type": "module",
     "scripts": {
@@ -10,7 +10,9 @@
         "typecheck": "tsc --noEmit",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
-        "check": "pnpm typecheck && pnpm lint"
+        "check": "pnpm typecheck && pnpm lint",
+        "test": "vitest run",
+        "test:watch": "vitest"
     },
     "dependencies": {
         "@codemirror/lang-javascript": "^6.2.4",

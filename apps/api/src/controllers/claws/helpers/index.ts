@@ -18,6 +18,7 @@ import syncClawServers from '@/controllers/claws/helpers/syncClawServers'
 import OPENCLAW_VERSION from '@/controllers/claws/helpers/openclawVersion'
 import WHATSAPP_PATHS from '@/controllers/claws/helpers/whatsappPaths'
 import isVersionAtLeast from '@/controllers/claws/helpers/isVersionAtLeast'
+import parseClawVersion from '@/controllers/claws/helpers/parseClawVersion'
 
 export {
     applyToolsDefaults,
@@ -39,5 +40,6 @@ export {
     syncClawServers,
     OPENCLAW_VERSION,
     WHATSAPP_PATHS,
-    isVersionAtLeast
+    isVersionAtLeast,
+    parseClawVersion
 }
