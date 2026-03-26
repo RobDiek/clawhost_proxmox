@@ -1,11 +1,20 @@
 import type { Context } from 'hono'
+import { readFileSync } from 'fs'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 
-const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || ''
+const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
+
+let sshKeyCache: Buffer | null = null
+function getSSHKey(): Buffer {
+    if (!sshKeyCache) {
+        sshKeyCache = readFileSync(SSH_KEY_PATH)
+    }
+    return sshKeyCache
+}
 
 function sshExec(ip: string, command: string): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -25,7 +34,7 @@ function sshExec(ip: string, command: string): Promise<string> {
             host: ip,
             port: 22,
             username: 'root',
-            privateKey: require('fs').readFileSync(SSH_KEY_PATH),
+            privateKey: getSSHKey(),
         })
     })
 }
