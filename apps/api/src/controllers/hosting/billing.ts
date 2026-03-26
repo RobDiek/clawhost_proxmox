@@ -95,22 +95,43 @@ export const checkout = async (c: Context<HonoEnv>) => {
         const frontendUrl = process.env.FRONTEND_URL || 'https://openclaw.flowmatic.co.il'
         const apiUrl = process.env.API_URL || 'https://api.openclaw.flowmatic.co.il'
 
-        const paymentUrl = await allpay.createSubscription({
-            orderId,
-            items: [{
-                name: `OpenClaw Hosting — ${pricing.plan.nameHe}`,
-                price: pricing.totalPrice,
-                quantity: 1
-            }],
-            planKey: pricing.planKey,
-            customerEmail,
-            customerName,
-            customerPhone,
-            successUrl: `${frontendUrl}/onboarding/${instanceId}`,
-            failUrl: `${frontendUrl}/checkout/failed?instance=${instanceId}`,
-            webhookUrl: `${apiUrl}/hosting/webhooks/allpay`,
-            metadata: { instanceId, planKey: pricing.planKey }
-        })
+        let paymentUrl = ''
+        const isTestMode = process.env.ALLPAY_TEST_MODE === 'true'
+
+        try {
+            paymentUrl = await allpay.createSubscription({
+                orderId,
+                items: [{
+                    name: `ClawFlow — ${pricing.plan.nameHe}`,
+                    price: pricing.totalPrice,
+                    quantity: 1
+                }],
+                planKey: pricing.planKey,
+                customerEmail,
+                customerName,
+                customerPhone,
+                successUrl: `${frontendUrl}/onboarding.html?instance=${instanceId}`,
+                failUrl: `${frontendUrl}/checkout.html?failed=1`,
+                webhookUrl: `${apiUrl}/hosting/webhooks/allpay`,
+                metadata: { instanceId, planKey: pricing.planKey }
+            })
+        } catch (allpayErr) {
+            console.error('AllPay error (continuing in test mode):', allpayErr)
+
+            if (isTestMode) {
+                paymentUrl = `${frontendUrl}/onboarding.html?instance=${instanceId}`
+
+                await db.update(instances)
+                    .set({ status: 'provisioning', subscriptionStatus: 'active' })
+                    .where(eq(instances.id, instanceId))
+
+                await db.update(payments)
+                    .set({ status: 'paid', paidAt: new Date() })
+                    .where(eq(payments.allpayOrderId, orderId))
+            } else {
+                return fail(c, 'Payment service unavailable.', 503)
+            }
+        }
 
         return ok(c, { paymentUrl, instanceId, orderId }, 'Checkout created.')
     } catch (err) {
