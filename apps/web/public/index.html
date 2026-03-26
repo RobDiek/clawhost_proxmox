@@ -859,7 +859,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
       <button class="lang-btn active" id="btn-he" onclick="setLang('he')">&#1506;&#1489;</button>
       <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
     </div>
-    <a href="#" class="header-login" id="nav-login">&#1499;&#1504;&#1497;&#1505;&#1492;</a>
+    <a href="/register.html" class="header-login" id="nav-login" onclick="if(localStorage.getItem('cf_token')){window.location.href='/dashboard.html';event.preventDefault()}">&#1499;&#1504;&#1497;&#1505;&#1492;</a>
   </div>
 </div>
 </header>
