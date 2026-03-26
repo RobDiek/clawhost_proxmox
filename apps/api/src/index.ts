@@ -8,6 +8,7 @@ import { resolve } from 'path'
 
 import app from '@/app'
 import setupTerminalSocket from '@/services/terminalSocket'
+import { startOnboardingBot } from '@/services/onboardingBot'
 
 const port = Number(process.env.PORT)
 const pkg = JSON.parse(
@@ -42,3 +43,4 @@ const server = serve(
 )
 
 setupTerminalSocket(server as Server)
+startOnboardingBot()
