@@ -128,6 +128,44 @@ export const checkout = async (c: Context<HonoEnv>) => {
                 await db.update(payments)
                     .set({ status: 'paid', paidAt: new Date() })
                     .where(eq(payments.allpayOrderId, orderId))
+
+                // Start real provisioning in background
+                const hasOllama = components.includes('ol')
+                const autoTool = (automationTool || 'activepieces') as 'n8n' | 'activepieces'
+
+                provisioner.provision({
+                    instanceId,
+                    planKey: pricing.planKey,
+                    automationTool: autoTool,
+                    hasOllama,
+                }).then(async (result) => {
+                    await db.update(instances).set({
+                        status: 'initializing',
+                        hetznerServerId: result.serverId,
+                        ip: result.ip,
+                        openclawToken: result.openclawToken,
+                        automationPassword: result.automationPassword,
+                        rootPassword: result.rootPassword,
+                        subdomainAgent: result.subdomainAgent,
+                        subdomainFlows: result.subdomainFlows,
+                    }).where(eq(instances.id, instanceId))
+
+                    return provisioner.pollUntilReady(instanceId, result.serverId)
+                }).then(async (ready) => {
+                    await db.update(instances)
+                        .set({ status: ready ? 'running' : 'failed' })
+                        .where(eq(instances.id, instanceId))
+
+                    if (ready) {
+                        await telegram.alertAdmin(`✅ Instance ${instanceId} is running!`)
+                    }
+                }).catch(async (err) => {
+                    console.error('Provisioning error:', err)
+                    await db.update(instances)
+                        .set({ status: 'failed' })
+                        .where(eq(instances.id, instanceId))
+                    await telegram.alertAdmin(`❌ Instance ${instanceId} provisioning failed: ${err.message}`)
+                })
             } else {
                 return fail(c, 'Payment service unavailable.', 503)
             }
