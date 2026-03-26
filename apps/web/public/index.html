@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>OpenClaw Hosting — הסוכן שלכם, מוכן תוך 3 דקות | by Flowmatic</title>
-<meta name="description" content="פלטפורמת אירוח לסוכני OpenClaw AI. בחרו את הסוכנים שלכם, שלמו — ה-VPS מוכן תוך 3 דקות. ללא הגדרות, ללא מגבלות."/>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%232563EB'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' font-weight='900' font-size='28' fill='white'>OC</text></svg>"/>
+<title>ClawFlow — הסוכן שלכם, מוכן תוך 3 דקות | by Flowmatic</title>
+<meta name="description" content="ClawFlow — פלטפורמת אירוח לסוכני OpenClaw AI. בחרו את הסוכנים שלכם, שלמו — ה-VPS מוכן תוך 3 דקות. ללא הגדרות, ללא מגבלות."/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%232563EB'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' font-weight='900' font-size='28' fill='white'>CF</text></svg>"/>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 /* ═══════════════════════════════════════════════════
@@ -846,13 +846,13 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 <header class="header">
 <div class="header-inner">
   <a href="/" class="logo">
-    <span class="logo-name">OpenClaw</span>
-    <span class="logo-sub">Hosting &middot; by Flowmatic</span>
+    <span class="logo-name">ClawFlow</span>
+    <span class="logo-sub">by Flowmatic</span>
   </a>
   <nav class="header-nav">
     <a href="https://flowmatic.co.il" target="_blank" id="nav-flowmatic">flowmatic.co.il &#8599;</a>
     <a href="#" id="nav-docs" onclick="openDocsModal(event)">&#1514;&#1497;&#1506;&#1493;&#1491;</a>
-    <a href="#" id="nav-support" onclick="openSupportModal(event)">&#1514;&#1502;&#1497;&#1499;&#1492;</a>
+    <a href="#" id="nav-support" onclick="$crisp.push(['do', 'chat:open']); event.preventDefault();">&#1514;&#1502;&#1497;&#1499;&#1492;</a>
   </nav>
   <div class="header-actions">
     <div class="lang-switcher">
@@ -930,7 +930,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     <span id="tr4">99.5% uptime SLA</span>
   </div>
   <div class="trust-row-2">
-    OpenClaw Hosting &middot; by Flowmatic &nbsp;|&nbsp;
+    ClawFlow &middot; by Flowmatic &nbsp;|&nbsp;
     <a href="/terms.html" id="fl-terms">&#1514;&#1504;&#1488;&#1497; &#1513;&#1497;&#1502;&#1493;&#1513;</a> &nbsp;|&nbsp;
     <a href="/privacy.html" id="fl-privacy">&#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1508;&#1512;&#1496;&#1497;&#1493;&#1514;</a> &nbsp;|&nbsp;
     <a href="/cancellation.html" id="fl-cancel">&#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1489;&#1497;&#1496;&#1493;&#1500;</a> &nbsp;|&nbsp;
@@ -1107,13 +1107,13 @@ const ITEMS = [
   },
   {
     id: 'ok', cat: 'ai', ram: 0, radio: true, default: true,
-    he: '\u05DE\u05E4\u05EA\u05D7 API \u05E9\u05DC\u05D9', en: 'My API Key',
-    descHe: 'Anthropic Claude / OpenAI \u2014 \u05D7\u05E1\u05DB\u05D5\u05E0\u05D9 \u05D1\u05D9\u05D5\u05EA\u05E8 \u05DC\u05D8\u05D5\u05D5\u05D7 \u05D0\u05E8\u05D5\u05DA. \u05E9\u05DC\u05D9\u05D8\u05D4 \u05DE\u05DC\u05D0\u05D4 \u05E2\u05DC \u05E2\u05DC\u05D5\u05D9\u05D5\u05EA.',
-    descEn: 'Anthropic Claude / OpenAI \u2014 most cost-effective long-term. Full cost control.',
+    he: '\u05DE\u05E4\u05EA\u05D7\u05D5\u05EA API \u05E9\u05DC\u05DB\u05DD', en: 'Your API Keys',
+    descHe: '\u05D4\u05E9\u05EA\u05DE\u05E9\u05D5 \u05D1\u05DE\u05E4\u05EA\u05D7\u05D5\u05EA API \u05E9\u05DC\u05DB\u05DD \u05DE-Anthropic (Claude) \u05D0\u05D5 OpenAI.',
+    descEn: 'Use your own API keys from Anthropic (Claude) or OpenAI. Full cost control.',
     detail: {
       tagHe: '\u05E1\u05E4\u05E7 AI', tagEn: 'AI Provider', tagBg: '#1a2a1a', tagColor: '#4caf50',
-      descHe: '\u05D4\u05E9\u05EA\u05DE\u05E9\u05D5 \u05D1\u05DE\u05E4\u05EA\u05D7\u05D5\u05EA API \u05E9\u05DC\u05DB\u05DD \u05DE-Anthropic (Claude) \u05D0\u05D5 OpenAI. \u05D4\u05DB\u05D9 \u05D7\u05E1\u05DB\u05D5\u05E0\u05D9 \u05DC\u05D8\u05D5\u05D5\u05D7 \u05D0\u05E8\u05D5\u05DA.',
-      descEn: 'Use your own API keys from Anthropic (Claude) or OpenAI. Most cost-effective long-term.',
+      descHe: '\u05D4\u05E9\u05EA\u05DE\u05E9\u05D5 \u05D1\u05DE\u05E4\u05EA\u05D7\u05D5\u05EA API \u05E9\u05DC\u05DB\u05DD \u05DE-Anthropic (Claude) \u05D0\u05D5 OpenAI. \u05D4\u05DB\u05D9 \u05D7\u05E1\u05DB\u05D5\u05E0\u05D9 \u05DC\u05D8\u05D5\u05D5\u05D7 \u05D0\u05E8\u05D5\u05DA. \u05E9\u05DC\u05D9\u05D8\u05D4 \u05DE\u05DC\u05D0\u05D4 \u05E2\u05DC \u05E2\u05DC\u05D5\u05D9\u05D5\u05EA.',
+      descEn: 'Use your own API keys from Anthropic (Claude) or OpenAI. Most cost-effective long-term. Full cost control.',
       featHe: ['Claude Sonnet 4 / Opus 4 (Anthropic)', 'OpenAI GPT-4o / GPT-4o mini', '\u05E9\u05DC\u05D9\u05D8\u05D4 \u05DE\u05DC\u05D0\u05D4 \u05E2\u05DC \u05E2\u05DC\u05D5\u05D9\u05D5\u05EA', '\u05EA\u05E9\u05DC\u05D5\u05DD \u05D9\u05E9\u05D9\u05E8 \u05DC\u05E1\u05E4\u05E7 \u2014 \u05DC\u05DC\u05D0 \u05E2\u05DE\u05DC\u05D4'],
       featEn: ['Claude Sonnet 4 / Opus 4 (Anthropic)', 'OpenAI GPT-4o / GPT-4o mini', 'Full cost control', 'Direct payment to provider \u2014 no markup'],
       tech: '\u05DC\u05DC\u05D0 \u05E2\u05DC\u05D5\u05EA \u05E0\u05D5\u05E1\u05E4\u05EA', price: 'incl',
@@ -1207,8 +1207,8 @@ const T = {
     'support-message': '\u05D4\u05D5\u05D3\u05E2\u05D4',
     'support-send': '\u05E9\u05DC\u05D7\u05D5',
     'support-success': '\u05D4\u05D4\u05D5\u05D3\u05E2\u05D4 \u05E0\u05E9\u05DC\u05D7\u05D4 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4! \u05E0\u05D7\u05D6\u05D5\u05E8 \u05D0\u05DC\u05D9\u05DB\u05DD \u05D1\u05D4\u05E7\u05D3\u05DD.',
-    'docs-title': '\u05EA\u05D9\u05E2\u05D5\u05D3 OpenClaw Hosting',
-    'docs-what-title': '\u05DE\u05D4 \u05D6\u05D4 OpenClaw Hosting?',
+    'docs-title': '\u05EA\u05D9\u05E2\u05D5\u05D3 ClawFlow',
+    'docs-what-title': '\u05DE\u05D4 \u05D6\u05D4 ClawFlow?',
     'docs-what': '\u05E4\u05DC\u05D8\u05E4\u05D5\u05E8\u05DE\u05EA \u05D0\u05D9\u05E8\u05D5\u05D7 \u05DC\u05E1\u05D5\u05DB\u05E0\u05D9 AI \u05DE\u05D1\u05D5\u05E1\u05E1\u05D9 OpenClaw. \u05D1\u05D7\u05E8\u05D5 \u05E1\u05D5\u05DB\u05E0\u05D9\u05DD, \u05E9\u05DC\u05DE\u05D5 \u2014 \u05D4-VPS \u05E9\u05DC\u05DB\u05DD \u05DE\u05D5\u05DB\u05DF \u05EA\u05D5\u05DA 3 \u05D3\u05E7\u05D5\u05EA. \u05DC\u05DC\u05D0 \u05D4\u05D2\u05D3\u05E8\u05D5\u05EA \u05D8\u05DB\u05E0\u05D9\u05D5\u05EA, \u05DC\u05DC\u05D0 \u05E4\u05E7\u05D5\u05D3\u05D5\u05EA \u05D1\u05D8\u05E8\u05DE\u05D9\u05E0\u05DC.',
     'docs-how-title': '\u05D0\u05D9\u05DA \u05D6\u05D4 \u05E2\u05D5\u05D1\u05D3?',
     'docs-how': '1. \u05D1\u05D7\u05E8\u05D5 \u05E1\u05D5\u05DB\u05E0\u05D9\u05DD \u05D5\u05EA\u05D5\u05E1\u05E4\u05D5\u05EA \u05D1\u05E7\u05D5\u05E0\u05E4\u05D9\u05D2\u05D5\u05E8\u05D8\u05D5\u05E8\n2. \u05D4\u05D9\u05E8\u05E9\u05DE\u05D5 \u05D5\u05E9\u05DC\u05DE\u05D5 \u05D1\u05D0\u05D5\u05E4\u05DF \u05DE\u05D0\u05D5\u05D1\u05D8\u05D7 \u05D3\u05E8\u05DA AllPay\n3. \u05D4\u05DE\u05EA\u05D9\u05E0\u05D5 3 \u05D3\u05E7\u05D5\u05EA \u2014 \u05D4\u05E1\u05D1\u05D9\u05D1\u05D4 \u05E0\u05D1\u05E0\u05D9\u05EA \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA\n4. \u05D4\u05EA\u05D7\u05D9\u05DC\u05D5 \u05DC\u05E2\u05D1\u05D5\u05D3 \u05E2\u05DD \u05D4\u05E1\u05D5\u05DB\u05E0\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD',
@@ -1251,8 +1251,8 @@ const T = {
     'support-message': 'Message',
     'support-send': 'Send',
     'support-success': 'Message sent successfully! We\'ll get back to you soon.',
-    'docs-title': 'OpenClaw Hosting Documentation',
-    'docs-what-title': 'What is OpenClaw Hosting?',
+    'docs-title': 'ClawFlow Documentation',
+    'docs-what-title': 'What is ClawFlow?',
     'docs-what': 'A hosting platform for OpenClaw-based AI agents. Choose agents, pay \u2014 your VPS is ready in 3 minutes. No technical setup, no terminal commands.',
     'docs-how-title': 'How does it work?',
     'docs-how': '1. Choose agents and add-ons in the configurator\n2. Register and pay securely via AllPay\n3. Wait 3 minutes \u2014 environment builds automatically\n4. Start working with your agents',
@@ -1713,5 +1713,6 @@ document.getElementById('deploy-btn').addEventListener('click', function() {
 applyTranslations();
 renderAll();
 </script>
+<script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="e0ffd95f-5207-4782-9467-c8881066f7f7";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
 </body>
 </html>
