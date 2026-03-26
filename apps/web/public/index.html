@@ -850,9 +850,10 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     <span class="logo-sub">by Flowmatic</span>
   </a>
   <nav class="header-nav">
+    <a href="#" id="nav-partners" onclick="openPartnersModal(event)">שותפים</a>
+    <a href="#" id="nav-docs" onclick="openDocsModal(event)">תיעוד</a>
     <a href="https://flowmatic.co.il" target="_blank" id="nav-flowmatic">flowmatic.co.il &#8599;</a>
-    <a href="#" id="nav-docs" onclick="openDocsModal(event)">&#1514;&#1497;&#1506;&#1493;&#1491;</a>
-    <a href="#" id="nav-support" onclick="$crisp.push(['do', 'chat:open']); event.preventDefault();">&#1514;&#1502;&#1497;&#1499;&#1492;</a>
+    <a href="#" id="nav-support" onclick="$crisp.push(['do', 'chat:open']); event.preventDefault();">תמיכה</a>
   </nav>
   <div class="header-actions">
     <div class="lang-switcher">
@@ -964,6 +965,43 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   <div class="modal" id="docs-modal">
     <button class="modal-close" onclick="closeDocsModal()">&#10005;</button>
     <div id="docs-modal-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ PARTNERS MODAL ══════════════════ -->
+<div class="modal-overlay" id="partners-overlay">
+  <div class="modal" id="partners-modal" style="max-width:480px">
+    <button class="modal-close" onclick="closePartnersModal()">&#10005;</button>
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:2rem;margin-bottom:8px">🤝</div>
+      <h3 style="font-size:1.3rem;font-weight:700;color:#111827;margin-bottom:6px">תוכנית שותפים</h3>
+      <p style="font-size:0.9rem;color:#6B7280;line-height:1.6">
+        הלקוחות שלכם צריכים AI — אתם מביאים את הפתרון.<br/>
+        לא צריך ידע טכני. אנחנו עושים הכל.
+      </p>
+    </div>
+    <div style="background:#EFF6FF;border:1px solid #DBEAFE;border-radius:10px;padding:16px;margin-bottom:20px;text-align:center">
+      <div style="font-size:0.82rem;color:#6B7280;margin-bottom:4px">מחירים מיוחדים לשותפים</div>
+      <div style="font-size:1.4rem;font-weight:700;color:#2563EB">35% הנחה</div>
+      <div style="font-size:0.78rem;color:#6B7280">מהיום הראשון — הרווח שלכם</div>
+    </div>
+    <div style="font-size:0.85rem;color:#4B5563;margin-bottom:20px;line-height:1.7">
+      <div style="margin-bottom:6px">✓ הקימו סוכני AI ללקוחות בלחיצה</div>
+      <div style="margin-bottom:6px">✓ לוח בקרה מלא לניהול לקוחות</div>
+      <div style="margin-bottom:6px">✓ דוחות שקופים ללקוח</div>
+      <div style="margin-bottom:6px">✓ תמיכה טכנית מלאה מאיתנו</div>
+    </div>
+    <div id="partners-form">
+      <input type="text" id="partner-contact" placeholder="טלפון או אימייל" dir="ltr" style="width:100%;padding:11px 14px;border:1px solid #E5E7EB;border-radius:8px;font-size:0.9rem;margin-bottom:10px;font-family:inherit"/>
+      <textarea id="partner-message" placeholder="ספרו בקצרה על העסק שלכם (אופציונלי)" rows="2" style="width:100%;padding:11px 14px;border:1px solid #E5E7EB;border-radius:8px;font-size:0.85rem;margin-bottom:12px;font-family:inherit;resize:vertical;direction:rtl"></textarea>
+      <button onclick="submitPartnerForm()" style="width:100%;padding:12px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:0.95rem;font-weight:600;cursor:pointer;font-family:inherit">שלחו פרטים — ניצור קשר</button>
+      <p style="font-size:0.75rem;color:#9CA3AF;text-align:center;margin-top:8px">נחזור אליכם תוך 24 שעות עם הצעה אישית</p>
+    </div>
+    <div id="partners-success" style="display:none;text-align:center;padding:20px 0">
+      <div style="font-size:1.5rem;margin-bottom:8px">✅</div>
+      <div style="font-size:1rem;font-weight:600;color:#111827">תודה!</div>
+      <div style="font-size:0.85rem;color:#6B7280;margin-top:4px">נחזור אליכם בהקדם עם הצעה מותאמת אישית.</div>
+    </div>
   </div>
 </div>
 
@@ -1459,6 +1497,43 @@ function closeDocsModal() {
 document.getElementById('docs-overlay').addEventListener('click', function(e) {
   if (e.target === this) closeDocsModal();
 });
+
+/* ─────────────────────────────────────────
+   PARTNERS MODAL
+───────────────────────────────────────── */
+function openPartnersModal(e) {
+  if (e) e.preventDefault();
+  document.getElementById('partners-form').style.display = 'block';
+  document.getElementById('partners-success').style.display = 'none';
+  document.getElementById('partners-overlay').classList.add('open');
+}
+
+function closePartnersModal() {
+  document.getElementById('partners-overlay').classList.remove('open');
+}
+
+document.getElementById('partners-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closePartnersModal();
+});
+
+function submitPartnerForm() {
+  var contact = document.getElementById('partner-contact').value.trim();
+  if (!contact) { alert('הכניסו טלפון או אימייל'); return; }
+  var message = document.getElementById('partner-message').value.trim();
+
+  fetch('https://api.openclaw.flowmatic.co.il/hosting/support', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'שותף פוטנציאלי',
+      contact: contact,
+      message: '[תוכנית שותפים] ' + (message || 'מעוניין בתוכנית שותפים')
+    })
+  }).catch(function(){});
+
+  document.getElementById('partners-form').style.display = 'none';
+  document.getElementById('partners-success').style.display = 'block';
+}
 
 /* ─────────────────────────────────────────
    RENDER LIST
