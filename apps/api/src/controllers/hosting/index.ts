@@ -5,3 +5,4 @@ export { adminGetInstances, adminGetRevenue, adminSuspendInstance, adminTerminat
 export { submitSupportRequest } from './support'
 export { sendOtpHosting, verifyOtpHosting, getMe } from './auth'
 export { checkSubdomain } from './subdomain'
+export { setupApiKey, setupTelegram, completeOnboarding } from './setup'
