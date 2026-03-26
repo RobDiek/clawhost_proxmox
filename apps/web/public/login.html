@@ -135,7 +135,7 @@ async function verifyOtp() {
     if (data.success && data.data && data.data.token) {
       localStorage.setItem('cf_token', data.data.token);
       localStorage.setItem('cf_email', data.data.email);
-      window.location.href = '/dashboard.html';
+      window.location.href = '/dashboard';
     } else {
       showMsg('msg-otp', data.message || 'קוד לא תקין', true);
     }
@@ -150,7 +150,7 @@ document.getElementById('otp').addEventListener('keydown', function(e) { if (e.k
 
 // If already logged in, go to dashboard
 if (localStorage.getItem('cf_token')) {
-  window.location.href = '/dashboard.html';
+  window.location.href = '/dashboard';
 }
 </script>
 </body>

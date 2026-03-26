@@ -405,7 +405,7 @@ async function verifyOtp() {
     const searchParams = new URLSearchParams(window.location.search);
     const subdomainVal = document.getElementById('subdomain').value.trim().toLowerCase();
     if (subdomainVal) searchParams.set('subdomain', subdomainVal);
-    window.location.href = '/checkout.html?' + searchParams.toString();
+    window.location.href = '/checkout?' + searchParams.toString();
   } catch (err) {
     showMsg('msg-otp', 'שגיאת תקשורת, נסו שוב', true);
   }

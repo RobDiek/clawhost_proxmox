@@ -666,7 +666,7 @@ var API = 'https://api.openclaw.flowmatic.co.il';
 /* ===== Auth ===== */
 var token = localStorage.getItem('cf_token');
 var email = localStorage.getItem('cf_email') || '';
-if (!token) { window.location.href = '/login.html'; }
+if (!token) { window.location.href = '/login'; }
 
 /* ===== Instance data ===== */
 var instanceId = localStorage.getItem('cf_instance_id') || '';
@@ -1026,7 +1026,7 @@ function copyToClipboard(text) {
 function logout() {
   localStorage.removeItem('cf_token');
   localStorage.removeItem('cf_email');
-  window.location.href = '/login.html';
+  window.location.href = '/login';
 }
 
 /* ===== Agent Setup ===== */

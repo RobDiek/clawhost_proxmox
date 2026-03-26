@@ -298,7 +298,7 @@ const COMPONENT_NAMES = {
 const token = localStorage.getItem('cf_token');
 const email = localStorage.getItem('cf_email');
 if (!token) {
-  window.location.href = '/register.html?' + window.location.search.slice(1);
+  window.location.href = '/register?' + window.location.search.slice(1);
 }
 
 // Parse URL params
