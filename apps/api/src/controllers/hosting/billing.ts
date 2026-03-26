@@ -184,17 +184,14 @@ export const checkout = async (c: Context<HonoEnv>) => {
 
 export const handleAllpayWebhook = async (c: Context) => {
     try {
-        const rawBody = await c.req.text()
-        const signature = c.req.header('x-allpay-signature') || ''
+        const body = await c.req.json() as Record<string, unknown>
 
-        if (process.env.ALLPAY_WEBHOOK_SECRET && signature) {
-            const valid = allpay.verifyWebhookSignature(rawBody, signature)
-            if (!valid) {
-                return fail(c, 'Invalid signature.', 401)
-            }
+        // Verify AllPay signature
+        if (!allpay.verifyWebhookSignature(body)) {
+            console.error('AllPay webhook: invalid signature')
+            return fail(c, 'Invalid signature.', 401)
         }
 
-        const body = JSON.parse(rawBody)
         const { event, orderId, metadata } = allpay.parseWebhook(body)
         const instanceId = metadata.instanceId
 

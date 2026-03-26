@@ -1,9 +1,11 @@
-import { createHmac } from 'crypto'
+import { createHash } from 'crypto'
 import { INSTALLMENTS } from '@openclaw/shared'
 
-interface CreateSubscriptionParams {
+const ALLPAY_BASE = 'https://allpay.to/app/'
+
+interface CreatePaymentParams {
     orderId: string
-    items: Array<{ name: string; price: number; quantity: number }>
+    items: Array<{ name: string; price: number; qty: number }>
     planKey: string
     customerEmail: string
     customerName: string
@@ -11,16 +13,50 @@ interface CreateSubscriptionParams {
     successUrl: string
     failUrl: string
     webhookUrl: string
-    metadata: Record<string, string>
+    metadata: { instanceId: string; planKey: string }
 }
 
 interface WebhookResult {
     event: 'payment_success' | 'payment_failed' | 'subscription_cancelled'
     orderId: string
-    metadata: Record<string, string>
+    metadata: { instanceId: string; planKey: string }
 }
 
-const getCredentials = () => {
+// ── AllPay SHA256 Signature ──
+function computeSign(params: Record<string, unknown>, apiKey: string): string {
+    const sortedKeys = Object.keys(params).sort()
+    const chunks: string[] = []
+
+    sortedKeys.forEach((key) => {
+        if (key === 'sign') return
+        const value = params[key]
+
+        if (Array.isArray(value)) {
+            value.forEach((item) => {
+                if (typeof item === 'object' && item !== null) {
+                    const sortedItemKeys = Object.keys(item).sort()
+                    sortedItemKeys.forEach((name) => {
+                        const val = (item as Record<string, unknown>)[name]
+                        if (typeof val === 'string' && val.trim() !== '') {
+                            chunks.push(val)
+                        } else if (typeof val === 'number') {
+                            chunks.push(String(val))
+                        }
+                    })
+                }
+            })
+        } else if (typeof value === 'string' && value.trim() !== '') {
+            chunks.push(value)
+        } else if (typeof value === 'number') {
+            chunks.push(String(value))
+        }
+    })
+
+    const signatureString = chunks.join(':') + ':' + apiKey
+    return createHash('sha256').update(signatureString).digest('hex')
+}
+
+function getCredentials() {
     const login = process.env.ALLPAY_LOGIN
     const apiKey = process.env.ALLPAY_API_KEY
     if (!login || !apiKey) {
@@ -29,71 +65,82 @@ const getCredentials = () => {
     return { login, apiKey }
 }
 
-const isTestMode = () => process.env.ALLPAY_TEST_MODE === 'true'
-
 const allpay = {
-    async createSubscription(params: CreateSubscriptionParams): Promise<string> {
+    async createSubscription(params: CreatePaymentParams): Promise<string> {
         const { login, apiKey } = getCredentials()
         const installments = INSTALLMENTS[params.planKey] || 3
 
-        const payload = {
-            api_user_name: login,
-            api_user_pass: apiKey,
-            test_mode: isTestMode() ? 1 : 0,
+        const items = params.items.map(i => ({
+            name: i.name,
+            price: String(i.price),
+            qty: String(i.qty),
+            vat: '1',
+        }))
+
+        const payload: Record<string, unknown> = {
+            login,
             order_id: params.orderId,
-            amount: params.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+            items,
             currency: 'ILS',
-            vat: 1,
-            installments,
-            recurring: {
-                interval: 'monthly',
-                description: params.items.map(i => i.name).join(', '),
-            },
-            customer_email: params.customerEmail,
-            customer_fname: params.customerName.split(' ')[0] || params.customerName,
-            customer_lname: params.customerName.split(' ').slice(1).join(' ') || '',
-            customer_phone: params.customerPhone,
-            customer_id: '000000000',
+            lang: 'HE',
+            inst: installments,
+            client_name: params.customerName,
+            client_email: params.customerEmail,
+            client_phone: params.customerPhone,
+            client_tehudat: '000000000',
+            webhook_url: params.webhookUrl,
             success_url: params.successUrl,
-            fail_url: params.failUrl,
-            notify_url: params.webhookUrl,
-            metadata: JSON.stringify(params.metadata),
+            backlink_url: params.failUrl,
+            add_field_1: params.metadata.instanceId,
+            add_field_2: params.metadata.planKey,
+            subscription: {
+                start_type: 1,
+                end_type: 1,
+            },
         }
 
-        const response = await fetch('https://api.allpay.co.il/v1/create-payment', {
+        payload.sign = computeSign(payload, apiKey)
+
+        const response = await fetch(`${ALLPAY_BASE}?show=getpayment&mode=api10`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         })
 
-        const data = await response.json()
+        const data = await response.json() as { payment_url?: string; error?: string }
+
+        if (data.error) {
+            throw new Error(`AllPay error: ${data.error}`)
+        }
 
         if (!data.payment_url) {
-            throw new Error(`AllPay createSubscription failed: ${JSON.stringify(data)}`)
+            throw new Error(`AllPay: no payment_url in response: ${JSON.stringify(data)}`)
         }
 
         return data.payment_url
     },
 
-    verifyWebhookSignature(body: string, signature: string): boolean {
-        const secret = process.env.ALLPAY_WEBHOOK_SECRET
-        if (!secret) {
-            throw new Error('ALLPAY_WEBHOOK_SECRET is not set!')
-        }
-        const expected = createHmac('sha256', secret).update(body).digest('hex')
-        return expected === signature
+    verifyWebhookSignature(body: Record<string, unknown>): boolean {
+        const { apiKey } = getCredentials()
+        const receivedSign = body.sign as string
+        if (!receivedSign) return false
+
+        const bodyWithoutSign = { ...body }
+        delete bodyWithoutSign.sign
+        const expectedSign = computeSign(bodyWithoutSign, apiKey)
+
+        return expectedSign === receivedSign
     },
 
     parseWebhook(body: Record<string, unknown>): WebhookResult {
-        const status = body.status as string
+        const status = body.status as number
         const orderId = body.order_id as string
-        const metadataStr = (body.metadata as string) || '{}'
+        const instanceId = (body.add_field_1 as string) || ''
+        const planKey = (body.add_field_2 as string) || ''
 
         let event: WebhookResult['event']
-        if (status === 'success' || status === 'approved') {
+        if (status === 1) {
             event = 'payment_success'
-        } else if (status === 'cancelled' || status === 'subscription_cancelled') {
-            event = 'subscription_cancelled'
         } else {
             event = 'payment_failed'
         }
@@ -101,37 +148,78 @@ const allpay = {
         return {
             event,
             orderId,
-            metadata: JSON.parse(metadataStr),
+            metadata: { instanceId, planKey },
         }
     },
 
-    async cancelSubscription(subscriptionId: string): Promise<void> {
+    async cancelSubscription(orderId: string): Promise<void> {
         const { login, apiKey } = getCredentials()
 
-        await fetch('https://api.allpay.co.il/v1/cancel-subscription', {
+        const payload: Record<string, unknown> = {
+            login,
+            order_id: orderId,
+        }
+        payload.sign = computeSign(payload, apiKey)
+
+        await fetch(`${ALLPAY_BASE}?show=cancelsubscription&mode=api10`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                api_user_name: login,
-                api_user_pass: apiKey,
-                subscription_id: subscriptionId,
-            }),
+            body: JSON.stringify(payload),
         })
+    },
+
+    async checkPaymentStatus(orderId: string): Promise<{ status: number; amount: number }> {
+        const { login, apiKey } = getCredentials()
+
+        const payload: Record<string, unknown> = {
+            login,
+            order_id: orderId,
+        }
+        payload.sign = computeSign(payload, apiKey)
+
+        const res = await fetch(`${ALLPAY_BASE}?show=paymentstatus&mode=api10`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        })
+
+        return await res.json() as { status: number; amount: number }
     },
 
     async refund(orderId: string, amount: number): Promise<void> {
         const { login, apiKey } = getCredentials()
 
-        await fetch('https://api.allpay.co.il/v1/refund', {
+        const payload: Record<string, unknown> = {
+            login,
+            order_id: orderId,
+            amount,
+        }
+        payload.sign = computeSign(payload, apiKey)
+
+        await fetch(`${ALLPAY_BASE}?show=refund&mode=api10`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                api_user_name: login,
-                api_user_pass: apiKey,
-                order_id: orderId,
-                amount,
-            }),
+            body: JSON.stringify(payload),
         })
+    },
+
+    async verifyCredentials(): Promise<boolean> {
+        const { login, apiKey } = getCredentials()
+
+        const payload: Record<string, unknown> = { login }
+        payload.sign = computeSign(payload, apiKey)
+
+        try {
+            const res = await fetch(`${ALLPAY_BASE}?show=checkkeys&mode=api10`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            })
+            const data = await res.json() as { error?: string }
+            return !data.error
+        } catch {
+            return false
+        }
     },
 }
 
