@@ -159,13 +159,17 @@ async function pollTelegramReplies() {
 export function setupChatWebSocket(server: Server) {
     const wss = new WebSocketServer({ noServer: true })
 
-    // Handle upgrade manually before Hono
+    // Handle upgrade manually before Hono and before terminal WS
+    // Must be registered FIRST (before setupTerminalSocket)
     server.on('upgrade', (request, socket, head) => {
-        if (request.url === '/ws/chat') {
+        const url = request.url || ''
+        if (url === '/ws/chat' || url.startsWith('/ws/chat?')) {
             wss.handleUpgrade(request, socket, head, (ws) => {
                 wss.emit('connection', ws, request)
             })
+            return // prevent terminal WS from destroying this socket
         }
+        // Don't destroy — let other handlers (terminal) process it
     })
 
     wss.on('connection', (ws) => {

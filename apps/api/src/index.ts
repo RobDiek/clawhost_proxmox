@@ -43,6 +43,7 @@ const server = serve(
     }
 )
 
-setupTerminalSocket(server as Server)
+// Remove default upgrade handlers — we'll route manually
 setupChatWebSocket(server as Server)
+// setupTerminalSocket disabled: conflicts with chat WS upgrade handler
 // startOnboardingBot() // disabled: conflicts with chat server Telegram polling
