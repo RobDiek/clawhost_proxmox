@@ -115,7 +115,7 @@ export const sendOtpHosting = async (c: Context) => {
 
 export const verifyOtpHosting = async (c: Context) => {
     try {
-        const { email, code } = await c.req.json<{ email: string; code: string }>()
+        const { email, code, mode } = await c.req.json<{ email: string; code: string; mode?: string }>()
 
         if (!email || !code) {
             return fail(c, 'Email and code are required.', 400)
@@ -183,6 +183,8 @@ export const verifyOtpHosting = async (c: Context) => {
 
         if (existingUser) {
             userId = existingUser.id
+        } else if (mode === 'login') {
+            return fail(c, 'no_account', 404)
         } else {
             userId = crypto.randomUUID()
             await db.insert(users).values({

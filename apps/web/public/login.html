@@ -128,7 +128,7 @@ async function verifyOtp() {
     var res = await fetch(API + '/hosting/auth/verify-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: userEmail, code: code })
+      body: JSON.stringify({ email: userEmail, code: code, mode: 'login' })
     });
     var data = await res.json();
 
@@ -136,6 +136,9 @@ async function verifyOtp() {
       localStorage.setItem('cf_token', data.data.token);
       localStorage.setItem('cf_email', data.data.email);
       window.location.href = '/dashboard';
+    } else if (data.message === 'no_account') {
+      showMsg('msg-otp', '', false);
+      document.getElementById('step-otp').innerHTML = '<div style="text-align:center;padding:12px 0"><div style="font-size:1.1rem;font-weight:600;color:#111827;margin-bottom:8px">אין חשבון עם האימייל הזה</div><div style="font-size:0.85rem;color:#6B7280;margin-bottom:16px">כדי להירשם, חזרו לדף הראשי ובחרו את הסוכנים שלכם.</div><a href="/" style="display:inline-block;padding:10px 24px;background:#2563EB;color:#fff;border-radius:8px;text-decoration:none;font-size:0.9rem;font-weight:600">לדף הראשי →</a></div>';
     } else {
       showMsg('msg-otp', data.message || 'קוד לא תקין', true);
     }
