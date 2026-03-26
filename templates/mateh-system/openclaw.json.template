@@ -1,0 +1,27 @@
+{
+  "gateway": {
+    "mode": "local",
+    "auth": { "token": "{{GATEWAY_TOKEN}}" },
+    "controlUi": {
+      "allowInsecureAuth": true,
+      "allowedOrigins": ["https://{{SUBDOMAIN}}.openclaw.flowmatic.co.il"]
+    },
+    "trustedProxies": ["127.0.0.1", "::1"]
+  },
+  "agents": {
+    "sayer": { "model": "claude-sonnet-4-5", "workspace": "agents/sayer" },
+    "meater": { "model": "claude-sonnet-4-5", "workspace": "agents/meater" },
+    "maazin": { "model": "claude-sonnet-4-5", "workspace": "agents/maazin" },
+    "menateach": { "model": "claude-opus-4-6", "workspace": "agents/menateach" },
+    "et": { "model": "claude-sonnet-4-5", "workspace": "agents/et" },
+    "yotzer": { "model": "claude-sonnet-4-5", "workspace": "agents/yotzer" },
+    "shaliach": { "model": "claude-haiku-4-5", "workspace": "agents/shaliach" },
+    "migdalor": { "model": "claude-sonnet-4-5", "workspace": "agents/migdalor" }
+  },
+  "models": {
+    "default": "claude-sonnet-4-5",
+    "dailyBrief": "claude-haiku-4-5",
+    "deepAnalysis": "claude-opus-4-6",
+    "fallback": "kimi-k2.5:cloud"
+  }
+}

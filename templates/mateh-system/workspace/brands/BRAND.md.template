@@ -1,0 +1,31 @@
+# BRAND — {{BRAND_NAME}}
+
+## פוזיציונינג
+- משפט אחד: "{{POSITIONING}}"
+- מה שמבדיל אותנו: {{DIFFERENTIATOR}}
+- מה שאנחנו אף פעם לא אומרים: {{NEVER_SAY}}
+
+## קול
+- טון: {{TONE}}
+- סגנון משפטים: {{SENTENCE_STYLE}}
+- מילים שאנחנו משתמשים: {{WORDS_WE_USE}}
+- מילים שאנחנו לא משתמשים: {{WORDS_WE_AVOID}}
+- רפרנס: "כותבים כמו ש-{{REFERENCE}} היה מסביר ל-{{AUDIENCE}}"
+
+## קהל יעד
+- דמות מרכזית: {{PERSONA}}
+- מה עוצר אותם מרכישה: {{OBJECTIONS}}
+- מה משכנע אותם: {{TRIGGERS}}
+
+## מה עבד
+- הפוסט הכי מוצלח: {{BEST_POST}}
+- ההוק הכי טוב: {{BEST_HOOK}}
+- מה נכשל ולמה: {{WORST_POST}}
+
+## עמודי תוכן (3-5 נושאים)
+{{CONTENT_PILLARS}}
+
+## CTA ברירת מחדל
+- LinkedIn: {{CTA_LINKEDIN}}
+- Email: {{CTA_EMAIL}}
+- Telegram: {{CTA_TELEGRAM}}

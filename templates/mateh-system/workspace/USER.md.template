@@ -1,0 +1,37 @@
+# USER — {{BUSINESS_NAME}}
+
+## פרטי העסק
+- שם: {{BUSINESS_NAME}}
+- תחום: {{BUSINESS_DESCRIPTION}}
+- אתר: {{WEBSITE_URL}}
+- שפות: עברית, English
+
+## קהל יעד
+{{TARGET_AUDIENCE}}
+
+## מתחרים
+{{COMPETITORS}}
+
+## מטרות שיווק
+{{MARKETING_GOALS}}
+
+## סוג תוכן נוכחי
+{{CURRENT_CONTENT}}
+
+## אתגרים בשיווק
+{{CHALLENGES}}
+
+## מילות מפתח עיקריות
+{{KEYWORDS}}
+
+## פלטפורמות פעילות
+{{PLATFORMS}}
+
+## Timezone
+Asia/Jerusalem (UTC+2 / UTC+3 קיץ)
+
+## ימי עבודה
+א-ה (ראשון עד חמישי)
+
+## שפת תקשורת
+עברית (ראשית), English (טכני)
