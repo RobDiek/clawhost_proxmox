@@ -13,12 +13,18 @@ import {
     adminGetRevenue,
     adminSuspendInstance,
     adminTerminateInstance,
-    submitSupportRequest
+    submitSupportRequest,
+    sendOtpHosting,
+    verifyOtpHosting,
+    getMe
 } from '@/controllers/hosting'
 
 const app = new Hono()
 
 // Public routes (no auth required)
+app.post('/auth/send-otp', sendOtpHosting)
+app.post('/auth/verify-otp', verifyOtpHosting)
+app.get('/auth/me', getMe)
 app.post('/configure', configureInstance)
 app.post('/webhooks/allpay', handleAllpayWebhook)
 app.post('/support', submitSupportRequest)

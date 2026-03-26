@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>הפעלה — ClawFlow by Flowmatic</title>
+<meta name="description" content="הסוכן שלכם בדרך — ClawFlow"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%232563EB'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' font-weight='900' font-size='28' fill='white'>CF</text></svg>"/>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Heebo', system-ui, sans-serif;
+}
+:root {
+  --primary: #2563EB;
+  --primary-dark: #1D4ED8;
+  --primary-light: #EFF6FF;
+  --bg: #FAFAFA;
+  --surface: #FFFFFF;
+  --border: #E5E7EB;
+  --text: #111827;
+  --text-2: #4B5563;
+  --text-3: #9CA3AF;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
+}
+html { min-height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  font-size: 15px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Logo ── */
+.logo-block {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.logo-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.logo-name span { color: var(--primary); }
+.logo-sub {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+}
+.card-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.card-desc {
+  font-size: 0.88rem;
+  color: var(--text-2);
+  margin-bottom: 28px;
+}
+
+/* ── Steps ── */
+.steps {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  text-align: right;
+}
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+}
+.step + .step {
+  border-top: 1px solid var(--border);
+}
+.step-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+.step-icon.pending {
+  background: var(--bg);
+  border: 2px solid var(--border);
+  color: var(--text-3);
+}
+.step-icon.active {
+  background: var(--primary-light);
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.step-icon.done {
+  background: #D1FAE5;
+  border: 2px solid var(--success);
+  color: var(--success);
+}
+.step-icon.error {
+  background: #FEE2E2;
+  border: 2px solid var(--danger);
+  color: var(--danger);
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.step-content { flex: 1; }
+.step-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.step-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+.step.is-pending .step-title { color: var(--text-3); }
+
+/* ── Progress bar ── */
+.progress-wrap {
+  background: var(--bg);
+  border-radius: 6px;
+  height: 6px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.progress-bar {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 6px;
+  transition: width .5s ease;
+  width: 0%;
+}
+
+/* ── Links section ── */
+.ready-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+.ready-link {
+  display: block;
+  padding: 12px 16px;
+  background: var(--primary);
+  color: white;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: background .15s;
+}
+.ready-link:hover { background: var(--primary-dark); text-decoration: none; }
+.ready-link.secondary {
+  background: var(--surface);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+.ready-link.secondary:hover { background: var(--primary-light); }
+
+/* ── Status text ── */
+.status-text {
+  font-size: 0.82rem;
+  color: var(--text-3);
+  margin-top: 16px;
+}
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="logo-block">
+  <a href="/" style="text-decoration:none;">
+    <div class="logo-name"><span>Claw</span>Flow</div>
+    <div class="logo-sub">by Flowmatic</div>
+  </a>
+</div>
+
+<div class="card">
+  <!-- Provisioning state -->
+  <div id="state-provisioning">
+    <div class="card-title">מכינים את הסביבה שלכם</div>
+    <div class="card-desc">זה ייקח כ-3 דקות, אל תסגרו את הדף</div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <ul class="steps">
+      <li class="step" id="step-1">
+        <div class="step-icon active" id="icon-1">1</div>
+        <div class="step-content">
+          <div class="step-title">יוצרים שרת</div>
+          <div class="step-subtitle">מקימים VPS בענן Hetzner</div>
+        </div>
+      </li>
+      <li class="step is-pending" id="step-2">
+        <div class="step-icon pending" id="icon-2">2</div>
+        <div class="step-content">
+          <div class="step-title">מתקינים סוכנים</div>
+          <div class="step-subtitle">OpenClaw + כלי אוטומציה</div>
+        </div>
+      </li>
+      <li class="step is-pending" id="step-3">
+        <div class="step-icon pending" id="icon-3">3</div>
+        <div class="step-content">
+          <div class="step-title">מגדירים DNS + SSL</div>
+          <div class="step-subtitle">תעודת אבטחה ודומיין</div>
+        </div>
+      </li>
+      <li class="step is-pending" id="step-4">
+        <div class="step-icon pending" id="icon-4">4</div>
+        <div class="step-content">
+          <div class="step-title">הכל מוכן!</div>
+          <div class="step-subtitle">הסוכנים שלכם מחכים</div>
+        </div>
+      </li>
+    </ul>
+
+    <div class="status-text" id="status-text">בודקים סטטוס...</div>
+  </div>
+
+  <!-- Ready state -->
+  <div id="state-ready" class="hidden">
+    <div style="font-size:3rem; margin-bottom:12px;">&#127881;</div>
+    <div class="card-title">הכל מוכן!</div>
+    <div class="card-desc">הסוכנים שלכם פעילים ומחכים לכם</div>
+
+    <div class="ready-links">
+      <a class="ready-link" id="link-agent" href="#" target="_blank">פתחו את OpenClaw</a>
+      <a class="ready-link secondary" id="link-flows" href="#" target="_blank">פתחו את כלי האוטומציה</a>
+    </div>
+
+    <div class="status-text" style="margin-top:24px;">
+      <a href="/" style="color:var(--primary);">חזרו לדף הבית</a>
+    </div>
+  </div>
+
+  <!-- Error state -->
+  <div id="state-error" class="hidden">
+    <div style="font-size:3rem; margin-bottom:12px;">&#9888;&#65039;</div>
+    <div class="card-title">משהו השתבש</div>
+    <div class="card-desc" id="error-desc">אנא צרו קשר עם התמיכה</div>
+    <div class="status-text">
+      <a href="/" style="color:var(--primary);">חזרו לדף הבית</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://api.openclaw.flowmatic.co.il';
+const params = new URLSearchParams(window.location.search);
+const instanceId = params.get('instance');
+
+if (!instanceId) {
+  document.getElementById('state-provisioning').classList.add('hidden');
+  document.getElementById('state-error').classList.remove('hidden');
+  document.getElementById('error-desc').textContent = 'חסר מזהה instance בכתובת';
+}
+
+const STATUS_MAP = {
+  provisioning:  { step: 1, progress: 15, text: 'יוצרים שרת...' },
+  initializing:  { step: 2, progress: 45, text: 'מתקינים סוכנים...' },
+  configuring:   { step: 3, progress: 70, text: 'מגדירים DNS + SSL...' },
+  running:       { step: 4, progress: 100, text: 'הכל מוכן!' },
+  failed:        { step: -1, progress: 0, text: 'ההתקנה נכשלה' },
+  suspended:     { step: -1, progress: 0, text: 'השרת מושהה' },
+  terminated:    { step: -1, progress: 0, text: 'השרת בוטל' }
+};
+
+function updateSteps(currentStep) {
+  for (var i = 1; i <= 4; i++) {
+    var stepEl = document.getElementById('step-' + i);
+    var iconEl = document.getElementById('icon-' + i);
+
+    if (i < currentStep) {
+      stepEl.className = 'step';
+      iconEl.className = 'step-icon done';
+      iconEl.innerHTML = '&#10003;';
+    } else if (i === currentStep) {
+      stepEl.className = 'step';
+      iconEl.className = 'step-icon active';
+      iconEl.textContent = i;
+    } else {
+      stepEl.className = 'step is-pending';
+      iconEl.className = 'step-icon pending';
+      iconEl.textContent = i;
+    }
+  }
+}
+
+let pollInterval = null;
+let pollCount = 0;
+const MAX_POLLS = 60; // 10 minutes at 10s intervals
+
+async function pollStatus() {
+  if (!instanceId) return;
+  pollCount++;
+
+  try {
+    const token = localStorage.getItem('cf_token');
+    const headers = {};
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+
+    const res = await fetch(API + '/hosting/instances/' + instanceId + '/status', { headers });
+
+    if (!res.ok) {
+      document.getElementById('status-text').textContent = 'שגיאה בבדיקת סטטוס (ניסיון ' + pollCount + ')';
+      if (pollCount >= MAX_POLLS) {
+        clearInterval(pollInterval);
+        document.getElementById('state-provisioning').classList.add('hidden');
+        document.getElementById('state-error').classList.remove('hidden');
+        document.getElementById('error-desc').textContent = 'ההתקנה לוקחת יותר מדי זמן. אנא צרו קשר עם התמיכה.';
+      }
+      return;
+    }
+
+    const data = await res.json();
+    const status = data.data?.status || data.status || 'provisioning';
+    const mapped = STATUS_MAP[status] || STATUS_MAP.provisioning;
+
+    // Update progress bar
+    document.getElementById('progress-bar').style.width = mapped.progress + '%';
+    document.getElementById('status-text').textContent = mapped.text;
+
+    if (mapped.step === -1) {
+      // Error state
+      clearInterval(pollInterval);
+      for (var i = 1; i <= 4; i++) {
+        var iconEl = document.getElementById('icon-' + i);
+        if (iconEl.className.includes('active')) {
+          iconEl.className = 'step-icon error';
+          iconEl.innerHTML = '&#10007;';
+        }
+      }
+      document.getElementById('state-provisioning').classList.add('hidden');
+      document.getElementById('state-error').classList.remove('hidden');
+      document.getElementById('error-desc').textContent = mapped.text;
+      return;
+    }
+
+    updateSteps(mapped.step);
+
+    if (status === 'running') {
+      clearInterval(pollInterval);
+
+      // Build URLs
+      var agentUrl = data.data?.subdomainAgent
+        ? 'https://' + data.data.subdomainAgent
+        : 'https://agent.' + instanceId + '.openclaw.flowmatic.co.il';
+      var flowsUrl = data.data?.subdomainFlows
+        ? 'https://' + data.data.subdomainFlows
+        : 'https://flows.' + instanceId + '.openclaw.flowmatic.co.il';
+
+      document.getElementById('link-agent').href = agentUrl;
+      document.getElementById('link-flows').href = flowsUrl;
+
+      // Transition to ready
+      setTimeout(function() {
+        document.getElementById('state-provisioning').classList.add('hidden');
+        document.getElementById('state-ready').classList.remove('hidden');
+      }, 1000);
+    }
+  } catch (err) {
+    document.getElementById('status-text').textContent = 'שגיאת תקשורת, ממשיכים לנסות...';
+  }
+
+  if (pollCount >= MAX_POLLS) {
+    clearInterval(pollInterval);
+    document.getElementById('state-provisioning').classList.add('hidden');
+    document.getElementById('state-error').classList.remove('hidden');
+    document.getElementById('error-desc').textContent = 'ההתקנה לוקחת יותר מדי זמן. אנא צרו קשר עם התמיכה.';
+  }
+}
+
+// Start polling
+if (instanceId) {
+  pollStatus();
+  pollInterval = setInterval(pollStatus, 10000);
+}
+</script>
+<script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="e0ffd95f-5207-4782-9467-c8881066f7f7";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
+</body>
+</html>

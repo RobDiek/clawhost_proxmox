@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>תשלום — ClawFlow by Flowmatic</title>
+<meta name="description" content="השלימו את התשלום ל-ClawFlow"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%232563EB'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' font-weight='900' font-size='28' fill='white'>CF</text></svg>"/>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Heebo', system-ui, sans-serif;
+}
+:root {
+  --primary: #2563EB;
+  --primary-dark: #1D4ED8;
+  --primary-light: #EFF6FF;
+  --bg: #FAFAFA;
+  --surface: #FFFFFF;
+  --border: #E5E7EB;
+  --border-light: #D1D5DB;
+  --text: #111827;
+  --text-2: #4B5563;
+  --text-3: #9CA3AF;
+  --success: #10B981;
+  --danger: #EF4444;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
+}
+html { min-height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  font-size: 15px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px;
+  -webkit-font-smoothing: antialiased;
+}
+a { text-decoration: none; color: var(--primary); }
+a:hover { text-decoration: underline; }
+
+/* ── Logo ── */
+.logo-block {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.logo-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.logo-name span { color: var(--primary); }
+.logo-sub {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+/* ── Summary ── */
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 0.88rem;
+  color: var(--text-2);
+}
+.summary-row + .summary-row {
+  border-top: 1px solid var(--border);
+}
+.summary-row .label { flex: 1; }
+.summary-row .value { font-weight: 600; color: var(--text); }
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0 0;
+  margin-top: 8px;
+  border-top: 2px solid var(--text);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.summary-total .value { color: var(--primary); font-size: 1.15rem; }
+
+/* ── Components list ── */
+.component-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+.component-list li {
+  font-size: 0.82rem;
+  color: var(--text-2);
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.component-list li::before {
+  content: '✓';
+  color: var(--success);
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+/* ── Form ── */
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 5px;
+}
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.92rem;
+  font-family: inherit;
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color .15s;
+  outline: none;
+}
+.form-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+}
+.form-input::placeholder { color: var(--text-3); }
+.form-input:disabled {
+  background: var(--bg);
+  color: var(--text-3);
+}
+
+/* ── Button ── */
+.btn {
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .15s;
+  margin-top: 8px;
+}
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Messages ── */
+.msg {
+  font-size: 0.82rem;
+  text-align: center;
+  margin-top: 10px;
+  min-height: 20px;
+}
+.msg-error { color: var(--danger); }
+
+/* ── Secure badge ── */
+.secure-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-3);
+  margin-top: 16px;
+}
+.secure-badge svg { width: 14px; height: 14px; fill: var(--text-3); }
+
+/* ── Spinner ── */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+  vertical-align: middle;
+  margin-inline-end: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="logo-block">
+  <a href="/">
+    <div class="logo-name"><span>Claw</span>Flow</div>
+    <div class="logo-sub">by Flowmatic</div>
+  </a>
+</div>
+
+<!-- Order Summary -->
+<div class="card">
+  <div class="card-title">סיכום הזמנה</div>
+
+  <ul class="component-list" id="component-list"></ul>
+
+  <div id="summary-rows"></div>
+
+  <div class="summary-total">
+    <span>סה״כ לחודש</span>
+    <span class="value" id="total-price"></span>
+  </div>
+</div>
+
+<!-- Customer Form -->
+<div class="card">
+  <div class="card-title">פרטי לקוח</div>
+
+  <div class="form-group">
+    <label class="form-label" for="cust-email">אימייל</label>
+    <input class="form-input" id="cust-email" type="email" disabled dir="ltr"/>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label" for="cust-name">שם מלא</label>
+    <input class="form-input" id="cust-name" type="text" placeholder="ישראל ישראלי" autocomplete="name"/>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label" for="cust-phone">טלפון</label>
+    <input class="form-input" id="cust-phone" type="tel" placeholder="05X-XXXXXXX" dir="ltr" autocomplete="tel"/>
+  </div>
+
+  <button class="btn btn-primary" id="btn-pay" onclick="handleCheckout()">לתשלום</button>
+  <div class="msg" id="msg-checkout"></div>
+
+  <div class="secure-badge">
+    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+    תשלום מאובטח דרך AllPay
+  </div>
+</div>
+
+<script>
+const API = 'https://api.openclaw.flowmatic.co.il';
+
+const PLANS = {
+  personal:  { he: 'אישי', price: 79 },
+  business:  { he: 'עסקי', price: 169 },
+  pro:       { he: 'פרו', price: 349 },
+  developer: { he: 'מפתח', price: 599 }
+};
+
+const COMPONENT_NAMES = {
+  oc: 'OpenClaw Personal',
+  mt: 'MATEH — סוכן שיווק',
+  n8: 'n8n',
+  ap: 'Activepieces',
+  ok: 'מפתחות API',
+  ol: 'Ollama',
+  bk: 'גיבוי יומי',
+  xs: 'אחסון נוסף'
+};
+
+// Check auth
+const token = localStorage.getItem('cf_token');
+const email = localStorage.getItem('cf_email');
+if (!token) {
+  window.location.href = '/register.html?' + window.location.search.slice(1);
+}
+
+// Parse URL params
+const params = new URLSearchParams(window.location.search);
+const planKey = params.get('plan') || 'personal';
+const components = (params.get('components') || '').split(',').filter(Boolean);
+const storageGb = parseInt(params.get('storage') || '0', 10);
+const billingPeriod = params.get('billing') || 'monthly';
+
+const plan = PLANS[planKey] || PLANS.personal;
+
+// Render components list
+const listEl = document.getElementById('component-list');
+components.forEach(function(comp) {
+  const name = COMPONENT_NAMES[comp] || comp;
+  const li = document.createElement('li');
+  li.textContent = name;
+  listEl.appendChild(li);
+});
+
+// Render summary rows
+const rowsEl = document.getElementById('summary-rows');
+
+function addRow(label, value) {
+  const div = document.createElement('div');
+  div.className = 'summary-row';
+  div.innerHTML = '<span class="label">' + label + '</span><span class="value">' + value + '</span>';
+  rowsEl.appendChild(div);
+}
+
+addRow('תוכנית ' + plan.he, '₪' + plan.price + '/חודש');
+if (storageGb > 0) {
+  var storagePrice = storageGb <= 20 ? 15 : storageGb <= 100 ? 49 : 149;
+  addRow('אחסון נוסף +' + storageGb + 'GB', '₪' + storagePrice + '/חודש');
+}
+if (components.includes('bk')) {
+  addRow('גיבוי יומי', '₪19/חודש');
+}
+
+// Total
+var total = plan.price;
+if (storageGb > 0) total += (storageGb <= 20 ? 15 : storageGb <= 100 ? 49 : 149);
+if (components.includes('bk')) total += 19;
+document.getElementById('total-price').textContent = '₪' + total + '/חודש';
+
+// Fill email
+document.getElementById('cust-email').value = email || '';
+
+function showMsg(text, isError) {
+  var el = document.getElementById('msg-checkout');
+  el.textContent = text;
+  el.className = 'msg ' + (isError ? 'msg-error' : '');
+}
+
+async function handleCheckout() {
+  var name = document.getElementById('cust-name').value.trim();
+  var phone = document.getElementById('cust-phone').value.trim();
+
+  if (!name) { showMsg('הכניסו שם מלא', true); return; }
+  if (!phone) { showMsg('הכניסו מספר טלפון', true); return; }
+
+  var btn = document.getElementById('btn-pay');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>מעבד...';
+  showMsg('', false);
+
+  // Determine automation tool from components
+  var automationTool = components.includes('n8') ? 'n8n' : 'activepieces';
+
+  // Build addons list
+  var addons = [];
+  if (components.includes('bk')) addons.push('backup');
+  if (storageGb === 20) addons.push('storage_20');
+  else if (storageGb === 100) addons.push('storage_100');
+  else if (storageGb === 500) addons.push('storage_500');
+
+  try {
+    var res = await fetch(API + '/hosting/checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        components: components,
+        automationTool: automationTool,
+        addons: addons,
+        customerEmail: email,
+        customerName: name,
+        customerPhone: phone
+      })
+    });
+
+    var data = await res.json();
+
+    if (!res.ok) {
+      showMsg(data.message || 'שגיאה ביצירת התשלום', true);
+      btn.disabled = false;
+      btn.textContent = 'לתשלום';
+      return;
+    }
+
+    // Redirect to AllPay payment page
+    if (data.data && data.data.paymentUrl) {
+      window.location.href = data.data.paymentUrl;
+    } else if (data.data && data.data.url) {
+      window.location.href = data.data.url;
+    } else {
+      showMsg('לא התקבל קישור לתשלום', true);
+      btn.disabled = false;
+      btn.textContent = 'לתשלום';
+    }
+  } catch (err) {
+    showMsg('שגיאת תקשורת, נסו שוב', true);
+    btn.disabled = false;
+    btn.textContent = 'לתשלום';
+  }
+}
+
+// Enter key on phone field
+document.getElementById('cust-phone').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') handleCheckout();
+});
+</script>
+<script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="e0ffd95f-5207-4782-9467-c8881066f7f7";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
+</body>
+</html>
