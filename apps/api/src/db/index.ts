@@ -1,10 +1,12 @@
-import { drizzle } from 'drizzle-orm/neon-http'
-import { neon } from '@neondatabase/serverless'
+import { drizzle } from 'drizzle-orm/node-postgres'
+import pg from 'pg'
 import * as schema from '@/db/schema'
 
 const createDb = () => {
-    const sql = neon(process.env.DATABASE_URL!)
-    return drizzle(sql, { schema })
+    const pool = new pg.Pool({
+        connectionString: process.env.DATABASE_URL!,
+    })
+    return drizzle(pool, { schema })
 }
 
 let instance: ReturnType<typeof createDb>
