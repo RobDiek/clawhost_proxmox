@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import type { HonoEnv } from '@/ts/Types'
-import { randomBytes } from 'crypto'
+import crypto, { randomBytes } from 'crypto'
 import { calcTotal } from '@openclaw/shared'
 import { db } from '@/db'
 import { instances, payments } from '@/db/schema'
@@ -12,9 +12,36 @@ import telegram from '@/services/telegram'
 
 const generateId = () => randomBytes(5).toString('hex')
 
+function verifyJwt(token: string, secret: string): Record<string, unknown> | null {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    const [header, body, sig] = parts
+    const expected = crypto.createHmac('sha256', secret).update(`${header}.${body}`).digest('base64url')
+    if (sig !== expected) return null
+    try {
+        return JSON.parse(Buffer.from(body, 'base64url').toString())
+    } catch {
+        return null
+    }
+}
+
+function getUserIdFromRequest(c: Context): string | null {
+    const authHeader = c.req.header('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) return null
+    const token = authHeader.slice(7)
+    const secret = process.env.JWT_SECRET || 'dev-secret-change-me'
+    const payload = verifyJwt(token, secret)
+    if (!payload || !payload.sub) return null
+    if (payload.exp && typeof payload.exp === 'number' && payload.exp < Math.floor(Date.now() / 1000)) return null
+    return payload.sub as string
+}
+
 export const checkout = async (c: Context<HonoEnv>) => {
     try {
-        const userId = c.get('userId')
+        const userId = getUserIdFromRequest(c) || c.get('userId')
+        if (!userId) {
+            return fail(c, 'Unauthorized.', 401)
+        }
         const body = await c.req.json()
         const {
             components,
