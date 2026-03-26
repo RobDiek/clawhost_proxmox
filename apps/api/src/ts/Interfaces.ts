@@ -1,7 +1,9 @@
 import type { ChildProcess } from 'child_process'
+import type { ReactNode } from 'react'
 import type {
     BillingInterval,
     ClawFileType,
+    FeatureEmailKey,
     ProviderType,
     SubscriptionStatus,
     WebhookEventType
@@ -960,11 +962,11 @@ export interface WaitlistStatusResponse {
 
 export interface FeatureEmailLayoutProps {
     preview: string
-    children: import('react').ReactNode
+    children: ReactNode
 }
 
 export interface FeatureEmailDefinition {
-    key: import('@/ts/Types').FeatureEmailKey
+    key: FeatureEmailKey
     subject: string
-    render: () => import('react').ReactNode
+    render: () => ReactNode
 }
