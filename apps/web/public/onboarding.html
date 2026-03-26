@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>הפעלה — ClawFlow by Flowmatic</title>
-<meta name="description" content="הסוכן שלכם בדרך — ClawFlow"/>
+<meta name="description" content="אשף ההפעלה של ClawFlow — הגדרת הסוכן שלכם"/>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%232563EB'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' font-weight='900' font-size='28' fill='white'>CF</text></svg>"/>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
@@ -18,6 +18,7 @@
   --primary: #2563EB;
   --primary-dark: #1D4ED8;
   --primary-light: #EFF6FF;
+  --primary-ghost: #DBEAFE;
   --bg: #FAFAFA;
   --surface: #FFFFFF;
   --border: #E5E7EB;
@@ -25,11 +26,14 @@
   --text-2: #4B5563;
   --text-3: #9CA3AF;
   --success: #10B981;
+  --success-light: #D1FAE5;
   --warning: #F59E0B;
   --danger: #EF4444;
+  --danger-light: #FEE2E2;
   --radius: 10px;
   --radius-lg: 14px;
   --shadow-md: 0 4px 12px rgba(0,0,0,.08);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,.1);
 }
 html { min-height: 100%; }
 body {
@@ -41,21 +45,21 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 32px 24px;
+  padding: 32px 20px;
   -webkit-font-smoothing: antialiased;
 }
 
 /* ── Logo ── */
 .logo-block {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 .logo-name {
   font-size: 1.5rem;
   font-weight: 800;
   color: var(--text);
   letter-spacing: -0.02em;
+  text-decoration: none;
 }
 .logo-name span { color: var(--primary); }
 .logo-sub {
@@ -64,147 +68,501 @@ body {
   margin-top: 2px;
 }
 
-/* ── Card ── */
-.card {
+/* ── Step Indicator (top) ── */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 28px;
+  direction: ltr;
+}
+.step-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: all .3s ease;
+  position: relative;
+}
+.step-dot.completed {
+  background: var(--primary);
+  color: #fff;
+  border: 2px solid var(--primary);
+}
+.step-dot.current {
+  background: #fff;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+.step-dot.future {
+  background: var(--bg);
+  color: var(--text-3);
+  border: 2px solid var(--border);
+}
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37,99,235,.3); }
+  50% { box-shadow: 0 0 0 8px rgba(37,99,235,0); }
+}
+.step-line {
+  width: 48px;
+  height: 2px;
+  flex-shrink: 0;
+  transition: background .3s ease;
+}
+.step-line.done { background: var(--primary); }
+.step-line.pending { background: var(--border); }
+
+/* ── Wizard Container ── */
+.wizard-container {
+  width: 100%;
+  max-width: 560px;
+  overflow: hidden;
+  position: relative;
+}
+.wizard-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
-  padding: 32px 28px;
+  padding: 36px 32px;
   width: 100%;
-  max-width: 480px;
-  text-align: center;
+  position: relative;
+  animation: slideIn .4s ease;
 }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(30px); }
+}
+
 .card-title {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  text-align: center;
 }
 .card-desc {
   font-size: 0.88rem;
   color: var(--text-2);
   margin-bottom: 28px;
+  text-align: center;
 }
 
-/* ── Steps ── */
-.steps {
+/* ── Step 1: Provisioning ── */
+.provision-steps {
   list-style: none;
   padding: 0;
-  margin: 0 0 24px;
+  margin: 0 0 20px;
   text-align: right;
 }
-.step {
+.provision-step {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   padding: 12px 0;
 }
-.step + .step {
+.provision-step + .provision-step {
   border-top: 1px solid var(--border);
 }
-.step-icon {
+.provision-icon {
   width: 32px;
   height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   flex-shrink: 0;
   font-weight: 700;
+  transition: all .3s ease;
 }
-.step-icon.pending {
+.provision-icon.pending {
   background: var(--bg);
   border: 2px solid var(--border);
   color: var(--text-3);
 }
-.step-icon.active {
+.provision-icon.active {
   background: var(--primary-light);
   border: 2px solid var(--primary);
   color: var(--primary);
   animation: pulse 1.5s ease-in-out infinite;
 }
-.step-icon.done {
-  background: #D1FAE5;
+.provision-icon.done {
+  background: var(--success-light);
   border: 2px solid var(--success);
   color: var(--success);
 }
-.step-icon.error {
-  background: #FEE2E2;
+.provision-icon.error {
+  background: var(--danger-light);
   border: 2px solid var(--danger);
   color: var(--danger);
 }
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  50% { opacity: 0.5; }
 }
-.step-content { flex: 1; }
-.step-title {
+.provision-text { flex: 1; }
+.provision-label {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text);
 }
-.step-subtitle {
-  font-size: 0.78rem;
+.provision-sub {
+  font-size: 0.76rem;
   color: var(--text-3);
-  margin-top: 2px;
+  margin-top: 1px;
 }
-.step.is-pending .step-title { color: var(--text-3); }
+.provision-step.is-pending .provision-label { color: var(--text-3); }
 
-/* ── Progress bar ── */
 .progress-wrap {
   background: var(--bg);
   border-radius: 6px;
   height: 6px;
   overflow: hidden;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 .progress-bar {
   height: 100%;
-  background: var(--primary);
+  background: linear-gradient(90deg, var(--primary), #60A5FA);
   border-radius: 6px;
-  transition: width .5s ease;
+  transition: width .6s ease;
   width: 0%;
 }
-
-/* ── Links section ── */
-.ready-links {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
-}
-.ready-link {
-  display: block;
-  padding: 12px 16px;
-  background: var(--primary);
-  color: white;
-  border-radius: var(--radius);
-  font-weight: 600;
-  font-size: 0.92rem;
-  text-decoration: none;
-  transition: background .15s;
-}
-.ready-link:hover { background: var(--primary-dark); text-decoration: none; }
-.ready-link.secondary {
-  background: var(--surface);
-  color: var(--primary);
-  border: 1px solid var(--primary);
-}
-.ready-link.secondary:hover { background: var(--primary-light); }
-
-/* ── Status text ── */
 .status-text {
   font-size: 0.82rem;
   color: var(--text-3);
-  margin-top: 16px;
+  text-align: center;
 }
 
+/* ── Step 2: API Key ── */
+.provider-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.provider-card {
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: all .2s ease;
+  text-align: right;
+}
+.provider-card:hover { border-color: #CBD5E1; }
+.provider-card.selected {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+.provider-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.provider-radio {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s ease;
+}
+.provider-card.selected .provider-radio {
+  border-color: var(--primary);
+}
+.provider-card.selected .provider-radio::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+.provider-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  flex: 1;
+}
+.provider-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: var(--primary-ghost);
+  color: var(--primary);
+}
+.provider-details {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: none;
+}
+.provider-card.selected .provider-details { display: block; }
+.instructions {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  text-align: right;
+}
+.instructions li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 5px 0;
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+.instructions li .num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.instructions li a {
+  color: var(--primary);
+  text-decoration: none;
+}
+.instructions li a:hover { text-decoration: underline; }
+
+/* ── Inputs ── */
+.input-group { margin-bottom: 16px; }
+.input-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text-2);
+}
+.input-field {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-family: 'Courier New', monospace;
+  direction: ltr;
+  text-align: left;
+  transition: border-color .2s ease;
+  outline: none;
+  background: var(--surface);
+}
+.input-field:focus { border-color: var(--primary); }
+.input-field.has-error { border-color: var(--danger); }
+.input-error {
+  font-size: 0.78rem;
+  color: var(--danger);
+  margin-top: 4px;
+  display: none;
+}
+
+/* ── Buttons ── */
+.btn {
+  width: 100%;
+  padding: 13px 20px;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Heebo', system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 48px;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+.btn-outline {
+  background: var(--surface);
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+.btn-outline:hover:not(:disabled) { background: var(--primary-light); }
+.skip-link {
+  display: block;
+  text-align: center;
+  margin-top: 14px;
+  font-size: 0.82rem;
+  color: var(--text-3);
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  background: none;
+  font-family: 'Heebo', system-ui, sans-serif;
+}
+.skip-link:hover { color: var(--text-2); }
+
+/* ── Step 4: Done ── */
+.done-emoji {
+  font-size: 3.5rem;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.done-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.creds-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  text-align: right;
+}
+.creds-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-2);
+  user-select: none;
+}
+.creds-header:hover { background: #F1F5F9; }
+.creds-chevron {
+  transition: transform .2s ease;
+  font-size: 0.7rem;
+  color: var(--text-3);
+}
+.creds-card.open .creds-chevron { transform: rotate(180deg); }
+.creds-body {
+  padding: 0 16px 16px;
+  display: none;
+}
+.creds-card.open .creds-body { display: block; }
+.cred-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  font-size: 0.84rem;
+}
+.cred-row + .cred-row { border-top: 1px solid var(--border); }
+.cred-label {
+  font-weight: 600;
+  color: var(--text-2);
+}
+.cred-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  direction: ltr;
+}
+.cred-secret {
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem;
+  color: var(--text);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cred-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  color: var(--primary);
+  cursor: pointer;
+  font-family: 'Heebo', system-ui, sans-serif;
+  font-weight: 600;
+}
+.cred-btn:hover { background: var(--primary-light); }
+.dashboard-link {
+  display: block;
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+}
+.dashboard-link:hover { text-decoration: underline; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--text);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  z-index: 9999;
+  opacity: 0;
+  transition: all .3s ease;
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.toast.error { background: var(--danger); }
+.toast.success { background: var(--success); }
+
+/* ── Spinner ── */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
 .hidden { display: none !important; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  body { padding: 20px 14px; }
+  .wizard-card { padding: 28px 20px; }
+  .step-line { width: 32px; }
+  .step-dot { width: 32px; height: 32px; font-size: 0.76rem; }
+  .cred-secret { max-width: 120px; }
+}
 </style>
 </head>
 <body>
 
+<!-- Logo -->
 <div class="logo-block">
   <a href="/" style="text-decoration:none;">
     <div class="logo-name"><span>Claw</span>Flow</div>
@@ -212,209 +570,620 @@ body {
   </a>
 </div>
 
-<div class="card">
-  <!-- Provisioning state -->
-  <div id="state-provisioning">
+<!-- Step Indicator -->
+<div class="step-indicator" id="stepIndicator">
+  <div class="step-dot current" id="dot-1">1</div>
+  <div class="step-line pending" id="line-1"></div>
+  <div class="step-dot future" id="dot-2">2</div>
+  <div class="step-line pending" id="line-2"></div>
+  <div class="step-dot future" id="dot-3">3</div>
+  <div class="step-line pending" id="line-3"></div>
+  <div class="step-dot future" id="dot-4">4</div>
+</div>
+
+<!-- Wizard Container -->
+<div class="wizard-container" id="wizardContainer">
+
+  <!-- ═══ Step 1: VPS Provisioning ═══ -->
+  <div class="wizard-card" id="step1" data-step="1">
     <div class="card-title">מכינים את הסביבה שלכם</div>
     <div class="card-desc">זה ייקח כ-3 דקות, אל תסגרו את הדף</div>
 
     <div class="progress-wrap">
-      <div class="progress-bar" id="progress-bar"></div>
+      <div class="progress-bar" id="provisionProgress"></div>
     </div>
 
-    <ul class="steps">
-      <li class="step" id="step-1">
-        <div class="step-icon active" id="icon-1">1</div>
-        <div class="step-content">
-          <div class="step-title">יוצרים שרת</div>
-          <div class="step-subtitle">מקימים VPS בענן Hetzner</div>
+    <ul class="provision-steps">
+      <li class="provision-step" id="ps-1">
+        <div class="provision-icon active" id="pi-1">1</div>
+        <div class="provision-text">
+          <div class="provision-label">יוצרים שרת VPS</div>
+          <div class="provision-sub">מקימים שרת בענן Hetzner</div>
         </div>
       </li>
-      <li class="step is-pending" id="step-2">
-        <div class="step-icon pending" id="icon-2">2</div>
-        <div class="step-content">
-          <div class="step-title">מתקינים סוכנים</div>
-          <div class="step-subtitle">OpenClaw + כלי אוטומציה</div>
+      <li class="provision-step is-pending" id="ps-2">
+        <div class="provision-icon pending" id="pi-2">2</div>
+        <div class="provision-text">
+          <div class="provision-label">מתקינים OpenClaw</div>
+          <div class="provision-sub">סוכנים + כלי אוטומציה</div>
         </div>
       </li>
-      <li class="step is-pending" id="step-3">
-        <div class="step-icon pending" id="icon-3">3</div>
-        <div class="step-content">
-          <div class="step-title">מגדירים DNS + SSL</div>
-          <div class="step-subtitle">תעודת אבטחה ודומיין</div>
+      <li class="provision-step is-pending" id="ps-3">
+        <div class="provision-icon pending" id="pi-3">3</div>
+        <div class="provision-text">
+          <div class="provision-label">מגדירים DNS + SSL</div>
+          <div class="provision-sub">תעודת אבטחה ודומיין ייחודי</div>
         </div>
       </li>
-      <li class="step is-pending" id="step-4">
-        <div class="step-icon pending" id="icon-4">4</div>
-        <div class="step-content">
-          <div class="step-title">הכל מוכן!</div>
-          <div class="step-subtitle">הסוכנים שלכם מחכים</div>
+      <li class="provision-step is-pending" id="ps-4">
+        <div class="provision-icon pending" id="pi-4">4</div>
+        <div class="provision-text">
+          <div class="provision-label">בודקים שהכל עובד</div>
+          <div class="provision-sub">אימות סופי לפני השימוש</div>
         </div>
       </li>
     </ul>
 
-    <div class="status-text" id="status-text">בודקים סטטוס...</div>
+    <div class="status-text" id="provisionStatus">בודקים סטטוס...</div>
   </div>
 
-  <!-- Ready state -->
-  <div id="state-ready" class="hidden">
-    <div style="font-size:3rem; margin-bottom:12px;">&#127881;</div>
+  <!-- ═══ Step 2: API Key Setup ═══ -->
+  <div class="wizard-card hidden" id="step2" data-step="2">
+    <div class="card-title">חברו מודל AI</div>
+    <div class="card-desc">הסוכן צריך מוח — חברו מפתח API מ-Anthropic או OpenAI</div>
+
+    <div class="provider-cards">
+      <!-- Anthropic -->
+      <div class="provider-card selected" id="provider-anthropic" onclick="selectProvider('anthropic')">
+        <div class="provider-header">
+          <div class="provider-radio"></div>
+          <div class="provider-name">Anthropic Claude</div>
+          <div class="provider-badge">מומלץ</div>
+        </div>
+        <div class="provider-details">
+          <ol class="instructions">
+            <li>
+              <span class="num">1</span>
+              <span>היכנסו ל-<a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a></span>
+            </li>
+            <li>
+              <span class="num">2</span>
+              <span>צרו חשבון והוסיפו קרדיט ($40 מומלץ)</span>
+            </li>
+            <li>
+              <span class="num">3</span>
+              <span>API Keys &rarr; Create Key &rarr; העתיקו</span>
+            </li>
+          </ol>
+          <div class="input-group">
+            <label class="input-label">מפתח API של Anthropic</label>
+            <input class="input-field" id="apiKeyAnthropic" type="text" dir="ltr" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false"/>
+            <div class="input-error" id="apiKeyAnthropicError">מפתח לא תקין</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OpenAI -->
+      <div class="provider-card" id="provider-openai" onclick="selectProvider('openai')">
+        <div class="provider-header">
+          <div class="provider-radio"></div>
+          <div class="provider-name">OpenAI GPT</div>
+        </div>
+        <div class="provider-details">
+          <ol class="instructions">
+            <li>
+              <span class="num">1</span>
+              <span>היכנסו ל-<a href="https://platform.openai.com" target="_blank" rel="noopener">platform.openai.com</a></span>
+            </li>
+            <li>
+              <span class="num">2</span>
+              <span>API Keys &rarr; Create new secret key</span>
+            </li>
+            <li>
+              <span class="num">3</span>
+              <span>העתיקו את המפתח</span>
+            </li>
+          </ol>
+          <div class="input-group">
+            <label class="input-label">מפתח API של OpenAI</label>
+            <input class="input-field" id="apiKeyOpenai" type="text" dir="ltr" placeholder="sk-..." autocomplete="off" spellcheck="false"/>
+            <div class="input-error" id="apiKeyOpenaiError">מפתח לא תקין</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="btnSaveApiKey" onclick="saveApiKey()">
+      שמרו והמשיכו
+    </button>
+    <button class="skip-link" onclick="goToStep(3)">דלגו לבינתיים</button>
+  </div>
+
+  <!-- ═══ Step 3: Telegram Bot ═══ -->
+  <div class="wizard-card hidden" id="step3" data-step="3">
+    <div class="card-title">חברו בוט Telegram</div>
+    <div class="card-desc">דברו עם הסוכן שלכם מכל מקום</div>
+
+    <ol class="instructions" style="margin-bottom: 20px;">
+      <li>
+        <span class="num">1</span>
+        <span>פתחו שיחה עם <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a> בטלגרם</span>
+      </li>
+      <li>
+        <span class="num">2</span>
+        <span>שלחו <strong>/newbot</strong></span>
+      </li>
+      <li>
+        <span class="num">3</span>
+        <span>תנו שם לבוט (לדוגמה: MyAssistant)</span>
+      </li>
+      <li>
+        <span class="num">4</span>
+        <span>העתיקו את ה-Bot Token שתקבלו</span>
+      </li>
+    </ol>
+
+    <div class="input-group">
+      <label class="input-label">Bot Token</label>
+      <input class="input-field" id="telegramToken" type="text" dir="ltr" placeholder="1234567890:ABCdef..." autocomplete="off" spellcheck="false"/>
+      <div class="input-error" id="telegramTokenError">טוקן לא תקין</div>
+    </div>
+
+    <button class="btn btn-primary" id="btnSaveTelegram" onclick="saveTelegram()">
+      חברו והמשיכו
+    </button>
+    <button class="skip-link" onclick="goToStep(4)">דלגו לבינתיים</button>
+  </div>
+
+  <!-- ═══ Step 4: Done ═══ -->
+  <div class="wizard-card hidden" id="step4" data-step="4">
+    <div class="done-emoji">&#127881;</div>
     <div class="card-title">הכל מוכן!</div>
     <div class="card-desc">הסוכנים שלכם פעילים ומחכים לכם</div>
 
-    <div class="ready-links">
-      <a class="ready-link" id="link-agent" href="#" target="_blank">פתחו את OpenClaw</a>
-      <a class="ready-link secondary" id="link-flows" href="#" target="_blank">פתחו את כלי האוטומציה</a>
+    <div class="done-buttons">
+      <a class="btn btn-primary" id="linkAgent" href="#" target="_blank" style="text-decoration:none;color:#fff;">
+        פתחו את הסוכן &#8599;
+      </a>
+      <a class="btn btn-outline" id="linkFlows" href="#" target="_blank" style="text-decoration:none;">
+        פתחו את כלי האוטומציה &#8599;
+      </a>
     </div>
 
-    <div class="status-text" style="margin-top:24px;">
-      <a href="/dashboard.html" style="color:var(--primary);">עברו ללוח הבקרה →</a>
+    <div class="creds-card" id="credsCard">
+      <div class="creds-header" onclick="toggleCreds()">
+        <span>פרטי גישה</span>
+        <span class="creds-chevron">&#9660;</span>
+      </div>
+      <div class="creds-body">
+        <div class="cred-row">
+          <span class="cred-label">Gateway Token</span>
+          <div class="cred-value">
+            <span class="cred-secret" id="credToken">&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;</span>
+            <button class="cred-btn" id="btnShowToken" onclick="toggleSecret('token')">הצג</button>
+            <button class="cred-btn" onclick="copySecret('token')">העתק</button>
+          </div>
+        </div>
+        <div class="cred-row">
+          <span class="cred-label">Activepieces</span>
+          <div class="cred-value">
+            <span class="cred-secret" id="credFlowsUrl">—</span>
+            <a class="cred-btn" id="credFlowsLink" href="#" target="_blank">פתח &#8599;</a>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <a class="dashboard-link" href="/dashboard.html">עברו ללוח הבקרה &rarr;</a>
   </div>
 
-  <!-- Error state -->
-  <div id="state-error" class="hidden">
-    <div style="font-size:3rem; margin-bottom:12px;">&#9888;&#65039;</div>
+  <!-- ═══ Error State ═══ -->
+  <div class="wizard-card hidden" id="stepError">
+    <div style="font-size:3rem; margin-bottom:12px; text-align:center;">&#9888;&#65039;</div>
     <div class="card-title">משהו השתבש</div>
-    <div class="card-desc" id="error-desc">אנא צרו קשר עם התמיכה</div>
-    <div class="status-text">
-      <a href="/dashboard.html" style="color:var(--primary);">עברו ללוח הבקרה →</a>
-    </div>
+    <div class="card-desc" id="errorDesc">אנא צרו קשר עם התמיכה</div>
+    <a class="btn btn-outline" href="/dashboard.html" style="text-decoration:none;">עברו ללוח הבקרה</a>
   </div>
 </div>
 
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <script>
-const API = 'https://api.openclaw.flowmatic.co.il';
-const params = new URLSearchParams(window.location.search);
-const instanceId = params.get('instance');
+(function() {
+  'use strict';
 
-if (!instanceId) {
-  document.getElementById('state-provisioning').classList.add('hidden');
-  document.getElementById('state-error').classList.remove('hidden');
-  document.getElementById('error-desc').textContent = 'חסר מזהה instance בכתובת';
-}
+  var API = 'https://api.openclaw.flowmatic.co.il';
+  var params = new URLSearchParams(window.location.search);
+  var instanceId = params.get('instance');
+  var currentStep = 1;
+  var selectedProvider = 'anthropic';
+  var instanceData = null;
+  var tokenRevealed = false;
+  var storedToken = '';
+  var pollTimer = null;
+  var pollCount = 0;
+  var fakeProgress = 0;
+  var MAX_POLLS = 75; // ~10 min at 8s
 
-const STATUS_MAP = {
-  provisioning:  { step: 1, progress: 15, text: 'יוצרים שרת...' },
-  initializing:  { step: 2, progress: 45, text: 'מתקינים סוכנים...' },
-  configuring:   { step: 3, progress: 70, text: 'מגדירים DNS + SSL...' },
-  running:       { step: 4, progress: 100, text: 'הכל מוכן!' },
-  failed:        { step: -1, progress: 0, text: 'ההתקנה נכשלה' },
-  suspended:     { step: -1, progress: 0, text: 'השרת מושהה' },
-  terminated:    { step: -1, progress: 0, text: 'השרת בוטל' }
-};
+  // ── Init ──
+  if (!instanceId) {
+    showError('חסר מזהה instance בכתובת');
+    return;
+  }
 
-function updateSteps(currentStep) {
-  for (var i = 1; i <= 4; i++) {
-    var stepEl = document.getElementById('step-' + i);
-    var iconEl = document.getElementById('icon-' + i);
+  startProvisioning();
 
-    if (i < currentStep) {
-      stepEl.className = 'step';
-      iconEl.className = 'step-icon done';
-      iconEl.innerHTML = '&#10003;';
-    } else if (i === currentStep) {
-      stepEl.className = 'step';
-      iconEl.className = 'step-icon active';
-      iconEl.textContent = i;
-    } else {
-      stepEl.className = 'step is-pending';
-      iconEl.className = 'step-icon pending';
-      iconEl.textContent = i;
+  // ── Step Navigation ──
+  function updateIndicator(step) {
+    for (var i = 1; i <= 4; i++) {
+      var dot = document.getElementById('dot-' + i);
+      dot.className = 'step-dot';
+      if (i < step) {
+        dot.className += ' completed';
+        dot.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+      } else if (i === step) {
+        dot.className += ' current';
+        dot.textContent = i;
+      } else {
+        dot.className += ' future';
+        dot.textContent = i;
+      }
+      if (i < 4) {
+        var line = document.getElementById('line-' + i);
+        line.className = 'step-line ' + (i < step ? 'done' : 'pending');
+      }
     }
   }
-}
 
-let pollInterval = null;
-let pollCount = 0;
-const MAX_POLLS = 60; // 10 minutes at 10s intervals
+  window.goToStep = function(step) {
+    var oldCard = document.getElementById('step' + currentStep);
+    var newCard = document.getElementById('step' + step);
+    if (!oldCard || !newCard) return;
 
-async function pollStatus() {
-  if (!instanceId) return;
-  pollCount++;
+    oldCard.style.animation = 'slideOut .3s ease forwards';
+    setTimeout(function() {
+      oldCard.classList.add('hidden');
+      oldCard.style.animation = '';
+      newCard.classList.remove('hidden');
+      newCard.style.animation = 'slideIn .4s ease';
+      currentStep = step;
+      updateIndicator(step);
 
-  try {
-    const token = localStorage.getItem('cf_token');
-    const headers = {};
-    if (token) headers['Authorization'] = 'Bearer ' + token;
-
-    const res = await fetch(API + '/hosting/instances/' + instanceId + '/status', { headers });
-
-    if (!res.ok) {
-      document.getElementById('status-text').textContent = 'שגיאה בבדיקת סטטוס (ניסיון ' + pollCount + ')';
-      if (pollCount >= MAX_POLLS) {
-        clearInterval(pollInterval);
-        document.getElementById('state-provisioning').classList.add('hidden');
-        document.getElementById('state-error').classList.remove('hidden');
-        document.getElementById('error-desc').textContent = 'ההתקנה לוקחת יותר מדי זמן. אנא צרו קשר עם התמיכה.';
+      if (step === 4) {
+        populateDoneStep();
+        markComplete();
       }
-      return;
+    }, 280);
+  };
+
+  // ── Step 1: Provisioning ──
+  function startProvisioning() {
+    pollStatus();
+    pollTimer = setInterval(pollStatus, 8000);
+    // Fake progress ticking
+    setInterval(function() {
+      if (currentStep !== 1) return;
+      if (fakeProgress < 90) {
+        fakeProgress += Math.random() * 3 + 0.5;
+        if (fakeProgress > 90) fakeProgress = 90;
+        document.getElementById('provisionProgress').style.width = fakeProgress + '%';
+      }
+    }, 2000);
+  }
+
+  function getAuthHeaders() {
+    var h = { 'Content-Type': 'application/json' };
+    var t = localStorage.getItem('cf_token');
+    if (t) h['Authorization'] = 'Bearer ' + t;
+    return h;
+  }
+
+  function mapStatusToSubstep(status) {
+    if (status === 'creating' || status === 'provisioning') return 1;
+    if (status === 'initializing') return 2;
+    if (status === 'running') return 4;
+    if (status === 'failed') return -1;
+    return 1;
+  }
+
+  function updateProvisionSteps(activeSubstep) {
+    for (var i = 1; i <= 4; i++) {
+      var row = document.getElementById('ps-' + i);
+      var icon = document.getElementById('pi-' + i);
+      if (i < activeSubstep) {
+        row.className = 'provision-step';
+        icon.className = 'provision-icon done';
+        icon.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+      } else if (i === activeSubstep) {
+        row.className = 'provision-step';
+        icon.className = 'provision-icon active';
+        icon.textContent = i;
+      } else {
+        row.className = 'provision-step is-pending';
+        icon.className = 'provision-icon pending';
+        icon.textContent = i;
+      }
     }
+  }
 
-    const data = await res.json();
-    const status = data.data?.status || data.status || 'provisioning';
-    const mapped = STATUS_MAP[status] || STATUS_MAP.provisioning;
+  // Gradually advance fake substep based on progress
+  var lastKnownSubstep = 1;
 
-    // Update progress bar
-    document.getElementById('progress-bar').style.width = mapped.progress + '%';
-    document.getElementById('status-text').textContent = mapped.text;
-
-    if (mapped.step === -1) {
-      // Error state
-      clearInterval(pollInterval);
-      for (var i = 1; i <= 4; i++) {
-        var iconEl = document.getElementById('icon-' + i);
-        if (iconEl.className.includes('active')) {
-          iconEl.className = 'step-icon error';
-          iconEl.innerHTML = '&#10007;';
+  async function pollStatus() {
+    pollCount++;
+    try {
+      var res = await fetch(API + '/hosting/instances/' + instanceId + '/status', {
+        headers: getAuthHeaders()
+      });
+      if (!res.ok) {
+        document.getElementById('provisionStatus').textContent =
+          'שגיאה בבדיקת סטטוס (ניסיון ' + pollCount + ')';
+        if (pollCount >= MAX_POLLS) {
+          clearInterval(pollTimer);
+          showError('ההתקנה לוקחת יותר מדי זמן. אנא צרו קשר עם התמיכה.');
         }
+        return;
       }
-      document.getElementById('state-provisioning').classList.add('hidden');
-      document.getElementById('state-error').classList.remove('hidden');
-      document.getElementById('error-desc').textContent = mapped.text;
+      var data = await res.json();
+      instanceData = data.data || data;
+      var status = instanceData.status || 'provisioning';
+
+      var substep = mapStatusToSubstep(status);
+
+      if (substep === -1) {
+        clearInterval(pollTimer);
+        showError('ההתקנה נכשלה. אנא צרו קשר עם התמיכה.');
+        return;
+      }
+
+      // Fake gradual substep progression during 'initializing'
+      if (status === 'initializing') {
+        if (fakeProgress > 25 && lastKnownSubstep < 2) lastKnownSubstep = 2;
+        if (fakeProgress > 50 && lastKnownSubstep < 3) lastKnownSubstep = 3;
+        if (fakeProgress > 75 && lastKnownSubstep < 4) lastKnownSubstep = 4;
+        substep = Math.max(substep, lastKnownSubstep);
+      } else if (substep > lastKnownSubstep) {
+        lastKnownSubstep = substep;
+      }
+
+      updateProvisionSteps(substep);
+
+      var statusTexts = {
+        1: 'יוצרים שרת VPS...',
+        2: 'מתקינים OpenClaw...',
+        3: 'מגדירים DNS + SSL...',
+        4: 'בודקים שהכל עובד...'
+      };
+      document.getElementById('provisionStatus').textContent = statusTexts[substep] || 'מעבדים...';
+
+      // Map substep to fake progress targets
+      var progressTargets = { 1: 25, 2: 50, 3: 75, 4: 90 };
+      if (progressTargets[substep] && fakeProgress < progressTargets[substep]) {
+        fakeProgress = progressTargets[substep];
+        document.getElementById('provisionProgress').style.width = fakeProgress + '%';
+      }
+
+      if (status === 'running') {
+        clearInterval(pollTimer);
+        fakeProgress = 100;
+        document.getElementById('provisionProgress').style.width = '100%';
+        updateProvisionSteps(5); // all done
+        document.getElementById('provisionStatus').textContent = 'הכל מוכן!';
+
+        // Store token if available
+        if (instanceData.openclawToken || instanceData.gatewayToken) {
+          storedToken = instanceData.openclawToken || instanceData.gatewayToken;
+        }
+
+        setTimeout(function() {
+          goToStep(2);
+        }, 1200);
+      }
+    } catch (e) {
+      document.getElementById('provisionStatus').textContent = 'שגיאת תקשורת, ממשיכים לנסות...';
+    }
+
+    if (pollCount >= MAX_POLLS) {
+      clearInterval(pollTimer);
+      showError('ההתקנה לוקחת יותר מדי זמן. אנא צרו קשר עם התמיכה.');
+    }
+  }
+
+  // ── Step 2: API Key ──
+  window.selectProvider = function(provider) {
+    selectedProvider = provider;
+    var anthropicCard = document.getElementById('provider-anthropic');
+    var openaiCard = document.getElementById('provider-openai');
+    if (provider === 'anthropic') {
+      anthropicCard.classList.add('selected');
+      openaiCard.classList.remove('selected');
+    } else {
+      openaiCard.classList.add('selected');
+      anthropicCard.classList.remove('selected');
+    }
+  };
+
+  window.saveApiKey = async function() {
+    var inputId = selectedProvider === 'anthropic' ? 'apiKeyAnthropic' : 'apiKeyOpenai';
+    var errorId = inputId + 'Error';
+    var input = document.getElementById(inputId);
+    var errorEl = document.getElementById(errorId);
+    var key = input.value.trim();
+
+    // Reset error
+    input.classList.remove('has-error');
+    errorEl.style.display = 'none';
+
+    if (!key || key.length < 10) {
+      input.classList.add('has-error');
+      errorEl.style.display = 'block';
       return;
     }
 
-    updateSteps(mapped.step);
+    var btn = document.getElementById('btnSaveApiKey');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div>';
 
-    if (status === 'running') {
-      clearInterval(pollInterval);
-
-      // Build URLs
-      var agentUrl = data.data?.subdomainAgent
-        ? 'https://' + data.data.subdomainAgent
-        : 'https://agent.' + instanceId + '.openclaw.flowmatic.co.il';
-      var flowsUrl = data.data?.subdomainFlows
-        ? 'https://' + data.data.subdomainFlows
-        : 'https://flows.' + instanceId + '.openclaw.flowmatic.co.il';
-
-      document.getElementById('link-agent').href = agentUrl;
-      document.getElementById('link-flows').href = flowsUrl;
-
-      // Transition to ready
-      setTimeout(function() {
-        document.getElementById('state-provisioning').classList.add('hidden');
-        document.getElementById('state-ready').classList.remove('hidden');
-      }, 1000);
+    try {
+      var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/api-key', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ provider: selectedProvider, apiKey: key })
+      });
+      if (!res.ok) throw new Error('Request failed');
+      showToast('מפתח API נשמר בהצלחה', 'success');
+      setTimeout(function() { goToStep(3); }, 600);
+    } catch (e) {
+      showToast('שגיאה בשמירת המפתח, נסו שוב', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'שמרו והמשיכו';
     }
-  } catch (err) {
-    document.getElementById('status-text').textContent = 'שגיאת תקשורת, ממשיכים לנסות...';
+  };
+
+  // ── Step 3: Telegram ──
+  window.saveTelegram = async function() {
+    var input = document.getElementById('telegramToken');
+    var errorEl = document.getElementById('telegramTokenError');
+    var token = input.value.trim();
+
+    input.classList.remove('has-error');
+    errorEl.style.display = 'none';
+
+    // Basic validation: should match pattern like 1234567890:ABCdef...
+    if (!token || !/^\d{8,}:[A-Za-z0-9_-]{30,}$/.test(token)) {
+      input.classList.add('has-error');
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    var btn = document.getElementById('btnSaveTelegram');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div>';
+
+    try {
+      var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/telegram', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ botToken: token })
+      });
+      if (!res.ok) throw new Error('Request failed');
+      showToast('בוט Telegram חובר בהצלחה', 'success');
+      setTimeout(function() { goToStep(4); }, 600);
+    } catch (e) {
+      showToast('שגיאה בחיבור הבוט, נסו שוב', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'חברו והמשיכו';
+    }
+  };
+
+  // ── Step 4: Done ──
+  function getAgentUrl() {
+    if (instanceData && instanceData.subdomainAgent) {
+      return 'https://' + instanceData.subdomainAgent;
+    }
+    return 'https://agent.' + instanceId + '.openclaw.flowmatic.co.il';
   }
 
-  if (pollCount >= MAX_POLLS) {
-    clearInterval(pollInterval);
-    document.getElementById('state-provisioning').classList.add('hidden');
-    document.getElementById('state-error').classList.remove('hidden');
-    document.getElementById('error-desc').textContent = 'ההתקנה לוקחת יותר מדי זמן. אנא צרו קשר עם התמיכה.';
+  function getFlowsUrl() {
+    if (instanceData && instanceData.subdomainFlows) {
+      return 'https://' + instanceData.subdomainFlows;
+    }
+    return 'https://flows.' + instanceId + '.openclaw.flowmatic.co.il';
   }
-}
 
-// Start polling
-if (instanceId) {
-  pollStatus();
-  pollInterval = setInterval(pollStatus, 10000);
-}
+  function populateDoneStep() {
+    document.getElementById('linkAgent').href = getAgentUrl();
+    document.getElementById('linkFlows').href = getFlowsUrl();
+
+    // Credentials
+    var flowsUrl = getFlowsUrl();
+    document.getElementById('credFlowsUrl').textContent = flowsUrl.replace('https://', '');
+    document.getElementById('credFlowsLink').href = flowsUrl;
+
+    if (storedToken) {
+      document.getElementById('credToken').setAttribute('data-token', storedToken);
+    } else if (instanceData && (instanceData.openclawToken || instanceData.gatewayToken)) {
+      storedToken = instanceData.openclawToken || instanceData.gatewayToken;
+      document.getElementById('credToken').setAttribute('data-token', storedToken);
+    }
+  }
+
+  function markComplete() {
+    try {
+      fetch(API + '/hosting/instances/' + instanceId + '/setup/complete', {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+    } catch (e) { /* non-critical */ }
+  }
+
+  window.toggleCreds = function() {
+    document.getElementById('credsCard').classList.toggle('open');
+  };
+
+  window.toggleSecret = function(type) {
+    if (type === 'token') {
+      var el = document.getElementById('credToken');
+      var btn = document.getElementById('btnShowToken');
+      if (tokenRevealed) {
+        el.textContent = '\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF';
+        btn.textContent = 'הצג';
+        tokenRevealed = false;
+      } else {
+        var t = el.getAttribute('data-token') || storedToken || '---';
+        el.textContent = t;
+        btn.textContent = 'הסתר';
+        tokenRevealed = true;
+      }
+    }
+  };
+
+  window.copySecret = function(type) {
+    if (type === 'token') {
+      var t = storedToken || document.getElementById('credToken').getAttribute('data-token') || '';
+      if (t && navigator.clipboard) {
+        navigator.clipboard.writeText(t).then(function() {
+          showToast('הועתק', 'success');
+        });
+      }
+    }
+  };
+
+  // ── Error ──
+  function showError(msg) {
+    // Hide all steps
+    for (var i = 1; i <= 4; i++) {
+      var el = document.getElementById('step' + i);
+      if (el) el.classList.add('hidden');
+    }
+    document.getElementById('stepError').classList.remove('hidden');
+    document.getElementById('errorDesc').textContent = msg;
+    document.getElementById('stepIndicator').classList.add('hidden');
+  }
+
+  // ── Toast ──
+  var toastTimeout = null;
+  function showToast(msg, type) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast' + (type ? ' ' + type : '');
+    // Force reflow
+    void el.offsetWidth;
+    el.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(function() {
+      el.classList.remove('show');
+    }, 3000);
+  }
+  window.showToast = showToast;
+
+})();
 </script>
+
+<!-- Crisp -->
 <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="e0ffd95f-5207-4782-9467-c8881066f7f7";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
 </body>
 </html>
