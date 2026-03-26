@@ -12,7 +12,8 @@ import {
     adminGetInstances,
     adminGetRevenue,
     adminSuspendInstance,
-    adminTerminateInstance
+    adminTerminateInstance,
+    submitSupportRequest
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -20,6 +21,7 @@ const app = new Hono()
 // Public routes (no auth required)
 app.post('/configure', configureInstance)
 app.post('/webhooks/allpay', handleAllpayWebhook)
+app.post('/support', submitSupportRequest)
 
 // Authenticated routes (mounted after auth middleware in app.ts)
 app.post('/checkout', checkout)
