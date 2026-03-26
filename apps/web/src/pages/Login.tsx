@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { LoginLoadingMethod } from '@/ts/Types'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { Fragment, useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
@@ -281,10 +281,10 @@ const Login: FC = (): ReactNode => {
             {isOffline ? (
                 <NetworkStatus />
             ) : (
-                <>
+                <Fragment>
                     <ProductHuntBanner />
                     {!isLocal && <AnnouncementBanner />}
-                </>
+                </Fragment>
             )}
             <div className='flex min-h-screen items-center justify-center px-4'>
                 <PageTitle

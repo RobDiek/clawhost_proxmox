@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { ChatSidebarListViewProps } from '@/ts/Interfaces'
 
-import { useState, useMemo } from 'react'
+import { Fragment, useState, useMemo } from 'react'
 import { t } from '@openclaw/i18n'
 import { PlusIcon } from '@phosphor-icons/react'
 import { CreateAgentModal } from '@/components/playground'
@@ -32,7 +32,7 @@ const ChatSidebarListView: FC<ChatSidebarListViewProps> = ({
     }, [clawsWithAgents])
 
     return (
-        <>
+        <Fragment>
             <div className='space-y-1'>
                 {allAgents.map(({ agent, claw, isReachable }) => (
                     <ChatSidebarListItem
@@ -80,7 +80,7 @@ const ChatSidebarListView: FC<ChatSidebarListViewProps> = ({
                 open={showAddAgent}
                 onOpenChange={setShowAddAgent}
             />
-        </>
+        </Fragment>
     )
 }
 

@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { PlanSelectorProps, Plan } from '@/ts/Interfaces'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { billingInterval } from '@openclaw/shared'
 import { Button } from '@/components/ui'
@@ -165,9 +165,9 @@ const PlanSelector: FC<PlanSelectorProps> = ({
                                     ? t('createClaw.planUnavailableForLocation')
                                     : t('createClaw.planUnavailable')
                                 return (
-                                    <>
+                                    <Fragment key={plan.id}>
                                         {separator}
-                                        <Tooltip key={plan.id}>
+                                        <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <div>{card}</div>
                                             </TooltipTrigger>
@@ -175,15 +175,15 @@ const PlanSelector: FC<PlanSelectorProps> = ({
                                                 {tooltipText}
                                             </TooltipContent>
                                         </Tooltip>
-                                    </>
+                                    </Fragment>
                                 )
                             }
 
                             return (
-                                <>
+                                <Fragment key={plan.id}>
                                     {separator}
-                                    <div key={plan.id}>{card}</div>
-                                </>
+                                    <div>{card}</div>
+                                </Fragment>
                             )
                         })}
                         <div className='flex justify-center pt-1'>

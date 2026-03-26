@@ -6,7 +6,7 @@ import type {
     ExportRateLimitError
 } from '@/ts/Interfaces'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { clawStatus, userRole } from '@openclaw/shared'
 import { ClockIcon } from '@phosphor-icons/react'
@@ -206,7 +206,7 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
     }
 
     return (
-        <>
+        <Fragment>
             <div
                 onClick={() => onOpenClawSettings(claw.id)}
                 className={`group/header relative mb-1.5 flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors ${
@@ -317,7 +317,7 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
                 )}
             </div>
             {!readOnly && (
-                <>
+                <Fragment>
                     <ClawCardDialogs
                         clawName={claw.name}
                         showDeleteModal={showDeleteModal}
@@ -362,9 +362,9 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
                         open={showCredentials}
                         onOpenChange={setShowCredentials}
                     />
-                </>
+                </Fragment>
             )}
-        </>
+        </Fragment>
     )
 }
 

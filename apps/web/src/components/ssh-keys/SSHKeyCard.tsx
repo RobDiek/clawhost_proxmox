@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { SSHKeyCardProps } from '@/ts/Interfaces'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { useDeleteSSHKey } from '@/hooks'
 import {
@@ -21,7 +21,7 @@ const SSHKeyCard: FC<SSHKeyCardProps> = ({ sshKey }): ReactNode => {
     const deleteMutation = useDeleteSSHKey()
 
     return (
-        <>
+        <Fragment>
             <Card>
                 <CardContent className='py-4'>
                     <div className='flex items-center justify-between'>
@@ -85,7 +85,7 @@ const SSHKeyCard: FC<SSHKeyCardProps> = ({ sshKey }): ReactNode => {
                     </div>
                 </DialogContent>
             </Dialog>
-        </>
+        </Fragment>
     )
 }
 

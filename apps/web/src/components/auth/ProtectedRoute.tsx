@@ -1,6 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { ProtectedRouteProps } from '@/ts/Interfaces'
 
+import { Fragment } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/lib/auth'
 import { AUTH_STORAGE_KEY } from '@/lib/firebase'
@@ -23,7 +24,7 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({ children }): ReactNode => {
         return <Navigate to={ROUTES.LOGIN} replace />
     }
 
-    return <>{children}</>
+    return <Fragment>{children}</Fragment>
 }
 
 export default ProtectedRoute

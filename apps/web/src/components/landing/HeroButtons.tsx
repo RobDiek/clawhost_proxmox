@@ -1,6 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { HeroButtonsProps } from '@/ts/Interfaces'
 
+import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui'
 import SelfHostButton from '@/components/landing/SelfHostButton'
@@ -17,7 +18,7 @@ const HeroButtons: FC<HeroButtonsProps> = ({
     const { user } = useAuth()
 
     return (
-        <>
+        <Fragment>
             <Button
                 size='lg'
                 className={`gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] font-semibold text-white hover:opacity-90 ${large ? 'px-8 py-6 text-lg' : 'px-6'}`}
@@ -39,7 +40,7 @@ const HeroButtons: FC<HeroButtonsProps> = ({
                 showStars={showStars}
                 large={large}
             />
-        </>
+        </Fragment>
     )
 }
 

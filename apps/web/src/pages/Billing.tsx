@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { BillingOrder } from '@/ts/Interfaces'
 
-import { useState, useRef, useCallback } from 'react'
+import { Fragment, useState, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
@@ -191,7 +191,7 @@ const Billing: FC = (): ReactNode => {
                         <CircleNotchIcon className='text-primary h-8 w-8 animate-spin' />
                     </div>
                 ) : (
-                    <>
+                    <Fragment>
                         <PageHeader
                             title={t('billing.billingHistory')}
                             description={t('billing.manageYourBilling')}
@@ -437,7 +437,7 @@ const Billing: FC = (): ReactNode => {
                                 </div>
                             )}
                         </div>
-                    </>
+                    </Fragment>
                 )}
             </motion.main>
 

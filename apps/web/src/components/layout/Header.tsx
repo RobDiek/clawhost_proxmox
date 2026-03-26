@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { HeaderProps, ElectronWindow } from '@/ts/Interfaces'
 
-import { useState, useEffect, useCallback } from 'react'
+import { Fragment, useState, useEffect, useCallback } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
@@ -66,7 +66,7 @@ const Header: FC<HeaderProps> = ({
         location.pathname === ROUTES.HOME || location.pathname === ROUTES.GO
 
     return (
-        <>
+        <Fragment>
             <header
                 className={`${isLandingPage ? 'fixed' : 'relative'} left-0 right-0 top-0 z-50 transition-all duration-300 ${
                     mobileMenuOpen
@@ -187,7 +187,7 @@ const Header: FC<HeaderProps> = ({
 
                 <AnimatePresence>
                     {mobileMenuOpen && showNavLinks && navLinks.length > 0 && (
-                        <>
+                        <Fragment>
                             <motion.div
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -216,7 +216,7 @@ const Header: FC<HeaderProps> = ({
                                     <ThemeToggle />
                                 </div>
                             </motion.div>
-                        </>
+                        </Fragment>
                     )}
                 </AnimatePresence>
             </header>
@@ -233,7 +233,7 @@ const Header: FC<HeaderProps> = ({
                     />
                 )}
             </AnimatePresence>
-        </>
+        </Fragment>
     )
 }
 

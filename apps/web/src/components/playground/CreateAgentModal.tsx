@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { ClawAgentsResponse, CreateAgentModalProps } from '@/ts/Interfaces'
 import type { TranslationKey } from '@openclaw/i18n'
 
-import { useState, useMemo, useCallback } from 'react'
+import { Fragment, useState, useMemo, useCallback } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
 import {
@@ -428,7 +428,7 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                                 </div>
                             </div>
                             {existingKeyValue ? (
-                                <>
+                                <Fragment>
                                     <input
                                         type={showApiKey ? 'text' : 'password'}
                                         value={existingKeyValue}
@@ -447,9 +447,9 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                                             }
                                         )}
                                     </p>
-                                </>
+                                </Fragment>
                             ) : (
-                                <>
+                                <Fragment>
                                     <input
                                         type={showApiKey ? 'text' : 'password'}
                                         value={apiKeyValue}
@@ -464,7 +464,7 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                                     <p className='text-muted-foreground mt-1.5 font-mono text-[11px]'>
                                         {selectedModelOption.envVar}
                                     </p>
-                                </>
+                                </Fragment>
                             )}
                         </div>
                     )}

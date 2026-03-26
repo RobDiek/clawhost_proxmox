@@ -8,6 +8,7 @@ import type {
 } from '@/ts/Interfaces'
 
 import * as React from 'react'
+import { Fragment } from 'react'
 import { CaretDownIcon, CheckIcon } from '@phosphor-icons/react'
 import {
     DropdownMenu,
@@ -146,13 +147,13 @@ const SelectItem = ({ value, children, className }: SelectItemProps) => {
 
 const SelectGroup = ({ label, children, isLast }: SelectGroupProps) => {
     return (
-        <>
+        <Fragment>
             <DropdownMenuLabel className='text-muted-foreground text-xs font-medium'>
                 {label}
             </DropdownMenuLabel>
             {children}
             {!isLast && <DropdownMenuSeparator />}
-        </>
+        </Fragment>
     )
 }
 

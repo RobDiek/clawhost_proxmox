@@ -313,6 +313,34 @@ const MyComponent = () => { ... }
 5. Use `export { ComponentName }` for named exports
 6. Internal/helper components within a file should also follow this pattern
 
+### Fragment Syntax Rule
+
+**CRITICAL: Never use the shorthand `<>...</>` fragment syntax. Always use the explicit `<Fragment>...</Fragment>` from React. This ensures fragments can always accept a `key` prop when needed and keeps the codebase consistent.**
+
+```typescript
+// CORRECT - Always use explicit Fragment
+import { Fragment } from 'react'
+
+<Fragment>
+    <ChildA />
+    <ChildB />
+</Fragment>
+
+// CORRECT - Fragment with key in .map()
+{items.map((item) => (
+    <Fragment key={item.id}>
+        <ChildA />
+        <ChildB />
+    </Fragment>
+))}
+
+// INCORRECT - Never use shorthand fragment syntax
+<>
+    <ChildA />
+    <ChildB />
+</>
+```
+
 ### File Organization
 
 **API Controllers** (`apps/api/src/controllers/`):

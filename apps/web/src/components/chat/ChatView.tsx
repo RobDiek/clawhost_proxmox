@@ -9,7 +9,7 @@ import type {
 } from '@/ts/Interfaces'
 import type { GatewayConnectionState } from '@/ts/Types'
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { Fragment, useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { clawStatus, userRole } from '@openclaw/shared'
 import { t } from '@openclaw/i18n'
@@ -461,7 +461,7 @@ const ChatView: FC<ChatViewProps> = ({
                 <div className='relative flex min-h-0 flex-1 flex-col'>
                     <AnimatePresence>
                         {mobileSidebarOpen && (
-                            <>
+                            <Fragment>
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
@@ -494,7 +494,7 @@ const ChatView: FC<ChatViewProps> = ({
                                         onClose={closeMobileSidebar}
                                     />
                                 </motion.div>
-                            </>
+                            </Fragment>
                         )}
                     </AnimatePresence>
                     {settingsClaw && !selectedAgent ? (
@@ -623,7 +623,7 @@ const ChatView: FC<ChatViewProps> = ({
                 </div>
             </div>
             {headerDropdownClaw && (
-                <>
+                <Fragment>
                     <ClawCardDialogs
                         clawName={headerDropdownClaw.name}
                         showDeleteModal={showDeleteModal}
@@ -692,7 +692,7 @@ const ChatView: FC<ChatViewProps> = ({
                         open={showCredentials}
                         onOpenChange={setShowCredentials}
                     />
-                </>
+                </Fragment>
             )}
         </div>
     )

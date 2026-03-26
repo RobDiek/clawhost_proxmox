@@ -5,7 +5,7 @@ import type {
     PlaygroundClawHubContentProps
 } from '@/ts/Interfaces'
 
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { Fragment, useState, useCallback, useMemo, useEffect } from 'react'
 import { useDebouncedValue } from '@/hooks'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
@@ -313,20 +313,20 @@ const PlaygroundClawHubContent: FC<PlaygroundClawHubContentProps> = ({
                                         {isPending ? (
                                             <CircleNotchIcon className='h-3 w-3 animate-spin' />
                                         ) : isInstalled && hasUpdate ? (
-                                            <>
+                                            <Fragment>
                                                 <ArrowsClockwiseIcon className='h-3 w-3' />
                                                 {t('playground.clawHubUpdate')}
-                                            </>
+                                            </Fragment>
                                         ) : isInstalled ? (
-                                            <>
+                                            <Fragment>
                                                 <TrashIcon className='h-3 w-3' />
                                                 {t('playground.clawHubRemove')}
-                                            </>
+                                            </Fragment>
                                         ) : (
-                                            <>
+                                            <Fragment>
                                                 <DownloadSimpleIcon className='h-3 w-3' />
                                                 {t('playground.clawHubInstall')}
-                                            </>
+                                            </Fragment>
                                         )}
                                     </button>
                                 </div>

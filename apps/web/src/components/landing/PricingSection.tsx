@@ -208,7 +208,7 @@ const PricingSection: FC<PricingSectionProps> = ({
                 {plansLoading || (!allDoneLoading && !plans?.length) ? (
                     <PlansSkeleton />
                 ) : plans && plans.length > 0 ? (
-                    <>
+                    <Fragment>
                         {!showAllPlans ? (
                             <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
                                 {buildSimplePlans(plans).map((sp) => (
@@ -451,7 +451,7 @@ const PricingSection: FC<PricingSectionProps> = ({
                                 )}
                             </Button>
                         </div>
-                    </>
+                    </Fragment>
                 ) : (
                     <div className='text-muted-foreground py-12 text-center'>
                         {t('errors.unableToLoadPricing')}

@@ -16,15 +16,54 @@ const FEATURE_COUNT = FEATURE_EMAILS.length
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
+const parseBatchSize = (param: string | undefined): number => {
+    if (!param) return BATCH_SIZE
+    const parsed = parseInt(param, 10)
+    if (isNaN(parsed) || parsed < 1) return BATCH_SIZE
+    return Math.min(parsed, 50)
+}
+
+const markAndSend = async (
+    resend: ReturnType<typeof getResend>,
+    userId: string,
+    userEmail: string,
+    feature: (typeof FEATURE_EMAILS)[number]
+): Promise<boolean> => {
+    try {
+        await db.insert(emails).values({
+            id: crypto.randomUUID(),
+            userId,
+            feature: feature.key
+        })
+    } catch {
+        return false
+    }
+
+    const { error } = await resend.emails.send({
+        from: FROM_EMAIL,
+        to: userEmail,
+        subject: feature.subject,
+        react: feature.render()
+    })
+
+    if (error) {
+        await db
+            .delete(emails)
+            .where(
+                sql`${emails.userId} = ${userId} AND ${emails.feature} = ${feature.key}`
+            )
+        return false
+    }
+
+    return true
+}
+
 const sendFeatureEmails = async (c: Context) => {
     try {
         const featureParam = c.req.query('feature') as
             | FeatureEmailKey
             | undefined
-        const batchParam = c.req.query('batch')
-        const batchSize = batchParam
-            ? Math.min(parseInt(batchParam, 10), 50)
-            : BATCH_SIZE
+        const batchSize = parseBatchSize(c.req.query('batch'))
         const resend = getResend()
 
         if (featureParam) {
@@ -49,25 +88,13 @@ const sendFeatureEmails = async (c: Context) => {
             let totalSent = 0
 
             for (const user of pendingUsers) {
-                const { error } = await resend.emails.send({
-                    from: FROM_EMAIL,
-                    to: user.email,
-                    subject: targetFeature.subject,
-                    react: targetFeature.render()
-                })
-
-                if (error) {
-                    console.error(`Failed to send to ${user.email}:`, error)
-                    continue
-                }
-
-                await db.insert(emails).values({
-                    id: crypto.randomUUID(),
-                    userId: user.id,
-                    feature: targetFeature.key
-                })
-
-                totalSent++
+                const sent = await markAndSend(
+                    resend,
+                    user.id,
+                    user.email,
+                    targetFeature
+                )
+                if (sent) totalSent++
                 await sleep(BATCH_DELAY_MS)
             }
 
@@ -108,25 +135,13 @@ const sendFeatureEmails = async (c: Context) => {
             )
             if (!nextFeature) continue
 
-            const { error } = await resend.emails.send({
-                from: FROM_EMAIL,
-                to: user.email,
-                subject: nextFeature.subject,
-                react: nextFeature.render()
-            })
-
-            if (error) {
-                console.error(`Failed to send to ${user.email}:`, error)
-                continue
-            }
-
-            await db.insert(emails).values({
-                id: crypto.randomUUID(),
-                userId: user.id,
-                feature: nextFeature.key
-            })
-
-            totalSent++
+            const sent = await markAndSend(
+                resend,
+                user.id,
+                user.email,
+                nextFeature
+            )
+            if (sent) totalSent++
             await sleep(BATCH_DELAY_MS)
         }
 

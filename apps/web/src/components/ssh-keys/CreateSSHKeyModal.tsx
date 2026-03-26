@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { CreateSSHKeyModalProps, GeneratedKeyPair } from '@/ts/Interfaces'
 import type { CopiedFieldType, SSHKeyModalMode } from '@/ts/Types'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { useUIStore } from '@/lib/store'
 import { copyToClipboard as copyText } from '@/lib'
@@ -323,7 +323,7 @@ const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
                         </div>
 
                         {!generatedKeys ? (
-                            <>
+                            <Fragment>
                                 <Alert>
                                     <WarningIcon className='h-4 w-4' />
                                     <AlertDescription>
@@ -396,9 +396,9 @@ const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
                                         </p>
                                     </CardContent>
                                 </Card>
-                            </>
+                            </Fragment>
                         ) : (
-                            <>
+                            <Fragment>
                                 <Alert variant='destructive'>
                                     <WarningIcon className='h-4 w-4' />
                                     <AlertDescription>
@@ -477,7 +477,7 @@ const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
                                         {t('sshKeys.savePublicKey')}
                                     </Button>
                                 </div>
-                            </>
+                            </Fragment>
                         )}
                     </div>
                 )}

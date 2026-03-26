@@ -13,6 +13,7 @@ import type {
 } from '@/ts/Interfaces'
 
 import {
+    Fragment,
     useState,
     useRef,
     useCallback,
@@ -253,7 +254,7 @@ const ChatInputInner: ForwardRefRenderFunction<
             )}
             <div className='flex items-end gap-2'>
                 {onVoiceMode && (
-                    <>
+                    <Fragment>
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <button
@@ -272,7 +273,7 @@ const ChatInputInner: ForwardRefRenderFunction<
                             </TooltipContent>
                         </Tooltip>
                         <div className='bg-border mx-0.5 h-6 w-px shrink-0 self-center' />
-                    </>
+                    </Fragment>
                 )}
                 <button
                     onClick={handleAttachClick}

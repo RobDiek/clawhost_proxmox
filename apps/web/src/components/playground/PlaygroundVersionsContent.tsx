@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { PlaygroundVersionsContentProps } from '@/ts/Interfaces'
 
-import { useState, useMemo, useRef } from 'react'
+import { Fragment, useState, useMemo, useRef } from 'react'
 import { useDebouncedValue } from '@/hooks'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
@@ -99,7 +99,7 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
     const hasItems = isLoading || filteredVersions.length > 0
 
     return (
-        <>
+        <Fragment>
             <div
                 ref={scrollRef}
                 className='flex h-full flex-col overflow-y-auto px-5 pb-5'
@@ -242,19 +242,19 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                                                     className='bg-foreground/5 text-foreground/80 hover:bg-foreground/10 ml-3 flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50'
                                                 >
                                                     {isInstalling ? (
-                                                        <>
+                                                        <Fragment>
                                                             <CircleNotchIcon className='h-3 w-3 animate-spin' />
                                                             {t(
                                                                 'playground.versionInstalling'
                                                             )}
-                                                        </>
+                                                        </Fragment>
                                                     ) : (
-                                                        <>
+                                                        <Fragment>
                                                             <DownloadSimpleIcon className='h-3 w-3' />
                                                             {t(
                                                                 'playground.versionInstall'
                                                             )}
-                                                        </>
+                                                        </Fragment>
                                                     )}
                                                 </button>
                                             )}
@@ -319,7 +319,7 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                     </div>
                 </DialogContent>
             </Dialog>
-        </>
+        </Fragment>
     )
 }
 

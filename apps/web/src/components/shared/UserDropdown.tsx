@@ -5,6 +5,7 @@ import type {
     ElectronWindow
 } from '@/ts/Interfaces'
 
+import { Fragment } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { ROUTES } from '@/lib'
@@ -127,7 +128,7 @@ const UserDropdown: FC<UserDropdownProps> = ({
                 )}
 
                 {footerLinks && footerLinks.length > 0 && (
-                    <>
+                    <Fragment>
                         <DropdownMenuSeparator className='bg-border' />
                         <p className='text-muted-foreground px-2 py-1 text-[10px] font-medium uppercase tracking-wider'>
                             {t('footer.legalAndMore')}
@@ -142,19 +143,19 @@ const UserDropdown: FC<UserDropdownProps> = ({
                             </DropdownMenuItem>
                         ))}
                         {appVersion && (
-                            <>
+                            <Fragment>
                                 <DropdownMenuSeparator className='bg-border' />
                                 <p className='text-muted-foreground/40 px-2 py-0.5 text-center text-[10px] tracking-wider'>
                                     {t('common.brandNameGoVersion', {
                                         version: appVersion
                                     })}
                                 </p>
-                            </>
+                            </Fragment>
                         )}
-                    </>
+                    </Fragment>
                 )}
                 {!hideSignOut && (
-                    <>
+                    <Fragment>
                         <DropdownMenuSeparator className='bg-border' />
                         <DropdownMenuItem
                             onClick={onSignOut}
@@ -163,7 +164,7 @@ const UserDropdown: FC<UserDropdownProps> = ({
                             <SignOutIcon className='h-4 w-4' />
                             {t('nav.signOut')}
                         </DropdownMenuItem>
-                    </>
+                    </Fragment>
                 )}
             </DropdownMenuContent>
         </DropdownMenu>

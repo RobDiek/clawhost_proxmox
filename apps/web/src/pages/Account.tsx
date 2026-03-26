@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { AuthMethod, OAuthProvider } from '@/ts/Types'
 
-import { useState, useEffect, useCallback } from 'react'
+import { Fragment, useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
@@ -279,7 +279,7 @@ const Account: FC = (): ReactNode => {
                             <CircleNotchIcon className='text-primary h-8 w-8 animate-spin' />
                         </div>
                     ) : (
-                        <>
+                        <Fragment>
                             <PageHeader
                                 title={t('account.accountSettings')}
                                 description={t('account.manageYourAccount')}
@@ -647,7 +647,7 @@ const Account: FC = (): ReactNode => {
                                     </label>
                                 </div>
                             )}
-                        </>
+                        </Fragment>
                     )}
                 </motion.main>
             </div>

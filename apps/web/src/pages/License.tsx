@@ -1,6 +1,6 @@
 import type { FC, ReactNode } from 'react'
 
-import { useState, useEffect } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
@@ -83,7 +83,7 @@ const License: FC = (): ReactNode => {
                         <CircleNotchIcon className='text-primary h-8 w-8 animate-spin' />
                     </div>
                 ) : (
-                    <>
+                    <Fragment>
                         <PageHeader
                             title={t('license.pageTitle')}
                             description={t('license.pageDescription')}
@@ -196,7 +196,7 @@ const License: FC = (): ReactNode => {
                                 </Link>
                             </p>
                         </div>
-                    </>
+                    </Fragment>
                 )}
             </motion.main>
 

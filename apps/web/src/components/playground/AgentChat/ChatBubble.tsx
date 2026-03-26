@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { ChatBubbleProps, ChatImageSource } from '@/ts/Interfaces'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { t } from '@openclaw/i18n'
 import {
     StopCircleIcon,
@@ -184,7 +184,7 @@ const ChatBubble: FC<ChatBubbleProps> = ({
 
     if (isUser) {
         return (
-            <>
+            <Fragment>
                 <div className='flex flex-col items-end gap-1'>
                     <div className='group relative max-w-[85%] rounded-2xl rounded-br-md bg-[#ef5350]/15 px-3.5 py-2.5'>
                         {!showAsFileCard && message.content && (
@@ -262,12 +262,12 @@ const ChatBubble: FC<ChatBubbleProps> = ({
                         onClose={() => setLightboxImage(null)}
                     />
                 )}
-            </>
+            </Fragment>
         )
     }
 
     return (
-        <>
+        <Fragment>
             <div className='flex flex-col items-start gap-1'>
                 <div className='bg-foreground/5 group relative min-w-0 max-w-[85%] rounded-2xl rounded-bl-md px-3.5 py-2.5'>
                     {message.status === 'complete' && message.content && (
@@ -349,7 +349,7 @@ const ChatBubble: FC<ChatBubbleProps> = ({
                     onClose={() => setLightboxImage(null)}
                 />
             )}
-        </>
+        </Fragment>
     )
 }
 

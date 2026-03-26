@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { TranslationKey } from '@openclaw/i18n'
 import type { CompareFeatureValue } from '@/ts/Interfaces'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import {
@@ -167,8 +167,8 @@ const Compare: FC = (): ReactNode => {
                         </thead>
                         <tbody className='divide-border divide-y'>
                             {categories.map((category) => (
-                                <>
-                                    <tr key={`m-cat-${category.id}`}>
+                                <Fragment key={`m-cat-${category.id}`}>
+                                    <tr>
                                         <td
                                             colSpan={3}
                                             className='bg-foreground/[0.03] px-4 py-3'
@@ -207,7 +207,7 @@ const Compare: FC = (): ReactNode => {
                                             </tr>
                                         )
                                     )}
-                                </>
+                                </Fragment>
                             ))}
                         </tbody>
                     </table>
@@ -234,8 +234,8 @@ const Compare: FC = (): ReactNode => {
                         </thead>
                         <tbody className='divide-border divide-y'>
                             {categories.map((category) => (
-                                <>
-                                    <tr key={`cat-${category.id}`}>
+                                <Fragment key={`cat-${category.id}`}>
+                                    <tr>
                                         <td
                                             colSpan={colSpan}
                                             className='bg-foreground/[0.03] px-6 py-3'
@@ -275,7 +275,7 @@ const Compare: FC = (): ReactNode => {
                                             </tr>
                                         )
                                     )}
-                                </>
+                                </Fragment>
                             ))}
                         </tbody>
                     </table>

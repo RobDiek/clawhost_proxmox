@@ -1,6 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { ClawCardDialogsProps } from '@/ts/Interfaces'
 
+import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
 import {
     Button,
@@ -36,7 +37,7 @@ const ClawCardDialogs: FC<ClawCardDialogsProps> = ({
     isReinstallPending
 }): ReactNode => {
     return (
-        <>
+        <Fragment>
             <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
                 <DialogContent>
                     <DialogHeader>
@@ -208,7 +209,7 @@ const ClawCardDialogs: FC<ClawCardDialogsProps> = ({
                     </div>
                 </DialogContent>
             </Dialog>
-        </>
+        </Fragment>
     )
 }
 

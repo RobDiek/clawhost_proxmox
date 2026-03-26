@@ -6,7 +6,7 @@ import type {
     PlaygroundClawNodeProps
 } from '@/ts/Interfaces'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { clawStatus, clawProvider, userRole } from '@openclaw/shared'
 import { useUIStore } from '@/lib/store'
@@ -225,7 +225,7 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
     }
 
     return (
-        <>
+        <Fragment>
             <div
                 className={`playground-node-enter bg-popover relative w-[280px] cursor-pointer rounded-xl border ${
                     isSelected
@@ -276,7 +276,7 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                         </span>
                     </div>
                     {!readOnly && (
-                        <>
+                        <Fragment>
                             <div
                                 className='flex shrink-0 items-center'
                                 onClick={(e) => e.stopPropagation()}
@@ -328,7 +328,7 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                                     </TooltipContent>
                                 </Tooltip>
                             )}
-                        </>
+                        </Fragment>
                     )}
                 </div>
 
@@ -508,7 +508,7 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                 open={showAddAgent}
                 onOpenChange={setShowAddAgent}
             />
-        </>
+        </Fragment>
     )
 }
 

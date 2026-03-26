@@ -7,7 +7,7 @@ import type {
     ProviderType
 } from '@/ts/Types'
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { Fragment, useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
@@ -466,10 +466,10 @@ const Dashboard: FC = (): ReactNode => {
             {isOffline ? (
                 <NetworkStatus />
             ) : (
-                <>
+                <Fragment>
                     <ProductHuntBanner />
                     {!isLocal && <AnnouncementBanner />}
-                </>
+                </Fragment>
             )}
             {isLocal && showFullBackground && (
                 <div className='playground-grid pointer-events-none fixed inset-0 opacity-50' />
@@ -548,7 +548,7 @@ const Dashboard: FC = (): ReactNode => {
                     {!isLoading &&
                         displayedClaws &&
                         displayedClaws.length > 0 && (
-                            <>
+                            <Fragment>
                                 <div className='sm:hidden'>
                                     <Button
                                         onClick={() => setShowCreate(true)}
@@ -573,7 +573,7 @@ const Dashboard: FC = (): ReactNode => {
                                         label={t('createClaw.title')}
                                     />
                                 </div>
-                            </>
+                            </Fragment>
                         )}
                     <div className='flex items-center gap-1.5'>
                         <LanguageSelector />

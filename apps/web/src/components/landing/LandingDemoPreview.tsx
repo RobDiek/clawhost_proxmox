@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { ClawWithAgents, LandingDemoPreviewProps } from '@/ts/Interfaces'
 import type { DashboardTab } from '@/ts/Types'
 
-import { useState, useEffect, useMemo } from 'react'
+import { Fragment, useState, useEffect, useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import Logo from '@/components/layout/Logo'
@@ -137,7 +137,7 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
         : null
 
     return (
-        <>
+        <Fragment>
             {!hideTitleBar && (
                 <div className='border-border from-muted to-muted/80 pointer-events-none flex items-center gap-3 border-b bg-gradient-to-b px-5 py-3'>
                     <div className='flex items-center gap-2'>
@@ -374,7 +374,7 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                     </div>
                 )}
             </div>
-        </>
+        </Fragment>
     )
 }
 

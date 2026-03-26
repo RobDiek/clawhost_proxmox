@@ -9,7 +9,7 @@ import type {
     SkillEntryConfig
 } from '@/ts/Interfaces'
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { Fragment, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useDebouncedValue } from '@/hooks'
 import {
     useQuery,
@@ -527,19 +527,19 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
                                             {isPending ? (
                                                 <CircleNotchIcon className='h-3 w-3 animate-spin' />
                                             ) : active ? (
-                                                <>
+                                                <Fragment>
                                                     <TrashIcon className='h-3 w-3' />
                                                     {t(
                                                         'playground.clawHubRemove'
                                                     )}
-                                                </>
+                                                </Fragment>
                                             ) : (
-                                                <>
+                                                <Fragment>
                                                     <DownloadSimpleIcon className='h-3 w-3' />
                                                     {t(
                                                         'playground.clawHubInstall'
                                                     )}
-                                                </>
+                                                </Fragment>
                                             )}
                                         </button>
                                     </div>
@@ -653,19 +653,19 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
                                             ) : isInstalled && hasUpdate ? (
                                                 t('playground.clawHubUpdate')
                                             ) : isInstalled ? (
-                                                <>
+                                                <Fragment>
                                                     <TrashIcon className='h-3 w-3' />
                                                     {t(
                                                         'playground.clawHubRemove'
                                                     )}
-                                                </>
+                                                </Fragment>
                                             ) : (
-                                                <>
+                                                <Fragment>
                                                     <DownloadSimpleIcon className='h-3 w-3' />
                                                     {t(
                                                         'playground.clawHubInstall'
                                                     )}
-                                                </>
+                                                </Fragment>
                                             )}
                                         </button>
                                     </div>
