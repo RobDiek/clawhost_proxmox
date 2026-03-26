@@ -23,7 +23,6 @@ import {
     waitlistRoutes,
     webhooksRoutes
 } from '@/routes'
-import { configureInstance, handleAllpayWebhook, submitSupportRequest, sendOtpHosting, verifyOtpHosting, checkout, getInstanceStatus, checkSubdomain, setupApiKey, setupTelegram, completeOnboarding } from '@/controllers/hosting'
 import { browseSkills } from '@/services/clawhub'
 
 const app = new Hono<HonoEnv>()
@@ -72,18 +71,8 @@ app.route('/plans', plansRoutes)
 app.route('/waitlist', waitlistRoutes)
 app.route('/webhooks', webhooksRoutes)
 
-// Hosting public routes (no auth)
-app.post('/hosting/auth/send-otp', sendOtpHosting)
-app.post('/hosting/auth/verify-otp', verifyOtpHosting)
-app.post('/hosting/configure', configureInstance)
-app.post('/hosting/checkout', checkout)
-app.post('/hosting/webhooks/allpay', handleAllpayWebhook)
-app.post('/hosting/support', submitSupportRequest)
-app.get('/hosting/instances/:id/status', getInstanceStatus)
-app.get('/hosting/subdomain/check', checkSubdomain)
-app.post('/hosting/instances/:id/setup/api-key', setupApiKey)
-app.post('/hosting/instances/:id/setup/telegram', setupTelegram)
-app.post('/hosting/instances/:id/setup/complete', completeOnboarding)
+// All hosting routes — public (our own JWT auth inside controllers where needed)
+app.route('/hosting', hostingRoutes)
 app.get('/clawhub/skills', async (c) => {
     try {
         const result = await browseSkills({
@@ -207,7 +196,6 @@ app.use('/*', async (c, next) => {
 
 app.route('/ai', aiRoutes)
 app.route('/claws', clawsRoutes)
-app.route('/hosting', hostingRoutes)
 app.route('/ssh-keys', sshKeysRoutes)
 app.route('/users', usersRoutes)
 

@@ -16,21 +16,28 @@ import {
     submitSupportRequest,
     sendOtpHosting,
     verifyOtpHosting,
-    getMe
+    getMe,
+    checkSubdomain,
+    setupApiKey,
+    setupTelegram,
+    completeOnboarding
 } from '@/controllers/hosting'
 
 const app = new Hono()
 
-// Public routes (no auth required)
+// ── Auth ──
 app.post('/auth/send-otp', sendOtpHosting)
 app.post('/auth/verify-otp', verifyOtpHosting)
 app.get('/auth/me', getMe)
+
+// ── Public ──
 app.post('/configure', configureInstance)
+app.post('/checkout', checkout)
 app.post('/webhooks/allpay', handleAllpayWebhook)
 app.post('/support', submitSupportRequest)
+app.get('/subdomain/check', checkSubdomain)
 
-// Authenticated routes (mounted after auth middleware in app.ts)
-app.post('/checkout', checkout)
+// ── Instances ──
 app.get('/subscriptions', getSubscriptions)
 app.get('/instances', getInstances)
 app.get('/instances/:id', getInstance)
@@ -38,7 +45,12 @@ app.get('/instances/:id/status', getInstanceStatus)
 app.post('/instances/:id/restart', restartInstance)
 app.delete('/instances/:id', deleteInstance)
 
-// Admin routes
+// ── Setup (onboarding) ──
+app.post('/instances/:id/setup/api-key', setupApiKey)
+app.post('/instances/:id/setup/telegram', setupTelegram)
+app.post('/instances/:id/setup/complete', completeOnboarding)
+
+// ── Admin ──
 app.get('/admin/instances', adminGetInstances)
 app.get('/admin/revenue', adminGetRevenue)
 app.post('/admin/instances/:id/suspend', adminSuspendInstance)
