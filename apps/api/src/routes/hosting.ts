@@ -20,7 +20,8 @@ import {
     checkSubdomain,
     setupApiKey,
     setupTelegram,
-    completeOnboarding
+    completeOnboarding,
+    setupAgents
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -49,6 +50,7 @@ app.delete('/instances/:id', deleteInstance)
 app.post('/instances/:id/setup/api-key', setupApiKey)
 app.post('/instances/:id/setup/telegram', setupTelegram)
 app.post('/instances/:id/setup/complete', completeOnboarding)
+app.post('/instances/:id/setup/agents', setupAgents)
 
 // ── Admin ──
 app.get('/admin/instances', adminGetInstances)
