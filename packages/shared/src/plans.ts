@@ -28,7 +28,7 @@ const PLANS: PlanInfo[] = [
 
 const COMPONENTS: ComponentInfo[] = [
     { id: 'oc', nameHe: 'OpenClaw Personal', nameEn: 'OpenClaw Personal', ram: 1.0, category: 'agent', available: true },
-    { id: 'mt', nameHe: 'MATEH — סוכן שיווקי', nameEn: 'MATEH — Marketing Agent', ram: 3.0, category: 'agent', available: true },
+    { id: 'mt', nameHe: 'MATEH — סוכן שיווקי', nameEn: 'MATEH — Marketing Agent', ram: 4.0, category: 'agent', available: true },
     { id: 'sv', nameHe: 'נציג מכירות ותמיכה', nameEn: 'Sales & Support Agent', ram: 2.0, category: 'agent', available: false },
     { id: 'ec', nameHe: 'eCommerce Agent', nameEn: 'eCommerce Agent', ram: 2.0, category: 'agent', available: false },
     { id: 'n8', nameHe: 'n8n', nameEn: 'n8n', ram: 0.5, category: 'automation', available: true },
