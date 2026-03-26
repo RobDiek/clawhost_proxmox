@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>OpenClaw Hosting — הסוכן שלך, מוכן תוך 3 דקות | by Flowmatic</title>
-<meta name="description" content="פלטפורמת אירוח לסוכני OpenClaw AI. בחר את הסוכנים שלך, שלם — ה-VPS מוכן תוך 3 דקות. ללא הגדרות, ללא מגבלות."/>
+<title>OpenClaw Hosting — הסוכן שלכם, מוכן תוך 3 דקות | by Flowmatic</title>
+<meta name="description" content="פלטפורמת אירוח לסוכני OpenClaw AI. בחרו את הסוכנים שלכם, שלמו — ה-VPS מוכן תוך 3 דקות. ללא הגדרות, ללא מגבלות."/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23ef5350'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='900' font-size='26' fill='white'>OC</text></svg>" type="image/svg+xml"/>
 <style>
 /* ═══════════════════════════════════════════════════
    RESET & BASE
@@ -16,115 +17,126 @@
   font-family: Arial, 'Arial Hebrew', Helvetica, sans-serif !important;
 }
 :root {
-  --primary: #2563EB;
-  --primary-dark: #1D4ED8;
-  --primary-glow: rgba(37,99,235,0.18);
-  --bg: #F1F5F9;
-  --bg-dark: #0A0F1E;
-  --bg-card: #111827;
-  --bg-card2: #1E293B;
-  --surface: #FFFFFF;
-  --border: #E2E8F0;
-  --border-dark: #1F2937;
-  --text: #0F172A;
-  --text-2: #475569;
-  --text-3: #94A3B8;
-  --success: #10B981;
-  --warning: #F59E0B;
-  --danger: #EF4444;
+  --primary: #ef5350;
+  --primary-dark: #c62828;
+  --primary-glow: rgba(239,83,80,0.18);
+  --bg: #0f0f0f;
+  --bg-2: #1a1a1a;
+  --bg-card: #1e1e1e;
+  --surface: #252525;
+  --border: #2a2a2a;
+  --border-light: #333;
+  --text: #e8e8e8;
+  --text-2: #a0a0a0;
+  --text-3: #666;
+  --success: #4caf50;
+  --warning: #ff9800;
+  --danger: #f44336;
   --radius: 10px;
   --radius-lg: 14px;
-  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
-  --shadow-lg: 0 10px 30px rgba(0,0,0,.12);
+  --shadow: 0 1px 3px rgba(0,0,0,.2), 0 1px 2px rgba(0,0,0,.15);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.3);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,.4);
 }
 html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
+  line-height: 1.5;
+  font-size: 15px;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
+  -webkit-font-smoothing: antialiased;
 }
 a { text-decoration: none; color: inherit; }
-button { cursor: pointer; border: none; background: none; font-family: inherit !important; }
+button { cursor: pointer; border: none; background: none; font-family: inherit; }
 
 /* ═══════════════════════════════════════════════════
-   HEADER
+   PAGE SHELL — no scroll
+═══════════════════════════════════════════════════ */
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════
+   HEADER (48px)
 ═══════════════════════════════════════════════════ */
 .header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255,255,255,0.92);
+  background: rgba(15,15,15,0.92);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
-  height: 56px;
+  height: 48px;
+  flex-shrink: 0;
+}
+.header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
   display: flex;
   align-items: center;
-  padding: 0 24px;
-  gap: 20px;
-  flex-shrink: 0;
+  height: 100%;
+  gap: 16px;
 }
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-decoration: none;
   flex-shrink: 0;
 }
 .logo-mark {
-  width: 34px;
-  height: 34px;
-  background: var(--primary);
-  border-radius: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(37,99,235,.35);
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
 }
-.logo-text { line-height: 1.15; }
+.logo-text { line-height: 1.1; }
 .logo-name {
-  font-size: 15px;
+  font-size: 0.88rem;
   font-weight: 700;
   color: var(--text);
   display: block;
 }
 .logo-by {
-  font-size: 10px;
+  font-size: 0.62rem;
   color: var(--text-3);
   display: block;
 }
 .header-nav {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
   margin-right: auto;
 }
 .header-nav a {
-  font-size: 13px;
+  font-size: 0.82rem;
   color: var(--text-2);
   transition: color .15s;
+  cursor: pointer;
 }
 .header-nav a:hover { color: var(--primary); }
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-right: 0;
-  margin-left: 0;
+  gap: 8px;
 }
 .lang-switcher {
   display: flex;
-  background: var(--bg);
+  background: var(--bg-2);
   border: 1px solid var(--border);
-  border-radius: 7px;
+  border-radius: 6px;
   overflow: hidden;
 }
 .lang-btn {
-  padding: 4px 10px;
-  font-size: 11px;
+  padding: 3px 9px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--text-3);
   transition: all .15s;
@@ -137,11 +149,11 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
   color: white;
 }
 .header-login {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-2);
-  padding: 6px 14px;
+  padding: 4px 12px;
   border: 1px solid var(--border);
-  border-radius: 7px;
+  border-radius: 6px;
   transition: all .15s;
 }
 .header-login:hover {
@@ -150,22 +162,16 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
 }
 
 /* ═══════════════════════════════════════════════════
-   CONFIGURATOR SECTION
+   TITLE BAR (~50px)
 ═══════════════════════════════════════════════════ */
-.cfg-section {
-  padding: 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100vh - 56px);
-}
-.cfg-section-header {
-  padding: 36px 24px 28px;
-  background: linear-gradient(135deg, #ffffff 0%, #f0f4ff 50%, #e8f0fe 100%);
+.title-bar {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #141414 0%, #1a1a1a 50%, #1e1e1e 100%);
   border-bottom: 1px solid var(--border);
+  padding: 8px 0;
   position: relative;
 }
-.cfg-section-header::after {
+.title-bar::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -175,48 +181,62 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
   background: linear-gradient(90deg, transparent, var(--primary), transparent);
   opacity: 0.3;
 }
-.cfg-section-header h2 {
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--text);
-  margin-bottom: 6px;
-  letter-spacing: -.01em;
-}
-.cfg-section-header p {
-  font-size: 14px;
-  color: var(--text-2);
-  max-width: 600px;
-}
-.cfg-section-header p b { color: var(--primary); }
-
-.cfg-layout {
+.title-bar-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
   display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+.title-bar h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -.01em;
+  white-space: nowrap;
+}
+.title-bar p {
+  font-size: 0.9rem;
+  color: var(--text-2);
+  line-height: 1.4;
+}
+.title-bar p b { color: var(--primary); }
+
+/* ═══════════════════════════════════════════════════
+   MAIN AREA
+═══════════════════════════════════════════════════ */
+.main {
   flex: 1;
-  min-height: 520px;
+  display: flex;
+  overflow: hidden;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-/* ── LIST PANEL (2/3) ── */
+/* ── LIST PANEL (60%) ── */
 .cfg-list {
-  flex: 2;
+  flex: 3;
   overflow-y: auto;
-  padding: 20px 20px 20px 20px;
-  background: #F8FAFC;
+  padding: 14px 18px 14px 12px;
+  background: var(--bg-2);
   scrollbar-width: thin;
-  scrollbar-color: #CBD5E1 transparent;
+  scrollbar-color: #444 transparent;
 }
-.cfg-list::-webkit-scrollbar { width: 5px; }
-.cfg-list::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+.cfg-list::-webkit-scrollbar { width: 4px; }
+.cfg-list::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
 
-.cat-block { margin-bottom: 24px; }
+.cat-block { margin-bottom: 14px; }
 .cat-title {
-  font-size: 9px;
-  font-weight: 800;
+  font-size: 0.75rem;
+  font-weight: 700;
   color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: .1em;
-  padding-bottom: 8px;
+  padding-bottom: 5px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -224,42 +244,42 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
 .cat-badge-pill {
   font-size: 9px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 1px 7px;
   border-radius: 10px;
-  background: #EFF6FF;
-  color: #3B82F6;
+  background: rgba(239,83,80,0.15);
+  color: var(--primary);
   text-transform: none;
   letter-spacing: 0;
 }
 .cat-sub {
-  font-size: 11px;
+  font-size: 0.76rem;
   color: var(--text-3);
-  margin-bottom: 9px;
+  margin-bottom: 5px;
 }
 
 /* ── OPTION CARD ── */
 .opt-card {
   display: flex;
   align-items: flex-start;
-  gap: 9px;
-  padding: 11px 13px;
-  background: white;
+  gap: 7px;
+  padding: 8px 11px;
+  background: var(--bg-card);
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   cursor: pointer;
   transition: border-color .12s, box-shadow .12s, background .12s;
   box-shadow: var(--shadow);
   user-select: none;
 }
 .opt-card:hover:not(.disabled) {
-  border-color: #93C5FD;
-  box-shadow: 0 2px 10px rgba(37,99,235,.1);
+  border-color: #555;
+  box-shadow: 0 2px 10px rgba(239,83,80,.08);
 }
 .opt-card.selected {
   border-color: var(--primary);
-  background: #EFF6FF;
-  box-shadow: 0 0 0 3px rgba(37,99,235,.08), var(--shadow);
+  background: rgba(239,83,80,0.06);
+  box-shadow: 0 0 0 3px rgba(239,83,80,.08), var(--shadow);
 }
 .opt-card.disabled {
   opacity: .42;
@@ -267,16 +287,16 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
 }
 
 .info-btn {
-  width: 17px;
-  height: 17px;
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
   margin-top: 1px;
   border-radius: 50%;
-  border: 1.5px solid #CBD5E1;
+  border: 1.5px solid #444;
   background: none;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 800;
-  color: #94A3B8;
+  color: var(--text-3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -288,20 +308,20 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
 .info-btn:hover {
   border-color: var(--primary);
   color: var(--primary);
-  background: #EFF6FF;
+  background: rgba(239,83,80,0.1);
 }
 
 .checkbox {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
   margin-top: 1px;
-  border: 2px solid #CBD5E1;
-  border-radius: 4px;
+  border: 2px solid #444;
+  border-radius: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: var(--bg-card);
   transition: all .12s;
 }
 .opt-card.selected .checkbox {
@@ -309,16 +329,16 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
   border-color: var(--primary);
 }
 .radio-btn {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
   margin-top: 1px;
-  border: 2px solid #CBD5E1;
+  border: 2px solid #444;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: var(--bg-card);
   transition: all .12s;
 }
 .opt-card.selected .radio-btn {
@@ -326,8 +346,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
   background: var(--primary);
 }
 .radio-dot {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: white;
   opacity: 0;
@@ -339,26 +359,25 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
 .opt-title-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
-  margin-bottom: 3px;
+  margin-bottom: 1px;
 }
-.opt-name { font-size: 13px; font-weight: 600; color: var(--text); }
-.opt-desc { font-size: 11px; color: var(--text-2); line-height: 1.55; }
+.opt-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+.opt-desc { font-size: 0.82rem; color: var(--text-2); line-height: 1.45; }
 
 .badge {
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 700;
-  padding: 1px 6px;
+  padding: 1px 5px;
   border-radius: 20px;
   flex-shrink: 0;
 }
-.badge-new { background: #D1FAE5; color: #065F46; }
-.badge-soon { background: #FEF3C7; color: #92400E; }
-.badge-adv { background: #EDE9FE; color: #5B21B6; }
+.badge-soon { background: rgba(255,152,0,0.15); color: var(--warning); }
+.badge-adv { background: rgba(156,39,176,0.15); color: #ce93d8; }
 .opt-price-tag {
-  font-size: 10px;
-  color: #6B7280;
+  font-size: 9px;
+  color: var(--text-3);
   flex-shrink: 0;
 }
 
@@ -366,74 +385,74 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
 .storage-row {
   display: flex;
   align-items: center;
-  gap: 7px;
-  margin-top: 6px;
+  gap: 6px;
+  margin-top: 4px;
 }
-.storage-label { font-size: 11px; color: var(--text-2); }
+.storage-label { font-size: 10px; color: var(--text-2); }
 .storage-select {
-  font-size: 11px;
-  padding: 3px 8px;
+  font-size: 10px;
+  padding: 2px 6px;
   border: 1.5px solid var(--border);
-  border-radius: 6px;
-  background: white;
+  border-radius: 5px;
+  background: var(--surface);
   color: var(--text);
   cursor: pointer;
   transition: border-color .12s;
 }
 .storage-select:focus { outline: none; border-color: var(--primary); }
 
-/* ── SUMMARY PANEL (1/3) ── */
+/* ── SUMMARY PANEL (40%) ── */
 .cfg-summary {
-  flex: 1;
-  min-width: 220px;
-  max-width: 300px;
-  background: #0A0F1E;
+  flex: 2;
+  min-width: 280px;
+  max-width: 340px;
+  background: var(--bg);
   display: flex;
   flex-direction: column;
-  padding: 18px;
+  padding: 14px 16px;
   overflow: hidden;
-  border-right: 1px solid #1E293B;
+  border-right: 1px solid var(--border);
 }
 .sum-label {
   font-size: 9px;
   font-weight: 700;
-  color: #374151;
+  color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: .08em;
-  margin-bottom: 11px;
+  margin-bottom: 8px;
 }
 .plan-card {
-  background: #1E3A5F;
-  border: 1px solid #2563EB;
+  background: #2a1515;
+  border: 1px solid var(--primary);
   border-radius: var(--radius);
-  padding: 11px 13px;
-  margin-bottom: 11px;
+  padding: 9px 11px;
+  margin-bottom: 8px;
   transition: all .3s;
 }
 .plan-name {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   color: white;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
 }
 .plan-specs {
-  font-size: 10px;
-  color: #93C5FD;
+  font-size: 9px;
+  color: #ef9a9a;
 }
 .ram-row {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
-  color: #6B7280;
-  margin-bottom: 4px;
+  font-size: 9px;
+  color: var(--text-3);
+  margin-bottom: 3px;
 }
-.ram-val { color: #D1D5DB; }
+.ram-val { color: var(--text-2); }
 .ram-bar {
-  height: 4px;
-  background: #1F2937;
+  height: 3px;
+  background: var(--surface);
   border-radius: 2px;
   overflow: hidden;
-  margin-bottom: 13px;
+  margin-bottom: 10px;
 }
 .ram-fill {
   height: 100%;
@@ -450,62 +469,108 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
 }
 .sum-items::-webkit-scrollbar { display: none; }
 .sum-empty {
-  font-size: 11px;
-  color: #374151;
+  font-size: 0.85rem;
+  color: var(--text-3);
   text-align: center;
-  padding: 18px 0;
-  line-height: 1.6;
+  padding: 14px 0;
+  line-height: 1.5;
 }
 .sum-item {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 5px 0;
-  border-bottom: 1px solid #111827;
-  font-size: 11px;
-  color: #D1D5DB;
+  gap: 6px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text-2);
 }
 .sum-item:last-child { border: none; }
 .sum-dot {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   background: var(--success);
   border-radius: 50%;
   flex-shrink: 0;
 }
 .sum-item-name { flex: 1; }
-.sum-item-price { color: #6B7280; font-size: 10px; }
+.sum-item-price { color: var(--text-3); font-size: 9px; }
+
+/* Billing toggle */
+.billing-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 6px 0;
+}
+.billing-label {
+  font-size: 11px;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color .15s;
+}
+.billing-label.active { color: var(--text); font-weight: 600; }
+.billing-switch {
+  position: relative;
+  width: 36px;
+  height: 18px;
+  background: var(--surface);
+  border-radius: 9px;
+  cursor: pointer;
+  border: 1px solid var(--border-light);
+  transition: background .2s;
+}
+.billing-switch.annual { background: var(--primary); border-color: var(--primary); }
+.billing-switch-knob {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  transition: transform .2s;
+}
+.billing-switch.annual .billing-switch-knob { transform: translateX(-18px); }
+.billing-savings {
+  font-size: 10px;
+  color: var(--success);
+  text-align: center;
+  margin-bottom: 4px;
+  min-height: 14px;
+}
 
 /* Price footer */
 .sum-footer {
-  padding-top: 12px;
-  border-top: 1px solid #111827;
-  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  margin-top: 6px;
   flex-shrink: 0;
 }
 .sum-price-row {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
-  color: #6B7280;
-  margin-bottom: 3px;
+  font-size: 0.85rem;
+  color: var(--text-3);
+  margin-bottom: 2px;
 }
-.sum-price-val { color: #9CA3AF; }
+.sum-price-val { color: var(--text-2); }
 .sum-total {
-  font-size: 30px;
+  font-size: 26px;
   font-weight: 800;
   color: white;
-  margin: 6px 0 12px;
+  margin: 4px 0 10px;
   line-height: 1;
   transition: all .3s;
 }
-.sum-total span { font-size: 13px; color: #4B5563; font-weight: 400; }
+.sum-total span { font-size: 12px; color: var(--text-3); font-weight: 400; }
 
 .deploy-btn {
   width: 100%;
-  padding: 13px 0;
+  padding: 11px 0;
   border-radius: var(--radius);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: .01em;
   transition: all .2s;
@@ -515,121 +580,66 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
 .deploy-btn.active {
   background: var(--primary);
   color: white;
-  box-shadow: 0 4px 16px rgba(37,99,235,.5);
+  box-shadow: 0 4px 16px rgba(239,83,80,.5);
 }
 .deploy-btn.active:hover {
   background: var(--primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(37,99,235,.6);
+  box-shadow: 0 6px 22px rgba(239,83,80,.6);
 }
 .deploy-btn.inactive {
-  background: #111827;
-  color: #374151;
+  background: var(--surface);
+  color: var(--text-3);
   cursor: not-allowed;
 }
 .deploy-hint {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  font-size: 10px;
-  color: #374151;
-  margin-top: 7px;
+  gap: 4px;
+  font-size: 9px;
+  color: var(--text-3);
+  margin-top: 5px;
 }
 .deploy-hint-dot {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   background: var(--success);
   border-radius: 50%;
 }
 
 /* ═══════════════════════════════════════════════════
-   TRUST STRIP
+   TRUST STRIP (80px, 2 rows)
 ═══════════════════════════════════════════════════ */
 .trust-strip {
-  background: white;
+  flex-shrink: 0;
+  background: #111;
   border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  padding: 14px 24px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 28px;
-  flex-wrap: wrap;
+  padding: 6px 0 5px;
 }
-.trust-item {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  color: var(--text-2);
-}
-.trust-icon {
-  width: 18px;
-  height: 18px;
-  color: var(--success);
-  flex-shrink: 0;
-}
-
-/* ═══════════════════════════════════════════════════
-   FOOTER
-═══════════════════════════════════════════════════ */
-.footer {
-  background: #0A0F1E;
-  border-top: 1px solid #1E293B;
-  padding: 20px 24px 16px;
-}
-.footer-main {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-}
-.footer-brand-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: #E2E8F0;
+.trust-row-1 {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  text-align: center;
+  white-space: nowrap;
   margin-bottom: 3px;
 }
-.footer-brand-sub { font-size: 10px; color: #334155; }
-.footer-links {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  align-items: center;
+.trust-row-2 {
+  font-size: 0.6rem;
+  color: #444;
+  text-align: center;
+  line-height: 1.4;
 }
-.footer-link {
-  font-size: 11px;
-  color: #475569;
+.trust-row-2 a {
+  color: #555;
   text-decoration: none;
-  transition: color .13s;
+  transition: color .15s;
 }
-.footer-link:hover { color: #93C5FD; }
-.footer-bottom {
-  border-top: 1px solid #1E293B;
-  padding-top: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.footer-copy { font-size: 10px; color: #1E293B; }
-.footer-tags {
-  display: flex;
-  gap: 6px;
-}
-.footer-tag {
-  font-size: 9px;
-  padding: 2px 7px;
-  border-radius: 4px;
-  background: #0F172A;
-  color: #334155;
-  font-weight: 600;
-  border: 1px solid #1E293B;
-}
+.trust-row-2 a:hover { color: var(--text-2); }
 
 /* ═══════════════════════════════════════════════════
    POPUP
@@ -637,7 +647,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.65);
+  background: rgba(0,0,0,.75);
   z-index: 999;
   display: none;
   align-items: center;
@@ -647,16 +657,17 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
 }
 .overlay.open { display: flex; }
 .popup {
-  background: white;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
-  max-width: 440px;
+  max-width: 480px;
   width: 100%;
   max-height: 80vh;
   overflow-y: auto;
   padding: 24px;
   position: relative;
   direction: rtl;
-  box-shadow: 0 25px 60px rgba(0,0,0,.4);
+  box-shadow: 0 25px 60px rgba(0,0,0,.6);
   animation: popIn .2s ease;
 }
 @keyframes popIn {
@@ -680,7 +691,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
   justify-content: center;
   transition: all .13s;
 }
-.popup-close:hover { background: var(--bg); color: var(--text); }
+.popup-close:hover { background: var(--surface); color: var(--text); }
 .popup-tag {
   display: inline-block;
   font-size: 9px;
@@ -704,7 +715,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
   gap: 8px;
   align-items: flex-start;
   padding: 5px 0;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--border);
   font-size: 12px;
   color: var(--text);
 }
@@ -722,52 +733,158 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
   align-items: flex-end;
   margin-top: 14px;
   padding-top: 14px;
-  border-top: 1px solid #F1F5F9;
+  border-top: 1px solid var(--border);
 }
 .popup-tech { font-size: 10px; color: var(--text-3); }
 .popup-price { font-size: 20px; font-weight: 700; color: var(--primary); }
 .popup-price-incl { font-size: 13px; font-weight: 700; color: var(--success); }
 
 /* ═══════════════════════════════════════════════════
+   MODAL (Support / Docs)
+═══════════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.75);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  max-width: 500px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px;
+  position: relative;
+  direction: rtl;
+  box-shadow: 0 25px 60px rgba(0,0,0,.6);
+  animation: popIn .2s ease;
+}
+.modal-close {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .13s;
+}
+.modal-close:hover { background: var(--surface); color: var(--text); }
+.modal h3 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+.modal h4 { font-size: 14px; font-weight: 700; color: var(--primary); margin: 14px 0 6px; }
+.modal p { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 8px; }
+.modal-form label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 4px;
+  margin-top: 10px;
+}
+.modal-form input, .modal-form textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  transition: border-color .15s;
+}
+.modal-form input:focus, .modal-form textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.modal-form textarea { min-height: 80px; resize: vertical; }
+.modal-form button[type="submit"] {
+  margin-top: 14px;
+  width: 100%;
+  padding: 10px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s;
+}
+.modal-form button[type="submit"]:hover { background: var(--primary-dark); }
+.modal-success {
+  text-align: center;
+  padding: 20px 0;
+  color: var(--success);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════
    RESPONSIVE
 ═══════════════════════════════════════════════════ */
 @media (max-width: 640px) {
-  .cfg-layout {
+  .main {
     flex-direction: column;
-    min-height: auto;
   }
   .cfg-summary {
     max-width: 100%;
     min-width: unset;
     height: auto;
+    max-height: 240px;
+  }
+  .cfg-list {
+    flex: 1;
+    min-height: 200px;
   }
   .header-nav { display: none; }
-  .trust-strip { gap: 16px; }
-  .trust-item { font-size: 11px; }
-  .cfg-section-header h2 { font-size: 22px; }
+  .title-bar h2 { font-size: 1.2rem; }
+  .title-bar p { display: none; }
 }
 </style>
 </head>
 <body>
 
-<!-- ══════════════════ HEADER ══════════════════ -->
+<div class="page">
+
+<!-- ══════════════════ HEADER (48px) ══════════════════ -->
 <header class="header">
+<div class="header-inner">
   <a href="/" class="logo">
     <div class="logo-mark">
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <path d="M9 2C6.24 2 4 4.24 4 7C4 8.8 4.9 10.38 6.25 11.28V15H11.75V11.28C13.1 10.38 14 8.8 14 7C14 4.24 11.76 2 9 2Z" fill="white" opacity=".95"/>
-        <path d="M6.5 11L5.2 16H7.5L9 13L10.5 16H12.8L11.5 11" fill="white" opacity=".55"/>
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="30" height="30" rx="8" fill="#1a1a1a"/>
+        <circle cx="15" cy="13" r="7" fill="none" stroke="#ef5350" stroke-width="1.5"/>
+        <circle cx="12" cy="11" r="1.2" fill="#ef5350"/>
+        <circle cx="18" cy="11" r="1.2" fill="#ef5350"/>
+        <circle cx="15" cy="15" r="1" fill="#ef5350"/>
+        <path d="M10.5 18 L8 24" stroke="#ef5350" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M15 19 L15 25" stroke="#ef5350" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M19.5 18 L22 24" stroke="#ef5350" stroke-width="1.3" stroke-linecap="round"/>
       </svg>
     </div>
     <div class="logo-text">
       <span class="logo-name">OpenClaw</span>
-      <span class="logo-by">Hosting by Flowmatic &#8599;</span>
+      <span class="logo-by">Hosting &middot; by Flowmatic</span>
     </div>
   </a>
   <nav class="header-nav">
     <a href="https://flowmatic.co.il" target="_blank" id="nav-flowmatic">flowmatic.co.il &#8599;</a>
-    <a href="#" id="nav-docs">&#1514;&#1497;&#1506;&#1493;&#1491;</a>
-    <a href="#" id="nav-support">&#1514;&#1502;&#1497;&#1499;&#1492;</a>
+    <a href="#" id="nav-docs" onclick="openDocsModal(event)">&#1514;&#1497;&#1506;&#1493;&#1491;</a>
+    <a href="#" id="nav-support" onclick="openSupportModal(event)">&#1514;&#1502;&#1497;&#1499;&#1492;</a>
   </nav>
   <div class="header-actions">
     <div class="lang-switcher">
@@ -776,116 +893,110 @@ button { cursor: pointer; border: none; background: none; font-family: inherit !
     </div>
     <a href="#" class="header-login" id="nav-login">&#1499;&#1504;&#1497;&#1505;&#1492;</a>
   </div>
+</div>
 </header>
 
-<!-- ══════════════════ CONFIGURATOR ══════════════════ -->
-<section class="cfg-section">
-  <div class="cfg-section-header">
-    <h2 id="cfg-h2">&#1489;&#1504;&#1492; &#1488;&#1514; &#1492;&#1505;&#1489;&#1497;&#1489;&#1492; &#1513;&#1500;&#1498;</h2>
-    <p id="cfg-sub">&#1489;&#1495;&#1512; &#1512;&#1499;&#1497;&#1489;&#1497;&#1501; — &#1492;&#1502;&#1513;&#1488;&#1489;&#1497;&#1501; &#1493;&#1492;&#1502;&#1495;&#1497;&#1512; &#1502;&#1514;&#1506;&#1491;&#1499;&#1504;&#1497;&#1501; &#1488;&#1493;&#1496;&#1493;&#1502;&#1496;&#1497;&#1514;. &#1500;&#1495;&#1509; <b>i</b> &#1500;&#1508;&#1512;&#1496;&#1497;&#1501; &#1504;&#1493;&#1505;&#1508;&#1497;&#1501; &#1506;&#1500; &#1499;&#1500; &#1512;&#1499;&#1497;&#1489;.</p>
-  </div>
-  <div class="cfg-layout">
-    <!-- LIST 2/3 -->
-    <div class="cfg-list" id="cfg-list"></div>
-    <!-- SUMMARY 1/3 -->
-    <div class="cfg-summary">
-      <div class="sum-label" id="sum-label">&#1492;&#1494;&#1502;&#1504;&#1514;&#1498;</div>
-      <div class="plan-card" id="plan-card">
-        <div class="plan-name" id="plan-name">&#8212;</div>
-        <div class="plan-specs" id="plan-specs">&#1489;&#1495;&#1512; &#1512;&#1499;&#1497;&#1489; &#1500;&#1492;&#1514;&#1495;&#1497;&#1500;</div>
-      </div>
-      <div class="ram-row">
-        <span id="ram-label">RAM &#1504;&#1491;&#1512;&#1513;</span>
-        <span class="ram-val" id="ram-val">&#8212;</span>
-      </div>
-      <div class="ram-bar"><div class="ram-fill" id="ram-fill" style="width:0%;background:#3B82F6"></div></div>
-      <div class="sum-items" id="sum-items">
-        <div class="sum-empty" id="sum-empty">
-          &#1489;&#1495;&#1512; &#1505;&#1493;&#1499;&#1504;&#1497;&#1501; &#1493;&#1512;&#1499;&#1497;&#1489;&#1497;&#1501;<br/>&#1499;&#1491;&#1497; &#1500;&#1512;&#1488;&#1493;&#1514; &#1488;&#1514; &#1492;&#1492;&#1494;&#1502;&#1504;&#1492; &#1513;&#1500;&#1498;
-        </div>
-      </div>
-      <div class="sum-footer">
-        <div class="sum-price-row">
-          <span id="sum-plan-lbl">&#1514;&#1493;&#1499;&#1504;&#1497;&#1514;</span>
-          <span class="sum-price-val" id="sum-plan-price">&#8212;</span>
-        </div>
-        <div class="sum-price-row" id="sum-addons-row" style="display:none">
-          <span id="sum-addons-lbl">&#1514;&#1493;&#1505;&#1508;&#1493;&#1514;</span>
-          <span class="sum-price-val" id="sum-addons-price">&#8212;</span>
-        </div>
-        <div class="sum-total" id="sum-total">&#8212;<span id="sum-mo"> /&#1502;&#1505;</span></div>
-        <button class="deploy-btn inactive" id="deploy-btn" disabled>
-          <span id="deploy-text">&#1489;&#1495;&#1512; &#1505;&#1493;&#1499;&#1503; &#1500;&#1492;&#1502;&#1513;&#1497;&#1498;</span>
-        </button>
-        <div class="deploy-hint" id="deploy-hint">
-          <span id="deploy-hint-text">&#1489;&#1495;&#1512; &#1500;&#1508;&#1495;&#1493;&#1514; &#1505;&#1493;&#1499;&#1503; &#1488;&#1495;&#1491;</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════ TRUST STRIP ══════════════════ -->
-<div class="trust-strip">
-  <div class="trust-item">
-    <svg class="trust-icon" viewBox="0 0 20 20" fill="currentColor">
-      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-    </svg>
-    <span id="tr1">Hetzner Cloud Europe</span>
-  </div>
-  <div class="trust-item">
-    <svg class="trust-icon" viewBox="0 0 20 20" fill="currentColor">
-      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-    </svg>
-    <span id="tr2">AllPay &middot; PCI DSS Level 1</span>
-  </div>
-  <div class="trust-item">
-    <svg class="trust-icon" viewBox="0 0 20 20" fill="currentColor">
-      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-    </svg>
-    <span id="tr3">SSL + &#1495;&#1513;&#1489;&#1493;&#1504;&#1497;&#1514; &#1502;&#1505; &#1488;&#1493;&#1496;&#1493;&#1502;&#1496;&#1497;&#1514;</span>
-  </div>
-  <div class="trust-item">
-    <svg class="trust-icon" viewBox="0 0 20 20" fill="currentColor">
-      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-    </svg>
-    <span id="tr4">99.5% uptime SLA</span>
+<!-- ══════════════════ TITLE BAR (~50px) ══════════════════ -->
+<div class="title-bar">
+  <div class="title-bar-inner">
+    <h2 id="cfg-h2">&#1489;&#1504;&#1493; &#1488;&#1514; &#1492;&#1505;&#1489;&#1497;&#1489;&#1492; &#1513;&#1500;&#1499;&#1501;</h2>
+    <p id="cfg-sub">&#1489;&#1495;&#1512;&#1493; &#1512;&#1499;&#1497;&#1489;&#1497;&#1501; &mdash; &#1492;&#1502;&#1513;&#1488;&#1489;&#1497;&#1501; &#1493;&#1492;&#1502;&#1495;&#1497;&#1512; &#1502;&#1514;&#1506;&#1491;&#1499;&#1504;&#1497;&#1501; &#1488;&#1493;&#1496;&#1493;&#1502;&#1496;&#1497;&#1514;. &#1500;&#1495;&#1510;&#1493; <b>i</b> &#1500;&#1508;&#1512;&#1496;&#1497;&#1501; &#1504;&#1493;&#1505;&#1508;&#1497;&#1501;.</p>
   </div>
 </div>
 
-<!-- ══════════════════ FOOTER ══════════════════ -->
-<footer class="footer">
-  <div class="footer-main">
-    <div>
-      <div class="footer-brand-name">OpenClaw Hosting &middot; by Flowmatic</div>
-      <div class="footer-brand-sub">Powered by Hetzner Cloud &middot; Cloudflare &middot; AllPay</div>
+<!-- ══════════════════ MAIN AREA ══════════════════ -->
+<div class="main">
+  <!-- LIST (60%) -->
+  <div class="cfg-list" id="cfg-list"></div>
+  <!-- SUMMARY (40%) -->
+  <div class="cfg-summary">
+    <div class="sum-label" id="sum-label">&#1492;&#1492;&#1494;&#1502;&#1504;&#1492; &#1513;&#1500;&#1499;&#1501;</div>
+    <div class="plan-card" id="plan-card">
+      <div class="plan-name" id="plan-name">&#8212;</div>
+      <div class="plan-specs" id="plan-specs">&#1489;&#1495;&#1512;&#1493; &#1512;&#1499;&#1497;&#1489; &#1500;&#1492;&#1514;&#1495;&#1500;&#1492;</div>
     </div>
-    <div class="footer-links">
-      <a href="#" class="footer-link" id="fl-terms">&#1514;&#1504;&#1488;&#1497; &#1513;&#1497;&#1502;&#1493;&#1513;</a>
-      <a href="#" class="footer-link" id="fl-privacy">&#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1508;&#1512;&#1496;&#1497;&#1493;&#1514;</a>
-      <a href="#" class="footer-link" id="fl-cancel">&#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1489;&#1497;&#1496;&#1493;&#1500;</a>
-      <a href="mailto:support@flowmatic.co.il" class="footer-link">support@flowmatic.co.il</a>
-      <a href="https://flowmatic.co.il" target="_blank" class="footer-link">flowmatic.co.il &#8599;</a>
+    <div class="ram-row">
+      <span id="ram-label">RAM &#1504;&#1491;&#1512;&#1513;</span>
+      <span class="ram-val" id="ram-val">&#8212;</span>
+    </div>
+    <div class="ram-bar"><div class="ram-fill" id="ram-fill" style="width:0%;background:var(--primary)"></div></div>
+    <div class="sum-items" id="sum-items">
+      <div class="sum-empty" id="sum-empty">
+        &#1489;&#1495;&#1512;&#1493; &#1505;&#1493;&#1499;&#1504;&#1497;&#1501; &#1493;&#1512;&#1499;&#1497;&#1489;&#1497;&#1501;<br/>&#1499;&#1491;&#1497; &#1500;&#1512;&#1488;&#1493;&#1514; &#1488;&#1514; &#1492;&#1492;&#1494;&#1502;&#1504;&#1492; &#1513;&#1500;&#1499;&#1501;
+      </div>
+    </div>
+    <div class="sum-footer">
+      <div class="billing-toggle-row">
+        <span class="billing-label active" id="billing-monthly-lbl" onclick="setBilling('monthly')">&#1495;&#1493;&#1491;&#1513;&#1497;</span>
+        <div class="billing-switch" id="billing-switch" onclick="toggleBilling()">
+          <div class="billing-switch-knob"></div>
+        </div>
+        <span class="billing-label" id="billing-annual-lbl" onclick="setBilling('annual')">&#1513;&#1504;&#1514;&#1497;</span>
+      </div>
+      <div class="billing-savings" id="billing-savings"></div>
+      <div class="sum-price-row">
+        <span id="sum-plan-lbl">&#1514;&#1493;&#1499;&#1504;&#1497;&#1514;</span>
+        <span class="sum-price-val" id="sum-plan-price">&#8212;</span>
+      </div>
+      <div class="sum-price-row" id="sum-addons-row" style="display:none">
+        <span id="sum-addons-lbl">&#1514;&#1493;&#1505;&#1508;&#1493;&#1514;</span>
+        <span class="sum-price-val" id="sum-addons-price">&#8212;</span>
+      </div>
+      <div class="sum-total" id="sum-total">&#8212;<span id="sum-mo"> /&#1495;&#1493;&#1491;&#1513;</span></div>
+      <button class="deploy-btn inactive" id="deploy-btn" disabled>
+        <span id="deploy-text">&#1489;&#1495;&#1512;&#1493; &#1505;&#1493;&#1499;&#1503; &#1500;&#1492;&#1502;&#1513;&#1497;&#1498;</span>
+      </button>
+      <div class="deploy-hint" id="deploy-hint">
+        <span id="deploy-hint-text">&#1489;&#1495;&#1512;&#1493; &#1500;&#1508;&#1495;&#1493;&#1514; &#1505;&#1493;&#1499;&#1503; &#1488;&#1495;&#1491;</span>
+      </div>
     </div>
   </div>
-  <div class="footer-bottom">
-    <span class="footer-copy" id="footer-copy">
-      &copy; 2026 Flowmatic Ltd. &middot; &#1499;&#1500; &#1492;&#1494;&#1499;&#1493;&#1497;&#1493;&#1514; &#1513;&#1502;&#1493;&#1512;&#1493;&#1514; &middot; &#1506;&#1493;&#1505;&#1511; &#1502;&#1493;&#1512;&#1513;&#1492; &middot; &#1497;&#1513;&#1512;&#1488;&#1500;
-    </span>
-    <div class="footer-tags">
-      <span class="footer-tag">PCI DSS</span>
-      <span class="footer-tag">SSL/TLS</span>
-      <span class="footer-tag">AllPay</span>
-      <span class="footer-tag">GDPR</span>
-    </div>
-  </div>
-</footer>
+</div>
 
-<!-- ══════════════════ POPUP ══════════════════ -->
+<!-- ══════════════════ TRUST STRIP (2 rows) ══════════════════ -->
+<div class="trust-strip">
+  <div class="trust-row-1">
+    <span id="tr1">Hetzner Cloud Europe</span> &middot;
+    <span id="tr2">AllPay &middot; PCI DSS Level 1</span> &middot;
+    <span id="tr3">SSL + &#1495;&#1513;&#1489;&#1493;&#1504;&#1497;&#1514; &#1502;&#1505; &#1488;&#1493;&#1496;&#1493;&#1502;&#1496;&#1497;&#1514;</span> &middot;
+    <span id="tr4">99.5% uptime SLA</span>
+  </div>
+  <div class="trust-row-2">
+    OpenClaw Hosting &middot; by Flowmatic &nbsp;|&nbsp;
+    <a href="#" id="fl-terms">&#1514;&#1504;&#1488;&#1497; &#1513;&#1497;&#1502;&#1493;&#1513;</a> &nbsp;|&nbsp;
+    <a href="#" id="fl-privacy">&#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1508;&#1512;&#1496;&#1497;&#1493;&#1514;</a> &nbsp;|&nbsp;
+    <a href="#" id="fl-cancel">&#1502;&#1491;&#1497;&#1504;&#1497;&#1493;&#1514; &#1489;&#1497;&#1496;&#1493;&#1500;</a> &nbsp;|&nbsp;
+    <a href="#" id="fl-disclosure">&#1490;&#1497;&#1500;&#1493;&#1497; &#1504;&#1488;&#1493;&#1514;</a> &nbsp;|&nbsp;
+    <a href="mailto:support@flowmatic.co.il">support@flowmatic.co.il</a>
+    <br/>
+    <span id="footer-copy">&copy; 2026 Flowmatic &middot; &#1506;&#1493;&#1505;&#1511; &#1502;&#1493;&#1512;&#1513;&#1492; 324503853 &middot; &#1513;&#1500;&#1502;&#1492; &#1492;&#1502;&#1500;&#1498; 18, &#1504;&#1514;&#1504;&#1497;&#1492; &middot; &#1497;&#1513;&#1512;&#1488;&#1500;</span> &nbsp;|&nbsp;
+    GDPR &middot; PCI DSS &middot; SSL &middot; AllPay
+  </div>
+</div>
+
+</div><!-- /.page -->
+
+<!-- ══════════════════ POPUP (item details) ══════════════════ -->
 <div class="overlay" id="overlay">
   <div class="popup" id="popup">
     <button class="popup-close" onclick="closePopup()">&#10005;</button>
     <div id="popup-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ SUPPORT MODAL ══════════════════ -->
+<div class="modal-overlay" id="support-overlay">
+  <div class="modal" id="support-modal">
+    <button class="modal-close" onclick="closeSupportModal()">&#10005;</button>
+    <div id="support-modal-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ DOCS MODAL ══════════════════ -->
+<div class="modal-overlay" id="docs-overlay">
+  <div class="modal" id="docs-modal">
+    <button class="modal-close" onclick="closeDocsModal()">&#10005;</button>
+    <div id="docs-modal-body"></div>
   </div>
 </div>
 
@@ -916,23 +1027,23 @@ const CATEGORIES = [
   {
     id: 'agents',
     he: '\u05E1\u05D5\u05DB\u05E0\u05D9 AI', en: 'AI Agents',
-    subHe: '\u05D1\u05D7\u05E8 \u05D0\u05EA \u05D4\u05E1\u05D5\u05DB\u05E0\u05D9\u05DD \u05E9\u05D9\u05E2\u05D1\u05D3\u05D5 \u05D1\u05E9\u05D1\u05D9\u05DC\u05DA 24/7',
+    subHe: '\u05D1\u05D7\u05E8\u05D5 \u05D0\u05EA \u05D4\u05E1\u05D5\u05DB\u05E0\u05D9\u05DD \u05E9\u05D9\u05E2\u05D1\u05D3\u05D5 \u05D1\u05E9\u05D1\u05D9\u05DC\u05DB\u05DD 24/7',
     subEn: 'Choose agents that work for you 24/7',
     badge: null,
   },
   {
     id: 'auto',
     he: '\u05DE\u05E0\u05D5\u05E2 \u05D0\u05D5\u05D8\u05D5\u05DE\u05E6\u05D9\u05D4', en: 'Automation Engine',
-    subHe: '\u05DE\u05D7\u05D1\u05E8 \u05D0\u05EA \u05D4\u05E1\u05D5\u05DB\u05DF \u05DC\u05DB\u05DC\u05D9\u05DD \u05D5\u05DC\u05DE\u05E2\u05E8\u05DB\u05D5\u05EA \u05E9\u05DC\u05DA',
+    subHe: '\u05DE\u05D7\u05D1\u05E8 \u05D0\u05EA \u05D4\u05E1\u05D5\u05DB\u05DF \u05DC\u05DB\u05DC\u05D9\u05DD \u05D5\u05DC\u05DE\u05E2\u05E8\u05DB\u05D5\u05EA \u05E9\u05DC\u05DB\u05DD',
     subEn: 'Connects your agent to tools and systems',
-    badge: { he: '\u05D1\u05D7\u05E8 \u05D0\u05D7\u05D3', en: 'Pick one' },
+    badge: { he: '\u05D1\u05D7\u05E8\u05D5 \u05D0\u05D7\u05D3', en: 'Pick one' },
   },
   {
     id: 'ai',
     he: '\u05E1\u05E4\u05E7 \u05DE\u05D5\u05D3\u05DC AI', en: 'AI Model Provider',
     subHe: '\u05DE\u05D0\u05D9\u05E4\u05D4 \u05D4\u05E1\u05D5\u05DB\u05DF \u05DE\u05E7\u05D1\u05DC \u05D0\u05EA "\u05D4\u05DE\u05D5\u05D7"?',
     subEn: 'Where does the agent get its brain?',
-    badge: { he: '\u05D1\u05D7\u05E8 \u05D0\u05D7\u05D3', en: 'Pick one' },
+    badge: { he: '\u05D1\u05D7\u05E8\u05D5 \u05D0\u05D7\u05D3', en: 'Pick one' },
   },
   {
     id: 'extras',
@@ -944,12 +1055,12 @@ const CATEGORIES = [
 
 const ITEMS = [
   {
-    id: 'oc', cat: 'agents', ram: 1, badge: 'new',
+    id: 'oc', cat: 'agents', ram: 1,
     he: 'OpenClaw Personal', en: 'OpenClaw Personal',
     descHe: '\u05E2\u05D5\u05D6\u05E8 \u05D0\u05D9\u05E9\u05D9 \u05EA\u05DE\u05D9\u05D3\u05D9 \u05D1-Telegram: \u05DC\u05D5\u05D7 \u05E9\u05E0\u05D4, \u05EA\u05D6\u05DB\u05D5\u05E8\u05D5\u05EA, \u05D7\u05D9\u05E4\u05D5\u05E9, \u05E0\u05D9\u05E1\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA. \u05E4\u05D5\u05E2\u05DC 24/7.',
     descEn: 'Always-on personal assistant via Telegram: calendar, reminders, search, drafts.',
     detail: {
-      tagHe: '\u05E1\u05D5\u05DB\u05DF \u05D0\u05D9\u05E9\u05D9', tagEn: 'Personal Agent', tagBg: '#D1FAE5', tagColor: '#065F46',
+      tagHe: '\u05E1\u05D5\u05DB\u05DF \u05D0\u05D9\u05E9\u05D9', tagEn: 'Personal Agent', tagBg: '#1b3a2a', tagColor: '#4caf50',
       descHe: '\u05E2\u05D5\u05D6\u05E8 \u05D0\u05D9\u05E9\u05D9 \u05EA\u05DE\u05D9\u05D3\u05D9 \u05E9\u05E4\u05D5\u05E2\u05DC 24/7 \u05D3\u05E8\u05DA Telegram. \u05DE\u05E0\u05D4\u05DC \u05DC\u05D5\u05D7 \u05E9\u05E0\u05D4, \u05E9\u05D5\u05DC\u05D7 \u05EA\u05D6\u05DB\u05D5\u05E8\u05D5\u05EA, \u05DE\u05D7\u05E4\u05E9 \u05DE\u05D9\u05D3\u05E2 \u05D5\u05DE\u05E0\u05E1\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA.',
       descEn: 'Always-on personal assistant via Telegram. Manages calendar, reminders, search, and message drafting.',
       featHe: ['\u05E0\u05D9\u05D4\u05D5\u05DC \u05DC\u05D5\u05D7 \u05E9\u05E0\u05D4 \u05D5\u05EA\u05D6\u05DB\u05D5\u05E8\u05D5\u05EA \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05D5\u05EA', '\u05D7\u05D9\u05E4\u05D5\u05E9 \u05DE\u05D9\u05D3\u05E2 \u05D1\u05D6\u05DE\u05DF \u05D0\u05DE\u05EA', '\u05E0\u05D9\u05E1\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA, \u05DE\u05D9\u05D9\u05DC\u05D9\u05DD \u05D5\u05E1\u05D9\u05DB\u05D5\u05DE\u05D9\u05DD', '\u05DE\u05E2\u05E0\u05D4 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 24/7', '\u05D6\u05D9\u05DB\u05E8\u05D5\u05DF \u05E9\u05D9\u05D7\u05D5\u05EA \u05D0\u05E8\u05D5\u05DA \u05D8\u05D5\u05D5\u05D7'],
@@ -958,17 +1069,17 @@ const ITEMS = [
     },
   },
   {
-    id: 'mt', cat: 'agents', ram: 3, badge: 'new',
-    he: 'MATEH \u2014 Marketing Agent', en: 'MATEH \u2014 Marketing Agent',
-    descHe: '9 \u05E1\u05D5\u05DB\u05E0\u05D9 \u05E9\u05D9\u05D5\u05D5\u05E7: daily brief \u05D1\u05D1\u05D5\u05E7\u05E8, \u05E0\u05D9\u05D8\u05D5\u05E8 \u05DE\u05EA\u05D7\u05E8\u05D9\u05DD, \u05EA\u05D5\u05DB\u05DF \u05DE\u05D1\u05D5\u05E1\u05E1 \u05DE\u05D7\u05E7\u05E8 \u05E9\u05D5\u05E7 \u05D0\u05DE\u05D9\u05EA\u05D9.',
+    id: 'mt', cat: 'agents', ram: 3,
+    he: 'MATEH \u2014 \u05E1\u05D5\u05DB\u05DF \u05E9\u05D9\u05D5\u05D5\u05E7', en: 'MATEH \u2014 Marketing Agent',
+    descHe: '9 \u05E1\u05D5\u05DB\u05E0\u05D9 \u05E9\u05D9\u05D5\u05D5\u05E7: \u05E1\u05D9\u05DB\u05D5\u05DD \u05D9\u05D5\u05DE\u05D9 \u05D1\u05D1\u05D5\u05E7\u05E8, \u05E0\u05D9\u05D8\u05D5\u05E8 \u05DE\u05EA\u05D7\u05E8\u05D9\u05DD, \u05EA\u05D5\u05DB\u05DF \u05DE\u05D1\u05D5\u05E1\u05E1 \u05DE\u05D7\u05E7\u05E8 \u05E9\u05D5\u05E7 \u05D0\u05DE\u05D9\u05EA\u05D9.',
     descEn: '9 marketing agents: morning daily brief, competitor monitoring, research-based content.',
     detail: {
-      tagHe: '9 \u05E1\u05D5\u05DB\u05E0\u05D9 \u05E9\u05D9\u05D5\u05D5\u05E7', tagEn: '9 Marketing Agents', tagBg: '#EDE9FE', tagColor: '#5B21B6',
-      descHe: '\u05DE\u05E2\u05E8\u05DB\u05EA \u05E9\u05D9\u05D5\u05D5\u05E7 \u05DE\u05DC\u05D0\u05D4: Research Engine \u05DE\u05D7\u05E7\u05E8 \u05E9\u05D5\u05E7 \u05DC\u05E4\u05E0\u05D9 \u05D4\u05D4\u05E4\u05E2\u05DC\u05D4, daily brief \u05DB\u05DC \u05D1\u05D5\u05E7\u05E8, \u05E0\u05D9\u05D8\u05D5\u05E8 \u05DE\u05EA\u05D7\u05E8\u05D9\u05DD \u05D5\u05D9\u05E6\u05D9\u05E8\u05EA \u05EA\u05D5\u05DB\u05DF.',
+      tagHe: '9 \u05E1\u05D5\u05DB\u05E0\u05D9 \u05E9\u05D9\u05D5\u05D5\u05E7', tagEn: '9 Marketing Agents', tagBg: '#2a1a3a', tagColor: '#ce93d8',
+      descHe: '\u05DE\u05E2\u05E8\u05DB\u05EA \u05E9\u05D9\u05D5\u05D5\u05E7 \u05DE\u05DC\u05D0\u05D4: Research Engine \u05DE\u05D7\u05E7\u05E8 \u05E9\u05D5\u05E7 \u05DC\u05E4\u05E0\u05D9 \u05D4\u05D4\u05E4\u05E2\u05DC\u05D4, \u05E1\u05D9\u05DB\u05D5\u05DD \u05D9\u05D5\u05DE\u05D9 \u05DB\u05DC \u05D1\u05D5\u05E7\u05E8, \u05E0\u05D9\u05D8\u05D5\u05E8 \u05DE\u05EA\u05D7\u05E8\u05D9\u05DD \u05D5\u05D9\u05E6\u05D9\u05E8\u05EA \u05EA\u05D5\u05DB\u05DF.',
       descEn: 'Full marketing system: Research Engine before launch, daily morning brief, competitor monitoring and content creation.',
-      featHe: ['Daily Brief \u05DB\u05DC \u05D1\u05D5\u05E7\u05E8 \u05D1-Telegram', 'Research Engine \u2014 \u05E0\u05EA\u05D5\u05E0\u05D9\u05DD \u05D0\u05DE\u05D9\u05EA\u05D9\u05D9\u05DD \u05DC\u05E4\u05E0\u05D9 \u05D4\u05E4\u05E2\u05DC\u05D4', '\u05E0\u05D9\u05D8\u05D5\u05E8 \u05DE\u05EA\u05D7\u05E8\u05D9\u05DD \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05E9\u05D1\u05D5\u05E2\u05D9', '\u05D4\u05E6\u05E2\u05D5\u05EA \u05EA\u05D5\u05DB\u05DF \u05DE\u05D1\u05D5\u05E1\u05E1\u05D5\u05EA \u05E4\u05E2\u05E8\u05D9\u05DD \u05D1\u05E9\u05D5\u05E7', '9 \u05E1\u05D5\u05DB\u05E0\u05D9\u05DD \u05DE\u05EA\u05D5\u05D0\u05DE\u05D9\u05DD'],
+      featHe: ['\u05E1\u05D9\u05DB\u05D5\u05DD \u05D9\u05D5\u05DE\u05D9 \u05DB\u05DC \u05D1\u05D5\u05E7\u05E8 \u05D1-Telegram', 'Research Engine \u2014 \u05E0\u05EA\u05D5\u05E0\u05D9\u05DD \u05D0\u05DE\u05D9\u05EA\u05D9\u05D9\u05DD \u05DC\u05E4\u05E0\u05D9 \u05D4\u05E4\u05E2\u05DC\u05D4', '\u05E0\u05D9\u05D8\u05D5\u05E8 \u05DE\u05EA\u05D7\u05E8\u05D9\u05DD \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05E9\u05D1\u05D5\u05E2\u05D9', '\u05D4\u05E6\u05E2\u05D5\u05EA \u05EA\u05D5\u05DB\u05DF \u05DE\u05D1\u05D5\u05E1\u05E1\u05D5\u05EA \u05E4\u05E2\u05E8\u05D9\u05DD \u05D1\u05E9\u05D5\u05E7', '9 \u05E1\u05D5\u05DB\u05E0\u05D9\u05DD \u05DE\u05EA\u05D5\u05D0\u05DE\u05D9\u05DD'],
       featEn: ['Daily Telegram brief every morning', 'Research Engine \u2014 real data before launch', 'Weekly automated competitor monitoring', 'Market-gap based content suggestions', '9 coordinated agents'],
-      tech: 'RAM: 3GB \u00B7 n8n recommended \u00B7 Telegram', price: null,
+      tech: 'RAM: 3GB \u00B7 n8n \u05DE\u05D5\u05DE\u05DC\u05E5 \u00B7 Telegram', price: null,
     },
   },
   {
@@ -977,12 +1088,12 @@ const ITEMS = [
     descHe: '\u05E1\u05D5\u05DB\u05DF \u05E9\u05DE\u05D8\u05E4\u05DC \u05D1\u05E4\u05E0\u05D9\u05D5\u05EA \u05DC\u05E7\u05D5\u05D7\u05D5\u05EA, \u05DE\u05DB\u05D5\u05D5\u05DF \u05DC\u05E8\u05DB\u05D9\u05E9\u05D4 \u05D5\u05E2\u05D5\u05E0\u05D4 \u05E2\u05DC \u05E9\u05D0\u05DC\u05D5\u05EA \u2014 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA.',
     descEn: 'Handles customer inquiries, drives purchases, and answers support questions automatically.',
     detail: {
-      tagHe: '\u05D1\u05E7\u05E8\u05D5\u05D1', tagEn: 'Coming Soon', tagBg: '#FEF3C7', tagColor: '#92400E',
+      tagHe: '\u05D1\u05E7\u05E8\u05D5\u05D1', tagEn: 'Coming Soon', tagBg: '#2a2010', tagColor: '#ff9800',
       descHe: '\u05E1\u05D5\u05DB\u05DF \u05E9\u05DE\u05D8\u05E4\u05DC \u05D1\u05E4\u05E0\u05D9\u05D5\u05EA \u05DC\u05E7\u05D5\u05D7\u05D5\u05EA 24/7, \u05DE\u05DB\u05D5\u05D5\u05DF \u05DC\u05E8\u05DB\u05D9\u05E9\u05D4 \u05D5\u05E2\u05D5\u05E0\u05D4 \u05E2\u05DC \u05E9\u05D0\u05DC\u05D5\u05EA \u05EA\u05DE\u05D9\u05DB\u05D4 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA.',
       descEn: 'Agent handling customer inquiries 24/7, guiding toward purchase and answering support automatically.',
       featHe: ['\u05DE\u05D9\u05D5\u05DF \u05D5\u05E0\u05D9\u05EA\u05D5\u05D1 \u05E4\u05E0\u05D9\u05D5\u05EA \u05DC\u05E7\u05D5\u05D7\u05D5\u05EA', '\u05EA\u05E1\u05E8\u05D9\u05D8\u05D9 \u05DE\u05DB\u05D9\u05E8\u05D4 \u05D3\u05D9\u05E0\u05DE\u05D9\u05D9\u05DD', '\u05DE\u05E2\u05E0\u05D4 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05E2\u05DC \u05E9\u05D0\u05DC\u05D5\u05EA \u05E0\u05E4\u05D5\u05E6\u05D5\u05EA', '\u05D4\u05E2\u05D1\u05E8\u05D4 \u05DC\u05E0\u05E6\u05D9\u05D2 \u05D0\u05E0\u05D5\u05E9\u05D9 \u05DB\u05E9\u05E6\u05E8\u05D9\u05DA'],
       featEn: ['Customer inquiry sorting & routing', 'Dynamic sales scripts', 'Automated FAQ responses', 'Smart handoff to human agent'],
-      tech: 'RAM: 2GB \u00B7 Telegram \u00B7 CRM integration', price: null,
+      tech: 'RAM: 2GB \u00B7 Telegram \u00B7 CRM', price: null,
     },
   },
   {
@@ -991,7 +1102,7 @@ const ITEMS = [
     descHe: '\u05E0\u05D9\u05D4\u05D5\u05DC \u05D7\u05E0\u05D5\u05EA: \u05E0\u05D9\u05D8\u05D5\u05E8 \u05DE\u05D7\u05D9\u05E8\u05D9\u05DD \u05DE\u05EA\u05D7\u05E8\u05D9\u05DD, \u05E2\u05D3\u05DB\u05D5\u05DF \u05DE\u05DC\u05D0\u05D9, \u05E9\u05D9\u05E8\u05D5\u05EA \u05DC\u05E7\u05D5\u05D7\u05D5\u05EA \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9.',
     descEn: 'Store management: competitor price monitoring, inventory updates, automated customer service.',
     detail: {
-      tagHe: '\u05D1\u05E7\u05E8\u05D5\u05D1', tagEn: 'Coming Soon', tagBg: '#FEF3C7', tagColor: '#92400E',
+      tagHe: '\u05D1\u05E7\u05E8\u05D5\u05D1', tagEn: 'Coming Soon', tagBg: '#2a2010', tagColor: '#ff9800',
       descHe: '\u05E0\u05D9\u05D4\u05D5\u05DC \u05D7\u05E0\u05D5\u05EA \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9: \u05E0\u05D9\u05D8\u05D5\u05E8 \u05DE\u05D7\u05D9\u05E8\u05D9\u05DD, \u05E2\u05D3\u05DB\u05D5\u05DF \u05DE\u05DC\u05D0\u05D9, \u05E9\u05D9\u05E8\u05D5\u05EA \u05DC\u05E7\u05D5\u05D7\u05D5\u05EA \u05D1-Telegram \u05D5\u05D3\u05D5\u05D7\u05D5\u05EA \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA.',
       descEn: 'Automated store management: price monitoring, inventory, Telegram customer service, sales reports.',
       featHe: ['\u05E0\u05D9\u05D8\u05D5\u05E8 \u05DE\u05D7\u05D9\u05E8\u05D9\u05DD \u05DE\u05EA\u05D7\u05E8\u05D9\u05DD \u05D1\u05D6\u05DE\u05DF \u05D0\u05DE\u05EA', '\u05E2\u05D3\u05DB\u05D5\u05DF \u05DE\u05DC\u05D0\u05D9 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9', '\u05E9\u05D9\u05E8\u05D5\u05EA \u05DC\u05E7\u05D5\u05D7\u05D5\u05EA \u05D1-Telegram', '\u05D3\u05D5\u05D7\u05D5\u05EA \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA \u05D9\u05D5\u05DE\u05D9\u05D9\u05DD'],
@@ -1002,13 +1113,13 @@ const ITEMS = [
   {
     id: 'n8', cat: 'auto', ram: 0.5, radio: true,
     he: 'n8n', en: 'n8n',
-    descHe: '400+ \u05D0\u05D9\u05E0\u05D8\u05D2\u05E8\u05E6\u05D9\u05D5\u05EA. Visual workflow builder. \u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05E1\u05D5\u05DB\u05DF MATEH \u05D5\u05DC\u05DE\u05E9\u05EA\u05DE\u05E9\u05D9\u05DD \u05D8\u05DB\u05E0\u05D9\u05D9\u05DD.',
+    descHe: '400+ \u05D0\u05D9\u05E0\u05D8\u05D2\u05E8\u05E6\u05D9\u05D5\u05EA. \u05D1\u05D5\u05E0\u05D4 \u05D5\u05D9\u05D6\u05D5\u05D0\u05DC\u05D9 \u05DC\u05EA\u05D4\u05DC\u05D9\u05DB\u05D9 \u05E2\u05D1\u05D5\u05D3\u05D4. \u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05E1\u05D5\u05DB\u05DF MATEH \u05D5\u05DC\u05DE\u05E9\u05EA\u05DE\u05E9\u05D9\u05DD \u05D8\u05DB\u05E0\u05D9\u05D9\u05DD.',
     descEn: '400+ integrations. Visual workflow builder. Recommended for MATEH and technical users.',
     detail: {
-      tagHe: '\u05DE\u05E0\u05D5\u05E2 \u05D0\u05D5\u05D8\u05D5\u05DE\u05E6\u05D9\u05D4', tagEn: 'Automation Engine', tagBg: '#E0F2FE', tagColor: '#0369A1',
+      tagHe: '\u05DE\u05E0\u05D5\u05E2 \u05D0\u05D5\u05D8\u05D5\u05DE\u05E6\u05D9\u05D4', tagEn: 'Automation Engine', tagBg: '#102030', tagColor: '#64b5f6',
       descHe: '\u05DB\u05DC\u05D9 \u05D4\u05D0\u05D5\u05D8\u05D5\u05DE\u05E6\u05D9\u05D4 \u05D4\u05DE\u05E7\u05E6\u05D5\u05E2\u05D9 \u05E2\u05DD 400+ \u05D0\u05D9\u05E0\u05D8\u05D2\u05E8\u05E6\u05D9\u05D5\u05EA. \u05DE\u05D7\u05D1\u05E8 \u05DCCRM, Google Sheets, Slack \u05D5\u05E2\u05D5\u05D3.',
       descEn: 'Professional automation tool with 400+ integrations. Connects to CRM, Google Sheets, Slack and more.',
-      featHe: ['400+ \u05E7\u05D5\u05E0\u05E7\u05D8\u05D5\u05E8\u05D9\u05DD \u05DE\u05D5\u05D1\u05E0\u05D9\u05DD', 'Visual workflow builder', 'Webhooks \u05D5-API calls \u05DE\u05DC\u05D0\u05D9\u05DD', '\u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05E1\u05D5\u05DB\u05DF MATEH', '\u05E7\u05D5\u05D3 \u05E4\u05EA\u05D5\u05D7 fair-code'],
+      featHe: ['400+ \u05DE\u05D7\u05D1\u05E8\u05D9\u05DD \u05DE\u05D5\u05D1\u05E0\u05D9\u05DD', '\u05D1\u05D5\u05E0\u05D4 \u05D5\u05D9\u05D6\u05D5\u05D0\u05DC\u05D9 \u05DC\u05EA\u05D4\u05DC\u05D9\u05DB\u05D9 \u05E2\u05D1\u05D5\u05D3\u05D4', 'Webhooks \u05D5\u05E7\u05E8\u05D9\u05D0\u05D5\u05EA API \u05DE\u05DC\u05D0\u05D5\u05EA', '\u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05E1\u05D5\u05DB\u05DF MATEH', '\u05E7\u05D5\u05D3 \u05E4\u05EA\u05D5\u05D7 fair-code'],
       featEn: ['400+ built-in connectors', 'Visual workflow builder', 'Full webhooks & API calls', 'Recommended for MATEH agent', 'Fair-code open source'],
       tech: 'RAM: 0.5GB', price: null,
     },
@@ -1019,7 +1130,7 @@ const ITEMS = [
     descHe: '\u05DE\u05DE\u05E9\u05E7 \u05E4\u05E9\u05D5\u05D8 \u05D5\u05D9\u05D3\u05D9\u05D3\u05D5\u05EA\u05D9. 200+ \u05D0\u05D9\u05E0\u05D8\u05D2\u05E8\u05E6\u05D9\u05D5\u05EA. \u05E7\u05D5\u05D3 \u05E4\u05EA\u05D5\u05D7 MIT. \u05DC\u05DB\u05DC \u05E8\u05DE\u05D4 \u05D8\u05DB\u05E0\u05D9\u05EA.',
     descEn: 'Simple, friendly interface. 200+ integrations. MIT open source. Any skill level.',
     detail: {
-      tagHe: '\u05DE\u05E0\u05D5\u05E2 \u05D0\u05D5\u05D8\u05D5\u05DE\u05E6\u05D9\u05D4', tagEn: 'Automation Engine', tagBg: '#E0F2FE', tagColor: '#0369A1',
+      tagHe: '\u05DE\u05E0\u05D5\u05E2 \u05D0\u05D5\u05D8\u05D5\u05DE\u05E6\u05D9\u05D4', tagEn: 'Automation Engine', tagBg: '#102030', tagColor: '#64b5f6',
       descHe: '\u05DE\u05DE\u05E9\u05E7 \u05E0\u05E7\u05D9 \u05D5\u05E4\u05E9\u05D5\u05D8 \u05DC\u05D0\u05D5\u05D8\u05D5\u05DE\u05E6\u05D9\u05D4. \u05DE\u05D5\u05E9\u05DC\u05DD \u05DC\u05DE\u05E9\u05EA\u05DE\u05E9\u05D9\u05DD \u05DC\u05DC\u05D0 \u05E8\u05E7\u05E2 \u05D8\u05DB\u05E0\u05D9. \u05E7\u05D5\u05D3 \u05E4\u05EA\u05D5\u05D7 MIT \u05DC\u05DC\u05D0 \u05DE\u05D2\u05D1\u05DC\u05D5\u05EA.',
       descEn: 'Clean and simple automation interface. Perfect for non-technical users. MIT open source.',
       featHe: ['\u05DE\u05DE\u05E9\u05E7 \u05D5\u05D9\u05D6\u05D5\u05D0\u05DC\u05D9 \u05D9\u05D3\u05D9\u05D3\u05D5\u05EA\u05D9 \u05D1\u05DE\u05D9\u05D5\u05D7\u05D3', '200+ \u05D0\u05D9\u05E0\u05D8\u05D2\u05E8\u05E6\u05D9\u05D5\u05EA', '\u05E7\u05D5\u05D3 \u05E4\u05EA\u05D5\u05D7 MIT \u2014 \u05DC\u05DC\u05D0 \u05DE\u05D2\u05D1\u05DC\u05D5\u05EA', '\u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05EA\u05D7\u05D9\u05DC\u05EA \u05D4\u05D3\u05E8\u05DA'],
@@ -1033,8 +1144,8 @@ const ITEMS = [
     descHe: 'Anthropic Claude / OpenAI \u2014 \u05D7\u05E1\u05DB\u05D5\u05E0\u05D9 \u05D1\u05D9\u05D5\u05EA\u05E8 \u05DC\u05D8\u05D5\u05D5\u05D7 \u05D0\u05E8\u05D5\u05DA. \u05E9\u05DC\u05D9\u05D8\u05D4 \u05DE\u05DC\u05D0\u05D4 \u05E2\u05DC \u05E2\u05DC\u05D5\u05D9\u05D5\u05EA.',
     descEn: 'Anthropic Claude / OpenAI \u2014 most cost-effective long-term. Full cost control.',
     detail: {
-      tagHe: '\u05E1\u05E4\u05E7 AI', tagEn: 'AI Provider', tagBg: '#F0FDF4', tagColor: '#166534',
-      descHe: '\u05D4\u05E9\u05EA\u05DE\u05E9 \u05D1\u05DE\u05E4\u05EA\u05D7\u05D5\u05EA API \u05E9\u05DC\u05DA \u05DE-Anthropic (Claude) \u05D0\u05D5 OpenAI. \u05D4\u05DB\u05D9 \u05D7\u05E1\u05DB\u05D5\u05E0\u05D9 \u05DC\u05D8\u05D5\u05D5\u05D7 \u05D0\u05E8\u05D5\u05DA.',
+      tagHe: '\u05E1\u05E4\u05E7 AI', tagEn: 'AI Provider', tagBg: '#1a2a1a', tagColor: '#4caf50',
+      descHe: '\u05D4\u05E9\u05EA\u05DE\u05E9\u05D5 \u05D1\u05DE\u05E4\u05EA\u05D7\u05D5\u05EA API \u05E9\u05DC\u05DB\u05DD \u05DE-Anthropic (Claude) \u05D0\u05D5 OpenAI. \u05D4\u05DB\u05D9 \u05D7\u05E1\u05DB\u05D5\u05E0\u05D9 \u05DC\u05D8\u05D5\u05D5\u05D7 \u05D0\u05E8\u05D5\u05DA.',
       descEn: 'Use your own API keys from Anthropic (Claude) or OpenAI. Most cost-effective long-term.',
       featHe: ['Claude Sonnet 4 / Opus 4 (Anthropic)', 'OpenAI GPT-4o / GPT-4o mini', '\u05E9\u05DC\u05D9\u05D8\u05D4 \u05DE\u05DC\u05D0\u05D4 \u05E2\u05DC \u05E2\u05DC\u05D5\u05D9\u05D5\u05EA', '\u05EA\u05E9\u05DC\u05D5\u05DD \u05D9\u05E9\u05D9\u05E8 \u05DC\u05E1\u05E4\u05E7 \u2014 \u05DC\u05DC\u05D0 \u05E2\u05DE\u05DC\u05D4'],
       featEn: ['Claude Sonnet 4 / Opus 4 (Anthropic)', 'OpenAI GPT-4o / GPT-4o mini', 'Full cost control', 'Direct payment to provider \u2014 no markup'],
@@ -1047,26 +1158,26 @@ const ITEMS = [
     descHe: '\u05E4\u05E8\u05D8\u05D9\u05D5\u05EA \u05DE\u05DC\u05D0\u05D4 \u2014 \u05E9\u05D5\u05DD \u05DE\u05D9\u05D3\u05E2 \u05DC\u05D0 \u05D9\u05D5\u05E6\u05D0 \u05DE\u05D4\u05E9\u05E8\u05EA. \u05D3\u05D5\u05E8\u05E9 \u05EA\u05D5\u05DB\u05E0\u05D9\u05EA \u05E4\u05E8\u05D5 \u05DC\u05E4\u05D7\u05D5\u05EA.',
     descEn: 'Full privacy \u2014 no data leaves your server. Requires Pro plan minimum.',
     detail: {
-      tagHe: '\u05E4\u05E8\u05D8\u05D9\u05D5\u05EA \u05DE\u05E7\u05E1\u05D9\u05DE\u05DC\u05D9\u05EA', tagEn: 'Max Privacy', tagBg: '#EDE9FE', tagColor: '#5B21B6',
-      descHe: '\u05D4\u05E8\u05E5 \u05DE\u05D5\u05D3\u05DC AI \u05D9\u05E9\u05D9\u05E8\u05D5\u05EA \u05E2\u05DC \u05D4-VPS \u05E9\u05DC\u05DA. \u05E9\u05D5\u05DD \u05DE\u05D9\u05D3\u05E2 \u05DC\u05D0 \u05D9\u05D5\u05E6\u05D0. \u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05E0\u05EA\u05D5\u05E0\u05D9\u05DD \u05E2\u05E1\u05E7\u05D9\u05D9\u05DD \u05E8\u05D2\u05D9\u05E9\u05D9\u05DD.',
+      tagHe: '\u05E4\u05E8\u05D8\u05D9\u05D5\u05EA \u05DE\u05E7\u05E1\u05D9\u05DE\u05DC\u05D9\u05EA', tagEn: 'Max Privacy', tagBg: '#2a1a3a', tagColor: '#ce93d8',
+      descHe: '\u05D4\u05E8\u05D9\u05E6\u05D5 \u05DE\u05D5\u05D3\u05DC AI \u05D9\u05E9\u05D9\u05E8\u05D5\u05EA \u05E2\u05DC \u05D4-VPS \u05E9\u05DC\u05DB\u05DD. \u05E9\u05D5\u05DD \u05DE\u05D9\u05D3\u05E2 \u05DC\u05D0 \u05D9\u05D5\u05E6\u05D0. \u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05E0\u05EA\u05D5\u05E0\u05D9\u05DD \u05E2\u05E1\u05E7\u05D9\u05D9\u05DD \u05E8\u05D2\u05D9\u05E9\u05D9\u05DD.',
       descEn: 'Run AI model directly on your VPS. No data leaves. Recommended for sensitive business data.',
-      featHe: ['\u05E4\u05E8\u05D8\u05D9\u05D5\u05EA \u05DE\u05DC\u05D0\u05D4 \u2014 \u05D0\u05E4\u05E1 \u05E9\u05DC\u05D9\u05D7\u05EA \u05E0\u05EA\u05D5\u05E0\u05D9\u05DD', 'Llama 3.1, Mistral, Phi-3 \u05D5\u05E2\u05D5\u05D3', '\u05E2\u05DC\u05D5\u05EA \u05D7\u05D3-\u05E4\u05E2\u05DE\u05D9\u05EA \u2014 \u05DC\u05DC\u05D0 \u05EA\u05E9\u05DC\u05D5\u05DD \u05D7\u05D5\u05D3\u05E9\u05D9', '\u05D3\u05D5\u05E8\u05E9 \u05EA\u05D5\u05DB\u05E0\u05D9\u05EA \u05E4\u05E8\u05D5 \u05DE\u05D9\u05E0\u05D9\u05DE\u05D5\u05DD'],
+      featHe: ['\u05E4\u05E8\u05D8\u05D9\u05D5\u05EA \u05DE\u05DC\u05D0\u05D4 \u2014 \u05D0\u05E4\u05E1 \u05E9\u05DC\u05D9\u05D7\u05EA \u05E0\u05EA\u05D5\u05E0\u05D9\u05DD', 'Llama 3.1, Mistral, Phi-3 \u05D5\u05E2\u05D5\u05D3', '\u05E2\u05DC\u05D5\u05EA \u05D7\u05D3-\u05E4\u05E2\u05DE\u05D9\u05EA \u2014 \u05DC\u05DC\u05D0 \u05EA\u05E9\u05DC\u05D5\u05DD \u05D7\u05D5\u05D3\u05E9\u05D9', '\u05D3\u05D5\u05E8\u05E9 \u05EA\u05D5\u05DB\u05E0\u05D9\u05EA \u05E4\u05E8\u05D5 \u05DC\u05E4\u05D7\u05D5\u05EA'],
       featEn: ['Complete privacy \u2014 zero data transmission', 'Llama 3.1, Mistral, Phi-3 and more', 'One-time cost \u2014 no monthly payment', 'Requires Pro plan minimum'],
-      tech: 'RAM: 8GB extra \u2014 Pro plan required', price: null,
+      tech: 'RAM: 8GB \u05E0\u05D5\u05E1\u05E3 \u2014 \u05EA\u05D5\u05DB\u05E0\u05D9\u05EA \u05E4\u05E8\u05D5 \u05DC\u05E4\u05D7\u05D5\u05EA', price: null,
     },
   },
   {
     id: 'bk', cat: 'extras', ram: 0, extra: 19,
     he: '\u05D2\u05D9\u05D1\u05D5\u05D9 \u05D9\u05D5\u05DE\u05D9', en: 'Daily Backup',
-    descHe: '\u05D2\u05D9\u05D1\u05D5\u05D9 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05D9\u05D5\u05DE\u05D9. 7 \u05D9\u05DE\u05D9 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4. \u05E9\u05D7\u05D6\u05D5\u05E8 \u05D1\u05DC\u05D7\u05D9\u05E6\u05D4 \u05D0\u05D7\u05EA \u05DE\u05D4-Dashboard.',
+    descHe: '\u05D2\u05D9\u05D1\u05D5\u05D9 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05D9\u05D5\u05DE\u05D9. 7 \u05D9\u05DE\u05D9 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4. \u05E9\u05D7\u05D6\u05D5\u05E8 \u05D1\u05DC\u05D7\u05D9\u05E6\u05D4 \u05D0\u05D7\u05EA \u05DE\u05DC\u05D5\u05D7 \u05D4\u05D1\u05E7\u05E8\u05D4.',
     descEn: 'Daily automatic backup. 7-day history. One-click restore from Dashboard.',
     detail: {
-      tagHe: '\u05D0\u05D1\u05D8\u05D7\u05D4', tagEn: 'Security', tagBg: '#FEF3C7', tagColor: '#92400E',
-      descHe: '\u05D2\u05D9\u05D1\u05D5\u05D9 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05D9\u05D5\u05DE\u05D9 \u05E9\u05DC \u05DB\u05DC \u05D4\u05E1\u05D1\u05D9\u05D1\u05D4: \u05D4\u05D2\u05D3\u05E8\u05D5\u05EA, \u05E0\u05EA\u05D5\u05E0\u05D9 \u05E1\u05D5\u05DB\u05DF, workflows. 7 \u05D9\u05DE\u05D9 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4.',
+      tagHe: '\u05D0\u05D1\u05D8\u05D7\u05D4', tagEn: 'Security', tagBg: '#2a2010', tagColor: '#ff9800',
+      descHe: '\u05D2\u05D9\u05D1\u05D5\u05D9 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05D9\u05D5\u05DE\u05D9 \u05E9\u05DC \u05DB\u05DC \u05D4\u05E1\u05D1\u05D9\u05D1\u05D4: \u05D4\u05D2\u05D3\u05E8\u05D5\u05EA, \u05E0\u05EA\u05D5\u05E0\u05D9 \u05E1\u05D5\u05DB\u05DF, \u05EA\u05D4\u05DC\u05D9\u05DB\u05D9 \u05E2\u05D1\u05D5\u05D3\u05D4. 7 \u05D9\u05DE\u05D9 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4.',
       descEn: 'Daily automatic backup of your entire environment: settings, agent data, workflows. 7-day history.',
-      featHe: ['\u05D2\u05D9\u05D1\u05D5\u05D9 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05DB\u05DC \u05D9\u05D5\u05DD \u05D1\u05D7\u05E6\u05D5\u05EA', '7 \u05D9\u05DE\u05D9 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DC\u05E9\u05D7\u05D6\u05D5\u05E8', '\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D1\u05DC\u05D7\u05D9\u05E6\u05D4 \u05D0\u05D7\u05EA \u05DE\u05D4-Dashboard', '\u05D0\u05D7\u05E1\u05D5\u05DF \u05D2\u05D9\u05D1\u05D5\u05D9 \u05DC\u05D0 \u05E0\u05DB\u05DC\u05DC \u05D1\u05DE\u05DB\u05E1\u05EA \u05D4-VPS'],
+      featHe: ['\u05D2\u05D9\u05D1\u05D5\u05D9 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05DB\u05DC \u05D9\u05D5\u05DD \u05D1\u05D7\u05E6\u05D5\u05EA', '7 \u05D9\u05DE\u05D9 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DC\u05E9\u05D7\u05D6\u05D5\u05E8', '\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D1\u05DC\u05D7\u05D9\u05E6\u05D4 \u05D0\u05D7\u05EA \u05DE\u05DC\u05D5\u05D7 \u05D4\u05D1\u05E7\u05E8\u05D4', '\u05D0\u05D7\u05E1\u05D5\u05DF \u05D2\u05D9\u05D1\u05D5\u05D9 \u05DC\u05D0 \u05E0\u05DB\u05DC\u05DC \u05D1\u05DE\u05DB\u05E1\u05EA \u05D4-VPS'],
       featEn: ['Automatic backup every night', '7-day restore history', 'One-click restore from Dashboard', 'Backup storage outside VPS quota'],
-      tech: '+\u20AA19/month', price: 19,
+      tech: '+\u20AA19/\u05D7\u05D5\u05D3\u05E9', price: 19,
     },
   },
   {
@@ -1075,12 +1186,12 @@ const ITEMS = [
     descHe: 'NVMe SSD \u05E0\u05D5\u05E1\u05E3. \u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05E1\u05D5\u05DB\u05DF MATEH \u05E2\u05DD \u05E0\u05EA\u05D5\u05E0\u05D9\u05DD \u05E8\u05D1\u05D9\u05DD.',
     descEn: 'Additional NVMe SSD. Recommended for MATEH agent with large datasets.',
     detail: {
-      tagHe: '\u05D0\u05D7\u05E1\u05D5\u05DF', tagEn: 'Storage', tagBg: '#F0FDF4', tagColor: '#166534',
-      descHe: '\u05D4\u05D5\u05E1\u05E3 \u05E0\u05E4\u05D7 \u05D0\u05D7\u05E1\u05D5\u05DF NVMe \u05DC\u05E1\u05D1\u05D9\u05D1\u05D4 \u05E9\u05DC\u05DA. \u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05E1\u05D5\u05DB\u05DF MATEH \u05E2\u05DD \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05D0\u05E8\u05D5\u05DB\u05D4 \u05D5\u05DE\u05E1\u05D3\u05D9 \u05E0\u05EA\u05D5\u05E0\u05D9\u05DD.',
+      tagHe: '\u05D0\u05D7\u05E1\u05D5\u05DF', tagEn: 'Storage', tagBg: '#1a2a1a', tagColor: '#4caf50',
+      descHe: '\u05D4\u05D5\u05E1\u05D9\u05E4\u05D5 \u05E0\u05E4\u05D7 \u05D0\u05D7\u05E1\u05D5\u05DF NVMe \u05DC\u05E1\u05D1\u05D9\u05D1\u05D4 \u05E9\u05DC\u05DB\u05DD. \u05DE\u05D5\u05DE\u05DC\u05E5 \u05DC\u05E1\u05D5\u05DB\u05DF MATEH \u05E2\u05DD \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05D0\u05E8\u05D5\u05DB\u05D4 \u05D5\u05DE\u05E1\u05D3\u05D9 \u05E0\u05EA\u05D5\u05E0\u05D9\u05DD.',
       descEn: 'Add NVMe storage to your environment. Recommended for MATEH with long history and large databases.',
-      featHe: ['NVMe SSD \u2014 \u05DE\u05D4\u05D9\u05E8 \u05DB\u05DE\u05D5 \u05E9\u05D0\u05E8 \u05D4-VPS', '\u05DE\u05D5\u05DE\u05DC\u05E5: +100GB \u05DC\u05E1\u05D5\u05DB\u05DF MATEH', '\u05DE\u05EA\u05D5\u05D5\u05E1\u05E3 \u05DC\u05E0\u05E4\u05D7 \u05D4\u05E7\u05D9\u05D9\u05DD', '\u05E9\u05D9\u05E0\u05D5\u05D9 \u05D2\u05D5\u05D3\u05DC \u05D6\u05DE\u05D9\u05DF \u05D1\u05DB\u05DC \u05E2\u05EA \u05DE\u05D4-Dashboard'],
+      featHe: ['NVMe SSD \u2014 \u05DE\u05D4\u05D9\u05E8 \u05DB\u05DE\u05D5 \u05E9\u05D0\u05E8 \u05D4-VPS', '\u05DE\u05D5\u05DE\u05DC\u05E5: +100GB \u05DC\u05E1\u05D5\u05DB\u05DF MATEH', '\u05DE\u05EA\u05D5\u05D5\u05E1\u05E3 \u05DC\u05E0\u05E4\u05D7 \u05D4\u05E7\u05D9\u05D9\u05DD', '\u05E9\u05D9\u05E0\u05D5\u05D9 \u05D2\u05D5\u05D3\u05DC \u05D6\u05DE\u05D9\u05DF \u05D1\u05DB\u05DC \u05E2\u05EA \u05DE\u05DC\u05D5\u05D7 \u05D4\u05D1\u05E7\u05E8\u05D4'],
       featEn: ['NVMe SSD \u2014 same speed as the rest', 'Recommended: +100GB for MATEH', 'Added to existing plan volume', 'Resize available anytime'],
-      tech: 'Price depends on size selected',
+      tech: '\u05D4\u05DE\u05D7\u05D9\u05E8 \u05DC\u05E4\u05D9 \u05D4\u05D2\u05D5\u05D3\u05DC \u05E9\u05E0\u05D1\u05D7\u05E8',
     },
   },
 ];
@@ -1090,6 +1201,7 @@ const ITEMS = [
 ───────────────────────────────────────── */
 let lang = 'he';
 let storageGb = 20;
+let billingPeriod = 'monthly';
 const selected = new Set(['ap', 'ok']);
 
 /* ─────────────────────────────────────────
@@ -1097,29 +1209,48 @@ const selected = new Set(['ap', 'ok']);
 ───────────────────────────────────────── */
 const T = {
   he: {
-    'cfg-h2': '\u05D1\u05E0\u05D4 \u05D0\u05EA \u05D4\u05E1\u05D1\u05D9\u05D1\u05D4 \u05E9\u05DC\u05DA',
-    'cfg-sub': '\u05D1\u05D7\u05E8 \u05E8\u05DB\u05D9\u05D1\u05D9\u05DD \u2014 \u05D4\u05DE\u05E9\u05D0\u05D1\u05D9\u05DD \u05D5\u05D4\u05DE\u05D7\u05D9\u05E8 \u05DE\u05EA\u05E2\u05D3\u05DB\u05E0\u05D9\u05DD \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA. \u05DC\u05D7\u05E5 <b>i</b> \u05DC\u05E4\u05E8\u05D8\u05D9\u05DD \u05E0\u05D5\u05E1\u05E4\u05D9\u05DD.',
-    'sum-label': '\u05D4\u05D6\u05DE\u05E0\u05EA\u05DA',
+    'cfg-h2': '\u05D1\u05E0\u05D5 \u05D0\u05EA \u05D4\u05E1\u05D1\u05D9\u05D1\u05D4 \u05E9\u05DC\u05DB\u05DD',
+    'cfg-sub': '\u05D1\u05D7\u05E8\u05D5 \u05E8\u05DB\u05D9\u05D1\u05D9\u05DD \u2014 \u05D4\u05DE\u05E9\u05D0\u05D1\u05D9\u05DD \u05D5\u05D4\u05DE\u05D7\u05D9\u05E8 \u05DE\u05EA\u05E2\u05D3\u05DB\u05E0\u05D9\u05DD \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA. \u05DC\u05D7\u05E6\u05D5 <b>i</b> \u05DC\u05E4\u05E8\u05D8\u05D9\u05DD \u05E0\u05D5\u05E1\u05E4\u05D9\u05DD.',
+    'sum-label': '\u05D4\u05D4\u05D6\u05DE\u05E0\u05D4 \u05E9\u05DC\u05DB\u05DD',
     'ram-label': 'RAM \u05E0\u05D3\u05E8\u05E9',
     'nav-docs': '\u05EA\u05D9\u05E2\u05D5\u05D3', 'nav-support': '\u05EA\u05DE\u05D9\u05DB\u05D4', 'nav-login': '\u05DB\u05E0\u05D9\u05E1\u05D4',
-    'fl-terms': '\u05EA\u05E0\u05D0\u05D9 \u05E9\u05D9\u05DE\u05D5\u05E9', 'fl-privacy': '\u05DE\u05D3\u05D9\u05E0\u05D9\u05D5\u05EA \u05E4\u05E8\u05D8\u05D9\u05D5\u05EA', 'fl-cancel': '\u05DE\u05D3\u05D9\u05E0\u05D9\u05D5\u05EA \u05D1\u05D9\u05D8\u05D5\u05DC',
-    'footer-copy': '\u00A9 2026 Flowmatic Ltd. \u00B7 \u05DB\u05DC \u05D4\u05D6\u05DB\u05D5\u05D9\u05D5\u05EA \u05E9\u05DE\u05D5\u05E8\u05D5\u05EA \u00B7 \u05E2\u05D5\u05E1\u05E7 \u05DE\u05D5\u05E8\u05E9\u05D4 \u00B7 \u05D9\u05E9\u05E8\u05D0\u05DC',
     'tr1': 'Hetzner Cloud Europe', 'tr2': 'AllPay \u00B7 PCI DSS Level 1',
-    'tr3': 'SSL + \u05D7\u05E9\u05D1\u05D5\u05E0\u05D9\u05EA \u05DE\u05E1 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA', 'tr4': '99.5% uptime SLA',
+    'tr3': 'SSL + \u05D7\u05E9\u05D1\u05D5\u05E0\u05D9\u05EA \u05DE\u05E1 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA', 'tr4': '99.5% SLA',
     'sum-plan-lbl': '\u05EA\u05D5\u05DB\u05E0\u05D9\u05EA', 'sum-addons-lbl': '\u05EA\u05D5\u05E1\u05E4\u05D5\u05EA',
-    'sum-empty': '\u05D1\u05D7\u05E8 \u05E1\u05D5\u05DB\u05E0\u05D9\u05DD \u05D5\u05E8\u05DB\u05D9\u05D1\u05D9\u05DD<br/>\u05DB\u05D3\u05D9 \u05DC\u05E8\u05D0\u05D5\u05EA \u05D0\u05EA \u05D4\u05D4\u05D6\u05DE\u05E0\u05D4 \u05E9\u05DC\u05DA',
-    'sum-mo': ' /\u05DE\u05E1',
-    'deploy-active': '\uD83D\uDE80 Deploy \u05E2\u05DB\u05E9\u05D9\u05D5',
-    'deploy-inactive': '\u05D1\u05D7\u05E8 \u05E1\u05D5\u05DB\u05DF \u05DC\u05D4\u05DE\u05E9\u05D9\u05DA',
+    'sum-empty': '\u05D1\u05D7\u05E8\u05D5 \u05E1\u05D5\u05DB\u05E0\u05D9\u05DD \u05D5\u05E8\u05DB\u05D9\u05D1\u05D9\u05DD<br/>\u05DB\u05D3\u05D9 \u05DC\u05E8\u05D0\u05D5\u05EA \u05D0\u05EA \u05D4\u05D4\u05D6\u05DE\u05E0\u05D4 \u05E9\u05DC\u05DB\u05DD',
+    'sum-mo': ' /\u05D7\u05D5\u05D3\u05E9',
+    'sum-yr': ' /\u05E9\u05E0\u05D4',
+    'deploy-active': '\u05DC\u05E4\u05EA\u05D5\u05D7 \u05D7\u05E9\u05D1\u05D5\u05DF',
+    'deploy-inactive': '\u05D1\u05D7\u05E8\u05D5 \u05E1\u05D5\u05DB\u05DF \u05DC\u05D4\u05DE\u05E9\u05D9\u05DA',
     'deploy-hint-active': '\u05EA\u05E9\u05DC\u05D5\u05DD \u05DE\u05D0\u05D5\u05D1\u05D8\u05D7 \u00B7 AllPay',
-    'deploy-hint-inactive': '\u05D1\u05D7\u05E8 \u05DC\u05E4\u05D7\u05D5\u05EA \u05E1\u05D5\u05DB\u05DF \u05D0\u05D7\u05D3',
-    'plan-specs-init': '\u05D1\u05D7\u05E8 \u05E8\u05DB\u05D9\u05D1 \u05DC\u05D4\u05EA\u05D7\u05D9\u05DC',
+    'deploy-hint-inactive': '\u05D1\u05D7\u05E8\u05D5 \u05DC\u05E4\u05D7\u05D5\u05EA \u05E1\u05D5\u05DB\u05DF \u05D0\u05D7\u05D3',
+    'plan-specs-init': '\u05D1\u05D7\u05E8\u05D5 \u05E8\u05DB\u05D9\u05D1 \u05DC\u05D4\u05EA\u05D7\u05DC\u05D4',
     'dedicated': 'Dedicated',
     'popup-feat-title': '\u05DE\u05D4 \u05DB\u05DC\u05D5\u05DC',
     'popup-req-title': '\u05D3\u05E8\u05D9\u05E9\u05D5\u05EA',
     'popup-price-incl': '\u05DB\u05DC\u05D5\u05DC',
     'size-label': '\u05D2\u05D5\u05D3\u05DC:',
-    'mo': '\u05DE\u05E1',
+    'mo': '\u05D7\u05D5\u05D3\u05E9',
+    'billing-monthly': '\u05D7\u05D5\u05D3\u05E9\u05D9',
+    'billing-annual': '\u05E9\u05E0\u05EA\u05D9',
+    'billing-save': '\u05D7\u05D5\u05E1\u05DB\u05D9\u05DD \u20AA{amount} \u05D1\u05E9\u05E0\u05D4',
+    'support-title': '\u05E6\u05E8\u05D5 \u05E7\u05E9\u05E8',
+    'support-name': '\u05E9\u05DD',
+    'support-contact': '\u05D0\u05D9\u05DE\u05D9\u05D9\u05DC \u05D0\u05D5 \u05D8\u05DC\u05E4\u05D5\u05DF',
+    'support-message': '\u05D4\u05D5\u05D3\u05E2\u05D4',
+    'support-send': '\u05E9\u05DC\u05D7\u05D5',
+    'support-success': '\u05D4\u05D4\u05D5\u05D3\u05E2\u05D4 \u05E0\u05E9\u05DC\u05D7\u05D4 \u05D1\u05D4\u05E6\u05DC\u05D7\u05D4! \u05E0\u05D7\u05D6\u05D5\u05E8 \u05D0\u05DC\u05D9\u05DB\u05DD \u05D1\u05D4\u05E7\u05D3\u05DD.',
+    'docs-title': '\u05EA\u05D9\u05E2\u05D5\u05D3 OpenClaw Hosting',
+    'docs-what-title': '\u05DE\u05D4 \u05D6\u05D4 OpenClaw Hosting?',
+    'docs-what': '\u05E4\u05DC\u05D8\u05E4\u05D5\u05E8\u05DE\u05EA \u05D0\u05D9\u05E8\u05D5\u05D7 \u05DC\u05E1\u05D5\u05DB\u05E0\u05D9 AI \u05DE\u05D1\u05D5\u05E1\u05E1\u05D9 OpenClaw. \u05D1\u05D7\u05E8\u05D5 \u05E1\u05D5\u05DB\u05E0\u05D9\u05DD, \u05E9\u05DC\u05DE\u05D5 \u2014 \u05D4-VPS \u05E9\u05DC\u05DB\u05DD \u05DE\u05D5\u05DB\u05DF \u05EA\u05D5\u05DA 3 \u05D3\u05E7\u05D5\u05EA. \u05DC\u05DC\u05D0 \u05D4\u05D2\u05D3\u05E8\u05D5\u05EA \u05D8\u05DB\u05E0\u05D9\u05D5\u05EA, \u05DC\u05DC\u05D0 \u05E4\u05E7\u05D5\u05D3\u05D5\u05EA \u05D1\u05D8\u05E8\u05DE\u05D9\u05E0\u05DC.',
+    'docs-how-title': '\u05D0\u05D9\u05DA \u05D6\u05D4 \u05E2\u05D5\u05D1\u05D3?',
+    'docs-how': '1. \u05D1\u05D7\u05E8\u05D5 \u05E1\u05D5\u05DB\u05E0\u05D9\u05DD \u05D5\u05EA\u05D5\u05E1\u05E4\u05D5\u05EA \u05D1\u05E7\u05D5\u05E0\u05E4\u05D9\u05D2\u05D5\u05E8\u05D8\u05D5\u05E8\n2. \u05D4\u05D9\u05E8\u05E9\u05DE\u05D5 \u05D5\u05E9\u05DC\u05DE\u05D5 \u05D1\u05D0\u05D5\u05E4\u05DF \u05DE\u05D0\u05D5\u05D1\u05D8\u05D7 \u05D3\u05E8\u05DA AllPay\n3. \u05D4\u05DE\u05EA\u05D9\u05E0\u05D5 3 \u05D3\u05E7\u05D5\u05EA \u2014 \u05D4\u05E1\u05D1\u05D9\u05D1\u05D4 \u05E0\u05D1\u05E0\u05D9\u05EA \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA\n4. \u05D4\u05EA\u05D7\u05D9\u05DC\u05D5 \u05DC\u05E2\u05D1\u05D5\u05D3 \u05E2\u05DD \u05D4\u05E1\u05D5\u05DB\u05E0\u05D9\u05DD \u05E9\u05DC\u05DB\u05DD',
+    'docs-security-title': '\u05D0\u05D1\u05D8\u05D7\u05D4 \u05D5\u05E4\u05E8\u05D8\u05D9\u05D5\u05EA',
+    'docs-security': '\u05DB\u05DC VPS \u05DE\u05D0\u05D5\u05E8\u05D7 \u05E2\u05DC \u05E9\u05E8\u05EA\u05D9 Hetzner Cloud \u05D1\u05D0\u05D9\u05E8\u05D5\u05E4\u05D4 (GDPR). \u05D4\u05E0\u05EA\u05D5\u05E0\u05D9\u05DD \u05DE\u05D5\u05E6\u05E4\u05E0\u05D9\u05DD, \u05D4\u05EA\u05E7\u05E9\u05D5\u05E8\u05EA \u05D1-SSL, \u05D5\u05D4\u05EA\u05E9\u05DC\u05D5\u05DE\u05D9\u05DD \u05DE\u05E2\u05D5\u05D1\u05D3\u05D9\u05DD \u05D3\u05E8\u05DA AllPay (PCI DSS Level 1).',
+    'docs-pricing-title': '\u05EA\u05DE\u05D7\u05D5\u05E8 \u05E9\u05E7\u05D5\u05E3',
+    'docs-pricing': '\u05DC\u05DC\u05D0 \u05E2\u05DE\u05DC\u05D5\u05EA \u05E0\u05E1\u05EA\u05E8\u05D5\u05EA. \u05D4\u05DE\u05D7\u05D9\u05E8 \u05E9\u05DE\u05D5\u05E4\u05D9\u05E2 \u05D1\u05E7\u05D5\u05E0\u05E4\u05D9\u05D2\u05D5\u05E8\u05D8\u05D5\u05E8 \u05D4\u05D5\u05D0 \u05D4\u05DE\u05D7\u05D9\u05E8 \u05D4\u05E1\u05D5\u05E4\u05D9. \u05D7\u05E9\u05D1\u05D5\u05E0\u05D9\u05EA \u05DE\u05E1 \u05E0\u05E9\u05DC\u05D7\u05EA \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA. \u05D1\u05D9\u05D8\u05D5\u05DC \u05D1\u05DB\u05DC \u05E2\u05EA.',
+    'docs-sla-title': 'SLA \u05D5\u05D6\u05DE\u05D9\u05E0\u05D5\u05EA \u05E4\u05E2\u05D9\u05DC\u05D4',
+    'docs-sla': '\u05D0\u05E0\u05D7\u05E0\u05D5 \u05DE\u05EA\u05D7\u05D9\u05D9\u05D1\u05D9\u05DD \u05DC-99.5% \u05D6\u05DE\u05D9\u05E0\u05D5\u05EA \u05E4\u05E2\u05D9\u05DC\u05D4. \u05E0\u05D9\u05D8\u05D5\u05E8 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05E9\u05DC \u05DB\u05DC \u05D4\u05E9\u05E8\u05EA\u05D9\u05DD \u05D5\u05D4\u05EA\u05E8\u05D0\u05D4 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA \u05D1\u05DE\u05E7\u05E8\u05D4 \u05E9\u05DC \u05EA\u05E7\u05DC\u05D4.',
   },
   en: {
     'cfg-h2': 'Build Your Environment',
@@ -1127,14 +1258,13 @@ const T = {
     'sum-label': 'Your Order',
     'ram-label': 'RAM Required',
     'nav-docs': 'Docs', 'nav-support': 'Support', 'nav-login': 'Login',
-    'fl-terms': 'Terms of Service', 'fl-privacy': 'Privacy Policy', 'fl-cancel': 'Cancellation Policy',
-    'footer-copy': '\u00A9 2026 Flowmatic Ltd. \u00B7 All rights reserved \u00B7 Israel',
     'tr1': 'Hetzner Cloud Europe', 'tr2': 'AllPay \u00B7 PCI DSS Level 1',
     'tr3': 'SSL + Automatic Tax Invoice', 'tr4': '99.5% uptime SLA',
     'sum-plan-lbl': 'Plan', 'sum-addons-lbl': 'Add-ons',
     'sum-empty': 'Select agents and components<br/>to see your order',
     'sum-mo': ' /mo',
-    'deploy-active': '\uD83D\uDE80 Deploy Now',
+    'sum-yr': ' /yr',
+    'deploy-active': 'Deploy',
     'deploy-inactive': 'Select an agent to continue',
     'deploy-hint-active': 'Secure payment \u00B7 AllPay',
     'deploy-hint-inactive': 'Select at least one agent',
@@ -1145,6 +1275,26 @@ const T = {
     'popup-price-incl': 'Included',
     'size-label': 'Size:',
     'mo': 'mo',
+    'billing-monthly': 'Monthly',
+    'billing-annual': 'Annual',
+    'billing-save': 'Save \u20AA{amount}/year',
+    'support-title': 'Contact Us',
+    'support-name': 'Name',
+    'support-contact': 'Email or Phone',
+    'support-message': 'Message',
+    'support-send': 'Send',
+    'support-success': 'Message sent successfully! We\'ll get back to you soon.',
+    'docs-title': 'OpenClaw Hosting Documentation',
+    'docs-what-title': 'What is OpenClaw Hosting?',
+    'docs-what': 'A hosting platform for OpenClaw-based AI agents. Choose agents, pay \u2014 your VPS is ready in 3 minutes. No technical setup, no terminal commands.',
+    'docs-how-title': 'How does it work?',
+    'docs-how': '1. Choose agents and add-ons in the configurator\n2. Register and pay securely via AllPay\n3. Wait 3 minutes \u2014 environment builds automatically\n4. Start working with your agents',
+    'docs-security-title': 'Security & Privacy',
+    'docs-security': 'Every VPS is hosted on Hetzner Cloud in Europe (GDPR compliant). Data is encrypted, connections are SSL-secured, and payments are processed via AllPay (PCI DSS Level 1).',
+    'docs-pricing-title': 'Transparent Pricing',
+    'docs-pricing': 'No hidden fees. The price shown in the configurator is the final price. Tax invoice sent automatically. Cancel anytime.',
+    'docs-sla-title': 'SLA & Uptime',
+    'docs-sla': 'We commit to 99.5% uptime. Automatic monitoring of all services with auto-recovery in case of issues.',
   },
 };
 
@@ -1186,6 +1336,38 @@ function toggleItem(id, e) {
 }
 
 /* ─────────────────────────────────────────
+   BILLING TOGGLE
+───────────────────────────────────────── */
+function setBilling(period) {
+  billingPeriod = period;
+  updateBillingUI();
+  renderSummary();
+}
+
+function toggleBilling() {
+  billingPeriod = billingPeriod === 'monthly' ? 'annual' : 'monthly';
+  updateBillingUI();
+  renderSummary();
+}
+
+function updateBillingUI() {
+  const sw = document.getElementById('billing-switch');
+  const mLbl = document.getElementById('billing-monthly-lbl');
+  const aLbl = document.getElementById('billing-annual-lbl');
+  mLbl.textContent = t('billing-monthly');
+  aLbl.textContent = t('billing-annual');
+  if (billingPeriod === 'annual') {
+    sw.classList.add('annual');
+    mLbl.classList.remove('active');
+    aLbl.classList.add('active');
+  } else {
+    sw.classList.remove('annual');
+    mLbl.classList.add('active');
+    aLbl.classList.remove('active');
+  }
+}
+
+/* ─────────────────────────────────────────
    POPUP
 ───────────────────────────────────────── */
 function openPopup(id, e) {
@@ -1205,7 +1387,7 @@ function openPopup(id, e) {
   if (d.price === 'incl') {
     priceHtml = `<div class="popup-price-incl">${t('popup-price-incl')}</div>`;
   } else if (typeof d.price === 'number' && d.price > 0) {
-    priceHtml = `<div class="popup-price">+\u20AA${d.price}<span style="font-size:12px;color:#94A3B8">/${t('mo')}</span></div>`;
+    priceHtml = `<div class="popup-price">+\u20AA${d.price}<span style="font-size:12px;color:var(--text-3)">/${t('mo')}</span></div>`;
   }
 
   document.getElementById('popup-body').innerHTML = `
@@ -1234,11 +1416,88 @@ document.getElementById('overlay').addEventListener('click', function(e) {
 });
 
 /* ─────────────────────────────────────────
+   SUPPORT MODAL
+───────────────────────────────────────── */
+function openSupportModal(e) {
+  if (e) e.preventDefault();
+  const body = document.getElementById('support-modal-body');
+  body.innerHTML = `
+    <h3>${t('support-title')}</h3>
+    <div class="modal-form" id="support-form-container">
+      <form id="support-form" onsubmit="submitSupport(event)">
+        <label>${t('support-name')}</label>
+        <input type="text" id="support-name-input" required/>
+        <label>${t('support-contact')}</label>
+        <input type="text" id="support-contact-input" required/>
+        <label>${t('support-message')}</label>
+        <textarea id="support-message-input" required></textarea>
+        <button type="submit">${t('support-send')}</button>
+      </form>
+    </div>
+  `;
+  document.getElementById('support-overlay').classList.add('open');
+}
+
+function closeSupportModal() {
+  document.getElementById('support-overlay').classList.remove('open');
+}
+
+document.getElementById('support-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeSupportModal();
+});
+
+function submitSupport(e) {
+  e.preventDefault();
+  const name = document.getElementById('support-name-input').value;
+  const contact = document.getElementById('support-contact-input').value;
+  const message = document.getElementById('support-message-input').value;
+
+  fetch('/hosting/support', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, contact, message }),
+  }).catch(() => {});
+
+  document.getElementById('support-form-container').innerHTML =
+    `<div class="modal-success">${t('support-success')}</div>`;
+}
+
+/* ─────────────────────────────────────────
+   DOCS MODAL
+───────────────────────────────────────── */
+function openDocsModal(e) {
+  if (e) e.preventDefault();
+  const body = document.getElementById('docs-modal-body');
+  const howSteps = t('docs-how').split('\n').map(s => `<p>${s}</p>`).join('');
+  body.innerHTML = `
+    <h3>${t('docs-title')}</h3>
+    <h4>${t('docs-what-title')}</h4>
+    <p>${t('docs-what')}</p>
+    <h4>${t('docs-how-title')}</h4>
+    ${howSteps}
+    <h4>${t('docs-security-title')}</h4>
+    <p>${t('docs-security')}</p>
+    <h4>${t('docs-pricing-title')}</h4>
+    <p>${t('docs-pricing')}</p>
+    <h4>${t('docs-sla-title')}</h4>
+    <p>${t('docs-sla')}</p>
+  `;
+  document.getElementById('docs-overlay').classList.add('open');
+}
+
+function closeDocsModal() {
+  document.getElementById('docs-overlay').classList.remove('open');
+}
+
+document.getElementById('docs-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeDocsModal();
+});
+
+/* ─────────────────────────────────────────
    RENDER LIST
 ───────────────────────────────────────── */
 function renderBadge(item) {
   if (item.soon) return `<span class="badge badge-soon">${lang === 'he' ? '\u05D1\u05E7\u05E8\u05D5\u05D1' : 'Soon'}</span>`;
-  if (item.badge === 'new') return `<span class="badge badge-new">${lang === 'he' ? '\u05D7\u05D3\u05E9' : 'New'}</span>`;
   if (item.badge === 'adv') return `<span class="badge badge-adv">${lang === 'he' ? '\u05DE\u05EA\u05E7\u05D3\u05DD' : 'Advanced'}</span>`;
   return '';
 }
@@ -1321,7 +1580,7 @@ function renderSummary() {
   const s = calcPlan();
   const planName = lang === 'he' ? s.plan.he : s.plan.en;
   const pct = Math.min(100, (s.ram / s.plan.ram) * 100);
-  const barColor = pct > 85 ? '#EF4444' : pct > 65 ? '#F59E0B' : '#3B82F6';
+  const barColor = pct > 85 ? 'var(--danger)' : pct > 65 ? 'var(--warning)' : 'var(--primary)';
 
   // Plan card
   document.getElementById('plan-name').textContent = `${t('sum-plan-lbl')} ${planName}`;
@@ -1362,23 +1621,50 @@ function renderSummary() {
     });
   }
 
-  // Price
+  // Billing period calculations
+  const isAnnual = billingPeriod === 'annual';
+  const monthlyTotal = s.total;
+  const annualTotal = Math.round(monthlyTotal * 12 * 0.82);
+  const savingsAmount = (monthlyTotal * 12) - annualTotal;
+
+  // Savings display
+  const savingsEl = document.getElementById('billing-savings');
+  if (isAnnual && s.hasAgent) {
+    savingsEl.textContent = t('billing-save').replace('{amount}', savingsAmount);
+  } else {
+    savingsEl.textContent = '';
+  }
+
+  // Price rows
   document.getElementById('sum-plan-lbl').textContent = t('sum-plan-lbl');
-  document.getElementById('sum-plan-price').textContent = `\u20AA${s.plan.price}`;
+  if (isAnnual) {
+    const annualPlan = Math.round(s.plan.price * 12 * 0.82);
+    document.getElementById('sum-plan-price').textContent = `\u20AA${annualPlan}`;
+  } else {
+    document.getElementById('sum-plan-price').textContent = `\u20AA${s.plan.price}`;
+  }
+
   const addonsRow = document.getElementById('sum-addons-row');
   if (s.extra > 0) {
     addonsRow.style.display = 'flex';
     document.getElementById('sum-addons-lbl').textContent = t('sum-addons-lbl');
-    document.getElementById('sum-addons-price').textContent = `\u20AA${s.extra}`;
+    if (isAnnual) {
+      const annualExtras = Math.round(s.extra * 12 * 0.82);
+      document.getElementById('sum-addons-price').textContent = `\u20AA${annualExtras}`;
+    } else {
+      document.getElementById('sum-addons-price').textContent = `\u20AA${s.extra}`;
+    }
   } else {
     addonsRow.style.display = 'none';
   }
 
   const totalEl = document.getElementById('sum-total');
+  const periodSuffix = isAnnual ? t('sum-yr') : t('sum-mo');
   if (s.hasAgent) {
-    totalEl.innerHTML = `\u20AA${s.total}<span>${t('sum-mo')}</span>`;
+    const displayTotal = isAnnual ? annualTotal : monthlyTotal;
+    totalEl.innerHTML = `\u20AA${displayTotal}<span>${periodSuffix}</span>`;
   } else {
-    totalEl.innerHTML = `\u2014<span>${t('sum-mo')}</span>`;
+    totalEl.innerHTML = `\u2014<span>${periodSuffix}</span>`;
   }
 
   // Deploy btn
@@ -1405,7 +1691,6 @@ function applyTranslations() {
   const textIds = [
     'cfg-h2', 'sum-label', 'ram-label',
     'nav-docs', 'nav-support', 'nav-login',
-    'fl-terms', 'fl-privacy', 'fl-cancel', 'footer-copy',
     'tr1', 'tr2', 'tr3', 'tr4',
   ];
   textIds.forEach(id => {
@@ -1420,6 +1705,9 @@ function applyTranslations() {
   // RTL / LTR
   document.documentElement.setAttribute('dir', lang === 'he' ? 'rtl' : 'ltr');
   document.documentElement.setAttribute('lang', lang);
+
+  // Update billing labels
+  updateBillingUI();
 }
 
 /* ─────────────────────────────────────────
@@ -1449,7 +1737,7 @@ document.getElementById('deploy-btn').addEventListener('click', function() {
   if (!s.hasAgent) return;
   const componentIds = ITEMS.filter(i => selected.has(i.id) && !i.soon).map(i => i.id).join(',');
   const storageVal = selected.has('xs') ? storageGb : 0;
-  window.location.href = `/checkout?plan=${s.plan.key}&components=${componentIds}&storage=${storageVal}`;
+  window.location.href = `/checkout?plan=${s.plan.key}&components=${componentIds}&storage=${storageVal}&billing=${billingPeriod}`;
 });
 
 /* ─────────────────────────────────────────
