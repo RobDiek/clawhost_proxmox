@@ -1281,6 +1281,7 @@ const en = {
         featureDedicatedCpu: 'Dedicated CPU',
         featureCommunitySupport: 'Community Support',
         featureInfraSupport: 'Infrastructure Support',
+        featureEmailSupport: 'Email Support',
         fastInternet: 'Fast Internet',
         emailSupport: 'Email Support',
         faqTitle: 'Questions',

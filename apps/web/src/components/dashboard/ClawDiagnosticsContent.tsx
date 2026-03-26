@@ -11,7 +11,7 @@ import {
     PulseIcon
 } from '@phosphor-icons/react'
 import { useClawDiagnostics, useRepairClaw } from '@/hooks'
-import { PanelPlaceholder } from '@/components'
+import PanelPlaceholder from '@/components/shared/PanelPlaceholder'
 import { useUIStore } from '@/lib/store'
 
 const ClawDiagnosticsContent: FC<ClawDiagnosticsContentProps> = ({

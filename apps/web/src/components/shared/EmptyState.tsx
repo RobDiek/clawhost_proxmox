@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { EmptyStateProps } from '@/ts/Interfaces'
 
-import { ActionButton } from '@/components'
+import ActionButton from '@/components/shared/ActionButton'
 import { LightningIcon } from '@phosphor-icons/react'
 
 const EmptyState: FC<EmptyStateProps> = ({

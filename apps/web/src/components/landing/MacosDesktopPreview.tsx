@@ -18,7 +18,7 @@ import {
     MagnifyingGlassIcon
 } from '@phosphor-icons/react'
 
-const LazyDemoPreview = lazy(() => import('@/components/LandingDemoPreview'))
+const LazyDemoPreview = lazy(() => import('@/components/landing/LandingDemoPreview'))
 
 const MacosDesktopPreview: FC<MacosDesktopPreviewProps> = ({
     previewRef,

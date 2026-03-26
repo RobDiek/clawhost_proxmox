@@ -1304,6 +1304,7 @@ const hi: Translations = {
         featureDedicatedCpu: 'समर्पित CPU',
         featureCommunitySupport: 'सामुदायिक सहायता',
         featureInfraSupport: 'इन्फ्रास्ट्रक्चर सहायता',
+        featureEmailSupport: 'ईमेल सहायता',
         fastInternet: 'तेज़ इंटरनेट',
         emailSupport: 'ईमेल सहायता',
         faqTitle: 'प्रश्न',

@@ -31,7 +31,9 @@ import {
     ArrowSquareOutIcon,
     ChatsCircleIcon
 } from '@phosphor-icons/react'
-import { ClawAvatar, ClawMascotOutline, ProviderIcon } from '@/components'
+import ClawAvatar from '@/components/shared/ClawAvatar'
+import ClawMascotOutline from '@/components/shared/ClawMascotOutline'
+import ProviderIcon from '@/components/shared/ProviderIcon'
 import {
     Skeleton,
     Tooltip,

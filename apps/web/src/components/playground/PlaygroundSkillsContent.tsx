@@ -28,7 +28,8 @@ import {
     StorefrontIcon,
     TrashIcon
 } from '@phosphor-icons/react'
-import { PanelPlaceholder, TruncateTooltip } from '@/components'
+import PanelPlaceholder from '@/components/shared/PanelPlaceholder'
+import TruncateTooltip from '@/components/shared/TruncateTooltip'
 import { Skeleton } from '@/components/ui'
 import { api, getLocale } from '@/lib'
 import { useUIStore, useSkillsStore } from '@/lib/store'

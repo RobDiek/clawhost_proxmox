@@ -1342,6 +1342,7 @@ const de: Translations = {
         featureDedicatedCpu: 'Dedizierte CPU',
         featureCommunitySupport: 'Community-Support',
         featureInfraSupport: 'Infrastruktur-Support',
+        featureEmailSupport: 'E-Mail-Support',
         fastInternet: 'Schnelles Internet',
         emailSupport: 'E-Mail-Support',
         faqTitle: 'Fragen',

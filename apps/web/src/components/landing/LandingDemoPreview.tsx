@@ -5,7 +5,8 @@ import type { DashboardTab } from '@/ts/Types'
 import { useState, useEffect, useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
-import { Logo } from '@/components'
+import Logo from '@/components/layout/Logo'
+
 import { demoPlaygroundData } from '@/data'
 import {
     PlaygroundCanvas,

@@ -18,7 +18,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui'
-import { ClawMascotOutline } from '@/components'
+import ClawMascotOutline from '@/components/shared/ClawMascotOutline'
 import {
     KeyIcon,
     UserIcon,

@@ -1298,6 +1298,7 @@ const ru: Translations = {
         featureDedicatedCpu: 'Выделенный CPU',
         featureCommunitySupport: 'Поддержка сообщества',
         featureInfraSupport: 'Поддержка инфраструктуры',
+        featureEmailSupport: 'Поддержка по email',
         fastInternet: 'Быстрый интернет',
         emailSupport: 'Поддержка по email',
         faqTitle: 'Вопросы',

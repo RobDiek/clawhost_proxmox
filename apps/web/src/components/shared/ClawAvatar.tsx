@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { ClawAvatarProps } from '@/ts/Interfaces'
 
-import { ClawMascot } from '@/components'
+import ClawMascot from '@/components/shared/ClawMascot'
 
 const sizeMap = {
     sm: { container: 'h-8 w-8 rounded-lg', icon: 'h-4 w-4' },

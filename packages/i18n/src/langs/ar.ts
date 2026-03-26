@@ -1259,6 +1259,7 @@ const ar: Translations = {
         featureDedicatedCpu: 'معالج مخصص',
         featureCommunitySupport: 'دعم المجتمع',
         featureInfraSupport: 'دعم البنية التحتية',
+        featureEmailSupport: 'دعم البريد الإلكتروني',
         fastInternet: 'إنترنت سريع',
         emailSupport: 'دعم البريد الإلكتروني',
         faqTitle: 'أسئلة',

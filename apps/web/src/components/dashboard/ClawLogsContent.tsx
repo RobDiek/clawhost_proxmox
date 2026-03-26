@@ -7,7 +7,8 @@ import { getLocale } from '@/lib'
 import { Skeleton } from '@/components/ui'
 import { ScrollIcon } from '@phosphor-icons/react'
 import { useClawLogs, useScrollToBottom } from '@/hooks'
-import { PanelPlaceholder, ScrollToBottomButton } from '@/components'
+import PanelPlaceholder from '@/components/shared/PanelPlaceholder'
+import ScrollToBottomButton from '@/components/shared/ScrollToBottomButton'
 
 const ClawLogsContent: FC<ClawLogsContentProps> = ({
     clawId,

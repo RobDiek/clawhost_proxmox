@@ -12,7 +12,7 @@ import {
     ArrowClockwiseIcon
 } from '@phosphor-icons/react'
 import { Button } from '@/components/ui'
-import { ScrollToBottomButton } from '@/components'
+import ScrollToBottomButton from '@/components/shared/ScrollToBottomButton'
 import { useTerminalStore } from '@/lib/store'
 import '@xterm/xterm/css/xterm.css'
 

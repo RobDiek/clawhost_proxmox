@@ -13,7 +13,7 @@ import { ClockIcon } from '@phosphor-icons/react'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
 import { useUIStore } from '@/lib/store'
 import { getLocale } from '@/lib'
-import { ClawAvatar } from '@/components'
+import ClawAvatar from '@/components/shared/ClawAvatar'
 import {
     useStartClaw,
     useStopClaw,

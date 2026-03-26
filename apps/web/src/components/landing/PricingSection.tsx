@@ -1,5 +1,6 @@
 import type { FC, ReactNode } from 'react'
 import type {
+    Plan,
     PricingSectionProps,
     SimplePlanCardProps,
     SimplePlanFeature
@@ -10,7 +11,7 @@ import { Link } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { clawProvider } from '@openclaw/shared'
 import { Button, Badge } from '@/components/ui'
-import { PlansSkeleton } from '@/components'
+import PlansSkeleton from '@/components/shared/PlansSkeleton'
 import { useAuth } from '@/lib/auth'
 import { ROUTES } from '@/lib'
 import {
@@ -20,14 +21,16 @@ import {
     CaretUpIcon
 } from '@phosphor-icons/react'
 
-const buildSimplePlans = (): Array<{
+const buildSimplePlans = (plans: Plan[]): Array<{
     planId: string
     name: string
     desc: string
     price: number
+    yearlyPerMonth: number
     popular: boolean
     features: SimplePlanFeature[]
 }> => {
+    const planMap = new Map(plans.map((p) => [p.id, p]))
     const common: SimplePlanFeature[] = [
         { label: t('landing.featurePreinstalled'), included: true },
         { label: t('landing.featureBandwidth'), included: true },
@@ -41,11 +44,12 @@ const buildSimplePlans = (): Array<{
             name: t('landing.planStarter'),
             desc: t('landing.planStarterDesc'),
             price: 25,
+            yearlyPerMonth: Math.round((planMap.get('cx23')?.priceYearly ?? 250) / 12),
             popular: false,
             features: [
                 ...common,
-                { label: t('landing.featureSharedCpu'), included: true },
-                { label: t('landing.featureInfraSupport'), included: false }
+                { label: t('landing.featureDedicatedCpu'), included: false },
+                { label: t('landing.featureEmailSupport'), included: true }
             ]
         },
         {
@@ -53,11 +57,12 @@ const buildSimplePlans = (): Array<{
             name: t('landing.planGrowth'),
             desc: t('landing.planGrowthDesc'),
             price: 40,
+            yearlyPerMonth: Math.round((planMap.get('cpx21')?.priceYearly ?? 400) / 12),
             popular: true,
             features: [
                 ...common,
-                { label: t('landing.featureSharedCpu'), included: true },
-                { label: t('landing.featureInfraSupport'), included: false }
+                { label: t('landing.featureDedicatedCpu'), included: false },
+                { label: t('landing.featureEmailSupport'), included: true }
             ]
         },
         {
@@ -65,11 +70,12 @@ const buildSimplePlans = (): Array<{
             name: t('landing.planPro'),
             desc: t('landing.planProDesc'),
             price: 60,
+            yearlyPerMonth: Math.round((planMap.get('ccx23')?.priceYearly ?? 600) / 12),
             popular: false,
             features: [
                 ...common,
                 { label: t('landing.featureDedicatedCpu'), included: true },
-                { label: t('landing.featureInfraSupport'), included: true }
+                { label: t('landing.featureEmailSupport'), included: true }
             ]
         },
         {
@@ -77,11 +83,12 @@ const buildSimplePlans = (): Array<{
             name: t('landing.planBusiness'),
             desc: t('landing.planBusinessDesc'),
             price: 90,
+            yearlyPerMonth: Math.round((planMap.get('ccx33')?.priceYearly ?? 900) / 12),
             popular: false,
             features: [
                 ...common,
                 { label: t('landing.featureDedicatedCpu'), included: true },
-                { label: t('landing.featureInfraSupport'), included: true }
+                { label: t('landing.featureEmailSupport'), included: true }
             ]
         }
     ]
@@ -91,6 +98,7 @@ const SimplePlanCard: FC<SimplePlanCardProps> = ({
     name,
     description,
     price,
+    yearlyPerMonth,
     planId,
     popular,
     features
@@ -99,7 +107,7 @@ const SimplePlanCard: FC<SimplePlanCardProps> = ({
 
     return (
         <div
-            className={`border-border relative flex flex-col rounded-xl border p-6 transition-all hover:border-white/20 ${popular ? 'border-[#ef5350]/50 bg-[#ef5350]/5' : 'bg-foreground/[0.02]'}`}
+            className={`border-border relative flex flex-col rounded-xl border p-6 ${popular ? 'border-[#ef5350]/50 bg-[#ef5350]/5' : 'bg-foreground/[0.02]'}`}
         >
             {popular && (
                 <Badge className='absolute -top-2.5 left-1/2 -translate-x-1/2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-xs text-white'>
@@ -120,6 +128,9 @@ const SimplePlanCard: FC<SimplePlanCardProps> = ({
                 </span>
                 <span className='text-muted-foreground text-sm'>
                     {t('landing.perMonth')}
+                </span>
+                <span className='text-muted-foreground/40 text-xs'>
+                    (${yearlyPerMonth}{t('landing.perYear')})
                 </span>
             </div>
             <div className='mb-6 flex flex-col gap-2'>
@@ -200,12 +211,13 @@ const PricingSection: FC<PricingSectionProps> = ({
                     <>
                         {!showAllPlans ? (
                             <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-                                {buildSimplePlans().map((sp) => (
+                                {buildSimplePlans(plans).map((sp) => (
                                     <SimplePlanCard
                                         key={sp.planId}
                                         name={sp.name}
                                         description={sp.desc}
                                         price={sp.price}
+                                        yearlyPerMonth={sp.yearlyPerMonth}
                                         planId={sp.planId}
                                         popular={sp.popular}
                                         features={sp.features}
@@ -386,23 +398,6 @@ const PricingSection: FC<PricingSectionProps> = ({
                             </div>
                         )}
 
-                        <div className='mt-6 flex justify-center'>
-                            <Button
-                                variant='ghost'
-                                className='text-muted-foreground hover:text-foreground gap-2 text-sm'
-                                onClick={() => setShowAllPlans(!showAllPlans)}
-                            >
-                                {showAllPlans
-                                    ? t('landing.simplePricing')
-                                    : t('landing.showAllPlans')}
-                                {showAllPlans ? (
-                                    <CaretUpIcon size={14} />
-                                ) : (
-                                    <CaretDownIcon size={14} />
-                                )}
-                            </Button>
-                        </div>
-
                         {showAllPlans && (
                             <div className='border-border bg-foreground/[0.02] mt-8 rounded-xl border p-4'>
                                 <div className='text-muted-foreground flex flex-wrap items-center justify-center gap-6 text-sm'>
@@ -439,6 +434,23 @@ const PricingSection: FC<PricingSectionProps> = ({
                                 </div>
                             </div>
                         )}
+
+                        <div className='mt-6 flex justify-center'>
+                            <Button
+                                variant='ghost'
+                                className='text-muted-foreground hover:text-foreground gap-2 text-sm'
+                                onClick={() => setShowAllPlans(!showAllPlans)}
+                            >
+                                {showAllPlans
+                                    ? t('landing.simplePricing')
+                                    : t('landing.showAllPlans')}
+                                {showAllPlans ? (
+                                    <CaretUpIcon size={14} />
+                                ) : (
+                                    <CaretDownIcon size={14} />
+                                )}
+                            </Button>
+                        </div>
                     </>
                 ) : (
                     <div className='text-muted-foreground py-12 text-center'>

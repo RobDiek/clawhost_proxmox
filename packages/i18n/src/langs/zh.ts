@@ -1229,6 +1229,7 @@ const zh: Translations = {
         featureDedicatedCpu: '专用CPU',
         featureCommunitySupport: '社区支持',
         featureInfraSupport: '基础设施支持',
+        featureEmailSupport: '邮件支持',
         fastInternet: '高速网络',
         emailSupport: '邮件支持',
         faqTitle: '常见问题',

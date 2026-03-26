@@ -25,7 +25,7 @@ import {
     CheckIcon,
     LinkSimpleIcon
 } from '@phosphor-icons/react'
-import { PanelPlaceholder } from '@/components'
+import PanelPlaceholder from '@/components/shared/PanelPlaceholder'
 import {
     Select,
     SelectTrigger,

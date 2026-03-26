@@ -1326,6 +1326,7 @@ const es: Translations = {
         featureDedicatedCpu: 'CPU dedicada',
         featureCommunitySupport: 'Soporte comunitario',
         featureInfraSupport: 'Soporte de infraestructura',
+        featureEmailSupport: 'Soporte por correo',
         fastInternet: 'Internet rápido',
         emailSupport: 'Soporte por correo',
         faqTitle: 'Preguntas',

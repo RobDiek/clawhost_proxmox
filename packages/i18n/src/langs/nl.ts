@@ -1315,6 +1315,7 @@ const nl: Translations = {
         featureDedicatedCpu: 'Dedicated CPU',
         featureCommunitySupport: 'Community-ondersteuning',
         featureInfraSupport: 'Infrastructuurondersteuning',
+        featureEmailSupport: 'E-mailondersteuning',
         fastInternet: 'Snel internet',
         emailSupport: 'E-mailondersteuning',
         faqTitle: 'Vragen',

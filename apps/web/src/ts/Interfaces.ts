@@ -1068,6 +1068,7 @@ export interface SimplePlanCardProps {
     name: string
     description: string
     price: number
+    yearlyPerMonth: number
     planId: string
     popular?: boolean
     features: SimplePlanFeature[]

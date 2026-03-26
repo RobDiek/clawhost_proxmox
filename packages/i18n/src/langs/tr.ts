@@ -1302,6 +1302,7 @@ const tr: Translations = {
         featureDedicatedCpu: 'Özel CPU',
         featureCommunitySupport: 'Topluluk desteği',
         featureInfraSupport: 'Altyapı desteği',
+        featureEmailSupport: 'E-posta desteği',
         fastInternet: 'Hızlı internet',
         emailSupport: 'E-posta desteği',
         faqTitle: 'Sorular',

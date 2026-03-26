@@ -23,7 +23,7 @@ import {
     ArrowClockwiseIcon,
     CaretDownIcon
 } from '@phosphor-icons/react'
-import { ClawMascot } from '@/components'
+import ClawMascot from '@/components/shared/ClawMascot'
 
 const AdvancedOptions: FC<AdvancedOptionsProps> = ({
     showAdvanced,

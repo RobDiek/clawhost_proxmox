@@ -8,16 +8,14 @@ import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
 import { useProfile } from '@/hooks'
 import { Button, Skeleton } from '@/components/ui'
-import {
-    AnnouncementBanner,
-    BetaBadge,
-    LanguageSelector,
-    Logo,
-    ProductHuntBanner,
-    ProductSwitcher,
-    ThemeToggle,
-    UserDropdown
-} from '@/components'
+import AnnouncementBanner from '@/components/layout/AnnouncementBanner'
+import BetaBadge from '@/components/layout/BetaBadge'
+import Logo from '@/components/layout/Logo'
+import ProductHuntBanner from '@/components/layout/ProductHuntBanner'
+import ProductSwitcher from '@/components/layout/ProductSwitcher'
+import LanguageSelector from '@/components/shared/LanguageSelector'
+import ThemeToggle from '@/components/shared/ThemeToggle'
+import UserDropdown from '@/components/shared/UserDropdown'
 import { ROUTES } from '@/lib'
 import { LightningIcon, ListIcon, XIcon } from '@phosphor-icons/react'
 

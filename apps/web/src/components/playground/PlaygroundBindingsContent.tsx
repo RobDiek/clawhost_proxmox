@@ -18,7 +18,7 @@ import {
     ChatCircleIcon,
     ChatsCircleIcon
 } from '@phosphor-icons/react'
-import { PanelPlaceholder } from '@/components'
+import PanelPlaceholder from '@/components/shared/PanelPlaceholder'
 import { Skeleton } from '@/components/ui'
 import { api } from '@/lib'
 import { useUIStore } from '@/lib/store'

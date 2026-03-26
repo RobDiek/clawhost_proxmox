@@ -1,7 +1,8 @@
 import type { FC, ReactNode } from 'react'
 
 import { t } from '@openclaw/i18n'
-import { HeroButtons, GoWaitlistCTA } from '@/components'
+import HeroButtons from '@/components/landing/HeroButtons'
+import GoWaitlistCTA from '@/components/go/GoWaitlistCTA'
 import { usePreferencesStore } from '@/lib/store'
 
 const BlogCTA: FC = (): ReactNode => {

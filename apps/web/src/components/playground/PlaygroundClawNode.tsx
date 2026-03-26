@@ -23,7 +23,7 @@ import {
     useProfile,
     useCancelPendingClaw
 } from '@/hooks'
-import { ProviderIcon } from '@/components'
+import ProviderIcon from '@/components/shared/ProviderIcon'
 import { getStatusConfig, generateSlug } from '@/lib/claw-utils'
 import {
     PlusIcon,

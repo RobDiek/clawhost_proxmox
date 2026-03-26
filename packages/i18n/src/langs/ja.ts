@@ -1297,6 +1297,7 @@ const ja: Translations = {
         featureDedicatedCpu: '専用CPU',
         featureCommunitySupport: 'コミュニティサポート',
         featureInfraSupport: 'インフラサポート',
+        featureEmailSupport: 'メールサポート',
         fastInternet: '高速インターネット',
         emailSupport: 'メールサポート',
         faqTitle: '質問',
