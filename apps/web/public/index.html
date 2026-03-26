@@ -387,24 +387,24 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   flex: 2;
   min-width: 280px;
   max-width: 340px;
-  background: var(--surface);
+  background: #0F172A;
   display: flex;
   flex-direction: column;
   padding: 14px 16px;
   overflow: hidden;
-  border-right: 4px solid var(--primary);
+  border-right: none;
 }
 .sum-label {
   font-size: 0.9rem;
   font-weight: 700;
-  color: var(--text-3);
+  color: #64748B;
   text-transform: uppercase;
   letter-spacing: .08em;
   margin-bottom: 8px;
 }
 .plan-card {
-  background: var(--primary-light);
-  border: 1px solid var(--primary);
+  background: #1E3A5F;
+  border: 1px solid #2563EB;
   border-radius: var(--radius);
   padding: 9px 11px;
   margin-bottom: 8px;
@@ -413,24 +413,24 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .plan-name {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--text);
+  color: #FFFFFF;
   margin-bottom: 2px;
 }
 .plan-specs {
   font-size: 0.82rem;
-  color: var(--primary);
+  color: #93C5FD;
 }
 .ram-row {
   display: flex;
   justify-content: space-between;
   font-size: 0.82rem;
-  color: var(--text-3);
+  color: #64748B;
   margin-bottom: 3px;
 }
-.ram-val { color: var(--text-2); font-weight: 500; }
+.ram-val { color: #D1D5DB; font-weight: 500; }
 .ram-bar {
   height: 3px;
-  background: var(--bg-2);
+  background: #1F2937;
   border-radius: 2px;
   overflow: hidden;
   margin-bottom: 10px;
@@ -451,7 +451,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .sum-items::-webkit-scrollbar { display: none; }
 .sum-empty {
   font-size: 0.9rem;
-  color: var(--text-3);
+  color: #475569;
   text-align: center;
   padding: 14px 0;
   line-height: 1.5;
@@ -461,9 +461,9 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   align-items: center;
   gap: 8px;
   padding: 6px 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #1F2937;
   font-size: 0.95rem;
-  color: var(--text);
+  color: #D1D5DB;
 }
 .sum-item:last-child { border: none; }
 .sum-dot {
@@ -474,7 +474,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   flex-shrink: 0;
 }
 .sum-item-name { flex: 1; font-weight: 500; }
-.sum-item-price { color: var(--text-2); font-size: 0.85rem; }
+.sum-item-price { color: #64748B; font-size: 0.85rem; }
 
 /* Billing toggle */
 .billing-toggle-row {
@@ -487,19 +487,19 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .billing-label {
   font-size: 11px;
-  color: var(--text-3);
+  color: #64748B;
   cursor: pointer;
   transition: color .15s;
 }
-.billing-label.active { color: var(--text); font-weight: 600; }
+.billing-label.active { color: #FFFFFF; font-weight: 600; }
 .billing-switch {
   position: relative;
   width: 36px;
   height: 18px;
-  background: var(--bg-2);
+  background: #1F2937;
   border-radius: 9px;
   cursor: pointer;
-  border: 1px solid var(--border);
+  border: 1px solid #334155;
   transition: background .2s;
 }
 .billing-switch.annual { background: var(--primary); border-color: var(--primary); }
@@ -526,7 +526,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 /* Price footer */
 .sum-footer {
   padding-top: 10px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid #1F2937;
   margin-top: 6px;
   flex-shrink: 0;
 }
@@ -534,19 +534,19 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   display: flex;
   justify-content: space-between;
   font-size: 0.9rem;
-  color: var(--text-3);
+  color: #64748B;
   margin-bottom: 2px;
 }
-.sum-price-val { color: var(--text-2); }
+.sum-price-val { color: #9CA3AF; }
 .sum-total {
   font-size: 2.2rem;
   font-weight: 800;
-  color: var(--text);
+  color: #FFFFFF;
   margin: 4px 0 10px;
   line-height: 1;
   transition: all .3s;
 }
-.sum-total span { font-size: 12px; color: var(--text-3); font-weight: 400; }
+.sum-total span { font-size: 12px; color: #475569; font-weight: 400; }
 
 .deploy-btn {
   width: 100%;
@@ -562,16 +562,16 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .deploy-btn.active {
   background: var(--primary);
   color: white;
-  box-shadow: 0 4px 16px rgba(37,99,235,.35);
+  box-shadow: 0 4px 16px rgba(37,99,235,.5);
 }
 .deploy-btn.active:hover {
   background: var(--primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 6px 22px rgba(37,99,235,.45);
+  box-shadow: 0 6px 22px rgba(37,99,235,.6);
 }
 .deploy-btn.inactive {
-  background: var(--bg-2);
-  color: var(--text-3);
+  background: #1F2937;
+  color: #475569;
   cursor: not-allowed;
 }
 .deploy-hint {
@@ -580,7 +580,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   justify-content: center;
   gap: 4px;
   font-size: 9px;
-  color: var(--text-3);
+  color: #475569;
   margin-top: 5px;
 }
 .deploy-hint-dot {
