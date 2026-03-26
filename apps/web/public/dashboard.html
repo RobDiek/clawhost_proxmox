@@ -198,6 +198,53 @@ input{font-family:inherit}
 .empty-state svg{width:48px;height:48px;color:#D1D5DB}
 .empty-state p{font-size:.9rem}
 
+/* ===== Agent Setup tab ===== */
+.setup-form { max-width: 600px; }
+.setup-form .form-group { margin-bottom: 16px; }
+.setup-form label { display: block; font-size: 0.9rem; font-weight: 600; color: var(--text, #1F2937); margin-bottom: 6px; }
+.setup-form input, .setup-form textarea {
+  width: 100%; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px;
+  font-size: 0.9rem; font-family: inherit; direction: rtl; background: #fff;
+}
+.setup-form input:focus, .setup-form textarea:focus {
+  outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+.radio-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.radio-option {
+  display: flex; align-items: center; gap: 6px; padding: 8px 14px;
+  border: 1px solid #E5E7EB; border-radius: 8px; cursor: pointer;
+  font-size: 0.85rem; transition: all .15s;
+}
+.radio-option:has(input:checked) { border-color: #2563EB; background: #EFF6FF; }
+.radio-option input { margin: 0; }
+
+.progress-steps { max-width: 400px; margin: 24px auto; }
+.p-step {
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+  border-radius: 8px; margin-bottom: 4px; font-size: 0.9rem; color: #9CA3AF;
+  transition: all .3s;
+}
+.p-step.active { color: #2563EB; font-weight: 500; background: #EFF6FF; }
+.p-step.done { color: #059669; }
+.p-step.done .p-icon::after { content: ' \2713'; }
+.p-icon { font-size: 1.2rem; width: 28px; text-align: center; }
+
+.agents-summary {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  max-width: 500px; margin: 20px 0;
+}
+.agent-mini {
+  padding: 10px; border: 1px solid #E5E7EB; border-radius: 8px;
+  font-size: 0.82rem; text-align: center; background: #fff;
+}
+.next-steps-card {
+  background: #EFF6FF; border: 1px solid #DBEAFE; border-radius: 12px;
+  padding: 20px; margin: 20px 0; max-width: 500px;
+}
+.next-steps-card h3 { font-size: 1rem; margin-bottom: 8px; color: #2563EB; }
+.next-steps-card p { font-size: 0.85rem; color: #6B7280; margin-bottom: 4px; }
+.section-desc { font-size: 0.9rem; color: #6B7280; margin-bottom: 20px; }
+
 /* ===== Mobile bottom nav ===== */
 .bottom-nav{display:none;position:fixed;bottom:0;right:0;left:0;height:56px;background:#fff;border-top:1px solid #E5E7EB;z-index:100;padding:0 8px}
 .bottom-nav-inner{display:flex;align-items:center;justify-content:space-around;height:100%}
@@ -257,6 +304,10 @@ input{font-family:inherit}
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
       בית
     </div>
+    <div class="sidebar-item" data-tab="agentsetup" onclick="switchTab('agentsetup')">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg></span>
+      הגדרת סוכנים
+    </div>
     <div class="sidebar-item" data-tab="agents" onclick="switchTab('agents')">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/></svg></span>
       סוכנים
@@ -288,6 +339,10 @@ input{font-family:inherit}
     <button class="bottom-nav-item active" data-tab="home" onclick="switchTab('home')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       בית
+    </button>
+    <button class="bottom-nav-item" data-tab="agentsetup" onclick="switchTab('agentsetup')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+      הגדרת סוכנים
     </button>
     <button class="bottom-nav-item" data-tab="agents" onclick="switchTab('agents')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/></svg>
@@ -323,6 +378,108 @@ input{font-family:inherit}
 
     <div class="section-title">מידע מהיר</div>
     <div id="homeInfo"></div>
+  </div>
+
+  <!-- Tab: Agent Setup -->
+  <div class="tab-content hidden" id="tab-agentsetup">
+    <div class="setup-step" id="setup-step1">
+      <h2>ספרו לנו על העסק שלכם</h2>
+      <p class="section-desc">על סמך המידע הזה, הסוכנים שלכם יבנו אסטרטגיה מותאמת אישית.</p>
+
+      <div class="setup-form">
+        <div class="form-group">
+          <label>1. שם העסק</label>
+          <input type="text" id="q-business-name" placeholder="לדוגמה: Flowmatic"/>
+        </div>
+        <div class="form-group">
+          <label>2. במה עוסק העסק?</label>
+          <textarea id="q-business-desc" placeholder="מה אתם מוכרים / איזה שירות אתם נותנים?" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>3. מי קהל היעד שלכם?</label>
+          <textarea id="q-target" placeholder="תארו את הלקוח האידיאלי שלכם" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>4. מי המתחרים הישירים? (2-3 שמות)</label>
+          <textarea id="q-competitors" placeholder="שמות + URL אם יש" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>5. מה המטרה העיקרית?</label>
+          <div class="radio-group">
+            <label class="radio-option"><input type="radio" name="q-goal" value="לידים"/> לידים</label>
+            <label class="radio-option"><input type="radio" name="q-goal" value="מכירות ישירות"/> מכירות ישירות</label>
+            <label class="radio-option"><input type="radio" name="q-goal" value="בניית קהל"/> בניית קהל</label>
+            <label class="radio-option"><input type="radio" name="q-goal" value="מודעות מותג" checked/> מודעות מותג</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>6. איזה תוכן אתם מפרסמים היום?</label>
+          <textarea id="q-content" placeholder="פוסטים, בלוג, ניוזלטר, סרטונים..." rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>7. מה הכי מתסכל אתכם בשיווק?</label>
+          <textarea id="q-challenges" placeholder="אין זמן? לא יודעים מה לכתוב? אין תוצאות?" rows="2"></textarea>
+        </div>
+
+        <button class="btn btn-primary" onclick="submitAgentSetup()" id="btn-setup-submit">
+          הגדירו את הסוכנים שלי &rarr;
+        </button>
+      </div>
+    </div>
+
+    <div class="setup-step hidden" id="setup-step2">
+      <h2>מגדירים את הסוכנים שלכם...</h2>
+      <p class="section-desc">זה ייקח כ-30 שניות</p>
+
+      <div class="progress-steps">
+        <div class="p-step active" id="ps-1">
+          <span class="p-icon">&#9881;&#65039;</span>
+          <span>מנתחים את המידע שלכם</span>
+        </div>
+        <div class="p-step" id="ps-2">
+          <span class="p-icon">&#128221;</span>
+          <span>יוצרים USER.md ו-BRAND.md</span>
+        </div>
+        <div class="p-step" id="ps-3">
+          <span class="p-icon">&#129302;</span>
+          <span>מגדירים 9 סוכנים</span>
+        </div>
+        <div class="p-step" id="ps-4">
+          <span class="p-icon">&#128295;</span>
+          <span>מתקינים Skills</span>
+        </div>
+        <div class="p-step" id="ps-5">
+          <span class="p-icon">&#128640;</span>
+          <span>מפעילים מחדש</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-step hidden" id="setup-step3">
+      <h2>הסוכנים שלכם מוכנים!</h2>
+      <p class="section-desc">9 סוכנים הוגדרו ומוכנים לעבודה</p>
+
+      <div class="agents-summary">
+        <div class="agent-mini">&#127963; מטה &mdash; מתאם</div>
+        <div class="agent-mini">&#128269; סייר &mdash; סיור אינטרנט</div>
+        <div class="agent-mini">&#128202; מאתר &mdash; מחקר SERP</div>
+        <div class="agent-mini">&#128066; מאזין &mdash; האזנה חברתית</div>
+        <div class="agent-mini">&#129504; מנתח &mdash; ניתוח</div>
+        <div class="agent-mini">&#9997;&#65039; עט &mdash; כתיבה</div>
+        <div class="agent-mini">&#127912; יוצר &mdash; קריאייטיב</div>
+        <div class="agent-mini">&#128228; שליח &mdash; הפצה</div>
+        <div class="agent-mini">&#128301; מגדלור &mdash; AEO</div>
+      </div>
+
+      <div class="next-steps-card">
+        <h3>מה הלאה?</h3>
+        <p>מחר בבוקר תקבלו את ה-Daily Brief הראשון ב-Telegram.</p>
+        <p>כל שבוע ב &mdash; דוח תחרותי מלא.</p>
+        <p>כל חודש &mdash; ביקורת AEO.</p>
+      </div>
+
+      <button class="btn btn-primary" onclick="switchTab('home')">חזרו ללוח הבקרה &rarr;</button>
+    </div>
   </div>
 
   <!-- Tab: Agents -->
@@ -873,6 +1030,88 @@ function logout() {
   localStorage.removeItem('cf_token');
   localStorage.removeItem('cf_email');
   window.location.href = '/register.html';
+}
+
+/* ===== Agent Setup ===== */
+async function submitAgentSetup() {
+  var btn = document.getElementById('btn-setup-submit');
+  btn.disabled = true;
+  btn.textContent = 'רגע...';
+
+  var answers = {
+    businessName: document.getElementById('q-business-name').value.trim(),
+    businessDescription: document.getElementById('q-business-desc').value.trim(),
+    targetAudience: document.getElementById('q-target').value.trim(),
+    competitors: document.getElementById('q-competitors').value.trim(),
+    marketingGoals: (document.querySelector('input[name="q-goal"]:checked') || {}).value || '',
+    currentContent: document.getElementById('q-content').value.trim(),
+    challenges: document.getElementById('q-challenges').value.trim(),
+  };
+
+  if (!answers.businessName || !answers.businessDescription) {
+    showToast('מלאו לפחות את שם העסק ותיאור', 'error');
+    btn.disabled = false;
+    btn.textContent = 'הגדירו את הסוכנים שלי \u2192';
+    return;
+  }
+
+  // Show step 2
+  document.getElementById('setup-step1').classList.add('hidden');
+  document.getElementById('setup-step2').classList.remove('hidden');
+
+  // Animate progress steps
+  var steps = ['ps-1','ps-2','ps-3','ps-4','ps-5'];
+  var currentStep = 0;
+  var progressInterval = setInterval(function() {
+    if (currentStep < steps.length) {
+      document.getElementById(steps[currentStep]).classList.add('done');
+      currentStep++;
+      if (currentStep < steps.length) {
+        document.getElementById(steps[currentStep]).classList.add('active');
+      }
+    }
+  }, 5000);
+
+  try {
+    var iid = localStorage.getItem('cf_instance_id');
+    var res = await fetch(API + '/hosting/instances/' + iid + '/setup/agents', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(answers),
+    });
+
+    clearInterval(progressInterval);
+
+    var data = await res.json();
+    if (data.success) {
+      // Mark all steps done
+      steps.forEach(function(s) {
+        document.getElementById(s).classList.add('done');
+        document.getElementById(s).classList.remove('active');
+      });
+
+      // Show step 3 after brief pause
+      setTimeout(function() {
+        document.getElementById('setup-step2').classList.add('hidden');
+        document.getElementById('setup-step3').classList.remove('hidden');
+      }, 1500);
+
+      showToast('הסוכנים הוגדרו בהצלחה!', 'success');
+    } else {
+      showToast(data.message || 'שגיאה בהגדרת הסוכנים', 'error');
+      document.getElementById('setup-step2').classList.add('hidden');
+      document.getElementById('setup-step1').classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'הגדירו את הסוכנים שלי \u2192';
+    }
+  } catch (err) {
+    clearInterval(progressInterval);
+    showToast('שגיאת תקשורת, נסו שוב', 'error');
+    document.getElementById('setup-step2').classList.add('hidden');
+    document.getElementById('setup-step1').classList.remove('hidden');
+    btn.disabled = false;
+    btn.textContent = 'הגדירו את הסוכנים שלי \u2192';
+  }
 }
 
 /* ===== Toast ===== */
