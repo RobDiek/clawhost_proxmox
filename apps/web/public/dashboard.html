@@ -727,7 +727,7 @@ input{font-family:inherit}
 
     <div class="billing-actions">
       <button class="btn btn-outline" onclick="alert('פנו לתמיכה לשדרוג')">שדרגו תוכנית</button>
-      <button class="btn btn-danger-outline" onclick="if(confirm('בטוחים שברצונכם לבטל את המנוי?')) alert('פנו לתמיכה לביטול')">בטלו מנוי</button>
+      <button class="btn btn-danger-outline" onclick="cfConfirm('ביטול מנוי','בטוחים שברצונכם לבטל את המנוי?').then(function(ok){if(ok)alert('פנו לתמיכה לביטול')})">בטלו מנוי</button>
     </div>
   </div>
 
@@ -1425,8 +1425,11 @@ async function createSmartAgent() {
   } catch (e) { showToast('שגיאת תקשורת', 'error'); }
 }
 
-function deleteAgent(i) {
+async function deleteAgent(i) {
   var agents = JSON.parse(localStorage.getItem('cf_custom_agents') || '[]');
+  var agentName = agents[i] ? agents[i].name : 'סוכן';
+  var confirmed = await cfConfirm('מחיקת ' + agentName, 'בטוחים שרוצים למחוק את הסוכן?');
+  if (!confirmed) return;
   agents.splice(i, 1);
   localStorage.setItem('cf_custom_agents', JSON.stringify(agents));
   renderAgentsTab();
@@ -1587,7 +1590,7 @@ function fmCloseEditor() {
 function fmRefresh() { fmNavigate(fmCurrentDir); }
 
 async function fmCreateFile() {
-  var name = prompt('שם הקובץ:');
+  var name = await cfPrompt('קובץ חדש', 'הכניסו את שם הקובץ', 'example.md');
   if (!name) return;
   var path = fmCurrentDir ? fmCurrentDir + '/' + name : name;
   var instanceId = localStorage.getItem('cf_instance_id');
@@ -1601,7 +1604,7 @@ async function fmCreateFile() {
 }
 
 async function fmCreateDir() {
-  var name = prompt('שם התיקייה:');
+  var name = await cfPrompt('תיקייה חדשה', 'הכניסו את שם התיקייה', 'new-folder');
   if (!name) return;
   var path = fmCurrentDir ? fmCurrentDir + '/' + name : name;
   var instanceId = localStorage.getItem('cf_instance_id');
@@ -1615,7 +1618,8 @@ async function fmCreateDir() {
 }
 
 async function fmDelete(path, type) {
-  if (!confirm('למחוק את ' + path + '?')) return;
+  var confirmed = await cfConfirm('מחיקת ' + path.split('/').pop(), 'בטוחים שרוצים למחוק?');
+  if (!confirmed) return;
   var instanceId = localStorage.getItem('cf_instance_id');
   try {
     await fetch(API + '/hosting/instances/' + instanceId + '/files?path=' + encodeURIComponent(path), { method: 'DELETE' });
@@ -1752,6 +1756,59 @@ function termDisconnect() {
   document.getElementById('term-connect-btn').disabled = false;
 }
 
+/* ===== Styled modal utilities ===== */
+function cfPrompt(title, desc, placeholder) {
+  return new Promise(function(resolve) {
+    var overlay = document.getElementById('cf-modal-overlay');
+    document.getElementById('cf-modal-title').textContent = title;
+    document.getElementById('cf-modal-desc').textContent = desc || '';
+    var inputWrap = document.getElementById('cf-modal-input-wrap');
+    var input = document.getElementById('cf-modal-input');
+    inputWrap.style.display = 'block';
+    input.value = '';
+    input.placeholder = placeholder || '';
+    overlay.style.display = 'flex';
+    input.focus();
+
+    function cleanup() {
+      overlay.style.display = 'none';
+      document.getElementById('cf-modal-ok').onclick = null;
+      document.getElementById('cf-modal-cancel').onclick = null;
+      input.onkeydown = null;
+    }
+
+    document.getElementById('cf-modal-ok').onclick = function() { cleanup(); resolve(input.value.trim() || null); };
+    document.getElementById('cf-modal-cancel').onclick = function() { cleanup(); resolve(null); };
+    input.onkeydown = function(e) { if (e.key === 'Enter') { cleanup(); resolve(input.value.trim() || null); } if (e.key === 'Escape') { cleanup(); resolve(null); } };
+    overlay.onclick = function(e) { if (e.target === overlay) { cleanup(); resolve(null); } };
+  });
+}
+
+function cfConfirm(title, desc) {
+  return new Promise(function(resolve) {
+    var overlay = document.getElementById('cf-modal-overlay');
+    document.getElementById('cf-modal-title').textContent = title;
+    document.getElementById('cf-modal-desc').textContent = desc || '';
+    document.getElementById('cf-modal-input-wrap').style.display = 'none';
+    overlay.style.display = 'flex';
+
+    var okBtn = document.getElementById('cf-modal-ok');
+    okBtn.style.background = '#EF4444';
+
+    function cleanup() {
+      overlay.style.display = 'none';
+      okBtn.style.background = '#2563EB';
+      okBtn.onclick = null;
+      document.getElementById('cf-modal-cancel').onclick = null;
+      overlay.onclick = null;
+    }
+
+    okBtn.onclick = function() { cleanup(); resolve(true); };
+    document.getElementById('cf-modal-cancel').onclick = function() { cleanup(); resolve(false); };
+    overlay.onclick = function(e) { if (e.target === overlay) { cleanup(); resolve(false); } };
+  });
+}
+
 /* ===== Toast ===== */
 function showToast(msg, type) {
   var el = document.getElementById('toast');
@@ -1762,5 +1819,21 @@ function showToast(msg, type) {
   el._t = setTimeout(function() { el.classList.remove('show'); }, 3000);
 }
 </script>
+
+<!-- Styled Modal for prompts/confirms -->
+<div id="cf-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:10000;align-items:center;justify-content:center;backdrop-filter:blur(2px)">
+  <div id="cf-modal" style="background:#fff;border-radius:14px;padding:24px;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.15);font-family:inherit;direction:rtl">
+    <div id="cf-modal-title" style="font-size:1.1rem;font-weight:600;color:#111827;margin-bottom:8px;text-align:center"></div>
+    <div id="cf-modal-desc" style="font-size:0.85rem;color:#6B7280;margin-bottom:16px;text-align:center"></div>
+    <div id="cf-modal-input-wrap" style="margin-bottom:16px;display:none">
+      <input id="cf-modal-input" type="text" style="width:100%;padding:10px 14px;border:1px solid #E5E7EB;border-radius:8px;font-size:0.9rem;font-family:inherit;direction:rtl" />
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button id="cf-modal-ok" style="padding:10px 24px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit">אישור</button>
+      <button id="cf-modal-cancel" style="padding:10px 24px;background:#F3F4F6;color:#374151;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;font-family:inherit">ביטול</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
