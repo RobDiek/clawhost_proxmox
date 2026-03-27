@@ -446,7 +446,7 @@ input{font-family:inherit}
   <!-- Tab: Chat (embedded OpenClaw chat-only view) -->
   <div class="tab-content hidden" id="tab-chat">
     <div id="chat-container" style="position:relative">
-      <iframe id="chat-iframe" src="" style="width:100%;height:calc(100vh - 100px);border:none;border-radius:12px;background:#fff" allow="clipboard-write"></iframe>
+      <iframe id="chat-iframe" src="" style="width:100%;height:calc(100vh - 100px);border:none;border-radius:12px;background:#FAFAFA;opacity:0;transition:opacity .5s" allow="clipboard-write" onload="this.style.opacity=1"></iframe>
     </div>
     <div id="chat-not-ready" style="display:none;text-align:center;padding:80px 20px">
       <div style="font-size:3rem;margin-bottom:16px">&#9203;</div>
