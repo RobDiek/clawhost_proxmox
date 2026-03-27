@@ -1025,7 +1025,7 @@ const PLANS = [
 ];
 
 const COMPONENT_RAM = {
-  base: 0.5, oc: 1, mt: 4, sv: 2, ec: 2,
+  base: 0.5, oc: 1, mt: 4, bare: 1,
   n8: 0.5, ap: 0.5, ol: 8,
 };
 
@@ -1089,31 +1089,17 @@ const ITEMS = [
     },
   },
   {
-    id: 'sv', cat: 'agents', ram: 2, badge: 'soon', soon: true,
-    he: '\u05E0\u05E6\u05D9\u05D2 \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA \u05D5\u05EA\u05DE\u05D9\u05DB\u05D4', en: 'Sales & Support Agent',
-    descHe: '\u05E1\u05D5\u05DB\u05DF \u05E9\u05DE\u05D8\u05E4\u05DC \u05D1\u05E4\u05E0\u05D9\u05D5\u05EA \u05DC\u05E7\u05D5\u05D7\u05D5\u05EA, \u05DE\u05DB\u05D5\u05D5\u05DF \u05DC\u05E8\u05DB\u05D9\u05E9\u05D4 \u05D5\u05E2\u05D5\u05E0\u05D4 \u05E2\u05DC \u05E9\u05D0\u05DC\u05D5\u05EA \u2014 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA.',
-    descEn: 'Handles customer inquiries, drives purchases, and answers support questions automatically.',
+    id: 'bare', cat: 'agents', ram: 1,
+    he: 'OpenClaw נקי (Bare)', en: 'OpenClaw Bare',
+    descHe: 'שרת OpenClaw נקי ללא סוכנים מותקנים מראש. למפתחים ולמי שרוצים לבנות בעצמם. גישה מלאה לכל הקבצים וההגדרות.',
+    descEn: 'Clean OpenClaw server with no pre-configured agents. For developers who want to build from scratch. Full file and config access.',
     detail: {
-      tagHe: '\u05D1\u05E7\u05E8\u05D5\u05D1', tagEn: 'Coming Soon', tagBg: '#2a2010', tagColor: '#ff9800',
-      descHe: '\u05E1\u05D5\u05DB\u05DF \u05E9\u05DE\u05D8\u05E4\u05DC \u05D1\u05E4\u05E0\u05D9\u05D5\u05EA \u05DC\u05E7\u05D5\u05D7\u05D5\u05EA 24/7, \u05DE\u05DB\u05D5\u05D5\u05DF \u05DC\u05E8\u05DB\u05D9\u05E9\u05D4 \u05D5\u05E2\u05D5\u05E0\u05D4 \u05E2\u05DC \u05E9\u05D0\u05DC\u05D5\u05EA \u05EA\u05DE\u05D9\u05DB\u05D4 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA.',
-      descEn: 'Agent handling customer inquiries 24/7, guiding toward purchase and answering support automatically.',
-      featHe: ['\u05DE\u05D9\u05D5\u05DF \u05D5\u05E0\u05D9\u05EA\u05D5\u05D1 \u05E4\u05E0\u05D9\u05D5\u05EA \u05DC\u05E7\u05D5\u05D7\u05D5\u05EA', '\u05EA\u05E1\u05E8\u05D9\u05D8\u05D9 \u05DE\u05DB\u05D9\u05E8\u05D4 \u05D3\u05D9\u05E0\u05DE\u05D9\u05D9\u05DD', '\u05DE\u05E2\u05E0\u05D4 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05E2\u05DC \u05E9\u05D0\u05DC\u05D5\u05EA \u05E0\u05E4\u05D5\u05E6\u05D5\u05EA', '\u05D4\u05E2\u05D1\u05E8\u05D4 \u05DC\u05E0\u05E6\u05D9\u05D2 \u05D0\u05E0\u05D5\u05E9\u05D9 \u05DB\u05E9\u05E6\u05E8\u05D9\u05DA'],
-      featEn: ['Customer inquiry sorting & routing', 'Dynamic sales scripts', 'Automated FAQ responses', 'Smart handoff to human agent'],
-      tech: 'RAM: 2GB \u00B7 Telegram \u00B7 CRM', price: null,
-    },
-  },
-  {
-    id: 'ec', cat: 'agents', ram: 2, badge: 'soon', soon: true,
-    he: 'eCommerce Agent', en: 'eCommerce Agent',
-    descHe: '\u05E0\u05D9\u05D4\u05D5\u05DC \u05D7\u05E0\u05D5\u05EA: \u05E0\u05D9\u05D8\u05D5\u05E8 \u05DE\u05D7\u05D9\u05E8\u05D9\u05DD \u05DE\u05EA\u05D7\u05E8\u05D9\u05DD, \u05E2\u05D3\u05DB\u05D5\u05DF \u05DE\u05DC\u05D0\u05D9, \u05E9\u05D9\u05E8\u05D5\u05EA \u05DC\u05E7\u05D5\u05D7\u05D5\u05EA \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9.',
-    descEn: 'Store management: competitor price monitoring, inventory updates, automated customer service.',
-    detail: {
-      tagHe: '\u05D1\u05E7\u05E8\u05D5\u05D1', tagEn: 'Coming Soon', tagBg: '#2a2010', tagColor: '#ff9800',
-      descHe: '\u05E0\u05D9\u05D4\u05D5\u05DC \u05D7\u05E0\u05D5\u05EA \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9: \u05E0\u05D9\u05D8\u05D5\u05E8 \u05DE\u05D7\u05D9\u05E8\u05D9\u05DD, \u05E2\u05D3\u05DB\u05D5\u05DF \u05DE\u05DC\u05D0\u05D9, \u05E9\u05D9\u05E8\u05D5\u05EA \u05DC\u05E7\u05D5\u05D7\u05D5\u05EA \u05D1-Telegram \u05D5\u05D3\u05D5\u05D7\u05D5\u05EA \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA.',
-      descEn: 'Automated store management: price monitoring, inventory, Telegram customer service, sales reports.',
-      featHe: ['\u05E0\u05D9\u05D8\u05D5\u05E8 \u05DE\u05D7\u05D9\u05E8\u05D9\u05DD \u05DE\u05EA\u05D7\u05E8\u05D9\u05DD \u05D1\u05D6\u05DE\u05DF \u05D0\u05DE\u05EA', '\u05E2\u05D3\u05DB\u05D5\u05DF \u05DE\u05DC\u05D0\u05D9 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9', '\u05E9\u05D9\u05E8\u05D5\u05EA \u05DC\u05E7\u05D5\u05D7\u05D5\u05EA \u05D1-Telegram', '\u05D3\u05D5\u05D7\u05D5\u05EA \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA \u05D9\u05D5\u05DE\u05D9\u05D9\u05DD'],
-      featEn: ['Real-time competitor price monitoring', 'Automated inventory updates', 'Telegram customer service', 'Automated daily sales reports'],
-      tech: 'RAM: 2GB \u00B7 n8n + Shopify/WooCommerce', price: null,
+      tagHe: 'למפתחים', tagEn: 'For Developers', tagBg: '#1a1a2e', tagColor: '#8B8BEB',
+      descHe: 'שרת VPS עם OpenClaw מותקן ומוכן — בלי שום סוכן, בלי שום הגדרה. אתם מקבלים גישה מלאה ל-Gateway, ל-Workspace, לקבצי ההגדרה ול-CLI. בנו את מה שאתם רוצים.',
+      descEn: 'VPS with OpenClaw installed and ready — no agents, no configuration. Full access to Gateway, Workspace, config files and CLI. Build whatever you want.',
+      featHe: ['OpenClaw Gateway מותקן ומוכן', 'גישה מלאה לכל הקבצים דרך Dashboard', 'התקינו Skills דרך ClawHub', 'חברו כל מודל AI — Claude, GPT, Gemini, Ollama', 'SSH access מלא (בתוכנית מפתח)', 'בנו סוכנים מותאמים אישית'],
+      featEn: ['OpenClaw Gateway installed and ready', 'Full file access via Dashboard', 'Install Skills from ClawHub', 'Connect any AI model', 'Full SSH access (Developer plan)', 'Build custom agents'],
+      tech: 'RAM: 1GB · OpenClaw Gateway', price: null,
     },
   },
   {
