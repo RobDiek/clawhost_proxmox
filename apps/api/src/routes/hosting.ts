@@ -17,6 +17,7 @@ import {
     sendOtpHosting,
     verifyOtpHosting,
     getMe,
+    getMyInstances,
     checkSubdomain,
     setupApiKey,
     setupTelegram,
@@ -41,6 +42,7 @@ const app = new Hono()
 app.post('/auth/send-otp', sendOtpHosting)
 app.post('/auth/verify-otp', verifyOtpHosting)
 app.get('/auth/me', getMe)
+app.get('/my-instances', getMyInstances)
 
 // ── Public ──
 app.post('/configure', configureInstance)

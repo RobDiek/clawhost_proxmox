@@ -910,6 +910,34 @@ var plan = PLANS[planKey] || PLANS.personal;
 var agentUrl = subdomain ? 'https://' + subdomain + '.openclaw.flowmatic.co.il' : '#';
 var flowsUrl = subdomain ? 'https://flows.' + subdomain + '.openclaw.flowmatic.co.il' : '#';
 
+// Auto-load instance from API if not in localStorage
+(async function autoLoadInstance() {
+  if (instanceId) return;
+  try {
+    var res = await fetch(API + '/hosting/my-instances', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (data.success && data.data && data.data.length > 0) {
+      var inst = data.data[0];
+      instanceId = inst.id;
+      planKey = inst.planKey || 'personal';
+      components = inst.selectedComponents || [];
+      subdomain = inst.subdomainName || inst.id;
+      plan = PLANS[planKey] || PLANS.personal;
+      agentUrl = inst.subdomainAgent ? 'https://' + inst.subdomainAgent : '#';
+      flowsUrl = inst.subdomainFlows ? 'https://' + inst.subdomainFlows : '#';
+      localStorage.setItem('cf_instance_id', instanceId);
+      localStorage.setItem('cf_instance_plan', planKey);
+      localStorage.setItem('cf_instance_components', JSON.stringify(components));
+      localStorage.setItem('cf_instance_subdomain', subdomain);
+      // Re-render with real data
+      if (typeof renderHome === 'function') renderHome();
+      if (typeof renderAgentsTab === 'function') renderAgentsTab();
+    }
+  } catch(e) { console.error('Auto-load instance error:', e); }
+})();
+
 /* ===== State ===== */
 var instanceData = null;
 var tokenVisible = false;

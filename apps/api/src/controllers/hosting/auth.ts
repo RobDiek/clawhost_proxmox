@@ -2,7 +2,7 @@ import type { Context } from 'hono'
 import crypto from 'crypto'
 import { eq, and, gt, lt, sql } from 'drizzle-orm'
 import { db } from '@/db'
-import { otpCodes, users } from '@/db/schema'
+import { otpCodes, users, instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 
 // ── Simple JWT (no external deps) ──────────────────────────
@@ -252,5 +252,49 @@ export const getMe = async (c: Context) => {
     } catch (err) {
         console.error('getMe error:', err)
         return fail(c, 'Failed to get user.', 500)
+    }
+}
+
+// ── GET /hosting/my-instances ────────────────────────────
+
+export const getMyInstances = async (c: Context) => {
+    try {
+        const authHeader = c.req.header('Authorization')
+        if (!authHeader?.startsWith('Bearer ')) {
+            return fail(c, 'Unauthorized.', 401)
+        }
+
+        const token = authHeader.slice(7)
+        const payload = verifyJwt(token, JWT_SECRET)
+
+        if (!payload || !payload.sub) {
+            return fail(c, 'Invalid token.', 401)
+        }
+
+        if (payload.exp && typeof payload.exp === 'number' && payload.exp < Math.floor(Date.now() / 1000)) {
+            return fail(c, 'Token expired.', 401)
+        }
+
+        const result = await db.select()
+            .from(instances)
+            .where(eq(instances.userId, payload.sub as string))
+
+        return ok(c, result.map(i => ({
+            id: i.id,
+            planKey: i.planKey,
+            priceIls: i.priceIls,
+            status: i.status,
+            selectedComponents: i.selectedComponents,
+            automationTool: i.automationTool,
+            subdomainAgent: i.subdomainAgent,
+            subdomainFlows: i.subdomainFlows,
+            subdomainName: i.subdomainName,
+            ip: i.ip,
+            onboardingCompleted: i.onboardingCompleted,
+            createdAt: i.createdAt,
+        })), 'Instances found.')
+    } catch (err) {
+        console.error('getMyInstances error:', err)
+        return fail(c, 'Failed to get instances.', 500)
     }
 }
