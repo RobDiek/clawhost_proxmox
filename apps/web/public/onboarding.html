@@ -732,10 +732,70 @@ body {
     <button class="btn btn-primary" id="btnSaveTelegram" onclick="saveTelegram()">
       חברו והמשיכו
     </button>
-    <button class="skip-link" onclick="goToStep(4)">דלגו לבינתיים</button>
+    <button class="skip-link" onclick="goToStep(isMATEH ? 5 : 4)">דלגו לבינתיים</button>
   </div>
 
-  <!-- ═══ Step 4: Done ═══ -->
+  <!-- ═══ Step 5: MATEH Research Wizard (only for MATEH plan) ═══ -->
+  <div class="wizard-card hidden" id="step5" data-step="5">
+    <div class="card-title">הגדרת סוכני שיווק</div>
+    <div class="card-desc">ענו על 7 שאלות כדי להגדיר את הסוכנים שלכם</div>
+
+    <div id="research-form">
+      <div class="form-group"><label>1. שם העסק</label><input type="text" id="rq-business-name" placeholder="לדוגמה: Flowmatic" class="input-field"/></div>
+      <div class="form-group"><label>2. במה עוסק העסק?</label><textarea id="rq-business-desc" placeholder="מה אתם מוכרים / איזה שירות?" rows="2" class="input-field"></textarea></div>
+      <div class="form-group"><label>3. מי קהל היעד?</label><textarea id="rq-target" placeholder="תארו את הלקוח האידיאלי" rows="2" class="input-field"></textarea></div>
+      <div class="form-group"><label>4. מי המתחרים הישירים? (2-3 שמות)</label><textarea id="rq-competitors" placeholder="שמות + URL אם יש" rows="2" class="input-field"></textarea></div>
+      <div class="form-group"><label>5. מה המטרה העיקרית?</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+          <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="radio" name="rq-goal" value="לידים"/> לידים</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="radio" name="rq-goal" value="מכירות ישירות"/> מכירות</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="radio" name="rq-goal" value="בניית קהל"/> קהל</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="radio" name="rq-goal" value="מודעות מותג" checked/> מותג</label>
+        </div>
+      </div>
+      <div class="form-group"><label>6. איזה תוכן אתם מפרסמים היום?</label><textarea id="rq-content" placeholder="פוסטים, בלוג, ניוזלטר..." rows="2" class="input-field"></textarea></div>
+      <div class="form-group"><label>7. מה הכי מתסכל בשיווק?</label><textarea id="rq-challenges" placeholder="אין זמן? לא יודעים מה לכתוב?" rows="2" class="input-field"></textarea></div>
+
+      <button class="btn btn-primary" id="btnSubmitResearch" onclick="submitResearch()" style="width:100%;margin-top:16px">הגדירו את הסוכנים שלי &rarr;</button>
+    </div>
+
+    <div id="research-progress" style="display:none">
+      <div style="text-align:center;padding:20px 0">
+        <div style="font-size:2rem;margin-bottom:12px">&#9881;&#65039;</div>
+        <h3 id="research-progress-text">מנתחים את המידע שלכם...</h3>
+        <p style="color:var(--text-3);font-size:0.85rem;margin-top:8px">זה ייקח כ-30 שניות</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Step 6: Daily Brief Schedule (only for MATEH plan) ═══ -->
+  <div class="wizard-card hidden" id="step6" data-step="6">
+    <div class="card-title">סיכום יומי</div>
+    <div class="card-desc">באיזו שעה תרצו לקבל את הסיכום היומי בטלגרם?</div>
+
+    <div class="form-group" style="margin-top:20px">
+      <label>שעה</label>
+      <input type="time" id="daily-brief-time" value="08:00" class="input-field" style="direction:ltr;text-align:center;font-size:1.2rem;padding:12px"/>
+    </div>
+
+    <div class="form-group" style="margin-top:16px">
+      <label>ימים</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+        <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="checkbox" checked/> ראשון</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="checkbox" checked/> שני</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="checkbox" checked/> שלישי</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="checkbox" checked/> רביעי</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="checkbox" checked/> חמישי</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="checkbox"/> שישי</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="checkbox"/> שבת</label>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveDailyBrief()" style="width:100%;margin-top:24px">שמרו והמשיכו &rarr;</button>
+    <button class="skip-link" onclick="goToStep(isMATEH ? 7 : 4)">דלגו</button>
+  </div>
+
+  <!-- ═══ Step 4/7: Done ═══ -->
   <div class="wizard-card hidden" id="step4" data-step="4">
     <div class="card-title" style="margin-top:8px;">הכל מוכן!</div>
     <div class="card-desc">הסוכנים שלכם פעילים ומחכים לכם</div>
@@ -801,6 +861,8 @@ body {
   var pollCount = 0;
   var fakeProgress = 0;
   var MAX_POLLS = 75; // ~10 min at 8s
+  var isMATEH = false;
+  var totalSteps = 4;
 
   // ── Init ──
   if (!instanceId) {
@@ -808,12 +870,33 @@ body {
     return;
   }
 
+  // Detect plan type from URL or API
+  var planParam = params.get('plan');
+  if (planParam === 'mateh' || planParam === 'business' || planParam === 'pro' || planParam === 'developer') {
+    enableMATEH();
+  }
+  // Also detect from API on first status response (see pollStatus)
+
+  function enableMATEH() {
+    isMATEH = true;
+    totalSteps = 7;
+    window.isMATEH = true;
+    // Add extra step dots
+    var indicator = document.getElementById('stepIndicator');
+    if (!document.getElementById('dot-5')) {
+      indicator.innerHTML += '<div class="step-line pending" id="line-4"></div><div class="step-dot future" id="dot-5">5</div>' +
+        '<div class="step-line pending" id="line-5"></div><div class="step-dot future" id="dot-6">6</div>' +
+        '<div class="step-line pending" id="line-6"></div><div class="step-dot future" id="dot-7">7</div>';
+    }
+  }
+
   startProvisioning();
 
   // ── Step Navigation ──
   function updateIndicator(step) {
-    for (var i = 1; i <= 4; i++) {
+    for (var i = 1; i <= totalSteps; i++) {
       var dot = document.getElementById('dot-' + i);
+      if (!dot) continue;
       dot.className = 'step-dot';
       if (i < step) {
         dot.className += ' completed';
@@ -825,16 +908,18 @@ body {
         dot.className += ' future';
         dot.textContent = i;
       }
-      if (i < 4) {
+      if (i < totalSteps) {
         var line = document.getElementById('line-' + i);
-        line.className = 'step-line ' + (i < step ? 'done' : 'pending');
+        if (line) line.className = 'step-line ' + (i < step ? 'done' : 'pending');
       }
     }
   }
 
   window.goToStep = function(step) {
     var oldCard = document.getElementById('step' + currentStep);
-    var newCard = document.getElementById('step' + step);
+    // For MATEH, step 7 reuses step4 (Done card)
+    var targetId = (isMATEH && step === 7) ? 'step4' : 'step' + step;
+    var newCard = document.getElementById(targetId);
     if (!oldCard || !newCard) return;
 
     oldCard.style.animation = 'slideOut .3s ease forwards';
@@ -846,7 +931,8 @@ body {
       currentStep = step;
       updateIndicator(step);
 
-      if (step === 4) {
+      var doneStep = isMATEH ? 7 : 4;
+      if (step === doneStep) {
         populateDoneStep();
         markComplete();
       }
@@ -923,6 +1009,7 @@ body {
       }
       var data = await res.json();
       instanceData = data.data || data;
+      checkPlanType(instanceData);
       var status = instanceData.status || 'provisioning';
 
       var substep = mapStatusToSubstep(status);
@@ -1066,7 +1153,7 @@ body {
       });
       if (!res.ok) throw new Error('Request failed');
       showToast('בוט Telegram חובר בהצלחה', 'success');
-      setTimeout(function() { goToStep(4); }, 600);
+      setTimeout(function() { goToStep(isMATEH ? 5 : 4); }, 600);
     } catch (e) {
       showToast('שגיאה בחיבור הבוט, נסו שוב', 'error');
     } finally {
@@ -1151,7 +1238,7 @@ body {
   // ── Error ──
   function showError(msg) {
     // Hide all steps
-    for (var i = 1; i <= 4; i++) {
+    for (var i = 1; i <= 7; i++) {
       var el = document.getElementById('step' + i);
       if (el) el.classList.add('hidden');
     }
@@ -1175,6 +1262,74 @@ body {
     }, 3000);
   }
   window.showToast = showToast;
+
+  // ── MATEH: Research Wizard ──
+  window.submitResearch = async function() {
+    var answers = {
+      businessName: document.getElementById('rq-business-name').value.trim(),
+      businessDescription: document.getElementById('rq-business-desc').value.trim(),
+      targetAudience: document.getElementById('rq-target').value.trim(),
+      competitors: document.getElementById('rq-competitors').value.trim(),
+      marketingGoals: (document.querySelector('input[name="rq-goal"]:checked') || {}).value || 'מודעות מותג',
+      currentContent: document.getElementById('rq-content').value.trim(),
+      challenges: document.getElementById('rq-challenges').value.trim()
+    };
+
+    if (!answers.businessName) { showToast('נא להזין שם עסק', 'error'); return; }
+    if (!answers.businessDescription) { showToast('נא לתאר את העסק', 'error'); return; }
+
+    document.getElementById('research-form').style.display = 'none';
+    document.getElementById('research-progress').style.display = 'block';
+
+    var steps = ['מנתחים את המידע...', 'יוצרים USER.md ו-BRAND.md...', 'מגדירים סוכנים...', 'מתקינים Skills...', 'מפעילים מחדש...'];
+    var progressText = document.getElementById('research-progress-text');
+    var stepIdx = 0;
+    var progressTimer = setInterval(function() {
+      stepIdx++;
+      if (stepIdx < steps.length) progressText.textContent = steps[stepIdx];
+    }, 6000);
+
+    try {
+      var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(answers)
+      });
+      clearInterval(progressTimer);
+      if (!res.ok) throw new Error('Request failed');
+      showToast('הסוכנים הוגדרו בהצלחה!', 'success');
+      setTimeout(function() { goToStep(6); }, 600);
+    } catch (e) {
+      clearInterval(progressTimer);
+      showToast('שגיאה בהגדרת הסוכנים, נסו שוב', 'error');
+      document.getElementById('research-form').style.display = 'block';
+      document.getElementById('research-progress').style.display = 'none';
+    }
+  };
+
+  // ── MATEH: Daily Brief Schedule ──
+  window.saveDailyBrief = async function() {
+    var time = document.getElementById('daily-brief-time').value || '08:00';
+    showToast('שמור: Daily Brief ב-' + time, 'success');
+    // Save to instance researchData
+    try {
+      await fetch(API + '/hosting/instances/' + instanceId + '/setup/complete', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ dailyBriefTime: time })
+      });
+    } catch (e) { /* non-critical */ }
+    setTimeout(function() { goToStep(7); }, 600);
+  };
+
+  // ── Detect MATEH from API response ──
+  // Called in pollStatus when we get instance data
+  function checkPlanType(data) {
+    if (data && data.selectedComponents) {
+      var hasMT = data.selectedComponents.indexOf('mt') !== -1;
+      if (hasMT && !isMATEH) enableMATEH();
+    }
+  }
 
 })();
 </script>

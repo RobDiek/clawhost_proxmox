@@ -303,21 +303,38 @@ export const saveIntegration = async (c: Context) => {
         const instance = await getInstance(instanceId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
-        const ocBase = `${VPS_HOME}/.openclaw`
         const commands: Record<string, string> = {
-            anthropic: `cd ${VPS_HOME} && openclaw provider add anthropic --api-key "${key}" 2>/dev/null || (mkdir -p ${ocBase}/providers && echo '{"provider":"anthropic","apiKey":"${key}"}' > ${ocBase}/providers/anthropic.json)`,
-            openai: `cd ${VPS_HOME} && openclaw provider add openai --api-key "${key}" 2>/dev/null || (mkdir -p ${ocBase}/providers && echo '{"provider":"openai","apiKey":"${key}"}' > ${ocBase}/providers/openai.json)`,
-            gemini: `mkdir -p ${ocBase}/providers && echo '{"provider":"gemini","apiKey":"${key}"}' > ${ocBase}/providers/gemini.json`,
-            telegram: `cd ${VPS_HOME} && openclaw channel add telegram --token "${key}" 2>/dev/null || (mkdir -p ${ocBase}/channels && echo '{"channel":"telegram","token":"${key}"}' > ${ocBase}/channels/telegram.json)`,
-            brave: `mkdir -p ${ocBase}/skills-config && echo '{"braveApiKey":"${key}"}' > ${ocBase}/skills-config/brave-search.json`,
-            brightdata: `mkdir -p ${ocBase}/skills-config && echo '{"apiKey":"${key}"}' > ${ocBase}/skills-config/bright-data.json`,
-            replicate: `mkdir -p ${ocBase}/skills-config && echo '{"apiToken":"${key}"}' > ${ocBase}/skills-config/replicate.json`,
+            anthropic: `cd /home/openclaw && openclaw provider add anthropic --api-key "${key}" 2>/dev/null || (mkdir -p ${VPS_HOME}/providers && echo '{"provider":"anthropic","apiKey":"${key}"}' > ${VPS_HOME}/providers/anthropic.json)`,
+            openai: `cd /home/openclaw && openclaw provider add openai --api-key "${key}" 2>/dev/null || (mkdir -p ${VPS_HOME}/providers && echo '{"provider":"openai","apiKey":"${key}"}' > ${VPS_HOME}/providers/openai.json)`,
+            gemini: `mkdir -p ${VPS_HOME}/providers && echo '{"provider":"gemini","apiKey":"${key}"}' > ${VPS_HOME}/providers/gemini.json`,
+            telegram: `cd /home/openclaw && openclaw channel add telegram --token "${key}" 2>/dev/null || (mkdir -p ${VPS_HOME}/channels && echo '{"channel":"telegram","token":"${key}"}' > ${VPS_HOME}/channels/telegram.json)`,
+            brave: `mkdir -p ${VPS_HOME}/skills-config && echo '{"braveApiKey":"${key}"}' > ${VPS_HOME}/skills-config/brave-search.json`,
+            brightdata: `mkdir -p ${VPS_HOME}/skills-config && echo '{"apiKey":"${key}"}' > ${VPS_HOME}/skills-config/bright-data.json`,
+            replicate: `mkdir -p ${VPS_HOME}/skills-config && echo '{"apiToken":"${key}"}' > ${VPS_HOME}/skills-config/replicate.json`,
+            ollama: `cd /home/openclaw && openclaw provider add ollama --model "${key}" 2>/dev/null || (mkdir -p ${VPS_HOME}/providers && echo '{"provider":"ollama","model":"${key}"}' > ${VPS_HOME}/providers/ollama.json)`,
+            resend: `mkdir -p ${VPS_HOME}/skills-config && echo '{"apiKey":"${key}"}' > ${VPS_HOME}/skills-config/resend.json`,
         }
 
         const cmd = commands[type]
         if (!cmd) return fail(c, 'Unknown integration type.', 400)
 
-        await sshExec(instance.ip, `${cmd} && chown -R openclaw:openclaw ${VPS_HOME}`)
+        await sshExec(instance.ip, `${cmd} && chown -R openclaw:openclaw /home/openclaw/.openclaw && systemctl restart openclaw-gateway`)
+
+        // Update onboarding progress based on integration type
+        if (['anthropic', 'openai', 'gemini'].includes(type)) {
+            const step = instance.onboardingStep ?? 0
+            if (step < 2) {
+                await db.update(instances).set({ onboardingStep: 2 }).where(eq(instances.id, instanceId))
+            }
+        }
+        if (type === 'telegram') {
+            await db.update(instances).set({
+                onboardingStep: 3,
+                onboardingCompleted: true,
+                telegramBotToken: key
+            }).where(eq(instances.id, instanceId))
+        }
+
         return ok(c, { type }, 'Integration saved.')
     } catch (err) {
         console.error('saveIntegration error:', err)
