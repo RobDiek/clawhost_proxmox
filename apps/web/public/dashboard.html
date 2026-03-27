@@ -333,7 +333,7 @@ input{font-family:inherit}
 <!-- Header -->
 <header class="header">
   <div class="header-right">
-    <div class="header-logo"><span class="logo-claw">Claw</span>Flow</div>
+    <div class="header-logo">Claw<span class="logo-claw">Flow</span></div>
   </div>
   <div class="header-left">
     <button class="header-user-btn" id="headerUserBtn" onclick="toggleUserDropdown()">
@@ -471,7 +471,7 @@ input{font-family:inherit}
     <div class="integrations-grid">
       <div class="int-card" id="anthropic-card">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#FEF3C7">&#129504;</div>
+          <div class="int-icon" style="background:#FDF2F0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13.827 3L24 21h-4.62L9.203 3h4.624zM5.584 3l5.15 10.073L8.24 17.636 0 3h5.584z" fill="#D97757"/></svg></div>
           <div><strong>Anthropic Claude</strong><div class="int-status" id="anthropic-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-anthropic-body">
@@ -482,7 +482,7 @@ input{font-family:inherit}
       </div>
       <div class="int-card" id="openai-card">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#E8F5E9">&#129302;</div>
+          <div class="int-icon" style="background:#E8F5E9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22.282 9.821a5.985 5.985 0 00-.516-4.91 6.046 6.046 0 00-6.51-2.9A6.065 6.065 0 0011.694.1 6.043 6.043 0 005.706 4.28a5.99 5.99 0 00-3.99 2.9 6.043 6.043 0 00.749 7.09 5.98 5.98 0 00.51 4.911 6.05 6.05 0 006.515 2.9A5.99 5.99 0 0013.052 23.9a6.04 6.04 0 005.984-4.18 5.99 5.99 0 003.996-2.9 6.04 6.04 0 00-.75-6.999zM13.052 22.26a4.5 4.5 0 01-2.886-1.045l.143-.08 4.793-2.77a.78.78 0 00.393-.676v-6.76l2.026 1.17a.07.07 0 01.038.052v5.6a4.508 4.508 0 01-4.507 4.509zM3.495 18.14a4.49 4.49 0 01-.535-3.014l.143.085 4.793 2.77a.78.78 0 00.786 0l5.854-3.38v2.34a.07.07 0 01-.028.06l-4.85 2.8a4.508 4.508 0 01-6.163-1.661zM2.223 7.94a4.49 4.49 0 012.35-1.97l-.002.164v5.54a.78.78 0 00.392.676l5.854 3.38-2.026 1.17a.07.07 0 01-.066.005l-4.85-2.8A4.508 4.508 0 012.223 7.94zm17.088 3.98l-5.854-3.38 2.026-1.17a.07.07 0 01.066-.004l4.85 2.8a4.506 4.506 0 01-.7 8.124v-5.694a.78.78 0 00-.388-.676zm2.016-3.03l-.143-.085-4.793-2.77a.78.78 0 00-.786 0l-5.854 3.38V7.075a.07.07 0 01.028-.06l4.85-2.8a4.507 4.507 0 016.698 4.675zm-12.68 4.17l-2.026-1.17a.07.07 0 01-.038-.052v-5.6a4.508 4.508 0 017.4-3.46l-.144.08-4.793 2.77a.78.78 0 00-.393.676l-.006 6.756zm1.1-2.37l2.607-1.505 2.607 1.505v3.01l-2.607 1.505-2.607-1.505v-3.01z" fill="#10A37F"/></svg></div>
           <div><strong>OpenAI</strong><div class="int-status" id="openai-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-openai-body">
@@ -493,12 +493,28 @@ input{font-family:inherit}
       </div>
       <div class="int-card">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#E3F2FD">&#128302;</div>
+          <div class="int-icon" style="background:#E3F2FD"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#FBBC04"/><path d="M12 2C6.48 2 2 6.48 2 12h10V2z" fill="#4285F4"/><path d="M12 12H2c0 5.52 4.48 10 10 10V12z" fill="#34A853"/><path d="M22 12c0-5.52-4.48-10-10-10v10h10z" fill="#EA4335"/><circle cx="12" cy="12" r="4" fill="white"/><path d="M12 8.8l1.8 3.6H14l1.8-3.6h-1.2l-1.2 2.4-1.2-2.4H12z" fill="#4285F4"/></svg></div>
           <div><strong>Google Gemini</strong><div class="int-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-gemini-body">
           <input type="password" id="int-gemini-key" placeholder="API Key..." dir="ltr" class="int-input"/>
           <button class="btn btn-primary btn-sm" onclick="saveIntegration('gemini')">שמרו</button>
+        </div>
+      </div>
+      <div class="int-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#111"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z" fill="white"/><path d="M8.5 8h3v8h-3V8zm4 0h3v8h-3V8z" fill="#111"/></svg></div>
+          <div><strong>Ollama (מקומי)</strong><div class="int-status">לא מחובר</div></div>
+        </div>
+        <div class="int-card-body hidden" id="int-ollama-body">
+          <p style="font-size:.8rem;color:#6B7280;margin-bottom:8px">Ollama מותקן אוטומטית על ה-VPS שלכם. בחרו מודל:</p>
+          <select id="int-ollama-model" class="int-input" style="padding:8px">
+            <option value="llama3.1:8b">Llama 3.1 (8B)</option>
+            <option value="mistral:7b">Mistral (7B)</option>
+            <option value="codellama:7b">CodeLlama (7B)</option>
+            <option value="gemma2:9b">Gemma 2 (9B)</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="saveIntegration('ollama')">התקינו</button>
         </div>
       </div>
     </div>
@@ -508,7 +524,7 @@ input{font-family:inherit}
     <div class="integrations-grid">
       <div class="int-card" id="telegram-card">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#E3F2FD">&#128172;</div>
+          <div class="int-icon" style="background:#E3F2FD"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" fill="#229ED9"/></svg></div>
           <div><strong>Telegram</strong><div class="int-status" id="telegram-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-telegram-body">
@@ -522,14 +538,54 @@ input{font-family:inherit}
       </div>
       <div class="int-card">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#E8F5E9">&#128241;</div>
+          <div class="int-icon" style="background:#E8F5E9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="#25D366"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.985-1.393A9.953 9.953 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" fill="#25D366" fill-opacity=".2"/></svg></div>
           <div><strong>WhatsApp</strong><div class="int-status soon">בקרוב</div></div>
         </div>
       </div>
       <div class="int-card">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#FFF3E0">&#128231;</div>
+          <div class="int-icon" style="background:#FFF3E0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#EA580C" stroke-width="1.5" fill="none"/><path d="M22 6l-10 7L2 6" stroke="#EA580C" stroke-width="1.5" fill="none"/></svg></div>
           <div><strong>Email (SMTP)</strong><div class="int-status soon">בקרוב</div></div>
+        </div>
+      </div>
+      <div class="int-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#000"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M0 0h11v11H0zM13 0h11v11H13zM0 13h11v11H0zM13 13h11v11H13z" fill="white"/></svg></div>
+          <div><strong>Resend</strong><div class="int-status">לא מחובר</div></div>
+        </div>
+        <div class="int-card-body hidden" id="int-resend-body">
+          <input type="password" id="int-resend-key" placeholder="re_..." dir="ltr" class="int-input"/>
+          <button class="btn btn-primary btn-sm" onclick="saveIntegration('resend')">שמרו</button>
+          <a href="https://resend.com" target="_blank" class="int-help-link">פתחו חשבון ב-Resend &#8599;</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Microsoft -->
+    <div class="section-title">Microsoft 365</div>
+    <div class="integrations-grid">
+      <div class="int-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#E3F2FD"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 3h12v18H6V3z" fill="#185ABD"/><path d="M14 3h4v18h-4V3z" fill="#2B7CD3"/><path d="M2 6l4-3v18l-4-3V6z" fill="#103F91"/><path d="M8 8h2v2H8V8zm0 3h2v2H8v-2zm0 3h2v2H8v-2zm3-6h2v2h-2V8zm0 3h2v2h-2v-2zm0 3h2v2h-2v-2z" fill="white" fill-opacity=".6"/></svg></div>
+          <div><strong>Microsoft Word</strong><div class="int-status soon">בקרוב</div></div>
+        </div>
+      </div>
+      <div class="int-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#E8F5E9"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 3h18v18H3V3z" fill="#217346"/><path d="M14 3h7v18h-7V3z" fill="#33C481"/><path d="M7 7h2v2H7V7zm0 3h2v2H7v-2zm0 3h2v2H7v-2zm3-6h2v2h-2V7zm0 3h2v2h-2v-2zm0 3h2v2h-2v-2zm3-6h2v2h-2V7zm0 3h2v2h-2v-2zm0 3h2v2h-2v-2z" fill="white" fill-opacity=".6"/></svg></div>
+          <div><strong>Microsoft Excel</strong><div class="int-status soon">בקרוב</div></div>
+        </div>
+      </div>
+      <div class="int-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#FFF3E0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 5h18v14H3V5z" fill="#D35230"/><path d="M14 5h7v14h-7V5z" fill="#FF6F47"/><path d="M7 9h3v1H7V9zm0 2h5v1H7v-1zm0 2h4v1H7v-1z" fill="white" fill-opacity=".6"/></svg></div>
+          <div><strong>Microsoft PowerPoint</strong><div class="int-status soon">בקרוב</div></div>
+        </div>
+      </div>
+      <div class="int-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#E3F2FD"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" fill="#0078D4"/><path d="M22 6l-10 7L2 6" stroke="white" stroke-width="1.2" fill="none"/></svg></div>
+          <div><strong>Microsoft Outlook</strong><div class="int-status soon">בקרוב</div></div>
         </div>
       </div>
     </div>
@@ -539,26 +595,26 @@ input{font-family:inherit}
     <div class="integrations-grid">
       <div class="int-card">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#E8F5E9">&#128197;</div>
+          <div class="int-icon" style="background:#E8F5E9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M19 4H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z" fill="#fff" stroke="#4285F4" stroke-width="1.5"/><path d="M17 10h-4v1h3v1h-3v1h4v1H12V9h5v1z" fill="#4285F4"/><path d="M5 14V9h1v2h2V9h1v5H8v-2H6v2H5z" fill="#EA4335"/><rect x="6" y="17" width="12" height="1" rx=".5" fill="#34A853"/></svg></div>
           <div><strong>Google Calendar</strong><div class="int-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden"><button class="btn btn-outline btn-sm" onclick="showToast('OAuth flow — בקרוב')">חברו חשבון Google</button></div>
       </div>
       <div class="int-card">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#FFEBEE">&#9993;&#65039;</div>
+          <div class="int-icon" style="background:#FFEBEE"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" fill="#EA4335" fill-opacity=".1" stroke="#EA4335" stroke-width="1.2"/><path d="M22 6l-10 7L2 6" stroke="#EA4335" stroke-width="1.5" fill="none"/></svg></div>
           <div><strong>Gmail</strong><div class="int-status">לא מחובר</div></div>
         </div>
       </div>
       <div class="int-card">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#E3F2FD">&#128193;</div>
+          <div class="int-icon" style="background:#E3F2FD"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 3l-4 3.5V21l4-3V3z" fill="#4285F4"/><path d="M6 3l8 4v18l-8-4V3z" fill="#4285F4" fill-opacity=".7"/><path d="M14 7l8-4v18l-8 4V7z" fill="#4285F4" fill-opacity=".4"/></svg></div>
           <div><strong>Google Drive</strong><div class="int-status">לא מחובר</div></div>
         </div>
       </div>
       <div class="int-card">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#F3E5F5">&#128202;</div>
+          <div class="int-icon" style="background:#E8F5E9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" fill="#0F9D58" fill-opacity=".1" stroke="#0F9D58" stroke-width="1.2"/><path d="M7 7h4v4H7V7z" fill="#0F9D58"/><path d="M13 7h4v4h-4V7z" fill="#0F9D58" fill-opacity=".6"/><path d="M7 13h4v4H7v-4z" fill="#0F9D58" fill-opacity=".6"/><path d="M13 13h4v4h-4v-4z" fill="#0F9D58" fill-opacity=".3"/></svg></div>
           <div><strong>Google Sheets</strong><div class="int-status">לא מחובר</div></div>
         </div>
       </div>
@@ -569,7 +625,7 @@ input{font-family:inherit}
     <div class="integrations-grid">
       <div class="int-card">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#FFF3E0">&#128269;</div>
+          <div class="int-icon" style="background:#FFF3E0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#FB542B" fill-opacity=".1"/><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 10.5 6.5 6.5 0 109.5 17c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 20l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="#FB542B"/></svg></div>
           <div><strong>Brave Search</strong><div class="int-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-brave-body">
@@ -580,7 +636,7 @@ input{font-family:inherit}
       </div>
       <div class="int-card">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#E8EAF6">&#127760;</div>
+          <div class="int-icon" style="background:#E8EAF6"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#3F51B5" fill-opacity=".1"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" fill="#3F51B5"/></svg></div>
           <div><strong>Bright Data</strong><div class="int-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-brightdata-body">
@@ -595,20 +651,20 @@ input{font-family:inherit}
     <div class="integrations-grid" id="automationIntegration">
       <div class="int-card connected">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#EDE7F6">&#9889;</div>
+          <div class="int-icon" style="background:#EDE7F6"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="#7C3AED"/></svg></div>
           <div><strong>Activepieces</strong><div class="int-status connected">&#10003; מחובר</div></div>
         </div>
         <a href="" id="int-flows-link" target="_blank" class="btn btn-outline btn-sm" style="margin:8px 0;display:inline-block;text-decoration:none">פתחו &#8599;</a>
       </div>
       <div class="int-card">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#FFF8E1">&#128279;</div>
+          <div class="int-icon" style="background:#F3E8FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z" fill="#611F69" fill-opacity=".1" stroke="#611F69" stroke-width="1.2"/><path d="M9 13.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm6 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="#611F69"/></svg></div>
           <div><strong>Slack</strong><div class="int-status soon">בקרוב</div></div>
         </div>
       </div>
       <div class="int-card">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#E8F5E9">&#128248;</div>
+          <div class="int-icon" style="background:#E8F5E9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#0D9DDB" fill-opacity=".1"/><path d="M8 8h8v8H8V8z" fill="#0D9DDB"/><path d="M10 10h4v4h-4v-4z" fill="white"/></svg></div>
           <div><strong>Replicate (תמונות)</strong><div class="int-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-replicate-body">
@@ -1445,7 +1501,9 @@ async function saveIntegration(type) {
     telegram: 'int-telegram-token',
     brave: 'int-brave-key',
     brightdata: 'int-brightdata-key',
-    replicate: 'int-replicate-key'
+    replicate: 'int-replicate-key',
+    ollama: 'int-ollama-model',
+    resend: 'int-resend-key'
   };
 
   var inputId = keyMap[type];
