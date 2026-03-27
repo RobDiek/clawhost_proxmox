@@ -443,19 +443,37 @@ input{font-family:inherit}
     <button class="btn btn-outline" style="margin-top:8px;font-size:0.8rem" onclick="switchTab('server')">כל הלוגים &larr;</button>
   </div>
 
-  <!-- Tab: Chat (embedded OpenClaw) -->
+  <!-- Tab: Chat -->
   <div class="tab-content hidden" id="tab-chat">
-    <div id="chat-container" style="position:relative">
-      <iframe id="chat-iframe" src="" style="width:100%;height:calc(100vh - 120px);border:none;border-radius:12px;background:#fff" allow="clipboard-write"></iframe>
-      <div id="chat-placeholder" style="display:none;text-align:center;padding:80px 20px">
+    <h2 class="tab-title">צ'אט עם הסוכן</h2>
+    <p class="tab-desc">דברו ישירות עם הסוכן שלכם דרך הדפדפן.</p>
+
+    <div id="chat-ready" style="display:none">
+      <div style="background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:32px;text-align:center;max-width:500px;margin:32px auto">
         <div style="font-size:3rem;margin-bottom:16px">💬</div>
-        <h3 style="margin-bottom:8px">הצ'אט עדיין לא זמין</h3>
-        <p style="color:#6B7280;font-size:0.9rem;margin-bottom:16px">השרת שלכם בהכנה. הצ'אט יהיה זמין ברגע שהשרת מוכן.</p>
-        <button class="btn btn-outline" onclick="loadChatIframe()">נסו שוב</button>
+        <h3 style="margin-bottom:8px">OpenClaw Chat</h3>
+        <p style="color:#6B7280;font-size:0.88rem;margin-bottom:20px">הצ'אט ייפתח בחלון חדש עם גישה מאובטחת לסוכן שלכם.</p>
+        <a id="chat-open-btn" href="#" target="_blank" class="btn btn-primary" style="display:inline-block;text-decoration:none;color:#fff;padding:14px 32px;font-size:1rem;border-radius:12px">
+          פתחו צ'אט &#8599;
+        </a>
+      </div>
+
+      <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:12px;padding:20px;max-width:500px;margin:20px auto">
+        <div style="font-size:0.85rem;color:#6B7280;margin-bottom:12px;font-weight:600">טיפים</div>
+        <ul style="font-size:0.82rem;color:#4B5563;list-style:none;padding:0;margin:0">
+          <li style="padding:6px 0;border-bottom:1px solid #F3F4F6">&#128172; שאלו שאלות על העסק, שיווק, תוכן</li>
+          <li style="padding:6px 0;border-bottom:1px solid #F3F4F6">&#128196; הסוכן מכיר את המידע מ-USER.md ו-BRAND.md</li>
+          <li style="padding:6px 0;border-bottom:1px solid #F3F4F6">&#9889; לתוצאות מתקדמות — חברו Telegram בהגדרות</li>
+          <li style="padding:6px 0">&#128274; הצ'אט מאובטח עם Gateway Token</li>
+        </ul>
       </div>
     </div>
-    <div style="text-align:center;margin-top:8px">
-      <a id="chat-external-link" href="#" target="_blank" style="font-size:0.8rem;color:#6B7280;text-decoration:none">פתחו בחלון חדש &#8599;</a>
+
+    <div id="chat-not-ready" style="text-align:center;padding:80px 20px">
+      <div style="font-size:3rem;margin-bottom:16px">&#9203;</div>
+      <h3 style="margin-bottom:8px">הצ'אט עדיין לא זמין</h3>
+      <p style="color:#6B7280;font-size:0.9rem;margin-bottom:16px">השרת שלכם בהכנה. הצ'אט יהיה זמין ברגע שהשרת מוכן.</p>
+      <button class="btn btn-outline" onclick="loadChatTab()">רענון</button>
     </div>
   </div>
 
@@ -1317,30 +1335,25 @@ function switchTab(tabId) {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('show');
   // Load data for specific tabs
-  if (tabId === 'chat') loadChatIframe();
+  if (tabId === 'chat') loadChatTab();
   if (tabId === 'files') fmNavigate(fmCurrentDir || '');
   if (tabId === 'server') { loadStats(); if (termFit && term) { setTimeout(function(){ termFit.fit(); }, 100); } }
 }
 
-/* ===== Chat iframe ===== */
-var chatLoaded = false;
-function loadChatIframe() {
-  var iframe = document.getElementById('chat-iframe');
-  var placeholder = document.getElementById('chat-placeholder');
-  var extLink = document.getElementById('chat-external-link');
+/* ===== Chat tab ===== */
+function loadChatTab() {
+  var ready = document.getElementById('chat-ready');
+  var notReady = document.getElementById('chat-not-ready');
+  var btn = document.getElementById('chat-open-btn');
   if (!agentUrl || agentUrl === '#' || !openclawToken) {
-    iframe.style.display = 'none';
-    placeholder.style.display = 'block';
+    ready.style.display = 'none';
+    notReady.style.display = 'block';
     return;
   }
   var chatUrl = buildAgentUrl(agentUrl, openclawToken);
-  if (!chatLoaded) {
-    iframe.src = chatUrl;
-    chatLoaded = true;
-  }
-  iframe.style.display = 'block';
-  placeholder.style.display = 'none';
-  if (extLink) extLink.href = chatUrl;
+  btn.href = chatUrl;
+  ready.style.display = 'block';
+  notReady.style.display = 'none';
 }
 
 /* ===== Home logs preview ===== */
