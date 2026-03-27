@@ -963,7 +963,7 @@ try { components = JSON.parse(localStorage.getItem('cf_instance_components') || 
 var subdomain = localStorage.getItem('cf_instance_subdomain') || instanceId;
 
 var plan = PLANS[planKey] || PLANS.personal;
-var agentUrl = subdomain ? 'https://' + subdomain + '.openclaw.flowmatic.co.il' : '#';
+var agentUrl = subdomain ? 'https://agent.' + subdomain + '.openclaw.flowmatic.co.il' : '#';
 var flowsUrl = subdomain ? 'https://flows.' + subdomain + '.openclaw.flowmatic.co.il' : '#';
 
 // Auto-load instance from API if not in localStorage
@@ -1107,7 +1107,7 @@ function renderHome() {
 
   // Quick info
   var infoHtml = '';
-  var displayDomain = subdomain ? subdomain + '.openclaw.flowmatic.co.il' : '—';
+  var displayDomain = subdomain ? 'agent.' + subdomain + '.openclaw.flowmatic.co.il' : '—';
   infoHtml += '<div class="info-row"><span class="info-label">כתובת</span><span class="info-value mono">' + displayDomain + '</span>' +
     '<button class="copy-btn" onclick="copyToClipboard(\'' + displayDomain + '\')" title="העתקו">' + SVG_ICONS.copy + '</button></div>';
   infoHtml += '<div class="info-row"><span class="info-label">תוכנית</span><span class="info-value">' + plan.name + ' &middot; &#8362;' + plan.price + '/חודש</span></div>';
