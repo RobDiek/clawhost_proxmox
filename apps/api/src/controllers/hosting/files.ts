@@ -7,7 +7,7 @@ import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
-const VPS_HOME = '/home/openclaw'
+const VPS_HOME = '/home/openclaw/.openclaw'
 
 let sshKeyCache: Buffer | null = null
 function getSSHKey(): Buffer {
