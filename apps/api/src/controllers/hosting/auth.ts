@@ -299,6 +299,8 @@ export const getMyInstances = async (c: Context) => {
             subdomainAgent: i.subdomainAgent,
             subdomainFlows: i.subdomainFlows,
             subdomainName: i.subdomainName,
+            openclawToken: i.openclawToken,
+            automationPassword: i.automationPassword,
             ip: i.ip,
             onboardingCompleted: i.onboardingCompleted,
             createdAt: i.createdAt,
