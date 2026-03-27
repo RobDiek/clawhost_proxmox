@@ -23,6 +23,7 @@ export const getInstances = async (c: Context<HonoEnv>) => {
             automationTool: i.automationTool,
             subdomainAgent: i.subdomainAgent,
             subdomainFlows: i.subdomainFlows,
+            openclawToken: i.openclawToken,
             onboardingStep: i.onboardingStep,
             onboardingCompleted: i.onboardingCompleted,
             subscriptionStatus: i.subscriptionStatus,

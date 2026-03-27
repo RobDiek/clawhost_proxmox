@@ -963,8 +963,14 @@ try { components = JSON.parse(localStorage.getItem('cf_instance_components') || 
 var subdomain = localStorage.getItem('cf_instance_subdomain') || instanceId;
 
 var plan = PLANS[planKey] || PLANS.personal;
+var openclawToken = localStorage.getItem('cf_openclaw_token') || '';
 var agentUrl = subdomain ? 'https://agent.' + subdomain + '.openclaw.flowmatic.co.il' : '#';
 var flowsUrl = subdomain ? 'https://flows.' + subdomain + '.openclaw.flowmatic.co.il' : '#';
+
+function buildAgentUrl(base, token) {
+  if (!base || base === '#') return '#';
+  return token ? base + '/chat?session=main&token=' + encodeURIComponent(token) : base;
+}
 
 // Auto-load instance from API if not in localStorage
 (async function autoLoadInstance() {
@@ -980,6 +986,7 @@ var flowsUrl = subdomain ? 'https://flows.' + subdomain + '.openclaw.flowmatic.c
       planKey = inst.planKey || 'personal';
       components = inst.selectedComponents || [];
       subdomain = inst.subdomainName || inst.id;
+      openclawToken = inst.openclawToken || '';
       plan = PLANS[planKey] || PLANS.personal;
       agentUrl = inst.subdomainAgent ? 'https://' + inst.subdomainAgent : '#';
       flowsUrl = inst.subdomainFlows ? 'https://' + inst.subdomainFlows : '#';
@@ -987,6 +994,7 @@ var flowsUrl = subdomain ? 'https://flows.' + subdomain + '.openclaw.flowmatic.c
       localStorage.setItem('cf_instance_plan', planKey);
       localStorage.setItem('cf_instance_components', JSON.stringify(components));
       localStorage.setItem('cf_instance_subdomain', subdomain);
+      localStorage.setItem('cf_openclaw_token', openclawToken);
       // Re-render with real data
       if (typeof renderHome === 'function') renderHome();
       if (typeof renderAgentsTab === 'function') renderAgentsTab();
@@ -1070,7 +1078,7 @@ function renderHome() {
       '<div class="agent-card-info"><div class="agent-name">' + comp.name + '</div>' +
       '<div class="agent-desc">' + comp.desc + '</div></div></div>' +
       '<div class="agent-status-row"><span class="agent-status-dot"></span>פעיל</div>' +
-      '<a class="agent-link" href="' + agentUrl + '" target="_blank">פתחו ' + SVG_ICONS.externalLink + '</a></div>';
+      '<a class="agent-link" href="' + buildAgentUrl(agentUrl, openclawToken) + '" target="_blank">פתחו ' + SVG_ICONS.externalLink + '</a></div>'
   });
 
   // Add automation tool cards too
@@ -1084,7 +1092,7 @@ function renderHome() {
       '<div class="agent-card-info"><div class="agent-name">' + comp.name + '</div>' +
       '<div class="agent-desc">' + comp.desc + '</div></div></div>' +
       '<div class="agent-status-row"><span class="agent-status-dot"></span>פעיל</div>' +
-      '<a class="agent-link" href="' + flowsUrl + '" target="_blank">פתחו ' + SVG_ICONS.externalLink + '</a></div>';
+      '<a class="agent-link" href="' + flowsUrl + '" target="_blank">פתחו ' + SVG_ICONS.externalLink + '</a></div>'
   });
 
   document.getElementById('homeAgentCards').innerHTML = cardsHtml;
@@ -1133,7 +1141,7 @@ function renderAgentsTab() {
       '<div class="detail-section"><div class="detail-label">מודל AI</div><div>' +
       (localStorage.getItem('cf_api_key_saved') ? 'Claude Sonnet 4 (Anthropic)' : 'לא מוגדר — חברו מפתח API') + '</div></div>' +
       '<div class="agent-actions">' +
-      '<a href="' + agentUrl + '" target="_blank" class="btn btn-primary">פתחו ' + SVG_ICONS.externalLink + '</a>' +
+      '<a href="' + buildAgentUrl(agentUrl, openclawToken) + '" target="_blank" class="btn btn-primary">פתחו ' + SVG_ICONS.externalLink + '</a>' +
       '<button class="btn btn-outline" onclick="restartAgent()">&#8635; הפעילו מחדש</button></div></div>';
   });
 
@@ -1158,7 +1166,7 @@ function renderAgentsTab() {
       '<div class="detail-section"><div class="detail-label">תיאור</div><div style="font-size:0.88rem;color:#6B7280">' + (a.desc || '') + '</div></div>' +
       '<div class="detail-section"><div class="detail-label">מודל</div><div style="font-size:0.88rem">' + a.model + '</div></div>' +
       '<div class="agent-actions">' +
-      '<a href="' + agentUrl + '" target="_blank" class="btn btn-primary">פתחו ' + SVG_ICONS.externalLink + '</a>' +
+      '<a href="' + buildAgentUrl(agentUrl, openclawToken) + '" target="_blank" class="btn btn-primary">פתחו ' + SVG_ICONS.externalLink + '</a>' +
       '<button class="btn btn-outline" onclick="restartAgent()">&#8635; הפעילו מחדש</button>' +
       '<button class="btn btn-danger-outline" onclick="deleteAgent(' + i + ')" style="font-size:0.82rem">מחיקה</button></div></div>';
   });
@@ -1219,7 +1227,7 @@ function renderSettings() {
 function renderAdvanced() {
   // Agent link
   document.getElementById('adv-agent-link').innerHTML =
-    '<span class="info-label">OpenClaw Dashboard</span><a href="' + agentUrl + '" target="_blank" class="info-value">פתח ' + SVG_ICONS.externalLink + '</a>';
+    '<span class="info-label">OpenClaw Dashboard</span><a href="' + buildAgentUrl(agentUrl, openclawToken) + '" target="_blank" class="info-value">פתח ' + SVG_ICONS.externalLink + '</a>';
   // Flows link
   document.getElementById('adv-flows-link').innerHTML =
     '<span class="info-label">Automation Dashboard</span><a href="' + flowsUrl + '" target="_blank" class="info-value">פתח ' + SVG_ICONS.externalLink + '</a>';
