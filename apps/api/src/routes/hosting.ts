@@ -21,7 +21,12 @@ import {
     setupApiKey,
     setupTelegram,
     completeOnboarding,
-    setupAgents
+    setupAgents,
+    readFile,
+    writeFile,
+    listFiles,
+    deployCustomAgent,
+    saveIntegration
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -51,6 +56,13 @@ app.post('/instances/:id/setup/api-key', setupApiKey)
 app.post('/instances/:id/setup/telegram', setupTelegram)
 app.post('/instances/:id/setup/complete', completeOnboarding)
 app.post('/instances/:id/setup/agents', setupAgents)
+
+// ── Files ──
+app.get('/instances/:id/files', readFile)
+app.put('/instances/:id/files', writeFile)
+app.get('/instances/:id/files/list', listFiles)
+app.post('/instances/:id/files/deploy-agent', deployCustomAgent)
+app.post('/instances/:id/integrations/save', saveIntegration)
 
 // ── Admin ──
 app.get('/admin/instances', adminGetInstances)
