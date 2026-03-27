@@ -972,9 +972,9 @@ function buildAgentUrl(base, token) {
   return token ? base + '/chat?session=main&token=' + encodeURIComponent(token) : base;
 }
 
-// Auto-load instance from API if not in localStorage
+// Auto-load instance from API (always fetch to get fresh token)
 (async function autoLoadInstance() {
-  if (instanceId) return;
+  if (instanceId && openclawToken) return;
   try {
     var res = await fetch(API + '/hosting/my-instances', {
       headers: { 'Authorization': 'Bearer ' + token }
