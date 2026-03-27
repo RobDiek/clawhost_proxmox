@@ -292,6 +292,12 @@ input{font-family:inherit}
 .tab-title { font-size:1.3rem;font-weight:700;margin-bottom:4px }
 .tab-desc { font-size:0.9rem;color:#6B7280;margin-bottom:20px }
 
+/* ===== Terminal tab ===== */
+#terminal-container .xterm { padding: 8px; }
+#terminal-container .xterm-viewport::-webkit-scrollbar { width: 6px; }
+#terminal-container .xterm-viewport::-webkit-scrollbar-thumb { background: #3a3a5e; border-radius: 3px; }
+#terminal-container .xterm-viewport::-webkit-scrollbar-track { background: transparent; }
+
 /* ===== File Manager tab ===== */
 .file-list { margin-bottom:16px }
 .file-item { display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:4px;cursor:pointer;transition:all .15s }
@@ -315,6 +321,10 @@ input{font-family:inherit}
 .stat-label { font-size:0.75rem;color:#9CA3AF;margin-bottom:4px }
 .stat-value { font-size:1.2rem;font-weight:700;color:#111827 }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css"/>
+<script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-web-links@0.9.0/lib/xterm-addon-web-links.min.js"></script>
 </head>
 <body>
 
@@ -379,6 +389,10 @@ input{font-family:inherit}
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
       קבצים
     </div>
+    <div class="sidebar-item" data-tab="terminal" onclick="switchTab('terminal')">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
+      טרמינל
+    </div>
     <div class="sidebar-sep"></div>
     <div class="sidebar-item" data-tab="advanced" onclick="switchTab('advanced')">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
@@ -422,6 +436,10 @@ input{font-family:inherit}
     <button class="bottom-nav-item" data-tab="files" onclick="switchTab('files')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
       קבצים
+    </button>
+    <button class="bottom-nav-item" data-tab="terminal" onclick="switchTab('terminal')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+      טרמינל
     </button>
   </div>
 </div>
@@ -850,6 +868,23 @@ input{font-family:inherit}
     </div>
   </div>
 
+  <!-- Tab: Terminal -->
+  <div class="tab-content hidden" id="tab-terminal">
+    <h2 class="tab-title">טרמינל</h2>
+    <p class="tab-desc">גישה ישירה לשרת שלכם דרך SSH.</p>
+
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn btn-primary btn-sm" id="term-connect-btn" onclick="termConnect()">התחברו</button>
+      <button class="btn btn-outline btn-sm" onclick="termDisconnect()">נתקו</button>
+      <span id="term-status" style="font-size:0.78rem;color:#9CA3AF;display:flex;align-items:center;gap:4px">
+        <span id="term-dot" style="width:8px;height:8px;border-radius:50%;background:#9CA3AF;display:inline-block"></span>
+        לא מחובר
+      </span>
+    </div>
+
+    <div id="terminal-container" style="width:100%;height:500px;background:#1a1a2e;border-radius:10px;overflow:hidden;border:1px solid #2a2a3e"></div>
+  </div>
+
   <!-- Tab: Advanced -->
   <div class="tab-content hidden" id="tab-advanced">
     <div class="warning-banner">
@@ -1207,6 +1242,7 @@ function switchTab(tabId) {
   // Load data for specific tabs
   if (tabId === 'files') fmNavigate(fmCurrentDir || '');
   if (tabId === 'advanced') loadStats();
+  if (tabId === 'terminal' && termFit && term) { setTimeout(function(){ termFit.fit(); }, 100); }
 }
 
 /* ===== Mobile sidebar ===== */
@@ -1688,6 +1724,104 @@ async function loadLogs(service) {
       el.scrollTop = el.scrollHeight;
     }
   } catch (e) { document.getElementById('logs-output').textContent = 'שגיאה בטעינת לוגים'; }
+}
+
+/* ===== Terminal ===== */
+var term = null;
+var termWs = null;
+var termFit = null;
+
+function termConnect() {
+  var instanceId = localStorage.getItem('cf_instance_id');
+  if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+
+  // Dispose old terminal if exists
+  if (term) { term.dispose(); term = null; }
+  if (termWs) { termWs.close(); termWs = null; }
+
+  // Create terminal
+  term = new Terminal({
+    cursorBlink: true,
+    fontSize: 13,
+    fontFamily: "'SF Mono', 'Fira Code', 'Consolas', monospace",
+    theme: {
+      background: '#1a1a2e',
+      foreground: '#e0e0e0',
+      cursor: '#2563EB',
+      selectionBackground: '#2563EB44',
+      black: '#1a1a2e',
+      red: '#ef4444',
+      green: '#10b981',
+      yellow: '#f59e0b',
+      blue: '#3b82f6',
+      magenta: '#8b5cf6',
+      cyan: '#06b6d4',
+      white: '#e0e0e0',
+    },
+    allowTransparency: true,
+  });
+
+  termFit = new FitAddon.FitAddon();
+  var webLinks = new WebLinksAddon.WebLinksAddon();
+  term.loadAddon(termFit);
+  term.loadAddon(webLinks);
+
+  var container = document.getElementById('terminal-container');
+  container.innerHTML = '';
+  term.open(container);
+  termFit.fit();
+
+  // Connect WebSocket
+  var wsUrl = 'wss://api.openclaw.flowmatic.co.il/ws/terminal/' + instanceId;
+  termWs = new WebSocket(wsUrl);
+
+  termWs.onopen = function() {
+    document.getElementById('term-status').innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block"></span> מחובר';
+    document.getElementById('term-connect-btn').textContent = 'מחובר';
+    document.getElementById('term-connect-btn').disabled = true;
+    term.focus();
+  };
+
+  termWs.onmessage = function(e) {
+    term.write(e.data);
+  };
+
+  termWs.onclose = function() {
+    document.getElementById('term-status').innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#EF4444;display:inline-block"></span> נותק';
+    document.getElementById('term-connect-btn').textContent = 'התחברו';
+    document.getElementById('term-connect-btn').disabled = false;
+    if (term) term.write('\r\n\x1b[31m--- נותק ---\x1b[0m\r\n');
+  };
+
+  termWs.onerror = function() {
+    showToast('שגיאה בחיבור לשרת', 'error');
+  };
+
+  // Send input to server
+  term.onData(function(data) {
+    if (termWs && termWs.readyState === WebSocket.OPEN) {
+      termWs.send(data);
+    }
+  });
+
+  // Handle resize
+  term.onResize(function(size) {
+    if (termWs && termWs.readyState === WebSocket.OPEN) {
+      termWs.send(JSON.stringify({ type: 'resize', cols: size.cols, rows: size.rows }));
+    }
+  });
+
+  // Fit on window resize
+  window.addEventListener('resize', function() {
+    if (termFit && term) termFit.fit();
+  });
+}
+
+function termDisconnect() {
+  if (termWs) { termWs.close(); termWs = null; }
+  document.getElementById('term-status').innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#9CA3AF;display:inline-block"></span> לא מחובר';
+  document.getElementById('term-connect-btn').textContent = 'התחברו';
+  document.getElementById('term-connect-btn').disabled = false;
 }
 
 /* ===== Toast ===== */

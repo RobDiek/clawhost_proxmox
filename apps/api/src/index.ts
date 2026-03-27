@@ -10,6 +10,7 @@ import app from '@/app'
 import setupTerminalSocket from '@/services/terminalSocket'
 import { startOnboardingBot } from '@/services/onboardingBot'
 import { setupChatWebSocket } from '@/services/chatServer'
+import { setupTerminalServer } from '@/services/terminalServer'
 
 const port = Number(process.env.PORT)
 const pkg = JSON.parse(
@@ -43,7 +44,6 @@ const server = serve(
     }
 )
 
-// Remove default upgrade handlers — we'll route manually
+// WebSocket handlers (order matters — first registered gets first chance)
 setupChatWebSocket(server as Server)
-// setupTerminalSocket disabled: conflicts with chat WS upgrade handler
-// startOnboardingBot() // disabled: conflicts with chat server Telegram polling
+setupTerminalServer(server as Server)
