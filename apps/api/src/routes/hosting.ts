@@ -25,8 +25,14 @@ import {
     readFile,
     writeFile,
     listFiles,
+    fileTree,
+    createFileOrDir,
+    deleteFile,
+    renameFile,
     deployCustomAgent,
-    saveIntegration
+    saveIntegration,
+    serverStats,
+    serverLogs
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -61,8 +67,16 @@ app.post('/instances/:id/setup/agents', setupAgents)
 app.get('/instances/:id/files', readFile)
 app.put('/instances/:id/files', writeFile)
 app.get('/instances/:id/files/list', listFiles)
+app.get('/instances/:id/files/tree', fileTree)
+app.post('/instances/:id/files/create', createFileOrDir)
+app.delete('/instances/:id/files', deleteFile)
+app.post('/instances/:id/files/rename', renameFile)
 app.post('/instances/:id/files/deploy-agent', deployCustomAgent)
 app.post('/instances/:id/integrations/save', saveIntegration)
+
+// ── Server ──
+app.get('/instances/:id/stats', serverStats)
+app.get('/instances/:id/logs', serverLogs)
 
 // ── Admin ──
 app.get('/admin/instances', adminGetInstances)

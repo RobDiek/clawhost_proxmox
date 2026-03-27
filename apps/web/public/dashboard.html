@@ -299,6 +299,21 @@ input{font-family:inherit}
 .file-icon { font-size:1.1rem }
 .file-name { font-weight:500;font-size:0.9rem;font-family:monospace }
 .file-desc { font-size:0.78rem;color:#9CA3AF;margin-right:auto }
+
+/* ===== File Manager (new) ===== */
+.fm-row { display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #F3F4F6;transition:background .1s }
+.fm-row:hover { background:#F9FAFB }
+.fm-row:last-child { border-bottom:none }
+.fm-icon { font-size:1.1rem;width:24px;text-align:center;flex-shrink:0 }
+.fm-name { flex:1;font-size:0.88rem;font-family:monospace }
+.fm-size { font-size:0.75rem;color:#9CA3AF;width:60px;text-align:left }
+.fm-del { background:none;border:none;cursor:pointer;font-size:0.85rem;opacity:0.3;transition:opacity .15s;padding:2px 4px }
+.fm-row:hover .fm-del { opacity:1 }
+
+/* ===== Server Stats ===== */
+.stat-card { background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:12px;text-align:center }
+.stat-label { font-size:0.75rem;color:#9CA3AF;margin-bottom:4px }
+.stat-value { font-size:1.2rem;font-weight:700;color:#111827 }
 </style>
 </head>
 <body>
@@ -804,58 +819,34 @@ input{font-family:inherit}
   <!-- Tab: Files -->
   <div class="tab-content hidden" id="tab-files">
     <h2 class="tab-title">קבצים</h2>
-    <p class="tab-desc">גישה ישירה לקבצי ההגדרה על השרת שלכם.</p>
 
-    <div class="section-title">Workspace</div>
-    <div class="file-list">
-      <div class="file-item" onclick="openFile('workspace/SOUL.md')">
-        <span class="file-icon">&#128196;</span>
-        <span class="file-name">SOUL.md</span>
-        <span class="file-desc">אישיות הסוכן</span>
-      </div>
-      <div class="file-item" onclick="openFile('workspace/USER.md')">
-        <span class="file-icon">&#128196;</span>
-        <span class="file-name">USER.md</span>
-        <span class="file-desc">מידע על העסק שלכם</span>
-      </div>
-      <div class="file-item" onclick="openFile('workspace/AGENTS.md')">
-        <span class="file-icon">&#128196;</span>
-        <span class="file-name">AGENTS.md</span>
-        <span class="file-desc">הגדרות מודלים וכללי עבודה</span>
-      </div>
-      <div class="file-item" onclick="openFile('workspace/HEARTBEAT.md')">
-        <span class="file-icon">&#128196;</span>
-        <span class="file-name">HEARTBEAT.md</span>
-        <span class="file-desc">משימות מתוזמנות</span>
-      </div>
-      <div class="file-item" onclick="openFile('workspace/MEMORY.md')">
-        <span class="file-icon">&#128196;</span>
-        <span class="file-name">MEMORY.md</span>
-        <span class="file-desc">זיכרון ארוך טווח</span>
-      </div>
+    <!-- Breadcrumb -->
+    <div id="fm-breadcrumb" style="display:flex;align-items:center;gap:4px;margin-bottom:12px;font-size:0.82rem;flex-wrap:wrap">
+      <span class="fm-crumb" onclick="fmNavigate('')" style="cursor:pointer;color:#2563EB">~</span>
     </div>
 
-    <div class="section-title">Brand</div>
-    <div class="file-list">
-      <div class="file-item" onclick="openFile('workspace/brands/BRAND.md')">
-        <span class="file-icon">&#128196;</span>
-        <span class="file-name">BRAND.md</span>
-        <span class="file-desc">קול המותג שלכם</span>
-      </div>
+    <!-- Toolbar -->
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn btn-outline btn-sm" onclick="fmCreateFile()">+ קובץ</button>
+      <button class="btn btn-outline btn-sm" onclick="fmCreateDir()">+ תיקייה</button>
+      <button class="btn btn-outline btn-sm" onclick="fmRefresh()">&#8635; רענון</button>
     </div>
 
-    <div class="section-title">סוכנים</div>
-    <div class="file-list" id="agent-files-list"></div>
+    <!-- File list -->
+    <div id="fm-list" style="border:1px solid #E5E7EB;border-radius:10px;overflow:hidden">
+      <div style="padding:20px;text-align:center;color:#9CA3AF">טוען...</div>
+    </div>
 
-    <div id="file-editor" class="hidden" style="margin-top:20px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <strong id="file-editor-name"></strong>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-primary btn-sm" onclick="saveFile()">שמרו</button>
-          <button class="btn btn-outline btn-sm" onclick="closeFile()">סגרו</button>
+    <!-- File editor -->
+    <div id="fm-editor" class="hidden" style="margin-top:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:8px 12px;background:#F9FAFB;border-radius:8px">
+        <strong id="fm-editor-path" style="font-family:monospace;font-size:0.85rem"></strong>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-primary btn-sm" onclick="fmSave()">שמרו</button>
+          <button class="btn btn-outline btn-sm" onclick="fmCloseEditor()">סגרו</button>
         </div>
       </div>
-      <textarea id="file-editor-content" rows="20" style="width:100%;padding:12px;border:1px solid #E5E7EB;border-radius:8px;font-family:'SF Mono','Fira Code',monospace;font-size:0.82rem;line-height:1.6;direction:rtl;resize:vertical"></textarea>
+      <textarea id="fm-editor-content" style="width:100%;min-height:400px;padding:14px;border:1px solid #E5E7EB;border-radius:8px;font-family:'SF Mono','Fira Code',monospace;font-size:0.82rem;line-height:1.6;resize:vertical;direction:ltr;tab-size:2"></textarea>
     </div>
   </div>
 
@@ -887,6 +878,24 @@ input{font-family:inherit}
 
     <div class="section-title">API</div>
     <div class="code-block" id="advApiBlock"></div>
+
+    <!-- Server Stats -->
+    <div class="section-title">שרת</div>
+    <div id="server-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
+      <div class="stat-card"><div class="stat-label">CPU</div><div class="stat-value" id="stat-cpu">&mdash;</div></div>
+      <div class="stat-card"><div class="stat-label">RAM</div><div class="stat-value" id="stat-ram">&mdash;</div></div>
+      <div class="stat-card"><div class="stat-label">דיסק</div><div class="stat-value" id="stat-disk">&mdash;</div></div>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="loadStats()" style="margin-bottom:20px">&#8635; עדכנו נתונים</button>
+
+    <!-- Logs -->
+    <div class="section-title">לוגים</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button class="btn btn-outline btn-sm" onclick="loadLogs('openclaw-gateway')">OpenClaw</button>
+      <button class="btn btn-outline btn-sm" onclick="loadLogs('nginx')">Nginx</button>
+      <button class="btn btn-outline btn-sm" onclick="loadLogs('docker')">Docker</button>
+    </div>
+    <pre id="logs-output" style="background:#111827;color:#D1D5DB;padding:14px;border-radius:8px;font-family:'SF Mono','Fira Code',monospace;font-size:0.75rem;line-height:1.5;max-height:400px;overflow:auto;white-space:pre-wrap;direction:ltr">לחצו על שירות לטעינת לוגים</pre>
   </div>
 
 </div>
@@ -959,7 +968,6 @@ document.addEventListener('DOMContentLoaded', function() {
   renderAdvanced();
   renderSidebarFooter();
   renderCustomAgents();
-  renderAgentFiles();
   loadInstanceFromAPI();
 
   // Close dropdown on outside click
@@ -1196,6 +1204,9 @@ function switchTab(tabId) {
   // Close mobile sidebar
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('show');
+  // Load data for specific tabs
+  if (tabId === 'files') fmNavigate(fmCurrentDir || '');
+  if (tabId === 'advanced') loadStats();
 }
 
 /* ===== Mobile sidebar ===== */
@@ -1502,73 +1513,181 @@ async function saveIntegration(type) {
 }
 
 /* ===== File Manager ===== */
-var currentFile = '';
+var fmCurrentDir = '';
+var fmCurrentFile = '';
 
-async function openFile(path) {
-  currentFile = path;
-  document.getElementById('file-editor-name').textContent = path;
-  document.getElementById('file-editor-content').value = 'טוען...';
-  document.getElementById('file-editor').classList.remove('hidden');
+async function fmNavigate(dir) {
+  fmCurrentDir = dir;
+  fmCloseEditor();
+  var instanceId = localStorage.getItem('cf_instance_id');
+  if (!instanceId) return;
 
-  var iid = localStorage.getItem('cf_instance_id');
-  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+  document.getElementById('fm-list').innerHTML = '<div style="padding:20px;text-align:center;color:#9CA3AF">טוען...</div>';
 
   try {
-    var res = await fetch(API + '/hosting/instances/' + iid + '/files?path=' + encodeURIComponent(path));
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/files/tree?dir=' + encodeURIComponent(dir));
     var data = await res.json();
-    if (data.success && data.data) {
-      document.getElementById('file-editor-content').value = data.data.content;
-    } else {
-      document.getElementById('file-editor-content').value = '# ' + path.split('/').pop() + '\n\n(קובץ חדש — כתבו את התוכן כאן)';
+    if (!data.success) { showToast('שגיאה בטעינת תיקייה', 'error'); return; }
+
+    // Breadcrumb
+    var parts = dir ? dir.split('/') : [];
+    var bc = '<span class="fm-crumb" onclick="fmNavigate(\'\')" style="cursor:pointer;color:#2563EB">~</span>';
+    var accumulated = '';
+    parts.forEach(function(p) {
+      accumulated += (accumulated ? '/' : '') + p;
+      var acc = accumulated;
+      bc += ' <span style="color:#D1D5DB">/</span> <span class="fm-crumb" onclick="fmNavigate(\'' + acc + '\')" style="cursor:pointer;color:#2563EB">' + p + '</span>';
+    });
+    document.getElementById('fm-breadcrumb').innerHTML = bc;
+
+    // File list
+    var items = data.data.items || [];
+    if (!items.length) {
+      document.getElementById('fm-list').innerHTML = '<div style="padding:20px;text-align:center;color:#9CA3AF">תיקייה ריקה</div>';
+      return;
     }
+
+    // Back button if not root
+    var html = '';
+    if (dir) {
+      var parent = dir.split('/').slice(0, -1).join('/');
+      html += '<div class="fm-row" onclick="fmNavigate(\'' + parent + '\')" style="cursor:pointer"><span class="fm-icon">&#11014;&#65039;</span><span style="color:#6B7280">..</span></div>';
+    }
+
+    items.forEach(function(item) {
+      var icon = item.type === 'dir' ? '&#128193;' : (item.name.endsWith('.md') ? '&#128221;' : item.name.endsWith('.json') ? '&#9881;&#65039;' : '&#128196;');
+      var size = item.type === 'file' ? formatSize(item.size) : '';
+      var clickAction = item.type === 'dir'
+        ? 'fmNavigate(\'' + item.path + '\')'
+        : 'fmOpenFile(\'' + item.path + '\')';
+
+      html += '<div class="fm-row" onclick="' + clickAction + '" style="cursor:pointer">'
+        + '<span class="fm-icon">' + icon + '</span>'
+        + '<span class="fm-name">' + item.name + '</span>'
+        + '<span class="fm-size">' + size + '</span>'
+        + '<button class="fm-del" onclick="event.stopPropagation();fmDelete(\'' + item.path + '\',\'' + item.type + '\')" title="מחיקה">&#128465;</button>'
+        + '</div>';
+    });
+
+    document.getElementById('fm-list').innerHTML = html;
   } catch (e) {
-    document.getElementById('file-editor-content').value = 'שגיאה בטעינת הקובץ';
-    showToast('שגיאה בטעינת הקובץ', 'error');
+    document.getElementById('fm-list').innerHTML = '<div style="padding:20px;text-align:center;color:#EF4444">שגיאה בטעינה</div>';
   }
 }
 
-async function saveFile() {
-  var content = document.getElementById('file-editor-content').value;
-  var iid = localStorage.getItem('cf_instance_id');
-  if (!iid || !currentFile) { showToast('שגיאה', 'error'); return; }
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+async function fmOpenFile(path) {
+  fmCurrentFile = path;
+  document.getElementById('fm-editor-path').textContent = path;
+  document.getElementById('fm-editor-content').value = 'טוען...';
+  document.getElementById('fm-editor').classList.remove('hidden');
+
+  var instanceId = localStorage.getItem('cf_instance_id');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/files?path=' + encodeURIComponent(path));
+    var data = await res.json();
+    document.getElementById('fm-editor-content').value = data.success ? data.data.content : '(קובץ ריק)';
+  } catch (e) {
+    document.getElementById('fm-editor-content').value = 'שגיאה בטעינה';
+  }
+}
+
+async function fmSave() {
+  if (!fmCurrentFile) return;
+  var content = document.getElementById('fm-editor-content').value;
+  var instanceId = localStorage.getItem('cf_instance_id');
 
   try {
-    var res = await fetch(API + '/hosting/instances/' + iid + '/files', {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/files', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path: currentFile, content: content })
+      body: JSON.stringify({ path: fmCurrentFile, content: content })
     });
     var data = await res.json();
-    if (data.success) {
-      showToast('הקובץ נשמר!', 'success');
-    } else {
-      showToast(data.message || 'שגיאה בשמירה', 'error');
-    }
+    showToast(data.success ? 'נשמר!' : 'שגיאה', data.success ? 'success' : 'error');
   } catch (e) {
     showToast('שגיאת תקשורת', 'error');
   }
 }
 
-function closeFile() {
-  document.getElementById('file-editor').classList.add('hidden');
-  currentFile = '';
+function fmCloseEditor() {
+  document.getElementById('fm-editor').classList.add('hidden');
+  fmCurrentFile = '';
 }
 
-function renderAgentFiles() {
-  var comps = JSON.parse(localStorage.getItem('cf_instance_components') || '[]');
-  var hasMATEH = comps.includes('mt');
-  var list = document.getElementById('agent-files-list');
-  if (!list) return;
+function fmRefresh() { fmNavigate(fmCurrentDir); }
 
-  if (hasMATEH) {
-    var agents = ['sayer','meater','maazin','menateach','et','yotzer','shaliach','migdalor'];
-    var names = { sayer:'סייר', meater:'מאתר', maazin:'מאזין', menateach:'מנתח', et:'עט', yotzer:'יוצר', shaliach:'שליח', migdalor:'מגדלור' };
-    list.innerHTML = agents.map(function(a) {
-      return '<div class="file-item" onclick="openFile(\'agents/' + a + '/SOUL.md\')"><span class="file-icon">\uD83E\uDD16</span><span class="file-name">' + a + '/SOUL.md</span><span class="file-desc">' + (names[a] || a) + '</span></div>';
-    }).join('');
-  } else {
-    list.innerHTML = '<div style="font-size:0.82rem;color:#9CA3AF;padding:8px">אין סוכנים מותקנים</div>';
-  }
+async function fmCreateFile() {
+  var name = prompt('שם הקובץ:');
+  if (!name) return;
+  var path = fmCurrentDir ? fmCurrentDir + '/' + name : name;
+  var instanceId = localStorage.getItem('cf_instance_id');
+  try {
+    await fetch(API + '/hosting/instances/' + instanceId + '/files/create', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: path, type: 'file' })
+    });
+    showToast('קובץ נוצר'); fmRefresh();
+  } catch (e) { showToast('שגיאה', 'error'); }
+}
+
+async function fmCreateDir() {
+  var name = prompt('שם התיקייה:');
+  if (!name) return;
+  var path = fmCurrentDir ? fmCurrentDir + '/' + name : name;
+  var instanceId = localStorage.getItem('cf_instance_id');
+  try {
+    await fetch(API + '/hosting/instances/' + instanceId + '/files/create', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: path, type: 'dir' })
+    });
+    showToast('תיקייה נוצרה'); fmRefresh();
+  } catch (e) { showToast('שגיאה', 'error'); }
+}
+
+async function fmDelete(path, type) {
+  if (!confirm('למחוק את ' + path + '?')) return;
+  var instanceId = localStorage.getItem('cf_instance_id');
+  try {
+    await fetch(API + '/hosting/instances/' + instanceId + '/files?path=' + encodeURIComponent(path), { method: 'DELETE' });
+    showToast('נמחק'); fmRefresh();
+  } catch (e) { showToast('שגיאה', 'error'); }
+}
+
+/* ===== Server Stats & Logs ===== */
+async function loadStats() {
+  var instanceId = localStorage.getItem('cf_instance_id');
+  if (!instanceId) return;
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/stats');
+    var data = await res.json();
+    if (data.success) {
+      var s = data.data;
+      document.getElementById('stat-cpu').textContent = s.cpu.toFixed(1) + '%';
+      document.getElementById('stat-ram').textContent = s.ramUsed + ' / ' + s.ramTotal + ' MB';
+      document.getElementById('stat-disk').textContent = Math.round(s.diskUsed / 1024) + ' / ' + Math.round(s.diskTotal / 1024) + ' GB';
+    }
+  } catch (e) { showToast('שגיאה בטעינת נתונים', 'error'); }
+}
+
+async function loadLogs(service) {
+  var instanceId = localStorage.getItem('cf_instance_id');
+  if (!instanceId) return;
+  document.getElementById('logs-output').textContent = 'טוען...';
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/logs?service=' + service + '&lines=100');
+    var data = await res.json();
+    if (data.success) {
+      document.getElementById('logs-output').textContent = data.data.lines.join('\n');
+      var el = document.getElementById('logs-output');
+      el.scrollTop = el.scrollHeight;
+    }
+  } catch (e) { document.getElementById('logs-output').textContent = 'שגיאה בטעינת לוגים'; }
 }
 
 /* ===== Toast ===== */
