@@ -279,7 +279,17 @@ export const getMyInstances = async (c: Context) => {
             .from(instances)
             .where(eq(instances.userId, payload.sub as string))
 
-        return ok(c, result.map(i => ({
+        // Sort: running first, then by creation date desc
+        result.sort((a, b) => {
+            if (a.status === 'running' && b.status !== 'running') return -1
+            if (b.status === 'running' && a.status !== 'running') return 1
+            return 0
+        })
+
+        // Filter out awaiting_payment
+        const filtered = result.filter(i => i.status !== 'awaiting_payment')
+
+        return ok(c, filtered.map(i => ({
             id: i.id,
             planKey: i.planKey,
             priceIls: i.priceIls,
