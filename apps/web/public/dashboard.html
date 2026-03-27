@@ -1390,26 +1390,51 @@ function showAgentForm() {
 function hideAgentForm() {
   document.getElementById('agent-form').classList.add('hidden');
 }
-function saveAgent() {
+async function saveAgent() {
   var name = document.getElementById('agent-name').value.trim();
   if (!name) { showToast('הכניסו שם לסוכן', 'error'); return; }
-  var agents = JSON.parse(localStorage.getItem('cf_custom_agents') || '[]');
-  agents.push({
-    name: name,
-    desc: document.getElementById('agent-desc').value,
-    model: document.getElementById('agent-model').value,
-    soul: document.getElementById('agent-soul').value,
-    created: new Date().toISOString()
-  });
-  localStorage.setItem('cf_custom_agents', JSON.stringify(agents));
-  showToast('הסוכן נשמר!', 'success');
-  hideAgentForm();
-  // Clear form
-  document.getElementById('agent-name').value = '';
-  document.getElementById('agent-desc').value = '';
-  document.getElementById('agent-soul').value = '';
-  document.getElementById('agent-model').selectedIndex = 0;
-  renderCustomAgents();
+
+  var soul = document.getElementById('agent-soul').value || '# ' + name + '\n\nסוכן מותאם אישית.';
+  var model = document.getElementById('agent-model').value;
+  var iid = localStorage.getItem('cf_instance_id');
+
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/files/deploy-agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, soul: soul, model: model })
+    });
+    var data = await res.json();
+
+    if (data.success) {
+      // Also save to localStorage for display
+      var agents = JSON.parse(localStorage.getItem('cf_custom_agents') || '[]');
+      agents.push({
+        name: name,
+        desc: document.getElementById('agent-desc').value,
+        model: model,
+        soul: soul,
+        slug: data.data.slug,
+        created: new Date().toISOString()
+      });
+      localStorage.setItem('cf_custom_agents', JSON.stringify(agents));
+
+      showToast('הסוכן נוצר ופורס בהצלחה!', 'success');
+      hideAgentForm();
+      renderCustomAgents();
+
+      // Clear form
+      document.getElementById('agent-name').value = '';
+      document.getElementById('agent-desc').value = '';
+      document.getElementById('agent-soul').value = '';
+    } else {
+      showToast(data.message || 'שגיאה ביצירת הסוכן', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאת תקשורת', 'error');
+  }
 }
 function renderCustomAgents() {
   var agents = JSON.parse(localStorage.getItem('cf_custom_agents') || '[]');
@@ -1433,35 +1458,95 @@ function deleteAgent(i) {
 }
 
 /* ===== Integration save (new catalog) ===== */
-function saveIntegration(type) {
-  var key = '';
-  if (type === 'gemini') key = document.getElementById('int-gemini-key').value;
-  else if (type === 'brave') key = document.getElementById('int-brave-key').value;
-  else if (type === 'brightdata') key = document.getElementById('int-brightdata-key').value;
-  else if (type === 'replicate') key = document.getElementById('int-replicate-key').value;
+async function saveIntegration(type) {
+  var keyMap = {
+    anthropic: 'int-anthropic-key',
+    openai: 'int-openai-key',
+    gemini: 'int-gemini-key',
+    telegram: 'int-telegram-token',
+    brave: 'int-brave-key',
+    brightdata: 'int-brightdata-key',
+    replicate: 'int-replicate-key'
+  };
 
-  if (!key.trim()) { showToast('הכניסו מפתח', 'error'); return; }
+  var inputId = keyMap[type];
+  if (!inputId) { showToast('סוג לא מוכר', 'error'); return; }
 
-  var integrations = JSON.parse(localStorage.getItem('cf_integrations') || '{}');
-  integrations[type] = { connected: true, date: new Date().toISOString() };
-  localStorage.setItem('cf_integrations', JSON.stringify(integrations));
-  showToast(type + ' חובר בהצלחה!', 'success');
+  var el = document.getElementById(inputId);
+  if (!el) return;
+  var key = el.value.trim();
+  if (!key) { showToast('הכניסו מפתח', 'error'); return; }
+
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/integrations/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: type, key: key })
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast(type + ' חובר בהצלחה!', 'success');
+      el.value = '';
+      // Update status text
+      var statusEl = document.getElementById('int-' + type + '-status');
+      if (statusEl) { statusEl.textContent = '\u2705 מחובר'; statusEl.className = 'int-status connected'; }
+    } else {
+      showToast(data.message || 'שגיאה בשמירה', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאת תקשורת', 'error');
+  }
 }
 
 /* ===== File Manager ===== */
 var currentFile = '';
 
-function openFile(path) {
+async function openFile(path) {
   currentFile = path;
   document.getElementById('file-editor-name').textContent = path;
-  document.getElementById('file-editor-content').value = '# ' + path.split('/').pop() + '\n\nטוען...';
+  document.getElementById('file-editor-content').value = 'טוען...';
   document.getElementById('file-editor').classList.remove('hidden');
-  showToast('פתחו ' + path, 'success');
+
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/files?path=' + encodeURIComponent(path));
+    var data = await res.json();
+    if (data.success && data.data) {
+      document.getElementById('file-editor-content').value = data.data.content;
+    } else {
+      document.getElementById('file-editor-content').value = '# ' + path.split('/').pop() + '\n\n(קובץ חדש — כתבו את התוכן כאן)';
+    }
+  } catch (e) {
+    document.getElementById('file-editor-content').value = 'שגיאה בטעינת הקובץ';
+    showToast('שגיאה בטעינת הקובץ', 'error');
+  }
 }
 
-function saveFile() {
+async function saveFile() {
   var content = document.getElementById('file-editor-content').value;
-  showToast('הקובץ נשמר!', 'success');
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid || !currentFile) { showToast('שגיאה', 'error'); return; }
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/files', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: currentFile, content: content })
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('הקובץ נשמר!', 'success');
+    } else {
+      showToast(data.message || 'שגיאה בשמירה', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאת תקשורת', 'error');
+  }
 }
 
 function closeFile() {
