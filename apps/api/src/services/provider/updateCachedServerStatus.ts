@@ -1,13 +1,13 @@
 import type { CacheEntry, ServerStatus } from '@/ts/Interfaces'
-import type { ProviderType } from '@/ts/Types'
 
 import cache from '@/services/provider/cache'
 
 const updateCachedServerStatus = (
-    provider: ProviderType,
     serverId: string,
     status: string
 ) => {
+    const provider = 'hetzner'
+
     const serversEntry = cache.get(`${provider}:servers`) as
         | CacheEntry<Map<string, ServerStatus>>
         | undefined

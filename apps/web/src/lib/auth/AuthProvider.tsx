@@ -8,7 +8,7 @@ import type {
     OAuthWindowResult
 } from '@/ts/Interfaces'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import {
     GoogleAuthProvider,
@@ -25,7 +25,7 @@ import { t } from '@openclaw/i18n'
 import { auth, AUTH_STORAGE_KEY, PROFILE_CACHE_KEY } from '@/lib/firebase'
 import { api } from '@/lib'
 import AuthContext from '@/lib/auth/AuthContext'
-import STORAGE_KEYS from '@/lib/storageKeys'
+import { STORAGE_KEYS } from '@/lib/storageKeys'
 
 const readCachedProfile = (): CachedProfile | null => {
     try {
@@ -44,6 +44,8 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
     const [cachedProfile, setCachedProfile] = useState<CachedProfile | null>(
         readCachedProfile
     )
+    const fetchedRef = useRef(false)
+
     const updateCachedProfile = useCallback((data: Partial<CachedProfile>) => {
         setCachedProfile((prev) => {
             const updated = { ...prev, ...data } as CachedProfile
@@ -59,9 +61,13 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
 
             if (user) {
                 localStorage.setItem(AUTH_STORAGE_KEY, 'true')
+                localStorage.setItem(STORAGE_KEYS.REFERRAL, 'none')
 
                 const cached = readCachedProfile()
                 if (cached) setCachedProfile(cached)
+
+                if (fetchedRef.current) return
+                fetchedRef.current = true
 
                 try {
                     const [profile] = await Promise.all([
@@ -91,6 +97,7 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
                     await firebaseSignOut(auth)
                 }
             } else {
+                fetchedRef.current = false
                 localStorage.removeItem(AUTH_STORAGE_KEY)
                 localStorage.removeItem(PROFILE_CACHE_KEY)
                 localStorage.removeItem(STORAGE_KEYS.OTP_SENT_AT)

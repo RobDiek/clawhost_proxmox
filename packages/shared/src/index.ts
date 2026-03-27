@@ -1,3 +1,4 @@
+import apiPaths from './apiPaths'
 import RequestClient from './RequestClient'
 import billingInterval from './billingInterval'
 import clawProvider from './clawProvider'
@@ -10,6 +11,7 @@ import userRole from './userRole'
 export type { ApiEnvelope, RequestOptions, RequestConfig } from './types'
 
 export {
+    apiPaths,
     RequestClient,
     billingInterval,
     clawProvider,

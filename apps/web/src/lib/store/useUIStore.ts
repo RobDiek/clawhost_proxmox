@@ -1,7 +1,7 @@
 import type { UIState } from '@/ts/Interfaces'
 
 import { create } from 'zustand'
-import STORAGE_KEYS from '@/lib/storageKeys'
+import { STORAGE_KEYS } from '@/lib/storageKeys'
 
 const useUIStore = create<UIState>((set) => ({
     isCreateModalOpen: false,

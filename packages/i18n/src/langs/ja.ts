@@ -75,6 +75,7 @@ const ja: Translations = {
         sshKeys: 'SSHキー',
         account: 'アカウント',
         billing: '請求',
+        affiliate: 'アフィリエイト',
         license: 'ライセンス',
         signOut: 'サインアウト',
         admin: '管理者',
@@ -332,7 +333,7 @@ const ja: Translations = {
         failedToCreateClaw: 'Clawの作成に失敗しました!',
         invalidProvider: '無効なプロバイダーです!',
         providerNotAllowed:
-            'Hetznerが有効な場合、このプロバイダーは利用できません!',
+            'このプロバイダーは現在利用できません!',
         invalidPlan: '無効なプランが選択されました!',
         planBelowMinimumMemory: 'このプランは最小メモリ要件を満たしていません!',
         invalidLocation: '無効なロケーションが選択されました!',
@@ -353,6 +354,16 @@ const ja: Translations = {
         failedToGetCustomerPortal: 'カスタマーポータルの取得に失敗しました!',
         failedToGetBillingHistory: '請求履歴の取得に失敗しました!',
         failedToGetStats: '統計情報の取得に失敗しました!',
+        affiliateFetched: 'Affiliate info fetched successfully.',
+        failedToGetAffiliate: 'Failed to get affiliate info!',
+        referralCodeUpdated: 'Referral code updated successfully.',
+        failedToUpdateReferralCode: 'Failed to update referral code!',
+        invalidReferralCodeLength: 'Referral code must be between {{min}} and {{max}} characters!',
+        invalidReferralCodeFormat: 'Referral code can only contain letters, numbers, hyphens, and underscores!',
+        referralCodeAlreadyChanged: 'Referral code can only be changed once!',
+        referralCodeTaken: 'This referral code is already taken!',
+        referralCodeGenerated: 'Referral code generated.',
+        failedToGenerateReferralCode: 'Failed to generate referral code!',
         failedToFetchLocations: 'ロケーションの取得に失敗しました!',
         failedToFetchPlans: 'プランの取得に失敗しました!',
         failedToFetchVolumePricing: 'ボリューム料金の取得に失敗しました!',
@@ -1038,7 +1049,7 @@ const ja: Translations = {
         clawNameInvalidChars: '英字、数字、ダッシュのみ使用できます！',
         autoGenerateNameHint: '空のままにすると自動生成されます。',
         provider: 'プロバイダー',
-        providerHetzner: 'Hetzner',
+        providerHetzner: 'Cloud',
         providerLocal: 'ローカル',
         providerAws: 'AWS',
         comingSoon: '近日',
@@ -1194,7 +1205,7 @@ const ja: Translations = {
             '専用VPSリソースで、スロットリングなし、フル帯域幅、超高速インターネット。',
         globalLocations: 'グローバルロケーション',
         globalLocationsDescription:
-            'Hetzner Cloud上の複数のグローバルリージョンにOpenClawをデプロイし、最寄りのロケーションを選択.',
+            '複数のグローバルリージョンにOpenClawをデプロイし、最寄りのロケーションを選択.',
         fullSshAccess: 'ダイレクトSSHアクセス',
         fullSshAccessDescription:
             'プラットフォームから直接サーバーターミナルにアクセス。外部SSHクライアント不要。',
@@ -1317,16 +1328,13 @@ const ja: Translations = {
             'いいえ。インフラ、セットアップ、メンテナンスはすべて私たちが対応します。UIを通じてOpenClawの設定と管理、チャンネルへの接続、使い方のカスタマイズができます — サーバーやインフラに触れる必要はありません.',
         faq5Question: 'どのロケーションが利用可能ですか？',
         faq5Answer:
-            'Hetzner Cloudを通じて米国、ヨーロッパなど世界中に複数のサーバーロケーションを提供しています. 必要に応じて、異なるリージョンの複数のサーバーにOpenClawをデプロイできます.',
+            '米国、ヨーロッパなど世界中に複数のサーバーロケーションを提供しています. 必要に応じて、異なるリージョンの複数のサーバーにOpenClawをデプロイできます.',
         faq6Question: '料金はいくらですか？',
         faq6Answer:
             '価格は選択するサーバーによって異なります. エントリーレベルからハイパフォーマンスまで複数のサーバーオプションがあり、ニーズと予算に合ったものを選択できます.',
         faq7Question: 'サーバーに直接アクセスできますか？',
         faq7Answer:
             'はい。サブドメインURL経由のOpenClawアクセスに加えて、サーバーとその基盤インフラへのフルアクセスがあり、カスタマイズや必要なものの実行に完全な自由を提供します.',
-        faq8Question: 'サーバーはどこにホスティングされていますか？',
-        faq8Answer:
-            'すべてのサーバーは、高性能ハードウェアと優れた稼働率で知られ、大規模インフラストラクチャに使用されている信頼性の高いクラウドプロバイダーであるHetzner Cloudでホストされています.',
         comparison: '比較',
         comparisonTitle: '私たちの違い',
         comparisonDescription:
@@ -1513,13 +1521,13 @@ const ja: Translations = {
         release1Title: '初期リリース',
         release1Description:
             'ClawHostの最初の公式リリース。ワンクリックで自分のVPSにOpenClawをデプロイ。',
-        release1Feature1: 'Hetzner CloudでのワンクリックOpenClawデプロイ',
+        release1Feature1: 'ワンクリックOpenClawデプロイ',
         release1Feature2:
             'Clawの管理ダッシュボード、インスタンスの起動、停止、再起動、削除',
         release1Feature3:
-            '専用vCPU、RAM、ストレージオプションを備えた18のHetznerサーバープラン',
+            '専用vCPU、RAM、ストレージオプションを備えた18のサーバープラン',
         release1Feature4:
-            '米国、ヨーロッパ、アジアにわたる6つのHetznerサーバーロケーション',
+            '米国、ヨーロッパ、アジアにわたる6つのサーバーロケーション',
         release1Feature5: 'パスワードレスサーバーアクセスのためのSSHキー管理',
         release1Feature6: '最大10 TBの追加ボリュームストレージサポート',
         release1Feature7: 'マジックリンク認証、パスワード不要',
@@ -1929,7 +1937,7 @@ const ja: Translations = {
         personalInfoName: '名前（任意、パーソナライズ用）',
         personalInfoPayment: '支払い情報（第三者プロバイダーにより安全に処理）',
         serverInfoTitle: 'サーバー情報',
-        serverInfoConfig: 'サーバー設定とステータス（Hetzner Cloudでホスト）',
+        serverInfoConfig: 'サーバー設定とステータス',
         serverInfoIp: 'サーバーIPアドレスとロケーション',
         serverInfoResources: 'リソース割り当て（CPU、RAM、ストレージ）',
         useTitle: '4. 情報の使用方法',
@@ -2024,10 +2032,23 @@ const ja: Translations = {
         terminationTitle: '9. 終了',
         terminationText:
             '当社は、これらの規約に違反する、または他のユーザー、当社、または第三者に有害であると当社が判断する行為、またはその他の理由により、事前通知なしにお客様のアカウントとサービスへのアクセスを即座に終了または停止する場合があります。',
-        changesToTermsTitle: '10. 規約の変更',
+        affiliateTitle: '10. Affiliate Program',
+        affiliateText:
+            'ClawHost offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
+        affiliateCodeUnique:
+            'Each user receives a unique referral code upon registration, which can be customized once.',
+        affiliateCodeOneChange:
+            'The referral code can only be changed one time. Choose your custom code carefully.',
+        affiliateReferralWindow:
+            'A referral is valid for 6 months from when the referred user first visits ClawHost with your referral link. After 6 months, the referral expires.',
+        affiliateNoSelfReferral:
+            'Self-referrals are not permitted. You may not refer your own accounts.',
+        affiliateAbuse:
+            'Any abuse of the affiliate program, including but not limited to fake accounts, automated signups, or fraudulent referrals, will result in forfeiture of rewards and possible account termination.',
+        changesToTermsTitle: '11. 規約の変更',
         changesToTermsText:
             '当社は、いつでもこれらの規約を変更する権利を留保します。重要な変更については、メールまたはサービスを通じてユーザーに通知します。変更後のサービスの継続使用は、更新された規約の承諾を意味します。',
-        contactTitle: '11. お問い合わせ',
+        contactTitle: '12. お問い合わせ',
         contactText:
             'これらの規約に関するご質問がある場合は、以下までお問い合わせください'
     },
@@ -2067,7 +2088,7 @@ const ja: Translations = {
     announcement: {
         title: 'サービスのお知らせ',
         message:
-            '需要が高いため、{{providers}}のデプロイは一時的に利用できません。既存のClawは正常に稼働しています。'
+            '需要が高いため、Clawのデプロイは一時的に利用できません。既存のClawは正常に稼働しています。'
     },
     productHunt: {
         liveOn: '公開中',
@@ -2138,7 +2159,7 @@ const ja: Translations = {
         sharedContainers: '共有コンテナ',
         isolatedContainers: '分離コンテナ',
         cloudWorkspaces: 'クラウドワークスペース',
-        threeProviders: 'Hetzner Cloud',
+        threeProviders: 'Cloud',
         singleProvider: '単一プロバイダー',
         fullyDedicated: '完全専用',
         shared: '共有',
@@ -2208,6 +2229,29 @@ const ja: Translations = {
         ctaTitle: '違いを体験する準備はできましたか？',
         ctaDescription:
             '自分専用のサーバーにOpenClawをデプロイ。完全な所有権、透明な料金設定、数分で準備完了。'
+    },
+    affiliate: {
+        title: 'Affiliate',
+        description: 'Earn rewards by referring friends to ClawHost.',
+        subtitle: 'Share your referral link and earn rewards.',
+        referralCode: 'Referral Code',
+        referrals: 'Referrals',
+        earnings: 'Earnings',
+        codeChangeHint: 'You can customize your referral code once.',
+        codeAlreadyChanged: 'Your referral code has already been customized.',
+        codeUpdated: 'Referral code updated.',
+        codeUpdateFailed: 'Failed to update referral code!',
+        invalidCodeLength: 'Code must be between {{min}} and {{max}} characters!',
+        referralHistory: 'Referral History',
+        periodToday: 'Today',
+        periodWeek: 'Week',
+        periodMonth: 'Month',
+        periodYear: 'Year',
+        periodAll: 'All',
+        confirmChangeTitle: 'Change Referral Code',
+        confirmChangeDescription: 'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
+        noReferralsYet: 'No Referrals Yet',
+        noReferralsDescription: 'Share your referral link to start earning rewards.'
     }
 } as const
 

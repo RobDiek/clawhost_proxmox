@@ -11,6 +11,7 @@ const PATHS = {
     PRIVACY: 'privacy',
     CHANGELOG: 'changelog',
     BLOG: 'blog',
+    AFFILIATE: 'affiliate',
     COMPARE: 'full-comparison'
 } as const
 

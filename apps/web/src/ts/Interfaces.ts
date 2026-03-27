@@ -15,7 +15,6 @@ import type {
     Language,
     PlaygroundAgentDetailTab,
     PlaygroundDetailTab,
-    ProviderType,
     ThemeMode,
     ClawFileType,
     ChatSidebarViewMode,
@@ -45,7 +44,7 @@ export interface Volume {
 export interface Claw {
     id: string
     name: string
-    provider: ProviderType
+    provider: string
     status: ClawStatus
     ip: string | null
     planId: string
@@ -114,6 +113,8 @@ export interface UserProfile {
     role: UserRole
     authMethods: AuthMethod[]
     hasLicense: boolean
+    referralCode: string | null
+    referralCodeChanged: boolean
     createdAt: string
 }
 
@@ -282,8 +283,8 @@ export interface DashboardState {
     setShowCreate: (value: boolean) => void
     preselectedPlanId: string | null
     setPreselectedPlanId: (value: string | null) => void
-    preselectedProvider: ProviderType | null
-    setPreselectedProvider: (value: ProviderType | null) => void
+    preselectedProvider: string | null
+    setPreselectedProvider: (value: string | null) => void
     createAgentClawId: string | null
     setCreateAgentClawId: (value: string | null) => void
     createAgentClawName: string
@@ -352,7 +353,7 @@ export interface ClawAvatarProps {
 }
 
 export interface ProviderIconProps {
-    provider: ProviderType
+    provider: string
     className?: string
 }
 
@@ -464,7 +465,7 @@ export interface CreateClawModalProps {
     volumePricing?: VolumePricing
     planAvailability?: PlanAvailability
     preselectedPlanId?: string | null
-    preselectedProvider?: ProviderType | null
+    preselectedProvider?: string | null
     onClose: () => void
     onNavigateToSSHKeys: () => void
 }
@@ -570,7 +571,7 @@ export interface AIModelOption {
 
 export interface CreateClawData {
     name: string
-    provider: ProviderType
+    provider: string
     planId: string
     location: string
     password?: string
@@ -580,7 +581,6 @@ export interface CreateClawData {
 
 export interface PurchaseClawData {
     name: string
-    provider: ProviderType
     planId: string
     location: string
     password?: string
@@ -1840,4 +1840,28 @@ export interface OrderSummaryProps {
     billingCycle: BillingInterval
     volumeSize: number
     volumePricing?: VolumePricing
+}
+
+export interface AffiliateReferralEntry {
+    id: string
+    referredEmail: string
+    status: string
+    earnedAmount: number
+    createdAt: string
+}
+
+export interface AffiliateInfo {
+    referrals: AffiliateReferralEntry[]
+}
+
+export interface GenerateReferralCodeResponse {
+    referralCode: string
+}
+
+export interface UpdateReferralCodeData {
+    code: string
+}
+
+export interface UpdateReferralCodeResponse {
+    referralCode: string
 }

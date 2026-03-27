@@ -1,4 +1,11 @@
 import {
+    useAffiliate,
+    useGenerateReferralCode,
+    useUpdateReferralCode,
+    AFFILIATE_QUERY_KEY
+} from '@/hooks/useAffiliate'
+
+import {
     useClaws,
     useAdminClaws,
     useClaw,
@@ -77,8 +84,13 @@ import useThemeEffect from '@/hooks/useThemeEffect'
 import useLanguageEffect from '@/hooks/useLanguageEffect'
 import useAppVersion from '@/hooks/useAppVersion'
 import useLocalFooterLinks from '@/hooks/useLocalFooterLinks'
+import useRefer from '@/hooks/useRefer'
 
 export {
+    useAffiliate,
+    useGenerateReferralCode,
+    useUpdateReferralCode,
+    AFFILIATE_QUERY_KEY,
     useClaws,
     useAdminClaws,
     useClaw,
@@ -139,5 +151,6 @@ export {
     useThemeEffect,
     useLanguageEffect,
     useAppVersion,
-    useLocalFooterLinks
+    useLocalFooterLinks,
+    useRefer
 }

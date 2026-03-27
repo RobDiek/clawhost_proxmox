@@ -1,4 +1,4 @@
-import STORAGE_KEYS from '@/lib/storageKeys'
+import { STORAGE_KEYS } from '@/lib/storageKeys'
 
 const PROFILE_CACHE_KEY = STORAGE_KEYS.PROFILE
 

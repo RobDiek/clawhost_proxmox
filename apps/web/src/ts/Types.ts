@@ -9,8 +9,6 @@ import type {
     LANGUAGES
 } from '@/lib/constants'
 
-export type ProviderType = 'hetzner' | 'local'
-
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
 
 export type ClawStatus = (typeof clawStatus)[keyof typeof clawStatus]
@@ -88,6 +86,8 @@ export type TerminalStatus =
     | 'disconnected'
 
 export type ChatTypingIndicator = 'thinking' | 'writing' | null
+
+export type AffiliatePeriod = 'today' | 'week' | 'month' | 'year' | 'all'
 
 export type TranscriberFunction = (
     audio: Float32Array

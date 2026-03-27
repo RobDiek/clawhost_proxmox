@@ -75,6 +75,7 @@ const tr: Translations = {
         sshKeys: 'SSH Anahtarları',
         account: 'Hesap',
         billing: 'Faturalama',
+        affiliate: 'Ortaklık',
         license: 'Lisans',
         signOut: 'Çıkış yap',
         admin: 'Yönetici',
@@ -325,7 +326,7 @@ const tr: Translations = {
         failedToDeleteClaw: 'Claw silinemedi!',
         failedToCreateClaw: 'Claw oluşturulamadı!',
         invalidProvider: 'Geçersiz sağlayıcı!',
-        providerNotAllowed: 'Hetzner etkinken bu sağlayıcı kullanılamaz!',
+        providerNotAllowed: 'Bu sağlayıcı şu anda kullanılamıyor!',
         invalidPlan: 'Geçersiz plan seçildi!',
         planBelowMinimumMemory:
             'Bu plan minimum bellek gereksinimini karşılamıyor!',
@@ -345,6 +346,16 @@ const tr: Translations = {
         failedToGetCustomerPortal: 'Müşteri portalı alınamadı!',
         failedToGetBillingHistory: 'Faturalama geçmişi alınamadı!',
         failedToGetStats: 'İstatistikler alınamadı!',
+        affiliateFetched: 'Affiliate info fetched successfully.',
+        failedToGetAffiliate: 'Failed to get affiliate info!',
+        referralCodeUpdated: 'Referral code updated successfully.',
+        failedToUpdateReferralCode: 'Failed to update referral code!',
+        invalidReferralCodeLength: 'Referral code must be between {{min}} and {{max}} characters!',
+        invalidReferralCodeFormat: 'Referral code can only contain letters, numbers, hyphens, and underscores!',
+        referralCodeAlreadyChanged: 'Referral code can only be changed once!',
+        referralCodeTaken: 'This referral code is already taken!',
+        referralCodeGenerated: 'Referral code generated.',
+        failedToGenerateReferralCode: 'Failed to generate referral code!',
         failedToFetchLocations: 'Konumlar getirilemedi!',
         failedToFetchPlans: 'Planlar getirilemedi!',
         failedToFetchVolumePricing: 'Birim fiyatlandırması getirilemedi!',
@@ -1040,7 +1051,7 @@ const tr: Translations = {
         clawNameInvalidChars: 'Yalnızca harf, rakam ve tire kullanılabilir!',
         autoGenerateNameHint: 'Otomatik ad oluşturmak için boş bırakın.',
         provider: 'Sağlayıcı',
-        providerHetzner: 'Hetzner',
+        providerHetzner: 'Cloud',
         providerLocal: 'Yerel',
         providerAws: 'AWS',
         comingSoon: 'Yakında',
@@ -1199,7 +1210,7 @@ const tr: Translations = {
             'Özel VPS kaynakları, kısıtlama yok, tam bant genişliği ve yıldırım hızında internet demektir.',
         globalLocations: 'Küresel Konumlar',
         globalLocationsDescription:
-            "OpenClaw'u Hetzner Cloud üzerinde birden fazla küresel bölgede dağıtın ve size en yakın konumu seçin.",
+            "OpenClaw'u birden fazla küresel bölgede dağıtın ve size en yakın konumu seçin.",
         fullSshAccess: 'Doğrudan SSH Erişimi',
         fullSshAccessDescription:
             'Sunucu terminalinize doğrudan platformdan erişin. Harici SSH istemcisi gerekmez.',
@@ -1323,16 +1334,13 @@ const tr: Translations = {
             "Hayır. Tüm altyapı, kurulum ve bakımı biz yönetiyoruz. OpenClaw'u arayüzü üzerinden yapılandırabilir ve yönetebilir, kanallara bağlanabilir ve kullanımı özelleştirebilirsiniz — sunuculara veya altyapıya dokunmadan.",
         faq5Question: 'Hangi konumlar mevcut?',
         faq5Answer:
-            "Hetzner Cloud aracılığıyla ABD, Avrupa ve daha fazlası dahil olmak üzere dünya genelinde birden fazla sunucu konumu sunuyoruz. Gerekirse OpenClaw'u farklı bölgelerdeki birden fazla sunucuda dağıtabilirsiniz.",
+            "ABD, Avrupa ve daha fazlası dahil olmak üzere dünya genelinde birden fazla sunucu konumu sunuyoruz. Gerekirse OpenClaw'u farklı bölgelerdeki birden fazla sunucuda dağıtabilirsiniz.",
         faq6Question: 'Maliyeti ne kadar?',
         faq6Answer:
             'Fiyatlar seçtiğiniz sunucuya bağlıdır. Giriş seviyesinden yüksek performansa kadar birden fazla sunucu seçeneğiyle, ihtiyaçlarınıza ve bütçenize uygun olanı seçersiniz.',
         faq7Question: 'Sunucuma doğrudan erişebilir miyim?',
         faq7Answer:
             "Evet. Alt alan adı URL'si üzerinden OpenClaw erişiminin yanı sıra, sunucuya ve temel altyapısına tam erişiminiz vardır, bu da ihtiyacınız olan her şeyi özelleştirme ve çalıştırma özgürlüğü verir.",
-        faq8Question: 'Sunucular nerede barındırılıyor?',
-        faq8Answer:
-            'Tüm sunucular, yüksek performanslı donanımı ve mükemmel çalışma süresi ile tanınan, büyük ölçekli altyapılar tarafından kullanılan güvenilir bir bulut sağlayıcısı olan Hetzner Cloud üzerinde barındırılmaktadır.',
         comparison: 'Karşılaştırma',
         comparisonTitle: 'Nasıl Farklıyız',
         comparisonDescription:
@@ -1533,13 +1541,13 @@ const tr: Translations = {
         release1Title: 'İlk Sürüm',
         release1Description:
             "ClawHost'un ilk resmi sürümü. OpenClaw'u tek tıkla kendi VPS'inize dağıtın.",
-        release1Feature1: 'Hetzner Cloud üzerinde tek tıkla OpenClaw dağıtımı',
+        release1Feature1: 'Tek tıkla OpenClaw dağıtımı',
         release1Feature2:
             "Claw'ları yönetmek, örnekleri başlatmak, durdurmak, yeniden başlatmak ve silmek için panel",
         release1Feature3:
-            'Özel vCPU, RAM ve depolama seçenekleriyle 18 Hetzner sunucu planı',
+            'Özel vCPU, RAM ve depolama seçenekleriyle 18 sunucu planı',
         release1Feature4:
-            'ABD, Avrupa ve Asya genelinde 6 Hetzner sunucu konumu',
+            'ABD, Avrupa ve Asya genelinde 6 sunucu konumu',
         release1Feature5: 'Şifresiz sunucu erişimi için SSH anahtar yönetimi',
         release1Feature6: "10 TB'a kadar ek birim depolama desteği",
         release1Feature7: 'Sihirli bağlantı kimlik doğrulaması, şifre gerekmez',
@@ -1954,7 +1962,7 @@ const tr: Translations = {
             'Ödeme bilgileri (üçüncü taraf sağlayıcılar tarafından güvenli şekilde işlenir)',
         serverInfoTitle: 'Sunucu Bilgileri',
         serverInfoConfig:
-            'Sunucu yapılandırması ve durumu (Hetzner Cloud üzerinde barındırılır)',
+            'Sunucu yapılandırması ve durumu',
         serverInfoIp: 'Sunucu IP adresi ve konumu',
         serverInfoResources: 'Kaynak tahsisi (CPU, RAM, depolama)',
         useTitle: '4. Bilgilerinizi Nasıl Kullanıyoruz',
@@ -2056,10 +2064,23 @@ const tr: Translations = {
         terminationTitle: '9. Sonlandırma',
         terminationText:
             'Bu Şartları ihlal ettiğine veya diğer kullanıcılara, bize veya üçüncü taraflara zararlı olduğuna inandığımız davranışlar veya herhangi bir başka nedenle, önceden bildirimde bulunmaksızın hesabınızı ve Hizmete erişiminizi derhal sonlandırabilir veya askıya alabiliriz.',
-        changesToTermsTitle: '10. Şart Değişiklikleri',
+        affiliateTitle: '10. Affiliate Program',
+        affiliateText:
+            'ClawHost offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
+        affiliateCodeUnique:
+            'Each user receives a unique referral code upon registration, which can be customized once.',
+        affiliateCodeOneChange:
+            'The referral code can only be changed one time. Choose your custom code carefully.',
+        affiliateReferralWindow:
+            'A referral is valid for 6 months from when the referred user first visits ClawHost with your referral link. After 6 months, the referral expires.',
+        affiliateNoSelfReferral:
+            'Self-referrals are not permitted. You may not refer your own accounts.',
+        affiliateAbuse:
+            'Any abuse of the affiliate program, including but not limited to fake accounts, automated signups, or fraudulent referrals, will result in forfeiture of rewards and possible account termination.',
+        changesToTermsTitle: '11. Şart Değişiklikleri',
         changesToTermsText:
             'Bu şartları istediğimiz zaman değiştirme hakkımızı saklı tutuyoruz. Herhangi bir önemli değişikliği e-posta yoluyla veya Hizmet aracılığıyla kullanıcılara bildireceğiz. Bu tür değişikliklerden sonra Hizmeti kullanmaya devam etmek, güncellenen şartların kabul edildiği anlamına gelir.',
-        contactTitle: '11. İletişim Bilgileri',
+        contactTitle: '12. İletişim Bilgileri',
         contactText:
             'Bu Şartlar hakkında sorularınız varsa, lütfen şu adresten bize ulaşın:'
     },
@@ -2170,7 +2191,7 @@ const tr: Translations = {
         sharedContainers: 'Paylaşımlı konteynerler',
         isolatedContainers: 'İzole konteynerler',
         cloudWorkspaces: 'Bulut çalışma alanları',
-        threeProviders: 'Hetzner Cloud',
+        threeProviders: 'Cloud',
         singleProvider: 'Tek sağlayıcı',
         fullyDedicated: 'Tamamen özel',
         shared: 'Paylaşımlı',
@@ -2240,6 +2261,29 @@ const tr: Translations = {
         ctaTitle: 'Farkı görmeye hazır mısınız?',
         ctaDescription:
             "OpenClaw'u kendi özel sunucunuza dağıtın. Tam sahiplik, şeffaf fiyatlandırma ve dakikalar içinde hazır."
+    },
+    affiliate: {
+        title: 'Affiliate',
+        description: 'Earn rewards by referring friends to ClawHost.',
+        subtitle: 'Share your referral link and earn rewards.',
+        referralCode: 'Referral Code',
+        referrals: 'Referrals',
+        earnings: 'Earnings',
+        codeChangeHint: 'You can customize your referral code once.',
+        codeAlreadyChanged: 'Your referral code has already been customized.',
+        codeUpdated: 'Referral code updated.',
+        codeUpdateFailed: 'Failed to update referral code!',
+        invalidCodeLength: 'Code must be between {{min}} and {{max}} characters!',
+        referralHistory: 'Referral History',
+        periodToday: 'Today',
+        periodWeek: 'Week',
+        periodMonth: 'Month',
+        periodYear: 'Year',
+        periodAll: 'All',
+        confirmChangeTitle: 'Change Referral Code',
+        confirmChangeDescription: 'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
+        noReferralsYet: 'No Referrals Yet',
+        noReferralsDescription: 'Share your referral link to start earning rewards.'
     }
 } as const
 

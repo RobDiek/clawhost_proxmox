@@ -1,5 +1,3 @@
-export type ProviderType = 'hetzner'
-
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
 
 import type { clawStatus } from '@openclaw/shared'

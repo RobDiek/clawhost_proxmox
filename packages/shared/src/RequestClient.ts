@@ -2,6 +2,7 @@ import type { ApiEnvelope, RequestConfig, RequestOptions } from './types'
 
 class RequestClient {
     private config: RequestConfig
+    private inflight = new Map<string, Promise<unknown>>()
 
     constructor(config: RequestConfig) {
         this.config = config
@@ -94,15 +95,32 @@ class RequestClient {
         let res = await this.executeRequest(endpoint, options)
 
         if (res.status === 401 && this.config.onUnauthorized) {
-            await this.config.onUnauthorized()
-            res = await this.executeRequest(endpoint, options)
+            const shouldRetry = await this.config.onUnauthorized()
+            if (shouldRetry) {
+                res = await this.executeRequest(endpoint, options)
+            }
         }
 
         return this.parseResponse<T>(res)
     }
 
+    private dedup<T>(key: string, fn: () => Promise<T>): Promise<T> {
+        const existing = this.inflight.get(key)
+        if (existing) return existing as Promise<T>
+
+        const promise = fn().finally(() => {
+            this.inflight.delete(key)
+        })
+
+        this.inflight.set(key, promise)
+        return promise
+    }
+
     get<T>(endpoint: string, options?: RequestOptions): Promise<T> {
-        return this.request<T>(endpoint, { ...options, method: 'GET' })
+        return this.dedup(
+            `GET:${endpoint}`,
+            () => this.request<T>(endpoint, { ...options, method: 'GET' })
+        )
     }
 
     post<T>(

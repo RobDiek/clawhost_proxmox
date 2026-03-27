@@ -12,25 +12,31 @@ const formatStars = (count: number): string => {
     return count.toString()
 }
 
-const fetchGitHubStars = async (): Promise<GitHubStarsData> => {
-    const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}`)
-    if (!response.ok) {
-        throw new Error('Failed to fetch GitHub stars')
-    }
-    const data = await response.json()
-    const count = data.stargazers_count ?? 0
-    return {
-        count,
-        formatted: formatStars(count)
-    }
+let inflightStars: Promise<GitHubStarsData> | null = null
+
+const fetchGitHubStars = (): Promise<GitHubStarsData> => {
+    if (inflightStars) return inflightStars
+
+    inflightStars = fetch(`https://api.github.com/repos/${GITHUB_REPO}`)
+        .then((response) => {
+            if (!response.ok) throw new Error('Failed to fetch GitHub stars')
+            return response.json()
+        })
+        .then((data) => {
+            const count = data.stargazers_count ?? 0
+            return { count, formatted: formatStars(count) }
+        })
+        .finally(() => {
+            inflightStars = null
+        })
+
+    return inflightStars
 }
 
 const useGitHubStars = () => {
     return useQuery({
         queryKey: GITHUB_STARS_QUERY_KEY,
-        queryFn: fetchGitHubStars,
-        staleTime: 1000 * 60 * 5,
-        retry: 1
+        queryFn: fetchGitHubStars
     })
 }
 

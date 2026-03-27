@@ -1,4 +1,4 @@
-import type { ClawRow, ProviderType } from '@/ts/Types'
+import type { ClawRow } from '@/ts/Types'
 import type { ServerStatus } from '@/ts/Interfaces'
 
 import { eq } from 'drizzle-orm'
@@ -20,31 +20,19 @@ const transitionCompletedBy: Record<string, string[]> = {
 }
 
 const syncClawServers = async (clawList: ClawRow[]): Promise<ClawRow[]> => {
-    const providers = new Set(clawList.map((c) => c.provider as ProviderType))
-    const serverMaps = new Map<ProviderType, Map<string, ServerStatus>>()
+    let serverMap = new Map<string, ServerStatus>()
 
-    await Promise.all(
-        Array.from(providers).map(async (provider) => {
-            try {
-                const servers = await getProvider(provider).getServers()
-                serverMaps.set(provider, servers)
-            } catch (err) {
-                console.error(`Failed to fetch ${provider} servers:`, err)
-                serverMaps.set(provider, new Map())
-            }
-        })
-    )
+    try {
+        serverMap = await getProvider().getServers()
+    } catch (err) {
+        console.error('Failed to fetch servers:', err)
+    }
 
     const syncedClaws = await Promise.all(
         clawList.map(async (claw) => {
             if (!claw.providerServerId) return claw
 
-            const providerServers = serverMaps.get(
-                claw.provider as ProviderType
-            )
-            if (!providerServers) return claw
-
-            const live = providerServers.get(claw.providerServerId)
+            const live = serverMap.get(claw.providerServerId)
             if (!live) return claw
 
             if (claw.status === clawStatus.configuring) {

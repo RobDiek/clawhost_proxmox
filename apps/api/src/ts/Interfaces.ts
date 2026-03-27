@@ -4,7 +4,6 @@ import type {
     BillingInterval,
     ClawFileType,
     FeatureEmailKey,
-    ProviderType,
     SubscriptionStatus,
     WebhookEventType
 } from '@/ts/Types'
@@ -427,7 +426,6 @@ export interface ProvisionClawResponse {
 }
 
 export interface ClawCleanupData {
-    provider: ProviderType
     providerServerId: string | null
     subdomain: string | null
 }
@@ -468,7 +466,6 @@ export interface UpdateProfileBody {
 
 export interface CreateClawBody {
     name: string
-    provider: ProviderType
     planId: string
     location: string
     password?: string
@@ -478,7 +475,6 @@ export interface CreateClawBody {
 
 export interface InitiateClawPurchaseBody {
     name?: string
-    provider: ProviderType
     planId: string
     location: string
     password?: string
@@ -947,11 +943,6 @@ export interface GoogleUserinfoResponse {
     name?: string
 }
 
-export interface PolarProductMapping {
-    provider: string
-    planId: string
-}
-
 export interface JoinWaitlistBody {
     email: string
 }
@@ -969,4 +960,24 @@ export interface FeatureEmailDefinition {
     key: FeatureEmailKey
     subject: string
     render: () => ReactNode
+}
+
+export interface AffiliateInfoResponse {
+    referrals: AffiliateReferralEntry[]
+}
+
+export interface GenerateReferralCodeResponse {
+    referralCode: string
+}
+
+export interface AffiliateReferralEntry {
+    id: string
+    referredEmail: string
+    status: string
+    earnedAmount: number
+    createdAt: string
+}
+
+export interface UpdateReferralCodeBody {
+    code: string
 }

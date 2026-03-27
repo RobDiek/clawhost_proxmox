@@ -65,12 +65,14 @@ const client = new RequestClient({
         const token = await getCachedToken()
         return token ? { Authorization: `Bearer ${token}` } : {}
     },
-    onUnauthorized: async (): Promise<void> => {
+    onUnauthorized: async (): Promise<boolean> => {
         clearTokenCache()
         const token = await getCachedToken(true)
         if (!token) {
             await signOut(auth)
+            return false
         }
+        return true
     }
 })
 

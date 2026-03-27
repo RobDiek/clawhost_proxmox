@@ -5,7 +5,6 @@ import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useScroll, useTransform } from 'framer-motion'
 import { t } from '@openclaw/i18n'
-import { clawProvider } from '@openclaw/shared'
 import {
     PageTitle,
     Header,
@@ -80,10 +79,6 @@ const getFaqs = (): Faq[] => [
     {
         question: t('landing.faq7Question'),
         answer: t('landing.faq7Answer')
-    },
-    {
-        question: t('landing.faq8Question'),
-        answer: t('landing.faq8Answer')
     }
 ]
 
@@ -98,7 +93,7 @@ const Landing: FC = (): ReactNode => {
         plans: hetznerPlans,
         isLoading: hetznerLoading,
         atCapacity: hetznerAtCapacity
-    } = usePlans(clawProvider.hetzner)
+    } = usePlans()
 
     const announcementVisible =
         !phBannerVisible &&

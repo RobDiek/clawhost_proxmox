@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib'
 import PLANS_QUERY_KEY from '@/hooks/usePlans/PLANS_QUERY_KEY'
 
-const usePlans = (provider?: string) => {
+const usePlans = () => {
     const query = useQuery({
-        queryKey: [...PLANS_QUERY_KEY, provider || 'hetzner'],
-        queryFn: () => api.getPlans(provider),
+        queryKey: PLANS_QUERY_KEY,
+        queryFn: api.getPlans,
         placeholderData: (previousData) => previousData,
         staleTime: 60_000,
         refetchInterval: 60_000,

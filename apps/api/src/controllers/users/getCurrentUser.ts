@@ -18,6 +18,8 @@ const getCurrentUser = async (c: AuthenticatedContext) => {
                 role: users.role,
                 authMethods: users.authMethods,
                 hasLicense: users.hasLicense,
+                referralCode: users.referralCode,
+                referralCodeChanged: users.referralCodeChanged,
                 createdAt: users.createdAt
             })
             .from(users)

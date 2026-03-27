@@ -75,6 +75,7 @@ const nl: Translations = {
         sshKeys: 'SSH-sleutels',
         account: 'Account',
         billing: 'Facturatie',
+        affiliate: 'Affiliate',
         license: 'Licentie',
         signOut: 'Uitloggen',
         admin: 'Admin',
@@ -333,7 +334,7 @@ const nl: Translations = {
         failedToCreateClaw: 'Claw aanmaken mislukt!',
         invalidProvider: 'Ongeldige provider!',
         providerNotAllowed:
-            'Deze provider is niet beschikbaar wanneer Hetzner actief is!',
+            'Deze provider is momenteel niet beschikbaar!',
         invalidPlan: 'Ongeldig plan geselecteerd!',
         planBelowMinimumMemory:
             'Dit plan voldoet niet aan de minimale geheugenvereiste!',
@@ -355,6 +356,16 @@ const nl: Translations = {
         failedToGetCustomerPortal: 'Klantenportaal ophalen mislukt!',
         failedToGetBillingHistory: 'Facturatiegeschiedenis ophalen mislukt!',
         failedToGetStats: 'Statistieken ophalen mislukt!',
+        affiliateFetched: 'Affiliate info fetched successfully.',
+        failedToGetAffiliate: 'Failed to get affiliate info!',
+        referralCodeUpdated: 'Referral code updated successfully.',
+        failedToUpdateReferralCode: 'Failed to update referral code!',
+        invalidReferralCodeLength: 'Referral code must be between {{min}} and {{max}} characters!',
+        invalidReferralCodeFormat: 'Referral code can only contain letters, numbers, hyphens, and underscores!',
+        referralCodeAlreadyChanged: 'Referral code can only be changed once!',
+        referralCodeTaken: 'This referral code is already taken!',
+        referralCodeGenerated: 'Referral code generated.',
+        failedToGenerateReferralCode: 'Failed to generate referral code!',
         failedToFetchLocations: 'Locaties ophalen mislukt!',
         failedToFetchPlans: 'Plannen ophalen mislukt!',
         failedToFetchVolumePricing: 'Volumeprijzen ophalen mislukt!',
@@ -1052,7 +1063,7 @@ const nl: Translations = {
             'Alleen letters, cijfers en streepjes zijn toegestaan!',
         autoGenerateNameHint: 'Laat leeg om automatisch een naam te genereren.',
         provider: 'Provider',
-        providerHetzner: 'Hetzner',
+        providerHetzner: 'Cloud',
         providerLocal: 'Lokaal',
         providerAws: 'AWS',
         comingSoon: 'Binnenkort',
@@ -1212,7 +1223,7 @@ const nl: Translations = {
             'Dedicated VPS-resources betekenen geen throttling, volledige bandbreedte en razendsnel internet.',
         globalLocations: 'Wereldwijde locaties',
         globalLocationsDescription:
-            "Implementeer OpenClaw in meerdere wereldwijde regio's op Hetzner Cloud en kies de locatie die het dichtst bij je is.",
+            "Implementeer OpenClaw in meerdere wereldwijde regio's en kies de locatie die het dichtst bij je is.",
         fullSshAccess: 'Directe SSH-toegang',
         fullSshAccessDescription:
             'Krijg direct toegang tot je serverterminal vanuit het platform. Geen externe SSH-clients nodig.',
@@ -1336,16 +1347,13 @@ const nl: Translations = {
             'Nee. Wij regelen alle infrastructuur, installatie en onderhoud. Je kunt OpenClaw configureren en beheren via de UI, verbinden met kanalen en gebruik aanpassen \u2014 zonder servers of infrastructuur aan te raken.',
         faq5Question: 'Welke locaties zijn beschikbaar?',
         faq5Answer:
-            "We bieden meerdere serverlocaties wereldwijd via Hetzner Cloud, waaronder de VS, Europa en meer. Je kunt OpenClaw indien nodig op meerdere servers in verschillende regio's implementeren.",
+            "We bieden meerdere serverlocaties wereldwijd, waaronder de VS, Europa en meer. Je kunt OpenClaw indien nodig op meerdere servers in verschillende regio's implementeren.",
         faq6Question: 'Hoeveel kost het?',
         faq6Answer:
             'De prijzen zijn afhankelijk van de server die je selecteert. Met meerdere serveropties van instapniveau tot hoge prestaties kies je wat past bij je behoeften en budget.',
         faq7Question: 'Kan ik mijn server direct benaderen?',
         faq7Answer:
             'Ja. Naast OpenClaw-toegang via subdomein-URL heb je volledige toegang tot de server en de onderliggende infrastructuur, wat je complete vrijheid geeft om alles aan te passen en te draaien wat je nodig hebt.',
-        faq8Question: 'Waar worden de servers gehost?',
-        faq8Answer:
-            'Alle servers worden gehost op Hetzner Cloud, een betrouwbare cloudprovider die bekendstaat om krachtige hardware en uitstekende beschikbaarheid, gebruikt door grootschalige infrastructuren.',
         comparison: 'Vergelijking',
         comparisonTitle: 'Hoe wij anders zijn',
         comparisonDescription:
@@ -1546,13 +1554,13 @@ const nl: Translations = {
         release1Description:
             'De eerste offici\u00eble release van ClawHost. Deploy OpenClaw op je eigen VPS met \u00e9\u00e9n klik.',
         release1Feature1:
-            'OpenClaw-deployment met \u00e9\u00e9n klik op Hetzner Cloud',
+            'OpenClaw-deployment met \u00e9\u00e9n klik',
         release1Feature2:
             'Dashboard om claws te beheren, instanties starten, stoppen, herstarten en verwijderen',
         release1Feature3:
-            '18 Hetzner-serverplannen met dedicated vCPU, RAM en opslagopties',
+            '18 serverplannen met dedicated vCPU, RAM en opslagopties',
         release1Feature4:
-            '6 Hetzner-serverlocaties in de VS, Europa en Azi\u00eb',
+            '6 serverlocaties in de VS, Europa en Azi\u00eb',
         release1Feature5: 'SSH-sleutelbeheer voor wachtwoordloze servertoegang',
         release1Feature6: 'Ondersteuning voor extra volume-opslag tot 10 TB',
         release1Feature7: 'Magic link-authenticatie, geen wachtwoorden nodig',
@@ -1975,7 +1983,7 @@ const nl: Translations = {
             'Betalingsinformatie (veilig verwerkt door externe providers)',
         serverInfoTitle: 'Serverinformatie',
         serverInfoConfig:
-            'Serverconfiguratie en -status (gehost op Hetzner Cloud)',
+            'Serverconfiguratie en -status',
         serverInfoIp: 'Server-IP-adres en locatie',
         serverInfoResources: 'Resourcetoewijzing (CPU, RAM, opslag)',
         useTitle: '4. Hoe wij je informatie gebruiken',
@@ -2078,10 +2086,23 @@ const nl: Translations = {
         terminationTitle: '9. Be\u00ebindiging',
         terminationText:
             'Wij kunnen je account en toegang tot de Service onmiddellijk be\u00ebindigen of opschorten, zonder voorafgaande kennisgeving, voor gedrag waarvan wij geloven dat het deze Voorwaarden schendt of schadelijk is voor andere gebruikers, ons of derden, of om welke andere reden dan ook.',
-        changesToTermsTitle: '10. Wijzigingen in de voorwaarden',
+        affiliateTitle: '10. Affiliate Program',
+        affiliateText:
+            'ClawHost offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
+        affiliateCodeUnique:
+            'Each user receives a unique referral code upon registration, which can be customized once.',
+        affiliateCodeOneChange:
+            'The referral code can only be changed one time. Choose your custom code carefully.',
+        affiliateReferralWindow:
+            'A referral is valid for 6 months from when the referred user first visits ClawHost with your referral link. After 6 months, the referral expires.',
+        affiliateNoSelfReferral:
+            'Self-referrals are not permitted. You may not refer your own accounts.',
+        affiliateAbuse:
+            'Any abuse of the affiliate program, including but not limited to fake accounts, automated signups, or fraudulent referrals, will result in forfeiture of rewards and possible account termination.',
+        changesToTermsTitle: '11. Wijzigingen in de voorwaarden',
         changesToTermsText:
             'Wij behouden ons het recht voor om deze voorwaarden op elk moment te wijzigen. Wij zullen gebruikers op de hoogte stellen van wezenlijke wijzigingen via e-mail of via de Service. Voortgezet gebruik van de Service na dergelijke wijzigingen vormt acceptatie van de bijgewerkte voorwaarden.',
-        contactTitle: '11. Contactinformatie',
+        contactTitle: '12. Contactinformatie',
         contactText:
             'Als je vragen hebt over deze Voorwaarden, neem dan contact met ons op via'
     },
@@ -2122,7 +2143,7 @@ const nl: Translations = {
     announcement: {
         title: 'Servicemelding',
         message:
-            'Door hoge vraag zijn {{providers}}-deployments tijdelijk niet beschikbaar. Bestaande claws draaien normaal.'
+            'Door hoge vraag is Claw-deployment tijdelijk niet beschikbaar. Bestaande claws draaien normaal.'
     },
     productHunt: {
         liveOn: 'Live op',
@@ -2193,7 +2214,7 @@ const nl: Translations = {
         sharedContainers: 'Gedeelde containers',
         isolatedContainers: 'Ge\u00efsoleerde containers',
         cloudWorkspaces: 'Cloudwerkruimtes',
-        threeProviders: 'Hetzner Cloud',
+        threeProviders: 'Cloud',
         singleProvider: 'E\u00e9n provider',
         fullyDedicated: 'Volledig dedicated',
         shared: 'Gedeeld',
@@ -2263,6 +2284,29 @@ const nl: Translations = {
         ctaTitle: 'Klaar om het verschil te zien?',
         ctaDescription:
             'Deploy OpenClaw op je eigen dedicated server. Volledig eigendom, transparante prijzen en klaar in minuten.'
+    },
+    affiliate: {
+        title: 'Affiliate',
+        description: 'Earn rewards by referring friends to ClawHost.',
+        subtitle: 'Share your referral link and earn rewards.',
+        referralCode: 'Referral Code',
+        referrals: 'Referrals',
+        earnings: 'Earnings',
+        codeChangeHint: 'You can customize your referral code once.',
+        codeAlreadyChanged: 'Your referral code has already been customized.',
+        codeUpdated: 'Referral code updated.',
+        codeUpdateFailed: 'Failed to update referral code!',
+        invalidCodeLength: 'Code must be between {{min}} and {{max}} characters!',
+        referralHistory: 'Referral History',
+        periodToday: 'Today',
+        periodWeek: 'Week',
+        periodMonth: 'Month',
+        periodYear: 'Year',
+        periodAll: 'All',
+        confirmChangeTitle: 'Change Referral Code',
+        confirmChangeDescription: 'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
+        noReferralsYet: 'No Referrals Yet',
+        noReferralsDescription: 'Share your referral link to start earning rewards.'
     }
 } as const
 

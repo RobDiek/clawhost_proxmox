@@ -4,7 +4,6 @@ import type { ProviderSelectorProps } from '@/ts/Interfaces'
 import { t } from '@openclaw/i18n'
 import { Label } from '@/components/ui'
 import ProviderIcon from '@/components/shared/ProviderIcon'
-import { clawProvider } from '@openclaw/shared'
 
 const ProviderSelector: FC<ProviderSelectorProps> = ({
     atCapacity
@@ -18,7 +17,7 @@ const ProviderSelector: FC<ProviderSelectorProps> = ({
             <div className='bg-muted flex w-fit rounded-lg p-1'>
                 <div className='bg-background text-foreground flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium shadow-sm'>
                     <ProviderIcon
-                        provider={clawProvider.hetzner}
+                        provider='hetzner'
                         className='h-4 w-4'
                     />
                     {t('createClaw.providerHetzner')}

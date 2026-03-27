@@ -10,7 +10,7 @@ const cleanupClaw = async (
     clawId: string,
     claw: ClawCleanupData
 ): Promise<void> => {
-    const provider = getProvider(claw.provider)
+    const provider = getProvider()
 
     const clawVolumes = await db
         .select()

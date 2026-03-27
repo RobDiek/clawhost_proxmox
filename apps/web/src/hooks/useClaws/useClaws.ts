@@ -7,7 +7,7 @@ const useClaws = () => {
         queryKey: CLAWS_QUERY_KEY,
         queryFn: () => api.getClaws(),
         placeholderData: (previousData) => previousData,
-        refetchInterval: 1000
+        refetchInterval: 5000
     })
 }
 

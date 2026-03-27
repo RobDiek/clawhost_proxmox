@@ -42,7 +42,7 @@ const deleteSSHKey = async (c: AuthenticatedContext) => {
         const providerDeletions: Promise<void>[] = []
         if (key[0].providerKeyId) {
             providerDeletions.push(
-                getProvider('hetzner')
+                getProvider()
                     .deleteSSHKey(key[0].providerKeyId)
                     .catch((err) =>
                         console.error(

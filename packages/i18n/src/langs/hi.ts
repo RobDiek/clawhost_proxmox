@@ -75,6 +75,7 @@ const hi: Translations = {
         sshKeys: 'SSH कुंजियाँ',
         account: 'खाता',
         billing: 'बिलिंग',
+        affiliate: 'सहबद्ध',
         license: 'लाइसेंस',
         signOut: 'साइन आउट',
         admin: 'एडमिन',
@@ -331,7 +332,7 @@ const hi: Translations = {
         failedToCreateClaw: 'क्लॉ बनाने में विफल!',
         invalidProvider: 'अमान्य प्रदाता!',
         providerNotAllowed:
-            'जब Hetzner सक्रिय है तो यह प्रदाता उपलब्ध नहीं है!',
+            'यह प्रदाता वर्तमान में उपलब्ध नहीं है!',
         invalidPlan: 'अमान्य प्लान चयनित!',
         planBelowMinimumMemory:
             'यह प्लान न्यूनतम मेमोरी आवश्यकता को पूरा नहीं करता!',
@@ -352,6 +353,16 @@ const hi: Translations = {
         failedToGetCustomerPortal: 'ग्राहक पोर्टल प्राप्त करने में विफल!',
         failedToGetBillingHistory: 'बिलिंग इतिहास प्राप्त करने में विफल!',
         failedToGetStats: 'आँकड़े प्राप्त करने में विफल!',
+        affiliateFetched: 'Affiliate info fetched successfully.',
+        failedToGetAffiliate: 'Failed to get affiliate info!',
+        referralCodeUpdated: 'Referral code updated successfully.',
+        failedToUpdateReferralCode: 'Failed to update referral code!',
+        invalidReferralCodeLength: 'Referral code must be between {{min}} and {{max}} characters!',
+        invalidReferralCodeFormat: 'Referral code can only contain letters, numbers, hyphens, and underscores!',
+        referralCodeAlreadyChanged: 'Referral code can only be changed once!',
+        referralCodeTaken: 'This referral code is already taken!',
+        referralCodeGenerated: 'Referral code generated.',
+        failedToGenerateReferralCode: 'Failed to generate referral code!',
         failedToFetchLocations: 'स्थान प्राप्त करने में विफल!',
         failedToFetchPlans: 'प्लान प्राप्त करने में विफल!',
         failedToFetchVolumePricing: 'वॉल्यूम मूल्य प्राप्त करने में विफल!',
@@ -1043,7 +1054,7 @@ const hi: Translations = {
         clawNameInvalidChars: 'केवल अक्षर, संख्याएँ और डैश की अनुमति है!',
         autoGenerateNameHint: 'स्वतः नाम बनाने के लिए खाली छोड़ें.',
         provider: 'प्रदाता',
-        providerHetzner: 'Hetzner',
+        providerHetzner: 'Cloud',
         providerLocal: 'स्थानीय',
         providerAws: 'AWS',
         comingSoon: 'जल्द',
@@ -1201,7 +1212,7 @@ const hi: Translations = {
             'समर्पित VPS संसाधन का मतलब है कोई थ्रॉटलिंग नहीं, पूर्ण बैंडविड्थ और बिजली जैसा तेज़ इंटरनेट.',
         globalLocations: 'वैश्विक स्थान',
         globalLocationsDescription:
-            'Hetzner Cloud पर कई वैश्विक क्षेत्रों में OpenClaw तैनात करें और अपने सबसे करीबी स्थान चुनें.',
+            'कई वैश्विक क्षेत्रों में OpenClaw तैनात करें और अपने सबसे करीबी स्थान चुनें.',
         fullSshAccess: 'सीधा SSH एक्सेस',
         fullSshAccessDescription:
             'प्लेटफ़ॉर्म से सीधे अपने सर्वर टर्मिनल तक पहुँचें. किसी बाहरी SSH क्लाइंट की ज़रूरत नहीं.',
@@ -1324,16 +1335,13 @@ const hi: Translations = {
             'नहीं. हम सभी बुनियादी ढाँचा, सेटअप और रखरखाव संभालते हैं. आप OpenClaw को इसके UI के माध्यम से कॉन्फ़िगर और प्रबंधित कर सकते हैं, चैनलों से कनेक्ट कर सकते हैं और उपयोग को अनुकूलित कर सकते हैं — बिना सर्वर या बुनियादी ढाँचे को छुए.',
         faq5Question: 'कौन से स्थान उपलब्ध हैं?',
         faq5Answer:
-            'हम Hetzner Cloud के माध्यम से दुनिया भर में कई सर्वर स्थान प्रदान करते हैं, जिनमें यूएसए, यूरोप और अन्य शामिल हैं. आवश्यकता होने पर आप विभिन्न क्षेत्रों में कई सर्वरों पर OpenClaw तैनात कर सकते हैं.',
+            'हम दुनिया भर में कई सर्वर स्थान प्रदान करते हैं, जिनमें यूएसए, यूरोप और अन्य शामिल हैं. आवश्यकता होने पर आप विभिन्न क्षेत्रों में कई सर्वरों पर OpenClaw तैनात कर सकते हैं.',
         faq6Question: 'इसकी कीमत कितनी है?',
         faq6Answer:
             'कीमतें आपके द्वारा चुने गए सर्वर पर निर्भर करती हैं. बेसिक से लेकर उच्च प्रदर्शन तक कई सर्वर विकल्पों के साथ, आप अपनी आवश्यकताओं और बजट के अनुसार चुनें.',
         faq7Question: 'क्या मैं अपने सर्वर को सीधे एक्सेस कर सकता हूँ?',
         faq7Answer:
             'हाँ. सबडोमेन URL के माध्यम से OpenClaw एक्सेस के साथ, आपके पास सर्वर और इसके अंतर्निहित बुनियादी ढाँचे तक पूर्ण एक्सेस है, जो आपको अनुकूलित करने और जो चाहें चलाने की पूर्ण स्वतंत्रता देता है.',
-        faq8Question: 'सर्वर कहाँ होस्ट किए जाते हैं?',
-        faq8Answer:
-            'सभी सर्वर Hetzner Cloud पर होस्ट किए जाते हैं, जो उच्च प्रदर्शन वाले हार्डवेयर और उत्कृष्ट अपटाइम के लिए जाना जाने वाला विश्वसनीय क्लाउड प्रदाता है, जिसे बड़ी अवसंरचनाएं उपयोग करती हैं.',
         comparison: 'तुलना',
         comparisonTitle: 'हम कैसे अलग हैं',
         comparisonDescription:
@@ -1526,12 +1534,12 @@ const hi: Translations = {
         release1Title: 'प्रारंभिक रिलीज़',
         release1Description:
             'ClawHost की पहली आधिकारिक रिलीज़. एक क्लिक में अपने VPS पर OpenClaw डिप्लॉय करें.',
-        release1Feature1: 'Hetzner Cloud पर एक-क्लिक OpenClaw डिप्लॉयमेंट',
+        release1Feature1: 'एक-क्लिक OpenClaw डिप्लॉयमेंट',
         release1Feature2:
             'क्लॉज़ प्रबंधित करने, इंस्टेंस शुरू, बंद, पुनः शुरू और हटाने के लिए डैशबोर्ड',
         release1Feature3:
-            'समर्पित vCPU, RAM और स्टोरेज विकल्पों के साथ 18 Hetzner सर्वर प्लान',
-        release1Feature4: 'अमेरिका, यूरोप और एशिया में 6 Hetzner सर्वर स्थान',
+            'समर्पित vCPU, RAM और स्टोरेज विकल्पों के साथ 18 सर्वर प्लान',
+        release1Feature4: 'अमेरिका, यूरोप और एशिया में 6 सर्वर स्थान',
         release1Feature5: 'पासवर्ड-रहित सर्वर एक्सेस के लिए SSH कुंजी प्रबंधन',
         release1Feature6: '10 TB तक अतिरिक्त वॉल्यूम स्टोरेज सपोर्ट',
         release1Feature7: 'मैजिक लिंक प्रमाणीकरण, कोई पासवर्ड नहीं चाहिए',
@@ -1942,7 +1950,7 @@ const hi: Translations = {
             'भुगतान जानकारी (तृतीय-पक्ष प्रदाताओं द्वारा सुरक्षित रूप से प्रोसेस की जाती है)',
         serverInfoTitle: 'सर्वर जानकारी',
         serverInfoConfig:
-            'सर्वर कॉन्फ़िगरेशन और स्थिति (Hetzner Cloud पर होस्ट)',
+            'सर्वर कॉन्फ़िगरेशन और स्थिति',
         serverInfoIp: 'सर्वर IP पता और स्थान',
         serverInfoResources: 'संसाधन आवंटन (CPU, RAM, स्टोरेज)',
         useTitle: '4. हम आपकी जानकारी कैसे उपयोग करते हैं',
@@ -2044,10 +2052,23 @@ const hi: Translations = {
         terminationTitle: '9. समाप्ति',
         terminationText:
             'हम आपके खाते और सेवा तक पहुँच को तुरंत, बिना पूर्व सूचना के, ऐसे आचरण के लिए समाप्त या निलंबित कर सकते हैं जो हमें लगता है कि इन शर्तों का उल्लंघन करता है या अन्य उपयोगकर्ताओं, हमें या तृतीय पक्षों के लिए हानिकारक है, या किसी अन्य कारण से.',
-        changesToTermsTitle: '10. शर्तों में परिवर्तन',
+        affiliateTitle: '10. Affiliate Program',
+        affiliateText:
+            'ClawHost offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
+        affiliateCodeUnique:
+            'Each user receives a unique referral code upon registration, which can be customized once.',
+        affiliateCodeOneChange:
+            'The referral code can only be changed one time. Choose your custom code carefully.',
+        affiliateReferralWindow:
+            'A referral is valid for 6 months from when the referred user first visits ClawHost with your referral link. After 6 months, the referral expires.',
+        affiliateNoSelfReferral:
+            'Self-referrals are not permitted. You may not refer your own accounts.',
+        affiliateAbuse:
+            'Any abuse of the affiliate program, including but not limited to fake accounts, automated signups, or fraudulent referrals, will result in forfeiture of rewards and possible account termination.',
+        changesToTermsTitle: '11. शर्तों में परिवर्तन',
         changesToTermsText:
             'हम किसी भी समय इन शर्तों को संशोधित करने का अधिकार सुरक्षित रखते हैं. हम ईमेल या सेवा के माध्यम से किसी भी महत्वपूर्ण बदलाव की सूचना उपयोगकर्ताओं को देंगे. ऐसे संशोधनों के बाद सेवा का निरंतर उपयोग अपडेट की गई शर्तों की स्वीकृति माना जाएगा.',
-        contactTitle: '11. संपर्क जानकारी',
+        contactTitle: '12. संपर्क जानकारी',
         contactText:
             'यदि इन शर्तों के बारे में आपके कोई प्रश्न हैं, तो कृपया हमसे संपर्क करें'
     },
@@ -2088,7 +2109,7 @@ const hi: Translations = {
     announcement: {
         title: 'सेवा सूचना',
         message:
-            'उच्च मांग के कारण, {{providers}} डिप्लॉयमेंट अस्थायी रूप से अनुपलब्ध हैं. मौजूदा क्लॉज़ सामान्य रूप से चल रहे हैं.'
+            'उच्च मांग के कारण, Claw डिप्लॉयमेंट अस्थायी रूप से अनुपलब्ध है. मौजूदा क्लॉज़ सामान्य रूप से चल रहे हैं.'
     },
     productHunt: {
         liveOn: 'लाइव है',
@@ -2159,7 +2180,7 @@ const hi: Translations = {
         sharedContainers: 'साझा कंटेनर',
         isolatedContainers: 'पृथक कंटेनर',
         cloudWorkspaces: 'क्लाउड वर्कस्पेस',
-        threeProviders: 'Hetzner Cloud',
+        threeProviders: 'Cloud',
         singleProvider: 'एकल प्रदाता',
         fullyDedicated: 'पूरी तरह समर्पित',
         shared: 'साझा',
@@ -2229,6 +2250,29 @@ const hi: Translations = {
         ctaTitle: 'अंतर देखने के लिए तैयार हैं?',
         ctaDescription:
             'अपने समर्पित सर्वर पर OpenClaw डिप्लॉय करें. पूर्ण स्वामित्व, पारदर्शी मूल्य और मिनटों में तैयार.'
+    },
+    affiliate: {
+        title: 'Affiliate',
+        description: 'Earn rewards by referring friends to ClawHost.',
+        subtitle: 'Share your referral link and earn rewards.',
+        referralCode: 'Referral Code',
+        referrals: 'Referrals',
+        earnings: 'Earnings',
+        codeChangeHint: 'You can customize your referral code once.',
+        codeAlreadyChanged: 'Your referral code has already been customized.',
+        codeUpdated: 'Referral code updated.',
+        codeUpdateFailed: 'Failed to update referral code!',
+        invalidCodeLength: 'Code must be between {{min}} and {{max}} characters!',
+        referralHistory: 'Referral History',
+        periodToday: 'Today',
+        periodWeek: 'Week',
+        periodMonth: 'Month',
+        periodYear: 'Year',
+        periodAll: 'All',
+        confirmChangeTitle: 'Change Referral Code',
+        confirmChangeDescription: 'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
+        noReferralsYet: 'No Referrals Yet',
+        noReferralsDescription: 'Share your referral link to start earning rewards.'
     }
 } as const
 

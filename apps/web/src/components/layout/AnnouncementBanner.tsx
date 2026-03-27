@@ -2,7 +2,6 @@ import type { FC, ReactNode } from 'react'
 
 import { WarningIcon } from '@phosphor-icons/react'
 import { t } from '@openclaw/i18n'
-import { clawProvider } from '@openclaw/shared'
 import { usePlans } from '@/hooks'
 import { useUIStore } from '@/lib/store'
 
@@ -11,7 +10,7 @@ const AnnouncementBanner: FC = (): ReactNode => {
         plans: hetznerPlans,
         isLoading: hetznerLoading,
         atCapacity: hetznerAtCapacity
-    } = usePlans(clawProvider.hetzner)
+    } = usePlans()
 
     const { phBannerVisible } = useUIStore()
 
@@ -42,9 +41,7 @@ const AnnouncementBanner: FC = (): ReactNode => {
                             {' \u2002—\u2002 '}
                         </span>
                         <span className='text-foreground/60'>
-                            {t('announcement.message', {
-                                providers: t('createClaw.providerHetzner')
-                            })}
+                            {t('announcement.message')}
                         </span>
                     </p>
                 </div>

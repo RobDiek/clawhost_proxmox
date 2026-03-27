@@ -1,4 +1,4 @@
-import type { AuthenticatedContext, ProviderType } from '@/ts/Types'
+import type { AuthenticatedContext } from '@/ts/Types'
 
 import { eq } from 'drizzle-orm'
 import { clawStatus } from '@openclaw/shared'
@@ -23,7 +23,7 @@ const syncClaw = async (c: AuthenticatedContext) => {
     }
 
     try {
-        const provider = getProvider(claw.provider as ProviderType)
+        const provider = getProvider()
         const serverStatus = await provider.getServer(claw.providerServerId)
 
         if (claw.status === clawStatus.configuring) {

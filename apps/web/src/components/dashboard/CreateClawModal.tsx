@@ -1,10 +1,10 @@
 import type { FC, ReactNode } from 'react'
 import type { CreateClawModalProps, ErrorResponse } from '@/ts/Interfaces'
-import type { BillingInterval, ProviderType } from '@/ts/Types'
+import type { BillingInterval } from '@/ts/Types'
 
 import { useState, useEffect } from 'react'
 import { t } from '@openclaw/i18n'
-import { billingInterval, clawProvider } from '@openclaw/shared'
+import { billingInterval } from '@openclaw/shared'
 import { Link } from 'react-router-dom'
 import { useUIStore } from '@/lib/store'
 import { ROUTES } from '@/lib'
@@ -50,17 +50,15 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
     const [name, setName] = useState('')
     const [nameError, setNameError] = useState('')
 
-    const provider: ProviderType = clawProvider.hetzner
-
     const {
         plans: providerPlans,
         isLoading: isLoadingPlans,
         atCapacity
-    } = usePlans(provider)
+    } = usePlans()
     const { data: providerLocations, isLoading: isLoadingLocations } =
-        useLocations(provider)
-    const { data: providerVolumePricing } = useVolumePricing(provider)
-    const { data: providerPlanAvailability } = usePlanAvailability(provider)
+        useLocations()
+    const { data: providerVolumePricing } = useVolumePricing()
+    const { data: providerPlanAvailability } = usePlanAvailability()
 
     const isProviderLoading = isLoadingPlans || isLoadingLocations
     const plans = providerPlans || initialPlans
@@ -188,7 +186,6 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
         purchaseMutation.mutate(
             {
                 name,
-                provider,
                 planId,
                 location,
                 password: password || undefined,

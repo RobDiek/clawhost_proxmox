@@ -1,4 +1,4 @@
-import type { AuthenticatedContext, ProviderType } from '@/ts/Types'
+import type { AuthenticatedContext } from '@/ts/Types'
 
 import { eq } from 'drizzle-orm'
 import { clawStatus } from '@openclaw/shared'
@@ -26,11 +26,10 @@ const stopClaw = async (c: AuthenticatedContext) => {
             .where(eq(claws.id, id))
 
         try {
-            await getProvider(claw.provider as ProviderType).stopServer(
+            await getProvider().stopServer(
                 claw.providerServerId
             )
             updateCachedServerStatus(
-                claw.provider as ProviderType,
                 claw.providerServerId,
                 clawStatus.stopping
             )

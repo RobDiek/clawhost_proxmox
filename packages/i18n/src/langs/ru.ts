@@ -75,6 +75,7 @@ const ru: Translations = {
         sshKeys: 'SSH-ключи',
         account: 'Аккаунт',
         billing: 'Оплата',
+        affiliate: 'Партнёр',
         license: 'Лицензия',
         signOut: 'Выйти',
         admin: 'Админ',
@@ -328,7 +329,7 @@ const ru: Translations = {
         failedToDeleteClaw: 'Не удалось удалить claw!',
         failedToCreateClaw: 'Не удалось создать claw!',
         invalidProvider: 'Недопустимый провайдер!',
-        providerNotAllowed: 'Этот провайдер недоступен при активном Hetzner!',
+        providerNotAllowed: 'Этот провайдер в настоящее время недоступен!',
         invalidPlan: 'Выбран недопустимый тариф!',
         planBelowMinimumMemory:
             'Этот тариф не соответствует минимальным требованиям к памяти!',
@@ -350,6 +351,16 @@ const ru: Translations = {
         failedToGetCustomerPortal: 'Не удалось получить портал клиента!',
         failedToGetBillingHistory: 'Не удалось получить историю платежей!',
         failedToGetStats: 'Не удалось получить статистику!',
+        affiliateFetched: 'Affiliate info fetched successfully.',
+        failedToGetAffiliate: 'Failed to get affiliate info!',
+        referralCodeUpdated: 'Referral code updated successfully.',
+        failedToUpdateReferralCode: 'Failed to update referral code!',
+        invalidReferralCodeLength: 'Referral code must be between {{min}} and {{max}} characters!',
+        invalidReferralCodeFormat: 'Referral code can only contain letters, numbers, hyphens, and underscores!',
+        referralCodeAlreadyChanged: 'Referral code can only be changed once!',
+        referralCodeTaken: 'This referral code is already taken!',
+        referralCodeGenerated: 'Referral code generated.',
+        failedToGenerateReferralCode: 'Failed to generate referral code!',
         failedToFetchLocations: 'Не удалось загрузить локации!',
         failedToFetchPlans: 'Не удалось загрузить тарифы!',
         failedToFetchVolumePricing: 'Не удалось загрузить цены на тома!',
@@ -1036,7 +1047,7 @@ const ru: Translations = {
         clawNameInvalidChars: 'Допускаются только буквы, цифры и дефисы !',
         autoGenerateNameHint: 'Оставьте пустым для автогенерации имени.',
         provider: 'Провайдер',
-        providerHetzner: 'Hetzner',
+        providerHetzner: 'Cloud',
         providerLocal: 'Локальный',
         providerAws: 'AWS',
         comingSoon: 'Скоро',
@@ -1195,7 +1206,7 @@ const ru: Translations = {
             'Выделенные ресурсы VPS означают отсутствие ограничений, полную пропускную способность и молниеносный интернет.',
         globalLocations: 'Глобальные локации',
         globalLocationsDescription:
-            'Разверните OpenClaw в нескольких глобальных регионах на Hetzner Cloud и выберите ближайшую к вам локацию.',
+            'Разверните OpenClaw в нескольких глобальных регионах и выберите ближайшую к вам локацию.',
         fullSshAccess: 'Прямой SSH-доступ',
         fullSshAccessDescription:
             'Получите доступ к терминалу сервера прямо из платформы. Внешние SSH-клиенты не нужны.',
@@ -1319,16 +1330,13 @@ const ru: Translations = {
             'Нет. Мы берём на себя всю инфраструктуру, настройку и обслуживание. Вы можете настраивать и управлять OpenClaw через его интерфейс, подключать каналы и настраивать использование — не касаясь серверов или инфраструктуры.',
         faq5Question: 'Какие локации доступны?',
         faq5Answer:
-            'Мы предлагаем несколько серверных локаций по всему миру через Hetzner Cloud, включая США, Европу и другие. При необходимости вы можете развернуть OpenClaw на нескольких серверах в разных регионах.',
+            'Мы предлагаем несколько серверных локаций по всему миру, включая США, Европу и другие. При необходимости вы можете развернуть OpenClaw на нескольких серверах в разных регионах.',
         faq6Question: 'Сколько это стоит?',
         faq6Answer:
             'Цены зависят от выбранного сервера. С несколькими вариантами серверов от начального уровня до высокопроизводительных вы выбираете то, что соответствует вашим потребностям и бюджету.',
         faq7Question: 'Могу ли я получить прямой доступ к серверу?',
         faq7Answer:
             'Да. Помимо доступа к OpenClaw через URL поддомена, у вас есть полный доступ к серверу и его базовой инфраструктуре, что даёт вам полную свободу настройки и запуска всего необходимого.',
-        faq8Question: 'Где размещены серверы?',
-        faq8Answer:
-            'Все серверы размещены на Hetzner Cloud — надёжном облачном провайдере, известном высокопроизводительным оборудованием и отличной доступностью, используемом крупными инфраструктурами.',
         comparison: 'Сравнение',
         comparisonTitle: 'Чем мы отличаемся',
         comparisonDescription:
@@ -1521,12 +1529,12 @@ const ru: Translations = {
         release1Title: 'Первый релиз',
         release1Description:
             'Первый официальный релиз ClawHost. Разверните OpenClaw на собственном VPS в один клик.',
-        release1Feature1: 'Развёртывание OpenClaw в один клик на Hetzner Cloud',
+        release1Feature1: 'Развёртывание OpenClaw в один клик',
         release1Feature2:
             'Панель управления клоу: запуск, остановка, перезапуск и удаление экземпляров',
         release1Feature3:
-            '18 серверных тарифов Hetzner с выделенными vCPU, RAM и вариантами хранилища',
-        release1Feature4: '6 серверных локаций Hetzner в США, Европе и Азии',
+            '18 серверных тарифов с выделенными vCPU, RAM и вариантами хранилища',
+        release1Feature4: '6 серверных локаций в США, Европе и Азии',
         release1Feature5:
             'Управление SSH-ключами для беспарольного доступа к серверу',
         release1Feature6:
@@ -1940,7 +1948,7 @@ const ru: Translations = {
             'Платёжная информация (обрабатывается безопасно сторонними провайдерами)',
         serverInfoTitle: 'Информация о сервере',
         serverInfoConfig:
-            'Конфигурация и статус сервера (размещён на Hetzner Cloud)',
+            'Конфигурация и статус сервера',
         serverInfoIp: 'IP-адрес и расположение сервера',
         serverInfoResources: 'Распределение ресурсов (CPU, RAM, хранилище)',
         useTitle: '4. Как мы используем вашу информацию',
@@ -2044,10 +2052,23 @@ const ru: Translations = {
         terminationTitle: '9. Прекращение',
         terminationText:
             'Мы можем прекратить или приостановить действие вашего аккаунта и доступ к Сервису немедленно, без предварительного уведомления, за поведение, которое, по нашему мнению, нарушает эти Условия или наносит вред другим пользователям, нам или третьим лицам, или по любой другой причине.',
-        changesToTermsTitle: '10. Изменения Условий',
+        affiliateTitle: '10. Affiliate Program',
+        affiliateText:
+            'ClawHost offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
+        affiliateCodeUnique:
+            'Each user receives a unique referral code upon registration, which can be customized once.',
+        affiliateCodeOneChange:
+            'The referral code can only be changed one time. Choose your custom code carefully.',
+        affiliateReferralWindow:
+            'A referral is valid for 6 months from when the referred user first visits ClawHost with your referral link. After 6 months, the referral expires.',
+        affiliateNoSelfReferral:
+            'Self-referrals are not permitted. You may not refer your own accounts.',
+        affiliateAbuse:
+            'Any abuse of the affiliate program, including but not limited to fake accounts, automated signups, or fraudulent referrals, will result in forfeiture of rewards and possible account termination.',
+        changesToTermsTitle: '11. Изменения Условий',
         changesToTermsText:
             'Мы оставляем за собой право изменять эти условия в любое время. Мы уведомим пользователей о любых существенных изменениях по электронной почте или через Сервис. Продолжение использования Сервиса после таких изменений означает принятие обновлённых условий.',
-        contactTitle: '11. Контактная информация',
+        contactTitle: '12. Контактная информация',
         contactText:
             'Если у вас есть вопросы об этих Условиях, свяжитесь с нами по адресу'
     },
@@ -2159,7 +2180,7 @@ const ru: Translations = {
         sharedContainers: 'Общие контейнеры',
         isolatedContainers: 'Изолированные контейнеры',
         cloudWorkspaces: 'Облачные рабочие пространства',
-        threeProviders: 'Hetzner Cloud',
+        threeProviders: 'Cloud',
         singleProvider: 'Один провайдер',
         fullyDedicated: 'Полностью выделенный',
         shared: 'Общий',
@@ -2229,6 +2250,29 @@ const ru: Translations = {
         ctaTitle: 'Готовы увидеть разницу?',
         ctaDescription:
             'Разверните OpenClaw на собственном выделенном сервере. Полное владение, прозрачные цены и готовность за минуты.'
+    },
+    affiliate: {
+        title: 'Affiliate',
+        description: 'Earn rewards by referring friends to ClawHost.',
+        subtitle: 'Share your referral link and earn rewards.',
+        referralCode: 'Referral Code',
+        referrals: 'Referrals',
+        earnings: 'Earnings',
+        codeChangeHint: 'You can customize your referral code once.',
+        codeAlreadyChanged: 'Your referral code has already been customized.',
+        codeUpdated: 'Referral code updated.',
+        codeUpdateFailed: 'Failed to update referral code!',
+        invalidCodeLength: 'Code must be between {{min}} and {{max}} characters!',
+        referralHistory: 'Referral History',
+        periodToday: 'Today',
+        periodWeek: 'Week',
+        periodMonth: 'Month',
+        periodYear: 'Year',
+        periodAll: 'All',
+        confirmChangeTitle: 'Change Referral Code',
+        confirmChangeDescription: 'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
+        noReferralsYet: 'No Referrals Yet',
+        noReferralsDescription: 'Share your referral link to start earning rewards.'
     }
 } as const
 

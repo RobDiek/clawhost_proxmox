@@ -75,6 +75,7 @@ const ar: Translations = {
         sshKeys: 'مفاتيح SSH',
         account: 'الحساب',
         billing: 'الفواتير',
+        affiliate: 'شريك',
         license: 'الترخيص',
         signOut: 'تسجيل الخروج',
         admin: 'المسؤول',
@@ -321,7 +322,7 @@ const ar: Translations = {
         failedToDeleteClaw: 'فشل حذف Claw !',
         failedToCreateClaw: 'فشل إنشاء Claw !',
         invalidProvider: 'مزود غير صالح !',
-        providerNotAllowed: 'هذا المزود غير متاح عندما يكون Hetzner نشطاً !',
+        providerNotAllowed: 'هذا المزود غير متاح حالياً !',
         invalidPlan: 'الخطة المحددة غير صالحة !',
         planBelowMinimumMemory:
             'هذه الخطة لا تلبي الحد الأدنى لمتطلبات الذاكرة !',
@@ -341,6 +342,16 @@ const ar: Translations = {
         failedToGetCustomerPortal: 'فشل الحصول على بوابة العميل !',
         failedToGetBillingHistory: 'فشل الحصول على سجل الفوترة !',
         failedToGetStats: 'فشل الحصول على الإحصائيات !',
+        affiliateFetched: 'Affiliate info fetched successfully.',
+        failedToGetAffiliate: 'Failed to get affiliate info!',
+        referralCodeUpdated: 'Referral code updated successfully.',
+        failedToUpdateReferralCode: 'Failed to update referral code!',
+        invalidReferralCodeLength: 'Referral code must be between {{min}} and {{max}} characters!',
+        invalidReferralCodeFormat: 'Referral code can only contain letters, numbers, hyphens, and underscores!',
+        referralCodeAlreadyChanged: 'Referral code can only be changed once!',
+        referralCodeTaken: 'This referral code is already taken!',
+        referralCodeGenerated: 'Referral code generated.',
+        failedToGenerateReferralCode: 'Failed to generate referral code!',
         failedToFetchLocations: 'فشل جلب المواقع !',
         failedToFetchPlans: 'فشل جلب الخطط !',
         failedToFetchVolumePricing: 'فشل جلب أسعار التخزين !',
@@ -1003,7 +1014,7 @@ const ar: Translations = {
         clawNameInvalidChars: 'يُسمح فقط بالأحرف والأرقام والشرطات !',
         autoGenerateNameHint: 'اتركه فارغاً لتوليد اسم تلقائياً.',
         provider: 'المزود',
-        providerHetzner: 'Hetzner',
+        providerHetzner: 'Cloud',
         providerLocal: 'محلي',
         providerAws: 'AWS',
         comingSoon: 'قريباً',
@@ -1157,7 +1168,7 @@ const ar: Translations = {
             'موارد VPS مخصصة تعني عدم وجود اختناق ونطاق ترددي كامل وإنترنت فائق السرعة.',
         globalLocations: 'مواقع عالمية',
         globalLocationsDescription:
-            'انشر OpenClaw في عدة مناطق عالمية على Hetzner Cloud واختر الموقع الأقرب إليك.',
+            'انشر OpenClaw في عدة مناطق عالمية واختر الموقع الأقرب إليك.',
         fullSshAccess: 'وصول SSH مباشر',
         fullSshAccessDescription:
             'الوصول إلى طرفية خادمك مباشرة من المنصة. لا حاجة لعملاء SSH خارجيين.',
@@ -1280,16 +1291,13 @@ const ar: Translations = {
             'لا. نحن نتولى كل البنية التحتية والإعداد والصيانة. يمكنك تهيئة وإدارة OpenClaw عبر واجهته والاتصال بالقنوات وتخصيص الاستخدام — بدون لمس الخوادم أو البنية التحتية.',
         faq5Question: 'ما المواقع المتاحة؟',
         faq5Answer:
-            'نقدم عدة مواقع خوادم حول العالم عبر Hetzner Cloud، بما في ذلك الولايات المتحدة وأوروبا والمزيد. يمكنك نشر OpenClaw على عدة خوادم في مناطق مختلفة إذا لزم الأمر.',
+            'نقدم عدة مواقع خوادم حول العالم، بما في ذلك الولايات المتحدة وأوروبا والمزيد. يمكنك نشر OpenClaw على عدة خوادم في مناطق مختلفة إذا لزم الأمر.',
         faq6Question: 'كم التكلفة؟',
         faq6Answer:
             'تعتمد الأسعار على الخادم الذي تختاره. مع عدة خيارات للخوادم من المستوى الأساسي إلى الأداء العالي، تختار ما يناسب احتياجاتك وميزانيتك.',
         faq7Question: 'هل يمكنني الوصول إلى خادمي مباشرة؟',
         faq7Answer:
             'نعم. إلى جانب الوصول إلى OpenClaw عبر رابط النطاق الفرعي، لديك وصول كامل إلى الخادم وبنيته التحتية الأساسية، مما يمنحك حرية كاملة للتخصيص وتشغيل أي شيء تحتاجه.',
-        faq8Question: 'أين تُستضاف الخوادم؟',
-        faq8Answer:
-            'جميع الخوادم مستضافة على Hetzner Cloud، مزود سحابي موثوق معروف بأجهزته عالية الأداء ووقت تشغيل ممتاز، يستخدمه البنى التحتية واسعة النطاق.',
         comparison: 'المقارنة',
         comparisonTitle: 'كيف نختلف',
         comparisonDescription:
@@ -1476,12 +1484,12 @@ const ar: Translations = {
         release1Title: 'الإصدار الأول',
         release1Description:
             'الإصدار الرسمي الأول من ClawHost. انشر OpenClaw على خادم VPS الخاص بك بنقرة واحدة.',
-        release1Feature1: 'نشر OpenClaw بنقرة واحدة على Hetzner Cloud',
+        release1Feature1: 'نشر OpenClaw بنقرة واحدة',
         release1Feature2:
             'لوحة تحكم لإدارة المخالب وتشغيل وإيقاف وإعادة تشغيل وحذف النسخ',
         release1Feature3:
-            '18 خطة خادم Hetzner مع vCPU وRAM وخيارات تخزين مخصصة',
-        release1Feature4: '6 مواقع خادم Hetzner عبر أمريكا وأوروبا وآسيا',
+            '18 خطة خادم مع vCPU وRAM وخيارات تخزين مخصصة',
+        release1Feature4: '6 مواقع خادم عبر أمريكا وأوروبا وآسيا',
         release1Feature5: 'إدارة مفاتيح SSH للوصول بدون كلمة مرور',
         release1Feature6: 'دعم تخزين حجم إضافي حتى 10 TB',
         release1Feature7: 'مصادقة بالرابط السحري، لا حاجة لكلمات مرور',
@@ -1875,7 +1883,7 @@ const ar: Translations = {
         personalInfoName: 'الاسم (اختياري، للتخصيص)',
         personalInfoPayment: 'معلومات الدفع (تُعالج بأمان عبر مزودين خارجيين)',
         serverInfoTitle: 'معلومات الخادم',
-        serverInfoConfig: 'تهيئة الخادم وحالته (مستضاف على Hetzner Cloud)',
+        serverInfoConfig: 'تهيئة الخادم وحالته',
         serverInfoIp: 'عنوان IP للخادم وموقعه',
         serverInfoResources: 'تخصيص الموارد (CPU وRAM والتخزين)',
         useTitle: '4. كيف نستخدم معلوماتك',
@@ -1970,10 +1978,23 @@ const ar: Translations = {
         terminationTitle: '9. الإنهاء',
         terminationText:
             'قد ننهي أو نعلق حسابك ووصولك إلى الخدمة فوراً، بدون إشعار مسبق، لسلوك نعتقد أنه ينتهك هذه الشروط أو يضر بالمستخدمين الآخرين أو بنا أو بأطراف ثالثة، أو لأي سبب آخر.',
-        changesToTermsTitle: '10. تغييرات الشروط',
+        affiliateTitle: '10. Affiliate Program',
+        affiliateText:
+            'ClawHost offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
+        affiliateCodeUnique:
+            'Each user receives a unique referral code upon registration, which can be customized once.',
+        affiliateCodeOneChange:
+            'The referral code can only be changed one time. Choose your custom code carefully.',
+        affiliateReferralWindow:
+            'A referral is valid for 6 months from when the referred user first visits ClawHost with your referral link. After 6 months, the referral expires.',
+        affiliateNoSelfReferral:
+            'Self-referrals are not permitted. You may not refer your own accounts.',
+        affiliateAbuse:
+            'Any abuse of the affiliate program, including but not limited to fake accounts, automated signups, or fraudulent referrals, will result in forfeiture of rewards and possible account termination.',
+        changesToTermsTitle: '11. تغييرات الشروط',
         changesToTermsText:
             'نحتفظ بالحق في تعديل هذه الشروط في أي وقت. سنخطر المستخدمين بأي تغييرات جوهرية عبر البريد الإلكتروني أو من خلال الخدمة. الاستمرار في استخدام الخدمة بعد هذه التعديلات يشكل قبولاً للشروط المحدّثة.',
-        contactTitle: '11. معلومات الاتصال',
+        contactTitle: '12. معلومات الاتصال',
         contactText: 'إذا كانت لديك أسئلة حول هذه الشروط، يرجى التواصل معنا على'
     },
     mobile: {
@@ -2011,7 +2032,7 @@ const ar: Translations = {
     announcement: {
         title: 'إشعار الخدمة',
         message:
-            'بسبب الطلب المرتفع، عمليات نشر {{providers}} غير متاحة مؤقتاً. المخالب الموجودة تعمل بشكل طبيعي.'
+            'بسبب الطلب المرتفع، نشر Claw غير متاح مؤقتاً. المخالب الموجودة تعمل بشكل طبيعي.'
     },
     productHunt: {
         liveOn: 'متاح على',
@@ -2081,7 +2102,7 @@ const ar: Translations = {
         sharedContainers: 'حاويات مشتركة',
         isolatedContainers: 'حاويات معزولة',
         cloudWorkspaces: 'مساحات عمل سحابية',
-        threeProviders: 'Hetzner Cloud',
+        threeProviders: 'Cloud',
         singleProvider: 'مزود واحد',
         fullyDedicated: 'مخصص بالكامل',
         shared: 'مشترك',
@@ -2151,6 +2172,29 @@ const ar: Translations = {
         ctaTitle: 'مستعد لرؤية الفرق؟',
         ctaDescription:
             'انشر OpenClaw على خادمك المخصص. ملكية كاملة وأسعار شفافة وجاهز في دقائق.'
+    },
+    affiliate: {
+        title: 'Affiliate',
+        description: 'Earn rewards by referring friends to ClawHost.',
+        subtitle: 'Share your referral link and earn rewards.',
+        referralCode: 'Referral Code',
+        referrals: 'Referrals',
+        earnings: 'Earnings',
+        codeChangeHint: 'You can customize your referral code once.',
+        codeAlreadyChanged: 'Your referral code has already been customized.',
+        codeUpdated: 'Referral code updated.',
+        codeUpdateFailed: 'Failed to update referral code!',
+        invalidCodeLength: 'Code must be between {{min}} and {{max}} characters!',
+        referralHistory: 'Referral History',
+        periodToday: 'Today',
+        periodWeek: 'Week',
+        periodMonth: 'Month',
+        periodYear: 'Year',
+        periodAll: 'All',
+        confirmChangeTitle: 'Change Referral Code',
+        confirmChangeDescription: 'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
+        noReferralsYet: 'No Referrals Yet',
+        noReferralsDescription: 'Share your referral link to start earning rewards.'
     }
 } as const
 

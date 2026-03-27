@@ -3,8 +3,7 @@ import type { Claw, ElectronWindow } from '@/ts/Interfaces'
 import type {
     DashboardTab,
     PlaygroundAgentDetailTab,
-    PlaygroundDetailTab,
-    ProviderType
+    PlaygroundDetailTab
 } from '@/ts/Types'
 
 import { Fragment, useState, useEffect, useMemo, useCallback, useRef } from 'react'
@@ -183,9 +182,7 @@ const Dashboard: FC = (): ReactNode => {
     useEffect(() => {
         const planParam = searchParams.get('plan')
         const deployParam = searchParams.get('deploy')
-        const providerParam = searchParams.get(
-            'provider'
-        ) as ProviderType | null
+        const providerParam = searchParams.get('provider')
         if (planParam) {
             setPreselectedPlanId(planParam)
             if (providerParam) setPreselectedProvider(providerParam)
@@ -393,7 +390,7 @@ const Dashboard: FC = (): ReactNode => {
         return claws || []
     }, [claws, adminMode, adminClaws])
 
-    const { plans: hetznerPlans } = usePlans('hetzner')
+    const { plans: hetznerPlans } = usePlans()
     const plans = [...(hetznerPlans || [])]
     const { data: locations } = useLocations()
     const { data: sshKeys } = useSSHKeys()

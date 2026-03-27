@@ -2,7 +2,6 @@ import type {
     ProvisionClawParams,
     ProvisionClawResponse
 } from '@/ts/Interfaces'
-import type { ProviderType } from '@/ts/Types'
 
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
@@ -45,8 +44,7 @@ const provisionClaw = async (
 
         const pending = claimed[0]
 
-        const providerName = (pending.provider || 'hetzner') as ProviderType
-        const provider = getProvider(providerName)
+        const provider = getProvider()
 
         const [serverTypes, sshKeyResult] = await Promise.all([
             provider.getServerTypes(),
@@ -92,7 +90,6 @@ const provisionClaw = async (
             id,
             userId: pending.userId,
             name: pending.name,
-            provider: providerName,
             status: clawStatus.creating,
             planId: pending.planId,
             location: pending.location,

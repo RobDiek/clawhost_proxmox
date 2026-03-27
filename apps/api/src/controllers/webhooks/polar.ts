@@ -3,7 +3,6 @@ import type {
     SubscriptionWebhookData,
     CheckoutWebhookData
 } from '@/ts/Interfaces'
-import type { ProviderType } from '@/ts/Types'
 
 import { eq } from 'drizzle-orm'
 import { clawStatus } from '@openclaw/shared'
@@ -115,8 +114,6 @@ const handlePolarWebhook = async (c: Context) => {
 
                 if (claw[0].deletionScheduledAt) {
                     cleanupClaw(claw[0].id, {
-                        provider: (claw[0].provider ||
-                            'hetzner') as ProviderType,
                         providerServerId: claw[0].providerServerId,
                         subdomain: claw[0].subdomain
                     }).catch((err) => {
@@ -136,9 +133,7 @@ const handlePolarWebhook = async (c: Context) => {
                 }
 
                 if (claw[0].providerServerId) {
-                    const provider = getProvider(
-                        (claw[0].provider || 'hetzner') as ProviderType
-                    )
+                    const provider = getProvider()
                     Promise.all([
                         db
                             .update(claws)
@@ -186,9 +181,7 @@ const handlePolarWebhook = async (c: Context) => {
                     updated[0]?.providerServerId
                 ) {
                     try {
-                        const provider = getProvider(
-                            (updated[0].provider || 'hetzner') as ProviderType
-                        )
+                        const provider = getProvider()
                         await provider.stopServer(updated[0].providerServerId)
                         await db
                             .update(claws)

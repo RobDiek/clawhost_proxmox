@@ -75,6 +75,7 @@ const zh: Translations = {
         sshKeys: 'SSH 密钥',
         account: '账户',
         billing: '账单',
+        affiliate: '推荐计划',
         license: '许可证',
         signOut: '退出登录',
         admin: '管理员',
@@ -313,7 +314,7 @@ const zh: Translations = {
         failedToDeleteClaw: '删除 claw 失败!',
         failedToCreateClaw: '创建 claw 失败!',
         invalidProvider: '无效的提供商!',
-        providerNotAllowed: '当 Hetzner 处于活动状态时，此提供商不可用!',
+        providerNotAllowed: '此提供商目前不可用!',
         invalidPlan: '所选套餐无效!',
         planBelowMinimumMemory: '此套餐不满足最低内存要求!',
         invalidLocation: '所选地区无效!',
@@ -332,6 +333,16 @@ const zh: Translations = {
         failedToGetCustomerPortal: '获取客户门户失败!',
         failedToGetBillingHistory: '获取账单历史失败!',
         failedToGetStats: '获取统计数据失败!',
+        affiliateFetched: 'Affiliate info fetched successfully.',
+        failedToGetAffiliate: 'Failed to get affiliate info!',
+        referralCodeUpdated: 'Referral code updated successfully.',
+        failedToUpdateReferralCode: 'Failed to update referral code!',
+        invalidReferralCodeLength: 'Referral code must be between {{min}} and {{max}} characters!',
+        invalidReferralCodeFormat: 'Referral code can only contain letters, numbers, hyphens, and underscores!',
+        referralCodeAlreadyChanged: 'Referral code can only be changed once!',
+        referralCodeTaken: 'This referral code is already taken!',
+        referralCodeGenerated: 'Referral code generated.',
+        failedToGenerateReferralCode: 'Failed to generate referral code!',
         failedToFetchLocations: '获取地区失败!',
         failedToFetchPlans: '获取套餐失败!',
         failedToFetchVolumePricing: '获取卷定价失败!',
@@ -977,7 +988,7 @@ const zh: Translations = {
         clawNameInvalidChars: '只允许使用字母、数字和连字符！',
         autoGenerateNameHint: '留空将自动生成名称。',
         provider: '提供商',
-        providerHetzner: 'Hetzner',
+        providerHetzner: 'Cloud',
         providerLocal: '本地',
         providerAws: 'AWS',
         comingSoon: '即将推出',
@@ -1128,7 +1139,7 @@ const zh: Translations = {
             '专用 VPS 资源意味着无限流、全带宽和闪电般的网速。',
         globalLocations: '全球位置',
         globalLocationsDescription:
-            '在 Hetzner Cloud 的多个全球区域部署 OpenClaw，选择离您最近的位置.',
+            '在多个全球区域部署 OpenClaw，选择离您最近的位置.',
         fullSshAccess: '直接 SSH 访问',
         fullSshAccessDescription:
             '直接从平台访问您的服务器终端。无需外部 SSH 客户端。',
@@ -1249,16 +1260,13 @@ const zh: Translations = {
             '不需要。我们处理所有基础设施、设置和维护。您可以通过其 UI 配置和管理 OpenClaw，连接到频道并自定义使用——无需触碰服务器或基础设施。',
         faq5Question: '有哪些可用位置？',
         faq5Answer:
-            '我们通过 Hetzner Cloud 在全球提供多个服务器位置，包括美国、欧洲等. 如有需要，您可以在不同地区的多台服务器上部署 OpenClaw.',
+            '我们在全球提供多个服务器位置，包括美国、欧洲等. 如有需要，您可以在不同地区的多台服务器上部署 OpenClaw.',
         faq6Question: '费用是多少？',
         faq6Answer:
             '价格取决于您选择的服务器. 从入门级到高性能有多种服务器选项，您可以选择适合自己需求和预算的方案.',
         faq7Question: '我可以直接访问服务器吗？',
         faq7Answer:
             '可以。除了通过子域名 URL 访问 OpenClaw 外，您还拥有对服务器及其底层基础设施的完全访问权限，让您可以自由自定义和运行任何所需内容。',
-        faq8Question: '服务器托管在哪里？',
-        faq8Answer:
-            '所有服务器都托管在 Hetzner Cloud 上，这是一家以高性能硬件和出色正常运行时间而闻名的可靠云服务提供商，被大规模基础设施所使用.',
         comparison: '对比',
         comparisonTitle: '我们的不同之处',
         comparisonDescription:
@@ -1423,11 +1431,11 @@ const zh: Translations = {
         release1Title: '首次发布',
         release1Description:
             'ClawHost 的首个正式版本。一键在您自己的 VPS 上部署 OpenClaw.',
-        release1Feature1: '在 Hetzner Cloud 上一键部署 OpenClaw',
+        release1Feature1: '一键部署 OpenClaw',
         release1Feature2: '仪表板管理 claws，启动、停止、重启和删除实例',
         release1Feature3:
-            '18 种 Hetzner 服务器方案，提供专用 vCPU、RAM 和存储选项',
-        release1Feature4: '6 个 Hetzner 服务器位置，覆盖美国、欧洲和亚洲',
+            '18 种服务器方案，提供专用 vCPU、RAM 和存储选项',
+        release1Feature4: '6 个服务器位置，覆盖美国、欧洲和亚洲',
         release1Feature5: 'SSH 密钥管理，实现免密服务器访问',
         release1Feature6: '附加存储卷支持，最高可达 10 TB',
         release1Feature7: '魔术链接认证，无需密码',
@@ -1797,7 +1805,7 @@ const zh: Translations = {
         personalInfoName: '姓名（可选，用于个性化）',
         personalInfoPayment: '支付信息（由第三方提供商安全处理）',
         serverInfoTitle: '服务器信息',
-        serverInfoConfig: '服务器配置和状态（托管在 Hetzner Cloud 上）',
+        serverInfoConfig: '服务器配置和状态',
         serverInfoIp: '服务器 IP 地址和位置',
         serverInfoResources: '资源分配（CPU、RAM、存储）',
         useTitle: '4. 我们如何使用您的信息',
@@ -1884,10 +1892,23 @@ const zh: Translations = {
         terminationTitle: '9. 终止',
         terminationText:
             '对于我们认为违反本条款或对其他用户、我们或第三方有害的行为，或出于任何其他原因，我们可能会立即终止或暂停您的账户和对服务的访问，无需事先通知。',
-        changesToTermsTitle: '10. 条款变更',
+        affiliateTitle: '10. Affiliate Program',
+        affiliateText:
+            'ClawHost offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
+        affiliateCodeUnique:
+            'Each user receives a unique referral code upon registration, which can be customized once.',
+        affiliateCodeOneChange:
+            'The referral code can only be changed one time. Choose your custom code carefully.',
+        affiliateReferralWindow:
+            'A referral is valid for 6 months from when the referred user first visits ClawHost with your referral link. After 6 months, the referral expires.',
+        affiliateNoSelfReferral:
+            'Self-referrals are not permitted. You may not refer your own accounts.',
+        affiliateAbuse:
+            'Any abuse of the affiliate program, including but not limited to fake accounts, automated signups, or fraudulent referrals, will result in forfeiture of rewards and possible account termination.',
+        changesToTermsTitle: '11. 条款变更',
         changesToTermsText:
             '我们保留随时修改这些条款的权利。我们将通过电子邮件或通过服务通知用户任何重大变更。在此类修改后继续使用服务即构成对更新条款的接受。',
-        contactTitle: '11. 联系信息',
+        contactTitle: '12. 联系信息',
         contactText: '如果您对这些条款有任何疑问，请通过以下方式联系我们'
     },
     mobile: {
@@ -1995,7 +2016,7 @@ const zh: Translations = {
         sharedContainers: '共享容器',
         isolatedContainers: '隔离容器',
         cloudWorkspaces: '云工作区',
-        threeProviders: 'Hetzner Cloud',
+        threeProviders: 'Cloud',
         singleProvider: '单一提供商',
         fullyDedicated: '完全专用',
         shared: '共享',
@@ -2065,6 +2086,29 @@ const zh: Translations = {
         ctaTitle: '准备好看看有何不同了吗？',
         ctaDescription:
             '在您自己的专用服务器上部署 OpenClaw。完全所有权、透明定价，几分钟内就绪。'
+    },
+    affiliate: {
+        title: 'Affiliate',
+        description: 'Earn rewards by referring friends to ClawHost.',
+        subtitle: 'Share your referral link and earn rewards.',
+        referralCode: 'Referral Code',
+        referrals: 'Referrals',
+        earnings: 'Earnings',
+        codeChangeHint: 'You can customize your referral code once.',
+        codeAlreadyChanged: 'Your referral code has already been customized.',
+        codeUpdated: 'Referral code updated.',
+        codeUpdateFailed: 'Failed to update referral code!',
+        invalidCodeLength: 'Code must be between {{min}} and {{max}} characters!',
+        referralHistory: 'Referral History',
+        periodToday: 'Today',
+        periodWeek: 'Week',
+        periodMonth: 'Month',
+        periodYear: 'Year',
+        periodAll: 'All',
+        confirmChangeTitle: 'Change Referral Code',
+        confirmChangeDescription: 'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
+        noReferralsYet: 'No Referrals Yet',
+        noReferralsDescription: 'Share your referral link to start earning rewards.'
     }
 } as const
 

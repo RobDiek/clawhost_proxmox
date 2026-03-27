@@ -3,7 +3,7 @@ import type { AuthenticatedContext } from '@/ts/Types'
 
 import crypto from 'crypto'
 import { eq, and, count } from 'drizzle-orm'
-import { clawStatus, clawProvider, inputValidation } from '@openclaw/shared'
+import { clawStatus, inputValidation } from '@openclaw/shared'
 import { db } from '@/db'
 import { claws, sshKeys, volumes } from '@/db/schema'
 import { getProvider } from '@/services/provider'
@@ -24,7 +24,6 @@ const createClaw = async (c: AuthenticatedContext) => {
         const userId = c.get('userId')
         const {
             name,
-            provider: providerName,
             planId,
             location,
             password,
@@ -35,12 +34,6 @@ const createClaw = async (c: AuthenticatedContext) => {
         if (!name || !planId || !location) {
             return fail(c, t('api.missingRequiredFields'), 400)
         }
-
-        if (providerName && providerName !== clawProvider.hetzner) {
-            return fail(c, t('api.invalidProvider'), 400)
-        }
-
-        const resolvedProvider = clawProvider.hetzner
 
         if (
             volumeSize !== undefined &&
@@ -57,7 +50,7 @@ const createClaw = async (c: AuthenticatedContext) => {
             )
         }
 
-        const provider = getProvider(resolvedProvider)
+        const provider = getProvider()
 
         const [clawCountResult, serverTypes, sshKeyResult] = await Promise.all([
             db
@@ -138,7 +131,6 @@ const createClaw = async (c: AuthenticatedContext) => {
                 id,
                 userId,
                 name,
-                provider: resolvedProvider,
                 providerServerId: serverId.toString(),
                 status: clawStatus.configuring,
                 ip,
@@ -188,7 +180,6 @@ const createClaw = async (c: AuthenticatedContext) => {
             {
                 id,
                 name,
-                provider: resolvedProvider,
                 status: clawStatus.configuring,
                 ip,
                 planId,

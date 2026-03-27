@@ -1,5 +1,4 @@
 import type {
-    ProviderType,
     ToastType,
     ClawStatus,
     UserRole,
@@ -28,7 +27,6 @@ import type {
 } from '@/ts/Interfaces'
 
 export type {
-    ProviderType,
     ToastType,
     ClawStatus,
     UserRole,

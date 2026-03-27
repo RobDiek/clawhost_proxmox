@@ -47,7 +47,7 @@ const createSSHKey = async (c: AuthenticatedContext) => {
 
         const keyLabel = `${name}-${userId.slice(0, 8)}`
 
-        const hetznerKey = await getProvider('hetzner').createSSHKey(
+        const hetznerKey = await getProvider().createSSHKey(
             keyLabel,
             publicKey
         )

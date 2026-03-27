@@ -1,6 +1,4 @@
 import type { Context } from 'hono'
-import type { PlanOrder } from '@/ts/Interfaces'
-import type { ProviderType } from '@/ts/Types'
 
 import { getProvider } from '@/services/provider'
 import { inputValidation } from '@openclaw/shared'
@@ -8,7 +6,7 @@ import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
 import { getPlanPrices } from '@/lib/polar'
 
-const hetznerPlanOrder = [
+const planOrder = [
     'cx23',
     'cx33',
     'cx43',
@@ -30,25 +28,13 @@ const hetznerPlanOrder = [
     'ccx63'
 ]
 
-const serverLimit = Number(process.env.SERVER_LIMIT) || 300
-
-const planOrders: Record<ProviderType, PlanOrder> = {
-    hetzner: { order: hetznerPlanOrder }
-}
+const serverLimit = Number(process.env.SERVER_LIMIT)
 
 const getPlans = async (c: Context) => {
     try {
-        const providerName = (c.req.query('provider') ||
-            'hetzner') as ProviderType
-        const config = planOrders[providerName]
+        const provider = getProvider()
 
-        if (!config) {
-            return fail(c, t('api.invalidProvider'), 400)
-        }
-
-        const provider = getProvider(providerName)
-
-        const [serverTypes, servers, priceMap] = await Promise.all([
+        const [serverTypes, servers, prices] = await Promise.all([
             provider.getServerTypes(),
             serverLimit
                 ? provider.getServers().catch(() => null)
@@ -57,7 +43,6 @@ const getPlans = async (c: Context) => {
         ])
 
         const atCapacity = servers ? servers.size >= serverLimit : false
-        const prices = priceMap[providerName] ?? {}
 
         const ANNUAL_DISCOUNT_MONTHS = 10
 
@@ -65,7 +50,7 @@ const getPlans = async (c: Context) => {
             .filter(
                 (st) =>
                     prices[st.name] !== undefined &&
-                    config.order.includes(st.name) &&
+                    planOrder.includes(st.name) &&
                     st.memory >= inputValidation.MIN_MEMORY_GB.MIN
             )
             .map((st) => ({
@@ -81,7 +66,7 @@ const getPlans = async (c: Context) => {
             }))
             .sort(
                 (a, b) =>
-                    config.order.indexOf(a.id) - config.order.indexOf(b.id)
+                    planOrder.indexOf(a.id) - planOrder.indexOf(b.id)
             )
 
         return ok(c, { plans, atCapacity }, t('api.plansFetched'))

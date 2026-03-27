@@ -1,15 +1,10 @@
 import type { InitiateClawPurchaseBody } from '@/ts/Interfaces'
-import type {
-    AuthenticatedContext,
-    BillingInterval,
-    ProviderType
-} from '@/ts/Types'
+import type { AuthenticatedContext, BillingInterval } from '@/ts/Types'
 
 import crypto from 'crypto'
 import { eq, and, count, lt } from 'drizzle-orm'
 import {
     inputValidation,
-    clawProvider,
     billingInterval
 } from '@openclaw/shared'
 import { db } from '@/db'
@@ -161,7 +156,6 @@ const initiateClawPurchase = async (c: AuthenticatedContext) => {
         const userId = c.get('userId')
         const {
             name: rawName,
-            provider: providerName,
             planId,
             location,
             password,
@@ -180,13 +174,7 @@ const initiateClawPurchase = async (c: AuthenticatedContext) => {
             return fail(c, t('api.missingRequiredFields'), 400)
         }
 
-        if (providerName && providerName !== clawProvider.hetzner) {
-            return fail(c, t('api.invalidProvider'), 400)
-        }
-
-        const resolvedProvider = clawProvider.hetzner as ProviderType
-
-        const provider = getProvider(resolvedProvider)
+        const provider = getProvider()
         const [serverTypes, locations] = await Promise.all([
             provider.getServerTypes(),
             provider.getLocations()
@@ -326,7 +314,6 @@ const initiateClawPurchase = async (c: AuthenticatedContext) => {
             userId,
             checkoutId: checkout.id,
             name,
-            provider: providerName || 'hetzner',
             planId,
             location,
             rootPassword: finalPassword,

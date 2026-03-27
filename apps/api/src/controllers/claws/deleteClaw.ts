@@ -1,4 +1,4 @@
-import type { AuthenticatedContext, ProviderType } from '@/ts/Types'
+import type { AuthenticatedContext } from '@/ts/Types'
 
 import { eq, and } from 'drizzle-orm'
 import { db } from '@/db'
@@ -102,7 +102,6 @@ const deleteClaw = async (c: AuthenticatedContext) => {
                       })
                 : Promise.resolve(),
             cleanupClaw(id, {
-                provider: (claw.provider || 'hetzner') as ProviderType,
                 providerServerId: claw.providerServerId,
                 subdomain: claw.subdomain
             })

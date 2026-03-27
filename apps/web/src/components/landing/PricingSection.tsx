@@ -9,7 +9,6 @@ import type {
 import { Fragment, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
-import { clawProvider } from '@openclaw/shared'
 import { Button, Badge } from '@/components/ui'
 import PlansSkeleton from '@/components/shared/PlansSkeleton'
 import { useAuth } from '@/lib/auth'
@@ -165,8 +164,8 @@ const SimplePlanCard: FC<SimplePlanCardProps> = ({
                 <Link
                     to={
                         user
-                            ? `${ROUTES.CLAWS}?plan=${planId}&provider=${clawProvider.hetzner}`
-                            : `${ROUTES.LOGIN}?plan=${planId}&provider=${clawProvider.hetzner}`
+                            ? `${ROUTES.CLAWS}?plan=${planId}`
+                            : `${ROUTES.LOGIN}?plan=${planId}`
                     }
                 >
                     {user ? t('landing.deploy') : t('landing.choosePlan')}
@@ -360,8 +359,8 @@ const PricingSection: FC<PricingSectionProps> = ({
                                                                 <Link
                                                                     to={
                                                                         user
-                                                                            ? `${ROUTES.CLAWS}?plan=${plan.id}&provider=${clawProvider.hetzner}`
-                                                                            : `${ROUTES.LOGIN}?plan=${plan.id}&provider=${clawProvider.hetzner}`
+                                                                            ? `${ROUTES.CLAWS}?plan=${plan.id}`
+                                                                            : `${ROUTES.LOGIN}?plan=${plan.id}`
                                                                     }
                                                                     aria-label={
                                                                         user

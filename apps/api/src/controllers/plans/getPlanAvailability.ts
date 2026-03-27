@@ -1,11 +1,10 @@
 import type { Context } from 'hono'
-import type { ProviderType } from '@/ts/Types'
 
 import { getProvider } from '@/services/provider'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
 
-const hetznerCustomPrices: Record<string, number> = {
+const serverPrices: Record<string, number> = {
     cx23: 10,
     cx33: 15,
     cx43: 20,
@@ -27,20 +26,9 @@ const hetznerCustomPrices: Record<string, number> = {
     ccx63: 350
 }
 
-const pricesByProvider: Record<ProviderType, Record<string, number>> = {
-    hetzner: hetznerCustomPrices
-}
-
 const getPlanAvailability = async (c: Context) => {
     try {
-        const providerName = (c.req.query('provider') ||
-            'hetzner') as ProviderType
-        const provider = getProvider(providerName)
-        const customPrices = pricesByProvider[providerName]
-
-        if (!customPrices) {
-            return fail(c, t('api.invalidProvider'), 400)
-        }
+        const provider = getProvider()
 
         const [serverTypes, datacenters] = await Promise.all([
             provider.getRawServerTypes(),
@@ -66,7 +54,7 @@ const getPlanAvailability = async (c: Context) => {
 
         const availability: Record<string, string[]> = {}
 
-        for (const planName of Object.keys(customPrices)) {
+        for (const planName of Object.keys(serverPrices)) {
             const serverTypeId = nameToId.get(planName)
             if (!serverTypeId) continue
             availability[planName] = Array.from(

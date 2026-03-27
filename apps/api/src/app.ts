@@ -8,10 +8,11 @@ import { bodyLimit } from 'hono/body-limit'
 import { verifyToken } from '@/services/firebase'
 import { eq, sql } from 'drizzle-orm'
 import { db } from '@/db'
-import { users } from '@/db/schema'
+import { users, referrals } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
 import {
+    affiliateRoutes,
     aiRoutes,
     authRoutes,
     clawsRoutes,
@@ -40,7 +41,7 @@ app.use(
               ]
             : ['https://clawhost.cloud', 'https://www.clawhost.cloud'],
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-        allowHeaders: ['Content-Type', 'Authorization'],
+        allowHeaders: ['Content-Type', 'Authorization', 'X-Referral-Code'],
         exposeHeaders: ['X-Sample-Rate', 'X-Channels', 'X-Audio-Format'],
         maxAge: 86400
     })
@@ -147,12 +148,15 @@ app.use('/*', async (c, next) => {
                 })
                 .where(eq(users.id, decoded.uid))
         } else if (decoded.email) {
+            const referralHeader = c.req.header('X-Referral-Code')
+
             await db
                 .insert(users)
                 .values({
                     id: decoded.uid,
                     email: decoded.email,
-                    authMethods: [authMethod]
+                    authMethods: [authMethod],
+                    referredBy: referralHeader || null
                 })
                 .onConflictDoUpdate({
                     target: users.id,
@@ -165,6 +169,26 @@ app.use('/*', async (c, next) => {
                         END`
                     }
                 })
+
+            if (referralHeader) {
+                const referrer = await db
+                    .select({ id: users.id })
+                    .from(users)
+                    .where(eq(users.referralCode, referralHeader))
+                    .limit(1)
+                    .then((rows) => rows[0])
+
+                if (referrer && referrer.id !== decoded.uid) {
+                    await db
+                        .insert(referrals)
+                        .values({
+                            id: crypto.randomUUID(),
+                            referrerId: referrer.id,
+                            referredUserId: decoded.uid
+                        })
+                        .onConflictDoNothing()
+                }
+            }
         } else {
             return fail(c, t('api.unauthorized'), 401)
         }
@@ -185,6 +209,7 @@ app.use('/*', async (c, next) => {
     }
 })
 
+app.route('/affiliate', affiliateRoutes)
 app.route('/ai', aiRoutes)
 app.route('/claws', clawsRoutes)
 app.route('/ssh-keys', sshKeysRoutes)

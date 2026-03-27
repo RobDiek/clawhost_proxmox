@@ -1,4 +1,4 @@
-import type { AuthenticatedContext, ProviderType } from '@/ts/Types'
+import type { AuthenticatedContext } from '@/ts/Types'
 
 import { eq } from 'drizzle-orm'
 import { clawStatus } from '@openclaw/shared'
@@ -52,8 +52,7 @@ const reinstallClaw = async (c: AuthenticatedContext) => {
             }
         }
 
-        const providerName = (existing.provider || 'hetzner') as ProviderType
-        const provider = getProvider(providerName)
+        const provider = getProvider()
 
         await db
             .update(claws)

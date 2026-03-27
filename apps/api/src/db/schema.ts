@@ -17,10 +17,38 @@ export const users = pgTable('users', {
     polarCustomerId: text('polar_customer_id'),
     hasLicense: boolean('has_license').notNull().default(false),
     role: text('role').notNull().default(userRole.user),
+    referralCode: text('referral_code').unique(),
+    referralCodeChanged: boolean('referral_code_changed')
+        .notNull()
+        .default(false),
+    referredBy: text('referred_by'),
     createdAt: timestamp('created_at', { withTimezone: true })
         .defaultNow()
         .notNull()
 })
+
+export const referrals = pgTable(
+    'referrals',
+    {
+        id: text('id').primaryKey(),
+        referrerId: text('referrer_id')
+            .notNull()
+            .references(() => users.id, { onDelete: 'cascade' }),
+        referredUserId: text('referred_user_id')
+            .notNull()
+            .references(() => users.id, { onDelete: 'cascade' }),
+        status: text('status').notNull().default('signed_up'),
+        earnedAmount: integer('earned_amount').notNull().default(0),
+        createdAt: timestamp('created_at', { withTimezone: true })
+            .defaultNow()
+            .notNull()
+    },
+    (table) => [
+        index('referrals_referrer_id_idx').on(table.referrerId),
+        index('referrals_referred_user_id_idx').on(table.referredUserId),
+        unique('referrals_referred_user_unique').on(table.referredUserId)
+    ]
+)
 
 export const claws = pgTable(
     'claws',

@@ -75,6 +75,7 @@ const de: Translations = {
         sshKeys: 'SSH-Schlüssel',
         account: 'Konto',
         billing: 'Abrechnung',
+        affiliate: 'Partner',
         license: 'Lizenz',
         signOut: 'Abmelden',
         admin: 'Admin',
@@ -336,7 +337,7 @@ const de: Translations = {
         failedToCreateClaw: 'Claw konnte nicht erstellt werden!',
         invalidProvider: 'Ungültiger Anbieter!',
         providerNotAllowed:
-            'Dieser Anbieter ist nicht verfügbar, wenn Hetzner aktiv ist!',
+            'Dieser Anbieter ist derzeit nicht verfügbar!',
         invalidPlan: 'Ungültiger Plan ausgewählt!',
         planBelowMinimumMemory:
             'Dieser Plan erfüllt nicht die Mindestanforderung an Arbeitsspeicher!',
@@ -360,6 +361,16 @@ const de: Translations = {
         failedToGetBillingHistory:
             'Abrechnungsverlauf konnte nicht abgerufen werden!',
         failedToGetStats: 'Statistiken konnten nicht abgerufen werden!',
+        affiliateFetched: 'Partnerinformationen erfolgreich abgerufen.',
+        failedToGetAffiliate: 'Partnerinformationen konnten nicht abgerufen werden!',
+        referralCodeUpdated: 'Empfehlungscode erfolgreich aktualisiert.',
+        failedToUpdateReferralCode: 'Empfehlungscode konnte nicht aktualisiert werden!',
+        invalidReferralCodeLength: 'Der Empfehlungscode muss zwischen {{min}} und {{max}} Zeichen lang sein!',
+        invalidReferralCodeFormat: 'Der Empfehlungscode darf nur Buchstaben, Zahlen, Bindestriche und Unterstriche enthalten!',
+        referralCodeAlreadyChanged: 'Der Empfehlungscode kann nur einmal geändert werden!',
+        referralCodeTaken: 'Dieser Empfehlungscode ist bereits vergeben!',
+        referralCodeGenerated: 'Empfehlungscode generiert.',
+        failedToGenerateReferralCode: 'Empfehlungscode konnte nicht generiert werden!',
         failedToFetchLocations: 'Standorte konnten nicht abgerufen werden!',
         failedToFetchPlans: 'Pläne konnten nicht abgerufen werden!',
         failedToFetchVolumePricing:
@@ -1079,7 +1090,7 @@ const de: Translations = {
         autoGenerateNameHint:
             'Leer lassen, um automatisch einen Namen zu generieren.',
         provider: 'Anbieter',
-        providerHetzner: 'Hetzner',
+        providerHetzner: 'Cloud',
         providerLocal: 'Lokal',
         providerAws: 'AWS',
         comingSoon: 'Bald',
@@ -1239,7 +1250,7 @@ const de: Translations = {
             'Dedizierte VPS-Ressourcen bedeuten kein Drosseln, volle Bandbreite und blitzschnelles Internet.',
         globalLocations: 'Globale Standorte',
         globalLocationsDescription:
-            'Deploye OpenClaw in mehreren globalen Regionen auf Hetzner Cloud und wähle den nächstgelegenen Standort.',
+            'Deploye OpenClaw in mehreren globalen Regionen und wähle den nächstgelegenen Standort.',
         fullSshAccess: 'Direkter SSH-Zugriff',
         fullSshAccessDescription:
             'Greife direkt von der Plattform auf das Terminal deines Servers zu. Keine externen SSH-Clients nötig.',
@@ -1363,16 +1374,13 @@ const de: Translations = {
             'Nein. Wir kümmern uns um die gesamte Infrastruktur, Einrichtung und Wartung. Du kannst OpenClaw über die Benutzeroberfläche konfigurieren und verwalten, Kanäle verbinden und die Nutzung anpassen – ohne Server oder Infrastruktur anfassen zu müssen.',
         faq5Question: 'Welche Standorte sind verfügbar?',
         faq5Answer:
-            'Wir bieten mehrere Serverstandorte weltweit über Hetzner Cloud an, darunter die USA, Europa und mehr. Du kannst OpenClaw bei Bedarf auf mehreren Servern in verschiedenen Regionen deployen.',
+            'Wir bieten mehrere Serverstandorte weltweit an, darunter die USA, Europa und mehr. Du kannst OpenClaw bei Bedarf auf mehreren Servern in verschiedenen Regionen deployen.',
         faq6Question: 'Wie viel kostet es?',
         faq6Answer:
             'Die Preise hängen vom gewählten Server ab. Mit mehreren Serveroptionen von Einsteiger bis Hochleistung wählst du das, was zu deinen Anforderungen und deinem Budget passt.',
         faq7Question: 'Kann ich direkt auf meinen Server zugreifen?',
         faq7Answer:
             'Ja. Neben dem OpenClaw-Zugriff über eine Subdomain-URL hast du vollen Zugriff auf den Server und seine zugrunde liegende Infrastruktur, was dir vollständige Freiheit gibt, alles anzupassen und alles auszuführen, was du brauchst.',
-        faq8Question: 'Wo werden die Server gehostet?',
-        faq8Answer:
-            'Alle Server werden auf Hetzner Cloud gehostet, einem vertrauenswürdigen Cloud-Anbieter, bekannt für leistungsstarke Hardware und hervorragende Verfügbarkeit, genutzt von großen Infrastrukturen.',
         comparison: 'Vergleich',
         comparisonTitle: 'Wie wir uns unterscheiden',
         comparisonDescription:
@@ -1572,13 +1580,13 @@ const de: Translations = {
         release1Title: 'Erstveröffentlichung',
         release1Description:
             'Die erste offizielle Veröffentlichung von ClawHost. Stelle OpenClaw mit einem Klick auf deinem eigenen VPS bereit.',
-        release1Feature1: 'Ein-Klick-OpenClaw-Bereitstellung auf Hetzner Cloud',
+        release1Feature1: 'Ein-Klick-OpenClaw-Bereitstellung',
         release1Feature2:
             'Dashboard zur Verwaltung von Claws – Instanzen starten, stoppen, neustarten und löschen',
         release1Feature3:
-            '18 Hetzner-Serverpläne mit dedizierter vCPU, RAM und Speicheroptionen',
+            '18 Serverpläne mit dedizierter vCPU, RAM und Speicheroptionen',
         release1Feature4:
-            '6 Hetzner-Serverstandorte in den USA, Europa und Asien',
+            '6 Serverstandorte in den USA, Europa und Asien',
         release1Feature5:
             'SSH-Schlüsselverwaltung für passwortlosen Serverzugriff',
         release1Feature6: 'Zusätzlicher Volumenspeicher bis zu 10 TB',
@@ -2008,7 +2016,7 @@ const de: Translations = {
             'Zahlungsinformationen (werden sicher durch Drittanbieter verarbeitet)',
         serverInfoTitle: 'Serverinformationen',
         serverInfoConfig:
-            'Serverkonfiguration und -status (gehostet auf Hetzner Cloud)',
+            'Serverkonfiguration und -status',
         serverInfoIp: 'Server-IP-Adresse und -Standort',
         serverInfoResources: 'Ressourcenzuweisung (CPU, RAM, Speicher)',
         useTitle: '4. Verwendung deiner Daten',
@@ -2111,10 +2119,23 @@ const de: Translations = {
         terminationTitle: '9. Kündigung',
         terminationText:
             'Wir können dein Konto und den Zugang zum Dienst sofort und ohne vorherige Ankündigung sperren oder kündigen, wenn wir der Ansicht sind, dass dein Verhalten gegen diese Bedingungen verstößt oder anderen Nutzern, uns oder Dritten schadet, oder aus jedem anderen Grund.',
-        changesToTermsTitle: '10. Änderungen der Bedingungen',
+        affiliateTitle: '10. Affiliate Program',
+        affiliateText:
+            'ClawHost offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
+        affiliateCodeUnique:
+            'Each user receives a unique referral code upon registration, which can be customized once.',
+        affiliateCodeOneChange:
+            'The referral code can only be changed one time. Choose your custom code carefully.',
+        affiliateReferralWindow:
+            'A referral is valid for 6 months from when the referred user first visits ClawHost with your referral link. After 6 months, the referral expires.',
+        affiliateNoSelfReferral:
+            'Self-referrals are not permitted. You may not refer your own accounts.',
+        affiliateAbuse:
+            'Any abuse of the affiliate program, including but not limited to fake accounts, automated signups, or fraudulent referrals, will result in forfeiture of rewards and possible account termination.',
+        changesToTermsTitle: '11. Änderungen der Bedingungen',
         changesToTermsText:
             'Wir behalten uns das Recht vor, diese Bedingungen jederzeit zu ändern. Wir werden Benutzer über wesentliche Änderungen per E-Mail oder über den Dienst informieren. Die fortgesetzte Nutzung des Dienstes nach solchen Änderungen gilt als Annahme der aktualisierten Bedingungen.',
-        contactTitle: '11. Kontaktinformationen',
+        contactTitle: '12. Kontaktinformationen',
         contactText:
             'Bei Fragen zu diesen Bedingungen kontaktiere uns bitte unter'
     },
@@ -2157,7 +2178,7 @@ const de: Translations = {
     announcement: {
         title: 'Servicehinweis',
         message:
-            'Aufgrund hoher Nachfrage sind {{providers}}-Bereitstellungen vorübergehend nicht verfügbar. Bestehende Claws laufen normal.'
+            'Aufgrund hoher Nachfrage ist die Claw-Bereitstellung vorübergehend nicht verfügbar. Bestehende Claws laufen normal.'
     },
     productHunt: {
         liveOn: 'Live auf',
@@ -2228,7 +2249,7 @@ const de: Translations = {
         sharedContainers: 'Geteilte Container',
         isolatedContainers: 'Isolierte Container',
         cloudWorkspaces: 'Cloud-Arbeitsbereiche',
-        threeProviders: 'Hetzner Cloud',
+        threeProviders: 'Cloud',
         singleProvider: 'Einzelner Anbieter',
         fullyDedicated: 'Vollständig dediziert',
         shared: 'Geteilt',
@@ -2298,6 +2319,29 @@ const de: Translations = {
         ctaTitle: 'Bereit, den Unterschied zu sehen?',
         ctaDescription:
             'Stelle OpenClaw auf deinem eigenen dedizierten Server bereit. Vollständiges Eigentum, transparente Preise und in Minuten einsatzbereit.'
+    },
+    affiliate: {
+        title: 'Partner',
+        description: 'Verdiene Belohnungen, indem du Freunde zu ClawHost einlädst.',
+        subtitle: 'Teile deinen Empfehlungslink und verdiene Belohnungen.',
+        referralCode: 'Empfehlungscode',
+        referrals: 'Empfehlungen',
+        earnings: 'Einnahmen',
+        codeChangeHint: 'Du kannst deinen Empfehlungscode einmalig anpassen.',
+        codeAlreadyChanged: 'Dein Empfehlungscode wurde bereits angepasst.',
+        codeUpdated: 'Empfehlungscode aktualisiert.',
+        codeUpdateFailed: 'Empfehlungscode konnte nicht aktualisiert werden!',
+        invalidCodeLength: 'Der Code muss zwischen {{min}} und {{max}} Zeichen lang sein!',
+        referralHistory: 'Empfehlungsverlauf',
+        periodToday: 'Heute',
+        periodWeek: 'Woche',
+        periodMonth: 'Monat',
+        periodYear: 'Jahr',
+        periodAll: 'Alle',
+        confirmChangeTitle: 'Empfehlungscode ändern',
+        confirmChangeDescription: 'Bist du sicher? Diese Aktion ist dauerhaft und kann nicht rückgängig gemacht werden. Du kannst deinen Empfehlungscode nicht erneut ändern.',
+        noReferralsYet: 'Noch keine Empfehlungen',
+        noReferralsDescription: 'Teile deinen Empfehlungslink, um Belohnungen zu verdienen.'
     }
 } as const
 

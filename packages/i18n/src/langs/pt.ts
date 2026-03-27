@@ -75,6 +75,7 @@ const pt: Translations = {
         sshKeys: 'Chaves SSH',
         account: 'Conta',
         billing: 'Faturamento',
+        affiliate: 'Afiliado',
         license: 'Licença',
         signOut: 'Sair',
         admin: 'Admin',
@@ -335,7 +336,7 @@ const pt: Translations = {
         failedToCreateClaw: 'Falha ao criar o claw!',
         invalidProvider: 'Provedor inválido!',
         providerNotAllowed:
-            'Este provedor não está disponível quando o Hetzner está ativo!',
+            'Este provedor não está disponível no momento!',
         invalidPlan: 'Plano selecionado inválido!',
         planBelowMinimumMemory:
             'Este plano não atende ao requisito mínimo de memória!',
@@ -357,6 +358,16 @@ const pt: Translations = {
         failedToGetCustomerPortal: 'Falha ao obter o portal do cliente!',
         failedToGetBillingHistory: 'Falha ao obter o histórico de faturamento!',
         failedToGetStats: 'Falha ao obter as estatísticas!',
+        affiliateFetched: 'Affiliate info fetched successfully.',
+        failedToGetAffiliate: 'Failed to get affiliate info!',
+        referralCodeUpdated: 'Referral code updated successfully.',
+        failedToUpdateReferralCode: 'Failed to update referral code!',
+        invalidReferralCodeLength: 'Referral code must be between {{min}} and {{max}} characters!',
+        invalidReferralCodeFormat: 'Referral code can only contain letters, numbers, hyphens, and underscores!',
+        referralCodeAlreadyChanged: 'Referral code can only be changed once!',
+        referralCodeTaken: 'This referral code is already taken!',
+        referralCodeGenerated: 'Referral code generated.',
+        failedToGenerateReferralCode: 'Failed to generate referral code!',
         failedToFetchLocations: 'Falha ao buscar localizações!',
         failedToFetchPlans: 'Falha ao buscar planos!',
         failedToFetchVolumePricing: 'Falha ao buscar preços de volumes!',
@@ -1055,7 +1066,7 @@ const pt: Translations = {
         clawNameInvalidChars: 'Apenas letras, números e hífens são permitidos!',
         autoGenerateNameHint: 'Deixe vazio para gerar um nome automaticamente.',
         provider: 'Provedor',
-        providerHetzner: 'Hetzner',
+        providerHetzner: 'Cloud',
         providerLocal: 'Local',
         providerAws: 'AWS',
         comingSoon: 'Em breve',
@@ -1213,7 +1224,7 @@ const pt: Translations = {
             'Recursos VPS dedicados significam sem limitação, largura de banda total e internet ultrarrápida.',
         globalLocations: 'Localizações Globais',
         globalLocationsDescription:
-            'Implante o OpenClaw em várias regiões globais no Hetzner Cloud e escolha a localização mais próxima de você.',
+            'Implante o OpenClaw em várias regiões globais e escolha a localização mais próxima de você.',
         fullSshAccess: 'Acesso SSH Direto',
         fullSshAccessDescription:
             'Acesse o terminal do seu servidor diretamente pela plataforma. Sem necessidade de clientes SSH externos.',
@@ -1337,16 +1348,13 @@ const pt: Translations = {
             'Não. Nós cuidamos de toda a infraestrutura, configuração e manutenção. Você pode configurar e gerenciar o OpenClaw pela sua interface, conectar a canais e personalizar o uso — sem tocar em servidores ou infraestrutura.',
         faq5Question: 'Quais localizações estão disponíveis?',
         faq5Answer:
-            'Oferecemos várias localizações de servidores em todo o mundo via Hetzner Cloud, incluindo Estados Unidos, Europa e mais. Você pode implantar o OpenClaw em vários servidores em diferentes regiões, se necessário.',
+            'Oferecemos várias localizações de servidores em todo o mundo, incluindo Estados Unidos, Europa e mais. Você pode implantar o OpenClaw em vários servidores em diferentes regiões, se necessário.',
         faq6Question: 'Quanto custa?',
         faq6Answer:
             'Os preços dependem do servidor que você selecionar. Com várias opções de servidores, de básico a alto desempenho, você escolhe o que se adapta às suas necessidades e orçamento.',
         faq7Question: 'Posso acessar meu servidor diretamente?',
         faq7Answer:
             'Sim. Junto com o acesso ao OpenClaw via URL de subdomínio, você tem acesso completo ao servidor e sua infraestrutura subjacente, dando total liberdade para personalizar e executar o que precisar.',
-        faq8Question: 'Onde os servidores são hospedados?',
-        faq8Answer:
-            'Todos os servidores são hospedados no Hetzner Cloud, um provedor de nuvem confiável reconhecido por seu hardware de alto desempenho e excelente disponibilidade, usado por infraestruturas em grande escala.',
         comparison: 'Comparação',
         comparisonTitle: 'Como Somos Diferentes',
         comparisonDescription:
@@ -1550,13 +1558,13 @@ const pt: Translations = {
         release1Description:
             'O primeiro lançamento oficial do ClawHost. Implante OpenClaw no seu próprio VPS com um clique.',
         release1Feature1:
-            'Implantação do OpenClaw com um clique no Hetzner Cloud',
+            'Implantação do OpenClaw com um clique',
         release1Feature2:
             'Painel para gerenciar claws, iniciar, parar, reiniciar e excluir instâncias',
         release1Feature3:
-            '18 planos de servidor Hetzner com vCPU dedicada, RAM e opções de armazenamento',
+            '18 planos de servidor com vCPU dedicada, RAM e opções de armazenamento',
         release1Feature4:
-            '6 localizações de servidor Hetzner nos EUA, Europa e Ásia',
+            '6 localizações de servidor nos EUA, Europa e Ásia',
         release1Feature5:
             'Gerenciamento de chaves SSH para acesso ao servidor sem senha',
         release1Feature6:
@@ -1979,7 +1987,7 @@ const pt: Translations = {
             'Informações de pagamento (processadas com segurança por provedores terceiros)',
         serverInfoTitle: 'Informações do Servidor',
         serverInfoConfig:
-            'Configuração e status do servidor (hospedado na Hetzner Cloud)',
+            'Configuração e status do servidor',
         serverInfoIp: 'Endereço IP e localização do servidor',
         serverInfoResources: 'Alocação de recursos (CPU, RAM, armazenamento)',
         useTitle: '4. Como Usamos Suas Informações',
@@ -2083,10 +2091,23 @@ const pt: Translations = {
         terminationTitle: '9. Rescisão',
         terminationText:
             'Podemos encerrar ou suspender sua conta e acesso ao Serviço imediatamente, sem aviso prévio, por conduta que acreditamos violar estes Termos ou que seja prejudicial a outros usuários, a nós ou a terceiros, ou por qualquer outro motivo.',
-        changesToTermsTitle: '10. Alterações nos Termos',
+        affiliateTitle: '10. Affiliate Program',
+        affiliateText:
+            'ClawHost offers an affiliate program that allows users to earn rewards by referring new users. By participating in the affiliate program, you agree to the following:',
+        affiliateCodeUnique:
+            'Each user receives a unique referral code upon registration, which can be customized once.',
+        affiliateCodeOneChange:
+            'The referral code can only be changed one time. Choose your custom code carefully.',
+        affiliateReferralWindow:
+            'A referral is valid for 6 months from when the referred user first visits ClawHost with your referral link. After 6 months, the referral expires.',
+        affiliateNoSelfReferral:
+            'Self-referrals are not permitted. You may not refer your own accounts.',
+        affiliateAbuse:
+            'Any abuse of the affiliate program, including but not limited to fake accounts, automated signups, or fraudulent referrals, will result in forfeiture of rewards and possible account termination.',
+        changesToTermsTitle: '11. Alterações nos Termos',
         changesToTermsText:
             'Reservamo-nos o direito de modificar estes termos a qualquer momento. Notificaremos os usuários sobre quaisquer alterações materiais por email ou através do Serviço. O uso contínuo do Serviço após tais modificações constitui aceitação dos termos atualizados.',
-        contactTitle: '11. Informações de Contato',
+        contactTitle: '12. Informações de Contato',
         contactText:
             'Se você tiver perguntas sobre estes Termos, entre em contato conosco em'
     },
@@ -2127,7 +2148,7 @@ const pt: Translations = {
     announcement: {
         title: 'Aviso de Serviço',
         message:
-            'Devido à alta demanda, implantações {{providers}} estão temporariamente indisponíveis. Claws existentes estão funcionando normalmente.'
+            'Devido à alta demanda, a implantação de Claw está temporariamente indisponível. Claws existentes estão funcionando normalmente.'
     },
     productHunt: {
         liveOn: 'Ao vivo no',
@@ -2198,7 +2219,7 @@ const pt: Translations = {
         sharedContainers: 'Containers compartilhados',
         isolatedContainers: 'Containers isolados',
         cloudWorkspaces: 'Workspaces em nuvem',
-        threeProviders: 'Hetzner Cloud',
+        threeProviders: 'Cloud',
         singleProvider: 'Provedor único',
         fullyDedicated: 'Totalmente dedicado',
         shared: 'Compartilhado',
@@ -2268,6 +2289,29 @@ const pt: Translations = {
         ctaTitle: 'Pronto para ver a diferença?',
         ctaDescription:
             'Implante OpenClaw no seu próprio servidor dedicado. Propriedade total, preços transparentes e pronto em minutos.'
+    },
+    affiliate: {
+        title: 'Affiliate',
+        description: 'Earn rewards by referring friends to ClawHost.',
+        subtitle: 'Share your referral link and earn rewards.',
+        referralCode: 'Referral Code',
+        referrals: 'Referrals',
+        earnings: 'Earnings',
+        codeChangeHint: 'You can customize your referral code once.',
+        codeAlreadyChanged: 'Your referral code has already been customized.',
+        codeUpdated: 'Referral code updated.',
+        codeUpdateFailed: 'Failed to update referral code!',
+        invalidCodeLength: 'Code must be between {{min}} and {{max}} characters!',
+        referralHistory: 'Referral History',
+        periodToday: 'Today',
+        periodWeek: 'Week',
+        periodMonth: 'Month',
+        periodYear: 'Year',
+        periodAll: 'All',
+        confirmChangeTitle: 'Change Referral Code',
+        confirmChangeDescription: 'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
+        noReferralsYet: 'No Referrals Yet',
+        noReferralsDescription: 'Share your referral link to start earning rewards.'
     }
 } as const
 

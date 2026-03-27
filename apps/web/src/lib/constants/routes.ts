@@ -14,6 +14,7 @@ const ROUTES = {
     CHANGELOG: `/${PATHS.CHANGELOG}`,
     BLOG: `/${PATHS.BLOG}`,
     BLOG_POST: `/${PATHS.BLOG}/:slug`,
+    AFFILIATE: `/${PATHS.AFFILIATE}`,
     COMPARE: `/${PATHS.COMPARE}`
 } as const
 

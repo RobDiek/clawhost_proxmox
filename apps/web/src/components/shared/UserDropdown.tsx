@@ -24,7 +24,8 @@ import {
     KeyIcon,
     UserIcon,
     SignOutIcon,
-    ReceiptIcon
+    ReceiptIcon,
+    HandshakeIcon
 } from '@phosphor-icons/react'
 
 const UserDropdown: FC<UserDropdownProps> = ({
@@ -110,6 +111,13 @@ const UserDropdown: FC<UserDropdownProps> = ({
                         {t('nav.sshKeys')}
                     </DropdownMenuItem>
                 )}
+                <DropdownMenuItem
+                    onClick={() => navigate(ROUTES.AFFILIATE)}
+                    className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.AFFILIATE ? 'bg-foreground/10' : ''}`}
+                >
+                    <HandshakeIcon className='h-4 w-4' />
+                    {t('nav.affiliate')}
+                </DropdownMenuItem>
                 <DropdownMenuItem
                     onClick={() => navigate(ROUTES.ACCOUNT)}
                     className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.ACCOUNT ? 'bg-foreground/10' : ''}`}

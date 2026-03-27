@@ -1,8 +1,6 @@
 import type { Context } from 'hono'
 import type { billingInterval, userRole } from '@openclaw/shared'
 
-export type ProviderType = 'hetzner'
-
 export type HonoEnv = { Variables: { userId: string; isAdmin: boolean } }
 
 export type AuthenticatedContext = Context<HonoEnv>
@@ -50,7 +48,7 @@ export type PiperVoiceQuality = 'low' | 'medium' | 'high'
 export type BillingInterval =
     (typeof billingInterval)[keyof typeof billingInterval]
 
-export type PolarPriceMap = Record<string, Record<string, number>>
+export type PolarPriceMap = Record<string, number>
 
 export type ClawRow = typeof import('@/db/schema').claws.$inferSelect
 

@@ -1,7 +1,5 @@
 import 'dotenv/config'
 
-import type { ProviderType } from '@/ts/Types'
-
 import { eq } from 'drizzle-orm'
 import { clawStatus, inputValidation } from '@openclaw/shared'
 import { db } from '@/db'
@@ -18,14 +16,12 @@ import {
     DOMAIN
 } from '@/controllers/claws/helpers'
 
-const VALID_PROVIDERS: ProviderType[] = ['hetzner']
-
 const run = async () => {
     const subscriptionId = process.argv[2]
 
     if (!subscriptionId) {
         console.error(
-            'Usage: tsx scripts/reconcile-subscription.ts <subscription-id> [--provider hetzner] [--plan <plan-id>] [--location <location-id>]'
+            'Usage: tsx scripts/reconcile-subscription.ts <subscription-id> [--plan <plan-id>] [--location <location-id>]'
         )
         process.exit(1)
     }
@@ -35,16 +31,8 @@ const run = async () => {
         return idx !== -1 ? process.argv[idx + 1] : null
     }
 
-    const providerArg = getArg('--provider') as ProviderType | null
     const planArg = getArg('--plan')
     const locationArg = getArg('--location')
-
-    if (providerArg && !VALID_PROVIDERS.includes(providerArg)) {
-        console.error(
-            `Invalid provider: ${providerArg}. Must be one of: ${VALID_PROVIDERS.join(', ')}`
-        )
-        process.exit(1)
-    }
 
     console.log(`Fetching subscription ${subscriptionId} from Polar...`)
 
@@ -141,8 +129,7 @@ const run = async () => {
         )
     }
 
-    const providerName = providerArg || 'hetzner'
-    const provider = getProvider(providerName)
+    const provider = getProvider()
     const [serverTypes, rawTypes, datacenters] = await Promise.all([
         provider.getServerTypes(),
         provider.getRawServerTypes
@@ -155,7 +142,7 @@ const run = async () => {
     const selectedPlan = serverTypes.find((st) => st.name === planId)
 
     if (!selectedPlan) {
-        console.error(`Plan "${planId}" not found for provider ${providerName}`)
+        console.error(`Plan "${planId}" not found`)
         process.exit(1)
     }
 
@@ -175,7 +162,7 @@ const run = async () => {
 
             if (locationDcs.length === 0) {
                 console.error(
-                    `\nLocation "${location}" has no datacenters for provider ${providerName}`
+                    `\nLocation "${location}" has no datacenters`
                 )
                 const validLocations = [
                     ...new Set(
@@ -228,7 +215,6 @@ const run = async () => {
     const clawName = name || `reconciled-${id.slice(0, 8)}`
 
     console.log(`\nProvisioning manually:`)
-    console.log(`  Provider: ${providerName}`)
     console.log(`  Plan: ${planId}`)
     console.log(`  Location: ${location}`)
     console.log(`  Name: ${clawName}`)
@@ -245,7 +231,7 @@ const run = async () => {
         id,
         userId,
         name: clawName,
-        provider: providerName,
+        provider: 'hetzner',
         status: clawStatus.creating,
         planId,
         location,

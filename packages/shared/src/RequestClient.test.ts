@@ -55,7 +55,7 @@ describe('RequestClient', () => {
             headers: { 'content-type': 'application/json' }
         })
 
-        const onUnauthorized = vi.fn()
+        const onUnauthorized = vi.fn().mockResolvedValue(true)
         vi.spyOn(globalThis, 'fetch')
             .mockResolvedValueOnce(unauthorizedResponse)
             .mockResolvedValueOnce(successResponse)
