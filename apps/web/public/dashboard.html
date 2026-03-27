@@ -43,7 +43,6 @@ input{font-family:inherit}
 .sidebar-item .icon svg{width:20px;height:20px}
 .sidebar-item:not(.active) .icon svg{color:#9CA3AF}
 .sidebar-item.active .icon svg{color:#2563EB}
-.sidebar-sep{height:1px;background:#F3F4F6;margin:16px 0}
 .sidebar-footer{padding:12px 16px;border-top:1px solid #F3F4F6}
 .sidebar-plan-pill{display:inline-block;font-size:.72rem;color:#9CA3AF;line-height:1.5}
 
@@ -354,20 +353,12 @@ input{font-family:inherit}
 <!-- Sidebar overlay (mobile) -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-<!-- Sidebar -->
+<!-- Sidebar (7 items) -->
 <nav class="sidebar" id="sidebar">
   <div class="sidebar-nav">
     <div class="sidebar-item active" data-tab="home" onclick="switchTab('home')">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
       בית
-    </div>
-    <div class="sidebar-item" data-tab="agentsetup" onclick="switchTab('agentsetup')">
-      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg></span>
-      הגדרת סוכנים
-    </div>
-    <div class="sidebar-item" data-tab="creator" onclick="switchTab('creator')">
-      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
-      יצירת סוכנים
     </div>
     <div class="sidebar-item" data-tab="agents" onclick="switchTab('agents')">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/></svg></span>
@@ -375,7 +366,15 @@ input{font-family:inherit}
     </div>
     <div class="sidebar-item" data-tab="integrations" onclick="switchTab('integrations')">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
-      חיבורים
+      אינטגרציות
+    </div>
+    <div class="sidebar-item" data-tab="files" onclick="switchTab('files')">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+      קבצים
+    </div>
+    <div class="sidebar-item" data-tab="server" onclick="switchTab('server')">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
+      שרת
     </div>
     <div class="sidebar-item" data-tab="billing" onclick="switchTab('billing')">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>
@@ -385,61 +384,32 @@ input{font-family:inherit}
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
       הגדרות
     </div>
-    <div class="sidebar-item" data-tab="files" onclick="switchTab('files')">
-      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
-      קבצים
-    </div>
-    <div class="sidebar-item" data-tab="terminal" onclick="switchTab('terminal')">
-      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
-      טרמינל
-    </div>
-    <div class="sidebar-sep"></div>
-    <div class="sidebar-item" data-tab="advanced" onclick="switchTab('advanced')">
-      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
-      מתקדם
-    </div>
   </div>
   <div class="sidebar-footer" id="sidebarFooter"></div>
 </nav>
 
-<!-- Bottom nav (mobile) -->
+<!-- Bottom nav (mobile) — 5 items -->
 <div class="bottom-nav">
   <div class="bottom-nav-inner">
     <button class="bottom-nav-item active" data-tab="home" onclick="switchTab('home')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       בית
     </button>
-    <button class="bottom-nav-item" data-tab="agentsetup" onclick="switchTab('agentsetup')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
-      הגדרת סוכנים
-    </button>
-    <button class="bottom-nav-item" data-tab="creator" onclick="switchTab('creator')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-      יצירת סוכנים
-    </button>
     <button class="bottom-nav-item" data-tab="agents" onclick="switchTab('agents')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/></svg>
       סוכנים
-    </button>
-    <button class="bottom-nav-item" data-tab="integrations" onclick="switchTab('integrations')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-      חיבורים
-    </button>
-    <button class="bottom-nav-item" data-tab="billing" onclick="switchTab('billing')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-      חיוב
-    </button>
-    <button class="bottom-nav-item" data-tab="settings" onclick="switchTab('settings')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-      הגדרות
     </button>
     <button class="bottom-nav-item" data-tab="files" onclick="switchTab('files')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
       קבצים
     </button>
-    <button class="bottom-nav-item" data-tab="terminal" onclick="switchTab('terminal')">
+    <button class="bottom-nav-item" data-tab="server" onclick="switchTab('server')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-      טרמינל
+      שרת
+    </button>
+    <button class="bottom-nav-item" data-tab="settings" onclick="switchTab('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      הגדרות
     </button>
   </div>
 </div>
@@ -461,184 +431,34 @@ input{font-family:inherit}
     <div id="homeInfo"></div>
   </div>
 
-  <!-- Tab: Agent Setup -->
-  <div class="tab-content hidden" id="tab-agentsetup">
-    <div class="setup-step" id="setup-step1">
-      <h2>ספרו לנו על העסק שלכם</h2>
-      <p class="section-desc">על סמך המידע הזה, הסוכנים שלכם יבנו אסטרטגיה מותאמת אישית.</p>
+  <!-- Tab: Agents (MERGED: agents + creator) -->
+  <div class="tab-content hidden" id="tab-agents">
+    <h2 class="tab-title">סוכנים</h2>
+    <p class="tab-desc">ניהול הסוכנים שלכם ויצירת סוכנים חדשים.</p>
 
-      <div class="setup-form">
-        <div class="form-group">
-          <label>1. שם העסק</label>
-          <input type="text" id="q-business-name" placeholder="לדוגמה: Flowmatic"/>
-        </div>
-        <div class="form-group">
-          <label>2. במה עוסק העסק?</label>
-          <textarea id="q-business-desc" placeholder="מה אתם מוכרים / איזה שירות אתם נותנים?" rows="2"></textarea>
-        </div>
-        <div class="form-group">
-          <label>3. מי קהל היעד שלכם?</label>
-          <textarea id="q-target" placeholder="תארו את הלקוח האידיאלי שלכם" rows="2"></textarea>
-        </div>
-        <div class="form-group">
-          <label>4. מי המתחרים הישירים? (2-3 שמות)</label>
-          <textarea id="q-competitors" placeholder="שמות + URL אם יש" rows="2"></textarea>
-        </div>
-        <div class="form-group">
-          <label>5. מה המטרה העיקרית?</label>
-          <div class="radio-group">
-            <label class="radio-option"><input type="radio" name="q-goal" value="לידים"/> לידים</label>
-            <label class="radio-option"><input type="radio" name="q-goal" value="מכירות ישירות"/> מכירות ישירות</label>
-            <label class="radio-option"><input type="radio" name="q-goal" value="בניית קהל"/> בניית קהל</label>
-            <label class="radio-option"><input type="radio" name="q-goal" value="מודעות מותג" checked/> מודעות מותג</label>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>6. איזה תוכן אתם מפרסמים היום?</label>
-          <textarea id="q-content" placeholder="פוסטים, בלוג, ניוזלטר, סרטונים..." rows="2"></textarea>
-        </div>
-        <div class="form-group">
-          <label>7. מה הכי מתסכל אתכם בשיווק?</label>
-          <textarea id="q-challenges" placeholder="אין זמן? לא יודעים מה לכתוב? אין תוצאות?" rows="2"></textarea>
-        </div>
+    <!-- Section A: Active agents -->
+    <div class="section-title">סוכנים פעילים</div>
+    <div id="agentsList"></div>
 
-        <button class="btn btn-primary" onclick="submitAgentSetup()" id="btn-setup-submit">
-          הגדירו את הסוכנים שלי &rarr;
-        </button>
-      </div>
-    </div>
-
-    <div class="setup-step hidden" id="setup-step2">
-      <h2>מגדירים את הסוכנים שלכם...</h2>
-      <p class="section-desc">זה ייקח כ-30 שניות</p>
-
-      <div class="progress-steps">
-        <div class="p-step active" id="ps-1">
-          <span class="p-icon">&#9881;&#65039;</span>
-          <span>מנתחים את המידע שלכם</span>
-        </div>
-        <div class="p-step" id="ps-2">
-          <span class="p-icon">&#128221;</span>
-          <span>יוצרים USER.md ו-BRAND.md</span>
-        </div>
-        <div class="p-step" id="ps-3">
-          <span class="p-icon">&#129302;</span>
-          <span>מגדירים 9 סוכנים</span>
-        </div>
-        <div class="p-step" id="ps-4">
-          <span class="p-icon">&#128295;</span>
-          <span>מתקינים Skills</span>
-        </div>
-        <div class="p-step" id="ps-5">
-          <span class="p-icon">&#128640;</span>
-          <span>מפעילים מחדש</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="setup-step hidden" id="setup-step3">
-      <h2>הסוכנים שלכם מוכנים!</h2>
-      <p class="section-desc">9 סוכנים הוגדרו ומוכנים לעבודה</p>
-
-      <div class="agents-summary">
-        <div class="agent-mini">&#127963; מטה &mdash; מתאם</div>
-        <div class="agent-mini">&#128269; סייר &mdash; סיור אינטרנט</div>
-        <div class="agent-mini">&#128202; מאתר &mdash; מחקר SERP</div>
-        <div class="agent-mini">&#128066; מאזין &mdash; האזנה חברתית</div>
-        <div class="agent-mini">&#129504; מנתח &mdash; ניתוח</div>
-        <div class="agent-mini">&#9997;&#65039; עט &mdash; כתיבה</div>
-        <div class="agent-mini">&#127912; יוצר &mdash; קריאייטיב</div>
-        <div class="agent-mini">&#128228; שליח &mdash; הפצה</div>
-        <div class="agent-mini">&#128301; מגדלור &mdash; AEO</div>
-      </div>
-
-      <div class="next-steps-card">
-        <h3>מה הלאה?</h3>
-        <p>מחר בבוקר תקבלו את ה-Daily Brief הראשון ב-Telegram.</p>
-        <p>כל שבוע ב &mdash; דוח תחרותי מלא.</p>
-        <p>כל חודש &mdash; ביקורת AEO.</p>
-      </div>
-
-      <button class="btn btn-primary" onclick="switchTab('home')">חזרו ללוח הבקרה &rarr;</button>
-    </div>
-  </div>
-
-  <!-- Tab: Agent Creator -->
-  <div class="tab-content hidden" id="tab-creator">
-    <h2 class="tab-title">יצירת סוכנים</h2>
-    <p class="tab-desc">צרו סוכנים מותאמים אישית עם אישיות, כלים וחיבורים.</p>
-
-    <div class="section-title">הסוכנים שלכם</div>
-    <div id="agents-list">
-      <div class="empty-state">
-        <div style="font-size:2rem;margin-bottom:8px">&#129302;</div>
-        <div>עדיין לא יצרתם סוכן מותאם אישית</div>
-        <button class="btn btn-primary" onclick="showAgentForm()" style="margin-top:12px">+ צרו סוכן חדש</button>
-      </div>
-    </div>
-
-    <div id="agent-form" class="hidden" style="max-width:600px">
-      <div class="section-title">סוכן חדש</div>
-
+    <!-- Section B: Create new agent -->
+    <div class="section-title" style="margin-top:32px">סוכן חדש</div>
+    <div id="new-agent-section" style="max-width:600px">
       <div class="form-group">
-        <label>שם הסוכן</label>
-        <input type="text" id="agent-name" placeholder="לדוגמה: עוזר מכירות"/>
+        <label>מה הסוכן צריך לעשות?</label>
+        <textarea id="new-agent-prompt" rows="3" placeholder="תארו בחופשיות מה אתם רוצים שהסוכן יעשה. לדוגמה: 'סוכן שעונה ללקוחות בוואטסאפ, יודע את המחירים שלנו ומפנה שאלות מורכבות אליי'" style="width:100%;padding:10px 14px;border:1px solid #E5E7EB;border-radius:8px;font-size:0.9rem;font-family:inherit;direction:rtl;background:#fff;resize:vertical"></textarea>
       </div>
-
-      <div class="form-group">
-        <label>תיאור קצר</label>
-        <input type="text" id="agent-desc" placeholder="מה הסוכן עושה?"/>
-      </div>
-
-      <div class="form-group">
-        <label>אישיות (SOUL.md)</label>
-        <textarea id="agent-soul" rows="6" placeholder="תארו את האישיות, הסגנון וכללי ההתנהגות של הסוכן..." style="font-family:monospace;font-size:0.82rem"></textarea>
-        <div style="font-size:0.75rem;color:#9CA3AF;margin-top:4px">זה הקובץ שקובע מי הסוכן, איך הוא מדבר ומה הכללים שלו.</div>
-      </div>
-
       <div class="form-group">
         <label>מודל AI</label>
-        <select id="agent-model" style="width:100%;padding:10px;border:1px solid #E5E7EB;border-radius:8px;font-family:inherit">
+        <select id="new-agent-model" style="width:100%;max-width:360px;padding:10px;border:1px solid #E5E7EB;border-radius:8px;font-family:inherit">
           <option value="claude-sonnet-4-5">Claude Sonnet 4.5 (מומלץ)</option>
           <option value="claude-haiku-4-5">Claude Haiku 4.5 (חסכוני)</option>
           <option value="claude-opus-4-6">Claude Opus 4.6 (הכי חזק)</option>
           <option value="gpt-4o">GPT-4o</option>
-          <option value="gpt-4o-mini">GPT-4o mini (חסכוני)</option>
+          <option value="gpt-4o-mini">GPT-4o mini</option>
         </select>
       </div>
-
-      <div class="form-group">
-        <label>ערוצים</label>
-        <div style="display:flex;flex-wrap:wrap;gap:8px">
-          <label class="check-option"><input type="checkbox" id="agent-ch-telegram" checked/> Telegram</label>
-          <label class="check-option"><input type="checkbox" id="agent-ch-whatsapp"/> WhatsApp</label>
-          <label class="check-option"><input type="checkbox" id="agent-ch-email"/> Email</label>
-          <label class="check-option"><input type="checkbox" id="agent-ch-web"/> צ׳אט באתר</label>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Skills (כלים)</label>
-        <div style="display:flex;flex-wrap:wrap;gap:8px">
-          <label class="check-option"><input type="checkbox" id="agent-sk-search"/> חיפוש באינטרנט</label>
-          <label class="check-option"><input type="checkbox" id="agent-sk-google"/> Google Workspace</label>
-          <label class="check-option"><input type="checkbox" id="agent-sk-calendar"/> יומן</label>
-          <label class="check-option"><input type="checkbox" id="agent-sk-gmail"/> Gmail</label>
-          <label class="check-option"><input type="checkbox" id="agent-sk-image"/> יצירת תמונות</label>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:8px;margin-top:16px">
-        <button class="btn btn-primary" onclick="saveAgent()">שמרו סוכן</button>
-        <button class="btn btn-outline" onclick="hideAgentForm()">ביטול</button>
-      </div>
+      <button class="btn btn-primary" onclick="createSmartAgent()">צרו סוכן &larr;</button>
     </div>
-  </div>
-
-  <!-- Tab: Agents -->
-  <div class="tab-content hidden" id="tab-agents">
-    <div class="section-title">הסוכנים שלכם</div>
-    <div id="agentsList"></div>
   </div>
 
   <!-- Tab: Integrations -->
@@ -799,41 +619,6 @@ input{font-family:inherit}
     </div>
   </div>
 
-  <!-- Tab: Billing -->
-  <div class="tab-content hidden" id="tab-billing">
-    <div class="section-title">התוכנית שלכם</div>
-    <div class="plan-card-big" id="planCardBig"></div>
-
-    <div class="section-title">פרטי חיוב</div>
-    <div class="info-row"><span class="info-label">סטטוס מנוי</span><span class="badge-green"><span class="agent-status-dot" style="width:6px;height:6px;background:#10B981;border-radius:50;display:inline-block"></span>פעיל</span></div>
-    <div class="info-row"><span class="info-label">אמצעי תשלום</span><span class="info-value">AllPay</span></div>
-
-    <div class="billing-actions">
-      <button class="btn btn-outline" onclick="alert('פנו לתמיכה לשדרוג')">שדרגו תוכנית</button>
-      <button class="btn btn-danger-outline" onclick="if(confirm('בטוחים שברצונכם לבטל את המנוי?')) alert('פנו לתמיכה לביטול')">בטלו מנוי</button>
-    </div>
-  </div>
-
-  <!-- Tab: Settings -->
-  <div class="tab-content hidden" id="tab-settings">
-    <div class="section-title">פרופיל</div>
-    <div class="form-group">
-      <label>שם</label>
-      <input type="text" id="user-name" placeholder="השם שלכם"/>
-      <button onclick="saveName()">שמרו</button>
-    </div>
-
-    <div class="section-title">שפה</div>
-    <div class="lang-options">
-      <button class="lang-opt active">עברית</button>
-      <button class="lang-opt" onclick="alert('English support coming soon')">English</button>
-    </div>
-
-    <div class="section-title">אבטחה</div>
-    <div class="info-row"><span class="info-label">אימייל</span><span class="info-value" id="settingsEmail"></span></div>
-    <div class="info-row"><span class="info-label">חשבון נוצר</span><span class="info-value" id="settingsCreated"></span></div>
-  </div>
-
   <!-- Tab: Files -->
   <div class="tab-content hidden" id="tab-files">
     <h2 class="tab-title">קבצים</h2>
@@ -868,11 +653,22 @@ input{font-family:inherit}
     </div>
   </div>
 
-  <!-- Tab: Terminal -->
-  <div class="tab-content hidden" id="tab-terminal">
-    <h2 class="tab-title">טרמינל</h2>
-    <p class="tab-desc">גישה ישירה לשרת שלכם דרך SSH.</p>
+  <!-- Tab: Server (MERGED: terminal + advanced) -->
+  <div class="tab-content hidden" id="tab-server">
+    <h2 class="tab-title">שרת</h2>
+    <p class="tab-desc">נתוני שרת, טרמינל, לוגים וגישה ישירה.</p>
 
+    <!-- Server Stats -->
+    <div class="section-title">נתוני שרת</div>
+    <div id="server-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
+      <div class="stat-card"><div class="stat-label">CPU</div><div class="stat-value" id="stat-cpu">&mdash;</div></div>
+      <div class="stat-card"><div class="stat-label">RAM</div><div class="stat-value" id="stat-ram">&mdash;</div></div>
+      <div class="stat-card"><div class="stat-label">דיסק</div><div class="stat-value" id="stat-disk">&mdash;</div></div>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="loadStats()" style="margin-bottom:20px">&#8635; עדכנו נתונים</button>
+
+    <!-- Terminal -->
+    <div class="section-title">טרמינל</div>
     <div style="display:flex;gap:8px;margin-bottom:12px">
       <button class="btn btn-primary btn-sm" id="term-connect-btn" onclick="termConnect()">התחברו</button>
       <button class="btn btn-outline btn-sm" onclick="termDisconnect()">נתקו</button>
@@ -881,18 +677,23 @@ input{font-family:inherit}
         לא מחובר
       </span>
     </div>
+    <div id="terminal-container" style="width:100%;height:400px;background:#1a1a2e;border-radius:10px;overflow:hidden;border:1px solid #2a2a3e;margin-bottom:20px"></div>
 
-    <div id="terminal-container" style="width:100%;height:500px;background:#1a1a2e;border-radius:10px;overflow:hidden;border:1px solid #2a2a3e"></div>
-  </div>
+    <!-- Logs -->
+    <div class="section-title">לוגים</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button class="btn btn-outline btn-sm" onclick="loadLogs('openclaw-gateway')">OpenClaw</button>
+      <button class="btn btn-outline btn-sm" onclick="loadLogs('nginx')">Nginx</button>
+      <button class="btn btn-outline btn-sm" onclick="loadLogs('docker')">Docker</button>
+    </div>
+    <pre id="logs-output" style="background:#111827;color:#D1D5DB;padding:14px;border-radius:8px;font-family:'SF Mono','Fira Code',monospace;font-size:0.75rem;line-height:1.5;max-height:400px;overflow:auto;white-space:pre-wrap;direction:ltr">לחצו על שירות לטעינת לוגים</pre>
 
-  <!-- Tab: Advanced -->
-  <div class="tab-content hidden" id="tab-advanced">
+    <!-- API Access -->
+    <div class="section-title">גישה ישירה</div>
     <div class="warning-banner">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       אזור למפתחים — שינויים כאן עלולים להשפיע על תפקוד הסוכנים
     </div>
-
-    <div class="section-title">גישה ישירה</div>
     <div class="info-row">
       <span class="info-label">Gateway Token</span>
       <span class="mono info-value" id="gw-token">••••••••</span>
@@ -913,24 +714,145 @@ input{font-family:inherit}
 
     <div class="section-title">API</div>
     <div class="code-block" id="advApiBlock"></div>
+  </div>
 
-    <!-- Server Stats -->
-    <div class="section-title">שרת</div>
-    <div id="server-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
-      <div class="stat-card"><div class="stat-label">CPU</div><div class="stat-value" id="stat-cpu">&mdash;</div></div>
-      <div class="stat-card"><div class="stat-label">RAM</div><div class="stat-value" id="stat-ram">&mdash;</div></div>
-      <div class="stat-card"><div class="stat-label">דיסק</div><div class="stat-value" id="stat-disk">&mdash;</div></div>
-    </div>
-    <button class="btn btn-outline btn-sm" onclick="loadStats()" style="margin-bottom:20px">&#8635; עדכנו נתונים</button>
+  <!-- Tab: Billing -->
+  <div class="tab-content hidden" id="tab-billing">
+    <div class="section-title">התוכנית שלכם</div>
+    <div class="plan-card-big" id="planCardBig"></div>
 
-    <!-- Logs -->
-    <div class="section-title">לוגים</div>
-    <div style="display:flex;gap:8px;margin-bottom:8px">
-      <button class="btn btn-outline btn-sm" onclick="loadLogs('openclaw-gateway')">OpenClaw</button>
-      <button class="btn btn-outline btn-sm" onclick="loadLogs('nginx')">Nginx</button>
-      <button class="btn btn-outline btn-sm" onclick="loadLogs('docker')">Docker</button>
+    <div class="section-title">פרטי חיוב</div>
+    <div class="info-row"><span class="info-label">סטטוס מנוי</span><span class="badge-green"><span class="agent-status-dot" style="width:6px;height:6px;background:#10B981;border-radius:50;display:inline-block"></span>פעיל</span></div>
+    <div class="info-row"><span class="info-label">אמצעי תשלום</span><span class="info-value">AllPay</span></div>
+
+    <div class="billing-actions">
+      <button class="btn btn-outline" onclick="alert('פנו לתמיכה לשדרוג')">שדרגו תוכנית</button>
+      <button class="btn btn-danger-outline" onclick="if(confirm('בטוחים שברצונכם לבטל את המנוי?')) alert('פנו לתמיכה לביטול')">בטלו מנוי</button>
     </div>
-    <pre id="logs-output" style="background:#111827;color:#D1D5DB;padding:14px;border-radius:8px;font-family:'SF Mono','Fira Code',monospace;font-size:0.75rem;line-height:1.5;max-height:400px;overflow:auto;white-space:pre-wrap;direction:ltr">לחצו על שירות לטעינת לוגים</pre>
+  </div>
+
+  <!-- Tab: Settings (+ MATEH wizard) -->
+  <div class="tab-content hidden" id="tab-settings">
+    <div class="section-title">פרופיל</div>
+    <div class="form-group">
+      <label>שם</label>
+      <input type="text" id="user-name" placeholder="השם שלכם"/>
+      <button onclick="saveName()">שמרו</button>
+    </div>
+
+    <div class="section-title">שפה</div>
+    <div class="lang-options">
+      <button class="lang-opt active">עברית</button>
+      <button class="lang-opt" onclick="alert('English support coming soon')">English</button>
+    </div>
+
+    <div class="section-title">אבטחה</div>
+    <div class="info-row"><span class="info-label">אימייל</span><span class="info-value" id="settingsEmail"></span></div>
+    <div class="info-row"><span class="info-label">חשבון נוצר</span><span class="info-value" id="settingsCreated"></span></div>
+
+    <!-- MATEH Setup -->
+    <div class="section-title" style="margin-top:32px">הגדרת מערכת MATEH</div>
+    <p style="font-size:0.82rem;color:#6B7280;margin-bottom:12px">ענו על 7 שאלות כדי להגדיר את 9 סוכני השיווק שלכם.</p>
+    <details id="mateh-setup-details">
+      <summary style="cursor:pointer;color:#2563EB;font-size:0.9rem;font-weight:500">פתחו שאלון הגדרה &rarr;</summary>
+      <div style="margin-top:16px">
+        <div class="setup-form">
+          <div class="form-group">
+            <label>1. שם העסק</label>
+            <input type="text" id="q-business-name" placeholder="לדוגמה: Flowmatic"/>
+          </div>
+          <div class="form-group">
+            <label>2. במה עוסק העסק?</label>
+            <textarea id="q-business-desc" placeholder="מה אתם מוכרים / איזה שירות אתם נותנים?" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>3. מי קהל היעד שלכם?</label>
+            <textarea id="q-target" placeholder="תארו את הלקוח האידיאלי שלכם" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>4. מי המתחרים הישירים? (2-3 שמות)</label>
+            <textarea id="q-competitors" placeholder="שמות + URL אם יש" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>5. מה המטרה העיקרית?</label>
+            <div class="radio-group">
+              <label class="radio-option"><input type="radio" name="q-goal" value="לידים"/> לידים</label>
+              <label class="radio-option"><input type="radio" name="q-goal" value="מכירות ישירות"/> מכירות ישירות</label>
+              <label class="radio-option"><input type="radio" name="q-goal" value="בניית קהל"/> בניית קהל</label>
+              <label class="radio-option"><input type="radio" name="q-goal" value="מודעות מותג" checked/> מודעות מותג</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>6. איזה תוכן אתם מפרסמים היום?</label>
+            <textarea id="q-content" placeholder="פוסטים, בלוג, ניוזלטר, סרטונים..." rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>7. מה הכי מתסכל אתכם בשיווק?</label>
+            <textarea id="q-challenges" placeholder="אין זמן? לא יודעים מה לכתוב? אין תוצאות?" rows="2"></textarea>
+          </div>
+
+          <button class="btn btn-primary" onclick="submitAgentSetup()" id="btn-setup-submit">
+            הגדירו את הסוכנים שלי &rarr;
+          </button>
+        </div>
+
+        <!-- Progress (step 2) -->
+        <div class="hidden" id="setup-step2">
+          <h2>מגדירים את הסוכנים שלכם...</h2>
+          <p class="section-desc">זה ייקח כ-30 שניות</p>
+
+          <div class="progress-steps">
+            <div class="p-step active" id="ps-1">
+              <span class="p-icon">&#9881;&#65039;</span>
+              <span>מנתחים את המידע שלכם</span>
+            </div>
+            <div class="p-step" id="ps-2">
+              <span class="p-icon">&#128221;</span>
+              <span>יוצרים USER.md ו-BRAND.md</span>
+            </div>
+            <div class="p-step" id="ps-3">
+              <span class="p-icon">&#129302;</span>
+              <span>מגדירים 9 סוכנים</span>
+            </div>
+            <div class="p-step" id="ps-4">
+              <span class="p-icon">&#128295;</span>
+              <span>מתקינים Skills</span>
+            </div>
+            <div class="p-step" id="ps-5">
+              <span class="p-icon">&#128640;</span>
+              <span>מפעילים מחדש</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Done (step 3) -->
+        <div class="hidden" id="setup-step3">
+          <h2>הסוכנים שלכם מוכנים!</h2>
+          <p class="section-desc">9 סוכנים הוגדרו ומוכנים לעבודה</p>
+
+          <div class="agents-summary">
+            <div class="agent-mini">&#127963; מטה &mdash; מתאם</div>
+            <div class="agent-mini">&#128269; סייר &mdash; סיור אינטרנט</div>
+            <div class="agent-mini">&#128202; מאתר &mdash; מחקר SERP</div>
+            <div class="agent-mini">&#128066; מאזין &mdash; האזנה חברתית</div>
+            <div class="agent-mini">&#129504; מנתח &mdash; ניתוח</div>
+            <div class="agent-mini">&#9997;&#65039; עט &mdash; כתיבה</div>
+            <div class="agent-mini">&#127912; יוצר &mdash; קריאייטיב</div>
+            <div class="agent-mini">&#128228; שליח &mdash; הפצה</div>
+            <div class="agent-mini">&#128301; מגדלור &mdash; AEO</div>
+          </div>
+
+          <div class="next-steps-card">
+            <h3>מה הלאה?</h3>
+            <p>מחר בבוקר תקבלו את ה-Daily Brief הראשון ב-Telegram.</p>
+            <p>כל שבוע ב &mdash; דוח תחרותי מלא.</p>
+            <p>כל חודש &mdash; ביקורת AEO.</p>
+          </div>
+
+          <button class="btn btn-primary" onclick="switchTab('home')">חזרו ללוח הבקרה &rarr;</button>
+        </div>
+      </div>
+    </details>
   </div>
 
 </div>
@@ -996,13 +918,12 @@ var tokenVisible = false;
 document.addEventListener('DOMContentLoaded', function() {
   renderHeader();
   renderHome();
-  renderAgents();
+  renderAgentsTab();
   renderIntegrations();
   renderBilling();
   renderSettings();
   renderAdvanced();
   renderSidebarFooter();
-  renderCustomAgents();
   loadInstanceFromAPI();
 
   // Close dropdown on outside click
@@ -1036,7 +957,7 @@ function updateWithLiveData() {
     components = instanceData.selectedComponents;
     localStorage.setItem('cf_instance_components', JSON.stringify(components));
     renderHome();
-    renderAgents();
+    renderAgentsTab();
   }
 }
 
@@ -1109,7 +1030,8 @@ function renderHome() {
   document.getElementById('homeInfo').innerHTML = infoHtml;
 }
 
-function renderAgents() {
+function renderAgentsTab() {
+  // Section A: Active agents (system agents from components)
   var agentComps = components.filter(function(c) { return c === 'oc' || c === 'mt'; });
   if (agentComps.length === 0) agentComps = ['oc'];
   var html = '';
@@ -1127,8 +1049,8 @@ function renderAgents() {
       '<div class="detail-section"><div class="detail-label">מודל AI</div><div>' +
       (localStorage.getItem('cf_api_key_saved') ? 'Claude Sonnet 4 (Anthropic)' : 'לא מוגדר — חברו מפתח API') + '</div></div>' +
       '<div class="agent-actions">' +
-      '<a href="' + agentUrl + '" target="_blank" class="btn btn-primary">פתחו את הסוכן ' + SVG_ICONS.externalLink + '</a>' +
-      '<button class="btn btn-outline" onclick="restartAgent()">הפעילו מחדש</button></div></div>';
+      '<a href="' + agentUrl + '" target="_blank" class="btn btn-primary">פתחו ' + SVG_ICONS.externalLink + '</a>' +
+      '<button class="btn btn-outline" onclick="restartAgent()">&#8635; הפעילו מחדש</button></div></div>';
   });
 
   // Show automation tool as well
@@ -1141,6 +1063,20 @@ function renderAgents() {
       '<div class="status-badge running"><span class="status-dot"></span>פעיל</div>' +
       '<div class="agent-actions" style="margin-top:12px">' +
       '<a href="' + flowsUrl + '" target="_blank" class="btn btn-primary">פתחו את כלי האוטומציה ' + SVG_ICONS.externalLink + '</a></div></div>';
+  });
+
+  // Custom agents from localStorage
+  var customAgents = JSON.parse(localStorage.getItem('cf_custom_agents') || '[]');
+  customAgents.forEach(function(a, i) {
+    html += '<div class="agent-detail-card">' +
+      '<h3><div class="agent-icon-circle oc" style="width:32px;height:32px">' + SVG_ICONS.robot + '</div>' + a.name + '</h3>' +
+      '<div class="status-badge running"><span class="status-dot"></span>פעיל</div>' +
+      '<div class="detail-section"><div class="detail-label">תיאור</div><div style="font-size:0.88rem;color:#6B7280">' + (a.desc || '') + '</div></div>' +
+      '<div class="detail-section"><div class="detail-label">מודל</div><div style="font-size:0.88rem">' + a.model + '</div></div>' +
+      '<div class="agent-actions">' +
+      '<a href="' + agentUrl + '" target="_blank" class="btn btn-primary">פתחו ' + SVG_ICONS.externalLink + '</a>' +
+      '<button class="btn btn-outline" onclick="restartAgent()">&#8635; הפעילו מחדש</button>' +
+      '<button class="btn btn-danger-outline" onclick="deleteAgent(' + i + ')" style="font-size:0.82rem">מחיקה</button></div></div>';
   });
 
   if (!html) {
@@ -1241,8 +1177,7 @@ function switchTab(tabId) {
   document.getElementById('sidebarOverlay').classList.remove('show');
   // Load data for specific tabs
   if (tabId === 'files') fmNavigate(fmCurrentDir || '');
-  if (tabId === 'advanced') loadStats();
-  if (tabId === 'terminal' && termFit && term) { setTimeout(function(){ termFit.fit(); }, 100); }
+  if (tabId === 'server') { loadStats(); if (termFit && term) { setTimeout(function(){ termFit.fit(); }, 100); } }
 }
 
 /* ===== Mobile sidebar ===== */
@@ -1276,7 +1211,7 @@ function saveApiKey(provider) {
   if (card) card.classList.add('connected-card');
   showToast('מפתח ' + provider + ' נשמר בהצלחה', 'success');
   renderHome();
-  renderAgents();
+  renderAgentsTab();
 }
 
 function saveTelegram() {
@@ -1288,7 +1223,7 @@ function saveTelegram() {
   document.getElementById('telegram-card').classList.add('connected-card');
   showToast('בוט Telegram חובר בהצלחה', 'success');
   renderHome();
-  renderAgents();
+  renderAgentsTab();
 }
 
 function saveName() {
@@ -1348,7 +1283,7 @@ function logout() {
   window.location.href = '/login';
 }
 
-/* ===== Agent Setup ===== */
+/* ===== Agent Setup (MATEH wizard in settings) ===== */
 async function submitAgentSetup() {
   var btn = document.getElementById('btn-setup-submit');
   btn.disabled = true;
@@ -1371,8 +1306,8 @@ async function submitAgentSetup() {
     return;
   }
 
-  // Show step 2
-  document.getElementById('setup-step1').classList.add('hidden');
+  // Show step 2 (hide form, show progress)
+  btn.closest('.setup-form').classList.add('hidden');
   document.getElementById('setup-step2').classList.remove('hidden');
 
   // Animate progress steps
@@ -1416,7 +1351,7 @@ async function submitAgentSetup() {
     } else {
       showToast(data.message || 'שגיאה בהגדרת הסוכנים', 'error');
       document.getElementById('setup-step2').classList.add('hidden');
-      document.getElementById('setup-step1').classList.remove('hidden');
+      btn.closest('.setup-form').classList.remove('hidden');
       btn.disabled = false;
       btn.textContent = 'הגדירו את הסוכנים שלי \u2192';
     }
@@ -1424,27 +1359,22 @@ async function submitAgentSetup() {
     clearInterval(progressInterval);
     showToast('שגיאת תקשורת, נסו שוב', 'error');
     document.getElementById('setup-step2').classList.add('hidden');
-    document.getElementById('setup-step1').classList.remove('hidden');
+    btn.closest('.setup-form').classList.remove('hidden');
     btn.disabled = false;
     btn.textContent = 'הגדירו את הסוכנים שלי \u2192';
   }
 }
 
-/* ===== Agent Creator ===== */
-function showAgentForm() {
-  document.getElementById('agent-form').classList.remove('hidden');
-}
-function hideAgentForm() {
-  document.getElementById('agent-form').classList.add('hidden');
-}
-async function saveAgent() {
-  var name = document.getElementById('agent-name').value.trim();
-  if (!name) { showToast('הכניסו שם לסוכן', 'error'); return; }
+/* ===== Smart Agent Creator (merged into agents tab) ===== */
+async function createSmartAgent() {
+  var prompt = document.getElementById('new-agent-prompt').value.trim();
+  if (!prompt) { showToast('תארו מה הסוכן צריך לעשות', 'error'); return; }
+  var model = document.getElementById('new-agent-model').value;
+  var name = prompt.split(' ').slice(0, 3).join('-').replace(/[^a-zא-ת0-9-]/gi, '').substring(0, 20) || 'custom-agent';
 
-  var soul = document.getElementById('agent-soul').value || '# ' + name + '\n\nסוכן מותאם אישית.';
-  var model = document.getElementById('agent-model').value;
+  var soul = '# ' + name + '\n\n## מי אני\n' + prompt + '\n\n## כללים\n- להיות ישיר ומקצועי\n- לבקש אישור לפני פעולות חשובות\n- לעצור אחרי 3 כישלונות ולדווח\n\n## מודל\n' + model;
+
   var iid = localStorage.getItem('cf_instance_id');
-
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
 
   try {
@@ -1454,57 +1384,28 @@ async function saveAgent() {
       body: JSON.stringify({ name: name, soul: soul, model: model })
     });
     var data = await res.json();
-
     if (data.success) {
-      // Also save to localStorage for display
       var agents = JSON.parse(localStorage.getItem('cf_custom_agents') || '[]');
-      agents.push({
-        name: name,
-        desc: document.getElementById('agent-desc').value,
-        model: model,
-        soul: soul,
-        slug: data.data.slug,
-        created: new Date().toISOString()
-      });
+      agents.push({ name: name, desc: prompt, model: model, created: new Date().toISOString() });
       localStorage.setItem('cf_custom_agents', JSON.stringify(agents));
-
-      showToast('הסוכן נוצר ופורס בהצלחה!', 'success');
-      hideAgentForm();
-      renderCustomAgents();
-
-      // Clear form
-      document.getElementById('agent-name').value = '';
-      document.getElementById('agent-desc').value = '';
-      document.getElementById('agent-soul').value = '';
+      showToast('הסוכן נוצר!', 'success');
+      document.getElementById('new-agent-prompt').value = '';
+      renderAgentsTab();
     } else {
-      showToast(data.message || 'שגיאה ביצירת הסוכן', 'error');
+      showToast(data.message || 'שגיאה', 'error');
     }
-  } catch (e) {
-    showToast('שגיאת תקשורת', 'error');
-  }
+  } catch (e) { showToast('שגיאת תקשורת', 'error'); }
 }
-function renderCustomAgents() {
-  var agents = JSON.parse(localStorage.getItem('cf_custom_agents') || '[]');
-  var list = document.getElementById('agents-list');
-  if (!list) return;
-  if (!agents.length) {
-    list.innerHTML = '<div class="empty-state"><div style="font-size:2rem;margin-bottom:8px">\uD83E\uDD16</div><div>עדיין לא יצרתם סוכן מותאם אישית</div><button class="btn btn-primary" onclick="showAgentForm()" style="margin-top:12px">+ צרו סוכן חדש</button></div>';
-    return;
-  }
-  list.innerHTML = '<button class="btn btn-primary" onclick="showAgentForm()" style="margin-bottom:16px">+ סוכן חדש</button>' +
-    agents.map(function(a, i) {
-      return '<div class="card" style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center"><div><strong>' + a.name + '</strong><div style="font-size:0.82rem;color:#6B7280">' + (a.desc || '') + '</div><div style="font-size:0.75rem;color:#9CA3AF;margin-top:2px">' + a.model + '</div></div><button class="btn btn-outline" onclick="deleteAgent(' + i + ')" style="font-size:0.75rem;padding:4px 10px;color:#EF4444;border-color:#FCA5A5">מחיקה</button></div></div>';
-    }).join('');
-}
+
 function deleteAgent(i) {
   var agents = JSON.parse(localStorage.getItem('cf_custom_agents') || '[]');
   agents.splice(i, 1);
   localStorage.setItem('cf_custom_agents', JSON.stringify(agents));
-  renderCustomAgents();
+  renderAgentsTab();
   showToast('הסוכן נמחק', 'success');
 }
 
-/* ===== Integration save (new catalog) ===== */
+/* ===== Integration save (catalog) ===== */
 async function saveIntegration(type) {
   var keyMap = {
     anthropic: 'int-anthropic-key',
@@ -1596,7 +1497,6 @@ async function fmNavigate(dir) {
       var clickAction = item.type === 'dir'
         ? 'fmNavigate(\'' + item.path + '\')'
         : 'fmOpenFile(\'' + item.path + '\')';
-
       html += '<div class="fm-row" onclick="' + clickAction + '" style="cursor:pointer">'
         + '<span class="fm-icon">' + icon + '</span>'
         + '<span class="fm-name">' + item.name + '</span>'
