@@ -84,16 +84,21 @@ const provisioner = {
         }
     },
 
-    async pollUntilReady(instanceId: string, serverId: string, maxWaitMs: number = 600_000): Promise<boolean> {
+    async pollUntilReady(instanceId: string, serverId: string, subdomainAgent?: string, ip?: string, maxWaitMs: number = 600_000): Promise<boolean> {
         const provider = getProvider('hetzner')
         const start = Date.now()
 
         while (Date.now() - start < maxWaitMs) {
             const status = await provider.getServer(serverId)
             if (status.status === 'running') {
-                const agentUrl = `http://agent.${instanceId}.openclaw.flowmatic.co.il`
+                // Try subdomain first, fall back to direct IP
+                const healthUrl = subdomainAgent
+                    ? `http://${subdomainAgent}`
+                    : ip
+                        ? `http://${ip}:3000`
+                        : `http://agent.${instanceId}.openclaw.flowmatic.co.il`
                 try {
-                    const res = await fetch(agentUrl, { signal: AbortSignal.timeout(5000) })
+                    const res = await fetch(healthUrl, { signal: AbortSignal.timeout(5000) })
                     if (res.ok) return true
                 } catch {
                     // not ready yet

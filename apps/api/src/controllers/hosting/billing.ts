@@ -154,7 +154,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
                         subdomainFlows: result.subdomainFlows,
                     }).where(eq(instances.id, instanceId))
 
-                    return provisioner.pollUntilReady(instanceId, result.serverId)
+                    return provisioner.pollUntilReady(instanceId, result.serverId, result.subdomainAgent, result.ip)
                 }).then(async (ready) => {
                     await db.update(instances)
                         .set({ status: ready ? 'running' : 'failed' })
@@ -239,7 +239,7 @@ export const handleAllpayWebhook = async (c: Context) => {
                 subdomainFlows: result.subdomainFlows
             }).where(eq(instances.id, instanceId))
 
-            provisioner.pollUntilReady(instanceId, result.serverId).then(async (ready) => {
+            provisioner.pollUntilReady(instanceId, result.serverId, result.subdomainAgent, result.ip).then(async (ready) => {
                 if (ready) {
                     await db.update(instances)
                         .set({ status: 'running' })
