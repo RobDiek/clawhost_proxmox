@@ -353,11 +353,14 @@ export const saveIntegration = async (c: Context) => {
 
         await sshExecInstance(instance, `${cmd} && chown -R openclaw:openclaw /home/openclaw/.openclaw && systemctl restart openclaw-gateway`)
 
-        // Update onboarding progress + save API key in DB for server-side Claude calls
+        // Update onboarding progress + save API key in DB
         if (['anthropic', 'openai', 'gemini'].includes(type)) {
-            const updateData: Record<string, unknown> = {
-                aiProviderKey: key,
-                aiProviderType: type,
+            const updateData: Record<string, unknown> = {}
+            if (type === 'anthropic') {
+                updateData.aiProviderKey = key
+                updateData.aiProviderType = 'anthropic'
+            } else if (type === 'openai') {
+                updateData.openaiApiKey = key
             }
             const step = instance.onboardingStep ?? 0
             if (step < 2) updateData.onboardingStep = 2

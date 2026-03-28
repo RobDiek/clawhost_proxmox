@@ -128,10 +128,13 @@ export const setupApiKey = async (c: Context) => {
             systemctl restart openclaw-gateway
         `, instance.rootPassword || undefined)
 
-        // Save key in DB for server-side Claude calls (analyze, research, generate)
-        const updateData: Record<string, unknown> = {
-            aiProviderKey: apiKey,
-            aiProviderType: provider,
+        // Save key in DB — support both Anthropic AND OpenAI simultaneously
+        const updateData: Record<string, unknown> = {}
+        if (provider === 'anthropic') {
+            updateData.aiProviderKey = apiKey
+            updateData.aiProviderType = 'anthropic'
+        } else if (provider === 'openai') {
+            updateData.openaiApiKey = apiKey
         }
         const step = instance.onboardingStep || 0
         if (step < 2) updateData.onboardingStep = 2

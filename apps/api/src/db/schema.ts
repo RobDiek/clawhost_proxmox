@@ -267,8 +267,9 @@ export const instances = pgTable(
         subdomainName: text('subdomain_name').unique(),
 
         // AI Provider keys (user's own keys)
-        aiProviderKey: text('ai_provider_key'),     // Anthropic or OpenAI key
+        aiProviderKey: text('ai_provider_key'),     // Anthropic key
         aiProviderType: text('ai_provider_type'),   // 'anthropic' | 'openai'
+        openaiApiKey: text('openai_api_key'),       // OpenAI key (separate, both can coexist)
 
         // Google Workspace OAuth tokens
         googleTokens: jsonb('google_tokens'),       // { accessToken, refreshToken, expiresAt, scopes[], email }
