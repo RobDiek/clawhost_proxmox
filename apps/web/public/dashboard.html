@@ -1031,6 +1031,7 @@ function buildAgentUrl(base, token) {
       // Re-render with real data
       if (typeof renderHome === 'function') renderHome();
       if (typeof renderAgentsTab === 'function') renderAgentsTab();
+      if (typeof renderIntegrations === 'function') renderIntegrations();
     }
   } catch(e) { console.error('Auto-load instance error:', e); }
 })();
@@ -1087,6 +1088,7 @@ function updateWithLiveData() {
   if (instanceData.onboardingStep >= 3 || instanceData.onboardingCompleted) localStorage.setItem('cf_telegram_saved', '1');
   renderHome();
   renderAgentsTab();
+  renderIntegrations();
 }
 
 /* ===== Render functions ===== */
