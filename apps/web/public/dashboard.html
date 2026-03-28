@@ -1089,9 +1089,12 @@ function updateWithLiveData() {
   if (instanceData.selectedComponents && instanceData.selectedComponents.length) {
     components = instanceData.selectedComponents;
     localStorage.setItem('cf_instance_components', JSON.stringify(components));
-    renderHome();
-    renderAgentsTab();
   }
+  // Always sync onboarding state from server
+  if (instanceData.onboardingStep >= 2 || instanceData.onboardingCompleted) localStorage.setItem('cf_api_key_saved', 'anthropic');
+  if (instanceData.onboardingStep >= 3 || instanceData.onboardingCompleted) localStorage.setItem('cf_telegram_saved', '1');
+  renderHome();
+  renderAgentsTab();
 }
 
 /* ===== Render functions ===== */
