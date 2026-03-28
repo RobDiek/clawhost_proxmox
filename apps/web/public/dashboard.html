@@ -324,6 +324,8 @@ input{font-family:inherit}
   .int-action{flex-direction:column}
   .int-action input{min-width:auto}
   .header-email{display:none}
+  .debug-panel{left:10px;right:10px;width:auto}
+  .int-card[data-tooltip]:hover::after{display:none}
 }
 
 /* ===== Agent Creator tab ===== */
@@ -335,6 +337,9 @@ input{font-family:inherit}
 .integrations-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-bottom:20px }
 .int-card { background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px;transition:border-color .15s }
 .int-card:hover { border-color:#D1D5DB }
+.int-card[data-tooltip] { position:relative }
+.int-card[data-tooltip]:hover::after { content:attr(data-tooltip); position:absolute; bottom:calc(100% + 8px); right:0; background:#1F2937; color:#fff; font-size:0.78rem; padding:8px 12px; border-radius:8px; max-width:280px; white-space:normal; line-height:1.4; z-index:50; box-shadow:0 4px 12px rgba(0,0,0,.15); pointer-events:none; animation:fadeIn .15s ease }
+.int-card[data-tooltip]:hover::before { content:''; position:absolute; bottom:calc(100% + 2px); right:20px; border:6px solid transparent; border-top-color:#1F2937; z-index:50 }
 .int-card.connected { border-right:3px solid #10B981 }
 .int-card-header { display:flex;align-items:center;gap:10px }
 .int-icon { width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0 }
@@ -730,7 +735,7 @@ input{font-family:inherit}
     <!-- AI Models -->
     <div class="section-title">מודלי AI</div>
     <div class="integrations-grid">
-      <div class="int-card" id="anthropic-card">
+      <div class="int-card" id="anthropic-card" data-tooltip="Claude AI — המודלים המתקדמים ביותר של Anthropic. נדרש למערכת MATEH ולמרבית פעולות הסוכנים. Opus לניתוח עמוק, Sonnet לעבודה שוטפת, Haiku לפעולות מהירות וזולות.">
         <div class="int-card-header">
           <div class="int-icon" style="background:#FDF2F0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13.827 3L24 21h-4.62L9.203 3h4.624zM5.584 3l5.15 10.073L8.24 17.636 0 3h5.584z" fill="#D97757"/></svg></div>
           <div><strong>Anthropic Claude</strong><div class="int-status" id="anthropic-status">לא מחובר</div></div>
@@ -741,7 +746,7 @@ input{font-family:inherit}
           <a href="https://console.anthropic.com" target="_blank" class="int-help-link">פתחו חשבון ב-Anthropic &#8599;</a>
         </div>
       </div>
-      <div class="int-card" id="openai-card">
+      <div class="int-card" id="openai-card" data-tooltip="OpenAI GPT-4o — מודל חלופי ומהיר. משמש כ-fallback כשAnthropicבlimit, וגם לתמלול הודעות קוליות (Whisper). מומלץ לחבר לצד Anthropic.">
         <div class="int-card-header">
           <div class="int-icon" style="background:#E8F5E9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22.282 9.821a5.985 5.985 0 00-.516-4.91 6.046 6.046 0 00-6.51-2.9A6.065 6.065 0 0011.694.1 6.043 6.043 0 005.706 4.28a5.99 5.99 0 00-3.99 2.9 6.043 6.043 0 00.749 7.09 5.98 5.98 0 00.51 4.911 6.05 6.05 0 006.515 2.9A5.99 5.99 0 0013.052 23.9a6.04 6.04 0 005.984-4.18 5.99 5.99 0 003.996-2.9 6.04 6.04 0 00-.75-6.999zM13.052 22.26a4.5 4.5 0 01-2.886-1.045l.143-.08 4.793-2.77a.78.78 0 00.393-.676v-6.76l2.026 1.17a.07.07 0 01.038.052v5.6a4.508 4.508 0 01-4.507 4.509zM3.495 18.14a4.49 4.49 0 01-.535-3.014l.143.085 4.793 2.77a.78.78 0 00.786 0l5.854-3.38v2.34a.07.07 0 01-.028.06l-4.85 2.8a4.508 4.508 0 01-6.163-1.661zM2.223 7.94a4.49 4.49 0 012.35-1.97l-.002.164v5.54a.78.78 0 00.392.676l5.854 3.38-2.026 1.17a.07.07 0 01-.066.005l-4.85-2.8A4.508 4.508 0 012.223 7.94zm17.088 3.98l-5.854-3.38 2.026-1.17a.07.07 0 01.066-.004l4.85 2.8a4.506 4.506 0 01-.7 8.124v-5.694a.78.78 0 00-.388-.676zm2.016-3.03l-.143-.085-4.793-2.77a.78.78 0 00-.786 0l-5.854 3.38V7.075a.07.07 0 01.028-.06l4.85-2.8a4.507 4.507 0 016.698 4.675zm-12.68 4.17l-2.026-1.17a.07.07 0 01-.038-.052v-5.6a4.508 4.508 0 017.4-3.46l-.144.08-4.793 2.77a.78.78 0 00-.393.676l-.006 6.756zm1.1-2.37l2.607-1.505 2.607 1.505v3.01l-2.607 1.505-2.607-1.505v-3.01z" fill="#10A37F"/></svg></div>
           <div><strong>OpenAI</strong><div class="int-status" id="openai-status">לא מחובר</div></div>
@@ -1044,23 +1049,10 @@ input{font-family:inherit}
     <div class="code-block" id="advApiBlock"></div>
   </div>
 
-  <!-- Tab: Billing -->
-  <div class="tab-content hidden" id="tab-billing">
-    <div class="section-title">התוכנית שלכם</div>
-    <div class="plan-card-big" id="planCardBig"></div>
-
-    <div class="section-title">פרטי חיוב</div>
-    <div class="info-row"><span class="info-label">סטטוס מנוי</span><span class="badge-green"><span class="agent-status-dot" style="width:6px;height:6px;background:#10B981;border-radius:50;display:inline-block"></span>פעיל</span></div>
-    <div class="info-row"><span class="info-label">אמצעי תשלום</span><span class="info-value">AllPay</span></div>
-
-    <div class="billing-actions">
-      <button class="btn btn-outline" onclick="alert('פנו לתמיכה לשדרוג')">שדרגו תוכנית</button>
-      <button class="btn btn-danger-outline" onclick="cfConfirm('ביטול מנוי','בטוחים שברצונכם לבטל את המנוי?').then(function(ok){if(ok)alert('פנו לתמיכה לביטול')})">בטלו מנוי</button>
-    </div>
-  </div>
-
-  <!-- Tab: Settings (+ MATEH wizard) -->
+  <!-- Tab: Settings (profile + billing + language) -->
   <div class="tab-content hidden" id="tab-settings">
+    <h2 class="tab-title">הגדרות</h2>
+
     <div class="section-title">פרופיל</div>
     <div class="form-group">
       <label>שם</label>
@@ -1080,17 +1072,17 @@ input{font-family:inherit}
 
     <!-- MATEH Setup moved to Agent Detail page (סוכנים → הגדרות) -->
 
-    <!-- Advanced Mode -->
-    <div class="section-title" style="margin-top:40px">מתקדם</div>
-    <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:16px;margin-bottom:12px">
-      <p style="font-size:0.85rem;color:#9A3412;margin-bottom:12px">
-        <strong>OpenClaw Control Dashboard</strong> — לוח בקרה מלא לניהול Gateway, Sessions, Agents, Skills ועוד.
-        מיועד למשתמשים מתקדמים בלבד.
-      </p>
-      <button class="btn btn-outline" onclick="openAdvancedDashboard()" style="font-size:0.85rem">
-        Advanced: OpenClaw Control &#8599;
-      </button>
+    <!-- Billing section (moved from separate tab) -->
+    <div class="section-title" style="margin-top:32px">חיוב ומנוי</div>
+    <div class="plan-card-big" id="planCardBig"></div>
+    <div class="info-row"><span class="info-label">סטטוס מנוי</span><span class="badge-green"><span class="agent-status-dot" style="width:6px;height:6px;background:#10B981;border-radius:50%;display:inline-block"></span> פעיל</span></div>
+    <div class="info-row"><span class="info-label">אמצעי תשלום</span><span class="info-value">AllPay</span></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-outline" onclick="alert('פנו לתמיכה לשדרוג')">שדרגו תוכנית</button>
+      <button class="btn btn-outline" onclick="cfConfirm('ביטול מנוי','בטוחים שברצונכם לבטל את המנוי?').then(function(ok){if(ok)alert('פנו לתמיכה לביטול')})" style="color:#EF4444;border-color:#FECACA">בטלו מנוי</button>
     </div>
+
+    <!-- MATEH Setup moved to Agent Detail page -->
   </div>
 
 </div>
@@ -1222,6 +1214,7 @@ document.addEventListener('DOMContentLoaded', function() {
   renderHome();
   renderAgentsTab();
   renderIntegrations();
+  addIntegrationTooltips();
   checkGoogleStatus();
   renderBilling();
   renderSettings();
@@ -1574,6 +1567,35 @@ function switchDevTab(subTab) {
 
 function toggleDebugPanel() {
   document.getElementById('debugPanel').classList.toggle('hidden');
+}
+
+function addIntegrationTooltips() {
+  var tips = {
+    'anthropic-card': 'Claude AI — המודלים המתקדמים ביותר. Opus לניתוח עמוק, Sonnet לעבודה שוטפת, Haiku לפעולות זולות.',
+    'openai-card': 'GPT-4o — מודל חלופי. Fallback כש-Anthropic ב-limit. גם לתמלול הודעות קוליות (Whisper).',
+    'telegram-card': 'בוט Telegram — הערוץ הראשי לתקשורת עם הסוכנים. Daily Brief, אישורים, עדכונים.',
+    'google-card': 'Google Workspace — Calendar, Drive, Gmail, Sheets. חיבור OAuth אחד לכל השירותים.',
+  };
+  // Also add to cards without IDs by searching text
+  document.querySelectorAll('.int-card').forEach(function(card) {
+    if (card.id && tips[card.id]) {
+      card.setAttribute('data-tooltip', tips[card.id]);
+    } else {
+      var strong = card.querySelector('strong');
+      if (!strong) return;
+      var name = strong.textContent;
+      var tipMap = {
+        'Google Gemini': 'מודל AI של Google. חלופה נוספת למקרים ספציפיים.',
+        'Ollama (מקומי)': 'הרצת מודלים מקומיים על ה-VPS שלכם — ללא API חיצוני. דורש 8GB+ RAM.',
+        'Email (SMTP)': 'שליחת אימיילים מהסוכנים — ניוזלטרים, עדכונים, follow-up אוטומטי.',
+        'Resend': 'שירות Email API מתקדם — שליחה אמינה עם tracking ותבניות.',
+        'Microsoft Outlook': 'חיבור לחשבון Outlook — אימיילים ויומן של Microsoft 365.',
+        'Microsoft Calendar': 'ניהול יומן Microsoft 365 — אירועים, תזכורות, הזמנות.',
+        'Notion': 'סנכרון עם Notion — ניהול משימות, מסמכים ובסיסי נתונים.',
+      };
+      if (tipMap[name]) card.setAttribute('data-tooltip', tipMap[name]);
+    }
+  });
 }
 
 function submitDebug() {
