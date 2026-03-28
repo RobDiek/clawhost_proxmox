@@ -322,6 +322,29 @@ export const saveIntegration = async (c: Context) => {
         const cmd = commands[type]
         if (!cmd) return fail(c, 'Unknown integration type.', 400)
 
+        // For Telegram, ensure device is paired first (required for CLI channels add)
+        if (type === 'telegram') {
+            const pairTest = await sshExec(instance.ip, `su - openclaw -c 'openclaw cron list 2>&1' 2>&1`, instance.rootPassword || undefined)
+            if (pairTest.includes('pairing required') || pairTest.includes('abnormal closure')) {
+                console.log(`Device not paired on ${instance.ip}, pairing...`)
+                await sshExec(instance.ip, `su - openclaw -c 'openclaw config set gateway.port 3000 2>/dev/null; openclaw cron list 2>/dev/null || true' 2>&1`, instance.rootPassword || undefined)
+                await new Promise(r => setTimeout(r, 2000))
+                await sshExec(instance.ip, `
+                    su - openclaw -c '
+                    DEVICE_ID=$(node -e "try{const d=require(process.env.HOME+\\\"/.openclaw/identity/device.json\\\");console.log(d.deviceId)}catch(e){}" 2>/dev/null)
+                    PUB_KEY=$(node -e "try{const p=require(process.env.HOME+\\\"/.openclaw/devices/pending.json\\\");const k=Object.values(p)[0];if(k)console.log(k.publicKey)}catch(e){}" 2>/dev/null)
+                    if [ -n "$DEVICE_ID" ] && [ -n "$PUB_KEY" ]; then
+                        mkdir -p ~/.openclaw/devices
+                        printf "{\\n  \\"$DEVICE_ID\\": {\\n    \\"deviceId\\": \\"$DEVICE_ID\\",\\n    \\"publicKey\\": \\"$PUB_KEY\\",\\n    \\"platform\\": \\"linux\\",\\n    \\"clientId\\": \\"cli\\",\\n    \\"clientMode\\": \\"cli\\",\\n    \\"role\\": \\"operator\\",\\n    \\"roles\\": [\\"operator\\"],\\n    \\"scopes\\": [\\"operator.admin\\",\\"operator.read\\",\\"operator.write\\",\\"operator.approvals\\",\\"operator.pairing\\"],\\n    \\"pairedAtMs\\": '$(date +%%s000)',\\n    \\"label\\": \\"local-cli\\"\\n  }\\n}" > ~/.openclaw/devices/paired.json
+                        echo "{}" > ~/.openclaw/devices/pending.json
+                    fi
+                    '
+                `, instance.rootPassword || undefined)
+                await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
+                await new Promise(r => setTimeout(r, 4000))
+            }
+        }
+
         await sshExec(instance.ip, `${cmd} && chown -R openclaw:openclaw /home/openclaw/.openclaw && systemctl restart openclaw-gateway`, instance.rootPassword || undefined)
 
         // Update onboarding progress based on integration type

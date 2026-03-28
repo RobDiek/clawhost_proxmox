@@ -53,6 +53,55 @@ function sshExec(ip: string, command: string, password?: string): Promise<string
     })
 }
 
+// ── Ensure CLI device is paired with gateway ──
+async function ensureDevicePaired(ip: string, password?: string): Promise<void> {
+    // Check if device is already paired by testing a CLI command
+    const test = await sshExec(ip, `su - openclaw -c 'openclaw cron list 2>&1' 2>&1`, password)
+    if (!test.includes('pairing required') && !test.includes('abnormal closure')) {
+        return // Already paired
+    }
+
+    console.log(`Device not paired on ${ip}, pairing now...`)
+
+    // Set gateway port and trigger device identity creation
+    await sshExec(ip, `su - openclaw -c 'openclaw config set gateway.port 3000 2>/dev/null' 2>&1`, password)
+    await sshExec(ip, `su - openclaw -c 'openclaw cron list 2>/dev/null || true' 2>&1`, password)
+    await new Promise(r => setTimeout(r, 2000))
+
+    // Read pending request and approve it
+    await sshExec(ip, `
+        su - openclaw -c '
+        DEVICE_ID=$(node -e "try{const d=require(process.env.HOME+\\\"/.openclaw/identity/device.json\\\");console.log(d.deviceId)}catch(e){}" 2>/dev/null)
+        PUB_KEY=$(node -e "try{const p=require(process.env.HOME+\\\"/.openclaw/devices/pending.json\\\");const k=Object.values(p)[0];if(k)console.log(k.publicKey)}catch(e){}" 2>/dev/null)
+
+        if [ -n "$DEVICE_ID" ] && [ -n "$PUB_KEY" ]; then
+            mkdir -p ~/.openclaw/devices
+            cat > ~/.openclaw/devices/paired.json << EOFPAIR
+{
+  "$DEVICE_ID": {
+    "deviceId": "$DEVICE_ID",
+    "publicKey": "$PUB_KEY",
+    "platform": "linux",
+    "clientId": "cli",
+    "clientMode": "cli",
+    "role": "operator",
+    "roles": ["operator"],
+    "scopes": ["operator.admin","operator.read","operator.write","operator.approvals","operator.pairing"],
+    "pairedAtMs": '$(date +%s000)',
+    "label": "local-cli"
+  }
+}
+EOFPAIR
+            echo "{}" > ~/.openclaw/devices/pending.json
+        fi
+        '
+    `, password)
+
+    // Restart gateway to pick up pairing
+    await sshExec(ip, 'systemctl restart openclaw-gateway', password)
+    await new Promise(r => setTimeout(r, 4000))
+}
+
 // POST /hosting/instances/:id/setup/api-key
 export const setupApiKey = async (c: Context) => {
     try {
@@ -109,11 +158,15 @@ export const setupTelegram = async (c: Context) => {
             return fail(c, 'Instance not found or not ready.', 404)
         }
 
+        // Ensure CLI device is paired before running channel commands
+        await ensureDevicePaired(instance.ip, instance.rootPassword || undefined)
+
         // Configure Telegram on VPS via OpenClaw CLI
         const sanitizedToken = botToken.replace(/[^a-zA-Z0-9:_-]/g, '')
-        await sshExec(instance.ip, `
+        const result = await sshExec(instance.ip, `
             su - openclaw -c 'openclaw channels add --channel telegram --token "${sanitizedToken}" --name "telegram-main" 2>&1'
         `, instance.rootPassword || undefined)
+        console.log('Telegram add result:', result)
 
         // Restart gateway to pick up channel config
         await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)

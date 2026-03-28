@@ -203,17 +203,19 @@ async function deployAgentSystem(ip: string, userMd: string, brandMd: string, br
     // Wait for gateway to start
     await new Promise(r => setTimeout(r, 5000))
 
-    // Pair the CLI with the gateway (required for cron commands)
+    // Ensure CLI device is paired (required for cron commands)
+    // Trigger a connection attempt to create device identity + pending request
+    await sshExec(ip, `su - openclaw -c 'openclaw config set gateway.port 3000 2>/dev/null; openclaw cron list 2>/dev/null || true' 2>&1`, password)
+    await new Promise(r => setTimeout(r, 2000))
+
+    // Read the pending request and approve it as paired
     await sshExec(ip, `
         su - openclaw -c '
-        # Set gateway port in config
-        openclaw config set gateway.port 3000 2>/dev/null
+        DEVICE_ID=$(node -e "try{const d=require(process.env.HOME+\\\"/.openclaw/identity/device.json\\\");console.log(d.deviceId)}catch(e){}" 2>/dev/null)
+        PUB_KEY=$(node -e "try{const p=require(process.env.HOME+\\\"/.openclaw/devices/pending.json\\\");const k=Object.values(p)[0];if(k)console.log(k.publicKey)}catch(e){}" 2>/dev/null)
 
-        # Read device identity and approve it as paired
-        DEVICE_ID=$(node -e "const d=require(process.env.HOME+\"/.openclaw/identity/device.json\"); console.log(d.deviceId)" 2>/dev/null)
-        PUB_KEY=$(node -e "const d=require(process.env.HOME+\"/.openclaw/identity/device.json\"); const k=d.publicKeyPem.replace(/-----[^-]+-----/g,\"\").replace(/\\n/g,\"\").replace(/\\+/g,\"-\").replace(/\\//g,\"_\").replace(/=/g,\"\"); console.log(k)" 2>/dev/null)
-
-        if [ -n "$DEVICE_ID" ]; then
+        if [ -n "$DEVICE_ID" ] && [ -n "$PUB_KEY" ]; then
+            mkdir -p ~/.openclaw/devices
             cat > ~/.openclaw/devices/paired.json << EOFPAIR
 {
   "$DEVICE_ID": {
@@ -235,7 +237,7 @@ EOFPAIR
         '
     `, password)
 
-    // Restart again after pairing
+    // Restart gateway to pick up pairing
     await sshExec(ip, 'systemctl restart openclaw-gateway', password)
     await new Promise(r => setTimeout(r, 4000))
 

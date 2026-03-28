@@ -90,6 +90,51 @@ runcmd:
     - systemctl enable openclaw-gateway
     - systemctl start openclaw-gateway
 
+    # ── Pair CLI device with Gateway ──
+    # Required for openclaw CLI commands (channels add, cron add, etc.)
+    - sleep 5
+    - |
+        su - openclaw -c '
+        # Set gateway port in config
+        openclaw config set gateway.port 3000 2>/dev/null
+
+        # Trigger device identity creation by attempting a connection
+        openclaw cron list 2>/dev/null || true
+        sleep 2
+
+        # Read device identity and write it as paired
+        DEVICE_ID=$(node -e "try{const d=require(process.env.HOME+\"/.openclaw/identity/device.json\");console.log(d.deviceId)}catch(e){}" 2>/dev/null)
+
+        if [ -n "$DEVICE_ID" ]; then
+            # Read the pending request to get the correct publicKey format
+            PUB_KEY=$(node -e "try{const p=require(process.env.HOME+\"/.openclaw/devices/pending.json\");const k=Object.values(p)[0];if(k)console.log(k.publicKey)}catch(e){}" 2>/dev/null)
+
+            if [ -n "$PUB_KEY" ]; then
+                mkdir -p ~/.openclaw/devices
+                cat > ~/.openclaw/devices/paired.json << EOFPAIR
+        {
+          "$DEVICE_ID": {
+            "deviceId": "$DEVICE_ID",
+            "publicKey": "$PUB_KEY",
+            "platform": "linux",
+            "clientId": "cli",
+            "clientMode": "cli",
+            "role": "operator",
+            "roles": ["operator"],
+            "scopes": ["operator.admin","operator.read","operator.write","operator.approvals","operator.pairing"],
+            "pairedAtMs": $(date +%s)000,
+            "label": "local-cli"
+          }
+        }
+        EOFPAIR
+                echo "{}" > ~/.openclaw/devices/pending.json
+            fi
+        fi
+        '
+    # Restart gateway to pick up pairing
+    - systemctl restart openclaw-gateway
+    - sleep 3
+
     # ── Automation Tool (Docker) ──
     {{#IS_N8N}}
     - mkdir -p /opt/openclaw/data/n8n
