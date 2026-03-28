@@ -128,13 +128,17 @@ export const setupApiKey = async (c: Context) => {
             systemctl restart openclaw-gateway
         `, instance.rootPassword || undefined)
 
-        // Update onboarding step
-        const step = instance.onboardingStep || 0
-        if (step < 2) {
-            await db.update(instances)
-                .set({ onboardingStep: 2 })
-                .where(eq(instances.id, instanceId))
+        // Save key in DB for server-side Claude calls (analyze, research, generate)
+        const updateData: Record<string, unknown> = {
+            aiProviderKey: apiKey,
+            aiProviderType: provider,
         }
+        const step = instance.onboardingStep || 0
+        if (step < 2) updateData.onboardingStep = 2
+
+        await db.update(instances)
+            .set(updateData)
+            .where(eq(instances.id, instanceId))
 
         return ok(c, { provider }, 'API key configured.')
     } catch (err) {

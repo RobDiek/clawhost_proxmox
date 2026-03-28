@@ -7,26 +7,14 @@ import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 
-let ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || ''
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 const TEMPLATES_DIR = resolve(process.cwd(), '../../templates/mateh-system')
 
-// Get API key: prefer env var, fallback to reading from instance VPS
-async function getAnthropicKey(instanceIp?: string, password?: string): Promise<string> {
-    if (ANTHROPIC_API_KEY) return ANTHROPIC_API_KEY
-    if (!instanceIp) return ''
-    try {
-        const output = await sshExec(instanceIp,
-            `grep ANTHROPIC_API_KEY /etc/systemd/system/openclaw-gateway.service | sed 's/.*ANTHROPIC_API_KEY=//'`,
-            password
-        )
-        const key = output.trim()
-        if (key && key.startsWith('sk-')) {
-            ANTHROPIC_API_KEY = key // cache for future calls
-            return key
-        }
-    } catch { /* fallback */ }
-    return ''
+// Get API key for an instance: DB first, then env fallback
+async function getApiKeyForInstance(instanceId: string): Promise<string> {
+    const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+    if (inst?.aiProviderKey) return inst.aiProviderKey
+    return process.env.ANTHROPIC_API_KEY || ''
 }
 
 // ── SSH helper ──
@@ -330,9 +318,8 @@ export const analyzeAnswers = async (c: Context) => {
             return fail(c, 'Business name and description are required.', 400)
         }
 
-        // Get API key: env var or from the instance VPS
-        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const apiKey = await getAnthropicKey(instance?.ip || undefined, instance?.rootPassword || undefined)
+        // Get user's API key from DB
+        const apiKey = await getApiKeyForInstance(instanceId)
 
         if (!apiKey) {
             // No API key — skip clarifying questions
@@ -426,9 +413,8 @@ export const runResearch = async (c: Context) => {
             return fail(c, 'Business name is required.', 400)
         }
 
-        // Get API key from instance VPS if not in env
-        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const apiKey = await getAnthropicKey(inst?.ip || undefined, inst?.rootPassword || undefined)
+        // Get user's API key from DB
+        const apiKey = await getApiKeyForInstance(instanceId)
 
         if (!apiKey) {
             return fail(c, 'מפתח API לא מוגדר — הגדירו Anthropic API Key באינטגרציות', 400)
@@ -552,8 +538,8 @@ export const setupAgents = async (c: Context) => {
             return fail(c, 'Instance not found or not ready.', 404)
         }
 
-        // Get API key from instance VPS
-        const apiKey = await getAnthropicKey(instance.ip || undefined, instance.rootPassword || undefined)
+        // Get user's API key from DB
+        const apiKey = await getApiKeyForInstance(instanceId)
 
         // Generate personalized files
         console.log(`Generating USER.md + BRAND.md for ${answers.businessName}...`)

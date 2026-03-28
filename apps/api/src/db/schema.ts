@@ -266,6 +266,10 @@ export const instances = pgTable(
         // Custom subdomain (e.g. "sergei" -> sergei.openclaw.flowmatic.co.il)
         subdomainName: text('subdomain_name').unique(),
 
+        // AI Provider keys (user's own keys)
+        aiProviderKey: text('ai_provider_key'),     // Anthropic or OpenAI key
+        aiProviderType: text('ai_provider_type'),   // 'anthropic' | 'openai'
+
         // Telegram
         telegramChatId: text('telegram_chat_id'),
         telegramBotToken: text('telegram_bot_token'),
