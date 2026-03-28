@@ -684,9 +684,22 @@ input{font-family:inherit}
       <div class="int-card connected">
         <div class="int-card-header">
           <div class="int-icon" style="background:#EDE7F6"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="#7C3AED"/></svg></div>
-          <div><strong>Activepieces</strong><div class="int-status connected">&#10003; מחובר</div></div>
+          <div><strong id="int-automation-name">Activepieces</strong><div class="int-status connected">&#10003; מחובר</div></div>
         </div>
         <a href="" id="int-flows-link" target="_blank" class="btn btn-outline btn-sm" style="margin:8px 0;display:inline-block;text-decoration:none">פתחו &#8599;</a>
+        <div id="int-flows-creds" style="margin-top:8px;padding:10px;background:#F9FAFB;border-radius:8px;font-size:0.8rem;display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="color:#6B7280">אימייל</span>
+            <span id="int-flows-email" class="mono" style="font-size:0.78rem" dir="ltr">admin@clawflow.local</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="color:#6B7280">סיסמה</span>
+            <span style="display:flex;align-items:center;gap:6px">
+              <span id="int-flows-pass" class="mono" style="font-size:0.78rem" dir="ltr">&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;</span>
+              <button onclick="revealFlowsPassword()" id="btn-reveal-flows" style="font-size:0.7rem;padding:2px 8px;border:1px solid #E5E7EB;border-radius:4px;background:#fff;cursor:pointer;color:#6B7280">הצג</button>
+            </span>
+          </div>
+        </div>
       </div>
       <div class="int-card">
         <div class="int-card-header">
@@ -1259,9 +1272,25 @@ function renderIntegrations() {
     if (tgCard) tgCard.classList.add('connected');
   }
 
-  // Update flows link
+  // Update flows link and automation card
   var flowsLink = document.getElementById('int-flows-link');
   if (flowsLink) flowsLink.href = flowsUrl;
+
+  // Show correct automation name
+  var autoName = (instanceData && instanceData.automationTool === 'n8n') ? 'n8n' : 'Activepieces';
+  var autoNameEl = document.getElementById('int-automation-name');
+  if (autoNameEl) autoNameEl.textContent = autoName;
+
+  // Show credentials card
+  var credsEl = document.getElementById('int-flows-creds');
+  if (credsEl && instanceData && instanceData.automationPassword) {
+    credsEl.style.display = 'block';
+    var emailEl = document.getElementById('int-flows-email');
+    if (emailEl) emailEl.textContent = email || 'admin@clawflow.local';
+    // Password stored as data attribute for one-time reveal
+    var passEl = document.getElementById('int-flows-pass');
+    if (passEl) passEl.setAttribute('data-pass', instanceData.automationPassword + '1');
+  }
 
   // Make int-card-header clickable to toggle body
   document.querySelectorAll('.int-card-header').forEach(function(h) {
@@ -1336,6 +1365,28 @@ function switchTab(tabId) {
   if (tabId === 'chat') loadChatTab();
   if (tabId === 'files') fmNavigate(fmCurrentDir || '');
   if (tabId === 'server') { loadStats(); if (termFit && term) { setTimeout(function(){ termFit.fit(); }, 100); } }
+}
+
+/* ===== Flows password reveal (one-time) ===== */
+function revealFlowsPassword() {
+  var el = document.getElementById('int-flows-pass');
+  var btn = document.getElementById('btn-reveal-flows');
+  if (!el || !btn) return;
+  var pass = el.getAttribute('data-pass');
+  if (!pass) { showToast('סיסמה לא זמינה', 'error'); return; }
+  el.textContent = pass;
+  el.style.userSelect = 'all';
+  btn.textContent = 'הועתק';
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  if (navigator.clipboard) navigator.clipboard.writeText(pass);
+  // Hide after 30 seconds
+  setTimeout(function() {
+    el.textContent = '\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF';
+    el.style.userSelect = '';
+    btn.textContent = 'נחשף';
+    btn.style.color = '#EF4444';
+  }, 30000);
 }
 
 /* ===== Chat tab ===== */
