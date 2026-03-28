@@ -2113,7 +2113,8 @@ async function submitClarifiedDashboard() {
   var clarifications = [];
   clarifyInputs.forEach(function(el) {
     if (el.value.trim()) {
-      var label = el.closest('.form-group').querySelector('label');
+      var parent = el.parentElement;
+      var label = parent ? parent.querySelector('label') : null;
       clarifications.push((label ? label.textContent : '') + ': ' + el.value.trim());
     }
   });
