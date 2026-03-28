@@ -1770,35 +1770,49 @@ function openAgentQuestionnaire() {
   details.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// Sub-agents data
+// Sub-agents data — defaults match AGENTS.md routing
 var SUB_AGENTS = [
-  { id: 'mateh', name: 'מטה', role: 'מתאם ומנהל', defaultModel: 'claude-sonnet-4-5-20250514' },
-  { id: 'sayer', name: 'סייר', role: 'מחקר אינטרנט', defaultModel: 'claude-sonnet-4-5-20250514' },
+  { id: 'mateh', name: 'מטה', role: 'מתאם ומנהל', defaultModel: 'claude-opus-4-6' },
+  { id: 'sayer', name: 'סייר', role: 'מחקר אינטרנט', defaultModel: 'claude-opus-4-6' },
   { id: 'meater', name: 'מאתר', role: 'מחקר SERP', defaultModel: 'claude-sonnet-4-5-20250514' },
   { id: 'maazin', name: 'מאזין', role: 'האזנה חברתית', defaultModel: 'claude-sonnet-4-5-20250514' },
-  { id: 'menateach', name: 'מנתח', role: 'ניתוח הזדמנויות', defaultModel: 'claude-sonnet-4-5-20250514' },
+  { id: 'menateach', name: 'מנתח', role: 'ניתוח הזדמנויות', defaultModel: 'claude-opus-4-6' },
   { id: 'et', name: 'עט', role: 'כתיבת תוכן', defaultModel: 'claude-sonnet-4-5-20250514' },
   { id: 'yotzer', name: 'יוצר', role: 'קריאייטיב', defaultModel: 'claude-sonnet-4-5-20250514' },
   { id: 'shaliach', name: 'שליח', role: 'הפצה', defaultModel: 'claude-haiku-4-5-20251001' },
   { id: 'migdalor', name: 'מגדלור', role: 'ביקורת AEO', defaultModel: 'claude-sonnet-4-5-20250514' },
 ];
 
-var MODEL_OPTIONS = [
-  { value: 'claude-opus-4-6', label: 'Claude Opus 4.6 (מתקדם)' },
-  { value: 'claude-sonnet-4-5-20250514', label: 'Claude Sonnet 4.5 (מומלץ)' },
-  { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 (חסכוני)' },
-  { value: 'gpt-4o', label: 'GPT-4o' },
-  { value: 'gpt-4o-mini', label: 'GPT-4o mini (חסכוני)' },
-  { value: 'ollama/llama3.1:8b', label: 'Ollama Llama 3.1 (מקומי)' },
-];
+// Build available models based on connected provider
+function getAvailableModels() {
+  var provider = localStorage.getItem('cf_api_key_saved') || '';
+  var hasOllama = components.indexOf('ol') !== -1;
+  var models = [];
+
+  if (provider === 'anthropic' || !provider) {
+    models.push({ value: 'claude-opus-4-6', label: 'Claude Opus 4.6 (מתקדם)' });
+    models.push({ value: 'claude-sonnet-4-5-20250514', label: 'Claude Sonnet 4.5 (מומלץ)' });
+    models.push({ value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 (חסכוני)' });
+  }
+  if (provider === 'openai') {
+    models.push({ value: 'gpt-4o', label: 'GPT-4o' });
+    models.push({ value: 'gpt-4o-mini', label: 'GPT-4o mini (חסכוני)' });
+  }
+  if (hasOllama) {
+    models.push({ value: 'ollama/llama3.1:8b', label: 'Ollama Llama 3.1 (מקומי)' });
+  }
+
+  return models;
+}
 
 function renderSubAgents() {
   var grid = document.getElementById('sub-agents-grid');
   var savedModels = JSON.parse(localStorage.getItem('cf_sub_agent_models') || '{}');
+  var availableModels = getAvailableModels();
   grid.innerHTML = '<div class="sub-agent-row" style="font-weight:600;background:#F3F4F6"><span>שם</span><span>תפקיד</span><span>מודל</span><span>סטטוס</span></div>' +
     SUB_AGENTS.map(function(a) {
       var model = savedModels[a.id] || a.defaultModel;
-      var opts = MODEL_OPTIONS.map(function(m) {
+      var opts = availableModels.map(function(m) {
         return '<option value="' + m.value + '"' + (m.value === model ? ' selected' : '') + '>' + m.label + '</option>';
       }).join('');
       return '<div class="sub-agent-row">' +
@@ -1809,14 +1823,39 @@ function renderSubAgents() {
     }).join('');
 }
 
-function saveSubAgentModels() {
+async function saveSubAgentModels() {
   var models = {};
   document.querySelectorAll('.sub-agent-model-select').forEach(function(sel) {
     models[sel.dataset.agent] = sel.value;
   });
   localStorage.setItem('cf_sub_agent_models', JSON.stringify(models));
-  showToast('מודלים נשמרו — יעודכנו בהפעלה הבאה', 'success');
-  // TODO: deploy updated AGENTS.md to VPS with model routing
+
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('מודלים נשמרו מקומית', 'success'); return; }
+
+  showToast('שומר מודלים...', 'success');
+  try {
+    // Build AGENTS.md content with updated model routing
+    var agentsmd = '# AGENTS — הגדרות מודלים\n\n## ניתוב מודלים\n| סוכן | מודל |\n|-------|-------|\n';
+    SUB_AGENTS.forEach(function(a) {
+      var m = models[a.id] || a.defaultModel;
+      agentsmd += '| ' + a.name + ' (' + a.role + ') | ' + m + ' |\n';
+    });
+    agentsmd += '\n## כללי עבודה\n1. לפני שליחת הודעה — הצגת טיוטה ואישור\n2. לפני מחיקת קבצים — אישור מפורש\n3. משימה שנכשלת 3 פעמים — עצירה ודיווח\n4. אין להריץ תהליך מעל 10 דקות ללא אישור\n5. כל תוכן עובר de-ai-ify לפני פרסום\n6. תמיד לציין איזה מודל משמש\n\n## העברת נתונים\nשיטה: file-based handoffs\nכל סוכן כותב ל-agents/[name]/output/latest.json\n';
+
+    var res = await fetch(API + '/hosting/instances/' + iid + '/files', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ path: 'workspace/AGENTS.md', content: agentsmd })
+    });
+    if (res.ok) {
+      showToast('מודלים עודכנו בהצלחה', 'success');
+    } else {
+      showToast('שגיאה בשמירה — נשמר מקומית', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאת תקשורת — נשמר מקומית', 'error');
+  }
 }
 
 function saveSchedule(type) {
