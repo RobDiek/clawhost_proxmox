@@ -109,13 +109,14 @@ export const setupTelegram = async (c: Context) => {
             return fail(c, 'Instance not found or not ready.', 404)
         }
 
-        // Configure Telegram on VPS
+        // Configure Telegram on VPS via OpenClaw CLI
         const sanitizedToken = botToken.replace(/[^a-zA-Z0-9:_-]/g, '')
         await sshExec(instance.ip, `
-            su - openclaw -c 'openclaw channels add --channel telegram --bot-token "${sanitizedToken}" --name "telegram-main" 2>&1' ||
-            echo '{"channel":"telegram","token":"${sanitizedToken}"}' > /home/openclaw/.openclaw/channels/telegram.json &&
-            chown -R openclaw:openclaw /home/openclaw/.openclaw
+            su - openclaw -c 'openclaw channels add --channel telegram --token "${sanitizedToken}" --name "telegram-main" 2>&1'
         `, instance.rootPassword || undefined)
+
+        // Restart gateway to pick up channel config
+        await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
 
         // Save telegram token in our DB
         // For MATEH users, onboarding continues with research wizard

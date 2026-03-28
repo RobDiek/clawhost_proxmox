@@ -1448,31 +1448,63 @@ function toggleHelp(btn) {
 }
 
 /* ===== Actions ===== */
-function saveApiKey(provider) {
+async function saveApiKey(provider) {
   var inputId = provider + '-key';
   var val = document.getElementById(inputId).value.trim();
   if (!val) { showToast('נא להזין מפתח API', 'error'); return; }
-  localStorage.setItem('cf_api_key_saved', provider);
-  localStorage.setItem('cf_api_key_provider', provider);
-  var statusEl = document.getElementById(provider + '-status');
-  if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
-  var card = document.getElementById(provider + '-card');
-  if (card) card.classList.add('connected-card');
-  showToast('מפתח ' + provider + ' נשמר בהצלחה', 'success');
-  renderHome();
-  renderAgentsTab();
+
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+
+  showToast('שומר...', 'success');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/integrations/' + provider, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ key: val })
+    });
+    if (!res.ok) throw new Error('failed');
+
+    localStorage.setItem('cf_api_key_saved', provider);
+    localStorage.setItem('cf_api_key_provider', provider);
+    var statusEl = document.getElementById(provider + '-status');
+    if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
+    var card = document.getElementById(provider + '-card');
+    if (card) card.classList.add('connected-card');
+    showToast('מפתח ' + provider + ' נשמר בהצלחה', 'success');
+    renderHome();
+    renderAgentsTab();
+  } catch (e) {
+    showToast('שגיאה בשמירת המפתח', 'error');
+  }
 }
 
-function saveTelegram() {
+async function saveTelegram() {
   var val = document.getElementById('telegram-token').value.trim();
   if (!val) { showToast('נא להזין Token של הבוט', 'error'); return; }
-  localStorage.setItem('cf_telegram_saved', '1');
-  document.getElementById('telegram-status').innerHTML = '<span class="int-status-dot"></span>מחובר';
-  document.getElementById('telegram-status').className = 'int-status connected';
-  document.getElementById('telegram-card').classList.add('connected-card');
-  showToast('בוט Telegram חובר בהצלחה', 'success');
-  renderHome();
-  renderAgentsTab();
+
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+
+  showToast('מחבר בוט...', 'success');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/setup/telegram', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ botToken: val })
+    });
+    if (!res.ok) throw new Error('failed');
+
+    localStorage.setItem('cf_telegram_saved', '1');
+    document.getElementById('telegram-status').innerHTML = '<span class="int-status-dot"></span>מחובר';
+    document.getElementById('telegram-status').className = 'int-status connected';
+    document.getElementById('telegram-card').classList.add('connected-card');
+    showToast('בוט Telegram חובר בהצלחה', 'success');
+    renderHome();
+    renderAgentsTab();
+  } catch (e) {
+    showToast('שגיאה בחיבור הבוט', 'error');
+  }
 }
 
 function saveName() {
