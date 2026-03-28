@@ -48,6 +48,9 @@ interface OnboardingAnswers {
     challenges: string
     websiteUrl?: string
     brandName?: string
+    platforms?: string
+    tone?: string
+    budget?: string
 }
 
 async function generateWithClaude(answers: OnboardingAnswers): Promise<{ userMd: string; brandMd: string }> {
@@ -55,27 +58,46 @@ async function generateWithClaude(answers: OnboardingAnswers): Promise<{ userMd:
         return generateFallback(answers)
     }
 
-    const prompt = `אתה מומחה שיווק דיגיטלי ישראלי. על סמך המידע הבא, צור שני קבצים:
+    const prompt = `אתה מומחה שיווק דיגיטלי ישראלי מנוסה. על סמך המידע הבא, צור שני קבצים מפורטים שישמשו כבסיס למערכת של 9 סוכני שיווק אוטונומיים.
 
 מידע על העסק:
 - שם העסק: ${answers.businessName}
 - מה עושים: ${answers.businessDescription}
+- אתר: ${answers.websiteUrl || 'לא צוין'}
 - קהל יעד: ${answers.targetAudience}
 - מתחרים: ${answers.competitors}
 - מטרות שיווק: ${answers.marketingGoals}
+- פלטפורמות פעילות: ${answers.platforms || 'לא צוין'}
 - תוכן נוכחי: ${answers.currentContent}
+- טון תקשורת: ${answers.tone || 'ידידותי ונגיש'}
+- תקציב חודשי: ${answers.budget || 'לא צוין'}
 - אתגרים: ${answers.challenges}
-- אתר: ${answers.websiteUrl || 'לא צוין'}
 
 צור בדיוק שני קבצים:
 
 ===USER.MD===
-(קובץ USER.md מלא עם כל הפרטים, מילות מפתח מומלצות, פלטפורמות מומלצות)
+קובץ USER.md מלא הכולל:
+- פרטי העסק והתחום
+- קהל יעד מפורט (דמוגרפיה, כאבים, מוטיבציות)
+- מתחרים עם ניתוח קצר (מה הם עושים טוב/רע)
+- מילות מפתח מומלצות (10-15 בעברית ובאנגלית)
+- פלטפורמות מומלצות עם סדר עדיפויות
+- KPIs מומלצים
+- timezone: Asia/Jerusalem
+- שפה: עברית, English
 
 ===BRAND.MD===
-(קובץ BRAND.md מלא עם פוזיציונינג, קול, קהל יעד, עמודי תוכן, CTA)
+קובץ BRAND.md מלא הכולל:
+- פוזיציונינג (positioning statement)
+- קול ובטון (voice & tone) — בהתאם לטון שנבחר: ${answers.tone || 'ידידותי ונגיש'}
+- 4-6 עמודי תוכן (content pillars) עם דוגמאות
+- נושאים אסורים / רגישים
+- CTAs מומלצים
+- hashtags מומלצים (10-15)
+- מבנה פוסט מומלץ לכל פלטפורמה
+- תדירות פרסום מומלצת
 
-כתוב בעברית טבעית. היה ספציפי ואקשנאבילי, לא גנרי.`
+כתוב בעברית טבעית וישראלית. היה ספציפי ואקשנאבילי — לא גנרי. כל המלצה צריכה להיות מותאמת לעסק הזה ספציפית.`
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',

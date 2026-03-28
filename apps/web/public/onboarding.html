@@ -406,6 +406,38 @@ body {
   border: 2px solid var(--primary);
 }
 .btn-outline:hover:not(:disabled) { background: var(--primary-light); }
+
+/* Multi-select chip grid */
+.multi-select-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+.ms-chip {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.ms-chip input { display: none; }
+.ms-chip span {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  transition: all .15s;
+  user-select: none;
+}
+.ms-chip input:checked + span {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.ms-chip:hover span { border-color: var(--primary); }
+
 .skip-link {
   display: block;
   text-align: center;
@@ -742,19 +774,70 @@ body {
 
     <div id="research-form">
       <div class="form-group"><label>1. שם העסק</label><input type="text" id="rq-business-name" placeholder="לדוגמה: Flowmatic" class="input-field"/></div>
-      <div class="form-group"><label>2. במה עוסק העסק?</label><textarea id="rq-business-desc" placeholder="מה אתם מוכרים / איזה שירות?" rows="2" class="input-field"></textarea></div>
-      <div class="form-group"><label>3. מי קהל היעד?</label><textarea id="rq-target" placeholder="תארו את הלקוח האידיאלי" rows="2" class="input-field"></textarea></div>
-      <div class="form-group"><label>4. מי המתחרים הישירים? (2-3 שמות)</label><textarea id="rq-competitors" placeholder="שמות + URL אם יש" rows="2" class="input-field"></textarea></div>
-      <div class="form-group"><label>5. מה המטרה העיקרית?</label>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
-          <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="radio" name="rq-goal" value="לידים"/> לידים</label>
-          <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="radio" name="rq-goal" value="מכירות ישירות"/> מכירות</label>
-          <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="radio" name="rq-goal" value="בניית קהל"/> קהל</label>
-          <label style="display:flex;align-items:center;gap:4px;font-size:0.88rem;cursor:pointer"><input type="radio" name="rq-goal" value="מודעות מותג" checked/> מותג</label>
+      <div class="form-group"><label>2. במה עוסק העסק?</label><textarea id="rq-business-desc" placeholder="תארו בקצרה את המוצר או השירות" rows="2" class="input-field"></textarea></div>
+      <div class="form-group"><label>3. כתובת האתר (אם יש)</label><input type="url" id="rq-website" placeholder="https://example.co.il" dir="ltr" class="input-field"/></div>
+      <div class="form-group"><label>4. מי קהל היעד?</label><textarea id="rq-target" placeholder="תארו את הלקוח האידיאלי — גיל, תחום, כאבים" rows="2" class="input-field"></textarea></div>
+      <div class="form-group"><label>5. מי המתחרים הישירים? (2-3 שמות)</label><textarea id="rq-competitors" placeholder="שמות + URL אם יש" rows="2" class="input-field"></textarea></div>
+
+      <div class="form-group"><label>6. מטרות שיווק <span style="color:var(--text-3);font-weight:400">(בחרו כמה שרלוונטי)</span></label>
+        <div class="multi-select-grid" id="rq-goals-grid">
+          <label class="ms-chip"><input type="checkbox" name="rq-goal" value="לידים"/><span>לידים</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-goal" value="מכירות ישירות"/><span>מכירות ישירות</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-goal" value="בניית קהל"/><span>בניית קהל</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-goal" value="מודעות מותג" checked/><span>מודעות מותג</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-goal" value="שימור לקוחות"/><span>שימור לקוחות</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-goal" value="SEO ותנועה אורגנית"/><span>SEO ותנועה אורגנית</span></label>
         </div>
       </div>
-      <div class="form-group"><label>6. איזה תוכן אתם מפרסמים היום?</label><textarea id="rq-content" placeholder="פוסטים, בלוג, ניוזלטר..." rows="2" class="input-field"></textarea></div>
-      <div class="form-group"><label>7. מה הכי מתסכל בשיווק?</label><textarea id="rq-challenges" placeholder="אין זמן? לא יודעים מה לכתוב?" rows="2" class="input-field"></textarea></div>
+
+      <div class="form-group"><label>7. באילו פלטפורמות אתם פעילים? <span style="color:var(--text-3);font-weight:400">(או רוצים להיות)</span></label>
+        <div class="multi-select-grid" id="rq-platforms-grid">
+          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="Instagram"/><span>Instagram</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="Facebook"/><span>Facebook</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="LinkedIn"/><span>LinkedIn</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="TikTok"/><span>TikTok</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="Twitter/X"/><span>Twitter/X</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="YouTube"/><span>YouTube</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="בלוג"/><span>בלוג</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="ניוזלטר"/><span>ניוזלטר</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="Google Ads"/><span>Google Ads</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-platform" value="Meta Ads"/><span>Meta Ads</span></label>
+        </div>
+      </div>
+
+      <div class="form-group"><label>8. איזה תוכן אתם מפרסמים היום? <span style="color:var(--text-3);font-weight:400">(בחרו כמה שרלוונטי)</span></label>
+        <div class="multi-select-grid" id="rq-content-grid">
+          <label class="ms-chip"><input type="checkbox" name="rq-content" value="פוסטים ברשתות"/><span>פוסטים ברשתות</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-content" value="סרטונים / ריילס"/><span>סרטונים / ריילס</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-content" value="מאמרי בלוג"/><span>מאמרי בלוג</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-content" value="ניוזלטר / אימייל"/><span>ניוזלטר / אימייל</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-content" value="פודקאסט"/><span>פודקאסט</span></label>
+          <label class="ms-chip"><input type="checkbox" name="rq-content" value="לא מפרסמים עדיין"/><span>לא מפרסמים עדיין</span></label>
+        </div>
+      </div>
+
+      <div class="form-group"><label>9. טון התקשורת</label>
+        <div class="multi-select-grid" id="rq-tone-grid">
+          <label class="ms-chip"><input type="radio" name="rq-tone" value="מקצועי ורשמי"/><span>מקצועי ורשמי</span></label>
+          <label class="ms-chip"><input type="radio" name="rq-tone" value="ידידותי ונגיש" checked/><span>ידידותי ונגיש</span></label>
+          <label class="ms-chip"><input type="radio" name="rq-tone" value="צעיר ודינמי"/><span>צעיר ודינמי</span></label>
+          <label class="ms-chip"><input type="radio" name="rq-tone" value="פרובוקטיבי ונועז"/><span>פרובוקטיבי ונועז</span></label>
+          <label class="ms-chip"><input type="radio" name="rq-tone" value="חינוכי ומעשיר"/><span>חינוכי ומעשיר</span></label>
+        </div>
+      </div>
+
+      <div class="form-group"><label>10. תקציב שיווק חודשי</label>
+        <select id="rq-budget" class="input-field">
+          <option value="אין תקציב">אין תקציב — רק אורגני</option>
+          <option value="עד 1,000 ₪">עד 1,000 ₪</option>
+          <option value="1,000-5,000 ₪" selected>1,000–5,000 ₪</option>
+          <option value="5,000-15,000 ₪">5,000–15,000 ₪</option>
+          <option value="15,000-50,000 ₪">15,000–50,000 ₪</option>
+          <option value="מעל 50,000 ₪">מעל 50,000 ₪</option>
+        </select>
+      </div>
+
+      <div class="form-group"><label>11. מה הכי מתסכל בשיווק?</label><textarea id="rq-challenges" placeholder="אין זמן? לא יודעים מה לכתוב? אין תוצאות?" rows="2" class="input-field"></textarea></div>
 
       <button class="btn btn-primary" id="btnSubmitResearch" onclick="submitResearch()" style="width:100%;margin-top:16px">הגדירו את הסוכנים שלי &rarr;</button>
     </div>
@@ -1290,14 +1373,23 @@ body {
   window.showToast = showToast;
 
   // ── MATEH: Research Wizard ──
+  // Helper: collect checked values from checkboxes by name
+  function getCheckedValues(name) {
+    return Array.from(document.querySelectorAll('input[name="' + name + '"]:checked')).map(function(el) { return el.value; });
+  }
+
   window.submitResearch = async function() {
     var answers = {
       businessName: document.getElementById('rq-business-name').value.trim(),
       businessDescription: document.getElementById('rq-business-desc').value.trim(),
+      websiteUrl: document.getElementById('rq-website').value.trim(),
       targetAudience: document.getElementById('rq-target').value.trim(),
       competitors: document.getElementById('rq-competitors').value.trim(),
-      marketingGoals: (document.querySelector('input[name="rq-goal"]:checked') || {}).value || 'מודעות מותג',
-      currentContent: document.getElementById('rq-content').value.trim(),
+      marketingGoals: getCheckedValues('rq-goal').join(', ') || 'מודעות מותג',
+      platforms: getCheckedValues('rq-platform').join(', '),
+      currentContent: getCheckedValues('rq-content').join(', '),
+      tone: (document.querySelector('input[name="rq-tone"]:checked') || {}).value || 'ידידותי ונגיש',
+      budget: document.getElementById('rq-budget').value,
       challenges: document.getElementById('rq-challenges').value.trim()
     };
 

@@ -217,6 +217,13 @@ input{font-family:inherit}
 .radio-option:has(input:checked) { border-color: #2563EB; background: #EFF6FF; }
 .radio-option input { margin: 0; }
 
+/* Chip labels for multi-select */
+.chip-label { display: flex; align-items: center; cursor: pointer; }
+.chip-label input { display: none; }
+.chip { display: inline-block; padding: 5px 12px; border-radius: 18px; font-size: 0.82rem; border: 1.5px solid #E5E7EB; background: #fff; color: #4B5563; transition: all .15s; user-select: none; }
+.chip-label input:checked + .chip { background: #2563EB; color: #fff; border-color: #2563EB; }
+.chip-label:hover .chip { border-color: #2563EB; }
+
 .progress-steps { max-width: 400px; margin: 24px auto; }
 .p-step {
   display: flex; align-items: center; gap: 12px; padding: 12px 16px;
@@ -832,18 +839,21 @@ input{font-family:inherit}
         <p style="font-size:0.82rem;color:#10B981;margin:0">&#10003; הסוכנים הוגדרו על בסיס הנתונים שלכם</p>
         <button class="btn btn-outline" onclick="editQuestionnaire()" style="font-size:0.8rem;padding:6px 14px">&#9998; ערכו</button>
       </div>
-      <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px;font-size:0.85rem;line-height:1.8">
+      <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px;font-size:0.85rem;line-height:1.9">
         <div><strong>שם העסק:</strong> <span id="saved-biz-name"></span></div>
         <div><strong>תחום:</strong> <span id="saved-biz-desc"></span></div>
         <div><strong>קהל יעד:</strong> <span id="saved-target"></span></div>
         <div><strong>מתחרים:</strong> <span id="saved-competitors"></span></div>
-        <div><strong>מטרה:</strong> <span id="saved-goal"></span></div>
-        <div><strong>תוכן נוכחי:</strong> <span id="saved-content"></span></div>
+        <div><strong>מטרות:</strong> <span id="saved-goal"></span></div>
+        <div><strong>פלטפורמות:</strong> <span id="saved-platforms"></span></div>
+        <div><strong>תוכן:</strong> <span id="saved-content"></span></div>
+        <div><strong>טון:</strong> <span id="saved-tone"></span></div>
+        <div><strong>תקציב:</strong> <span id="saved-budget"></span></div>
         <div><strong>אתגרים:</strong> <span id="saved-challenges"></span></div>
       </div>
     </div>
 
-    <p id="mateh-setup-intro" style="font-size:0.82rem;color:#6B7280;margin-bottom:12px">ענו על 7 שאלות כדי להגדיר את 9 סוכני השיווק שלכם.</p>
+    <p id="mateh-setup-intro" style="font-size:0.82rem;color:#6B7280;margin-bottom:12px">ענו על השאלות כדי להגדיר את 9 סוכני השיווק שלכם.</p>
     <details id="mateh-setup-details">
       <summary style="cursor:pointer;color:#2563EB;font-size:0.9rem;font-weight:500" id="mateh-details-summary">פתחו שאלון הגדרה &rarr;</summary>
       <div style="margin-top:16px">
@@ -854,31 +864,80 @@ input{font-family:inherit}
           </div>
           <div class="form-group">
             <label>2. במה עוסק העסק?</label>
-            <textarea id="q-business-desc" placeholder="מה אתם מוכרים / איזה שירות אתם נותנים?" rows="2"></textarea>
+            <textarea id="q-business-desc" placeholder="תארו בקצרה את המוצר או השירות" rows="2"></textarea>
           </div>
           <div class="form-group">
-            <label>3. מי קהל היעד שלכם?</label>
-            <textarea id="q-target" placeholder="תארו את הלקוח האידיאלי שלכם" rows="2"></textarea>
+            <label>3. כתובת האתר (אם יש)</label>
+            <input type="url" id="q-website" placeholder="https://example.co.il" dir="ltr"/>
           </div>
           <div class="form-group">
-            <label>4. מי המתחרים הישירים? (2-3 שמות)</label>
+            <label>4. מי קהל היעד שלכם?</label>
+            <textarea id="q-target" placeholder="תארו את הלקוח האידיאלי — גיל, תחום, כאבים" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>5. מי המתחרים הישירים? (2-3 שמות)</label>
             <textarea id="q-competitors" placeholder="שמות + URL אם יש" rows="2"></textarea>
           </div>
           <div class="form-group">
-            <label>5. מה המטרה העיקרית?</label>
-            <div class="radio-group">
-              <label class="radio-option"><input type="radio" name="q-goal" value="לידים"/> לידים</label>
-              <label class="radio-option"><input type="radio" name="q-goal" value="מכירות ישירות"/> מכירות ישירות</label>
-              <label class="radio-option"><input type="radio" name="q-goal" value="בניית קהל"/> בניית קהל</label>
-              <label class="radio-option"><input type="radio" name="q-goal" value="מודעות מותג" checked/> מודעות מותג</label>
+            <label>6. מטרות שיווק <span style="color:#9CA3AF;font-weight:400">(בחרו כמה שרלוונטי)</span></label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+              <label class="chip-label"><input type="checkbox" name="q-goal" value="לידים"/><span class="chip">לידים</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-goal" value="מכירות ישירות"/><span class="chip">מכירות ישירות</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-goal" value="בניית קהל"/><span class="chip">בניית קהל</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-goal" value="מודעות מותג" checked/><span class="chip">מודעות מותג</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-goal" value="שימור לקוחות"/><span class="chip">שימור לקוחות</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-goal" value="SEO ותנועה אורגנית"/><span class="chip">SEO</span></label>
             </div>
           </div>
           <div class="form-group">
-            <label>6. איזה תוכן אתם מפרסמים היום?</label>
-            <textarea id="q-content" placeholder="פוסטים, בלוג, ניוזלטר, סרטונים..." rows="2"></textarea>
+            <label>7. פלטפורמות פעילות <span style="color:#9CA3AF;font-weight:400">(או רוצים להיות)</span></label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+              <label class="chip-label"><input type="checkbox" name="q-platform" value="Instagram"/><span class="chip">Instagram</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-platform" value="Facebook"/><span class="chip">Facebook</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-platform" value="LinkedIn"/><span class="chip">LinkedIn</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-platform" value="TikTok"/><span class="chip">TikTok</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-platform" value="Twitter/X"/><span class="chip">Twitter/X</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-platform" value="YouTube"/><span class="chip">YouTube</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-platform" value="בלוג"/><span class="chip">בלוג</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-platform" value="ניוזלטר"/><span class="chip">ניוזלטר</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-platform" value="Google Ads"/><span class="chip">Google Ads</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-platform" value="Meta Ads"/><span class="chip">Meta Ads</span></label>
+            </div>
           </div>
           <div class="form-group">
-            <label>7. מה הכי מתסכל אתכם בשיווק?</label>
+            <label>8. תוכן נוכחי <span style="color:#9CA3AF;font-weight:400">(בחרו כמה שרלוונטי)</span></label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+              <label class="chip-label"><input type="checkbox" name="q-content" value="פוסטים ברשתות"/><span class="chip">פוסטים</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-content" value="סרטונים / ריילס"/><span class="chip">סרטונים</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-content" value="מאמרי בלוג"/><span class="chip">בלוג</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-content" value="ניוזלטר / אימייל"/><span class="chip">ניוזלטר</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-content" value="פודקאסט"/><span class="chip">פודקאסט</span></label>
+              <label class="chip-label"><input type="checkbox" name="q-content" value="לא מפרסמים עדיין"/><span class="chip">לא מפרסמים</span></label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>9. טון התקשורת</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+              <label class="chip-label"><input type="radio" name="q-tone" value="מקצועי ורשמי"/><span class="chip">מקצועי ורשמי</span></label>
+              <label class="chip-label"><input type="radio" name="q-tone" value="ידידותי ונגיש" checked/><span class="chip">ידידותי ונגיש</span></label>
+              <label class="chip-label"><input type="radio" name="q-tone" value="צעיר ודינמי"/><span class="chip">צעיר ודינמי</span></label>
+              <label class="chip-label"><input type="radio" name="q-tone" value="פרובוקטיבי ונועז"/><span class="chip">פרובוקטיבי</span></label>
+              <label class="chip-label"><input type="radio" name="q-tone" value="חינוכי ומעשיר"/><span class="chip">חינוכי</span></label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>10. תקציב שיווק חודשי</label>
+            <select id="q-budget">
+              <option value="אין תקציב">אין תקציב — רק אורגני</option>
+              <option value="עד 1,000 ₪">עד 1,000 ₪</option>
+              <option value="1,000-5,000 ₪" selected>1,000–5,000 ₪</option>
+              <option value="5,000-15,000 ₪">5,000–15,000 ₪</option>
+              <option value="15,000-50,000 ₪">15,000–50,000 ₪</option>
+              <option value="מעל 50,000 ₪">מעל 50,000 ₪</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>11. מה הכי מתסכל אתכם בשיווק?</label>
             <textarea id="q-challenges" placeholder="אין זמן? לא יודעים מה לכתוב? אין תוצאות?" rows="2"></textarea>
           </div>
 
@@ -1583,17 +1642,37 @@ function renderSavedAnswers() {
   document.getElementById('saved-goal').textContent = answers.marketingGoals || '—';
   document.getElementById('saved-content').textContent = answers.currentContent || '—';
   document.getElementById('saved-challenges').textContent = answers.challenges || '—';
+  var savedPlatforms = document.getElementById('saved-platforms');
+  if (savedPlatforms) savedPlatforms.textContent = answers.platforms || '—';
+  var savedTone = document.getElementById('saved-tone');
+  if (savedTone) savedTone.textContent = answers.tone || '—';
+  var savedBudget = document.getElementById('saved-budget');
+  if (savedBudget) savedBudget.textContent = answers.budget || '—';
 
-  // Pre-fill the form so editing is easy
+  // Pre-fill text fields
   document.getElementById('q-business-name').value = answers.businessName || '';
   document.getElementById('q-business-desc').value = answers.businessDescription || '';
+  if (document.getElementById('q-website')) document.getElementById('q-website').value = answers.websiteUrl || '';
   document.getElementById('q-target').value = answers.targetAudience || '';
   document.getElementById('q-competitors').value = answers.competitors || '';
-  document.getElementById('q-content').value = answers.currentContent || '';
   document.getElementById('q-challenges').value = answers.challenges || '';
-  // Set radio
-  var radios = document.querySelectorAll('input[name="q-goal"]');
-  radios.forEach(function(r) { r.checked = r.value === answers.marketingGoals; });
+  if (document.getElementById('q-budget')) document.getElementById('q-budget').value = answers.budget || '1,000-5,000 ₪';
+
+  // Pre-fill multi-select checkboxes
+  function prefillChecked(name, csvValue) {
+    if (!csvValue) return;
+    var values = csvValue.split(', ');
+    document.querySelectorAll('input[name="' + name + '"]').forEach(function(el) {
+      el.checked = values.indexOf(el.value) !== -1;
+    });
+  }
+  prefillChecked('q-goal', answers.marketingGoals);
+  prefillChecked('q-platform', answers.platforms);
+  prefillChecked('q-content', answers.currentContent);
+
+  // Pre-fill tone radio
+  var toneRadios = document.querySelectorAll('input[name="q-tone"]');
+  toneRadios.forEach(function(r) { r.checked = r.value === (answers.tone || 'ידידותי ונגיש'); });
 }
 
 function editQuestionnaire() {
@@ -1618,13 +1697,20 @@ async function submitAgentSetup() {
   btn.disabled = true;
   btn.textContent = 'רגע...';
 
+  function getChecked(name) {
+    return Array.from(document.querySelectorAll('input[name="' + name + '"]:checked')).map(function(el) { return el.value; });
+  }
   var answers = {
     businessName: document.getElementById('q-business-name').value.trim(),
     businessDescription: document.getElementById('q-business-desc').value.trim(),
+    websiteUrl: (document.getElementById('q-website') || {}).value || '',
     targetAudience: document.getElementById('q-target').value.trim(),
     competitors: document.getElementById('q-competitors').value.trim(),
-    marketingGoals: (document.querySelector('input[name="q-goal"]:checked') || {}).value || '',
-    currentContent: document.getElementById('q-content').value.trim(),
+    marketingGoals: getChecked('q-goal').join(', ') || 'מודעות מותג',
+    platforms: getChecked('q-platform').join(', '),
+    currentContent: getChecked('q-content').join(', '),
+    tone: (document.querySelector('input[name="q-tone"]:checked') || {}).value || 'ידידותי ונגיש',
+    budget: (document.getElementById('q-budget') || {}).value || '',
     challenges: document.getElementById('q-challenges').value.trim(),
   };
 
