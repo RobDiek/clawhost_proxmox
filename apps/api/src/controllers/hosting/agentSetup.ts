@@ -278,6 +278,13 @@ async function deployAgentSystem(ip: string, userMd: string, brandMd: string, br
         ' || true
     `, password)
 
+    // Clean up: remove redundant files and clear session history to reduce token usage
+    await sshExec(ip, `
+        rm -f ${baseDir}/../BOOTSTRAP.md ${baseDir}/../TOOLS.md ${baseDir}/../IDENTITY.md 2>/dev/null;
+        echo '{}' > /home/openclaw/.openclaw/agents/main/sessions/sessions.json 2>/dev/null;
+        chown openclaw:openclaw /home/openclaw/.openclaw/agents/main/sessions/sessions.json 2>/dev/null
+    `, password)
+
     // Restart OpenClaw
     await sshExec(ip, 'systemctl restart openclaw-gateway', password)
 
