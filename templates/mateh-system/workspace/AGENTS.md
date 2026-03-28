@@ -15,8 +15,15 @@
 
 ## ברירת מחדל
 - ניתוח וקבלת החלטות: claude-opus-4-6
-- עבודה שוטפת: claude-sonnet-4-5
+- עבודה שוטפת: claude-sonnet-4-6
 - משימות פשוטות: claude-haiku-4-5
+
+## Fallback (חלופה אם מודל לא זמין)
+אם Anthropic מחזיר rate limit (429) או שגיאה:
+1. claude-opus → claude-sonnet-4-6
+2. claude-sonnet → openai/gpt-4o
+3. claude-haiku → openai/gpt-4o-mini
+השתמש בפורמט openai/MODEL-NAME כדי להפעיל מודל OpenAI.
 
 ## כללי עבודה
 1. לפני שליחת הודעה בשמי — הצגת טיוטה ואישור
