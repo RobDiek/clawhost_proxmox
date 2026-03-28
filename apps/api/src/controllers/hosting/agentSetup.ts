@@ -7,9 +7,27 @@ import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || ''
+let ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || ''
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 const TEMPLATES_DIR = resolve(process.cwd(), '../../templates/mateh-system')
+
+// Get API key: prefer env var, fallback to reading from instance VPS
+async function getAnthropicKey(instanceIp?: string, password?: string): Promise<string> {
+    if (ANTHROPIC_API_KEY) return ANTHROPIC_API_KEY
+    if (!instanceIp) return ''
+    try {
+        const output = await sshExec(instanceIp,
+            `grep ANTHROPIC_API_KEY /etc/systemd/system/openclaw-gateway.service | sed 's/.*ANTHROPIC_API_KEY=//'`,
+            password
+        )
+        const key = output.trim()
+        if (key && key.startsWith('sk-')) {
+            ANTHROPIC_API_KEY = key // cache for future calls
+            return key
+        }
+    } catch { /* fallback */ }
+    return ''
+}
 
 // ── SSH helper ──
 function sshExec(ip: string, command: string, password?: string): Promise<string> {
@@ -54,8 +72,9 @@ interface OnboardingAnswers {
     clarifications?: string
 }
 
-async function generateWithClaude(answers: OnboardingAnswers): Promise<{ userMd: string; brandMd: string }> {
-    if (!ANTHROPIC_API_KEY) {
+async function generateWithClaude(answers: OnboardingAnswers, apiKeyOverride?: string): Promise<{ userMd: string; brandMd: string }> {
+    const key = apiKeyOverride || ANTHROPIC_API_KEY
+    if (!key) {
         return generateFallback(answers)
     }
 
@@ -107,7 +126,7 @@ ${answers.clarifications}` : ''}
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'x-api-key': ANTHROPIC_API_KEY,
+            'x-api-key': key,
             'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
@@ -304,13 +323,18 @@ EOFPAIR
 // Step 1: Claude analyzes questionnaire and suggests clarifying questions
 export const analyzeAnswers = async (c: Context) => {
     try {
+        const instanceId = c.req.param('id')
         const answers = await c.req.json<OnboardingAnswers>()
 
         if (!answers.businessName || !answers.businessDescription) {
             return fail(c, 'Business name and description are required.', 400)
         }
 
-        if (!ANTHROPIC_API_KEY) {
+        // Get API key: env var or from the instance VPS
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const apiKey = await getAnthropicKey(instance?.ip || undefined, instance?.rootPassword || undefined)
+
+        if (!apiKey) {
             // No API key — skip clarifying questions
             return ok(c, { questions: [], ready: true }, 'No clarifying questions needed.')
         }
@@ -359,7 +383,7 @@ export const analyzeAnswers = async (c: Context) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': ANTHROPIC_API_KEY,
+                'x-api-key': apiKey,
                 'anthropic-version': '2023-06-01',
             },
             body: JSON.stringify({
@@ -402,8 +426,12 @@ export const runResearch = async (c: Context) => {
             return fail(c, 'Business name is required.', 400)
         }
 
-        if (!ANTHROPIC_API_KEY) {
-            return ok(c, { report: 'Research unavailable — no API key.', strategy: null }, 'Skipped.')
+        // Get API key from instance VPS if not in env
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const apiKey = await getAnthropicKey(inst?.ip || undefined, inst?.rootPassword || undefined)
+
+        if (!apiKey) {
+            return fail(c, 'מפתח API לא מוגדר — הגדירו Anthropic API Key באינטגרציות', 400)
         }
 
         console.log(`Running research for ${body.businessName}...`)
@@ -476,7 +504,7 @@ ${body.clarifications ? `\n## מידע נוסף מהמשתמש\n${body.clarifica
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': ANTHROPIC_API_KEY,
+                'x-api-key': apiKey,
                 'anthropic-version': '2023-06-01',
             },
             body: JSON.stringify({
@@ -524,9 +552,12 @@ export const setupAgents = async (c: Context) => {
             return fail(c, 'Instance not found or not ready.', 404)
         }
 
+        // Get API key from instance VPS
+        const apiKey = await getAnthropicKey(instance.ip || undefined, instance.rootPassword || undefined)
+
         // Generate personalized files
         console.log(`Generating USER.md + BRAND.md for ${answers.businessName}...`)
-        const { userMd, brandMd } = await generateWithClaude(answers)
+        const { userMd, brandMd } = await generateWithClaude(answers, apiKey)
 
         // Deploy to VPS
         const brandSlug = (answers.brandName || answers.businessName).toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')
