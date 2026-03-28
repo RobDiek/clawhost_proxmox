@@ -493,25 +493,30 @@ export const runResearch = async (c: Context) => {
         console.log(`Running VPS research for ${businessName} on ${instance.ip}...`)
 
         // Build research prompt for the live agent
-        const researchPrompt = `עשה מחקר שוק מקיף עבור ${businessName}. ` +
-            `התחום: ${businessDesc}. ` +
-            (competitors ? `מתחרים שצוינו: ${competitors}. ` : '') +
-            (targetAudience ? `קהל יעד: ${targetAudience}. ` : '') +
-            `חפש באינטרנט (השתמש ב-web search ו-browser) ותן דוח מלא:\n` +
-            `1. 3-5 מתחרים ישירים (שם, URL, מה עושים טוב/חלש)\n` +
-            `2. 10 מילות מפתח רלוונטיות (עברית + אנגלית)\n` +
-            `3. 2-3 פרסונות קהל יעד\n` +
-            `4. הזדמנויות תוכן\n` +
-            `5. המלצות אסטרטגיות\n` +
-            `6. הנחיות ספציפיות לכל אחד מ-9 הסוכנים שלי\n\n` +
-            `אל תשלח לטלגרם — רק תחזיר את הדוח. כתוב בעברית.`
+        const researchPrompt = `זוהי משימת מחקר חדשה. תתעלם ממחקרים קודמים — עשה מחקר מעודכן מאפס.
 
-        // Escape for shell
-        const escapedPrompt = researchPrompt.replace(/'/g, "'\\''")
+עשה מחקר שוק מקיף עבור ${businessName}.
+התחום: ${businessDesc}.
+${competitors ? `מתחרים שצוינו: ${competitors}.` : ''}
+${targetAudience ? `קהל יעד: ${targetAudience}.` : ''}
 
-        // Run via openclaw agent on VPS
+חפש באינטרנט ותן דוח מלא. הדוח חייב להיות כאן בתשובה — לא בקובץ נפרד:
+1. 3-5 מתחרים ישירים (שם, URL, מה עושים טוב/חלש)
+2. 10 מילות מפתח רלוונטיות (עברית + אנגלית)
+3. 2-3 פרסונות קהל יעד
+4. הזדמנויות תוכן
+5. המלצות אסטרטגיות
+6. הנחיות ספציפיות לכל אחד מ-9 הסוכנים
+
+אל תשלח לטלגרם. אל תשמור לקובץ. כתוב את הדוח המלא כאן בתשובה. בעברית.`
+
+        // Escape for shell — use base64 to avoid quoting issues
+        const b64Prompt = Buffer.from(researchPrompt).toString('base64')
+
+        // Run via openclaw agent on VPS with unique session ID to avoid cache
+        const sessionId = `research-${Date.now()}`
         const output = await sshExec(instance.ip,
-            `su - openclaw -c 'timeout 180 openclaw agent --agent main -m '"'"'${escapedPrompt}'"'"' --json 2>&1'`,
+            `su - openclaw -c 'timeout 180 openclaw agent --agent main --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
             instance.rootPassword || undefined
         )
 
