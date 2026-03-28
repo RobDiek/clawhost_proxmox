@@ -179,12 +179,9 @@ async function deployAgentSystem(ip: string, userMd: string, brandMd: string, br
         }
     }
 
-    // Deploy openclaw.json
-    const configTemplate = readFileSync(join(TEMPLATES_DIR, 'openclaw.json.template'), 'utf-8')
-    const config = configTemplate
-        .replace(/\{\{GATEWAY_TOKEN\}\}/g, gatewayToken)
-        .replace(/\{\{SUBDOMAIN\}\}/g, subdomain)
-    await sshWriteFile(ip, `${baseDir}/openclaw.json`, config, password)
+    // Don't overwrite openclaw.json — it was already configured by cloud-init
+    // with correct gateway token, auth settings, and device auth disabled.
+    // Overwriting would break the running gateway configuration.
 
     // Fix permissions
     await sshExec(ip, `chown -R openclaw:openclaw ${baseDir}`, password)
