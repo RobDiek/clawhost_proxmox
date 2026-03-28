@@ -825,9 +825,27 @@ input{font-family:inherit}
 
     <!-- MATEH Setup -->
     <div class="section-title" style="margin-top:32px">הגדרת מערכת MATEH</div>
-    <p style="font-size:0.82rem;color:#6B7280;margin-bottom:12px">ענו על 7 שאלות כדי להגדיר את 9 סוכני השיווק שלכם.</p>
+
+    <!-- Saved answers view (shown when research already done) -->
+    <div id="mateh-saved-answers" class="hidden" style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <p style="font-size:0.82rem;color:#10B981;margin:0">&#10003; הסוכנים הוגדרו על בסיס הנתונים שלכם</p>
+        <button class="btn btn-outline" onclick="editQuestionnaire()" style="font-size:0.8rem;padding:6px 14px">&#9998; ערכו</button>
+      </div>
+      <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px;font-size:0.85rem;line-height:1.8">
+        <div><strong>שם העסק:</strong> <span id="saved-biz-name"></span></div>
+        <div><strong>תחום:</strong> <span id="saved-biz-desc"></span></div>
+        <div><strong>קהל יעד:</strong> <span id="saved-target"></span></div>
+        <div><strong>מתחרים:</strong> <span id="saved-competitors"></span></div>
+        <div><strong>מטרה:</strong> <span id="saved-goal"></span></div>
+        <div><strong>תוכן נוכחי:</strong> <span id="saved-content"></span></div>
+        <div><strong>אתגרים:</strong> <span id="saved-challenges"></span></div>
+      </div>
+    </div>
+
+    <p id="mateh-setup-intro" style="font-size:0.82rem;color:#6B7280;margin-bottom:12px">ענו על 7 שאלות כדי להגדיר את 9 סוכני השיווק שלכם.</p>
     <details id="mateh-setup-details">
-      <summary style="cursor:pointer;color:#2563EB;font-size:0.9rem;font-weight:500">פתחו שאלון הגדרה &rarr;</summary>
+      <summary style="cursor:pointer;color:#2563EB;font-size:0.9rem;font-weight:500" id="mateh-details-summary">פתחו שאלון הגדרה &rarr;</summary>
       <div style="margin-top:16px">
         <div class="setup-form">
           <div class="form-group">
@@ -1032,6 +1050,7 @@ function buildAgentUrl(base, token) {
       if (typeof renderHome === 'function') renderHome();
       if (typeof renderAgentsTab === 'function') renderAgentsTab();
       if (typeof renderIntegrations === 'function') renderIntegrations();
+      if (typeof renderSavedAnswers === 'function') renderSavedAnswers();
     }
   } catch(e) { console.error('Auto-load instance error:', e); }
 })();
@@ -1511,6 +1530,54 @@ function logout() {
   localStorage.removeItem('cf_token');
   localStorage.removeItem('cf_email');
   window.location.href = '/login';
+}
+
+/* ===== MATEH Saved Answers ===== */
+function renderSavedAnswers() {
+  if (!instanceData || !instanceData.researchData) return;
+  var answers = instanceData.researchData.answers;
+  if (!answers || !answers.businessName) return;
+
+  // Show saved answers card, hide intro text
+  document.getElementById('mateh-saved-answers').classList.remove('hidden');
+  document.getElementById('mateh-setup-intro').style.display = 'none';
+  document.getElementById('mateh-details-summary').textContent = 'שנו תשובות ושלחו מחדש \u2192';
+
+  // Populate saved values
+  document.getElementById('saved-biz-name').textContent = answers.businessName || '';
+  document.getElementById('saved-biz-desc').textContent = (answers.businessDescription || '').substring(0, 120) + (answers.businessDescription && answers.businessDescription.length > 120 ? '...' : '');
+  document.getElementById('saved-target').textContent = (answers.targetAudience || '').substring(0, 100) + (answers.targetAudience && answers.targetAudience.length > 100 ? '...' : '');
+  document.getElementById('saved-competitors').textContent = answers.competitors || '—';
+  document.getElementById('saved-goal').textContent = answers.marketingGoals || '—';
+  document.getElementById('saved-content').textContent = answers.currentContent || '—';
+  document.getElementById('saved-challenges').textContent = answers.challenges || '—';
+
+  // Pre-fill the form so editing is easy
+  document.getElementById('q-business-name').value = answers.businessName || '';
+  document.getElementById('q-business-desc').value = answers.businessDescription || '';
+  document.getElementById('q-target').value = answers.targetAudience || '';
+  document.getElementById('q-competitors').value = answers.competitors || '';
+  document.getElementById('q-content').value = answers.currentContent || '';
+  document.getElementById('q-challenges').value = answers.challenges || '';
+  // Set radio
+  var radios = document.querySelectorAll('input[name="q-goal"]');
+  radios.forEach(function(r) { r.checked = r.value === answers.marketingGoals; });
+}
+
+function editQuestionnaire() {
+  // Open the details and scroll to the form
+  var details = document.getElementById('mateh-setup-details');
+  details.open = true;
+  // Reset form to step 1 (form visible, progress/done hidden)
+  var form = details.querySelector('.setup-form');
+  if (form) form.classList.remove('hidden');
+  document.getElementById('setup-step2').classList.add('hidden');
+  document.getElementById('setup-step3').classList.add('hidden');
+  var btn = document.getElementById('btn-setup-submit');
+  btn.disabled = false;
+  btn.textContent = 'עדכנו את הסוכנים \u2192';
+  // Scroll into view
+  details.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 /* ===== Agent Setup (MATEH wizard in settings) ===== */

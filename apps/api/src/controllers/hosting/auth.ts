@@ -303,6 +303,8 @@ export const getMyInstances = async (c: Context) => {
             automationPassword: i.automationPassword,
             ip: i.ip,
             onboardingCompleted: i.onboardingCompleted,
+            onboardingStep: i.onboardingStep,
+            researchData: i.researchData,
             createdAt: i.createdAt,
         })), 'Instances found.')
     } catch (err) {

@@ -110,10 +110,10 @@ export const setupTelegram = async (c: Context) => {
         }
 
         // Configure Telegram on VPS
+        const sanitizedToken = botToken.replace(/[^a-zA-Z0-9:_-]/g, '')
         await sshExec(instance.ip, `
-            cd /home/openclaw &&
-            openclaw channel add telegram --token "${botToken}" 2>&1 ||
-            echo '{"channel":"telegram","token":"${botToken}"}' > /home/openclaw/.openclaw/channels/telegram.json &&
+            su - openclaw -c 'openclaw channels add --channel telegram --bot-token "${sanitizedToken}" --name "telegram-main" 2>&1' ||
+            echo '{"channel":"telegram","token":"${sanitizedToken}"}' > /home/openclaw/.openclaw/channels/telegram.json &&
             chown -R openclaw:openclaw /home/openclaw/.openclaw
         `, instance.rootPassword || undefined)
 

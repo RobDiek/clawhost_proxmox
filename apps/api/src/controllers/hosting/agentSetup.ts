@@ -199,6 +199,77 @@ async function deployAgentSystem(ip: string, userMd: string, brandMd: string, br
 
     // Restart OpenClaw
     await sshExec(ip, 'systemctl restart openclaw-gateway', password)
+
+    // Wait for gateway to start
+    await new Promise(r => setTimeout(r, 5000))
+
+    // Pair the CLI with the gateway (required for cron commands)
+    await sshExec(ip, `
+        su - openclaw -c '
+        # Set gateway port in config
+        openclaw config set gateway.port 3000 2>/dev/null
+
+        # Read device identity and approve it as paired
+        DEVICE_ID=$(node -e "const d=require(process.env.HOME+\"/.openclaw/identity/device.json\"); console.log(d.deviceId)" 2>/dev/null)
+        PUB_KEY=$(node -e "const d=require(process.env.HOME+\"/.openclaw/identity/device.json\"); const k=d.publicKeyPem.replace(/-----[^-]+-----/g,\"\").replace(/\\n/g,\"\").replace(/\\+/g,\"-\").replace(/\\//g,\"_\").replace(/=/g,\"\"); console.log(k)" 2>/dev/null)
+
+        if [ -n "$DEVICE_ID" ]; then
+            cat > ~/.openclaw/devices/paired.json << EOFPAIR
+{
+  "$DEVICE_ID": {
+    "deviceId": "$DEVICE_ID",
+    "publicKey": "$PUB_KEY",
+    "platform": "linux",
+    "clientId": "cli",
+    "clientMode": "cli",
+    "role": "operator",
+    "roles": ["operator"],
+    "scopes": ["operator.admin","operator.read","operator.write","operator.approvals","operator.pairing"],
+    "pairedAtMs": '$(date +%s000)',
+    "label": "local-cli"
+  }
+}
+EOFPAIR
+            echo "{}" > ~/.openclaw/devices/pending.json
+        fi
+        '
+    `, password)
+
+    // Restart again after pairing
+    await sshExec(ip, 'systemctl restart openclaw-gateway', password)
+    await new Promise(r => setTimeout(r, 4000))
+
+    // Set up cron jobs (Daily Brief, Weekly Report, Monthly AEO)
+    await sshExec(ip, `
+        su - openclaw -c '
+        openclaw cron add \
+          --name "daily-brief" \
+          --description "Daily Brief - marketing summary" \
+          --cron "0 7 * * 0-4" \
+          --tz "Asia/Jerusalem" \
+          --model "claude-haiku-4-5-20251001" \
+          --message "הכן Daily Brief: סכם פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות. הודעה קצרה ותכליתית." \
+          --session isolated 2>/dev/null;
+
+        openclaw cron add \
+          --name "weekly-competitive" \
+          --description "Weekly Competitive Report" \
+          --cron "0 8 * * 1" \
+          --tz "Asia/Jerusalem" \
+          --model "claude-sonnet-4-5-20250514" \
+          --message "דוח תחרותי שבועי: סייר חפש מתחרים, מאזין בדוק שיחות, מנתח דרג הזדמנויות, עט כתוב 2-3 הצעות פוסטים." \
+          --session isolated 2>/dev/null;
+
+        openclaw cron add \
+          --name "monthly-aeo" \
+          --description "Monthly AEO Audit" \
+          --cron "0 10 1 * *" \
+          --tz "Asia/Jerusalem" \
+          --model "claude-sonnet-4-5-20250514" \
+          --message "ביקורת AEO חודשית: בדוק ציטוטים ב-Claude/ChatGPT/Perplexity, Schema tags, המלצות לשיפור." \
+          --session isolated 2>/dev/null;
+        '
+    `, password)
 }
 
 // ── POST /hosting/instances/:id/setup/agents ──
