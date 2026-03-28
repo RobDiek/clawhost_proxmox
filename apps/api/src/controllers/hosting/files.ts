@@ -308,9 +308,9 @@ export const saveIntegration = async (c: Context) => {
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
         const commands: Record<string, string> = {
-            anthropic: `cd /home/openclaw && openclaw provider add anthropic --api-key "${key}" 2>/dev/null || (mkdir -p ${VPS_HOME}/providers && echo '{"provider":"anthropic","apiKey":"${key}"}' > ${VPS_HOME}/providers/anthropic.json)`,
-            openai: `cd /home/openclaw && openclaw provider add openai --api-key "${key}" 2>/dev/null || (mkdir -p ${VPS_HOME}/providers && echo '{"provider":"openai","apiKey":"${key}"}' > ${VPS_HOME}/providers/openai.json)`,
-            gemini: `mkdir -p ${VPS_HOME}/providers && echo '{"provider":"gemini","apiKey":"${key}"}' > ${VPS_HOME}/providers/gemini.json`,
+            anthropic: `grep -q ANTHROPIC_API_KEY /etc/systemd/system/openclaw-gateway.service && sed -i "s|Environment=ANTHROPIC_API_KEY=.*|Environment=ANTHROPIC_API_KEY=${key}|" /etc/systemd/system/openclaw-gateway.service || sed -i "/Environment=NODE_ENV=production/a\\Environment=ANTHROPIC_API_KEY=${key}" /etc/systemd/system/openclaw-gateway.service && systemctl daemon-reload`,
+            openai: `grep -q OPENAI_API_KEY /etc/systemd/system/openclaw-gateway.service && sed -i "s|Environment=OPENAI_API_KEY=.*|Environment=OPENAI_API_KEY=${key}|" /etc/systemd/system/openclaw-gateway.service || sed -i "/Environment=NODE_ENV=production/a\\Environment=OPENAI_API_KEY=${key}" /etc/systemd/system/openclaw-gateway.service && systemctl daemon-reload`,
+            gemini: `grep -q GOOGLE_API_KEY /etc/systemd/system/openclaw-gateway.service && sed -i "s|Environment=GOOGLE_API_KEY=.*|Environment=GOOGLE_API_KEY=${key}|" /etc/systemd/system/openclaw-gateway.service || sed -i "/Environment=NODE_ENV=production/a\\Environment=GOOGLE_API_KEY=${key}" /etc/systemd/system/openclaw-gateway.service && systemctl daemon-reload`,
             telegram: `cd /home/openclaw && openclaw channel add telegram --token "${key}" 2>/dev/null || (mkdir -p ${VPS_HOME}/channels && echo '{"channel":"telegram","token":"${key}"}' > ${VPS_HOME}/channels/telegram.json)`,
             brave: `mkdir -p ${VPS_HOME}/skills-config && echo '{"braveApiKey":"${key}"}' > ${VPS_HOME}/skills-config/brave-search.json`,
             brightdata: `mkdir -p ${VPS_HOME}/skills-config && echo '{"apiKey":"${key}"}' > ${VPS_HOME}/skills-config/bright-data.json`,

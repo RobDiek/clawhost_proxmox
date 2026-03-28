@@ -68,15 +68,15 @@ export const setupApiKey = async (c: Context) => {
             return fail(c, 'Instance not found or not ready.', 404)
         }
 
-        // Write API key to OpenClaw config on VPS
-        const configCmd = provider === 'anthropic'
-            ? `cd /home/openclaw && openclaw provider add anthropic --api-key "${apiKey}" 2>&1 || echo '{"provider":"anthropic","key":"${apiKey}"}' > /home/openclaw/.openclaw/providers/anthropic.json`
-            : `cd /home/openclaw && openclaw provider add openai --api-key "${apiKey}" 2>&1 || echo '{"provider":"openai","key":"${apiKey}"}' > /home/openclaw/.openclaw/providers/openai.json`
+        // Set API key as environment variable in OpenClaw systemd service
+        const envVar = provider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY'
 
         await sshExec(instance.ip, `
-            mkdir -p /home/openclaw/.openclaw/providers &&
-            ${configCmd} &&
-            chown -R openclaw:openclaw /home/openclaw/.openclaw
+            grep -q ${envVar} /etc/systemd/system/openclaw-gateway.service && \
+                sed -i "s|Environment=${envVar}=.*|Environment=${envVar}=${apiKey}|" /etc/systemd/system/openclaw-gateway.service || \
+                sed -i "/Environment=NODE_ENV=production/a\\Environment=${envVar}=${apiKey}" /etc/systemd/system/openclaw-gateway.service && \
+            systemctl daemon-reload && \
+            systemctl restart openclaw-gateway
         `, instance.rootPassword || undefined)
 
         // Update onboarding step
