@@ -1025,6 +1025,7 @@ function buildAgentUrl(base, token) {
       subdomain = inst.subdomainName || inst.id;
       openclawToken = inst.openclawToken || '';
       plan = PLANS[planKey] || PLANS.personal;
+      instanceData = inst;  // store full instance data for price/addons
       agentUrl = inst.subdomainAgent ? 'https://' + inst.subdomainAgent : '#';
       flowsUrl = inst.subdomainFlows ? 'https://' + inst.subdomainFlows : '#';
       localStorage.setItem('cf_instance_id', instanceId);
@@ -1162,7 +1163,14 @@ function renderHome() {
   var displayDomain = subdomain ? 'agent.' + subdomain + '.openclaw.flowmatic.co.il' : '—';
   infoHtml += '<div class="info-row"><span class="info-label">כתובת</span><span class="info-value mono">' + displayDomain + '</span>' +
     '<button class="copy-btn" onclick="copyToClipboard(\'' + displayDomain + '\')" title="העתקו">' + SVG_ICONS.copy + '</button></div>';
-  infoHtml += '<div class="info-row"><span class="info-label">תוכנית</span><span class="info-value">' + plan.name + ' &middot; &#8362;' + plan.price + '/חודש</span></div>';
+  var totalPrice = (instanceData && instanceData.priceIls) ? instanceData.priceIls : plan.price;
+  var addonsInfo = [];
+  if (components.includes('bk')) addonsInfo.push('גיבוי יומי');
+  if (components.includes('xs')) addonsInfo.push('אחסון נוסף');
+  infoHtml += '<div class="info-row"><span class="info-label">תוכנית</span><span class="info-value">' + plan.name + ' &middot; &#8362;' + totalPrice + '/חודש</span></div>';
+  if (addonsInfo.length) {
+    infoHtml += '<div class="info-row"><span class="info-label">תוספות</span><span class="info-value">' + addonsInfo.join(', ') + '</span></div>';
+  }
   document.getElementById('homeInfo').innerHTML = infoHtml;
 
   // Load logs preview
@@ -1260,7 +1268,7 @@ function renderIntegrations() {
 function renderBilling() {
   document.getElementById('planCardBig').innerHTML =
     '<div class="plan-name">' + plan.name + '</div>' +
-    '<div class="plan-price">&#8362;' + plan.price + '/חודש</div>' +
+    '<div class="plan-price">&#8362;' + ((instanceData && instanceData.priceIls) || plan.price) + '/חודש</div>' +
     '<div class="plan-specs">' + plan.cpu + ' &middot; ' + plan.ram + 'GB RAM &middot; ' + plan.nvme + 'GB NVMe</div>';
 }
 
