@@ -166,7 +166,25 @@ export const checkout = async (c: Context<HonoEnv>) => {
                         subdomainFlows: result.subdomainFlows,
                     }).where(eq(instances.id, instanceId))
 
-                    return provisioner.pollUntilReady(instanceId, result.serverId, result.subdomainAgent, result.ip)
+                    return provisioner.pollUntilReady(instanceId, result.serverId, result.subdomainAgent, result.ip).then(async (isReady) => {
+                        // Auto-create automation owner account
+                        if (isReady) {
+                            try {
+                                const port = autoTool === 'n8n' ? 5678 : 8080
+                                await fetch(`http://${result.ip}:${port}/rest/owner/setup`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        email: customerEmail || 'admin@clawflow.local',
+                                        firstName: 'ClawFlow', lastName: 'Admin',
+                                        password: result.automationPassword + '1'
+                                    }),
+                                    signal: AbortSignal.timeout(10000)
+                                })
+                            } catch { /* non-critical */ }
+                        }
+                        return isReady
+                    })
                 }).then(async (ready) => {
                     await db.update(instances)
                         .set({ status: ready ? 'running' : 'failed' })
@@ -256,6 +274,22 @@ export const handleAllpayWebhook = async (c: Context) => {
                     await db.update(instances)
                         .set({ status: 'running' })
                         .where(eq(instances.id, instanceId))
+
+                    // Auto-create n8n/Activepieces owner account
+                    try {
+                        const flowsPort = automationTool === 'n8n' ? 5678 : 8080
+                        await fetch(`http://${result.ip}:${flowsPort}/rest/owner/setup`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: customerEmail || 'admin@clawflow.local',
+                                firstName: 'ClawFlow',
+                                lastName: 'Admin',
+                                password: result.automationPassword + '1'
+                            }),
+                            signal: AbortSignal.timeout(10000)
+                        })
+                    } catch { /* non-critical — user can setup manually */ }
 
                     if (instance.telegramChatId) {
                         await telegram.notifyReady(instance.telegramChatId, {
