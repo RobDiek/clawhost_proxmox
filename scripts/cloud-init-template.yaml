@@ -60,6 +60,18 @@ runcmd:
               "allowedOrigins": ["*"]
             },
             "trustedProxies": ["127.0.0.1", "::1"]
+          },
+          "agents": {
+            "defaults": {
+              "bootstrapMaxChars": 12000,
+              "bootstrapTotalMaxChars": 50000,
+              "bootstrapPromptTruncationWarning": "always",
+              "compaction": {
+                "reserveTokens": 40000,
+                "keepRecentTokens": 25000,
+                "reserveTokensFloor": 25000
+              }
+            }
           }
         }
         OCEOF
