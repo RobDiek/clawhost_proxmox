@@ -259,15 +259,26 @@ const PLANS = {
   developer:{ he: 'מפתח', price: 599 }
 };
 
+const ADDON_PRICES = { bk: 19, xs_20: 15, xs_100: 49, xs_500: 149 };
+
 // Parse URL params
 const params = new URLSearchParams(window.location.search);
 const planKey = params.get('plan');
+const components = (params.get('components') || '').split(',').filter(Boolean);
+const storageGb = parseInt(params.get('storage') || '0', 10);
 
-// Show plan info if available
+// Calculate total price with addons
 if (planKey && PLANS[planKey]) {
   const plan = PLANS[planKey];
+  let addonsTotal = 0;
+  if (components.includes('bk')) addonsTotal += ADDON_PRICES.bk;
+  if (storageGb === 20) addonsTotal += ADDON_PRICES.xs_20;
+  else if (storageGb === 100) addonsTotal += ADDON_PRICES.xs_100;
+  else if (storageGb === 500) addonsTotal += ADDON_PRICES.xs_500;
+  const totalPrice = plan.price + addonsTotal;
+
   document.getElementById('plan-name-display').textContent = 'תוכנית ' + plan.he;
-  document.getElementById('plan-price-display').textContent = '₪' + plan.price + '/חודש';
+  document.getElementById('plan-price-display').textContent = '₪' + totalPrice + '/חודש';
   document.getElementById('plan-info').classList.remove('hidden');
 }
 

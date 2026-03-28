@@ -72,6 +72,12 @@ export const checkout = async (c: Context<HonoEnv>) => {
         const instanceId = generateId()
         const orderId = `oc-${instanceId}-${Date.now()}`
 
+        // Extract storage GB from addons
+        let storageGb = 0
+        if (addons?.includes('storage_20')) storageGb = 20
+        else if (addons?.includes('storage_100')) storageGb = 100
+        else if (addons?.includes('storage_500')) storageGb = 500
+
         await db.insert(instances).values({
             id: instanceId,
             userId,
@@ -80,6 +86,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
             aiProvider: 'apikey',
             planKey: pricing.planKey,
             priceIls: String(pricing.totalPrice),
+            storageGb,
             status: 'awaiting_payment',
             allpayOrderId: orderId,
             subdomainName: subdomainName || null,
