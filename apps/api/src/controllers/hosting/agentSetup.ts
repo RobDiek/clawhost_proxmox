@@ -12,7 +12,7 @@ const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_mas
 const TEMPLATES_DIR = resolve(process.cwd(), '../../templates/mateh-system')
 
 // ── SSH helper ──
-function sshExec(ip: string, command: string): Promise<string> {
+function sshExec(ip: string, command: string, password?: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const conn = new Client()
         let output = ''
@@ -25,13 +25,16 @@ function sshExec(ip: string, command: string): Promise<string> {
             })
         })
         .on('error', reject)
-        .connect({ host: ip, port: 22, username: 'root', privateKey: readFileSync(SSH_KEY_PATH) })
+
+        const opts: Record<string, unknown> = { host: ip, port: 22, username: 'root' }
+        if (password) opts.password = password
+        try { opts.privateKey = readFileSync(SSH_KEY_PATH) } catch { /* key not available */ }
+        conn.connect(opts)
     })
 }
 
-function sshWriteFile(ip: string, remotePath: string, content: string): Promise<void> {
-    const escaped = content.replace(/'/g, "'\\''")
-    return sshExec(ip, `mkdir -p "$(dirname '${remotePath}')" && cat > '${remotePath}' << 'CLAWEOF'\n${content}\nCLAWEOF`).then(() => {})
+function sshWriteFile(ip: string, remotePath: string, content: string, password?: string): Promise<void> {
+    return sshExec(ip, `mkdir -p "$(dirname '${remotePath}')" && cat > '${remotePath}' << 'CLAWEOF'\n${content}\nCLAWEOF`, password).then(() => {})
 }
 
 // ── Generate USER.md + BRAND.md via Claude ──
@@ -143,26 +146,26 @@ function generateFallback(answers: OnboardingAnswers): { userMd: string; brandMd
 }
 
 // ── Deploy all files to VPS ──
-async function deployAgentSystem(ip: string, userMd: string, brandMd: string, brandName: string, gatewayToken: string, subdomain: string): Promise<void> {
+async function deployAgentSystem(ip: string, userMd: string, brandMd: string, brandName: string, gatewayToken: string, subdomain: string, password?: string): Promise<void> {
     const baseDir = '/home/openclaw/.openclaw'
 
     // Create directory structure
-    await sshExec(ip, `mkdir -p ${baseDir}/{workspace/brands/${brandName},workspace/memory,agents/{sayer,meater,maazin,menateach,et,yotzer,shaliach,migdalor}/output}`)
+    await sshExec(ip, `mkdir -p ${baseDir}/{workspace/brands/${brandName},workspace/memory,agents/{sayer,meater,maazin,menateach,et,yotzer,shaliach,migdalor}/output}`, password)
 
     // Deploy workspace files
     const workspaceFiles = ['SOUL.md', 'AGENTS.md', 'HEARTBEAT.md']
     for (const f of workspaceFiles) {
         const content = readFileSync(join(TEMPLATES_DIR, 'workspace', f), 'utf-8')
-        await sshWriteFile(ip, `${baseDir}/workspace/${f}`, content)
+        await sshWriteFile(ip, `${baseDir}/workspace/${f}`, content, password)
     }
 
     // Deploy MEMORY.md
     const memoryContent = readFileSync(join(TEMPLATES_DIR, 'workspace/MEMORY.md.template'), 'utf-8')
-    await sshWriteFile(ip, `${baseDir}/workspace/MEMORY.md`, memoryContent)
+    await sshWriteFile(ip, `${baseDir}/workspace/MEMORY.md`, memoryContent, password)
 
     // Deploy generated USER.md and BRAND.md
-    await sshWriteFile(ip, `${baseDir}/workspace/USER.md`, userMd)
-    await sshWriteFile(ip, `${baseDir}/workspace/brands/${brandName}/BRAND.md`, brandMd)
+    await sshWriteFile(ip, `${baseDir}/workspace/USER.md`, userMd, password)
+    await sshWriteFile(ip, `${baseDir}/workspace/brands/${brandName}/BRAND.md`, brandMd, password)
 
     // Deploy agent SOUL.md files
     const agents = ['sayer', 'meater', 'maazin', 'menateach', 'et', 'yotzer', 'shaliach', 'migdalor']
@@ -170,7 +173,7 @@ async function deployAgentSystem(ip: string, userMd: string, brandMd: string, br
         const soulPath = join(TEMPLATES_DIR, 'agents', agent, 'SOUL.md')
         try {
             const content = readFileSync(soulPath, 'utf-8')
-            await sshWriteFile(ip, `${baseDir}/agents/${agent}/SOUL.md`, content)
+            await sshWriteFile(ip, `${baseDir}/agents/${agent}/SOUL.md`, content, password)
         } catch {
             console.error(`Missing template: ${soulPath}`)
         }
@@ -181,10 +184,10 @@ async function deployAgentSystem(ip: string, userMd: string, brandMd: string, br
     const config = configTemplate
         .replace(/\{\{GATEWAY_TOKEN\}\}/g, gatewayToken)
         .replace(/\{\{SUBDOMAIN\}\}/g, subdomain)
-    await sshWriteFile(ip, `${baseDir}/openclaw.json`, config)
+    await sshWriteFile(ip, `${baseDir}/openclaw.json`, config, password)
 
     // Fix permissions
-    await sshExec(ip, `chown -R openclaw:openclaw ${baseDir}`)
+    await sshExec(ip, `chown -R openclaw:openclaw ${baseDir}`, password)
 
     // Install skills
     await sshExec(ip, `
@@ -195,10 +198,10 @@ async function deployAgentSystem(ip: string, userMd: string, brandMd: string, br
         clawhub install de-ai-ify 2>/dev/null;
         clawhub install image-gen 2>/dev/null;
         ' || true
-    `)
+    `, password)
 
     // Restart OpenClaw
-    await sshExec(ip, 'systemctl restart openclaw-gateway')
+    await sshExec(ip, 'systemctl restart openclaw-gateway', password)
 }
 
 // ── POST /hosting/instances/:id/setup/agents ──
@@ -226,7 +229,7 @@ export const setupAgents = async (c: Context) => {
         const subdomain = instance.subdomainName || instanceId
 
         console.log(`Deploying agent system to ${instance.ip}...`)
-        await deployAgentSystem(instance.ip, userMd, brandMd, brandSlug, gatewayToken, subdomain)
+        await deployAgentSystem(instance.ip, userMd, brandMd, brandSlug, gatewayToken, subdomain, instance.rootPassword || undefined)
 
         // Update DB
         await db.update(instances).set({
