@@ -34,8 +34,9 @@ runcmd:
     - curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
     - apt-get install -y -qq nodejs
 
-    # ── Install OpenClaw ──
+    # ── Install OpenClaw + Chromium (for web research) ──
     - npm install -g openclaw@latest
+    - apt-get install -y -qq chromium-browser 2>/dev/null || snap install chromium 2>/dev/null || true
 
     # ── Firewall ──
     - ufw allow 22/tcp && ufw allow 80/tcp && ufw allow 443/tcp && ufw --force enable

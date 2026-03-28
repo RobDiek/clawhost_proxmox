@@ -473,119 +473,80 @@ export const analyzeAnswers = async (c: Context) => {
 }
 
 // ── POST /hosting/instances/:id/setup/agents/research ──
-// Deep research: analyzes business, competitors, market. Self-searches when data is missing.
+// Runs research via the live agent on VPS (with web search + browser access)
 export const runResearch = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
-        const body = await c.req.json<OnboardingAnswers & { clarifications?: string }>()
-
-        if (!body.businessName) {
-            return fail(c, 'Business name is required.', 400)
-        }
-
-        // Get user's API key from DB
-        const apiKey = await getApiKeyForInstance(instanceId)
-
-        if (!apiKey) {
-            return fail(c, 'מפתח API לא מוגדר — הגדירו Anthropic API Key באינטגרציות', 400)
-        }
-
-        console.log(`Running research for ${body.businessName}...`)
-
-        const prompt = `אתה ראש מחלקת מחקר שיווק. אתה מכין דוח מחקר מקיף שישמש כבסיס ל-9 סוכני שיווק אוטונומיים.
-
-## נתוני העסק
-- שם: ${body.businessName}
-- תחום: ${body.businessDescription}
-- אתר: ${body.websiteUrl || 'לא צוין — חפש באינטרנט לפי שם העסק'}
-- קהל יעד: ${body.targetAudience || 'לא צוין — הסק מהתחום'}
-- מתחרים: ${body.competitors || 'לא צוין — חפש מתחרים בתחום בישראל'}
-- מטרות: ${body.marketingGoals || 'לא צוין — הצע מטרות רלוונטיות'}
-- פלטפורמות: ${body.platforms || 'לא צוין — המלץ על סמך קהל היעד'}
-- תוכן נוכחי: ${body.currentContent || 'לא מפרסמים עדיין'}
-- טון: ${body.tone || 'ידידותי ונגיש'}
-- תקציב: ${body.budget || 'לא צוין'}
-- אתגרים: ${body.challenges || 'לא צוין'}
-${body.clarifications ? `\n## מידע נוסף מהמשתמש\n${body.clarifications}` : ''}
-
-## המשימה שלך
-צור דוח מחקר מלא בעברית. כשמידע חסר — **הסק, נתח, והצע** על סמך הידע שלך בתחום, לא תשאל עוד שאלות.
-
-## מבנה הדוח (הכרחי):
-
-### 1. סיכום מנהלים
-משפט אחד: מה העסק, מה ההזדמנות, מה המוקד.
-
-### 2. ניתוח שוק ומתחרים
-- 3-5 מתחרים ישירים (שם, URL אם ידוע, מה הם עושים טוב, מה חלש)
-- גודל שוק משוער
-- מגמות בתחום
-
-### 3. קהל יעד מפורט
-- 2-3 פרסונות (שם, גיל, תפקיד, כאבים, מוטיבציות, איפה נמצאים אונליין)
-- שאלות שהקהל שואל (לפחות 5)
-- מילות מפתח שהקהל מחפש (10-15, עברית + אנגלית)
-
-### 4. אסטרטגיה מוצעת
-- פוזיציונינג (positioning statement)
-- USP (מה מבדיל)
-- 4-6 עמודי תוכן (content pillars) עם דוגמאות
-- מסלול המרה: awareness → consideration → conversion
-
-### 5. תוכנית פעולה (טקטיקה)
-- פלטפורמות מומלצות לפי סדר עדיפויות + תדירות פרסום
-- סוגי תוכן לכל פלטפורמה
-- לוח זמנים שבועי מוצע
-- KPIs מומלצים (3-5 מדדים)
-
-### 6. תקציב והקצאה
-- חלוקת תקציב מומלצת (אורגני vs ממומן)
-- ROI צפוי
-
-### 7. הנחיות ל-9 סוכנים
-לכל סוכן — משפט אחד שמגדיר את המוקד שלו לעסק הזה:
-- מטה: [מה מתאם]
-- סייר: [מה חוקר]
-- מאתר: [אילו מילות מפתח]
-- מאזין: [מה מנטר]
-- מנתח: [מה מנתח]
-- עט: [איזה תוכן כותב]
-- יוצר: [איזה ויזואלים]
-- שליח: [לאן מפיץ]
-- מגדלור: [מה בודק]
-
-כתוב בעברית ישראלית טבעית. היה ספציפי — לא גנרי. כל המלצה מותאמת לעסק הזה.`
-
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01',
-            },
-            body: JSON.stringify({
-                model: 'claude-sonnet-4-6',
-                max_tokens: 8000,
-                messages: [{ role: 'user', content: prompt }],
-            }),
-        })
-
-        const data = await res.json() as { content?: Array<{ text: string }> }
-        const report = data.content?.[0]?.text || ''
-
-        // Save research to DB
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        if (instance) {
-            await db.update(instances).set({
-                researchData: {
-                    answers: body,
-                    report,
-                    generatedAt: new Date().toISOString(),
-                } as any,
-            }).where(eq(instances.id, instanceId))
+
+        if (!instance?.ip) {
+            return fail(c, 'Instance not found or not ready.', 404)
         }
 
-        console.log(`Research complete for ${body.businessName} (${report.length} chars)`)
+        // Read current business context from researchData
+        const answers = (instance.researchData as any)?.answers || {}
+        const businessName = answers.businessName || 'העסק'
+        const businessDesc = answers.businessDescription || ''
+        const competitors = answers.competitors || ''
+        const targetAudience = answers.targetAudience || ''
+
+        console.log(`Running VPS research for ${businessName} on ${instance.ip}...`)
+
+        // Build research prompt for the live agent
+        const researchPrompt = `עשה מחקר שוק מקיף עבור ${businessName}. ` +
+            `התחום: ${businessDesc}. ` +
+            (competitors ? `מתחרים שצוינו: ${competitors}. ` : '') +
+            (targetAudience ? `קהל יעד: ${targetAudience}. ` : '') +
+            `חפש באינטרנט (השתמש ב-web search ו-browser) ותן דוח מלא:\n` +
+            `1. 3-5 מתחרים ישירים (שם, URL, מה עושים טוב/חלש)\n` +
+            `2. 10 מילות מפתח רלוונטיות (עברית + אנגלית)\n` +
+            `3. 2-3 פרסונות קהל יעד\n` +
+            `4. הזדמנויות תוכן\n` +
+            `5. המלצות אסטרטגיות\n` +
+            `6. הנחיות ספציפיות לכל אחד מ-9 הסוכנים שלי\n\n` +
+            `אל תשלח לטלגרם — רק תחזיר את הדוח. כתוב בעברית.`
+
+        // Escape for shell
+        const escapedPrompt = researchPrompt.replace(/'/g, "'\\''")
+
+        // Run via openclaw agent on VPS
+        const output = await sshExec(instance.ip,
+            `su - openclaw -c 'timeout 180 openclaw agent --agent main -m '"'"'${escapedPrompt}'"'"' --json 2>&1'`,
+            instance.rootPassword || undefined
+        )
+
+        // Parse agent response
+        let report = ''
+        try {
+            const agentResult = JSON.parse(output)
+            report = agentResult?.result?.payloads?.[0]?.text || ''
+        } catch {
+            // If not JSON, use raw output (might be text response)
+            report = output
+        }
+
+        if (!report || report.length < 100) {
+            console.error('Research returned too short:', report.substring(0, 200))
+            return fail(c, 'המחקר לא הצליח — נסו שוב', 500)
+        }
+
+        // Save report to DB
+        const existingData = (instance.researchData as any) || {}
+        await db.update(instances).set({
+            researchData: {
+                ...existingData,
+                report,
+                researchGeneratedAt: new Date().toISOString(),
+            } as any,
+        }).where(eq(instances.id, instanceId))
+
+        // Also save as RESEARCH_REPORT.md on VPS
+        await sshExec(instance.ip,
+            `cat > /home/openclaw/.openclaw/workspace/RESEARCH_REPORT.md << 'EOFREPORT'\n${report}\nEOFREPORT\nchown openclaw:openclaw /home/openclaw/.openclaw/workspace/RESEARCH_REPORT.md`,
+            instance.rootPassword || undefined
+        )
+
+        console.log(`Research complete for ${businessName} (${report.length} chars)`)
         return ok(c, { report }, 'Research complete.')
     } catch (err) {
         console.error('runResearch error:', err)
