@@ -263,6 +263,8 @@ input{font-family:inherit}
   #agent-overview-grid { grid-template-columns: 1fr !important; }
 }
 
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
 .progress-steps { max-width: 400px; margin: 24px auto; }
 .p-step {
   display: flex; align-items: center; gap: 12px; padding: 12px 16px;
@@ -618,7 +620,7 @@ input{font-family:inherit}
             <div class="form-group"><label>11. מה הכי מתסכל בשיווק?</label><textarea id="q-challenges" placeholder="אין זמן? לא יודעים מה לכתוב? אין תוצאות?" rows="2"></textarea></div>
             <button class="btn btn-primary" onclick="submitAgentSetup()" id="btn-setup-submit">עדכנו את הסוכנים &rarr;</button>
           </div>
-          <div class="hidden" id="setup-step2"><h3 style="text-align:center;margin:20px 0">&#9881;&#65039; מגדירים את הסוכנים...</h3><p style="text-align:center;color:#6B7280;font-size:0.85rem">זה ייקח כ-30 שניות</p></div>
+          <div class="hidden" id="setup-step2"><div style="text-align:center;margin:20px 0"><div class="gear-spinner" style="display:inline-block;font-size:2rem;animation:spin 2s linear infinite">&#9881;&#65039;</div></div><h3 style="text-align:center;margin:8px 0">מגדירים את הסוכנים...</h3><p style="text-align:center;color:#6B7280;font-size:0.85rem">זה ייקח כ-30 שניות</p></div>
           <div class="hidden" id="setup-step3"><h3 style="text-align:center;margin:20px 0;color:#10B981">&#10003; הסוכנים עודכנו בהצלחה!</h3><div style="display:flex;gap:10px;justify-content:center;margin-top:16px"><button class="btn btn-primary" onclick="closeAgentDetail();switchTab('agents')">חזרו לסוכנים &rarr;</button><button class="btn btn-outline" onclick="reopenQuestionnaire()">&#9998; ערכו שוב</button></div></div>
         </div>
       </details>

@@ -383,15 +383,37 @@ export const analyzeAnswers = async (c: Context) => {
         const data = await res.json() as { content?: Array<{ text: string }> }
         const text = data.content?.[0]?.text || '{}'
 
-        // Extract JSON from response
+        // Extract JSON from response — robust parsing
         const jsonMatch = text.match(/\{[\s\S]*\}/)
         if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0])
-            return ok(c, {
-                assessment: parsed.assessment || '',
-                questions: parsed.questions || [],
-                ready: !parsed.questions || parsed.questions.length === 0,
-            }, 'Analysis complete.')
+            let jsonStr = jsonMatch[0]
+            // Fix common Claude JSON issues: trailing commas, comments
+            jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1')  // trailing commas
+            jsonStr = jsonStr.replace(/\/\/[^\n]*/g, '')       // line comments
+
+            try {
+                const parsed = JSON.parse(jsonStr)
+                return ok(c, {
+                    assessment: parsed.assessment || '',
+                    questions: parsed.questions || [],
+                    ready: !parsed.questions || parsed.questions.length === 0,
+                }, 'Analysis complete.')
+            } catch (parseErr) {
+                // JSON still invalid — try to extract questions manually
+                console.error('JSON parse failed, extracting manually:', parseErr)
+                const assessment = (text.match(/"assessment"\s*:\s*"([^"]*)"/) || [])[1] || ''
+                const questionMatches = text.match(/"question"\s*:\s*"([^"]*)"/g) || []
+                const questions = questionMatches.slice(0, 3).map((m, i) => ({
+                    id: 'q' + (i + 1),
+                    question: (m.match(/"question"\s*:\s*"([^"]*)"/) || [])[1] || '',
+                    placeholder: '',
+                    type: 'text',
+                })).filter(q => q.question)
+
+                if (questions.length > 0) {
+                    return ok(c, { assessment, questions, ready: false }, 'Analysis complete (recovered).')
+                }
+            }
         }
 
         return ok(c, { questions: [], ready: true }, 'No clarifying questions needed.')
