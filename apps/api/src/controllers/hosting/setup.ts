@@ -118,11 +118,14 @@ export const setupTelegram = async (c: Context) => {
         `, instance.rootPassword || undefined)
 
         // Save telegram token in our DB
+        // For MATEH users, onboarding continues with research wizard
+        const components = (instance.selectedComponents as string[]) || []
+        const hasMATEH = components.includes('mt')
         await db.update(instances)
             .set({
                 telegramBotToken: botToken,
                 onboardingStep: 3,
-                onboardingCompleted: true
+                onboardingCompleted: !hasMATEH
             })
             .where(eq(instances.id, instanceId))
 
