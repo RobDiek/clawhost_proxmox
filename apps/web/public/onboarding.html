@@ -842,10 +842,27 @@ body {
       <button class="btn btn-primary" id="btnSubmitResearch" onclick="submitResearch()" style="width:100%;margin-top:16px">הגדירו את הסוכנים שלי &rarr;</button>
     </div>
 
+    <!-- Clarifying questions from Claude -->
+    <div id="research-clarify" style="display:none">
+      <div style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:1rem">&#129302;</div>
+          <div>
+            <div style="font-weight:600;font-size:0.95rem">שאלות לפני שמתחילים</div>
+            <div style="font-size:0.82rem;color:var(--text-3)" id="clarify-assessment"></div>
+          </div>
+        </div>
+      </div>
+      <div id="clarify-questions-container"></div>
+      <button class="btn btn-primary" id="btnClarifySubmit" onclick="submitClarified()" style="width:100%;margin-top:16px">המשיכו להגדרה &rarr;</button>
+      <button class="skip-link" onclick="submitClarified()" style="margin-top:8px">דלגו — המידע מספיק</button>
+    </div>
+
+    <!-- Progress during deployment -->
     <div id="research-progress" style="display:none">
       <div style="text-align:center;padding:20px 0">
         <div style="font-size:2rem;margin-bottom:12px">&#9881;&#65039;</div>
-        <h3 id="research-progress-text">מנתחים את המידע שלכם...</h3>
+        <h3 id="research-progress-text">מגדירים את הסוכנים שלכם...</h3>
         <p style="color:var(--text-3);font-size:0.85rem;margin-top:8px">זה ייקח כ-30 שניות</p>
       </div>
     </div>
@@ -1396,11 +1413,75 @@ body {
     if (!answers.businessName) { showToast('נא להזין שם עסק', 'error'); return; }
     if (!answers.businessDescription) { showToast('נא לתאר את העסק', 'error'); return; }
 
+    // Store answers for later use
+    window._researchAnswers = answers;
+
+    // Step 1: Analyze with Claude for clarifying questions
     document.getElementById('research-form').style.display = 'none';
     document.getElementById('research-progress').style.display = 'block';
+    document.getElementById('research-progress-text').textContent = 'מנתחים את המידע שלכם...';
 
-    var steps = ['מנתחים את המידע...', 'יוצרים USER.md ו-BRAND.md...', 'מגדירים סוכנים...', 'מתקינים Skills...', 'מפעילים מחדש...'];
+    try {
+      var analyzeRes = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/analyze', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(answers)
+      });
+      var analyzeData = await analyzeRes.json();
+
+      if (analyzeData.success && analyzeData.data && analyzeData.data.questions && analyzeData.data.questions.length > 0) {
+        // Show clarifying questions
+        document.getElementById('research-progress').style.display = 'none';
+        document.getElementById('research-clarify').style.display = 'block';
+        document.getElementById('clarify-assessment').textContent = analyzeData.data.assessment || '';
+
+        var container = document.getElementById('clarify-questions-container');
+        container.innerHTML = '';
+        analyzeData.data.questions.forEach(function(q) {
+          var div = document.createElement('div');
+          div.className = 'form-group';
+          div.innerHTML = '<label>' + q.question + '</label>' +
+            '<textarea id="clarify-' + q.id + '" placeholder="' + (q.placeholder || '') + '" rows="2" class="input-field"></textarea>';
+          container.appendChild(div);
+        });
+        return; // Wait for user to answer clarifying questions
+      }
+
+      // No questions needed — proceed directly to deployment
+      await deployAgents(answers);
+    } catch (e) {
+      // On analyze error — proceed directly to deployment
+      console.log('Analyze failed, proceeding:', e);
+      await deployAgents(answers);
+    }
+  };
+
+  // Submit after clarifying questions answered
+  window.submitClarified = async function() {
+    var answers = window._researchAnswers || {};
+    // Collect clarifying answers and append to original answers
+    var clarifyInputs = document.querySelectorAll('[id^="clarify-q"]');
+    var clarifications = [];
+    clarifyInputs.forEach(function(el) {
+      if (el.value.trim()) {
+        var label = el.closest('.form-group').querySelector('label');
+        clarifications.push((label ? label.textContent : '') + ': ' + el.value.trim());
+      }
+    });
+    if (clarifications.length > 0) {
+      answers.clarifications = clarifications.join('\n');
+    }
+
+    document.getElementById('research-clarify').style.display = 'none';
+    await deployAgents(answers);
+  };
+
+  // Actual deployment
+  async function deployAgents(answers) {
+    document.getElementById('research-progress').style.display = 'block';
+    var steps = ['יוצרים USER.md ו-BRAND.md...', 'מגדירים סוכנים...', 'מתקינים Skills...', 'מפעילים מחדש...'];
     var progressText = document.getElementById('research-progress-text');
+    progressText.textContent = steps[0];
     var stepIdx = 0;
     var progressTimer = setInterval(function() {
       stepIdx++;
@@ -1420,10 +1501,10 @@ body {
     } catch (e) {
       clearInterval(progressTimer);
       showToast('שגיאה בהגדרת הסוכנים, נסו שוב', 'error');
-      document.getElementById('research-form').style.display = 'block';
       document.getElementById('research-progress').style.display = 'none';
+      document.getElementById('research-form').style.display = 'block';
     }
-  };
+  }
 
   // ── MATEH: Daily Brief Schedule ──
   window.saveDailyBrief = async function() {

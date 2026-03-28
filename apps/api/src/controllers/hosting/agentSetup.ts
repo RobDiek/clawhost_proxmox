@@ -51,6 +51,7 @@ interface OnboardingAnswers {
     platforms?: string
     tone?: string
     budget?: string
+    clarifications?: string
 }
 
 async function generateWithClaude(answers: OnboardingAnswers): Promise<{ userMd: string; brandMd: string }> {
@@ -71,7 +72,10 @@ async function generateWithClaude(answers: OnboardingAnswers): Promise<{ userMd:
 - תוכן נוכחי: ${answers.currentContent}
 - טון תקשורת: ${answers.tone || 'ידידותי ונגיש'}
 - תקציב חודשי: ${answers.budget || 'לא צוין'}
-- אתגרים: ${answers.challenges}
+- אתגרים: ${answers.challenges}${answers.clarifications ? `
+
+מידע נוסף (תשובות לשאלות הבהרה):
+${answers.clarifications}` : ''}
 
 צור בדיוק שני קבצים:
 
@@ -294,6 +298,90 @@ EOFPAIR
           --session isolated 2>/dev/null;
         '
     `, password)
+}
+
+// ── POST /hosting/instances/:id/setup/agents/analyze ──
+// Step 1: Claude analyzes questionnaire and suggests clarifying questions
+export const analyzeAnswers = async (c: Context) => {
+    try {
+        const answers = await c.req.json<OnboardingAnswers>()
+
+        if (!answers.businessName || !answers.businessDescription) {
+            return fail(c, 'Business name and description are required.', 400)
+        }
+
+        if (!ANTHROPIC_API_KEY) {
+            // No API key — skip clarifying questions
+            return ok(c, { questions: [], ready: true }, 'No clarifying questions needed.')
+        }
+
+        const prompt = `אתה מומחה שיווק דיגיטלי ישראלי. קיבלת את הנתונים הבאים מבעל עסק שרוצה להגדיר מערכת שיווק אוטומטית עם 9 סוכני AI.
+
+הנתונים:
+- שם העסק: ${answers.businessName}
+- מה עושים: ${answers.businessDescription}
+- אתר: ${answers.websiteUrl || 'לא צוין'}
+- קהל יעד: ${answers.targetAudience || 'לא צוין'}
+- מתחרים: ${answers.competitors || 'לא צוין'}
+- מטרות: ${answers.marketingGoals || 'לא צוין'}
+- פלטפורמות: ${answers.platforms || 'לא צוין'}
+- תוכן נוכחי: ${answers.currentContent || 'לא צוין'}
+- טון: ${answers.tone || 'לא צוין'}
+- תקציב: ${answers.budget || 'לא צוין'}
+- אתגרים: ${answers.challenges || 'לא צוין'}
+
+המשימה שלך: נתח את המידע וזהה מה חסר או לא ברור כדי ליצור אסטרטגיית שיווק מדויקת. שאל 2-3 שאלות ממוקדות שיעזרו לך להגדיר את הסוכנים בצורה טובה יותר.
+
+החזר תשובה בפורמט JSON בלבד:
+{
+  "assessment": "הערכה קצרה של המצב — משפט אחד",
+  "questions": [
+    { "id": "q1", "question": "השאלה בעברית", "placeholder": "דוגמה לתשובה", "type": "text" },
+    { "id": "q2", "question": "השאלה בעברית", "placeholder": "דוגמה לתשובה", "type": "text" }
+  ]
+}
+
+כללים:
+- מקסימום 3 שאלות
+- שאלות ספציפיות ופרקטיות, לא גנריות
+- אם המידע מספיק מפורט — החזר מערך ריק: { "assessment": "...", "questions": [] }
+- אל תשאל על דברים שכבר ברורים מהתשובות
+- דוגמאות לשאלות טובות: USP ספציפי, טווח מחירים, תהליך מכירה, מעורבות אישית של הבעלים בתוכן`
+
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': ANTHROPIC_API_KEY,
+                'anthropic-version': '2023-06-01',
+            },
+            body: JSON.stringify({
+                model: 'claude-haiku-4-5-20251001',
+                max_tokens: 1000,
+                messages: [{ role: 'user', content: prompt }],
+            }),
+        })
+
+        const data = await res.json() as { content?: Array<{ text: string }> }
+        const text = data.content?.[0]?.text || '{}'
+
+        // Extract JSON from response
+        const jsonMatch = text.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0])
+            return ok(c, {
+                assessment: parsed.assessment || '',
+                questions: parsed.questions || [],
+                ready: !parsed.questions || parsed.questions.length === 0,
+            }, 'Analysis complete.')
+        }
+
+        return ok(c, { questions: [], ready: true }, 'No clarifying questions needed.')
+    } catch (err) {
+        console.error('analyzeAnswers error:', err)
+        // On error, skip clarifying questions and proceed
+        return ok(c, { questions: [], ready: true }, 'Analysis skipped.')
+    }
 }
 
 // ── POST /hosting/instances/:id/setup/agents ──
