@@ -135,6 +135,21 @@ export const setupApiKey = async (c: Context) => {
             updateData.aiProviderType = 'anthropic'
         } else if (provider === 'openai') {
             updateData.openaiApiKey = apiKey
+            // When OpenAI key is added, set it as default model (cheaper, no harsh rate limits)
+            // Anthropic remains available for cron jobs and research
+            await sshExec(instance.ip, `
+                cd /home/openclaw/.openclaw &&
+                node -e "
+                  const fs = require('fs');
+                  const cfg = JSON.parse(fs.readFileSync('openclaw.json','utf-8'));
+                  if (!cfg.agents) cfg.agents = {};
+                  if (!cfg.agents.defaults) cfg.agents.defaults = {};
+                  cfg.agents.defaults.model = 'openai/gpt-4o';
+                  fs.writeFileSync('openclaw.json', JSON.stringify(cfg, null, 2));
+                " &&
+                chown openclaw:openclaw openclaw.json &&
+                systemctl restart openclaw-gateway
+            `, instance.rootPassword || undefined)
         }
         const step = instance.onboardingStep || 0
         if (step < 2) updateData.onboardingStep = 2
