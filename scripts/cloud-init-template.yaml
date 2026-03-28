@@ -184,7 +184,7 @@ runcmd:
                 proxy_read_timeout 300s;
                 proxy_hide_header X-Frame-Options;
                 proxy_hide_header Content-Security-Policy;
-                sub_filter '</head>' '<style>.shell-nav,.shell-nav-backdrop,.agents-sidebar,.topnav-shell,.agent-header,.agents-toolbar,.agent-chat__toolbar{display:none!important}.shell{grid-template-columns:1fr!important}</style></head>';
+                sub_filter '</head>' '<style>.shell-nav,.shell-nav-backdrop,.agents-sidebar,.topnav-shell,.agent-header,.agents-toolbar,.agent-chat__toolbar,.agent-chat__toolbar-left,.agent-chat__toolbar-right,.chat-controls__model,.chat-controls__session,.chat-controls__session-row,.agent-model-select{display:none!important}.shell{grid-template-columns:1fr!important}</style></head>';
                 sub_filter_once on;
                 sub_filter_types text/html;
             }
