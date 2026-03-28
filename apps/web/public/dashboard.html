@@ -245,6 +245,13 @@ input{font-family:inherit}
 .sub-agent-model { font-family: 'SF Mono','Courier New',monospace; font-size: 0.78rem; color: #6B7280; }
 .sub-agent-status.on { color: #10B981; font-size: 0.78rem; }
 
+/* Day chips for schedule */
+.day-chip { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-size: 0.72rem; border: 1px solid #E5E7EB; background: #fff; color: #6B7280; cursor: pointer; user-select: none; transition: all .15s; }
+.day-chip.active, input:checked + .day-chip { background: #2563EB; color: #fff; border-color: #2563EB; }
+
+/* Model select in sub-agents */
+.sub-agent-model-select { border: 1px solid #E5E7EB; border-radius: 6px; padding: 3px 6px; font-size: 0.78rem; font-family: inherit; background: #fff; cursor: pointer; }
+
 @media (max-width: 600px) {
   .sub-agent-row { grid-template-columns: 1fr 1fr; }
   .sub-agent-model, .sub-agent-status { display: none; }
@@ -552,59 +559,119 @@ input{font-family:inherit}
 
       <!-- 2. Business Profile (questionnaire) -->
       <div class="section-title">פרופיל עסקי</div>
-      <div id="agent-profile-section">
-        <div id="agent-saved-profile" style="margin-bottom:16px"></div>
-        <details id="agent-questionnaire-details">
-          <summary style="cursor:pointer;color:#2563EB;font-size:0.9rem;font-weight:500" id="agent-questionnaire-summary">ערכו פרופיל &rarr;</summary>
-          <div style="margin-top:16px" id="agent-questionnaire-form"></div>
-        </details>
-      </div>
+      <div id="agent-saved-profile" style="margin-bottom:16px"></div>
+      <details id="agent-questionnaire-details">
+        <summary style="cursor:pointer;color:#2563EB;font-size:0.9rem;font-weight:500" id="agent-questionnaire-summary">ערכו פרופיל &rarr;</summary>
+        <div style="margin-top:16px">
+          <div class="setup-form" id="agent-setup-form">
+            <div class="form-group"><label>1. שם העסק</label><input type="text" id="q-business-name" placeholder="לדוגמה: Flowmatic"/></div>
+            <div class="form-group"><label>2. במה עוסק העסק?</label><textarea id="q-business-desc" placeholder="תארו בקצרה את המוצר או השירות" rows="2"></textarea></div>
+            <div class="form-group"><label>3. כתובת האתר (אם יש)</label><input type="url" id="q-website" placeholder="https://example.co.il" dir="ltr"/></div>
+            <div class="form-group"><label>4. מי קהל היעד?</label><textarea id="q-target" placeholder="תארו את הלקוח האידיאלי — גיל, תחום, כאבים" rows="2"></textarea></div>
+            <div class="form-group"><label>5. מי המתחרים? (2-3 שמות)</label><textarea id="q-competitors" placeholder="שמות + URL אם יש" rows="2"></textarea></div>
+            <div class="form-group"><label>6. מטרות שיווק <span style="color:#9CA3AF;font-weight:400">(בחרו כמה)</span></label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+                <label class="chip-label"><input type="checkbox" name="q-goal" value="לידים"/><span class="chip">לידים</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-goal" value="מכירות ישירות"/><span class="chip">מכירות</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-goal" value="בניית קהל"/><span class="chip">בניית קהל</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-goal" value="מודעות מותג" checked/><span class="chip">מותג</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-goal" value="שימור לקוחות"/><span class="chip">שימור</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-goal" value="SEO ותנועה אורגנית"/><span class="chip">SEO</span></label>
+              </div></div>
+            <div class="form-group"><label>7. פלטפורמות <span style="color:#9CA3AF;font-weight:400">(או רוצים להיות)</span></label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+                <label class="chip-label"><input type="checkbox" name="q-platform" value="Instagram"/><span class="chip">Instagram</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-platform" value="Facebook"/><span class="chip">Facebook</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-platform" value="LinkedIn"/><span class="chip">LinkedIn</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-platform" value="TikTok"/><span class="chip">TikTok</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-platform" value="Twitter/X"/><span class="chip">Twitter/X</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-platform" value="YouTube"/><span class="chip">YouTube</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-platform" value="בלוג"/><span class="chip">בלוג</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-platform" value="ניוזלטר"/><span class="chip">ניוזלטר</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-platform" value="Google Ads"/><span class="chip">Google Ads</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-platform" value="Meta Ads"/><span class="chip">Meta Ads</span></label>
+              </div></div>
+            <div class="form-group"><label>8. תוכן נוכחי <span style="color:#9CA3AF;font-weight:400">(בחרו כמה)</span></label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+                <label class="chip-label"><input type="checkbox" name="q-content" value="פוסטים ברשתות"/><span class="chip">פוסטים</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-content" value="סרטונים / ריילס"/><span class="chip">סרטונים</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-content" value="מאמרי בלוג"/><span class="chip">בלוג</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-content" value="ניוזלטר / אימייל"/><span class="chip">ניוזלטר</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-content" value="פודקאסט"/><span class="chip">פודקאסט</span></label>
+                <label class="chip-label"><input type="checkbox" name="q-content" value="לא מפרסמים עדיין"/><span class="chip">לא מפרסמים</span></label>
+              </div></div>
+            <div class="form-group"><label>9. טון התקשורת</label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+                <label class="chip-label"><input type="radio" name="q-tone" value="מקצועי ורשמי"/><span class="chip">מקצועי</span></label>
+                <label class="chip-label"><input type="radio" name="q-tone" value="ידידותי ונגיש" checked/><span class="chip">ידידותי</span></label>
+                <label class="chip-label"><input type="radio" name="q-tone" value="צעיר ודינמי"/><span class="chip">צעיר</span></label>
+                <label class="chip-label"><input type="radio" name="q-tone" value="פרובוקטיבי ונועז"/><span class="chip">פרובוקטיבי</span></label>
+                <label class="chip-label"><input type="radio" name="q-tone" value="חינוכי ומעשיר"/><span class="chip">חינוכי</span></label>
+              </div></div>
+            <div class="form-group"><label>10. תקציב שיווק חודשי</label>
+              <select id="q-budget"><option value="אין תקציב">אין תקציב — רק אורגני</option><option value="עד 1,000 ₪">עד 1,000 ₪</option><option value="1,000-5,000 ₪" selected>1,000–5,000 ₪</option><option value="5,000-15,000 ₪">5,000–15,000 ₪</option><option value="15,000-50,000 ₪">15,000–50,000 ₪</option><option value="מעל 50,000 ₪">מעל 50,000 ₪</option></select></div>
+            <div class="form-group"><label>11. מה הכי מתסכל בשיווק?</label><textarea id="q-challenges" placeholder="אין זמן? לא יודעים מה לכתוב? אין תוצאות?" rows="2"></textarea></div>
+            <button class="btn btn-primary" onclick="submitAgentSetup()" id="btn-setup-submit">עדכנו את הסוכנים &rarr;</button>
+          </div>
+          <div class="hidden" id="setup-step2"><h3 style="text-align:center;margin:20px 0">&#9881;&#65039; מגדירים את הסוכנים...</h3><p style="text-align:center;color:#6B7280;font-size:0.85rem">זה ייקח כ-30 שניות</p></div>
+          <div class="hidden" id="setup-step3"><h3 style="text-align:center;margin:20px 0;color:#10B981">&#10003; הסוכנים עודכנו בהצלחה!</h3><button class="btn btn-primary" onclick="closeAgentDetail();switchTab('agents')" style="display:block;margin:16px auto">חזרו לסוכנים &rarr;</button></div>
+        </div>
+      </details>
 
-      <!-- 3. Scheduled Tasks -->
+      <!-- 3. Scheduled Tasks (configurable) -->
       <div class="section-title" style="margin-top:28px">שגרות מתוזמנות</div>
       <div id="agent-schedules">
         <div class="schedule-row">
           <div class="schedule-info">
             <div class="schedule-name">Daily Brief</div>
-            <div class="schedule-desc">סיכום יומי — א-ה 07:00</div>
+            <div class="schedule-desc">סיכום יומי</div>
           </div>
-          <div class="schedule-actions">
-            <span class="schedule-status" id="sched-daily-status">פעיל</span>
+          <div class="schedule-actions" style="display:flex;align-items:center;gap:8px">
+            <input type="time" id="sched-daily-time" value="07:00" style="border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;font-size:0.82rem;direction:ltr;width:90px"/>
+            <div style="display:flex;gap:4px;font-size:0.72rem">
+              <label title="ראשון" style="cursor:pointer"><input type="checkbox" name="sched-daily-day" value="0" checked style="display:none"/><span class="day-chip active">א</span></label>
+              <label title="שני" style="cursor:pointer"><input type="checkbox" name="sched-daily-day" value="1" checked style="display:none"/><span class="day-chip active">ב</span></label>
+              <label title="שלישי" style="cursor:pointer"><input type="checkbox" name="sched-daily-day" value="2" checked style="display:none"/><span class="day-chip active">ג</span></label>
+              <label title="רביעי" style="cursor:pointer"><input type="checkbox" name="sched-daily-day" value="3" checked style="display:none"/><span class="day-chip active">ד</span></label>
+              <label title="חמישי" style="cursor:pointer"><input type="checkbox" name="sched-daily-day" value="4" checked style="display:none"/><span class="day-chip active">ה</span></label>
+              <label title="שישי" style="cursor:pointer"><input type="checkbox" name="sched-daily-day" value="5" style="display:none"/><span class="day-chip">ו</span></label>
+              <label title="שבת" style="cursor:pointer"><input type="checkbox" name="sched-daily-day" value="6" style="display:none"/><span class="day-chip">ש</span></label>
+            </div>
+            <button class="btn btn-outline" onclick="saveSchedule('daily')" style="font-size:0.78rem;padding:4px 10px">שמרו</button>
           </div>
         </div>
         <div class="schedule-row">
           <div class="schedule-info">
             <div class="schedule-name">דוח תחרותי שבועי</div>
-            <div class="schedule-desc">יום ב 08:00 — ניתוח מתחרים והזדמנויות</div>
+            <div class="schedule-desc">ניתוח מתחרים והזדמנויות</div>
           </div>
-          <div class="schedule-actions">
-            <span class="schedule-status">פעיל</span>
+          <div class="schedule-actions" style="display:flex;align-items:center;gap:8px">
+            <input type="time" id="sched-weekly-time" value="08:00" style="border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;font-size:0.82rem;direction:ltr;width:90px"/>
+            <select id="sched-weekly-day" style="border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;font-size:0.82rem">
+              <option value="0">ראשון</option><option value="1" selected>שני</option><option value="2">שלישי</option><option value="3">רביעי</option><option value="4">חמישי</option>
+            </select>
+            <button class="btn btn-outline" onclick="saveSchedule('weekly')" style="font-size:0.78rem;padding:4px 10px">שמרו</button>
           </div>
         </div>
         <div class="schedule-row">
           <div class="schedule-info">
             <div class="schedule-name">ביקורת AEO חודשית</div>
-            <div class="schedule-desc">1 לחודש 10:00 — בדיקת נוכחות ב-AI</div>
+            <div class="schedule-desc">בדיקת נוכחות ב-AI</div>
           </div>
-          <div class="schedule-actions">
-            <span class="schedule-status">פעיל</span>
+          <div class="schedule-actions" style="display:flex;align-items:center;gap:8px">
+            <select id="sched-monthly-day" style="border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;font-size:0.82rem">
+              <option value="1" selected>1 לחודש</option><option value="15">15 לחודש</option>
+            </select>
+            <input type="time" id="sched-monthly-time" value="10:00" style="border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;font-size:0.82rem;direction:ltr;width:90px"/>
+            <button class="btn btn-outline" onclick="saveSchedule('monthly')" style="font-size:0.78rem;padding:4px 10px">שמרו</button>
           </div>
         </div>
       </div>
 
-      <!-- 4. Sub-agents -->
+      <!-- 4. Sub-agents with model selector -->
       <div class="section-title" style="margin-top:28px">סוכני משנה</div>
-      <div class="sub-agents-grid" id="sub-agents-grid">
-        <div class="sub-agent-row"><span class="sub-agent-name">מטה</span><span class="sub-agent-role">מתאם ומנהל</span><span class="sub-agent-model">Sonnet</span><span class="sub-agent-status on">פעיל</span></div>
-        <div class="sub-agent-row"><span class="sub-agent-name">סייר</span><span class="sub-agent-role">מחקר אינטרנט</span><span class="sub-agent-model">Sonnet</span><span class="sub-agent-status on">פעיל</span></div>
-        <div class="sub-agent-row"><span class="sub-agent-name">מאתר</span><span class="sub-agent-role">מחקר SERP</span><span class="sub-agent-model">Sonnet</span><span class="sub-agent-status on">פעיל</span></div>
-        <div class="sub-agent-row"><span class="sub-agent-name">מאזין</span><span class="sub-agent-role">האזנה חברתית</span><span class="sub-agent-model">Sonnet</span><span class="sub-agent-status on">פעיל</span></div>
-        <div class="sub-agent-row"><span class="sub-agent-name">מנתח</span><span class="sub-agent-role">ניתוח הזדמנויות</span><span class="sub-agent-model">Sonnet</span><span class="sub-agent-status on">פעיל</span></div>
-        <div class="sub-agent-row"><span class="sub-agent-name">עט</span><span class="sub-agent-role">כתיבת תוכן</span><span class="sub-agent-model">Sonnet</span><span class="sub-agent-status on">פעיל</span></div>
-        <div class="sub-agent-row"><span class="sub-agent-name">יוצר</span><span class="sub-agent-role">קריאייטיב</span><span class="sub-agent-model">Sonnet</span><span class="sub-agent-status on">פעיל</span></div>
-        <div class="sub-agent-row"><span class="sub-agent-name">שליח</span><span class="sub-agent-role">הפצה</span><span class="sub-agent-model">Haiku</span><span class="sub-agent-status on">פעיל</span></div>
-        <div class="sub-agent-row"><span class="sub-agent-name">מגדלור</span><span class="sub-agent-role">ביקורת AEO</span><span class="sub-agent-model">Sonnet</span><span class="sub-agent-status on">פעיל</span></div>
-      </div>
+      <div class="sub-agents-grid" id="sub-agents-grid"></div>
+      <div style="margin-top:8px;text-align:left"><button class="btn btn-outline" onclick="saveSubAgentModels()" style="font-size:0.82rem">&#128190; שמרו שינויים</button></div>
 
       <!-- 5. Activity Log -->
       <div class="section-title" style="margin-top:28px">לוג פעילות</div>
@@ -951,179 +1018,7 @@ input{font-family:inherit}
     <div class="info-row"><span class="info-label">אימייל</span><span class="info-value" id="settingsEmail"></span></div>
     <div class="info-row"><span class="info-label">חשבון נוצר</span><span class="info-value" id="settingsCreated"></span></div>
 
-    <!-- MATEH Setup -->
-    <div class="section-title" style="margin-top:32px">הגדרת מערכת MATEH</div>
-
-    <!-- Saved answers view (shown when research already done) -->
-    <div id="mateh-saved-answers" class="hidden" style="margin-bottom:20px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <p style="font-size:0.82rem;color:#10B981;margin:0">&#10003; הסוכנים הוגדרו על בסיס הנתונים שלכם</p>
-        <button class="btn btn-outline" onclick="editQuestionnaire()" style="font-size:0.8rem;padding:6px 14px">&#9998; ערכו</button>
-      </div>
-      <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px;font-size:0.85rem;line-height:1.9">
-        <div><strong>שם העסק:</strong> <span id="saved-biz-name"></span></div>
-        <div><strong>תחום:</strong> <span id="saved-biz-desc"></span></div>
-        <div><strong>קהל יעד:</strong> <span id="saved-target"></span></div>
-        <div><strong>מתחרים:</strong> <span id="saved-competitors"></span></div>
-        <div><strong>מטרות:</strong> <span id="saved-goal"></span></div>
-        <div><strong>פלטפורמות:</strong> <span id="saved-platforms"></span></div>
-        <div><strong>תוכן:</strong> <span id="saved-content"></span></div>
-        <div><strong>טון:</strong> <span id="saved-tone"></span></div>
-        <div><strong>תקציב:</strong> <span id="saved-budget"></span></div>
-        <div><strong>אתגרים:</strong> <span id="saved-challenges"></span></div>
-      </div>
-    </div>
-
-    <p id="mateh-setup-intro" style="font-size:0.82rem;color:#6B7280;margin-bottom:12px">ענו על השאלות כדי להגדיר את 9 סוכני השיווק שלכם.</p>
-    <details id="mateh-setup-details">
-      <summary style="cursor:pointer;color:#2563EB;font-size:0.9rem;font-weight:500" id="mateh-details-summary">פתחו שאלון הגדרה &rarr;</summary>
-      <div style="margin-top:16px">
-        <div class="setup-form">
-          <div class="form-group">
-            <label>1. שם העסק</label>
-            <input type="text" id="q-business-name" placeholder="לדוגמה: Flowmatic"/>
-          </div>
-          <div class="form-group">
-            <label>2. במה עוסק העסק?</label>
-            <textarea id="q-business-desc" placeholder="תארו בקצרה את המוצר או השירות" rows="2"></textarea>
-          </div>
-          <div class="form-group">
-            <label>3. כתובת האתר (אם יש)</label>
-            <input type="url" id="q-website" placeholder="https://example.co.il" dir="ltr"/>
-          </div>
-          <div class="form-group">
-            <label>4. מי קהל היעד שלכם?</label>
-            <textarea id="q-target" placeholder="תארו את הלקוח האידיאלי — גיל, תחום, כאבים" rows="2"></textarea>
-          </div>
-          <div class="form-group">
-            <label>5. מי המתחרים הישירים? (2-3 שמות)</label>
-            <textarea id="q-competitors" placeholder="שמות + URL אם יש" rows="2"></textarea>
-          </div>
-          <div class="form-group">
-            <label>6. מטרות שיווק <span style="color:#9CA3AF;font-weight:400">(בחרו כמה שרלוונטי)</span></label>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
-              <label class="chip-label"><input type="checkbox" name="q-goal" value="לידים"/><span class="chip">לידים</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-goal" value="מכירות ישירות"/><span class="chip">מכירות ישירות</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-goal" value="בניית קהל"/><span class="chip">בניית קהל</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-goal" value="מודעות מותג" checked/><span class="chip">מודעות מותג</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-goal" value="שימור לקוחות"/><span class="chip">שימור לקוחות</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-goal" value="SEO ותנועה אורגנית"/><span class="chip">SEO</span></label>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>7. פלטפורמות פעילות <span style="color:#9CA3AF;font-weight:400">(או רוצים להיות)</span></label>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
-              <label class="chip-label"><input type="checkbox" name="q-platform" value="Instagram"/><span class="chip">Instagram</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-platform" value="Facebook"/><span class="chip">Facebook</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-platform" value="LinkedIn"/><span class="chip">LinkedIn</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-platform" value="TikTok"/><span class="chip">TikTok</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-platform" value="Twitter/X"/><span class="chip">Twitter/X</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-platform" value="YouTube"/><span class="chip">YouTube</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-platform" value="בלוג"/><span class="chip">בלוג</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-platform" value="ניוזלטר"/><span class="chip">ניוזלטר</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-platform" value="Google Ads"/><span class="chip">Google Ads</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-platform" value="Meta Ads"/><span class="chip">Meta Ads</span></label>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>8. תוכן נוכחי <span style="color:#9CA3AF;font-weight:400">(בחרו כמה שרלוונטי)</span></label>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
-              <label class="chip-label"><input type="checkbox" name="q-content" value="פוסטים ברשתות"/><span class="chip">פוסטים</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-content" value="סרטונים / ריילס"/><span class="chip">סרטונים</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-content" value="מאמרי בלוג"/><span class="chip">בלוג</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-content" value="ניוזלטר / אימייל"/><span class="chip">ניוזלטר</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-content" value="פודקאסט"/><span class="chip">פודקאסט</span></label>
-              <label class="chip-label"><input type="checkbox" name="q-content" value="לא מפרסמים עדיין"/><span class="chip">לא מפרסמים</span></label>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>9. טון התקשורת</label>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
-              <label class="chip-label"><input type="radio" name="q-tone" value="מקצועי ורשמי"/><span class="chip">מקצועי ורשמי</span></label>
-              <label class="chip-label"><input type="radio" name="q-tone" value="ידידותי ונגיש" checked/><span class="chip">ידידותי ונגיש</span></label>
-              <label class="chip-label"><input type="radio" name="q-tone" value="צעיר ודינמי"/><span class="chip">צעיר ודינמי</span></label>
-              <label class="chip-label"><input type="radio" name="q-tone" value="פרובוקטיבי ונועז"/><span class="chip">פרובוקטיבי</span></label>
-              <label class="chip-label"><input type="radio" name="q-tone" value="חינוכי ומעשיר"/><span class="chip">חינוכי</span></label>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>10. תקציב שיווק חודשי</label>
-            <select id="q-budget">
-              <option value="אין תקציב">אין תקציב — רק אורגני</option>
-              <option value="עד 1,000 ₪">עד 1,000 ₪</option>
-              <option value="1,000-5,000 ₪" selected>1,000–5,000 ₪</option>
-              <option value="5,000-15,000 ₪">5,000–15,000 ₪</option>
-              <option value="15,000-50,000 ₪">15,000–50,000 ₪</option>
-              <option value="מעל 50,000 ₪">מעל 50,000 ₪</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>11. מה הכי מתסכל אתכם בשיווק?</label>
-            <textarea id="q-challenges" placeholder="אין זמן? לא יודעים מה לכתוב? אין תוצאות?" rows="2"></textarea>
-          </div>
-
-          <button class="btn btn-primary" onclick="submitAgentSetup()" id="btn-setup-submit">
-            הגדירו את הסוכנים שלי &rarr;
-          </button>
-        </div>
-
-        <!-- Progress (step 2) -->
-        <div class="hidden" id="setup-step2">
-          <h2>מגדירים את הסוכנים שלכם...</h2>
-          <p class="section-desc">זה ייקח כ-30 שניות</p>
-
-          <div class="progress-steps">
-            <div class="p-step active" id="ps-1">
-              <span class="p-icon">&#9881;&#65039;</span>
-              <span>מנתחים את המידע שלכם</span>
-            </div>
-            <div class="p-step" id="ps-2">
-              <span class="p-icon">&#128221;</span>
-              <span>יוצרים USER.md ו-BRAND.md</span>
-            </div>
-            <div class="p-step" id="ps-3">
-              <span class="p-icon">&#129302;</span>
-              <span>מגדירים 9 סוכנים</span>
-            </div>
-            <div class="p-step" id="ps-4">
-              <span class="p-icon">&#128295;</span>
-              <span>מתקינים Skills</span>
-            </div>
-            <div class="p-step" id="ps-5">
-              <span class="p-icon">&#128640;</span>
-              <span>מפעילים מחדש</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Done (step 3) -->
-        <div class="hidden" id="setup-step3">
-          <h2>הסוכנים שלכם מוכנים!</h2>
-          <p class="section-desc">9 סוכנים הוגדרו ומוכנים לעבודה</p>
-
-          <div class="agents-summary">
-            <div class="agent-mini">מטה &mdash; מתאם</div>
-            <div class="agent-mini">סייר &mdash; סיור אינטרנט</div>
-            <div class="agent-mini">מאתר &mdash; מחקר SERP</div>
-            <div class="agent-mini">מאזין &mdash; האזנה חברתית</div>
-            <div class="agent-mini">מנתח &mdash; ניתוח</div>
-            <div class="agent-mini">עט &mdash; כתיבה</div>
-            <div class="agent-mini">יוצר &mdash; קריאייטיב</div>
-            <div class="agent-mini">שליח &mdash; הפצה</div>
-            <div class="agent-mini">מגדלור &mdash; AEO</div>
-          </div>
-
-          <div class="next-steps-card">
-            <h3>מה הלאה?</h3>
-            <p>מחר בבוקר תקבלו את ה-Daily Brief הראשון ב-Telegram.</p>
-            <p>כל שבוע ב &mdash; דוח תחרותי מלא.</p>
-            <p>כל חודש &mdash; ביקורת AEO.</p>
-          </div>
-
-          <button class="btn btn-primary" onclick="switchTab('home')">חזרו ללוח הבקרה &rarr;</button>
-        </div>
-      </div>
-    </details>
+    <!-- MATEH Setup moved to Agent Detail page (סוכנים → הגדרות) -->
 
     <!-- Advanced Mode -->
     <div class="section-title" style="margin-top:40px">מתקדם</div>
@@ -1775,38 +1670,20 @@ function logout() {
 
 /* ===== MATEH Saved Answers ===== */
 function renderSavedAnswers() {
+  // Pre-fill questionnaire form fields if answers exist (for agent detail page)
   if (!instanceData || !instanceData.researchData) return;
   var answers = instanceData.researchData.answers;
   if (!answers || !answers.businessName) return;
 
-  // Show saved answers card, hide intro text
-  document.getElementById('mateh-saved-answers').classList.remove('hidden');
-  document.getElementById('mateh-setup-intro').style.display = 'none';
-  document.getElementById('mateh-details-summary').textContent = 'שנו תשובות ושלחו מחדש \u2192';
-
-  // Populate saved values
-  document.getElementById('saved-biz-name').textContent = answers.businessName || '';
-  document.getElementById('saved-biz-desc').textContent = (answers.businessDescription || '').substring(0, 120) + (answers.businessDescription && answers.businessDescription.length > 120 ? '...' : '');
-  document.getElementById('saved-target').textContent = (answers.targetAudience || '').substring(0, 100) + (answers.targetAudience && answers.targetAudience.length > 100 ? '...' : '');
-  document.getElementById('saved-competitors').textContent = answers.competitors || '—';
-  document.getElementById('saved-goal').textContent = answers.marketingGoals || '—';
-  document.getElementById('saved-content').textContent = answers.currentContent || '—';
-  document.getElementById('saved-challenges').textContent = answers.challenges || '—';
-  var savedPlatforms = document.getElementById('saved-platforms');
-  if (savedPlatforms) savedPlatforms.textContent = answers.platforms || '—';
-  var savedTone = document.getElementById('saved-tone');
-  if (savedTone) savedTone.textContent = answers.tone || '—';
-  var savedBudget = document.getElementById('saved-budget');
-  if (savedBudget) savedBudget.textContent = answers.budget || '—';
-
-  // Pre-fill text fields
-  document.getElementById('q-business-name').value = answers.businessName || '';
-  document.getElementById('q-business-desc').value = answers.businessDescription || '';
-  if (document.getElementById('q-website')) document.getElementById('q-website').value = answers.websiteUrl || '';
-  document.getElementById('q-target').value = answers.targetAudience || '';
-  document.getElementById('q-competitors').value = answers.competitors || '';
-  document.getElementById('q-challenges').value = answers.challenges || '';
-  if (document.getElementById('q-budget')) document.getElementById('q-budget').value = answers.budget || '1,000-5,000 ₪';
+  // Pre-fill text fields (safe — checks if element exists)
+  function setVal(id, val) { var el = document.getElementById(id); if (el) el.value = val || ''; }
+  setVal('q-business-name', answers.businessName);
+  setVal('q-business-desc', answers.businessDescription);
+  setVal('q-website', answers.websiteUrl);
+  setVal('q-target', answers.targetAudience);
+  setVal('q-competitors', answers.competitors);
+  setVal('q-challenges', answers.challenges);
+  setVal('q-budget', answers.budget || '1,000-5,000 ₪');
 
   // Pre-fill multi-select checkboxes
   function prefillChecked(name, csvValue) {
@@ -1821,8 +1698,9 @@ function renderSavedAnswers() {
   prefillChecked('q-content', answers.currentContent);
 
   // Pre-fill tone radio
-  var toneRadios = document.querySelectorAll('input[name="q-tone"]');
-  toneRadios.forEach(function(r) { r.checked = r.value === (answers.tone || 'ידידותי ונגיש'); });
+  document.querySelectorAll('input[name="q-tone"]').forEach(function(r) {
+    r.checked = r.value === (answers.tone || 'ידידותי ונגיש');
+  });
 }
 
 /* ===== Agent Detail View ===== */
@@ -1842,6 +1720,9 @@ function openAgentDetail(agentType) {
 
   // Populate saved profile if exists
   renderAgentProfile();
+
+  // Render sub-agents with model selectors
+  renderSubAgents();
 
   // Load activity log
   loadAgentActivityLog();
@@ -1878,10 +1759,93 @@ function renderAgentProfile() {
 }
 
 function openAgentQuestionnaire() {
-  // Navigate to settings tab with questionnaire open
-  switchTab('settings');
-  setTimeout(function() { editQuestionnaire(); }, 100);
+  var details = document.getElementById('agent-questionnaire-details');
+  details.open = true;
+  var form = document.getElementById('agent-setup-form');
+  if (form) form.classList.remove('hidden');
+  document.getElementById('setup-step2').classList.add('hidden');
+  document.getElementById('setup-step3').classList.add('hidden');
+  var btn = document.getElementById('btn-setup-submit');
+  if (btn) { btn.disabled = false; btn.textContent = 'עדכנו את הסוכנים \u2192'; }
+  details.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+// Sub-agents data
+var SUB_AGENTS = [
+  { id: 'mateh', name: 'מטה', role: 'מתאם ומנהל', defaultModel: 'claude-sonnet-4-5-20250514' },
+  { id: 'sayer', name: 'סייר', role: 'מחקר אינטרנט', defaultModel: 'claude-sonnet-4-5-20250514' },
+  { id: 'meater', name: 'מאתר', role: 'מחקר SERP', defaultModel: 'claude-sonnet-4-5-20250514' },
+  { id: 'maazin', name: 'מאזין', role: 'האזנה חברתית', defaultModel: 'claude-sonnet-4-5-20250514' },
+  { id: 'menateach', name: 'מנתח', role: 'ניתוח הזדמנויות', defaultModel: 'claude-sonnet-4-5-20250514' },
+  { id: 'et', name: 'עט', role: 'כתיבת תוכן', defaultModel: 'claude-sonnet-4-5-20250514' },
+  { id: 'yotzer', name: 'יוצר', role: 'קריאייטיב', defaultModel: 'claude-sonnet-4-5-20250514' },
+  { id: 'shaliach', name: 'שליח', role: 'הפצה', defaultModel: 'claude-haiku-4-5-20251001' },
+  { id: 'migdalor', name: 'מגדלור', role: 'ביקורת AEO', defaultModel: 'claude-sonnet-4-5-20250514' },
+];
+
+var MODEL_OPTIONS = [
+  { value: 'claude-opus-4-6', label: 'Claude Opus 4.6 (מתקדם)' },
+  { value: 'claude-sonnet-4-5-20250514', label: 'Claude Sonnet 4.5 (מומלץ)' },
+  { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 (חסכוני)' },
+  { value: 'gpt-4o', label: 'GPT-4o' },
+  { value: 'gpt-4o-mini', label: 'GPT-4o mini (חסכוני)' },
+  { value: 'ollama/llama3.1:8b', label: 'Ollama Llama 3.1 (מקומי)' },
+];
+
+function renderSubAgents() {
+  var grid = document.getElementById('sub-agents-grid');
+  var savedModels = JSON.parse(localStorage.getItem('cf_sub_agent_models') || '{}');
+  grid.innerHTML = '<div class="sub-agent-row" style="font-weight:600;background:#F3F4F6"><span>שם</span><span>תפקיד</span><span>מודל</span><span>סטטוס</span></div>' +
+    SUB_AGENTS.map(function(a) {
+      var model = savedModels[a.id] || a.defaultModel;
+      var opts = MODEL_OPTIONS.map(function(m) {
+        return '<option value="' + m.value + '"' + (m.value === model ? ' selected' : '') + '>' + m.label + '</option>';
+      }).join('');
+      return '<div class="sub-agent-row">' +
+        '<span class="sub-agent-name">' + a.name + '</span>' +
+        '<span class="sub-agent-role">' + a.role + '</span>' +
+        '<span><select class="sub-agent-model-select" data-agent="' + a.id + '">' + opts + '</select></span>' +
+        '<span class="sub-agent-status on">פעיל</span></div>';
+    }).join('');
+}
+
+function saveSubAgentModels() {
+  var models = {};
+  document.querySelectorAll('.sub-agent-model-select').forEach(function(sel) {
+    models[sel.dataset.agent] = sel.value;
+  });
+  localStorage.setItem('cf_sub_agent_models', JSON.stringify(models));
+  showToast('מודלים נשמרו — יעודכנו בהפעלה הבאה', 'success');
+  // TODO: deploy updated AGENTS.md to VPS with model routing
+}
+
+function saveSchedule(type) {
+  if (type === 'daily') {
+    var time = document.getElementById('sched-daily-time').value;
+    var days = Array.from(document.querySelectorAll('input[name="sched-daily-day"]:checked')).map(function(el) { return el.value; });
+    showToast('Daily Brief: ' + time + ' בימים ' + days.join(','), 'success');
+  } else if (type === 'weekly') {
+    var time = document.getElementById('sched-weekly-time').value;
+    var day = document.getElementById('sched-weekly-day').value;
+    var dayNames = ['ראשון','שני','שלישי','רביעי','חמישי'];
+    showToast('דוח שבועי: יום ' + dayNames[day] + ' ב-' + time, 'success');
+  } else if (type === 'monthly') {
+    var day = document.getElementById('sched-monthly-day').value;
+    var time = document.getElementById('sched-monthly-time').value;
+    showToast('ביקורת AEO: ' + day + ' לחודש ב-' + time, 'success');
+  }
+  // TODO: update cron jobs on VPS via API
+}
+
+// Day chip toggle handler
+document.addEventListener('change', function(e) {
+  if (e.target.name === 'sched-daily-day') {
+    var chip = e.target.nextElementSibling;
+    if (chip && chip.classList.contains('day-chip')) {
+      chip.classList.toggle('active', e.target.checked);
+    }
+  }
+});
 
 function loadAgentActivityLog() {
   var logEl = document.getElementById('agent-activity-log');
@@ -1912,19 +1876,9 @@ function loadAgentActivityLog() {
 }
 
 function editQuestionnaire() {
-  // Open the details and scroll to the form
-  var details = document.getElementById('mateh-setup-details');
-  details.open = true;
-  // Reset form to step 1 (form visible, progress/done hidden)
-  var form = details.querySelector('.setup-form');
-  if (form) form.classList.remove('hidden');
-  document.getElementById('setup-step2').classList.add('hidden');
-  document.getElementById('setup-step3').classList.add('hidden');
-  var btn = document.getElementById('btn-setup-submit');
-  btn.disabled = false;
-  btn.textContent = 'עדכנו את הסוכנים \u2192';
-  // Scroll into view
-  details.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Open agent detail view and open questionnaire
+  openAgentDetail('mt');
+  setTimeout(function() { openAgentQuestionnaire(); }, 200);
 }
 
 /* ===== Agent Setup (MATEH wizard in settings) ===== */
