@@ -150,6 +150,7 @@ runcmd:
         DCEOF
     {{/IS_ACTIVEPIECES}}
 
+    - chown -R 1000:1000 /opt/openclaw/data/n8n 2>/dev/null || true
     - cd /opt/openclaw && docker compose up -d
 
     {{#HAS_OLLAMA}}
