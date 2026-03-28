@@ -168,6 +168,21 @@ export const setupTelegram = async (c: Context) => {
         `, instance.rootPassword || undefined)
         console.log('Telegram add result:', result)
 
+        // Set DM policy to open (no pairing required for users) + allowFrom all
+        await sshExec(instance.ip, `
+            cd /home/openclaw/.openclaw &&
+            node -e "
+              const fs = require('fs');
+              const cfg = JSON.parse(fs.readFileSync('openclaw.json','utf-8'));
+              if (cfg.channels && cfg.channels.telegram) {
+                cfg.channels.telegram.dmPolicy = 'open';
+                cfg.channels.telegram.allowFrom = ['*'];
+              }
+              fs.writeFileSync('openclaw.json', JSON.stringify(cfg, null, 2));
+            " &&
+            chown openclaw:openclaw openclaw.json
+        `, instance.rootPassword || undefined)
+
         // Restart gateway to pick up channel config
         await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
 
