@@ -110,6 +110,8 @@ ${answers.clarifications}` : ''}
 
 כתוב בעברית טבעית וישראלית. היה ספציפי ואקשנאבילי — לא גנרי. כל המלצה צריכה להיות מותאמת לעסק הזה ספציפית.`
 
+    console.log(`Calling Claude Sonnet for USER.md + BRAND.md (key: ${key.substring(0, 12)}...)`)
+
     const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -119,21 +121,67 @@ ${answers.clarifications}` : ''}
         },
         body: JSON.stringify({
             model: 'claude-sonnet-4-5-20250514',
-            max_tokens: 4000,
+            max_tokens: 8000,
             messages: [{ role: 'user', content: prompt }],
         }),
     })
 
+    if (!res.ok) {
+        const errText = await res.text()
+        console.error(`Claude API error ${res.status}:`, errText.substring(0, 300))
+        return generateFallback(answers)
+    }
+
     const data = await res.json() as { content?: Array<{ text: string }> }
     const text = data.content?.[0]?.text || ''
 
-    const userMdMatch = text.split('===USER.MD===')[1]?.split('===BRAND.MD===')[0]?.trim()
-    const brandMdMatch = text.split('===BRAND.MD===')[1]?.trim()
+    console.log(`Claude response: ${text.length} chars`)
 
-    return {
-        userMd: userMdMatch || generateFallback(answers).userMd,
-        brandMd: brandMdMatch || generateFallback(answers).brandMd,
+    if (!text || text.length < 100) {
+        console.error('Claude returned empty or too short response')
+        return generateFallback(answers)
     }
+
+    // Flexible parsing: try multiple separator formats
+    let userMdMatch: string | undefined
+    let brandMdMatch: string | undefined
+
+    // Try exact markers first
+    for (const sep of ['===USER.MD===', '=== USER.MD ===', '## USER.MD', '# USER']) {
+        const idx = text.indexOf(sep)
+        if (idx !== -1) {
+            const afterUser = text.substring(idx + sep.length)
+            for (const brandSep of ['===BRAND.MD===', '=== BRAND.MD ===', '## BRAND.MD', '# BRAND']) {
+                const brandIdx = afterUser.indexOf(brandSep)
+                if (brandIdx !== -1) {
+                    userMdMatch = afterUser.substring(0, brandIdx).trim()
+                    brandMdMatch = afterUser.substring(brandIdx + brandSep.length).trim()
+                    break
+                }
+            }
+            if (userMdMatch) break
+        }
+    }
+
+    // If no markers found, try splitting by "BRAND" keyword
+    if (!userMdMatch && text.includes('BRAND')) {
+        const parts = text.split(/#{1,3}\s*BRAND/)
+        if (parts.length >= 2) {
+            userMdMatch = parts[0].replace(/^#{1,3}\s*USER.*\n?/, '').trim()
+            brandMdMatch = parts[1].trim()
+        }
+    }
+
+    if (userMdMatch && userMdMatch.length > 50) {
+        console.log(`Parsed: USER.md=${userMdMatch.length}c, BRAND.md=${(brandMdMatch || '').length}c`)
+        return {
+            userMd: userMdMatch,
+            brandMd: brandMdMatch || generateFallback(answers).brandMd,
+        }
+    }
+
+    console.error('Could not parse Claude response, using fallback. First 200 chars:', text.substring(0, 200))
+    return generateFallback(answers)
 }
 
 function generateFallback(answers: OnboardingAnswers): { userMd: string; brandMd: string } {
