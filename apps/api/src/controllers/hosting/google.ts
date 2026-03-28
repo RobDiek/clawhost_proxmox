@@ -171,6 +171,8 @@ export const googleCallback = async (c: Context) => {
                     accessToken: tokenData.access_token!,
                     refreshToken: tokenData.refresh_token || '',
                 })
+                // Update SOUL.md to include calendar tool instructions
+                await updateSoulWithTools(instance.ip, instance.rootPassword || undefined)
             } catch (deployErr) {
                 console.error('Failed to deploy Google creds to VPS:', deployErr)
             }
@@ -299,4 +301,45 @@ PYEOF`, password)
     await sshExec(ip, 'systemctl restart openclaw-gateway', password)
 
     console.log(`Google credentials deployed to ${ip}`)
+}
+
+// ── Update SOUL.md with available tools after integration ──
+async function updateSoulWithTools(ip: string, password?: string): Promise<void> {
+    try {
+        // Check if SOUL.md already has tools section
+        const soul = await sshExec(ip, 'cat /home/openclaw/.openclaw/workspace/SOUL.md', password)
+        if (soul.includes('כלים זמינים') && soul.includes('gcalcli')) {
+            console.log('SOUL.md already has tools section')
+            return
+        }
+
+        const toolsSection = `
+
+## כלים זמינים
+כלים שמותקנים במערכת ואפשר להשתמש בהם דרך bash:
+- **gcalcli** — Google Calendar: יצירה, צפייה, מחיקת אירועים
+  - יצירה: gcalcli add --title "שם" --when "YYYY-MM-DD HH:MM" --duration דקות
+  - צפייה: gcalcli agenda
+  - מחיקה: gcalcli delete "שם"
+- **web search** — חיפוש באינטרנט (מובנה)
+- **browser** — גלישה באתרים (מובנה)
+
+## כשמבקשים פעולה ביומן
+1. השתמש ב-gcalcli
+2. אשר למשתמש שהפעולה בוצעה
+3. אם gcalcli לא זמין — הודע שצריך לחבר Google Calendar בלוח הבקרה
+`
+        // Append tools section via base64 to avoid shell issues
+        const b64 = Buffer.from(toolsSection).toString('base64')
+        await sshExec(ip,
+            `echo ${b64} | base64 -d >> /home/openclaw/.openclaw/workspace/SOUL.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/SOUL.md`,
+            password
+        )
+
+        // Restart gateway to pick up updated SOUL.md
+        await sshExec(ip, 'systemctl restart openclaw-gateway', password)
+        console.log('SOUL.md updated with tools section')
+    } catch (err) {
+        console.error('updateSoulWithTools error:', err)
+    }
 }
