@@ -89,6 +89,8 @@ export const getInstanceStatus = async (c: Context<HonoEnv>) => {
             ip: instance.ip,
             subdomainAgent: instance.subdomainAgent,
             subdomainFlows: instance.subdomainFlows,
+            automationTool: instance.automationTool,
+            selectedComponents: instance.selectedComponents,
             onboardingStep: instance.onboardingStep,
             onboardingCompleted: instance.onboardingCompleted
         }, 'Status retrieved.')

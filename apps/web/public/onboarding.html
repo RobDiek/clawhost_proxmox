@@ -821,7 +821,7 @@ body {
           </div>
         </div>
         <div class="cred-row">
-          <span class="cred-label">Activepieces</span>
+          <span class="cred-label" id="credFlowsLabel">אוטומציות</span>
           <div class="cred-value">
             <span class="cred-secret" id="credFlowsUrl">—</span>
             <a class="cred-btn" id="credFlowsLink" href="#" target="_blank">פתח &#8599;</a>
@@ -1177,7 +1177,7 @@ body {
     return 'https://flows.' + instanceId + '.openclaw.flowmatic.co.il';
   }
 
-  function populateDoneStep() {
+  async function populateDoneStep() {
     document.getElementById('linkAgent').href = getAgentUrl();
     document.getElementById('linkFlows').href = getFlowsUrl();
 
@@ -1186,10 +1186,25 @@ body {
     document.getElementById('credFlowsUrl').textContent = flowsUrl.replace('https://', '');
     document.getElementById('credFlowsLink').href = flowsUrl;
 
+    // Set automation tool label (n8n or Activepieces)
+    var autoLabel = (instanceData && instanceData.automationTool === 'n8n') ? 'n8n' : 'Activepieces';
+    document.getElementById('credFlowsLabel').textContent = autoLabel;
+
+    // Fetch token from full instance data if not already available
+    if (!storedToken) {
+      try {
+        var res = await fetch(API + '/hosting/instances/' + instanceId, { headers: getAuthHeaders() });
+        var data = await res.json();
+        if (data.success && data.data) {
+          storedToken = data.data.openclawToken || data.data.gatewayToken || '';
+          if (data.data.automationTool) {
+            document.getElementById('credFlowsLabel').textContent = data.data.automationTool === 'n8n' ? 'n8n' : 'Activepieces';
+          }
+        }
+      } catch (e) { /* non-critical */ }
+    }
+
     if (storedToken) {
-      document.getElementById('credToken').setAttribute('data-token', storedToken);
-    } else if (instanceData && (instanceData.openclawToken || instanceData.gatewayToken)) {
-      storedToken = instanceData.openclawToken || instanceData.gatewayToken;
       document.getElementById('credToken').setAttribute('data-token', storedToken);
     }
   }
