@@ -1854,9 +1854,12 @@ function loadAgentActivityLog() {
     return;
   }
 
-  fetch(API + '/hosting/instances/' + instanceId + '/logs?service=openclaw-gateway&lines=30', {
+  fetch(API + '/hosting/instances/' + instanceId + '/logs?service=openclaw-gateway&lines=20', {
     headers: { 'Authorization': 'Bearer ' + token }
-  }).then(function(res) { return res.json(); })
+  }).then(function(res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  })
   .then(function(data) {
     if (data.success && data.data) {
       var lines = (data.data.logs || data.data || '').split('\n').filter(function(l) { return l.trim(); }).slice(-20);
@@ -1885,7 +1888,7 @@ function editQuestionnaire() {
 async function submitAgentSetup() {
   var btn = document.getElementById('btn-setup-submit');
   btn.disabled = true;
-  btn.textContent = 'רגע...';
+  btn.textContent = 'מנתחים...';
 
   function getChecked(name) {
     return Array.from(document.querySelectorAll('input[name="' + name + '"]:checked')).map(function(el) { return el.value; });
@@ -1907,66 +1910,109 @@ async function submitAgentSetup() {
   if (!answers.businessName || !answers.businessDescription) {
     showToast('מלאו לפחות את שם העסק ותיאור', 'error');
     btn.disabled = false;
-    btn.textContent = 'הגדירו את הסוכנים שלי \u2192';
+    btn.textContent = 'עדכנו את הסוכנים \u2192';
     return;
   }
 
-  // Show step 2 (hide form, show progress)
-  btn.closest('.setup-form').classList.add('hidden');
-  document.getElementById('setup-step2').classList.remove('hidden');
+  window._dashboardAnswers = answers;
+  var iid = localStorage.getItem('cf_instance_id');
 
-  // Animate progress steps
-  var steps = ['ps-1','ps-2','ps-3','ps-4','ps-5'];
-  var currentStep = 0;
-  var progressInterval = setInterval(function() {
-    if (currentStep < steps.length) {
-      document.getElementById(steps[currentStep]).classList.add('done');
-      currentStep++;
-      if (currentStep < steps.length) {
-        document.getElementById(steps[currentStep]).classList.add('active');
-      }
+  // Step 1: Analyze for clarifying questions
+  try {
+    var analyzeRes = await fetch(API + '/hosting/instances/' + iid + '/setup/agents/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify(answers),
+    });
+    var analyzeData = await analyzeRes.json();
+
+    if (analyzeData.success && analyzeData.data && analyzeData.data.questions && analyzeData.data.questions.length > 0) {
+      // Show clarifying questions inline
+      var formEl = document.getElementById('agent-setup-form');
+      formEl.classList.add('hidden');
+
+      var clarifyHtml = '<div id="dashboard-clarify" style="margin-bottom:16px">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">' +
+        '<div style="width:32px;height:32px;border-radius:50%;background:#EFF6FF;display:flex;align-items:center;justify-content:center;font-size:1rem">&#129302;</div>' +
+        '<div><div style="font-weight:600;font-size:0.95rem">שאלות לפני שמתחילים</div>' +
+        '<div style="font-size:0.82rem;color:#6B7280">' + (analyzeData.data.assessment || '') + '</div></div></div>';
+
+      analyzeData.data.questions.forEach(function(q) {
+        clarifyHtml += '<div class="form-group"><label>' + q.question + '</label>' +
+          '<textarea id="dc-' + q.id + '" placeholder="' + (q.placeholder || '') + '" rows="2" class="input-field"></textarea></div>';
+      });
+
+      clarifyHtml += '<button class="btn btn-primary" onclick="submitClarifiedDashboard()" style="width:100%">המשיכו להגדרה &rarr;</button>' +
+        '<button class="skip-link" onclick="submitClarifiedDashboard()" style="display:block;text-align:center;margin-top:8px;color:#9CA3AF;font-size:0.82rem;cursor:pointer;background:none;border:none">דלגו — המידע מספיק</button></div>';
+
+      // Insert before setup-step2
+      var step2 = document.getElementById('setup-step2');
+      step2.insertAdjacentHTML('beforebegin', clarifyHtml);
+
+      btn.disabled = false;
+      btn.textContent = 'עדכנו את הסוכנים \u2192';
+      return;
     }
-  }, 5000);
+  } catch (e) {
+    console.log('Analyze skipped:', e);
+  }
+
+  // No questions — proceed to deploy
+  await deployAgentsDashboard(answers);
+}
+
+async function submitClarifiedDashboard() {
+  var answers = window._dashboardAnswers || {};
+  var clarifyInputs = document.querySelectorAll('[id^="dc-q"]');
+  var clarifications = [];
+  clarifyInputs.forEach(function(el) {
+    if (el.value.trim()) {
+      var label = el.closest('.form-group').querySelector('label');
+      clarifications.push((label ? label.textContent : '') + ': ' + el.value.trim());
+    }
+  });
+  if (clarifications.length > 0) {
+    answers.clarifications = clarifications.join('\n');
+  }
+
+  // Remove clarify UI
+  var clarifyEl = document.getElementById('dashboard-clarify');
+  if (clarifyEl) clarifyEl.remove();
+
+  await deployAgentsDashboard(answers);
+}
+
+async function deployAgentsDashboard(answers) {
+  var formEl = document.getElementById('agent-setup-form');
+  if (formEl) formEl.classList.add('hidden');
+  document.getElementById('setup-step2').classList.remove('hidden');
 
   try {
     var iid = localStorage.getItem('cf_instance_id');
     var res = await fetch(API + '/hosting/instances/' + iid + '/setup/agents', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify(answers),
     });
 
-    clearInterval(progressInterval);
-
     var data = await res.json();
     if (data.success) {
-      // Mark all steps done
-      steps.forEach(function(s) {
-        document.getElementById(s).classList.add('done');
-        document.getElementById(s).classList.remove('active');
-      });
-
-      // Show step 3 after brief pause
-      setTimeout(function() {
-        document.getElementById('setup-step2').classList.add('hidden');
-        document.getElementById('setup-step3').classList.remove('hidden');
-      }, 1500);
-
+      document.getElementById('setup-step2').classList.add('hidden');
+      document.getElementById('setup-step3').classList.remove('hidden');
       showToast('הסוכנים הוגדרו בהצלחה!', 'success');
     } else {
       showToast(data.message || 'שגיאה בהגדרת הסוכנים', 'error');
       document.getElementById('setup-step2').classList.add('hidden');
-      btn.closest('.setup-form').classList.remove('hidden');
-      btn.disabled = false;
-      btn.textContent = 'הגדירו את הסוכנים שלי \u2192';
+      if (formEl) formEl.classList.remove('hidden');
+      var btn = document.getElementById('btn-setup-submit');
+      if (btn) { btn.disabled = false; btn.textContent = 'עדכנו את הסוכנים \u2192'; }
     }
   } catch (err) {
-    clearInterval(progressInterval);
     showToast('שגיאת תקשורת, נסו שוב', 'error');
     document.getElementById('setup-step2').classList.add('hidden');
-    btn.closest('.setup-form').classList.remove('hidden');
-    btn.disabled = false;
-    btn.textContent = 'הגדירו את הסוכנים שלי \u2192';
+    if (formEl) formEl.classList.remove('hidden');
+    var btn = document.getElementById('btn-setup-submit');
+    if (btn) { btn.disabled = false; btn.textContent = 'עדכנו את הסוכנים \u2192'; }
   }
 }
 
@@ -2227,7 +2273,7 @@ async function loadLogs(service) {
   if (!instanceId) return;
   document.getElementById('logs-output').textContent = 'טוען...';
   try {
-    var res = await fetch(API + '/hosting/instances/' + instanceId + '/logs?service=' + service + '&lines=100');
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/logs?service=' + service + '&lines=100', { headers: { 'Authorization': 'Bearer ' + token } });
     var data = await res.json();
     if (data.success) {
       document.getElementById('logs-output').textContent = data.data.lines.join('\n');
