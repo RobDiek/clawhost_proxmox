@@ -90,7 +90,27 @@ runcmd:
     - systemctl enable openclaw-gateway
     - systemctl start openclaw-gateway
 
-    # ── Activepieces (Docker) ──
+    # ── Automation Tool (Docker) ──
+    {{#IS_N8N}}
+    - mkdir -p /opt/openclaw/data/n8n
+    - |
+        cat > /opt/openclaw/docker-compose.yml << 'DCEOF'
+        services:
+          n8n:
+            image: n8nio/n8n:latest
+            restart: unless-stopped
+            ports: ["127.0.0.1:5678:5678"]
+            volumes: ["/opt/openclaw/data/n8n:/home/node/.n8n"]
+            environment:
+              - N8N_BASIC_AUTH_ACTIVE=true
+              - N8N_BASIC_AUTH_USER=admin
+              - N8N_BASIC_AUTH_PASSWORD={{AUTOMATION_PASSWORD}}
+              - WEBHOOK_URL=https://{{SUBDOMAIN_NAME}}-flows.openclaw.flowmatic.co.il
+              - N8N_HOST={{SUBDOMAIN_NAME}}-flows.openclaw.flowmatic.co.il
+              - N8N_PROTOCOL=https
+        DCEOF
+    {{/IS_N8N}}
+    {{#IS_ACTIVEPIECES}}
     - mkdir -p /opt/openclaw/data/{ap-db,ap-redis}
     - |
         cat > /opt/openclaw/docker-compose.yml << 'DCEOF'
@@ -128,6 +148,7 @@ runcmd:
             restart: unless-stopped
             volumes: ["/opt/openclaw/data/ap-redis:/data"]
         DCEOF
+    {{/IS_ACTIVEPIECES}}
 
     - cd /opt/openclaw && docker compose up -d
 

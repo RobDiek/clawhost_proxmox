@@ -29,6 +29,18 @@ export function renderCloudInit(vars: CloudInitVars): string {
     template = template.replace(/\{\{AUTOMATION_PASSWORD\}\}/g, vars.AUTOMATION_PASSWORD)
     template = template.replace(/\{\{ROOT_PASSWORD\}\}/g, vars.ROOT_PASSWORD)
 
+    // Conditional: n8n vs activepieces
+    if (vars.AUTOMATION_TOOL === 'n8n') {
+        template = template.replace(/\{\{#IS_N8N\}\}/g, '')
+        template = template.replace(/\{\{\/IS_N8N\}\}/g, '')
+        template = template.replace(/\{\{#IS_ACTIVEPIECES\}\}[\s\S]*?\{\{\/IS_ACTIVEPIECES\}\}/g, '')
+    } else {
+        template = template.replace(/\{\{#IS_ACTIVEPIECES\}\}/g, '')
+        template = template.replace(/\{\{\/IS_ACTIVEPIECES\}\}/g, '')
+        template = template.replace(/\{\{#IS_N8N\}\}[\s\S]*?\{\{\/IS_N8N\}\}/g, '')
+    }
+
+    // Conditional: Ollama
     if (vars.HAS_OLLAMA) {
         template = template.replace(/\{\{#HAS_OLLAMA\}\}/g, '')
         template = template.replace(/\{\{\/HAS_OLLAMA\}\}/g, '')
