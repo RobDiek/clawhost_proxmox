@@ -1137,6 +1137,28 @@ function buildAgentUrl(base, token) {
   } catch(e) { console.error('Auto-load instance error:', e); }
 })();
 
+// Refresh instance data from API and re-render
+async function refreshInstanceData() {
+  try {
+    var res = await fetch(API + '/hosting/my-instances', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (data.success && data.data && data.data.length > 0) {
+      var inst = data.data[0];
+      instanceData = inst;
+      components = inst.selectedComponents || [];
+      // Sync localStorage
+      if (inst.onboardingStep >= 2) localStorage.setItem('cf_api_key_saved', inst.aiProviderType || 'anthropic');
+      if (inst.onboardingStep >= 3 || inst.onboardingCompleted) localStorage.setItem('cf_telegram_saved', '1');
+      if (inst.telegramBotToken) localStorage.setItem('cf_telegram_saved', '1');
+      // Re-render
+      renderHome();
+      renderAgentsTab();
+    }
+  } catch(e) { console.error('Refresh error:', e); }
+}
+
 /* ===== State ===== */
 var instanceData = null;
 var tokenVisible = false;
@@ -1265,6 +1287,8 @@ function renderHome() {
   }
 
   var visibleTasks = tasks.filter(function(t) { return hiddenTasks.indexOf(t.id) === -1; });
+  // Sort: done tasks first (green on top)
+  visibleTasks.sort(function(a, b) { return (b.done ? 1 : 0) - (a.done ? 1 : 0); });
   var doneCount = tasks.filter(function(t) { return t.done; }).length;
   var totalCount = tasks.length;
   var allDone = doneCount === totalCount;
@@ -1481,6 +1505,8 @@ function switchTab(tabId) {
   // Close mobile sidebar
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('show');
+  // Re-render home tasks on every tab switch (to catch updated statuses)
+  if (tabId === 'home') renderHome();
   // Load data for specific tabs
   if (tabId === 'chat') loadChatTab();
   if (tabId === 'files') fmNavigate(fmCurrentDir || '');
@@ -1599,8 +1625,7 @@ async function saveApiKey(provider) {
     var card = document.getElementById(provider + '-card');
     if (card) card.classList.add('connected-card');
     showToast('מפתח ' + provider + ' נשמר בהצלחה', 'success');
-    renderHome();
-    renderAgentsTab();
+    refreshInstanceData();
   } catch (e) {
     showToast('שגיאה בשמירת המפתח', 'error');
   }
@@ -1627,8 +1652,7 @@ async function saveTelegram() {
     document.getElementById('telegram-status').className = 'int-status connected';
     document.getElementById('telegram-card').classList.add('connected-card');
     showToast('בוט Telegram חובר בהצלחה', 'success');
-    renderHome();
-    renderAgentsTab();
+    refreshInstanceData();
   } catch (e) {
     showToast('שגיאה בחיבור הבוט', 'error');
   }
@@ -2049,19 +2073,23 @@ async function submitAgentSetup() {
       var formEl = document.getElementById('agent-setup-form');
       formEl.classList.add('hidden');
 
-      var clarifyHtml = '<div id="dashboard-clarify" style="margin-bottom:16px">' +
-        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">' +
-        '<div style="width:32px;height:32px;border-radius:50%;background:#EFF6FF;display:flex;align-items:center;justify-content:center;font-size:1rem">&#129302;</div>' +
-        '<div><div style="font-weight:600;font-size:0.95rem">שאלות לפני שמתחילים</div>' +
-        '<div style="font-size:0.82rem;color:#6B7280">' + (analyzeData.data.assessment || '') + '</div></div></div>';
+      var clarifyHtml = '<div id="dashboard-clarify" style="background:#F8FAFC;border:2px solid #DBEAFE;border-radius:14px;padding:24px;margin-bottom:20px">' +
+        '<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:20px">' +
+        '<div style="width:40px;height:40px;border-radius:50%;background:#2563EB;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;color:#fff">&#129302;</div>' +
+        '<div><div style="font-weight:700;font-size:1.05rem;color:#111827;margin-bottom:4px">שאלות לפני שמתחילים</div>' +
+        '<div style="font-size:0.88rem;color:#4B5563;line-height:1.5">' + (analyzeData.data.assessment || '') + '</div></div></div>';
 
       analyzeData.data.questions.forEach(function(q) {
-        clarifyHtml += '<div class="form-group"><label>' + q.question + '</label>' +
-          '<textarea id="dc-' + q.id + '" placeholder="' + (q.placeholder || '') + '" rows="2" class="input-field"></textarea></div>';
+        var whyText = q.why ? '<div style="font-size:0.78rem;color:#6B7280;margin-top:2px;font-style:italic">' + q.why + '</div>' : '';
+        clarifyHtml += '<div style="margin-bottom:16px">' +
+          '<label style="display:block;font-weight:600;font-size:0.95rem;margin-bottom:6px;color:#1F2937">' + q.question + '</label>' +
+          whyText +
+          '<textarea id="dc-' + q.id + '" placeholder="' + (q.placeholder || '') + '" rows="3" style="width:100%;padding:12px 14px;border:2px solid #E5E7EB;border-radius:10px;font-size:0.95rem;font-family:inherit;resize:vertical;transition:border-color .2s;background:#fff" onfocus="this.style.borderColor=\'#2563EB\'" onblur="this.style.borderColor=\'#E5E7EB\'"></textarea></div>';
       });
 
-      clarifyHtml += '<button class="btn btn-primary" onclick="submitClarifiedDashboard()" style="width:100%">המשיכו להגדרה &rarr;</button>' +
-        '<button class="skip-link" onclick="submitClarifiedDashboard()" style="display:block;text-align:center;margin-top:8px;color:#9CA3AF;font-size:0.82rem;cursor:pointer;background:none;border:none">דלגו — המידע מספיק</button></div>';
+      clarifyHtml += '<div style="background:#EFF6FF;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:0.82rem;color:#3B82F6;display:flex;align-items:center;gap:6px">' +
+        '<span style="font-size:1rem">&#128161;</span> אם אין לכם תשובה — השאירו ריק. המערכת תבצע מחקר עצמאי ותמלא את החסר.</div>' +
+        '<button class="btn btn-primary" onclick="submitClarifiedDashboard()" style="width:100%;padding:14px;font-size:1rem">המשיכו להגדרה &rarr;</button></div>';
 
       // Insert before setup-step2
       var step2 = document.getElementById('setup-step2');
@@ -2118,6 +2146,7 @@ async function deployAgentsDashboard(answers) {
       document.getElementById('setup-step2').classList.add('hidden');
       document.getElementById('setup-step3').classList.remove('hidden');
       showToast('הסוכנים הוגדרו בהצלחה!', 'success');
+      refreshInstanceData();
     } else {
       showToast(data.message || 'שגיאה בהגדרת הסוכנים', 'error');
       document.getElementById('setup-step2').classList.add('hidden');

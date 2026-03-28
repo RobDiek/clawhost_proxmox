@@ -844,18 +844,20 @@ body {
 
     <!-- Clarifying questions from Claude -->
     <div id="research-clarify" style="display:none">
-      <div style="margin-bottom:16px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-          <div style="width:32px;height:32px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:1rem">&#129302;</div>
+      <div style="background:var(--primary-light);border:2px solid #BFDBFE;border-radius:14px;padding:24px">
+        <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:20px">
+          <div style="width:40px;height:40px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;color:#fff">&#129302;</div>
           <div>
-            <div style="font-weight:600;font-size:0.95rem">שאלות לפני שמתחילים</div>
-            <div style="font-size:0.82rem;color:var(--text-3)" id="clarify-assessment"></div>
+            <div style="font-weight:700;font-size:1.05rem;color:var(--text);margin-bottom:4px">שאלות לפני שמתחילים</div>
+            <div style="font-size:0.88rem;color:var(--text-2);line-height:1.5" id="clarify-assessment"></div>
           </div>
         </div>
+        <div id="clarify-questions-container"></div>
+        <div style="background:#fff;border-radius:8px;padding:10px 14px;margin:16px 0;font-size:0.82rem;color:var(--primary);display:flex;align-items:center;gap:6px">
+          <span style="font-size:1rem">&#128161;</span> אם אין לכם תשובה — השאירו ריק. המערכת תבצע מחקר עצמאי ותמלא את החסר.
+        </div>
+        <button class="btn btn-primary" id="btnClarifySubmit" onclick="submitClarified()" style="width:100%;padding:14px;font-size:1rem">המשיכו להגדרה &rarr;</button>
       </div>
-      <div id="clarify-questions-container"></div>
-      <button class="btn btn-primary" id="btnClarifySubmit" onclick="submitClarified()" style="width:100%;margin-top:16px">המשיכו להגדרה &rarr;</button>
-      <button class="skip-link" onclick="submitClarified()" style="margin-top:8px">דלגו — המידע מספיק</button>
     </div>
 
     <!-- Progress during deployment -->
@@ -1438,10 +1440,12 @@ body {
         var container = document.getElementById('clarify-questions-container');
         container.innerHTML = '';
         analyzeData.data.questions.forEach(function(q) {
+          var whyHtml = q.why ? '<div style="font-size:0.78rem;color:var(--text-3);margin-top:2px;font-style:italic">' + q.why + '</div>' : '';
           var div = document.createElement('div');
-          div.className = 'form-group';
-          div.innerHTML = '<label>' + q.question + '</label>' +
-            '<textarea id="clarify-' + q.id + '" placeholder="' + (q.placeholder || '') + '" rows="2" class="input-field"></textarea>';
+          div.style.marginBottom = '16px';
+          div.innerHTML = '<label style="display:block;font-weight:600;font-size:0.95rem;margin-bottom:6px;color:var(--text)">' + q.question + '</label>' +
+            whyHtml +
+            '<textarea id="clarify-' + q.id + '" placeholder="' + (q.placeholder || '') + '" rows="3" style="width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:10px;font-size:0.95rem;font-family:inherit;resize:vertical;background:#fff;transition:border-color .2s" onfocus="this.style.borderColor=\'var(--primary)\'" onblur="this.style.borderColor=\'var(--border)\'"></textarea>';
           container.appendChild(div);
         });
         return; // Wait for user to answer clarifying questions
