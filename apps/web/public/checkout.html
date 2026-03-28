@@ -415,6 +415,7 @@ async function handleCheckout() {
       localStorage.setItem('cf_instance_plan', planKey);
       localStorage.setItem('cf_instance_components', JSON.stringify(components));
       localStorage.setItem('cf_instance_subdomain', subdomainName || '');
+      localStorage.setItem('cf_user_name', name);
     }
 
     // Redirect to AllPay payment page

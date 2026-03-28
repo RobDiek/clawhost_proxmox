@@ -1095,8 +1095,9 @@ function updateWithLiveData() {
 
 /* ===== Render functions ===== */
 function renderHeader() {
-  document.getElementById('headerEmail').textContent = email;
-  var firstLetter = (email || '?')[0].toUpperCase();
+  var displayName = localStorage.getItem('cf_user_name') || email;
+  document.getElementById('headerEmail').textContent = displayName;
+  var firstLetter = (displayName || '?')[0].toUpperCase();
   document.getElementById('headerAvatar').textContent = firstLetter;
 }
 

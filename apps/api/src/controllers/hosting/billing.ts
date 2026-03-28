@@ -3,7 +3,7 @@ import type { HonoEnv } from '@/ts/Types'
 import crypto, { randomBytes } from 'crypto'
 import { calcTotal } from '@openclaw/shared'
 import { db } from '@/db'
-import { instances, payments } from '@/db/schema'
+import { instances, payments, users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
 import allpay from '@/services/allpay'
@@ -93,6 +93,11 @@ export const checkout = async (c: Context<HonoEnv>) => {
             onboardingStep: 0,
             onboardingCompleted: false
         })
+
+        // Save customer name to user profile
+        if (customerName && userId) {
+            await db.update(users).set({ name: customerName }).where(eq(users.id, userId)).catch(() => {})
+        }
 
         await db.insert(payments).values({
             id: generateId(),
