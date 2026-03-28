@@ -24,6 +24,7 @@ import {
     completeOnboarding,
     setupAgents,
     analyzeAnswers,
+    runResearch,
     readFile,
     writeFile,
     listFiles,
@@ -66,6 +67,7 @@ app.post('/instances/:id/setup/telegram', setupTelegram)
 app.post('/instances/:id/setup/complete', completeOnboarding)
 app.post('/instances/:id/setup/agents', setupAgents)
 app.post('/instances/:id/setup/agents/analyze', analyzeAnswers)
+app.post('/instances/:id/setup/agents/research', runResearch)
 
 // ── Files ──
 app.get('/instances/:id/files', readFile)

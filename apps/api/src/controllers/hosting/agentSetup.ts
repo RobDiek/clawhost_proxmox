@@ -315,11 +315,19 @@ export const analyzeAnswers = async (c: Context) => {
             return ok(c, { questions: [], ready: true }, 'No clarifying questions needed.')
         }
 
-        const prompt = `אתה מומחה שיווק דיגיטלי ישראלי. קיבלת את הנתונים הבאים מבעל עסק שרוצה להגדיר מערכת שיווק אוטומטית עם 9 סוכני AI.
+        const prompt = `אתה ראש צוות שיווק דיגיטלי ישראלי מנוסה. אתה מכין תשתית למערכת של 9 סוכני AI שיווקיים שיעבדו אוטונומית עבור העסק.
 
-הנתונים:
-- שם העסק: ${answers.businessName}
-- מה עושים: ${answers.businessDescription}
+הצוות שלך כולל:
+- סייר: מחקר מתחרים באינטרנט (צריך URLs ו-USP ברור)
+- מאתר: מחקר SERP ומילות מפתח (צריך לדעת מה הלקוח מחפש)
+- מאזין: ניטור שיחות ברשתות (צריך לדעת איפה הקהל "תקוע")
+- מנתח: ניתוח הזדמנויות (צריך להבין מחזור מכירה ו-unit economics)
+- עט: כתיבה (צריך voice & tone + דוגמאות)
+- שליח: הפצה (צריך לדעת לאילו פלטפורמות ובאיזו תדירות)
+
+נתוני העסק:
+- שם: ${answers.businessName}
+- תחום: ${answers.businessDescription}
 - אתר: ${answers.websiteUrl || 'לא צוין'}
 - קהל יעד: ${answers.targetAudience || 'לא צוין'}
 - מתחרים: ${answers.competitors || 'לא צוין'}
@@ -330,23 +338,22 @@ export const analyzeAnswers = async (c: Context) => {
 - תקציב: ${answers.budget || 'לא צוין'}
 - אתגרים: ${answers.challenges || 'לא צוין'}
 
-המשימה שלך: נתח את המידע וזהה מה חסר או לא ברור כדי ליצור אסטרטגיית שיווק מדויקת. שאל 2-3 שאלות ממוקדות שיעזרו לך להגדיר את הסוכנים בצורה טובה יותר.
+המשימה: נתח את הנתונים מנקודת המבט של הסוכנים. זהה מה חסר להם כדי להתחיל לעבוד אוטונומית. שאל 2-3 שאלות שימלאו את הפערים הקריטיים ביותר.
 
-החזר תשובה בפורמט JSON בלבד:
+החזר JSON בלבד:
 {
-  "assessment": "הערכה קצרה של המצב — משפט אחד",
+  "assessment": "הערכה קצרה — מה ברור ומה חסר",
   "questions": [
-    { "id": "q1", "question": "השאלה בעברית", "placeholder": "דוגמה לתשובה", "type": "text" },
-    { "id": "q2", "question": "השאלה בעברית", "placeholder": "דוגמה לתשובה", "type": "text" }
+    { "id": "q1", "question": "השאלה בעברית", "placeholder": "דוגמה לתשובה מועילה", "type": "text", "why": "הסבר קצר למה זה חשוב" }
   ]
 }
 
 כללים:
-- מקסימום 3 שאלות
-- שאלות ספציפיות ופרקטיות, לא גנריות
-- אם המידע מספיק מפורט — החזר מערך ריק: { "assessment": "...", "questions": [] }
-- אל תשאל על דברים שכבר ברורים מהתשובות
-- דוגמאות לשאלות טובות: USP ספציפי, טווח מחירים, תהליך מכירה, מעורבות אישית של הבעלים בתוכן`
+- מקסימום 3 שאלות — רק מה שבאמת קריטי לסוכנים
+- אם המידע מספיק — החזר questions ריק
+- תעדוף: (1) URLs של מתחרים (2) USP/יתרון תחרותי (3) מחזור מכירה ומחיר (4) איפה הלקוחות "תקועים" אונליין (5) האם הבעלים personal brand
+- אל תשאל על מה שכבר ברור מהתשובות
+- כל שאלה חייבת why שמסביר למה הסוכנים צריכים את זה`
 
         const res = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
@@ -381,6 +388,124 @@ export const analyzeAnswers = async (c: Context) => {
         console.error('analyzeAnswers error:', err)
         // On error, skip clarifying questions and proceed
         return ok(c, { questions: [], ready: true }, 'Analysis skipped.')
+    }
+}
+
+// ── POST /hosting/instances/:id/setup/agents/research ──
+// Deep research: analyzes business, competitors, market. Self-searches when data is missing.
+export const runResearch = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const body = await c.req.json<OnboardingAnswers & { clarifications?: string }>()
+
+        if (!body.businessName) {
+            return fail(c, 'Business name is required.', 400)
+        }
+
+        if (!ANTHROPIC_API_KEY) {
+            return ok(c, { report: 'Research unavailable — no API key.', strategy: null }, 'Skipped.')
+        }
+
+        console.log(`Running research for ${body.businessName}...`)
+
+        const prompt = `אתה ראש מחלקת מחקר שיווק. אתה מכין דוח מחקר מקיף שישמש כבסיס ל-9 סוכני שיווק אוטונומיים.
+
+## נתוני העסק
+- שם: ${body.businessName}
+- תחום: ${body.businessDescription}
+- אתר: ${body.websiteUrl || 'לא צוין — חפש באינטרנט לפי שם העסק'}
+- קהל יעד: ${body.targetAudience || 'לא צוין — הסק מהתחום'}
+- מתחרים: ${body.competitors || 'לא צוין — חפש מתחרים בתחום בישראל'}
+- מטרות: ${body.marketingGoals || 'לא צוין — הצע מטרות רלוונטיות'}
+- פלטפורמות: ${body.platforms || 'לא צוין — המלץ על סמך קהל היעד'}
+- תוכן נוכחי: ${body.currentContent || 'לא מפרסמים עדיין'}
+- טון: ${body.tone || 'ידידותי ונגיש'}
+- תקציב: ${body.budget || 'לא צוין'}
+- אתגרים: ${body.challenges || 'לא צוין'}
+${body.clarifications ? `\n## מידע נוסף מהמשתמש\n${body.clarifications}` : ''}
+
+## המשימה שלך
+צור דוח מחקר מלא בעברית. כשמידע חסר — **הסק, נתח, והצע** על סמך הידע שלך בתחום, לא תשאל עוד שאלות.
+
+## מבנה הדוח (הכרחי):
+
+### 1. סיכום מנהלים
+משפט אחד: מה העסק, מה ההזדמנות, מה המוקד.
+
+### 2. ניתוח שוק ומתחרים
+- 3-5 מתחרים ישירים (שם, URL אם ידוע, מה הם עושים טוב, מה חלש)
+- גודל שוק משוער
+- מגמות בתחום
+
+### 3. קהל יעד מפורט
+- 2-3 פרסונות (שם, גיל, תפקיד, כאבים, מוטיבציות, איפה נמצאים אונליין)
+- שאלות שהקהל שואל (לפחות 5)
+- מילות מפתח שהקהל מחפש (10-15, עברית + אנגלית)
+
+### 4. אסטרטגיה מוצעת
+- פוזיציונינג (positioning statement)
+- USP (מה מבדיל)
+- 4-6 עמודי תוכן (content pillars) עם דוגמאות
+- מסלול המרה: awareness → consideration → conversion
+
+### 5. תוכנית פעולה (טקטיקה)
+- פלטפורמות מומלצות לפי סדר עדיפויות + תדירות פרסום
+- סוגי תוכן לכל פלטפורמה
+- לוח זמנים שבועי מוצע
+- KPIs מומלצים (3-5 מדדים)
+
+### 6. תקציב והקצאה
+- חלוקת תקציב מומלצת (אורגני vs ממומן)
+- ROI צפוי
+
+### 7. הנחיות ל-9 סוכנים
+לכל סוכן — משפט אחד שמגדיר את המוקד שלו לעסק הזה:
+- מטה: [מה מתאם]
+- סייר: [מה חוקר]
+- מאתר: [אילו מילות מפתח]
+- מאזין: [מה מנטר]
+- מנתח: [מה מנתח]
+- עט: [איזה תוכן כותב]
+- יוצר: [איזה ויזואלים]
+- שליח: [לאן מפיץ]
+- מגדלור: [מה בודק]
+
+כתוב בעברית ישראלית טבעית. היה ספציפי — לא גנרי. כל המלצה מותאמת לעסק הזה.`
+
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': ANTHROPIC_API_KEY,
+                'anthropic-version': '2023-06-01',
+            },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-5-20250514',
+                max_tokens: 8000,
+                messages: [{ role: 'user', content: prompt }],
+            }),
+        })
+
+        const data = await res.json() as { content?: Array<{ text: string }> }
+        const report = data.content?.[0]?.text || ''
+
+        // Save research to DB
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (instance) {
+            await db.update(instances).set({
+                researchData: {
+                    answers: body,
+                    report,
+                    generatedAt: new Date().toISOString(),
+                } as any,
+            }).where(eq(instances.id, instanceId))
+        }
+
+        console.log(`Research complete for ${body.businessName} (${report.length} chars)`)
+        return ok(c, { report }, 'Research complete.')
+    } catch (err) {
+        console.error('runResearch error:', err)
+        return fail(c, 'Research failed.', 500)
     }
 }
 
