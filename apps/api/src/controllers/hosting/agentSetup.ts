@@ -120,8 +120,8 @@ ${answers.clarifications}` : ''}
             'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-            model: 'claude-sonnet-4-5-20250514',
-            max_tokens: 8000,
+            model: 'claude-sonnet-4-6',
+            max_tokens: 8192,
             messages: [{ role: 'user', content: prompt }],
         }),
     })
@@ -339,7 +339,7 @@ EOFPAIR
           --description "Weekly Competitive Report" \
           --cron "0 8 * * 1" \
           --tz "Asia/Jerusalem" \
-          --model "claude-sonnet-4-5-20250514" \
+          --model "claude-sonnet-4-6" \
           --message "דוח תחרותי שבועי: סייר חפש מתחרים, מאזין בדוק שיחות, מנתח דרג הזדמנויות, עט כתוב 2-3 הצעות פוסטים." \
           --session isolated 2>/dev/null;
 
@@ -348,7 +348,7 @@ EOFPAIR
           --description "Monthly AEO Audit" \
           --cron "0 10 1 * *" \
           --tz "Asia/Jerusalem" \
-          --model "claude-sonnet-4-5-20250514" \
+          --model "claude-sonnet-4-6" \
           --message "ביקורת AEO חודשית: בדוק ציטוטים ב-Claude/ChatGPT/Perplexity, Schema tags, המלצות לשיפור." \
           --session isolated 2>/dev/null;
         '
@@ -564,7 +564,7 @@ ${body.clarifications ? `\n## מידע נוסף מהמשתמש\n${body.clarifica
                 'anthropic-version': '2023-06-01',
             },
             body: JSON.stringify({
-                model: 'claude-sonnet-4-5-20250514',
+                model: 'claude-sonnet-4-6',
                 max_tokens: 8000,
                 messages: [{ role: 'user', content: prompt }],
             }),
