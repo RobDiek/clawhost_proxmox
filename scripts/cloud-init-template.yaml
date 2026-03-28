@@ -34,11 +34,11 @@ runcmd:
     - curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
     - apt-get install -y -qq nodejs
 
-    # ── Install OpenClaw + Chromium + Whisper (voice transcription) ──
+    # ── Install OpenClaw + tools ──
     - npm install -g openclaw@latest
-    - apt-get install -y -qq chromium-browser ffmpeg 2>/dev/null || true
+    - apt-get install -y -qq python3-pip chromium-browser ffmpeg 2>/dev/null || true
     - snap install chromium 2>/dev/null || true
-    - pip install --break-system-packages openai-whisper 2>/dev/null || true
+    - pip3 install --break-system-packages gcalcli google-auth google-auth-oauthlib openai-whisper 2>/dev/null || true
 
     # ── Firewall ──
     - ufw allow 22/tcp && ufw allow 80/tcp && ufw allow 443/tcp && ufw --force enable

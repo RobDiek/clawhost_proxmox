@@ -1,8 +1,37 @@
 import type { Context } from 'hono'
+import { readFileSync } from 'fs'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
+import { Client } from 'ssh2'
+
+const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
+
+let sshKeyCache: Buffer | null = null
+function getSSHKey(): Buffer {
+    if (!sshKeyCache) sshKeyCache = readFileSync(SSH_KEY_PATH)
+    return sshKeyCache
+}
+
+function sshExec(ip: string, command: string, password?: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const conn = new Client()
+        let output = ''
+        conn.on('ready', () => {
+            conn.exec(command, (err, stream) => {
+                if (err) { conn.end(); return reject(err) }
+                stream.on('data', (d: Buffer) => { output += d.toString() })
+                stream.stderr.on('data', (d: Buffer) => { output += d.toString() })
+                stream.on('close', () => { conn.end(); resolve(output.trim()) })
+            })
+        }).on('error', reject)
+        const opts: Record<string, unknown> = { host: ip, port: 22, username: 'root' }
+        if (password) opts.password = password
+        try { opts.privateKey = getSSHKey() } catch { if (!password) return reject(new Error('No SSH key or password')) }
+        conn.connect(opts)
+    })
+}
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
@@ -132,6 +161,21 @@ export const googleCallback = async (c: Context) => {
 
         console.log(`Google connected for instance ${instanceId}: ${email} (scopes: ${scopes})`)
 
+        // Deploy credentials to VPS so agent can use Google APIs
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (instance?.ip) {
+            try {
+                await deployGoogleToVPS(instance.ip, instance.rootPassword || undefined, {
+                    clientId: GOOGLE_CLIENT_ID,
+                    clientSecret: GOOGLE_CLIENT_SECRET,
+                    accessToken: tokenData.access_token!,
+                    refreshToken: tokenData.refresh_token || '',
+                })
+            } catch (deployErr) {
+                console.error('Failed to deploy Google creds to VPS:', deployErr)
+            }
+        }
+
         // Redirect back to dashboard with success
         return c.redirect(`${FRONTEND_URL}/dashboard?google_connected=true&scopes=${scopes}`)
     } catch (err) {
@@ -195,4 +239,64 @@ export const googleStatus = async (c: Context) => {
         console.error('googleStatus error:', err)
         return fail(c, 'Failed to get status', 500)
     }
+}
+
+// ── Deploy Google credentials to client VPS ──
+async function deployGoogleToVPS(ip: string, password: string | undefined, creds: {
+    clientId: string
+    clientSecret: string
+    accessToken: string
+    refreshToken: string
+}): Promise<void> {
+    console.log(`Deploying Google credentials to ${ip}...`)
+
+    // Install gcalcli + google-auth if not present
+    await sshExec(ip, `which gcalcli || (apt-get install -y -qq python3-pip 2>/dev/null; pip3 install --break-system-packages gcalcli google-auth google-auth-oauthlib 2>/dev/null) || true`, password)
+
+    // Write OAuth credentials as pickle (gcalcli format) using Python
+    await sshExec(ip, `python3 << 'PYEOF'
+import pickle, os
+from google.oauth2.credentials import Credentials
+
+creds = Credentials(
+    token="${creds.accessToken}",
+    refresh_token="${creds.refreshToken}",
+    token_uri="https://oauth2.googleapis.com/token",
+    client_id="${creds.clientId}",
+    client_secret="${creds.clientSecret}",
+    scopes=["https://www.googleapis.com/auth/calendar",
+            "https://www.googleapis.com/auth/gmail.send",
+            "https://www.googleapis.com/auth/drive.readonly",
+            "https://www.googleapis.com/auth/spreadsheets"]
+)
+
+# gcalcli pickle path
+path = os.path.expanduser("~openclaw/.local/share/gcalcli/oauth")
+os.makedirs(os.path.dirname(path), exist_ok=True)
+with open(path, "wb") as f:
+    pickle.dump(creds, f)
+
+# Also save as google-credentials.json for agents
+creds_dir = os.path.expanduser("~openclaw/.openclaw/credentials")
+os.makedirs(creds_dir, exist_ok=True)
+import json
+with open(f"{creds_dir}/google.json", "w") as f:
+    json.dump({
+        "type": "authorized_user",
+        "client_id": "${creds.clientId}",
+        "client_secret": "${creds.clientSecret}",
+        "refresh_token": "${creds.refreshToken}"
+    }, f, indent=2)
+
+# Fix ownership
+for p in [path, f"{creds_dir}/google.json"]:
+    os.system(f"chown openclaw:openclaw {p}")
+
+print("OK")
+PYEOF`, password)
+
+    // Restart gateway to pick up new credentials + skills
+    await sshExec(ip, 'systemctl restart openclaw-gateway', password)
+
+    console.log(`Google credentials deployed to ${ip}`)
 }
