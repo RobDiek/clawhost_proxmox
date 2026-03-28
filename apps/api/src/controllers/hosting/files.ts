@@ -41,6 +41,12 @@ async function getInstance(instanceId: string) {
     return instance
 }
 
+// SSH exec with automatic password from instance
+async function sshExecInstance(instance: { ip: string | null; rootPassword?: string | null }, command: string): Promise<string> {
+    if (!instance.ip) throw new Error('No IP')
+    return sshExec(instance.ip, command, instance.rootPassword || undefined)
+}
+
 function sanitizePath(path: string): string | null {
     if (!path || path.includes('..') || path.startsWith('/')) return null
     return path.replace(/[;&|`$]/g, '')
@@ -58,7 +64,7 @@ export const fileTree = async (c: Context) => {
         if (safePath === null) return fail(c, 'Invalid path.', 400)
 
         const basePath = safePath ? `${VPS_HOME}/${safePath}` : VPS_HOME
-        const output = await sshExec(instance.ip,
+        const output = await sshExecInstance(instance,
             `find '${basePath}' -maxdepth 1 -printf '%y|%s|%T@|%f\\n' 2>/dev/null | tail -n +2 | sort -t'|' -k1,1 -k4,4`
         )
 
@@ -97,7 +103,7 @@ export const readFile = async (c: Context) => {
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
         const fullPath = `${VPS_HOME}/${filePath}`
-        const content = await sshExec(instance.ip, `cat '${fullPath}' 2>/dev/null || echo '__FILE_NOT_FOUND__'`)
+        const content = await sshExecInstance(instance, `cat '${fullPath}' 2>/dev/null || echo '__FILE_NOT_FOUND__'`)
 
         if (content.trim() === '__FILE_NOT_FOUND__') {
             return fail(c, 'File not found.', 404)
@@ -122,7 +128,7 @@ export const writeFile = async (c: Context) => {
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
         const fullPath = `${VPS_HOME}/${filePath}`
-        await sshExec(instance.ip, `mkdir -p "$(dirname '${fullPath}')" && cat > '${fullPath}' << 'CLAWEOF'\n${content}\nCLAWEOF\nchown -R openclaw:openclaw ${VPS_HOME}`)
+        await sshExecInstance(instance, `mkdir -p "$(dirname '${fullPath}')" && cat > '${fullPath}' << 'CLAWEOF'\n${content}\nCLAWEOF\nchown -R openclaw:openclaw ${VPS_HOME}`)
 
         return ok(c, { path: filePath }, 'File saved.')
     } catch (err) {
@@ -144,9 +150,9 @@ export const createFileOrDir = async (c: Context) => {
 
         const fullPath = `${VPS_HOME}/${filePath}`
         if (type === 'dir') {
-            await sshExec(instance.ip, `mkdir -p '${fullPath}' && chown -R openclaw:openclaw ${VPS_HOME}`)
+            await sshExecInstance(instance, `mkdir -p '${fullPath}' && chown -R openclaw:openclaw ${VPS_HOME}`)
         } else {
-            await sshExec(instance.ip, `mkdir -p "$(dirname '${fullPath}')" && touch '${fullPath}' && chown -R openclaw:openclaw ${VPS_HOME}`)
+            await sshExecInstance(instance, `mkdir -p "$(dirname '${fullPath}')" && touch '${fullPath}' && chown -R openclaw:openclaw ${VPS_HOME}`)
         }
 
         return ok(c, { path: filePath, type }, 'Created.')
@@ -173,7 +179,7 @@ export const deleteFile = async (c: Context) => {
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
         const fullPath = `${VPS_HOME}/${filePath}`
-        await sshExec(instance.ip, `rm -rf '${fullPath}'`)
+        await sshExecInstance(instance, `rm -rf '${fullPath}'`)
 
         return ok(c, { path: filePath }, 'Deleted.')
     } catch (err) {
@@ -194,7 +200,7 @@ export const renameFile = async (c: Context) => {
         const instance = await getInstance(instanceId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
-        await sshExec(instance.ip, `mv '${VPS_HOME}/${fromPath}' '${VPS_HOME}/${toPath}' && chown -R openclaw:openclaw ${VPS_HOME}`)
+        await sshExecInstance(instance, `mv '${VPS_HOME}/${fromPath}' '${VPS_HOME}/${toPath}' && chown -R openclaw:openclaw ${VPS_HOME}`)
 
         return ok(c, { from: fromPath, to: toPath }, 'Renamed.')
     } catch (err) {
@@ -210,7 +216,7 @@ export const serverStats = async (c: Context) => {
         const instance = await getInstance(instanceId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
-        const output = await sshExec(instance.ip, `
+        const output = await sshExecInstance(instance, `
             echo "CPU:$(top -bn1 | grep 'Cpu(s)' | awk '{print $2}' 2>/dev/null || echo '0')"
             echo "RAM_USED:$(free -m | awk 'NR==2{print $3}' 2>/dev/null || echo '0')"
             echo "RAM_TOTAL:$(free -m | awk 'NR==2{print $2}' 2>/dev/null || echo '0')"
@@ -256,7 +262,7 @@ export const serverLogs = async (c: Context) => {
         const allowedServices = ['openclaw-gateway', 'nginx', 'docker']
         if (!allowedServices.includes(service)) return fail(c, 'Invalid service.', 400)
 
-        const output = await sshExec(instance.ip, `journalctl -u ${service} --no-pager -n ${Math.min(lines, 500)} 2>/dev/null || echo 'No logs available'`)
+        const output = await sshExecInstance(instance, `journalctl -u ${service} --no-pager -n ${Math.min(lines, 500)} 2>/dev/null || echo 'No logs available'`)
 
         return ok(c, { service, lines: output.split('\n') }, 'Logs retrieved.')
     } catch (err) {
@@ -282,7 +288,7 @@ export const deployCustomAgent = async (c: Context) => {
         const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')
         const agentPath = `${VPS_HOME}/.openclaw/agents/${slug}`
 
-        await sshExec(instance.ip, `
+        await sshExecInstance(instance, `
             mkdir -p '${agentPath}/output' &&
             cat > '${agentPath}/SOUL.md' << 'SOULEOF'
 ${soul}
@@ -324,12 +330,12 @@ export const saveIntegration = async (c: Context) => {
 
         // For Telegram, ensure device is paired first (required for CLI channels add)
         if (type === 'telegram') {
-            const pairTest = await sshExec(instance.ip, `su - openclaw -c 'openclaw cron list 2>&1' 2>&1`, instance.rootPassword || undefined)
+            const pairTest = await sshExecInstance(instance, `su - openclaw -c 'openclaw cron list 2>&1' 2>&1`)
             if (pairTest.includes('pairing required') || pairTest.includes('abnormal closure')) {
                 console.log(`Device not paired on ${instance.ip}, pairing...`)
-                await sshExec(instance.ip, `su - openclaw -c 'openclaw config set gateway.port 3000 2>/dev/null; openclaw cron list 2>/dev/null || true' 2>&1`, instance.rootPassword || undefined)
+                await sshExecInstance(instance, `su - openclaw -c 'openclaw config set gateway.port 3000 2>/dev/null; openclaw cron list 2>/dev/null || true' 2>&1`)
                 await new Promise(r => setTimeout(r, 2000))
-                await sshExec(instance.ip, `
+                await sshExecInstance(instance, `
                     su - openclaw -c '
                     DEVICE_ID=$(node -e "try{const d=require(process.env.HOME+\\\"/.openclaw/identity/device.json\\\");console.log(d.deviceId)}catch(e){}" 2>/dev/null)
                     PUB_KEY=$(node -e "try{const p=require(process.env.HOME+\\\"/.openclaw/devices/pending.json\\\");const k=Object.values(p)[0];if(k)console.log(k.publicKey)}catch(e){}" 2>/dev/null)
@@ -339,13 +345,13 @@ export const saveIntegration = async (c: Context) => {
                         echo "{}" > ~/.openclaw/devices/pending.json
                     fi
                     '
-                `, instance.rootPassword || undefined)
-                await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
+                `)
+                await sshExecInstance(instance, 'systemctl restart openclaw-gateway')
                 await new Promise(r => setTimeout(r, 4000))
             }
         }
 
-        await sshExec(instance.ip, `${cmd} && chown -R openclaw:openclaw /home/openclaw/.openclaw && systemctl restart openclaw-gateway`, instance.rootPassword || undefined)
+        await sshExecInstance(instance, `${cmd} && chown -R openclaw:openclaw /home/openclaw/.openclaw && systemctl restart openclaw-gateway`)
 
         // Update onboarding progress based on integration type
         if (['anthropic', 'openai', 'gemini'].includes(type)) {
