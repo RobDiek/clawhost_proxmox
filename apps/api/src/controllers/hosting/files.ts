@@ -15,7 +15,7 @@ function getSSHKey(): Buffer {
     return sshKeyCache
 }
 
-function sshExec(ip: string, command: string): Promise<string> {
+function sshExec(ip: string, command: string, password?: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const conn = new Client()
         let output = ''
@@ -28,7 +28,11 @@ function sshExec(ip: string, command: string): Promise<string> {
             })
         })
         .on('error', reject)
-        .connect({ host: ip, port: 22, username: 'root', privateKey: getSSHKey() })
+
+        const opts: Record<string, unknown> = { host: ip, port: 22, username: 'root' }
+        if (password) opts.password = password
+        try { opts.privateKey = getSSHKey() } catch { /* key not available */ }
+        conn.connect(opts)
     })
 }
 
@@ -318,7 +322,7 @@ export const saveIntegration = async (c: Context) => {
         const cmd = commands[type]
         if (!cmd) return fail(c, 'Unknown integration type.', 400)
 
-        await sshExec(instance.ip, `${cmd} && chown -R openclaw:openclaw /home/openclaw/.openclaw && systemctl restart openclaw-gateway`)
+        await sshExec(instance.ip, `${cmd} && chown -R openclaw:openclaw /home/openclaw/.openclaw && systemctl restart openclaw-gateway`, instance.rootPassword || undefined)
 
         // Update onboarding progress based on integration type
         if (['anthropic', 'openai', 'gemini'].includes(type)) {

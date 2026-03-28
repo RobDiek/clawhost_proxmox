@@ -16,7 +16,7 @@ function getSSHKey(): Buffer {
     return sshKeyCache
 }
 
-function sshExec(ip: string, command: string): Promise<string> {
+function sshExec(ip: string, command: string, password?: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const conn = new Client()
         let output = ''
@@ -30,12 +30,26 @@ function sshExec(ip: string, command: string): Promise<string> {
             })
         })
         .on('error', reject)
-        .connect({
+
+        const connectOpts: Record<string, unknown> = {
             host: ip,
             port: 22,
             username: 'root',
-            privateKey: getSSHKey(),
-        })
+        }
+
+        // Try SSH key first, fall back to password
+        if (password) {
+            connectOpts.password = password
+        }
+
+        try {
+            connectOpts.privateKey = getSSHKey()
+        } catch {
+            // SSH key not available, password required
+            if (!password) return reject(new Error('No SSH key or password available'))
+        }
+
+        conn.connect(connectOpts)
     })
 }
 
@@ -63,7 +77,7 @@ export const setupApiKey = async (c: Context) => {
             mkdir -p /home/openclaw/.openclaw/providers &&
             ${configCmd} &&
             chown -R openclaw:openclaw /home/openclaw/.openclaw
-        `)
+        `, instance.rootPassword || undefined)
 
         // Update onboarding step
         const step = instance.onboardingStep || 0
@@ -101,7 +115,7 @@ export const setupTelegram = async (c: Context) => {
             openclaw channel add telegram --token "${botToken}" 2>&1 ||
             echo '{"channel":"telegram","token":"${botToken}"}' > /home/openclaw/.openclaw/channels/telegram.json &&
             chown -R openclaw:openclaw /home/openclaw/.openclaw
-        `)
+        `, instance.rootPassword || undefined)
 
         // Save telegram token in our DB
         await db.update(instances)
