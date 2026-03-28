@@ -270,6 +270,9 @@ export const instances = pgTable(
         aiProviderKey: text('ai_provider_key'),     // Anthropic or OpenAI key
         aiProviderType: text('ai_provider_type'),   // 'anthropic' | 'openai'
 
+        // Google Workspace OAuth tokens
+        googleTokens: jsonb('google_tokens'),       // { accessToken, refreshToken, expiresAt, scopes[], email }
+
         // Telegram
         telegramChatId: text('telegram_chat_id'),
         telegramBotToken: text('telegram_bot_token'),

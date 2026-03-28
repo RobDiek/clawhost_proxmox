@@ -827,12 +827,28 @@ input{font-family:inherit}
     <!-- Google Services -->
     <div class="section-title">Google Workspace</div>
     <div class="integrations-grid">
-      <div class="int-card">
+      <div class="int-card" id="google-card">
         <div class="int-card-header">
           <div class="int-icon" style="background:#E8F5E9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#4285F4" stroke-width="1.5" fill="white"/><path d="M3 9h18" stroke="#4285F4" stroke-width="1.5"/><path d="M8 2v4M16 2v4" stroke="#EA4335" stroke-width="1.5" stroke-linecap="round"/><rect x="7" y="12" width="3" height="2.5" rx=".5" fill="#4285F4"/><rect x="11" y="12" width="3" height="2.5" rx=".5" fill="#34A853"/><rect x="15" y="12" width="3" height="2.5" rx=".5" fill="#FBBC04"/><rect x="7" y="16" width="3" height="2.5" rx=".5" fill="#EA4335" opacity=".5"/></svg></div>
-          <div><strong>Google Calendar</strong><div class="int-status">לא מחובר</div></div>
+          <div><strong>Google Workspace</strong><div class="int-status" id="google-status">לא מחובר</div></div>
         </div>
-        <div class="int-card-body hidden"><button class="btn btn-outline btn-sm" onclick="showToast('OAuth flow — בקרוב')">חברו חשבון Google</button></div>
+        <div class="int-card-body" id="google-body">
+          <div id="google-not-connected">
+            <p style="font-size:0.82rem;color:#6B7280;margin-bottom:10px">חברו Calendar, Drive, Gmail ו-Sheets בלחיצה אחת</p>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+              <label class="chip-label"><input type="checkbox" name="google-scope" value="calendar" checked/><span class="chip">Calendar</span></label>
+              <label class="chip-label"><input type="checkbox" name="google-scope" value="drive"/><span class="chip">Drive</span></label>
+              <label class="chip-label"><input type="checkbox" name="google-scope" value="gmail"/><span class="chip">Gmail</span></label>
+              <label class="chip-label"><input type="checkbox" name="google-scope" value="sheets"/><span class="chip">Sheets</span></label>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="connectGoogle()">חברו חשבון Google &rarr;</button>
+          </div>
+          <div id="google-connected" style="display:none">
+            <div style="font-size:0.85rem;color:#10B981;margin-bottom:8px">&#10003; מחובר: <span id="google-email"></span></div>
+            <div style="font-size:0.82rem;color:#6B7280;margin-bottom:8px">שירותים: <span id="google-scopes"></span></div>
+            <button class="btn btn-outline btn-sm" onclick="disconnectGoogle()" style="color:#EF4444;border-color:#FECACA;font-size:0.8rem">נתקו חשבון</button>
+          </div>
+        </div>
       </div>
       <div class="int-card">
         <div class="int-card-header">
@@ -1181,6 +1197,7 @@ document.addEventListener('DOMContentLoaded', function() {
   renderHome();
   renderAgentsTab();
   renderIntegrations();
+  checkGoogleStatus();
   renderBilling();
   renderSettings();
   renderAdvanced();
@@ -1773,6 +1790,60 @@ async function runResearchFromDashboard() {
     }
   } catch (e) {
     showToast('שגיאת תקשורת', 'error');
+  }
+}
+
+/* ===== Google Workspace OAuth ===== */
+function connectGoogle() {
+  var scopes = Array.from(document.querySelectorAll('input[name="google-scope"]:checked')).map(function(el) { return el.value; });
+  if (scopes.length === 0) { showToast('בחרו לפחות שירות אחד', 'error'); return; }
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+  window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + scopes.join(',');
+}
+
+async function disconnectGoogle() {
+  if (!confirm('לנתק את חשבון Google?')) return;
+  var iid = localStorage.getItem('cf_instance_id');
+  try {
+    await fetch(API + '/hosting/integrations/google/disconnect?instanceId=' + iid, {
+      method: 'POST', headers: { 'Authorization': 'Bearer ' + token }
+    });
+    showToast('חשבון Google נותק', 'success');
+    document.getElementById('google-not-connected').style.display = '';
+    document.getElementById('google-connected').style.display = 'none';
+    document.getElementById('google-status').textContent = 'לא מחובר';
+    document.getElementById('google-status').className = 'int-status';
+    document.getElementById('google-card').classList.remove('connected-card');
+  } catch (e) { showToast('שגיאה', 'error'); }
+}
+
+function checkGoogleStatus() {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) return;
+  fetch(API + '/hosting/integrations/google/status?instanceId=' + iid, {
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.success && d.data && d.data.connected) {
+      document.getElementById('google-not-connected').style.display = 'none';
+      document.getElementById('google-connected').style.display = '';
+      document.getElementById('google-email').textContent = d.data.email || '';
+      document.getElementById('google-scopes').textContent = (d.data.scopes || []).join(', ');
+      document.getElementById('google-status').innerHTML = '<span class="int-status-dot"></span>מחובר';
+      document.getElementById('google-status').className = 'int-status connected';
+      document.getElementById('google-card').classList.add('connected-card');
+    }
+  }).catch(function() {});
+
+  // Check URL params for OAuth redirect result
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('google_connected')) {
+    showToast('Google Workspace חובר בהצלחה!', 'success');
+    window.history.replaceState({}, '', '/dashboard');
+  }
+  if (params.get('google_error')) {
+    showToast('שגיאה בחיבור Google: ' + params.get('google_error'), 'error');
+    window.history.replaceState({}, '', '/dashboard');
   }
 }
 

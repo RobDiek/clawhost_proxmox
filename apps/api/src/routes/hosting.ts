@@ -35,7 +35,11 @@ import {
     deployCustomAgent,
     saveIntegration,
     serverStats,
-    serverLogs
+    serverLogs,
+    googleAuth,
+    googleCallback,
+    googleDisconnect,
+    googleStatus
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -83,6 +87,12 @@ app.post('/instances/:id/integrations/save', saveIntegration)
 // ── Server ──
 app.get('/instances/:id/stats', serverStats)
 app.get('/instances/:id/logs', serverLogs)
+
+// ── Google Workspace OAuth ──
+app.get('/integrations/google/auth', googleAuth)
+app.get('/integrations/google/callback', googleCallback)
+app.post('/integrations/google/disconnect', googleDisconnect)
+app.get('/integrations/google/status', googleStatus)
 
 // ── Admin ──
 app.get('/admin/instances', adminGetInstances)
