@@ -20,8 +20,9 @@ export function renderCloudInit(vars: CloudInitVars): string {
     const templatePath = resolve(process.cwd(), '../../scripts/cloud-init-template.yaml')
     let template = readFileSync(templatePath, 'utf-8')
 
-    // Use subdomain name for URLs (human-readable)
-    template = template.replace(/\{\{INSTANCE_ID\}\}/g, vars.SUBDOMAIN_NAME)
+    // Replace all template variables
+    template = template.replace(/\{\{INSTANCE_ID\}\}/g, vars.INSTANCE_ID)
+    template = template.replace(/\{\{SUBDOMAIN_NAME\}\}/g, vars.SUBDOMAIN_NAME)
     template = template.replace(/\{\{OPENCLAW_TOKEN\}\}/g, vars.OPENCLAW_TOKEN)
     template = template.replace(/\{\{AUTOMATION_TOOL\}\}/g, vars.AUTOMATION_TOOL)
     template = template.replace(/\{\{AUTOMATION_PORT\}\}/g, String(AUTOMATION_PORTS[vars.AUTOMATION_TOOL]))

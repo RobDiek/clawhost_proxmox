@@ -53,13 +53,15 @@ runcmd:
             "auth": { "token": "{{OPENCLAW_TOKEN}}" },
             "controlUi": {
               "allowInsecureAuth": true,
-              "allowedOrigins": ["https://{{SUBDOMAIN_NAME}}.openclaw.flowmatic.co.il"]
+              "dangerouslyDisableDeviceAuth": true,
+              "allowedOrigins": ["*"]
             },
             "trustedProxies": ["127.0.0.1", "::1"]
           }
         }
         OCEOF
     - chown -R openclaw:openclaw /home/openclaw
+    - chmod 600 /home/openclaw/.openclaw/openclaw.json
 
     # ── OpenClaw systemd service ──
     - |
@@ -75,7 +77,8 @@ runcmd:
         WorkingDirectory=/home/openclaw
         Environment=HOME=/home/openclaw
         Environment=NODE_ENV=production
-        ExecStart=/usr/bin/openclaw gateway --port 3000 --bind loopback
+        Environment=OPENCLAW_GATEWAY_TOKEN={{OPENCLAW_TOKEN}}
+        ExecStart=/usr/bin/openclaw gateway run --port 3000 --bind loopback --auth token
         Restart=always
         RestartSec=10
 
@@ -140,6 +143,7 @@ runcmd:
         server {
             listen 80;
             server_name {{SUBDOMAIN_NAME}}.openclaw.flowmatic.co.il;
+
             location / {
                 proxy_pass http://127.0.0.1:3000;
                 proxy_http_version 1.1;
@@ -150,10 +154,25 @@ runcmd:
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                 proxy_set_header X-Forwarded-Proto $scheme;
                 proxy_read_timeout 300s;
-                # Allow iframe embedding from ClawFlow dashboard
                 proxy_hide_header X-Frame-Options;
                 proxy_hide_header Content-Security-Policy;
-                add_header Content-Security-Policy "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors https://openclaw.flowmatic.co.il; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' ws: wss:" always;
+            }
+
+            location /embed/ {
+                proxy_pass http://127.0.0.1:3000/;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_read_timeout 300s;
+                proxy_hide_header X-Frame-Options;
+                proxy_hide_header Content-Security-Policy;
+                sub_filter '</head>' '<style>.shell-nav,.shell-nav-backdrop,.agents-sidebar,.topnav-shell,.agent-header,.agents-toolbar,.agent-chat__toolbar{display:none!important}.shell{grid-template-columns:1fr!important}</style></head>';
+                sub_filter_once on;
+                sub_filter_types text/html;
             }
         }
         server {
@@ -180,6 +199,7 @@ runcmd:
 
     - ln -sf /etc/nginx/sites-available/openclaw /etc/nginx/sites-enabled/
     - rm -f /etc/nginx/sites-enabled/default
+    - grep -q server_names_hash /etc/nginx/nginx.conf || sed -i '/http {/a\    server_names_hash_bucket_size 128;' /etc/nginx/nginx.conf
     - nginx -t && systemctl enable nginx && systemctl restart nginx
 
     # ── SSL ──
