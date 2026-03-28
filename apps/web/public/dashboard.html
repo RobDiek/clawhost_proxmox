@@ -619,7 +619,7 @@ input{font-family:inherit}
             <button class="btn btn-primary" onclick="submitAgentSetup()" id="btn-setup-submit">עדכנו את הסוכנים &rarr;</button>
           </div>
           <div class="hidden" id="setup-step2"><h3 style="text-align:center;margin:20px 0">&#9881;&#65039; מגדירים את הסוכנים...</h3><p style="text-align:center;color:#6B7280;font-size:0.85rem">זה ייקח כ-30 שניות</p></div>
-          <div class="hidden" id="setup-step3"><h3 style="text-align:center;margin:20px 0;color:#10B981">&#10003; הסוכנים עודכנו בהצלחה!</h3><button class="btn btn-primary" onclick="closeAgentDetail();switchTab('agents')" style="display:block;margin:16px auto">חזרו לסוכנים &rarr;</button></div>
+          <div class="hidden" id="setup-step3"><h3 style="text-align:center;margin:20px 0;color:#10B981">&#10003; הסוכנים עודכנו בהצלחה!</h3><div style="display:flex;gap:10px;justify-content:center;margin-top:16px"><button class="btn btn-primary" onclick="closeAgentDetail();switchTab('agents')">חזרו לסוכנים &rarr;</button><button class="btn btn-outline" onclick="reopenQuestionnaire()">&#9998; ערכו שוב</button></div></div>
         </div>
       </details>
 
@@ -1820,6 +1820,19 @@ function renderAgentProfile() {
     '</div>' +
     '<button class="btn btn-outline" onclick="openAgentQuestionnaire()" style="margin-top:12px;font-size:0.82rem">&#9998; ערכו פרופיל</button>';
   document.getElementById('agent-questionnaire-summary').textContent = 'שנו תשובות ושלחו מחדש \u2192';
+}
+
+function reopenQuestionnaire() {
+  document.getElementById('setup-step3').classList.add('hidden');
+  var form = document.getElementById('agent-setup-form');
+  if (form) form.classList.remove('hidden');
+  var btn = document.getElementById('btn-setup-submit');
+  if (btn) { btn.disabled = false; btn.textContent = 'עדכנו את הסוכנים \u2192'; }
+  // Remove any leftover clarify UI
+  var clarify = document.getElementById('dashboard-clarify');
+  if (clarify) clarify.remove();
+  // Pre-fill from saved data
+  renderSavedAnswers();
 }
 
 function openAgentQuestionnaire() {
