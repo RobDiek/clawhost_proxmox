@@ -40,14 +40,14 @@ input{font-family:inherit}
 .hamburger svg{width:24px;height:24px}
 
 /* ===== Sidebar (collapsed, expand on hover) ===== */
-.sidebar{position:fixed;top:52px;right:0;bottom:0;width:52px;background:#fff;border-left:1px solid #E5E7EB;display:flex;flex-direction:column;z-index:90;overflow:hidden;transition:width .25s ease}
-.sidebar:hover{width:200px;box-shadow:-4px 0 16px rgba(0,0,0,.06)}
-.sidebar-nav{flex:1;padding:6px 4px}
-.sidebar-item{display:flex;align-items:center;gap:8px;padding:0 14px;height:42px;font-size:.88rem;color:#4B5563;cursor:pointer;border-radius:8px;transition:all .15s;margin-bottom:1px;white-space:nowrap;overflow:hidden}
-.sidebar-item:hover{background:#F9FAFB}
+.sidebar{position:fixed;top:52px;right:0;bottom:0;width:54px;background:#fff;border-left:1px solid #E5E7EB;display:flex;flex-direction:column;z-index:90;overflow:hidden;transition:width .25s ease}
+.sidebar:hover{width:210px;box-shadow:-4px 0 20px rgba(0,0,0,.08)}
+.sidebar-nav{flex:1;padding:8px 6px}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:0 15px;height:44px;font-size:.88rem;color:#4B5563;cursor:pointer;border-radius:10px;transition:all .15s;margin-bottom:2px;white-space:nowrap;overflow:hidden}
+.sidebar-item:hover{background:#F3F4F6}
 .sidebar-item.active{background:#EFF6FF;color:#2563EB;font-weight:500}
-.sidebar-item .icon{width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.sidebar-item .icon svg{width:20px;height:20px}
+.sidebar-item .icon{width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.sidebar-item .icon svg{width:22px;height:22px}
 .sidebar-item:not(.active) .icon svg{color:#9CA3AF}
 .sidebar-item.active .icon svg{color:#2563EB}
 .sidebar-label{opacity:0;transition:opacity .2s;font-size:.85rem}
@@ -58,7 +58,7 @@ input{font-family:inherit}
 .sidebar-dev-link{color:#EF4444;font-size:.82rem}
 
 /* ===== Main ===== */
-.main{margin-right:52px;margin-left:0;margin-top:52px;padding:24px 32px 24px 24px}
+.main{margin-right:54px;margin-left:0;margin-top:52px;padding:24px 32px 24px 24px}
 .hidden{display:none!important}
 
 /* ===== Tab transitions ===== */
@@ -516,15 +516,15 @@ input{font-family:inherit}
   </div>
 
   <!-- Tab: Chat (embedded OpenClaw chat-only view) -->
-  <div class="tab-content hidden" id="tab-chat">
-    <div id="chat-container" style="position:relative">
-      <div id="chat-loading" style="position:absolute;inset:0;background:#FAFAFA;border-radius:12px;display:flex;align-items:center;justify-content:center;z-index:2;transition:opacity .4s">
+  <div class="tab-content hidden" id="tab-chat" style="padding:0;margin:0">
+    <div id="chat-container" style="position:relative;height:calc(100vh - 52px)">
+      <div id="chat-loading" style="position:absolute;inset:0;background:#FAFAFA;display:flex;align-items:center;justify-content:center;z-index:2;transition:opacity .4s">
         <div style="text-align:center">
           <div style="width:32px;height:32px;border:3px solid #E5E7EB;border-top-color:#2563EB;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px"></div>
-          <div style="color:#9CA3AF;font-size:0.85rem">טוען צ'אט...</div>
+          <div style="color:#9CA3AF;font-size:0.85rem">טוען צ'אט עם סוכן...</div>
         </div>
       </div>
-      <iframe id="chat-iframe" src="" style="width:100%;height:calc(100vh - 100px);border:none;border-radius:12px;background:#FAFAFA" allow="clipboard-write" onload="var l=document.getElementById('chat-loading');if(l){l.style.opacity='0';setTimeout(function(){l.style.display='none'},400)}"></iframe>
+      <iframe id="chat-iframe" src="" style="width:100%;height:100%;border:none;background:#fff" allow="clipboard-write" onload="var l=document.getElementById('chat-loading');if(l){l.style.opacity='0';setTimeout(function(){l.style.display='none'},400)}"></iframe>
     </div>
     <div id="chat-not-ready" style="display:none;text-align:center;padding:80px 20px">
       <div style="font-size:3rem;margin-bottom:16px">&#9203;</div>
