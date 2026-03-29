@@ -2313,12 +2313,14 @@ function renderPipelineSteps() {
 }
 
 async function runPipelineStage(stage) {
+  try {
   stage = parseInt(stage) || 1;
+  console.log('[pipeline] starting stage', stage, 'instanceId:', instanceId);
   researchPipelineStage = stage;
   renderPipelineSteps();
 
   var stageInfo = RESEARCH_STAGES[stage - 1];
-  if (!stageInfo) { showToast('שלב לא תקין', 'error'); return; }
+  if (!stageInfo) { showToast('שלב לא תקין: ' + stage, 'error'); return; }
   document.getElementById('pipelineBody').innerHTML =
     '<div style="text-align:center;padding:40px">' +
     '<div style="font-size:2rem;animation:spin 2s linear infinite;display:inline-block;margin-bottom:12px">⚙️</div>' +
@@ -2402,6 +2404,17 @@ async function runPipelineStage(stage) {
       '<div style="text-align:center;padding:40px;color:#EF4444">' +
       '<div style="margin-bottom:8px">שלב ' + stage + ' נכשל</div>' +
       '<div style="font-size:0.78rem;color:#9CA3AF;direction:ltr">' + (e.message || e) + '</div></div>';
+    document.getElementById('pipelineNextBtn').disabled = false;
+    document.getElementById('pipelineNextBtn').textContent = 'נסו שוב ←';
+    document.getElementById('pipelineNextBtn').onclick = function() { runPipelineStage(stage); };
+  }
+  } catch (outerErr) {
+    console.error('[pipeline] OUTER ERROR:', outerErr);
+    if (window._pipelineTimer) clearInterval(window._pipelineTimer);
+    document.getElementById('pipelineBody').innerHTML =
+      '<div style="text-align:center;padding:40px;color:#EF4444">' +
+      '<div style="margin-bottom:8px">שגיאה פנימית בשלב ' + stage + '</div>' +
+      '<div style="font-size:0.78rem;color:#9CA3AF;direction:ltr;word-break:break-all">' + (outerErr.message || outerErr) + '</div></div>';
     document.getElementById('pipelineNextBtn').disabled = false;
     document.getElementById('pipelineNextBtn').textContent = 'נסו שוב ←';
     document.getElementById('pipelineNextBtn').onclick = function() { runPipelineStage(stage); };
