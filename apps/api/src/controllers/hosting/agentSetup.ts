@@ -982,10 +982,10 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
                 instance.rootPassword || undefined
             )
 
-            // Read summaries from saved stage data in DB (1500 chars each for quality)
-            const s1 = rd.stage1 ? rd.stage1.substring(0, 1500) : ''
-            const s2 = rd.stage2 ? rd.stage2.substring(0, 1500) : ''
-            const s3 = rd.stage3 ? rd.stage3.substring(0, 1500) : ''
+            // Read compact summaries from DB (keep under token limit)
+            const s1 = rd.stage1 ? rd.stage1.substring(0, 600) : ''
+            const s2 = rd.stage2 ? rd.stage2.substring(0, 600) : ''
+            const s3 = rd.stage3 ? rd.stage3.substring(0, 600) : ''
 
             prompt = `משימת ניתוח ערוצים עבור "${businessName}".
 
