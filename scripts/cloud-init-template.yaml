@@ -63,8 +63,8 @@ runcmd:
           },
           "agents": {
             "defaults": {
-              "bootstrapMaxChars": 12000,
-              "bootstrapTotalMaxChars": 50000,
+              "bootstrapMaxChars": 8000,
+              "bootstrapTotalMaxChars": 25000,
               "bootstrapPromptTruncationWarning": "always",
               "compaction": {
                 "reserveTokens": 40000,

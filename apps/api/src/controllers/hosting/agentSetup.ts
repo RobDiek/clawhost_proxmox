@@ -976,16 +976,10 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
             // CHANNEL ANALYSIS — reduce context by moving stage files out of workspace
             agentId = 'menateach'
 
-            // Move stage files to prevent auto-loading (reduces token usage)
-            await sshExec(instance.ip,
-                `mkdir -p /home/openclaw/.openclaw/research-data && mv /home/openclaw/.openclaw/workspace/RESEARCH_STAGE*.md /home/openclaw/.openclaw/research-data/ 2>/dev/null; chown -R openclaw:openclaw /home/openclaw/.openclaw/research-data`,
-                instance.rootPassword || undefined
-            )
-
-            // Read compact summaries from DB (keep under token limit)
-            const s1 = rd.stage1 ? rd.stage1.substring(0, 600) : ''
-            const s2 = rd.stage2 ? rd.stage2.substring(0, 600) : ''
-            const s3 = rd.stage3 ? rd.stage3.substring(0, 600) : ''
+            // Stage files already saved outside workspace — read summaries from DB
+            const s1 = rd.stage1 ? rd.stage1.substring(0, 1000) : ''
+            const s2 = rd.stage2 ? rd.stage2.substring(0, 1000) : ''
+            const s3 = rd.stage3 ? rd.stage3.substring(0, 1000) : ''
 
             prompt = `משימת ניתוח ערוצים עבור "${businessName}".
 
@@ -1051,12 +1045,6 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
         }
 
         if (!result || result.length < 500) {
-            // Restore stage files to workspace
-            await sshExec(instance.ip,
-                `mv /home/openclaw/.openclaw/research-data/RESEARCH_STAGE*.md /home/openclaw/.openclaw/workspace/ 2>/dev/null || true`,
-                instance.rootPassword || undefined
-            ).catch(() => {})
-
             const msg = isRateLimit
                 ? `rate limit — המודל הגיע לגבול השימוש (30K tokens). נסו: המתינו דקה / שנו מודל / שדרגו תוכנית API`
                 : `שלב ${stage} נכשל — נסו שוב`
@@ -1064,16 +1052,10 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
             return fail(c, msg, 500)
         }
 
-        // Restore stage files to workspace if they were moved (stage 4)
-        await sshExec(instance.ip,
-            `mv /home/openclaw/.openclaw/research-data/RESEARCH_STAGE*.md /home/openclaw/.openclaw/workspace/ 2>/dev/null || true`,
-            instance.rootPassword || undefined
-        ).catch(() => {})
-
-        // Save stage result to VPS for next stages to read
+        // Save stage result OUTSIDE workspace (prevents token bloat)
         const b64Result = Buffer.from(result).toString('base64')
         await sshExec(instance.ip,
-            `echo ${b64Result} | base64 -d > /home/openclaw/.openclaw/workspace/RESEARCH_STAGE${stage}.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/RESEARCH_STAGE${stage}.md`,
+            `mkdir -p /home/openclaw/.openclaw/research-data && echo ${b64Result} | base64 -d > /home/openclaw/.openclaw/research-data/RESEARCH_STAGE${stage}.md && chown -R openclaw:openclaw /home/openclaw/.openclaw/research-data`,
             instance.rootPassword || undefined
         )
 
