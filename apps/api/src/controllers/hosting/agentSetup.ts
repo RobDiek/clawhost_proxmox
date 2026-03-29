@@ -340,10 +340,10 @@ EOFPAIR
         AGENTS=$(openclaw agents list --json 2>/dev/null | node -e "try{const d=JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf-8\"));console.log(d.map(a=>a.name).join(\",\"))}catch(e){}" 2>/dev/null)
 
         if ! echo "$AGENTS" | grep -q "sayer"; then
-          openclaw agents add sayer --model "anthropic/claude-opus-4-6" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/sayer --non-interactive 2>/dev/null
+          openclaw agents add sayer --model "anthropic/claude-sonnet-4-6" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/sayer --non-interactive 2>/dev/null
         fi
         if ! echo "$AGENTS" | grep -q "menateach"; then
-          openclaw agents add menateach --model "anthropic/claude-opus-4-6" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/menateach --non-interactive 2>/dev/null
+          openclaw agents add menateach --model "anthropic/claude-sonnet-4-6" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/menateach --non-interactive 2>/dev/null
         fi
         if ! echo "$AGENTS" | grep -q "et"; then
           openclaw agents add et --model "anthropic/claude-sonnet-4-6" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/et --non-interactive 2>/dev/null
@@ -513,14 +513,14 @@ export const analyzeAnswers = async (c: Context) => {
 // ── Helper: get model for a specific sub-agent role ──
 // Reads from DB (sub_agent_models) first, falls back to defaults
 const DEFAULT_ROLE_MODELS: Record<string, string> = {
-    'mateh': 'anthropic/claude-opus-4-6',
-    'sayer': 'anthropic/claude-opus-4-6',
+    'mateh': 'openai/gpt-4o',
+    'sayer': 'anthropic/claude-sonnet-4-6',
     'meater': 'anthropic/claude-sonnet-4-6',
     'maazin': 'anthropic/claude-sonnet-4-6',
-    'menateach': 'anthropic/claude-opus-4-6',
+    'menateach': 'anthropic/claude-sonnet-4-6',
     'et': 'anthropic/claude-sonnet-4-6',
     'yotzer': 'anthropic/claude-sonnet-4-6',
-    'shaliach': 'anthropic/claude-haiku-4-5-20251001',
+    'shaliach': 'openai/gpt-4o-mini',
     'migdalor': 'anthropic/claude-sonnet-4-6',
 }
 
