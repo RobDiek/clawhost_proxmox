@@ -1307,16 +1307,16 @@ async function refreshInstanceData() {
 /* ===== Init ===== */
 document.addEventListener('DOMContentLoaded', function() {
   renderHeader();
-  // Show loading state — real data will render after autoLoadInstance completes
-  var loadingEl = document.getElementById('notificationsList');
-  if (loadingEl) loadingEl.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:20px">טוען...</div>';
+  // Show loading state — real data rendered by autoLoadInstance callback
   addIntegrationTooltips();
   checkGoogleStatus();
   renderBilling();
   renderSettings();
   renderAdvanced();
   renderSidebarFooter();
-  loadInstanceFromAPI();
+  // NOTE: removed loadInstanceFromAPI() — it was overwriting instanceData
+  // with status endpoint data that lacks hasProfile/hasResearch fields.
+  // autoLoadInstance() already fetches complete data from /my-instances.
 
   // Close dropdown on outside click
   document.addEventListener('click', function(e) {
