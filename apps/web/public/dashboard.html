@@ -1172,7 +1172,7 @@ input{font-family:inherit}
         <textarea id="pipelineFeedback" rows="2" placeholder="הערות או תיקונים לשלב הזה..." style="width:300px;padding:8px 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:0.85rem;font-family:inherit;direction:rtl;resize:none" onfocus="this.style.borderColor='#2563EB'" onblur="this.style.borderColor='#E5E7EB'"></textarea>
       </div>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-outline btn-sm" onclick="skipToStrategy()" id="pipelineSkipBtn">דלגו לאסטרטגיה →</button>
+        <!-- skip removed: strategy without research is meaningless -->
         <button class="btn btn-primary btn-sm" onclick="nextPipelineStage()" id="pipelineNextBtn">השלב הבא ←</button>
       </div>
     </div>
@@ -2204,10 +2204,10 @@ async function runResearchFromAgent() {
 /* ===== Research + Strategy Chain ===== */
 var researchPipelineStage = 0;
 var RESEARCH_STAGES = [
-  { num: 1, name: 'גילוי מתחרים', icon: '🔍', desc: 'הסוכן מחפש מתחרים ומנתח את השוק' },
-  { num: 2, name: 'מילות מפתח', icon: '🔑', desc: 'מחקר מילות מפתח ושאלות נפוצות' },
-  { num: 3, name: 'קהל יעד', icon: '👥', desc: 'ניתוח קהל יעד, כאבים ומוטיבציות' },
-  { num: 4, name: 'ניתוח ערוצים', icon: '📊', desc: 'אילו ערוצים מתאימים + עלויות' },
+  { num: 1, name: 'גילוי מתחרים', icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>', desc: 'הסוכן מחפש מתחרים ומנתח את השוק' },
+  { num: 2, name: 'מילות מפתח', icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.78 7.78 5.5 5.5 0 017.78-7.78zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>', desc: 'מחקר מילות מפתח ושאלות נפוצות' },
+  { num: 3, name: 'קהל יעד', icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>', desc: 'ניתוח קהל יעד, כאבים ומוטיבציות' },
+  { num: 4, name: 'ניתוח ערוצים', icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>', desc: 'אילו ערוצים מתאימים + עלויות' },
 ];
 
 async function runChainResearch() {
@@ -2230,7 +2230,7 @@ function showIntegrationSuggestion() {
 
   var html = '<div style="padding:20px">' +
     '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">' +
-    '<span style="font-size:1.5rem">💡</span>' +
+    '<span style="color:#2563EB"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg></span>' +
     '<div><div style="font-weight:700;font-size:1rem">לפני שמתחילים — שפרו את המחקר</div>' +
     '<div style="font-size:0.85rem;color:#6B7280">חברו כלי מחקר לתוצאות מדויקות יותר עם נתונים אמיתיים:</div></div></div>';
 
@@ -2263,7 +2263,7 @@ function showIntegrationSuggestion() {
   html += '</div>';
   document.getElementById('pipelineBody').innerHTML = html;
   document.getElementById('pipelineNextBtn').style.display = 'none';
-  document.getElementById('pipelineSkipBtn').style.display = 'none';
+  // skip button removed
   document.getElementById('pipelineTitle').textContent = 'מחקר שוק — הכנה';
 }
 
@@ -2329,7 +2329,7 @@ async function runPipelineStage(stage) {
       if (stage >= RESEARCH_STAGES.length) {
         document.getElementById('pipelineNextBtn').textContent = 'סיימו → בנו אסטרטגיה';
         document.getElementById('pipelineNextBtn').onclick = function() { closePipeline(); runChainStrategy(); };
-        document.getElementById('pipelineSkipBtn').style.display = 'none';
+        // skip button removed
       } else {
         document.getElementById('pipelineNextBtn').textContent = 'השלב הבא ←';
         document.getElementById('pipelineNextBtn').onclick = function() { nextPipelineStage(); };

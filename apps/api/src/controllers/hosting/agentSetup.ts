@@ -619,7 +619,7 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
             try {
                 // Use סייר agent (registered with Opus model) for research
                 const output = await sshExec(instance.ip,
-                    `su - openclaw -c 'timeout 180 openclaw agent --agent sayer --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
+                    `su - openclaw -c 'timeout 300 openclaw agent --agent sayer --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
                     instance.rootPassword || undefined
                 )
 
@@ -817,7 +817,7 @@ export const buildStrategy = async (c: Context) => {
             try {
                 // Use מנתח agent (registered with Opus model) for strategy
                 const output = await sshExec(instance.ip,
-                    `su - openclaw -c 'timeout 180 openclaw agent --agent menateach --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
+                    `su - openclaw -c 'timeout 300 openclaw agent --agent menateach --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
                     instance.rootPassword || undefined
                 )
 
@@ -989,7 +989,7 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
         const sessionId = `research-s${stage}-${Date.now()}`
 
         const output = await sshExec(instance.ip,
-            `su - openclaw -c 'timeout 180 openclaw agent --agent ${agentId} --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
+            `su - openclaw -c 'timeout 300 openclaw agent --agent ${agentId} --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
             instance.rootPassword || undefined
         )
 
