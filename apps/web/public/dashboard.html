@@ -1327,6 +1327,14 @@ function renderHome() {
   var name = localStorage.getItem('cf_user_name') || email.split('@')[0] || '';
   document.getElementById('greetingText').textContent = 'שלום, ' + name;
 
+  // Wait for instanceData before rendering tasks (avoid showing stale state)
+  if (!instanceData) {
+    document.getElementById('homeTasks').innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:20px;font-size:0.85rem">טוען נתונים...</div>';
+    document.getElementById('notificationsList').innerHTML = '';
+    document.getElementById('activityTimeline').innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:20px;font-size:0.85rem">טוען...</div>';
+    return;
+  }
+
   // Tasks — comprehensive checklist based on actual instance state
   var tasksHtml = '<div class="section-title">משימות הגדרה</div><div class="tasks">';
   var step = (instanceData && instanceData.onboardingStep) || 0;
