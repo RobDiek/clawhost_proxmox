@@ -1253,11 +1253,16 @@ function buildAgentUrl(base, token) {
       if (inst.aiProviderType) localStorage.setItem('cf_api_key_saved', inst.aiProviderType);
       else if (inst.onboardingStep >= 2) localStorage.setItem('cf_api_key_saved', 'anthropic');
       if (inst.telegramBotToken || inst.onboardingStep >= 3 || inst.onboardingCompleted) localStorage.setItem('cf_telegram_saved', '1');
-      // Re-render with real data
+      // Re-render with real data — double render to ensure UI catches up
       if (typeof renderHome === 'function') renderHome();
       if (typeof renderAgentsTab === 'function') renderAgentsTab();
       if (typeof renderIntegrations === 'function') renderIntegrations();
       if (typeof renderSavedAnswers === 'function') renderSavedAnswers();
+      // Safety: re-render after a tick to catch any DOM timing issues
+      setTimeout(function() {
+        if (typeof renderHome === 'function') renderHome();
+        if (typeof renderIntegrations === 'function') renderIntegrations();
+      }, 500);
     }
   } catch(e) { console.error('Auto-load instance error:', e); }
 })();
@@ -1291,9 +1296,10 @@ var tokenVisible = false;
 /* ===== Init ===== */
 document.addEventListener('DOMContentLoaded', function() {
   renderHeader();
-  renderHome();
-  renderAgentsTab();
-  renderIntegrations();
+  // Don't render data-dependent views yet — wait for autoLoadInstance
+  // renderHome() will be called by autoLoadInstance after data loads
+  // Show loading state immediately
+  renderHome(); // shows "טוען נתונים..." since instanceData is null
   addIntegrationTooltips();
   checkGoogleStatus();
   renderBilling();
@@ -1359,8 +1365,10 @@ function renderHome() {
     document.getElementById('homeTasks').innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:20px;font-size:0.85rem">טוען נתונים...</div>';
     document.getElementById('notificationsList').innerHTML = '';
     document.getElementById('activityTimeline').innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:20px;font-size:0.85rem">טוען...</div>';
+    document.querySelector('.home-top-grid').style.gridTemplateColumns = '1fr';
     return;
   }
+  console.log('[renderHome] instanceData:', { hasProfile: instanceData.hasProfile, hasResearch: instanceData.hasResearch, hasStrategy: instanceData.hasStrategy, step: instanceData.onboardingStep });
 
   // Grid layout: if no tasks, notifications take full width
   var grid = document.querySelector('.home-top-grid');
