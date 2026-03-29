@@ -374,14 +374,32 @@ export const saveIntegration = async (c: Context) => {
             }).where(eq(instances.id, instanceId))
         }
 
-        // Save sub-agent model configuration
+        // Save sub-agent model configuration — single source of truth
         if (type === 'sub-agent-models') {
             try {
-                const models = JSON.parse(key)
+                const models = JSON.parse(key) as Record<string, string>
+                // Save to DB
                 await db.update(instances).set({
                     subAgentModels: models as any,
                 }).where(eq(instances.id, instanceId))
-            } catch { /* non-critical */ }
+
+                // Re-register OpenClaw agents on VPS with new models
+                const agentsToUpdate = ['sayer', 'menateach', 'et']
+                for (const agentName of agentsToUpdate) {
+                    const model = models[agentName]
+                    if (!model) continue
+                    await sshExecInstance(instance, `
+                        su - openclaw -c '
+                        openclaw agents delete ${agentName} --force 2>/dev/null;
+                        openclaw agents add ${agentName} --model "${model}" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/${agentName} --non-interactive 2>/dev/null
+                        '
+                    `)
+                }
+                // Restart gateway to pick up changes
+                await sshExecInstance(instance, 'systemctl restart openclaw-gateway')
+            } catch (e) {
+                console.error('sub-agent-models update error:', e)
+            }
         }
 
         return ok(c, { type }, 'Integration saved.')
