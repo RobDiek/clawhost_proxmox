@@ -640,6 +640,20 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
                     report = output
                 }
 
+                // If agent saved to file instead of returning inline, read it
+                if (report && report.length < 2000 && (report.includes('.md') || report.includes('שמורה') || report.includes('מוכן'))) {
+                    try {
+                        const fileContent = await sshExec(instance.ip,
+                            `cat /home/openclaw/.openclaw/workspace/agents/sayer/output/market-research*.md 2>/dev/null | head -500 || echo ""`,
+                            instance.rootPassword || undefined
+                        )
+                        if (fileContent && fileContent.length > 2000) {
+                            report = fileContent
+                            console.log(`Read research from file: ${report.length} chars`)
+                        }
+                    } catch { /* fallback failed */ }
+                }
+
                 // Validate
                 const validation = validateResearchReport(report)
                 if (validation.valid) {
@@ -761,7 +775,9 @@ export const buildStrategy = async (c: Context) => {
 - חלוקה: אורגני vs ממומן
 - עלות משוערת לכל ערוץ
 
-כתוב בעברית. תכליתי ואקשנאבילי. אל תשלח לטלגרם.`
+חובה: כתוב את כל האסטרטגיה כאן בתשובה הזו — לא בקובץ נפרד, לא ב-MARKETING_STRATEGY.md, לא ב-workspace.
+אל תשלח לטלגרם. אל תשמור לקובץ. הדוח המלא חייב להיות כאן.
+אורך מינימלי: 2000 תווים.`
 
         // Use מנתח (analyst) model for strategy — needs depth
         const strategyModel = await getSubAgentModel(instanceId, 'menateach')
@@ -792,6 +808,21 @@ export const buildStrategy = async (c: Context) => {
                     }
                 } catch {
                     strategy = output
+                }
+
+                // If agent saved to file instead of returning inline, read it
+                if (strategy && strategy.length < 1500 && (strategy.includes('.md') || strategy.includes('שמורה'))) {
+                    console.log('Strategy saved to file, trying to read...')
+                    try {
+                        const fileContent = await sshExec(instance.ip,
+                            `cat /home/openclaw/.openclaw/workspace/MARKETING_STRATEGY.md 2>/dev/null || cat /home/openclaw/.openclaw/workspace/STRATEGY.md 2>/dev/null || echo ""`,
+                            instance.rootPassword || undefined
+                        )
+                        if (fileContent && fileContent.length > 1500) {
+                            strategy = fileContent
+                            console.log(`Read strategy from file: ${strategy.length} chars`)
+                        }
+                    } catch { /* fallback failed */ }
                 }
 
                 // Validate
