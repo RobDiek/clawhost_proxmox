@@ -334,6 +334,27 @@ EOFPAIR
     await sshExec(ip, 'systemctl restart openclaw-gateway', password)
     await new Promise(r => setTimeout(r, 4000))
 
+    // Register sub-agents with specific models (for research, strategy, content)
+    await sshExec(ip, `
+        su - openclaw -c '
+        AGENTS=$(openclaw agents list --json 2>/dev/null | node -e "try{const d=JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf-8\"));console.log(d.map(a=>a.name).join(\",\"))}catch(e){}" 2>/dev/null)
+
+        if ! echo "$AGENTS" | grep -q "sayer"; then
+          openclaw agents add sayer --model "anthropic/claude-opus-4-6" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/sayer --non-interactive 2>/dev/null
+        fi
+        if ! echo "$AGENTS" | grep -q "menateach"; then
+          openclaw agents add menateach --model "anthropic/claude-opus-4-6" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/menateach --non-interactive 2>/dev/null
+        fi
+        if ! echo "$AGENTS" | grep -q "et"; then
+          openclaw agents add et --model "anthropic/claude-sonnet-4-6" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/et --non-interactive 2>/dev/null
+        fi
+        '
+    `, password)
+
+    // Restart to pick up new agents
+    await sshExec(ip, 'systemctl restart openclaw-gateway', password)
+    await new Promise(r => setTimeout(r, 3000))
+
     // Set up cron jobs — only if they don't exist yet (prevent duplicates)
     await sshExec(ip, `
         su - openclaw -c '
@@ -596,8 +617,9 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
             console.log(`Research attempt ${attempt}/2, session: ${sessionId}, model: ${researchModel}`)
 
             try {
+                // Use סייר agent (registered with Opus model) for research
                 const output = await sshExec(instance.ip,
-                    `su - openclaw -c 'timeout 180 openclaw agent --agent main --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
+                    `su - openclaw -c 'timeout 180 openclaw agent --agent sayer --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
                     instance.rootPassword || undefined
                 )
 
@@ -605,12 +627,13 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
                 try {
                     const agentResult = JSON.parse(output)
                     report = agentResult?.result?.payloads?.[0]?.text || ''
+                    const usedModel = agentResult?.result?.meta?.agentMeta?.model || ''
+                    console.log(`Research agent used model: ${usedModel}`)
 
                     // Check for rate limit error
                     if (agentResult?.result?.meta?.agentMeta?.error || output.includes('rate_limit')) {
-                        const model = agentResult?.result?.meta?.agentMeta?.model || researchModel
-                        lastError = `rate_limit:${model}`
-                        console.log(`Research rate limited on ${model}, attempt ${attempt}`)
+                        lastError = `rate_limit:${usedModel || researchModel}`
+                        console.log(`Research rate limited on ${usedModel}, attempt ${attempt}`)
                         report = '' // force retry or fail
                     }
                 } catch {
@@ -754,8 +777,9 @@ export const buildStrategy = async (c: Context) => {
             const sessionId = `strategy-${Date.now()}-${attempt}`
 
             try {
+                // Use מנתח agent (registered with Opus model) for strategy
                 const output = await sshExec(instance.ip,
-                    `su - openclaw -c 'timeout 180 openclaw agent --agent main --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
+                    `su - openclaw -c 'timeout 180 openclaw agent --agent menateach --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
                     instance.rootPassword || undefined
                 )
 
