@@ -1335,6 +1335,10 @@ function renderHome() {
     return;
   }
 
+  // Grid layout: if no tasks, notifications take full width
+  var grid = document.querySelector('.home-top-grid');
+  if (grid) grid.style.gridTemplateColumns = '1fr 1fr'; // reset
+
   // Tasks — comprehensive checklist based on actual instance state
   var tasksHtml = '<div class="section-title">משימות הגדרה</div><div class="tasks">';
   var step = (instanceData && instanceData.onboardingStep) || 0;
@@ -1394,10 +1398,14 @@ function renderHome() {
 
   tasksHtml += '</div>';
 
-  // Hide entire tasks section when all done (smart — disappears)
+  // Hide entire tasks section when all done — notifications take full width
   if (allDone) {
     document.getElementById('homeTasks').innerHTML = '';
+    document.getElementById('homeTasks').style.display = 'none';
+    var grid = document.querySelector('.home-top-grid');
+    if (grid) grid.style.gridTemplateColumns = '1fr';
   } else {
+    document.getElementById('homeTasks').style.display = '';
     document.getElementById('homeTasks').innerHTML = tasksHtml;
   }
 
