@@ -2313,7 +2313,19 @@ async function runPipelineStage(stage) {
     '<div style="font-size:2rem;animation:spin 2s linear infinite;display:inline-block;margin-bottom:12px">⚙️</div>' +
     '<div style="font-weight:600;font-size:1rem;margin-bottom:4px">' + stageInfo.icon + ' ' + stageInfo.name + '</div>' +
     '<div style="color:#6B7280;font-size:0.85rem">' + stageInfo.desc + '</div>' +
-    '<div style="color:#9CA3AF;font-size:0.78rem;margin-top:8px">ייקח 1-2 דקות...</div></div>';
+    '<div style="color:#9CA3AF;font-size:0.78rem;margin-top:8px">ייקח 1-3 דקות...</div>' +
+    '<div id="pipelineTimer" style="color:#9CA3AF;font-size:0.75rem;margin-top:4px;font-family:monospace">00:00</div></div>';
+
+  // Start timer
+  var timerStart = Date.now();
+  if (window._pipelineTimer) clearInterval(window._pipelineTimer);
+  window._pipelineTimer = setInterval(function() {
+    var elapsed = Math.floor((Date.now() - timerStart) / 1000);
+    var min = Math.floor(elapsed / 60);
+    var sec = elapsed % 60;
+    var el = document.getElementById('pipelineTimer');
+    if (el) el.textContent = (min < 10 ? '0' : '') + min + ':' + (sec < 10 ? '0' : '') + sec;
+  }, 1000);
 
   document.getElementById('pipelineNextBtn').style.display = '';
   document.getElementById('pipelineSkipBtn').style.display = '';
@@ -2330,6 +2342,8 @@ async function runPipelineStage(stage) {
       body: JSON.stringify({ stage: stage, feedback: feedback || undefined })
     });
     var data = await res.json();
+
+    if (window._pipelineTimer) clearInterval(window._pipelineTimer);
 
     if (data.success && data.data && data.data.result) {
       // Show result
