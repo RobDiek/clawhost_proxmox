@@ -276,6 +276,43 @@ input{font-family:inherit}
 
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+/* Notification cards */
+.notif-card { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; border-radius:10px; margin-bottom:8px; font-size:0.88rem; line-height:1.5; animation:fadeIn .2s ease }
+.notif-card.error { background:#FEF2F2; border:1px solid #FECACA; }
+.notif-card.success { background:#F0FDF4; border:1px solid #BBF7D0; }
+.notif-card.info { background:#EFF6FF; border:1px solid #BFDBFE; }
+.notif-card.warning { background:#FFFBEB; border:1px solid #FDE68A; }
+.notif-icon { font-size:1.1rem; flex-shrink:0; margin-top:1px; }
+.notif-content { flex:1; }
+.notif-title { font-weight:600; font-size:0.9rem; margin-bottom:2px; }
+.notif-desc { font-size:0.82rem; color:#4B5563; }
+.notif-actions { display:flex; gap:6px; margin-top:6px; }
+.notif-action { font-size:0.78rem; color:#2563EB; cursor:pointer; background:none; border:none; font-weight:500; padding:0; }
+.notif-action:hover { text-decoration:underline; }
+.notif-time { font-size:0.72rem; color:#9CA3AF; flex-shrink:0; }
+.notif-dismiss { background:none; border:none; color:#D1D5DB; cursor:pointer; font-size:.9rem; flex-shrink:0; padding:2px; }
+.notif-dismiss:hover { color:#9CA3AF; }
+
+/* Activity timeline */
+.activity-timeline { background:#fff; border:1px solid #E5E7EB; border-radius:12px; overflow:hidden; }
+.activity-item { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; border-bottom:1px solid #F3F4F6; font-size:0.85rem; transition:background .1s; }
+.activity-item:last-child { border-bottom:none; }
+.activity-item:hover { background:#FAFAFA; }
+.activity-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.95rem; flex-shrink:0; }
+.activity-icon.research { background:#DBEAFE; }
+.activity-icon.content { background:#D1FAE5; }
+.activity-icon.report { background:#EDE9FE; }
+.activity-icon.error { background:#FEE2E2; }
+.activity-icon.calendar { background:#FEF3C7; }
+.activity-icon.telegram { background:#E0F2FE; }
+.activity-icon.system { background:#F3F4F6; }
+.activity-body { flex:1; }
+.activity-title { font-weight:500; color:#1F2937; }
+.activity-desc { font-size:0.78rem; color:#6B7280; margin-top:2px; }
+.activity-link { font-size:0.78rem; color:#2563EB; cursor:pointer; margin-top:3px; display:inline-block; }
+.activity-link:hover { text-decoration:underline; }
+.activity-time { font-size:0.75rem; color:#9CA3AF; flex-shrink:0; white-space:nowrap; }
+
 .progress-steps { max-width: 400px; margin: 24px auto; }
 .p-step {
   display: flex; align-items: center; gap: 12px; padding: 12px 16px;
@@ -499,18 +536,27 @@ input{font-family:inherit}
 <!-- Main Content -->
 <div class="main">
 
-  <!-- Tab: Home (ראשי) — only tasks + agent activity -->
+  <!-- Tab: Home (ראשי) -->
   <div class="tab-content" id="tab-home">
     <div class="greeting" id="greetingText"></div>
 
-    <!-- Section 1: Tasks from system -->
+    <!-- Section 1: משימות הגדרה (smart — hides when complete) -->
     <div id="homeTasks"></div>
 
-    <!-- Section 2: Agent activity / processes -->
-    <div class="section-title" style="margin-top:28px">פעילות הסוכנים</div>
-    <div id="homeAgentActivity">
-      <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:12px;padding:16px">
-        <div id="agentActivityList" style="font-size:0.88rem;color:#4B5563">טוען פעילות...</div>
+    <!-- Section 2: עדכונים והמלצות -->
+    <div id="homeNotifications" style="margin-top:24px">
+      <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>עדכונים והמלצות</span>
+        <button class="btn-text" onclick="clearNotifications()" style="font-size:.78rem;color:#9CA3AF;cursor:pointer;background:none;border:none">נקו הכל</button>
+      </div>
+      <div id="notificationsList"></div>
+    </div>
+
+    <!-- Section 3: פעילות אחרונה (timeline) -->
+    <div style="margin-top:24px">
+      <div class="section-title">פעילות אחרונה</div>
+      <div class="activity-timeline" id="activityTimeline">
+        <div style="text-align:center;color:#9CA3AF;padding:20px;font-size:0.85rem">טוען פעילות...</div>
       </div>
     </div>
   </div>
@@ -1274,7 +1320,7 @@ function renderHome() {
   document.getElementById('greetingText').textContent = 'שלום, ' + name;
 
   // Tasks — comprehensive checklist based on actual instance state
-  var tasksHtml = '<div class="section-title">משימות שנשארו</div><div class="tasks">';
+  var tasksHtml = '<div class="section-title">משימות הגדרה</div><div class="tasks">';
   var hasApiKey = localStorage.getItem('cf_api_key_saved');
   var hasTelegram = localStorage.getItem('cf_telegram_saved');
   var isMATEH = components.indexOf('mt') !== -1;
@@ -1330,50 +1376,187 @@ function renderHome() {
     tasksHtml += '<button onclick="showAllTasks()" style="background:none;border:none;color:#9CA3AF;font-size:0.78rem;cursor:pointer;margin-top:4px">הציגו ' + hiddenTasks.length + ' משימות מוסתרות</button>';
   }
 
+  tasksHtml += '</div>';
+
+  // Hide entire tasks section when all done (smart — disappears)
   if (allDone) {
-    tasksHtml += '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;color:#15803D;font-size:0.88rem;margin-top:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> הכל מוגדר — הסוכנים פעילים!</div>';
+    document.getElementById('homeTasks').innerHTML = '';
+  } else {
+    document.getElementById('homeTasks').innerHTML = tasksHtml;
   }
 
-  tasksHtml += '</div>';
-  document.getElementById('homeTasks').innerHTML = tasksHtml;
+  // Notifications
+  renderNotifications();
 
-  // Agent activity section
-  renderAgentActivity();
+  // Activity timeline
+  renderActivityTimeline();
 }
 
-function renderAgentActivity() {
-  var el = document.getElementById('agentActivityList');
+/* ===== Notifications System ===== */
+function getNotifications() {
+  var notifs = [];
+  var hasApiKey = localStorage.getItem('cf_api_key_saved');
+  var hasTelegram = localStorage.getItem('cf_telegram_saved');
+  var hasAgents = instanceData && instanceData.researchData && instanceData.researchData.answers;
+  var hasResearch = instanceData && instanceData.researchData && instanceData.researchData.report;
+  var hasGoogle = instanceData && instanceData.googleTokens;
+  var dismissed = JSON.parse(localStorage.getItem('cf_dismissed_notifs') || '[]');
+
+  // Smart recommendations
+  if (!hasGoogle && dismissed.indexOf('rec-google') === -1) {
+    notifs.push({ id: 'rec-google', type: 'info', icon: '💡', title: 'חברו Google Calendar', desc: 'הסוכן יוכל לנהל את היומן שלכם — פגישות, תזכורות, אירועים', action: "switchTab('integrations')", actionLabel: 'חברו עכשיו' });
+  }
+  if (hasAgents && !hasResearch && dismissed.indexOf('rec-research') === -1) {
+    notifs.push({ id: 'rec-research', type: 'info', icon: '🔍', title: 'הריצו מחקר שוק', desc: 'הסוכן יחפש מתחרים, מילות מפתח והזדמנויות — אוטומטית', action: "runResearchFromDashboard()", actionLabel: 'הריצו מחקר' });
+  }
+  if (!hasTelegram && dismissed.indexOf('rec-telegram') === -1) {
+    notifs.push({ id: 'rec-telegram', type: 'warning', icon: '📱', title: 'Telegram לא מחובר', desc: 'בלי Telegram לא תקבלו Daily Brief, התראות ואישורי פרסום', action: "switchTab('integrations')", actionLabel: 'חברו' });
+  }
+
+  // System notifications from localStorage
+  var sysNotifs = JSON.parse(localStorage.getItem('cf_notifications') || '[]');
+  sysNotifs.forEach(function(n) {
+    if (dismissed.indexOf(n.id) === -1) notifs.push(n);
+  });
+
+  return notifs;
+}
+
+function renderNotifications() {
+  var el = document.getElementById('notificationsList');
+  var notifs = getNotifications();
+
+  if (notifs.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:16px;font-size:0.85rem;background:#F9FAFB;border-radius:10px">אין עדכונים חדשים ✓</div>';
+    return;
+  }
+
+  el.innerHTML = notifs.map(function(n) {
+    var actionHtml = n.action ? '<button class="notif-action" onclick="' + n.action + '">' + n.actionLabel + ' ←</button>' : '';
+    var copyHtml = n.type === 'error' ? '<button class="notif-action" onclick="copyNotifToDebug(\'' + n.id + '\')" style="color:#9CA3AF">העתקו לתמיכה</button>' : '';
+    return '<div class="notif-card ' + n.type + '">' +
+      '<span class="notif-icon">' + n.icon + '</span>' +
+      '<div class="notif-content">' +
+        '<div class="notif-title">' + n.title + '</div>' +
+        '<div class="notif-desc">' + (n.desc || '') + '</div>' +
+        (actionHtml || copyHtml ? '<div class="notif-actions">' + actionHtml + copyHtml + '</div>' : '') +
+      '</div>' +
+      '<button class="notif-dismiss" onclick="dismissNotif(\'' + n.id + '\')" title="סגרו">✕</button>' +
+    '</div>';
+  }).join('');
+}
+
+function dismissNotif(id) {
+  var dismissed = JSON.parse(localStorage.getItem('cf_dismissed_notifs') || '[]');
+  if (dismissed.indexOf(id) === -1) dismissed.push(id);
+  localStorage.setItem('cf_dismissed_notifs', JSON.stringify(dismissed));
+  renderNotifications();
+}
+
+function clearNotifications() {
+  var notifs = getNotifications();
+  var dismissed = JSON.parse(localStorage.getItem('cf_dismissed_notifs') || '[]');
+  notifs.forEach(function(n) { if (dismissed.indexOf(n.id) === -1) dismissed.push(n.id); });
+  localStorage.setItem('cf_dismissed_notifs', JSON.stringify(dismissed));
+  renderNotifications();
+}
+
+function addSystemNotification(type, icon, title, desc) {
+  var notifs = JSON.parse(localStorage.getItem('cf_notifications') || '[]');
+  var id = 'sys-' + Date.now();
+  notifs.unshift({ id: id, type: type, icon: icon, title: title, desc: desc, time: new Date().toISOString() });
+  if (notifs.length > 20) notifs = notifs.slice(0, 20);
+  localStorage.setItem('cf_notifications', JSON.stringify(notifs));
+  renderNotifications();
+}
+
+function copyNotifToDebug(id) {
+  var notifs = getNotifications();
+  var n = notifs.find(function(x) { return x.id === id; });
+  if (n) {
+    var text = n.title + ': ' + (n.desc || '');
+    var debugEl = document.getElementById('debugInput');
+    if (debugEl) debugEl.value = text;
+    toggleDebugPanel();
+    showToast('הועתק לתמיכה טכנית', 'success');
+  }
+}
+
+/* ===== Activity Timeline ===== */
+function renderActivityTimeline() {
+  var el = document.getElementById('activityTimeline');
   if (!el || !instanceId) return;
 
-  // Fetch recent agent activity from logs
-  fetch(API + '/hosting/instances/' + instanceId + '/logs?service=openclaw-gateway&lines=15', {
+  fetch(API + '/hosting/instances/' + instanceId + '/logs?service=openclaw-gateway&lines=25', {
     headers: { 'Authorization': 'Bearer ' + token }
   }).then(function(r) { return r.ok ? r.json() : null; })
   .then(function(d) {
     if (!d || !d.success || !d.data || !d.data.lines) {
-      el.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:16px">אין פעילות אחרונה</div>';
+      el.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:24px;font-size:0.85rem">הסוכנים ממתינים למשימות</div>';
       return;
     }
+
     var lines = (d.data.lines || []).filter(function(l) {
-      return l && (l.includes('agent') || l.includes('telegram') || l.includes('cron'));
-    }).slice(-8);
+      return l && (l.includes('agent') || l.includes('telegram') || l.includes('cron') || l.includes('calendar') || l.includes('research'));
+    }).slice(-10);
+
     if (lines.length === 0) {
-      el.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:16px">הסוכנים ממתינים למשימות</div>';
+      el.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:24px;font-size:0.85rem">הסוכנים ממתינים למשימות הראשונה שלכם</div>';
       return;
     }
+
     el.innerHTML = lines.map(function(l) {
-      var isError = l.includes('error') || l.includes('Error');
-      var isTelegram = l.includes('telegram');
-      var icon = isError ? '&#9888;' : isTelegram ? '&#128172;' : '&#9881;';
-      var color = isError ? '#EF4444' : '#4B5563';
-      var clean = l.replace(/^\S+\s+\S+\s+\S+\s+/, '').substring(0, 120);
-      return '<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #F3F4F6;font-size:0.82rem">' +
-        '<span style="flex-shrink:0;font-size:0.9rem">' + icon + '</span>' +
-        '<span style="color:' + color + ';direction:ltr;word-break:break-all">' + clean + '</span></div>';
-    }).join('');
+      var activity = classifyActivity(l);
+      return '<div class="activity-item">' +
+        '<div class="activity-icon ' + activity.type + '">' + activity.icon + '</div>' +
+        '<div class="activity-body">' +
+          '<div class="activity-title">' + activity.title + '</div>' +
+          (activity.desc ? '<div class="activity-desc">' + activity.desc + '</div>' : '') +
+        '</div>' +
+        '<span class="activity-time">' + activity.time + '</span>' +
+      '</div>';
+    }).reverse().join('');
   }).catch(function() {
-    el.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:16px">הסוכנים ממתינים למשימות</div>';
+    el.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:24px;font-size:0.85rem">לא ניתן לטעון פעילות</div>';
   });
+}
+
+function classifyActivity(logLine) {
+  var time = '';
+  var timeMatch = logLine.match(/T(\d{2}:\d{2})/);
+  if (timeMatch) time = timeMatch[1];
+
+  if (logLine.includes('error') || logLine.includes('Error') || logLine.includes('rate_limit')) {
+    return { type: 'error', icon: '⚠️', title: 'שגיאה', desc: extractMessage(logLine), time: time };
+  }
+  if (logLine.includes('telegram') && logLine.includes('starting')) {
+    return { type: 'telegram', icon: '📱', title: 'Telegram מחובר', desc: 'הבוט פעיל ומוכן לקבלת הודעות', time: time };
+  }
+  if (logLine.includes('telegram')) {
+    return { type: 'telegram', icon: '💬', title: 'הודעה בטלגרם', desc: '', time: time };
+  }
+  if (logLine.includes('cron') && logLine.includes('daily')) {
+    return { type: 'report', icon: '📊', title: 'Daily Brief', desc: 'סיכום יומי נשלח', time: time };
+  }
+  if (logLine.includes('cron')) {
+    return { type: 'system', icon: '⏰', title: 'משימה מתוזמנת', desc: '', time: time };
+  }
+  if (logLine.includes('research') || logLine.includes('sayer')) {
+    return { type: 'research', icon: '🔍', title: 'מחקר', desc: extractMessage(logLine), time: time };
+  }
+  if (logLine.includes('calendar') || logLine.includes('gcalcli')) {
+    return { type: 'calendar', icon: '📅', title: 'יומן', desc: extractMessage(logLine), time: time };
+  }
+  if (logLine.includes('agent') && logLine.includes('end')) {
+    return { type: 'system', icon: '🤖', title: 'הסוכן סיים משימה', desc: '', time: time };
+  }
+  return { type: 'system', icon: '⚙️', title: 'מערכת', desc: extractMessage(logLine), time: time };
+}
+
+function extractMessage(line) {
+  // Extract readable part from log line
+  var clean = line.replace(/^.*\]\s*/, '').substring(0, 80);
+  return clean || '';
 }
 
 function renderAgentsTab() {
