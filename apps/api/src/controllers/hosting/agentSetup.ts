@@ -729,7 +729,158 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
 }
 
 // ── POST /hosting/instances/:id/setup/agents/strategy ──
-// Generates strategy via DIRECT API call (no OpenClaw agent overhead = no token limit issues)
+// Strategy pipeline stages
+const STRATEGY_STAGES = [
+    {
+        id: 1,
+        name: 'פוזיציונינג ומטרות',
+        prompt: (biz: string, research: string, answers: any) => `אתה מומחה אסטרטגיית שיווק ישראלי. שלב 1 מתוך 4 — פוזיציונינג ומטרות.
+
+העסק: ${biz}
+תחום: ${answers.businessDescription || ''}
+טון: ${answers.tone || 'ידידותי ונגיש'}
+
+ממצאי המחקר:
+${research}
+
+כתוב:
+## 1. פוזיציונינג
+- Positioning statement (משפט אחד)
+- USP — 3 נקודות בידול ספציפיות עם הוכחות מהמחקר
+- Elevator pitch (30 שניות)
+- מיפוי תחרותי: איפה אנחנו vs מתחרים (2x2 matrix)
+
+## 2. מטרות (3 חודשים)
+- 3 מטרות SMART עם KPIs מספריים
+- טבלה: מטרה | KPI | חודש 1 | חודש 2 | חודש 3
+- North Star Metric — המדד האחד שמוביל הכל
+
+## 3. ICP (Ideal Customer Profile)
+- פרסונה #1: שם, גיל, כאב, מוטיבציה, ערוץ מועדף, trigger לרכישה
+- פרסונה #2: שם, גיל, כאב, מוטיבציה, ערוץ מועדף, trigger
+- Message-Market Fit: מה אומרים לכל פרסונה
+
+בעברית. ספציפי לעסק הזה.`,
+    },
+    {
+        id: 2,
+        name: 'תוכן וערוצים',
+        prompt: (biz: string, research: string, answers: any, prev: string) => `שלב 2 מתוך 4 — תוכן וערוצים. המשך מהשלב הקודם.
+
+שלב קודם (פוזיציונינג):
+${prev.substring(0, 2000)}
+
+פלטפורמות שהמשתמש ציין: ${answers.platforms || ''}
+תוכן קיים: ${answers.currentContent || 'אין'}
+
+כתוב:
+## 4. עמודי תוכן (Content Pillars)
+- 5 עמודי תוכן עם:
+  - שם העמוד
+  - מטרה (awareness/consideration/conversion)
+  - 3 דוגמאות לנושאים ספציפיים
+  - פורמט מומלץ (בלוג/וידאו/פוסט/newsletter)
+  - תדירות
+
+## 5. לוח שבועי מפורט
+טבלה: יום | בוקר | צהריים | ערב | פלטפורמה | פורמט | עמוד תוכן
+(א-ה, כולל שעות פרסום peak)
+
+## 6. ערוצים לפי עדיפות
+לכל ערוץ:
+- למה? (קשר לפרסונה + נתונים מהמחקר)
+- פורמט מתאים
+- תדירות
+- KPI ספציפי
+- עלות (זמן + כסף)
+
+בעברית. ספציפי.`,
+    },
+    {
+        id: 3,
+        name: 'אורגני וממומן',
+        prompt: (biz: string, research: string, answers: any, prev: string) => `שלב 3 מתוך 4 — אסטרטגיית אורגני + ממומן. המשך מהשלבים הקודמים.
+
+שלבים קודמים (פוזיציונינג + תוכן):
+${prev.substring(0, 2500)}
+
+תקציב: ${answers.budget || 'לא צוין'}
+מטרות שיווק: ${answers.marketingGoals || ''}
+
+כתוב:
+## 7. Marketing Funnel מפורט
+לכל שלב:
+- Awareness: ערוצים + סוג תוכן + KPI + תקציב
+- Consideration: ערוצים + סוג תוכן + KPI + תקציב
+- Conversion: CTA + landing page + offer + תקציב
+- Retention: onboarding flow + email sequence + community
+- Advocacy: referral program + reviews + UGC
+
+## 8. אסטרטגיית SEO
+- 10 מילות מפתח מתועדפות (מהמחקר)
+- תוכנית: כמה מאמרים בחודש, אורך, מבנה
+- Internal linking strategy
+- Technical SEO checklist
+
+## 9. אסטרטגיית Paid (חודש 4+)
+- מתי להתחיל (trigger: כמה conversions/traffic)
+- Google Ads: keywords, budget, expected CPC
+- Meta Ads: audiences, budget, creative types
+- LinkedIn Ads: targeting, budget
+- Retargeting strategy
+- A/B testing plan: 3 ניסויים ספציפיים
+
+## 10. תקציב חודשי
+טבלה: ערוץ | חודש 1-3 | חודש 4-6 | חודש 7-12 | ROI צפוי
+
+בעברית. מספרים ריאליים.`,
+    },
+    {
+        id: 4,
+        name: 'הנחיות סוכנים',
+        prompt: (biz: string, research: string, answers: any, prev: string) => `שלב 4 מתוך 4 — הנחיות ביצוע ל-9 סוכני AI. המשך מכל השלבים הקודמים.
+
+סיכום האסטרטגיה:
+${prev.substring(0, 3000)}
+
+כתוב:
+## 11. הנחיות מפורטות ל-9 סוכנים
+לכל סוכן 4-5 שורות:
+
+**מטה (מתאם):** מה מתאם, באיזו תדירות, מה מדווח, מתי מתריע
+
+**סייר (מחקר):** אילו אתרים סורק, באיזו תדירות, מה מחפש, trigger לדיווח דחוף
+
+**מאתר (SERP):** אילו מילות מפתח עוקב, באיזו תדירות, מה מדווח
+
+**מאזין (חברתי):** אילו פלטפורמות מנטר, אילו hashtags/keywords, תדירות
+
+**מנתח (ניתוח):** מה מנתח, מודל ניקוד, threshold לפעולה
+
+**עט (תוכן):** סוגי תוכן, אורך לכל פלטפורמה, כללי סגנון, de-ai-ify
+
+**יוצר (ויזואל):** סוגי ויזואלים, מידות, סגנון, branding
+
+**שליח (הפצה):** סדר הפצה, שעות, כלל אישור, formatting per platform
+
+**מגדלור (AEO):** מה בודק, באילו כלי AI, תדירות, format דוח
+
+## 12. תוכנית תגובה תחרותית
+- Trigger A: מתחרה מפרסם בעברית → Response + Timeline
+- Trigger B: מתחרה מוריד מחיר → Response + Timeline
+- Trigger C: שחקן חדש → Response + Timeline
+
+## 13. 3 דברים לעשות השבוע
+- פעולה 1 (ספציפית, עם deadline)
+- פעולה 2
+- פעולה 3
+
+בעברית. אקשנאבילי. ספציפי לעסק.`,
+    },
+]
+
+// ── POST /hosting/instances/:id/setup/agents/strategy ──
+// Strategy via DIRECT API call — multi-stage pipeline
 export const buildStrategy = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
@@ -739,6 +890,7 @@ export const buildStrategy = async (c: Context) => {
             return fail(c, 'Instance not found or not ready.', 404)
         }
 
+        const { stage: requestedStage } = await c.req.json<{ stage?: number }>().catch(() => ({ stage: undefined }))
         const rd = (instance.researchData as any) || {}
         if (!rd.stage1 && !rd.report) {
             return fail(c, 'יש להריץ מחקר שוק קודם', 400)
@@ -747,28 +899,29 @@ export const buildStrategy = async (c: Context) => {
         const answers = rd.answers || {}
         const businessName = answers.businessName || 'העסק'
 
-        console.log(`Building strategy for ${businessName} via direct API call...`)
+        // Determine which strategy stage to run
+        const stage = requestedStage || (rd.strategyStage1 ? (rd.strategyStage2 ? (rd.strategyStage3 ? 4 : 3) : 2) : 1)
+        const stageConfig = STRATEGY_STAGES[stage - 1]
+        if (!stageConfig) return fail(c, 'Invalid strategy stage', 400)
 
-        // Combine all research stages into context
+        console.log(`Strategy stage ${stage}/4 for ${businessName} via direct API...`)
+
+        // Build research context (compact)
         const researchContext = [
-            rd.stage1 ? `## מתחרים\n${rd.stage1.substring(0, 3000)}` : '',
-            rd.stage2 ? `## מילות מפתח\n${rd.stage2.substring(0, 3000)}` : '',
-            rd.stage3 ? `## קהל יעד\n${rd.stage3.substring(0, 3000)}` : '',
-            rd.stage4 ? `## ניתוח ערוצים\n${rd.stage4.substring(0, 3000)}` : '',
-            rd.report ? `## דוח מחקר כללי\n${rd.report.substring(0, 3000)}` : '',
-        ].filter(Boolean).join('\n\n')
+            rd.stage1 ? rd.stage1.substring(0, 2000) : '',
+            rd.stage2 ? rd.stage2.substring(0, 2000) : '',
+            rd.stage3 ? rd.stage3.substring(0, 2000) : '',
+            rd.stage4 ? rd.stage4.substring(0, 2000) : '',
+        ].filter(Boolean).join('\n---\n')
 
-        const strategyPrompt = `אתה מומחה שיווק דיגיטלי ישראלי. בנה אסטרטגיית שיווק מפורטת עבור "${businessName}" על סמך המחקר הבא:
+        // Previous strategy stages as context
+        const prevStrategy = [
+            rd.strategyStage1 || '',
+            rd.strategyStage2 || '',
+            rd.strategyStage3 || '',
+        ].filter(Boolean).join('\n\n').substring(0, 3000)
 
-${researchContext}
-
-פרטי העסק: ${answers.businessDescription || ''}
-קהל יעד: ${answers.targetAudience || ''}
-פלטפורמות: ${answers.platforms || ''}
-טון: ${answers.tone || 'ידידותי ונגיש'}
-תקציב: ${answers.budget || 'לא צוין'}
-
-בנה אסטרטגיה שכוללת את כל 9 הסעיפים הבאים:
+        const strategyPrompt = stageConfig.prompt(businessName, researchContext, answers, prevStrategy)
 
 ## 1. פוזיציונינג
 - positioning statement אחד ברור
@@ -883,29 +1036,49 @@ ${researchContext}
             }
         }
 
-        if (!strategy || strategy.length < 1000) {
-            return fail(c, 'האסטרטגיה לא נוצרה — נסו שוב', 500)
+        if (!strategy || strategy.length < 500) {
+            return fail(c, `שלב ${stage} של האסטרטגיה נכשל — נסו שוב`, 500)
         }
 
-        // Save to DB
-        await db.update(instances).set({
-            researchData: {
-                ...rd,
+        // Save stage to DB
+        const stageKey = `strategyStage${stage}`
+        const updateData: Record<string, unknown> = {
+            ...rd,
+            [stageKey]: strategy,
+            [`${stageKey}GeneratedAt`]: new Date().toISOString(),
+        }
+
+        // If last stage (4) — combine all into full strategy
+        if (stage === 4) {
+            const fullStrategy = [
+                rd.strategyStage1 || '',
+                rd.strategyStage2 || '',
+                rd.strategyStage3 || '',
                 strategy,
-                strategyGeneratedAt: new Date().toISOString(),
-            } as any,
+            ].join('\n\n---\n\n')
+            updateData.strategy = fullStrategy
+            updateData.strategyGeneratedAt = new Date().toISOString()
+
+            // Save compact STRATEGY.md on VPS
+            const compact = fullStrategy.substring(0, 4000)
+            const b64 = Buffer.from(compact).toString('base64')
+            await sshExec(instance.ip,
+                `echo ${b64} | base64 -d > /home/openclaw/.openclaw/workspace/STRATEGY.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/STRATEGY.md`,
+                instance.rootPassword || undefined
+            )
+        }
+
+        await db.update(instances).set({
+            researchData: updateData as any,
         }).where(eq(instances.id, instanceId))
 
-        // Save as STRATEGY.md on VPS (compact — for agent reference)
-        const compactStrategy = strategy.substring(0, 4000)
-        const b64Strategy = Buffer.from(compactStrategy).toString('base64')
-        await sshExec(instance.ip,
-            `echo ${b64Strategy} | base64 -d > /home/openclaw/.openclaw/workspace/STRATEGY.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/STRATEGY.md`,
-            instance.rootPassword || undefined
-        )
-
-        console.log(`Strategy complete for ${businessName} (${strategy.length} chars)`)
-        return ok(c, { strategy }, 'Strategy complete.')
+        console.log(`Strategy stage ${stage}/4 complete: ${strategy.length} chars`)
+        return ok(c, {
+            stage,
+            strategy,
+            nextStage: stage < 4 ? stage + 1 : null,
+            isComplete: stage === 4,
+        }, `Strategy stage ${stage} complete.`)
     } catch (err) {
         console.error('buildStrategy error:', err)
         return fail(c, 'Strategy failed.', 500)

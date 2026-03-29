@@ -2434,35 +2434,129 @@ function skipToStrategy() {
   runChainStrategy();
 }
 
+var STRATEGY_STAGES_UI = [
+  { num: 1, name: 'פוזיציונינג ומטרות' },
+  { num: 2, name: 'תוכן וערוצים' },
+  { num: 3, name: 'אורגני וממומן' },
+  { num: 4, name: 'הנחיות סוכנים' },
+];
+var strategyPipelineStage = 0;
+
 async function runChainStrategy() {
   if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
-  showToast('בונה אסטרטגיה — ייקח 1-2 דקות...', 'success');
 
-  var strategyTask = document.querySelector('[onclick="runChainStrategy()"]');
-  if (strategyTask) { strategyTask.disabled = true; strategyTask.innerHTML = '<span style="animation:spin 1s linear infinite;display:inline-block">⚙</span> בונה...'; }
+  // Determine start stage from DB
+  var startStage = 1;
+  if (instanceData && instanceData.researchData) {
+    if (instanceData.researchData.strategyStage1) startStage = 2;
+    if (instanceData.researchData.strategyStage2) startStage = 3;
+    if (instanceData.researchData.strategyStage3) startStage = 4;
+    if (instanceData.researchData.strategyStage4) startStage = 5;
+  }
 
+  if (startStage > 4) {
+    showToast('האסטרטגיה כבר מוכנה', 'success');
+    viewStrategy();
+    return;
+  }
+
+  // Open pipeline modal
+  document.getElementById('pipelineOverlay').classList.remove('hidden');
+  document.getElementById('pipelineTitle').textContent = 'בניית אסטרטגיה — שלב ' + startStage + ' מתוך 4';
+
+  // Render steps
+  document.getElementById('pipelineSteps').innerHTML = STRATEGY_STAGES_UI.map(function(s) {
+    var cls = s.num < startStage ? 'done' : s.num === startStage ? 'active' : '';
+    return '<div style="flex:1;text-align:center;padding:6px;border-radius:6px;font-size:0.78rem;' +
+      (cls === 'done' ? 'background:#D1FAE5;color:#10B981' : cls === 'active' ? 'background:#DBEAFE;color:#2563EB;font-weight:600' : 'color:#9CA3AF') +
+      '">' + s.name + '</div>';
+  }).join('');
+
+  runStrategyStage(startStage);
+}
+
+async function runStrategyStage(stage) {
   try {
+    strategyPipelineStage = stage;
+    var stageInfo = STRATEGY_STAGES_UI[stage - 1];
+    if (!stageInfo) return;
+
+    document.getElementById('pipelineTitle').textContent = 'בניית אסטרטגיה — שלב ' + stage + ' מתוך 4';
+    document.getElementById('pipelineProgress').style.width = Math.round((stage - 1) / 4 * 100) + '%';
+    document.getElementById('pipelineBody').innerHTML =
+      '<div style="text-align:center;padding:40px">' +
+      '<div style="font-size:2rem;animation:spin 2s linear infinite;display:inline-block;margin-bottom:12px">⚙️</div>' +
+      '<div style="font-weight:600;font-size:1rem;margin-bottom:4px">' + stageInfo.name + '</div>' +
+      '<div style="color:#9CA3AF;font-size:0.78rem">ייקח 30-60 שניות...</div>' +
+      '<div id="pipelineTimer" style="color:#9CA3AF;font-size:0.75rem;margin-top:4px;font-family:monospace">00:00</div></div>';
+
+    var timerStart = Date.now();
+    if (window._pipelineTimer) clearInterval(window._pipelineTimer);
+    window._pipelineTimer = setInterval(function() {
+      var elapsed = Math.floor((Date.now() - timerStart) / 1000);
+      var el = document.getElementById('pipelineTimer');
+      if (el) el.textContent = Math.floor(elapsed/60) + ':' + (elapsed%60 < 10 ? '0' : '') + elapsed%60;
+    }, 1000);
+
+    document.getElementById('pipelineNextBtn').style.display = '';
+    document.getElementById('pipelineNextBtn').disabled = true;
+    document.getElementById('pipelineNextBtn').textContent = 'ממתין...';
+
     var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/strategy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({})
+      body: JSON.stringify({ stage: stage })
     });
+
+    if (window._pipelineTimer) clearInterval(window._pipelineTimer);
     var data = await res.json();
+
     if (data.success && data.data && data.data.strategy) {
-      showToast('אסטרטגיה מוכנה!', 'success');
-      addSystemNotification('success', '✅', 'אסטרטגיה מוכנה', 'תוכנית עבודה מפורטת ל-9 סוכנים מוכנה.');
-      refreshInstanceData();
-    } else {
-      var msg = data.message || 'שגיאה ביצירת אסטרטגיה';
-      showToast(msg, 'error');
-      if (msg.includes('rate limit')) {
-        addSystemNotification('error', '⚠️', 'אסטרטגיה נכשלה — rate limit', 'נסו שוב מאוחר יותר.');
+      var html = data.data.strategy
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/^### (.+)$/gm, '<h4>$1</h4>')
+        .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+      document.getElementById('pipelineBody').innerHTML = html;
+      document.getElementById('pipelineProgress').style.width = Math.round(stage / 4 * 100) + '%';
+
+      // Update steps indicator
+      document.getElementById('pipelineSteps').innerHTML = STRATEGY_STAGES_UI.map(function(s) {
+        var cls = s.num <= stage ? 'done' : s.num === stage + 1 ? 'active' : '';
+        return '<div style="flex:1;text-align:center;padding:6px;border-radius:6px;font-size:0.78rem;' +
+          (cls === 'done' ? 'background:#D1FAE5;color:#10B981' : cls === 'active' ? 'background:#DBEAFE;color:#2563EB;font-weight:600' : 'color:#9CA3AF') +
+          '">' + s.name + '</div>';
+      }).join('');
+
+      document.getElementById('pipelineNextBtn').disabled = false;
+      if (data.data.isComplete) {
+        document.getElementById('pipelineNextBtn').textContent = 'סיימו — צפו באסטרטגיה';
+        document.getElementById('pipelineNextBtn').onclick = function() {
+          closePipeline();
+          refreshInstanceData();
+          setTimeout(viewStrategy, 1000);
+        };
       } else {
-        addSystemNotification('error', '⚠️', 'אסטרטגיה נכשלה', msg);
+        document.getElementById('pipelineNextBtn').textContent = 'השלב הבא ←';
+        document.getElementById('pipelineNextBtn').onclick = function() { runStrategyStage(stage + 1); };
       }
+    } else {
+      document.getElementById('pipelineBody').innerHTML =
+        '<div style="text-align:center;padding:30px;color:#EF4444">' +
+        '<div style="font-size:1.5rem;margin-bottom:8px">⚠️</div>' +
+        '<div>' + (data.message || 'שגיאה') + '</div></div>';
+      document.getElementById('pipelineNextBtn').disabled = false;
+      document.getElementById('pipelineNextBtn').textContent = 'נסו שוב ←';
+      document.getElementById('pipelineNextBtn').onclick = function() { runStrategyStage(stage); };
     }
   } catch (e) {
-    showToast('שגיאת תקשורת', 'error');
+    if (window._pipelineTimer) clearInterval(window._pipelineTimer);
+    document.getElementById('pipelineBody').innerHTML =
+      '<div style="text-align:center;padding:30px;color:#EF4444">שגיאת תקשורת</div>';
+    document.getElementById('pipelineNextBtn').disabled = false;
+    document.getElementById('pipelineNextBtn').textContent = 'נסו שוב ←';
+    document.getElementById('pipelineNextBtn').onclick = function() { runStrategyStage(stage); };
   }
   if (strategyTask) { strategyTask.disabled = false; strategyTask.textContent = 'בנו אסטרטגיה ←'; }
 }
