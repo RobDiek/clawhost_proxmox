@@ -334,35 +334,40 @@ EOFPAIR
     await sshExec(ip, 'systemctl restart openclaw-gateway', password)
     await new Promise(r => setTimeout(r, 4000))
 
-    // Set up cron jobs (Daily Brief, Weekly Report, Monthly AEO)
+    // Set up cron jobs — only if they don't exist yet (prevent duplicates)
     await sshExec(ip, `
         su - openclaw -c '
-        openclaw cron add \
-          --name "daily-brief" \
-          --description "Daily Brief - marketing summary" \
-          --cron "0 7 * * 0-4" \
-          --tz "Asia/Jerusalem" \
-          --model "claude-haiku-4-5-20251001" \
-          --message "הכן Daily Brief: סכם פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות. הודעה קצרה ותכליתית." \
-          --session isolated 2>/dev/null;
+        EXISTING=$(openclaw cron list --json 2>/dev/null | node -e "try{const d=JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf-8\"));console.log(d.jobs.map(j=>j.name).join(\",\"))}catch(e){}" 2>/dev/null)
 
-        openclaw cron add \
-          --name "weekly-competitive" \
-          --description "Weekly Competitive Report" \
-          --cron "0 8 * * 1" \
-          --tz "Asia/Jerusalem" \
-          --model "claude-sonnet-4-6" \
-          --message "דוח תחרותי שבועי: סייר חפש מתחרים, מאזין בדוק שיחות, מנתח דרג הזדמנויות, עט כתוב 2-3 הצעות פוסטים." \
-          --session isolated 2>/dev/null;
+        if ! echo "$EXISTING" | grep -q "daily-brief"; then
+          openclaw cron add \
+            --name "daily-brief" \
+            --description "Daily Brief - marketing summary" \
+            --cron "0 7 * * 0-4" \
+            --tz "Asia/Jerusalem" \
+            --message "הכן Daily Brief: סכם פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות. הודעה קצרה ותכליתית." \
+            --session isolated 2>/dev/null
+        fi
 
-        openclaw cron add \
-          --name "monthly-aeo" \
+        if ! echo "$EXISTING" | grep -q "weekly-competitive"; then
+          openclaw cron add \
+            --name "weekly-competitive" \
+            --description "Weekly Competitive Report" \
+            --cron "0 8 * * 1" \
+            --tz "Asia/Jerusalem" \
+            --message "דוח תחרותי שבועי: סייר חפש מתחרים, מאזין בדוק שיחות, מנתח דרג הזדמנויות, עט כתוב 2-3 הצעות פוסטים." \
+            --session isolated 2>/dev/null
+        fi
+
+        if ! echo "$EXISTING" | grep -q "monthly-aeo"; then
+          openclaw cron add \
+            --name "monthly-aeo" \
           --description "Monthly AEO Audit" \
           --cron "0 10 1 * *" \
           --tz "Asia/Jerusalem" \
-          --model "claude-sonnet-4-6" \
           --message "ביקורת AEO חודשית: בדוק ציטוטים ב-Claude/ChatGPT/Perplexity, Schema tags, המלצות לשיפור." \
-          --session isolated 2>/dev/null;
+          --session isolated 2>/dev/null
+        fi
         '
     `, password)
 }
