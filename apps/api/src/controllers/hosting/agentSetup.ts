@@ -976,10 +976,10 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
             // CHANNEL ANALYSIS — reduce context by moving stage files out of workspace
             agentId = 'menateach'
 
-            // Stage files already saved outside workspace — read summaries from DB
-            const s1 = rd.stage1 ? rd.stage1.substring(0, 1000) : ''
-            const s2 = rd.stage2 ? rd.stage2.substring(0, 1000) : ''
-            const s3 = rd.stage3 ? rd.stage3.substring(0, 1000) : ''
+            // Stage files saved outside workspace — read quality summaries from DB
+            const s1 = rd.stage1 ? rd.stage1.substring(0, 2000) : ''
+            const s2 = rd.stage2 ? rd.stage2.substring(0, 2000) : ''
+            const s3 = rd.stage3 ? rd.stage3.substring(0, 2000) : ''
 
             prompt = `משימת ניתוח ערוצים עבור "${businessName}".
 
