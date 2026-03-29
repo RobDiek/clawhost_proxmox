@@ -305,6 +305,8 @@ export const getMyInstances = async (c: Context) => {
             onboardingCompleted: i.onboardingCompleted,
             onboardingStep: i.onboardingStep,
             researchData: i.researchData,
+            hasProfile: !!(i.researchData as any)?.answers,
+            hasResearch: !!(i.researchData as any)?.report,
             aiProviderType: i.aiProviderType,
             telegramBotToken: i.telegramBotToken ? true : false,
             googleTokens: i.googleTokens ? true : false,

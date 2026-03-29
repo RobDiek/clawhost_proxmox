@@ -1341,9 +1341,9 @@ function renderHome() {
   var hasApiKey = !!(instanceData && instanceData.aiProviderType) || localStorage.getItem('cf_api_key_saved') || step >= 2;
   var hasTelegram = !!(instanceData && instanceData.telegramBotToken) || localStorage.getItem('cf_telegram_saved') || step >= 3;
   var isMATEH = components.indexOf('mt') !== -1;
-  var hasAgents = instanceData && instanceData.researchData && instanceData.researchData.answers;
-  var hasResearch = instanceData && instanceData.researchData && instanceData.researchData.report;
-  var onboardingDone = instanceData && instanceData.onboardingCompleted;
+  var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
+  var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && instanceData.researchData.report)));
+  var onboardingDone = !!(instanceData && instanceData.onboardingCompleted);
   var hiddenTasks = JSON.parse(localStorage.getItem('cf_hidden_tasks') || '[]');
 
   var tasks = [
@@ -1414,9 +1414,9 @@ function getNotifications() {
   var step = (instanceData && instanceData.onboardingStep) || 0;
   var hasApiKey = !!(instanceData && instanceData.aiProviderType) || localStorage.getItem('cf_api_key_saved');
   var hasTelegram = !!(instanceData && instanceData.telegramBotToken) || localStorage.getItem('cf_telegram_saved') || step >= 3;
-  var hasAgents = instanceData && instanceData.researchData && instanceData.researchData.answers;
-  var hasResearch = instanceData && instanceData.researchData && instanceData.researchData.report;
-  var hasGoogle = instanceData && instanceData.googleTokens;
+  var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
+  var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && instanceData.researchData.report)));
+  var hasGoogle = !!(instanceData && instanceData.googleTokens);
   var dismissed = JSON.parse(localStorage.getItem('cf_dismissed_notifs') || '[]');
 
   // Smart recommendations — only show what's actually missing
