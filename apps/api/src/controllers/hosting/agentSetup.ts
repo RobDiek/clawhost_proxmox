@@ -1158,7 +1158,8 @@ export const buildStrategy = async (c: Context) => {
             strategy = data.content?.[0]?.text || ''
             console.log(`Strategy from Anthropic: ${strategy.length} chars`)
         } else {
-            console.log(`Anthropic failed (${res.status}), trying OpenAI...`)
+            const errBody = await res.text().catch(() => 'no body')
+            console.error(`Anthropic failed (${res.status}): ${errBody.substring(0, 500)}`)
             // Try OpenAI
             const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
             const openaiKey = inst?.openaiApiKey
