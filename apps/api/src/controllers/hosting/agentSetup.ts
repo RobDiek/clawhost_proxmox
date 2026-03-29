@@ -490,20 +490,27 @@ export const analyzeAnswers = async (c: Context) => {
 }
 
 // ── Helper: get model for a specific sub-agent role ──
-function getSubAgentModel(role: string): string {
-    // Model mapping from AGENTS.md defaults
-    const ROLE_MODELS: Record<string, string> = {
-        'mateh': 'anthropic/claude-opus-4-6',
-        'sayer': 'anthropic/claude-opus-4-6',      // research needs the best model
-        'meater': 'anthropic/claude-sonnet-4-6',
-        'maazin': 'anthropic/claude-sonnet-4-6',
-        'menateach': 'anthropic/claude-opus-4-6',   // analysis needs depth
-        'et': 'anthropic/claude-sonnet-4-6',
-        'yotzer': 'anthropic/claude-sonnet-4-6',
-        'shaliach': 'anthropic/claude-haiku-4-5-20251001',
-        'migdalor': 'anthropic/claude-sonnet-4-6',
-    }
-    return ROLE_MODELS[role] || 'openai/gpt-4o'
+// Reads from DB (sub_agent_models) first, falls back to defaults
+const DEFAULT_ROLE_MODELS: Record<string, string> = {
+    'mateh': 'anthropic/claude-opus-4-6',
+    'sayer': 'anthropic/claude-opus-4-6',
+    'meater': 'anthropic/claude-sonnet-4-6',
+    'maazin': 'anthropic/claude-sonnet-4-6',
+    'menateach': 'anthropic/claude-opus-4-6',
+    'et': 'anthropic/claude-sonnet-4-6',
+    'yotzer': 'anthropic/claude-sonnet-4-6',
+    'shaliach': 'anthropic/claude-haiku-4-5-20251001',
+    'migdalor': 'anthropic/claude-sonnet-4-6',
+}
+
+async function getSubAgentModel(instanceId: string, role: string): Promise<string> {
+    // Try to read from DB (user's custom config from dashboard)
+    try {
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const customModels = (inst?.subAgentModels as Record<string, string>) || {}
+        if (customModels[role]) return customModels[role]
+    } catch { /* fallback */ }
+    return DEFAULT_ROLE_MODELS[role] || 'openai/gpt-4o'
 }
 
 // ── Helper: validate research report quality ──
@@ -544,7 +551,7 @@ export const runResearch = async (c: Context) => {
         const tone = answers.tone || ''
 
         // Get the model for סייר (researcher) — should be Opus
-        const researchModel = getSubAgentModel('sayer')
+        const researchModel = await getSubAgentModel(instanceId, 'sayer')
         console.log(`Running research for ${businessName} with model ${researchModel}...`)
 
         const researchPrompt = `זוהי משימת מחקר חדשה לחלוטין. אל תשתמש במידע קודם — חפש הכל מחדש.
@@ -634,6 +641,15 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
             const errorMsg = lastError.startsWith('rate_limit')
                 ? `rate limit — נסו להחליף מודל או לנסות שוב מאוחר יותר`
                 : `המחקר לא הצליח (${lastError}) — נסו שוב`
+
+            // Notify user via Telegram through מטה
+            try {
+                await sshExec(instance.ip,
+                    `su - openclaw -c 'openclaw agent --agent main --session-id notify-${Date.now()} --deliver --channel telegram -m "⚠️ המחקר נכשל: ${lastError}. בדקו את לוח הבקרה לפרטים נוספים." --json 2>/dev/null' 2>&1`,
+                    instance.rootPassword || undefined
+                )
+            } catch { /* non-critical */ }
+
             return fail(c, errorMsg, 500)
         }
 
@@ -725,7 +741,7 @@ export const buildStrategy = async (c: Context) => {
 כתוב בעברית. תכליתי ואקשנאבילי. אל תשלח לטלגרם.`
 
         // Use מנתח (analyst) model for strategy — needs depth
-        const strategyModel = getSubAgentModel('menateach')
+        const strategyModel = await getSubAgentModel(instanceId, 'menateach')
         console.log(`Strategy model: ${strategyModel}`)
 
         const b64Prompt = Buffer.from(strategyPrompt + '\n\nאורך מינימלי: 2000 תווים.').toString('base64')

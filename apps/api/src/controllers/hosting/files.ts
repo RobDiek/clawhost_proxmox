@@ -374,6 +374,16 @@ export const saveIntegration = async (c: Context) => {
             }).where(eq(instances.id, instanceId))
         }
 
+        // Save sub-agent model configuration
+        if (type === 'sub-agent-models') {
+            try {
+                const models = JSON.parse(key)
+                await db.update(instances).set({
+                    subAgentModels: models as any,
+                }).where(eq(instances.id, instanceId))
+            } catch { /* non-critical */ }
+        }
+
         return ok(c, { type }, 'Integration saved.')
     } catch (err) {
         console.error('saveIntegration error:', err)

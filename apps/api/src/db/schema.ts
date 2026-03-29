@@ -271,6 +271,9 @@ export const instances = pgTable(
         aiProviderType: text('ai_provider_type'),   // 'anthropic' | 'openai'
         openaiApiKey: text('openai_api_key'),       // OpenAI key (separate, both can coexist)
 
+        // Sub-agent model configuration (from dashboard selector)
+        subAgentModels: jsonb('sub_agent_models'),  // { sayer: "anthropic/claude-opus-4-6", ... }
+
         // Google Workspace OAuth tokens
         googleTokens: jsonb('google_tokens'),       // { accessToken, refreshToken, expiresAt, scopes[], email }
 

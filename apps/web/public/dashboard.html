@@ -1248,6 +1248,8 @@ function buildAgentUrl(base, token) {
       localStorage.setItem('cf_instance_subdomain', subdomain);
       localStorage.setItem('cf_openclaw_token', openclawToken);
       // Sync onboarding state from DB
+      if (inst.hasAnthropicKey) localStorage.setItem('cf_api_key_saved', 'anthropic');
+      if (inst.hasOpenaiKey) localStorage.setItem('cf_openai_saved', '1');
       if (inst.aiProviderType) localStorage.setItem('cf_api_key_saved', inst.aiProviderType);
       else if (inst.onboardingStep >= 2) localStorage.setItem('cf_api_key_saved', 'anthropic');
       if (inst.telegramBotToken || inst.onboardingStep >= 3 || inst.onboardingCompleted) localStorage.setItem('cf_telegram_saved', '1');
@@ -1716,15 +1718,26 @@ function renderAgentsTab() {
 }
 
 function renderIntegrations() {
-  // Update status if previously saved
-  if (localStorage.getItem('cf_api_key_saved')) {
-    var provider = localStorage.getItem('cf_api_key_saved');
-    var el = document.getElementById(provider + '-status');
-    if (el) { el.textContent = '\u2713 מחובר'; el.className = 'int-status connected'; }
-    var card = document.getElementById(provider + '-card');
-    if (card) card.classList.add('connected');
+  // Update Anthropic status
+  var hasAnthropic = (instanceData && instanceData.hasAnthropicKey) || localStorage.getItem('cf_api_key_saved');
+  if (hasAnthropic) {
+    var antEl = document.getElementById('anthropic-status');
+    if (antEl) { antEl.textContent = '\u2713 מחובר'; antEl.className = 'int-status connected'; }
+    var antCard = document.getElementById('anthropic-card');
+    if (antCard) antCard.classList.add('connected');
   }
-  if (localStorage.getItem('cf_telegram_saved')) {
+
+  // Update OpenAI status
+  var hasOpenai = (instanceData && instanceData.hasOpenaiKey) || localStorage.getItem('cf_openai_saved');
+  if (hasOpenai) {
+    var oaiEl = document.getElementById('openai-status');
+    if (oaiEl) { oaiEl.textContent = '\u2713 מחובר'; oaiEl.className = 'int-status connected'; }
+    var oaiCard = document.getElementById('openai-card');
+    if (oaiCard) oaiCard.classList.add('connected');
+  }
+
+  // Update Telegram status
+  if ((instanceData && instanceData.telegramBotToken) || localStorage.getItem('cf_telegram_saved')) {
     var tgStatus = document.getElementById('telegram-status');
     if (tgStatus) { tgStatus.textContent = '\u2713 מחובר'; tgStatus.className = 'int-status connected'; }
     var tgCard = document.getElementById('telegram-card');
@@ -2479,34 +2492,40 @@ function openAgentQuestionnaire() {
 
 // Sub-agents data — defaults match AGENTS.md routing
 var SUB_AGENTS = [
-  { id: 'mateh', name: 'מטה', role: 'מתאם ומנהל', defaultModel: 'claude-opus-4-6' },
-  { id: 'sayer', name: 'סייר', role: 'מחקר אינטרנט', defaultModel: 'claude-opus-4-6' },
-  { id: 'meater', name: 'מאתר', role: 'מחקר SERP', defaultModel: 'claude-sonnet-4-5-20250514' },
-  { id: 'maazin', name: 'מאזין', role: 'האזנה חברתית', defaultModel: 'claude-sonnet-4-5-20250514' },
-  { id: 'menateach', name: 'מנתח', role: 'ניתוח הזדמנויות', defaultModel: 'claude-opus-4-6' },
-  { id: 'et', name: 'עט', role: 'כתיבת תוכן', defaultModel: 'claude-sonnet-4-5-20250514' },
-  { id: 'yotzer', name: 'יוצר', role: 'קריאייטיב', defaultModel: 'claude-sonnet-4-5-20250514' },
-  { id: 'shaliach', name: 'שליח', role: 'הפצה', defaultModel: 'claude-haiku-4-5-20251001' },
-  { id: 'migdalor', name: 'מגדלור', role: 'ביקורת AEO', defaultModel: 'claude-sonnet-4-5-20250514' },
+  { id: 'mateh', name: 'מטה', role: 'מתאם ומנהל', defaultModel: 'anthropic/claude-opus-4-6' },
+  { id: 'sayer', name: 'סייר', role: 'מחקר אינטרנט', defaultModel: 'anthropic/claude-opus-4-6' },
+  { id: 'meater', name: 'מאתר', role: 'מחקר SERP', defaultModel: 'anthropic/claude-sonnet-4-6' },
+  { id: 'maazin', name: 'מאזין', role: 'האזנה חברתית', defaultModel: 'anthropic/claude-sonnet-4-6' },
+  { id: 'menateach', name: 'מנתח', role: 'ניתוח הזדמנויות', defaultModel: 'anthropic/claude-opus-4-6' },
+  { id: 'et', name: 'עט', role: 'כתיבת תוכן', defaultModel: 'anthropic/claude-sonnet-4-6' },
+  { id: 'yotzer', name: 'יוצר', role: 'קריאייטיב', defaultModel: 'anthropic/claude-sonnet-4-6' },
+  { id: 'shaliach', name: 'שליח', role: 'הפצה', defaultModel: 'anthropic/claude-haiku-4-5-20251001' },
+  { id: 'migdalor', name: 'מגדלור', role: 'ביקורת AEO', defaultModel: 'anthropic/claude-sonnet-4-6' },
 ];
 
 // Build available models based on connected provider
 function getAvailableModels() {
-  var provider = localStorage.getItem('cf_api_key_saved') || '';
+  var hasAnthropic = (instanceData && instanceData.hasAnthropicKey) || localStorage.getItem('cf_api_key_saved') === 'anthropic';
+  var hasOpenai = (instanceData && instanceData.hasOpenaiKey) || localStorage.getItem('cf_openai_saved');
   var hasOllama = components.indexOf('ol') !== -1;
   var models = [];
 
-  if (provider === 'anthropic' || !provider) {
-    models.push({ value: 'claude-opus-4-6', label: 'Claude Opus 4.6 (מתקדם)' });
-    models.push({ value: 'claude-sonnet-4-5-20250514', label: 'Claude Sonnet 4.5 (מומלץ)' });
-    models.push({ value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 (חסכוני)' });
+  if (hasAnthropic) {
+    models.push({ value: 'anthropic/claude-opus-4-6', label: 'Claude Opus 4.6 (מתקדם)' });
+    models.push({ value: 'anthropic/claude-sonnet-4-6', label: 'Claude Sonnet 4.6 (מומלץ)' });
+    models.push({ value: 'anthropic/claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 (חסכוני)' });
   }
-  if (provider === 'openai') {
-    models.push({ value: 'gpt-4o', label: 'GPT-4o' });
-    models.push({ value: 'gpt-4o-mini', label: 'GPT-4o mini (חסכוני)' });
+  if (hasOpenai) {
+    models.push({ value: 'openai/gpt-4o', label: 'GPT-4o' });
+    models.push({ value: 'openai/gpt-4o-mini', label: 'GPT-4o mini (חסכוני)' });
   }
   if (hasOllama) {
     models.push({ value: 'ollama/llama3.1:8b', label: 'Ollama Llama 3.1 (מקומי)' });
+  }
+
+  // Fallback if nothing connected
+  if (models.length === 0) {
+    models.push({ value: 'anthropic/claude-sonnet-4-6', label: 'Claude Sonnet 4.6 (ברירת מחדל)' });
   }
 
   return models;
@@ -2550,11 +2569,20 @@ async function saveSubAgentModels() {
     });
     agentsmd += '\n## כללי עבודה\n1. לפני שליחת הודעה — הצגת טיוטה ואישור\n2. לפני מחיקת קבצים — אישור מפורש\n3. משימה שנכשלת 3 פעמים — עצירה ודיווח\n4. אין להריץ תהליך מעל 10 דקות ללא אישור\n5. כל תוכן עובר de-ai-ify לפני פרסום\n6. תמיד לציין איזה מודל משמש\n\n## העברת נתונים\nשיטה: file-based handoffs\nכל סוכן כותב ל-agents/[name]/output/latest.json\n';
 
+    // Save AGENTS.md to VPS
     var res = await fetch(API + '/hosting/instances/' + iid + '/files', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ path: 'workspace/AGENTS.md', content: agentsmd })
     });
+
+    // Also save model config to DB (for research/strategy to read)
+    await fetch(API + '/hosting/instances/' + iid + '/integrations/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ type: 'sub-agent-models', key: JSON.stringify(models) })
+    });
+
     if (res.ok) {
       showToast('מודלים עודכנו בהצלחה', 'success');
     } else {
