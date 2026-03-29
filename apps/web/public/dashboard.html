@@ -2378,10 +2378,19 @@ async function runPipelineStage(stage) {
         document.getElementById('pipelineNextBtn').onclick = function() { nextPipelineStage(); };
       }
     } else {
+      var errMsg = data.message || 'שגיאה בשלב הזה';
+      var isRateLimit = errMsg.includes('rate limit') || errMsg.includes('Rate limit');
       document.getElementById('pipelineBody').innerHTML =
-        '<div style="text-align:center;padding:40px;color:#EF4444">' +
-        '<div style="font-size:2rem;margin-bottom:8px">⚠️</div>' +
-        '<div>' + (data.message || 'שגיאה בשלב הזה') + '</div></div>';
+        '<div style="text-align:center;padding:30px">' +
+        '<div style="font-size:1.5rem;margin-bottom:12px">⚠️</div>' +
+        '<div style="font-weight:600;font-size:1rem;margin-bottom:8px">שלב ' + stage + ' נכשל</div>' +
+        '<div style="color:#6B7280;font-size:0.88rem;margin-bottom:16px">' + errMsg + '</div>' +
+        (isRateLimit ? '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:10px;padding:12px;font-size:0.82rem;color:#92400E;text-align:right;margin-bottom:12px">' +
+          'המודל הגיע לגבול השימוש לדקה. אפשרויות:<br>' +
+          '• המתינו דקה ונסו שוב<br>' +
+          '• שנו מודל בהגדרות סוכנים<br>' +
+          '• שדרגו את תוכנית ה-API שלכם</div>' : '') +
+        '</div>';
       document.getElementById('pipelineNextBtn').disabled = false;
       document.getElementById('pipelineNextBtn').textContent = 'נסו שוב ←';
       document.getElementById('pipelineNextBtn').onclick = function() { runPipelineStage(stage); };

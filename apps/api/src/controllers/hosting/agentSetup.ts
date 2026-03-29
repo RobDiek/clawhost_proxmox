@@ -1006,11 +1006,18 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
         )
 
         let result = ''
+        let isRateLimit = false
         try {
             const agentResult = JSON.parse(output)
             result = agentResult?.result?.payloads?.[0]?.text || ''
+            if (output.includes('rate_limit') || output.includes('Rate limit')) {
+                isRateLimit = true
+            }
         } catch {
             result = output
+            if (output.includes('rate_limit') || output.includes('Rate limit')) {
+                isRateLimit = true
+            }
         }
 
         // Fallback: check if agent saved to file
@@ -1025,7 +1032,10 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
         }
 
         if (!result || result.length < 500) {
-            return fail(c, `שלב ${stage} נכשל — נסו שוב`, 500)
+            const msg = isRateLimit
+                ? `rate limit — המודל הגיע לגבול השימוש. המתינו דקה ונסו שוב`
+                : `שלב ${stage} נכשל — נסו שוב`
+            return fail(c, msg, 500)
         }
 
         // Save stage result to VPS for next stages to read
