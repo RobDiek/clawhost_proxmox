@@ -973,11 +973,30 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
 כתוב הכל כאן. בעברית.`
             minLength = 1000
         } else if (stage === 4) {
-            // CHANNEL ANALYSIS
+            // CHANNEL ANALYSIS — reduce context by moving stage files out of workspace
             agentId = 'menateach'
+
+            // Move stage files to prevent auto-loading (reduces token usage)
+            await sshExec(instance.ip,
+                `mkdir -p /home/openclaw/.openclaw/research-data && mv /home/openclaw/.openclaw/workspace/RESEARCH_STAGE*.md /home/openclaw/.openclaw/research-data/ 2>/dev/null; chown -R openclaw:openclaw /home/openclaw/.openclaw/research-data`,
+                instance.rootPassword || undefined
+            )
+
+            // Read summaries from saved stage data in DB
+            const s1 = rd.stage1 ? rd.stage1.substring(0, 800) : ''
+            const s2 = rd.stage2 ? rd.stage2.substring(0, 800) : ''
+            const s3 = rd.stage3 ? rd.stage3.substring(0, 800) : ''
+
             prompt = `משימת ניתוח ערוצים עבור "${businessName}".
 
-קרא את כל קבצי RESEARCH_STAGE*.md.
+סיכום ממצאים מהשלבים הקודמים:
+--- מתחרים ---
+${s1}
+--- מילות מפתח ---
+${s2}
+--- קהל יעד ---
+${s3}
+---
 
 נתח:
 1. אילו ערוצים מתאימים ביותר על סמך הקהל + המתחרים?
@@ -1032,9 +1051,16 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
         }
 
         if (!result || result.length < 500) {
+            // Restore stage files to workspace
+            await sshExec(instance.ip,
+                `mv /home/openclaw/.openclaw/research-data/RESEARCH_STAGE*.md /home/openclaw/.openclaw/workspace/ 2>/dev/null || true`,
+                instance.rootPassword || undefined
+            ).catch(() => {})
+
             const msg = isRateLimit
-                ? `rate limit — המודל הגיע לגבול השימוש. המתינו דקה ונסו שוב`
+                ? `rate limit — המודל הגיע לגבול השימוש (30K tokens). נסו: המתינו דקה / שנו מודל / שדרגו תוכנית API`
                 : `שלב ${stage} נכשל — נסו שוב`
+            console.error(`Stage ${stage} failed: ${msg}`)
             return fail(c, msg, 500)
         }
 
