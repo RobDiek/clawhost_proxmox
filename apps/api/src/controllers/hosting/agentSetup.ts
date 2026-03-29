@@ -976,25 +976,20 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
             // CHANNEL ANALYSIS — reduce context by moving stage files out of workspace
             agentId = 'menateach'
 
-            // Stage files saved outside workspace — read quality summaries from DB
-            const s1 = rd.stage1 ? rd.stage1.substring(0, 2000) : ''
-            const s2 = rd.stage2 ? rd.stage2.substring(0, 2000) : ''
-            const s3 = rd.stage3 ? rd.stage3.substring(0, 2000) : ''
+            // Stage files saved outside workspace — compact summaries to fit 30K token limit
+            const s1 = rd.stage1 ? rd.stage1.substring(0, 500) : ''
+            const s2 = rd.stage2 ? rd.stage2.substring(0, 500) : ''
+            const s3 = rd.stage3 ? rd.stage3.substring(0, 500) : ''
 
-            prompt = `משימת ניתוח ערוצים עבור "${businessName}".
+            prompt = `ניתוח ערוצים עבור "${businessName}". תמצית:
+מתחרים: ${s1}
+מילות מפתח: ${s2}
+קהל: ${s3}
 
-סיכום ממצאים מהשלבים הקודמים:
---- מתחרים ---
-${s1}
---- מילות מפתח ---
-${s2}
---- קהל יעד ---
-${s3}
----
-
-נתח:
-1. אילו ערוצים מתאימים ביותר על סמך הקהל + המתחרים?
-2. לכל ערוץ: עלות משוערת, ROI צפוי, תדירות מומלצת
+המלץ:
+1. 3-5 ערוצים מומלצים + עדיפות
+2. עלות ותדירות לכל ערוץ
+3. פאנל: awareness→conversion
 3. פאנל שיווק: awareness → consideration → conversion → retention
 4. מה עושים ראשון? סדר עדיפויות
 ${answers.budget ? `תקציב: ${answers.budget}` : ''}
