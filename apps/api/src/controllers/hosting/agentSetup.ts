@@ -982,10 +982,10 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
                 instance.rootPassword || undefined
             )
 
-            // Read summaries from saved stage data in DB
-            const s1 = rd.stage1 ? rd.stage1.substring(0, 800) : ''
-            const s2 = rd.stage2 ? rd.stage2.substring(0, 800) : ''
-            const s3 = rd.stage3 ? rd.stage3.substring(0, 800) : ''
+            // Read summaries from saved stage data in DB (1500 chars each for quality)
+            const s1 = rd.stage1 ? rd.stage1.substring(0, 1500) : ''
+            const s2 = rd.stage2 ? rd.stage2.substring(0, 1500) : ''
+            const s3 = rd.stage3 ? rd.stage3.substring(0, 1500) : ''
 
             prompt = `משימת ניתוח ערוצים עבור "${businessName}".
 
@@ -1063,6 +1063,12 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
             console.error(`Stage ${stage} failed: ${msg}`)
             return fail(c, msg, 500)
         }
+
+        // Restore stage files to workspace if they were moved (stage 4)
+        await sshExec(instance.ip,
+            `mv /home/openclaw/.openclaw/research-data/RESEARCH_STAGE*.md /home/openclaw/.openclaw/workspace/ 2>/dev/null || true`,
+            instance.rootPassword || undefined
+        ).catch(() => {})
 
         // Save stage result to VPS for next stages to read
         const b64Result = Buffer.from(result).toString('base64')
