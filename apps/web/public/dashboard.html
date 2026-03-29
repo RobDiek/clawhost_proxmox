@@ -2139,11 +2139,16 @@ async function runChainResearch() {
     var data = await res.json();
     if (data.success && data.data && data.data.report) {
       showToast('מחקר שוק הושלם!', 'success');
-      addSystemNotification('success', '✅', 'מחקר שוק הושלם', 'הסוכן חקר את השוק ומצא תובנות. לחצו לצפייה בדוח.');
+      addSystemNotification('success', '✅', 'מחקר שוק הושלם', 'הסוכן חקר את השוק ומצא תובנות. מודל: ' + (data.data.model || 'default'));
       refreshInstanceData();
     } else {
-      showToast(data.message || 'שגיאה במחקר', 'error');
-      addSystemNotification('error', '⚠️', 'מחקר נכשל', data.message || 'נסו שוב');
+      var msg = data.message || 'שגיאה במחקר';
+      showToast(msg, 'error');
+      if (msg.includes('rate limit')) {
+        addSystemNotification('error', '⚠️', 'מחקר נכשל — rate limit', 'המודל הגיע לגבול השימוש. נסו שוב מאוחר יותר או פנו לתמיכה.');
+      } else {
+        addSystemNotification('error', '⚠️', 'מחקר נכשל', msg);
+      }
     }
   } catch (e) {
     showToast('שגיאת תקשורת', 'error');
@@ -2167,10 +2172,16 @@ async function runChainStrategy() {
     var data = await res.json();
     if (data.success && data.data && data.data.strategy) {
       showToast('אסטרטגיה מוכנה!', 'success');
-      addSystemNotification('success', '✅', 'אסטרטגיה מוכנה', 'תוכנית עבודה מפורטת ל-9 סוכנים מוכנה. לחצו לצפייה.');
+      addSystemNotification('success', '✅', 'אסטרטגיה מוכנה', 'תוכנית עבודה מפורטת ל-9 סוכנים מוכנה.');
       refreshInstanceData();
     } else {
-      showToast(data.message || 'שגיאה ביצירת אסטרטגיה', 'error');
+      var msg = data.message || 'שגיאה ביצירת אסטרטגיה';
+      showToast(msg, 'error');
+      if (msg.includes('rate limit')) {
+        addSystemNotification('error', '⚠️', 'אסטרטגיה נכשלה — rate limit', 'נסו שוב מאוחר יותר.');
+      } else {
+        addSystemNotification('error', '⚠️', 'אסטרטגיה נכשלה', msg);
+      }
     }
   } catch (e) {
     showToast('שגיאת תקשורת', 'error');

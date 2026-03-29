@@ -489,8 +489,43 @@ export const analyzeAnswers = async (c: Context) => {
     }
 }
 
+// ── Helper: get model for a specific sub-agent role ──
+function getSubAgentModel(role: string): string {
+    // Model mapping from AGENTS.md defaults
+    const ROLE_MODELS: Record<string, string> = {
+        'mateh': 'anthropic/claude-opus-4-6',
+        'sayer': 'anthropic/claude-opus-4-6',      // research needs the best model
+        'meater': 'anthropic/claude-sonnet-4-6',
+        'maazin': 'anthropic/claude-sonnet-4-6',
+        'menateach': 'anthropic/claude-opus-4-6',   // analysis needs depth
+        'et': 'anthropic/claude-sonnet-4-6',
+        'yotzer': 'anthropic/claude-sonnet-4-6',
+        'shaliach': 'anthropic/claude-haiku-4-5-20251001',
+        'migdalor': 'anthropic/claude-sonnet-4-6',
+    }
+    return ROLE_MODELS[role] || 'openai/gpt-4o'
+}
+
+// ── Helper: validate research report quality ──
+function validateResearchReport(report: string): { valid: boolean; reason?: string } {
+    if (!report || report.length < 2000) {
+        return { valid: false, reason: `too_short (${report?.length || 0} chars, need 2000+)` }
+    }
+    // Check for cached/lazy response
+    if (report.includes('כבר מוכן') || report.includes('already done') || report.includes('הרצתי אותו')) {
+        return { valid: false, reason: 'cached_response' }
+    }
+    // Check for required sections (at least 3 of 6)
+    const sections = ['מתחרים', 'מילות מפתח', 'פרסונ', 'הזדמנויות', 'אסטרטגי', 'סוכנים']
+    const found = sections.filter(s => report.includes(s)).length
+    if (found < 3) {
+        return { valid: false, reason: `missing_sections (found ${found}/6)` }
+    }
+    return { valid: true }
+}
+
 // ── POST /hosting/instances/:id/setup/agents/research ──
-// Runs research via the live agent on VPS (with web search + browser access)
+// Runs research via the live agent on VPS with proper model + validation
 export const runResearch = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
@@ -500,76 +535,128 @@ export const runResearch = async (c: Context) => {
             return fail(c, 'Instance not found or not ready.', 404)
         }
 
-        // Read current business context from researchData
         const answers = (instance.researchData as any)?.answers || {}
         const businessName = answers.businessName || 'העסק'
         const businessDesc = answers.businessDescription || ''
         const competitors = answers.competitors || ''
         const targetAudience = answers.targetAudience || ''
+        const platforms = answers.platforms || ''
+        const tone = answers.tone || ''
 
-        console.log(`Running VPS research for ${businessName} on ${instance.ip}...`)
+        // Get the model for סייר (researcher) — should be Opus
+        const researchModel = getSubAgentModel('sayer')
+        console.log(`Running research for ${businessName} with model ${researchModel}...`)
 
-        // Build research prompt for the live agent
-        const researchPrompt = `זוהי משימת מחקר חדשה. תתעלם ממחקרים קודמים — עשה מחקר מעודכן מאפס.
+        const researchPrompt = `זוהי משימת מחקר חדשה לחלוטין. אל תשתמש במידע קודם — חפש הכל מחדש.
 
-עשה מחקר שוק מקיף עבור ${businessName}.
-התחום: ${businessDesc}.
-${competitors ? `מתחרים שצוינו: ${competitors}.` : ''}
-${targetAudience ? `קהל יעד: ${targetAudience}.` : ''}
+עשה מחקר שוק מקיף עבור "${businessName}".
+תחום: ${businessDesc}
+${competitors ? `מתחרים ידועים: ${competitors}` : ''}
+${targetAudience ? `קהל יעד: ${targetAudience}` : ''}
+${platforms ? `פלטפורמות: ${platforms}` : ''}
 
-חפש באינטרנט ותן דוח מלא. הדוח חייב להיות כאן בתשובה — לא בקובץ נפרד:
-1. 3-5 מתחרים ישירים (שם, URL, מה עושים טוב/חלש)
-2. 10 מילות מפתח רלוונטיות (עברית + אנגלית)
-3. 2-3 פרסונות קהל יעד
-4. הזדמנויות תוכן
-5. המלצות אסטרטגיות
-6. הנחיות ספציפיות לכל אחד מ-9 הסוכנים
+חפש באינטרנט (השתמש ב-web search) ותן דוח מלא. חובה לכלול את כל 6 הסעיפים:
 
-אל תשלח לטלגרם. אל תשמור לקובץ. כתוב את הדוח המלא כאן בתשובה. בעברית.`
+## מתחרים ישירים
+3-5 מתחרים. לכל אחד: שם, URL, מה עושים טוב, מה חלש, רמת איום.
 
-        // Escape for shell — use base64 to avoid quoting issues
+## מילות מפתח
+10-15 מילות מפתח (עברית + אנגלית). לכל אחת: כוונה (מסחרית/מידעית), תחרות, עדיפות.
+
+## פרסונות קהל יעד
+2-3 פרסונות מפורטות: שם, גיל, תפקיד, כאבים, מוטיבציות, רשתות, טריגרים.
+
+## הזדמנויות תוכן
+5 הזדמנויות ספציפיות עם ציון עדיפות.
+
+## המלצות אסטרטגיות
+5 המלצות אקשנאביליות עם timeline.
+
+## הנחיות ל-9 סוכנים
+לכל סוכן 1-2 משפטים: מטה, סייר, מאתר, מאזין, מנתח, עט, יוצר, שליח, מגדלור.
+
+חובה: כתוב בעברית. הדוח חייב להיות כאן בתשובה — לא בקובץ נפרד. אל תשלח לטלגרם.
+אורך מינימלי: 3000 תווים.`
+
         const b64Prompt = Buffer.from(researchPrompt).toString('base64')
 
-        // Run via openclaw agent on VPS with unique session ID to avoid cache
-        const sessionId = `research-${Date.now()}`
-        const output = await sshExec(instance.ip,
-            `su - openclaw -c 'timeout 180 openclaw agent --agent main --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
-            instance.rootPassword || undefined
-        )
-
-        // Parse agent response
+        // Retry loop: up to 2 attempts
         let report = ''
-        try {
-            const agentResult = JSON.parse(output)
-            report = agentResult?.result?.payloads?.[0]?.text || ''
-        } catch {
-            // If not JSON, use raw output (might be text response)
-            report = output
+        let lastError = ''
+
+        for (let attempt = 1; attempt <= 2; attempt++) {
+            const sessionId = `research-${Date.now()}-${attempt}`
+            console.log(`Research attempt ${attempt}/2, session: ${sessionId}, model: ${researchModel}`)
+
+            try {
+                const output = await sshExec(instance.ip,
+                    `su - openclaw -c 'timeout 180 openclaw agent --agent main --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
+                    instance.rootPassword || undefined
+                )
+
+                // Parse response
+                try {
+                    const agentResult = JSON.parse(output)
+                    report = agentResult?.result?.payloads?.[0]?.text || ''
+
+                    // Check for rate limit error
+                    if (agentResult?.result?.meta?.agentMeta?.error || output.includes('rate_limit')) {
+                        const model = agentResult?.result?.meta?.agentMeta?.model || researchModel
+                        lastError = `rate_limit:${model}`
+                        console.log(`Research rate limited on ${model}, attempt ${attempt}`)
+                        report = '' // force retry or fail
+                    }
+                } catch {
+                    report = output
+                }
+
+                // Validate
+                const validation = validateResearchReport(report)
+                if (validation.valid) {
+                    console.log(`Research validated OK: ${report.length} chars`)
+                    break
+                } else {
+                    console.log(`Research validation failed (attempt ${attempt}): ${validation.reason}`)
+                    lastError = validation.reason || 'validation_failed'
+                    if (attempt < 2) {
+                        report = '' // clear for retry
+                        await new Promise(r => setTimeout(r, 3000)) // wait before retry
+                    }
+                }
+            } catch (err) {
+                console.error(`Research attempt ${attempt} error:`, err)
+                lastError = 'ssh_error'
+            }
         }
 
-        if (!report || report.length < 100) {
-            console.error('Research returned too short:', report.substring(0, 200))
-            return fail(c, 'המחקר לא הצליח — נסו שוב', 500)
+        // Final check
+        if (!report || report.length < 500) {
+            const errorMsg = lastError.startsWith('rate_limit')
+                ? `rate limit — נסו להחליף מודל או לנסות שוב מאוחר יותר`
+                : `המחקר לא הצליח (${lastError}) — נסו שוב`
+            return fail(c, errorMsg, 500)
         }
 
-        // Save report to DB
+        // Save full report to DB
         const existingData = (instance.researchData as any) || {}
         await db.update(instances).set({
             researchData: {
                 ...existingData,
                 report,
+                researchModel,
                 researchGeneratedAt: new Date().toISOString(),
             } as any,
         }).where(eq(instances.id, instanceId))
 
-        // Also save as RESEARCH_REPORT.md on VPS
+        // Save as RESEARCH_REPORT.md on VPS (for strategy agent to read)
+        const b64Report = Buffer.from(report).toString('base64')
         await sshExec(instance.ip,
-            `cat > /home/openclaw/.openclaw/workspace/RESEARCH_REPORT.md << 'EOFREPORT'\n${report}\nEOFREPORT\nchown openclaw:openclaw /home/openclaw/.openclaw/workspace/RESEARCH_REPORT.md`,
+            `echo ${b64Report} | base64 -d > /home/openclaw/.openclaw/workspace/RESEARCH_REPORT.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/RESEARCH_REPORT.md`,
             instance.rootPassword || undefined
         )
 
-        console.log(`Research complete for ${businessName} (${report.length} chars)`)
-        return ok(c, { report }, 'Research complete.')
+        console.log(`Research complete for ${businessName} (${report.length} chars, model: ${researchModel})`)
+        return ok(c, { report, model: researchModel }, 'Research complete.')
     } catch (err) {
         console.error('runResearch error:', err)
         return fail(c, 'Research failed.', 500)
@@ -637,24 +724,55 @@ export const buildStrategy = async (c: Context) => {
 
 כתוב בעברית. תכליתי ואקשנאבילי. אל תשלח לטלגרם.`
 
-        const b64Prompt = Buffer.from(strategyPrompt).toString('base64')
-        const sessionId = `strategy-${Date.now()}`
+        // Use מנתח (analyst) model for strategy — needs depth
+        const strategyModel = getSubAgentModel('menateach')
+        console.log(`Strategy model: ${strategyModel}`)
 
-        const output = await sshExec(instance.ip,
-            `su - openclaw -c 'timeout 180 openclaw agent --agent main --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
-            instance.rootPassword || undefined
-        )
+        const b64Prompt = Buffer.from(strategyPrompt + '\n\nאורך מינימלי: 2000 תווים.').toString('base64')
 
+        // Retry loop
         let strategy = ''
-        try {
-            const agentResult = JSON.parse(output)
-            strategy = agentResult?.result?.payloads?.[0]?.text || ''
-        } catch {
-            strategy = output
+        let lastError = ''
+
+        for (let attempt = 1; attempt <= 2; attempt++) {
+            const sessionId = `strategy-${Date.now()}-${attempt}`
+
+            try {
+                const output = await sshExec(instance.ip,
+                    `su - openclaw -c 'timeout 180 openclaw agent --agent main --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
+                    instance.rootPassword || undefined
+                )
+
+                try {
+                    const agentResult = JSON.parse(output)
+                    strategy = agentResult?.result?.payloads?.[0]?.text || ''
+                    if (output.includes('rate_limit')) {
+                        lastError = 'rate_limit'
+                        strategy = ''
+                    }
+                } catch {
+                    strategy = output
+                }
+
+                // Validate
+                if (strategy && strategy.length >= 1500 && !strategy.includes('כבר מוכן')) {
+                    break
+                }
+                lastError = strategy.length < 1500 ? 'too_short' : 'cached'
+                if (attempt < 2) {
+                    strategy = ''
+                    await new Promise(r => setTimeout(r, 3000))
+                }
+            } catch (err) {
+                lastError = 'error'
+            }
         }
 
-        if (!strategy || strategy.length < 100) {
-            return fail(c, 'האסטרטגיה לא נוצרה — נסו שוב', 500)
+        if (!strategy || strategy.length < 500) {
+            const msg = lastError === 'rate_limit'
+                ? 'rate limit — נסו שוב מאוחר יותר או החליפו מודל'
+                : 'האסטרטגיה לא נוצרה — נסו שוב'
+            return fail(c, msg, 500)
         }
 
         // Save to DB
