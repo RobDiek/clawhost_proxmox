@@ -1487,7 +1487,7 @@ function renderHome() {
     '<div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.82rem;color:#6B7280"><span>' + doneCount + ' מתוך ' + totalCount + '</span><span>' + pct + '%</span></div>' +
     '<div style="height:6px;background:#E5E7EB;border-radius:3px;overflow:hidden"><div style="height:100%;background:' + (allDone ? '#10B981' : '#2563EB') + ';width:' + pct + '%;border-radius:3px;transition:width .3s"></div></div></div>';
 
-  var firstPending = true;
+  var pendingCount = 0;
   visibleTasks.forEach(function(t) {
     var hideBtn = '<button class="task-hide" onclick="hideTask(\'' + t.id + '\')" title="הסתירו">&times;</button>';
     if (t.done) {
@@ -1497,17 +1497,22 @@ function renderHome() {
       tasksHtml += '<div class="task-item done-task">' +
         '<span style="display:flex;align-items:center;gap:8px;flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' + t.label + '</span>' +
         viewLink + hideBtn + '</div>';
-    } else if (firstPending) {
-      // First pending task — active with action button + "שלב הבא" tag
-      firstPending = false;
-      tasksHtml += '<div class="task-item warning" style="border:2px solid #FDE68A">' +
-        '<div style="flex:1"><span style="font-weight:600">' + t.label + '</span> <span style="font-size:0.7rem;background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:10px;margin-right:6px">שלב הבא</span>' +
-        '<div style="font-size:0.78rem;color:#6B7280;margin-top:2px">' + (t.desc || '') + '</div></div>' +
-        '<div style="display:flex;align-items:center;gap:4px">' +
-        '<button onclick="' + t.action + '" class="btn btn-primary btn-sm">' + t.actionLabel + ' &larr;</button>' +
-        hideBtn + '</div></div>';
+    } else {
+      pendingCount++;
+      if (pendingCount === 1) {
+        // Current active task — with action button
+        tasksHtml += '<div class="task-item warning" style="border:2px solid #FDE68A">' +
+          '<div style="flex:1"><span style="font-weight:600">' + t.label + '</span>' +
+          '<div style="font-size:0.78rem;color:#6B7280;margin-top:2px">' + (t.desc || '') + '</div></div>' +
+          '<button onclick="' + t.action + '" class="btn btn-primary btn-sm">' + t.actionLabel + ' &larr;</button></div>';
+      } else if (pendingCount === 2) {
+        // Next in queue — preview only, no action, "שלב הבא" tag
+        tasksHtml += '<div class="task-item" style="background:#F9FAFB;border:1px solid #E5E7EB;opacity:0.7">' +
+          '<span style="display:flex;align-items:center;gap:8px;flex:1;color:#9CA3AF">' + t.label + '</span>' +
+          '<span style="font-size:0.7rem;background:#F3F4F6;color:#9CA3AF;padding:2px 8px;border-radius:10px">שלב הבא</span></div>';
+      }
+      // Don't show tasks beyond next one
     }
-    // Don't show other pending tasks — only first one
   });
 
   if (hiddenTasks.length > 0) {
