@@ -1478,12 +1478,17 @@ function renderHome() {
 
   tasksHtml += '</div>';
 
-  // Hide entire tasks section when all done — notifications take full width
   if (allDone) {
-    document.getElementById('homeTasks').innerHTML = '';
-    document.getElementById('homeTasks').style.display = 'none';
+    // Show compact completed state with quick access to reports
+    var completedHtml = '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:16px">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span style="font-weight:600;color:#15803D">הכל מוגדר — הסוכנים פעילים!</span></div>';
+    if (hasResearch) completedHtml += '<button class="notif-action" onclick="viewReport()" style="margin-left:12px">📊 צפו בדוח מחקר →</button>';
+    if (hasStrategy) completedHtml += '<button class="notif-action" onclick="viewStrategy()">📋 צפו באסטרטגיה →</button>';
+    completedHtml += '</div>';
+    document.getElementById('homeTasks').style.display = '';
+    document.getElementById('homeTasks').innerHTML = completedHtml;
     var grid = document.querySelector('.home-top-grid');
-    if (grid) grid.style.gridTemplateColumns = '1fr';
+    if (grid) grid.style.gridTemplateColumns = '1fr 1fr';
   } else {
     document.getElementById('homeTasks').style.display = '';
     document.getElementById('homeTasks').innerHTML = tasksHtml;
