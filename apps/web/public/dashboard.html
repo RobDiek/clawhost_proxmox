@@ -2216,7 +2216,29 @@ async function runChainResearch() {
   // Open pipeline modal
   researchPipelineStage = 1;
   openResearchPipeline();
-  showIntegrationSuggestion();
+
+  // Start from first incomplete stage
+  var startStage = 1;
+  if (instanceData && instanceData.researchData) {
+    if (instanceData.researchData.stage1) startStage = 2;
+    if (instanceData.researchData.stage2) startStage = 3;
+    if (instanceData.researchData.stage3) startStage = 4;
+    if (instanceData.researchData.stage4) startStage = 5; // all done
+  }
+
+  if (startStage > 4) {
+    closePipeline();
+    showToast('כל שלבי המחקר הושלמו — בנו אסטרטגיה', 'success');
+    runChainStrategy();
+    return;
+  }
+
+  if (startStage === 1) {
+    showIntegrationSuggestion();
+  } else {
+    researchPipelineStage = startStage;
+    runPipelineStage(startStage);
+  }
 }
 
 function openResearchPipeline() {
@@ -2236,19 +2258,16 @@ function showIntegrationSuggestion() {
 
   html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">';
   html += '<div style="display:flex;align-items:center;gap:10px;padding:12px;border:1.5px solid ' + (hasBrave ? '#BBF7D0' : '#E5E7EB') + ';border-radius:10px;background:' + (hasBrave ? '#F0FDF4' : '#fff') + '">' +
-    '<span style="font-size:1.2rem">🔍</span>' +
     '<div style="flex:1"><strong>Brave Search API</strong> <span style="color:#10B981;font-size:0.78rem">' + (hasBrave ? '✓ מחובר' : 'חינם — 2,000 חיפושים/חודש') + '</span>' +
     '<div style="font-size:0.78rem;color:#6B7280">תוצאות חיפוש אמיתיות, לא מידע מהזיכרון של AI</div></div>' +
     (hasBrave ? '' : '<button class="btn btn-outline btn-sm" onclick="switchTab(\'integrations\');closePipeline()" style="font-size:0.78rem">חברו</button>') + '</div>';
 
   html += '<div style="display:flex;align-items:center;gap:10px;padding:12px;border:1.5px solid #E5E7EB;border-radius:10px">' +
-    '<span style="font-size:1.2rem">📊</span>' +
     '<div style="flex:1"><strong>Ahrefs</strong> <span style="color:#F59E0B;font-size:0.78rem">Premium — $99/חודש</span>' +
     '<div style="font-size:0.78rem;color:#6B7280">נפחי חיפוש אמיתיים, דירוג מתחרים, backlinks</div></div>' +
     '<button class="btn btn-outline btn-sm" onclick="switchTab(\'integrations\');closePipeline()" style="font-size:0.78rem">חברו</button></div>';
 
   html += '<div style="display:flex;align-items:center;gap:10px;padding:12px;border:1.5px solid #E5E7EB;border-radius:10px">' +
-    '<span style="font-size:1.2rem">🌐</span>' +
     '<div style="flex:1"><strong>Bright Data</strong> <span style="color:#F59E0B;font-size:0.78rem">Premium — $200+/חודש</span>' +
     '<div style="font-size:0.78rem;color:#6B7280">סריקת אתרי מתחרים, מחירים, ביקורות</div></div>' +
     '<button class="btn btn-outline btn-sm" onclick="switchTab(\'integrations\');closePipeline()" style="font-size:0.78rem">חברו</button></div>';
