@@ -576,6 +576,111 @@ ${targetAudience ? `קהל יעד: ${targetAudience}.` : ''}
     }
 }
 
+// ── POST /hosting/instances/:id/setup/agents/strategy ──
+// Generates strategy based on research report. Runs on VPS agent.
+export const buildStrategy = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+
+        if (!instance?.ip) {
+            return fail(c, 'Instance not found or not ready.', 404)
+        }
+
+        const rd = (instance.researchData as any) || {}
+        if (!rd.report) {
+            return fail(c, 'יש להריץ מחקר שוק קודם', 400)
+        }
+
+        const answers = rd.answers || {}
+        const businessName = answers.businessName || 'העסק'
+
+        console.log(`Building strategy for ${businessName} on ${instance.ip}...`)
+
+        const strategyPrompt = `על סמך דוח המחקר שכבר ביצעת — בנה אסטרטגיית שיווק מפורטת עבור ${businessName}.
+
+הדוח כבר נמצא ב-RESEARCH_REPORT.md בתיקיית workspace — קרא אותו.
+
+בנה אסטרטגיה שכוללת:
+
+## 1. פוזיציונינג
+- positioning statement אחד ברור
+- USP — מה מבדיל אותנו
+
+## 2. מטרות (3 חודשים)
+- 3 מטרות מדידות עם KPIs ספציפיים
+- יעדים מספריים
+
+## 3. עמודי תוכן (Content Pillars)
+- 4-5 עמודי תוכן עם דוגמאות לנושאים
+- תדירות מומלצת לכל עמוד
+
+## 4. תוכנית שבועית
+- לוח זמנים: מה מפרסמים בכל יום
+- באילו פלטפורמות
+
+## 5. הנחיות לסוכנים
+לכל אחד מ-9 הסוכנים — 2-3 משפטים:
+- מטה: מה מתאם
+- סייר: מה חוקר ובאיזו תדירות
+- מאתר: אילו מילות מפתח עוקב
+- מאזין: אילו שיחות מנטר
+- מנתח: מה מנתח ובאיזה מודל
+- עט: איזה סוג תוכן כותב
+- יוצר: איזה ויזואלים
+- שליח: לאן מפיץ ומתי
+- מגדלור: מה בודק
+
+## 6. תקציב חודשי
+- חלוקה: אורגני vs ממומן
+- עלות משוערת לכל ערוץ
+
+כתוב בעברית. תכליתי ואקשנאבילי. אל תשלח לטלגרם.`
+
+        const b64Prompt = Buffer.from(strategyPrompt).toString('base64')
+        const sessionId = `strategy-${Date.now()}`
+
+        const output = await sshExec(instance.ip,
+            `su - openclaw -c 'timeout 180 openclaw agent --agent main --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
+            instance.rootPassword || undefined
+        )
+
+        let strategy = ''
+        try {
+            const agentResult = JSON.parse(output)
+            strategy = agentResult?.result?.payloads?.[0]?.text || ''
+        } catch {
+            strategy = output
+        }
+
+        if (!strategy || strategy.length < 100) {
+            return fail(c, 'האסטרטגיה לא נוצרה — נסו שוב', 500)
+        }
+
+        // Save to DB
+        await db.update(instances).set({
+            researchData: {
+                ...rd,
+                strategy,
+                strategyGeneratedAt: new Date().toISOString(),
+            } as any,
+        }).where(eq(instances.id, instanceId))
+
+        // Save as STRATEGY.md on VPS
+        const b64Strategy = Buffer.from(strategy).toString('base64')
+        await sshExec(instance.ip,
+            `echo ${b64Strategy} | base64 -d > /home/openclaw/.openclaw/workspace/STRATEGY.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/STRATEGY.md`,
+            instance.rootPassword || undefined
+        )
+
+        console.log(`Strategy complete for ${businessName} (${strategy.length} chars)`)
+        return ok(c, { strategy }, 'Strategy complete.')
+    } catch (err) {
+        console.error('buildStrategy error:', err)
+        return fail(c, 'Strategy failed.', 500)
+    }
+}
+
 // ── POST /hosting/instances/:id/setup/agents ──
 export const setupAgents = async (c: Context) => {
     try {

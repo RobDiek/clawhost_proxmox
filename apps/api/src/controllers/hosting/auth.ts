@@ -307,6 +307,7 @@ export const getMyInstances = async (c: Context) => {
             researchData: i.researchData,
             hasProfile: !!(i.researchData as any)?.answers,
             hasResearch: !!(i.researchData as any)?.report,
+            hasStrategy: !!(i.researchData as any)?.strategy,
             aiProviderType: i.aiProviderType,
             telegramBotToken: i.telegramBotToken ? true : false,
             googleTokens: i.googleTokens ? true : false,

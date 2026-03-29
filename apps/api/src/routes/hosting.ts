@@ -25,6 +25,7 @@ import {
     setupAgents,
     analyzeAnswers,
     runResearch,
+    buildStrategy,
     readFile,
     writeFile,
     listFiles,
@@ -72,6 +73,7 @@ app.post('/instances/:id/setup/complete', completeOnboarding)
 app.post('/instances/:id/setup/agents', setupAgents)
 app.post('/instances/:id/setup/agents/analyze', analyzeAnswers)
 app.post('/instances/:id/setup/agents/research', runResearch)
+app.post('/instances/:id/setup/agents/strategy', buildStrategy)
 
 // ── Files ──
 app.get('/instances/:id/files', readFile)

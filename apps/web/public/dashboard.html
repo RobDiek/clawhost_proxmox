@@ -317,6 +317,20 @@ input{font-family:inherit}
 .activity-link:hover { text-decoration:underline; }
 .activity-time { font-size:0.75rem; color:#9CA3AF; flex-shrink:0; white-space:nowrap; }
 
+/* Report/Strategy viewer modal */
+.report-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:300; display:flex; align-items:center; justify-content:center; padding:20px; }
+.report-modal { background:#fff; border-radius:16px; width:100%; max-width:800px; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 16px 48px rgba(0,0,0,.15); }
+.report-modal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 24px; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
+.report-modal-header h3 { font-size:1.1rem; font-weight:700; }
+.report-modal-body { padding:24px; overflow-y:auto; font-size:0.9rem; line-height:1.8; direction:rtl; }
+.report-modal-body h2 { font-size:1.15rem; font-weight:700; margin:20px 0 10px; color:#111827; }
+.report-modal-body h3 { font-size:1rem; font-weight:600; margin:16px 0 8px; color:#1F2937; }
+.report-modal-body h4 { font-size:0.92rem; font-weight:600; margin:12px 0 6px; color:#374151; }
+.report-modal-body strong { font-weight:600; }
+.report-modal-body table { width:100%; border-collapse:collapse; margin:10px 0; font-size:0.85rem; }
+.report-modal-body th, .report-modal-body td { padding:6px 10px; border:1px solid #E5E7EB; text-align:right; }
+.report-modal-body th { background:#F9FAFB; font-weight:600; }
+
 .progress-steps { max-width: 400px; margin: 24px auto; }
 .p-step {
   display: flex; align-items: center; gap: 12px; padding: 12px 16px;
@@ -1139,6 +1153,17 @@ input{font-family:inherit}
 
 </div>
 
+<!-- Report/Strategy Viewer Modal -->
+<div class="report-modal-overlay hidden" id="reportModalOverlay" onclick="closeReportModal()">
+  <div class="report-modal" onclick="event.stopPropagation()">
+    <div class="report-modal-header">
+      <h3 id="reportModalTitle">דוח</h3>
+      <button onclick="closeReportModal()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#6B7280">&times;</button>
+    </div>
+    <div class="report-modal-body" id="reportModalBody"></div>
+  </div>
+</div>
+
 <script>
 </script>
 
@@ -1347,9 +1372,11 @@ function renderHome() {
   var isMATEH = components.indexOf('mt') !== -1;
   var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
   var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && instanceData.researchData.report)));
+  var hasStrategy = !!(instanceData && instanceData.hasStrategy);
   var onboardingDone = !!(instanceData && instanceData.onboardingCompleted);
   var hiddenTasks = JSON.parse(localStorage.getItem('cf_hidden_tasks') || '[]');
 
+  // Base tasks (infra)
   var tasks = [
     { id: 'vps', label: 'שרת VPS פעיל', done: true, desc: 'השרת שלכם פועל ומוכן' },
     { id: 'api', label: 'מפתח AI מחובר', done: !!hasApiKey || step >= 2, action: "switchTab('integrations')", actionLabel: 'חברו', desc: 'Anthropic / OpenAI — נדרש להפעלת הסוכנים' },
@@ -1358,9 +1385,29 @@ function renderHome() {
 
   if (isMATEH) {
     tasks.push({ id: 'profile', label: 'פרופיל עסקי הוגדר', done: !!hasAgents, action: "switchTab('agents');setTimeout(function(){openAgentDetail('mt')},100)", actionLabel: 'הגדירו', desc: 'מילוי שאלון 11 שאלות → פרופיל מותאם אישית' });
-    tasks.push({ id: 'research', label: 'מחקר שוק הושלם', done: !!hasResearch, action: "switchTab('agents');setTimeout(function(){openAgentDetail('mt')},100)", actionLabel: 'הגדירו', desc: 'ניתוח מתחרים, קהל יעד, הזדמנויות — אוטומטי' });
-    tasks.push({ id: 'agents', label: 'סוכנים הוגדרו', done: !!hasAgents, action: "switchTab('agents');setTimeout(function(){openAgentDetail('mt')},100)", actionLabel: 'הגדירו', desc: '9 סוכנים מותאמים על סמך המחקר' });
-    tasks.push({ id: 'brief', label: 'Daily Brief מוגדר', done: onboardingDone || step >= 4, action: "switchTab('agents');setTimeout(function(){openAgentDetail('mt')},100)", actionLabel: 'הגדירו', desc: 'סיכום יומי ב-Telegram כל בוקר' });
+
+    // Research + Strategy chain — each unlocks the next
+    if (hasAgents) {
+      tasks.push({
+        id: 'research', label: 'מחקר שוק',
+        done: !!hasResearch,
+        action: "runChainResearch()",
+        actionLabel: 'הריצו מחקר',
+        desc: 'הסוכן יחקור מתחרים, קהל יעד והזדמנויות באינטרנט — 1-2 דקות'
+      });
+    }
+    if (hasResearch) {
+      tasks.push({
+        id: 'strategy', label: 'אסטרטגיה ותוכנית פעולה',
+        done: !!hasStrategy,
+        action: "runChainStrategy()",
+        actionLabel: 'בנו אסטרטגיה',
+        desc: 'על סמך המחקר — תוכנית עבודה מפורטת ל-9 סוכנים'
+      });
+    }
+    if (hasStrategy) {
+      tasks.push({ id: 'brief', label: 'הכל מוכן — הסוכנים פעילים', done: true, desc: 'Daily Brief, דוחות שבועיים, ביקורת AEO — אוטומטית' });
+    }
   }
 
   var visibleTasks = tasks.filter(function(t) { return hiddenTasks.indexOf(t.id) === -1; });
@@ -1379,9 +1426,12 @@ function renderHome() {
   visibleTasks.forEach(function(t) {
     var hideBtn = '<button class="task-hide" onclick="hideTask(\'' + t.id + '\')" title="הסתירו">&times;</button>';
     if (t.done) {
+      var viewLink = '';
+      if (t.id === 'research') viewLink = '<button class="notif-action" onclick="viewReport()">צפו בדוח →</button>';
+      if (t.id === 'strategy') viewLink = '<button class="notif-action" onclick="viewStrategy()">צפו באסטרטגיה →</button>';
       tasksHtml += '<div class="task-item done-task">' +
-        '<span style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' + t.label + '</span>' +
-        hideBtn + '</div>';
+        '<span style="display:flex;align-items:center;gap:8px;flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' + t.label + '</span>' +
+        viewLink + hideBtn + '</div>';
     } else {
       tasksHtml += '<div class="task-item warning">' +
         '<div style="flex:1"><span style="font-weight:500">' + t.label + '</span>' +
@@ -2069,6 +2119,99 @@ async function runResearchFromAgent() {
     btn.disabled = false;
     btn.innerHTML = '&#128269; הריצו מחקר שוק';
   }
+}
+
+/* ===== Research + Strategy Chain ===== */
+async function runChainResearch() {
+  if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+  showToast('מריץ מחקר שוק — ייקח 1-2 דקות...', 'success');
+
+  // Update task UI to show loading
+  var researchTask = document.querySelector('[onclick="runChainResearch()"]');
+  if (researchTask) { researchTask.disabled = true; researchTask.innerHTML = '<span style="animation:spin 1s linear infinite;display:inline-block">⚙</span> מחפש...'; }
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/research', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({})
+    });
+    var data = await res.json();
+    if (data.success && data.data && data.data.report) {
+      showToast('מחקר שוק הושלם!', 'success');
+      addSystemNotification('success', '✅', 'מחקר שוק הושלם', 'הסוכן חקר את השוק ומצא תובנות. לחצו לצפייה בדוח.');
+      refreshInstanceData();
+    } else {
+      showToast(data.message || 'שגיאה במחקר', 'error');
+      addSystemNotification('error', '⚠️', 'מחקר נכשל', data.message || 'נסו שוב');
+    }
+  } catch (e) {
+    showToast('שגיאת תקשורת', 'error');
+  }
+  if (researchTask) { researchTask.disabled = false; researchTask.textContent = 'הריצו מחקר ←'; }
+}
+
+async function runChainStrategy() {
+  if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+  showToast('בונה אסטרטגיה — ייקח 1-2 דקות...', 'success');
+
+  var strategyTask = document.querySelector('[onclick="runChainStrategy()"]');
+  if (strategyTask) { strategyTask.disabled = true; strategyTask.innerHTML = '<span style="animation:spin 1s linear infinite;display:inline-block">⚙</span> בונה...'; }
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/strategy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({})
+    });
+    var data = await res.json();
+    if (data.success && data.data && data.data.strategy) {
+      showToast('אסטרטגיה מוכנה!', 'success');
+      addSystemNotification('success', '✅', 'אסטרטגיה מוכנה', 'תוכנית עבודה מפורטת ל-9 סוכנים מוכנה. לחצו לצפייה.');
+      refreshInstanceData();
+    } else {
+      showToast(data.message || 'שגיאה ביצירת אסטרטגיה', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאת תקשורת', 'error');
+  }
+  if (strategyTask) { strategyTask.disabled = false; strategyTask.textContent = 'בנו אסטרטגיה ←'; }
+}
+
+function viewReport() {
+  if (!instanceData || !instanceData.researchData) return;
+  var report = instanceData.researchData.report || '';
+  if (!report) { showToast('אין דוח — הריצו מחקר קודם', 'error'); return; }
+  openReportModal('דוח מחקר שוק', report);
+}
+
+function viewStrategy() {
+  if (!instanceData || !instanceData.researchData) return;
+  var strategy = instanceData.researchData.strategy || '';
+  if (!strategy) { showToast('אין אסטרטגיה — בנו אותה קודם', 'error'); return; }
+  openReportModal('אסטרטגיה ותוכנית פעולה', strategy);
+}
+
+function openReportModal(title, content) {
+  document.getElementById('reportModalTitle').textContent = title;
+  var html = content
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/^### (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\|(.+)\|/g, function(match) {
+      var cells = match.split('|').filter(function(c) { return c.trim(); });
+      return '<tr>' + cells.map(function(c) { return '<td>' + c.trim() + '</td>'; }).join('') + '</tr>';
+    })
+    .replace(/(<tr>.*<\/tr>\n?)+/g, '<table>$&</table>')
+    .replace(/\n/g, '<br>');
+  document.getElementById('reportModalBody').innerHTML = html;
+  document.getElementById('reportModalOverlay').classList.remove('hidden');
+}
+
+function closeReportModal() {
+  document.getElementById('reportModalOverlay').classList.add('hidden');
 }
 
 async function runResearchFromDashboard() {
