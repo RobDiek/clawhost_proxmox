@@ -1161,6 +1161,14 @@ input{font-family:inherit}
       <button onclick="closeReportModal()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#6B7280">&times;</button>
     </div>
     <div class="report-modal-body" id="reportModalBody"></div>
+    <div class="report-modal-footer" id="reportModalFooter" style="display:none;padding:16px 24px;border-top:1px solid #E5E7EB;flex-shrink:0">
+      <div style="font-weight:600;font-size:0.9rem;margin-bottom:8px">הערות ובקשות עריכה</div>
+      <textarea id="reportFeedback" rows="3" placeholder="כתבו מה לשנות, להוסיף או להסיר..." style="width:100%;padding:10px 14px;border:2px solid #E5E7EB;border-radius:10px;font-size:0.9rem;font-family:inherit;direction:rtl;resize:vertical" onfocus="this.style.borderColor='#2563EB'" onblur="this.style.borderColor='#E5E7EB'"></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-primary btn-sm" onclick="submitReportFeedback()">עדכנו על סמך ההערות ←</button>
+        <button class="btn btn-outline btn-sm" onclick="approveReport()" style="color:#10B981;border-color:#BBF7D0">אשרו גרסה סופית ✓</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2239,17 +2247,20 @@ function viewReport() {
   if (!instanceData || !instanceData.researchData) return;
   var report = instanceData.researchData.report || '';
   if (!report) { showToast('אין דוח — הריצו מחקר קודם', 'error'); return; }
-  openReportModal('דוח מחקר שוק', report);
+  openReportModal('דוח מחקר שוק', report, 'research');
 }
 
 function viewStrategy() {
   if (!instanceData || !instanceData.researchData) return;
   var strategy = instanceData.researchData.strategy || '';
   if (!strategy) { showToast('אין אסטרטגיה — בנו אותה קודם', 'error'); return; }
-  openReportModal('אסטרטגיה ותוכנית פעולה', strategy);
+  openReportModal('אסטרטגיה ותוכנית פעולה', strategy, 'strategy');
 }
 
-function openReportModal(title, content) {
+var currentReportType = ''; // 'research' or 'strategy'
+
+function openReportModal(title, content, type) {
+  currentReportType = type || '';
   document.getElementById('reportModalTitle').textContent = title;
   var html = content
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -2264,11 +2275,58 @@ function openReportModal(title, content) {
     .replace(/(<tr>.*<\/tr>\n?)+/g, '<table>$&</table>')
     .replace(/\n/g, '<br>');
   document.getElementById('reportModalBody').innerHTML = html;
+  // Show edit footer for strategy
+  var footer = document.getElementById('reportModalFooter');
+  footer.style.display = (type === 'strategy' || type === 'research') ? '' : 'none';
+  document.getElementById('reportFeedback').value = '';
   document.getElementById('reportModalOverlay').classList.remove('hidden');
 }
 
 function closeReportModal() {
   document.getElementById('reportModalOverlay').classList.add('hidden');
+}
+
+async function submitReportFeedback() {
+  var feedback = document.getElementById('reportFeedback').value.trim();
+  if (!feedback) { showToast('כתבו הערה לפני שליחה', 'error'); return; }
+
+  var endpoint = currentReportType === 'research' ? 'research' : 'strategy';
+  showToast('מעדכן על סמך ההערות — ייקח 1-2 דקות...', 'success');
+  closeReportModal();
+
+  try {
+    // Add feedback as clarification to the next run
+    var body = {};
+    if (instanceData && instanceData.researchData && instanceData.researchData.answers) {
+      body = Object.assign({}, instanceData.researchData.answers);
+    }
+    body.clarifications = (body.clarifications || '') + '\n\nהערות המשתמש לעריכה:\n' + feedback;
+
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/' + endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify(body)
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('עודכן בהצלחה!', 'success');
+      refreshInstanceData();
+      // Reopen with updated content
+      setTimeout(function() {
+        if (endpoint === 'strategy') viewStrategy();
+        else viewReport();
+      }, 1500);
+    } else {
+      showToast(data.message || 'שגיאה בעדכון', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאת תקשורת', 'error');
+  }
+}
+
+function approveReport() {
+  showToast(currentReportType === 'strategy' ? 'אסטרטגיה אושרה — הסוכנים יעבדו לפיה!' : 'דוח אושר!', 'success');
+  closeReportModal();
 }
 
 async function runResearchFromDashboard() {
