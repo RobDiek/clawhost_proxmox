@@ -276,6 +276,10 @@ input{font-family:inherit}
 
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+/* Home top grid (tasks + notifications side by side) */
+.home-top-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start; }
+@media(max-width:900px) { .home-top-grid { grid-template-columns:1fr; } }
+
 /* Notification cards */
 .notif-card { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; border-radius:10px; margin-bottom:8px; font-size:0.88rem; line-height:1.5; animation:fadeIn .2s ease }
 .notif-card.error { background:#FEF2F2; border:1px solid #FECACA; }
@@ -540,19 +544,22 @@ input{font-family:inherit}
   <div class="tab-content" id="tab-home">
     <div class="greeting" id="greetingText"></div>
 
-    <!-- Section 1: משימות הגדרה (smart — hides when complete) -->
-    <div id="homeTasks"></div>
+    <!-- Row 1: Tasks + Notifications (2 columns on desktop) -->
+    <div class="home-top-grid">
+      <!-- Column 1: משימות הגדרה -->
+      <div id="homeTasks"></div>
 
-    <!-- Section 2: עדכונים והמלצות -->
-    <div id="homeNotifications" style="margin-top:24px">
-      <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
-        <span>עדכונים והמלצות</span>
-        <button class="btn-text" onclick="clearNotifications()" style="font-size:.78rem;color:#9CA3AF;cursor:pointer;background:none;border:none">נקו הכל</button>
+      <!-- Column 2: עדכונים והמלצות -->
+      <div id="homeNotifications">
+        <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>עדכונים והמלצות</span>
+          <button onclick="clearNotifications()" style="font-size:.78rem;color:#9CA3AF;cursor:pointer;background:none;border:none">נקו הכל</button>
+        </div>
+        <div id="notificationsList"></div>
       </div>
-      <div id="notificationsList"></div>
     </div>
 
-    <!-- Section 3: פעילות אחרונה (timeline) -->
+    <!-- Row 2: פעילות אחרונה (full width) -->
     <div style="margin-top:24px">
       <div class="section-title">פעילות אחרונה</div>
       <div class="activity-timeline" id="activityTimeline">
@@ -1321,13 +1328,13 @@ function renderHome() {
 
   // Tasks — comprehensive checklist based on actual instance state
   var tasksHtml = '<div class="section-title">משימות הגדרה</div><div class="tasks">';
-  var hasApiKey = localStorage.getItem('cf_api_key_saved');
-  var hasTelegram = localStorage.getItem('cf_telegram_saved');
+  var step = (instanceData && instanceData.onboardingStep) || 0;
+  var hasApiKey = !!(instanceData && instanceData.aiProviderType) || localStorage.getItem('cf_api_key_saved') || step >= 2;
+  var hasTelegram = !!(instanceData && instanceData.telegramBotToken) || localStorage.getItem('cf_telegram_saved') || step >= 3;
   var isMATEH = components.indexOf('mt') !== -1;
   var hasAgents = instanceData && instanceData.researchData && instanceData.researchData.answers;
   var hasResearch = instanceData && instanceData.researchData && instanceData.researchData.report;
   var onboardingDone = instanceData && instanceData.onboardingCompleted;
-  var step = (instanceData && instanceData.onboardingStep) || 0;
   var hiddenTasks = JSON.parse(localStorage.getItem('cf_hidden_tasks') || '[]');
 
   var tasks = [
@@ -1395,22 +1402,23 @@ function renderHome() {
 /* ===== Notifications System ===== */
 function getNotifications() {
   var notifs = [];
-  var hasApiKey = localStorage.getItem('cf_api_key_saved');
-  var hasTelegram = localStorage.getItem('cf_telegram_saved');
+  var step = (instanceData && instanceData.onboardingStep) || 0;
+  var hasApiKey = !!(instanceData && instanceData.aiProviderType) || localStorage.getItem('cf_api_key_saved');
+  var hasTelegram = !!(instanceData && instanceData.telegramBotToken) || localStorage.getItem('cf_telegram_saved') || step >= 3;
   var hasAgents = instanceData && instanceData.researchData && instanceData.researchData.answers;
   var hasResearch = instanceData && instanceData.researchData && instanceData.researchData.report;
   var hasGoogle = instanceData && instanceData.googleTokens;
   var dismissed = JSON.parse(localStorage.getItem('cf_dismissed_notifs') || '[]');
 
-  // Smart recommendations
+  // Smart recommendations — only show what's actually missing
   if (!hasGoogle && dismissed.indexOf('rec-google') === -1) {
     notifs.push({ id: 'rec-google', type: 'info', icon: '💡', title: 'חברו Google Calendar', desc: 'הסוכן יוכל לנהל את היומן שלכם — פגישות, תזכורות, אירועים', action: "switchTab('integrations')", actionLabel: 'חברו עכשיו' });
   }
   if (hasAgents && !hasResearch && dismissed.indexOf('rec-research') === -1) {
-    notifs.push({ id: 'rec-research', type: 'info', icon: '🔍', title: 'הריצו מחקר שוק', desc: 'הסוכן יחפש מתחרים, מילות מפתח והזדמנויות — אוטומטית', action: "runResearchFromDashboard()", actionLabel: 'הריצו מחקר' });
+    notifs.push({ id: 'rec-research', type: 'info', icon: '🔍', title: 'הריצו מחקר שוק', desc: 'הסוכן יחפש מתחרים, מילות מפתח והזדמנויות', action: "runResearchFromDashboard()", actionLabel: 'הריצו מחקר' });
   }
   if (!hasTelegram && dismissed.indexOf('rec-telegram') === -1) {
-    notifs.push({ id: 'rec-telegram', type: 'warning', icon: '📱', title: 'Telegram לא מחובר', desc: 'בלי Telegram לא תקבלו Daily Brief, התראות ואישורי פרסום', action: "switchTab('integrations')", actionLabel: 'חברו' });
+    notifs.push({ id: 'rec-telegram', type: 'warning', icon: '📱', title: 'Telegram לא מחובר', desc: 'בלי Telegram לא תקבלו Daily Brief והתראות', action: "switchTab('integrations')", actionLabel: 'חברו' });
   }
 
   // System notifications from localStorage
@@ -1498,24 +1506,50 @@ function renderActivityTimeline() {
 
     var lines = (d.data.lines || []).filter(function(l) {
       return l && (l.includes('agent') || l.includes('telegram') || l.includes('cron') || l.includes('calendar') || l.includes('research'));
-    }).slice(-10);
+    }).slice(-20);
 
     if (lines.length === 0) {
       el.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:24px;font-size:0.85rem">הסוכנים ממתינים למשימות הראשונה שלכם</div>';
       return;
     }
 
-    el.innerHTML = lines.map(function(l) {
-      var activity = classifyActivity(l);
+    // Classify and deduplicate
+    var activities = lines.map(classifyActivity);
+    // Deduplicate: merge consecutive identical titles
+    var deduped = [];
+    var lastTitle = '';
+    var errorCount = 0;
+    activities.forEach(function(a) {
+      if (a.type === 'error') {
+        errorCount++;
+        if (errorCount <= 1) {
+          a.title = 'שגיאת מערכת';
+          a.desc = 'הסוכן נתקל בבעיה — ייתכן שמדובר ב-rate limit או שגיאת API';
+          deduped.push(a);
+        } else if (errorCount === 2) {
+          deduped[deduped.length - 1].desc = errorCount + ' שגיאות דומות — בדקו את חיבור ה-API או rate limits';
+        } else {
+          deduped[deduped.length - 1].desc = errorCount + ' שגיאות דומות — בדקו את חיבור ה-API או rate limits';
+        }
+      } else {
+        errorCount = 0;
+        if (a.title !== lastTitle) {
+          deduped.push(a);
+          lastTitle = a.title;
+        }
+      }
+    });
+
+    el.innerHTML = deduped.slice(-8).reverse().map(function(a) {
       return '<div class="activity-item">' +
-        '<div class="activity-icon ' + activity.type + '">' + activity.icon + '</div>' +
+        '<div class="activity-icon ' + a.type + '">' + a.icon + '</div>' +
         '<div class="activity-body">' +
-          '<div class="activity-title">' + activity.title + '</div>' +
-          (activity.desc ? '<div class="activity-desc">' + activity.desc + '</div>' : '') +
+          '<div class="activity-title">' + a.title + '</div>' +
+          (a.desc ? '<div class="activity-desc">' + a.desc + '</div>' : '') +
         '</div>' +
-        '<span class="activity-time">' + activity.time + '</span>' +
+        '<span class="activity-time">' + a.time + '</span>' +
       '</div>';
-    }).reverse().join('');
+    }).join('');
   }).catch(function() {
     el.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:24px;font-size:0.85rem">לא ניתן לטעון פעילות</div>';
   });

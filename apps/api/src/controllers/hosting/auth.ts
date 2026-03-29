@@ -305,6 +305,9 @@ export const getMyInstances = async (c: Context) => {
             onboardingCompleted: i.onboardingCompleted,
             onboardingStep: i.onboardingStep,
             researchData: i.researchData,
+            aiProviderType: i.aiProviderType,
+            telegramBotToken: i.telegramBotToken ? true : false,
+            googleTokens: i.googleTokens ? true : false,
             createdAt: i.createdAt,
         })), 'Instances found.')
     } catch (err) {
