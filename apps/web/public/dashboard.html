@@ -1368,7 +1368,16 @@ function renderHome() {
     document.querySelector('.home-top-grid').style.gridTemplateColumns = '1fr';
     return;
   }
-  console.log('[renderHome] instanceData:', { hasProfile: instanceData.hasProfile, hasResearch: instanceData.hasResearch, hasStrategy: instanceData.hasStrategy, step: instanceData.onboardingStep });
+  // Fallback: if hasProfile not in API response, derive from researchData
+  if (instanceData.hasProfile === undefined && instanceData.researchData) {
+    instanceData.hasProfile = !!(instanceData.researchData.answers || instanceData.researchData.businessName);
+  }
+  if (instanceData.hasResearch === undefined && instanceData.researchData) {
+    instanceData.hasResearch = !!instanceData.researchData.report;
+  }
+  if (instanceData.hasStrategy === undefined && instanceData.researchData) {
+    instanceData.hasStrategy = !!instanceData.researchData.strategy;
+  }
 
   // Grid layout: if no tasks, notifications take full width
   var grid = document.querySelector('.home-top-grid');
