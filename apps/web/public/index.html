@@ -1799,7 +1799,7 @@ function renderSummary() {
     // Steps 1-3: show "Next" button
     btn.className = 'deploy-btn active';
     btn.disabled = false;
-    document.getElementById('deploy-text').textContent = lang === 'he' ? 'הבא \u2192' : 'Next \u2192';
+    document.getElementById('deploy-text').textContent = lang === 'he' ? '\u2190 הבא' : 'Next \u2192';
     hintEl.innerHTML = `<span style="color:#6B7280;font-size:0.78rem">${lang === 'he' ? 'שלב' : 'Step'} ${currentWizStep} ${lang === 'he' ? 'מתוך' : 'of'} 4</span>`;
   } else {
     // Step 4: show deploy button (original behavior)
