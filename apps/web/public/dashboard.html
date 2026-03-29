@@ -1223,6 +1223,10 @@ function buildAgentUrl(base, token) {
   return token ? base + '/chat?session=main&token=' + encodeURIComponent(token) : base;
 }
 
+// State — must be before autoLoadInstance
+var instanceData = null;
+var tokenVisible = false;
+
 // Auto-load instance from API (always fetch to get fresh token)
 (async function autoLoadInstance() {
   // Always fetch fresh data from API (don't skip even if localStorage has values)
@@ -1264,8 +1268,20 @@ function buildAgentUrl(base, token) {
         if (typeof renderIntegrations === 'function') renderIntegrations();
       }, 500);
     }
-  } catch(e) { console.error('Auto-load instance error:', e); }
+  } catch(e) {
+    console.error('Auto-load instance error:', e);
+    // Even on error, try to render with whatever we have
+    if (typeof renderHome === 'function') renderHome();
+  }
 })();
+
+// Failsafe: if instanceData still null after 3 seconds, force refresh
+setTimeout(function() {
+  if (!instanceData) {
+    console.warn('[failsafe] instanceData still null after 3s, forcing refresh');
+    refreshInstanceData();
+  }
+}, 3000);
 
 // Refresh instance data from API and re-render
 async function refreshInstanceData() {
@@ -1289,9 +1305,7 @@ async function refreshInstanceData() {
   } catch(e) { console.error('Refresh error:', e); }
 }
 
-/* ===== State ===== */
-var instanceData = null;
-var tokenVisible = false;
+/* ===== State (declared above, before autoLoadInstance) ===== */
 
 /* ===== Init ===== */
 document.addEventListener('DOMContentLoaded', function() {
@@ -1368,15 +1382,15 @@ function renderHome() {
     document.querySelector('.home-top-grid').style.gridTemplateColumns = '1fr';
     return;
   }
-  // Fallback: if hasProfile not in API response, derive from researchData
-  if (instanceData.hasProfile === undefined && instanceData.researchData) {
-    instanceData.hasProfile = !!(instanceData.researchData.answers || instanceData.researchData.businessName);
+  // Ensure boolean flags are set (derive from researchData if missing)
+  if (!instanceData.hasProfile && instanceData.researchData && instanceData.researchData.answers) {
+    instanceData.hasProfile = true;
   }
-  if (instanceData.hasResearch === undefined && instanceData.researchData) {
-    instanceData.hasResearch = !!instanceData.researchData.report;
+  if (!instanceData.hasResearch && instanceData.researchData && instanceData.researchData.report) {
+    instanceData.hasResearch = true;
   }
-  if (instanceData.hasStrategy === undefined && instanceData.researchData) {
-    instanceData.hasStrategy = !!instanceData.researchData.strategy;
+  if (!instanceData.hasStrategy && instanceData.researchData && instanceData.researchData.strategy) {
+    instanceData.hasStrategy = true;
   }
 
   // Grid layout: if no tasks, notifications take full width
