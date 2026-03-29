@@ -729,7 +729,7 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
 }
 
 // ── POST /hosting/instances/:id/setup/agents/strategy ──
-// Generates strategy based on research report. Runs on VPS agent.
+// Generates strategy via DIRECT API call (no OpenClaw agent overhead = no token limit issues)
 export const buildStrategy = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
@@ -740,18 +740,33 @@ export const buildStrategy = async (c: Context) => {
         }
 
         const rd = (instance.researchData as any) || {}
-        if (!rd.report) {
+        if (!rd.stage1 && !rd.report) {
             return fail(c, 'יש להריץ מחקר שוק קודם', 400)
         }
 
         const answers = rd.answers || {}
         const businessName = answers.businessName || 'העסק'
 
-        console.log(`Building strategy for ${businessName} on ${instance.ip}...`)
+        console.log(`Building strategy for ${businessName} via direct API call...`)
 
-        const strategyPrompt = `על סמך דוח המחקר שכבר ביצעת — בנה אסטרטגיית שיווק מפורטת עבור ${businessName}.
+        // Combine all research stages into context
+        const researchContext = [
+            rd.stage1 ? `## מתחרים\n${rd.stage1.substring(0, 3000)}` : '',
+            rd.stage2 ? `## מילות מפתח\n${rd.stage2.substring(0, 3000)}` : '',
+            rd.stage3 ? `## קהל יעד\n${rd.stage3.substring(0, 3000)}` : '',
+            rd.stage4 ? `## ניתוח ערוצים\n${rd.stage4.substring(0, 3000)}` : '',
+            rd.report ? `## דוח מחקר כללי\n${rd.report.substring(0, 3000)}` : '',
+        ].filter(Boolean).join('\n\n')
 
-הדוח כבר נמצא ב-RESEARCH_REPORT.md בתיקיית workspace — קרא אותו.
+        const strategyPrompt = `אתה מומחה שיווק דיגיטלי ישראלי. בנה אסטרטגיית שיווק מפורטת עבור "${businessName}" על סמך המחקר הבא:
+
+${researchContext}
+
+פרטי העסק: ${answers.businessDescription || ''}
+קהל יעד: ${answers.targetAudience || ''}
+פלטפורמות: ${answers.platforms || ''}
+טון: ${answers.tone || 'ידידותי ונגיש'}
+תקציב: ${answers.budget || 'לא צוין'}
 
 בנה אסטרטגיה שכוללת את כל 9 הסעיפים הבאים:
 
@@ -809,75 +824,67 @@ export const buildStrategy = async (c: Context) => {
 - ROI צפוי לכל ערוץ
 - תוכנית scaling: מתי ואיך מגדילים תקציב
 
-חובה: כתוב את כל האסטרטגיה כאן בתשובה הזו — לא בקובץ נפרד, לא ב-MARKETING_STRATEGY.md, לא ב-workspace.
-אל תשלח לטלגרם. אל תשמור לקובץ. הדוח המלא חייב להיות כאן.
-אורך מינימלי: 3000 תווים.`
+כתוב בעברית ישראלית. היה ספציפי — לא גנרי. אורך מינימלי: 3000 תווים.`
 
-        // Use מנתח (analyst) model for strategy — needs depth
-        const strategyModel = await getSubAgentModel(instanceId, 'menateach')
-        console.log(`Strategy model: ${strategyModel}`)
+        // DIRECT API CALL — no OpenClaw agent overhead (saves ~22K tokens)
+        const apiKey = await getApiKeyForInstance(instanceId)
+        if (!apiKey) {
+            return fail(c, 'מפתח API לא מוגדר', 400)
+        }
 
-        const b64Prompt = Buffer.from(strategyPrompt + '\n\nאורך מינימלי: 2000 תווים.').toString('base64')
+        console.log(`Strategy via direct API (key: ${apiKey.substring(0, 12)}...)`)
 
-        // Retry loop
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+            },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-6',
+                max_tokens: 8192,
+                messages: [{ role: 'user', content: strategyPrompt }],
+            }),
+        })
+
+        // Fallback to OpenAI if Anthropic fails
         let strategy = ''
-        let lastError = ''
-
-        for (let attempt = 1; attempt <= 2; attempt++) {
-            const sessionId = `strategy-${Date.now()}-${attempt}`
-
-            try {
-                // Use מנתח agent (registered with Opus model) for strategy
-                const output = await sshExec(instance.ip,
-                    `su - openclaw -c 'timeout 300 openclaw agent --agent menateach --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
-                    instance.rootPassword || undefined
-                )
-
-                try {
-                    const agentResult = JSON.parse(output)
-                    strategy = agentResult?.result?.payloads?.[0]?.text || ''
-                    if (output.includes('rate_limit')) {
-                        lastError = 'rate_limit'
-                        strategy = ''
-                    }
-                } catch {
-                    strategy = output
+        if (res.ok) {
+            const data = await res.json() as { content?: Array<{ text: string }> }
+            strategy = data.content?.[0]?.text || ''
+            console.log(`Strategy from Anthropic: ${strategy.length} chars`)
+        } else {
+            console.log(`Anthropic failed (${res.status}), trying OpenAI...`)
+            // Try OpenAI
+            const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+            const openaiKey = inst?.openaiApiKey
+            if (openaiKey) {
+                const oaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${openaiKey}`,
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o',
+                        max_tokens: 8192,
+                        messages: [{ role: 'user', content: strategyPrompt }],
+                    }),
+                })
+                if (oaiRes.ok) {
+                    const oaiData = await oaiRes.json() as { choices?: Array<{ message?: { content?: string } }> }
+                    strategy = oaiData.choices?.[0]?.message?.content || ''
+                    console.log(`Strategy from OpenAI: ${strategy.length} chars`)
+                } else {
+                    const errText = await oaiRes.text()
+                    console.error(`OpenAI also failed (${oaiRes.status}):`, errText.substring(0, 200))
                 }
-
-                // If agent saved to file instead of returning inline, read it
-                if (strategy && strategy.length < 1500 && (strategy.includes('.md') || strategy.includes('שמורה'))) {
-                    console.log('Strategy saved to file, trying to read...')
-                    try {
-                        const fileContent = await sshExec(instance.ip,
-                            `cat /home/openclaw/.openclaw/workspace/MARKETING_STRATEGY.md 2>/dev/null || cat /home/openclaw/.openclaw/workspace/STRATEGY.md 2>/dev/null || echo ""`,
-                            instance.rootPassword || undefined
-                        )
-                        if (fileContent && fileContent.length > 1500) {
-                            strategy = fileContent
-                            console.log(`Read strategy from file: ${strategy.length} chars`)
-                        }
-                    } catch { /* fallback failed */ }
-                }
-
-                // Validate
-                if (strategy && strategy.length >= 1500 && !strategy.includes('כבר מוכן')) {
-                    break
-                }
-                lastError = strategy.length < 1500 ? 'too_short' : 'cached'
-                if (attempt < 2) {
-                    strategy = ''
-                    await new Promise(r => setTimeout(r, 3000))
-                }
-            } catch (err) {
-                lastError = 'error'
             }
         }
 
-        if (!strategy || strategy.length < 500) {
-            const msg = lastError === 'rate_limit'
-                ? 'rate limit — נסו שוב מאוחר יותר או החליפו מודל'
-                : 'האסטרטגיה לא נוצרה — נסו שוב'
-            return fail(c, msg, 500)
+        if (!strategy || strategy.length < 1000) {
+            return fail(c, 'האסטרטגיה לא נוצרה — נסו שוב', 500)
         }
 
         // Save to DB
@@ -889,8 +896,9 @@ export const buildStrategy = async (c: Context) => {
             } as any,
         }).where(eq(instances.id, instanceId))
 
-        // Save as STRATEGY.md on VPS
-        const b64Strategy = Buffer.from(strategy).toString('base64')
+        // Save as STRATEGY.md on VPS (compact — for agent reference)
+        const compactStrategy = strategy.substring(0, 4000)
+        const b64Strategy = Buffer.from(compactStrategy).toString('base64')
         await sshExec(instance.ip,
             `echo ${b64Strategy} | base64 -d > /home/openclaw/.openclaw/workspace/STRATEGY.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/STRATEGY.md`,
             instance.rootPassword || undefined
