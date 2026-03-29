@@ -1226,10 +1226,10 @@ function buildAgentUrl(base, token) {
 // State — must be before autoLoadInstance
 var instanceData = null;
 var tokenVisible = false;
+var dataLoaded = false;
 
-// Auto-load instance from API (always fetch to get fresh token)
+// Auto-load instance from API
 (async function autoLoadInstance() {
-  // Always fetch fresh data from API (don't skip even if localStorage has values)
   try {
     var res = await fetch(API + '/hosting/my-instances', {
       headers: { 'Authorization': 'Bearer ' + token }
@@ -1257,16 +1257,12 @@ var tokenVisible = false;
       if (inst.aiProviderType) localStorage.setItem('cf_api_key_saved', inst.aiProviderType);
       else if (inst.onboardingStep >= 2) localStorage.setItem('cf_api_key_saved', 'anthropic');
       if (inst.telegramBotToken || inst.onboardingStep >= 3 || inst.onboardingCompleted) localStorage.setItem('cf_telegram_saved', '1');
-      // Re-render with real data — double render to ensure UI catches up
-      if (typeof renderHome === 'function') renderHome();
+      dataLoaded = true;
+      // Re-render all views with real data
+      renderHome();
       if (typeof renderAgentsTab === 'function') renderAgentsTab();
       if (typeof renderIntegrations === 'function') renderIntegrations();
       if (typeof renderSavedAnswers === 'function') renderSavedAnswers();
-      // Safety: re-render after a tick to catch any DOM timing issues
-      setTimeout(function() {
-        if (typeof renderHome === 'function') renderHome();
-        if (typeof renderIntegrations === 'function') renderIntegrations();
-      }, 500);
     }
   } catch(e) {
     console.error('Auto-load instance error:', e);
@@ -1293,11 +1289,12 @@ async function refreshInstanceData() {
     if (data.success && data.data && data.data.length > 0) {
       var inst = data.data[0];
       instanceData = inst;
+      dataLoaded = true;
       components = inst.selectedComponents || [];
       // Sync localStorage
-      if (inst.onboardingStep >= 2) localStorage.setItem('cf_api_key_saved', inst.aiProviderType || 'anthropic');
-      if (inst.onboardingStep >= 3 || inst.onboardingCompleted) localStorage.setItem('cf_telegram_saved', '1');
-      if (inst.telegramBotToken) localStorage.setItem('cf_telegram_saved', '1');
+      if (inst.hasAnthropicKey) localStorage.setItem('cf_api_key_saved', 'anthropic');
+      if (inst.hasOpenaiKey) localStorage.setItem('cf_openai_saved', '1');
+      if (inst.telegramBotToken || inst.onboardingStep >= 3 || inst.onboardingCompleted) localStorage.setItem('cf_telegram_saved', '1');
       // Re-render
       renderHome();
       renderAgentsTab();
@@ -1310,10 +1307,9 @@ async function refreshInstanceData() {
 /* ===== Init ===== */
 document.addEventListener('DOMContentLoaded', function() {
   renderHeader();
-  // Don't render data-dependent views yet — wait for autoLoadInstance
-  // renderHome() will be called by autoLoadInstance after data loads
-  // Show loading state immediately
-  renderHome(); // shows "טוען נתונים..." since instanceData is null
+  // Show loading state — real data will render after autoLoadInstance completes
+  var loadingEl = document.getElementById('notificationsList');
+  if (loadingEl) loadingEl.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:20px">טוען...</div>';
   addIntegrationTooltips();
   checkGoogleStatus();
   renderBilling();
@@ -1374,12 +1370,13 @@ function renderHome() {
   var name = localStorage.getItem('cf_user_name') || email.split('@')[0] || '';
   document.getElementById('greetingText').textContent = 'שלום, ' + name;
 
-  // Wait for instanceData before rendering tasks (avoid showing stale state)
-  if (!instanceData) {
-    document.getElementById('homeTasks').innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:20px;font-size:0.85rem">טוען נתונים...</div>';
-    document.getElementById('notificationsList').innerHTML = '';
-    document.getElementById('activityTimeline').innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:20px;font-size:0.85rem">טוען...</div>';
-    document.querySelector('.home-top-grid').style.gridTemplateColumns = '1fr';
+  // Wait for data before rendering (prevent showing wrong state)
+  if (!dataLoaded || !instanceData) {
+    document.getElementById('homeTasks').innerHTML = '';
+    document.getElementById('notificationsList').innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:20px;font-size:0.85rem">טוען...</div>';
+    document.getElementById('activityTimeline').innerHTML = '';
+    var grid = document.querySelector('.home-top-grid');
+    if (grid) grid.style.gridTemplateColumns = '1fr';
     return;
   }
   // Ensure boolean flags are set (derive from researchData if missing)
