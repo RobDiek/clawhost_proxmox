@@ -1791,20 +1791,29 @@ function renderSummary() {
     totalEl.innerHTML = `\u2014<span>${periodSuffix}</span>`;
   }
 
-  // Deploy btn
+  // Deploy / Next btn — based on wizard step
   const btn = document.getElementById('deploy-btn');
   const hintEl = document.getElementById('deploy-hint');
 
-  if (s.hasAgent) {
+  if (currentWizStep < 4) {
+    // Steps 1-3: show "Next" button
     btn.className = 'deploy-btn active';
     btn.disabled = false;
-    document.getElementById('deploy-text').textContent = t('deploy-active');
-    hintEl.innerHTML = `<div class="deploy-hint-dot"></div>${t('deploy-hint-active')}`;
+    document.getElementById('deploy-text').textContent = lang === 'he' ? 'הבא \u2192' : 'Next \u2192';
+    hintEl.innerHTML = `<span style="color:#6B7280;font-size:0.78rem">${lang === 'he' ? 'שלב' : 'Step'} ${currentWizStep} ${lang === 'he' ? 'מתוך' : 'of'} 4</span>`;
   } else {
-    btn.className = 'deploy-btn inactive';
-    btn.disabled = true;
-    document.getElementById('deploy-text').textContent = t('deploy-inactive');
-    hintEl.innerHTML = t('deploy-hint-inactive');
+    // Step 4: show deploy button (original behavior)
+    if (s.hasAgent) {
+      btn.className = 'deploy-btn active';
+      btn.disabled = false;
+      document.getElementById('deploy-text').textContent = t('deploy-active');
+      hintEl.innerHTML = `<div class="deploy-hint-dot"></div>${t('deploy-hint-active')}`;
+    } else {
+      btn.className = 'deploy-btn inactive';
+      btn.disabled = true;
+      document.getElementById('deploy-text').textContent = t('deploy-inactive');
+      hintEl.innerHTML = t('deploy-hint-inactive');
+    }
   }
 }
 
@@ -1857,6 +1866,12 @@ function setLang(l) {
    DEPLOY BUTTON
 ───────────────────────────────────────── */
 document.getElementById('deploy-btn').addEventListener('click', function() {
+  // Steps 1-3: advance to next step
+  if (currentWizStep < 4) {
+    goWizStep(currentWizStep + 1);
+    return;
+  }
+  // Step 4: deploy
   const s = calcPlan();
   if (!s.hasAgent) return;
   const componentIds = ITEMS.filter(i => selected.has(i.id) && !i.soon).map(i => i.id).join(',');
