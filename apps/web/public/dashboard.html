@@ -1200,7 +1200,7 @@ function buildAgentUrl(base, token) {
 
 // Auto-load instance from API (always fetch to get fresh token)
 (async function autoLoadInstance() {
-  if (instanceId && openclawToken) return;
+  // Always fetch fresh data from API (don't skip even if localStorage has values)
   try {
     var res = await fetch(API + '/hosting/my-instances', {
       headers: { 'Authorization': 'Bearer ' + token }
@@ -1222,9 +1222,10 @@ function buildAgentUrl(base, token) {
       localStorage.setItem('cf_instance_components', JSON.stringify(components));
       localStorage.setItem('cf_instance_subdomain', subdomain);
       localStorage.setItem('cf_openclaw_token', openclawToken);
-      // Sync onboarding state
-      if (inst.onboardingStep >= 2) localStorage.setItem('cf_api_key_saved', 'anthropic');
-      if (inst.onboardingStep >= 3 || inst.onboardingCompleted) localStorage.setItem('cf_telegram_saved', '1');
+      // Sync onboarding state from DB
+      if (inst.aiProviderType) localStorage.setItem('cf_api_key_saved', inst.aiProviderType);
+      else if (inst.onboardingStep >= 2) localStorage.setItem('cf_api_key_saved', 'anthropic');
+      if (inst.telegramBotToken || inst.onboardingStep >= 3 || inst.onboardingCompleted) localStorage.setItem('cf_telegram_saved', '1');
       // Re-render with real data
       if (typeof renderHome === 'function') renderHome();
       if (typeof renderAgentsTab === 'function') renderAgentsTab();
@@ -1344,10 +1345,10 @@ function renderHome() {
   ];
 
   if (isMATEH) {
-    tasks.push({ id: 'profile', label: 'פרופיל עסקי הוגדר', done: !!hasAgents, action: "openAgentDetail('mt')", actionLabel: 'הגדירו', desc: 'מילוי שאלון 11 שאלות → פרופיל מותאם אישית' });
-    tasks.push({ id: 'research', label: 'מחקר שוק הושלם', done: !!hasResearch, action: "runResearchFromDashboard()", actionLabel: 'הריצו', desc: 'ניתוח מתחרים, קהל יעד, הזדמנויות — אוטומטי' });
-    tasks.push({ id: 'agents', label: 'סוכנים הוגדרו', done: !!hasAgents && step >= 3, action: "openAgentDetail('mt')", actionLabel: 'הגדירו', desc: '9 סוכנים מותאמים על סמך המחקר' });
-    tasks.push({ id: 'brief', label: 'Daily Brief מוגדר', done: onboardingDone || step >= 4, action: "openAgentDetail('mt')", actionLabel: 'הגדירו', desc: 'סיכום יומי ב-Telegram כל בוקר' });
+    tasks.push({ id: 'profile', label: 'פרופיל עסקי הוגדר', done: !!hasAgents, action: "switchTab('agents');setTimeout(function(){openAgentDetail('mt')},100)", actionLabel: 'הגדירו', desc: 'מילוי שאלון 11 שאלות → פרופיל מותאם אישית' });
+    tasks.push({ id: 'research', label: 'מחקר שוק הושלם', done: !!hasResearch, action: "switchTab('agents');setTimeout(function(){openAgentDetail('mt')},100)", actionLabel: 'הגדירו', desc: 'ניתוח מתחרים, קהל יעד, הזדמנויות — אוטומטי' });
+    tasks.push({ id: 'agents', label: 'סוכנים הוגדרו', done: !!hasAgents, action: "switchTab('agents');setTimeout(function(){openAgentDetail('mt')},100)", actionLabel: 'הגדירו', desc: '9 סוכנים מותאמים על סמך המחקר' });
+    tasks.push({ id: 'brief', label: 'Daily Brief מוגדר', done: onboardingDone || step >= 4, action: "switchTab('agents');setTimeout(function(){openAgentDetail('mt')},100)", actionLabel: 'הגדירו', desc: 'סיכום יומי ב-Telegram כל בוקר' });
   }
 
   var visibleTasks = tasks.filter(function(t) { return hiddenTasks.indexOf(t.id) === -1; });
@@ -1370,7 +1371,7 @@ function renderHome() {
         '<span style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' + t.label + '</span>' +
         hideBtn + '</div>';
     } else {
-      tasksHtml += '<div class="task-item ' + (t.id === 'research' ? 'in-progress' : 'warning') + '">' +
+      tasksHtml += '<div class="task-item warning">' +
         '<div style="flex:1"><span style="font-weight:500">' + t.label + '</span>' +
         '<div style="font-size:0.78rem;color:#6B7280;margin-top:2px">' + (t.desc || '') + '</div></div>' +
         '<div style="display:flex;align-items:center;gap:4px">' +
