@@ -2442,6 +2442,8 @@ var STRATEGY_STAGES_UI = [
 ];
 var strategyPipelineStage = 0;
 
+var strategyModelChoice = 'claude-sonnet-4-6'; // default, upgradeable to opus
+
 async function runChainStrategy() {
   if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
 
@@ -2460,7 +2462,55 @@ async function runChainStrategy() {
     return;
   }
 
-  // Open pipeline modal
+  // If first stage — show model selection with Opus recommendation
+  if (startStage === 1) {
+    document.getElementById('pipelineOverlay').classList.remove('hidden');
+    document.getElementById('pipelineTitle').textContent = 'בניית אסטרטגיה';
+    document.getElementById('pipelineSteps').innerHTML = STRATEGY_STAGES_UI.map(function(s) {
+      return '<div style="flex:1;text-align:center;padding:6px;border-radius:6px;font-size:0.78rem;color:#9CA3AF">' + s.name + '</div>';
+    }).join('');
+
+    document.getElementById('pipelineBody').innerHTML =
+      '<div style="padding:20px">' +
+        '<div style="background:#FFF7ED;border:1px solid #FB923C;border-radius:10px;padding:16px;margin-bottom:16px">' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
+            '<span style="font-size:1.3rem">🏆</span>' +
+            '<strong style="color:#C2410C;font-size:0.95rem">המלצה: השתמשו ב-Claude Opus 4.6</strong>' +
+          '</div>' +
+          '<div style="color:#9A3412;font-size:0.82rem;line-height:1.5">' +
+            'Opus מייצר אסטרטגיה <strong>ברמה גבוהה משמעותית</strong> — פרסונות מפורטות יותר, KPIs ריאליים, ' +
+            'תוכנית תוכן עם כותרות אמיתיות, ותקציבים מדויקים. Sonnet טוב למשימות שוטפות, אבל לאסטרטגיה שמנהלת את כל העסק — Opus עושה את ההבדל.' +
+          '</div>' +
+        '</div>' +
+        '<div style="font-size:0.82rem;color:#6B7280;margin-bottom:10px;font-weight:600">בחרו מודל לבניית האסטרטגיה:</div>' +
+        '<div style="display:flex;flex-direction:column;gap:8px">' +
+          '<label style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:8px;border:2px solid #FB923C;background:#FFF7ED;cursor:pointer">' +
+            '<input type="radio" name="strategyModel" value="claude-opus-4-6" style="accent-color:#C2410C" onchange="strategyModelChoice=\'claude-opus-4-6\'">' +
+            '<div>' +
+              '<div style="font-weight:600;color:#C2410C">Claude Opus 4.6 <span style="background:#FB923C;color:white;padding:1px 6px;border-radius:4px;font-size:0.7rem;margin-right:4px">מומלץ</span></div>' +
+              '<div style="font-size:0.75rem;color:#9A3412">ניתוח עמוק, פרסונות מדויקות, KPIs ריאליים — איכות מקסימלית</div>' +
+            '</div>' +
+          '</label>' +
+          '<label style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:8px;border:1px solid #E5E7EB;cursor:pointer">' +
+            '<input type="radio" name="strategyModel" value="claude-sonnet-4-6" checked style="accent-color:#2563EB" onchange="strategyModelChoice=\'claude-sonnet-4-6\'">' +
+            '<div>' +
+              '<div style="font-weight:600;color:#374151">Claude Sonnet 4.6</div>' +
+              '<div style="font-size:0.75rem;color:#9CA3AF">מהיר ואמין — תוצאה טובה, אבל פחות מעמיקה</div>' +
+            '</div>' +
+          '</label>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('pipelineNextBtn').style.display = '';
+    document.getElementById('pipelineNextBtn').disabled = false;
+    document.getElementById('pipelineNextBtn').textContent = 'התחילו לבנות אסטרטגיה ←';
+    document.getElementById('pipelineNextBtn').onclick = function() {
+      runStrategyStage(1);
+    };
+    return;
+  }
+
+  // Open pipeline modal (for resuming from stage > 1)
   document.getElementById('pipelineOverlay').classList.remove('hidden');
   document.getElementById('pipelineTitle').textContent = 'בניית אסטרטגיה — שלב ' + startStage + ' מתוך 4';
 
@@ -2505,20 +2555,27 @@ async function runStrategyStage(stage) {
     var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/strategy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ stage: stage })
+      body: JSON.stringify({ stage: stage, model: strategyModelChoice })
     });
 
     if (window._pipelineTimer) clearInterval(window._pipelineTimer);
     var data = await res.json();
 
     if (data.success && data.data && data.data.strategy) {
+      var warningsHtml = '';
+      if (data.data.warnings && data.data.warnings.length > 0) {
+        warningsHtml = '<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:10px;margin-bottom:12px;font-size:0.78rem;color:#92400E">' +
+          '<strong>⚠️ הערות איכות:</strong><br>' +
+          data.data.warnings.map(function(w) { return '• ' + w; }).join('<br>') +
+          '</div>';
+      }
       var html = data.data.strategy
         .replace(/&/g, '&amp;').replace(/</g, '&lt;')
         .replace(/^### (.+)$/gm, '<h4>$1</h4>')
         .replace(/^## (.+)$/gm, '<h3>$1</h3>')
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         .replace(/\n/g, '<br>');
-      document.getElementById('pipelineBody').innerHTML = html;
+      document.getElementById('pipelineBody').innerHTML = warningsHtml + html;
       document.getElementById('pipelineProgress').style.width = Math.round(stage / 4 * 100) + '%';
 
       // Update steps indicator

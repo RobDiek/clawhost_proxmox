@@ -730,152 +730,348 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
 
 // ── POST /hosting/instances/:id/setup/agents/strategy ──
 // Strategy pipeline stages
+// ── Helper: extract structured data points from research for injection ──
+function extractResearchData(rd: any): {
+    competitors: string;
+    keywords: string;
+    audiences: string;
+    channels: string;
+    painPoints: string;
+} {
+    const allResearch = [rd.stage1, rd.stage2, rd.stage3, rd.stage4].filter(Boolean).join('\n')
+
+    // Extract competitor mentions (lines with competitor-like patterns)
+    const competitorLines = allResearch.split('\n')
+        .filter(l => l.match(/מתחר|competitor|vs\b|לעומת|\.com|\.io|\.ai|\.co\.il|מחיר.*₪|תמחור/i))
+        .slice(0, 20)
+    const competitors = competitorLines.length > 0
+        ? competitorLines.join('\n')
+        : 'לא נמצאו מתחרים ספציפיים במחקר'
+
+    // Extract keyword mentions
+    const keywordLines = allResearch.split('\n')
+        .filter(l => l.match(/מילת מפתח|keyword|חיפוש|search volume|נפח|ביקוש|SEO|SERP/i))
+        .slice(0, 15)
+    const keywords = keywordLines.length > 0
+        ? keywordLines.join('\n')
+        : 'לא נמצאו מילות מפתח ספציפיות במחקר'
+
+    // Extract audience/persona mentions
+    const audienceLines = allResearch.split('\n')
+        .filter(l => l.match(/קהל יעד|פרסונה|persona|target|דמוגרפ|גיל|audience|לקוח|כאב|pain point|צורך/i))
+        .slice(0, 15)
+    const audiences = audienceLines.length > 0
+        ? audienceLines.join('\n')
+        : 'לא נמצא מידע על קהל יעד במחקר'
+
+    // Extract channel mentions
+    const channelLines = allResearch.split('\n')
+        .filter(l => l.match(/ערוץ|channel|פלטפורמה|אינסטגרם|פייסבוק|טיקטוק|לינקדאין|יוטיוב|טלגרם|google ads|meta ads/i))
+        .slice(0, 10)
+    const channels = channelLines.length > 0
+        ? channelLines.join('\n')
+        : 'לא נמצא מידע על ערוצים במחקר'
+
+    // Extract pain points
+    const painLines = allResearch.split('\n')
+        .filter(l => l.match(/כאב|בעיה|אתגר|מתסכל|חסר|קושי|frustrat|problem|challenge|gap/i))
+        .slice(0, 10)
+    const painPoints = painLines.length > 0
+        ? painLines.join('\n')
+        : 'לא נמצאו כאבים ספציפיים במחקר'
+
+    return { competitors, keywords, audiences, channels, painPoints }
+}
+
+// ── Anti-hallucination + self-reflection block (appended to every stage) ──
+const QUALITY_GUARDRAILS = `
+
+---
+## הנחיות קריטיות לאיכות
+
+**אנטי-הזיה:** השתמש אך ורק במידע שמופיע במחקר שלמעלה. אם אין לך מידע ספציפי על נקודה מסוימת — כתוב "לא נמצא במחקר — דורש בדיקה נוספת" במקום להמציא שמות, מספרים, או URLs.
+
+**בדיקה עצמית — לפני שתסיים, וודא:**
+1. האם כל שם מתחרה שהזכרת מופיע במחקר למעלה? אם לא — מחק אותו
+2. האם ה-KPIs ריאליסטיים לעסק בגודל הזה בשוק הישראלי? (עסק חדש ≠ 200 לקוחות בחודש)
+3. האם הפרסונות מבוססות על נתוני קהל היעד מהמחקר, ולא גנריות?
+4. האם יש מספרים ותקציבים ריאליים ולא סתם placeholders?
+5. האם הטקסט בעברית תקינה ללא שגיאות או מילים חסרות משמעות?`
+
 const STRATEGY_STAGES = [
     {
         id: 1,
         name: 'פוזיציונינג ומטרות',
-        prompt: (biz: string, research: string, answers: any) => `אתה מומחה אסטרטגיית שיווק ישראלי. שלב 1 מתוך 4 — פוזיציונינג ומטרות.
+        prompt: (biz: string, research: string, answers: any, _prev: string, extracted: ReturnType<typeof extractResearchData>) => `אתה מומחה אסטרטגיית שיווק ישראלי ברמה הגבוהה ביותר. שלב 1 מתוך 4 — פוזיציונינג ומטרות.
 
-העסק: ${biz}
-תחום: ${answers.businessDescription || ''}
-טון: ${answers.tone || 'ידידותי ונגיש'}
+בוא נחשוב צעד אחר צעד לפני שנכתוב.
 
-ממצאי המחקר:
+## מידע על העסק
+- שם: ${biz}
+- תחום: ${answers.businessDescription || 'לא צוין'}
+- טון מותג: ${answers.tone || 'ידידותי ונגיש'}
+- תקציב: ${answers.budget || 'לא צוין'}
+- מטרות: ${answers.marketingGoals || 'לא צוין'}
+
+## ממצאי המחקר המלאים
 ${research}
 
-כתוב:
+## נתונים ספציפיים שנמצאו במחקר (חובה להשתמש בהם):
+
+### מתחרים שנמצאו:
+${extracted.competitors}
+
+### קהלי יעד שנמצאו:
+${extracted.audiences}
+
+### כאבים ובעיות שנמצאו:
+${extracted.painPoints}
+
+---
+
+כתוב אסטרטגיה מפורטת ומבוססת נתונים:
+
 ## 1. פוזיציונינג
-- Positioning statement (משפט אחד)
-- USP — 3 נקודות בידול ספציפיות עם הוכחות מהמחקר
-- Elevator pitch (30 שניות)
-- מיפוי תחרותי: איפה אנחנו vs מתחרים (2x2 matrix)
+- **Positioning statement** (משפט אחד חד וברור — חייב להתייחס למתחרים הספציפיים שנמצאו)
+- **USP** — 3 נקודות בידול ספציפיות. לכל נקודה: מה אנחנו עושים → מה המתחרה עושה → למה אנחנו טובים יותר (ציין שמות מתחרים אמיתיים מהמחקר)
+- **Elevator pitch** (30 שניות, בעברית תקינה וזורמת — קרא בקול רם לפני שתשלח)
+- **מיפוי תחרותי**: טבלת 2x2 — ציר X: מחיר (נמוך↔גבוה), ציר Y: מורכבות (פשוט↔מתקדם). מקם את ${biz} ואת כל המתחרים שנמצאו
 
 ## 2. מטרות (3 חודשים)
-- 3 מטרות SMART עם KPIs מספריים
-- טבלה: מטרה | KPI | חודש 1 | חודש 2 | חודש 3
-- North Star Metric — המדד האחד שמוביל הכל
+חשוב: KPIs חייבים להיות ריאליים. עסק חדש/קטן בישראל:
+- חודש 1: בניית נוכחות (לא מכירות מאסיביות)
+- חודש 2: תנועה ראשונית + לידים ראשונים
+- חודש 3: המרות ראשונות + אופטימיזציה
+
+- 3 מטרות SMART עם KPIs מספריים ריאליים
+- טבלה: מטרה | KPI | יעד חודש 1 | יעד חודש 2 | יעד חודש 3
+- North Star Metric — המדד האחד שמוביל הכל (הסבר למה דווקא הוא)
 
 ## 3. ICP (Ideal Customer Profile)
-- פרסונה #1: שם, גיל, כאב, מוטיבציה, ערוץ מועדף, trigger לרכישה
-- פרסונה #2: שם, גיל, כאב, מוטיבציה, ערוץ מועדף, trigger
-- Message-Market Fit: מה אומרים לכל פרסונה
-
-בעברית. ספציפי לעסק הזה.`,
+בנה פרסונות על בסיס נתוני קהל היעד מהמחקר למעלה (לא להמציא!):
+- **פרסונה #1**: שם עברי אותנטי, גיל, תפקיד, כאב ספציפי (מהמחקר), מוטיבציה, ערוץ מועדף, trigger לרכישה, התנגדויות צפויות
+- **פרסונה #2**: שם עברי אותנטי, גיל, תפקיד, כאב ספציפי (מהמחקר), מוטיבציה, ערוץ מועדף, trigger לרכישה, התנגדויות צפויות
+- **Message-Market Fit**: לכל פרסונה — מה המסר המדויק שיגרום לה לפעול, ובאיזה ערוץ
+${QUALITY_GUARDRAILS}`,
     },
     {
         id: 2,
         name: 'תוכן וערוצים',
-        prompt: (biz: string, research: string, answers: any, prev: string) => `שלב 2 מתוך 4 — תוכן וערוצים. המשך מהשלב הקודם.
+        prompt: (biz: string, research: string, answers: any, prev: string, extracted: ReturnType<typeof extractResearchData>) => `שלב 2 מתוך 4 — תוכן וערוצים. אתה מומחה אסטרטגיית תוכן ישראלי.
 
-שלב קודם (פוזיציונינג):
-${prev.substring(0, 2000)}
+בוא נחשוב צעד אחר צעד לפני שנכתוב.
 
-פלטפורמות שהמשתמש ציין: ${answers.platforms || ''}
-תוכן קיים: ${answers.currentContent || 'אין'}
+## העסק: ${biz}
+
+## שלב קודם (פוזיציונינג ומטרות):
+${prev}
+
+## ממצאי המחקר המלאים:
+${research}
+
+## נתונים ספציפיים מהמחקר:
+
+### מילות מפתח שנמצאו:
+${extracted.keywords}
+
+### ערוצים שנמצאו:
+${extracted.channels}
+
+### קהלי יעד:
+${extracted.audiences}
+
+## מידע מהמשתמש:
+- פלטפורמות: ${answers.platforms || 'לא צוין'}
+- תוכן קיים: ${answers.currentContent || 'אין'}
+- תקציב: ${answers.budget || 'לא צוין'}
+
+---
 
 כתוב:
+
 ## 4. עמודי תוכן (Content Pillars)
-- 5 עמודי תוכן עם:
-  - שם העמוד
-  - מטרה (awareness/consideration/conversion)
-  - 3 דוגמאות לנושאים ספציפיים
-  - פורמט מומלץ (בלוג/וידאו/פוסט/newsletter)
-  - תדירות
+5 עמודי תוכן, לכל אחד:
+- **שם העמוד** (בעברית, ספציפי לתחום של ${biz})
+- **מטרה**: awareness / consideration / conversion
+- **5 נושאים ספציפיים** (כותרות מאמרים/פוסטים אמיתיים, לא "תוכן על X" אלא כותרת שתופיע בפועל)
+- **פורמט מומלץ** לכל נושא (בלוג / וידאו / carousel / reels / newsletter / podcast)
+- **תדירות**: כמה פעמים בשבוע/חודש
+- **קשר לפרסונה**: איזו פרסונה מהשלב הקודם זה פונה אליה
 
 ## 5. לוח שבועי מפורט
-טבלה: יום | בוקר | צהריים | ערב | פלטפורמה | פורמט | עמוד תוכן
-(א-ה, כולל שעות פרסום peak)
+טבלה מלאה:
+| יום | שעה | פלטפורמה | פורמט | נושא ספציפי | עמוד תוכן | פרסונה |
+(ימים א-ה, כולל שעות peak לכל פלטפורמה בישראל)
 
 ## 6. ערוצים לפי עדיפות
-לכל ערוץ:
-- למה? (קשר לפרסונה + נתונים מהמחקר)
-- פורמט מתאים
-- תדירות
-- KPI ספציפי
-- עלות (זמן + כסף)
-
-בעברית. ספציפי.`,
+דרג כל ערוץ (1 = הכי חשוב). לכל ערוץ:
+- **למה?** — קשר ישיר לפרסונה + נתונים מהמחקר (ציין מקור)
+- **פורמט מתאים** עם דוגמה קונקרטית
+- **תדירות** מדויקת
+- **KPI ספציפי** עם יעד מספרי ריאלי
+- **עלות**: שעות עבודה בשבוע + תקציב כספי אם רלוונטי
+${QUALITY_GUARDRAILS}`,
     },
     {
         id: 3,
         name: 'אורגני וממומן',
-        prompt: (biz: string, research: string, answers: any, prev: string) => `שלב 3 מתוך 4 — אסטרטגיית אורגני + ממומן. המשך מהשלבים הקודמים.
+        prompt: (biz: string, research: string, answers: any, prev: string, extracted: ReturnType<typeof extractResearchData>) => `שלב 3 מתוך 4 — אסטרטגיית אורגני + ממומן. אתה מומחה שיווק דיגיטלי ישראלי עם ניסיון בתקציבים קטנים-בינוניים.
 
-שלבים קודמים (פוזיציונינג + תוכן):
-${prev.substring(0, 2500)}
+בוא נחשוב צעד אחר צעד לפני שנכתוב.
 
-תקציב: ${answers.budget || 'לא צוין'}
-מטרות שיווק: ${answers.marketingGoals || ''}
+## העסק: ${biz}
+
+## שלבים קודמים (פוזיציונינג + תוכן):
+${prev}
+
+## ממצאי המחקר המלאים:
+${research}
+
+## נתונים ספציפיים מהמחקר:
+
+### מתחרים:
+${extracted.competitors}
+
+### מילות מפתח:
+${extracted.keywords}
+
+### ערוצים:
+${extracted.channels}
+
+## מידע מהמשתמש:
+- תקציב: ${answers.budget || 'לא צוין — התאם להמלצות לעסק חדש/קטן בישראל'}
+- מטרות שיווק: ${answers.marketingGoals || 'לא צוין'}
+
+---
 
 כתוב:
+
 ## 7. Marketing Funnel מפורט
-לכל שלב:
-- Awareness: ערוצים + סוג תוכן + KPI + תקציב
-- Consideration: ערוצים + סוג תוכן + KPI + תקציב
-- Conversion: CTA + landing page + offer + תקציב
-- Retention: onboarding flow + email sequence + community
-- Advocacy: referral program + reviews + UGC
+לכל שלב, פעולות ספציפיות עם תקציבים ריאליים ל-${biz}:
+- **Awareness**: ערוצים + סוג תוכן + KPI + תקציב חודשי ב-₪
+- **Consideration**: ערוצים + lead magnets ספציפיים + KPI + תקציב ב-₪
+- **Conversion**: CTA מדויק + landing page structure + offer + תקציב ב-₪
+- **Retention**: onboarding flow (כמה מיילים, באיזו תדירות) + community
+- **Advocacy**: referral program ספציפי + reviews strategy
 
 ## 8. אסטרטגיית SEO
-- 10 מילות מפתח מתועדפות (מהמחקר)
-- תוכנית: כמה מאמרים בחודש, אורך, מבנה
+- **10 מילות מפתח מתועדפות** — חייב להשתמש במילות מפתח מהמחקר למעלה. לכל מילה: נפח חיפוש משוער, קושי, עדיפות
+- **תוכנית תוכן SEO**: כמה מאמרים בחודש, אורך מומלץ, מבנה מאמר (H1/H2/H3)
+- **3 כותרות מאמרים ספציפיים** לחודש הראשון (כותרות אמיתיות, לא placeholders)
 - Internal linking strategy
-- Technical SEO checklist
+- Technical SEO checklist (5 פריטים קריטיים)
 
-## 9. אסטרטגיית Paid (חודש 4+)
-- מתי להתחיל (trigger: כמה conversions/traffic)
-- Google Ads: keywords, budget, expected CPC
-- Meta Ads: audiences, budget, creative types
-- LinkedIn Ads: targeting, budget
-- Retargeting strategy
-- A/B testing plan: 3 ניסויים ספציפיים
+## 9. אסטרטגיית Paid
+**חשוב:** אם התקציב קטן או לא צוין — התחל אורגני. Paid רק אחרי validation אורגני.
+- **מתי להתחיל?** trigger מדויק (כמה conversions אורגניים, כמה traffic)
+- **Google Ads**: 5 keywords ספציפיים מהמחקר, תקציב יומי ב-₪, CPC צפוי בשוק הישראלי
+- **Meta Ads**: audiences מפורטים (גיל, מיקום, תחומי עניין), תקציב ב-₪, 2 סוגי creatives
+- **Retargeting**: audiences, budget, messaging
+- **A/B testing**: 3 ניסויים ספציפיים עם hypothesis ומדד הצלחה
 
 ## 10. תקציב חודשי
-טבלה: ערוץ | חודש 1-3 | חודש 4-6 | חודש 7-12 | ROI צפוי
+טבלה עם מספרים ריאליים ב-₪:
+| ערוץ | חודש 1-3 (₪) | חודש 4-6 (₪) | חודש 7-12 (₪) | ROI צפוי |
 
-בעברית. מספרים ריאליים.`,
+סה"כ חודשי + הערות
+${QUALITY_GUARDRAILS}`,
     },
     {
         id: 4,
         name: 'הנחיות סוכנים',
-        prompt: (biz: string, research: string, answers: any, prev: string) => `שלב 4 מתוך 4 — הנחיות ביצוע ל-9 סוכני AI. המשך מכל השלבים הקודמים.
+        prompt: (biz: string, research: string, answers: any, prev: string, extracted: ReturnType<typeof extractResearchData>) => `שלב 4 מתוך 4 — הנחיות ביצוע ל-9 סוכני AI. אתה מומחה בתפעול סוכני AI לשיווק.
 
-סיכום האסטרטגיה:
-${prev.substring(0, 3000)}
+בוא נחשוב צעד אחר צעד: מה כל סוכן צריך לדעת כדי לפעול עצמאית עבור ${biz}.
 
-כתוב:
+## העסק: ${biz}
+
+## כל שלבי האסטרטגיה הקודמים:
+${prev}
+
+## ממצאי המחקר המלאים:
+${research}
+
+## נתונים ספציפיים:
+
+### מתחרים לניטור:
+${extracted.competitors}
+
+### מילות מפתח לניטור:
+${extracted.keywords}
+
+### ערוצים פעילים:
+${extracted.channels}
+
+---
+
+כתוב הנחיות מפורטות ואקשנאביליות. כל סוכן חייב לקבל הנחיות ספציפיות ל-${biz}, לא גנריות.
+
 ## 11. הנחיות מפורטות ל-9 סוכנים
-לכל סוכן 4-5 שורות:
 
-**מטה (מתאם):** מה מתאם, באיזו תדירות, מה מדווח, מתי מתריע
+**מטה (מתאם):**
+- מה מתאם בין הסוכנים (ספציפי ל-${biz})
+- תדירות תיאום: יומי/שבועי
+- מה מדווח ולמי
+- triggers להתראה דחופה (ספציפי — לא "כשקורה משהו חשוב")
 
-**סייר (מחקר):** אילו אתרים סורק, באיזו תדירות, מה מחפש, trigger לדיווח דחוף
+**סייר (מחקר שוק):**
+- אילו אתרים ספציפיים לסרוק (URLs של מתחרים מהמחקר)
+- תדירות סריקה
+- מה מחפש (שינויי מחיר, פיצ'רים חדשים, תוכן חדש)
+- trigger לדיווח דחוף
 
-**מאתר (SERP):** אילו מילות מפתח עוקב, באיזו תדירות, מה מדווח
+**מאתר (SERP):**
+- אילו מילות מפתח ספציפיות לעקוב (מהמחקר למעלה!)
+- תדירות בדיקה
+- format דיווח: טבלת מיקום שבועית
 
-**מאזין (חברתי):** אילו פלטפורמות מנטר, אילו hashtags/keywords, תדירות
+**מאזין (חברתי):**
+- אילו פלטפורמות ספציפיות
+- אילו hashtags, keywords, accounts לנטר (ספציפי ל-${biz})
+- תדירות סריקה
+- מה נחשב "אזכור חשוב"
 
-**מנתח (ניתוח):** מה מנתח, מודל ניקוד, threshold לפעולה
+**מנתח (ניתוח):**
+- מה מנתח: engagement, reach, conversions, sentiment
+- מודל ניקוד ספציפי (1-10 על מה?)
+- threshold לפעולה (מתי מדווח / מתי פועל עצמאית)
 
-**עט (תוכן):** סוגי תוכן, אורך לכל פלטפורמה, כללי סגנון, de-ai-ify
+**עט (תוכן):**
+- סוגי תוכן ל-${biz} (רשימה ספציפית)
+- אורך לכל פלטפורמה (מספר מילים/תווים)
+- כללי סגנון: טון, מילים לשימוש, מילים להימנע
+- כללי de-ai-ify (איך התוכן נשמע אנושי)
 
-**יוצר (ויזואל):** סוגי ויזואלים, מידות, סגנון, branding
+**יוצר (ויזואל):**
+- סוגי ויזואלים ל-${biz}
+- מידות per platform
+- סגנון: צבעים, פונטים, mood
+- branding guidelines
 
-**שליח (הפצה):** סדר הפצה, שעות, כלל אישור, formatting per platform
+**שליח (הפצה):**
+- סדר הפצה (איזה ערוץ קודם)
+- שעות פרסום peak בישראל per platform
+- כלל אישור: מה דורש אישור אנושי ומה עובר אוטומטי
+- formatting per platform (hashtags, emojis, CTA)
 
-**מגדלור (AEO):** מה בודק, באילו כלי AI, תדירות, format דוח
+**מגדלור (AEO):**
+- מה בודק: נוכחות ב-ChatGPT, Gemini, Perplexity
+- אילו שאילתות ספציפיות ל-${biz}
+- תדירות בדיקה
+- format דוח
 
 ## 12. תוכנית תגובה תחרותית
-- Trigger A: מתחרה מפרסם בעברית → Response + Timeline
-- Trigger B: מתחרה מוריד מחיר → Response + Timeline
-- Trigger C: שחקן חדש → Response + Timeline
+בהתבסס על המתחרים שנמצאו במחקר:
+- **Trigger A**: מתחרה ספציפי (ציין שם) מפרסם בעברית → Response + Timeline
+- **Trigger B**: מתחרה מוריד מחיר / משנה הצעה → Response + Timeline
+- **Trigger C**: שחקן חדש נכנס לשוק → Response + Timeline
 
 ## 13. 3 דברים לעשות השבוע
-- פעולה 1 (ספציפית, עם deadline)
-- פעולה 2
-- פעולה 3
-
-בעברית. אקשנאבילי. ספציפי לעסק.`,
+פעולות ספציפיות, אקשנאביליות, עם deadline:
+- פעולה 1: [מה] + [איך] + [עד מתי]
+- פעולה 2: [מה] + [איך] + [עד מתי]
+- פעולה 3: [מה] + [איך] + [עד מתי]
+${QUALITY_GUARDRAILS}`,
     },
 ]
 
@@ -890,7 +1086,7 @@ export const buildStrategy = async (c: Context) => {
             return fail(c, 'Instance not found or not ready.', 404)
         }
 
-        const { stage: requestedStage } = await c.req.json<{ stage?: number }>().catch(() => ({ stage: undefined }))
+        const { stage: requestedStage, model: requestedModel } = await c.req.json<{ stage?: number; model?: string }>().catch(() => ({ stage: undefined, model: undefined }))
         const rd = (instance.researchData as any) || {}
         if (!rd.stage1 && !rd.report) {
             return fail(c, 'יש להריץ מחקר שוק קודם', 400)
@@ -906,22 +1102,26 @@ export const buildStrategy = async (c: Context) => {
 
         console.log(`Strategy stage ${stage}/4 for ${businessName} via direct API...`)
 
-        // Build research context (compact)
+        // Build FULL research context — no truncation! Sonnet 200K can handle ~27K chars easily
         const researchContext = [
-            rd.stage1 ? rd.stage1.substring(0, 2000) : '',
-            rd.stage2 ? rd.stage2.substring(0, 2000) : '',
-            rd.stage3 ? rd.stage3.substring(0, 2000) : '',
-            rd.stage4 ? rd.stage4.substring(0, 2000) : '',
-        ].filter(Boolean).join('\n---\n')
+            rd.stage1 ? `## שלב 1 — סקירת שוק ומתחרים\n${rd.stage1}` : '',
+            rd.stage2 ? `## שלב 2 — מילות מפתח וSEO\n${rd.stage2}` : '',
+            rd.stage3 ? `## שלב 3 — קהל יעד ופרסונות\n${rd.stage3}` : '',
+            rd.stage4 ? `## שלב 4 — ערוצים ואסטרטגיה\n${rd.stage4}` : '',
+        ].filter(Boolean).join('\n\n---\n\n')
 
-        // Previous strategy stages as context
+        // Extract specific data points for injection into prompts
+        const extracted = extractResearchData(rd)
+
+        // Previous strategy stages — FULL context (no truncation)
         const prevStrategy = [
             rd.strategyStage1 || '',
             rd.strategyStage2 || '',
             rd.strategyStage3 || '',
-        ].filter(Boolean).join('\n\n').substring(0, 3000)
+        ].filter(Boolean).join('\n\n---\n\n')
 
-        const strategyPrompt = stageConfig.prompt(businessName, researchContext, answers, prevStrategy)
+        const strategyPrompt = stageConfig.prompt(businessName, researchContext, answers, prevStrategy, extracted)
+        console.log(`Strategy prompt: ${strategyPrompt.length} chars (research: ${researchContext.length}, prev: ${prevStrategy.length})`)
 
         // DIRECT API CALL — no OpenClaw agent overhead (saves ~22K tokens)
         const apiKey = await getApiKeyForInstance(instanceId)
@@ -929,7 +1129,13 @@ export const buildStrategy = async (c: Context) => {
             return fail(c, 'מפתח API לא מוגדר', 400)
         }
 
-        console.log(`Strategy via direct API (key: ${apiKey.substring(0, 12)}...)`)
+        // Model selection: user can choose opus for higher quality strategy
+        const ALLOWED_MODELS = ['claude-sonnet-4-6', 'claude-opus-4-6']
+        const strategyModel = requestedModel && ALLOWED_MODELS.includes(requestedModel)
+            ? requestedModel
+            : 'claude-sonnet-4-6'
+
+        console.log(`Strategy via direct API — model: ${strategyModel} (key: ${apiKey.substring(0, 12)}...)`)
 
         const res = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
@@ -939,7 +1145,7 @@ export const buildStrategy = async (c: Context) => {
                 'anthropic-version': '2023-06-01',
             },
             body: JSON.stringify({
-                model: 'claude-sonnet-4-6',
+                model: strategyModel,
                 max_tokens: 8192,
                 messages: [{ role: 'user', content: strategyPrompt }],
             }),
@@ -984,15 +1190,50 @@ export const buildStrategy = async (c: Context) => {
             return fail(c, `שלב ${stage} של האסטרטגיה נכשל — נסו שוב`, 500)
         }
 
+        // ── Post-generation validation ──
+        // Check that output references real research data (not hallucinated)
+        const validationWarnings: string[] = []
+
+        // Check if competitor names from research appear in output
+        const competitorNames = extracted.competitors.split('\n')
+            .map(l => l.match(/([A-Za-z\u0590-\u05FF][\w\u0590-\u05FF.-]+(?:\.com|\.io|\.ai|\.co\.il)?)/)?.[1])
+            .filter(Boolean) as string[]
+        if (competitorNames.length > 0) {
+            const mentionedCount = competitorNames.filter(name =>
+                strategy.includes(name)
+            ).length
+            if (mentionedCount === 0 && stage <= 3) {
+                validationWarnings.push(`אזהרה: אף מתחרה מהמחקר לא מוזכר בתוצאה (${competitorNames.slice(0, 3).join(', ')})`)
+            }
+        }
+
+        // Check for hallucination markers (nonsensical Hebrew)
+        if (strategy.match(/מיואם|לורם|איפסום|lorem|ipsum/i)) {
+            validationWarnings.push('אזהרה: נמצא טקסט placeholder/שגוי בתוצאה')
+        }
+
+        // Check KPI realism for stage 1
+        if (stage === 1 && strategy.match(/(\d{3,})\s*(לקוחות|customers|רשומים|sign.?ups)/i)) {
+            const match = strategy.match(/(\d{3,})\s*(לקוחות|customers|רשומים|sign.?ups)/i)
+            if (match && parseInt(match[1]) > 100) {
+                validationWarnings.push(`אזהרה: KPI לא ריאלי — ${match[0]} (עסק חדש בישראל)`)
+            }
+        }
+
+        if (validationWarnings.length > 0) {
+            console.warn(`Strategy stage ${stage} validation warnings:`, validationWarnings)
+        }
+
         // Save stage to DB
         const stageKey = `strategyStage${stage}`
         const updateData: Record<string, unknown> = {
             ...rd,
             [stageKey]: strategy,
             [`${stageKey}GeneratedAt`]: new Date().toISOString(),
+            [`${stageKey}Warnings`]: validationWarnings.length > 0 ? validationWarnings : undefined,
         }
 
-        // If last stage (4) — combine all into full strategy
+        // If last stage (4) — combine all into FULL strategy (no truncation!)
         if (stage === 4) {
             const fullStrategy = [
                 rd.strategyStage1 || '',
@@ -1003,13 +1244,13 @@ export const buildStrategy = async (c: Context) => {
             updateData.strategy = fullStrategy
             updateData.strategyGeneratedAt = new Date().toISOString()
 
-            // Save compact STRATEGY.md on VPS
-            const compact = fullStrategy.substring(0, 4000)
-            const b64 = Buffer.from(compact).toString('base64')
+            // Save FULL STRATEGY.md on VPS (no truncation — full document)
+            const b64 = Buffer.from(fullStrategy).toString('base64')
             await sshExec(instance.ip,
                 `echo ${b64} | base64 -d > /home/openclaw/.openclaw/workspace/STRATEGY.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/STRATEGY.md`,
                 instance.rootPassword || undefined
             )
+            console.log(`Full STRATEGY.md saved to VPS: ${fullStrategy.length} chars`)
         }
 
         await db.update(instances).set({
@@ -1022,6 +1263,7 @@ export const buildStrategy = async (c: Context) => {
             strategy,
             nextStage: stage < 4 ? stage + 1 : null,
             isComplete: stage === 4,
+            warnings: validationWarnings.length > 0 ? validationWarnings : undefined,
         }, `Strategy stage ${stage} complete.`)
     } catch (err) {
         console.error('buildStrategy error:', err)
