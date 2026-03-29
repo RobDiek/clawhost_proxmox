@@ -1153,6 +1153,32 @@ input{font-family:inherit}
 
 </div>
 
+<!-- Research Pipeline Modal -->
+<div class="report-modal-overlay hidden" id="pipelineOverlay" onclick="closePipeline()">
+  <div class="report-modal" onclick="event.stopPropagation()" style="max-width:700px">
+    <div class="report-modal-header">
+      <h3 id="pipelineTitle">מחקר שוק</h3>
+      <button onclick="closePipeline()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#6B7280">&times;</button>
+    </div>
+    <div style="padding:16px 24px;border-bottom:1px solid #E5E7EB">
+      <div style="display:flex;gap:4px;margin-bottom:8px" id="pipelineSteps"></div>
+      <div style="height:4px;background:#E5E7EB;border-radius:2px;overflow:hidden"><div id="pipelineProgress" style="height:100%;background:#2563EB;transition:width .3s;width:0%"></div></div>
+    </div>
+    <div class="report-modal-body" id="pipelineBody" style="min-height:200px">
+      <div style="text-align:center;padding:40px;color:#9CA3AF">טוען...</div>
+    </div>
+    <div style="padding:16px 24px;border-top:1px solid #E5E7EB;display:flex;gap:8px;justify-content:space-between;align-items:center">
+      <div>
+        <textarea id="pipelineFeedback" rows="2" placeholder="הערות או תיקונים לשלב הזה..." style="width:300px;padding:8px 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:0.85rem;font-family:inherit;direction:rtl;resize:none" onfocus="this.style.borderColor='#2563EB'" onblur="this.style.borderColor='#E5E7EB'"></textarea>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="skipToStrategy()" id="pipelineSkipBtn">דלגו לאסטרטגיה →</button>
+        <button class="btn btn-primary btn-sm" onclick="nextPipelineStage()" id="pipelineNextBtn">השלב הבא ←</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Report/Strategy Viewer Modal -->
 <div class="report-modal-overlay hidden" id="reportModalOverlay" onclick="closeReportModal()">
   <div class="report-modal" onclick="event.stopPropagation()">
@@ -2176,38 +2202,121 @@ async function runResearchFromAgent() {
 }
 
 /* ===== Research + Strategy Chain ===== */
+var researchPipelineStage = 0;
+var RESEARCH_STAGES = [
+  { num: 1, name: 'גילוי מתחרים', icon: '🔍', desc: 'הסוכן מחפש מתחרים ומנתח את השוק' },
+  { num: 2, name: 'מילות מפתח', icon: '🔑', desc: 'מחקר מילות מפתח ושאלות נפוצות' },
+  { num: 3, name: 'קהל יעד', icon: '👥', desc: 'ניתוח קהל יעד, כאבים ומוטיבציות' },
+  { num: 4, name: 'ניתוח ערוצים', icon: '📊', desc: 'אילו ערוצים מתאימים + עלויות' },
+];
+
 async function runChainResearch() {
   if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
-  showToast('מריץ מחקר שוק — ייקח 1-2 דקות...', 'success');
 
-  // Update task UI to show loading
-  var researchTask = document.querySelector('[onclick="runChainResearch()"]');
-  if (researchTask) { researchTask.disabled = true; researchTask.innerHTML = '<span style="animation:spin 1s linear infinite;display:inline-block">⚙</span> מחפש...'; }
+  // Open pipeline modal
+  researchPipelineStage = 1;
+  openResearchPipeline();
+  runPipelineStage(1);
+}
+
+function openResearchPipeline() {
+  document.getElementById('pipelineOverlay').classList.remove('hidden');
+  renderPipelineSteps();
+}
+
+function closePipeline() {
+  document.getElementById('pipelineOverlay').classList.add('hidden');
+  refreshInstanceData();
+}
+
+function renderPipelineSteps() {
+  var html = RESEARCH_STAGES.map(function(s) {
+    var cls = s.num < researchPipelineStage ? 'done' : s.num === researchPipelineStage ? 'active' : '';
+    return '<div style="flex:1;text-align:center;padding:6px;border-radius:6px;font-size:0.78rem;' +
+      (cls === 'done' ? 'background:#D1FAE5;color:#10B981' : cls === 'active' ? 'background:#DBEAFE;color:#2563EB;font-weight:600' : 'color:#9CA3AF') +
+      '">' + s.icon + ' ' + s.name + '</div>';
+  }).join('');
+  document.getElementById('pipelineSteps').innerHTML = html;
+  document.getElementById('pipelineProgress').style.width = Math.round((researchPipelineStage - 1) / RESEARCH_STAGES.length * 100) + '%';
+  document.getElementById('pipelineTitle').textContent = 'מחקר שוק — שלב ' + researchPipelineStage + ' מתוך ' + RESEARCH_STAGES.length;
+}
+
+async function runPipelineStage(stage) {
+  researchPipelineStage = stage;
+  renderPipelineSteps();
+
+  var stageInfo = RESEARCH_STAGES[stage - 1];
+  document.getElementById('pipelineBody').innerHTML =
+    '<div style="text-align:center;padding:40px">' +
+    '<div style="font-size:2rem;animation:spin 2s linear infinite;display:inline-block;margin-bottom:12px">⚙️</div>' +
+    '<div style="font-weight:600;font-size:1rem;margin-bottom:4px">' + stageInfo.icon + ' ' + stageInfo.name + '</div>' +
+    '<div style="color:#6B7280;font-size:0.85rem">' + stageInfo.desc + '</div>' +
+    '<div style="color:#9CA3AF;font-size:0.78rem;margin-top:8px">ייקח 1-2 דקות...</div></div>';
+
+  document.getElementById('pipelineNextBtn').disabled = true;
+  document.getElementById('pipelineNextBtn').textContent = 'ממתין...';
+
+  var feedback = document.getElementById('pipelineFeedback').value.trim();
+  document.getElementById('pipelineFeedback').value = '';
 
   try {
-    var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/research', {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/research/stage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({})
+      body: JSON.stringify({ stage: stage, feedback: feedback || undefined })
     });
     var data = await res.json();
-    if (data.success && data.data && data.data.report) {
-      showToast('מחקר שוק הושלם!', 'success');
-      addSystemNotification('success', '✅', 'מחקר שוק הושלם', 'הסוכן חקר את השוק ומצא תובנות. מודל: ' + (data.data.model || 'default'));
-      refreshInstanceData();
-    } else {
-      var msg = data.message || 'שגיאה במחקר';
-      showToast(msg, 'error');
-      if (msg.includes('rate limit')) {
-        addSystemNotification('error', '⚠️', 'מחקר נכשל — rate limit', 'המודל הגיע לגבול השימוש. נסו שוב מאוחר יותר או פנו לתמיכה.');
+
+    if (data.success && data.data && data.data.result) {
+      // Show result
+      var resultHtml = data.data.result
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/^### (.+)$/gm, '<h4>$1</h4>')
+        .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+      document.getElementById('pipelineBody').innerHTML = resultHtml;
+      document.getElementById('pipelineProgress').style.width = Math.round(stage / RESEARCH_STAGES.length * 100) + '%';
+
+      // Update buttons
+      document.getElementById('pipelineNextBtn').disabled = false;
+      if (stage >= RESEARCH_STAGES.length) {
+        document.getElementById('pipelineNextBtn').textContent = 'סיימו → בנו אסטרטגיה';
+        document.getElementById('pipelineNextBtn').onclick = function() { closePipeline(); runChainStrategy(); };
+        document.getElementById('pipelineSkipBtn').style.display = 'none';
       } else {
-        addSystemNotification('error', '⚠️', 'מחקר נכשל', msg);
+        document.getElementById('pipelineNextBtn').textContent = 'השלב הבא ←';
+        document.getElementById('pipelineNextBtn').onclick = function() { nextPipelineStage(); };
       }
+    } else {
+      document.getElementById('pipelineBody').innerHTML =
+        '<div style="text-align:center;padding:40px;color:#EF4444">' +
+        '<div style="font-size:2rem;margin-bottom:8px">⚠️</div>' +
+        '<div>' + (data.message || 'שגיאה בשלב הזה') + '</div></div>';
+      document.getElementById('pipelineNextBtn').disabled = false;
+      document.getElementById('pipelineNextBtn').textContent = 'נסו שוב ←';
+      document.getElementById('pipelineNextBtn').onclick = function() { runPipelineStage(stage); };
     }
   } catch (e) {
-    showToast('שגיאת תקשורת', 'error');
+    document.getElementById('pipelineBody').innerHTML =
+      '<div style="text-align:center;padding:40px;color:#EF4444">שגיאת תקשורת — נסו שוב</div>';
+    document.getElementById('pipelineNextBtn').disabled = false;
+    document.getElementById('pipelineNextBtn').textContent = 'נסו שוב ←';
   }
-  if (researchTask) { researchTask.disabled = false; researchTask.textContent = 'הריצו מחקר ←'; }
+}
+
+function nextPipelineStage() {
+  if (researchPipelineStage < RESEARCH_STAGES.length) {
+    runPipelineStage(researchPipelineStage + 1);
+  }
+}
+
+function skipToStrategy() {
+  closePipeline();
+  // Combine all completed stages into one research report
+  showToast('בונה אסטרטגיה על סמך המחקר שהושלם...', 'success');
+  runChainStrategy();
 }
 
 async function runChainStrategy() {

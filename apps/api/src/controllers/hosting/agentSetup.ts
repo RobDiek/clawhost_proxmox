@@ -273,13 +273,13 @@ async function deployAgentSystem(ip: string, userMd: string, brandMd: string, br
     await sshExec(ip, `chown -R openclaw:openclaw ${baseDir}`, password)
 
     // Install skills
+    // Install research and productivity skills via OpenClaw CLI
     await sshExec(ip, `
-        cd /home/openclaw && su openclaw -c '
-        clawhub install go-to-market 2>/dev/null;
-        clawhub install marketing-strategy-pmm 2>/dev/null;
-        clawhub install brave-search 2>/dev/null;
-        clawhub install de-ai-ify 2>/dev/null;
-        clawhub install image-gen 2>/dev/null;
+        su - openclaw -c '
+        openclaw skills install brave-search 2>/dev/null;
+        openclaw skills install brave-headless 2>/dev/null;
+        openclaw skills install openai-whisper-api 2>/dev/null;
+        openclaw skills install brainz-calendar 2>/dev/null;
         ' || true
     `, password)
 
@@ -889,6 +889,156 @@ export const buildStrategy = async (c: Context) => {
     } catch (err) {
         console.error('buildStrategy error:', err)
         return fail(c, 'Strategy failed.', 500)
+    }
+}
+
+// ── POST /hosting/instances/:id/setup/agents/research/stage ──
+// Multi-stage research pipeline with user checkpoints
+export const researchStage = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const { stage, feedback } = await c.req.json<{ stage: number; feedback?: string }>()
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+
+        if (!instance?.ip) return fail(c, 'Instance not found.', 404)
+
+        const rd = (instance.researchData as any) || {}
+        const answers = rd.answers || {}
+        const businessName = answers.businessName || 'העסק'
+        const businessDesc = answers.businessDescription || ''
+
+        // Determine which agent and prompt based on stage
+        let agentId = 'sayer'
+        let prompt = ''
+        let minLength = 1000
+
+        if (stage === 1) {
+            // DISCOVERY — find competitors
+            agentId = 'sayer'
+            prompt = `משימת גילוי מתחרים עבור "${businessName}" (${businessDesc}).
+
+חפש באינטרנט (השתמש ב-web search ובדפדפן):
+1. מצא 5 מתחרים ישירים. לכל אחד: שם, URL, מה עושים, מחיר אם נראה, חוזקות, חולשות
+2. חפש את "${businessName}" עצמו — מה קיים עליו באינטרנט?
+3. מהם הטרנדים העיקריים בתחום?
+${answers.competitors ? `המשתמש ציין מתחרים: ${answers.competitors}` : ''}
+${feedback ? `הערות המשתמש: ${feedback}` : ''}
+
+כתוב הכל כאן בתשובה — לא בקובץ. בעברית.`
+            minLength = 1500
+        } else if (stage === 2) {
+            // KEYWORD RESEARCH
+            agentId = 'sayer'
+            prompt = `משימת מחקר מילות מפתח עבור "${businessName}".
+
+קרא את תוצאות שלב 1 (מתחרים) מ-RESEARCH_STAGE1.md.
+
+חפש באינטרנט:
+1. 15 מילות מפתח רלוונטיות (עברית + אנגלית)
+2. לכל מילה: כוונת חיפוש (מסחרית/מידעית), תחרות משוערת, עדיפות
+3. שאלות נפוצות שאנשים שואלים בתחום (5-10)
+4. long-tail keywords (5-10)
+${answers.platforms ? `פלטפורמות: ${answers.platforms}` : ''}
+${feedback ? `הערות המשתמש: ${feedback}` : ''}
+
+כתוב הכל כאן. בעברית.`
+            minLength = 1000
+        } else if (stage === 3) {
+            // AUDIENCE RESEARCH
+            agentId = 'sayer'
+            prompt = `משימת מחקר קהל יעד עבור "${businessName}".
+
+קרא RESEARCH_STAGE1.md ו-RESEARCH_STAGE2.md.
+
+חפש באינטרנט (Reddit, פורומים, רשתות חברתיות):
+1. איפה קהל היעד מדבר על ${businessDesc}?
+2. מהם הכאבים העיקריים? (5+)
+3. מה אנשים משבחים/מתלוננים?
+4. בנה 2-3 פרסונות מפורטות: שם, גיל, תפקיד, כאבים, מוטיבציות, איפה אונליין
+${answers.targetAudience ? `קהל יעד שצוין: ${answers.targetAudience}` : ''}
+${feedback ? `הערות המשתמש: ${feedback}` : ''}
+
+כתוב הכל כאן. בעברית.`
+            minLength = 1000
+        } else if (stage === 4) {
+            // CHANNEL ANALYSIS
+            agentId = 'menateach'
+            prompt = `משימת ניתוח ערוצים עבור "${businessName}".
+
+קרא את כל קבצי RESEARCH_STAGE*.md.
+
+נתח:
+1. אילו ערוצים מתאימים ביותר על סמך הקהל + המתחרים?
+2. לכל ערוץ: עלות משוערת, ROI צפוי, תדירות מומלצת
+3. פאנל שיווק: awareness → consideration → conversion → retention
+4. מה עושים ראשון? סדר עדיפויות
+${answers.budget ? `תקציב: ${answers.budget}` : ''}
+${answers.marketingGoals ? `מטרות: ${answers.marketingGoals}` : ''}
+${feedback ? `הערות המשתמש: ${feedback}` : ''}
+
+כתוב הכל כאן. בעברית.`
+            minLength = 1000
+        } else {
+            return fail(c, 'Invalid stage (1-4)', 400)
+        }
+
+        const model = await getSubAgentModel(instanceId, agentId === 'menateach' ? 'menateach' : 'sayer')
+        console.log(`Research stage ${stage} for ${businessName}, agent: ${agentId}, model: ${model}`)
+
+        const b64Prompt = Buffer.from(prompt).toString('base64')
+        const sessionId = `research-s${stage}-${Date.now()}`
+
+        const output = await sshExec(instance.ip,
+            `su - openclaw -c 'timeout 180 openclaw agent --agent ${agentId} --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
+            instance.rootPassword || undefined
+        )
+
+        let result = ''
+        try {
+            const agentResult = JSON.parse(output)
+            result = agentResult?.result?.payloads?.[0]?.text || ''
+        } catch {
+            result = output
+        }
+
+        // Fallback: check if agent saved to file
+        if (result.length < minLength && (result.includes('.md') || result.includes('שמורה'))) {
+            try {
+                const fileContent = await sshExec(instance.ip,
+                    `cat /home/openclaw/.openclaw/workspace/RESEARCH_STAGE${stage}.md 2>/dev/null || echo ""`,
+                    instance.rootPassword || undefined
+                )
+                if (fileContent.length > minLength) result = fileContent
+            } catch {}
+        }
+
+        if (!result || result.length < 500) {
+            return fail(c, `שלב ${stage} נכשל — נסו שוב`, 500)
+        }
+
+        // Save stage result to VPS for next stages to read
+        const b64Result = Buffer.from(result).toString('base64')
+        await sshExec(instance.ip,
+            `echo ${b64Result} | base64 -d > /home/openclaw/.openclaw/workspace/RESEARCH_STAGE${stage}.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/RESEARCH_STAGE${stage}.md`,
+            instance.rootPassword || undefined
+        )
+
+        // Save to DB
+        const stageKey = `stage${stage}`
+        await db.update(instances).set({
+            researchData: { ...rd, [stageKey]: result, [`${stageKey}GeneratedAt`]: new Date().toISOString() } as any,
+        }).where(eq(instances.id, instanceId))
+
+        console.log(`Research stage ${stage} complete: ${result.length} chars`)
+        return ok(c, {
+            stage,
+            result,
+            nextStage: stage < 4 ? stage + 1 : null,
+            model,
+        }, `Stage ${stage} complete.`)
+    } catch (err) {
+        console.error('researchStage error:', err)
+        return fail(c, `שלב המחקר נכשל`, 500)
     }
 }
 

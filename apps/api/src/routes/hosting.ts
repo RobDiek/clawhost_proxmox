@@ -26,6 +26,7 @@ import {
     analyzeAnswers,
     runResearch,
     buildStrategy,
+    researchStage,
     readFile,
     writeFile,
     listFiles,
@@ -74,6 +75,7 @@ app.post('/instances/:id/setup/agents', setupAgents)
 app.post('/instances/:id/setup/agents/analyze', analyzeAnswers)
 app.post('/instances/:id/setup/agents/research', runResearch)
 app.post('/instances/:id/setup/agents/strategy', buildStrategy)
+app.post('/instances/:id/setup/agents/research/stage', researchStage)
 
 // ── Files ──
 app.get('/instances/:id/files', readFile)
