@@ -364,17 +364,33 @@ input{font-family:inherit}
 .cal-view-btn.active { background:#2563EB; color:#fff; border-color:#2563EB; }
 .cal-grid { display:grid; grid-template-columns:repeat(7, 1fr); }
 .cal-day-header { padding:8px 4px; text-align:center; font-size:0.72rem; font-weight:600; color:#9CA3AF; border-bottom:1px solid #F3F4F6; }
-.cal-cell { min-height:80px; padding:4px; border-left:1px solid #F3F4F6; border-bottom:1px solid #F3F4F6; position:relative; }
+.cal-cell { min-height:56px; padding:3px; border-left:1px solid #F3F4F6; border-bottom:1px solid #F3F4F6; position:relative; }
 .cal-cell:first-child { border-left:none; }
-.cal-cell-date { font-size:0.72rem; color:#9CA3AF; padding:2px 4px; }
+.cal-cell-date { font-size:0.7rem; color:#9CA3AF; padding:1px 4px; }
 .cal-cell-date.today { background:#2563EB; color:#fff; border-radius:4px; font-weight:600; }
 .cal-cell-date.other-month { color:#D1D5DB; }
-.cal-event { font-size:0.7rem; padding:2px 6px; border-radius:4px; margin-top:2px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cal-event { font-size:0.68rem; padding:1px 5px; border-radius:4px; margin-top:1px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cal-event:hover { opacity:0.85; }
 .cal-event.planned { background:#DBEAFE; color:#1E40AF; }
 .cal-event.ready { background:#FEF3C7; color:#92400E; }
 .cal-event.published { background:#D1FAE5; color:#065F46; }
 .cal-event.brief { background:#EDE9FE; color:#5B21B6; }
-@media(max-width:768px) { .cal-cell { min-height:50px; } .cal-event { font-size:0.6rem; } }
+@media(max-width:768px) { .cal-cell { min-height:44px; } .cal-event { font-size:0.6rem; } }
+
+/* ===== Task Detail Popup ===== */
+.task-popup-overlay { position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:400; display:flex; align-items:center; justify-content:center; padding:20px; animation:fadeIn .15s ease; }
+.task-popup { background:#fff; border-radius:14px; width:100%; max-width:480px; box-shadow:0 16px 48px rgba(0,0,0,.15); animation:slideUp .2s ease; }
+.task-popup-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #F3F4F6; }
+.task-popup-header h3 { font-size:1rem; font-weight:700; margin:0; }
+.task-popup-close { background:none; border:none; color:#9CA3AF; cursor:pointer; font-size:1.1rem; padding:4px; }
+.task-popup-close:hover { color:#374151; }
+.task-popup-body { padding:20px; }
+.task-popup-field { margin-bottom:14px; }
+.task-popup-label { font-size:0.75rem; font-weight:600; color:#9CA3AF; margin-bottom:4px; }
+.task-popup-value { font-size:0.88rem; color:#1F2937; line-height:1.5; }
+.task-popup-status-row { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+.task-popup-footer { display:flex; gap:8px; justify-content:flex-end; padding:14px 20px; border-top:1px solid #F3F4F6; }
+@keyframes slideUp { from { transform:translateY(12px); opacity:0; } to { transform:translateY(0); opacity:1; } }
 
 /* Report/Strategy viewer modal */
 .report-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:300; display:flex; align-items:center; justify-content:center; padding:20px; }
@@ -1654,7 +1670,9 @@ function renderNotifications() {
   var notifs = getNotifications();
 
   if (notifs.length === 0) {
-    el.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:16px;font-size:0.85rem;background:#F9FAFB;border-radius:10px">אין עדכונים חדשים ✓</div>';
+    el.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:32px 16px;font-size:0.85rem;background:#fff;border:1px solid #E5E7EB;border-radius:12px">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="1.5" style="width:32px;height:32px;margin-bottom:8px"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>' +
+      '<div>אין עדכונים חדשים</div></div>';
     return;
   }
 
@@ -1901,6 +1919,7 @@ function renderApprovalQueue() {
     return;
   }
 
+  currentTasksCache = tasks;
   var awaitingCount = tasks.filter(function(t) { return t.status === 'awaiting'; }).length;
   if (counterEl) counterEl.textContent = awaitingCount > 0 ? awaitingCount + ' ממתינים לאישור' : '';
 
@@ -1918,12 +1937,11 @@ function renderApprovalQueue() {
         '<button class="aq-btn reject" onclick="event.stopPropagation();rejectTask(\'' + t.id + '\')">דחו</button>' +
       '</div>';
     }
-    return '<div class="aq-item" onclick="toggleTaskExpand(this)">' +
+    return '<div class="aq-item" onclick="openTaskPopup(\'' + t.id + '\')">' +
       '<div class="aq-icon ' + iconClass + '">' + (statusIcons[t.status] || statusIcons.pending) + '</div>' +
       '<div class="aq-body">' +
         '<div class="aq-title">' + t.title + '</div>' +
         '<div class="aq-agent">' + t.agent + '</div>' +
-        '<div class="aq-preview">' + (t.preview || '') + actionsHtml + '</div>' +
       '</div>' +
       '<div class="aq-meta">' +
         '<span class="aq-status ' + iconClass + '">' + (statusLabels[t.status] || t.status) + '</span>' +
@@ -1944,6 +1962,121 @@ var showAllTasksMode = false;
 function showAllTasks() {
   showAllTasksMode = true;
   renderApprovalQueue();
+}
+
+/* ===== Task Detail Popup ===== */
+var currentTasksCache = [];
+
+function openTaskPopup(taskId) {
+  var task = currentTasksCache.find(function(t) { return t.id === taskId; });
+  if (!task) return;
+
+  var statusLabelsPopup = {
+    planned: 'מתוכנן', pending: 'בביצוע', awaiting: 'ממתין לאישור', approved: 'אושר', published: 'פורסם'
+  };
+  var statusClass = task.status === 'planned' ? 'pending' : task.status;
+
+  document.getElementById('taskPopupTitle').textContent = task.title;
+
+  var bodyHtml = '<div class="task-popup-status-row">' +
+    '<span class="aq-status ' + statusClass + '" style="font-size:0.8rem;padding:3px 10px">' + (statusLabelsPopup[task.status] || task.status) + '</span>' +
+    '<span style="font-size:0.78rem;color:#9CA3AF">סוכן: ' + task.agent + '</span>' +
+  '</div>';
+
+  if (task.preview) {
+    bodyHtml += '<div class="task-popup-field">' +
+      '<div class="task-popup-label">תוכן</div>' +
+      '<div class="task-popup-value" style="background:#F9FAFB;padding:12px;border-radius:8px;border:1px solid #F3F4F6">' + task.preview + '</div>' +
+    '</div>';
+  }
+
+  if (task.type === 'brief') {
+    bodyHtml += '<div class="task-popup-field">' +
+      '<div class="task-popup-label">סוג</div>' +
+      '<div class="task-popup-value">סיכום יומי אוטומטי — נשלח בטלגרם כל בוקר בימים א-ה</div>' +
+    '</div>';
+  }
+
+  if (task.type === 'content') {
+    bodyHtml += '<div class="task-popup-field">' +
+      '<div class="task-popup-label">סוג</div>' +
+      '<div class="task-popup-value">תוכן מתוכנן מהאסטרטגיה — ייכתב ע"י סוכן עט</div>' +
+    '</div>';
+  }
+
+  if (task.type === 'report') {
+    bodyHtml += '<div class="task-popup-field">' +
+      '<div class="task-popup-label">סוג</div>' +
+      '<div class="task-popup-value">דוח שבועי — ניתוח מתחרים, הזדמנויות, הצעות תוכן</div>' +
+    '</div>';
+  }
+
+  document.getElementById('taskPopupBody').innerHTML = bodyHtml;
+
+  // Footer actions
+  var footerHtml = '';
+  if (task.status === 'awaiting') {
+    footerHtml = '<button class="aq-btn reject" onclick="rejectTask(\'' + task.id + '\');closeTaskPopup()">דחו</button>' +
+      '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\');closeTaskPopup()">תקנו</button>' +
+      '<button class="aq-btn approve" onclick="approveTask(\'' + task.id + '\');closeTaskPopup()">אשרו ←</button>';
+  } else if (task.status === 'planned') {
+    footerHtml = '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
+  } else {
+    footerHtml = '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
+  }
+  document.getElementById('taskPopupFooter').innerHTML = footerHtml;
+
+  document.getElementById('taskPopupOverlay').classList.remove('hidden');
+}
+
+function openCalendarEventPopup(title, type, date) {
+  // Build a lightweight task object for the popup
+  var task = {
+    id: 'cal-' + date + '-' + type,
+    title: title,
+    agent: type === 'brief' ? 'מטה' : type === 'planned' ? 'עט' : 'מערכת',
+    type: type,
+    status: type === 'brief' ? 'published' : type === 'published' ? 'published' : 'planned',
+    preview: ''
+  };
+
+  if (type === 'brief') {
+    task.preview = 'סיכום פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות';
+  }
+
+  var dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+  var d = new Date(date);
+  var dayName = dayNames[d.getDay()];
+
+  document.getElementById('taskPopupTitle').textContent = title;
+
+  var statusClass = task.status === 'planned' ? 'pending' : task.status;
+  var statusLabelsPopup = { planned: 'מתוכנן', published: 'פורסם' };
+
+  var bodyHtml = '<div class="task-popup-status-row">' +
+    '<span class="aq-status ' + statusClass + '" style="font-size:0.8rem;padding:3px 10px">' + (statusLabelsPopup[task.status] || task.status) + '</span>' +
+    '<span style="font-size:0.78rem;color:#9CA3AF">יום ' + dayName + ' · ' + d.getDate() + '/' + (d.getMonth() + 1) + '</span>' +
+  '</div>';
+
+  bodyHtml += '<div class="task-popup-field">' +
+    '<div class="task-popup-label">סוכן אחראי</div>' +
+    '<div class="task-popup-value">' + task.agent + '</div>' +
+  '</div>';
+
+  if (task.preview) {
+    bodyHtml += '<div class="task-popup-field">' +
+      '<div class="task-popup-label">תוכן</div>' +
+      '<div class="task-popup-value" style="background:#F9FAFB;padding:12px;border-radius:8px;border:1px solid #F3F4F6">' + task.preview + '</div>' +
+    '</div>';
+  }
+
+  document.getElementById('taskPopupBody').innerHTML = bodyHtml;
+  document.getElementById('taskPopupFooter').innerHTML = '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
+  document.getElementById('taskPopupOverlay').classList.remove('hidden');
+}
+
+function closeTaskPopup() {
+  document.getElementById('taskPopupOverlay').classList.add('hidden');
 }
 
 function toggleTaskExpand(el) {
@@ -2028,7 +2161,7 @@ function renderContentCalendar() {
     html += '<div class="cal-cell-date' + (isToday ? ' today' : '') + '">' + day.getDate() + '</div>';
 
     dayEvents.forEach(function(ev) {
-      html += '<div class="cal-event ' + ev.type + '" title="' + ev.title + '">' + ev.title + '</div>';
+      html += '<div class="cal-event ' + ev.type + '" title="' + ev.title + '" onclick="openCalendarEventPopup(\'' + ev.title.replace(/'/g, "\\'") + '\',\'' + ev.type + '\',\'' + dayStr + '\')">' + ev.title + '</div>';
     });
 
     html += '</div>';
@@ -4059,6 +4192,18 @@ function showToast(msg, type) {
       <button id="cf-modal-ok" style="padding:10px 24px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit">אישור</button>
       <button id="cf-modal-cancel" style="padding:10px 24px;background:#F3F4F6;color:#374151;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;font-family:inherit">ביטול</button>
     </div>
+  </div>
+</div>
+
+<!-- Task Detail Popup -->
+<div class="task-popup-overlay hidden" id="taskPopupOverlay" onclick="if(event.target===this)closeTaskPopup()">
+  <div class="task-popup">
+    <div class="task-popup-header">
+      <h3 id="taskPopupTitle"></h3>
+      <button class="task-popup-close" onclick="closeTaskPopup()">✕</button>
+    </div>
+    <div class="task-popup-body" id="taskPopupBody"></div>
+    <div class="task-popup-footer" id="taskPopupFooter"></div>
   </div>
 </div>
 
