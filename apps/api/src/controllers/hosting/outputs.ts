@@ -2,7 +2,7 @@ import type { Context } from 'hono'
 import type { HonoEnv } from '@/ts/Types'
 import { db } from '@/db'
 import { agentOutputs, instances } from '@/db/schema'
-import { eq, and, desc, inArray } from 'drizzle-orm'
+import { eq, and, ne, desc, inArray } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
 import { randomBytes } from 'crypto'
 
@@ -53,9 +53,13 @@ export const getOutputs = async (c: Context<HonoEnv>) => {
         const status = c.req.query('status') // optional: 'pending_review', 'approved', 'published', 'rejected'
         const limit = parseInt(c.req.query('limit') || '50')
 
+        const excludeArchived = c.req.query('exclude_archived') === '1'
+
         const conditions = [eq(agentOutputs.instanceId, instanceId)]
         if (status) {
             conditions.push(eq(agentOutputs.status, status))
+        } else if (excludeArchived) {
+            conditions.push(ne(agentOutputs.status, 'archived'))
         }
 
         const results = await db.select()

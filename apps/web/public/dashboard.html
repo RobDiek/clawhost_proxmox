@@ -1980,7 +1980,7 @@ function renderApprovalQueue() {
   if (!el || !instanceId) return;
 
   // Fetch real outputs from API
-  var filterParam = aqFilterStatus ? '&status=' + aqFilterStatus : '';
+  var filterParam = aqFilterStatus ? '&status=' + aqFilterStatus : '&exclude_archived=1';
   fetch(API + '/hosting/instances/' + instanceId + '/outputs?limit=20' + filterParam, {
     headers: { 'Authorization': 'Bearer ' + token }
   }).then(function(r) { return r.ok ? r.json() : null; })
@@ -2422,9 +2422,10 @@ function renderTaskPopup(task) {
       '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\')">תקנו</button>' +
       '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()">אשרו ←</button>';
   } else if (task.status === 'approved') {
+    var isReport = task.type === 'daily_brief' || task.type === 'weekly_report' || task.type === 'aeo_audit' || task.type === 'competitive_scan';
     footerHtml = '<button class="aq-btn reject" onclick="apiArchiveOutput(\'' + task.id + '\');closeTaskPopup()">ארכיון</button>' +
       '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>' +
-      '<button class="aq-btn approve" onclick="apiPublishOutput(\'' + task.id + '\');closeTaskPopup()">פרסמו ←</button>';
+      (isReport ? '' : '<button class="aq-btn approve" onclick="apiPublishOutput(\'' + task.id + '\');closeTaskPopup()">פרסמו ←</button>');
   } else if (task.status === 'archived') {
     footerHtml = '<button class="aq-btn reject" onclick="apiDeleteOutput(\'' + task.id + '\');closeTaskPopup()">מחקו לצמיתות</button>' +
       '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
