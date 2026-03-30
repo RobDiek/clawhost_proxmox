@@ -619,8 +619,20 @@ input{font-family:inherit}
 
     <!-- Row 1: Tasks + Notifications (2 columns on desktop) -->
     <div class="home-top-grid">
-      <!-- Column 1: משימות הגדרה -->
-      <div id="homeTasks"></div>
+      <!-- Column 1: משימות הגדרה + משימות פעילות -->
+      <div>
+        <div id="homeTasks"></div>
+        <div id="approvalQueueWrapper" style="margin-top:16px">
+          <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
+            <span style="display:flex;align-items:center;gap:6px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+              משימות פעילות
+            </span>
+            <span id="aqCounter" style="font-size:0.75rem;color:#9CA3AF"></span>
+          </div>
+          <div class="approval-queue" id="approvalQueue"></div>
+        </div>
+      </div>
 
       <!-- Column 2: עדכונים והמלצות -->
       <div id="homeNotifications">
@@ -632,25 +644,7 @@ input{font-family:inherit}
       </div>
     </div>
 
-    <!-- Row 2: משימות פעילות (Approval Queue) + לוח תוכן (Calendar) -->
-    <div style="margin-top:24px">
-      <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
-        <span style="display:flex;align-items:center;gap:6px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-          משימות פעילות
-        </span>
-        <span id="aqCounter" style="font-size:0.75rem;color:#9CA3AF"></span>
-      </div>
-      <div class="approval-queue" id="approvalQueue">
-        <div class="aq-empty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-          <div>אין משימות פעילות כרגע</div>
-          <div style="font-size:0.78rem;margin-top:4px">הסוכנים יתחילו לעבוד לפי האסטרטגיה</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Row 3: לוח תוכן (Content Calendar) -->
+    <!-- Row 2: לוח תוכן (Content Calendar) -->
     <div style="margin-top:24px">
       <div class="section-title" style="display:flex;align-items:center;gap:6px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -1910,7 +1904,11 @@ function renderApprovalQueue() {
   var awaitingCount = tasks.filter(function(t) { return t.status === 'awaiting'; }).length;
   if (counterEl) counterEl.textContent = awaitingCount > 0 ? awaitingCount + ' ממתינים לאישור' : '';
 
-  el.innerHTML = tasks.map(function(t) {
+  var MAX_VISIBLE = showAllTasksMode ? tasks.length : 4;
+  var visibleTasks = tasks.slice(0, MAX_VISIBLE);
+  var hiddenCount = tasks.length - MAX_VISIBLE;
+
+  var html = visibleTasks.map(function(t) {
     var iconClass = t.status === 'planned' ? 'pending' : t.status;
     var actionsHtml = '';
     if (t.status === 'awaiting') {
@@ -1932,6 +1930,20 @@ function renderApprovalQueue() {
       '</div>' +
     '</div>';
   }).join('');
+
+  if (hiddenCount > 0) {
+    html += '<div style="text-align:center;padding:10px;border-top:1px solid #F3F4F6">' +
+      '<button onclick="showAllTasks()" style="font-size:0.78rem;color:#2563EB;background:none;border:none;cursor:pointer;font-weight:500">הצגו עוד ' + hiddenCount + ' משימות ←</button>' +
+    '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+var showAllTasksMode = false;
+function showAllTasks() {
+  showAllTasksMode = true;
+  renderApprovalQueue();
 }
 
 function toggleTaskExpand(el) {
