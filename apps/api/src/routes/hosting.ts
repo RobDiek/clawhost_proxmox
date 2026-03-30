@@ -41,7 +41,14 @@ import {
     googleAuth,
     googleCallback,
     googleDisconnect,
-    googleStatus
+    googleStatus,
+    getOutputs,
+    getOutput,
+    ingestOutput,
+    approveOutput,
+    rejectOutput,
+    editOutput,
+    publishOutput
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -97,6 +104,15 @@ app.get('/integrations/google/auth', googleAuth)
 app.get('/integrations/google/callback', googleCallback)
 app.post('/integrations/google/disconnect', googleDisconnect)
 app.get('/integrations/google/status', googleStatus)
+
+// ── Agent Outputs (approval queue) ──
+app.get('/instances/:id/outputs', getOutputs)
+app.get('/instances/:id/outputs/:outputId', getOutput)
+app.post('/instances/:id/outputs/ingest', ingestOutput)
+app.patch('/instances/:id/outputs/:outputId/approve', approveOutput)
+app.patch('/instances/:id/outputs/:outputId/reject', rejectOutput)
+app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
+app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)
 
 // ── Admin ──
 app.get('/admin/instances', adminGetInstances)

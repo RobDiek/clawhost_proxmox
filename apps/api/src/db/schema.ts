@@ -7,7 +7,8 @@ import {
     decimal,
     jsonb,
     index,
-    unique
+    unique,
+    uuid
 } from 'drizzle-orm/pg-core'
 import { userRole } from '@openclaw/shared'
 
@@ -332,5 +333,53 @@ export const instanceAddons = pgTable(
     },
     (table) => [
         index('instance_addons_instance_id_idx').on(table.instanceId)
+    ]
+)
+
+// ── Agent Outputs (approval queue) ──
+export const agentOutputs = pgTable(
+    'agent_outputs',
+    {
+        id: text('id').primaryKey(), // randomBytes(6).toString('hex')
+        instanceId: text('instance_id')
+            .notNull()
+            .references(() => instances.id, { onDelete: 'cascade' }),
+
+        // What
+        agentRole: text('agent_role').notNull(),    // 'sayer', 'et', 'yotzer', 'mateh', etc.
+        outputType: text('output_type').notNull(),  // 'daily_brief', 'weekly_report', 'content_post', 'media_image', 'aeo_audit'
+        title: text('title').notNull(),
+        content: text('content'),                   // Main text (markdown)
+
+        // Media
+        mediaUrl: text('media_url'),                // URL to image/video on VPS or CDN
+        mediaType: text('media_type'),              // 'image/png', 'video/mp4', etc.
+        mediaMeta: jsonb('media_meta'),              // { width, height, alt_text }
+
+        // Context
+        platform: text('platform'),                 // 'instagram', 'linkedin', 'blog', 'telegram'
+        scheduledFor: timestamp('scheduled_for', { withTimezone: true }),
+        metadata: jsonb('metadata'),                // { model, tokens, duration, session_id, pillar }
+
+        // Workflow
+        status: text('status').notNull().default('pending_review'),
+        // pending_review → approved → published | rejected
+        editedContent: text('edited_content'),      // User's edit (original preserved)
+        rejectionReason: text('rejection_reason'),
+        approvedAt: timestamp('approved_at', { withTimezone: true }),
+        publishedAt: timestamp('published_at', { withTimezone: true }),
+        approvedBy: text('approved_by'),
+
+        createdAt: timestamp('created_at', { withTimezone: true })
+            .defaultNow()
+            .notNull(),
+        updatedAt: timestamp('updated_at', { withTimezone: true })
+            .defaultNow()
+            .notNull()
+    },
+    (table) => [
+        index('agent_outputs_instance_idx').on(table.instanceId),
+        index('agent_outputs_status_idx').on(table.instanceId, table.status),
+        index('agent_outputs_scheduled_idx').on(table.instanceId, table.scheduledFor)
     ]
 )
