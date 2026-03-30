@@ -284,53 +284,120 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
 
         const content = output.editedContent || output.content || ''
         const platform = output.platform || 'telegram'
-        const publishResults: Record<string, string> = {}
+        let publishSuccess = false
+        let publishError = ''
+        let publishErrorType: 'missing_integration' | 'api_error' | 'network_error' | '' = ''
 
         // ── Telegram publish ──
-        const telegramChatId = await ensureTelegramChatId(instance)
-        if (platform === 'telegram' && instance.telegramBotToken && telegramChatId) {
-            try {
-                const tgRes = await fetch(`https://api.telegram.org/bot${instance.telegramBotToken}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: telegramChatId,
-                        text: content.substring(0, 4096), // Telegram limit
-                        parse_mode: 'Markdown',
-                    }),
-                })
-                const tgData = await tgRes.json() as { ok?: boolean; description?: string }
-                if (tgData.ok) {
-                    publishResults.telegram = 'sent'
-                    console.log(`Published to Telegram: output ${outputId}`)
+        if (platform === 'telegram') {
+            if (!instance.telegramBotToken) {
+                publishError = 'בוט Telegram לא מחובר. חברו בוט בהגדרות תוספים → ערוצי תקשורת → Telegram.'
+                publishErrorType = 'missing_integration'
+            } else {
+                const telegramChatId = await ensureTelegramChatId(instance)
+                if (!telegramChatId) {
+                    publishError = 'Chat ID לא נמצא. שלחו /start לבוט @' + (instance.telegramBotToken ? 'הבוט שלכם' : '') + ' ונסו שוב.'
+                    publishErrorType = 'missing_integration'
                 } else {
-                    publishResults.telegram = `error: ${tgData.description || 'unknown'}`
-                    console.error(`Telegram publish failed:`, tgData.description)
+                    try {
+                        const tgRes = await fetch(`https://api.telegram.org/bot${instance.telegramBotToken}/sendMessage`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: telegramChatId,
+                                text: content.substring(0, 4096),
+                                parse_mode: 'Markdown',
+                            }),
+                        })
+                        const tgData = await tgRes.json() as { ok?: boolean; description?: string }
+                        if (tgData.ok) {
+                            publishSuccess = true
+                        } else {
+                            publishError = `Telegram API: ${tgData.description || 'unknown error'}`
+                            publishErrorType = 'api_error'
+                        }
+                    } catch (tgErr) {
+                        publishError = `שגיאת רשת: ${String(tgErr).substring(0, 100)}`
+                        publishErrorType = 'network_error'
+                    }
                 }
-            } catch (tgErr) {
-                publishResults.telegram = 'error: network'
-                console.error(`Telegram publish error:`, tgErr)
             }
         }
 
-        // TODO: Instagram, LinkedIn, Twitter, WordPress publish handlers
+        // ── Instagram publish ──
+        else if (platform === 'instagram') {
+            publishError = 'Instagram לא מחובר. חברו בהגדרות תוספים → ערוצי פרסום → Instagram.'
+            publishErrorType = 'missing_integration'
+            // TODO: implement Meta Graph API publish
+        }
 
-        // Update status
-        const [updated] = await db.update(agentOutputs)
-            .set({
-                status: 'published',
-                publishedAt: new Date(),
-                updatedAt: new Date(),
-                metadata: {
-                    ...(output.metadata as Record<string, unknown> || {}),
-                    publishResults,
-                },
-            })
-            .where(eq(agentOutputs.id, outputId))
-            .returning()
+        // ── LinkedIn publish ──
+        else if (platform === 'linkedin') {
+            publishError = 'LinkedIn לא מחובר. חברו בהגדרות תוספים → ערוצי פרסום → LinkedIn.'
+            publishErrorType = 'missing_integration'
+            // TODO: implement LinkedIn API publish
+        }
 
-        console.log(`Output ${outputId} published to ${platform}:`, publishResults)
-        return ok(c, { ...updated, publishResults }, 'Output published')
+        // ── Facebook publish ──
+        else if (platform === 'facebook') {
+            publishError = 'Facebook לא מחובר. חברו בהגדרות תוספים → ערוצי פרסום → Facebook.'
+            publishErrorType = 'missing_integration'
+            // TODO: implement Meta Graph API publish
+        }
+
+        // ── Twitter/X publish ──
+        else if (platform === 'twitter') {
+            publishError = 'Twitter/X לא מחובר. חברו בהגדרות תוספים → ערוצי פרסום → Twitter/X.'
+            publishErrorType = 'missing_integration'
+            // TODO: implement X API publish
+        }
+
+        // ── Blog/WordPress publish ──
+        else if (platform === 'blog') {
+            publishError = 'בלוג WordPress לא מחובר. חברו בהגדרות תוספים → ערוצי פרסום → בלוג.'
+            publishErrorType = 'missing_integration'
+            // TODO: implement WordPress REST API publish
+        }
+
+        // ── Unknown platform ──
+        else {
+            publishError = `ערוץ "${platform}" לא נתמך כרגע.`
+            publishErrorType = 'missing_integration'
+        }
+
+        // Update status based on result
+        const existingMeta = (output.metadata as Record<string, unknown>) || {}
+
+        if (publishSuccess) {
+            const [updated] = await db.update(agentOutputs)
+                .set({
+                    status: 'published',
+                    publishedAt: new Date(),
+                    updatedAt: new Date(),
+                    metadata: { ...existingMeta, publishedTo: platform, publishedAt: new Date().toISOString() },
+                })
+                .where(eq(agentOutputs.id, outputId))
+                .returning()
+
+            console.log(`Output ${outputId} published to ${platform}`)
+            return ok(c, updated, 'פורסם בהצלחה!')
+        } else {
+            // Save failure info but keep status as approved (recoverable)
+            await db.update(agentOutputs)
+                .set({
+                    updatedAt: new Date(),
+                    metadata: {
+                        ...existingMeta,
+                        lastPublishError: publishError,
+                        lastPublishErrorType: publishErrorType,
+                        lastPublishAttempt: new Date().toISOString(),
+                    },
+                })
+                .where(eq(agentOutputs.id, outputId))
+
+            console.error(`Publish failed for ${outputId}: ${publishError}`)
+            return fail(c, publishError, 422)
+        }
     } catch (err) {
         console.error('publishOutput error:', err)
         return fail(c, 'Failed to publish', 500)
