@@ -208,19 +208,49 @@ export const setupTelegram = async (c: Context) => {
         // Restart gateway to pick up channel config
         await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
 
-        // Save telegram token in our DB
+        // Auto-detect chat_id: temporarily remove webhook, poll for /start message
+        let chatId: string | null = null
+        try {
+            // Delete webhook so getUpdates works
+            await fetch(`https://api.telegram.org/bot${sanitizedToken}/deleteWebhook`)
+            await new Promise(r => setTimeout(r, 1000))
+
+            // Poll for recent messages (user should have sent /start)
+            const updatesRes = await fetch(`https://api.telegram.org/bot${sanitizedToken}/getUpdates?limit=10&timeout=1`)
+            const updatesData = await updatesRes.json() as { ok?: boolean; result?: Array<{ message?: { chat?: { id?: number }; text?: string } }> }
+
+            if (updatesData.ok && updatesData.result) {
+                // Find the most recent /start or any message
+                for (const update of updatesData.result.reverse()) {
+                    if (update.message?.chat?.id) {
+                        chatId = String(update.message.chat.id)
+                        console.log(`Auto-detected Telegram chat_id: ${chatId}`)
+                        break
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Chat ID auto-detect failed:', e)
+        }
+
+        // Restart gateway will re-register webhook via OpenClaw
+        await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
+        await new Promise(r => setTimeout(r, 3000))
+
+        // Save telegram token + chat_id in our DB
         // For MATEH users, onboarding continues with research wizard
         const components = (instance.selectedComponents as string[]) || []
         const hasMATEH = components.includes('mt')
         await db.update(instances)
             .set({
                 telegramBotToken: botToken,
+                telegramChatId: chatId,
                 onboardingStep: 3,
                 onboardingCompleted: !hasMATEH
             })
             .where(eq(instances.id, instanceId))
 
-        return ok(c, null, 'Telegram connected.')
+        return ok(c, { chatId: chatId ? 'detected' : 'pending' }, 'Telegram connected.' + (chatId ? '' : ' שלחו /start לבוט כדי להפעיל פרסום.'))
     } catch (err) {
         console.error('setupTelegram error:', err)
         return fail(c, 'Failed to connect Telegram.', 500)

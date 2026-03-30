@@ -6,6 +6,43 @@ import { eq, and, desc, inArray } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
 import { randomBytes } from 'crypto'
 
+// ── Helper: ensure chat_id is set for Telegram publishing ──
+async function ensureTelegramChatId(instance: any): Promise<string | null> {
+    if (instance.telegramChatId) return instance.telegramChatId
+
+    // Try to detect chat_id from bot's recent messages
+    if (!instance.telegramBotToken) return null
+
+    try {
+        // Temporarily remove webhook to use getUpdates
+        await fetch(`https://api.telegram.org/bot${instance.telegramBotToken}/deleteWebhook`)
+        await new Promise(r => setTimeout(r, 500))
+
+        const res = await fetch(`https://api.telegram.org/bot${instance.telegramBotToken}/getUpdates?limit=5`)
+        const data = await res.json() as { ok?: boolean; result?: Array<{ message?: { chat?: { id?: number } } }> }
+
+        if (data.ok && data.result) {
+            for (const update of data.result.reverse()) {
+                if (update.message?.chat?.id) {
+                    const chatId = String(update.message.chat.id)
+
+                    // Save to DB for future use
+                    await db.update(instances)
+                        .set({ telegramChatId: chatId })
+                        .where(eq(instances.id, instance.id))
+
+                    console.log(`Auto-saved Telegram chat_id ${chatId} for instance ${instance.id}`)
+                    return chatId
+                }
+            }
+        }
+    } catch (e) {
+        console.error('ensureTelegramChatId error:', e)
+    }
+
+    return null
+}
+
 const generateId = () => randomBytes(6).toString('hex')
 
 // ── GET /hosting/instances/:id/outputs ──
@@ -209,13 +246,14 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
         const publishResults: Record<string, string> = {}
 
         // ── Telegram publish ──
-        if (platform === 'telegram' && instance.telegramBotToken && instance.telegramChatId) {
+        const telegramChatId = await ensureTelegramChatId(instance)
+        if (platform === 'telegram' && instance.telegramBotToken && telegramChatId) {
             try {
                 const tgRes = await fetch(`https://api.telegram.org/bot${instance.telegramBotToken}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        chat_id: instance.telegramChatId,
+                        chat_id: telegramChatId,
                         text: content.substring(0, 4096), // Telegram limit
                         parse_mode: 'Markdown',
                     }),
