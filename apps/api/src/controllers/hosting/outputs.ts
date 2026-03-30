@@ -6,6 +6,31 @@ import { eq, and, ne, desc, inArray } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
 import { randomBytes } from 'crypto'
 import { createCampaign, type CampaignPlan, type GoogleTokens } from '@/services/googleAds'
+import { Client } from 'ssh2'
+import { readFileSync } from 'fs'
+
+const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
+
+function sshExecForPublish(ip: string, command: string, password?: string): Promise<string> {
+    return new Promise((resolve) => {
+        const conn = new Client()
+        let output = ''
+        const timeout = setTimeout(() => { conn.end(); resolve('') }, 15000)
+        conn.on('ready', () => {
+            conn.exec(command, (err, stream) => {
+                if (err) { clearTimeout(timeout); conn.end(); return resolve('') }
+                stream.on('data', (d: Buffer) => { output += d.toString() })
+                stream.stderr.on('data', (d: Buffer) => { output += d.toString() })
+                stream.on('close', () => { clearTimeout(timeout); conn.end(); resolve(output.trim()) })
+            })
+        })
+        .on('error', () => { clearTimeout(timeout); resolve('') })
+        const opts: Record<string, unknown> = { host: ip, port: 22, username: 'root', readyTimeout: 10000 }
+        if (password) opts.password = password
+        try { opts.privateKey = readFileSync(SSH_KEY_PATH) } catch { }
+        conn.connect(opts)
+    })
+}
 
 // ── Helper: ensure chat_id is set for Telegram publishing ──
 async function ensureTelegramChatId(instance: any): Promise<string | null> {
@@ -354,10 +379,66 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
         }
 
         // ── Blog/WordPress publish ──
-        else if (platform === 'blog') {
-            publishError = 'בלוג WordPress לא מחובר. חברו בהגדרות תוספים → ערוצי פרסום → בלוג.'
-            publishErrorType = 'missing_integration'
-            // TODO: implement WordPress REST API publish
+        else if (platform === 'blog' || platform === 'wordpress') {
+            // Read WordPress config from VPS
+            try {
+                const wpConfigRaw = await sshExecForPublish(instance.ip,
+                    `cat /home/openclaw/.openclaw/skills-config/wordpress.json 2>/dev/null`,
+                    instance.rootPassword || undefined
+                )
+
+                if (!wpConfigRaw || wpConfigRaw.trim().length < 10) {
+                    publishError = 'WordPress לא מחובר. חברו בהגדרות תוספים → ערוצי פרסום → WordPress.'
+                    publishErrorType = 'missing_integration'
+                } else {
+                    const wpConfig = JSON.parse(wpConfigRaw) as { url: string; user: string; appPassword: string }
+                    if (!wpConfig.url || !wpConfig.user || !wpConfig.appPassword) {
+                        publishError = 'הגדרות WordPress חסרות. בדקו URL, שם משתמש ו-Application Password.'
+                        publishErrorType = 'missing_integration'
+                    } else {
+                        // WordPress REST API — create post
+                        const wpUrl = wpConfig.url.replace(/\/$/, '')
+                        const auth = Buffer.from(`${wpConfig.user}:${wpConfig.appPassword}`).toString('base64')
+
+                        // Convert markdown content to HTML (basic)
+                        let htmlContent = content
+                            .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                            .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                            .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+                            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                            .replace(/\n\n/g, '</p><p>')
+                            .replace(/\n/g, '<br>')
+                        htmlContent = '<p>' + htmlContent + '</p>'
+
+                        const wpRes = await fetch(`${wpUrl}/wp-json/wp/v2/posts`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Basic ${auth}`,
+                            },
+                            body: JSON.stringify({
+                                title: output.title,
+                                content: htmlContent,
+                                status: 'draft', // publish as draft — user reviews in WP
+                            }),
+                        })
+
+                        if (wpRes.ok) {
+                            const wpData = await wpRes.json() as { id?: number; link?: string }
+                            publishSuccess = true
+                            console.log(`Published to WordPress: post ${wpData.id} at ${wpData.link}`)
+                        } else {
+                            const wpErr = await wpRes.text()
+                            publishError = `WordPress API (${wpRes.status}): ${wpErr.substring(0, 150)}`
+                            publishErrorType = 'api_error'
+                        }
+                    }
+                }
+            } catch (wpErr) {
+                publishError = `WordPress: ${String(wpErr).substring(0, 150)}`
+                publishErrorType = 'api_error'
+            }
         }
 
         // ── Google Ads campaign creation ──
