@@ -44,6 +44,8 @@ const SCOPE_MAP: Record<string, string> = {
     drive: 'https://www.googleapis.com/auth/drive.readonly',
     gmail: 'https://www.googleapis.com/auth/gmail.send',
     sheets: 'https://www.googleapis.com/auth/spreadsheets',
+    youtube: 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube',
+    ads: 'https://www.googleapis.com/auth/adwords',
 }
 
 // ── GET /integrations/google/auth ──
