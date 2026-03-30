@@ -173,6 +173,12 @@ export const metaCallback = async (c: Context) => {
 
         console.log(`Meta connected for ${instanceId}: ${pages.length} pages, ${adAccounts.length} ad accounts, IG: ${instagramAccountId || 'none'}`)
 
+        // Sync channel status to VPS
+        try {
+            const { syncChannelsToVPS } = await import('@/services/channelSync')
+            syncChannelsToVPS(instanceId).catch(() => {})
+        } catch {}
+
         return c.redirect('/dashboard?meta_connected=1')
     } catch (err) {
         console.error('metaCallback error:', err)

@@ -404,6 +404,12 @@ export const saveIntegration = async (c: Context) => {
             }
         }
 
+        // Sync channel status to VPS after any integration change
+        try {
+            const { syncChannelsToVPS } = await import('@/services/channelSync')
+            syncChannelsToVPS(instanceId).catch(() => {})
+        } catch {}
+
         return ok(c, { type }, 'Integration saved.')
     } catch (err) {
         console.error('saveIntegration error:', err)
