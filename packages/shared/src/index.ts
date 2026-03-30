@@ -10,7 +10,9 @@ import userRole from './userRole'
 
 export type { ApiEnvelope, RequestOptions, RequestConfig } from './types'
 export type { PlanInfo, ComponentInfo } from './plans'
+export type { ModelDef } from './models'
 export { calcPlan, calcTotal, PLANS, COMPONENTS, ADDONS, INSTALLMENTS } from './plans'
+export { MODEL_REGISTRY, AGENT_DEFAULT_MODELS, STRATEGY_MODELS, getModel, getFallbackModel, getFallbackChain, getModelsByProvider, toOpenClawFormat } from './models'
 
 export {
     RequestClient,

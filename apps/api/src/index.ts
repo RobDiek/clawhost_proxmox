@@ -51,3 +51,7 @@ setupTerminalServer(server as Server)
 // Start agent output sync service (polls VPS every 5 min)
 import { startOutputSync } from '@/services/outputSync'
 startOutputSync()
+
+// Start model health monitor (checks every 6 hours)
+import { startModelMonitor } from '@/services/modelMonitor'
+startModelMonitor()

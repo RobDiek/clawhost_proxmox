@@ -128,6 +128,13 @@ app.get('/integrations/meta/callback', metaCallback)
 app.post('/instances/:id/integrations/meta/disconnect', metaDisconnect)
 app.get('/integrations/meta/status', metaStatus)
 
+// ── Model Health ──
+app.get('/models/health', async (c) => {
+    const { getModelHealth } = await import('@/services/modelMonitor')
+    const { ok } = await import('@/lib/response')
+    return ok(c, getModelHealth())
+})
+
 // ── Admin ──
 app.get('/admin/instances', adminGetInstances)
 app.get('/admin/revenue', adminGetRevenue)
