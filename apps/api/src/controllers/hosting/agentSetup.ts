@@ -352,31 +352,34 @@ EOFPAIR
     await sshExec(ip, 'systemctl restart openclaw-gateway', password)
     await new Promise(r => setTimeout(r, 4000))
 
-    // Register sub-agents — detect available provider from VPS env
+    // Register sub-agents with correct models per role
+    // Uses model registry: sayer=opus, et=sonnet, menateach=opus
+    // Falls back to OpenAI models if Anthropic not available
     await sshExec(ip, `
         su - openclaw -c '
         # Detect which AI provider is available
         HAS_ANTHROPIC=$(grep -c ANTHROPIC_API_KEY /etc/systemd/system/openclaw-gateway.service 2>/dev/null || echo 0)
-        HAS_OPENAI=$(grep -c OPENAI_API_KEY /etc/systemd/system/openclaw-gateway.service 2>/dev/null || echo 0)
 
         if [ "$HAS_ANTHROPIC" -gt 0 ]; then
-          MODEL="anthropic/claude-sonnet-4-6"
-        elif [ "$HAS_OPENAI" -gt 0 ]; then
-          MODEL="openai/gpt-4o"
+          SAYER_MODEL="anthropic/claude-opus-4-6"
+          MENATEACH_MODEL="anthropic/claude-opus-4-6"
+          ET_MODEL="anthropic/claude-sonnet-4-6"
         else
-          MODEL="anthropic/claude-sonnet-4-6"
+          SAYER_MODEL="openai/gpt-4o"
+          MENATEACH_MODEL="openai/gpt-4o"
+          ET_MODEL="openai/gpt-4o"
         fi
 
         AGENTS=$(openclaw agents list --json 2>/dev/null | node -e "try{const d=JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf-8\"));console.log(d.map(a=>a.name).join(\",\"))}catch(e){}" 2>/dev/null)
 
         if ! echo "$AGENTS" | grep -q "sayer"; then
-          openclaw agents add sayer --model "$MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/sayer --non-interactive 2>/dev/null
+          openclaw agents add sayer --model "$SAYER_MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/sayer --non-interactive 2>/dev/null
         fi
         if ! echo "$AGENTS" | grep -q "menateach"; then
-          openclaw agents add menateach --model "$MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/menateach --non-interactive 2>/dev/null
+          openclaw agents add menateach --model "$MENATEACH_MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/menateach --non-interactive 2>/dev/null
         fi
         if ! echo "$AGENTS" | grep -q "et"; then
-          openclaw agents add et --model "$MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/et --non-interactive 2>/dev/null
+          openclaw agents add et --model "$ET_MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/et --non-interactive 2>/dev/null
         fi
         '
     `, password)
