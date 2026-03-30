@@ -291,7 +291,7 @@ async function syncInstance(instance: {
                             sessionFile: filePath,
                             syncedAt: new Date().toISOString(),
                         },
-                        status: classification.outputType === 'daily_brief' ? 'published' : 'pending_review',
+                        status: (classification.outputType === 'daily_brief' || classification.outputType === 'weekly_report' || classification.outputType === 'aeo_audit') ? 'approved' : 'pending_review',
                     })
 
                     ingested++

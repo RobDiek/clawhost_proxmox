@@ -2078,9 +2078,9 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
         '<div class="aq-title">' + t.title + '</div>' +
         '<div class="aq-agent">' + t.agent + '</div>' +
       '</div>' +
-      '<div class="aq-meta" style="text-align:left">' +
+      '<div class="aq-meta" style="display:flex;align-items:center;gap:8px">' +
+        '<span style="font-size:0.68rem;color:#C0C5CE">' + getChannelLabel(t) + '</span>' +
         '<span class="aq-status ' + iconClass + '">' + (statusLabels[t.status] || t.status) + '</span>' +
-        '<div style="font-size:0.68rem;color:#C0C5CE;margin-top:3px">' + getChannelLabel(t) + '</div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -2542,7 +2542,53 @@ function approveTask(taskId) {
 }
 
 function editTask(taskId) {
-  showToast('פתיחת עריכה...', 'info');
+  var task = currentTasksCache.find(function(t) { return t.id === taskId; });
+  if (!task) return;
+
+  document.getElementById('taskPopupTitle').textContent = 'תיקון — ' + task.title;
+
+  var currentContent = task.editedContent || task.content || '';
+  var bodyHtml = '<div class="task-popup-field">' +
+    '<div class="task-popup-label">הערות או תיקונים</div>' +
+    '<textarea id="editTaskComment" style="width:100%;min-height:80px;padding:10px;border:1px solid #E5E7EB;border-radius:8px;font-size:0.85rem;resize:vertical;font-family:inherit" placeholder="מה לתקן? למשל: שנו את הטון, הוסיפו hashtag, קצרו את הטקסט..."></textarea>' +
+  '</div>' +
+  '<div class="task-popup-field">' +
+    '<div class="task-popup-label">תוכן נוכחי (ניתן לערוך ישירות)</div>' +
+    '<textarea id="editTaskContent" style="width:100%;min-height:150px;padding:10px;border:1px solid #E5E7EB;border-radius:8px;font-size:0.82rem;resize:vertical;font-family:inherit;line-height:1.5;direction:rtl">' + currentContent.replace(/</g, '&lt;') + '</textarea>' +
+  '</div>';
+
+  document.getElementById('taskPopupBody').innerHTML = bodyHtml;
+  document.getElementById('taskPopupFooter').innerHTML =
+    '<button class="aq-btn edit" onclick="closeTaskPopup()">ביטול</button>' +
+    '<button class="aq-btn approve" onclick="submitTaskEdit(\'' + taskId + '\')">שמרו תיקון ←</button>';
+
+  document.getElementById('taskPopupOverlay').classList.remove('hidden');
+}
+
+function submitTaskEdit(taskId) {
+  var comment = document.getElementById('editTaskComment').value.trim();
+  var editedContent = document.getElementById('editTaskContent').value.trim();
+
+  if (!editedContent && !comment) {
+    showToast('כתבו הערה או תקנו את התוכן', 'error');
+    return;
+  }
+
+  fetch(API + '/hosting/instances/' + instanceId + '/outputs/' + taskId + '/edit', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({
+      content: editedContent,
+      comment: comment
+    })
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) {
+      showToast('התיקון נשמר', 'success');
+      closeTaskPopup();
+      renderApprovalQueue();
+    } else showToast(d.message || 'שגיאה', 'error');
+  }).catch(function() { showToast('שגיאת תקשורת', 'error'); });
 }
 
 function rejectTask(taskId) {

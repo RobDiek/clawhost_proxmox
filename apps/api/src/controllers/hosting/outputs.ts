@@ -198,19 +198,31 @@ export const rejectOutput = async (c: Context<HonoEnv>) => {
 export const editOutput = async (c: Context<HonoEnv>) => {
     try {
         const outputId = c.req.param('outputId')
-        const { content } = await c.req.json<{ content: string }>()
+        const { content, comment } = await c.req.json<{ content?: string; comment?: string }>()
 
-        if (!content) return fail(c, 'Content is required', 400)
+        if (!content && !comment) return fail(c, 'Content or comment is required', 400)
+
+        const [existing] = await db.select().from(agentOutputs).where(eq(agentOutputs.id, outputId))
+        if (!existing) return fail(c, 'Output not found', 404)
+
+        const existingMeta = (existing.metadata as Record<string, unknown>) || {}
+        const editHistory = (existingMeta.editHistory as Array<unknown>) || []
+        editHistory.push({
+            comment: comment || null,
+            editedAt: new Date().toISOString(),
+            previousContent: existing.editedContent || existing.content,
+        })
 
         const [updated] = await db.update(agentOutputs)
             .set({
-                editedContent: content,
+                editedContent: content || existing.editedContent || existing.content,
+                metadata: { ...existingMeta, editHistory, lastComment: comment },
                 updatedAt: new Date(),
             })
             .where(eq(agentOutputs.id, outputId))
             .returning()
 
-        if (!updated) return fail(c, 'Output not found', 404)
+        console.log(`Output ${outputId} edited${comment ? ': ' + comment.substring(0, 50) : ''}`)
         return ok(c, updated, 'Output edited')
     } catch (err) {
         console.error('editOutput error:', err)
