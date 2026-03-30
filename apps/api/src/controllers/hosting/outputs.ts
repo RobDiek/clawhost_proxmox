@@ -495,6 +495,72 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
             }
         }
 
+        // ── Newsletter (Resend) ──
+        else if (platform === 'newsletter' || platform === 'email') {
+            try {
+                const resendConfigRaw = await sshExecForPublish(instance.ip,
+                    `cat /home/openclaw/.openclaw/skills-config/resend.json 2>/dev/null`,
+                    instance.rootPassword || undefined
+                )
+
+                if (!resendConfigRaw || resendConfigRaw.trim().length < 5) {
+                    publishError = 'Resend לא מחובר. הגדירו API key בהגדרות תוספים → ערוצי תקשורת → Resend.'
+                    publishErrorType = 'missing_integration'
+                } else {
+                    const resendConfig = JSON.parse(resendConfigRaw) as { apiKey: string }
+                    if (!resendConfig.apiKey) {
+                        publishError = 'Resend API key חסר.'
+                        publishErrorType = 'missing_integration'
+                    } else {
+                        // Build email HTML from content
+                        let htmlBody = content
+                            .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                            .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/\n\n/g, '</p><p>')
+                            .replace(/\n/g, '<br>')
+                        htmlBody = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;direction:rtl;text-align:right"><p>${htmlBody}</p></div>`
+
+                        const meta = (output.metadata as Record<string, unknown>) || {}
+                        const recipients = (meta.recipients as string[]) || []
+                        const fromEmail = (meta.fromEmail as string) || 'newsletter@flowmatic.co.il'
+                        const fromName = (meta.fromName as string) || 'ClawFlow'
+
+                        if (recipients.length === 0) {
+                            publishError = 'אין נמענים לניוזלטר. הוסיפו רשימת אימיילים.'
+                            publishErrorType = 'missing_integration'
+                        } else {
+                            const resendRes = await fetch('https://api.resend.com/emails', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${resendConfig.apiKey}`,
+                                },
+                                body: JSON.stringify({
+                                    from: `${fromName} <${fromEmail}>`,
+                                    to: recipients,
+                                    subject: output.title,
+                                    html: htmlBody,
+                                }),
+                            })
+
+                            if (resendRes.ok) {
+                                publishSuccess = true
+                                console.log(`Newsletter sent via Resend: ${recipients.length} recipients`)
+                            } else {
+                                const resendErr = await resendRes.text()
+                                publishError = `Resend API (${resendRes.status}): ${resendErr.substring(0, 150)}`
+                                publishErrorType = 'api_error'
+                            }
+                        }
+                    }
+                }
+            } catch (nlErr) {
+                publishError = `Newsletter: ${String(nlErr).substring(0, 150)}`
+                publishErrorType = 'api_error'
+            }
+        }
+
         // ── Unknown platform ──
         else {
             publishError = `ערוץ "${platform}" לא נתמך כרגע.`
