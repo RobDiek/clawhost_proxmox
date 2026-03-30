@@ -1488,7 +1488,8 @@ function renderHeader() {
 function renderHome() {
   // Greeting
   var name = localStorage.getItem('cf_user_name') || email.split('@')[0] || '';
-  document.getElementById('greetingText').textContent = 'שלום, ' + name;
+  var greetEl = document.getElementById('greetingText');
+  if (greetEl) greetEl.textContent = 'שלום, ' + name;
 
   // Wait for data before rendering (prevent showing wrong state)
   if (!dataLoaded || !instanceData) {
