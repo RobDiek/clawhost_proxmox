@@ -223,7 +223,32 @@ export const editOutput = async (c: Context<HonoEnv>) => {
             .returning()
 
         console.log(`Output ${outputId} edited${comment ? ': ' + comment.substring(0, 50) : ''}`)
-        return ok(c, updated, 'Output edited')
+
+        // If comment provided, trigger agent re-generation
+        if (comment && existing.agentRole) {
+            // Queue a revision request — will be picked up by revision service
+            const revisionId = generateId()
+            await db.insert(agentOutputs).values({
+                id: revisionId,
+                instanceId: existing.instanceId,
+                agentRole: existing.agentRole,
+                outputType: existing.outputType,
+                title: '(תיקון) ' + existing.title,
+                content: null, // Will be filled by agent
+                platform: existing.platform,
+                scheduledFor: existing.scheduledFor,
+                metadata: {
+                    revisionOf: outputId,
+                    revisionComment: comment,
+                    originalContent: existing.editedContent || existing.content,
+                    status: 'revision_pending',
+                },
+                status: 'pending_review',
+            })
+            console.log(`Revision ${revisionId} queued for output ${outputId}: ${comment.substring(0, 50)}`)
+        }
+
+        return ok(c, updated, comment ? 'התיקון נשלח לסוכן — גרסה חדשה תופיע בקרוב' : 'Output edited')
     } catch (err) {
         console.error('editOutput error:', err)
         return fail(c, 'Failed to edit', 500)
@@ -305,5 +330,47 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
     } catch (err) {
         console.error('publishOutput error:', err)
         return fail(c, 'Failed to publish', 500)
+    }
+}
+
+// ── PATCH /hosting/instances/:id/outputs/:outputId/archive ──
+export const archiveOutput = async (c: Context<HonoEnv>) => {
+    try {
+        const outputId = c.req.param('outputId')
+
+        const [updated] = await db.update(agentOutputs)
+            .set({
+                status: 'archived',
+                updatedAt: new Date(),
+            })
+            .where(eq(agentOutputs.id, outputId))
+            .returning()
+
+        if (!updated) return fail(c, 'Output not found', 404)
+        return ok(c, updated, 'Output archived')
+    } catch (err) {
+        console.error('archiveOutput error:', err)
+        return fail(c, 'Failed to archive', 500)
+    }
+}
+
+// ── DELETE /hosting/instances/:id/outputs/:outputId ──
+export const deleteOutput = async (c: Context<HonoEnv>) => {
+    try {
+        const outputId = c.req.param('outputId')
+
+        // Only allow deleting archived outputs
+        const [existing] = await db.select()
+            .from(agentOutputs)
+            .where(eq(agentOutputs.id, outputId))
+
+        if (!existing) return fail(c, 'Output not found', 404)
+        if (existing.status !== 'archived') return fail(c, 'ניתן למחוק רק פריטים בארכיון', 400)
+
+        await db.delete(agentOutputs).where(eq(agentOutputs.id, outputId))
+        return ok(c, null, 'Output deleted')
+    } catch (err) {
+        console.error('deleteOutput error:', err)
+        return fail(c, 'Failed to delete', 500)
     }
 }

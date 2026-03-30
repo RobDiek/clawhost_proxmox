@@ -48,7 +48,9 @@ import {
     approveOutput,
     rejectOutput,
     editOutput,
-    publishOutput
+    publishOutput,
+    archiveOutput,
+    deleteOutput
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -113,6 +115,8 @@ app.patch('/instances/:id/outputs/:outputId/approve', approveOutput)
 app.patch('/instances/:id/outputs/:outputId/reject', rejectOutput)
 app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
 app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)
+app.patch('/instances/:id/outputs/:outputId/archive', archiveOutput)
+app.delete('/instances/:id/outputs/:outputId', deleteOutput)
 
 // ── Admin ──
 app.get('/admin/instances', adminGetInstances)

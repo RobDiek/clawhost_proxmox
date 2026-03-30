@@ -329,6 +329,10 @@ input{font-family:inherit}
 .aq-icon.approved { background:#D1FAE5; color:#10B981; }
 .aq-icon.published { background:#EDE9FE; color:#7C3AED; }
 .aq-icon.error { background:#FEE2E2; color:#EF4444; }
+.aq-icon.archived { background:#F3F4F6; color:#9CA3AF; }
+.aq-icon.rejected { background:#FEE2E2; color:#EF4444; }
+.aq-status.archived { background:#F3F4F6; color:#6B7280; }
+.aq-status.rejected { background:#FEE2E2; color:#991B1B; }
 .aq-body { flex:1; min-width:0; }
 .aq-title { font-weight:600; font-size:0.88rem; color:#1F2937; }
 .aq-agent { font-size:0.75rem; color:#9CA3AF; margin-top:2px; }
@@ -350,6 +354,11 @@ input{font-family:inherit}
 .aq-btn.reject:hover { background:#FECACA; }
 .aq-empty { text-align:center; padding:32px 16px; color:#9CA3AF; font-size:0.85rem; }
 .aq-empty svg { width:40px; height:40px; color:#D1D5DB; margin-bottom:8px; }
+.aq-filter { font-size:0.72rem; padding:3px 10px; border-radius:6px; border:1px solid #E5E7EB; background:#fff; color:#6B7280; cursor:pointer; font-weight:500; }
+.aq-filter:hover { background:#F9FAFB; }
+.aq-filter.active { background:#2563EB; color:#fff; border-color:#2563EB; }
+.aq-archive-btn { background:none; border:none; color:#D1D5DB; cursor:pointer; font-size:0.75rem; padding:2px 4px; margin-right:4px; }
+.aq-archive-btn:hover { color:#9CA3AF; }
 
 /* ===== Content Calendar (לוח תוכן) ===== */
 .content-calendar { background:#fff; border:1px solid #E5E7EB; border-radius:12px; overflow:hidden; }
@@ -643,6 +652,13 @@ input{font-family:inherit}
               משימות פעילות
             </span>
             <span id="aqCounter" style="font-size:0.75rem;color:#9CA3AF"></span>
+          </div>
+          <div id="aqFilters" style="display:flex;gap:4px;margin-bottom:8px">
+            <button class="aq-filter active" data-filter="" onclick="setAqFilter('')">הכל</button>
+            <button class="aq-filter" data-filter="pending_review" onclick="setAqFilter('pending_review')">ממתינים</button>
+            <button class="aq-filter" data-filter="approved" onclick="setAqFilter('approved')">אושרו</button>
+            <button class="aq-filter" data-filter="published" onclick="setAqFilter('published')">פורסמו</button>
+            <button class="aq-filter" data-filter="archived" onclick="setAqFilter('archived')">ארכיון</button>
           </div>
           <div class="approval-queue" id="approvalQueue"></div>
         </div>
@@ -1964,7 +1980,8 @@ function renderApprovalQueue() {
   if (!el || !instanceId) return;
 
   // Fetch real outputs from API
-  fetch(API + '/hosting/instances/' + instanceId + '/outputs?limit=20', {
+  var filterParam = aqFilterStatus ? '&status=' + aqFilterStatus : '';
+  fetch(API + '/hosting/instances/' + instanceId + '/outputs?limit=20' + filterParam, {
     headers: { 'Authorization': 'Bearer ' + token }
   }).then(function(r) { return r.ok ? r.json() : null; })
   .then(function(d) {
@@ -2043,7 +2060,9 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
     pending: 'בביצוע',
     awaiting: 'ממתין לאישור',
     approved: 'אושר',
-    published: 'פורסם'
+    published: 'פורסם',
+    archived: 'ארכיון',
+    rejected: 'נדחה'
   };
 
   if (tasks.length === 0) {
@@ -2078,9 +2097,12 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
         '<div class="aq-title">' + t.title + '</div>' +
         '<div class="aq-agent">' + t.agent + '</div>' +
       '</div>' +
-      '<div class="aq-meta" style="display:flex;align-items:center;gap:8px">' +
+      '<div class="aq-meta" style="display:flex;align-items:center;gap:6px">' +
         '<span style="font-size:0.68rem;color:#C0C5CE">' + getChannelLabel(t) + '</span>' +
         '<span class="aq-status ' + iconClass + '">' + (statusLabels[t.status] || t.status) + '</span>' +
+        (t.status === 'archived'
+          ? '<button class="aq-archive-btn" onclick="event.stopPropagation();apiDeleteOutput(\'' + t.id + '\')" title="מחקו לצמיתות">🗑</button>'
+          : '<button class="aq-archive-btn" onclick="event.stopPropagation();apiArchiveOutput(\'' + t.id + '\')" title="העבירו לארכיון">✕</button>') +
       '</div>' +
     '</div>';
   }).join('');
@@ -2095,9 +2117,44 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
 }
 
 var showAllTasksMode = false;
+var aqFilterStatus = ''; // '' = all
+
 function showAllTasks() {
   showAllTasksMode = true;
   renderApprovalQueue();
+}
+
+function setAqFilter(status) {
+  aqFilterStatus = status;
+  showAllTasksMode = false;
+  // Update active button
+  document.querySelectorAll('.aq-filter').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-filter') === status);
+  });
+  renderApprovalQueue();
+}
+
+function apiArchiveOutput(outputId) {
+  fetch(API + '/hosting/instances/' + instanceId + '/outputs/' + outputId + '/archive', {
+    method: 'PATCH',
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) { showToast('הועבר לארכיון', 'info'); renderApprovalQueue(); }
+    else showToast(d.message || 'שגיאה', 'error');
+  }).catch(function() { showToast('שגיאת תקשורת', 'error'); });
+}
+
+function apiDeleteOutput(outputId) {
+  if (!confirm('למחוק לצמיתות?')) return;
+  fetch(API + '/hosting/instances/' + instanceId + '/outputs/' + outputId, {
+    method: 'DELETE',
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) { showToast('נמחק', 'info'); renderApprovalQueue(); }
+    else showToast(d.message || 'שגיאה', 'error');
+  }).catch(function() { showToast('שגיאת תקשורת', 'error'); });
 }
 
 /* ===== Task Detail Popup ===== */
@@ -2128,7 +2185,7 @@ function openCalendarEventPopup(title, type, date) {
 function renderTaskPopup(task) {
   var statusLabelsPopup = {
     planned: 'מתוכנן', pending: 'בביצוע', awaiting: 'ממתין לאישור',
-    approved: 'אושר', published: 'פורסם', rejected: 'נדחה', pending_review: 'ממתין לאישור'
+    approved: 'אושר', published: 'פורסם', rejected: 'נדחה', pending_review: 'ממתין לאישור', archived: 'ארכיון'
   };
   var statusClass = task.status === 'planned' ? 'pending' : task.status === 'pending_review' ? 'awaiting' : task.status;
 
@@ -2360,14 +2417,20 @@ function renderTaskPopup(task) {
   // ── Footer actions based on status ──
   var footerHtml = '';
   if (task.status === 'awaiting' || task.status === 'pending_review') {
-    footerHtml = '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()">דחו</button>' +
-      '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\');closeTaskPopup()">תקנו</button>' +
+    footerHtml = '<button class="aq-btn reject" onclick="apiArchiveOutput(\'' + task.id + '\');closeTaskPopup()">ארכיון</button>' +
+      '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()">דחו</button>' +
+      '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\')">תקנו</button>' +
       '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()">אשרו ←</button>';
   } else if (task.status === 'approved') {
-    footerHtml = '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>' +
+    footerHtml = '<button class="aq-btn reject" onclick="apiArchiveOutput(\'' + task.id + '\');closeTaskPopup()">ארכיון</button>' +
+      '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>' +
       '<button class="aq-btn approve" onclick="apiPublishOutput(\'' + task.id + '\');closeTaskPopup()">פרסמו ←</button>';
+  } else if (task.status === 'archived') {
+    footerHtml = '<button class="aq-btn reject" onclick="apiDeleteOutput(\'' + task.id + '\');closeTaskPopup()">מחקו לצמיתות</button>' +
+      '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
   } else {
-    footerHtml = '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
+    footerHtml = '<button class="aq-btn reject" onclick="apiArchiveOutput(\'' + task.id + '\');closeTaskPopup()">ארכיון</button>' +
+      '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
   }
   document.getElementById('taskPopupFooter').innerHTML = footerHtml;
   document.getElementById('taskPopupOverlay').classList.remove('hidden');
