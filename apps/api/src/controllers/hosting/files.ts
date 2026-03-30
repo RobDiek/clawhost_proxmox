@@ -324,6 +324,7 @@ export const saveIntegration = async (c: Context) => {
             ollama: `cd /home/openclaw && openclaw provider add ollama --model "${key}" 2>/dev/null || (mkdir -p ${VPS_HOME}/providers && echo '{"provider":"ollama","model":"${key}"}' > ${VPS_HOME}/providers/ollama.json)`,
             resend: `mkdir -p ${VPS_HOME}/skills-config && echo '{"apiKey":"${key}"}' > ${VPS_HOME}/skills-config/resend.json`,
             wordpress: `mkdir -p ${VPS_HOME}/skills-config && echo '${key}' > ${VPS_HOME}/skills-config/wordpress.json`,
+            'newsletter-recipients': `mkdir -p ${VPS_HOME}/skills-config && echo '${key}' > ${VPS_HOME}/skills-config/newsletter-recipients.json`,
         }
 
         const cmd = commands[type]

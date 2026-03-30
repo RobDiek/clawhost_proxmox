@@ -1138,7 +1138,16 @@ input{font-family:inherit}
           <div><strong>ניוזלטר</strong><div class="int-status" id="pub-newsletter-status">לא מחובר</div></div>
         </div>
         <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">ניוזלטר ואימיילים שיווקיים — דרך Resend</div>
-        <div style="font-size:0.72rem;color:#9CA3AF">מוגדר בקטגוריית ערוצי תקשורת למעלה</div>
+        <div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:8px">API key מוגדר בקטגוריית ערוצי תקשורת למעלה</div>
+        <div style="margin-top:8px">
+          <div style="font-size:0.78rem;font-weight:600;color:#6B7280;margin-bottom:4px">רשימת נמענים</div>
+          <textarea id="pub-newsletter-recipients" placeholder="אימייל אחד בכל שורה&#10;example1@gmail.com&#10;example2@gmail.com" style="width:100%;min-height:60px;padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.78rem;resize:vertical;font-family:monospace" dir="ltr"></textarea>
+          <div style="display:flex;gap:6px;margin-top:6px;align-items:center">
+            <button class="btn btn-primary btn-sm" onclick="saveNewsletterRecipients()">שמרו רשימה ←</button>
+            <span id="pub-newsletter-count" style="font-size:0.72rem;color:#9CA3AF"></span>
+          </div>
+          <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px">הרשימה נשמרת על ה-VPS ונגישה לסוכנים. ניתן לעדכן בכל עת.</div>
+        </div>
       </div>
 
       <!-- Coming soon channels -->
@@ -2489,6 +2498,26 @@ function showPublishError(outputId, errorMsg, task) {
 
 function toggleTaskExpand(el) {
   el.classList.toggle('expanded');
+}
+
+function saveNewsletterRecipients() {
+  var textarea = document.getElementById('pub-newsletter-recipients');
+  var emails = textarea.value.trim().split('\n').map(function(e) { return e.trim(); }).filter(function(e) { return e && e.includes('@'); });
+  if (emails.length === 0) { showToast('הזינו לפחות אימייל אחד', 'error'); return; }
+
+  var config = JSON.stringify({ emails: emails });
+  fetch(API + '/hosting/instances/' + instanceId + '/integrations/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({ type: 'newsletter-recipients', key: config })
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) {
+      showToast(emails.length + ' נמענים נשמרו', 'success');
+      var countEl = document.getElementById('pub-newsletter-count');
+      if (countEl) countEl.textContent = emails.length + ' נמענים';
+    } else showToast(d.message || 'שגיאה', 'error');
+  }).catch(function() { showToast('שגיאה בשמירה', 'error'); });
 }
 
 /* ===== Publishing Channel Functions ===== */

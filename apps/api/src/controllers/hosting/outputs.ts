@@ -420,7 +420,7 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
                             body: JSON.stringify({
                                 title: output.title,
                                 content: htmlContent,
-                                status: 'draft', // publish as draft — user reviews in WP
+                                status: 'publish',
                             }),
                         })
 
@@ -522,12 +522,27 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
                         htmlBody = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;direction:rtl;text-align:right"><p>${htmlBody}</p></div>`
 
                         const meta = (output.metadata as Record<string, unknown>) || {}
-                        const recipients = (meta.recipients as string[]) || []
+                        let recipients = (meta.recipients as string[]) || []
+
+                        // If no recipients in metadata, read from VPS config
+                        if (recipients.length === 0) {
+                            const recipientsRaw = await sshExecForPublish(instance.ip,
+                                `cat /home/openclaw/.openclaw/skills-config/newsletter-recipients.json 2>/dev/null`,
+                                instance.rootPassword || undefined
+                            )
+                            if (recipientsRaw) {
+                                try {
+                                    const recipientsConfig = JSON.parse(recipientsRaw) as { emails?: string[]; fromEmail?: string; fromName?: string }
+                                    recipients = recipientsConfig.emails || []
+                                } catch { /* invalid json */ }
+                            }
+                        }
+
                         const fromEmail = (meta.fromEmail as string) || 'newsletter@flowmatic.co.il'
                         const fromName = (meta.fromName as string) || 'ClawFlow'
 
                         if (recipients.length === 0) {
-                            publishError = 'אין נמענים לניוזלטר. הוסיפו רשימת אימיילים.'
+                            publishError = 'אין נמענים לניוזלטר. הוסיפו רשימת אימיילים בהגדרות תוספים → ערוצי פרסום → ניוזלטר.'
                             publishErrorType = 'missing_integration'
                         } else {
                             const resendRes = await fetch('https://api.resend.com/emails', {
