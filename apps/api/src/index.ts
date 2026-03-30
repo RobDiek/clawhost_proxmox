@@ -47,3 +47,7 @@ const server = serve(
 // WebSocket handlers (order matters — first registered gets first chance)
 setupChatWebSocket(server as Server)
 setupTerminalServer(server as Server)
+
+// Start agent output sync service (polls VPS every 5 min)
+import { startOutputSync } from '@/services/outputSync'
+startOutputSync()
