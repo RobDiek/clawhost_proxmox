@@ -1603,7 +1603,7 @@ function renderHome() {
   });
 
   if (hiddenTasks.length > 0) {
-    tasksHtml += '<button onclick="showAllTasks()" style="background:none;border:none;color:#9CA3AF;font-size:0.78rem;cursor:pointer;margin-top:4px">הציגו ' + hiddenTasks.length + ' משימות מוסתרות</button>';
+    tasksHtml += '<button onclick="showAllHiddenTasks()" style="background:none;border:none;color:#9CA3AF;font-size:0.78rem;cursor:pointer;margin-top:4px">הציגו ' + hiddenTasks.length + ' משימות מוסתרות</button>';
   }
 
   tasksHtml += '</div>';
@@ -2835,7 +2835,7 @@ function hideTask(taskId) {
   renderHome();
 }
 
-function showAllTasks() {
+function showAllHiddenTasks() {
   localStorage.removeItem('cf_hidden_tasks');
   renderHome();
 }
