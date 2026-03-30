@@ -719,7 +719,7 @@ input{font-family:inherit}
     <div id="agent-detail-view" class="hidden">
       <button class="btn btn-outline" onclick="closeAgentDetail()" style="margin-bottom:16px;font-size:0.85rem">← חזרה לסוכנים</button>
 
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
         <div class="agent-icon-circle mt" style="width:44px;height:44px" id="agent-detail-icon"></div>
         <div>
           <h2 style="margin:0;font-size:1.3rem" id="agent-detail-name">MATEH</h2>
@@ -727,6 +727,16 @@ input{font-family:inherit}
         </div>
         <div class="status-badge running" style="margin-right:auto"><span class="status-dot"></span>פעיל</div>
       </div>
+
+      <!-- Agent detail sub-tabs -->
+      <div style="display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid #F3F4F6;padding-bottom:12px">
+        <button class="btn btn-outline btn-sm agent-detail-tab active" onclick="switchAgentDetailTab('overview')" id="agent-dtab-overview">סקירה</button>
+        <button class="btn btn-outline btn-sm agent-detail-tab" onclick="switchAgentDetailTab('config')" id="agent-dtab-config">הגדרות</button>
+        <button class="btn btn-outline btn-sm agent-detail-tab" onclick="switchAgentDetailTab('research')" id="agent-dtab-research">מחקר ואסטרטגיה</button>
+      </div>
+
+      <!-- Panel: Overview -->
+      <div id="agent-panel-overview">
 
       <!-- 1. Overview -->
       <div class="section-title">סקירה כללית</div>
@@ -797,8 +807,13 @@ input{font-family:inherit}
         </div>
       </details>
 
+      </div><!-- /agent-panel-overview -->
+
+      <!-- Panel: Config -->
+      <div id="agent-panel-config" style="display:none">
+
       <!-- 3. Scheduled Tasks (configurable) -->
-      <div class="section-title" style="margin-top:28px">שגרות מתוזמנות</div>
+      <div class="section-title">שגרות מתוזמנות</div>
       <div id="agent-schedules">
         <div class="schedule-row">
           <div class="schedule-info">
@@ -852,8 +867,20 @@ input{font-family:inherit}
       <div class="sub-agents-grid" id="sub-agents-grid"></div>
       <div style="margin-top:8px;text-align:left"><button class="btn btn-outline" onclick="saveSubAgentModels()" style="font-size:0.82rem">&#128190; שמרו שינויים</button></div>
 
+      <!-- Danger Zone (inside config) -->
+      <div class="section-title" style="margin-top:28px;color:#EF4444">אזור מסוכן</div>
+      <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:16px;display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-outline" onclick="restartAgent()" style="font-size:0.82rem">&#8635; הפעלה מחדש</button>
+        <button class="btn btn-outline" onclick="if(confirm('לאפס את הגדרות הסוכן?')) showToast('בקרוב','success')" style="font-size:0.82rem;color:#EF4444;border-color:#FECACA">איפוס הגדרות</button>
+      </div>
+
+      </div><!-- /agent-panel-config -->
+
+      <!-- Panel: Research -->
+      <div id="agent-panel-research" style="display:none">
+
       <!-- 5. Research Report -->
-      <div class="section-title" style="margin-top:28px">מחקר שוק</div>
+      <div class="section-title">מחקר שוק</div>
       <div id="agent-research-section">
         <div id="agent-research-content" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px;max-height:400px;overflow-y:auto;font-size:0.88rem;line-height:1.7">
           <div style="text-align:center;color:#9CA3AF;padding:20px 0">טרם הורץ מחקר</div>
@@ -865,17 +892,8 @@ input{font-family:inherit}
       </div>
 
       <!-- 6. Activity Log -->
-      <div class="section-title" style="margin-top:28px">לוג פעילות</div>
-      <div id="agent-activity-log" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px;max-height:300px;overflow-y:auto">
-        <div style="text-align:center;color:#9CA3AF;font-size:0.85rem;padding:20px 0">טוען לוג פעילות...</div>
-      </div>
+      </div><!-- /agent-panel-research -->
 
-      <!-- 6. Danger Zone -->
-      <div class="section-title" style="margin-top:28px;color:#EF4444">אזור מסוכן</div>
-      <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:16px;display:flex;flex-wrap:wrap;gap:8px">
-        <button class="btn btn-outline" onclick="restartAgent()" style="font-size:0.82rem">&#8635; הפעלה מחדש</button>
-        <button class="btn btn-outline" onclick="if(confirm('לאפס את הגדרות הסוכן?')) showToast('בקרוב','success')" style="font-size:0.82rem;color:#EF4444;border-color:#FECACA">איפוס הגדרות</button>
-      </div>
     </div><!-- /agent-detail-view -->
   </div>
 
@@ -4261,6 +4279,15 @@ function renderSavedAnswers() {
 }
 
 /* ===== Agent Detail View ===== */
+function switchAgentDetailTab(tab) {
+  ['overview', 'config', 'research'].forEach(function(t) {
+    var panel = document.getElementById('agent-panel-' + t);
+    var btn = document.getElementById('agent-dtab-' + t);
+    if (panel) panel.style.display = t === tab ? '' : 'none';
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+}
+
 function openAgentDetail(agentType) {
   document.getElementById('agents-list-view').classList.add('hidden');
   document.getElementById('agent-detail-view').classList.remove('hidden');
