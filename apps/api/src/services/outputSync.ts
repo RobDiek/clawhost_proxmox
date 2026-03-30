@@ -100,8 +100,13 @@ function parseSessionOutputs(jsonlContent: string, agentRole: string): ParsedOut
                     text = content.map(c => c.text || '').join('\n')
                 }
 
-                // Skip trivial responses
-                if (!text || text.length < 50 || text === 'HEARTBEAT_OK') continue
+                // Skip trivial/intermediate responses
+                if (!text || text.length < 100 || text === 'HEARTBEAT_OK') continue
+                // Skip agent "thinking out loud" messages (intermediate steps, errors, tool usage)
+                if (text.startsWith('[[reply_to_current]]') && text.length < 200) continue
+                if (text.match(/^(DuckDuckGo|Reddit|Google|Bing|Brave)\s*(חסום|blocked|error)/i)) continue
+                if (text.match(/^(עובר ל|מנסה|ניסה|חסום|timeout|error)/i) && text.length < 200) continue
+                if (text.match(/^(HEARTBEAT|heartbeat|No changes|Nothing)/i)) continue
 
                 const usage = (entry as any).message?.usage || (entry as any).usage || {}
 
