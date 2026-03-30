@@ -1996,6 +1996,17 @@ var PLATFORM_ICONS = {
   blog: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>'
 };
 
+function getChannelLabel(task) {
+  // Platform label
+  if (task.platform) {
+    var platformNames = { instagram: 'Instagram', linkedin: 'LinkedIn', facebook: 'Facebook', telegram: 'Telegram', blog: 'בלוג', twitter: 'Twitter/X', youtube: 'YouTube', tiktok: 'TikTok' };
+    return platformNames[task.platform] || task.platform;
+  }
+  // Fallback to output type
+  var typeNames = { daily_brief: 'Telegram', weekly_report: 'דוח', content_post: 'תוכן', media_image: 'מדיה', aeo_audit: 'AEO', competitive_scan: 'מחקר', content_idea: 'רעיון' };
+  return typeNames[task.type] || '';
+}
+
 function renderApprovalQueueData(el, counterEl, apiOutputs) {
   // Map API outputs to task format
   var tasks = apiOutputs.map(function(o) {
@@ -2067,8 +2078,9 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
         '<div class="aq-title">' + t.title + '</div>' +
         '<div class="aq-agent">' + t.agent + '</div>' +
       '</div>' +
-      '<div class="aq-meta">' +
+      '<div class="aq-meta" style="text-align:left">' +
         '<span class="aq-status ' + iconClass + '">' + (statusLabels[t.status] || t.status) + '</span>' +
+        '<div style="font-size:0.68rem;color:#C0C5CE;margin-top:3px">' + getChannelLabel(t) + '</div>' +
       '</div>' +
     '</div>';
   }).join('');
