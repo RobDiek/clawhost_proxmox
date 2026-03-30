@@ -285,9 +285,27 @@ async function deployAgentSystem(ip: string, userMd: string, brandMd: string, br
 
     // Clean up: remove redundant files and clear session history to reduce token usage
     await sshExec(ip, `
-        rm -f ${baseDir}/../BOOTSTRAP.md ${baseDir}/../TOOLS.md ${baseDir}/../IDENTITY.md 2>/dev/null;
-        echo '{}' > /home/openclaw/.openclaw/agents/main/sessions/sessions.json 2>/dev/null;
-        chown openclaw:openclaw /home/openclaw/.openclaw/agents/main/sessions/sessions.json 2>/dev/null
+        rm -f ${baseDir}/workspace/BOOTSTRAP.md ${baseDir}/workspace/TOOLS.md ${baseDir}/workspace/IDENTITY.md 2>/dev/null;
+        rm -rf ${baseDir}/workspace/.git 2>/dev/null;
+        echo '{}' > ${baseDir}/agents/main/sessions/sessions.json 2>/dev/null;
+        mkdir -p ${baseDir}/research-data 2>/dev/null;
+        chown -R openclaw:openclaw ${baseDir}
+    `, password)
+
+    // Set token-optimized bootstrap config
+    await sshExec(ip, `
+        cd ${baseDir} && python3 -c "
+import json
+with open('openclaw.json') as f:
+    cfg = json.load(f)
+d = cfg.setdefault('agents', {}).setdefault('defaults', {})
+d['bootstrapMaxChars'] = 8000
+d['bootstrapTotalMaxChars'] = 20000
+d['bootstrapPromptTruncationWarning'] = 'always'
+d['compaction'] = {'reserveTokens': 40000, 'keepRecentTokens': 20000, 'reserveTokensFloor': 20000}
+with open('openclaw.json', 'w') as f:
+    json.dump(cfg, f, indent=2)
+" && chown openclaw:openclaw openclaw.json
     `, password)
 
     // Restart OpenClaw
@@ -1245,13 +1263,21 @@ export const buildStrategy = async (c: Context) => {
             updateData.strategy = fullStrategy
             updateData.strategyGeneratedAt = new Date().toISOString()
 
-            // Save FULL STRATEGY.md on VPS (no truncation — full document)
-            const b64 = Buffer.from(fullStrategy).toString('base64')
+            // Save full strategy to research-data (not loaded in system prompt)
+            const b64Full = Buffer.from(fullStrategy).toString('base64')
             await sshExec(instance.ip,
-                `echo ${b64} | base64 -d > /home/openclaw/.openclaw/workspace/STRATEGY.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/STRATEGY.md`,
+                `mkdir -p /home/openclaw/.openclaw/research-data && echo ${b64Full} | base64 -d > /home/openclaw/.openclaw/research-data/STRATEGY_FULL.md && chown openclaw:openclaw /home/openclaw/.openclaw/research-data/STRATEGY_FULL.md`,
                 instance.rootPassword || undefined
             )
-            console.log(`Full STRATEGY.md saved to VPS: ${fullStrategy.length} chars`)
+
+            // Save compact summary in workspace (token-optimized: ~3KB)
+            const compact = fullStrategy.substring(0, 3000) + '\n\n---\nהאסטרטגיה המלאה: research-data/STRATEGY_FULL.md\nקרא רק כשצריך פרטים.'
+            const b64Compact = Buffer.from(compact).toString('base64')
+            await sshExec(instance.ip,
+                `echo ${b64Compact} | base64 -d > /home/openclaw/.openclaw/workspace/STRATEGY.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/STRATEGY.md`,
+                instance.rootPassword || undefined
+            )
+            console.log(`Strategy saved: full=${fullStrategy.length} chars, compact=${compact.length} chars`)
         }
 
         await db.update(instances).set({
