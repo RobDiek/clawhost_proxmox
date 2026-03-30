@@ -1647,7 +1647,7 @@ function renderHome() {
   ];
 
   if (isMATEH) {
-    tasks.push({ id: 'profile', label: 'פרופיל עסקי הוגדר', done: !!hasAgents, action: "switchTab('agents');setTimeout(function(){openAgentDetail('mt')},100)", actionLabel: 'הגדירו', desc: 'מילוי שאלון 11 שאלות → פרופיל מותאם אישית' });
+    tasks.push({ id: 'profile', label: 'פרופיל עסקי הוגדר', done: !!hasAgents, action: "switchTab('agents');setTimeout(function(){openAgentDetail('mt')},100)", actionLabel: 'הגדירו', desc: 'מילוי שאלון 11 שאלות ← פרופיל מותאם אישית' });
 
     // Research + Strategy chain — each unlocks the next
     if (hasAgents) {
@@ -2663,51 +2663,51 @@ var PUBLISH_GUIDES = {
     title: 'מדריך חיבור Meta Ads',
     steps: [
       { title: 'צרו Meta Developer Account', desc: 'היכנסו ל-<a href="https://developers.facebook.com" target="_blank" dir="ltr">developers.facebook.com</a> והירשמו עם חשבון Facebook שלכם.' },
-      { title: 'צרו אפליקציה חדשה', desc: 'לחצו <strong>"Create App"</strong> → בחרו <strong>"Business"</strong> → שם: "ClawFlow Publisher" → לחצו "Create".' },
-      { title: 'הוסיפו Facebook Login', desc: 'ב-Dashboard → <strong>"Add Products"</strong> → בחרו <strong>"Facebook Login"</strong> → לחצו "Set Up" → בחרו "Web".' },
-      { title: 'הגדירו Redirect URI', desc: 'Settings → Valid OAuth Redirect URIs → הוסיפו:<br><code dir="ltr" style="background:#F3F4F6;padding:2px 6px;border-radius:4px;font-size:0.78rem">https://api.openclaw.flowmatic.co.il/hosting/integrations/meta/callback</code>' },
-      { title: 'העתיקו App ID ו-App Secret', desc: 'Settings → Basic → העתיקו <strong>App ID</strong> ו-<strong>App Secret</strong>.' },
-      { title: 'חזרו ל-ClawFlow', desc: 'הדביקו את App ID ו-App Secret בשדות למעלה → לחצו <strong>"→ חברו Meta Ads"</strong>. תועברו ל-Facebook לאישור הרשאות.' },
-      { title: 'אשרו הרשאות', desc: 'בחרו את <strong>דף הפייסבוק העסקי</strong> + חשבון <strong>Instagram</strong> שלכם → אשרו. חשוב: דף הפייסבוק חייב להיות מקושר לאינסטגרם.' }
+      { title: 'צרו אפליקציה חדשה', desc: 'לחצו <strong>"Create App"</strong> ← בחרו <strong>"Business"</strong> ← שם: "ClawFlow Publisher" ← לחצו "Create".' },
+      { title: 'הוסיפו Facebook Login', desc: 'ב-Dashboard ← <strong>"Add Products"</strong> ← בחרו <strong>"Facebook Login"</strong> ← לחצו "Set Up" ← בחרו "Web".' },
+      { title: 'הגדירו Redirect URI', desc: 'Settings ← Valid OAuth Redirect URIs ← הוסיפו:<br><code dir="ltr" style="background:#F3F4F6;padding:2px 6px;border-radius:4px;font-size:0.78rem">https://api.openclaw.flowmatic.co.il/hosting/integrations/meta/callback</code>' },
+      { title: 'העתיקו App ID ו-App Secret', desc: 'Settings ← Basic ← העתיקו <strong>App ID</strong> ו-<strong>App Secret</strong>.' },
+      { title: 'חזרו ל-ClawFlow', desc: 'הדביקו את App ID ו-App Secret בשדות למעלה ← לחצו <strong>"→ חברו Meta Ads"</strong>. תועברו ל-Facebook לאישור הרשאות.' },
+      { title: 'אשרו הרשאות', desc: 'בחרו את <strong>דף הפייסבוק העסקי</strong> + חשבון <strong>Instagram</strong> שלכם ← אשרו. חשוב: דף הפייסבוק חייב להיות מקושר לאינסטגרם.' }
     ]
   },
   linkedin: {
     title: 'מדריך חיבור LinkedIn',
     steps: [
-      { title: 'צרו LinkedIn Developer App', desc: 'היכנסו ל-<a href="https://www.linkedin.com/developers/apps" target="_blank" dir="ltr">linkedin.com/developers/apps</a> → "Create App".' },
-      { title: 'הגדירו את האפליקציה', desc: 'שם: "ClawFlow Publisher" → בחרו את דף החברה שלכם → אשרו תנאים.' },
-      { title: 'בקשו הרשאות', desc: 'Products → בקשו "Share on LinkedIn" ו-"Sign in with LinkedIn using OpenID Connect".' },
-      { title: 'הגדירו OAuth Redirect', desc: 'Auth → Redirect URL → הוסיפו: <code dir="ltr">https://api.openclaw.flowmatic.co.il/hosting/integrations/linkedin/callback</code>' },
-      { title: 'העתיקו Client ID & Secret', desc: 'Auth → העתיקו את Client ID ו-Client Secret.' },
+      { title: 'צרו LinkedIn Developer App', desc: 'היכנסו ל-<a href="https://www.linkedin.com/developers/apps" target="_blank" dir="ltr">linkedin.com/developers/apps</a> ← "Create App".' },
+      { title: 'הגדירו את האפליקציה', desc: 'שם: "ClawFlow Publisher" ← בחרו את דף החברה שלכם ← אשרו תנאים.' },
+      { title: 'בקשו הרשאות', desc: 'Products ← בקשו "Share on LinkedIn" ו-"Sign in with LinkedIn using OpenID Connect".' },
+      { title: 'הגדירו OAuth Redirect', desc: 'Auth ← Redirect URL ← הוסיפו: <code dir="ltr">https://api.openclaw.flowmatic.co.il/hosting/integrations/linkedin/callback</code>' },
+      { title: 'העתיקו Client ID & Secret', desc: 'Auth ← העתיקו את Client ID ו-Client Secret.' },
       { title: 'חזרו ולחצו "חברו LinkedIn"', desc: 'ב-ClawFlow תתבצע הפניה אוטומטית ל-LinkedIn לאישור.' }
     ]
   },
   twitter: {
     title: 'מדריך חיבור Twitter / X',
     steps: [
-      { title: 'צרו Developer Account', desc: 'היכנסו ל-<a href="https://developer.twitter.com" target="_blank" dir="ltr">developer.twitter.com</a> → "Sign Up" → אשרו את חשבון המפתח.' },
-      { title: 'צרו Project ו-App', desc: 'Developer Portal → "Projects & Apps" → "New Project" → שם: "ClawFlow" → "New App".' },
-      { title: 'הגדירו OAuth 2.0', desc: 'App Settings → "User authentication settings" → Enable OAuth 2.0 → Type: "Web App".' },
+      { title: 'צרו Developer Account', desc: 'היכנסו ל-<a href="https://developer.twitter.com" target="_blank" dir="ltr">developer.twitter.com</a> ← "Sign Up" ← אשרו את חשבון המפתח.' },
+      { title: 'צרו Project ו-App', desc: 'Developer Portal ← "Projects & Apps" ← "New Project" ← שם: "ClawFlow" ← "New App".' },
+      { title: 'הגדירו OAuth 2.0', desc: 'App Settings ← "User authentication settings" ← Enable OAuth 2.0 ← Type: "Web App".' },
       { title: 'Redirect URL', desc: 'הוסיפו: <code dir="ltr">https://api.openclaw.flowmatic.co.il/hosting/integrations/twitter/callback</code>' },
-      { title: 'העתיקו Keys', desc: 'Keys & Tokens → העתיקו Client ID ו-Client Secret.' },
+      { title: 'העתיקו Keys', desc: 'Keys & Tokens ← העתיקו Client ID ו-Client Secret.' },
       { title: 'חזרו ולחצו "חברו X"', desc: 'ב-ClawFlow תתבצע הפניה אוטומטית ל-Twitter/X לאישור.' }
     ]
   },
   wordpress: {
     title: 'מדריך חיבור WordPress',
     steps: [
-      { title: 'היכנסו ל-WordPress Admin', desc: 'היכנסו לאתר שלכם → wp-admin → "משתמשים" → "הפרופיל שלי".' },
-      { title: 'צרו Application Password', desc: 'גללו למטה ל-"Application Passwords" → שם: "ClawFlow" → לחצו "Add New Application Password".' },
+      { title: 'היכנסו ל-WordPress Admin', desc: 'היכנסו לאתר שלכם ← wp-admin ← "משתמשים" ← "הפרופיל שלי".' },
+      { title: 'צרו Application Password', desc: 'גללו למטה ל-"Application Passwords" ← שם: "ClawFlow" ← לחצו "Add New Application Password".' },
       { title: 'העתיקו את הסיסמה', desc: 'הסיסמה תופיע <strong>פעם אחת בלבד</strong> — העתיקו אותה מיד!' },
-      { title: 'הדביקו ב-ClawFlow', desc: 'הזינו את כתובת האתר, שם המשתמש, וה-Application Password למעלה → "שמרו".' }
+      { title: 'הדביקו ב-ClawFlow', desc: 'הזינו את כתובת האתר, שם המשתמש, וה-Application Password למעלה ← "שמרו".' }
     ]
   },
   googleads: {
     title: 'מדריך חיבור Google Ads',
     steps: [
-      { title: 'צרו חשבון Google Ads', desc: 'אם אין לכם — <a href="https://ads.google.com" target="_blank" dir="ltr">ads.google.com</a> → צרו חשבון חדש. ניתן לדלג על יצירת קמפיין ראשון (הסוכנים יעשו זאת בשבילכם).' },
+      { title: 'צרו חשבון Google Ads', desc: 'אם אין לכם — <a href="https://ads.google.com" target="_blank" dir="ltr">ads.google.com</a> ← צרו חשבון חדש. ניתן לדלג על יצירת קמפיין ראשון (הסוכנים יעשו זאת בשבילכם).' },
       { title: 'שמרו את ה-Customer ID', desc: 'בפינה הימנית העליונה של Google Ads — מספר בפורמט <strong>XXX-XXX-XXXX</strong>. העתיקו אותו.' },
-      { title: 'חברו Google Workspace עם הרשאת Ads', desc: 'ב-ClawFlow → כלי עבודה → Google Workspace → סמנו <strong>📢 Google Ads</strong> → לחצו "חברו".' },
+      { title: 'חברו Google Workspace עם הרשאת Ads', desc: 'ב-ClawFlow ← כלי עבודה ← Google Workspace ← סמנו <strong>📢 Google Ads</strong> ← לחצו "חברו".' },
       { title: 'הגדירו Conversion Tracking', desc: 'הסוכן ייצור אוטומטית קוד מעקב המרות. <strong>הדביקו אותו באתר שלכם</strong> (לפני </head>) — זה קריטי לאופטימיזציה.' },
       { title: 'הכל מוכן!', desc: 'הסוכנים יכינו תוכנית קמפיין על בסיס המחקר והאסטרטגיה. תוכלו לערוך את הקמפיין לפני אישור — <strong>תקציב, מילות מפתח, טקסטים</strong>. תוכלו לבחור להפעיל מיד או ליצור בהשהיה.' }
     ]
