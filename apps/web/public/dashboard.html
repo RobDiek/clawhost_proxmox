@@ -58,7 +58,7 @@ input{font-family:inherit}
 .sidebar-dev-link{color:#EF4444;font-size:.82rem}
 
 /* ===== Main ===== */
-.main{margin-right:54px;margin-left:0;margin-top:52px;padding:24px 32px 24px 24px}
+.main{margin-right:54px;margin-left:0;margin-top:52px;padding:16px 32px 24px 24px}
 .hidden{display:none!important}
 
 /* ===== Tab transitions ===== */
@@ -631,8 +631,6 @@ input{font-family:inherit}
 
   <!-- Tab: Home (ראשי) -->
   <div class="tab-content" id="tab-home">
-    <div class="greeting" id="greetingText"></div>
-
     <!-- Row 1: Tasks + Notifications (2 columns on desktop) -->
     <div class="home-top-grid">
       <!-- Column 1: משימות הגדרה + משימות פעילות -->
@@ -1610,8 +1608,11 @@ function renderHome() {
   tasksHtml += '</div>';
 
   if (allDone) {
-    // Show compact completed state with quick access
-    var completedHtml = '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">' +
+    // Show section title + compact completed state with quick access
+    var completedHtml = '<div class="section-title" style="display:flex;align-items:center;gap:6px">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' +
+      'סטטוס מערכת</div>' +
+      '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">' +
       '<div style="display:flex;align-items:center;gap:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span style="font-weight:600;color:#15803D;font-size:0.88rem">הכל מוגדר — הסוכנים פעילים!</span></div>' +
       '<div style="display:flex;gap:8px">';
     if (hasResearch) completedHtml += '<button class="notif-action" onclick="viewReport()">דוח מחקר →</button>';
@@ -1970,7 +1971,26 @@ var currentTasksCache = [];
 function openTaskPopup(taskId) {
   var task = currentTasksCache.find(function(t) { return t.id === taskId; });
   if (!task) return;
+  renderTaskPopup(task);
+}
 
+function openCalendarEventPopup(title, type, date) {
+  var d = new Date(date);
+  var dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+  var task = {
+    id: 'cal-' + date + '-' + type,
+    title: title,
+    agent: type === 'brief' ? 'מטה' : type === 'planned' ? 'עט' : 'מערכת',
+    type: type,
+    status: type === 'brief' ? 'published' : 'planned',
+    preview: type === 'brief' ? 'סיכום פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות' : '',
+    date: d,
+    dateLabel: 'יום ' + dayNames[d.getDay()] + ' · ' + d.getDate() + '/' + (d.getMonth() + 1)
+  };
+  renderTaskPopup(task);
+}
+
+function renderTaskPopup(task) {
   var statusLabelsPopup = {
     planned: 'מתוכנן', pending: 'בביצוע', awaiting: 'ממתין לאישור', approved: 'אושר', published: 'פורסם'
   };
@@ -1978,100 +1998,191 @@ function openTaskPopup(taskId) {
 
   document.getElementById('taskPopupTitle').textContent = task.title;
 
+  // ── Status row (all types) ──
   var bodyHtml = '<div class="task-popup-status-row">' +
     '<span class="aq-status ' + statusClass + '" style="font-size:0.8rem;padding:3px 10px">' + (statusLabelsPopup[task.status] || task.status) + '</span>' +
-    '<span style="font-size:0.78rem;color:#9CA3AF">סוכן: ' + task.agent + '</span>' +
+    '<span style="font-size:0.78rem;color:#9CA3AF">' + (task.dateLabel || 'סוכן: ' + task.agent) + '</span>' +
   '</div>';
 
-  if (task.preview) {
-    bodyHtml += '<div class="task-popup-field">' +
-      '<div class="task-popup-label">תוכן</div>' +
-      '<div class="task-popup-value" style="background:#F9FAFB;padding:12px;border-radius:8px;border:1px solid #F3F4F6">' + task.preview + '</div>' +
-    '</div>';
-  }
-
-  if (task.type === 'brief') {
-    bodyHtml += '<div class="task-popup-field">' +
-      '<div class="task-popup-label">סוג</div>' +
-      '<div class="task-popup-value">סיכום יומי אוטומטי — נשלח בטלגרם כל בוקר בימים א-ה</div>' +
-    '</div>';
-  }
+  // ── Type-specific layouts ──
 
   if (task.type === 'content') {
+    // Content task: article/post preview
     bodyHtml += '<div class="task-popup-field">' +
-      '<div class="task-popup-label">סוג</div>' +
-      '<div class="task-popup-value">תוכן מתוכנן מהאסטרטגיה — ייכתב ע"י סוכן עט</div>' +
+      '<div class="task-popup-label">סוכן</div>' +
+      '<div class="task-popup-value" style="display:flex;align-items:center;gap:6px">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="1.5" style="width:16px;height:16px"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>' +
+        'עט (כתיבת תוכן)</div>' +
     '</div>';
-  }
 
-  if (task.type === 'report') {
-    bodyHtml += '<div class="task-popup-field">' +
-      '<div class="task-popup-label">סוג</div>' +
-      '<div class="task-popup-value">דוח שבועי — ניתוח מתחרים, הזדמנויות, הצעות תוכן</div>' +
+    if (task.preview) {
+      bodyHtml += '<div class="task-popup-field">' +
+        '<div class="task-popup-label">כותרת / נושא</div>' +
+        '<div class="task-popup-value" style="background:#F9FAFB;padding:12px;border-radius:8px;border:1px solid #F3F4F6">' + task.preview + '</div>' +
+      '</div>';
+    }
+
+    // Platform + format (from strategy context)
+    bodyHtml += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+      '<div class="task-popup-field">' +
+        '<div class="task-popup-label">פלטפורמה</div>' +
+        '<div class="task-popup-value">' + (task.platform || 'בלוג / אתר') + '</div>' +
+      '</div>' +
+      '<div class="task-popup-field">' +
+        '<div class="task-popup-label">פורמט</div>' +
+        '<div class="task-popup-value">' + (task.format || 'מאמר') + '</div>' +
+      '</div>' +
     '</div>';
+
+    // Media placeholder
+    if (task.mediaUrl) {
+      bodyHtml += '<div class="task-popup-field">' +
+        '<div class="task-popup-label">מדיה</div>' +
+        '<div style="background:#F9FAFB;border:1px solid #F3F4F6;border-radius:8px;overflow:hidden"><img src="' + task.mediaUrl + '" style="width:100%;max-height:200px;object-fit:cover" alt=""></div>' +
+      '</div>';
+    } else {
+      bodyHtml += '<div class="task-popup-field">' +
+        '<div class="task-popup-label">מדיה</div>' +
+        '<div style="background:#F9FAFB;border:1px dashed #D1D5DB;border-radius:8px;padding:20px;text-align:center;color:#9CA3AF;font-size:0.82rem">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:24px;height:24px;margin-bottom:4px"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' +
+          '<div>ייוצר ע"י סוכן יוצר</div></div>' +
+      '</div>';
+    }
+
+  } else if (task.type === 'brief') {
+    // Daily brief
+    bodyHtml += '<div class="task-popup-field">' +
+      '<div class="task-popup-label">סוכן</div>' +
+      '<div class="task-popup-value" style="display:flex;align-items:center;gap:6px">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="1.5" style="width:16px;height:16px"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>' +
+        'מטה (מתאם)</div>' +
+    '</div>';
+
+    bodyHtml += '<div class="task-popup-field">' +
+      '<div class="task-popup-label">תוכן Daily Brief</div>' +
+      '<div class="task-popup-value" style="background:#F9FAFB;padding:12px;border-radius:8px;border:1px solid #F3F4F6;line-height:1.6">' +
+        (task.preview || 'סיכום פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות') +
+      '</div>' +
+    '</div>';
+
+    bodyHtml += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+      '<div class="task-popup-field">' +
+        '<div class="task-popup-label">ערוץ</div>' +
+        '<div class="task-popup-value" style="display:flex;align-items:center;gap:4px">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="1.5" style="width:14px;height:14px"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg> Telegram</div>' +
+      '</div>' +
+      '<div class="task-popup-field">' +
+        '<div class="task-popup-label">תדירות</div>' +
+        '<div class="task-popup-value">א-ה, 07:00</div>' +
+      '</div>' +
+    '</div>';
+
+  } else if (task.type === 'report') {
+    // Weekly competitive report
+    bodyHtml += '<div class="task-popup-field">' +
+      '<div class="task-popup-label">סוכנים</div>' +
+      '<div class="task-popup-value" style="display:flex;gap:8px;flex-wrap:wrap">' +
+        '<span style="background:#DBEAFE;color:#1E40AF;padding:2px 8px;border-radius:6px;font-size:0.78rem">סייר — מחקר</span>' +
+        '<span style="background:#EDE9FE;color:#5B21B6;padding:2px 8px;border-radius:6px;font-size:0.78rem">מנתח — ניתוח</span>' +
+        '<span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:6px;font-size:0.78rem">עט — הצעות</span>' +
+      '</div>' +
+    '</div>';
+
+    bodyHtml += '<div class="task-popup-field">' +
+      '<div class="task-popup-label">תוכן הדוח</div>' +
+      '<div class="task-popup-value" style="background:#F9FAFB;padding:12px;border-radius:8px;border:1px solid #F3F4F6;line-height:1.6">' +
+        '<div style="margin-bottom:6px"><strong>ניתוח מתחרים:</strong> סריקת אתרים, מחירים, פיצ׳רים חדשים</div>' +
+        '<div style="margin-bottom:6px"><strong>האזנה חברתית:</strong> אזכורים, hashtags, שיחות רלוונטיות</div>' +
+        '<div><strong>הצעות תוכן:</strong> 2-3 פוסטים מוכנים לאישור</div>' +
+      '</div>' +
+    '</div>';
+
+    bodyHtml += '<div class="task-popup-field">' +
+      '<div class="task-popup-label">ערוץ משלוח</div>' +
+      '<div class="task-popup-value">Telegram — כל יום שני, 08:00</div>' +
+    '</div>';
+
+  } else if (task.type === 'media') {
+    // Media/creative from יוצר
+    bodyHtml += '<div class="task-popup-field">' +
+      '<div class="task-popup-label">סוכן</div>' +
+      '<div class="task-popup-value">יוצר (קריאייטיב)</div>' +
+    '</div>';
+
+    if (task.mediaUrl) {
+      bodyHtml += '<div class="task-popup-field">' +
+        '<div class="task-popup-label">תצוגה מקדימה</div>' +
+        '<div style="background:#F9FAFB;border:1px solid #F3F4F6;border-radius:8px;overflow:hidden"><img src="' + task.mediaUrl + '" style="width:100%;max-height:240px;object-fit:contain" alt=""></div>' +
+      '</div>';
+    }
+
+    bodyHtml += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">' +
+      '<div class="task-popup-field">' +
+        '<div class="task-popup-label">מידות</div>' +
+        '<div class="task-popup-value">' + (task.dimensions || '1080×1080') + '</div>' +
+      '</div>' +
+      '<div class="task-popup-field">' +
+        '<div class="task-popup-label">פלטפורמה</div>' +
+        '<div class="task-popup-value">' + (task.platform || 'Instagram') + '</div>' +
+      '</div>' +
+      '<div class="task-popup-field">' +
+        '<div class="task-popup-label">פורמט</div>' +
+        '<div class="task-popup-value">' + (task.format || 'Carousel') + '</div>' +
+      '</div>' +
+    '</div>';
+
+  } else if (task.type === 'distribution') {
+    // Distribution from שליח
+    bodyHtml += '<div class="task-popup-field">' +
+      '<div class="task-popup-label">סוכן</div>' +
+      '<div class="task-popup-value">שליח (הפצה)</div>' +
+    '</div>';
+
+    bodyHtml += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+      '<div class="task-popup-field">' +
+        '<div class="task-popup-label">פלטפורמה</div>' +
+        '<div class="task-popup-value">' + (task.platform || 'לא צוין') + '</div>' +
+      '</div>' +
+      '<div class="task-popup-field">' +
+        '<div class="task-popup-label">מתוכנן ל</div>' +
+        '<div class="task-popup-value">' + (task.scheduledTime || 'ממתין לאישור') + '</div>' +
+      '</div>' +
+    '</div>';
+
+    if (task.preview) {
+      bodyHtml += '<div class="task-popup-field">' +
+        '<div class="task-popup-label">תוכן</div>' +
+        '<div class="task-popup-value" style="background:#F9FAFB;padding:12px;border-radius:8px;border:1px solid #F3F4F6">' + task.preview + '</div>' +
+      '</div>';
+    }
+
+  } else {
+    // Generic fallback
+    bodyHtml += '<div class="task-popup-field">' +
+      '<div class="task-popup-label">סוכן</div>' +
+      '<div class="task-popup-value">' + task.agent + '</div>' +
+    '</div>';
+
+    if (task.preview) {
+      bodyHtml += '<div class="task-popup-field">' +
+        '<div class="task-popup-label">פרטים</div>' +
+        '<div class="task-popup-value" style="background:#F9FAFB;padding:12px;border-radius:8px;border:1px solid #F3F4F6">' + task.preview + '</div>' +
+      '</div>';
+    }
   }
 
   document.getElementById('taskPopupBody').innerHTML = bodyHtml;
 
-  // Footer actions
+  // ── Footer actions based on status ──
   var footerHtml = '';
   if (task.status === 'awaiting') {
     footerHtml = '<button class="aq-btn reject" onclick="rejectTask(\'' + task.id + '\');closeTaskPopup()">דחו</button>' +
       '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\');closeTaskPopup()">תקנו</button>' +
       '<button class="aq-btn approve" onclick="approveTask(\'' + task.id + '\');closeTaskPopup()">אשרו ←</button>';
-  } else if (task.status === 'planned') {
-    footerHtml = '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
   } else {
     footerHtml = '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
   }
   document.getElementById('taskPopupFooter').innerHTML = footerHtml;
-
-  document.getElementById('taskPopupOverlay').classList.remove('hidden');
-}
-
-function openCalendarEventPopup(title, type, date) {
-  // Build a lightweight task object for the popup
-  var task = {
-    id: 'cal-' + date + '-' + type,
-    title: title,
-    agent: type === 'brief' ? 'מטה' : type === 'planned' ? 'עט' : 'מערכת',
-    type: type,
-    status: type === 'brief' ? 'published' : type === 'published' ? 'published' : 'planned',
-    preview: ''
-  };
-
-  if (type === 'brief') {
-    task.preview = 'סיכום פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות';
-  }
-
-  var dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
-  var d = new Date(date);
-  var dayName = dayNames[d.getDay()];
-
-  document.getElementById('taskPopupTitle').textContent = title;
-
-  var statusClass = task.status === 'planned' ? 'pending' : task.status;
-  var statusLabelsPopup = { planned: 'מתוכנן', published: 'פורסם' };
-
-  var bodyHtml = '<div class="task-popup-status-row">' +
-    '<span class="aq-status ' + statusClass + '" style="font-size:0.8rem;padding:3px 10px">' + (statusLabelsPopup[task.status] || task.status) + '</span>' +
-    '<span style="font-size:0.78rem;color:#9CA3AF">יום ' + dayName + ' · ' + d.getDate() + '/' + (d.getMonth() + 1) + '</span>' +
-  '</div>';
-
-  bodyHtml += '<div class="task-popup-field">' +
-    '<div class="task-popup-label">סוכן אחראי</div>' +
-    '<div class="task-popup-value">' + task.agent + '</div>' +
-  '</div>';
-
-  if (task.preview) {
-    bodyHtml += '<div class="task-popup-field">' +
-      '<div class="task-popup-label">תוכן</div>' +
-      '<div class="task-popup-value" style="background:#F9FAFB;padding:12px;border-radius:8px;border:1px solid #F3F4F6">' + task.preview + '</div>' +
-    '</div>';
-  }
-
-  document.getElementById('taskPopupBody').innerHTML = bodyHtml;
-  document.getElementById('taskPopupFooter').innerHTML = '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
   document.getElementById('taskPopupOverlay').classList.remove('hidden');
 }
 
