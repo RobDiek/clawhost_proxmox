@@ -1068,6 +1068,130 @@ input{font-family:inherit}
       </div>
     </div>
 
+    <!-- Publishing Channels -->
+    <div class="section-title">ערוצי פרסום</div>
+    <div class="integrations-grid" id="publishingChannels">
+
+      <!-- Telegram (already connected via bot) -->
+      <div class="int-card" id="pub-telegram-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#E0F2FE"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="#0EA5E9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div><strong>Telegram</strong><div class="int-status" id="pub-telegram-status">בודק...</div></div>
+        </div>
+        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">פרסום תוכן, דוחות, Daily Brief ישירות לטלגרם</div>
+      </div>
+
+      <!-- Instagram -->
+      <div class="int-card" id="pub-instagram-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#FCE7F3"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="#EC4899" stroke-width="1.5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" stroke="#EC4899" stroke-width="1.5"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="#EC4899" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <div><strong>Instagram</strong><div class="int-status warning">דורש חיבור</div></div>
+        </div>
+        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">פוסטים, סטוריז, Reels — דרך Meta Business Suite</div>
+        <button class="btn btn-primary btn-sm" onclick="startMetaOAuth()" style="margin-top:4px">חברו Instagram ←</button>
+        <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px"><a href="#" onclick="showPublishGuide('instagram');return false" style="color:#2563EB">📖 מדריך חיבור מפורט</a></div>
+      </div>
+
+      <!-- Facebook -->
+      <div class="int-card" id="pub-facebook-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#DBEAFE"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3V2z" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div><strong>Facebook</strong><div class="int-status warning">דורש חיבור</div></div>
+        </div>
+        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">פרסום על דף עסקי — מתחבר ביחד עם Instagram</div>
+        <button class="btn btn-primary btn-sm" onclick="startMetaOAuth()" style="margin-top:4px">חברו Facebook ←</button>
+      </div>
+
+      <!-- LinkedIn -->
+      <div class="int-card" id="pub-linkedin-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#DBEAFE"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-4 0v7h-4v-7a6 6 0 016-6z" stroke="#0A66C2" stroke-width="1.5"/><rect x="2" y="9" width="4" height="12" stroke="#0A66C2" stroke-width="1.5"/><circle cx="4" cy="4" r="2" stroke="#0A66C2" stroke-width="1.5"/></svg></div>
+          <div><strong>LinkedIn</strong><div class="int-status warning">דורש חיבור</div></div>
+        </div>
+        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">פוסטים ומאמרים בפרופיל או בדף החברה</div>
+        <button class="btn btn-primary btn-sm" onclick="startLinkedInOAuth()" style="margin-top:4px">חברו LinkedIn ←</button>
+        <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px"><a href="#" onclick="showPublishGuide('linkedin');return false" style="color:#2563EB">📖 מדריך חיבור מפורט</a></div>
+      </div>
+
+      <!-- Twitter/X -->
+      <div class="int-card" id="pub-twitter-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#F3F4F6"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 4l11.733 16h4.267l-11.733-16zM4 20l6.768-6.768M20 4l-6.768 6.768" stroke="#1F2937" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div><strong>Twitter / X</strong><div class="int-status warning">דורש חיבור</div></div>
+        </div>
+        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">ציוצים, threads, תגובות</div>
+        <button class="btn btn-primary btn-sm" onclick="startTwitterOAuth()" style="margin-top:4px">חברו X ←</button>
+        <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px"><a href="#" onclick="showPublishGuide('twitter');return false" style="color:#2563EB">📖 מדריך חיבור מפורט</a></div>
+      </div>
+
+      <!-- YouTube -->
+      <div class="int-card" id="pub-youtube-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#FEE2E2"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 00-1.94 2A29 29 0 001 11.75a29 29 0 00.46 5.33A2.78 2.78 0 003.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 001.94-2c.312-1.732.466-3.49.46-5.25a29.005 29.005 0 00-.46-5.33z" stroke="#EF4444" stroke-width="1.5"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" stroke="#EF4444" stroke-width="1.5"/></svg></div>
+          <div><strong>YouTube</strong><div class="int-status warning">דורש חיבור</div></div>
+        </div>
+        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">העלאת סרטונים ו-Shorts — דרך Google Workspace</div>
+        <button class="btn btn-primary btn-sm" onclick="connectYouTube()" style="margin-top:4px">חברו YouTube ←</button>
+      </div>
+
+      <!-- Blog (WordPress) -->
+      <div class="int-card" id="pub-blog-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#DBEAFE"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 19l7-7 3 3-7 7-3-3z" stroke="#2563EB" stroke-width="1.5"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" stroke="#2563EB" stroke-width="1.5"/><circle cx="11" cy="11" r="2" stroke="#2563EB" stroke-width="1.5"/></svg></div>
+          <div><strong>בלוג (WordPress)</strong><div class="int-status warning">דורש חיבור</div></div>
+        </div>
+        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">פרסום מאמרים ישירות לאתר WordPress שלכם</div>
+        <div id="pub-blog-form" style="margin-top:8px">
+          <input type="text" id="pub-blog-url" placeholder="https://example.com" style="width:100%;padding:6px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;margin-bottom:6px" dir="ltr">
+          <input type="text" id="pub-blog-user" placeholder="שם משתמש" style="width:100%;padding:6px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;margin-bottom:6px" dir="ltr">
+          <input type="password" id="pub-blog-apppass" placeholder="Application Password" style="width:100%;padding:6px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;margin-bottom:6px" dir="ltr">
+          <button class="btn btn-primary btn-sm" onclick="saveBlogIntegration()">שמרו ←</button>
+          <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px"><a href="#" onclick="showPublishGuide('wordpress');return false" style="color:#2563EB">📖 איך ליצור Application Password</a></div>
+        </div>
+      </div>
+
+      <!-- Newsletter (Resend) -->
+      <div class="int-card" id="pub-newsletter-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#D1FAE5"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#10B981" stroke-width="1.5"/><polyline points="22,6 12,13 2,6" stroke="#10B981" stroke-width="1.5"/></svg></div>
+          <div><strong>ניוזלטר</strong><div class="int-status" id="pub-newsletter-status">לא מחובר</div></div>
+        </div>
+        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">שליחת ניוזלטר ואימיילים שיווקיים דרך Resend</div>
+        <div style="font-size:0.72rem;color:#9CA3AF">מוגדר בקטגוריית ערוצי תקשורת למעלה</div>
+      </div>
+
+      <!-- Google Ads -->
+      <div class="int-card" id="pub-gads-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#FEF3C7"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#D97706" stroke-width="1.5"/><path d="M12 8v4l3 3" stroke="#D97706" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div><strong>Google Ads</strong><div class="int-status warning">דורש חיבור</div></div>
+        </div>
+        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">יצירה וניהול קמפיינים אוטומטי — דרך Google Workspace</div>
+        <button class="btn btn-primary btn-sm" onclick="connectGoogleAds()" style="margin-top:4px">חברו Google Ads ←</button>
+        <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px"><a href="#" onclick="showPublishGuide('googleads');return false" style="color:#2563EB">📖 מדריך חיבור מפורט</a></div>
+      </div>
+
+      <!-- Meta Ads -->
+      <div class="int-card" id="pub-metaads-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#DBEAFE"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3V2z" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div><strong>Meta Ads</strong><div class="int-status warning">דורש חיבור</div></div>
+        </div>
+        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">קמפיינים ב-Facebook ו-Instagram — דרך Meta Business Suite</div>
+        <button class="btn btn-primary btn-sm" onclick="startMetaOAuth()" style="margin-top:4px">חברו Meta Ads ←</button>
+      </div>
+
+      <!-- TikTok -->
+      <div class="int-card" id="pub-tiktok-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#F3F4F6"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 12a4 4 0 104 4V4a5 5 0 005 5" stroke="#1F2937" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div><strong>TikTok</strong><div class="int-status" style="color:#9CA3AF">בקרוב</div></div>
+        </div>
+        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">פרסום סרטונים קצרים — בפיתוח</div>
+      </div>
+
+    </div>
+
     <!-- Automation -->
     <div class="section-title">אוטומציות</div>
     <div class="integrations-grid" id="automationIntegration">
@@ -2279,6 +2403,123 @@ function toggleTaskExpand(el) {
   el.classList.toggle('expanded');
 }
 
+/* ===== Publishing Channel Functions ===== */
+
+// Placeholder OAuth functions — will be implemented per platform
+function startMetaOAuth() {
+  showToast('חיבור Meta (Instagram + Facebook) — בפיתוח. עקבו אחרי המדריך.', 'info');
+  showPublishGuide('instagram');
+}
+function startLinkedInOAuth() {
+  showToast('חיבור LinkedIn — בפיתוח. עקבו אחרי המדריך.', 'info');
+  showPublishGuide('linkedin');
+}
+function startTwitterOAuth() {
+  showToast('חיבור Twitter/X — בפיתוח. עקבו אחרי המדריך.', 'info');
+  showPublishGuide('twitter');
+}
+function connectYouTube() {
+  showToast('חיבור YouTube — דרך Google Workspace. וודאו שבחרתם YouTube scope.', 'info');
+}
+function connectGoogleAds() {
+  showToast('חיבור Google Ads — בפיתוח. עקבו אחרי המדריך.', 'info');
+  showPublishGuide('googleads');
+}
+
+function saveBlogIntegration() {
+  var url = document.getElementById('pub-blog-url').value.trim();
+  var user = document.getElementById('pub-blog-user').value.trim();
+  var pass = document.getElementById('pub-blog-apppass').value.trim();
+  if (!url || !user || !pass) { showToast('מלאו את כל השדות', 'error'); return; }
+
+  fetch(API + '/hosting/instances/' + instanceId + '/integrations/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({ type: 'wordpress', key: JSON.stringify({ url: url, user: user, appPassword: pass }) })
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) {
+      showToast('WordPress חובר בהצלחה!', 'success');
+      localStorage.setItem('cf_wordpress_saved', '1');
+    } else showToast(d.message || 'שגיאה', 'error');
+  }).catch(function() { showToast('שגיאה בחיבור', 'error'); });
+}
+
+// Publishing guides popup
+var PUBLISH_GUIDES = {
+  instagram: {
+    title: 'מדריך חיבור Instagram',
+    steps: [
+      { title: 'צרו Meta Developer Account', desc: 'היכנסו ל-<a href="https://developers.facebook.com" target="_blank" dir="ltr">developers.facebook.com</a> והירשמו עם חשבון Facebook שלכם.' },
+      { title: 'צרו אפליקציה חדשה', desc: 'לחצו "Create App" → בחרו "Business" → תנו שם (למשל "ClawFlow Publisher").' },
+      { title: 'הוסיפו Instagram Graph API', desc: 'ב-Dashboard של האפליקציה → "Add Products" → בחרו "Instagram Graph API" → לחצו "Set Up".' },
+      { title: 'חברו את דף הפייסבוק', desc: 'הגדרות → "Facebook Login" → עקבו אחרי ההנחיות. חשוב: חייב להיות לכם <strong>דף עסקי בפייסבוק</strong> מקושר לאינסטגרם.' },
+      { title: 'קבלו Access Token', desc: 'ב-Graph API Explorer → בחרו את האפליקציה → הוסיפו permissions: pages_show_list, instagram_basic, instagram_content_publish → לחצו "Generate Access Token".' },
+      { title: 'הדביקו את ה-Token כאן', desc: 'חזרו ל-ClawFlow ולחצו "חברו Instagram" — הדביקו את ה-Token. סיימתם!' }
+    ]
+  },
+  linkedin: {
+    title: 'מדריך חיבור LinkedIn',
+    steps: [
+      { title: 'צרו LinkedIn Developer App', desc: 'היכנסו ל-<a href="https://www.linkedin.com/developers/apps" target="_blank" dir="ltr">linkedin.com/developers/apps</a> → "Create App".' },
+      { title: 'הגדירו את האפליקציה', desc: 'שם: "ClawFlow Publisher" → בחרו את דף החברה שלכם → אשרו תנאים.' },
+      { title: 'בקשו הרשאות', desc: 'Products → בקשו "Share on LinkedIn" ו-"Sign in with LinkedIn using OpenID Connect".' },
+      { title: 'הגדירו OAuth Redirect', desc: 'Auth → Redirect URL → הוסיפו: <code dir="ltr">https://api.openclaw.flowmatic.co.il/hosting/integrations/linkedin/callback</code>' },
+      { title: 'העתיקו Client ID & Secret', desc: 'Auth → העתיקו את Client ID ו-Client Secret.' },
+      { title: 'חזרו ולחצו "חברו LinkedIn"', desc: 'ב-ClawFlow תתבצע הפניה אוטומטית ל-LinkedIn לאישור.' }
+    ]
+  },
+  twitter: {
+    title: 'מדריך חיבור Twitter / X',
+    steps: [
+      { title: 'צרו Developer Account', desc: 'היכנסו ל-<a href="https://developer.twitter.com" target="_blank" dir="ltr">developer.twitter.com</a> → "Sign Up" → אשרו את חשבון המפתח.' },
+      { title: 'צרו Project ו-App', desc: 'Developer Portal → "Projects & Apps" → "New Project" → שם: "ClawFlow" → "New App".' },
+      { title: 'הגדירו OAuth 2.0', desc: 'App Settings → "User authentication settings" → Enable OAuth 2.0 → Type: "Web App".' },
+      { title: 'Redirect URL', desc: 'הוסיפו: <code dir="ltr">https://api.openclaw.flowmatic.co.il/hosting/integrations/twitter/callback</code>' },
+      { title: 'העתיקו Keys', desc: 'Keys & Tokens → העתיקו Client ID ו-Client Secret.' },
+      { title: 'חזרו ולחצו "חברו X"', desc: 'ב-ClawFlow תתבצע הפניה אוטומטית ל-Twitter/X לאישור.' }
+    ]
+  },
+  wordpress: {
+    title: 'מדריך חיבור WordPress',
+    steps: [
+      { title: 'היכנסו ל-WordPress Admin', desc: 'היכנסו לאתר שלכם → wp-admin → "משתמשים" → "הפרופיל שלי".' },
+      { title: 'צרו Application Password', desc: 'גללו למטה ל-"Application Passwords" → שם: "ClawFlow" → לחצו "Add New Application Password".' },
+      { title: 'העתיקו את הסיסמה', desc: 'הסיסמה תופיע <strong>פעם אחת בלבד</strong> — העתיקו אותה מיד!' },
+      { title: 'הדביקו ב-ClawFlow', desc: 'הזינו את כתובת האתר, שם המשתמש, וה-Application Password למעלה → "שמרו".' }
+    ]
+  },
+  googleads: {
+    title: 'מדריך חיבור Google Ads',
+    steps: [
+      { title: 'צרו חשבון Google Ads', desc: 'אם אין לכם — <a href="https://ads.google.com" target="_blank" dir="ltr">ads.google.com</a> → צרו חשבון חדש (ניתן לדלג על יצירת קמפיין ראשון).' },
+      { title: 'וודאו חיבור Google Workspace', desc: 'ב-ClawFlow — וודאו ש-Google Workspace מחובר (בקטגוריית "כלי עבודה" למעלה).' },
+      { title: 'חזרו ולחצו "חברו Google Ads"', desc: 'נבקש הרשאות נוספות מ-Google Workspace לניהול Google Ads.' }
+    ]
+  }
+};
+
+function showPublishGuide(platform) {
+  var guide = PUBLISH_GUIDES[platform];
+  if (!guide) { showToast('מדריך לא זמין', 'info'); return; }
+
+  document.getElementById('taskPopupTitle').textContent = guide.title;
+
+  var bodyHtml = guide.steps.map(function(step, i) {
+    return '<div style="display:flex;gap:12px;margin-bottom:16px">' +
+      '<div style="width:28px;height:28px;border-radius:50%;background:#DBEAFE;color:#2563EB;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.82rem;flex-shrink:0">' + (i + 1) + '</div>' +
+      '<div>' +
+        '<div style="font-weight:600;font-size:0.88rem;margin-bottom:2px">' + step.title + '</div>' +
+        '<div style="font-size:0.82rem;color:#4B5563;line-height:1.5">' + step.desc + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('taskPopupBody').innerHTML = bodyHtml;
+  document.getElementById('taskPopupFooter').innerHTML = '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
+  document.getElementById('taskPopupOverlay').classList.remove('hidden');
+}
+
 function approveTask(taskId) {
   var statuses = JSON.parse(localStorage.getItem('cf_task_statuses_' + instanceId) || '{}');
   statuses[taskId] = 'approved';
@@ -2503,6 +2744,27 @@ function renderIntegrations() {
     if (tgStatus) { tgStatus.textContent = '\u2713 מחובר'; tgStatus.className = 'int-status connected'; }
     var tgCard = document.getElementById('telegram-card');
     if (tgCard) tgCard.classList.add('connected');
+  }
+
+  // Update publishing channels status
+  var pubTgStatus = document.getElementById('pub-telegram-status');
+  if (pubTgStatus) {
+    if ((instanceData && instanceData.telegramBotToken) || localStorage.getItem('cf_telegram_saved')) {
+      pubTgStatus.textContent = '\u2713 מחובר ופעיל';
+      pubTgStatus.className = 'int-status connected';
+      var pubTgCard = document.getElementById('pub-telegram-card');
+      if (pubTgCard) pubTgCard.classList.add('connected');
+    } else {
+      pubTgStatus.textContent = 'חברו Telegram קודם';
+      pubTgStatus.className = 'int-status warning';
+    }
+  }
+
+  // Newsletter status (from Resend)
+  var pubNlStatus = document.getElementById('pub-newsletter-status');
+  if (pubNlStatus && localStorage.getItem('cf_resend_saved')) {
+    pubNlStatus.textContent = '\u2713 מחובר';
+    pubNlStatus.className = 'int-status connected';
   }
 
   // Update flows link and automation card

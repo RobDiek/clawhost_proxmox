@@ -182,26 +182,76 @@ export const editOutput = async (c: Context<HonoEnv>) => {
 }
 
 // ── PATCH /hosting/instances/:id/outputs/:outputId/publish ──
+// Publishes to the connected platform (Telegram, etc.)
 export const publishOutput = async (c: Context<HonoEnv>) => {
     try {
+        const instanceId = c.req.param('id')
         const outputId = c.req.param('outputId')
 
+        const [output] = await db.select()
+            .from(agentOutputs)
+            .where(and(
+                eq(agentOutputs.id, outputId),
+                eq(agentOutputs.status, 'approved')
+            ))
+
+        if (!output) return fail(c, 'Output not found or not approved', 404)
+
+        // Get instance for platform credentials
+        const [instance] = await db.select()
+            .from(instances)
+            .where(eq(instances.id, instanceId))
+
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const content = output.editedContent || output.content || ''
+        const platform = output.platform || 'telegram'
+        const publishResults: Record<string, string> = {}
+
+        // ── Telegram publish ──
+        if (platform === 'telegram' && instance.telegramBotToken && instance.telegramChatId) {
+            try {
+                const tgRes = await fetch(`https://api.telegram.org/bot${instance.telegramBotToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: instance.telegramChatId,
+                        text: content.substring(0, 4096), // Telegram limit
+                        parse_mode: 'Markdown',
+                    }),
+                })
+                const tgData = await tgRes.json() as { ok?: boolean; description?: string }
+                if (tgData.ok) {
+                    publishResults.telegram = 'sent'
+                    console.log(`Published to Telegram: output ${outputId}`)
+                } else {
+                    publishResults.telegram = `error: ${tgData.description || 'unknown'}`
+                    console.error(`Telegram publish failed:`, tgData.description)
+                }
+            } catch (tgErr) {
+                publishResults.telegram = 'error: network'
+                console.error(`Telegram publish error:`, tgErr)
+            }
+        }
+
+        // TODO: Instagram, LinkedIn, Twitter, WordPress publish handlers
+
+        // Update status
         const [updated] = await db.update(agentOutputs)
             .set({
                 status: 'published',
                 publishedAt: new Date(),
                 updatedAt: new Date(),
+                metadata: {
+                    ...(output.metadata as Record<string, unknown> || {}),
+                    publishResults,
+                },
             })
-            .where(and(
-                eq(agentOutputs.id, outputId),
-                eq(agentOutputs.status, 'approved')
-            ))
+            .where(eq(agentOutputs.id, outputId))
             .returning()
 
-        if (!updated) return fail(c, 'Output not found or not approved', 404)
-
-        console.log(`Output ${outputId} published`)
-        return ok(c, updated, 'Output published')
+        console.log(`Output ${outputId} published to ${platform}:`, publishResults)
+        return ok(c, { ...updated, publishResults }, 'Output published')
     } catch (err) {
         console.error('publishOutput error:', err)
         return fail(c, 'Failed to publish', 500)
