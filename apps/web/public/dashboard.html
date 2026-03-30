@@ -2543,12 +2543,50 @@ function startTwitterOAuth() {
   showPublishGuide('twitter');
 }
 function connectYouTube() {
-  showToast('חברו YouTube דרך Google Workspace — סמנו ▶️ YouTube ולחצו "חברו"', 'info');
-  switchTab('integrations');
+  var googleScopes = '';
+  if (instanceData && instanceData.googleTokens && instanceData.googleTokens.scopes) {
+    googleScopes = instanceData.googleTokens.scopes.join(',').toLowerCase();
+  }
+
+  if (googleScopes.includes('youtube')) {
+    showToast('YouTube כבר מחובר!', 'success');
+    return;
+  }
+
+  if (instanceData && instanceData.googleTokens) {
+    showToast('מוסיפים YouTube...', 'info');
+    var iid = localStorage.getItem('cf_instance_id');
+    var currentScopes = instanceData.googleTokens.scopes || ['calendar'];
+    if (currentScopes.indexOf('youtube') === -1) currentScopes.push('youtube');
+    window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + currentScopes.join(',');
+  } else {
+    showToast('חברו קודם Google Workspace בכלי עבודה, ואז הוסיפו YouTube', 'info');
+    switchTab('integrations');
+  }
 }
 function connectGoogleAds() {
-  showToast('חברו Google Ads דרך Google Workspace — סמנו 📢 Google Ads ולחצו "חברו"', 'info');
-  switchTab('integrations');
+  // Check if Google Workspace is connected
+  var googleScopes = '';
+  if (instanceData && instanceData.googleTokens && instanceData.googleTokens.scopes) {
+    googleScopes = instanceData.googleTokens.scopes.join(',').toLowerCase();
+  }
+
+  if (googleScopes.includes('ads') || googleScopes.includes('adwords')) {
+    showToast('Google Ads כבר מחובר!', 'success');
+    return;
+  }
+
+  if (instanceData && instanceData.googleTokens) {
+    // Google connected but without Ads scope — reconnect with additional scope
+    showToast('מוסיפים Google Ads...', 'info');
+    var iid = localStorage.getItem('cf_instance_id');
+    var currentScopes = instanceData.googleTokens.scopes || ['calendar'];
+    if (currentScopes.indexOf('ads') === -1) currentScopes.push('ads');
+    window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + currentScopes.join(',');
+  } else {
+    showToast('חברו קודם Google Workspace בכלי עבודה, ואז הוסיפו Google Ads', 'info');
+    switchTab('integrations');
+  }
 }
 
 function saveBlogIntegration() {
@@ -2936,6 +2974,34 @@ function renderIntegrations() {
   if (pubNlStatus && localStorage.getItem('cf_resend_saved')) {
     pubNlStatus.textContent = '\u2713 מחובר';
     pubNlStatus.className = 'int-status connected';
+  }
+
+  // Google-dependent publishing channels (YouTube, Google Ads)
+  var googleScopes = '';
+  if (instanceData && instanceData.googleTokens && instanceData.googleTokens.scopes) {
+    googleScopes = instanceData.googleTokens.scopes.join(',').toLowerCase();
+  }
+
+  // YouTube
+  var pubYtCard = document.getElementById('pub-youtube-card');
+  if (pubYtCard) {
+    var ytStatus = pubYtCard.querySelector('.int-status');
+    if (googleScopes.includes('youtube')) {
+      if (ytStatus) { ytStatus.textContent = '\u2713 מחובר'; ytStatus.className = 'int-status connected'; }
+      pubYtCard.classList.add('connected');
+    }
+  }
+
+  // Google Ads
+  var pubGadsCard = document.getElementById('pub-gads-card');
+  if (pubGadsCard) {
+    var gadsStatus = pubGadsCard.querySelector('.int-status');
+    var gadsBtn = pubGadsCard.querySelector('.btn-primary');
+    if (googleScopes.includes('ads') || googleScopes.includes('adwords')) {
+      if (gadsStatus) { gadsStatus.textContent = '\u2713 מחובר'; gadsStatus.className = 'int-status connected'; }
+      pubGadsCard.classList.add('connected');
+      if (gadsBtn) gadsBtn.style.display = 'none';
+    }
   }
 
   // Update flows link and automation card
