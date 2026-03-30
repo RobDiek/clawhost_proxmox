@@ -312,7 +312,11 @@ export const getMyInstances = async (c: Context) => {
             hasAnthropicKey: !!i.aiProviderKey,
             hasOpenaiKey: !!i.openaiApiKey,
             telegramBotToken: i.telegramBotToken ? true : false,
-            googleTokens: i.googleTokens ? true : false,
+            googleTokens: i.googleTokens ? {
+                connected: true,
+                email: (i.googleTokens as any)?.email,
+                scopes: (i.googleTokens as any)?.scopes || [],
+            } : null,
             createdAt: i.createdAt,
         })), 'Instances found.')
     } catch (err) {
