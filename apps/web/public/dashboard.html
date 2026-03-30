@@ -58,7 +58,7 @@ input{font-family:inherit}
 .sidebar-dev-link{color:#EF4444;font-size:.82rem}
 
 /* ===== Main ===== */
-.main{margin-right:54px;margin-left:0;margin-top:52px;padding:12px 32px 16px 24px}
+.main{margin-right:54px;margin-left:auto;margin-top:52px;padding:12px 32px 16px 24px;max-width:1200px}
 .hidden{display:none!important}
 
 /* ===== Tab transitions ===== */
@@ -1377,16 +1377,6 @@ input{font-family:inherit}
         <button class="btn btn-outline btn-sm" onclick="cfConfirm('ביטול מנוי','בטוחים?').then(function(ok){if(ok)showToast('פנו לתמיכה','info')})" style="font-size:0.75rem;color:#EF4444;border-color:#FECACA">בטלו</button>
       </div>
     </div>
-
-    <!-- Connections summary -->
-    <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
-      <span style="display:flex;align-items:center;gap:6px">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-        חיבורים
-      </span>
-      <button onclick="switchTab('integrations')" style="font-size:0.72rem;color:#2563EB;background:none;border:none;cursor:pointer">כל התוספים →</button>
-    </div>
-    <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;overflow:hidden;margin-bottom:20px" id="settingsConnectionsList"></div>
 
     <!-- Notifications -->
     <div class="section-title" style="display:flex;align-items:center;gap:6px">
