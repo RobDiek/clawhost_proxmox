@@ -317,6 +317,12 @@ export const getMyInstances = async (c: Context) => {
                 email: (i.googleTokens as any)?.email,
                 scopes: (i.googleTokens as any)?.scopes || [],
             } : null,
+            metaTokens: i.metaTokens && (i.metaTokens as any).status === 'connected' ? {
+                connected: true,
+                pageName: (i.metaTokens as any)?.pageName,
+                hasInstagram: !!(i.metaTokens as any)?.instagramAccountId,
+                hasAdAccount: !!(i.metaTokens as any)?.adAccountId,
+            } : null,
             createdAt: i.createdAt,
         })), 'Instances found.')
     } catch (err) {

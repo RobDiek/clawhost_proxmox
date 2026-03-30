@@ -42,6 +42,10 @@ import {
     googleCallback,
     googleDisconnect,
     googleStatus,
+    metaSaveCredentials,
+    metaCallback,
+    metaDisconnect,
+    metaStatus,
     getOutputs,
     getOutput,
     ingestOutput,
@@ -117,6 +121,12 @@ app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
 app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)
 app.patch('/instances/:id/outputs/:outputId/archive', archiveOutput)
 app.delete('/instances/:id/outputs/:outputId', deleteOutput)
+
+// ── Meta (Facebook/Instagram) OAuth ──
+app.post('/instances/:id/integrations/meta/save-credentials', metaSaveCredentials)
+app.get('/integrations/meta/callback', metaCallback)
+app.post('/instances/:id/integrations/meta/disconnect', metaDisconnect)
+app.get('/integrations/meta/status', metaStatus)
 
 // ── Admin ──
 app.get('/admin/instances', adminGetInstances)

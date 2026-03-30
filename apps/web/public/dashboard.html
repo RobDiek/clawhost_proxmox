@@ -1122,11 +1122,21 @@ input{font-family:inherit}
       <div class="int-card" id="pub-metaads-card">
         <div class="int-card-header">
           <div class="int-icon" style="background:#EFF6FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6 2 11c0 2.8 1.2 5.3 3.2 7L4 22l4.2-2.2c1.2.4 2.4.6 3.8.6 5.52 0 10-4 10-9s-4.48-9.4-10-9.4z" stroke="#0081FB" stroke-width="1.5"/></svg></div>
-          <div><strong>Meta Ads</strong><div class="int-status warning">דורש חיבור</div></div>
+          <div><strong>Meta Ads</strong><div class="int-status" id="pub-metaads-status">דורש חיבור</div></div>
         </div>
         <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">קמפיינים ב-Facebook, Instagram ו-Messenger — אוטומטי</div>
-        <button class="btn btn-primary btn-sm" onclick="startMetaOAuth()" style="margin-top:4px">→ חברו Meta Ads</button>
-        <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px"><a href="#" onclick="showPublishGuide('instagram');return false" style="color:#2563EB">📖 מדריך חיבור מפורט</a></div>
+        <div id="metaads-not-connected">
+          <div id="metaads-form" style="margin-top:8px">
+            <input type="text" id="metaads-app-id" placeholder="Meta App ID" style="width:100%;padding:6px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;margin-bottom:6px" dir="ltr">
+            <input type="password" id="metaads-app-secret" placeholder="Meta App Secret" style="width:100%;padding:6px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;margin-bottom:6px" dir="ltr">
+            <button class="btn btn-primary btn-sm" onclick="startMetaOAuth()">→ חברו Meta Ads</button>
+          </div>
+          <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px"><a href="#" onclick="showPublishGuide('meta');return false" style="color:#2563EB">📖 מדריך חיבור מפורט</a></div>
+        </div>
+        <div id="metaads-connected" style="display:none">
+          <div style="font-size:0.85rem;color:#10B981;margin-bottom:6px">&#10003; מחובר: <span id="metaads-pages"></span></div>
+          <button class="btn btn-outline btn-sm" onclick="disconnectMeta()" style="color:#EF4444;border-color:#FECACA;font-size:0.78rem">נתקו</button>
+        </div>
       </div>
 
       <!-- 5. Newsletter (Resend) -->
@@ -2516,8 +2526,45 @@ function saveNewsletterRecipients() {
 
 // Placeholder OAuth functions — will be implemented per platform
 function startMetaOAuth() {
-  showToast('חיבור Meta (Instagram + Facebook) — בפיתוח. עקבו אחרי המדריך.', 'info');
-  showPublishGuide('instagram');
+  var appId = document.getElementById('metaads-app-id').value.trim();
+  var appSecret = document.getElementById('metaads-app-secret').value.trim();
+
+  if (!appId || !appSecret) {
+    showToast('הזינו App ID ו-App Secret', 'error');
+    return;
+  }
+
+  // Save credentials first, then redirect to Meta OAuth
+  showToast('שומר ומתחבר...', 'info');
+  fetch(API + '/hosting/instances/' + instanceId + '/integrations/meta/save-credentials', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({ appId: appId, appSecret: appSecret })
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success && d.data && d.data.authUrl) {
+      window.location.href = d.data.authUrl;
+    } else {
+      showToast(d.message || 'שגיאה בשמירת הנתונים', 'error');
+    }
+  }).catch(function() { showToast('שגיאת תקשורת', 'error'); });
+}
+
+function disconnectMeta() {
+  if (!confirm('לנתק את Meta Ads?')) return;
+  fetch(API + '/hosting/instances/' + instanceId + '/integrations/meta/disconnect', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) {
+      showToast('Meta Ads נותק', 'success');
+      document.getElementById('metaads-not-connected').style.display = '';
+      document.getElementById('metaads-connected').style.display = 'none';
+      var statusEl = document.getElementById('pub-metaads-status');
+      if (statusEl) { statusEl.textContent = 'דורש חיבור'; statusEl.className = 'int-status warning'; }
+    }
+  }).catch(function() { showToast('שגיאה', 'error'); });
 }
 function startLinkedInOAuth() {
   showToast('חיבור LinkedIn — בפיתוח. עקבו אחרי המדריך.', 'info');
@@ -2612,15 +2659,16 @@ function saveBlogIntegration() {
 
 // Publishing guides popup
 var PUBLISH_GUIDES = {
-  instagram: {
-    title: 'מדריך חיבור Instagram',
+  meta: {
+    title: 'מדריך חיבור Meta Ads',
     steps: [
       { title: 'צרו Meta Developer Account', desc: 'היכנסו ל-<a href="https://developers.facebook.com" target="_blank" dir="ltr">developers.facebook.com</a> והירשמו עם חשבון Facebook שלכם.' },
-      { title: 'צרו אפליקציה חדשה', desc: 'לחצו "Create App" → בחרו "Business" → תנו שם (למשל "ClawFlow Publisher").' },
-      { title: 'הוסיפו Instagram Graph API', desc: 'ב-Dashboard של האפליקציה → "Add Products" → בחרו "Instagram Graph API" → לחצו "Set Up".' },
-      { title: 'חברו את דף הפייסבוק', desc: 'הגדרות → "Facebook Login" → עקבו אחרי ההנחיות. חשוב: חייב להיות לכם <strong>דף עסקי בפייסבוק</strong> מקושר לאינסטגרם.' },
-      { title: 'קבלו Access Token', desc: 'ב-Graph API Explorer → בחרו את האפליקציה → הוסיפו permissions: pages_show_list, instagram_basic, instagram_content_publish → לחצו "Generate Access Token".' },
-      { title: 'הדביקו את ה-Token כאן', desc: 'חזרו ל-ClawFlow ולחצו "חברו Instagram" — הדביקו את ה-Token. סיימתם!' }
+      { title: 'צרו אפליקציה חדשה', desc: 'לחצו <strong>"Create App"</strong> → בחרו <strong>"Business"</strong> → שם: "ClawFlow Publisher" → לחצו "Create".' },
+      { title: 'הוסיפו Facebook Login', desc: 'ב-Dashboard → <strong>"Add Products"</strong> → בחרו <strong>"Facebook Login"</strong> → לחצו "Set Up" → בחרו "Web".' },
+      { title: 'הגדירו Redirect URI', desc: 'Settings → Valid OAuth Redirect URIs → הוסיפו:<br><code dir="ltr" style="background:#F3F4F6;padding:2px 6px;border-radius:4px;font-size:0.78rem">https://api.openclaw.flowmatic.co.il/hosting/integrations/meta/callback</code>' },
+      { title: 'העתיקו App ID ו-App Secret', desc: 'Settings → Basic → העתיקו <strong>App ID</strong> ו-<strong>App Secret</strong>.' },
+      { title: 'חזרו ל-ClawFlow', desc: 'הדביקו את App ID ו-App Secret בשדות למעלה → לחצו <strong>"→ חברו Meta Ads"</strong>. תועברו ל-Facebook לאישור הרשאות.' },
+      { title: 'אשרו הרשאות', desc: 'בחרו את <strong>דף הפייסבוק העסקי</strong> + חשבון <strong>Instagram</strong> שלכם → אשרו. חשוב: דף הפייסבוק חייב להיות מקושר לאינסטגרם.' }
     ]
   },
   linkedin: {
@@ -3015,6 +3063,17 @@ function renderIntegrations() {
       pubGadsCard.classList.add('connected');
       if (gadsBtn) gadsBtn.style.display = 'none';
     }
+  }
+
+  // Meta Ads status
+  if (instanceData && instanceData.metaTokens) {
+    var metaStatus = document.getElementById('pub-metaads-status');
+    if (metaStatus) { metaStatus.textContent = '\u2713 מחובר'; metaStatus.className = 'int-status connected'; }
+    document.getElementById('metaads-not-connected').style.display = 'none';
+    document.getElementById('metaads-connected').style.display = '';
+    var metaPagesEl = document.getElementById('metaads-pages');
+    if (metaPagesEl) metaPagesEl.textContent = instanceData.metaTokens.pageName || 'Facebook Page';
+    document.getElementById('pub-metaads-card').classList.add('connected');
   }
 
   // Update flows link and automation card

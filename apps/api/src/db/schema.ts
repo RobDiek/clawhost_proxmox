@@ -277,6 +277,7 @@ export const instances = pgTable(
 
         // Google Workspace OAuth tokens
         googleTokens: jsonb('google_tokens'),       // { accessToken, refreshToken, expiresAt, scopes[], email }
+        metaTokens: jsonb('meta_tokens'),             // { appId, appSecret, userAccessToken, pageAccessToken, pageId, instagramAccountId, adAccountId }
 
         // Telegram
         telegramChatId: text('telegram_chat_id'),

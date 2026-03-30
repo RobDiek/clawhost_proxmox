@@ -350,32 +350,108 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
             }
         }
 
-        // ── Instagram publish ──
-        else if (platform === 'instagram') {
-            publishError = 'Instagram לא מחובר. חברו בהגדרות תוספים → ערוצי פרסום → Instagram.'
-            publishErrorType = 'missing_integration'
-            // TODO: implement Meta Graph API publish
+        // ── Instagram / Facebook / Meta publish ──
+        else if (platform === 'instagram' || platform === 'facebook' || platform === 'meta_ads') {
+            const metaTokens = instance.metaTokens as any
+            if (!metaTokens || metaTokens.status !== 'connected') {
+                publishError = 'Meta Ads לא מחובר. חברו בהגדרות תוספים → ערוצי פרסום → Meta Ads.'
+                publishErrorType = 'missing_integration'
+            } else if (platform === 'instagram' && !metaTokens.instagramAccountId) {
+                publishError = 'חשבון Instagram לא מקושר. קשרו את האינסטגרם לדף הפייסבוק ב-Meta Business Suite.'
+                publishErrorType = 'missing_integration'
+            } else {
+                try {
+                    if (platform === 'instagram' && metaTokens.instagramAccountId) {
+                        // Instagram publish: create container → publish
+                        // For now: image + caption. TODO: carousel, reels
+                        const igId = metaTokens.instagramAccountId
+                        const pageToken = metaTokens.pageAccessToken
+
+                        if (output.mediaUrl) {
+                            // Image post
+                            const containerRes = await fetch(
+                                `https://graph.facebook.com/v21.0/${igId}/media`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        image_url: output.mediaUrl,
+                                        caption: content.substring(0, 2200),
+                                        access_token: pageToken,
+                                    }),
+                                }
+                            )
+                            const containerData = await containerRes.json() as { id?: string; error?: any }
+                            if (containerData.id) {
+                                const publishRes = await fetch(
+                                    `https://graph.facebook.com/v21.0/${igId}/media_publish`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            creation_id: containerData.id,
+                                            access_token: pageToken,
+                                        }),
+                                    }
+                                )
+                                const publishData = await publishRes.json() as { id?: string; error?: any }
+                                if (publishData.id) {
+                                    publishSuccess = true
+                                } else {
+                                    publishError = `Instagram publish: ${publishData.error?.message || 'unknown'}`
+                                    publishErrorType = 'api_error'
+                                }
+                            } else {
+                                publishError = `Instagram container: ${containerData.error?.message || 'unknown'}`
+                                publishErrorType = 'api_error'
+                            }
+                        } else {
+                            publishError = 'פוסט Instagram דורש תמונה. הוסיפו מדיה לפני פרסום.'
+                            publishErrorType = 'missing_integration'
+                        }
+                    } else {
+                        // Facebook page post
+                        const pageId = metaTokens.pageId
+                        const pageToken = metaTokens.pageAccessToken
+
+                        if (!pageId || !pageToken) {
+                            publishError = 'דף פייסבוק לא נמצא. בדקו את החיבור ב-Meta Ads.'
+                            publishErrorType = 'missing_integration'
+                        } else {
+                            const fbRes = await fetch(
+                                `https://graph.facebook.com/v21.0/${pageId}/feed`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        message: content.substring(0, 63206),
+                                        access_token: pageToken,
+                                    }),
+                                }
+                            )
+                            const fbData = await fbRes.json() as { id?: string; error?: any }
+                            if (fbData.id) {
+                                publishSuccess = true
+                            } else {
+                                publishError = `Facebook: ${fbData.error?.message || 'unknown'}`
+                                publishErrorType = 'api_error'
+                            }
+                        }
+                    }
+                } catch (metaErr) {
+                    publishError = `Meta: ${String(metaErr).substring(0, 150)}`
+                    publishErrorType = 'api_error'
+                }
+            }
         }
 
-        // ── LinkedIn publish ──
+        // ── LinkedIn (coming soon) ──
         else if (platform === 'linkedin') {
-            publishError = 'LinkedIn לא מחובר. חברו בהגדרות תוספים → ערוצי פרסום → LinkedIn.'
+            publishError = 'LinkedIn בקרוב — עקבו אחרי העדכונים.'
             publishErrorType = 'missing_integration'
-            // TODO: implement LinkedIn API publish
         }
 
-        // ── Facebook publish ──
-        else if (platform === 'facebook') {
-            publishError = 'Facebook לא מחובר. חברו בהגדרות תוספים → ערוצי פרסום → Facebook.'
-            publishErrorType = 'missing_integration'
-            // TODO: implement Meta Graph API publish
-        }
-
-        // ── Twitter/X publish ──
+        // ── Twitter/X (coming soon) ──
         else if (platform === 'twitter') {
-            publishError = 'Twitter/X לא מחובר. חברו בהגדרות תוספים → ערוצי פרסום → Twitter/X.'
+            publishError = 'Twitter/X בקרוב — עקבו אחרי העדכונים.'
             publishErrorType = 'missing_integration'
-            // TODO: implement X API publish
         }
 
         // ── Blog/WordPress publish ──
