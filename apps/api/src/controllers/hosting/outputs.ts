@@ -5,6 +5,7 @@ import { agentOutputs, instances } from '@/db/schema'
 import { eq, and, ne, desc, inArray } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
 import { randomBytes } from 'crypto'
+import { createCampaign, type CampaignPlan, type GoogleTokens } from '@/services/googleAds'
 
 // ── Helper: ensure chat_id is set for Telegram publishing ──
 async function ensureTelegramChatId(instance: any): Promise<string | null> {
@@ -357,6 +358,60 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
             publishError = 'בלוג WordPress לא מחובר. חברו בהגדרות תוספים → ערוצי פרסום → בלוג.'
             publishErrorType = 'missing_integration'
             // TODO: implement WordPress REST API publish
+        }
+
+        // ── Google Ads campaign creation ──
+        else if (platform === 'google_ads' || (output.outputType === 'google_ads_campaign')) {
+            const googleTokens = instance.googleTokens as GoogleTokens | null
+            const scopes = (googleTokens as any)?.scopes || []
+
+            if (!googleTokens) {
+                publishError = 'Google Workspace לא מחובר. חברו בהגדרות תוספים → כלי עבודה → Google Workspace.'
+                publishErrorType = 'missing_integration'
+            } else if (!scopes.includes('ads')) {
+                publishError = 'Google Ads לא מורשה. הוסיפו הרשאת Google Ads ב-Google Workspace → ⚙ שנו שירותים → סמנו Google Ads.'
+                publishErrorType = 'missing_integration'
+            } else if (!process.env.GOOGLE_ADS_DEVELOPER_TOKEN) {
+                publishError = 'Developer Token לא מוגדר. נדרש הגדרת GOOGLE_ADS_DEVELOPER_TOKEN בשרת.'
+                publishErrorType = 'api_error'
+            } else {
+                // Parse campaign plan from metadata
+                const meta = (output.metadata as Record<string, unknown>) || {}
+                const campaignPlan = meta as unknown as CampaignPlan
+
+                if (!campaignPlan.campaignType || !campaignPlan.keywords) {
+                    publishError = 'תוכנית הקמפיין חסרה נתונים. ודאו שהסוכן יצר תוכנית מלאה.'
+                    publishErrorType = 'api_error'
+                } else {
+                    try {
+                        // Need customer_id — stored in googleTokens or metadata
+                        const adsCustomerId = (meta.adsCustomerId as string) || (googleTokens as any).adsCustomerId
+                        if (!adsCustomerId) {
+                            publishError = 'חסר Google Ads Customer ID. הזינו אותו בהגדרות Google Ads.'
+                            publishErrorType = 'missing_integration'
+                        } else {
+                            const result = await createCampaign(
+                                adsCustomerId,
+                                googleTokens,
+                                campaignPlan
+                            )
+
+                            if (result.status === 'SUCCESS' || result.status === 'PARTIAL') {
+                                publishSuccess = true
+                                if (result.errors.length > 0) {
+                                    console.warn(`Google Ads partial success: ${result.errors.join('; ')}`)
+                                }
+                            } else {
+                                publishError = `Google Ads: ${result.errors.join('; ')}`
+                                publishErrorType = 'api_error'
+                            }
+                        }
+                    } catch (adsErr) {
+                        publishError = `Google Ads API: ${String(adsErr).substring(0, 200)}`
+                        publishErrorType = 'api_error'
+                    }
+                }
+            }
         }
 
         // ── Unknown platform ──
