@@ -2032,6 +2032,7 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
       id: o.id,
       title: o.title,
       agent: AGENT_NAMES[o.agent_role || o.agentRole] || o.agent_role || o.agentRole,
+      agentRole: o.agent_role || o.agentRole,
       type: o.output_type || o.outputType,
       status: statusMap[o.status] || o.status,
       content: o.content,
@@ -2422,7 +2423,9 @@ function renderTaskPopup(task) {
       '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\')">תקנו</button>' +
       '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()">אשרו ←</button>';
   } else if (task.status === 'approved') {
-    var isReport = task.type === 'daily_brief' || task.type === 'weekly_report' || task.type === 'aeo_audit' || task.type === 'competitive_scan';
+    var reportTypes = ['daily_brief', 'weekly_report', 'aeo_audit', 'competitive_scan'];
+    var reportAgents = ['mateh', 'sayer', 'menateach', 'migdalor'];
+    var isReport = reportTypes.indexOf(task.type) !== -1 || reportAgents.indexOf(task.agentRole || '') !== -1;
     footerHtml = '<button class="aq-btn reject" onclick="apiArchiveOutput(\'' + task.id + '\');closeTaskPopup()">ארכיון</button>' +
       '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>' +
       (isReport ? '' : '<button class="aq-btn approve" onclick="apiPublishOutput(\'' + task.id + '\');closeTaskPopup()">פרסמו ←</button>');
