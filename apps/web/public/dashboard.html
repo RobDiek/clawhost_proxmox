@@ -297,7 +297,7 @@ input{font-family:inherit}
 .notif-dismiss { background:none; border:none; color:#D1D5DB; cursor:pointer; font-size:.9rem; flex-shrink:0; padding:2px; }
 .notif-dismiss:hover { color:#9CA3AF; }
 
-/* Activity timeline */
+/* Activity timeline (legacy — kept for compatibility) */
 .activity-timeline { background:#fff; border:1px solid #E5E7EB; border-radius:12px; overflow:hidden; }
 .activity-item { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; border-bottom:1px solid #F3F4F6; font-size:0.85rem; transition:background .1s; }
 .activity-item:last-child { border-bottom:none; }
@@ -316,6 +316,65 @@ input{font-family:inherit}
 .activity-link { font-size:0.78rem; color:#2563EB; cursor:pointer; margin-top:3px; display:inline-block; }
 .activity-link:hover { text-decoration:underline; }
 .activity-time { font-size:0.75rem; color:#9CA3AF; flex-shrink:0; white-space:nowrap; }
+
+/* ===== Approval Queue (משימות פעילות) ===== */
+.approval-queue { background:#fff; border:1px solid #E5E7EB; border-radius:12px; overflow:hidden; }
+.aq-item { display:flex; align-items:flex-start; gap:12px; padding:14px 16px; border-bottom:1px solid #F3F4F6; transition:background .15s; cursor:pointer; }
+.aq-item:last-child { border-bottom:none; }
+.aq-item:hover { background:#FAFAFA; }
+.aq-icon { width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.aq-icon svg { width:18px; height:18px; }
+.aq-icon.pending { background:#FEF3C7; color:#D97706; }
+.aq-icon.awaiting { background:#DBEAFE; color:#2563EB; }
+.aq-icon.approved { background:#D1FAE5; color:#10B981; }
+.aq-icon.published { background:#EDE9FE; color:#7C3AED; }
+.aq-icon.error { background:#FEE2E2; color:#EF4444; }
+.aq-body { flex:1; min-width:0; }
+.aq-title { font-weight:600; font-size:0.88rem; color:#1F2937; }
+.aq-agent { font-size:0.75rem; color:#9CA3AF; margin-top:2px; }
+.aq-preview { font-size:0.8rem; color:#6B7280; margin-top:6px; line-height:1.4; max-height:0; overflow:hidden; transition:max-height .3s ease; }
+.aq-item.expanded .aq-preview { max-height:300px; }
+.aq-meta { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.aq-status { font-size:0.72rem; padding:2px 8px; border-radius:6px; font-weight:500; white-space:nowrap; }
+.aq-status.pending { background:#FEF3C7; color:#92400E; }
+.aq-status.awaiting { background:#DBEAFE; color:#1E40AF; }
+.aq-status.approved { background:#D1FAE5; color:#065F46; }
+.aq-status.published { background:#EDE9FE; color:#5B21B6; }
+.aq-actions { display:flex; gap:6px; margin-top:10px; }
+.aq-btn { font-size:0.78rem; padding:5px 12px; border-radius:6px; border:none; cursor:pointer; font-weight:500; }
+.aq-btn.approve { background:#10B981; color:#fff; }
+.aq-btn.approve:hover { background:#059669; }
+.aq-btn.edit { background:#F3F4F6; color:#374151; }
+.aq-btn.edit:hover { background:#E5E7EB; }
+.aq-btn.reject { background:#FEE2E2; color:#991B1B; }
+.aq-btn.reject:hover { background:#FECACA; }
+.aq-empty { text-align:center; padding:32px 16px; color:#9CA3AF; font-size:0.85rem; }
+.aq-empty svg { width:40px; height:40px; color:#D1D5DB; margin-bottom:8px; }
+
+/* ===== Content Calendar (לוח תוכן) ===== */
+.content-calendar { background:#fff; border:1px solid #E5E7EB; border-radius:12px; overflow:hidden; }
+.cal-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #F3F4F6; }
+.cal-nav { display:flex; align-items:center; gap:12px; }
+.cal-nav-btn { background:none; border:1px solid #E5E7EB; border-radius:6px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#6B7280; }
+.cal-nav-btn:hover { background:#F3F4F6; }
+.cal-nav-btn svg { width:14px; height:14px; }
+.cal-period { font-size:0.88rem; font-weight:600; color:#1F2937; }
+.cal-view-toggle { display:flex; gap:4px; }
+.cal-view-btn { font-size:0.75rem; padding:4px 10px; border-radius:6px; border:1px solid #E5E7EB; background:#fff; color:#6B7280; cursor:pointer; }
+.cal-view-btn.active { background:#2563EB; color:#fff; border-color:#2563EB; }
+.cal-grid { display:grid; grid-template-columns:repeat(7, 1fr); }
+.cal-day-header { padding:8px 4px; text-align:center; font-size:0.72rem; font-weight:600; color:#9CA3AF; border-bottom:1px solid #F3F4F6; }
+.cal-cell { min-height:80px; padding:4px; border-left:1px solid #F3F4F6; border-bottom:1px solid #F3F4F6; position:relative; }
+.cal-cell:first-child { border-left:none; }
+.cal-cell-date { font-size:0.72rem; color:#9CA3AF; padding:2px 4px; }
+.cal-cell-date.today { background:#2563EB; color:#fff; border-radius:4px; font-weight:600; }
+.cal-cell-date.other-month { color:#D1D5DB; }
+.cal-event { font-size:0.7rem; padding:2px 6px; border-radius:4px; margin-top:2px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cal-event.planned { background:#DBEAFE; color:#1E40AF; }
+.cal-event.ready { background:#FEF3C7; color:#92400E; }
+.cal-event.published { background:#D1FAE5; color:#065F46; }
+.cal-event.brief { background:#EDE9FE; color:#5B21B6; }
+@media(max-width:768px) { .cal-cell { min-height:50px; } .cal-event { font-size:0.6rem; } }
 
 /* Report/Strategy viewer modal */
 .report-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:300; display:flex; align-items:center; justify-content:center; padding:20px; }
@@ -573,12 +632,31 @@ input{font-family:inherit}
       </div>
     </div>
 
-    <!-- Row 2: פעילות אחרונה (full width) -->
+    <!-- Row 2: משימות פעילות (Approval Queue) + לוח תוכן (Calendar) -->
     <div style="margin-top:24px">
-      <div class="section-title">פעילות אחרונה</div>
-      <div class="activity-timeline" id="activityTimeline">
-        <div style="text-align:center;color:#9CA3AF;padding:20px;font-size:0.85rem">טוען פעילות...</div>
+      <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span style="display:flex;align-items:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          משימות פעילות
+        </span>
+        <span id="aqCounter" style="font-size:0.75rem;color:#9CA3AF"></span>
       </div>
+      <div class="approval-queue" id="approvalQueue">
+        <div class="aq-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          <div>אין משימות פעילות כרגע</div>
+          <div style="font-size:0.78rem;margin-top:4px">הסוכנים יתחילו לעבוד לפי האסטרטגיה</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: לוח תוכן (Content Calendar) -->
+    <div style="margin-top:24px">
+      <div class="section-title" style="display:flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        לוח תוכן
+      </div>
+      <div class="content-calendar" id="contentCalendar"></div>
     </div>
   </div>
 
@@ -1522,12 +1600,13 @@ function renderHome() {
   tasksHtml += '</div>';
 
   if (allDone) {
-    // Show compact completed state with quick access to reports
-    var completedHtml = '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:16px">' +
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span style="font-weight:600;color:#15803D">הכל מוגדר — הסוכנים פעילים!</span></div>';
-    if (hasResearch) completedHtml += '<button class="notif-action" onclick="viewReport()" style="margin-left:12px">📊 צפו בדוח מחקר →</button>';
-    if (hasStrategy) completedHtml += '<button class="notif-action" onclick="viewStrategy()">📋 צפו באסטרטגיה →</button>';
-    completedHtml += '</div>';
+    // Show compact completed state with quick access
+    var completedHtml = '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">' +
+      '<div style="display:flex;align-items:center;gap:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span style="font-weight:600;color:#15803D;font-size:0.88rem">הכל מוגדר — הסוכנים פעילים!</span></div>' +
+      '<div style="display:flex;gap:8px">';
+    if (hasResearch) completedHtml += '<button class="notif-action" onclick="viewReport()">דוח מחקר →</button>';
+    if (hasStrategy) completedHtml += '<button class="notif-action" onclick="viewStrategy()">אסטרטגיה →</button>';
+    completedHtml += '</div></div>';
     document.getElementById('homeTasks').style.display = '';
     document.getElementById('homeTasks').innerHTML = completedHtml;
     var grid = document.querySelector('.home-top-grid');
@@ -1540,8 +1619,9 @@ function renderHome() {
   // Notifications
   renderNotifications();
 
-  // Activity timeline
-  renderActivityTimeline();
+  // Approval Queue + Content Calendar
+  renderApprovalQueue();
+  renderContentCalendar();
 }
 
 /* ===== Notifications System ===== */
@@ -1736,6 +1816,270 @@ function extractMessage(line) {
   // Extract readable part from log line
   var clean = line.replace(/^.*\]\s*/, '').substring(0, 80);
   return clean || '';
+}
+
+/* ===== Approval Queue (משימות פעילות) ===== */
+function renderApprovalQueue() {
+  var el = document.getElementById('approvalQueue');
+  var counterEl = document.getElementById('aqCounter');
+  if (!el || !instanceId) return;
+
+  // Build tasks from strategy data and agent activity
+  var tasks = [];
+  var rd = (instanceData && instanceData.researchData) || {};
+  var strategy = rd.strategy || '';
+
+  // If strategy exists, generate planned tasks from content pillars
+  if (strategy) {
+    // Parse strategy for content tasks (look for numbered items, article titles)
+    var contentTitles = [];
+    var lines = strategy.split('\n');
+    lines.forEach(function(line) {
+      // Match numbered content items like "1. "מה זה OpenClaw..."
+      var m = line.match(/^\s*\d+\.\s*"(.+?)"/);
+      if (m) contentTitles.push(m[1]);
+      // Match items starting with quotes
+      var m2 = line.match(/^\s*[-•]\s*"(.+?)"/);
+      if (m2) contentTitles.push(m2[1]);
+    });
+
+    // Create tasks from first few content items
+    var taskStatuses = JSON.parse(localStorage.getItem('cf_task_statuses_' + instanceId) || '{}');
+    contentTitles.slice(0, 8).forEach(function(title, i) {
+      var taskId = 'content-' + i;
+      var status = taskStatuses[taskId] || 'planned';
+      tasks.push({
+        id: taskId,
+        title: title.length > 50 ? title.substring(0, 50) + '...' : title,
+        agent: 'עט',
+        type: 'content',
+        status: status,
+        preview: title
+      });
+    });
+  }
+
+  // Add recurring tasks
+  tasks.unshift({
+    id: 'daily-brief',
+    title: 'Daily Brief',
+    agent: 'מטה',
+    type: 'brief',
+    status: 'published',
+    preview: 'סיכום יומי — פעילויות אתמול, 3 משימות עדיפות, חדשות רלוונטיות'
+  });
+
+  // Add weekly report if Monday
+  var today = new Date();
+  if (today.getDay() === 1) {
+    tasks.splice(1, 0, {
+      id: 'weekly-report',
+      title: 'דוח תחרותי שבועי',
+      agent: 'סייר + מנתח',
+      type: 'report',
+      status: 'awaiting',
+      preview: 'ניתוח מתחרים, הזדמנויות תוכן, הצעות פוסטים לאישור'
+    });
+  }
+
+  // SVG icons matching sidebar style
+  var statusIcons = {
+    planned: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>',
+    pending: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>',
+    awaiting: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+    approved: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>',
+    published: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>'
+  };
+
+  var statusLabels = {
+    planned: 'מתוכנן',
+    pending: 'בביצוע',
+    awaiting: 'ממתין לאישור',
+    approved: 'אושר',
+    published: 'פורסם'
+  };
+
+  if (tasks.length === 0) {
+    el.innerHTML = '<div class="aq-empty">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;color:#D1D5DB;margin-bottom:8px"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>' +
+      '<div>אין משימות פעילות כרגע</div>' +
+      '<div style="font-size:0.78rem;margin-top:4px">הסוכנים יתחילו לעבוד לפי האסטרטגיה</div></div>';
+    return;
+  }
+
+  var awaitingCount = tasks.filter(function(t) { return t.status === 'awaiting'; }).length;
+  if (counterEl) counterEl.textContent = awaitingCount > 0 ? awaitingCount + ' ממתינים לאישור' : '';
+
+  el.innerHTML = tasks.map(function(t) {
+    var iconClass = t.status === 'planned' ? 'pending' : t.status;
+    var actionsHtml = '';
+    if (t.status === 'awaiting') {
+      actionsHtml = '<div class="aq-actions">' +
+        '<button class="aq-btn approve" onclick="event.stopPropagation();approveTask(\'' + t.id + '\')">אשרו</button>' +
+        '<button class="aq-btn edit" onclick="event.stopPropagation();editTask(\'' + t.id + '\')">תקנו</button>' +
+        '<button class="aq-btn reject" onclick="event.stopPropagation();rejectTask(\'' + t.id + '\')">דחו</button>' +
+      '</div>';
+    }
+    return '<div class="aq-item" onclick="toggleTaskExpand(this)">' +
+      '<div class="aq-icon ' + iconClass + '">' + (statusIcons[t.status] || statusIcons.pending) + '</div>' +
+      '<div class="aq-body">' +
+        '<div class="aq-title">' + t.title + '</div>' +
+        '<div class="aq-agent">' + t.agent + '</div>' +
+        '<div class="aq-preview">' + (t.preview || '') + actionsHtml + '</div>' +
+      '</div>' +
+      '<div class="aq-meta">' +
+        '<span class="aq-status ' + iconClass + '">' + (statusLabels[t.status] || t.status) + '</span>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleTaskExpand(el) {
+  el.classList.toggle('expanded');
+}
+
+function approveTask(taskId) {
+  var statuses = JSON.parse(localStorage.getItem('cf_task_statuses_' + instanceId) || '{}');
+  statuses[taskId] = 'approved';
+  localStorage.setItem('cf_task_statuses_' + instanceId, JSON.stringify(statuses));
+  showToast('משימה אושרה', 'success');
+  renderApprovalQueue();
+}
+
+function editTask(taskId) {
+  showToast('פתיחת עריכה...', 'info');
+}
+
+function rejectTask(taskId) {
+  var statuses = JSON.parse(localStorage.getItem('cf_task_statuses_' + instanceId) || '{}');
+  statuses[taskId] = 'planned';
+  localStorage.setItem('cf_task_statuses_' + instanceId, JSON.stringify(statuses));
+  showToast('המשימה הוחזרה לתכנון', 'info');
+  renderApprovalQueue();
+}
+
+/* ===== Content Calendar (לוח תוכן) ===== */
+var calendarOffset = 0; // weeks from current
+
+function renderContentCalendar() {
+  var el = document.getElementById('contentCalendar');
+  if (!el) return;
+
+  var now = new Date();
+  // Get start of week (Sunday in Israel)
+  var startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay() + (calendarOffset * 7));
+
+  var days = [];
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(startOfWeek);
+    d.setDate(startOfWeek.getDate() + i);
+    days.push(d);
+  }
+
+  var dayNames = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+
+  // Format period label
+  var periodStart = days[0];
+  var periodEnd = days[6];
+  var periodLabel = periodStart.getDate() + '–' + periodEnd.getDate() + ' ב' + getHebrewMonth(periodStart.getMonth());
+
+  // Build events from strategy
+  var events = getCalendarEvents(days);
+
+  var html = '<div class="cal-header">' +
+    '<div class="cal-nav">' +
+      '<button class="cal-nav-btn" onclick="calendarOffset--;renderContentCalendar()" title="שבוע קודם"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>' +
+      '<span class="cal-period">' + periodLabel + '</span>' +
+      '<button class="cal-nav-btn" onclick="calendarOffset++;renderContentCalendar()" title="שבוע הבא"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>' +
+    '</div>' +
+    '<div>' +
+      '<button class="cal-nav-btn" onclick="calendarOffset=0;renderContentCalendar()" title="היום" style="width:auto;padding:0 8px;font-size:0.75rem">היום</button>' +
+    '</div>' +
+  '</div>';
+
+  html += '<div class="cal-grid">';
+
+  // Day headers
+  dayNames.forEach(function(name) {
+    html += '<div class="cal-day-header">' + name + '</div>';
+  });
+
+  // Day cells
+  var todayStr = now.toDateString();
+  days.forEach(function(day, idx) {
+    var isToday = day.toDateString() === todayStr;
+    var dayStr = day.toISOString().split('T')[0];
+    var dayEvents = events.filter(function(e) { return e.date === dayStr; });
+
+    html += '<div class="cal-cell">';
+    html += '<div class="cal-cell-date' + (isToday ? ' today' : '') + '">' + day.getDate() + '</div>';
+
+    dayEvents.forEach(function(ev) {
+      html += '<div class="cal-event ' + ev.type + '" title="' + ev.title + '">' + ev.title + '</div>';
+    });
+
+    html += '</div>';
+  });
+
+  html += '</div>';
+
+  el.innerHTML = html;
+}
+
+function getCalendarEvents(days) {
+  var events = [];
+  var rd = (instanceData && instanceData.researchData) || {};
+  var strategy = rd.strategy || '';
+
+  // Recurring events
+  days.forEach(function(day) {
+    var dayStr = day.toISOString().split('T')[0];
+    var dow = day.getDay(); // 0=Sun
+
+    // Daily brief (Sun-Thu = 0-4)
+    if (dow >= 0 && dow <= 4) {
+      events.push({ date: dayStr, title: 'Daily Brief', type: 'brief' });
+    }
+
+    // Weekly competitive report (Monday = 1)
+    if (dow === 1) {
+      events.push({ date: dayStr, title: 'דוח תחרותי', type: 'planned' });
+    }
+
+    // Monthly AEO (1st of month)
+    if (day.getDate() === 1) {
+      events.push({ date: dayStr, title: 'ביקורת AEO', type: 'planned' });
+    }
+  });
+
+  // Content from strategy — map to weekdays
+  if (strategy) {
+    var contentItems = [];
+    strategy.split('\n').forEach(function(line) {
+      var m = line.match(/^\s*\d+\.\s*"(.+?)"/);
+      if (m && m[1].length > 5) contentItems.push(m[1]);
+    });
+
+    // Distribute content across weekdays (Tue=2, Wed=3, Thu=4)
+    var contentDays = days.filter(function(d) { return d.getDay() >= 2 && d.getDay() <= 4; });
+    contentItems.slice(0, contentDays.length).forEach(function(title, i) {
+      if (contentDays[i]) {
+        events.push({
+          date: contentDays[i].toISOString().split('T')[0],
+          title: title.length > 20 ? title.substring(0, 20) + '...' : title,
+          type: 'planned'
+        });
+      }
+    });
+  }
+
+  return events;
+}
+
+function getHebrewMonth(month) {
+  var months = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  return months[month] || '';
 }
 
 function renderAgentsTab() {
