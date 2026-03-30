@@ -2112,6 +2112,10 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
     html += '<div style="text-align:center;padding:10px;border-top:1px solid #F3F4F6">' +
       '<button onclick="showAllTasks()" style="font-size:0.78rem;color:#2563EB;background:none;border:none;cursor:pointer;font-weight:500">הצגו עוד ' + hiddenCount + ' משימות ←</button>' +
     '</div>';
+  } else if (showAllTasksMode && tasks.length > 4) {
+    html += '<div style="text-align:center;padding:10px;border-top:1px solid #F3F4F6">' +
+      '<button onclick="collapseTasks()" style="font-size:0.78rem;color:#9CA3AF;background:none;border:none;cursor:pointer;font-weight:500">הסתירו →</button>' +
+    '</div>';
   }
 
   el.innerHTML = html;
@@ -2122,6 +2126,11 @@ var aqFilterStatus = ''; // '' = all
 
 function showAllTasks() {
   showAllTasksMode = true;
+  renderApprovalQueue();
+}
+
+function collapseTasks() {
+  showAllTasksMode = false;
   renderApprovalQueue();
 }
 
