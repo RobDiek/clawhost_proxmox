@@ -1009,7 +1009,7 @@ input{font-family:inherit}
               <label class="chip-label"><input type="checkbox" name="google-scope" value="sheets"/><span class="chip">📊 Sheets</span></label>
               <label class="chip-label"><input type="checkbox" name="google-scope" value="ads"/><span class="chip">📢 Google Ads</span></label>
             </div>
-            <button class="btn btn-primary btn-sm" onclick="connectGoogle()">חברו חשבון Google ←</button>
+            <button class="btn btn-primary btn-sm" onclick="connectGoogle()">→ חברו חשבון Google</button>
           </div>
           <div id="google-connected" style="display:none">
             <div style="font-size:0.85rem;color:#10B981;margin-bottom:8px">&#10003; מחובר: <span id="google-email"></span></div>
@@ -1026,7 +1026,7 @@ input{font-family:inherit}
                 <label class="chip-label"><input type="checkbox" name="google-scope-edit" value="sheets"/><span class="chip">📊 Sheets</span></label>
                 <label class="chip-label"><input type="checkbox" name="google-scope-edit" value="ads"/><span class="chip">📢 Google Ads</span></label>
               </div>
-              <button class="btn btn-primary btn-sm" onclick="reconnectGoogleWithScopes()">עדכנו הרשאות ←</button>
+              <button class="btn btn-primary btn-sm" onclick="reconnectGoogleWithScopes()">→ עדכנו הרשאות</button>
             </div>
           </div>
         </div>
@@ -1093,7 +1093,7 @@ input{font-family:inherit}
           <input type="text" id="pub-blog-url" placeholder="https://example.com" style="width:100%;padding:6px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;margin-bottom:6px" dir="ltr">
           <input type="text" id="pub-blog-user" placeholder="שם משתמש WordPress" style="width:100%;padding:6px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;margin-bottom:6px" dir="ltr">
           <input type="password" id="pub-blog-apppass" placeholder="Application Password" style="width:100%;padding:6px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;margin-bottom:6px" dir="ltr">
-          <button class="btn btn-primary btn-sm" onclick="saveBlogIntegration()">שמרו ←</button>
+          <button class="btn btn-primary btn-sm" onclick="saveBlogIntegration()">→ שמרו</button>
           <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px"><a href="#" onclick="showPublishGuide('wordpress');return false" style="color:#2563EB">📖 איך ליצור Application Password</a></div>
         </div>
       </div>
@@ -1114,7 +1114,7 @@ input{font-family:inherit}
           <div><strong>Google Ads</strong><div class="int-status warning">דורש חיבור</div></div>
         </div>
         <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">יצירה, ניהול ואופטימיזציה של קמפיינים — אוטומטי</div>
-        <button class="btn btn-primary btn-sm" onclick="connectGoogleAds()" style="margin-top:4px">חברו Google Ads ←</button>
+        <button class="btn btn-primary btn-sm" onclick="connectGoogleAds()" style="margin-top:4px">→ חברו Google Ads</button>
         <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px"><a href="#" onclick="showPublishGuide('googleads');return false" style="color:#2563EB">📖 מדריך חיבור מפורט</a></div>
       </div>
 
@@ -1125,7 +1125,7 @@ input{font-family:inherit}
           <div><strong>Meta Ads</strong><div class="int-status warning">דורש חיבור</div></div>
         </div>
         <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">קמפיינים ב-Facebook, Instagram ו-Messenger — אוטומטי</div>
-        <button class="btn btn-primary btn-sm" onclick="startMetaOAuth()" style="margin-top:4px">חברו Meta Ads ←</button>
+        <button class="btn btn-primary btn-sm" onclick="startMetaOAuth()" style="margin-top:4px">→ חברו Meta Ads</button>
         <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px"><a href="#" onclick="showPublishGuide('instagram');return false" style="color:#2563EB">📖 מדריך חיבור מפורט</a></div>
       </div>
 
@@ -1141,7 +1141,7 @@ input{font-family:inherit}
           <div style="font-size:0.78rem;font-weight:600;color:#6B7280;margin-bottom:4px">רשימת נמענים</div>
           <textarea id="pub-newsletter-recipients" placeholder="אימייל אחד בכל שורה&#10;example1@gmail.com&#10;example2@gmail.com" style="width:100%;min-height:60px;padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.78rem;resize:vertical;font-family:monospace" dir="ltr"></textarea>
           <div style="display:flex;gap:6px;margin-top:6px;align-items:center">
-            <button class="btn btn-primary btn-sm" onclick="saveNewsletterRecipients()">שמרו רשימה ←</button>
+            <button class="btn btn-primary btn-sm" onclick="saveNewsletterRecipients()">→ שמרו רשימה</button>
             <span id="pub-newsletter-count" style="font-size:0.72rem;color:#9CA3AF"></span>
           </div>
           <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px">הרשימה נשמרת על ה-VPS ונגישה לסוכנים. ניתן לעדכן בכל עת.</div>
@@ -1361,7 +1361,7 @@ input{font-family:inherit}
       </div>
       <div style="display:flex;gap:8px">
         <!-- skip removed: strategy without research is meaningless -->
-        <button class="btn btn-primary btn-sm" onclick="nextPipelineStage()" id="pipelineNextBtn">השלב הבא ←</button>
+        <button class="btn btn-primary btn-sm" onclick="nextPipelineStage()" id="pipelineNextBtn">→ השלב הבא</button>
       </div>
     </div>
   </div>
@@ -1379,7 +1379,7 @@ input{font-family:inherit}
       <div style="font-weight:600;font-size:0.9rem;margin-bottom:8px">הערות ובקשות עריכה</div>
       <textarea id="reportFeedback" rows="3" placeholder="כתבו מה לשנות, להוסיף או להסיר..." style="width:100%;padding:10px 14px;border:2px solid #E5E7EB;border-radius:10px;font-size:0.9rem;font-family:inherit;direction:rtl;resize:vertical" onfocus="this.style.borderColor='#2563EB'" onblur="this.style.borderColor='#E5E7EB'"></textarea>
       <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="btn btn-primary btn-sm" onclick="submitReportFeedback()">עדכנו על סמך ההערות ←</button>
+        <button class="btn btn-primary btn-sm" onclick="submitReportFeedback()">→ עדכנו על סמך ההערות</button>
         <button class="btn btn-outline btn-sm" onclick="approveReport()" style="color:#10B981;border-color:#BBF7D0">אשרו גרסה סופית ✓</button>
       </div>
     </div>
@@ -1781,7 +1781,7 @@ function renderNotifications() {
   }
 
   el.innerHTML = notifs.map(function(n) {
-    var actionHtml = n.action ? '<button class="notif-action" onclick="' + n.action + '">' + n.actionLabel + ' ←</button>' : '';
+    var actionHtml = n.action ? '<button class="notif-action" onclick="' + n.action + '">→ ' + n.actionLabel + '</button>' : '';
     var copyHtml = n.type === 'error' ? '<button class="notif-action" onclick="copyNotifToDebug(\'' + n.id + '\')" style="color:#9CA3AF">העתקו לתמיכה</button>' : '';
     return '<div class="notif-card ' + n.type + '">' +
       '<span class="notif-icon">' + n.icon + '</span>' +
@@ -2071,11 +2071,11 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
 
   if (hiddenCount > 0) {
     html += '<div style="text-align:center;padding:10px;border-top:1px solid #F3F4F6">' +
-      '<button onclick="showAllTasks()" style="font-size:0.78rem;color:#2563EB;background:none;border:none;cursor:pointer;font-weight:500">הצגו עוד ' + hiddenCount + ' משימות ←</button>' +
+      '<button onclick="showAllTasks()" style="font-size:0.78rem;color:#2563EB;background:none;border:none;cursor:pointer;font-weight:500">הצגו עוד ' + hiddenCount + ' → משימות</button>' +
     '</div>';
   } else if (showAllTasksMode && tasks.length > 4) {
     html += '<div style="text-align:center;padding:10px;border-top:1px solid #F3F4F6">' +
-      '<button onclick="collapseTasks()" style="font-size:0.78rem;color:#9CA3AF;background:none;border:none;cursor:pointer;font-weight:500">הסתירו →</button>' +
+      '<button onclick="collapseTasks()" style="font-size:0.78rem;color:#9CA3AF;background:none;border:none;cursor:pointer;font-weight:500">← הסתירו</button>' +
     '</div>';
   }
 
@@ -2391,14 +2391,14 @@ function renderTaskPopup(task) {
     footerHtml = '<button class="aq-btn reject" onclick="apiArchiveOutput(\'' + task.id + '\');closeTaskPopup()">ארכיון</button>' +
       '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()">דחו</button>' +
       '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\')">תקנו</button>' +
-      '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()">אשרו ←</button>';
+      '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()">→ אשרו</button>';
   } else if (task.status === 'approved') {
     var reportTypes = ['daily_brief', 'weekly_report', 'aeo_audit', 'competitive_scan'];
     var reportAgents = ['mateh', 'sayer', 'menateach', 'migdalor'];
     var isReport = reportTypes.indexOf(task.type) !== -1 || reportAgents.indexOf(task.agentRole || '') !== -1;
     footerHtml = '<button class="aq-btn reject" onclick="apiArchiveOutput(\'' + task.id + '\');closeTaskPopup()">ארכיון</button>' +
       '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>' +
-      (isReport ? '' : '<button class="aq-btn approve" onclick="apiPublishOutput(\'' + task.id + '\');closeTaskPopup()">פרסמו ←</button>');
+      (isReport ? '' : '<button class="aq-btn approve" onclick="apiPublishOutput(\'' + task.id + '\');closeTaskPopup()">→ פרסמו</button>');
   } else if (task.status === 'archived') {
     footerHtml = '<button class="aq-btn reject" onclick="apiDeleteOutput(\'' + task.id + '\');closeTaskPopup()">מחקו לצמיתות</button>' +
       '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
@@ -2471,7 +2471,7 @@ function showPublishError(outputId, errorMsg, task) {
     bodyHtml += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:14px">' +
       '<div style="font-weight:600;font-size:0.88rem;color:#1E40AF;margin-bottom:6px">מה לעשות?</div>' +
       '<div style="font-size:0.82rem;color:#1E3A5F;line-height:1.5">' + errorMsg + '</div>' +
-      '<button class="btn btn-primary btn-sm" onclick="closeTaskPopup();switchTab(\'integrations\')" style="margin-top:10px">עברו להגדרות תוספים ←</button>' +
+      '<button class="btn btn-primary btn-sm" onclick="closeTaskPopup();switchTab(\'integrations\')" style="margin-top:10px">→ עברו להגדרות תוספים</button>' +
     '</div>';
   } else {
     // Technical error — show for debugging
@@ -2484,7 +2484,7 @@ function showPublishError(outputId, errorMsg, task) {
   document.getElementById('taskPopupBody').innerHTML = bodyHtml;
   document.getElementById('taskPopupFooter').innerHTML =
     '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>' +
-    '<button class="aq-btn approve" onclick="closeTaskPopup();apiPublishOutput(\'' + outputId + '\')">נסו שוב ←</button>';
+    '<button class="aq-btn approve" onclick="closeTaskPopup();apiPublishOutput(\'' + outputId + '\')">→ נסו שוב</button>';
   document.getElementById('taskPopupOverlay').classList.remove('hidden');
 }
 
@@ -2714,7 +2714,7 @@ function editTask(taskId) {
   document.getElementById('taskPopupBody').innerHTML = bodyHtml;
   document.getElementById('taskPopupFooter').innerHTML =
     '<button class="aq-btn edit" onclick="closeTaskPopup()">ביטול</button>' +
-    '<button class="aq-btn approve" onclick="submitTaskEdit(\'' + taskId + '\')">שמרו תיקון ←</button>';
+    '<button class="aq-btn approve" onclick="submitTaskEdit(\'' + taskId + '\')">→ שמרו תיקון</button>';
 
   document.getElementById('taskPopupOverlay').classList.remove('hidden');
 }
@@ -3573,7 +3573,7 @@ async function runPipelineStage(stage) {
         document.getElementById('pipelineNextBtn').onclick = function() { closePipeline(); runChainStrategy(); };
         // skip button removed
       } else {
-        document.getElementById('pipelineNextBtn').textContent = 'השלב הבא ←';
+        document.getElementById('pipelineNextBtn').textContent = '→ השלב הבא';
         document.getElementById('pipelineNextBtn').onclick = function() { nextPipelineStage(); };
       }
     } else {
@@ -3591,7 +3591,7 @@ async function runPipelineStage(stage) {
           '• שדרגו את תוכנית ה-API שלכם</div>' : '') +
         '</div>';
       document.getElementById('pipelineNextBtn').disabled = false;
-      document.getElementById('pipelineNextBtn').textContent = 'נסו שוב ←';
+      document.getElementById('pipelineNextBtn').textContent = '→ נסו שוב';
       document.getElementById('pipelineNextBtn').onclick = function() { runPipelineStage(stage); };
     }
   } catch (e) {
@@ -3602,7 +3602,7 @@ async function runPipelineStage(stage) {
       '<div style="margin-bottom:8px">שלב ' + stage + ' נכשל</div>' +
       '<div style="font-size:0.78rem;color:#9CA3AF;direction:ltr">' + (e.message || e) + '</div></div>';
     document.getElementById('pipelineNextBtn').disabled = false;
-    document.getElementById('pipelineNextBtn').textContent = 'נסו שוב ←';
+    document.getElementById('pipelineNextBtn').textContent = '→ נסו שוב';
     document.getElementById('pipelineNextBtn').onclick = function() { runPipelineStage(stage); };
   }
   } catch (outerErr) {
@@ -3613,7 +3613,7 @@ async function runPipelineStage(stage) {
       '<div style="margin-bottom:8px">שגיאה פנימית בשלב ' + stage + '</div>' +
       '<div style="font-size:0.78rem;color:#9CA3AF;direction:ltr;word-break:break-all">' + (outerErr.message || outerErr) + '</div></div>';
     document.getElementById('pipelineNextBtn').disabled = false;
-    document.getElementById('pipelineNextBtn').textContent = 'נסו שוב ←';
+    document.getElementById('pipelineNextBtn').textContent = '→ נסו שוב';
     document.getElementById('pipelineNextBtn').onclick = function() { runPipelineStage(stage); };
   }
 }
@@ -3792,7 +3792,7 @@ async function runStrategyStage(stage) {
           setTimeout(viewStrategy, 1000);
         };
       } else {
-        document.getElementById('pipelineNextBtn').textContent = 'השלב הבא ←';
+        document.getElementById('pipelineNextBtn').textContent = '→ השלב הבא';
         document.getElementById('pipelineNextBtn').onclick = function() { runStrategyStage(stage + 1); };
       }
     } else {
@@ -3801,7 +3801,7 @@ async function runStrategyStage(stage) {
         '<div style="font-size:1.5rem;margin-bottom:8px">⚠️</div>' +
         '<div>' + (data.message || 'שגיאה') + '</div></div>';
       document.getElementById('pipelineNextBtn').disabled = false;
-      document.getElementById('pipelineNextBtn').textContent = 'נסו שוב ←';
+      document.getElementById('pipelineNextBtn').textContent = '→ נסו שוב';
       document.getElementById('pipelineNextBtn').onclick = function() { runStrategyStage(stage); };
     }
   } catch (e) {
@@ -3809,7 +3809,7 @@ async function runStrategyStage(stage) {
     document.getElementById('pipelineBody').innerHTML =
       '<div style="text-align:center;padding:30px;color:#EF4444">שגיאת תקשורת</div>';
     document.getElementById('pipelineNextBtn').disabled = false;
-    document.getElementById('pipelineNextBtn').textContent = 'נסו שוב ←';
+    document.getElementById('pipelineNextBtn').textContent = '→ נסו שוב';
     document.getElementById('pipelineNextBtn').onclick = function() { runStrategyStage(stage); };
   }
   if (strategyTask) { strategyTask.disabled = false; strategyTask.textContent = 'בנו אסטרטגיה ←'; }
