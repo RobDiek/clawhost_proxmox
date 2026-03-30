@@ -1838,63 +1838,60 @@ function renderApprovalQueue() {
   var counterEl = document.getElementById('aqCounter');
   if (!el || !instanceId) return;
 
-  // Build tasks from strategy data and agent activity
-  var tasks = [];
-  var rd = (instanceData && instanceData.researchData) || {};
-  var strategy = rd.strategy || '';
-
-  // If strategy exists, generate planned tasks from content pillars
-  if (strategy) {
-    // Parse strategy for content tasks (look for numbered items, article titles)
-    var contentTitles = [];
-    var lines = strategy.split('\n');
-    lines.forEach(function(line) {
-      // Match numbered content items like "1. "מה זה OpenClaw..."
-      var m = line.match(/^\s*\d+\.\s*"(.+?)"/);
-      if (m) contentTitles.push(m[1]);
-      // Match items starting with quotes
-      var m2 = line.match(/^\s*[-•]\s*"(.+?)"/);
-      if (m2) contentTitles.push(m2[1]);
-    });
-
-    // Create tasks from first few content items
-    var taskStatuses = JSON.parse(localStorage.getItem('cf_task_statuses_' + instanceId) || '{}');
-    contentTitles.slice(0, 8).forEach(function(title, i) {
-      var taskId = 'content-' + i;
-      var status = taskStatuses[taskId] || 'planned';
-      tasks.push({
-        id: taskId,
-        title: title.length > 50 ? title.substring(0, 50) + '...' : title,
-        agent: 'עט',
-        type: 'content',
-        status: status,
-        preview: title
-      });
-    });
-  }
-
-  // Add recurring tasks
-  tasks.unshift({
-    id: 'daily-brief',
-    title: 'Daily Brief',
-    agent: 'מטה',
-    type: 'brief',
-    status: 'published',
-    preview: 'סיכום יומי — פעילויות אתמול, 3 משימות עדיפות, חדשות רלוונטיות'
+  // Fetch real outputs from API
+  fetch(API + '/hosting/instances/' + instanceId + '/outputs?limit=20', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.ok ? r.json() : null; })
+  .then(function(d) {
+    var apiOutputs = (d && d.success && d.data) ? d.data : [];
+    renderApprovalQueueData(el, counterEl, apiOutputs);
+  }).catch(function() {
+    renderApprovalQueueData(el, counterEl, []);
   });
+}
 
-  // Add weekly report if Monday
-  var today = new Date();
-  if (today.getDay() === 1) {
-    tasks.splice(1, 0, {
-      id: 'weekly-report',
-      title: 'דוח תחרותי שבועי',
-      agent: 'סייר + מנתח',
-      type: 'report',
-      status: 'awaiting',
-      preview: 'ניתוח מתחרים, הזדמנויות תוכן, הצעות פוסטים לאישור'
-    });
-  }
+// Agent role → Hebrew display name
+var AGENT_NAMES = {
+  mateh: 'מטה', sayer: 'סייר', meater: 'מאתר', maazin: 'מאזין',
+  menateach: 'מנתח', et: 'עט', yotzer: 'יוצר', shaliach: 'שליח', migdalor: 'מגדלור'
+};
+
+// Output type → Hebrew label
+var OUTPUT_TYPE_LABELS = {
+  daily_brief: 'Daily Brief', weekly_report: 'דוח תחרותי שבועי',
+  content_post: 'פוסט תוכן', media_image: 'מדיה',
+  aeo_audit: 'ביקורת AEO', competitive_scan: 'סריקת מתחרים', content_idea: 'רעיון תוכן'
+};
+
+// Platform icons (SVG, sidebar style)
+var PLATFORM_ICONS = {
+  instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
+  linkedin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-4 0v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>',
+  telegram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
+  blog: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>'
+};
+
+function renderApprovalQueueData(el, counterEl, apiOutputs) {
+  // Map API outputs to task format
+  var tasks = apiOutputs.map(function(o) {
+    var statusMap = { pending_review: 'awaiting', approved: 'approved', published: 'published', rejected: 'rejected' };
+    return {
+      id: o.id,
+      title: o.title,
+      agent: AGENT_NAMES[o.agent_role || o.agentRole] || o.agent_role || o.agentRole,
+      type: o.output_type || o.outputType,
+      status: statusMap[o.status] || o.status,
+      content: o.content,
+      mediaUrl: o.media_url || o.mediaUrl,
+      mediaType: o.media_type || o.mediaType,
+      mediaMeta: o.media_meta || o.mediaMeta,
+      platform: o.platform,
+      scheduledFor: o.scheduled_for || o.scheduledFor,
+      metadata: o.metadata,
+      editedContent: o.edited_content || o.editedContent,
+      createdAt: o.created_at || o.createdAt
+    };
+  });
 
   // SVG icons matching sidebar style
   var statusIcons = {
@@ -1993,21 +1990,70 @@ function openCalendarEventPopup(title, type, date) {
 
 function renderTaskPopup(task) {
   var statusLabelsPopup = {
-    planned: 'מתוכנן', pending: 'בביצוע', awaiting: 'ממתין לאישור', approved: 'אושר', published: 'פורסם'
+    planned: 'מתוכנן', pending: 'בביצוע', awaiting: 'ממתין לאישור',
+    approved: 'אושר', published: 'פורסם', rejected: 'נדחה', pending_review: 'ממתין לאישור'
   };
-  var statusClass = task.status === 'planned' ? 'pending' : task.status;
+  var statusClass = task.status === 'planned' ? 'pending' : task.status === 'pending_review' ? 'awaiting' : task.status;
 
   document.getElementById('taskPopupTitle').textContent = task.title;
 
-  // ── Status row (all types) ──
+  // ── Status row ──
+  var platformIcon = (typeof PLATFORM_ICONS !== 'undefined' && PLATFORM_ICONS[task.platform]) || '';
+  var platformLabel = task.platform ? ' · ' + task.platform : '';
+  var dateLabel = task.dateLabel || (task.createdAt ? new Date(task.createdAt).toLocaleDateString('he-IL') : '');
+
   var bodyHtml = '<div class="task-popup-status-row">' +
     '<span class="aq-status ' + statusClass + '" style="font-size:0.8rem;padding:3px 10px">' + (statusLabelsPopup[task.status] || task.status) + '</span>' +
-    '<span style="font-size:0.78rem;color:#9CA3AF">' + (task.dateLabel || 'סוכן: ' + task.agent) + '</span>' +
+    '<span style="font-size:0.78rem;color:#9CA3AF">' + (task.agent || '') + platformLabel + (dateLabel ? ' · ' + dateLabel : '') + '</span>' +
   '</div>';
 
-  // ── Type-specific layouts ──
+  // ── Real content from agent (if available) ──
+  var displayContent = task.editedContent || task.content;
+  if (displayContent) {
+    var contentHtml = displayContent
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/^### (.+)$/gm, '<h4 style="margin:8px 0 4px;font-size:0.9rem">$1</h4>')
+      .replace(/^## (.+)$/gm, '<h3 style="margin:10px 0 4px;font-size:0.95rem">$1</h3>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
 
-  if (task.type === 'content') {
+    bodyHtml += '<div class="task-popup-field">' +
+      '<div class="task-popup-label">תוכן</div>' +
+      '<div class="task-popup-value" style="background:#F9FAFB;padding:12px;border-radius:8px;border:1px solid #F3F4F6;max-height:300px;overflow-y:auto;line-height:1.6;font-size:0.85rem">' + contentHtml + '</div>' +
+    '</div>';
+  }
+
+  // ── Media (if available) ──
+  if (task.mediaUrl) {
+    bodyHtml += '<div class="task-popup-field">' +
+      '<div class="task-popup-label">מדיה</div>' +
+      '<div style="background:#F9FAFB;border:1px solid #F3F4F6;border-radius:8px;overflow:hidden"><img src="' + task.mediaUrl + '" style="width:100%;max-height:240px;object-fit:contain" alt=""></div>' +
+    '</div>';
+  }
+
+  // ── Metadata grid (dynamic from actual data) ──
+  var metaItems = [];
+  if (task.platform) metaItems.push({ label: 'פלטפורמה', value: task.platform });
+  if (task.metadata && task.metadata.pillar) metaItems.push({ label: 'עמוד תוכן', value: task.metadata.pillar });
+  if (task.metadata && task.metadata.format) metaItems.push({ label: 'פורמט', value: task.metadata.format });
+  if (task.scheduledFor) metaItems.push({ label: 'מתוכנן ל', value: new Date(task.scheduledFor).toLocaleDateString('he-IL') });
+  if (task.metadata && task.metadata.agents) {
+    var agentChain = task.metadata.agents.map(function(a) { return (typeof AGENT_NAMES !== 'undefined' && AGENT_NAMES[a]) || a; }).join(' → ');
+    metaItems.push({ label: 'שרשרת סוכנים', value: agentChain });
+  }
+  if (task.mediaMeta && task.mediaMeta.width) metaItems.push({ label: 'מידות', value: task.mediaMeta.width + '×' + task.mediaMeta.height });
+
+  if (metaItems.length > 0) {
+    var cols = Math.min(metaItems.length, 3);
+    bodyHtml += '<div style="display:grid;grid-template-columns:repeat(' + cols + ',1fr);gap:12px">';
+    metaItems.forEach(function(m) {
+      bodyHtml += '<div class="task-popup-field"><div class="task-popup-label">' + m.label + '</div><div class="task-popup-value">' + m.value + '</div></div>';
+    });
+    bodyHtml += '</div>';
+  }
+
+  // ── Fallback: type-specific info if no real content ──
+  if (!displayContent && !task.mediaUrl && task.type === 'content') {
     // Content task: article/post preview
     bodyHtml += '<div class="task-popup-field">' +
       '<div class="task-popup-label">סוכן</div>' +
@@ -2176,10 +2222,13 @@ function renderTaskPopup(task) {
 
   // ── Footer actions based on status ──
   var footerHtml = '';
-  if (task.status === 'awaiting') {
-    footerHtml = '<button class="aq-btn reject" onclick="rejectTask(\'' + task.id + '\');closeTaskPopup()">דחו</button>' +
+  if (task.status === 'awaiting' || task.status === 'pending_review') {
+    footerHtml = '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()">דחו</button>' +
       '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\');closeTaskPopup()">תקנו</button>' +
-      '<button class="aq-btn approve" onclick="approveTask(\'' + task.id + '\');closeTaskPopup()">אשרו ←</button>';
+      '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()">אשרו ←</button>';
+  } else if (task.status === 'approved') {
+    footerHtml = '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>' +
+      '<button class="aq-btn approve" onclick="apiPublishOutput(\'' + task.id + '\');closeTaskPopup()">פרסמו ←</button>';
   } else {
     footerHtml = '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
   }
@@ -2189,6 +2238,41 @@ function renderTaskPopup(task) {
 
 function closeTaskPopup() {
   document.getElementById('taskPopupOverlay').classList.add('hidden');
+}
+
+// ── API-based output actions ──
+function apiApproveOutput(outputId) {
+  fetch(API + '/hosting/instances/' + instanceId + '/outputs/' + outputId + '/approve', {
+    method: 'PATCH',
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) { showToast('אושר בהצלחה', 'success'); renderApprovalQueue(); }
+    else showToast(d.message || 'שגיאה', 'error');
+  }).catch(function() { showToast('שגיאת תקשורת', 'error'); });
+}
+
+function apiRejectOutput(outputId) {
+  fetch(API + '/hosting/instances/' + instanceId + '/outputs/' + outputId + '/reject', {
+    method: 'PATCH',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason: 'נדחה ע"י המשתמש' })
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) { showToast('נדחה', 'info'); renderApprovalQueue(); }
+    else showToast(d.message || 'שגיאה', 'error');
+  }).catch(function() { showToast('שגיאת תקשורת', 'error'); });
+}
+
+function apiPublishOutput(outputId) {
+  fetch(API + '/hosting/instances/' + instanceId + '/outputs/' + outputId + '/publish', {
+    method: 'PATCH',
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) { showToast('פורסם בהצלחה', 'success'); renderApprovalQueue(); }
+    else showToast(d.message || 'שגיאה', 'error');
+  }).catch(function() { showToast('שגיאת תקשורת', 'error'); });
 }
 
 function toggleTaskExpand(el) {
