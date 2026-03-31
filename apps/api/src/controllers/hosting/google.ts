@@ -42,7 +42,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'https://clawflow.flowmatic.co.
 const SCOPE_MAP: Record<string, string> = {
     calendar: 'https://www.googleapis.com/auth/calendar',
     drive: 'https://www.googleapis.com/auth/drive.readonly',
-    gmail: 'https://www.googleapis.com/auth/gmail.send',
+    gmail: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send',
     sheets: 'https://www.googleapis.com/auth/spreadsheets',
     youtube: 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube',
     ads: 'https://www.googleapis.com/auth/adwords',

@@ -41,7 +41,7 @@ const MS_TENANT = 'common' // supports personal + work accounts
 
 // Available Microsoft Graph scopes
 const SCOPE_MAP: Record<string, string> = {
-    mail: 'Mail.ReadWrite Mail.Send',
+    mail: 'Mail.Read Mail.Send',
     calendar: 'Calendars.ReadWrite',
     contacts: 'Contacts.Read',
     files: 'Files.ReadWrite',
