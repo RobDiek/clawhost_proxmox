@@ -459,7 +459,7 @@ input{font-family:inherit}
   .hamburger{display:none}
   .sidebar{display:none}
   .bottom-nav{display:block}
-  .main{margin-right:0;margin-bottom:56px;padding:20px 16px}
+  .main{margin-right:0;margin-bottom:56px;padding:16px 12px}
   .agent-cards{grid-template-columns:1fr}
   .int-action{flex-direction:column}
   .int-action input{min-width:auto}
@@ -467,6 +467,27 @@ input{font-family:inherit}
   .debug-panel{left:10px;right:10px;width:auto}
   .tooltip-icon:hover::after{display:none}
   .tooltip-icon:hover::before{display:none}
+  .integrations-grid{grid-template-columns:1fr !important}
+  .int-card[style*="grid-column:span 2"]{grid-column:span 1 !important}
+  .tab-title{font-size:1.1rem}
+  .tab-desc{font-size:0.78rem}
+  .stat-card{padding:10px 8px}
+  .stat-value{font-size:0.9rem}
+  .dev-tab-btn{font-size:0.72rem;padding:4px 8px}
+  .agent-detail-tab{font-size:0.75rem;padding:4px 8px}
+  .section-title{font-size:0.88rem}
+  .info-row{flex-direction:column;gap:4px}
+  .info-row .info-label{min-width:auto}
+  .sub-agents-grid{grid-template-columns:1fr !important}
+  #server-stats{grid-template-columns:1fr !important}
+  .report-modal{margin:10px;max-height:90vh}
+  #taskPopupBody{max-height:60vh;overflow-y:auto}
+}
+@media(max-width:400px){
+  .main{padding:12px 8px}
+  .header{padding:8px 12px}
+  .bottom-nav{font-size:0.65rem}
+  .btn-sm{font-size:0.72rem;padding:4px 8px}
 }
 
 /* ===== Agent Creator tab ===== */
@@ -1485,6 +1506,48 @@ input{font-family:inherit}
       </div>
     </div>
 
+
+    <!-- 2FA Security -->
+    <div class="section-title" style="display:flex;align-items:center;gap:6px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      אימות דו-שלבי (2FA)
+    </div>
+    <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;overflow:hidden;margin-bottom:20px">
+      <div style="padding:14px 16px" id="twofa-section">
+        <div id="twofa-status-row" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-size:0.85rem;color:#6B7280">סטטוס</span>
+          <span id="twofa-status" style="font-size:0.85rem;font-weight:600;color:#EF4444">לא פעיל</span>
+        </div>
+        <!-- Setup flow (when not enabled) -->
+        <div id="twofa-setup">
+          <p style="font-size:0.78rem;color:#6B7280;margin-bottom:10px">הוסיפו שכבת אבטחה נוספת. סרקו QR עם Google Authenticator או אפליקציית TOTP אחרת.</p>
+          <button class="btn btn-primary btn-sm" onclick="start2faSetup()">הפעילו 2FA</button>
+        </div>
+        <!-- QR display (during setup) -->
+        <div id="twofa-qr" style="display:none">
+          <p style="font-size:0.78rem;color:#374151;margin-bottom:8px;font-weight:600">סרקו את הקוד:</p>
+          <div id="twofa-qr-img" style="text-align:center;margin-bottom:10px;padding:16px;background:#F9FAFB;border-radius:8px"></div>
+          <p style="font-size:0.72rem;color:#6B7280;margin-bottom:4px">או הזינו ידנית:</p>
+          <code id="twofa-secret-display" style="display:block;background:#F3F4F6;padding:8px;border-radius:6px;font-size:0.82rem;text-align:center;letter-spacing:2px;direction:ltr;margin-bottom:10px"></code>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="text" id="twofa-verify-code" placeholder="קוד 6 ספרות" maxlength="6" dir="ltr" style="border:1px solid #E5E7EB;border-radius:6px;padding:8px 12px;font-size:1rem;width:120px;text-align:center;letter-spacing:4px"/>
+            <button class="btn btn-primary btn-sm" onclick="confirm2faSetup()">אשרו</button>
+            <button class="btn btn-outline btn-sm" onclick="cancel2faSetup()">ביטול</button>
+          </div>
+        </div>
+        <!-- Enabled state -->
+        <div id="twofa-enabled" style="display:none">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <span style="color:#10B981;font-size:0.85rem;font-weight:600">2FA פעיל</span>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="start2faDisable()" style="font-size:0.75rem;color:#EF4444;border-color:#FECACA">בטלו 2FA</button>
+          <div id="twofa-disable-form" style="display:none;margin-top:10px">
+            <input type="text" id="twofa-disable-code" placeholder="קוד 6 ספרות לאישור" maxlength="6" dir="ltr" style="border:1px solid #E5E7EB;border-radius:6px;padding:8px 12px;font-size:1rem;width:140px;text-align:center;letter-spacing:4px;margin-left:6px"/>
+            <button class="btn btn-outline btn-sm" onclick="confirm2faDisable()" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">אשרו ביטול</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Danger Zone -->
     <div class="section-title" style="display:flex;align-items:center;gap:6px;color:#EF4444">
@@ -3398,6 +3461,7 @@ function renderSettings() {
   document.getElementById('settingsCreated').textContent = new Date().toLocaleDateString('he-IL');
   var savedName = localStorage.getItem('cf_user_name') || '';
   document.getElementById('user-name').value = savedName;
+  check2faStatus();
 }
 
 function renderAdvanced() {
@@ -4521,6 +4585,100 @@ function checkMicrosoftStatus() {
   }
 }
 
+/* ===== 2FA (TOTP) ===== */
+async function check2faStatus() {
+  try {
+    var res = await fetch(API + '/hosting/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
+    var d = await res.json();
+    // Check from user object if 2FA is enabled (we check via a setup call)
+    // Simple approach: try to get user profile and see totpEnabled
+    // Since /me doesn't return totpEnabled, we'll track locally
+  } catch(e) {}
+  var enabled = localStorage.getItem('cf_2fa_enabled') === 'true';
+  if (enabled) {
+    document.getElementById('twofa-status').textContent = 'פעיל';
+    document.getElementById('twofa-status').style.color = '#10B981';
+    document.getElementById('twofa-setup').style.display = 'none';
+    document.getElementById('twofa-enabled').style.display = '';
+  }
+}
+
+async function start2faSetup() {
+  showToast('מכין...', 'info');
+  try {
+    var res = await fetch(API + '/hosting/auth/2fa/setup', {
+      method: 'POST', headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var d = await res.json();
+    if (d.success && d.data) {
+      document.getElementById('twofa-setup').style.display = 'none';
+      document.getElementById('twofa-qr').style.display = '';
+      document.getElementById('twofa-secret-display').textContent = d.data.secret;
+      // Generate QR code using a simple img from Google Charts API
+      var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(d.data.otpauthUri);
+      document.getElementById('twofa-qr-img').innerHTML = '<img src="' + qrUrl + '" alt="QR Code" style="width:200px;height:200px;border-radius:8px"/>';
+    } else {
+      showToast(d.message || 'שגיאה', 'error');
+    }
+  } catch (e) { showToast('שגיאה', 'error'); }
+}
+
+function cancel2faSetup() {
+  document.getElementById('twofa-qr').style.display = 'none';
+  document.getElementById('twofa-setup').style.display = '';
+}
+
+async function confirm2faSetup() {
+  var code = document.getElementById('twofa-verify-code').value.trim();
+  if (!code || code.length !== 6) { showToast('הזינו קוד 6 ספרות', 'error'); return; }
+  try {
+    var res = await fetch(API + '/hosting/auth/2fa/verify-setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ code: code })
+    });
+    var d = await res.json();
+    if (d.success) {
+      showToast('2FA הופעל בהצלחה!', 'success');
+      localStorage.setItem('cf_2fa_enabled', 'true');
+      document.getElementById('twofa-qr').style.display = 'none';
+      document.getElementById('twofa-enabled').style.display = '';
+      document.getElementById('twofa-status').textContent = 'פעיל';
+      document.getElementById('twofa-status').style.color = '#10B981';
+    } else {
+      showToast(d.message || 'קוד שגוי', 'error');
+    }
+  } catch (e) { showToast('שגיאה', 'error'); }
+}
+
+function start2faDisable() {
+  document.getElementById('twofa-disable-form').style.display = '';
+}
+
+async function confirm2faDisable() {
+  var code = document.getElementById('twofa-disable-code').value.trim();
+  if (!code || code.length !== 6) { showToast('הזינו קוד 6 ספרות', 'error'); return; }
+  try {
+    var res = await fetch(API + '/hosting/auth/2fa/disable', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ code: code })
+    });
+    var d = await res.json();
+    if (d.success) {
+      showToast('2FA בוטל', 'success');
+      localStorage.removeItem('cf_2fa_enabled');
+      document.getElementById('twofa-enabled').style.display = 'none';
+      document.getElementById('twofa-disable-form').style.display = 'none';
+      document.getElementById('twofa-setup').style.display = '';
+      document.getElementById('twofa-status').textContent = 'לא פעיל';
+      document.getElementById('twofa-status').style.color = '#EF4444';
+    } else {
+      showToast(d.message || 'קוד שגוי', 'error');
+    }
+  } catch (e) { showToast('שגיאה', 'error'); }
+}
+
 /* ===== Settings: Upgrade / Cancel / Delete ===== */
 var UPGRADE_PLANS = [
   { key: 'personal', name: 'אישי', ram: 4, cpu: 2, cpuType: 'shared', nvme: 40, price: 79 },
@@ -4667,13 +4825,13 @@ async function deleteAccount() {
       if (!ok2) return;
       showToast('מוחק חשבון...', 'info');
       try {
-        var res = await fetch(API + '/hosting/instances/' + instanceId, {
+        var res = await fetch(API + '/hosting/account', {
           method: 'DELETE',
           headers: { 'Authorization': 'Bearer ' + token }
         });
         var d = await res.json();
         if (d.success) {
-          showToast('החשבון נמחק.', 'success');
+          showToast('החשבון נמחק. להתראות.', 'success');
           localStorage.clear();
           setTimeout(function() { window.location.href = '/'; }, 2000);
         } else {

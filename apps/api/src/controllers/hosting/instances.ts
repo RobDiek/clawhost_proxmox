@@ -358,3 +358,41 @@ export const deleteInstance = async (c: Context<HonoEnv>) => {
         return fail(c, 'Failed to terminate instance.', 500)
     }
 }
+
+// DELETE /hosting/account — delete user account + all instances
+export const deleteAccount = async (c: Context<HonoEnv>) => {
+    try {
+        const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Unauthorized.', 401)
+
+        // Get all user instances
+        const userInstances = await db.select()
+            .from(instances)
+            .where(eq(instances.userId, userId))
+
+        // Terminate all VPS
+        for (const inst of userInstances) {
+            if (inst.hetznerServerId && inst.status !== 'terminated') {
+                try {
+                    await provisioner.terminate(inst.id, inst.hetznerServerId)
+                } catch (e) {
+                    console.error(`Failed to terminate ${inst.id}:`, e)
+                }
+            }
+            await db.update(instances)
+                .set({ status: 'terminated' })
+                .where(eq(instances.id, inst.id))
+        }
+
+        // Delete user record (cascades to instances via FK)
+        const { users } = await import('@/db/schema')
+        await db.delete(users).where(eq(users.id, userId))
+
+        await telegram.alertAdmin(`🗑️ Account deleted: ${userId} (${userInstances.length} instances terminated)`)
+
+        return ok(c, null, 'Account deleted.')
+    } catch (err) {
+        console.error('deleteAccount error:', err)
+        return fail(c, 'Failed to delete account.', 500)
+    }
+}

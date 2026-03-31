@@ -20,6 +20,8 @@ export const users = pgTable('users', {
     polarCustomerId: text('polar_customer_id'),
     hasLicense: boolean('has_license').notNull().default(false),
     role: text('role').notNull().default(userRole.user),
+    totpSecret: text('totp_secret'),          // TOTP 2FA secret (base32 encoded)
+    totpEnabled: boolean('totp_enabled').default(false),
     createdAt: timestamp('created_at', { withTimezone: true })
         .defaultNow()
         .notNull()

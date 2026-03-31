@@ -11,6 +11,7 @@ import {
     deleteInstance,
     upgradePlan,
     addStorage,
+    deleteAccount,
     adminGetInstances,
     adminGetRevenue,
     adminSuspendInstance,
@@ -20,6 +21,10 @@ import {
     verifyOtpHosting,
     getMe,
     getMyInstances,
+    setup2fa,
+    verifySetup2fa,
+    verify2fa,
+    disable2fa,
     checkSubdomain,
     setupApiKey,
     setupTelegram,
@@ -77,6 +82,10 @@ app.post('/auth/send-otp', sendOtpHosting)
 app.post('/auth/verify-otp', verifyOtpHosting)
 app.get('/auth/me', getMe)
 app.get('/my-instances', getMyInstances)
+app.post('/auth/2fa/setup', setup2fa)
+app.post('/auth/2fa/verify-setup', verifySetup2fa)
+app.post('/auth/2fa/verify', verify2fa)
+app.post('/auth/2fa/disable', disable2fa)
 
 // ── Public ──
 app.post('/configure', configureInstance)
@@ -94,6 +103,7 @@ app.post('/instances/:id/restart', restartInstance)
 app.post('/instances/:id/upgrade-plan', upgradePlan)
 app.post('/instances/:id/add-storage', addStorage)
 app.delete('/instances/:id', deleteInstance)
+app.delete('/account', deleteAccount)
 
 // ── Setup (onboarding) ──
 app.post('/instances/:id/setup/api-key', setupApiKey)

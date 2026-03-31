@@ -198,6 +198,22 @@ export const verifyOtpHosting = async (c: Context) => {
             })
         }
 
+        // Check if 2FA is enabled
+        if (existingUser?.totpEnabled && existingUser?.totpSecret) {
+            // Return partial token — needs 2FA verification
+            const partialToken = signJwt(
+                {
+                    sub: userId,
+                    email: normalizedEmail,
+                    needs2fa: true,
+                    iat: Math.floor(Date.now() / 1000),
+                    exp: Math.floor(Date.now() / 1000) + 5 * 60 // 5 min for 2FA
+                },
+                jwtSecret
+            )
+            return ok(c, { needs2fa: true, partialToken, userId, email: normalizedEmail }, '2FA required.')
+        }
+
         // Sign JWT
         const token = signJwt(
             {
@@ -339,5 +355,179 @@ export const getMyInstances = async (c: Context) => {
     } catch (err) {
         console.error('getMyInstances error:', err)
         return fail(c, 'Failed to get instances.', 500)
+    }
+}
+
+// ── 2FA (TOTP) ──────────────────────────────────────────────
+
+function generateTotpSecret(): string {
+    const bytes = crypto.randomBytes(20)
+    // Base32 encode
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
+    let result = ''
+    let bits = 0
+    let value = 0
+    for (const byte of bytes) {
+        value = (value << 8) | byte
+        bits += 8
+        while (bits >= 5) {
+            result += alphabet[(value >>> (bits - 5)) & 31]
+            bits -= 5
+        }
+    }
+    if (bits > 0) result += alphabet[(value << (5 - bits)) & 31]
+    return result
+}
+
+function generateTotp(secret: string, time?: number): string {
+    const t = Math.floor((time || Date.now() / 1000) / 30)
+    const buf = Buffer.alloc(8)
+    buf.writeUInt32BE(0, 0)
+    buf.writeUInt32BE(t, 4)
+
+    // Base32 decode secret
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
+    let bits = 0, value = 0
+    const bytes: number[] = []
+    for (const c of secret.toUpperCase()) {
+        const idx = alphabet.indexOf(c)
+        if (idx === -1) continue
+        value = (value << 5) | idx
+        bits += 5
+        if (bits >= 8) { bytes.push((value >>> (bits - 8)) & 255); bits -= 8 }
+    }
+    const keyBuf = Buffer.from(bytes)
+
+    const hmac = crypto.createHmac('sha1', keyBuf).update(buf).digest()
+    const offset = hmac[hmac.length - 1] & 0x0f
+    const code = ((hmac[offset] & 0x7f) << 24) | (hmac[offset + 1] << 16) | (hmac[offset + 2] << 8) | hmac[offset + 3]
+    return String(code % 1000000).padStart(6, '0')
+}
+
+function verifyTotp(secret: string, token: string): boolean {
+    const now = Date.now() / 1000
+    // Allow 1 step window (30 sec tolerance)
+    for (let i = -1; i <= 1; i++) {
+        if (generateTotp(secret, now + i * 30) === token) return true
+    }
+    return false
+}
+
+// POST /hosting/auth/2fa/setup — generate TOTP secret + QR URI
+export const setup2fa = async (c: Context) => {
+    try {
+        const authHeader = c.req.header('Authorization')
+        if (!authHeader?.startsWith('Bearer ')) return fail(c, 'Unauthorized.', 401)
+        const payload = verifyJwt(authHeader.slice(7), jwtSecret)
+        if (!payload?.sub) return fail(c, 'Invalid token.', 401)
+
+        const userId = payload.sub as string
+        const [user] = await db.select().from(users).where(eq(users.id, userId))
+        if (!user) return fail(c, 'User not found.', 404)
+
+        if (user.totpEnabled) return fail(c, '2FA already enabled.', 400)
+
+        const secret = generateTotpSecret()
+        // Save secret (not yet enabled — user must verify first)
+        await db.update(users).set({ totpSecret: secret }).where(eq(users.id, userId))
+
+        const otpauthUri = `otpauth://totp/ClawFlow:${user.email}?secret=${secret}&issuer=ClawFlow&digits=6&period=30`
+
+        return ok(c, { secret, otpauthUri }, '2FA setup initiated. Scan QR and verify.')
+    } catch (err) {
+        console.error('setup2fa error:', err)
+        return fail(c, 'Failed to setup 2FA.', 500)
+    }
+}
+
+// POST /hosting/auth/2fa/verify-setup — verify first TOTP code and enable 2FA
+export const verifySetup2fa = async (c: Context) => {
+    try {
+        const authHeader = c.req.header('Authorization')
+        if (!authHeader?.startsWith('Bearer ')) return fail(c, 'Unauthorized.', 401)
+        const payload = verifyJwt(authHeader.slice(7), jwtSecret)
+        if (!payload?.sub) return fail(c, 'Invalid token.', 401)
+
+        const { code } = await c.req.json<{ code: string }>()
+        if (!code || code.length !== 6) return fail(c, 'Invalid code.', 400)
+
+        const userId = payload.sub as string
+        const [user] = await db.select().from(users).where(eq(users.id, userId))
+        if (!user?.totpSecret) return fail(c, 'No 2FA secret found. Call /2fa/setup first.', 400)
+
+        if (!verifyTotp(user.totpSecret, code)) {
+            return fail(c, 'Invalid code. Try again.', 401)
+        }
+
+        await db.update(users).set({ totpEnabled: true }).where(eq(users.id, userId))
+        return ok(c, null, '2FA enabled successfully.')
+    } catch (err) {
+        console.error('verifySetup2fa error:', err)
+        return fail(c, 'Failed to verify 2FA.', 500)
+    }
+}
+
+// POST /hosting/auth/2fa/verify — verify TOTP during login (exchange partial token for full token)
+export const verify2fa = async (c: Context) => {
+    try {
+        const { partialToken, code } = await c.req.json<{ partialToken: string; code: string }>()
+        if (!partialToken || !code) return fail(c, 'Token and code are required.', 400)
+
+        const payload = verifyJwt(partialToken, jwtSecret)
+        if (!payload?.sub || !payload.needs2fa) return fail(c, 'Invalid or expired token.', 401)
+        if (payload.exp && typeof payload.exp === 'number' && payload.exp < Math.floor(Date.now() / 1000)) {
+            return fail(c, '2FA session expired. Please login again.', 401)
+        }
+
+        const userId = payload.sub as string
+        const [user] = await db.select().from(users).where(eq(users.id, userId))
+        if (!user?.totpSecret || !user.totpEnabled) return fail(c, '2FA not configured.', 400)
+
+        if (!verifyTotp(user.totpSecret, code)) {
+            return fail(c, 'Invalid 2FA code.', 401)
+        }
+
+        // Issue full token
+        const token = signJwt(
+            {
+                sub: userId,
+                email: payload.email,
+                iat: Math.floor(Date.now() / 1000),
+                exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
+            },
+            jwtSecret
+        )
+
+        return ok(c, { token, userId, email: payload.email }, '2FA verified.')
+    } catch (err) {
+        console.error('verify2fa error:', err)
+        return fail(c, '2FA verification failed.', 500)
+    }
+}
+
+// POST /hosting/auth/2fa/disable — disable 2FA
+export const disable2fa = async (c: Context) => {
+    try {
+        const authHeader = c.req.header('Authorization')
+        if (!authHeader?.startsWith('Bearer ')) return fail(c, 'Unauthorized.', 401)
+        const payload = verifyJwt(authHeader.slice(7), jwtSecret)
+        if (!payload?.sub) return fail(c, 'Invalid token.', 401)
+
+        const { code } = await c.req.json<{ code: string }>()
+        if (!code) return fail(c, 'Code required to disable 2FA.', 400)
+
+        const userId = payload.sub as string
+        const [user] = await db.select().from(users).where(eq(users.id, userId))
+        if (!user?.totpSecret) return fail(c, '2FA not configured.', 400)
+
+        if (!verifyTotp(user.totpSecret, code)) {
+            return fail(c, 'Invalid code.', 401)
+        }
+
+        await db.update(users).set({ totpSecret: null, totpEnabled: false }).where(eq(users.id, userId))
+        return ok(c, null, '2FA disabled.')
+    } catch (err) {
+        console.error('disable2fa error:', err)
+        return fail(c, 'Failed to disable 2FA.', 500)
     }
 }
