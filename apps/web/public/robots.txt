@@ -1,8 +1,32 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /login
+Disallow: /register
+Disallow: /checkout
+Disallow: /onboarding
 Disallow: /claws
 Disallow: /ssh-keys
 Disallow: /account
 Disallow: /billing
-Disallow: /login
-Sitemap: https://clawhost.cloud/sitemap.xml
+
+# AI crawlers welcome
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+Sitemap: https://clawflow.flowmatic.co.il/sitemap.xml
