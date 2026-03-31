@@ -234,7 +234,7 @@ function generateFallback(answers: OnboardingAnswers): { userMd: string; brandMd
 }
 
 // ── Deploy all files to VPS ──
-async function deployAgentSystem(ip: string, userMd: string, brandMd: string, brandName: string, gatewayToken: string, subdomain: string, password?: string, agentType: 'mt' | 'oc' | 'bare' = 'mt'): Promise<void> {
+async function deployAgentSystem(ip: string, userMd: string, brandMd: string, brandName: string, gatewayToken: string, subdomain: string, password?: string, agentType: 'mt' | 'oc' = 'mt'): Promise<void> {
     const baseDir = '/home/openclaw/.openclaw'
     const templatesDir = agentType === 'oc' ? PERSONAL_TEMPLATES_DIR : TEMPLATES_DIR
 
@@ -1543,7 +1543,7 @@ export const setupAgents = async (c: Context) => {
 
         // Determine agent type from selected components
         const components = (instance.selectedComponents as string[]) || []
-        const agentType: 'mt' | 'oc' | 'bare' = components.includes('mt') ? 'mt' : components.includes('bare') ? 'bare' : 'oc'
+        const agentType: 'mt' | 'oc' = components.includes('mt') ? 'mt' : 'oc'
 
         console.log(`Deploying ${agentType} agent system to ${instance.ip}...`)
         await deployAgentSystem(instance.ip, userMd, brandMd, brandSlug, gatewayToken, subdomain, instance.rootPassword || undefined, agentType)
@@ -1587,24 +1587,30 @@ export const addAgentToInstance = async (c: Context) => {
         }
 
         // Calculate RAM requirements
-        const COMPONENT_RAM: Record<string, number> = { oc: 1, mt: 4, bare: 1, n8: 0.5, ap: 0.5, ol: 8 }
-        const currentRam = currentComponents.reduce((sum, id) => sum + (COMPONENT_RAM[id] || 0), 0.5)
-        const newRam = currentRam + (COMPONENT_RAM[agentType] || 0)
+        // Use shared PLANS/COMPONENTS for RAM calculation (single source of truth)
+        const { calcPlan, PLANS, COMPONENTS } = await import('@openclaw/shared')
+        const getComponentRam = (id: string) => COMPONENTS.find((c: { id: string; ram: number }) => c.id === id)?.ram || 0
+
+        const currentRam = currentComponents.reduce((sum: number, id: string) => sum + getComponentRam(id), 0.5)
+        const newRam = currentRam + getComponentRam(agentType)
 
         // Check plan capacity
-        const PLAN_RAM: Record<string, number> = { personal: 4, business: 8, pro: 16, developer: 32 }
-        const planRam = PLAN_RAM[instance.planKey || 'personal'] || 4
+        const planInfo = PLANS.find((p: { key: string; ram: number }) => p.key === (instance.planKey || 'personal'))
+        const planRam = planInfo?.ram || 4
 
         if (newRam > planRam) {
-            // Need plan upgrade
-            const neededPlan = Object.entries(PLAN_RAM).find(([_, ram]) => ram >= newRam)
+            // Need plan upgrade — find the smallest plan that fits
+            const suggestedPlan = PLANS
+                .sort((a: { ram: number }, b: { ram: number }) => a.ram - b.ram)
+                .find((p: { ram: number }) => p.ram >= newRam)
             return ok(c, {
                 needsUpgrade: true,
                 currentPlan: instance.planKey,
                 currentRam,
                 newRam,
                 planRam,
-                suggestedPlan: neededPlan ? neededPlan[0] : 'developer',
+                suggestedPlan: suggestedPlan?.key || 'developer',
+                suggestedPrice: suggestedPlan?.priceIls,
                 message: `נדרש שדרוג תוכנית. RAM נדרש: ${newRam}GB, תוכנית נוכחית: ${planRam}GB.`,
             }, 'Plan upgrade required')
         }

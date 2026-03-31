@@ -1,6 +1,6 @@
 export { configureInstance } from './configure'
 export { checkout, handleAllpayWebhook, getSubscriptions } from './billing'
-export { getInstances, getInstance, getInstanceStatus, restartInstance, deleteInstance } from './instances'
+export { getInstances, getInstance, getInstanceStatus, restartInstance, deleteInstance, upgradePlan } from './instances'
 export { adminGetInstances, adminGetRevenue, adminSuspendInstance, adminTerminateInstance } from './admin'
 export { submitSupportRequest } from './support'
 export { sendOtpHosting, verifyOtpHosting, getMe, getMyInstances } from './auth'

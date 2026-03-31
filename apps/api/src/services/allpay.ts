@@ -161,11 +161,20 @@ const allpay = {
         }
         payload.sign = computeSign(payload, apiKey)
 
-        await fetch(`${ALLPAY_BASE}?show=cancelsubscription&mode=api10`, {
+        const res = await fetch(`${ALLPAY_BASE}?show=cancelsubscription&mode=api10`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         })
+
+        if (!res.ok) {
+            throw new Error(`AllPay cancelSubscription failed: HTTP ${res.status}`)
+        }
+
+        const data = await res.json() as { error?: string }
+        if (data.error) {
+            throw new Error(`AllPay cancelSubscription error: ${data.error}`)
+        }
     },
 
     async checkPaymentStatus(orderId: string): Promise<{ status: number; amount: number }> {
@@ -183,6 +192,10 @@ const allpay = {
             body: JSON.stringify(payload),
         })
 
+        if (!res.ok) {
+            throw new Error(`AllPay checkPaymentStatus failed: HTTP ${res.status}`)
+        }
+
         return await res.json() as { status: number; amount: number }
     },
 
@@ -196,11 +209,20 @@ const allpay = {
         }
         payload.sign = computeSign(payload, apiKey)
 
-        await fetch(`${ALLPAY_BASE}?show=refund&mode=api10`, {
+        const res = await fetch(`${ALLPAY_BASE}?show=refund&mode=api10`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         })
+
+        if (!res.ok) {
+            throw new Error(`AllPay refund failed: HTTP ${res.status}`)
+        }
+
+        const data = await res.json() as { error?: string }
+        if (data.error) {
+            throw new Error(`AllPay refund error: ${data.error}`)
+        }
     },
 
     async verifyCredentials(): Promise<boolean> {

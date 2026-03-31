@@ -147,6 +147,28 @@ const hetzner: CloudProvider = {
         await getClient().delete(`/servers/${serverId}`)
     },
 
+    async changeServerType(serverId: string, newType: string): Promise<void> {
+        // Must power off first, then change type, then power on
+        await getClient().post(`/servers/${serverId}/actions/shutdown`)
+        // Wait for shutdown
+        for (let i = 0; i < 30; i++) {
+            const data = await getClient().get<HetznerServerResponse>(`/servers/${serverId}`)
+            if (data.server.status === 'off') break
+            await new Promise(r => setTimeout(r, 2000))
+        }
+        await getClient().post(`/servers/${serverId}/actions/change_type`, {
+            server_type: newType,
+            upgrade_disk: true
+        })
+        // Wait for resize
+        for (let i = 0; i < 30; i++) {
+            const data = await getClient().get<HetznerServerResponse>(`/servers/${serverId}`)
+            if (data.server.status === 'off' && data.server.server_type?.name === newType) break
+            await new Promise(r => setTimeout(r, 3000))
+        }
+        await getClient().post(`/servers/${serverId}/actions/poweron`)
+    },
+
     async getServerTypes(): Promise<ServerTypeInfo[]> {
         const data =
             await getClient().get<HetznerServerTypesResponse>('/server_types')

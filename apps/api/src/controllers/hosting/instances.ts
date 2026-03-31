@@ -4,8 +4,10 @@ import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
+import { PLANS } from '@openclaw/shared'
 import getProvider from '@/services/provider/getProvider'
 import provisioner from '@/services/provisioner'
+import telegram from '@/services/telegram'
 
 export const getInstances = async (c: Context<HonoEnv>) => {
     try {
@@ -120,6 +122,88 @@ export const restartInstance = async (c: Context<HonoEnv>) => {
     } catch (err) {
         console.error('Restart error:', err)
         return fail(c, 'Failed to restart instance.', 500)
+    }
+}
+
+// POST /hosting/instances/:id/upgrade-plan
+export const upgradePlan = async (c: Context<HonoEnv>) => {
+    try {
+        const userId = c.get('userId')
+        const instanceId = c.req.param('id')
+        const { targetPlan } = await c.req.json<{ targetPlan: string }>()
+
+        if (!targetPlan) return fail(c, 'targetPlan is required.', 400)
+
+        const targetPlanInfo = PLANS.find(p => p.key === targetPlan)
+        if (!targetPlanInfo) return fail(c, 'Invalid plan.', 400)
+
+        const [instance] = await db.select()
+            .from(instances)
+            .where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
+
+        if (!instance) return fail(c, 'Instance not found.', 404)
+        if (instance.status !== 'running') return fail(c, 'Instance must be running to upgrade.', 400)
+
+        const currentPlan = PLANS.find(p => p.key === instance.planKey)
+        if (!currentPlan) return fail(c, 'Current plan not found.', 500)
+
+        // Only allow upgrades, not downgrades
+        if (targetPlanInfo.ram <= currentPlan.ram) {
+            return fail(c, 'Can only upgrade to a higher plan.', 400)
+        }
+
+        if (!instance.hetznerServerId) {
+            return fail(c, 'No server to upgrade.', 400)
+        }
+
+        // Update status to upgrading
+        await db.update(instances)
+            .set({ status: 'upgrading' })
+            .where(eq(instances.id, instanceId))
+
+        // Notify user
+        if (instance.telegramChatId) {
+            await telegram.sendMessage(instance.telegramChatId,
+                `⬆️ *משדרג לתוכנית ${targetPlanInfo.nameHe}*\n` +
+                `השרת ייכבה לרגע ויחזור עם ${targetPlanInfo.ram}GB RAM.\n` +
+                `זה ייקח ~2-3 דקות 🕐`
+            )
+        }
+
+        // Perform Hetzner server type change (background)
+        const provider = getProvider('hetzner') as typeof import('@/services/hetzner').default
+        provider.changeServerType(instance.hetznerServerId, targetPlanInfo.hetznerType)
+            .then(async () => {
+                await db.update(instances).set({
+                    status: 'running',
+                    planKey: targetPlan,
+                    priceIls: String(targetPlanInfo.priceIls),
+                }).where(eq(instances.id, instanceId))
+
+                if (instance.telegramChatId) {
+                    await telegram.sendMessage(instance.telegramChatId,
+                        `✅ *שדרוג הושלם!*\n` +
+                        `תוכנית: ${targetPlanInfo.nameHe} (${targetPlanInfo.ram}GB RAM)\n` +
+                        `השרת חזר לפעילות.`
+                    )
+                }
+                await telegram.alertAdmin(`⬆️ Instance ${instanceId} upgraded: ${currentPlan.key} → ${targetPlan}`)
+            })
+            .catch(async (err) => {
+                console.error('Upgrade failed:', err)
+                await db.update(instances).set({ status: 'running' }).where(eq(instances.id, instanceId))
+                await telegram.alertAdmin(`❌ Upgrade FAILED for ${instanceId}: ${(err as Error).message}`)
+            })
+
+        return ok(c, {
+            from: currentPlan.key,
+            to: targetPlan,
+            newPrice: targetPlanInfo.priceIls,
+            newRam: targetPlanInfo.ram,
+        }, 'Upgrade started. Server will restart in ~2-3 minutes.')
+    } catch (err) {
+        console.error('Upgrade plan error:', err)
+        return fail(c, 'Failed to upgrade plan.', 500)
     }
 }
 

@@ -9,6 +9,7 @@ import {
     getInstanceStatus,
     restartInstance,
     deleteInstance,
+    upgradePlan,
     adminGetInstances,
     adminGetRevenue,
     adminSuspendInstance,
@@ -79,6 +80,7 @@ app.get('/instances', getInstances)
 app.get('/instances/:id', getInstance)
 app.get('/instances/:id/status', getInstanceStatus)
 app.post('/instances/:id/restart', restartInstance)
+app.post('/instances/:id/upgrade-plan', upgradePlan)
 app.delete('/instances/:id', deleteInstance)
 
 // ── Setup (onboarding) ──
