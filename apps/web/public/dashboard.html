@@ -3135,26 +3135,31 @@ function getCalendarEvents(days) {
   var rd = (instanceData && instanceData.researchData) || {};
   var strategy = rd.strategy || '';
 
-  // Recurring events
-  days.forEach(function(day) {
-    var dayStr = day.toISOString().split('T')[0];
-    var dow = day.getDay(); // 0=Sun
+  // Only show recurring events if MATEH agent is installed AND onboarding complete
+  var hasMATEH = components.indexOf('mt') !== -1;
+  var isOnboarded = !!(instanceData && instanceData.onboardingCompleted);
 
-    // Daily brief (Sun-Thu = 0-4)
-    if (dow >= 0 && dow <= 4) {
-      events.push({ date: dayStr, title: 'Daily Brief', type: 'brief' });
-    }
+  if (hasMATEH && isOnboarded) {
+    days.forEach(function(day) {
+      var dayStr = day.toISOString().split('T')[0];
+      var dow = day.getDay(); // 0=Sun
 
-    // Weekly competitive report (Monday = 1)
-    if (dow === 1) {
-      events.push({ date: dayStr, title: 'דוח תחרותי', type: 'planned' });
-    }
+      // Daily brief (Sun-Thu = 0-4)
+      if (dow >= 0 && dow <= 4) {
+        events.push({ date: dayStr, title: 'Daily Brief', type: 'brief' });
+      }
 
-    // Monthly AEO (1st of month)
-    if (day.getDate() === 1) {
-      events.push({ date: dayStr, title: 'ביקורת AEO', type: 'planned' });
-    }
-  });
+      // Weekly competitive report (Monday = 1)
+      if (dow === 1) {
+        events.push({ date: dayStr, title: 'דוח תחרותי', type: 'planned' });
+      }
+
+      // Monthly AEO (1st of month)
+      if (day.getDate() === 1) {
+        events.push({ date: dayStr, title: 'ביקורת AEO', type: 'planned' });
+      }
+    });
+  }
 
   // Content from strategy — map to weekdays
   if (strategy) {
