@@ -1712,3 +1712,69 @@ export const addAgentToInstance = async (c: Context) => {
         return fail(c, 'שגיאה בהוספת סוכן', 500)
     }
 }
+
+// POST /hosting/instances/:id/agents/remove
+export const removeAgentFromInstance = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const { agentType } = await c.req.json<{ agentType: 'mt' | 'oc' }>()
+
+        if (!agentType || !['mt', 'oc'].includes(agentType)) {
+            return fail(c, 'Invalid agent type', 400)
+        }
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance?.ip) return fail(c, 'Instance not found', 404)
+
+        const currentComponents = (instance.selectedComponents as string[]) || []
+        if (!currentComponents.includes(agentType)) {
+            return fail(c, 'הסוכן לא מותקן', 400)
+        }
+
+        // Must keep at least one agent
+        const agentComponents = currentComponents.filter(c => ['mt', 'oc'].includes(c))
+        if (agentComponents.length <= 1) {
+            return fail(c, 'לא ניתן להסיר את הסוכן האחרון', 400)
+        }
+
+        // Remove agent files and registrations from VPS
+        if (agentType === 'mt') {
+            // Remove all MATEH sub-agents + cron jobs
+            await sshExec(instance.ip, `
+                su - openclaw -c '
+                for AGENT in sayer meater maazin menateach et yotzer shaliach migdalor; do
+                    openclaw agents delete $AGENT --force 2>/dev/null
+                done
+                openclaw cron delete --name "daily-brief" --force 2>/dev/null
+                openclaw cron delete --name "weekly-competitive" --force 2>/dev/null
+                openclaw cron delete --name "monthly-aeo" --force 2>/dev/null
+                '
+                rm -rf /home/openclaw/.openclaw/agents/sayer /home/openclaw/.openclaw/agents/meater \
+                    /home/openclaw/.openclaw/agents/maazin /home/openclaw/.openclaw/agents/menateach \
+                    /home/openclaw/.openclaw/agents/et /home/openclaw/.openclaw/agents/yotzer \
+                    /home/openclaw/.openclaw/agents/shaliach /home/openclaw/.openclaw/agents/migdalor
+                systemctl restart openclaw-gateway
+            `, instance.rootPassword || undefined)
+        } else if (agentType === 'oc') {
+            // Remove Personal agent cron
+            await sshExec(instance.ip, `
+                su - openclaw -c '
+                openclaw cron delete --name "morning-summary" --force 2>/dev/null
+                '
+                systemctl restart openclaw-gateway
+            `, instance.rootPassword || undefined)
+        }
+
+        // Update DB
+        const newComponents = currentComponents.filter(c => c !== agentType)
+        await db.update(instances).set({
+            selectedComponents: newComponents as any,
+        }).where(eq(instances.id, instanceId))
+
+        console.log(`Agent ${agentType} removed from ${instanceId}. Components: ${newComponents.join(',')}`)
+        return ok(c, { agentType, components: newComponents }, 'הסוכן הוסר בהצלחה')
+    } catch (err) {
+        console.error('removeAgentFromInstance error:', err)
+        return fail(c, 'שגיאה בהסרת סוכן', 500)
+    }
+}

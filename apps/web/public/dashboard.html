@@ -602,7 +602,7 @@ input{font-family:inherit}
       <span class="sidebar-label">הגדרות</span>
     </div>
     <div class="sidebar-separator"></div>
-    <div class="sidebar-item sidebar-dev-link" data-tab="developer" onclick="switchTab('developer')">
+    <div class="sidebar-item sidebar-dev-link" data-tab="developer" onclick="openDeveloperZone()">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
       <span class="sidebar-label">אזור למפתחים</span>
     </div>
@@ -873,6 +873,7 @@ input{font-family:inherit}
       <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:16px;display:flex;flex-wrap:wrap;gap:8px">
         <button class="btn btn-outline" onclick="restartAgent()" style="font-size:0.82rem">&#8635; הפעלה מחדש</button>
         <button class="btn btn-outline" onclick="if(confirm('לאפס את הגדרות הסוכן?')) showToast('בקרוב','success')" style="font-size:0.82rem;color:#EF4444;border-color:#FECACA">איפוס הגדרות</button>
+        <button class="btn btn-outline" id="btn-delete-agent" onclick="deleteCurrentAgent()" style="font-size:0.82rem;color:#EF4444;border-color:#FECACA">🗑️ הסירו סוכן</button>
       </div>
 
       </div><!-- /agent-panel-config -->
@@ -1231,14 +1232,17 @@ input{font-family:inherit}
     </div>
   </div>
 
-  <!-- Tab: Files -->
-  <!-- Developer Zone (combines files + server) -->
+  <!-- Developer Zone (combines files + server + console + logs + backups) -->
   <div class="tab-content hidden" id="tab-developer">
-    <h2 class="tab-title" style="color:#EF4444">אזור למפתחים</h2>
-    <p class="tab-desc" style="color:#9CA3AF">כלים מתקדמים — קבצים, שרת, טרמינל ולוגים.</p>
-    <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid #F3F4F6;padding-bottom:12px">
-      <button class="btn btn-outline btn-sm dev-tab-btn active" onclick="switchDevTab('files')" id="dev-tab-files">קבצים</button>
-      <button class="btn btn-outline btn-sm dev-tab-btn" onclick="switchDevTab('server')" id="dev-tab-server">שרת</button>
+    <h2 class="tab-title" style="color:#EF4444">⚠️ אזור למפתחים</h2>
+    <p class="tab-desc" style="color:#9CA3AF">כלים מתקדמים למשתמשים מנוסים.</p>
+    <div style="display:flex;gap:6px;margin-bottom:20px;border-bottom:2px solid #F3F4F6;padding-bottom:12px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm dev-tab-btn active" onclick="switchDevTab('files')" id="dev-tab-files">📁 קבצים</button>
+      <button class="btn btn-outline btn-sm dev-tab-btn" onclick="switchDevTab('console')" id="dev-tab-console">💻 קונסול</button>
+      <button class="btn btn-outline btn-sm dev-tab-btn" onclick="switchDevTab('logs')" id="dev-tab-logs">📋 לוגים</button>
+      <button class="btn btn-outline btn-sm dev-tab-btn" onclick="switchDevTab('server')" id="dev-tab-server">📊 שרת</button>
+      <button class="btn btn-outline btn-sm dev-tab-btn" onclick="switchDevTab('backups')" id="dev-tab-backups">💾 גיבויים</button>
+      <button class="btn btn-outline btn-sm dev-tab-btn" onclick="switchDevTab('api')" id="dev-tab-api">🔑 API</button>
     </div>
   </div>
 
@@ -1276,9 +1280,77 @@ input{font-family:inherit}
   </div>
 
   <!-- Tab: Server (MERGED: terminal + advanced) -->
+  <!-- Console tab (terminal) -->
+  <div class="tab-content hidden" id="tab-console">
+    <h2 class="tab-title">קונסול</h2>
+    <p class="tab-desc">גישה ישירה לטרמינל של השרת.</p>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn btn-primary btn-sm" id="term-connect-btn2" onclick="termConnect()">התחברו</button>
+      <button class="btn btn-outline btn-sm" onclick="termDisconnect()">נתקו</button>
+      <span id="term-status2" style="font-size:0.78rem;color:#9CA3AF;display:flex;align-items:center;gap:4px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#9CA3AF;display:inline-block" id="term-dot2"></span>
+        לא מחובר
+      </span>
+    </div>
+    <div id="terminal-container2" style="width:100%;height:500px;background:#1a1a2e;border-radius:10px;overflow:hidden;border:1px solid #2a2a3e"></div>
+  </div>
+
+  <!-- Logs tab -->
+  <div class="tab-content hidden" id="tab-logs">
+    <h2 class="tab-title">לוגים</h2>
+    <p class="tab-desc">צפו בלוגים של השירותים השונים.</p>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn btn-outline btn-sm" onclick="loadLogs('openclaw-gateway')" style="font-weight:600">OpenClaw</button>
+      <button class="btn btn-outline btn-sm" onclick="loadLogs('nginx')">Nginx</button>
+      <button class="btn btn-outline btn-sm" onclick="loadLogs('docker')">Docker</button>
+      <button class="btn btn-outline btn-sm" onclick="loadLogs2()">&#8635; רעננו</button>
+    </div>
+    <pre id="logs-output2" style="background:#111827;color:#D1D5DB;padding:14px;border-radius:8px;font-family:'SF Mono','Fira Code',monospace;font-size:0.75rem;line-height:1.5;max-height:500px;overflow:auto;white-space:pre-wrap;direction:ltr">לחצו על שירות לטעינת לוגים</pre>
+  </div>
+
+  <!-- Backups tab -->
+  <div class="tab-content hidden" id="tab-backups">
+    <h2 class="tab-title">גיבויים</h2>
+    <p class="tab-desc">גיבויים אוטומטיים כל לילה. 7 ימים היסטוריה.</p>
+    <div id="backup-list2" style="margin-bottom:12px">
+      <div style="color:#9CA3AF;font-size:0.85rem;padding:16px;text-align:center">טוען...</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <button class="btn btn-primary btn-sm" onclick="createBackupNow()">גבו עכשיו</button>
+      <button class="btn btn-outline btn-sm" onclick="loadBackups()">&#8635; רעננו</button>
+    </div>
+  </div>
+
+  <!-- API tab -->
+  <div class="tab-content hidden" id="tab-api">
+    <h2 class="tab-title">API & גישה ישירה</h2>
+    <div class="warning-banner" style="margin-bottom:16px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      שינויים כאן עלולים להשפיע על תפקוד הסוכנים
+    </div>
+    <div class="info-row">
+      <span class="info-label">Gateway Token</span>
+      <span class="mono info-value" id="gw-token2">••••••••</span>
+      <span style="display:flex;gap:4px">
+        <button class="copy-btn" onclick="toggleToken()" title="הצג/הסתר">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button class="copy-btn" onclick="copyToken()" title="העתק">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </button>
+      </span>
+    </div>
+    <div class="info-row" id="adv-agent-link2"></div>
+    <div class="info-row" id="adv-flows-link2"></div>
+    <div class="section-title">מידע טכני</div>
+    <div id="advTechInfo2"></div>
+    <div class="section-title">API</div>
+    <div class="code-block" id="advApiBlock2"></div>
+  </div>
+
   <div class="tab-content hidden" id="tab-server">
     <h2 class="tab-title">שרת</h2>
-    <p class="tab-desc">נתוני שרת, טרמינל, לוגים וגישה ישירה.</p>
+    <p class="tab-desc">נתוני שרת ומשאבים.</p>
 
     <!-- Server Stats -->
     <div class="section-title">נתוני שרת</div>
@@ -1302,65 +1374,6 @@ input{font-family:inherit}
       <div id="ram-alert-action"></div>
     </div>
 
-    <!-- Backups -->
-    <div class="section-title">גיבויים</div>
-    <div id="backup-section">
-      <div id="backup-list" style="margin-bottom:12px">
-        <div style="color:#9CA3AF;font-size:0.85rem;padding:16px;text-align:center">טוען...</div>
-      </div>
-      <div style="display:flex;gap:8px;margin-bottom:20px">
-        <button class="btn btn-primary btn-sm" onclick="createBackupNow()">גבו עכשיו</button>
-        <button class="btn btn-outline btn-sm" onclick="loadBackups()">&#8635; רעננו</button>
-      </div>
-    </div>
-
-    <!-- Terminal -->
-    <div class="section-title">טרמינל</div>
-    <div style="display:flex;gap:8px;margin-bottom:12px">
-      <button class="btn btn-primary btn-sm" id="term-connect-btn" onclick="termConnect()">התחברו</button>
-      <button class="btn btn-outline btn-sm" onclick="termDisconnect()">נתקו</button>
-      <span id="term-status" style="font-size:0.78rem;color:#9CA3AF;display:flex;align-items:center;gap:4px">
-        <span id="term-dot" style="width:8px;height:8px;border-radius:50%;background:#9CA3AF;display:inline-block"></span>
-        לא מחובר
-      </span>
-    </div>
-    <div id="terminal-container" style="width:100%;height:400px;background:#1a1a2e;border-radius:10px;overflow:hidden;border:1px solid #2a2a3e;margin-bottom:20px"></div>
-
-    <!-- Logs -->
-    <div class="section-title">לוגים</div>
-    <div style="display:flex;gap:8px;margin-bottom:8px">
-      <button class="btn btn-outline btn-sm" onclick="loadLogs('openclaw-gateway')">OpenClaw</button>
-      <button class="btn btn-outline btn-sm" onclick="loadLogs('nginx')">Nginx</button>
-      <button class="btn btn-outline btn-sm" onclick="loadLogs('docker')">Docker</button>
-    </div>
-    <pre id="logs-output" style="background:#111827;color:#D1D5DB;padding:14px;border-radius:8px;font-family:'SF Mono','Fira Code',monospace;font-size:0.75rem;line-height:1.5;max-height:400px;overflow:auto;white-space:pre-wrap;direction:ltr">לחצו על שירות לטעינת לוגים</pre>
-
-    <!-- API Access -->
-    <div class="section-title">גישה ישירה</div>
-    <div class="warning-banner">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      אזור למפתחים — שינויים כאן עלולים להשפיע על תפקוד הסוכנים
-    </div>
-    <div class="info-row">
-      <span class="info-label">Gateway Token</span>
-      <span class="mono info-value" id="gw-token">••••••••</span>
-      <span style="display:flex;gap:4px">
-        <button class="copy-btn" onclick="toggleToken()" title="הצג/הסתר">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
-        <button class="copy-btn" onclick="copyToken()" title="העתק">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-        </button>
-      </span>
-    </div>
-    <div class="info-row" id="adv-agent-link"></div>
-    <div class="info-row" id="adv-flows-link"></div>
-
-    <div class="section-title">מידע טכני</div>
-    <div id="advTechInfo"></div>
-
-    <div class="section-title">API</div>
-    <div class="code-block" id="advApiBlock"></div>
   </div>
 
   <!-- Tab: Settings -->
@@ -3413,19 +3426,44 @@ function switchTab(tabId) {
   if (tabId === 'server') { loadStats(); loadBackups(); if (termFit && term) { setTimeout(function(){ termFit.fit(); }, 100); } }
 }
 
+var DEV_TABS = ['files', 'console', 'logs', 'server', 'backups', 'api'];
+
 function switchDevTab(subTab) {
   localStorage.setItem('cf_dev_tab', subTab);
   document.querySelectorAll('.dev-tab-btn').forEach(function(b) { b.classList.remove('active'); });
   var btn = document.getElementById('dev-tab-' + subTab);
   if (btn) btn.classList.add('active');
   // Show the sub-tab content
-  ['files', 'server'].forEach(function(t) {
+  DEV_TABS.forEach(function(t) {
     var el = document.getElementById('tab-' + t);
     if (el) el.classList.toggle('hidden', t !== subTab);
   });
-  // Load data
+  // Load data per tab
   if (subTab === 'files') fmNavigate(fmCurrentDir || '');
-  if (subTab === 'server') { loadStats(); if (termFit && term) setTimeout(function(){ termFit.fit(); }, 100); }
+  if (subTab === 'server') loadStats();
+  if (subTab === 'console' && termFit && term) setTimeout(function(){ termFit.fit(); }, 100);
+  if (subTab === 'logs') { /* ready to click */ }
+  if (subTab === 'backups') loadBackups();
+}
+
+function openDeveloperZone() {
+  var accepted = localStorage.getItem('cf_dev_accepted');
+  if (!accepted) {
+    cfConfirm(
+      '⚠️ אזור למפתחים',
+      'אזור זה מיועד למשתמשים מתקדמים בלבד.\n\n' +
+      'שינויים בקבצים, הגדרות או קונסול עלולים לפגוע בתפקוד הסוכנים ובשירותים.\n\n' +
+      'כל פעולה באזור זה היא על אחריותכם האישית.\n\n' +
+      'להמשיך?'
+    ).then(function(ok) {
+      if (ok) {
+        localStorage.setItem('cf_dev_accepted', '1');
+        switchTab('developer');
+      }
+    });
+  } else {
+    switchTab('developer');
+  }
 }
 
 function toggleDebugPanel() {
@@ -4358,6 +4396,39 @@ function restartAgent() {
   }
 }
 
+var currentAgentType = null; // Track which agent detail is open
+
+function deleteCurrentAgent() {
+  if (!currentAgentType) { showToast('שגיאה', 'error'); return; }
+  var agentNames = { mt: 'MATEH — משווק', oc: 'OpenClaw Personal' };
+  var name = agentNames[currentAgentType] || currentAgentType;
+
+  cfConfirm('הסרת סוכן', 'להסיר את ' + name + '?\nכל הנתונים של הסוכן הזה יימחקו מהשרת.').then(function(ok) {
+    if (!ok) return;
+    showToast('מסיר סוכן...', 'info');
+    fetch(API + '/hosting/instances/' + instanceId + '/agents/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ agentType: currentAgentType })
+    }).then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        showToast('הסוכן הוסר', 'success');
+        if (d.data && d.data.components) {
+          components = d.data.components;
+          localStorage.setItem('cf_instance_components', JSON.stringify(components));
+        }
+        // Go back to agents list
+        document.getElementById('agent-detail-view').classList.add('hidden');
+        document.getElementById('agents-list-view').classList.remove('hidden');
+        renderAgentsTab();
+      } else {
+        showToast(d.message || 'שגיאה', 'error');
+      }
+    }).catch(function() { showToast('שגיאת תקשורת', 'error'); });
+  });
+}
+
 function toggleToken() {
   var el = document.getElementById('gw-token');
   if (tokenVisible) {
@@ -4439,6 +4510,7 @@ function switchAgentDetailTab(tab) {
 }
 
 function openAgentDetail(agentType) {
+  currentAgentType = agentType;
   document.getElementById('agents-list-view').classList.add('hidden');
   document.getElementById('agent-detail-view').classList.remove('hidden');
 

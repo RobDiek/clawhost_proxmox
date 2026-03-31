@@ -29,6 +29,7 @@ import {
     buildStrategy,
     researchStage,
     addAgentToInstance,
+    removeAgentFromInstance,
     readFile,
     writeFile,
     listFiles,
@@ -97,6 +98,7 @@ app.post('/instances/:id/setup/agents/research', runResearch)
 app.post('/instances/:id/setup/agents/strategy', buildStrategy)
 app.post('/instances/:id/setup/agents/research/stage', researchStage)
 app.post('/instances/:id/agents/add', addAgentToInstance)
+app.post('/instances/:id/agents/remove', removeAgentFromInstance)
 
 // ── Files ──
 app.get('/instances/:id/files', readFile)
