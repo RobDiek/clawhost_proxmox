@@ -4539,10 +4539,16 @@ function checkMicrosoftStatus() {
 
 /* ===== Settings: Upgrade / Cancel / Delete ===== */
 var UPGRADE_PLANS = [
-  { key: 'personal', name: 'אישי', ram: 4, price: 79 },
-  { key: 'business', name: 'עסקי', ram: 8, price: 169 },
-  { key: 'pro', name: 'פרו', ram: 16, price: 349 },
-  { key: 'developer', name: 'מפתח', ram: 32, price: 599 },
+  { key: 'personal', name: 'אישי', ram: 4, cpu: 2, cpuType: 'shared', nvme: 40, price: 79 },
+  { key: 'business', name: 'עסקי', ram: 8, cpu: 4, cpuType: 'shared', nvme: 80, price: 169 },
+  { key: 'pro', name: 'פרו', ram: 16, cpu: 4, cpuType: 'dedicated', nvme: 160, price: 349 },
+  { key: 'developer', name: 'מפתח', ram: 32, cpu: 8, cpuType: 'dedicated', nvme: 240, price: 599 },
+];
+
+var STORAGE_ADDONS = [
+  { id: 'storage_20', label: '+20GB', price: 15 },
+  { id: 'storage_100', label: '+100GB', price: 49 },
+  { id: 'storage_500', label: '+500GB', price: 149 },
 ];
 
 function showUpgradeDialog() {
@@ -4550,6 +4556,9 @@ function showUpgradeDialog() {
   var currentIdx = UPGRADE_PLANS.findIndex(function(p) { return p.key === currentPlan; });
 
   var html = '<div style="display:flex;flex-direction:column;gap:10px">';
+
+  // Plans
+  html += '<div style="font-size:0.82rem;font-weight:600;color:#374151;margin-bottom:2px">תוכניות</div>';
   UPGRADE_PLANS.forEach(function(plan, i) {
     var isCurrent = plan.key === currentPlan;
     var isUpgrade = i > currentIdx;
@@ -4557,23 +4566,67 @@ function showUpgradeDialog() {
     var bg = isCurrent ? '#EFF6FF' : '#fff';
     var cursor = isUpgrade ? 'pointer' : 'default';
     var opacity = (!isCurrent && !isUpgrade) ? '0.5' : '1';
+    var cpuLabel = plan.cpu + ' vCPU' + (plan.cpuType === 'dedicated' ? ' (ייעודי)' : '');
 
     html += '<div style="border:2px solid ' + border + ';border-radius:10px;padding:14px;background:' + bg + ';cursor:' + cursor + ';opacity:' + opacity + '"' +
       (isUpgrade ? ' onclick="doUpgrade(\'' + plan.key + '\')"' : '') + '>' +
       '<div style="display:flex;justify-content:space-between;align-items:center">' +
-        '<div><strong>' + plan.name + '</strong> — ' + plan.ram + 'GB RAM</div>' +
+        '<div><strong>' + plan.name + '</strong></div>' +
         '<div style="font-weight:600;color:#2563EB">₪' + plan.price + '/חודש</div>' +
+      '</div>' +
+      '<div style="font-size:0.78rem;color:#6B7280;margin-top:4px;display:flex;gap:12px">' +
+        '<span>' + cpuLabel + '</span>' +
+        '<span>' + plan.ram + 'GB RAM</span>' +
+        '<span>' + plan.nvme + 'GB NVMe</span>' +
       '</div>' +
       (isCurrent ? '<div style="font-size:0.78rem;color:#2563EB;margin-top:4px">התוכנית הנוכחית שלכם</div>' : '') +
       (isUpgrade ? '<div style="font-size:0.78rem;color:#10B981;margin-top:4px">לחצו לשדרוג</div>' : '') +
     '</div>';
   });
+
+  // Storage addons
+  html += '<div style="font-size:0.82rem;font-weight:600;color:#374151;margin-top:12px;margin-bottom:2px">אחסון נוסף</div>';
+  html += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+  STORAGE_ADDONS.forEach(function(addon) {
+    html += '<div style="border:1px solid #E5E7EB;border-radius:8px;padding:10px 14px;cursor:pointer;text-align:center;flex:1;min-width:100px" ' +
+      'onclick="addStorageAddon(\'' + addon.id + '\')" ' +
+      'onmouseenter="this.style.borderColor=\'#2563EB\'" onmouseleave="this.style.borderColor=\'#E5E7EB\'">' +
+      '<div style="font-weight:600">' + addon.label + '</div>' +
+      '<div style="font-size:0.78rem;color:#2563EB">₪' + addon.price + '/חודש</div>' +
+    '</div>';
+  });
+  html += '</div>';
+  html += '<div style="font-size:0.72rem;color:#9CA3AF;margin-top:4px">אחסון נוסף מתווסף ל-VPS כ-volume נפרד. ניתן להוסיף כמה פעמים.</div>';
+
   html += '</div>';
 
   document.getElementById('taskPopupTitle').textContent = 'שדרגו תוכנית';
   document.getElementById('taskPopupBody').innerHTML = html;
   document.getElementById('taskPopupFooter').innerHTML = '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
   document.getElementById('taskPopupOverlay').classList.remove('hidden');
+}
+
+async function addStorageAddon(addonId) {
+  var addon = STORAGE_ADDONS.find(function(a) { return a.id === addonId; });
+  if (!addon) return;
+  cfConfirm('הוספת אחסון', 'להוסיף ' + addon.label + ' אחסון?\n₪' + addon.price + '/חודש יתווסף למנוי.').then(async function(ok) {
+    if (!ok) return;
+    closeTaskPopup();
+    showToast('מוסיף אחסון...', 'info');
+    try {
+      var res = await fetch(API + '/hosting/instances/' + instanceId + '/add-storage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ addonId: addonId })
+      });
+      var d = await res.json();
+      if (d.success) {
+        showToast('אחסון נוסף נוסף בהצלחה!', 'success');
+      } else {
+        showToast(d.message || 'שגיאה', 'error');
+      }
+    } catch (e) { showToast('שגיאת תקשורת', 'error'); }
+  });
 }
 
 async function doUpgrade(targetPlan) {

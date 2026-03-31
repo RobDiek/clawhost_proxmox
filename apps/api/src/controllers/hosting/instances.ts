@@ -207,6 +207,57 @@ export const upgradePlan = async (c: Context<HonoEnv>) => {
     }
 }
 
+// POST /hosting/instances/:id/add-storage
+export const addStorage = async (c: Context<HonoEnv>) => {
+    try {
+        const userId = c.get('userId')
+        const instanceId = c.req.param('id')
+        const { addonId } = await c.req.json<{ addonId: string }>()
+
+        const STORAGE_MAP: Record<string, number> = {
+            storage_20: 20,
+            storage_100: 100,
+            storage_500: 500,
+        }
+
+        const sizeGb = STORAGE_MAP[addonId]
+        if (!sizeGb) return fail(c, 'Invalid storage addon.', 400)
+
+        const [instance] = await db.select()
+            .from(instances)
+            .where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
+
+        if (!instance?.hetznerServerId) return fail(c, 'Instance not found or not provisioned.', 404)
+
+        const provider = getProvider('hetzner')
+
+        // Create Hetzner volume and attach to server
+        const volume = await provider.createVolume(
+            `vol-${instanceId}-${Date.now()}`,
+            sizeGb,
+            process.env.HETZNER_DATACENTER || 'hel1',
+            Number(instance.hetznerServerId)
+        )
+
+        // Update storage in DB
+        const currentStorage = instance.storageGb || 0
+        await db.update(instances).set({
+            storageGb: currentStorage + sizeGb,
+        }).where(eq(instances.id, instanceId))
+
+        await telegram.alertAdmin(`💾 Storage added: ${instanceId} +${sizeGb}GB (volume: ${volume.id})`)
+
+        return ok(c, {
+            volumeId: volume.id,
+            sizeGb,
+            totalStorageGb: currentStorage + sizeGb,
+        }, `${sizeGb}GB storage added.`)
+    } catch (err) {
+        console.error('addStorage error:', err)
+        return fail(c, 'Failed to add storage.', 500)
+    }
+}
+
 export const deleteInstance = async (c: Context<HonoEnv>) => {
     try {
         const userId = c.get('userId')
