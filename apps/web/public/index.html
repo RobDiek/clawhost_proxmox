@@ -889,6 +889,91 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 /* ═══════════════════════════════════════════════════
+   AI MASCOT
+═══════════════════════════════════════════════════ */
+.mascot-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 16px 8px 8px;
+  min-height: 90px;
+}
+.mascot-bot {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  animation: mascotFloat 3s ease-in-out infinite;
+}
+.mascot-bot.excited {
+  animation: mascotBounce .45s ease;
+}
+.mascot-eye { animation: mascotBlink 4s infinite; }
+.mascot-mouth { opacity: 0; transition: opacity .2s; }
+.mascot-bot.speaking .mascot-mouth { opacity: 1; animation: mascotTalk .4s steps(2) infinite; }
+
+.mascot-bubble {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-2);
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  max-width: 340px;
+  min-height: 38px;
+}
+.mascot-bubble::before {
+  content: '';
+  position: absolute;
+  right: auto; left: -7px;
+  top: 18px;
+  width: 12px; height: 12px;
+  background: #fff;
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+html[dir="rtl"] .mascot-bubble::before {
+  left: auto; right: -7px;
+  border-left: none; border-bottom: none;
+  border-right: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+}
+.mascot-cursor {
+  display: inline-block;
+  width: 2px; height: 14px;
+  background: var(--primary);
+  margin-right: 2px;
+  vertical-align: text-bottom;
+  animation: mascotCursorBlink .6s steps(1) infinite;
+}
+
+@keyframes mascotFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes mascotBounce {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.12) translateY(-6px); }
+  60% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+@keyframes mascotBlink {
+  0%, 42%, 44%, 100% { transform: scaleY(1); }
+  43% { transform: scaleY(0.1); }
+}
+@keyframes mascotTalk {
+  0% { transform: scaleY(1); }
+  50% { transform: scaleY(0.5); }
+}
+@keyframes mascotCursorBlink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════
    RESPONSIVE
 ═══════════════════════════════════════════════════ */
 @media (max-width: 640px) {
@@ -908,6 +993,9 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   .header-nav { display: none; }
   .title-bar h2 { font-size: 1.2rem; }
   .title-bar p { display: none; }
+  .mascot-wrap { gap: 6px; padding: 10px 4px 6px; }
+  .mascot-bot { width: 44px; height: 44px; }
+  .mascot-bubble { font-size: 12px; padding: 8px 10px; max-width: 220px; }
 }
 </style>
 </head>
@@ -1841,8 +1929,9 @@ function applyTranslations() {
    RENDER ALL
 ───────────────────────────────────────── */
 function renderAll() {
-  document.getElementById('cfg-list').innerHTML = renderList();
+  document.getElementById('cfg-list').innerHTML = renderList() + renderMascot();
   renderSummary();
+  mascotSpeak();
 }
 
 /* ─────────────────────────────────────────
@@ -1872,6 +1961,129 @@ document.getElementById('deploy-btn').addEventListener('click', function() {
   const storageVal = selected.has('xs') ? storageGb : 0;
   window.location.href = `/register?plan=${s.plan.key}&components=${componentIds}&storage=${storageVal}&billing=${billingPeriod}`;
 });
+
+/* ─────────────────────────────────────────
+   AI MASCOT
+───────────────────────────────────────── */
+var mascotBotSVG = '<svg class="mascot-bot" id="mascot-bot" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">'
+  + '<rect x="12" y="20" width="40" height="34" rx="10" fill="#1E3A5F"/>'
+  + '<rect x="16" y="24" width="32" height="26" rx="7" fill="#2563EB" opacity=".15"/>'
+  + '<circle cx="32" cy="12" r="4" fill="#2563EB"/>'
+  + '<line x1="32" y1="16" x2="32" y2="20" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>'
+  + '<g class="mascot-eye" style="transform-origin:25px 35px"><circle cx="25" cy="35" r="4" fill="white"/><circle cx="25" cy="35" r="2" fill="#0F172A"/></g>'
+  + '<g class="mascot-eye" style="transform-origin:39px 35px"><circle cx="39" cy="35" r="4" fill="white"/><circle cx="39" cy="35" r="2" fill="#0F172A"/></g>'
+  + '<rect class="mascot-mouth" x="27" y="44" width="10" height="3" rx="1.5" fill="#64B5F6" style="transform-origin:32px 45.5px"/>'
+  + '<rect x="10" y="32" width="4" height="10" rx="2" fill="#1E3A5F"/>'
+  + '<rect x="50" y="32" width="4" height="10" rx="2" fill="#1E3A5F"/>'
+  + '</svg>';
+
+var MASCOT_MSGS = {
+  1: {
+    idle:  { he: 'בחרו לפחות סוכן אחד כדי להמשיך 👆', en: 'Pick at least one agent to get started 👆' },
+    oc:    { he: 'בחירה מצוינת! העוזר האישי שלכם ידע לנהל יומן, לחפש מידע ולכתוב טיוטות.', en: 'Great choice! Your personal assistant will manage calendar, search the web and draft messages.' },
+    mt:    { he: 'וואו, 9 סוכני שיווק! מחקר שוק, כתיבת תוכן, ניתוח מתחרים — הכל אוטומטי.', en: 'Wow, 9 marketing agents! Market research, content writing, competitor analysis — all automated.' },
+    bare:  { he: 'שרת נקי — בנו מה שאתם רוצים, בלי מגבלות.', en: 'Clean server — build whatever you want, no limits.' },
+    both:  { he: 'שילוב מנצח! עוזר אישי + צוות שיווק שלם.', en: 'Winning combo! Personal assistant + full marketing team.' },
+  },
+  2: {
+    idle: { he: 'n8n מתאים למי שאוהב גמישות מקסימלית. Activepieces — פשוט ואלגנטי. שניהם מצוינים!', en: 'n8n for max flexibility. Activepieces for simplicity. Both are excellent!' },
+    n8:   { he: 'n8n — בחירה של מפתחים. 400+ אינטגרציות מוכנות.', en: 'n8n — a developer\'s choice. 400+ integrations ready to go.' },
+    ap:   { he: 'Activepieces — ממשק נקי, קל להתחיל. מושלם!', en: 'Activepieces — clean interface, easy start. Perfect!' },
+  },
+  3: {
+    idle: { he: 'הסוכנים צריכים מוח. מפתחות API שלכם = שליטה מלאה על העלויות.', en: 'Agents need a brain. Your API keys = full cost control.' },
+    ol:   { he: 'Ollama = פרטיות מקסימלית. המודל רץ על השרת שלכם, בלי לשלוח נתונים החוצה.', en: 'Ollama = maximum privacy. The model runs on your server, no data leaves.' },
+    ok:   { he: 'שליטה מלאה על העלויות — משלמים רק על מה שמשתמשים.', en: 'Full cost control — pay only for what you use.' },
+  },
+  4: {
+    idle: { he: 'גיבוי יומי — שקט נפשי ב-₪19 לחודש. מומלץ!', en: 'Daily backup — peace of mind for ₪19/month. Recommended!' },
+    bk:   { he: '👍 בחירה חכמה. 7 ימי היסטוריה + שחזור בלחיצה.', en: '👍 Smart choice. 7-day history + one-click restore.' },
+    xs:   { he: 'אחסון נוסף — מושלם אם יש הרבה מסמכים, תמונות או דאטה.', en: 'Extra storage — perfect for lots of documents, images or data.' },
+    both: { he: 'גיבוי + אחסון — העסק שלכם מוגן ומוכן לגדול! 🚀', en: 'Backup + storage — your business is protected and ready to grow! 🚀' },
+  }
+};
+
+var mascotTypeTimer = null;
+var mascotLastMsg = '';
+
+function renderMascot() {
+  return '<div class="mascot-wrap">'
+    + mascotBotSVG
+    + '<div class="mascot-bubble" id="mascot-bubble"><span id="mascot-text"></span></div>'
+    + '</div>';
+}
+
+function getMascotMessage() {
+  var step = currentWizStep;
+  var msgs = MASCOT_MSGS[step];
+  if (!msgs) return '';
+
+  if (step === 1) {
+    var hasOC = selected.has('oc');
+    var hasMT = selected.has('mt');
+    var hasBare = selected.has('bare');
+    if (hasOC && hasMT) return msgs.both[lang];
+    if (hasOC) return msgs.oc[lang];
+    if (hasMT) return msgs.mt[lang];
+    if (hasBare) return msgs.bare[lang];
+    return msgs.idle[lang];
+  }
+  if (step === 2) {
+    if (selected.has('n8')) return msgs.n8[lang];
+    if (selected.has('ap')) return msgs.ap[lang];
+    return msgs.idle[lang];
+  }
+  if (step === 3) {
+    if (selected.has('ol')) return msgs.ol[lang];
+    if (selected.has('ok')) return msgs.ok[lang];
+    return msgs.idle[lang];
+  }
+  if (step === 4) {
+    var hasBK = selected.has('bk');
+    var hasXS = selected.has('xs');
+    if (hasBK && hasXS) return msgs.both[lang];
+    if (hasBK) return msgs.bk[lang];
+    if (hasXS) return msgs.xs[lang];
+    return msgs.idle[lang];
+  }
+  return '';
+}
+
+function mascotSpeak() {
+  var msg = getMascotMessage();
+  var textEl = document.getElementById('mascot-text');
+  var botEl = document.getElementById('mascot-bot');
+  if (!textEl || !botEl) return;
+
+  // Bounce on selection change
+  if (msg !== mascotLastMsg && mascotLastMsg !== '') {
+    botEl.classList.remove('excited');
+    void botEl.offsetWidth; // reflow
+    botEl.classList.add('excited');
+    setTimeout(function() { botEl.classList.remove('excited'); }, 500);
+  }
+
+  if (msg === mascotLastMsg) return;
+  mascotLastMsg = msg;
+
+  // Clear previous typing
+  if (mascotTypeTimer) { clearInterval(mascotTypeTimer); mascotTypeTimer = null; }
+  textEl.innerHTML = '';
+  botEl.classList.add('speaking');
+
+  // Typewriter
+  var i = 0;
+  mascotTypeTimer = setInterval(function() {
+    if (i < msg.length) {
+      textEl.textContent = msg.substring(0, i + 1);
+      i++;
+    } else {
+      clearInterval(mascotTypeTimer);
+      mascotTypeTimer = null;
+      botEl.classList.remove('speaking');
+    }
+  }, 25);
+}
 
 /* ─────────────────────────────────────────
    INIT
