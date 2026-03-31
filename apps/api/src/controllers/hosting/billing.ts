@@ -68,6 +68,16 @@ export const checkout = async (c: Context<HonoEnv>) => {
             return fail(c, 'Customer details are required.', 400)
         }
 
+        // Check subdomain availability before creating instance
+        if (subdomainName) {
+            const [existing] = await db.select({ id: instances.id })
+                .from(instances)
+                .where(eq(instances.subdomainName, subdomainName))
+            if (existing) {
+                return fail(c, 'הכתובת תפוסה, בחרו שם אחר.', 409)
+            }
+        }
+
         const pricing = calcTotal(components, addons || [])
         const instanceId = generateId()
         const orderId = `oc-${instanceId}-${Date.now()}`
