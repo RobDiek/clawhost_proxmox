@@ -1564,3 +1564,140 @@ export const setupAgents = async (c: Context) => {
         return fail(c, 'Failed to setup agents.', 500)
     }
 }
+
+// ── POST /hosting/instances/:id/agents/add ──
+// Add a new agent to an existing VPS (upgrade)
+export const addAgentToInstance = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const { agentType } = await c.req.json<{ agentType: 'mt' | 'oc' }>()
+
+        if (!agentType || !['mt', 'oc'].includes(agentType)) {
+            return fail(c, 'Invalid agent type', 400)
+        }
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance?.ip) return fail(c, 'Instance not found', 404)
+
+        const currentComponents = (instance.selectedComponents as string[]) || []
+
+        // Check if already installed
+        if (currentComponents.includes(agentType)) {
+            return fail(c, 'הסוכן כבר מותקן', 400)
+        }
+
+        // Calculate RAM requirements
+        const COMPONENT_RAM: Record<string, number> = { oc: 1, mt: 4, bare: 1, n8: 0.5, ap: 0.5, ol: 8 }
+        const currentRam = currentComponents.reduce((sum, id) => sum + (COMPONENT_RAM[id] || 0), 0.5)
+        const newRam = currentRam + (COMPONENT_RAM[agentType] || 0)
+
+        // Check plan capacity
+        const PLAN_RAM: Record<string, number> = { personal: 4, business: 8, pro: 16, developer: 32 }
+        const planRam = PLAN_RAM[instance.planKey || 'personal'] || 4
+
+        if (newRam > planRam) {
+            // Need plan upgrade
+            const neededPlan = Object.entries(PLAN_RAM).find(([_, ram]) => ram >= newRam)
+            return ok(c, {
+                needsUpgrade: true,
+                currentPlan: instance.planKey,
+                currentRam,
+                newRam,
+                planRam,
+                suggestedPlan: neededPlan ? neededPlan[0] : 'developer',
+                message: `נדרש שדרוג תוכנית. RAM נדרש: ${newRam}GB, תוכנית נוכחית: ${planRam}GB.`,
+            }, 'Plan upgrade required')
+        }
+
+        // Deploy the new agent
+        console.log(`Adding ${agentType} agent to instance ${instanceId} (RAM: ${currentRam}→${newRam}GB)`)
+
+        if (agentType === 'mt') {
+            // Deploy MATEH sub-agents + cron jobs to existing VPS
+            // Read existing USER.md from VPS (don't regenerate)
+            const userMd = await sshExec(instance.ip,
+                'cat /home/openclaw/.openclaw/workspace/USER.md 2>/dev/null',
+                instance.rootPassword || undefined
+            ) || '# USER.md\n'
+
+            const brandMd = await sshExec(instance.ip,
+                'find /home/openclaw/.openclaw/workspace/brands -name "BRAND.md" -exec cat {} \\; 2>/dev/null',
+                instance.rootPassword || undefined
+            ) || '# BRAND.md\n'
+
+            // Deploy MATEH SOUL.md (upgrade from Personal)
+            const matehSoul = readFileSync(join(TEMPLATES_DIR, 'workspace', 'SOUL.md'), 'utf-8')
+            await sshWriteFile(instance.ip, '/home/openclaw/.openclaw/workspace/SOUL.md', matehSoul, instance.rootPassword || undefined)
+
+            const matehAgents = readFileSync(join(TEMPLATES_DIR, 'workspace', 'AGENTS.md'), 'utf-8')
+            await sshWriteFile(instance.ip, '/home/openclaw/.openclaw/workspace/AGENTS.md', matehAgents, instance.rootPassword || undefined)
+
+            const matehHeartbeat = readFileSync(join(TEMPLATES_DIR, 'workspace', 'HEARTBEAT.md'), 'utf-8')
+            await sshWriteFile(instance.ip, '/home/openclaw/.openclaw/workspace/HEARTBEAT.md', matehHeartbeat, instance.rootPassword || undefined)
+
+            // Create sub-agent directories
+            await sshExec(instance.ip,
+                'mkdir -p /home/openclaw/.openclaw/agents/{sayer,meater,maazin,menateach,et,yotzer,shaliach,migdalor}/output',
+                instance.rootPassword || undefined
+            )
+
+            // Deploy sub-agent SOUL.md files
+            const subAgents = ['sayer', 'meater', 'maazin', 'menateach', 'et', 'yotzer', 'shaliach', 'migdalor']
+            for (const agent of subAgents) {
+                try {
+                    const content = readFileSync(join(TEMPLATES_DIR, 'agents', agent, 'SOUL.md'), 'utf-8')
+                    await sshWriteFile(instance.ip, `/home/openclaw/.openclaw/agents/${agent}/SOUL.md`, content, instance.rootPassword || undefined)
+                } catch { /* skip */ }
+            }
+
+            // Fix permissions
+            await sshExec(instance.ip, 'chown -R openclaw:openclaw /home/openclaw/.openclaw', instance.rootPassword || undefined)
+
+            // Register sub-agents
+            await sshExec(instance.ip, `
+                su - openclaw -c '
+                HAS_ANTHROPIC=$(grep -c ANTHROPIC_API_KEY /etc/systemd/system/openclaw-gateway.service 2>/dev/null || echo 0)
+                if [ "$HAS_ANTHROPIC" -gt 0 ]; then
+                  SAYER_MODEL="anthropic/claude-opus-4-6"; MENATEACH_MODEL="anthropic/claude-opus-4-6"; ET_MODEL="anthropic/claude-sonnet-4-6"
+                else
+                  SAYER_MODEL="openai/gpt-4o"; MENATEACH_MODEL="openai/gpt-4o"; ET_MODEL="openai/gpt-4o"
+                fi
+                openclaw agents add sayer --model "$SAYER_MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/sayer --non-interactive 2>/dev/null
+                openclaw agents add menateach --model "$MENATEACH_MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/menateach --non-interactive 2>/dev/null
+                openclaw agents add et --model "$ET_MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/et --non-interactive 2>/dev/null
+                '
+            `, instance.rootPassword || undefined)
+
+            // Restart + add cron jobs
+            await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
+            await new Promise(r => setTimeout(r, 3000))
+
+            // Add MATEH cron jobs
+            await sshExec(instance.ip, `
+                su - openclaw -c '
+                openclaw cron add --name "daily-brief" --description "Daily Brief" --cron "0 7 * * 0-4" --tz "Asia/Jerusalem" --message "הכן Daily Brief: סכם פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות." --session isolated 2>/dev/null
+                openclaw cron add --name "weekly-competitive" --description "Weekly Report" --cron "0 8 * * 1" --tz "Asia/Jerusalem" --message "דוח תחרותי שבועי: סייר חפש מתחרים, מאזין בדוק שיחות, מנתח דרג הזדמנויות, עט כתוב 2-3 הצעות פוסטים." --session isolated 2>/dev/null
+                openclaw cron add --name "monthly-aeo" --description "AEO Audit" --cron "0 10 1 * *" --tz "Asia/Jerusalem" --message "ביקורת AEO חודשית." --session isolated 2>/dev/null
+                '
+            `, instance.rootPassword || undefined)
+        }
+
+        // Update instance components in DB
+        const newComponents = [...currentComponents, agentType]
+        await db.update(instances).set({
+            selectedComponents: newComponents as any,
+        }).where(eq(instances.id, instanceId))
+
+        // Sync channels
+        try {
+            const { syncChannelsToVPS } = await import('@/services/channelSync')
+            syncChannelsToVPS(instanceId).catch(() => {})
+        } catch {}
+
+        console.log(`Agent ${agentType} added to ${instanceId}. Components: ${newComponents.join(',')}`)
+        return ok(c, { agentType, components: newComponents, ramUsed: newRam, ramAvailable: planRam }, 'הסוכן נוסף בהצלחה!')
+    } catch (err) {
+        console.error('addAgentToInstance error:', err)
+        return fail(c, 'שגיאה בהוספת סוכן', 500)
+    }
+}

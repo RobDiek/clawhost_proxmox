@@ -3033,6 +3033,49 @@ function renderAgentsTab() {
   document.getElementById('agentsList').innerHTML = html;
 }
 
+function addAgentRequest(agentType) {
+  closeTaskPopup();
+  showToast('מוסיף סוכן... זה עלול לקחת עד דקה', 'info');
+
+  fetch(API + '/hosting/instances/' + instanceId + '/agents/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({ agentType: agentType })
+  }).then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) {
+      if (d.data && d.data.needsUpgrade) {
+        // Need plan upgrade
+        document.getElementById('taskPopupTitle').textContent = 'נדרש שדרוג תוכנית';
+        document.getElementById('taskPopupBody').innerHTML =
+          '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:10px;padding:16px;margin-bottom:16px">' +
+            '<div style="font-weight:600;color:#92400E;margin-bottom:8px">אין מספיק משאבים</div>' +
+            '<div style="font-size:0.85rem;color:#78350F">' + d.data.message + '</div>' +
+          '</div>' +
+          '<div style="font-size:0.85rem;color:#4B5563;line-height:1.6">' +
+            'כדי להוסיף את הסוכן, שדרגו את התוכנית ל-<strong>' + d.data.suggestedPlan + '</strong>.<br>' +
+            'RAM נוכחי: ' + d.data.currentRam + 'GB / ' + d.data.planRam + 'GB<br>' +
+            'RAM נדרש: ' + d.data.newRam + 'GB' +
+          '</div>';
+        document.getElementById('taskPopupFooter').innerHTML =
+          '<button class="aq-btn edit" onclick="closeTaskPopup()">ביטול</button>' +
+          '<button class="aq-btn approve" onclick="closeTaskPopup();switchTab(\'settings\')">→ שדרגו תוכנית</button>';
+        document.getElementById('taskPopupOverlay').classList.remove('hidden');
+      } else {
+        showToast('הסוכן נוסף בהצלחה!', 'success');
+        // Update local components
+        if (d.data && d.data.components) {
+          components = d.data.components;
+          localStorage.setItem('cf_instance_components', JSON.stringify(components));
+        }
+        renderAgentsTab();
+      }
+    } else {
+      showToast(d.message || 'שגיאה', 'error');
+    }
+  }).catch(function() { showToast('שגיאת תקשורת', 'error'); });
+}
+
 function showAddAgentDialog() {
   document.getElementById('taskPopupTitle').textContent = 'הוסיפו סוכן';
 
@@ -3040,7 +3083,7 @@ function showAddAgentDialog() {
 
   // MATEH
   var hasMt = components.indexOf('mt') !== -1;
-  bodyHtml += '<div class="int-card' + (hasMt ? ' connected' : '') + '" style="cursor:pointer" onclick="' + (hasMt ? "showToast('כבר מותקן','success')" : "showToast('פנו לתמיכה להוספה','info')") + '">' +
+  bodyHtml += '<div class="int-card' + (hasMt ? ' connected' : '') + '" style="cursor:pointer" onclick="' + (hasMt ? "showToast('כבר מותקן','success')" : "addAgentRequest('mt')") + '">' +
     '<div class="int-card-header">' +
       '<div class="int-icon" style="background:#EFF6FF"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2563EB" stroke-width="1.5"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg></div>' +
       '<div><strong>MATEH — משווק</strong><div style="font-size:.78rem;color:#6B7280">9 סוכני שיווק: מחקר, כתיבה, הפצה, ניתוח מתחרים</div></div>' +
@@ -3050,7 +3093,7 @@ function showAddAgentDialog() {
 
   // OpenClaw (bare)
   var hasOc = components.indexOf('oc') !== -1;
-  bodyHtml += '<div class="int-card' + (hasOc ? ' connected' : '') + '" style="cursor:pointer" onclick="' + (hasOc ? "showToast('כבר מותקן','success')" : "showToast('פנו לתמיכה להוספה','info')") + '">' +
+  bodyHtml += '<div class="int-card' + (hasOc ? ' connected' : '') + '" style="cursor:pointer" onclick="' + (hasOc ? "showToast('כבר מותקן','success')" : "addAgentRequest('oc')") + '">' +
     '<div class="int-card-header">' +
       '<div class="int-icon" style="background:#F0FDF4"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#10B981" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>' +
       '<div><strong>OpenClaw</strong><div style="font-size:.78rem;color:#6B7280">עוזר AI אישי — צ\'אט, חיפוש, ניהול משימות</div></div>' +
