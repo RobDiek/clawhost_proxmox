@@ -941,6 +941,20 @@ html[dir="rtl"] .mascot-bubble::before {
   border-right: 1px solid var(--border);
   border-top: 1px solid var(--border);
 }
+.mascot-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-light, #d1d5db);
+  font-size: 8px;
+  font-weight: 800;
+  font-style: normal;
+  color: var(--text-3);
+  vertical-align: middle;
+  margin: 0 2px;
+}
 .mascot-cursor {
   display: inline-block;
   width: 2px; height: 14px;
@@ -1878,11 +1892,21 @@ function renderSummary() {
   const hintEl = document.getElementById('deploy-hint');
 
   if (currentWizStep < 4) {
-    // Steps 1-3: show "Next" button
-    btn.className = 'deploy-btn active';
-    btn.disabled = false;
-    document.getElementById('deploy-text').textContent = lang === 'he' ? '\u2190 הבא' : 'Next \u2192';
-    hintEl.innerHTML = `<span style="color:#6B7280;font-size:0.78rem">${lang === 'he' ? 'שלב' : 'Step'} ${currentWizStep} ${lang === 'he' ? 'מתוך' : 'of'} 4</span>`;
+    // Steps 1-3: show "Next" button, but require selection
+    var stepCat = STEP_TO_CAT[currentWizStep];
+    var hasStepSelection = ITEMS.some(function(i) { return i.cat === stepCat && selected.has(i.id) && !i.soon; });
+    if (hasStepSelection) {
+      btn.className = 'deploy-btn active';
+      btn.disabled = false;
+      document.getElementById('deploy-text').textContent = lang === 'he' ? '\u2190 הבא' : 'Next \u2192';
+      hintEl.innerHTML = '<span style="color:#6B7280;font-size:0.78rem">' + (lang === 'he' ? 'שלב' : 'Step') + ' ' + currentWizStep + ' ' + (lang === 'he' ? 'מתוך' : 'of') + ' 4</span>';
+    } else {
+      btn.className = 'deploy-btn inactive';
+      btn.disabled = true;
+      var hintMsgs = { 1: { he: 'בחרו לפחות סוכן אחד', en: 'Select at least one agent' }, 2: { he: 'בחרו מנוע אוטומציה', en: 'Select an automation engine' }, 3: { he: 'בחרו ספק AI', en: 'Select an AI provider' } };
+      document.getElementById('deploy-text').textContent = lang === 'he' ? '\u2190 הבא' : 'Next \u2192';
+      hintEl.innerHTML = '<span style="color:var(--warning);font-size:0.78rem">' + hintMsgs[currentWizStep][lang] + '</span>';
+    }
   } else {
     // Step 4: show deploy button (original behavior)
     if (s.hasAgent) {
@@ -1949,8 +1973,11 @@ function setLang(l) {
    DEPLOY BUTTON
 ───────────────────────────────────────── */
 document.getElementById('deploy-btn').addEventListener('click', function() {
-  // Steps 1-3: advance to next step
+  // Steps 1-3: advance to next step only if selection made
   if (currentWizStep < 4) {
+    var stepCat = STEP_TO_CAT[currentWizStep];
+    var hasSelection = ITEMS.some(function(i) { return i.cat === stepCat && selected.has(i.id) && !i.soon; });
+    if (!hasSelection) return;
     goWizStep(currentWizStep + 1);
     return;
   }
@@ -1979,26 +2006,26 @@ var mascotBotSVG = '<svg class="mascot-bot" id="mascot-bot" viewBox="0 0 64 64" 
 
 var MASCOT_MSGS = {
   1: {
-    idle:  { he: 'בחרו לפחות סוכן אחד כדי להמשיך 👆', en: 'Pick at least one agent to get started 👆' },
+    idle:  { he: 'בחרו לפחות סוכן אחד כדי להמשיך. לתיאור מפורט לחצו על <span class="mascot-info-icon">i</span> ליד כל סוכן.', en: 'Pick at least one agent. For details click <span class="mascot-info-icon">i</span> next to each agent.' },
     oc:    { he: 'בחירה מצוינת! העוזר האישי שלכם ידע לנהל יומן, לחפש מידע ולכתוב טיוטות.', en: 'Great choice! Your personal assistant will manage calendar, search the web and draft messages.' },
     mt:    { he: 'וואו, 9 סוכני שיווק! מחקר שוק, כתיבת תוכן, ניתוח מתחרים — הכל אוטומטי.', en: 'Wow, 9 marketing agents! Market research, content writing, competitor analysis — all automated.' },
     bare:  { he: 'שרת נקי — בנו מה שאתם רוצים, בלי מגבלות.', en: 'Clean server — build whatever you want, no limits.' },
     both:  { he: 'שילוב מנצח! עוזר אישי + צוות שיווק שלם.', en: 'Winning combo! Personal assistant + full marketing team.' },
   },
   2: {
-    idle: { he: 'n8n מתאים למי שאוהב גמישות מקסימלית. Activepieces — פשוט ואלגנטי. שניהם מצוינים!', en: 'n8n for max flexibility. Activepieces for simplicity. Both are excellent!' },
-    n8:   { he: 'n8n — בחירה של מפתחים. 400+ אינטגרציות מוכנות.', en: 'n8n — a developer\'s choice. 400+ integrations ready to go.' },
-    ap:   { he: 'Activepieces — ממשק נקי, קל להתחיל. מושלם!', en: 'Activepieces — clean interface, easy start. Perfect!' },
+    idle: { he: 'בגדול אין הבדל — זה רק המנוע מאחורי הקלעים. לסוכן שלכם זה לא משנה. שניהם מצוינים, בחרו מה שנוח.', en: 'Basically no difference — it\'s just the engine behind the scenes. Your agent doesn\'t care. Both are great, pick what feels right.' },
+    n8:   { he: 'n8n — בחירה של מפתחים. בחרו רק אם אתם משתמשים מתקדמים, אחרת Activepieces מספיק.', en: 'n8n — a developer\'s choice. Pick only if you\'re an advanced user, otherwise Activepieces is enough.' },
+    ap:   { he: 'Activepieces — רישיון MIT, מותר לשימוש מסחרי ללא מגבלות. מושלם לרוב המשתמשים!', en: 'Activepieces — MIT license, fully open for commercial use. Perfect for most users!' },
   },
   3: {
-    idle: { he: 'הסוכנים צריכים מוח. מפתחות API שלכם = שליטה מלאה על העלויות.', en: 'Agents need a brain. Your API keys = full cost control.' },
-    ol:   { he: 'Ollama = פרטיות מקסימלית. המודל רץ על השרת שלכם, בלי לשלוח נתונים החוצה.', en: 'Ollama = maximum privacy. The model runs on your server, no data leaves.' },
-    ok:   { he: 'שליטה מלאה על העלויות — משלמים רק על מה שמשתמשים.', en: 'Full cost control — pay only for what you use.' },
+    idle: { he: 'ברירת המחדל מתאימה ל-95% מהמקרים. אם אתם לא בטוחים — השאירו כמו שזה.', en: 'The default fits 95% of cases. If unsure — leave it as is.' },
+    ol:   { he: 'Ollama משתלם רק אם אתם מתכננים פעילות ענפה עם כמות גדולה של פעולות. לעסק קטן — כנראה לא יחסוך מספיק.', en: 'Ollama pays off only with heavy usage and large volumes. For small business — probably won\'t save enough to justify it.' },
+    ok:   { he: 'בחירה נכונה לרוב המשתמשים. שליטה מלאה על העלויות — משלמים רק על מה שמשתמשים.', en: 'Right choice for most users. Full cost control — pay only for what you use.' },
   },
   4: {
-    idle: { he: 'גיבוי יומי — שקט נפשי ב-₪19 לחודש. מומלץ!', en: 'Daily backup — peace of mind for ₪19/month. Recommended!' },
-    bk:   { he: '👍 בחירה חכמה. 7 ימי היסטוריה + שחזור בלחיצה.', en: '👍 Smart choice. 7-day history + one-click restore.' },
-    xs:   { he: 'אחסון נוסף — מושלם אם יש הרבה מסמכים, תמונות או דאטה.', en: 'Extra storage — perfect for lots of documents, images or data.' },
+    idle: { he: 'ממליץ בחום על גיבוי יומי! שקט נפשי ב-₪19 לחודש. העסק שלכם שווה את זה.', en: 'Highly recommend daily backup! Peace of mind for ₪19/mo. Your business is worth it.' },
+    bk:   { he: '👍 בחירה חכמה. 7 ימי היסטוריה + שחזור בלחיצה. שקט נפשי מובטח!', en: '👍 Smart choice. 7-day history + one-click restore. Peace of mind guaranteed!' },
+    xs:   { he: 'אחסון נוסף — מושלם אם יש הרבה מסמכים, תמונות או דאטה. ואל תשכחו את הגיבוי!', en: 'Extra storage — perfect for lots of docs, images or data. Don\'t forget backup!' },
     both: { he: 'גיבוי + אחסון — העסק שלכם מוגן ומוכן לגדול! 🚀', en: 'Backup + storage — your business is protected and ready to grow! 🚀' },
   }
 };
@@ -2071,16 +2098,18 @@ function mascotSpeak() {
   textEl.innerHTML = '';
   botEl.classList.add('speaking');
 
-  // Typewriter
+  // Typewriter — strip HTML for animation, show full HTML at end
+  var plainMsg = msg.replace(/<[^>]+>/g, '\u24D8');
   var i = 0;
   mascotTypeTimer = setInterval(function() {
-    if (i < msg.length) {
-      textEl.textContent = msg.substring(0, i + 1);
+    if (i < plainMsg.length) {
+      textEl.textContent = plainMsg.substring(0, i + 1);
       i++;
     } else {
       clearInterval(mascotTypeTimer);
       mascotTypeTimer = null;
       botEl.classList.remove('speaking');
+      if (msg !== plainMsg) textEl.innerHTML = msg;
     }
   }, 25);
 }
