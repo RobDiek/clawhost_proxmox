@@ -92,18 +92,16 @@ const provisioner = {
 
         while (Date.now() - start < maxWaitMs) {
             const status = await provider.getServer(serverId)
-            if (status.status === 'running') {
-                // Try subdomain first, fall back to direct IP
-                const healthUrl = subdomainAgent
-                    ? `http://${subdomainAgent}`
-                    : ip
-                        ? `http://${ip}:3000`
-                        : `http://agent.${instanceId}.openclaw.flowmatic.co.il`
+            if (status.status === 'running' && ip) {
+                // Check gateway port directly (not Nginx which may respond before gateway is installed)
                 try {
-                    const res = await fetch(healthUrl, { signal: AbortSignal.timeout(5000) })
-                    if (res.ok) return true
+                    const res = await fetch(`http://${ip}:3000`, { signal: AbortSignal.timeout(5000) })
+                    if (res.ok || res.status === 401) {
+                        // 200 or 401 (auth required) means gateway is running
+                        return true
+                    }
                 } catch {
-                    // not ready yet
+                    // gateway not ready yet — keep polling
                 }
             }
             await sleep(15_000)
