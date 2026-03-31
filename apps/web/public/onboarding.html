@@ -951,6 +951,10 @@ body {
 <div class="toast" id="toast"></div>
 
 <script>
+// Global — used by onclick handlers in HTML
+var isMATEH = false;
+function goToStep(n) { window._goToStep && window._goToStep(n); }
+
 (function() {
   'use strict';
 
@@ -966,7 +970,6 @@ body {
   var pollCount = 0;
   var fakeProgress = 0;
   var MAX_POLLS = 75; // ~10 min at 8s
-  var isMATEH = false;
   var totalSteps = 4;
 
   // ── Init ──
