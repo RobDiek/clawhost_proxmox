@@ -338,7 +338,7 @@ function addRow(label, value) {
 
 addRow('תוכנית ' + plan.he, '₪' + plan.price + '/חודש');
 if (storageGb > 0) {
-  var storagePrice = storageGb <= 20 ? 15 : storageGb <= 100 ? 49 : 149;
+  var storagePrice = storageGb <= 20 ? 9 : storageGb <= 100 ? 39 : 199;
   addRow('אחסון נוסף +' + storageGb + 'GB', '₪' + storagePrice + '/חודש');
 }
 if (components.includes('bk')) {
@@ -347,7 +347,7 @@ if (components.includes('bk')) {
 
 // Total
 var total = plan.price;
-if (storageGb > 0) total += (storageGb <= 20 ? 15 : storageGb <= 100 ? 49 : 149);
+if (storageGb > 0) total += (storageGb <= 20 ? 9 : storageGb <= 100 ? 39 : 199);
 if (components.includes('bk')) total += 19;
 document.getElementById('total-price').textContent = '₪' + total + '/חודש';
 
