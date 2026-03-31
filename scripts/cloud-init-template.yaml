@@ -227,17 +227,11 @@ runcmd:
           sleep 5
         done
         ollama pull llama3.1:8b
-    # Configure OpenClaw to use local Ollama
+    # Configure Ollama provider via skills config (safe — doesn't touch openclaw.json)
     - |
-        cd /home/openclaw/.openclaw
-        node -e "
-          const fs = require('fs');
-          const cfg = JSON.parse(fs.readFileSync('openclaw.json','utf-8'));
-          if (!cfg.providers) cfg.providers = {};
-          cfg.providers.ollama = { baseUrl: 'http://localhost:11434', enabled: true };
-          fs.writeFileSync('openclaw.json', JSON.stringify(cfg, null, 2));
-        " 2>/dev/null || true
-        chown openclaw:openclaw openclaw.json
+        mkdir -p /home/openclaw/.openclaw/skills-config
+        echo '{"provider":"ollama","baseUrl":"http://localhost:11434","defaultModel":"llama3.1:8b"}' > /home/openclaw/.openclaw/skills-config/ollama.json
+        chown -R openclaw:openclaw /home/openclaw/.openclaw/skills-config
     {{/HAS_OLLAMA}}
 
     # ── Nginx ──
@@ -382,15 +376,7 @@ runcmd:
         chmod +x /opt/openclaw-update.sh
     - echo "0 4 * * * root /opt/openclaw-update.sh >> /var/log/openclaw-update.log 2>&1" > /etc/cron.d/openclaw-update
 
-    # ── Disable update banner in OpenClaw UI ──
-    - |
-        cd /home/openclaw/.openclaw
-        node -e "
-          const fs = require('fs');
-          const cfg = JSON.parse(fs.readFileSync('openclaw.json','utf-8'));
-          cfg.updates = { notify: false, autoCheck: false };
-          fs.writeFileSync('openclaw.json', JSON.stringify(cfg, null, 2));
-        " 2>/dev/null || true
-        chown openclaw:openclaw openclaw.json
+    # Note: OpenClaw update banner cannot be disabled via config.
+    # Auto-update cron (above) handles updates silently at 4am.
 
 final_message: 'ClawFlow instance {{INSTANCE_ID}} ready!'
