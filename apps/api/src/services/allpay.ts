@@ -23,35 +23,35 @@ interface WebhookResult {
 }
 
 // ── AllPay SHA256 Signature ──
-function computeSign(params: Record<string, unknown>, apiKey: string): string {
-    const sortedKeys = Object.keys(params).sort()
-    const chunks: string[] = []
-
+function collectValues(obj: Record<string, unknown>, chunks: string[]): void {
+    const sortedKeys = Object.keys(obj).sort()
     sortedKeys.forEach((key) => {
         if (key === 'sign') return
-        const value = params[key]
+        const value = obj[key]
 
         if (Array.isArray(value)) {
             value.forEach((item) => {
                 if (typeof item === 'object' && item !== null) {
-                    const sortedItemKeys = Object.keys(item).sort()
-                    sortedItemKeys.forEach((name) => {
-                        const val = (item as Record<string, unknown>)[name]
-                        if (typeof val === 'string' && val.trim() !== '') {
-                            chunks.push(val)
-                        } else if (typeof val === 'number') {
-                            chunks.push(String(val))
-                        }
-                    })
+                    collectValues(item as Record<string, unknown>, chunks)
+                } else if (typeof item === 'string' && item.trim() !== '') {
+                    chunks.push(item)
+                } else if (typeof item === 'number') {
+                    chunks.push(String(item))
                 }
             })
+        } else if (typeof value === 'object' && value !== null) {
+            collectValues(value as Record<string, unknown>, chunks)
         } else if (typeof value === 'string' && value.trim() !== '') {
             chunks.push(value)
         } else if (typeof value === 'number') {
             chunks.push(String(value))
         }
     })
+}
 
+function computeSign(params: Record<string, unknown>, apiKey: string): string {
+    const chunks: string[] = []
+    collectValues(params, chunks)
     const signatureString = chunks.join(':') + ':' + apiKey
     return createHash('sha256').update(signatureString).digest('hex')
 }
