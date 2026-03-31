@@ -872,7 +872,7 @@ input{font-family:inherit}
       <div class="section-title" style="margin-top:28px;color:#EF4444">אזור מסוכן</div>
       <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:16px;display:flex;flex-wrap:wrap;gap:8px">
         <button class="btn btn-outline" onclick="restartAgent()" style="font-size:0.82rem">&#8635; הפעלה מחדש</button>
-        <button class="btn btn-outline" onclick="if(confirm('לאפס את הגדרות הסוכן?')) showToast('בקרוב','success')" style="font-size:0.82rem;color:#EF4444;border-color:#FECACA">איפוס הגדרות</button>
+        <button class="btn btn-outline" onclick="resetAgentConfig()" style="font-size:0.82rem;color:#EF4444;border-color:#FECACA">איפוס הגדרות</button>
         <button class="btn btn-outline" id="btn-delete-agent" onclick="deleteCurrentAgent()" style="font-size:0.82rem;color:#EF4444;border-color:#FECACA">🗑️ הסירו סוכן</button>
       </div>
 
@@ -1455,8 +1455,8 @@ input{font-family:inherit}
         <span style="font-size:0.82rem">AllPay</span>
       </div>
       <div style="padding:12px 16px;display:flex;gap:8px;justify-content:flex-end">
-        <button class="btn btn-outline btn-sm" onclick="showToast('פנו לתמיכה','info')" style="font-size:0.75rem">שדרגו תוכנית</button>
-        <button class="btn btn-outline btn-sm" onclick="cfConfirm('ביטול מנוי','בטוחים?').then(function(ok){if(ok)showToast('פנו לתמיכה','info')})" style="font-size:0.75rem;color:#EF4444;border-color:#FECACA">בטלו</button>
+        <button class="btn btn-outline btn-sm" onclick="showUpgradeDialog()" style="font-size:0.75rem">שדרגו תוכנית</button>
+        <button class="btn btn-outline btn-sm" onclick="cancelSubscription()" style="font-size:0.75rem;color:#EF4444;border-color:#FECACA">בטלו</button>
       </div>
     </div>
 
@@ -1486,7 +1486,7 @@ input{font-family:inherit}
       אזור מסוכן
     </div>
     <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:14px 16px">
-      <button class="btn btn-outline btn-sm" onclick="cfConfirm('מחיקת חשבון','כל הנתונים יימחקו לצמיתות. בטוחים?').then(function(ok){if(ok)showToast('פנו לתמיכה','info')})" style="font-size:0.78rem;color:#EF4444;border-color:#FECACA">מחקו חשבון</button>
+      <button class="btn btn-outline btn-sm" onclick="deleteAccount()" style="font-size:0.78rem;color:#EF4444;border-color:#FECACA">מחקו חשבון</button>
     </div>
   </div>
 
@@ -4456,6 +4456,137 @@ function checkMicrosoftStatus() {
     showToast('שגיאה בחיבור Microsoft: ' + params.get('ms_error'), 'error');
     window.history.replaceState({}, '', '/dashboard.html');
   }
+}
+
+/* ===== Settings: Upgrade / Cancel / Delete ===== */
+var UPGRADE_PLANS = [
+  { key: 'personal', name: 'אישי', ram: 4, price: 79 },
+  { key: 'business', name: 'עסקי', ram: 8, price: 169 },
+  { key: 'pro', name: 'פרו', ram: 16, price: 349 },
+  { key: 'developer', name: 'מפתח', ram: 32, price: 599 },
+];
+
+function showUpgradeDialog() {
+  var currentPlan = instanceData ? instanceData.planKey : 'personal';
+  var currentIdx = UPGRADE_PLANS.findIndex(function(p) { return p.key === currentPlan; });
+
+  var html = '<div style="display:flex;flex-direction:column;gap:10px">';
+  UPGRADE_PLANS.forEach(function(plan, i) {
+    var isCurrent = plan.key === currentPlan;
+    var isUpgrade = i > currentIdx;
+    var border = isCurrent ? '#2563EB' : isUpgrade ? '#E5E7EB' : '#F3F4F6';
+    var bg = isCurrent ? '#EFF6FF' : '#fff';
+    var cursor = isUpgrade ? 'pointer' : 'default';
+    var opacity = (!isCurrent && !isUpgrade) ? '0.5' : '1';
+
+    html += '<div style="border:2px solid ' + border + ';border-radius:10px;padding:14px;background:' + bg + ';cursor:' + cursor + ';opacity:' + opacity + '"' +
+      (isUpgrade ? ' onclick="doUpgrade(\'' + plan.key + '\')"' : '') + '>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center">' +
+        '<div><strong>' + plan.name + '</strong> — ' + plan.ram + 'GB RAM</div>' +
+        '<div style="font-weight:600;color:#2563EB">₪' + plan.price + '/חודש</div>' +
+      '</div>' +
+      (isCurrent ? '<div style="font-size:0.78rem;color:#2563EB;margin-top:4px">התוכנית הנוכחית שלכם</div>' : '') +
+      (isUpgrade ? '<div style="font-size:0.78rem;color:#10B981;margin-top:4px">לחצו לשדרוג</div>' : '') +
+    '</div>';
+  });
+  html += '</div>';
+
+  document.getElementById('taskPopupTitle').textContent = 'שדרגו תוכנית';
+  document.getElementById('taskPopupBody').innerHTML = html;
+  document.getElementById('taskPopupFooter').innerHTML = '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
+  document.getElementById('taskPopupOverlay').classList.remove('hidden');
+}
+
+async function doUpgrade(targetPlan) {
+  closeTaskPopup();
+  showToast('משדרג תוכנית... השרת ייכבה לרגע', 'info');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/upgrade-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ targetPlan: targetPlan })
+    });
+    var d = await res.json();
+    if (d.success) {
+      showToast('שדרוג התחיל! השרת יחזור תוך 2-3 דקות.', 'success');
+      // Update local state
+      if (instanceData) instanceData.planKey = targetPlan;
+      var plan = UPGRADE_PLANS.find(function(p) { return p.key === targetPlan; });
+      if (plan) {
+        var el = document.getElementById('settingsPlan');
+        if (el) el.textContent = plan.name;
+        var priceEl = document.getElementById('settingsPlanPrice');
+        if (priceEl) priceEl.textContent = '₪' + plan.price + '/חודש';
+      }
+    } else {
+      showToast(d.message || 'שגיאה בשדרוג', 'error');
+    }
+  } catch (e) { showToast('שגיאת תקשורת', 'error'); }
+}
+
+async function cancelSubscription() {
+  cfConfirm('ביטול מנוי', 'בטוחים?\n\nהשרת ייעצר וכל הנתונים יישמרו למשך 30 יום.\nתוכלו לחדש בכל עת.').then(async function(ok) {
+    if (!ok) return;
+    showToast('מבטל מנוי...', 'info');
+    try {
+      var res = await fetch(API + '/hosting/instances/' + instanceId, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      var d = await res.json();
+      if (d.success) {
+        showToast('המנוי בוטל. השרת יופסק.', 'success');
+      } else {
+        showToast(d.message || 'שגיאה', 'error');
+      }
+    } catch (e) { showToast('שגיאת תקשורת', 'error'); }
+  });
+}
+
+async function deleteAccount() {
+  cfConfirm('מחיקת חשבון', 'כל הנתונים יימחקו לצמיתות — סוכנים, קבצים, מחקר, הגדרות.\n\nפעולה זו בלתי הפיכה.\n\nבטוחים?').then(async function(ok) {
+    if (!ok) return;
+    // Double confirm
+    cfConfirm('אישור סופי', 'האם אתם בטוחים לחלוטין?\nלא ניתן לשחזר את הנתונים לאחר מחיקה.').then(async function(ok2) {
+      if (!ok2) return;
+      showToast('מוחק חשבון...', 'info');
+      try {
+        var res = await fetch(API + '/hosting/instances/' + instanceId, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        var d = await res.json();
+        if (d.success) {
+          showToast('החשבון נמחק.', 'success');
+          localStorage.clear();
+          setTimeout(function() { window.location.href = '/'; }, 2000);
+        } else {
+          showToast(d.message || 'שגיאה', 'error');
+        }
+      } catch (e) { showToast('שגיאת תקשורת', 'error'); }
+    });
+  });
+}
+
+async function resetAgentConfig() {
+  if (!currentAgentType) { showToast('שגיאה — פתחו סוכן ספציפי', 'error'); return; }
+  cfConfirm('איפוס הגדרות', 'לאפס את הגדרות הסוכן לברירת מחדל?\nפרופיל עסקי ומחקר יישמרו.').then(async function(ok) {
+    if (!ok) return;
+    showToast('מאפס...', 'info');
+    try {
+      // Re-deploy agent templates from server
+      var res = await fetch(API + '/hosting/instances/' + instanceId + '/agents/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ agentType: currentAgentType, force: true })
+      });
+      await fetch(API + '/hosting/instances/' + instanceId + '/restart', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      showToast('הגדרות אופסו והשרת הופעל מחדש', 'success');
+    } catch (e) { showToast('שגיאה', 'error'); }
+  });
 }
 
 function restartAgent() {
