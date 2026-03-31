@@ -351,6 +351,7 @@ input{font-family:inherit}
 .aq-btn { font-size:0.78rem; padding:5px 12px; border-radius:6px; border:none; cursor:pointer; font-weight:500; }
 .aq-btn.approve { background:#10B981; color:#fff; }
 .aq-btn.approve:hover { background:#059669; }
+.aq-btn kbd { display:inline-block;background:rgba(255,255,255,0.25);border-radius:3px;padding:0 4px;font-size:0.75rem;font-family:inherit;margin-left:3px;font-weight:700; }
 .aq-btn.edit { background:#F3F4F6; color:#374151; }
 .aq-btn.edit:hover { background:#E5E7EB; }
 .aq-btn.reject { background:#FEE2E2; color:#991B1B; }
@@ -2197,14 +2198,17 @@ function renderApprovalQueue() {
 // Agent role → Hebrew display name
 var AGENT_NAMES = {
   mateh: 'מטה', sayer: 'סייר', meater: 'מאתר', maazin: 'מאזין',
-  menateach: 'מנתח', et: 'עט', yotzer: 'יוצר', shaliach: 'שליח', migdalor: 'מגדלור'
+  menateach: 'מנתח', et: 'עט', yotzer: 'יוצר', shaliach: 'שליח', migdalor: 'מגדלור',
+  personal: 'עוזר אישי', assistant: 'עוזר אישי', openclaw: 'OpenClaw'
 };
 
 // Output type → Hebrew label
 var OUTPUT_TYPE_LABELS = {
   daily_brief: 'Daily Brief', weekly_report: 'דוח תחרותי שבועי',
   content_post: 'פוסט תוכן', media_image: 'מדיה',
-  aeo_audit: 'ביקורת AEO', competitive_scan: 'סריקת מתחרים', content_idea: 'רעיון תוכן'
+  aeo_audit: 'ביקורת AEO', competitive_scan: 'סריקת מתחרים', content_idea: 'רעיון תוכן',
+  email_draft: 'טיוטת מייל', calendar_event: 'אירוע ביומן', task_summary: 'סיכום משימות',
+  morning_summary: 'סיכום בוקר', research_result: 'תוצאות מחקר', document_draft: 'טיוטת מסמך'
 };
 
 // Platform icons (SVG, sidebar style)
@@ -2630,16 +2634,16 @@ function renderTaskPopup(task) {
   var footerHtml = '';
   if (task.status === 'awaiting' || task.status === 'pending_review') {
     footerHtml = '<button class="aq-btn reject" onclick="apiArchiveOutput(\'' + task.id + '\');closeTaskPopup()">ארכיון</button>' +
-      '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()">דחו</button>' +
-      '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\')">תקנו</button>' +
-      '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()">→ אשרו</button>';
+      '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()"><kbd>ד</kbd> דחו</button>' +
+      '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\')"><kbd>ת</kbd> תקנו</button>' +
+      '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()"><kbd>א</kbd> אשרו</button>';
   } else if (task.status === 'approved') {
     var reportTypes = ['daily_brief', 'weekly_report', 'aeo_audit', 'competitive_scan'];
     var reportAgents = ['mateh', 'sayer', 'menateach', 'migdalor'];
     var isReport = reportTypes.indexOf(task.type) !== -1 || reportAgents.indexOf(task.agentRole || '') !== -1;
     footerHtml = '<button class="aq-btn reject" onclick="apiArchiveOutput(\'' + task.id + '\');closeTaskPopup()">ארכיון</button>' +
       '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>' +
-      (isReport ? '' : '<button class="aq-btn approve" onclick="apiPublishOutput(\'' + task.id + '\');closeTaskPopup()">→ פרסמו</button>');
+      (isReport ? '' : '<button class="aq-btn approve" onclick="apiPublishOutput(\'' + task.id + '\');closeTaskPopup()"><kbd>פ</kbd> פרסמו</button>');
   } else if (task.status === 'archived') {
     footerHtml = '<button class="aq-btn reject" onclick="apiDeleteOutput(\'' + task.id + '\');closeTaskPopup()">מחקו לצמיתות</button>' +
       '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
@@ -6046,6 +6050,73 @@ function showToast(msg, type) {
   clearTimeout(el._t);
   el._t = setTimeout(function() { el.classList.remove('show'); }, 3000);
 }
+
+// ── Keyboard Shortcuts for Approval Queue ──
+// When task popup is open:
+//   א (Aleph) or A = Approve / אשרו
+//   ת (Tav) or E   = Edit / תקנו
+//   פ (Pe) or P     = Publish / פרסמו
+//   ש (Shin) or S   = Send/שלחו (alias for Publish)
+//   ד (Dalet) or R  = Reject / דחו
+//   Escape          = Close popup
+var _currentPopupTaskId = null;
+var _currentPopupTaskStatus = null;
+
+// Patch openTaskPopup to track current task
+var _origOpenTaskPopup = (typeof openTaskPopup === 'function') ? openTaskPopup : null;
+window._hookTaskPopup = function(taskId, status) {
+  _currentPopupTaskId = taskId;
+  _currentPopupTaskStatus = status;
+};
+
+// Hook into renderTaskPopup to capture task state
+var _origRenderTaskPopup = window.renderTaskPopup;
+if (typeof renderTaskPopup === 'function') {
+  var _origRT = renderTaskPopup;
+  window.renderTaskPopup = function(task) {
+    _currentPopupTaskId = task.id;
+    _currentPopupTaskStatus = task.status === 'pending_review' ? 'awaiting' : task.status;
+    _origRT(task);
+  };
+}
+
+var _origCloseTaskPopup = (typeof closeTaskPopup === 'function') ? closeTaskPopup : null;
+if (_origCloseTaskPopup) {
+  var _origClose = closeTaskPopup;
+  window.closeTaskPopup = function() {
+    _currentPopupTaskId = null;
+    _currentPopupTaskStatus = null;
+    _origClose();
+  };
+}
+
+document.addEventListener('keydown', function(e) {
+  // Only when popup is open and no input/textarea focused
+  if (!_currentPopupTaskId) return;
+  var tag = (e.target || {}).tagName || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+  var key = e.key;
+  var taskId = _currentPopupTaskId;
+  var status = _currentPopupTaskStatus;
+
+  // Escape = close
+  if (key === 'Escape') { closeTaskPopup(); return; }
+
+  if (status === 'awaiting') {
+    // א or A = Approve
+    if (key === 'א' || key === 'a' || key === 'A') { e.preventDefault(); apiApproveOutput(taskId); closeTaskPopup(); return; }
+    // ת or E = Edit
+    if (key === 'ת' || key === 'e' || key === 'E') { e.preventDefault(); editTask(taskId); return; }
+    // ד or R = Reject
+    if (key === 'ד' || key === 'r' || key === 'R') { e.preventDefault(); apiRejectOutput(taskId); closeTaskPopup(); return; }
+  }
+
+  if (status === 'approved') {
+    // פ or P or ש or S = Publish
+    if (key === 'פ' || key === 'p' || key === 'P' || key === 'ש' || key === 's' || key === 'S') { e.preventDefault(); apiPublishOutput(taskId); closeTaskPopup(); return; }
+  }
+});
 </script>
 
 <!-- Styled Modal for prompts/confirms -->

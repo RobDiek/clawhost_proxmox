@@ -37,6 +37,7 @@ import {
     researchStage,
     addAgentToInstance,
     removeAgentFromInstance,
+    setupPersonalAgent,
     readFile,
     writeFile,
     listFiles,
@@ -111,6 +112,7 @@ app.delete('/account', deleteAccount)
 app.post('/instances/:id/setup/api-key', setupApiKey)
 app.post('/instances/:id/setup/telegram', setupTelegram)
 app.post('/instances/:id/setup/complete', completeOnboarding)
+app.post('/instances/:id/setup/personal-agent', setupPersonalAgent)
 app.post('/instances/:id/setup/agents', setupAgents)
 app.post('/instances/:id/setup/agents/analyze', analyzeAnswers)
 app.post('/instances/:id/setup/agents/research', runResearch)
