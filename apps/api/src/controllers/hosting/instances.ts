@@ -369,7 +369,7 @@ export const deleteInstance = async (c: Context<HonoEnv>) => {
         }
 
         if (instance.hetznerServerId) {
-            await provisioner.terminate(instanceId, instance.hetznerServerId)
+            await provisioner.terminate(instanceId, instance.hetznerServerId, instance.subdomainAgent || undefined, instance.subdomainFlows || undefined)
         }
 
         await db.update(instances)
@@ -427,7 +427,7 @@ export const deleteAccount = async (c: Context<HonoEnv>) => {
             // 3. Terminate Hetzner VPS + DNS
             if (inst.hetznerServerId && inst.status !== 'terminated') {
                 try {
-                    await provisioner.terminate(inst.id, inst.hetznerServerId)
+                    await provisioner.terminate(inst.id, inst.hetznerServerId, inst.subdomainAgent || undefined, inst.subdomainFlows || undefined)
                     console.log(`[deleteAccount] VPS terminated: ${inst.id}`)
                 } catch (e) {
                     console.error(`[deleteAccount] VPS terminate failed for ${inst.id}:`, e)

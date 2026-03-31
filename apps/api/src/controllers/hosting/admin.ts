@@ -77,7 +77,7 @@ export const adminTerminateInstance = async (c: Context<HonoEnv>) => {
         if (!instance) return fail(c, 'Instance not found.', 404)
 
         if (instance.hetznerServerId) {
-            await provisioner.terminate(instanceId, instance.hetznerServerId)
+            await provisioner.terminate(instanceId, instance.hetznerServerId, instance.subdomainAgent || undefined, instance.subdomainFlows || undefined)
         }
 
         await db.update(instances)

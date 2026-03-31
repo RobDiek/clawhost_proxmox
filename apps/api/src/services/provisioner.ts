@@ -111,22 +111,28 @@ const provisioner = {
         return false
     },
 
-    async terminate(instanceId: string, serverId: string): Promise<void> {
+    async terminate(instanceId: string, serverId: string, subdomainAgent?: string, subdomainFlows?: string): Promise<void> {
         const provider = getProvider('hetzner')
         await provider.deleteServer(serverId)
 
-        const subdomainAgent = `agent.${instanceId}.openclaw`
-        const subdomainFlows = `flows.${instanceId}.openclaw`
+        // Clean up DNS — use actual subdomains from DB, fallback to pattern
+        const agentHost = subdomainAgent
+            ? subdomainAgent.replace('.flowmatic.co.il', '')
+            : `${instanceId}.clawflow`
+        const flowsHost = subdomainFlows
+            ? subdomainFlows.replace('.flowmatic.co.il', '')
+            : `${instanceId}-flows.clawflow`
 
-        const [agentRecord, flowsRecord] = await Promise.all([
-            cloudflare.findDNSRecord(subdomainAgent),
-            cloudflare.findDNSRecord(subdomainFlows),
+        const records = await Promise.all([
+            cloudflare.findDNSRecord(agentHost).catch(() => null),
+            cloudflare.findDNSRecord(flowsHost).catch(() => null),
         ])
 
-        await Promise.all([
-            agentRecord ? cloudflare.deleteDNSRecord(agentRecord.id) : Promise.resolve(),
-            flowsRecord ? cloudflare.deleteDNSRecord(flowsRecord.id) : Promise.resolve(),
-        ])
+        await Promise.all(
+            records.filter(Boolean).map(r => cloudflare.deleteDNSRecord(r!.id))
+        )
+
+        console.log(`[provisioner] Terminated ${instanceId}: server ${serverId} deleted, DNS cleaned (${agentHost}, ${flowsHost})`)
     },
 
     async suspend(serverId: string): Promise<void> {
