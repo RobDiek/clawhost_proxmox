@@ -10,6 +10,7 @@ interface ProvisionParams {
     planKey: string
     automationTool: 'n8n' | 'activepieces'
     hasOllama: boolean
+    hasBackup: boolean
     telegramChatId?: string
     subdomainName?: string
 }
@@ -48,6 +49,7 @@ const provisioner = {
             AUTOMATION_PASSWORD: automationPassword,
             ROOT_PASSWORD: rootPassword,
             HAS_OLLAMA: params.hasOllama,
+            HAS_BACKUP: params.hasBackup,
         })
 
         if (params.telegramChatId) {

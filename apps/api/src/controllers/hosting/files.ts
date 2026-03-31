@@ -383,7 +383,7 @@ export const saveIntegration = async (c: Context) => {
             brave: writeConfig(`${VPS_HOME}/skills-config`, 'brave-search.json', { braveApiKey: key }),
             brightdata: writeConfig(`${VPS_HOME}/skills-config`, 'bright-data.json', { apiKey: key }),
             replicate: writeConfig(`${VPS_HOME}/skills-config`, 'replicate.json', { apiToken: key }),
-            ollama: `cd /home/openclaw && openclaw provider add ollama --model '${safeKey}' 2>/dev/null || (mkdir -p ${VPS_HOME}/providers && echo '${Buffer.from(JSON.stringify({ provider: 'ollama', model: key })).toString('base64')}' | base64 -d > ${VPS_HOME}/providers/ollama.json)`,
+            ollama: `systemctl start ollama 2>/dev/null; ollama pull '${safeKey}' 2>/dev/null & cd /home/openclaw && openclaw provider add ollama --model '${safeKey}' 2>/dev/null || (mkdir -p ${VPS_HOME}/providers && echo '${Buffer.from(JSON.stringify({ provider: 'ollama', model: key })).toString('base64')}' | base64 -d > ${VPS_HOME}/providers/ollama.json)`,
             resend: writeConfig(`${VPS_HOME}/skills-config`, 'resend.json', { apiKey: key }),
             wordpress: writeConfig(`${VPS_HOME}/skills-config`, 'wordpress.json', JSON.parse(key).constructor === Object ? JSON.parse(key) : { data: key }),
             'newsletter-recipients': writeConfig(`${VPS_HOME}/skills-config`, 'newsletter-recipients.json', JSON.parse(key).constructor === Object ? JSON.parse(key) : { data: key }),

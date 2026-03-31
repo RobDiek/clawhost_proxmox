@@ -219,7 +219,25 @@ runcmd:
     {{#HAS_OLLAMA}}
     # ── Ollama ──
     - curl -fsSL https://ollama.com/install.sh | sh
-    - sleep 10 && ollama pull llama3.1:8b
+    - systemctl enable ollama
+    - systemctl start ollama
+    - |
+        for i in $(seq 1 12); do
+          ollama list 2>/dev/null && break
+          sleep 5
+        done
+        ollama pull llama3.1:8b
+    # Configure OpenClaw to use local Ollama
+    - |
+        cd /home/openclaw/.openclaw
+        node -e "
+          const fs = require('fs');
+          const cfg = JSON.parse(fs.readFileSync('openclaw.json','utf-8'));
+          if (!cfg.providers) cfg.providers = {};
+          cfg.providers.ollama = { baseUrl: 'http://localhost:11434', enabled: true };
+          fs.writeFileSync('openclaw.json', JSON.stringify(cfg, null, 2));
+        " 2>/dev/null || true
+        chown openclaw:openclaw openclaw.json
     {{/HAS_OLLAMA}}
 
     # ── Nginx ──
@@ -311,6 +329,39 @@ runcmd:
             -m devops@flowmatic.co.il && break
           sleep 15
         done
+
+    {{#HAS_BACKUP}}
+    # ── Daily Backup ──
+    - mkdir -p /opt/openclaw-backups
+    - |
+        cat > /opt/openclaw-backup.sh << 'BKEOF'
+        #!/bin/bash
+        BACKUP_DIR="/opt/openclaw-backups"
+        TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+        BACKUP_FILE="$BACKUP_DIR/backup-$TIMESTAMP.tar.gz"
+        INSTANCE_ID="{{INSTANCE_ID}}"
+        API_URL="https://api.openclaw.flowmatic.co.il"
+
+        # Create backup of openclaw data + automation configs
+        tar -czf "$BACKUP_FILE" \
+          -C /home/openclaw .openclaw \
+          -C /opt/openclaw data 2>/dev/null
+
+        # Keep only last 7 days
+        find "$BACKUP_DIR" -name "backup-*.tar.gz" -mtime +7 -delete
+
+        # Report to API
+        BACKUP_SIZE=$(stat -f%z "$BACKUP_FILE" 2>/dev/null || stat -c%s "$BACKUP_FILE" 2>/dev/null || echo "0")
+        BACKUP_COUNT=$(ls -1 "$BACKUP_DIR"/backup-*.tar.gz 2>/dev/null | wc -l)
+        curl -sf -X POST "$API_URL/hosting/instances/$INSTANCE_ID/backup-report" \
+          -H "Content-Type: application/json" \
+          -d "{\"timestamp\":\"$TIMESTAMP\",\"size\":$BACKUP_SIZE,\"count\":$BACKUP_COUNT}" > /dev/null || true
+        BKEOF
+    - chmod +x /opt/openclaw-backup.sh
+    - echo "0 3 * * * root /opt/openclaw-backup.sh >> /var/log/openclaw-backup.log 2>&1" > /etc/cron.d/openclaw-backup
+    # Run first backup immediately
+    - /opt/openclaw-backup.sh &
+    {{/HAS_BACKUP}}
 
     # ── Health check cron ──
     - echo "*/5 * * * * root curl -s https://api.openclaw.flowmatic.co.il/hosting/instances/{{INSTANCE_ID}}/health > /dev/null" > /etc/cron.d/clawflow-health

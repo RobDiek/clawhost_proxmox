@@ -9,6 +9,7 @@ interface CloudInitVars {
     AUTOMATION_PASSWORD: string
     ROOT_PASSWORD: string
     HAS_OLLAMA: boolean
+    HAS_BACKUP: boolean
 }
 
 const AUTOMATION_PORTS: Record<string, number> = {
@@ -46,6 +47,14 @@ export function renderCloudInit(vars: CloudInitVars): string {
         template = template.replace(/\{\{\/HAS_OLLAMA\}\}/g, '')
     } else {
         template = template.replace(/\{\{#HAS_OLLAMA\}\}[\s\S]*?\{\{\/HAS_OLLAMA\}\}/g, '')
+    }
+
+    // Conditional: Backup
+    if (vars.HAS_BACKUP) {
+        template = template.replace(/\{\{#HAS_BACKUP\}\}/g, '')
+        template = template.replace(/\{\{\/HAS_BACKUP\}\}/g, '')
+    } else {
+        template = template.replace(/\{\{#HAS_BACKUP\}\}[\s\S]*?\{\{\/HAS_BACKUP\}\}/g, '')
     }
 
     return template

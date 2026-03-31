@@ -938,20 +938,23 @@ input{font-family:inherit}
           <button class="btn btn-primary btn-sm" onclick="saveIntegration('gemini')">שמרו</button>
         </div>
       </div>
-      <div class="int-card">
+      <div class="int-card" id="ollama-card">
         <div class="int-card-header">
           <div class="int-icon" style="background:#111"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z" fill="white"/><path d="M8.5 8h3v8h-3V8zm4 0h3v8h-3V8z" fill="#111"/></svg></div>
-          <div><strong>Ollama (מקומי)</strong><div class="int-status">לא מחובר</div></div>
+          <div><strong>Ollama (מקומי)</strong><div class="int-status" id="ollama-status">בודק...</div></div>
         </div>
         <div class="int-card-body hidden" id="int-ollama-body">
-          <p style="font-size:.8rem;color:#6B7280;margin-bottom:8px">Ollama מותקן אוטומטית על ה-VPS שלכם. בחרו מודל:</p>
+          <div id="ollama-models-info" style="font-size:.8rem;color:#6B7280;margin-bottom:8px">Ollama מותקן אוטומטית על ה-VPS שלכם.</div>
+          <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">הוסיפו מודל:</div>
           <select id="int-ollama-model" class="int-input" style="padding:8px">
-            <option value="llama3.1:8b">Llama 3.1 (8B)</option>
-            <option value="mistral:7b">Mistral (7B)</option>
-            <option value="codellama:7b">CodeLlama (7B)</option>
-            <option value="gemma2:9b">Gemma 2 (9B)</option>
+            <option value="llama3.1:8b">Llama 3.1 (8B) — ברירת מחדל</option>
+            <option value="mistral:7b">Mistral (7B) — מהיר</option>
+            <option value="codellama:7b">CodeLlama (7B) — קוד</option>
+            <option value="gemma2:9b">Gemma 2 (9B) — Google</option>
+            <option value="llama3.1:70b">Llama 3.1 (70B) — חזק (32GB+ RAM)</option>
           </select>
-          <button class="btn btn-primary btn-sm" onclick="saveIntegration('ollama')">התקינו</button>
+          <button class="btn btn-primary btn-sm" onclick="pullOllamaModel()">התקינו מודל</button>
+          <button class="btn btn-outline btn-sm" onclick="checkOllamaStatus()">&#8635; בדקו סטטוס</button>
         </div>
       </div>
     </div>
@@ -1079,6 +1082,20 @@ input{font-family:inherit}
           <button class="btn btn-primary btn-sm" onclick="saveIntegration('brightdata')">שמרו</button>
         </div>
       </div>
+
+      <!-- Replicate (Image Generation) -->
+      <div class="int-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#EDE9FE"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#7C3AED" stroke-width="1.5"/><path d="M8 12l3 3 5-6" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div><strong>Replicate</strong><div class="int-status">לא מחובר</div></div>
+        </div>
+        <div class="int-card-body hidden" id="int-replicate-body">
+          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">יצירת תמונות ווידאו — FLUX, Stable Diffusion ועוד</div>
+          <input type="password" id="int-replicate-key" placeholder="r8_..." dir="ltr" class="int-input"/>
+          <button class="btn btn-primary btn-sm" onclick="saveIntegration('replicate')">שמרו</button>
+          <a href="https://replicate.com/account/api-tokens" target="_blank" class="int-help-link">קבלו API Token &#8599;</a>
+        </div>
+      </div>
     </div>
 
     <!-- Publishing Channels -->
@@ -1149,15 +1166,20 @@ input{font-family:inherit}
           <div><strong>ניוזלטר</strong><div class="int-status" id="pub-newsletter-status">לא מחובר</div></div>
         </div>
         <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">ניוזלטר ואימיילים שיווקיים — דרך Resend</div>
-        <div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:8px">API key מוגדר בקטגוריית ערוצי תקשורת למעלה</div>
-        <div style="margin-top:8px">
-          <div style="font-size:0.78rem;font-weight:600;color:#6B7280;margin-bottom:4px">רשימת נמענים</div>
-          <textarea id="pub-newsletter-recipients" placeholder="אימייל אחד בכל שורה&#10;example1@gmail.com&#10;example2@gmail.com" style="width:100%;min-height:60px;padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.78rem;resize:vertical;font-family:monospace" dir="ltr"></textarea>
-          <div style="display:flex;gap:6px;margin-top:6px;align-items:center">
-            <button class="btn btn-primary btn-sm" onclick="saveNewsletterRecipients()">→ שמרו רשימה</button>
-            <span id="pub-newsletter-count" style="font-size:0.72rem;color:#9CA3AF"></span>
+        <div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:6px">API key מוגדר בקטגוריית ערוצי תקשורת למעלה</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span id="pub-newsletter-count" style="font-size:0.78rem;color:#6B7280"></span>
+          <button class="btn btn-outline btn-sm" style="font-size:0.75rem" onclick="toggleNewsletterSettings()">⚙️ ניהול רשימה</button>
+        </div>
+        <!-- Collapsible settings panel -->
+        <div id="newsletter-settings" style="display:none;margin-top:10px;padding:10px;background:#F9FAFB;border-radius:8px;border:1px solid #E5E7EB">
+          <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:6px">רשימת נמענים</div>
+          <textarea id="pub-newsletter-recipients" placeholder="אימייל אחד בכל שורה&#10;example1@gmail.com&#10;example2@gmail.com" style="width:100%;min-height:80px;padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.78rem;resize:vertical;font-family:monospace" dir="ltr"></textarea>
+          <div style="display:flex;gap:6px;margin-top:8px;justify-content:space-between;align-items:center">
+            <button class="btn btn-primary btn-sm" onclick="saveNewsletterRecipients()">שמרו רשימה</button>
+            <button class="btn btn-outline btn-sm" style="font-size:0.72rem" onclick="toggleNewsletterSettings()">סגרו</button>
           </div>
-          <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px">הרשימה נשמרת על ה-VPS ונגישה לסוכנים. ניתן לעדכן בכל עת.</div>
+          <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px">הרשימה נשמרת על ה-VPS ונגישה לסוכנים.</div>
         </div>
       </div>
 
@@ -1278,6 +1300,18 @@ input{font-family:inherit}
         <div id="ram-alert-fill" style="height:100%;border-radius:4px;transition:width 0.5s"></div>
       </div>
       <div id="ram-alert-action"></div>
+    </div>
+
+    <!-- Backups -->
+    <div class="section-title">גיבויים</div>
+    <div id="backup-section">
+      <div id="backup-list" style="margin-bottom:12px">
+        <div style="color:#9CA3AF;font-size:0.85rem;padding:16px;text-align:center">טוען...</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:20px">
+        <button class="btn btn-primary btn-sm" onclick="createBackupNow()">גבו עכשיו</button>
+        <button class="btn btn-outline btn-sm" onclick="loadBackups()">&#8635; רעננו</button>
+      </div>
     </div>
 
     <!-- Terminal -->
@@ -1843,6 +1877,14 @@ function getNotifications() {
   }
   if (!hasTelegram && dismissed.indexOf('rec-telegram') === -1) {
     notifs.push({ id: 'rec-telegram', type: 'warning', icon: '📱', title: 'Telegram לא מחובר', desc: 'בלי Telegram לא תקבלו Daily Brief והתראות', action: "switchTab('integrations')", actionLabel: 'חברו' });
+  }
+  // Brave Search recommendation for MATEH users
+  var components = JSON.parse(localStorage.getItem('cf_instance_components') || '[]');
+  var hasMATEH = components.indexOf('mt') !== -1;
+  var braveKeyEl = document.getElementById('int-brave-key');
+  var hasBraveKey = braveKeyEl && braveKeyEl.value && braveKeyEl.value.length > 5;
+  if (hasMATEH && !hasBraveKey && dismissed.indexOf('rec-brave') === -1) {
+    notifs.push({ id: 'rec-brave', type: 'info', icon: '🔍', title: 'חברו Brave Search API', desc: 'הסוכנים שלכם חוקרים מתחרים ומילות מפתח. בלי Brave הם מוגבלים ל-scraping בסיסי שעלול להיחסם. Brave נותן 2,000 חיפושים/חודש חינם עם תוצאות מובנות ומהירות.', action: "switchTab('integrations')", actionLabel: 'חברו חינם' });
   }
 
   // System notifications from localStorage
@@ -2577,6 +2619,53 @@ function toggleTaskExpand(el) {
   el.classList.toggle('expanded');
 }
 
+/* ===== Ollama Status & Model Management ===== */
+async function checkOllamaStatus() {
+  var components = JSON.parse(localStorage.getItem('cf_instance_components') || '[]');
+  var statusEl = document.getElementById('ollama-status');
+  var infoEl = document.getElementById('ollama-models-info');
+  var card = document.getElementById('ollama-card');
+  if (!card) return;
+  if (components.indexOf('ol') === -1) {
+    statusEl.textContent = 'לא נבחר';
+    statusEl.style.color = '#9CA3AF';
+    return;
+  }
+  var instanceId = localStorage.getItem('cf_instance_id');
+  if (!instanceId) return;
+  statusEl.textContent = 'בודק...';
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/stats', { headers: { 'Authorization': 'Bearer ' + token } });
+    var data = await res.json();
+    if (data.success && data.data.docker && data.data.docker.toLowerCase().includes('ollama')) {
+      statusEl.textContent = 'פעיל ✓';
+      statusEl.style.color = '#10B981';
+    } else if (data.success) {
+      statusEl.textContent = 'מותקן — בודק שירות';
+      statusEl.style.color = '#F59E0B';
+    } else {
+      statusEl.textContent = 'לא זמין';
+      statusEl.style.color = '#EF4444';
+    }
+  } catch (e) {
+    statusEl.textContent = 'שגיאה בבדיקה';
+    statusEl.style.color = '#EF4444';
+  }
+}
+
+async function pullOllamaModel() {
+  var model = document.getElementById('int-ollama-model').value;
+  if (!model) return;
+  showToast('מתקין ' + model + '...', 'info');
+  // Save via existing integration endpoint — it will run ollama pull on VPS
+  saveIntegration('ollama');
+}
+
+function toggleNewsletterSettings() {
+  var el = document.getElementById('newsletter-settings');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
 function saveNewsletterRecipients() {
   var textarea = document.getElementById('pub-newsletter-recipients');
   var emails = textarea.value.trim().split('\n').map(function(e) { return e.trim(); }).filter(function(e) { return e && e.includes('@'); });
@@ -3124,6 +3213,8 @@ function showAddAgentDialog() {
 }
 
 function renderIntegrations() {
+  // Check Ollama status
+  checkOllamaStatus();
   // Update Anthropic status
   var hasAnthropic = (instanceData && instanceData.hasAnthropicKey) || localStorage.getItem('cf_api_key_saved');
   if (hasAnthropic) {
@@ -3319,7 +3410,7 @@ function switchTab(tabId) {
   if (tabId === 'chat') loadChatTab();
   if (tabId === 'settings') renderSettingsPage();
   if (tabId === 'files') fmNavigate(fmCurrentDir || '');
-  if (tabId === 'server') { loadStats(); if (termFit && term) { setTimeout(function(){ termFit.fit(); }, 100); } }
+  if (tabId === 'server') { loadStats(); loadBackups(); if (termFit && term) { setTimeout(function(){ termFit.fit(); }, 100); } }
 }
 
 function switchDevTab(subTab) {
@@ -5088,6 +5179,63 @@ function removeRamNotification() {
     localStorage.setItem('cf_notifications', JSON.stringify(filtered));
     renderNotifications();
   }
+}
+
+/* ===== Backups ===== */
+async function loadBackups() {
+  var instanceId = localStorage.getItem('cf_instance_id');
+  if (!instanceId) return;
+  var el = document.getElementById('backup-list');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/backups', { headers: { 'Authorization': 'Bearer ' + token } });
+    var data = await res.json();
+    if (!data.success || !data.data || !data.data.backups.length) {
+      el.innerHTML = '<div style="color:#9CA3AF;font-size:0.85rem;padding:16px;text-align:center;background:#F9FAFB;border-radius:8px;border:1px solid #E5E7EB">אין גיבויים עדיין. הגיבוי הראשון ייווצר אוטומטית ב-03:00.</div>';
+      return;
+    }
+    el.innerHTML = '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:6px">היסטוריה (7 ימים אחרונים)</div>' +
+      data.data.backups.map(function(b) {
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:4px;font-size:0.82rem">' +
+          '<div>' +
+            '<span style="font-weight:600">' + b.date + '</span>' +
+            '<span style="color:#9CA3AF;margin-right:8px">' + b.sizeMb + ' MB</span>' +
+          '</div>' +
+          '<button class="btn btn-outline btn-sm" style="font-size:0.72rem;padding:4px 10px" onclick="restoreBackup(\'' + b.name + '\')">שחזרו</button>' +
+        '</div>';
+      }).join('');
+  } catch (e) {
+    el.innerHTML = '<div style="color:#EF4444;font-size:0.85rem;padding:16px;text-align:center">שגיאה בטעינת גיבויים</div>';
+  }
+}
+
+async function createBackupNow() {
+  var instanceId = localStorage.getItem('cf_instance_id');
+  if (!instanceId) return;
+  showToast('יוצר גיבוי...', 'info');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/backups/create', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
+    var data = await res.json();
+    if (data.success) {
+      showToast('הגיבוי ייווצר תוך דקה');
+      setTimeout(loadBackups, 60000);
+    } else { showToast(data.message || 'שגיאה', 'error'); }
+  } catch (e) { showToast('שגיאה ביצירת גיבוי', 'error'); }
+}
+
+async function restoreBackup(name) {
+  if (!confirm('לשחזר מגיבוי ' + name + '?\nהשרת ייעצר לרגע ויחזור.')) return;
+  var instanceId = localStorage.getItem('cf_instance_id');
+  showToast('משחזר...', 'info');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/backups/restore', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ backupName: name })
+    });
+    var data = await res.json();
+    if (data.success) { showToast('שוחזר בהצלחה! השרת מופעל מחדש.'); }
+    else { showToast(data.message || 'שגיאה', 'error'); }
+  } catch (e) { showToast('שגיאה בשחזור', 'error'); }
 }
 
 async function loadLogs(service) {

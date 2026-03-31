@@ -56,7 +56,11 @@ import {
     editOutput,
     publishOutput,
     archiveOutput,
-    deleteOutput
+    deleteOutput,
+    listBackups,
+    createBackup,
+    restoreBackup,
+    backupReport
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -108,6 +112,12 @@ app.post('/instances/:id/integrations/save', saveIntegration)
 // ── Server ──
 app.get('/instances/:id/stats', serverStats)
 app.get('/instances/:id/logs', serverLogs)
+
+// ── Backups ──
+app.get('/instances/:id/backups', listBackups)
+app.post('/instances/:id/backups/create', createBackup)
+app.post('/instances/:id/backups/restore', restoreBackup)
+app.post('/instances/:id/backup-report', backupReport)
 
 // ── Google Workspace OAuth ──
 app.get('/integrations/google/auth', googleAuth)
