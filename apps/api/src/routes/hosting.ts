@@ -49,6 +49,10 @@ import {
     metaCallback,
     metaDisconnect,
     metaStatus,
+    microsoftAuth,
+    microsoftCallback,
+    microsoftDisconnect,
+    microsoftStatus,
     getOutputs,
     getOutput,
     ingestOutput,
@@ -137,6 +141,12 @@ app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
 app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)
 app.patch('/instances/:id/outputs/:outputId/archive', archiveOutput)
 app.delete('/instances/:id/outputs/:outputId', deleteOutput)
+
+// ── Microsoft 365 OAuth ──
+app.get('/integrations/microsoft/auth', microsoftAuth)
+app.get('/integrations/microsoft/callback', microsoftCallback)
+app.post('/integrations/microsoft/disconnect', microsoftDisconnect)
+app.get('/integrations/microsoft/status', microsoftStatus)
 
 // ── Meta (Facebook/Instagram) OAuth ──
 app.post('/instances/:id/integrations/meta/save-credentials', metaSaveCredentials)

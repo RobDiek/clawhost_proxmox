@@ -328,6 +328,12 @@ export const getMyInstances = async (c: Context) => {
                 hasInstagram: !!(i.metaTokens as any)?.instagramAccountId,
                 hasAdAccount: !!(i.metaTokens as any)?.adAccountId,
             } : null,
+            microsoftTokens: i.microsoftTokens ? {
+                connected: true,
+                email: (i.microsoftTokens as any)?.email,
+                displayName: (i.microsoftTokens as any)?.displayName,
+                scopes: (i.microsoftTokens as any)?.scopes || [],
+            } : null,
             createdAt: i.createdAt,
         })), 'Instances found.')
     } catch (err) {

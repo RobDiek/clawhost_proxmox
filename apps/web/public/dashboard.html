@@ -1039,13 +1039,34 @@ input{font-family:inherit}
         </div>
       </div>
 
-      <!-- Microsoft (coming soon) -->
-      <div class="int-card">
+      <!-- Microsoft 365 -->
+      <div class="int-card" id="microsoft-card" style="grid-column:span 2">
         <div class="int-card-header">
           <div class="int-icon" style="background:#E3F2FD"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="13" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="13" width="10" height="10" fill="#00A4EF"/><rect x="13" y="13" width="10" height="10" fill="#FFB900"/></svg></div>
-          <div><strong>Microsoft 365</strong><div class="int-status soon">בקרוב</div></div>
+          <div><strong>Microsoft 365</strong><div class="int-status" id="microsoft-status">לא מחובר</div></div>
         </div>
-        <div style="font-size:0.78rem;color:#6B7280;margin:4px 0">Outlook, Calendar, Teams — בפיתוח</div>
+        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">Outlook Mail, Calendar, OneDrive, Tasks</div>
+        <!-- Scope checkboxes -->
+        <div id="ms-scopes-section">
+          <div style="font-size:0.78rem;font-weight:600;color:#374151;margin:8px 0 4px">בחרו הרשאות:</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+            <label class="chip-label"><input type="checkbox" name="ms-scope" value="mail" checked/><span class="chip">Outlook Mail</span></label>
+            <label class="chip-label"><input type="checkbox" name="ms-scope" value="calendar" checked/><span class="chip">Calendar</span></label>
+            <label class="chip-label"><input type="checkbox" name="ms-scope" value="files"/><span class="chip">OneDrive</span></label>
+            <label class="chip-label"><input type="checkbox" name="ms-scope" value="tasks"/><span class="chip">Tasks</span></label>
+            <label class="chip-label"><input type="checkbox" name="ms-scope" value="contacts"/><span class="chip">Contacts</span></label>
+            <label class="chip-label"><input type="checkbox" name="ms-scope" value="teams"/><span class="chip">Teams Chat</span></label>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="connectMicrosoft()">חברו Microsoft 365</button>
+        </div>
+        <!-- Connected state (hidden by default) -->
+        <div id="ms-connected-section" style="display:none">
+          <div style="font-size:0.85rem;color:#10B981;margin-bottom:6px">&#10003; מחובר: <span id="ms-email"></span></div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-outline btn-sm" onclick="connectMicrosoft()" style="font-size:0.78rem">עדכנו הרשאות</button>
+            <button class="btn btn-outline btn-sm" onclick="disconnectMicrosoft()" style="color:#EF4444;border-color:#FECACA;font-size:0.78rem">נתקו</button>
+          </div>
+        </div>
       </div>
 
       <!-- Notion (coming soon) -->
@@ -3228,6 +3249,8 @@ function showAddAgentDialog() {
 function renderIntegrations() {
   // Check Ollama status
   checkOllamaStatus();
+  // Check Microsoft status
+  checkMicrosoftStatus();
   // Update Anthropic status
   var hasAnthropic = (instanceData && instanceData.hasAnthropicKey) || localStorage.getItem('cf_api_key_saved');
   if (hasAnthropic) {
@@ -4379,6 +4402,59 @@ function checkGoogleStatus() {
   if (params.get('google_error')) {
     showToast('שגיאה בחיבור Google: ' + params.get('google_error'), 'error');
     window.history.replaceState({}, '', '/dashboard');
+  }
+}
+
+/* ===== Microsoft 365 ===== */
+function connectMicrosoft() {
+  var scopes = Array.from(document.querySelectorAll('input[name="ms-scope"]:checked')).map(function(el) { return el.value; });
+  if (scopes.length === 0) { showToast('בחרו לפחות שירות אחד', 'error'); return; }
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+  window.location.href = API + '/hosting/integrations/microsoft/auth?instanceId=' + iid + '&scopes=' + scopes.join(',');
+}
+
+async function disconnectMicrosoft() {
+  if (!confirm('לנתק את חשבון Microsoft 365?')) return;
+  var iid = localStorage.getItem('cf_instance_id');
+  try {
+    await fetch(API + '/hosting/integrations/microsoft/disconnect?instanceId=' + iid, {
+      method: 'POST', headers: { 'Authorization': 'Bearer ' + token }
+    });
+    showToast('Microsoft 365 נותק', 'success');
+    document.getElementById('ms-scopes-section').style.display = '';
+    document.getElementById('ms-connected-section').style.display = 'none';
+    document.getElementById('microsoft-status').textContent = 'לא מחובר';
+    document.getElementById('microsoft-status').className = 'int-status';
+    document.getElementById('microsoft-card').classList.remove('connected-card');
+  } catch (e) { showToast('שגיאה', 'error'); }
+}
+
+function checkMicrosoftStatus() {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) return;
+  fetch(API + '/hosting/integrations/microsoft/status?instanceId=' + iid, {
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.success && d.data && d.data.connected) {
+      document.getElementById('ms-scopes-section').style.display = 'none';
+      document.getElementById('ms-connected-section').style.display = '';
+      document.getElementById('ms-email').textContent = d.data.email || d.data.displayName || '';
+      document.getElementById('microsoft-status').innerHTML = '<span class="int-status-dot"></span>מחובר';
+      document.getElementById('microsoft-status').className = 'int-status connected';
+      document.getElementById('microsoft-card').classList.add('connected-card');
+    }
+  }).catch(function() {});
+
+  // Check URL params for OAuth redirect
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('ms_connected')) {
+    showToast('Microsoft 365 חובר בהצלחה!', 'success');
+    window.history.replaceState({}, '', '/dashboard.html');
+  }
+  if (params.get('ms_error')) {
+    showToast('שגיאה בחיבור Microsoft: ' + params.get('ms_error'), 'error');
+    window.history.replaceState({}, '', '/dashboard.html');
   }
 }
 
