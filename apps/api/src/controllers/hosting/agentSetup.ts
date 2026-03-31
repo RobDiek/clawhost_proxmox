@@ -8,7 +8,9 @@ import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
-const TEMPLATES_DIR = resolve(process.cwd(), '../../templates/mateh-system')
+const TEMPLATES_BASE = resolve(process.cwd(), '../../templates')
+const TEMPLATES_DIR = resolve(TEMPLATES_BASE, 'mateh-system') // default for backward compat
+const PERSONAL_TEMPLATES_DIR = resolve(TEMPLATES_BASE, 'personal-system')
 
 // Get API key for an instance: DB first, then env fallback
 async function getApiKeyForInstance(instanceId: string): Promise<string> {
@@ -232,17 +234,30 @@ function generateFallback(answers: OnboardingAnswers): { userMd: string; brandMd
 }
 
 // ── Deploy all files to VPS ──
-async function deployAgentSystem(ip: string, userMd: string, brandMd: string, brandName: string, gatewayToken: string, subdomain: string, password?: string): Promise<void> {
+async function deployAgentSystem(ip: string, userMd: string, brandMd: string, brandName: string, gatewayToken: string, subdomain: string, password?: string, agentType: 'mt' | 'oc' | 'bare' = 'mt'): Promise<void> {
     const baseDir = '/home/openclaw/.openclaw'
+    const templatesDir = agentType === 'oc' ? PERSONAL_TEMPLATES_DIR : TEMPLATES_DIR
 
     // Create directory structure
-    await sshExec(ip, `mkdir -p ${baseDir}/{workspace/brands/${brandName},workspace/memory,agents/{sayer,meater,maazin,menateach,et,yotzer,shaliach,migdalor}/output}`, password)
+    if (agentType === 'mt') {
+        await sshExec(ip, `mkdir -p ${baseDir}/{workspace/brands/${brandName},workspace/memory,agents/{sayer,meater,maazin,menateach,et,yotzer,shaliach,migdalor}/output}`, password)
+    } else {
+        await sshExec(ip, `mkdir -p ${baseDir}/{workspace/memory}`, password)
+    }
 
-    // Deploy workspace files
+    // Deploy workspace files from the correct template
     const workspaceFiles = ['SOUL.md', 'AGENTS.md', 'HEARTBEAT.md']
     for (const f of workspaceFiles) {
-        const content = readFileSync(join(TEMPLATES_DIR, 'workspace', f), 'utf-8')
-        await sshWriteFile(ip, `${baseDir}/workspace/${f}`, content, password)
+        try {
+            const content = readFileSync(join(templatesDir, 'workspace', f), 'utf-8')
+            await sshWriteFile(ip, `${baseDir}/workspace/${f}`, content, password)
+        } catch {
+            // File might not exist in personal template — use mateh as fallback
+            try {
+                const content = readFileSync(join(TEMPLATES_DIR, 'workspace', f), 'utf-8')
+                await sshWriteFile(ip, `${baseDir}/workspace/${f}`, content, password)
+            } catch { /* skip */ }
+        }
     }
 
     // Deploy MEMORY.md
@@ -253,15 +268,17 @@ async function deployAgentSystem(ip: string, userMd: string, brandMd: string, br
     await sshWriteFile(ip, `${baseDir}/workspace/USER.md`, userMd, password)
     await sshWriteFile(ip, `${baseDir}/workspace/brands/${brandName}/BRAND.md`, brandMd, password)
 
-    // Deploy agent SOUL.md files
-    const agents = ['sayer', 'meater', 'maazin', 'menateach', 'et', 'yotzer', 'shaliach', 'migdalor']
-    for (const agent of agents) {
-        const soulPath = join(TEMPLATES_DIR, 'agents', agent, 'SOUL.md')
-        try {
-            const content = readFileSync(soulPath, 'utf-8')
-            await sshWriteFile(ip, `${baseDir}/agents/${agent}/SOUL.md`, content, password)
-        } catch {
-            console.error(`Missing template: ${soulPath}`)
+    // Deploy agent SOUL.md files (only for MATEH — Personal has no sub-agents)
+    if (agentType === 'mt') {
+        const agents = ['sayer', 'meater', 'maazin', 'menateach', 'et', 'yotzer', 'shaliach', 'migdalor']
+        for (const agent of agents) {
+            const soulPath = join(TEMPLATES_DIR, 'agents', agent, 'SOUL.md')
+            try {
+                const content = readFileSync(soulPath, 'utf-8')
+                await sshWriteFile(ip, `${baseDir}/agents/${agent}/SOUL.md`, content, password)
+            } catch {
+                console.error(`Missing template: ${soulPath}`)
+            }
         }
     }
 
@@ -352,7 +369,11 @@ EOFPAIR
     await sshExec(ip, 'systemctl restart openclaw-gateway', password)
     await new Promise(r => setTimeout(r, 4000))
 
-    // Register sub-agents with correct models per role
+    // Register sub-agents with correct models per role (MATEH only)
+    if (agentType !== 'mt') {
+        console.log(`Skipping sub-agent registration for ${agentType} agent`)
+    } else {
+    // MATEH sub-agents
     // Uses model registry: sayer=opus, et=sonnet, menateach=opus
     // Falls back to OpenAI models if Anthropic not available
     await sshExec(ip, `
@@ -384,46 +405,69 @@ EOFPAIR
         '
     `, password)
 
+    } // end MATEH sub-agents block
+
     // Restart to pick up new agents
     await sshExec(ip, 'systemctl restart openclaw-gateway', password)
     await new Promise(r => setTimeout(r, 3000))
 
-    // Set up cron jobs — only if they don't exist yet (prevent duplicates)
-    await sshExec(ip, `
-        su - openclaw -c '
-        EXISTING=$(openclaw cron list --json 2>/dev/null | node -e "try{const d=JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf-8\"));console.log(d.jobs.map(j=>j.name).join(\",\"))}catch(e){}" 2>/dev/null)
+    // Set up cron jobs — different for Personal vs MATEH
+    if (agentType === 'oc') {
+        // Personal: only morning summary
+        await sshExec(ip, `
+            su - openclaw -c '
+            EXISTING=$(openclaw cron list --json 2>/dev/null | node -e "try{const d=JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf-8\"));console.log(d.jobs.map(j=>j.name).join(\",\"))}catch(e){}" 2>/dev/null)
 
-        if ! echo "$EXISTING" | grep -q "daily-brief"; then
-          openclaw cron add \
-            --name "daily-brief" \
-            --description "Daily Brief - marketing summary" \
-            --cron "0 7 * * 0-4" \
-            --tz "Asia/Jerusalem" \
-            --message "הכן Daily Brief: סכם פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות. הודעה קצרה ותכליתית." \
-            --session isolated 2>/dev/null
-        fi
+            if ! echo "$EXISTING" | grep -q "morning-summary"; then
+              openclaw cron add \
+                --name "morning-summary" \
+                --description "Morning Summary - daily agenda" \
+                --cron "0 7 * * 0-4" \
+                --tz "Asia/Jerusalem" \
+                --message "סכם את סדר היום: פגישות ביומן, מיילים שמחכים למענה, תזכורות ומשימות פתוחות. הודעה קצרה וידידותית." \
+                --session isolated 2>/dev/null
+            fi
+            '
+        `, password)
+    } else if (agentType === 'mt') {
+        // MATEH: full marketing cron suite
+        await sshExec(ip, `
+            su - openclaw -c '
+            EXISTING=$(openclaw cron list --json 2>/dev/null | node -e "try{const d=JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf-8\"));console.log(d.jobs.map(j=>j.name).join(\",\"))}catch(e){}" 2>/dev/null)
 
-        if ! echo "$EXISTING" | grep -q "weekly-competitive"; then
-          openclaw cron add \
-            --name "weekly-competitive" \
-            --description "Weekly Competitive Report" \
-            --cron "0 8 * * 1" \
-            --tz "Asia/Jerusalem" \
-            --message "דוח תחרותי שבועי: סייר חפש מתחרים, מאזין בדוק שיחות, מנתח דרג הזדמנויות, עט כתוב 2-3 הצעות פוסטים." \
-            --session isolated 2>/dev/null
-        fi
+            if ! echo "$EXISTING" | grep -q "daily-brief"; then
+              openclaw cron add \
+                --name "daily-brief" \
+                --description "Daily Brief - marketing summary" \
+                --cron "0 7 * * 0-4" \
+                --tz "Asia/Jerusalem" \
+                --message "הכן Daily Brief: סכם פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות. הודעה קצרה ותכליתית." \
+                --session isolated 2>/dev/null
+            fi
 
-        if ! echo "$EXISTING" | grep -q "monthly-aeo"; then
-          openclaw cron add \
-            --name "monthly-aeo" \
-          --description "Monthly AEO Audit" \
-          --cron "0 10 1 * *" \
-          --tz "Asia/Jerusalem" \
-          --message "ביקורת AEO חודשית: בדוק ציטוטים ב-Claude/ChatGPT/Perplexity, Schema tags, המלצות לשיפור." \
-          --session isolated 2>/dev/null
-        fi
-        '
-    `, password)
+            if ! echo "$EXISTING" | grep -q "weekly-competitive"; then
+              openclaw cron add \
+                --name "weekly-competitive" \
+                --description "Weekly Competitive Report" \
+                --cron "0 8 * * 1" \
+                --tz "Asia/Jerusalem" \
+                --message "דוח תחרותי שבועי: סייר חפש מתחרים, מאזין בדוק שיחות, מנתח דרג הזדמנויות, עט כתוב 2-3 הצעות פוסטים." \
+                --session isolated 2>/dev/null
+            fi
+
+            if ! echo "$EXISTING" | grep -q "monthly-aeo"; then
+              openclaw cron add \
+                --name "monthly-aeo" \
+                --description "Monthly AEO Audit" \
+                --cron "0 10 1 * *" \
+                --tz "Asia/Jerusalem" \
+                --message "ביקורת AEO חודשית: בדוק ציטוטים ב-Claude/ChatGPT/Perplexity, Schema tags, המלצות לשיפור." \
+                --session isolated 2>/dev/null
+            fi
+            '
+        `, password)
+    }
+    // bare: no cron jobs
 }
 
 // ── POST /hosting/instances/:id/setup/agents/analyze ──
@@ -1497,8 +1541,12 @@ export const setupAgents = async (c: Context) => {
         const gatewayToken = instance.openclawToken || ''
         const subdomain = instance.subdomainName || instanceId
 
-        console.log(`Deploying agent system to ${instance.ip}...`)
-        await deployAgentSystem(instance.ip, userMd, brandMd, brandSlug, gatewayToken, subdomain, instance.rootPassword || undefined)
+        // Determine agent type from selected components
+        const components = (instance.selectedComponents as string[]) || []
+        const agentType: 'mt' | 'oc' | 'bare' = components.includes('mt') ? 'mt' : components.includes('bare') ? 'bare' : 'oc'
+
+        console.log(`Deploying ${agentType} agent system to ${instance.ip}...`)
+        await deployAgentSystem(instance.ip, userMd, brandMd, brandSlug, gatewayToken, subdomain, instance.rootPassword || undefined, agentType)
 
         // Update DB
         await db.update(instances).set({
