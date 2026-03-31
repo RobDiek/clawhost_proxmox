@@ -1,5 +1,6 @@
 import type { Context } from 'hono'
 import type { HonoEnv } from '@/ts/Types'
+import crypto from 'crypto'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
@@ -9,9 +10,29 @@ import getProvider from '@/services/provider/getProvider'
 import provisioner from '@/services/provisioner'
 import telegram from '@/services/telegram'
 
+/** Extract userId from JWT or HonoEnv middleware */
+function resolveUserId(c: Context<HonoEnv>): string | null {
+    // Try HonoEnv middleware first
+    try { const id = c.get('userId'); if (id) return id; } catch {}
+    // Fallback: parse JWT from Authorization header
+    const auth = c.req.header('Authorization')
+    if (!auth?.startsWith('Bearer ')) return null
+    const parts = auth.slice(7).split('.')
+    if (parts.length !== 3) return null
+    const [header, body, sig] = parts
+    const secret = process.env.JWT_SECRET || ''
+    const expected = crypto.createHmac('sha256', secret).update(`${header}.${body}`).digest('base64url')
+    if (sig !== expected) return null
+    try {
+        const payload = JSON.parse(Buffer.from(body, 'base64url').toString())
+        if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null
+        return payload.sub || null
+    } catch { return null }
+}
+
 export const getInstances = async (c: Context<HonoEnv>) => {
     try {
-        const userId = c.get('userId')
+        const userId = resolveUserId(c)
         const result = await db.select()
             .from(instances)
             .where(eq(instances.userId, userId))
@@ -41,7 +62,7 @@ export const getInstances = async (c: Context<HonoEnv>) => {
 
 export const getInstance = async (c: Context<HonoEnv>) => {
     try {
-        const userId = c.get('userId')
+        const userId = resolveUserId(c)
         const instanceId = c.req.param('id')
 
         const [instance] = await db.select()
@@ -104,7 +125,7 @@ export const getInstanceStatus = async (c: Context<HonoEnv>) => {
 
 export const restartInstance = async (c: Context<HonoEnv>) => {
     try {
-        const userId = c.get('userId')
+        const userId = resolveUserId(c)
         const instanceId = c.req.param('id')
 
         const [instance] = await db.select()
@@ -128,7 +149,7 @@ export const restartInstance = async (c: Context<HonoEnv>) => {
 // POST /hosting/instances/:id/upgrade-plan
 export const upgradePlan = async (c: Context<HonoEnv>) => {
     try {
-        const userId = c.get('userId')
+        const userId = resolveUserId(c)
         const instanceId = c.req.param('id')
         const { targetPlan } = await c.req.json<{ targetPlan: string }>()
 
@@ -210,7 +231,7 @@ export const upgradePlan = async (c: Context<HonoEnv>) => {
 // POST /hosting/instances/:id/add-storage
 export const addStorage = async (c: Context<HonoEnv>) => {
     try {
-        const userId = c.get('userId')
+        const userId = resolveUserId(c)
         const instanceId = c.req.param('id')
         const { addonId } = await c.req.json<{ addonId: string }>()
 
@@ -260,7 +281,7 @@ export const addStorage = async (c: Context<HonoEnv>) => {
 
 export const deleteInstance = async (c: Context<HonoEnv>) => {
     try {
-        const userId = c.get('userId')
+        const userId = resolveUserId(c)
         const instanceId = c.req.param('id')
 
         const [instance] = await db.select()

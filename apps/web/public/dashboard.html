@@ -3420,26 +3420,29 @@ function renderSettings() {
 }
 
 function renderAdvanced() {
-  // Agent link
-  document.getElementById('adv-agent-link').innerHTML =
-    '<span class="info-label">OpenClaw Dashboard</span><a href="' + buildAgentUrl(agentUrl, openclawToken) + '" target="_blank" class="info-value">פתח ' + SVG_ICONS.externalLink + '</a>';
-  // Flows link
-  document.getElementById('adv-flows-link').innerHTML =
-    '<span class="info-label">Automation Dashboard</span><a href="' + flowsUrl + '" target="_blank" class="info-value">פתח ' + SVG_ICONS.externalLink + '</a>';
-  // Tech info
+  var agentLinkHtml = '<span class="info-label">OpenClaw Dashboard</span><a href="' + buildAgentUrl(agentUrl, openclawToken) + '" target="_blank" class="info-value">פתח ' + SVG_ICONS.externalLink + '</a>';
+  var flowsLinkHtml = '<span class="info-label">Automation Dashboard</span><a href="' + flowsUrl + '" target="_blank" class="info-value">פתח ' + SVG_ICONS.externalLink + '</a>';
+
   var ip = (instanceData && instanceData.ip) ? instanceData.ip : '—';
   var status = (instanceData && instanceData.status) ? instanceData.status : 'running';
-  var serverType = plan.cpu.replace(' Dedicated', '');
-  document.getElementById('advTechInfo').innerHTML =
+  var serverType = plan.cpu ? plan.cpu.replace(' Dedicated', '') : '';
+  var techHtml =
     '<div class="info-row"><span class="info-label">IP</span><span class="mono info-value">' + ip + '</span>' +
     '<button class="copy-btn" onclick="copyToClipboard(\'' + ip + '\')" title="העתקו">' + SVG_ICONS.copy + '</button></div>' +
     '<div class="info-row"><span class="info-label">שרת</span><span class="info-value">Hetzner ' + serverType + ' &middot; Helsinki</span></div>' +
     '<div class="info-row"><span class="info-label">סטטוס</span><span class="badge-green">' + status + '</span></div>';
-
-  // API code block
-  document.getElementById('advApiBlock').textContent =
+  var apiHtml =
     'curl -H "Authorization: Bearer ' + (token || 'YOUR_TOKEN') + '" \\\n' +
     '  ' + API + '/hosting/instances/' + (instanceId || 'INSTANCE_ID') + '/status';
+
+  // Write to both old and new element IDs (tab-api has *2 suffixed IDs)
+  ['', '2'].forEach(function(suffix) {
+    var el;
+    el = document.getElementById('adv-agent-link' + suffix); if (el) el.innerHTML = agentLinkHtml;
+    el = document.getElementById('adv-flows-link' + suffix); if (el) el.innerHTML = flowsLinkHtml;
+    el = document.getElementById('advTechInfo' + suffix); if (el) el.innerHTML = techHtml;
+    el = document.getElementById('advApiBlock' + suffix); if (el) el.textContent = apiHtml;
+  });
 }
 
 function renderSidebarFooter() {
