@@ -442,15 +442,18 @@ body {
   display: block;
   text-align: center;
   margin-top: 14px;
-  font-size: 0.82rem;
+  padding: 10px 0;
+  font-size: 0.85rem;
   color: var(--text-3);
   cursor: pointer;
-  text-decoration: none;
+  text-decoration: underline;
   border: none;
   background: none;
   font-family: 'Heebo', system-ui, sans-serif;
+  position: relative;
+  z-index: 10;
 }
-.skip-link:hover { color: var(--text-2); }
+.skip-link:hover { color: var(--primary); }
 
 /* ── Step 4: Done ── */
 .done-emoji {
