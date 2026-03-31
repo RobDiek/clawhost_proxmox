@@ -1,6 +1,6 @@
 // ClawFlow Chat Widget
 (function() {
-  const WS_URL = 'wss://api.openclaw.flowmatic.co.il/ws/chat';
+  const WS_URL = 'wss://api.clawflow.flowmatic.co.il/ws/chat';
   let ws = null;
   let sessionId = localStorage.getItem('cf_chat_session') || '';
   let isOpen = false;
@@ -10,9 +10,12 @@
   function createWidget() {
     const style = document.createElement('style');
     style.textContent = `
-      #cf-chat-fab { position:fixed;bottom:24px;right:24px;z-index:9999;width:56px;height:56px;border-radius:50%;background:#2563EB;color:#fff;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,0.4);display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s }
-      #cf-chat-fab:hover { transform:scale(1.1);box-shadow:0 6px 24px rgba(37,99,235,0.5) }
-      #cf-chat-fab svg { width:24px;height:24px }
+      #cf-chat-fab { position:fixed;bottom:24px;right:24px;z-index:9999;border-radius:12px;background:#2563EB;color:#fff;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,0.4);display:flex;align-items:center;gap:8px;padding:10px 18px;transition:transform .2s,box-shadow .2s;font-family:'Heebo',system-ui,sans-serif;direction:rtl }
+      #cf-chat-fab:hover { transform:scale(1.03);box-shadow:0 6px 24px rgba(37,99,235,0.5) }
+      #cf-chat-fab svg { width:20px;height:20px;flex-shrink:0 }
+      #cf-chat-fab-text { display:flex;flex-direction:column;line-height:1.2 }
+      #cf-chat-fab-title { font-size:0.85rem;font-weight:600 }
+      #cf-chat-fab-sub { font-size:0.65rem;opacity:0.8 }
       #cf-chat-window { position:fixed;bottom:90px;right:24px;z-index:9999;width:360px;height:480px;background:#fff;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.15);display:none;flex-direction:column;overflow:hidden;border:1px solid #E5E7EB;font-family:'Heebo',system-ui,sans-serif }
       #cf-chat-window.open { display:flex }
       #cf-chat-header { background:#2563EB;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0 }
@@ -37,14 +40,14 @@
       #cf-chat-name-input { width:100%;padding:10px 12px;border:1px solid #E5E7EB;border-radius:8px;font-size:0.9rem;font-family:inherit;direction:rtl;margin-bottom:10px }
       #cf-chat-name-btn { width:100%;padding:10px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit }
       .cf-unread { position:absolute;top:-4px;right:-4px;width:18px;height:18px;background:#EF4444;color:#fff;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:700 }
-      @media(max-width:420px) { #cf-chat-window { right:0;left:0;bottom:0;width:100%;height:100%;border-radius:0 } #cf-chat-fab { bottom:16px;right:16px } }
+      @media(max-width:420px) { #cf-chat-window { right:0;left:0;bottom:0;width:100%;height:100%;border-radius:0 } #cf-chat-fab { bottom:16px;right:16px;padding:8px 14px } #cf-chat-fab-title { font-size:0.78rem } }
     `;
     document.head.appendChild(style);
 
     // FAB button
     const fab = document.createElement('button');
     fab.id = 'cf-chat-fab';
-    fab.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+    fab.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div id="cf-chat-fab-text"><span id="cf-chat-fab-title">\u05D3\u05D1\u05E8\u05D5 \u05E2\u05DD \u05E0\u05E6\u05D9\u05D2 \u05D0\u05E0\u05D5\u05E9\u05D9</span><span id="cf-chat-fab-sub">\u05D0\u05E0\u05D7\u05E0\u05D5 \u05D0\u05D5\u05E0\u05DC\u05D9\u05D9\u05DF \u2022</span></div>';
     fab.onclick = toggleChat;
     document.body.appendChild(fab);
 
