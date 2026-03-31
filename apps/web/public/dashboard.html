@@ -660,6 +660,20 @@ input{font-family:inherit}
 <!-- Main Content -->
 <div class="main">
 
+  <!-- Provisioning banner (shown while VPS still setting up) -->
+  <div id="provisioning-banner" style="display:none;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:16px 20px;margin:0 0 16px;animation:pulse 2s infinite">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:24px;height:24px;border:3px solid #BFDBFE;border-top-color:#2563EB;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0"></div>
+      <div>
+        <div style="font-weight:600;color:#1E40AF;font-size:0.92rem">השרת שלכם בהכנה...</div>
+        <div style="font-size:0.82rem;color:#3B82F6;margin-top:2px">ההתקנה אורכת 5-8 דקות. הצ'אט, קונסול והסוכנים יהיו זמינים ברגע שהשרת מוכן.</div>
+      </div>
+    </div>
+    <div style="margin-top:8px;height:4px;background:#DBEAFE;border-radius:2px;overflow:hidden">
+      <div id="provisioning-progress" style="height:100%;background:#2563EB;border-radius:2px;transition:width 1s;width:10%"></div>
+    </div>
+  </div>
+
   <!-- Tab: Home (ראשי) -->
   <div class="tab-content" id="tab-home">
     <!-- Row 1: Tasks + Notifications (2 columns on desktop) -->
@@ -1802,6 +1816,8 @@ function renderHeader() {
 }
 
 function renderHome() {
+  // Check if VPS is still provisioning
+  checkProvisioningStatus();
   // Greeting
   var name = localStorage.getItem('cf_user_name') || email.split('@')[0] || '';
   var greetEl = document.getElementById('greetingText');
@@ -5641,6 +5657,64 @@ async function loadStats() {
 
 var PLAN_NAMES_HE = { personal: 'אישי', business: 'עסקי', pro: 'פרו', developer: 'מפתח' };
 var PLAN_PRICES = { personal: 79, business: 169, pro: 349, developer: 599 };
+
+/* ===== Provisioning Status Check ===== */
+var provisioningCheckInterval = null;
+var provisioningProgress = 10;
+
+function checkProvisioningStatus() {
+  if (!instanceId) return;
+  var status = instanceData ? instanceData.status : null;
+  var banner = document.getElementById('provisioning-banner');
+  if (!banner) return;
+
+  // If status is not 'running' or instance has no gateway yet
+  if (status === 'provisioning' || status === 'initializing' || status === 'awaiting_payment') {
+    banner.style.display = '';
+    // Animate progress
+    provisioningProgress = Math.min(provisioningProgress + 5, 90);
+    var bar = document.getElementById('provisioning-progress');
+    if (bar) bar.style.width = provisioningProgress + '%';
+
+    // Poll for status change
+    if (!provisioningCheckInterval) {
+      provisioningCheckInterval = setInterval(async function() {
+        try {
+          var res = await fetch(API + '/hosting/instances/' + instanceId + '/status', {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          var d = await res.json();
+          if (d.success && d.data && d.data.status === 'running') {
+            // Check if gateway actually responds
+            try {
+              var gwRes = await fetch(API + '/hosting/instances/' + instanceId + '/stats', {
+                headers: { 'Authorization': 'Bearer ' + token }
+              });
+              var gwData = await gwRes.json();
+              if (gwData.success) {
+                // Truly ready!
+                banner.style.display = 'none';
+                clearInterval(provisioningCheckInterval);
+                provisioningCheckInterval = null;
+                showToast('השרת מוכן!', 'success');
+                // Reload data
+                location.reload();
+              }
+            } catch {}
+          }
+          provisioningProgress = Math.min(provisioningProgress + 3, 95);
+          if (bar) bar.style.width = provisioningProgress + '%';
+        } catch {}
+      }, 15000); // Check every 15 sec
+    }
+  } else if (status === 'running') {
+    banner.style.display = 'none';
+    if (provisioningCheckInterval) {
+      clearInterval(provisioningCheckInterval);
+      provisioningCheckInterval = null;
+    }
+  }
+}
 
 async function checkRamHealth() {
   var instanceId = localStorage.getItem('cf_instance_id');
