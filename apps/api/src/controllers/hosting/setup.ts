@@ -117,13 +117,22 @@ export const setupApiKey = async (c: Context) => {
             return fail(c, 'Instance not found or not ready.', 404)
         }
 
+        // Validate API key format (alphanumeric + dashes only)
+        if (!/^[a-zA-Z0-9_-]+$/.test(apiKey)) {
+            return fail(c, 'Invalid API key format.', 400)
+        }
+
         // Set API key as environment variable in OpenClaw systemd service
         const envVar = provider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY'
+        const SVC = '/etc/systemd/system/openclaw-gateway.service'
 
+        // Use base64 to safely pass the key through shell
+        const keyB64 = Buffer.from(apiKey).toString('base64')
         await sshExec(instance.ip, `
-            grep -q ${envVar} /etc/systemd/system/openclaw-gateway.service && \
-                sed -i "s|Environment=${envVar}=.*|Environment=${envVar}=${apiKey}|" /etc/systemd/system/openclaw-gateway.service || \
-                sed -i "/Environment=NODE_ENV=production/a\\Environment=${envVar}=${apiKey}" /etc/systemd/system/openclaw-gateway.service && \
+            KEY=$(echo '${keyB64}' | base64 -d) && \
+            grep -q ${envVar} ${SVC} && \
+                sed -i "s|Environment=${envVar}=.*|Environment=${envVar}=$KEY|" ${SVC} || \
+                sed -i "/Environment=NODE_ENV=production/a\\Environment=${envVar}=$KEY" ${SVC} && \
             systemctl daemon-reload && \
             systemctl restart openclaw-gateway
         `, instance.rootPassword || undefined)

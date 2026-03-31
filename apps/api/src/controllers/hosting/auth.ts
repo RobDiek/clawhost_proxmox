@@ -7,7 +7,12 @@ import { ok, fail } from '@/lib/response'
 
 // ── Simple JWT (no external deps) ──────────────────────────
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me'
+const JWT_SECRET = process.env.JWT_SECRET
+if (!JWT_SECRET || JWT_SECRET === 'dev-secret-change-me') {
+    console.error('FATAL: JWT_SECRET must be set in production!')
+    if (process.env.NODE_ENV === 'production') process.exit(1)
+}
+const jwtSecret = JWT_SECRET || 'dev-secret-local-only'
 const RESEND_API_KEY = process.env.RESEND_API_KEY || ''
 const FROM_EMAIL = process.env.FROM_EMAIL || 'ClawFlow <onboarding@resend.dev>'
 const OTP_EXPIRY_MS = 10 * 60 * 1000 // 10 minutes
@@ -201,7 +206,7 @@ export const verifyOtpHosting = async (c: Context) => {
                 iat: Math.floor(Date.now() / 1000),
                 exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60 // 30 days
             },
-            JWT_SECRET
+            jwtSecret
         )
 
         return ok(c, { token, userId, email: normalizedEmail }, 'OTP verified.')
@@ -221,7 +226,7 @@ export const getMe = async (c: Context) => {
         }
 
         const token = authHeader.slice(7)
-        const payload = verifyJwt(token, JWT_SECRET)
+        const payload = verifyJwt(token, jwtSecret)
 
         if (!payload) {
             return fail(c, 'Invalid token.', 401)
@@ -265,7 +270,7 @@ export const getMyInstances = async (c: Context) => {
         }
 
         const token = authHeader.slice(7)
-        const payload = verifyJwt(token, JWT_SECRET)
+        const payload = verifyJwt(token, jwtSecret)
 
         if (!payload || !payload.sub) {
             return fail(c, 'Invalid token.', 401)

@@ -59,3 +59,7 @@ startModelMonitor()
 // Start RAM monitor (checks all instances every 10 min)
 import { startRamMonitor } from '@/services/ramMonitor'
 startRamMonitor()
+
+// Start instance health monitor (checks all instances every 5 min, auto-restarts)
+import { startInstanceMonitor } from '@/services/instanceMonitor'
+startInstanceMonitor()

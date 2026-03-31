@@ -29,7 +29,7 @@ function getUserIdFromRequest(c: Context): string | null {
     const authHeader = c.req.header('Authorization')
     if (!authHeader?.startsWith('Bearer ')) return null
     const token = authHeader.slice(7)
-    const secret = process.env.JWT_SECRET || 'dev-secret-change-me'
+    const secret = process.env.JWT_SECRET || ''
     const payload = verifyJwt(token, secret)
     if (!payload || !payload.sub) return null
     if (payload.exp && typeof payload.exp === 'number' && payload.exp < Math.floor(Date.now() / 1000)) return null
@@ -119,7 +119,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
                 items: [{
                     name: `ClawFlow — ${pricing.plan.nameHe}`,
                     price: pricing.totalPrice,
-                    quantity: 1
+                    qty: 1
                 }],
                 planKey: pricing.planKey,
                 customerEmail,
@@ -230,6 +230,13 @@ export const handleAllpayWebhook = async (c: Context) => {
         }
 
         if (event === 'payment_success') {
+            // Idempotency: check if already processed
+            const [existingPayment] = await db.select().from(payments)
+                .where(eq(payments.allpayOrderId, orderId))
+            if (existingPayment?.status === 'paid') {
+                return ok(c, null, 'Already processed.')
+            }
+
             await db.update(payments)
                 .set({ status: 'paid', paidAt: new Date() })
                 .where(eq(payments.allpayOrderId, orderId))
@@ -242,9 +249,19 @@ export const handleAllpayWebhook = async (c: Context) => {
                 return fail(c, 'Instance not found.', 404)
             }
 
+            // Don't re-provision if already provisioning/running
+            if (instance.status !== 'awaiting_payment') {
+                return ok(c, null, 'Instance already provisioned.')
+            }
+
             await db.update(instances)
                 .set({ status: 'provisioning', subscriptionStatus: 'active' })
                 .where(eq(instances.id, instanceId))
+
+            // Fetch customer email from user record
+            const [user] = await db.select({ email: users.email }).from(users)
+                .where(eq(users.id, instance.userId))
+            const ownerEmail = user?.email || 'admin@clawflow.local'
 
             const components = (instance.selectedComponents as string[]) || []
             const hasOllama = components.includes('ol')
@@ -282,7 +299,7 @@ export const handleAllpayWebhook = async (c: Context) => {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                email: customerEmail || 'admin@clawflow.local',
+                                email: ownerEmail,
                                 firstName: 'ClawFlow',
                                 lastName: 'Admin',
                                 password: result.automationPassword + '1'
@@ -311,6 +328,29 @@ export const handleAllpayWebhook = async (c: Context) => {
             await db.update(payments)
                 .set({ status: 'failed' })
                 .where(eq(payments.allpayOrderId, orderId))
+
+            // Suspend instance if it was running
+            const [instance] = await db.select()
+                .from(instances)
+                .where(eq(instances.id, instanceId))
+
+            if (instance) {
+                if (instance.status === 'running' && instance.hetznerServerId) {
+                    await provisioner.suspend(instance.hetznerServerId)
+                    await db.update(instances)
+                        .set({ status: 'suspended', subscriptionStatus: 'payment_failed', suspendedAt: new Date() })
+                        .where(eq(instances.id, instanceId))
+                }
+
+                // Notify user via Telegram
+                if (instance.telegramChatId) {
+                    const frontendUrl = process.env.FRONTEND_URL || 'https://openclaw.flowmatic.co.il'
+                    await telegram.notifyPaymentFailed(instance.telegramChatId, `${frontendUrl}/dashboard.html`)
+                }
+
+                // Alert admin
+                await telegram.alertAdmin(`⚠️ Payment failed for instance ${instanceId}. Instance ${instance.status === 'running' ? 'suspended' : 'not provisioned'}.`)
+            }
 
             return ok(c, null, 'Payment failure recorded.')
         }

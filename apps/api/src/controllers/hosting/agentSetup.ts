@@ -382,26 +382,26 @@ EOFPAIR
         HAS_ANTHROPIC=$(grep -c ANTHROPIC_API_KEY /etc/systemd/system/openclaw-gateway.service 2>/dev/null || echo 0)
 
         if [ "$HAS_ANTHROPIC" -gt 0 ]; then
-          SAYER_MODEL="anthropic/claude-opus-4-6"
-          MENATEACH_MODEL="anthropic/claude-opus-4-6"
-          ET_MODEL="anthropic/claude-sonnet-4-6"
+          PRIMARY_MODEL="anthropic/claude-opus-4-6"
+          SECONDARY_MODEL="anthropic/claude-sonnet-4-6"
         else
-          SAYER_MODEL="openai/gpt-4o"
-          MENATEACH_MODEL="openai/gpt-4o"
-          ET_MODEL="openai/gpt-4o"
+          PRIMARY_MODEL="openai/gpt-4o"
+          SECONDARY_MODEL="openai/gpt-4o"
         fi
 
         AGENTS=$(openclaw agents list --json 2>/dev/null | node -e "try{const d=JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf-8\"));console.log(d.map(a=>a.name).join(\",\"))}catch(e){}" 2>/dev/null)
 
-        if ! echo "$AGENTS" | grep -q "sayer"; then
-          openclaw agents add sayer --model "$SAYER_MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/sayer --non-interactive 2>/dev/null
-        fi
-        if ! echo "$AGENTS" | grep -q "menateach"; then
-          openclaw agents add menateach --model "$MENATEACH_MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/menateach --non-interactive 2>/dev/null
-        fi
-        if ! echo "$AGENTS" | grep -q "et"; then
-          openclaw agents add et --model "$ET_MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/et --non-interactive 2>/dev/null
-        fi
+        # Register all 8 MATEH sub-agents
+        for AGENT_NAME in sayer menateach meater maazin et yotzer shaliach migdalor; do
+          if ! echo "$AGENTS" | grep -q "$AGENT_NAME"; then
+            if [ "$AGENT_NAME" = "sayer" ] || [ "$AGENT_NAME" = "menateach" ]; then
+              MODEL="$PRIMARY_MODEL"
+            else
+              MODEL="$SECONDARY_MODEL"
+            fi
+            openclaw agents add "$AGENT_NAME" --model "$MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/"$AGENT_NAME" --non-interactive 2>/dev/null
+          fi
+        done
         '
     `, password)
 
@@ -1653,18 +1653,23 @@ export const addAgentToInstance = async (c: Context) => {
             // Fix permissions
             await sshExec(instance.ip, 'chown -R openclaw:openclaw /home/openclaw/.openclaw', instance.rootPassword || undefined)
 
-            // Register sub-agents
+            // Register all 8 MATEH sub-agents
             await sshExec(instance.ip, `
                 su - openclaw -c '
                 HAS_ANTHROPIC=$(grep -c ANTHROPIC_API_KEY /etc/systemd/system/openclaw-gateway.service 2>/dev/null || echo 0)
                 if [ "$HAS_ANTHROPIC" -gt 0 ]; then
-                  SAYER_MODEL="anthropic/claude-opus-4-6"; MENATEACH_MODEL="anthropic/claude-opus-4-6"; ET_MODEL="anthropic/claude-sonnet-4-6"
+                  PRIMARY_MODEL="anthropic/claude-opus-4-6"; SECONDARY_MODEL="anthropic/claude-sonnet-4-6"
                 else
-                  SAYER_MODEL="openai/gpt-4o"; MENATEACH_MODEL="openai/gpt-4o"; ET_MODEL="openai/gpt-4o"
+                  PRIMARY_MODEL="openai/gpt-4o"; SECONDARY_MODEL="openai/gpt-4o"
                 fi
-                openclaw agents add sayer --model "$SAYER_MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/sayer --non-interactive 2>/dev/null
-                openclaw agents add menateach --model "$MENATEACH_MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/menateach --non-interactive 2>/dev/null
-                openclaw agents add et --model "$ET_MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/et --non-interactive 2>/dev/null
+                for AGENT_NAME in sayer menateach meater maazin et yotzer shaliach migdalor; do
+                  if [ "$AGENT_NAME" = "sayer" ] || [ "$AGENT_NAME" = "menateach" ]; then
+                    MODEL="$PRIMARY_MODEL"
+                  else
+                    MODEL="$SECONDARY_MODEL"
+                  fi
+                  openclaw agents add "$AGENT_NAME" --model "$MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/"$AGENT_NAME" --non-interactive 2>/dev/null
+                done
                 '
             `, instance.rootPassword || undefined)
 

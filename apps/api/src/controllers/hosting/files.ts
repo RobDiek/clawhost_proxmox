@@ -1,6 +1,7 @@
 import type { Context } from 'hono'
 import { readFileSync } from 'fs'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
+import crypto from 'crypto'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
@@ -36,8 +37,28 @@ function sshExec(ip: string, command: string, password?: string): Promise<string
     })
 }
 
-async function getInstance(instanceId: string) {
-    const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+/** Extract userId from JWT Bearer token */
+function getUserId(c: Context): string | null {
+    const auth = c.req.header('Authorization')
+    if (!auth?.startsWith('Bearer ')) return null
+    const parts = auth.slice(7).split('.')
+    if (parts.length !== 3) return null
+    const [header, body, sig] = parts
+    const secret = process.env.JWT_SECRET || ''
+    const expected = crypto.createHmac('sha256', secret).update(`${header}.${body}`).digest('base64url')
+    if (sig !== expected) return null
+    try {
+        const payload = JSON.parse(Buffer.from(body, 'base64url').toString())
+        if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null
+        return payload.sub || null
+    } catch { return null }
+}
+
+/** Get instance with ownership check — returns null if user doesn't own it */
+async function getInstance(instanceId: string, userId?: string | null) {
+    const conditions = [eq(instances.id, instanceId)]
+    if (userId) conditions.push(eq(instances.userId, userId))
+    const [instance] = await db.select().from(instances).where(and(...conditions))
     return instance
 }
 
@@ -47,17 +68,29 @@ async function sshExecInstance(instance: { ip: string | null; rootPassword?: str
     return sshExec(instance.ip, command, instance.rootPassword || undefined)
 }
 
+/** Escape a string for safe use inside single-quoted shell arguments */
+function shellEscape(s: string): string {
+    // Replace single quotes with '\'' (end quote, escaped quote, start quote)
+    return s.replace(/'/g, "'\\''")
+}
+
 function sanitizePath(path: string): string | null {
-    if (!path || path.includes('..') || path.startsWith('/')) return null
-    return path.replace(/[;&|`$]/g, '')
+    if (!path) return null
+    // Normalize and block traversal (including URL-encoded)
+    const decoded = decodeURIComponent(path)
+    if (decoded.includes('..') || decoded.startsWith('/') || decoded.includes('\0')) return null
+    // Whitelist: only allow safe path characters
+    if (!/^[a-zA-Z0-9._\-\/\s\u0590-\u05FF\u0600-\u06FF]+$/.test(decoded)) return null
+    return decoded
 }
 
 // GET /hosting/instances/:id/files/tree?dir=
 export const fileTree = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        const userId = getUserId(c)
         const dir = c.req.query('dir') || ''
-        const instance = await getInstance(instanceId)
+        const instance = await getInstance(instanceId, userId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
         const safePath = dir ? sanitizePath(dir) : ''
@@ -96,10 +129,11 @@ export const fileTree = async (c: Context) => {
 export const readFile = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        const userId = getUserId(c)
         const filePath = sanitizePath(c.req.query('path') || '')
         if (!filePath) return fail(c, 'Invalid path.', 400)
 
-        const instance = await getInstance(instanceId)
+        const instance = await getInstance(instanceId, userId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
         const fullPath = `${VPS_HOME}/${filePath}`
@@ -120,15 +154,19 @@ export const readFile = async (c: Context) => {
 export const writeFile = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        const userId = getUserId(c)
         const { path: rawPath, content } = await c.req.json<{ path: string; content: string }>()
         const filePath = sanitizePath(rawPath)
         if (!filePath) return fail(c, 'Invalid path.', 400)
+        if (content && content.length > 5 * 1024 * 1024) return fail(c, 'File too large (max 5MB).', 400)
 
-        const instance = await getInstance(instanceId)
+        const instance = await getInstance(instanceId, userId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
         const fullPath = `${VPS_HOME}/${filePath}`
-        await sshExecInstance(instance, `mkdir -p "$(dirname '${fullPath}')" && cat > '${fullPath}' << 'CLAWEOF'\n${content}\nCLAWEOF\nchown -R openclaw:openclaw ${VPS_HOME}`)
+        // Use base64 encoding to safely transfer content (prevents heredoc/shell injection)
+        const b64 = Buffer.from(content, 'utf-8').toString('base64')
+        await sshExecInstance(instance, `mkdir -p "$(dirname '${shellEscape(fullPath)}')" && echo '${shellEscape(b64)}' | base64 -d > '${shellEscape(fullPath)}' && chown -R openclaw:openclaw ${VPS_HOME}`)
 
         return ok(c, { path: filePath }, 'File saved.')
     } catch (err) {
@@ -141,11 +179,12 @@ export const writeFile = async (c: Context) => {
 export const createFileOrDir = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        const userId = getUserId(c)
         const { path: rawPath, type } = await c.req.json<{ path: string; type: 'file' | 'dir' }>()
         const filePath = sanitizePath(rawPath)
         if (!filePath) return fail(c, 'Invalid path.', 400)
 
-        const instance = await getInstance(instanceId)
+        const instance = await getInstance(instanceId, userId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
         const fullPath = `${VPS_HOME}/${filePath}`
@@ -166,6 +205,7 @@ export const createFileOrDir = async (c: Context) => {
 export const deleteFile = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        const userId = getUserId(c)
         const filePath = sanitizePath(c.req.query('path') || '')
         if (!filePath) return fail(c, 'Invalid path.', 400)
 
@@ -175,7 +215,7 @@ export const deleteFile = async (c: Context) => {
             return fail(c, 'Cannot delete protected file.', 403)
         }
 
-        const instance = await getInstance(instanceId)
+        const instance = await getInstance(instanceId, userId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
         const fullPath = `${VPS_HOME}/${filePath}`
@@ -192,12 +232,13 @@ export const deleteFile = async (c: Context) => {
 export const renameFile = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        const userId = getUserId(c)
         const { from, to } = await c.req.json<{ from: string; to: string }>()
         const fromPath = sanitizePath(from)
         const toPath = sanitizePath(to)
         if (!fromPath || !toPath) return fail(c, 'Invalid paths.', 400)
 
-        const instance = await getInstance(instanceId)
+        const instance = await getInstance(instanceId, userId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
         await sshExecInstance(instance, `mv '${VPS_HOME}/${fromPath}' '${VPS_HOME}/${toPath}' && chown -R openclaw:openclaw ${VPS_HOME}`)
@@ -213,7 +254,8 @@ export const renameFile = async (c: Context) => {
 export const serverStats = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
-        const instance = await getInstance(instanceId)
+        const userId = getUserId(c)
+        const instance = await getInstance(instanceId, userId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
         const output = await sshExecInstance(instance, `
@@ -253,10 +295,11 @@ export const serverStats = async (c: Context) => {
 export const serverLogs = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        const userId = getUserId(c)
         const lines = parseInt(c.req.query('lines') || '50')
         const service = c.req.query('service') || 'openclaw-gateway'
 
-        const instance = await getInstance(instanceId)
+        const instance = await getInstance(instanceId, userId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
         const allowedServices = ['openclaw-gateway', 'nginx', 'docker']
@@ -279,20 +322,22 @@ export const listFiles = async (c: Context) => {
 export const deployCustomAgent = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        const userId = getUserId(c)
         const { name, soul, model } = await c.req.json<{ name: string; soul: string; model: string }>()
         if (!name || !soul) return fail(c, 'Name and soul are required.', 400)
 
-        const instance = await getInstance(instanceId)
+        const instance = await getInstance(instanceId, userId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
         const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')
+        if (!slug || slug.length > 50) return fail(c, 'Invalid agent name.', 400)
         const agentPath = `${VPS_HOME}/.openclaw/agents/${slug}`
 
+        // Use base64 to safely transfer soul content
+        const soulB64 = Buffer.from(soul, 'utf-8').toString('base64')
         await sshExecInstance(instance, `
-            mkdir -p '${agentPath}/output' &&
-            cat > '${agentPath}/SOUL.md' << 'SOULEOF'
-${soul}
-SOULEOF
+            mkdir -p '${shellEscape(agentPath)}/output' &&
+            echo '${shellEscape(soulB64)}' | base64 -d > '${shellEscape(agentPath)}/SOUL.md' &&
             chown -R openclaw:openclaw ${VPS_HOME} &&
             systemctl restart openclaw-gateway
         `)
@@ -307,24 +352,41 @@ SOULEOF
 export const saveIntegration = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        const userId = getUserId(c)
         const { type, key } = await c.req.json<{ type: string; key: string }>()
         if (!type || !key) return fail(c, 'Type and key are required.', 400)
 
-        const instance = await getInstance(instanceId)
+        const instance = await getInstance(instanceId, userId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
+        // Validate key: reject shell metacharacters for API keys
+        const safeKey = shellEscape(key)
+        const SVC = '/etc/systemd/system/openclaw-gateway.service'
+
+        // Helper: safely set env var in systemd service file using base64
+        const setEnvVar = (envName: string) =>
+            `KEY=$(echo '${Buffer.from(key).toString('base64')}' | base64 -d) && ` +
+            `grep -q ${envName} ${SVC} && sed -i "s|Environment=${envName}=.*|Environment=${envName}=$KEY|" ${SVC} || ` +
+            `sed -i "/Environment=NODE_ENV=production/a\\Environment=${envName}=$KEY" ${SVC} && systemctl daemon-reload`
+
+        // Helper: safely write JSON config file using base64
+        const writeConfig = (dir: string, file: string, json: object) => {
+            const b64 = Buffer.from(JSON.stringify(json)).toString('base64')
+            return `mkdir -p ${dir} && echo '${b64}' | base64 -d > ${dir}/${file}`
+        }
+
         const commands: Record<string, string> = {
-            anthropic: `grep -q ANTHROPIC_API_KEY /etc/systemd/system/openclaw-gateway.service && sed -i "s|Environment=ANTHROPIC_API_KEY=.*|Environment=ANTHROPIC_API_KEY=${key}|" /etc/systemd/system/openclaw-gateway.service || sed -i "/Environment=NODE_ENV=production/a\\Environment=ANTHROPIC_API_KEY=${key}" /etc/systemd/system/openclaw-gateway.service && systemctl daemon-reload`,
-            openai: `grep -q OPENAI_API_KEY /etc/systemd/system/openclaw-gateway.service && sed -i "s|Environment=OPENAI_API_KEY=.*|Environment=OPENAI_API_KEY=${key}|" /etc/systemd/system/openclaw-gateway.service || sed -i "/Environment=NODE_ENV=production/a\\Environment=OPENAI_API_KEY=${key}" /etc/systemd/system/openclaw-gateway.service && systemctl daemon-reload`,
-            gemini: `grep -q GOOGLE_API_KEY /etc/systemd/system/openclaw-gateway.service && sed -i "s|Environment=GOOGLE_API_KEY=.*|Environment=GOOGLE_API_KEY=${key}|" /etc/systemd/system/openclaw-gateway.service || sed -i "/Environment=NODE_ENV=production/a\\Environment=GOOGLE_API_KEY=${key}" /etc/systemd/system/openclaw-gateway.service && systemctl daemon-reload`,
-            telegram: `su - openclaw -c 'openclaw channels add --channel telegram --token "${key}" --name "telegram-main" 2>/dev/null'`,
-            brave: `mkdir -p ${VPS_HOME}/skills-config && echo '{"braveApiKey":"${key}"}' > ${VPS_HOME}/skills-config/brave-search.json`,
-            brightdata: `mkdir -p ${VPS_HOME}/skills-config && echo '{"apiKey":"${key}"}' > ${VPS_HOME}/skills-config/bright-data.json`,
-            replicate: `mkdir -p ${VPS_HOME}/skills-config && echo '{"apiToken":"${key}"}' > ${VPS_HOME}/skills-config/replicate.json`,
-            ollama: `cd /home/openclaw && openclaw provider add ollama --model "${key}" 2>/dev/null || (mkdir -p ${VPS_HOME}/providers && echo '{"provider":"ollama","model":"${key}"}' > ${VPS_HOME}/providers/ollama.json)`,
-            resend: `mkdir -p ${VPS_HOME}/skills-config && echo '{"apiKey":"${key}"}' > ${VPS_HOME}/skills-config/resend.json`,
-            wordpress: `mkdir -p ${VPS_HOME}/skills-config && echo '${key}' > ${VPS_HOME}/skills-config/wordpress.json`,
-            'newsletter-recipients': `mkdir -p ${VPS_HOME}/skills-config && echo '${key}' > ${VPS_HOME}/skills-config/newsletter-recipients.json`,
+            anthropic: setEnvVar('ANTHROPIC_API_KEY'),
+            openai: setEnvVar('OPENAI_API_KEY'),
+            gemini: setEnvVar('GOOGLE_API_KEY'),
+            telegram: `su - openclaw -c 'openclaw channels add --channel telegram --token "'\\''${safeKey}'\\'' --name "telegram-main" 2>/dev/null'`,
+            brave: writeConfig(`${VPS_HOME}/skills-config`, 'brave-search.json', { braveApiKey: key }),
+            brightdata: writeConfig(`${VPS_HOME}/skills-config`, 'bright-data.json', { apiKey: key }),
+            replicate: writeConfig(`${VPS_HOME}/skills-config`, 'replicate.json', { apiToken: key }),
+            ollama: `cd /home/openclaw && openclaw provider add ollama --model '${safeKey}' 2>/dev/null || (mkdir -p ${VPS_HOME}/providers && echo '${Buffer.from(JSON.stringify({ provider: 'ollama', model: key })).toString('base64')}' | base64 -d > ${VPS_HOME}/providers/ollama.json)`,
+            resend: writeConfig(`${VPS_HOME}/skills-config`, 'resend.json', { apiKey: key }),
+            wordpress: writeConfig(`${VPS_HOME}/skills-config`, 'wordpress.json', JSON.parse(key).constructor === Object ? JSON.parse(key) : { data: key }),
+            'newsletter-recipients': writeConfig(`${VPS_HOME}/skills-config`, 'newsletter-recipients.json', JSON.parse(key).constructor === Object ? JSON.parse(key) : { data: key }),
         }
 
         const cmd = commands[type]
@@ -386,14 +448,17 @@ export const saveIntegration = async (c: Context) => {
                 }).where(eq(instances.id, instanceId))
 
                 // Re-register OpenClaw agents on VPS with new models
-                const agentsToUpdate = ['sayer', 'menateach', 'et']
+                const agentsToUpdate = ['sayer', 'menateach', 'et', 'meater', 'maazin', 'yotzer', 'shaliach', 'migdalor']
                 for (const agentName of agentsToUpdate) {
                     const model = models[agentName]
                     if (!model) continue
+                    // Validate agent name (alphanumeric only) and model (provider/model format)
+                    if (!/^[a-z]+$/.test(agentName)) continue
+                    if (!/^[a-zA-Z0-9\/_.-]+$/.test(model)) continue
                     await sshExecInstance(instance, `
                         su - openclaw -c '
                         openclaw agents delete ${agentName} --force 2>/dev/null;
-                        openclaw agents add ${agentName} --model "${model}" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/${agentName} --non-interactive 2>/dev/null
+                        openclaw agents add ${agentName} --model '\\''${shellEscape(model)}'\\'' --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/${agentName} --non-interactive 2>/dev/null
                         '
                     `)
                 }
