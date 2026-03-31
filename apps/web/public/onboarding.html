@@ -947,6 +947,9 @@ function goToStep(n) { window._goToStep && window._goToStep(n); }
   var MAX_POLLS = 75; // ~10 min at 8s
   var totalSteps = 4;
 
+  // ── Track payment success ──
+  if (window.plausible) plausible('Payment Success', {props: {instance: instanceId}});
+
   // ── Init ──
   if (!instanceId) {
     showError('חסר מזהה instance בכתובת');
@@ -1519,5 +1522,8 @@ function goToStep(n) { window._goToStep && window._goToStep(n); }
 })();
 </script>
 
+<!-- Plausible Analytics -->
+<script async src="https://plausible.io/js/pa-aAqBMAznLkSKHIgdDIawd.js"></script>
+<script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)};</script>
 </body>
 </html>

@@ -1986,6 +1986,7 @@ document.getElementById('deploy-btn').addEventListener('click', function() {
   if (!s.hasAgent) return;
   const componentIds = ITEMS.filter(i => selected.has(i.id) && !i.soon).map(i => i.id).join(',');
   const storageVal = selected.has('xs') ? storageGb : 0;
+  if (window.plausible) plausible('Deploy Click', {props: {plan: s.plan.key, components: componentIds}});
   window.location.href = `/register?plan=${s.plan.key}&components=${componentIds}&storage=${storageVal}&billing=${billingPeriod}`;
 });
 
@@ -2123,5 +2124,8 @@ renderAll();
 
 <!-- Chat Widget -->
 <script src="/chat-widget.js"></script>
+<!-- Plausible Analytics -->
+<script async src="https://plausible.io/js/pa-aAqBMAznLkSKHIgdDIawd.js"></script>
+<script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)};</script>
 </body>
 </html>

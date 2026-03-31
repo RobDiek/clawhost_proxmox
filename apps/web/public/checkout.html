@@ -417,6 +417,9 @@ async function handleCheckout() {
       localStorage.setItem('cf_user_name', name);
     }
 
+    // Track checkout initiation
+    if (window.plausible) plausible('Checkout Started', {props: {plan: planKey}, revenue: {currency: 'ILS', amount: totalPrice}});
+
     // Redirect to AllPay payment page
     if (data.data && data.data.paymentUrl) {
       window.location.href = data.data.paymentUrl;
@@ -439,5 +442,8 @@ document.getElementById('cust-phone').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') handleCheckout();
 });
 </script>
+<!-- Plausible Analytics -->
+<script async src="https://plausible.io/js/pa-aAqBMAznLkSKHIgdDIawd.js"></script>
+<script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)};</script>
 </body>
 </html>

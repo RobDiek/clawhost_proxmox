@@ -440,6 +440,9 @@ async function verifyOtp() {
       }).catch(function() {}); // non-blocking
     }
 
+    // Track signup
+    if (window.plausible) plausible('Signup Complete');
+
     // Redirect to checkout with same params
     const searchParams = new URLSearchParams(window.location.search);
     const subdomainVal = document.getElementById('subdomain').value.trim().toLowerCase();
@@ -466,5 +469,8 @@ document.getElementById('otp').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') verifyOtp();
 });
 </script>
+<!-- Plausible Analytics -->
+<script async src="https://plausible.io/js/pa-aAqBMAznLkSKHIgdDIawd.js"></script>
+<script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)};</script>
 </body>
 </html>
