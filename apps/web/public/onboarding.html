@@ -934,7 +934,7 @@ function goToStep(n) { window._goToStep && window._goToStep(n); }
 (function() {
   'use strict';
 
-  var API = 'https://api.openclaw.flowmatic.co.il';
+  var API = 'https://api.clawflow.flowmatic.co.il';
   var params = new URLSearchParams(window.location.search);
   var instanceId = params.get('instance');
   var currentStep = 1;
@@ -1262,14 +1262,14 @@ function goToStep(n) { window._goToStep && window._goToStep(n); }
     if (instanceData && instanceData.subdomainAgent) {
       return 'https://' + instanceData.subdomainAgent;
     }
-    return 'https://agent.' + instanceId + '.openclaw.flowmatic.co.il';
+    return 'https://agent.' + instanceId + '.clawflow.flowmatic.co.il';
   }
 
   function getFlowsUrl() {
     if (instanceData && instanceData.subdomainFlows) {
       return 'https://' + instanceData.subdomainFlows;
     }
-    return 'https://flows.' + instanceId + '.openclaw.flowmatic.co.il';
+    return 'https://flows.' + instanceId + '.clawflow.flowmatic.co.il';
   }
 
   async function populateDoneStep() {

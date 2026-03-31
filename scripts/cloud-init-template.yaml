@@ -162,10 +162,10 @@ runcmd:
             ports: ["127.0.0.1:5678:5678"]
             volumes: ["/opt/openclaw/data/n8n:/home/node/.n8n"]
             environment:
-              - N8N_HOST={{SUBDOMAIN_NAME}}-flows.openclaw.flowmatic.co.il
+              - N8N_HOST={{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il
               - N8N_PROTOCOL=https
               - N8N_PORT=5678
-              - WEBHOOK_URL=https://{{SUBDOMAIN_NAME}}-flows.openclaw.flowmatic.co.il
+              - WEBHOOK_URL=https://{{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il
               - N8N_ENCRYPTION_KEY={{AUTOMATION_PASSWORD}}
               - N8N_USER_MANAGEMENT_DISABLED=true
               - N8N_DIAGNOSTICS_ENABLED=false
@@ -192,7 +192,7 @@ runcmd:
               - AP_POSTGRES_PASSWORD={{AUTOMATION_PASSWORD}}
               - AP_REDIS_HOST=ap-redis
               - AP_REDIS_PORT=6379
-              - AP_FRONTEND_URL=https://{{SUBDOMAIN_NAME}}-flows.openclaw.flowmatic.co.il
+              - AP_FRONTEND_URL=https://{{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il
               - AP_ENCRYPTION_KEY={{OPENCLAW_TOKEN}}
               - AP_JWT_SECRET={{AUTOMATION_PASSWORD}}
               - AP_EDITION=ce
@@ -239,7 +239,7 @@ runcmd:
         cat > /etc/nginx/sites-available/openclaw << 'NGEOF'
         server {
             listen 80;
-            server_name {{SUBDOMAIN_NAME}}.openclaw.flowmatic.co.il;
+            server_name {{SUBDOMAIN_NAME}}.clawflow.flowmatic.co.il;
 
             location / {
                 proxy_pass http://127.0.0.1:3000;
@@ -288,7 +288,7 @@ runcmd:
         }
         server {
             listen 80;
-            server_name {{SUBDOMAIN_NAME}}-flows.openclaw.flowmatic.co.il;
+            server_name {{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il;
 
             # Block Platform Admin — customers don't need it
             location /platform {
@@ -317,8 +317,8 @@ runcmd:
     - |
         for i in $(seq 1 30); do
           certbot --nginx \
-            -d {{SUBDOMAIN_NAME}}.openclaw.flowmatic.co.il \
-            -d {{SUBDOMAIN_NAME}}-flows.openclaw.flowmatic.co.il \
+            -d {{SUBDOMAIN_NAME}}.clawflow.flowmatic.co.il \
+            -d {{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il \
             --non-interactive --agree-tos \
             -m devops@flowmatic.co.il && break
           sleep 15
@@ -334,7 +334,7 @@ runcmd:
         TIMESTAMP=$(date +%Y%m%d-%H%M%S)
         BACKUP_FILE="$BACKUP_DIR/backup-$TIMESTAMP.tar.gz"
         INSTANCE_ID="{{INSTANCE_ID}}"
-        API_URL="https://api.openclaw.flowmatic.co.il"
+        API_URL="https://api.clawflow.flowmatic.co.il"
 
         # Create backup of openclaw data + automation configs
         tar -czf "$BACKUP_FILE" \
@@ -358,7 +358,7 @@ runcmd:
     {{/HAS_BACKUP}}
 
     # ── Health check cron ──
-    - echo "*/5 * * * * root curl -s https://api.openclaw.flowmatic.co.il/hosting/instances/{{INSTANCE_ID}}/health > /dev/null" > /etc/cron.d/clawflow-health
+    - echo "*/5 * * * * root curl -s https://api.clawflow.flowmatic.co.il/hosting/instances/{{INSTANCE_ID}}/health > /dev/null" > /etc/cron.d/clawflow-health
 
     # ── OpenClaw auto-update (nightly 4am, silent) ──
     - |

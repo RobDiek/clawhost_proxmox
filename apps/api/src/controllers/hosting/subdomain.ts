@@ -36,8 +36,8 @@ export const checkSubdomain = async (c: Context) => {
         return ok(c, {
             available: true,
             urls: {
-                agent: `${name}.openclaw.flowmatic.co.il`,
-                flows: `${name}-flows.openclaw.flowmatic.co.il`
+                agent: `${name}.clawflow.flowmatic.co.il`,
+                flows: `${name}-flows.clawflow.flowmatic.co.il`
             }
         }, 'Name is available.')
     } catch (err) {

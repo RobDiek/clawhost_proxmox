@@ -35,8 +35,8 @@ function sshExec(ip: string, command: string, password?: string): Promise<string
 
 const MS_CLIENT_ID = process.env.MICROSOFT_CLIENT_ID || ''
 const MS_CLIENT_SECRET = process.env.MICROSOFT_CLIENT_SECRET || ''
-const MS_REDIRECT_URI = process.env.MICROSOFT_REDIRECT_URI || 'https://api.openclaw.flowmatic.co.il/hosting/integrations/microsoft/callback'
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://openclaw.flowmatic.co.il'
+const MS_REDIRECT_URI = process.env.MICROSOFT_REDIRECT_URI || 'https://api.clawflow.flowmatic.co.il/hosting/integrations/microsoft/callback'
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://clawflow.flowmatic.co.il'
 const MS_TENANT = 'common' // supports personal + work accounts
 
 // Available Microsoft Graph scopes

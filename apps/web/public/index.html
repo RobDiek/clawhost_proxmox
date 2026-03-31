@@ -1516,7 +1516,7 @@ function submitSupport(e) {
   const contact = document.getElementById('support-contact-input').value;
   const message = document.getElementById('support-message-input').value;
 
-  fetch('https://api.openclaw.flowmatic.co.il/hosting/support', {
+  fetch('https://api.clawflow.flowmatic.co.il/hosting/support', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, contact, message }),
@@ -1580,7 +1580,7 @@ function submitPartnerForm() {
   if (!contact) { alert('הכניסו טלפון או אימייל'); return; }
   var message = document.getElementById('partner-message').value.trim();
 
-  fetch('https://api.openclaw.flowmatic.co.il/hosting/support', {
+  fetch('https://api.clawflow.flowmatic.co.il/hosting/support', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

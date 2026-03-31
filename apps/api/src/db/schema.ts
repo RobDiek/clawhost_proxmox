@@ -266,7 +266,7 @@ export const instances = pgTable(
         // Research (for MATEH)
         researchData: jsonb('research_data'),
 
-        // Custom subdomain (e.g. "sergei" -> sergei.openclaw.flowmatic.co.il)
+        // Custom subdomain (e.g. "sergei" -> sergei.clawflow.flowmatic.co.il)
         subdomainName: text('subdomain_name').unique(),
 
         // AI Provider keys (user's own keys)

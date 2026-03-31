@@ -35,8 +35,8 @@ function sshExec(ip: string, command: string, password?: string): Promise<string
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'https://api.openclaw.flowmatic.co.il/hosting/integrations/google/callback'
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://openclaw.flowmatic.co.il'
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'https://api.clawflow.flowmatic.co.il/hosting/integrations/google/callback'
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://clawflow.flowmatic.co.il'
 
 // Available Google scopes
 const SCOPE_MAP: Record<string, string> = {

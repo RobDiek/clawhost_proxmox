@@ -2,7 +2,7 @@
 // Runs as part of the API process, polls for updates
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || ''
-const API_BASE = process.env.API_URL || 'https://api.openclaw.flowmatic.co.il'
+const API_BASE = process.env.API_URL || 'https://api.clawflow.flowmatic.co.il'
 
 interface UserSession {
     step: number
@@ -135,7 +135,7 @@ async function handleMessage(chatId: number, text: string, userId: number): Prom
                         `✅ OpenClaw — הופעל מחדש\n\n` +
                         `📅 *מחר בבוקר ב-7:00* תקבלו את ה-Daily Brief הראשון כאן בטלגרם.\n\n` +
                         `📊 *כל יום שני ב-8:00* — דוח תחרותי שבועי.\n\n` +
-                        `🔗 לוח הבקרה: https://openclaw.flowmatic.co.il/dashboard.html\n\n` +
+                        `🔗 לוח הבקרה: https://clawflow.flowmatic.co.il/dashboard.html\n\n` +
                         `שלחו /help לעזרה נוספת.`
                     )
                 } else {
@@ -166,7 +166,7 @@ async function handleHelp(chatId: number): Promise<void> {
         `/setup — הגדרת סוכנים (7 שאלות)\n` +
         `/status — סטטוס הסוכנים\n` +
         `/help — עזרה\n\n` +
-        `🌐 לוח בקרה: https://openclaw.flowmatic.co.il/dashboard.html\n` +
+        `🌐 לוח בקרה: https://clawflow.flowmatic.co.il/dashboard.html\n` +
         `💬 תמיכה: support@flowmatic.co.il`
     )
 }

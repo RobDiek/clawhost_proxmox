@@ -17,7 +17,7 @@ import { eq } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
 
 const REDIRECT_URI = process.env.META_REDIRECT_URI ||
-    'https://api.openclaw.flowmatic.co.il/hosting/integrations/meta/callback'
+    'https://api.clawflow.flowmatic.co.il/hosting/integrations/meta/callback'
 
 // Scopes for ads + page management + instagram
 const META_SCOPES = [

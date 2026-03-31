@@ -1648,7 +1648,7 @@ var PLANS = {
   developer: { name: 'מפתח', price: 599, cpu: '8 vCPU Dedicated', ram: 32, nvme: 240 },
 };
 
-var API = 'https://api.openclaw.flowmatic.co.il';
+var API = 'https://api.clawflow.flowmatic.co.il';
 
 /* ===== Auth ===== */
 var token = localStorage.getItem('cf_token');
@@ -1664,8 +1664,8 @@ var subdomain = localStorage.getItem('cf_instance_subdomain') || instanceId;
 
 var plan = PLANS[planKey] || PLANS.personal;
 var openclawToken = localStorage.getItem('cf_openclaw_token') || '';
-var agentUrl = subdomain ? 'https://' + subdomain + '.openclaw.flowmatic.co.il' : '#';
-var flowsUrl = subdomain ? 'https://' + subdomain + '-flows.openclaw.flowmatic.co.il' : '#';
+var agentUrl = subdomain ? 'https://' + subdomain + '.clawflow.flowmatic.co.il' : '#';
+var flowsUrl = subdomain ? 'https://' + subdomain + '-flows.clawflow.flowmatic.co.il' : '#';
 
 function buildAgentUrl(base, token) {
   if (!base || base === '#') return '#';
@@ -2941,7 +2941,7 @@ var PUBLISH_GUIDES = {
       { title: 'צרו Meta Developer Account', desc: 'היכנסו ל-<a href="https://developers.facebook.com" target="_blank" dir="ltr">developers.facebook.com</a> והירשמו עם חשבון Facebook שלכם.' },
       { title: 'צרו אפליקציה חדשה', desc: 'לחצו <strong>"Create App"</strong> ← בחרו <strong>"Business"</strong> ← שם: "ClawFlow Publisher" ← לחצו "Create".' },
       { title: 'הוסיפו Facebook Login', desc: 'ב-Dashboard ← <strong>"Add Products"</strong> ← בחרו <strong>"Facebook Login"</strong> ← לחצו "Set Up" ← בחרו "Web".' },
-      { title: 'הגדירו Redirect URI', desc: 'Settings ← Valid OAuth Redirect URIs ← הוסיפו:<br><code dir="ltr" style="background:#F3F4F6;padding:2px 6px;border-radius:4px;font-size:0.78rem">https://api.openclaw.flowmatic.co.il/hosting/integrations/meta/callback</code>' },
+      { title: 'הגדירו Redirect URI', desc: 'Settings ← Valid OAuth Redirect URIs ← הוסיפו:<br><code dir="ltr" style="background:#F3F4F6;padding:2px 6px;border-radius:4px;font-size:0.78rem">https://api.clawflow.flowmatic.co.il/hosting/integrations/meta/callback</code>' },
       { title: 'העתיקו App ID ו-App Secret', desc: 'Settings ← Basic ← העתיקו <strong>App ID</strong> ו-<strong>App Secret</strong>.' },
       { title: 'חזרו ל-ClawFlow', desc: 'הדביקו את App ID ו-App Secret בשדות למעלה ← לחצו <strong>"→ חברו Meta Ads"</strong>. תועברו ל-Facebook לאישור הרשאות.' },
       { title: 'אשרו הרשאות', desc: 'בחרו את <strong>דף הפייסבוק העסקי</strong> + חשבון <strong>Instagram</strong> שלכם ← אשרו. חשוב: דף הפייסבוק חייב להיות מקושר לאינסטגרם.' }
@@ -2953,7 +2953,7 @@ var PUBLISH_GUIDES = {
       { title: 'צרו LinkedIn Developer App', desc: 'היכנסו ל-<a href="https://www.linkedin.com/developers/apps" target="_blank" dir="ltr">linkedin.com/developers/apps</a> ← "Create App".' },
       { title: 'הגדירו את האפליקציה', desc: 'שם: "ClawFlow Publisher" ← בחרו את דף החברה שלכם ← אשרו תנאים.' },
       { title: 'בקשו הרשאות', desc: 'Products ← בקשו "Share on LinkedIn" ו-"Sign in with LinkedIn using OpenID Connect".' },
-      { title: 'הגדירו OAuth Redirect', desc: 'Auth ← Redirect URL ← הוסיפו: <code dir="ltr">https://api.openclaw.flowmatic.co.il/hosting/integrations/linkedin/callback</code>' },
+      { title: 'הגדירו OAuth Redirect', desc: 'Auth ← Redirect URL ← הוסיפו: <code dir="ltr">https://api.clawflow.flowmatic.co.il/hosting/integrations/linkedin/callback</code>' },
       { title: 'העתיקו Client ID & Secret', desc: 'Auth ← העתיקו את Client ID ו-Client Secret.' },
       { title: 'חזרו ולחצו "חברו LinkedIn"', desc: 'ב-ClawFlow תתבצע הפניה אוטומטית ל-LinkedIn לאישור.' }
     ]
@@ -2964,7 +2964,7 @@ var PUBLISH_GUIDES = {
       { title: 'צרו Developer Account', desc: 'היכנסו ל-<a href="https://developer.twitter.com" target="_blank" dir="ltr">developer.twitter.com</a> ← "Sign Up" ← אשרו את חשבון המפתח.' },
       { title: 'צרו Project ו-App', desc: 'Developer Portal ← "Projects & Apps" ← "New Project" ← שם: "ClawFlow" ← "New App".' },
       { title: 'הגדירו OAuth 2.0', desc: 'App Settings ← "User authentication settings" ← Enable OAuth 2.0 ← Type: "Web App".' },
-      { title: 'Redirect URL', desc: 'הוסיפו: <code dir="ltr">https://api.openclaw.flowmatic.co.il/hosting/integrations/twitter/callback</code>' },
+      { title: 'Redirect URL', desc: 'הוסיפו: <code dir="ltr">https://api.clawflow.flowmatic.co.il/hosting/integrations/twitter/callback</code>' },
       { title: 'העתיקו Keys', desc: 'Keys & Tokens ← העתיקו Client ID ו-Client Secret.' },
       { title: 'חזרו ולחצו "חברו X"', desc: 'ב-ClawFlow תתבצע הפניה אוטומטית ל-Twitter/X לאישור.' }
     ]
@@ -5928,7 +5928,7 @@ function termConnect() {
   termFit.fit();
 
   // Connect WebSocket
-  var wsUrl = 'wss://api.openclaw.flowmatic.co.il/ws/terminal/' + instanceId;
+  var wsUrl = 'wss://api.clawflow.flowmatic.co.il/ws/terminal/' + instanceId;
   termWs = new WebSocket(wsUrl);
 
   termWs.onopen = function() {

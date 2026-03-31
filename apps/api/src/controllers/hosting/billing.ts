@@ -107,8 +107,8 @@ export const checkout = async (c: Context<HonoEnv>) => {
             status: 'pending'
         })
 
-        const frontendUrl = process.env.FRONTEND_URL || 'https://openclaw.flowmatic.co.il'
-        const apiUrl = process.env.API_URL || 'https://api.openclaw.flowmatic.co.il'
+        const frontendUrl = process.env.FRONTEND_URL || 'https://clawflow.flowmatic.co.il'
+        const apiUrl = process.env.API_URL || 'https://api.clawflow.flowmatic.co.il'
 
         let paymentUrl = ''
         const isTestMode = process.env.ALLPAY_TEST_MODE === 'true'
@@ -348,7 +348,7 @@ export const handleAllpayWebhook = async (c: Context) => {
 
                 // Notify user via Telegram
                 if (instance.telegramChatId) {
-                    const frontendUrl = process.env.FRONTEND_URL || 'https://openclaw.flowmatic.co.il'
+                    const frontendUrl = process.env.FRONTEND_URL || 'https://clawflow.flowmatic.co.il'
                     await telegram.notifyPaymentFailed(instance.telegramChatId, `${frontendUrl}/dashboard.html`)
                 }
 

@@ -218,7 +218,7 @@ a:hover { text-decoration: underline; }
       <label class="form-label" for="subdomain">בחרו כתובת לסוכן שלכם</label>
       <div style="display:flex;align-items:center;gap:0;direction:ltr">
         <input class="form-input" id="subdomain" type="text" placeholder="your-name" dir="ltr" autocomplete="off" style="border-radius:8px 0 0 8px;border-left:none;flex:1" oninput="checkName()"/>
-        <span style="background:#F3F4F6;border:1px solid #E5E7EB;padding:10px 8px;font-size:0.75rem;color:#9CA3AF;white-space:nowrap;border-radius:0 8px 8px 0">.openclaw.flowmatic.co.il</span>
+        <span style="background:#F3F4F6;border:1px solid #E5E7EB;padding:10px 8px;font-size:0.75rem;color:#9CA3AF;white-space:nowrap;border-radius:0 8px 8px 0">.clawflow.flowmatic.co.il</span>
       </div>
       <div class="msg" id="msg-subdomain" style="font-size:0.78rem;min-height:20px"></div>
     </div>
@@ -250,7 +250,7 @@ a:hover { text-decoration: underline; }
 </div>
 
 <script>
-const API = 'https://api.openclaw.flowmatic.co.il';
+const API = 'https://api.clawflow.flowmatic.co.il';
 
 const PLANS = {
   personal: { he: 'אישי', price: 79 },
@@ -319,7 +319,7 @@ async function checkName() {
       const res = await fetch(API + '/hosting/subdomain/check?name=' + encodeURIComponent(name));
       const data = await res.json();
       if (data.data?.available) {
-        msgEl.textContent = '✓ ' + name + '.openclaw.flowmatic.co.il';
+        msgEl.textContent = '✓ ' + name + '.clawflow.flowmatic.co.il';
         msgEl.className = 'msg msg-success';
         subdomainValid = true;
       } else {

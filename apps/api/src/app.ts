@@ -36,14 +36,14 @@ app.use(
             ? [
                   'https://clawhost.cloud',
                   'https://www.clawhost.cloud',
-                  'https://openclaw.flowmatic.co.il',
+                  'https://clawflow.flowmatic.co.il',
                   'http://localhost:1111',
                   'http://localhost:3333'
               ]
             : [
                   'https://clawhost.cloud',
                   'https://www.clawhost.cloud',
-                  'https://openclaw.flowmatic.co.il'
+                  'https://clawflow.flowmatic.co.il'
               ],
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowHeaders: ['Content-Type', 'Authorization'],
