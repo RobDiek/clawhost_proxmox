@@ -366,4 +366,31 @@ runcmd:
     # ── Health check cron ──
     - echo "*/5 * * * * root curl -s https://api.openclaw.flowmatic.co.il/hosting/instances/{{INSTANCE_ID}}/health > /dev/null" > /etc/cron.d/clawflow-health
 
+    # ── OpenClaw auto-update (nightly 4am, silent) ──
+    - |
+        cat > /opt/openclaw-update.sh << 'UPDEOF'
+        #!/bin/bash
+        # Silent OpenClaw Gateway update
+        CURRENT=$(su - openclaw -c 'openclaw --version 2>/dev/null' || echo "unknown")
+        npm install -g @anthropic/openclaw@latest --silent 2>/dev/null
+        NEW=$(su - openclaw -c 'openclaw --version 2>/dev/null' || echo "unknown")
+        if [ "$CURRENT" != "$NEW" ]; then
+          systemctl restart openclaw-gateway
+          echo "$(date): Updated OpenClaw $CURRENT -> $NEW" >> /var/log/openclaw-update.log
+        fi
+        UPDEOF
+        chmod +x /opt/openclaw-update.sh
+    - echo "0 4 * * * root /opt/openclaw-update.sh >> /var/log/openclaw-update.log 2>&1" > /etc/cron.d/openclaw-update
+
+    # ── Disable update banner in OpenClaw UI ──
+    - |
+        cd /home/openclaw/.openclaw
+        node -e "
+          const fs = require('fs');
+          const cfg = JSON.parse(fs.readFileSync('openclaw.json','utf-8'));
+          cfg.updates = { notify: false, autoCheck: false };
+          fs.writeFileSync('openclaw.json', JSON.stringify(cfg, null, 2));
+        " 2>/dev/null || true
+        chown openclaw:openclaw openclaw.json
+
 final_message: 'ClawFlow instance {{INSTANCE_ID}} ready!'
