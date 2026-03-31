@@ -148,25 +148,51 @@ const hetzner: CloudProvider = {
     },
 
     async changeServerType(serverId: string, newType: string): Promise<void> {
-        // Must power off first, then change type, then power on
+        const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
+
+        // 1. Shutdown
+        console.log(`[Hetzner] Shutting down server ${serverId}...`)
         await getClient().post(`/servers/${serverId}/actions/shutdown`)
-        // Wait for shutdown
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 40; i++) {
             const data = await getClient().get<HetznerServerResponse>(`/servers/${serverId}`)
             if (data.server.status === 'off') break
-            await new Promise(r => setTimeout(r, 2000))
+            await sleep(3000)
         }
-        await getClient().post(`/servers/${serverId}/actions/change_type`, {
-            server_type: newType,
-            upgrade_disk: true
-        })
-        // Wait for resize
+
+        // 2. Change type
+        console.log(`[Hetzner] Changing server ${serverId} to ${newType}...`)
+        const actionRes = await getClient().post<{ action: { id: number } }>(
+            `/servers/${serverId}/actions/change_type`,
+            { server_type: newType, upgrade_disk: true }
+        )
+
+        // 3. Wait for action to complete
+        const actionId = actionRes?.action?.id
+        if (actionId) {
+            for (let i = 0; i < 60; i++) {
+                try {
+                    const a = await getClient().get<{ action: { status: string } }>(`/actions/${actionId}`)
+                    if (a.action.status === 'success') break
+                    if (a.action.status === 'error') throw new Error('Hetzner change_type action failed')
+                } catch { /* retry */ }
+                await sleep(5000)
+            }
+        } else {
+            // Fallback: wait fixed time
+            await sleep(30000)
+        }
+
+        // 4. Power on
+        console.log(`[Hetzner] Powering on server ${serverId}...`)
+        await getClient().post(`/servers/${serverId}/actions/poweron`)
+
+        // 5. Wait until running
         for (let i = 0; i < 30; i++) {
             const data = await getClient().get<HetznerServerResponse>(`/servers/${serverId}`)
-            if (data.server.status === 'off' && data.server.server_type?.name === newType) break
-            await new Promise(r => setTimeout(r, 3000))
+            if (data.server.status === 'running') break
+            await sleep(3000)
         }
-        await getClient().post(`/servers/${serverId}/actions/poweron`)
+        console.log(`[Hetzner] Server ${serverId} upgraded to ${newType} and running`)
     },
 
     async getServerTypes(): Promise<ServerTypeInfo[]> {

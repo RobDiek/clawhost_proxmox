@@ -1,8 +1,9 @@
 import type { Context } from 'hono'
 import type { HonoEnv } from '@/ts/Types'
 import crypto from 'crypto'
+import { randomBytes } from 'crypto'
 import { db } from '@/db'
-import { instances } from '@/db/schema'
+import { instances, payments } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
 import { PLANS } from '@openclaw/shared'
@@ -176,6 +177,17 @@ export const upgradePlan = async (c: Context<HonoEnv>) => {
         if (!instance.hetznerServerId) {
             return fail(c, 'No server to upgrade.', 400)
         }
+
+        // Record upgrade payment (price difference)
+        const priceDiff = targetPlanInfo.priceIls - currentPlan.priceIls
+        await db.insert(payments).values({
+            id: randomBytes(5).toString('hex'),
+            instanceId,
+            allpayOrderId: `upgrade-${instanceId}-${Date.now()}`,
+            amountIls: String(priceDiff),
+            status: 'paid',
+            paidAt: new Date(),
+        })
 
         // Update status to upgrading
         await db.update(instances)
