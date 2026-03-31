@@ -17,17 +17,18 @@ function getSSHKey(): Buffer {
     return sshKeyCache
 }
 
-async function getInstanceIp(instanceId: string): Promise<string | null> {
+async function getInstanceInfo(instanceId: string): Promise<{ ip: string; password: string | null } | null> {
     const client = await pool.connect()
     try {
-        const res = await client.query('SELECT ip FROM instances WHERE id = $1 AND status = $2', [instanceId, 'running'])
-        return res.rows[0]?.ip || null
+        const res = await client.query('SELECT ip, root_password FROM instances WHERE id = $1 AND status = $2', [instanceId, 'running'])
+        if (!res.rows[0]?.ip) return null
+        return { ip: res.rows[0].ip, password: res.rows[0].root_password }
     } finally { client.release() }
 }
 
 const PING_INTERVAL = 5000
 
-function handleTerminalConnection(ws: WebSocket, ip: string) {
+function handleTerminalConnection(ws: WebSocket, ip: string, password?: string | null) {
     const conn = new Client()
     let sshReady = false
 
@@ -77,18 +78,21 @@ function handleTerminalConnection(ws: WebSocket, ip: string) {
 
     ws.on('close', () => { if (sshReady) conn.end() })
 
-    conn.connect({
+    const connectOpts: Record<string, unknown> = {
         host: ip,
         port: 22,
         username: 'root',
-        privateKey: getSSHKey(),
         readyTimeout: 10000,
         keepaliveInterval: 15000,
         keepaliveCountMax: 3,
         algorithms: {
             serverHostKey: ['ssh-ed25519', 'ssh-rsa', 'ecdsa-sha2-nistp256']
         }
-    })
+    }
+    // Use password + SSH key (password as fallback if key not accepted)
+    if (password) connectOpts.password = password
+    try { connectOpts.privateKey = getSSHKey() } catch { /* key not available */ }
+    conn.connect(connectOpts)
 }
 
 export function setupTerminalServer(server: Server) {
@@ -103,11 +107,11 @@ export function setupTerminalServer(server: Server) {
         const instanceId = match[1]
 
         try {
-            const ip = await getInstanceIp(instanceId)
-            if (!ip) { socket.destroy(); return }
+            const info = await getInstanceInfo(instanceId)
+            if (!info) { socket.destroy(); return }
 
             wss.handleUpgrade(request, socket, head, (ws) => {
-                handleTerminalConnection(ws, ip)
+                handleTerminalConnection(ws, info.ip, info.password)
             })
         } catch {
             socket.destroy()
