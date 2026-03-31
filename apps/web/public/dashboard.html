@@ -1988,7 +1988,7 @@ function getNotifications() {
     notifs.push({ id: 'rec-research', type: 'info', icon: '🔍', title: 'הריצו מחקר שוק', desc: 'הסוכן יחפש מתחרים, מילות מפתח והזדמנויות', action: "runResearchFromDashboard()", actionLabel: 'הריצו מחקר' });
   }
   if (!hasTelegram && dismissed.indexOf('rec-telegram') === -1) {
-    notifs.push({ id: 'rec-telegram', type: 'warning', icon: '📱', title: 'Telegram לא מחובר', desc: 'בלי Telegram לא תקבלו Daily Brief והתראות', action: "switchTab('integrations')", actionLabel: 'חברו' });
+    notifs.push({ id: 'rec-telegram', type: 'info', icon: '📱', title: 'חברו Telegram', desc: 'קבלו Daily Brief והתראות גם בטלגרם — בנוסף לצ\'אט המובנה', action: "switchTab('integrations')", actionLabel: 'חברו' });
   }
   // Brave Search recommendation for MATEH users
   var components = JSON.parse(localStorage.getItem('cf_instance_components') || '[]');
