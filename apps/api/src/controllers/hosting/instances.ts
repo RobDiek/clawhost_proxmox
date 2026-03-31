@@ -247,44 +247,84 @@ export const addStorage = async (c: Context<HonoEnv>) => {
         const instanceId = c.req.param('id')
         const { addonId } = await c.req.json<{ addonId: string }>()
 
-        const STORAGE_MAP: Record<string, number> = {
-            storage_20: 20,
-            storage_100: 100,
-            storage_500: 500,
+        const STORAGE_OPTIONS: Record<string, { size: number; price: number }> = {
+            storage_20: { size: 20, price: 9 },
+            storage_100: { size: 100, price: 39 },
+            storage_500: { size: 500, price: 199 },
         }
 
-        const sizeGb = STORAGE_MAP[addonId]
-        if (!sizeGb) return fail(c, 'Invalid storage addon.', 400)
+        const option = STORAGE_OPTIONS[addonId]
+        if (!option) return fail(c, 'Invalid storage addon.', 400)
 
         const [instance] = await db.select()
             .from(instances)
             .where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
 
         if (!instance?.hetznerServerId) return fail(c, 'Instance not found or not provisioned.', 404)
+        if (instance.status !== 'running') return fail(c, 'Instance must be running.', 400)
+
+        // Record payment
+        await db.insert(payments).values({
+            id: randomBytes(5).toString('hex'),
+            instanceId,
+            allpayOrderId: `storage-${instanceId}-${Date.now()}`,
+            amountIls: String(option.price),
+            status: 'paid',
+            paidAt: new Date(),
+        })
 
         const provider = getProvider('hetzner')
 
-        // Create Hetzner volume and attach to server
+        // Create Hetzner volume (automount + ext4 formatted)
         const volume = await provider.createVolume(
             `vol-${instanceId}-${Date.now()}`,
-            sizeGb,
+            option.size,
             process.env.HETZNER_DATACENTER || 'hel1',
             Number(instance.hetznerServerId)
         )
 
+        // Symlink volume mount to openclaw extra-storage dir
+        if (instance.ip) {
+            try {
+                const { Client } = await import('ssh2')
+                const { readFileSync } = await import('fs')
+                const sshKey = readFileSync(process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master')
+                await new Promise<void>((resolve, reject) => {
+                    const conn = new Client()
+                    conn.on('ready', () => {
+                        conn.exec(
+                            `MOUNT=$(lsblk -o MOUNTPOINT -n /dev/disk/by-id/scsi-0HC_Volume_${volume.id} 2>/dev/null | head -1) && ` +
+                            `if [ -n "$MOUNT" ]; then ` +
+                            `  mkdir -p /home/openclaw/.openclaw/extra-storage && ` +
+                            `  ln -sf "$MOUNT" /home/openclaw/.openclaw/extra-storage/vol-${volume.id} && ` +
+                            `  chown -R openclaw:openclaw /home/openclaw/.openclaw/extra-storage; ` +
+                            `fi`,
+                            (err) => { conn.end(); err ? reject(err) : resolve() }
+                        )
+                    }).on('error', reject)
+                    const opts: Record<string, unknown> = { host: instance.ip, port: 22, username: 'root', privateKey: sshKey }
+                    if (instance.rootPassword) opts.password = instance.rootPassword
+                    conn.connect(opts)
+                })
+            } catch (e) {
+                console.error('Volume symlink failed (non-critical):', e)
+            }
+        }
+
         // Update storage in DB
         const currentStorage = instance.storageGb || 0
         await db.update(instances).set({
-            storageGb: currentStorage + sizeGb,
+            storageGb: currentStorage + option.size,
         }).where(eq(instances.id, instanceId))
 
-        await telegram.alertAdmin(`💾 Storage added: ${instanceId} +${sizeGb}GB (volume: ${volume.id})`)
+        await telegram.alertAdmin(`💾 Storage added: ${instanceId} +${option.size}GB (₪${option.price}/mo, volume: ${volume.id})`)
 
         return ok(c, {
             volumeId: volume.id,
-            sizeGb,
-            totalStorageGb: currentStorage + sizeGb,
-        }, `${sizeGb}GB storage added.`)
+            sizeGb: option.size,
+            priceIls: option.price,
+            totalStorageGb: currentStorage + option.size,
+        }, `${option.size}GB אחסון נוסף נוסף בהצלחה!`)
     } catch (err) {
         console.error('addStorage error:', err)
         return fail(c, 'Failed to add storage.', 500)
