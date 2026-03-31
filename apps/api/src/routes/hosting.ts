@@ -39,6 +39,7 @@ import {
     renameFile,
     deployCustomAgent,
     saveIntegration,
+    testSmtp,
     serverStats,
     serverLogs,
     googleAuth,
@@ -114,6 +115,7 @@ app.delete('/instances/:id/files', deleteFile)
 app.post('/instances/:id/files/rename', renameFile)
 app.post('/instances/:id/files/deploy-agent', deployCustomAgent)
 app.post('/instances/:id/integrations/save', saveIntegration)
+app.post('/instances/:id/integrations/test-smtp', testSmtp)
 
 // ── Server ──
 app.get('/instances/:id/stats', serverStats)

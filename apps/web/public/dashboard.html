@@ -977,10 +977,35 @@ input{font-family:inherit}
           </div>
         </div>
       </div>
-      <div class="int-card">
+      <div class="int-card" id="smtp-card">
         <div class="int-card-header">
           <div class="int-icon" style="background:#FFF3E0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#EA580C" stroke-width="1.5" fill="none"/><path d="M22 6l-10 7L2 6" stroke="#EA580C" stroke-width="1.5" fill="none"/></svg></div>
-          <div><strong>Email (SMTP)</strong><div class="int-status soon">בקרוב</div></div>
+          <div><strong>Email (SMTP)</strong><div class="int-status" id="smtp-status">לא מחובר</div></div>
+        </div>
+        <div class="int-card-body hidden" id="int-smtp-body">
+          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">שליחת אימיילים ישירות — Gmail, Outlook, או כל שרת SMTP</div>
+          <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+            <button class="btn btn-outline btn-sm smtp-preset" onclick="setSmtpPreset('gmail')" style="font-size:0.72rem">Gmail</button>
+            <button class="btn btn-outline btn-sm smtp-preset" onclick="setSmtpPreset('outlook')" style="font-size:0.72rem">Outlook</button>
+            <button class="btn btn-outline btn-sm smtp-preset" onclick="setSmtpPreset('custom')" style="font-size:0.72rem">אחר</button>
+          </div>
+          <input type="text" id="smtp-host" placeholder="שרת SMTP (smtp.gmail.com)" dir="ltr" class="int-input" style="margin-bottom:4px"/>
+          <div style="display:flex;gap:4px;margin-bottom:4px">
+            <input type="number" id="smtp-port" placeholder="587" dir="ltr" class="int-input" style="width:80px"/>
+            <select id="smtp-secure" class="int-input" style="flex:1;padding:6px">
+              <option value="tls">TLS (587)</option>
+              <option value="ssl">SSL (465)</option>
+              <option value="none">ללא (25)</option>
+            </select>
+          </div>
+          <input type="email" id="smtp-user" placeholder="אימייל / שם משתמש" dir="ltr" class="int-input" style="margin-bottom:4px"/>
+          <input type="password" id="smtp-pass" placeholder="סיסמה / App Password" dir="ltr" class="int-input" style="margin-bottom:4px"/>
+          <input type="text" id="smtp-from" placeholder="שם השולח (ClawFlow)" class="int-input" style="margin-bottom:6px"/>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-primary btn-sm" onclick="saveSmtp()">שמרו</button>
+            <button class="btn btn-outline btn-sm" onclick="testSmtp()">בדקו חיבור</button>
+          </div>
+          <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px">Gmail: השתמשו ב-<a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:#2563EB">App Password</a> (לא הסיסמה הרגילה)</div>
         </div>
       </div>
       <div class="int-card">
@@ -4403,6 +4428,58 @@ function checkGoogleStatus() {
     showToast('שגיאה בחיבור Google: ' + params.get('google_error'), 'error');
     window.history.replaceState({}, '', '/dashboard');
   }
+}
+
+/* ===== SMTP Email ===== */
+function setSmtpPreset(type) {
+  var host = document.getElementById('smtp-host');
+  var port = document.getElementById('smtp-port');
+  var secure = document.getElementById('smtp-secure');
+  if (type === 'gmail') { host.value = 'smtp.gmail.com'; port.value = '587'; secure.value = 'tls'; }
+  else if (type === 'outlook') { host.value = 'smtp.office365.com'; port.value = '587'; secure.value = 'tls'; }
+  else { host.value = ''; port.value = '587'; secure.value = 'tls'; }
+}
+
+async function saveSmtp() {
+  var config = {
+    host: document.getElementById('smtp-host').value.trim(),
+    port: parseInt(document.getElementById('smtp-port').value) || 587,
+    secure: document.getElementById('smtp-secure').value,
+    user: document.getElementById('smtp-user').value.trim(),
+    pass: document.getElementById('smtp-pass').value,
+    from: document.getElementById('smtp-from').value.trim() || 'ClawFlow',
+  };
+  if (!config.host || !config.user || !config.pass) { showToast('מלאו את כל השדות', 'error'); return; }
+  showToast('שומר...', 'info');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/integrations/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ type: 'smtp', key: JSON.stringify(config) })
+    });
+    var d = await res.json();
+    if (d.success) {
+      showToast('SMTP נשמר', 'success');
+      document.getElementById('smtp-status').textContent = 'מחובר';
+      document.getElementById('smtp-status').className = 'int-status connected';
+    } else { showToast(d.message || 'שגיאה', 'error'); }
+  } catch (e) { showToast('שגיאת תקשורת', 'error'); }
+}
+
+async function testSmtp() {
+  var user = document.getElementById('smtp-user').value.trim();
+  if (!user) { showToast('מלאו אימייל קודם', 'error'); return; }
+  showToast('שולח אימייל בדיקה ל-' + user + '...', 'info');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/integrations/test-smtp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ to: user })
+    });
+    var d = await res.json();
+    if (d.success) { showToast('אימייל בדיקה נשלח!', 'success'); }
+    else { showToast(d.message || 'שליחה נכשלה', 'error'); }
+  } catch (e) { showToast('שגיאת תקשורת', 'error'); }
 }
 
 /* ===== Microsoft 365 ===== */

@@ -385,6 +385,7 @@ export const saveIntegration = async (c: Context) => {
             replicate: writeConfig(`${VPS_HOME}/skills-config`, 'replicate.json', { apiToken: key }),
             ollama: `systemctl start ollama 2>/dev/null; ollama pull '${safeKey}' 2>/dev/null & cd /home/openclaw && openclaw provider add ollama --model '${safeKey}' 2>/dev/null || (mkdir -p ${VPS_HOME}/providers && echo '${Buffer.from(JSON.stringify({ provider: 'ollama', model: key })).toString('base64')}' | base64 -d > ${VPS_HOME}/providers/ollama.json)`,
             resend: writeConfig(`${VPS_HOME}/skills-config`, 'resend.json', { apiKey: key }),
+            smtp: writeConfig(`${VPS_HOME}/skills-config`, 'smtp.json', JSON.parse(key)),
             wordpress: writeConfig(`${VPS_HOME}/skills-config`, 'wordpress.json', JSON.parse(key).constructor === Object ? JSON.parse(key) : { data: key }),
             'newsletter-recipients': writeConfig(`${VPS_HOME}/skills-config`, 'newsletter-recipients.json', JSON.parse(key).constructor === Object ? JSON.parse(key) : { data: key }),
         }
@@ -479,5 +480,57 @@ export const saveIntegration = async (c: Context) => {
     } catch (err) {
         console.error('saveIntegration error:', err)
         return fail(c, 'Failed to save integration.', 500)
+    }
+}
+
+// POST /hosting/instances/:id/integrations/test-smtp
+export const testSmtp = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = getUserId(c)
+        const { to } = await c.req.json<{ to: string }>()
+        if (!to) return fail(c, 'Recipient email required.', 400)
+
+        const instance = await getInstance(instanceId, userId)
+        if (!instance?.ip) return fail(c, 'Instance not found.', 404)
+
+        // Read SMTP config from VPS and send test email via Python
+        const result = await sshExecInstance(instance, `
+            python3 -c "
+import json, smtplib
+from email.mime.text import MIMEText
+
+with open('/home/openclaw/.openclaw/skills-config/smtp.json') as f:
+    cfg = json.load(f)
+
+msg = MIMEText('This is a test email from ClawFlow SMTP integration.\\n\\nIf you see this, SMTP is configured correctly!', 'plain', 'utf-8')
+msg['Subject'] = 'ClawFlow SMTP Test'
+msg['From'] = cfg.get('from', 'ClawFlow') + ' <' + cfg['user'] + '>'
+msg['To'] = '${to.replace(/'/g, '')}'
+
+use_ssl = cfg.get('secure') == 'ssl'
+port = cfg.get('port', 587)
+
+if use_ssl:
+    server = smtplib.SMTP_SSL(cfg['host'], port, timeout=10)
+else:
+    server = smtplib.SMTP(cfg['host'], port, timeout=10)
+    server.starttls()
+
+server.login(cfg['user'], cfg['pass'])
+server.send_message(msg)
+server.quit()
+print('OK')
+" 2>&1
+        `)
+
+        if (result.includes('OK')) {
+            return ok(c, null, 'Test email sent successfully.')
+        } else {
+            return fail(c, 'SMTP test failed: ' + result.slice(0, 200), 400)
+        }
+    } catch (err) {
+        console.error('testSmtp error:', err)
+        return fail(c, 'Failed to test SMTP.', 500)
     }
 }
