@@ -345,12 +345,22 @@ export const deleteInstance = async (c: Context<HonoEnv>) => {
             return fail(c, 'Instance not found.', 404)
         }
 
+        // Cancel AllPay recurring payment
+        if (instance.allpayOrderId) {
+            try {
+                const allpay = (await import('@/services/allpay')).default
+                await allpay.cancelSubscription(instance.allpayOrderId)
+            } catch (e) {
+                console.error(`Failed to cancel AllPay for ${instanceId}:`, e)
+            }
+        }
+
         if (instance.hetznerServerId) {
             await provisioner.terminate(instanceId, instance.hetznerServerId)
         }
 
         await db.update(instances)
-            .set({ status: 'terminated' })
+            .set({ status: 'terminated', subscriptionStatus: 'cancelled' })
             .where(eq(instances.id, instanceId))
 
         return ok(c, null, 'Instance terminated.')
@@ -371,8 +381,20 @@ export const deleteAccount = async (c: Context<HonoEnv>) => {
             .from(instances)
             .where(eq(instances.userId, userId))
 
-        // Terminate all VPS
+        // Cancel AllPay subscriptions + terminate all VPS
+        const allpay = (await import('@/services/allpay')).default
         for (const inst of userInstances) {
+            // Cancel AllPay recurring payment
+            if (inst.allpayOrderId) {
+                try {
+                    await allpay.cancelSubscription(inst.allpayOrderId)
+                    console.log(`AllPay subscription cancelled for ${inst.id} (order: ${inst.allpayOrderId})`)
+                } catch (e) {
+                    console.error(`Failed to cancel AllPay for ${inst.id}:`, e)
+                }
+            }
+
+            // Terminate Hetzner VPS + DNS
             if (inst.hetznerServerId && inst.status !== 'terminated') {
                 try {
                     await provisioner.terminate(inst.id, inst.hetznerServerId)
@@ -381,7 +403,7 @@ export const deleteAccount = async (c: Context<HonoEnv>) => {
                 }
             }
             await db.update(instances)
-                .set({ status: 'terminated' })
+                .set({ status: 'terminated', subscriptionStatus: 'cancelled' })
                 .where(eq(instances.id, inst.id))
         }
 
