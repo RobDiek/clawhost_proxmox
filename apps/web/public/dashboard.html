@@ -5257,7 +5257,7 @@ function removeRamNotification() {
 async function loadBackups() {
   var instanceId = localStorage.getItem('cf_instance_id');
   if (!instanceId) return;
-  var el = document.getElementById('backup-list');
+  var el = document.getElementById('backup-list2') || document.getElementById('backup-list');
   try {
     var res = await fetch(API + '/hosting/instances/' + instanceId + '/backups', { headers: { 'Authorization': 'Bearer ' + token } });
     var data = await res.json();
@@ -5310,20 +5310,23 @@ async function restoreBackup(name) {
   } catch (e) { showToast('שגיאה בשחזור', 'error'); }
 }
 
+var lastLogService = 'openclaw-gateway';
 async function loadLogs(service) {
+  if (service) lastLogService = service;
   var instanceId = localStorage.getItem('cf_instance_id');
   if (!instanceId) return;
-  document.getElementById('logs-output').textContent = 'טוען...';
+  var el = document.getElementById('logs-output2') || document.getElementById('logs-output');
+  if (el) el.textContent = 'טוען...';
   try {
-    var res = await fetch(API + '/hosting/instances/' + instanceId + '/logs?service=' + service + '&lines=100', { headers: { 'Authorization': 'Bearer ' + token } });
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/logs?service=' + (service || lastLogService) + '&lines=100', { headers: { 'Authorization': 'Bearer ' + token } });
     var data = await res.json();
-    if (data.success) {
-      document.getElementById('logs-output').textContent = data.data.lines.join('\n');
-      var el = document.getElementById('logs-output');
+    if (data.success && el) {
+      el.textContent = data.data.lines.join('\n');
       el.scrollTop = el.scrollHeight;
     }
-  } catch (e) { document.getElementById('logs-output').textContent = 'שגיאה בטעינת לוגים'; }
+  } catch (e) { if (el) el.textContent = 'שגיאה בטעינת לוגים'; }
 }
+function loadLogs2() { loadLogs(lastLogService); }
 
 /* ===== Terminal ===== */
 var term = null;
@@ -5365,7 +5368,8 @@ function termConnect() {
   term.loadAddon(termFit);
   term.loadAddon(webLinks);
 
-  var container = document.getElementById('terminal-container');
+  // Try new container (Console tab) first, fallback to old
+  var container = document.getElementById('terminal-container2') || document.getElementById('terminal-container');
   container.innerHTML = '';
   term.open(container);
   termFit.fit();
@@ -5375,9 +5379,10 @@ function termConnect() {
   termWs = new WebSocket(wsUrl);
 
   termWs.onopen = function() {
-    document.getElementById('term-status').innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block"></span> מחובר';
-    document.getElementById('term-connect-btn').textContent = 'מחובר';
-    document.getElementById('term-connect-btn').disabled = true;
+    var s = document.getElementById('term-status2') || document.getElementById('term-status');
+    if (s) s.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block"></span> מחובר';
+    var b = document.getElementById('term-connect-btn2') || document.getElementById('term-connect-btn');
+    if (b) { b.textContent = 'מחובר'; b.disabled = true; }
     term.focus();
   };
 
@@ -5386,9 +5391,10 @@ function termConnect() {
   };
 
   termWs.onclose = function() {
-    document.getElementById('term-status').innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#EF4444;display:inline-block"></span> נותק';
-    document.getElementById('term-connect-btn').textContent = 'התחברו';
-    document.getElementById('term-connect-btn').disabled = false;
+    var s = document.getElementById('term-status2') || document.getElementById('term-status');
+    if (s) s.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#EF4444;display:inline-block"></span> נותק';
+    var b = document.getElementById('term-connect-btn2') || document.getElementById('term-connect-btn');
+    if (b) { b.textContent = 'התחברו'; b.disabled = false; }
     if (term) term.write('\r\n\x1b[31m--- נותק ---\x1b[0m\r\n');
   };
 
