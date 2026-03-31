@@ -6,6 +6,7 @@ import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
+import { resolveUserId, getOwnedInstance } from './authHelper'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 const TEMPLATES_BASE = resolve(process.cwd(), '../../templates')
@@ -63,7 +64,7 @@ interface OnboardingAnswers {
 }
 
 async function generateWithClaude(answers: OnboardingAnswers, apiKeyOverride?: string): Promise<{ userMd: string; brandMd: string }> {
-    const key = apiKeyOverride || ANTHROPIC_API_KEY
+    const key = apiKeyOverride || process.env.ANTHROPIC_API_KEY || ''
     if (!key) {
         return generateFallback(answers)
     }
@@ -475,6 +476,9 @@ EOFPAIR
 export const analyzeAnswers = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        const userId = resolveUserId(c)
+        const inst = await getOwnedInstance(instanceId, userId)
+        if (!inst) return fail(c, 'Instance not found', 404)
         const answers = await c.req.json<OnboardingAnswers>()
 
         if (!answers.businessName || !answers.businessDescription) {
@@ -634,6 +638,7 @@ function validateResearchReport(report: string): { valid: boolean; reason?: stri
 export const runResearch = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
 
         if (!instance?.ip) {
@@ -1145,6 +1150,7 @@ ${QUALITY_GUARDRAILS}`,
 export const buildStrategy = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
 
         if (!instance?.ip) {
@@ -1350,6 +1356,7 @@ export const buildStrategy = async (c: Context) => {
 export const researchStage = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const { stage, feedback } = await c.req.json<{ stage: number; feedback?: string }>()
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
 
@@ -1518,6 +1525,7 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
 export const setupAgents = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const answers = await c.req.json<OnboardingAnswers>()
 
         if (!answers.businessName || !answers.businessDescription) {
@@ -1570,6 +1578,7 @@ export const setupAgents = async (c: Context) => {
 export const addAgentToInstance = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const { agentType } = await c.req.json<{ agentType: 'mt' | 'oc' }>()
 
         if (!agentType || !['mt', 'oc'].includes(agentType)) {
@@ -1717,6 +1726,7 @@ export const addAgentToInstance = async (c: Context) => {
 export const removeAgentFromInstance = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const { agentType } = await c.req.json<{ agentType: 'mt' | 'oc' }>()
 
         if (!agentType || !['mt', 'oc'].includes(agentType)) {

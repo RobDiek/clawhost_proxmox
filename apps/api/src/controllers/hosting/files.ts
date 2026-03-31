@@ -241,7 +241,7 @@ export const renameFile = async (c: Context) => {
         const instance = await getInstance(instanceId, userId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
-        await sshExecInstance(instance, `mv '${VPS_HOME}/${fromPath}' '${VPS_HOME}/${toPath}' && chown -R openclaw:openclaw ${VPS_HOME}`)
+        await sshExecInstance(instance, `mv '${shellEscape(`${VPS_HOME}/${fromPath}`)}' '${shellEscape(`${VPS_HOME}/${toPath}`)}' && chown -R openclaw:openclaw ${VPS_HOME}`)
 
         return ok(c, { from: fromPath, to: toPath }, 'Renamed.')
     } catch (err) {

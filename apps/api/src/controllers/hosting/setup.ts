@@ -5,6 +5,7 @@ import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
+import { resolveUserId, getOwnedInstance } from './authHelper'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 
@@ -112,7 +113,8 @@ export const setupApiKey = async (c: Context) => {
             return fail(c, 'Provider and API key are required.', 400)
         }
 
-        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const userId = resolveUserId(c)
+        const instance = await getOwnedInstance(instanceId, userId)
         if (!instance?.ip) {
             return fail(c, 'Instance not found or not ready.', 404)
         }
@@ -184,7 +186,8 @@ export const setupTelegram = async (c: Context) => {
             return fail(c, 'Bot token is required.', 400)
         }
 
-        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const userId = resolveUserId(c)
+        const instance = await getOwnedInstance(instanceId, userId)
         if (!instance?.ip) {
             return fail(c, 'Instance not found or not ready.', 404)
         }
@@ -270,6 +273,9 @@ export const setupTelegram = async (c: Context) => {
 export const completeOnboarding = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        const userId = resolveUserId(c)
+        const instance = await getOwnedInstance(instanceId, userId)
+        if (!instance) return fail(c, 'Instance not found.', 404)
 
         await db.update(instances)
             .set({ onboardingCompleted: true })

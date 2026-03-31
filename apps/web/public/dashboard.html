@@ -1812,7 +1812,7 @@ function renderHome() {
   if (!dataLoaded || !instanceData) {
     document.getElementById('homeTasks').innerHTML = '';
     document.getElementById('notificationsList').innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:20px;font-size:0.85rem">טוען...</div>';
-    document.getElementById('activityTimeline').innerHTML = '';
+    var atEl = document.getElementById('activityTimeline'); if (atEl) atEl.innerHTML = '';
     var grid = document.querySelector('.home-top-grid');
     if (grid) grid.style.gridTemplateColumns = '1fr';
     return;
@@ -4865,7 +4865,7 @@ function restartAgent() {
     }).then(function() {
       showToast('הסוכן הופעל מחדש', 'success');
     }).catch(function() {
-      showToast('הסוכן הופעל מחדש', 'success');
+      showToast('שגיאה בהפעלה מחדש', 'error');
     });
   }
 }

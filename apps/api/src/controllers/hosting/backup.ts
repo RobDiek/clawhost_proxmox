@@ -3,6 +3,7 @@ import type { HonoEnv } from '@/ts/Types'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
+import { resolveUserId } from './authHelper'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { readFileSync } from 'fs'
@@ -40,7 +41,7 @@ function sshExec(ip: string, command: string, password?: string): Promise<string
 // GET /hosting/instances/:id/backups
 export const listBackups = async (c: Context<HonoEnv>) => {
     try {
-        const userId = c.get('userId')
+        const userId = resolveUserId(c)
         const instanceId = c.req.param('id')
 
         const [instance] = await db.select()
@@ -79,7 +80,7 @@ export const listBackups = async (c: Context<HonoEnv>) => {
 // POST /hosting/instances/:id/backups/create — trigger manual backup
 export const createBackup = async (c: Context<HonoEnv>) => {
     try {
-        const userId = c.get('userId')
+        const userId = resolveUserId(c)
         const instanceId = c.req.param('id')
 
         const [instance] = await db.select()
@@ -107,7 +108,7 @@ export const createBackup = async (c: Context<HonoEnv>) => {
 // POST /hosting/instances/:id/backups/restore — restore from backup
 export const restoreBackup = async (c: Context<HonoEnv>) => {
     try {
-        const userId = c.get('userId')
+        const userId = resolveUserId(c)
         const instanceId = c.req.param('id')
         const { backupName } = await c.req.json<{ backupName: string }>()
 

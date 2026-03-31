@@ -62,12 +62,24 @@ body{font-family:'Heebo',system-ui,sans-serif;background:#FAFAFA;min-height:100v
     <div class="msg" id="msg-otp"></div>
   </div>
 
+  <div id="step-2fa" class="hidden">
+    <div class="card-title" style="margin-bottom:8px">אימות דו-שלבי</div>
+    <div class="card-desc">הכניסו את הקוד מאפליקציית ה-Authenticator</div>
+    <div class="form-group">
+      <label class="form-label" for="totp-code">קוד 2FA</label>
+      <input class="form-input" id="totp-code" type="text" placeholder="000000" maxlength="6" autocomplete="one-time-code" style="text-align:center;letter-spacing:6px;font-size:1.2rem"/>
+    </div>
+    <button class="btn btn-primary" id="btn-2fa" onclick="verify2fa()">אישור</button>
+    <div class="msg" id="msg-2fa"></div>
+  </div>
+
   <a href="/" class="link">← חזרה לדף הראשי</a>
 </div>
 
 <script>
 var API = 'https://api.openclaw.flowmatic.co.il';
 var userEmail = '';
+var partialToken = '';
 
 function showMsg(id, text, isError) {
   var el = document.getElementById(id);
@@ -132,7 +144,13 @@ async function verifyOtp() {
     });
     var data = await res.json();
 
-    if (data.success && data.data && data.data.token) {
+    if (data.success && data.data && data.data.needs2fa) {
+      // 2FA required — show TOTP step
+      partialToken = data.data.partialToken;
+      document.getElementById('step-otp').classList.add('hidden');
+      document.getElementById('step-2fa').classList.remove('hidden');
+      document.getElementById('totp-code').focus();
+    } else if (data.success && data.data && data.data.token) {
       localStorage.setItem('cf_token', data.data.token);
       localStorage.setItem('cf_email', data.data.email);
       window.location.href = '/dashboard';
@@ -148,8 +166,37 @@ async function verifyOtp() {
   setLoading('btn-verify', false);
 }
 
+async function verify2fa() {
+  var code = document.getElementById('totp-code').value.trim();
+  if (!code || code.length !== 6) { showMsg('msg-2fa', 'הכניסו קוד בן 6 ספרות', true); return; }
+
+  setLoading('btn-2fa', true);
+  showMsg('msg-2fa', '', false);
+
+  try {
+    var res = await fetch(API + '/hosting/auth/2fa/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ partialToken: partialToken, code: code })
+    });
+    var data = await res.json();
+
+    if (data.success && data.data && data.data.token) {
+      localStorage.setItem('cf_token', data.data.token);
+      localStorage.setItem('cf_email', data.data.email);
+      window.location.href = '/dashboard';
+    } else {
+      showMsg('msg-2fa', data.message || 'קוד שגוי', true);
+    }
+  } catch (e) {
+    showMsg('msg-2fa', 'שגיאת תקשורת, נסו שוב', true);
+  }
+  setLoading('btn-2fa', false);
+}
+
 document.getElementById('email').addEventListener('keydown', function(e) { if (e.key === 'Enter') sendOtp(); });
 document.getElementById('otp').addEventListener('keydown', function(e) { if (e.key === 'Enter') verifyOtp(); });
+document.getElementById('totp-code').addEventListener('keydown', function(e) { if (e.key === 'Enter') verify2fa(); });
 
 // If already logged in, go to dashboard
 if (localStorage.getItem('cf_token')) {
