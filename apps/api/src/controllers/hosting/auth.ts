@@ -531,3 +531,37 @@ export const disable2fa = async (c: Context) => {
         return fail(c, 'Failed to disable 2FA.', 500)
     }
 }
+
+// ── POST /hosting/auth/accept-terms ──────────────────────
+export const acceptTerms = async (c: Context) => {
+    try {
+        const body = await c.req.json<{
+            email: string
+            userId: string
+            timestamp: string
+            userAgent: string
+            documents: string[]
+        }>()
+
+        // Log to console (permanent record)
+        console.log(`[TERMS ACCEPTED] ${body.email} | ${body.userId} | ${body.timestamp} | docs: ${body.documents?.join(',')} | UA: ${body.userAgent}`)
+
+        // Send to Telegram
+        try {
+            const telegram = (await import('@/services/telegram')).default
+            await telegram.alertAdmin(
+                `📋 *תנאי שימוש אושרו*\n` +
+                `Email: ${body.email}\n` +
+                `User: ${body.userId}\n` +
+                `Time: ${body.timestamp}\n` +
+                `Docs: ${body.documents?.join(', ')}\n` +
+                `UA: ${(body.userAgent || '').substring(0, 80)}`
+            )
+        } catch {}
+
+        return ok(c, null, 'Terms accepted.')
+    } catch (err) {
+        console.error('acceptTerms error:', err)
+        return ok(c, null, 'OK') // non-critical, don't block registration
+    }
+}

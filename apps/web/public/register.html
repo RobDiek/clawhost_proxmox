@@ -226,7 +226,16 @@ a:hover { text-decoration: underline; }
       <label class="form-label" for="email">אימייל</label>
       <input class="form-input" id="email" type="email" placeholder="you@example.com" dir="ltr" autocomplete="email"/>
     </div>
-    <button class="btn btn-primary" id="btn-send" onclick="sendOtp()">שלחו קוד</button>
+    <div style="margin:12px 0;display:flex;align-items:flex-start;gap:8px">
+      <input type="checkbox" id="terms-accept" style="margin-top:4px;accent-color:#2563EB;flex-shrink:0;width:18px;height:18px"/>
+      <label for="terms-accept" style="font-size:0.8rem;color:#6B7280;line-height:1.5;cursor:pointer">
+        קראתי ואני מסכים/ה ל<a href="/terms.html" target="_blank" style="color:#2563EB">תנאי השימוש</a>,
+        <a href="/privacy.html" target="_blank" style="color:#2563EB">מדיניות הפרטיות</a>
+        ו<a href="/disclosure.html" target="_blank" style="color:#2563EB">גילוי הנאות</a>.
+        אני מבין/ה שהסוכנים הם המלצה בלבד והשימוש בהם על אחריותי.
+      </label>
+    </div>
+    <button class="btn btn-primary" id="btn-send" onclick="sendOtp()">לפתוח חשבון</button>
     <div class="msg" id="msg-email"></div>
   </div>
 
@@ -358,6 +367,16 @@ async function sendOtp() {
   const subdomain = document.getElementById('subdomain').value.trim().toLowerCase();
   if (!subdomain || !subdomainValid) { showMsg('msg-email', 'בחרו כתובת זמינה לסוכן', true); return; }
   if (!email) { showMsg('msg-email', 'הכניסו כתובת אימייל', true); return; }
+  if (!document.getElementById('terms-accept').checked) { showMsg('msg-email', 'יש לאשר את תנאי השימוש', true); return; }
+
+  // Record acceptance timestamp
+  window._termsAccepted = {
+    email: email,
+    timestamp: new Date().toISOString(),
+    ip: '',
+    userAgent: navigator.userAgent,
+    documents: ['terms.html', 'privacy.html', 'disclosure.html'],
+  };
 
   setLoading('btn-send', true);
   showMsg('msg-email', '', false);
@@ -411,6 +430,16 @@ async function verifyOtp() {
     // Save token
     localStorage.setItem('cf_token', data.data.token);
     localStorage.setItem('cf_email', data.data.email);
+
+    // Send terms acceptance record to backend
+    if (window._termsAccepted) {
+      window._termsAccepted.userId = data.data.userId;
+      fetch(API + '/hosting/auth/accept-terms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + data.data.token },
+        body: JSON.stringify(window._termsAccepted)
+      }).catch(function() {}); // non-blocking
+    }
 
     // Redirect to checkout with same params
     const searchParams = new URLSearchParams(window.location.search);

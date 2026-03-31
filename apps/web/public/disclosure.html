@@ -13,7 +13,6 @@ body{font-family:'Heebo',system-ui,sans-serif;background:#FAFAFA;color:#1f2937;l
 h1{font-size:1.8rem;font-weight:700;color:#111827;margin-bottom:8px}
 .subtitle{font-size:0.9rem;color:#9CA3AF;margin-bottom:32px}
 h2{font-size:1.2rem;font-weight:600;color:#2563EB;margin:28px 0 12px;padding-top:20px;border-top:1px solid #E5E7EB}
-h3{font-size:1rem;font-weight:600;color:#374151;margin:16px 0 8px}
 p,li{color:#4B5563;margin-bottom:8px}
 ul{padding-right:20px;margin-bottom:12px}
 a{color:#2563EB;text-decoration:none}
@@ -21,9 +20,7 @@ a:hover{text-decoration:underline}
 .back{display:inline-block;margin-bottom:24px;color:#9CA3AF;font-size:0.85rem}
 .back:hover{color:#2563EB}
 .info-box{background:#EFF6FF;border:1px solid #DBEAFE;border-radius:8px;padding:16px;margin:12px 0}
-table{width:100%;border-collapse:collapse;margin:12px 0}
-th,td{text-align:right;padding:8px 12px;border:1px solid #E5E7EB;font-size:0.85rem}
-th{background:#F3F4F6;color:#374151}
+.warn{background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:14px;margin:12px 0;font-size:0.9rem;color:#991B1B}
 </style>
 </head>
 <body>
@@ -32,53 +29,56 @@ th{background:#F3F4F6;color:#374151}
 <h1>גילוי נאות</h1>
 <p class="subtitle">עדכון אחרון: מרץ 2026 · ClawFlow by Flowmatic</p>
 
-<div class="info-box">
-<p><strong>אנחנו מאמינים בשקיפות מלאה.</strong> מסמך זה מפרט בדיוק מה אתם מקבלים, מה אתם משלמים, ומי עומד מאחורי השירות.</p>
-</div>
+<div class="info-box"><strong>אנחנו מאמינים בשקיפות מלאה.</strong> מסמך זה מפרט מה אתם מקבלים, מה לא כלול, ומי עומד מאחורי השירות.</div>
 
 <h2>1. מי אנחנו</h2>
-<p>ClawFlow by Flowmatic · עוסק מורשה 324503853</p>
-<p>שלמה המלך 18, נתניה, ישראל</p>
-<p>אימייל: <a href="mailto:support@flowmatic.co.il">support@flowmatic.co.il</a></p>
-<p>אתר: <a href="https://flowmatic.co.il">flowmatic.co.il</a></p>
+<p>ClawFlow by Flowmatic · עוסק מורשה 324503853<br>שלמה המלך 18, נתניה, ישראל<br><a href="mailto:support@flowmatic.co.il">support@flowmatic.co.il</a></p>
 
 <h2>2. מה השירות</h2>
-<p>ClawFlow מספק שרתי VPS מנוהלים עם תוכנת OpenClaw (קוד פתוח) מותקנת מראש. אנחנו לא מפתחים את OpenClaw — אנחנו מספקים אירוח ותשתית.</p>
+<p>ClawFlow מספק <strong>תשתית אירוח מנוהלת בלבד</strong> — שרתי VPS ייעודיים בענן עם תוכנות קוד פתוח מותקנות מראש. <strong>אנחנו לא מפתחים את OpenClaw או את סוכני ה-AI.</strong></p>
 
-<h2>3. תמחור שקוף</h2>
-<table>
-<tr><th>תוכנית</th><th>מחיר חודשי</th><th>עלות שרת Hetzner</th><th>מרווח</th></tr>
-<tr><td>אישי (4GB)</td><td>₪79</td><td>~₪16</td><td>~₪63</td></tr>
-<tr><td>עסקי (8GB)</td><td>₪169</td><td>~₪32</td><td>~₪137</td></tr>
-<tr><td>פרו (16GB)</td><td>₪349</td><td>~₪62</td><td>~₪287</td></tr>
-<tr><td>מפתח (32GB)</td><td>₪599</td><td>~₪107</td><td>~₪492</td></tr>
-</table>
-<p>המרווח כולל: ניהול תשתית, DNS, SSL, תמיכה טכנית, ניטור, ועדכונים אוטומטיים.</p>
-
-<h2>4. מודל AI — עלות נפרדת</h2>
-<p>המחיר שלנו לא כולל עלות שימוש במודל AI (Claude, GPT וכו'). המשתמש משלם ישירות לספק המודל (Anthropic, OpenAI) דרך API Key משלו. אנחנו לא גובים עמלה על שימוש ב-AI.</p>
-
-<h2>5. תשתית</h2>
+<h2>3. מה כלול</h2>
 <ul>
-<li><strong>שרתים:</strong> Hetzner Cloud, הלסינקי, פינלנד (EU)</li>
-<li><strong>DNS:</strong> Cloudflare (חינמי)</li>
-<li><strong>SSL:</strong> Let's Encrypt (חינמי, אוטומטי)</li>
+<li>שרת VPS ייעודי (Hetzner Cloud, אירופה)</li>
+<li>התקנת OpenClaw + כלי אוטומציה</li>
+<li>DNS, SSL, ניטור, עדכונים אוטומטיים</li>
+<li>ממשק ניהול (Dashboard)</li>
+</ul>
+
+<h2>4. מה לא כלול</h2>
+<ul>
+<li>API Keys למודלי AI — המשתמש מספק ומשלם בנפרד</li>
+<li>תוכן שהסוכנים מייצרים — אחריות המשתמש בלבד</li>
+<li>גיבויים — תוספת בתשלום בלבד</li>
+<li>תמיכה בקוד מותאם אישית</li>
+<li>ייעוץ עסקי, משפטי, שיווקי או מקצועי</li>
+</ul>
+
+<h2>5. סוכני AI — המלצה בלבד</h2>
+<div class="warn"><strong>הסוכנים הם המלצה בלבד.</strong> הם מבוססים על מודלים של צדדים שלישיים. ClawFlow אינו שולט ואינו אחראי לתוכן שהם מייצרים או לתוצאות השימוש בהם.</div>
+
+<h2>6. תשתית</h2>
+<ul>
+<li><strong>שרתים:</strong> Hetzner Cloud, הלסינקי (EU, GDPR, ISO 27001)</li>
+<li><strong>DNS:</strong> Cloudflare</li>
+<li><strong>SSL:</strong> Let's Encrypt</li>
 <li><strong>סליקה:</strong> AllPay, ישראל (PCI DSS Level 1)</li>
 </ul>
 
-<h2>6. מה לא כלול</h2>
+<h2>7. עלות AI נפרדת</h2>
+<p>המחיר שלנו לא כולל עלות מודל AI. המשתמש משלם ישירות לספק (Anthropic, OpenAI) דרך API Key משלו.</p>
+
+<h2>8. קוד פתוח</h2>
+<p>OpenClaw — קוד פתוח. n8n — fair-code. Activepieces — MIT. אנחנו משתמשים בגרסאות רשמיות ללא שינויים.</p>
+
+<h2>9. ביטול</h2>
+<p>בכל עת, ללא דמי יציאה, ללא חוזים.</p>
+
+<h2>10. מסמכים נוספים</h2>
 <ul>
-<li>API Keys למודלים (הלקוח מספק)</li>
-<li>תוכן שהסוכן מייצר (אחריות הלקוח)</li>
-<li>גיבויים (זמין כתוספת בתשלום, ₪19/חודש)</li>
-<li>תמיכה טכנית בקוד מותאם אישית</li>
+<li><a href="/terms.html">תנאי שימוש</a></li>
+<li><a href="/privacy.html">מדיניות פרטיות</a></li>
 </ul>
-
-<h2>7. קוד פתוח</h2>
-<p>OpenClaw הוא פרויקט קוד פתוח. n8n הוא fair-code. Activepieces הוא MIT. אנחנו משתמשים בגרסאות הרשמיות ללא שינויים.</p>
-
-<h2>8. אין התחייבות לטווח ארוך</h2>
-<p>ניתן לבטל בכל עת. אין דמי יציאה. אין חוזים. ביטול נכנס לתוקף בסוף תקופת החיוב.</p>
 </div>
 </body>
 </html>

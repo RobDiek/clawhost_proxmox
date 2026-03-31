@@ -25,6 +25,7 @@ import {
     verifySetup2fa,
     verify2fa,
     disable2fa,
+    acceptTerms,
     checkSubdomain,
     setupApiKey,
     setupTelegram,
@@ -86,6 +87,7 @@ app.post('/auth/2fa/setup', setup2fa)
 app.post('/auth/2fa/verify-setup', verifySetup2fa)
 app.post('/auth/2fa/verify', verify2fa)
 app.post('/auth/2fa/disable', disable2fa)
+app.post('/auth/accept-terms', acceptTerms)
 
 // ── Public ──
 app.post('/configure', configureInstance)
