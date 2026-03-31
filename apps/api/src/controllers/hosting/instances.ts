@@ -355,6 +355,19 @@ export const deleteInstance = async (c: Context<HonoEnv>) => {
             }
         }
 
+        // Delete Hetzner volumes
+        if (instance.hetznerServerId) {
+            try {
+                const provider = getProvider('hetzner')
+                const volumes = await provider.getVolumes?.(Number(instance.hetznerServerId))
+                if (volumes && Array.isArray(volumes)) {
+                    for (const vol of volumes) {
+                        try { await provider.deleteVolume(vol.id) } catch {}
+                    }
+                }
+            } catch {}
+        }
+
         if (instance.hetznerServerId) {
             await provisioner.terminate(instanceId, instance.hetznerServerId)
         }
@@ -370,48 +383,72 @@ export const deleteInstance = async (c: Context<HonoEnv>) => {
     }
 }
 
-// DELETE /hosting/account — delete user account + all instances
+// DELETE /hosting/account — delete user account + all instances + volumes + subscriptions
 export const deleteAccount = async (c: Context<HonoEnv>) => {
     try {
         const userId = resolveUserId(c)
         if (!userId) return fail(c, 'Unauthorized.', 401)
+
+        const { users, payments: paymentsTable, instanceAddons, agentOutputs } = await import('@/db/schema')
+        const allpay = (await import('@/services/allpay')).default
 
         // Get all user instances
         const userInstances = await db.select()
             .from(instances)
             .where(eq(instances.userId, userId))
 
-        // Cancel AllPay subscriptions + terminate all VPS
-        const allpay = (await import('@/services/allpay')).default
+        const provider = getProvider('hetzner')
+
         for (const inst of userInstances) {
-            // Cancel AllPay recurring payment
+            // 1. Cancel AllPay recurring payment
             if (inst.allpayOrderId) {
                 try {
                     await allpay.cancelSubscription(inst.allpayOrderId)
-                    console.log(`AllPay subscription cancelled for ${inst.id} (order: ${inst.allpayOrderId})`)
+                    console.log(`[deleteAccount] AllPay cancelled: ${inst.id}`)
                 } catch (e) {
-                    console.error(`Failed to cancel AllPay for ${inst.id}:`, e)
+                    console.error(`[deleteAccount] AllPay cancel failed for ${inst.id}:`, e)
                 }
             }
 
-            // Terminate Hetzner VPS + DNS
+            // 2. Delete Hetzner volumes attached to this server
+            if (inst.hetznerServerId) {
+                try {
+                    const volumes = await provider.getVolumes?.(Number(inst.hetznerServerId))
+                    if (volumes && Array.isArray(volumes)) {
+                        for (const vol of volumes) {
+                            try { await provider.deleteVolume(vol.id) } catch {}
+                        }
+                    }
+                } catch (e) {
+                    console.error(`[deleteAccount] Volume cleanup failed for ${inst.id}:`, e)
+                }
+            }
+
+            // 3. Terminate Hetzner VPS + DNS
             if (inst.hetznerServerId && inst.status !== 'terminated') {
                 try {
                     await provisioner.terminate(inst.id, inst.hetznerServerId)
+                    console.log(`[deleteAccount] VPS terminated: ${inst.id}`)
                 } catch (e) {
-                    console.error(`Failed to terminate ${inst.id}:`, e)
+                    console.error(`[deleteAccount] VPS terminate failed for ${inst.id}:`, e)
                 }
             }
-            await db.update(instances)
-                .set({ status: 'terminated', subscriptionStatus: 'cancelled' })
-                .where(eq(instances.id, inst.id))
+
+            // 4. Delete DB child records (explicit, don't rely on cascade)
+            try { await db.delete(agentOutputs).where(eq(agentOutputs.instanceId, inst.id)) } catch {}
+            try { await db.delete(paymentsTable).where(eq(paymentsTable.instanceId, inst.id)) } catch {}
+            try { await db.delete(instanceAddons).where(eq(instanceAddons.instanceId, inst.id)) } catch {}
+
+            // 5. Delete instance record
+            await db.delete(instances).where(eq(instances.id, inst.id))
+            console.log(`[deleteAccount] Instance deleted from DB: ${inst.id}`)
         }
 
-        // Delete user record (cascades to instances via FK)
-        const { users } = await import('@/db/schema')
+        // 6. Delete user record
         await db.delete(users).where(eq(users.id, userId))
+        console.log(`[deleteAccount] User deleted: ${userId}`)
 
-        await telegram.alertAdmin(`🗑️ Account deleted: ${userId} (${userInstances.length} instances terminated)`)
+        await telegram.alertAdmin(`🗑️ Account fully deleted: ${userId} (${userInstances.length} instances, VPS+volumes+subscriptions cleaned)`)
 
         return ok(c, null, 'Account deleted.')
     } catch (err) {

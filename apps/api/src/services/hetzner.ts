@@ -341,6 +341,15 @@ const hetzner: CloudProvider = {
         await getClient().delete(`/volumes/${volumeId}`)
     },
 
+    async getVolumes(serverId?: number): Promise<Array<{ id: number; name: string; size: number }>> {
+        const url = serverId
+            ? `/volumes?status=available&sort=id:asc`
+            : '/volumes?sort=id:asc'
+        const data = await getClient().get<{ volumes: Array<{ id: number; name: string; size: number; server: number | null }> }>(url)
+        const vols = data.volumes || []
+        return serverId ? vols.filter(v => v.server === serverId) : vols
+    },
+
     async getVolume(volumeId: number): Promise<VolumeDetails> {
         const data = await getClient().get<HetznerVolumeResponse>(
             `/volumes/${volumeId}`
