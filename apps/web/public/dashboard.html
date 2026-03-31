@@ -1686,12 +1686,11 @@ var dataLoaded = false;
       localStorage.setItem('cf_instance_components', JSON.stringify(components));
       localStorage.setItem('cf_instance_subdomain', subdomain);
       localStorage.setItem('cf_openclaw_token', openclawToken);
-      // Sync onboarding state from DB
+      // Sync onboarding state from DB — only set if actually configured
       if (inst.hasAnthropicKey) localStorage.setItem('cf_api_key_saved', 'anthropic');
       if (inst.hasOpenaiKey) localStorage.setItem('cf_openai_saved', '1');
       if (inst.aiProviderType) localStorage.setItem('cf_api_key_saved', inst.aiProviderType);
-      else if (inst.onboardingStep >= 2) localStorage.setItem('cf_api_key_saved', 'anthropic');
-      if (inst.telegramBotToken || inst.onboardingStep >= 3 || inst.onboardingCompleted) localStorage.setItem('cf_telegram_saved', '1');
+      if (inst.telegramBotToken) localStorage.setItem('cf_telegram_saved', '1');
       dataLoaded = true;
       // Re-render all views with real data
       renderHome();
@@ -1729,7 +1728,7 @@ async function refreshInstanceData() {
       // Sync localStorage
       if (inst.hasAnthropicKey) localStorage.setItem('cf_api_key_saved', 'anthropic');
       if (inst.hasOpenaiKey) localStorage.setItem('cf_openai_saved', '1');
-      if (inst.telegramBotToken || inst.onboardingStep >= 3 || inst.onboardingCompleted) localStorage.setItem('cf_telegram_saved', '1');
+      if (inst.telegramBotToken) localStorage.setItem('cf_telegram_saved', '1');
       // Re-render
       renderHome();
       renderAgentsTab();
@@ -1784,9 +1783,9 @@ function updateWithLiveData() {
     components = instanceData.selectedComponents;
     localStorage.setItem('cf_instance_components', JSON.stringify(components));
   }
-  // Always sync onboarding state from server
-  if (instanceData.onboardingStep >= 2 || instanceData.onboardingCompleted) localStorage.setItem('cf_api_key_saved', 'anthropic');
-  if (instanceData.onboardingStep >= 3 || instanceData.onboardingCompleted) localStorage.setItem('cf_telegram_saved', '1');
+  // Sync onboarding state from server — only if actually configured
+  if (instanceData.aiProviderType || instanceData.hasAnthropicKey) localStorage.setItem('cf_api_key_saved', instanceData.aiProviderType || 'anthropic');
+  if (instanceData.telegramBotToken) localStorage.setItem('cf_telegram_saved', '1');
   renderHome();
   renderAgentsTab();
   renderIntegrations();
@@ -1835,8 +1834,9 @@ function renderHome() {
   // Tasks — comprehensive checklist based on actual instance state
   var tasksHtml = '<div class="section-title">משימות הגדרה</div><div class="tasks">';
   var step = (instanceData && instanceData.onboardingStep) || 0;
-  var hasApiKey = !!(instanceData && instanceData.aiProviderType) || localStorage.getItem('cf_api_key_saved') || step >= 2;
-  var hasTelegram = !!(instanceData && instanceData.telegramBotToken) || localStorage.getItem('cf_telegram_saved') || step >= 3;
+  // Only check actual server data — not onboarding step (step can advance via skip)
+  var hasApiKey = !!(instanceData && (instanceData.aiProviderType || instanceData.hasAnthropicKey || instanceData.hasOpenaiKey));
+  var hasTelegram = !!(instanceData && instanceData.telegramBotToken);
   var isMATEH = components.indexOf('mt') !== -1;
   var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
   var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && instanceData.researchData.report)));
@@ -1847,8 +1847,8 @@ function renderHome() {
   // Base tasks (infra)
   var tasks = [
     { id: 'vps', label: 'שרת VPS פעיל', done: true, desc: 'השרת שלכם פועל ומוכן' },
-    { id: 'api', label: 'מפתח AI מחובר', done: !!hasApiKey || step >= 2, action: "switchTab('integrations')", actionLabel: 'חברו', desc: 'Anthropic / OpenAI — נדרש להפעלת הסוכנים' },
-    { id: 'telegram', label: 'בוט Telegram מחובר', done: !!hasTelegram || step >= 3, action: "switchTab('integrations')", actionLabel: 'חברו', desc: 'לקבלת עדכונים, Daily Brief ואישורי פרסום' },
+    { id: 'api', label: 'מפתח AI מחובר', done: !!hasApiKey, action: "switchTab('integrations')", actionLabel: 'חברו', desc: 'Anthropic / OpenAI — נדרש להפעלת הסוכנים' },
+    { id: 'telegram', label: 'בוט Telegram מחובר', done: !!hasTelegram, action: "switchTab('integrations')", actionLabel: 'חברו', desc: 'לקבלת עדכונים, Daily Brief ואישורי פרסום' },
   ];
 
   if (isMATEH) {
@@ -1957,8 +1957,8 @@ function renderHome() {
 function getNotifications() {
   var notifs = [];
   var step = (instanceData && instanceData.onboardingStep) || 0;
-  var hasApiKey = !!(instanceData && instanceData.aiProviderType) || localStorage.getItem('cf_api_key_saved');
-  var hasTelegram = !!(instanceData && instanceData.telegramBotToken) || localStorage.getItem('cf_telegram_saved') || step >= 3;
+  var hasApiKey = !!(instanceData && (instanceData.aiProviderType || instanceData.hasAnthropicKey || instanceData.hasOpenaiKey));
+  var hasTelegram = !!(instanceData && instanceData.telegramBotToken);
   var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
   var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && instanceData.researchData.report)));
   var hasGoogle = !!(instanceData && instanceData.googleTokens);
