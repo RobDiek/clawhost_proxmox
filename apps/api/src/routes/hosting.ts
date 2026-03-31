@@ -130,6 +130,17 @@ app.get('/integrations/meta/callback', metaCallback)
 app.post('/instances/:id/integrations/meta/disconnect', metaDisconnect)
 app.get('/integrations/meta/status', metaStatus)
 
+// ── RAM Health ──
+app.get('/instances/:id/ram-health', async (c) => {
+    const { checkRamNow, getRamStatus } = await import('@/services/ramMonitor')
+    const { ok, fail } = await import('@/lib/response')
+    const instanceId = c.req.param('id')
+    const fresh = c.req.query('fresh') === '1'
+    const status = fresh ? await checkRamNow(instanceId) : getRamStatus(instanceId)
+    if (!status) return fail(c, 'No RAM data available', 404)
+    return ok(c, status, 'RAM status retrieved.')
+})
+
 // ── Model Health ──
 app.get('/models/health', async (c) => {
     const { getModelHealth } = await import('@/services/modelMonitor')

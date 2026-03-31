@@ -55,3 +55,7 @@ startOutputSync()
 // Start model health monitor (checks every 6 hours)
 import { startModelMonitor } from '@/services/modelMonitor'
 startModelMonitor()
+
+// Start RAM monitor (checks all instances every 10 min)
+import { startRamMonitor } from '@/services/ramMonitor'
+startRamMonitor()

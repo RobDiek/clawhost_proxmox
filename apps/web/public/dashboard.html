@@ -1267,6 +1267,19 @@ input{font-family:inherit}
     </div>
     <button class="btn btn-outline btn-sm" onclick="loadStats()" style="margin-bottom:20px">&#8635; עדכנו נתונים</button>
 
+    <!-- RAM Alert Banner (shown when RAM is high) -->
+    <div id="ram-alert-banner" style="display:none;margin-bottom:16px;padding:14px 16px;border-radius:10px;border:1px solid;font-size:0.85rem;direction:rtl">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span id="ram-alert-icon" style="font-size:1.1rem"></span>
+        <strong id="ram-alert-title"></strong>
+      </div>
+      <div id="ram-alert-desc" style="color:#64748B;margin-bottom:8px"></div>
+      <div id="ram-alert-bar" style="height:8px;border-radius:4px;background:#E2E8F0;overflow:hidden;margin-bottom:8px">
+        <div id="ram-alert-fill" style="height:100%;border-radius:4px;transition:width 0.5s"></div>
+      </div>
+      <div id="ram-alert-action"></div>
+    </div>
+
     <!-- Terminal -->
     <div class="section-title">טרמינל</div>
     <div style="display:flex;gap:8px;margin-bottom:12px">
@@ -1647,6 +1660,8 @@ function updateWithLiveData() {
   renderHome();
   renderAgentsTab();
   renderIntegrations();
+  // Proactive RAM check (non-blocking, updates notifications)
+  checkRamHealth();
 }
 
 /* ===== Render functions ===== */
@@ -4968,8 +4983,111 @@ async function loadStats() {
       document.getElementById('stat-cpu').textContent = s.cpu.toFixed(1) + '%';
       document.getElementById('stat-ram').textContent = s.ramUsed + ' / ' + s.ramTotal + ' MB';
       document.getElementById('stat-disk').textContent = Math.round(s.diskUsed / 1024) + ' / ' + Math.round(s.diskTotal / 1024) + ' GB';
+
+      // Color the RAM stat card based on usage
+      var ramPercent = s.ramTotal > 0 ? Math.round((s.ramUsed / s.ramTotal) * 100) : 0;
+      var ramEl = document.getElementById('stat-ram');
+      if (ramPercent >= 90) { ramEl.style.color = '#EF4444'; }
+      else if (ramPercent >= 80) { ramEl.style.color = '#F59E0B'; }
+      else { ramEl.style.color = ''; }
     }
   } catch (e) { showToast('שגיאה בטעינת נתונים', 'error'); }
+
+  // Also check RAM health from monitor
+  checkRamHealth();
+}
+
+var PLAN_NAMES_HE = { personal: 'אישי', business: 'עסקי', pro: 'פרו', developer: 'מפתח' };
+var PLAN_PRICES = { personal: 79, business: 169, pro: 349, developer: 599 };
+
+async function checkRamHealth() {
+  var instanceId = localStorage.getItem('cf_instance_id');
+  if (!instanceId) return;
+  var banner = document.getElementById('ram-alert-banner');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/ram-health?fresh=1');
+    var data = await res.json();
+    if (!data.success || !data.data) { banner.style.display = 'none'; return; }
+    var r = data.data;
+
+    if (r.level === 'ok') {
+      banner.style.display = 'none';
+      removeRamNotification();
+      return;
+    }
+
+    banner.style.display = 'block';
+    var icon = document.getElementById('ram-alert-icon');
+    var title = document.getElementById('ram-alert-title');
+    var desc = document.getElementById('ram-alert-desc');
+    var fill = document.getElementById('ram-alert-fill');
+    var actionDiv = document.getElementById('ram-alert-action');
+
+    if (r.level === 'critical') {
+      banner.style.borderColor = '#FCA5A5';
+      banner.style.background = '#FEF2F2';
+      icon.textContent = '🔴';
+      title.textContent = 'זיכרון RAM קריטי — ' + r.usagePercent + '%';
+      fill.style.background = '#EF4444';
+      fill.style.width = r.usagePercent + '%';
+      desc.textContent = r.ramUsedMb + 'MB מתוך ' + r.ramTotalMb + 'MB. הסוכנים עלולים להאט או לקרוס.';
+    } else {
+      banner.style.borderColor = '#FDE68A';
+      banner.style.background = '#FFFBEB';
+      icon.textContent = '⚠️';
+      title.textContent = 'זיכרון RAM גבוה — ' + r.usagePercent + '%';
+      fill.style.background = '#F59E0B';
+      fill.style.width = r.usagePercent + '%';
+      desc.textContent = r.ramUsedMb + 'MB מתוך ' + r.ramTotalMb + 'MB.';
+    }
+
+    if (r.suggestedPlan) {
+      var planHe = PLAN_NAMES_HE[r.suggestedPlan] || r.suggestedPlan;
+      var price = PLAN_PRICES[r.suggestedPlan] || '';
+      actionDiv.innerHTML = '<button class="btn btn-primary btn-sm" onclick="switchTab(\'settings\')" style="font-size:0.8rem">' +
+        '⬆️ שדרגו לתוכנית ' + planHe + (price ? ' (₪' + price + '/חודש)' : '') + '</button>';
+    } else {
+      actionDiv.innerHTML = '<span style="color:#9CA3AF;font-size:0.8rem">אתם בתוכנית הגבוהה ביותר — נסו לסגור שירותים לא בשימוש</span>';
+    }
+
+    // Add to notifications system
+    addRamNotification(r);
+  } catch (e) {
+    banner.style.display = 'none';
+  }
+}
+
+function addRamNotification(ramData) {
+  var dismissed = JSON.parse(localStorage.getItem('cf_dismissed_notifs') || '[]');
+  if (dismissed.indexOf('ram-high') !== -1) return;
+
+  var notifs = JSON.parse(localStorage.getItem('cf_notifications') || '[]');
+  // Remove existing RAM notification
+  notifs = notifs.filter(function(n) { return n.id !== 'ram-high'; });
+
+  var isCritical = ramData.level === 'critical';
+  notifs.unshift({
+    id: 'ram-high',
+    type: isCritical ? 'error' : 'warning',
+    icon: isCritical ? '🔴' : '⚠️',
+    title: isCritical ? 'זיכרון RAM קריטי — ' + ramData.usagePercent + '%' : 'זיכרון RAM גבוה — ' + ramData.usagePercent + '%',
+    desc: ramData.ramUsedMb + 'MB / ' + ramData.ramTotalMb + 'MB' + (ramData.suggestedPlan ? ' — מומלץ לשדרג' : ''),
+    action: "switchTab('server')",
+    actionLabel: 'בדקו שרת',
+    time: new Date().toISOString()
+  });
+
+  localStorage.setItem('cf_notifications', JSON.stringify(notifs));
+  renderNotifications();
+}
+
+function removeRamNotification() {
+  var notifs = JSON.parse(localStorage.getItem('cf_notifications') || '[]');
+  var filtered = notifs.filter(function(n) { return n.id !== 'ram-high'; });
+  if (filtered.length !== notifs.length) {
+    localStorage.setItem('cf_notifications', JSON.stringify(filtered));
+    renderNotifications();
+  }
 }
 
 async function loadLogs(service) {
