@@ -3404,7 +3404,9 @@ function renderIntegrations() {
 }
 
 function renderBilling() {
-  document.getElementById('planCardBig').innerHTML =
+  var el = document.getElementById('planCardBig');
+  if (!el) return;
+  el.innerHTML =
     '<div class="plan-name">' + plan.name + '</div>' +
     '<div class="plan-price">&#8362;' + ((instanceData && instanceData.priceIls) || plan.price) + '/חודש</div>' +
     '<div class="plan-specs">' + plan.cpu + ' &middot; ' + plan.ram + 'GB RAM &middot; ' + plan.nvme + 'GB NVMe</div>';
