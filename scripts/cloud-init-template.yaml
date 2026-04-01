@@ -216,6 +216,46 @@ runcmd:
     - chown -R 1000:1000 /opt/openclaw/data/n8n 2>/dev/null || true
     - cd /opt/openclaw && docker compose up -d
 
+    # ── Mem0 Memory Layer (Qdrant + Mem0 server) ──
+    - mkdir -p /opt/openclaw/data/qdrant
+    - |
+        # Add Qdrant to docker-compose
+        cat >> /opt/openclaw/docker-compose.yml << 'MEMEOF'
+          qdrant:
+            image: qdrant/qdrant:latest
+            restart: unless-stopped
+            ports: ["127.0.0.1:6333:6333"]
+            volumes: ["/opt/openclaw/data/qdrant:/qdrant/storage"]
+        MEMEOF
+    - cd /opt/openclaw && docker compose up -d qdrant
+    # Install mem0ai globally for OpenClaw integration
+    - npm install -g mem0ai 2>/dev/null || true
+    # Create Mem0 config for OpenClaw
+    - |
+        mkdir -p /home/openclaw/.openclaw/memory
+        cat > /home/openclaw/.openclaw/memory/mem0-config.json << 'M0EOF'
+        {
+          "version": "v1.1",
+          "vector_store": {
+            "provider": "qdrant",
+            "config": {
+              "host": "127.0.0.1",
+              "port": 6333,
+              "collection_name": "openclaw_memories"
+            }
+          },
+          "llm": {
+            "provider": "anthropic",
+            "config": {
+              "model": "claude-haiku-4-5-20251001",
+              "temperature": 0.1
+            }
+          },
+          "custom_prompt": "You are a memory extraction assistant. Extract key facts from the conversation. IMPORTANT: Extract facts in the ORIGINAL LANGUAGE they were stated in. If the user speaks Hebrew, store the memory in Hebrew. Never translate — preserve the exact language and nuance. Focus on: personal preferences, work context, communication style, recurring tasks, names, relationships, and important decisions."
+        }
+        M0EOF
+        chown -R openclaw:openclaw /home/openclaw/.openclaw/memory
+
     {{#HAS_OLLAMA}}
     # ── Ollama ──
     - curl -fsSL https://ollama.com/install.sh | sh
