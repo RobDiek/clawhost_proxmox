@@ -5,7 +5,8 @@ import executeSSH from '@/services/ssh'
 import {
     applyToolsDefaults,
     BASE_DIR,
-    findUserClaw
+    findUserClaw,
+    checkFeatureVersion
 } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
@@ -53,6 +54,21 @@ const updateClawBindings = async (c: AuthenticatedContext) => {
         }
 
         try {
+            const { supported, version } = await checkFeatureVersion(
+                claw.ip,
+                claw.rootPassword,
+                'bindings'
+            )
+
+            if (!supported) {
+                return fail(
+                    c,
+                    t('api.featureVersionUnsupported', { version }),
+                    400,
+                    { version }
+                )
+            }
+
             const output = await executeSSH(
                 claw.ip,
                 claw.rootPassword,

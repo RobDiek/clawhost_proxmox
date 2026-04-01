@@ -484,6 +484,7 @@ const ja: Translations = {
         whatsappAlreadyPaired: 'WhatsAppは既にペアリング済みです!',
         whatsappVersionUnsupported:
             'このバージョンではダッシュボードからのチャンネル設定はサポートされていません。ターミナルタブから手動で設定するか、OpenClawをアップグレードしてください。',
+        featureVersionUnsupported: 'この機能はバージョン {{version}} ではサポートされていません。OpenClawを更新するか、ターミナルを使用して手動で管理してください。',
         bindingsFetched: 'バインディングを取得しました.',
         bindingsFetchFailed: 'バインディングを取得できませんでした!',
         bindingsUpdated: 'バインディングを更新しました.',
@@ -1788,6 +1789,11 @@ const ja: Translations = {
         channelsVersionUnsupported:
             'このバージョンではチャンネル設定は利用できません。ターミナルタブから手動で接続するか、OpenClawをアップグレードしてください。',
         channelsVersionUnsupportedDocs: 'セットアップガイドを見る',
+        featureVersionUnsupported: '{{feature}} は {{version}} でサポートされていません',
+        featureVersionUnsupportedDescription: 'このバージョンでは UI を通じた {{feature}} の管理をサポートしていません。SSH、ターミナル、または OpenClaw コントロールパネルから管理できます。',
+        featureVersionUnsupportedButton: 'バージョンへ移動',
+        featureVersionUnsupportedSupported: 'サポートされているバージョン:',
+        featureVersionUnsupportedNewer: 'より新しいバージョン',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

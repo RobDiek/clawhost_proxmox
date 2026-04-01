@@ -15,7 +15,7 @@ import {
 } from '@/hooks'
 import { copyToClipboard, getLocale } from '@/lib'
 import { useUIStore } from '@/lib/store'
-import { STORAGE_KEYS } from '@/lib/storageKeys'
+import STORAGE_KEYS from '@/lib/storageKeys'
 import {
     Header,
     LandingFooter,

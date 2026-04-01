@@ -28,7 +28,7 @@ import {
     SelectGroup,
     Skeleton
 } from '@/components/ui'
-import PanelPlaceholder from '@/components/shared/PanelPlaceholder'
+import { PanelPlaceholder } from '@/components/shared'
 import { api, copyToClipboard } from '@/lib'
 import { useUIStore } from '@/lib/store'
 import { aiModels, validateAgentName } from '@/lib/claw-utils'

@@ -1,5 +1,7 @@
 import type { ApiEnvelope, RequestConfig, RequestOptions } from './types'
 
+import ApiError from './ApiError'
+
 class RequestClient {
     private config: RequestConfig
     private inflight = new Map<string, Promise<unknown>>()
@@ -59,7 +61,11 @@ class RequestClient {
 
         if (this.isEnvelope(data)) {
             if (!data.success) {
-                throw new Error(data.message || `Request failed: ${data.code}`)
+                throw new ApiError(
+                    data.message || `Request failed: ${data.code}`,
+                    data.code,
+                    data.data
+                )
             }
             return data.data as T
         }

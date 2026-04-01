@@ -34,7 +34,7 @@ import {
 } from '@/components/ui'
 import { api, copyToClipboard } from '@/lib'
 import { useUIStore, useVariablesStore } from '@/lib/store'
-import PanelPlaceholder from '@/components/shared/PanelPlaceholder'
+import { PanelPlaceholder } from '@/components/shared'
 import { PLAYGROUND_AGENTS_QUERY_KEY } from '@/hooks'
 
 let skipDeleteConfirmation = false

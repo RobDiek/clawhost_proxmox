@@ -8,4 +8,4 @@ const STORAGE_KEYS = {
     AFFILIATE_PERIOD: 'ch-affiliate-period'
 } as const
 
-export { STORAGE_KEYS }
+export default STORAGE_KEYS

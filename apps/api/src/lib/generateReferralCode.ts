@@ -11,4 +11,4 @@ const generateReferralCode = (): string => {
     return code
 }
 
-export { generateReferralCode }
+export default generateReferralCode

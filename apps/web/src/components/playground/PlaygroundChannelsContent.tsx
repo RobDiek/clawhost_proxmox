@@ -11,6 +11,7 @@ import type {
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { isFeatureSupported } from '@openclaw/shared'
 import { t } from '@openclaw/i18n'
 import {
     CircleNotchIcon,
@@ -25,7 +26,7 @@ import {
     CheckIcon,
     LinkSimpleIcon
 } from '@phosphor-icons/react'
-import PanelPlaceholder from '@/components/shared/PanelPlaceholder'
+import { PanelPlaceholder, VersionUnsupported } from '@/components/shared'
 import {
     Select,
     SelectTrigger,
@@ -38,6 +39,7 @@ import {
 } from '@/components/ui'
 import { api, copyToClipboard } from '@/lib'
 import { useUIStore, useChannelsStore } from '@/lib/store'
+import { useClawVersion } from '@/hooks'
 
 const CHANNEL_DEFINITIONS: ChannelDefinition[] = [
     {
@@ -177,7 +179,8 @@ const qrToDataUrl = (qrText: string): string => {
 }
 
 const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
-    clawId
+    clawId,
+    onGoToVersions
 }): ReactNode => {
     const [channels, setChannels] = useState<Record<string, ChannelConfig>>({})
     const [hasChanges, setHasChanges] = useState(false)
@@ -186,8 +189,6 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
         setIsPairing,
         pollEnabled,
         setPollEnabled,
-        versionUnsupported,
-        setVersionUnsupported,
         isWhatsAppPaired,
         setIsWhatsAppPaired,
         isRepairing,
@@ -203,8 +204,6 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
             setIsPairing: s.setIsPairing,
             pollEnabled: s.pollEnabled,
             setPollEnabled: s.setPollEnabled,
-            versionUnsupported: s.versionUnsupported,
-            setVersionUnsupported: s.setVersionUnsupported,
             isWhatsAppPaired: s.isWhatsAppPaired,
             setIsWhatsAppPaired: s.setIsWhatsAppPaired,
             isRepairing: s.isRepairing,
@@ -226,6 +225,10 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
         gcTime: 0,
         retry: 1
     })
+
+    const versionQuery = useClawVersion(clawId, true)
+    const clawVersion = versionQuery.data?.version || ''
+    const versionUnsupported = clawVersion !== '' && !isFeatureSupported(clawVersion, 'channels')
 
     const whatsAppEnabled = channels.whatsapp?.enabled === true
 
@@ -401,10 +404,6 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
                 )
                 return
             }
-            if (res.status === 'version_unsupported') {
-                setVersionUnsupported(true)
-                return
-            }
             setIsPairing(true)
             setQrRefreshed(false)
             previousQrRef.current = null
@@ -447,7 +446,15 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
 
     return (
         <div className='flex h-full flex-col'>
-            <div className='flex-1 overflow-y-auto p-5'>
+            {versionUnsupported && (
+                <VersionUnsupported
+                    version={clawVersion}
+                    feature={t('playground.tabChannels')}
+                    featureKey='channels'
+                    onGoToVersions={onGoToVersions}
+                />
+            )}
+            <div className={`flex-1 overflow-y-auto p-5 ${versionUnsupported ? 'pointer-events-none opacity-50' : ''}`}>
                 <p className='text-muted-foreground mb-4 text-[11px]'>
                     {t('playground.channelsDescription')}
                 </p>
@@ -583,24 +590,6 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
                                                         'playground.channelsWhatsAppPairDevice'
                                                     )}
                                                 </button>
-                                            </div>
-                                        ) : versionUnsupported ? (
-                                            <div className='space-y-1.5'>
-                                                <p className='text-muted-foreground text-[11px]'>
-                                                    {t(
-                                                        'playground.channelsVersionUnsupported'
-                                                    )}
-                                                </p>
-                                                <a
-                                                    href='https://docs.openclaw.ai/channels/whatsapp'
-                                                    target='_blank'
-                                                    rel='noopener noreferrer'
-                                                    className='text-[11px] text-[#25D366] underline'
-                                                >
-                                                    {t(
-                                                        'playground.channelsVersionUnsupportedDocs'
-                                                    )}
-                                                </a>
                                             </div>
                                         ) : isWhatsAppPaired ? (
                                             <button
@@ -863,7 +852,7 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
             <div className='border-border border-t p-4'>
                 <button
                     onClick={() => saveMutation.mutate()}
-                    disabled={saveMutation.isPending || !hasChanges}
+                    disabled={saveMutation.isPending || !hasChanges || versionUnsupported}
                     className='flex w-full items-center justify-center gap-2 rounded-lg bg-[#ef5350] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#e53935] disabled:cursor-not-allowed disabled:opacity-50'
                 >
                     {saveMutation.isPending && (

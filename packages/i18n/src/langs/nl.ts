@@ -485,6 +485,7 @@ const nl: Translations = {
         whatsappAlreadyPaired: 'WhatsApp is al gekoppeld!',
         whatsappVersionUnsupported:
             'Deze versie ondersteunt geen kanaalconfiguratie vanuit het dashboard. Gebruik het Terminal-tabblad om handmatig te configureren of werk OpenClaw bij.',
+        featureVersionUnsupported: 'Deze functie wordt niet ondersteund in versie {{version}}. Werk OpenClaw bij of gebruik de Terminal om dit handmatig te beheren.',
         bindingsFetched: 'Bindingen succesvol opgehaald.',
         bindingsFetchFailed: 'Bindingen ophalen mislukt!',
         bindingsUpdated: 'Bindingen succesvol bijgewerkt.',
@@ -1830,6 +1831,11 @@ const nl: Translations = {
         channelsVersionUnsupported:
             'Kanaalconfiguratie is niet beschikbaar in deze versie. Je kunt handmatig verbinden via het Terminal-tabblad of OpenClaw bijwerken.',
         channelsVersionUnsupportedDocs: 'Installatiehandleiding bekijken',
+        featureVersionUnsupported: '{{feature}} niet ondersteund op {{version}}',
+        featureVersionUnsupportedDescription: 'We ondersteunen het beheer van {{feature}} met deze versie niet via onze interface. U kunt het nog steeds beheren via SSH, Terminal of het OpenClaw-configuratiepaneel.',
+        featureVersionUnsupportedButton: 'Ga naar Versies',
+        featureVersionUnsupportedSupported: 'Ondersteunde versies:',
+        featureVersionUnsupportedNewer: 'nieuwere versies',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

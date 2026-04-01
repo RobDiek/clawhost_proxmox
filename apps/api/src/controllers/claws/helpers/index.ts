@@ -19,6 +19,9 @@ import OPENCLAW_VERSION from '@/controllers/claws/helpers/openclawVersion'
 import WHATSAPP_PATHS from '@/controllers/claws/helpers/whatsappPaths'
 import isVersionAtLeast from '@/controllers/claws/helpers/isVersionAtLeast'
 import parseClawVersion from '@/controllers/claws/helpers/parseClawVersion'
+import isVersionSupported from '@/controllers/claws/helpers/isVersionSupported'
+import checkFeatureVersion from '@/controllers/claws/helpers/checkFeatureVersion'
+import SUPPORTED_VERSIONS from '@/controllers/claws/helpers/supportedVersions'
 
 export {
     applyToolsDefaults,
@@ -41,5 +44,8 @@ export {
     OPENCLAW_VERSION,
     WHATSAPP_PATHS,
     isVersionAtLeast,
-    parseClawVersion
+    parseClawVersion,
+    isVersionSupported,
+    checkFeatureVersion,
+    SUPPORTED_VERSIONS
 }

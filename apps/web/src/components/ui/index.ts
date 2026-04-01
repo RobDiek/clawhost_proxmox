@@ -39,9 +39,9 @@ import {
     DropdownMenuSubTrigger,
     DropdownMenuRadioGroup
 } from '@/components/ui/dropdown-menu'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import Checkbox from '@/components/ui/checkbox'
+import Input from '@/components/ui/input'
+import Label from '@/components/ui/label'
 import {
     Select,
     SelectTrigger,
@@ -49,9 +49,9 @@ import {
     SelectItem,
     SelectGroup
 } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Slider } from '@/components/ui/slider'
+import Separator from '@/components/ui/separator'
+import Skeleton from '@/components/ui/skeleton'
+import Slider from '@/components/ui/slider'
 import {
     Tooltip,
     TooltipTrigger,

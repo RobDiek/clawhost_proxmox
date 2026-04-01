@@ -470,6 +470,7 @@ const tr: Translations = {
         whatsappAlreadyPaired: 'WhatsApp zaten eşleştirilmiş!',
         whatsappVersionUnsupported:
             "Bu sürüm panelden kanal yapılandırmasını desteklemiyor. Manuel olarak yapılandırmak için Terminal sekmesini kullanın veya OpenClaw'ı güncelleyin.",
+        featureVersionUnsupported: 'Bu özellik {{version}} sürümünde desteklenmiyor. Lütfen OpenClaw\'ı güncelleyin veya manuel yönetim için Terminali kullanın.',
         bindingsFetched: 'Bağlamalar başarıyla getirildi.',
         bindingsFetchFailed: 'Bağlamalar getirilemedi!',
         bindingsUpdated: 'Bağlamalar başarıyla güncellendi.',
@@ -1810,6 +1811,11 @@ const tr: Translations = {
         channelsVersionUnsupported:
             "Bu sürümde kanal yapılandırması mevcut değil. Terminal sekmesini kullanarak manuel olarak bağlanabilir veya OpenClaw'ı güncelleyebilirsiniz.",
         channelsVersionUnsupportedDocs: 'Kurulum kılavuzunu görüntüle',
+        featureVersionUnsupported: '{{feature}} {{version}} üzerinde desteklenmiyor',
+        featureVersionUnsupportedDescription: 'Bu sürümde arayüzümüz üzerinden {{feature}} yönetimini desteklemiyoruz. SSH, Terminal veya OpenClaw kontrol paneli aracılığıyla yönetebilirsiniz.',
+        featureVersionUnsupportedButton: 'Sürümlere Git',
+        featureVersionUnsupportedSupported: 'Desteklenen sürümler:',
+        featureVersionUnsupportedNewer: 'daha yeni sürümler',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

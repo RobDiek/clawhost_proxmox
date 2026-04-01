@@ -6,7 +6,8 @@ import {
     applyToolsDefaults,
     BASE_DIR,
     findUserClaw,
-    validateEnvVars
+    validateEnvVars,
+    checkFeatureVersion
 } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
@@ -38,6 +39,21 @@ const createClawAgent = async (c: AuthenticatedContext) => {
         }
 
         try {
+            const { supported, version } = await checkFeatureVersion(
+                claw.ip,
+                claw.rootPassword,
+                'agents'
+            )
+
+            if (!supported) {
+                return fail(
+                    c,
+                    t('api.featureVersionUnsupported', { version }),
+                    400,
+                    { version }
+                )
+            }
+
             const output = await executeSSH(
                 claw.ip,
                 claw.rootPassword,

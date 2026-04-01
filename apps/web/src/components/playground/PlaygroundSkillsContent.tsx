@@ -10,7 +10,7 @@ import type {
 } from '@/ts/Interfaces'
 
 import { Fragment, useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { useDebouncedValue } from '@/hooks'
+import { useDebouncedValue, useClawVersion } from '@/hooks'
 import {
     useQuery,
     useInfiniteQuery,
@@ -18,6 +18,7 @@ import {
     useQueryClient,
     keepPreviousData
 } from '@tanstack/react-query'
+import { isFeatureSupported } from '@openclaw/shared'
 import { t } from '@openclaw/i18n'
 import {
     CircleNotchIcon,
@@ -28,8 +29,7 @@ import {
     StorefrontIcon,
     TrashIcon
 } from '@phosphor-icons/react'
-import PanelPlaceholder from '@/components/shared/PanelPlaceholder'
-import TruncateTooltip from '@/components/shared/TruncateTooltip'
+import { PanelPlaceholder, TruncateTooltip, VersionUnsupported } from '@/components/shared'
 import { Skeleton } from '@/components/ui'
 import { api, getLocale } from '@/lib'
 import { useUIStore, useSkillsStore } from '@/lib/store'
@@ -38,7 +38,8 @@ const PAGE_SIZE = 50
 
 const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
     clawId,
-    agentId
+    agentId,
+    onGoToVersions
 }): ReactNode => {
     const isAgentMode = !!agentId
     const [skills, setSkills] = useState<BundledSkillInfo[]>([])
@@ -52,13 +53,20 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
     const sentinelRef = useRef<HTMLDivElement | null>(null)
     const scrollRef = useRef<HTMLDivElement | null>(null)
 
+    const versionQuery = useClawVersion(clawId, true)
+    const clawVersion = versionQuery.data?.version || ''
+    const versionUnsupported = clawVersion !== '' && !isFeatureSupported(clawVersion, 'skills')
+
     const clawQueryKey = ['claw-skills', clawId]
     const agentQueryKey = ['agent-skills', clawId, agentId]
     const browseKey = ['clawhub-browse', clawId, debouncedSearch]
     const installedKey = ['clawhub-installed', clawId, agentId]
     const updatesKey = ['clawhub-updates', clawId, agentId]
 
-    const { data: clawSkillsData, isLoading: isClawSkillsLoading } = useQuery({
+    const {
+        data: clawSkillsData,
+        isLoading: isClawSkillsLoading
+    } = useQuery({
         queryKey: clawQueryKey,
         queryFn: () => api.getClawSkills(clawId),
         staleTime: 0,
@@ -457,9 +465,17 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
     return (
         <div
             ref={scrollRef}
-            className='flex h-full flex-col overflow-y-auto px-5 pb-5'
+            className='flex h-full flex-col overflow-y-auto pb-5'
         >
-            <div className='bg-background sticky top-0 z-10 pb-3 pt-5'>
+            {versionUnsupported && (
+                <VersionUnsupported
+                    version={clawVersion}
+                    feature={t('playground.tabSkills')}
+                    featureKey='skills'
+                    onGoToVersions={onGoToVersions}
+                />
+            )}
+            <div className={`bg-background sticky top-0 z-10 px-5 pb-3 pt-5 ${versionUnsupported ? 'pointer-events-none opacity-50' : ''}`}>
                 <div className='relative'>
                     <MagnifyingGlassIcon className='text-muted-foreground absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2' />
                     <input
@@ -472,7 +488,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
                 </div>
             </div>
 
-            <div className='flex min-h-0 flex-1 flex-col'>
+            <div className={`flex min-h-0 flex-1 flex-col px-5 ${versionUnsupported ? 'pointer-events-none opacity-50' : ''}`}>
                 {hasAnyItems ? (
                     <div className='space-y-1.5 pb-3'>
                         {isBundledLoading &&

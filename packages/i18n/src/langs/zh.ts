@@ -453,6 +453,7 @@ const zh: Translations = {
         whatsappAlreadyPaired: 'WhatsApp 已配对!',
         whatsappVersionUnsupported:
             '此版本不支持从仪表板配置频道。请使用终端选项卡手动配置或升级 OpenClaw。',
+        featureVersionUnsupported: '此功能在版本 {{version}} 中不受支持。请更新 OpenClaw 或使用终端手动管理。',
         bindingsFetched: '绑定获取成功.',
         bindingsFetchFailed: '无法获取绑定!',
         bindingsUpdated: '绑定更新成功.',
@@ -1668,6 +1669,11 @@ const zh: Translations = {
         channelsVersionUnsupported:
             '此版本不支持频道配置。您可以通过终端选项卡手动连接或升级 OpenClaw。',
         channelsVersionUnsupportedDocs: '查看配置指南',
+        featureVersionUnsupported: '{{feature}} 在 {{version}} 上不受支持',
+        featureVersionUnsupportedDescription: '我们不支持通过 UI 在此版本中管理 {{feature}}。您仍然可以通过 SSH、终端或 OpenClaw 控制面板进行管理。',
+        featureVersionUnsupportedButton: '前往版本',
+        featureVersionUnsupportedSupported: '支持的版本：',
+        featureVersionUnsupportedNewer: '更新版本',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

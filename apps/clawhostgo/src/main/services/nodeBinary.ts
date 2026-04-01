@@ -121,4 +121,6 @@ const ensureNode = (): boolean => {
     return downloadNode()
 }
 
-export default { getNodeBinaryPath, getNpmPath, ensureNode, MIN_NODE_MAJOR }
+const nodeBinary = { getNodeBinaryPath, getNpmPath, ensureNode, MIN_NODE_MAJOR }
+
+export default nodeBinary

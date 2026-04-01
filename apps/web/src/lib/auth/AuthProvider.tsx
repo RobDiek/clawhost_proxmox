@@ -25,7 +25,7 @@ import { t } from '@openclaw/i18n'
 import { auth, AUTH_STORAGE_KEY, PROFILE_CACHE_KEY } from '@/lib/firebase'
 import { api } from '@/lib'
 import AuthContext from '@/lib/auth/AuthContext'
-import { STORAGE_KEYS } from '@/lib/storageKeys'
+import STORAGE_KEYS from '@/lib/storageKeys'
 
 const readCachedProfile = (): CachedProfile | null => {
     try {

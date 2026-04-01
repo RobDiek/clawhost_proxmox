@@ -480,6 +480,7 @@ const hi: Translations = {
         whatsappAlreadyPaired: 'WhatsApp पहले से पेयर है!',
         whatsappVersionUnsupported:
             'यह संस्करण डैशबोर्ड से चैनल कॉन्फ़िगरेशन का समर्थन नहीं करता। मैन्युअल रूप से कॉन्फ़िगर करने के लिए टर्मिनल टैब का उपयोग करें या OpenClaw अपग्रेड करें।',
+        featureVersionUnsupported: 'यह सुविधा संस्करण {{version}} पर समर्थित नहीं है। कृपया OpenClaw अपडेट करें या मैन्युअल रूप से प्रबंधित करने के लिए टर्मिनल का उपयोग करें।',
         bindingsFetched: 'बाइंडिंग सफलतापूर्वक प्राप्त हुईं.',
         bindingsFetchFailed: 'बाइंडिंग प्राप्त नहीं हो सकीं!',
         bindingsUpdated: 'बाइंडिंग सफलतापूर्वक अपडेट हुईं.',
@@ -1801,6 +1802,11 @@ const hi: Translations = {
         channelsVersionUnsupported:
             'इस संस्करण में चैनल कॉन्फ़िगरेशन उपलब्ध नहीं है। आप टर्मिनल टैब का उपयोग करके मैन्युअल रूप से कनेक्ट कर सकते हैं या OpenClaw अपग्रेड कर सकते हैं।',
         channelsVersionUnsupportedDocs: 'सेटअप गाइड देखें',
+        featureVersionUnsupported: '{{feature}} {{version}} पर समर्थित नहीं है',
+        featureVersionUnsupportedDescription: 'हम इस संस्करण में UI के माध्यम से {{feature}} प्रबंधन का समर्थन नहीं करते। आप SSH, टर्मिनल या OpenClaw कंट्रोल पैनल के माध्यम से इसे प्रबंधित कर सकते हैं।',
+        featureVersionUnsupportedButton: 'संस्करणों पर जाएं',
+        featureVersionUnsupportedSupported: 'समर्थित संस्करण:',
+        featureVersionUnsupportedNewer: 'नए संस्करण',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

@@ -466,6 +466,7 @@ const ar: Translations = {
         whatsappAlreadyPaired: 'WhatsApp مقترن بالفعل !',
         whatsappVersionUnsupported:
             'هذا الإصدار لا يدعم تكوين القنوات من لوحة التحكم. استخدم علامة تبويب الطرفية للتكوين يدوياً أو قم بترقية OpenClaw.',
+        featureVersionUnsupported: 'هذه الميزة غير مدعومة في الإصدار {{version}}. يرجى تحديث OpenClaw أو استخدام الطرفية للإدارة يدويًا.',
         bindingsFetched: 'تم جلب الربط بنجاح.',
         bindingsFetchFailed: 'تعذر جلب الربط !',
         bindingsUpdated: 'تم تحديث الربط بنجاح.',
@@ -1739,6 +1740,11 @@ const ar: Translations = {
         channelsVersionUnsupported:
             'تكوين القنوات غير متاح في هذا الإصدار. يمكنك الاتصال يدوياً باستخدام علامة تبويب الطرفية أو ترقية OpenClaw.',
         channelsVersionUnsupportedDocs: 'عرض دليل الإعداد',
+        featureVersionUnsupported: '{{feature}} غير مدعوم على {{version}}',
+        featureVersionUnsupportedDescription: 'لا ندعم إدارة {{feature}} مع هذا الإصدار عبر واجهتنا. يمكنك إدارته عبر SSH أو الطرفية أو لوحة تحكم OpenClaw.',
+        featureVersionUnsupportedButton: 'الذهاب إلى الإصدارات',
+        featureVersionUnsupportedSupported: 'الإصدارات المدعومة:',
+        featureVersionUnsupportedNewer: 'الإصدارات الأحدث',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

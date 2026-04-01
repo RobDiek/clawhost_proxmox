@@ -4,12 +4,10 @@ import executeSSH from '@/services/ssh'
 import {
     findUserClaw,
     WHATSAPP_PATHS,
-    isVersionAtLeast
+    checkFeatureVersion
 } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
-
-const WHATSAPP_MIN_VERSION = '2026.3.23-1'
 
 const pairWhatsApp = async (c: AuthenticatedContext) => {
     try {
@@ -26,18 +24,18 @@ const pairWhatsApp = async (c: AuthenticatedContext) => {
         }
 
         try {
-            const versionOutput = await executeSSH(
+            const { supported, version } = await checkFeatureVersion(
                 claw.ip,
                 claw.rootPassword,
-                'su - openclaw -c "openclaw --version" 2>/dev/null || echo "unknown"',
-                8000
+                'channels'
             )
 
-            if (!isVersionAtLeast(versionOutput, WHATSAPP_MIN_VERSION)) {
-                return ok(
+            if (!supported) {
+                return fail(
                     c,
-                    { status: 'version_unsupported' },
-                    t('api.whatsappVersionUnsupported')
+                    t('api.featureVersionUnsupported', { version }),
+                    400,
+                    { version }
                 )
             }
 

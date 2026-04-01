@@ -22,7 +22,7 @@ import {
     ListBulletsIcon
 } from '@phosphor-icons/react'
 import { useUIStore, usePreferencesStore } from '@/lib/store'
-import ClawAvatar from '@/components/shared/ClawAvatar'
+import { ClawAvatar } from '@/components/shared'
 import { getBaseDomain, api } from '@/lib'
 import { generateSlug } from '@/lib/claw-utils'
 import {

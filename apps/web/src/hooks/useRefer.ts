@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { STORAGE_KEYS } from '@/lib/storageKeys'
+import STORAGE_KEYS from '@/lib/storageKeys'
 
 const SIX_MONTHS_MS = 6 * 30 * 24 * 60 * 60 * 1000
 

@@ -479,6 +479,7 @@ const ru: Translations = {
         whatsappAlreadyPaired: 'WhatsApp уже сопряжён!',
         whatsappVersionUnsupported:
             'Эта версия не поддерживает настройку каналов через панель управления. Используйте вкладку «Терминал» для ручной настройки или обновите OpenClaw.',
+        featureVersionUnsupported: 'Эта функция не поддерживается в версии {{version}}. Обновите OpenClaw или используйте Терминал для ручного управления.',
         bindingsFetched: 'Привязки успешно загружены.',
         bindingsFetchFailed: 'Не удалось загрузить привязки!',
         bindingsUpdated: 'Привязки успешно обновлены.',
@@ -1797,6 +1798,11 @@ const ru: Translations = {
         channelsVersionUnsupported:
             'Настройка каналов недоступна в этой версии. Вы можете подключиться вручную через вкладку «Терминал» или обновить OpenClaw.',
         channelsVersionUnsupportedDocs: 'Руководство по настройке',
+        featureVersionUnsupported: '{{feature}} не поддерживается на {{version}}',
+        featureVersionUnsupportedDescription: 'Мы не поддерживаем управление {{feature}} с этой версией через наш интерфейс. Вы можете управлять этим через SSH, Терминал или панель управления OpenClaw.',
+        featureVersionUnsupportedButton: 'Перейти к Версиям',
+        featureVersionUnsupportedSupported: 'Поддерживаемые версии:',
+        featureVersionUnsupportedNewer: 'более новые версии',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

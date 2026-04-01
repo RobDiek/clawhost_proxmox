@@ -207,7 +207,7 @@ const getClawBinaryPath = (clawDir: string): string => {
     return path.join(clawDir, 'node_modules', '.bin', 'openclaw')
 }
 
-export default {
+const versionManager = {
     listInstalled,
     installVersion,
     installVersionTo,
@@ -216,3 +216,5 @@ export default {
     getVersionBinaryPath,
     getClawBinaryPath
 }
+
+export default versionManager

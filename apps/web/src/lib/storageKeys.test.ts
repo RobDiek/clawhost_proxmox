@@ -1,4 +1,4 @@
-import { STORAGE_KEYS } from '@/lib/storageKeys'
+import STORAGE_KEYS from '@/lib/storageKeys'
 
 describe('STORAGE_KEYS', () => {
     it('has all expected keys', () => {

@@ -1,7 +1,6 @@
-import 'dotenv/config'
-
 import type { Server } from 'http'
 
+import 'dotenv/config'
 import { serve } from '@hono/node-server'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'

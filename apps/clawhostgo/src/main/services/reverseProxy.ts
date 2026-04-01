@@ -174,4 +174,6 @@ const stop = (): void => {
     }
 }
 
-export default { start, stop, reloadCerts }
+const reverseProxy = { start, stop, reloadCerts }
+
+export default reverseProxy

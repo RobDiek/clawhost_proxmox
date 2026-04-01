@@ -323,7 +323,7 @@ const cleanOrphanedProcesses = (): void => {
     }
 }
 
-export default {
+const processManager = {
     startGateway,
     stopGateway,
     restartGateway,
@@ -333,3 +333,5 @@ export default {
     stopAll,
     cleanOrphanedProcesses
 }
+
+export default processManager

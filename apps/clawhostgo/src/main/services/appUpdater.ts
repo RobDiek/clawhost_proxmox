@@ -70,4 +70,6 @@ const checkForUpdate = async (): Promise<AppUpdateInfo> => {
     }
 }
 
-export default { checkForUpdate }
+const appUpdater = { checkForUpdate }
+
+export default appUpdater

@@ -4,7 +4,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { setLanguage as setI18nLanguage } from '@openclaw/i18n'
 import { DASHBOARD_TABS, THEMES, LANGUAGES } from '@/lib/constants'
-import { STORAGE_KEYS } from '@/lib/storageKeys'
+import STORAGE_KEYS from '@/lib/storageKeys'
 
 const VALID_TABS = new Set<string>(Object.values(DASHBOARD_TABS))
 

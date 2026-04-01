@@ -225,10 +225,12 @@ const setupResolver = (): Promise<boolean> => {
     })
 }
 
-export default {
+const dnsResolver = {
     startDns,
     stopDns,
     isDnsSetup,
     setupResolver,
     ensurePortRedirect
 }
+
+export default dnsResolver

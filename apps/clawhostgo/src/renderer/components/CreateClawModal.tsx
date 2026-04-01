@@ -1,4 +1,4 @@
-import type { FC, ReactNode } from 'react'
+import type { ChangeEvent, FC, KeyboardEvent, ReactNode } from 'react'
 import type { CreateClawModalProps } from '@/ts/Interfaces'
 
 import { useState } from 'react'
@@ -13,8 +13,8 @@ import {
     DialogFooter
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import Input from '@/components/ui/input'
+import Label from '@/components/ui/label'
 import {
     ArrowClockwiseIcon,
     EyeIcon,
@@ -128,11 +128,11 @@ const CreateClawModal: FC<CreateClawModalProps> = ({ onClose }): ReactNode => {
                         <Label>{t('createClaw.clawName')}</Label>
                         <Input
                             value={name}
-                            onChange={(e) => {
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 setName(e.target.value)
                                 setError('')
                             }}
-                            onKeyDown={(e) => {
+                            onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
                                 if (
                                     e.key === 'Enter' &&
                                     nameValid &&
@@ -155,7 +155,7 @@ const CreateClawModal: FC<CreateClawModalProps> = ({ onClose }): ReactNode => {
                             <div className='relative flex-1'>
                                 <Input
                                     value={gatewayToken}
-                                    onChange={(e) =>
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
                                         setGatewayToken(e.target.value)
                                     }
                                     type={showToken ? 'text' : 'password'}
@@ -197,7 +197,7 @@ const CreateClawModal: FC<CreateClawModalProps> = ({ onClose }): ReactNode => {
                             <div className='relative flex-1'>
                                 <Input
                                     value={password}
-                                    onChange={(e) =>
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
                                         setPassword(e.target.value)
                                     }
                                     type={showPassword ? 'text' : 'password'}

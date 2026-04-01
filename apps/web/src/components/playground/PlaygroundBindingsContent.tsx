@@ -8,6 +8,7 @@ import type {
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { isFeatureSupported } from '@openclaw/shared'
 import { t } from '@openclaw/i18n'
 import {
     CircleNotchIcon,
@@ -18,10 +19,11 @@ import {
     ChatCircleIcon,
     ChatsCircleIcon
 } from '@phosphor-icons/react'
-import PanelPlaceholder from '@/components/shared/PanelPlaceholder'
+import { PanelPlaceholder, VersionUnsupported } from '@/components/shared'
 import { Skeleton } from '@/components/ui'
 import { api } from '@/lib'
 import { useUIStore } from '@/lib/store'
+import { useClawVersion } from '@/hooks'
 
 const CHANNEL_META: Record<string, ChannelMetaEntry> = {
     whatsapp: { icon: WhatsappLogoIcon, label: 'playground.channelsWhatsApp' },
@@ -50,7 +52,8 @@ const isChannelConfigured = (key: string, config: ChannelConfig): boolean => {
 
 const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
     clawId,
-    agentId
+    agentId,
+    onGoToVersions
 }): ReactNode => {
     const [bindings, setBindings] = useState<Binding[]>([])
     const [hasChanges, setHasChanges] = useState(false)
@@ -63,6 +66,10 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
         staleTime: 0,
         gcTime: 0
     })
+
+    const versionQuery = useClawVersion(clawId, true)
+    const clawVersion = versionQuery.data?.version || ''
+    const versionUnsupported = clawVersion !== '' && !isFeatureSupported(clawVersion, 'bindings')
 
     useEffect(() => {
         if (query.data) {
@@ -141,19 +148,39 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
 
     if (enabledChannels.length === 0) {
         return (
-            <PanelPlaceholder
-                icon={
-                    <ChatsCircleIcon className='text-muted-foreground h-6 w-6' />
-                }
-                title={t('playground.bindingsNoChannels')}
-                description={t('playground.bindingsNoChannelsDescription')}
-            />
+            <div className='flex h-full flex-col'>
+                {versionUnsupported && (
+                    <VersionUnsupported
+                        version={clawVersion}
+                        feature={t('playground.tabChannels')}
+                        featureKey='bindings'
+                        onGoToVersions={onGoToVersions}
+                    />
+                )}
+                <div className='flex flex-1 items-center justify-center'>
+                    <PanelPlaceholder
+                        icon={
+                            <ChatsCircleIcon className='text-muted-foreground h-6 w-6' />
+                        }
+                        title={t('playground.bindingsNoChannels')}
+                        description={t('playground.bindingsNoChannelsDescription')}
+                    />
+                </div>
+            </div>
         )
     }
 
     return (
         <div className='flex h-full flex-col'>
-            <div className='flex-1 overflow-y-auto p-5'>
+            {versionUnsupported && (
+                <VersionUnsupported
+                    version={clawVersion}
+                    feature={t('playground.tabChannels')}
+                    featureKey='bindings'
+                    onGoToVersions={onGoToVersions}
+                />
+            )}
+            <div className={`flex-1 overflow-y-auto p-5 ${versionUnsupported ? 'pointer-events-none opacity-50' : ''}`}>
                 <p className='text-muted-foreground mb-4 text-xs'>
                     {t('playground.bindingsDescription')}
                 </p>
@@ -208,7 +235,7 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
                 <div className='border-border border-t p-4'>
                     <button
                         onClick={handleSave}
-                        disabled={mutation.isPending}
+                        disabled={mutation.isPending || versionUnsupported}
                         className='flex w-full items-center justify-center gap-2 rounded-lg bg-[#ef5350] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#e53935] disabled:opacity-50'
                     >
                         {mutation.isPending && (

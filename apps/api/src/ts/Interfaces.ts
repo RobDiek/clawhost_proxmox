@@ -685,7 +685,7 @@ export interface UpdateClawChannelsBody {
 }
 
 export interface WhatsAppPairResponse {
-    status: 'started' | 'already_paired' | 'version_unsupported'
+    status: 'started' | 'already_paired'
 }
 
 export interface WhatsAppPairStatusResponse {
@@ -924,6 +924,11 @@ export interface NpmRegistryVersionsResponse {
 
 export interface NpmDownloadsResponse {
     downloads: Record<string, number>
+}
+
+export interface VersionCheckResult {
+    supported: boolean
+    version: string
 }
 
 export interface InstallVersionBody {

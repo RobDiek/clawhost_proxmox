@@ -10,7 +10,7 @@ import {
     ArrowsInIcon
 } from '@phosphor-icons/react'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
-import ClawAvatar from '@/components/shared/ClawAvatar'
+import { ClawAvatar } from '@/components/shared'
 import { TRUNCATE_LENGTHS } from '@/lib'
 import { AGENT_DETAIL_TABS } from '@/lib/constants'
 

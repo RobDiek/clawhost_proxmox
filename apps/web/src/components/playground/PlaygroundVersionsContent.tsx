@@ -11,8 +11,7 @@ import {
     DownloadSimpleIcon,
     ArrowSquareOutIcon
 } from '@phosphor-icons/react'
-import ClawMascot from '@/components/shared/ClawMascot'
-import PanelPlaceholder from '@/components/shared/PanelPlaceholder'
+import { ClawMascot, PanelPlaceholder } from '@/components/shared'
 import {
     Button,
     Dialog,

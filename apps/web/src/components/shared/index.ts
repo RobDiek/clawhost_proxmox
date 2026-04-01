@@ -14,6 +14,7 @@ import ThemeToggle from '@/components/shared/ThemeToggle'
 import Toast from '@/components/shared/Toast'
 import TruncateTooltip from '@/components/shared/TruncateTooltip'
 import UserDropdown from '@/components/shared/UserDropdown'
+import VersionUnsupported from '@/components/shared/VersionUnsupported'
 
 export {
     ActionButton,
@@ -31,5 +32,6 @@ export {
     ThemeToggle,
     Toast,
     TruncateTooltip,
-    UserDropdown
+    UserDropdown,
+    VersionUnsupported
 }

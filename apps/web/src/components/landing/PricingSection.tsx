@@ -10,7 +10,7 @@ import { Fragment, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { Button, Badge } from '@/components/ui'
-import PlansSkeleton from '@/components/shared/PlansSkeleton'
+import { PlansSkeleton } from '@/components/shared'
 import { useAuth } from '@/lib/auth'
 import { ROUTES } from '@/lib'
 import {

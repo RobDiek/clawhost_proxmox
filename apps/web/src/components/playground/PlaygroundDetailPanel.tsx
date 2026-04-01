@@ -31,9 +31,7 @@ import {
     ArrowSquareOutIcon,
     ChatsCircleIcon
 } from '@phosphor-icons/react'
-import ClawAvatar from '@/components/shared/ClawAvatar'
-import ClawMascotOutline from '@/components/shared/ClawMascotOutline'
-import ProviderIcon from '@/components/shared/ProviderIcon'
+import { ClawAvatar, ClawMascotOutline, ProviderIcon } from '@/components/shared'
 import {
     Skeleton,
     Tooltip,
@@ -694,7 +692,10 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                     )}
 
                     {activeTab === 'skills' && (
-                        <PlaygroundSkillsContent clawId={claw.id} />
+                        <PlaygroundSkillsContent
+                            clawId={claw.id}
+                            onGoToVersions={() => setActiveTab(CLAW_DETAIL_TABS.VERSIONS)}
+                        />
                     )}
 
                     {activeTab === 'versions' && (
@@ -702,7 +703,10 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                     )}
 
                     {activeTab === 'channels' && (
-                        <PlaygroundChannelsContent clawId={claw.id} />
+                        <PlaygroundChannelsContent
+                            clawId={claw.id}
+                            onGoToVersions={() => setActiveTab(CLAW_DETAIL_TABS.VERSIONS)}
+                        />
                     )}
 
                     {activeTab === 'variables' && (

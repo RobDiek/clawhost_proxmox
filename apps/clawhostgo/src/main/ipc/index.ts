@@ -151,4 +151,4 @@ const registerAllHandlers = (): void => {
     registerClawTerminalHandlers()
 }
 
-export default registerAllHandlers
+export { registerAllHandlers }

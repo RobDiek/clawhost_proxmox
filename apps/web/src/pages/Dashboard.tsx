@@ -781,6 +781,12 @@ const Dashboard: FC = (): ReactNode => {
                                         setSelectedAgentId(null)
                                         setSelectedAgentClawId(null)
                                     }}
+                                    onGoToVersions={() => {
+                                        setSelectedAgentId(null)
+                                        setSelectedAgentClawId(null)
+                                        setSelectedClawId(selectedAgentClaw.id)
+                                        setPlaygroundClawTab('versions')
+                                    }}
                                 />
                             )}
                         </AnimatePresence>

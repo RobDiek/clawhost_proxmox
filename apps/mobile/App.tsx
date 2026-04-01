@@ -97,4 +97,4 @@ const App: FC = (): ReactNode => {
     )
 }
 
-export default App
+export { App }

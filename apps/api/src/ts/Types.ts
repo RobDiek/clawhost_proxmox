@@ -1,5 +1,6 @@
 import type { Context } from 'hono'
 import type { billingInterval, userRole } from '@openclaw/shared'
+import type { claws } from '@/db/schema'
 
 export type HonoEnv = { Variables: { userId: string; isAdmin: boolean } }
 
@@ -50,7 +51,13 @@ export type BillingInterval =
 
 export type PolarPriceMap = Record<string, number>
 
-export type ClawRow = typeof import('@/db/schema').claws.$inferSelect
+export type ClawRow = typeof claws.$inferSelect
+
+export type VersionGatedFeature =
+    | 'channels'
+    | 'skills'
+    | 'bindings'
+    | 'agents'
 
 export type FeatureEmailKey =
     | 'terminal'

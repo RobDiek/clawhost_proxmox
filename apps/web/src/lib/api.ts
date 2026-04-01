@@ -66,7 +66,7 @@ import { RequestClient } from '@openclaw/shared'
 import { signOut } from 'firebase/auth'
 import { auth, clearTokenCache, getCachedToken } from '@/lib/firebase'
 import { apiPaths as API_PATHS } from '@openclaw/shared'
-import { STORAGE_KEYS } from '@/lib/storageKeys'
+import STORAGE_KEYS from '@/lib/storageKeys'
 
 const BASE_URL = import.meta.env.VITE_API_URL || '/api'
 

@@ -497,6 +497,7 @@ const it: Translations = {
         whatsappAlreadyPaired: 'WhatsApp è già associato!',
         whatsappVersionUnsupported:
             'Questa versione non supporta la configurazione dei canali dalla dashboard. Usa la scheda Terminale per configurare manualmente o aggiorna OpenClaw.',
+        featureVersionUnsupported: 'Questa funzionalità non è supportata nella versione {{version}}. Aggiorna OpenClaw o usa il Terminale per gestire manualmente.',
         bindingsFetched: 'Binding recuperati con successo.',
         bindingsFetchFailed: 'Impossibile recuperare i binding!',
         bindingsUpdated: 'Binding aggiornati con successo.',
@@ -1852,6 +1853,11 @@ const it: Translations = {
         channelsVersionUnsupported:
             'La configurazione dei canali non è disponibile in questa versione. Puoi collegarti manualmente usando la scheda Terminale o aggiornare OpenClaw.',
         channelsVersionUnsupportedDocs: 'Vedi guida alla configurazione',
+        featureVersionUnsupported: '{{feature}} non supportato su {{version}}',
+        featureVersionUnsupportedDescription: 'Non supportiamo la gestione di {{feature}} con questa versione tramite la nostra interfaccia. Puoi comunque gestirlo tramite SSH, Terminale o il pannello di controllo OpenClaw.',
+        featureVersionUnsupportedButton: 'Vai alle Versioni',
+        featureVersionUnsupportedSupported: 'Versioni supportate:',
+        featureVersionUnsupportedNewer: 'versioni successive',
         channelsTelegram: 'Telegram',
         channelsDiscord: 'Discord',
         channelsSlack: 'Slack',

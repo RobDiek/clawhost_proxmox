@@ -72,7 +72,8 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
     subdomain,
     initialTab,
     onTabChange,
-    hideChatTab
+    hideChatTab,
+    onGoToVersions
 }): ReactNode => {
     const visibleTabs = useMemo(
         () =>
@@ -273,6 +274,7 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
                             <PlaygroundBindingsContent
                                 clawId={clawId}
                                 agentId={agent.id}
+                                onGoToVersions={onGoToVersions}
                             />
                         )}
 
@@ -280,6 +282,7 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
                         <PlaygroundSkillsContent
                             clawId={clawId}
                             agentId={agent.id}
+                            onGoToVersions={onGoToVersions}
                         />
                     )}
 

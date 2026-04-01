@@ -5,7 +5,8 @@ import executeSSH from '@/services/ssh'
 import {
     findUserClaw,
     ensureClawHub,
-    BASE_DIR
+    BASE_DIR,
+    checkFeatureVersion
 } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
@@ -33,6 +34,21 @@ const removeClawHubSkill = async (c: AuthenticatedContext) => {
         }
 
         try {
+            const { supported, version } = await checkFeatureVersion(
+                claw.ip,
+                claw.rootPassword,
+                'skills'
+            )
+
+            if (!supported) {
+                return fail(
+                    c,
+                    t('api.featureVersionUnsupported', { version }),
+                    400,
+                    { version }
+                )
+            }
+
             await ensureClawHub(claw.ip, claw.rootPassword)
 
             let clawHubCmd = `clawhub remove ${body.slug}`

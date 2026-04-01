@@ -2,7 +2,11 @@ import type { UpdateAgentSkillsBody } from '@/ts/Interfaces'
 import type { AuthenticatedContext } from '@/ts/Types'
 
 import executeSSH from '@/services/ssh'
-import { BASE_DIR, findUserClaw } from '@/controllers/claws/helpers'
+import {
+    BASE_DIR,
+    findUserClaw,
+    checkFeatureVersion
+} from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 
@@ -30,6 +34,25 @@ const updateAgentSkills = async (c: AuthenticatedContext) => {
 
         if (!claw.ip || !claw.rootPassword) {
             return fail(c, t('api.agentSkillsUpdateFailed'), 400)
+        }
+
+        try {
+            const { supported, version } = await checkFeatureVersion(
+                claw.ip,
+                claw.rootPassword,
+                'skills'
+            )
+
+            if (!supported) {
+                return fail(
+                    c,
+                    t('api.featureVersionUnsupported', { version }),
+                    400,
+                    { version }
+                )
+            }
+        } catch {
+            return fail(c, t('api.agentSkillsUpdateFailed'), 500)
         }
 
         const agentId = c.req.param('agentId')!

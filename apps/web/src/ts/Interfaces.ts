@@ -1,4 +1,5 @@
-import type { ElementType, ReactNode } from 'react'
+import type { ComponentType, ElementType, ReactNode, RefObject } from 'react'
+import type { MotionValue } from 'framer-motion'
 import type { User } from 'firebase/auth'
 import type { Node, Edge } from '@xyflow/react'
 import type { UseQueryResult } from '@tanstack/react-query'
@@ -414,6 +415,13 @@ export interface PanelPlaceholderProps {
     description: string
 }
 
+export interface VersionUnsupportedProps {
+    version: string
+    feature: string
+    featureKey: string
+    onGoToVersions?: () => void
+}
+
 export interface PageTitleProps {
     title: string
     description?: string
@@ -645,7 +653,7 @@ export interface BlogPostMeta extends BlogPostFrontmatter {
 }
 
 export interface BlogPostModule {
-    default: React.ComponentType
+    default: ComponentType
     frontmatter: BlogPostFrontmatter
 }
 
@@ -945,6 +953,7 @@ export interface PlaygroundAgentDetailPanelProps {
     initialTab?: PlaygroundAgentDetailTab
     onTabChange?: (tab: PlaygroundAgentDetailTab) => void
     hideChatTab?: boolean
+    onGoToVersions?: () => void
 }
 
 export interface AgentDetailHeaderProps {
@@ -1019,13 +1028,13 @@ export interface HeroTitleProps {
 }
 
 export interface DemoPreviewSectionProps {
-    previewRef: React.RefObject<HTMLDivElement>
-    previewScale: import('framer-motion').MotionValue<number>
+    previewRef: RefObject<HTMLDivElement>
+    previewScale: MotionValue<number>
 }
 
 export interface MacosDesktopPreviewProps {
-    previewRef: React.RefObject<HTMLDivElement>
-    previewScale: import('framer-motion').MotionValue<number>
+    previewRef: RefObject<HTMLDivElement>
+    previewScale: MotionValue<number>
 }
 
 export interface GoPricingCardProps {
@@ -1329,7 +1338,7 @@ export interface UpdateClawChannelsData {
 }
 
 export interface WhatsAppPairResponse {
-    status: 'started' | 'already_paired' | 'version_unsupported'
+    status: 'started' | 'already_paired'
 }
 
 export interface WhatsAppPairStatusResponse {
@@ -1375,6 +1384,7 @@ export interface UpdateAgentSkillsData {
 
 export interface PlaygroundChannelsContentProps {
     clawId: string
+    onGoToVersions?: () => void
 }
 
 export interface ChannelMetaEntry {
@@ -1411,6 +1421,7 @@ export interface ChannelFieldDefinition {
 export interface PlaygroundSkillsContentProps {
     clawId: string
     agentId?: string
+    onGoToVersions?: () => void
 }
 
 export interface ClawHubSearchResult {
@@ -1613,6 +1624,7 @@ export interface UpdateClawBindingsData {
 export interface PlaygroundBindingsContentProps {
     clawId: string
     agentId: string
+    onGoToVersions?: () => void
 }
 
 export interface CompareData {
