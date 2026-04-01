@@ -11,7 +11,8 @@
         "isolatedModules": true,
         "baseUrl": ".",
         "paths": {
-            "@/*": ["./src/*"]
+            "@/*": ["./src/*"],
+            "#i18n/*": ["../../packages/i18n/src/*"]
         }
     },
     "include": [

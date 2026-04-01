@@ -7,6 +7,7 @@ import mdx from '@mdx-js/rollup'
 import remarkFrontmatter from 'remark-frontmatter'
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter'
 import remarkGfm from 'remark-gfm'
+import viteCompression from 'vite-plugin-compression'
 import viteMdxSanitize from './src/plugins/vite-mdx-sanitize'
 
 export default defineConfig(({ mode }) => {
@@ -28,7 +29,9 @@ export default defineConfig(({ mode }) => {
                     remarkMdxFrontmatter
                 ]
             }),
-            react()
+            react(),
+            viteCompression({ algorithm: 'gzip', threshold: 1024 }),
+            viteCompression({ algorithm: 'brotliCompress', threshold: 1024 })
         ],
         resolve: {
             alias: {

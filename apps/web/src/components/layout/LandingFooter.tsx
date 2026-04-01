@@ -172,11 +172,13 @@ const LandingFooter: FC = (): ReactNode => {
                                 <img
                                     src='/badges/google-play-dark.svg'
                                     alt={t('footer.downloadAndroid')}
+                                    loading='lazy'
                                     className='hidden h-10 dark:block'
                                 />
                                 <img
                                     src='/badges/google-play-light.svg'
                                     alt={t('footer.downloadAndroid')}
+                                    loading='lazy'
                                     className='block h-10 dark:hidden'
                                 />
                             </a>
@@ -190,11 +192,13 @@ const LandingFooter: FC = (): ReactNode => {
                                 <img
                                     src='/badges/app-store-light.svg'
                                     alt={t('footer.downloadIos')}
+                                    loading='lazy'
                                     className='block h-10 dark:hidden'
                                 />
                                 <img
                                     src='/badges/app-store-dark.svg'
                                     alt={t('footer.downloadIos')}
+                                    loading='lazy'
                                     className='hidden h-10 dark:block'
                                 />
                             </a>

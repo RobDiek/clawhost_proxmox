@@ -16,7 +16,8 @@
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true,
         "paths": {
-            "@/*": ["./src/*"]
+            "@/*": ["./src/*"],
+            "#i18n/*": ["../../packages/i18n/src/*"]
         }
     },
     "include": ["src", "scripts", "content"],

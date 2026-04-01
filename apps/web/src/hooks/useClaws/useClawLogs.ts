@@ -6,8 +6,8 @@ const useClawLogs = (clawId: string, enabled: boolean) => {
         queryKey: ['claw-logs', clawId],
         queryFn: () => api.getClawLogs(clawId),
         enabled,
-        refetchInterval: 3000,
-        gcTime: 0
+        refetchInterval: 10_000,
+        gcTime: 30_000
     })
 }
 

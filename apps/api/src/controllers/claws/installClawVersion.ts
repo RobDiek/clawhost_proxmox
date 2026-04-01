@@ -8,6 +8,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { claws } from '@/db/schema'
 import executeSSH from '@/services/ssh'
+import { invalidateVersionCache } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 
@@ -65,6 +66,8 @@ const installClawVersion = async (c: AuthenticatedContext) => {
             installCommands,
             120000
         )
+
+        invalidateVersionCache(claw[0].ip)
 
         const success = output.includes('GATEWAY_OK')
 

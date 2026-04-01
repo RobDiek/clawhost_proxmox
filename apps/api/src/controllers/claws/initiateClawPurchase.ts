@@ -3,10 +3,7 @@ import type { AuthenticatedContext, BillingInterval } from '@/ts/Types'
 
 import crypto from 'crypto'
 import { eq, and, count, lt } from 'drizzle-orm'
-import {
-    inputValidation,
-    billingInterval
-} from '@openclaw/shared'
+import { inputValidation, billingInterval } from '@openclaw/shared'
 import { db } from '@/db'
 import { users, sshKeys, claws, pendingClaws } from '@/db/schema'
 import { checkouts, customers } from '@/lib/polar'

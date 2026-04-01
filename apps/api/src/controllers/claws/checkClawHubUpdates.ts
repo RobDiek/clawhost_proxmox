@@ -5,7 +5,8 @@ import executeSSH from '@/services/ssh'
 import {
     findUserClaw,
     ensureClawHub,
-    BASE_DIR
+    BASE_DIR,
+    parseJsonArrayFromSSH
 } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
@@ -37,7 +38,7 @@ const checkClawHubUpdates = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
         const id = c.req.param('id')!
-        const claw = await findUserClaw(userId, id)
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)
@@ -74,33 +75,11 @@ const checkClawHubUpdates = async (c: AuthenticatedContext) => {
                 30000
             )
 
-            let updates: ClawHubInstalledSkill[] = []
-            try {
-                const trimmed = output.trim()
-                const arrStart = trimmed.indexOf('[')
-                const objStart = trimmed.indexOf('{')
-                const start =
-                    arrStart >= 0 && (objStart < 0 || arrStart < objStart)
-                        ? arrStart
-                        : objStart
-                const end =
-                    start === arrStart
-                        ? trimmed.lastIndexOf(']')
-                        : trimmed.lastIndexOf('}')
-                const jsonStr =
-                    start >= 0 && end > start
-                        ? trimmed.substring(start, end + 1)
-                        : '[]'
-                const parsed = JSON.parse(jsonStr)
-                const rawItems: Record<string, unknown>[] = Array.isArray(
-                    parsed
-                )
-                    ? parsed
-                    : parsed.updates || []
-                updates = rawItems.map(normalizeUpdate)
-            } catch {
-                updates = []
-            }
+            const rawItems = parseJsonArrayFromSSH<Record<string, unknown>>(
+                output,
+                'updates'
+            )
+            const updates: ClawHubInstalledSkill[] = rawItems.map(normalizeUpdate)
 
             return ok(c, { updates }, t('api.clawHubUpdatesFetched'))
         } catch {

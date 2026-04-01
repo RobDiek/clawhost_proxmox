@@ -44,7 +44,7 @@ const Changelog: FC = (): ReactNode => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.1 }}
-                        className='relative md:pl-14'
+                        className='cv-auto relative md:pl-14'
                     >
                         <div className='absolute left-0 top-1 hidden md:block'>
                             <div className='flex h-10 w-10 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10'>
@@ -83,7 +83,7 @@ const Changelog: FC = (): ReactNode => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.2 }}
-                        className='relative md:pl-14'
+                        className='cv-auto relative md:pl-14'
                     >
                         <div className='absolute left-0 top-1 hidden md:block'>
                             <div className='border-border bg-foreground/[0.04] flex h-10 w-10 items-center justify-center rounded-full border'>
@@ -125,7 +125,7 @@ const Changelog: FC = (): ReactNode => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.3 }}
-                        className='relative md:pl-14'
+                        className='cv-auto relative md:pl-14'
                     >
                         <div className='absolute left-0 top-1 hidden md:block'>
                             <div className='border-border bg-foreground/[0.04] flex h-10 w-10 items-center justify-center rounded-full border'>
@@ -179,7 +179,7 @@ const Changelog: FC = (): ReactNode => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.3 }}
-                        className='relative md:pl-14'
+                        className='cv-auto relative md:pl-14'
                     >
                         <div className='absolute left-0 top-1 hidden md:block'>
                             <div className='border-border bg-foreground/[0.04] flex h-10 w-10 items-center justify-center rounded-full border'>
@@ -248,7 +248,7 @@ const Changelog: FC = (): ReactNode => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.3 }}
-                        className='relative md:pl-14'
+                        className='cv-auto relative md:pl-14'
                     >
                         <div className='absolute left-0 top-1 hidden md:block'>
                             <div className='border-border bg-foreground/[0.04] flex h-10 w-10 items-center justify-center rounded-full border'>
@@ -308,7 +308,7 @@ const Changelog: FC = (): ReactNode => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.3 }}
-                        className='relative md:pl-14'
+                        className='cv-auto relative md:pl-14'
                     >
                         <div className='absolute left-0 top-1 hidden md:block'>
                             <div className='border-border bg-foreground/[0.04] flex h-10 w-10 items-center justify-center rounded-full border'>
@@ -374,7 +374,7 @@ const Changelog: FC = (): ReactNode => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.3 }}
-                        className='relative md:pl-14'
+                        className='cv-auto relative md:pl-14'
                     >
                         <div className='absolute left-0 top-1 hidden md:block'>
                             <div className='border-border bg-foreground/[0.04] flex h-10 w-10 items-center justify-center rounded-full border'>
@@ -422,7 +422,7 @@ const Changelog: FC = (): ReactNode => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.3 }}
-                        className='relative md:pl-14'
+                        className='cv-auto relative md:pl-14'
                     >
                         <div className='absolute left-0 top-1 hidden md:block'>
                             <div className='border-border bg-foreground/[0.04] flex h-10 w-10 items-center justify-center rounded-full border'>
@@ -476,7 +476,7 @@ const Changelog: FC = (): ReactNode => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.3 }}
-                        className='relative md:pl-14'
+                        className='cv-auto relative md:pl-14'
                     >
                         <div className='absolute left-0 top-1 hidden md:block'>
                             <div className='border-border bg-foreground/[0.04] flex h-10 w-10 items-center justify-center rounded-full border'>
@@ -530,7 +530,7 @@ const Changelog: FC = (): ReactNode => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.4 }}
-                        className='relative md:pl-14'
+                        className='cv-auto relative md:pl-14'
                     >
                         <div className='absolute left-0 top-1 hidden md:block'>
                             <div className='border-border bg-foreground/[0.04] flex h-10 w-10 items-center justify-center rounded-full border'>
@@ -584,7 +584,7 @@ const Changelog: FC = (): ReactNode => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.5 }}
-                        className='relative md:pl-14'
+                        className='cv-auto relative md:pl-14'
                     >
                         <div className='absolute left-0 top-1 hidden md:block'>
                             <div className='border-border bg-foreground/[0.04] flex h-10 w-10 items-center justify-center rounded-full border'>
@@ -632,7 +632,7 @@ const Changelog: FC = (): ReactNode => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.7 }}
-                        className='relative md:pl-14'
+                        className='cv-auto relative md:pl-14'
                     >
                         <div className='absolute left-0 top-1 hidden md:block'>
                             <div className='border-border bg-foreground/[0.04] flex h-10 w-10 items-center justify-center rounded-full border'>
@@ -668,7 +668,7 @@ const Changelog: FC = (): ReactNode => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.7 }}
-                        className='relative md:pl-14'
+                        className='cv-auto relative md:pl-14'
                     >
                         <div className='absolute left-0 top-1 hidden md:block'>
                             <div className='border-border bg-foreground/[0.04] flex h-10 w-10 items-center justify-center rounded-full border'>

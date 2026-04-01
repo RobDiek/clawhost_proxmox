@@ -13,7 +13,7 @@ const pairWhatsApp = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
         const id = c.req.param('id')!
-        const claw = await findUserClaw(userId, id)
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)
@@ -72,19 +72,20 @@ const pairWhatsApp = async (c: AuthenticatedContext) => {
                 15000
             )
 
-            await executeSSH(
-                claw.ip,
-                claw.rootPassword,
-                `kill $(cat ${WHATSAPP_PATHS.PAIR_PID} 2>/dev/null) 2>/dev/null; rm -f ${WHATSAPP_PATHS.PAIR_LOG} ${WHATSAPP_PATHS.PAIR_PID} ${WHATSAPP_PATHS.PAIR_SCRIPT}`,
-                5000
-            ).catch(() => {})
-
-            await executeSSH(
-                claw.ip,
-                claw.rootPassword,
-                `cat > ${WHATSAPP_PATHS.PAIR_SCRIPT} << 'PAIREOF'\n#!/bin/bash\nscript -qfc 'su - openclaw -c "openclaw channels login --channel whatsapp"' ${WHATSAPP_PATHS.PAIR_LOG}\nPAIREOF\nchmod +x ${WHATSAPP_PATHS.PAIR_SCRIPT}`,
-                5000
-            )
+            await Promise.all([
+                executeSSH(
+                    claw.ip,
+                    claw.rootPassword,
+                    `kill $(cat ${WHATSAPP_PATHS.PAIR_PID} 2>/dev/null) 2>/dev/null; rm -f ${WHATSAPP_PATHS.PAIR_LOG} ${WHATSAPP_PATHS.PAIR_PID} ${WHATSAPP_PATHS.PAIR_SCRIPT}`,
+                    5000
+                ).catch(() => {}),
+                executeSSH(
+                    claw.ip,
+                    claw.rootPassword,
+                    `cat > ${WHATSAPP_PATHS.PAIR_SCRIPT} << 'PAIREOF'\n#!/bin/bash\nscript -qfc 'su - openclaw -c "openclaw channels login --channel whatsapp"' ${WHATSAPP_PATHS.PAIR_LOG}\nPAIREOF\nchmod +x ${WHATSAPP_PATHS.PAIR_SCRIPT}`,
+                    5000
+                )
+            ])
 
             await executeSSH(
                 claw.ip,

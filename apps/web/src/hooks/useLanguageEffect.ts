@@ -1,15 +1,19 @@
 import type { Language } from '@/ts/Types'
 
-import { useLayoutEffect } from 'react'
-import { setLanguage } from '@openclaw/i18n'
+import { useEffect, useState } from 'react'
+import { setLanguage, loadLanguage } from '@openclaw/i18n'
 import { usePreferencesStore } from '@/lib/store'
 
 const useLanguageEffect = (): Language => {
     const language = usePreferencesStore((s) => s.language)
+    const [, forceUpdate] = useState(0)
 
-    useLayoutEffect(() => {
-        setLanguage(language)
-        document.documentElement.lang = language
+    useEffect(() => {
+        loadLanguage(language).then(() => {
+            setLanguage(language)
+            document.documentElement.lang = language
+            forceUpdate((n) => n + 1)
+        })
     }, [language])
 
     return language

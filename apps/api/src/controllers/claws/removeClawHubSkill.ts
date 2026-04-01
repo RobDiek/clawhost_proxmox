@@ -1,12 +1,9 @@
 import type { ClawHubRemoveBody } from '@/ts/Interfaces'
 import type { AuthenticatedContext } from '@/ts/Types'
 
-import executeSSH from '@/services/ssh'
 import {
     findUserClaw,
-    ensureClawHub,
-    BASE_DIR,
-    checkFeatureVersion
+    executeClawHubOperation
 } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
@@ -23,7 +20,7 @@ const removeClawHubSkill = async (c: AuthenticatedContext) => {
             return fail(c, t('api.invalidSkillName'), 400)
         }
 
-        const claw = await findUserClaw(userId, id)
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)
@@ -34,10 +31,12 @@ const removeClawHubSkill = async (c: AuthenticatedContext) => {
         }
 
         try {
-            const { supported, version } = await checkFeatureVersion(
+            const { supported, version } = await executeClawHubOperation(
                 claw.ip,
                 claw.rootPassword,
-                'skills'
+                `clawhub remove ${body.slug}`,
+                body.agentId,
+                35000
             )
 
             if (!supported) {
@@ -48,19 +47,6 @@ const removeClawHubSkill = async (c: AuthenticatedContext) => {
                     { version }
                 )
             }
-
-            await ensureClawHub(claw.ip, claw.rootPassword)
-
-            let clawHubCmd = `clawhub remove ${body.slug}`
-
-            if (body.agentId) {
-                const agentDir = `${BASE_DIR}/agents/${body.agentId}/workspace/skills`
-                clawHubCmd = `${clawHubCmd} --workdir ${agentDir}`
-            }
-
-            const cmd = `su - openclaw -c "${clawHubCmd}" && (su - openclaw -c "openclaw doctor --fix" || true) && systemctl restart openclaw-gateway`
-
-            await executeSSH(claw.ip, claw.rootPassword, cmd, 35000)
 
             return ok(c, null, t('api.clawHubRemoved'))
         } catch {

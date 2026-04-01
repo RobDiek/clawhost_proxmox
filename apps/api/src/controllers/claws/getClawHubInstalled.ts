@@ -9,7 +9,8 @@ import executeSSH from '@/services/ssh'
 import {
     findUserClaw,
     ensureClawHub,
-    BASE_DIR
+    BASE_DIR,
+    parseJsonArrayFromSSH
 } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
@@ -39,7 +40,7 @@ const getClawHubInstalled = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
         const id = c.req.param('id')!
-        const claw = await findUserClaw(userId, id)
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)
@@ -76,31 +77,11 @@ const getClawHubInstalled = async (c: AuthenticatedContext) => {
                 30000
             )
 
-            let skills: ClawHubInstalledSkill[] = []
-            try {
-                const trimmed = output.trim()
-                const arrStart = trimmed.indexOf('[')
-                const objStart = trimmed.indexOf('{')
-                const start =
-                    arrStart >= 0 && (objStart < 0 || arrStart < objStart)
-                        ? arrStart
-                        : objStart
-                const end =
-                    start === arrStart
-                        ? trimmed.lastIndexOf(']')
-                        : trimmed.lastIndexOf('}')
-                const jsonStr =
-                    start >= 0 && end > start
-                        ? trimmed.substring(start, end + 1)
-                        : '[]'
-                const parsed = JSON.parse(jsonStr)
-                const rawItems: RawClawHubSkillItem[] = Array.isArray(parsed)
-                    ? parsed
-                    : parsed.skills || []
-                skills = rawItems.map(normalizeSkill)
-            } catch {
-                skills = []
-            }
+            const rawItems = parseJsonArrayFromSSH<RawClawHubSkillItem>(
+                output,
+                'skills'
+            )
+            const skills: ClawHubInstalledSkill[] = rawItems.map(normalizeSkill)
 
             return ok(c, { skills }, t('api.clawHubFetched'))
         } catch {

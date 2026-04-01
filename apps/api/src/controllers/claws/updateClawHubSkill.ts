@@ -1,12 +1,9 @@
 import type { ClawHubUpdateBody } from '@/ts/Interfaces'
 import type { AuthenticatedContext } from '@/ts/Types'
 
-import executeSSH from '@/services/ssh'
 import {
     findUserClaw,
-    ensureClawHub,
-    BASE_DIR,
-    checkFeatureVersion
+    executeClawHubOperation
 } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
@@ -27,7 +24,7 @@ const updateClawHubSkill = async (c: AuthenticatedContext) => {
             return fail(c, t('api.invalidSkillName'), 400)
         }
 
-        const claw = await findUserClaw(userId, id)
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)
@@ -38,10 +35,16 @@ const updateClawHubSkill = async (c: AuthenticatedContext) => {
         }
 
         try {
-            const { supported, version } = await checkFeatureVersion(
+            const clawHubCmd = body.all
+                ? 'clawhub update --all'
+                : `clawhub update ${body.slug}`
+
+            const { supported, version } = await executeClawHubOperation(
                 claw.ip,
                 claw.rootPassword,
-                'skills'
+                clawHubCmd,
+                body.agentId,
+                50000
             )
 
             if (!supported) {
@@ -52,21 +55,6 @@ const updateClawHubSkill = async (c: AuthenticatedContext) => {
                     { version }
                 )
             }
-
-            await ensureClawHub(claw.ip, claw.rootPassword)
-
-            let clawHubCmd = body.all
-                ? 'clawhub update --all'
-                : `clawhub update ${body.slug}`
-
-            if (body.agentId) {
-                const agentDir = `${BASE_DIR}/agents/${body.agentId}/workspace/skills`
-                clawHubCmd = `${clawHubCmd} --workdir ${agentDir}`
-            }
-
-            const cmd = `su - openclaw -c "${clawHubCmd}" && (su - openclaw -c "openclaw doctor --fix" || true) && systemctl restart openclaw-gateway`
-
-            await executeSSH(claw.ip, claw.rootPassword, cmd, 50000)
 
             return ok(c, null, t('api.clawHubUpdated'))
         } catch {

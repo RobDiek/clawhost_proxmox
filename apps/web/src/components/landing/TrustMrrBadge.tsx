@@ -8,6 +8,7 @@ const TrustMrrBadge: FC = (): ReactNode => {
                 alt='TrustMRR verified revenue badge'
                 width='171'
                 height='70'
+                loading='lazy'
                 className='block dark:hidden'
             />
             <img
@@ -15,6 +16,7 @@ const TrustMrrBadge: FC = (): ReactNode => {
                 alt='TrustMRR verified revenue badge'
                 width='171'
                 height='70'
+                loading='lazy'
                 className='hidden dark:block'
             />
         </a>

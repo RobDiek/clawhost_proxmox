@@ -15,6 +15,7 @@ import getLocale from '@/lib/getLocale'
 import TRUNCATE_LENGTHS from '@/lib/truncateLengths'
 import fireConfetti from '@/lib/fireConfetti'
 import copyToClipboard from '@/lib/copyToClipboard'
+import reportWebVitals from '@/lib/reportWebVitals'
 
 export {
     api,
@@ -31,5 +32,6 @@ export {
     getLocale,
     TRUNCATE_LENGTHS,
     fireConfetti,
-    copyToClipboard
+    copyToClipboard,
+    reportWebVitals
 }

@@ -7,6 +7,9 @@
     "exports": {
         ".": "./src/index.ts"
     },
+    "imports": {
+        "#i18n/*": "./src/*"
+    },
     "scripts": {
         "typecheck": "tsc --noEmit",
         "validate": "tsx scripts/validate.ts",

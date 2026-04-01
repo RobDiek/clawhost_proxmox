@@ -2,7 +2,7 @@ import type { GetAgentConfigBody, RawClawConfigAgent } from '@/ts/Interfaces'
 import type { AuthenticatedContext } from '@/ts/Types'
 
 import executeSSH from '@/services/ssh'
-import { findUserClaw } from '@/controllers/claws/helpers'
+import { findUserClaw, parseEnvFile } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 
@@ -18,7 +18,7 @@ const getClawAgentConfig = async (c: AuthenticatedContext) => {
             return fail(c, t('api.missingRequiredFields'), 400)
         }
 
-        const claw = await findUserClaw(userId, id)
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)
@@ -67,24 +67,7 @@ const getClawAgentConfig = async (c: AuthenticatedContext) => {
                 defaultModel = null
             }
 
-            const envVars: Record<string, string> = {}
-            if (envRaw) {
-                envRaw.split('\n').forEach((line) => {
-                    const trimmed = line.trim()
-                    if (!trimmed || trimmed.startsWith('#')) return
-                    const eqIndex = trimmed.indexOf('=')
-                    if (eqIndex === -1) return
-                    const key = trimmed.substring(0, eqIndex).trim()
-                    let value = trimmed.substring(eqIndex + 1).trim()
-                    if (
-                        (value.startsWith('"') && value.endsWith('"')) ||
-                        (value.startsWith("'") && value.endsWith("'"))
-                    ) {
-                        value = value.slice(1, -1)
-                    }
-                    envVars[key] = value
-                })
-            }
+            const envVars = envRaw ? parseEnvFile(envRaw) : {}
 
             return ok(
                 c,

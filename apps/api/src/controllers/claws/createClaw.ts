@@ -22,14 +22,8 @@ import { t } from '@openclaw/i18n'
 const createClaw = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const {
-            name,
-            planId,
-            location,
-            password,
-            sshKeyId,
-            volumeSize
-        } = await c.req.json<CreateClawBody>()
+        const { name, planId, location, password, sshKeyId, volumeSize } =
+            await c.req.json<CreateClawBody>()
 
         if (!name || !planId || !location) {
             return fail(c, t('api.missingRequiredFields'), 400)

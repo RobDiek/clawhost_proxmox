@@ -1,5 +1,6 @@
 export interface RequestOptions extends Omit<RequestInit, 'body'> {
     body?: unknown
+    dedupKey?: string
 }
 
 export interface RequestConfig {

@@ -16,6 +16,20 @@
         "test:watch": {
             "cache": false,
             "persistent": true
+        },
+        "lint": {
+            "inputs": ["src/**/*.ts", "src/**/*.tsx", "eslint.config.js"],
+            "outputs": []
+        },
+        "check": {
+            "dependsOn": ["^build"],
+            "inputs": ["src/**/*.ts", "src/**/*.tsx", "tsconfig.json"],
+            "outputs": []
+        },
+        "typecheck": {
+            "dependsOn": ["^build"],
+            "inputs": ["src/**/*.ts", "src/**/*.tsx", "tsconfig.json"],
+            "outputs": []
         }
     }
 }

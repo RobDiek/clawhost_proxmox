@@ -1,4 +1,4 @@
-import { t } from '@'
+import { t, loadLanguage } from '@'
 import { setLanguage } from '@'
 
 describe('t', () => {
@@ -35,15 +35,17 @@ describe('t', () => {
         expect(result).not.toContain('{{label}}')
     })
 
-    it('works after switching language', () => {
+    it('works after switching language', async () => {
+        await loadLanguage('fr')
         setLanguage('fr')
         const result = t('common.save')
         expect(result).toBeTruthy()
         expect(result).not.toBe('common.save')
     })
 
-    it('returns different text for different languages', () => {
+    it('returns different text for different languages', async () => {
         const en = t('common.save')
+        await loadLanguage('de')
         setLanguage('de')
         const de = t('common.save')
         expect(en).not.toBe(de)

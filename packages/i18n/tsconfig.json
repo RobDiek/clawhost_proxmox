@@ -8,7 +8,11 @@
         "skipLibCheck": true,
         "declaration": true,
         "declarationMap": true,
-        "noUncheckedIndexedAccess": true
+        "noUncheckedIndexedAccess": true,
+        "baseUrl": ".",
+        "paths": {
+            "#i18n/*": ["src/*"]
+        }
     },
     "include": ["src/**/*"]
 }

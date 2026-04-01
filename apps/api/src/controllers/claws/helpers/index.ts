@@ -21,7 +21,15 @@ import isVersionAtLeast from '@/controllers/claws/helpers/isVersionAtLeast'
 import parseClawVersion from '@/controllers/claws/helpers/parseClawVersion'
 import isVersionSupported from '@/controllers/claws/helpers/isVersionSupported'
 import checkFeatureVersion from '@/controllers/claws/helpers/checkFeatureVersion'
+import { invalidateVersionCache } from '@/controllers/claws/helpers/checkFeatureVersion'
 import SUPPORTED_VERSIONS from '@/controllers/claws/helpers/supportedVersions'
+import parseJsonFromSSH from '@/controllers/claws/helpers/parseJsonFromSSH'
+import parseJsonArrayFromSSH from '@/controllers/claws/helpers/parseJsonArrayFromSSH'
+import parseEnvFile from '@/controllers/claws/helpers/parseEnvFile'
+import mergeEnvVars from '@/controllers/claws/helpers/mergeEnvVars'
+import writeConfigAndRestart from '@/controllers/claws/helpers/writeConfigAndRestart'
+import executeServerLifecycle from '@/controllers/claws/helpers/executeServerLifecycle'
+import executeClawHubOperation from '@/controllers/claws/helpers/executeClawHubOperation'
 
 export {
     applyToolsDefaults,
@@ -47,5 +55,13 @@ export {
     parseClawVersion,
     isVersionSupported,
     checkFeatureVersion,
-    SUPPORTED_VERSIONS
+    SUPPORTED_VERSIONS,
+    parseJsonFromSSH,
+    parseJsonArrayFromSSH,
+    parseEnvFile,
+    mergeEnvVars,
+    writeConfigAndRestart,
+    executeServerLifecycle,
+    executeClawHubOperation,
+    invalidateVersionCache
 }

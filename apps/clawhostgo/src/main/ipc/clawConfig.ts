@@ -3,8 +3,17 @@ import type { IpcMainInvokeEvent } from 'electron'
 import { ipcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
+import { isFeatureSupported } from '@openclaw/shared'
 import { configStore, processManager } from '@/main/services'
 import { t } from '@openclaw/i18n'
+
+const assertFeatureSupported = (version: string | null, feature: string): void => {
+    if (!version || !isFeatureSupported(version, feature)) {
+        throw new Error(
+            t('api.featureVersionUnsupported', { version: version || 'unknown' })
+        )
+    }
+}
 
 const readOpenclawConfig = (clawDir: string): Record<string, unknown> => {
     const configPath = path.join(clawDir, 'openclaw.json')
@@ -117,6 +126,7 @@ const registerClawConfigHandlers = (): void => {
         ) => {
             const claw = configStore.findClaw(id)
             if (!claw) throw new Error(t('go.clawNotFound'))
+            assertFeatureSupported(claw.version, 'agents')
 
             const nameRegex = /^[a-zA-Z0-9-]+$/
             if (!data.name || !nameRegex.test(data.name)) {
@@ -187,6 +197,7 @@ const registerClawConfigHandlers = (): void => {
         ) => {
             const claw = configStore.findClaw(id)
             if (!claw) throw new Error(t('go.clawNotFound'))
+            assertFeatureSupported(claw.version, 'agents')
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -254,6 +265,7 @@ const registerClawConfigHandlers = (): void => {
         ) => {
             const claw = configStore.findClaw(id)
             if (!claw) throw new Error(t('go.clawNotFound'))
+            assertFeatureSupported(claw.version, 'agents')
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -374,6 +386,7 @@ const registerClawConfigHandlers = (): void => {
         ) => {
             const claw = configStore.findClaw(id)
             if (!claw) throw new Error(t('go.clawNotFound'))
+            assertFeatureSupported(claw.version, 'skills')
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -417,6 +430,7 @@ const registerClawConfigHandlers = (): void => {
         ) => {
             const claw = configStore.findClaw(id)
             if (!claw) throw new Error(t('go.clawNotFound'))
+            assertFeatureSupported(claw.version, 'skills')
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -479,6 +493,7 @@ const registerClawConfigHandlers = (): void => {
         ) => {
             const claw = configStore.findClaw(id)
             if (!claw) throw new Error(t('go.clawNotFound'))
+            assertFeatureSupported(claw.version, 'channels')
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)
@@ -522,6 +537,7 @@ const registerClawConfigHandlers = (): void => {
         ) => {
             const claw = configStore.findClaw(id)
             if (!claw) throw new Error(t('go.clawNotFound'))
+            assertFeatureSupported(claw.version, 'bindings')
 
             const clawDir = configStore.getClawDir(claw.name)
             const config = readOpenclawConfig(clawDir)

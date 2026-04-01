@@ -14,7 +14,7 @@ class RequestClient {
         endpoint: string,
         options: RequestOptions = {}
     ): Promise<Response> {
-        const { body, ...init } = options
+        const { body, dedupKey: _, ...init } = options
 
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
@@ -123,9 +123,8 @@ class RequestClient {
     }
 
     get<T>(endpoint: string, options?: RequestOptions): Promise<T> {
-        return this.dedup(
-            `GET:${endpoint}`,
-            () => this.request<T>(endpoint, { ...options, method: 'GET' })
+        return this.dedup(`GET:${endpoint}`, () =>
+            this.request<T>(endpoint, { ...options, method: 'GET' })
         )
     }
 
@@ -134,6 +133,12 @@ class RequestClient {
         body?: unknown,
         options?: RequestOptions
     ): Promise<T> {
+        if (options?.dedupKey) {
+            const { dedupKey, ...rest } = options
+            return this.dedup(`POST:${dedupKey}`, () =>
+                this.request<T>(endpoint, { ...rest, method: 'POST', body })
+            )
+        }
         return this.request<T>(endpoint, { ...options, method: 'POST', body })
     }
 

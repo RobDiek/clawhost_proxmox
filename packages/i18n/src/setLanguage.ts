@@ -1,6 +1,6 @@
-import type { Languages } from './types'
+import type { Languages } from '#i18n/types'
 
-import state from './state'
+import state from '#i18n/state'
 
 function setLanguage(lang: Languages): void {
     state.currentLanguage = lang

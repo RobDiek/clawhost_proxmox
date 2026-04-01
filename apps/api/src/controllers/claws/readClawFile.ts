@@ -26,7 +26,7 @@ const readClawFile = async (c: AuthenticatedContext) => {
             return fail(c, t('api.invalidFilePath'), 400)
         }
 
-        const claw = await findUserClaw(userId, id)
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)

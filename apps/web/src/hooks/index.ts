@@ -85,6 +85,7 @@ import useLanguageEffect from '@/hooks/useLanguageEffect'
 import useAppVersion from '@/hooks/useAppVersion'
 import useLocalFooterLinks from '@/hooks/useLocalFooterLinks'
 import useRefer from '@/hooks/useRefer'
+import useRoutePrefetch from '@/hooks/useRoutePrefetch'
 
 export {
     useAffiliate,
@@ -152,5 +153,6 @@ export {
     useLanguageEffect,
     useAppVersion,
     useLocalFooterLinks,
-    useRefer
+    useRefer,
+    useRoutePrefetch
 }

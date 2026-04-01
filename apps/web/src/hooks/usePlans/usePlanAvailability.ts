@@ -6,8 +6,8 @@ const usePlanAvailability = () => {
     return useQuery({
         queryKey: PLAN_AVAILABILITY_QUERY_KEY,
         queryFn: api.getPlanAvailability,
-        staleTime: 10_000,
-        refetchInterval: 10_000,
+        staleTime: 60_000,
+        refetchInterval: 60_000,
         retry: false
     })
 }

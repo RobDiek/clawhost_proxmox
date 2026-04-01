@@ -6,7 +6,7 @@ import { clawStatus } from '@openclaw/shared'
 import { db } from '@/db'
 import { claws } from '@/db/schema'
 import executeSSH from '@/services/ssh'
-import { findUserClaw } from '@/controllers/claws/helpers'
+import { findUserClaw, parseJsonFromSSH, BASE_DIR } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 
@@ -30,7 +30,7 @@ const getClawAgents = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
         const id = c.req.param('id')!
-        const claw = await findUserClaw(userId, id)
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)
@@ -52,63 +52,53 @@ const getClawAgents = async (c: AuthenticatedContext) => {
             const output = await executeSSH(
                 claw.ip,
                 claw.rootPassword,
-                "cat /home/openclaw/.openclaw/openclaw.json 2>/dev/null || echo '{}'",
+                `cat ${BASE_DIR}/openclaw.json 2>/dev/null || echo '{}'`,
                 5000
             )
 
-            let agents: ClawAgent[] = []
+            const config = parseJsonFromSSH(output)
+            let agents: ClawAgent[]
 
-            try {
-                const trimmed = output.trim()
-                const jsonStart = trimmed.indexOf('{')
-                const jsonEnd = trimmed.lastIndexOf('}')
-                const jsonStr =
-                    jsonStart >= 0 && jsonEnd > jsonStart
-                        ? trimmed.substring(jsonStart, jsonEnd + 1)
-                        : '{}'
-                const config = JSON.parse(jsonStr)
-                const agentList = config?.agents?.list || []
-                const defaultModel =
-                    config?.agents?.defaults?.model?.primary ||
-                    config?.agents?.defaults?.model ||
-                    null
+            const agentList = config?.agents
+                ? (config.agents as Record<string, unknown>)?.list
+                : undefined
+            const defaultModel =
+                (config?.agents as Record<string, unknown>)?.defaults
+                    ? ((config.agents as Record<string, unknown>).defaults as Record<string, unknown>)?.model
+                    : null
 
-                if (agentList.length === 0) {
-                    agents = [
-                        {
-                            id: 'main',
-                            name: 'main',
-                            model:
-                                typeof defaultModel === 'string'
-                                    ? defaultModel
-                                    : null,
-                            status: 'unknown',
-                            directory: null
-                        }
-                    ]
-                } else {
-                    agents = agentList.map(
-                        (agent: RawClawConfigAgent, index: number) => ({
-                            id: agent.id || `agent-${index}`,
-                            name:
-                                agent.name || agent.id || `Agent ${index + 1}`,
-                            model: agent.model || defaultModel || null,
-                            status: normalizeAgentStatus(agent.status),
-                            directory:
-                                agent.workspace || agent.directory || null
-                        })
-                    )
-                }
-            } catch {
+            const rawDefault =
+                typeof defaultModel === 'object' && defaultModel !== null
+                    ? (defaultModel as Record<string, unknown>).primary
+                    : defaultModel
+            const resolvedDefault =
+                typeof rawDefault === 'string' ? rawDefault : null
+
+            if (!Array.isArray(agentList) || agentList.length === 0) {
                 agents = [
                     {
                         id: 'main',
                         name: 'main',
-                        model: null,
+                        model:
+                            typeof resolvedDefault === 'string'
+                                ? resolvedDefault
+                                : null,
                         status: 'unknown',
                         directory: null
                     }
                 ]
+            } else {
+                agents = agentList.map(
+                    (agent: RawClawConfigAgent, index: number) => ({
+                        id: agent.id || `agent-${index}`,
+                        name:
+                            agent.name || agent.id || `Agent ${index + 1}`,
+                        model: agent.model || resolvedDefault || null,
+                        status: normalizeAgentStatus(agent.status),
+                        directory:
+                            agent.workspace || agent.directory || null
+                    })
+                )
             }
 
             if (claw.status === clawStatus.unreachable) {

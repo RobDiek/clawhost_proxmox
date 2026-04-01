@@ -6,8 +6,8 @@ const useClawDiagnostics = (clawId: string, enabled: boolean) => {
         queryKey: ['claw-diagnostics', clawId],
         queryFn: () => api.getClawDiagnostics(clawId),
         enabled,
-        refetchInterval: 3000,
-        gcTime: 0
+        refetchInterval: 10_000,
+        gcTime: 30_000
     })
 }
 

@@ -7,7 +7,10 @@ import {
     BASE_DIR,
     findUserClaw,
     validateEnvVars,
-    checkFeatureVersion
+    checkFeatureVersion,
+    parseJsonFromSSH,
+    mergeEnvVars,
+    writeConfigAndRestart
 } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
@@ -28,7 +31,7 @@ const createClawAgent = async (c: AuthenticatedContext) => {
             return fail(c, t('api.agentNameInvalid'), 400)
         }
 
-        const claw = await findUserClaw(userId, id)
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)
@@ -65,12 +68,7 @@ const createClawAgent = async (c: AuthenticatedContext) => {
             const configOutput = (parts[0] || '{}').trim()
             const envRaw = (parts[1] || '').trim()
 
-            let config: Record<string, unknown> = {}
-            try {
-                config = JSON.parse(configOutput)
-            } catch {
-                config = {}
-            }
+            const config = parseJsonFromSSH(configOutput)
 
             const commands = (config.commands || {}) as Record<string, unknown>
             commands.restart = true
@@ -136,57 +134,20 @@ const createClawAgent = async (c: AuthenticatedContext) => {
 
             agentList.push(newAgent)
 
-            const configJson = JSON.stringify(config, null, 4)
-            const configB64 = Buffer.from(configJson).toString('base64')
-            let writeCommand = `echo '${configB64}' | base64 -d > ${BASE_DIR}/openclaw.json`
+            let envContent: string | undefined
 
             if (body.envVars && Object.keys(body.envVars).length > 0) {
                 if (!validateEnvVars(body.envVars)) {
                     return fail(c, t('api.invalidEnvVars'), 400)
                 }
-
-                const existingLines: string[] = []
-                const existingKeys = new Set<string>()
-
-                envRaw.split('\n').forEach((line) => {
-                    const trimmed = line.trim()
-                    if (!trimmed || trimmed.startsWith('#')) {
-                        existingLines.push(line)
-                        return
-                    }
-                    const eqIndex = trimmed.indexOf('=')
-                    if (eqIndex === -1) {
-                        existingLines.push(line)
-                        return
-                    }
-                    const key = trimmed.substring(0, eqIndex).trim()
-                    existingKeys.add(key)
-
-                    if (key in body.envVars!) {
-                        const value = body.envVars![key]
-                        if (value === '') return
-                        existingLines.push(`${key}=${value}`)
-                    } else {
-                        existingLines.push(line)
-                    }
-                })
-
-                Object.entries(body.envVars).forEach(([key, value]) => {
-                    if (!existingKeys.has(key) && value !== '') {
-                        existingLines.push(`${key}=${value}`)
-                    }
-                })
-
-                const envContent = existingLines.join('\n')
-                const envB64 = Buffer.from(envContent).toString('base64')
-                writeCommand += ` && echo '${envB64}' | base64 -d > ${BASE_DIR}/.env`
+                envContent = mergeEnvVars(envRaw, body.envVars)
             }
 
-            await executeSSH(
+            await writeConfigAndRestart(
                 claw.ip,
                 claw.rootPassword,
-                `${writeCommand} && (su - openclaw -c "openclaw doctor --fix" || true) && systemctl restart openclaw-gateway`,
-                20000
+                config,
+                envContent
             )
 
             return ok(

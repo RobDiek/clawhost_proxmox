@@ -13,7 +13,6 @@ import {
     generatePassword,
     generateServerName,
     generateToken,
-    isAdmin,
     DOMAIN
 } from '@/controllers/claws/helpers'
 
@@ -21,7 +20,6 @@ const REINSTALL_WINDOW = 86_400_000
 
 const reinstallClaw = async (c: AuthenticatedContext) => {
     try {
-        const userId = c.get('userId')
         const id = c.req.param('id')!
         const claw = await db
             .select()
@@ -44,8 +42,7 @@ const reinstallClaw = async (c: AuthenticatedContext) => {
             return fail(c, t('api.clawBusy'), 400)
         }
 
-        const admin = await isAdmin(userId)
-        if (!admin && existing.lastReinstalledAt) {
+        if (!c.get('isAdmin') && existing.lastReinstalledAt) {
             const elapsed = Date.now() - existing.lastReinstalledAt.getTime()
             if (elapsed < REINSTALL_WINDOW) {
                 return fail(c, t('api.reinstallRateLimited'), 429)
@@ -135,8 +132,8 @@ const reinstallClaw = async (c: AuthenticatedContext) => {
                 .where(eq(claws.id, id))
         ])
 
-        for (const vol of clawVolumes) {
-            try {
+        await Promise.allSettled(
+            clawVolumes.map(async (vol) => {
                 const providerVolume = await provider.createVolume(
                     vol.name,
                     vol.size,
@@ -150,10 +147,8 @@ const reinstallClaw = async (c: AuthenticatedContext) => {
                         status: 'available'
                     })
                     .where(eq(volumes.id, vol.id))
-            } catch (volumeErr) {
-                console.error('Failed to recreate volume:', volumeErr)
-            }
-        }
+            })
+        )
 
         return ok(c, null, t('api.reinstallSuccess'))
     } catch (err) {

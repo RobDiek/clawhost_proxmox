@@ -165,6 +165,7 @@ const MacosDesktopPreview: FC<MacosDesktopPreviewProps> = ({
                         <img
                             src='/clawhost-logo.webp'
                             alt='ClawHost Go'
+                            loading='lazy'
                             className='h-9 w-9 shrink-0 rounded-xl'
                         />
                     </div>

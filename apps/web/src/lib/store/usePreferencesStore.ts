@@ -2,7 +2,7 @@ import type { PreferencesState } from '@/ts/Interfaces'
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { setLanguage as setI18nLanguage } from '@openclaw/i18n'
+import { setLanguage as setI18nLanguage, loadLanguage } from '@openclaw/i18n'
 import { DASHBOARD_TABS, THEMES, LANGUAGES } from '@/lib/constants'
 import STORAGE_KEYS from '@/lib/storageKeys'
 
@@ -19,8 +19,10 @@ const usePreferencesStore = create<PreferencesState>()(
             setTheme: (theme) => set({ theme }),
             language: LANGUAGES.EN,
             setLanguage: (language) => {
-                setI18nLanguage(language)
-                set({ language })
+                loadLanguage(language).then(() => {
+                    setI18nLanguage(language)
+                    set({ language })
+                })
             },
             openLinksWindowed: false,
             setOpenLinksWindowed: (value) => set({ openLinksWindowed: value }),

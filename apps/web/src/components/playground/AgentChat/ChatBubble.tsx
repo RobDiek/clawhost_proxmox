@@ -167,6 +167,7 @@ const ChatBubble: FC<ChatBubbleProps> = ({
                         <img
                             src={getImageSrc(img)}
                             alt=''
+                            loading='lazy'
                             className='max-h-48 rounded-lg transition-opacity hover:opacity-80'
                         />
                     </button>

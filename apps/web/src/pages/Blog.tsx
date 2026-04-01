@@ -50,7 +50,9 @@ const Blog: FC = (): ReactNode => {
                 {allPosts.length > 0 ? (
                     <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
                         {allPosts.map((post) => (
-                            <BlogCard key={post.slug} post={post} />
+                            <div key={post.slug} className='cv-auto'>
+                                <BlogCard post={post} />
+                            </div>
                         ))}
                     </div>
                 ) : (

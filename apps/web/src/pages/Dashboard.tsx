@@ -6,7 +6,7 @@ import type {
     PlaygroundDetailTab
 } from '@/ts/Types'
 
-import { Fragment, useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { Fragment, Suspense, lazy, useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
@@ -57,15 +57,14 @@ import {
 } from '@phosphor-icons/react'
 import { Button } from '@/components/ui'
 import { CreateClawModal, LocalCreateClawModal } from '@/components/dashboard'
-import {
-    PlaygroundCanvas,
-    PlaygroundDetailPanel,
-    PlaygroundAgentDetailPanel,
-    PlaygroundLoadingState,
-    CreateAgentModal
-} from '@/components/playground'
-import { ChatView } from '@/components/chat'
+import { PlaygroundLoadingState } from '@/components/playground'
 import { useAuth } from '@/lib/auth'
+
+const PlaygroundCanvas = lazy(() => import('@/components/playground/PlaygroundCanvas'))
+const PlaygroundDetailPanel = lazy(() => import('@/components/playground/PlaygroundDetailPanel'))
+const PlaygroundAgentDetailPanel = lazy(() => import('@/components/playground/PlaygroundAgentDetailPanel'))
+const CreateAgentModal = lazy(() => import('@/components/playground/CreateAgentModal'))
+const ChatView = lazy(() => import('@/components/chat/ChatView'))
 
 const Dashboard: FC = (): ReactNode => {
     const navigate = useNavigate()
@@ -627,6 +626,7 @@ const Dashboard: FC = (): ReactNode => {
                         <PlaygroundLoadingState />
                     </div>
                 ) : dashboardTab === DASHBOARD_TABS.CHAT ? (
+                    <Suspense fallback={<div className='flex h-full min-w-0 flex-1 items-center justify-center'><PlaygroundLoadingState /></div>}>
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -678,7 +678,9 @@ const Dashboard: FC = (): ReactNode => {
                             />
                         )}
                     </motion.div>
+                    </Suspense>
                 ) : (
+                    <Suspense fallback={<div className='flex h-full min-w-0 flex-1 items-center justify-center'><PlaygroundLoadingState /></div>}>
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -791,6 +793,7 @@ const Dashboard: FC = (): ReactNode => {
                             )}
                         </AnimatePresence>
                     </motion.div>
+                    </Suspense>
                 )}
             </div>
 

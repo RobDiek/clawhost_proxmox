@@ -1,9 +1,10 @@
-import type { TranslationKey, Languages, Translations } from './types'
+import type { TranslationKey, Languages, Translations } from '#i18n/types'
 
-import t from './t'
-import setLanguage from './setLanguage'
-import getLanguage from './getLanguage'
-import en from './langs/en'
+import t from '#i18n/t'
+import setLanguage from '#i18n/setLanguage'
+import getLanguage from '#i18n/getLanguage'
+import loadLanguage from '#i18n/loadLanguage'
+import en from '#i18n/langs/en'
 
 export type { TranslationKey, Languages, Translations }
-export { t, setLanguage, getLanguage, en }
+export { t, setLanguage, getLanguage, loadLanguage, en }

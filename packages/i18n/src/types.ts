@@ -1,4 +1,4 @@
-import type en from './langs/en'
+import type en from '#i18n/langs/en'
 
 type DeepString<T> = {
     [K in keyof T]: T[K] extends string ? string : DeepString<T[K]>

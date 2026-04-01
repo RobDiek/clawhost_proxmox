@@ -46,7 +46,7 @@ const deleteClaw = async (c: AuthenticatedContext) => {
             return ok(c, { scheduled: false }, t('api.clawDeleted'))
         }
 
-        const claw = await findUserClaw(userId, id)
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)

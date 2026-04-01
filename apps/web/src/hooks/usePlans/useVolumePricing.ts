@@ -6,8 +6,8 @@ const useVolumePricing = () => {
     return useQuery({
         queryKey: VOLUME_PRICING_QUERY_KEY,
         queryFn: api.getVolumePricing,
-        staleTime: 10_000,
-        refetchInterval: 10_000,
+        staleTime: 60_000,
+        refetchInterval: 60_000,
         retry: false
     })
 }

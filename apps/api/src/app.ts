@@ -3,12 +3,14 @@ import type { HonoEnv } from '@/ts/Types'
 
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { compress } from 'hono/compress'
 import { logger } from 'hono/logger'
 import { bodyLimit } from 'hono/body-limit'
 import { verifyToken } from '@/services/firebase'
 import { eq, sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { users, referrals } from '@/db/schema'
+import { userRole } from '@openclaw/shared'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
 import {
@@ -47,7 +49,8 @@ app.use(
     })
 )
 
-app.use('*', logger())
+app.use('*', compress())
+if (isDev) app.use('*', logger())
 app.use('*', bodyLimit({ maxSize: 1024 * 1024 }))
 
 app.use('*', async (c, next) => {
@@ -193,7 +196,7 @@ app.use('/*', async (c, next) => {
             return fail(c, t('api.unauthorized'), 401)
         }
 
-        const admin = existingUser?.role === 'admin'
+        const admin = existingUser?.role === userRole.admin
 
         authCache.set(token, {
             data: { userId: decoded.uid, isAdmin: admin },

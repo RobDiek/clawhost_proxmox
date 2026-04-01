@@ -6,7 +6,7 @@ import { useLocation, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
-import { useProfile } from '@/hooks'
+import { useProfile, useRoutePrefetch } from '@/hooks'
 import { Button, Skeleton } from '@/components/ui'
 import AnnouncementBanner from '@/components/layout/AnnouncementBanner'
 import BetaBadge from '@/components/layout/BetaBadge'
@@ -45,6 +45,8 @@ const Header: FC<HeaderProps> = ({
         window.addEventListener('scroll', onScroll)
         return () => window.removeEventListener('scroll', onScroll)
     }, [mobileMenuOpen])
+
+    const { prefetchRoute } = useRoutePrefetch()
 
     const isDesktop = !!(window as unknown as ElectronWindow).electronAPI
         ?.isDesktop
@@ -137,6 +139,7 @@ const Header: FC<HeaderProps> = ({
                             <div className='flex items-center gap-2'>
                                 <Link
                                     to={ROUTES.LOGIN}
+                                    onMouseEnter={() => prefetchRoute(ROUTES.LOGIN)}
                                     className='text-muted-foreground hover:text-foreground hidden px-3 py-1.5 text-sm transition sm:block'
                                 >
                                     {t('nav.login')}
@@ -146,7 +149,7 @@ const Header: FC<HeaderProps> = ({
                                     className='gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] px-4 text-white hover:opacity-90'
                                     asChild
                                 >
-                                    <Link to={ROUTES.LOGIN}>
+                                    <Link to={ROUTES.LOGIN} onMouseEnter={() => prefetchRoute(ROUTES.LOGIN)}>
                                         <LightningIcon
                                             className='h-4 w-4'
                                             weight='fill'
