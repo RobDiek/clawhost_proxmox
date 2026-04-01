@@ -1,6 +1,7 @@
 import type { UpdateAgentSkillsBody } from '@/ts/Interfaces'
 import type { AuthenticatedContext } from '@/ts/Types'
 
+import { versionGatedFeature } from '@openclaw/shared'
 import executeSSH from '@/services/ssh'
 import {
     BASE_DIR,
@@ -40,7 +41,7 @@ const updateAgentSkills = async (c: AuthenticatedContext) => {
             const { supported, version } = await checkFeatureVersion(
                 claw.ip,
                 claw.rootPassword,
-                'skills'
+                versionGatedFeature.skills
             )
 
             if (!supported) {

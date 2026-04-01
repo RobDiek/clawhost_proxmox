@@ -1,6 +1,7 @@
 import type { DeleteClawAgentBody } from '@/ts/Interfaces'
 import type { AuthenticatedContext } from '@/ts/Types'
 
+import { versionGatedFeature } from '@openclaw/shared'
 import executeSSH from '@/services/ssh'
 import {
     applyToolsDefaults,
@@ -41,7 +42,7 @@ const deleteClawAgent = async (c: AuthenticatedContext) => {
             const { supported, version } = await checkFeatureVersion(
                 claw.ip,
                 claw.rootPassword,
-                'agents'
+                versionGatedFeature.agents
             )
 
             if (!supported) {

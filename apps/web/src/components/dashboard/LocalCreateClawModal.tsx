@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { useQueryClient } from '@tanstack/react-query'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import {
     Dialog,
     DialogContent,
@@ -86,7 +87,7 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
 
     const handleCreate = async (): Promise<void> => {
         if (!nameValid) {
-            showToast(t('createClaw.clawNameInvalidChars'), 'error')
+            showToast(t('createClaw.clawNameInvalidChars'), TOAST_TYPE.ERROR)
             return
         }
 
@@ -99,14 +100,14 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
                 ...(password && { password })
             } as never)
             await queryClient.invalidateQueries({ queryKey: ['claws'] })
-            showToast(t('createClaw.clawCreated'), 'success')
+            showToast(t('createClaw.clawCreated'), TOAST_TYPE.SUCCESS)
             onClose()
         } catch (err) {
             const message =
                 err instanceof Error
                     ? err.message
                     : t('errors.somethingWentWrong')
-            showToast(message, 'error')
+            showToast(message, TOAST_TYPE.ERROR)
         } finally {
             setLoading(false)
         }

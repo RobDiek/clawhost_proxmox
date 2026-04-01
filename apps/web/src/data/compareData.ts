@@ -1,5 +1,7 @@
 import type { CompareData } from '@/ts/Interfaces'
 
+import { COMPARE_FEATURE_STATUS } from '@/lib/constants'
+
 const getCompareData = (): CompareData => ({
     competitors: [
         {
@@ -37,23 +39,23 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureServerOwnership',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.dedicatedVps'
                         },
                         lobsterfarm: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.dedicatedVps'
                         },
                         simpleclaw: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.sharedContainers'
                         },
                         myclawai: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.isolatedContainers'
                         },
                         quickclaw: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.cloudWorkspaces'
                         }
                     }
@@ -62,23 +64,23 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureProviderChoice',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.threeProviders'
                         },
                         lobsterfarm: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleProvider'
                         },
                         simpleclaw: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleProvider'
                         },
                         myclawai: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleProvider'
                         },
                         quickclaw: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleProvider'
                         }
                     }
@@ -87,77 +89,77 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureDedicatedResources',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.fullyDedicated'
                         },
                         lobsterfarm: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.fullyDedicated'
                         },
                         simpleclaw: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.shared'
                         },
-                        myclawai: { status: 'no', detailKey: 'compare.shared' },
-                        quickclaw: { status: 'no', detailKey: 'compare.shared' }
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO, detailKey: 'compare.shared' },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO, detailKey: 'compare.shared' }
                     }
                 },
                 {
                     nameKey: 'compare.featureRootAccess',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.fullRootSsh'
                         },
                         lobsterfarm: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.sshOnRequest'
                         },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
-                        quickclaw: { status: 'no' }
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
                     nameKey: 'compare.featureServerLocations',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.thirtyPlusLocations'
                         },
                         lobsterfarm: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.fourLocations'
                         },
                         simpleclaw: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.limitedLocations'
                         },
                         myclawai: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.limitedLocations'
                         },
-                        quickclaw: { status: 'no' }
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
                     nameKey: 'compare.featureLocationSelection',
                     values: {
-                        clawhost: { status: 'yes' },
-                        lobsterfarm: { status: 'yes' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
-                        quickclaw: { status: 'no' }
+                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.YES },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
                     nameKey: 'compare.featureSubdomainAccess',
                     values: {
-                        clawhost: { status: 'yes' },
-                        lobsterfarm: { status: 'no' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
-                        quickclaw: { status: 'no' }
+                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 }
             ]
@@ -170,23 +172,23 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureStartingPrice',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.fromTwentyFiveMonth'
                         },
                         lobsterfarm: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.nineteenMonth'
                         },
                         simpleclaw: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.aboutFortyFourMonth'
                         },
                         myclawai: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.fromNineteenMonth'
                         },
                         quickclaw: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.creditBased'
                         }
                     }
@@ -195,23 +197,23 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureTransparentPricing',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.clearSpecsPricing'
                         },
                         lobsterfarm: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.clearSpecsPricing'
                         },
                         simpleclaw: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.unclearPricing'
                         },
                         myclawai: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.fixedTiers'
                         },
                         quickclaw: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.creditBased'
                         }
                     }
@@ -219,11 +221,11 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featurePowerfulServers',
                     values: {
-                        clawhost: { status: 'yes' },
-                        lobsterfarm: { status: 'no' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
-                        quickclaw: { status: 'no' }
+                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 }
             ]
@@ -236,23 +238,23 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureSetupTime',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.minutes'
                         },
                         lobsterfarm: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.thirtySeconds'
                         },
                         simpleclaw: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.underOneMinute'
                         },
                         myclawai: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.thirtySeconds'
                         },
                         quickclaw: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.instant'
                         }
                     }
@@ -261,23 +263,23 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureTechnicalSkill',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.noneRequired'
                         },
                         lobsterfarm: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.noneRequired'
                         },
                         simpleclaw: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.noneRequired'
                         },
                         myclawai: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.minimal'
                         },
                         quickclaw: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.noneRequired'
                         }
                     }
@@ -285,11 +287,11 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureOneClickDeploy',
                     values: {
-                        clawhost: { status: 'yes' },
-                        lobsterfarm: { status: 'yes' },
-                        simpleclaw: { status: 'yes' },
-                        myclawai: { status: 'yes' },
-                        quickclaw: { status: 'yes' }
+                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.YES },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.YES },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.YES },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.YES }
                     }
                 }
             ]
@@ -302,23 +304,23 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureMultipleInstances',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.unlimited'
                         },
                         lobsterfarm: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleInstance'
                         },
                         simpleclaw: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleInstance'
                         },
                         myclawai: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleInstance'
                         },
                         quickclaw: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleInstance'
                         }
                     }
@@ -327,23 +329,23 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureMultipleAgents',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.unlimited'
                         },
                         lobsterfarm: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleInstance'
                         },
                         simpleclaw: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleInstance'
                         },
                         myclawai: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleInstance'
                         },
                         quickclaw: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleInstance'
                         }
                     }
@@ -352,36 +354,36 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureSkillsMarketplace',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.fiveThousandSkills'
                         },
-                        lobsterfarm: { status: 'no' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
-                        quickclaw: { status: 'no' }
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
                     nameKey: 'compare.featureChannelSupport',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.allChannels'
                         },
                         lobsterfarm: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.telegramGmailWhatsapp'
                         },
                         simpleclaw: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.telegramDiscord'
                         },
                         myclawai: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.discordGithubSlack'
                         },
                         quickclaw: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.appOnly'
                         }
                     }
@@ -390,42 +392,42 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureAgentConfig',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.fullConfig'
                         },
                         lobsterfarm: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.limitedConfig'
                         },
                         simpleclaw: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.limitedConfig'
                         },
                         myclawai: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.limitedConfig'
                         },
-                        quickclaw: { status: 'no' }
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
                     nameKey: 'compare.featureDirectChat',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.builtInChat'
                         },
                         lobsterfarm: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.viaTelegram'
                         },
-                        simpleclaw: { status: 'no' },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
                         myclawai: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.appOnly'
                         },
                         quickclaw: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.appOnly'
                         }
                     }
@@ -433,24 +435,24 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureOneClickVersion',
                     values: {
-                        clawhost: { status: 'yes' },
-                        lobsterfarm: { status: 'no' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
-                        quickclaw: { status: 'no' }
+                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
                     nameKey: 'compare.featureWebTerminal',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.builtInTerminal'
                         },
-                        lobsterfarm: { status: 'no' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
-                        quickclaw: { status: 'no' }
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 }
             ]
@@ -462,76 +464,76 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureDataOwnership',
                     values: {
-                        clawhost: { status: 'yes' },
-                        lobsterfarm: { status: 'yes' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'partial' },
-                        quickclaw: { status: 'no' }
+                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.YES },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.PARTIAL },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
                     nameKey: 'compare.featureDataExport',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.zipExport'
                         },
                         lobsterfarm: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.serverTransfer'
                         },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
-                        quickclaw: { status: 'no' }
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
                     nameKey: 'compare.featureBackups',
                     values: {
-                        clawhost: { status: 'no' },
-                        lobsterfarm: { status: 'no' },
-                        simpleclaw: { status: 'no' },
+                        clawhost: { status: COMPARE_FEATURE_STATUS.NO },
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
                         myclawai: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.dailyBackups'
                         },
-                        quickclaw: { status: 'no' }
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
                     nameKey: 'compare.featureSecurityHardening',
                     values: {
-                        clawhost: { status: 'yes' },
+                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.managed'
                         },
-                        simpleclaw: { status: 'no' },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
                         myclawai: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.managed'
                         },
-                        quickclaw: { status: 'no' }
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
                     nameKey: 'compare.featureSslTls',
                     values: {
-                        clawhost: { status: 'yes' },
-                        lobsterfarm: { status: 'yes' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'yes' },
-                        quickclaw: { status: 'yes' }
+                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.YES },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.YES },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.YES }
                     }
                 },
                 {
                     nameKey: 'compare.featureOpenSource',
                     values: {
-                        clawhost: { status: 'yes' },
-                        lobsterfarm: { status: 'no' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
-                        quickclaw: { status: 'no' }
+                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 }
             ]
@@ -543,15 +545,15 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureAutoUpdates',
                     values: {
-                        clawhost: { status: 'yes' },
-                        lobsterfarm: { status: 'yes' },
+                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.YES },
                         simpleclaw: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.manual'
                         },
-                        myclawai: { status: 'yes' },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.YES },
                         quickclaw: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.appStore'
                         }
                     }
@@ -560,39 +562,39 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureDiagnostics',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.liveMonitoring'
                         },
-                        lobsterfarm: { status: 'no' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
-                        quickclaw: { status: 'no' }
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
                     nameKey: 'compare.featureLogStreaming',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.liveLogs'
                         },
-                        lobsterfarm: { status: 'no' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
-                        quickclaw: { status: 'no' }
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
                     nameKey: 'compare.featureRepairTools',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.oneClickRepair'
                         },
-                        lobsterfarm: { status: 'no' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
-                        quickclaw: { status: 'no' }
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 }
             ]
@@ -605,23 +607,23 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureSupportChannels',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.emailGithub'
                         },
                         lobsterfarm: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.humanSupport'
                         },
                         simpleclaw: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.communityOnly'
                         },
                         myclawai: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.prioritySupport'
                         },
                         quickclaw: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.appSupport'
                         }
                     }
@@ -630,23 +632,23 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureMultiLanguage',
                     values: {
                         clawhost: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.fourLanguages'
                         },
                         lobsterfarm: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.englishOnly'
                         },
                         simpleclaw: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.englishOnly'
                         },
                         myclawai: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.englishOnly'
                         },
                         quickclaw: {
-                            status: 'no',
+                            status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.englishOnly'
                         }
                     }
@@ -654,25 +656,25 @@ const getCompareData = (): CompareData => ({
                 {
                     nameKey: 'compare.featureThemes',
                     values: {
-                        clawhost: { status: 'yes' },
-                        lobsterfarm: { status: 'no' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
-                        quickclaw: { status: 'no' }
+                        clawhost: { status: COMPARE_FEATURE_STATUS.YES },
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
                     nameKey: 'compare.featureMobileApp',
                     values: {
                         clawhost: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.comingSoon'
                         },
-                        lobsterfarm: { status: 'no' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
                         quickclaw: {
-                            status: 'yes',
+                            status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.iosMacOs'
                         }
                     }
@@ -681,14 +683,14 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureDesktopApp',
                     values: {
                         clawhost: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.comingSoon'
                         },
-                        lobsterfarm: { status: 'no' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
                         quickclaw: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.macOsOnly'
                         }
                     }
@@ -697,13 +699,13 @@ const getCompareData = (): CompareData => ({
                     nameKey: 'compare.featureSocials',
                     values: {
                         clawhost: {
-                            status: 'partial',
+                            status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.comingSoon'
                         },
-                        lobsterfarm: { status: 'no' },
-                        simpleclaw: { status: 'no' },
-                        myclawai: { status: 'no' },
-                        quickclaw: { status: 'no' }
+                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
+                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
+                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 }
             ]

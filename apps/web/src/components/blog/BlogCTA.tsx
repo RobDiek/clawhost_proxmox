@@ -4,10 +4,11 @@ import { t } from '@openclaw/i18n'
 import { HeroButtons } from '@/components/landing'
 import { GoWaitlistCTA } from '@/components/go'
 import { usePreferencesStore } from '@/lib/store'
+import { PRODUCT } from '@/lib/constants'
 
 const BlogCTA: FC = (): ReactNode => {
     const product = usePreferencesStore((s) => s.product)
-    const isGo = product === 'go'
+    const isGo = product === PRODUCT.GO
 
     return (
         <div className='border-border/50 mt-16 rounded-2xl border bg-gradient-to-b from-white/[0.03] to-transparent px-6 py-12 text-center'>

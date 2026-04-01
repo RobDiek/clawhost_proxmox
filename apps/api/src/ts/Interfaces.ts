@@ -422,6 +422,7 @@ export interface ProvisionClawParams {
 export interface ProvisionClawResponse {
     success: boolean
     clawId?: string
+    referralCode?: string | null
     error?: string
 }
 
@@ -985,4 +986,24 @@ export interface AffiliateReferralEntry {
 
 export interface UpdateReferralCodeBody {
     code: string
+}
+
+export interface AdminUserListItem {
+    id: string
+    email: string
+    name: string | null
+    role: string
+    authMethods: string[] | null
+    hasLicense: boolean
+    referralCode: string | null
+    createdAt: Date
+    clawCount: number
+    sshKeyCount: number
+}
+
+export interface AdminUsersResponse {
+    items: AdminUserListItem[]
+    total: number
+    page: number
+    totalPages: number
 }

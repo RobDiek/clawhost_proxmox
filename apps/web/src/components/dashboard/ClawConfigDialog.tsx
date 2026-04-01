@@ -28,6 +28,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { useClawFiles, useClawFile, useUpdateClawFile } from '@/hooks'
 import { useUIStore, usePreferencesStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import { THEMES } from '@/lib'
 import CodeMirror, { EditorView } from '@uiw/react-codemirror'
 import { createTheme } from '@uiw/codemirror-themes'
@@ -267,12 +268,12 @@ const ClawConfigDialog: FC<ClawFileExplorerDialogProps> = ({
                     queryClient.invalidateQueries({
                         queryKey: ['claw-file', clawId, selectedPath]
                     })
-                    showToast(t('dashboard.fileExplorerSaved'), 'success')
+                    showToast(t('dashboard.fileExplorerSaved'), TOAST_TYPE.SUCCESS)
                 },
                 onError: (err) => {
                     showToast(
                         err.message || t('api.failedToUpdateFile'),
-                        'error'
+                        TOAST_TYPE.ERROR
                     )
                 }
             }

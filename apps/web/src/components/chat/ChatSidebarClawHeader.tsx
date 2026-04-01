@@ -13,6 +13,7 @@ import { ClockIcon } from '@phosphor-icons/react'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
 import { useUIStore } from '@/lib/store'
 import { getLocale } from '@/lib'
+import { CLAW_AVATAR_SIZE, TOAST_TYPE } from '@/lib/constants'
 import { ClawAvatar } from '@/components/shared'
 import {
     useStartClaw,
@@ -95,10 +96,10 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
     const handleUpdateInstance = () => {
         repairMutation.mutate(claw.id, {
             onSuccess: () => {
-                showToast(t('dashboard.updateInstanceSuccess'), 'success')
+                showToast(t('dashboard.updateInstanceSuccess'), TOAST_TYPE.SUCCESS)
             },
             onError: () => {
-                showToast(t('dashboard.updateInstanceFailed'), 'error')
+                showToast(t('dashboard.updateInstanceFailed'), TOAST_TYPE.ERROR)
             }
         })
     }
@@ -110,7 +111,7 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
                 claw.id,
                 `${claw.name}-${Math.random().toString(36).slice(2, 5)}-export.tar.gz`
             )
-            showToast(t('dashboard.exportSuccess'), 'success')
+            showToast(t('dashboard.exportSuccess'), TOAST_TYPE.SUCCESS)
         } catch (err) {
             const retryAfter = (err as ExportRateLimitError).retryAfter
             if (retryAfter && retryAfter > 30) {
@@ -119,17 +120,17 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
                     t('dashboard.exportRateLimited', {
                         minutes: String(minutes)
                     }),
-                    'warning'
+                    TOAST_TYPE.WARNING
                 )
             } else if (retryAfter && retryAfter > 0) {
                 showToast(
                     t('dashboard.exportRateLimitedSeconds', {
                         seconds: String(retryAfter)
                     }),
-                    'warning'
+                    TOAST_TYPE.WARNING
                 )
             } else {
-                showToast(t('dashboard.exportFailed'), 'error')
+                showToast(t('dashboard.exportFailed'), TOAST_TYPE.ERROR)
             }
         } finally {
             setIsExporting(false)
@@ -139,12 +140,12 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
     const handleReinstall = () => {
         reinstallMutation.mutate(claw.id, {
             onSuccess: () => {
-                showToast(t('dashboard.reinstallInstanceSuccess'), 'success')
+                showToast(t('dashboard.reinstallInstanceSuccess'), TOAST_TYPE.SUCCESS)
             },
             onError: (err: Error) => {
                 showToast(
                     err.message || t('dashboard.reinstallInstanceFailed'),
-                    'error'
+                    TOAST_TYPE.ERROR
                 )
             }
         })
@@ -161,7 +162,7 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
             }
             setShowCredentials(true)
         } catch {
-            showToast(t('errors.noPasswordAvailable'), 'error')
+            showToast(t('errors.noPasswordAvailable'), TOAST_TYPE.ERROR)
         } finally {
             setIsFetchingCredentials(false)
         }
@@ -179,7 +180,7 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
                                 'message' in err
                               ? String((err as ErrorWithMessage).message)
                               : t('dashboard.startFailed')
-                    showToast(message, 'error')
+                    showToast(message, TOAST_TYPE.ERROR)
                 }
             }),
         onShowStopModal: () => setShowStopModal(true),
@@ -214,7 +215,7 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
                 }`}
             >
                 <div className='relative shrink-0'>
-                    <ClawAvatar size='sm' />
+                    <ClawAvatar size={CLAW_AVATAR_SIZE.SM} />
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <div className='border-background absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border-2'>

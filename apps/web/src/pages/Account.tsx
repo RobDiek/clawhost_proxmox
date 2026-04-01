@@ -6,9 +6,10 @@ import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
-import { userRole, inputValidation } from '@openclaw/shared'
+import { authMethod, userRole, inputValidation } from '@openclaw/shared'
 import { useAuth } from '@/lib/auth'
 import { useUIStore, usePreferencesStore } from '@/lib/store'
+import { OAUTH_PROVIDER, TOAST_TYPE } from '@/lib/constants'
 import { api, getLocale, ROUTES } from '@/lib'
 import {
     useProfile,
@@ -86,7 +87,7 @@ const Account: FC = (): ReactNode => {
 
     useEffect(() => {
         if (searchParams.get('payment') !== 'success') return
-        showToast(t('license.paymentSuccess'), 'success')
+        showToast(t('license.paymentSuccess'), TOAST_TYPE.SUCCESS)
         queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY })
         setSearchParams({}, { replace: true })
     }, [])
@@ -97,7 +98,7 @@ const Account: FC = (): ReactNode => {
             const { checkoutUrl } = await api.purchaseLicense()
             window.location.href = checkoutUrl
         } catch {
-            showToast(t('license.failedToPurchase'), 'error')
+            showToast(t('license.failedToPurchase'), TOAST_TYPE.ERROR)
             setIsPurchasingLicense(false)
         }
     }
@@ -114,13 +115,13 @@ const Account: FC = (): ReactNode => {
                     updateCachedProfile({ name: data.name })
                     showToast(
                         t('account.profileUpdatedSuccessfully'),
-                        'success'
+                        TOAST_TYPE.SUCCESS
                     )
                 },
                 onError: (err: Error) => {
                     showToast(
                         err.message || t('errors.failedToUpdateProfile'),
-                        'error'
+                        TOAST_TYPE.ERROR
                     )
                 }
             }
@@ -139,7 +140,7 @@ const Account: FC = (): ReactNode => {
             if (providerBusy) return
             setLinkingProvider(provider)
             try {
-                if (provider === 'google') {
+                if (provider === OAUTH_PROVIDER.GOOGLE) {
                     await linkGoogle()
                 } else {
                     await linkGithub()
@@ -149,18 +150,18 @@ const Account: FC = (): ReactNode => {
                 showToast(
                     t('account.providerConnected', {
                         provider:
-                            provider === 'google'
+                            provider === OAUTH_PROVIDER.GOOGLE
                                 ? t('account.authGoogle')
                                 : t('account.authGithub')
                     }),
-                    'success'
+                    TOAST_TYPE.SUCCESS
                 )
             } catch (err: unknown) {
                 const message =
                     err instanceof Error
                         ? err.message
                         : t('errors.somethingWentWrong')
-                showToast(message, 'error')
+                showToast(message, TOAST_TYPE.ERROR)
             } finally {
                 setLinkingProvider(null)
             }
@@ -174,7 +175,7 @@ const Account: FC = (): ReactNode => {
             setUnlinkingProvider(provider)
             try {
                 await api.disconnectAuthMethod(provider)
-                if (provider === 'google') {
+                if (provider === OAUTH_PROVIDER.GOOGLE) {
                     await unlinkGoogle()
                 } else {
                     await unlinkGithub()
@@ -183,18 +184,18 @@ const Account: FC = (): ReactNode => {
                 showToast(
                     t('account.providerDisconnected', {
                         provider:
-                            provider === 'google'
+                            provider === OAUTH_PROVIDER.GOOGLE
                                 ? t('account.authGoogle')
                                 : t('account.authGithub')
                     }),
-                    'success'
+                    TOAST_TYPE.SUCCESS
                 )
             } catch (err: unknown) {
                 const message =
                     err instanceof Error
                         ? err.message
                         : t('errors.somethingWentWrong')
-                showToast(message, 'error')
+                showToast(message, TOAST_TYPE.ERROR)
             } finally {
                 setUnlinkingProvider(null)
             }
@@ -537,19 +538,19 @@ const Account: FC = (): ReactNode => {
                                             </span>
                                         </div>
                                         {profile?.authMethods?.includes(
-                                            'google'
+                                            authMethod.google
                                         ) ? (
                                             <button
                                                 onClick={() =>
                                                     handleUnlinkProvider(
-                                                        'google'
+                                                        OAUTH_PROVIDER.GOOGLE
                                                     )
                                                 }
                                                 disabled={providerBusy}
                                                 className='border-border text-foreground/50 flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs transition-colors hover:border-red-500/50 hover:text-red-600 disabled:opacity-50 dark:hover:text-red-400'
                                             >
                                                 {unlinkingProvider ===
-                                                    'google' && (
+                                                    OAUTH_PROVIDER.GOOGLE && (
                                                     <CircleNotchIcon className='h-3 w-3 animate-spin' />
                                                 )}
                                                 {t('account.authDisconnect')}
@@ -557,13 +558,13 @@ const Account: FC = (): ReactNode => {
                                         ) : (
                                             <button
                                                 onClick={() =>
-                                                    handleLinkProvider('google')
+                                                    handleLinkProvider(OAUTH_PROVIDER.GOOGLE)
                                                 }
                                                 disabled={providerBusy}
                                                 className='flex items-center gap-1.5 rounded-md bg-white px-3 py-1 text-xs font-medium text-black transition-opacity hover:opacity-80 disabled:opacity-50'
                                             >
                                                 {linkingProvider ===
-                                                    'google' && (
+                                                    OAUTH_PROVIDER.GOOGLE && (
                                                     <CircleNotchIcon className='h-3 w-3 animate-spin' />
                                                 )}
                                                 {t('account.authConnect')}
@@ -587,19 +588,19 @@ const Account: FC = (): ReactNode => {
                                             </span>
                                         </div>
                                         {profile?.authMethods?.includes(
-                                            'github'
+                                            authMethod.github
                                         ) ? (
                                             <button
                                                 onClick={() =>
                                                     handleUnlinkProvider(
-                                                        'github'
+                                                        OAUTH_PROVIDER.GITHUB
                                                     )
                                                 }
                                                 disabled={providerBusy}
                                                 className='border-border text-foreground/50 flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs transition-colors hover:border-red-500/50 hover:text-red-600 disabled:opacity-50 dark:hover:text-red-400'
                                             >
                                                 {unlinkingProvider ===
-                                                    'github' && (
+                                                    OAUTH_PROVIDER.GITHUB && (
                                                     <CircleNotchIcon className='h-3 w-3 animate-spin' />
                                                 )}
                                                 {t('account.authDisconnect')}
@@ -607,13 +608,13 @@ const Account: FC = (): ReactNode => {
                                         ) : (
                                             <button
                                                 onClick={() =>
-                                                    handleLinkProvider('github')
+                                                    handleLinkProvider(OAUTH_PROVIDER.GITHUB)
                                                 }
                                                 disabled={providerBusy}
                                                 className='flex items-center gap-1.5 rounded-md bg-white px-3 py-1 text-xs font-medium text-black transition-opacity hover:opacity-80 disabled:opacity-50'
                                             >
                                                 {linkingProvider ===
-                                                    'github' && (
+                                                    OAUTH_PROVIDER.GITHUB && (
                                                     <CircleNotchIcon className='h-3 w-3 animate-spin' />
                                                 )}
                                                 {t('account.authConnect')}

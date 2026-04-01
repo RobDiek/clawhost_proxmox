@@ -1,29 +1,47 @@
 import type { TranscriptionResult } from '@/ts/Interfaces'
-import type { billingInterval, clawStatus, userRole } from '@openclaw/shared'
+import type { authMethod, billingInterval, clawFileType, clawStatus, userRole } from '@openclaw/shared'
 import type {
+    AFFILIATE_PERIOD,
     AGENT_DETAIL_TABS,
+    CHANGELOG_FEATURE_TYPE,
+    CHAT_CONTENT_BLOCK_TYPE,
+    CHAT_MESSAGE_ROLE,
+    CHAT_MESSAGE_STATUS,
+    CHAT_SIDEBAR_VIEW_MODE,
+    CHAT_TYPING_INDICATOR,
+    CLAW_AVATAR_SIZE,
     CLAW_DETAIL_TABS,
+    COMPARE_FEATURE_STATUS,
+    COPIED_FIELD_TYPE,
     DASHBOARD_TABS,
+    GATEWAY_CONNECTION_STATE,
+    LOGIN_LOADING_METHOD,
+    OAUTH_PROVIDER,
+    PLAYGROUND_NODE_TYPE,
+    PRODUCT,
     ROUTES,
+    SSH_KEY_MODAL_MODE,
+    TERMINAL_STATUS,
     THEMES,
+    TOAST_TYPE,
     LANGUAGES
 } from '@/lib/constants'
 
-export type ToastType = 'success' | 'error' | 'warning' | 'info'
+export type ToastType = (typeof TOAST_TYPE)[keyof typeof TOAST_TYPE]
 
 export type ClawStatus = (typeof clawStatus)[keyof typeof clawStatus]
 
-export type CopiedFieldType = 'command' | 'private' | null
+export type CopiedFieldType = (typeof COPIED_FIELD_TYPE)[keyof typeof COPIED_FIELD_TYPE] | null
 
-export type SSHKeyModalMode = 'upload' | 'generate'
+export type SSHKeyModalMode = (typeof SSH_KEY_MODAL_MODE)[keyof typeof SSH_KEY_MODAL_MODE]
 
 export type UserRole = (typeof userRole)[keyof typeof userRole]
 
-export type AuthMethod = 'email' | 'google' | 'github'
+export type AuthMethod = (typeof authMethod)[keyof typeof authMethod]
 
-export type OAuthProvider = 'google' | 'github'
+export type OAuthProvider = (typeof OAUTH_PROVIDER)[keyof typeof OAUTH_PROVIDER]
 
-export type PlaygroundNodeType = 'claw' | 'agent'
+export type PlaygroundNodeType = (typeof PLAYGROUND_NODE_TYPE)[keyof typeof PLAYGROUND_NODE_TYPE]
 
 export type PlaygroundDetailTab =
     (typeof CLAW_DETAIL_TABS)[keyof typeof CLAW_DETAIL_TABS]
@@ -31,27 +49,23 @@ export type PlaygroundDetailTab =
 export type PlaygroundAgentDetailTab =
     (typeof AGENT_DETAIL_TABS)[keyof typeof AGENT_DETAIL_TABS]
 
-export type CompareFeatureStatus = 'yes' | 'no' | 'partial'
+export type CompareFeatureStatus = (typeof COMPARE_FEATURE_STATUS)[keyof typeof COMPARE_FEATURE_STATUS]
 
 export type BillingInterval =
     (typeof billingInterval)[keyof typeof billingInterval]
 
-export type ClawAvatarSize = 'sm' | 'md' | 'lg'
+export type ClawAvatarSize = (typeof CLAW_AVATAR_SIZE)[keyof typeof CLAW_AVATAR_SIZE]
 
 export type GatewayConnectionState =
-    | 'disconnected'
-    | 'connecting'
-    | 'authenticating'
-    | 'connected'
-    | 'error'
+    (typeof GATEWAY_CONNECTION_STATE)[keyof typeof GATEWAY_CONNECTION_STATE]
 
-export type ChatMessageRole = 'user' | 'assistant'
+export type ChatMessageRole = (typeof CHAT_MESSAGE_ROLE)[keyof typeof CHAT_MESSAGE_ROLE]
 
-export type ChatMessageStatus = 'complete' | 'streaming' | 'error' | 'aborted'
+export type ChatMessageStatus = (typeof CHAT_MESSAGE_STATUS)[keyof typeof CHAT_MESSAGE_STATUS]
 
-export type LoginLoadingMethod = 'email' | 'google' | 'github' | 'resend' | null
+export type LoginLoadingMethod = (typeof LOGIN_LOADING_METHOD)[keyof typeof LOGIN_LOADING_METHOD] | null
 
-export type ChatContentBlockType = 'text' | 'image'
+export type ChatContentBlockType = (typeof CHAT_CONTENT_BLOCK_TYPE)[keyof typeof CHAT_CONTENT_BLOCK_TYPE]
 
 export type GatewayEventHandler = (payload: unknown) => void
 
@@ -65,29 +79,19 @@ export type ThemeMode = (typeof THEMES)[keyof typeof THEMES]
 
 export type Language = (typeof LANGUAGES)[keyof typeof LANGUAGES]
 
-export type ClawFileType =
-    | 'json'
-    | 'markdown'
-    | 'javascript'
-    | 'typescript'
-    | 'yaml'
-    | 'text'
-    | 'unknown'
+export type ClawFileType = (typeof clawFileType)[keyof typeof clawFileType]
 
-export type ChatSidebarViewMode = 'tree' | 'list'
+export type ChatSidebarViewMode = (typeof CHAT_SIDEBAR_VIEW_MODE)[keyof typeof CHAT_SIDEBAR_VIEW_MODE]
 
-export type Product = 'cloud' | 'go'
+export type Product = (typeof PRODUCT)[keyof typeof PRODUCT]
 
-export type TerminalStatus =
-    | 'idle'
-    | 'connecting'
-    | 'connected'
-    | 'error'
-    | 'disconnected'
+export type TerminalStatus = (typeof TERMINAL_STATUS)[keyof typeof TERMINAL_STATUS]
 
-export type ChatTypingIndicator = 'thinking' | 'writing' | null
+export type ChatTypingIndicator = (typeof CHAT_TYPING_INDICATOR)[keyof typeof CHAT_TYPING_INDICATOR] | null
 
-export type AffiliatePeriod = 'today' | 'week' | 'month' | 'year' | 'all'
+export type AffiliatePeriod = (typeof AFFILIATE_PERIOD)[keyof typeof AFFILIATE_PERIOD]
+
+export type ChangelogFeatureType = (typeof CHANGELOG_FEATURE_TYPE)[keyof typeof CHANGELOG_FEATURE_TYPE]
 
 export type TranscriberFunction = (
     audio: Float32Array

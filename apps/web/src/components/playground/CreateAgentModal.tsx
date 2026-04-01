@@ -30,6 +30,7 @@ import {
 } from '@/components/ui'
 import { api, copyToClipboard } from '@/lib'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import { aiModels, validateAgentName } from '@/lib/claw-utils'
 import { PLAYGROUND_AGENTS_QUERY_KEY } from '@/hooks'
 
@@ -137,7 +138,7 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
             })
         },
         onSuccess: (response) => {
-            showToast(t('playground.addAgentSuccess'), 'success')
+            showToast(t('playground.addAgentSuccess'), TOAST_TYPE.SUCCESS)
             queryClient.setQueryData<ClawAgentsResponse>(
                 [PLAYGROUND_AGENTS_QUERY_KEY, effectiveClawId],
                 (old) => {
@@ -158,7 +159,7 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
             onOpenChange(false)
         },
         onError: () => {
-            showToast(t('playground.addAgentFailed'), 'error')
+            showToast(t('playground.addAgentFailed'), TOAST_TYPE.ERROR)
         }
     })
 

@@ -31,6 +31,7 @@ import {
 } from '@/components/playground/agent-detail'
 import { api } from '@/lib'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import { aiModels } from '@/lib/claw-utils'
 import { PLAYGROUND_AGENTS_QUERY_KEY } from '@/hooks'
 
@@ -161,7 +162,7 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
 
         api.deleteClawAgent(clawId, { agentId })
             .then(() => {
-                showToast(t('playground.deleteAgentSuccess'), 'success')
+                showToast(t('playground.deleteAgentSuccess'), TOAST_TYPE.SUCCESS)
                 queryClient.setQueryData<ClawAgentsResponse>(
                     [PLAYGROUND_AGENTS_QUERY_KEY, clawId],
                     (old) => {
@@ -175,7 +176,7 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
                 onClose()
             })
             .catch(() => {
-                showToast(t('playground.deleteAgentFailed'), 'error')
+                showToast(t('playground.deleteAgentFailed'), TOAST_TYPE.ERROR)
             })
             .finally(() => {
                 deletingAgentIds.delete(agentId)

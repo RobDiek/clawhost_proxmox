@@ -5,6 +5,7 @@ import type { CopiedFieldType, SSHKeyModalMode } from '@/ts/Types'
 import { Fragment, useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { useUIStore } from '@/lib/store'
+import { COPIED_FIELD_TYPE, SSH_KEY_MODAL_MODE, TOAST_TYPE } from '@/lib/constants'
 import { copyToClipboard as copyText } from '@/lib'
 import { useCreateSSHKey } from '@/hooks'
 import {
@@ -36,7 +37,7 @@ import {
 const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
     onClose
 }): ReactNode => {
-    const [mode, setMode] = useState<SSHKeyModalMode>('upload')
+    const [mode, setMode] = useState<SSHKeyModalMode>(SSH_KEY_MODAL_MODE.UPLOAD)
     const [name, setName] = useState('')
     const [publicKey, setPublicKey] = useState('')
     const [generatedKeys, setGeneratedKeys] = useState<GeneratedKeyPair | null>(
@@ -53,19 +54,19 @@ const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
             {
                 name,
                 publicKey:
-                    mode === 'generate' && generatedKeys
+                    mode === SSH_KEY_MODAL_MODE.GENERATE && generatedKeys
                         ? generatedKeys.publicKey
                         : publicKey
             },
             {
                 onSuccess: () => {
-                    showToast(t('sshKeys.sshKeyAddedSuccessfully'), 'success')
+                    showToast(t('sshKeys.sshKeyAddedSuccessfully'), TOAST_TYPE.SUCCESS)
                     onClose()
                 },
                 onError: (err: Error) => {
                     showToast(
                         err.message || t('errors.failedToAddSSHKey'),
-                        'error'
+                        TOAST_TYPE.ERROR
                     )
                 }
             }
@@ -147,7 +148,7 @@ const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
 
     const copyToClipboard = async (
         text: string,
-        type: 'command' | 'private'
+        type: NonNullable<CopiedFieldType>
     ) => {
         await copyText(text)
         setCopied(type)
@@ -182,9 +183,9 @@ const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
                     <div className='bg-muted !mt-3 flex gap-2 rounded-lg p-1'>
                         <button
                             type='button'
-                            onClick={() => setMode('upload')}
+                            onClick={() => setMode(SSH_KEY_MODAL_MODE.UPLOAD)}
                             className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition ${
-                                mode === 'upload'
+                                mode === SSH_KEY_MODAL_MODE.UPLOAD
                                     ? 'bg-background shadow'
                                     : 'text-muted-foreground hover:text-foreground'
                             }`}
@@ -193,9 +194,9 @@ const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
                         </button>
                         <button
                             type='button'
-                            onClick={() => setMode('generate')}
+                            onClick={() => setMode(SSH_KEY_MODAL_MODE.GENERATE)}
                             className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition ${
-                                mode === 'generate'
+                                mode === SSH_KEY_MODAL_MODE.GENERATE
                                     ? 'bg-background shadow'
                                     : 'text-muted-foreground hover:text-foreground'
                             }`}
@@ -211,7 +212,7 @@ const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
                     </Alert>
                 )}
 
-                {mode === 'upload' ? (
+                {mode === SSH_KEY_MODAL_MODE.UPLOAD ? (
                     <form
                         onSubmit={(e) => {
                             e.preventDefault()
@@ -269,11 +270,11 @@ const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
                                                 onClick={() =>
                                                     copyToClipboard(
                                                         sshKeygenCommand,
-                                                        'command'
+                                                        COPIED_FIELD_TYPE.COMMAND
                                                     )
                                                 }
                                             >
-                                                {copied === 'command' ? (
+                                                {copied === COPIED_FIELD_TYPE.COMMAND ? (
                                                     <CheckIcon className='h-4 w-4' />
                                                 ) : (
                                                     <CopyIcon className='h-4 w-4' />
@@ -374,12 +375,12 @@ const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
                                                         onClick={() =>
                                                             copyToClipboard(
                                                                 sshKeygenCommand,
-                                                                'command'
+                                                                COPIED_FIELD_TYPE.COMMAND
                                                             )
                                                         }
                                                     >
                                                         {copied ===
-                                                        'command' ? (
+                                                        COPIED_FIELD_TYPE.COMMAND ? (
                                                             <CheckIcon className='h-4 w-4' />
                                                         ) : (
                                                             <CopyIcon className='h-4 w-4' />
@@ -432,11 +433,11 @@ const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
                                             onClick={() =>
                                                 copyToClipboard(
                                                     generatedKeys.privateKey,
-                                                    'private'
+                                                    COPIED_FIELD_TYPE.PRIVATE
                                                 )
                                             }
                                         >
-                                            {copied === 'private' ? (
+                                            {copied === COPIED_FIELD_TYPE.PRIVATE ? (
                                                 <CheckIcon className='mr-2 h-4 w-4' />
                                             ) : (
                                                 <CopyIcon className='mr-2 h-4 w-4' />

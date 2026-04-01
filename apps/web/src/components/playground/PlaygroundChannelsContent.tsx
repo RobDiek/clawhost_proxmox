@@ -39,6 +39,7 @@ import {
 } from '@/components/ui'
 import { api, copyToClipboard } from '@/lib'
 import { useUIStore, useChannelsStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import { useClawVersion } from '@/hooks'
 
 const CHANNEL_DEFINITIONS: ChannelDefinition[] = [
@@ -275,7 +276,7 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
         if (pairStatus.status === 'paired') {
             resetPairingState()
             setIsWhatsAppPaired(true)
-            showToast(t('playground.channelsWhatsAppPaired'), 'success')
+            showToast(t('playground.channelsWhatsAppPaired'), TOAST_TYPE.SUCCESS)
         }
         if (pairStatus.status === 'failed') {
             resetPairingState()
@@ -353,7 +354,7 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
     const copyField = useCallback(
         async (value: string) => {
             await copyToClipboard(value)
-            showToast(t('common.copied'), 'success')
+            showToast(t('common.copied'), TOAST_TYPE.SUCCESS)
         },
         [showToast]
     )
@@ -380,7 +381,7 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
         mutationFn: () =>
             api.updateClawChannels(clawId, { channels: prepareChannels() }),
         onSuccess: () => {
-            showToast(t('playground.channelsSaved'), 'success')
+            showToast(t('playground.channelsSaved'), TOAST_TYPE.SUCCESS)
             setHasChanges(false)
             queryClient.setQueryData<ClawChannelsResponse>(
                 ['claw-channels', clawId],
@@ -388,7 +389,7 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
             )
         },
         onError: () => {
-            showToast(t('playground.channelsSaveFailed'), 'error')
+            showToast(t('playground.channelsSaveFailed'), TOAST_TYPE.ERROR)
         }
     })
 
@@ -410,7 +411,7 @@ const PlaygroundChannelsContent: FC<PlaygroundChannelsContentProps> = ({
             setTimeout(() => setPollEnabled(true), 3000)
         },
         onError: () => {
-            showToast(t('playground.channelsWhatsAppPairFailed'), 'error')
+            showToast(t('playground.channelsWhatsAppPairFailed'), TOAST_TYPE.ERROR)
         }
     })
 

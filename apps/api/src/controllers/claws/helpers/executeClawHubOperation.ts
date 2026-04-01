@@ -1,5 +1,6 @@
 import type { VersionGatedFeature } from '@/ts/Types'
 
+import { versionGatedFeature } from '@openclaw/shared'
 import executeSSH from '@/services/ssh'
 import ensureClawHub from '@/controllers/claws/helpers/ensureClawHub'
 import checkFeatureVersion from '@/controllers/claws/helpers/checkFeatureVersion'
@@ -11,7 +12,7 @@ const executeClawHubOperation = async (
     command: string,
     agentId?: string,
     timeout = 50000,
-    feature: VersionGatedFeature = 'skills'
+    feature: VersionGatedFeature = versionGatedFeature.skills
 ): Promise<{ supported: boolean; version: string }> => {
     const { supported, version } = await checkFeatureVersion(
         ip,

@@ -23,6 +23,7 @@ import {
 } from '@/components/ui'
 import { api, getLocale } from '@/lib'
 import { useUIStore, useVersionsStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 
 const CHANGELOG_BASE_URL = 'https://www.npmjs.com/package/openclaw/v/'
 
@@ -71,7 +72,7 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
             setInstallingVersion(null)
         },
         onError: () => {
-            showToast(t('playground.versionInstallFailed'), 'error')
+            showToast(t('playground.versionInstallFailed'), TOAST_TYPE.ERROR)
             setInstallingVersion(null)
         }
     })

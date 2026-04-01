@@ -309,6 +309,14 @@ const LandingFooter: FC = (): ReactNode => {
                                 </Link>
                             </li>
                             <li>
+                                <Link
+                                    to={ROUTES.AFFILIATE_PROGRAM}
+                                    className={pageClass(ROUTES.AFFILIATE_PROGRAM)}
+                                >
+                                    {t('footer.affiliateProgram')}
+                                </Link>
+                            </li>
+                            <li>
                                 <a
                                     href={SUPPORT_EMAIL}
                                     className='text-muted-foreground hover:text-foreground transition'

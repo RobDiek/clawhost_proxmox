@@ -23,6 +23,7 @@ import { PanelPlaceholder, VersionUnsupported } from '@/components/shared'
 import { Skeleton } from '@/components/ui'
 import { api } from '@/lib'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import { useClawVersion } from '@/hooks'
 
 const CHANNEL_META: Record<string, ChannelMetaEntry> = {
@@ -107,14 +108,14 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
             await api.updateClawBindings(clawId, { bindings })
         },
         onSuccess: () => {
-            showToast(t('playground.bindingsSaved'), 'success')
+            showToast(t('playground.bindingsSaved'), TOAST_TYPE.SUCCESS)
             queryClient.invalidateQueries({
                 queryKey: ['claw-bindings', clawId]
             })
             setHasChanges(false)
         },
         onError: () => {
-            showToast(t('playground.bindingsSaveFailed'), 'error')
+            showToast(t('playground.bindingsSaveFailed'), TOAST_TYPE.ERROR)
         }
     })
 

@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { userRole } from '@openclaw/shared'
 import { useUIStore, usePreferencesStore, useDashboardStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import {
     ROUTES,
     DASHBOARD_TABS,
@@ -154,12 +155,12 @@ const Dashboard: FC = (): ReactNode => {
             const success = await api.setupDns()
             if (success) {
                 setDnsSetup(true)
-                showToast(t('dashboard.dnsSetupSuccess'), 'success')
+                showToast(t('dashboard.dnsSetupSuccess'), TOAST_TYPE.SUCCESS)
             } else {
-                showToast(t('dashboard.dnsSetupError'), 'error')
+                showToast(t('dashboard.dnsSetupError'), TOAST_TYPE.ERROR)
             }
         } catch {
-            showToast(t('dashboard.dnsSetupError'), 'error')
+            showToast(t('dashboard.dnsSetupError'), TOAST_TYPE.ERROR)
         }
         setDnsLoading(false)
     }, [showToast])
@@ -173,7 +174,7 @@ const Dashboard: FC = (): ReactNode => {
 
     useEffect(() => {
         if (awaitingClaw) {
-            showToast(t('dashboard.paymentSuccess'), 'success')
+            showToast(t('dashboard.paymentSuccess'), TOAST_TYPE.SUCCESS)
             fireConfetti()
         }
     }, [])

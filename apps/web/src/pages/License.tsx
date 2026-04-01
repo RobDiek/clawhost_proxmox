@@ -8,6 +8,7 @@ import { goLicense } from '@openclaw/shared'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/lib/auth'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import { api, ROUTES } from '@/lib'
 import { useProfile, PROFILE_QUERY_KEY } from '@/hooks'
 import { Button, Badge } from '@/components/ui'
@@ -37,7 +38,7 @@ const License: FC = (): ReactNode => {
 
     useEffect(() => {
         if (searchParams.get('payment') !== 'success') return
-        showToast(t('license.paymentSuccess'), 'success')
+        showToast(t('license.paymentSuccess'), TOAST_TYPE.SUCCESS)
         queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY })
         setSearchParams({}, { replace: true })
     }, [])
@@ -48,7 +49,7 @@ const License: FC = (): ReactNode => {
             const { checkoutUrl } = await api.purchaseLicense()
             window.location.href = checkoutUrl
         } catch {
-            showToast(t('license.failedToPurchase'), 'error')
+            showToast(t('license.failedToPurchase'), TOAST_TYPE.ERROR)
             setIsPurchasing(false)
         }
     }

@@ -33,6 +33,7 @@ import { PanelPlaceholder, TruncateTooltip, VersionUnsupported } from '@/compone
 import { Skeleton } from '@/components/ui'
 import { api, getLocale } from '@/lib'
 import { useUIStore, useSkillsStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 
 const PAGE_SIZE = 50
 
@@ -246,7 +247,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
             })
         },
         onError: (_: unknown, name: string) => {
-            showToast(t('playground.skillsSaveFailed'), 'error')
+            showToast(t('playground.skillsSaveFailed'), TOAST_TYPE.ERROR)
             setPendingSkill(null)
             setSkills((prev) =>
                 prev.map((s) =>
@@ -270,7 +271,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
                 skillName: name
             }),
         onSuccess: (_: void, name: string) => {
-            showToast(t('playground.agentSkillsInstalled'), 'success')
+            showToast(t('playground.agentSkillsInstalled'), TOAST_TYPE.SUCCESS)
             setPendingSkill(null)
             queryClient.setQueryData<GetAgentSkillsResponse>(
                 agentQueryKey,
@@ -282,7 +283,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
             )
         },
         onError: () => {
-            showToast(t('playground.agentSkillsInstallFailed'), 'error')
+            showToast(t('playground.agentSkillsInstallFailed'), TOAST_TYPE.ERROR)
             setPendingSkill(null)
         }
     })
@@ -294,7 +295,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
                 skillName: name
             }),
         onSuccess: (_: void, name: string) => {
-            showToast(t('playground.agentSkillsRemoved'), 'success')
+            showToast(t('playground.agentSkillsRemoved'), TOAST_TYPE.SUCCESS)
             setPendingSkill(null)
             queryClient.setQueryData<GetAgentSkillsResponse>(
                 agentQueryKey,
@@ -305,7 +306,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
             )
         },
         onError: () => {
-            showToast(t('playground.agentSkillsRemoveFailed'), 'error')
+            showToast(t('playground.agentSkillsRemoveFailed'), TOAST_TYPE.ERROR)
             setPendingSkill(null)
         }
     })
@@ -314,7 +315,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
         mutationFn: (slug: string) =>
             api.installClawHubSkill(clawId, { slug, agentId }),
         onSuccess: (_: void, slug: string) => {
-            showToast(t('playground.clawHubInstalled'), 'success')
+            showToast(t('playground.clawHubInstalled'), TOAST_TYPE.SUCCESS)
             setPendingSlug(null)
             const normalized = slug.toLowerCase()
             queryClient.setQueryData<ClawHubInstalledResponse>(
@@ -353,7 +354,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
             queryClient.invalidateQueries({ queryKey: installedKey })
         },
         onError: () => {
-            showToast(t('playground.clawHubInstallFailed'), 'error')
+            showToast(t('playground.clawHubInstallFailed'), TOAST_TYPE.ERROR)
             setPendingSlug(null)
         }
     })
@@ -362,7 +363,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
         mutationFn: (slug: string) =>
             api.removeClawHubSkill(clawId, { slug, agentId }),
         onSuccess: (_: void, slug: string) => {
-            showToast(t('playground.clawHubRemoved'), 'success')
+            showToast(t('playground.clawHubRemoved'), TOAST_TYPE.SUCCESS)
             setPendingSlug(null)
             const normalized = slug.toLowerCase()
             queryClient.setQueryData<ClawHubInstalledResponse>(
@@ -378,7 +379,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
             )
         },
         onError: () => {
-            showToast(t('playground.clawHubRemoveFailed'), 'error')
+            showToast(t('playground.clawHubRemoveFailed'), TOAST_TYPE.ERROR)
             setPendingSlug(null)
         }
     })
@@ -387,13 +388,13 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
         mutationFn: (slug: string) =>
             api.updateClawHubSkill(clawId, { slug, agentId }),
         onSuccess: () => {
-            showToast(t('playground.clawHubUpdated'), 'success')
+            showToast(t('playground.clawHubUpdated'), TOAST_TYPE.SUCCESS)
             setPendingSlug(null)
             queryClient.invalidateQueries({ queryKey: installedKey })
             queryClient.invalidateQueries({ queryKey: updatesKey })
         },
         onError: () => {
-            showToast(t('playground.clawHubUpdateFailed'), 'error')
+            showToast(t('playground.clawHubUpdateFailed'), TOAST_TYPE.ERROR)
             setPendingSlug(null)
         }
     })

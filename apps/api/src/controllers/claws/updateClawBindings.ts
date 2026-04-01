@@ -1,6 +1,7 @@
 import type { UpdateClawBindingsBody } from '@/ts/Interfaces'
 import type { AuthenticatedContext } from '@/ts/Types'
 
+import { versionGatedFeature } from '@openclaw/shared'
 import executeSSH from '@/services/ssh'
 import {
     applyToolsDefaults,
@@ -59,7 +60,7 @@ const updateClawBindings = async (c: AuthenticatedContext) => {
             const { supported, version } = await checkFeatureVersion(
                 claw.ip,
                 claw.rootPassword,
-                'bindings'
+                versionGatedFeature.bindings
             )
 
             if (!supported) {

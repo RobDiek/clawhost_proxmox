@@ -34,6 +34,7 @@ import {
 } from '@/components/ui'
 import { api, copyToClipboard } from '@/lib'
 import { useUIStore, useVariablesStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import { PanelPlaceholder } from '@/components/shared'
 import { PLAYGROUND_AGENTS_QUERY_KEY } from '@/hooks'
 
@@ -142,12 +143,12 @@ const PlaygroundVariablesContent: FC<PlaygroundVariablesContentProps> = ({
             return api.updateClawEnvVars(clawId, { envVars: envVarsObj })
         },
         onSuccess: () => {
-            showToast(t('playground.variablesSaved'), 'success')
+            showToast(t('playground.variablesSaved'), TOAST_TYPE.SUCCESS)
             setHasChanges(false)
             invalidateQueries()
         },
         onError: () => {
-            showToast(t('playground.variablesSaveFailed'), 'error')
+            showToast(t('playground.variablesSaveFailed'), TOAST_TYPE.ERROR)
         }
     })
 
@@ -162,11 +163,11 @@ const PlaygroundVariablesContent: FC<PlaygroundVariablesContentProps> = ({
             return api.updateClawEnvVars(clawId, { envVars: envVarsObj })
         },
         onSuccess: () => {
-            showToast(t('playground.variablesDeleted'), 'success')
+            showToast(t('playground.variablesDeleted'), TOAST_TYPE.SUCCESS)
             invalidateQueries()
         },
         onError: () => {
-            showToast(t('playground.variablesSaveFailed'), 'error')
+            showToast(t('playground.variablesSaveFailed'), TOAST_TYPE.ERROR)
             invalidateQueries()
         }
     })

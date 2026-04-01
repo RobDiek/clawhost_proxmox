@@ -22,6 +22,7 @@ import {
     LandingCTA
 } from '@/components'
 import { usePreferencesStore, useUIStore } from '@/lib/store'
+import { PRODUCT, TOAST_TYPE } from '@/lib/constants'
 import { useAuth } from '@/lib/auth'
 import { api } from '@/lib'
 import {
@@ -135,7 +136,7 @@ const getGoFaqs = (): Faq[] => [
 
 const Go: FC = (): ReactNode => {
     const setProduct = usePreferencesStore((s) => s.setProduct)
-    useEffect(() => setProduct('go'), [setProduct])
+    useEffect(() => setProduct(PRODUCT.GO), [setProduct])
     const { user, loading: authLoading } = useAuth()
     const showToast = useUIStore((s) => s.showToast)
     const [activeSection, setActiveSection] = useState('')
@@ -167,14 +168,14 @@ const Go: FC = (): ReactNode => {
                 const res = await api.joinWaitlist(email)
                 setHasJoined(true)
                 if (res.alreadyJoined) {
-                    showToast(t('go.waitlistAlreadyJoinedToast'), 'info')
+                    showToast(t('go.waitlistAlreadyJoinedToast'), TOAST_TYPE.INFO)
                 }
             } catch (error) {
                 const message =
                     error instanceof Error
                         ? error.message
                         : t('go.waitlistFailedToast')
-                showToast(message, 'error')
+                showToast(message, TOAST_TYPE.ERROR)
             } finally {
                 setIsJoining(false)
             }

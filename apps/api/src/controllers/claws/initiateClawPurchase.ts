@@ -288,6 +288,7 @@ const initiateClawPurchase = async (c: AuthenticatedContext) => {
 
         const pendingId = crypto.randomUUID()
         const finalPassword = password || generatePassword()
+        const referralCode = c.req.header('X-Referral-Code') || null
 
         const checkout = await checkouts.create({
             productId,
@@ -300,7 +301,8 @@ const initiateClawPurchase = async (c: AuthenticatedContext) => {
                 location,
                 name,
                 billingInterval: billingCycle,
-                environment: getEnvironment(c)
+                environment: getEnvironment(c),
+                ...(referralCode ? { referralCode } : {})
             }
         })
 
@@ -318,6 +320,7 @@ const initiateClawPurchase = async (c: AuthenticatedContext) => {
             volumeSize: volumeSize || null,
             priceMonthly: Math.round(priceMonthly * 100),
             billingInterval: billingCycle,
+            referralCode,
             expiresAt
         })
 

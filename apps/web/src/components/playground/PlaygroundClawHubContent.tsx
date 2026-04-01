@@ -23,6 +23,7 @@ import { PanelPlaceholder, TruncateTooltip } from '@/components/shared'
 import { Skeleton } from '@/components/ui'
 import { api, getLocale } from '@/lib'
 import { useUIStore, useClawHubStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 
 const PAGE_SIZE = 50
 
@@ -96,12 +97,12 @@ const PlaygroundClawHubContent: FC<PlaygroundClawHubContentProps> = ({
         mutationFn: (slug: string) =>
             api.installClawHubSkill(clawId, { slug, agentId }),
         onSuccess: () => {
-            showToast(t('playground.clawHubInstalled'), 'success')
+            showToast(t('playground.clawHubInstalled'), TOAST_TYPE.SUCCESS)
             setPendingSlug(null)
             queryClient.invalidateQueries({ queryKey: installedKey })
         },
         onError: () => {
-            showToast(t('playground.clawHubInstallFailed'), 'error')
+            showToast(t('playground.clawHubInstallFailed'), TOAST_TYPE.ERROR)
             setPendingSlug(null)
         }
     })
@@ -110,7 +111,7 @@ const PlaygroundClawHubContent: FC<PlaygroundClawHubContentProps> = ({
         mutationFn: (slug: string) =>
             api.removeClawHubSkill(clawId, { slug, agentId }),
         onSuccess: (_: void, slug: string) => {
-            showToast(t('playground.clawHubRemoved'), 'success')
+            showToast(t('playground.clawHubRemoved'), TOAST_TYPE.SUCCESS)
             setPendingSlug(null)
             queryClient.setQueryData<ClawHubInstalledResponse>(
                 installedKey,
@@ -121,7 +122,7 @@ const PlaygroundClawHubContent: FC<PlaygroundClawHubContentProps> = ({
             )
         },
         onError: () => {
-            showToast(t('playground.clawHubRemoveFailed'), 'error')
+            showToast(t('playground.clawHubRemoveFailed'), TOAST_TYPE.ERROR)
             setPendingSlug(null)
         }
     })
@@ -130,13 +131,13 @@ const PlaygroundClawHubContent: FC<PlaygroundClawHubContentProps> = ({
         mutationFn: (slug: string) =>
             api.updateClawHubSkill(clawId, { slug, agentId }),
         onSuccess: () => {
-            showToast(t('playground.clawHubUpdated'), 'success')
+            showToast(t('playground.clawHubUpdated'), TOAST_TYPE.SUCCESS)
             setPendingSlug(null)
             queryClient.invalidateQueries({ queryKey: installedKey })
             queryClient.invalidateQueries({ queryKey: updatesKey })
         },
         onError: () => {
-            showToast(t('playground.clawHubUpdateFailed'), 'error')
+            showToast(t('playground.clawHubUpdateFailed'), TOAST_TYPE.ERROR)
             setPendingSlug(null)
         }
     })

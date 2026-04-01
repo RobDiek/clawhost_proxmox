@@ -61,7 +61,6 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
 
             if (user) {
                 localStorage.setItem(AUTH_STORAGE_KEY, 'true')
-                localStorage.setItem(STORAGE_KEYS.REFERRAL, 'none')
 
                 const cached = readCachedProfile()
                 if (cached) setCachedProfile(cached)
@@ -86,7 +85,9 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
                     ])
                     const fresh: CachedProfile = {
                         email: profile.email,
-                        name: profile.name
+                        name: profile.name,
+                        referralCode: profile.referralCode ?? null,
+                        referralCodeChanged: profile.referralCodeChanged ?? false
                     }
                     setCachedProfile(fresh)
                     localStorage.setItem(

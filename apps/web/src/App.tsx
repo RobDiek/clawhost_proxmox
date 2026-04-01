@@ -16,12 +16,14 @@ const SSHKeys = lazy(() => import('@/pages/SSHKeys'))
 const Account = lazy(() => import('@/pages/Account'))
 const Billing = lazy(() => import('@/pages/Billing'))
 const Affiliate = lazy(() => import('@/pages/Affiliate'))
+const Admin = lazy(() => import('@/pages/Admin'))
 const License = lazy(() => import('@/pages/License'))
 const Terms = lazy(() => import('@/pages/Terms'))
 const Privacy = lazy(() => import('@/pages/Privacy'))
 const Changelog = lazy(() => import('@/pages/Changelog'))
 const Blog = lazy(() => import('@/pages/Blog'))
 const BlogPost = lazy(() => import('@/pages/BlogPost'))
+const AffiliateProgram = lazy(() => import('@/pages/AffiliateProgram'))
 const Compare = lazy(() => import('@/pages/Compare'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
 
@@ -55,6 +57,7 @@ const App: FC = (): ReactNode => {
                         />
                         <Route path={ROUTES.BLOG} element={<Blog />} />
                         <Route path={ROUTES.BLOG_POST} element={<BlogPost />} />
+                        <Route path={ROUTES.AFFILIATE_PROGRAM} element={<AffiliateProgram />} />
                         <Route path={ROUTES.COMPARE} element={<Compare />} />
                         <Route
                             path={ROUTES.CLAWS}
@@ -93,6 +96,14 @@ const App: FC = (): ReactNode => {
                             element={
                                 <ProtectedRoute>
                                     <Affiliate />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path={ROUTES.ADMIN}
+                            element={
+                                <ProtectedRoute>
+                                    <Admin />
                                 </ProtectedRoute>
                             }
                         />

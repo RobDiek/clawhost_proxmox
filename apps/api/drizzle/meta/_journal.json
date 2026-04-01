@@ -162,6 +162,20 @@
       "when": 1774828800000,
       "tag": "0022_add_affiliate",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1775082863931,
+      "tag": "0023_old_puff_adder",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1775260800000,
+      "tag": "0024_referral_payments",
+      "breakpoints": true
     }
   ]
 }

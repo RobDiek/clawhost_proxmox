@@ -9,11 +9,13 @@ import { bodyLimit } from 'hono/body-limit'
 import { verifyToken } from '@/services/firebase'
 import { eq, sql } from 'drizzle-orm'
 import { db } from '@/db'
-import { users, referrals } from '@/db/schema'
-import { userRole } from '@openclaw/shared'
+import { users } from '@/db/schema'
+import { authMethod, userRole } from '@openclaw/shared'
+import { environment } from '@/lib/constants'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
 import {
+    adminRoutes,
     affiliateRoutes,
     aiRoutes,
     authRoutes,
@@ -29,7 +31,7 @@ import { browseSkills } from '@/services/clawhub'
 
 const app = new Hono<HonoEnv>()
 
-const isDev = process.env.NODE_ENV !== 'production'
+const isDev = process.env.NODE_ENV !== environment.production
 
 app.use(
     '*',
@@ -125,12 +127,12 @@ app.use('/*', async (c, next) => {
         }
 
         const signInProvider = decoded.firebase?.sign_in_provider
-        const authMethod =
+        const resolvedAuthMethod =
             signInProvider === 'google.com'
-                ? 'google'
+                ? authMethod.google
                 : signInProvider === 'github.com'
-                  ? 'github'
-                  : 'email'
+                  ? authMethod.github
+                  : authMethod.email
 
         const existingUser = await db
             .select({ id: users.id, role: users.role })
@@ -144,54 +146,31 @@ app.use('/*', async (c, next) => {
                 .set({
                     ...(decoded.email ? { email: decoded.email } : {}),
                     authMethods: sql`CASE
-                        WHEN ${authMethod} = ANY(COALESCE(${users.authMethods}, '{}'))
+                        WHEN ${resolvedAuthMethod} = ANY(COALESCE(${users.authMethods}, '{}'))
                         THEN COALESCE(${users.authMethods}, '{}')
-                        ELSE array_append(COALESCE(${users.authMethods}, '{}'), ${authMethod})
+                        ELSE array_append(COALESCE(${users.authMethods}, '{}'), ${resolvedAuthMethod})
                     END`
                 })
                 .where(eq(users.id, decoded.uid))
         } else if (decoded.email) {
-            const referralHeader = c.req.header('X-Referral-Code')
-
             await db
                 .insert(users)
                 .values({
                     id: decoded.uid,
                     email: decoded.email,
-                    authMethods: [authMethod],
-                    referredBy: referralHeader || null
+                    authMethods: [resolvedAuthMethod]
                 })
                 .onConflictDoUpdate({
                     target: users.id,
                     set: {
                         email: decoded.email,
                         authMethods: sql`CASE
-                            WHEN ${authMethod} = ANY(COALESCE(${users.authMethods}, '{}'))
+                            WHEN ${resolvedAuthMethod} = ANY(COALESCE(${users.authMethods}, '{}'))
                             THEN COALESCE(${users.authMethods}, '{}')
-                            ELSE array_append(COALESCE(${users.authMethods}, '{}'), ${authMethod})
+                            ELSE array_append(COALESCE(${users.authMethods}, '{}'), ${resolvedAuthMethod})
                         END`
                     }
                 })
-
-            if (referralHeader) {
-                const referrer = await db
-                    .select({ id: users.id })
-                    .from(users)
-                    .where(eq(users.referralCode, referralHeader))
-                    .limit(1)
-                    .then((rows) => rows[0])
-
-                if (referrer && referrer.id !== decoded.uid) {
-                    await db
-                        .insert(referrals)
-                        .values({
-                            id: crypto.randomUUID(),
-                            referrerId: referrer.id,
-                            referredUserId: decoded.uid
-                        })
-                        .onConflictDoNothing()
-                }
-            }
         } else {
             return fail(c, t('api.unauthorized'), 401)
         }
@@ -212,6 +191,7 @@ app.use('/*', async (c, next) => {
     }
 })
 
+app.route('/admin', adminRoutes)
 app.route('/affiliate', affiliateRoutes)
 app.route('/ai', aiRoutes)
 app.route('/claws', clawsRoutes)

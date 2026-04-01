@@ -19,6 +19,7 @@ import {
     SelectItem,
     SelectTrigger
 } from '@/components/ui'
+import { COMPARE_FEATURE_STATUS } from '@/lib/constants'
 import { PATHS, getBaseDomain } from '@/lib'
 import { getCompareData } from '@/data'
 import { GITHUB_REPO_URL } from '@/hooks'
@@ -34,7 +35,7 @@ const Compare: FC = (): ReactNode => {
     )
 
     const renderStatusIcon = (value: CompareFeatureValue): ReactNode => {
-        if (value.status === 'yes') {
+        if (value.status === COMPARE_FEATURE_STATUS.YES) {
             return (
                 <CheckIcon
                     className='h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400'
@@ -42,7 +43,7 @@ const Compare: FC = (): ReactNode => {
                 />
             )
         }
-        if (value.status === 'partial') {
+        if (value.status === COMPARE_FEATURE_STATUS.PARTIAL) {
             return (
                 <MinusIcon
                     className='h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400'

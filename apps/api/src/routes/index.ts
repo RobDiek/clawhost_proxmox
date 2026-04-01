@@ -1,3 +1,4 @@
+import adminRoutes from '@/routes/admin'
 import affiliateRoutes from '@/routes/affiliate'
 import aiRoutes from '@/routes/ai'
 import authRoutes from '@/routes/auth'
@@ -10,6 +11,7 @@ import waitlistRoutes from '@/routes/waitlist'
 import webhooksRoutes from '@/routes/webhooks'
 
 export {
+    adminRoutes,
     affiliateRoutes,
     aiRoutes,
     authRoutes,

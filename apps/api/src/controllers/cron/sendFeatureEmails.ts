@@ -58,7 +58,13 @@ const markAndSend = async (
     return true
 }
 
+const DISABLED = true
+
 const sendFeatureEmails = async (c: Context) => {
+    if (DISABLED) {
+        return ok(c, { sent: 0, disabled: true }, t('api.featureEmailsDisabled'))
+    }
+
     try {
         const featureParam = c.req.query('feature') as
             | FeatureEmailKey

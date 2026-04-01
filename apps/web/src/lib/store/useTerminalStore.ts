@@ -1,9 +1,10 @@
 import type { TerminalState } from '@/ts/Interfaces'
 
 import { create } from 'zustand'
+import { TERMINAL_STATUS } from '@/lib/constants'
 
 const useTerminalStore = create<TerminalState>((set) => ({
-    status: 'idle',
+    status: TERMINAL_STATUS.IDLE,
     setStatus: (value) =>
         set((state) => ({
             status: typeof value === 'function' ? value(state.status) : value
@@ -14,7 +15,7 @@ const useTerminalStore = create<TerminalState>((set) => ({
 
     resetTerminalState: () =>
         set({
-            status: 'idle',
+            status: TERMINAL_STATUS.IDLE,
             showScrollButton: false
         })
 }))

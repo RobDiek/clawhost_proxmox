@@ -7,6 +7,7 @@ import { Handle, Position } from '@xyflow/react'
 import { AndroidLogoIcon, CircleNotchIcon } from '@phosphor-icons/react'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
 import { TRUNCATE_LENGTHS } from '@/lib'
+import { GATEWAY_CONNECTION_STATE } from '@/lib/constants'
 import { getAgentStatusConfig } from '@/lib/claw-utils'
 import { useGatewayState } from '@/hooks'
 
@@ -31,8 +32,8 @@ const PlaygroundAgentNode: FC<PlaygroundAgentNodeProps> = ({
     const status = useMemo(() => {
         if (subdomain && gatewayToken) {
             if (
-                gatewayState === 'connecting' ||
-                gatewayState === 'authenticating'
+                gatewayState === GATEWAY_CONNECTION_STATE.CONNECTING ||
+                gatewayState === GATEWAY_CONNECTION_STATE.AUTHENTICATING
             ) {
                 return {
                     color: 'bg-orange-500',
@@ -41,14 +42,14 @@ const PlaygroundAgentNode: FC<PlaygroundAgentNodeProps> = ({
                     pulse: true
                 }
             }
-            if (gatewayState === 'connected') {
+            if (gatewayState === GATEWAY_CONNECTION_STATE.CONNECTED) {
                 return {
                     color: 'bg-green-500',
                     bgColor: 'bg-green-500/10',
                     label: t('dashboard.status.running')
                 }
             }
-            if (gatewayState === 'error' || gatewayState === 'disconnected') {
+            if (gatewayState === GATEWAY_CONNECTION_STATE.ERROR || gatewayState === GATEWAY_CONNECTION_STATE.DISCONNECTED) {
                 return {
                     color: 'bg-red-500',
                     bgColor: 'bg-red-500/10',

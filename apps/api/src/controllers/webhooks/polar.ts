@@ -4,10 +4,12 @@ import type {
     CheckoutWebhookData
 } from '@/ts/Interfaces'
 
+import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
 import { clawStatus } from '@openclaw/shared'
 import { db } from '@/db'
-import { claws, users } from '@/db/schema'
+import { subscriptionStatus } from '@/lib/constants'
+import { claws, users, referrals, referralPayments } from '@/db/schema'
 import { parseWebhook, handleWebhook } from '@/lib/polar'
 import { provisionClaw } from '@/controllers/claws'
 import { getProvider } from '@/services/provider'
@@ -15,6 +17,53 @@ import { cleanupClaw } from '@/controllers/claws/helpers'
 import { ok, fail } from '@/lib/response'
 import { getEnvironment, PROD } from '@/lib/environment'
 import { t } from '@openclaw/i18n'
+
+const trackReferral = async (userId: string, referralCode: string, paymentType: string) => {
+    try {
+        const referrer = await db
+            .select({ id: users.id })
+            .from(users)
+            .where(eq(users.referralCode, referralCode))
+            .limit(1)
+            .then((rows) => rows[0])
+
+        if (!referrer || referrer.id === userId) return
+
+        const referralId = crypto.randomUUID()
+
+        const inserted = await db
+            .insert(referrals)
+            .values({
+                id: referralId,
+                referrerId: referrer.id,
+                referredUserId: userId
+            })
+            .onConflictDoNothing()
+            .returning({ id: referrals.id })
+
+        const existingReferralId = inserted[0]?.id ?? await db
+            .select({ id: referrals.id })
+            .from(referrals)
+            .where(eq(referrals.referredUserId, userId))
+            .limit(1)
+            .then((rows) => rows[0]?.id)
+
+        if (existingReferralId) {
+            await db.insert(referralPayments).values({
+                id: crypto.randomUUID(),
+                referralId: existingReferralId,
+                type: paymentType
+            })
+        }
+
+        await db
+            .update(users)
+            .set({ referredBy: referralCode })
+            .where(eq(users.id, userId))
+    } catch (err) {
+        console.error('Failed to track referral:', err)
+    }
+}
 
 const handlePolarWebhook = async (c: Context) => {
     try {
@@ -45,6 +94,10 @@ const handlePolarWebhook = async (c: Context) => {
                         .update(users)
                         .set({ hasLicense: true })
                         .where(eq(users.id, data.metadata.userId))
+
+                    if (data.metadata.referralCode) {
+                        await trackReferral(data.metadata.userId, data.metadata.referralCode, 'license')
+                    }
                 }
             },
 
@@ -76,6 +129,10 @@ const handlePolarWebhook = async (c: Context) => {
                     subscriptionId: data.id,
                     customerId: data.customerId,
                     productId: data.productId
+                }).then((result) => {
+                    if (result.success && result.referralCode && data.metadata?.userId) {
+                        trackReferral(data.metadata.userId, result.referralCode, 'purchase')
+                    }
                 }).catch((err) =>
                     console.error(`Failed to provision claw: ${err}`)
                 )
@@ -89,7 +146,7 @@ const handlePolarWebhook = async (c: Context) => {
                 await db
                     .update(claws)
                     .set({
-                        subscriptionStatus: 'canceled',
+                        subscriptionStatus: subscriptionStatus.canceled,
                         ...(deletionScheduledAt ? { deletionScheduledAt } : {})
                     })
                     .where(eq(claws.polarSubscriptionId, data.id))
@@ -123,7 +180,7 @@ const handlePolarWebhook = async (c: Context) => {
                         )
                         db.update(claws)
                             .set({
-                                subscriptionStatus: 'revoked',
+                                subscriptionStatus: subscriptionStatus.revoked,
                                 status: clawStatus.stopped
                             })
                             .where(eq(claws.id, claw[0].id))
@@ -137,7 +194,7 @@ const handlePolarWebhook = async (c: Context) => {
                     Promise.all([
                         db
                             .update(claws)
-                            .set({ subscriptionStatus: 'revoked' })
+                            .set({ subscriptionStatus: subscriptionStatus.revoked })
                             .where(eq(claws.id, claw[0].id)),
                         provider
                             .stopServer(claw[0].providerServerId)
@@ -153,7 +210,7 @@ const handlePolarWebhook = async (c: Context) => {
                     ]).catch(() => {})
                 } else {
                     db.update(claws)
-                        .set({ subscriptionStatus: 'revoked' })
+                        .set({ subscriptionStatus: subscriptionStatus.revoked })
                         .where(eq(claws.id, claw[0].id))
                         .catch(() => {})
                 }
@@ -164,7 +221,7 @@ const handlePolarWebhook = async (c: Context) => {
                     .update(claws)
                     .set({
                         deletionScheduledAt: null,
-                        subscriptionStatus: 'active'
+                        subscriptionStatus: subscriptionStatus.active
                     })
                     .where(eq(claws.polarSubscriptionId, data.id))
             },
@@ -177,7 +234,7 @@ const handlePolarWebhook = async (c: Context) => {
                     .returning()
 
                 if (
-                    data.status === 'past_due' &&
+                    data.status === subscriptionStatus.pastDue &&
                     updated[0]?.providerServerId
                 ) {
                     try {

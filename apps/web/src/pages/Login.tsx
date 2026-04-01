@@ -1,5 +1,5 @@
 import type { FC, ReactNode } from 'react'
-import type { LoginLoadingMethod } from '@/ts/Types'
+import type { LoginLoadingMethod, OAuthProvider } from '@/ts/Types'
 
 import { Fragment, useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
@@ -9,6 +9,7 @@ import { inputValidation } from '@openclaw/shared'
 import { useAuth } from '@/lib/auth'
 import { useNetworkStatus } from '@/hooks'
 import { useUIStore } from '@/lib/store'
+import { LOGIN_LOADING_METHOD, OAUTH_PROVIDER, TOAST_TYPE } from '@/lib/constants'
 import { ROUTES } from '@/lib'
 import { Button, Input, Label } from '@/components/ui'
 import {
@@ -109,7 +110,7 @@ const Login: FC = (): ReactNode => {
         }
 
         setEmailError('')
-        setLoadingMethod('email')
+        setLoadingMethod(LOGIN_LOADING_METHOD.EMAIL)
         try {
             await sendOtp(email.trim())
             startCooldown()
@@ -122,7 +123,7 @@ const Login: FC = (): ReactNode => {
                 err instanceof Error
                     ? err.message
                     : t('errors.somethingWentWrong')
-            showToast(message, 'error')
+            showToast(message, TOAST_TYPE.ERROR)
         } finally {
             setLoadingMethod(null)
         }
@@ -131,14 +132,14 @@ const Login: FC = (): ReactNode => {
     const handleVerifyOtp = useCallback(
         async (fullCode: string) => {
             if (loadingMethod) return
-            setLoadingMethod('email')
+            setLoadingMethod(LOGIN_LOADING_METHOD.EMAIL)
             setCodeError(false)
             try {
                 await verifyOtp(email.trim(), fullCode)
             } catch (err: unknown) {
                 const message =
                     err instanceof Error ? err.message : t('auth.invalidCode')
-                showToast(message, 'error')
+                showToast(message, TOAST_TYPE.ERROR)
                 setCodeError(true)
                 setCode(Array(CODE_LENGTH).fill(''))
                 inputRefs.current[0]?.focus()
@@ -212,11 +213,11 @@ const Login: FC = (): ReactNode => {
     )
 
     const handleOAuth = useCallback(
-        async (provider: 'google' | 'github') => {
+        async (provider: OAuthProvider) => {
             if (loadingMethod) return
             setLoadingMethod(provider)
             try {
-                if (provider === 'google') {
+                if (provider === OAUTH_PROVIDER.GOOGLE) {
                     await signInWithGoogle()
                 } else {
                     await signInWithGithub()
@@ -226,7 +227,7 @@ const Login: FC = (): ReactNode => {
                     err instanceof Error
                         ? err.message
                         : t('errors.somethingWentWrong')
-                showToast(message, 'error')
+                showToast(message, TOAST_TYPE.ERROR)
             } finally {
                 setLoadingMethod(null)
             }
@@ -247,7 +248,7 @@ const Login: FC = (): ReactNode => {
 
     const handleResend = useCallback(async () => {
         if (cooldown > 0 || loadingMethod) return
-        setLoadingMethod('resend')
+        setLoadingMethod(LOGIN_LOADING_METHOD.RESEND)
         try {
             await sendOtp(email.trim())
             startCooldown()
@@ -259,7 +260,7 @@ const Login: FC = (): ReactNode => {
                 err instanceof Error
                     ? err.message
                     : t('errors.somethingWentWrong')
-            showToast(message, 'error')
+            showToast(message, TOAST_TYPE.ERROR)
         } finally {
             setLoadingMethod(null)
         }
@@ -350,7 +351,7 @@ const Login: FC = (): ReactNode => {
                                     className='w-full gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-white hover:opacity-90'
                                     disabled={!!loadingMethod || cooldown > 0}
                                 >
-                                    {loadingMethod === 'email' && (
+                                    {loadingMethod === LOGIN_LOADING_METHOD.EMAIL && (
                                         <CircleNotchIcon className='h-4 w-4 animate-spin' />
                                     )}
                                     {cooldown > 0
@@ -375,11 +376,11 @@ const Login: FC = (): ReactNode => {
 
                             <div className='mt-6 space-y-3'>
                                 <button
-                                    onClick={() => handleOAuth('google')}
+                                    onClick={() => handleOAuth(OAUTH_PROVIDER.GOOGLE)}
                                     disabled={!!loadingMethod}
                                     className='border-border bg-foreground/5 text-foreground hover:bg-foreground/10 flex h-11 w-full items-center justify-center gap-3 rounded-lg border text-sm font-medium transition-colors disabled:opacity-50'
                                 >
-                                    {loadingMethod === 'google' ? (
+                                    {loadingMethod === LOGIN_LOADING_METHOD.GOOGLE ? (
                                         <CircleNotchIcon className='h-[18px] w-[18px] animate-spin' />
                                     ) : (
                                         <svg
@@ -408,11 +409,11 @@ const Login: FC = (): ReactNode => {
                                     {t('auth.continueWithGoogle')}
                                 </button>
                                 <button
-                                    onClick={() => handleOAuth('github')}
+                                    onClick={() => handleOAuth(OAUTH_PROVIDER.GITHUB)}
                                     disabled={!!loadingMethod}
                                     className='border-border bg-foreground/5 text-foreground hover:bg-foreground/10 flex h-11 w-full items-center justify-center gap-3 rounded-lg border text-sm font-medium transition-colors disabled:opacity-50'
                                 >
-                                    {loadingMethod === 'github' ? (
+                                    {loadingMethod === LOGIN_LOADING_METHOD.GITHUB ? (
                                         <CircleNotchIcon className='h-[18px] w-[18px] animate-spin' />
                                     ) : (
                                         <svg
@@ -510,7 +511,7 @@ const Login: FC = (): ReactNode => {
                                 className='w-full gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-white hover:opacity-90'
                                 disabled={!!loadingMethod || !isCodeComplete}
                             >
-                                {loadingMethod === 'email' && (
+                                {loadingMethod === LOGIN_LOADING_METHOD.EMAIL && (
                                     <CircleNotchIcon className='h-4 w-4 animate-spin' />
                                 )}
                                 {t('auth.verifyCode')}
@@ -521,7 +522,7 @@ const Login: FC = (): ReactNode => {
                                 disabled={cooldown > 0 || !!loadingMethod}
                                 className='text-muted-foreground hover:text-foreground/80 mt-4 flex w-full items-center justify-center gap-2 text-sm transition-colors disabled:opacity-50'
                             >
-                                {loadingMethod === 'resend' ? (
+                                {loadingMethod === LOGIN_LOADING_METHOD.RESEND ? (
                                     <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />
                                 ) : null}
                                 {cooldown > 0

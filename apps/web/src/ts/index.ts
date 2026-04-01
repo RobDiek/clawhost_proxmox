@@ -20,7 +20,8 @@ export type {
     ChatSidebarViewMode,
     UserRole,
     TranscriberFunction,
-    Product
+    Product,
+    ChangelogFeatureType
 } from '@/ts/Types'
 
 export type {
@@ -141,5 +142,7 @@ export type {
     PricingSectionProps,
     SelfHostButtonProps,
     SimplePlanCardProps,
-    SimplePlanFeature
+    SimplePlanFeature,
+    ChangelogFeature,
+    ChangelogRelease
 } from '@/ts/Interfaces'

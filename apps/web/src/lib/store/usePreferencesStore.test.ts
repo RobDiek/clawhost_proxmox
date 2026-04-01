@@ -1,4 +1,5 @@
 import { usePreferencesStore } from '@/lib/store'
+import { CHAT_SIDEBAR_VIEW_MODE, PRODUCT } from '@/lib/constants'
 
 describe('usePreferencesStore', () => {
     beforeEach(() => {
@@ -8,8 +9,8 @@ describe('usePreferencesStore', () => {
             theme: 'dark',
             language: 'en',
             openLinksWindowed: false,
-            chatSidebarView: 'tree',
-            product: 'cloud'
+            chatSidebarView: CHAT_SIDEBAR_VIEW_MODE.TREE,
+            product: PRODUCT.CLOUD
         })
     })
 
@@ -19,8 +20,8 @@ describe('usePreferencesStore', () => {
         expect(state.dashboardTab).toBe('chat')
         expect(state.theme).toBe('dark')
         expect(state.language).toBe('en')
-        expect(state.chatSidebarView).toBe('tree')
-        expect(state.product).toBe('cloud')
+        expect(state.chatSidebarView).toBe(CHAT_SIDEBAR_VIEW_MODE.TREE)
+        expect(state.product).toBe(PRODUCT.CLOUD)
     })
 
     it('toggles admin mode', () => {
@@ -39,13 +40,13 @@ describe('usePreferencesStore', () => {
     })
 
     it('changes chat sidebar view', () => {
-        usePreferencesStore.getState().setChatSidebarView('list')
-        expect(usePreferencesStore.getState().chatSidebarView).toBe('list')
+        usePreferencesStore.getState().setChatSidebarView(CHAT_SIDEBAR_VIEW_MODE.LIST)
+        expect(usePreferencesStore.getState().chatSidebarView).toBe(CHAT_SIDEBAR_VIEW_MODE.LIST)
     })
 
     it('changes product', () => {
-        usePreferencesStore.getState().setProduct('go')
-        expect(usePreferencesStore.getState().product).toBe('go')
+        usePreferencesStore.getState().setProduct(PRODUCT.GO)
+        expect(usePreferencesStore.getState().product).toBe(PRODUCT.GO)
     })
 
     it('toggles openLinksWindowed', () => {

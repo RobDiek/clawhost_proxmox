@@ -12,6 +12,7 @@ import {
     CheckIcon
 } from '@phosphor-icons/react'
 import { getLocale, copyToClipboard } from '@/lib'
+import { CHAT_MESSAGE_ROLE, CHAT_MESSAGE_STATUS, TOAST_TYPE } from '@/lib/constants'
 import { useUIStore } from '@/lib/store'
 import ChatMarkdown from '@/components/playground/AgentChat/ChatMarkdown'
 import ChatLightbox from '@/components/playground/AgentChat/ChatLightbox'
@@ -52,7 +53,7 @@ const ChatBubble: FC<ChatBubbleProps> = ({
     isSpeaking,
     isLoading
 }): ReactNode => {
-    const isUser = message.role === 'user'
+    const isUser = message.role === CHAT_MESSAGE_ROLE.USER
     const [lightboxImage, setLightboxImage] = useState<ChatImageSource | null>(
         null
     )
@@ -64,7 +65,7 @@ const ChatBubble: FC<ChatBubbleProps> = ({
 
     const copyMessage = async () => {
         await copyToClipboard(message.content)
-        showToast(t('common.copied'), 'success')
+        showToast(t('common.copied'), TOAST_TYPE.SUCCESS)
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
     }
@@ -271,7 +272,7 @@ const ChatBubble: FC<ChatBubbleProps> = ({
         <Fragment>
             <div className='flex flex-col items-start gap-1'>
                 <div className='bg-foreground/5 group relative min-w-0 max-w-[85%] rounded-2xl rounded-bl-md px-3.5 py-2.5'>
-                    {message.status === 'complete' && message.content && (
+                    {message.status === CHAT_MESSAGE_STATUS.COMPLETE && message.content && (
                         <button
                             onClick={copyMessage}
                             title={t('playground.chatCopyMessage')}
@@ -293,11 +294,11 @@ const ChatBubble: FC<ChatBubbleProps> = ({
                     {hasAttachments && renderAttachments(message.images!)}
                     <div className='text-foreground/80 min-w-0 text-sm'>
                         <ChatMarkdown content={message.content} />
-                        {message.status === 'streaming' && (
+                        {message.status === CHAT_MESSAGE_STATUS.STREAMING && (
                             <span className='bg-muted-foreground ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm' />
                         )}
                     </div>
-                    {message.status === 'error' && (
+                    {message.status === CHAT_MESSAGE_STATUS.ERROR && (
                         <div className='mt-2 flex items-center gap-1.5'>
                             <WarningIcon className='h-3 w-3 text-red-600 dark:text-red-400' />
                             <span className='text-[11px] text-red-600 dark:text-red-400'>
@@ -305,7 +306,7 @@ const ChatBubble: FC<ChatBubbleProps> = ({
                             </span>
                         </div>
                     )}
-                    {message.status === 'aborted' && (
+                    {message.status === CHAT_MESSAGE_STATUS.ABORTED && (
                         <div className='mt-2 flex items-center gap-1.5'>
                             <StopCircleIcon className='h-3 w-3 text-[#ef5350]' />
                             <span className='text-[11px] text-[#ef5350]'>
@@ -321,7 +322,7 @@ const ChatBubble: FC<ChatBubbleProps> = ({
                         </span>
                     )}
                     {formattedTime &&
-                        message.status === 'complete' &&
+                        message.status === CHAT_MESSAGE_STATUS.COMPLETE &&
                         message.content &&
                         onSpeak &&
                         onStop && (
@@ -329,7 +330,7 @@ const ChatBubble: FC<ChatBubbleProps> = ({
                                 ·
                             </span>
                         )}
-                    {message.status === 'complete' &&
+                    {message.status === CHAT_MESSAGE_STATUS.COMPLETE &&
                         message.content &&
                         onSpeak &&
                         onStop && (

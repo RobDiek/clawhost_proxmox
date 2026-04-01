@@ -53,6 +53,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { useClawVersion, useRenameClaw, useUpdateClawSubdomain } from '@/hooks'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import { useAuth } from '@/lib/auth'
 import { locationFlags, locationNames, generateSlug } from '@/lib/claw-utils'
 
@@ -244,10 +245,10 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                 { id: claw.id, name: trimmedName },
                 {
                     onSuccess: () => {
-                        showToast(t('dashboard.renameSuccess'), 'success')
+                        showToast(t('dashboard.renameSuccess'), TOAST_TYPE.SUCCESS)
                     },
                     onError: () => {
-                        showToast(t('dashboard.renameFailed'), 'error')
+                        showToast(t('dashboard.renameFailed'), TOAST_TYPE.ERROR)
                     }
                 }
             )
@@ -274,14 +275,14 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                 { id: claw.id, subdomain: trimmedSubdomain },
                 {
                     onSuccess: () => {
-                        showToast(t('playground.subdomainUpdated'), 'success')
+                        showToast(t('playground.subdomainUpdated'), TOAST_TYPE.SUCCESS)
                     },
                     onError: (err) => {
                         const raw = err instanceof Error ? err.message : ''
                         const message = raw.includes('already in use')
                             ? t('playground.subdomainInUse')
                             : t('playground.subdomainUpdateFailed')
-                        showToast(message, 'error')
+                        showToast(message, TOAST_TYPE.ERROR)
                     }
                 }
             )

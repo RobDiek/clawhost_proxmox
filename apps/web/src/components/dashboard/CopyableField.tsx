@@ -4,6 +4,7 @@ import type { CopyableFieldProps } from '@/ts/Interfaces'
 import { useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import { copyToClipboard } from '@/lib'
 import {
     CheckIcon,
@@ -25,7 +26,7 @@ const CopyableField: FC<CopyableFieldProps> = ({
     const handleCopy = async () => {
         await copyToClipboard(value)
         setIsCopied(true)
-        showToast(t('common.copiedWithLabel', { label }), 'success')
+        showToast(t('common.copiedWithLabel', { label }), TOAST_TYPE.SUCCESS)
         setTimeout(() => setIsCopied(false), 2000)
     }
 

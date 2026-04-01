@@ -7,6 +7,7 @@ import { t } from '@openclaw/i18n'
 import { billingInterval } from '@openclaw/shared'
 import { Link } from 'react-router-dom'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import { ROUTES } from '@/lib'
 import {
     usePurchaseClaw,
@@ -160,13 +161,13 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
             return
         }
         if (!location) {
-            showToast(t('errors.invalidLocation'), 'error')
+            showToast(t('errors.invalidLocation'), TOAST_TYPE.ERROR)
             return
         }
 
         const selectedPlanData = plans.find((p) => p.id === planId)
         if (!selectedPlanData) {
-            showToast(t('errors.invalidPlan'), 'error')
+            showToast(t('errors.invalidPlan'), TOAST_TYPE.ERROR)
             return
         }
 

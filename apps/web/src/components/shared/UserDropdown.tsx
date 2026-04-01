@@ -8,7 +8,9 @@ import type {
 import { Fragment } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
+import { userRole } from '@openclaw/shared'
 import { ROUTES } from '@/lib'
+import { useProfile } from '@/hooks'
 import {
     Button,
     Avatar,
@@ -25,7 +27,8 @@ import {
     UserIcon,
     SignOutIcon,
     ReceiptIcon,
-    HandshakeIcon
+    HandshakeIcon,
+    ShieldCheckIcon
 } from '@phosphor-icons/react'
 
 const UserDropdown: FC<UserDropdownProps> = ({
@@ -41,6 +44,8 @@ const UserDropdown: FC<UserDropdownProps> = ({
 }): ReactNode => {
     const navigate = useNavigate()
     const location = useLocation()
+    const { data: profile } = useProfile()
+    const isAdmin = profile?.role === userRole.admin
     const getInitials = (text: string) => {
         if (!text) return '?'
         const parts = text.split(' ')
@@ -135,6 +140,15 @@ const UserDropdown: FC<UserDropdownProps> = ({
                     </DropdownMenuItem>
                 )}
 
+                {isAdmin && (
+                    <DropdownMenuItem
+                        onClick={() => navigate(ROUTES.ADMIN)}
+                        className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.ADMIN ? 'bg-foreground/10' : ''}`}
+                    >
+                        <ShieldCheckIcon className='h-4 w-4' />
+                        {t('nav.admin')}
+                    </DropdownMenuItem>
+                )}
                 {footerLinks && footerLinks.length > 0 && (
                     <Fragment>
                         <DropdownMenuSeparator className='bg-border' />

@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui'
 import { ScrollToBottomButton } from '@/components/shared'
 import { useTerminalStore } from '@/lib/store'
+import { TERMINAL_STATUS } from '@/lib/constants'
 import '@xterm/xterm/css/xterm.css'
 
 let connectCounter = 0
@@ -175,7 +176,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                 }
             ).electronAPI
             if (!electronAPI) {
-                setStatus('error')
+                setStatus(TERMINAL_STATUS.ERROR)
                 return
             }
 
@@ -190,7 +191,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                 )
             } catch (err) {
                 console.error('[terminal] spawn failed:', err)
-                setStatus('error')
+                setStatus(TERMINAL_STATUS.ERROR)
                 return
             }
 
@@ -207,12 +208,12 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
 
             const removeExitListener = electronAPI.onTerminalExit((id) => {
                 if (id === clawId && connectIdRef.current === myId) {
-                    setStatus('disconnected')
+                    setStatus(TERMINAL_STATUS.DISCONNECTED)
                 }
             })
             cleanupListenersRef.current.push(removeExitListener)
 
-            setStatus('connected')
+            setStatus(TERMINAL_STATUS.CONNECTED)
             requestAnimationFrame(() => {
                 fitAndCrop()
                 terminal.focus()
@@ -236,7 +237,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
             if (connectIdRef.current !== myId) return
 
             if (!token) {
-                setStatus('error')
+                setStatus(TERMINAL_STATUS.ERROR)
                 return
             }
 
@@ -266,7 +267,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                 if (!connected) {
                     connected = true
                     reconnectAttemptsRef.current = 0
-                    setStatus('connected')
+                    setStatus(TERMINAL_STATUS.CONNECTED)
                     requestAnimationFrame(() => {
                         terminal.focus()
                     })
@@ -281,7 +282,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                     reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS
                 ) {
                     reconnectAttemptsRef.current++
-                    setStatus('connecting')
+                    setStatus(TERMINAL_STATUS.CONNECTING)
                     reconnectTimerRef.current = setTimeout(() => {
                         if (connectIdRef.current === myId) {
                             connectRef.current()
@@ -289,13 +290,13 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                     }, RECONNECT_DELAY)
                 } else {
                     setStatus((prev) =>
-                        prev === 'error' ? 'error' : 'disconnected'
+                        prev === TERMINAL_STATUS.ERROR ? TERMINAL_STATUS.ERROR : TERMINAL_STATUS.DISCONNECTED
                     )
                 }
             }
 
             ws.onerror = () => {
-                setStatus('error')
+                setStatus(TERMINAL_STATUS.ERROR)
             }
 
             terminal.onData((data) => {
@@ -319,11 +320,11 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
         if (!containerRef.current) return
 
         const myId = connectIdRef.current
-        setStatus('connecting')
+        setStatus(TERMINAL_STATUS.CONNECTING)
 
         const container = containerRef.current
         if (!container) {
-            setStatus('error')
+            setStatus(TERMINAL_STATUS.ERROR)
             return
         }
 
@@ -344,7 +345,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
             connect()
         } else {
             cleanup()
-            setStatus('idle')
+            setStatus(TERMINAL_STATUS.IDLE)
             setShowScrollButton(false)
         }
 
@@ -357,9 +358,9 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
     }, [])
 
     const showOverlay =
-        status === 'connecting' ||
-        status === 'error' ||
-        status === 'disconnected'
+        status === TERMINAL_STATUS.CONNECTING ||
+        status === TERMINAL_STATUS.ERROR ||
+        status === TERMINAL_STATUS.DISCONNECTED
 
     return (
         <div
@@ -378,7 +379,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
             />
             {showOverlay && (
                 <div className='bg-muted/50 absolute inset-0 flex items-center justify-center'>
-                    {status === 'connecting' && (
+                    {status === TERMINAL_STATUS.CONNECTING && (
                         <div className='flex flex-col items-center gap-3'>
                             <CircleNotchIcon className='text-muted-foreground h-6 w-6 animate-spin' />
                             <span className='text-muted-foreground text-xs'>
@@ -386,7 +387,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                             </span>
                         </div>
                     )}
-                    {(status === 'error' || status === 'disconnected') && (
+                    {(status === TERMINAL_STATUS.ERROR || status === TERMINAL_STATUS.DISCONNECTED) && (
                         <div className='flex flex-col items-center gap-3'>
                             <div className='bg-foreground/5 flex h-12 w-12 items-center justify-center rounded-xl'>
                                 <TerminalWindowIcon
@@ -396,7 +397,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                             </div>
                             <p className='text-foreground/80 text-sm font-medium'>
                                 {t(
-                                    status === 'error'
+                                    status === TERMINAL_STATUS.ERROR
                                         ? 'playground.terminalError'
                                         : 'playground.terminalDisconnected'
                                 )}

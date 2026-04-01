@@ -6,6 +6,7 @@ import {
     CLAW_DETAIL_TABS,
     DASHBOARD_TABS,
     LANGUAGES,
+    RELEASES,
     ROUTES,
     SCROLL_SECTIONS,
     THEMES
@@ -28,6 +29,7 @@ export {
     CLAW_DETAIL_TABS,
     THEMES,
     LANGUAGES,
+    RELEASES,
     getBaseDomain,
     getLocale,
     TRUNCATE_LENGTHS,

@@ -7,6 +7,7 @@ import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
 import { clawStatus, inputValidation } from '@openclaw/shared'
 import { db } from '@/db'
+import { subscriptionStatus } from '@/lib/constants'
 import { claws, pendingClaws, sshKeys, volumes } from '@/db/schema'
 import { getProvider } from '@/services/provider'
 import cloudflare from '@/services/cloudflare'
@@ -100,7 +101,7 @@ const provisionClaw = async (
             polarSubscriptionId: params.subscriptionId,
             polarProductId: params.productId,
             polarCustomerId: params.customerId,
-            subscriptionStatus: 'active',
+            subscriptionStatus: subscriptionStatus.active,
             billingInterval: pending.billingInterval
         })
 
@@ -169,7 +170,7 @@ const provisionClaw = async (
             }
         }
 
-        return { success: true, clawId: id }
+        return { success: true, clawId: id, referralCode: pending.referralCode }
     } catch (err) {
         console.error('Provision claw error:', err)
         return {

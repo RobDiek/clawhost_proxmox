@@ -6,6 +6,7 @@ import { t } from '@openclaw/i18n'
 import { GearSixIcon, AndroidLogoIcon } from '@phosphor-icons/react'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
 import { TRUNCATE_LENGTHS } from '@/lib'
+import { GATEWAY_CONNECTION_STATE } from '@/lib/constants'
 import { aiModels, getAgentStatusConfig } from '@/lib/claw-utils'
 
 const ChatSidebarItem: FC<ChatSidebarItemProps> = ({
@@ -25,24 +26,24 @@ const ChatSidebarItem: FC<ChatSidebarItemProps> = ({
     const statusConfig = useMemo(() => {
         if (connectionState) {
             switch (connectionState) {
-                case 'connected':
+                case GATEWAY_CONNECTION_STATE.CONNECTED:
                     return {
                         color: 'bg-green-500',
                         label: t('dashboard.status.running')
                     }
-                case 'connecting':
-                case 'authenticating':
+                case GATEWAY_CONNECTION_STATE.CONNECTING:
+                case GATEWAY_CONNECTION_STATE.AUTHENTICATING:
                     return {
                         color: 'bg-yellow-500',
                         label: t('playground.chatConnecting'),
                         pulse: true
                     }
-                case 'error':
+                case GATEWAY_CONNECTION_STATE.ERROR:
                     return {
                         color: 'bg-red-500',
                         label: t('playground.chatError')
                     }
-                case 'disconnected':
+                case GATEWAY_CONNECTION_STATE.DISCONNECTED:
                     return {
                         color: 'bg-red-500',
                         label: t('dashboard.status.unreachable')

@@ -1,4 +1,17 @@
 import type {
+    AdminStats,
+    AdminClawsResponse,
+    AdminEmailListItem,
+    AdminExportListItem,
+    AdminPaginatedResponse,
+    AdminPendingClawListItem,
+    AdminReferralListItem,
+    AdminWaitlistListItem,
+    AdminSSHKeysResponse,
+    AdminUserDetail,
+    AdminUsersResponse,
+    AdminVolumesResponse,
+    UpdateAdminUserData,
     AffiliateInfo,
     GenerateReferralCodeResponse,
     AgentConfigResponse,
@@ -61,6 +74,7 @@ import type {
     VerifyOtpResponse,
     VolumePricing
 } from '@/ts/Interfaces'
+import type { AffiliatePeriod } from '@/ts/Types'
 
 import { RequestClient } from '@openclaw/shared'
 import { signOut } from 'firebase/auth'
@@ -70,15 +84,23 @@ import STORAGE_KEYS from '@/lib/storageKeys'
 
 const BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
+const THREE_MONTHS_MS = 3 * 30 * 24 * 60 * 60 * 1000
+
 const getReferralCode = (): string | null => {
     try {
         const raw = localStorage.getItem(STORAGE_KEYS.REFERRAL)
         if (!raw || raw === 'none') return null
         const stored = JSON.parse(raw)
+        if (Date.now() - stored.timestamp > THREE_MONTHS_MS) return null
         return stored.code || null
     } catch {
         return null
     }
+}
+
+const getReferralHeaders = (): Record<string, string> => {
+    const code = getReferralCode()
+    return code ? { 'X-Referral-Code': code } : {}
 }
 
 const client = new RequestClient({
@@ -87,8 +109,6 @@ const client = new RequestClient({
         const token = await getCachedToken()
         const headers: Record<string, string> = {}
         if (token) headers.Authorization = `Bearer ${token}`
-        const referral = getReferralCode()
-        if (referral) headers['X-Referral-Code'] = referral
         return headers
     },
     onUnauthorized: async (): Promise<boolean> => {
@@ -130,16 +150,17 @@ const api = {
     getClaws: () => client.get<Claw[]>(API_PATHS.CLAWS.BASE),
     getAdminClaws: () => client.get<Claw[]>(API_PATHS.CLAWS.ADMIN),
     getClaw: (id: string, sync?: boolean) =>
-        client.get<Claw>(`${API_PATHS.CLAWS.byId(id)}${sync ? '?sync=true' : ''}`),
+        client.get<Claw>(
+            `${API_PATHS.CLAWS.byId(id)}${sync ? '?sync=true' : ''}`
+        ),
     syncClaw: (id: string) => client.post<Claw>(API_PATHS.CLAWS.SYNC(id)),
     createClaw: (data: CreateClawData) =>
         client.post<Claw>(API_PATHS.CLAWS.BASE, data),
     purchaseClaw: (data: PurchaseClawData) =>
-        client.post<PurchaseClawResponse>(API_PATHS.CLAWS.PURCHASE, data),
+        client.post<PurchaseClawResponse>(API_PATHS.CLAWS.PURCHASE, data, { headers: getReferralHeaders() }),
     startClaw: (id: string) => client.post<Claw>(API_PATHS.CLAWS.START(id)),
     stopClaw: (id: string) => client.post<Claw>(API_PATHS.CLAWS.STOP(id)),
-    restartClaw: (id: string) =>
-        client.post<Claw>(API_PATHS.CLAWS.RESTART(id)),
+    restartClaw: (id: string) => client.post<Claw>(API_PATHS.CLAWS.RESTART(id)),
     deleteClaw: (id: string) =>
         client.delete<DeleteClawResponse>(API_PATHS.CLAWS.byId(id)),
     renameClaw: (id: string, data: RenameClawData) =>
@@ -219,11 +240,7 @@ const api = {
         clawId: string,
         agentId: string,
         data: UpdateAgentSkillsData
-    ) =>
-        client.put<void>(
-            API_PATHS.CLAWS.AGENTS.SKILLS(clawId, agentId),
-            data
-        ),
+    ) => client.put<void>(API_PATHS.CLAWS.AGENTS.SKILLS(clawId, agentId), data),
     browseClawHubSkills: (clawId: string, params: BrowseClawHubData) => {
         const qs = new URLSearchParams()
         if (params.query) qs.set('query', params.query)
@@ -287,16 +304,134 @@ const api = {
     updateClawFile: (id: string, data: UpdateClawFileData) =>
         client.put<void>(API_PATHS.CLAWS.FILES.BASE(id), data),
 
-    getAffiliate: () => client.get<AffiliateInfo>(API_PATHS.AFFILIATE.BASE),
+    getAffiliate: (period: AffiliatePeriod) =>
+        client.get<AffiliateInfo>(`${API_PATHS.AFFILIATE.BASE}?period=${period}`),
     generateReferralCode: () =>
-        client.post<GenerateReferralCodeResponse>(
-            API_PATHS.AFFILIATE.GENERATE
-        ),
+        client.post<GenerateReferralCodeResponse>(API_PATHS.AFFILIATE.GENERATE),
     updateReferralCode: (data: UpdateReferralCodeData) =>
-        client.put<UpdateReferralCodeResponse>(
-            API_PATHS.AFFILIATE.CODE,
-            data
-        ),
+        client.put<UpdateReferralCodeResponse>(API_PATHS.AFFILIATE.CODE, data),
+
+    getAdminStats: () => client.get<AdminStats>(API_PATHS.ADMIN.STATS),
+    getAdminUsers: (
+        page: number = 1,
+        limit: number = 20,
+        search?: string,
+        hasClaws?: string,
+        sort?: string
+    ) => {
+        const params = new URLSearchParams()
+        params.set('page', String(page))
+        params.set('limit', String(limit))
+        if (search) params.set('search', search)
+        if (hasClaws) params.set('hasClaws', hasClaws)
+        if (sort) params.set('sort', sort)
+        return client.get<AdminUsersResponse>(
+            `${API_PATHS.ADMIN.USERS}?${params.toString()}`
+        )
+    },
+    getAdminUserDetail: (id: string) =>
+        client.get<AdminUserDetail>(API_PATHS.ADMIN.USER(id)),
+    updateAdminUser: (id: string, data: UpdateAdminUserData) =>
+        client.put<void>(API_PATHS.ADMIN.UPDATE_USER(id), data),
+    listAdminClaws: (
+        page: number = 1,
+        limit: number = 20,
+        search?: string,
+        sort?: string
+    ) => {
+        const params = new URLSearchParams()
+        params.set('page', String(page))
+        params.set('limit', String(limit))
+        if (search) params.set('search', search)
+        if (sort) params.set('sort', sort)
+        return client.get<AdminClawsResponse>(
+            `${API_PATHS.ADMIN.CLAWS}?${params.toString()}`
+        )
+    },
+    listAdminSSHKeys: (
+        page: number = 1,
+        limit: number = 20,
+        search?: string,
+        sort?: string
+    ) => {
+        const params = new URLSearchParams()
+        params.set('page', String(page))
+        params.set('limit', String(limit))
+        if (search) params.set('search', search)
+        if (sort) params.set('sort', sort)
+        return client.get<AdminSSHKeysResponse>(
+            `${API_PATHS.ADMIN.SSH_KEYS}?${params.toString()}`
+        )
+    },
+    listAdminVolumes: (page: number = 1, limit: number = 20, sort?: string) => {
+        const params = new URLSearchParams()
+        params.set('page', String(page))
+        params.set('limit', String(limit))
+        if (sort) params.set('sort', sort)
+        return client.get<AdminVolumesResponse>(
+            `${API_PATHS.ADMIN.VOLUMES}?${params.toString()}`
+        )
+    },
+
+    listAdminPendingClaws: (
+        page: number = 1,
+        limit: number = 20,
+        sort?: string
+    ) => {
+        const params = new URLSearchParams()
+        params.set('page', String(page))
+        params.set('limit', String(limit))
+        if (sort) params.set('sort', sort)
+        return client.get<AdminPaginatedResponse<AdminPendingClawListItem>>(
+            `${API_PATHS.ADMIN.PENDING_CLAWS}?${params.toString()}`
+        )
+    },
+    listAdminReferrals: (
+        page: number = 1,
+        limit: number = 20,
+        sort?: string
+    ) => {
+        const params = new URLSearchParams()
+        params.set('page', String(page))
+        params.set('limit', String(limit))
+        if (sort) params.set('sort', sort)
+        return client.get<AdminPaginatedResponse<AdminReferralListItem>>(
+            `${API_PATHS.ADMIN.REFERRALS}?${params.toString()}`
+        )
+    },
+    listAdminWaitlist: (
+        page: number = 1,
+        limit: number = 20,
+        search?: string,
+        sort?: string
+    ) => {
+        const params = new URLSearchParams()
+        params.set('page', String(page))
+        params.set('limit', String(limit))
+        if (search) params.set('search', search)
+        if (sort) params.set('sort', sort)
+        return client.get<AdminPaginatedResponse<AdminWaitlistListItem>>(
+            `${API_PATHS.ADMIN.WAITLIST}?${params.toString()}`
+        )
+    },
+    listAdminExports: (page: number = 1, limit: number = 20, sort?: string) => {
+        const params = new URLSearchParams()
+        params.set('page', String(page))
+        params.set('limit', String(limit))
+        if (sort) params.set('sort', sort)
+        return client.get<AdminPaginatedResponse<AdminExportListItem>>(
+            `${API_PATHS.ADMIN.EXPORTS}?${params.toString()}`
+        )
+    },
+    listAdminEmails: (page: number = 1, limit: number = 20, sort?: string) => {
+        const params = new URLSearchParams()
+        params.set('page', String(page))
+        params.set('limit', String(limit))
+        if (sort) params.set('sort', sort)
+        return client.get<AdminPaginatedResponse<AdminEmailListItem>>(
+            `${API_PATHS.ADMIN.EMAILS}?${params.toString()}`
+        )
+    },
 
     getSSHKeys: () => client.get<SSHKey[]>(API_PATHS.SSH_KEYS.BASE),
     createSSHKey: (data: CreateSSHKeyData) =>
@@ -323,9 +458,7 @@ const api = {
     getCustomerPortal: () =>
         client.post<CustomerPortalResponse>(API_PATHS.USERS.BILLING_PORTAL),
     purchaseLicense: () =>
-        client.post<LicenseCheckoutResponse>(
-            API_PATHS.USERS.LICENSE_CHECKOUT
-        ),
+        client.post<LicenseCheckoutResponse>(API_PATHS.USERS.LICENSE_CHECKOUT, undefined, { headers: getReferralHeaders() }),
 
     joinWaitlist: (email: string) =>
         publicClient.post<JoinWaitlistResponse>(API_PATHS.WAITLIST.BASE, {

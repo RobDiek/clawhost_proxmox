@@ -1,18 +1,19 @@
 import type { ClawFileType, AuthenticatedContext } from '@/ts/Types'
 
+import { clawFileType } from '@openclaw/shared'
 import executeSSH from '@/services/ssh'
 import { BASE_DIR, findUserClaw } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 
 const getFileType = (name: string): ClawFileType => {
-    if (name.endsWith('.json') || name.endsWith('.jsonb')) return 'json'
-    if (name.endsWith('.md')) return 'markdown'
-    if (name.endsWith('.js')) return 'javascript'
-    if (name.endsWith('.ts') || name.endsWith('.tsx')) return 'typescript'
-    if (name.endsWith('.yml') || name.endsWith('.yaml')) return 'yaml'
-    if (!name.includes('.')) return 'text'
-    return 'unknown'
+    if (name.endsWith('.json') || name.endsWith('.jsonb')) return clawFileType.json
+    if (name.endsWith('.md')) return clawFileType.markdown
+    if (name.endsWith('.js')) return clawFileType.javascript
+    if (name.endsWith('.ts') || name.endsWith('.tsx')) return clawFileType.typescript
+    if (name.endsWith('.yml') || name.endsWith('.yaml')) return clawFileType.yaml
+    if (!name.includes('.')) return clawFileType.text
+    return clawFileType.unknown
 }
 
 const listClawFiles = async (c: AuthenticatedContext) => {

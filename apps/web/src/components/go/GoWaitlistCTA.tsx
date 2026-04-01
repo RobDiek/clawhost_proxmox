@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import { api } from '@/lib'
 import { Button, Input } from '@/components/ui'
 import {
@@ -43,14 +44,14 @@ const GoWaitlistCTA: FC = (): ReactNode => {
                 const res = await api.joinWaitlist(email)
                 setHasJoined(true)
                 if (res.alreadyJoined) {
-                    showToast(t('go.waitlistAlreadyJoinedToast'), 'info')
+                    showToast(t('go.waitlistAlreadyJoinedToast'), TOAST_TYPE.INFO)
                 }
             } catch (error) {
                 const message =
                     error instanceof Error
                         ? error.message
                         : t('go.waitlistFailedToast')
-                showToast(message, 'error')
+                showToast(message, TOAST_TYPE.ERROR)
             } finally {
                 setIsJoining(false)
             }

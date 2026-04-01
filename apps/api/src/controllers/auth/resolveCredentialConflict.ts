@@ -7,6 +7,7 @@ import type {
 } from '@/ts/Interfaces'
 
 import { eq, sql } from 'drizzle-orm'
+import { authMethod } from '@openclaw/shared'
 import { auth } from '@/services/firebase'
 import { db } from '@/db'
 import { users } from '@/db/schema'
@@ -82,7 +83,7 @@ const resolveCredentialConflict = async (c: Context) => {
             return fail(c, t('api.userNotFound'), 404)
         }
 
-        const method = providerId === 'google.com' ? 'google' : 'github'
+        const method = providerId === 'google.com' ? authMethod.google : authMethod.github
         await Promise.all([
             auth()
                 .updateUser(existingUser.id, {

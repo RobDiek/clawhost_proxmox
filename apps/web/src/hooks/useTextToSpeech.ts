@@ -7,6 +7,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { t } from '@openclaw/i18n'
 import { getCachedToken } from '@/lib/firebase'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 
 const BASE_URL = import.meta.env.VITE_API_URL || '/api'
 const BUFFER_THRESHOLD = 4096
@@ -310,7 +311,7 @@ const useTextToSpeech = (): UseTextToSpeechReturn => {
                 if (!res.ok) {
                     isPlayingRef.current = false
                     setLoadingMessageId(null)
-                    showToast(t('playground.chatSpeechFailed'), 'error')
+                    showToast(t('playground.chatSpeechFailed'), TOAST_TYPE.ERROR)
                     return
                 }
 
@@ -323,7 +324,7 @@ const useTextToSpeech = (): UseTextToSpeechReturn => {
                 stopPlayback()
                 setActiveMessageId(null)
                 setLoadingMessageId(null)
-                showToast(t('playground.chatSpeechFailed'), 'error')
+                showToast(t('playground.chatSpeechFailed'), TOAST_TYPE.ERROR)
             }
         },
         [stopPlayback, playCachedAudio, playStreamingAudio, showToast]

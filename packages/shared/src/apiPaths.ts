@@ -92,6 +92,20 @@ const API_PATHS = {
         BASE: '/waitlist',
         STATUS: '/waitlist/status'
     },
+    ADMIN: {
+        USERS: '/admin/users',
+        USER: (id: string) => `/admin/users/${id}`,
+        UPDATE_USER: (id: string) => `/admin/users/${id}`,
+        STATS: '/admin/stats',
+        CLAWS: '/admin/claws',
+        PENDING_CLAWS: '/admin/pending-claws',
+        SSH_KEYS: '/admin/ssh-keys',
+        VOLUMES: '/admin/volumes',
+        REFERRALS: '/admin/referrals',
+        WAITLIST: '/admin/waitlist',
+        EXPORTS: '/admin/exports',
+        EMAILS: '/admin/emails'
+    },
     WEBHOOKS: {
         POLAR: '/webhooks/polar'
     }

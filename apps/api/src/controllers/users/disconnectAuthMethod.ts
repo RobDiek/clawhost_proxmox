@@ -1,12 +1,13 @@
 import type { AuthenticatedContext } from '@/ts/Types'
 
 import { eq, sql } from 'drizzle-orm'
+import { authMethod } from '@openclaw/shared'
 import { db } from '@/db'
 import { users } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
 
-const VALID_METHODS = ['google', 'github'] as const
+const VALID_METHODS = [authMethod.google, authMethod.github] as const
 
 const disconnectAuthMethod = async (c: AuthenticatedContext) => {
     try {

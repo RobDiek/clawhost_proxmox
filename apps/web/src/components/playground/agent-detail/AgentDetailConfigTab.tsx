@@ -31,6 +31,7 @@ import {
 import { PanelPlaceholder } from '@/components/shared'
 import { api, copyToClipboard } from '@/lib'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import { aiModels, validateAgentName } from '@/lib/claw-utils'
 import { PLAYGROUND_AGENTS_QUERY_KEY } from '@/hooks'
 
@@ -118,7 +119,7 @@ const AgentDetailConfigTab: FC<AgentDetailConfigTabProps> = ({
             })
         },
         onSuccess: () => {
-            showToast(t('playground.configurationSaved'), 'success')
+            showToast(t('playground.configurationSaved'), TOAST_TYPE.SUCCESS)
             setHasChanges(false)
 
             const newName = agentName
@@ -160,7 +161,7 @@ const AgentDetailConfigTab: FC<AgentDetailConfigTabProps> = ({
             })
         },
         onError: () => {
-            showToast(t('playground.configurationSaveFailed'), 'error')
+            showToast(t('playground.configurationSaveFailed'), TOAST_TYPE.ERROR)
         }
     })
 

@@ -4,6 +4,7 @@ import { eq, and } from 'drizzle-orm'
 import { db } from '@/db'
 import { claws, pendingClaws } from '@/db/schema'
 import { subscriptions, checkouts } from '@/lib/polar'
+import { subscriptionStatus } from '@/lib/constants'
 import {
     cleanupClaw,
     findUserClaw,
@@ -63,7 +64,7 @@ const deleteClaw = async (c: AuthenticatedContext) => {
                         .update(claws)
                         .set({
                             deletionScheduledAt: sub.currentPeriodEnd,
-                            subscriptionStatus: 'canceled'
+                            subscriptionStatus: subscriptionStatus.canceled
                         })
                         .where(eq(claws.id, id))
 
@@ -76,7 +77,7 @@ const deleteClaw = async (c: AuthenticatedContext) => {
                             claw: sanitizeClaw({
                                 ...claw,
                                 deletionScheduledAt: sub.currentPeriodEnd,
-                                subscriptionStatus: 'canceled'
+                                subscriptionStatus: subscriptionStatus.canceled
                             })
                         },
                         t('api.clawDeletionScheduled')

@@ -34,6 +34,13 @@ import {
 } from '@/components/landing'
 
 import {
+    AffiliateConfirmDialog,
+    AffiliatePaymentHistory,
+    AffiliatePeriodSelector,
+    AffiliateStatsGrid
+} from '@/components/affiliate'
+
+import {
     BlogCard,
     BlogCTA
 } from '@/components/blog'
@@ -69,6 +76,10 @@ import {
 } from '@/components/shared'
 
 export {
+    AffiliateConfirmDialog,
+    AffiliatePaymentHistory,
+    AffiliatePeriodSelector,
+    AffiliateStatsGrid,
     AnnouncementBanner,
     ActionButton,
     BetaBadge,

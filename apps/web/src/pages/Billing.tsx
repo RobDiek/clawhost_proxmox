@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import { api, getLocale } from '@/lib'
 import { useUserStats, useBillingHistory } from '@/hooks'
 import { Badge, Card, CardContent, Button } from '@/components/ui'
@@ -148,7 +149,7 @@ const Billing: FC = (): ReactNode => {
             const { url } = await api.getOrderInvoice(orderId)
             window.open(url, '_blank')
         } catch {
-            showToast(t('billing.failedToLoadInvoice'), 'error')
+            showToast(t('billing.failedToLoadInvoice'), TOAST_TYPE.ERROR)
         } finally {
             setLoadingInvoiceIds((prev) => {
                 const next = new Set(prev)
@@ -164,7 +165,7 @@ const Billing: FC = (): ReactNode => {
             const { url } = await api.getCustomerPortal()
             window.open(url, '_blank')
         } catch {
-            showToast(t('billing.failedToLoadPortal'), 'error')
+            showToast(t('billing.failedToLoadPortal'), TOAST_TYPE.ERROR)
         } finally {
             setIsPortalLoading(false)
         }

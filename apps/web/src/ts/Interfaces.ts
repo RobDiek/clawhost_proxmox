@@ -5,6 +5,7 @@ import type { Node, Edge } from '@xyflow/react'
 import type { UseQueryResult } from '@tanstack/react-query'
 import type { TranslationKey } from '@openclaw/i18n'
 import type {
+    AffiliatePeriod,
     AuthMethod,
     BillingInterval,
     ChatMessageRole,
@@ -24,7 +25,8 @@ import type {
     TerminalStatus,
     ToastType,
     UserRole,
-    Product
+    Product,
+    ChangelogFeatureType
 } from '@/ts/Types'
 
 export interface ApiResponse<T = null> {
@@ -296,6 +298,8 @@ export interface DashboardState {
 export interface CachedProfile {
     email: string
     name: string | null
+    referralCode: string | null
+    referralCodeChanged: boolean
 }
 
 export interface VerifyOtpResponse {
@@ -1854,16 +1858,18 @@ export interface OrderSummaryProps {
     volumePricing?: VolumePricing
 }
 
-export interface AffiliateReferralEntry {
+export interface AffiliatePaymentEntry {
     id: string
     referredEmail: string
-    status: string
-    earnedAmount: number
+    amount: number
+    type: string
     createdAt: string
 }
 
 export interface AffiliateInfo {
-    referrals: AffiliateReferralEntry[]
+    referralCount: number
+    totalEarnings: number
+    payments: AffiliatePaymentEntry[]
 }
 
 export interface GenerateReferralCodeResponse {
@@ -1876,4 +1882,287 @@ export interface UpdateReferralCodeData {
 
 export interface UpdateReferralCodeResponse {
     referralCode: string
+}
+
+export interface AdminUserListItem {
+    id: string
+    email: string
+    name: string | null
+    role: string
+    authMethods: string[]
+    hasLicense: boolean
+    referralCode: string | null
+    createdAt: string
+    clawCount: number
+    sshKeyCount: number
+}
+
+export interface AdminUsersResponse {
+    items: AdminUserListItem[]
+    total: number
+    page: number
+    totalPages: number
+}
+
+export interface AdminUserDetailClaw {
+    id: string
+    name: string
+    provider: string
+    status: string
+    ip: string | null
+    planId: string
+    location: string | null
+    subdomain: string | null
+    subscriptionStatus: string | null
+    billingInterval: string | null
+    deletionScheduledAt: string | null
+    createdAt: string
+}
+
+export interface AdminUserDetailSSHKey {
+    id: string
+    name: string
+    fingerprint: string
+    createdAt: string
+}
+
+export interface AdminUserDetailVolume {
+    id: string
+    name: string
+    size: number
+    location: string
+    status: string
+    createdAt: string
+}
+
+export interface AdminUserDetail {
+    id: string
+    email: string
+    name: string | null
+    role: string
+    authMethods: string[]
+    hasLicense: boolean
+    polarCustomerId: string | null
+    referralCode: string | null
+    referralCodeChanged: boolean
+    referredBy: string | null
+    createdAt: string
+    claws: AdminUserDetailClaw[]
+    sshKeys: AdminUserDetailSSHKey[]
+    volumes: AdminUserDetailVolume[]
+    billingOrders: BillingOrder[]
+}
+
+export interface AdminUserRowProps {
+    user: AdminUserListItem
+    onSelect: (userId: string) => void
+}
+
+export interface AdminUserDetailModalProps {
+    userId: string | null
+    onClose: () => void
+}
+
+export interface AdminUsersTabProps {
+    totalUsers: number
+}
+
+export interface AdminStats {
+    users: number
+    claws: number
+    pendingClaws: number
+    sshKeys: number
+    volumes: number
+    referrals: number
+    waitlist: number
+    exports: number
+    emails: number
+}
+
+export interface AdminReferralListItem {
+    id: string
+    referrerId: string
+    referredUserId: string
+    paymentCount: number
+    totalEarned: number
+    createdAt: string
+    referrerEmail: string | null
+    referredEmail: string | null
+}
+
+export interface AdminPendingClawListItem {
+    id: string
+    name: string
+    provider: string
+    planId: string
+    location: string
+    priceMonthly: number
+    billingInterval: string | null
+    createdAt: string
+    expiresAt: string
+    userId: string
+    ownerEmail: string | null
+}
+
+export interface AdminWaitlistListItem {
+    id: string
+    email: string
+    userId: string | null
+    createdAt: string
+}
+
+export interface AdminExportListItem {
+    id: string
+    fileSize: number | null
+    createdAt: string
+    userId: string
+    clawId: string
+    ownerEmail: string | null
+    clawName: string | null
+}
+
+export interface AdminEmailListItem {
+    id: string
+    feature: string
+    sentAt: string
+    userId: string
+    ownerEmail: string | null
+}
+
+export interface AdminPaginatedResponse<T> {
+    items: T[]
+    total: number
+    page: number
+    totalPages: number
+}
+
+export interface AdminClawListItem {
+    id: string
+    name: string
+    provider: string
+    status: string
+    ip: string | null
+    planId: string
+    location: string | null
+    subdomain: string | null
+    subscriptionStatus: string | null
+    billingInterval: string | null
+    deletionScheduledAt: string | null
+    createdAt: string
+    userId: string
+    ownerEmail: string | null
+}
+
+export interface AdminClawsResponse {
+    items: AdminClawListItem[]
+    total: number
+    page: number
+    totalPages: number
+}
+
+export interface AdminSSHKeyListItem {
+    id: string
+    name: string
+    fingerprint: string
+    createdAt: string
+    userId: string
+    ownerEmail: string | null
+}
+
+export interface AdminSSHKeysResponse {
+    items: AdminSSHKeyListItem[]
+    total: number
+    page: number
+    totalPages: number
+}
+
+export interface AdminVolumeListItem {
+    id: string
+    name: string
+    size: number
+    location: string
+    status: string
+    createdAt: string
+    userId: string
+    ownerEmail: string | null
+}
+
+export interface AdminVolumesResponse {
+    items: AdminVolumeListItem[]
+    total: number
+    page: number
+    totalPages: number
+}
+
+export interface UpdateAdminUserData {
+    name?: string | null
+    referralCode?: string | null
+}
+
+export interface AdminEntitySelection {
+    type: 'user' | 'claw' | 'ssh-key' | 'volume' | 'pending-claw' | 'referral' | 'waitlist' | 'export' | 'email'
+    id: string
+    data: unknown
+}
+
+export interface AdminResourceTabProps {
+    onSelectEntity: (entity: AdminEntitySelection) => void
+}
+
+export interface AdminDetailModalProps {
+    entity: AdminEntitySelection | null
+    onClose: () => void
+    onNavigateToUser: (userId: string) => void
+}
+
+export interface AdminUserFiltersProps {
+    search: string
+    onSearchChange: (value: string) => void
+    hasClaws: string
+    onHasClawsChange: (value: string) => void
+    sortOrder: string
+    onSortOrderChange: (value: string) => void
+}
+
+export interface AffiliatePeriodSelectorProps {
+    period: AffiliatePeriod
+    onPeriodChange: (period: AffiliatePeriod) => void
+}
+
+export interface AffiliateStatsGridProps {
+    referralCode: string | null
+    referralCodeChanged: boolean
+    isLoading: boolean
+    referralCount: number
+    totalEarnings: number
+    formatCurrency: (cents: number) => string
+    onSave: (code: string) => void
+    onCopy: () => void
+    isPending: boolean
+}
+
+export interface AffiliatePaymentHistoryProps {
+    payments: AffiliatePaymentEntry[]
+    isLoading: boolean
+    formatCurrency: (cents: number) => string
+}
+
+export interface AffiliateConfirmDialogProps {
+    open: boolean
+    onOpenChange: (open: boolean) => void
+    onConfirm: () => void
+    isPending: boolean
+}
+
+export interface ChangelogFeature {
+    key: TranslationKey
+    type: ChangelogFeatureType
+}
+
+export interface ChangelogRelease {
+    dateKey: TranslationKey
+    titleKey: TranslationKey
+    descriptionKey: TranslationKey
+    features: ChangelogFeature[]
+    upcoming?: boolean
 }
