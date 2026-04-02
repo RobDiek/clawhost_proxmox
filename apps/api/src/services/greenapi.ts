@@ -9,6 +9,17 @@
 
 const BASE_URL = 'https://api.green-api.com'
 
+/** Normalize Israeli phone number to international format for WhatsApp */
+export function normalizePhone(phone: string): string {
+    const digits = phone.replace(/\D/g, '')
+    // Israeli mobile: 05X → 972X
+    if (digits.startsWith('0') && digits.length === 10) return '972' + digits.slice(1)
+    // Already international: 972...
+    if (digits.startsWith('972') && digits.length >= 12) return digits
+    // Other international format
+    return digits
+}
+
 interface GreenAPIConfig {
     instanceId: string   // Green API instance ID (e.g., "1101234567")
     apiToken: string     // Green API API token
@@ -33,6 +44,11 @@ async function apiCall<T = unknown>(config: GreenAPIConfig, method: string, body
     if (!res.ok) {
         const text = await res.text().catch(() => '')
         throw new Error(`Green API ${method} failed: HTTP ${res.status} — ${text.slice(0, 200)}`)
+    }
+    const contentType = res.headers.get('content-type') || ''
+    if (!contentType.includes('application/json') && !contentType.includes('text/json')) {
+        const text = await res.text().catch(() => '')
+        throw new Error(`Green API ${method}: unexpected content-type ${contentType} — ${text.slice(0, 100)}`)
     }
     return res.json() as Promise<T>
 }

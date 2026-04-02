@@ -50,6 +50,7 @@ import {
     getWaContacts,
     addWaContact,
     importWaContacts,
+    optOutWaContact,
     getWaTemplates,
     createWaTemplate,
     submitWaTemplate,
@@ -185,6 +186,7 @@ app.get('/instances/:id/whatsapp/config', getWaConfigEndpoint)
 app.get('/instances/:id/whatsapp/contacts', getWaContacts)
 app.post('/instances/:id/whatsapp/contacts', addWaContact)
 app.post('/instances/:id/whatsapp/contacts/import', importWaContacts)
+app.patch('/instances/:id/whatsapp/contacts/:contactId/opt-out', optOutWaContact)
 app.get('/instances/:id/whatsapp/templates', getWaTemplates)
 app.post('/instances/:id/whatsapp/templates', createWaTemplate)
 app.post('/instances/:id/whatsapp/templates/:templateId/submit', submitWaTemplate)
