@@ -15,19 +15,24 @@ function getSSHKey(): Buffer {
     return sshKeyCache
 }
 
-function sshExec(ip: string, command: string, password?: string): Promise<string> {
+function sshExec(ip: string, command: string, password?: string, timeoutMs = 30000): Promise<string> {
     return new Promise((resolve, reject) => {
         const conn = new Client()
         let output = ''
+        const timer = setTimeout(() => {
+            conn.end()
+            reject(new Error('SSH timeout'))
+        }, timeoutMs)
+
         conn.on('ready', () => {
             conn.exec(command, (err, stream) => {
-                if (err) { conn.end(); return reject(err) }
+                if (err) { clearTimeout(timer); conn.end(); return reject(err) }
                 stream.on('data', (d: Buffer) => { output += d.toString() })
                 stream.stderr.on('data', (d: Buffer) => { output += d.toString() })
-                stream.on('close', () => { conn.end(); resolve(output.trim()) })
+                stream.on('close', () => { clearTimeout(timer); conn.end(); resolve(output.trim()) })
             })
-        }).on('error', reject)
-        const opts: Record<string, unknown> = { host: ip, port: 22, username: 'root' }
+        }).on('error', (err) => { clearTimeout(timer); reject(err) })
+        const opts: Record<string, unknown> = { host: ip, port: 22, username: 'root', readyTimeout: 10000 }
         if (password) opts.password = password
         try { opts.privateKey = getSSHKey() } catch { if (!password) return reject(new Error('No SSH key')) }
         conn.connect(opts)
@@ -84,6 +89,26 @@ export const getUsage = async (c: Context) => {
             modelUsage = JSON.parse(result)
         } catch { /* empty */ }
 
+        // Normalize model IDs: "claude-sonnet-4-6" → "anthropic/claude-sonnet-4-6"
+        function normalizeModelId(id: string): string {
+            // Already has provider prefix
+            if (id.includes('/')) return id
+            // Map known patterns
+            if (id.startsWith('claude-') || id === 'opus' || id === 'sonnet' || id === 'haiku') {
+                if (id === 'opus') return 'anthropic/claude-opus-4-6'
+                if (id === 'sonnet') return 'anthropic/claude-sonnet-4-6'
+                if (id === 'haiku') return 'anthropic/claude-haiku-4-5-20251001'
+                return 'anthropic/' + id
+            }
+            if (id.startsWith('gpt-') || id.startsWith('o1') || id === 'gpt4o' || id === 'gpt4o-mini') {
+                if (id === 'gpt4o') return 'openai/gpt-4o'
+                if (id === 'gpt4o-mini') return 'openai/gpt-4o-mini'
+                return 'openai/' + id
+            }
+            if (id.startsWith('gemini')) return 'google/' + id
+            return id
+        }
+
         // Calculate costs
         let totalCostUsd = 0
         let totalCostSonnetEquiv = 0
@@ -95,7 +120,8 @@ export const getUsage = async (c: Context) => {
             costUsd: number
         }> = []
 
-        for (const [model, data] of Object.entries(modelUsage)) {
+        for (const [rawModel, data] of Object.entries(modelUsage)) {
+            const model = normalizeModelId(rawModel)
             const costs = MODEL_COSTS[model] || MODEL_COSTS['anthropic/claude-sonnet-4-6']
             const costUsd = (data.inputTokens / 1000 * costs.input) + (data.outputTokens / 1000 * costs.output)
             const sonnetCost = (data.inputTokens / 1000 * 0.003) + (data.outputTokens / 1000 * 0.015)
