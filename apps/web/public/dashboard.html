@@ -772,6 +772,7 @@ input{font-family:inherit}
         <button class="btn btn-outline btn-sm agent-detail-tab active" onclick="switchAgentDetailTab('overview')" id="agent-dtab-overview">סקירה</button>
         <button class="btn btn-outline btn-sm agent-detail-tab" onclick="switchAgentDetailTab('config')" id="agent-dtab-config">הגדרות</button>
         <button class="btn btn-outline btn-sm agent-detail-tab" onclick="switchAgentDetailTab('research')" id="agent-dtab-research">מחקר ואסטרטגיה</button>
+        <button class="btn btn-outline btn-sm agent-detail-tab" onclick="switchAgentDetailTab('memory')" id="agent-dtab-memory">זיכרון</button>
       </div>
 
       <!-- Panel: Overview -->
@@ -933,6 +934,28 @@ input{font-family:inherit}
 
       <!-- 6. Activity Log -->
       </div><!-- /agent-panel-research -->
+
+      <!-- Panel: Memory (Mem0) -->
+      <div id="agent-panel-memory" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div>
+            <div class="section-title" style="margin-bottom:2px">זיכרון ארוך טווח (Mem0)</div>
+            <div style="font-size:0.82rem;color:#9CA3AF">עובדות שהסוכן שמר מהשיחות שלכם</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-outline btn-sm" onclick="loadMemories()" id="btn-refresh-memories">רענון</button>
+            <button class="btn btn-outline btn-sm" onclick="clearAllMemories()" style="color:#EF4444;border-color:#FECACA">מחקו הכל</button>
+          </div>
+        </div>
+        <div id="memories-list" style="display:flex;flex-direction:column;gap:8px">
+          <div style="text-align:center;color:#9CA3AF;padding:32px 0;font-size:0.88rem">טוען זיכרונות...</div>
+        </div>
+        <div id="memories-empty" style="display:none;text-align:center;color:#9CA3AF;padding:32px 0">
+          <div style="font-size:1.5rem;margin-bottom:8px">🧠</div>
+          <div style="font-size:0.9rem">אין זיכרונות עדיין</div>
+          <div style="font-size:0.82rem;margin-top:4px">הסוכן ישמור עובדות חשובות באופן אוטומטי מהשיחות שלכם</div>
+        </div>
+      </div><!-- /agent-panel-memory -->
 
     </div><!-- /agent-detail-view -->
   </div>
@@ -5002,12 +5025,13 @@ function renderSavedAnswers() {
 
 /* ===== Agent Detail View ===== */
 function switchAgentDetailTab(tab) {
-  ['overview', 'config', 'research'].forEach(function(t) {
+  ['overview', 'config', 'research', 'memory'].forEach(function(t) {
     var panel = document.getElementById('agent-panel-' + t);
     var btn = document.getElementById('agent-dtab-' + t);
     if (panel) panel.style.display = t === tab ? '' : 'none';
     if (btn) btn.classList.toggle('active', t === tab);
   });
+  if (tab === 'memory') loadMemories();
 }
 
 function openAgentDetail(agentType) {
@@ -6049,6 +6073,86 @@ function showToast(msg, type) {
   el.classList.add('show');
   clearTimeout(el._t);
   el._t = setTimeout(function() { el.classList.remove('show'); }, 3000);
+}
+
+// ── Memory Management (Mem0) ──
+var memoriesCache = [];
+
+async function loadMemories() {
+  var list = document.getElementById('memories-list');
+  var empty = document.getElementById('memories-empty');
+  list.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:20px;font-size:0.85rem">טוען...</div>';
+  empty.style.display = 'none';
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/memories', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (!data.success || !data.data || data.data.length === 0) {
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    memoriesCache = data.data;
+    renderMemories(data.data);
+  } catch (e) {
+    list.innerHTML = '<div style="text-align:center;color:#EF4444;padding:20px;font-size:0.85rem">שגיאה בטעינת זיכרונות</div>';
+  }
+}
+
+function renderMemories(memories) {
+  var list = document.getElementById('memories-list');
+  var empty = document.getElementById('memories-empty');
+  if (!memories || memories.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = memories.map(function(m) {
+    var date = m.created_at ? new Date(m.created_at).toLocaleDateString('he-IL') : '';
+    return '<div class="memory-item" style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:0.88rem;color:#1F2937;line-height:1.5;word-break:break-word">' + escapeHtml(m.memory || m.text || '') + '</div>' +
+        (date ? '<div style="font-size:0.75rem;color:#9CA3AF;margin-top:4px">' + date + '</div>' : '') +
+      '</div>' +
+      '<button onclick="deleteMemory(\'' + m.id + '\')" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:#D1D5DB;font-size:1rem;padding:2px 4px" title="מחקו">&times;</button>' +
+    '</div>';
+  }).join('');
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+async function deleteMemory(memoryId) {
+  try {
+    await fetch(API + '/hosting/instances/' + instanceId + '/memories/' + memoryId, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    showToast('זיכרון נמחק', 'success');
+    memoriesCache = memoriesCache.filter(function(m) { return m.id !== memoryId; });
+    renderMemories(memoriesCache);
+  } catch (e) {
+    showToast('שגיאה במחיקה', 'error');
+  }
+}
+
+async function clearAllMemories() {
+  if (!confirm('למחוק את כל הזיכרונות? פעולה זו לא ניתנת לביטול.')) return;
+  try {
+    await fetch(API + '/hosting/instances/' + instanceId + '/memories', {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    showToast('כל הזיכרונות נמחקו', 'success');
+    memoriesCache = [];
+    renderMemories([]);
+  } catch (e) {
+    showToast('שגיאה במחיקה', 'error');
+  }
 }
 
 // ── Keyboard Shortcuts for Approval Queue ──

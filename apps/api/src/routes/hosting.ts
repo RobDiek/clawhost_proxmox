@@ -38,6 +38,9 @@ import {
     addAgentToInstance,
     removeAgentFromInstance,
     setupPersonalAgent,
+    getMemories,
+    deleteMemory,
+    clearMemories,
     readFile,
     writeFile,
     listFiles,
@@ -159,6 +162,11 @@ app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
 app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)
 app.patch('/instances/:id/outputs/:outputId/archive', archiveOutput)
 app.delete('/instances/:id/outputs/:outputId', deleteOutput)
+
+// ── Memories (Mem0) ──
+app.get('/instances/:id/memories', getMemories)
+app.delete('/instances/:id/memories/:memoryId', deleteMemory)
+app.delete('/instances/:id/memories', clearMemories)
 
 // ── Microsoft 365 OAuth ──
 app.get('/integrations/microsoft/auth', microsoftAuth)
