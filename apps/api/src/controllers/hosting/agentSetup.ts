@@ -20,22 +20,27 @@ async function getApiKeyForInstance(instanceId: string): Promise<string> {
     return process.env.ANTHROPIC_API_KEY || ''
 }
 
-// ── SSH helper ──
-function sshExec(ip: string, command: string, password?: string): Promise<string> {
+// ── SSH helper (with timeout) ──
+function sshExec(ip: string, command: string, password?: string, timeoutMs = 120000): Promise<string> {
     return new Promise((resolve, reject) => {
         const conn = new Client()
         let output = ''
+        const timer = setTimeout(() => {
+            conn.end()
+            reject(new Error(`SSH timeout after ${timeoutMs}ms to ${ip}`))
+        }, timeoutMs)
+
         conn.on('ready', () => {
             conn.exec(command, (err, stream) => {
-                if (err) { conn.end(); return reject(err) }
+                if (err) { clearTimeout(timer); conn.end(); return reject(err) }
                 stream.on('data', (d: Buffer) => { output += d.toString() })
                 stream.stderr.on('data', (d: Buffer) => { output += d.toString() })
-                stream.on('close', () => { conn.end(); resolve(output.trim()) })
+                stream.on('close', () => { clearTimeout(timer); conn.end(); resolve(output.trim()) })
             })
         })
-        .on('error', reject)
+        .on('error', (err) => { clearTimeout(timer); reject(err) })
 
-        const opts: Record<string, unknown> = { host: ip, port: 22, username: 'root' }
+        const opts: Record<string, unknown> = { host: ip, port: 22, username: 'root', readyTimeout: 15000 }
         if (password) opts.password = password
         try { opts.privateKey = readFileSync(SSH_KEY_PATH) } catch { /* key not available */ }
         conn.connect(opts)

@@ -90,21 +90,31 @@ export const getUsage = async (c: Context) => {
         } catch { /* empty */ }
 
         // Normalize model IDs: "claude-sonnet-4-6" → "anthropic/claude-sonnet-4-6"
+        // Normalize model IDs to full provider/model format
+        const MODEL_ALIASES: Record<string, string> = {
+            'opus': 'anthropic/claude-opus-4-6',
+            'sonnet': 'anthropic/claude-sonnet-4-6',
+            'haiku': 'anthropic/claude-haiku-4-5-20251001',
+            'gpt4o': 'openai/gpt-4o',
+            'gpt4o-mini': 'openai/gpt-4o-mini',
+            'flash': 'google/gemini-2.0-flash',
+            // Partial version strings
+            'claude-opus-4-6': 'anthropic/claude-opus-4-6',
+            'claude-sonnet-4-6': 'anthropic/claude-sonnet-4-6',
+            'claude-haiku-4-5': 'anthropic/claude-haiku-4-5-20251001',
+            'claude-haiku-4-5-20251001': 'anthropic/claude-haiku-4-5-20251001',
+            'claude-sonnet-4-5': 'anthropic/claude-sonnet-4-6',
+            'claude-opus-4-5': 'anthropic/claude-opus-4-6',
+            'gpt-4o': 'openai/gpt-4o',
+            'gpt-4o-mini': 'openai/gpt-4o-mini',
+        }
+
         function normalizeModelId(id: string): string {
-            // Already has provider prefix
-            if (id.includes('/')) return id
-            // Map known patterns
-            if (id.startsWith('claude-') || id === 'opus' || id === 'sonnet' || id === 'haiku') {
-                if (id === 'opus') return 'anthropic/claude-opus-4-6'
-                if (id === 'sonnet') return 'anthropic/claude-sonnet-4-6'
-                if (id === 'haiku') return 'anthropic/claude-haiku-4-5-20251001'
-                return 'anthropic/' + id
-            }
-            if (id.startsWith('gpt-') || id.startsWith('o1') || id === 'gpt4o' || id === 'gpt4o-mini') {
-                if (id === 'gpt4o') return 'openai/gpt-4o'
-                if (id === 'gpt4o-mini') return 'openai/gpt-4o-mini'
-                return 'openai/' + id
-            }
+            if (id.includes('/') && MODEL_COSTS[id]) return id
+            if (MODEL_ALIASES[id]) return MODEL_ALIASES[id]
+            // Try with provider prefix
+            if (id.startsWith('claude-')) return 'anthropic/' + id
+            if (id.startsWith('gpt-') || id.startsWith('o1')) return 'openai/' + id
             if (id.startsWith('gemini')) return 'google/' + id
             return id
         }
@@ -122,6 +132,9 @@ export const getUsage = async (c: Context) => {
 
         for (const [rawModel, data] of Object.entries(modelUsage)) {
             const model = normalizeModelId(rawModel)
+            if (!MODEL_COSTS[model]) {
+                console.warn(`Usage: unknown model "${rawModel}" → "${model}", using Sonnet cost fallback`)
+            }
             const costs = MODEL_COSTS[model] || MODEL_COSTS['anthropic/claude-sonnet-4-6']
             const costUsd = (data.inputTokens / 1000 * costs.input) + (data.outputTokens / 1000 * costs.output)
             const sonnetCost = (data.inputTokens / 1000 * 0.003) + (data.outputTokens / 1000 * 0.015)
