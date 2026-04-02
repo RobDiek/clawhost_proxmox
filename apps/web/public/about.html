@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>איך ClawFlow עובד — תיעוד מלא | ClawFlow by Flowmatic</title>
+<meta name="description" content="תיעוד מלא של ClawFlow — מודל העסק, הטכנולוגיה, האבטחה, הסוכנים, האינטגרציות והתוכניות. הכל שקוף, הכל פתוח."/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%232563EB'/><text x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' font-weight='900' font-size='28' fill='white'>CF</text></svg>"/>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Heebo',system-ui,sans-serif;background:#FAFAFA;color:#1f2937;line-height:1.8;font-size:15px}
+a{color:#2563EB;text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* Header */
+.header{background:#fff;border-bottom:1px solid #E5E7EB;padding:14px 0;position:sticky;top:0;z-index:100}
+.header-inner{max-width:900px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between}
+.header-logo{height:26px}
+.header-back{font-size:0.82rem;color:#9CA3AF}
+.header-back:hover{color:#2563EB;text-decoration:none}
+
+/* Content */
+.wrap{max-width:760px;margin:0 auto;padding:0 24px}
+.hero-section{padding:48px 0 32px;text-align:center}
+.hero-section h1{font-size:2rem;font-weight:800;color:#111827;margin-bottom:12px;line-height:1.3}
+.hero-section .subtitle{font-size:1.05rem;color:#6B7280;max-width:560px;margin:0 auto;line-height:1.7}
+.hero-badge{display:inline-block;background:#EFF6FF;color:#2563EB;font-size:0.78rem;font-weight:600;padding:4px 12px;border-radius:12px;margin-bottom:16px}
+
+/* TOC */
+.toc{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:12px;padding:20px 24px;margin:24px 0 40px}
+.toc-title{font-size:0.85rem;font-weight:700;color:#6B7280;margin-bottom:12px}
+.toc ul{list-style:none;columns:2;gap:20px}
+.toc li{margin-bottom:6px}
+.toc a{font-size:0.88rem;color:#4B5563;text-decoration:none;display:block;padding:3px 0}
+.toc a:hover{color:#2563EB}
+@media(max-width:600px){.toc ul{columns:1}}
+
+/* Article */
+article h2{font-size:1.4rem;font-weight:700;color:#111827;margin:48px 0 16px;padding-top:32px;border-top:1px solid #E5E7EB;scroll-margin-top:70px}
+article h2:first-of-type{border-top:none;padding-top:0;margin-top:32px}
+article h3{font-size:1.1rem;font-weight:600;color:#374151;margin:28px 0 10px}
+article p{color:#4B5563;margin-bottom:12px}
+article ul,article ol{padding-right:20px;margin-bottom:16px}
+article li{color:#4B5563;margin-bottom:6px}
+article strong{color:#111827}
+article code{background:#F3F4F6;padding:2px 6px;border-radius:4px;font-size:0.88rem;font-family:'Courier New',monospace;direction:ltr;unicode-bidi:embed}
+
+/* Callouts */
+.callout{border-radius:10px;padding:16px 18px;margin:16px 0;font-size:0.9rem;line-height:1.6}
+.callout-blue{background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF}
+.callout-green{background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46}
+.callout-amber{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E}
+
+/* Pricing Table */
+.price-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:0.88rem}
+.price-table th{background:#F3F4F6;padding:10px 12px;text-align:right;font-weight:600;color:#374151;border:1px solid #E5E7EB}
+.price-table td{padding:10px 12px;border:1px solid #E5E7EB;color:#4B5563}
+.price-table tr:nth-child(even){background:#F9FAFB}
+.price-highlight{background:#EFF6FF !important;font-weight:600;color:#2563EB !important}
+
+/* Agent Cards */
+.agent-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.agent-card{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px}
+.agent-card .name{font-weight:600;color:#111827;font-size:0.95rem;margin-bottom:4px}
+.agent-card .desc{font-size:0.82rem;color:#6B7280}
+@media(max-width:600px){.agent-grid{grid-template-columns:1fr}}
+
+/* Footer */
+.doc-footer{border-top:1px solid #E5E7EB;margin-top:48px;padding:24px 0;text-align:center;font-size:0.82rem;color:#9CA3AF}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <a href="/"><img src="/logo-clawflow.png" alt="ClawFlow" class="header-logo"/></a>
+    <a href="/" class="header-back">← חזרה לדף הראשי</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+<div class="hero-section">
+  <div class="hero-badge">תיעוד מלא</div>
+  <h1>איך ClawFlow עובד — ולמה שווה לכם לדעת</h1>
+  <p class="subtitle">הכל שקוף. המודל העסקי, הטכנולוגיה, האבטחה, הסוכנים, האינטגרציות — והתוכניות שלנו. בלי מילים גדולות, בלי הסתרות.</p>
+</div>
+
+<nav class="toc">
+  <div class="toc-title">תוכן העניינים</div>
+  <ul>
+    <li><a href="#model">המודל — אתם משלמים רק על אירוח</a></li>
+    <li><a href="#included">מה נכלל בכל תוכנית</a></li>
+    <li><a href="#how">איך זה עובד — מ-Deploy עד סוכן עובד</a></li>
+    <li><a href="#agents">הסוכנים</a></li>
+    <li><a href="#integrations">אינטגרציות — לחיצה אחת</a></li>
+    <li><a href="#memory">זיכרון ארוך טווח (Mem0)</a></li>
+    <li><a href="#security">אבטחה — הגישה שלנו</a></li>
+    <li><a href="#dashboard">הדשבורד</a></li>
+    <li><a href="#router">LLM Router — אופטימיזציה אוטומטית</a></li>
+    <li><a href="#healing">Self-Healing — השרת מתקן את עצמו</a></li>
+    <li><a href="#pricing">תמחור</a></li>
+    <li><a href="#faq">שאלות נפוצות</a></li>
+  </ul>
+</nav>
+
+<article>
+
+<h2 id="model">המודל — אתם משלמים רק על אירוח</h2>
+
+<p>ClawFlow עובד על מודל פשוט: <strong>אתם משלמים רק על שירותי אירוח</strong>. שרת VPS ייעודי שלכם בענן Hetzner באירופה. זה מה שעולה כסף — כי שרת עולה כסף.</p>
+
+<p>כל השאר — בלי מרווח מצדנו:</p>
+<ul>
+  <li><strong>סוכני AI</strong> — OpenClaw (קוד פתוח), מותקנים על השרת שלכם</li>
+  <li><strong>אינטגרציות</strong> — Google, Microsoft, Meta, Telegram, WordPress — חיבור דרך ה-OAuth שלכם</li>
+  <li><strong>מודלים</strong> — אתם משלמים ישירות לספק (Anthropic, OpenAI). אנחנו לא מתווכים</li>
+  <li><strong>כלי אוטומציה</strong> — n8n או Activepieces (קוד פתוח)</li>
+  <li><strong>זיכרון</strong> — Mem0 + Qdrant, רצים על השרת שלכם</li>
+  <li><strong>אבטחה, SSL, DNS, עדכונים, גיבויים</strong> — כלול בלי תוספת</li>
+</ul>
+
+<div class="callout callout-blue">
+  <strong>למה?</strong> כי אנחנו מאמינים שההוצאה על AI צריכה ללכת ישירות לספקי המודלים — לא לעוד שכבת תיווך. ככה אתם משלמים פחות, ואנחנו מרוויחים מהאירוח עצמו.
+</div>
+
+<h2 id="included">מה נכלל בכל תוכנית</h2>
+
+<p>כל תוכנית ב-ClawFlow כוללת:</p>
+<ul>
+  <li>שרת VPS ייעודי (Hetzner Cloud, אירופה) — CPU, RAM, NVMe לפי תוכנית</li>
+  <li>OpenClaw Gateway מותקן ומוכן</li>
+  <li>מנוע אוטומציה — n8n או Activepieces (לפי בחירה)</li>
+  <li>תעודת SSL אוטומטית (Let's Encrypt)</li>
+  <li>דומיין ייחודי: <code>your-name.clawflow.flowmatic.co.il</code></li>
+  <li>זיכרון ארוך טווח (Mem0 + Qdrant)</li>
+  <li>Whisper (תמלול הודעות קוליות) — מותקן מראש</li>
+  <li>Chromium (גלישה אוטומטית, צילומי מסך) — מותקן מראש</li>
+  <li>Brave Search skill — חיפוש באינטרנט</li>
+  <li>עדכונים אוטומטיים (כל לילה ב-4:00)</li>
+  <li>Self-Healing — ניטור ותיקון אוטומטי כל 5 דקות</li>
+  <li>LLM Router — ניתוב אוטומטי למודל הזול ביותר שמתאים</li>
+  <li>דשבורד מלא — צ'אט, אינטגרציות, קבצים, Terminal, גיבויים</li>
+</ul>
+
+<h3>תוספות אופציונליות</h3>
+<ul>
+  <li>גיבוי יומי — ₪19/חודש (7 ימי היסטוריה, שחזור בלחיצה)</li>
+  <li>אחסון נוסף — 20GB / 100GB / 500GB</li>
+  <li>Ollama (מודל AI מקומי) — רק על תוכניות עם 8GB+ RAM</li>
+</ul>
+
+<h2 id="how">איך זה עובד — מ-Deploy עד סוכן עובד</h2>
+
+<h3>שלב 1 — בחירת תצורה</h3>
+<p>נכנסים לקונפיגורטור, בוחרים סוכן, מנוע אוטומציה, מודל AI ותוספות. המחיר מתעדכן אוטומטית.</p>
+
+<h3>שלב 2 — הרשמה ותשלום</h3>
+<p>בוחרים כתובת ייחודית לסוכן, מכניסים אימייל, מאשרים קוד, ומשלמים דרך AllPay המאובטח. חשבונית מס אוטומטית.</p>
+
+<h3>שלב 3 — הקמה אוטומטית (3 דקות)</h3>
+<p>המערכת מקימה שרת VPS חדש, מתקינה OpenClaw, מגדירה DNS + SSL, מתקינה כלי אוטומציה, מגדירה אבטחה, ומפעילה הכל. אתם רואים את זה בזמן אמת — 4 שלבים עם ✓.</p>
+
+<h3>שלב 4 — הגדרה</h3>
+<p>מחברים מפתח API (Anthropic/OpenAI), בוט Telegram, ועונים על שאלון קצר שמגדיר את אישיות הסוכן, המשימות שלו, וגבולות הפעולה. ClawFlow יוצר את כל קבצי ההגדרה אוטומטית.</p>
+
+<h3>שלב 5 — עובד</h3>
+<p>הסוכן מחובר לטלגרם, ליומן, למייל. שולח סיכום בוקר. עונה על שאלות. מנסח מיילים. מחפש מידע. הכל דרך Approval Queue — אתם מאשרים לפני כל פעולה.</p>
+
+<h2 id="agents">הסוכנים</h2>
+
+<h3>OpenClaw Personal — העוזר האישי</h3>
+<p>סוכן AI שמנהל לכם את היום: יומן, מיילים, חיפוש, ניסוח, תזכורות. מחובר ל-Telegram, Google Workspace, Microsoft 365. שולח סיכום בוקר כל יום. עובד 24/7.</p>
+
+<h3>MATEH — סוכן שיווק עם 8 סאב-אגנטים</h3>
+<p>מערכת שיווק אוטונומית שלמה. 8 סוכנים עובדים בשבילכם כל יום:</p>
+
+<div class="agent-grid">
+  <div class="agent-card"><div class="name">סייר</div><div class="desc">מחקר מתחרים, מעקב שינויים, גילוי תוכן</div></div>
+  <div class="agent-card"><div class="name">מאתר</div><div class="desc">SEO, מילות מפתח, דירוג בחיפוש</div></div>
+  <div class="agent-card"><div class="name">מאזין</div><div class="desc">ניטור רשתות חברתיות, ציבור</div></div>
+  <div class="agent-card"><div class="name">מנתח</div><div class="desc">ניתוח הזדמנויות, אסטרטגיה</div></div>
+  <div class="agent-card"><div class="name">עט</div><div class="desc">כתיבת תוכן — פוסטים, מאמרים, ניוזלטר</div></div>
+  <div class="agent-card"><div class="name">יוצר</div><div class="desc">יצירת ויזואלים — תמונות, באנרים</div></div>
+  <div class="agent-card"><div class="name">שליח</div><div class="desc">הפצה — Instagram, Facebook, Google Ads, WhatsApp, WordPress</div></div>
+  <div class="agent-card"><div class="name">מגדלור</div><div class="desc">נראות ב-AI — ביקורת ChatGPT, Claude, Perplexity</div></div>
+</div>
+
+<p>כל בוקר — דוח יומי. כל שבוע — דוח מתחרים. כל חודש — ביקורת AEO. כל תוכן עובר דרך <strong>Approval Queue</strong> — אתם מאשרים לפני פרסום.</p>
+
+<h3>Trend Surfer — גלישה על טרנדים</h3>
+<p>מנטר מגמות ישראליות בזמן אמת — Ynet, Walla, Google Trends, ערוצי טלגרם, לוח חגים. מייצר תוכן בעברית שמגיע לפני הפיק.</p>
+
+<h3>OpenClaw Bare — לבנות מה שרוצים</h3>
+<p>שרת VPS נקי עם OpenClaw מותקן. בלי סוכנים מוגדרים מראש. SSH מלא. למפתחים שרוצים שליטה מוחלטת.</p>
+
+<h2 id="integrations">אינטגרציות — לחיצה אחת</h2>
+
+<p>כל החיבורים נעשים דרך ה-Dashboard. לא דרך צ'אט, לא דרך Terminal, לא דרך Google Cloud Console.</p>
+
+<h3>פרודוקטיביות</h3>
+<ul>
+  <li><strong>Google Workspace</strong> — יומן, Gmail (קריאה + שליחה), Drive (קריאה), Sheets, Google Ads. חיבור אחד = לחיצה אחת + אישור OAuth</li>
+  <li><strong>Microsoft 365</strong> — Outlook Mail (קריאה + שליחה), Calendar, OneDrive, Tasks, Teams, Contacts</li>
+  <li><strong>Google Business Profile</strong> — פוסטים אוטומטיים, ניהול ביקורות, תגובה לביקורות שליליות</li>
+</ul>
+
+<h3>תקשורת</h3>
+<ul>
+  <li><strong>Telegram</strong> — ערוץ ראשי, הודעות קוליות (Whisper), Daily Brief</li>
+  <li><strong>WhatsApp Business</strong> — שליחת תבניות מאושרות, ניהול opt-in, רשימות תפוצה</li>
+  <li><strong>SMTP / Resend</strong> — שליחת מיילים ישירה</li>
+</ul>
+
+<h3>פרסום</h3>
+<ul>
+  <li><strong>Instagram + Facebook</strong> — פרסום ישיר דרך Meta API</li>
+  <li><strong>Google Ads + Meta Ads</strong> — יצירה וניהול קמפיינים</li>
+  <li><strong>WordPress</strong> — פרסום מאמרים ישירות בבלוג</li>
+  <li><strong>Newsletter</strong> — שליחת ניוזלטר דרך Resend</li>
+</ul>
+
+<h3>נתונים וחיפוש</h3>
+<ul>
+  <li><strong>Brave Search</strong> — חיפוש באינטרנט ($5 חינמי/חודש)</li>
+  <li><strong>Replicate</strong> — ייצור תמונות עם AI (FLUX, Stable Diffusion)</li>
+</ul>
+
+<div class="callout callout-green">
+  <strong>שימו לב:</strong> כשמחברים Google או Microsoft — הסוכן מקבל הרשאות מוגבלות. הוא יכול לקרוא מיילים ולשלוח — אבל לא יכול למחוק, להעביר, או לשנות מיילים קיימים. הגנה ברמת ה-API.
+</div>
+
+<h2 id="memory">זיכרון ארוך טווח (Mem0)</h2>
+
+<p>לכל סוכן יש זיכרון שנשמר בין שיחות ובין סשנים. הסוכן זוכר עובדות עליכם — שם, העדפות, החלטות, הקשר מקצועי — ומשתמש בהן בכל תגובה.</p>
+
+<ul>
+  <li><strong>שמירה אוטומטית</strong> — כשהסוכן מגלה עובדה חשובה, הוא שומר אותה</li>
+  <li><strong>שליפה אוטומטית</strong> — לפני כל תגובה, הסוכן בודק אם יש זיכרונות רלוונטיים</li>
+  <li><strong>עברית נשמרת בעברית</strong> — הזיכרון שומר עובדות בשפת המקור, בלי תרגום</li>
+  <li><strong>MATEH — זיכרון משותף</strong> — כל 8 הסוכנים חולקים זיכרון. סייר מגלה מידע חדש → מנתח מתחשב בו</li>
+  <li><strong>ניהול בדשבורד</strong> — אפשר לראות מה הסוכן זוכר, למחוק עובדות ספציפיות, או למחוק הכל</li>
+  <li><strong>הכל מקומי</strong> — Qdrant (מסד נתונים וקטורי) רץ על השרת שלכם. שום דבר לא נשלח החוצה</li>
+</ul>
+
+<h2 id="security">אבטחה — הגישה שלנו</h2>
+
+<p>אבטחה היא לא פיצ'ר — היא שכבה שעוברת בכל דבר. הנה מה שעשינו:</p>
+
+<h3>בידוד מלא</h3>
+<p>כל לקוח מקבל שרת VPS ייעודי ומבודד לחלוטין. אין שיתוף משאבים בין לקוחות. מה שרץ אצלכם — רץ רק אצלכם.</p>
+
+<h3>הרשאות מוגבלות</h3>
+<ul>
+  <li>Gmail — קריאה + שליחה בלבד. הסוכן <strong>לא יכול למחוק</strong> מיילים</li>
+  <li>Microsoft — קריאה + שליחה בלבד. אותו דבר</li>
+  <li>Drive — קריאה בלבד. לא יכול לערוך, למחוק, ליצור</li>
+  <li>Calendar — גישה מלאה (נדרש ליצירת אירועים). אישור לפני מחיקה</li>
+</ul>
+
+<h3>Approval Queue</h3>
+<p>כל פעולה שהסוכן מבצע — שליחת מייל, פרסום פוסט, תגובה לביקורת — עוברת דרך תור אישור. אתם רואים, מאשרים, מתקנים או דוחים. עם קיצורי מקלדת: <strong>א</strong>=אשרו, <strong>ת</strong>=תקנו, <strong>פ</strong>=פרסמו, <strong>ד</strong>=דחו.</p>
+
+<h3>כללי סוכן</h3>
+<ul>
+  <li>כל תהליך מוגבל ל-10 דקות מקסימום</li>
+  <li>אם משימה נכשלת 3 פעמים — הסוכן עוצר ומדווח</li>
+  <li>הסוכן לא משתף API Keys, סיסמאות, או זיכרונות עם אף אחד</li>
+</ul>
+
+<h3>תשתית</h3>
+<ul>
+  <li>SSL (HTTPS) אוטומטי — Let's Encrypt עם חידוש אוטומטי</li>
+  <li>חומת אש (UFW) — רק פורטים 22, 80, 443 פתוחים</li>
+  <li>משתמש ייעודי (non-root) — OpenClaw לא רץ כ-root</li>
+  <li>Qdrant (זיכרון) — מאזין רק על localhost, לא חשוף לרשת</li>
+  <li>עדכונים אוטומטיים — כל לילה ב-4:00</li>
+  <li>גיבויים — כל לילה ב-3:00, 7 ימי היסטוריה</li>
+  <li>Self-Healing — 10 בדיקות כל 5 דקות, תיקון אוטומטי</li>
+</ul>
+
+<h3>אימות</h3>
+<ul>
+  <li>אימות דו-שלבי (2FA) בדשבורד</li>
+  <li>JWT עם HMAC-SHA256</li>
+  <li>OTP בן 6 ספרות באימייל לרישום</li>
+  <li>AllPay webhook — אימות חתימת HMAC</li>
+</ul>
+
+<h3>ניטור אבטחה</h3>
+<ul>
+  <li>Audit log — כל פעולה רגישה מתועדת</li>
+  <li>Rate limiting — הגנה מפני DDoS ושימוש לרעה</li>
+  <li>Kill switch — כפתור חירום לעצירת כל הסוכנים מיידית</li>
+  <li>התראות Telegram — על כשלים, התנהגות חריגה, שימוש חריג</li>
+</ul>
+
+<h2 id="dashboard">הדשבורד — הכל במקום אחד</h2>
+
+<ul>
+  <li><strong>בית</strong> — סטטוס הסוכן, Approval Queue עם קיצורי מקלדת, התראות</li>
+  <li><strong>צ'אט</strong> — ממשק צ'אט ישירות בדפדפן, מסונכרן עם Telegram</li>
+  <li><strong>סוכנים</strong> — הגדרות, שאלון עסקי, לוח זמנים, סאב-אגנטים, זיכרון</li>
+  <li><strong>אינטגרציות</strong> — כל החיבורים. Google, Microsoft, Meta, Telegram, WhatsApp, WordPress, SMTP, חיפוש, תמונות</li>
+  <li><strong>מפתחים</strong> — מנהל קבצים, Terminal מלא (SSH), לוגים של כל השירותים, סטטיסטיקות שרת (CPU, RAM, Disk), ניהול גיבויים</li>
+  <li><strong>הגדרות</strong> — פרופיל, תוכנית, אבטחה דו-שלבית, ריפוי אוטומטי, קישור הפניית חברים, ביטול</li>
+</ul>
+
+<h2 id="router">LLM Router — אופטימיזציה אוטומטית</h2>
+
+<p>לא כל משימה צריכה את המודל הכי יקר. ClawFlow מנתב כל קריאת AI למודל המתאים ביותר:</p>
+
+<ul>
+  <li><strong>ניתוח טכני</strong> (RSS, HTML, דדופליקציה) → TypeScript בלבד, בלי LLM — $0.00</li>
+  <li><strong>משימות פנימיות</strong> (לא נראות ללקוח) → Ollama מקומי (אם מותקן) — $0.00</li>
+  <li><strong>עברית, לא סופי</strong> (טיוטות, ניתוח) → Claude Haiku — חסכון 90%</li>
+  <li><strong>תוכן סופי לפרסום</strong> → Claude Sonnet — איכות מקסימלית</li>
+  <li><strong>אסטרטגיה ומחקר עמוק</strong> → Claude Opus</li>
+</ul>
+
+<div class="callout callout-blue">
+  <strong>התוצאה:</strong> $3–5 לחודש במקום $18–25 על AI. החיסכון הזה הולך ישירות ללקוח — כי עלות ה-API היא שלכם, לא שלנו.
+</div>
+
+<h2 id="healing">Self-Healing — השרת מתקן את עצמו</h2>
+
+<p>כל 5 דקות, daemon על השרת שלכם מריץ 10 בדיקות:</p>
+
+<ul>
+  <li>SSL — מתי פג? חידוש אוטומטי אם פחות מ-7 ימים</li>
+  <li>דיסק — מעל 85%? ניקוי אוטומטי (Docker, לוגים)</li>
+  <li>RAM — מעל 90%? ריסטארט Gateway</li>
+  <li>CPU — תקוע מעל 90% ל-10 דקות? ריסטארט</li>
+  <li>Gateway — לא מגיב? ריסטארט אוטומטי</li>
+  <li>Qdrant (זיכרון) — נפל? הרמה מחדש</li>
+  <li>כלי אוטומציה — לא מגיב? הרמה מחדש</li>
+  <li>Cron jobs — 3+ כשלים רצופים? התראה</li>
+  <li>OpenClaw עדכון — גרסה חדשה? התראה</li>
+  <li>API rate limit — נגמרו קרדיטים? התראה</li>
+</ul>
+
+<p>אם רוצים — אפשר לכבות את הריפוי האוטומטי ולקבל רק התראות בטלגרם.</p>
+
+<h2 id="pricing">תמחור</h2>
+
+<table class="price-table">
+  <thead>
+    <tr><th>תוכנית</th><th>RAM</th><th>CPU</th><th>NVMe</th><th>מחיר</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>אישי</td><td>4GB</td><td>2 shared</td><td>40GB</td><td>₪79/חודש</td></tr>
+    <tr class="price-highlight"><td>עסקי</td><td>8GB</td><td>4 shared</td><td>80GB</td><td>₪169/חודש</td></tr>
+    <tr><td>פרו</td><td>16GB</td><td>4 dedicated</td><td>160GB</td><td>₪349/חודש</td></tr>
+    <tr><td>מפתח</td><td>32GB</td><td>8 dedicated</td><td>240GB</td><td>₪599/חודש</td></tr>
+  </tbody>
+</table>
+
+<div class="callout callout-green">
+  <strong>אין עמלות נסתרות.</strong> המחיר שרואים — המחיר ששולמים. חשבונית מס אוטומטית. ביטול בכל עת, ללא קנסות.
+</div>
+
+<h2 id="faq">שאלות נפוצות</h2>
+
+<h3>מה ההבדל בין ClawFlow לבין להתקין OpenClaw לבד?</h3>
+<p>בהתקנה עצמאית אתם צריכים: לשכור שרת, להתקין Docker, להגדיר OpenClaw, לטפל ב-SSL ו-DNS, להגדיר אבטחה, לבנות חיבורים ל-Google/Microsoft ידנית דרך Cloud Console, ולתחזק הכל בעצמכם. ב-ClawFlow — הכל מוכן תוך 3 דקות עם Dashboard מלא.</p>
+
+<h3>מה קורה עם הנתונים שלי אם אני מבטל?</h3>
+<p>השרת נשמר 7 ימים אחרי ביטול. אפשר להוריד backup בלחיצה מהדשבורד. אחרי 7 ימים — הכל נמחק לצמיתות.</p>
+
+<h3>אפשר להעביר את הסוכן לשרת אחר?</h3>
+<p>כן. OpenClaw הוא קוד פתוח. הנתונים שלכם — שלכם. אפשר להוריד backup ולהעביר לכל שרת אחר.</p>
+
+<h3>כמה עולה ה-AI בנפרד?</h3>
+<p>תלוי בשימוש. LLM Router שלנו מביא את העלות ל-$3–5 לחודש בממוצע. אתם משלמים ישירות ל-Anthropic או OpenAI — אנחנו לא מתווכים ולא מוסיפים מרווח.</p>
+
+<h3>הסוכן יכול למחוק מיילים שלי?</h3>
+<p>לא. ההרשאות מוגבלות ברמת ה-API — קריאה ושליחה בלבד. הסוכן פיזית לא יכול למחוק או לשנות מיילים קיימים.</p>
+
+<h3>האם הנתונים שלי מוצפנים?</h3>
+<p>כן. כל התקשורת דרך HTTPS (SSL). הנתונים על השרת מוגנים בחומת אש. API Keys מאוחסנים בקבצי הגדרה מוצפנים על השרת שלכם — לא אצלנו.</p>
+
+<h3>יש תקופת ניסיון?</h3>
+<p>כן — 14 ימים בחינם, ללא כרטיס אשראי. דרך <a href="/#newsletter">קישור הפניה מלקוח קיים</a>.</p>
+
+</article>
+
+<div class="doc-footer">
+  <p>ClawFlow · by <a href="https://flowmatic.co.il">Flowmatic</a> · ע.מ. 324503853</p>
+  <p style="margin-top:6px">
+    <a href="/terms.html">תנאי שימוש</a> · <a href="/privacy.html">פרטיות</a> · <a href="/disclosure.html">גילוי נאות</a> · <a href="mailto:support@flowmatic.co.il">support@flowmatic.co.il</a>
+  </p>
+</div>
+
+</div>
+
+<!-- Plausible Analytics -->
+<script defer data-domain="flowmatic.co.il" src="https://plausible.io/js/script.js"></script>
+</body>
+</html>
