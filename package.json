@@ -13,28 +13,43 @@
         "lint:fix": "eslint . --fix",
         "format": "prettier --write . && eslint . --fix",
         "format:check": "prettier --check .",
-        "check": "pnpm --filter api check && pnpm --filter web check && pnpm --filter mobile check && pnpm --filter clawhostgo check",
+        "test": "turbo test",
+        "test:watch": "turbo test:watch",
+        "check": "pnpm --filter api check && pnpm --filter web check && pnpm --filter clawhostgo check",
         "version:patch": "pnpm --filter api exec npm version patch --no-git-tag-version && pnpm --filter web exec npm version patch --no-git-tag-version && pnpm --filter mobile exec npm version patch --no-git-tag-version && pnpm --filter clawhostgo exec npm version patch --no-git-tag-version",
         "prepare": "husky"
     },
     "devDependencies": {
         "@eslint/js": "^9.17.0",
+        "@testing-library/jest-dom": "^6.9.1",
+        "@testing-library/react": "^16.3.2",
+        "@testing-library/user-event": "^14.6.1",
         "eslint": "^9.17.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-react-hooks": "^5.1.0",
         "eslint-plugin-react-refresh": "^0.4.16",
         "globals": "^17.3.0",
+        "happy-dom": "^20.8.8",
         "husky": "^9.1.7",
         "prettier": "^3.4.2",
         "prettier-plugin-tailwindcss": "^0.6.9",
         "turbo": "^2.8.7",
         "typescript": "^5.6.3",
-        "typescript-eslint": "^8.18.2"
+        "typescript-eslint": "^8.18.2",
+        "vitest": "^3.2.4"
     },
     "pnpm": {
         "overrides": {
             "@types/react": "18.3.28"
-        }
+        },
+        "onlyBuiltDependencies": [
+            "node-pty",
+            "esbuild",
+            "ssh2",
+            "protobufjs",
+            "sharp",
+            "cpu-features"
+        ]
     },
     "packageManager": "pnpm@10.29.3",
     "engines": {

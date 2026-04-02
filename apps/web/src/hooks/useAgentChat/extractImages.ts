@@ -1,12 +1,14 @@
 import type { ChatImageSource } from '@/ts/Interfaces'
 
+import { CHAT_CONTENT_BLOCK_TYPE } from '@/lib/constants'
+
 const extractImages = (content: unknown): ChatImageSource[] => {
     if (!Array.isArray(content)) return []
 
     return content
         .filter(
             (block) =>
-                block.type === 'image' &&
+                block.type === CHAT_CONTENT_BLOCK_TYPE.IMAGE &&
                 (block.source || block.url || block.data)
         )
         .map((block) => {

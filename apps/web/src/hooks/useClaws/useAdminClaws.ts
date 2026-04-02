@@ -7,7 +7,7 @@ const useAdminClaws = (enabled = true) => {
         queryKey: ADMIN_CLAWS_QUERY_KEY,
         queryFn: () => api.getAdminClaws(),
         placeholderData: (previousData) => previousData,
-        refetchInterval: 1000,
+        refetchInterval: 30_000,
         enabled
     })
 }

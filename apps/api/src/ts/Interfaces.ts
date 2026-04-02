@@ -1,11 +1,13 @@
 import type { ChildProcess } from 'child_process'
+import type { ReactNode } from 'react'
 import type {
     BillingInterval,
     ClawFileType,
-    ProviderType,
+    FeatureEmailKey,
     SubscriptionStatus,
     WebhookEventType
 } from '@/ts/Types'
+import type { PgTable } from 'drizzle-orm/pg-core'
 
 export interface ApiResponse<T = null> {
     success: boolean
@@ -171,161 +173,6 @@ export interface HetznerPricingResponse {
 
 export interface HetznerVolumeResponse {
     volume: HetznerVolume
-}
-
-export interface DigitalOceanDroplet {
-    id: number
-    name: string
-    status: string
-    networks: {
-        v4: Array<{
-            ip_address: string
-            type: string
-        }>
-    }
-}
-
-export interface DigitalOceanSize {
-    slug: string
-    description: string
-    vcpus: number
-    memory: number
-    disk: number
-    price_monthly: number
-    price_hourly: number
-    regions: string[]
-    available: boolean
-}
-
-export interface DigitalOceanRegion {
-    slug: string
-    name: string
-    available: boolean
-    sizes: string[]
-}
-
-export interface DigitalOceanSSHKey {
-    id: number
-    name: string
-    fingerprint: string
-    public_key: string
-}
-
-export interface DigitalOceanVolume {
-    id: string
-    name: string
-    size_gigabytes: number
-    region: { slug: string }
-    droplet_ids: number[]
-    created_at: string
-}
-
-export interface DigitalOceanDropletResponse {
-    droplet: DigitalOceanDroplet
-}
-
-export interface DigitalOceanDropletsResponse {
-    droplets: DigitalOceanDroplet[]
-    meta: { total: number }
-    links: { pages?: { last?: string; next?: string } }
-}
-
-export interface DigitalOceanSizesResponse {
-    sizes: DigitalOceanSize[]
-}
-
-export interface DigitalOceanRegionsResponse {
-    regions: DigitalOceanRegion[]
-}
-
-export interface DigitalOceanSSHKeyResponse {
-    ssh_key: DigitalOceanSSHKey
-}
-
-export interface DigitalOceanSSHKeysResponse {
-    ssh_keys: DigitalOceanSSHKey[]
-}
-
-export interface DigitalOceanVolumeResponse {
-    volume: DigitalOceanVolume
-}
-
-export interface VultrInstance {
-    id: string
-    label: string
-    main_ip: string
-    status: string
-    plan: string
-    region: string
-    os: string
-    ram: number
-    disk: number
-    vcpu_count: number
-}
-
-export interface VultrInstanceResponse {
-    instance: VultrInstance
-}
-
-export interface VultrInstancesResponse {
-    instances: VultrInstance[]
-    meta: {
-        total: number
-        links: {
-            next: string
-            prev: string
-        }
-    }
-}
-
-export interface VultrPlan {
-    id: string
-    vcpu_count: number
-    ram: number
-    disk: number
-    bandwidth: number
-    monthly_cost: number
-    locations: string[]
-    type: string
-}
-
-export interface VultrPlansResponse {
-    plans: VultrPlan[]
-}
-
-export interface VultrRegion {
-    id: string
-    city: string
-    country: string
-    continent: string
-    options: string[]
-}
-
-export interface VultrRegionsResponse {
-    regions: VultrRegion[]
-}
-
-export interface VultrSSHKey {
-    id: string
-    name: string
-    ssh_key: string
-}
-
-export interface VultrSSHKeyResponse {
-    ssh_key: VultrSSHKey
-}
-
-export interface VultrVolume {
-    id: string
-    label: string
-    size_gb: number
-    region: string
-    status: string
-    attached_to_instance: string
-}
-
-export interface VultrVolumeResponse {
-    block: VultrVolume
 }
 
 export interface ServerStatus {
@@ -576,11 +423,11 @@ export interface ProvisionClawParams {
 export interface ProvisionClawResponse {
     success: boolean
     clawId?: string
+    referralCode?: string | null
     error?: string
 }
 
 export interface ClawCleanupData {
-    provider: ProviderType
     providerServerId: string | null
     subdomain: string | null
 }
@@ -621,7 +468,6 @@ export interface UpdateProfileBody {
 
 export interface CreateClawBody {
     name: string
-    provider: ProviderType
     planId: string
     location: string
     password?: string
@@ -631,7 +477,6 @@ export interface CreateClawBody {
 
 export interface InitiateClawPurchaseBody {
     name?: string
-    provider: ProviderType
     planId: string
     location: string
     password?: string
@@ -842,7 +687,7 @@ export interface UpdateClawChannelsBody {
 }
 
 export interface WhatsAppPairResponse {
-    status: 'started' | 'already_paired' | 'unsupported'
+    status: 'started' | 'already_paired'
 }
 
 export interface WhatsAppPairStatusResponse {
@@ -1083,6 +928,11 @@ export interface NpmDownloadsResponse {
     downloads: Record<string, number>
 }
 
+export interface VersionCheckResult {
+    supported: boolean
+    version: string
+}
+
 export interface InstallVersionBody {
     version: string
 }
@@ -1100,11 +950,6 @@ export interface GoogleUserinfoResponse {
     name?: string
 }
 
-export interface PolarProductMapping {
-    provider: string
-    planId: string
-}
-
 export interface JoinWaitlistBody {
     email: string
 }
@@ -1113,8 +958,75 @@ export interface WaitlistStatusResponse {
     joined: boolean
 }
 
+export interface FeatureEmailLayoutProps {
+    preview: string
+    children: ReactNode
+}
+
 export interface FeatureEmailDefinition {
-    key: string
+    key: FeatureEmailKey
     subject: string
-    render: () => import('react').ReactNode
+    render: () => ReactNode
+}
+
+export interface AffiliateInfoResponse {
+    referrals: AffiliateReferralEntry[]
+}
+
+export interface GenerateReferralCodeResponse {
+    referralCode: string
+}
+
+export interface AffiliateReferralEntry {
+    id: string
+    referredEmail: string
+    status: string
+    earnedAmount: number
+    createdAt: string
+}
+
+export interface UpdateReferralCodeBody {
+    code: string
+}
+
+export interface AdminUserListItem {
+    id: string
+    email: string
+    name: string | null
+    role: string
+    authMethods: string[] | null
+    hasLicense: boolean
+    referralCode: string | null
+    createdAt: Date
+    clawCount: number
+    sshKeyCount: number
+}
+
+export interface AdminUsersResponse {
+    items: AdminUserListItem[]
+    total: number
+    page: number
+    totalPages: number
+}
+
+export interface AdminAnalyticsDataPoint {
+    date: string
+    count: number
+}
+
+export interface AnalyticsRangeConfig {
+    trunc: string
+    offset: string
+}
+
+export interface AnalyticsTableConfig {
+    key: string
+    table: PgTable
+    column: string
+}
+
+export interface AdminUpdateFields {
+    name?: string | null
+    referralCode?: string | null
+    [key: string]: unknown
 }

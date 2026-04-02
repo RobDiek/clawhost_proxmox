@@ -5,6 +5,7 @@ import { ipcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
 import { configStore } from '@/main/services'
+import { t } from '@openclaw/i18n'
 
 const isPathSafe = (clawDir: string, filePath: string): boolean => {
     const resolved = path.resolve(clawDir, filePath)
@@ -62,7 +63,7 @@ const registerClawFileHandlers = (): void => {
         'listClawFiles',
         (_event: IpcMainInvokeEvent, id: string) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             if (!fs.existsSync(clawDir)) {
@@ -80,16 +81,16 @@ const registerClawFileHandlers = (): void => {
         'readClawFile',
         (_event: IpcMainInvokeEvent, id: string, data: ReadClawFileData) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             if (!isPathSafe(clawDir, data.path)) {
-                throw new Error('Invalid path')
+                throw new Error(t('go.invalidPath'))
             }
 
             const filePath = path.join(clawDir, data.path)
             if (!fs.existsSync(filePath)) {
-                throw new Error('File not found')
+                throw new Error(t('go.fileNotFound'))
             }
 
             const content = fs.readFileSync(filePath, 'utf-8')
@@ -105,11 +106,11 @@ const registerClawFileHandlers = (): void => {
             data: { path: string; content: string }
         ) => {
             const claw = configStore.findClaw(id)
-            if (!claw) throw new Error('Claw not found')
+            if (!claw) throw new Error(t('go.clawNotFound'))
 
             const clawDir = configStore.getClawDir(claw.name)
             if (!isPathSafe(clawDir, data.path)) {
-                throw new Error('Invalid path')
+                throw new Error(t('go.invalidPath'))
             }
 
             const filePath = path.join(clawDir, data.path)
@@ -125,7 +126,7 @@ const registerClawFileHandlers = (): void => {
 
     ipcMain.handle('exportClaw', (_event: IpcMainInvokeEvent, id: string) => {
         const claw = configStore.findClaw(id)
-        if (!claw) throw new Error('Claw not found')
+        if (!claw) throw new Error(t('go.clawNotFound'))
 
         const clawDir = configStore.getClawDir(claw.name)
         return { path: clawDir }

@@ -5,47 +5,49 @@ import type {
     SubscriptionWebhookData
 } from '@/ts/Interfaces'
 
+import { webhookEventType } from '@/lib/constants'
+
 const handleWebhook = async (
     event: WebhookEvent,
     handlers: WebhookHandlers
 ): Promise<void> => {
     switch (event.type) {
-        case 'checkout.created':
+        case webhookEventType.checkoutCreated:
             await handlers.onCheckoutCreated?.(
                 event.data as CheckoutWebhookData
             )
             break
-        case 'checkout.updated':
+        case webhookEventType.checkoutUpdated:
             await handlers.onCheckoutUpdated?.(
                 event.data as CheckoutWebhookData
             )
             break
-        case 'subscription.created':
+        case webhookEventType.subscriptionCreated:
             await handlers.onSubscriptionCreated?.(
                 event.data as SubscriptionWebhookData
             )
             break
-        case 'subscription.active':
+        case webhookEventType.subscriptionActive:
             await handlers.onSubscriptionActive?.(
                 event.data as SubscriptionWebhookData
             )
             break
-        case 'subscription.updated':
+        case webhookEventType.subscriptionUpdated:
             await handlers.onSubscriptionUpdated?.(
                 event.data as SubscriptionWebhookData
             )
             break
-        case 'subscription.canceled':
+        case webhookEventType.subscriptionCanceled:
             await handlers.onSubscriptionCanceled?.(
                 event.data as SubscriptionWebhookData
             )
             break
-        case 'subscription.revoked':
+        case webhookEventType.subscriptionRevoked:
             await handlers.onSubscriptionRevoked?.(
                 event.data as SubscriptionWebhookData
             )
             break
-        case 'subscription.uncanceled':
+        case webhookEventType.subscriptionUncanceled:
             await handlers.onSubscriptionUncanceled?.(
                 event.data as SubscriptionWebhookData
             )

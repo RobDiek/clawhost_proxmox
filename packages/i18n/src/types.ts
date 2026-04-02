@@ -1,4 +1,4 @@
-import type en from './langs/en'
+import type en from '#i18n/langs/en'
 
 type DeepString<T> = {
     [K in keyof T]: T[K] extends string ? string : DeepString<T[K]>
@@ -16,7 +16,21 @@ type NestedKeyOf<T> = T extends object
 
 export type TranslationKey = NestedKeyOf<Translations>
 
-export type Languages = 'en' | 'fr' | 'es' | 'de'
+export type Languages =
+    | 'en'
+    | 'fr'
+    | 'es'
+    | 'de'
+    | 'zh'
+    | 'hi'
+    | 'ar'
+    | 'ru'
+    | 'ja'
+    | 'tr'
+    | 'it'
+    | 'pl'
+    | 'nl'
+    | 'pt'
 
 export interface I18nState {
     languages: Record<Languages, Translations>

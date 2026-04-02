@@ -1,15 +1,15 @@
 import type { AuthenticatedContext } from '@/ts/Types'
 
 import executeSSH from '@/services/ssh'
-import { findUserClaw } from '@/controllers/claws/helpers'
+import { findUserClaw, parseEnvFile } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 
 const getClawEnvVars = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
-        const claw = await findUserClaw(userId, id)
+        const id = c.req.param('id')!
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)
@@ -27,25 +27,7 @@ const getClawEnvVars = async (c: AuthenticatedContext) => {
                 10000
             )
 
-            const envVars: Record<string, string> = {}
-            envRaw
-                .trim()
-                .split('\n')
-                .forEach((line) => {
-                    const trimmed = line.trim()
-                    if (!trimmed || trimmed.startsWith('#')) return
-                    const eqIndex = trimmed.indexOf('=')
-                    if (eqIndex === -1) return
-                    const key = trimmed.substring(0, eqIndex).trim()
-                    let value = trimmed.substring(eqIndex + 1).trim()
-                    if (
-                        (value.startsWith('"') && value.endsWith('"')) ||
-                        (value.startsWith("'") && value.endsWith("'"))
-                    ) {
-                        value = value.slice(1, -1)
-                    }
-                    envVars[key] = value
-                })
+            const envVars = parseEnvFile(envRaw)
 
             return ok(c, { envVars }, t('api.fileFetched'))
         } catch {

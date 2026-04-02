@@ -1,4 +1,29 @@
 import {
+    ADMIN_USERS_QUERY_KEY,
+    useAdminAnalytics,
+    useAdminBillingList,
+    useAdminClawsList,
+    useAdminEmailsList,
+    useAdminExportsList,
+    useAdminPendingClawsList,
+    useAdminReferralsList,
+    useAdminSSHKeysList,
+    useAdminStats,
+    useAdminUsers,
+    useAdminUserDetail,
+    useAdminVolumesList,
+    useAdminWaitlistList,
+    useUpdateAdminUser
+} from '@/hooks/useAdmin'
+
+import {
+    useAffiliate,
+    useGenerateReferralCode,
+    useUpdateReferralCode,
+    AFFILIATE_QUERY_KEY
+} from '@/hooks/useAffiliate'
+
+import {
     useClaws,
     useAdminClaws,
     useClaw,
@@ -22,7 +47,10 @@ import {
     useRenameClaw,
     useUpdateClawSubdomain,
     useCancelPendingClaw,
-    CLAWS_QUERY_KEY
+    CLAWS_QUERY_KEY,
+    CLAW_FILES_QUERY_KEY,
+    CLAW_FILE_QUERY_KEY,
+    CLAW_VERSION_QUERY_KEY
 } from '@/hooks/useClaws'
 
 import {
@@ -71,10 +99,38 @@ import useGatewayState from '@/hooks/useGatewayState'
 import useScrollToBottom from '@/hooks/useScrollToBottom'
 import useSpeechRecognition from '@/hooks/useSpeechRecognition'
 import useTextToSpeech from '@/hooks/useTextToSpeech'
+import useDebouncedValue from '@/hooks/useDebouncedValue'
+import useNetworkStatus from '@/hooks/useNetworkStatus'
 import useThemeEffect from '@/hooks/useThemeEffect'
 import useLanguageEffect from '@/hooks/useLanguageEffect'
+import useAppVersion from '@/hooks/useAppVersion'
+import useLocalFooterLinks from '@/hooks/useLocalFooterLinks'
+import useRefer from '@/hooks/useRefer'
+import useRoutePrefetch from '@/hooks/useRoutePrefetch'
+import useInfiniteScrollObserver from '@/hooks/useInfiniteScrollObserver'
+import usePaginationState from '@/hooks/usePaginationState'
+import useURLStateRestoration from '@/hooks/useURLStateRestoration'
 
 export {
+    ADMIN_USERS_QUERY_KEY,
+    useAdminAnalytics,
+    useAdminBillingList,
+    useAdminClawsList,
+    useAdminEmailsList,
+    useAdminExportsList,
+    useAdminPendingClawsList,
+    useAdminReferralsList,
+    useAdminSSHKeysList,
+    useAdminStats,
+    useAdminUsers,
+    useAdminUserDetail,
+    useAdminVolumesList,
+    useAdminWaitlistList,
+    useUpdateAdminUser,
+    useAffiliate,
+    useGenerateReferralCode,
+    useUpdateReferralCode,
+    AFFILIATE_QUERY_KEY,
     useClaws,
     useAdminClaws,
     useClaw,
@@ -99,6 +155,9 @@ export {
     useUpdateClawSubdomain,
     useCancelPendingClaw,
     CLAWS_QUERY_KEY,
+    CLAW_FILES_QUERY_KEY,
+    CLAW_FILE_QUERY_KEY,
+    CLAW_VERSION_QUERY_KEY,
     useSSHKeys,
     useCreateSSHKey,
     useDeleteSSHKey,
@@ -126,10 +185,19 @@ export {
     usePlaygroundGraph,
     PLAYGROUND_AGENTS_QUERY_KEY,
     useAgentChat,
+    useDebouncedValue,
+    useNetworkStatus,
     useGatewayState,
     useScrollToBottom,
     useSpeechRecognition,
     useTextToSpeech,
     useThemeEffect,
-    useLanguageEffect
+    useLanguageEffect,
+    useAppVersion,
+    useLocalFooterLinks,
+    useRefer,
+    useRoutePrefetch,
+    useInfiniteScrollObserver,
+    usePaginationState,
+    useURLStateRestoration
 }

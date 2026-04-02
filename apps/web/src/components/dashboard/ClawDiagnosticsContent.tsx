@@ -11,8 +11,9 @@ import {
     PulseIcon
 } from '@phosphor-icons/react'
 import { useClawDiagnostics, useRepairClaw } from '@/hooks'
-import { PanelPlaceholder } from '@/components'
+import { PanelPlaceholder } from '@/components/shared'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 
 const ClawDiagnosticsContent: FC<ClawDiagnosticsContentProps> = ({
     clawId,
@@ -29,10 +30,16 @@ const ClawDiagnosticsContent: FC<ClawDiagnosticsContentProps> = ({
     const handleRepair = () => {
         repair.mutate(clawId, {
             onSuccess: () => {
-                showToast(t('dashboard.diagnosticsRepairSuccess'), 'success')
+                showToast(
+                    t('dashboard.diagnosticsRepairSuccess'),
+                    TOAST_TYPE.SUCCESS
+                )
             },
             onError: (err) => {
-                showToast(err.message || t('api.failedToRepairClaw'), 'error')
+                showToast(
+                    err.message || t('api.failedToRepairClaw'),
+                    TOAST_TYPE.ERROR
+                )
             }
         })
     }

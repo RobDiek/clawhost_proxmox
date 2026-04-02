@@ -1,17 +1,14 @@
 import type { FC, ReactNode } from 'react'
-import type {
-    CreateClawModalProps,
-    ErrorResponse,
-    ProviderOptionWithIcon
-} from '@/ts/Interfaces'
-import type { BillingInterval, ProviderType } from '@/ts/Types'
+import type { CreateClawModalProps, ErrorResponse } from '@/ts/Interfaces'
+import type { BillingInterval } from '@/ts/Types'
 
 import { useState, useEffect } from 'react'
 import { t } from '@openclaw/i18n'
-import { billingInterval, clawProvider } from '@openclaw/shared'
+import { billingInterval } from '@openclaw/shared'
 import { Link } from 'react-router-dom'
 import { useUIStore } from '@/lib/store'
-import { copyToClipboard, ROUTES } from '@/lib'
+import { TOAST_TYPE } from '@/lib/constants'
+import { ROUTES } from '@/lib'
 import {
     usePurchaseClaw,
     usePlans,
@@ -19,34 +16,26 @@ import {
     useVolumePricing,
     usePlanAvailability
 } from '@/hooks'
-import { generatePassword, locationFlags } from '@/lib/claw-utils'
+import { generatePassword } from '@/lib/claw-utils'
 import {
     Button,
     Input,
-    Slider,
     Label,
     Dialog,
     DialogContent,
     DialogDescription,
     DialogHeader,
     DialogTitle,
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent,
-    TooltipProvider,
-    Skeleton,
     Checkbox
 } from '@/components/ui'
+import { CircleNotchIcon } from '@phosphor-icons/react'
 import {
-    CircleNotchIcon,
-    EyeIcon,
-    EyeSlashIcon,
-    KeyIcon,
-    CopyIcon,
-    ArrowClockwiseIcon,
-    CaretDownIcon
-} from '@phosphor-icons/react'
-import { ClawMascot } from '@/components'
+    LocationSelector,
+    BillingIntervalSelector,
+    PlanSelector,
+    AdvancedOptions,
+    OrderSummary
+} from '@/components/dashboard/create-claw'
 
 const CreateClawModal: FC<CreateClawModalProps> = ({
     plans: initialPlans,
@@ -55,65 +44,21 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
     volumePricing: initialVolumePricing,
     planAvailability: initialPlanAvailability,
     preselectedPlanId,
-    preselectedProvider,
     onClose,
     onNavigateToSSHKeys
 }): ReactNode => {
     const [name, setName] = useState('')
     const [nameError, setNameError] = useState('')
 
-    const { plans: hetznerPlans, isLoading: hetznerLoading } = usePlans(
-        clawProvider.hetzner
-    )
-    const { plans: digitaloceanPlans, isLoading: digitaloceanLoading } =
-        usePlans(clawProvider.digitalocean)
-    const { plans: vultrPlans, isLoading: vultrLoading } = usePlans(
-        clawProvider.vultr
-    )
-
-    const hetznerAvailable = !hetznerLoading && !!hetznerPlans?.length
-
-    const isProviderUnavailable = (p: ProviderType): boolean => {
-        if (p === clawProvider.hetzner)
-            return !hetznerLoading && !hetznerPlans?.length
-        if (p === clawProvider.digitalocean)
-            return (
-                hetznerAvailable ||
-                (!digitaloceanLoading && !digitaloceanPlans?.length)
-            )
-        if (p === clawProvider.vultr)
-            return hetznerAvailable || (!vultrLoading && !vultrPlans?.length)
-        return false
-    }
-
-    const autoProvider: ProviderType =
-        preselectedProvider && !isProviderUnavailable(preselectedProvider)
-            ? preselectedProvider
-            : hetznerPlans?.length
-              ? clawProvider.hetzner
-              : digitaloceanPlans?.length
-                ? clawProvider.digitalocean
-                : vultrPlans?.length
-                  ? clawProvider.vultr
-                  : clawProvider.hetzner
-
-    const [userSelectedProvider, setUserSelectedProvider] =
-        useState<ProviderType | null>(null)
-
-    const provider =
-        userSelectedProvider && !isProviderUnavailable(userSelectedProvider)
-            ? userSelectedProvider
-            : autoProvider
-
     const {
         plans: providerPlans,
         isLoading: isLoadingPlans,
         atCapacity
-    } = usePlans(provider)
+    } = usePlans()
     const { data: providerLocations, isLoading: isLoadingLocations } =
-        useLocations(provider)
-    const { data: providerVolumePricing } = useVolumePricing(provider)
-    const { data: providerPlanAvailability } = usePlanAvailability(provider)
+        useLocations()
+    const { data: providerVolumePricing } = useVolumePricing()
+    const { data: providerPlanAvailability } = usePlanAvailability()
 
     const isProviderLoading = isLoadingPlans || isLoadingLocations
     const plans = providerPlans || initialPlans
@@ -167,17 +112,12 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
     const [showPassword, setShowPassword] = useState(false)
     const [selectedSshKeyId, setSelectedSshKeyId] = useState<string>('')
     const [volumeSize, setVolumeSize] = useState<number>(0)
-    const [billingCycle, setBillingCycle] = useState<BillingInterval>(billingInterval.YEAR)
+    const [billingCycle, setBillingCycle] = useState<BillingInterval>(
+        billingInterval.YEAR
+    )
     const [showAdvanced, setShowAdvanced] = useState(false)
     const [agreedToTerms, setAgreedToTerms] = useState(false)
     const { showToast } = useUIStore()
-
-    const handleProviderChange = (newProvider: ProviderType) => {
-        setUserSelectedProvider(newProvider)
-        setPlanId('')
-        setLocation('')
-        setVolumeSize(0)
-    }
 
     useEffect(() => {
         if (!planId && plans.length > 0) {
@@ -220,31 +160,32 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
             return
         }
         if (!location) {
-            showToast(t('errors.invalidLocation'), 'error')
+            showToast(t('errors.invalidLocation'), TOAST_TYPE.ERROR)
             return
         }
 
         const selectedPlanData = plans.find((p) => p.id === planId)
         if (!selectedPlanData) {
-            showToast(t('errors.invalidPlan'), 'error')
+            showToast(t('errors.invalidPlan'), TOAST_TYPE.ERROR)
             return
         }
 
-        const planPrice = billingCycle === billingInterval.YEAR
-            ? selectedPlanData.priceYearly
-            : selectedPlanData.priceMonthly
+        const planPrice =
+            billingCycle === billingInterval.YEAR
+                ? selectedPlanData.priceYearly
+                : selectedPlanData.priceMonthly
         let totalPrice = planPrice
         if (volumeSize > 0 && volumePricing) {
-            const volumePrice = billingCycle === billingInterval.YEAR
-                ? volumeSize * volumePricing.pricePerGbMonthly * 10
-                : volumeSize * volumePricing.pricePerGbMonthly
+            const volumePrice =
+                billingCycle === billingInterval.YEAR
+                    ? volumeSize * volumePricing.pricePerGbMonthly * 10
+                    : volumeSize * volumePricing.pricePerGbMonthly
             totalPrice += volumePrice
         }
 
         purchaseMutation.mutate(
             {
                 name,
-                provider,
                 planId,
                 location,
                 password: password || undefined,
@@ -275,6 +216,19 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
     }
 
     const selectedPlan = plans.find((p) => p.id === planId && !p.disabled)
+
+    const totalAmount = selectedPlan
+        ? (billingCycle === billingInterval.YEAR
+              ? selectedPlan.priceYearly +
+                (volumeSize > 0 && volumePricing
+                    ? volumeSize * volumePricing.pricePerGbMonthly * 10
+                    : 0)
+              : selectedPlan.priceMonthly +
+                (volumeSize > 0 && volumePricing
+                    ? volumeSize * volumePricing.pricePerGbMonthly
+                    : 0)
+          ).toFixed(2)
+        : '0.00'
 
     return (
         <Dialog open onOpenChange={onClose}>
@@ -319,876 +273,66 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                         )}
                     </div>
 
-                    <div className='space-y-1'>
-                        <Label>
-                            {t('createClaw.provider')}
-                            <span className='text-red-600 dark:text-red-400'>
-                                {' '}
-                                *
-                            </span>
-                        </Label>
-                        <TooltipProvider delayDuration={200}>
-                            <div className='bg-muted flex w-fit rounded-lg p-1'>
-                                {(
-                                    [
-                                        {
-                                            key: clawProvider.hetzner,
-                                            label: t(
-                                                'createClaw.providerHetzner'
-                                            ),
-                                            icon: (
-                                                <svg
-                                                    className='h-4 w-4'
-                                                    viewBox='0 0 63 64'
-                                                    fill='none'
-                                                >
-                                                    <rect
-                                                        width='63'
-                                                        height='64'
-                                                        rx='31.5'
-                                                        fill='#D50C2D'
-                                                    />
-                                                    <path
-                                                        d='M48.3772 14H43.4235C42.3132 14 41.8434 14.465 41.8434 15.564V27.9493H22.1566V15.564C22.1566 14.465 21.6868 14 20.5765 14H15.5801C14.4697 14 14 14.465 14 15.564V47.436C14 48.535 14.4697 49 15.5801 49H20.5765C21.6868 49 22.1566 48.5773 22.1566 47.436V34.8394H41.8861V47.436C41.8861 48.535 42.3559 49 43.4662 49H48.4199C49.5302 49 50 48.535 50 47.436V15.564C49.9573 14.5072 49.4875 14 48.3772 14Z'
-                                                        fill='white'
-                                                    />
-                                                </svg>
-                                            )
-                                        },
-                                        {
-                                            key: clawProvider.digitalocean,
-                                            label: t(
-                                                'createClaw.providerDigitalOcean'
-                                            ),
-                                            icon: (
-                                                <svg
-                                                    className='h-4 w-4'
-                                                    viewBox='0 0 512 512'
-                                                    fill='none'
-                                                >
-                                                    <path
-                                                        d='M78 373v-47h47v104h57V300h74v147A191 191 0 1065 256h74a117 117 0 11117 117'
-                                                        fill='#0080FF'
-                                                    />
-                                                </svg>
-                                            )
-                                        },
-                                        {
-                                            key: clawProvider.vultr,
-                                            label: t(
-                                                'createClaw.providerVultr'
-                                            ),
-                                            icon: (
-                                                <svg
-                                                    className='h-4 w-4'
-                                                    viewBox='0 0 1024 1024'
-                                                    fill='none'
-                                                >
-                                                    <circle
-                                                        cx='512'
-                                                        cy='512'
-                                                        r='512'
-                                                        fill='#007BFC'
-                                                    />
-                                                    <path
-                                                        d='M259.9 357.4c-2.5-3.9-3.9-8.6-3.9-13.6 0-14.1 11.5-25.6 25.6-25.6h131.1c9.1 0 17.1 4.8 21.7 12l181.9 288.5c2.5 4 3.9 8.6 3.9 13.6s-1.5 9.7-3.9 13.6l-65.6 104c-4.5 7.2-12.5 12-21.7 12-9.1 0-17.1-4.8-21.7-12L259.9 357.4zm395.3 158.1c4.5 7.2 12.5 11.9 21.7 11.9 9.1 0 17.1-4.8 21.7-11.9l22.6-35.8 43-68.2c2.5-3.9 3.9-8.6 3.9-13.7 0-5-1.5-9.7-3.9-13.7L730.1 330c-4.5-7.2-12.5-12-21.7-12H577.1c-14.1 0-25.6 11.5-25.6 25.6 0 5 1.4 9.7 3.9 13.6l99.8 158.3z'
-                                                        fill='white'
-                                                    />
-                                                </svg>
-                                            )
-                                        }
-                                    ] as ProviderOptionWithIcon[]
-                                ).map((p) => {
-                                    const unavailable = isProviderUnavailable(
-                                        p.key
-                                    )
-                                    const btn = (
-                                        <button
-                                            type='button'
-                                            disabled={unavailable}
-                                            onClick={() =>
-                                                handleProviderChange(p.key)
-                                            }
-                                            className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                                                unavailable
-                                                    ? 'cursor-not-allowed opacity-50'
-                                                    : provider === p.key
-                                                      ? 'bg-background text-foreground shadow-sm'
-                                                      : 'text-muted-foreground hover:text-foreground'
-                                            }`}
-                                        >
-                                            {p.icon}
-                                            {p.label}
-                                        </button>
-                                    )
+                    <LocationSelector
+                        locations={locations}
+                        location={location}
+                        planId={planId}
+                        atCapacity={atCapacity}
+                        isLoading={isProviderLoading}
+                        isLocationAvailableForPlan={isLocationAvailableForPlan}
+                        onLocationChange={setLocation}
+                        onPlanChange={setPlanId}
+                        plans={plans}
+                        isPlanAvailable={isPlanAvailable}
+                    />
 
-                                    if (unavailable) {
-                                        const isHetznerPreferred =
-                                            hetznerAvailable &&
-                                            p.key !== clawProvider.hetzner
-                                        return (
-                                            <Tooltip key={p.key}>
-                                                <TooltipTrigger asChild>
-                                                    <div>{btn}</div>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    {t(
-                                                        isHetznerPreferred
-                                                            ? 'createClaw.providerDisabledHetznerRecommended'
-                                                            : 'createClaw.providerUnavailable'
-                                                    )}
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        )
-                                    }
+                    <BillingIntervalSelector
+                        billingCycle={billingCycle}
+                        onBillingCycleChange={setBillingCycle}
+                    />
 
-                                    return <div key={p.key}>{btn}</div>
-                                })}
-                            </div>
-                        </TooltipProvider>
-                        {atCapacity && (
-                            <p className='mt-2 rounded-md bg-yellow-500/10 px-3 py-2 text-xs text-yellow-600 dark:text-yellow-400'>
-                                {t('createClaw.providerAtCapacity')}
-                            </p>
-                        )}
-                    </div>
+                    <PlanSelector
+                        plans={plans}
+                        planId={planId}
+                        location={location}
+                        billingCycle={billingCycle}
+                        isLoading={isProviderLoading}
+                        preselectedPlanId={preselectedPlanId}
+                        isLocationAvailableForPlan={isLocationAvailableForPlan}
+                        isPlanAvailable={isPlanAvailable}
+                        onPlanChange={setPlanId}
+                        onLocationChange={setLocation}
+                        getFirstAvailableLocation={getFirstAvailableLocation}
+                    />
 
-                    <div className='space-y-2'>
-                        <Label>
-                            {t('createClaw.location')}
-                            <span className='text-red-600 dark:text-red-400'>
-                                {' '}
-                                *
-                            </span>
-                        </Label>
-                        {isProviderLoading ? (
-                            <div className='grid grid-cols-2 gap-2'>
-                                {Array.from({ length: 6 }).map((_, i) => (
-                                    <Skeleton
-                                        key={i}
-                                        className='h-10 rounded-lg'
-                                    />
-                                ))}
-                            </div>
-                        ) : (
-                            <TooltipProvider delayDuration={200}>
-                                <div className='grid grid-cols-2 gap-2'>
-                                    {locations.map((loc) => {
-                                        const isSelected = location === loc.id
-                                        const locFlag =
-                                            locationFlags[loc.id] || ''
-                                        const unavailableForPlan =
-                                            !isLocationAvailableForPlan(
-                                                loc.id,
-                                                planId
-                                            )
-                                        const isDisabled =
-                                            loc.disabled ||
-                                            unavailableForPlan ||
-                                            atCapacity
-                                        const locationLabel = loc.country
-                                            ? `${loc.city}, ${loc.country}`
-                                            : loc.city
-
-                                        const tooltipText = loc.disabled
-                                            ? t(
-                                                  'createClaw.locationUnavailable'
-                                              )
-                                            : t(
-                                                  'createClaw.locationUnavailableForPlan'
-                                              )
-
-                                        const card = (
-                                            <label
-                                                className={`flex items-center gap-2 rounded-lg px-3 py-2 transition ${
-                                                    isDisabled
-                                                        ? 'bg-muted/50 cursor-not-allowed border border-transparent opacity-50'
-                                                        : isSelected
-                                                          ? 'cursor-pointer border border-[#ef5350]/50 bg-[#ef5350]/20'
-                                                          : 'bg-muted hover:bg-muted/80 cursor-pointer border border-transparent'
-                                                }`}
-                                            >
-                                                <input
-                                                    type='radio'
-                                                    name='location'
-                                                    value={loc.id}
-                                                    checked={isSelected}
-                                                    disabled={isDisabled}
-                                                    onChange={(e) => {
-                                                        const newLocation =
-                                                            e.target.value
-                                                        setLocation(
-                                                            newLocation
-                                                        )
-                                                        if (
-                                                            !isLocationAvailableForPlan(
-                                                                newLocation,
-                                                                planId
-                                                            )
-                                                        ) {
-                                                            const firstAvailable =
-                                                                plans.find(
-                                                                    (p) =>
-                                                                        !p.disabled &&
-                                                                        isPlanAvailable(
-                                                                            p.id
-                                                                        ) &&
-                                                                        isLocationAvailableForPlan(
-                                                                            newLocation,
-                                                                            p.id
-                                                                        )
-                                                                )
-                                                            if (firstAvailable) {
-                                                                setPlanId(
-                                                                    firstAvailable.id
-                                                                )
-                                                            }
-                                                        }
-                                                    }}
-                                                    className='sr-only'
-                                                />
-                                                {locFlag && (
-                                                    <span className='text-lg'>
-                                                        {locFlag}
-                                                    </span>
-                                                )}
-                                                <p className='text-sm font-medium'>
-                                                    {locationLabel}
-                                                </p>
-                                            </label>
-                                        )
-
-                                        if (isDisabled) {
-                                            return (
-                                                <Tooltip key={loc.id}>
-                                                    <TooltipTrigger asChild>
-                                                        <div>{card}</div>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        {tooltipText}
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            )
-                                        }
-
-                                        return <div key={loc.id}>{card}</div>
-                                    })}
-                                </div>
-                            </TooltipProvider>
-                        )}
-                    </div>
-
-                    <div className='space-y-1'>
-                        <Label>{t('createClaw.billingInterval')}</Label>
-                        <div className='bg-muted flex w-fit rounded-lg p-1'>
-                            <button
-                                type='button'
-                                onClick={() => setBillingCycle(billingInterval.MONTH)}
-                                className={`rounded-md px-2 py-1 text-xs font-medium transition ${
-                                    billingCycle === billingInterval.MONTH
-                                        ? 'bg-background text-foreground shadow-sm'
-                                        : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                            >
-                                {t('createClaw.monthly')}
-                            </button>
-                            <button
-                                type='button'
-                                onClick={() => setBillingCycle(billingInterval.YEAR)}
-                                className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition ${
-                                    billingCycle === billingInterval.YEAR
-                                        ? 'bg-background text-foreground shadow-sm'
-                                        : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                            >
-                                {t('createClaw.yearly')}
-                                <span className='rounded-full bg-violet-500/15 px-1.5 py-0.5 text-[9px] font-semibold text-violet-400'>
-                                    {t('createClaw.yearlySaveBadge')}
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className='space-y-2'>
-                        <Label>
-                            {t('createClaw.plan')}
-                            <span className='text-red-600 dark:text-red-400'>
-                                {' '}
-                                *
-                            </span>
-                        </Label>
-                        {isProviderLoading ? (
-                            <div className='space-y-2'>
-                                {Array.from({ length: 4 }).map((_, i) => (
-                                    <Skeleton
-                                        key={i}
-                                        className='h-14 rounded-lg'
-                                    />
-                                ))}
-                            </div>
-                        ) : (
-                            <TooltipProvider delayDuration={200}>
-                                <div className='space-y-2'>
-                                    {plans.map((plan, index) => {
-                                        const isSelected = planId === plan.id
-                                        const unavailableForLocation =
-                                            location &&
-                                            !isLocationAvailableForPlan(
-                                                location,
-                                                plan.id
-                                            )
-                                        const isDisabled =
-                                            plan.disabled ||
-                                            !isPlanAvailable(plan.id) ||
-                                            !!unavailableForLocation
-
-                                        const tierStarts: Record<
-                                            string,
-                                            Record<string, string>
-                                        > = {
-                                            hetzner: {
-                                                cx23: t('landing.tierShared'),
-                                                cax11: t('landing.tierArm'),
-                                                ccx13: t(
-                                                    'landing.tierDedicated'
-                                                )
-                                            },
-                                            vultr: {
-                                                'vc2-2c-4gb': t(
-                                                    'landing.tierRegular'
-                                                ),
-                                                'vhp-2c-4gb-amd': t(
-                                                    'landing.tierHighPerformance'
-                                                ),
-                                                'vhf-3c-8gb': t(
-                                                    'landing.tierHighFrequency'
-                                                )
-                                            }
-                                        }
-                                        const providerTiers =
-                                            tierStarts[provider]
-                                        const tierLabel =
-                                            providerTiers?.[plan.id]
-
-                                        const card = (
-                                            <label
-                                                className={`flex items-center justify-between rounded-lg p-3 transition ${
-                                                    isDisabled
-                                                        ? 'bg-muted/50 cursor-not-allowed border border-transparent opacity-50'
-                                                        : isSelected
-                                                          ? 'cursor-pointer border border-[#ef5350]/50 bg-[#ef5350]/20'
-                                                          : 'bg-muted hover:bg-muted/80 cursor-pointer border border-transparent'
-                                                }`}
-                                            >
-                                                <div className='flex items-center gap-3'>
-                                                    <input
-                                                        type='radio'
-                                                        name='plan'
-                                                        value={plan.id}
-                                                        checked={isSelected}
-                                                        disabled={isDisabled}
-                                                        onChange={(e) => {
-                                                            const newPlanId =
-                                                                e.target.value
-                                                            setPlanId(newPlanId)
-                                                            if (
-                                                                !isLocationAvailableForPlan(
-                                                                    location,
-                                                                    newPlanId
-                                                                )
-                                                            ) {
-                                                                setLocation(
-                                                                    getFirstAvailableLocation(
-                                                                        newPlanId
-                                                                    )
-                                                                )
-                                                            }
-                                                        }}
-                                                        className='sr-only'
-                                                    />
-                                                    <div>
-                                                        <p className='text-sm font-medium'>
-                                                            {plan.name.replace(
-                                                                /([A-Za-z])(\d)/,
-                                                                '$1 $2'
-                                                            )}
-                                                        </p>
-                                                        <p className='text-muted-foreground text-xs'>
-                                                            {t(
-                                                                'createClaw.planSpec',
-                                                                {
-                                                                    cpu: String(
-                                                                        plan.cpu
-                                                                    ),
-                                                                    memory: String(
-                                                                        plan.memory
-                                                                    ),
-                                                                    disk: String(
-                                                                        plan.disk
-                                                                    )
-                                                                }
-                                                            )}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <span className='text-sm font-semibold'>
-                                                    $
-                                                    {billingCycle === billingInterval.YEAR
-                                                        ? plan.priceYearly.toFixed(2)
-                                                        : plan.priceMonthly.toFixed(2)}
-                                                    {billingCycle === billingInterval.YEAR
-                                                        ? t('landing.perYear')
-                                                        : t('landing.perMonth')}
-                                                </span>
-                                            </label>
-                                        )
-
-                                        const separator =
-                                            tierLabel && index > 0 ? (
-                                                <div
-                                                    key={`tier-${plan.id}`}
-                                                    className='pb-1 pt-4'
-                                                >
-                                                    <span className='text-muted-foreground text-xs font-semibold uppercase tracking-wider'>
-                                                        {tierLabel}
-                                                    </span>
-                                                </div>
-                                            ) : null
-
-                                        if (isDisabled) {
-                                            const tooltipText =
-                                                unavailableForLocation
-                                                    ? t(
-                                                          'createClaw.planUnavailableForLocation'
-                                                      )
-                                                    : t(
-                                                          'createClaw.planUnavailable'
-                                                      )
-                                            return (
-                                                <>
-                                                    {separator}
-                                                    <Tooltip key={plan.id}>
-                                                        <TooltipTrigger asChild>
-                                                            <div>{card}</div>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            {tooltipText}
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </>
-                                            )
-                                        }
-
-                                        return (
-                                            <>
-                                                {separator}
-                                                <div key={plan.id}>{card}</div>
-                                            </>
-                                        )
-                                    })}
-                                </div>
-                            </TooltipProvider>
-                        )}
-                    </div>
-
-                    <div className='bg-muted/50 border-border rounded-lg border'>
-                        <button
-                            type='button'
-                            onClick={() => setShowAdvanced(!showAdvanced)}
-                            className='text-muted-foreground hover:text-foreground flex w-full items-center gap-2 p-4 text-sm transition-colors'
-                        >
-                            <CaretDownIcon
-                                className={`h-4 w-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
-                            />
-                            {t('createClaw.advancedOptions')}
-                        </button>
-
-                        {showAdvanced && (
-                            <div className='border-border/50 space-y-5 border-t p-4'>
-                                <div className='space-y-2'>
-                                    <Label>
-                                        {t('createClaw.rootPassword')}
-                                    </Label>
-                                    <div className='flex items-center gap-2'>
-                                        <div className='relative flex-1'>
-                                            <Input
-                                                type={
-                                                    showPassword
-                                                        ? 'text'
-                                                        : 'password'
-                                                }
-                                                value={password}
-                                                onChange={(e) =>
-                                                    setPassword(e.target.value)
-                                                }
-                                                placeholder={t(
-                                                    'createClaw.rootPasswordPlaceholder'
-                                                )}
-                                                className='bg-muted pr-10 font-mono text-sm'
-                                            />
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <button
-                                                        type='button'
-                                                        onClick={() =>
-                                                            setShowPassword(
-                                                                !showPassword
-                                                            )
-                                                        }
-                                                        className='text-muted-foreground hover:text-foreground absolute right-3 top-1/2 -translate-y-1/2'
-                                                    >
-                                                        {showPassword ? (
-                                                            <EyeSlashIcon className='h-4 w-4' />
-                                                        ) : (
-                                                            <EyeIcon className='h-4 w-4' />
-                                                        )}
-                                                    </button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    {showPassword
-                                                        ? t('common.hide')
-                                                        : t('common.show')}
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </div>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    type='button'
-                                                    variant='ghost'
-                                                    size='icon'
-                                                    onClick={async () => {
-                                                        await copyToClipboard(
-                                                            password
-                                                        )
-                                                        showToast(
-                                                            t(
-                                                                'createClaw.passwordCopied'
-                                                            ),
-                                                            'success'
-                                                        )
-                                                    }}
-                                                >
-                                                    <CopyIcon className='h-4 w-4' />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                {t('common.copy')}
-                                            </TooltipContent>
-                                        </Tooltip>
-                                        <TooltipProvider delayDuration={200}>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button
-                                                        type='button'
-                                                        variant='ghost'
-                                                        size='icon'
-                                                        onClick={() =>
-                                                            setPassword(
-                                                                generatePassword()
-                                                            )
-                                                        }
-                                                    >
-                                                        <ArrowClockwiseIcon className='h-4 w-4' />
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    {t(
-                                                        'createClaw.regeneratePassword'
-                                                    )}
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    </div>
-                                    <p className='text-muted-foreground text-xs'>
-                                        {t(
-                                            'createClaw.autoGeneratePasswordHint'
-                                        )}
-                                    </p>
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <Label>
-                                        {t('createClaw.sshKeyOptional')}
-                                    </Label>
-                                    {sshKeys.length > 0 ? (
-                                        <div className='space-y-2'>
-                                            <label
-                                                className={`flex cursor-pointer items-center rounded-lg p-3 transition ${
-                                                    selectedSshKeyId === ''
-                                                        ? 'border border-[#ef5350]/50 bg-[#ef5350]/20'
-                                                        : 'bg-muted hover:bg-muted/80 border border-transparent'
-                                                }`}
-                                            >
-                                                <input
-                                                    type='radio'
-                                                    name='sshKey'
-                                                    value=''
-                                                    checked={
-                                                        selectedSshKeyId === ''
-                                                    }
-                                                    onChange={() =>
-                                                        setSelectedSshKeyId('')
-                                                    }
-                                                    className='sr-only'
-                                                />
-                                                <span className='text-sm'>
-                                                    {t(
-                                                        'createClaw.noSshKeyPasswordOnly'
-                                                    )}
-                                                </span>
-                                            </label>
-                                            {sshKeys.map((key) => (
-                                                <label
-                                                    key={key.id}
-                                                    className={`flex cursor-pointer items-center rounded-lg p-3 transition ${
-                                                        selectedSshKeyId ===
-                                                        key.id
-                                                            ? 'border border-[#ef5350]/50 bg-[#ef5350]/20'
-                                                            : 'bg-muted hover:bg-muted/80 border border-transparent'
-                                                    }`}
-                                                >
-                                                    <input
-                                                        type='radio'
-                                                        name='sshKey'
-                                                        value={key.id}
-                                                        checked={
-                                                            selectedSshKeyId ===
-                                                            key.id
-                                                        }
-                                                        onChange={() =>
-                                                            setSelectedSshKeyId(
-                                                                key.id
-                                                            )
-                                                        }
-                                                        className='sr-only'
-                                                    />
-                                                    <KeyIcon className='text-muted-foreground mr-3 h-4 w-4' />
-                                                    <div>
-                                                        <p className='text-sm font-medium'>
-                                                            {key.name}
-                                                        </p>
-                                                        <p className='text-muted-foreground font-mono text-xs'>
-                                                            {key.fingerprint}
-                                                        </p>
-                                                    </div>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className='bg-muted flex items-center gap-3 rounded-lg p-3'>
-                                            <div className='bg-background flex h-10 w-10 items-center justify-center rounded-full'>
-                                                <KeyIcon className='text-muted-foreground h-5 w-5' />
-                                            </div>
-                                            <div className='flex-1'>
-                                                <p className='text-sm font-medium'>
-                                                    {t(
-                                                        'createClaw.noSshKeysConfigured'
-                                                    )}
-                                                </p>
-                                                <p className='text-muted-foreground text-xs'>
-                                                    {t(
-                                                        'createClaw.addSshKeyForPasswordlessLogin'
-                                                    )}
-                                                </p>
-                                            </div>
-                                            <Button
-                                                type='button'
-                                                variant='secondary'
-                                                size='sm'
-                                                onClick={onNavigateToSSHKeys}
-                                            >
-                                                {t('common.addKey')}
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {volumePricing && (
-                                    <div className='space-y-2'>
-                                        <Label>
-                                            {t(
-                                                'createClaw.additionalStorageOptional'
-                                            )}
-                                        </Label>
-                                        <div
-                                            className={`bg-muted space-y-4 rounded-lg p-4`}
-                                        >
-                                            <div className='flex items-center justify-between'>
-                                                <div className='flex items-center gap-2'>
-                                                    <ClawMascot className='h-4 w-4' />
-                                                    <span className='text-sm font-medium'>
-                                                        {t(
-                                                            'createClaw.volumeStorage'
-                                                        )}
-                                                    </span>
-                                                </div>
-                                                <span className='text-sm font-semibold'>
-                                                    {volumeSize > 0
-                                                        ? `+$${(volumeSize * volumePricing.pricePerGbMonthly).toFixed(2)}${t('landing.perMonth')}`
-                                                        : t('common.none')}
-                                                </span>
-                                            </div>
-                                            <div className='space-y-3'>
-                                                <Slider
-                                                    value={[volumeSize]}
-                                                    onValueChange={(value) =>
-                                                        setVolumeSize(value[0])
-                                                    }
-                                                    min={0}
-                                                    max={500}
-                                                    step={10}
-                                                />
-                                                <div className='flex items-center justify-between'>
-                                                    <span className='text-muted-foreground text-xs'>
-                                                        {t(
-                                                            'createClaw.volumeMin'
-                                                        )}
-                                                    </span>
-                                                    <div className='flex items-center gap-2'>
-                                                        <Input
-                                                            type='number'
-                                                            min={0}
-                                                            max={
-                                                                volumePricing.maxSize
-                                                            }
-                                                            value={volumeSize}
-                                                            onChange={(e) => {
-                                                                const val =
-                                                                    Math.min(
-                                                                        Math.max(
-                                                                            0,
-                                                                            Number(
-                                                                                e
-                                                                                    .target
-                                                                                    .value
-                                                                            )
-                                                                        ),
-                                                                        volumePricing.maxSize
-                                                                    )
-                                                                setVolumeSize(
-                                                                    val
-                                                                )
-                                                            }}
-                                                            className='h-8 w-20 text-center text-sm'
-                                                        />
-                                                        <span className='text-muted-foreground text-sm'>
-                                                            {t(
-                                                                'createClaw.volumeUnit'
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                    <span className='text-muted-foreground text-xs'>
-                                                        {t(
-                                                            'createClaw.volumeMax'
-                                                        )}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
+                    <AdvancedOptions
+                        showAdvanced={showAdvanced}
+                        onToggleAdvanced={() => setShowAdvanced(!showAdvanced)}
+                        password={password}
+                        onPasswordChange={setPassword}
+                        showPassword={showPassword}
+                        onToggleShowPassword={() =>
+                            setShowPassword(!showPassword)
+                        }
+                        sshKeys={sshKeys}
+                        selectedSshKeyId={selectedSshKeyId}
+                        onSshKeyChange={setSelectedSshKeyId}
+                        onNavigateToSSHKeys={onNavigateToSSHKeys}
+                        volumePricing={volumePricing}
+                        volumeSize={volumeSize}
+                        onVolumeSizeChange={setVolumeSize}
+                    />
 
                     {selectedPlan && (
-                        <div className='bg-muted space-y-2 rounded-lg p-4'>
-                            {name && (
-                                <div className='flex justify-between text-sm'>
-                                    <span className='text-muted-foreground'>
-                                        {t('createClaw.clawName')}
-                                    </span>
-                                    <span>{name}</span>
-                                </div>
-                            )}
-                            {location && (
-                                <div className='flex justify-between text-sm'>
-                                    <span className='text-muted-foreground'>
-                                        {t('createClaw.location')}
-                                    </span>
-                                    <span>
-                                        {locations.find(
-                                            (l) => l.id === location
-                                        )?.city || location}
-                                    </span>
-                                </div>
-                            )}
-                            <div className='flex justify-between text-sm'>
-                                <span className='text-muted-foreground'>
-                                    {selectedPlan.name.replace(
-                                        /([A-Za-z])(\d)/,
-                                        '$1 $2'
-                                    )}
-                                </span>
-                                <span>
-                                    $
-                                    {billingCycle === billingInterval.YEAR
-                                        ? selectedPlan.priceYearly.toFixed(2)
-                                        : selectedPlan.priceMonthly.toFixed(2)}
-                                    {billingCycle === billingInterval.YEAR
-                                        ? t('landing.perYear')
-                                        : t('landing.perMonth')}
-                                </span>
-                            </div>
-                            {volumeSize > 0 && volumePricing && (
-                                <div className='flex justify-between text-sm'>
-                                    <span className='text-muted-foreground'>
-                                        {t('createClaw.storageWithSize')} (
-                                        {volumeSize} GB)
-                                    </span>
-                                    <span>
-                                        +$
-                                        {(billingCycle === billingInterval.YEAR
-                                            ? volumeSize * volumePricing.pricePerGbMonthly * 10
-                                            : volumeSize * volumePricing.pricePerGbMonthly
-                                        ).toFixed(2)}
-                                        {billingCycle === billingInterval.YEAR
-                                            ? t('landing.perYear')
-                                            : t('landing.perMonth')}
-                                    </span>
-                                </div>
-                            )}
-                            {billingCycle === billingInterval.YEAR && (
-                                <div className='flex justify-between text-sm text-emerald-600 dark:text-emerald-400'>
-                                    <span>
-                                        {t('createClaw.yearlySavings')}
-                                    </span>
-                                    <span>
-                                        -$
-                                        {(
-                                            (selectedPlan.priceMonthly * 12 - selectedPlan.priceYearly) +
-                                            (volumeSize > 0 && volumePricing
-                                                ? volumeSize * volumePricing.pricePerGbMonthly * 2
-                                                : 0)
-                                        ).toFixed(2)}
-                                    </span>
-                                </div>
-                            )}
-                            <div className='border-border flex justify-between border-t pt-2 text-sm'>
-                                <span className='text-muted-foreground'>
-                                    {billingCycle === billingInterval.YEAR
-                                        ? t('createClaw.totalYearly')
-                                        : t('createClaw.totalMonthly')}
-                                </span>
-                                <span className='font-semibold'>
-                                    $
-                                    {(billingCycle === billingInterval.YEAR
-                                        ? selectedPlan.priceYearly +
-                                          (volumeSize > 0 && volumePricing
-                                              ? volumeSize * volumePricing.pricePerGbMonthly * 10
-                                              : 0)
-                                        : selectedPlan.priceMonthly +
-                                          (volumeSize > 0 && volumePricing
-                                              ? volumeSize * volumePricing.pricePerGbMonthly
-                                              : 0)
-                                    ).toFixed(2)}
-                                    {billingCycle === billingInterval.YEAR
-                                        ? t('landing.perYear')
-                                        : t('landing.perMonth')}
-                                </span>
-                            </div>
-                        </div>
+                        <OrderSummary
+                            selectedPlan={selectedPlan}
+                            name={name}
+                            location={location}
+                            locations={locations}
+                            billingCycle={billingCycle}
+                            volumeSize={volumeSize}
+                            volumePricing={volumePricing}
+                        />
                     )}
 
                     <label className='flex cursor-pointer items-start gap-2'>
@@ -1241,16 +385,7 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                                 : !location
                                   ? t('createClaw.selectLocationToContinue')
                                   : t('createClaw.proceedToPayment', {
-                                        amount: (billingCycle === billingInterval.YEAR
-                                            ? selectedPlan.priceYearly +
-                                              (volumeSize > 0 && volumePricing
-                                                  ? volumeSize * volumePricing.pricePerGbMonthly * 10
-                                                  : 0)
-                                            : selectedPlan.priceMonthly +
-                                              (volumeSize > 0 && volumePricing
-                                                  ? volumeSize * volumePricing.pricePerGbMonthly
-                                                  : 0)
-                                        ).toFixed(2)
+                                        amount: totalAmount
                                     })}
                         </Button>
                     </div>

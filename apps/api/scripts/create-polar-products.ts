@@ -2,83 +2,37 @@ import 'dotenv/config'
 import { Polar } from '@polar-sh/sdk'
 import { getProvider } from '@/services/provider'
 
-const customPrices: Record<string, Record<string, number>> = {
-    hetzner: {
-        cx23: 25,
-        cx33: 35,
-        cx43: 50,
-        cx53: 60,
-        cpx11: 30,
-        cpx21: 40,
-        cpx31: 50,
-        cpx41: 75,
-        cpx51: 120,
-        cax11: 30,
-        cax21: 40,
-        cax31: 50,
-        cax41: 75,
-        ccx13: 40,
-        ccx23: 60,
-        ccx33: 90,
-        ccx43: 140,
-        ccx53: 250,
-        ccx63: 350
-    },
-    digitalocean: {
-        's-1vcpu-512mb-10gb': 10,
-        's-1vcpu-1gb': 15,
-        's-1vcpu-2gb': 20,
-        's-2vcpu-2gb': 30,
-        's-2vcpu-4gb': 50,
-        's-4vcpu-8gb': 75,
-        's-8vcpu-16gb': 150
-    },
-    vultr: {
-        'vc2-1c-1gb': 10,
-        'vc2-1c-2gb': 20,
-        'vc2-2c-2gb': 30,
-        'vc2-2c-4gb': 40,
-        'vc2-4c-8gb': 80,
-        'vc2-6c-16gb': 160,
-        'vc2-8c-32gb': 320,
-        'vc2-16c-64gb': 500,
-        'vhp-1c-1gb-amd': 12,
-        'vhp-1c-2gb-amd': 24,
-        'vhp-2c-2gb-amd': 32,
-        'vhp-2c-4gb-amd': 48,
-        'vhp-4c-8gb-amd': 120,
-        'vhp-4c-12gb-amd': 180,
-        'vhp-8c-16gb-amd': 192,
-        'vhp-12c-24gb-amd': 250,
-        'vhf-1c-2gb': 24,
-        'vhf-2c-4gb': 48,
-        'vhf-3c-8gb': 96,
-        'vhf-4c-16gb': 125,
-        'vhf-8c-32gb': 192,
-        'vhf-12c-48gb': 500
-    }
+const serverPrices: Record<string, number> = {
+    cx23: 25,
+    cx33: 35,
+    cx43: 50,
+    cx53: 60,
+    cpx11: 30,
+    cpx21: 40,
+    cpx31: 50,
+    cpx41: 75,
+    cpx51: 120,
+    cax11: 30,
+    cax21: 40,
+    cax31: 50,
+    cax41: 75,
+    ccx13: 40,
+    ccx23: 60,
+    ccx33: 90,
+    ccx43: 140,
+    ccx53: 250,
+    ccx63: 350
 }
 
 const ANNUAL_DISCOUNT_MONTHS = 10
 
 async function main() {
-    const providerName = (process.argv[2] || 'hetzner') as
-        | 'hetzner'
-        | 'digitalocean'
-        | 'vultr'
-
-    const billingInterval = (process.argv[3] || 'both') as
+    const billingInterval = (process.argv[2] || 'both') as
         | 'month'
         | 'year'
         | 'both'
 
-    const prices = customPrices[providerName]
-    if (!prices) {
-        console.error(`❌ Unknown provider: ${providerName}`)
-        process.exit(1)
-    }
-
-    console.log(`🚀 Creating Polar products for ${providerName} plans (${billingInterval})...\n`)
+    console.log(`🚀 Creating Polar products (${billingInterval})...\n`)
 
     const accessToken = process.env.POLAR_ACCESS_TOKEN
 
@@ -89,13 +43,13 @@ async function main() {
 
     const polar = new Polar({ accessToken })
 
-    console.log(`📦 Fetching ${providerName} server types...`)
-    const provider = getProvider(providerName)
+    console.log('📦 Fetching server types...')
+    const provider = getProvider()
     const serverTypes = await provider.getServerTypes()
     console.log(`   Found ${serverTypes.length} server types\n`)
 
     const whitelistedPlans = serverTypes.filter(
-        (st) => prices[st.name] !== undefined
+        (st) => serverPrices[st.name] !== undefined
     )
     console.log(`   ${whitelistedPlans.length} plans in whitelist\n`)
 
@@ -108,25 +62,25 @@ async function main() {
     const envLines: string[] = []
 
     const intervals: Array<'month' | 'year'> =
-        billingInterval === 'both'
-            ? ['month', 'year']
-            : [billingInterval]
+        billingInterval === 'both' ? ['month', 'year'] : [billingInterval]
 
     for (const plan of whitelistedPlans) {
-        const priceMonthly = prices[plan.name]
+        const priceMonthly = serverPrices[plan.name]
 
         for (const interval of intervals) {
-            const priceCents = interval === 'year'
-                ? Math.round(priceMonthly * ANNUAL_DISCOUNT_MONTHS * 100)
-                : Math.round(priceMonthly * 100)
+            const priceCents =
+                interval === 'year'
+                    ? Math.round(priceMonthly * ANNUAL_DISCOUNT_MONTHS * 100)
+                    : Math.round(priceMonthly * 100)
 
             const intervalLabel = interval === 'year' ? 'Yearly' : 'Monthly'
             const productName = `Claw - ${plan.description} (${intervalLabel})`
             const productDescription = `${plan.description} (${plan.cores} vCPU, ${plan.memory}GB RAM, ${plan.disk}GB SSD)`
 
-            const displayPrice = interval === 'year'
-                ? `$${(priceMonthly * ANNUAL_DISCOUNT_MONTHS).toFixed(0)}/yr`
-                : `$${priceMonthly}/mo`
+            const displayPrice =
+                interval === 'year'
+                    ? `$${(priceMonthly * ANNUAL_DISCOUNT_MONTHS).toFixed(0)}/yr`
+                    : `$${priceMonthly}/mo`
 
             console.log(`Creating: ${productName}`)
             console.log(`   Specs: ${productDescription}`)
@@ -173,19 +127,28 @@ async function main() {
 
     if (createdProducts.length > 0) {
         console.log('Add these to your .env file:\n')
-        console.log(`# Polar Product IDs for ${providerName} (auto-generated)`)
+        console.log('# Polar Product IDs (auto-generated)')
         envLines.forEach((line) => console.log(line))
         console.log('')
     }
 
     console.log('\nProduct mapping:')
     console.log('-'.repeat(70))
-    console.log('Plan ID'.padEnd(20) + 'Interval'.padEnd(10) + 'Price'.padEnd(14) + 'Product ID')
+    console.log(
+        'Plan ID'.padEnd(20) +
+            'Interval'.padEnd(10) +
+            'Price'.padEnd(14) +
+            'Product ID'
+    )
     console.log('-'.repeat(70))
     createdProducts.forEach((p) => {
-        const priceLabel = p.interval === 'year' ? `$${p.price}/yr` : `$${p.price}/mo`
+        const priceLabel =
+            p.interval === 'year' ? `$${p.price}/yr` : `$${p.price}/mo`
         console.log(
-            p.planId.padEnd(20) + p.interval.padEnd(10) + priceLabel.padEnd(14) + p.productId
+            p.planId.padEnd(20) +
+                p.interval.padEnd(10) +
+                priceLabel.padEnd(14) +
+                p.productId
         )
     })
     console.log('-'.repeat(70))

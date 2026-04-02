@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { claws } from '@/db/schema'
 import { subscriptions } from '@/lib/polar'
+import { subscriptionStatus } from '@/lib/constants'
 import { findUserClaw, sanitizeClaw } from '@/controllers/claws/helpers'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
@@ -11,8 +12,8 @@ import { t } from '@openclaw/i18n'
 const cancelDeletion = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
-        const claw = await findUserClaw(userId, id)
+        const id = c.req.param('id')!
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)
@@ -35,7 +36,7 @@ const cancelDeletion = async (c: AuthenticatedContext) => {
             .update(claws)
             .set({
                 deletionScheduledAt: null,
-                subscriptionStatus: 'active'
+                subscriptionStatus: subscriptionStatus.active
             })
             .where(eq(claws.id, id))
 
@@ -44,7 +45,7 @@ const cancelDeletion = async (c: AuthenticatedContext) => {
             sanitizeClaw({
                 ...claw,
                 deletionScheduledAt: null,
-                subscriptionStatus: 'active'
+                subscriptionStatus: subscriptionStatus.active
             }),
             t('api.clawDeletionCancelled')
         )

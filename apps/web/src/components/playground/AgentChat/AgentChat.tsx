@@ -10,16 +10,21 @@ import type {
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { t } from '@openclaw/i18n'
 import { GearSixIcon, PaperPlaneRightIcon } from '@phosphor-icons/react'
-import { useAgentChat, useScrollToBottom } from '@/hooks'
-import useTextToSpeech from '@/hooks/useTextToSpeech'
-import { ScrollToBottomButton } from '@/components'
+import { useAgentChat, useScrollToBottom, useTextToSpeech } from '@/hooks'
+import {
+    CHAT_MESSAGE_ROLE,
+    CHAT_TYPING_INDICATOR,
+    GATEWAY_CONNECTION_STATE,
+    PRODUCT
+} from '@/lib/constants'
+import { ScrollToBottomButton } from '@/components/shared'
 import ChatBubble from '@/components/playground/AgentChat/ChatBubble'
 import ChatInput from '@/components/playground/AgentChat/ChatInput'
 import ChatEmptyState from '@/components/playground/AgentChat/ChatEmptyState'
 import ChatSkeleton from '@/components/playground/AgentChat/ChatSkeleton'
 import ChatDateSeparator from '@/components/playground/AgentChat/ChatDateSeparator'
 import { getLocale } from '@/lib'
-import usePreferencesStore from '@/lib/store/usePreferencesStore'
+import { usePreferencesStore } from '@/lib/store'
 import ChatTypingIndicator from '@/components/playground/AgentChat/ChatTypingIndicator'
 import VoiceModeOverlay from '@/components/playground/AgentChat/VoiceModeOverlay'
 
@@ -51,7 +56,7 @@ const AgentChat: FC<AgentChatProps> = ({
     onConnectionStateChange
 }): ReactNode => {
     const product = usePreferencesStore((s) => s.product)
-    const isGo = product === 'go'
+    const isGo = product === PRODUCT.GO
     const {
         scrollRef,
         showButton,
@@ -138,34 +143,45 @@ const AgentChat: FC<AgentChatProps> = ({
         }
     }, [])
 
-    const getInitialMessages = useCallback((id: string, name?: string) => {
-        if (!readOnlyChatStore[id]) {
-            const now = new Date().toLocaleTimeString(getLocale(), {
-                hour: '2-digit',
-                minute: '2-digit'
-            })
-            const isAlt = name && name.toLowerCase().includes('test')
-            const userKey = isGo
-                ? (isAlt ? 'playground.chatReadOnlyGoUser2' : 'playground.chatReadOnlyGoUser')
-                : (isAlt ? 'playground.chatReadOnlyUser2' : 'playground.chatReadOnlyUser')
-            const assistantKey = isGo
-                ? (isAlt ? 'playground.chatReadOnlyGoAssistant2' : 'playground.chatReadOnlyGoAssistant')
-                : (isAlt ? 'playground.chatReadOnlyAssistant2' : 'playground.chatReadOnlyAssistant')
-            readOnlyChatStore[id] = [
-                {
-                    role: 'user',
-                    text: t(userKey),
-                    time: now
-                },
-                {
-                    role: 'assistant',
-                    text: t(assistantKey),
-                    time: now
-                }
-            ]
-        }
-        return readOnlyChatStore[id]
-    }, [isGo])
+    const getInitialMessages = useCallback(
+        (id: string, name?: string) => {
+            if (!readOnlyChatStore[id]) {
+                const now = new Date().toLocaleTimeString(getLocale(), {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+                const isAlt = name && name.toLowerCase().includes('test')
+                const userKey = isGo
+                    ? isAlt
+                        ? 'playground.chatReadOnlyGoUser2'
+                        : 'playground.chatReadOnlyGoUser'
+                    : isAlt
+                      ? 'playground.chatReadOnlyUser2'
+                      : 'playground.chatReadOnlyUser'
+                const assistantKey = isGo
+                    ? isAlt
+                        ? 'playground.chatReadOnlyGoAssistant2'
+                        : 'playground.chatReadOnlyGoAssistant'
+                    : isAlt
+                      ? 'playground.chatReadOnlyAssistant2'
+                      : 'playground.chatReadOnlyAssistant'
+                readOnlyChatStore[id] = [
+                    {
+                        role: CHAT_MESSAGE_ROLE.USER,
+                        text: t(userKey),
+                        time: now
+                    },
+                    {
+                        role: CHAT_MESSAGE_ROLE.ASSISTANT,
+                        text: t(assistantKey),
+                        time: now
+                    }
+                ]
+            }
+            return readOnlyChatStore[id]
+        },
+        [isGo]
+    )
     const [readOnlyMessages, setReadOnlyMessages] = useState(() =>
         getInitialMessages(agentId, agentName)
     )
@@ -192,7 +208,7 @@ const AgentChat: FC<AgentChatProps> = ({
         })
         setReadOnlyMessages((prev) => [
             ...prev,
-            { role: 'user', text, time: now }
+            { role: CHAT_MESSAGE_ROLE.USER, text, time: now }
         ])
         setReadOnlyInput('')
         setReadOnlyTyping(true)
@@ -210,8 +226,12 @@ const AgentChat: FC<AgentChatProps> = ({
             setReadOnlyMessages((prev) => [
                 ...prev,
                 {
-                    role: 'assistant',
-                    text: t(isGo ? 'playground.chatReadOnlyGoReply' : 'playground.chatReadOnlyReply'),
+                    role: CHAT_MESSAGE_ROLE.ASSISTANT,
+                    text: t(
+                        isGo
+                            ? 'playground.chatReadOnlyGoReply'
+                            : 'playground.chatReadOnlyReply'
+                    ),
                     time: replyTime
                 }
             ])
@@ -235,18 +255,18 @@ const AgentChat: FC<AgentChatProps> = ({
                     {readOnlyMessages.map((msg, i) => (
                         <div
                             key={i}
-                            className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} gap-1`}
+                            className={`flex flex-col ${msg.role === CHAT_MESSAGE_ROLE.USER ? 'items-end' : 'items-start'} gap-1`}
                         >
                             <div
                                 className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 ${
-                                    msg.role === 'user'
+                                    msg.role === CHAT_MESSAGE_ROLE.USER
                                         ? 'rounded-br-md bg-[#ef5350]/15'
                                         : 'bg-foreground/5 rounded-bl-md'
                                 }`}
                             >
                                 <p
                                     className={`text-sm ${
-                                        msg.role === 'user'
+                                        msg.role === CHAT_MESSAGE_ROLE.USER
                                             ? 'text-foreground/90'
                                             : 'text-foreground/80'
                                     }`}
@@ -260,7 +280,11 @@ const AgentChat: FC<AgentChatProps> = ({
                         </div>
                     ))}
                     <ChatTypingIndicator
-                        state={readOnlyTyping ? 'writing' : null}
+                        state={
+                            readOnlyTyping
+                                ? CHAT_TYPING_INDICATOR.WRITING
+                                : null
+                        }
                     />
                 </div>
                 <div className='bg-background border-border border-t p-3'>
@@ -334,9 +358,10 @@ const AgentChat: FC<AgentChatProps> = ({
         )
     }
 
-    const isConnected = connectionState === 'connected'
+    const isConnected = connectionState === GATEWAY_CONNECTION_STATE.CONNECTED
     const isError =
-        connectionState === 'error' || connectionState === 'disconnected'
+        connectionState === GATEWAY_CONNECTION_STATE.ERROR ||
+        connectionState === GATEWAY_CONNECTION_STATE.DISCONNECTED
 
     if (isLoading) {
         return (
@@ -418,7 +443,9 @@ const AgentChat: FC<AgentChatProps> = ({
                 ref={chatInputRef}
                 isConnected={isConnected}
                 isStreaming={isStreaming}
-                isProcessing={typingIndicator === 'thinking'}
+                isProcessing={
+                    typingIndicator === CHAT_TYPING_INDICATOR.THINKING
+                }
                 onSend={handleSend}
                 onAbort={abortResponse}
                 allowAttach

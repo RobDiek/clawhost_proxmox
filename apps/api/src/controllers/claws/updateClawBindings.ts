@@ -1,12 +1,18 @@
 import type { UpdateClawBindingsBody } from '@/ts/Interfaces'
 import type { AuthenticatedContext } from '@/ts/Types'
 
+import { versionGatedFeature } from '@openclaw/shared'
 import executeSSH from '@/services/ssh'
-import { applyToolsDefaults, findUserClaw } from '@/controllers/claws/helpers'
+import {
+    applyToolsDefaults,
+    BASE_DIR,
+    findUserClaw,
+    checkFeatureVersion,
+    parseJsonFromSSH,
+    writeConfigAndRestart
+} from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
-
-const BASE_DIR = '/home/openclaw/.openclaw'
 
 const SUPPORTED_CHANNELS = new Set([
     'whatsapp',
@@ -19,7 +25,7 @@ const SUPPORTED_CHANNELS = new Set([
 const updateClawBindings = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const body = await c.req.json<UpdateClawBindingsBody>()
 
         if (!Array.isArray(body.bindings)) {
@@ -40,7 +46,7 @@ const updateClawBindings = async (c: AuthenticatedContext) => {
             return fail(c, t('api.bindingsDuplicateChannel'), 400)
         }
 
-        const claw = await findUserClaw(userId, id)
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)
@@ -51,6 +57,21 @@ const updateClawBindings = async (c: AuthenticatedContext) => {
         }
 
         try {
+            const { supported, version } = await checkFeatureVersion(
+                claw.ip,
+                claw.rootPassword,
+                versionGatedFeature.bindings
+            )
+
+            if (!supported) {
+                return fail(
+                    c,
+                    t('api.featureVersionUnsupported', { version }),
+                    400,
+                    { version }
+                )
+            }
+
             const output = await executeSSH(
                 claw.ip,
                 claw.rootPassword,
@@ -58,19 +79,7 @@ const updateClawBindings = async (c: AuthenticatedContext) => {
                 5000
             )
 
-            let config: Record<string, unknown> = {}
-            try {
-                const trimmed = output.trim()
-                const jsonStart = trimmed.indexOf('{')
-                const jsonEnd = trimmed.lastIndexOf('}')
-                const jsonStr =
-                    jsonStart >= 0 && jsonEnd > jsonStart
-                        ? trimmed.substring(jsonStart, jsonEnd + 1)
-                        : '{}'
-                config = JSON.parse(jsonStr)
-            } catch {
-                config = {}
-            }
+            const config = parseJsonFromSSH(output)
 
             applyToolsDefaults(config)
 
@@ -85,15 +94,7 @@ const updateClawBindings = async (c: AuthenticatedContext) => {
 
             config.bindings = body.bindings
 
-            const configJson = JSON.stringify(config, null, 4)
-            const configB64 = Buffer.from(configJson).toString('base64')
-
-            await executeSSH(
-                claw.ip,
-                claw.rootPassword,
-                `echo '${configB64}' | base64 -d > ${BASE_DIR}/openclaw.json && (su - openclaw -c "openclaw doctor --fix" || true) && systemctl restart openclaw-gateway`,
-                20000
-            )
+            await writeConfigAndRestart(claw.ip, claw.rootPassword, config)
 
             return ok(c, null, t('api.bindingsUpdated'))
         } catch {

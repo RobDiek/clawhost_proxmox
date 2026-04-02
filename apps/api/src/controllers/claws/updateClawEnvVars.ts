@@ -2,16 +2,18 @@ import type { UpdateClawEnvVarsBody } from '@/ts/Interfaces'
 import type { AuthenticatedContext } from '@/ts/Types'
 
 import executeSSH from '@/services/ssh'
-import { findUserClaw, validateEnvVars } from '@/controllers/claws/helpers'
+import {
+    BASE_DIR,
+    findUserClaw,
+    validateEnvVars
+} from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
-
-const BASE_DIR = '/home/openclaw/.openclaw'
 
 const updateClawEnvVars = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const body = await c.req.json<UpdateClawEnvVarsBody>()
 
         if (!body.envVars || typeof body.envVars !== 'object') {
@@ -22,7 +24,7 @@ const updateClawEnvVars = async (c: AuthenticatedContext) => {
             return fail(c, t('api.invalidEnvVars'), 400)
         }
 
-        const claw = await findUserClaw(userId, id)
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)

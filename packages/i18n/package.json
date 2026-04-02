@@ -7,8 +7,14 @@
     "exports": {
         ".": "./src/index.ts"
     },
+    "imports": {
+        "#i18n/*": "./src/*"
+    },
     "scripts": {
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "validate": "tsx scripts/validate.ts",
+        "test": "vitest run",
+        "test:watch": "vitest"
     },
     "devDependencies": {
         "typescript": "^5.6.3"

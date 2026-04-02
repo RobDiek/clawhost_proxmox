@@ -1,17 +1,23 @@
 import type { DeleteClawAgentBody } from '@/ts/Interfaces'
 import type { AuthenticatedContext } from '@/ts/Types'
 
+import { versionGatedFeature } from '@openclaw/shared'
 import executeSSH from '@/services/ssh'
-import { applyToolsDefaults, findUserClaw } from '@/controllers/claws/helpers'
+import {
+    applyToolsDefaults,
+    BASE_DIR,
+    findUserClaw,
+    checkFeatureVersion,
+    parseJsonFromSSH,
+    writeConfigAndRestart
+} from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
-
-const BASE_DIR = '/home/openclaw/.openclaw'
 
 const deleteClawAgent = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const body = await c.req.json<DeleteClawAgentBody>()
 
         if (!body.agentId || typeof body.agentId !== 'string') {
@@ -22,7 +28,7 @@ const deleteClawAgent = async (c: AuthenticatedContext) => {
             return fail(c, t('api.cannotDeleteMainAgent'), 400)
         }
 
-        const claw = await findUserClaw(userId, id)
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)
@@ -33,6 +39,21 @@ const deleteClawAgent = async (c: AuthenticatedContext) => {
         }
 
         try {
+            const { supported, version } = await checkFeatureVersion(
+                claw.ip,
+                claw.rootPassword,
+                versionGatedFeature.agents
+            )
+
+            if (!supported) {
+                return fail(
+                    c,
+                    t('api.featureVersionUnsupported', { version }),
+                    400,
+                    { version }
+                )
+            }
+
             const configOutput = await executeSSH(
                 claw.ip,
                 claw.rootPassword,
@@ -40,12 +61,7 @@ const deleteClawAgent = async (c: AuthenticatedContext) => {
                 5000
             )
 
-            let config: Record<string, unknown> = {}
-            try {
-                config = JSON.parse(configOutput.trim())
-            } catch {
-                config = {}
-            }
+            const config = parseJsonFromSSH(configOutput)
 
             const commands = (config.commands || {}) as Record<string, unknown>
             commands.restart = true
@@ -85,15 +101,7 @@ const deleteClawAgent = async (c: AuthenticatedContext) => {
             })
             agents.list = agentList
 
-            const configJson = JSON.stringify(config, null, 4)
-            const configB64 = Buffer.from(configJson).toString('base64')
-
-            await executeSSH(
-                claw.ip,
-                claw.rootPassword,
-                `echo '${configB64}' | base64 -d > ${BASE_DIR}/openclaw.json && (su - openclaw -c "openclaw doctor --fix" || true) && systemctl restart openclaw-gateway`,
-                20000
-            )
+            await writeConfigAndRestart(claw.ip, claw.rootPassword, config)
 
             return ok(c, null, t('api.agentDeleted'))
         } catch {

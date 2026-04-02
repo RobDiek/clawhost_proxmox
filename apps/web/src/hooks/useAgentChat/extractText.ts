@@ -1,10 +1,12 @@
 import type { RawChatContentObject } from '@/ts/Interfaces'
 
+import { CHAT_CONTENT_BLOCK_TYPE } from '@/lib/constants'
+
 const extractText = (content: unknown): string => {
     if (typeof content === 'string') return content
     if (Array.isArray(content)) {
         return content
-            .filter((c) => c.type === 'text')
+            .filter((c) => c.type === CHAT_CONTENT_BLOCK_TYPE.TEXT)
             .map((c) => c.text)
             .join('\n')
     }

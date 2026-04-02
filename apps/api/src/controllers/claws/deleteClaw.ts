@@ -1,9 +1,10 @@
-import type { AuthenticatedContext, ProviderType } from '@/ts/Types'
+import type { AuthenticatedContext } from '@/ts/Types'
 
 import { eq, and } from 'drizzle-orm'
 import { db } from '@/db'
 import { claws, pendingClaws } from '@/db/schema'
 import { subscriptions, checkouts } from '@/lib/polar'
+import { subscriptionStatus } from '@/lib/constants'
 import {
     cleanupClaw,
     findUserClaw,
@@ -15,7 +16,7 @@ import { ok, fail } from '@/lib/response'
 const deleteClaw = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
 
         if (id.startsWith('pending-')) {
             const pendingId = id.replace('pending-', '')
@@ -46,7 +47,7 @@ const deleteClaw = async (c: AuthenticatedContext) => {
             return ok(c, { scheduled: false }, t('api.clawDeleted'))
         }
 
-        const claw = await findUserClaw(userId, id)
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)
@@ -63,7 +64,7 @@ const deleteClaw = async (c: AuthenticatedContext) => {
                         .update(claws)
                         .set({
                             deletionScheduledAt: sub.currentPeriodEnd,
-                            subscriptionStatus: 'canceled'
+                            subscriptionStatus: subscriptionStatus.canceled
                         })
                         .where(eq(claws.id, id))
 
@@ -76,7 +77,7 @@ const deleteClaw = async (c: AuthenticatedContext) => {
                             claw: sanitizeClaw({
                                 ...claw,
                                 deletionScheduledAt: sub.currentPeriodEnd,
-                                subscriptionStatus: 'canceled'
+                                subscriptionStatus: subscriptionStatus.canceled
                             })
                         },
                         t('api.clawDeletionScheduled')
@@ -102,7 +103,6 @@ const deleteClaw = async (c: AuthenticatedContext) => {
                       })
                 : Promise.resolve(),
             cleanupClaw(id, {
-                provider: (claw.provider || 'hetzner') as ProviderType,
                 providerServerId: claw.providerServerId,
                 subdomain: claw.subdomain
             })

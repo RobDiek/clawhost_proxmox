@@ -1,7 +1,6 @@
 import type {
     CacheEntry,
     PolarItemsResult,
-    PolarProductMapping,
     PolarProductRaw
 } from '@/ts/Interfaces'
 import type { PolarPriceMap } from '@/ts/Types'
@@ -13,70 +12,42 @@ const PRICE_CACHE_TTL = 60 * 60 * 1000
 
 let priceCache: CacheEntry<PolarPriceMap> | null = null
 
-const POLAR_TO_PLAN: Record<string, PolarProductMapping> = {
-    'CX23': { provider: 'hetzner', planId: 'cx23' },
-    'CX33': { provider: 'hetzner', planId: 'cx33' },
-    'CX43': { provider: 'hetzner', planId: 'cx43' },
-    'CX53': { provider: 'hetzner', planId: 'cx53' },
-    'CPX11': { provider: 'hetzner', planId: 'cpx11' },
-    'CPX21': { provider: 'hetzner', planId: 'cpx21' },
-    'CPX31': { provider: 'hetzner', planId: 'cpx31' },
-    'CPX41': { provider: 'hetzner', planId: 'cpx41' },
-    'CPX51': { provider: 'hetzner', planId: 'cpx51' },
-    'CAX11': { provider: 'hetzner', planId: 'cax11' },
-    'CAX21': { provider: 'hetzner', planId: 'cax21' },
-    'CAX31': { provider: 'hetzner', planId: 'cax31' },
-    'CAX41': { provider: 'hetzner', planId: 'cax41' },
-    'CCX13': { provider: 'hetzner', planId: 'ccx13' },
-    'CCX23': { provider: 'hetzner', planId: 'ccx23' },
-    'CCX33': { provider: 'hetzner', planId: 'ccx33' },
-    'CCX43': { provider: 'hetzner', planId: 'ccx43' },
-    'CCX53': { provider: 'hetzner', planId: 'ccx53' },
-    'CCX63': { provider: 'hetzner', planId: 'ccx63' },
-    'DC11': { provider: 'digitalocean', planId: 's-1vcpu-512mb-10gb' },
-    'DC12': { provider: 'digitalocean', planId: 's-1vcpu-1gb' },
-    'DC13': { provider: 'digitalocean', planId: 's-1vcpu-2gb' },
-    'DC21': { provider: 'digitalocean', planId: 's-2vcpu-2gb' },
-    'DC22': { provider: 'digitalocean', planId: 's-2vcpu-4gb' },
-    'DC41': { provider: 'digitalocean', planId: 's-4vcpu-8gb' },
-    'DC81': { provider: 'digitalocean', planId: 's-8vcpu-16gb' },
-    'VC11': { provider: 'vultr', planId: 'vc2-1c-1gb' },
-    'VC12': { provider: 'vultr', planId: 'vc2-1c-2gb' },
-    'VC21': { provider: 'vultr', planId: 'vc2-2c-2gb' },
-    'VC22': { provider: 'vultr', planId: 'vc2-2c-4gb' },
-    'VC41': { provider: 'vultr', planId: 'vc2-4c-8gb' },
-    'VC61': { provider: 'vultr', planId: 'vc2-6c-16gb' },
-    'VC81': { provider: 'vultr', planId: 'vc2-8c-32gb' },
-    'VC161': { provider: 'vultr', planId: 'vc2-16c-64gb' },
-    'VF11': { provider: 'vultr', planId: 'vhf-1c-2gb' },
-    'VF21': { provider: 'vultr', planId: 'vhf-2c-4gb' },
-    'VF31': { provider: 'vultr', planId: 'vhf-3c-8gb' },
-    'VF41': { provider: 'vultr', planId: 'vhf-4c-16gb' },
-    'VF81': { provider: 'vultr', planId: 'vhf-8c-32gb' },
-    'VF121': { provider: 'vultr', planId: 'vhf-12c-48gb' },
-    'VA11': { provider: 'vultr', planId: 'vhp-1c-1gb-amd' },
-    'VA12': { provider: 'vultr', planId: 'vhp-1c-2gb-amd' },
-    'VA21': { provider: 'vultr', planId: 'vhp-2c-2gb-amd' },
-    'VA22': { provider: 'vultr', planId: 'vhp-2c-4gb-amd' },
-    'VA41': { provider: 'vultr', planId: 'vhp-4c-8gb-amd' },
-    'VA42': { provider: 'vultr', planId: 'vhp-4c-12gb-amd' },
-    'VA81': { provider: 'vultr', planId: 'vhp-8c-16gb-amd' },
-    'VA121': { provider: 'vultr', planId: 'vhp-12c-24gb-amd' }
+const POLAR_TO_PLAN: Record<string, string> = {
+    CX23: 'cx23',
+    CX33: 'cx33',
+    CX43: 'cx43',
+    CX53: 'cx53',
+    CPX11: 'cpx11',
+    CPX21: 'cpx21',
+    CPX31: 'cpx31',
+    CPX41: 'cpx41',
+    CPX51: 'cpx51',
+    CAX11: 'cax11',
+    CAX21: 'cax21',
+    CAX31: 'cax31',
+    CAX41: 'cax41',
+    CCX13: 'ccx13',
+    CCX23: 'ccx23',
+    CCX33: 'ccx33',
+    CCX43: 'ccx43',
+    CCX53: 'ccx53',
+    CCX63: 'ccx63'
 }
 
-const parseEnvVarMapping = (): Map<string, PolarProductMapping> => {
-    const mapping = new Map<string, PolarProductMapping>()
+const parseEnvVarMapping = (): Map<string, string> => {
+    const mapping = new Map<string, string>()
 
     for (const [key, value] of Object.entries(process.env)) {
         if (!key.startsWith('POLAR_PRODUCT_') || !value?.trim()) continue
 
-        const slug = key.slice('POLAR_PRODUCT_'.length)
+        const slug = key
+            .slice('POLAR_PRODUCT_'.length)
             .replace(/_MONTHLY$/, '')
             .replace(/_YEARLY$/, '')
 
         const productId = value.trim()
-        const plan = POLAR_TO_PLAN[slug]
-        if (plan) mapping.set(productId, plan)
+        const planId = POLAR_TO_PLAN[slug]
+        if (planId) mapping.set(productId, planId)
     }
 
     return mapping
@@ -113,17 +84,13 @@ const fetchPricesFromPolar = async (): Promise<PolarPriceMap> => {
     for (const product of allItems) {
         if (product.isArchived) continue
 
-        const mapping = envMapping.get(product.id)
-        if (!mapping) continue
+        const planId = envMapping.get(product.id)
+        if (!planId) continue
 
         const price = product.prices?.[0]
         if (!price) continue
 
-        if (!priceMap[mapping.provider]) {
-            priceMap[mapping.provider] = {}
-        }
-
-        priceMap[mapping.provider][mapping.planId] = price.priceAmount / 100
+        priceMap[planId] = price.priceAmount / 100
     }
 
     return priceMap

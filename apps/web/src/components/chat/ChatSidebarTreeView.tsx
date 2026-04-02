@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { ChatSidebarTreeViewProps } from '@/ts/Interfaces'
 
-import { useMemo } from 'react'
+import { Fragment, useMemo } from 'react'
 import { getStatusConfig } from '@/lib/claw-utils'
 import ChatSidebarClawHeader from '@/components/chat/ChatSidebarClawHeader'
 import ChatSidebarAgentList from '@/components/chat/ChatSidebarAgentList'
@@ -20,7 +20,7 @@ const ChatSidebarTreeView: FC<ChatSidebarTreeViewProps> = ({
     const statusConfigs = useMemo(() => getStatusConfig(), [])
 
     return (
-        <>
+        <Fragment>
             {clawsWithAgents.map(({ claw, agents, isLoading, isReachable }) => {
                 const status =
                     statusConfigs[claw.status] || statusConfigs.unknown
@@ -55,7 +55,7 @@ const ChatSidebarTreeView: FC<ChatSidebarTreeViewProps> = ({
                     </div>
                 )
             })}
-        </>
+        </Fragment>
     )
 }
 

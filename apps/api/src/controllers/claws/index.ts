@@ -47,6 +47,7 @@ import getClawBindings from '@/controllers/claws/getClawBindings'
 import updateClawBindings from '@/controllers/claws/updateClawBindings'
 import getClawCredentials from '@/controllers/claws/getClawCredentials'
 import cancelPendingClaw from '@/controllers/claws/cancelPendingClaw'
+import provisionClaw from '@/controllers/claws/provisionClaw'
 
 export {
     getClaws,
@@ -97,5 +98,6 @@ export {
     getClawBindings,
     updateClawBindings,
     getClawCredentials,
-    cancelPendingClaw
+    cancelPendingClaw,
+    provisionClaw
 }

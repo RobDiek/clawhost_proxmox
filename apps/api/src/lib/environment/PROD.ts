@@ -1,5 +1,7 @@
 import type { Environment } from '@/ts/Types'
 
-const PROD: Environment = 'production'
+import { environment } from '@/lib/constants'
+
+const PROD: Environment = environment.production
 
 export default PROD

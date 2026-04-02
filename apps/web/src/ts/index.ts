@@ -20,7 +20,8 @@ export type {
     ChatSidebarViewMode,
     UserRole,
     TranscriberFunction,
-    Product
+    Product,
+    ChangelogFeatureType
 } from '@/ts/Types'
 
 export type {
@@ -43,6 +44,8 @@ export type {
     PlaygroundClawNodeData,
     PlaygroundClawNodeProps,
     PlaygroundDetailPanelProps,
+    PlaygroundDetailInfoTabProps,
+    PlaygroundDetailSettingsTabProps,
     PlaygroundToolbarProps,
     PlaygroundVariablesContentProps,
     SSHKey,
@@ -127,8 +130,6 @@ export type {
     FirebaseErrorLike,
     ErrorWithMessage,
     ErrorResponse,
-    ProviderOptionWithIcon,
-    ProviderOption,
     TranscriptionResult,
     AudioContextWithSinkId,
     StatItem,
@@ -141,5 +142,17 @@ export type {
     LandingCTAProps,
     VideoModalProps,
     PricingSectionProps,
-    SelfHostButtonProps
+    SelfHostButtonProps,
+    SimplePlanCardProps,
+    SimplePlanFeature,
+    ChangelogFeature,
+    ChangelogRelease,
+    DashboardHeaderProps,
+    DashboardChatViewProps,
+    DashboardPlaygroundViewProps,
+    UseURLStateRestorationParams,
+    UseInfiniteScrollObserverParams,
+    InfinitePageData,
+    UsePaginationStateParams,
+    UsePaginationStateReturn
 } from '@/ts/Interfaces'

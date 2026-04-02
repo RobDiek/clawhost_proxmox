@@ -28,8 +28,8 @@ ClawHost is an open-source, self-hostable cloud hosting platform that lets anyon
 
 ### Key Highlights
 
-- **One-Click Deploy** — Select a provider, pick a plan, pay, and OpenClaw is live within minutes
-- **Multi-Cloud** — Choose between Hetzner, DigitalOcean, and Vultr as your cloud provider
+- **One-Click Deploy** — Pick a plan, pay, and OpenClaw is live within minutes
+- **Hetzner Cloud** — Reliable, high-performance VPS provisioning powered by Hetzner
 - **Dedicated VPS** — Real servers with full root access, not shared containers
 - **Agent Playground** — Visual canvas for managing AI agents with drag-and-drop workflows
 - **Chat Interface** — Real-time WebSocket chat with your OpenClaw agents
@@ -42,7 +42,7 @@ ClawHost is an open-source, self-hostable cloud hosting platform that lets anyon
 - **Version Management** — View installed OpenClaw version, browse available versions, and upgrade
 - **Automatic SSL** — HTTPS via Let's Encrypt, configured automatically
 - **DNS Management** — Automatic subdomain creation via Cloudflare
-- **SSH Key Management** — Store and assign keys for passwordless access across all providers
+- **SSH Key Management** — Store and assign keys for passwordless access
 - **Persistent Storage** — Attach additional volumes to any instance
 - **Multi-Auth** — Sign in with OTP email, Google, or GitHub
 - **Billing Built-In** — Polar.sh integration for subscriptions, invoicing, and billing portal
@@ -73,43 +73,43 @@ clawhost/
 
 ### Tech Stack
 
-| Layer                   | Technology                                                                                                                      |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **API Framework**       | [Hono](https://hono.dev) on Node.js                                                                                             |
-| **Database**            | PostgreSQL ([Neon](https://neon.tech)) with [Drizzle ORM](https://orm.drizzle.team)                                             |
-| **Authentication**      | [Firebase](https://firebase.google.com) (OTP email, Google, GitHub)                                                             |
-| **Server Provisioning** | [Hetzner Cloud](https://docs.hetzner.cloud), [DigitalOcean](https://docs.digitalocean.com), [Vultr](https://www.vultr.com/api/) |
-| **Remote Management**   | SSH2 for remote command execution, file management, and diagnostics                                                             |
-| **Browser Terminal**    | [xterm.js](https://xtermjs.org) with WebSocket proxy over SSH2                                                                  |
-| **Text-to-Speech**      | [Piper](https://github.com/rhasspy/piper) for local neural TTS synthesis                                                        |
-| **DNS**                 | [Cloudflare API](https://developers.cloudflare.com/api)                                                                         |
-| **Billing**             | [Polar.sh](https://polar.sh)                                                                                                    |
-| **Email**               | [Resend](https://resend.com) with React Email                                                                                   |
-| **Frontend**            | [React 18](https://react.dev) + [Vite](https://vitejs.dev)                                                                      |
-| **UI Components**       | [shadcn/ui](https://ui.shadcn.com) + [Radix UI](https://radix-ui.com) + [Tailwind CSS](https://tailwindcss.com)                 |
-| **Visual Canvas**       | [React Flow](https://reactflow.dev) with [Dagre](https://github.com/dagrejs/dagre) layout                                       |
-| **Code Editor**         | [CodeMirror](https://codemirror.net) via @uiw/react-codemirror                                                                  |
-| **State Management**    | [Zustand](https://zustand-demo.pmnd.rs)                                                                                         |
-| **Data Fetching**       | [TanStack React Query](https://tanstack.com/query)                                                                              |
-| **Icons**               | [Phosphor Icons](https://phosphoricons.com)                                                                                     |
-| **Animations**          | [Framer Motion](https://www.framer.com/motion)                                                                                  |
-| **Blog**                | MDX with frontmatter                                                                                                            |
-| **Mobile**              | [React Native](https://reactnative.dev) + [Expo](https://expo.dev)                                                              |
-| **Desktop**             | [Electron](https://www.electronjs.org) with Electron Forge                                                                      |
-| **Monorepo**            | [Turborepo](https://turbo.build) + [pnpm](https://pnpm.io)                                                                      |
+| Layer                   | Technology                                                                                                      |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **API Framework**       | [Hono](https://hono.dev) on Node.js                                                                             |
+| **Database**            | PostgreSQL ([Neon](https://neon.tech)) with [Drizzle ORM](https://orm.drizzle.team)                             |
+| **Authentication**      | [Firebase](https://firebase.google.com) (OTP email, Google, GitHub)                                             |
+| **Server Provisioning** | [Hetzner Cloud](https://docs.hetzner.cloud)                                                                     |
+| **Remote Management**   | SSH2 for remote command execution, file management, and diagnostics                                             |
+| **Browser Terminal**    | [xterm.js](https://xtermjs.org) with WebSocket proxy over SSH2                                                  |
+| **Text-to-Speech**      | [Piper](https://github.com/rhasspy/piper) for local neural TTS synthesis                                        |
+| **DNS**                 | [Cloudflare API](https://developers.cloudflare.com/api)                                                         |
+| **Billing**             | [Polar.sh](https://polar.sh)                                                                                    |
+| **Email**               | [Resend](https://resend.com) with React Email                                                                   |
+| **Frontend**            | [React 18](https://react.dev) + [Vite](https://vitejs.dev)                                                      |
+| **UI Components**       | [shadcn/ui](https://ui.shadcn.com) + [Radix UI](https://radix-ui.com) + [Tailwind CSS](https://tailwindcss.com) |
+| **Visual Canvas**       | [React Flow](https://reactflow.dev) with [Dagre](https://github.com/dagrejs/dagre) layout                       |
+| **Code Editor**         | [CodeMirror](https://codemirror.net) via @uiw/react-codemirror                                                  |
+| **State Management**    | [Zustand](https://zustand-demo.pmnd.rs)                                                                         |
+| **Data Fetching**       | [TanStack React Query](https://tanstack.com/query)                                                              |
+| **Icons**               | [Phosphor Icons](https://phosphoricons.com)                                                                     |
+| **Animations**          | [Framer Motion](https://www.framer.com/motion)                                                                  |
+| **Blog**                | MDX with frontmatter                                                                                            |
+| **Mobile**              | [React Native](https://reactnative.dev) + [Expo](https://expo.dev)                                              |
+| **Desktop**             | [Electron](https://www.electronjs.org) with Electron Forge                                                      |
+| **Monorepo**            | [Turborepo](https://turbo.build) + [pnpm](https://pnpm.io)                                                      |
 
 ### Database Schema
 
-| Table          | Purpose                                                                  |
-| -------------- | ------------------------------------------------------------------------ |
-| `users`        | Firebase-authenticated users with Polar customer IDs and auth methods    |
-| `claws`        | Cloud server instances across all providers (status, IP, subdomain, etc) |
-| `pendingClaws` | Temporary storage for in-progress checkout sessions                      |
-| `sshKeys`      | SSH public keys with per-provider key IDs                                |
-| `volumes`      | Persistent storage volumes attached to claws                             |
-| `otpCodes`     | OTP authentication codes with expiration and attempt tracking            |
-| `rateLimits`   | Rate limiting for authentication endpoints                               |
-| `clawExports`  | Export/backup records with file metadata                                 |
+| Table          | Purpose                                                               |
+| -------------- | --------------------------------------------------------------------- |
+| `users`        | Firebase-authenticated users with Polar customer IDs and auth methods |
+| `claws`        | Cloud server instances (status, IP, subdomain, etc)                   |
+| `pendingClaws` | Temporary storage for in-progress checkout sessions                   |
+| `sshKeys`      | SSH public keys with Hetzner key IDs                                  |
+| `volumes`      | Persistent storage volumes attached to claws                          |
+| `otpCodes`     | OTP authentication codes with expiration and attempt tracking         |
+| `rateLimits`   | Rate limiting for authentication endpoints                            |
+| `clawExports`  | Export/backup records with file metadata                              |
 
 ## Self-Hosting
 
@@ -124,14 +124,12 @@ clawhost/
 | Service                                         | Purpose                 | What You Need                         |
 | ----------------------------------------------- | ----------------------- | ------------------------------------- |
 | [Hetzner Cloud](https://console.hetzner.cloud)  | Server provisioning     | API Token (Read & Write)              |
-| [DigitalOcean](https://cloud.digitalocean.com)  | Server provisioning     | API Token                             |
-| [Vultr](https://my.vultr.com)                   | Server provisioning     | API Key                               |
 | [Firebase](https://console.firebase.google.com) | Authentication          | Project credentials + Service account |
 | [Cloudflare](https://dash.cloudflare.com)       | DNS management          | API Token + Zone ID                   |
 | [Polar.sh](https://polar.sh)                    | Billing & subscriptions | API credentials + Webhook secret      |
 | [Resend](https://resend.com)                    | Transactional email     | API Key                               |
 
-At least one cloud provider is required. You can configure one, two, or all three.
+A Hetzner Cloud API token is required for server provisioning.
 
 ### 1. Clone & Install
 
@@ -154,10 +152,8 @@ FIREBASE_PROJECT_ID=your-project-id
 FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 
-# Cloud Providers (at least one required)
+# Hetzner Cloud
 HETZNER_API_TOKEN=your-hetzner-api-token
-DIGITALOCEAN_API_TOKEN=your-digitalocean-api-token
-VULTR_API_TOKEN=your-vultr-api-token
 
 # Cloudflare DNS
 CLOUDFLARE_API_TOKEN=your-cloudflare-api-token
@@ -210,26 +206,6 @@ VITE_FIREBASE_APP_ID=1:123456789:web:abc123
 3. Navigate to **Security** > **API Tokens**
 4. Generate a token with **Read & Write** permissions
 5. Copy to `HETZNER_API_TOKEN`
-
-</details>
-
-<details>
-<summary><strong>DigitalOcean</strong></summary>
-
-1. Go to [DigitalOcean Cloud Console](https://cloud.digitalocean.com)
-2. Navigate to **API** > **Tokens**
-3. Generate a personal access token with read and write scopes
-4. Copy to `DIGITALOCEAN_API_TOKEN`
-
-</details>
-
-<details>
-<summary><strong>Vultr</strong></summary>
-
-1. Go to [Vultr Dashboard](https://my.vultr.com)
-2. Navigate to **Account** > **API**
-3. Enable the API and copy your API key
-4. Copy to `VULTR_API_TOKEN`
 
 </details>
 
@@ -529,7 +505,7 @@ pnpm start    # HTTP on PORT (default 2222), WebSocket on WS_PORT (default 2223)
 When a user deploys a new claw, the platform:
 
 1. **Creates a checkout** — Initiates a Polar.sh subscription for the selected plan
-2. **Provisions a server** — Spins up a VPS on the chosen cloud provider (Hetzner, DigitalOcean, or Vultr)
+2. **Provisions a server** — Spins up a VPS on Hetzner Cloud
 3. **Runs cloud-init** — Automatically installs Node.js, OpenClaw, Nginx, SSL, and firewall
 4. **Configures DNS** — Creates a Cloudflare subdomain pointing to the server IP
 5. **Delivers access** — User gets a subdomain URL, root password, and SSH access

@@ -3,16 +3,19 @@ import type { User, OAuthCredential } from 'firebase/auth'
 import type {
     AuthProviderProps,
     CachedProfile,
-    FirebaseErrorLike
+    ElectronWindow,
+    FirebaseErrorLike,
+    OAuthWindowResult
 } from '@/ts/Interfaces'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import {
     GoogleAuthProvider,
     GithubAuthProvider,
     onAuthStateChanged,
     signInWithCustomToken,
+    signInWithCredential,
     signInWithPopup,
     linkWithPopup,
     unlink,
@@ -23,6 +26,9 @@ import { auth, AUTH_STORAGE_KEY, PROFILE_CACHE_KEY } from '@/lib/firebase'
 import { api } from '@/lib'
 import AuthContext from '@/lib/auth/AuthContext'
 import STORAGE_KEYS from '@/lib/storageKeys'
+import PROFILE_QUERY_KEY from '@/hooks/useUser/PROFILE_QUERY_KEY'
+import CLAWS_QUERY_KEY from '@/hooks/useClaws/CLAWS_QUERY_KEY'
+import USER_STATS_QUERY_KEY from '@/hooks/useUser/USER_STATS_QUERY_KEY'
 
 const readCachedProfile = (): CachedProfile | null => {
     try {
@@ -41,10 +47,39 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
     const [cachedProfile, setCachedProfile] = useState<CachedProfile | null>(
         readCachedProfile
     )
+    const fetchedRef = useRef(false)
+
+    useEffect(() => {
+        const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+            if (
+                event.type === 'updated' &&
+                event.action.type === 'success' &&
+                event.query.queryKey[0] === PROFILE_QUERY_KEY[0]
+            ) {
+                const profile = event.query.state.data as
+                    | CachedProfile
+                    | undefined
+                if (profile) {
+                    const existing = localStorage.getItem(PROFILE_CACHE_KEY)
+                    const serialized = JSON.stringify(profile)
+                    if (existing !== serialized) {
+                        setCachedProfile(profile)
+                        localStorage.setItem(PROFILE_CACHE_KEY, serialized)
+                    }
+                }
+            }
+        })
+        return unsubscribe
+    }, [queryClient])
+
     const updateCachedProfile = useCallback((data: Partial<CachedProfile>) => {
         setCachedProfile((prev) => {
             const updated = { ...prev, ...data } as CachedProfile
-            localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(updated))
+            const existing = localStorage.getItem(PROFILE_CACHE_KEY)
+            const serialized = JSON.stringify(updated)
+            if (existing !== serialized) {
+                localStorage.setItem(PROFILE_CACHE_KEY, serialized)
+            }
             return updated
         })
     }, [])
@@ -58,34 +93,35 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
                 localStorage.setItem(AUTH_STORAGE_KEY, 'true')
 
                 const cached = readCachedProfile()
-                if (cached) setCachedProfile(cached)
+                if (cached) {
+                    setCachedProfile(cached)
+                    queryClient.setQueryData(PROFILE_QUERY_KEY, cached)
+                }
+
+                if (fetchedRef.current) return
+                fetchedRef.current = true
 
                 try {
-                    const [profile] = await Promise.all([
+                    const [_profile] = await Promise.all([
                         queryClient.fetchQuery({
-                            queryKey: ['profile'],
-                            queryFn: api.getProfile
+                            queryKey: PROFILE_QUERY_KEY,
+                            queryFn: api.getProfile,
+                            staleTime: 0
                         }),
                         queryClient.prefetchQuery({
-                            queryKey: ['claws'],
+                            queryKey: CLAWS_QUERY_KEY,
                             queryFn: () => api.getClaws()
                         }),
                         queryClient.prefetchQuery({
-                            queryKey: ['userStats'],
+                            queryKey: USER_STATS_QUERY_KEY,
                             queryFn: api.getUserStats
                         })
                     ])
-                    const fresh: CachedProfile = {
-                        email: profile.email,
-                        name: profile.name
-                    }
-                    setCachedProfile(fresh)
-                    localStorage.setItem(
-                        PROFILE_CACHE_KEY,
-                        JSON.stringify(fresh)
-                    )
-                } catch {}
+                } catch {
+                    await firebaseSignOut(auth)
+                }
             } else {
+                fetchedRef.current = false
                 localStorage.removeItem(AUTH_STORAGE_KEY)
                 localStorage.removeItem(PROFILE_CACHE_KEY)
                 localStorage.removeItem(STORAGE_KEYS.OTP_SENT_AT)
@@ -118,7 +154,60 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
         []
     )
 
+    const electronOAuth = useCallback(
+        async (providerUrl: string, callbackPrefix: string) => {
+            const electronAPI = (window as unknown as ElectronWindow)
+                .electronAPI
+            const result = (await electronAPI!.invoke(
+                'oauth-window',
+                providerUrl,
+                callbackPrefix,
+                t('auth.signIn')
+            )) as OAuthWindowResult
+            return result
+        },
+        []
+    )
+
     const signInWithGoogle = useCallback(async () => {
+        const electronAPI = (window as unknown as ElectronWindow).electronAPI
+
+        if (electronAPI?.isDesktop) {
+            const authDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN
+            const clientId = import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID
+            const redirectUri = `https://${authDomain}/__/auth/handler`
+            const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=openid+email+profile&prompt=select_account`
+
+            const result = await electronOAuth(url, redirectUri)
+            if (!result?.accessToken) throw new Error('OAuth failed')
+
+            const credential = GoogleAuthProvider.credential(
+                null,
+                result.accessToken
+            )
+            try {
+                await signInWithCredential(auth, credential)
+            } catch (error) {
+                const firebaseError = error as FirebaseErrorLike
+                if (
+                    firebaseError.code ===
+                    'auth/account-exists-with-different-credential'
+                ) {
+                    const resolved = await resolveConflict(
+                        GoogleAuthProvider.credentialFromError(
+                            error as Parameters<
+                                typeof GoogleAuthProvider.credentialFromError
+                            >[0]
+                        ),
+                        'google.com'
+                    )
+                    if (resolved) return
+                }
+                throw error
+            }
+            return
+        }
+
         try {
             await signInWithPopup(auth, new GoogleAuthProvider())
         } catch (error) {
@@ -137,9 +226,52 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
             }
             throw error
         }
-    }, [resolveConflict])
+    }, [resolveConflict, electronOAuth])
 
     const signInWithGithub = useCallback(async () => {
+        const electronAPI = (window as unknown as ElectronWindow).electronAPI
+
+        if (electronAPI?.isDesktop) {
+            const authDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN
+            const clientId = import.meta.env.VITE_GITHUB_OAUTH_CLIENT_ID
+            const redirectUri = `https://${authDomain}/__/auth/handler`
+            const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`
+
+            const result = await electronOAuth(url, redirectUri)
+            if (!result?.code) throw new Error('OAuth failed')
+
+            const tokenResult = (await electronAPI.invoke(
+                'oauth-github-exchange',
+                result.code
+            )) as OAuthWindowResult
+            if (!tokenResult?.accessToken) throw new Error('OAuth failed')
+
+            const credential = GithubAuthProvider.credential(
+                tokenResult.accessToken
+            )
+            try {
+                await signInWithCredential(auth, credential)
+            } catch (error) {
+                const firebaseError = error as FirebaseErrorLike
+                if (
+                    firebaseError.code ===
+                    'auth/account-exists-with-different-credential'
+                ) {
+                    const resolved = await resolveConflict(
+                        GithubAuthProvider.credentialFromError(
+                            error as Parameters<
+                                typeof GithubAuthProvider.credentialFromError
+                            >[0]
+                        ),
+                        'github.com'
+                    )
+                    if (resolved) return
+                }
+                throw error
+            }
+            return
+        }
+
         try {
             await signInWithPopup(auth, new GithubAuthProvider())
         } catch (error) {
@@ -158,7 +290,7 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
             }
             throw error
         }
-    }, [resolveConflict])
+    }, [resolveConflict, electronOAuth])
 
     const linkGoogle = useCallback(async () => {
         if (!user) return
@@ -206,7 +338,8 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
         await firebaseSignOut(auth)
     }, [])
 
-    const isLocal = document.documentElement.getAttribute('data-electron') === 'true'
+    const isLocal =
+        document.documentElement.getAttribute('data-electron') === 'true'
 
     return (
         <AuthContext.Provider

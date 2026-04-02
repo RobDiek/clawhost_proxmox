@@ -1,6 +1,6 @@
-import type { TranslationKey } from './types'
+import type { TranslationKey } from '#i18n/types'
 
-import state from './state'
+import state from '#i18n/state'
 
 function getNestedValue(obj: unknown, path: string): string {
     const keys = path.split('.')
@@ -24,7 +24,8 @@ function t(
     key: TranslationKey,
     params?: Record<string, string | number>
 ): string {
-    const translations = state.languages[state.currentLanguage]
+    const translations =
+        state.languages[state.currentLanguage] || state.languages.en
     let value = getNestedValue(translations, key)
 
     if (params) {

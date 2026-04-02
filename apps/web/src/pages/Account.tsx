@@ -1,14 +1,15 @@
 import type { FC, ReactNode } from 'react'
 import type { AuthMethod, OAuthProvider } from '@/ts/Types'
 
-import { useState, useEffect, useCallback } from 'react'
+import { Fragment, useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
-import { userRole, inputValidation } from '@openclaw/shared'
+import { authMethod, userRole, inputValidation } from '@openclaw/shared'
 import { useAuth } from '@/lib/auth'
 import { useUIStore, usePreferencesStore } from '@/lib/store'
+import { OAUTH_PROVIDER, TOAST_TYPE } from '@/lib/constants'
 import { api, getLocale, ROUTES } from '@/lib'
 import {
     useProfile,
@@ -28,9 +29,11 @@ import {
     TooltipContent
 } from '@/components/ui'
 import {
+    ConnectedAccountRow,
     Header,
     LandingFooter,
     LicenseCard,
+    LocalBackground,
     Logo,
     LanguageSelector,
     ThemeToggle,
@@ -85,7 +88,7 @@ const Account: FC = (): ReactNode => {
 
     useEffect(() => {
         if (searchParams.get('payment') !== 'success') return
-        showToast(t('license.paymentSuccess'), 'success')
+        showToast(t('license.paymentSuccess'), TOAST_TYPE.SUCCESS)
         queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY })
         setSearchParams({}, { replace: true })
     }, [])
@@ -96,7 +99,7 @@ const Account: FC = (): ReactNode => {
             const { checkoutUrl } = await api.purchaseLicense()
             window.location.href = checkoutUrl
         } catch {
-            showToast(t('license.failedToPurchase'), 'error')
+            showToast(t('license.failedToPurchase'), TOAST_TYPE.ERROR)
             setIsPurchasingLicense(false)
         }
     }
@@ -113,13 +116,13 @@ const Account: FC = (): ReactNode => {
                     updateCachedProfile({ name: data.name })
                     showToast(
                         t('account.profileUpdatedSuccessfully'),
-                        'success'
+                        TOAST_TYPE.SUCCESS
                     )
                 },
                 onError: (err: Error) => {
                     showToast(
                         err.message || t('errors.failedToUpdateProfile'),
-                        'error'
+                        TOAST_TYPE.ERROR
                     )
                 }
             }
@@ -138,28 +141,28 @@ const Account: FC = (): ReactNode => {
             if (providerBusy) return
             setLinkingProvider(provider)
             try {
-                if (provider === 'google') {
+                if (provider === OAUTH_PROVIDER.GOOGLE) {
                     await linkGoogle()
                 } else {
                     await linkGithub()
                 }
                 await api.connectAuthMethod(provider)
-                await queryClient.invalidateQueries({ queryKey: ['profile'] })
+                await queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY })
                 showToast(
                     t('account.providerConnected', {
                         provider:
-                            provider === 'google'
+                            provider === OAUTH_PROVIDER.GOOGLE
                                 ? t('account.authGoogle')
                                 : t('account.authGithub')
                     }),
-                    'success'
+                    TOAST_TYPE.SUCCESS
                 )
             } catch (err: unknown) {
                 const message =
                     err instanceof Error
                         ? err.message
                         : t('errors.somethingWentWrong')
-                showToast(message, 'error')
+                showToast(message, TOAST_TYPE.ERROR)
             } finally {
                 setLinkingProvider(null)
             }
@@ -173,27 +176,27 @@ const Account: FC = (): ReactNode => {
             setUnlinkingProvider(provider)
             try {
                 await api.disconnectAuthMethod(provider)
-                if (provider === 'google') {
+                if (provider === OAUTH_PROVIDER.GOOGLE) {
                     await unlinkGoogle()
                 } else {
                     await unlinkGithub()
                 }
-                await queryClient.invalidateQueries({ queryKey: ['profile'] })
+                await queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY })
                 showToast(
                     t('account.providerDisconnected', {
                         provider:
-                            provider === 'google'
+                            provider === OAUTH_PROVIDER.GOOGLE
                                 ? t('account.authGoogle')
                                 : t('account.authGithub')
                     }),
-                    'success'
+                    TOAST_TYPE.SUCCESS
                 )
             } catch (err: unknown) {
                 const message =
                     err instanceof Error
                         ? err.message
                         : t('errors.somethingWentWrong')
-                showToast(message, 'error')
+                showToast(message, TOAST_TYPE.ERROR)
             } finally {
                 setUnlinkingProvider(null)
             }
@@ -233,12 +236,7 @@ const Account: FC = (): ReactNode => {
         <div
             className={`bg-background text-foreground ${isLocal ? 'fixed inset-0 flex flex-col overflow-hidden' : 'relative flex min-h-screen flex-col'}`}
         >
-            {isLocal && (
-                <div className='playground-grid pointer-events-none fixed inset-0 opacity-50' />
-            )}
-            {isLocal && (
-                <div className='playground-gradient pointer-events-none fixed inset-0 opacity-30' />
-            )}
+            {isLocal && <LocalBackground />}
             <PageTitle
                 title={t('account.title')}
                 description={t('account.description')}
@@ -283,7 +281,7 @@ const Account: FC = (): ReactNode => {
                             <CircleNotchIcon className='text-primary h-8 w-8 animate-spin' />
                         </div>
                     ) : (
-                        <>
+                        <Fragment>
                             <PageHeader
                                 title={t('account.accountSettings')}
                                 description={t('account.manageYourAccount')}
@@ -486,34 +484,18 @@ const Account: FC = (): ReactNode => {
                                 </div>
 
                                 <div className='space-y-3'>
-                                    <div className='border-border bg-foreground/[0.02] flex items-center justify-between rounded-lg border px-4 py-3'>
-                                        <div className='flex items-center gap-3'>
+                                    <ConnectedAccountRow
+                                        icon={
                                             <EnvelopeIcon className='text-foreground/60 h-5 w-5' />
-                                            <span className='text-sm font-medium'>
-                                                {t('account.authEmail')}
-                                            </span>
-                                        </div>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <button
-                                                    disabled
-                                                    className='border-border text-foreground/50 flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs opacity-50'
-                                                >
-                                                    {t(
-                                                        'account.authDisconnect'
-                                                    )}
-                                                </button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                {t(
-                                                    'account.emailCannotBeDisconnected'
-                                                )}
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </div>
+                                        }
+                                        label={t('account.authEmail')}
+                                        isConnected={true}
+                                        isDisabled
+                                        isPending={false}
+                                    />
 
-                                    <div className='border-border bg-foreground/[0.02] flex items-center justify-between rounded-lg border px-4 py-3'>
-                                        <div className='flex items-center gap-3'>
+                                    <ConnectedAccountRow
+                                        icon={
                                             <svg
                                                 width='20'
                                                 height='20'
@@ -536,47 +518,34 @@ const Account: FC = (): ReactNode => {
                                                     fill='#EA4335'
                                                 />
                                             </svg>
-                                            <span className='text-sm font-medium'>
-                                                {t('account.authGoogle')}
-                                            </span>
-                                        </div>
-                                        {profile?.authMethods?.includes(
-                                            'google'
-                                        ) ? (
-                                            <button
-                                                onClick={() =>
-                                                    handleUnlinkProvider(
-                                                        'google'
-                                                    )
-                                                }
-                                                disabled={providerBusy}
-                                                className='border-border text-foreground/50 flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs transition-colors hover:border-red-500/50 hover:text-red-600 disabled:opacity-50 dark:hover:text-red-400'
-                                            >
-                                                {unlinkingProvider ===
-                                                    'google' && (
-                                                    <CircleNotchIcon className='h-3 w-3 animate-spin' />
-                                                )}
-                                                {t('account.authDisconnect')}
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() =>
-                                                    handleLinkProvider('google')
-                                                }
-                                                disabled={providerBusy}
-                                                className='flex items-center gap-1.5 rounded-md bg-white px-3 py-1 text-xs font-medium text-black transition-opacity hover:opacity-80 disabled:opacity-50'
-                                            >
-                                                {linkingProvider ===
-                                                    'google' && (
-                                                    <CircleNotchIcon className='h-3 w-3 animate-spin' />
-                                                )}
-                                                {t('account.authConnect')}
-                                            </button>
-                                        )}
-                                    </div>
+                                        }
+                                        label={t('account.authGoogle')}
+                                        isConnected={
+                                            !!profile?.authMethods?.includes(
+                                                authMethod.google
+                                            )
+                                        }
+                                        isPending={providerBusy}
+                                        isLoading={
+                                            linkingProvider ===
+                                                OAUTH_PROVIDER.GOOGLE ||
+                                            unlinkingProvider ===
+                                                OAUTH_PROVIDER.GOOGLE
+                                        }
+                                        onConnect={() =>
+                                            handleLinkProvider(
+                                                OAUTH_PROVIDER.GOOGLE
+                                            )
+                                        }
+                                        onDisconnect={() =>
+                                            handleUnlinkProvider(
+                                                OAUTH_PROVIDER.GOOGLE
+                                            )
+                                        }
+                                    />
 
-                                    <div className='border-border bg-foreground/[0.02] flex items-center justify-between rounded-lg border px-4 py-3'>
-                                        <div className='flex items-center gap-3'>
+                                    <ConnectedAccountRow
+                                        icon={
                                             <svg
                                                 width='20'
                                                 height='20'
@@ -586,44 +555,31 @@ const Account: FC = (): ReactNode => {
                                             >
                                                 <path d='M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z' />
                                             </svg>
-                                            <span className='text-sm font-medium'>
-                                                {t('account.authGithub')}
-                                            </span>
-                                        </div>
-                                        {profile?.authMethods?.includes(
-                                            'github'
-                                        ) ? (
-                                            <button
-                                                onClick={() =>
-                                                    handleUnlinkProvider(
-                                                        'github'
-                                                    )
-                                                }
-                                                disabled={providerBusy}
-                                                className='border-border text-foreground/50 flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs transition-colors hover:border-red-500/50 hover:text-red-600 disabled:opacity-50 dark:hover:text-red-400'
-                                            >
-                                                {unlinkingProvider ===
-                                                    'github' && (
-                                                    <CircleNotchIcon className='h-3 w-3 animate-spin' />
-                                                )}
-                                                {t('account.authDisconnect')}
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() =>
-                                                    handleLinkProvider('github')
-                                                }
-                                                disabled={providerBusy}
-                                                className='flex items-center gap-1.5 rounded-md bg-white px-3 py-1 text-xs font-medium text-black transition-opacity hover:opacity-80 disabled:opacity-50'
-                                            >
-                                                {linkingProvider ===
-                                                    'github' && (
-                                                    <CircleNotchIcon className='h-3 w-3 animate-spin' />
-                                                )}
-                                                {t('account.authConnect')}
-                                            </button>
-                                        )}
-                                    </div>
+                                        }
+                                        label={t('account.authGithub')}
+                                        isConnected={
+                                            !!profile?.authMethods?.includes(
+                                                authMethod.github
+                                            )
+                                        }
+                                        isPending={providerBusy}
+                                        isLoading={
+                                            linkingProvider ===
+                                                OAUTH_PROVIDER.GITHUB ||
+                                            unlinkingProvider ===
+                                                OAUTH_PROVIDER.GITHUB
+                                        }
+                                        onConnect={() =>
+                                            handleLinkProvider(
+                                                OAUTH_PROVIDER.GITHUB
+                                            )
+                                        }
+                                        onDisconnect={() =>
+                                            handleUnlinkProvider(
+                                                OAUTH_PROVIDER.GITHUB
+                                            )
+                                        }
+                                    />
                                 </div>
                             </div>
 
@@ -651,7 +607,7 @@ const Account: FC = (): ReactNode => {
                                     </label>
                                 </div>
                             )}
-                        </>
+                        </Fragment>
                     )}
                 </motion.main>
             </div>

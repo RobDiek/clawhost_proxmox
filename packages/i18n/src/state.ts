@@ -1,12 +1,9 @@
-import type { I18nState } from './types'
+import type { I18nState, Languages, Translations } from '#i18n/types'
 
-import en from './langs/en'
-import fr from './langs/fr'
-import es from './langs/es'
-import de from './langs/de'
+import en from '#i18n/langs/en'
 
 const state: I18nState = {
-    languages: { en, fr, es, de },
+    languages: { en } as Record<Languages, Translations>,
     currentLanguage: 'en'
 }
 

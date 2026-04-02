@@ -266,7 +266,7 @@ const LoginScreen: FC = (): ReactNode => {
                             {code.map((digit, index) => (
                                 <TextInput
                                     key={index}
-                                    ref={(ref) => {
+                                    ref={(ref: TextInput | null) => {
                                         inputRefs.current[index] = ref
                                     }}
                                     style={[
@@ -275,10 +275,14 @@ const LoginScreen: FC = (): ReactNode => {
                                         error ? styles.codeInputError : null
                                     ]}
                                     value={digit}
-                                    onChangeText={(value) =>
+                                    onChangeText={(value: string) =>
                                         handleCodeChange(value, index)
                                     }
-                                    onKeyPress={({ nativeEvent }) =>
+                                    onKeyPress={({
+                                        nativeEvent
+                                    }: {
+                                        nativeEvent: { key: string }
+                                    }) =>
                                         handleCodeKeyPress(
                                             nativeEvent.key,
                                             index

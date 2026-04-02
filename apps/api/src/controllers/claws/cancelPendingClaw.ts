@@ -9,7 +9,7 @@ import { t } from '@openclaw/i18n'
 const cancelPendingClaw = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
 
         const result = await db
             .delete(pendingClaws)

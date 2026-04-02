@@ -1,12 +1,14 @@
 import type { FC, ReactNode } from 'react'
 import type {
     Binding,
+    ChannelConfig,
     ChannelMetaEntry,
     PlaygroundBindingsContentProps
 } from '@/ts/Interfaces'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { isFeatureSupported } from '@openclaw/shared'
 import { t } from '@openclaw/i18n'
 import {
     CircleNotchIcon,
@@ -17,10 +19,13 @@ import {
     ChatCircleIcon,
     ChatsCircleIcon
 } from '@phosphor-icons/react'
-import { PanelPlaceholder } from '@/components'
+import { PanelPlaceholder, VersionUnsupported } from '@/components/shared'
 import { Skeleton } from '@/components/ui'
 import { api } from '@/lib'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
+import { useClawVersion } from '@/hooks'
+import CLAW_BINDINGS_QUERY_KEY from '@/hooks/usePlayground/CLAW_BINDINGS_QUERY_KEY'
 
 const CHANNEL_META: Record<string, ChannelMetaEntry> = {
     whatsapp: { icon: WhatsappLogoIcon, label: 'playground.channelsWhatsApp' },
@@ -30,9 +35,27 @@ const CHANNEL_META: Record<string, ChannelMetaEntry> = {
     signal: { icon: ChatCircleIcon, label: 'playground.channelsSignal' }
 }
 
+const CHANNEL_REQUIRED_FIELDS: Record<string, string[]> = {
+    whatsapp: [],
+    telegram: ['botToken'],
+    discord: ['token'],
+    slack: ['botToken', 'appToken'],
+    signal: ['account']
+}
+
+const isChannelConfigured = (key: string, config: ChannelConfig): boolean => {
+    if (!config.enabled) return false
+    const required = CHANNEL_REQUIRED_FIELDS[key] || []
+    return required.every((field) => {
+        const value = config[field as keyof ChannelConfig]
+        return typeof value === 'string' && value.trim().length > 0
+    })
+}
+
 const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
     clawId,
-    agentId
+    agentId,
+    onGoToVersions
 }): ReactNode => {
     const [bindings, setBindings] = useState<Binding[]>([])
     const [hasChanges, setHasChanges] = useState(false)
@@ -40,11 +63,16 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
     const queryClient = useQueryClient()
 
     const query = useQuery({
-        queryKey: ['claw-bindings', clawId],
+        queryKey: [...CLAW_BINDINGS_QUERY_KEY, clawId],
         queryFn: () => api.getClawBindings(clawId),
         staleTime: 0,
         gcTime: 0
     })
+
+    const versionQuery = useClawVersion(clawId, true)
+    const clawVersion = versionQuery.data?.version || ''
+    const versionUnsupported =
+        clawVersion !== '' && !isFeatureSupported(clawVersion, 'bindings')
 
     useEffect(() => {
         if (query.data) {
@@ -56,7 +84,9 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
     const enabledChannels = useMemo(() => {
         if (!query.data) return []
         return Object.entries(query.data.channels)
-            .filter(([, config]) => config.enabled)
+            .filter(([key, config]) =>
+                isChannelConfigured(key, config as ChannelConfig)
+            )
             .map(([key]) => key)
     }, [query.data])
 
@@ -80,14 +110,14 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
             await api.updateClawBindings(clawId, { bindings })
         },
         onSuccess: () => {
-            showToast(t('playground.bindingsSaved'), 'success')
+            showToast(t('playground.bindingsSaved'), TOAST_TYPE.SUCCESS)
             queryClient.invalidateQueries({
-                queryKey: ['claw-bindings', clawId]
+                queryKey: [...CLAW_BINDINGS_QUERY_KEY, clawId]
             })
             setHasChanges(false)
         },
         onError: () => {
-            showToast(t('playground.bindingsSaveFailed'), 'error')
+            showToast(t('playground.bindingsSaveFailed'), TOAST_TYPE.ERROR)
         }
     })
 
@@ -121,19 +151,43 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
 
     if (enabledChannels.length === 0) {
         return (
-            <PanelPlaceholder
-                icon={
-                    <ChatsCircleIcon className='text-muted-foreground h-6 w-6' />
-                }
-                title={t('playground.bindingsNoChannels')}
-                description={t('playground.bindingsNoChannelsDescription')}
-            />
+            <div className='flex h-full flex-col'>
+                {versionUnsupported && (
+                    <VersionUnsupported
+                        version={clawVersion}
+                        feature={t('playground.tabChannels')}
+                        featureKey='bindings'
+                        onGoToVersions={onGoToVersions}
+                    />
+                )}
+                <div className='flex flex-1 items-center justify-center'>
+                    <PanelPlaceholder
+                        icon={
+                            <ChatsCircleIcon className='text-muted-foreground h-6 w-6' />
+                        }
+                        title={t('playground.bindingsNoChannels')}
+                        description={t(
+                            'playground.bindingsNoChannelsDescription'
+                        )}
+                    />
+                </div>
+            </div>
         )
     }
 
     return (
         <div className='flex h-full flex-col'>
-            <div className='flex-1 overflow-y-auto p-5'>
+            {versionUnsupported && (
+                <VersionUnsupported
+                    version={clawVersion}
+                    feature={t('playground.tabChannels')}
+                    featureKey='bindings'
+                    onGoToVersions={onGoToVersions}
+                />
+            )}
+            <div
+                className={`flex-1 overflow-y-auto p-5 ${versionUnsupported ? 'pointer-events-none opacity-50' : ''}`}
+            >
                 <p className='text-muted-foreground mb-4 text-xs'>
                     {t('playground.bindingsDescription')}
                 </p>
@@ -188,7 +242,7 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
                 <div className='border-border border-t p-4'>
                     <button
                         onClick={handleSave}
-                        disabled={mutation.isPending}
+                        disabled={mutation.isPending || versionUnsupported}
                         className='flex w-full items-center justify-center gap-2 rounded-lg bg-[#ef5350] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#e53935] disabled:opacity-50'
                     >
                         {mutation.isPending && (

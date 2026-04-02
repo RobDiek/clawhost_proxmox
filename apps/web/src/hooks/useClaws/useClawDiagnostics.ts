@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib'
+import CLAW_DIAGNOSTICS_QUERY_KEY from '@/hooks/useClaws/CLAW_DIAGNOSTICS_QUERY_KEY'
 
 const useClawDiagnostics = (clawId: string, enabled: boolean) => {
     return useQuery({
-        queryKey: ['claw-diagnostics', clawId],
+        queryKey: [...CLAW_DIAGNOSTICS_QUERY_KEY, clawId],
         queryFn: () => api.getClawDiagnostics(clawId),
         enabled,
-        refetchInterval: 3000,
-        gcTime: 0
+        refetchInterval: 10_000,
+        gcTime: 30_000
     })
 }
 

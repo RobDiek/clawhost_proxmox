@@ -1,13 +1,15 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow } from 'electron'
+import { execFile } from 'child_process'
 import path from 'path'
 import {
     configStore,
+    processManager,
     nodeBinary,
     reverseProxy,
     dnsResolver,
     certManager
 } from '@/main/services'
-import registerAllHandlers from '@/main/ipc'
+import { registerAllHandlers } from '@/main/ipc'
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string
 declare const MAIN_WINDOW_VITE_NAME: string
@@ -26,6 +28,7 @@ if (!gotLock) {
             height: 800,
             minWidth: 900,
             minHeight: 600,
+            show: false,
             backgroundColor: '#0a0a0f',
             titleBarStyle: 'hiddenInset',
             trafficLightPosition: { x: 16, y: 13 },
@@ -38,8 +41,12 @@ if (!gotLock) {
             }
         })
 
+        mainWindow.once('ready-to-show', () => {
+            mainWindow?.show()
+        })
+
         mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-            shell.openExternal(url)
+            execFile('open', [url])
             return { action: 'deny' }
         })
 
@@ -64,13 +71,14 @@ if (!gotLock) {
 
     app.whenReady().then(() => {
         configStore.ensureDirectories()
+        processManager.cleanOrphanedProcesses()
+        registerAllHandlers()
+        createWindow()
         certManager.ensureCerts()
         nodeBinary.ensureNode()
-        registerAllHandlers()
         reverseProxy.start()
         dnsResolver.startDns()
         dnsResolver.ensurePortRedirect()
-        createWindow()
     })
 
     app.on('before-quit', () => {

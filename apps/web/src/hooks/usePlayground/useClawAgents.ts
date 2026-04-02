@@ -7,9 +7,9 @@ const useClawAgents = (clawId: string, enabled: boolean) => {
         queryKey: [PLAYGROUND_AGENTS_QUERY_KEY, clawId],
         queryFn: () => api.getClawAgents(clawId),
         enabled,
-        staleTime: 3000,
-        gcTime: 0,
-        refetchInterval: 3000,
+        staleTime: 15_000,
+        gcTime: 30_000,
+        refetchInterval: 15_000,
         retry: 0
     })
 }

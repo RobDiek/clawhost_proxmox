@@ -6,11 +6,11 @@ import { claws, volumes } from '@/db/schema'
 import { getProvider } from '@/services/provider'
 import cloudflare from '@/services/cloudflare'
 
-async function cleanupClaw(
+const cleanupClaw = async (
     clawId: string,
     claw: ClawCleanupData
-): Promise<void> {
-    const provider = getProvider(claw.provider)
+): Promise<void> => {
+    const provider = getProvider()
 
     const clawVolumes = await db
         .select()

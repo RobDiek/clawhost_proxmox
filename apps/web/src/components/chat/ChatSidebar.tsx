@@ -9,6 +9,7 @@ import {
     ListBulletsIcon
 } from '@phosphor-icons/react'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
+import { CHAT_SIDEBAR_VIEW_MODE } from '@/lib/constants'
 import { usePreferencesStore } from '@/lib/store'
 import ChatSidebarTreeView from '@/components/chat/ChatSidebarTreeView'
 import ChatSidebarListView from '@/components/chat/ChatSidebarListView'
@@ -71,10 +72,15 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <button
-                                onClick={() => setChatSidebarView('tree')}
+                                onClick={() =>
+                                    setChatSidebarView(
+                                        CHAT_SIDEBAR_VIEW_MODE.TREE
+                                    )
+                                }
                                 aria-label={t('chat.viewTree')}
                                 className={`flex items-center justify-center rounded-md p-1.5 transition-colors ${
-                                    chatSidebarView === 'tree'
+                                    chatSidebarView ===
+                                    CHAT_SIDEBAR_VIEW_MODE.TREE
                                         ? 'bg-foreground/10 text-foreground'
                                         : 'text-muted-foreground hover:text-foreground'
                                 }`}
@@ -82,7 +88,8 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                                 <TreeStructureIcon
                                     className='h-3.5 w-3.5'
                                     weight={
-                                        chatSidebarView === 'tree'
+                                        chatSidebarView ===
+                                        CHAT_SIDEBAR_VIEW_MODE.TREE
                                             ? 'fill'
                                             : 'regular'
                                     }
@@ -96,10 +103,15 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <button
-                                onClick={() => setChatSidebarView('list')}
+                                onClick={() =>
+                                    setChatSidebarView(
+                                        CHAT_SIDEBAR_VIEW_MODE.LIST
+                                    )
+                                }
                                 aria-label={t('chat.viewList')}
                                 className={`flex items-center justify-center rounded-md p-1.5 transition-colors ${
-                                    chatSidebarView === 'list'
+                                    chatSidebarView ===
+                                    CHAT_SIDEBAR_VIEW_MODE.LIST
                                         ? 'bg-foreground/10 text-foreground'
                                         : 'text-muted-foreground hover:text-foreground'
                                 }`}
@@ -107,7 +119,8 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                                 <ListBulletsIcon
                                     className='h-3.5 w-3.5'
                                     weight={
-                                        chatSidebarView === 'list'
+                                        chatSidebarView ===
+                                        CHAT_SIDEBAR_VIEW_MODE.LIST
                                             ? 'fill'
                                             : 'regular'
                                     }
@@ -121,7 +134,7 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                 </div>
             </div>
             <div className='flex-1 overflow-y-auto p-3'>
-                {chatSidebarView === 'tree' ? (
+                {chatSidebarView === CHAT_SIDEBAR_VIEW_MODE.TREE ? (
                     <ChatSidebarTreeView
                         clawsWithAgents={clawsWithAgents}
                         selectedAgent={selectedAgent}

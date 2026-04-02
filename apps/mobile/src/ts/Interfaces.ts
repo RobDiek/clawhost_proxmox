@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { ClawStatus, ProviderType, ToastType, UserRole } from '@/ts/Types'
+import type { ClawStatus, ToastType, UserRole } from '@/ts/Types'
 
 export interface ApiResponse<T = null> {
     success: boolean
@@ -19,7 +19,7 @@ export interface Volume {
 export interface Claw {
     id: string
     name: string
-    provider: ProviderType
+    provider: string
     status: ClawStatus
     ip: string | null
     planId: string
@@ -121,7 +121,7 @@ export interface ClawMascotProps {
 }
 
 export interface ProviderIconProps {
-    provider: ProviderType
+    provider: string
     size?: number
 }
 
@@ -206,7 +206,7 @@ export interface PlanAvailability {
 
 export interface PurchaseClawData {
     name: string
-    provider: ProviderType
+    provider: string
     planId: string
     location: string
     password?: string

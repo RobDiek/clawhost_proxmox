@@ -5,8 +5,11 @@ interface ElectronAPI {
     getPlatform: () => Promise<string>
     openExternal: (url: string) => Promise<void>
     openWindowed: (url: string) => Promise<void>
+    checkNetwork: () => Promise<'online' | 'unstable' | 'offline'>
     getDnsStatus: () => Promise<boolean>
     setupDns: () => Promise<boolean>
+    onTerminalData: (callback: (id: string, data: string) => void) => () => void
+    onTerminalExit: (callback: (id: string) => void) => () => void
 }
 
 interface LocalClawConfig {
@@ -39,7 +42,7 @@ interface CertPaths {
 }
 
 interface CreateClawData {
-    name: string
+    name?: string
     gatewayToken?: string
     password?: string
 }
@@ -66,6 +69,13 @@ interface VersionEntry extends NpmVersionEntry {
     installed: boolean
 }
 
+interface AppUpdateInfo {
+    hasUpdate: boolean
+    currentVersion: string
+    latestVersion?: string
+    downloadUrl?: string
+}
+
 export type {
     ElectronAPI,
     LocalClawConfig,
@@ -76,5 +86,6 @@ export type {
     ReadClawFileData,
     UpdateProfileData,
     NpmVersionEntry,
-    VersionEntry
+    VersionEntry,
+    AppUpdateInfo
 }

@@ -1,10 +1,8 @@
-import type { Claw } from '@/ts/Interfaces'
-
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib'
-import CLAWS_QUERY_KEY from '@/hooks/useClaws/CLAWS_QUERY_KEY'
-import ADMIN_CLAWS_QUERY_KEY from '@/hooks/useClaws/ADMIN_CLAWS_QUERY_KEY'
-import USER_STATS_QUERY_KEY from '@/hooks/useUser/USER_STATS_QUERY_KEY'
+import updateClawInCaches from '@/hooks/useClaws/updateClawInCaches'
+import removeClawFromCaches from '@/hooks/useClaws/removeClawFromCaches'
+import { USER_STATS_QUERY_KEY } from '@/hooks/useUser'
 
 const useDeleteClaw = () => {
     const queryClient = useQueryClient()
@@ -13,23 +11,9 @@ const useDeleteClaw = () => {
         mutationFn: (id: string) => api.deleteClaw(id),
         onSuccess: (response, id) => {
             if (response.claw) {
-                queryClient.setQueryData<Claw[]>(CLAWS_QUERY_KEY, (old) =>
-                    old?.map((c) =>
-                        c.id === id ? { ...c, ...response.claw } : c
-                    )
-                )
-                queryClient.setQueryData<Claw[]>(ADMIN_CLAWS_QUERY_KEY, (old) =>
-                    old?.map((c) =>
-                        c.id === id ? { ...c, ...response.claw } : c
-                    )
-                )
+                updateClawInCaches(queryClient, id, response.claw)
             } else {
-                queryClient.setQueryData<Claw[]>(CLAWS_QUERY_KEY, (old) =>
-                    old?.filter((c) => c.id !== id)
-                )
-                queryClient.setQueryData<Claw[]>(ADMIN_CLAWS_QUERY_KEY, (old) =>
-                    old?.filter((c) => c.id !== id)
-                )
+                removeClawFromCaches(queryClient, id)
             }
             queryClient.invalidateQueries({ queryKey: USER_STATS_QUERY_KEY })
         }

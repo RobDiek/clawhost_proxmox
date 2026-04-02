@@ -5,7 +5,8 @@ import type {
     PlaygroundClawHubContentProps
 } from '@/ts/Interfaces'
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { Fragment, useState, useCallback, useMemo, useEffect } from 'react'
+import { useDebouncedValue } from '@/hooks'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
 import {
@@ -18,10 +19,11 @@ import {
     StorefrontIcon,
     TrashIcon
 } from '@phosphor-icons/react'
-import { PanelPlaceholder, TruncateTooltip } from '@/components'
+import { PanelPlaceholder, TruncateTooltip } from '@/components/shared'
 import { Skeleton } from '@/components/ui'
 import { api, getLocale } from '@/lib'
-import { useUIStore } from '@/lib/store'
+import { useUIStore, useClawHubStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 
 const PAGE_SIZE = 50
 
@@ -30,23 +32,14 @@ const PlaygroundClawHubContent: FC<PlaygroundClawHubContentProps> = ({
     agentId
 }): ReactNode => {
     const [search, setSearch] = useState('')
-    const [debouncedSearch, setDebouncedSearch] = useState('')
-    const [page, setPage] = useState(1)
-    const [pendingSlug, setPendingSlug] = useState<string | null>(null)
+    const debouncedSearch = useDebouncedValue(search.trim(), 400)
+    const { pendingSlug, setPendingSlug, page, setPage } = useClawHubStore()
     const { showToast } = useUIStore()
     const queryClient = useQueryClient()
-    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     useEffect(() => {
-        if (debounceRef.current) clearTimeout(debounceRef.current)
-        debounceRef.current = setTimeout(() => {
-            setDebouncedSearch(search.trim())
-            setPage(1)
-        }, 400)
-        return () => {
-            if (debounceRef.current) clearTimeout(debounceRef.current)
-        }
-    }, [search])
+        setPage(1)
+    }, [debouncedSearch, setPage])
 
     const browseKey = ['clawhub-browse', clawId, debouncedSearch, page]
     const installedKey = ['clawhub-installed', clawId, agentId]
@@ -104,12 +97,12 @@ const PlaygroundClawHubContent: FC<PlaygroundClawHubContentProps> = ({
         mutationFn: (slug: string) =>
             api.installClawHubSkill(clawId, { slug, agentId }),
         onSuccess: () => {
-            showToast(t('playground.clawHubInstalled'), 'success')
+            showToast(t('playground.clawHubInstalled'), TOAST_TYPE.SUCCESS)
             setPendingSlug(null)
             queryClient.invalidateQueries({ queryKey: installedKey })
         },
         onError: () => {
-            showToast(t('playground.clawHubInstallFailed'), 'error')
+            showToast(t('playground.clawHubInstallFailed'), TOAST_TYPE.ERROR)
             setPendingSlug(null)
         }
     })
@@ -118,7 +111,7 @@ const PlaygroundClawHubContent: FC<PlaygroundClawHubContentProps> = ({
         mutationFn: (slug: string) =>
             api.removeClawHubSkill(clawId, { slug, agentId }),
         onSuccess: (_: void, slug: string) => {
-            showToast(t('playground.clawHubRemoved'), 'success')
+            showToast(t('playground.clawHubRemoved'), TOAST_TYPE.SUCCESS)
             setPendingSlug(null)
             queryClient.setQueryData<ClawHubInstalledResponse>(
                 installedKey,
@@ -129,7 +122,7 @@ const PlaygroundClawHubContent: FC<PlaygroundClawHubContentProps> = ({
             )
         },
         onError: () => {
-            showToast(t('playground.clawHubRemoveFailed'), 'error')
+            showToast(t('playground.clawHubRemoveFailed'), TOAST_TYPE.ERROR)
             setPendingSlug(null)
         }
     })
@@ -138,13 +131,13 @@ const PlaygroundClawHubContent: FC<PlaygroundClawHubContentProps> = ({
         mutationFn: (slug: string) =>
             api.updateClawHubSkill(clawId, { slug, agentId }),
         onSuccess: () => {
-            showToast(t('playground.clawHubUpdated'), 'success')
+            showToast(t('playground.clawHubUpdated'), TOAST_TYPE.SUCCESS)
             setPendingSlug(null)
             queryClient.invalidateQueries({ queryKey: installedKey })
             queryClient.invalidateQueries({ queryKey: updatesKey })
         },
         onError: () => {
-            showToast(t('playground.clawHubUpdateFailed'), 'error')
+            showToast(t('playground.clawHubUpdateFailed'), TOAST_TYPE.ERROR)
             setPendingSlug(null)
         }
     })
@@ -320,20 +313,20 @@ const PlaygroundClawHubContent: FC<PlaygroundClawHubContentProps> = ({
                                         {isPending ? (
                                             <CircleNotchIcon className='h-3 w-3 animate-spin' />
                                         ) : isInstalled && hasUpdate ? (
-                                            <>
+                                            <Fragment>
                                                 <ArrowsClockwiseIcon className='h-3 w-3' />
                                                 {t('playground.clawHubUpdate')}
-                                            </>
+                                            </Fragment>
                                         ) : isInstalled ? (
-                                            <>
+                                            <Fragment>
                                                 <TrashIcon className='h-3 w-3' />
                                                 {t('playground.clawHubRemove')}
-                                            </>
+                                            </Fragment>
                                         ) : (
-                                            <>
+                                            <Fragment>
                                                 <DownloadSimpleIcon className='h-3 w-3' />
                                                 {t('playground.clawHubInstall')}
-                                            </>
+                                            </Fragment>
                                         )}
                                     </button>
                                 </div>

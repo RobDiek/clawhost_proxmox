@@ -2,17 +2,19 @@ import type { ChannelConfig } from '@/ts/Interfaces'
 import type { AuthenticatedContext } from '@/ts/Types'
 
 import executeSSH from '@/services/ssh'
-import { findUserClaw } from '@/controllers/claws/helpers'
+import {
+    BASE_DIR,
+    findUserClaw,
+    parseJsonFromSSH
+} from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
-
-const BASE_DIR = '/home/openclaw/.openclaw'
 
 const getClawChannels = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
-        const claw = await findUserClaw(userId, id)
+        const id = c.req.param('id')!
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)
@@ -30,21 +32,11 @@ const getClawChannels = async (c: AuthenticatedContext) => {
                 5000
             )
 
-            let channels: Record<string, ChannelConfig> = {}
-
-            try {
-                const trimmed = output.trim()
-                const jsonStart = trimmed.indexOf('{')
-                const jsonEnd = trimmed.lastIndexOf('}')
-                const jsonStr =
-                    jsonStart >= 0 && jsonEnd > jsonStart
-                        ? trimmed.substring(jsonStart, jsonEnd + 1)
-                        : '{}'
-                const config = JSON.parse(jsonStr)
-                channels = config?.channels || {}
-            } catch {
-                channels = {}
-            }
+            const config = parseJsonFromSSH(output)
+            const channels = (config?.channels || {}) as Record<
+                string,
+                ChannelConfig
+            >
 
             return ok(c, { channels }, t('api.channelsFetched'))
         } catch {

@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { ClawFileExplorerDialogProps } from '@/ts/Interfaces'
 import type { ClawFileType } from '@/ts/Types'
 
-import { useState, useCallback, useMemo } from 'react'
+import { Fragment, useState, useCallback, useMemo } from 'react'
 import { t } from '@openclaw/i18n'
 import {
     Button,
@@ -26,8 +26,15 @@ import {
     XIcon
 } from '@phosphor-icons/react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useClawFiles, useClawFile, useUpdateClawFile } from '@/hooks'
+import {
+    useClawFiles,
+    useClawFile,
+    useUpdateClawFile,
+    CLAW_FILES_QUERY_KEY,
+    CLAW_FILE_QUERY_KEY
+} from '@/hooks'
 import { useUIStore, usePreferencesStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import { THEMES } from '@/lib'
 import CodeMirror, { EditorView } from '@uiw/react-codemirror'
 import { createTheme } from '@uiw/codemirror-themes'
@@ -183,10 +190,10 @@ const ClawConfigDialog: FC<ClawFileExplorerDialogProps> = ({
             setSearchQuery('')
             updateFile.reset()
             queryClient.removeQueries({
-                queryKey: ['claw-files', clawId]
+                queryKey: [...CLAW_FILES_QUERY_KEY, clawId]
             })
             queryClient.removeQueries({
-                queryKey: ['claw-file', clawId]
+                queryKey: [...CLAW_FILE_QUERY_KEY, clawId]
             })
         }
         onOpenChange(isOpen)
@@ -199,7 +206,7 @@ const ClawConfigDialog: FC<ClawFileExplorerDialogProps> = ({
         setJsonError(false)
         updateFile.reset()
         queryClient.removeQueries({
-            queryKey: ['claw-file', clawId, selectedPath]
+            queryKey: [...CLAW_FILE_QUERY_KEY, clawId, selectedPath]
         })
     }
 
@@ -265,14 +272,17 @@ const ClawConfigDialog: FC<ClawFileExplorerDialogProps> = ({
                 onSuccess: () => {
                     setEditedContent('')
                     queryClient.invalidateQueries({
-                        queryKey: ['claw-file', clawId, selectedPath]
+                        queryKey: [...CLAW_FILE_QUERY_KEY, clawId, selectedPath]
                     })
-                    showToast(t('dashboard.fileExplorerSaved'), 'success')
+                    showToast(
+                        t('dashboard.fileExplorerSaved'),
+                        TOAST_TYPE.SUCCESS
+                    )
                 },
                 onError: (err) => {
                     showToast(
                         err.message || t('api.failedToUpdateFile'),
-                        'error'
+                        TOAST_TYPE.ERROR
                     )
                 }
             }
@@ -443,7 +453,7 @@ const ClawConfigDialog: FC<ClawFileExplorerDialogProps> = ({
                             {groupedFiles &&
                                 filteredFiles &&
                                 filteredFiles.length > 0 && (
-                                    <>
+                                    <Fragment>
                                         <div className='text-muted-foreground flex items-center gap-1.5 px-3 pb-1 pt-2 text-xs font-medium'>
                                             <FolderOpenIcon className='h-3.5 w-3.5 shrink-0' />
                                             {t('dashboard.fileExplorerRoot')}
@@ -555,7 +565,7 @@ const ClawConfigDialog: FC<ClawFileExplorerDialogProps> = ({
                                                 </button>
                                             ))}
                                         </div>
-                                    </>
+                                    </Fragment>
                                 )}
                             {searchQuery &&
                                 filteredFiles &&
@@ -590,7 +600,7 @@ const ClawConfigDialog: FC<ClawFileExplorerDialogProps> = ({
                             </div>
                         )}
                         {selectedPath && fileContent.data && (
-                            <>
+                            <Fragment>
                                 <div className='flex items-center'>
                                     <div className='border-border bg-muted text-foreground/80 flex items-center gap-1.5 rounded-t-md border border-b-0 px-3 py-1.5 text-xs'>
                                         {getFileIcon(
@@ -655,7 +665,7 @@ const ClawConfigDialog: FC<ClawFileExplorerDialogProps> = ({
                                         {t('dashboard.fileExplorerInvalidJson')}
                                     </p>
                                 )}
-                            </>
+                            </Fragment>
                         )}
                     </div>
                 </div>

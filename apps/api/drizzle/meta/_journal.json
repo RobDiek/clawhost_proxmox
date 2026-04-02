@@ -97,7 +97,7 @@
       "idx": 13,
       "version": "7",
       "when": 1770782400000,
-      "tag": "0013_add_multi_provider_support",
+      "tag": "0013_rename_provider_columns",
       "breakpoints": true
     },
     {
@@ -111,7 +111,7 @@
       "idx": 15,
       "version": "7",
       "when": 1770955200000,
-      "tag": "0015_add_vultr_key_id",
+      "tag": "0015_noop",
       "breakpoints": true
     },
     {
@@ -154,6 +154,27 @@
       "version": "7",
       "when": 1773782400000,
       "tag": "0021_add_waitlist",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1774828800000,
+      "tag": "0022_add_affiliate",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1775082863931,
+      "tag": "0023_old_puff_adder",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1775260800000,
+      "tag": "0024_referral_payments",
       "breakpoints": true
     }
   ]

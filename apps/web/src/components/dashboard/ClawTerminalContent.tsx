@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { ClawTerminalContentProps } from '@/ts/Interfaces'
 
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import { t } from '@openclaw/i18n'
@@ -12,7 +12,9 @@ import {
     ArrowClockwiseIcon
 } from '@phosphor-icons/react'
 import { Button } from '@/components/ui'
-import { ScrollToBottomButton } from '@/components'
+import { ScrollToBottomButton } from '@/components/shared'
+import { useTerminalStore } from '@/lib/store'
+import { TERMINAL_STATUS } from '@/lib/constants'
 import '@xterm/xterm/css/xterm.css'
 
 let connectCounter = 0
@@ -31,10 +33,11 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
     const connectIdRef = useRef(0)
     const reconnectAttemptsRef = useRef(0)
     const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-    const [status, setStatus] = useState<
-        'idle' | 'connecting' | 'connected' | 'error' | 'disconnected'
-    >('idle')
-    const [showScrollButton, setShowScrollButton] = useState(false)
+    const { status, setStatus, showScrollButton, setShowScrollButton } =
+        useTerminalStore()
+    const connectRef = useRef<() => void>(() => {})
+
+    const cleanupListenersRef = useRef<(() => void)[]>([])
 
     const cleanup = useCallback(() => {
         connectIdRef.current = ++connectCounter
@@ -50,36 +53,29 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
             wsRef.current.close()
             wsRef.current = null
         }
+        cleanupListenersRef.current.forEach((fn) => fn())
+        cleanupListenersRef.current = []
+        const electronAPI = (
+            window as {
+                electronAPI?: {
+                    invoke: (
+                        channel: string,
+                        ...args: unknown[]
+                    ) => Promise<unknown>
+                }
+            }
+        ).electronAPI
+        if (electronAPI) {
+            electronAPI.invoke('terminal:kill', clawId)
+        }
         if (terminalRef.current) {
             terminalRef.current.dispose()
             terminalRef.current = null
         }
         fitAddonRef.current = null
-    }, [])
+    }, [clawId])
 
-    const connect = useCallback(async () => {
-        cleanup()
-        reconnectAttemptsRef.current = 0
-        if (!containerRef.current) return
-
-        const myId = connectIdRef.current
-        setStatus('connecting')
-
-        const token = await getCachedToken()
-
-        if (connectIdRef.current !== myId) return
-
-        if (!token) {
-            setStatus('error')
-            return
-        }
-
-        const container = containerRef.current
-        if (!container) {
-            setStatus('error')
-            return
-        }
-
+    const createTerminal = useCallback((container: HTMLElement) => {
         const styles = getComputedStyle(document.documentElement)
         const bgL = parseFloat(
             styles.getPropertyValue('--background').trim().split(/\s+/).pop() ||
@@ -155,81 +151,203 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
         observer.observe(container)
         observerRef.current = observer
 
-        const apiUrl = import.meta.env.VITE_API_URL || ''
-        const wsUrl = apiUrl.startsWith('http')
-            ? `${apiUrl.replace(/^http/, 'ws')}/claws/${clawId}/terminal?token=${encodeURIComponent(token)}`
-            : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/claws/${clawId}/terminal?token=${encodeURIComponent(token)}`
-        const ws = new WebSocket(wsUrl)
-        wsRef.current = ws
-
-        let connected = false
-
-        ws.onopen = () => {
-            ws.send(
-                JSON.stringify({
-                    type: 'resize',
-                    cols: terminal.cols,
-                    rows: terminal.rows
-                })
-            )
-            requestAnimationFrame(fitAndCrop)
-        }
-
-        ws.onmessage = (event) => {
-            if (!connected) {
-                connected = true
-                reconnectAttemptsRef.current = 0
-                setStatus('connected')
-                requestAnimationFrame(() => {
-                    terminal.focus()
-                })
-            }
-            terminal.write(event.data)
-        }
-
-        ws.onclose = () => {
-            if (connectIdRef.current !== myId) return
-            if (connected && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
-                reconnectAttemptsRef.current++
-                setStatus('connecting')
-                reconnectTimerRef.current = setTimeout(() => {
-                    if (connectIdRef.current === myId) {
-                        connect()
-                    }
-                }, RECONNECT_DELAY)
-            } else {
-                setStatus((prev) => (prev === 'error' ? 'error' : 'disconnected'))
-            }
-        }
-
-        ws.onerror = () => {
-            setStatus('error')
-        }
-
-        terminal.onData((data) => {
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(data)
-            }
-        })
-
-        terminal.onResize(({ cols, rows }) => {
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'resize', cols, rows }))
-            }
-        })
-
         terminal.onScroll(() => {
             const buf = terminal.buffer.active
             setShowScrollButton(buf.viewportY < buf.baseY)
         })
-    }, [clawId, cleanup])
+
+        return { terminal, fitAndCrop }
+    }, [])
+
+    const connectDesktop = useCallback(
+        async (myId: number, container: HTMLElement) => {
+            const electronAPI = (
+                window as {
+                    electronAPI?: {
+                        invoke: (
+                            channel: string,
+                            ...args: unknown[]
+                        ) => Promise<unknown>
+                        onTerminalData: (
+                            cb: (id: string, data: string) => void
+                        ) => () => void
+                        onTerminalExit: (cb: (id: string) => void) => () => void
+                    }
+                }
+            ).electronAPI
+            if (!electronAPI) {
+                setStatus(TERMINAL_STATUS.ERROR)
+                return
+            }
+
+            const { terminal, fitAndCrop } = createTerminal(container)
+
+            try {
+                await electronAPI.invoke(
+                    'terminal:spawn',
+                    clawId,
+                    terminal.cols,
+                    terminal.rows
+                )
+            } catch (err) {
+                console.error('[terminal] spawn failed:', err)
+                setStatus(TERMINAL_STATUS.ERROR)
+                return
+            }
+
+            if (connectIdRef.current !== myId) return
+
+            const removeDataListener = electronAPI.onTerminalData(
+                (id, data) => {
+                    if (id === clawId) {
+                        terminal.write(data)
+                    }
+                }
+            )
+            cleanupListenersRef.current.push(removeDataListener)
+
+            const removeExitListener = electronAPI.onTerminalExit((id) => {
+                if (id === clawId && connectIdRef.current === myId) {
+                    setStatus(TERMINAL_STATUS.DISCONNECTED)
+                }
+            })
+            cleanupListenersRef.current.push(removeExitListener)
+
+            setStatus(TERMINAL_STATUS.CONNECTED)
+            requestAnimationFrame(() => {
+                fitAndCrop()
+                terminal.focus()
+            })
+
+            terminal.onData((data) => {
+                electronAPI.invoke('terminal:write', clawId, data)
+            })
+
+            terminal.onResize(({ cols, rows }) => {
+                electronAPI.invoke('terminal:resize', clawId, cols, rows)
+            })
+        },
+        [clawId, createTerminal]
+    )
+
+    const connectCloud = useCallback(
+        async (myId: number, container: HTMLElement) => {
+            const token = await getCachedToken()
+
+            if (connectIdRef.current !== myId) return
+
+            if (!token) {
+                setStatus(TERMINAL_STATUS.ERROR)
+                return
+            }
+
+            const { terminal, fitAndCrop } = createTerminal(container)
+
+            const apiUrl = import.meta.env.VITE_API_URL || ''
+            const wsUrl = apiUrl.startsWith('http')
+                ? `${apiUrl.replace(/^http/, 'ws')}/claws/${clawId}/terminal?token=${encodeURIComponent(token)}`
+                : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/claws/${clawId}/terminal?token=${encodeURIComponent(token)}`
+            const ws = new WebSocket(wsUrl)
+            wsRef.current = ws
+
+            let connected = false
+
+            ws.onopen = () => {
+                ws.send(
+                    JSON.stringify({
+                        type: 'resize',
+                        cols: terminal.cols,
+                        rows: terminal.rows
+                    })
+                )
+                requestAnimationFrame(fitAndCrop)
+            }
+
+            ws.onmessage = (event) => {
+                if (!connected) {
+                    connected = true
+                    reconnectAttemptsRef.current = 0
+                    setStatus(TERMINAL_STATUS.CONNECTED)
+                    requestAnimationFrame(() => {
+                        terminal.focus()
+                    })
+                }
+                terminal.write(event.data)
+            }
+
+            ws.onclose = () => {
+                if (connectIdRef.current !== myId) return
+                if (
+                    connected &&
+                    reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS
+                ) {
+                    reconnectAttemptsRef.current++
+                    setStatus(TERMINAL_STATUS.CONNECTING)
+                    reconnectTimerRef.current = setTimeout(() => {
+                        if (connectIdRef.current === myId) {
+                            connectRef.current()
+                        }
+                    }, RECONNECT_DELAY)
+                } else {
+                    setStatus((prev) =>
+                        prev === TERMINAL_STATUS.ERROR
+                            ? TERMINAL_STATUS.ERROR
+                            : TERMINAL_STATUS.DISCONNECTED
+                    )
+                }
+            }
+
+            ws.onerror = () => {
+                setStatus(TERMINAL_STATUS.ERROR)
+            }
+
+            terminal.onData((data) => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(data)
+                }
+            })
+
+            terminal.onResize(({ cols, rows }) => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ type: 'resize', cols, rows }))
+                }
+            })
+        },
+        [clawId, createTerminal]
+    )
+
+    const connect = useCallback(async () => {
+        cleanup()
+        reconnectAttemptsRef.current = 0
+        if (!containerRef.current) return
+
+        const myId = connectIdRef.current
+        setStatus(TERMINAL_STATUS.CONNECTING)
+
+        const container = containerRef.current
+        if (!container) {
+            setStatus(TERMINAL_STATUS.ERROR)
+            return
+        }
+
+        const electronAPI = (
+            window as { electronAPI?: { isDesktop?: boolean } }
+        ).electronAPI
+        if (electronAPI?.isDesktop) {
+            await connectDesktop(myId, container)
+        } else {
+            await connectCloud(myId, container)
+        }
+    }, [cleanup, connectDesktop, connectCloud])
+
+    connectRef.current = connect
 
     useEffect(() => {
         if (enabled) {
             connect()
         } else {
             cleanup()
-            setStatus('idle')
+            setStatus(TERMINAL_STATUS.IDLE)
             setShowScrollButton(false)
         }
 
@@ -242,9 +360,9 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
     }, [])
 
     const showOverlay =
-        status === 'connecting' ||
-        status === 'error' ||
-        status === 'disconnected'
+        status === TERMINAL_STATUS.CONNECTING ||
+        status === TERMINAL_STATUS.ERROR ||
+        status === TERMINAL_STATUS.DISCONNECTED
 
     return (
         <div
@@ -263,7 +381,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
             />
             {showOverlay && (
                 <div className='bg-muted/50 absolute inset-0 flex items-center justify-center'>
-                    {status === 'connecting' && (
+                    {status === TERMINAL_STATUS.CONNECTING && (
                         <div className='flex flex-col items-center gap-3'>
                             <CircleNotchIcon className='text-muted-foreground h-6 w-6 animate-spin' />
                             <span className='text-muted-foreground text-xs'>
@@ -271,7 +389,8 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                             </span>
                         </div>
                     )}
-                    {(status === 'error' || status === 'disconnected') && (
+                    {(status === TERMINAL_STATUS.ERROR ||
+                        status === TERMINAL_STATUS.DISCONNECTED) && (
                         <div className='flex flex-col items-center gap-3'>
                             <div className='bg-foreground/5 flex h-12 w-12 items-center justify-center rounded-xl'>
                                 <TerminalWindowIcon
@@ -281,7 +400,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                             </div>
                             <p className='text-foreground/80 text-sm font-medium'>
                                 {t(
-                                    status === 'error'
+                                    status === TERMINAL_STATUS.ERROR
                                         ? 'playground.terminalError'
                                         : 'playground.terminalDisconnected'
                                 )}

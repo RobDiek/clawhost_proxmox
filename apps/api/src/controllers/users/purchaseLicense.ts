@@ -54,6 +54,8 @@ const purchaseLicense = async (c: AuthenticatedContext) => {
         const http = url?.includes('localhost') ? 'http' : 'https'
         const successUrl = `${http}://${url}/account?payment=success&checkout_id={CHECKOUT_ID}`
 
+        const referralCode = c.req.header('X-Referral-Code') || null
+
         const checkout = await checkouts.create({
             productId,
             customerEmail: user[0].email,
@@ -62,16 +64,23 @@ const purchaseLicense = async (c: AuthenticatedContext) => {
             metadata: {
                 type: 'license',
                 userId,
-                environment: getEnvironment(c)
+                environment: getEnvironment(c),
+                ...(referralCode ? { referralCode } : {})
             }
         })
 
-        return ok(c, { checkoutUrl: checkout.url }, t('api.licenseCheckoutCreated'))
+        return ok(
+            c,
+            { checkoutUrl: checkout.url },
+            t('api.licenseCheckoutCreated')
+        )
     } catch (err) {
         console.error('License purchase error:', err)
         return fail(
             c,
-            err instanceof Error ? err.message : t('api.failedToPurchaseLicense'),
+            err instanceof Error
+                ? err.message
+                : t('api.failedToPurchaseLicense'),
             500
         )
     }

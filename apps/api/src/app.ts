@@ -3,15 +3,20 @@ import type { HonoEnv } from '@/ts/Types'
 
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { compress } from 'hono/compress'
 import { logger } from 'hono/logger'
 import { bodyLimit } from 'hono/body-limit'
 import { verifyToken } from '@/services/firebase'
 import { eq, sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { users } from '@/db/schema'
+import { authMethod, userRole } from '@openclaw/shared'
+import { environment } from '@/lib/constants'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
 import {
+    adminRoutes,
+    affiliateRoutes,
     aiRoutes,
     authRoutes,
     clawsRoutes,
@@ -26,7 +31,7 @@ import { browseSkills } from '@/services/clawhub'
 
 const app = new Hono<HonoEnv>()
 
-const isDev = process.env.NODE_ENV !== 'production'
+const isDev = process.env.NODE_ENV !== environment.production
 
 app.use(
     '*',
@@ -40,13 +45,14 @@ app.use(
               ]
             : ['https://clawhost.cloud', 'https://www.clawhost.cloud'],
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-        allowHeaders: ['Content-Type', 'Authorization'],
+        allowHeaders: ['Content-Type', 'Authorization', 'X-Referral-Code'],
         exposeHeaders: ['X-Sample-Rate', 'X-Channels', 'X-Audio-Format'],
         maxAge: 86400
     })
 )
 
-app.use('*', logger())
+app.use('*', compress())
+if (isDev) app.use('*', logger())
 app.use('*', bodyLimit({ maxSize: 1024 * 1024 }))
 
 app.use('*', async (c, next) => {
@@ -121,12 +127,12 @@ app.use('/*', async (c, next) => {
         }
 
         const signInProvider = decoded.firebase?.sign_in_provider
-        const authMethod =
+        const resolvedAuthMethod =
             signInProvider === 'google.com'
-                ? 'google'
+                ? authMethod.google
                 : signInProvider === 'github.com'
-                  ? 'github'
-                  : 'email'
+                  ? authMethod.github
+                  : authMethod.email
 
         const existingUser = await db
             .select({ id: users.id, role: users.role })
@@ -140,9 +146,9 @@ app.use('/*', async (c, next) => {
                 .set({
                     ...(decoded.email ? { email: decoded.email } : {}),
                     authMethods: sql`CASE
-                        WHEN ${authMethod} = ANY(COALESCE(${users.authMethods}, '{}'))
+                        WHEN ${resolvedAuthMethod} = ANY(COALESCE(${users.authMethods}, '{}'))
                         THEN COALESCE(${users.authMethods}, '{}')
-                        ELSE array_append(COALESCE(${users.authMethods}, '{}'), ${authMethod})
+                        ELSE array_append(COALESCE(${users.authMethods}, '{}'), ${resolvedAuthMethod})
                     END`
                 })
                 .where(eq(users.id, decoded.uid))
@@ -152,16 +158,16 @@ app.use('/*', async (c, next) => {
                 .values({
                     id: decoded.uid,
                     email: decoded.email,
-                    authMethods: [authMethod]
+                    authMethods: [resolvedAuthMethod]
                 })
                 .onConflictDoUpdate({
                     target: users.id,
                     set: {
                         email: decoded.email,
                         authMethods: sql`CASE
-                            WHEN ${authMethod} = ANY(COALESCE(${users.authMethods}, '{}'))
+                            WHEN ${resolvedAuthMethod} = ANY(COALESCE(${users.authMethods}, '{}'))
                             THEN COALESCE(${users.authMethods}, '{}')
-                            ELSE array_append(COALESCE(${users.authMethods}, '{}'), ${authMethod})
+                            ELSE array_append(COALESCE(${users.authMethods}, '{}'), ${resolvedAuthMethod})
                         END`
                     }
                 })
@@ -169,7 +175,7 @@ app.use('/*', async (c, next) => {
             return fail(c, t('api.unauthorized'), 401)
         }
 
-        const admin = existingUser?.role === 'admin'
+        const admin = existingUser?.role === userRole.admin
 
         authCache.set(token, {
             data: { userId: decoded.uid, isAdmin: admin },
@@ -185,6 +191,8 @@ app.use('/*', async (c, next) => {
     }
 })
 
+app.route('/admin', adminRoutes)
+app.route('/affiliate', affiliateRoutes)
 app.route('/ai', aiRoutes)
 app.route('/claws', clawsRoutes)
 app.route('/ssh-keys', sshKeysRoutes)

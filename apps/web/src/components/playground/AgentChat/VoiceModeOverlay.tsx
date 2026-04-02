@@ -12,6 +12,11 @@ import {
     WarningIcon
 } from '@phosphor-icons/react'
 import { t } from '@openclaw/i18n'
+import {
+    CHAT_MESSAGE_ROLE,
+    CHAT_MESSAGE_STATUS,
+    CHAT_TYPING_INDICATOR
+} from '@/lib/constants'
 import VoiceOrb from '@/components/playground/AgentChat/VoiceOrb'
 import ChatBubble from '@/components/playground/AgentChat/ChatBubble'
 import ChatTypingIndicator from '@/components/playground/AgentChat/ChatTypingIndicator'
@@ -93,9 +98,7 @@ const VoiceModeOverlay: FC<VoiceModeOverlayProps> = ({
                 .then((stream) => {
                     stream.getTracks().forEach((track) => track.stop())
                 })
-        } catch {
-            /* empty */
-        }
+        } catch {}
 
         try {
             const devices = await navigator.mediaDevices.enumerateDevices()
@@ -113,9 +116,7 @@ const VoiceModeOverlay: FC<VoiceModeOverlayProps> = ({
                     return prev
                 return outputs[0]?.deviceId || ''
             })
-        } catch {
-            /* empty */
-        }
+        } catch {}
     }, [])
 
     useEffect(() => {
@@ -184,7 +185,6 @@ const VoiceModeOverlay: FC<VoiceModeOverlayProps> = ({
                         sendMessageRef.current(text)
                     }
                 } catch {
-                    /* empty */
                 } finally {
                     setIsTranscribing(false)
                     stoppingRef.current = false
@@ -228,9 +228,7 @@ const VoiceModeOverlay: FC<VoiceModeOverlayProps> = ({
             setIsRecording(true)
 
             getTranscriber()
-        } catch {
-            /* empty */
-        }
+        } catch {}
     }, [hasNoInput])
 
     useEffect(() => {
@@ -277,8 +275,8 @@ const VoiceModeOverlay: FC<VoiceModeOverlayProps> = ({
     useEffect(() => {
         if (!isRecording && !isTranscribing && !isStreaming) {
             const hasActivity =
-                typingIndicator === 'thinking' ||
-                typingIndicator === 'writing' ||
+                typingIndicator === CHAT_TYPING_INDICATOR.THINKING ||
+                typingIndicator === CHAT_TYPING_INDICATOR.WRITING ||
                 !!ttsLoadingMessageId ||
                 !!ttsActiveMessageId
 
@@ -291,9 +289,9 @@ const VoiceModeOverlay: FC<VoiceModeOverlayProps> = ({
                 const now = Date.now()
                 let val = 0
 
-                if (typingIndicator === 'thinking') {
+                if (typingIndicator === CHAT_TYPING_INDICATOR.THINKING) {
                     val = 0.15 + Math.sin(now / 300) * 0.05
-                } else if (typingIndicator === 'writing') {
+                } else if (typingIndicator === CHAT_TYPING_INDICATOR.WRITING) {
                     val = 0.2 + Math.sin(now / 250) * 0.08
                 } else if (ttsLoadingMessageId) {
                     val = 0.2 + Math.sin(now / 200) * 0.05
@@ -341,8 +339,8 @@ const VoiceModeOverlay: FC<VoiceModeOverlayProps> = ({
 
         const lastMessage = sessionMessages[sessionMessages.length - 1]
         if (
-            lastMessage.role === 'assistant' &&
-            lastMessage.status === 'complete' &&
+            lastMessage.role === CHAT_MESSAGE_ROLE.ASSISTANT &&
+            lastMessage.status === CHAT_MESSAGE_STATUS.COMPLETE &&
             lastMessage.id !== lastSpokenIdRef.current
         ) {
             lastSpokenIdRef.current = lastMessage.id
@@ -424,9 +422,9 @@ const VoiceModeOverlay: FC<VoiceModeOverlayProps> = ({
         if (hasNoInput) return t('playground.chatVoiceModeNoMicrophone')
         if (isRecording) return t('playground.chatVoiceModeListening')
         if (isTranscribing) return t('playground.chatVoiceModeTranscribing')
-        if (typingIndicator === 'thinking')
+        if (typingIndicator === CHAT_TYPING_INDICATOR.THINKING)
             return t('playground.chatVoiceModeThinking')
-        if (typingIndicator === 'writing' || isStreaming)
+        if (typingIndicator === CHAT_TYPING_INDICATOR.WRITING || isStreaming)
             return t('playground.chatVoiceModeResponding')
         if (ttsLoadingMessageId) return t('playground.chatVoiceModePreparing')
         if (ttsActiveMessageId) return t('playground.chatVoiceModeSpeaking')

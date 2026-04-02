@@ -131,10 +131,12 @@ const getCertPaths = (): CertPaths | null => {
 
 const getCaCertPath = (): string => CA_CERT_PATH
 
-export default {
+const certManager = {
     ensureCerts,
     regenerateServerCert,
     getCertPaths,
     getCaCertPath,
     isCaValid
 }
+
+export default certManager

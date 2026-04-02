@@ -14,6 +14,12 @@ import type { ChatTypingIndicator, GatewayConnectionState } from '@/ts/Types'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { SharedGateway } from '@/lib/gateway'
+import {
+    CHAT_MESSAGE_ROLE,
+    CHAT_MESSAGE_STATUS,
+    CHAT_TYPING_INDICATOR,
+    GATEWAY_CONNECTION_STATE
+} from '@/lib/constants'
 import extractText from '@/hooks/useAgentChat/extractText'
 import extractImages from '@/hooks/useAgentChat/extractImages'
 import extractTimestamp from '@/hooks/useAgentChat/extractTimestamp'
@@ -27,7 +33,7 @@ const useAgentChat = ({
 }: UseAgentChatParams): UseAgentChatReturn => {
     const [messages, setMessages] = useState<ChatMessage[]>([])
     const [connectionState, setConnectionState] =
-        useState<GatewayConnectionState>('disconnected')
+        useState<GatewayConnectionState>(GATEWAY_CONNECTION_STATE.DISCONNECTED)
     const [isLoading, setIsLoading] = useState(true)
     const [isStreaming, setIsStreaming] = useState(false)
     const [typingIndicator, setTypingIndicator] =
@@ -50,7 +56,7 @@ const useAgentChat = ({
 
         setMessages((prev) => {
             const last = prev[prev.length - 1]
-            if (last && last.status === 'streaming') {
+            if (last && last.status === CHAT_MESSAGE_STATUS.STREAMING) {
                 return [...prev.slice(0, -1), { ...last, content }]
             }
             return prev
@@ -62,7 +68,7 @@ const useAgentChat = ({
         sessionKeyRef.current = `agent:${agentId}:main`
 
         if (!enabled || !subdomain || !gatewayToken) {
-            setConnectionState('disconnected')
+            setConnectionState(GATEWAY_CONNECTION_STATE.DISCONNECTED)
             setIsLoading(false)
             return
         }
@@ -118,7 +124,7 @@ const useAgentChat = ({
                                 msg.role === 'toolCall'
                             )
                                 continue
-                            const isUser = msg.role === 'user'
+                            const isUser = msg.role === CHAT_MESSAGE_ROLE.USER
                             const text = extractText(msg.content)
                             if (!text.trim()) continue
                             if (isUser) {
@@ -128,9 +134,11 @@ const useAgentChat = ({
                             const images = extractImages(msg.content)
                             loaded.push({
                                 id: `history-${i}`,
-                                role: isUser ? 'user' : 'assistant',
+                                role: isUser
+                                    ? CHAT_MESSAGE_ROLE.USER
+                                    : CHAT_MESSAGE_ROLE.ASSISTANT,
                                 content: isUser ? stripMetadata(text) : text,
-                                status: 'complete' as const,
+                                status: CHAT_MESSAGE_STATUS.COMPLETE,
                                 timestamp: lastTimestamp,
                                 images:
                                     images && images.length > 0
@@ -151,11 +159,14 @@ const useAgentChat = ({
             if (!mountedRef.current) return
             setConnectionState(state)
 
-            if (state === 'error' || state === 'disconnected') {
+            if (
+                state === GATEWAY_CONNECTION_STATE.ERROR ||
+                state === GATEWAY_CONNECTION_STATE.DISCONNECTED
+            ) {
                 setIsLoading(false)
             }
 
-            if (state === 'connected') {
+            if (state === GATEWAY_CONNECTION_STATE.CONNECTED) {
                 loadHistory()
             }
         }
@@ -178,7 +189,7 @@ const useAgentChat = ({
                         currentRunIdRef.current =
                             event.runId || crypto.randomUUID()
                         setIsStreaming(true)
-                        setTypingIndicator('writing')
+                        setTypingIndicator(CHAT_TYPING_INDICATOR.WRITING)
                         streamBufferRef.current = text
                         streamImagesRef.current =
                             images.length > 0 ? images : undefined
@@ -186,9 +197,9 @@ const useAgentChat = ({
                             ...prev,
                             {
                                 id: currentRunIdRef.current!,
-                                role: 'assistant',
+                                role: CHAT_MESSAGE_ROLE.ASSISTANT,
                                 content: text,
-                                status: 'streaming',
+                                status: CHAT_MESSAGE_STATUS.STREAMING,
                                 runId: currentRunIdRef.current!,
                                 timestamp: new Date().toISOString(),
                                 images: images.length > 0 ? images : undefined
@@ -215,13 +226,16 @@ const useAgentChat = ({
                     const finalImages = streamImagesRef.current
                     setMessages((prev) => {
                         const last = prev[prev.length - 1]
-                        if (last && last.status === 'streaming') {
+                        if (
+                            last &&
+                            last.status === CHAT_MESSAGE_STATUS.STREAMING
+                        ) {
                             return [
                                 ...prev.slice(0, -1),
                                 {
                                     ...last,
                                     content: finalContent || last.content,
-                                    status: 'complete' as const,
+                                    status: CHAT_MESSAGE_STATUS.COMPLETE,
                                     images:
                                         finalImages && finalImages.length > 0
                                             ? finalImages
@@ -245,10 +259,10 @@ const useAgentChat = ({
 
                 setMessages((prev) => {
                     const last = prev[prev.length - 1]
-                    if (last && last.status === 'streaming') {
+                    if (last && last.status === CHAT_MESSAGE_STATUS.STREAMING) {
                         return [
                             ...prev.slice(0, -1),
-                            { ...last, status: 'error' as const }
+                            { ...last, status: CHAT_MESSAGE_STATUS.ERROR }
                         ]
                     }
                     return prev
@@ -273,7 +287,7 @@ const useAgentChat = ({
                             {
                                 ...last,
                                 content: abortedContent || last.content,
-                                status: 'aborted' as const
+                                status: CHAT_MESSAGE_STATUS.ABORTED
                             }
                         ]
                     }
@@ -290,12 +304,12 @@ const useAgentChat = ({
         client.addStateListener(handleStateChange)
         client.on('chat', handleChatEvent)
 
-        if (client.state === 'connected') {
-            setConnectionState('connected')
+        if (client.state === GATEWAY_CONNECTION_STATE.CONNECTED) {
+            setConnectionState(GATEWAY_CONNECTION_STATE.CONNECTED)
             loadHistory()
         } else if (
-            client.state === 'connecting' ||
-            client.state === 'authenticating'
+            client.state === GATEWAY_CONNECTION_STATE.CONNECTING ||
+            client.state === GATEWAY_CONNECTION_STATE.AUTHENTICATING
         ) {
             setConnectionState(client.state)
         }
@@ -323,15 +337,15 @@ const useAgentChat = ({
 
             const userMessage: ChatMessage = {
                 id: crypto.randomUUID(),
-                role: 'user',
+                role: CHAT_MESSAGE_ROLE.USER,
                 content: text.trim(),
-                status: 'complete',
+                status: CHAT_MESSAGE_STATUS.COMPLETE,
                 timestamp: new Date().toISOString(),
                 images: previews && previews.length > 0 ? previews : undefined
             }
 
             setMessages((prev) => [...prev, userMessage])
-            setTypingIndicator('thinking')
+            setTypingIndicator(CHAT_TYPING_INDICATOR.THINKING)
             streamBufferRef.current = ''
             currentRunIdRef.current = null
 

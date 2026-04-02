@@ -4,6 +4,7 @@ import type { ChatSidebarAgentListProps } from '@/ts/Interfaces'
 import { t } from '@openclaw/i18n'
 import { PlusIcon } from '@phosphor-icons/react'
 import { Skeleton } from '@/components/ui'
+import { GATEWAY_CONNECTION_STATE } from '@/lib/constants'
 import { useGatewayState } from '@/hooks'
 import ChatSidebarItem from '@/components/chat/ChatSidebarItem'
 
@@ -65,8 +66,10 @@ const ChatSidebarAgentList: FC<ChatSidebarAgentListProps> = ({
                         isLast={isLastItem}
                         isChecking={
                             !readOnly &&
-                            (gatewayState === 'connecting' ||
-                                gatewayState === 'authenticating')
+                            (gatewayState ===
+                                GATEWAY_CONNECTION_STATE.CONNECTING ||
+                                gatewayState ===
+                                    GATEWAY_CONNECTION_STATE.AUTHENTICATING)
                         }
                         readOnly={readOnly}
                         connectionState={
@@ -74,11 +77,14 @@ const ChatSidebarAgentList: FC<ChatSidebarAgentListProps> = ({
                                 ? undefined
                                 : isActiveAgent
                                   ? activeConnectionState
-                                  : gatewayState === 'connected'
-                                    ? 'connected'
-                                    : gatewayState === 'error' ||
-                                        gatewayState === 'disconnected'
-                                      ? 'disconnected'
+                                  : gatewayState ===
+                                      GATEWAY_CONNECTION_STATE.CONNECTED
+                                    ? GATEWAY_CONNECTION_STATE.CONNECTED
+                                    : gatewayState ===
+                                            GATEWAY_CONNECTION_STATE.ERROR ||
+                                        gatewayState ===
+                                            GATEWAY_CONNECTION_STATE.DISCONNECTED
+                                      ? GATEWAY_CONNECTION_STATE.DISCONNECTED
                                       : undefined
                         }
                         onClick={() => onAgentClick(agent.id, claw.id)}

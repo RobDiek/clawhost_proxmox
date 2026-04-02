@@ -1,7 +1,5 @@
 import type { FC, ReactNode } from 'react'
 import type { CreateClawModalProps } from '@/ts/Interfaces'
-import type { ProviderType } from '@/ts/Types'
-
 import { useState, useEffect } from 'react'
 import {
     ActivityIndicator,
@@ -42,23 +40,15 @@ import { generatePassword, locationFlags } from '@/lib/claw-utils'
 import { COLORS, SPACING, TYPOGRAPHY } from '@/lib/theme'
 import ProviderIcon from '@/components/ProviderIcon'
 
-const PROVIDERS: { id: ProviderType; label: string; recommended?: boolean }[] =
-    [
-        { id: 'hetzner', label: 'Hetzner', recommended: true },
-        { id: 'digitalocean', label: 'DigitalOcean' },
-        { id: 'vultr', label: 'Vultr' }
-    ]
+const PROVIDERS: { id: string; label: string; recommended?: boolean }[] = [
+    { id: 'hetzner', label: 'Hetzner', recommended: true }
+]
 
 const TIER_STARTS: Record<string, Record<string, string>> = {
     hetzner: {
         cx23: t('landing.tierShared'),
         cax11: t('landing.tierArm'),
         ccx13: t('landing.tierDedicated')
-    },
-    vultr: {
-        'vc2-2c-4gb': t('landing.tierRegular'),
-        'vhp-2c-4gb-amd': t('landing.tierHighPerformance'),
-        'vhf-3c-8gb': t('landing.tierHighFrequency')
     }
 }
 
@@ -70,7 +60,7 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
     const { user } = useAuth()
 
     const [name, setName] = useState('')
-    const [provider, setProvider] = useState<ProviderType>('hetzner')
+    const [provider, setProvider] = useState('hetzner')
     const [planId, setPlanId] = useState('')
     const [location, setLocation] = useState('')
     const [password, setPassword] = useState(generatePassword())
@@ -147,7 +137,7 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
         }
     }, [planAvailability, planId])
 
-    const handleProviderChange = (newProvider: ProviderType): void => {
+    const handleProviderChange = (newProvider: string): void => {
         setProvider(newProvider)
         setPlanId('')
         setLocation('')

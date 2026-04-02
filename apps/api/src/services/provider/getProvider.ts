@@ -1,9 +1,6 @@
 import type { CloudProvider } from '@/ts/Interfaces'
-import type { ProviderType } from '@/ts/Types'
 
 import hetzner from '@/services/hetzner'
-import digitalocean from '@/services/digitalocean'
-import vultr from '@/services/vultr'
 import cache from '@/services/provider/cache'
 
 const CACHE_TTL = 5 * 60 * 1000
@@ -38,76 +35,64 @@ const cached = <T>(
     return promise
 }
 
-const providers: Record<ProviderType, CloudProvider> = {
-    hetzner,
-    digitalocean,
-    vultr
-}
+let wrappedProvider: CloudProvider | null = null
 
-const wrappedProviders = new Map<ProviderType, CloudProvider>()
-
-const getProvider = (provider: ProviderType): CloudProvider => {
-    const p = providers[provider]
-    if (!p) {
-        throw new Error(`Unknown provider: ${provider}`)
-    }
-
-    const existing = wrappedProviders.get(provider)
-    if (existing) return existing
+const getProvider = (): CloudProvider => {
+    if (wrappedProvider) return wrappedProvider
 
     const invalidateServer = (serverId: string) => {
-        cache.delete(`${provider}:servers`)
-        cache.delete(`${provider}:server:${serverId}`)
+        cache.delete('hetzner:servers')
+        cache.delete(`hetzner:server:${serverId}`)
     }
 
     const wrapped: CloudProvider = {
-        ...p,
+        ...hetzner,
         getServer: (serverId: string) =>
             cached(
-                `${provider}:server:${serverId}`,
-                () => p.getServer(serverId),
+                `hetzner:server:${serverId}`,
+                () => hetzner.getServer(serverId),
                 SERVERS_CACHE_TTL
             ),
         getServers: () =>
             cached(
-                `${provider}:servers`,
-                () => p.getServers(),
+                'hetzner:servers',
+                () => hetzner.getServers(),
                 SERVERS_CACHE_TTL
             ),
         getServerTypes: () =>
-            cached(`${provider}:serverTypes`, () => p.getServerTypes()),
+            cached('hetzner:serverTypes', () => hetzner.getServerTypes()),
         getLocations: () =>
-            cached(`${provider}:locations`, () => p.getLocations()),
+            cached('hetzner:locations', () => hetzner.getLocations()),
         getRawServerTypes: () =>
-            cached(`${provider}:rawServerTypes`, () => p.getRawServerTypes()),
+            cached('hetzner:rawServerTypes', () => hetzner.getRawServerTypes()),
         getDatacenters: () =>
-            cached(`${provider}:datacenters`, () => p.getDatacenters()),
+            cached('hetzner:datacenters', () => hetzner.getDatacenters()),
         getVolumePricing: () =>
-            cached(`${provider}:volumePricing`, () => p.getVolumePricing()),
+            cached('hetzner:volumePricing', () => hetzner.getVolumePricing()),
         createServer: async (...args) => {
-            const result = await p.createServer(...args)
-            cache.delete(`${provider}:servers`)
+            const result = await hetzner.createServer(...args)
+            cache.delete('hetzner:servers')
             return result
         },
         startServer: async (serverId) => {
-            await p.startServer(serverId)
+            await hetzner.startServer(serverId)
             invalidateServer(serverId)
         },
         stopServer: async (serverId) => {
-            await p.stopServer(serverId)
+            await hetzner.stopServer(serverId)
             invalidateServer(serverId)
         },
         restartServer: async (serverId) => {
-            await p.restartServer(serverId)
+            await hetzner.restartServer(serverId)
             invalidateServer(serverId)
         },
         deleteServer: async (serverId) => {
-            await p.deleteServer(serverId)
+            await hetzner.deleteServer(serverId)
             invalidateServer(serverId)
         }
     }
 
-    wrappedProviders.set(provider, wrapped)
+    wrappedProvider = wrapped
     return wrapped
 }
 

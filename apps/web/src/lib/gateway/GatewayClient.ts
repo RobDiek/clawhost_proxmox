@@ -6,6 +6,7 @@ import type {
 import type { ElectronWindow, GatewayPendingRequest } from '@/ts/Interfaces'
 
 import { getBaseDomain } from '@/lib'
+import { GATEWAY_CONNECTION_STATE } from '@/lib/constants'
 
 const REQUEST_TIMEOUT = 15000
 const MAX_RECONNECT_DELAY = 30000
@@ -17,7 +18,8 @@ class GatewayClient {
     private requestId = 0
     private pending = new Map<string, GatewayPendingRequest>()
     private listeners = new Map<string, Set<GatewayEventHandler>>()
-    private _state: GatewayConnectionState = 'disconnected'
+    private _state: GatewayConnectionState =
+        GATEWAY_CONNECTION_STATE.DISCONNECTED
     private stateListeners = new Set<GatewayStateListener>()
     private reconnectAttempts = 0
     private reconnectTimer: ReturnType<typeof setTimeout> | null = null
@@ -56,7 +58,7 @@ class GatewayClient {
         if (this.ws) return
 
         this.intentionalClose = false
-        this.setState('connecting')
+        this.setState(GATEWAY_CONNECTION_STATE.CONNECTING)
 
         let url: string
         const electronAPI = (window as unknown as ElectronWindow).electronAPI
@@ -73,7 +75,7 @@ class GatewayClient {
         try {
             this.ws = new WebSocket(url)
         } catch {
-            this.setState('error')
+            this.setState(GATEWAY_CONNECTION_STATE.ERROR)
             this.scheduleReconnect()
             return
         }
@@ -98,14 +100,14 @@ class GatewayClient {
             })
             this.pending.clear()
             if (!this.intentionalClose) {
-                this.setState('disconnected')
+                this.setState(GATEWAY_CONNECTION_STATE.DISCONNECTED)
                 this.scheduleReconnect()
             }
         }
 
         this.ws.onerror = () => {
-            if (this._state === 'connecting') {
-                this.setState('error')
+            if (this._state === GATEWAY_CONNECTION_STATE.CONNECTING) {
+                this.setState(GATEWAY_CONNECTION_STATE.ERROR)
             }
         }
     }
@@ -138,12 +140,12 @@ class GatewayClient {
 
             if (frame.ok) {
                 if (
-                    this._state === 'authenticating' &&
+                    this._state === GATEWAY_CONNECTION_STATE.AUTHENTICATING &&
                     (frame.payload as Record<string, unknown>)?.type ===
                         'hello-ok'
                 ) {
                     this.reconnectAttempts = 0
-                    this.setState('connected')
+                    this.setState(GATEWAY_CONNECTION_STATE.CONNECTED)
                 }
                 pendingReq.resolve(frame.payload)
             } else {
@@ -156,7 +158,7 @@ class GatewayClient {
     }
 
     private handleChallenge(): void {
-        this.setState('authenticating')
+        this.setState(GATEWAY_CONNECTION_STATE.AUTHENTICATING)
 
         const id = this.nextId()
         const params = {
@@ -184,13 +186,13 @@ class GatewayClient {
 
         const timer = setTimeout(() => {
             this.pending.delete(id)
-            this.setState('error')
+            this.setState(GATEWAY_CONNECTION_STATE.ERROR)
         }, REQUEST_TIMEOUT)
 
         this.pending.set(id, {
             resolve: () => {},
             reject: () => {
-                this.setState('error')
+                this.setState(GATEWAY_CONNECTION_STATE.ERROR)
             },
             timer
         })
@@ -198,7 +200,10 @@ class GatewayClient {
 
     send(method: string, params: unknown): Promise<unknown> {
         return new Promise((resolve, reject) => {
-            if (!this.ws || this._state !== 'connected') {
+            if (
+                !this.ws ||
+                this._state !== GATEWAY_CONNECTION_STATE.CONNECTED
+            ) {
                 reject(new Error('Not connected'))
                 return
             }
@@ -255,7 +260,7 @@ class GatewayClient {
             this.ws = null
         }
 
-        this.setState('disconnected')
+        this.setState(GATEWAY_CONNECTION_STATE.DISCONNECTED)
     }
 
     private sendRaw(frame: Record<string, unknown>): void {

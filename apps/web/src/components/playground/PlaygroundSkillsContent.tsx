@@ -9,7 +9,15 @@ import type {
     SkillEntryConfig
 } from '@/ts/Interfaces'
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import {
+    Fragment,
+    useState,
+    useEffect,
+    useCallback,
+    useMemo,
+    useRef
+} from 'react'
+import { useDebouncedValue, useClawVersion } from '@/hooks'
 import {
     useQuery,
     useInfiniteQuery,
@@ -17,6 +25,7 @@ import {
     useQueryClient,
     keepPreviousData
 } from '@tanstack/react-query'
+import { isFeatureSupported } from '@openclaw/shared'
 import { t } from '@openclaw/i18n'
 import {
     CircleNotchIcon,
@@ -27,39 +36,39 @@ import {
     StorefrontIcon,
     TrashIcon
 } from '@phosphor-icons/react'
-import { PanelPlaceholder, TruncateTooltip } from '@/components'
+import {
+    PanelPlaceholder,
+    TruncateTooltip,
+    VersionUnsupported
+} from '@/components/shared'
 import { Skeleton } from '@/components/ui'
 import { api, getLocale } from '@/lib'
-import { useUIStore } from '@/lib/store'
+import { useUIStore, useSkillsStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 
 const PAGE_SIZE = 50
 
 const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
     clawId,
-    agentId
+    agentId,
+    onGoToVersions
 }): ReactNode => {
     const isAgentMode = !!agentId
     const [skills, setSkills] = useState<BundledSkillInfo[]>([])
     const [entries, setEntries] = useState<Record<string, SkillEntryConfig>>({})
     const [search, setSearch] = useState('')
-    const [debouncedSearch, setDebouncedSearch] = useState('')
-    const [pendingSkill, setPendingSkill] = useState<string | null>(null)
-    const [pendingSlug, setPendingSlug] = useState<string | null>(null)
+    const debouncedSearch = useDebouncedValue(search.trim(), 400)
+    const { pendingSkill, setPendingSkill, pendingSlug, setPendingSlug } =
+        useSkillsStore()
     const { showToast } = useUIStore()
     const queryClient = useQueryClient()
-    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const sentinelRef = useRef<HTMLDivElement | null>(null)
     const scrollRef = useRef<HTMLDivElement | null>(null)
 
-    useEffect(() => {
-        if (debounceRef.current) clearTimeout(debounceRef.current)
-        debounceRef.current = setTimeout(() => {
-            setDebouncedSearch(search.trim())
-        }, 400)
-        return () => {
-            if (debounceRef.current) clearTimeout(debounceRef.current)
-        }
-    }, [search])
+    const versionQuery = useClawVersion(clawId, true)
+    const clawVersion = versionQuery.data?.version || ''
+    const versionUnsupported =
+        clawVersion !== '' && !isFeatureSupported(clawVersion, 'skills')
 
     const clawQueryKey = ['claw-skills', clawId]
     const agentQueryKey = ['agent-skills', clawId, agentId]
@@ -247,7 +256,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
             })
         },
         onError: (_: unknown, name: string) => {
-            showToast(t('playground.skillsSaveFailed'), 'error')
+            showToast(t('playground.skillsSaveFailed'), TOAST_TYPE.ERROR)
             setPendingSkill(null)
             setSkills((prev) =>
                 prev.map((s) =>
@@ -271,7 +280,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
                 skillName: name
             }),
         onSuccess: (_: void, name: string) => {
-            showToast(t('playground.agentSkillsInstalled'), 'success')
+            showToast(t('playground.agentSkillsInstalled'), TOAST_TYPE.SUCCESS)
             setPendingSkill(null)
             queryClient.setQueryData<GetAgentSkillsResponse>(
                 agentQueryKey,
@@ -283,7 +292,10 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
             )
         },
         onError: () => {
-            showToast(t('playground.agentSkillsInstallFailed'), 'error')
+            showToast(
+                t('playground.agentSkillsInstallFailed'),
+                TOAST_TYPE.ERROR
+            )
             setPendingSkill(null)
         }
     })
@@ -295,7 +307,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
                 skillName: name
             }),
         onSuccess: (_: void, name: string) => {
-            showToast(t('playground.agentSkillsRemoved'), 'success')
+            showToast(t('playground.agentSkillsRemoved'), TOAST_TYPE.SUCCESS)
             setPendingSkill(null)
             queryClient.setQueryData<GetAgentSkillsResponse>(
                 agentQueryKey,
@@ -306,7 +318,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
             )
         },
         onError: () => {
-            showToast(t('playground.agentSkillsRemoveFailed'), 'error')
+            showToast(t('playground.agentSkillsRemoveFailed'), TOAST_TYPE.ERROR)
             setPendingSkill(null)
         }
     })
@@ -315,7 +327,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
         mutationFn: (slug: string) =>
             api.installClawHubSkill(clawId, { slug, agentId }),
         onSuccess: (_: void, slug: string) => {
-            showToast(t('playground.clawHubInstalled'), 'success')
+            showToast(t('playground.clawHubInstalled'), TOAST_TYPE.SUCCESS)
             setPendingSlug(null)
             const normalized = slug.toLowerCase()
             queryClient.setQueryData<ClawHubInstalledResponse>(
@@ -354,7 +366,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
             queryClient.invalidateQueries({ queryKey: installedKey })
         },
         onError: () => {
-            showToast(t('playground.clawHubInstallFailed'), 'error')
+            showToast(t('playground.clawHubInstallFailed'), TOAST_TYPE.ERROR)
             setPendingSlug(null)
         }
     })
@@ -363,7 +375,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
         mutationFn: (slug: string) =>
             api.removeClawHubSkill(clawId, { slug, agentId }),
         onSuccess: (_: void, slug: string) => {
-            showToast(t('playground.clawHubRemoved'), 'success')
+            showToast(t('playground.clawHubRemoved'), TOAST_TYPE.SUCCESS)
             setPendingSlug(null)
             const normalized = slug.toLowerCase()
             queryClient.setQueryData<ClawHubInstalledResponse>(
@@ -379,7 +391,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
             )
         },
         onError: () => {
-            showToast(t('playground.clawHubRemoveFailed'), 'error')
+            showToast(t('playground.clawHubRemoveFailed'), TOAST_TYPE.ERROR)
             setPendingSlug(null)
         }
     })
@@ -388,13 +400,13 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
         mutationFn: (slug: string) =>
             api.updateClawHubSkill(clawId, { slug, agentId }),
         onSuccess: () => {
-            showToast(t('playground.clawHubUpdated'), 'success')
+            showToast(t('playground.clawHubUpdated'), TOAST_TYPE.SUCCESS)
             setPendingSlug(null)
             queryClient.invalidateQueries({ queryKey: installedKey })
             queryClient.invalidateQueries({ queryKey: updatesKey })
         },
         onError: () => {
-            showToast(t('playground.clawHubUpdateFailed'), 'error')
+            showToast(t('playground.clawHubUpdateFailed'), TOAST_TYPE.ERROR)
             setPendingSlug(null)
         }
     })
@@ -466,9 +478,19 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
     return (
         <div
             ref={scrollRef}
-            className='flex h-full flex-col overflow-y-auto px-5 pb-5'
+            className='flex h-full flex-col overflow-y-auto pb-5'
         >
-            <div className='bg-background sticky top-0 z-10 pb-3 pt-5'>
+            {versionUnsupported && (
+                <VersionUnsupported
+                    version={clawVersion}
+                    feature={t('playground.tabSkills')}
+                    featureKey='skills'
+                    onGoToVersions={onGoToVersions}
+                />
+            )}
+            <div
+                className={`bg-background sticky top-0 z-10 px-5 pb-3 pt-5 ${versionUnsupported ? 'pointer-events-none opacity-50' : ''}`}
+            >
                 <div className='relative'>
                     <MagnifyingGlassIcon className='text-muted-foreground absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2' />
                     <input
@@ -481,7 +503,9 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
                 </div>
             </div>
 
-            <div className='flex min-h-0 flex-1 flex-col'>
+            <div
+                className={`flex min-h-0 flex-1 flex-col px-5 ${versionUnsupported ? 'pointer-events-none opacity-50' : ''}`}
+            >
                 {hasAnyItems ? (
                     <div className='space-y-1.5 pb-3'>
                         {isBundledLoading &&
@@ -536,19 +560,19 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
                                             {isPending ? (
                                                 <CircleNotchIcon className='h-3 w-3 animate-spin' />
                                             ) : active ? (
-                                                <>
+                                                <Fragment>
                                                     <TrashIcon className='h-3 w-3' />
                                                     {t(
                                                         'playground.clawHubRemove'
                                                     )}
-                                                </>
+                                                </Fragment>
                                             ) : (
-                                                <>
+                                                <Fragment>
                                                     <DownloadSimpleIcon className='h-3 w-3' />
                                                     {t(
                                                         'playground.clawHubInstall'
                                                     )}
-                                                </>
+                                                </Fragment>
                                             )}
                                         </button>
                                     </div>
@@ -662,19 +686,19 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
                                             ) : isInstalled && hasUpdate ? (
                                                 t('playground.clawHubUpdate')
                                             ) : isInstalled ? (
-                                                <>
+                                                <Fragment>
                                                     <TrashIcon className='h-3 w-3' />
                                                     {t(
                                                         'playground.clawHubRemove'
                                                     )}
-                                                </>
+                                                </Fragment>
                                             ) : (
-                                                <>
+                                                <Fragment>
                                                     <DownloadSimpleIcon className='h-3 w-3' />
                                                     {t(
                                                         'playground.clawHubInstall'
                                                     )}
-                                                </>
+                                                </Fragment>
                                             )}
                                         </button>
                                     </div>

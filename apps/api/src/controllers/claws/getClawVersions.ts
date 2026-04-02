@@ -15,8 +15,8 @@ const NPM_DOWNLOADS_URL = 'https://api.npmjs.org/versions/openclaw/last-week'
 const getClawVersions = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
-        const claw = await findUserClaw(userId, id)
+        const id = c.req.param('id')!
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)

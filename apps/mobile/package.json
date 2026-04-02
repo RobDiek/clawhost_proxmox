@@ -1,12 +1,12 @@
 {
     "name": "mobile",
-    "version": "0.0.113",
+    "version": "0.0.133",
     "private": true,
     "main": "./index.ts",
     "scripts": {
         "dev": "expo start",
-        "android": "expo start --android",
-        "ios": "expo start --ios",
+        "android": "expo run:android",
+        "ios": "expo run:ios",
         "typecheck": "tsc --noEmit",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",

@@ -1,6 +1,7 @@
 import type { FeatureEmailDefinition } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
+import { featureEmailKey } from '@/lib/constants'
 import TerminalEmail from '@/emails/features/TerminalEmail'
 import LogsEmail from '@/emails/features/LogsEmail'
 import ChannelsEmail from '@/emails/features/ChannelsEmail'
@@ -14,7 +15,6 @@ import EnvVarsEmail from '@/emails/features/EnvVarsEmail'
 import DiagnosticsEmail from '@/emails/features/DiagnosticsEmail'
 import SshKeysEmail from '@/emails/features/SshKeysEmail'
 import ExportConfigEmail from '@/emails/features/ExportConfigEmail'
-import MultiProviderEmail from '@/emails/features/MultiProviderEmail'
 import MultiLanguageEmail from '@/emails/features/MultiLanguageEmail'
 import SubdomainEmail from '@/emails/features/SubdomainEmail'
 import DarkModeEmail from '@/emails/features/DarkModeEmail'
@@ -23,97 +23,92 @@ import YearlyPlansEmail from '@/emails/features/YearlyPlansEmail'
 
 const FEATURE_EMAILS: FeatureEmailDefinition[] = [
     {
-        key: 'terminal',
+        key: featureEmailKey.terminal,
         subject: t('emails.features.terminal.subject'),
         render: () => TerminalEmail({})
     },
     {
-        key: 'logs',
+        key: featureEmailKey.logs,
         subject: t('emails.features.logs.subject'),
         render: () => LogsEmail({})
     },
     {
-        key: 'channels',
+        key: featureEmailKey.channels,
         subject: t('emails.features.channels.subject'),
         render: () => ChannelsEmail({})
     },
     {
-        key: 'fileExplorer',
+        key: featureEmailKey.fileExplorer,
         subject: t('emails.features.fileExplorer.subject'),
         render: () => FileExplorerEmail({})
     },
     {
-        key: 'playground',
+        key: featureEmailKey.playground,
         subject: t('emails.features.playground.subject'),
         render: () => PlaygroundEmail({})
     },
     {
-        key: 'agentChat',
+        key: featureEmailKey.agentChat,
         subject: t('emails.features.agentChat.subject'),
         render: () => AgentChatEmail({})
     },
     {
-        key: 'voiceMode',
+        key: featureEmailKey.voiceMode,
         subject: t('emails.features.voiceMode.subject'),
         render: () => VoiceModeEmail({})
     },
     {
-        key: 'skills',
+        key: featureEmailKey.skills,
         subject: t('emails.features.skills.subject'),
         render: () => SkillsEmail({})
     },
     {
-        key: 'bindings',
+        key: featureEmailKey.bindings,
         subject: t('emails.features.bindings.subject'),
         render: () => BindingsEmail({})
     },
     {
-        key: 'envVars',
+        key: featureEmailKey.envVars,
         subject: t('emails.features.envVars.subject'),
         render: () => EnvVarsEmail({})
     },
     {
-        key: 'diagnostics',
+        key: featureEmailKey.diagnostics,
         subject: t('emails.features.diagnostics.subject'),
         render: () => DiagnosticsEmail({})
     },
     {
-        key: 'sshKeys',
+        key: featureEmailKey.sshKeys,
         subject: t('emails.features.sshKeys.subject'),
         render: () => SshKeysEmail({})
     },
     {
-        key: 'exportConfig',
+        key: featureEmailKey.exportConfig,
         subject: t('emails.features.exportConfig.subject'),
         render: () => ExportConfigEmail({})
     },
     {
-        key: 'multiProvider',
-        subject: t('emails.features.multiProvider.subject'),
-        render: () => MultiProviderEmail({})
-    },
-    {
-        key: 'multiLanguage',
+        key: featureEmailKey.multiLanguage,
         subject: t('emails.features.multiLanguage.subject'),
         render: () => MultiLanguageEmail({})
     },
     {
-        key: 'subdomain',
+        key: featureEmailKey.subdomain,
         subject: t('emails.features.subdomain.subject'),
         render: () => SubdomainEmail({})
     },
     {
-        key: 'darkMode',
+        key: featureEmailKey.darkMode,
         subject: t('emails.features.darkMode.subject'),
         render: () => DarkModeEmail({})
     },
     {
-        key: 'reinstall',
+        key: featureEmailKey.reinstall,
         subject: t('emails.features.reinstall.subject'),
         render: () => ReinstallEmail({})
     },
     {
-        key: 'yearlyPlans',
+        key: featureEmailKey.yearlyPlans,
         subject: t('emails.features.yearlyPlans.subject'),
         render: () => YearlyPlansEmail({})
     }

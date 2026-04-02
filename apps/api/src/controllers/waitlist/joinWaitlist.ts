@@ -22,10 +22,21 @@ const joinWaitlist = async (c: Context) => {
         const ip = getClientIp(c)
 
         if (ip) {
-            const retryAfter = await checkRateLimit(`waitlist:ip:${ip}`, RATE_LIMIT_WINDOW)
+            const retryAfter = await checkRateLimit(
+                `waitlist:ip:${ip}`,
+                RATE_LIMIT_WINDOW
+            )
             if (retryAfter > 0) {
-                const seconds = Math.ceil(retryAfter / 1000)
-                return fail(c, t('api.waitlistRateLimited', { seconds: String(seconds) }), 429)
+                const unit =
+                    retryAfter === 1 ? t('common.second') : t('common.seconds')
+                return fail(
+                    c,
+                    t('api.waitlistRateLimited', {
+                        seconds: String(retryAfter),
+                        unit
+                    }),
+                    429
+                )
             }
         }
 
@@ -51,7 +62,11 @@ const joinWaitlist = async (c: Context) => {
             .then((rows) => rows[0])
 
         if (existing) {
-            return ok(c, { joined: true, alreadyJoined: true }, t('api.waitlistAlreadyJoined'))
+            return ok(
+                c,
+                { joined: true, alreadyJoined: true },
+                t('api.waitlistAlreadyJoined')
+            )
         }
 
         await db.insert(waitlist).values({
@@ -63,7 +78,11 @@ const joinWaitlist = async (c: Context) => {
             await setRateLimit(`waitlist:ip:${ip}`)
         }
 
-        return ok(c, { joined: true, alreadyJoined: false }, t('api.waitlistJoined'))
+        return ok(
+            c,
+            { joined: true, alreadyJoined: false },
+            t('api.waitlistJoined')
+        )
     } catch {
         return fail(c, t('api.waitlistJoinFailed'), 500)
     }

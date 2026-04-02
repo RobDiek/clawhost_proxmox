@@ -8,7 +8,6 @@ const generateCloudInit = (
     gatewayToken: string
 ): string => {
     const fullDomain = `${subdomain}.${domain}`
-
     const config: Record<string, unknown> = {
         gateway: {
             mode: 'local',
@@ -21,7 +20,7 @@ const generateCloudInit = (
             },
             controlUi: {
                 allowInsecureAuth: true,
-                allowedOrigins: [`https://${fullDomain}`],
+                allowedOrigins: ['*'],
                 dangerouslyDisableDeviceAuth: true
             },
             trustedProxies: ['127.0.0.1', '::1']

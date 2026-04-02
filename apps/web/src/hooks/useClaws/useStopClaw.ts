@@ -1,9 +1,6 @@
-import type { Claw } from '@/ts/Interfaces'
-
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib'
-import CLAWS_QUERY_KEY from '@/hooks/useClaws/CLAWS_QUERY_KEY'
-import ADMIN_CLAWS_QUERY_KEY from '@/hooks/useClaws/ADMIN_CLAWS_QUERY_KEY'
+import updateClawInCaches from '@/hooks/useClaws/updateClawInCaches'
 
 const useStopClaw = () => {
     const queryClient = useQueryClient()
@@ -11,12 +8,7 @@ const useStopClaw = () => {
     return useMutation({
         mutationFn: (id: string) => api.stopClaw(id),
         onSuccess: (updatedClaw, id) => {
-            queryClient.setQueryData<Claw[]>(CLAWS_QUERY_KEY, (old) =>
-                old?.map((c) => (c.id === id ? { ...c, ...updatedClaw } : c))
-            )
-            queryClient.setQueryData<Claw[]>(ADMIN_CLAWS_QUERY_KEY, (old) =>
-                old?.map((c) => (c.id === id ? { ...c, ...updatedClaw } : c))
-            )
+            updateClawInCaches(queryClient, id, updatedClaw)
         }
     })
 }

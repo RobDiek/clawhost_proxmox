@@ -17,9 +17,12 @@
         "noFallthroughCasesInSwitch": true,
         "paths": {
             "@/*": ["../web/src/*"],
-            "@electron/*": ["./src/renderer/*"]
+            "@electron/*": ["./src/renderer/*"],
+            "#i18n/*": ["../../packages/i18n/src/*"],
+            "#shared/*": ["../../packages/shared/src/*"]
         },
         "types": ["vite/client"]
     },
-    "include": ["src/renderer", "../web/src"]
+    "include": ["src/renderer", "../web/src"],
+    "exclude": ["../web/src/**/*.test.ts", "../web/src/**/*.test.tsx"]
 }

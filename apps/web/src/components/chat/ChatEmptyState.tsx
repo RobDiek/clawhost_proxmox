@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 
 import { t } from '@openclaw/i18n'
-import { ClawMascot } from '@/components'
+import { ClawMascot } from '@/components/shared'
 
 const ChatEmptyState: FC = (): ReactNode => {
     return (

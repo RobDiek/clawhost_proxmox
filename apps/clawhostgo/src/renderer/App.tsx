@@ -2,12 +2,13 @@ import type { FC, ReactNode } from 'react'
 
 import { Suspense, lazy } from 'react'
 import { Routes, Route } from 'react-router-dom'
+import { t } from '@openclaw/i18n'
 import { AuthProvider } from '@/lib/auth'
 import { TooltipProvider } from '@/components/ui'
 import { useThemeEffect, useLanguageEffect } from '@/hooks'
 import { ROUTES } from '@/lib'
 import { ProtectedRoute, Toast } from '@/components'
-import LicenseGate from '@electron/components/LicenseGate'
+import { LicenseGate, UpdateBanner } from '@electron/components'
 
 const Login = lazy(() => import('@/pages/Login'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
@@ -22,7 +23,10 @@ const App: FC = (): ReactNode => {
     return (
         <TooltipProvider delayDuration={300}>
             <AuthProvider>
-                <div id='electron-drag-bar' className='bg-background' />
+                <div id='electron-drag-bar' className='bg-background'>
+                    <span>{t('common.brandNameGo')}</span>
+                </div>
+                <UpdateBanner />
                 <Toast />
                 <Suspense key={language}>
                     <Routes>

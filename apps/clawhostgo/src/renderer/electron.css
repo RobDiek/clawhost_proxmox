@@ -70,6 +70,16 @@ body {
     height: 38px;
     z-index: 9999;
     background: hsl(var(--background));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#electron-drag-bar span {
+    font-size: 13px;
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+    user-select: none;
 }
 
 button,

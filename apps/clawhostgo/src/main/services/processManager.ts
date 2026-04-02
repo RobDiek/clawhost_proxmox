@@ -1,8 +1,9 @@
-import { spawn } from 'child_process'
+import { spawn, execSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 import configStore from '@/main/services/configStore'
 import nodeBinary from '@/main/services/nodeBinary'
+import { t } from '@openclaw/i18n'
 
 const childRefs = new Map<string, number>()
 
@@ -57,6 +58,24 @@ const parseEnvFile = (envPath: string): Record<string, string> => {
     return env
 }
 
+const killProcessOnPort = (port: number): void => {
+    try {
+        const output = execSync(`lsof -ti :${port}`, {
+            encoding: 'utf-8',
+            timeout: 3000
+        }).trim()
+        if (!output) return
+        for (const pidStr of output.split('\n')) {
+            const pid = parseInt(pidStr.trim(), 10)
+            if (!isNaN(pid)) {
+                try {
+                    process.kill(pid, 'SIGKILL')
+                } catch {}
+            }
+        }
+    } catch {}
+}
+
 const startGateway = async (
     clawId: string,
     clawDir: string,
@@ -68,16 +87,15 @@ const startGateway = async (
         await stopGateway(clawId)
     }
 
+    killProcessOnPort(port)
+
+    const clawBin = path.join(clawDir, 'node_modules', '.bin', 'openclaw')
     const versionDir = configStore.getVersionDir(version)
-    const openclawBin = path.join(
-        versionDir,
-        'node_modules',
-        '.bin',
-        'openclaw'
-    )
+    const sharedBin = path.join(versionDir, 'node_modules', '.bin', 'openclaw')
+    const openclawBin = fs.existsSync(clawBin) ? clawBin : sharedBin
 
     if (!fs.existsSync(openclawBin)) {
-        throw new Error(`OpenClaw version ${version} is not installed`)
+        throw new Error(t('go.versionNotInstalled', { version }))
     }
 
     const nodePath = nodeBinary.getNodeBinaryPath()
@@ -109,7 +127,9 @@ const startGateway = async (
     const pid = child.pid
     if (!pid) {
         fs.closeSync(logFd)
-        throw new Error('Failed to start process: no PID assigned.')
+        throw new Error(
+            t('go.failedToStartProcess', { reason: 'no PID assigned' })
+        )
     }
 
     writePid(clawDir, pid)
@@ -137,8 +157,8 @@ const startGateway = async (
                     reject(
                         new Error(
                             logs
-                                ? `Process exited immediately. Logs:\n${logs}`
-                                : 'Process exited immediately after starting.'
+                                ? t('go.processExitedImmediately', { logs })
+                                : t('go.processExitedImmediatelyNoLogs')
                         )
                     )
                 )
@@ -155,13 +175,20 @@ const startGateway = async (
                     reject(
                         new Error(
                             logs
-                                ? `Process exited with code ${code}. Logs:\n${logs}`
-                                : `Process exited with code ${code}.`
+                                ? t('go.processExitedWithCode', {
+                                      code: String(code),
+                                      logs
+                                  })
+                                : t('go.processExitedWithCodeNoLogs', {
+                                      code: String(code)
+                                  })
                         )
                     )
                 )
             } else {
-                settle(() => reject(new Error('Process exited unexpectedly.')))
+                settle(() =>
+                    reject(new Error(t('go.processExitedUnexpectedly')))
+                )
             }
         })
 
@@ -170,7 +197,11 @@ const startGateway = async (
             removePid(clawDir)
             childRefs.delete(clawId)
             settle(() =>
-                reject(new Error(`Failed to start process: ${err.message}`))
+                reject(
+                    new Error(
+                        t('go.failedToStartProcess', { reason: err.message })
+                    )
+                )
             )
         })
     })
@@ -271,12 +302,36 @@ const stopAll = async (): Promise<void> => {
     await Promise.all(stopPromises)
 }
 
-export default {
+const cleanOrphanedProcesses = (): void => {
+    const config = configStore.readConfig()
+    const clawNames = new Set(config.claws.map((c) => c.name))
+    const clawsDir = path.join(configStore.getBaseDir(), 'claws')
+    if (!fs.existsSync(clawsDir)) return
+    for (const dir of fs.readdirSync(clawsDir)) {
+        if (clawNames.has(dir)) continue
+        const pidPath = path.join(clawsDir, dir, 'gateway.pid')
+        if (!fs.existsSync(pidPath)) continue
+        const pid = parseInt(fs.readFileSync(pidPath, 'utf-8').trim(), 10)
+        if (!isNaN(pid) && isPidAlive(pid)) {
+            try {
+                process.kill(pid, 'SIGKILL')
+            } catch {}
+        }
+        try {
+            fs.unlinkSync(pidPath)
+        } catch {}
+    }
+}
+
+const processManager = {
     startGateway,
     stopGateway,
     restartGateway,
     isRunning,
     getProcessInfo,
     getLogs,
-    stopAll
+    stopAll,
+    cleanOrphanedProcesses
 }
+
+export default processManager

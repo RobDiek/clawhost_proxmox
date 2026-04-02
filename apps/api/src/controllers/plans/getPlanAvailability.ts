@@ -1,11 +1,10 @@
 import type { Context } from 'hono'
-import type { ProviderType } from '@/ts/Types'
 
 import { getProvider } from '@/services/provider'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
 
-const hetznerCustomPrices: Record<string, number> = {
+const serverPrices: Record<string, number> = {
     cx23: 10,
     cx33: 15,
     cx43: 20,
@@ -27,57 +26,9 @@ const hetznerCustomPrices: Record<string, number> = {
     ccx63: 350
 }
 
-const digitaloceanCustomPrices: Record<string, number> = {
-    's-1vcpu-512mb-10gb': 10,
-    's-1vcpu-1gb': 15,
-    's-1vcpu-2gb': 20,
-    's-2vcpu-2gb': 30,
-    's-2vcpu-4gb': 50,
-    's-4vcpu-8gb': 75,
-    's-8vcpu-16gb': 150
-}
-
-const vultrCustomPrices: Record<string, number> = {
-    'vc2-1c-1gb': 10,
-    'vc2-1c-2gb': 20,
-    'vc2-2c-2gb': 30,
-    'vc2-2c-4gb': 40,
-    'vc2-4c-8gb': 80,
-    'vc2-6c-16gb': 160,
-    'vc2-8c-32gb': 320,
-    'vc2-16c-64gb': 500,
-    'vhp-1c-1gb-amd': 12,
-    'vhp-1c-2gb-amd': 24,
-    'vhp-2c-2gb-amd': 32,
-    'vhp-2c-4gb-amd': 48,
-    'vhp-4c-8gb-amd': 120,
-    'vhp-4c-12gb-amd': 180,
-    'vhp-8c-16gb-amd': 192,
-    'vhp-12c-24gb-amd': 250,
-    'vhf-1c-2gb': 24,
-    'vhf-2c-4gb': 48,
-    'vhf-3c-8gb': 96,
-    'vhf-4c-16gb': 125,
-    'vhf-8c-32gb': 192,
-    'vhf-12c-48gb': 500
-}
-
-const pricesByProvider: Record<ProviderType, Record<string, number>> = {
-    hetzner: hetznerCustomPrices,
-    digitalocean: digitaloceanCustomPrices,
-    vultr: vultrCustomPrices
-}
-
 const getPlanAvailability = async (c: Context) => {
     try {
-        const providerName = (c.req.query('provider') ||
-            'hetzner') as ProviderType
-        const provider = getProvider(providerName)
-        const customPrices = pricesByProvider[providerName]
-
-        if (!customPrices) {
-            return fail(c, t('api.invalidProvider'), 400)
-        }
+        const provider = getProvider()
 
         const [serverTypes, datacenters] = await Promise.all([
             provider.getRawServerTypes(),
@@ -103,7 +54,7 @@ const getPlanAvailability = async (c: Context) => {
 
         const availability: Record<string, string[]> = {}
 
-        for (const planName of Object.keys(customPrices)) {
+        for (const planName of Object.keys(serverPrices)) {
             const serverTypeId = nameToId.get(planName)
             if (!serverTypeId) continue
             availability[planName] = Array.from(

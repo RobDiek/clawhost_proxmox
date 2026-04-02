@@ -10,7 +10,7 @@ import { t } from '@openclaw/i18n'
 const deleteSSHKey = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
 
         const key = await db
             .select()
@@ -42,35 +42,11 @@ const deleteSSHKey = async (c: AuthenticatedContext) => {
         const providerDeletions: Promise<void>[] = []
         if (key[0].providerKeyId) {
             providerDeletions.push(
-                getProvider('hetzner')
+                getProvider()
                     .deleteSSHKey(key[0].providerKeyId)
                     .catch((err) =>
                         console.error(
                             'Failed to delete SSH key from Hetzner:',
-                            err
-                        )
-                    )
-            )
-        }
-        if (key[0].digitaloceanKeyId) {
-            providerDeletions.push(
-                getProvider('digitalocean')
-                    .deleteSSHKey(key[0].digitaloceanKeyId)
-                    .catch((err) =>
-                        console.error(
-                            'Failed to delete SSH key from DigitalOcean:',
-                            err
-                        )
-                    )
-            )
-        }
-        if (key[0].vultrKeyId) {
-            providerDeletions.push(
-                getProvider('vultr')
-                    .deleteSSHKey(key[0].vultrKeyId)
-                    .catch((err) =>
-                        console.error(
-                            'Failed to delete SSH key from Vultr:',
                             err
                         )
                     )

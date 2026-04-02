@@ -1,17 +1,25 @@
 import { defineConfig, loadEnv } from 'vite'
 
+import { readFileSync } from 'fs'
 import path from 'path'
 import react from '@vitejs/plugin-react'
 import mdx from '@mdx-js/rollup'
 import remarkFrontmatter from 'remark-frontmatter'
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter'
 import remarkGfm from 'remark-gfm'
+import viteCompression from 'vite-plugin-compression'
 import viteMdxSanitize from './src/plugins/vite-mdx-sanitize'
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd())
+    const pkg = JSON.parse(
+        readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')
+    )
 
     return {
+        define: {
+            __APP_VERSION__: JSON.stringify(`v${pkg.version}`)
+        },
         plugins: [
             viteMdxSanitize(),
             mdx({
@@ -21,7 +29,9 @@ export default defineConfig(({ mode }) => {
                     remarkMdxFrontmatter
                 ]
             }),
-            react()
+            react(),
+            viteCompression({ algorithm: 'gzip', threshold: 1024 }),
+            viteCompression({ algorithm: 'brotliCompress', threshold: 1024 })
         ],
         resolve: {
             alias: {
@@ -51,10 +61,7 @@ export default defineConfig(({ mode }) => {
                             '@codemirror/lang-json'
                         ],
                         phosphor: ['@phosphor-icons/react'],
-                        firebase: [
-                            'firebase/app',
-                            'firebase/auth'
-                        ],
+                        firebase: ['firebase/app', 'firebase/auth'],
                         tanstack: [
                             '@tanstack/react-query',
                             '@tanstack/react-query-persist-client',

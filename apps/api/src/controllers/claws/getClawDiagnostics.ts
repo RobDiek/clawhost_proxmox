@@ -10,8 +10,8 @@ const SEPARATOR = '---CLAWHOST_SEP---'
 const getClawDiagnostics = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
-        const claw = await findUserClaw(userId, id)
+        const id = c.req.param('id')!
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)

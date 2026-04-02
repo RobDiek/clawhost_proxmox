@@ -2,12 +2,12 @@ import type {
     ProvisionClawParams,
     ProvisionClawResponse
 } from '@/ts/Interfaces'
-import type { ProviderType } from '@/ts/Types'
 
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
 import { clawStatus, inputValidation } from '@openclaw/shared'
 import { db } from '@/db'
+import { subscriptionStatus } from '@/lib/constants'
 import { claws, pendingClaws, sshKeys, volumes } from '@/db/schema'
 import { getProvider } from '@/services/provider'
 import cloudflare from '@/services/cloudflare'
@@ -45,8 +45,7 @@ const provisionClaw = async (
 
         const pending = claimed[0]
 
-        const providerName = (pending.provider || 'hetzner') as ProviderType
-        const provider = getProvider(providerName)
+        const provider = getProvider()
 
         const [serverTypes, sshKeyResult] = await Promise.all([
             provider.getServerTypes(),
@@ -76,14 +75,8 @@ const provisionClaw = async (
 
         let providerSshKeyIds: number[] | undefined
         if (sshKeyResult && sshKeyResult[0]) {
-            const keyId =
-                providerName === 'digitalocean'
-                    ? sshKeyResult[0].digitaloceanKeyId
-                    : providerName === 'vultr'
-                      ? sshKeyResult[0].vultrKeyId
-                      : sshKeyResult[0].providerKeyId
-            if (keyId) {
-                providerSshKeyIds = [keyId]
+            if (sshKeyResult[0].providerKeyId) {
+                providerSshKeyIds = [sshKeyResult[0].providerKeyId]
             }
         }
 
@@ -98,7 +91,6 @@ const provisionClaw = async (
             id,
             userId: pending.userId,
             name: pending.name,
-            provider: providerName,
             status: clawStatus.creating,
             planId: pending.planId,
             location: pending.location,
@@ -109,7 +101,7 @@ const provisionClaw = async (
             polarSubscriptionId: params.subscriptionId,
             polarProductId: params.productId,
             polarCustomerId: params.customerId,
-            subscriptionStatus: 'active',
+            subscriptionStatus: subscriptionStatus.active,
             billingInterval: pending.billingInterval
         })
 
@@ -178,7 +170,7 @@ const provisionClaw = async (
             }
         }
 
-        return { success: true, clawId: id }
+        return { success: true, clawId: id, referralCode: pending.referralCode }
     } catch (err) {
         console.error('Provision claw error:', err)
         return {

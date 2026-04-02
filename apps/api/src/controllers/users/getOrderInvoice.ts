@@ -10,7 +10,7 @@ import { t } from '@openclaw/i18n'
 const getOrderInvoice = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const orderId = c.req.param('orderId')
+        const orderId = c.req.param('orderId')!
 
         if (!orderId) {
             return fail(c, t('api.orderIdRequired'), 400)

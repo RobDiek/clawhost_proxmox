@@ -1,6 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { ClawCardDropdownMenuProps } from '@/ts/Interfaces'
 
+import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
 import { clawProvider, clawStatus } from '@openclaw/shared'
 import { getBaseDomain } from '@/lib'
@@ -48,7 +49,12 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                 <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />
             </button>
         ) : (
-            <Button variant='ghost' size='icon' disabled aria-label={t('common.loading')}>
+            <Button
+                variant='ghost'
+                size='icon'
+                disabled
+                aria-label={t('common.loading')}
+            >
                 <CircleNotchIcon className='h-5 w-5 animate-spin' />
             </Button>
         )
@@ -68,7 +74,11 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                         />
                     </button>
                 ) : (
-                    <Button variant='ghost' size='icon' aria-label={t('dashboard.clawActions')}>
+                    <Button
+                        variant='ghost'
+                        size='icon'
+                        aria-label={t('dashboard.clawActions')}
+                    >
                         <DotsThreeOutlineIcon className='h-5 w-5' />
                     </Button>
                 )}
@@ -84,16 +94,21 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                     </DropdownMenuItem>
                 )}
                 {claw.status === clawStatus.running && (
-                    <>
+                    <Fragment>
                         <DropdownMenuItem
                             onClick={() => {
-                                const subdomain =
-                                    claw.subdomain || generateSlug(claw.id)
-                                const domain =
-                                    claw.provider === clawProvider.local
-                                        ? `${subdomain}.clawhost`
-                                        : `${subdomain}.${getBaseDomain()}`
-                                const url = `https://${domain}${claw.gatewayToken ? `/#token=${claw.gatewayToken}` : ''}`
+                                let url: string
+                                if (
+                                    claw.provider === clawProvider.local &&
+                                    claw.port
+                                ) {
+                                    url = `http://127.0.0.1:${claw.port}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`
+                                } else {
+                                    const subdomain =
+                                        claw.subdomain || generateSlug(claw.id)
+                                    const domain = `${subdomain}.${getBaseDomain()}`
+                                    url = `https://${domain}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`
+                                }
                                 window.open(url, '_blank')
                             }}
                         >
@@ -115,30 +130,28 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                             <ArrowClockwiseIcon className='mr-2 h-4 w-4' />
                             {t('dashboard.restart')}
                         </DropdownMenuItem>
-                    </>
+                    </Fragment>
                 )}
                 {claw.provider !== clawProvider.local && claw.ip && (
-                    <>
+                    <Fragment>
                         {hasActionItems && <DropdownMenuSeparator />}
                         <DropdownMenuItem onClick={actions.onShowCredentials}>
                             <TerminalIcon className='mr-2 h-4 w-4' />
                             {t('dashboard.viewServerCredentials')}
                         </DropdownMenuItem>
-                    </>
+                    </Fragment>
                 )}
                 {claw.ip && (
-                    <>
+                    <Fragment>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={actions.onShowConfig}>
                             <FolderSimpleIcon className='mr-2 h-4 w-4' />
                             {t('dashboard.fileExplorer')}
                         </DropdownMenuItem>
-                        {claw.provider !== clawProvider.local && (
-                            <DropdownMenuItem onClick={actions.onExport}>
-                                <ExportIcon className='mr-2 h-4 w-4' />
-                                {t('dashboard.exportData')}
-                            </DropdownMenuItem>
-                        )}
+                        <DropdownMenuItem onClick={actions.onExport}>
+                            <ExportIcon className='mr-2 h-4 w-4' />
+                            {t('dashboard.exportData')}
+                        </DropdownMenuItem>
                         {claw.provider !== clawProvider.local && isAdmin && (
                             <DropdownMenuItem
                                 onClick={actions.onUpdateInstance}
@@ -157,11 +170,11 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                                 {t('dashboard.reinstallInstance')}
                             </DropdownMenuItem>
                         )}
-                    </>
+                    </Fragment>
                 )}
                 {(hasActionItems || claw.ip) && <DropdownMenuSeparator />}
                 {claw.status === clawStatus.awaitingPayment ? (
-                    <>
+                    <Fragment>
                         {claw.checkoutUrl && (
                             <DropdownMenuItem
                                 onClick={() => actions.onResumeCheckout()}
@@ -178,7 +191,7 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                             <TrashIcon className='mr-2 h-4 w-4' />
                             {t('dashboard.cancelPurchase')}
                         </DropdownMenuItem>
-                    </>
+                    </Fragment>
                 ) : claw.provider === clawProvider.local ? (
                     <DropdownMenuItem
                         onClick={actions.onShowDeleteModal}
@@ -189,7 +202,7 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                         {t('common.delete')}
                     </DropdownMenuItem>
                 ) : isScheduledForDeletion ? (
-                    <>
+                    <Fragment>
                         <DropdownMenuItem
                             onClick={actions.onCancelDeletion}
                             className='text-orange-600 focus:text-orange-600 dark:text-orange-400 dark:focus:text-orange-400'
@@ -207,12 +220,12 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                                 {t('dashboard.hardDelete')}
                             </DropdownMenuItem>
                         )}
-                    </>
+                    </Fragment>
                 ) : (
-                    <>
+                    <Fragment>
                         {claw.status === clawStatus.creating &&
                             !claw.id.startsWith('pending-') && (
-                                <>
+                                <Fragment>
                                     <DropdownMenuItem
                                         onClick={actions.onShowReinstallModal}
                                         disabled={isLoading}
@@ -221,7 +234,7 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                                         {t('dashboard.reinstallInstance')}
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                </>
+                                </Fragment>
                             )}
                         <DropdownMenuItem
                             onClick={actions.onShowDeleteModal}
@@ -233,7 +246,7 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                                 ? t('common.delete')
                                 : t('dashboard.scheduleDeletion')}
                         </DropdownMenuItem>
-                    </>
+                    </Fragment>
                 )}
             </DropdownMenuContent>
         </DropdownMenu>

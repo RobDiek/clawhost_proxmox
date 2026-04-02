@@ -17,7 +17,9 @@ const run = async () => {
         return
     }
 
-    console.log(`Found ${orphanedClaws.length} claw(s) WITHOUT a subscription ID:\n`)
+    console.log(
+        `Found ${orphanedClaws.length} claw(s) WITHOUT a subscription ID:\n`
+    )
 
     for (const claw of orphanedClaws) {
         const user = await db
@@ -29,7 +31,9 @@ const run = async () => {
         console.log(`  Claw: ${claw.id}`)
         console.log(`    Name: ${claw.name}`)
         console.log(`    Status: ${claw.status}`)
-        console.log(`    Subscription Status: ${claw.subscriptionStatus || 'none'}`)
+        console.log(
+            `    Subscription Status: ${claw.subscriptionStatus || 'none'}`
+        )
         console.log(`    Provider: ${claw.provider}`)
         console.log(`    Plan: ${claw.planId}`)
         console.log(`    Location: ${claw.location || 'unknown'}`)

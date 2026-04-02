@@ -1,6 +1,6 @@
 import type { Plugin } from 'vite'
 
-function sanitizeFrontmatter(raw: string): string {
+const sanitizeFrontmatter = (raw: string): string => {
     let fm = raw
 
     fm = fm.replace(/\u2014/g, '-')
@@ -31,7 +31,7 @@ function sanitizeFrontmatter(raw: string): string {
     return fm
 }
 
-function escapeProseLine(line: string): string {
+const escapeProseLine = (line: string): string => {
     const segments: string[] = []
     let remaining = line
     const inlineCodePattern = /`[^`]*`/
@@ -53,14 +53,14 @@ function escapeProseLine(line: string): string {
     return segments.join('')
 }
 
-function escapeSegment(text: string): string {
+const escapeSegment = (text: string): string => {
     return text
         .replace(/<(?![a-zA-Z/!])/g, '&lt;')
         .replace(/\{/g, '&#123;')
         .replace(/\}/g, '&#125;')
 }
 
-function sanitizeMdx(content: string): string {
+const sanitizeMdx = (content: string): string => {
     const frontmatterMatch = content.match(
         /^(---\n)([\s\S]*?)(\n---)([\s\S]*)$/
     )

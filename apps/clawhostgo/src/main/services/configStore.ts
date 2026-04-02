@@ -128,7 +128,7 @@ const getVersionDir = (version: string): string => {
 
 const getBaseDir = (): string => BASE_DIR
 
-export default {
+const configStore = {
     ensureDirectories,
     readConfig,
     writeConfig,
@@ -143,3 +143,5 @@ export default {
     getVersionDir,
     getBaseDir
 }
+
+export default configStore

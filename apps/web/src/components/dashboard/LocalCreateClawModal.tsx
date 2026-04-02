@@ -5,16 +5,17 @@ import { useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { useQueryClient } from '@tanstack/react-query'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogFooter
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+    DialogFooter,
+    Button,
+    Input,
+    Label
+} from '@/components/ui'
 import {
     CircleNotchIcon,
     ArrowClockwiseIcon,
@@ -22,14 +23,40 @@ import {
     EyeSlashIcon
 } from '@phosphor-icons/react'
 import { api } from '@/lib'
+import CLAWS_QUERY_KEY from '@/hooks/useClaws/CLAWS_QUERY_KEY'
 
 const generateReadablePassword = (): string => {
     const words = [
-        'sun', 'moon', 'star', 'rain', 'snow', 'wind',
-        'fire', 'wave', 'leaf', 'tree', 'rock', 'bird',
-        'fish', 'bear', 'wolf', 'fox', 'deer', 'hawk',
-        'rose', 'sage', 'mint', 'pine', 'oak', 'elm',
-        'blue', 'red', 'gold', 'jade', 'ruby', 'onyx'
+        'sun',
+        'moon',
+        'star',
+        'rain',
+        'snow',
+        'wind',
+        'fire',
+        'wave',
+        'leaf',
+        'tree',
+        'rock',
+        'bird',
+        'fish',
+        'bear',
+        'wolf',
+        'fox',
+        'deer',
+        'hawk',
+        'rose',
+        'sage',
+        'mint',
+        'pine',
+        'oak',
+        'elm',
+        'blue',
+        'red',
+        'gold',
+        'jade',
+        'ruby',
+        'onyx'
     ]
     const pick = () => words[Math.floor(Math.random() * words.length)]
     const num = Math.floor(Math.random() * 90 + 10)
@@ -54,20 +81,18 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
     const [showToken, setShowToken] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
-    const [error, setError] = useState('')
     const queryClient = useQueryClient()
     const showToast = useUIStore((s) => s.showToast)
 
-    const nameValid = /^[a-zA-Z0-9-]+$/.test(name) && name.length > 0
+    const nameValid = name.length === 0 || /^[a-zA-Z0-9-]+$/.test(name)
 
     const handleCreate = async (): Promise<void> => {
         if (!nameValid) {
-            setError(t('createClaw.clawNameInvalidChars'))
+            showToast(t('createClaw.clawNameInvalidChars'), TOAST_TYPE.ERROR)
             return
         }
 
         setLoading(true)
-        setError('')
 
         try {
             await api.createClaw({
@@ -75,15 +100,15 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
                 ...(gatewayToken && { gatewayToken }),
                 ...(password && { password })
             } as never)
-            await queryClient.invalidateQueries({ queryKey: ['claws'] })
-            showToast(t('createClaw.clawCreated'), 'success')
+            await queryClient.invalidateQueries({ queryKey: CLAWS_QUERY_KEY })
+            showToast(t('createClaw.clawCreated'), TOAST_TYPE.SUCCESS)
             onClose()
         } catch (err) {
             const message =
                 err instanceof Error
                     ? err.message
                     : t('errors.somethingWentWrong')
-            setError(message)
+            showToast(message, TOAST_TYPE.ERROR)
         } finally {
             setLoading(false)
         }
@@ -106,10 +131,7 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
                         <Label>{t('createClaw.clawName')}</Label>
                         <Input
                             value={name}
-                            onChange={(e) => {
-                                setName(e.target.value)
-                                setError('')
-                            }}
+                            onChange={(e) => setName(e.target.value)}
                             onKeyDown={(e) => {
                                 if (
                                     e.key === 'Enter' &&
@@ -123,7 +145,7 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
                             autoFocus
                         />
                         <p className='text-muted-foreground text-xs'>
-                            {t('createClaw.clawNameInvalidChars')}
+                            {t('createClaw.autoGenerateNameHint')}
                         </p>
                     </div>
 
@@ -133,9 +155,13 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
                             <div className='relative flex-1'>
                                 <Input
                                     value={gatewayToken}
-                                    onChange={(e) => setGatewayToken(e.target.value)}
+                                    onChange={(e) =>
+                                        setGatewayToken(e.target.value)
+                                    }
                                     type={showToken ? 'text' : 'password'}
-                                    placeholder='e.g. a1b2c3d4e5f6...'
+                                    placeholder={t(
+                                        'createClaw.gatewayTokenPlaceholder'
+                                    )}
                                     className='pr-9'
                                 />
                                 <button
@@ -171,14 +197,20 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
                             <div className='relative flex-1'>
                                 <Input
                                     value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    onChange={(e) =>
+                                        setPassword(e.target.value)
+                                    }
                                     type={showPassword ? 'text' : 'password'}
-                                    placeholder='e.g. sun-wolf-42'
+                                    placeholder={t(
+                                        'createClaw.rootPasswordPlaceholder'
+                                    )}
                                     className='pr-9'
                                 />
                                 <button
                                     type='button'
-                                    onClick={() => setShowPassword(!showPassword)}
+                                    onClick={() =>
+                                        setShowPassword(!showPassword)
+                                    }
                                     className='text-muted-foreground hover:text-foreground absolute right-2.5 top-1/2 -translate-y-1/2'
                                 >
                                     {showPassword ? (
@@ -205,8 +237,6 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
                             {t('createClaw.autoGeneratePasswordHint')}
                         </p>
                     </div>
-
-                    {error && <p className='text-sm text-red-400'>{error}</p>}
                 </div>
 
                 <DialogFooter>

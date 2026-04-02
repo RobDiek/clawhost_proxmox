@@ -146,6 +146,22 @@ const Terms: FC = (): ReactNode => {
 
                     <section>
                         <h2 className='mb-3 text-xl font-semibold'>
+                            {t('terms.affiliateTitle')}
+                        </h2>
+                        <p className='text-muted-foreground leading-relaxed'>
+                            {t('terms.affiliateText')}
+                        </p>
+                        <ul className='text-muted-foreground mt-2 list-inside list-disc space-y-2'>
+                            <li>{t('terms.affiliateCodeUnique')}</li>
+                            <li>{t('terms.affiliateCodeOneChange')}</li>
+                            <li>{t('terms.affiliateReferralWindow')}</li>
+                            <li>{t('terms.affiliateNoSelfReferral')}</li>
+                            <li>{t('terms.affiliateAbuse')}</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2 className='mb-3 text-xl font-semibold'>
                             {t('terms.contactTitle')}
                         </h2>
                         <p className='text-muted-foreground leading-relaxed'>

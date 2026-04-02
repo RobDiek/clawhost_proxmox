@@ -2,23 +2,21 @@ import type { GetAgentSkillsBody, AgentSkillInfo } from '@/ts/Interfaces'
 import type { AuthenticatedContext } from '@/ts/Types'
 
 import executeSSH from '@/services/ssh'
-import { findUserClaw } from '@/controllers/claws/helpers'
+import { BASE_DIR, findUserClaw } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
-
-const BASE_DIR = '/home/openclaw/.openclaw'
 
 const getAgentSkills = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const id = c.req.param('id')
+        const id = c.req.param('id')!
         const body = await c.req.json<GetAgentSkillsBody>()
 
         if (!body.agentId || typeof body.agentId !== 'string') {
             return fail(c, t('api.missingRequiredFields'), 400)
         }
 
-        const claw = await findUserClaw(userId, id)
+        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
         if (!claw) {
             return fail(c, t('api.clawNotFound'), 404)

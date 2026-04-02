@@ -1,3 +1,3 @@
-const OPENCLAW_VERSION = '2026.3.2'
+const OPENCLAW_VERSION = '2026.3.28'
 
 export default OPENCLAW_VERSION

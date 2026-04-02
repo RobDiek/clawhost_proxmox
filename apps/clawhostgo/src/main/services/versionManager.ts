@@ -5,6 +5,19 @@ import fs from 'fs'
 import path from 'path'
 import configStore from '@/main/services/configStore'
 import nodeBinary from '@/main/services/nodeBinary'
+import { t } from '@openclaw/i18n'
+
+const extractNpmError = (raw: string): string => {
+    if (raw.includes('ENOSPC')) return t('go.diskFull')
+    if (raw.includes('EACCES')) return t('go.permissionDenied')
+    if (raw.includes('ETIMEOUT') || raw.includes('ETIMEDOUT'))
+        return t('go.networkTimeout')
+    const errLine = raw
+        .split('\n')
+        .find((l) => l.startsWith('npm error') || l.startsWith('npm ERR!'))
+    if (errLine) return errLine.slice(0, 200)
+    return raw.slice(0, 200)
+}
 
 const listInstalled = (): string[] => {
     const versionsDir = path.join(configStore.getBaseDir(), 'versions')
@@ -48,7 +61,10 @@ const installVersion = (version: string): Promise<void> => {
                     } catch {}
                     reject(
                         new Error(
-                            `Failed to install OpenClaw ${version}: ${error.message}`
+                            t('go.failedToInstallVersion', {
+                                version,
+                                reason: extractNpmError(error.message)
+                            })
                         )
                     )
                     return
@@ -151,10 +167,54 @@ const getVersionBinaryPath = (version: string): string => {
     )
 }
 
-export default {
+const installVersionTo = (
+    version: string,
+    targetDir: string
+): Promise<void> => {
+    return new Promise((resolve, reject) => {
+        const nodePath = nodeBinary.getNodeBinaryPath()
+        const npmPath = nodeBinary.getNpmPath()
+
+        execFile(
+            npmPath,
+            ['install', `openclaw@${version}`, '--prefix', targetDir],
+            {
+                env: {
+                    ...process.env,
+                    PATH: `${path.dirname(nodePath)}:${process.env.PATH}`
+                },
+                timeout: 120000
+            },
+            (error) => {
+                if (error) {
+                    reject(
+                        new Error(
+                            t('go.failedToInstallVersion', {
+                                version,
+                                reason: extractNpmError(error.message)
+                            })
+                        )
+                    )
+                    return
+                }
+                resolve()
+            }
+        )
+    })
+}
+
+const getClawBinaryPath = (clawDir: string): string => {
+    return path.join(clawDir, 'node_modules', '.bin', 'openclaw')
+}
+
+const versionManager = {
     listInstalled,
     installVersion,
+    installVersionTo,
     getAvailableVersions,
     getLatestVersion,
-    getVersionBinaryPath
+    getVersionBinaryPath,
+    getClawBinaryPath
 }
+
+export default versionManager

@@ -3,7 +3,7 @@ import type { AuthenticatedContext } from '@/ts/Types'
 
 import crypto from 'crypto'
 import { eq, and, count } from 'drizzle-orm'
-import { clawStatus, clawProvider, inputValidation } from '@openclaw/shared'
+import { clawStatus, inputValidation } from '@openclaw/shared'
 import { db } from '@/db'
 import { claws, sshKeys, volumes } from '@/db/schema'
 import { getProvider } from '@/services/provider'
@@ -22,38 +22,11 @@ import { t } from '@openclaw/i18n'
 const createClaw = async (c: AuthenticatedContext) => {
     try {
         const userId = c.get('userId')
-        const {
-            name,
-            provider: providerName,
-            planId,
-            location,
-            password,
-            sshKeyId,
-            volumeSize
-        } = await c.req.json<CreateClawBody>()
+        const { name, planId, location, password, sshKeyId, volumeSize } =
+            await c.req.json<CreateClawBody>()
 
         if (!name || !planId || !location) {
             return fail(c, t('api.missingRequiredFields'), 400)
-        }
-
-        const validProviders = [
-            clawProvider.hetzner,
-            clawProvider.digitalocean,
-            clawProvider.vultr
-        ]
-        if (providerName && !validProviders.includes(providerName)) {
-            return fail(c, t('api.invalidProvider'), 400)
-        }
-
-        const resolvedProvider = providerName || clawProvider.hetzner
-        if (resolvedProvider !== clawProvider.hetzner) {
-            try {
-                const hetznerService = getProvider(clawProvider.hetzner)
-                const hetznerTypes = await hetznerService.getServerTypes()
-                if (hetznerTypes.length > 0) {
-                    return fail(c, t('api.providerNotAllowed'), 400)
-                }
-            } catch {}
         }
 
         if (
@@ -71,7 +44,7 @@ const createClaw = async (c: AuthenticatedContext) => {
             )
         }
 
-        const provider = getProvider(resolvedProvider)
+        const provider = getProvider()
 
         const [clawCountResult, serverTypes, sshKeyResult] = await Promise.all([
             db
@@ -119,14 +92,8 @@ const createClaw = async (c: AuthenticatedContext) => {
 
         let providerSshKeyIds: number[] | undefined
         if (sshKeyResult && sshKeyResult[0]) {
-            const keyId =
-                providerName === 'digitalocean'
-                    ? sshKeyResult[0].digitaloceanKeyId
-                    : providerName === 'vultr'
-                      ? sshKeyResult[0].vultrKeyId
-                      : sshKeyResult[0].providerKeyId
-            if (keyId) {
-                providerSshKeyIds = [keyId]
+            if (sshKeyResult[0].providerKeyId) {
+                providerSshKeyIds = [sshKeyResult[0].providerKeyId]
             }
         }
 
@@ -158,7 +125,6 @@ const createClaw = async (c: AuthenticatedContext) => {
                 id,
                 userId,
                 name,
-                provider: resolvedProvider,
                 providerServerId: serverId.toString(),
                 status: clawStatus.configuring,
                 ip,
@@ -208,7 +174,6 @@ const createClaw = async (c: AuthenticatedContext) => {
             {
                 id,
                 name,
-                provider: resolvedProvider,
                 status: clawStatus.configuring,
                 ip,
                 planId,

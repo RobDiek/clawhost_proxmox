@@ -3,7 +3,13 @@ import type { LicenseGateProps } from '@/ts/Interfaces'
 
 import { useAuth } from '@/lib/auth'
 import { useProfile } from '@/hooks'
-import { Logo, LanguageSelector, ThemeToggle, UserDropdown, LicenseRequired } from '@/components'
+import {
+    Logo,
+    LanguageSelector,
+    ThemeToggle,
+    UserDropdown,
+    LicenseRequired
+} from '@/components'
 import { CircleNotchIcon } from '@phosphor-icons/react'
 import { ROUTES } from '@/lib'
 

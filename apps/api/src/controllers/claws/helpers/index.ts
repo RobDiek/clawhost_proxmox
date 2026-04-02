@@ -14,7 +14,22 @@ import ensureClawHub from '@/controllers/claws/helpers/ensureClawHub'
 import applyToolsDefaults from '@/controllers/claws/helpers/applyToolsDefaults'
 import BASE_DIR from '@/controllers/claws/helpers/baseDir'
 import DOMAIN from '@/controllers/claws/helpers/constants'
+import syncClawServers from '@/controllers/claws/helpers/syncClawServers'
 import OPENCLAW_VERSION from '@/controllers/claws/helpers/openclawVersion'
+import WHATSAPP_PATHS from '@/controllers/claws/helpers/whatsappPaths'
+import isVersionAtLeast from '@/controllers/claws/helpers/isVersionAtLeast'
+import parseClawVersion from '@/controllers/claws/helpers/parseClawVersion'
+import isVersionSupported from '@/controllers/claws/helpers/isVersionSupported'
+import checkFeatureVersion from '@/controllers/claws/helpers/checkFeatureVersion'
+import { invalidateVersionCache } from '@/controllers/claws/helpers/checkFeatureVersion'
+import SUPPORTED_VERSIONS from '@/controllers/claws/helpers/supportedVersions'
+import parseJsonFromSSH from '@/controllers/claws/helpers/parseJsonFromSSH'
+import parseJsonArrayFromSSH from '@/controllers/claws/helpers/parseJsonArrayFromSSH'
+import parseEnvFile from '@/controllers/claws/helpers/parseEnvFile'
+import mergeEnvVars from '@/controllers/claws/helpers/mergeEnvVars'
+import writeConfigAndRestart from '@/controllers/claws/helpers/writeConfigAndRestart'
+import executeServerLifecycle from '@/controllers/claws/helpers/executeServerLifecycle'
+import executeClawHubOperation from '@/controllers/claws/helpers/executeClawHubOperation'
 
 export {
     applyToolsDefaults,
@@ -33,5 +48,20 @@ export {
     ensureClawHub,
     BASE_DIR,
     DOMAIN,
-    OPENCLAW_VERSION
+    syncClawServers,
+    OPENCLAW_VERSION,
+    WHATSAPP_PATHS,
+    isVersionAtLeast,
+    parseClawVersion,
+    isVersionSupported,
+    checkFeatureVersion,
+    SUPPORTED_VERSIONS,
+    parseJsonFromSSH,
+    parseJsonArrayFromSSH,
+    parseEnvFile,
+    mergeEnvVars,
+    writeConfigAndRestart,
+    executeServerLifecycle,
+    executeClawHubOperation,
+    invalidateVersionCache
 }

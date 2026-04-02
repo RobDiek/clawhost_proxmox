@@ -1,60 +1,96 @@
-import AnnouncementBanner from '@/components/AnnouncementBanner'
-import ActionButton from '@/components/ActionButton'
-import BlogCard from '@/components/BlogCard'
-import BlogCTA from '@/components/BlogCTA'
-import ClawAvatar from '@/components/ClawAvatar'
-import ClawMascot from '@/components/ClawMascot'
-import ComparisonTable from '@/components/ComparisonTable'
-import ClawMascotOutline from '@/components/ClawMascotOutline'
-import DemoPreviewSection from '@/components/DemoPreviewSection'
-import EmptyState from '@/components/EmptyState'
-import ErrorState from '@/components/ErrorState'
-import FaqSection from '@/components/FaqSection'
-import FeaturesGrid from '@/components/FeaturesGrid'
-import Footer from '@/components/Footer'
-import GoPricingCard from '@/components/GoPricingCard'
-import Header from '@/components/Header'
-import HeroBadge from '@/components/HeroBadge'
-import HeroButtons from '@/components/HeroButtons'
-import HeroTitle from '@/components/HeroTitle'
-import JsonLd from '@/components/JsonLd'
-import LandingCTA from '@/components/LandingCTA'
-import LanguageSelector from '@/components/LanguageSelector'
-import LandingFooter from '@/components/LandingFooter'
-import LicenseCard from '@/components/LicenseCard'
-import LicenseRequired from '@/components/LicenseRequired'
-import Logo from '@/components/Logo'
-import MacosDesktopPreview from '@/components/MacosDesktopPreview'
-import PageBackground from '@/components/PageBackground'
-import PageHeader from '@/components/PageHeader'
-import PageTitle from '@/components/PageTitle'
-import PanelPlaceholder from '@/components/PanelPlaceholder'
-import PlansSkeleton from '@/components/PlansSkeleton'
-import PricingSection from '@/components/PricingSection'
-import ProductHuntBanner from '@/components/ProductHuntBanner'
-import ProductSwitcher from '@/components/ProductSwitcher'
-import ProtectedRoute from '@/components/ProtectedRoute'
-import ProviderIcon from '@/components/ProviderIcon'
-import ScrollToBottomButton from '@/components/ScrollToBottomButton'
-import ScrollToTop from '@/components/ScrollToTop'
-import SelfHostButton from '@/components/SelfHostButton'
-import StatsRow from '@/components/StatsRow'
-import ThemeToggle from '@/components/ThemeToggle'
-import Toast from '@/components/Toast'
-import TruncateTooltip from '@/components/TruncateTooltip'
-import TrustMrrBadge from '@/components/TrustMrrBadge'
-import UserDropdown from '@/components/UserDropdown'
-import VideoModal from '@/components/VideoModal'
+import {
+    AnnouncementBanner,
+    BetaBadge,
+    Footer,
+    Header,
+    LandingFooter,
+    Logo,
+    PageBackground,
+    PageHeader,
+    PageTitle,
+    ProductHuntBanner,
+    ProductSwitcher,
+    ScrollToTop
+} from '@/components/layout'
+
+import {
+    ComparisonTable,
+    DemoPreviewSection,
+    FaqSection,
+    FeaturesGrid,
+    HeroBadge,
+    HeroButtons,
+    HeroTitle,
+    JsonLd,
+    LandingCTA,
+    LandingDemoPreview,
+    LocalBackground,
+    MacosDesktopPreview,
+    PricingSection,
+    SelfHostButton,
+    StatsRow,
+    TrustMrrBadge,
+    VideoModal
+} from '@/components/landing'
+
+import { BillingOrderCard } from '@/components/billing'
+
+import { CompareTableDesktop, CompareTableMobile } from '@/components/compare'
+
+import { ConnectedAccountRow } from '@/components/account'
+
+import {
+    AffiliateConfirmDialog,
+    AffiliatePaymentHistory,
+    AffiliatePeriodSelector,
+    AffiliateStatsGrid
+} from '@/components/affiliate'
+
+import { BlogCard, BlogCTA } from '@/components/blog'
+
+import { GoPricingCard, GoWaitlistCTA, GoWaitlistForm } from '@/components/go'
+
+import { LicenseCard, LicenseRequired, ProtectedRoute } from '@/components/auth'
+
+import {
+    ActionButton,
+    ClawAvatar,
+    ClawMascot,
+    ClawMascotOutline,
+    ConfirmationDialog,
+    EmptyState,
+    ErrorState,
+    LanguageSelector,
+    NetworkStatus,
+    PanelPlaceholder,
+    PlansSkeleton,
+    ProviderIcon,
+    ScrollToBottomButton,
+    ThemeToggle,
+    Toast,
+    TruncateTooltip,
+    UserDropdown
+} from '@/components/shared'
 
 export {
+    BillingOrderCard,
+    CompareTableDesktop,
+    CompareTableMobile,
+    ConnectedAccountRow,
+    AffiliateConfirmDialog,
+    AffiliatePaymentHistory,
+    AffiliatePeriodSelector,
+    AffiliateStatsGrid,
     AnnouncementBanner,
     ActionButton,
+    BetaBadge,
     BlogCard,
     BlogCTA,
     ClawAvatar,
     ClawMascot,
     ComparisonTable,
     ClawMascotOutline,
+    ConfirmationDialog,
     DemoPreviewSection,
     EmptyState,
     ErrorState,
@@ -62,17 +98,22 @@ export {
     FeaturesGrid,
     Footer,
     GoPricingCard,
+    GoWaitlistCTA,
+    GoWaitlistForm,
     Header,
     HeroBadge,
     HeroButtons,
     HeroTitle,
     JsonLd,
+    LocalBackground,
     LandingCTA,
+    LandingDemoPreview,
     LanguageSelector,
     LandingFooter,
     LicenseCard,
     LicenseRequired,
     Logo,
+    NetworkStatus,
     MacosDesktopPreview,
     PageBackground,
     PageHeader,

@@ -6,10 +6,11 @@ import type {
     PlaygroundClawNodeProps
 } from '@/ts/Interfaces'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { clawStatus, clawProvider, userRole } from '@openclaw/shared'
 import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 import { api, getLocale, getBaseDomain, TRUNCATE_LENGTHS } from '@/lib'
 import {
     useStartClaw,
@@ -23,7 +24,7 @@ import {
     useProfile,
     useCancelPendingClaw
 } from '@/hooks'
-import { ProviderIcon } from '@/components'
+import { ProviderIcon } from '@/components/shared'
 import { getStatusConfig, generateSlug } from '@/lib/claw-utils'
 import {
     PlusIcon,
@@ -114,10 +115,13 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
     const handleUpdateInstance = () => {
         repairMutation.mutate(claw.id, {
             onSuccess: () => {
-                showToast(t('dashboard.updateInstanceSuccess'), 'success')
+                showToast(
+                    t('dashboard.updateInstanceSuccess'),
+                    TOAST_TYPE.SUCCESS
+                )
             },
             onError: () => {
-                showToast(t('dashboard.updateInstanceFailed'), 'error')
+                showToast(t('dashboard.updateInstanceFailed'), TOAST_TYPE.ERROR)
             }
         })
     }
@@ -125,7 +129,11 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
     const handleExport = async () => {
         setIsExporting(true)
         try {
-            await api.exportClaw(claw.id, `${claw.name}-export.tar.gz`)
+            await api.exportClaw(
+                claw.id,
+                `${claw.name}-${Math.random().toString(36).slice(2, 5)}-export.tar.gz`
+            )
+            showToast(t('dashboard.exportSuccess'), TOAST_TYPE.SUCCESS)
         } catch (err) {
             const retryAfter = (err as ExportRateLimitError).retryAfter
             if (retryAfter && retryAfter > 30) {
@@ -134,17 +142,17 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                     t('dashboard.exportRateLimited', {
                         minutes: String(minutes)
                     }),
-                    'warning'
+                    TOAST_TYPE.WARNING
                 )
             } else if (retryAfter && retryAfter > 0) {
                 showToast(
                     t('dashboard.exportRateLimitedSeconds', {
                         seconds: String(retryAfter)
                     }),
-                    'warning'
+                    TOAST_TYPE.WARNING
                 )
             } else {
-                showToast(t('dashboard.exportFailed'), 'error')
+                showToast(t('dashboard.exportFailed'), TOAST_TYPE.ERROR)
             }
         } finally {
             setIsExporting(false)
@@ -154,12 +162,15 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
     const handleReinstall = () => {
         reinstallMutation.mutate(claw.id, {
             onSuccess: () => {
-                showToast(t('dashboard.reinstallInstanceSuccess'), 'success')
+                showToast(
+                    t('dashboard.reinstallInstanceSuccess'),
+                    TOAST_TYPE.SUCCESS
+                )
             },
             onError: (err: Error) => {
                 showToast(
                     err.message || t('dashboard.reinstallInstanceFailed'),
-                    'error'
+                    TOAST_TYPE.ERROR
                 )
             }
         })
@@ -176,7 +187,7 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
             }
             setShowCredentials(true)
         } catch {
-            showToast(t('errors.noPasswordAvailable'), 'error')
+            showToast(t('errors.noPasswordAvailable'), TOAST_TYPE.ERROR)
         } finally {
             setIsFetchingCredentials(false)
         }
@@ -194,7 +205,7 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                                 'message' in err
                               ? String((err as ErrorWithMessage).message)
                               : t('dashboard.startFailed')
-                    showToast(message, 'error')
+                    showToast(message, TOAST_TYPE.ERROR)
                 }
             }),
         onShowStopModal: () => setShowStopModal(true),
@@ -221,7 +232,7 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
     }
 
     return (
-        <>
+        <Fragment>
             <div
                 className={`playground-node-enter bg-popover relative w-[280px] cursor-pointer rounded-xl border ${
                     isSelected
@@ -272,7 +283,7 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                         </span>
                     </div>
                     {!readOnly && (
-                        <>
+                        <Fragment>
                             <div
                                 className='flex shrink-0 items-center'
                                 onClick={(e) => e.stopPropagation()}
@@ -324,7 +335,7 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                                     </TooltipContent>
                                 </Tooltip>
                             )}
-                        </>
+                        </Fragment>
                     )}
                 </div>
 
@@ -504,7 +515,7 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                 open={showAddAgent}
                 onOpenChange={setShowAddAgent}
             />
-        </>
+        </Fragment>
     )
 }
 
