@@ -286,6 +286,11 @@ export const instances = pgTable(
         telegramChatId: text('telegram_chat_id'),
         telegramBotToken: text('telegram_bot_token'),
 
+        // Self-Healing
+        lastHealthReport: jsonb('last_health_report'),
+        lastHealthAt: timestamp('last_health_at', { withTimezone: true }),
+        autoHeal: boolean('auto_heal').default(true),
+
         createdAt: timestamp('created_at', { withTimezone: true })
             .defaultNow()
             .notNull(),

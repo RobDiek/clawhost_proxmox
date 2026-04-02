@@ -4,6 +4,7 @@ import { eq, and, gt, lt, sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { otpCodes, users, instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
+import telegram from '@/services/telegram'
 
 // ── Simple JWT (no external deps) ──────────────────────────
 
@@ -148,6 +149,8 @@ export const verifyOtpHosting = async (c: Context) => {
         // Check max attempts
         if (record.attempts >= MAX_ATTEMPTS) {
             await db.delete(otpCodes).where(eq(otpCodes.id, record.id))
+            // Alert admin about repeated failed login
+            telegram.alertAdmin(`⚠️ Max OTP attempts reached: ${normalizedEmail}`).catch(() => {})
             return fail(c, 'Too many attempts. Request a new code.', 401)
         }
 

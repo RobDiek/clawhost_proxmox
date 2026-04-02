@@ -55,6 +55,12 @@ app.use(
 app.use('*', logger())
 app.use('*', bodyLimit({ maxSize: 1024 * 1024 }))
 
+// Rate limiting
+import { rateLimiter } from '@/middleware/rateLimiter'
+app.use('*', rateLimiter(100, 60000)) // 100 req/min global
+app.use('/hosting/checkout', rateLimiter(5, 60000))
+app.use('/hosting/auth/*', rateLimiter(10, 60000))
+
 app.use('*', async (c, next) => {
     await next()
     c.header('X-Content-Type-Options', 'nosniff')

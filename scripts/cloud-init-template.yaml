@@ -430,8 +430,32 @@ runcmd:
     - /opt/openclaw-backup.sh &
     {{/HAS_BACKUP}}
 
-    # ── Health check cron ──
-    - echo "*/5 * * * * root curl -s https://api.clawflow.flowmatic.co.il/hosting/instances/{{INSTANCE_ID}}/health > /dev/null" > /etc/cron.d/clawflow-health
+    # ── Self-Healing Health Daemon ──
+    - cp /dev/stdin /opt/clawflow-health.sh << 'HEALTHEOF'
+    HEALTHEOF
+    - curl -sf https://raw.githubusercontent.com/synex-os/openclaw-hosting/Production/scripts/clawflow-health.sh > /opt/clawflow-health.sh 2>/dev/null || true
+    - chmod +x /opt/clawflow-health.sh
+    - sed -i "s/__INSTANCE_ID__/{{INSTANCE_ID}}/g" /opt/clawflow-health.sh
+    - sed -i "s/__AUTO_HEAL__/true/g" /opt/clawflow-health.sh
+    - |
+        cat > /etc/systemd/system/clawflow-health.service << 'CHSEOF'
+        [Unit]
+        Description=ClawFlow Self-Healing Health Check
+        [Service]
+        Type=oneshot
+        ExecStart=/opt/clawflow-health.sh
+        CHSEOF
+        cat > /etc/systemd/system/clawflow-health.timer << 'CHTEOF'
+        [Unit]
+        Description=ClawFlow Health Check Timer (every 5 min)
+        [Timer]
+        OnBootSec=60
+        OnUnitActiveSec=300
+        [Install]
+        WantedBy=timers.target
+        CHTEOF
+    - systemctl daemon-reload
+    - systemctl enable --now clawflow-health.timer
 
     # ── OpenClaw auto-update (nightly 4am, silent) ──
     - |

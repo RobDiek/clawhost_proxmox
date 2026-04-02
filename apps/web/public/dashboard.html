@@ -1540,6 +1540,38 @@ input{font-family:inherit}
     </div>
 
 
+    <!-- Self-Healing -->
+    <div class="section-title" style="display:flex;align-items:center;gap:6px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      ריפוי אוטומטי (Self-Healing)
+    </div>
+    <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;overflow:hidden;margin-bottom:20px">
+      <div style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #F3F4F6">
+        <div>
+          <div style="font-size:0.88rem;font-weight:500">ריפוי אוטומטי</div>
+          <div style="font-size:0.78rem;color:#6B7280">ריסטארט שירותים, ניקוי דיסק, חידוש SSL — אוטומטית</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:42px;height:24px;cursor:pointer">
+          <input type="checkbox" id="autoHealToggle" checked onchange="toggleAutoHealSetting(this.checked)" style="opacity:0;width:0;height:0"/>
+          <span style="position:absolute;inset:0;background:#D1D5DB;border-radius:12px;transition:.2s"></span>
+          <span style="position:absolute;top:2px;right:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.15)"></span>
+        </label>
+      </div>
+      <div id="healthStats" style="padding:14px 16px;font-size:0.82rem;color:#6B7280">
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <span id="healthCPU">CPU: —</span>
+          <span id="healthRAM">RAM: —</span>
+          <span id="healthDisk">Disk: —</span>
+          <span id="healthSSL">SSL: —</span>
+        </div>
+        <div style="margin-top:6px;font-size:0.75rem;color:#9CA3AF" id="healthLastCheck">בדיקה אחרונה: —</div>
+      </div>
+    </div>
+    <style>
+      #autoHealToggle:checked + span { background: #10B981; }
+      #autoHealToggle:checked + span + span { transform: translateX(-18px); }
+    </style>
+
     <!-- 2FA Security -->
     <div class="section-title" style="display:flex;align-items:center;gap:6px">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
@@ -6073,6 +6105,52 @@ function showToast(msg, type) {
   el.classList.add('show');
   clearTimeout(el._t);
   el._t = setTimeout(function() { el.classList.remove('show'); }, 3000);
+}
+
+// ── Self-Healing Health ──
+async function loadHealthStatus() {
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/health', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (!data.success || !data.data) return;
+    var h = data.data;
+    if (h.report) {
+      document.getElementById('healthCPU').textContent = 'CPU: ' + (h.report.cpu || 0) + '%';
+      document.getElementById('healthRAM').textContent = 'RAM: ' + (h.report.ram || 0) + '%';
+      document.getElementById('healthDisk').textContent = 'Disk: ' + (h.report.disk || 0) + '%';
+      document.getElementById('healthSSL').textContent = 'SSL: ' + (h.report.sslDays === 999 ? '—' : h.report.sslDays + ' ימים');
+    }
+    if (h.lastCheck) {
+      var d = new Date(h.lastCheck);
+      document.getElementById('healthLastCheck').textContent = 'בדיקה אחרונה: ' + d.toLocaleString('he-IL');
+    }
+    var toggle = document.getElementById('autoHealToggle');
+    if (toggle) toggle.checked = h.autoHeal !== false;
+  } catch (e) { /* non-critical */ }
+}
+
+async function toggleAutoHealSetting(enabled) {
+  try {
+    await fetch(API + '/hosting/instances/' + instanceId + '/auto-heal', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ enabled: enabled })
+    });
+    showToast(enabled ? 'ריפוי אוטומטי מופעל' : 'ריפוי אוטומטי כבוי — תקבלו רק התראות', enabled ? 'success' : 'error');
+  } catch (e) {
+    showToast('שגיאה', 'error');
+  }
+}
+
+// Load health on settings tab open
+var _origSwitchTab = window.switchTab;
+if (typeof switchTab === 'function') {
+  window.switchTab = function(tab) {
+    _origSwitchTab(tab);
+    if (tab === 'settings') loadHealthStatus();
+  };
 }
 
 // ── Memory Management (Mem0) ──

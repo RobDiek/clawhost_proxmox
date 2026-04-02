@@ -41,6 +41,9 @@ import {
     getMemories,
     deleteMemory,
     clearMemories,
+    healthReport,
+    getHealthStatus,
+    toggleAutoHeal,
     readFile,
     writeFile,
     listFiles,
@@ -99,6 +102,7 @@ app.post('/checkout', checkout)
 app.post('/webhooks/allpay', handleAllpayWebhook)
 app.post('/support', submitSupportRequest)
 app.get('/subdomain/check', checkSubdomain)
+app.post('/instances/:id/health-report', healthReport) // called from client VPS, no auth
 
 // ── Instances ──
 app.get('/subscriptions', getSubscriptions)
@@ -162,6 +166,11 @@ app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
 app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)
 app.patch('/instances/:id/outputs/:outputId/archive', archiveOutput)
 app.delete('/instances/:id/outputs/:outputId', deleteOutput)
+
+// ── Memories (Mem0) ──
+// ── Health (Self-Healing) ──
+app.get('/instances/:id/health', getHealthStatus)
+app.patch('/instances/:id/auto-heal', toggleAutoHeal)
 
 // ── Memories (Mem0) ──
 app.get('/instances/:id/memories', getMemories)
