@@ -1267,7 +1267,75 @@ input{font-family:inherit}
         </div>
       </div>
 
-      <!-- 5. Newsletter (Resend) -->
+      <!-- 5. WhatsApp Business -->
+      <div class="int-card" id="pub-whatsapp-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#D1FAE5"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="#25D366"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" stroke="#25D366" stroke-width="1.5" fill="none"/></svg></div>
+          <div><strong>WhatsApp Business</strong><div class="int-status" id="wa-status">לא מחובר</div></div>
+        </div>
+        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">שליחת תבניות מאושרות דרך Green API WABA</div>
+
+        <!-- Config form -->
+        <div id="wa-config-form">
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="int-input" id="wa-instance-id" type="text" placeholder="Green API Instance ID" dir="ltr" style="flex:1"/>
+            <input class="int-input" id="wa-api-token" type="password" placeholder="API Token" dir="ltr" style="flex:1"/>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:8px">
+            <input class="int-input" id="wa-phone" type="text" placeholder="מספר טלפון עסקי (05X...)" dir="ltr" style="flex:1"/>
+            <button class="btn btn-primary btn-sm" onclick="saveWaConfig()">שמרו</button>
+          </div>
+        </div>
+
+        <!-- Connected state -->
+        <div id="wa-connected" style="display:none">
+          <!-- Contacts -->
+          <div style="display:flex;align-items:center;gap:8px;margin:8px 0;font-size:0.82rem">
+            <span style="color:#10B981;font-weight:600" id="wa-opted-in-count">0</span> opted-in
+            <span style="color:#9CA3AF">|</span>
+            <span style="color:#EF4444" id="wa-opted-out-count">0</span> opted-out
+            <button class="btn btn-outline btn-sm" style="font-size:0.72rem;margin-right:auto" onclick="toggleWaImport()">ייבוא CSV</button>
+          </div>
+
+          <!-- CSV Import (hidden) -->
+          <div id="wa-import-section" style="display:none;margin:8px 0;padding:10px;background:#F9FAFB;border-radius:8px;border:1px solid #E5E7EB">
+            <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">ייבוא אנשי קשר</div>
+            <textarea id="wa-import-csv" placeholder="מספר טלפון,שם&#10;0501234567,ישראל ישראלי&#10;0529876543,דנה כהן" style="width:100%;min-height:60px;padding:8px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.78rem;font-family:monospace;resize:vertical" dir="ltr"></textarea>
+            <div style="font-size:0.72rem;color:#EF4444;margin:4px 0">⚠️ אנשי קשר מיובאים ללא opt-in — יש לקבל הסכמה לפני שליחה</div>
+            <button class="btn btn-primary btn-sm" onclick="importWaContacts()">ייבוא</button>
+          </div>
+
+          <!-- Templates -->
+          <div style="margin:8px 0">
+            <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:6px">תבניות</div>
+            <div id="wa-templates-list" style="font-size:0.82rem;color:#6B7280">טוען...</div>
+            <button class="btn btn-outline btn-sm" style="font-size:0.72rem;margin-top:6px" onclick="toggleWaNewTemplate()">+ תבנית חדשה</button>
+            <button class="btn btn-outline btn-sm" style="font-size:0.72rem;margin-top:6px" onclick="refreshWaTemplates()">רענון סטטוסים</button>
+          </div>
+
+          <!-- New template form (hidden) -->
+          <div id="wa-new-template" style="display:none;margin:8px 0;padding:10px;background:#F9FAFB;border-radius:8px;border:1px solid #E5E7EB">
+            <input class="int-input" id="wa-tpl-name" type="text" placeholder="שם תבנית (אנגלית, snake_case)" dir="ltr" style="width:100%;margin-bottom:6px"/>
+            <select id="wa-tpl-category" class="int-input" style="width:100%;margin-bottom:6px">
+              <option value="MARKETING">MARKETING — שיווקי</option>
+              <option value="UTILITY">UTILITY — שירותי</option>
+            </select>
+            <textarea id="wa-tpl-body" placeholder="תוכן ההודעה (עד 550 תווים)" style="width:100%;min-height:60px;padding:8px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;resize:vertical" dir="rtl"></textarea>
+            <div style="display:flex;gap:6px;margin-top:6px">
+              <button class="btn btn-primary btn-sm" onclick="createWaTemplate()">צרו טיוטה</button>
+              <button class="btn btn-outline btn-sm" onclick="toggleWaNewTemplate()">ביטול</button>
+            </div>
+          </div>
+
+          <!-- Recent sends -->
+          <div style="margin-top:8px">
+            <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">שליחות אחרונות</div>
+            <div id="wa-sends-list" style="font-size:0.78rem;color:#9CA3AF">אין שליחות</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Newsletter (Resend) -->
       <div class="int-card" id="pub-newsletter-card">
         <div class="int-card-header">
           <div class="int-icon" style="background:#D1FAE5"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#10B981" stroke-width="1.5"/><polyline points="22,6 12,13 2,6" stroke="#10B981" stroke-width="1.5"/></svg></div>
@@ -6121,6 +6189,195 @@ function showToast(msg, type) {
   clearTimeout(el._t);
   el._t = setTimeout(function() { el.classList.remove('show'); }, 3000);
 }
+
+// ── WhatsApp Business ──
+async function loadWaStatus() {
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/whatsapp/config', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (data.success && data.data && data.data.configured) {
+      document.getElementById('wa-status').textContent = 'מחובר';
+      document.getElementById('wa-status').style.color = '#10B981';
+      document.getElementById('wa-config-form').style.display = 'none';
+      document.getElementById('wa-connected').style.display = 'block';
+      loadWaContacts();
+      loadWaTemplates();
+      loadWaSends();
+    }
+  } catch (e) { /* non-critical */ }
+}
+
+async function saveWaConfig() {
+  var instanceId2 = document.getElementById('wa-instance-id').value.trim();
+  var token2 = document.getElementById('wa-api-token').value.trim();
+  var phone = document.getElementById('wa-phone').value.trim();
+  if (!instanceId2 || !token2) { showToast('הכניסו Instance ID ו-Token', 'error'); return; }
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/whatsapp/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ greenApiInstance: instanceId2, greenApiToken: token2, businessPhone: phone })
+    });
+    var data = await res.json();
+    if (data.success) { showToast('WhatsApp מחובר', 'success'); loadWaStatus(); }
+    else showToast(data.message || 'שגיאה', 'error');
+  } catch (e) { showToast('שגיאת תקשורת', 'error'); }
+}
+
+async function loadWaContacts() {
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/whatsapp/contacts', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (data.success && data.data) {
+      document.getElementById('wa-opted-in-count').textContent = data.data.optedIn;
+      document.getElementById('wa-opted-out-count').textContent = data.data.optedOut;
+    }
+  } catch (e) {}
+}
+
+function toggleWaImport() {
+  var el = document.getElementById('wa-import-section');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function importWaContacts() {
+  var csv = document.getElementById('wa-import-csv').value.trim();
+  if (!csv) return;
+  var lines = csv.split('\n').filter(Boolean);
+  var contacts = lines.map(function(l) {
+    var parts = l.split(',');
+    return { phone: parts[0].trim(), name: (parts[1] || '').trim() };
+  });
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/whatsapp/contacts/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ contacts: contacts })
+    });
+    var data = await res.json();
+    if (data.success) { showToast(data.message, 'success'); loadWaContacts(); toggleWaImport(); }
+    else showToast(data.message || 'שגיאה', 'error');
+  } catch (e) { showToast('שגיאה', 'error'); }
+}
+
+async function loadWaTemplates() {
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/whatsapp/templates', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    var list = document.getElementById('wa-templates-list');
+    if (!data.success || !data.data || !data.data.length) {
+      list.innerHTML = '<span style="color:#9CA3AF">אין תבניות עדיין</span>';
+      return;
+    }
+    var statusIcons = { draft: '📝', submitted: '⏳', submitting: '⏳', approved: '✅', rejected: '❌' };
+    list.innerHTML = data.data.map(function(t) {
+      var icon = statusIcons[t.status] || '❓';
+      var actions = '';
+      if (t.status === 'draft' || t.status === 'rejected') {
+        actions = '<button class="btn btn-outline btn-sm" style="font-size:0.68rem" onclick="submitWaTemplate(\'' + t.id + '\')">שלחו ל-Meta</button>';
+      } else if (t.status === 'approved') {
+        actions = '<button class="btn btn-primary btn-sm" style="font-size:0.68rem" onclick="sendWaBroadcast(\'' + t.id + '\')">שלחו רשימה</button>';
+      }
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #F3F4F6">' +
+        '<span>' + icon + ' ' + t.templateName + ' <span style="color:#9CA3AF;font-size:0.72rem">' + t.status + '</span></span>' +
+        actions +
+      '</div>';
+    }).join('');
+  } catch (e) {}
+}
+
+function toggleWaNewTemplate() {
+  var el = document.getElementById('wa-new-template');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function createWaTemplate() {
+  var name = document.getElementById('wa-tpl-name').value.trim();
+  var category = document.getElementById('wa-tpl-category').value;
+  var body = document.getElementById('wa-tpl-body').value.trim();
+  if (!name || !body) { showToast('שם ותוכן חובה', 'error'); return; }
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/whatsapp/templates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ templateName: name, category: category, bodyText: body })
+    });
+    var data = await res.json();
+    if (data.success) { showToast('טיוטה נוצרה', 'success'); toggleWaNewTemplate(); loadWaTemplates(); }
+    else showToast(data.message || 'שגיאה', 'error');
+  } catch (e) { showToast('שגיאה', 'error'); }
+}
+
+async function submitWaTemplate(templateId) {
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/whatsapp/templates/' + templateId + '/submit', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (data.success) { showToast('נשלח ל-Meta לאישור', 'success'); loadWaTemplates(); }
+    else showToast(data.message || 'שגיאה', 'error');
+  } catch (e) { showToast('שגיאה', 'error'); }
+}
+
+async function refreshWaTemplates() {
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/whatsapp/templates/refresh', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (data.success) { showToast('סטטוסים עודכנו', 'success'); loadWaTemplates(); }
+    else showToast(data.message || 'שגיאה', 'error');
+  } catch (e) { showToast('שגיאה', 'error'); }
+}
+
+async function sendWaBroadcast(templateId) {
+  if (!confirm('לשלוח לכל אנשי הקשר עם opt-in?')) return;
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/whatsapp/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ templateId: templateId })
+    });
+    var data = await res.json();
+    if (data.success) { showToast('שליחה החלה ל-' + data.data.recipients + ' נמענים', 'success'); loadWaSends(); }
+    else showToast(data.message || 'שגיאה', 'error');
+  } catch (e) { showToast('שגיאה', 'error'); }
+}
+
+async function loadWaSends() {
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/whatsapp/sends', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    var list = document.getElementById('wa-sends-list');
+    if (!data.success || !data.data || !data.data.length) {
+      list.innerHTML = '<span style="color:#9CA3AF">אין שליחות</span>';
+      return;
+    }
+    list.innerHTML = data.data.slice(0, 5).map(function(s) {
+      var statusLabel = { queued: 'בתור', sending: 'שולח...', completed: 'הושלם', partially_sent: 'חלקי', failed: 'נכשל' };
+      var date = s.createdAt ? new Date(s.createdAt).toLocaleDateString('he-IL') : '';
+      return '<div style="font-size:0.78rem;color:#4B5563;padding:3px 0">' +
+        date + ' — ' + s.sentCount + '/' + s.totalRecipients + ' נשלחו · ' +
+        '<span style="color:' + (s.status === 'completed' ? '#10B981' : s.status === 'failed' ? '#EF4444' : '#F59E0B') + '">' +
+        (statusLabel[s.status] || s.status) + '</span></div>';
+    }).join('');
+  } catch (e) {}
+}
+
+// Load WhatsApp status when integrations tab opens
+document.addEventListener('click', function(e) {
+  if (e.target.closest('[data-tab="integrations"]')) setTimeout(loadWaStatus, 200);
+});
 
 // ── AI Usage (LLM Router) ──
 async function loadUsageStats() {
