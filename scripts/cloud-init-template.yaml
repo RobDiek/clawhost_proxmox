@@ -63,6 +63,28 @@ runcmd:
           },
           "agents": {
             "defaults": {
+              "model": {
+                "primary": "anthropic/claude-sonnet-4-6",
+                "fallbacks": [
+                  "anthropic/claude-haiku-4-5-20251001",
+                  "openai/gpt-4o"
+                ]
+              },
+              "models": {
+                "anthropic/claude-opus-4-6": { "alias": "opus" },
+                "anthropic/claude-sonnet-4-6": { "alias": "sonnet" },
+                "anthropic/claude-haiku-4-5-20251001": { "alias": "haiku" },
+                "openai/gpt-4o": { "alias": "gpt4o" },
+                "openai/gpt-4o-mini": { "alias": "gpt4o-mini" }
+              },
+              "heartbeat": {
+                "model": "anthropic/claude-haiku-4-5-20251001"
+              },
+              "subagents": {
+                "model": "anthropic/claude-haiku-4-5-20251001",
+                "maxConcurrent": 3,
+                "archiveAfterMinutes": 60
+              },
               "bootstrapMaxChars": 10000,
               "bootstrapTotalMaxChars": 30000,
               "bootstrapPromptTruncationWarning": "always",

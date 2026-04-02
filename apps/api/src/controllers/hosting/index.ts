@@ -15,3 +15,4 @@ export { microsoftAuth, microsoftCallback, microsoftDisconnect, microsoftStatus 
 export { getOutputs, getOutput, ingestOutput, approveOutput, rejectOutput, editOutput, publishOutput, archiveOutput, deleteOutput } from './outputs'
 export { getMemories, deleteMemory, clearMemories } from './memories'
 export { healthReport, getHealthStatus, toggleAutoHeal } from './healthReport'
+export { getUsage } from './usage'

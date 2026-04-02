@@ -1468,6 +1468,17 @@ input{font-family:inherit}
     </div>
     <button class="btn btn-outline btn-sm" onclick="loadStats()" style="margin-bottom:20px">&#8635; עדכנו נתונים</button>
 
+    <!-- AI Usage Stats (LLM Router) -->
+    <div class="section-title" style="margin-top:20px">שימוש ב-AI (30 יום)</div>
+    <div id="usage-stats" style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px;margin-bottom:16px">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:12px">
+        <div><span style="font-size:0.78rem;color:#9CA3AF">עלות</span><div style="font-size:1.1rem;font-weight:700;direction:ltr" id="usage-cost">—</div></div>
+        <div><span style="font-size:0.78rem;color:#9CA3AF">חיסכון vs Sonnet בלבד</span><div style="font-size:1.1rem;font-weight:700;color:#10B981;direction:ltr" id="usage-saved">—</div></div>
+        <div><span style="font-size:0.78rem;color:#9CA3AF">אחוז חיסכון</span><div style="font-size:1.1rem;font-weight:700;color:#10B981" id="usage-percent">—</div></div>
+      </div>
+      <div id="usage-breakdown" style="font-size:0.82rem;color:#6B7280"></div>
+    </div>
+
     <!-- RAM Alert Banner (shown when RAM is high) -->
     <div id="ram-alert-banner" style="display:none;margin-bottom:16px;padding:14px 16px;border-radius:10px;border:1px solid;font-size:0.85rem;direction:rtl">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
@@ -6111,6 +6122,33 @@ function showToast(msg, type) {
   el._t = setTimeout(function() { el.classList.remove('show'); }, 3000);
 }
 
+// ── AI Usage (LLM Router) ──
+async function loadUsageStats() {
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/usage', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (!data.success || !data.data) return;
+    var u = data.data;
+
+    document.getElementById('usage-cost').textContent = '$' + u.totalCostUsd.toFixed(2);
+    document.getElementById('usage-saved').textContent = '-$' + u.savedVsSonnet.toFixed(2);
+    document.getElementById('usage-percent').textContent = u.savingsPercent + '%';
+
+    if (u.breakdown && u.breakdown.length > 0) {
+      document.getElementById('usage-breakdown').innerHTML = u.breakdown.map(function(b) {
+        return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #F3F4F6">' +
+          '<span>' + b.model + '</span>' +
+          '<span style="direction:ltr">' + b.calls + ' calls · $' + b.costUsd.toFixed(2) + '</span>' +
+        '</div>';
+      }).join('');
+    } else {
+      document.getElementById('usage-breakdown').innerHTML = '<div style="color:#9CA3AF;text-align:center;padding:12px">אין נתוני שימוש עדיין</div>';
+    }
+  } catch (e) { /* non-critical */ }
+}
+
 // ── Self-Healing Health ──
 async function loadHealthStatus() {
   try {
@@ -6148,10 +6186,12 @@ async function toggleAutoHealSetting(enabled) {
   }
 }
 
-// Load health on settings tab open — use event delegation instead of override
+// Load data on tab open — use event delegation
 document.addEventListener('click', function(e) {
-  var item = e.target.closest('[data-tab="settings"]');
-  if (item) setTimeout(loadHealthStatus, 100);
+  var settingsItem = e.target.closest('[data-tab="settings"]');
+  if (settingsItem) setTimeout(loadHealthStatus, 100);
+  var devItem = e.target.closest('[data-tab="developer"]');
+  if (devItem) setTimeout(loadUsageStats, 200);
 });
 
 // ── Memory Management (Mem0) ──

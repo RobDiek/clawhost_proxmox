@@ -44,6 +44,7 @@ import {
     healthReport,
     getHealthStatus,
     toggleAutoHeal,
+    getUsage,
     readFile,
     writeFile,
     listFiles,
@@ -171,6 +172,7 @@ app.delete('/instances/:id/outputs/:outputId', deleteOutput)
 // ── Health (Self-Healing) ──
 app.get('/instances/:id/health', getHealthStatus)
 app.patch('/instances/:id/auto-heal', toggleAutoHeal)
+app.get('/instances/:id/usage', getUsage)
 
 // ── Memories (Mem0) ──
 app.get('/instances/:id/memories', getMemories)

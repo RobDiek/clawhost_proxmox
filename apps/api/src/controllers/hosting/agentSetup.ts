@@ -383,23 +383,28 @@ EOFPAIR
         HAS_ANTHROPIC=$(grep -c ANTHROPIC_API_KEY /etc/systemd/system/openclaw-gateway.service 2>/dev/null || echo 0)
 
         if [ "$HAS_ANTHROPIC" -gt 0 ]; then
-          PRIMARY_MODEL="anthropic/claude-opus-4-6"
-          SECONDARY_MODEL="anthropic/claude-sonnet-4-6"
+          OPUS="anthropic/claude-opus-4-6"
+          SONNET="anthropic/claude-sonnet-4-6"
+          HAIKU="anthropic/claude-haiku-4-5-20251001"
         else
-          PRIMARY_MODEL="openai/gpt-4o"
-          SECONDARY_MODEL="openai/gpt-4o"
+          OPUS="openai/gpt-4o"
+          SONNET="openai/gpt-4o"
+          HAIKU="openai/gpt-4o-mini"
         fi
 
         AGENTS=$(openclaw agents list --json 2>/dev/null | node -e "try{const d=JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf-8\"));console.log(d.map(a=>a.name).join(\",\"))}catch(e){}" 2>/dev/null)
 
-        # Register all 8 MATEH sub-agents
+        # Register 8 MATEH sub-agents with tiered model routing
+        # Tier 3 (opus): menateach (strategy) — complex thinking
+        # Tier 2 (sonnet): et-final (content), migdalor (AEO) — client-facing
+        # Tier 1 (haiku): sayer, meater, maazin, yotzer, shaliach — internal
         for AGENT_NAME in sayer menateach meater maazin et yotzer shaliach migdalor; do
           if ! echo "$AGENTS" | grep -q "$AGENT_NAME"; then
-            if [ "$AGENT_NAME" = "sayer" ] || [ "$AGENT_NAME" = "menateach" ]; then
-              MODEL="$PRIMARY_MODEL"
-            else
-              MODEL="$SECONDARY_MODEL"
-            fi
+            case "$AGENT_NAME" in
+              menateach) MODEL="$OPUS" ;;
+              et|migdalor) MODEL="$SONNET" ;;
+              *) MODEL="$HAIKU" ;;
+            esac
             openclaw agents add "$AGENT_NAME" --model "$MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/"$AGENT_NAME" --non-interactive 2>/dev/null
           fi
         done
@@ -425,6 +430,7 @@ EOFPAIR
                 --description "Morning Summary - daily agenda" \
                 --cron "0 7 * * 0-4" \
                 --tz "Asia/Jerusalem" \
+                --model "haiku" \
                 --message "סכם את סדר היום: פגישות ביומן, מיילים שמחכים למענה, תזכורות ומשימות פתוחות. הודעה קצרה וידידותית." \
                 --session isolated 2>/dev/null
             fi
@@ -442,6 +448,7 @@ EOFPAIR
                 --description "Daily Brief - marketing summary" \
                 --cron "0 7 * * 0-4" \
                 --tz "Asia/Jerusalem" \
+                --model "haiku" \
                 --message "הכן Daily Brief: סכם פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות. הודעה קצרה ותכליתית." \
                 --session isolated 2>/dev/null
             fi
@@ -452,6 +459,7 @@ EOFPAIR
                 --description "Weekly Competitive Report" \
                 --cron "0 8 * * 1" \
                 --tz "Asia/Jerusalem" \
+                --model "sonnet" \
                 --message "דוח תחרותי שבועי: סייר חפש מתחרים, מאזין בדוק שיחות, מנתח דרג הזדמנויות, עט כתוב 2-3 הצעות פוסטים." \
                 --session isolated 2>/dev/null
             fi
@@ -462,6 +470,7 @@ EOFPAIR
                 --description "Monthly AEO Audit" \
                 --cron "0 10 1 * *" \
                 --tz "Asia/Jerusalem" \
+                --model "sonnet" \
                 --message "ביקורת AEO חודשית: בדוק ציטוטים ב-Claude/ChatGPT/Perplexity, Schema tags, המלצות לשיפור." \
                 --session isolated 2>/dev/null
             fi
