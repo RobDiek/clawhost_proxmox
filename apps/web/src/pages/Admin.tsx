@@ -26,6 +26,8 @@ import {
     PageHeader
 } from '@/components'
 import {
+    AdminAnalyticsTab,
+    AdminBillingTab,
     AdminClawsTab,
     AdminEmailsTab,
     AdminExportsTab,
@@ -54,13 +56,16 @@ import {
     HourglassIcon,
     ClockCountdownIcon,
     ExportIcon,
-    EnvelopeIcon
+    EnvelopeIcon,
+    ChartLineUpIcon,
+    CreditCardIcon
 } from '@phosphor-icons/react'
 import AdminUserSkeleton from '@/pages/AdminUserSkeleton'
 
 const ADMIN_PAGE_SIZE = 20
 
 const ADMIN_TABS = {
+    ANALYTICS: 'analytics',
     USERS: 'users',
     CLAWS: 'claws',
     PENDING_CLAWS: 'pending',
@@ -69,16 +74,17 @@ const ADMIN_TABS = {
     REFERRALS: 'referrals',
     WAITLIST: 'waitlist',
     EXPORTS: 'exports',
-    EMAILS: 'emails'
+    EMAILS: 'emails',
+    BILLING: 'billing'
 } as const
 
 const Admin: FC = (): ReactNode => {
     const { loading: authLoading } = useAuth()
     const { data: profile, isLoading: isProfileLoading } = useProfile()
     const [searchParams, setSearchParams] = useSearchParams()
-    const tabParam = searchParams.get('tab') || ADMIN_TABS.USERS
+    const tabParam = searchParams.get('tab') || ADMIN_TABS.ANALYTICS
     const validTabs = Object.values(ADMIN_TABS) as string[]
-    const activeTab = validTabs.includes(tabParam) ? tabParam : ADMIN_TABS.USERS
+    const activeTab = validTabs.includes(tabParam) ? tabParam : ADMIN_TABS.ANALYTICS
     const [selectedEntity, setSelectedEntity] =
         useState<AdminEntitySelection | null>(null)
     const [search, setSearch] = useState('')
@@ -168,6 +174,13 @@ const Admin: FC = (): ReactNode => {
                             <div className='mb-6 flex flex-wrap gap-1'>
                                 {[
                                     {
+                                        key: ADMIN_TABS.ANALYTICS,
+                                        icon: ChartLineUpIcon,
+                                        label: t('admin.analyticsTab'),
+                                        count: undefined,
+                                        showLabel: true
+                                    },
+                                    {
                                         key: ADMIN_TABS.USERS,
                                         icon: UsersIcon,
                                         label: t('admin.usersTab'),
@@ -220,33 +233,49 @@ const Admin: FC = (): ReactNode => {
                                         icon: EnvelopeIcon,
                                         label: t('admin.emailsTab'),
                                         count: stats?.emails
+                                    },
+                                    {
+                                        key: ADMIN_TABS.BILLING,
+                                        icon: CreditCardIcon,
+                                        label: t('admin.billingTab'),
+                                        count: stats?.billing
                                     }
-                                ].map((tab) => (
-                                    <Tooltip key={tab.key}>
-                                        <TooltipTrigger asChild>
-                                            <button
-                                                onClick={() =>
-                                                    setActiveTab(tab.key)
-                                                }
-                                                className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                                                    activeTab === tab.key
-                                                        ? 'bg-foreground/10 text-foreground'
-                                                        : 'text-muted-foreground hover:text-foreground'
-                                                }`}
-                                            >
-                                                <tab.icon className='h-4 w-4' />
-                                                {tab.count !== undefined && (
-                                                    <span className='text-muted-foreground text-xs'>
-                                                        {tab.count}
-                                                    </span>
-                                                )}
-                                            </button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            {tab.label}
-                                        </TooltipContent>
-                                    </Tooltip>
-                                ))}
+                                ].map((tab) => {
+                                    const isActive = activeTab === tab.key
+                                    return (
+                                        <Tooltip key={tab.key}>
+                                            <TooltipTrigger asChild>
+                                                <button
+                                                    onClick={() =>
+                                                        !isActive && setActiveTab(tab.key)
+                                                    }
+                                                    disabled={isActive}
+                                                    className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                                                        isActive
+                                                            ? 'bg-foreground/10 text-foreground cursor-default'
+                                                            : 'text-muted-foreground hover:text-foreground'
+                                                    }`}
+                                                >
+                                                    <tab.icon className='h-4 w-4' />
+                                                    {tab.count !== undefined ? (
+                                                        <span className='text-muted-foreground text-xs'>
+                                                            {tab.count}
+                                                        </span>
+                                                    ) : tab.showLabel ? (
+                                                        <span className='text-xs'>
+                                                            {tab.label}
+                                                        </span>
+                                                    ) : null}
+                                                </button>
+                                            </TooltipTrigger>
+                                            {!isActive && (
+                                                <TooltipContent>
+                                                    {tab.label}
+                                                </TooltipContent>
+                                            )}
+                                        </Tooltip>
+                                    )
+                                })}
                             </div>
                         </TooltipProvider>
 
@@ -290,6 +319,14 @@ const Admin: FC = (): ReactNode => {
                                 <AdminEmailsTab
                                     onSelectEntity={setSelectedEntity}
                                 />
+                            )}
+                            {activeTab === ADMIN_TABS.BILLING && (
+                                <AdminBillingTab
+                                    onSelectEntity={setSelectedEntity}
+                                />
+                            )}
+                            {activeTab === ADMIN_TABS.ANALYTICS && (
+                                <AdminAnalyticsTab />
                             )}
                             {activeTab === ADMIN_TABS.USERS && (
                                 <Fragment>

@@ -119,3 +119,5 @@ export type ChangelogFeatureType =
 export type TranscriberFunction = (
     audio: Float32Array
 ) => Promise<TranscriptionResult>
+
+export type AdminAnalyticsRange = 'day' | 'week' | 'month' | 'year' | 'all'

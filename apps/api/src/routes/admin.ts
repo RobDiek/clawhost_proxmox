@@ -2,6 +2,8 @@ import type { HonoEnv } from '@/ts/Types'
 
 import { Hono } from 'hono'
 import {
+    getAdminAnalytics,
+    getAdminBilling,
     getAdminClaws,
     getAdminEmails,
     getAdminExports,
@@ -21,6 +23,8 @@ const app = new Hono<HonoEnv>()
 
 app.use('/*', adminOnly)
 app.get('/stats', getAdminStats)
+app.get('/analytics', getAdminAnalytics)
+app.get('/billing', getAdminBilling)
 app.get('/users', getAdminUsers)
 app.get('/users/:id', getAdminUserDetail)
 app.put('/users/:id', updateAdminUser)

@@ -154,7 +154,7 @@ const AdminUserDetailModal: FC<AdminUserDetailModalProps> = ({
                                     {user.role === userRole.admin && (
                                         <Badge className='pointer-events-none shrink-0 border-purple-500/30 bg-purple-500/20 text-purple-600 dark:text-purple-400'>
                                             <ShieldCheckIcon className='mr-1 h-3 w-3' />
-                                            Admin
+                                            {t('admin.adminBadge')}
                                         </Badge>
                                     )}
                                 </div>

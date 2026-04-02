@@ -15,6 +15,7 @@ import {
 } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
+import orders from '@/lib/polar/orders'
 import type { PgTable } from 'drizzle-orm/pg-core'
 
 const safeCount = async (table: PgTable): Promise<number> => {
@@ -37,7 +38,8 @@ const getAdminStats = async (c: AuthenticatedContext) => {
             referralCount,
             waitlistCount,
             exportCount,
-            emailCount
+            emailCount,
+            billingData
         ] = await Promise.all([
             safeCount(users),
             safeCount(claws),
@@ -47,7 +49,8 @@ const getAdminStats = async (c: AuthenticatedContext) => {
             safeCount(referrals),
             safeCount(waitlist),
             safeCount(clawExports),
-            safeCount(emails)
+            safeCount(emails),
+            orders.listAll(1, 1).catch(() => ({ totalCount: 0 }))
         ])
 
         return ok(
@@ -61,12 +64,13 @@ const getAdminStats = async (c: AuthenticatedContext) => {
                 referrals: referralCount,
                 waitlist: waitlistCount,
                 exports: exportCount,
-                emails: emailCount
+                emails: emailCount,
+                billing: billingData.totalCount
             },
             t('api.adminStatsFetched')
         )
     } catch (err) {
-        console.error('Get admin stats error:', err)
+        console.error(err)
         return fail(c, t('api.failedToGetAdminStats'), 500)
     }
 }

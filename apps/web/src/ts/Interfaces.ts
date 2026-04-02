@@ -5,6 +5,7 @@ import type { Node, Edge } from '@xyflow/react'
 import type { UseQueryResult } from '@tanstack/react-query'
 import type { TranslationKey } from '@openclaw/i18n'
 import type {
+    AdminAnalyticsRange,
     AffiliatePeriod,
     AuthMethod,
     BillingInterval,
@@ -287,8 +288,6 @@ export interface DashboardState {
     setShowCreate: (value: boolean) => void
     preselectedPlanId: string | null
     setPreselectedPlanId: (value: string | null) => void
-    preselectedProvider: string | null
-    setPreselectedProvider: (value: string | null) => void
     createAgentClawId: string | null
     setCreateAgentClawId: (value: string | null) => void
     createAgentClawName: string
@@ -483,7 +482,6 @@ export interface CreateClawModalProps {
     volumePricing?: VolumePricing
     planAvailability?: PlanAvailability
     preselectedPlanId?: string | null
-    preselectedProvider?: string | null
     onClose: () => void
     onNavigateToSSHKeys: () => void
 }
@@ -635,7 +633,6 @@ export interface AIModelOption {
 
 export interface CreateClawData {
     name: string
-    provider: string
     planId: string
     location: string
     password?: string
@@ -1871,10 +1868,6 @@ export interface ComparisonTableProps {
     logoSuffix?: string
 }
 
-export interface ProviderSelectorProps {
-    atCapacity: boolean
-}
-
 export interface LocationSelectorProps {
     locations: Location[]
     location: string
@@ -2042,6 +2035,30 @@ export interface AdminUsersTabProps {
     totalUsers: number
 }
 
+export interface AdminAnalyticsDataPoint {
+    date: string
+    count: number
+}
+
+export interface AdminAnalyticsResponse {
+    users: AdminAnalyticsDataPoint[]
+    claws: AdminAnalyticsDataPoint[]
+    pendingClaws: AdminAnalyticsDataPoint[]
+    sshKeys: AdminAnalyticsDataPoint[]
+    volumes: AdminAnalyticsDataPoint[]
+    referrals: AdminAnalyticsDataPoint[]
+    waitlist: AdminAnalyticsDataPoint[]
+    exports: AdminAnalyticsDataPoint[]
+    emails: AdminAnalyticsDataPoint[]
+}
+
+export interface AdminAnalyticsChartProps {
+    title: string
+    data: AdminAnalyticsDataPoint[]
+    color: string
+    range: AdminAnalyticsRange
+}
+
 export interface AdminStats {
     users: number
     claws: number
@@ -2052,6 +2069,7 @@ export interface AdminStats {
     waitlist: number
     exports: number
     emails: number
+    billing: number
 }
 
 export interface AdminReferralListItem {
@@ -2102,6 +2120,23 @@ export interface AdminEmailListItem {
     sentAt: string
     userId: string
     ownerEmail: string | null
+}
+
+export interface AdminBillingApiResponse {
+    items: BillingOrder[]
+    totalCount: number
+    maxPage: number
+}
+
+export interface AdminBillingResponse {
+    items: BillingOrder[]
+    total: number
+    maxPage: number
+}
+
+export interface AdminBillingDetailViewProps {
+    order: BillingOrder
+    onClose: () => void
 }
 
 export interface AdminPaginatedResponse<T> {
@@ -2174,6 +2209,17 @@ export interface UpdateAdminUserData {
     referralCode?: string | null
 }
 
+export interface UpdateAdminUserMutationParams {
+    id: string
+    data: UpdateAdminUserData
+}
+
+export interface RangeBucketConfig {
+    count: number
+    stepMs: number
+    offsetMs: number
+}
+
 export interface AdminEntitySelection {
     type:
         | 'user'
@@ -2185,6 +2231,7 @@ export interface AdminEntitySelection {
         | 'waitlist'
         | 'export'
         | 'email'
+        | 'billing'
     id: string
     data: unknown
 }
@@ -2411,7 +2458,6 @@ export interface UseURLStateRestorationParams {
     setChatClawTab: (value: PlaygroundDetailTab | null) => void
     setShowCreate: (value: boolean) => void
     setPreselectedPlanId: (value: string | null) => void
-    setPreselectedProvider: (value: string | null) => void
     showToast: (message: string, type: ToastType) => void
     awaitingClaw: boolean
 }

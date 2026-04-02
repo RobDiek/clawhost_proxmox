@@ -1,0 +1,94 @@
+import type { AuthenticatedContext } from '@/ts/Types'
+import type { AdminAnalyticsDataPoint, AnalyticsRangeConfig, AnalyticsTableConfig } from '@/ts/Interfaces'
+import type { PgTable } from 'drizzle-orm/pg-core'
+
+import { sql } from 'drizzle-orm'
+import { db } from '@/db'
+import {
+    users,
+    claws,
+    pendingClaws,
+    sshKeys,
+    volumes,
+    referrals,
+    waitlist,
+    clawExports,
+    emails
+} from '@/db/schema'
+import { ok, fail } from '@/lib/response'
+import { t } from '@openclaw/i18n'
+
+const RANGE_CONFIG: Record<string, AnalyticsRangeConfig> = {
+    day: { trunc: 'hour', offset: '24 hours' },
+    week: { trunc: 'day', offset: '7 days' },
+    month: { trunc: 'day', offset: '30 days' },
+    year: { trunc: 'month', offset: '1 year' },
+    all: { trunc: 'month', offset: '5 years' }
+}
+
+const safeBucketQuery = async (
+    table: PgTable,
+    column: string,
+    trunc: string,
+    offset: string
+): Promise<AdminAnalyticsDataPoint[]> => {
+    try {
+        const rows = await db
+            .select({
+                date: sql<string>`date_trunc(${sql.raw(`'${trunc}'`)}, ${sql.raw(column)})`,
+                count: sql<number>`count(*)::int`
+            })
+            .from(table)
+            .where(sql`${sql.raw(column)} >= NOW() - INTERVAL '${sql.raw(offset)}'`)
+            .groupBy(sql`date_trunc(${sql.raw(`'${trunc}'`)}, ${sql.raw(column)})`)
+            .orderBy(sql`date_trunc(${sql.raw(`'${trunc}'`)}, ${sql.raw(column)}) ASC`)
+
+        return rows.map((row) => ({
+            date: new Date(row.date).toISOString(),
+            count: Number(row.count)
+        }))
+    } catch {
+        return []
+    }
+}
+
+const TABLE_CONFIG: AnalyticsTableConfig[] = [
+    { key: 'users', table: users, column: 'created_at' },
+    { key: 'claws', table: claws, column: 'created_at' },
+    { key: 'pendingClaws', table: pendingClaws, column: 'created_at' },
+    { key: 'sshKeys', table: sshKeys, column: 'created_at' },
+    { key: 'volumes', table: volumes, column: 'created_at' },
+    { key: 'referrals', table: referrals, column: 'created_at' },
+    { key: 'waitlist', table: waitlist, column: 'created_at' },
+    { key: 'exports', table: clawExports, column: 'created_at' },
+    { key: 'emails', table: emails, column: 'sent_at' }
+]
+
+const getAdminAnalytics = async (c: AuthenticatedContext) => {
+    try {
+        const range = c.req.query('range') || 'week'
+        const config = RANGE_CONFIG[range]
+        if (!config) {
+            return fail(c, t('api.failedToGetAdminAnalytics'), 400)
+        }
+
+        const results = await Promise.all(
+            TABLE_CONFIG.map(async ({ key, table, column }) => ({
+                key,
+                data: await safeBucketQuery(table, column, config.trunc, config.offset)
+            }))
+        )
+
+        const analytics: Record<string, AdminAnalyticsDataPoint[]> = {}
+        for (const { key, data } of results) {
+            analytics[key] = data
+        }
+
+        return ok(c, analytics, t('api.adminAnalyticsFetched'))
+    } catch (err) {
+        console.error(err)
+        return fail(c, t('api.failedToGetAdminAnalytics'), 500)
+    }
+}
+
+export default getAdminAnalytics

@@ -52,7 +52,7 @@ const getAdminPendingClaws = async (c: AuthenticatedContext) => {
             t('api.adminPendingClawsFetched')
         )
     } catch (err) {
-        console.error('Get admin pending claws error:', err)
+        console.error(err)
         return fail(c, t('api.failedToGetAdminPendingClaws'), 500)
     }
 }

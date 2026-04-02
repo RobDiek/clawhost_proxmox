@@ -10,7 +10,8 @@ import {
     CircleNotchIcon,
     MagnifyingGlassIcon,
     DownloadSimpleIcon,
-    ArrowSquareOutIcon
+    ArrowSquareOutIcon,
+    InfoIcon
 } from '@phosphor-icons/react'
 import { ClawMascot, PanelPlaceholder } from '@/components/shared'
 import {
@@ -174,10 +175,11 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                                                                 <TooltipTrigger
                                                                     asChild
                                                                 >
-                                                                    <span className='cursor-default rounded bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-medium text-blue-400'>
+                                                                    <span className='flex cursor-default items-center gap-0.5 rounded bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-medium text-blue-400'>
                                                                         {t(
                                                                             'playground.versionSupported'
                                                                         )}
+                                                                        <InfoIcon className='h-2.5 w-2.5' />
                                                                     </span>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>

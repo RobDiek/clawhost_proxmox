@@ -1,14 +1,10 @@
 import type { FC, ReactNode } from 'react'
-import type { AdminResourceTabProps } from '@/ts/Interfaces'
+import type { AdminResourceTabProps, BillingOrder } from '@/ts/Interfaces'
 
-import { Fragment, useState } from 'react'
+import { Fragment, useState, useMemo } from 'react'
 import { t } from '@openclaw/i18n'
-import { formatDate } from '@/lib'
-import {
-    useAdminExportsList,
-    useInfiniteScrollObserver,
-    usePaginationState
-} from '@/hooks'
+import { formatDate, formatCurrency } from '@/lib'
+import { useAdminBillingList, useInfiniteScrollObserver, usePaginationState } from '@/hooks'
 import {
     Card,
     CardContent,
@@ -18,15 +14,16 @@ import {
     SelectTrigger
 } from '@/components/ui'
 import { EmptyState, ErrorState } from '@/components'
-import { ExportIcon } from '@phosphor-icons/react'
+import { CreditCardIcon } from '@phosphor-icons/react'
+import AdminStatusBadge from '@/components/admin/AdminStatusBadge'
 import AdminUserSkeleton from '@/pages/AdminUserSkeleton'
 
 const PAGE_SIZE = 20
 
-const AdminExportsTab: FC<AdminResourceTabProps> = ({
+const AdminBillingTab: FC<AdminResourceTabProps> = ({
     onSelectEntity
 }): ReactNode => {
-    const [sortOrder, setSortOrder] = useState('newest')
+    const [billingFilter, setBillingFilter] = useState('all')
 
     const {
         data,
@@ -36,7 +33,7 @@ const AdminExportsTab: FC<AdminResourceTabProps> = ({
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage
-    } = useAdminExportsList(PAGE_SIZE, sortOrder)
+    } = useAdminBillingList(PAGE_SIZE)
 
     const loadMoreRef = useInfiniteScrollObserver({
         isFetchingNextPage,
@@ -48,25 +45,32 @@ const AdminExportsTab: FC<AdminResourceTabProps> = ({
         pageSize: PAGE_SIZE
     })
 
+    const filteredItems = useMemo(() => {
+        if (billingFilter === 'all') return allItems
+        if (billingFilter === 'service') {
+            return allItems.filter((item: BillingOrder) => item.subscriptionId)
+        }
+        return allItems.filter((item: BillingOrder) => !item.subscriptionId)
+    }, [allItems, billingFilter])
+
     return (
         <Fragment>
             <div className='mb-4 flex items-center justify-between'>
-                <h3 className='text-xl font-semibold'>{t('admin.exportsTab')}</h3>
-                <Select value={sortOrder} onValueChange={setSortOrder}>
+                <h3 className='text-xl font-semibold'>{t('admin.billingTab')}</h3>
+                <Select value={billingFilter} onValueChange={setBillingFilter}>
                     <SelectTrigger
-                        className='h-10 w-full sm:w-40'
-                        placeholder={
-                            sortOrder === 'newest'
-                                ? t('admin.sortNewest')
-                                : t('admin.sortOldest')
-                        }
+                        className='h-10 w-full sm:w-48'
+                        placeholder={t('admin.billingFilterAll')}
                     />
                     <SelectContent>
-                        <SelectItem value='newest'>
-                            {t('admin.sortNewest')}
+                        <SelectItem value='all'>
+                            {t('admin.billingFilterAll')}
                         </SelectItem>
-                        <SelectItem value='oldest'>
-                            {t('admin.sortOldest')}
+                        <SelectItem value='service'>
+                            {t('admin.billingFilterService')}
+                        </SelectItem>
+                        <SelectItem value='license'>
+                            {t('admin.billingFilterLicense')}
                         </SelectItem>
                     </SelectContent>
                 </Select>
@@ -75,7 +79,7 @@ const AdminExportsTab: FC<AdminResourceTabProps> = ({
             {isError ? (
                 <div className='py-8'>
                     <ErrorState
-                        title={t('admin.failedToLoadExports')}
+                        title={t('admin.failedToLoadBilling')}
                         description={t('admin.genericErrorDescription')}
                         onRetry={() => refetch()}
                     />
@@ -86,25 +90,27 @@ const AdminExportsTab: FC<AdminResourceTabProps> = ({
                         <AdminUserSkeleton key={i} />
                     ))}
                 </div>
-            ) : !allItems.length ? (
+            ) : !filteredItems.length ? (
                 <div className='py-8'>
                     <EmptyState
-                        icon={<ExportIcon className='text-primary h-10 w-10' />}
-                        title={t('admin.noExportsFound')}
+                        icon={
+                            <CreditCardIcon className='text-primary h-10 w-10' />
+                        }
+                        title={t('admin.noBillingFound')}
                         description={t('admin.genericEmptyDescription')}
                     />
                 </div>
             ) : (
                 <div className='space-y-1.5'>
-                    {allItems.map((item) => (
+                    {filteredItems.map((order: BillingOrder) => (
                         <Card
-                            key={item.id}
+                            key={order.id}
                             className='hover:bg-foreground/10 cursor-pointer transition-colors'
                             onClick={() =>
                                 onSelectEntity({
-                                    type: 'export',
-                                    id: item.id,
-                                    data: item
+                                    type: 'billing',
+                                    id: order.id,
+                                    data: order
                                 })
                             }
                         >
@@ -112,28 +118,27 @@ const AdminExportsTab: FC<AdminResourceTabProps> = ({
                                 <div className='flex items-center justify-between'>
                                     <div className='flex min-w-0 items-center gap-3'>
                                         <div className='bg-muted flex h-9 w-9 shrink-0 items-center justify-center rounded-full'>
-                                            <ExportIcon className='text-muted-foreground h-4 w-4' />
+                                            <CreditCardIcon className='text-muted-foreground h-4 w-4' />
                                         </div>
                                         <div className='min-w-0'>
                                             <div className='flex items-center gap-2'>
                                                 <span className='truncate font-medium'>
-                                                    {item.clawName ||
-                                                        item.clawId}
+                                                    {order.productName || order.billingReason}
                                                 </span>
+                                                <AdminStatusBadge
+                                                    status={order.status}
+                                                />
                                             </div>
                                             <p className='text-muted-foreground truncate text-sm'>
-                                                {item.ownerEmail} ·{' '}
-                                                {t('admin.unitKB', {
-                                                    size: Math.round(
-                                                        (item.fileSize || 0) /
-                                                            1024
-                                                    )
-                                                })}
+                                                {formatCurrency(order.totalAmount)}
+                                                {order.subscriptionId
+                                                    ? ` · ${t('admin.billingFilterService')}`
+                                                    : ` · ${t('admin.billingFilterLicense')}`}
                                             </p>
                                         </div>
                                     </div>
                                     <span className='text-muted-foreground hidden shrink-0 text-sm sm:block'>
-                                        {formatDate(item.createdAt)}
+                                        {formatDate(order.createdAt)}
                                     </span>
                                 </div>
                             </CardContent>
@@ -155,4 +160,4 @@ const AdminExportsTab: FC<AdminResourceTabProps> = ({
     )
 }
 
-export default AdminExportsTab
+export default AdminBillingTab

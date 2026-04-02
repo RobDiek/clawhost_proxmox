@@ -1,4 +1,6 @@
 import type {
+    AdminAnalyticsResponse,
+    AdminBillingApiResponse,
     AdminStats,
     AdminClawsResponse,
     AdminEmailListItem,
@@ -74,7 +76,7 @@ import type {
     VerifyOtpResponse,
     VolumePricing
 } from '@/ts/Interfaces'
-import type { AffiliatePeriod } from '@/ts/Types'
+import type { AdminAnalyticsRange, AffiliatePeriod } from '@/ts/Types'
 
 import { RequestClient } from '@openclaw/shared'
 import { signOut } from 'firebase/auth'
@@ -316,6 +318,17 @@ const api = {
         client.put<UpdateReferralCodeResponse>(API_PATHS.AFFILIATE.CODE, data),
 
     getAdminStats: () => client.get<AdminStats>(API_PATHS.ADMIN.STATS),
+    getAdminAnalytics: (range: AdminAnalyticsRange) =>
+        client.get<AdminAnalyticsResponse>(`${API_PATHS.ADMIN.ANALYTICS}?range=${range}`),
+    listAdminBilling: async (page: number = 1, limit: number = 20) => {
+        const params = new URLSearchParams()
+        params.set('page', String(page))
+        params.set('limit', String(limit))
+        const res = await client.get<AdminBillingApiResponse>(
+            `${API_PATHS.ADMIN.BILLING}?${params.toString()}`
+        )
+        return { items: res.items, total: res.totalCount, maxPage: res.maxPage }
+    },
     getAdminUsers: (
         page: number = 1,
         limit: number = 20,

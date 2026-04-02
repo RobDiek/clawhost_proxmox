@@ -97,6 +97,8 @@ const API_PATHS = {
         USER: (id: string) => `/admin/users/${id}`,
         UPDATE_USER: (id: string) => `/admin/users/${id}`,
         STATS: '/admin/stats',
+        ANALYTICS: '/admin/analytics',
+        BILLING: '/admin/billing',
         CLAWS: '/admin/claws',
         PENDING_CLAWS: '/admin/pending-claws',
         SSH_KEYS: '/admin/ssh-keys',

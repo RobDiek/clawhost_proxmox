@@ -117,7 +117,7 @@ const AdminUserDetailView: FC<AdminUserDetailViewProps> = ({
             <DialogHeader>
                 <DialogTitle>{t('admin.userDetail')}</DialogTitle>
             </DialogHeader>
-            <div className='space-y-6 pt-2'>
+            <div className='space-y-6 pt-8'>
                 <div className='flex items-center gap-3'>
                     <div className='bg-primary/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full'>
                         <UserIcon className='text-primary h-5 w-5' />

@@ -7,6 +7,7 @@ import type {
     SubscriptionStatus,
     WebhookEventType
 } from '@/ts/Types'
+import type { PgTable } from 'drizzle-orm/pg-core'
 
 export interface ApiResponse<T = null> {
     success: boolean
@@ -1006,4 +1007,26 @@ export interface AdminUsersResponse {
     total: number
     page: number
     totalPages: number
+}
+
+export interface AdminAnalyticsDataPoint {
+    date: string
+    count: number
+}
+
+export interface AnalyticsRangeConfig {
+    trunc: string
+    offset: string
+}
+
+export interface AnalyticsTableConfig {
+    key: string
+    table: PgTable
+    column: string
+}
+
+export interface AdminUpdateFields {
+    name?: string | null
+    referralCode?: string | null
+    [key: string]: unknown
 }

@@ -50,7 +50,8 @@ const AdminPendingClawsTab: FC<AdminResourceTabProps> = ({
 
     return (
         <Fragment>
-            <div className='mb-4 flex justify-end'>
+            <div className='mb-4 flex items-center justify-between'>
+                <h3 className='text-xl font-semibold'>{t('admin.pendingClawsTab')}</h3>
                 <Select value={sortOrder} onValueChange={setSortOrder}>
                     <SelectTrigger
                         className='h-10 w-full sm:w-40'

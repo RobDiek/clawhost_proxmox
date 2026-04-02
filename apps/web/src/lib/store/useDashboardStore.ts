@@ -36,9 +36,6 @@ const useDashboardStore = create<DashboardState>((set) => ({
     preselectedPlanId: null,
     setPreselectedPlanId: (value) => set({ preselectedPlanId: value }),
 
-    preselectedProvider: null,
-    setPreselectedProvider: (value) => set({ preselectedProvider: value }),
-
     createAgentClawId: null,
     setCreateAgentClawId: (value) => set({ createAgentClawId: value }),
 
@@ -58,7 +55,6 @@ const useDashboardStore = create<DashboardState>((set) => ({
             chatClawTab: null,
             showCreate: false,
             preselectedPlanId: null,
-            preselectedProvider: null,
             createAgentClawId: null,
             createAgentClawName: ''
         })

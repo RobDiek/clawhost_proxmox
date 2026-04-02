@@ -1,4 +1,5 @@
 import type { AuthenticatedContext } from '@/ts/Types'
+import type { AdminUpdateFields } from '@/ts/Interfaces'
 
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
@@ -26,7 +27,7 @@ const updateAdminUser = async (c: AuthenticatedContext) => {
             return fail(c, t('api.userNotFound'), 404)
         }
 
-        const updates: Record<string, unknown> = {}
+        const updates: AdminUpdateFields = {}
         if (name !== undefined) updates.name = name || null
         if (referralCode !== undefined)
             updates.referralCode = referralCode || null
@@ -35,7 +36,7 @@ const updateAdminUser = async (c: AuthenticatedContext) => {
 
         return ok(c, null, t('api.adminUserUpdated'))
     } catch (err) {
-        console.error('Update admin user error:', err)
+        console.error(err)
         return fail(c, t('api.failedToUpdateAdminUser'), 500)
     }
 }

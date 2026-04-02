@@ -55,6 +55,7 @@ const AdminSSHKeysTab: FC<AdminResourceTabProps> = ({
     return (
         <Fragment>
             <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-center'>
+                <h3 className='text-xl font-semibold'>{t('admin.sshKeysTab')}</h3>
                 <div className='relative flex-1'>
                     <MagnifyingGlassIcon className='text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2' />
                     <Input

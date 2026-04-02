@@ -49,7 +49,7 @@ const getAdminVolumes = async (c: AuthenticatedContext) => {
             t('api.adminVolumesFetched')
         )
     } catch (err) {
-        console.error('Get admin volumes error:', err)
+        console.error(err)
         return fail(c, t('api.failedToGetAdminVolumes'), 500)
     }
 }

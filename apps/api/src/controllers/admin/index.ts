@@ -1,3 +1,5 @@
+import getAdminAnalytics from '@/controllers/admin/getAdminAnalytics'
+import getAdminBilling from '@/controllers/admin/getAdminBilling'
 import getAdminClaws from '@/controllers/admin/getAdminClaws'
 import getAdminEmails from '@/controllers/admin/getAdminEmails'
 import getAdminExports from '@/controllers/admin/getAdminExports'
@@ -12,6 +14,8 @@ import getAdminWaitlist from '@/controllers/admin/getAdminWaitlist'
 import updateAdminUser from '@/controllers/admin/updateAdminUser'
 
 export {
+    getAdminAnalytics,
+    getAdminBilling,
     getAdminClaws,
     getAdminEmails,
     getAdminExports,

@@ -9,7 +9,7 @@ const useAdminEmailsList = (limit: number = 20, sort?: string) => {
         initialPageParam: 1,
         getNextPageParam: (lastPage) =>
             lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
-        staleTime: 5 * 60 * 1000
+        staleTime: 0
     })
 }
 

@@ -41,7 +41,6 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
         setChatClawTab,
         setShowCreate,
         setPreselectedPlanId,
-        setPreselectedProvider,
         showToast,
         awaitingClaw
     } = params
@@ -58,10 +57,8 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
     useEffect(() => {
         const planParam = searchParams.get('plan')
         const deployParam = searchParams.get('deploy')
-        const providerParam = searchParams.get('provider')
         if (planParam) {
             setPreselectedPlanId(planParam)
-            if (providerParam) setPreselectedProvider(providerParam)
             setShowCreate(true)
         } else if (deployParam) {
             setShowCreate(true)

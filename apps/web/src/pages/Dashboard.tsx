@@ -82,8 +82,6 @@ const Dashboard: FC = (): ReactNode => {
         setShowCreate,
         preselectedPlanId,
         setPreselectedPlanId,
-        preselectedProvider,
-        setPreselectedProvider,
         createAgentClawId,
         setCreateAgentClawId,
         createAgentClawName,
@@ -182,7 +180,6 @@ const Dashboard: FC = (): ReactNode => {
         setChatClawTab,
         setShowCreate,
         setPreselectedPlanId,
-        setPreselectedProvider,
         showToast,
         awaitingClaw
     })
@@ -405,16 +402,13 @@ const Dashboard: FC = (): ReactNode => {
                     volumePricing={volumePricing}
                     planAvailability={planAvailability}
                     preselectedPlanId={preselectedPlanId}
-                    preselectedProvider={preselectedProvider}
                     onClose={() => {
                         setShowCreate(false)
                         setPreselectedPlanId(null)
-                        setPreselectedProvider(null)
                     }}
                     onNavigateToSSHKeys={() => {
                         setShowCreate(false)
                         setPreselectedPlanId(null)
-                        setPreselectedProvider(null)
                         navigate(ROUTES.SSH_KEYS)
                     }}
                 />

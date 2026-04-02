@@ -7,7 +7,8 @@ import type {
     AdminPendingClawListItem,
     AdminReferralListItem,
     AdminExportListItem,
-    AdminEmailListItem
+    AdminEmailListItem,
+    BillingOrder
 } from '@/ts/Interfaces'
 
 import { Dialog, DialogContent } from '@/components/ui'
@@ -18,6 +19,7 @@ import AdminPendingClawDetailView from '@/components/admin/AdminPendingClawDetai
 import AdminReferralDetailView from '@/components/admin/AdminReferralDetailView'
 import AdminExportDetailView from '@/components/admin/AdminExportDetailView'
 import AdminEmailDetailView from '@/components/admin/AdminEmailDetailView'
+import AdminBillingDetailView from '@/components/admin/AdminBillingDetailView'
 import AdminUserDetailView from '@/components/admin/AdminUserDetailView'
 
 const AdminDetailModal: FC<AdminDetailModalProps> = ({
@@ -87,6 +89,13 @@ const AdminDetailModal: FC<AdminDetailModalProps> = ({
                         email={entity.data as AdminEmailListItem}
                         onClose={onClose}
                         onNavigateToUser={onNavigateToUser}
+                    />
+                )
+            case 'billing':
+                return (
+                    <AdminBillingDetailView
+                        order={entity.data as BillingOrder}
+                        onClose={onClose}
                     />
                 )
             default:

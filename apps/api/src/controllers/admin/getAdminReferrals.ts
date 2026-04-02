@@ -48,7 +48,7 @@ const getAdminReferrals = async (c: AuthenticatedContext) => {
             t('api.adminReferralsFetched')
         )
     } catch (err) {
-        console.error('Get admin referrals error:', err)
+        console.error(err)
         return fail(c, t('api.failedToGetAdminReferrals'), 500)
     }
 }

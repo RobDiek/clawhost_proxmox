@@ -30,7 +30,6 @@ import {
 } from '@/components/ui'
 import { CircleNotchIcon } from '@phosphor-icons/react'
 import {
-    ProviderSelector,
     LocationSelector,
     BillingIntervalSelector,
     PlanSelector,
@@ -273,8 +272,6 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                             </p>
                         )}
                     </div>
-
-                    <ProviderSelector atCapacity={atCapacity} />
 
                     <LocationSelector
                         locations={locations}

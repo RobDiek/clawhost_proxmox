@@ -44,7 +44,7 @@ const getAdminEmails = async (c: AuthenticatedContext) => {
             t('api.adminEmailsFetched')
         )
     } catch (err) {
-        console.error('Get admin emails error:', err)
+        console.error(err)
         return fail(c, t('api.failedToGetAdminEmails'), 500)
     }
 }

@@ -40,7 +40,7 @@ const AdminUserRow: FC<AdminUserRowProps> = ({ user, onSelect }): ReactNode => {
                                 {user.role === userRole.admin && (
                                     <Badge className='pointer-events-none border-purple-500/30 bg-purple-500/20 text-purple-600 dark:text-purple-400'>
                                         <ShieldCheckIcon className='mr-1 h-3 w-3' />
-                                        Admin
+                                        {t('admin.adminBadge')}
                                     </Badge>
                                 )}
                                 {user.hasLicense && (

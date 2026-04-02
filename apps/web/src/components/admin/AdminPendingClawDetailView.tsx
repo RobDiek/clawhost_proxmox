@@ -40,7 +40,7 @@ const AdminPendingClawDetailView: FC<AdminPendingClawDetailViewProps> = ({
                     {pendingClaw.name}
                 </DialogTitle>
             </DialogHeader>
-            <div className='space-y-4 pt-2'>
+            <div className='space-y-4 pt-8'>
                 <div className='border-border rounded-lg border p-4'>
                     <div className='grid grid-cols-1 gap-4 text-sm sm:grid-cols-2'>
                         <div className='space-y-1'>
