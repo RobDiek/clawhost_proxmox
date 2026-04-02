@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, inArray } from 'drizzle-orm'
 import { db } from '@/db'
 import { waConfig, waContacts, waTemplates, waSends } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
@@ -182,10 +182,18 @@ export const optOutWaContact = async (c: Context) => {
         const contactId = c.req.param('contactId')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
 
-        await db.update(waContacts).set({
+        // Validate UUID format
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(contactId)) {
+            return fail(c, 'Invalid contact ID', 400)
+        }
+
+        const updated = await db.update(waContacts).set({
             optedOut: true,
             optedIn: false,
         }).where(and(eq(waContacts.id, contactId), eq(waContacts.instanceId, instanceId)))
+            .returning({ id: waContacts.id })
+
+        if (!updated.length) return fail(c, 'Contact not found', 404)
 
         return ok(c, null, 'Contact opted out')
     } catch (err) {
@@ -258,12 +266,12 @@ export const submitWaTemplate = async (c: Context) => {
         if (!gaConfig) return fail(c, 'WhatsApp not configured', 400)
 
         // Optimistic lock: update status to 'submitting' first
+        // Allow from 'draft', 'rejected', OR 'submitting' (stuck after crash recovery)
         const updated = await db.update(waTemplates).set({ status: 'submitting' })
             .where(and(
                 eq(waTemplates.id, templateId),
                 eq(waTemplates.instanceId, instanceId),
-                // Only from draft or rejected — prevents double-submit
-                eq(waTemplates.status, 'draft')
+                inArray(waTemplates.status, ['draft', 'rejected', 'submitting'])
             ))
             .returning()
 
