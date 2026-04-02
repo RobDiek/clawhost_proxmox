@@ -392,3 +392,63 @@ export const agentOutputs = pgTable(
         index('agent_outputs_scheduled_idx').on(table.instanceId, table.scheduledFor)
     ]
 )
+
+// ── WhatsApp Business ──
+export const waConfig = pgTable('wa_config', {
+    instanceId: text('instance_id').primaryKey().references(() => instances.id),
+    greenApiInstance: text('green_api_instance'),
+    greenApiToken: text('green_api_token'),
+    businessPhone: text('business_phone'),
+    optinMethod: text('optin_method').default('incoming'),  // incoming|website|manual
+    autoReplyText: text('auto_reply_text').default('ברוכים הבאים! תקבלו עדכונים מאיתנו 🎉'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+})
+
+export const waContacts = pgTable('wa_contacts', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    instanceId: text('instance_id').references(() => instances.id).notNull(),
+    phone: text('phone').notNull(),
+    name: text('name'),
+    optedIn: boolean('opted_in').default(false),
+    optedInAt: timestamp('opted_in_at', { withTimezone: true }),
+    optedInMethod: text('opted_in_method'),  // incoming|website|manual
+    optedOut: boolean('opted_out').default(false),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+}, (table) => [
+    unique('wa_contacts_instance_phone').on(table.instanceId, table.phone),
+    index('wa_contacts_instance_idx').on(table.instanceId)
+])
+
+export const waTemplates = pgTable('wa_templates', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    instanceId: text('instance_id').references(() => instances.id).notNull(),
+    templateName: text('template_name').notNull(),  // snake_case, latin only
+    category: text('category').notNull(),  // MARKETING|UTILITY
+    language: text('language').default('he'),
+    bodyText: text('body_text'),
+    header: text('header'),
+    footer: text('footer'),
+    variables: jsonb('variables'),  // ["{{1}}", "{{2}}"]
+    greenApiTemplateId: text('green_api_template_id'),
+    status: text('status').default('draft'),  // draft|submitted|approved|rejected
+    rejectionReason: text('rejection_reason'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+}, (table) => [
+    index('wa_templates_instance_idx').on(table.instanceId)
+])
+
+export const waSends = pgTable('wa_sends', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    instanceId: text('instance_id').references(() => instances.id).notNull(),
+    templateId: uuid('template_id').references(() => waTemplates.id),
+    totalRecipients: integer('total_recipients').default(0),
+    sentCount: integer('sent_count').default(0),
+    deliveredCount: integer('delivered_count').default(0),
+    readCount: integer('read_count').default(0),
+    status: text('status').default('queued'),  // queued|sending|completed|failed
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+}, (table) => [
+    index('wa_sends_instance_idx').on(table.instanceId)
+])

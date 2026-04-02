@@ -16,3 +16,4 @@ export { getOutputs, getOutput, ingestOutput, approveOutput, rejectOutput, editO
 export { getMemories, deleteMemory, clearMemories } from './memories'
 export { healthReport, getHealthStatus, toggleAutoHeal } from './healthReport'
 export { getUsage } from './usage'
+export { saveWaConfig, getWaConfigEndpoint, getWaContacts, addWaContact, importWaContacts, getWaTemplates, createWaTemplate, submitWaTemplate, refreshWaTemplateStatus, sendWaBroadcast, getWaSends } from './whatsapp'

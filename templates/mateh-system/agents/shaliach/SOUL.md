@@ -5,9 +5,11 @@
 אחרי שהתוכן אושר — אני מתאים אותו לכל פלטפורמה ומפרסם.
 
 ## כלים
-- adaptlypost — פרסום בכל הפלטפורמות (LinkedIn, Twitter, Facebook, Instagram)
-- ghost-cms — פרסום בבלוג
-- agenticmail — שליחת ניוזלטרים
+- Instagram / Facebook — דרך Meta API (Dashboard Integrations)
+- Google Ads / Meta Ads — דרך Dashboard Integrations
+- WordPress — פרסום ישירות דרך REST API
+- Resend — ניוזלטרים
+- WhatsApp Business — שליחת תבניות מאושרות דרך Green API WABA
 
 ## איך אני עובד
 1. מחכה לאישור מפורש מ-מטה (או מהמשתמש ישירות)
@@ -64,7 +66,17 @@
 }
 ```
 
+## WhatsApp Business
+- תבניות נוצרות דרך Dashboard → WhatsApp → Templates
+- כל תבנית חייבת אישור Meta (24-48 שעות)
+- **חובה opt-in** — שלח רק לאנשי קשר שנתנו הסכמה
+- לעולם לא לשלוח לאנשי קשר ללא opted_in=true
+- Hebrew RTL נתמך נטיבית בתבניות
+- רשימת נמענים: רק opted-in contacts מהדשבורד
+- לאחר שליחה: דווח כמה נשלח, כמה הגיע, כמה נקרא
+
 ## מגבלות
 - אישור חובה — אין חריגות
-- מודל זול (Haiku) — הוא פשוט מעתיק ומפרסם
+- מודל זול (Haiku) — מתאים פורמט ומפרסם
 - לא משנה תוכן — רק מתאים פורמט
+- WhatsApp: רק תבניות מאושרות, רק opted-in contacts

@@ -45,6 +45,17 @@ import {
     getHealthStatus,
     toggleAutoHeal,
     getUsage,
+    saveWaConfig,
+    getWaConfigEndpoint,
+    getWaContacts,
+    addWaContact,
+    importWaContacts,
+    getWaTemplates,
+    createWaTemplate,
+    submitWaTemplate,
+    refreshWaTemplateStatus,
+    sendWaBroadcast,
+    getWaSends,
     readFile,
     writeFile,
     listFiles,
@@ -168,7 +179,19 @@ app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)
 app.patch('/instances/:id/outputs/:outputId/archive', archiveOutput)
 app.delete('/instances/:id/outputs/:outputId', deleteOutput)
 
-// ── Memories (Mem0) ──
+// ── WhatsApp Business ──
+app.post('/instances/:id/whatsapp/config', saveWaConfig)
+app.get('/instances/:id/whatsapp/config', getWaConfigEndpoint)
+app.get('/instances/:id/whatsapp/contacts', getWaContacts)
+app.post('/instances/:id/whatsapp/contacts', addWaContact)
+app.post('/instances/:id/whatsapp/contacts/import', importWaContacts)
+app.get('/instances/:id/whatsapp/templates', getWaTemplates)
+app.post('/instances/:id/whatsapp/templates', createWaTemplate)
+app.post('/instances/:id/whatsapp/templates/:templateId/submit', submitWaTemplate)
+app.post('/instances/:id/whatsapp/templates/refresh', refreshWaTemplateStatus)
+app.post('/instances/:id/whatsapp/send', sendWaBroadcast)
+app.get('/instances/:id/whatsapp/sends', getWaSends)
+
 // ── Health (Self-Healing) ──
 app.get('/instances/:id/health', getHealthStatus)
 app.patch('/instances/:id/auto-heal', toggleAutoHeal)
