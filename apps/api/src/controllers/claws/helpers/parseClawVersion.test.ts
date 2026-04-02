@@ -18,6 +18,8 @@ describe('parseClawVersion', () => {
     })
 
     it('parses version embedded in other text', () => {
-        expect(parseClawVersion('OpenClaw v2025.3.1-5 stable')).toEqual([2025, 3, 1, 5])
+        expect(parseClawVersion('OpenClaw v2025.3.1-5 stable')).toEqual([
+            2025, 3, 1, 5
+        ])
     })
 })

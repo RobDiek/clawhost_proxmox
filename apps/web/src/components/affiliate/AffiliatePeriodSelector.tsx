@@ -16,7 +16,10 @@ const PERIOD_LABELS: Record<AffiliatePeriod, TranslationKey> = {
     [AFFILIATE_PERIOD.ALL]: 'affiliate.periodAll'
 }
 
-const AffiliatePeriodSelector: FC<AffiliatePeriodSelectorProps> = ({ period, onPeriodChange }): ReactNode => {
+const AffiliatePeriodSelector: FC<AffiliatePeriodSelectorProps> = ({
+    period,
+    onPeriodChange
+}): ReactNode => {
     return (
         <div className='mb-6 flex flex-wrap items-center justify-between gap-3'>
             <div className='flex items-center gap-1'>

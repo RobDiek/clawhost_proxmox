@@ -2,7 +2,11 @@ import type { ChannelConfig } from '@/ts/Interfaces'
 import type { AuthenticatedContext } from '@/ts/Types'
 
 import executeSSH from '@/services/ssh'
-import { BASE_DIR, findUserClaw, parseJsonFromSSH } from '@/controllers/claws/helpers'
+import {
+    BASE_DIR,
+    findUserClaw,
+    parseJsonFromSSH
+} from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 
@@ -29,7 +33,10 @@ const getClawChannels = async (c: AuthenticatedContext) => {
             )
 
             const config = parseJsonFromSSH(output)
-            const channels = (config?.channels || {}) as Record<string, ChannelConfig>
+            const channels = (config?.channels || {}) as Record<
+                string,
+                ChannelConfig
+            >
 
             return ok(c, { channels }, t('api.channelsFetched'))
         } catch {

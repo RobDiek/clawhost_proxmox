@@ -47,7 +47,10 @@ const Changelog: FC = (): ReactNode => {
                             key={release.titleKey}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.4, delay: 0.1 + index * 0.05 }}
+                            transition={{
+                                duration: 0.4,
+                                delay: 0.1 + index * 0.05
+                            }}
                             className='cv-auto relative md:pl-14'
                         >
                             <div className='absolute left-0 top-1 hidden md:block'>
@@ -62,10 +65,13 @@ const Changelog: FC = (): ReactNode => {
                                 )}
                             </div>
 
-                            <div className={release.upcoming
-                                ? 'rounded-2xl border border-amber-500/10 bg-amber-500/[0.02] p-8'
-                                : 'border-border bg-foreground/[0.02] rounded-2xl border p-8'
-                            }>
+                            <div
+                                className={
+                                    release.upcoming
+                                        ? 'rounded-2xl border border-amber-500/10 bg-amber-500/[0.02] p-8'
+                                        : 'border-border bg-foreground/[0.02] rounded-2xl border p-8'
+                                }
+                            >
                                 {release.upcoming ? (
                                     <span className='mb-4 block text-sm font-medium text-amber-600 dark:text-amber-400'>
                                         {t(release.dateKey)}
@@ -86,13 +92,17 @@ const Changelog: FC = (): ReactNode => {
 
                                 <ul className='space-y-3'>
                                     {release.features.map((feature) => (
-                                        <li key={feature.key} className='flex items-center gap-3'>
+                                        <li
+                                            key={feature.key}
+                                            className='flex items-center gap-3'
+                                        >
                                             {release.upcoming ? (
                                                 <CircleIcon
                                                     className='h-2.5 w-2.5 flex-shrink-0 text-amber-600 dark:text-amber-400'
                                                     weight='fill'
                                                 />
-                                            ) : feature.type === CHANGELOG_FEATURE_TYPE.DROPPED ? (
+                                            ) : feature.type ===
+                                              CHANGELOG_FEATURE_TYPE.DROPPED ? (
                                                 <XIcon
                                                     className='h-4 w-4 flex-shrink-0 text-red-600 dark:text-red-400'
                                                     weight='bold'

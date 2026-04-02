@@ -30,7 +30,9 @@ describe('fail', () => {
 
     it('supports custom data in failure', async () => {
         const app = new Hono()
-        app.get('/test', (c) => fail(c, 'Validation error', 422, { field: 'email' }))
+        app.get('/test', (c) =>
+            fail(c, 'Validation error', 422, { field: 'email' })
+        )
 
         const res = await app.request('/test')
         const body = await res.json()

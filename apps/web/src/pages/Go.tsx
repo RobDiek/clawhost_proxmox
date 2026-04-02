@@ -6,7 +6,6 @@ import { useScroll, useTransform } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { goLicense } from '@openclaw/shared'
 import { SCROLL_SECTIONS } from '@/lib'
-import { Button, Input } from '@/components/ui'
 import {
     PageTitle,
     Header,
@@ -19,7 +18,8 @@ import {
     StatsRow,
     MacosDesktopPreview,
     GoPricingCard,
-    LandingCTA
+    LandingCTA,
+    GoWaitlistForm
 } from '@/components'
 import { usePreferencesStore, useUIStore } from '@/lib/store'
 import { PRODUCT, TOAST_TYPE } from '@/lib/constants'
@@ -37,11 +37,7 @@ import {
     GearSixIcon,
     PuzzlePieceIcon,
     ChatCircleDotsIcon,
-    UsersThreeIcon,
-    BellIcon,
-    CheckCircleIcon,
-    CircleNotchIcon,
-    EnvelopeSimpleIcon
+    UsersThreeIcon
 } from '@phosphor-icons/react'
 
 const getGoFeatures = (): FeatureItem[] => [
@@ -168,7 +164,10 @@ const Go: FC = (): ReactNode => {
                 const res = await api.joinWaitlist(email)
                 setHasJoined(true)
                 if (res.alreadyJoined) {
-                    showToast(t('go.waitlistAlreadyJoinedToast'), TOAST_TYPE.INFO)
+                    showToast(
+                        t('go.waitlistAlreadyJoinedToast'),
+                        TOAST_TYPE.INFO
+                    )
                 }
             } catch (error) {
                 const message =
@@ -229,6 +228,19 @@ const Go: FC = (): ReactNode => {
         { label: t('go.faqTitle'), href: '#faq', id: 'faq' }
     ]
 
+    const waitlistFormProps = {
+        user,
+        authLoading,
+        hasJoined,
+        isJoining,
+        isCheckingStatus,
+        waitlistEmail,
+        isValidEmail,
+        onWaitlistEmailChange: setWaitlistEmail,
+        onJoinWaitlist: handleJoinWaitlist,
+        onEmailSubmit: handleEmailSubmit
+    }
+
     return (
         <div className='font-satoshi bg-background text-foreground min-h-screen'>
             <PageTitle title={t('go.pageTitle')} />
@@ -256,94 +268,7 @@ const Go: FC = (): ReactNode => {
                             />
 
                             <div className='mb-16 flex flex-col gap-4 sm:flex-row'>
-                                {user && !authLoading ? (
-                                    <div className='flex flex-col gap-2 sm:flex-row'>
-                                        <div className='relative'>
-                                            <EnvelopeSimpleIcon className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40' />
-                                            <Input
-                                                type='email'
-                                                readOnly
-                                                value={user.email || ''}
-                                                className='h-10 w-full rounded-lg border-white/20 bg-white/5 pl-9 text-white placeholder:text-white/40 sm:w-60'
-                                            />
-                                        </div>
-                                        <Button
-                                            size='lg'
-                                            disabled={
-                                                hasJoined ||
-                                                isJoining ||
-                                                isCheckingStatus
-                                            }
-                                            onClick={() =>
-                                                handleJoinWaitlist(user.email!)
-                                            }
-                                            className='gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] px-6 font-semibold text-white'
-                                        >
-                                            {isJoining || isCheckingStatus ? (
-                                                <CircleNotchIcon className='h-5 w-5 animate-spin' />
-                                            ) : hasJoined ? (
-                                                <CheckCircleIcon
-                                                    className='h-5 w-5'
-                                                    weight='bold'
-                                                />
-                                            ) : (
-                                                <BellIcon
-                                                    className='h-5 w-5'
-                                                    weight='bold'
-                                                />
-                                            )}
-                                            {hasJoined
-                                                ? t('go.joinedWaitlist')
-                                                : t('go.joinWaitlist')}
-                                        </Button>
-                                    </div>
-                                ) : !authLoading ? (
-                                    <form
-                                        onSubmit={handleEmailSubmit}
-                                        className='flex flex-col gap-2 sm:flex-row'
-                                    >
-                                        <div className='relative'>
-                                            <EnvelopeSimpleIcon className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40' />
-                                            <Input
-                                                type='email'
-                                                required
-                                                disabled={hasJoined}
-                                                value={waitlistEmail}
-                                                onChange={(e) =>
-                                                    setWaitlistEmail(
-                                                        e.target.value
-                                                    )
-                                                }
-                                                placeholder={t(
-                                                    'go.waitlistEmailPlaceholder'
-                                                )}
-                                                className='h-10 w-full rounded-lg border-white/20 bg-white/5 pl-9 text-white placeholder:text-white/40 sm:w-60'
-                                            />
-                                        </div>
-                                        <Button
-                                            type='submit'
-                                            size='lg'
-                                            disabled={
-                                                hasJoined ||
-                                                isJoining ||
-                                                !isValidEmail
-                                            }
-                                            className='gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] px-6 font-semibold text-white'
-                                        >
-                                            {isJoining ? (
-                                                <CircleNotchIcon className='h-5 w-5 animate-spin' />
-                                            ) : hasJoined ? (
-                                                <CheckCircleIcon
-                                                    className='h-5 w-5'
-                                                    weight='bold'
-                                                />
-                                            ) : null}
-                                            {hasJoined
-                                                ? t('go.joinedWaitlist')
-                                                : t('go.joinWaitlist')}
-                                        </Button>
-                                    </form>
-                                ) : null}
+                                <GoWaitlistForm {...waitlistFormProps} />
                             </div>
 
                             <StatsRow
@@ -467,86 +392,10 @@ const Go: FC = (): ReactNode => {
                     title={t('go.ctaTitle')}
                     description={t('go.ctaDescription')}
                 >
-                    {user && !authLoading ? (
-                        <div className='flex flex-col gap-2 sm:flex-row'>
-                            <div className='relative'>
-                                <EnvelopeSimpleIcon className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40' />
-                                <Input
-                                    type='email'
-                                    readOnly
-                                    value={user.email || ''}
-                                    className='h-10 w-full rounded-lg border-white/20 bg-white/5 pl-9 text-white placeholder:text-white/40 sm:w-60'
-                                />
-                            </div>
-                            <Button
-                                size='lg'
-                                disabled={
-                                    hasJoined || isJoining || isCheckingStatus
-                                }
-                                onClick={() => handleJoinWaitlist(user.email!)}
-                                className='gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] px-6 font-semibold text-white'
-                            >
-                                {isJoining || isCheckingStatus ? (
-                                    <CircleNotchIcon className='h-5 w-5 animate-spin' />
-                                ) : hasJoined ? (
-                                    <CheckCircleIcon
-                                        className='h-5 w-5'
-                                        weight='bold'
-                                    />
-                                ) : (
-                                    <BellIcon
-                                        className='h-5 w-5'
-                                        weight='bold'
-                                    />
-                                )}
-                                {hasJoined
-                                    ? t('go.joinedWaitlist')
-                                    : t('go.joinWaitlist')}
-                            </Button>
-                        </div>
-                    ) : !authLoading ? (
-                        <form
-                            onSubmit={handleEmailSubmit}
-                            className='flex gap-2'
-                        >
-                            <div className='relative'>
-                                <EnvelopeSimpleIcon className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40' />
-                                <Input
-                                    type='email'
-                                    required
-                                    disabled={hasJoined}
-                                    value={waitlistEmail}
-                                    onChange={(e) =>
-                                        setWaitlistEmail(e.target.value)
-                                    }
-                                    placeholder={t(
-                                        'go.waitlistEmailPlaceholder'
-                                    )}
-                                    className='h-10 w-full rounded-lg border-white/20 bg-white/5 pl-9 text-white placeholder:text-white/40 sm:w-60'
-                                />
-                            </div>
-                            <Button
-                                type='submit'
-                                size='lg'
-                                disabled={
-                                    hasJoined || isJoining || !isValidEmail
-                                }
-                                className='gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] px-6 font-semibold text-white'
-                            >
-                                {isJoining ? (
-                                    <CircleNotchIcon className='h-5 w-5 animate-spin' />
-                                ) : hasJoined ? (
-                                    <CheckCircleIcon
-                                        className='h-5 w-5'
-                                        weight='bold'
-                                    />
-                                ) : null}
-                                {hasJoined
-                                    ? t('go.joinedWaitlist')
-                                    : t('go.joinWaitlist')}
-                            </Button>
-                        </form>
-                    ) : null}
+                    <GoWaitlistForm
+                        {...waitlistFormProps}
+                        guestClassName='flex gap-2'
+                    />
                 </LandingCTA>
             </main>
 

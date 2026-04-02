@@ -75,7 +75,9 @@ const AffiliateProgram: FC = (): ReactNode => {
                             <li>{t('affiliateProgram.earningsMonthly')}</li>
                             <li>{t('affiliateProgram.earningsYearly')}</li>
                             <li>{t('affiliateProgram.earningsPayout')}</li>
-                            <li>{t('affiliateProgram.earningsPaymentMethod')}</li>
+                            <li>
+                                {t('affiliateProgram.earningsPaymentMethod')}
+                            </li>
                             <li>{t('affiliateProgram.earningsCurrency')}</li>
                         </ul>
                     </section>
@@ -89,7 +91,9 @@ const AffiliateProgram: FC = (): ReactNode => {
                         </p>
                         <ul className='text-muted-foreground mt-2 list-inside list-disc space-y-2'>
                             <li>{t('affiliateProgram.referralCodeUnique')}</li>
-                            <li>{t('affiliateProgram.referralCodeOneChange')}</li>
+                            <li>
+                                {t('affiliateProgram.referralCodeOneChange')}
+                            </li>
                             <li>{t('affiliateProgram.referralCodeFormat')}</li>
                         </ul>
                     </section>
@@ -128,7 +132,9 @@ const AffiliateProgram: FC = (): ReactNode => {
                             <li>{t('affiliateProgram.rulesNoSelfReferral')}</li>
                             <li>{t('affiliateProgram.rulesNoFakeAccounts')}</li>
                             <li>{t('affiliateProgram.rulesNoSpam')}</li>
-                            <li>{t('affiliateProgram.rulesNoMisrepresentation')}</li>
+                            <li>
+                                {t('affiliateProgram.rulesNoMisrepresentation')}
+                            </li>
                             <li>{t('affiliateProgram.rulesNoIncentivized')}</li>
                         </ul>
                     </section>

@@ -6,7 +6,11 @@ import { clawStatus } from '@openclaw/shared'
 import { db } from '@/db'
 import { claws } from '@/db/schema'
 import executeSSH from '@/services/ssh'
-import { findUserClaw, parseJsonFromSSH, BASE_DIR } from '@/controllers/claws/helpers'
+import {
+    findUserClaw,
+    parseJsonFromSSH,
+    BASE_DIR
+} from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 
@@ -62,10 +66,13 @@ const getClawAgents = async (c: AuthenticatedContext) => {
             const agentList = config?.agents
                 ? (config.agents as Record<string, unknown>)?.list
                 : undefined
-            const defaultModel =
-                (config?.agents as Record<string, unknown>)?.defaults
-                    ? ((config.agents as Record<string, unknown>).defaults as Record<string, unknown>)?.model
-                    : null
+            const defaultModel = (config?.agents as Record<string, unknown>)
+                ?.defaults
+                ? (
+                      (config.agents as Record<string, unknown>)
+                          .defaults as Record<string, unknown>
+                  )?.model
+                : null
 
             const rawDefault =
                 typeof defaultModel === 'object' && defaultModel !== null
@@ -91,12 +98,10 @@ const getClawAgents = async (c: AuthenticatedContext) => {
                 agents = agentList.map(
                     (agent: RawClawConfigAgent, index: number) => ({
                         id: agent.id || `agent-${index}`,
-                        name:
-                            agent.name || agent.id || `Agent ${index + 1}`,
+                        name: agent.name || agent.id || `Agent ${index + 1}`,
                         model: agent.model || resolvedDefault || null,
                         status: normalizeAgentStatus(agent.status),
-                        directory:
-                            agent.workspace || agent.directory || null
+                        directory: agent.workspace || agent.directory || null
                     })
                 )
             }

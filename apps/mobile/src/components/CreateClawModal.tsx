@@ -40,8 +40,9 @@ import { generatePassword, locationFlags } from '@/lib/claw-utils'
 import { COLORS, SPACING, TYPOGRAPHY } from '@/lib/theme'
 import ProviderIcon from '@/components/ProviderIcon'
 
-const PROVIDERS: { id: string; label: string; recommended?: boolean }[] =
-    [{ id: 'hetzner', label: 'Hetzner', recommended: true }]
+const PROVIDERS: { id: string; label: string; recommended?: boolean }[] = [
+    { id: 'hetzner', label: 'Hetzner', recommended: true }
+]
 
 const TIER_STARTS: Record<string, Record<string, string>> = {
     hetzner: {

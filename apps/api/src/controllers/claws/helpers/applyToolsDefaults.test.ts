@@ -9,7 +9,9 @@ describe('applyToolsDefaults', () => {
     })
 
     it('preserves existing profile', () => {
-        const config: Record<string, unknown> = { tools: { profile: 'minimal' } }
+        const config: Record<string, unknown> = {
+            tools: { profile: 'minimal' }
+        }
         applyToolsDefaults(config)
         const tools = config.tools as Record<string, unknown>
         expect(tools.profile).toBe('minimal')
@@ -23,17 +25,25 @@ describe('applyToolsDefaults', () => {
     })
 
     it('preserves existing elevated', () => {
-        const config: Record<string, unknown> = { tools: { elevated: { enabled: false } } }
+        const config: Record<string, unknown> = {
+            tools: { elevated: { enabled: false } }
+        }
         applyToolsDefaults(config)
         const tools = config.tools as Record<string, unknown>
         expect(tools.elevated).toEqual({ enabled: false })
     })
 
     it('always sets exec to gateway config', () => {
-        const config: Record<string, unknown> = { tools: { exec: { host: 'custom' } } }
+        const config: Record<string, unknown> = {
+            tools: { exec: { host: 'custom' } }
+        }
         applyToolsDefaults(config)
         const tools = config.tools as Record<string, unknown>
-        expect(tools.exec).toEqual({ host: 'gateway', security: 'full', ask: 'off' })
+        expect(tools.exec).toEqual({
+            host: 'gateway',
+            security: 'full',
+            ask: 'off'
+        })
     })
 
     it('creates tools object when config has none', () => {

@@ -24,7 +24,22 @@ describe('useLanguageEffect logic', () => {
     })
 
     it('handles all supported languages', () => {
-        const languages = ['en', 'fr', 'es', 'de', 'zh', 'hi', 'ar', 'ru', 'ja', 'tr', 'it', 'pl', 'nl', 'pt'] as const
+        const languages = [
+            'en',
+            'fr',
+            'es',
+            'de',
+            'zh',
+            'hi',
+            'ar',
+            'ru',
+            'ja',
+            'tr',
+            'it',
+            'pl',
+            'nl',
+            'pt'
+        ] as const
         for (const lang of languages) {
             setLanguage(lang)
             document.documentElement.lang = lang

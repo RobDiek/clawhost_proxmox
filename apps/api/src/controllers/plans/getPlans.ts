@@ -64,10 +64,7 @@ const getPlans = async (c: Context) => {
                 architecture: st.architecture,
                 disabled: atCapacity
             }))
-            .sort(
-                (a, b) =>
-                    planOrder.indexOf(a.id) - planOrder.indexOf(b.id)
-            )
+            .sort((a, b) => planOrder.indexOf(a.id) - planOrder.indexOf(b.id))
 
         return ok(c, { plans, atCapacity }, t('api.plansFetched'))
     } catch (err) {

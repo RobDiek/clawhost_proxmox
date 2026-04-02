@@ -1,4 +1,4 @@
-import { userRole } from '@'
+import { userRole } from '#shared/index'
 
 describe('userRole', () => {
     it('has user role', () => {

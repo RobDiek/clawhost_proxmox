@@ -155,9 +155,9 @@ const CreateClawModal: FC<CreateClawModalProps> = ({ onClose }): ReactNode => {
                             <div className='relative flex-1'>
                                 <Input
                                     value={gatewayToken}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                                        setGatewayToken(e.target.value)
-                                    }
+                                    onChange={(
+                                        e: ChangeEvent<HTMLInputElement>
+                                    ) => setGatewayToken(e.target.value)}
                                     type={showToken ? 'text' : 'password'}
                                     placeholder={t(
                                         'createClaw.gatewayTokenPlaceholder'
@@ -197,9 +197,9 @@ const CreateClawModal: FC<CreateClawModalProps> = ({ onClose }): ReactNode => {
                             <div className='relative flex-1'>
                                 <Input
                                     value={password}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                                        setPassword(e.target.value)
-                                    }
+                                    onChange={(
+                                        e: ChangeEvent<HTMLInputElement>
+                                    ) => setPassword(e.target.value)}
                                     type={showPassword ? 'text' : 'password'}
                                     placeholder={t(
                                         'createClaw.rootPasswordPlaceholder'

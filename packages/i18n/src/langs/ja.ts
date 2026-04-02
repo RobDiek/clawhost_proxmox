@@ -1,4 +1,4 @@
-import type { Translations } from '../types'
+import type { Translations } from '#i18n/types'
 
 const ja: Translations = {
     common: {
@@ -333,8 +333,7 @@ const ja: Translations = {
         failedToDeleteClaw: 'Clawの削除に失敗しました!',
         failedToCreateClaw: 'Clawの作成に失敗しました!',
         invalidProvider: '無効なプロバイダーです!',
-        providerNotAllowed:
-            'このプロバイダーは現在利用できません!',
+        providerNotAllowed: 'このプロバイダーは現在利用できません!',
         invalidPlan: '無効なプランが選択されました!',
         planBelowMinimumMemory: 'このプランは最小メモリ要件を満たしていません!',
         invalidLocation: '無効なロケーションが選択されました!',
@@ -360,8 +359,10 @@ const ja: Translations = {
         invalidPeriod: '無効な期間フィルター！',
         referralCodeUpdated: 'Referral code updated successfully.',
         failedToUpdateReferralCode: 'Failed to update referral code!',
-        invalidReferralCodeLength: 'Referral code must be between {{min}} and {{max}} characters!',
-        invalidReferralCodeFormat: 'Referral code can only contain letters, numbers, hyphens, and underscores!',
+        invalidReferralCodeLength:
+            'Referral code must be between {{min}} and {{max}} characters!',
+        invalidReferralCodeFormat:
+            'Referral code can only contain letters, numbers, hyphens, and underscores!',
         referralCodeAlreadyChanged: 'Referral code can only be changed once!',
         referralCodeTaken: 'This referral code is already taken!',
         referralCodeGenerated: 'Referral code generated.',
@@ -486,7 +487,8 @@ const ja: Translations = {
         whatsappAlreadyPaired: 'WhatsAppは既にペアリング済みです!',
         whatsappVersionUnsupported:
             'このバージョンではダッシュボードからのチャンネル設定はサポートされていません。ターミナルタブから手動で設定するか、OpenClawをアップグレードしてください。',
-        featureVersionUnsupported: 'この機能はバージョン {{version}} ではサポートされていません。OpenClawを更新するか、ターミナルを使用して手動で管理してください。',
+        featureVersionUnsupported:
+            'この機能はバージョン {{version}} ではサポートされていません。OpenClawを更新するか、ターミナルを使用して手動で管理してください。',
         bindingsFetched: 'バインディングを取得しました.',
         bindingsFetchFailed: 'バインディングを取得できませんでした!',
         bindingsUpdated: 'バインディングを更新しました.',
@@ -1821,8 +1823,10 @@ const ja: Translations = {
         channelsVersionUnsupported:
             'このバージョンではチャンネル設定は利用できません。ターミナルタブから手動で接続するか、OpenClawをアップグレードしてください。',
         channelsVersionUnsupportedDocs: 'セットアップガイドを見る',
-        featureVersionUnsupported: '{{feature}} は {{version}} でサポートされていません',
-        featureVersionUnsupportedDescription: 'このバージョンでは UI を通じた {{feature}} の管理をサポートしていません。SSH、ターミナル、または OpenClaw コントロールパネルから管理できます。',
+        featureVersionUnsupported:
+            '{{feature}} は {{version}} でサポートされていません',
+        featureVersionUnsupportedDescription:
+            'このバージョンでは UI を通じた {{feature}} の管理をサポートしていません。SSH、ターミナル、または OpenClaw コントロールパネルから管理できます。',
         featureVersionUnsupportedButton: 'バージョンへ移動',
         featureVersionUnsupportedSupported: 'サポートされているバージョン:',
         featureVersionUnsupportedNewer: 'より新しいバージョン',
@@ -1931,6 +1935,9 @@ const ja: Translations = {
         versionDownloads: '{{count}}ダウンロード',
         versionChangelog: '変更履歴',
         versionOutdated: '古いバージョン',
+        versionSupported: 'サポート対象',
+        versionSupportedTooltip:
+            'このバージョンではUIからOpenClawを操作できます',
         versionInstallConfirmTitle: 'バージョン{{version}}をインストール',
         versionInstallConfirmDescription:
             'バージョンの切り替えは予期しない動作を引き起こしたり、追加の手動設定が必要になる場合があります。特にまだ完全に検証されていない新しいバージョンの場合。続行してもよろしいですか？',
@@ -2278,7 +2285,8 @@ const ja: Translations = {
         genericErrorDescription: 'Something went wrong. Please try again.',
         genericEmptyDescription: 'Nothing to show here yet.',
         failedToLoadUsers: 'ユーザーの読み込みに失敗しました！',
-        failedToLoadUsersDescription: 'ユーザーの読み込み中にエラーが発生しました。もう一度お試しください。',
+        failedToLoadUsersDescription:
+            'ユーザーの読み込み中にエラーが発生しました。もう一度お試しください。',
         failedToLoadUserDetail: 'ユーザー詳細の読み込みに失敗しました！',
         userDetail: 'ユーザー詳細',
         userInfo: 'ユーザー情報',
@@ -2346,7 +2354,23 @@ const ja: Translations = {
         feature: 'Feature',
         sentAt: 'Sent',
         fileSize: 'Size',
-        registered: 'Registered'
+        registered: 'Registered',
+        status: 'ステータス',
+        ip: 'IP',
+        plan: 'プラン',
+        location: 'ロケーション',
+        subdomain: 'サブドメイン',
+        subscription: 'サブスクリプション',
+        billingInterval: '請求',
+        deletionScheduled: '削除予定',
+        fingerprint: 'フィンガープリント',
+        price: '価格',
+        pricePerMonth: '{{price}}/月',
+        statusRunning: '実行中',
+        statusStopped: '停止',
+        adminBadge: '管理者',
+        unitGB: '{{size}} GB',
+        unitKB: '{{size}} KB'
     },
     affiliate: {
         title: 'Affiliate',
@@ -2361,7 +2385,8 @@ const ja: Translations = {
         codeAlreadyChanged: 'Your referral code has already been customized.',
         codeUpdated: 'Referral code updated.',
         codeUpdateFailed: 'Failed to update referral code!',
-        invalidCodeLength: 'Code must be between {{min}} and {{max}} characters!',
+        invalidCodeLength:
+            'Code must be between {{min}} and {{max}} characters!',
         referralHistory: 'Referral History',
         paymentHistory: '支払い履歴',
         periodToday: 'Today',
@@ -2370,68 +2395,107 @@ const ja: Translations = {
         periodYear: 'Year',
         periodAll: 'All',
         confirmChangeTitle: 'Change Referral Code',
-        confirmChangeDescription: 'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
+        confirmChangeDescription:
+            'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
         noReferralsYet: '紹介なし',
-        noReferralsDescription: 'Share your referral link to start earning rewards.',
+        noReferralsDescription:
+            'Share your referral link to start earning rewards.',
         noPaymentsYet: '支払いなし',
-        noPaymentsDescription: '紹介したユーザーが購入すると、その支払いがここに表示されます。'
+        noPaymentsDescription:
+            '紹介したユーザーが購入すると、その支払いがここに表示されます。'
     },
     affiliateProgram: {
         title: 'アフィリエイトプログラム',
-        description: 'ClawHost アフィリエイトプログラムの仕組み、獲得できる報酬額、参加ルールについてご説明します。',
+        description:
+            'ClawHost アフィリエイトプログラムの仕組み、獲得できる報酬額、参加ルールについてご説明します。',
         lastUpdated: '最終更新日：2026年4月1日',
         overviewTitle: '1. 概要',
-        overviewText: 'ClawHost アフィリエイトプログラムでは、新しいユーザーを ClawHost に紹介することで報酬を獲得できます。あなたの紹介リンクを通じて ClawHost を訪問した後に誰かが購入を行うと、その支払いからコミッションを獲得できます。プログラムは無料で参加でき、すべての登録済み ClawHost ユーザーが利用できます。',
+        overviewText:
+            'ClawHost アフィリエイトプログラムでは、新しいユーザーを ClawHost に紹介することで報酬を獲得できます。あなたの紹介リンクを通じて ClawHost を訪問した後に誰かが購入を行うと、その支払いからコミッションを獲得できます。プログラムは無料で参加でき、すべての登録済み ClawHost ユーザーが利用できます。',
         howItWorksTitle: '2. 仕組み',
         howItWorksText: 'アフィリエイトプログラムの開始は簡単です：',
-        howItWorksStep1: 'ClawHost アカウントを作成します。固有の紹介コードが自動的に生成されます。',
-        howItWorksStep2: '紹介リンクを友人、同僚、またはあなたのオーディエンスと共有します。リンクの形式は clawhost.cloud?ref=YOUR_CODE です。',
-        howItWorksStep3: '誰かがあなたのリンクを通じて ClawHost を訪問した後に購入を行うと、あなたの紹介として追跡されます。',
-        howItWorksStep4: '紹介したユーザーが対象となる購入を行うたびにコミッションを獲得します。',
+        howItWorksStep1:
+            'ClawHost アカウントを作成します。固有の紹介コードが自動的に生成されます。',
+        howItWorksStep2:
+            '紹介リンクを友人、同僚、またはあなたのオーディエンスと共有します。リンクの形式は clawhost.cloud?ref=YOUR_CODE です。',
+        howItWorksStep3:
+            '誰かがあなたのリンクを通じて ClawHost を訪問した後に購入を行うと、あなたの紹介として追跡されます。',
+        howItWorksStep4:
+            '紹介したユーザーが対象となる購入を行うたびにコミッションを獲得します。',
         earningsTitle: '3. 報酬と支払い',
         earningsText: 'アフィリエイト報酬の仕組みは以下の通りです：',
-        earningsCommission: '紹介したユーザーが行う対象購入ごとに 15% のコミッションを獲得します。コミッションは ClawHost Cloud と ClawHost Go の両方のプランに適用されます。',
-        earningsMonthly: '月額サブスクリプションの場合、紹介日から1年間コミッションを獲得できます。',
-        earningsYearly: '年額サブスクリプションの場合、最初の1年分のみコミッションを獲得できます。',
-        earningsPayout: '最低出金額は 100 ドル（USD）です。出金をリクエストするには、サポートチームにお問い合わせください。',
-        earningsPaymentMethod: '出金は PayPal 経由で処理されます。支払いをリクエストする際に、有効な PayPal メールアドレスを提供する必要があります。',
+        earningsCommission:
+            '紹介したユーザーが行う対象購入ごとに 15% のコミッションを獲得します。コミッションは ClawHost Cloud と ClawHost Go の両方のプランに適用されます。',
+        earningsMonthly:
+            '月額サブスクリプションの場合、紹介日から1年間コミッションを獲得できます。',
+        earningsYearly:
+            '年額サブスクリプションの場合、最初の1年分のみコミッションを獲得できます。',
+        earningsPayout:
+            '最低出金額は 100 ドル（USD）です。出金をリクエストするには、サポートチームにお問い合わせください。',
+        earningsPaymentMethod:
+            '出金は PayPal 経由で処理されます。支払いをリクエストする際に、有効な PayPal メールアドレスを提供する必要があります。',
         earningsCurrency: 'すべての報酬は USD で計算・表示されます。',
         referralCodeTitle: '4. あなたの紹介コード',
-        referralCodeText: '各ユーザーは登録時に固有の紹介コードを受け取ります。より覚えやすくするために一度だけカスタマイズできます：',
-        referralCodeUnique: '紹介コードはあなたのアカウント固有のもので、他のユーザーと共有または譲渡することはできません。',
-        referralCodeOneChange: '紹介コードのカスタマイズは正確に一度だけ可能です。慎重に選択してください — この変更は永久的で取り消すことはできません。',
-        referralCodeFormat: '紹介コードには文字、数字、ハイフン、アンダースコアのみ使用できます。',
+        referralCodeText:
+            '各ユーザーは登録時に固有の紹介コードを受け取ります。より覚えやすくするために一度だけカスタマイズできます：',
+        referralCodeUnique:
+            '紹介コードはあなたのアカウント固有のもので、他のユーザーと共有または譲渡することはできません。',
+        referralCodeOneChange:
+            '紹介コードのカスタマイズは正確に一度だけ可能です。慎重に選択してください — この変更は永久的で取り消すことはできません。',
+        referralCodeFormat:
+            '紹介コードには文字、数字、ハイフン、アンダースコアのみ使用できます。',
         referralWindowTitle: '5. 紹介帰属ウィンドウ',
-        referralWindowText: '紹介は、紹介されたユーザーがあなたのリンクを通じて初めて ClawHost を訪問した時点から 3 ヶ月間、あなたに帰属されます。紹介されたユーザーがこの 3 ヶ月のウィンドウ内に購入を行わない場合、紹介は期限切れとなりコミッションは獲得されません。ユーザーが別の紹介リンクを通じて訪問した場合、新しい紹介が以前のものに取って代わります。',
+        referralWindowText:
+            '紹介は、紹介されたユーザーがあなたのリンクを通じて初めて ClawHost を訪問した時点から 3 ヶ月間、あなたに帰属されます。紹介されたユーザーがこの 3 ヶ月のウィンドウ内に購入を行わない場合、紹介は期限切れとなりコミッションは獲得されません。ユーザーが別の紹介リンクを通じて訪問した場合、新しい紹介が以前のものに取って代わります。',
         eligibilityTitle: '6. 参加資格',
-        eligibilityText: 'アフィリエイトプログラムに参加するには、以下の要件を満たす必要があります：',
+        eligibilityText:
+            'アフィリエイトプログラムに参加するには、以下の要件を満たす必要があります：',
         eligibilityAccount: '登録済みの ClawHost アカウントが必要です。',
-        eligibilityStanding: 'アカウントがポリシー違反の履歴なく良好な状態である必要があります。',
-        eligibilityAge: '18歳以上、またはお住まいの管轄区域の成人年齢に達している必要があります。',
+        eligibilityStanding:
+            'アカウントがポリシー違反の履歴なく良好な状態である必要があります。',
+        eligibilityAge:
+            '18歳以上、またはお住まいの管轄区域の成人年齢に達している必要があります。',
         rulesTitle: '7. プログラムルール',
-        rulesText: 'アフィリエイトプログラムの整合性を維持するため、以下のルールが適用されます：',
-        rulesNoSelfReferral: '自己紹介は厳禁です。自分のアカウントや管理するアカウントを紹介することはできません。',
-        rulesNoFakeAccounts: '偽のアカウントの作成、自動登録、またはボットを使用した紹介の生成は禁止されています。',
-        rulesNoSpam: '紹介リンクを宣伝するために未承諾の大量メッセージ（スパム）を送信することは許可されていません。',
-        rulesNoMisrepresentation: 'ClawHost、そのサービス、またはアフィリエイトプログラムをいかなる方法でも虚偽表示することはできません。',
-        rulesNoIncentivized: '直接的な金銭的インセンティブの提供（例：リンクを通じて登録するようユーザーに支払うこと）は許可されていません。',
+        rulesText:
+            'アフィリエイトプログラムの整合性を維持するため、以下のルールが適用されます：',
+        rulesNoSelfReferral:
+            '自己紹介は厳禁です。自分のアカウントや管理するアカウントを紹介することはできません。',
+        rulesNoFakeAccounts:
+            '偽のアカウントの作成、自動登録、またはボットを使用した紹介の生成は禁止されています。',
+        rulesNoSpam:
+            '紹介リンクを宣伝するために未承諾の大量メッセージ（スパム）を送信することは許可されていません。',
+        rulesNoMisrepresentation:
+            'ClawHost、そのサービス、またはアフィリエイトプログラムをいかなる方法でも虚偽表示することはできません。',
+        rulesNoIncentivized:
+            '直接的な金銭的インセンティブの提供（例：リンクを通じて登録するようユーザーに支払うこと）は許可されていません。',
         terminationTitle: '8. 違反と解除',
-        terminationText: 'これらのルールへの違反は、保留中および獲得済みのすべての報酬の即時没収につながります。ClawHost は、アフィリエイトプログラムからのアカウントの一時停止または永久禁止の権利を留保します。重大な場合、ClawHost アカウント自体も解除される場合があります。違反に関するすべての決定は最終的なものです。',
+        terminationText:
+            'これらのルールへの違反は、保留中および獲得済みのすべての報酬の即時没収につながります。ClawHost は、アフィリエイトプログラムからのアカウントの一時停止または永久禁止の権利を留保します。重大な場合、ClawHost アカウント自体も解除される場合があります。違反に関するすべての決定は最終的なものです。',
         marketingTitle: '9. プロモーション方法',
-        marketingText: '紹介リンクを共有して収益を増やすための創造的で合法的な方法がたくさんあります：',
-        marketingSocial: 'X、LinkedIn、Reddit、Facebook などのソーシャルメディアプラットフォームでリンクを共有しましょう。ClawHost での体験について書き、紹介リンクを含めてください。',
-        marketingBlog: 'ClawHost についてのブログ記事、チュートリアル、レビューを書きましょう。コンテンツ内に自然に紹介リンクを含めてください。',
-        marketingVideo: 'YouTube や TikTok で、ClawHost を使って AI エージェントをデプロイ・管理する方法を紹介するビデオコンテンツを作成しましょう。',
-        marketingCommunity: '開発者コミュニティ、フォーラム、Discord サーバーに参加しましょう。クラウドホスティングや AI エージェントのデプロイについて質問があった場合、リンク付きで ClawHost を推薦してください。',
-        marketingNewsletter: 'ニュースレターやメーリングリストを運営している場合、関連する号で紹介リンクとともに ClawHost を紹介してください。',
-        marketingComparison: 'ClawHost が他のプラットフォームとどう違うかを強調する、正直な比較記事やガイドを書きましょう。',
+        marketingText:
+            '紹介リンクを共有して収益を増やすための創造的で合法的な方法がたくさんあります：',
+        marketingSocial:
+            'X、LinkedIn、Reddit、Facebook などのソーシャルメディアプラットフォームでリンクを共有しましょう。ClawHost での体験について書き、紹介リンクを含めてください。',
+        marketingBlog:
+            'ClawHost についてのブログ記事、チュートリアル、レビューを書きましょう。コンテンツ内に自然に紹介リンクを含めてください。',
+        marketingVideo:
+            'YouTube や TikTok で、ClawHost を使って AI エージェントをデプロイ・管理する方法を紹介するビデオコンテンツを作成しましょう。',
+        marketingCommunity:
+            '開発者コミュニティ、フォーラム、Discord サーバーに参加しましょう。クラウドホスティングや AI エージェントのデプロイについて質問があった場合、リンク付きで ClawHost を推薦してください。',
+        marketingNewsletter:
+            'ニュースレターやメーリングリストを運営している場合、関連する号で紹介リンクとともに ClawHost を紹介してください。',
+        marketingComparison:
+            'ClawHost が他のプラットフォームとどう違うかを強調する、正直な比較記事やガイドを書きましょう。',
         changesToProgramTitle: '10. プログラムの変更',
-        changesToProgramText: 'ClawHost は、事前の通知なくいつでもアフィリエイトプログラムを変更、一時停止、または廃止する権利を留保します。これにはコミッション率、紹介ウィンドウ、支払い閾値、プログラムルールの変更が含まれます。変更後の継続的な参加は、更新された条件の受諾を構成します。',
+        changesToProgramText:
+            'ClawHost は、事前の通知なくいつでもアフィリエイトプログラムを変更、一時停止、または廃止する権利を留保します。これにはコミッション率、紹介ウィンドウ、支払い閾値、プログラムルールの変更が含まれます。変更後の継続的な参加は、更新された条件の受諾を構成します。',
         getStartedTitle: '11. 始めましょう',
-        getStartedText: '報酬を獲得する準備はできましたか？アフィリエイトダッシュボードに移動して紹介リンクを取得し、ネットワークと共有しましょう。',
+        getStartedText:
+            '報酬を獲得する準備はできましたか？アフィリエイトダッシュボードに移動して紹介リンクを取得し、ネットワークと共有しましょう。',
         getStartedButton: 'アフィリエイトダッシュボードへ',
         contactTitle: '12. お問い合わせ',
-        contactText: 'アフィリエイトプログラムについてのご質問、紹介コードに関するサポート、または違反の報告は、以下までお問い合わせください'
+        contactText:
+            'アフィリエイトプログラムについてのご質問、紹介コードに関するサポート、または違反の報告は、以下までお問い合わせください'
     }
 } as const
 

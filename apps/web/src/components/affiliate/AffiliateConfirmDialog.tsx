@@ -13,27 +13,28 @@ import {
 } from '@/components/ui'
 import { CircleNotchIcon } from '@phosphor-icons/react'
 
-const AffiliateConfirmDialog: FC<AffiliateConfirmDialogProps> = ({ open, onOpenChange, onConfirm, isPending }): ReactNode => {
+const AffiliateConfirmDialog: FC<AffiliateConfirmDialogProps> = ({
+    open,
+    onOpenChange,
+    onConfirm,
+    isPending
+}): ReactNode => {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>{t('affiliate.confirmChangeTitle')}</DialogTitle>
+                    <DialogTitle>
+                        {t('affiliate.confirmChangeTitle')}
+                    </DialogTitle>
                     <DialogDescription>
                         {t('affiliate.confirmChangeDescription')}
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button
-                        variant='ghost'
-                        onClick={() => onOpenChange(false)}
-                    >
+                    <Button variant='ghost' onClick={() => onOpenChange(false)}>
                         {t('common.cancel')}
                     </Button>
-                    <Button
-                        onClick={onConfirm}
-                        disabled={isPending}
-                    >
+                    <Button onClick={onConfirm} disabled={isPending}>
                         {isPending ? (
                             <CircleNotchIcon className='h-4 w-4 animate-spin' />
                         ) : (

@@ -9,7 +9,11 @@ import { inputValidation } from '@openclaw/shared'
 import { useAuth } from '@/lib/auth'
 import { useNetworkStatus } from '@/hooks'
 import { useUIStore } from '@/lib/store'
-import { LOGIN_LOADING_METHOD, OAUTH_PROVIDER, TOAST_TYPE } from '@/lib/constants'
+import {
+    LOGIN_LOADING_METHOD,
+    OAUTH_PROVIDER,
+    TOAST_TYPE
+} from '@/lib/constants'
 import { ROUTES } from '@/lib'
 import { Button, Input, Label } from '@/components/ui'
 import {
@@ -351,7 +355,8 @@ const Login: FC = (): ReactNode => {
                                     className='w-full gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-white hover:opacity-90'
                                     disabled={!!loadingMethod || cooldown > 0}
                                 >
-                                    {loadingMethod === LOGIN_LOADING_METHOD.EMAIL && (
+                                    {loadingMethod ===
+                                        LOGIN_LOADING_METHOD.EMAIL && (
                                         <CircleNotchIcon className='h-4 w-4 animate-spin' />
                                     )}
                                     {cooldown > 0
@@ -376,11 +381,14 @@ const Login: FC = (): ReactNode => {
 
                             <div className='mt-6 space-y-3'>
                                 <button
-                                    onClick={() => handleOAuth(OAUTH_PROVIDER.GOOGLE)}
+                                    onClick={() =>
+                                        handleOAuth(OAUTH_PROVIDER.GOOGLE)
+                                    }
                                     disabled={!!loadingMethod}
                                     className='border-border bg-foreground/5 text-foreground hover:bg-foreground/10 flex h-11 w-full items-center justify-center gap-3 rounded-lg border text-sm font-medium transition-colors disabled:opacity-50'
                                 >
-                                    {loadingMethod === LOGIN_LOADING_METHOD.GOOGLE ? (
+                                    {loadingMethod ===
+                                    LOGIN_LOADING_METHOD.GOOGLE ? (
                                         <CircleNotchIcon className='h-[18px] w-[18px] animate-spin' />
                                     ) : (
                                         <svg
@@ -409,11 +417,14 @@ const Login: FC = (): ReactNode => {
                                     {t('auth.continueWithGoogle')}
                                 </button>
                                 <button
-                                    onClick={() => handleOAuth(OAUTH_PROVIDER.GITHUB)}
+                                    onClick={() =>
+                                        handleOAuth(OAUTH_PROVIDER.GITHUB)
+                                    }
                                     disabled={!!loadingMethod}
                                     className='border-border bg-foreground/5 text-foreground hover:bg-foreground/10 flex h-11 w-full items-center justify-center gap-3 rounded-lg border text-sm font-medium transition-colors disabled:opacity-50'
                                 >
-                                    {loadingMethod === LOGIN_LOADING_METHOD.GITHUB ? (
+                                    {loadingMethod ===
+                                    LOGIN_LOADING_METHOD.GITHUB ? (
                                         <CircleNotchIcon className='h-[18px] w-[18px] animate-spin' />
                                     ) : (
                                         <svg
@@ -511,7 +522,8 @@ const Login: FC = (): ReactNode => {
                                 className='w-full gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-white hover:opacity-90'
                                 disabled={!!loadingMethod || !isCodeComplete}
                             >
-                                {loadingMethod === LOGIN_LOADING_METHOD.EMAIL && (
+                                {loadingMethod ===
+                                    LOGIN_LOADING_METHOD.EMAIL && (
                                     <CircleNotchIcon className='h-4 w-4 animate-spin' />
                                 )}
                                 {t('auth.verifyCode')}
@@ -522,7 +534,8 @@ const Login: FC = (): ReactNode => {
                                 disabled={cooldown > 0 || !!loadingMethod}
                                 className='text-muted-foreground hover:text-foreground/80 mt-4 flex w-full items-center justify-center gap-2 text-sm transition-colors disabled:opacity-50'
                             >
-                                {loadingMethod === LOGIN_LOADING_METHOD.RESEND ? (
+                                {loadingMethod ===
+                                LOGIN_LOADING_METHOD.RESEND ? (
                                     <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />
                                 ) : null}
                                 {cooldown > 0

@@ -1,9 +1,10 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { api } from '@/lib'
+import ADMIN_EXPORTS_QUERY_KEY from '@/hooks/useAdmin/ADMIN_EXPORTS_QUERY_KEY'
 
 const useAdminExportsList = (limit: number = 20, sort?: string) => {
     return useInfiniteQuery({
-        queryKey: ['admin-exports', limit, sort],
+        queryKey: [...ADMIN_EXPORTS_QUERY_KEY, limit, sort],
         queryFn: ({ pageParam }) =>
             api.listAdminExports(pageParam, limit, sort),
         initialPageParam: 1,

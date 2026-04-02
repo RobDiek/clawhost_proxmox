@@ -72,10 +72,15 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <button
-                                onClick={() => setChatSidebarView(CHAT_SIDEBAR_VIEW_MODE.TREE)}
+                                onClick={() =>
+                                    setChatSidebarView(
+                                        CHAT_SIDEBAR_VIEW_MODE.TREE
+                                    )
+                                }
                                 aria-label={t('chat.viewTree')}
                                 className={`flex items-center justify-center rounded-md p-1.5 transition-colors ${
-                                    chatSidebarView === CHAT_SIDEBAR_VIEW_MODE.TREE
+                                    chatSidebarView ===
+                                    CHAT_SIDEBAR_VIEW_MODE.TREE
                                         ? 'bg-foreground/10 text-foreground'
                                         : 'text-muted-foreground hover:text-foreground'
                                 }`}
@@ -83,7 +88,8 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                                 <TreeStructureIcon
                                     className='h-3.5 w-3.5'
                                     weight={
-                                        chatSidebarView === CHAT_SIDEBAR_VIEW_MODE.TREE
+                                        chatSidebarView ===
+                                        CHAT_SIDEBAR_VIEW_MODE.TREE
                                             ? 'fill'
                                             : 'regular'
                                     }
@@ -97,10 +103,15 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <button
-                                onClick={() => setChatSidebarView(CHAT_SIDEBAR_VIEW_MODE.LIST)}
+                                onClick={() =>
+                                    setChatSidebarView(
+                                        CHAT_SIDEBAR_VIEW_MODE.LIST
+                                    )
+                                }
                                 aria-label={t('chat.viewList')}
                                 className={`flex items-center justify-center rounded-md p-1.5 transition-colors ${
-                                    chatSidebarView === CHAT_SIDEBAR_VIEW_MODE.LIST
+                                    chatSidebarView ===
+                                    CHAT_SIDEBAR_VIEW_MODE.LIST
                                         ? 'bg-foreground/10 text-foreground'
                                         : 'text-muted-foreground hover:text-foreground'
                                 }`}
@@ -108,7 +119,8 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                                 <ListBulletsIcon
                                     className='h-3.5 w-3.5'
                                     weight={
-                                        chatSidebarView === CHAT_SIDEBAR_VIEW_MODE.LIST
+                                        chatSidebarView ===
+                                        CHAT_SIDEBAR_VIEW_MODE.LIST
                                             ? 'fill'
                                             : 'regular'
                                     }

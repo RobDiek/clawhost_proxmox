@@ -53,8 +53,12 @@ describe('useDebouncedValue logic', () => {
         let value1 = 'start'
         let value2 = 'start'
 
-        const t1 = setTimeout(() => { value1 = 'end1' }, 200)
-        const t2 = setTimeout(() => { value2 = 'end2' }, 500)
+        const t1 = setTimeout(() => {
+            value1 = 'end1'
+        }, 200)
+        const t2 = setTimeout(() => {
+            value2 = 'end2'
+        }, 500)
 
         vi.advanceTimersByTime(200)
         expect(value1).toBe('end1')

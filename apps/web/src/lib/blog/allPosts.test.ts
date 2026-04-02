@@ -6,7 +6,8 @@ vi.mock('@/lib/blog/data', () => ({
                 frontmatter: {
                     slug: 'first-post',
                     title: 'First Post',
-                    description: 'A short description for the first blog post about testing',
+                    description:
+                        'A short description for the first blog post about testing',
                     publishedAt: '2024-06-01'
                 },
                 default: () => null
@@ -18,7 +19,8 @@ vi.mock('@/lib/blog/data', () => ({
                 frontmatter: {
                     slug: 'second-post',
                     title: 'Second Post',
-                    description: 'Another post with a much longer description that should result in a higher reading time estimate because it has many more words in the description field',
+                    description:
+                        'Another post with a much longer description that should result in a higher reading time estimate because it has many more words in the description field',
                     publishedAt: '2024-07-15'
                 },
                 default: () => null

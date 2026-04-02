@@ -1,5 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { api } from '@/lib'
+import ADMIN_CLAWS_QUERY_KEY from '@/hooks/useClaws/ADMIN_CLAWS_QUERY_KEY'
 
 const useAdminClawsList = (
     limit: number = 20,
@@ -7,7 +8,7 @@ const useAdminClawsList = (
     sort?: string
 ) => {
     return useInfiniteQuery({
-        queryKey: ['admin-claws', limit, search, sort],
+        queryKey: [...ADMIN_CLAWS_QUERY_KEY, limit, search, sort],
         queryFn: ({ pageParam }) =>
             api.listAdminClaws(pageParam, limit, search, sort),
         initialPageParam: 1,

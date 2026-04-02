@@ -1,4 +1,4 @@
-import type { Translations } from '../types'
+import type { Translations } from '#i18n/types'
 
 const zh: Translations = {
     common: {
@@ -339,8 +339,10 @@ const zh: Translations = {
         invalidPeriod: '无效的时间段筛选！',
         referralCodeUpdated: 'Referral code updated successfully.',
         failedToUpdateReferralCode: 'Failed to update referral code!',
-        invalidReferralCodeLength: 'Referral code must be between {{min}} and {{max}} characters!',
-        invalidReferralCodeFormat: 'Referral code can only contain letters, numbers, hyphens, and underscores!',
+        invalidReferralCodeLength:
+            'Referral code must be between {{min}} and {{max}} characters!',
+        invalidReferralCodeFormat:
+            'Referral code can only contain letters, numbers, hyphens, and underscores!',
         referralCodeAlreadyChanged: 'Referral code can only be changed once!',
         referralCodeTaken: 'This referral code is already taken!',
         referralCodeGenerated: 'Referral code generated.',
@@ -455,7 +457,8 @@ const zh: Translations = {
         whatsappAlreadyPaired: 'WhatsApp 已配对!',
         whatsappVersionUnsupported:
             '此版本不支持从仪表板配置频道。请使用终端选项卡手动配置或升级 OpenClaw。',
-        featureVersionUnsupported: '此功能在版本 {{version}} 中不受支持。请更新 OpenClaw 或使用终端手动管理。',
+        featureVersionUnsupported:
+            '此功能在版本 {{version}} 中不受支持。请更新 OpenClaw 或使用终端手动管理。',
         bindingsFetched: '绑定获取成功.',
         bindingsFetchFailed: '无法获取绑定!',
         bindingsUpdated: '绑定更新成功.',
@@ -1392,8 +1395,7 @@ const zh: Translations = {
             '将所有基础设施集中到 Hetzner 以获得最佳定价和性能，推出15%佣金的联盟系统，新增10种语言，并构建了用于稳定版本支持的内部工具。',
         release14Feature1:
             '移除 DigitalOcean 和 Vultr — 所有基础设施现在完全在 Hetzner 上运行，拥有无限容量且无提供商端限制',
-        release14Feature2:
-            '联盟系统允许用户在每个推荐订单上赚取15%佣金',
+        release14Feature2: '联盟系统允许用户在每个推荐订单上赚取15%佣金',
         release14Feature3:
             '新增10种语言：中文、印地语、阿拉伯语、俄语、日语、土耳其语、意大利语、波兰语、荷兰语和葡萄牙语',
         release14Feature4:
@@ -1466,8 +1468,7 @@ const zh: Translations = {
             'ClawHost 的首个正式版本。一键在您自己的 VPS 上部署 OpenClaw.',
         release1Feature1: '一键部署 OpenClaw',
         release1Feature2: '仪表板管理 claws，启动、停止、重启和删除实例',
-        release1Feature3:
-            '18 种服务器方案，提供专用 vCPU、RAM 和存储选项',
+        release1Feature3: '18 种服务器方案，提供专用 vCPU、RAM 和存储选项',
         release1Feature4: '6 个服务器位置，覆盖美国、欧洲和亚洲',
         release1Feature5: 'SSH 密钥管理，实现免密服务器访问',
         release1Feature6: '附加存储卷支持，最高可达 10 TB',
@@ -1702,7 +1703,8 @@ const zh: Translations = {
             '此版本不支持频道配置。您可以通过终端选项卡手动连接或升级 OpenClaw。',
         channelsVersionUnsupportedDocs: '查看配置指南',
         featureVersionUnsupported: '{{feature}} 在 {{version}} 上不受支持',
-        featureVersionUnsupportedDescription: '我们不支持通过 UI 在此版本中管理 {{feature}}。您仍然可以通过 SSH、终端或 OpenClaw 控制面板进行管理。',
+        featureVersionUnsupportedDescription:
+            '我们不支持通过 UI 在此版本中管理 {{feature}}。您仍然可以通过 SSH、终端或 OpenClaw 控制面板进行管理。',
         featureVersionUnsupportedButton: '前往版本',
         featureVersionUnsupportedSupported: '支持的版本：',
         featureVersionUnsupportedNewer: '更新版本',
@@ -1802,6 +1804,8 @@ const zh: Translations = {
         versionDownloads: '{{count}} 次下载',
         versionChangelog: '更新日志',
         versionOutdated: '已过期',
+        versionSupported: '受支持',
+        versionSupportedTooltip: '此版本允许您通过界面操作 OpenClaw',
         versionInstallConfirmTitle: '安装版本 {{version}}',
         versionInstallConfirmDescription:
             '切换版本可能会导致意外行为或需要额外的手动配置，特别是尚未完全验证的较新版本。您确定要继续吗？',
@@ -2203,7 +2207,23 @@ const zh: Translations = {
         feature: 'Feature',
         sentAt: 'Sent',
         fileSize: 'Size',
-        registered: 'Registered'
+        registered: 'Registered',
+        status: '状态',
+        ip: 'IP',
+        plan: '方案',
+        location: '位置',
+        subdomain: '子域名',
+        subscription: '订阅',
+        billingInterval: '计费',
+        deletionScheduled: '已安排删除',
+        fingerprint: '指纹',
+        price: '价格',
+        pricePerMonth: '{{price}}/月',
+        statusRunning: '运行中',
+        statusStopped: '已停止',
+        adminBadge: '管理员',
+        unitGB: '{{size}} GB',
+        unitKB: '{{size}} KB'
     },
     affiliate: {
         title: 'Affiliate',
@@ -2218,7 +2238,8 @@ const zh: Translations = {
         codeAlreadyChanged: 'Your referral code has already been customized.',
         codeUpdated: 'Referral code updated.',
         codeUpdateFailed: 'Failed to update referral code!',
-        invalidCodeLength: 'Code must be between {{min}} and {{max}} characters!',
+        invalidCodeLength:
+            'Code must be between {{min}} and {{max}} characters!',
         referralHistory: 'Referral History',
         paymentHistory: '付款历史',
         periodToday: 'Today',
@@ -2227,39 +2248,55 @@ const zh: Translations = {
         periodYear: 'Year',
         periodAll: 'All',
         confirmChangeTitle: 'Change Referral Code',
-        confirmChangeDescription: 'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
+        confirmChangeDescription:
+            'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
         noReferralsYet: '暂无推荐',
-        noReferralsDescription: 'Share your referral link to start earning rewards.',
+        noReferralsDescription:
+            'Share your referral link to start earning rewards.',
         noPaymentsYet: '暂无付款',
-        noPaymentsDescription: '当您推荐的用户进行购买时，他们的付款将显示在此处。'
+        noPaymentsDescription:
+            '当您推荐的用户进行购买时，他们的付款将显示在此处。'
     },
     affiliateProgram: {
         title: '联盟计划',
-        description: '了解 ClawHost 联盟计划的运作方式、您可以赚取多少以及参与规则。',
+        description:
+            '了解 ClawHost 联盟计划的运作方式、您可以赚取多少以及参与规则。',
         lastUpdated: '最后更新：2026 年 4 月 1 日',
         overviewTitle: '1. 概述',
-        overviewText: 'ClawHost 联盟计划让您通过推荐新用户到 ClawHost 来赚取奖励。当有人通过您的推荐链接访问 ClawHost 后进行购买时，您将从其付款中获得佣金。该计划免费加入，面向所有注册的 ClawHost 用户开放。',
+        overviewText:
+            'ClawHost 联盟计划让您通过推荐新用户到 ClawHost 来赚取奖励。当有人通过您的推荐链接访问 ClawHost 后进行购买时，您将从其付款中获得佣金。该计划免费加入，面向所有注册的 ClawHost 用户开放。',
         howItWorksTitle: '2. 运作方式',
         howItWorksText: '开始使用联盟计划非常简单：',
-        howItWorksStep1: '注册一个 ClawHost 账户。系统会自动为您生成一个唯一的推荐码。',
-        howItWorksStep2: '与朋友、同事或您的受众分享您的推荐链接。您的链接格式为：clawhost.cloud?ref=YOUR_CODE。',
-        howItWorksStep3: '当有人通过您的链接访问 ClawHost 后进行购买时，这将被记录为您的推荐。',
-        howItWorksStep4: '每当您推荐的用户进行符合条件的购买时，您都会获得佣金。',
+        howItWorksStep1:
+            '注册一个 ClawHost 账户。系统会自动为您生成一个唯一的推荐码。',
+        howItWorksStep2:
+            '与朋友、同事或您的受众分享您的推荐链接。您的链接格式为：clawhost.cloud?ref=YOUR_CODE。',
+        howItWorksStep3:
+            '当有人通过您的链接访问 ClawHost 后进行购买时，这将被记录为您的推荐。',
+        howItWorksStep4:
+            '每当您推荐的用户进行符合条件的购买时，您都会获得佣金。',
         earningsTitle: '3. 收益与支付',
         earningsText: '联盟收益的运作方式如下：',
-        earningsCommission: '您从推荐用户的每笔符合条件的购买中获得 15% 的佣金。佣金适用于 ClawHost Cloud 和 ClawHost Go 计划。',
+        earningsCommission:
+            '您从推荐用户的每笔符合条件的购买中获得 15% 的佣金。佣金适用于 ClawHost Cloud 和 ClawHost Go 计划。',
         earningsMonthly: '对于月度订阅，您从推荐之日起可获得 1 年的佣金。',
         earningsYearly: '对于年度订阅，您仅获得第一年的佣金。',
-        earningsPayout: '最低提款金额为 $100 USD。要申请提款，请联系我们的支持团队。',
-        earningsPaymentMethod: '提款通过 PayPal 处理。申请付款时，您必须提供有效的 PayPal 电子邮件地址。',
+        earningsPayout:
+            '最低提款金额为 $100 USD。要申请提款，请联系我们的支持团队。',
+        earningsPaymentMethod:
+            '提款通过 PayPal 处理。申请付款时，您必须提供有效的 PayPal 电子邮件地址。',
         earningsCurrency: '所有收益以 USD 计算和显示。',
         referralCodeTitle: '4. 您的推荐码',
-        referralCodeText: '每位用户在注册时会收到一个唯一的推荐码。您可以自定义一次以使其更易记：',
-        referralCodeUnique: '您的推荐码是您账户独有的，不能与其他用户共享或转让。',
-        referralCodeOneChange: '您可以精确自定义推荐码一次。请谨慎选择——此更改是永久性的，无法撤销。',
+        referralCodeText:
+            '每位用户在注册时会收到一个唯一的推荐码。您可以自定义一次以使其更易记：',
+        referralCodeUnique:
+            '您的推荐码是您账户独有的，不能与其他用户共享或转让。',
+        referralCodeOneChange:
+            '您可以精确自定义推荐码一次。请谨慎选择——此更改是永久性的，无法撤销。',
         referralCodeFormat: '推荐码只能包含字母、数字、连字符和下划线。',
         referralWindowTitle: '5. 推荐归因窗口',
-        referralWindowText: '从推荐用户首次通过您的链接访问 ClawHost 起，推荐归因于您 3 个月。如果推荐用户在此 3 个月窗口内未进行购买，推荐将过期且不会获得佣金。如果用户通过不同的推荐链接访问，新的推荐将取代之前的推荐。',
+        referralWindowText:
+            '从推荐用户首次通过您的链接访问 ClawHost 起，推荐归因于您 3 个月。如果推荐用户在此 3 个月窗口内未进行购买，推荐将过期且不会获得佣金。如果用户通过不同的推荐链接访问，新的推荐将取代之前的推荐。',
         eligibilityTitle: '6. 资格',
         eligibilityText: '要参与联盟计划，您必须满足以下要求：',
         eligibilityAccount: '您必须拥有注册的 ClawHost 账户。',
@@ -2267,28 +2304,42 @@ const zh: Translations = {
         eligibilityAge: '您必须年满 18 岁或达到您所在司法管辖区的成年年龄。',
         rulesTitle: '7. 计划规则',
         rulesText: '为维护联盟计划的完整性，以下规则适用：',
-        rulesNoSelfReferral: '严禁自我推荐。您不得推荐自己的账户或您控制的账户。',
+        rulesNoSelfReferral:
+            '严禁自我推荐。您不得推荐自己的账户或您控制的账户。',
         rulesNoFakeAccounts: '禁止创建虚假账户、自动注册或使用机器人生成推荐。',
-        rulesNoSpam: '不允许发送未经请求的批量消息（垃圾邮件）来推广您的推荐链接。',
-        rulesNoMisrepresentation: '您不得以任何方式歪曲 ClawHost、其服务或联盟计划。',
-        rulesNoIncentivized: '不允许提供直接的金钱激励（例如，付费让用户通过您的链接注册）。',
+        rulesNoSpam:
+            '不允许发送未经请求的批量消息（垃圾邮件）来推广您的推荐链接。',
+        rulesNoMisrepresentation:
+            '您不得以任何方式歪曲 ClawHost、其服务或联盟计划。',
+        rulesNoIncentivized:
+            '不允许提供直接的金钱激励（例如，付费让用户通过您的链接注册）。',
         terminationTitle: '8. 违规与终止',
-        terminationText: '任何违反这些规则的行为将导致立即没收所有待处理和已获得的奖励。ClawHost 保留暂停或永久禁止您的账户参与联盟计划的权利。在严重情况下，您的 ClawHost 账户也可能被终止。有关违规的所有决定均为最终决定。',
+        terminationText:
+            '任何违反这些规则的行为将导致立即没收所有待处理和已获得的奖励。ClawHost 保留暂停或永久禁止您的账户参与联盟计划的权利。在严重情况下，您的 ClawHost 账户也可能被终止。有关违规的所有决定均为最终决定。',
         marketingTitle: '9. 如何推广',
         marketingText: '有许多创造性和合法的方式来分享您的推荐链接并增加收入：',
-        marketingSocial: '在 X、LinkedIn、Reddit 和 Facebook 等社交媒体平台上分享您的链接。撰写您使用 ClawHost 的体验并附上推荐链接。',
-        marketingBlog: '撰写关于 ClawHost 的博客文章、教程或评测。在内容中自然地加入您的推荐链接。',
-        marketingVideo: '在 YouTube 或 TikTok 上创建视频内容，展示您如何使用 ClawHost 部署和管理 AI 代理。',
-        marketingCommunity: '参与开发者社区、论坛和 Discord 服务器。当有人询问云托管或 AI 代理部署时，用您的链接推荐 ClawHost。',
-        marketingNewsletter: '如果您运营新闻通讯或电子邮件列表，请在相关期刊中附上推荐链接提及 ClawHost。',
-        marketingComparison: '撰写诚实的对比文章或指南，突出 ClawHost 与其他平台的不同之处。',
+        marketingSocial:
+            '在 X、LinkedIn、Reddit 和 Facebook 等社交媒体平台上分享您的链接。撰写您使用 ClawHost 的体验并附上推荐链接。',
+        marketingBlog:
+            '撰写关于 ClawHost 的博客文章、教程或评测。在内容中自然地加入您的推荐链接。',
+        marketingVideo:
+            '在 YouTube 或 TikTok 上创建视频内容，展示您如何使用 ClawHost 部署和管理 AI 代理。',
+        marketingCommunity:
+            '参与开发者社区、论坛和 Discord 服务器。当有人询问云托管或 AI 代理部署时，用您的链接推荐 ClawHost。',
+        marketingNewsletter:
+            '如果您运营新闻通讯或电子邮件列表，请在相关期刊中附上推荐链接提及 ClawHost。',
+        marketingComparison:
+            '撰写诚实的对比文章或指南，突出 ClawHost 与其他平台的不同之处。',
         changesToProgramTitle: '10. 计划变更',
-        changesToProgramText: 'ClawHost 保留随时修改、暂停或终止联盟计划的权利，恕不另行通知。这包括佣金率、推荐窗口、支付门槛和计划规则的变更。变更后继续参与即表示接受更新的条款。',
+        changesToProgramText:
+            'ClawHost 保留随时修改、暂停或终止联盟计划的权利，恕不另行通知。这包括佣金率、推荐窗口、支付门槛和计划规则的变更。变更后继续参与即表示接受更新的条款。',
         getStartedTitle: '11. 开始',
-        getStartedText: '准备好开始赚钱了吗？前往您的联盟仪表板获取推荐链接，开始与您的网络分享。',
+        getStartedText:
+            '准备好开始赚钱了吗？前往您的联盟仪表板获取推荐链接，开始与您的网络分享。',
         getStartedButton: '前往联盟仪表板',
         contactTitle: '12. 联系',
-        contactText: '如果您对联盟计划有疑问、需要推荐码方面的帮助或想举报违规行为，请通过以下方式联系我们'
+        contactText:
+            '如果您对联盟计划有疑问、需要推荐码方面的帮助或想举报违规行为，请通过以下方式联系我们'
     }
 } as const
 

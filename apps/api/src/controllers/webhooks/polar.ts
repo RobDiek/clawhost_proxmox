@@ -18,7 +18,11 @@ import { ok, fail } from '@/lib/response'
 import { getEnvironment, PROD } from '@/lib/environment'
 import { t } from '@openclaw/i18n'
 
-const trackReferral = async (userId: string, referralCode: string, paymentType: string) => {
+const trackReferral = async (
+    userId: string,
+    referralCode: string,
+    paymentType: string
+) => {
     try {
         const referrer = await db
             .select({ id: users.id })
@@ -41,12 +45,14 @@ const trackReferral = async (userId: string, referralCode: string, paymentType: 
             .onConflictDoNothing()
             .returning({ id: referrals.id })
 
-        const existingReferralId = inserted[0]?.id ?? await db
-            .select({ id: referrals.id })
-            .from(referrals)
-            .where(eq(referrals.referredUserId, userId))
-            .limit(1)
-            .then((rows) => rows[0]?.id)
+        const existingReferralId =
+            inserted[0]?.id ??
+            (await db
+                .select({ id: referrals.id })
+                .from(referrals)
+                .where(eq(referrals.referredUserId, userId))
+                .limit(1)
+                .then((rows) => rows[0]?.id))
 
         if (existingReferralId) {
             await db.insert(referralPayments).values({
@@ -96,7 +102,11 @@ const handlePolarWebhook = async (c: Context) => {
                         .where(eq(users.id, data.metadata.userId))
 
                     if (data.metadata.referralCode) {
-                        await trackReferral(data.metadata.userId, data.metadata.referralCode, 'license')
+                        await trackReferral(
+                            data.metadata.userId,
+                            data.metadata.referralCode,
+                            'license'
+                        )
                     }
                 }
             },
@@ -129,13 +139,23 @@ const handlePolarWebhook = async (c: Context) => {
                     subscriptionId: data.id,
                     customerId: data.customerId,
                     productId: data.productId
-                }).then((result) => {
-                    if (result.success && result.referralCode && data.metadata?.userId) {
-                        trackReferral(data.metadata.userId, result.referralCode, 'purchase')
-                    }
-                }).catch((err) =>
-                    console.error(`Failed to provision claw: ${err}`)
-                )
+                })
+                    .then((result) => {
+                        if (
+                            result.success &&
+                            result.referralCode &&
+                            data.metadata?.userId
+                        ) {
+                            trackReferral(
+                                data.metadata.userId,
+                                result.referralCode,
+                                'purchase'
+                            )
+                        }
+                    })
+                    .catch((err) =>
+                        console.error(`Failed to provision claw: ${err}`)
+                    )
             },
 
             onSubscriptionCanceled: async (data: SubscriptionWebhookData) => {
@@ -194,7 +214,9 @@ const handlePolarWebhook = async (c: Context) => {
                     Promise.all([
                         db
                             .update(claws)
-                            .set({ subscriptionStatus: subscriptionStatus.revoked })
+                            .set({
+                                subscriptionStatus: subscriptionStatus.revoked
+                            })
                             .where(eq(claws.id, claw[0].id)),
                         provider
                             .stopServer(claw[0].providerServerId)

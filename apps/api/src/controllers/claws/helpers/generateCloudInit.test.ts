@@ -1,7 +1,12 @@
 import { generateCloudInit } from '@/controllers/claws/helpers'
 
 describe('generateCloudInit', () => {
-    const output = generateCloudInit('myP@ss123', 'test-claw', 'clawhost.cloud', 'tok_abc123')
+    const output = generateCloudInit(
+        'myP@ss123',
+        'test-claw',
+        'clawhost.cloud',
+        'tok_abc123'
+    )
 
     it('starts with #cloud-config', () => {
         expect(output.startsWith('#cloud-config')).toBe(true)

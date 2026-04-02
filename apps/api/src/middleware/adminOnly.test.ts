@@ -7,12 +7,16 @@ describe('adminOnly', () => {
             c.set('isAdmin', isAdmin)
             await next()
         })
-        app.get('/admin', async (c, next) => {
-            if (!c.get('isAdmin')) {
-                return c.json({ success: false, message: 'Forbidden' }, 403)
-            }
-            return next()
-        }, (c) => c.json({ success: true, data: 'admin content' }))
+        app.get(
+            '/admin',
+            async (c, next) => {
+                if (!c.get('isAdmin')) {
+                    return c.json({ success: false, message: 'Forbidden' }, 403)
+                }
+                return next()
+            },
+            (c) => c.json({ success: true, data: 'admin content' })
+        )
         return app
     }
 

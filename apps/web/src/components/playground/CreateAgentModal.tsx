@@ -33,6 +33,7 @@ import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { aiModels, validateAgentName } from '@/lib/claw-utils'
 import { PLAYGROUND_AGENTS_QUERY_KEY } from '@/hooks'
+import CLAW_ENV_QUERY_KEY from '@/hooks/usePlayground/CLAW_ENV_QUERY_KEY'
 
 const CreateAgentModal: FC<CreateAgentModalProps> = ({
     clawId: clawIdProp,
@@ -66,7 +67,7 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
     }, [clawNameProp, reachableClaws, pickedClawId])
 
     const { data: envData } = useQuery({
-        queryKey: ['claw-env', effectiveClawId],
+        queryKey: [...CLAW_ENV_QUERY_KEY, effectiveClawId],
         queryFn: () => api.getClawEnvVars(effectiveClawId),
         enabled: open && !!effectiveClawId,
         staleTime: 30000
@@ -153,7 +154,7 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                 }
             )
             queryClient.invalidateQueries({
-                queryKey: ['claw-env', effectiveClawId]
+                queryKey: [...CLAW_ENV_QUERY_KEY, effectiveClawId]
             })
             resetForm()
             onOpenChange(false)

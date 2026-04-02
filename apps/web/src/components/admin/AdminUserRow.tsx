@@ -28,13 +28,13 @@ const AdminUserRow: FC<AdminUserRowProps> = ({ user, onSelect }): ReactNode => {
         >
             <CardContent className='py-4'>
                 <div className='flex items-center justify-between'>
-                    <div className='flex items-center gap-3'>
-                        <div className='bg-primary/10 flex h-9 w-9 items-center justify-center rounded-full'>
+                    <div className='flex min-w-0 items-center gap-3'>
+                        <div className='bg-primary/10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full'>
                             <UserIcon className='text-primary h-4 w-4' />
                         </div>
-                        <div>
+                        <div className='min-w-0'>
                             <div className='flex items-center gap-2'>
-                                <span className='font-medium'>
+                                <span className='truncate font-medium'>
                                     {user.name || user.email}
                                 </span>
                                 {user.role === userRole.admin && (
@@ -49,7 +49,7 @@ const AdminUserRow: FC<AdminUserRowProps> = ({ user, onSelect }): ReactNode => {
                                     </Badge>
                                 )}
                             </div>
-                            <p className='text-muted-foreground text-sm'>
+                            <p className='text-muted-foreground truncate text-sm'>
                                 {user.name
                                     ? user.email
                                     : formatDate(user.createdAt)}

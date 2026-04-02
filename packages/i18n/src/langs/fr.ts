@@ -1,4 +1,4 @@
-import type { Translations } from '../types'
+import type { Translations } from '#i18n/types'
 
 const fr: Translations = {
     common: {
@@ -366,17 +366,23 @@ const fr: Translations = {
         failedToGetBillingHistory:
             "Échec de la récupération de l\'historique de facturation !",
         failedToGetStats: 'Échec de la récupération des statistiques !',
-        affiliateFetched: 'Informations d\'affiliation récupérées avec succès.',
-        failedToGetAffiliate: 'Échec de la récupération des informations d\'affiliation !',
+        affiliateFetched: "Informations d'affiliation récupérées avec succès.",
+        failedToGetAffiliate:
+            "Échec de la récupération des informations d'affiliation !",
         invalidPeriod: 'Filtre de période invalide !',
         referralCodeUpdated: 'Code de parrainage mis à jour avec succès.',
-        failedToUpdateReferralCode: 'Échec de la mise à jour du code de parrainage !',
-        invalidReferralCodeLength: 'Le code de parrainage doit contenir entre {{min}} et {{max}} caractères !',
-        invalidReferralCodeFormat: 'Le code de parrainage ne peut contenir que des lettres, chiffres, tirets et underscores !',
-        referralCodeAlreadyChanged: 'Le code de parrainage ne peut être modifié qu\'une seule fois !',
+        failedToUpdateReferralCode:
+            'Échec de la mise à jour du code de parrainage !',
+        invalidReferralCodeLength:
+            'Le code de parrainage doit contenir entre {{min}} et {{max}} caractères !',
+        invalidReferralCodeFormat:
+            'Le code de parrainage ne peut contenir que des lettres, chiffres, tirets et underscores !',
+        referralCodeAlreadyChanged:
+            "Le code de parrainage ne peut être modifié qu'une seule fois !",
         referralCodeTaken: 'Ce code de parrainage est déjà pris !',
         referralCodeGenerated: 'Code de parrainage généré.',
-        failedToGenerateReferralCode: 'Échec de la génération du code de parrainage !',
+        failedToGenerateReferralCode:
+            'Échec de la génération du code de parrainage !',
         failedToFetchLocations: 'Échec de la récupération des emplacements !',
         failedToFetchPlans: 'Échec de la récupération des offres !',
         failedToFetchVolumePricing:
@@ -504,7 +510,8 @@ const fr: Translations = {
         whatsappAlreadyPaired: 'WhatsApp est déjà couplé !',
         whatsappVersionUnsupported:
             "Cette version ne prend pas en charge la configuration des canaux depuis le tableau de bord. Utilisez l'onglet Terminal pour configurer manuellement ou mettez à jour OpenClaw.",
-        featureVersionUnsupported: 'Cette fonctionnalité n\'est pas prise en charge sur la version {{version}}. Veuillez mettre à jour OpenClaw ou utiliser le Terminal pour gérer cela manuellement.',
+        featureVersionUnsupported:
+            "Cette fonctionnalité n'est pas prise en charge sur la version {{version}}. Veuillez mettre à jour OpenClaw ou utiliser le Terminal pour gérer cela manuellement.",
         bindingsFetched: 'Liaisons récupérées avec succès.',
         bindingsFetchFailed: 'Impossible de récupérer les liaisons !',
         bindingsUpdated: 'Liaisons mises à jour avec succès.',
@@ -555,7 +562,8 @@ const fr: Translations = {
         voiceNotFound: 'Modèle vocal introuvable !',
         ttsGenerationFailed: 'Échec de la génération vocale !',
         voicesFetched: 'Voix récupérées avec succès.',
-        featureEmailsDisabled: 'Les emails de fonctionnalités sont actuellement désactivés.',
+        featureEmailsDisabled:
+            'Les emails de fonctionnalités sont actuellement désactivés.',
         featureEmailsSent: 'Emails de fonctionnalités envoyés avec succès.',
         featureEmailsFailed: "Échec de l'envoi des emails de fonctionnalités !",
         invalidFeatureKey: 'Clé de fonctionnalité invalide !',
@@ -569,10 +577,12 @@ const fr: Translations = {
             "Échec de la vérification du statut de la liste d'attente !",
         adminUsersFetched: 'Utilisateurs récupérés avec succès.',
         failedToGetAdminUsers: 'Échec de la récupération des utilisateurs !',
-        adminUserDetailFetched: 'Détails de l\'utilisateur récupérés avec succès.',
-        failedToGetAdminUserDetail: 'Échec de la récupération des détails de l\'utilisateur !',
+        adminUserDetailFetched:
+            "Détails de l'utilisateur récupérés avec succès.",
+        failedToGetAdminUserDetail:
+            "Échec de la récupération des détails de l'utilisateur !",
         adminUserUpdated: 'Utilisateur mis à jour.',
-        failedToUpdateAdminUser: 'Échec de la mise à jour de l\'utilisateur !',
+        failedToUpdateAdminUser: "Échec de la mise à jour de l'utilisateur !",
         adminStatsFetched: 'Statistiques récupérées.',
         failedToGetAdminStats: 'Échec de la récupération des statistiques !',
         adminClawsFetched: 'Claws récupérés.',
@@ -1530,17 +1540,18 @@ const fr: Translations = {
         upcomingReleaseFeature12:
             'Application de bureau pour macOS et Windows pour déployer OpenClaw localement en un clic',
         release14Date: '1 avril 2026',
-        release14Title: 'Migration Hetzner, système d\'affiliation & nouvelles langues',
+        release14Title:
+            "Migration Hetzner, système d'affiliation & nouvelles langues",
         release14Description:
-            'Centralisation de toute l\'infrastructure sur Hetzner pour les meilleurs tarifs et performances, lancement du système d\'affiliation avec 15% de commissions, ajout de 10 nouvelles langues et création d\'outils internes pour un support stable des versions.',
+            "Centralisation de toute l'infrastructure sur Hetzner pour les meilleurs tarifs et performances, lancement du système d'affiliation avec 15% de commissions, ajout de 10 nouvelles langues et création d'outils internes pour un support stable des versions.",
         release14Feature1:
-            'Suppression de DigitalOcean et Vultr — toute l\'infrastructure fonctionne désormais exclusivement sur Hetzner avec une capacité infinie et sans limitations côté fournisseur',
+            "Suppression de DigitalOcean et Vultr — toute l'infrastructure fonctionne désormais exclusivement sur Hetzner avec une capacité infinie et sans limitations côté fournisseur",
         release14Feature2:
-            'Système d\'affiliation permettant aux utilisateurs de gagner 15% de commission sur chaque commande parrainée',
+            "Système d'affiliation permettant aux utilisateurs de gagner 15% de commission sur chaque commande parrainée",
         release14Feature3:
             '10 nouvelles langues ajoutées : chinois, hindi, arabe, russe, japonais, turc, italien, polonais, néerlandais et portugais',
         release14Feature4:
-            'Outils internes pour assurer un support stable des fonctionnalités pour les versions actuelles d\'OpenClaw, sans prise en charge des anciennes versions',
+            "Outils internes pour assurer un support stable des fonctionnalités pour les versions actuelles d'OpenClaw, sans prise en charge des anciennes versions",
         release12Date: '14 mars 2026',
         release12Title: 'Abonnements annuels, mode vocal & plus',
         release12Description:
@@ -1633,8 +1644,7 @@ const fr: Translations = {
         release1Title: 'Version initiale',
         release1Description:
             'La première version officielle de ClawHost. Déployez OpenClaw sur votre propre VPS en un clic.',
-        release1Feature1:
-            "Déploiement d\'OpenClaw en un clic",
+        release1Feature1: "Déploiement d\'OpenClaw en un clic",
         release1Feature2:
             'Tableau de bord pour gérer les claws : démarrer, arrêter, redémarrer et supprimer des instances',
         release1Feature3:
@@ -1918,8 +1928,10 @@ const fr: Translations = {
         channelsVersionUnsupported:
             "La configuration des canaux n'est pas disponible sur cette version. Vous pouvez connecter manuellement via l'onglet Terminal ou mettre à jour OpenClaw.",
         channelsVersionUnsupportedDocs: 'Voir le guide de configuration',
-        featureVersionUnsupported: '{{feature}} non pris en charge sur {{version}}',
-        featureVersionUnsupportedDescription: 'Nous ne prenons pas en charge la gestion de {{feature}} avec cette version via notre interface. Vous pouvez toujours le gérer via SSH, Terminal ou le panneau de contrôle OpenClaw.',
+        featureVersionUnsupported:
+            '{{feature}} non pris en charge sur {{version}}',
+        featureVersionUnsupportedDescription:
+            'Nous ne prenons pas en charge la gestion de {{feature}} avec cette version via notre interface. Vous pouvez toujours le gérer via SSH, Terminal ou le panneau de contrôle OpenClaw.',
         featureVersionUnsupportedButton: 'Aller aux Versions',
         featureVersionUnsupportedSupported: 'Versions prises en charge :',
         featureVersionUnsupportedNewer: 'versions plus récentes',
@@ -2032,6 +2044,9 @@ const fr: Translations = {
         versionDownloads: '{{count}} téléchargements',
         versionChangelog: 'Changelog',
         versionOutdated: 'Obsolète',
+        versionSupported: 'Pris en charge',
+        versionSupportedTooltip:
+            "Cette version vous permet de gérer OpenClaw via l'interface",
         versionInstallConfirmTitle: 'Installer la version {{version}}',
         versionInstallConfirmDescription:
             "Le changement de version peut provoquer un comportement inattendu ou nécessiter une configuration manuelle supplémentaire, notamment pour les versions plus récentes qui n\'ont pas encore été entièrement vérifiées. Voulez-vous continuer ?",
@@ -2079,8 +2094,7 @@ const fr: Translations = {
         personalInfoPayment:
             'Informations de paiement (traitées de manière sécurisée par des prestataires tiers)',
         serverInfoTitle: 'Informations sur le serveur',
-        serverInfoConfig:
-            'Configuration et statut du serveur',
+        serverInfoConfig: 'Configuration et statut du serveur',
         serverInfoIp: 'Adresse IP et emplacement du serveur',
         serverInfoResources: 'Allocation des ressources (CPU, RAM, stockage)',
         useTitle: '4. Comment nous utilisons vos informations',
@@ -2392,14 +2406,16 @@ const fr: Translations = {
         genericErrorDescription: 'Something went wrong. Please try again.',
         genericEmptyDescription: 'Nothing to show here yet.',
         failedToLoadUsers: 'Échec du chargement des utilisateurs !',
-        failedToLoadUsersDescription: 'Une erreur s\'est produite lors du chargement des utilisateurs. Veuillez réessayer.',
-        failedToLoadUserDetail: 'Échec du chargement des détails de l\'utilisateur !',
-        userDetail: 'Détails de l\'utilisateur',
+        failedToLoadUsersDescription:
+            "Une erreur s'est produite lors du chargement des utilisateurs. Veuillez réessayer.",
+        failedToLoadUserDetail:
+            "Échec du chargement des détails de l'utilisateur !",
+        userDetail: "Détails de l'utilisateur",
         userInfo: 'Informations utilisateur',
         email: 'E-mail',
         name: 'Nom',
         role: 'Rôle',
-        authMethods: 'Méthodes d\'authentification',
+        authMethods: "Méthodes d'authentification",
         license: 'Licence',
         referralCode: 'Code de parrainage',
         referredBy: 'Parrainé par',
@@ -2444,7 +2460,7 @@ const fr: Translations = {
         emailsTab: 'Emails',
         noReferralsFound: 'Aucun Parrainage',
         noPendingClawsFound: 'Aucun Claw en Attente',
-        noWaitlistFound: 'Aucune Liste d\'Attente',
+        noWaitlistFound: "Aucune Liste d'Attente",
         noExportsFound: 'Aucune Exportation',
         noEmailsFound: 'Aucun E-mail',
         failedToLoadReferrals: 'Failed to load referrals!',
@@ -2460,92 +2476,151 @@ const fr: Translations = {
         feature: 'Feature',
         sentAt: 'Sent',
         fileSize: 'Size',
-        registered: 'Registered'
+        registered: 'Inscrit',
+        status: 'Statut',
+        ip: 'IP',
+        plan: 'Plan',
+        location: 'Emplacement',
+        subdomain: 'Sous-domaine',
+        subscription: 'Abonnement',
+        billingInterval: 'Facturation',
+        deletionScheduled: 'Suppression programmée',
+        fingerprint: 'Empreinte',
+        price: 'Prix',
+        pricePerMonth: '{{price}}/mois',
+        statusRunning: 'En cours',
+        statusStopped: 'Arrêté',
+        adminBadge: 'Admin',
+        unitGB: '{{size}} Go',
+        unitKB: '{{size}} Ko'
     },
     affiliate: {
         title: 'Affiliation',
-        description: 'Gagnez des récompenses en parrainant vos amis sur ClawHost.',
-        subtitle: 'Partagez votre lien de parrainage et gagnez des récompenses.',
-        learnMore: 'En savoir plus sur le programme d\'affiliation',
+        description:
+            'Gagnez des récompenses en parrainant vos amis sur ClawHost.',
+        subtitle:
+            'Partagez votre lien de parrainage et gagnez des récompenses.',
+        learnMore: "En savoir plus sur le programme d'affiliation",
         referralCode: 'Code de parrainage',
         referrals: 'Parrainages',
         payments: 'paiements',
         earnings: 'Revenus',
-        codeChangeHint: 'Vous pouvez personnaliser votre code de parrainage une seule fois.',
+        codeChangeHint:
+            'Vous pouvez personnaliser votre code de parrainage une seule fois.',
         codeAlreadyChanged: 'Votre code de parrainage a déjà été personnalisé.',
         codeUpdated: 'Code de parrainage mis à jour.',
         codeUpdateFailed: 'Échec de la mise à jour du code de parrainage !',
-        invalidCodeLength: 'Le code doit contenir entre {{min}} et {{max}} caractères !',
+        invalidCodeLength:
+            'Le code doit contenir entre {{min}} et {{max}} caractères !',
         referralHistory: 'Historique des parrainages',
         paymentHistory: 'Historique des paiements',
-        periodToday: 'Aujourd\'hui',
+        periodToday: "Aujourd'hui",
         periodWeek: 'Semaine',
         periodMonth: 'Mois',
         periodYear: 'Année',
         periodAll: 'Tout',
         confirmChangeTitle: 'Modifier le code de parrainage',
-        confirmChangeDescription: 'Êtes-vous sûr ? Cette action est permanente et irréversible. Vous ne pourrez plus modifier votre code de parrainage.',
+        confirmChangeDescription:
+            'Êtes-vous sûr ? Cette action est permanente et irréversible. Vous ne pourrez plus modifier votre code de parrainage.',
         noReferralsYet: 'Aucun parrainage',
-        noReferralsDescription: 'Partagez votre lien de parrainage pour commencer à gagner des récompenses.',
+        noReferralsDescription:
+            'Partagez votre lien de parrainage pour commencer à gagner des récompenses.',
         noPaymentsYet: 'Aucun paiement',
-        noPaymentsDescription: 'Lorsque vos filleuls effectuent des achats, leurs paiements apparaîtront ici.'
+        noPaymentsDescription:
+            'Lorsque vos filleuls effectuent des achats, leurs paiements apparaîtront ici.'
     },
     affiliateProgram: {
-        title: 'Programme d\'affiliation',
-        description: 'Découvrez comment fonctionne le programme d\'affiliation ClawHost, combien vous pouvez gagner et les règles de participation.',
+        title: "Programme d'affiliation",
+        description:
+            "Découvrez comment fonctionne le programme d'affiliation ClawHost, combien vous pouvez gagner et les règles de participation.",
         lastUpdated: 'Dernière mise à jour : 1 avril 2026',
         overviewTitle: '1. Aperçu',
-        overviewText: 'Le programme d\'affiliation ClawHost vous permet de gagner des récompenses en recommandant de nouveaux utilisateurs à ClawHost. Lorsque quelqu\'un effectue un achat après avoir visité ClawHost via votre lien de parrainage, vous recevez une commission sur ses paiements. Le programme est gratuit et accessible à tous les utilisateurs enregistrés de ClawHost.',
+        overviewText:
+            "Le programme d'affiliation ClawHost vous permet de gagner des récompenses en recommandant de nouveaux utilisateurs à ClawHost. Lorsque quelqu'un effectue un achat après avoir visité ClawHost via votre lien de parrainage, vous recevez une commission sur ses paiements. Le programme est gratuit et accessible à tous les utilisateurs enregistrés de ClawHost.",
         howItWorksTitle: '2. Comment ça fonctionne',
-        howItWorksText: 'Démarrer avec le programme d\'affiliation est simple :',
-        howItWorksStep1: 'Créez un compte ClawHost. Un code de parrainage unique est automatiquement généré pour vous.',
-        howItWorksStep2: 'Partagez votre lien de parrainage avec vos amis, collègues ou votre audience. Votre lien suit le format : clawhost.cloud?ref=YOUR_CODE.',
-        howItWorksStep3: 'Lorsqu\'une personne effectue un achat après avoir visité ClawHost via votre lien, cela est enregistré comme votre parrainage.',
-        howItWorksStep4: 'Vous gagnez une commission chaque fois que votre filleul effectue un achat éligible.',
+        howItWorksText: "Démarrer avec le programme d'affiliation est simple :",
+        howItWorksStep1:
+            'Créez un compte ClawHost. Un code de parrainage unique est automatiquement généré pour vous.',
+        howItWorksStep2:
+            'Partagez votre lien de parrainage avec vos amis, collègues ou votre audience. Votre lien suit le format : clawhost.cloud?ref=YOUR_CODE.',
+        howItWorksStep3:
+            "Lorsqu'une personne effectue un achat après avoir visité ClawHost via votre lien, cela est enregistré comme votre parrainage.",
+        howItWorksStep4:
+            'Vous gagnez une commission chaque fois que votre filleul effectue un achat éligible.',
         earningsTitle: '3. Gains et paiements',
-        earningsText: 'Voici comment fonctionnent les gains d\'affiliation :',
-        earningsCommission: 'Vous gagnez une commission de 15% sur chaque achat éligible effectué par vos filleuls. Les commissions s\'appliquent aux plans ClawHost Cloud et ClawHost Go.',
-        earningsMonthly: 'Pour les abonnements mensuels, vous gagnez des commissions pendant 1 an à compter de la date du parrainage.',
-        earningsYearly: 'Pour les abonnements annuels, vous gagnez une commission sur la première année uniquement.',
-        earningsPayout: 'Le montant minimum de retrait est de 100 $ USD. Pour demander un retrait, contactez notre équipe d\'assistance.',
-        earningsPaymentMethod: 'Les retraits sont effectués via PayPal. Vous devez fournir une adresse e-mail PayPal valide lors de la demande de paiement.',
+        earningsText: "Voici comment fonctionnent les gains d'affiliation :",
+        earningsCommission:
+            "Vous gagnez une commission de 15% sur chaque achat éligible effectué par vos filleuls. Les commissions s'appliquent aux plans ClawHost Cloud et ClawHost Go.",
+        earningsMonthly:
+            'Pour les abonnements mensuels, vous gagnez des commissions pendant 1 an à compter de la date du parrainage.',
+        earningsYearly:
+            'Pour les abonnements annuels, vous gagnez une commission sur la première année uniquement.',
+        earningsPayout:
+            "Le montant minimum de retrait est de 100 $ USD. Pour demander un retrait, contactez notre équipe d'assistance.",
+        earningsPaymentMethod:
+            'Les retraits sont effectués via PayPal. Vous devez fournir une adresse e-mail PayPal valide lors de la demande de paiement.',
         earningsCurrency: 'Tous les gains sont calculés et affichés en USD.',
         referralCodeTitle: '4. Votre code de parrainage',
-        referralCodeText: 'Chaque utilisateur reçoit un code de parrainage unique lors de son inscription. Vous pouvez le personnaliser une fois pour le rendre plus mémorable :',
-        referralCodeUnique: 'Votre code de parrainage est unique à votre compte et ne peut être partagé avec ou transféré à un autre utilisateur.',
-        referralCodeOneChange: 'Vous pouvez personnaliser votre code de parrainage exactement une seule fois. Choisissez soigneusement — ce changement est permanent et irréversible.',
-        referralCodeFormat: 'Les codes de parrainage ne peuvent contenir que des lettres, des chiffres, des tirets et des underscores.',
-        referralWindowTitle: '5. Fenêtre d\'attribution des parrainages',
-        referralWindowText: 'Un parrainage vous est attribué pendant 3 mois à partir du moment où le filleul visite ClawHost via votre lien pour la première fois. Si le filleul n\'effectue pas d\'achat dans cette fenêtre de 3 mois, le parrainage expire et aucune commission ne sera versée. Si l\'utilisateur visite ClawHost via un autre lien de parrainage, le nouveau parrainage remplace le précédent.',
+        referralCodeText:
+            'Chaque utilisateur reçoit un code de parrainage unique lors de son inscription. Vous pouvez le personnaliser une fois pour le rendre plus mémorable :',
+        referralCodeUnique:
+            'Votre code de parrainage est unique à votre compte et ne peut être partagé avec ou transféré à un autre utilisateur.',
+        referralCodeOneChange:
+            'Vous pouvez personnaliser votre code de parrainage exactement une seule fois. Choisissez soigneusement — ce changement est permanent et irréversible.',
+        referralCodeFormat:
+            'Les codes de parrainage ne peuvent contenir que des lettres, des chiffres, des tirets et des underscores.',
+        referralWindowTitle: "5. Fenêtre d'attribution des parrainages",
+        referralWindowText:
+            "Un parrainage vous est attribué pendant 3 mois à partir du moment où le filleul visite ClawHost via votre lien pour la première fois. Si le filleul n'effectue pas d'achat dans cette fenêtre de 3 mois, le parrainage expire et aucune commission ne sera versée. Si l'utilisateur visite ClawHost via un autre lien de parrainage, le nouveau parrainage remplace le précédent.",
         eligibilityTitle: '6. Éligibilité',
-        eligibilityText: 'Pour participer au programme d\'affiliation, vous devez remplir les conditions suivantes :',
+        eligibilityText:
+            "Pour participer au programme d'affiliation, vous devez remplir les conditions suivantes :",
         eligibilityAccount: 'Vous devez avoir un compte ClawHost enregistré.',
-        eligibilityStanding: 'Votre compte doit être en règle sans antécédent de violation des règles.',
-        eligibilityAge: 'Vous devez avoir au moins 18 ans ou l\'âge de la majorité dans votre juridiction.',
+        eligibilityStanding:
+            'Votre compte doit être en règle sans antécédent de violation des règles.',
+        eligibilityAge:
+            "Vous devez avoir au moins 18 ans ou l'âge de la majorité dans votre juridiction.",
         rulesTitle: '7. Règles du programme',
-        rulesText: 'Pour maintenir l\'intégrité du programme d\'affiliation, les règles suivantes s\'appliquent :',
-        rulesNoSelfReferral: 'L\'auto-parrainage est strictement interdit. Vous ne pouvez pas parrainer vos propres comptes ou des comptes que vous contrôlez.',
-        rulesNoFakeAccounts: 'La création de faux comptes, d\'inscriptions automatisées ou l\'utilisation de bots pour générer des parrainages est interdite.',
-        rulesNoSpam: 'L\'envoi de messages non sollicités en masse (spam) pour promouvoir votre lien de parrainage n\'est pas autorisé.',
-        rulesNoMisrepresentation: 'Vous ne pouvez pas déformer ClawHost, ses services ou le programme d\'affiliation de quelque manière que ce soit.',
-        rulesNoIncentivized: 'Offrir des incitations monétaires directes (par exemple, payer des utilisateurs pour s\'inscrire via votre lien) n\'est pas autorisé.',
+        rulesText:
+            "Pour maintenir l'intégrité du programme d'affiliation, les règles suivantes s'appliquent :",
+        rulesNoSelfReferral:
+            "L'auto-parrainage est strictement interdit. Vous ne pouvez pas parrainer vos propres comptes ou des comptes que vous contrôlez.",
+        rulesNoFakeAccounts:
+            "La création de faux comptes, d'inscriptions automatisées ou l'utilisation de bots pour générer des parrainages est interdite.",
+        rulesNoSpam:
+            "L'envoi de messages non sollicités en masse (spam) pour promouvoir votre lien de parrainage n'est pas autorisé.",
+        rulesNoMisrepresentation:
+            "Vous ne pouvez pas déformer ClawHost, ses services ou le programme d'affiliation de quelque manière que ce soit.",
+        rulesNoIncentivized:
+            "Offrir des incitations monétaires directes (par exemple, payer des utilisateurs pour s'inscrire via votre lien) n'est pas autorisé.",
         terminationTitle: '8. Violation et résiliation',
-        terminationText: 'Toute violation de ces règles entraînera la perte immédiate de toutes les récompenses en attente et acquises. ClawHost se réserve le droit de suspendre ou de bannir définitivement votre compte du programme d\'affiliation. Dans les cas graves, votre compte ClawHost peut également être résilié. Toutes les décisions concernant les violations sont définitives.',
+        terminationText:
+            "Toute violation de ces règles entraînera la perte immédiate de toutes les récompenses en attente et acquises. ClawHost se réserve le droit de suspendre ou de bannir définitivement votre compte du programme d'affiliation. Dans les cas graves, votre compte ClawHost peut également être résilié. Toutes les décisions concernant les violations sont définitives.",
         marketingTitle: '9. Comment promouvoir',
-        marketingText: 'Il existe de nombreuses façons créatives et légitimes de partager votre lien de parrainage et d\'augmenter vos gains :',
-        marketingSocial: 'Partagez votre lien sur les réseaux sociaux comme X, LinkedIn, Reddit et Facebook. Écrivez sur votre expérience avec ClawHost et incluez votre lien de parrainage.',
-        marketingBlog: 'Rédigez des articles de blog, des tutoriels ou des avis sur ClawHost. Incluez naturellement votre lien de parrainage dans le contenu.',
-        marketingVideo: 'Créez du contenu vidéo sur YouTube ou TikTok montrant comment vous utilisez ClawHost pour déployer et gérer des agents IA.',
-        marketingCommunity: 'Participez aux communautés de développeurs, forums et serveurs Discord. Quand quelqu\'un pose une question sur l\'hébergement cloud ou le déploiement d\'agents IA, recommandez ClawHost avec votre lien.',
-        marketingNewsletter: 'Si vous gérez une newsletter ou une liste de diffusion, mentionnez ClawHost dans un numéro pertinent avec votre lien de parrainage.',
-        marketingComparison: 'Rédigez des articles de comparaison honnêtes ou des guides qui mettent en avant ce qui distingue ClawHost des autres plateformes.',
+        marketingText:
+            "Il existe de nombreuses façons créatives et légitimes de partager votre lien de parrainage et d'augmenter vos gains :",
+        marketingSocial:
+            'Partagez votre lien sur les réseaux sociaux comme X, LinkedIn, Reddit et Facebook. Écrivez sur votre expérience avec ClawHost et incluez votre lien de parrainage.',
+        marketingBlog:
+            'Rédigez des articles de blog, des tutoriels ou des avis sur ClawHost. Incluez naturellement votre lien de parrainage dans le contenu.',
+        marketingVideo:
+            'Créez du contenu vidéo sur YouTube ou TikTok montrant comment vous utilisez ClawHost pour déployer et gérer des agents IA.',
+        marketingCommunity:
+            "Participez aux communautés de développeurs, forums et serveurs Discord. Quand quelqu'un pose une question sur l'hébergement cloud ou le déploiement d'agents IA, recommandez ClawHost avec votre lien.",
+        marketingNewsletter:
+            'Si vous gérez une newsletter ou une liste de diffusion, mentionnez ClawHost dans un numéro pertinent avec votre lien de parrainage.',
+        marketingComparison:
+            'Rédigez des articles de comparaison honnêtes ou des guides qui mettent en avant ce qui distingue ClawHost des autres plateformes.',
         changesToProgramTitle: '10. Modifications du programme',
-        changesToProgramText: 'ClawHost se réserve le droit de modifier, suspendre ou interrompre le programme d\'affiliation à tout moment sans préavis. Cela inclut les modifications des taux de commission, des fenêtres de parrainage, des seuils de paiement et des règles du programme. La participation continue après les modifications constitue une acceptation des conditions mises à jour.',
+        changesToProgramText:
+            "ClawHost se réserve le droit de modifier, suspendre ou interrompre le programme d'affiliation à tout moment sans préavis. Cela inclut les modifications des taux de commission, des fenêtres de parrainage, des seuils de paiement et des règles du programme. La participation continue après les modifications constitue une acceptation des conditions mises à jour.",
         getStartedTitle: '11. Commencer',
-        getStartedText: 'Prêt à commencer à gagner ? Rendez-vous sur votre tableau de bord d\'affiliation pour récupérer votre lien de parrainage et commencez à le partager avec votre réseau.',
-        getStartedButton: 'Accéder au tableau de bord d\'affiliation',
+        getStartedText:
+            "Prêt à commencer à gagner ? Rendez-vous sur votre tableau de bord d'affiliation pour récupérer votre lien de parrainage et commencez à le partager avec votre réseau.",
+        getStartedButton: "Accéder au tableau de bord d'affiliation",
         contactTitle: '12. Contact',
-        contactText: 'Si vous avez des questions sur le programme d\'affiliation, besoin d\'aide avec votre code de parrainage ou souhaitez signaler une violation, contactez-nous à'
+        contactText:
+            "Si vous avez des questions sur le programme d'affiliation, besoin d'aide avec votre code de parrainage ou souhaitez signaler une violation, contactez-nous à"
     }
 } as const
 

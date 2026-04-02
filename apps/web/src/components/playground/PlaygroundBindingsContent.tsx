@@ -25,6 +25,7 @@ import { api } from '@/lib'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { useClawVersion } from '@/hooks'
+import CLAW_BINDINGS_QUERY_KEY from '@/hooks/usePlayground/CLAW_BINDINGS_QUERY_KEY'
 
 const CHANNEL_META: Record<string, ChannelMetaEntry> = {
     whatsapp: { icon: WhatsappLogoIcon, label: 'playground.channelsWhatsApp' },
@@ -62,7 +63,7 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
     const queryClient = useQueryClient()
 
     const query = useQuery({
-        queryKey: ['claw-bindings', clawId],
+        queryKey: [...CLAW_BINDINGS_QUERY_KEY, clawId],
         queryFn: () => api.getClawBindings(clawId),
         staleTime: 0,
         gcTime: 0
@@ -70,7 +71,8 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
 
     const versionQuery = useClawVersion(clawId, true)
     const clawVersion = versionQuery.data?.version || ''
-    const versionUnsupported = clawVersion !== '' && !isFeatureSupported(clawVersion, 'bindings')
+    const versionUnsupported =
+        clawVersion !== '' && !isFeatureSupported(clawVersion, 'bindings')
 
     useEffect(() => {
         if (query.data) {
@@ -110,7 +112,7 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
         onSuccess: () => {
             showToast(t('playground.bindingsSaved'), TOAST_TYPE.SUCCESS)
             queryClient.invalidateQueries({
-                queryKey: ['claw-bindings', clawId]
+                queryKey: [...CLAW_BINDINGS_QUERY_KEY, clawId]
             })
             setHasChanges(false)
         },
@@ -164,7 +166,9 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
                             <ChatsCircleIcon className='text-muted-foreground h-6 w-6' />
                         }
                         title={t('playground.bindingsNoChannels')}
-                        description={t('playground.bindingsNoChannelsDescription')}
+                        description={t(
+                            'playground.bindingsNoChannelsDescription'
+                        )}
                     />
                 </div>
             </div>
@@ -181,7 +185,9 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
                     onGoToVersions={onGoToVersions}
                 />
             )}
-            <div className={`flex-1 overflow-y-auto p-5 ${versionUnsupported ? 'pointer-events-none opacity-50' : ''}`}>
+            <div
+                className={`flex-1 overflow-y-auto p-5 ${versionUnsupported ? 'pointer-events-none opacity-50' : ''}`}
+            >
                 <p className='text-muted-foreground mb-4 text-xs'>
                     {t('playground.bindingsDescription')}
                 </p>

@@ -27,13 +27,21 @@ describe('useUIStore', () => {
     it('shows toast with defaults', () => {
         useUIStore.getState().showToast('Hello')
         const toast = useUIStore.getState().toast
-        expect(toast).toEqual({ message: 'Hello', type: 'info', duration: 5000 })
+        expect(toast).toEqual({
+            message: 'Hello',
+            type: 'info',
+            duration: 5000
+        })
     })
 
     it('shows toast with custom type and duration', () => {
         useUIStore.getState().showToast('Error!', 'error', 3000)
         const toast = useUIStore.getState().toast
-        expect(toast).toEqual({ message: 'Error!', type: 'error', duration: 3000 })
+        expect(toast).toEqual({
+            message: 'Error!',
+            type: 'error',
+            duration: 3000
+        })
     })
 
     it('hides toast', () => {

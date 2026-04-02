@@ -8,6 +8,9 @@
     "exports": {
         ".": "./src/index.ts"
     },
+    "imports": {
+        "#shared/*": "./src/*"
+    },
     "scripts": {
         "test": "vitest run",
         "test:watch": "vitest"

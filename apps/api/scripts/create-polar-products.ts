@@ -32,9 +32,7 @@ async function main() {
         | 'year'
         | 'both'
 
-    console.log(
-        `🚀 Creating Polar products (${billingInterval})...\n`
-    )
+    console.log(`🚀 Creating Polar products (${billingInterval})...\n`)
 
     const accessToken = process.env.POLAR_ACCESS_TOKEN
 

@@ -290,7 +290,9 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                     }, RECONNECT_DELAY)
                 } else {
                     setStatus((prev) =>
-                        prev === TERMINAL_STATUS.ERROR ? TERMINAL_STATUS.ERROR : TERMINAL_STATUS.DISCONNECTED
+                        prev === TERMINAL_STATUS.ERROR
+                            ? TERMINAL_STATUS.ERROR
+                            : TERMINAL_STATUS.DISCONNECTED
                     )
                 }
             }
@@ -387,7 +389,8 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                             </span>
                         </div>
                     )}
-                    {(status === TERMINAL_STATUS.ERROR || status === TERMINAL_STATUS.DISCONNECTED) && (
+                    {(status === TERMINAL_STATUS.ERROR ||
+                        status === TERMINAL_STATUS.DISCONNECTED) && (
                         <div className='flex flex-col items-center gap-3'>
                             <div className='bg-foreground/5 flex h-12 w-12 items-center justify-center rounded-xl'>
                                 <TerminalWindowIcon

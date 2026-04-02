@@ -79,7 +79,10 @@ const ChatSidebarListItem: FC<ChatSidebarListItemProps> = ({
                     label: t('dashboard.status.running')
                 }
             }
-            if (gatewayState === GATEWAY_CONNECTION_STATE.ERROR || gatewayState === GATEWAY_CONNECTION_STATE.DISCONNECTED) {
+            if (
+                gatewayState === GATEWAY_CONNECTION_STATE.ERROR ||
+                gatewayState === GATEWAY_CONNECTION_STATE.DISCONNECTED
+            ) {
                 return {
                     color: 'bg-red-500',
                     label: t('dashboard.status.unreachable')

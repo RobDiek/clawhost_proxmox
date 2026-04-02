@@ -10,7 +10,10 @@ const useGenerateReferralCode = () => {
     return useMutation({
         mutationFn: () => api.generateReferralCode(),
         onSuccess: (data) => {
-            updateCachedProfile({ referralCode: data.referralCode, referralCodeChanged: false })
+            updateCachedProfile({
+                referralCode: data.referralCode,
+                referralCodeChanged: false
+            })
             queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY })
         }
     })

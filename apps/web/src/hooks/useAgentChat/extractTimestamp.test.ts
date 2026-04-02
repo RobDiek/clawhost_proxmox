@@ -48,7 +48,8 @@ describe('extractTimestamp', () => {
     })
 
     it('prefers gateway format when present', () => {
-        const text = '[Tue 2024-03-05 10:00 UTC] Current time: Tuesday, March 5th, 2024 — 10:00 AM (UTC)'
+        const text =
+            '[Tue 2024-03-05 10:00 UTC] Current time: Tuesday, March 5th, 2024 — 10:00 AM (UTC)'
         const result = extractTimestamp(text)
         expect(result).toBe('2024-03-05T10:00:00.000Z')
     })

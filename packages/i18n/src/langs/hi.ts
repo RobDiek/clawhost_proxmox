@@ -1,4 +1,4 @@
-import type { Translations } from '../types'
+import type { Translations } from '#i18n/types'
 
 const hi: Translations = {
     common: {
@@ -332,8 +332,7 @@ const hi: Translations = {
         failedToDeleteClaw: 'क्लॉ हटाने में विफल!',
         failedToCreateClaw: 'क्लॉ बनाने में विफल!',
         invalidProvider: 'अमान्य प्रदाता!',
-        providerNotAllowed:
-            'यह प्रदाता वर्तमान में उपलब्ध नहीं है!',
+        providerNotAllowed: 'यह प्रदाता वर्तमान में उपलब्ध नहीं है!',
         invalidPlan: 'अमान्य प्लान चयनित!',
         planBelowMinimumMemory:
             'यह प्लान न्यूनतम मेमोरी आवश्यकता को पूरा नहीं करता!',
@@ -359,8 +358,10 @@ const hi: Translations = {
         invalidPeriod: 'अमान्य अवधि फ़िल्टर!',
         referralCodeUpdated: 'Referral code updated successfully.',
         failedToUpdateReferralCode: 'Failed to update referral code!',
-        invalidReferralCodeLength: 'Referral code must be between {{min}} and {{max}} characters!',
-        invalidReferralCodeFormat: 'Referral code can only contain letters, numbers, hyphens, and underscores!',
+        invalidReferralCodeLength:
+            'Referral code must be between {{min}} and {{max}} characters!',
+        invalidReferralCodeFormat:
+            'Referral code can only contain letters, numbers, hyphens, and underscores!',
         referralCodeAlreadyChanged: 'Referral code can only be changed once!',
         referralCodeTaken: 'This referral code is already taken!',
         referralCodeGenerated: 'Referral code generated.',
@@ -482,7 +483,8 @@ const hi: Translations = {
         whatsappAlreadyPaired: 'WhatsApp पहले से पेयर है!',
         whatsappVersionUnsupported:
             'यह संस्करण डैशबोर्ड से चैनल कॉन्फ़िगरेशन का समर्थन नहीं करता। मैन्युअल रूप से कॉन्फ़िगर करने के लिए टर्मिनल टैब का उपयोग करें या OpenClaw अपग्रेड करें।',
-        featureVersionUnsupported: 'यह सुविधा संस्करण {{version}} पर समर्थित नहीं है। कृपया OpenClaw अपडेट करें या मैन्युअल रूप से प्रबंधित करने के लिए टर्मिनल का उपयोग करें।',
+        featureVersionUnsupported:
+            'यह सुविधा संस्करण {{version}} पर समर्थित नहीं है। कृपया OpenClaw अपडेट करें या मैन्युअल रूप से प्रबंधित करने के लिए टर्मिनल का उपयोग करें।',
         bindingsFetched: 'बाइंडिंग सफलतापूर्वक प्राप्त हुईं.',
         bindingsFetchFailed: 'बाइंडिंग प्राप्त नहीं हो सकीं!',
         bindingsUpdated: 'बाइंडिंग सफलतापूर्वक अपडेट हुईं.',
@@ -1835,7 +1837,8 @@ const hi: Translations = {
             'इस संस्करण में चैनल कॉन्फ़िगरेशन उपलब्ध नहीं है। आप टर्मिनल टैब का उपयोग करके मैन्युअल रूप से कनेक्ट कर सकते हैं या OpenClaw अपग्रेड कर सकते हैं।',
         channelsVersionUnsupportedDocs: 'सेटअप गाइड देखें',
         featureVersionUnsupported: '{{feature}} {{version}} पर समर्थित नहीं है',
-        featureVersionUnsupportedDescription: 'हम इस संस्करण में UI के माध्यम से {{feature}} प्रबंधन का समर्थन नहीं करते। आप SSH, टर्मिनल या OpenClaw कंट्रोल पैनल के माध्यम से इसे प्रबंधित कर सकते हैं।',
+        featureVersionUnsupportedDescription:
+            'हम इस संस्करण में UI के माध्यम से {{feature}} प्रबंधन का समर्थन नहीं करते। आप SSH, टर्मिनल या OpenClaw कंट्रोल पैनल के माध्यम से इसे प्रबंधित कर सकते हैं।',
         featureVersionUnsupportedButton: 'संस्करणों पर जाएं',
         featureVersionUnsupportedSupported: 'समर्थित संस्करण:',
         featureVersionUnsupportedNewer: 'नए संस्करण',
@@ -1943,6 +1946,9 @@ const hi: Translations = {
         versionDownloads: '{{count}} डाउनलोड',
         versionChangelog: 'परिवर्तन लॉग',
         versionOutdated: 'पुराना',
+        versionSupported: 'समर्थित',
+        versionSupportedTooltip:
+            'यह संस्करण आपको UI के माध्यम से OpenClaw संचालित करने की अनुमति देता है',
         versionInstallConfirmTitle: 'संस्करण {{version}} इंस्टॉल करें',
         versionInstallConfirmDescription:
             'संस्करण बदलने से अप्रत्याशित व्यवहार हो सकता है या अतिरिक्त मैनुअल कॉन्फ़िगरेशन की आवश्यकता हो सकती है, विशेषकर नए संस्करणों के लिए जो अभी तक पूरी तरह सत्यापित नहीं हुए हैं. क्या आप वाकई आगे बढ़ना चाहते हैं?',
@@ -1987,8 +1993,7 @@ const hi: Translations = {
         personalInfoPayment:
             'भुगतान जानकारी (तृतीय-पक्ष प्रदाताओं द्वारा सुरक्षित रूप से प्रोसेस की जाती है)',
         serverInfoTitle: 'सर्वर जानकारी',
-        serverInfoConfig:
-            'सर्वर कॉन्फ़िगरेशन और स्थिति',
+        serverInfoConfig: 'सर्वर कॉन्फ़िगरेशन और स्थिति',
         serverInfoIp: 'सर्वर IP पता और स्थान',
         serverInfoResources: 'संसाधन आवंटन (CPU, RAM, स्टोरेज)',
         useTitle: '4. हम आपकी जानकारी कैसे उपयोग करते हैं',
@@ -2299,7 +2304,8 @@ const hi: Translations = {
         genericErrorDescription: 'Something went wrong. Please try again.',
         genericEmptyDescription: 'Nothing to show here yet.',
         failedToLoadUsers: 'उपयोगकर्ता लोड करने में विफल!',
-        failedToLoadUsersDescription: 'उपयोगकर्ता लोड करते समय कुछ गलत हो गया। कृपया पुनः प्रयास करें।',
+        failedToLoadUsersDescription:
+            'उपयोगकर्ता लोड करते समय कुछ गलत हो गया। कृपया पुनः प्रयास करें।',
         failedToLoadUserDetail: 'उपयोगकर्ता विवरण लोड करने में विफल!',
         userDetail: 'उपयोगकर्ता विवरण',
         userInfo: 'उपयोगकर्ता जानकारी',
@@ -2367,7 +2373,23 @@ const hi: Translations = {
         feature: 'Feature',
         sentAt: 'Sent',
         fileSize: 'Size',
-        registered: 'Registered'
+        registered: 'Registered',
+        status: 'स्थिति',
+        ip: 'IP',
+        plan: 'प्लान',
+        location: 'स्थान',
+        subdomain: 'सबडोमेन',
+        subscription: 'सदस्यता',
+        billingInterval: 'बिलिंग',
+        deletionScheduled: 'हटाना निर्धारित',
+        fingerprint: 'फिंगरप्रिंट',
+        price: 'कीमत',
+        pricePerMonth: '{{price}}/माह',
+        statusRunning: 'चल रहा है',
+        statusStopped: 'रुका हुआ',
+        adminBadge: 'एडमिन',
+        unitGB: '{{size}} GB',
+        unitKB: '{{size}} KB'
     },
     affiliate: {
         title: 'Affiliate',
@@ -2382,7 +2404,8 @@ const hi: Translations = {
         codeAlreadyChanged: 'Your referral code has already been customized.',
         codeUpdated: 'Referral code updated.',
         codeUpdateFailed: 'Failed to update referral code!',
-        invalidCodeLength: 'Code must be between {{min}} and {{max}} characters!',
+        invalidCodeLength:
+            'Code must be between {{min}} and {{max}} characters!',
         referralHistory: 'Referral History',
         paymentHistory: 'भुगतान इतिहास',
         periodToday: 'Today',
@@ -2391,68 +2414,107 @@ const hi: Translations = {
         periodYear: 'Year',
         periodAll: 'All',
         confirmChangeTitle: 'Change Referral Code',
-        confirmChangeDescription: 'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
+        confirmChangeDescription:
+            'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
         noReferralsYet: 'कोई रेफरल नहीं',
-        noReferralsDescription: 'Share your referral link to start earning rewards.',
+        noReferralsDescription:
+            'Share your referral link to start earning rewards.',
         noPaymentsYet: 'कोई भुगतान नहीं',
-        noPaymentsDescription: 'जब आपके रेफ़र किए गए उपयोगकर्ता खरीदारी करेंगे, तो उनके भुगतान यहाँ दिखाई देंगे।'
+        noPaymentsDescription:
+            'जब आपके रेफ़र किए गए उपयोगकर्ता खरीदारी करेंगे, तो उनके भुगतान यहाँ दिखाई देंगे।'
     },
     affiliateProgram: {
         title: 'सहबद्ध कार्यक्रम',
-        description: 'जानें कि ClawHost सहबद्ध कार्यक्रम कैसे काम करता है, आप कितना कमा सकते हैं और भाग लेने के नियम क्या हैं।',
+        description:
+            'जानें कि ClawHost सहबद्ध कार्यक्रम कैसे काम करता है, आप कितना कमा सकते हैं और भाग लेने के नियम क्या हैं।',
         lastUpdated: 'अंतिम अपडेट: 1 अप्रैल 2026',
         overviewTitle: '1. अवलोकन',
-        overviewText: 'ClawHost सहबद्ध कार्यक्रम आपको नए उपयोगकर्ताओं को ClawHost पर रेफर करके पुरस्कार अर्जित करने देता है। जब कोई आपके रेफरल लिंक के माध्यम से ClawHost पर जाने के बाद खरीदारी करता है, तो आप उनके भुगतान पर कमीशन कमाते हैं। कार्यक्रम में शामिल होना मुफ्त है और सभी पंजीकृत ClawHost उपयोगकर्ताओं के लिए उपलब्ध है।',
+        overviewText:
+            'ClawHost सहबद्ध कार्यक्रम आपको नए उपयोगकर्ताओं को ClawHost पर रेफर करके पुरस्कार अर्जित करने देता है। जब कोई आपके रेफरल लिंक के माध्यम से ClawHost पर जाने के बाद खरीदारी करता है, तो आप उनके भुगतान पर कमीशन कमाते हैं। कार्यक्रम में शामिल होना मुफ्त है और सभी पंजीकृत ClawHost उपयोगकर्ताओं के लिए उपलब्ध है।',
         howItWorksTitle: '2. यह कैसे काम करता है',
         howItWorksText: 'सहबद्ध कार्यक्रम शुरू करना आसान है:',
-        howItWorksStep1: 'एक ClawHost खाता बनाएं। आपके लिए स्वचालित रूप से एक अद्वितीय रेफरल कोड तैयार किया जाता है।',
-        howItWorksStep2: 'अपना रेफरल लिंक दोस्तों, सहकर्मियों या अपने दर्शकों के साथ साझा करें। आपका लिंक इस प्रारूप का अनुसरण करता है: clawhost.cloud?ref=YOUR_CODE।',
-        howItWorksStep3: 'जब कोई आपके लिंक के माध्यम से ClawHost पर जाने के बाद खरीदारी करता है, तो इसे आपके रेफरल के रूप में ट्रैक किया जाता है।',
-        howItWorksStep4: 'जब भी आपका रेफर किया गया उपयोगकर्ता योग्य खरीदारी करता है, आप कमीशन कमाते हैं।',
+        howItWorksStep1:
+            'एक ClawHost खाता बनाएं। आपके लिए स्वचालित रूप से एक अद्वितीय रेफरल कोड तैयार किया जाता है।',
+        howItWorksStep2:
+            'अपना रेफरल लिंक दोस्तों, सहकर्मियों या अपने दर्शकों के साथ साझा करें। आपका लिंक इस प्रारूप का अनुसरण करता है: clawhost.cloud?ref=YOUR_CODE।',
+        howItWorksStep3:
+            'जब कोई आपके लिंक के माध्यम से ClawHost पर जाने के बाद खरीदारी करता है, तो इसे आपके रेफरल के रूप में ट्रैक किया जाता है।',
+        howItWorksStep4:
+            'जब भी आपका रेफर किया गया उपयोगकर्ता योग्य खरीदारी करता है, आप कमीशन कमाते हैं।',
         earningsTitle: '3. कमाई और भुगतान',
         earningsText: 'सहबद्ध कमाई इस प्रकार काम करती है:',
-        earningsCommission: 'आप अपने रेफर किए गए उपयोगकर्ताओं द्वारा की गई हर योग्य खरीदारी पर 15% कमीशन कमाते हैं। कमीशन ClawHost Cloud और ClawHost Go दोनों योजनाओं पर लागू होते हैं।',
-        earningsMonthly: 'मासिक सदस्यता के लिए, आप रेफरल की तारीख से 1 वर्ष तक कमीशन कमाते हैं।',
-        earningsYearly: 'वार्षिक सदस्यता के लिए, आप केवल पहले वर्ष पर कमीशन कमाते हैं।',
-        earningsPayout: 'न्यूनतम निकासी राशि $100 USD है। निकासी का अनुरोध करने के लिए, हमारी सहायता टीम से संपर्क करें।',
-        earningsPaymentMethod: 'निकासी PayPal के माध्यम से संसाधित की जाती है। भुगतान का अनुरोध करते समय आपको एक वैध PayPal ईमेल पता प्रदान करना होगा।',
+        earningsCommission:
+            'आप अपने रेफर किए गए उपयोगकर्ताओं द्वारा की गई हर योग्य खरीदारी पर 15% कमीशन कमाते हैं। कमीशन ClawHost Cloud और ClawHost Go दोनों योजनाओं पर लागू होते हैं।',
+        earningsMonthly:
+            'मासिक सदस्यता के लिए, आप रेफरल की तारीख से 1 वर्ष तक कमीशन कमाते हैं।',
+        earningsYearly:
+            'वार्षिक सदस्यता के लिए, आप केवल पहले वर्ष पर कमीशन कमाते हैं।',
+        earningsPayout:
+            'न्यूनतम निकासी राशि $100 USD है। निकासी का अनुरोध करने के लिए, हमारी सहायता टीम से संपर्क करें।',
+        earningsPaymentMethod:
+            'निकासी PayPal के माध्यम से संसाधित की जाती है। भुगतान का अनुरोध करते समय आपको एक वैध PayPal ईमेल पता प्रदान करना होगा।',
         earningsCurrency: 'सभी कमाई USD में गणना और प्रदर्शित की जाती है।',
         referralCodeTitle: '4. आपका रेफरल कोड',
-        referralCodeText: 'प्रत्येक उपयोगकर्ता को पंजीकरण पर एक अद्वितीय रेफरल कोड प्राप्त होता है। आप इसे अधिक यादगार बनाने के लिए एक बार अनुकूलित कर सकते हैं:',
-        referralCodeUnique: 'आपका रेफरल कोड आपके खाते के लिए अद्वितीय है और इसे किसी अन्य उपयोगकर्ता के साथ साझा या स्थानांतरित नहीं किया जा सकता।',
-        referralCodeOneChange: 'आप अपना रेफरल कोड ठीक एक बार अनुकूलित कर सकते हैं। सावधानी से चुनें — यह परिवर्तन स्थायी है और पूर्ववत नहीं किया जा सकता।',
-        referralCodeFormat: 'रेफरल कोड में केवल अक्षर, संख्याएं, हाइफन और अंडरस्कोर हो सकते हैं।',
+        referralCodeText:
+            'प्रत्येक उपयोगकर्ता को पंजीकरण पर एक अद्वितीय रेफरल कोड प्राप्त होता है। आप इसे अधिक यादगार बनाने के लिए एक बार अनुकूलित कर सकते हैं:',
+        referralCodeUnique:
+            'आपका रेफरल कोड आपके खाते के लिए अद्वितीय है और इसे किसी अन्य उपयोगकर्ता के साथ साझा या स्थानांतरित नहीं किया जा सकता।',
+        referralCodeOneChange:
+            'आप अपना रेफरल कोड ठीक एक बार अनुकूलित कर सकते हैं। सावधानी से चुनें — यह परिवर्तन स्थायी है और पूर्ववत नहीं किया जा सकता।',
+        referralCodeFormat:
+            'रेफरल कोड में केवल अक्षर, संख्याएं, हाइफन और अंडरस्कोर हो सकते हैं।',
         referralWindowTitle: '5. रेफरल एट्रिब्यूशन विंडो',
-        referralWindowText: 'रेफरल आपको उस समय से 3 महीने तक श्रेय दिया जाता है जब रेफर किया गया उपयोगकर्ता पहली बार आपके लिंक के माध्यम से ClawHost पर जाता है। यदि रेफर किया गया उपयोगकर्ता इस 3 महीने की विंडो के भीतर खरीदारी नहीं करता है, तो रेफरल समाप्त हो जाता है और कोई कमीशन नहीं मिलता। यदि उपयोगकर्ता किसी अलग रेफरल लिंक के माध्यम से जाता है, तो नया रेफरल पिछले को बदल देता है।',
+        referralWindowText:
+            'रेफरल आपको उस समय से 3 महीने तक श्रेय दिया जाता है जब रेफर किया गया उपयोगकर्ता पहली बार आपके लिंक के माध्यम से ClawHost पर जाता है। यदि रेफर किया गया उपयोगकर्ता इस 3 महीने की विंडो के भीतर खरीदारी नहीं करता है, तो रेफरल समाप्त हो जाता है और कोई कमीशन नहीं मिलता। यदि उपयोगकर्ता किसी अलग रेफरल लिंक के माध्यम से जाता है, तो नया रेफरल पिछले को बदल देता है।',
         eligibilityTitle: '6. पात्रता',
-        eligibilityText: 'सहबद्ध कार्यक्रम में भाग लेने के लिए, आपको निम्नलिखित आवश्यकताओं को पूरा करना होगा:',
+        eligibilityText:
+            'सहबद्ध कार्यक्रम में भाग लेने के लिए, आपको निम्नलिखित आवश्यकताओं को पूरा करना होगा:',
         eligibilityAccount: 'आपके पास एक पंजीकृत ClawHost खाता होना चाहिए।',
-        eligibilityStanding: 'आपका खाता नीति उल्लंघन के इतिहास के बिना अच्छी स्थिति में होना चाहिए।',
-        eligibilityAge: 'आपकी आयु कम से कम 18 वर्ष या आपके अधिकार क्षेत्र में वयस्कता की आयु होनी चाहिए।',
+        eligibilityStanding:
+            'आपका खाता नीति उल्लंघन के इतिहास के बिना अच्छी स्थिति में होना चाहिए।',
+        eligibilityAge:
+            'आपकी आयु कम से कम 18 वर्ष या आपके अधिकार क्षेत्र में वयस्कता की आयु होनी चाहिए।',
         rulesTitle: '7. कार्यक्रम नियम',
-        rulesText: 'सहबद्ध कार्यक्रम की अखंडता बनाए रखने के लिए, निम्नलिखित नियम लागू होते हैं:',
-        rulesNoSelfReferral: 'स्व-रेफरल सख्ती से प्रतिबंधित है। आप अपने स्वयं के खातों या आपके नियंत्रण वाले खातों को रेफर नहीं कर सकते।',
-        rulesNoFakeAccounts: 'नकली खाते बनाना, स्वचालित साइनअप या रेफरल उत्पन्न करने के लिए बॉट का उपयोग करना प्रतिबंधित है।',
-        rulesNoSpam: 'अपने रेफरल लिंक को बढ़ावा देने के लिए अवांछित बल्क संदेश (स्पैम) भेजना अनुमत नहीं है।',
-        rulesNoMisrepresentation: 'आप किसी भी तरह से ClawHost, इसकी सेवाओं या सहबद्ध कार्यक्रम को गलत तरीके से प्रस्तुत नहीं कर सकते।',
-        rulesNoIncentivized: 'प्रत्यक्ष मौद्रिक प्रोत्साहन देना (जैसे, उपयोगकर्ताओं को आपके लिंक के माध्यम से साइन अप करने के लिए भुगतान करना) अनुमत नहीं है।',
+        rulesText:
+            'सहबद्ध कार्यक्रम की अखंडता बनाए रखने के लिए, निम्नलिखित नियम लागू होते हैं:',
+        rulesNoSelfReferral:
+            'स्व-रेफरल सख्ती से प्रतिबंधित है। आप अपने स्वयं के खातों या आपके नियंत्रण वाले खातों को रेफर नहीं कर सकते।',
+        rulesNoFakeAccounts:
+            'नकली खाते बनाना, स्वचालित साइनअप या रेफरल उत्पन्न करने के लिए बॉट का उपयोग करना प्रतिबंधित है।',
+        rulesNoSpam:
+            'अपने रेफरल लिंक को बढ़ावा देने के लिए अवांछित बल्क संदेश (स्पैम) भेजना अनुमत नहीं है।',
+        rulesNoMisrepresentation:
+            'आप किसी भी तरह से ClawHost, इसकी सेवाओं या सहबद्ध कार्यक्रम को गलत तरीके से प्रस्तुत नहीं कर सकते।',
+        rulesNoIncentivized:
+            'प्रत्यक्ष मौद्रिक प्रोत्साहन देना (जैसे, उपयोगकर्ताओं को आपके लिंक के माध्यम से साइन अप करने के लिए भुगतान करना) अनुमत नहीं है।',
         terminationTitle: '8. उल्लंघन और समाप्ति',
-        terminationText: 'इन नियमों के किसी भी उल्लंघन का परिणाम सभी लंबित और अर्जित पुरस्कारों की तत्काल जब्ती होगी। ClawHost सहबद्ध कार्यक्रम से आपके खाते को निलंबित या स्थायी रूप से प्रतिबंधित करने का अधिकार सुरक्षित रखता है। गंभीर मामलों में, आपका ClawHost खाता भी समाप्त किया जा सकता है। उल्लंघनों के संबंध में सभी निर्णय अंतिम हैं।',
+        terminationText:
+            'इन नियमों के किसी भी उल्लंघन का परिणाम सभी लंबित और अर्जित पुरस्कारों की तत्काल जब्ती होगी। ClawHost सहबद्ध कार्यक्रम से आपके खाते को निलंबित या स्थायी रूप से प्रतिबंधित करने का अधिकार सुरक्षित रखता है। गंभीर मामलों में, आपका ClawHost खाता भी समाप्त किया जा सकता है। उल्लंघनों के संबंध में सभी निर्णय अंतिम हैं।',
         marketingTitle: '9. कैसे प्रचार करें',
-        marketingText: 'अपना रेफरल लिंक साझा करने और अपनी कमाई बढ़ाने के कई रचनात्मक और वैध तरीके हैं:',
-        marketingSocial: 'X, LinkedIn, Reddit और Facebook जैसे सोशल मीडिया प्लेटफॉर्म पर अपना लिंक साझा करें। ClawHost के साथ अपने अनुभव के बारे में लिखें और अपना रेफरल लिंक शामिल करें।',
-        marketingBlog: 'ClawHost के बारे में ब्लॉग पोस्ट, ट्यूटोरियल या समीक्षाएं लिखें। सामग्री में स्वाभाविक रूप से अपना रेफरल लिंक शामिल करें।',
-        marketingVideo: 'YouTube या TikTok पर वीडियो सामग्री बनाएं जो दिखाए कि आप AI एजेंटों को तैनात और प्रबंधित करने के लिए ClawHost का उपयोग कैसे करते हैं।',
-        marketingCommunity: 'डेवलपर समुदायों, फोरम और Discord सर्वर में भाग लें। जब कोई क्लाउड होस्टिंग या AI एजेंट तैनाती के बारे में पूछे, तो अपने लिंक के साथ ClawHost की सिफारिश करें।',
-        marketingNewsletter: 'यदि आप न्यूज़लेटर या ईमेल सूची चलाते हैं, तो किसी प्रासंगिक अंक में अपने रेफरल लिंक के साथ ClawHost का उल्लेख करें।',
-        marketingComparison: 'ईमानदार तुलना लेख या गाइड लिखें जो यह उजागर करें कि ClawHost को अन्य प्लेटफॉर्म से क्या अलग बनाता है।',
+        marketingText:
+            'अपना रेफरल लिंक साझा करने और अपनी कमाई बढ़ाने के कई रचनात्मक और वैध तरीके हैं:',
+        marketingSocial:
+            'X, LinkedIn, Reddit और Facebook जैसे सोशल मीडिया प्लेटफॉर्म पर अपना लिंक साझा करें। ClawHost के साथ अपने अनुभव के बारे में लिखें और अपना रेफरल लिंक शामिल करें।',
+        marketingBlog:
+            'ClawHost के बारे में ब्लॉग पोस्ट, ट्यूटोरियल या समीक्षाएं लिखें। सामग्री में स्वाभाविक रूप से अपना रेफरल लिंक शामिल करें।',
+        marketingVideo:
+            'YouTube या TikTok पर वीडियो सामग्री बनाएं जो दिखाए कि आप AI एजेंटों को तैनात और प्रबंधित करने के लिए ClawHost का उपयोग कैसे करते हैं।',
+        marketingCommunity:
+            'डेवलपर समुदायों, फोरम और Discord सर्वर में भाग लें। जब कोई क्लाउड होस्टिंग या AI एजेंट तैनाती के बारे में पूछे, तो अपने लिंक के साथ ClawHost की सिफारिश करें।',
+        marketingNewsletter:
+            'यदि आप न्यूज़लेटर या ईमेल सूची चलाते हैं, तो किसी प्रासंगिक अंक में अपने रेफरल लिंक के साथ ClawHost का उल्लेख करें।',
+        marketingComparison:
+            'ईमानदार तुलना लेख या गाइड लिखें जो यह उजागर करें कि ClawHost को अन्य प्लेटफॉर्म से क्या अलग बनाता है।',
         changesToProgramTitle: '10. कार्यक्रम में परिवर्तन',
-        changesToProgramText: 'ClawHost बिना पूर्व सूचना के किसी भी समय सहबद्ध कार्यक्रम को संशोधित, निलंबित या बंद करने का अधिकार सुरक्षित रखता है। इसमें कमीशन दरों, रेफरल विंडो, भुगतान सीमा और कार्यक्रम नियमों में परिवर्तन शामिल हैं। परिवर्तनों के बाद निरंतर भागीदारी अद्यतन शर्तों की स्वीकृति मानी जाती है।',
+        changesToProgramText:
+            'ClawHost बिना पूर्व सूचना के किसी भी समय सहबद्ध कार्यक्रम को संशोधित, निलंबित या बंद करने का अधिकार सुरक्षित रखता है। इसमें कमीशन दरों, रेफरल विंडो, भुगतान सीमा और कार्यक्रम नियमों में परिवर्तन शामिल हैं। परिवर्तनों के बाद निरंतर भागीदारी अद्यतन शर्तों की स्वीकृति मानी जाती है।',
         getStartedTitle: '11. शुरू करें',
-        getStartedText: 'कमाई शुरू करने के लिए तैयार हैं? अपना रेफरल लिंक प्राप्त करने के लिए अपने सहबद्ध डैशबोर्ड पर जाएं और इसे अपने नेटवर्क के साथ साझा करना शुरू करें।',
+        getStartedText:
+            'कमाई शुरू करने के लिए तैयार हैं? अपना रेफरल लिंक प्राप्त करने के लिए अपने सहबद्ध डैशबोर्ड पर जाएं और इसे अपने नेटवर्क के साथ साझा करना शुरू करें।',
         getStartedButton: 'सहबद्ध डैशबोर्ड पर जाएं',
         contactTitle: '12. संपर्क',
-        contactText: 'यदि आपके पास सहबद्ध कार्यक्रम के बारे में प्रश्न हैं, अपने रेफरल कोड में सहायता चाहिए या उल्लंघन की रिपोर्ट करना चाहते हैं, तो हमसे संपर्क करें'
+        contactText:
+            'यदि आपके पास सहबद्ध कार्यक्रम के बारे में प्रश्न हैं, अपने रेफरल कोड में सहायता चाहिए या उल्लंघन की रिपोर्ट करना चाहते हैं, तो हमसे संपर्क करें'
     }
 } as const
 

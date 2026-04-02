@@ -96,7 +96,10 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
     const handleUpdateInstance = () => {
         repairMutation.mutate(claw.id, {
             onSuccess: () => {
-                showToast(t('dashboard.updateInstanceSuccess'), TOAST_TYPE.SUCCESS)
+                showToast(
+                    t('dashboard.updateInstanceSuccess'),
+                    TOAST_TYPE.SUCCESS
+                )
             },
             onError: () => {
                 showToast(t('dashboard.updateInstanceFailed'), TOAST_TYPE.ERROR)
@@ -140,7 +143,10 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
     const handleReinstall = () => {
         reinstallMutation.mutate(claw.id, {
             onSuccess: () => {
-                showToast(t('dashboard.reinstallInstanceSuccess'), TOAST_TYPE.SUCCESS)
+                showToast(
+                    t('dashboard.reinstallInstanceSuccess'),
+                    TOAST_TYPE.SUCCESS
+                )
             },
             onError: (err: Error) => {
                 showToast(

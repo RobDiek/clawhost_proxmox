@@ -1,4 +1,4 @@
-import type { Translations } from '../types'
+import type { Translations } from '#i18n/types'
 
 const de: Translations = {
     common: {
@@ -337,8 +337,7 @@ const de: Translations = {
         failedToDeleteClaw: 'Claw konnte nicht gelöscht werden!',
         failedToCreateClaw: 'Claw konnte nicht erstellt werden!',
         invalidProvider: 'Ungültiger Anbieter!',
-        providerNotAllowed:
-            'Dieser Anbieter ist derzeit nicht verfügbar!',
+        providerNotAllowed: 'Dieser Anbieter ist derzeit nicht verfügbar!',
         invalidPlan: 'Ungültiger Plan ausgewählt!',
         planBelowMinimumMemory:
             'Dieser Plan erfüllt nicht die Mindestanforderung an Arbeitsspeicher!',
@@ -363,16 +362,22 @@ const de: Translations = {
             'Abrechnungsverlauf konnte nicht abgerufen werden!',
         failedToGetStats: 'Statistiken konnten nicht abgerufen werden!',
         affiliateFetched: 'Partnerinformationen erfolgreich abgerufen.',
-        failedToGetAffiliate: 'Partnerinformationen konnten nicht abgerufen werden!',
+        failedToGetAffiliate:
+            'Partnerinformationen konnten nicht abgerufen werden!',
         invalidPeriod: 'Ungültiger Zeitraumfilter!',
         referralCodeUpdated: 'Empfehlungscode erfolgreich aktualisiert.',
-        failedToUpdateReferralCode: 'Empfehlungscode konnte nicht aktualisiert werden!',
-        invalidReferralCodeLength: 'Der Empfehlungscode muss zwischen {{min}} und {{max}} Zeichen lang sein!',
-        invalidReferralCodeFormat: 'Der Empfehlungscode darf nur Buchstaben, Zahlen, Bindestriche und Unterstriche enthalten!',
-        referralCodeAlreadyChanged: 'Der Empfehlungscode kann nur einmal geändert werden!',
+        failedToUpdateReferralCode:
+            'Empfehlungscode konnte nicht aktualisiert werden!',
+        invalidReferralCodeLength:
+            'Der Empfehlungscode muss zwischen {{min}} und {{max}} Zeichen lang sein!',
+        invalidReferralCodeFormat:
+            'Der Empfehlungscode darf nur Buchstaben, Zahlen, Bindestriche und Unterstriche enthalten!',
+        referralCodeAlreadyChanged:
+            'Der Empfehlungscode kann nur einmal geändert werden!',
         referralCodeTaken: 'Dieser Empfehlungscode ist bereits vergeben!',
         referralCodeGenerated: 'Empfehlungscode generiert.',
-        failedToGenerateReferralCode: 'Empfehlungscode konnte nicht generiert werden!',
+        failedToGenerateReferralCode:
+            'Empfehlungscode konnte nicht generiert werden!',
         failedToFetchLocations: 'Standorte konnten nicht abgerufen werden!',
         failedToFetchPlans: 'Pläne konnten nicht abgerufen werden!',
         failedToFetchVolumePricing:
@@ -496,7 +501,8 @@ const de: Translations = {
         whatsappAlreadyPaired: 'WhatsApp ist bereits gekoppelt!',
         whatsappVersionUnsupported:
             'Diese Version unterstützt die Kanalkonfiguration über das Dashboard nicht. Verwenden Sie den Terminal-Tab zur manuellen Konfiguration oder aktualisieren Sie OpenClaw.',
-        featureVersionUnsupported: 'Diese Funktion wird in Version {{version}} nicht unterstützt. Bitte aktualisieren Sie OpenClaw oder verwenden Sie das Terminal zur manuellen Verwaltung.',
+        featureVersionUnsupported:
+            'Diese Funktion wird in Version {{version}} nicht unterstützt. Bitte aktualisieren Sie OpenClaw oder verwenden Sie das Terminal zur manuellen Verwaltung.',
         bindingsFetched: 'Bindungen erfolgreich abgerufen.',
         bindingsFetchFailed: 'Bindungen konnten nicht abgerufen werden!',
         bindingsUpdated: 'Bindungen erfolgreich aktualisiert.',
@@ -559,7 +565,8 @@ const de: Translations = {
         adminUsersFetched: 'Benutzer erfolgreich abgerufen.',
         failedToGetAdminUsers: 'Benutzer konnten nicht abgerufen werden!',
         adminUserDetailFetched: 'Benutzerdetails erfolgreich abgerufen.',
-        failedToGetAdminUserDetail: 'Benutzerdetails konnten nicht abgerufen werden!',
+        failedToGetAdminUserDetail:
+            'Benutzerdetails konnten nicht abgerufen werden!',
         adminUserUpdated: 'Benutzer aktualisiert.',
         failedToUpdateAdminUser: 'Benutzer konnte nicht aktualisiert werden!',
         adminStatsFetched: 'Statistiken abgerufen.',
@@ -567,7 +574,8 @@ const de: Translations = {
         adminClawsFetched: 'Claws abgerufen.',
         failedToGetAdminClaws: 'Claws konnten nicht abgerufen werden!',
         adminSSHKeysFetched: 'SSH-Schlüssel abgerufen.',
-        failedToGetAdminSSHKeys: 'SSH-Schlüssel konnten nicht abgerufen werden!',
+        failedToGetAdminSSHKeys:
+            'SSH-Schlüssel konnten nicht abgerufen werden!',
         adminVolumesFetched: 'Volumes abgerufen.',
         failedToGetAdminVolumes: 'Volumes konnten nicht abgerufen werden!',
         adminReferralsFetched: 'Referrals fetched.',
@@ -1618,8 +1626,7 @@ const de: Translations = {
             'Dashboard zur Verwaltung von Claws – Instanzen starten, stoppen, neustarten und löschen',
         release1Feature3:
             '18 Serverpläne mit dedizierter vCPU, RAM und Speicheroptionen',
-        release1Feature4:
-            '6 Serverstandorte in den USA, Europa und Asien',
+        release1Feature4: '6 Serverstandorte in den USA, Europa und Asien',
         release1Feature5:
             'SSH-Schlüsselverwaltung für passwortlosen Serverzugriff',
         release1Feature6: 'Zusätzlicher Volumenspeicher bis zu 10 TB',
@@ -1894,8 +1901,10 @@ const de: Translations = {
         channelsVersionUnsupported:
             'Die Kanalkonfiguration ist in dieser Version nicht verfügbar. Sie können manuell über den Terminal-Tab verbinden oder OpenClaw aktualisieren.',
         channelsVersionUnsupportedDocs: 'Einrichtungsanleitung anzeigen',
-        featureVersionUnsupported: '{{feature}} nicht unterstützt auf {{version}}',
-        featureVersionUnsupportedDescription: 'Wir unterstützen die Verwaltung von {{feature}} mit dieser Version über unsere Benutzeroberfläche nicht. Sie können es weiterhin über SSH, Terminal oder das OpenClaw-Kontrollpanel verwalten.',
+        featureVersionUnsupported:
+            '{{feature}} nicht unterstützt auf {{version}}',
+        featureVersionUnsupportedDescription:
+            'Wir unterstützen die Verwaltung von {{feature}} mit dieser Version über unsere Benutzeroberfläche nicht. Sie können es weiterhin über SSH, Terminal oder das OpenClaw-Kontrollpanel verwalten.',
         featureVersionUnsupportedButton: 'Zu Versionen',
         featureVersionUnsupportedSupported: 'Unterstützte Versionen:',
         featureVersionUnsupportedNewer: 'neuere Versionen',
@@ -2006,6 +2015,9 @@ const de: Translations = {
         versionDownloads: '{{count}} Downloads',
         versionChangelog: 'Changelog',
         versionOutdated: 'Veraltet',
+        versionSupported: 'Unterstützt',
+        versionSupportedTooltip:
+            'Diese Version ermöglicht die Verwaltung von OpenClaw über die Benutzeroberfläche',
         versionInstallConfirmTitle: 'Version {{version}} installieren',
         versionInstallConfirmDescription:
             'Ein Versionswechsel kann unerwartetes Verhalten verursachen oder zusätzliche manuelle Konfiguration erfordern, insbesondere bei neueren Versionen, die noch nicht vollständig überprüft wurden. Möchten Sie fortfahren?',
@@ -2053,8 +2065,7 @@ const de: Translations = {
         personalInfoPayment:
             'Zahlungsinformationen (werden sicher durch Drittanbieter verarbeitet)',
         serverInfoTitle: 'Serverinformationen',
-        serverInfoConfig:
-            'Serverkonfiguration und -status',
+        serverInfoConfig: 'Serverkonfiguration und -status',
         serverInfoIp: 'Server-IP-Adresse und -Standort',
         serverInfoResources: 'Ressourcenzuweisung (CPU, RAM, Speicher)',
         useTitle: '4. Verwendung deiner Daten',
@@ -2368,7 +2379,8 @@ const de: Translations = {
         genericErrorDescription: 'Something went wrong. Please try again.',
         genericEmptyDescription: 'Nothing to show here yet.',
         failedToLoadUsers: 'Benutzer konnten nicht geladen werden!',
-        failedToLoadUsersDescription: 'Beim Laden der Benutzer ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
+        failedToLoadUsersDescription:
+            'Beim Laden der Benutzer ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
         failedToLoadUserDetail: 'Benutzerdetails konnten nicht geladen werden!',
         userDetail: 'Benutzerdetails',
         userInfo: 'Benutzerinfo',
@@ -2436,11 +2448,28 @@ const de: Translations = {
         feature: 'Feature',
         sentAt: 'Sent',
         fileSize: 'Size',
-        registered: 'Registered'
+        registered: 'Registriert',
+        status: 'Status',
+        ip: 'IP',
+        plan: 'Plan',
+        location: 'Standort',
+        subdomain: 'Subdomain',
+        subscription: 'Abonnement',
+        billingInterval: 'Abrechnung',
+        deletionScheduled: 'Löschung geplant',
+        fingerprint: 'Fingerabdruck',
+        price: 'Preis',
+        pricePerMonth: '{{price}}/Mo.',
+        statusRunning: 'Läuft',
+        statusStopped: 'Gestoppt',
+        adminBadge: 'Admin',
+        unitGB: '{{size}} GB',
+        unitKB: '{{size}} KB'
     },
     affiliate: {
         title: 'Partner',
-        description: 'Verdiene Belohnungen, indem du Freunde zu ClawHost einlädst.',
+        description:
+            'Verdiene Belohnungen, indem du Freunde zu ClawHost einlädst.',
         subtitle: 'Teile deinen Empfehlungslink und verdiene Belohnungen.',
         learnMore: 'Mehr über das Partnerprogramm erfahren',
         referralCode: 'Empfehlungscode',
@@ -2451,7 +2480,8 @@ const de: Translations = {
         codeAlreadyChanged: 'Dein Empfehlungscode wurde bereits angepasst.',
         codeUpdated: 'Empfehlungscode aktualisiert.',
         codeUpdateFailed: 'Empfehlungscode konnte nicht aktualisiert werden!',
-        invalidCodeLength: 'Der Code muss zwischen {{min}} und {{max}} Zeichen lang sein!',
+        invalidCodeLength:
+            'Der Code muss zwischen {{min}} und {{max}} Zeichen lang sein!',
         referralHistory: 'Empfehlungsverlauf',
         paymentHistory: 'Zahlungsverlauf',
         periodToday: 'Heute',
@@ -2460,68 +2490,108 @@ const de: Translations = {
         periodYear: 'Jahr',
         periodAll: 'Alle',
         confirmChangeTitle: 'Empfehlungscode ändern',
-        confirmChangeDescription: 'Bist du sicher? Diese Aktion ist dauerhaft und kann nicht rückgängig gemacht werden. Du kannst deinen Empfehlungscode nicht erneut ändern.',
+        confirmChangeDescription:
+            'Bist du sicher? Diese Aktion ist dauerhaft und kann nicht rückgängig gemacht werden. Du kannst deinen Empfehlungscode nicht erneut ändern.',
         noReferralsYet: 'Keine Empfehlungen',
-        noReferralsDescription: 'Teile deinen Empfehlungslink, um Belohnungen zu verdienen.',
+        noReferralsDescription:
+            'Teile deinen Empfehlungslink, um Belohnungen zu verdienen.',
         noPaymentsYet: 'Keine Zahlungen',
-        noPaymentsDescription: 'Wenn Ihre geworbenen Nutzer Käufe tätigen, werden ihre Zahlungen hier angezeigt.'
+        noPaymentsDescription:
+            'Wenn Ihre geworbenen Nutzer Käufe tätigen, werden ihre Zahlungen hier angezeigt.'
     },
     affiliateProgram: {
         title: 'Partnerprogramm',
-        description: 'Erfahre, wie das ClawHost-Partnerprogramm funktioniert, wie viel du verdienen kannst und welche Regeln für die Teilnahme gelten.',
+        description:
+            'Erfahre, wie das ClawHost-Partnerprogramm funktioniert, wie viel du verdienen kannst und welche Regeln für die Teilnahme gelten.',
         lastUpdated: 'Zuletzt aktualisiert: 1. April 2026',
         overviewTitle: '1. Übersicht',
-        overviewText: 'Das ClawHost-Partnerprogramm ermöglicht es dir, Belohnungen zu verdienen, indem du neue Benutzer an ClawHost empfiehlst. Wenn jemand einen Kauf tätigt, nachdem er ClawHost über deinen Empfehlungslink besucht hat, erhältst du eine Provision auf seine Zahlungen. Das Programm ist kostenlos und steht allen registrierten ClawHost-Benutzern zur Verfügung.',
+        overviewText:
+            'Das ClawHost-Partnerprogramm ermöglicht es dir, Belohnungen zu verdienen, indem du neue Benutzer an ClawHost empfiehlst. Wenn jemand einen Kauf tätigt, nachdem er ClawHost über deinen Empfehlungslink besucht hat, erhältst du eine Provision auf seine Zahlungen. Das Programm ist kostenlos und steht allen registrierten ClawHost-Benutzern zur Verfügung.',
         howItWorksTitle: '2. So funktioniert es',
         howItWorksText: 'Der Einstieg in das Partnerprogramm ist einfach:',
-        howItWorksStep1: 'Erstelle ein ClawHost-Konto. Ein einzigartiger Empfehlungscode wird automatisch für dich generiert.',
-        howItWorksStep2: 'Teile deinen Empfehlungslink mit Freunden, Kollegen oder deinem Publikum. Dein Link hat das Format: clawhost.cloud?ref=YOUR_CODE.',
-        howItWorksStep3: 'Wenn jemand einen Kauf tätigt, nachdem er ClawHost über deinen Link besucht hat, wird dies als deine Empfehlung erfasst.',
-        howItWorksStep4: 'Du verdienst eine Provision jedes Mal, wenn dein empfohlener Benutzer einen qualifizierenden Kauf tätigt.',
+        howItWorksStep1:
+            'Erstelle ein ClawHost-Konto. Ein einzigartiger Empfehlungscode wird automatisch für dich generiert.',
+        howItWorksStep2:
+            'Teile deinen Empfehlungslink mit Freunden, Kollegen oder deinem Publikum. Dein Link hat das Format: clawhost.cloud?ref=YOUR_CODE.',
+        howItWorksStep3:
+            'Wenn jemand einen Kauf tätigt, nachdem er ClawHost über deinen Link besucht hat, wird dies als deine Empfehlung erfasst.',
+        howItWorksStep4:
+            'Du verdienst eine Provision jedes Mal, wenn dein empfohlener Benutzer einen qualifizierenden Kauf tätigt.',
         earningsTitle: '3. Verdienste und Auszahlungen',
         earningsText: 'So funktionieren die Partnerverdienste:',
-        earningsCommission: 'Du verdienst eine Provision von 15% auf jeden qualifizierenden Kauf deiner empfohlenen Benutzer. Provisionen gelten sowohl für ClawHost Cloud- als auch ClawHost Go-Pläne.',
-        earningsMonthly: 'Bei monatlichen Abonnements verdienst du Provisionen für 1 Jahr ab dem Datum der Empfehlung.',
-        earningsYearly: 'Bei jährlichen Abonnements verdienst du eine Provision nur für das erste Jahr.',
-        earningsPayout: 'Der Mindestbetrag für eine Auszahlung beträgt 100 $ USD. Um eine Auszahlung anzufordern, kontaktiere unser Support-Team.',
-        earningsPaymentMethod: 'Auszahlungen werden über PayPal abgewickelt. Du musst bei der Auszahlungsanfrage eine gültige PayPal-E-Mail-Adresse angeben.',
-        earningsCurrency: 'Alle Verdienste werden in USD berechnet und angezeigt.',
+        earningsCommission:
+            'Du verdienst eine Provision von 15% auf jeden qualifizierenden Kauf deiner empfohlenen Benutzer. Provisionen gelten sowohl für ClawHost Cloud- als auch ClawHost Go-Pläne.',
+        earningsMonthly:
+            'Bei monatlichen Abonnements verdienst du Provisionen für 1 Jahr ab dem Datum der Empfehlung.',
+        earningsYearly:
+            'Bei jährlichen Abonnements verdienst du eine Provision nur für das erste Jahr.',
+        earningsPayout:
+            'Der Mindestbetrag für eine Auszahlung beträgt 100 $ USD. Um eine Auszahlung anzufordern, kontaktiere unser Support-Team.',
+        earningsPaymentMethod:
+            'Auszahlungen werden über PayPal abgewickelt. Du musst bei der Auszahlungsanfrage eine gültige PayPal-E-Mail-Adresse angeben.',
+        earningsCurrency:
+            'Alle Verdienste werden in USD berechnet und angezeigt.',
         referralCodeTitle: '4. Dein Empfehlungscode',
-        referralCodeText: 'Jeder Benutzer erhält bei der Registrierung einen einzigartigen Empfehlungscode. Du kannst ihn einmal anpassen, um ihn einprägsamer zu machen:',
-        referralCodeUnique: 'Dein Empfehlungscode ist einzigartig für dein Konto und kann nicht mit einem anderen Benutzer geteilt oder übertragen werden.',
-        referralCodeOneChange: 'Du kannst deinen Empfehlungscode genau einmal anpassen. Wähle sorgfältig — diese Änderung ist dauerhaft und kann nicht rückgängig gemacht werden.',
-        referralCodeFormat: 'Empfehlungscodes dürfen nur Buchstaben, Zahlen, Bindestriche und Unterstriche enthalten.',
+        referralCodeText:
+            'Jeder Benutzer erhält bei der Registrierung einen einzigartigen Empfehlungscode. Du kannst ihn einmal anpassen, um ihn einprägsamer zu machen:',
+        referralCodeUnique:
+            'Dein Empfehlungscode ist einzigartig für dein Konto und kann nicht mit einem anderen Benutzer geteilt oder übertragen werden.',
+        referralCodeOneChange:
+            'Du kannst deinen Empfehlungscode genau einmal anpassen. Wähle sorgfältig — diese Änderung ist dauerhaft und kann nicht rückgängig gemacht werden.',
+        referralCodeFormat:
+            'Empfehlungscodes dürfen nur Buchstaben, Zahlen, Bindestriche und Unterstriche enthalten.',
         referralWindowTitle: '5. Empfehlungs-Zuordnungsfenster',
-        referralWindowText: 'Eine Empfehlung wird dir für 3 Monate ab dem Moment zugeordnet, in dem der empfohlene Benutzer ClawHost zum ersten Mal über deinen Link besucht. Wenn der empfohlene Benutzer innerhalb dieses 3-monatigen Fensters keinen Kauf tätigt, verfällt die Empfehlung und es wird keine Provision verdient. Wenn der Benutzer über einen anderen Empfehlungslink besucht, ersetzt die neue Empfehlung die vorherige.',
+        referralWindowText:
+            'Eine Empfehlung wird dir für 3 Monate ab dem Moment zugeordnet, in dem der empfohlene Benutzer ClawHost zum ersten Mal über deinen Link besucht. Wenn der empfohlene Benutzer innerhalb dieses 3-monatigen Fensters keinen Kauf tätigt, verfällt die Empfehlung und es wird keine Provision verdient. Wenn der Benutzer über einen anderen Empfehlungslink besucht, ersetzt die neue Empfehlung die vorherige.',
         eligibilityTitle: '6. Teilnahmeberechtigung',
-        eligibilityText: 'Um am Partnerprogramm teilzunehmen, musst du die folgenden Voraussetzungen erfüllen:',
+        eligibilityText:
+            'Um am Partnerprogramm teilzunehmen, musst du die folgenden Voraussetzungen erfüllen:',
         eligibilityAccount: 'Du musst ein registriertes ClawHost-Konto haben.',
-        eligibilityStanding: 'Dein Konto muss in gutem Zustand sein, ohne Verstöße gegen die Richtlinien.',
-        eligibilityAge: 'Du musst mindestens 18 Jahre alt sein oder das Volljährigkeitsalter in deiner Gerichtsbarkeit erreicht haben.',
+        eligibilityStanding:
+            'Dein Konto muss in gutem Zustand sein, ohne Verstöße gegen die Richtlinien.',
+        eligibilityAge:
+            'Du musst mindestens 18 Jahre alt sein oder das Volljährigkeitsalter in deiner Gerichtsbarkeit erreicht haben.',
         rulesTitle: '7. Programmregeln',
-        rulesText: 'Um die Integrität des Partnerprogramms zu wahren, gelten die folgenden Regeln:',
-        rulesNoSelfReferral: 'Selbstempfehlungen sind streng verboten. Du darfst nicht deine eigenen Konten oder Konten, die du kontrollierst, empfehlen.',
-        rulesNoFakeAccounts: 'Das Erstellen gefälschter Konten, automatisierter Anmeldungen oder die Verwendung von Bots zur Generierung von Empfehlungen ist verboten.',
-        rulesNoSpam: 'Das Versenden unerwünschter Massennachrichten (Spam) zur Bewerbung deines Empfehlungslinks ist nicht gestattet.',
-        rulesNoMisrepresentation: 'Du darfst ClawHost, seine Dienste oder das Partnerprogramm in keiner Weise falsch darstellen.',
-        rulesNoIncentivized: 'Das Anbieten direkter finanzieller Anreize (z. B. Benutzer dafür zu bezahlen, sich über deinen Link anzumelden) ist nicht gestattet.',
+        rulesText:
+            'Um die Integrität des Partnerprogramms zu wahren, gelten die folgenden Regeln:',
+        rulesNoSelfReferral:
+            'Selbstempfehlungen sind streng verboten. Du darfst nicht deine eigenen Konten oder Konten, die du kontrollierst, empfehlen.',
+        rulesNoFakeAccounts:
+            'Das Erstellen gefälschter Konten, automatisierter Anmeldungen oder die Verwendung von Bots zur Generierung von Empfehlungen ist verboten.',
+        rulesNoSpam:
+            'Das Versenden unerwünschter Massennachrichten (Spam) zur Bewerbung deines Empfehlungslinks ist nicht gestattet.',
+        rulesNoMisrepresentation:
+            'Du darfst ClawHost, seine Dienste oder das Partnerprogramm in keiner Weise falsch darstellen.',
+        rulesNoIncentivized:
+            'Das Anbieten direkter finanzieller Anreize (z. B. Benutzer dafür zu bezahlen, sich über deinen Link anzumelden) ist nicht gestattet.',
         terminationTitle: '8. Verstoß und Kündigung',
-        terminationText: 'Jeder Verstoß gegen diese Regeln führt zum sofortigen Verlust aller ausstehenden und verdienten Belohnungen. ClawHost behält sich das Recht vor, dein Konto vom Partnerprogramm zu sperren oder dauerhaft auszuschließen. In schweren Fällen kann auch dein ClawHost-Konto gekündigt werden. Alle Entscheidungen bezüglich Verstößen sind endgültig.',
+        terminationText:
+            'Jeder Verstoß gegen diese Regeln führt zum sofortigen Verlust aller ausstehenden und verdienten Belohnungen. ClawHost behält sich das Recht vor, dein Konto vom Partnerprogramm zu sperren oder dauerhaft auszuschließen. In schweren Fällen kann auch dein ClawHost-Konto gekündigt werden. Alle Entscheidungen bezüglich Verstößen sind endgültig.',
         marketingTitle: '9. Wie man wirbt',
-        marketingText: 'Es gibt viele kreative und legitime Möglichkeiten, deinen Empfehlungslink zu teilen und deine Einnahmen zu steigern:',
-        marketingSocial: 'Teile deinen Link auf Social-Media-Plattformen wie X, LinkedIn, Reddit und Facebook. Schreibe über deine Erfahrung mit ClawHost und füge deinen Empfehlungslink ein.',
-        marketingBlog: 'Schreibe Blogbeiträge, Tutorials oder Bewertungen über ClawHost. Füge deinen Empfehlungslink natürlich in den Inhalt ein.',
-        marketingVideo: 'Erstelle Videoinhalte auf YouTube oder TikTok, die zeigen, wie du ClawHost zum Bereitstellen und Verwalten von KI-Agenten verwendest.',
-        marketingCommunity: 'Nimm an Entwicklergemeinschaften, Foren und Discord-Servern teil. Wenn jemand nach Cloud-Hosting oder KI-Agenten-Bereitstellung fragt, empfehle ClawHost mit deinem Link.',
-        marketingNewsletter: 'Wenn du einen Newsletter oder eine E-Mail-Liste betreibst, erwähne ClawHost in einer relevanten Ausgabe mit deinem Empfehlungslink.',
-        marketingComparison: 'Schreibe ehrliche Vergleichsartikel oder Leitfäden, die hervorheben, was ClawHost von anderen Plattformen unterscheidet.',
+        marketingText:
+            'Es gibt viele kreative und legitime Möglichkeiten, deinen Empfehlungslink zu teilen und deine Einnahmen zu steigern:',
+        marketingSocial:
+            'Teile deinen Link auf Social-Media-Plattformen wie X, LinkedIn, Reddit und Facebook. Schreibe über deine Erfahrung mit ClawHost und füge deinen Empfehlungslink ein.',
+        marketingBlog:
+            'Schreibe Blogbeiträge, Tutorials oder Bewertungen über ClawHost. Füge deinen Empfehlungslink natürlich in den Inhalt ein.',
+        marketingVideo:
+            'Erstelle Videoinhalte auf YouTube oder TikTok, die zeigen, wie du ClawHost zum Bereitstellen und Verwalten von KI-Agenten verwendest.',
+        marketingCommunity:
+            'Nimm an Entwicklergemeinschaften, Foren und Discord-Servern teil. Wenn jemand nach Cloud-Hosting oder KI-Agenten-Bereitstellung fragt, empfehle ClawHost mit deinem Link.',
+        marketingNewsletter:
+            'Wenn du einen Newsletter oder eine E-Mail-Liste betreibst, erwähne ClawHost in einer relevanten Ausgabe mit deinem Empfehlungslink.',
+        marketingComparison:
+            'Schreibe ehrliche Vergleichsartikel oder Leitfäden, die hervorheben, was ClawHost von anderen Plattformen unterscheidet.',
         changesToProgramTitle: '10. Änderungen am Programm',
-        changesToProgramText: 'ClawHost behält sich das Recht vor, das Partnerprogramm jederzeit ohne vorherige Ankündigung zu ändern, auszusetzen oder einzustellen. Dies umfasst Änderungen an Provisionssätzen, Empfehlungsfenstern, Auszahlungsschwellen und Programmregeln. Die fortgesetzte Teilnahme nach Änderungen gilt als Akzeptanz der aktualisierten Bedingungen.',
+        changesToProgramText:
+            'ClawHost behält sich das Recht vor, das Partnerprogramm jederzeit ohne vorherige Ankündigung zu ändern, auszusetzen oder einzustellen. Dies umfasst Änderungen an Provisionssätzen, Empfehlungsfenstern, Auszahlungsschwellen und Programmregeln. Die fortgesetzte Teilnahme nach Änderungen gilt als Akzeptanz der aktualisierten Bedingungen.',
         getStartedTitle: '11. Loslegen',
-        getStartedText: 'Bereit zu verdienen? Gehe zu deinem Partner-Dashboard, um deinen Empfehlungslink zu erhalten und beginne, ihn mit deinem Netzwerk zu teilen.',
+        getStartedText:
+            'Bereit zu verdienen? Gehe zu deinem Partner-Dashboard, um deinen Empfehlungslink zu erhalten und beginne, ihn mit deinem Netzwerk zu teilen.',
         getStartedButton: 'Zum Partner-Dashboard',
         contactTitle: '12. Kontakt',
-        contactText: 'Wenn du Fragen zum Partnerprogramm hast, Hilfe mit deinem Empfehlungscode benötigst oder einen Verstoß melden möchtest, kontaktiere uns unter'
+        contactText:
+            'Wenn du Fragen zum Partnerprogramm hast, Hilfe mit deinem Empfehlungscode benötigst oder einen Verstoß melden möchtest, kontaktiere uns unter'
     }
 } as const
 

@@ -29,8 +29,12 @@ const run = async () => {
         .where(sql`${users.referredBy} IS NOT NULL`)
 
     console.log(`Referral rows to delete: ${referralCount[0].count}`)
-    console.log(`Users with referral codes to clear: ${usersWithCodes[0].count}`)
-    console.log(`Users with referredBy to clear: ${usersWithReferredBy[0].count}`)
+    console.log(
+        `Users with referral codes to clear: ${usersWithCodes[0].count}`
+    )
+    console.log(
+        `Users with referredBy to clear: ${usersWithReferredBy[0].count}`
+    )
 
     if (dryRun) {
         console.log('\nNo changes made. Run with --apply to execute.')
@@ -44,13 +48,11 @@ const run = async () => {
     await db.delete(referrals)
 
     console.log('Resetting referral fields on users...')
-    await db
-        .update(users)
-        .set({
-            referralCode: null,
-            referralCodeChanged: false,
-            referredBy: null
-        })
+    await db.update(users).set({
+        referralCode: null,
+        referralCodeChanged: false,
+        referredBy: null
+    })
 
     console.log('\nDone. All referral data has been reset.')
     process.exit(0)

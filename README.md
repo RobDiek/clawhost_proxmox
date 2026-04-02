@@ -73,43 +73,43 @@ clawhost/
 
 ### Tech Stack
 
-| Layer                   | Technology                                                                                                                      |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **API Framework**       | [Hono](https://hono.dev) on Node.js                                                                                             |
-| **Database**            | PostgreSQL ([Neon](https://neon.tech)) with [Drizzle ORM](https://orm.drizzle.team)                                             |
-| **Authentication**      | [Firebase](https://firebase.google.com) (OTP email, Google, GitHub)                                                             |
-| **Server Provisioning** | [Hetzner Cloud](https://docs.hetzner.cloud)                                                                                     |
-| **Remote Management**   | SSH2 for remote command execution, file management, and diagnostics                                                             |
-| **Browser Terminal**    | [xterm.js](https://xtermjs.org) with WebSocket proxy over SSH2                                                                  |
-| **Text-to-Speech**      | [Piper](https://github.com/rhasspy/piper) for local neural TTS synthesis                                                        |
-| **DNS**                 | [Cloudflare API](https://developers.cloudflare.com/api)                                                                         |
-| **Billing**             | [Polar.sh](https://polar.sh)                                                                                                    |
-| **Email**               | [Resend](https://resend.com) with React Email                                                                                   |
-| **Frontend**            | [React 18](https://react.dev) + [Vite](https://vitejs.dev)                                                                      |
-| **UI Components**       | [shadcn/ui](https://ui.shadcn.com) + [Radix UI](https://radix-ui.com) + [Tailwind CSS](https://tailwindcss.com)                 |
-| **Visual Canvas**       | [React Flow](https://reactflow.dev) with [Dagre](https://github.com/dagrejs/dagre) layout                                       |
-| **Code Editor**         | [CodeMirror](https://codemirror.net) via @uiw/react-codemirror                                                                  |
-| **State Management**    | [Zustand](https://zustand-demo.pmnd.rs)                                                                                         |
-| **Data Fetching**       | [TanStack React Query](https://tanstack.com/query)                                                                              |
-| **Icons**               | [Phosphor Icons](https://phosphoricons.com)                                                                                     |
-| **Animations**          | [Framer Motion](https://www.framer.com/motion)                                                                                  |
-| **Blog**                | MDX with frontmatter                                                                                                            |
-| **Mobile**              | [React Native](https://reactnative.dev) + [Expo](https://expo.dev)                                                              |
-| **Desktop**             | [Electron](https://www.electronjs.org) with Electron Forge                                                                      |
-| **Monorepo**            | [Turborepo](https://turbo.build) + [pnpm](https://pnpm.io)                                                                      |
+| Layer                   | Technology                                                                                                      |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **API Framework**       | [Hono](https://hono.dev) on Node.js                                                                             |
+| **Database**            | PostgreSQL ([Neon](https://neon.tech)) with [Drizzle ORM](https://orm.drizzle.team)                             |
+| **Authentication**      | [Firebase](https://firebase.google.com) (OTP email, Google, GitHub)                                             |
+| **Server Provisioning** | [Hetzner Cloud](https://docs.hetzner.cloud)                                                                     |
+| **Remote Management**   | SSH2 for remote command execution, file management, and diagnostics                                             |
+| **Browser Terminal**    | [xterm.js](https://xtermjs.org) with WebSocket proxy over SSH2                                                  |
+| **Text-to-Speech**      | [Piper](https://github.com/rhasspy/piper) for local neural TTS synthesis                                        |
+| **DNS**                 | [Cloudflare API](https://developers.cloudflare.com/api)                                                         |
+| **Billing**             | [Polar.sh](https://polar.sh)                                                                                    |
+| **Email**               | [Resend](https://resend.com) with React Email                                                                   |
+| **Frontend**            | [React 18](https://react.dev) + [Vite](https://vitejs.dev)                                                      |
+| **UI Components**       | [shadcn/ui](https://ui.shadcn.com) + [Radix UI](https://radix-ui.com) + [Tailwind CSS](https://tailwindcss.com) |
+| **Visual Canvas**       | [React Flow](https://reactflow.dev) with [Dagre](https://github.com/dagrejs/dagre) layout                       |
+| **Code Editor**         | [CodeMirror](https://codemirror.net) via @uiw/react-codemirror                                                  |
+| **State Management**    | [Zustand](https://zustand-demo.pmnd.rs)                                                                         |
+| **Data Fetching**       | [TanStack React Query](https://tanstack.com/query)                                                              |
+| **Icons**               | [Phosphor Icons](https://phosphoricons.com)                                                                     |
+| **Animations**          | [Framer Motion](https://www.framer.com/motion)                                                                  |
+| **Blog**                | MDX with frontmatter                                                                                            |
+| **Mobile**              | [React Native](https://reactnative.dev) + [Expo](https://expo.dev)                                              |
+| **Desktop**             | [Electron](https://www.electronjs.org) with Electron Forge                                                      |
+| **Monorepo**            | [Turborepo](https://turbo.build) + [pnpm](https://pnpm.io)                                                      |
 
 ### Database Schema
 
-| Table          | Purpose                                                                  |
-| -------------- | ------------------------------------------------------------------------ |
-| `users`        | Firebase-authenticated users with Polar customer IDs and auth methods    |
-| `claws`        | Cloud server instances (status, IP, subdomain, etc)                      |
-| `pendingClaws` | Temporary storage for in-progress checkout sessions                      |
-| `sshKeys`      | SSH public keys with Hetzner key IDs                                     |
-| `volumes`      | Persistent storage volumes attached to claws                             |
-| `otpCodes`     | OTP authentication codes with expiration and attempt tracking            |
-| `rateLimits`   | Rate limiting for authentication endpoints                               |
-| `clawExports`  | Export/backup records with file metadata                                 |
+| Table          | Purpose                                                               |
+| -------------- | --------------------------------------------------------------------- |
+| `users`        | Firebase-authenticated users with Polar customer IDs and auth methods |
+| `claws`        | Cloud server instances (status, IP, subdomain, etc)                   |
+| `pendingClaws` | Temporary storage for in-progress checkout sessions                   |
+| `sshKeys`      | SSH public keys with Hetzner key IDs                                  |
+| `volumes`      | Persistent storage volumes attached to claws                          |
+| `otpCodes`     | OTP authentication codes with expiration and attempt tracking         |
+| `rateLimits`   | Rate limiting for authentication endpoints                            |
+| `clawExports`  | Export/backup records with file metadata                              |
 
 ## Self-Hosting
 

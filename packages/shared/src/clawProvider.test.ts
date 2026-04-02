@@ -1,4 +1,4 @@
-import { clawProvider } from '@'
+import { clawProvider } from '#shared/index'
 
 describe('clawProvider', () => {
     it('has hetzner provider', () => {

@@ -79,7 +79,8 @@ const checkClawHubUpdates = async (c: AuthenticatedContext) => {
                 output,
                 'updates'
             )
-            const updates: ClawHubInstalledSkill[] = rawItems.map(normalizeUpdate)
+            const updates: ClawHubInstalledSkill[] =
+                rawItems.map(normalizeUpdate)
 
             return ok(c, { updates }, t('api.clawHubUpdatesFetched'))
         } catch {

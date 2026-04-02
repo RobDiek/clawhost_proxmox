@@ -280,7 +280,11 @@ const AgentChat: FC<AgentChatProps> = ({
                         </div>
                     ))}
                     <ChatTypingIndicator
-                        state={readOnlyTyping ? CHAT_TYPING_INDICATOR.WRITING : null}
+                        state={
+                            readOnlyTyping
+                                ? CHAT_TYPING_INDICATOR.WRITING
+                                : null
+                        }
                     />
                 </div>
                 <div className='bg-background border-border border-t p-3'>
@@ -356,7 +360,8 @@ const AgentChat: FC<AgentChatProps> = ({
 
     const isConnected = connectionState === GATEWAY_CONNECTION_STATE.CONNECTED
     const isError =
-        connectionState === GATEWAY_CONNECTION_STATE.ERROR || connectionState === GATEWAY_CONNECTION_STATE.DISCONNECTED
+        connectionState === GATEWAY_CONNECTION_STATE.ERROR ||
+        connectionState === GATEWAY_CONNECTION_STATE.DISCONNECTED
 
     if (isLoading) {
         return (
@@ -438,7 +443,9 @@ const AgentChat: FC<AgentChatProps> = ({
                 ref={chatInputRef}
                 isConnected={isConnected}
                 isStreaming={isStreaming}
-                isProcessing={typingIndicator === CHAT_TYPING_INDICATOR.THINKING}
+                isProcessing={
+                    typingIndicator === CHAT_TYPING_INDICATOR.THINKING
+                }
                 onSend={handleSend}
                 onAbort={abortResponse}
                 allowAttach

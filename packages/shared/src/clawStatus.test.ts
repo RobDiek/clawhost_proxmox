@@ -1,4 +1,4 @@
-import { clawStatus } from '@'
+import { clawStatus } from '#shared/index'
 
 describe('clawStatus', () => {
     it('has all expected status values', () => {

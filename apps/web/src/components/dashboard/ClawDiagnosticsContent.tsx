@@ -30,10 +30,16 @@ const ClawDiagnosticsContent: FC<ClawDiagnosticsContentProps> = ({
     const handleRepair = () => {
         repair.mutate(clawId, {
             onSuccess: () => {
-                showToast(t('dashboard.diagnosticsRepairSuccess'), TOAST_TYPE.SUCCESS)
+                showToast(
+                    t('dashboard.diagnosticsRepairSuccess'),
+                    TOAST_TYPE.SUCCESS
+                )
             },
             onError: (err) => {
-                showToast(err.message || t('api.failedToRepairClaw'), TOAST_TYPE.ERROR)
+                showToast(
+                    err.message || t('api.failedToRepairClaw'),
+                    TOAST_TYPE.ERROR
+                )
             }
         })
     }

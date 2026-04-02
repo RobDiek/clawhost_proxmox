@@ -9,7 +9,8 @@ import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { api, getLocale } from '@/lib'
 import { useUserStats, useBillingHistory } from '@/hooks'
-import { Badge, Card, CardContent, Button } from '@/components/ui'
+import { Badge } from '@/components/ui'
+import { BillingOrderCard } from '@/components/billing'
 import {
     Header,
     LandingFooter,
@@ -23,7 +24,6 @@ import {
 import {
     CircleNotchIcon,
     ReceiptIcon,
-    DownloadSimpleIcon,
     ArrowSquareOutIcon
 } from '@phosphor-icons/react'
 import BillingSkeleton from '@/pages/BillingSkeleton'
@@ -268,156 +268,22 @@ const Billing: FC = (): ReactNode => {
                                 <div className='space-y-1.5'>
                                     {allBillingItems.map(
                                         (order: BillingOrder) => (
-                                            <Card key={order.id}>
-                                                <CardContent className='py-4'>
-                                                    <div className='hidden sm:flex sm:items-center sm:justify-between'>
-                                                        <div>
-                                                            <h3 className='font-semibold'>
-                                                                {order.productName ||
-                                                                    getBillingReasonLabel(
-                                                                        order.billingReason
-                                                                    )}
-                                                            </h3>
-                                                            <p className='text-muted-foreground text-sm'>
-                                                                {formatDate(
-                                                                    order.createdAt
-                                                                )}
-                                                            </p>
-                                                        </div>
-                                                        <div className='flex items-center gap-4'>
-                                                            <div className='text-right text-sm'>
-                                                                <div className='flex items-center gap-2 font-medium'>
-                                                                    {order.discountAmount >
-                                                                        0 && (
-                                                                        <span className='text-muted-foreground line-through'>
-                                                                            {formatCurrency(
-                                                                                order.subtotalAmount,
-                                                                                order.currency
-                                                                            )}
-                                                                        </span>
-                                                                    )}
-                                                                    <span>
-                                                                        {formatCurrency(
-                                                                            order.totalAmount,
-                                                                            order.currency
-                                                                        )}
-                                                                    </span>
-                                                                </div>
-                                                                {order.discountName && (
-                                                                    <p className='text-muted-foreground text-xs'>
-                                                                        {t(
-                                                                            'billing.couponApplied',
-                                                                            {
-                                                                                name: order.discountName
-                                                                            }
-                                                                        )}
-                                                                    </p>
-                                                                )}
-                                                            </div>
-                                                            {getStatusBadge(
-                                                                order.status
-                                                            )}
-                                                            <Button
-                                                                variant='ghost'
-                                                                size='icon'
-                                                                onClick={() =>
-                                                                    handleViewInvoice(
-                                                                        order.id
-                                                                    )
-                                                                }
-                                                                disabled={loadingInvoiceIds.has(
-                                                                    order.id
-                                                                )}
-                                                                title={t(
-                                                                    'billing.viewInvoice'
-                                                                )}
-                                                            >
-                                                                {loadingInvoiceIds.has(
-                                                                    order.id
-                                                                ) ? (
-                                                                    <CircleNotchIcon className='h-5 w-5 animate-spin' />
-                                                                ) : (
-                                                                    <DownloadSimpleIcon className='h-5 w-5' />
-                                                                )}
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                    <div className='flex flex-col gap-3 sm:hidden'>
-                                                        <div className='flex items-start justify-between'>
-                                                            <div>
-                                                                <h3 className='font-semibold'>
-                                                                    {order.productName ||
-                                                                        getBillingReasonLabel(
-                                                                            order.billingReason
-                                                                        )}
-                                                                </h3>
-                                                                <p className='text-muted-foreground text-sm'>
-                                                                    {formatDate(
-                                                                        order.createdAt
-                                                                    )}
-                                                                </p>
-                                                            </div>
-                                                            {getStatusBadge(
-                                                                order.status
-                                                            )}
-                                                        </div>
-                                                        <div className='flex items-center justify-between'>
-                                                            <div className='text-sm'>
-                                                                <div className='flex items-center gap-2 font-medium'>
-                                                                    {order.discountAmount >
-                                                                        0 && (
-                                                                        <span className='text-muted-foreground line-through'>
-                                                                            {formatCurrency(
-                                                                                order.subtotalAmount,
-                                                                                order.currency
-                                                                            )}
-                                                                        </span>
-                                                                    )}
-                                                                    <span>
-                                                                        {formatCurrency(
-                                                                            order.totalAmount,
-                                                                            order.currency
-                                                                        )}
-                                                                    </span>
-                                                                </div>
-                                                                {order.discountName && (
-                                                                    <p className='text-muted-foreground text-xs'>
-                                                                        {t(
-                                                                            'billing.couponApplied',
-                                                                            {
-                                                                                name: order.discountName
-                                                                            }
-                                                                        )}
-                                                                    </p>
-                                                                )}
-                                                            </div>
-                                                            <Button
-                                                                variant='ghost'
-                                                                size='icon'
-                                                                onClick={() =>
-                                                                    handleViewInvoice(
-                                                                        order.id
-                                                                    )
-                                                                }
-                                                                disabled={loadingInvoiceIds.has(
-                                                                    order.id
-                                                                )}
-                                                                title={t(
-                                                                    'billing.viewInvoice'
-                                                                )}
-                                                            >
-                                                                {loadingInvoiceIds.has(
-                                                                    order.id
-                                                                ) ? (
-                                                                    <CircleNotchIcon className='h-5 w-5 animate-spin' />
-                                                                ) : (
-                                                                    <DownloadSimpleIcon className='h-5 w-5' />
-                                                                )}
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
+                                            <BillingOrderCard
+                                                key={order.id}
+                                                order={order}
+                                                loadingInvoiceIds={
+                                                    loadingInvoiceIds
+                                                }
+                                                onViewInvoice={
+                                                    handleViewInvoice
+                                                }
+                                                formatDate={formatDate}
+                                                formatCurrency={formatCurrency}
+                                                getStatusBadge={getStatusBadge}
+                                                getBillingReasonLabel={
+                                                    getBillingReasonLabel
+                                                }
+                                            />
                                         )
                                     )}
 

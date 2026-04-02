@@ -17,7 +17,13 @@ const useUpdateReferralCode = () => {
             api.updateReferralCode(data),
         onSuccess: (_result, data) => {
             queryClient.setQueryData<UserProfile>(PROFILE_QUERY_KEY, (old) =>
-                old ? { ...old, referralCode: data.code, referralCodeChanged: true } : old
+                old
+                    ? {
+                          ...old,
+                          referralCode: data.code,
+                          referralCodeChanged: true
+                      }
+                    : old
             )
             queryClient.invalidateQueries({ queryKey: AFFILIATE_QUERY_KEY })
             queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY })

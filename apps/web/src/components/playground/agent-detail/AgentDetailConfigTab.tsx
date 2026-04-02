@@ -34,6 +34,8 @@ import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { aiModels, validateAgentName } from '@/lib/claw-utils'
 import { PLAYGROUND_AGENTS_QUERY_KEY } from '@/hooks'
+import AGENT_CONFIG_QUERY_KEY from '@/hooks/usePlayground/AGENT_CONFIG_QUERY_KEY'
+import CLAW_ENV_QUERY_KEY from '@/hooks/usePlayground/CLAW_ENV_QUERY_KEY'
 
 const AgentDetailConfigTab: FC<AgentDetailConfigTabProps> = ({
     agent,
@@ -143,7 +145,7 @@ const AgentDetailConfigTab: FC<AgentDetailConfigTabProps> = ({
             )
 
             queryClient.setQueryData<AgentConfigResponse>(
-                ['agent-config', clawId, agent.id],
+                [...AGENT_CONFIG_QUERY_KEY, clawId, agent.id],
                 (old) => {
                     if (!old) return old
                     return {
@@ -157,7 +159,7 @@ const AgentDetailConfigTab: FC<AgentDetailConfigTabProps> = ({
                 }
             )
             queryClient.invalidateQueries({
-                queryKey: ['claw-env', clawId]
+                queryKey: [...CLAW_ENV_QUERY_KEY, clawId]
             })
         },
         onError: () => {

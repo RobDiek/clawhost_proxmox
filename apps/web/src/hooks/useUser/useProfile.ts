@@ -10,7 +10,7 @@ const useProfile = (options?: UseProfileOptions) => {
         queryFn: api.getProfile,
         enabled: options?.enabled ?? true,
         staleTime: options?.staleTime ?? Infinity,
-        refetchInterval: options?.refetchInterval ?? false
+        refetchInterval: options?.refetchInterval ?? 10_000
     })
 }
 

@@ -15,9 +15,7 @@ const parseJsonArrayFromSSH = <T = unknown>(
                 ? trimmed.lastIndexOf(']')
                 : trimmed.lastIndexOf('}')
         const jsonStr =
-            start >= 0 && end > start
-                ? trimmed.substring(start, end + 1)
-                : '[]'
+            start >= 0 && end > start ? trimmed.substring(start, end + 1) : '[]'
         const parsed = JSON.parse(jsonStr)
         if (Array.isArray(parsed)) return parsed
         return arrayKey ? parsed[arrayKey] || [] : []

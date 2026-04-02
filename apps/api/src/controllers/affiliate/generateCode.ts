@@ -22,7 +22,11 @@ const generateCode = async (c: AuthenticatedContext) => {
         }
 
         if (user[0].referralCode) {
-            return ok(c, { referralCode: user[0].referralCode }, t('api.affiliateFetched'))
+            return ok(
+                c,
+                { referralCode: user[0].referralCode },
+                t('api.affiliateFetched')
+            )
         }
 
         let code = generateReferralCode()

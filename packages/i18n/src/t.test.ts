@@ -1,5 +1,5 @@
-import { t, loadLanguage } from '@'
-import { setLanguage } from '@'
+import { t, loadLanguage } from '#i18n/index'
+import { setLanguage } from '#i18n/index'
 
 describe('t', () => {
     beforeEach(() => {

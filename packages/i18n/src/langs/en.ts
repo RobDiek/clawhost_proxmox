@@ -324,8 +324,7 @@ const en = {
         failedToDeleteClaw: 'Failed to delete claw!',
         failedToCreateClaw: 'Failed to create claw!',
         invalidProvider: 'Invalid provider!',
-        providerNotAllowed:
-            'This provider is not currently available!',
+        providerNotAllowed: 'This provider is not currently available!',
         invalidPlan: 'Invalid plan selected!',
         planBelowMinimumMemory:
             'This plan does not meet the minimum memory requirement!',
@@ -352,8 +351,10 @@ const en = {
         invalidPeriod: 'Invalid period filter!',
         referralCodeUpdated: 'Referral code updated successfully.',
         failedToUpdateReferralCode: 'Failed to update referral code!',
-        invalidReferralCodeLength: 'Referral code must be between {{min}} and {{max}} characters!',
-        invalidReferralCodeFormat: 'Referral code can only contain letters, numbers, hyphens, and underscores!',
+        invalidReferralCodeLength:
+            'Referral code must be between {{min}} and {{max}} characters!',
+        invalidReferralCodeFormat:
+            'Referral code can only contain letters, numbers, hyphens, and underscores!',
         referralCodeAlreadyChanged: 'Referral code can only be changed once!',
         referralCodeTaken: 'This referral code is already taken!',
         referralCodeGenerated: 'Referral code generated.',
@@ -473,7 +474,8 @@ const en = {
         whatsappAlreadyPaired: 'WhatsApp is already paired!',
         whatsappVersionUnsupported:
             'This version does not support channel configuration from the dashboard. Use the Terminal tab to configure manually or upgrade OpenClaw.',
-        featureVersionUnsupported: 'This feature is not supported on version {{version}}. Please update OpenClaw or use the Terminal to manage this manually.',
+        featureVersionUnsupported:
+            'This feature is not supported on version {{version}}. Please update OpenClaw or use the Terminal to manage this manually.',
         bindingsFetched: 'Bindings fetched successfully.',
         bindingsFetchFailed: 'Could not fetch bindings!',
         bindingsUpdated: 'Bindings updated successfully.',
@@ -1553,8 +1555,7 @@ const en = {
             'Dashboard to manage claws, start, stop, restart, and delete instances',
         release1Feature3:
             '18 server plans with dedicated vCPU, RAM, and storage options',
-        release1Feature4:
-            '6 server locations across US, Europe, and Asia',
+        release1Feature4: '6 server locations across US, Europe, and Asia',
         release1Feature5: 'SSH key management for passwordless server access',
         release1Feature6: 'Additional volume storage support up to 10 TB',
         release1Feature7: 'Magic link authentication, no passwords needed',
@@ -1816,7 +1817,8 @@ const en = {
             'Channel configuration is not available on this version. You can connect manually using the Terminal tab or upgrade OpenClaw.',
         channelsVersionUnsupportedDocs: 'View setup guide',
         featureVersionUnsupported: '{{feature}} not supported on {{version}}',
-        featureVersionUnsupportedDescription: 'We do not support {{feature}} management with this version through our UI. You can still manage it via SSH, Terminal or the OpenClaw control panel.',
+        featureVersionUnsupportedDescription:
+            'We do not support {{feature}} management with this version through our UI. You can still manage it via SSH, Terminal or the OpenClaw control panel.',
         featureVersionUnsupportedButton: 'Go to Versions',
         featureVersionUnsupportedSupported: 'Supported versions:',
         featureVersionUnsupportedNewer: 'newer versions',
@@ -1924,6 +1926,9 @@ const en = {
         versionDownloads: '{{count}} downloads',
         versionChangelog: 'Changelog',
         versionOutdated: 'Outdated',
+        versionSupported: 'Supported',
+        versionSupportedTooltip:
+            'This version allows you to operate OpenClaw via the UI',
         versionInstallConfirmTitle: 'Install Version {{version}}',
         versionInstallConfirmDescription:
             'Switching versions may cause unexpected behavior or require additional manual configuration, especially for newer versions that have not been fully verified yet. Are you sure you want to proceed?',
@@ -1970,8 +1975,7 @@ const en = {
         personalInfoPayment:
             'Payment information (processed securely by third-party providers)',
         serverInfoTitle: 'Server Information',
-        serverInfoConfig:
-            'Server configuration and status',
+        serverInfoConfig: 'Server configuration and status',
         serverInfoIp: 'Server IP address and location',
         serverInfoResources: 'Resource allocation (CPU, RAM, storage)',
         useTitle: '4. How We Use Your Information',
@@ -2280,7 +2284,8 @@ const en = {
         genericErrorDescription: 'Something went wrong. Please try again.',
         genericEmptyDescription: 'Nothing to show here yet.',
         failedToLoadUsers: 'Failed to load users!',
-        failedToLoadUsersDescription: 'Something went wrong while loading users. Please try again.',
+        failedToLoadUsersDescription:
+            'Something went wrong while loading users. Please try again.',
         failedToLoadUserDetail: 'Failed to load user details!',
         userDetail: 'User Details',
         userInfo: 'User Info',
@@ -2348,7 +2353,23 @@ const en = {
         feature: 'Feature',
         sentAt: 'Sent',
         fileSize: 'Size',
-        registered: 'Registered'
+        registered: 'Registered',
+        status: 'Status',
+        ip: 'IP',
+        plan: 'Plan',
+        location: 'Location',
+        subdomain: 'Subdomain',
+        subscription: 'Subscription',
+        billingInterval: 'Billing',
+        deletionScheduled: 'Deletion Scheduled',
+        fingerprint: 'Fingerprint',
+        price: 'Price',
+        pricePerMonth: '{{price}}/mo',
+        statusRunning: 'Running',
+        statusStopped: 'Stopped',
+        adminBadge: 'Admin',
+        unitGB: '{{size}} GB',
+        unitKB: '{{size}} KB'
     },
     affiliate: {
         title: 'Affiliate',
@@ -2363,7 +2384,8 @@ const en = {
         codeAlreadyChanged: 'Your referral code has already been customized.',
         codeUpdated: 'Referral code updated.',
         codeUpdateFailed: 'Failed to update referral code!',
-        invalidCodeLength: 'Code must be between {{min}} and {{max}} characters!',
+        invalidCodeLength:
+            'Code must be between {{min}} and {{max}} characters!',
         referralHistory: 'Referral History',
         paymentHistory: 'Payment History',
         periodToday: 'Today',
@@ -2372,68 +2394,107 @@ const en = {
         periodYear: 'Year',
         periodAll: 'All',
         confirmChangeTitle: 'Change Referral Code',
-        confirmChangeDescription: 'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
+        confirmChangeDescription:
+            'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
         noReferralsYet: 'No Referrals',
-        noReferralsDescription: 'Share your referral link to start earning rewards.',
+        noReferralsDescription:
+            'Share your referral link to start earning rewards.',
         noPaymentsYet: 'No Payments',
-        noPaymentsDescription: 'When your referred users make purchases, their payments will appear here.'
+        noPaymentsDescription:
+            'When your referred users make purchases, their payments will appear here.'
     },
     affiliateProgram: {
         title: 'Affiliate Program',
-        description: 'Learn how the ClawHost affiliate program works, how much you can earn, and the rules for participating.',
+        description:
+            'Learn how the ClawHost affiliate program works, how much you can earn, and the rules for participating.',
         lastUpdated: 'Last updated: April 1, 2026',
         overviewTitle: '1. Overview',
-        overviewText: 'The ClawHost Affiliate Program lets you earn rewards by referring new users to ClawHost. When someone makes a purchase after visiting ClawHost through your referral link, you earn a commission on their payments. The program is free to join and available to all registered ClawHost users.',
+        overviewText:
+            'The ClawHost Affiliate Program lets you earn rewards by referring new users to ClawHost. When someone makes a purchase after visiting ClawHost through your referral link, you earn a commission on their payments. The program is free to join and available to all registered ClawHost users.',
         howItWorksTitle: '2. How It Works',
         howItWorksText: 'Getting started with the affiliate program is simple:',
-        howItWorksStep1: 'Sign up for a ClawHost account. A unique referral code is automatically generated for you.',
-        howItWorksStep2: 'Share your referral link with friends, colleagues, or your audience. Your link follows the format: clawhost.cloud?ref=YOUR_CODE.',
-        howItWorksStep3: 'When someone makes a purchase after visiting ClawHost through your link, it is tracked as your referral.',
-        howItWorksStep4: 'You earn a commission every time your referred user makes a qualifying purchase.',
+        howItWorksStep1:
+            'Sign up for a ClawHost account. A unique referral code is automatically generated for you.',
+        howItWorksStep2:
+            'Share your referral link with friends, colleagues, or your audience. Your link follows the format: clawhost.cloud?ref=YOUR_CODE.',
+        howItWorksStep3:
+            'When someone makes a purchase after visiting ClawHost through your link, it is tracked as your referral.',
+        howItWorksStep4:
+            'You earn a commission every time your referred user makes a qualifying purchase.',
         earningsTitle: '3. Earnings & Payouts',
         earningsText: 'Here is how affiliate earnings work:',
-        earningsCommission: 'You earn a 15% commission on every qualifying purchase made by your referred users. Commissions apply to both ClawHost Cloud and ClawHost Go plans.',
-        earningsMonthly: 'For monthly subscriptions, you earn commissions for 1 year from the date of the referral.',
-        earningsYearly: 'For yearly subscriptions, you earn a commission on the first year only.',
-        earningsPayout: 'The minimum withdrawal amount is $100 USD. To request a withdrawal, contact our support team.',
-        earningsPaymentMethod: 'Withdrawals are processed via PayPal. You must provide a valid PayPal email address when requesting a payout.',
+        earningsCommission:
+            'You earn a 15% commission on every qualifying purchase made by your referred users. Commissions apply to both ClawHost Cloud and ClawHost Go plans.',
+        earningsMonthly:
+            'For monthly subscriptions, you earn commissions for 1 year from the date of the referral.',
+        earningsYearly:
+            'For yearly subscriptions, you earn a commission on the first year only.',
+        earningsPayout:
+            'The minimum withdrawal amount is $100 USD. To request a withdrawal, contact our support team.',
+        earningsPaymentMethod:
+            'Withdrawals are processed via PayPal. You must provide a valid PayPal email address when requesting a payout.',
         earningsCurrency: 'All earnings are calculated and displayed in USD.',
         referralCodeTitle: '4. Your Referral Code',
-        referralCodeText: 'Each user receives a unique referral code upon registration. You can customize it once to make it more memorable:',
-        referralCodeUnique: 'Your referral code is unique to your account and cannot be shared with or transferred to another user.',
-        referralCodeOneChange: 'You may customize your referral code exactly one time. Choose carefully — this change is permanent and cannot be reversed.',
-        referralCodeFormat: 'Referral codes can only contain letters, numbers, hyphens, and underscores.',
+        referralCodeText:
+            'Each user receives a unique referral code upon registration. You can customize it once to make it more memorable:',
+        referralCodeUnique:
+            'Your referral code is unique to your account and cannot be shared with or transferred to another user.',
+        referralCodeOneChange:
+            'You may customize your referral code exactly one time. Choose carefully — this change is permanent and cannot be reversed.',
+        referralCodeFormat:
+            'Referral codes can only contain letters, numbers, hyphens, and underscores.',
         referralWindowTitle: '5. Referral Attribution Window',
-        referralWindowText: 'A referral is attributed to you for 3 months from the moment the referred user first visits ClawHost through your link. If the referred user does not make a purchase within this 3-month window, the referral expires and no commission will be earned. If the user visits through a different referral link, the new referral replaces the previous one.',
+        referralWindowText:
+            'A referral is attributed to you for 3 months from the moment the referred user first visits ClawHost through your link. If the referred user does not make a purchase within this 3-month window, the referral expires and no commission will be earned. If the user visits through a different referral link, the new referral replaces the previous one.',
         eligibilityTitle: '6. Eligibility',
-        eligibilityText: 'To participate in the affiliate program, you must meet the following requirements:',
+        eligibilityText:
+            'To participate in the affiliate program, you must meet the following requirements:',
         eligibilityAccount: 'You must have a registered ClawHost account.',
-        eligibilityStanding: 'Your account must be in good standing with no history of policy violations.',
-        eligibilityAge: 'You must be at least 18 years old or the age of majority in your jurisdiction.',
+        eligibilityStanding:
+            'Your account must be in good standing with no history of policy violations.',
+        eligibilityAge:
+            'You must be at least 18 years old or the age of majority in your jurisdiction.',
         rulesTitle: '7. Program Rules',
-        rulesText: 'To maintain the integrity of the affiliate program, the following rules apply:',
-        rulesNoSelfReferral: 'Self-referrals are strictly prohibited. You may not refer your own accounts or accounts you control.',
-        rulesNoFakeAccounts: 'Creating fake accounts, automated signups, or using bots to generate referrals is prohibited.',
-        rulesNoSpam: 'Sending unsolicited bulk messages (spam) to promote your referral link is not allowed.',
-        rulesNoMisrepresentation: 'You may not misrepresent ClawHost, its services, or the affiliate program in any way.',
-        rulesNoIncentivized: 'Offering direct monetary incentives (e.g., paying users to sign up through your link) is not permitted.',
+        rulesText:
+            'To maintain the integrity of the affiliate program, the following rules apply:',
+        rulesNoSelfReferral:
+            'Self-referrals are strictly prohibited. You may not refer your own accounts or accounts you control.',
+        rulesNoFakeAccounts:
+            'Creating fake accounts, automated signups, or using bots to generate referrals is prohibited.',
+        rulesNoSpam:
+            'Sending unsolicited bulk messages (spam) to promote your referral link is not allowed.',
+        rulesNoMisrepresentation:
+            'You may not misrepresent ClawHost, its services, or the affiliate program in any way.',
+        rulesNoIncentivized:
+            'Offering direct monetary incentives (e.g., paying users to sign up through your link) is not permitted.',
         terminationTitle: '8. Violation & Termination',
-        terminationText: 'Any violation of these rules will result in immediate forfeiture of all pending and earned rewards. ClawHost reserves the right to suspend or permanently ban your account from the affiliate program. In severe cases, your ClawHost account may also be terminated. All decisions regarding violations are final.',
+        terminationText:
+            'Any violation of these rules will result in immediate forfeiture of all pending and earned rewards. ClawHost reserves the right to suspend or permanently ban your account from the affiliate program. In severe cases, your ClawHost account may also be terminated. All decisions regarding violations are final.',
         marketingTitle: '9. How to Promote',
-        marketingText: 'There are many creative and legitimate ways to share your referral link and grow your earnings:',
-        marketingSocial: 'Share your link on social media platforms like X, LinkedIn, Reddit, and Facebook. Write about your experience with ClawHost and include your referral link.',
-        marketingBlog: 'Write blog posts, tutorials, or reviews about ClawHost. Include your referral link naturally within the content.',
-        marketingVideo: 'Create video content on YouTube or TikTok showcasing how you use ClawHost to deploy and manage AI agents.',
-        marketingCommunity: 'Participate in developer communities, forums, and Discord servers. When someone asks about cloud hosting or AI agent deployment, recommend ClawHost with your link.',
-        marketingNewsletter: 'If you run a newsletter or email list, mention ClawHost in a relevant issue with your referral link.',
-        marketingComparison: 'Write honest comparison articles or guides that highlight what makes ClawHost different from other platforms.',
+        marketingText:
+            'There are many creative and legitimate ways to share your referral link and grow your earnings:',
+        marketingSocial:
+            'Share your link on social media platforms like X, LinkedIn, Reddit, and Facebook. Write about your experience with ClawHost and include your referral link.',
+        marketingBlog:
+            'Write blog posts, tutorials, or reviews about ClawHost. Include your referral link naturally within the content.',
+        marketingVideo:
+            'Create video content on YouTube or TikTok showcasing how you use ClawHost to deploy and manage AI agents.',
+        marketingCommunity:
+            'Participate in developer communities, forums, and Discord servers. When someone asks about cloud hosting or AI agent deployment, recommend ClawHost with your link.',
+        marketingNewsletter:
+            'If you run a newsletter or email list, mention ClawHost in a relevant issue with your referral link.',
+        marketingComparison:
+            'Write honest comparison articles or guides that highlight what makes ClawHost different from other platforms.',
         changesToProgramTitle: '10. Changes to the Program',
-        changesToProgramText: 'ClawHost reserves the right to modify, suspend, or discontinue the affiliate program at any time without prior notice. This includes changes to commission rates, referral windows, payout thresholds, and program rules. Continued participation after changes constitutes acceptance of the updated terms.',
+        changesToProgramText:
+            'ClawHost reserves the right to modify, suspend, or discontinue the affiliate program at any time without prior notice. This includes changes to commission rates, referral windows, payout thresholds, and program rules. Continued participation after changes constitutes acceptance of the updated terms.',
         getStartedTitle: '11. Get Started',
-        getStartedText: 'Ready to start earning? Head to your affiliate dashboard to grab your referral link and start sharing it with your network.',
+        getStartedText:
+            'Ready to start earning? Head to your affiliate dashboard to grab your referral link and start sharing it with your network.',
         getStartedButton: 'Go to Affiliate Dashboard',
         contactTitle: '12. Contact',
-        contactText: 'If you have questions about the affiliate program, need help with your referral code, or want to report a violation, reach out to us at'
+        contactText:
+            'If you have questions about the affiliate program, need help with your referral code, or want to report a violation, reach out to us at'
     }
 } as const
 

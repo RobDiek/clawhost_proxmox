@@ -13,7 +13,11 @@ import BetaBadge from '@/components/layout/BetaBadge'
 import Logo from '@/components/layout/Logo'
 import ProductHuntBanner from '@/components/layout/ProductHuntBanner'
 import ProductSwitcher from '@/components/layout/ProductSwitcher'
-import { LanguageSelector, ThemeToggle, UserDropdown } from '@/components/shared'
+import {
+    LanguageSelector,
+    ThemeToggle,
+    UserDropdown
+} from '@/components/shared'
 import { ROUTES } from '@/lib'
 import { LightningIcon, ListIcon, XIcon } from '@phosphor-icons/react'
 
@@ -139,7 +143,9 @@ const Header: FC<HeaderProps> = ({
                             <div className='flex items-center gap-2'>
                                 <Link
                                     to={ROUTES.LOGIN}
-                                    onMouseEnter={() => prefetchRoute(ROUTES.LOGIN)}
+                                    onMouseEnter={() =>
+                                        prefetchRoute(ROUTES.LOGIN)
+                                    }
                                     className='text-muted-foreground hover:text-foreground hidden px-3 py-1.5 text-sm transition sm:block'
                                 >
                                     {t('nav.login')}
@@ -149,7 +155,12 @@ const Header: FC<HeaderProps> = ({
                                     className='gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] px-4 text-white hover:opacity-90'
                                     asChild
                                 >
-                                    <Link to={ROUTES.LOGIN} onMouseEnter={() => prefetchRoute(ROUTES.LOGIN)}>
+                                    <Link
+                                        to={ROUTES.LOGIN}
+                                        onMouseEnter={() =>
+                                            prefetchRoute(ROUTES.LOGIN)
+                                        }
+                                    >
                                         <LightningIcon
                                             className='h-4 w-4'
                                             weight='fill'

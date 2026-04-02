@@ -37,6 +37,8 @@ import { useUIStore, useVariablesStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { PanelPlaceholder } from '@/components/shared'
 import { PLAYGROUND_AGENTS_QUERY_KEY } from '@/hooks'
+import CLAW_ENV_QUERY_KEY from '@/hooks/usePlayground/CLAW_ENV_QUERY_KEY'
+import AGENT_CONFIG_QUERY_KEY from '@/hooks/usePlayground/AGENT_CONFIG_QUERY_KEY'
 
 let skipDeleteConfirmation = false
 
@@ -97,7 +99,7 @@ const PlaygroundVariablesContent: FC<PlaygroundVariablesContentProps> = ({
         isLoading: queryIsLoading,
         isError: queryIsError
     } = useQuery({
-        queryKey: ['claw-env', clawId],
+        queryKey: [...CLAW_ENV_QUERY_KEY, clawId],
         queryFn: () => api.getClawEnvVars(clawId),
         staleTime: 0,
         gcTime: 0,
@@ -122,13 +124,13 @@ const PlaygroundVariablesContent: FC<PlaygroundVariablesContentProps> = ({
 
     const invalidateQueries = useCallback(() => {
         queryClient.invalidateQueries({
-            queryKey: ['claw-env', clawId]
+            queryKey: [...CLAW_ENV_QUERY_KEY, clawId]
         })
         queryClient.invalidateQueries({
             queryKey: [PLAYGROUND_AGENTS_QUERY_KEY, clawId]
         })
         queryClient.invalidateQueries({
-            queryKey: ['agent-config', clawId]
+            queryKey: [...AGENT_CONFIG_QUERY_KEY, clawId]
         })
     }, [queryClient, clawId])
 

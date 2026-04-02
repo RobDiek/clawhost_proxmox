@@ -45,7 +45,10 @@ import {
     useRenameClaw,
     useUpdateClawSubdomain,
     useCancelPendingClaw,
-    CLAWS_QUERY_KEY
+    CLAWS_QUERY_KEY,
+    CLAW_FILES_QUERY_KEY,
+    CLAW_FILE_QUERY_KEY,
+    CLAW_VERSION_QUERY_KEY
 } from '@/hooks/useClaws'
 
 import {
@@ -102,6 +105,9 @@ import useAppVersion from '@/hooks/useAppVersion'
 import useLocalFooterLinks from '@/hooks/useLocalFooterLinks'
 import useRefer from '@/hooks/useRefer'
 import useRoutePrefetch from '@/hooks/useRoutePrefetch'
+import useInfiniteScrollObserver from '@/hooks/useInfiniteScrollObserver'
+import usePaginationState from '@/hooks/usePaginationState'
+import useURLStateRestoration from '@/hooks/useURLStateRestoration'
 
 export {
     ADMIN_USERS_QUERY_KEY,
@@ -145,6 +151,9 @@ export {
     useUpdateClawSubdomain,
     useCancelPendingClaw,
     CLAWS_QUERY_KEY,
+    CLAW_FILES_QUERY_KEY,
+    CLAW_FILE_QUERY_KEY,
+    CLAW_VERSION_QUERY_KEY,
     useSSHKeys,
     useCreateSSHKey,
     useDeleteSSHKey,
@@ -183,5 +192,8 @@ export {
     useAppVersion,
     useLocalFooterLinks,
     useRefer,
-    useRoutePrefetch
+    useRoutePrefetch,
+    useInfiniteScrollObserver,
+    usePaginationState,
+    useURLStateRestoration
 }

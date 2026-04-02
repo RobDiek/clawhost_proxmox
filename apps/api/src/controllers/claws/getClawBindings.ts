@@ -2,7 +2,11 @@ import type { AuthenticatedContext } from '@/ts/Types'
 import type { ClawBindingEntry, ClawBindingAgent } from '@/ts/Interfaces'
 
 import executeSSH from '@/services/ssh'
-import { BASE_DIR, findUserClaw, parseJsonFromSSH } from '@/controllers/claws/helpers'
+import {
+    BASE_DIR,
+    findUserClaw,
+    parseJsonFromSSH
+} from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 
@@ -30,13 +34,14 @@ const getClawBindings = async (c: AuthenticatedContext) => {
 
             const config = parseJsonFromSSH(output)
             const bindings: ClawBindingEntry[] = Array.isArray(config?.bindings)
-                ? config.bindings as ClawBindingEntry[]
+                ? (config.bindings as ClawBindingEntry[])
                 : []
             const channels = (config?.channels || {}) as Record<string, unknown>
             const agentList = Array.isArray(
                 (config?.agents as Record<string, unknown>)?.list
             )
-                ? (config.agents as Record<string, unknown>).list as ClawBindingAgent[]
+                ? ((config.agents as Record<string, unknown>)
+                      .list as ClawBindingAgent[])
                 : []
             const agents = agentList.map((a: ClawBindingAgent) => ({
                 id: a.id,

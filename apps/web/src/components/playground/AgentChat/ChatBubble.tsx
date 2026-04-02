@@ -12,7 +12,11 @@ import {
     CheckIcon
 } from '@phosphor-icons/react'
 import { getLocale, copyToClipboard } from '@/lib'
-import { CHAT_MESSAGE_ROLE, CHAT_MESSAGE_STATUS, TOAST_TYPE } from '@/lib/constants'
+import {
+    CHAT_MESSAGE_ROLE,
+    CHAT_MESSAGE_STATUS,
+    TOAST_TYPE
+} from '@/lib/constants'
 import { useUIStore } from '@/lib/store'
 import ChatMarkdown from '@/components/playground/AgentChat/ChatMarkdown'
 import ChatLightbox from '@/components/playground/AgentChat/ChatLightbox'
@@ -272,25 +276,26 @@ const ChatBubble: FC<ChatBubbleProps> = ({
         <Fragment>
             <div className='flex flex-col items-start gap-1'>
                 <div className='bg-foreground/5 group relative min-w-0 max-w-[85%] rounded-2xl rounded-bl-md px-3.5 py-2.5'>
-                    {message.status === CHAT_MESSAGE_STATUS.COMPLETE && message.content && (
-                        <button
-                            onClick={copyMessage}
-                            title={t('playground.chatCopyMessage')}
-                            className='bg-background/80 absolute right-2.5 top-2.5 rounded-md p-1.5 opacity-0 shadow-sm backdrop-blur-sm transition-opacity group-hover:opacity-100'
-                        >
-                            {copied ? (
-                                <CheckIcon
-                                    className='text-muted-foreground h-3 w-3'
-                                    weight='bold'
-                                />
-                            ) : (
-                                <CopyIcon
-                                    className='text-muted-foreground hover:text-foreground h-3 w-3 transition-colors'
-                                    weight='bold'
-                                />
-                            )}
-                        </button>
-                    )}
+                    {message.status === CHAT_MESSAGE_STATUS.COMPLETE &&
+                        message.content && (
+                            <button
+                                onClick={copyMessage}
+                                title={t('playground.chatCopyMessage')}
+                                className='bg-background/80 absolute right-2.5 top-2.5 rounded-md p-1.5 opacity-0 shadow-sm backdrop-blur-sm transition-opacity group-hover:opacity-100'
+                            >
+                                {copied ? (
+                                    <CheckIcon
+                                        className='text-muted-foreground h-3 w-3'
+                                        weight='bold'
+                                    />
+                                ) : (
+                                    <CopyIcon
+                                        className='text-muted-foreground hover:text-foreground h-3 w-3 transition-colors'
+                                        weight='bold'
+                                    />
+                                )}
+                            </button>
+                        )}
                     {hasAttachments && renderAttachments(message.images!)}
                     <div className='text-foreground/80 min-w-0 text-sm'>
                         <ChatMarkdown content={message.content} />

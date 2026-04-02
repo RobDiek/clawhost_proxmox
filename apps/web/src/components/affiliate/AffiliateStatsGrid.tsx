@@ -69,18 +69,20 @@ const AffiliateStatsGrid: FC<AffiliateStatsGridProps> = ({
                     <div className='flex items-center gap-2'>
                         <Input
                             value={newCode}
-                            onChange={(e) =>
-                                setNewCode(e.target.value)
-                            }
+                            onChange={(e) => setNewCode(e.target.value)}
                             onKeyDown={(e) => {
-                                if (e.key === 'Enter' && newCode.trim() && newCode.trim().toLowerCase() !== referralCode && !isPending) {
+                                if (
+                                    e.key === 'Enter' &&
+                                    newCode.trim() &&
+                                    newCode.trim().toLowerCase() !==
+                                        referralCode &&
+                                    !isPending
+                                ) {
                                     e.preventDefault()
                                     handleSave()
                                 }
                             }}
-                            maxLength={
-                                inputValidation.REFERRAL_CODE.MAX
-                            }
+                            maxLength={inputValidation.REFERRAL_CODE.MAX}
                             className='bg-foreground/10 !h-7 max-w-[140px] py-0 text-sm'
                         />
                         <Button
@@ -106,14 +108,14 @@ const AffiliateStatsGrid: FC<AffiliateStatsGridProps> = ({
                                 setNewCode('')
                             }}
                             disabled={isPending}
-                            className='bg-white/10 hover:bg-white/20 h-7 px-2 text-xs'
+                            className='h-7 bg-white/10 px-2 text-xs hover:bg-white/20'
                         >
                             {t('common.cancel')}
                         </Button>
                     </div>
                 ) : (
                     <div className='flex items-center gap-1.5'>
-                        <code className='text-lg font-bold font-mono'>
+                        <code className='font-mono text-lg font-bold'>
                             {referralCode ?? '—'}
                         </code>
                         <Button
@@ -152,9 +154,7 @@ const AffiliateStatsGrid: FC<AffiliateStatsGridProps> = ({
                 {isLoading ? (
                     <Skeleton className='bg-foreground/10 h-8 w-12 rounded' />
                 ) : (
-                    <p className='text-2xl font-bold'>
-                        {referralCount}
-                    </p>
+                    <p className='text-2xl font-bold'>{referralCount}</p>
                 )}
             </div>
             <div className='p-5'>

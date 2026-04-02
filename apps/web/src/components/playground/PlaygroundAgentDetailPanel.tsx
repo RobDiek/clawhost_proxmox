@@ -34,6 +34,7 @@ import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { aiModels } from '@/lib/claw-utils'
 import { PLAYGROUND_AGENTS_QUERY_KEY } from '@/hooks'
+import AGENT_CONFIG_QUERY_KEY from '@/hooks/usePlayground/AGENT_CONFIG_QUERY_KEY'
 
 const agentTabStateMap: Record<string, PlaygroundAgentDetailTab> = {}
 const deletingAgentIds = new Set<string>()
@@ -136,7 +137,7 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
         isLoading: isConfigLoading,
         isError: isConfigError
     } = useQuery({
-        queryKey: ['agent-config', clawId, agent.id],
+        queryKey: [...AGENT_CONFIG_QUERY_KEY, clawId, agent.id],
         queryFn: () => api.getClawAgentConfig(clawId, agent.id),
         enabled: activeTab === AGENT_DETAIL_TABS.CONFIGURATION && !readOnly,
         staleTime: 0,
@@ -149,7 +150,7 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
     useEffect(() => {
         if (activeTab !== AGENT_DETAIL_TABS.CONFIGURATION) {
             queryClient.removeQueries({
-                queryKey: ['agent-config', clawId, agent.id]
+                queryKey: [...AGENT_CONFIG_QUERY_KEY, clawId, agent.id]
             })
         }
     }, [activeTab, queryClient, clawId, agent.id])
@@ -162,7 +163,10 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
 
         api.deleteClawAgent(clawId, { agentId })
             .then(() => {
-                showToast(t('playground.deleteAgentSuccess'), TOAST_TYPE.SUCCESS)
+                showToast(
+                    t('playground.deleteAgentSuccess'),
+                    TOAST_TYPE.SUCCESS
+                )
                 queryClient.setQueryData<ClawAgentsResponse>(
                     [PLAYGROUND_AGENTS_QUERY_KEY, clawId],
                     (old) => {

@@ -12,6 +12,8 @@ import PlaygroundChannelsContent from '@/components/playground/PlaygroundChannel
 import PlaygroundSkillsContent from '@/components/playground/PlaygroundSkillsContent'
 import PlaygroundVersionsContent from '@/components/playground/PlaygroundVersionsContent'
 import PlaygroundBindingsContent from '@/components/playground/PlaygroundBindingsContent'
+import PlaygroundDetailInfoTab from '@/components/playground/PlaygroundDetailInfoTab'
+import PlaygroundDetailSettingsTab from '@/components/playground/PlaygroundDetailSettingsTab'
 
 export {
     AgentChat,
@@ -27,5 +29,7 @@ export {
     PlaygroundChannelsContent,
     PlaygroundSkillsContent,
     PlaygroundVersionsContent,
-    PlaygroundBindingsContent
+    PlaygroundBindingsContent,
+    PlaygroundDetailInfoTab,
+    PlaygroundDetailSettingsTab
 }

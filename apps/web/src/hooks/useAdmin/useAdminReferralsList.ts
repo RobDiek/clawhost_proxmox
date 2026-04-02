@@ -1,9 +1,10 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { api } from '@/lib'
+import ADMIN_REFERRALS_QUERY_KEY from '@/hooks/useAdmin/ADMIN_REFERRALS_QUERY_KEY'
 
 const useAdminReferralsList = (limit: number = 20, sort?: string) => {
     return useInfiniteQuery({
-        queryKey: ['admin-referrals', limit, sort],
+        queryKey: [...ADMIN_REFERRALS_QUERY_KEY, limit, sort],
         queryFn: ({ pageParam }) =>
             api.listAdminReferrals(pageParam, limit, sort),
         initialPageParam: 1,

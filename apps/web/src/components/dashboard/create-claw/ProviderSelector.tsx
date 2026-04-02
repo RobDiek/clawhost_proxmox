@@ -16,10 +16,7 @@ const ProviderSelector: FC<ProviderSelectorProps> = ({
             </Label>
             <div className='bg-muted flex w-fit rounded-lg p-1'>
                 <div className='bg-background text-foreground flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium shadow-sm'>
-                    <ProviderIcon
-                        provider='hetzner'
-                        className='h-4 w-4'
-                    />
+                    <ProviderIcon provider='hetzner' className='h-4 w-4' />
                     {t('createClaw.providerHetzner')}
                 </div>
             </div>

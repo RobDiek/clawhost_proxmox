@@ -17,6 +17,7 @@ import TRUNCATE_LENGTHS from '@/lib/truncateLengths'
 import fireConfetti from '@/lib/fireConfetti'
 import copyToClipboard from '@/lib/copyToClipboard'
 import reportWebVitals from '@/lib/reportWebVitals'
+import { formatDate, formatCurrency } from '@/lib/formatters'
 
 export {
     api,
@@ -35,5 +36,7 @@ export {
     TRUNCATE_LENGTHS,
     fireConfetti,
     copyToClipboard,
-    reportWebVitals
+    reportWebVitals,
+    formatDate,
+    formatCurrency
 }

@@ -311,7 +311,9 @@ const LandingFooter: FC = (): ReactNode => {
                             <li>
                                 <Link
                                     to={ROUTES.AFFILIATE_PROGRAM}
-                                    className={pageClass(ROUTES.AFFILIATE_PROGRAM)}
+                                    className={pageClass(
+                                        ROUTES.AFFILIATE_PROGRAM
+                                    )}
                                 >
                                     {t('footer.affiliateProgram')}
                                 </Link>

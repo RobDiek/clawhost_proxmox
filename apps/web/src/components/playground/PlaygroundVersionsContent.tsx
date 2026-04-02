@@ -5,6 +5,7 @@ import { Fragment, useState, useMemo, useRef } from 'react'
 import { useDebouncedValue } from '@/hooks'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
+import { isVersionSupported } from '@openclaw/shared'
 import {
     CircleNotchIcon,
     MagnifyingGlassIcon,
@@ -19,11 +20,17 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-    Skeleton
+    Skeleton,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger
 } from '@/components/ui'
 import { api, getLocale } from '@/lib'
 import { useUIStore, useVersionsStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
+import CLAW_VERSIONS_QUERY_KEY from '@/hooks/useClaws/CLAW_VERSIONS_QUERY_KEY'
+import CLAW_VERSION_QUERY_KEY from '@/hooks/useClaws/CLAW_VERSION_QUERY_KEY'
 
 const CHANGELOG_BASE_URL = 'https://www.npmjs.com/package/openclaw/v/'
 
@@ -47,7 +54,7 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
         isLoading,
         isError
     } = useQuery({
-        queryKey: ['claw-versions', clawId],
+        queryKey: [...CLAW_VERSIONS_QUERY_KEY, clawId],
         queryFn: () => api.getClawVersions(clawId),
         staleTime: 0,
         gcTime: 0,
@@ -64,10 +71,10 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                 'success'
             )
             queryClient.invalidateQueries({
-                queryKey: ['claw-versions', clawId]
+                queryKey: [...CLAW_VERSIONS_QUERY_KEY, clawId]
             })
             queryClient.invalidateQueries({
-                queryKey: ['claw-version', clawId]
+                queryKey: [...CLAW_VERSION_QUERY_KEY, clawId]
             })
             setInstallingVersion(null)
         },
@@ -133,14 +140,11 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                                     const isCurrent =
                                         versionsData?.currentVersion ===
                                         entry.version
-                                    const isLatest =
-                                        versionsData?.latestVersion ===
-                                        entry.version
                                     const isInstalling =
                                         installingVersion === entry.version
-                                    const isOutdated =
-                                        new Date(entry.publishedAt) <
-                                        new Date('2026-02-01')
+                                    const isSupported = isVersionSupported(
+                                        entry.version
+                                    )
 
                                     return (
                                         <div
@@ -164,19 +168,25 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                                                             )}
                                                         </span>
                                                     )}
-                                                    {isLatest && (
-                                                        <span className='rounded bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-medium text-blue-400'>
-                                                            {t(
-                                                                'playground.versionLatest'
-                                                            )}
-                                                        </span>
-                                                    )}
-                                                    {isOutdated && (
-                                                        <span className='rounded bg-yellow-500/20 px-1.5 py-0.5 text-[10px] font-medium text-yellow-400'>
-                                                            {t(
-                                                                'playground.versionOutdated'
-                                                            )}
-                                                        </span>
+                                                    {isSupported && (
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger
+                                                                    asChild
+                                                                >
+                                                                    <span className='cursor-default rounded bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-medium text-blue-400'>
+                                                                        {t(
+                                                                            'playground.versionSupported'
+                                                                        )}
+                                                                    </span>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    {t(
+                                                                        'playground.versionSupportedTooltip'
+                                                                    )}
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
                                                     )}
                                                 </div>
                                                 <div className='mt-0.5 flex items-center gap-2'>
@@ -235,9 +245,8 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                                                         )
                                                     }
                                                     disabled={
-                                                        isOutdated ||
                                                         installingVersion !==
-                                                            null
+                                                        null
                                                     }
                                                     className='bg-foreground/5 text-foreground/80 hover:bg-foreground/10 ml-3 flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50'
                                                 >

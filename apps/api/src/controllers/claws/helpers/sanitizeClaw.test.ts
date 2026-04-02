@@ -11,7 +11,11 @@ describe('sanitizeClaw', () => {
     it('sets hasRootPassword to false when no password', () => {
         const claw = { id: '1', name: 'test' }
         const result = sanitizeClaw(claw)
-        expect(result).toEqual({ id: '1', name: 'test', hasRootPassword: false })
+        expect(result).toEqual({
+            id: '1',
+            name: 'test',
+            hasRootPassword: false
+        })
     })
 
     it('sets hasRootPassword to false for empty string password', () => {
@@ -21,7 +25,13 @@ describe('sanitizeClaw', () => {
     })
 
     it('preserves all other fields', () => {
-        const claw = { id: '1', name: 'test', status: 'running', ip: '1.2.3.4', rootPassword: 'pw' }
+        const claw = {
+            id: '1',
+            name: 'test',
+            status: 'running',
+            ip: '1.2.3.4',
+            rootPassword: 'pw'
+        }
         const result = sanitizeClaw(claw)
         expect(result.id).toBe('1')
         expect(result.name).toBe('test')

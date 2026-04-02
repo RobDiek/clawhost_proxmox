@@ -8,7 +8,9 @@ describe('generateToken', () => {
     })
 
     it('generates unique tokens', () => {
-        const tokens = new Set(Array.from({ length: 20 }, () => generateToken()))
+        const tokens = new Set(
+            Array.from({ length: 20 }, () => generateToken())
+        )
         expect(tokens.size).toBe(20)
     })
 })

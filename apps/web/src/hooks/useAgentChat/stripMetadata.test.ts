@@ -15,17 +15,21 @@ describe('stripMetadata', () => {
     })
 
     it('strips metadata marker and content after it', () => {
-        const text = 'Conversation info (untrusted metadata):\nuser: test\nrole: admin\n\nActual message here'
+        const text =
+            'Conversation info (untrusted metadata):\nuser: test\nrole: admin\n\nActual message here'
         expect(stripMetadata(text)).toBe('Actual message here')
     })
 
     it('strips metadata with timestamp after marker', () => {
-        const text = 'Conversation info (untrusted metadata):\nsome data\n[Fri 2024-01-10 09:00 EST] Real message'
+        const text =
+            'Conversation info (untrusted metadata):\nsome data\n[Fri 2024-01-10 09:00 EST] Real message'
         expect(stripMetadata(text)).toBe('Real message')
     })
 
     it('does not strip timestamp in the middle of text', () => {
         const text = 'Some text [Mon 2024-06-15 14:30 UTC] more text'
-        expect(stripMetadata(text)).toBe('Some text [Mon 2024-06-15 14:30 UTC] more text')
+        expect(stripMetadata(text)).toBe(
+            'Some text [Mon 2024-06-15 14:30 UTC] more text'
+        )
     })
 })

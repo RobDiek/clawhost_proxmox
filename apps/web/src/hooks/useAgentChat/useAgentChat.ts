@@ -134,7 +134,9 @@ const useAgentChat = ({
                             const images = extractImages(msg.content)
                             loaded.push({
                                 id: `history-${i}`,
-                                role: isUser ? CHAT_MESSAGE_ROLE.USER : CHAT_MESSAGE_ROLE.ASSISTANT,
+                                role: isUser
+                                    ? CHAT_MESSAGE_ROLE.USER
+                                    : CHAT_MESSAGE_ROLE.ASSISTANT,
                                 content: isUser ? stripMetadata(text) : text,
                                 status: CHAT_MESSAGE_STATUS.COMPLETE,
                                 timestamp: lastTimestamp,
@@ -157,7 +159,10 @@ const useAgentChat = ({
             if (!mountedRef.current) return
             setConnectionState(state)
 
-            if (state === GATEWAY_CONNECTION_STATE.ERROR || state === GATEWAY_CONNECTION_STATE.DISCONNECTED) {
+            if (
+                state === GATEWAY_CONNECTION_STATE.ERROR ||
+                state === GATEWAY_CONNECTION_STATE.DISCONNECTED
+            ) {
                 setIsLoading(false)
             }
 
@@ -221,7 +226,10 @@ const useAgentChat = ({
                     const finalImages = streamImagesRef.current
                     setMessages((prev) => {
                         const last = prev[prev.length - 1]
-                        if (last && last.status === CHAT_MESSAGE_STATUS.STREAMING) {
+                        if (
+                            last &&
+                            last.status === CHAT_MESSAGE_STATUS.STREAMING
+                        ) {
                             return [
                                 ...prev.slice(0, -1),
                                 {

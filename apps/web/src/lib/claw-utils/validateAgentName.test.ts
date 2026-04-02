@@ -14,17 +14,27 @@ describe('validateAgentName', () => {
     })
 
     it('rejects whitespace-only name', () => {
-        expect(validateAgentName('   ', [])).toBe('playground.agentNameRequired')
+        expect(validateAgentName('   ', [])).toBe(
+            'playground.agentNameRequired'
+        )
     })
 
     it('rejects name with spaces', () => {
-        expect(validateAgentName('my agent', [])).toBe('playground.agentNameInvalidChars')
+        expect(validateAgentName('my agent', [])).toBe(
+            'playground.agentNameInvalidChars'
+        )
     })
 
     it('rejects name with special characters', () => {
-        expect(validateAgentName('my_agent', [])).toBe('playground.agentNameInvalidChars')
-        expect(validateAgentName('my.agent', [])).toBe('playground.agentNameInvalidChars')
-        expect(validateAgentName('my@agent', [])).toBe('playground.agentNameInvalidChars')
+        expect(validateAgentName('my_agent', [])).toBe(
+            'playground.agentNameInvalidChars'
+        )
+        expect(validateAgentName('my.agent', [])).toBe(
+            'playground.agentNameInvalidChars'
+        )
+        expect(validateAgentName('my@agent', [])).toBe(
+            'playground.agentNameInvalidChars'
+        )
     })
 
     it('allows hyphens', () => {
@@ -32,9 +42,15 @@ describe('validateAgentName', () => {
     })
 
     it('detects duplicate names (case-insensitive)', () => {
-        expect(validateAgentName('main', ['main', 'helper'])).toBe('playground.agentNameDuplicate')
-        expect(validateAgentName('MAIN', ['main', 'helper'])).toBe('playground.agentNameDuplicate')
-        expect(validateAgentName('Main', ['main'])).toBe('playground.agentNameDuplicate')
+        expect(validateAgentName('main', ['main', 'helper'])).toBe(
+            'playground.agentNameDuplicate'
+        )
+        expect(validateAgentName('MAIN', ['main', 'helper'])).toBe(
+            'playground.agentNameDuplicate'
+        )
+        expect(validateAgentName('Main', ['main'])).toBe(
+            'playground.agentNameDuplicate'
+        )
     })
 
     it('allows same name when it matches currentName (renaming self)', () => {
@@ -42,7 +58,9 @@ describe('validateAgentName', () => {
     })
 
     it('detects duplicate even when currentName is provided', () => {
-        expect(validateAgentName('helper', ['main', 'helper'], 'main')).toBe('playground.agentNameDuplicate')
+        expect(validateAgentName('helper', ['main', 'helper'], 'main')).toBe(
+            'playground.agentNameDuplicate'
+        )
     })
 
     it('allows unique name when others exist', () => {

@@ -1,5 +1,6 @@
 import ActionButton from '@/components/shared/ActionButton'
 import ClawAvatar from '@/components/shared/ClawAvatar'
+import ConfirmationDialog from '@/components/shared/ConfirmationDialog'
 import ClawMascot from '@/components/shared/ClawMascot'
 import ClawMascotOutline from '@/components/shared/ClawMascotOutline'
 import EmptyState from '@/components/shared/EmptyState'
@@ -21,6 +22,7 @@ export {
     ClawAvatar,
     ClawMascot,
     ClawMascotOutline,
+    ConfirmationDialog,
     EmptyState,
     ErrorState,
     LanguageSelector,

@@ -1,4 +1,4 @@
-import type { Translations } from '../types'
+import type { Translations } from '#i18n/types'
 
 const es: Translations = {
     common: {
@@ -339,8 +339,7 @@ const es: Translations = {
         failedToDeleteClaw: 'Error al eliminar el claw!',
         failedToCreateClaw: 'Error al crear el claw!',
         invalidProvider: 'Proveedor no válido!',
-        providerNotAllowed:
-            'Este proveedor no está disponible actualmente!',
+        providerNotAllowed: 'Este proveedor no está disponible actualmente!',
         invalidPlan: 'Plan seleccionado no válido!',
         planBelowMinimumMemory:
             'Este plan no cumple con el requisito mínimo de memoria!',
@@ -367,10 +366,14 @@ const es: Translations = {
         failedToGetAffiliate: 'Error al obtener la información de afiliado!',
         invalidPeriod: '¡Filtro de período no válido!',
         referralCodeUpdated: 'Código de referido actualizado correctamente.',
-        failedToUpdateReferralCode: 'Error al actualizar el código de referido!',
-        invalidReferralCodeLength: 'El código de referido debe tener entre {{min}} y {{max}} caracteres!',
-        invalidReferralCodeFormat: 'El código de referido solo puede contener letras, números, guiones y guiones bajos!',
-        referralCodeAlreadyChanged: 'El código de referido solo se puede cambiar una vez!',
+        failedToUpdateReferralCode:
+            'Error al actualizar el código de referido!',
+        invalidReferralCodeLength:
+            'El código de referido debe tener entre {{min}} y {{max}} caracteres!',
+        invalidReferralCodeFormat:
+            'El código de referido solo puede contener letras, números, guiones y guiones bajos!',
+        referralCodeAlreadyChanged:
+            'El código de referido solo se puede cambiar una vez!',
         referralCodeTaken: 'Este código de referido ya está en uso!',
         referralCodeGenerated: 'Código de referido generado.',
         failedToGenerateReferralCode: 'Error al generar el código de referido!',
@@ -497,7 +500,8 @@ const es: Translations = {
         whatsappAlreadyPaired: 'WhatsApp ya está emparejado!',
         whatsappVersionUnsupported:
             'Esta versión no admite la configuración de canales desde el panel. Usa la pestaña Terminal para configurar manualmente o actualiza OpenClaw.',
-        featureVersionUnsupported: 'Esta función no es compatible con la versión {{version}}. Actualiza OpenClaw o usa la Terminal para gestionarlo manualmente.',
+        featureVersionUnsupported:
+            'Esta función no es compatible con la versión {{version}}. Actualiza OpenClaw o usa la Terminal para gestionarlo manualmente.',
         bindingsFetched: 'Vinculaciones obtenidas exitosamente.',
         bindingsFetchFailed: 'No se pudieron obtener las vinculaciones!',
         bindingsUpdated: 'Vinculaciones actualizadas exitosamente.',
@@ -546,7 +550,8 @@ const es: Translations = {
         voiceNotFound: 'Modelo de voz no encontrado!',
         ttsGenerationFailed: 'Error al generar el habla!',
         voicesFetched: 'Voces obtenidas exitosamente.',
-        featureEmailsDisabled: 'Los emails de funcionalidades están actualmente desactivados.',
+        featureEmailsDisabled:
+            'Los emails de funcionalidades están actualmente desactivados.',
         featureEmailsSent: 'Emails de funcionalidades enviados exitosamente.',
         featureEmailsFailed: '¡Error al enviar los emails de funcionalidades!',
         invalidFeatureKey: '¡Clave de funcionalidad inválida!',
@@ -561,7 +566,8 @@ const es: Translations = {
         adminUsersFetched: 'Usuarios obtenidos con éxito.',
         failedToGetAdminUsers: 'Error al obtener los usuarios!',
         adminUserDetailFetched: 'Detalles del usuario obtenidos con éxito.',
-        failedToGetAdminUserDetail: 'Error al obtener los detalles del usuario!',
+        failedToGetAdminUserDetail:
+            'Error al obtener los detalles del usuario!',
         adminUserUpdated: 'Usuario actualizado.',
         failedToUpdateAdminUser: 'Error al actualizar el usuario!',
         adminStatsFetched: 'Estadísticas obtenidas.',
@@ -1497,7 +1503,8 @@ const es: Translations = {
         upcomingReleaseFeature12:
             'Aplicación de escritorio para macOS y Windows para desplegar OpenClaw localmente con un clic',
         release14Date: '1 de abril de 2026',
-        release14Title: 'Migración a Hetzner, sistema de afiliados y nuevos idiomas',
+        release14Title:
+            'Migración a Hetzner, sistema de afiliados y nuevos idiomas',
         release14Description:
             'Centralización de toda la infraestructura en Hetzner para los mejores precios y rendimiento, lanzamiento del sistema de afiliados con 15% de comisiones, incorporación de 10 nuevos idiomas y creación de herramientas internas para soporte estable de versiones.',
         release14Feature1:
@@ -1605,8 +1612,7 @@ const es: Translations = {
             'Panel para administrar claws, iniciar, detener, reiniciar y eliminar instancias',
         release1Feature3:
             '18 planes de servidor con vCPU dedicado, RAM y opciones de almacenamiento',
-        release1Feature4:
-            '6 ubicaciones de servidor en EE.UU., Europa y Asia',
+        release1Feature4: '6 ubicaciones de servidor en EE.UU., Europa y Asia',
         release1Feature5:
             'Administración de claves SSH para acceso sin contraseña al servidor',
         release1Feature6:
@@ -1882,7 +1888,8 @@ const es: Translations = {
             'La configuración de canales no está disponible en esta versión. Puedes conectar manualmente usando la pestaña Terminal o actualizar OpenClaw.',
         channelsVersionUnsupportedDocs: 'Ver guía de configuración',
         featureVersionUnsupported: '{{feature}} no compatible con {{version}}',
-        featureVersionUnsupportedDescription: 'No soportamos la gestión de {{feature}} con esta versión a través de nuestra interfaz. Puedes gestionarlo mediante SSH, Terminal o el panel de control de OpenClaw.',
+        featureVersionUnsupportedDescription:
+            'No soportamos la gestión de {{feature}} con esta versión a través de nuestra interfaz. Puedes gestionarlo mediante SSH, Terminal o el panel de control de OpenClaw.',
         featureVersionUnsupportedButton: 'Ir a Versiones',
         featureVersionUnsupportedSupported: 'Versiones compatibles:',
         featureVersionUnsupportedNewer: 'versiones más recientes',
@@ -1991,6 +1998,9 @@ const es: Translations = {
         versionDownloads: '{{count}} descargas',
         versionChangelog: 'Changelog',
         versionOutdated: 'Obsoleto',
+        versionSupported: 'Compatible',
+        versionSupportedTooltip:
+            'Esta versión te permite operar OpenClaw a través de la interfaz',
         versionInstallConfirmTitle: 'Instalar versión {{version}}',
         versionInstallConfirmDescription:
             'Cambiar de versión puede causar un comportamiento inesperado o requerir configuración manual adicional, especialmente para versiones más nuevas que aún no han sido completamente verificadas. ¿Estás seguro de que quieres continuar?',
@@ -2037,8 +2047,7 @@ const es: Translations = {
         personalInfoPayment:
             'Información de pago (procesada de forma segura por proveedores externos)',
         serverInfoTitle: 'Información del servidor',
-        serverInfoConfig:
-            'Configuración y estado del servidor',
+        serverInfoConfig: 'Configuración y estado del servidor',
         serverInfoIp: 'Dirección IP y ubicación del servidor',
         serverInfoResources:
             'Asignación de recursos (CPU, RAM, almacenamiento)',
@@ -2352,7 +2361,8 @@ const es: Translations = {
         genericErrorDescription: 'Something went wrong. Please try again.',
         genericEmptyDescription: 'Nothing to show here yet.',
         failedToLoadUsers: 'Error al cargar los usuarios!',
-        failedToLoadUsersDescription: 'Algo salió mal al cargar los usuarios. Por favor, inténtalo de nuevo.',
+        failedToLoadUsersDescription:
+            'Algo salió mal al cargar los usuarios. Por favor, inténtalo de nuevo.',
         failedToLoadUserDetail: 'Error al cargar los detalles del usuario!',
         userDetail: 'Detalles del usuario',
         userInfo: 'Info del usuario',
@@ -2420,7 +2430,23 @@ const es: Translations = {
         feature: 'Feature',
         sentAt: 'Sent',
         fileSize: 'Size',
-        registered: 'Registered'
+        registered: 'Registrado',
+        status: 'Estado',
+        ip: 'IP',
+        plan: 'Plan',
+        location: 'Ubicación',
+        subdomain: 'Subdominio',
+        subscription: 'Suscripción',
+        billingInterval: 'Facturación',
+        deletionScheduled: 'Eliminación programada',
+        fingerprint: 'Huella digital',
+        price: 'Precio',
+        pricePerMonth: '{{price}}/mes',
+        statusRunning: 'En ejecución',
+        statusStopped: 'Detenido',
+        adminBadge: 'Admin',
+        unitGB: '{{size}} GB',
+        unitKB: '{{size}} KB'
     },
     affiliate: {
         title: 'Afiliado',
@@ -2431,11 +2457,13 @@ const es: Translations = {
         referrals: 'Referidos',
         payments: 'pagos',
         earnings: 'Ganancias',
-        codeChangeHint: 'Puedes personalizar tu código de referido una sola vez.',
+        codeChangeHint:
+            'Puedes personalizar tu código de referido una sola vez.',
         codeAlreadyChanged: 'Tu código de referido ya ha sido personalizado.',
         codeUpdated: 'Código de referido actualizado.',
         codeUpdateFailed: 'Error al actualizar el código de referido!',
-        invalidCodeLength: 'El código debe tener entre {{min}} y {{max}} caracteres!',
+        invalidCodeLength:
+            'El código debe tener entre {{min}} y {{max}} caracteres!',
         referralHistory: 'Historial de referidos',
         paymentHistory: 'Historial de pagos',
         periodToday: 'Hoy',
@@ -2444,68 +2472,107 @@ const es: Translations = {
         periodYear: 'Año',
         periodAll: 'Todo',
         confirmChangeTitle: 'Cambiar código de referido',
-        confirmChangeDescription: '¿Estás seguro? Esta acción es permanente e irreversible. No podrás cambiar tu código de referido de nuevo.',
+        confirmChangeDescription:
+            '¿Estás seguro? Esta acción es permanente e irreversible. No podrás cambiar tu código de referido de nuevo.',
         noReferralsYet: 'Sin referidos',
-        noReferralsDescription: 'Comparte tu enlace de referido para empezar a ganar recompensas.',
+        noReferralsDescription:
+            'Comparte tu enlace de referido para empezar a ganar recompensas.',
         noPaymentsYet: 'Sin pagos',
-        noPaymentsDescription: 'Cuando tus usuarios referidos realicen compras, sus pagos aparecerán aquí.'
+        noPaymentsDescription:
+            'Cuando tus usuarios referidos realicen compras, sus pagos aparecerán aquí.'
     },
     affiliateProgram: {
         title: 'Programa de afiliados',
-        description: 'Descubre cómo funciona el programa de afiliados de ClawHost, cuánto puedes ganar y las reglas de participación.',
+        description:
+            'Descubre cómo funciona el programa de afiliados de ClawHost, cuánto puedes ganar y las reglas de participación.',
         lastUpdated: 'Última actualización: 1 de abril de 2026',
         overviewTitle: '1. Descripción general',
-        overviewText: 'El programa de afiliados de ClawHost te permite ganar recompensas al recomendar nuevos usuarios a ClawHost. Cuando alguien realiza una compra después de visitar ClawHost a través de tu enlace de referido, ganas una comisión sobre sus pagos. El programa es gratuito y está disponible para todos los usuarios registrados de ClawHost.',
+        overviewText:
+            'El programa de afiliados de ClawHost te permite ganar recompensas al recomendar nuevos usuarios a ClawHost. Cuando alguien realiza una compra después de visitar ClawHost a través de tu enlace de referido, ganas una comisión sobre sus pagos. El programa es gratuito y está disponible para todos los usuarios registrados de ClawHost.',
         howItWorksTitle: '2. Cómo funciona',
         howItWorksText: 'Comenzar con el programa de afiliados es sencillo:',
-        howItWorksStep1: 'Regístrate en una cuenta de ClawHost. Se genera automáticamente un código de referido único para ti.',
-        howItWorksStep2: 'Comparte tu enlace de referido con amigos, colegas o tu audiencia. Tu enlace sigue el formato: clawhost.cloud?ref=YOUR_CODE.',
-        howItWorksStep3: 'Cuando alguien realiza una compra después de visitar ClawHost a través de tu enlace, queda registrado como tu referido.',
-        howItWorksStep4: 'Ganas una comisión cada vez que tu referido realiza una compra elegible.',
+        howItWorksStep1:
+            'Regístrate en una cuenta de ClawHost. Se genera automáticamente un código de referido único para ti.',
+        howItWorksStep2:
+            'Comparte tu enlace de referido con amigos, colegas o tu audiencia. Tu enlace sigue el formato: clawhost.cloud?ref=YOUR_CODE.',
+        howItWorksStep3:
+            'Cuando alguien realiza una compra después de visitar ClawHost a través de tu enlace, queda registrado como tu referido.',
+        howItWorksStep4:
+            'Ganas una comisión cada vez que tu referido realiza una compra elegible.',
         earningsTitle: '3. Ganancias y pagos',
         earningsText: 'Así funcionan las ganancias de afiliados:',
-        earningsCommission: 'Ganas una comisión del 15% en cada compra elegible realizada por tus referidos. Las comisiones aplican tanto a los planes ClawHost Cloud como ClawHost Go.',
-        earningsMonthly: 'Para suscripciones mensuales, ganas comisiones durante 1 año desde la fecha de la referencia.',
-        earningsYearly: 'Para suscripciones anuales, ganas una comisión solo sobre el primer año.',
-        earningsPayout: 'El monto mínimo de retiro es de $100 USD. Para solicitar un retiro, contacta a nuestro equipo de soporte.',
-        earningsPaymentMethod: 'Los retiros se procesan a través de PayPal. Debes proporcionar una dirección de correo electrónico de PayPal válida al solicitar un pago.',
+        earningsCommission:
+            'Ganas una comisión del 15% en cada compra elegible realizada por tus referidos. Las comisiones aplican tanto a los planes ClawHost Cloud como ClawHost Go.',
+        earningsMonthly:
+            'Para suscripciones mensuales, ganas comisiones durante 1 año desde la fecha de la referencia.',
+        earningsYearly:
+            'Para suscripciones anuales, ganas una comisión solo sobre el primer año.',
+        earningsPayout:
+            'El monto mínimo de retiro es de $100 USD. Para solicitar un retiro, contacta a nuestro equipo de soporte.',
+        earningsPaymentMethod:
+            'Los retiros se procesan a través de PayPal. Debes proporcionar una dirección de correo electrónico de PayPal válida al solicitar un pago.',
         earningsCurrency: 'Todas las ganancias se calculan y muestran en USD.',
         referralCodeTitle: '4. Tu código de referido',
-        referralCodeText: 'Cada usuario recibe un código de referido único al registrarse. Puedes personalizarlo una vez para hacerlo más memorable:',
-        referralCodeUnique: 'Tu código de referido es único para tu cuenta y no puede ser compartido ni transferido a otro usuario.',
-        referralCodeOneChange: 'Puedes personalizar tu código de referido exactamente una vez. Elige con cuidado — este cambio es permanente e irreversible.',
-        referralCodeFormat: 'Los códigos de referido solo pueden contener letras, números, guiones y guiones bajos.',
+        referralCodeText:
+            'Cada usuario recibe un código de referido único al registrarse. Puedes personalizarlo una vez para hacerlo más memorable:',
+        referralCodeUnique:
+            'Tu código de referido es único para tu cuenta y no puede ser compartido ni transferido a otro usuario.',
+        referralCodeOneChange:
+            'Puedes personalizar tu código de referido exactamente una vez. Elige con cuidado — este cambio es permanente e irreversible.',
+        referralCodeFormat:
+            'Los códigos de referido solo pueden contener letras, números, guiones y guiones bajos.',
         referralWindowTitle: '5. Ventana de atribución de referidos',
-        referralWindowText: 'Un referido se te atribuye durante 3 meses desde el momento en que el usuario referido visita ClawHost por primera vez a través de tu enlace. Si el usuario referido no realiza una compra dentro de esta ventana de 3 meses, el referido expira y no se ganará ninguna comisión. Si el usuario visita a través de un enlace de referido diferente, el nuevo referido reemplaza al anterior.',
+        referralWindowText:
+            'Un referido se te atribuye durante 3 meses desde el momento en que el usuario referido visita ClawHost por primera vez a través de tu enlace. Si el usuario referido no realiza una compra dentro de esta ventana de 3 meses, el referido expira y no se ganará ninguna comisión. Si el usuario visita a través de un enlace de referido diferente, el nuevo referido reemplaza al anterior.',
         eligibilityTitle: '6. Elegibilidad',
-        eligibilityText: 'Para participar en el programa de afiliados, debes cumplir los siguientes requisitos:',
+        eligibilityText:
+            'Para participar en el programa de afiliados, debes cumplir los siguientes requisitos:',
         eligibilityAccount: 'Debes tener una cuenta registrada en ClawHost.',
-        eligibilityStanding: 'Tu cuenta debe estar en buen estado sin historial de violaciones de políticas.',
-        eligibilityAge: 'Debes tener al menos 18 años o la mayoría de edad en tu jurisdicción.',
+        eligibilityStanding:
+            'Tu cuenta debe estar en buen estado sin historial de violaciones de políticas.',
+        eligibilityAge:
+            'Debes tener al menos 18 años o la mayoría de edad en tu jurisdicción.',
         rulesTitle: '7. Reglas del programa',
-        rulesText: 'Para mantener la integridad del programa de afiliados, se aplican las siguientes reglas:',
-        rulesNoSelfReferral: 'Las auto-referencias están estrictamente prohibidas. No puedes referir tus propias cuentas o cuentas que controles.',
-        rulesNoFakeAccounts: 'La creación de cuentas falsas, registros automatizados o el uso de bots para generar referidos está prohibida.',
-        rulesNoSpam: 'El envío de mensajes masivos no solicitados (spam) para promocionar tu enlace de referido no está permitido.',
-        rulesNoMisrepresentation: 'No puedes tergiversar ClawHost, sus servicios o el programa de afiliados de ninguna manera.',
-        rulesNoIncentivized: 'Ofrecer incentivos monetarios directos (por ejemplo, pagar a usuarios para que se registren a través de tu enlace) no está permitido.',
+        rulesText:
+            'Para mantener la integridad del programa de afiliados, se aplican las siguientes reglas:',
+        rulesNoSelfReferral:
+            'Las auto-referencias están estrictamente prohibidas. No puedes referir tus propias cuentas o cuentas que controles.',
+        rulesNoFakeAccounts:
+            'La creación de cuentas falsas, registros automatizados o el uso de bots para generar referidos está prohibida.',
+        rulesNoSpam:
+            'El envío de mensajes masivos no solicitados (spam) para promocionar tu enlace de referido no está permitido.',
+        rulesNoMisrepresentation:
+            'No puedes tergiversar ClawHost, sus servicios o el programa de afiliados de ninguna manera.',
+        rulesNoIncentivized:
+            'Ofrecer incentivos monetarios directos (por ejemplo, pagar a usuarios para que se registren a través de tu enlace) no está permitido.',
         terminationTitle: '8. Violación y terminación',
-        terminationText: 'Cualquier violación de estas reglas resultará en la pérdida inmediata de todas las recompensas pendientes y ganadas. ClawHost se reserva el derecho de suspender o prohibir permanentemente tu cuenta del programa de afiliados. En casos graves, tu cuenta de ClawHost también puede ser cancelada. Todas las decisiones sobre violaciones son definitivas.',
+        terminationText:
+            'Cualquier violación de estas reglas resultará en la pérdida inmediata de todas las recompensas pendientes y ganadas. ClawHost se reserva el derecho de suspender o prohibir permanentemente tu cuenta del programa de afiliados. En casos graves, tu cuenta de ClawHost también puede ser cancelada. Todas las decisiones sobre violaciones son definitivas.',
         marketingTitle: '9. Cómo promocionar',
-        marketingText: 'Hay muchas formas creativas y legítimas de compartir tu enlace de referido y aumentar tus ganancias:',
-        marketingSocial: 'Comparte tu enlace en plataformas de redes sociales como X, LinkedIn, Reddit y Facebook. Escribe sobre tu experiencia con ClawHost e incluye tu enlace de referido.',
-        marketingBlog: 'Escribe publicaciones de blog, tutoriales o reseñas sobre ClawHost. Incluye tu enlace de referido de forma natural dentro del contenido.',
-        marketingVideo: 'Crea contenido de video en YouTube o TikTok mostrando cómo usas ClawHost para desplegar y gestionar agentes de IA.',
-        marketingCommunity: 'Participa en comunidades de desarrolladores, foros y servidores de Discord. Cuando alguien pregunte sobre alojamiento en la nube o despliegue de agentes de IA, recomienda ClawHost con tu enlace.',
-        marketingNewsletter: 'Si tienes un boletín informativo o lista de correo, menciona ClawHost en un número relevante con tu enlace de referido.',
-        marketingComparison: 'Escribe artículos de comparación honestos o guías que destaquen lo que hace diferente a ClawHost de otras plataformas.',
+        marketingText:
+            'Hay muchas formas creativas y legítimas de compartir tu enlace de referido y aumentar tus ganancias:',
+        marketingSocial:
+            'Comparte tu enlace en plataformas de redes sociales como X, LinkedIn, Reddit y Facebook. Escribe sobre tu experiencia con ClawHost e incluye tu enlace de referido.',
+        marketingBlog:
+            'Escribe publicaciones de blog, tutoriales o reseñas sobre ClawHost. Incluye tu enlace de referido de forma natural dentro del contenido.',
+        marketingVideo:
+            'Crea contenido de video en YouTube o TikTok mostrando cómo usas ClawHost para desplegar y gestionar agentes de IA.',
+        marketingCommunity:
+            'Participa en comunidades de desarrolladores, foros y servidores de Discord. Cuando alguien pregunte sobre alojamiento en la nube o despliegue de agentes de IA, recomienda ClawHost con tu enlace.',
+        marketingNewsletter:
+            'Si tienes un boletín informativo o lista de correo, menciona ClawHost en un número relevante con tu enlace de referido.',
+        marketingComparison:
+            'Escribe artículos de comparación honestos o guías que destaquen lo que hace diferente a ClawHost de otras plataformas.',
         changesToProgramTitle: '10. Cambios en el programa',
-        changesToProgramText: 'ClawHost se reserva el derecho de modificar, suspender o discontinuar el programa de afiliados en cualquier momento sin previo aviso. Esto incluye cambios en las tasas de comisión, ventanas de referido, umbrales de pago y reglas del programa. La participación continuada después de los cambios constituye la aceptación de los términos actualizados.',
+        changesToProgramText:
+            'ClawHost se reserva el derecho de modificar, suspender o discontinuar el programa de afiliados en cualquier momento sin previo aviso. Esto incluye cambios en las tasas de comisión, ventanas de referido, umbrales de pago y reglas del programa. La participación continuada después de los cambios constituye la aceptación de los términos actualizados.',
         getStartedTitle: '11. Comenzar',
-        getStartedText: '¿Listo para empezar a ganar? Dirígete a tu panel de afiliados para obtener tu enlace de referido y comienza a compartirlo con tu red.',
+        getStartedText:
+            '¿Listo para empezar a ganar? Dirígete a tu panel de afiliados para obtener tu enlace de referido y comienza a compartirlo con tu red.',
         getStartedButton: 'Ir al panel de afiliados',
         contactTitle: '12. Contacto',
-        contactText: 'Si tienes preguntas sobre el programa de afiliados, necesitas ayuda con tu código de referido o deseas reportar una violación, contáctanos en'
+        contactText:
+            'Si tienes preguntas sobre el programa de afiliados, necesitas ayuda con tu código de referido o deseas reportar una violación, contáctanos en'
     }
 } as const
 

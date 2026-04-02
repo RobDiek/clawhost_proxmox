@@ -49,7 +49,10 @@ const PlaygroundAgentNode: FC<PlaygroundAgentNodeProps> = ({
                     label: t('dashboard.status.running')
                 }
             }
-            if (gatewayState === GATEWAY_CONNECTION_STATE.ERROR || gatewayState === GATEWAY_CONNECTION_STATE.DISCONNECTED) {
+            if (
+                gatewayState === GATEWAY_CONNECTION_STATE.ERROR ||
+                gatewayState === GATEWAY_CONNECTION_STATE.DISCONNECTED
+            ) {
                 return {
                     color: 'bg-red-500',
                     bgColor: 'bg-red-500/10',

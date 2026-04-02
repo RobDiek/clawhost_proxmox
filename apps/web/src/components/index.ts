@@ -33,6 +33,12 @@ import {
     VideoModal
 } from '@/components/landing'
 
+import { BillingOrderCard } from '@/components/billing'
+
+import { CompareTableDesktop, CompareTableMobile } from '@/components/compare'
+
+import { ConnectedAccountRow } from '@/components/account'
+
 import {
     AffiliateConfirmDialog,
     AffiliatePaymentHistory,
@@ -40,27 +46,18 @@ import {
     AffiliateStatsGrid
 } from '@/components/affiliate'
 
-import {
-    BlogCard,
-    BlogCTA
-} from '@/components/blog'
+import { BlogCard, BlogCTA } from '@/components/blog'
 
-import {
-    GoPricingCard,
-    GoWaitlistCTA
-} from '@/components/go'
+import { GoPricingCard, GoWaitlistCTA, GoWaitlistForm } from '@/components/go'
 
-import {
-    LicenseCard,
-    LicenseRequired,
-    ProtectedRoute
-} from '@/components/auth'
+import { LicenseCard, LicenseRequired, ProtectedRoute } from '@/components/auth'
 
 import {
     ActionButton,
     ClawAvatar,
     ClawMascot,
     ClawMascotOutline,
+    ConfirmationDialog,
     EmptyState,
     ErrorState,
     LanguageSelector,
@@ -76,6 +73,10 @@ import {
 } from '@/components/shared'
 
 export {
+    BillingOrderCard,
+    CompareTableDesktop,
+    CompareTableMobile,
+    ConnectedAccountRow,
     AffiliateConfirmDialog,
     AffiliatePaymentHistory,
     AffiliatePeriodSelector,
@@ -89,6 +90,7 @@ export {
     ClawMascot,
     ComparisonTable,
     ClawMascotOutline,
+    ConfirmationDialog,
     DemoPreviewSection,
     EmptyState,
     ErrorState,
@@ -97,6 +99,7 @@ export {
     Footer,
     GoPricingCard,
     GoWaitlistCTA,
+    GoWaitlistForm,
     Header,
     HeroBadge,
     HeroButtons,

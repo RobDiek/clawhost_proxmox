@@ -1,9 +1,10 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { api } from '@/lib'
+import ADMIN_EMAILS_QUERY_KEY from '@/hooks/useAdmin/ADMIN_EMAILS_QUERY_KEY'
 
 const useAdminEmailsList = (limit: number = 20, sort?: string) => {
     return useInfiniteQuery({
-        queryKey: ['admin-emails', limit, sort],
+        queryKey: [...ADMIN_EMAILS_QUERY_KEY, limit, sort],
         queryFn: ({ pageParam }) => api.listAdminEmails(pageParam, limit, sort),
         initialPageParam: 1,
         getNextPageParam: (lastPage) =>

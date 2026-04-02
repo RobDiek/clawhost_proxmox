@@ -28,7 +28,9 @@ describe('checkSubdomainReady', () => {
     })
 
     it('returns false when fetch throws', async () => {
-        vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Network error'))
+        vi.spyOn(globalThis, 'fetch').mockRejectedValue(
+            new Error('Network error')
+        )
 
         const result = await checkSubdomainReady('offline-claw')
         expect(result).toBe(false)
@@ -36,8 +38,12 @@ describe('checkSubdomainReady', () => {
 
     it('deduplicates inflight requests for same subdomain', async () => {
         let resolveFirst: (v: Response) => void
-        const firstPromise = new Promise<Response>((r) => { resolveFirst = r })
-        vi.spyOn(globalThis, 'fetch').mockReturnValue(firstPromise as Promise<Response>)
+        const firstPromise = new Promise<Response>((r) => {
+            resolveFirst = r
+        })
+        vi.spyOn(globalThis, 'fetch').mockReturnValue(
+            firstPromise as Promise<Response>
+        )
 
         const p1 = checkSubdomainReady('dedup-claw')
         const p2 = checkSubdomainReady('dedup-claw')

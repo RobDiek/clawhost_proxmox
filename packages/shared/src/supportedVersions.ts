@@ -58,4 +58,10 @@ const isFeatureSupported = (version: string, feature: string): boolean => {
     })
 }
 
-export { SUPPORTED_VERSIONS, isFeatureSupported }
+const isVersionSupported = (version: string): boolean => {
+    return Object.keys(SUPPORTED_VERSIONS).some((feature) =>
+        isFeatureSupported(version, feature)
+    )
+}
+
+export { SUPPORTED_VERSIONS, isFeatureSupported, isVersionSupported }

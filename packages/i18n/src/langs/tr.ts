@@ -1,4 +1,4 @@
-import type { Translations } from '../types'
+import type { Translations } from '#i18n/types'
 
 const tr: Translations = {
     common: {
@@ -352,8 +352,10 @@ const tr: Translations = {
         invalidPeriod: 'Geçersiz dönem filtresi!',
         referralCodeUpdated: 'Referral code updated successfully.',
         failedToUpdateReferralCode: 'Failed to update referral code!',
-        invalidReferralCodeLength: 'Referral code must be between {{min}} and {{max}} characters!',
-        invalidReferralCodeFormat: 'Referral code can only contain letters, numbers, hyphens, and underscores!',
+        invalidReferralCodeLength:
+            'Referral code must be between {{min}} and {{max}} characters!',
+        invalidReferralCodeFormat:
+            'Referral code can only contain letters, numbers, hyphens, and underscores!',
         referralCodeAlreadyChanged: 'Referral code can only be changed once!',
         referralCodeTaken: 'This referral code is already taken!',
         referralCodeGenerated: 'Referral code generated.',
@@ -472,7 +474,8 @@ const tr: Translations = {
         whatsappAlreadyPaired: 'WhatsApp zaten eşleştirilmiş!',
         whatsappVersionUnsupported:
             "Bu sürüm panelden kanal yapılandırmasını desteklemiyor. Manuel olarak yapılandırmak için Terminal sekmesini kullanın veya OpenClaw'ı güncelleyin.",
-        featureVersionUnsupported: 'Bu özellik {{version}} sürümünde desteklenmiyor. Lütfen OpenClaw\'ı güncelleyin veya manuel yönetim için Terminali kullanın.',
+        featureVersionUnsupported:
+            "Bu özellik {{version}} sürümünde desteklenmiyor. Lütfen OpenClaw'ı güncelleyin veya manuel yönetim için Terminali kullanın.",
         bindingsFetched: 'Bağlamalar başarıyla getirildi.',
         bindingsFetchFailed: 'Bağlamalar getirilemedi!',
         bindingsUpdated: 'Bağlamalar başarıyla güncellendi.',
@@ -1579,8 +1582,7 @@ const tr: Translations = {
             "Claw'ları yönetmek, örnekleri başlatmak, durdurmak, yeniden başlatmak ve silmek için panel",
         release1Feature3:
             'Özel vCPU, RAM ve depolama seçenekleriyle 18 sunucu planı',
-        release1Feature4:
-            'ABD, Avrupa ve Asya genelinde 6 sunucu konumu',
+        release1Feature4: 'ABD, Avrupa ve Asya genelinde 6 sunucu konumu',
         release1Feature5: 'Şifresiz sunucu erişimi için SSH anahtar yönetimi',
         release1Feature6: "10 TB'a kadar ek birim depolama desteği",
         release1Feature7: 'Sihirli bağlantı kimlik doğrulaması, şifre gerekmez',
@@ -1843,8 +1845,10 @@ const tr: Translations = {
         channelsVersionUnsupported:
             "Bu sürümde kanal yapılandırması mevcut değil. Terminal sekmesini kullanarak manuel olarak bağlanabilir veya OpenClaw'ı güncelleyebilirsiniz.",
         channelsVersionUnsupportedDocs: 'Kurulum kılavuzunu görüntüle',
-        featureVersionUnsupported: '{{feature}} {{version}} üzerinde desteklenmiyor',
-        featureVersionUnsupportedDescription: 'Bu sürümde arayüzümüz üzerinden {{feature}} yönetimini desteklemiyoruz. SSH, Terminal veya OpenClaw kontrol paneli aracılığıyla yönetebilirsiniz.',
+        featureVersionUnsupported:
+            '{{feature}} {{version}} üzerinde desteklenmiyor',
+        featureVersionUnsupportedDescription:
+            'Bu sürümde arayüzümüz üzerinden {{feature}} yönetimini desteklemiyoruz. SSH, Terminal veya OpenClaw kontrol paneli aracılığıyla yönetebilirsiniz.',
         featureVersionUnsupportedButton: 'Sürümlere Git',
         featureVersionUnsupportedSupported: 'Desteklenen sürümler:',
         featureVersionUnsupportedNewer: 'daha yeni sürümler',
@@ -1953,6 +1957,9 @@ const tr: Translations = {
         versionDownloads: '{{count}} indirme',
         versionChangelog: 'Değişiklik Günlüğü',
         versionOutdated: 'Eski',
+        versionSupported: 'Desteklenen',
+        versionSupportedTooltip:
+            "Bu sürüm OpenClaw'ı arayüz üzerinden yönetmenize olanak tanır",
         versionInstallConfirmTitle: 'Sürüm {{version}} Yükle',
         versionInstallConfirmDescription:
             'Sürüm değiştirmek beklenmedik davranışlara neden olabilir veya ek manuel yapılandırma gerektirebilir, özellikle henüz tam olarak doğrulanmamış daha yeni sürümler için. Devam etmek istediğinizden emin misiniz?',
@@ -1999,8 +2006,7 @@ const tr: Translations = {
         personalInfoPayment:
             'Ödeme bilgileri (üçüncü taraf sağlayıcılar tarafından güvenli şekilde işlenir)',
         serverInfoTitle: 'Sunucu Bilgileri',
-        serverInfoConfig:
-            'Sunucu yapılandırması ve durumu',
+        serverInfoConfig: 'Sunucu yapılandırması ve durumu',
         serverInfoIp: 'Sunucu IP adresi ve konumu',
         serverInfoResources: 'Kaynak tahsisi (CPU, RAM, depolama)',
         useTitle: '4. Bilgilerinizi Nasıl Kullanıyoruz',
@@ -2310,7 +2316,8 @@ const tr: Translations = {
         genericErrorDescription: 'Something went wrong. Please try again.',
         genericEmptyDescription: 'Nothing to show here yet.',
         failedToLoadUsers: 'Kullanıcılar yüklenemedi!',
-        failedToLoadUsersDescription: 'Kullanıcılar yüklenirken bir hata oluştu. Lütfen tekrar deneyin.',
+        failedToLoadUsersDescription:
+            'Kullanıcılar yüklenirken bir hata oluştu. Lütfen tekrar deneyin.',
         failedToLoadUserDetail: 'Kullanıcı detayları yüklenemedi!',
         userDetail: 'Kullanıcı Detayları',
         userInfo: 'Kullanıcı Bilgisi',
@@ -2378,7 +2385,23 @@ const tr: Translations = {
         feature: 'Feature',
         sentAt: 'Sent',
         fileSize: 'Size',
-        registered: 'Registered'
+        registered: 'Registered',
+        status: 'Durum',
+        ip: 'IP',
+        plan: 'Plan',
+        location: 'Konum',
+        subdomain: 'Alt alan adı',
+        subscription: 'Abonelik',
+        billingInterval: 'Faturalama',
+        deletionScheduled: 'Silme planlandı',
+        fingerprint: 'Parmak izi',
+        price: 'Fiyat',
+        pricePerMonth: '{{price}}/ay',
+        statusRunning: 'Çalışıyor',
+        statusStopped: 'Durduruldu',
+        adminBadge: 'Yönetici',
+        unitGB: '{{size}} GB',
+        unitKB: '{{size}} KB'
     },
     affiliate: {
         title: 'Affiliate',
@@ -2393,7 +2416,8 @@ const tr: Translations = {
         codeAlreadyChanged: 'Your referral code has already been customized.',
         codeUpdated: 'Referral code updated.',
         codeUpdateFailed: 'Failed to update referral code!',
-        invalidCodeLength: 'Code must be between {{min}} and {{max}} characters!',
+        invalidCodeLength:
+            'Code must be between {{min}} and {{max}} characters!',
         referralHistory: 'Referral History',
         paymentHistory: 'Ödeme geçmişi',
         periodToday: 'Today',
@@ -2402,68 +2426,108 @@ const tr: Translations = {
         periodYear: 'Year',
         periodAll: 'All',
         confirmChangeTitle: 'Change Referral Code',
-        confirmChangeDescription: 'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
+        confirmChangeDescription:
+            'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
         noReferralsYet: 'Referans yok',
-        noReferralsDescription: 'Share your referral link to start earning rewards.',
+        noReferralsDescription:
+            'Share your referral link to start earning rewards.',
         noPaymentsYet: 'Ödeme yok',
-        noPaymentsDescription: 'Yönlendirdiğiniz kullanıcılar satın alma yaptığında, ödemeleri burada görünecektir.'
+        noPaymentsDescription:
+            'Yönlendirdiğiniz kullanıcılar satın alma yaptığında, ödemeleri burada görünecektir.'
     },
     affiliateProgram: {
         title: 'Ortaklık Programı',
-        description: 'ClawHost ortaklık programının nasıl çalıştığını, ne kadar kazanabileceğinizi ve katılım kurallarını öğrenin.',
+        description:
+            'ClawHost ortaklık programının nasıl çalıştığını, ne kadar kazanabileceğinizi ve katılım kurallarını öğrenin.',
         lastUpdated: 'Son güncelleme: 1 Nisan 2026',
         overviewTitle: '1. Genel Bakış',
-        overviewText: 'ClawHost Ortaklık Programı, yeni kullanıcıları ClawHost\'a yönlendirerek ödüller kazanmanızı sağlar. Birisi yönlendirme bağlantınız aracılığıyla ClawHost\'u ziyaret ettikten sonra bir satın alma yaptığında, ödemelerinden komisyon kazanırsınız. Program ücretsizdir ve tüm kayıtlı ClawHost kullanıcılarına açıktır.',
+        overviewText:
+            "ClawHost Ortaklık Programı, yeni kullanıcıları ClawHost'a yönlendirerek ödüller kazanmanızı sağlar. Birisi yönlendirme bağlantınız aracılığıyla ClawHost'u ziyaret ettikten sonra bir satın alma yaptığında, ödemelerinden komisyon kazanırsınız. Program ücretsizdir ve tüm kayıtlı ClawHost kullanıcılarına açıktır.",
         howItWorksTitle: '2. Nasıl Çalışır',
         howItWorksText: 'Ortaklık programına başlamak basittir:',
-        howItWorksStep1: 'Bir ClawHost hesabı oluşturun. Sizin için otomatik olarak benzersiz bir yönlendirme kodu oluşturulur.',
-        howItWorksStep2: 'Yönlendirme bağlantınızı arkadaşlarınız, meslektaşlarınız veya kitlenizle paylaşın. Bağlantınız şu formatı takip eder: clawhost.cloud?ref=YOUR_CODE.',
-        howItWorksStep3: 'Birisi bağlantınız aracılığıyla ClawHost\'u ziyaret ettikten sonra bir satın alma yaptığında, bu yönlendirmeniz olarak kaydedilir.',
-        howItWorksStep4: 'Yönlendirdiğiniz kullanıcı uygun bir satın alma yaptığında her seferinde komisyon kazanırsınız.',
+        howItWorksStep1:
+            'Bir ClawHost hesabı oluşturun. Sizin için otomatik olarak benzersiz bir yönlendirme kodu oluşturulur.',
+        howItWorksStep2:
+            'Yönlendirme bağlantınızı arkadaşlarınız, meslektaşlarınız veya kitlenizle paylaşın. Bağlantınız şu formatı takip eder: clawhost.cloud?ref=YOUR_CODE.',
+        howItWorksStep3:
+            "Birisi bağlantınız aracılığıyla ClawHost'u ziyaret ettikten sonra bir satın alma yaptığında, bu yönlendirmeniz olarak kaydedilir.",
+        howItWorksStep4:
+            'Yönlendirdiğiniz kullanıcı uygun bir satın alma yaptığında her seferinde komisyon kazanırsınız.',
         earningsTitle: '3. Kazançlar ve Ödemeler',
         earningsText: 'Ortaklık kazançları şöyle çalışır:',
-        earningsCommission: 'Yönlendirdiğiniz kullanıcıların yaptığı her uygun satın alma üzerinden 15% komisyon kazanırsınız. Komisyonlar hem ClawHost Cloud hem de ClawHost Go planları için geçerlidir.',
-        earningsMonthly: 'Aylık abonelikler için, yönlendirme tarihinden itibaren 1 yıl boyunca komisyon kazanırsınız.',
-        earningsYearly: 'Yıllık abonelikler için, yalnızca ilk yıl üzerinden komisyon kazanırsınız.',
-        earningsPayout: 'Minimum çekim tutarı 100 $ USD\'dir. Çekim talebinde bulunmak için destek ekibimizle iletişime geçin.',
-        earningsPaymentMethod: 'Çekimler PayPal aracılığıyla işlenir. Ödeme talep ederken geçerli bir PayPal e-posta adresi sağlamanız gerekmektedir.',
-        earningsCurrency: 'Tüm kazançlar USD olarak hesaplanır ve görüntülenir.',
+        earningsCommission:
+            'Yönlendirdiğiniz kullanıcıların yaptığı her uygun satın alma üzerinden 15% komisyon kazanırsınız. Komisyonlar hem ClawHost Cloud hem de ClawHost Go planları için geçerlidir.',
+        earningsMonthly:
+            'Aylık abonelikler için, yönlendirme tarihinden itibaren 1 yıl boyunca komisyon kazanırsınız.',
+        earningsYearly:
+            'Yıllık abonelikler için, yalnızca ilk yıl üzerinden komisyon kazanırsınız.',
+        earningsPayout:
+            "Minimum çekim tutarı 100 $ USD'dir. Çekim talebinde bulunmak için destek ekibimizle iletişime geçin.",
+        earningsPaymentMethod:
+            'Çekimler PayPal aracılığıyla işlenir. Ödeme talep ederken geçerli bir PayPal e-posta adresi sağlamanız gerekmektedir.',
+        earningsCurrency:
+            'Tüm kazançlar USD olarak hesaplanır ve görüntülenir.',
         referralCodeTitle: '4. Yönlendirme Kodunuz',
-        referralCodeText: 'Her kullanıcı kayıt sırasında benzersiz bir yönlendirme kodu alır. Daha akılda kalıcı hale getirmek için bir kez özelleştirebilirsiniz:',
-        referralCodeUnique: 'Yönlendirme kodunuz hesabınıza özgüdür ve başka bir kullanıcıyla paylaşılamaz veya devredilemez.',
-        referralCodeOneChange: 'Yönlendirme kodunuzu tam olarak bir kez özelleştirebilirsiniz. Dikkatli seçin — bu değişiklik kalıcıdır ve geri alınamaz.',
-        referralCodeFormat: 'Yönlendirme kodları yalnızca harfler, rakamlar, tireler ve alt çizgiler içerebilir.',
+        referralCodeText:
+            'Her kullanıcı kayıt sırasında benzersiz bir yönlendirme kodu alır. Daha akılda kalıcı hale getirmek için bir kez özelleştirebilirsiniz:',
+        referralCodeUnique:
+            'Yönlendirme kodunuz hesabınıza özgüdür ve başka bir kullanıcıyla paylaşılamaz veya devredilemez.',
+        referralCodeOneChange:
+            'Yönlendirme kodunuzu tam olarak bir kez özelleştirebilirsiniz. Dikkatli seçin — bu değişiklik kalıcıdır ve geri alınamaz.',
+        referralCodeFormat:
+            'Yönlendirme kodları yalnızca harfler, rakamlar, tireler ve alt çizgiler içerebilir.',
         referralWindowTitle: '5. Yönlendirme Atıf Penceresi',
-        referralWindowText: 'Bir yönlendirme, yönlendirilen kullanıcının bağlantınız aracılığıyla ClawHost\'u ilk ziyaret ettiği andan itibaren 3 ay boyunca size atfedilir. Yönlendirilen kullanıcı bu 3 aylık pencere içinde bir satın alma yapmazsa, yönlendirme sona erer ve komisyon kazanılmaz. Kullanıcı farklı bir yönlendirme bağlantısı aracılığıyla ziyaret ederse, yeni yönlendirme öncekinin yerini alır.',
+        referralWindowText:
+            "Bir yönlendirme, yönlendirilen kullanıcının bağlantınız aracılığıyla ClawHost'u ilk ziyaret ettiği andan itibaren 3 ay boyunca size atfedilir. Yönlendirilen kullanıcı bu 3 aylık pencere içinde bir satın alma yapmazsa, yönlendirme sona erer ve komisyon kazanılmaz. Kullanıcı farklı bir yönlendirme bağlantısı aracılığıyla ziyaret ederse, yeni yönlendirme öncekinin yerini alır.",
         eligibilityTitle: '6. Uygunluk',
-        eligibilityText: 'Ortaklık programına katılmak için aşağıdaki gereksinimleri karşılamanız gerekir:',
+        eligibilityText:
+            'Ortaklık programına katılmak için aşağıdaki gereksinimleri karşılamanız gerekir:',
         eligibilityAccount: 'Kayıtlı bir ClawHost hesabınız olmalıdır.',
-        eligibilityStanding: 'Hesabınız iyi durumda olmalı ve politika ihlali geçmişi bulunmamalıdır.',
-        eligibilityAge: 'En az 18 yaşında veya yargı bölgenizdeki reşitlik yaşında olmalısınız.',
+        eligibilityStanding:
+            'Hesabınız iyi durumda olmalı ve politika ihlali geçmişi bulunmamalıdır.',
+        eligibilityAge:
+            'En az 18 yaşında veya yargı bölgenizdeki reşitlik yaşında olmalısınız.',
         rulesTitle: '7. Program Kuralları',
-        rulesText: 'Ortaklık programının bütünlüğünü korumak için aşağıdaki kurallar geçerlidir:',
-        rulesNoSelfReferral: 'Kendi kendine yönlendirme kesinlikle yasaktır. Kendi hesaplarınızı veya kontrol ettiğiniz hesapları yönlendiremezsiniz.',
-        rulesNoFakeAccounts: 'Sahte hesaplar oluşturmak, otomatik kayıtlar yapmak veya yönlendirme oluşturmak için bot kullanmak yasaktır.',
-        rulesNoSpam: 'Yönlendirme bağlantınızı tanıtmak için istenmeyen toplu mesajlar (spam) göndermek yasaktır.',
-        rulesNoMisrepresentation: 'ClawHost\'u, hizmetlerini veya ortaklık programını hiçbir şekilde yanlış tanıtamazsınız.',
-        rulesNoIncentivized: 'Doğrudan parasal teşvikler sunmak (örneğin, bağlantınız aracılığıyla kaydolmaları için kullanıcılara ödeme yapmak) yasaktır.',
+        rulesText:
+            'Ortaklık programının bütünlüğünü korumak için aşağıdaki kurallar geçerlidir:',
+        rulesNoSelfReferral:
+            'Kendi kendine yönlendirme kesinlikle yasaktır. Kendi hesaplarınızı veya kontrol ettiğiniz hesapları yönlendiremezsiniz.',
+        rulesNoFakeAccounts:
+            'Sahte hesaplar oluşturmak, otomatik kayıtlar yapmak veya yönlendirme oluşturmak için bot kullanmak yasaktır.',
+        rulesNoSpam:
+            'Yönlendirme bağlantınızı tanıtmak için istenmeyen toplu mesajlar (spam) göndermek yasaktır.',
+        rulesNoMisrepresentation:
+            "ClawHost'u, hizmetlerini veya ortaklık programını hiçbir şekilde yanlış tanıtamazsınız.",
+        rulesNoIncentivized:
+            'Doğrudan parasal teşvikler sunmak (örneğin, bağlantınız aracılığıyla kaydolmaları için kullanıcılara ödeme yapmak) yasaktır.',
         terminationTitle: '8. İhlal ve Fesih',
-        terminationText: 'Bu kuralların herhangi birinin ihlali, bekleyen ve kazanılan tüm ödüllerin derhal kaybedilmesiyle sonuçlanır. ClawHost, hesabınızı ortaklık programından askıya alma veya kalıcı olarak yasaklama hakkını saklı tutar. Ciddi durumlarda ClawHost hesabınız da feshedilebilir. İhlallerle ilgili tüm kararlar kesindir.',
+        terminationText:
+            'Bu kuralların herhangi birinin ihlali, bekleyen ve kazanılan tüm ödüllerin derhal kaybedilmesiyle sonuçlanır. ClawHost, hesabınızı ortaklık programından askıya alma veya kalıcı olarak yasaklama hakkını saklı tutar. Ciddi durumlarda ClawHost hesabınız da feshedilebilir. İhlallerle ilgili tüm kararlar kesindir.',
         marketingTitle: '9. Nasıl Tanıtılır',
-        marketingText: 'Yönlendirme bağlantınızı paylaşmanın ve kazançlarınızı artırmanın birçok yaratıcı ve meşru yolu vardır:',
-        marketingSocial: 'Bağlantınızı X, LinkedIn, Reddit ve Facebook gibi sosyal medya platformlarında paylaşın. ClawHost ile deneyiminiz hakkında yazın ve yönlendirme bağlantınızı ekleyin.',
-        marketingBlog: 'ClawHost hakkında blog yazıları, öğreticiler veya incelemeler yazın. Yönlendirme bağlantınızı içeriğe doğal bir şekilde dahil edin.',
-        marketingVideo: 'YouTube veya TikTok\'ta ClawHost\'u AI ajanlarını dağıtmak ve yönetmek için nasıl kullandığınızı gösteren video içerikleri oluşturun.',
-        marketingCommunity: 'Geliştirici topluluklarına, forumlara ve Discord sunucularına katılın. Birisi bulut barındırma veya AI ajanı dağıtımı hakkında sorduğunda, bağlantınızla ClawHost\'u önerin.',
-        marketingNewsletter: 'Bir bülten veya e-posta listesi yönetiyorsanız, ilgili bir sayıda yönlendirme bağlantınızla ClawHost\'tan bahsedin.',
-        marketingComparison: 'ClawHost\'u diğer platformlardan farklı kılan özellikleri vurgulayan dürüst karşılaştırma makaleleri veya rehberler yazın.',
+        marketingText:
+            'Yönlendirme bağlantınızı paylaşmanın ve kazançlarınızı artırmanın birçok yaratıcı ve meşru yolu vardır:',
+        marketingSocial:
+            'Bağlantınızı X, LinkedIn, Reddit ve Facebook gibi sosyal medya platformlarında paylaşın. ClawHost ile deneyiminiz hakkında yazın ve yönlendirme bağlantınızı ekleyin.',
+        marketingBlog:
+            'ClawHost hakkında blog yazıları, öğreticiler veya incelemeler yazın. Yönlendirme bağlantınızı içeriğe doğal bir şekilde dahil edin.',
+        marketingVideo:
+            "YouTube veya TikTok'ta ClawHost'u AI ajanlarını dağıtmak ve yönetmek için nasıl kullandığınızı gösteren video içerikleri oluşturun.",
+        marketingCommunity:
+            "Geliştirici topluluklarına, forumlara ve Discord sunucularına katılın. Birisi bulut barındırma veya AI ajanı dağıtımı hakkında sorduğunda, bağlantınızla ClawHost'u önerin.",
+        marketingNewsletter:
+            "Bir bülten veya e-posta listesi yönetiyorsanız, ilgili bir sayıda yönlendirme bağlantınızla ClawHost'tan bahsedin.",
+        marketingComparison:
+            "ClawHost'u diğer platformlardan farklı kılan özellikleri vurgulayan dürüst karşılaştırma makaleleri veya rehberler yazın.",
         changesToProgramTitle: '10. Programdaki Değişiklikler',
-        changesToProgramText: 'ClawHost, ortaklık programını herhangi bir zamanda önceden bildirimde bulunmaksızın değiştirme, askıya alma veya sonlandırma hakkını saklı tutar. Bu, komisyon oranları, yönlendirme pencereleri, ödeme eşikleri ve program kurallarındaki değişiklikleri içerir. Değişikliklerden sonra katılımın devam etmesi, güncellenen koşulların kabul edildiği anlamına gelir.',
+        changesToProgramText:
+            'ClawHost, ortaklık programını herhangi bir zamanda önceden bildirimde bulunmaksızın değiştirme, askıya alma veya sonlandırma hakkını saklı tutar. Bu, komisyon oranları, yönlendirme pencereleri, ödeme eşikleri ve program kurallarındaki değişiklikleri içerir. Değişikliklerden sonra katılımın devam etmesi, güncellenen koşulların kabul edildiği anlamına gelir.',
         getStartedTitle: '11. Başlayın',
-        getStartedText: 'Kazanmaya hazır mısınız? Yönlendirme bağlantınızı almak için ortaklık panelinize gidin ve ağınızla paylaşmaya başlayın.',
+        getStartedText:
+            'Kazanmaya hazır mısınız? Yönlendirme bağlantınızı almak için ortaklık panelinize gidin ve ağınızla paylaşmaya başlayın.',
         getStartedButton: 'Ortaklık Paneline Git',
         contactTitle: '12. İletişim',
-        contactText: 'Ortaklık programı hakkında sorularınız varsa, yönlendirme kodunuzla ilgili yardıma ihtiyacınız varsa veya bir ihlal bildirmek istiyorsanız, bize ulaşın'
+        contactText:
+            'Ortaklık programı hakkında sorularınız varsa, yönlendirme kodunuzla ilgili yardıma ihtiyacınız varsa veya bir ihlal bildirmek istiyorsanız, bize ulaşın'
     }
 } as const
 

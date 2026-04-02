@@ -83,7 +83,8 @@ const resolveCredentialConflict = async (c: Context) => {
             return fail(c, t('api.userNotFound'), 404)
         }
 
-        const method = providerId === 'google.com' ? authMethod.google : authMethod.github
+        const method =
+            providerId === 'google.com' ? authMethod.google : authMethod.github
         await Promise.all([
             auth()
                 .updateUser(existingUser.id, {

@@ -12,7 +12,8 @@
         "baseUrl": ".",
         "paths": {
             "@/*": ["./src/*"],
-            "#i18n/*": ["../../packages/i18n/src/*"]
+            "#i18n/*": ["../../packages/i18n/src/*"],
+            "#shared/*": ["../../packages/shared/src/*"]
         }
     },
     "include": [

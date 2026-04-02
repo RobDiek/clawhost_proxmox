@@ -20,7 +20,9 @@ import {
     CaretUpIcon
 } from '@phosphor-icons/react'
 
-const buildSimplePlans = (plans: Plan[]): Array<{
+const buildSimplePlans = (
+    plans: Plan[]
+): Array<{
     planId: string
     name: string
     desc: string
@@ -43,7 +45,9 @@ const buildSimplePlans = (plans: Plan[]): Array<{
             name: t('landing.planStarter'),
             desc: t('landing.planStarterDesc'),
             price: 25,
-            yearlyPerMonth: Math.round((planMap.get('cx23')?.priceYearly ?? 250) / 12),
+            yearlyPerMonth: Math.round(
+                (planMap.get('cx23')?.priceYearly ?? 250) / 12
+            ),
             popular: false,
             features: [
                 ...common,
@@ -56,7 +60,9 @@ const buildSimplePlans = (plans: Plan[]): Array<{
             name: t('landing.planGrowth'),
             desc: t('landing.planGrowthDesc'),
             price: 40,
-            yearlyPerMonth: Math.round((planMap.get('cpx21')?.priceYearly ?? 400) / 12),
+            yearlyPerMonth: Math.round(
+                (planMap.get('cpx21')?.priceYearly ?? 400) / 12
+            ),
             popular: true,
             features: [
                 ...common,
@@ -69,7 +75,9 @@ const buildSimplePlans = (plans: Plan[]): Array<{
             name: t('landing.planPro'),
             desc: t('landing.planProDesc'),
             price: 60,
-            yearlyPerMonth: Math.round((planMap.get('ccx23')?.priceYearly ?? 600) / 12),
+            yearlyPerMonth: Math.round(
+                (planMap.get('ccx23')?.priceYearly ?? 600) / 12
+            ),
             popular: false,
             features: [
                 ...common,
@@ -82,7 +90,9 @@ const buildSimplePlans = (plans: Plan[]): Array<{
             name: t('landing.planBusiness'),
             desc: t('landing.planBusinessDesc'),
             price: 90,
-            yearlyPerMonth: Math.round((planMap.get('ccx33')?.priceYearly ?? 900) / 12),
+            yearlyPerMonth: Math.round(
+                (planMap.get('ccx33')?.priceYearly ?? 900) / 12
+            ),
             popular: false,
             features: [
                 ...common,
@@ -129,7 +139,8 @@ const SimplePlanCard: FC<SimplePlanCardProps> = ({
                     {t('landing.perMonth')}
                 </span>
                 <span className='text-muted-foreground/40 text-xs'>
-                    (${yearlyPerMonth}{t('landing.perYear')})
+                    (${yearlyPerMonth}
+                    {t('landing.perYear')})
                 </span>
             </div>
             <div className='mb-6 flex flex-col gap-2'>

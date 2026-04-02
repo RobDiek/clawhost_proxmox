@@ -1,4 +1,4 @@
-import { billingInterval } from '@'
+import { billingInterval } from '#shared/index'
 
 describe('billingInterval', () => {
     it('has month interval', () => {

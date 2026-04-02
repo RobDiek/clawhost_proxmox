@@ -66,8 +66,10 @@ const ChatSidebarAgentList: FC<ChatSidebarAgentListProps> = ({
                         isLast={isLastItem}
                         isChecking={
                             !readOnly &&
-                            (gatewayState === GATEWAY_CONNECTION_STATE.CONNECTING ||
-                                gatewayState === GATEWAY_CONNECTION_STATE.AUTHENTICATING)
+                            (gatewayState ===
+                                GATEWAY_CONNECTION_STATE.CONNECTING ||
+                                gatewayState ===
+                                    GATEWAY_CONNECTION_STATE.AUTHENTICATING)
                         }
                         readOnly={readOnly}
                         connectionState={
@@ -75,10 +77,13 @@ const ChatSidebarAgentList: FC<ChatSidebarAgentListProps> = ({
                                 ? undefined
                                 : isActiveAgent
                                   ? activeConnectionState
-                                  : gatewayState === GATEWAY_CONNECTION_STATE.CONNECTED
+                                  : gatewayState ===
+                                      GATEWAY_CONNECTION_STATE.CONNECTED
                                     ? GATEWAY_CONNECTION_STATE.CONNECTED
-                                    : gatewayState === GATEWAY_CONNECTION_STATE.ERROR ||
-                                        gatewayState === GATEWAY_CONNECTION_STATE.DISCONNECTED
+                                    : gatewayState ===
+                                            GATEWAY_CONNECTION_STATE.ERROR ||
+                                        gatewayState ===
+                                            GATEWAY_CONNECTION_STATE.DISCONNECTED
                                       ? GATEWAY_CONNECTION_STATE.DISCONNECTED
                                       : undefined
                         }

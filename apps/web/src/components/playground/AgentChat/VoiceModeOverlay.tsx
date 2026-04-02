@@ -12,7 +12,11 @@ import {
     WarningIcon
 } from '@phosphor-icons/react'
 import { t } from '@openclaw/i18n'
-import { CHAT_MESSAGE_ROLE, CHAT_MESSAGE_STATUS, CHAT_TYPING_INDICATOR } from '@/lib/constants'
+import {
+    CHAT_MESSAGE_ROLE,
+    CHAT_MESSAGE_STATUS,
+    CHAT_TYPING_INDICATOR
+} from '@/lib/constants'
 import VoiceOrb from '@/components/playground/AgentChat/VoiceOrb'
 import ChatBubble from '@/components/playground/AgentChat/ChatBubble'
 import ChatTypingIndicator from '@/components/playground/AgentChat/ChatTypingIndicator'

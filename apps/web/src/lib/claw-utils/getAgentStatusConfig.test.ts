@@ -51,7 +51,14 @@ describe('getAgentStatusConfig', () => {
     })
 
     it('always returns a label string', () => {
-        const statuses = ['running', 'stopped', 'starting', 'stopping', 'error', 'unknown']
+        const statuses = [
+            'running',
+            'stopped',
+            'starting',
+            'stopping',
+            'error',
+            'unknown'
+        ]
         for (const status of statuses) {
             expect(typeof getAgentStatusConfig(status).label).toBe('string')
         }

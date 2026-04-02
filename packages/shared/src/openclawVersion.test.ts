@@ -1,4 +1,4 @@
-import { OPENCLAW_VERSION } from '@'
+import { OPENCLAW_VERSION } from '#shared/index'
 
 describe('OPENCLAW_VERSION', () => {
     it('is a non-empty string', () => {

@@ -161,9 +161,7 @@ const run = async () => {
             )
 
             if (locationDcs.length === 0) {
-                console.error(
-                    `\nLocation "${location}" has no datacenters`
-                )
+                console.error(`\nLocation "${location}" has no datacenters`)
                 const validLocations = [
                     ...new Set(
                         datacenters

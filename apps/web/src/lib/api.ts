@@ -157,7 +157,9 @@ const api = {
     createClaw: (data: CreateClawData) =>
         client.post<Claw>(API_PATHS.CLAWS.BASE, data),
     purchaseClaw: (data: PurchaseClawData) =>
-        client.post<PurchaseClawResponse>(API_PATHS.CLAWS.PURCHASE, data, { headers: getReferralHeaders() }),
+        client.post<PurchaseClawResponse>(API_PATHS.CLAWS.PURCHASE, data, {
+            headers: getReferralHeaders()
+        }),
     startClaw: (id: string) => client.post<Claw>(API_PATHS.CLAWS.START(id)),
     stopClaw: (id: string) => client.post<Claw>(API_PATHS.CLAWS.STOP(id)),
     restartClaw: (id: string) => client.post<Claw>(API_PATHS.CLAWS.RESTART(id)),
@@ -305,7 +307,9 @@ const api = {
         client.put<void>(API_PATHS.CLAWS.FILES.BASE(id), data),
 
     getAffiliate: (period: AffiliatePeriod) =>
-        client.get<AffiliateInfo>(`${API_PATHS.AFFILIATE.BASE}?period=${period}`),
+        client.get<AffiliateInfo>(
+            `${API_PATHS.AFFILIATE.BASE}?period=${period}`
+        ),
     generateReferralCode: () =>
         client.post<GenerateReferralCodeResponse>(API_PATHS.AFFILIATE.GENERATE),
     updateReferralCode: (data: UpdateReferralCodeData) =>
@@ -458,7 +462,11 @@ const api = {
     getCustomerPortal: () =>
         client.post<CustomerPortalResponse>(API_PATHS.USERS.BILLING_PORTAL),
     purchaseLicense: () =>
-        client.post<LicenseCheckoutResponse>(API_PATHS.USERS.LICENSE_CHECKOUT, undefined, { headers: getReferralHeaders() }),
+        client.post<LicenseCheckoutResponse>(
+            API_PATHS.USERS.LICENSE_CHECKOUT,
+            undefined,
+            { headers: getReferralHeaders() }
+        ),
 
     joinWaitlist: (email: string) =>
         publicClient.post<JoinWaitlistResponse>(API_PATHS.WAITLIST.BASE, {

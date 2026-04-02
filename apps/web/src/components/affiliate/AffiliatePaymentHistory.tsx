@@ -5,12 +5,13 @@ import { t } from '@openclaw/i18n'
 import { getLocale } from '@/lib'
 import { EmptyState } from '@/components'
 import { Skeleton } from '@/components/ui'
-import {
-    UsersThreeIcon,
-    CurrencyDollarIcon
-} from '@phosphor-icons/react'
+import { UsersThreeIcon, CurrencyDollarIcon } from '@phosphor-icons/react'
 
-const AffiliatePaymentHistory: FC<AffiliatePaymentHistoryProps> = ({ payments, isLoading, formatCurrency }): ReactNode => {
+const AffiliatePaymentHistory: FC<AffiliatePaymentHistoryProps> = ({
+    payments,
+    isLoading,
+    formatCurrency
+}): ReactNode => {
     return (
         <div className='border-border bg-foreground/5 rounded-lg border p-5'>
             <p className='text-muted-foreground mb-3 text-sm font-medium'>
@@ -18,6 +19,9 @@ const AffiliatePaymentHistory: FC<AffiliatePaymentHistoryProps> = ({ payments, i
             </p>
             {isLoading ? (
                 <div className='space-y-2'>
+                    <Skeleton className='bg-foreground/10 h-16 w-full rounded-lg' />
+                    <Skeleton className='bg-foreground/10 h-16 w-full rounded-lg' />
+                    <Skeleton className='bg-foreground/10 h-16 w-full rounded-lg' />
                     <Skeleton className='bg-foreground/10 h-16 w-full rounded-lg' />
                     <Skeleton className='bg-foreground/10 h-16 w-full rounded-lg' />
                 </div>
@@ -35,14 +39,11 @@ const AffiliatePaymentHistory: FC<AffiliatePaymentHistoryProps> = ({ payments, i
                                 <p className='text-muted-foreground text-xs'>
                                     {new Date(
                                         payment.createdAt
-                                    ).toLocaleDateString(
-                                        getLocale(),
-                                        {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric'
-                                        }
-                                    )}
+                                    ).toLocaleDateString(getLocale(), {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric'
+                                    })}
                                 </p>
                             </div>
                             <div className='flex items-center gap-3'>
@@ -52,9 +53,7 @@ const AffiliatePaymentHistory: FC<AffiliatePaymentHistoryProps> = ({ payments, i
                                 {payment.amount > 0 && (
                                     <span className='flex items-center gap-1 text-sm font-medium text-green-600 dark:text-green-400'>
                                         <CurrencyDollarIcon className='h-3.5 w-3.5' />
-                                        {formatCurrency(
-                                            payment.amount
-                                        )}
+                                        {formatCurrency(payment.amount)}
                                     </span>
                                 )}
                             </div>
@@ -63,13 +62,9 @@ const AffiliatePaymentHistory: FC<AffiliatePaymentHistoryProps> = ({ payments, i
                 </div>
             ) : (
                 <EmptyState
-                    icon={
-                        <UsersThreeIcon className='text-primary h-10 w-10' />
-                    }
+                    icon={<UsersThreeIcon className='text-primary h-10 w-10' />}
                     title={t('affiliate.noPaymentsYet')}
-                    description={t(
-                        'affiliate.noPaymentsDescription'
-                    )}
+                    description={t('affiliate.noPaymentsDescription')}
                 />
             )}
         </div>

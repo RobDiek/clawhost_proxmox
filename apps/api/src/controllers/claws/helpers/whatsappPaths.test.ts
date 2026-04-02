@@ -5,7 +5,9 @@ describe('WHATSAPP_PATHS', () => {
         expect(WHATSAPP_PATHS.PAIR_LOG).toBe('/tmp/openclaw-wa-pair.log')
         expect(WHATSAPP_PATHS.PAIR_PID).toBe('/tmp/openclaw-wa-pair.pid')
         expect(WHATSAPP_PATHS.PAIR_SCRIPT).toBe('/tmp/openclaw-wa-pair.sh')
-        expect(WHATSAPP_PATHS.CREDS_DIR).toBe('/home/openclaw/.openclaw/credentials/whatsapp')
+        expect(WHATSAPP_PATHS.CREDS_DIR).toBe(
+            '/home/openclaw/.openclaw/credentials/whatsapp'
+        )
     })
 
     it('has exactly 4 path entries', () => {

@@ -2,10 +2,7 @@ import type { CacheEntry, ServerStatus } from '@/ts/Interfaces'
 
 import cache from '@/services/provider/cache'
 
-const updateCachedServerStatus = (
-    serverId: string,
-    status: string
-) => {
+const updateCachedServerStatus = (serverId: string, status: string) => {
     const provider = 'hetzner'
 
     const serversEntry = cache.get(`${provider}:servers`) as

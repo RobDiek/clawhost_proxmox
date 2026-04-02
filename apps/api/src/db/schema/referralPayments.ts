@@ -14,9 +14,7 @@ const referralPayments = pgTable(
             .defaultNow()
             .notNull()
     },
-    (table) => [
-        index('referral_payments_referral_id_idx').on(table.referralId)
-    ]
+    (table) => [index('referral_payments_referral_id_idx').on(table.referralId)]
 )
 
 export default referralPayments

@@ -1,4 +1,4 @@
-import { inputValidation } from '@'
+import { inputValidation } from '#shared/index'
 
 describe('inputValidation', () => {
     it('has CLAW_NAME max of 50', () => {

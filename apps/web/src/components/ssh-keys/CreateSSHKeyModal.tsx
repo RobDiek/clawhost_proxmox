@@ -2,37 +2,23 @@ import type { FC, ReactNode } from 'react'
 import type { CreateSSHKeyModalProps, GeneratedKeyPair } from '@/ts/Interfaces'
 import type { CopiedFieldType, SSHKeyModalMode } from '@/ts/Types'
 
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { useUIStore } from '@/lib/store'
-import { COPIED_FIELD_TYPE, SSH_KEY_MODAL_MODE, TOAST_TYPE } from '@/lib/constants'
+import { SSH_KEY_MODAL_MODE, TOAST_TYPE } from '@/lib/constants'
 import { copyToClipboard as copyText } from '@/lib'
 import { useCreateSSHKey } from '@/hooks'
 import {
-    Button,
-    Input,
-    Label,
-    Card,
-    CardContent,
     Alert,
     AlertDescription,
     Dialog,
     DialogContent,
     DialogDescription,
     DialogHeader,
-    DialogTitle,
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent
+    DialogTitle
 } from '@/components/ui'
-import {
-    KeyIcon,
-    CircleNotchIcon,
-    CopyIcon,
-    CheckIcon,
-    DownloadIcon,
-    WarningIcon
-} from '@phosphor-icons/react'
+import SSHKeyUploadForm from '@/components/ssh-keys/SSHKeyUploadForm'
+import SSHKeyGenerateForm from '@/components/ssh-keys/SSHKeyGenerateForm'
 
 const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
     onClose
@@ -60,7 +46,10 @@ const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
             },
             {
                 onSuccess: () => {
-                    showToast(t('sshKeys.sshKeyAddedSuccessfully'), TOAST_TYPE.SUCCESS)
+                    showToast(
+                        t('sshKeys.sshKeyAddedSuccessfully'),
+                        TOAST_TYPE.SUCCESS
+                    )
                     onClose()
                 },
                 onError: (err: Error) => {
@@ -168,8 +157,6 @@ const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
         URL.revokeObjectURL(url)
     }
 
-    const sshKeygenCommand = 'ssh-keygen -t ed25519 -C "your-email@example.com"'
-
     return (
         <Dialog open onOpenChange={onClose}>
             <DialogContent className='max-h-[90vh] max-w-lg overflow-y-auto'>
@@ -213,274 +200,30 @@ const CreateSSHKeyModal: FC<CreateSSHKeyModalProps> = ({
                 )}
 
                 {mode === SSH_KEY_MODAL_MODE.UPLOAD ? (
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault()
-                            handleCreate()
-                        }}
-                        className='space-y-4'
-                    >
-                        <div className='space-y-2'>
-                            <Label>{t('sshKeys.name')}</Label>
-                            <Input
-                                type='text'
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder={t('sshKeys.namePlaceholder')}
-                                required
-                            />
-                        </div>
-
-                        <div className='space-y-2'>
-                            <Label>{t('sshKeys.publicKey')}</Label>
-                            <textarea
-                                className='bg-background focus:ring-primary h-32 w-full resize-none rounded-md border px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2'
-                                value={publicKey}
-                                onChange={(e) => setPublicKey(e.target.value)}
-                                placeholder={t('sshKeys.publicKeyPlaceholder')}
-                                required
-                            />
-                            <p className='text-muted-foreground text-xs'>
-                                {t('sshKeys.publicKeyHint')}{' '}
-                                <code className='bg-muted rounded px-1'>
-                                    {t('sshKeys.publicKeyPath1')}
-                                </code>{' '}
-                                {t('sshKeys.publicKeyPathOr')}{' '}
-                                <code className='bg-muted rounded px-1'>
-                                    {t('sshKeys.publicKeyPath2')}
-                                </code>
-                            </p>
-                        </div>
-
-                        <Card className='bg-muted/50 rounded-xl'>
-                            <CardContent className='py-3'>
-                                <p className='text-muted-foreground mb-2 text-sm'>
-                                    {t('sshKeys.dontHaveSshKey')}
-                                </p>
-                                <div className='flex items-center gap-2'>
-                                    <code className='bg-background flex-1 overflow-x-auto rounded-lg p-2 font-mono text-xs'>
-                                        {sshKeygenCommand}
-                                    </code>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                type='button'
-                                                variant='ghost'
-                                                size='icon'
-                                                onClick={() =>
-                                                    copyToClipboard(
-                                                        sshKeygenCommand,
-                                                        COPIED_FIELD_TYPE.COMMAND
-                                                    )
-                                                }
-                                            >
-                                                {copied === COPIED_FIELD_TYPE.COMMAND ? (
-                                                    <CheckIcon className='h-4 w-4' />
-                                                ) : (
-                                                    <CopyIcon className='h-4 w-4' />
-                                                )}
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            {t('common.copy')}
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <div className='flex gap-3 pt-2'>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                className='flex-1'
-                                onClick={onClose}
-                            >
-                                {t('common.cancel')}
-                            </Button>
-                            <Button
-                                type='submit'
-                                className='flex-1'
-                                disabled={createMutation.isPending}
-                            >
-                                {createMutation.isPending && (
-                                    <CircleNotchIcon className='mr-2 h-4 w-4 animate-spin' />
-                                )}
-                                {t('common.addKey')}
-                            </Button>
-                        </div>
-                    </form>
+                    <SSHKeyUploadForm
+                        name={name}
+                        publicKey={publicKey}
+                        copied={copied}
+                        isPending={createMutation.isPending}
+                        onNameChange={setName}
+                        onPublicKeyChange={setPublicKey}
+                        onCopyToClipboard={copyToClipboard}
+                        onSubmit={handleCreate}
+                        onClose={onClose}
+                    />
                 ) : (
-                    <div className='space-y-4'>
-                        <div className='space-y-2'>
-                            <Label>{t('sshKeys.keyName')}</Label>
-                            <Input
-                                type='text'
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder={t('sshKeys.keyNamePlaceholder')}
-                                required
-                            />
-                        </div>
-
-                        {!generatedKeys ? (
-                            <Fragment>
-                                <Alert>
-                                    <WarningIcon className='h-4 w-4' />
-                                    <AlertDescription>
-                                        <strong>
-                                            {t('sshKeys.important')}
-                                        </strong>{' '}
-                                        {t('sshKeys.importantAfterGenerating')}
-                                    </AlertDescription>
-                                </Alert>
-
-                                <Button
-                                    onClick={generateKeyPair}
-                                    className='w-full'
-                                    disabled={!name}
-                                >
-                                    <KeyIcon className='mr-2 h-4 w-4' />
-                                    {t('sshKeys.generateKeyPair')}
-                                </Button>
-
-                                <div className='relative'>
-                                    <div className='absolute inset-0 flex items-center'>
-                                        <span className='w-full border-t' />
-                                    </div>
-                                    <div className='relative flex justify-center text-xs uppercase'>
-                                        <span className='bg-background text-muted-foreground px-2'>
-                                            {t(
-                                                'sshKeys.orGenerateLocallyRecommended'
-                                            )}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <Card className='bg-muted/50 rounded-xl'>
-                                    <CardContent className='py-3'>
-                                        <p className='text-muted-foreground mb-2 text-sm'>
-                                            {t('sshKeys.runThisInYourTerminal')}
-                                        </p>
-                                        <div className='flex items-center gap-2'>
-                                            <code className='bg-background flex-1 overflow-x-auto rounded-lg p-2 font-mono text-xs'>
-                                                {sshKeygenCommand}
-                                            </code>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button
-                                                        type='button'
-                                                        variant='ghost'
-                                                        size='icon'
-                                                        onClick={() =>
-                                                            copyToClipboard(
-                                                                sshKeygenCommand,
-                                                                COPIED_FIELD_TYPE.COMMAND
-                                                            )
-                                                        }
-                                                    >
-                                                        {copied ===
-                                                        COPIED_FIELD_TYPE.COMMAND ? (
-                                                            <CheckIcon className='h-4 w-4' />
-                                                        ) : (
-                                                            <CopyIcon className='h-4 w-4' />
-                                                        )}
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    {t('common.copy')}
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </div>
-                                        <p className='text-muted-foreground mt-2 text-xs'>
-                                            {t('sshKeys.thenSwitchToIHave')}
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                            </Fragment>
-                        ) : (
-                            <Fragment>
-                                <Alert variant='destructive'>
-                                    <WarningIcon className='h-4 w-4' />
-                                    <AlertDescription>
-                                        {t('sshKeys.savePrivateKeyNow')}
-                                    </AlertDescription>
-                                </Alert>
-
-                                <div className='space-y-2'>
-                                    <Label>
-                                        {t('sshKeys.privateKeyKeepSecret')}
-                                    </Label>
-                                    <div className='relative'>
-                                        <textarea
-                                            className='bg-background h-24 w-full resize-none rounded-md border px-3 py-2 font-mono text-xs'
-                                            value={generatedKeys.privateKey}
-                                            readOnly
-                                        />
-                                    </div>
-                                    <div className='flex gap-2'>
-                                        <Button
-                                            variant='outline'
-                                            size='sm'
-                                            onClick={downloadPrivateKey}
-                                        >
-                                            <DownloadIcon className='mr-2 h-4 w-4' />
-                                            {t('sshKeys.downloadPrivateKey')}
-                                        </Button>
-                                        <Button
-                                            variant='outline'
-                                            size='sm'
-                                            onClick={() =>
-                                                copyToClipboard(
-                                                    generatedKeys.privateKey,
-                                                    COPIED_FIELD_TYPE.PRIVATE
-                                                )
-                                            }
-                                        >
-                                            {copied === COPIED_FIELD_TYPE.PRIVATE ? (
-                                                <CheckIcon className='mr-2 h-4 w-4' />
-                                            ) : (
-                                                <CopyIcon className='mr-2 h-4 w-4' />
-                                            )}
-                                            {t('common.copy')}
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <Label>
-                                        {t('sshKeys.publicKeyWillBeSaved')}
-                                    </Label>
-                                    <textarea
-                                        className='bg-muted h-16 w-full resize-none rounded-md border px-3 py-2 font-mono text-xs'
-                                        value={generatedKeys.publicKey}
-                                        readOnly
-                                    />
-                                </div>
-
-                                <div className='flex gap-3 pt-2'>
-                                    <Button
-                                        type='button'
-                                        variant='outline'
-                                        className='flex-1'
-                                        onClick={onClose}
-                                    >
-                                        {t('common.cancel')}
-                                    </Button>
-                                    <Button
-                                        className='flex-1'
-                                        onClick={() => handleCreate()}
-                                        disabled={createMutation.isPending}
-                                    >
-                                        {createMutation.isPending && (
-                                            <CircleNotchIcon className='mr-2 h-4 w-4 animate-spin' />
-                                        )}
-                                        {t('sshKeys.savePublicKey')}
-                                    </Button>
-                                </div>
-                            </Fragment>
-                        )}
-                    </div>
+                    <SSHKeyGenerateForm
+                        name={name}
+                        generatedKeys={generatedKeys}
+                        copied={copied}
+                        isPending={createMutation.isPending}
+                        onNameChange={setName}
+                        onGenerateKeyPair={generateKeyPair}
+                        onCopyToClipboard={copyToClipboard}
+                        onDownloadPrivateKey={downloadPrivateKey}
+                        onSubmit={handleCreate}
+                        onClose={onClose}
+                    />
                 )}
             </DialogContent>
         </Dialog>

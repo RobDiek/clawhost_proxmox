@@ -1,9 +1,9 @@
 import type { FC, ReactNode } from 'react'
 import type { AffiliatePeriod } from '@/ts/Types'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { Fragment, useState, useRef, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import {
     useAffiliate,
@@ -17,6 +17,7 @@ import { AFFILIATE_PERIOD, TOAST_TYPE } from '@/lib/constants'
 import { useUIStore } from '@/lib/store'
 import STORAGE_KEYS from '@/lib/storageKeys'
 import {
+    ErrorState,
     Header,
     LandingFooter,
     PageBackground,
@@ -40,22 +41,80 @@ const Affiliate: FC = (): ReactNode => {
     const showToast = useUIStore((s) => s.showToast)
     const generatedRef = useRef(false)
 
+    const [searchParams, setSearchParams] = useSearchParams()
     const [confirmSave, setConfirmSave] = useState(false)
     const [pendingCode, setPendingCode] = useState('')
-    const [period, setPeriodState] = useState<AffiliatePeriod>(() => {
+
+    const period = (() => {
+        const urlPeriod = searchParams.get('period')
+        if (urlPeriod && PERIODS.includes(urlPeriod as AffiliatePeriod)) {
+            return urlPeriod as AffiliatePeriod
+        }
         const saved = localStorage.getItem(STORAGE_KEYS.AFFILIATE_PERIOD)
-        return (PERIODS.includes(saved as AffiliatePeriod) ? saved : AFFILIATE_PERIOD.ALL) as AffiliatePeriod
-    })
+        if (saved && PERIODS.includes(saved as AffiliatePeriod)) {
+            return saved as AffiliatePeriod
+        }
+        return AFFILIATE_PERIOD.ALL
+    })()
 
-    const setPeriod = useCallback((p: AffiliatePeriod) => {
-        setPeriodState(p)
-        localStorage.setItem(STORAGE_KEYS.AFFILIATE_PERIOD, p)
-    }, [])
+    useEffect(() => {
+        const urlPeriod = searchParams.get('period')
+        if (urlPeriod !== period) {
+            setSearchParams(
+                (prev) => {
+                    prev.set('period', period)
+                    return prev
+                },
+                { replace: true }
+            )
+        }
+    }, [period, searchParams, setSearchParams])
 
-    const { data: affiliate, isLoading: isAffiliateFetching } = useAffiliate(period)
+    const setPeriod = useCallback(
+        (p: AffiliatePeriod) => {
+            localStorage.setItem(STORAGE_KEYS.AFFILIATE_PERIOD, p)
+            setSearchParams(
+                (prev) => {
+                    prev.set('period', p)
+                    return prev
+                },
+                { replace: false }
+            )
+        },
+        [setSearchParams]
+    )
 
-    const referralCode = profile?.referralCode ?? cachedProfile?.referralCode ?? null
-    const referralCodeChanged = profile?.referralCodeChanged ?? cachedProfile?.referralCodeChanged ?? false
+    const [showLoading, setShowLoading] = useState(true)
+    const prevPeriodRef = useRef(period)
+
+    const {
+        data: affiliate,
+        isFetching,
+        isError: isAffiliateError,
+        refetch: refetchAffiliate
+    } = useAffiliate(period)
+
+    useEffect(() => {
+        if (prevPeriodRef.current !== period) {
+            prevPeriodRef.current = period
+            setShowLoading(true)
+        }
+    }, [period])
+
+    useEffect(() => {
+        if (!isFetching && showLoading) {
+            setShowLoading(false)
+        }
+    }, [isFetching, showLoading])
+
+    const isAffiliateFetching = showLoading && isFetching
+
+    const referralCode =
+        profile?.referralCode ?? cachedProfile?.referralCode ?? null
+    const referralCodeChanged =
+        profile?.referralCodeChanged ??
+        cachedProfile?.referralCodeChanged ??
+        false
 
     useEffect(() => {
         if (profile && !profile.referralCode && !generatedRef.current) {
@@ -79,12 +138,18 @@ const Affiliate: FC = (): ReactNode => {
 
     const confirmAndSave = () => {
         setConfirmSave(false)
-        updateCode.mutate({ code: pendingCode }, {
-            onSuccess: () => {
-                setPendingCode('')
-                updateCachedProfile({ referralCode: pendingCode, referralCodeChanged: true })
+        updateCode.mutate(
+            { code: pendingCode },
+            {
+                onSuccess: () => {
+                    setPendingCode('')
+                    updateCachedProfile({
+                        referralCode: pendingCode,
+                        referralCodeChanged: true
+                    })
+                }
             }
-        })
+        )
     }
 
     const formatCurrency = (cents: number) => {
@@ -127,23 +192,29 @@ const Affiliate: FC = (): ReactNode => {
                         onPeriodChange={setPeriod}
                     />
 
-                    <AffiliateStatsGrid
-                        referralCode={referralCode}
-                        referralCodeChanged={referralCodeChanged}
-                        isLoading={isAffiliateFetching}
-                        referralCount={referralCount}
-                        totalEarnings={totalEarnings}
-                        formatCurrency={formatCurrency}
-                        onSave={handleSave}
-                        onCopy={handleCopy}
-                        isPending={updateCode.isPending}
-                    />
+                    {isAffiliateError ? (
+                        <ErrorState onRetry={refetchAffiliate} />
+                    ) : (
+                        <Fragment>
+                            <AffiliateStatsGrid
+                                referralCode={referralCode}
+                                referralCodeChanged={referralCodeChanged}
+                                isLoading={isAffiliateFetching}
+                                referralCount={referralCount}
+                                totalEarnings={totalEarnings}
+                                formatCurrency={formatCurrency}
+                                onSave={handleSave}
+                                onCopy={handleCopy}
+                                isPending={updateCode.isPending}
+                            />
 
-                    <AffiliatePaymentHistory
-                        payments={payments}
-                        isLoading={isAffiliateFetching}
-                        formatCurrency={formatCurrency}
-                    />
+                            <AffiliatePaymentHistory
+                                payments={payments}
+                                isLoading={isAffiliateFetching}
+                                formatCurrency={formatCurrency}
+                            />
+                        </Fragment>
+                    )}
                 </div>
             </motion.main>
 

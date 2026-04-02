@@ -1,6 +1,6 @@
-import type { ApiEnvelope, RequestConfig, RequestOptions } from './types'
+import type { ApiEnvelope, RequestConfig, RequestOptions } from '#shared/types'
 
-import ApiError from './ApiError'
+import ApiError from '#shared/ApiError'
 
 class RequestClient {
     private config: RequestConfig

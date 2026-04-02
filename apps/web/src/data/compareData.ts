@@ -100,8 +100,14 @@ const getCompareData = (): CompareData => ({
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.shared'
                         },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO, detailKey: 'compare.shared' },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO, detailKey: 'compare.shared' }
+                        myclawai: {
+                            status: COMPARE_FEATURE_STATUS.NO,
+                            detailKey: 'compare.shared'
+                        },
+                        quickclaw: {
+                            status: COMPARE_FEATURE_STATUS.NO,
+                            detailKey: 'compare.shared'
+                        }
                     }
                 },
                 {

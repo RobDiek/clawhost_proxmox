@@ -76,12 +76,17 @@ describe('executeSSH', () => {
         vi.mocked(Client).mockImplementation(() => {
             const client = new MockClient()
             client.connect = vi.fn(function (this: MockClient) {
-                setTimeout(() => this.emit('error', new Error('Connection refused')), 0)
+                setTimeout(
+                    () => this.emit('error', new Error('Connection refused')),
+                    0
+                )
             })
             return client as never
         })
 
-        await expect(executeSSH('1.2.3.4', 'pass', 'cmd')).rejects.toThrow('Connection refused')
+        await expect(executeSSH('1.2.3.4', 'pass', 'cmd')).rejects.toThrow(
+            'Connection refused'
+        )
     })
 
     it('rejects on exec error', async () => {
@@ -97,7 +102,9 @@ describe('executeSSH', () => {
             return client as never
         })
 
-        await expect(executeSSH('1.2.3.4', 'pass', 'cmd')).rejects.toThrow('exec failed')
+        await expect(executeSSH('1.2.3.4', 'pass', 'cmd')).rejects.toThrow(
+            'exec failed'
+        )
     })
 
     it('includes stderr in output', async () => {
@@ -138,6 +145,8 @@ describe('executeSSH', () => {
             return client as never
         })
 
-        await expect(executeSSH('1.2.3.4', 'pass', 'cmd', 50)).rejects.toThrow('SSH command timed out')
+        await expect(executeSSH('1.2.3.4', 'pass', 'cmd', 50)).rejects.toThrow(
+            'SSH command timed out'
+        )
     })
 })

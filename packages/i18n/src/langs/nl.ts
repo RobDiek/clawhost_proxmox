@@ -1,4 +1,4 @@
-import type { Translations } from '../types'
+import type { Translations } from '#i18n/types'
 
 const nl: Translations = {
     common: {
@@ -334,8 +334,7 @@ const nl: Translations = {
         failedToDeleteClaw: 'Claw verwijderen mislukt!',
         failedToCreateClaw: 'Claw aanmaken mislukt!',
         invalidProvider: 'Ongeldige provider!',
-        providerNotAllowed:
-            'Deze provider is momenteel niet beschikbaar!',
+        providerNotAllowed: 'Deze provider is momenteel niet beschikbaar!',
         invalidPlan: 'Ongeldig plan geselecteerd!',
         planBelowMinimumMemory:
             'Dit plan voldoet niet aan de minimale geheugenvereiste!',
@@ -362,8 +361,10 @@ const nl: Translations = {
         invalidPeriod: 'Ongeldig periodefilter!',
         referralCodeUpdated: 'Referral code updated successfully.',
         failedToUpdateReferralCode: 'Failed to update referral code!',
-        invalidReferralCodeLength: 'Referral code must be between {{min}} and {{max}} characters!',
-        invalidReferralCodeFormat: 'Referral code can only contain letters, numbers, hyphens, and underscores!',
+        invalidReferralCodeLength:
+            'Referral code must be between {{min}} and {{max}} characters!',
+        invalidReferralCodeFormat:
+            'Referral code can only contain letters, numbers, hyphens, and underscores!',
         referralCodeAlreadyChanged: 'Referral code can only be changed once!',
         referralCodeTaken: 'This referral code is already taken!',
         referralCodeGenerated: 'Referral code generated.',
@@ -487,7 +488,8 @@ const nl: Translations = {
         whatsappAlreadyPaired: 'WhatsApp is al gekoppeld!',
         whatsappVersionUnsupported:
             'Deze versie ondersteunt geen kanaalconfiguratie vanuit het dashboard. Gebruik het Terminal-tabblad om handmatig te configureren of werk OpenClaw bij.',
-        featureVersionUnsupported: 'Deze functie wordt niet ondersteund in versie {{version}}. Werk OpenClaw bij of gebruik de Terminal om dit handmatig te beheren.',
+        featureVersionUnsupported:
+            'Deze functie wordt niet ondersteund in versie {{version}}. Werk OpenClaw bij of gebruik de Terminal om dit handmatig te beheren.',
         bindingsFetched: 'Bindingen succesvol opgehaald.',
         bindingsFetchFailed: 'Bindingen ophalen mislukt!',
         bindingsUpdated: 'Bindingen succesvol bijgewerkt.',
@@ -1586,14 +1588,12 @@ const nl: Translations = {
         release1Title: 'Eerste release',
         release1Description:
             'De eerste offici\u00eble release van ClawHost. Deploy OpenClaw op je eigen VPS met \u00e9\u00e9n klik.',
-        release1Feature1:
-            'OpenClaw-deployment met \u00e9\u00e9n klik',
+        release1Feature1: 'OpenClaw-deployment met \u00e9\u00e9n klik',
         release1Feature2:
             'Dashboard om claws te beheren, instanties starten, stoppen, herstarten en verwijderen',
         release1Feature3:
             '18 serverplannen met dedicated vCPU, RAM en opslagopties',
-        release1Feature4:
-            '6 serverlocaties in de VS, Europa en Azi\u00eb',
+        release1Feature4: '6 serverlocaties in de VS, Europa en Azi\u00eb',
         release1Feature5: 'SSH-sleutelbeheer voor wachtwoordloze servertoegang',
         release1Feature6: 'Ondersteuning voor extra volume-opslag tot 10 TB',
         release1Feature7: 'Magic link-authenticatie, geen wachtwoorden nodig',
@@ -1863,8 +1863,10 @@ const nl: Translations = {
         channelsVersionUnsupported:
             'Kanaalconfiguratie is niet beschikbaar in deze versie. Je kunt handmatig verbinden via het Terminal-tabblad of OpenClaw bijwerken.',
         channelsVersionUnsupportedDocs: 'Installatiehandleiding bekijken',
-        featureVersionUnsupported: '{{feature}} niet ondersteund op {{version}}',
-        featureVersionUnsupportedDescription: 'We ondersteunen het beheer van {{feature}} met deze versie niet via onze interface. U kunt het nog steeds beheren via SSH, Terminal of het OpenClaw-configuratiepaneel.',
+        featureVersionUnsupported:
+            '{{feature}} niet ondersteund op {{version}}',
+        featureVersionUnsupportedDescription:
+            'We ondersteunen het beheer van {{feature}} met deze versie niet via onze interface. U kunt het nog steeds beheren via SSH, Terminal of het OpenClaw-configuratiepaneel.',
         featureVersionUnsupportedButton: 'Ga naar Versies',
         featureVersionUnsupportedSupported: 'Ondersteunde versies:',
         featureVersionUnsupportedNewer: 'nieuwere versies',
@@ -1976,6 +1978,9 @@ const nl: Translations = {
         versionDownloads: '{{count}} downloads',
         versionChangelog: 'Changelog',
         versionOutdated: 'Verouderd',
+        versionSupported: 'Ondersteund',
+        versionSupportedTooltip:
+            'Met deze versie kunt u OpenClaw via de interface beheren',
         versionInstallConfirmTitle: 'Versie {{version}} installeren',
         versionInstallConfirmDescription:
             'Het wisselen van versie kan onverwacht gedrag veroorzaken of extra handmatige configuratie vereisen, vooral voor nieuwere versies die nog niet volledig zijn geverifieerd. Weet je zeker dat je wilt doorgaan?',
@@ -2020,8 +2025,7 @@ const nl: Translations = {
         personalInfoPayment:
             'Betalingsinformatie (veilig verwerkt door externe providers)',
         serverInfoTitle: 'Serverinformatie',
-        serverInfoConfig:
-            'Serverconfiguratie en -status',
+        serverInfoConfig: 'Serverconfiguratie en -status',
         serverInfoIp: 'Server-IP-adres en locatie',
         serverInfoResources: 'Resourcetoewijzing (CPU, RAM, opslag)',
         useTitle: '4. Hoe wij je informatie gebruiken',
@@ -2333,7 +2337,8 @@ const nl: Translations = {
         genericErrorDescription: 'Something went wrong. Please try again.',
         genericEmptyDescription: 'Nothing to show here yet.',
         failedToLoadUsers: 'Kan gebruikers niet laden!',
-        failedToLoadUsersDescription: 'Er is iets misgegaan bij het laden van gebruikers. Probeer het opnieuw.',
+        failedToLoadUsersDescription:
+            'Er is iets misgegaan bij het laden van gebruikers. Probeer het opnieuw.',
         failedToLoadUserDetail: 'Kan gebruikersdetails niet laden!',
         userDetail: 'Gebruikersdetails',
         userInfo: 'Gebruikersinfo',
@@ -2401,7 +2406,23 @@ const nl: Translations = {
         feature: 'Feature',
         sentAt: 'Sent',
         fileSize: 'Size',
-        registered: 'Registered'
+        registered: 'Registered',
+        status: 'Status',
+        ip: 'IP',
+        plan: 'Plan',
+        location: 'Locatie',
+        subdomain: 'Subdomein',
+        subscription: 'Abonnement',
+        billingInterval: 'Facturering',
+        deletionScheduled: 'Verwijdering gepland',
+        fingerprint: 'Vingerafdruk',
+        price: 'Prijs',
+        pricePerMonth: '{{price}}/mnd',
+        statusRunning: 'Actief',
+        statusStopped: 'Gestopt',
+        adminBadge: 'Admin',
+        unitGB: '{{size}} GB',
+        unitKB: '{{size}} KB'
     },
     affiliate: {
         title: 'Affiliate',
@@ -2416,7 +2437,8 @@ const nl: Translations = {
         codeAlreadyChanged: 'Your referral code has already been customized.',
         codeUpdated: 'Referral code updated.',
         codeUpdateFailed: 'Failed to update referral code!',
-        invalidCodeLength: 'Code must be between {{min}} and {{max}} characters!',
+        invalidCodeLength:
+            'Code must be between {{min}} and {{max}} characters!',
         referralHistory: 'Referral History',
         paymentHistory: 'Betalingsgeschiedenis',
         periodToday: 'Today',
@@ -2425,68 +2447,110 @@ const nl: Translations = {
         periodYear: 'Year',
         periodAll: 'All',
         confirmChangeTitle: 'Change Referral Code',
-        confirmChangeDescription: 'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
+        confirmChangeDescription:
+            'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
         noReferralsYet: 'Geen verwijzingen',
-        noReferralsDescription: 'Share your referral link to start earning rewards.',
+        noReferralsDescription:
+            'Share your referral link to start earning rewards.',
         noPaymentsYet: 'Geen betalingen',
-        noPaymentsDescription: 'Wanneer uw doorverwezen gebruikers aankopen doen, verschijnen hun betalingen hier.'
+        noPaymentsDescription:
+            'Wanneer uw doorverwezen gebruikers aankopen doen, verschijnen hun betalingen hier.'
     },
     affiliateProgram: {
         title: 'Partnerprogramma',
-        description: 'Ontdek hoe het ClawHost-partnerprogramma werkt, hoeveel je kunt verdienen en de regels voor deelname.',
+        description:
+            'Ontdek hoe het ClawHost-partnerprogramma werkt, hoeveel je kunt verdienen en de regels voor deelname.',
         lastUpdated: 'Laatst bijgewerkt: 1 april 2026',
         overviewTitle: '1. Overzicht',
-        overviewText: 'Het ClawHost-partnerprogramma laat je beloningen verdienen door nieuwe gebruikers naar ClawHost te verwijzen. Wanneer iemand een aankoop doet na ClawHost te hebben bezocht via jouw verwijzingslink, verdien je een commissie op hun betalingen. Het programma is gratis en beschikbaar voor alle geregistreerde ClawHost-gebruikers.',
+        overviewText:
+            'Het ClawHost-partnerprogramma laat je beloningen verdienen door nieuwe gebruikers naar ClawHost te verwijzen. Wanneer iemand een aankoop doet na ClawHost te hebben bezocht via jouw verwijzingslink, verdien je een commissie op hun betalingen. Het programma is gratis en beschikbaar voor alle geregistreerde ClawHost-gebruikers.',
         howItWorksTitle: '2. Hoe het werkt',
-        howItWorksText: 'Aan de slag gaan met het partnerprogramma is eenvoudig:',
-        howItWorksStep1: 'Maak een ClawHost-account aan. Er wordt automatisch een unieke verwijzingscode voor je gegenereerd.',
-        howItWorksStep2: 'Deel je verwijzingslink met vrienden, collega\'s of je publiek. Je link volgt het formaat: clawhost.cloud?ref=YOUR_CODE.',
-        howItWorksStep3: 'Wanneer iemand een aankoop doet na ClawHost te hebben bezocht via jouw link, wordt dit als jouw verwijzing geregistreerd.',
-        howItWorksStep4: 'Je verdient een commissie telkens wanneer je verwezen gebruiker een in aanmerking komende aankoop doet.',
+        howItWorksText:
+            'Aan de slag gaan met het partnerprogramma is eenvoudig:',
+        howItWorksStep1:
+            'Maak een ClawHost-account aan. Er wordt automatisch een unieke verwijzingscode voor je gegenereerd.',
+        howItWorksStep2:
+            "Deel je verwijzingslink met vrienden, collega's of je publiek. Je link volgt het formaat: clawhost.cloud?ref=YOUR_CODE.",
+        howItWorksStep3:
+            'Wanneer iemand een aankoop doet na ClawHost te hebben bezocht via jouw link, wordt dit als jouw verwijzing geregistreerd.',
+        howItWorksStep4:
+            'Je verdient een commissie telkens wanneer je verwezen gebruiker een in aanmerking komende aankoop doet.',
         earningsTitle: '3. Verdiensten en uitbetalingen',
         earningsText: 'Zo werken de partnerverdiensten:',
-        earningsCommission: 'Je verdient een commissie van 15% op elke in aanmerking komende aankoop van je verwezen gebruikers. Commissies zijn van toepassing op zowel ClawHost Cloud- als ClawHost Go-abonnementen.',
-        earningsMonthly: 'Voor maandelijkse abonnementen verdien je commissies gedurende 1 jaar vanaf de datum van de verwijzing.',
-        earningsYearly: 'Voor jaarlijkse abonnementen verdien je een commissie alleen over het eerste jaar.',
-        earningsPayout: 'Het minimale opnamebedrag is $100 USD. Neem contact op met ons supportteam om een opname aan te vragen.',
-        earningsPaymentMethod: 'Opnames worden verwerkt via PayPal. Je moet een geldig PayPal-e-mailadres opgeven bij het aanvragen van een uitbetaling.',
-        earningsCurrency: 'Alle verdiensten worden berekend en weergegeven in USD.',
+        earningsCommission:
+            'Je verdient een commissie van 15% op elke in aanmerking komende aankoop van je verwezen gebruikers. Commissies zijn van toepassing op zowel ClawHost Cloud- als ClawHost Go-abonnementen.',
+        earningsMonthly:
+            'Voor maandelijkse abonnementen verdien je commissies gedurende 1 jaar vanaf de datum van de verwijzing.',
+        earningsYearly:
+            'Voor jaarlijkse abonnementen verdien je een commissie alleen over het eerste jaar.',
+        earningsPayout:
+            'Het minimale opnamebedrag is $100 USD. Neem contact op met ons supportteam om een opname aan te vragen.',
+        earningsPaymentMethod:
+            'Opnames worden verwerkt via PayPal. Je moet een geldig PayPal-e-mailadres opgeven bij het aanvragen van een uitbetaling.',
+        earningsCurrency:
+            'Alle verdiensten worden berekend en weergegeven in USD.',
         referralCodeTitle: '4. Je verwijzingscode',
-        referralCodeText: 'Elke gebruiker ontvangt een unieke verwijzingscode bij registratie. Je kunt deze eenmalig aanpassen om hem beter te onthouden:',
-        referralCodeUnique: 'Je verwijzingscode is uniek voor je account en kan niet worden gedeeld met of overgedragen aan een andere gebruiker.',
-        referralCodeOneChange: 'Je kunt je verwijzingscode precies één keer aanpassen. Kies zorgvuldig — deze wijziging is permanent en kan niet ongedaan worden gemaakt.',
-        referralCodeFormat: 'Verwijzingscodes mogen alleen letters, cijfers, streepjes en underscores bevatten.',
+        referralCodeText:
+            'Elke gebruiker ontvangt een unieke verwijzingscode bij registratie. Je kunt deze eenmalig aanpassen om hem beter te onthouden:',
+        referralCodeUnique:
+            'Je verwijzingscode is uniek voor je account en kan niet worden gedeeld met of overgedragen aan een andere gebruiker.',
+        referralCodeOneChange:
+            'Je kunt je verwijzingscode precies één keer aanpassen. Kies zorgvuldig — deze wijziging is permanent en kan niet ongedaan worden gemaakt.',
+        referralCodeFormat:
+            'Verwijzingscodes mogen alleen letters, cijfers, streepjes en underscores bevatten.',
         referralWindowTitle: '5. Verwijzings-attributievenster',
-        referralWindowText: 'Een verwijzing wordt aan jou toegeschreven voor 3 maanden vanaf het moment dat de verwezen gebruiker ClawHost voor het eerst via jouw link bezoekt. Als de verwezen gebruiker geen aankoop doet binnen dit venster van 3 maanden, vervalt de verwijzing en wordt er geen commissie verdiend. Als de gebruiker via een andere verwijzingslink bezoekt, vervangt de nieuwe verwijzing de vorige.',
+        referralWindowText:
+            'Een verwijzing wordt aan jou toegeschreven voor 3 maanden vanaf het moment dat de verwezen gebruiker ClawHost voor het eerst via jouw link bezoekt. Als de verwezen gebruiker geen aankoop doet binnen dit venster van 3 maanden, vervalt de verwijzing en wordt er geen commissie verdiend. Als de gebruiker via een andere verwijzingslink bezoekt, vervangt de nieuwe verwijzing de vorige.',
         eligibilityTitle: '6. Geschiktheid',
-        eligibilityText: 'Om deel te nemen aan het partnerprogramma moet je aan de volgende vereisten voldoen:',
-        eligibilityAccount: 'Je moet een geregistreerd ClawHost-account hebben.',
-        eligibilityStanding: 'Je account moet in goede staat zijn zonder geschiedenis van beleidsschendingen.',
-        eligibilityAge: 'Je moet ten minste 18 jaar oud zijn of de meerderjarige leeftijd in je rechtsgebied hebben bereikt.',
+        eligibilityText:
+            'Om deel te nemen aan het partnerprogramma moet je aan de volgende vereisten voldoen:',
+        eligibilityAccount:
+            'Je moet een geregistreerd ClawHost-account hebben.',
+        eligibilityStanding:
+            'Je account moet in goede staat zijn zonder geschiedenis van beleidsschendingen.',
+        eligibilityAge:
+            'Je moet ten minste 18 jaar oud zijn of de meerderjarige leeftijd in je rechtsgebied hebben bereikt.',
         rulesTitle: '7. Programmaregels',
-        rulesText: 'Om de integriteit van het partnerprogramma te waarborgen, gelden de volgende regels:',
-        rulesNoSelfReferral: 'Zelfverwijzingen zijn strikt verboden. Je mag niet je eigen accounts of accounts die je beheert verwijzen.',
-        rulesNoFakeAccounts: 'Het aanmaken van nepaccounts, geautomatiseerde aanmeldingen of het gebruik van bots om verwijzingen te genereren is verboden.',
-        rulesNoSpam: 'Het versturen van ongevraagde bulkberichten (spam) om je verwijzingslink te promoten is niet toegestaan.',
-        rulesNoMisrepresentation: 'Je mag ClawHost, zijn diensten of het partnerprogramma op geen enkele manier verkeerd voorstellen.',
-        rulesNoIncentivized: 'Het aanbieden van directe financiële prikkels (bijv. gebruikers betalen om zich via jouw link aan te melden) is niet toegestaan.',
+        rulesText:
+            'Om de integriteit van het partnerprogramma te waarborgen, gelden de volgende regels:',
+        rulesNoSelfReferral:
+            'Zelfverwijzingen zijn strikt verboden. Je mag niet je eigen accounts of accounts die je beheert verwijzen.',
+        rulesNoFakeAccounts:
+            'Het aanmaken van nepaccounts, geautomatiseerde aanmeldingen of het gebruik van bots om verwijzingen te genereren is verboden.',
+        rulesNoSpam:
+            'Het versturen van ongevraagde bulkberichten (spam) om je verwijzingslink te promoten is niet toegestaan.',
+        rulesNoMisrepresentation:
+            'Je mag ClawHost, zijn diensten of het partnerprogramma op geen enkele manier verkeerd voorstellen.',
+        rulesNoIncentivized:
+            'Het aanbieden van directe financiële prikkels (bijv. gebruikers betalen om zich via jouw link aan te melden) is niet toegestaan.',
         terminationTitle: '8. Schending en beëindiging',
-        terminationText: 'Elke schending van deze regels resulteert in het onmiddellijke verlies van alle openstaande en verdiende beloningen. ClawHost behoudt zich het recht voor om je account van het partnerprogramma op te schorten of permanent te verbannen. In ernstige gevallen kan ook je ClawHost-account worden beëindigd. Alle beslissingen met betrekking tot schendingen zijn definitief.',
+        terminationText:
+            'Elke schending van deze regels resulteert in het onmiddellijke verlies van alle openstaande en verdiende beloningen. ClawHost behoudt zich het recht voor om je account van het partnerprogramma op te schorten of permanent te verbannen. In ernstige gevallen kan ook je ClawHost-account worden beëindigd. Alle beslissingen met betrekking tot schendingen zijn definitief.',
         marketingTitle: '9. Hoe te promoten',
-        marketingText: 'Er zijn veel creatieve en legitieme manieren om je verwijzingslink te delen en je inkomsten te laten groeien:',
-        marketingSocial: 'Deel je link op sociale mediaplatformen zoals X, LinkedIn, Reddit en Facebook. Schrijf over je ervaring met ClawHost en voeg je verwijzingslink toe.',
-        marketingBlog: 'Schrijf blogposts, tutorials of recensies over ClawHost. Verwerk je verwijzingslink op een natuurlijke manier in de content.',
-        marketingVideo: 'Maak videocontent op YouTube of TikTok waarin je laat zien hoe je ClawHost gebruikt om AI-agents te deployen en te beheren.',
-        marketingCommunity: 'Neem deel aan ontwikkelaarscommunities, forums en Discord-servers. Wanneer iemand vraagt naar cloudhosting of het deployen van AI-agents, beveel ClawHost aan met je link.',
-        marketingNewsletter: 'Als je een nieuwsbrief of mailinglijst beheert, vermeld ClawHost dan in een relevant nummer met je verwijzingslink.',
-        marketingComparison: 'Schrijf eerlijke vergelijkingsartikelen of gidsen die benadrukken wat ClawHost onderscheidt van andere platformen.',
+        marketingText:
+            'Er zijn veel creatieve en legitieme manieren om je verwijzingslink te delen en je inkomsten te laten groeien:',
+        marketingSocial:
+            'Deel je link op sociale mediaplatformen zoals X, LinkedIn, Reddit en Facebook. Schrijf over je ervaring met ClawHost en voeg je verwijzingslink toe.',
+        marketingBlog:
+            'Schrijf blogposts, tutorials of recensies over ClawHost. Verwerk je verwijzingslink op een natuurlijke manier in de content.',
+        marketingVideo:
+            'Maak videocontent op YouTube of TikTok waarin je laat zien hoe je ClawHost gebruikt om AI-agents te deployen en te beheren.',
+        marketingCommunity:
+            'Neem deel aan ontwikkelaarscommunities, forums en Discord-servers. Wanneer iemand vraagt naar cloudhosting of het deployen van AI-agents, beveel ClawHost aan met je link.',
+        marketingNewsletter:
+            'Als je een nieuwsbrief of mailinglijst beheert, vermeld ClawHost dan in een relevant nummer met je verwijzingslink.',
+        marketingComparison:
+            'Schrijf eerlijke vergelijkingsartikelen of gidsen die benadrukken wat ClawHost onderscheidt van andere platformen.',
         changesToProgramTitle: '10. Wijzigingen aan het programma',
-        changesToProgramText: 'ClawHost behoudt zich het recht voor om het partnerprogramma op elk moment zonder voorafgaande kennisgeving te wijzigen, op te schorten of stop te zetten. Dit omvat wijzigingen in commissietarieven, verwijzingsvensters, uitbetalingsdrempels en programmaregels. Voortgezette deelname na wijzigingen houdt aanvaarding van de bijgewerkte voorwaarden in.',
+        changesToProgramText:
+            'ClawHost behoudt zich het recht voor om het partnerprogramma op elk moment zonder voorafgaande kennisgeving te wijzigen, op te schorten of stop te zetten. Dit omvat wijzigingen in commissietarieven, verwijzingsvensters, uitbetalingsdrempels en programmaregels. Voortgezette deelname na wijzigingen houdt aanvaarding van de bijgewerkte voorwaarden in.',
         getStartedTitle: '11. Aan de slag',
-        getStartedText: 'Klaar om te gaan verdienen? Ga naar je partnerdashboard om je verwijzingslink op te halen en begin met delen met je netwerk.',
+        getStartedText:
+            'Klaar om te gaan verdienen? Ga naar je partnerdashboard om je verwijzingslink op te halen en begin met delen met je netwerk.',
         getStartedButton: 'Naar partnerdashboard',
         contactTitle: '12. Contact',
-        contactText: 'Als je vragen hebt over het partnerprogramma, hulp nodig hebt met je verwijzingscode of een schending wilt melden, neem dan contact met ons op via'
+        contactText:
+            'Als je vragen hebt over het partnerprogramma, hulp nodig hebt met je verwijzingscode of een schending wilt melden, neem dan contact met ons op via'
     }
 } as const
 

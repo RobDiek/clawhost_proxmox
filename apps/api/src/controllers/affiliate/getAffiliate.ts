@@ -23,7 +23,7 @@ const getAffiliate = async (c: AuthenticatedContext) => {
         const userId = c.get('userId')
         const period = c.req.query('period') ?? 'all'
 
-        if (!VALID_PERIODS.includes(period as typeof VALID_PERIODS[number])) {
+        if (!VALID_PERIODS.includes(period as (typeof VALID_PERIODS)[number])) {
             return fail(c, t('api.invalidPeriod'), 400)
         }
 
@@ -38,7 +38,8 @@ const getAffiliate = async (c: AuthenticatedContext) => {
             .where(and(...referralConditions))
 
         const paymentConditions = [eq(referrals.referrerId, userId)]
-        if (cutoff) paymentConditions.push(gte(referralPayments.createdAt, cutoff))
+        if (cutoff)
+            paymentConditions.push(gte(referralPayments.createdAt, cutoff))
 
         const paymentRows = await db
             .select({
@@ -75,9 +76,7 @@ const getAffiliate = async (c: AuthenticatedContext) => {
         console.error('Get affiliate error:', err)
         return fail(
             c,
-            err instanceof Error
-                ? err.message
-                : t('api.failedToGetAffiliate'),
+            err instanceof Error ? err.message : t('api.failedToGetAffiliate'),
             500
         )
     }

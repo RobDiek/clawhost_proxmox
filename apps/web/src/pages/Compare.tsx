@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { TranslationKey } from '@openclaw/i18n'
 import type { CompareFeatureValue } from '@/ts/Interfaces'
 
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import {
@@ -19,6 +19,7 @@ import {
     SelectItem,
     SelectTrigger
 } from '@/components/ui'
+import { CompareTableDesktop, CompareTableMobile } from '@/components/compare'
 import { COMPARE_FEATURE_STATUS } from '@/lib/constants'
 import { PATHS, getBaseDomain } from '@/lib'
 import { getCompareData } from '@/data'
@@ -33,6 +34,9 @@ const Compare: FC = (): ReactNode => {
     const [selectedCompetitorId, setSelectedCompetitorId] = useState(
         otherCompetitors[0].id
     )
+    const selectedCompetitor =
+        otherCompetitors.find((c) => c.id === selectedCompetitorId) ||
+        otherCompetitors[0]
 
     const renderStatusIcon = (value: CompareFeatureValue): ReactNode => {
         if (value.status === COMPARE_FEATURE_STATUS.YES) {
@@ -122,11 +126,7 @@ const Compare: FC = (): ReactNode => {
                         value={selectedCompetitorId}
                         onValueChange={setSelectedCompetitorId}
                         displayValue={t(
-                            (
-                                otherCompetitors.find(
-                                    (c) => c.id === selectedCompetitorId
-                                ) || otherCompetitors[0]
-                            ).nameKey as TranslationKey
+                            selectedCompetitor.nameKey as TranslationKey
                         )}
                     >
                         <SelectTrigger placeholder={t('compare.compareWith')} />
@@ -144,142 +144,22 @@ const Compare: FC = (): ReactNode => {
                 </div>
 
                 <div className='border-border overflow-hidden rounded-xl border lg:hidden'>
-                    <table className='w-full'>
-                        <thead>
-                            <tr className='border-border border-b'>
-                                <th className='text-foreground px-4 py-3 text-left text-sm font-semibold'>
-                                    {t('compare.feature')}
-                                </th>
-                                <th className='text-foreground px-4 py-3 text-center text-sm font-semibold'>
-                                    {t(clawhost.nameKey as TranslationKey)}
-                                </th>
-                                <th className='text-foreground px-4 py-3 text-center text-sm font-semibold'>
-                                    {t(
-                                        (
-                                            otherCompetitors.find(
-                                                (c) =>
-                                                    c.id ===
-                                                    selectedCompetitorId
-                                            ) || otherCompetitors[0]
-                                        ).nameKey as TranslationKey
-                                    )}
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className='divide-border divide-y'>
-                            {categories.map((category) => (
-                                <Fragment key={`m-cat-${category.id}`}>
-                                    <tr>
-                                        <td
-                                            colSpan={3}
-                                            className='bg-foreground/[0.03] px-4 py-3'
-                                        >
-                                            <span className='text-foreground text-sm font-semibold'>
-                                                {t(
-                                                    category.nameKey as TranslationKey
-                                                )}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    {category.features.map(
-                                        (feature, featureIndex) => (
-                                            <tr
-                                                key={`m-${category.id}-${featureIndex}`}
-                                            >
-                                                <td className='text-foreground px-4 py-3 text-sm'>
-                                                    {t(
-                                                        feature.nameKey as TranslationKey
-                                                    )}
-                                                </td>
-                                                <td className='px-4 py-3'>
-                                                    {renderValue(
-                                                        feature.values[
-                                                            clawhost.id
-                                                        ]
-                                                    )}
-                                                </td>
-                                                <td className='px-4 py-3'>
-                                                    {renderValue(
-                                                        feature.values[
-                                                            selectedCompetitorId
-                                                        ]
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        )
-                                    )}
-                                </Fragment>
-                            ))}
-                        </tbody>
-                    </table>
+                    <CompareTableMobile
+                        categories={categories}
+                        clawhost={clawhost}
+                        selectedCompetitorId={selectedCompetitorId}
+                        selectedCompetitorNameKey={selectedCompetitor.nameKey}
+                        renderValue={renderValue}
+                    />
                 </div>
 
                 <div className='border-border hidden overflow-x-auto rounded-xl border lg:block'>
-                    <table className='w-full min-w-[700px]'>
-                        <thead>
-                            <tr className='border-border border-b'>
-                                <th className='text-foreground px-6 py-4 text-left text-sm font-semibold'>
-                                    {t('compare.feature')}
-                                </th>
-                                {competitors.map((competitor) => (
-                                    <th
-                                        key={competitor.id}
-                                        className='text-foreground px-6 py-4 text-center text-sm font-semibold'
-                                    >
-                                        {t(
-                                            competitor.nameKey as TranslationKey
-                                        )}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody className='divide-border divide-y'>
-                            {categories.map((category) => (
-                                <Fragment key={`cat-${category.id}`}>
-                                    <tr>
-                                        <td
-                                            colSpan={colSpan}
-                                            className='bg-foreground/[0.03] px-6 py-3'
-                                        >
-                                            <span className='text-foreground text-sm font-semibold'>
-                                                {t(
-                                                    category.nameKey as TranslationKey
-                                                )}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    {category.features.map(
-                                        (feature, featureIndex) => (
-                                            <tr
-                                                key={`${category.id}-${featureIndex}`}
-                                            >
-                                                <td className='text-foreground px-6 py-4 text-sm'>
-                                                    {t(
-                                                        feature.nameKey as TranslationKey
-                                                    )}
-                                                </td>
-                                                {competitors.map(
-                                                    (competitor) => (
-                                                        <td
-                                                            key={competitor.id}
-                                                            className='px-6 py-4'
-                                                        >
-                                                            {renderValue(
-                                                                feature.values[
-                                                                    competitor
-                                                                        .id
-                                                                ]
-                                                            )}
-                                                        </td>
-                                                    )
-                                                )}
-                                            </tr>
-                                        )
-                                    )}
-                                </Fragment>
-                            ))}
-                        </tbody>
-                    </table>
+                    <CompareTableDesktop
+                        categories={categories}
+                        competitors={competitors}
+                        colSpan={colSpan}
+                        renderValue={renderValue}
+                    />
                 </div>
 
                 <p className='text-muted-foreground/60 mt-6 text-center text-sm'>

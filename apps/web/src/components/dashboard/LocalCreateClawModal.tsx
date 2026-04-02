@@ -23,6 +23,7 @@ import {
     EyeSlashIcon
 } from '@phosphor-icons/react'
 import { api } from '@/lib'
+import CLAWS_QUERY_KEY from '@/hooks/useClaws/CLAWS_QUERY_KEY'
 
 const generateReadablePassword = (): string => {
     const words = [
@@ -99,7 +100,7 @@ const LocalCreateClawModal: FC<LocalCreateClawModalProps> = ({
                 ...(gatewayToken && { gatewayToken }),
                 ...(password && { password })
             } as never)
-            await queryClient.invalidateQueries({ queryKey: ['claws'] })
+            await queryClient.invalidateQueries({ queryKey: CLAWS_QUERY_KEY })
             showToast(t('createClaw.clawCreated'), TOAST_TYPE.SUCCESS)
             onClose()
         } catch (err) {

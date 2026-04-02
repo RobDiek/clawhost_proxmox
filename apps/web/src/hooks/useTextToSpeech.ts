@@ -311,7 +311,10 @@ const useTextToSpeech = (): UseTextToSpeechReturn => {
                 if (!res.ok) {
                     isPlayingRef.current = false
                     setLoadingMessageId(null)
-                    showToast(t('playground.chatSpeechFailed'), TOAST_TYPE.ERROR)
+                    showToast(
+                        t('playground.chatSpeechFailed'),
+                        TOAST_TYPE.ERROR
+                    )
                     return
                 }
 

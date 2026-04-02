@@ -40,8 +40,12 @@ describe('usePreferencesStore', () => {
     })
 
     it('changes chat sidebar view', () => {
-        usePreferencesStore.getState().setChatSidebarView(CHAT_SIDEBAR_VIEW_MODE.LIST)
-        expect(usePreferencesStore.getState().chatSidebarView).toBe(CHAT_SIDEBAR_VIEW_MODE.LIST)
+        usePreferencesStore
+            .getState()
+            .setChatSidebarView(CHAT_SIDEBAR_VIEW_MODE.LIST)
+        expect(usePreferencesStore.getState().chatSidebarView).toBe(
+            CHAT_SIDEBAR_VIEW_MODE.LIST
+        )
     })
 
     it('changes product', () => {

@@ -14,7 +14,7 @@ const AdminUserSkeleton: FC = (): ReactNode => {
                             <Skeleton className='h-3 w-24' />
                         </div>
                     </div>
-                    <div className='flex items-center gap-4'>
+                    <div className='hidden items-center gap-4 sm:flex'>
                         <Skeleton className='h-4 w-16' />
                         <Skeleton className='h-5 w-14 rounded-full' />
                     </div>

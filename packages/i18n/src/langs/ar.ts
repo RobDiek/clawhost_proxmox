@@ -1,4 +1,4 @@
-import type { Translations } from '../types'
+import type { Translations } from '#i18n/types'
 
 const ar: Translations = {
     common: {
@@ -348,8 +348,10 @@ const ar: Translations = {
         invalidPeriod: 'فلتر فترة غير صالح!',
         referralCodeUpdated: 'Referral code updated successfully.',
         failedToUpdateReferralCode: 'Failed to update referral code!',
-        invalidReferralCodeLength: 'Referral code must be between {{min}} and {{max}} characters!',
-        invalidReferralCodeFormat: 'Referral code can only contain letters, numbers, hyphens, and underscores!',
+        invalidReferralCodeLength:
+            'Referral code must be between {{min}} and {{max}} characters!',
+        invalidReferralCodeFormat:
+            'Referral code can only contain letters, numbers, hyphens, and underscores!',
         referralCodeAlreadyChanged: 'Referral code can only be changed once!',
         referralCodeTaken: 'This referral code is already taken!',
         referralCodeGenerated: 'Referral code generated.',
@@ -468,7 +470,8 @@ const ar: Translations = {
         whatsappAlreadyPaired: 'WhatsApp مقترن بالفعل !',
         whatsappVersionUnsupported:
             'هذا الإصدار لا يدعم تكوين القنوات من لوحة التحكم. استخدم علامة تبويب الطرفية للتكوين يدوياً أو قم بترقية OpenClaw.',
-        featureVersionUnsupported: 'هذه الميزة غير مدعومة في الإصدار {{version}}. يرجى تحديث OpenClaw أو استخدام الطرفية للإدارة يدويًا.',
+        featureVersionUnsupported:
+            'هذه الميزة غير مدعومة في الإصدار {{version}}. يرجى تحديث OpenClaw أو استخدام الطرفية للإدارة يدويًا.',
         bindingsFetched: 'تم جلب الربط بنجاح.',
         bindingsFetchFailed: 'تعذر جلب الربط !',
         bindingsUpdated: 'تم تحديث الربط بنجاح.',
@@ -1520,8 +1523,7 @@ const ar: Translations = {
         release1Feature1: 'نشر OpenClaw بنقرة واحدة',
         release1Feature2:
             'لوحة تحكم لإدارة المخالب وتشغيل وإيقاف وإعادة تشغيل وحذف النسخ',
-        release1Feature3:
-            '18 خطة خادم مع vCPU وRAM وخيارات تخزين مخصصة',
+        release1Feature3: '18 خطة خادم مع vCPU وRAM وخيارات تخزين مخصصة',
         release1Feature4: '6 مواقع خادم عبر أمريكا وأوروبا وآسيا',
         release1Feature5: 'إدارة مفاتيح SSH للوصول بدون كلمة مرور',
         release1Feature6: 'دعم تخزين حجم إضافي حتى 10 TB',
@@ -1773,7 +1775,8 @@ const ar: Translations = {
             'تكوين القنوات غير متاح في هذا الإصدار. يمكنك الاتصال يدوياً باستخدام علامة تبويب الطرفية أو ترقية OpenClaw.',
         channelsVersionUnsupportedDocs: 'عرض دليل الإعداد',
         featureVersionUnsupported: '{{feature}} غير مدعوم على {{version}}',
-        featureVersionUnsupportedDescription: 'لا ندعم إدارة {{feature}} مع هذا الإصدار عبر واجهتنا. يمكنك إدارته عبر SSH أو الطرفية أو لوحة تحكم OpenClaw.',
+        featureVersionUnsupportedDescription:
+            'لا ندعم إدارة {{feature}} مع هذا الإصدار عبر واجهتنا. يمكنك إدارته عبر SSH أو الطرفية أو لوحة تحكم OpenClaw.',
         featureVersionUnsupportedButton: 'الذهاب إلى الإصدارات',
         featureVersionUnsupportedSupported: 'الإصدارات المدعومة:',
         featureVersionUnsupportedNewer: 'الإصدارات الأحدث',
@@ -1879,6 +1882,9 @@ const ar: Translations = {
         versionDownloads: '{{count}} تنزيل',
         versionChangelog: 'سجل التغييرات',
         versionOutdated: 'قديم',
+        versionSupported: 'مدعوم',
+        versionSupportedTooltip:
+            'يتيح لك هذا الإصدار تشغيل OpenClaw عبر الواجهة',
         versionInstallConfirmTitle: 'تثبيت الإصدار {{version}}',
         versionInstallConfirmDescription:
             'تبديل الإصدارات قد يسبب سلوكاً غير متوقع أو يتطلب تهيئة يدوية إضافية، خاصة للإصدارات الأحدث التي لم يتم التحقق منها بالكامل بعد. هل أنت متأكد أنك تريد المتابعة؟',
@@ -2221,7 +2227,8 @@ const ar: Translations = {
         genericErrorDescription: 'Something went wrong. Please try again.',
         genericEmptyDescription: 'Nothing to show here yet.',
         failedToLoadUsers: 'فشل تحميل المستخدمين!',
-        failedToLoadUsersDescription: 'حدث خطأ أثناء تحميل المستخدمين. يرجى المحاولة مرة أخرى.',
+        failedToLoadUsersDescription:
+            'حدث خطأ أثناء تحميل المستخدمين. يرجى المحاولة مرة أخرى.',
         failedToLoadUserDetail: 'فشل تحميل تفاصيل المستخدم!',
         userDetail: 'تفاصيل المستخدم',
         userInfo: 'معلومات المستخدم',
@@ -2289,7 +2296,23 @@ const ar: Translations = {
         feature: 'Feature',
         sentAt: 'Sent',
         fileSize: 'Size',
-        registered: 'Registered'
+        registered: 'Registered',
+        status: 'الحالة',
+        ip: 'IP',
+        plan: 'الخطة',
+        location: 'الموقع',
+        subdomain: 'النطاق الفرعي',
+        subscription: 'الاشتراك',
+        billingInterval: 'الفوترة',
+        deletionScheduled: 'الحذف مجدول',
+        fingerprint: 'البصمة',
+        price: 'السعر',
+        pricePerMonth: '{{price}}/شهر',
+        statusRunning: 'قيد التشغيل',
+        statusStopped: 'متوقف',
+        adminBadge: 'مسؤول',
+        unitGB: '{{size}} غ.ب',
+        unitKB: '{{size}} ك.ب'
     },
     affiliate: {
         title: 'Affiliate',
@@ -2304,7 +2327,8 @@ const ar: Translations = {
         codeAlreadyChanged: 'Your referral code has already been customized.',
         codeUpdated: 'Referral code updated.',
         codeUpdateFailed: 'Failed to update referral code!',
-        invalidCodeLength: 'Code must be between {{min}} and {{max}} characters!',
+        invalidCodeLength:
+            'Code must be between {{min}} and {{max}} characters!',
         referralHistory: 'Referral History',
         paymentHistory: 'سجل المدفوعات',
         periodToday: 'Today',
@@ -2313,68 +2337,106 @@ const ar: Translations = {
         periodYear: 'Year',
         periodAll: 'All',
         confirmChangeTitle: 'Change Referral Code',
-        confirmChangeDescription: 'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
+        confirmChangeDescription:
+            'Are you sure? This action is permanent and cannot be undone. You will not be able to change your referral code again.',
         noReferralsYet: 'لا إحالات',
-        noReferralsDescription: 'Share your referral link to start earning rewards.',
+        noReferralsDescription:
+            'Share your referral link to start earning rewards.',
         noPaymentsYet: 'لا توجد مدفوعات',
-        noPaymentsDescription: 'عندما يقوم المستخدمون المحالون بالشراء، ستظهر مدفوعاتهم هنا.'
+        noPaymentsDescription:
+            'عندما يقوم المستخدمون المحالون بالشراء، ستظهر مدفوعاتهم هنا.'
     },
     affiliateProgram: {
         title: 'برنامج الشراكة',
-        description: 'تعرّف على كيفية عمل برنامج شراكة ClawHost، وكم يمكنك أن تكسب، وقواعد المشاركة.',
+        description:
+            'تعرّف على كيفية عمل برنامج شراكة ClawHost، وكم يمكنك أن تكسب، وقواعد المشاركة.',
         lastUpdated: 'آخر تحديث: 1 أبريل 2026',
         overviewTitle: '1. نظرة عامة',
-        overviewText: 'يتيح لك برنامج شراكة ClawHost كسب مكافآت عن طريق إحالة مستخدمين جدد إلى ClawHost. عندما يقوم شخص ما بإجراء عملية شراء بعد زيارة ClawHost من خلال رابط الإحالة الخاص بك، تكسب عمولة على مدفوعاته. البرنامج مجاني للانضمام ومتاح لجميع مستخدمي ClawHost المسجلين.',
+        overviewText:
+            'يتيح لك برنامج شراكة ClawHost كسب مكافآت عن طريق إحالة مستخدمين جدد إلى ClawHost. عندما يقوم شخص ما بإجراء عملية شراء بعد زيارة ClawHost من خلال رابط الإحالة الخاص بك، تكسب عمولة على مدفوعاته. البرنامج مجاني للانضمام ومتاح لجميع مستخدمي ClawHost المسجلين.',
         howItWorksTitle: '2. كيف يعمل',
         howItWorksText: 'البدء في برنامج الشراكة بسيط:',
-        howItWorksStep1: 'أنشئ حساب ClawHost. يتم إنشاء رمز إحالة فريد لك تلقائيًا.',
-        howItWorksStep2: 'شارك رابط الإحالة الخاص بك مع الأصدقاء أو الزملاء أو جمهورك. رابطك يتبع التنسيق: clawhost.cloud?ref=YOUR_CODE.',
-        howItWorksStep3: 'عندما يقوم شخص ما بإجراء عملية شراء بعد زيارة ClawHost من خلال رابطك، يتم تسجيل ذلك كإحالتك.',
-        howItWorksStep4: 'تكسب عمولة في كل مرة يقوم فيها المستخدم المُحال بعملية شراء مؤهلة.',
+        howItWorksStep1:
+            'أنشئ حساب ClawHost. يتم إنشاء رمز إحالة فريد لك تلقائيًا.',
+        howItWorksStep2:
+            'شارك رابط الإحالة الخاص بك مع الأصدقاء أو الزملاء أو جمهورك. رابطك يتبع التنسيق: clawhost.cloud?ref=YOUR_CODE.',
+        howItWorksStep3:
+            'عندما يقوم شخص ما بإجراء عملية شراء بعد زيارة ClawHost من خلال رابطك، يتم تسجيل ذلك كإحالتك.',
+        howItWorksStep4:
+            'تكسب عمولة في كل مرة يقوم فيها المستخدم المُحال بعملية شراء مؤهلة.',
         earningsTitle: '3. الأرباح والمدفوعات',
         earningsText: 'إليك كيفية عمل أرباح الشراكة:',
-        earningsCommission: 'تكسب عمولة 15% على كل عملية شراء مؤهلة يقوم بها المستخدمون المُحالون. تنطبق العمولات على كل من خطط ClawHost Cloud وClawHost Go.',
-        earningsMonthly: 'بالنسبة للاشتراكات الشهرية، تكسب عمولات لمدة عام واحد من تاريخ الإحالة.',
-        earningsYearly: 'بالنسبة للاشتراكات السنوية، تكسب عمولة على السنة الأولى فقط.',
-        earningsPayout: 'الحد الأدنى لمبلغ السحب هو 100 دولار أمريكي. لطلب سحب، تواصل مع فريق الدعم لدينا.',
-        earningsPaymentMethod: 'تتم معالجة عمليات السحب عبر PayPal. يجب عليك تقديم عنوان بريد إلكتروني صالح لـ PayPal عند طلب الدفع.',
+        earningsCommission:
+            'تكسب عمولة 15% على كل عملية شراء مؤهلة يقوم بها المستخدمون المُحالون. تنطبق العمولات على كل من خطط ClawHost Cloud وClawHost Go.',
+        earningsMonthly:
+            'بالنسبة للاشتراكات الشهرية، تكسب عمولات لمدة عام واحد من تاريخ الإحالة.',
+        earningsYearly:
+            'بالنسبة للاشتراكات السنوية، تكسب عمولة على السنة الأولى فقط.',
+        earningsPayout:
+            'الحد الأدنى لمبلغ السحب هو 100 دولار أمريكي. لطلب سحب، تواصل مع فريق الدعم لدينا.',
+        earningsPaymentMethod:
+            'تتم معالجة عمليات السحب عبر PayPal. يجب عليك تقديم عنوان بريد إلكتروني صالح لـ PayPal عند طلب الدفع.',
         earningsCurrency: 'يتم حساب جميع الأرباح وعرضها بالـ USD.',
         referralCodeTitle: '4. رمز الإحالة الخاص بك',
-        referralCodeText: 'يحصل كل مستخدم على رمز إحالة فريد عند التسجيل. يمكنك تخصيصه مرة واحدة لجعله أسهل في التذكر:',
-        referralCodeUnique: 'رمز الإحالة الخاص بك فريد لحسابك ولا يمكن مشاركته أو نقله إلى مستخدم آخر.',
-        referralCodeOneChange: 'يمكنك تخصيص رمز الإحالة الخاص بك مرة واحدة فقط. اختر بعناية — هذا التغيير دائم ولا يمكن التراجع عنه.',
-        referralCodeFormat: 'يمكن أن تحتوي رموز الإحالة على أحرف وأرقام وشرطات وشرطات سفلية فقط.',
+        referralCodeText:
+            'يحصل كل مستخدم على رمز إحالة فريد عند التسجيل. يمكنك تخصيصه مرة واحدة لجعله أسهل في التذكر:',
+        referralCodeUnique:
+            'رمز الإحالة الخاص بك فريد لحسابك ولا يمكن مشاركته أو نقله إلى مستخدم آخر.',
+        referralCodeOneChange:
+            'يمكنك تخصيص رمز الإحالة الخاص بك مرة واحدة فقط. اختر بعناية — هذا التغيير دائم ولا يمكن التراجع عنه.',
+        referralCodeFormat:
+            'يمكن أن تحتوي رموز الإحالة على أحرف وأرقام وشرطات وشرطات سفلية فقط.',
         referralWindowTitle: '5. نافذة إسناد الإحالة',
-        referralWindowText: 'تُسند الإحالة إليك لمدة 3 أشهر من لحظة زيارة المستخدم المُحال لـ ClawHost لأول مرة من خلال رابطك. إذا لم يقم المستخدم المُحال بعملية شراء خلال نافذة الـ 3 أشهر هذه، تنتهي صلاحية الإحالة ولن يتم كسب أي عمولة. إذا زار المستخدم من خلال رابط إحالة مختلف، يحل الرابط الجديد محل السابق.',
+        referralWindowText:
+            'تُسند الإحالة إليك لمدة 3 أشهر من لحظة زيارة المستخدم المُحال لـ ClawHost لأول مرة من خلال رابطك. إذا لم يقم المستخدم المُحال بعملية شراء خلال نافذة الـ 3 أشهر هذه، تنتهي صلاحية الإحالة ولن يتم كسب أي عمولة. إذا زار المستخدم من خلال رابط إحالة مختلف، يحل الرابط الجديد محل السابق.',
         eligibilityTitle: '6. الأهلية',
-        eligibilityText: 'للمشاركة في برنامج الشراكة، يجب أن تستوفي المتطلبات التالية:',
+        eligibilityText:
+            'للمشاركة في برنامج الشراكة، يجب أن تستوفي المتطلبات التالية:',
         eligibilityAccount: 'يجب أن يكون لديك حساب ClawHost مسجل.',
-        eligibilityStanding: 'يجب أن يكون حسابك في حالة جيدة بدون تاريخ من انتهاكات السياسة.',
-        eligibilityAge: 'يجب أن يكون عمرك 18 عامًا على الأقل أو سن الرشد في نطاق ولايتك القضائية.',
+        eligibilityStanding:
+            'يجب أن يكون حسابك في حالة جيدة بدون تاريخ من انتهاكات السياسة.',
+        eligibilityAge:
+            'يجب أن يكون عمرك 18 عامًا على الأقل أو سن الرشد في نطاق ولايتك القضائية.',
         rulesTitle: '7. قواعد البرنامج',
         rulesText: 'للحفاظ على نزاهة برنامج الشراكة، تُطبق القواعد التالية:',
-        rulesNoSelfReferral: 'الإحالة الذاتية محظورة تمامًا. لا يجوز لك إحالة حساباتك الخاصة أو الحسابات التي تتحكم فيها.',
-        rulesNoFakeAccounts: 'إنشاء حسابات وهمية أو تسجيلات آلية أو استخدام الروبوتات لتوليد إحالات محظور.',
-        rulesNoSpam: 'إرسال رسائل جماعية غير مرغوب فيها (بريد عشوائي) للترويج لرابط الإحالة الخاص بك غير مسموح به.',
-        rulesNoMisrepresentation: 'لا يجوز لك تحريف ClawHost أو خدماته أو برنامج الشراكة بأي شكل من الأشكال.',
-        rulesNoIncentivized: 'تقديم حوافز مالية مباشرة (مثل الدفع للمستخدمين للتسجيل عبر رابطك) غير مسموح به.',
+        rulesNoSelfReferral:
+            'الإحالة الذاتية محظورة تمامًا. لا يجوز لك إحالة حساباتك الخاصة أو الحسابات التي تتحكم فيها.',
+        rulesNoFakeAccounts:
+            'إنشاء حسابات وهمية أو تسجيلات آلية أو استخدام الروبوتات لتوليد إحالات محظور.',
+        rulesNoSpam:
+            'إرسال رسائل جماعية غير مرغوب فيها (بريد عشوائي) للترويج لرابط الإحالة الخاص بك غير مسموح به.',
+        rulesNoMisrepresentation:
+            'لا يجوز لك تحريف ClawHost أو خدماته أو برنامج الشراكة بأي شكل من الأشكال.',
+        rulesNoIncentivized:
+            'تقديم حوافز مالية مباشرة (مثل الدفع للمستخدمين للتسجيل عبر رابطك) غير مسموح به.',
         terminationTitle: '8. المخالفة والإنهاء',
-        terminationText: 'أي انتهاك لهذه القواعد سيؤدي إلى مصادرة فورية لجميع المكافآت المعلقة والمكتسبة. يحتفظ ClawHost بالحق في تعليق أو حظر حسابك نهائيًا من برنامج الشراكة. في الحالات الخطيرة، قد يتم إنهاء حساب ClawHost الخاص بك أيضًا. جميع القرارات المتعلقة بالمخالفات نهائية.',
+        terminationText:
+            'أي انتهاك لهذه القواعد سيؤدي إلى مصادرة فورية لجميع المكافآت المعلقة والمكتسبة. يحتفظ ClawHost بالحق في تعليق أو حظر حسابك نهائيًا من برنامج الشراكة. في الحالات الخطيرة، قد يتم إنهاء حساب ClawHost الخاص بك أيضًا. جميع القرارات المتعلقة بالمخالفات نهائية.',
         marketingTitle: '9. كيفية الترويج',
-        marketingText: 'هناك العديد من الطرق الإبداعية والمشروعة لمشاركة رابط الإحالة الخاص بك وزيادة أرباحك:',
-        marketingSocial: 'شارك رابطك على منصات التواصل الاجتماعي مثل X و LinkedIn و Reddit و Facebook. اكتب عن تجربتك مع ClawHost وأدرج رابط الإحالة الخاص بك.',
-        marketingBlog: 'اكتب مقالات مدونة أو دروسًا تعليمية أو مراجعات حول ClawHost. أدرج رابط الإحالة الخاص بك بشكل طبيعي ضمن المحتوى.',
-        marketingVideo: 'أنشئ محتوى فيديو على YouTube أو TikTok يعرض كيفية استخدامك لـ ClawHost لنشر وإدارة وكلاء الذكاء الاصطناعي.',
-        marketingCommunity: 'شارك في مجتمعات المطورين والمنتديات وخوادم Discord. عندما يسأل شخص ما عن استضافة السحابة أو نشر وكلاء الذكاء الاصطناعي، أوصِ بـ ClawHost مع رابطك.',
-        marketingNewsletter: 'إذا كنت تدير نشرة إخبارية أو قائمة بريد إلكتروني، اذكر ClawHost في عدد ذي صلة مع رابط الإحالة الخاص بك.',
-        marketingComparison: 'اكتب مقالات مقارنة صادقة أو أدلة تبرز ما يميز ClawHost عن المنصات الأخرى.',
+        marketingText:
+            'هناك العديد من الطرق الإبداعية والمشروعة لمشاركة رابط الإحالة الخاص بك وزيادة أرباحك:',
+        marketingSocial:
+            'شارك رابطك على منصات التواصل الاجتماعي مثل X و LinkedIn و Reddit و Facebook. اكتب عن تجربتك مع ClawHost وأدرج رابط الإحالة الخاص بك.',
+        marketingBlog:
+            'اكتب مقالات مدونة أو دروسًا تعليمية أو مراجعات حول ClawHost. أدرج رابط الإحالة الخاص بك بشكل طبيعي ضمن المحتوى.',
+        marketingVideo:
+            'أنشئ محتوى فيديو على YouTube أو TikTok يعرض كيفية استخدامك لـ ClawHost لنشر وإدارة وكلاء الذكاء الاصطناعي.',
+        marketingCommunity:
+            'شارك في مجتمعات المطورين والمنتديات وخوادم Discord. عندما يسأل شخص ما عن استضافة السحابة أو نشر وكلاء الذكاء الاصطناعي، أوصِ بـ ClawHost مع رابطك.',
+        marketingNewsletter:
+            'إذا كنت تدير نشرة إخبارية أو قائمة بريد إلكتروني، اذكر ClawHost في عدد ذي صلة مع رابط الإحالة الخاص بك.',
+        marketingComparison:
+            'اكتب مقالات مقارنة صادقة أو أدلة تبرز ما يميز ClawHost عن المنصات الأخرى.',
         changesToProgramTitle: '10. التغييرات على البرنامج',
-        changesToProgramText: 'يحتفظ ClawHost بالحق في تعديل أو تعليق أو إيقاف برنامج الشراكة في أي وقت دون إشعار مسبق. يشمل ذلك التغييرات في معدلات العمولة ونوافذ الإحالة وحدود الدفع وقواعد البرنامج. تشكل المشاركة المستمرة بعد التغييرات قبولًا للشروط المحدثة.',
+        changesToProgramText:
+            'يحتفظ ClawHost بالحق في تعديل أو تعليق أو إيقاف برنامج الشراكة في أي وقت دون إشعار مسبق. يشمل ذلك التغييرات في معدلات العمولة ونوافذ الإحالة وحدود الدفع وقواعد البرنامج. تشكل المشاركة المستمرة بعد التغييرات قبولًا للشروط المحدثة.',
         getStartedTitle: '11. ابدأ الآن',
-        getStartedText: 'هل أنت مستعد للبدء في الكسب؟ توجه إلى لوحة تحكم الشراكة الخاصة بك للحصول على رابط الإحالة وابدأ في مشاركته مع شبكتك.',
+        getStartedText:
+            'هل أنت مستعد للبدء في الكسب؟ توجه إلى لوحة تحكم الشراكة الخاصة بك للحصول على رابط الإحالة وابدأ في مشاركته مع شبكتك.',
         getStartedButton: 'الذهاب إلى لوحة تحكم الشراكة',
         contactTitle: '12. التواصل',
-        contactText: 'إذا كانت لديك أسئلة حول برنامج الشراكة أو تحتاج إلى مساعدة بشأن رمز الإحالة الخاص بك أو ترغب في الإبلاغ عن مخالفة، تواصل معنا على'
+        contactText:
+            'إذا كانت لديك أسئلة حول برنامج الشراكة أو تحتاج إلى مساعدة بشأن رمز الإحالة الخاص بك أو ترغب في الإبلاغ عن مخالفة، تواصل معنا على'
     }
 } as const
 

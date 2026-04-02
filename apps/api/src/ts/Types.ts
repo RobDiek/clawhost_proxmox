@@ -1,6 +1,18 @@
 import type { Context } from 'hono'
-import type { authMethod, billingInterval, clawFileType, userRole, versionGatedFeature } from '@openclaw/shared'
-import type { environment, featureEmailKey, piperVoiceQuality, subscriptionStatus, webhookEventType } from '@/lib/constants'
+import type {
+    authMethod,
+    billingInterval,
+    clawFileType,
+    userRole,
+    versionGatedFeature
+} from '@openclaw/shared'
+import type {
+    environment,
+    featureEmailKey,
+    piperVoiceQuality,
+    subscriptionStatus,
+    webhookEventType
+} from '@/lib/constants'
 import type { claws } from '@/db/schema'
 
 export type HonoEnv = { Variables: { userId: string; isAdmin: boolean } }
@@ -21,7 +33,8 @@ export type Environment = (typeof environment)[keyof typeof environment]
 
 export type ClawFileType = (typeof clawFileType)[keyof typeof clawFileType]
 
-export type PiperVoiceQuality = (typeof piperVoiceQuality)[keyof typeof piperVoiceQuality]
+export type PiperVoiceQuality =
+    (typeof piperVoiceQuality)[keyof typeof piperVoiceQuality]
 
 export type BillingInterval =
     (typeof billingInterval)[keyof typeof billingInterval]

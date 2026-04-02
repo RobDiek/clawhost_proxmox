@@ -3,7 +3,12 @@ import viteMdxSanitize from '@/plugins/vite-mdx-sanitize'
 describe('viteMdxSanitize', () => {
     const plugin = viteMdxSanitize()
     const transform = (code: string, id: string) => {
-        const result = (plugin.transform as (code: string, id: string) => { code: string; map: null } | null)(code, id)
+        const result = (
+            plugin.transform as (
+                code: string,
+                id: string
+            ) => { code: string; map: null } | null
+        )(code, id)
         return result?.code ?? null
     }
 

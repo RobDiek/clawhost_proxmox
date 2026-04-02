@@ -57,7 +57,10 @@ const App: FC = (): ReactNode => {
                         />
                         <Route path={ROUTES.BLOG} element={<Blog />} />
                         <Route path={ROUTES.BLOG_POST} element={<BlogPost />} />
-                        <Route path={ROUTES.AFFILIATE_PROGRAM} element={<AffiliateProgram />} />
+                        <Route
+                            path={ROUTES.AFFILIATE_PROGRAM}
+                            element={<AffiliateProgram />}
+                        />
                         <Route path={ROUTES.COMPARE} element={<Compare />} />
                         <Route
                             path={ROUTES.CLAWS}

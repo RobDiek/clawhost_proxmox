@@ -32,18 +32,23 @@ const VersionUnsupported: FC<VersionUnsupportedProps> = ({
             />
             <div className='min-w-0 flex-1'>
                 <p className='text-[11px] font-medium text-yellow-500'>
-                    {t('playground.featureVersionUnsupported', { feature, version: displayVersion })}
+                    {t('playground.featureVersionUnsupported', {
+                        feature,
+                        version: displayVersion
+                    })}
                 </p>
                 <p className='text-muted-foreground mt-0.5 text-[11px]'>
-                    {t('playground.featureVersionUnsupportedDescription', { feature })}
+                    {t('playground.featureVersionUnsupportedDescription', {
+                        feature
+                    })}
                 </p>
                 {supportedList.length > 0 && (
                     <p className='text-muted-foreground mt-1 text-[11px]'>
                         {t('playground.featureVersionUnsupportedSupported')}{' '}
                         <span className='text-foreground/70 font-medium'>
                             {supportedList.join(', ')}
-                        </span>
-                        {' '}({t('playground.featureVersionUnsupportedNewer')})
+                        </span>{' '}
+                        ({t('playground.featureVersionUnsupportedNewer')})
                     </p>
                 )}
                 {onGoToVersions && (

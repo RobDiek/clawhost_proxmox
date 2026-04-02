@@ -1,4 +1,11 @@
-import { pgTable, text, timestamp, integer, index, unique } from 'drizzle-orm/pg-core'
+import {
+    pgTable,
+    text,
+    timestamp,
+    integer,
+    index,
+    unique
+} from 'drizzle-orm/pg-core'
 import users from '@/db/schema/users'
 
 const sshKeys = pgTable(

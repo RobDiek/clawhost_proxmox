@@ -9,7 +9,14 @@ import type {
 } from '@/ts/Interfaces'
 import type { GatewayConnectionState } from '@/ts/Types'
 
-import { Fragment, useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import {
+    Fragment,
+    useState,
+    useEffect,
+    useMemo,
+    useCallback,
+    useRef
+} from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { clawStatus, userRole } from '@openclaw/shared'
 import { t } from '@openclaw/i18n'
@@ -22,7 +29,11 @@ import {
     ListBulletsIcon
 } from '@phosphor-icons/react'
 import { useUIStore, usePreferencesStore } from '@/lib/store'
-import { CHAT_SIDEBAR_VIEW_MODE, GATEWAY_CONNECTION_STATE, TOAST_TYPE } from '@/lib/constants'
+import {
+    CHAT_SIDEBAR_VIEW_MODE,
+    GATEWAY_CONNECTION_STATE,
+    TOAST_TYPE
+} from '@/lib/constants'
 import { ClawAvatar } from '@/components/shared'
 import { getBaseDomain, api } from '@/lib'
 import { generateSlug } from '@/lib/claw-utils'
@@ -345,7 +356,10 @@ const ChatView: FC<ChatViewProps> = ({
                             TOAST_TYPE.SUCCESS
                         ),
                     onError: () =>
-                        showToast(t('dashboard.updateInstanceFailed'), TOAST_TYPE.ERROR)
+                        showToast(
+                            t('dashboard.updateInstanceFailed'),
+                            TOAST_TYPE.ERROR
+                        )
                 }),
             onShowReinstallModal: () => setShowReinstallModal(true),
             onShowCredentials: handleShowCredentials,
@@ -404,10 +418,15 @@ const ChatView: FC<ChatViewProps> = ({
                         {mobileSidebarOpen && <div className='flex-1' />}
                         <div className='border-border flex shrink-0 items-center rounded-lg border p-0.5'>
                             <button
-                                onClick={() => setChatSidebarView(CHAT_SIDEBAR_VIEW_MODE.TREE)}
+                                onClick={() =>
+                                    setChatSidebarView(
+                                        CHAT_SIDEBAR_VIEW_MODE.TREE
+                                    )
+                                }
                                 aria-label={t('chat.viewTree')}
                                 className={`flex items-center justify-center rounded-md p-1.5 transition-colors ${
-                                    chatSidebarView === CHAT_SIDEBAR_VIEW_MODE.TREE
+                                    chatSidebarView ===
+                                    CHAT_SIDEBAR_VIEW_MODE.TREE
                                         ? 'bg-foreground/10 text-foreground'
                                         : 'text-muted-foreground hover:text-foreground'
                                 }`}
@@ -415,17 +434,23 @@ const ChatView: FC<ChatViewProps> = ({
                                 <TreeStructureIcon
                                     className='h-3.5 w-3.5'
                                     weight={
-                                        chatSidebarView === CHAT_SIDEBAR_VIEW_MODE.TREE
+                                        chatSidebarView ===
+                                        CHAT_SIDEBAR_VIEW_MODE.TREE
                                             ? 'fill'
                                             : 'regular'
                                     }
                                 />
                             </button>
                             <button
-                                onClick={() => setChatSidebarView(CHAT_SIDEBAR_VIEW_MODE.LIST)}
+                                onClick={() =>
+                                    setChatSidebarView(
+                                        CHAT_SIDEBAR_VIEW_MODE.LIST
+                                    )
+                                }
                                 aria-label={t('chat.viewList')}
                                 className={`flex items-center justify-center rounded-md p-1.5 transition-colors ${
-                                    chatSidebarView === CHAT_SIDEBAR_VIEW_MODE.LIST
+                                    chatSidebarView ===
+                                    CHAT_SIDEBAR_VIEW_MODE.LIST
                                         ? 'bg-foreground/10 text-foreground'
                                         : 'text-muted-foreground hover:text-foreground'
                                 }`}
@@ -433,7 +458,8 @@ const ChatView: FC<ChatViewProps> = ({
                                 <ListBulletsIcon
                                     className='h-3.5 w-3.5'
                                     weight={
-                                        chatSidebarView === CHAT_SIDEBAR_VIEW_MODE.LIST
+                                        chatSidebarView ===
+                                        CHAT_SIDEBAR_VIEW_MODE.LIST
                                             ? 'fill'
                                             : 'regular'
                                     }
@@ -513,65 +539,71 @@ const ChatView: FC<ChatViewProps> = ({
                         <ChatSkeleton />
                     ) : activeAgent && activeClaw ? (
                         <div className='flex h-full flex-col'>
-                            {activeAgent && chatSidebarView === CHAT_SIDEBAR_VIEW_MODE.LIST && (
-                                <div className='bg-background border-border flex items-center gap-2.5 border-b px-4 py-2.5'>
-                                    <ClawAvatar />
-                                    <div className='min-w-0 flex-1 space-y-0.5'>
-                                        <p className='text-foreground truncate text-sm font-semibold leading-tight'>
-                                            {activeClaw.name}
-                                        </p>
-                                        <a
-                                            href={`https://${activeClaw.subdomain || generateSlug(activeClaw.id)}.${getBaseDomain()}`}
-                                            target='_blank'
-                                            rel='noopener noreferrer'
-                                            className='text-muted-foreground hover:text-foreground flex items-center gap-1 truncate text-[11px] leading-tight transition-colors'
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <ArrowSquareOutIcon className='h-2.5 w-2.5 shrink-0' />
-                                            {activeClaw.subdomain ||
-                                                generateSlug(activeClaw.id)}
-                                            .{getBaseDomain()}
-                                        </a>
+                            {activeAgent &&
+                                chatSidebarView ===
+                                    CHAT_SIDEBAR_VIEW_MODE.LIST && (
+                                    <div className='bg-background border-border flex items-center gap-2.5 border-b px-4 py-2.5'>
+                                        <ClawAvatar />
+                                        <div className='min-w-0 flex-1 space-y-0.5'>
+                                            <p className='text-foreground truncate text-sm font-semibold leading-tight'>
+                                                {activeClaw.name}
+                                            </p>
+                                            <a
+                                                href={`https://${activeClaw.subdomain || generateSlug(activeClaw.id)}.${getBaseDomain()}`}
+                                                target='_blank'
+                                                rel='noopener noreferrer'
+                                                className='text-muted-foreground hover:text-foreground flex items-center gap-1 truncate text-[11px] leading-tight transition-colors'
+                                                onClick={(e) =>
+                                                    e.stopPropagation()
+                                                }
+                                            >
+                                                <ArrowSquareOutIcon className='h-2.5 w-2.5 shrink-0' />
+                                                {activeClaw.subdomain ||
+                                                    generateSlug(activeClaw.id)}
+                                                .{getBaseDomain()}
+                                            </a>
+                                        </div>
+                                        <div className='flex shrink-0 items-center gap-1'>
+                                            <button
+                                                onClick={() =>
+                                                    handleOpenClawSettings(
+                                                        activeClaw.id
+                                                    )
+                                                }
+                                                aria-label={t(
+                                                    'chat.clawSettings'
+                                                )}
+                                                className='text-muted-foreground hover:bg-foreground/10 hover:text-foreground rounded-md p-1.5 transition-colors'
+                                            >
+                                                <GearSixIcon
+                                                    className='h-4 w-4'
+                                                    weight='bold'
+                                                />
+                                            </button>
+                                            {headerClawActions && (
+                                                <ClawCardDropdownMenu
+                                                    claw={activeClaw}
+                                                    actions={headerClawActions}
+                                                    isLoading={isMutating}
+                                                    hasActionItems={
+                                                        activeClaw.status ===
+                                                            clawStatus.running ||
+                                                        activeClaw.status ===
+                                                            clawStatus.stopped
+                                                    }
+                                                    isScheduledForDeletion={
+                                                        !!activeClaw.deletionScheduledAt
+                                                    }
+                                                    isAdmin={
+                                                        profile?.role ===
+                                                        userRole.admin
+                                                    }
+                                                    compact
+                                                />
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className='flex shrink-0 items-center gap-1'>
-                                        <button
-                                            onClick={() =>
-                                                handleOpenClawSettings(
-                                                    activeClaw.id
-                                                )
-                                            }
-                                            aria-label={t('chat.clawSettings')}
-                                            className='text-muted-foreground hover:bg-foreground/10 hover:text-foreground rounded-md p-1.5 transition-colors'
-                                        >
-                                            <GearSixIcon
-                                                className='h-4 w-4'
-                                                weight='bold'
-                                            />
-                                        </button>
-                                        {headerClawActions && (
-                                            <ClawCardDropdownMenu
-                                                claw={activeClaw}
-                                                actions={headerClawActions}
-                                                isLoading={isMutating}
-                                                hasActionItems={
-                                                    activeClaw.status ===
-                                                        clawStatus.running ||
-                                                    activeClaw.status ===
-                                                        clawStatus.stopped
-                                                }
-                                                isScheduledForDeletion={
-                                                    !!activeClaw.deletionScheduledAt
-                                                }
-                                                isAdmin={
-                                                    profile?.role ===
-                                                    userRole.admin
-                                                }
-                                                compact
-                                            />
-                                        )}
-                                    </div>
-                                </div>
-                            )}
+                                )}
                             <div className='flex min-h-0 flex-1'>
                                 <div className='min-w-0 flex-1'>
                                     <AgentChat

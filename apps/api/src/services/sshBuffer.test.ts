@@ -56,12 +56,17 @@ describe('sshBuffer', () => {
         vi.mocked(Client).mockImplementation(() => {
             const client = new MockClient()
             client.connect = vi.fn(function (this: MockClient) {
-                setTimeout(() => this.emit('error', new Error('Connection refused')), 0)
+                setTimeout(
+                    () => this.emit('error', new Error('Connection refused')),
+                    0
+                )
             })
             return client as never
         })
 
-        await expect(sshBuffer('1.2.3.4', 'pass', 'cmd')).rejects.toThrow('Connection refused')
+        await expect(sshBuffer('1.2.3.4', 'pass', 'cmd')).rejects.toThrow(
+            'Connection refused'
+        )
     })
 
     it('rejects on timeout', async () => {
@@ -78,7 +83,9 @@ describe('sshBuffer', () => {
             return client as never
         })
 
-        await expect(sshBuffer('1.2.3.4', 'pass', 'cmd', 50)).rejects.toThrow('SSH command timed out')
+        await expect(sshBuffer('1.2.3.4', 'pass', 'cmd', 50)).rejects.toThrow(
+            'SSH command timed out'
+        )
     })
 
     it('returns empty buffer when no output', async () => {

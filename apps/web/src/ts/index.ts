@@ -44,6 +44,8 @@ export type {
     PlaygroundClawNodeData,
     PlaygroundClawNodeProps,
     PlaygroundDetailPanelProps,
+    PlaygroundDetailInfoTabProps,
+    PlaygroundDetailSettingsTabProps,
     PlaygroundToolbarProps,
     PlaygroundVariablesContentProps,
     SSHKey,
@@ -144,5 +146,13 @@ export type {
     SimplePlanCardProps,
     SimplePlanFeature,
     ChangelogFeature,
-    ChangelogRelease
+    ChangelogRelease,
+    DashboardHeaderProps,
+    DashboardChatViewProps,
+    DashboardPlaygroundViewProps,
+    UseURLStateRestorationParams,
+    UseInfiniteScrollObserverParams,
+    InfinitePageData,
+    UsePaginationStateParams,
+    UsePaginationStateReturn
 } from '@/ts/Interfaces'

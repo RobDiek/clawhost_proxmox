@@ -278,7 +278,11 @@ const LoginScreen: FC = (): ReactNode => {
                                     onChangeText={(value: string) =>
                                         handleCodeChange(value, index)
                                     }
-                                    onKeyPress={({ nativeEvent }: { nativeEvent: { key: string } }) =>
+                                    onKeyPress={({
+                                        nativeEvent
+                                    }: {
+                                        nativeEvent: { key: string }
+                                    }) =>
                                         handleCodeKeyPress(
                                             nativeEvent.key,
                                             index

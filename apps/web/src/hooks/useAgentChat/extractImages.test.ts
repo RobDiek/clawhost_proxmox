@@ -31,13 +31,17 @@ describe('extractImages', () => {
     })
 
     it('extracts image with url and custom media_type', () => {
-        const content = [{ type: 'image', url: 'http://img.jpg', media_type: 'image/jpeg' }]
+        const content = [
+            { type: 'image', url: 'http://img.jpg', media_type: 'image/jpeg' }
+        ]
         const result = extractImages(content)
         expect(result[0].mediaType).toBe('image/jpeg')
     })
 
     it('extracts base64 image with data field', () => {
-        const content = [{ type: 'image', data: 'base64data', mimeType: 'image/webp' }]
+        const content = [
+            { type: 'image', data: 'base64data', mimeType: 'image/webp' }
+        ]
         const result = extractImages(content)
         expect(result[0]).toEqual({
             type: 'base64',
@@ -47,10 +51,16 @@ describe('extractImages', () => {
     })
 
     it('extracts image with source.type url', () => {
-        const content = [{
-            type: 'image',
-            source: { type: 'url', url: 'http://img.png', media_type: 'image/png' }
-        }]
+        const content = [
+            {
+                type: 'image',
+                source: {
+                    type: 'url',
+                    url: 'http://img.png',
+                    media_type: 'image/png'
+                }
+            }
+        ]
         const result = extractImages(content)
         expect(result[0]).toEqual({
             type: 'url',
@@ -60,10 +70,16 @@ describe('extractImages', () => {
     })
 
     it('extracts image with source.type base64', () => {
-        const content = [{
-            type: 'image',
-            source: { type: 'base64', data: 'abcdef', media_type: 'image/gif' }
-        }]
+        const content = [
+            {
+                type: 'image',
+                source: {
+                    type: 'base64',
+                    data: 'abcdef',
+                    media_type: 'image/gif'
+                }
+            }
+        ]
         const result = extractImages(content)
         expect(result[0]).toEqual({
             type: 'base64',

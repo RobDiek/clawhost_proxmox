@@ -1,7 +1,10 @@
 describe('useThemeEffect logic', () => {
     const THEMES = { LIGHT: 'light', DARK: 'dark', SYSTEM: 'system' } as const
 
-    const resolveTheme = (mode: string, prefersDark: boolean): 'dark' | 'light' => {
+    const resolveTheme = (
+        mode: string,
+        prefersDark: boolean
+    ): 'dark' | 'light' => {
         if (mode === THEMES.SYSTEM) {
             return prefersDark ? THEMES.DARK : THEMES.LIGHT
         }

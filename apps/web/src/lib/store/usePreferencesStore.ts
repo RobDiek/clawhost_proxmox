@@ -3,7 +3,12 @@ import type { PreferencesState } from '@/ts/Interfaces'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { setLanguage as setI18nLanguage, loadLanguage } from '@openclaw/i18n'
-import { CHAT_SIDEBAR_VIEW_MODE, DASHBOARD_TABS, THEMES, LANGUAGES } from '@/lib/constants'
+import {
+    CHAT_SIDEBAR_VIEW_MODE,
+    DASHBOARD_TABS,
+    THEMES,
+    LANGUAGES
+} from '@/lib/constants'
 import STORAGE_KEYS from '@/lib/storageKeys'
 
 const VALID_TABS = new Set<string>(Object.values(DASHBOARD_TABS))
@@ -48,7 +53,8 @@ const usePreferencesStore = create<PreferencesState>()(
                     state.openLinksWindowed = state.openLinksWindowed ?? false
                 }
                 if (version < 5) {
-                    state.chatSidebarView = state.chatSidebarView || CHAT_SIDEBAR_VIEW_MODE.TREE
+                    state.chatSidebarView =
+                        state.chatSidebarView || CHAT_SIDEBAR_VIEW_MODE.TREE
                 }
                 if (version < 6) {
                     state.product = state.product || 'cloud'

@@ -12,7 +12,8 @@ describe('generatePassword', () => {
     })
 
     it('only contains valid characters', () => {
-        const validChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
+        const validChars =
+            'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
         const pw = generatePassword(100)
         for (const char of pw) {
             expect(validChars).toContain(char)
@@ -20,7 +21,9 @@ describe('generatePassword', () => {
     })
 
     it('generates unique passwords', () => {
-        const passwords = new Set(Array.from({ length: 20 }, () => generatePassword()))
+        const passwords = new Set(
+            Array.from({ length: 20 }, () => generatePassword())
+        )
         expect(passwords.size).toBe(20)
     })
 })

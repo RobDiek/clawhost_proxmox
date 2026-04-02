@@ -4,7 +4,9 @@ import type { DemoPreviewSectionProps } from '@/ts/Interfaces'
 import { lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 
-const LazyDemoPreview = lazy(() => import('@/components/landing/LandingDemoPreview'))
+const LazyDemoPreview = lazy(
+    () => import('@/components/landing/LandingDemoPreview')
+)
 
 const DemoPreviewSection: FC<DemoPreviewSectionProps> = ({
     previewRef,

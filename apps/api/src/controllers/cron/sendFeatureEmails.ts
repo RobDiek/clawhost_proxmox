@@ -62,7 +62,11 @@ const DISABLED = true
 
 const sendFeatureEmails = async (c: Context) => {
     if (DISABLED) {
-        return ok(c, { sent: 0, disabled: true }, t('api.featureEmailsDisabled'))
+        return ok(
+            c,
+            { sent: 0, disabled: true },
+            t('api.featureEmailsDisabled')
+        )
     }
 
     try {

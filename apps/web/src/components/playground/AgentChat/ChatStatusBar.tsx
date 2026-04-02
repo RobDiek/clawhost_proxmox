@@ -10,7 +10,8 @@ const ChatStatusBar: FC<ChatStatusBarProps> = ({
     if (connectionState === GATEWAY_CONNECTION_STATE.CONNECTED) return null
 
     const isConnecting =
-        connectionState === GATEWAY_CONNECTION_STATE.CONNECTING || connectionState === GATEWAY_CONNECTION_STATE.AUTHENTICATING
+        connectionState === GATEWAY_CONNECTION_STATE.CONNECTING ||
+        connectionState === GATEWAY_CONNECTION_STATE.AUTHENTICATING
     const isError = connectionState === GATEWAY_CONNECTION_STATE.ERROR
 
     return (
@@ -25,7 +26,8 @@ const ChatStatusBar: FC<ChatStatusBarProps> = ({
                 }`}
             />
             <span className='text-muted-foreground text-xs'>
-                {isConnecting && connectionState === GATEWAY_CONNECTION_STATE.CONNECTING
+                {isConnecting &&
+                connectionState === GATEWAY_CONNECTION_STATE.CONNECTING
                     ? t('playground.chatConnecting')
                     : isConnecting
                       ? t('playground.chatAuthenticating')

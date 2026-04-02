@@ -26,6 +26,9 @@ import { auth, AUTH_STORAGE_KEY, PROFILE_CACHE_KEY } from '@/lib/firebase'
 import { api } from '@/lib'
 import AuthContext from '@/lib/auth/AuthContext'
 import STORAGE_KEYS from '@/lib/storageKeys'
+import PROFILE_QUERY_KEY from '@/hooks/useUser/PROFILE_QUERY_KEY'
+import CLAWS_QUERY_KEY from '@/hooks/useClaws/CLAWS_QUERY_KEY'
+import USER_STATS_QUERY_KEY from '@/hooks/useUser/USER_STATS_QUERY_KEY'
 
 const readCachedProfile = (): CachedProfile | null => {
     try {
@@ -46,10 +49,37 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
     )
     const fetchedRef = useRef(false)
 
+    useEffect(() => {
+        const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+            if (
+                event.type === 'updated' &&
+                event.action.type === 'success' &&
+                event.query.queryKey[0] === PROFILE_QUERY_KEY[0]
+            ) {
+                const profile = event.query.state.data as
+                    | CachedProfile
+                    | undefined
+                if (profile) {
+                    const existing = localStorage.getItem(PROFILE_CACHE_KEY)
+                    const serialized = JSON.stringify(profile)
+                    if (existing !== serialized) {
+                        setCachedProfile(profile)
+                        localStorage.setItem(PROFILE_CACHE_KEY, serialized)
+                    }
+                }
+            }
+        })
+        return unsubscribe
+    }, [queryClient])
+
     const updateCachedProfile = useCallback((data: Partial<CachedProfile>) => {
         setCachedProfile((prev) => {
             const updated = { ...prev, ...data } as CachedProfile
-            localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(updated))
+            const existing = localStorage.getItem(PROFILE_CACHE_KEY)
+            const serialized = JSON.stringify(updated)
+            if (existing !== serialized) {
+                localStorage.setItem(PROFILE_CACHE_KEY, serialized)
+            }
             return updated
         })
     }, [])
@@ -63,37 +93,30 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
                 localStorage.setItem(AUTH_STORAGE_KEY, 'true')
 
                 const cached = readCachedProfile()
-                if (cached) setCachedProfile(cached)
+                if (cached) {
+                    setCachedProfile(cached)
+                    queryClient.setQueryData(PROFILE_QUERY_KEY, cached)
+                }
 
                 if (fetchedRef.current) return
                 fetchedRef.current = true
 
                 try {
-                    const [profile] = await Promise.all([
+                    const [_profile] = await Promise.all([
                         queryClient.fetchQuery({
-                            queryKey: ['profile'],
-                            queryFn: api.getProfile
+                            queryKey: PROFILE_QUERY_KEY,
+                            queryFn: api.getProfile,
+                            staleTime: 0
                         }),
                         queryClient.prefetchQuery({
-                            queryKey: ['claws'],
+                            queryKey: CLAWS_QUERY_KEY,
                             queryFn: () => api.getClaws()
                         }),
                         queryClient.prefetchQuery({
-                            queryKey: ['userStats'],
+                            queryKey: USER_STATS_QUERY_KEY,
                             queryFn: api.getUserStats
                         })
                     ])
-                    const fresh: CachedProfile = {
-                        email: profile.email,
-                        name: profile.name,
-                        referralCode: profile.referralCode ?? null,
-                        referralCodeChanged: profile.referralCodeChanged ?? false
-                    }
-                    setCachedProfile(fresh)
-                    localStorage.setItem(
-                        PROFILE_CACHE_KEY,
-                        JSON.stringify(fresh)
-                    )
                 } catch {
                     await firebaseSignOut(auth)
                 }

@@ -1,10 +1,14 @@
 import type { FC, ReactNode } from 'react'
 import type { AdminResourceTabProps } from '@/ts/Interfaces'
 
-import { Fragment, useRef, useCallback, useState } from 'react'
+import { Fragment, useState } from 'react'
 import { t } from '@openclaw/i18n'
-import { getLocale } from '@/lib'
-import { useAdminEmailsList } from '@/hooks'
+import { formatDate } from '@/lib'
+import {
+    useAdminEmailsList,
+    useInfiniteScrollObserver,
+    usePaginationState
+} from '@/hooks'
 import {
     Card,
     CardContent,
@@ -34,33 +38,15 @@ const AdminEmailsTab: FC<AdminResourceTabProps> = ({
         isFetchingNextPage
     } = useAdminEmailsList(PAGE_SIZE, sortOrder)
 
-    const observerRef = useRef<IntersectionObserver | null>(null)
-    const loadMoreRef = useCallback(
-        (node: HTMLDivElement | null) => {
-            if (isFetchingNextPage) return
-            if (observerRef.current) observerRef.current.disconnect()
-            observerRef.current = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting && hasNextPage) {
-                    fetchNextPage()
-                }
-            })
-            if (node) observerRef.current.observe(node)
-        },
-        [isFetchingNextPage, hasNextPage, fetchNextPage]
-    )
-
-    const allItems = data?.pages.flatMap((page) => page.items) ?? []
-    const total = data?.pages[0]?.total ?? 0
-    const remaining = Math.max(0, total - allItems.length)
-    const skeletonCount = Math.min(PAGE_SIZE, remaining)
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString(getLocale(), {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        })
-    }
+    const loadMoreRef = useInfiniteScrollObserver({
+        isFetchingNextPage,
+        hasNextPage,
+        fetchNextPage
+    })
+    const { allItems, skeletonCount } = usePaginationState({
+        data,
+        pageSize: PAGE_SIZE
+    })
 
     return (
         <Fragment>
@@ -125,20 +111,20 @@ const AdminEmailsTab: FC<AdminResourceTabProps> = ({
                         >
                             <CardContent className='py-4'>
                                 <div className='flex items-center justify-between'>
-                                    <div className='flex items-center gap-3'>
+                                    <div className='flex min-w-0 items-center gap-3'>
                                         <div className='bg-muted flex h-9 w-9 shrink-0 items-center justify-center rounded-full'>
                                             <EnvelopeIcon className='text-muted-foreground h-4 w-4' />
                                         </div>
-                                        <div>
+                                        <div className='min-w-0'>
                                             <div className='flex items-center gap-2'>
-                                                <span className='font-medium'>
+                                                <span className='truncate font-medium'>
                                                     {item.feature
                                                         .charAt(0)
                                                         .toUpperCase() +
                                                         item.feature.slice(1)}
                                                 </span>
                                             </div>
-                                            <p className='text-muted-foreground text-sm'>
+                                            <p className='text-muted-foreground truncate text-sm'>
                                                 {item.ownerEmail}
                                             </p>
                                         </div>

@@ -1,5 +1,5 @@
-import { getLanguage } from '@'
-import { setLanguage } from '@'
+import { getLanguage } from '#i18n/index'
+import { setLanguage } from '#i18n/index'
 
 describe('getLanguage / setLanguage', () => {
     beforeEach(() => {
@@ -16,7 +16,22 @@ describe('getLanguage / setLanguage', () => {
     })
 
     it('can switch between all supported languages', () => {
-        const languages = ['en', 'fr', 'es', 'de', 'zh', 'hi', 'ar', 'ru', 'ja', 'tr', 'it', 'pl', 'nl', 'pt'] as const
+        const languages = [
+            'en',
+            'fr',
+            'es',
+            'de',
+            'zh',
+            'hi',
+            'ar',
+            'ru',
+            'ja',
+            'tr',
+            'it',
+            'pl',
+            'nl',
+            'pt'
+        ] as const
         for (const lang of languages) {
             setLanguage(lang)
             expect(getLanguage()).toBe(lang)

@@ -7,10 +7,15 @@ import { isFeatureSupported } from '@openclaw/shared'
 import { configStore, processManager } from '@/main/services'
 import { t } from '@openclaw/i18n'
 
-const assertFeatureSupported = (version: string | null, feature: string): void => {
+const assertFeatureSupported = (
+    version: string | null,
+    feature: string
+): void => {
     if (!version || !isFeatureSupported(version, feature)) {
         throw new Error(
-            t('api.featureVersionUnsupported', { version: version || 'unknown' })
+            t('api.featureVersionUnsupported', {
+                version: version || 'unknown'
+            })
         )
     }
 }

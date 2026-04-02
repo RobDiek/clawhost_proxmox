@@ -2,7 +2,9 @@ import { validateEnvVars } from '@/controllers/claws/helpers'
 
 describe('validateEnvVars', () => {
     it('accepts valid env vars', () => {
-        expect(validateEnvVars({ NODE_ENV: 'production', PORT: '3000' })).toBe(true)
+        expect(validateEnvVars({ NODE_ENV: 'production', PORT: '3000' })).toBe(
+            true
+        )
     })
 
     it('accepts empty object', () => {

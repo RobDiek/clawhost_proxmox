@@ -631,41 +631,41 @@ VITE_FIREBASE_APP_ID=...
 
 ## Key Files
 
-| Purpose              | Path                                            |
-| -------------------- | ----------------------------------------------- |
-| API Entry            | `apps/api/src/index.ts`                         |
-| API App Setup        | `apps/api/src/app.ts`                           |
-| DB Schema            | `apps/api/src/db/schema.ts`                     |
-| API Routes           | `apps/api/src/routes/index.ts`                  |
-| Admin Middleware     | `apps/api/src/middleware/adminOnly.ts`          |
-| Provider Resolver    | `apps/api/src/services/provider/getProvider.ts` |
-| Hetzner Service      | `apps/api/src/services/hetzner.ts`              |
-| Cloudflare Service   | `apps/api/src/services/cloudflare.ts`           |
-| SSH Service          | `apps/api/src/services/ssh.ts`                  |
-| Terminal WebSocket   | `apps/api/src/services/terminalSocket.ts`       |
-| Piper TTS Service    | `apps/api/src/services/piper.ts`                |
-| Polar Services       | `apps/api/src/services/polar/`                  |
-| ClawHub Service      | `apps/api/src/services/clawhub/`                |
-| Claw Helpers         | `apps/api/src/controllers/claws/helpers/`       |
-| Web Entry            | `apps/web/src/main.tsx`                         |
-| Web Routes           | `apps/web/src/App.tsx`                          |
-| Auth Context         | `apps/web/src/lib/auth/`                        |
-| API Client (Web)     | `apps/web/src/lib/api.ts`                       |
-| URL Paths            | `apps/web/src/lib/paths.ts`                     |
-| Web Routes           | `apps/web/src/lib/routes.ts`                    |
-| Stores               | `apps/web/src/lib/store/`                       |
-| Gateway Client       | `apps/web/src/lib/gateway/`                     |
-| Dashboard Tabs       | `apps/web/src/lib/dashboardTabs.ts`             |
-| Claw Detail Tabs     | `apps/web/src/lib/clawDetailTabs.ts`            |
-| Agent Detail Tabs    | `apps/web/src/lib/agentDetailTabs.ts`           |
-| Blog Utilities       | `apps/web/src/lib/blog/`                        |
-| Claw Utilities       | `apps/web/src/lib/claw-utils/`                  |
-| Types (Web)          | `apps/web/src/ts/Types.ts`                      |
-| Interfaces (Web)     | `apps/web/src/ts/Interfaces.ts`                 |
-| Types (API)          | `apps/api/src/ts/Types.ts`                      |
-| Interfaces (API)     | `apps/api/src/ts/Interfaces.ts`                 |
-| Input Validation     | `packages/shared/src/inputValidation.ts`        |
-| OpenClaw Version     | `packages/shared/src/openclawVersion.ts`        |
+| Purpose            | Path                                            |
+| ------------------ | ----------------------------------------------- |
+| API Entry          | `apps/api/src/index.ts`                         |
+| API App Setup      | `apps/api/src/app.ts`                           |
+| DB Schema          | `apps/api/src/db/schema.ts`                     |
+| API Routes         | `apps/api/src/routes/index.ts`                  |
+| Admin Middleware   | `apps/api/src/middleware/adminOnly.ts`          |
+| Provider Resolver  | `apps/api/src/services/provider/getProvider.ts` |
+| Hetzner Service    | `apps/api/src/services/hetzner.ts`              |
+| Cloudflare Service | `apps/api/src/services/cloudflare.ts`           |
+| SSH Service        | `apps/api/src/services/ssh.ts`                  |
+| Terminal WebSocket | `apps/api/src/services/terminalSocket.ts`       |
+| Piper TTS Service  | `apps/api/src/services/piper.ts`                |
+| Polar Services     | `apps/api/src/services/polar/`                  |
+| ClawHub Service    | `apps/api/src/services/clawhub/`                |
+| Claw Helpers       | `apps/api/src/controllers/claws/helpers/`       |
+| Web Entry          | `apps/web/src/main.tsx`                         |
+| Web Routes         | `apps/web/src/App.tsx`                          |
+| Auth Context       | `apps/web/src/lib/auth/`                        |
+| API Client (Web)   | `apps/web/src/lib/api.ts`                       |
+| URL Paths          | `apps/web/src/lib/paths.ts`                     |
+| Web Routes         | `apps/web/src/lib/routes.ts`                    |
+| Stores             | `apps/web/src/lib/store/`                       |
+| Gateway Client     | `apps/web/src/lib/gateway/`                     |
+| Dashboard Tabs     | `apps/web/src/lib/dashboardTabs.ts`             |
+| Claw Detail Tabs   | `apps/web/src/lib/clawDetailTabs.ts`            |
+| Agent Detail Tabs  | `apps/web/src/lib/agentDetailTabs.ts`           |
+| Blog Utilities     | `apps/web/src/lib/blog/`                        |
+| Claw Utilities     | `apps/web/src/lib/claw-utils/`                  |
+| Types (Web)        | `apps/web/src/ts/Types.ts`                      |
+| Interfaces (Web)   | `apps/web/src/ts/Interfaces.ts`                 |
+| Types (API)        | `apps/api/src/ts/Types.ts`                      |
+| Interfaces (API)   | `apps/api/src/ts/Interfaces.ts`                 |
+| Input Validation   | `packages/shared/src/inputValidation.ts`        |
+| OpenClaw Version   | `packages/shared/src/openclawVersion.ts`        |
 
 ### Internationalization (i18n)
 

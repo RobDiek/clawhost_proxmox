@@ -1,19 +1,23 @@
-import ApiError from './ApiError'
-import API_PATHS from './apiPaths'
-import RequestClient from './RequestClient'
-import authMethod from './authMethod'
-import billingInterval from './billingInterval'
-import clawFileType from './clawFileType'
-import clawProvider from './clawProvider'
-import clawStatus from './clawStatus'
-import goLicense from './goLicense'
-import INPUT_VALIDATION_LENGTH from './inputValidation'
-import OPENCLAW_VERSION from './openclawVersion'
-import userRole from './userRole'
-import versionGatedFeature from './versionGatedFeature'
-import { isFeatureSupported, SUPPORTED_VERSIONS } from './supportedVersions'
+import ApiError from '#shared/ApiError'
+import API_PATHS from '#shared/apiPaths'
+import RequestClient from '#shared/RequestClient'
+import authMethod from '#shared/authMethod'
+import billingInterval from '#shared/billingInterval'
+import clawFileType from '#shared/clawFileType'
+import clawProvider from '#shared/clawProvider'
+import clawStatus from '#shared/clawStatus'
+import goLicense from '#shared/goLicense'
+import INPUT_VALIDATION_LENGTH from '#shared/inputValidation'
+import OPENCLAW_VERSION from '#shared/openclawVersion'
+import userRole from '#shared/userRole'
+import versionGatedFeature from '#shared/versionGatedFeature'
+import {
+    isFeatureSupported,
+    isVersionSupported,
+    SUPPORTED_VERSIONS
+} from '#shared/supportedVersions'
 
-export type { ApiEnvelope, RequestOptions, RequestConfig } from './types'
+export type { ApiEnvelope, RequestOptions, RequestConfig } from '#shared/types'
 
 export {
     ApiError,
@@ -30,5 +34,6 @@ export {
     userRole,
     versionGatedFeature,
     isFeatureSupported,
+    isVersionSupported,
     SUPPORTED_VERSIONS
 }

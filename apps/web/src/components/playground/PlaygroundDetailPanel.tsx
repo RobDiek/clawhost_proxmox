@@ -17,7 +17,7 @@ import {
     inputValidation,
     OPENCLAW_VERSION
 } from '@openclaw/shared'
-import { getLocale, getBaseDomain, TRUNCATE_LENGTHS } from '@/lib'
+import { getBaseDomain, TRUNCATE_LENGTHS } from '@/lib'
 import {
     XIcon,
     InfoIcon,
@@ -26,20 +26,13 @@ import {
     KeyIcon,
     LightningIcon,
     GearSixIcon,
-    CircleNotchIcon,
     TerminalWindowIcon,
     ArrowSquareOutIcon,
     ChatsCircleIcon
 } from '@phosphor-icons/react'
-import { ClawAvatar, ClawMascotOutline, ProviderIcon } from '@/components/shared'
+import { ClawAvatar, ClawMascotOutline } from '@/components/shared'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
 import {
-    Skeleton,
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent
-} from '@/components/ui'
-import {
-    CopyableField,
     ClawLogsContent,
     ClawDiagnosticsContent,
     ClawTerminalContent
@@ -48,14 +41,16 @@ import {
     PlaygroundVariablesContent,
     PlaygroundSkillsContent,
     PlaygroundVersionsContent,
-    PlaygroundChannelsContent
+    PlaygroundChannelsContent,
+    PlaygroundDetailInfoTab,
+    PlaygroundDetailSettingsTab
 } from '@/components/playground'
 import { useQueryClient } from '@tanstack/react-query'
 import { useClawVersion, useRenameClaw, useUpdateClawSubdomain } from '@/hooks'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import { useAuth } from '@/lib/auth'
-import { locationFlags, locationNames, generateSlug } from '@/lib/claw-utils'
+import CLAW_VERSION_QUERY_KEY from '@/hooks/useClaws/CLAW_VERSION_QUERY_KEY'
+import { generateSlug } from '@/lib/claw-utils'
 
 const tabStateMap: Record<string, PlaygroundDetailTab> = {}
 
@@ -189,7 +184,6 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
     const renameMutation = useRenameClaw()
     const subdomainMutation = useUpdateClawSubdomain()
     const { showToast } = useUIStore()
-    const { isLocal } = useAuth()
 
     useEffect(() => {
         setSettingsName(claw.name)
@@ -245,7 +239,10 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                 { id: claw.id, name: trimmedName },
                 {
                     onSuccess: () => {
-                        showToast(t('dashboard.renameSuccess'), TOAST_TYPE.SUCCESS)
+                        showToast(
+                            t('dashboard.renameSuccess'),
+                            TOAST_TYPE.SUCCESS
+                        )
                     },
                     onError: () => {
                         showToast(t('dashboard.renameFailed'), TOAST_TYPE.ERROR)
@@ -275,7 +272,10 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                 { id: claw.id, subdomain: trimmedSubdomain },
                 {
                     onSuccess: () => {
-                        showToast(t('playground.subdomainUpdated'), TOAST_TYPE.SUCCESS)
+                        showToast(
+                            t('playground.subdomainUpdated'),
+                            TOAST_TYPE.SUCCESS
+                        )
                     },
                     onError: (err) => {
                         const raw = err instanceof Error ? err.message : ''
@@ -300,16 +300,6 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
         showToast
     ])
 
-    const plan = plans.find((p) => p.id === claw.planId)
-    const monthlyPrice = plan ? plan.priceMonthly : null
-    const locationName = claw.location
-        ? locationNames[claw.location] || claw.location
-        : t('common.unknown')
-    const flag = claw.location ? locationFlags[claw.location] : null
-    const attachedSshKey = claw.sshKeyId
-        ? sshKeys.find((k) => k.id === claw.sshKeyId)
-        : null
-
     const isInfoTab = activeTab === 'info'
     const queryClient = useQueryClient()
     const versionQuery = useClawVersion(
@@ -326,10 +316,11 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
             !readOnly &&
             claw.ip &&
             !isConfiguring &&
-            !isAwaitingPayment
+            !isAwaitingPayment &&
+            queryClient.getQueryData([...CLAW_VERSION_QUERY_KEY, claw.id])
         ) {
             queryClient.resetQueries({
-                queryKey: ['claw-version', claw.id]
+                queryKey: [...CLAW_VERSION_QUERY_KEY, claw.id]
             })
         }
     }, [
@@ -343,16 +334,17 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
     ])
     const showVersion =
         !isConfiguring && !isAwaitingPayment && (readOnly || !!claw.ip)
-    const versionLoading = !readOnly && versionQuery.isPending
+    const versionLoading = !readOnly && versionQuery.isLoading
     const versionDisplay = useMemo(() => {
         if (readOnly) return OPENCLAW_VERSION
-        if (versionQuery.isPending) return null
+        if (versionQuery.isLoading) return null
         if (versionQuery.isError || !versionQuery.data) return null
         if (versionQuery.data.version === 'unknown') return null
-        return versionQuery.data.version
+        const raw = versionQuery.data.version
+        return raw.replace(/\s*\([a-f0-9]+\)\s*$/, '')
     }, [
         readOnly,
-        versionQuery.isPending,
+        versionQuery.isLoading,
         versionQuery.isError,
         versionQuery.data
     ])
@@ -486,171 +478,15 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
 
                 <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
                     {activeTab === 'info' && (
-                        <div className='h-full overflow-y-auto p-5'>
-                            <div
-                                className={`grid gap-2 ${fullScreen ? 'grid-cols-3' : 'grid-cols-2'}`}
-                            >
-                                {claw.ownerEmail && (
-                                    <CopyableField
-                                        label={t('dashboard.owner')}
-                                        value={claw.ownerEmail}
-                                    />
-                                )}
-
-                                {claw.ip && (
-                                    <CopyableField
-                                        label={t('dashboard.ipAddress')}
-                                        value={claw.ip}
-                                    />
-                                )}
-
-                                {claw.provider === clawProvider.local &&
-                                    claw.port && (
-                                        <CopyableField
-                                            label={t('dashboard.port')}
-                                            value={String(claw.port)}
-                                        />
-                                    )}
-
-                                {showVersion && versionLoading && (
-                                    <div className='bg-foreground/5 rounded-lg px-3 py-2'>
-                                        <span className='text-muted-foreground block text-xs'>
-                                            {t('dashboard.version')}
-                                        </span>
-                                        <Skeleton className='mt-1 h-5 w-24' />
-                                    </div>
-                                )}
-
-                                {showVersion && versionDisplay && (
-                                    <CopyableField
-                                        label={t('dashboard.version')}
-                                        value={versionDisplay}
-                                    />
-                                )}
-
-                                <CopyableField
-                                    label={t('dashboard.provider')}
-                                    value={
-                                        claw.provider === clawProvider.local
-                                            ? t('createClaw.providerLocal')
-                                            : t('createClaw.providerHetzner')
-                                    }
-                                    icon={
-                                        <ProviderIcon
-                                            provider={claw.provider}
-                                            className='h-3.5 w-3.5 shrink-0'
-                                        />
-                                    }
-                                />
-
-                                {claw.provider !== clawProvider.local && (
-                                    <CopyableField
-                                        label={t('dashboard.location')}
-                                        value={`${flag || ''} ${locationName}`.trim()}
-                                    />
-                                )}
-
-                                {claw.provider !== clawProvider.local && (
-                                    <CopyableField
-                                        label={t('dashboard.plan')}
-                                        value={
-                                            plan
-                                                ? `${plan.name.replace(/([A-Za-z])(\d)/, '$1 $2')} (${plan.cpu} vCPU, ${plan.memory}GB RAM, ${plan.disk}GB SSD)`
-                                                : claw.planId
-                                        }
-                                    />
-                                )}
-
-                                {claw.provider !== clawProvider.local &&
-                                    monthlyPrice && (
-                                        <CopyableField
-                                            label={t('dashboard.planCost')}
-                                            value={
-                                                claw.billingInterval ===
-                                                    'year' && plan
-                                                    ? `$${plan.priceYearly.toFixed(0)}${t('landing.perYear')}`
-                                                    : `$${monthlyPrice.toFixed(0)}${t('landing.perMonth')}`
-                                            }
-                                        />
-                                    )}
-
-                                {claw.providerServerId && (
-                                    <CopyableField
-                                        label={t('dashboard.serverId')}
-                                        value={`#${claw.providerServerId}`}
-                                    />
-                                )}
-
-                                {claw.createdAt && (
-                                    <CopyableField
-                                        label={t('dashboard.created')}
-                                        value={new Date(
-                                            claw.createdAt
-                                        ).toLocaleDateString(getLocale(), {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric'
-                                        })}
-                                    />
-                                )}
-
-                                {attachedSshKey && (
-                                    <CopyableField
-                                        label={t('dashboard.sshKey')}
-                                        value={attachedSshKey.name}
-                                    />
-                                )}
-
-                                {claw.currentPeriodStart && (
-                                    <CopyableField
-                                        label={t('dashboard.lastBilling')}
-                                        value={new Date(
-                                            claw.currentPeriodStart
-                                        ).toLocaleDateString(getLocale(), {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric'
-                                        })}
-                                    />
-                                )}
-
-                                {claw.currentPeriodEnd && (
-                                    <CopyableField
-                                        label={t('dashboard.nextBilling')}
-                                        value={new Date(
-                                            claw.currentPeriodEnd
-                                        ).toLocaleDateString(getLocale(), {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric'
-                                        })}
-                                    />
-                                )}
-
-                                {claw.volumes && claw.volumes.length > 0 && (
-                                    <CopyableField
-                                        label={t('dashboard.storage')}
-                                        value={`${claw.volumes.reduce((sum, v) => sum + v.size, 0)} GB`}
-                                    />
-                                )}
-
-                                {claw.gatewayToken && (
-                                    <CopyableField
-                                        label={t('dashboard.gatewayToken')}
-                                        value={claw.gatewayToken}
-                                        secret
-                                    />
-                                )}
-
-                                {claw.rootPassword && (
-                                    <CopyableField
-                                        label={t('createClaw.rootPassword')}
-                                        value={claw.rootPassword}
-                                        secret
-                                    />
-                                )}
-                            </div>
-                        </div>
+                        <PlaygroundDetailInfoTab
+                            claw={claw}
+                            plans={plans}
+                            sshKeys={sshKeys}
+                            fullScreen={fullScreen}
+                            showVersion={showVersion}
+                            versionLoading={versionLoading}
+                            versionDisplay={versionDisplay}
+                        />
                     )}
 
                     {activeTab === 'logs' && (
@@ -695,7 +531,9 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                     {activeTab === 'skills' && (
                         <PlaygroundSkillsContent
                             clawId={claw.id}
-                            onGoToVersions={() => setActiveTab(CLAW_DETAIL_TABS.VERSIONS)}
+                            onGoToVersions={() =>
+                                setActiveTab(CLAW_DETAIL_TABS.VERSIONS)
+                            }
                         />
                     )}
 
@@ -706,7 +544,9 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                     {activeTab === 'channels' && (
                         <PlaygroundChannelsContent
                             clawId={claw.id}
-                            onGoToVersions={() => setActiveTab(CLAW_DETAIL_TABS.VERSIONS)}
+                            onGoToVersions={() =>
+                                setActiveTab(CLAW_DETAIL_TABS.VERSIONS)
+                            }
                         />
                     )}
 
@@ -726,128 +566,18 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                     )}
 
                     {activeTab === 'settings' && (
-                        <div className='h-full overflow-y-auto p-5'>
-                            <div className='space-y-5'>
-                                <div>
-                                    <label className='text-muted-foreground mb-2 block text-xs font-medium'>
-                                        {t('playground.settingsName')}
-                                    </label>
-                                    <input
-                                        type='text'
-                                        value={settingsName}
-                                        onChange={(e) =>
-                                            handleSettingsNameChange(
-                                                e.target.value
-                                            )
-                                        }
-                                        onKeyDown={(e) => {
-                                            if (
-                                                e.key === 'Enter' &&
-                                                settingsHasChanges &&
-                                                !settingsNameError &&
-                                                !renameMutation.isPending
-                                            ) {
-                                                handleSettingsSave()
-                                            }
-                                        }}
-                                        placeholder={t(
-                                            'playground.settingsNamePlaceholder'
-                                        )}
-                                        className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border px-3 py-2 text-sm outline-none transition-colors focus:border-[#ef5350]/50 ${
-                                            settingsNameError
-                                                ? 'border-red-500/50'
-                                                : 'border-border'
-                                        }`}
-                                    />
-                                    {settingsNameError ? (
-                                        <p className='mt-1.5 text-[11px] text-red-600 dark:text-red-400'>
-                                            {settingsNameError}
-                                        </p>
-                                    ) : (
-                                        <p className='text-muted-foreground mt-1.5 text-[11px]'>
-                                            {t(
-                                                'playground.settingsNameDescription'
-                                            )}
-                                        </p>
-                                    )}
-                                </div>
-
-                                {isLocal && (
-                                    <div>
-                                        <label className='text-muted-foreground mb-2 block text-xs font-medium'>
-                                            {t('playground.subdomain')}
-                                        </label>
-                                        <div className='flex items-center gap-0'>
-                                            <input
-                                                type='text'
-                                                value={settingsSubdomain}
-                                                onChange={(e) =>
-                                                    handleSettingsSubdomainChange(
-                                                        e.target.value.toLowerCase()
-                                                    )
-                                                }
-                                                onKeyDown={(e) => {
-                                                    if (
-                                                        e.key === 'Enter' &&
-                                                        settingsHasChanges &&
-                                                        !settingsSubdomainError &&
-                                                        !subdomainMutation.isPending
-                                                    ) {
-                                                        handleSettingsSave()
-                                                    }
-                                                }}
-                                                placeholder={t(
-                                                    'playground.subdomainPlaceholder'
-                                                )}
-                                                className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-l-md border border-r-0 px-3 py-2 text-sm outline-none transition-colors focus:border-[#ef5350]/50 ${
-                                                    settingsSubdomainError
-                                                        ? 'border-red-500/50'
-                                                        : 'border-border'
-                                                }`}
-                                            />
-                                            <span className='border-border bg-foreground/5 text-muted-foreground flex items-center rounded-r-md border px-3 py-2 text-sm'>
-                                                .clawhost
-                                            </span>
-                                        </div>
-                                        {settingsSubdomainError ? (
-                                            <p className='mt-1.5 text-[11px] text-red-600 dark:text-red-400'>
-                                                {settingsSubdomainError}
-                                            </p>
-                                        ) : (
-                                            <p className='text-muted-foreground mt-1.5 text-[11px]'>
-                                                {t(
-                                                    'playground.subdomainDescription',
-                                                    {
-                                                        min: inputValidation
-                                                            .SUBDOMAIN.MIN,
-                                                        max: inputValidation
-                                                            .SUBDOMAIN.MAX
-                                                    }
-                                                )}
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-
-                                <button
-                                    onClick={handleSettingsSave}
-                                    disabled={
-                                        !settingsHasChanges ||
-                                        !!settingsNameError ||
-                                        !!settingsSubdomainError ||
-                                        renameMutation.isPending ||
-                                        subdomainMutation.isPending
-                                    }
-                                    className='flex w-full items-center justify-center gap-2 rounded-lg bg-[#ef5350] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#e53935] disabled:cursor-not-allowed disabled:opacity-50'
-                                >
-                                    {(renameMutation.isPending ||
-                                        subdomainMutation.isPending) && (
-                                        <CircleNotchIcon className='h-4 w-4 animate-spin' />
-                                    )}
-                                    {t('playground.settingsSave')}
-                                </button>
-                            </div>
-                        </div>
+                        <PlaygroundDetailSettingsTab
+                            settingsName={settingsName}
+                            settingsNameError={settingsNameError}
+                            settingsSubdomain={settingsSubdomain}
+                            settingsSubdomainError={settingsSubdomainError}
+                            settingsHasChanges={settingsHasChanges}
+                            renamePending={renameMutation.isPending}
+                            subdomainPending={subdomainMutation.isPending}
+                            onNameChange={handleSettingsNameChange}
+                            onSubdomainChange={handleSettingsSubdomainChange}
+                            onSave={handleSettingsSave}
+                        />
                     )}
                 </div>
             </div>

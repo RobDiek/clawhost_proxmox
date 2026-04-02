@@ -26,7 +26,13 @@ import {
     XIcon
 } from '@phosphor-icons/react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useClawFiles, useClawFile, useUpdateClawFile } from '@/hooks'
+import {
+    useClawFiles,
+    useClawFile,
+    useUpdateClawFile,
+    CLAW_FILES_QUERY_KEY,
+    CLAW_FILE_QUERY_KEY
+} from '@/hooks'
 import { useUIStore, usePreferencesStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { THEMES } from '@/lib'
@@ -184,10 +190,10 @@ const ClawConfigDialog: FC<ClawFileExplorerDialogProps> = ({
             setSearchQuery('')
             updateFile.reset()
             queryClient.removeQueries({
-                queryKey: ['claw-files', clawId]
+                queryKey: [...CLAW_FILES_QUERY_KEY, clawId]
             })
             queryClient.removeQueries({
-                queryKey: ['claw-file', clawId]
+                queryKey: [...CLAW_FILE_QUERY_KEY, clawId]
             })
         }
         onOpenChange(isOpen)
@@ -200,7 +206,7 @@ const ClawConfigDialog: FC<ClawFileExplorerDialogProps> = ({
         setJsonError(false)
         updateFile.reset()
         queryClient.removeQueries({
-            queryKey: ['claw-file', clawId, selectedPath]
+            queryKey: [...CLAW_FILE_QUERY_KEY, clawId, selectedPath]
         })
     }
 
@@ -266,9 +272,12 @@ const ClawConfigDialog: FC<ClawFileExplorerDialogProps> = ({
                 onSuccess: () => {
                     setEditedContent('')
                     queryClient.invalidateQueries({
-                        queryKey: ['claw-file', clawId, selectedPath]
+                        queryKey: [...CLAW_FILE_QUERY_KEY, clawId, selectedPath]
                     })
-                    showToast(t('dashboard.fileExplorerSaved'), TOAST_TYPE.SUCCESS)
+                    showToast(
+                        t('dashboard.fileExplorerSaved'),
+                        TOAST_TYPE.SUCCESS
+                    )
                 },
                 onError: (err) => {
                     showToast(

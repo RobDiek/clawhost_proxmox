@@ -47,10 +47,7 @@ const createSSHKey = async (c: AuthenticatedContext) => {
 
         const keyLabel = `${name}-${userId.slice(0, 8)}`
 
-        const hetznerKey = await getProvider().createSSHKey(
-            keyLabel,
-            publicKey
-        )
+        const hetznerKey = await getProvider().createSSHKey(keyLabel, publicKey)
 
         const id = crypto.randomUUID()
         await db.insert(sshKeys).values({

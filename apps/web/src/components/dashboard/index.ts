@@ -9,6 +9,9 @@ import ClawLogsDialog from '@/components/dashboard/ClawLogsDialog'
 import ClawTerminalContent from '@/components/dashboard/ClawTerminalContent'
 import CopyableField from '@/components/dashboard/CopyableField'
 import CreateClawModal from '@/components/dashboard/CreateClawModal'
+import DashboardChatView from '@/components/dashboard/DashboardChatView'
+import DashboardHeader from '@/components/dashboard/DashboardHeader'
+import DashboardPlaygroundView from '@/components/dashboard/DashboardPlaygroundView'
 import LocalCreateClawModal from '@/components/dashboard/LocalCreateClawModal'
 
 export {
@@ -23,5 +26,8 @@ export {
     ClawTerminalContent,
     CopyableField,
     CreateClawModal,
+    DashboardChatView,
+    DashboardHeader,
+    DashboardPlaygroundView,
     LocalCreateClawModal
 }

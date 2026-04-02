@@ -26,7 +26,8 @@ import type {
     ToastType,
     UserRole,
     Product,
-    ChangelogFeatureType
+    ChangelogFeatureType,
+    CopiedFieldType
 } from '@/ts/Types'
 
 export interface ApiResponse<T = null> {
@@ -296,10 +297,15 @@ export interface DashboardState {
 }
 
 export interface CachedProfile {
+    id: string
     email: string
     name: string | null
+    role: UserRole
+    authMethods: AuthMethod[]
+    hasLicense: boolean
     referralCode: string | null
     referralCodeChanged: boolean
+    createdAt: string
 }
 
 export interface VerifyOtpResponse {
@@ -560,6 +566,52 @@ export interface CreateSSHKeyModalProps {
 export interface GeneratedKeyPair {
     publicKey: string
     privateKey: string
+}
+
+export interface GoWaitlistFormProps {
+    user: User | null
+    authLoading: boolean
+    hasJoined: boolean
+    isJoining: boolean
+    isCheckingStatus: boolean
+    waitlistEmail: string
+    isValidEmail: boolean
+    onWaitlistEmailChange: (value: string) => void
+    onJoinWaitlist: (email: string) => void
+    onEmailSubmit: (e: React.FormEvent) => void
+    loggedInClassName?: string
+    guestClassName?: string
+}
+
+export interface SSHKeyUploadFormProps {
+    name: string
+    publicKey: string
+    copied: CopiedFieldType
+    isPending: boolean
+    onNameChange: (value: string) => void
+    onPublicKeyChange: (value: string) => void
+    onCopyToClipboard: (
+        text: string,
+        type: NonNullable<CopiedFieldType>
+    ) => void
+    onSubmit: () => void
+    onClose: () => void
+}
+
+export interface SSHKeyGenerateFormProps {
+    name: string
+    generatedKeys: GeneratedKeyPair | null
+    copied: CopiedFieldType
+    isPending: boolean
+    onNameChange: (value: string) => void
+    onGenerateKeyPair: () => void
+    onCopyToClipboard: (
+        text: string,
+        type: NonNullable<CopiedFieldType>
+    ) => void
+    onDownloadPrivateKey: () => void
+    onSubmit: () => void
+    onClose: () => void
 }
 
 export interface ProtectedRouteProps {
@@ -888,6 +940,29 @@ export interface PlaygroundDetailPanelProps {
     initialTab?: PlaygroundDetailTab
     onTabChange?: (tab: PlaygroundDetailTab) => void
     fullScreen?: boolean
+}
+
+export interface PlaygroundDetailInfoTabProps {
+    claw: Claw
+    plans: Plan[]
+    sshKeys: SSHKey[]
+    fullScreen?: boolean
+    showVersion: boolean
+    versionLoading: boolean
+    versionDisplay: string | null
+}
+
+export interface PlaygroundDetailSettingsTabProps {
+    settingsName: string
+    settingsNameError: string
+    settingsSubdomain: string
+    settingsSubdomainError: string
+    settingsHasChanges: boolean
+    renamePending: boolean
+    subdomainPending: boolean
+    onNameChange: (value: string) => void
+    onSubdomainChange: (value: string) => void
+    onSave: () => void
 }
 
 export interface PlaygroundToolbarProps {
@@ -2100,7 +2175,16 @@ export interface UpdateAdminUserData {
 }
 
 export interface AdminEntitySelection {
-    type: 'user' | 'claw' | 'ssh-key' | 'volume' | 'pending-claw' | 'referral' | 'waitlist' | 'export' | 'email'
+    type:
+        | 'user'
+        | 'claw'
+        | 'ssh-key'
+        | 'volume'
+        | 'pending-claw'
+        | 'referral'
+        | 'waitlist'
+        | 'export'
+        | 'email'
     id: string
     data: unknown
 }
@@ -2113,6 +2197,69 @@ export interface AdminDetailModalProps {
     entity: AdminEntitySelection | null
     onClose: () => void
     onNavigateToUser: (userId: string) => void
+}
+
+export interface AdminDetailFieldProps {
+    label: string
+    value: ReactNode
+    className?: string
+}
+
+export interface AdminOwnerLinkProps {
+    userId: string
+    email: string | null
+    onNavigateToUser: (userId: string) => void
+}
+
+export interface AdminStatusBadgeProps {
+    status: string
+}
+
+export interface AdminClawDetailViewProps {
+    claw: AdminClawListItem
+    onClose: () => void
+    onNavigateToUser: (userId: string) => void
+}
+
+export interface AdminSSHKeyDetailViewProps {
+    sshKey: AdminSSHKeyListItem
+    onClose: () => void
+    onNavigateToUser: (userId: string) => void
+}
+
+export interface AdminVolumeDetailViewProps {
+    volume: AdminVolumeListItem
+    onClose: () => void
+    onNavigateToUser: (userId: string) => void
+}
+
+export interface AdminPendingClawDetailViewProps {
+    pendingClaw: AdminPendingClawListItem
+    onClose: () => void
+    onNavigateToUser: (userId: string) => void
+}
+
+export interface AdminReferralDetailViewProps {
+    referral: AdminReferralListItem
+    onClose: () => void
+    onNavigateToUser: (userId: string) => void
+}
+
+export interface AdminExportDetailViewProps {
+    exportItem: AdminExportListItem
+    onClose: () => void
+    onNavigateToUser: (userId: string) => void
+}
+
+export interface AdminEmailDetailViewProps {
+    email: AdminEmailListItem
+    onClose: () => void
+    onNavigateToUser: (userId: string) => void
+}
+
+export interface AdminUserDetailViewProps {
+    userId: string
+    onClose: () => void
 }
 
 export interface AdminUserFiltersProps {
@@ -2154,6 +2301,17 @@ export interface AffiliateConfirmDialogProps {
     isPending: boolean
 }
 
+export interface ConfirmationDialogProps {
+    open: boolean
+    onOpenChange: (open: boolean) => void
+    title: string
+    description: ReactNode
+    confirmLabel: string
+    onConfirm: () => void
+    isPending: boolean
+    variant?: 'default' | 'destructive'
+}
+
 export interface ChangelogFeature {
     key: TranslationKey
     type: ChangelogFeatureType
@@ -2165,4 +2323,154 @@ export interface ChangelogRelease {
     descriptionKey: TranslationKey
     features: ChangelogFeature[]
     upcoming?: boolean
+}
+
+export interface DashboardHeaderProps {
+    dashboardTab: DashboardTab
+    isLocal: boolean
+    isLoading: boolean
+    displayedClaws: Claw[]
+    displayName: string
+    dnsSetup: boolean | null
+    dnsLoading: boolean
+    openLinksWindowed: boolean
+    appVersion: string | null
+    dropdownFooterLinks: FooterLink[]
+    onTabChange: (tab: DashboardTab) => void
+    onCreateClick: () => void
+    onDnsSetup: () => void
+    onSignOut: () => Promise<void>
+}
+
+export interface DashboardChatViewProps {
+    displayedClaws: Claw[]
+    agentQueries: UseQueryResult<ClawAgentsResponse>[]
+    plans: Plan[]
+    sshKeys: SSHKey[]
+    adminMode: boolean
+    chatSelectedAgent: ChatSelectedAgent | null
+    chatSettingsClawId: string | null
+    chatAgentTab: PlaygroundAgentDetailTab | null
+    chatClawTab: PlaygroundDetailTab | null
+    onAgentSelect: (value: ChatSelectedAgent | null) => void
+    onConfigureAgent: (agentId: string, clawId: string) => void
+    onCreateAgent: (clawId: string, clawName: string) => void
+    onSettingsClawChange: (value: string | null) => void
+    onAgentTabChange: (value: PlaygroundAgentDetailTab | null) => void
+    onClawTabChange: (value: PlaygroundDetailTab | null) => void
+    onCreateClick: () => void
+}
+
+export interface DashboardPlaygroundViewProps {
+    displayedClaws: Claw[]
+    agentQueries: UseQueryResult<ClawAgentsResponse>[]
+    adminMode: boolean
+    nodes: Node[]
+    edges: Edge[]
+    plans: Plan[]
+    sshKeys: SSHKey[]
+    selectedClawId: string | null
+    selectedAgentId: string | null
+    selectedAgentClawId: string | null
+    playgroundClawTab: PlaygroundDetailTab | null
+    playgroundAgentTab: PlaygroundAgentDetailTab | null
+    isLoading: boolean
+    activeIsError: boolean
+    onClawSelect: (clawId: string | null) => void
+    onAgentSelect: (agentId: string | null, clawId: string | null) => void
+    onPlaygroundClawTabChange: (tab: PlaygroundDetailTab | null) => void
+    onPlaygroundAgentTabChange: (tab: PlaygroundAgentDetailTab | null) => void
+    onCreateClick: () => void
+}
+
+export interface UseURLStateRestorationParams {
+    searchParams: URLSearchParams
+    setSearchParams: (
+        params: Record<string, string>,
+        options?: { replace?: boolean }
+    ) => void
+    dashboardTab: DashboardTab
+    setDashboardTab: (tab: DashboardTab) => void
+    selectedClawId: string | null
+    setSelectedClawId: (value: string | null) => void
+    selectedAgentId: string | null
+    setSelectedAgentId: (value: string | null) => void
+    selectedAgentClawId: string | null
+    setSelectedAgentClawId: (value: string | null) => void
+    chatSelectedAgent: ChatSelectedAgent | null
+    setChatSelectedAgent: (value: ChatSelectedAgent | null) => void
+    chatSettingsClawId: string | null
+    setChatSettingsClawId: (value: string | null) => void
+    chatAgentTab: PlaygroundAgentDetailTab | null
+    setChatAgentTab: (value: PlaygroundAgentDetailTab | null) => void
+    playgroundAgentTab: PlaygroundAgentDetailTab | null
+    setPlaygroundAgentTab: (value: PlaygroundAgentDetailTab | null) => void
+    playgroundClawTab: PlaygroundDetailTab | null
+    setPlaygroundClawTab: (value: PlaygroundDetailTab | null) => void
+    chatClawTab: PlaygroundDetailTab | null
+    setChatClawTab: (value: PlaygroundDetailTab | null) => void
+    setShowCreate: (value: boolean) => void
+    setPreselectedPlanId: (value: string | null) => void
+    setPreselectedProvider: (value: string | null) => void
+    showToast: (message: string, type: ToastType) => void
+    awaitingClaw: boolean
+}
+
+export interface UseInfiniteScrollObserverParams {
+    isFetchingNextPage: boolean
+    hasNextPage: boolean
+    fetchNextPage: () => void
+}
+
+export interface InfinitePageData<T> {
+    items: T[]
+    total: number
+}
+
+export interface UsePaginationStateParams<T> {
+    data: { pages: InfinitePageData<T>[] } | undefined
+    pageSize: number
+}
+
+export interface ConnectedAccountRowProps {
+    icon: ReactNode
+    label: string
+    isConnected: boolean
+    isDisabled?: boolean
+    isPending: boolean
+    isLoading?: boolean
+    onConnect?: () => void
+    onDisconnect?: () => void
+}
+
+export interface UsePaginationStateReturn<T> {
+    allItems: T[]
+    total: number
+    remaining: number
+    skeletonCount: number
+}
+
+export interface BillingOrderCardProps {
+    order: BillingOrder
+    loadingInvoiceIds: Set<string>
+    onViewInvoice: (orderId: string) => void
+    formatDate: (dateString: string | undefined) => string
+    formatCurrency: (amount: number, currency: string) => string
+    getStatusBadge: (status: string) => ReactNode
+    getBillingReasonLabel: (reason: string) => string
+}
+
+export interface CompareTableMobileProps {
+    categories: CompareCategory[]
+    clawhost: CompareCompetitor
+    selectedCompetitorId: string
+    selectedCompetitorNameKey: string
+    renderValue: (value: CompareFeatureValue) => ReactNode
+}
+
+export interface CompareTableDesktopProps {
+    categories: CompareCategory[]
+    competitors: CompareCompetitor[]
+    colSpan: number
+    renderValue: (value: CompareFeatureValue) => ReactNode
 }

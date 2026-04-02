@@ -9,7 +9,14 @@ import type {
     SkillEntryConfig
 } from '@/ts/Interfaces'
 
-import { Fragment, useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import {
+    Fragment,
+    useState,
+    useEffect,
+    useCallback,
+    useMemo,
+    useRef
+} from 'react'
 import { useDebouncedValue, useClawVersion } from '@/hooks'
 import {
     useQuery,
@@ -29,7 +36,11 @@ import {
     StorefrontIcon,
     TrashIcon
 } from '@phosphor-icons/react'
-import { PanelPlaceholder, TruncateTooltip, VersionUnsupported } from '@/components/shared'
+import {
+    PanelPlaceholder,
+    TruncateTooltip,
+    VersionUnsupported
+} from '@/components/shared'
 import { Skeleton } from '@/components/ui'
 import { api, getLocale } from '@/lib'
 import { useUIStore, useSkillsStore } from '@/lib/store'
@@ -56,7 +67,8 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
 
     const versionQuery = useClawVersion(clawId, true)
     const clawVersion = versionQuery.data?.version || ''
-    const versionUnsupported = clawVersion !== '' && !isFeatureSupported(clawVersion, 'skills')
+    const versionUnsupported =
+        clawVersion !== '' && !isFeatureSupported(clawVersion, 'skills')
 
     const clawQueryKey = ['claw-skills', clawId]
     const agentQueryKey = ['agent-skills', clawId, agentId]
@@ -64,10 +76,7 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
     const installedKey = ['clawhub-installed', clawId, agentId]
     const updatesKey = ['clawhub-updates', clawId, agentId]
 
-    const {
-        data: clawSkillsData,
-        isLoading: isClawSkillsLoading
-    } = useQuery({
+    const { data: clawSkillsData, isLoading: isClawSkillsLoading } = useQuery({
         queryKey: clawQueryKey,
         queryFn: () => api.getClawSkills(clawId),
         staleTime: 0,
@@ -283,7 +292,10 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
             )
         },
         onError: () => {
-            showToast(t('playground.agentSkillsInstallFailed'), TOAST_TYPE.ERROR)
+            showToast(
+                t('playground.agentSkillsInstallFailed'),
+                TOAST_TYPE.ERROR
+            )
             setPendingSkill(null)
         }
     })
@@ -476,7 +488,9 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
                     onGoToVersions={onGoToVersions}
                 />
             )}
-            <div className={`bg-background sticky top-0 z-10 px-5 pb-3 pt-5 ${versionUnsupported ? 'pointer-events-none opacity-50' : ''}`}>
+            <div
+                className={`bg-background sticky top-0 z-10 px-5 pb-3 pt-5 ${versionUnsupported ? 'pointer-events-none opacity-50' : ''}`}
+            >
                 <div className='relative'>
                     <MagnifyingGlassIcon className='text-muted-foreground absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2' />
                     <input
@@ -489,7 +503,9 @@ const PlaygroundSkillsContent: FC<PlaygroundSkillsContentProps> = ({
                 </div>
             </div>
 
-            <div className={`flex min-h-0 flex-1 flex-col px-5 ${versionUnsupported ? 'pointer-events-none opacity-50' : ''}`}>
+            <div
+                className={`flex min-h-0 flex-1 flex-col px-5 ${versionUnsupported ? 'pointer-events-none opacity-50' : ''}`}
+            >
                 {hasAnyItems ? (
                     <div className='space-y-1.5 pb-3'>
                         {isBundledLoading &&

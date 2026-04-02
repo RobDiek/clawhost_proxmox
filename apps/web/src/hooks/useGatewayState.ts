@@ -8,7 +8,9 @@ const useGatewayState = (
     subdomain: string | null,
     gatewayToken: string | null
 ): GatewayConnectionState => {
-    const [state, setState] = useState<GatewayConnectionState>(GATEWAY_CONNECTION_STATE.DISCONNECTED)
+    const [state, setState] = useState<GatewayConnectionState>(
+        GATEWAY_CONNECTION_STATE.DISCONNECTED
+    )
 
     useEffect(() => {
         if (!subdomain || !gatewayToken) {

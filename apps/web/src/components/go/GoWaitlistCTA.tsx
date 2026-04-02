@@ -44,7 +44,10 @@ const GoWaitlistCTA: FC = (): ReactNode => {
                 const res = await api.joinWaitlist(email)
                 setHasJoined(true)
                 if (res.alreadyJoined) {
-                    showToast(t('go.waitlistAlreadyJoinedToast'), TOAST_TYPE.INFO)
+                    showToast(
+                        t('go.waitlistAlreadyJoinedToast'),
+                        TOAST_TYPE.INFO
+                    )
                 }
             } catch (error) {
                 const message =

@@ -18,7 +18,8 @@ class GatewayClient {
     private requestId = 0
     private pending = new Map<string, GatewayPendingRequest>()
     private listeners = new Map<string, Set<GatewayEventHandler>>()
-    private _state: GatewayConnectionState = GATEWAY_CONNECTION_STATE.DISCONNECTED
+    private _state: GatewayConnectionState =
+        GATEWAY_CONNECTION_STATE.DISCONNECTED
     private stateListeners = new Set<GatewayStateListener>()
     private reconnectAttempts = 0
     private reconnectTimer: ReturnType<typeof setTimeout> | null = null
@@ -199,7 +200,10 @@ class GatewayClient {
 
     send(method: string, params: unknown): Promise<unknown> {
         return new Promise((resolve, reject) => {
-            if (!this.ws || this._state !== GATEWAY_CONNECTION_STATE.CONNECTED) {
+            if (
+                !this.ws ||
+                this._state !== GATEWAY_CONNECTION_STATE.CONNECTED
+            ) {
                 reject(new Error('Not connected'))
                 return
             }
