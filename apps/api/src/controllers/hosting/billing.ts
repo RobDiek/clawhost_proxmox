@@ -203,6 +203,10 @@ export const checkout = async (c: Context<HonoEnv>) => {
                         .where(eq(instances.id, instanceId))
 
                     if (ready) {
+                        // Deploy health daemon now that VPS is fully ready
+                        try {
+                            await provisioner.deployHealthDaemon(result.ip, instanceId, result.openclawToken, result.rootPassword)
+                        } catch (e) { console.error('Health daemon deploy failed (non-critical):', e) }
                         await telegram.alertAdmin(`✅ Instance ${instanceId} is running!`)
                     }
                 }).catch(async (err) => {

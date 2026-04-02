@@ -18,15 +18,32 @@ interface HealthReport {
     ts: number
 }
 
-// POST /hosting/instances/:id/health-report (no auth — called from client VPS)
+// Rate limit health reports per instance (prevent spam)
+const healthReportTimes = new Map<string, number>()
+
+// POST /hosting/instances/:id/health-report (auth via instance token)
 export const healthReport = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
-        const body = await c.req.json<HealthReport>()
 
         // Validate instance exists
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        if (!instance) return fail(c, 'Unknown instance', 404)
+        if (!instance) return ok(c, null, 'ok') // silent — don't reveal instance existence
+
+        // Auth: verify request comes from the actual VPS using OpenClaw token
+        const authToken = c.req.header('x-health-token') || ''
+        if (!instance.openclawToken || authToken !== instance.openclawToken) {
+            return ok(c, null, 'ok') // silent reject — don't reveal auth failure
+        }
+
+        // Rate limit: max 1 report per 4 minutes per instance
+        const lastReport = healthReportTimes.get(instanceId) || 0
+        if (Date.now() - lastReport < 240000) {
+            return ok(c, null, 'ok') // too frequent, silently ignore
+        }
+        healthReportTimes.set(instanceId, Date.now())
+
+        const body = await c.req.json<HealthReport>()
 
         // Save report to DB
         await db.update(instances).set({

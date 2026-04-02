@@ -86,6 +86,39 @@ const provisioner = {
         }
     },
 
+    async deployHealthDaemon(ip: string, instanceId: string, openclawToken: string, password?: string): Promise<void> {
+        const { readFileSync } = await import('fs')
+        const { resolve } = await import('path')
+        const { Client } = await import('ssh2')
+
+        const scriptPath = resolve(process.cwd(), '../../scripts/clawflow-health.sh')
+        let script = readFileSync(scriptPath, 'utf-8')
+        script = script.replace(/__INSTANCE_ID__/g, instanceId)
+        script = script.replace(/__AUTO_HEAL__/g, 'true')
+        script = script.replace(/__HEALTH_TOKEN__/g, openclawToken)
+
+        const b64 = Buffer.from(script).toString('base64')
+
+        const sshExec = (cmd: string): Promise<string> => new Promise((resolve, reject) => {
+            const conn = new Client()
+            let out = ''
+            conn.on('ready', () => {
+                conn.exec(cmd, (err, stream) => {
+                    if (err) { conn.end(); return reject(err) }
+                    stream.on('data', (d: Buffer) => { out += d.toString() })
+                    stream.on('close', () => { conn.end(); resolve(out.trim()) })
+                })
+            }).on('error', reject)
+            const opts: Record<string, unknown> = { host: ip, port: 22, username: 'root' }
+            if (password) opts.password = password
+            try { opts.privateKey = readFileSync(process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master') } catch {}
+            conn.connect(opts)
+        })
+
+        await sshExec(`echo '${b64}' | base64 -d > /opt/clawflow-health.sh && chmod +x /opt/clawflow-health.sh && systemctl enable --now clawflow-health.timer 2>/dev/null`)
+        console.log(`Health daemon deployed to ${ip}`)
+    },
+
     async pollUntilReady(instanceId: string, serverId: string, subdomainAgent?: string, ip?: string, maxWaitMs: number = 600_000): Promise<boolean> {
         const provider = getProvider('hetzner')
         const start = Date.now()

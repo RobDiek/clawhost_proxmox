@@ -431,31 +431,28 @@ runcmd:
     {{/HAS_BACKUP}}
 
     # ── Self-Healing Health Daemon ──
-    - cp /dev/stdin /opt/clawflow-health.sh << 'HEALTHEOF'
-    HEALTHEOF
-    - curl -sf https://raw.githubusercontent.com/synex-os/openclaw-hosting/Production/scripts/clawflow-health.sh > /opt/clawflow-health.sh 2>/dev/null || true
-    - chmod +x /opt/clawflow-health.sh
-    - sed -i "s/__INSTANCE_ID__/{{INSTANCE_ID}}/g" /opt/clawflow-health.sh
-    - sed -i "s/__AUTO_HEAL__/true/g" /opt/clawflow-health.sh
+    # Script is deployed by provisioner via SSH after VPS is ready (not cloud-init)
+    # This only sets up the systemd timer structure
     - |
         cat > /etc/systemd/system/clawflow-health.service << 'CHSEOF'
         [Unit]
         Description=ClawFlow Self-Healing Health Check
+        After=openclaw-gateway.service docker.service
         [Service]
         Type=oneshot
         ExecStart=/opt/clawflow-health.sh
+        TimeoutSec=120
         CHSEOF
         cat > /etc/systemd/system/clawflow-health.timer << 'CHTEOF'
         [Unit]
         Description=ClawFlow Health Check Timer (every 5 min)
         [Timer]
-        OnBootSec=60
+        OnBootSec=300
         OnUnitActiveSec=300
         [Install]
         WantedBy=timers.target
         CHTEOF
     - systemctl daemon-reload
-    - systemctl enable --now clawflow-health.timer
 
     # ── OpenClaw auto-update (nightly 4am, silent) ──
     - |
