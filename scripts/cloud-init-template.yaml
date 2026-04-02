@@ -80,12 +80,12 @@ runcmd:
               "userId": "{{INSTANCE_ID}}",
               "autoRecall": true,
               "autoCapture": true,
+              "includeAgentId": true,
+              "gracefulDegradation": true,
+              "maxMemories": 1000,
+              "memoryTtlDays": 365,
               "customPrompt": "You are a memory extraction assistant. Extract key facts from the conversation. CRITICAL: Extract and store facts in the ORIGINAL LANGUAGE they were stated in. Hebrew stays Hebrew, English stays English. Never translate. Focus on: personal preferences, work context, communication style, recurring tasks, names, relationships, important decisions, and business information.",
               "oss": {
-                "embedder": {
-                  "provider": "openai",
-                  "config": { "model": "text-embedding-3-small" }
-                },
                 "vectorStore": {
                   "provider": "qdrant",
                   "config": {
@@ -178,6 +178,15 @@ runcmd:
     - systemctl restart openclaw-gateway
     - sleep 3
 
+    # ── Install Mem0 plugin (after gateway is running + paired) ──
+    - |
+        su - openclaw -c '
+          openclaw plugins install @mem0/openclaw-mem0 2>/dev/null || true
+        '
+    # Restart gateway to load plugin
+    - systemctl restart openclaw-gateway
+    - sleep 2
+
     # ── Automation Tool (Docker) ──
     {{#IS_N8N}}
     - mkdir -p /opt/openclaw/data/n8n
@@ -247,19 +256,21 @@ runcmd:
     # ── Mem0 Memory Layer (Qdrant vector store + OpenClaw plugin) ──
     - mkdir -p /opt/openclaw/data/qdrant
     - |
-        # Add Qdrant to docker-compose
-        cat >> /opt/openclaw/docker-compose.yml << 'MEMEOF'
-          qdrant:
-            image: qdrant/qdrant:latest
-            restart: unless-stopped
-            ports: ["127.0.0.1:6333:6333"]
-            volumes: ["/opt/openclaw/data/qdrant:/qdrant/storage"]
-            environment:
-              - QDRANT__SERVICE__MAX_COLLECTION_SIZE=1000
-        MEMEOF
+        # Inject Qdrant service into docker-compose YAML (before last line)
+        # Uses sed to insert inside the services: block
+        if grep -q 'qdrant' /opt/openclaw/docker-compose.yml 2>/dev/null; then
+          echo "Qdrant already in docker-compose"
+        else
+          sed -i '/^        services:/!b;:a;/^[^ ]/!{N;ba};i\      qdrant:\n        image: qdrant/qdrant:latest\n        restart: unless-stopped\n        ports: ["127.0.0.1:6333:6333"]\n        volumes: ["/opt/openclaw/data/qdrant:/qdrant/storage"]' /opt/openclaw/docker-compose.yml 2>/dev/null || \
+          cat >> /opt/openclaw/docker-compose.yml << 'QDEOF'
+      qdrant:
+        image: qdrant/qdrant:latest
+        restart: unless-stopped
+        ports: ["127.0.0.1:6333:6333"]
+        volumes: ["/opt/openclaw/data/qdrant:/qdrant/storage"]
+        QDEOF
+        fi
     - cd /opt/openclaw && docker compose up -d qdrant
-    # Install official Mem0 plugin for OpenClaw
-    - su - openclaw -c 'openclaw plugins install @mem0/openclaw-mem0 2>/dev/null || npm install -g @mem0/openclaw-mem0 2>/dev/null || true'
 
     {{#HAS_OLLAMA}}
     # ── Ollama ──
@@ -278,13 +289,13 @@ runcmd:
         mkdir -p /home/openclaw/.openclaw/skills-config
         echo '{"provider":"ollama","baseUrl":"http://localhost:11434","defaultModel":"llama3.1:8b"}' > /home/openclaw/.openclaw/skills-config/ollama.json
         chown -R openclaw:openclaw /home/openclaw/.openclaw/skills-config
-    # Switch Mem0 embedder to local Ollama (free, no API costs)
+    # Switch Mem0 embedder to local Ollama (free, no external API costs)
     - |
         OCJSON="/home/openclaw/.openclaw/openclaw.json"
         node -e "
           const fs = require('fs');
           const c = JSON.parse(fs.readFileSync('$OCJSON','utf-8'));
-          if (c['openclaw-mem0']?.config?.oss?.embedder) {
+          if (c['openclaw-mem0']?.config?.oss) {
             c['openclaw-mem0'].config.oss.embedder = {
               provider: 'ollama',
               config: { model: 'nomic-embed-text', ollama_base_url: 'http://127.0.0.1:11434' }
@@ -293,6 +304,8 @@ runcmd:
           }
         " 2>/dev/null || true
         chown openclaw:openclaw "$OCJSON"
+    # Restart gateway to pick up Ollama embedder config
+    - systemctl restart openclaw-gateway
     {{/HAS_OLLAMA}}
 
     # ── Nginx ──

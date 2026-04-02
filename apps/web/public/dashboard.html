@@ -6112,10 +6112,13 @@ function renderMemories(memories) {
   empty.style.display = 'none';
   list.innerHTML = memories.map(function(m) {
     var date = m.created_at ? new Date(m.created_at).toLocaleDateString('he-IL') : '';
+    var agentLabel = m.agent ? (AGENT_NAMES[m.agent] || m.agent) : '';
+    var metaParts = [agentLabel, date].filter(Boolean).join(' · ');
     return '<div class="memory-item" style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px">' +
+      '<div style="flex-shrink:0;width:6px;height:6px;border-radius:50%;background:#10B981;margin-top:8px"></div>' +
       '<div style="flex:1;min-width:0">' +
         '<div style="font-size:0.88rem;color:#1F2937;line-height:1.5;word-break:break-word">' + escapeHtml(m.memory || m.text || '') + '</div>' +
-        (date ? '<div style="font-size:0.75rem;color:#9CA3AF;margin-top:4px">' + date + '</div>' : '') +
+        (metaParts ? '<div style="font-size:0.75rem;color:#9CA3AF;margin-top:4px">' + metaParts + '</div>' : '') +
       '</div>' +
       '<button onclick="deleteMemory(\'' + m.id + '\')" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:#D1D5DB;font-size:1rem;padding:2px 4px" title="מחקו">&times;</button>' +
     '</div>';

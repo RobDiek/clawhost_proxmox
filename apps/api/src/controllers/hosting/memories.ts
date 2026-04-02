@@ -8,6 +8,7 @@ import { Client } from 'ssh2'
 import { resolveUserId, getOwnedInstance } from './authHelper'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
+const QDRANT_API_KEY = process.env.QDRANT_API_KEY || ''
 
 let sshKeyCache: Buffer | null = null
 function getSSHKey(): Buffer {
@@ -34,6 +35,28 @@ function sshExec(ip: string, command: string, password?: string): Promise<string
     })
 }
 
+// Sanitize: only allow UUID-like or numeric point IDs
+function sanitizePointId(id: string): string | null {
+    if (/^[a-f0-9-]{1,64}$/i.test(id) || /^\d+$/.test(id)) return id
+    return null
+}
+
+function qdrantAuthHeader(instanceApiKey?: string): string {
+    const key = instanceApiKey || QDRANT_API_KEY
+    return key ? `-H "api-key: ${key}"` : ''
+}
+
+// Query Qdrant on client VPS via SSH
+async function qdrantQuery(ip: string, password: string | undefined, method: string, path: string, body?: string): Promise<string> {
+    const auth = qdrantAuthHeader()
+    const bodyFlag = body ? `-d '${body}'` : ''
+    return sshExec(ip, `
+        curl -sf -X ${method} http://127.0.0.1:6333${path} \\
+          -H "Content-Type: application/json" ${auth} \\
+          ${bodyFlag} 2>/dev/null || echo '{}'
+    `, password)
+}
+
 // GET /hosting/instances/:id/memories
 export const getMemories = async (c: Context) => {
     try {
@@ -43,22 +66,22 @@ export const getMemories = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance?.ip) return fail(c, 'Instance not ready', 400)
 
-        // Query Qdrant directly for all memories
-        const result = await sshExec(instance.ip, `
-            curl -sf http://127.0.0.1:6333/collections/openclaw_memories/points/scroll \\
-              -H "Content-Type: application/json" \\
-              -d '{"limit":200,"with_payload":true}' 2>/dev/null || echo '{"result":{"points":[]}}'
-        `, instance.rootPassword || undefined)
+        const result = await qdrantQuery(
+            instance.ip, instance.rootPassword || undefined,
+            'POST', '/collections/openclaw_memories/points/scroll',
+            '{"limit":200,"with_payload":true}'
+        )
 
-        let memories: { id: string; memory: string; created_at?: string }[] = []
+        let memories: { id: string; memory: string; created_at?: string; agent?: string }[] = []
         try {
             const parsed = JSON.parse(result)
             const points = parsed.result?.points || []
             memories = points.map((p: any) => ({
                 id: String(p.id),
-                memory: p.payload?.memory || p.payload?.text || p.payload?.data || JSON.stringify(p.payload || {}),
+                memory: p.payload?.memory || p.payload?.text || p.payload?.data || '',
                 created_at: p.payload?.created_at || p.payload?.timestamp || null,
-            })).filter((m: any) => m.memory && m.memory !== '{}')
+                agent: p.payload?.agent_id || p.payload?.agent || null,
+            })).filter((m: any) => m.memory && m.memory.length > 0)
         } catch { /* parse error — return empty */ }
 
         return ok(c, memories, `${memories.length} memories`)
@@ -75,14 +98,18 @@ export const deleteMemory = async (c: Context) => {
         const memoryId = c.req.param('memoryId')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
 
+        // Sanitize memoryId to prevent command injection
+        const safeId = sanitizePointId(memoryId)
+        if (!safeId) return fail(c, 'Invalid memory ID format', 400)
+
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance?.ip) return fail(c, 'Instance not ready', 400)
 
-        await sshExec(instance.ip, `
-            curl -sf -X POST http://127.0.0.1:6333/collections/openclaw_memories/points/delete \\
-              -H "Content-Type: application/json" \\
-              -d '{"points":["${memoryId}"]}' 2>/dev/null || true
-        `, instance.rootPassword || undefined)
+        await qdrantQuery(
+            instance.ip, instance.rootPassword || undefined,
+            'POST', '/collections/openclaw_memories/points/delete',
+            `{"points":["${safeId}"]}`
+        )
 
         return ok(c, null, 'Memory deleted')
     } catch (err) {
@@ -100,14 +127,12 @@ export const clearMemories = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance?.ip) return fail(c, 'Instance not ready', 400)
 
-        // Delete and recreate collection
-        await sshExec(instance.ip, `
-            curl -sf -X DELETE http://127.0.0.1:6333/collections/openclaw_memories 2>/dev/null || true
-            sleep 1
-            curl -sf -X PUT http://127.0.0.1:6333/collections/openclaw_memories \\
-              -H "Content-Type: application/json" \\
-              -d '{"vectors":{"size":384,"distance":"Cosine"}}' 2>/dev/null || true
-        `, instance.rootPassword || undefined)
+        // Delete collection entirely, let Mem0 plugin recreate it on next use
+        // (plugin creates collection with correct vector dimensions automatically)
+        await qdrantQuery(
+            instance.ip, instance.rootPassword || undefined,
+            'DELETE', '/collections/openclaw_memories'
+        )
 
         return ok(c, null, 'All memories cleared')
     } catch (err) {
