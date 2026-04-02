@@ -5,6 +5,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { bodyLimit } from 'hono/body-limit'
+import { rateLimiter } from '@/middleware/rateLimiter'
 import { verifyToken } from '@/services/firebase'
 import { eq, sql } from 'drizzle-orm'
 import { db } from '@/db'
@@ -56,7 +57,6 @@ app.use('*', logger())
 app.use('*', bodyLimit({ maxSize: 1024 * 1024 }))
 
 // Rate limiting
-import { rateLimiter } from '@/middleware/rateLimiter'
 app.use('*', rateLimiter(100, 60000)) // 100 req/min global
 app.use('/hosting/checkout', rateLimiter(5, 60000))
 app.use('/hosting/auth/*', rateLimiter(10, 60000))

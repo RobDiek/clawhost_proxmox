@@ -1,9 +1,11 @@
 import type { Context } from 'hono'
+import type { HonoEnv } from '@/ts/Types'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import telegram from '@/services/telegram'
+import { resolveUserId, getOwnedInstance } from './authHelper'
 
 interface HealthReport {
     cpu: number
@@ -20,6 +22,8 @@ interface HealthReport {
 
 // Rate limit health reports per instance (prevent spam)
 const healthReportTimes = new Map<string, number>()
+// Alert dedup: don't send same alert type more than once per 30 min
+const lastAlertTimes = new Map<string, number>()
 
 // POST /hosting/instances/:id/health-report (auth via instance token)
 export const healthReport = async (c: Context) => {
@@ -66,22 +70,29 @@ export const healthReport = async (c: Context) => {
             alerts.push('🔧 פעולות אוטומטיות: ' + body.actions.replace(/,/g, ', '))
         }
 
-        // Send alerts
+        // Send alerts (with deduplication — max 1 per 30 min per instance)
         if (alerts.length > 0) {
-            const subdomain = instance.subdomainName || instanceId
-            const msg = `⚠️ *ClawFlow Alert*\n\n${alerts.join('\n')}\n\n` +
-                `Instance: ${subdomain}\n` +
-                `CPU: ${body.cpu}% · RAM: ${body.ram}% · Disk: ${body.disk}%`
+            const alertKey = `${instanceId}:${alerts.map(a => a.slice(0, 10)).join(',')}`
+            const lastAlert = lastAlertTimes.get(alertKey) || 0
 
-            // Alert instance owner via Telegram
-            if (instance.telegramChatId) {
-                try {
-                    await telegram.sendMessage(instance.telegramChatId, msg, { parse_mode: 'Markdown' })
-                } catch { /* non-critical */ }
+            if (Date.now() - lastAlert > 1800000) { // 30 minutes
+                lastAlertTimes.set(alertKey, Date.now())
+
+                const subdomain = instance.subdomainName || instanceId
+                const msg = `⚠️ *ClawFlow Alert*\n\n${alerts.join('\n')}\n\n` +
+                    `Instance: ${subdomain}\n` +
+                    `CPU: ${body.cpu}% · RAM: ${body.ram}% · Disk: ${body.disk}%`
+
+                // Alert instance owner via Telegram
+                if (instance.telegramChatId) {
+                    try {
+                        await telegram.sendMessage(instance.telegramChatId, msg, { parse_mode: 'Markdown' })
+                    } catch { /* non-critical */ }
+                }
+
+                // Always alert admin
+                await telegram.alertAdmin(msg).catch(() => {})
             }
-
-            // Always alert admin
-            await telegram.alertAdmin(msg).catch(() => {})
         }
 
         return ok(c, null, 'ok')
@@ -91,10 +102,12 @@ export const healthReport = async (c: Context) => {
     }
 }
 
-// GET /hosting/instances/:id/health (for Dashboard)
+// GET /hosting/instances/:id/health (for Dashboard — requires ownership)
 export const getHealthStatus = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance) return fail(c, 'Instance not found', 404)
 
@@ -109,10 +122,12 @@ export const getHealthStatus = async (c: Context) => {
     }
 }
 
-// PATCH /hosting/instances/:id/auto-heal (toggle)
+// PATCH /hosting/instances/:id/auto-heal (toggle — requires ownership)
 export const toggleAutoHeal = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
         const body = await c.req.json<{ enabled: boolean }>()
 
         await db.update(instances).set({

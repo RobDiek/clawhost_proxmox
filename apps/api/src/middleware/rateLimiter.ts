@@ -12,10 +12,19 @@ setInterval(() => {
 
 export function rateLimiter(max = 100, windowMs = 60000) {
     return async (c: Context, next: Next) => {
-        const key = c.req.header('Authorization')?.slice(0, 20)
-            || c.req.header('x-real-ip')
-            || c.req.header('x-forwarded-for')
-            || 'anon'
+        // Extract unique key: user ID from JWT payload, or IP
+        let key = 'anon'
+        const auth = c.req.header('Authorization') || ''
+        if (auth.startsWith('Bearer ') && auth.length > 30) {
+            // Extract payload from JWT (middle segment) for unique key
+            try {
+                const payload = auth.split('.')[1]
+                if (payload) key = 'u:' + payload.slice(0, 16)
+            } catch { /* fallback to IP */ }
+        }
+        if (key === 'anon') {
+            key = 'ip:' + (c.req.header('x-real-ip') || c.req.header('x-forwarded-for') || 'unknown')
+        }
 
         const now = Date.now()
         const entry = store.get(key)
