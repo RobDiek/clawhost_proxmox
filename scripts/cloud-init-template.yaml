@@ -86,6 +86,10 @@ runcmd:
               "memoryTtlDays": 365,
               "customPrompt": "You are a memory extraction assistant. Extract key facts from the conversation. CRITICAL: Extract and store facts in the ORIGINAL LANGUAGE they were stated in. Hebrew stays Hebrew, English stays English. Never translate. Focus on: personal preferences, work context, communication style, recurring tasks, names, relationships, important decisions, and business information.",
               "oss": {
+                "embedder": {
+                  "provider": "huggingface",
+                  "config": { "model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2" }
+                },
                 "vectorStore": {
                   "provider": "qdrant",
                   "config": {
@@ -256,21 +260,16 @@ runcmd:
     # ── Mem0 Memory Layer (Qdrant vector store + OpenClaw plugin) ──
     - mkdir -p /opt/openclaw/data/qdrant
     - |
-        # Inject Qdrant service into docker-compose YAML (before last line)
-        # Uses sed to insert inside the services: block
-        if grep -q 'qdrant' /opt/openclaw/docker-compose.yml 2>/dev/null; then
-          echo "Qdrant already in docker-compose"
-        else
-          sed -i '/^        services:/!b;:a;/^[^ ]/!{N;ba};i\      qdrant:\n        image: qdrant/qdrant:latest\n        restart: unless-stopped\n        ports: ["127.0.0.1:6333:6333"]\n        volumes: ["/opt/openclaw/data/qdrant:/qdrant/storage"]' /opt/openclaw/docker-compose.yml 2>/dev/null || \
-          cat >> /opt/openclaw/docker-compose.yml << 'QDEOF'
-      qdrant:
-        image: qdrant/qdrant:latest
-        restart: unless-stopped
-        ports: ["127.0.0.1:6333:6333"]
-        volumes: ["/opt/openclaw/data/qdrant:/qdrant/storage"]
+        # Separate compose file for Qdrant — avoids YAML injection issues
+        cat > /opt/openclaw/docker-compose.qdrant.yml << 'QDEOF'
+        services:
+          qdrant:
+            image: qdrant/qdrant:latest
+            restart: unless-stopped
+            ports: ["127.0.0.1:6333:6333"]
+            volumes: ["/opt/openclaw/data/qdrant:/qdrant/storage"]
         QDEOF
-        fi
-    - cd /opt/openclaw && docker compose up -d qdrant
+    - cd /opt/openclaw && docker compose -f docker-compose.yml -f docker-compose.qdrant.yml up -d qdrant
 
     {{#HAS_OLLAMA}}
     # ── Ollama ──
