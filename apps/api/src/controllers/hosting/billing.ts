@@ -138,14 +138,6 @@ export const checkout = async (c: Context<HonoEnv>) => {
             await db.update(users).set({ name: customerName }).where(eq(users.id, userId)).catch(() => {})
         }
 
-        await db.insert(payments).values({
-            id: generateId(),
-            instanceId,
-            allpayOrderId: orderId,
-            amountIls: String(chargePrice),
-            status: 'pending'
-        })
-
         const frontendUrl = process.env.FRONTEND_URL || 'https://clawflow.flowmatic.co.il'
         const apiUrl = process.env.API_URL || 'https://api.clawflow.flowmatic.co.il'
 
@@ -154,6 +146,14 @@ export const checkout = async (c: Context<HonoEnv>) => {
 
         const monthlyPrice = Math.round(pricing.totalPrice * discount)
         const chargePrice = isAnnual ? monthlyPrice * 12 : monthlyPrice
+
+        await db.insert(payments).values({
+            id: generateId(),
+            instanceId,
+            allpayOrderId: orderId,
+            amountIls: String(chargePrice),
+            status: 'pending'
+        })
         const planLabel = isAnnual
             ? `ClawFlow — ${pricing.plan.nameHe} (שנתי)`
             : `ClawFlow — ${pricing.plan.nameHe}`
