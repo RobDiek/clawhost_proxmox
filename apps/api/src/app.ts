@@ -57,9 +57,9 @@ app.use('*', logger())
 app.use('*', bodyLimit({ maxSize: 1024 * 1024 }))
 
 // Rate limiting
-app.use('*', rateLimiter(100, 60000)) // 100 req/min global
-app.use('/hosting/checkout', rateLimiter(5, 60000))
-app.use('/hosting/auth/*', rateLimiter(10, 60000))
+app.use('*', rateLimiter(200, 60000)) // 200 req/min global
+app.use('/hosting/checkout', rateLimiter(10, 60000)) // 10 checkouts/min
+app.use('/hosting/auth/*', rateLimiter(15, 60000)) // 15 auth/min
 
 app.use('*', async (c, next) => {
     await next()
