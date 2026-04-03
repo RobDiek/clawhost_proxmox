@@ -198,12 +198,11 @@ a:hover { text-decoration: underline; }
 </head>
 <body>
 
-<div class="logo-block">
-  <img src="/logo-clawflow.png" alt="ClawFlow" style="height:36px;margin-bottom:4px">
-</div>
-
-<div class="card">
-  <div class="card-title">הירשמו ל-ClawFlow</div>
+<div class="card" style="margin-top:40px">
+  <div style="text-align:center;margin-bottom:16px">
+    <img src="/logo-clawflow.png" alt="ClawFlow" style="height:32px">
+  </div>
+  <div class="card-title" style="font-size:1.15rem">הירשמו ל-ClawFlow</div>
   <div class="card-desc">צרו חשבון כדי להפעיל את הסוכנים שלכם</div>
 
   <div id="plan-info" class="plan-badge hidden">
@@ -231,10 +230,9 @@ a:hover { text-decoration: underline; }
         קראתי ואני מסכים/ה ל<a href="/terms.html" target="_blank" style="color:#2563EB">תנאי השימוש</a>,
         <a href="/privacy.html" target="_blank" style="color:#2563EB">מדיניות הפרטיות</a>
         ו<a href="/disclosure.html" target="_blank" style="color:#2563EB">גילוי הנאות</a>.
-        אני מבין/ה שהסוכנים הם המלצה בלבד והשימוש בהם על אחריותי.
       </label>
     </div>
-    <button class="btn btn-primary" id="btn-send" onclick="sendOtp()">לפתוח חשבון</button>
+    <button class="btn btn-primary" id="btn-send" onclick="sendOtp()">התחילו ניסיון חינם →</button>
     <div class="msg" id="msg-email"></div>
   </div>
 
@@ -279,18 +277,21 @@ const planKey = params.get('plan');
 const components = (params.get('components') || '').split(',').filter(Boolean);
 const storageGb = parseInt(params.get('storage') || '0', 10);
 
-// Calculate total price with addons
+// Calculate total price with addons + billing period
+const billingPeriod = params.get('billing') || 'monthly';
 if (planKey && PLANS[planKey]) {
   const plan = PLANS[planKey];
+  const discount = billingPeriod === 'annual' ? 0.82 : 1;
   let addonsTotal = 0;
   if (components.includes('bk')) addonsTotal += ADDON_PRICES.bk;
   if (storageGb === 20) addonsTotal += ADDON_PRICES.xs_20;
   else if (storageGb === 100) addonsTotal += ADDON_PRICES.xs_100;
   else if (storageGb === 500) addonsTotal += ADDON_PRICES.xs_500;
-  const totalPrice = plan.price + addonsTotal;
+  const totalPrice = Math.round((plan.price + addonsTotal) * discount);
+  const periodLabel = billingPeriod === 'annual' ? '/חודש (שנתי)' : '/חודש';
 
   document.getElementById('plan-name-display').textContent = 'תוכנית ' + plan.he;
-  document.getElementById('plan-price-display').textContent = '₪' + totalPrice + '/חודש';
+  document.getElementById('plan-price-display').textContent = '₪' + totalPrice + periodLabel;
   document.getElementById('plan-info').classList.remove('hidden');
 }
 
