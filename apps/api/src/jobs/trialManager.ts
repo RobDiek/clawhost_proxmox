@@ -60,6 +60,9 @@ export async function runTrialManager() {
             } catch (err) {
                 console.error(`Failed to suspend ${inst.id}:`, err)
             }
+        } else {
+            // No server ID — instance may be stuck. Alert admin.
+            await telegram.alertAdmin(`⚠️ Trial expired but no hetznerServerId: ${inst.id}`).catch(() => {})
         }
 
         await db.update(instances).set({
