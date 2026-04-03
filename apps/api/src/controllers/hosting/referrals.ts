@@ -6,7 +6,7 @@ import { ok, fail } from '@/lib/response'
 import { randomBytes } from 'crypto'
 
 function generateCode(): string {
-    return 'CF-' + randomBytes(4).toString('hex').toUpperCase().slice(0, 6)
+    return 'CF-' + randomBytes(4).toString('base64url').toUpperCase().slice(0, 8)
 }
 
 // Helper: get userId from JWT
@@ -63,7 +63,7 @@ export const getMyReferrals = async (c: Context) => {
 
         return ok(c, {
             referrals: refs.map(r => ({
-                email: r.refereeEmail ? r.refereeEmail.slice(0, 3) + '***' + r.refereeEmail.slice(r.refereeEmail.indexOf('@')) : null,
+                email: r.refereeEmail ? r.refereeEmail.slice(0, 1) + '***' + r.refereeEmail.slice(r.refereeEmail.indexOf('@')) : null,
                 status: r.status,
                 trialStartedAt: r.trialStartedAt,
                 convertedAt: r.convertedAt,
@@ -80,7 +80,7 @@ export const getMyReferrals = async (c: Context) => {
 export const validateReferralCode = async (c: Context) => {
     try {
         const code = c.req.param('code')
-        if (!code || !/^CF-[A-Z0-9]{6}$/.test(code)) {
+        if (!code || !/^CF-[A-Z0-9_-]{6,8}$/.test(code)) {
             return ok(c, { valid: false }, 'Invalid code format')
         }
 
@@ -96,13 +96,14 @@ export const validateReferralCode = async (c: Context) => {
     }
 }
 
-// POST /referral/activate — activate trial for new user (called from checkout)
+// POST /referral/activate — activate trial for new user (requires auth)
 export const activateReferralTrial = async (c: Context) => {
     try {
+        const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Unauthorized', 401)
+
         const body = await c.req.json<{
             referralCode: string
-            refereeEmail: string
-            refereeUserId: string
             instanceId: string
         }>()
 
@@ -110,19 +111,31 @@ export const activateReferralTrial = async (c: Context) => {
             return fail(c, 'Referral code and instance ID required', 400)
         }
 
-        // Find the referral
+        // Verify user owns this instance
+        const [instance] = await db.select().from(instances)
+            .where(and(eq(instances.id, body.instanceId), eq(instances.userId, userId)))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        // Prevent self-referral
         const [ref] = await db.select().from(referrals)
             .where(eq(referrals.referralCode, body.referralCode))
         if (!ref) return fail(c, 'Invalid referral code', 400)
+        if (ref.referrerUserId === userId) return fail(c, 'Cannot use your own referral code', 400)
+
+        // Check referral not already used
+        if (ref.status !== 'pending') return fail(c, 'Referral code already used', 400)
+
+        // Get user email
+        const [user] = await db.select().from(users).where(eq(users.id, userId))
 
         // Update referral with trial info
         await db.update(referrals).set({
-            refereeEmail: body.refereeEmail,
-            refereeUserId: body.refereeUserId,
+            refereeEmail: user?.email || null,
+            refereeUserId: userId,
             trialInstanceId: body.instanceId,
             status: 'trial_started',
             trialStartedAt: new Date(),
-        }).where(eq(referrals.id, ref.id))
+        }).where(and(eq(referrals.id, ref.id), eq(referrals.status, 'pending'))) // optimistic lock
 
         // Set trial on instance (14 days)
         const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
@@ -141,15 +154,17 @@ export const activateReferralTrial = async (c: Context) => {
 // Called from billing webhook when trial user pays
 export async function rewardReferrer(instanceId: string): Promise<void> {
     try {
-        const [ref] = await db.select().from(referrals)
-            .where(eq(referrals.trialInstanceId, instanceId))
-        if (!ref || ref.status !== 'trial_started') return
-
-        // Mark converted
-        await db.update(referrals).set({
+        // Atomic check + update to prevent double-reward
+        const updated = await db.update(referrals).set({
             status: 'converted',
             convertedAt: new Date(),
-        }).where(eq(referrals.id, ref.id))
+        }).where(and(
+            eq(referrals.trialInstanceId, instanceId),
+            eq(referrals.status, 'trial_started') // only from trial_started
+        )).returning()
+
+        if (!updated.length) return // already converted or not found
+        const ref = updated[0]
 
         // Find referrer's instance and add 30 free days
         const referrerInstances = await db.select().from(instances)
