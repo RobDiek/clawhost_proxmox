@@ -14,7 +14,8 @@ interface CreatePaymentParams {
     failUrl: string
     webhookUrl: string
     metadata: { instanceId: string; planKey: string }
-    trialDays?: number  // delay first charge by N days (trial period)
+    trialDays?: number   // delay first charge by N days (trial period)
+    isAnnual?: boolean   // annual billing = charge full year at once
 }
 
 interface WebhookResult {

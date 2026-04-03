@@ -50,7 +50,8 @@ export const checkout = async (c: Context<HonoEnv>) => {
             customerEmail,
             customerName,
             customerPhone,
-            subdomainName
+            subdomainName,
+            billingPeriod
         } = body as {
             components: string[]
             automationTool: 'n8n' | 'activepieces'
@@ -59,7 +60,11 @@ export const checkout = async (c: Context<HonoEnv>) => {
             customerName: string
             customerPhone: string
             subdomainName?: string
+            billingPeriod?: string
         }
+
+        const isAnnual = billingPeriod === 'annual'
+        const discount = isAnnual ? 0.82 : 1  // 18% discount for annual
 
         if (!components?.length) {
             return fail(c, 'At least one component is required.', 400)
@@ -118,7 +123,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
             automationTool: automationTool || 'activepieces',
             aiProvider: 'apikey',
             planKey: pricing.planKey,
-            priceIls: String(pricing.totalPrice),
+            priceIls: String(isAnnual ? Math.round(pricing.totalPrice * discount) : pricing.totalPrice),
             storageGb,
             status: 'awaiting_payment',
             allpayOrderId: orderId,
@@ -137,7 +142,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
             id: generateId(),
             instanceId,
             allpayOrderId: orderId,
-            amountIls: String(pricing.totalPrice),
+            amountIls: String(chargePrice),
             status: 'pending'
         })
 
@@ -147,12 +152,18 @@ export const checkout = async (c: Context<HonoEnv>) => {
         let paymentUrl = ''
         const isTestMode = process.env.ALLPAY_TEST_MODE === 'true'
 
+        const monthlyPrice = Math.round(pricing.totalPrice * discount)
+        const chargePrice = isAnnual ? monthlyPrice * 12 : monthlyPrice
+        const planLabel = isAnnual
+            ? `ClawFlow — ${pricing.plan.nameHe} (שנתי)`
+            : `ClawFlow — ${pricing.plan.nameHe}`
+
         try {
             paymentUrl = await allpay.createSubscription({
                 orderId,
                 items: [{
-                    name: `ClawFlow — ${pricing.plan.nameHe}`,
-                    price: pricing.totalPrice,
+                    name: planLabel,
+                    price: chargePrice,
                     qty: 1
                 }],
                 planKey: pricing.planKey,
@@ -164,6 +175,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
                 webhookUrl: `${apiUrl}/hosting/webhooks/allpay`,
                 metadata: { instanceId, planKey: pricing.planKey },
                 trialDays: TRIAL_DAYS || undefined,
+                isAnnual,
             })
         } catch (allpayErr) {
             console.error('AllPay error (continuing in test mode):', allpayErr)
