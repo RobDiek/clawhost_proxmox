@@ -145,6 +145,7 @@ input{font-family:inherit}
 .integration-card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:20px 24px;margin-bottom:12px;border-right:4px solid #E5E7EB;transition:border-color .15s}
 .integration-card:hover{border-color:#D1D5DB}
 .integration-card.connected-card{border-right-color:#10B981}
+.int-card.connected-card{border-right:4px solid #10B981}
 .int-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .int-icon-circle{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .int-icon-circle svg{width:18px;height:18px}
@@ -1426,6 +1427,16 @@ input{font-family:inherit}
         </div>
       </div>
 
+    </div>
+
+    <!-- MCP Servers -->
+    <div class="section-title" style="display:flex;align-items:center;gap:8px">
+      שרתי MCP
+      <span style="font-size:0.7rem;background:#DBEAFE;color:#1D4ED8;padding:2px 8px;border-radius:99px;font-weight:500">Protocol</span>
+    </div>
+    <p style="font-size:0.78rem;color:#6B7280;margin:-8px 0 12px">שרתי Model Context Protocol מאפשרים לסוכנים שלכם לגשת לכלים חיצוניים.</p>
+    <div class="integrations-grid" id="mcpServersList">
+      <div style="text-align:center;padding:20px;color:#9CA3AF;font-size:0.85rem" id="mcp-loading">טוען שרתי MCP...</div>
     </div>
 
     <!-- Automation -->
@@ -3087,6 +3098,143 @@ function showOllamaUpgrade(modelId, suggestedPlan, message) {
   btn.onclick = function() { doUpgradePlan(suggestedPlan); };
 }
 
+// ── MCP Server Management ──
+var mcpCategoryLabels = { productivity: 'פרודוקטיביות', search: 'חיפוש', publishing: 'פרסום', communication: 'תקשורת', media: 'מדיה', memory: 'זיכרון' };
+var mcpCategoryIcons = { productivity: '#4285F4', search: '#FB542B', publishing: '#21759B', communication: '#EA580C', media: '#7C3AED', memory: '#059669' };
+
+async function loadMcpServers() {
+  var container = document.getElementById('mcpServersList');
+  if (!container || !instanceId) return;
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/mcp/servers', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (!data.success || !data.data) {
+      container.innerHTML = '<div style="text-align:center;padding:16px;color:#9CA3AF">לא ניתן לטעון שרתי MCP</div>';
+      return;
+    }
+    var servers = (data.data.servers || []).filter(function(s) {
+      // Hide OAuth-managed servers (already shown in Google/Microsoft sections above)
+      return s.id !== 'google-workspace' && s.id !== 'ms-365';
+    });
+    if (servers.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:16px;color:#9CA3AF">אין שרתי MCP נוספים זמינים</div>';
+      return;
+    }
+    container.innerHTML = servers.map(function(s) {
+      var color = mcpCategoryIcons[s.category] || '#6B7280';
+      var catLabel = mcpCategoryLabels[s.category] || s.category;
+      var statusHtml = s.installed
+        ? '<span style="color:#10B981;font-size:0.78rem">&#10003; מותקן</span>'
+        : '<span style="color:#9CA3AF;font-size:0.78rem">לא מותקן</span>';
+      var actionHtml = s.installed
+        ? '<button class="btn btn-outline btn-sm" style="font-size:0.72rem;color:#EF4444;border-color:#FECACA" onclick="removeMcpServer(\'' + s.id + '\',\'' + s.name + '\')">הסירו</button>'
+        : '<button class="btn btn-primary btn-sm" style="font-size:0.72rem" onclick="showMcpAddForm(\'' + s.id + '\')">התקינו</button>';
+      return '<div class="int-card' + (s.installed ? ' connected-card' : '') + '" id="mcp-card-' + s.id + '">' +
+        '<div class="int-card-header">' +
+          '<div class="int-icon" style="background:' + color + '20"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="' + color + '" stroke-width="1.5" stroke-linejoin="round"/></svg></div>' +
+          '<div><strong>' + s.nameHe + '</strong> <span style="font-size:0.7rem;color:#9CA3AF">(' + s.name + ')</span>' +
+            '<div style="display:flex;gap:8px;align-items:center;margin-top:2px">' + statusHtml +
+            '<span style="font-size:0.7rem;background:#F3F4F6;padding:1px 6px;border-radius:4px">' + catLabel + '</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="int-card-body hidden" id="mcp-form-' + s.id + '">' +
+          s.envKeys.map(function(k) {
+            return '<input type="password" id="mcp-env-' + s.id + '-' + k + '" placeholder="' + k + '" dir="ltr" class="int-input" style="margin-bottom:4px"/>';
+          }).join('') +
+          '<div style="display:flex;gap:6px;margin-top:6px">' +
+            '<button class="btn btn-primary btn-sm" onclick="doAddMcpServer(\'' + s.id + '\',' + JSON.stringify(s.envKeys) + ')">שמרו והתקינו</button>' +
+            '<button class="btn btn-outline btn-sm" onclick="hideMcpForm(\'' + s.id + '\')">ביטול</button>' +
+          '</div>' +
+        '</div>' +
+        '<div style="margin-top:8px">' + actionHtml + '</div>' +
+      '</div>';
+    }).join('');
+  } catch (e) {
+    container.innerHTML = '<div style="text-align:center;padding:16px;color:#EF4444">שגיאה בטעינת שרתי MCP</div>';
+  }
+}
+
+function showMcpAddForm(serverId) {
+  var form = document.getElementById('mcp-form-' + serverId);
+  if (form) form.classList.remove('hidden');
+}
+function hideMcpForm(serverId) {
+  var form = document.getElementById('mcp-form-' + serverId);
+  if (form) form.classList.add('hidden');
+}
+
+async function doAddMcpServer(serverId, envKeys) {
+  var env = {};
+  var form = document.getElementById('mcp-form-' + serverId);
+  var inputs = form ? form.querySelectorAll('input') : [];
+  var btns = form ? form.querySelectorAll('button') : [];
+
+  for (var i = 0; i < envKeys.length; i++) {
+    var val = document.getElementById('mcp-env-' + serverId + '-' + envKeys[i]);
+    if (!val || !val.value.trim()) {
+      showToast('מלאו את כל השדות', 'error');
+      if (val) val.style.borderColor = '#EF4444';
+      return;
+    }
+    val.style.borderColor = '';
+    env[envKeys[i]] = val.value.trim();
+  }
+
+  // Disable form during submission
+  inputs.forEach(function(inp) { inp.disabled = true; });
+  btns.forEach(function(btn) { btn.disabled = true; });
+  var submitBtn = btns[0];
+  var origText = submitBtn ? submitBtn.textContent : '';
+  if (submitBtn) submitBtn.textContent = 'מתקין...';
+  showToast('מתקין שרת MCP...', 'info');
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/mcp/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ serverId: serverId, env: env })
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast(data.message || 'שרת MCP הותקן!', 'success');
+      loadMcpServers();
+    } else {
+      showToast(data.message || 'שגיאה', 'error');
+      // Keep form open on error for retry
+      inputs.forEach(function(inp) { inp.disabled = false; });
+      btns.forEach(function(btn) { btn.disabled = false; });
+      if (submitBtn) submitBtn.textContent = origText;
+    }
+  } catch (e) {
+    showToast('שגיאה בהתקנה — נסו שוב', 'error');
+    // Keep form open on error for retry
+    inputs.forEach(function(inp) { inp.disabled = false; });
+    btns.forEach(function(btn) { btn.disabled = false; });
+    if (submitBtn) submitBtn.textContent = origText;
+  }
+}
+
+async function removeMcpServer(serverId, serverName) {
+  var confirmed = await cfConfirm('הסרת שרת MCP', 'להסיר את ' + serverName + '? הסוכנים לא יוכלו להשתמש בכלי זה.');
+  if (!confirmed) return;
+  showToast('מסיר שרת MCP...', 'info');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/mcp/' + serverId, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('שרת MCP הוסר', 'success');
+      loadMcpServers();
+    } else {
+      showToast(data.message || 'שגיאה', 'error');
+    }
+  } catch (e) { showToast('שגיאה בהסרה', 'error'); }
+}
+
 async function doUpgradePlan(targetPlan) {
   var confirmed = await cfConfirm('שדרוג תוכנית', 'לשדרג לתוכנית ' + targetPlan + '?\nהשרת ייכבה לרגע ויחזור עם יותר RAM.\nההפרש יתווסף לחיוב החודשי.');
   if (!confirmed) return;
@@ -3684,6 +3832,8 @@ function showAddAgentDialog() {
 function renderIntegrations() {
   // Check Ollama status
   loadOllamaStatus();
+  // Load MCP servers
+  loadMcpServers();
   // Check Microsoft status
   checkMicrosoftStatus();
   // Update Anthropic status

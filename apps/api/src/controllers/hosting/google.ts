@@ -1,10 +1,12 @@
 import type { Context } from 'hono'
 import { readFileSync } from 'fs'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
+import crypto from 'crypto'
+import { resolveUserId } from './authHelper'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 
@@ -14,19 +16,20 @@ function getSSHKey(): Buffer {
     return sshKeyCache
 }
 
-function sshExec(ip: string, command: string, password?: string): Promise<string> {
+function sshExec(ip: string, command: string, password?: string, timeoutMs = 30000): Promise<string> {
     return new Promise((resolve, reject) => {
         const conn = new Client()
         let output = ''
+        const timer = setTimeout(() => { conn.end(); reject(new Error('SSH timeout')) }, timeoutMs)
         conn.on('ready', () => {
             conn.exec(command, (err, stream) => {
-                if (err) { conn.end(); return reject(err) }
+                if (err) { clearTimeout(timer); conn.end(); return reject(err) }
                 stream.on('data', (d: Buffer) => { output += d.toString() })
                 stream.stderr.on('data', (d: Buffer) => { output += d.toString() })
-                stream.on('close', () => { conn.end(); resolve(output.trim()) })
+                stream.on('close', () => { clearTimeout(timer); conn.end(); resolve(output.trim()) })
             })
-        }).on('error', reject)
-        const opts: Record<string, unknown> = { host: ip, port: 22, username: 'root' }
+        }).on('error', (err) => { clearTimeout(timer); reject(err) })
+        const opts: Record<string, unknown> = { host: ip, port: 22, username: 'root', readyTimeout: 10000 }
         if (password) opts.password = password
         try { opts.privateKey = getSSHKey() } catch { if (!password) return reject(new Error('No SSH key or password')) }
         conn.connect(opts)
@@ -59,6 +62,12 @@ export const googleAuth = async (c: Context) => {
         if (!instanceId) return fail(c, 'instanceId required', 400)
         if (!GOOGLE_CLIENT_ID) return fail(c, 'Google OAuth not configured', 500)
 
+        // Verify ownership
+        const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Authentication required', 401)
+        const [inst] = await db.select().from(instances).where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
+        if (!inst) return fail(c, 'Instance not found', 404)
+
         // Build scopes from comma-separated list
         const requestedScopes = scopeParam.split(',').map(s => SCOPE_MAP[s.trim()]).filter(Boolean)
         if (requestedScopes.length === 0) return fail(c, 'No valid scopes', 400)
@@ -70,8 +79,10 @@ export const googleAuth = async (c: Context) => {
             ...requestedScopes,
         ]
 
-        // State = instanceId + requested scopes (for callback)
-        const state = Buffer.from(JSON.stringify({ instanceId, scopes: scopeParam })).toString('base64url')
+        // State = instanceId + scopes + HMAC signature (prevents tampering)
+        const statePayload = JSON.stringify({ instanceId, scopes: scopeParam, uid: userId })
+        const stateHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(statePayload).digest('base64url')
+        const state = Buffer.from(JSON.stringify({ p: statePayload, s: stateHmac })).toString('base64url')
 
         const params = new URLSearchParams({
             client_id: GOOGLE_CLIENT_ID,
@@ -108,8 +119,14 @@ export const googleCallback = async (c: Context) => {
             return c.redirect(`${FRONTEND_URL}/dashboard?google_error=missing_params`)
         }
 
-        // Decode state
-        const { instanceId, scopes } = JSON.parse(Buffer.from(stateParam, 'base64url').toString())
+        // Decode and verify state (HMAC-signed to prevent tampering)
+        const stateOuter = JSON.parse(Buffer.from(stateParam, 'base64url').toString())
+        const expectedHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(stateOuter.p).digest('base64url')
+        if (stateOuter.s !== expectedHmac) {
+            console.error('Google OAuth state HMAC mismatch — possible tampering')
+            return c.redirect(`${FRONTEND_URL}/dashboard.html?google_error=invalid_state`)
+        }
+        const { instanceId, scopes } = JSON.parse(stateOuter.p)
 
         // Exchange code for tokens
         const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
@@ -195,7 +212,10 @@ export const googleDisconnect = async (c: Context) => {
         const instanceId = c.req.query('instanceId') || c.req.param('instanceId')
         if (!instanceId) return fail(c, 'instanceId required', 400)
 
-        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        // Verify ownership
+        const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Authentication required', 401)
+        const [instance] = await db.select().from(instances).where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
         if (!instance) return fail(c, 'Instance not found', 404)
 
         // Revoke token at Google
@@ -213,6 +233,15 @@ export const googleDisconnect = async (c: Context) => {
             .set({ googleTokens: null })
             .where(eq(instances.id, instanceId))
 
+        // Remove MCP server from VPS (combined into single SSH call)
+        if (instance.ip) {
+            try {
+                await sshExec(instance.ip,
+                    `su - openclaw -c 'openclaw mcp unset google-workspace 2>/dev/null' && systemctl restart openclaw-gateway`,
+                    instance.rootPassword || undefined)
+            } catch { /* best effort */ }
+        }
+
         return ok(c, null, 'Google disconnected.')
     } catch (err) {
         console.error('googleDisconnect error:', err)
@@ -226,7 +255,10 @@ export const googleStatus = async (c: Context) => {
         const instanceId = c.req.query('instanceId')
         if (!instanceId) return fail(c, 'instanceId required', 400)
 
-        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        // Verify ownership
+        const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Authentication required', 401)
+        const [instance] = await db.select().from(instances).where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
         if (!instance) return fail(c, 'Instance not found', 404)
 
         const tokens = instance.googleTokens as any
@@ -253,95 +285,71 @@ async function deployGoogleToVPS(ip: string, password: string | undefined, creds
     accessToken: string
     refreshToken: string
 }): Promise<void> {
-    console.log(`Deploying Google credentials to ${ip}...`)
+    console.log(`Deploying Google MCP server to ${ip}...`)
 
-    // Install gcalcli + google-auth if not present
-    await sshExec(ip, `which gcalcli || (apt-get install -y -qq python3-pip 2>/dev/null; pip3 install --break-system-packages gcalcli google-auth google-auth-oauthlib 2>/dev/null) || true`, password)
+    // Configure Google Workspace MCP server via openclaw CLI
+    const mcpConfig = JSON.stringify({
+        command: 'npx',
+        args: ['-y', '@presto-ai/google-workspace-mcp'],
+        env: {
+            GOOGLE_CLIENT_ID: creds.clientId,
+            GOOGLE_CLIENT_SECRET: creds.clientSecret,
+            GOOGLE_REFRESH_TOKEN: creds.refreshToken,
+        },
+    })
 
-    // Write OAuth credentials as pickle (gcalcli format) using Python
-    await sshExec(ip, `python3 << 'PYEOF'
-import pickle, os
-from google.oauth2.credentials import Credentials
+    // Also keep legacy credential file for backward compatibility
+    const credJson = JSON.stringify({
+        type: 'authorized_user',
+        client_id: creds.clientId,
+        client_secret: creds.clientSecret,
+        refresh_token: creds.refreshToken,
+    })
 
-creds = Credentials(
-    token="${creds.accessToken}",
-    refresh_token="${creds.refreshToken}",
-    token_uri="https://oauth2.googleapis.com/token",
-    client_id="${creds.clientId}",
-    client_secret="${creds.clientSecret}",
-    scopes=["https://www.googleapis.com/auth/calendar",
-            "https://www.googleapis.com/auth/gmail.send",
-            "https://www.googleapis.com/auth/drive.readonly",
-            "https://www.googleapis.com/auth/spreadsheets"]
-)
+    // Combined into single SSH call: MCP set + legacy creds + restart
+    const b64 = Buffer.from(mcpConfig).toString('base64')
+    const b64Cred = Buffer.from(credJson).toString('base64')
+    await sshExec(ip, `
+        echo '${b64}' | base64 -d > /tmp/mcp-cfg.json &&
+        su - openclaw -c 'openclaw mcp set google-workspace "$(cat /tmp/mcp-cfg.json)" 2>/dev/null' &&
+        rm -f /tmp/mcp-cfg.json &&
+        mkdir -p /home/openclaw/.openclaw/credentials &&
+        echo '${b64Cred}' | base64 -d > /home/openclaw/.openclaw/credentials/google.json &&
+        chown -R openclaw:openclaw /home/openclaw/.openclaw/credentials &&
+        systemctl restart openclaw-gateway
+    `, password)
 
-# gcalcli pickle path
-path = os.path.expanduser("~openclaw/.local/share/gcalcli/oauth")
-os.makedirs(os.path.dirname(path), exist_ok=True)
-with open(path, "wb") as f:
-    pickle.dump(creds, f)
-
-# Also save as google-credentials.json for agents
-creds_dir = os.path.expanduser("~openclaw/.openclaw/credentials")
-os.makedirs(creds_dir, exist_ok=True)
-import json
-with open(f"{creds_dir}/google.json", "w") as f:
-    json.dump({
-        "type": "authorized_user",
-        "client_id": "${creds.clientId}",
-        "client_secret": "${creds.clientSecret}",
-        "refresh_token": "${creds.refreshToken}"
-    }, f, indent=2)
-
-# Fix ownership
-for p in [path, f"{creds_dir}/google.json"]:
-    os.system(f"chown openclaw:openclaw {p}")
-
-print("OK")
-PYEOF`, password)
-
-    // Restart gateway to pick up new credentials + skills
-    await sshExec(ip, 'systemctl restart openclaw-gateway', password)
-
-    console.log(`Google credentials deployed to ${ip}`)
+    console.log(`Google MCP server deployed to ${ip}`)
 }
 
 // ── Update SOUL.md with available tools after integration ──
 async function updateSoulWithTools(ip: string, password?: string): Promise<void> {
     try {
-        // Check if SOUL.md already has tools section
+        // Check if SOUL.md already has MCP tools section
         const soul = await sshExec(ip, 'cat /home/openclaw/.openclaw/workspace/SOUL.md', password)
-        if (soul.includes('כלים זמינים') && soul.includes('gcalcli')) {
-            console.log('SOUL.md already has tools section')
+        if (soul.includes('Google Workspace MCP')) {
+            console.log('SOUL.md already has Google MCP tools section')
             return
         }
 
         const toolsSection = `
 
-## כלים זמינים
-כלים שמותקנים במערכת ואפשר להשתמש בהם דרך bash:
-- **gcalcli** — Google Calendar: יצירה, צפייה, מחיקת אירועים
-  - יצירה: gcalcli add --title "שם" --when "YYYY-MM-DD HH:MM" --duration דקות
-  - צפייה: gcalcli agenda
-  - מחיקה: gcalcli delete "שם"
-- **web search** — חיפוש באינטרנט (מובנה)
-- **browser** — גלישה באתרים (מובנה)
-
-## כשמבקשים פעולה ביומן
-1. השתמש ב-gcalcli
-2. אשר למשתמש שהפעולה בוצעה
-3. אם gcalcli לא זמין — הודע שצריך לחבר Google Calendar בלוח הבקרה
+## Google Workspace MCP
+שרת Google Workspace MCP מותקן ומחובר. כלים זמינים:
+- **Calendar** — יצירה, עדכון, מחיקת אירועים ביומן
+- **Gmail** — קריאה ושליחת מיילים
+- **Drive** — גישה לקבצים ב-Google Drive
+- **Sheets** — קריאה ועריכת גיליונות
+הכלים זמינים דרך MCP — השתמש בהם ישירות, הם מוגדרים אוטומטית.
 `
-        // Append tools section via base64 to avoid shell issues
         const b64 = Buffer.from(toolsSection).toString('base64')
         await sshExec(ip,
-            `echo ${b64} | base64 -d >> /home/openclaw/.openclaw/workspace/SOUL.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/SOUL.md`,
+            `echo '${b64}' | base64 -d >> /home/openclaw/.openclaw/workspace/SOUL.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/SOUL.md`,
             password
         )
 
-        // Restart gateway to pick up updated SOUL.md
         await sshExec(ip, 'systemctl restart openclaw-gateway', password)
-        console.log('SOUL.md updated with tools section')
+        console.log('SOUL.md updated with Google MCP tools section')
     } catch (err) {
         console.error('updateSoulWithTools error:', err)
     }

@@ -38,7 +38,21 @@ runcmd:
     - npm install -g openclaw@latest
     - apt-get install -y -qq python3-pip chromium-browser ffmpeg 2>/dev/null || true
     - snap install chromium 2>/dev/null || true
-    - pip3 install --break-system-packages gcalcli google-auth google-auth-oauthlib openai-whisper 2>/dev/null || true
+    - pip3 install --break-system-packages openai-whisper 2>/dev/null || true
+
+    # ── Pre-cache MCP server packages (speeds up first connection) ──
+    - |
+        npm install -g \
+          @presto-ai/google-workspace-mcp \
+          @softeria/ms-365-mcp-server \
+          @brave/brave-search-mcp-server \
+          @mem0/mcp-server \
+          @respira/wordpress-mcp-server \
+          @gongrzhe/image-gen-server \
+          mcp-mail-server \
+          mcp-communicator-telegram \
+          @mcpware/instagram-mcp \
+          2>/dev/null || true
 
     # ── Firewall ──
     - ufw allow 22/tcp && ufw allow 80/tcp && ufw allow 443/tcp && ufw --force enable
@@ -92,6 +106,7 @@ runcmd:
               }
             }
           },
+          "mcpServers": {},
           "openclaw-mem0": {
             "enabled": true,
             "config": {

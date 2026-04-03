@@ -49,6 +49,10 @@ import {
     getOllamaStatus,
     installOllama,
     pullOllamaModel,
+    listMcpServers,
+    addMcpServer,
+    removeMcpServer,
+    getMcpCatalog,
     getMyReferralCode,
     getMyReferrals,
     validateReferralCode,
@@ -195,6 +199,12 @@ app.delete('/instances/:id/outputs/:outputId', deleteOutput)
 
 // ── Diagnostics ──
 app.post('/instances/:id/diagnose', diagnoseError)
+
+// ── MCP Servers ──
+app.get('/instances/:id/mcp/servers', listMcpServers)
+app.post('/instances/:id/mcp/add', addMcpServer)
+app.delete('/instances/:id/mcp/:serverId', removeMcpServer)
+app.get('/mcp/catalog', getMcpCatalog)
 
 // ── Ollama ──
 app.get('/instances/:id/ollama/status', getOllamaStatus)

@@ -1,10 +1,12 @@
 import type { Context } from 'hono'
 import { readFileSync } from 'fs'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
+import crypto from 'crypto'
+import { resolveUserId } from './authHelper'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 
@@ -14,19 +16,20 @@ function getSSHKey(): Buffer {
     return sshKeyCache
 }
 
-function sshExec(ip: string, command: string, password?: string): Promise<string> {
+function sshExec(ip: string, command: string, password?: string, timeoutMs = 30000): Promise<string> {
     return new Promise((resolve, reject) => {
         const conn = new Client()
         let output = ''
+        const timer = setTimeout(() => { conn.end(); reject(new Error('SSH timeout')) }, timeoutMs)
         conn.on('ready', () => {
             conn.exec(command, (err, stream) => {
-                if (err) { conn.end(); return reject(err) }
+                if (err) { clearTimeout(timer); conn.end(); return reject(err) }
                 stream.on('data', (d: Buffer) => { output += d.toString() })
                 stream.stderr.on('data', (d: Buffer) => { output += d.toString() })
-                stream.on('close', () => { conn.end(); resolve(output.trim()) })
+                stream.on('close', () => { clearTimeout(timer); conn.end(); resolve(output.trim()) })
             })
-        }).on('error', reject)
-        const opts: Record<string, unknown> = { host: ip, port: 22, username: 'root' }
+        }).on('error', (err) => { clearTimeout(timer); reject(err) })
+        const opts: Record<string, unknown> = { host: ip, port: 22, username: 'root', readyTimeout: 10000 }
         if (password) opts.password = password
         try { opts.privateKey = getSSHKey() } catch { if (!password) return reject(new Error('No SSH key or password')) }
         conn.connect(opts)
@@ -58,6 +61,12 @@ export const microsoftAuth = async (c: Context) => {
         if (!instanceId) return fail(c, 'instanceId required', 400)
         if (!MS_CLIENT_ID) return fail(c, 'Microsoft OAuth not configured. Set MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET.', 500)
 
+        // Verify ownership
+        const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Authentication required', 401)
+        const [inst] = await db.select().from(instances).where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
+        if (!inst) return fail(c, 'Instance not found', 404)
+
         const requestedScopes = scopeParam.split(',').map(s => SCOPE_MAP[s.trim()]).filter(Boolean)
         if (requestedScopes.length === 0) return fail(c, 'No valid scopes', 400)
 
@@ -69,7 +78,10 @@ export const microsoftAuth = async (c: Context) => {
             ...requestedScopes,
         ]
 
-        const state = Buffer.from(JSON.stringify({ instanceId, scopes: scopeParam })).toString('base64url')
+        // State = instanceId + scopes + HMAC signature (prevents tampering)
+        const statePayload = JSON.stringify({ instanceId, scopes: scopeParam, uid: userId })
+        const stateHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(statePayload).digest('base64url')
+        const state = Buffer.from(JSON.stringify({ p: statePayload, s: stateHmac })).toString('base64url')
 
         const params = new URLSearchParams({
             client_id: MS_CLIENT_ID,
@@ -106,7 +118,14 @@ export const microsoftCallback = async (c: Context) => {
             return c.redirect(`${FRONTEND_URL}/dashboard.html?ms_error=missing_params`)
         }
 
-        const { instanceId, scopes } = JSON.parse(Buffer.from(stateParam, 'base64url').toString())
+        // Decode and verify state (HMAC-signed to prevent tampering)
+        const stateOuter = JSON.parse(Buffer.from(stateParam, 'base64url').toString())
+        const expectedHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(stateOuter.p).digest('base64url')
+        if (stateOuter.s !== expectedHmac) {
+            console.error('Microsoft OAuth state HMAC mismatch — possible tampering')
+            return c.redirect(`${FRONTEND_URL}/dashboard.html?ms_error=invalid_state`)
+        }
+        const { instanceId, scopes } = JSON.parse(stateOuter.p)
 
         // Exchange code for tokens
         const tokenRes = await fetch(`https://login.microsoftonline.com/${MS_TENANT}/oauth2/v2.0/token`, {
@@ -194,9 +213,24 @@ export const microsoftDisconnect = async (c: Context) => {
         const instanceId = c.req.query('instanceId') || c.req.param('instanceId')
         if (!instanceId) return fail(c, 'instanceId required', 400)
 
+        // Verify ownership
+        const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Authentication required', 401)
+        const [instance] = await db.select().from(instances).where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
         await db.update(instances)
             .set({ microsoftTokens: null })
             .where(eq(instances.id, instanceId))
+
+        // Remove MCP server from VPS (combined into single SSH call)
+        if (instance?.ip) {
+            try {
+                await sshExec(instance.ip,
+                    `su - openclaw -c 'openclaw mcp unset ms-365 2>/dev/null' && systemctl restart openclaw-gateway`,
+                    instance.rootPassword || undefined)
+            } catch { /* best effort */ }
+        }
 
         return ok(c, null, 'Microsoft 365 disconnected.')
     } catch (err) {
@@ -211,7 +245,10 @@ export const microsoftStatus = async (c: Context) => {
         const instanceId = c.req.query('instanceId')
         if (!instanceId) return fail(c, 'instanceId required', 400)
 
-        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        // Verify ownership
+        const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Authentication required', 401)
+        const [instance] = await db.select().from(instances).where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
         if (!instance) return fail(c, 'Instance not found', 404)
 
         const tokens = instance.microsoftTokens as any
@@ -232,7 +269,7 @@ export const microsoftStatus = async (c: Context) => {
     }
 }
 
-// ── Deploy Microsoft credentials to VPS ──
+// ── Deploy Microsoft 365 MCP server to VPS ──
 async function deployMicrosoftToVPS(ip: string, password: string | undefined, creds: {
     accessToken: string
     refreshToken: string
@@ -240,45 +277,41 @@ async function deployMicrosoftToVPS(ip: string, password: string | undefined, cr
     clientSecret: string
     email: string
 }): Promise<void> {
-    console.log(`Deploying Microsoft 365 credentials to ${ip}...`)
+    console.log(`Deploying Microsoft 365 MCP server to ${ip}...`)
 
+    // Configure Microsoft 365 MCP server via openclaw CLI
+    const mcpConfig = JSON.stringify({
+        command: 'npx',
+        args: ['-y', '@softeria/ms-365-mcp-server'],
+        env: {
+            MS_CLIENT_ID: creds.clientId,
+            MS_CLIENT_SECRET: creds.clientSecret,
+            MS_REFRESH_TOKEN: creds.refreshToken,
+            MS_TENANT_ID: MS_TENANT,
+        },
+    })
+
+    // Also keep legacy credential file for backward compatibility
     const credsJson = JSON.stringify({
         type: 'microsoft_oauth',
         client_id: creds.clientId,
         client_secret: creds.clientSecret,
-        access_token: creds.accessToken,
         refresh_token: creds.refreshToken,
         email: creds.email,
-        graph_endpoint: 'https://graph.microsoft.com/v1.0',
     })
 
-    const b64 = Buffer.from(credsJson).toString('base64')
+    // Combined into single SSH call: MCP set + legacy creds + restart
+    const b64 = Buffer.from(mcpConfig).toString('base64')
+    const b64Cred = Buffer.from(credsJson).toString('base64')
     await sshExec(ip, `
+        echo '${b64}' | base64 -d > /tmp/mcp-cfg.json &&
+        su - openclaw -c 'openclaw mcp set ms-365 "$(cat /tmp/mcp-cfg.json)" 2>/dev/null' &&
+        rm -f /tmp/mcp-cfg.json &&
         mkdir -p /home/openclaw/.openclaw/credentials &&
-        echo '${b64}' | base64 -d > /home/openclaw/.openclaw/credentials/microsoft.json &&
-        chown openclaw:openclaw /home/openclaw/.openclaw/credentials/microsoft.json
+        echo '${b64Cred}' | base64 -d > /home/openclaw/.openclaw/credentials/microsoft.json &&
+        chown -R openclaw:openclaw /home/openclaw/.openclaw/credentials &&
+        systemctl restart openclaw-gateway
     `, password)
 
-    // Update SOUL.md with Microsoft tools
-    const toolsSection = `
-## Microsoft 365
-כלים זמינים דרך Microsoft Graph API:
-- **Outlook Mail** — שליחה וקריאת אימיילים
-- **Calendar** — ניהול אירועים, פגישות, תזכורות
-- **OneDrive** — גישה לקבצים
-
-הגישה דרך credentials/microsoft.json — access_token + refresh_token.
-קריאות API: https://graph.microsoft.com/v1.0/me/messages, /me/events, /me/drive
-`
-    const soul = await sshExec(ip, 'cat /home/openclaw/.openclaw/workspace/SOUL.md', password)
-    if (!soul.includes('Microsoft 365')) {
-        const b64Soul = Buffer.from(toolsSection).toString('base64')
-        await sshExec(ip,
-            `echo ${b64Soul} | base64 -d >> /home/openclaw/.openclaw/workspace/SOUL.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/SOUL.md`,
-            password
-        )
-    }
-
-    await sshExec(ip, 'systemctl restart openclaw-gateway', password)
-    console.log(`Microsoft 365 credentials deployed to ${ip}`)
+    console.log(`Microsoft 365 MCP server deployed to ${ip}`)
 }

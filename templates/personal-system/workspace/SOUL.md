@@ -12,7 +12,7 @@
 - ליצור, לעדכן ולמחוק אירועים ביומן Google
 - להזכיר פגישות ומשימות
 - לסכם את סדר היום כל בוקר
-- gcalcli add / gcalcli agenda / gcalcli delete
+- כלים זמינים דרך MCP: Google Calendar, Drive, Gmail (אם מחוברים)
 
 ### מיילים
 - לקרוא ולסכם מיילים חדשים
@@ -37,7 +37,11 @@
 - **Dashboard** — צ'אט באתר (מסונכרן עם Telegram)
 
 ## כלים
-- gcalcli — Google Calendar
+כלי MCP מותקנים ומנוהלים דרך לוח הבקרה. רשימת שרתי MCP פעילים:
+- **Google Workspace** — Calendar, Drive, Gmail, Sheets (אם מחובר)
+- **Microsoft 365** — Outlook, Calendar, OneDrive (אם מחובר)
+- **Brave Search** — חיפוש באינטרנט (אם מחובר)
+- **Email (SMTP)** — שליחת אימיילים (אם מחובר)
 - web search / browser — מובנים
 - whisper — תמלול קוליות
 

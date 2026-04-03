@@ -418,6 +418,57 @@ export const saveIntegration = async (c: Context) => {
 
         await sshExecInstance(instance, `${cmd} && chown -R openclaw:openclaw /home/openclaw/.openclaw && systemctl restart openclaw-gateway`)
 
+        // Deploy MCP server for integrations that have one
+        const mcpDeployments: Record<string, () => object | null> = {
+            brave: () => ({
+                command: 'npx',
+                args: ['-y', '@brave/brave-search-mcp-server'],
+                env: { BRAVE_API_KEY: key },
+            }),
+            wordpress: () => {
+                try {
+                    const wp = JSON.parse(key)
+                    return {
+                        command: 'npx',
+                        args: ['-y', '@respira/wordpress-mcp-server'],
+                        env: { WP_URL: wp.url || '', WP_USERNAME: wp.username || '', WP_APP_PASSWORD: wp.password || wp.appPassword || '' },
+                    }
+                } catch { return null }
+            },
+            smtp: () => {
+                try {
+                    const smtp = JSON.parse(key)
+                    return {
+                        command: 'npx',
+                        args: ['-y', 'mcp-mail-server'],
+                        env: { SMTP_HOST: smtp.host || '', SMTP_PORT: String(smtp.port || 587), SMTP_USER: smtp.user || smtp.username || '', SMTP_PASS: smtp.pass || smtp.password || '' },
+                    }
+                } catch { return null }
+            },
+            replicate: () => ({
+                command: 'npx',
+                args: ['-y', '@gongrzhe/image-gen-server'],
+                env: { REPLICATE_API_TOKEN: key },
+            }),
+        }
+
+        const mcpServerId: Record<string, string> = { brave: 'brave-search', wordpress: 'wordpress', smtp: 'email', replicate: 'replicate' }
+        if (mcpDeployments[type]) {
+            try {
+                const mcpConfig = mcpDeployments[type]()
+                if (mcpConfig) {
+                    const b64Mcp = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
+                    await sshExecInstance(instance, `
+                        echo '${b64Mcp}' | base64 -d > /tmp/mcp-cfg.json && su - openclaw -c 'openclaw mcp set "${mcpServerId[type]}" "$(cat /tmp/mcp-cfg.json)" 2>/dev/null' && rm -f /tmp/mcp-cfg.json
+                    `)
+                    await sshExecInstance(instance, 'systemctl restart openclaw-gateway')
+                }
+            } catch (mcpErr) {
+                console.error(`MCP deploy for ${type} failed:`, mcpErr)
+                // Non-critical — legacy config file was already written
+            }
+        }
+
         // Update onboarding progress + save API key in DB
         if (['anthropic', 'openai', 'gemini'].includes(type)) {
             const updateData: Record<string, unknown> = {}

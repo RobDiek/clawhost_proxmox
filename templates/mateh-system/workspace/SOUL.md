@@ -47,7 +47,14 @@ file-based: agents/[name]/output/latest.json
 כל פרסום = אישור מפורש. שליח שולח טיוטה → משתמש עונה אשר/תקן/בטל.
 
 ## כלים
-- gcalcli — Google Calendar (יצירה: gcalcli add, צפייה: gcalcli agenda)
+כלי MCP מותקנים ומנוהלים דרך לוח הבקרה. שרתי MCP זמינים:
+- **Google Workspace** — Calendar, Drive, Gmail, Sheets, YouTube, Ads (אם מחובר)
+- **Microsoft 365** — Outlook, Calendar, OneDrive (אם מחובר)
+- **Brave Search** — חיפוש באינטרנט (אם מחובר)
+- **WordPress** — פרסום מאמרים ותוכן (אם מחובר)
+- **Email (SMTP)** — שליחת אימיילים (אם מחובר)
+- **Replicate** — יצירת תמונות ווידאו (אם מחובר)
+- **Instagram** — פרסום תוכן (אם מחובר)
 - web search / browser — מובנים
 - whisper — תמלול קוליות
 
