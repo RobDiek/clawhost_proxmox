@@ -587,13 +587,6 @@ const pl: Translations = {
         otpHeading: 'Twój kod logowania to:',
         otpExpiry:
             'Kod wygasa za 10 minut. Jeśli to nie Ty, zignoruj tego emaila.',
-        changelogSubject: 'Co nowego w ClawHost',
-        changelogPreview: 'Sprawdź najnowsze aktualizacje ClawHost: {{title}}',
-        changelogHeading: 'Co nowego',
-        changelogButton: 'Zobacz listę zmian',
-        changelogVisitButton: 'Odwiedź ClawHost',
-        changelogFooter:
-            'Otrzymujesz tę wiadomość, ponieważ masz konto ClawHost.',
         featureFooter:
             'Otrzymujesz tę wiadomość, ponieważ masz konto ClawHost.',
         features: {
@@ -601,6 +594,7 @@ const pl: Translations = {
                 subject: 'Czy wiesz? Masz terminal webowy',
                 preview:
                     'Uzyskaj dostęp do serwera bezpośrednio z przeglądarki',
+                tag: 'Terminal Web',
                 heading: 'Twój serwer jest o jedno kliknięcie',
                 description:
                     'Uzyskaj dostęp do serwera bezpośrednio z przeglądarki dzięki wbudowanemu terminalowi. Bez klienta SSH — po prostu otwórz ClawHost i zacznij wpisywać polecenia.',
@@ -609,6 +603,7 @@ const pl: Translations = {
             logs: {
                 subject: 'Czy wiesz? Logi w czasie rzeczywistym w panelu',
                 preview: 'Monitoruj logi serwera bez opuszczania przeglądarki',
+                tag: 'Logi na żywo',
                 heading: 'Zobacz, co robi Twój serwer',
                 description:
                     'Monitoruj logi serwera w czasie rzeczywistym z panelu ClawHost. Diagnozuj problemy, śledź wdrożenia i debuguj aplikacje bez opuszczania przeglądarki.',
@@ -617,6 +612,7 @@ const pl: Translations = {
             channels: {
                 subject: 'Czy wiesz? Połącz agentów z Discord, Slack i więcej',
                 preview: 'Powiąż swoich agentów AI z kanałami komunikacji',
+                tag: 'Kanały',
                 heading: 'Twoi agenci, wszędzie',
                 description:
                     'Połącz swoich agentów AI z Discord, Slack, WhatsApp i więcej. Konfiguruj kanały i powiązuj je z agentami — wszystko z panelu ClawHost.',
@@ -625,6 +621,7 @@ const pl: Translations = {
             fileExplorer: {
                 subject: 'Czy wiesz? Edytuj pliki serwera z przeglądarki',
                 preview: 'Przeglądaj, czytaj i edytuj pliki bez SSH',
+                tag: 'Eksplorator plików',
                 heading: 'Twoje pliki na wyciągnięcie ręki',
                 description:
                     'Przeglądaj, czytaj i edytuj pliki na serwerze bezpośrednio z panelu ClawHost. Podświetlanie składni, wyszukiwanie i natychmiastowy zapis — bez SSH.',
@@ -634,6 +631,7 @@ const pl: Translations = {
                 subject: 'Czy wiesz? Wizualizuj swoją infrastrukturę',
                 preview:
                     'Zobacz swoje claws i agentów na interaktywnym płótnie',
+                tag: 'Plac zabaw',
                 heading: 'Zobacz pełny obraz',
                 description:
                     'Playground daje Ci interaktywne płótno grafowe pokazujące wszystkie Twoje claws i agentów. Kliknij dowolny węzeł, aby nim zarządzać — wizualne centrum dowodzenia Twoją infrastrukturą.',
@@ -642,6 +640,7 @@ const pl: Translations = {
             agentChat: {
                 subject: 'Czy wiesz? Rozmawiaj ze swoimi agentami AI',
                 preview: 'Rozmawiaj z agentami bezpośrednio z panelu',
+                tag: 'Czat z agentem',
                 heading: 'Rozmawiaj ze swoimi agentami',
                 description:
                     'Czatuj ze swoimi agentami AI bezpośrednio z panelu ClawHost. Wysyłaj wiadomości, dołączaj obrazy i przeglądaj historię rozmów — wszystko w jednym miejscu.',
@@ -651,6 +650,7 @@ const pl: Translations = {
                 subject: 'Czy wiesz? Rozmawiaj z agentami głosem',
                 preview:
                     'Użyj mowy na tekst i tekstu na mowę ze swoimi agentami',
+                tag: 'Tryb głosowy',
                 heading: 'Mów, nie pisz',
                 description:
                     'Użyj trybu głosowego, aby rozmawiać z agentami AI bez użycia rąk. Mowa na tekst do wprowadzania, tekst na mowę do odpowiedzi — wybierz spośród wielu głosów.',
@@ -660,6 +660,7 @@ const pl: Translations = {
                 subject: 'Czy wiesz? Ponad 5000 umiejętności na ClawHub',
                 preview:
                     'Przeglądaj i instaluj umiejętności społeczności jednym kliknięciem',
+                tag: 'Umiejętności ClawHub',
                 heading: 'Rozszerz swoich agentów natychmiast',
                 description:
                     'Przeglądaj ponad 5000 gotowych umiejętności na ClawHub i instaluj je jednym kliknięciem. Wyszukiwanie w sieci, wykonywanie kodu, generowanie obrazów i wiele więcej.',
@@ -668,6 +669,7 @@ const pl: Translations = {
             bindings: {
                 subject: 'Czy wiesz? Powiąż agentów z konkretnymi kanałami',
                 preview: 'Kontroluj, który agent odpowiada na którym kanale',
+                tag: 'Powiązania',
                 heading: 'Jeden agent na kanał',
                 description:
                     'Powiąż konkretnych agentów z konkretnymi kanałami. Twój agent wsparcia na Discord, Twój asystent na WhatsApp — Ty decydujesz, kto odpowiada gdzie.',
@@ -676,6 +678,7 @@ const pl: Translations = {
             envVars: {
                 subject: 'Czy wiesz? Zarządzaj zmiennymi środowiskowymi',
                 preview: 'Ustaw klucze API i konfigurację bez SSH',
+                tag: 'Zmienne środowiskowe',
                 heading: 'Konfiguruj bez SSH',
                 description:
                     'Dodawaj, edytuj i usuwaj zmienne środowiskowe bezpośrednio z panelu ClawHost. Ustaw klucze API, sekrety i konfigurację — bez terminala.',
@@ -684,6 +687,7 @@ const pl: Translations = {
             diagnostics: {
                 subject: 'Czy wiesz? Wbudowane kontrole stanu',
                 preview: 'Monitoruj stan serwera z panelu',
+                tag: 'Diagnostyka',
                 heading: 'Wiedz, że Twój serwer jest zdrowy',
                 description:
                     'Uruchom diagnostykę claw, aby sprawdzić status usług, użycie pamięci i dostępność portów. Wykryj problemy, zanim staną się poważne.',
@@ -692,6 +696,7 @@ const pl: Translations = {
             sshKeys: {
                 subject: 'Czy wiesz? Zarządzaj kluczami SSH z ClawHost',
                 preview: 'Generuj i zarządzaj parami kluczy SSH w panelu',
+                tag: 'Klucze SSH',
                 heading: 'Klucze SSH, uproszczone',
                 description:
                     'Generuj pary kluczy SSH, kopiuj klucze publiczne i pobieraj klucze prywatne — wszystko z panelu ClawHost. Przypisuj klucze do claws dla bezpiecznego dostępu.',
@@ -700,6 +705,7 @@ const pl: Translations = {
             exportConfig: {
                 subject: 'Czy wiesz? Eksportuj konfigurację claw',
                 preview: 'Pobierz konfigurację claw jako przenośny plik',
+                tag: 'Eksport konfiguracji',
                 heading: 'Zabierz konfigurację ze sobą',
                 description:
                     'Eksportuj konfigurację i ustawienia claw jako plik do pobrania. Zrób kopię zapasową lub użyj jej do replikacji środowiska.',
@@ -708,6 +714,7 @@ const pl: Translations = {
             multiLanguage: {
                 subject: 'Czy wiesz? ClawHost mówi w Twoim języku',
                 preview: 'Używaj ClawHost w 14 językach',
+                tag: 'Wielojęzyczność',
                 heading: 'ClawHost w Twoim języku',
                 description:
                     'Przełącz cały panel ClawHost na dowolny z 14 języków. Wszystko od przycisków po komunikaty o błędach — w pełni przetłumaczone.',
@@ -717,6 +724,7 @@ const pl: Translations = {
                 subject: 'Czy wiesz? Każdy claw ma własną subdomenę',
                 preview:
                     'Uzyskaj dostęp do claw z dowolnego miejsca za pomocą własnego URL',
+                tag: 'Niestandardowa subdomena',
                 heading: 'Dostęp z dowolnego miejsca',
                 description:
                     'Każdy claw otrzymuje unikalną subdomenę, dzięki czemu możesz uzyskać dostęp do instancji OpenClaw z dowolnego miejsca. Bez przekierowania portów, bez sieci lokalnych — tylko URL.',
@@ -725,6 +733,7 @@ const pl: Translations = {
             darkMode: {
                 subject: 'Czy wiesz? ClawHost ma tryb ciemny',
                 preview: 'Przełączaj między jasnym a ciemnym motywem',
+                tag: 'Tryb ciemny',
                 heading: 'Łagodny dla oczu',
                 description:
                     'Przełączaj między jasnym a ciemnym motywem w panelu ClawHost. Twoje preferencje są zapisywane i stosowane automatycznie przy każdej wizycie.',
@@ -734,6 +743,7 @@ const pl: Translations = {
                 subject:
                     'Czy wiesz? Zainstaluj ponownie OpenClaw jednym kliknięciem',
                 preview: 'Zresetuj instancję OpenClaw bez utraty serwera',
+                tag: 'Ponowna instalacja',
                 heading: 'Nowy start, ten sam serwer',
                 description:
                     'Zainstaluj ponownie środowisko OpenClaw na istniejącym serwerze jednym kliknięciem. Twój serwer pozostaje nietknięty — tylko OpenClaw otrzymuje czystą instalację.',
@@ -742,6 +752,7 @@ const pl: Translations = {
             yearlyPlans: {
                 subject: 'Czy wiesz? Oszczędzaj z planami rocznymi',
                 preview: 'Przejdź na rozliczenie roczne i płać mniej',
+                tag: 'Plany roczne',
                 heading: 'Płać mniej, zyskaj więcej',
                 description:
                     'Przejdź na rozliczenie roczne i oszczędzaj na subskrypcji claw. Ta sama świetna usługa, niższa cena — anuluj w dowolnym momencie.',

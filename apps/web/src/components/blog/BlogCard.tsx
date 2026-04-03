@@ -17,67 +17,44 @@ const BlogCard: FC<BlogCardProps> = ({ post }): ReactNode => {
     )
 
     return (
-        <article>
+        <article className='h-full'>
             <Link
                 to={`/${PATHS.BLOG}/${post.slug}`}
-                className='border-border bg-foreground/[0.02] hover:border-border hover:bg-foreground/[0.04] group flex flex-col overflow-hidden rounded-xl border transition'
+                className='border-border bg-foreground/[0.02] hover:border-border hover:bg-foreground/[0.04] group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border p-5 transition'
             >
-                <div className='bg-foreground/5 aspect-[16/9] w-full overflow-hidden'>
-                    {post.coverImage ? (
-                        <img
-                            src={post.coverImage}
-                            alt={post.title}
-                            className='h-full w-full object-cover transition group-hover:scale-105'
-                            width={640}
-                            height={360}
-                            loading='lazy'
-                        />
-                    ) : (
-                        <div className='flex h-full items-center justify-center'>
-                            <span className='font-clash text-foreground/10 text-2xl font-bold'>
-                                {t('common.brandName')}
-                            </span>
-                        </div>
-                    )}
+                <h2 className='font-clash group-hover:text-primary text-foreground mb-2 line-clamp-2 break-words text-lg font-semibold transition'>
+                    {post.title}
+                </h2>
+
+                <div className='mb-3 flex flex-wrap gap-2'>
+                    {post.tags.map((tag) => (
+                        <span
+                            key={tag}
+                            className='bg-foreground/5 text-muted-foreground rounded-full px-2.5 py-0.5 text-xs'
+                        >
+                            {tag}
+                        </span>
+                    ))}
                 </div>
 
-                <div className='flex flex-1 flex-col p-5'>
-                    <h2 className='font-clash group-hover:text-primary text-foreground mb-2 text-lg font-semibold transition'>
-                        {post.title}
-                    </h2>
+                <p className='text-muted-foreground mb-4 line-clamp-2 flex-1 text-sm leading-relaxed'>
+                    {post.description}
+                </p>
 
-                    <div className='mb-3 flex flex-wrap gap-2'>
-                        {post.tags.map((tag) => (
-                            <span
-                                key={tag}
-                                className='bg-foreground/5 text-muted-foreground rounded-full px-2.5 py-0.5 text-xs'
-                            >
-                                {tag}
-                            </span>
-                        ))}
-                    </div>
-
-                    <p className='text-muted-foreground mb-4 line-clamp-2 flex-1 text-sm leading-relaxed'>
-                        {post.description}
-                    </p>
-
-                    <div className='flex items-center justify-between'>
-                        <div className='text-muted-foreground flex items-center gap-3 text-xs'>
-                            <time
-                                dateTime={post.publishedAt}
-                                className='flex items-center gap-1.5'
-                            >
-                                <CalendarBlankIcon className='h-3.5 w-3.5' />
-                                {formattedDate}
-                            </time>
-                            <span className='flex items-center gap-1.5'>
-                                <ClockIcon className='h-3.5 w-3.5' />
-                                {t('blog.readingTime', {
-                                    minutes: String(post.readingTime)
-                                })}
-                            </span>
-                        </div>
-                    </div>
+                <div className='text-muted-foreground mt-auto flex items-center gap-3 text-xs'>
+                    <time
+                        dateTime={post.publishedAt}
+                        className='flex items-center gap-1.5'
+                    >
+                        <CalendarBlankIcon className='h-3.5 w-3.5' />
+                        {formattedDate}
+                    </time>
+                    <span className='flex items-center gap-1.5'>
+                        <ClockIcon className='h-3.5 w-3.5' />
+                        {t('blog.readingTime', {
+                            minutes: String(post.readingTime)
+                        })}
+                    </span>
                 </div>
             </Link>
         </article>

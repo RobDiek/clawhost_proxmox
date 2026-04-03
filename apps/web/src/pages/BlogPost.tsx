@@ -42,9 +42,7 @@ const BlogPost: FC = (): ReactNode => {
     )
 
     const postUrl = `${SITE_URL}/${PATHS.BLOG}/${meta.slug}`
-    const imageUrl = meta.coverImage
-        ? `${SITE_URL}${meta.coverImage}`
-        : `${SITE_URL}/og-image.webp`
+    const imageUrl = `${SITE_URL}/og/${meta.slug}.png`
 
     return (
         <div className='bg-background text-foreground relative flex min-h-screen flex-col'>
@@ -142,19 +140,6 @@ const BlogPost: FC = (): ReactNode => {
                             })}
                         </span>
                     </div>
-
-                    {meta.coverImage && (
-                        <div className='border-border mb-12 overflow-hidden rounded-xl border'>
-                            <img
-                                src={meta.coverImage}
-                                alt={meta.title}
-                                className='aspect-[2/1] w-full object-cover'
-                                width={1200}
-                                height={600}
-                                loading='lazy'
-                            />
-                        </div>
-                    )}
 
                     <div className='prose dark:prose-invert prose-sm prose-headings:font-clash prose-headings:font-semibold prose-h1:hidden prose-a:text-primary prose-a:no-underline hover:prose-a:underline max-w-none'>
                         <Content />

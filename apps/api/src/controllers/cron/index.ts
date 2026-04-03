@@ -1,3 +1,4 @@
+import generateBlogPost from '@/controllers/cron/generateBlogPost'
 import sendFeatureEmails from '@/controllers/cron/sendFeatureEmails'
 
-export { sendFeatureEmails }
+export { generateBlogPost, sendFeatureEmails }

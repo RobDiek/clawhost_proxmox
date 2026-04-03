@@ -15,7 +15,7 @@ coverImage: /blogs/running-openclaw-on-a-raspberry-pi-the-budget-friendly-approa
 
 ## Running OpenClaw on a Raspberry Pi: The Budget-Friendly Approach
 
-You don't need a powerful server to run OpenClaw. A $35 Raspberry Pi works just fine.
+You don't need a powerful server to run OpenClaw. A Raspberry Pi works just fine for lightweight agent tasks.
 
 This opens up a whole new use case: personal AI agents that cost almost nothing to run.
 
@@ -45,7 +45,7 @@ For cost-conscious users, Pi is the obvious choice.
 ### Hardware
 
 - Raspberry Pi 4 (8GB recommended for agent work)
-- Power adapter (comes with Pi)
+- USB-C power adapter (sold separately)
 - microSD card (64GB minimum)
 - Ethernet cable or WiFi
 - (Optional) Case to protect it
@@ -262,12 +262,13 @@ Raspberry Pi power usage:
 ```
 Idle: 2-3 watts
 Running agent tasks: 5-7 watts
-24/7 for one year: ~8.7 kWh
+Average: ~4 watts
+24/7 for one year: ~35 kWh
 
-Cost (at $0.12/kWh): ~$1/year
+Cost (at $0.12/kWh): ~$4/year
 ```
 
-Basically free to run.
+Practically free to run.
 
 Compare:
 
@@ -282,11 +283,11 @@ Pi: ~$1/year
 Raspberry Pi reliability:
 
 ```
-MTBF (Mean Time Between Failure): ~50+ years
-In practice: Most Pis run for 10+ years trouble-free
+In practice: Many Pis run reliably for years
+The SD card is typically the weakest link — use a quality card
 ```
 
-It's designed for long-term operation.
+It's designed for long-term, always-on operation.
 
 ## Networking Setup
 
@@ -394,11 +395,11 @@ Solution:
 
 ```
 Cost: $75 (Pi) + $10 (sensors) = $85
-Replaces: $500+ Alexa/Google setup
 
 Your agent:
+- Connects to Home Assistant for home control
 - Learns your routine
-- Automates lights, temperature
+- Automates lights, temperature via smart home APIs
 - Alerts on unusual activity
 ```
 
@@ -414,16 +415,15 @@ Your agent:
 - Gives you instant answers
 ```
 
-### Self-Hosted Media Server
+### Self-Hosted Media Assistant
 
 ```
 Cost: $75 (Pi) + $50 (external drive) = $125
-Replaces: Streaming subscriptions ($200/year)
 
 Your agent:
-- Manages your media library
-- Finds content
-- Recommends based on taste
+- Helps organize your media library
+- Searches and finds content across your files
+- Recommends based on your preferences
 ```
 
 ## When Pi Is Enough

@@ -22,7 +22,7 @@ import {
     title,
     logoSection,
     logo
-} from '@/emails/styles'
+} from '@/lib/emailStyles'
 
 const codeWrapper = {
     textAlign: 'center' as const,

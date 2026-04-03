@@ -564,20 +564,13 @@ const tr: Translations = {
         otpHeading: 'Giriş kodunuz:',
         otpExpiry:
             'Kodun süresi 10 dakika içinde dolar. Bu siz değilseniz, bu e-postayı görmezden gelin.',
-        changelogSubject: "ClawHost'taki Yenilikler",
-        changelogPreview:
-            "ClawHost'un son güncellemelerine göz atın: {{title}}",
-        changelogHeading: 'Yenilikler',
-        changelogButton: 'Değişiklik Günlüğünü Görüntüle',
-        changelogVisitButton: "ClawHost'u Ziyaret Et",
-        changelogFooter:
-            'Bu e-postayı ClawHost hesabınız olduğu için alıyorsunuz.',
         featureFooter:
             'Bu e-postayı ClawHost hesabınız olduğu için alıyorsunuz.',
         features: {
             terminal: {
                 subject: 'Biliyor muydunuz? Web terminaliniz var',
                 preview: 'Sunucunuza doğrudan tarayıcıdan erişin',
+                tag: 'Web Terminal',
                 heading: 'Sunucunuz bir tık uzağınızda',
                 description:
                     "Yerleşik terminalimizle sunucunuza doğrudan tarayıcınızdan erişin. SSH istemcisi gerekmez — ClawHost'u açın ve komut yazmaya başlayın.",
@@ -587,6 +580,7 @@ const tr: Translations = {
                 subject:
                     'Biliyor muydunuz? Panelinizdeki gerçek zamanlı günlükler',
                 preview: 'Sunucu günlüklerinizi tarayıcıdan ayrılmadan izleyin',
+                tag: 'Canlı Günlükler',
                 heading: 'Sunucunuzun ne yaptığını görün',
                 description:
                     'ClawHost panelinden sunucu günlüklerinizi gerçek zamanlı izleyin. Sorunları teşhis edin, dağıtımları takip edin ve uygulamalarınızı tarayıcıdan ayrılmadan hata ayıklayın.',
@@ -597,6 +591,7 @@ const tr: Translations = {
                     'Biliyor muydunuz? Ajanları Discord, Slack ve daha fazlasına bağlayın',
                 preview:
                     'Yapay zeka ajanlarınızı iletişim kanallarına bağlayın',
+                tag: 'Kanallar',
                 heading: 'Ajanlarınız, her yerde',
                 description:
                     'Yapay zeka ajanlarınızı Discord, Slack, WhatsApp ve daha fazlasına bağlayın. Kanalları yapılandırın ve ajanlara bağlayın — hepsi ClawHost panelinden.',
@@ -606,6 +601,7 @@ const tr: Translations = {
                 subject:
                     'Biliyor muydunuz? Sunucu dosyalarını tarayıcıdan düzenleyin',
                 preview: 'SSH olmadan dosyaları göz atın, okuyun ve düzenleyin',
+                tag: 'Dosya Gezgini',
                 heading: 'Dosyalarınız, parmaklarınızın ucunda',
                 description:
                     'ClawHost panelinden sunucunuzdaki dosyaları doğrudan göz atın, okuyun ve düzenleyin. Sözdizimi vurgulama, arama ve anında kaydetme — SSH gerekmez.',
@@ -615,6 +611,7 @@ const tr: Translations = {
                 subject: 'Biliyor muydunuz? Altyapınızı görselleştirin',
                 preview:
                     "Claw'larınızı ve ajanlarınızı etkileşimli bir tuvalde görün",
+                tag: 'Oyun Alanı',
                 heading: 'Büyük resmi görün',
                 description:
                     "Playground, tüm claw'larınızı ve ajanlarınızı gösteren etkileşimli bir grafik tuval sunar. Yönetmek için herhangi bir düğüme tıklayın — altyapınız için görsel bir komut merkezi.",
@@ -624,6 +621,7 @@ const tr: Translations = {
                 subject:
                     'Biliyor muydunuz? Yapay zeka ajanlarınızla sohbet edin',
                 preview: 'Ajanlarınızla doğrudan panelden konuşun',
+                tag: 'Ajan Sohbeti',
                 heading: 'Ajanlarınızla konuşun',
                 description:
                     'ClawHost panelinden yapay zeka ajanlarınızla doğrudan sohbet edin. Mesaj gönderin, resim ekleyin ve konuşma geçmişini görün — hepsi tek bir yerde.',
@@ -633,6 +631,7 @@ const tr: Translations = {
                 subject: 'Biliyor muydunuz? Ajanlarınızla sesli konuşun',
                 preview:
                     'Ajanlarınızla konuşmadan metne ve metinden konuşmaya özelliğini kullanın',
+                tag: 'Ses Modu',
                 heading: 'Konuşun, yazmayın',
                 description:
                     'Yapay zeka ajanlarınızla eller serbest konuşmak için ses modunu kullanın. Girdi için konuşmadan metne, yanıtlar için metinden konuşmaya — birden fazla ses arasından seçim yapın.',
@@ -642,6 +641,7 @@ const tr: Translations = {
                 subject: "Biliyor muydunuz? ClawHub'da 5.000'den fazla yetenek",
                 preview:
                     'Topluluk yeteneklerini tek tıkla göz atın ve yükleyin',
+                tag: 'ClawHub Becerileri',
                 heading: 'Ajanlarınızı anında genişletin',
                 description:
                     "ClawHub'da 5.000'den fazla hazır yeteneği göz atın ve tek tıkla yükleyin. Web araması, kod çalıştırma, görsel oluşturma ve çok daha fazlası.",
@@ -652,6 +652,7 @@ const tr: Translations = {
                     'Biliyor muydunuz? Ajanları belirli kanallara bağlayın',
                 preview:
                     'Hangi ajanın hangi kanalda yanıt vereceğini kontrol edin',
+                tag: 'Bağlamalar',
                 heading: 'Kanal başına bir ajan',
                 description:
                     "Belirli ajanları belirli kanallara bağlayın. Destek ajanınız Discord'da, asistanınız WhatsApp'ta — kimin nerede yanıt vereceğine siz karar verin.",
@@ -661,6 +662,7 @@ const tr: Translations = {
                 subject: 'Biliyor muydunuz? Ortam değişkenlerini yönetin',
                 preview:
                     'SSH olmadan API anahtarları ve yapılandırma ayarlayın',
+                tag: 'Ortam Değişkenleri',
                 heading: 'SSH olmadan yapılandırın',
                 description:
                     'ClawHost panelinden ortam değişkenlerini doğrudan ekleyin, düzenleyin ve kaldırın. API anahtarları, gizli bilgiler ve yapılandırma ayarlayın — terminal gerekmez.',
@@ -669,6 +671,7 @@ const tr: Translations = {
             diagnostics: {
                 subject: 'Biliyor muydunuz? Yerleşik sağlık kontrolleri',
                 preview: 'Sunucu sağlığını panelden izleyin',
+                tag: 'Tanılama',
                 heading: 'Sunucunuzun sağlıklı olduğunu bilin',
                 description:
                     "Servis durumu, bellek kullanımı ve port erişilebilirliğini kontrol etmek için claw'ınızda tanılama çalıştırın. Sorunları problem olmadan önce tespit edin.",
@@ -678,6 +681,7 @@ const tr: Translations = {
                 subject:
                     "Biliyor muydunuz? ClawHost'tan SSH anahtarlarını yönetin",
                 preview: 'Panelde SSH anahtar çiftleri oluşturun ve yönetin',
+                tag: 'SSH Anahtarları',
                 heading: 'SSH anahtarları, basitleştirilmiş',
                 description:
                     "SSH anahtar çiftleri oluşturun, açık anahtarları kopyalayın ve özel anahtarları indirin — hepsi ClawHost panelinden. Güvenli erişim için anahtarları claw'lara atayın.",
@@ -687,6 +691,7 @@ const tr: Translations = {
                 subject: 'Biliyor muydunuz? Claw yapılandırmanızı dışa aktarın',
                 preview:
                     'Claw kurulumunuzu taşınabilir yapılandırma olarak indirin',
+                tag: 'Yapılandırma Dışa Aktarma',
                 heading: 'Yapılandırmanızı yanınızda taşıyın',
                 description:
                     'Claw yapılandırmanızı ve ayarlarınızı indirilebilir bir dosya olarak dışa aktarın. Kurulumunuzu yedekleyin veya ortamınızı çoğaltmak için kullanın.',
@@ -695,6 +700,7 @@ const tr: Translations = {
             multiLanguage: {
                 subject: 'Biliyor muydunuz? ClawHost sizin dilinizi konuşuyor',
                 preview: "ClawHost'u 14 dilde kullanın",
+                tag: 'Çok Dil',
                 heading: 'Kendi dilinizde ClawHost',
                 description:
                     'Tüm ClawHost panelini 14 dilden herhangi birine geçirin. Düğmelerden hata mesajlarına kadar her şey — tamamen çevrilmiş.',
@@ -703,6 +709,7 @@ const tr: Translations = {
             subdomain: {
                 subject: 'Biliyor muydunuz? Her claw kendi alt alan adını alır',
                 preview: "Claw'ınıza her yerden özel bir URL ile erişin",
+                tag: 'Özel Alt Alan Adı',
                 heading: 'Her yerden erişin',
                 description:
                     'Her claw benzersiz bir alt alan adı alır, böylece OpenClaw örneğinize her yerden erişebilirsiniz. Port yönlendirme yok, yerel ağ yok — sadece bir URL.',
@@ -711,6 +718,7 @@ const tr: Translations = {
             darkMode: {
                 subject: "Biliyor muydunuz? ClawHost'un koyu modu var",
                 preview: 'Açık ve koyu temalar arasında geçiş yapın',
+                tag: 'Karanlık Mod',
                 heading: 'Göze hoş gelen',
                 description:
                     'ClawHost panelinde açık ve koyu temalar arasında geçiş yapın. Tercihiniz kaydedilir ve her ziyarette otomatik olarak uygulanır.',
@@ -721,6 +729,7 @@ const tr: Translations = {
                     "Biliyor muydunuz? OpenClaw'u tek tıkla yeniden yükleyin",
                 preview:
                     'Sunucunuzu kaybetmeden OpenClaw örneğinizi sıfırlayın',
+                tag: 'Yeniden Yükle',
                 heading: 'Temiz başlangıç, aynı sunucu',
                 description:
                     'Mevcut sunucunuzda OpenClaw çalışma zamanını tek tıkla yeniden yükleyin. Sunucunuz olduğu gibi kalır — sadece OpenClaw temiz bir kurulum alır.',
@@ -729,6 +738,7 @@ const tr: Translations = {
             yearlyPlans: {
                 subject: 'Biliyor muydunuz? Yıllık planlarla tasarruf edin',
                 preview: 'Yıllık faturalamaya geçin ve daha az ödeyin',
+                tag: 'Yıllık Planlar',
                 heading: 'Daha az ödeyin, daha fazla alın',
                 description:
                     'Yıllık faturalamaya geçin ve claw aboneliğinizde tasarruf edin. Aynı harika hizmet, daha düşük fiyat — istediğiniz zaman iptal edin.',

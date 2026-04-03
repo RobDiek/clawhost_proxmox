@@ -612,174 +612,152 @@ const fr: Translations = {
         otpHeading: 'Votre code de connexion est :',
         otpExpiry:
             "Le code expire dans 10 minutes. Si ce n\'était pas vous, ignorez cet email.",
-        changelogSubject: 'Les nouveautés de ClawHost',
-        changelogPreview:
-            'Découvrez les dernières mises à jour de ClawHost : {{title}}',
-        changelogHeading: 'Nouveautés',
-        changelogButton: 'Voir le changelog',
-        changelogVisitButton: 'Visiter ClawHost',
-        changelogFooter:
-            'Vous recevez cet email car vous avez un compte ClawHost.',
         featureFooter:
             'Vous recevez cet email car vous avez un compte ClawHost.',
         features: {
             terminal: {
-                subject: 'Le saviez-vous ? Vous avez un terminal web',
-                preview:
-                    'Accédez à votre serveur directement depuis le navigateur',
-                heading: 'Votre serveur est à un clic',
-                description:
-                    'Accédez à votre serveur directement depuis votre navigateur avec notre terminal intégré. Pas besoin de client SSH — ouvrez ClawHost et commencez à taper vos commandes.',
-                cta: 'Ouvrir le terminal'
+                subject: 'Vous avez un terminal web',
+                preview: 'Exécutez des commandes dans votre navigateur, sans SSH',
+                tag: 'Terminal Web',
+                heading: 'Commandes depuis votre navigateur',
+                description: 'Un terminal complet dans votre tableau de bord. Cliquez sur votre claw, tapez vos commandes. Pas de client SSH requis.',
+                cta: 'Ouvrir le Terminal'
             },
             logs: {
-                subject:
-                    'Le saviez-vous ? Des logs en temps réel dans votre tableau de bord',
-                preview:
-                    'Surveillez les logs de votre serveur sans quitter le navigateur',
-                heading: 'Voyez ce que fait votre serveur',
-                description:
-                    'Surveillez les logs de votre serveur en temps réel depuis le tableau de bord ClawHost. Diagnostiquez les problèmes, suivez les déploiements et déboguez vos applications sans quitter le navigateur.',
-                cta: 'Voir les logs'
+                subject: 'Logs en temps réel dans votre tableau de bord',
+                preview: 'Regardez les logs de votre serveur en direct',
+                tag: 'Logs en Direct',
+                heading: 'Vos logs en direct',
+                description: 'Chaque requête, chaque erreur, diffusée en temps réel sur votre tableau de bord. Fini le tail de fichiers en SSH.',
+                cta: 'Voir les Logs'
             },
             channels: {
-                subject:
-                    'Le saviez-vous ? Connectez vos agents à Discord, Slack et plus',
-                preview: 'Liez vos agents IA à vos canaux de communication',
-                heading: 'Vos agents, partout',
-                description:
-                    'Connectez vos agents IA à Discord, Slack, WhatsApp et plus encore. Configurez les canaux et liez-les à vos agents — le tout depuis le tableau de bord ClawHost.',
-                cta: 'Configurer les canaux'
+                subject: 'Connectez vos agents à Discord, Slack & plus',
+                preview: 'Vos agents peuvent vivre là où sont vos utilisateurs',
+                tag: 'Canaux',
+                heading: 'Vos agents, là où sont vos utilisateurs',
+                description: 'Discord, Slack, WhatsApp, Telegram — connectez vos agents IA à n\'importe quelle plateforme en moins d\'une minute.',
+                cta: 'Configurer les Canaux'
             },
             fileExplorer: {
-                subject:
-                    'Le saviez-vous ? Modifiez vos fichiers depuis le navigateur',
-                preview: 'Parcourez, lisez et éditez vos fichiers sans SSH',
-                heading: 'Vos fichiers, à portée de main',
-                description:
-                    'Parcourez, lisez et éditez les fichiers de votre serveur directement depuis le tableau de bord ClawHost. Coloration syntaxique, recherche et sauvegarde instantanée — sans SSH.',
-                cta: "Ouvrir l'explorateur"
+                subject: 'Modifiez les fichiers serveur depuis votre navigateur',
+                preview: 'Parcourez et modifiez des fichiers sans SSH',
+                tag: 'Explorateur de Fichiers',
+                heading: 'Modifiez vos fichiers sans SSH',
+                description: 'Parcourez, modifiez et enregistrez des fichiers avec coloration syntaxique. Pas de SSH, pas de FTP — cliquez et tapez.',
+                cta: 'Ouvrir l\'Explorateur'
             },
             playground: {
-                subject: 'Le saviez-vous ? Visualisez votre infrastructure',
-                preview: 'Voyez vos claws et agents sur un canvas interactif',
-                heading: "Voyez l'ensemble",
-                description:
-                    "Le Playground vous offre un canvas interactif montrant tous vos claws et agents. Cliquez sur n'importe quel nœud pour le gérer — un centre de commande visuel pour votre infrastructure.",
+                subject: 'Visualisez votre infrastructure',
+                preview: 'Voyez vos claws et agents sur un canevas',
+                tag: 'Playground',
+                heading: 'Votre infrastructure, visualisée',
+                description: 'Un graphe interactif de tous vos claws et agents. Déplacez, zoomez, cliquez sur n\'importe quel nœud pour le gérer.',
                 cta: 'Ouvrir le Playground'
             },
             agentChat: {
-                subject: 'Le saviez-vous ? Chattez avec vos agents IA',
-                preview:
-                    'Parlez à vos agents directement depuis le tableau de bord',
+                subject: 'Chattez avec vos agents IA',
+                preview: 'Parlez à vos agents depuis le tableau de bord',
+                tag: 'Chat Agent',
                 heading: 'Parlez à vos agents',
-                description:
-                    "Chattez avec vos agents IA directement depuis le tableau de bord ClawHost. Envoyez des messages, joignez des images et consultez l'historique — tout en un seul endroit.",
-                cta: 'Commencer à chatter'
+                description: 'Ouvrez un chat, envoyez un message, obtenez une réponse. Joignez des images, parcourez l\'historique, changez d\'agent.',
+                cta: 'Commencer à Chatter'
             },
             voiceMode: {
-                subject: 'Le saviez-vous ? Parlez à vos agents par la voix',
-                preview: 'Utilisez la reconnaissance vocale avec vos agents',
+                subject: 'Parlez à vos agents avec la voix',
+                preview: 'Communiquez avec vos agents en mains libres',
+                tag: 'Mode Vocal',
                 heading: 'Parlez, ne tapez pas',
-                description:
-                    'Utilisez le mode vocal pour parler à vos agents IA en mains libres. Reconnaissance vocale en entrée, synthèse vocale en sortie — avec plusieurs voix au choix.',
-                cta: 'Essayer le mode vocal'
+                description: 'Parlez à vos agents IA à voix haute et écoutez leurs réponses. Plusieurs voix, totalement mains libres.',
+                cta: 'Essayer le Mode Vocal'
             },
             skills: {
-                subject: 'Le saviez-vous ? Plus de 5 000 skills sur ClawHub',
-                preview:
-                    'Parcourez et installez des skills communautaires en un clic',
-                heading: 'Étendez vos agents instantanément',
-                description:
-                    "Parcourez plus de 5 000 skills prêts à l'emploi sur ClawHub et installez-les en un seul clic. Recherche web, exécution de code, génération d'images et bien plus.",
+                subject: 'Plus de 5 000 skills sur ClawHub',
+                preview: 'Installez des skills communautaires en un clic',
+                tag: 'Skills ClawHub',
+                heading: '5 000+ skills, un clic pour installer',
+                description: 'Recherche web, exécution de code, génération d\'images — parcourez ClawHub et ajoutez de nouvelles capacités à vos agents.',
                 cta: 'Parcourir ClawHub'
             },
             bindings: {
-                subject:
-                    'Le saviez-vous ? Liez des agents à des canaux spécifiques',
-                preview: 'Contrôlez quel agent répond sur quel canal',
-                heading: 'Un agent par canal',
-                description:
-                    'Liez des agents spécifiques à des canaux spécifiques. Votre agent support sur Discord, votre assistant sur WhatsApp — vous décidez qui répond où.',
-                cta: 'Configurer les liaisons'
+                subject: 'Liez vos agents aux canaux',
+                preview: 'Contrôlez quel agent répond où',
+                tag: 'Liaisons',
+                heading: 'Bon agent, bon canal',
+                description: 'Votre agent support sur Discord, votre assistant sur WhatsApp. Vous décidez qui répond où.',
+                cta: 'Configurer les Liaisons'
             },
             envVars: {
-                subject: "Le saviez-vous ? Gérez les variables d'environnement",
-                preview: 'Configurez les clés API et la config sans SSH',
-                heading: 'Configurez sans SSH',
-                description:
-                    "Ajoutez, modifiez et supprimez des variables d'environnement directement depuis le tableau de bord ClawHost. Clés API, secrets et configuration — sans terminal.",
-                cta: 'Gérer les variables'
+                subject: 'Gérez les variables d\'env depuis le tableau de bord',
+                preview: 'Définissez clés API et secrets sans SSH',
+                tag: 'Variables d\'Environnement',
+                heading: 'Secrets et clés, sans SSH',
+                description: 'Ajoutez, modifiez ou supprimez des variables d\'environnement depuis une interface claire. Les changements prennent effet immédiatement.',
+                cta: 'Gérer les Variables'
             },
             diagnostics: {
-                subject: 'Le saviez-vous ? Diagnostics intégrés',
-                preview:
-                    'Surveillez la santé de votre serveur depuis le tableau de bord',
-                heading: 'Vérifiez la santé de votre serveur',
-                description:
-                    "Lancez des diagnostics sur votre claw pour vérifier l'état des services, l'utilisation mémoire et la disponibilité des ports. Détectez les problèmes avant qu'ils ne s'aggravent.",
-                cta: 'Lancer les diagnostics'
+                subject: 'Vérifications de santé intégrées',
+                preview: 'Vérifiez la santé de votre serveur en un clic',
+                tag: 'Diagnostics',
+                heading: 'Votre serveur est-il en forme ?',
+                description: 'Vérifiez le statut des services, la mémoire, le disque et les ports en un clic. Repérez les problèmes avant les pannes.',
+                cta: 'Lancer les Diagnostics'
             },
             sshKeys: {
-                subject: 'Le saviez-vous ? Gérez les clés SSH depuis ClawHost',
-                preview:
-                    'Générez et gérez vos paires de clés SSH dans le tableau de bord',
+                subject: 'Gérez vos clés SSH depuis ClawHost',
+                preview: 'Générez et gérez des paires de clés facilement',
+                tag: 'Clés SSH',
                 heading: 'Clés SSH, simplifiées',
-                description:
-                    'Générez des paires de clés SSH, copiez les clés publiques et téléchargez les clés privées — le tout depuis le tableau de bord ClawHost. Assignez des clés à vos claws pour un accès sécurisé.',
-                cta: 'Gérer les clés SSH'
+                description: 'Générez des paires de clés, copiez les clés publiques, téléchargez les privées — le tout depuis le tableau de bord.',
+                cta: 'Gérer les Clés SSH'
             },
             exportConfig: {
-                subject:
-                    'Le saviez-vous ? Exportez la configuration de votre claw',
-                preview: 'Téléchargez votre configuration en fichier portable',
+                subject: 'Exportez votre config de claw',
+                preview: 'Téléchargez votre configuration en un fichier',
+                tag: 'Export Config',
                 heading: 'Emportez votre config',
-                description:
-                    'Exportez la configuration et les paramètres de votre claw sous forme de fichier téléchargeable. Sauvegardez votre setup ou utilisez-le pour répliquer votre environnement.',
-                cta: 'Exporter la config'
+                description: 'Exportez agents, skills, canaux et paramètres en un seul fichier. Sauvegardez ou répliquez votre configuration.',
+                cta: 'Exporter la Config'
             },
             multiLanguage: {
-                subject: 'Le saviez-vous ? ClawHost parle votre langue',
-                preview: 'Utilisez ClawHost dans 14 langues',
-                heading: 'ClawHost dans votre langue',
-                description:
-                    "Passez l'intégralité du tableau de bord ClawHost dans l'une des 14 langues disponibles. Des boutons aux messages d'erreur — tout est traduit.",
-                cta: 'Changer la langue'
+                subject: 'ClawHost parle 14 langues',
+                preview: 'Changez la langue du tableau de bord',
+                tag: 'Multi-Langue',
+                heading: '14 langues, entièrement traduit',
+                description: 'Passez ClawHost en français, anglais, espagnol, allemand et 10 autres. Chaque bouton, chaque message.',
+                cta: 'Changer de Langue'
             },
             subdomain: {
-                subject:
-                    'Le saviez-vous ? Chaque claw a son propre sous-domaine',
-                preview:
-                    'Accédez à votre claw depuis partout avec une URL personnalisée',
-                heading: 'Accédez depuis partout',
-                description:
-                    "Chaque claw reçoit un sous-domaine unique pour accéder à votre instance OpenClaw depuis n'importe où. Pas de redirection de port, pas de réseau local — juste une URL.",
-                cta: 'Voir votre sous-domaine'
+                subject: 'Votre claw a sa propre URL',
+                preview: 'Accédez à votre claw de n\'importe où',
+                tag: 'Sous-domaine',
+                heading: 'Votre claw, votre URL',
+                description: 'Chaque claw obtient un sous-domaine unique comme monclaw.clawhost.cloud. Accessible partout, sans VPN.',
+                cta: 'Voir Votre Sous-domaine'
             },
             darkMode: {
-                subject: 'Le saviez-vous ? ClawHost a un mode sombre',
-                preview: 'Basculez entre les thèmes clair et sombre',
-                heading: 'Doux pour les yeux',
-                description:
-                    'Basculez entre les thèmes clair et sombre dans le tableau de bord ClawHost. Votre préférence est sauvegardée et appliquée automatiquement à chaque visite.',
-                cta: 'Essayer le mode sombre'
+                subject: 'Le mode sombre est là',
+                preview: 'Basculez entre thèmes clair et sombre',
+                tag: 'Mode Sombre',
+                heading: 'Du repos pour vos yeux',
+                description: 'Basculez entre clair et sombre en un clic. Votre préférence est sauvegardée automatiquement.',
+                cta: 'Essayer le Mode Sombre'
             },
             reinstall: {
-                subject: 'Le saviez-vous ? Réinstallez OpenClaw en un clic',
-                preview:
-                    'Réinitialisez votre instance OpenClaw sans perdre votre serveur',
+                subject: 'Nouveau départ, un clic',
+                preview: 'Réinstallez OpenClaw sans perdre votre serveur',
+                tag: 'Réinstallation',
                 heading: 'Nouveau départ, même serveur',
-                description:
-                    'Réinstallez le runtime OpenClaw sur votre serveur existant en un seul clic. Votre serveur reste intact — seul OpenClaw reçoit une installation propre.',
-                cta: 'En savoir plus'
+                description: 'La réinstallation efface le runtime OpenClaw et vous donne une page blanche. Votre serveur, IP et clés restent intacts.',
+                cta: 'En Savoir Plus'
             },
             yearlyPlans: {
-                subject: 'Le saviez-vous ? Économisez avec les plans annuels',
-                preview: 'Passez à la facturation annuelle et payez moins',
-                heading: 'Payez moins, obtenez plus',
-                description:
-                    'Passez à la facturation annuelle et économisez sur votre abonnement claw. Le même excellent service, à un prix réduit — annulez à tout moment.',
-                cta: 'Voir les plans'
+                subject: 'Économisez avec la facturation annuelle',
+                preview: 'Même service, prix réduit',
+                tag: 'Plans Annuels',
+                heading: 'Même claw, facture réduite',
+                description: 'Passez à la facturation annuelle et payez moins. Pas de différence de fonctionnalités. Changez quand vous voulez.',
+                cta: 'Voir les Plans'
             }
         }
     },

@@ -578,19 +578,13 @@ const ja: Translations = {
         otpHeading: 'サインインコード:',
         otpExpiry:
             'コードは10分で期限切れになります。心当たりがない場合は、このメールを無視してください。',
-        changelogSubject: 'ClawHostの最新情報',
-        changelogPreview: 'ClawHostの最新アップデートをチェック: {{title}}',
-        changelogHeading: '最新情報',
-        changelogButton: '変更履歴を見る',
-        changelogVisitButton: 'ClawHostにアクセス',
-        changelogFooter:
-            'ClawHostアカウントをお持ちのため、このメールをお送りしています。',
         featureFooter:
             'ClawHostアカウントをお持ちのため、このメールをお送りしています。',
         features: {
             terminal: {
                 subject: 'ご存知ですか？Webターミナルが使えます',
                 preview: 'ブラウザから直接サーバーにアクセス',
+                tag: 'Webターミナル',
                 heading: 'サーバーはワンクリックで',
                 description:
                     '内蔵ターミナルでブラウザから直接サーバーにアクセスできます。SSHクライアント不要 — ClawHostを開いてコマンドを入力するだけ。',
@@ -599,6 +593,7 @@ const ja: Translations = {
             logs: {
                 subject: 'ご存知ですか？ダッシュボードでリアルタイムログ',
                 preview: 'ブラウザを離れずにサーバーログを監視',
+                tag: 'ライブログ',
                 heading: 'サーバーの状況を確認',
                 description:
                     'ClawHostダッシュボードからリアルタイムでサーバーログを監視。問題の診断、デプロイの追跡、アプリケーションのデバッグをブラウザから。',
@@ -608,6 +603,7 @@ const ja: Translations = {
                 subject: 'ご存知ですか？エージェントをDiscord、Slackなどに接続',
                 preview:
                     'AIエージェントをコミュニケーションチャンネルにバインド',
+                tag: 'チャンネル',
                 heading: 'エージェントをどこでも',
                 description:
                     'AIエージェントをDiscord、Slack、WhatsAppなどに接続。チャンネルの設定とエージェントへのバインド — すべてClawHostダッシュボードから。',
@@ -616,6 +612,7 @@ const ja: Translations = {
             fileExplorer: {
                 subject: 'ご存知ですか？ブラウザからサーバーファイルを編集',
                 preview: 'SSH不要でファイルの閲覧、読み取り、編集',
+                tag: 'ファイルエクスプローラー',
                 heading: 'ファイルを手元に',
                 description:
                     'ClawHostダッシュボードからサーバー上のファイルを直接閲覧、読み取り、編集。シンタックスハイライト、検索、即座の保存 — SSH不要。',
@@ -624,6 +621,7 @@ const ja: Translations = {
             playground: {
                 subject: 'ご存知ですか？インフラを視覚化',
                 preview: 'インタラクティブキャンバスでClawとエージェントを表示',
+                tag: 'プレイグラウンド',
                 heading: '全体像を把握',
                 description:
                     'Playgroundは、すべてのClawとエージェントを表示するインタラクティブグラフキャンバスを提供します。ノードをクリックして管理 — インフラのビジュアルコマンドセンター。',
@@ -632,6 +630,7 @@ const ja: Translations = {
             agentChat: {
                 subject: 'ご存知ですか？AIエージェントとチャット',
                 preview: 'ダッシュボードから直接エージェントと会話',
+                tag: 'エージェントチャット',
                 heading: 'エージェントと会話',
                 description:
                     'ClawHostダッシュボードから直接AIエージェントとチャット。メッセージの送信、画像の添付、会話履歴の表示 — すべて一か所で。',
@@ -640,6 +639,7 @@ const ja: Translations = {
             voiceMode: {
                 subject: 'ご存知ですか？音声でエージェントと会話',
                 preview: 'エージェントで音声入力と音声出力を使用',
+                tag: '音声モード',
                 heading: 'タイプせずに話す',
                 description:
                     'ボイスモードでAIエージェントとハンズフリーで会話。入力は音声認識、応答は音声合成 — 複数の音声から選択。',
@@ -648,6 +648,7 @@ const ja: Translations = {
             skills: {
                 subject: 'ご存知ですか？ClawHubに5,000以上のスキル',
                 preview: 'ワンクリックでコミュニティスキルを閲覧・インストール',
+                tag: 'ClawHubスキル',
                 heading: 'エージェントを即座に拡張',
                 description:
                     'ClawHubで5,000以上のスキルを閲覧し、ワンクリックでインストール。Web検索、コード実行、画像生成など。',
@@ -657,6 +658,7 @@ const ja: Translations = {
                 subject:
                     'ご存知ですか？エージェントを特定のチャンネルにバインド',
                 preview: 'どのエージェントがどのチャンネルで応答するかを制御',
+                tag: 'バインディング',
                 heading: 'チャンネルごとに1エージェント',
                 description:
                     '特定のエージェントを特定のチャンネルにバインド。DiscordにはサポートエージェントをWhatsAppにはアシスタントを — 誰がどこで応答するかはあなた次第。',
@@ -665,6 +667,7 @@ const ja: Translations = {
             envVars: {
                 subject: 'ご存知ですか？環境変数を管理',
                 preview: 'SSH不要でAPIキーと設定を設定',
+                tag: '環境変数',
                 heading: 'SSH不要で設定',
                 description:
                     'ClawHostダッシュボードから直接環境変数を追加、編集、削除。APIキー、シークレット、設定を設定 — ターミナル不要。',
@@ -673,6 +676,7 @@ const ja: Translations = {
             diagnostics: {
                 subject: 'ご存知ですか？内蔵ヘルスチェック',
                 preview: 'ダッシュボードからサーバーの健全性を監視',
+                tag: '診断',
                 heading: 'サーバーの健全性を確認',
                 description:
                     'Clawで診断を実行してサービスステータス、メモリ使用量、ポートの可用性を確認。問題が大きくなる前に発見。',
@@ -681,6 +685,7 @@ const ja: Translations = {
             sshKeys: {
                 subject: 'ご存知ですか？ClawHostからSSHキーを管理',
                 preview: 'ダッシュボードでSSHキーペアを生成・管理',
+                tag: 'SSHキー',
                 heading: 'SSHキーをシンプルに',
                 description:
                     'SSHキーペアの生成、公開鍵のコピー、秘密鍵のダウンロード — すべてClawHostダッシュボードから。セキュアなアクセスのためにClawにキーを割り当て。',
@@ -689,6 +694,7 @@ const ja: Translations = {
             exportConfig: {
                 subject: 'ご存知ですか？Claw設定をエクスポート',
                 preview: 'Clawのセットアップをポータブル設定としてダウンロード',
+                tag: '設定エクスポート',
                 heading: '設定を持ち運び',
                 description:
                     'Clawの設定とセッティングをダウンロード可能なファイルとしてエクスポート。セットアップのバックアップや環境の複製に使用。',
@@ -697,6 +703,7 @@ const ja: Translations = {
             multiLanguage: {
                 subject: 'ご存知ですか？ClawHostはあなたの言語に対応',
                 preview: 'ClawHostを14言語で使用',
+                tag: '多言語対応',
                 heading: 'あなたの言語でClawHost',
                 description:
                     'ClawHostダッシュボード全体を14言語のいずれかに切り替え。ボタンからエラーメッセージまで — 完全に翻訳。',
@@ -705,6 +712,7 @@ const ja: Translations = {
             subdomain: {
                 subject: 'ご存知ですか？各Clawに専用サブドメイン',
                 preview: 'カスタムURLでどこからでもClawにアクセス',
+                tag: 'カスタムサブドメイン',
                 heading: 'どこからでもアクセス',
                 description:
                     'すべてのClawに固有のサブドメインが付与され、どこからでもOpenClawインスタンスにアクセス可能。ポートフォワーディング不要、ローカルネットワーク不要 — URLだけ。',
@@ -713,6 +721,7 @@ const ja: Translations = {
             darkMode: {
                 subject: 'ご存知ですか？ClawHostにはダークモードがあります',
                 preview: 'ライトテーマとダークテーマを切り替え',
+                tag: 'ダークモード',
                 heading: '目に優しい',
                 description:
                     'ClawHostダッシュボードでライトテーマとダークテーマを切り替え。設定は保存され、毎回自動的に適用。',
@@ -721,6 +730,7 @@ const ja: Translations = {
             reinstall: {
                 subject: 'ご存知ですか？ワンクリックでOpenClawを再インストール',
                 preview: 'サーバーを失わずにOpenClawインスタンスをリセット',
+                tag: '再インストール',
                 heading: '新しいスタート、同じサーバー',
                 description:
                     '既存のサーバーにワンクリックでOpenClawランタイムを再インストール。サーバーはそのまま — OpenClawだけがクリーンインストール。',
@@ -729,6 +739,7 @@ const ja: Translations = {
             yearlyPlans: {
                 subject: 'ご存知ですか？年間プランでお得に',
                 preview: '年間契約に切り替えて節約',
+                tag: '年間プラン',
                 heading: 'もっとお得に',
                 description:
                     '年間契約に切り替えてClawサブスクリプションを節約。同じ素晴らしいサービス、より低い価格 — いつでもキャンセル可能。',

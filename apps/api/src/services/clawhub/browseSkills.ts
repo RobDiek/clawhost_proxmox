@@ -7,12 +7,12 @@ import type {
     SkillsCacheEntry
 } from '@/ts/Interfaces'
 
-import { RequestClient, inputValidation } from '@openclaw/shared'
+import { RequestClient, inputValidation, externalUrls } from '@openclaw/shared'
 
 const CACHE_TTL = 60 * 60 * 1000
 
 const client = new RequestClient({
-    baseUrl: 'https://clawhub.ai/api/v1'
+    baseUrl: externalUrls.CLAWHUB.API
 })
 
 let skillsCache: SkillsCacheEntry | null = null

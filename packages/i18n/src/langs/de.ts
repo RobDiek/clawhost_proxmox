@@ -599,172 +599,152 @@ const de: Translations = {
         otpHeading: 'Dein Anmeldecode lautet:',
         otpExpiry:
             'Der Code läuft in 10 Minuten ab. Falls du das nicht warst, ignoriere diese E-Mail.',
-        changelogSubject: 'Neuigkeiten bei ClawHost',
-        changelogPreview:
-            'Entdecke die neuesten Updates von ClawHost: {{title}}',
-        changelogHeading: 'Neuigkeiten',
-        changelogButton: 'Changelog anzeigen',
-        changelogVisitButton: 'ClawHost besuchen',
-        changelogFooter:
-            'Du erhältst diese E-Mail, weil du ein ClawHost-Konto hast.',
         featureFooter:
             'Du erhältst diese E-Mail, weil du ein ClawHost-Konto hast.',
         features: {
             terminal: {
-                subject: 'Wusstest du schon? Du hast ein Web-Terminal',
-                preview: 'Greife direkt über den Browser auf deinen Server zu',
-                heading: 'Dein Server ist nur einen Klick entfernt',
-                description:
-                    'Greife direkt über deinen Browser auf deinen Server zu — mit unserem integrierten Terminal. Kein SSH-Client nötig — öffne einfach ClawHost und tippe los.',
-                cta: 'Terminal öffnen'
+                subject: 'Du hast ein Web-Terminal',
+                preview: 'Befehle im Browser ausführen, ohne SSH',
+                tag: 'Web-Terminal',
+                heading: 'Befehle direkt im Browser',
+                description: 'Ein vollständiges Terminal in deinem Dashboard. Klick auf deinen Claw, los geht\'s. Kein SSH-Client nötig.',
+                cta: 'Terminal Öffnen'
             },
             logs: {
-                subject: 'Wusstest du schon? Echtzeit-Logs in deinem Dashboard',
-                preview: 'Überwache die Logs deines Servers direkt im Browser',
-                heading: 'Sieh, was dein Server macht',
-                description:
-                    'Überwache die Logs deines Servers in Echtzeit über das ClawHost-Dashboard. Diagnostiziere Probleme, verfolge Deployments und debugge deine Anwendungen — alles im Browser.',
-                cta: 'Logs anzeigen'
+                subject: 'Echtzeit-Logs in deinem Dashboard',
+                preview: 'Server-Logs live verfolgen',
+                tag: 'Live-Logs',
+                heading: 'Deine Logs live',
+                description: 'Jede Anfrage, jeder Fehler, live auf dein Dashboard gestreamt. Kein manuelles Log-Durchsuchen per SSH mehr.',
+                cta: 'Logs Anzeigen'
             },
             channels: {
-                subject:
-                    'Wusstest du schon? Verbinde Agenten mit Discord, Slack & mehr',
-                preview: 'Verknüpfe deine KI-Agenten mit Kommunikationskanälen',
-                heading: 'Deine Agenten, überall',
-                description:
-                    'Verbinde deine KI-Agenten mit Discord, Slack, WhatsApp und mehr. Konfiguriere Kanäle und verknüpfe sie mit Agenten — alles über das ClawHost-Dashboard.',
-                cta: 'Kanäle einrichten'
+                subject: 'Agenten mit Discord, Slack & mehr verbinden',
+                preview: 'Deine Agenten können dort sein, wo deine Nutzer sind',
+                tag: 'Kanäle',
+                heading: 'Deine Agenten, wo deine Nutzer sind',
+                description: 'Discord, Slack, WhatsApp, Telegram — verbinde deine KI-Agenten mit jeder Plattform in unter einer Minute.',
+                cta: 'Kanäle Einrichten'
             },
             fileExplorer: {
-                subject:
-                    'Wusstest du schon? Bearbeite Server-Dateien im Browser',
-                preview: 'Durchsuche, lese und bearbeite Dateien ohne SSH',
-                heading: 'Deine Dateien, griffbereit',
-                description:
-                    'Durchsuche, lese und bearbeite die Dateien deines Servers direkt im ClawHost-Dashboard. Syntax-Hervorhebung, Suche und sofortiges Speichern — ohne SSH.',
-                cta: 'Datei-Explorer öffnen'
+                subject: 'Server-Dateien im Browser bearbeiten',
+                preview: 'Dateien durchsuchen und bearbeiten ohne SSH',
+                tag: 'Datei-Explorer',
+                heading: 'Dateien bearbeiten ohne SSH',
+                description: 'Durchsuche, bearbeite und speichere Dateien mit Syntaxhervorhebung. Kein SSH, kein FTP — klicken und tippen.',
+                cta: 'Explorer Öffnen'
             },
             playground: {
-                subject: 'Wusstest du schon? Visualisiere deine Infrastruktur',
-                preview:
-                    'Sieh deine Claws und Agenten auf einem interaktiven Canvas',
-                heading: 'Sieh das große Ganze',
-                description:
-                    'Der Playground bietet dir ein interaktives Canvas mit all deinen Claws und Agenten. Klicke auf einen Knoten, um ihn zu verwalten — ein visuelles Kommandozentrum für deine Infrastruktur.',
-                cta: 'Playground öffnen'
+                subject: 'Infrastruktur visualisieren',
+                preview: 'Claws und Agenten auf einer Leinwand sehen',
+                tag: 'Playground',
+                heading: 'Deine Infrastruktur, visualisiert',
+                description: 'Ein interaktiver Graph aller Claws und Agenten. Ziehen, zoomen, auf jeden Knoten klicken zum Verwalten.',
+                cta: 'Playground Öffnen'
             },
             agentChat: {
-                subject: 'Wusstest du schon? Chatte mit deinen KI-Agenten',
-                preview: 'Sprich mit deinen Agenten direkt im Dashboard',
+                subject: 'Chatte mit deinen KI-Agenten',
+                preview: 'Sprich mit deinen Agenten vom Dashboard',
+                tag: 'Agenten-Chat',
                 heading: 'Sprich mit deinen Agenten',
-                description:
-                    'Chatte mit deinen KI-Agenten direkt im ClawHost-Dashboard. Sende Nachrichten, hänge Bilder an und sieh den Verlauf — alles an einem Ort.',
-                cta: 'Chat starten'
+                description: 'Chat öffnen, Nachricht senden, Antwort erhalten. Bilder anhängen, Verlauf durchsuchen, zwischen Agenten wechseln.',
+                cta: 'Chat Starten'
             },
             voiceMode: {
-                subject:
-                    'Wusstest du schon? Sprich per Stimme mit deinen Agenten',
-                preview: 'Nutze Spracherkennung mit deinen Agenten',
-                heading: 'Sprich, statt zu tippen',
-                description:
-                    'Nutze den Sprachmodus, um freihändig mit deinen KI-Agenten zu sprechen. Spracherkennung für Eingaben, Sprachsynthese für Antworten — mit mehreren Stimmen zur Auswahl.',
-                cta: 'Sprachmodus testen'
+                subject: 'Sprich mit deinen Agenten per Stimme',
+                preview: 'Freihändig mit Agenten kommunizieren',
+                tag: 'Sprachmodus',
+                heading: 'Sprechen statt tippen',
+                description: 'Sprich laut mit deinen KI-Agenten und höre ihre Antworten. Mehrere Stimmen, komplett freihändig.',
+                cta: 'Sprachmodus Testen'
             },
             skills: {
-                subject: 'Wusstest du schon? Über 5.000 Skills auf ClawHub',
-                preview:
-                    'Durchsuche und installiere Community-Skills mit einem Klick',
-                heading: 'Erweitere deine Agenten sofort',
-                description:
-                    'Durchsuche über 5.000 fertige Skills auf ClawHub und installiere sie mit einem einzigen Klick. Websuche, Code-Ausführung, Bildgenerierung und vieles mehr.',
-                cta: 'ClawHub durchsuchen'
+                subject: 'Über 5.000 Skills auf ClawHub',
+                preview: 'Community-Skills mit einem Klick installieren',
+                tag: 'ClawHub-Skills',
+                heading: '5.000+ Skills, ein Klick zum Installieren',
+                description: 'Websuche, Code-Ausführung, Bildgenerierung — durchsuche ClawHub und erweitere deine Agenten sofort.',
+                cta: 'ClawHub Durchsuchen'
             },
             bindings: {
-                subject: 'Wusstest du schon? Binde Agenten an bestimmte Kanäle',
-                preview: 'Bestimme, welcher Agent auf welchem Kanal antwortet',
-                heading: 'Ein Agent pro Kanal',
-                description:
-                    'Binde bestimmte Agenten an bestimmte Kanäle. Dein Support-Agent auf Discord, dein Assistent auf WhatsApp — du entscheidest, wer wo antwortet.',
-                cta: 'Bindungen konfigurieren'
+                subject: 'Agenten an Kanäle binden',
+                preview: 'Kontrolliere welcher Agent wo antwortet',
+                tag: 'Verknüpfungen',
+                heading: 'Richtiger Agent, richtiger Kanal',
+                description: 'Dein Support-Agent auf Discord, dein Assistent auf WhatsApp. Du entscheidest wer wo antwortet.',
+                cta: 'Verknüpfungen Konfigurieren'
             },
             envVars: {
-                subject: 'Wusstest du schon? Umgebungsvariablen verwalten',
-                preview: 'Setze API-Schlüssel und Konfiguration ohne SSH',
-                heading: 'Konfiguriere ohne SSH',
-                description:
-                    'Füge Umgebungsvariablen direkt im ClawHost-Dashboard hinzu, bearbeite und lösche sie. API-Schlüssel, Secrets und Konfiguration — ohne Terminal.',
-                cta: 'Variablen verwalten'
+                subject: 'Umgebungsvariablen vom Dashboard verwalten',
+                preview: 'API-Keys und Secrets ohne SSH setzen',
+                tag: 'Umgebungsvariablen',
+                heading: 'Secrets und Keys, ohne SSH',
+                description: 'Umgebungsvariablen über eine saubere Oberfläche hinzufügen, bearbeiten oder löschen. Änderungen werden sofort wirksam.',
+                cta: 'Variablen Verwalten'
             },
             diagnostics: {
-                subject: 'Wusstest du schon? Integrierte Gesundheitschecks',
-                preview: 'Überwache die Servergesundheit im Dashboard',
-                heading: 'Wisse, dass dein Server gesund ist',
-                description:
-                    'Führe Diagnosen auf deinem Claw durch, um Dienststatus, Speichernutzung und Portverfügbarkeit zu prüfen. Erkenne Probleme, bevor sie ernst werden.',
-                cta: 'Diagnose starten'
+                subject: 'Integrierte Gesundheitschecks',
+                preview: 'Server-Gesundheit mit einem Klick prüfen',
+                tag: 'Diagnose',
+                heading: 'Ist dein Server gesund?',
+                description: 'Services, Speicher, Festplatte und Ports mit einem Klick prüfen. Probleme erkennen bevor sie zu Ausfällen werden.',
+                cta: 'Diagnose Starten'
             },
             sshKeys: {
-                subject:
-                    'Wusstest du schon? SSH-Schlüssel über ClawHost verwalten',
-                preview:
-                    'Generiere und verwalte SSH-Schlüsselpaare im Dashboard',
+                subject: 'SSH-Schlüssel von ClawHost verwalten',
+                preview: 'Schlüsselpaare einfach generieren und verwalten',
+                tag: 'SSH-Schlüssel',
                 heading: 'SSH-Schlüssel, vereinfacht',
-                description:
-                    'Generiere SSH-Schlüsselpaare, kopiere öffentliche Schlüssel und lade private Schlüssel herunter — alles im ClawHost-Dashboard. Weise Schlüssel deinen Claws für sicheren Zugang zu.',
-                cta: 'SSH-Schlüssel verwalten'
+                description: 'Schlüsselpaare generieren, öffentliche kopieren, private herunterladen — alles vom Dashboard.',
+                cta: 'SSH-Schlüssel Verwalten'
             },
             exportConfig: {
-                subject:
-                    'Wusstest du schon? Exportiere deine Claw-Konfiguration',
-                preview: 'Lade dein Setup als portable Datei herunter',
-                heading: 'Nimm deine Konfiguration mit',
-                description:
-                    'Exportiere die Konfiguration und Einstellungen deines Claws als herunterladbare Datei. Sichere dein Setup oder nutze es, um deine Umgebung zu replizieren.',
-                cta: 'Konfiguration exportieren'
+                subject: 'Claw-Config exportieren',
+                preview: 'Konfiguration als Datei herunterladen',
+                tag: 'Config Exportieren',
+                heading: 'Config mitnehmen',
+                description: 'Agenten, Skills, Kanäle und Einstellungen als eine Datei exportieren. Sichern oder Setup replizieren.',
+                cta: 'Config Exportieren'
             },
             multiLanguage: {
-                subject: 'Wusstest du schon? ClawHost spricht deine Sprache',
-                preview: 'Nutze ClawHost in 14 Sprachen',
-                heading: 'ClawHost in deiner Sprache',
-                description:
-                    'Stelle das gesamte ClawHost-Dashboard auf eine von 14 Sprachen um. Von Buttons bis Fehlermeldungen — alles übersetzt.',
-                cta: 'Sprache ändern'
+                subject: 'ClawHost spricht 14 Sprachen',
+                preview: 'Dashboard-Sprache wechseln',
+                tag: 'Mehrsprachig',
+                heading: '14 Sprachen, vollständig übersetzt',
+                description: 'Wechsle ClawHost zu Deutsch, Englisch, Französisch, Spanisch und 10 weitere. Jeder Button, jede Nachricht.',
+                cta: 'Sprache Ändern'
             },
             subdomain: {
-                subject:
-                    'Wusstest du schon? Jeder Claw hat seine eigene Subdomain',
-                preview:
-                    'Greife von überall auf deinen Claw zu — mit einer eigenen URL',
-                heading: 'Zugriff von überall',
-                description:
-                    'Jeder Claw erhält eine eigene Subdomain, um von überall auf deine OpenClaw-Instanz zuzugreifen. Kein Port-Forwarding, kein lokales Netzwerk — nur eine URL.',
-                cta: 'Deine Subdomain ansehen'
+                subject: 'Dein Claw hat eine eigene URL',
+                preview: 'Greife von überall auf deinen Claw zu',
+                tag: 'Subdomain',
+                heading: 'Dein Claw, deine URL',
+                description: 'Jeder Claw bekommt eine einzigartige Subdomain wie meinclaw.clawhost.cloud. Von überall erreichbar, ohne VPN.',
+                cta: 'Deine Subdomain Anzeigen'
             },
             darkMode: {
-                subject: 'Wusstest du schon? ClawHost hat einen Dark Mode',
-                preview: 'Wechsle zwischen hellem und dunklem Design',
-                heading: 'Angenehm für die Augen',
-                description:
-                    'Wechsle zwischen hellem und dunklem Design im ClawHost-Dashboard. Deine Einstellung wird gespeichert und bei jedem Besuch automatisch angewendet.',
-                cta: 'Dark Mode testen'
+                subject: 'Dunkelmodus ist da',
+                preview: 'Zwischen hellem und dunklem Theme wechseln',
+                tag: 'Dunkelmodus',
+                heading: 'Schonend für die Augen',
+                description: 'Mit einem Klick zwischen Hell und Dunkel wechseln. Deine Einstellung wird automatisch gespeichert.',
+                cta: 'Dunkelmodus Testen'
             },
             reinstall: {
-                subject:
-                    'Wusstest du schon? OpenClaw mit einem Klick neu installieren',
-                preview:
-                    'Setze deine OpenClaw-Instanz zurück, ohne den Server zu verlieren',
-                heading: 'Neustart, gleicher Server',
-                description:
-                    'Installiere die OpenClaw-Runtime auf deinem bestehenden Server mit einem einzigen Klick neu. Dein Server bleibt intakt — nur OpenClaw bekommt eine saubere Installation.',
-                cta: 'Mehr erfahren'
+                subject: 'Neuanfang, ein Klick',
+                preview: 'OpenClaw neu installieren ohne Server zu verlieren',
+                tag: 'Neuinstallation',
+                heading: 'Neuanfang, gleicher Server',
+                description: 'Neuinstallation löscht die OpenClaw-Runtime und gibt dir eine saubere Seite. Server, IP und Schlüssel bleiben gleich.',
+                cta: 'Mehr Erfahren'
             },
             yearlyPlans: {
-                subject: 'Wusstest du schon? Spare mit Jahresplänen',
-                preview: 'Wechsle zu jährlicher Abrechnung und zahle weniger',
-                heading: 'Weniger zahlen, mehr bekommen',
-                description:
-                    'Wechsle zur jährlichen Abrechnung und spare bei deinem Claw-Abo. Der gleiche großartige Service, günstigerer Preis — jederzeit kündbar.',
-                cta: 'Pläne ansehen'
+                subject: 'Sparen mit jährlicher Abrechnung',
+                preview: 'Gleicher Service, niedrigerer Preis',
+                tag: 'Jahrespläne',
+                heading: 'Gleicher Claw, kleinere Rechnung',
+                description: 'Wechsle zur jährlichen Abrechnung und zahle weniger. Keine Funktionsunterschiede. Jederzeit wechselbar.',
+                cta: 'Pläne Anzeigen'
             }
         }
     },

@@ -21,7 +21,7 @@ import type {
     DatacenterAvailability
 } from '@/ts/Interfaces'
 
-import { RequestClient, clawStatus } from '@openclaw/shared'
+import { RequestClient, clawStatus, externalUrls } from '@openclaw/shared'
 
 const mapStatus = (hetznerStatus: string): string => {
     const statusMap: Record<string, string> = {
@@ -38,7 +38,7 @@ const getClient = () => {
     }
 
     return new RequestClient({
-        baseUrl: 'https://api.hetzner.cloud/v1',
+        baseUrl: externalUrls.HETZNER.API,
         getHeaders: () => ({ Authorization: `Bearer ${token}` })
     })
 }

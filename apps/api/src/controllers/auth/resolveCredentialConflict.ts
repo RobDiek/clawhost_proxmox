@@ -7,7 +7,7 @@ import type {
 } from '@/ts/Interfaces'
 
 import { eq, sql } from 'drizzle-orm'
-import { authMethod } from '@openclaw/shared'
+import { authMethod, externalUrls } from '@openclaw/shared'
 import { auth } from '@/services/firebase'
 import { db } from '@/db'
 import { users } from '@/db/schema'
@@ -16,10 +16,10 @@ import { ok, fail } from '@/lib/response'
 
 const verifyGithubToken = async (accessToken: string) => {
     const [userRes, emailsRes] = await Promise.all([
-        fetch('https://api.github.com/user', {
+        fetch(externalUrls.GITHUB.USER, {
             headers: { Authorization: `Bearer ${accessToken}` }
         }),
-        fetch('https://api.github.com/user/emails', {
+        fetch(externalUrls.GITHUB.USER_EMAILS, {
             headers: { Authorization: `Bearer ${accessToken}` }
         })
     ])
@@ -41,7 +41,7 @@ const verifyGithubToken = async (accessToken: string) => {
 }
 
 const verifyGoogleToken = async (accessToken: string) => {
-    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    const res = await fetch(externalUrls.GOOGLE.USERINFO, {
         headers: { Authorization: `Bearer ${accessToken}` }
     })
 
