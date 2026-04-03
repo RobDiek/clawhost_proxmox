@@ -45,6 +45,11 @@ import {
     getHealthStatus,
     toggleAutoHeal,
     getUsage,
+    saveGbpConfig,
+    getGbpConfig,
+    createGbpPost,
+    getGbpReviews,
+    replyToGbpReview,
     saveWaConfig,
     getWaConfigEndpoint,
     getWaContacts,
@@ -179,6 +184,13 @@ app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
 app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)
 app.patch('/instances/:id/outputs/:outputId/archive', archiveOutput)
 app.delete('/instances/:id/outputs/:outputId', deleteOutput)
+
+// ── Google Business Profile ──
+app.post('/instances/:id/gbp/config', saveGbpConfig)
+app.get('/instances/:id/gbp/config', getGbpConfig)
+app.post('/instances/:id/gbp/posts', createGbpPost)
+app.get('/instances/:id/gbp/reviews', getGbpReviews)
+app.post('/instances/:id/gbp/reviews/reply', replyToGbpReview)
 
 // ── WhatsApp Business ──
 app.post('/instances/:id/whatsapp/config', saveWaConfig)

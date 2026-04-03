@@ -46,6 +46,7 @@ const SCOPE_MAP: Record<string, string> = {
     sheets: 'https://www.googleapis.com/auth/spreadsheets',
     youtube: 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube',
     ads: 'https://www.googleapis.com/auth/adwords',
+    gbp: 'https://www.googleapis.com/auth/business.manage',
 }
 
 // ── GET /integrations/google/auth ──

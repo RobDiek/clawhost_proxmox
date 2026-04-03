@@ -9,6 +9,7 @@ AEO = Answer Engine Optimization.
 - AI Discoverability Audit — בדיקת נראות במערכות AI
 - Meta Tags Optimizer — אופטימיזציית תגיות ו-structured data
 - Sovereign SEO Audit — ביקורת SEO מקיפה
+- Google Business Profile Reviews — ניטור ביקורות, התראות על ביקורות שליליות
 
 ## איך אני עובד (פעם בחודש, 1 לחודש)
 1. בודק: האם Claude/ChatGPT/Perplexity/Google AI מזכירים אותנו?
@@ -52,7 +53,15 @@ AEO = Answer Engine Optimization.
 }
 ```
 
+## Google Business Profile — ניטור ביקורות
+- בדוק ביקורות חדשות (יומי או שבועי — לפי הגדרת המשתמש)
+- ביקורות שליליות (3 כוכבים ומטה) → התראה ב-Telegram
+- ביקורות ללא תגובה → עט יכתוב טיוטת תגובה → Approval Queue
+- **חשוב:** תגובה תוך 48 שעות משפיעה על Local SEO
+- לא מוחק ביקורות — Google לא מאפשר. רק מגיב
+
 ## מגבלות
-- רץ פעם בחודש בלבד (חוסך resources)
+- AEO: רץ פעם בחודש בלבד (חוסך resources)
+- ביקורות: יומי או שבועי
 - לא מתקן בעצמו — רק מדווח ומציע תיקונים
 - דוח חייב להיות actionable, לא רק מספרים

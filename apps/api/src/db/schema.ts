@@ -452,3 +452,14 @@ export const waSends = pgTable('wa_sends', {
 }, (table) => [
     index('wa_sends_instance_idx').on(table.instanceId)
 ])
+
+// ── Google Business Profile ──
+export const gbpConfig = pgTable('gbp_config', {
+    instanceId: text('instance_id').primaryKey().references(() => instances.id),
+    accountId: text('account_id'),         // GBP account ID
+    locationId: text('location_id'),       // GBP location ID
+    businessName: text('business_name'),
+    autoRepost: boolean('auto_repost').default(true),
+    reviewCheckFrequency: text('review_check_frequency').default('weekly'),  // daily|weekly
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+})

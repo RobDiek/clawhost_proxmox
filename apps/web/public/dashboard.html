@@ -1101,6 +1101,7 @@ input{font-family:inherit}
               <label class="chip-label"><input type="checkbox" name="google-scope" value="gmail"/><span class="chip">✉️ Gmail</span></label>
               <label class="chip-label"><input type="checkbox" name="google-scope" value="sheets"/><span class="chip">📊 Sheets</span></label>
               <label class="chip-label"><input type="checkbox" name="google-scope" value="ads"/><span class="chip">📢 Google Ads</span></label>
+              <label class="chip-label"><input type="checkbox" name="google-scope" value="gbp"/><span class="chip">📍 Business Profile</span></label>
             </div>
             <button class="btn btn-primary btn-sm" onclick="connectGoogle()">→ חברו חשבון Google</button>
           </div>
@@ -1118,6 +1119,7 @@ input{font-family:inherit}
                 <label class="chip-label"><input type="checkbox" name="google-scope-edit" value="gmail"/><span class="chip">✉️ Gmail</span></label>
                 <label class="chip-label"><input type="checkbox" name="google-scope-edit" value="sheets"/><span class="chip">📊 Sheets</span></label>
                 <label class="chip-label"><input type="checkbox" name="google-scope-edit" value="ads"/><span class="chip">📢 Google Ads</span></label>
+                <label class="chip-label"><input type="checkbox" name="google-scope-edit" value="gbp"/><span class="chip">📍 Business Profile</span></label>
               </div>
               <button class="btn btn-primary btn-sm" onclick="reconnectGoogleWithScopes()">→ עדכנו הרשאות</button>
             </div>
@@ -1264,6 +1266,43 @@ input{font-family:inherit}
         <div id="metaads-connected" style="display:none">
           <div style="font-size:0.85rem;color:#10B981;margin-bottom:6px">&#10003; מחובר: <span id="metaads-pages"></span></div>
           <button class="btn btn-outline btn-sm" onclick="disconnectMeta()" style="color:#EF4444;border-color:#FECACA;font-size:0.78rem">נתקו</button>
+        </div>
+      </div>
+
+      <!-- 4.5 Google Business Profile -->
+      <div class="int-card" id="pub-gbp-card">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#E8F5E9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="#4285F4" stroke-width="1.5" fill="none"/><circle cx="12" cy="9" r="2.5" stroke="#EA4335" stroke-width="1.5"/></svg></div>
+          <div><strong>Google Business Profile</strong><div class="int-status" id="gbp-status">לא מוגדר</div></div>
+        </div>
+        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">פוסטים אוטומטיים + תגובות לביקורות</div>
+
+        <div id="gbp-config-form">
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="int-input" id="gbp-account-id" type="text" placeholder="Account ID" dir="ltr" style="flex:1"/>
+            <input class="int-input" id="gbp-location-id" type="text" placeholder="Location ID" dir="ltr" style="flex:1"/>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <input class="int-input" id="gbp-business-name" type="text" placeholder="שם העסק" style="flex:1"/>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:8px;font-size:0.82rem">
+            <label><input type="checkbox" id="gbp-auto-repost" checked/> פרסום חוזר כל 6 ימים</label>
+            <label style="margin-right:12px">בדיקת ביקורות:
+              <select id="gbp-review-freq" style="font-size:0.78rem;padding:2px 4px;border:1px solid #E5E7EB;border-radius:4px">
+                <option value="weekly">שבועי</option>
+                <option value="daily">יומי</option>
+              </select>
+            </label>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveGbpConfig()">שמרו</button>
+          <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px">חברו קודם Google עם scope Business Profile</div>
+        </div>
+
+        <div id="gbp-connected-info" style="display:none;margin-top:8px">
+          <div style="font-size:0.82rem;color:#10B981;margin-bottom:4px">✓ <span id="gbp-biz-name"></span></div>
+          <div style="display:flex;gap:12px;font-size:0.78rem;color:#6B7280">
+            <span id="gbp-review-count">ביקורות: —</span>
+          </div>
         </div>
       </div>
 
@@ -6189,6 +6228,47 @@ function showToast(msg, type) {
   clearTimeout(el._t);
   el._t = setTimeout(function() { el.classList.remove('show'); }, 3000);
 }
+
+// ── Google Business Profile ──
+async function loadGbpStatus() {
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/gbp/config', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (data.success && data.data && data.data.accountId) {
+      document.getElementById('gbp-status').textContent = 'מוגדר';
+      document.getElementById('gbp-status').style.color = '#10B981';
+      document.getElementById('gbp-config-form').style.display = 'none';
+      document.getElementById('gbp-connected-info').style.display = 'block';
+      document.getElementById('gbp-biz-name').textContent = data.data.businessName || data.data.accountId;
+    }
+  } catch (e) {}
+}
+
+async function saveGbpConfig() {
+  var accountId = document.getElementById('gbp-account-id').value.trim();
+  var locationId = document.getElementById('gbp-location-id').value.trim();
+  var businessName = document.getElementById('gbp-business-name').value.trim();
+  var autoRepost = document.getElementById('gbp-auto-repost').checked;
+  var reviewFreq = document.getElementById('gbp-review-freq').value;
+  if (!accountId || !locationId) { showToast('Account ID ו-Location ID חובה', 'error'); return; }
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/gbp/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ accountId: accountId, locationId: locationId, businessName: businessName, autoRepost: autoRepost, reviewCheckFrequency: reviewFreq })
+    });
+    var data = await res.json();
+    if (data.success) { showToast('GBP מוגדר', 'success'); loadGbpStatus(); }
+    else showToast(data.message || 'שגיאה', 'error');
+  } catch (e) { showToast('שגיאה', 'error'); }
+}
+
+// Load GBP when integrations tab opens
+document.addEventListener('click', function(e) {
+  if (e.target.closest('[data-tab="integrations"]')) setTimeout(loadGbpStatus, 300);
+});
 
 // ── WhatsApp Business ──
 async function loadWaStatus() {
