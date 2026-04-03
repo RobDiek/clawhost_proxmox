@@ -46,6 +46,9 @@ import {
     toggleAutoHeal,
     getUsage,
     diagnoseError,
+    getOllamaStatus,
+    installOllama,
+    pullOllamaModel,
     getMyReferralCode,
     getMyReferrals,
     validateReferralCode,
@@ -192,6 +195,11 @@ app.delete('/instances/:id/outputs/:outputId', deleteOutput)
 
 // ── Diagnostics ──
 app.post('/instances/:id/diagnose', diagnoseError)
+
+// ── Ollama ──
+app.get('/instances/:id/ollama/status', getOllamaStatus)
+app.post('/instances/:id/ollama/install', installOllama)
+app.post('/instances/:id/ollama/pull', pullOllamaModel)
 
 // ── Referral Program ──
 app.get('/referral/my-code', getMyReferralCode)
