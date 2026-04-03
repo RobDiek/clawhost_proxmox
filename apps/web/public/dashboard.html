@@ -791,7 +791,7 @@ input{font-family:inherit}
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px" id="agent-overview-grid">
         <div class="stat-card"><div class="stat-label">מודל AI</div><div class="stat-value" id="agent-model">Claude Sonnet</div></div>
         <div class="stat-card"><div class="stat-label">פעילות אחרונה</div><div class="stat-value" id="agent-last-activity">—</div></div>
-        <div class="stat-card"><div class="stat-label">סוכני משנה</div><div class="stat-value">8 פעילים</div></div>
+        <div class="stat-card" id="stat-subagents"><div class="stat-label">סוכני משנה</div><div class="stat-value" id="stat-subagents-val">—</div></div>
       </div>
 
       <!-- 2. Business Profile (questionnaire) -->
@@ -910,10 +910,12 @@ input{font-family:inherit}
         </div>
       </div>
 
-      <!-- 4. Sub-agents with model selector -->
-      <div class="section-title" style="margin-top:28px">סוכני משנה</div>
-      <div class="sub-agents-grid" id="sub-agents-grid"></div>
-      <div style="margin-top:8px;text-align:left"><button class="btn btn-outline" onclick="saveSubAgentModels()" style="font-size:0.82rem">&#128190; שמרו שינויים</button></div>
+      <!-- 4. Sub-agents with model selector (MATEH only) -->
+      <div id="subagents-section">
+        <div class="section-title" style="margin-top:28px">סוכני משנה</div>
+        <div class="sub-agents-grid" id="sub-agents-grid"></div>
+        <div style="margin-top:8px;text-align:left"><button class="btn btn-outline" onclick="saveSubAgentModels()" style="font-size:0.82rem">&#128190; שמרו שינויים</button></div>
+      </div>
 
       <!-- Danger Zone (inside config) -->
       <div class="section-title" style="margin-top:28px;color:#EF4444">אזור מסוכן</div>
@@ -5279,14 +5281,52 @@ function openAgentDetail(agentType) {
   var provider = localStorage.getItem('cf_api_key_saved') || '';
   document.getElementById('agent-model').textContent = provider === 'anthropic' ? 'Claude Sonnet' : provider === 'openai' ? 'GPT-4o' : 'לא מוגדר';
 
+  var isMatehAgent = (agentType === 'mt');
+
+  // Sub-agents stat
+  var subStat = document.getElementById('stat-subagents');
+  var subStatVal = document.getElementById('stat-subagents-val');
+  if (isMatehAgent) {
+    if (subStat) subStat.style.display = '';
+    if (subStatVal) subStatVal.textContent = '8 פעילים';
+  } else {
+    if (subStat) subStat.style.display = 'none';
+  }
+
+  // Show/hide MATEH-specific tabs
+  var researchTab = document.getElementById('agent-dtab-research');
+  if (researchTab) researchTab.style.display = isMatehAgent ? '' : 'none';
+
+  // Show/hide MATEH-specific sections in overview
+  var questionnaireSection = document.getElementById('agent-questionnaire-details');
+  if (questionnaireSection) questionnaireSection.style.display = isMatehAgent ? '' : 'none';
+
+  // Show/hide sub-agents section in config
+  var subagentsSection = document.getElementById('subagents-section');
+  if (subagentsSection) subagentsSection.style.display = isMatehAgent ? '' : 'none';
+
   // Populate saved profile if exists
-  renderAgentProfile();
-
-  // Render sub-agents with model selectors
-  renderSubAgents();
-
-  // Show existing research report
-  renderResearchReport();
+  if (isMatehAgent) {
+    renderAgentProfile();
+    renderSubAgents();
+    renderResearchReport();
+  } else {
+    // Personal agent — show simple profile
+    var container = document.getElementById('agent-saved-profile');
+    if (container && instanceData && instanceData.researchData) {
+      var rd = instanceData.researchData;
+      if (rd.userName) {
+        container.innerHTML = '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px;font-size:0.85rem;line-height:1.9">' +
+          '<div><strong>שם:</strong> ' + (rd.userName || '') + '</div>' +
+          (rd.occupation ? '<div><strong>תעסוקה:</strong> ' + rd.occupation + '</div>' : '') +
+          (rd.tone ? '<div><strong>סגנון:</strong> ' + rd.tone + '</div>' : '') +
+          (rd.delegatedTasks ? '<div><strong>משימות:</strong> ' + rd.delegatedTasks.join(', ') + '</div>' : '') +
+          '</div>';
+      } else if (rd.answers && rd.answers.businessName) {
+        renderAgentProfile();
+      }
+    }
+  }
 
   // Load activity log
   loadAgentActivityLog();
