@@ -7,15 +7,44 @@ import { resolveUserId, getOwnedInstance } from './authHelper'
 
 const GBP_BASE = 'https://mybusiness.googleapis.com/v4'
 
-// Helper: get Google access token for this instance
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
+
+// Helper: get Google access token for this instance (with auto-refresh)
 async function getGoogleToken(instanceId: string): Promise<string | null> {
     const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
     const tokens = instance?.googleTokens as any
     if (!tokens?.accessToken) return null
 
     // Check expiry — refresh if needed
-    if (tokens.expiresAt && tokens.expiresAt < Date.now()) {
-        // TODO: implement token refresh via Google OAuth
+    if (tokens.expiresAt && tokens.expiresAt < Date.now() && tokens.refreshToken) {
+        try {
+            const res = await fetch('https://oauth2.googleapis.com/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    client_id: GOOGLE_CLIENT_ID,
+                    client_secret: GOOGLE_CLIENT_SECRET,
+                    refresh_token: tokens.refreshToken,
+                    grant_type: 'refresh_token',
+                }),
+                signal: AbortSignal.timeout(10000),
+            })
+            const data = await res.json() as { access_token?: string; expires_in?: number }
+            if (data.access_token) {
+                // Update stored token
+                const updated = {
+                    ...tokens,
+                    accessToken: data.access_token,
+                    expiresAt: Date.now() + (data.expires_in || 3600) * 1000,
+                }
+                await db.update(instances).set({ googleTokens: updated as any })
+                    .where(eq(instances.id, instanceId))
+                return data.access_token
+            }
+        } catch (err) {
+            console.error('Google token refresh failed:', err)
+        }
         return null
     }
     return tokens.accessToken
@@ -58,6 +87,11 @@ export const saveGbpConfig = async (c: Context) => {
         }>()
 
         if (!body.accountId || !body.locationId) return fail(c, 'Account ID and Location ID required', 400)
+
+        // Validate format — account and location IDs are numeric
+        if (!/^\d+$/.test(body.accountId) || !/^\d+$/.test(body.locationId)) {
+            return fail(c, 'Account ID and Location ID must be numeric', 400)
+        }
 
         await db.insert(gbpConfig).values({
             instanceId,
@@ -195,6 +229,7 @@ export const replyToGbpReview = async (c: Context) => {
 
         const body = await c.req.json<{ reviewName: string; comment: string }>()
         if (!body.reviewName || !body.comment) return fail(c, 'Review name and comment required', 400)
+        if (body.comment.length > 1024) return fail(c, 'Reply max 1024 characters', 400)
 
         const token = await getGoogleToken(instanceId)
         if (!token) return fail(c, 'Google not connected', 401)
