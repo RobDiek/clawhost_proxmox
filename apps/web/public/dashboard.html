@@ -882,6 +882,7 @@ input{font-family:inherit}
             <button class="btn btn-outline" onclick="saveSchedule('daily')" style="font-size:0.78rem;padding:4px 10px">שמרו</button>
           </div>
         </div>
+        <div id="mateh-schedules-section">
         <div class="schedule-row">
           <div class="schedule-info">
             <div class="schedule-name">דוח תחרותי שבועי</div>
@@ -907,6 +908,7 @@ input{font-family:inherit}
             <input type="time" id="sched-monthly-time" value="10:00" style="border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;font-size:0.82rem;direction:ltr;width:90px"/>
             <button class="btn btn-outline" onclick="saveSchedule('monthly')" style="font-size:0.78rem;padding:4px 10px">שמרו</button>
           </div>
+        </div>
         </div>
       </div>
 
@@ -5315,6 +5317,10 @@ function openAgentDetail(agentType) {
   // Show/hide sub-agents section in config
   var subagentsSection = document.getElementById('subagents-section');
   if (subagentsSection) subagentsSection.style.display = isMatehAgent ? '' : 'none';
+
+  // Show/hide MATEH-only schedules (weekly competitive + monthly AEO)
+  var matehSchedules = document.getElementById('mateh-schedules-section');
+  if (matehSchedules) matehSchedules.style.display = isMatehAgent ? '' : 'none';
 
   // Populate saved profile if exists
   if (isMatehAgent) {
