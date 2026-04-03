@@ -45,6 +45,10 @@ import {
     getHealthStatus,
     toggleAutoHeal,
     getUsage,
+    getMyReferralCode,
+    getMyReferrals,
+    validateReferralCode,
+    activateReferralTrial,
     saveGbpConfig,
     getGbpConfig,
     createGbpPost,
@@ -184,6 +188,12 @@ app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
 app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)
 app.patch('/instances/:id/outputs/:outputId/archive', archiveOutput)
 app.delete('/instances/:id/outputs/:outputId', deleteOutput)
+
+// ── Referral Program ──
+app.get('/referral/my-code', getMyReferralCode)
+app.get('/referral/my-referrals', getMyReferrals)
+app.get('/referral/validate/:code', validateReferralCode)  // public, no auth
+app.post('/referral/activate', activateReferralTrial)
 
 // ── Google Business Profile ──
 app.post('/instances/:id/gbp/config', saveGbpConfig)

@@ -1,0 +1,185 @@
+import type { Context } from 'hono'
+import { eq, and } from 'drizzle-orm'
+import { db } from '@/db'
+import { referrals, instances, users } from '@/db/schema'
+import { ok, fail } from '@/lib/response'
+import { randomBytes } from 'crypto'
+
+function generateCode(): string {
+    return 'CF-' + randomBytes(4).toString('hex').toUpperCase().slice(0, 6)
+}
+
+// Helper: get userId from JWT
+function resolveUserId(c: Context): string | null {
+    return c.get('userId') || null
+}
+
+// GET /referral/my-code — get or create referral code for current user
+export const getMyReferralCode = async (c: Context) => {
+    try {
+        const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Unauthorized', 401)
+
+        // Check if user already has a referral code
+        const existing = await db.select().from(referrals)
+            .where(and(eq(referrals.referrerUserId, userId), eq(referrals.status, 'pending')))
+
+        if (existing.length > 0) {
+            return ok(c, {
+                code: existing[0].referralCode,
+                link: `https://clawflow.flowmatic.co.il/?ref=${existing[0].referralCode}`,
+            }, 'Referral code')
+        }
+
+        // Create new code
+        const code = generateCode()
+        await db.insert(referrals).values({
+            referrerUserId: userId,
+            referralCode: code,
+        })
+
+        return ok(c, {
+            code,
+            link: `https://clawflow.flowmatic.co.il/?ref=${code}`,
+        }, 'Referral code created')
+    } catch (err) {
+        console.error('getMyReferralCode error:', err)
+        return fail(c, 'Failed to get referral code', 500)
+    }
+}
+
+// GET /referral/my-referrals — list referrals for current user
+export const getMyReferrals = async (c: Context) => {
+    try {
+        const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Unauthorized', 401)
+
+        const refs = await db.select().from(referrals)
+            .where(eq(referrals.referrerUserId, userId))
+
+        const converted = refs.filter(r => r.status === 'converted' || r.status === 'rewarded').length
+        const trial = refs.filter(r => r.status === 'trial_started').length
+        const pending = refs.filter(r => r.status === 'pending').length
+
+        return ok(c, {
+            referrals: refs.map(r => ({
+                email: r.refereeEmail ? r.refereeEmail.slice(0, 3) + '***' + r.refereeEmail.slice(r.refereeEmail.indexOf('@')) : null,
+                status: r.status,
+                trialStartedAt: r.trialStartedAt,
+                convertedAt: r.convertedAt,
+            })),
+            stats: { converted, trial, pending, total: refs.length },
+        }, 'Referrals')
+    } catch (err) {
+        console.error('getMyReferrals error:', err)
+        return fail(c, 'Failed to get referrals', 500)
+    }
+}
+
+// GET /referral/validate/:code — check if referral code is valid (public, no auth)
+export const validateReferralCode = async (c: Context) => {
+    try {
+        const code = c.req.param('code')
+        if (!code || !/^CF-[A-Z0-9]{6}$/.test(code)) {
+            return ok(c, { valid: false }, 'Invalid code format')
+        }
+
+        const [ref] = await db.select().from(referrals)
+            .where(eq(referrals.referralCode, code))
+
+        if (!ref) return ok(c, { valid: false }, 'Code not found')
+
+        return ok(c, { valid: true, code }, 'Valid referral code')
+    } catch (err) {
+        console.error('validateReferralCode error:', err)
+        return ok(c, { valid: false }, 'Error')
+    }
+}
+
+// POST /referral/activate — activate trial for new user (called from checkout)
+export const activateReferralTrial = async (c: Context) => {
+    try {
+        const body = await c.req.json<{
+            referralCode: string
+            refereeEmail: string
+            refereeUserId: string
+            instanceId: string
+        }>()
+
+        if (!body.referralCode || !body.instanceId) {
+            return fail(c, 'Referral code and instance ID required', 400)
+        }
+
+        // Find the referral
+        const [ref] = await db.select().from(referrals)
+            .where(eq(referrals.referralCode, body.referralCode))
+        if (!ref) return fail(c, 'Invalid referral code', 400)
+
+        // Update referral with trial info
+        await db.update(referrals).set({
+            refereeEmail: body.refereeEmail,
+            refereeUserId: body.refereeUserId,
+            trialInstanceId: body.instanceId,
+            status: 'trial_started',
+            trialStartedAt: new Date(),
+        }).where(eq(referrals.id, ref.id))
+
+        // Set trial on instance (14 days)
+        const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+        await db.update(instances).set({
+            status: 'trial',
+            trialEndsAt,
+        }).where(eq(instances.id, body.instanceId))
+
+        return ok(c, { trialEndsAt }, 'Trial activated — 14 days free')
+    } catch (err) {
+        console.error('activateReferralTrial error:', err)
+        return fail(c, 'Failed to activate trial', 500)
+    }
+}
+
+// Called from billing webhook when trial user pays
+export async function rewardReferrer(instanceId: string): Promise<void> {
+    try {
+        const [ref] = await db.select().from(referrals)
+            .where(eq(referrals.trialInstanceId, instanceId))
+        if (!ref || ref.status !== 'trial_started') return
+
+        // Mark converted
+        await db.update(referrals).set({
+            status: 'converted',
+            convertedAt: new Date(),
+        }).where(eq(referrals.id, ref.id))
+
+        // Find referrer's instance and add 30 free days
+        const referrerInstances = await db.select().from(instances)
+            .where(eq(instances.userId, ref.referrerUserId))
+
+        if (referrerInstances.length > 0) {
+            const inst = referrerInstances[0]
+            const currentFreeUntil = inst.freeUntil || new Date()
+            const base = currentFreeUntil > new Date() ? currentFreeUntil : new Date()
+            const newFreeUntil = new Date(base.getTime() + 30 * 24 * 60 * 60 * 1000)
+
+            await db.update(instances).set({ freeUntil: newFreeUntil })
+                .where(eq(instances.id, inst.id))
+
+            // Notify referrer
+            if (inst.telegramChatId) {
+                const telegram = (await import('@/services/telegram')).default
+                await telegram.sendMessage(inst.telegramChatId,
+                    '🎉 חבר שלך הצטרף ל-ClawFlow! קיבלת חודש נוסף בחינם.').catch(() => {})
+            }
+        }
+
+        // Mark rewarded
+        await db.update(referrals).set({
+            status: 'rewarded',
+            rewardedAt: new Date(),
+        }).where(eq(referrals.id, ref.id))
+
+        console.log(`Referral reward: referrer ${ref.referrerUserId} got 30 free days for instance ${instanceId}`)
+    } catch (err) {
+        console.error('rewardReferrer error:', err)
+    }
+}

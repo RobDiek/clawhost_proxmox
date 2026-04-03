@@ -1366,6 +1366,10 @@ const ITEMS = [
 let lang = 'he';
 let storageGb = 20;
 let billingPeriod = 'monthly';
+
+// Save referral code from URL if present
+var _refCode = new URLSearchParams(window.location.search).get('ref');
+if (_refCode) localStorage.setItem('cf_ref', _refCode);
 const selected = new Set(['ap', 'ok']);
 
 /* ─────────────────────────────────────────

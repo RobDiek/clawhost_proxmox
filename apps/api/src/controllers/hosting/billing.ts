@@ -266,6 +266,24 @@ export const handleAllpayWebhook = async (c: Context) => {
             }
 
             // Don't re-provision if already provisioning/running
+            // But allow trial instances to convert to paid
+            if (instance.status === 'trial' || instance.status === 'trial_expired') {
+                // Trial → paid conversion
+                await db.update(instances).set({
+                    status: 'running',
+                    subscriptionStatus: 'active',
+                    trialEndsAt: null,
+                }).where(eq(instances.id, instanceId))
+
+                // Reward referrer
+                try {
+                    const { rewardReferrer } = await import('./referrals')
+                    await rewardReferrer(instanceId)
+                } catch { /* non-critical */ }
+
+                return ok(c, null, 'Trial converted to paid.')
+            }
+
             if (instance.status !== 'awaiting_payment') {
                 return ok(c, null, 'Instance already provisioned.')
             }

@@ -286,6 +286,10 @@ export const instances = pgTable(
         telegramChatId: text('telegram_chat_id'),
         telegramBotToken: text('telegram_bot_token'),
 
+        // Referral / Trial
+        freeUntil: timestamp('free_until', { withTimezone: true }),
+        trialEndsAt: timestamp('trial_ends_at', { withTimezone: true }),
+
         // Self-Healing
         lastHealthReport: jsonb('last_health_report'),
         lastHealthAt: timestamp('last_health_at', { withTimezone: true }),
@@ -451,6 +455,24 @@ export const waSends = pgTable('wa_sends', {
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 }, (table) => [
     index('wa_sends_instance_idx').on(table.instanceId)
+])
+
+// ── Referral Program ──
+export const referrals = pgTable('referrals', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    referrerUserId: text('referrer_user_id').notNull(),
+    referralCode: text('referral_code').unique().notNull(),
+    refereeEmail: text('referee_email'),
+    refereeUserId: text('referee_user_id'),
+    status: text('status').default('pending'),  // pending|trial_started|converted|expired
+    trialInstanceId: text('trial_instance_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    trialStartedAt: timestamp('trial_started_at', { withTimezone: true }),
+    convertedAt: timestamp('converted_at', { withTimezone: true }),
+    rewardedAt: timestamp('rewarded_at', { withTimezone: true }),
+}, (table) => [
+    index('referrals_referrer_idx').on(table.referrerUserId),
+    index('referrals_code_idx').on(table.referralCode),
 ])
 
 // ── Google Business Profile ──

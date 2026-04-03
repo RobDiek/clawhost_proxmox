@@ -1658,6 +1658,24 @@ input{font-family:inherit}
     </div>
 
 
+    <!-- Referral Program -->
+    <div class="section-title" style="display:flex;align-items:center;gap:6px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      הזמינו חברים
+    </div>
+    <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;overflow:hidden;margin-bottom:20px;padding:16px">
+      <div style="font-size:0.82rem;color:#6B7280;margin-bottom:10px">הזמינו חבר → הוא מקבל 14 ימים בחינם, אתם מקבלים חודש בחינם</div>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px">
+        <input class="int-input" id="referral-link" type="text" readonly dir="ltr" style="flex:1;font-size:0.82rem;background:#F9FAFB" value="טוען..."/>
+        <button class="btn btn-outline btn-sm" onclick="copyReferralLink()" style="font-size:0.78rem">📋 העתקה</button>
+      </div>
+      <div style="display:flex;gap:16px;font-size:0.85rem;margin-bottom:8px">
+        <span id="ref-stats-converted" style="color:#10B981;font-weight:600">0</span> הצטרפו
+        <span id="ref-stats-trial" style="color:#F59E0B;font-weight:600">0</span> בניסיון
+      </div>
+      <div id="ref-history" style="font-size:0.78rem;color:#6B7280"></div>
+    </div>
+
     <!-- Self-Healing -->
     <div class="section-title" style="display:flex;align-items:center;gap:6px">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -6228,6 +6246,54 @@ function showToast(msg, type) {
   clearTimeout(el._t);
   el._t = setTimeout(function() { el.classList.remove('show'); }, 3000);
 }
+
+// ── Referral Program ──
+async function loadReferralData() {
+  try {
+    // Load referral code
+    var res = await fetch(API + '/hosting/referral/my-code', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (data.success && data.data) {
+      document.getElementById('referral-link').value = data.data.link;
+    }
+
+    // Load referral stats
+    var res2 = await fetch(API + '/hosting/referral/my-referrals', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data2 = await res2.json();
+    if (data2.success && data2.data) {
+      var s = data2.data.stats;
+      document.getElementById('ref-stats-converted').textContent = s.converted;
+      document.getElementById('ref-stats-trial').textContent = s.trial;
+
+      var history = (data2.data.referrals || []).slice(0, 5);
+      if (history.length > 0) {
+        document.getElementById('ref-history').innerHTML = history.map(function(r) {
+          var icon = r.status === 'converted' || r.status === 'rewarded' ? '✅' : r.status === 'trial_started' ? '⏳' : '📨';
+          var label = r.status === 'converted' || r.status === 'rewarded' ? 'הצטרף — קיבלתם חודש!' :
+                      r.status === 'trial_started' ? 'בתקופת ניסיון' : 'ממתין';
+          return '<div style="padding:3px 0">' + icon + ' ' + (r.email || '—') + ' — ' + label + '</div>';
+        }).join('');
+      }
+    }
+  } catch (e) { /* non-critical */ }
+}
+
+function copyReferralLink() {
+  var input = document.getElementById('referral-link');
+  input.select();
+  navigator.clipboard.writeText(input.value).then(function() {
+    showToast('הקישור הועתק!', 'success');
+  });
+}
+
+// Load referral on settings tab
+document.addEventListener('click', function(e) {
+  if (e.target.closest('[data-tab="settings"]')) setTimeout(loadReferralData, 150);
+});
 
 // ── Google Business Profile ──
 async function loadGbpStatus() {

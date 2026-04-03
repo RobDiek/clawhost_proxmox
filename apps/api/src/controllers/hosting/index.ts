@@ -16,5 +16,6 @@ export { getOutputs, getOutput, ingestOutput, approveOutput, rejectOutput, editO
 export { getMemories, deleteMemory, clearMemories } from './memories'
 export { healthReport, getHealthStatus, toggleAutoHeal } from './healthReport'
 export { getUsage } from './usage'
+export { getMyReferralCode, getMyReferrals, validateReferralCode, activateReferralTrial } from './referrals'
 export { saveGbpConfig, getGbpConfig, createGbpPost, getGbpReviews, replyToGbpReview } from './gbp'
 export { saveWaConfig, getWaConfigEndpoint, getWaContacts, addWaContact, importWaContacts, optOutWaContact, getWaTemplates, createWaTemplate, submitWaTemplate, refreshWaTemplateStatus, sendWaBroadcast, getWaSends } from './whatsapp'

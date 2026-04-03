@@ -260,6 +260,10 @@ a:hover { text-decoration: underline; }
 <script>
 const API = 'https://api.clawflow.flowmatic.co.il';
 
+// Save referral code from URL if present
+const refCode = new URLSearchParams(window.location.search).get('ref');
+if (refCode) localStorage.setItem('cf_ref', refCode);
+
 const PLANS = {
   personal: { he: 'אישי', price: 79 },
   business: { he: 'עסקי', price: 169 },
