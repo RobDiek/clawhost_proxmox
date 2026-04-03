@@ -45,6 +45,7 @@ import {
     getHealthStatus,
     toggleAutoHeal,
     getUsage,
+    diagnoseError,
     getMyReferralCode,
     getMyReferrals,
     validateReferralCode,
@@ -188,6 +189,9 @@ app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
 app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)
 app.patch('/instances/:id/outputs/:outputId/archive', archiveOutput)
 app.delete('/instances/:id/outputs/:outputId', deleteOutput)
+
+// ── Diagnostics ──
+app.post('/instances/:id/diagnose', diagnoseError)
 
 // ── Referral Program ──
 app.get('/referral/my-code', getMyReferralCode)

@@ -568,8 +568,8 @@ input{font-family:inherit}
     <a href="/dashboard" style="text-decoration:none"><img src="/logo-clawflow.png" alt="ClawFlow" style="height:24px"></a>
   </div>
   <div class="header-left">
-    <button class="debug-btn" onclick="toggleDebugPanel()" title="תמיכה טכנית">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M12 22c-4.97 0-9-2.69-9-6v-4c0-3.31 4.03-6 9-6s9 2.69 9 6v4c0 3.31-4.03 6-9 6z"/><path d="M12 6V2M4.93 10.93l-2.83-1M19.07 10.93l2.83-1M4.93 17.07l-2.83 1M19.07 17.07l2.83 1"/></svg>
+    <button class="debug-btn" onclick="toggleDebugPanel()" title="אבחון ותיקון">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
     </button>
     <button class="header-user-btn" id="headerUserBtn" onclick="toggleUserDropdown()">
       <div class="header-avatar" id="headerAvatar"></div>
@@ -586,16 +586,24 @@ input{font-family:inherit}
   <!-- Debug Panel -->
   <div class="debug-panel hidden" id="debugPanel">
     <div class="debug-header">
-      <span style="font-weight:600">תמיכה טכנית</span>
+      <span style="font-weight:600">🔧 אבחון ותיקון</span>
       <button onclick="toggleDebugPanel()" style="background:none;border:none;cursor:pointer;font-size:1.2rem;color:#6B7280">&times;</button>
     </div>
-    <p style="font-size:0.82rem;color:#6B7280;margin-bottom:12px">הדביקו כאן הודעת שגיאה מהמערכת לצורך אבחון:</p>
-    <textarea id="debugInput" rows="6" placeholder="...הדביקו את הודעת השגיאה כאן" style="width:100%;padding:10px;border:2px solid #E5E7EB;border-radius:8px;font-family:inherit;font-size:0.85rem;direction:rtl;resize:vertical"></textarea>
+    <p style="font-size:0.82rem;color:#6B7280;margin-bottom:12px">הדביקו הודעת שגיאה — המערכת תנתח ותנסה לתקן אוטומטית:</p>
+    <textarea id="debugInput" rows="5" placeholder="...הדביקו את הודעת השגיאה כאן" style="width:100%;padding:10px;border:2px solid #E5E7EB;border-radius:8px;font-family:inherit;font-size:0.85rem;direction:rtl;resize:vertical"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn btn-primary btn-sm" onclick="submitDebug()">שלחו לתמיכה</button>
-      <button class="btn btn-outline btn-sm" onclick="document.getElementById('debugInput').value='';showToast('נוקה','success')">נקו</button>
+      <button class="btn btn-primary btn-sm" id="btnDiagnose" onclick="runDiagnosis()">🔍 אבחנו ותקנו</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('debugInput').value='';document.getElementById('diagnosisResult').style.display='none'">נקו</button>
     </div>
-    <div id="debugLog" style="margin-top:12px;max-height:200px;overflow-y:auto;font-size:0.78rem;font-family:monospace;color:#6B7280;direction:ltr"></div>
+    <!-- Diagnosis result -->
+    <div id="diagnosisResult" style="display:none;margin-top:12px;padding:14px;border-radius:10px;font-size:0.85rem;line-height:1.6">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span id="diagSeverityIcon" style="font-size:1.2rem"></span>
+        <strong id="diagIssue"></strong>
+      </div>
+      <div id="diagAction" style="margin-bottom:6px"></div>
+      <div id="diagInstructions" style="white-space:pre-line"></div>
+    </div>
   </div>
 </header>
 
@@ -3823,13 +3831,63 @@ function addIntegrationTooltips() {
   });
 }
 
-function submitDebug() {
+async function runDiagnosis() {
   var input = document.getElementById('debugInput').value.trim();
-  if (!input) { showToast('הדביקו הודעת שגיאה', 'error'); return; }
-  var logEl = document.getElementById('debugLog');
-  logEl.innerHTML += '<div style="padding:4px 0;border-bottom:1px solid #F3F4F6">[' + new Date().toLocaleTimeString('he-IL') + '] ' + input.substring(0, 200) + '</div>';
-  showToast('ההודעה התקבלה — תמיכה טכנית תטפל', 'success');
-  // TODO: send to support API
+  if (!input || input.length < 5) { showToast('הדביקו הודעת שגיאה (לפחות 5 תווים)', 'error'); return; }
+
+  var btn = document.getElementById('btnDiagnose');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> מאבחן...';
+
+  var resultEl = document.getElementById('diagnosisResult');
+  resultEl.style.display = 'none';
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/diagnose', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ errorText: input })
+    });
+    var data = await res.json();
+
+    if (data.success && data.data) {
+      var d = data.data;
+      var severityColors = { low: '#10B981', medium: '#F59E0B', high: '#EF4444', critical: '#DC2626' };
+      var severityIcons = { low: '🟢', medium: '🟡', high: '🔴', critical: '🚨' };
+
+      resultEl.style.display = 'block';
+      resultEl.style.background = d.fixed ? '#ECFDF5' : '#FFF7ED';
+      resultEl.style.border = '1px solid ' + (d.fixed ? '#A7F3D0' : '#FDE68A');
+
+      document.getElementById('diagSeverityIcon').textContent = severityIcons[d.severity] || '❓';
+      document.getElementById('diagIssue').textContent = d.issue;
+
+      var actionEl = document.getElementById('diagAction');
+      if (d.fixed && d.action) {
+        actionEl.innerHTML = '<div style="color:#065F46;font-weight:600">✅ תוקן אוטומטית:</div><div>' + d.action + '</div>';
+      } else if (d.action) {
+        actionEl.innerHTML = '<div style="color:#92400E">⚠️ ' + d.action + '</div>';
+      } else {
+        actionEl.innerHTML = '';
+      }
+
+      var instrEl = document.getElementById('diagInstructions');
+      if (d.instructions) {
+        instrEl.innerHTML = '<div style="margin-top:6px;padding:10px;background:#fff;border-radius:6px;font-size:0.82rem;color:#374151">' + d.instructions.replace(/\n/g, '<br/>') + '</div>';
+      } else {
+        instrEl.innerHTML = '';
+      }
+
+      showToast(d.fixed ? 'תוקן בהצלחה!' : 'אובחן — ראו הנחיות', d.fixed ? 'success' : 'error');
+    } else {
+      showToast(data.message || 'שגיאה באבחון', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאת תקשורת', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🔍 אבחנו ותקנו';
+  }
 }
 
 /* ===== Flows password reveal (one-time) ===== */
