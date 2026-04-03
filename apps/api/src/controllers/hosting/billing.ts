@@ -4,7 +4,7 @@ import crypto, { randomBytes } from 'crypto'
 import { calcTotal } from '@openclaw/shared'
 import { db } from '@/db'
 import { instances, payments, users } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, and, lt } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
 import allpay from '@/services/allpay'
 import provisioner from '@/services/provisioner'
@@ -68,9 +68,18 @@ export const checkout = async (c: Context<HonoEnv>) => {
             return fail(c, 'Customer details are required.', 400)
         }
 
-        // Check subdomain availability before creating instance
+        // Check subdomain availability — clean up stale awaiting_payment first
         if (subdomainName) {
-            const [existing] = await db.select({ id: instances.id })
+            // Auto-cleanup: delete instances stuck in awaiting_payment for 1+ hour
+            await db.delete(instances).where(
+                and(
+                    eq(instances.subdomainName, subdomainName),
+                    eq(instances.status, 'awaiting_payment'),
+                    lt(instances.createdAt, new Date(Date.now() - 3600000))
+                )
+            ).catch(() => {})
+
+            const [existing] = await db.select({ id: instances.id, status: instances.status })
                 .from(instances)
                 .where(eq(instances.subdomainName, subdomainName))
             if (existing) {
