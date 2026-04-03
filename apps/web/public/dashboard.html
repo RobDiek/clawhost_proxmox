@@ -2193,18 +2193,23 @@ function getNotifications() {
   var dismissed = JSON.parse(localStorage.getItem('cf_dismissed_notifs') || '[]');
 
   // Smart recommendations — only show what's actually missing
-  if (!hasGoogle && dismissed.indexOf('rec-google') === -1) {
-    notifs.push({ id: 'rec-google', type: 'info', icon: '💡', title: 'חברו Google Calendar', desc: 'הסוכן יוכל לנהל את היומן שלכם — פגישות, תזכורות, אירועים', action: "switchTab('integrations')", actionLabel: 'חברו עכשיו' });
+  var components = JSON.parse(localStorage.getItem('cf_instance_components') || '[]');
+  var isBare = components.indexOf('bare') !== -1 && components.indexOf('oc') === -1 && components.indexOf('mt') === -1;
+  var hasMATEH = components.indexOf('mt') !== -1;
+
+  // Skip integration recommendations for Bare (developer mode)
+  if (!isBare) {
+    if (!hasGoogle && dismissed.indexOf('rec-google') === -1) {
+      notifs.push({ id: 'rec-google', type: 'info', icon: '💡', title: 'חברו Google Calendar', desc: 'הסוכן יוכל לנהל את היומן שלכם — פגישות, תזכורות, אירועים', action: "switchTab('integrations')", actionLabel: 'חברו עכשיו' });
+    }
+    if (!hasTelegram && dismissed.indexOf('rec-telegram') === -1) {
+      notifs.push({ id: 'rec-telegram', type: 'info', icon: '📱', title: 'חברו Telegram', desc: 'קבלו Daily Brief והתראות גם בטלגרם — בנוסף לצ\'אט המובנה', action: "switchTab('integrations')", actionLabel: 'חברו' });
+    }
   }
-  if (hasAgents && !hasResearch && dismissed.indexOf('rec-research') === -1) {
+  // MATEH-only recommendations
+  if (hasMATEH && hasAgents && !hasResearch && dismissed.indexOf('rec-research') === -1) {
     notifs.push({ id: 'rec-research', type: 'info', icon: '🔍', title: 'הריצו מחקר שוק', desc: 'הסוכן יחפש מתחרים, מילות מפתח והזדמנויות', action: "runResearchFromDashboard()", actionLabel: 'הריצו מחקר' });
   }
-  if (!hasTelegram && dismissed.indexOf('rec-telegram') === -1) {
-    notifs.push({ id: 'rec-telegram', type: 'info', icon: '📱', title: 'חברו Telegram', desc: 'קבלו Daily Brief והתראות גם בטלגרם — בנוסף לצ\'אט המובנה', action: "switchTab('integrations')", actionLabel: 'חברו' });
-  }
-  // Brave Search recommendation for MATEH users
-  var components = JSON.parse(localStorage.getItem('cf_instance_components') || '[]');
-  var hasMATEH = components.indexOf('mt') !== -1;
   var braveKeyEl = document.getElementById('int-brave-key');
   var hasBraveKey = braveKeyEl && braveKeyEl.value && braveKeyEl.value.length > 5;
   if (hasMATEH && !hasBraveKey && dismissed.indexOf('rec-brave') === -1) {
@@ -4752,6 +4757,7 @@ function checkGoogleStatus() {
   if (params.get('google_connected')) {
     showToast('Google Workspace חובר בהצלחה!', 'success');
     window.history.replaceState({}, '', '/dashboard');
+    setTimeout(refreshInstanceData, 500);
   }
   if (params.get('google_error')) {
     showToast('שגיאה בחיבור Google: ' + params.get('google_error'), 'error');
@@ -4856,7 +4862,8 @@ function checkMicrosoftStatus() {
   var params = new URLSearchParams(window.location.search);
   if (params.get('ms_connected')) {
     showToast('Microsoft 365 חובר בהצלחה!', 'success');
-    window.history.replaceState({}, '', '/dashboard.html');
+    window.history.replaceState({}, '', '/dashboard');
+    setTimeout(refreshInstanceData, 500);
   }
   if (params.get('ms_error')) {
     showToast('שגיאה בחיבור Microsoft: ' + params.get('ms_error'), 'error');
