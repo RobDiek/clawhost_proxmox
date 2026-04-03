@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { eq } from 'drizzle-orm'
+import { eq, and, ne } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
@@ -23,9 +23,13 @@ export const checkSubdomain = async (c: Context) => {
             return ok(c, { available: false, reason: 'reserved' }, 'Name is reserved.')
         }
 
+        // Only check ACTIVE instances — ignore awaiting_payment (abandoned checkouts)
         const existing = await db.select({ id: instances.id })
             .from(instances)
-            .where(eq(instances.subdomainName, name))
+            .where(and(
+                eq(instances.subdomainName, name),
+                ne(instances.status, 'awaiting_payment')
+            ))
             .limit(1)
             .then(rows => rows[0])
 
