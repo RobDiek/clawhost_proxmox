@@ -42,12 +42,13 @@ const OLLAMA_MODELS = [
 ]
 
 // Calculate available RAM for Ollama (total - system - services)
+// Conservative estimates — better to under-promise than OOM
 function calcAvailableRam(planRam: number, components: string[]): number {
-    const systemOverhead = 1.0  // OS + Docker
-    const gatewayRam = 0.3      // OpenClaw gateway
-    const automationRam = 0.5   // n8n / Activepieces
-    const qdrantRam = 0.3       // Qdrant (Mem0)
-    const agentRam = components.includes('mt') ? 1.0 : 0.3  // MATEH needs more
+    const systemOverhead = 1.5  // OS + Docker + kernel caches
+    const gatewayRam = 0.5      // OpenClaw gateway + Node.js
+    const automationRam = 0.8   // n8n / Activepieces + postgres (AP)
+    const qdrantRam = 0.5       // Qdrant (Mem0) vector storage
+    const agentRam = components.includes('mt') ? 1.5 : 0.5  // MATEH sub-agents need more
     return Math.max(0, planRam - systemOverhead - gatewayRam - automationRam - qdrantRam - agentRam)
 }
 
@@ -147,7 +148,7 @@ export const installOllama = async (c: Context) => {
             else
                 systemctl start ollama 2>/dev/null
             fi
-        `, instance.rootPassword || undefined, 120000)
+        `, instance.rootPassword || undefined, 300000)  // 5 min for download + install
 
         // Update components in DB if not already included
         if (!components.includes('ol')) {
@@ -207,7 +208,9 @@ export const pullOllamaModel = async (c: Context) => {
         }
 
         // Pull model in background (can take minutes for large models)
-        sshExec(instance.ip, `ollama pull '${modelInfo.id.replace(/'/g, '')}' 2>&1`, instance.rootPassword || undefined, 600000)
+        // Model ID is from our hardcoded whitelist — safe from injection
+        const safeModelId = modelInfo.id.replace(/[^a-zA-Z0-9.:_-]/g, '')
+        sshExec(instance.ip, `ollama pull "${safeModelId}" 2>&1`, instance.rootPassword || undefined, 1800000)
             .then(() => {
                 console.log(`Ollama model ${modelInfo.id} pulled on instance ${instanceId}`)
             })
