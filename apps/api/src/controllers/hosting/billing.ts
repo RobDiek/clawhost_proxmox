@@ -4,7 +4,7 @@ import crypto, { randomBytes } from 'crypto'
 import { calcTotal } from '@openclaw/shared'
 import { db } from '@/db'
 import { instances, payments, users } from '@/db/schema'
-import { eq, and, lt } from 'drizzle-orm'
+import { eq, and, lt, ne } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
 import allpay from '@/services/allpay'
 import provisioner from '@/services/provisioner'
@@ -96,6 +96,15 @@ export const checkout = async (c: Context<HonoEnv>) => {
         const instanceId = generateId()
         const orderId = `oc-${instanceId}-${Date.now()}`
 
+        // Check if user already used their trial (1 trial per user)
+        const existingInstances = await db.select({ id: instances.id, trialEndsAt: instances.trialEndsAt })
+            .from(instances)
+            .where(and(eq(instances.userId, userId), ne(instances.status, 'awaiting_payment')))
+        const hadTrial = existingInstances.some(i => i.trialEndsAt !== null)
+
+        const TRIAL_DAYS = hadTrial ? 0 : 7
+        const trialEndsAt = TRIAL_DAYS > 0 ? new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000) : null
+
         // Extract storage GB from addons
         let storageGb = 0
         if (addons?.includes('storage_20')) storageGb = 20
@@ -114,6 +123,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
             status: 'awaiting_payment',
             allpayOrderId: orderId,
             subdomainName: subdomainName || null,
+            trialEndsAt,
             onboardingStep: 0,
             onboardingCompleted: false
         })
@@ -152,7 +162,8 @@ export const checkout = async (c: Context<HonoEnv>) => {
                 successUrl: `${frontendUrl}/onboarding.html?instance=${instanceId}`,
                 failUrl: `${frontendUrl}/checkout.html?failed=1`,
                 webhookUrl: `${apiUrl}/hosting/webhooks/allpay`,
-                metadata: { instanceId, planKey: pricing.planKey }
+                metadata: { instanceId, planKey: pricing.planKey },
+                trialDays: TRIAL_DAYS || undefined,
             })
         } catch (allpayErr) {
             console.error('AllPay error (continuing in test mode):', allpayErr)
@@ -212,8 +223,12 @@ export const checkout = async (c: Context<HonoEnv>) => {
                         return isReady
                     })
                 }).then(async (ready) => {
+                    // Check if this is a trial instance
+                    const [freshInst] = await db.select({ trialEndsAt: instances.trialEndsAt }).from(instances).where(eq(instances.id, instanceId))
+                    const finalStatus = ready ? (freshInst?.trialEndsAt ? 'trial' : 'running') : 'failed'
+
                     await db.update(instances)
-                        .set({ status: ready ? 'running' : 'failed' })
+                        .set({ status: finalStatus })
                         .where(eq(instances.id, instanceId))
 
                     if (ready) {
@@ -221,7 +236,8 @@ export const checkout = async (c: Context<HonoEnv>) => {
                         try {
                             await provisioner.deployHealthDaemon(result.ip, instanceId, result.openclawToken, result.rootPassword)
                         } catch (e) { console.error('Health daemon deploy failed (non-critical):', e) }
-                        await telegram.alertAdmin(`✅ Instance ${instanceId} is running!`)
+                        const trialLabel = freshInst?.trialEndsAt ? ' (TRIAL)' : ''
+                        await telegram.alertAdmin(`✅ Instance ${instanceId} is ${finalStatus}!${trialLabel}`)
                     }
                 }).catch(async (err) => {
                     console.error('Provisioning error:', err)
@@ -302,8 +318,13 @@ export const handleAllpayWebhook = async (c: Context) => {
                 return ok(c, null, 'Instance already provisioned.')
             }
 
+            // Set status: trial if trialEndsAt is set, otherwise active
+            const isTrial = !!instance.trialEndsAt
             await db.update(instances)
-                .set({ status: 'provisioning', subscriptionStatus: 'active' })
+                .set({
+                    status: 'provisioning',
+                    subscriptionStatus: isTrial ? 'trial' : 'active',
+                })
                 .where(eq(instances.id, instanceId))
 
             // Fetch customer email from user record
@@ -338,8 +359,9 @@ export const handleAllpayWebhook = async (c: Context) => {
 
             provisioner.pollUntilReady(instanceId, result.serverId, result.subdomainAgent, result.ip).then(async (ready) => {
                 if (ready) {
+                    const [freshInst2] = await db.select({ trialEndsAt: instances.trialEndsAt }).from(instances).where(eq(instances.id, instanceId))
                     await db.update(instances)
-                        .set({ status: 'running' })
+                        .set({ status: freshInst2?.trialEndsAt ? 'trial' : 'running' })
                         .where(eq(instances.id, instanceId))
 
                     // Auto-create n8n/Activepieces owner account

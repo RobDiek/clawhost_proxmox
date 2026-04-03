@@ -96,7 +96,9 @@ export const validateReferralCode = async (c: Context) => {
     }
 }
 
-// POST /referral/activate — activate trial for new user (requires auth)
+// POST /referral/activate — link referral to instance (after checkout with card)
+// Trial is now 7 days for ALL users (with card). Referral just records the link
+// so referrer gets +1 month free when referee's first payment succeeds.
 export const activateReferralTrial = async (c: Context) => {
     try {
         const userId = resolveUserId(c)
@@ -128,30 +130,24 @@ export const activateReferralTrial = async (c: Context) => {
         // Get user email
         const [user] = await db.select().from(users).where(eq(users.id, userId))
 
-        // Update referral with trial info
+        // Link referral to instance — reward happens when first payment succeeds
         await db.update(referrals).set({
             refereeEmail: user?.email || null,
             refereeUserId: userId,
             trialInstanceId: body.instanceId,
             status: 'trial_started',
             trialStartedAt: new Date(),
-        }).where(and(eq(referrals.id, ref.id), eq(referrals.status, 'pending'))) // optimistic lock
+        }).where(and(eq(referrals.id, ref.id), eq(referrals.status, 'pending')))
 
-        // Set trial on instance (14 days)
-        const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
-        await db.update(instances).set({
-            status: 'trial',
-            trialEndsAt,
-        }).where(eq(instances.id, body.instanceId))
-
-        return ok(c, { trialEndsAt }, 'Trial activated — 14 days free')
+        return ok(c, null, 'Referral linked — both get rewards after first payment')
     } catch (err) {
         console.error('activateReferralTrial error:', err)
-        return fail(c, 'Failed to activate trial', 500)
+        return fail(c, 'Failed to link referral', 500)
     }
 }
 
-// Called from billing webhook when trial user pays
+// Called from billing webhook when trial user's first payment succeeds
+// Both referrer AND referee get +1 month free
 export async function rewardReferrer(instanceId: string): Promise<void> {
     try {
         // Atomic check + update to prevent double-reward
@@ -160,13 +156,14 @@ export async function rewardReferrer(instanceId: string): Promise<void> {
             convertedAt: new Date(),
         }).where(and(
             eq(referrals.trialInstanceId, instanceId),
-            eq(referrals.status, 'trial_started') // only from trial_started
+            eq(referrals.status, 'trial_started')
         )).returning()
 
-        if (!updated.length) return // already converted or not found
+        if (!updated.length) return
         const ref = updated[0]
+        const telegram = (await import('@/services/telegram')).default
 
-        // Find referrer's instance and add 30 free days
+        // Reward REFERRER: +30 free days
         const referrerInstances = await db.select().from(instances)
             .where(eq(instances.userId, ref.referrerUserId))
 
@@ -179,11 +176,27 @@ export async function rewardReferrer(instanceId: string): Promise<void> {
             await db.update(instances).set({ freeUntil: newFreeUntil })
                 .where(eq(instances.id, inst.id))
 
-            // Notify referrer
             if (inst.telegramChatId) {
-                const telegram = (await import('@/services/telegram')).default
                 await telegram.sendMessage(inst.telegramChatId,
-                    '🎉 חבר שלך הצטרף ל-ClawFlow! קיבלת חודש נוסף בחינם.').catch(() => {})
+                    '🎉 חבר שלך הצטרף ל-ClawFlow! קיבלתם שניכם חודש נוסף בחינם.').catch(() => {})
+            }
+        }
+
+        // Reward REFEREE: +30 free days on THEIR instance
+        const [refereeInstance] = await db.select().from(instances)
+            .where(eq(instances.id, instanceId))
+
+        if (refereeInstance) {
+            const currentFreeUntil = refereeInstance.freeUntil || new Date()
+            const base = currentFreeUntil > new Date() ? currentFreeUntil : new Date()
+            const newFreeUntil = new Date(base.getTime() + 30 * 24 * 60 * 60 * 1000)
+
+            await db.update(instances).set({ freeUntil: newFreeUntil })
+                .where(eq(instances.id, instanceId))
+
+            if (refereeInstance.telegramChatId) {
+                await telegram.sendMessage(refereeInstance.telegramChatId,
+                    '🎉 קיבלתם חודש נוסף בחינם — תודה שהצטרפתם דרך חבר!').catch(() => {})
             }
         }
 

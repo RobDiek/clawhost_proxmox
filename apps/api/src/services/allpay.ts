@@ -14,6 +14,7 @@ interface CreatePaymentParams {
     failUrl: string
     webhookUrl: string
     metadata: { instanceId: string; planKey: string }
+    trialDays?: number  // delay first charge by N days (trial period)
 }
 
 interface WebhookResult {
@@ -94,7 +95,8 @@ const allpay = {
             add_field_1: params.metadata.instanceId,
             add_field_2: params.metadata.planKey,
             subscription: {
-                start_type: 1,
+                start_type: params.trialDays ? 3 : 1,  // 3 = delayed by N days
+                ...(params.trialDays ? { start_n: params.trialDays } : {}),
                 end_type: 1,
             },
         }

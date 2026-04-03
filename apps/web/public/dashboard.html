@@ -4183,11 +4183,26 @@ function renderSettingsPage() {
   var nameDisplay = document.getElementById('settingsNameDisplay');
   if (nameDisplay) nameDisplay.textContent = localStorage.getItem('cf_user_name') || email || '—';
 
-  // Plan info
+  // Plan info + trial status
   var planEl = document.getElementById('settingsPlan');
-  if (planEl && planKey) planEl.textContent = (PLANS[planKey] || {}).nameHe || planKey;
+  if (planEl && planKey) {
+    var planName = (PLANS[planKey] || {}).nameHe || planKey;
+    if (instanceData && instanceData.trialEndsAt) {
+      var trialEnd = new Date(instanceData.trialEndsAt);
+      var daysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
+      planEl.innerHTML = planName + ' <span style="background:#ECFDF5;color:#065F46;font-size:0.72rem;padding:2px 8px;border-radius:8px;margin-right:6px">ניסיון — ' + daysLeft + ' ימים נותרו</span>';
+    } else {
+      planEl.textContent = planName;
+    }
+  }
   var priceEl = document.getElementById('settingsPlanPrice');
-  if (priceEl && planKey) priceEl.textContent = '₪' + ((PLANS[planKey] || {}).price || '?') + '/חודש';
+  if (priceEl && planKey) {
+    if (instanceData && instanceData.trialEndsAt && new Date(instanceData.trialEndsAt) > new Date()) {
+      priceEl.innerHTML = '<span style="color:#10B981;font-weight:600">חינם עד ' + new Date(instanceData.trialEndsAt).toLocaleDateString('he-IL') + '</span>';
+    } else {
+      priceEl.textContent = '₪' + ((PLANS[planKey] || {}).price || '?') + '/חודש';
+    }
+  }
   var ipEl = document.getElementById('settingsIP');
   if (ipEl && instanceData && instanceData.ip) ipEl.textContent = instanceData.ip;
 

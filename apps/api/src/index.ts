@@ -63,3 +63,8 @@ startRamMonitor()
 // Start instance health monitor (checks all instances every 5 min, auto-restarts)
 import { startInstanceMonitor } from '@/services/instanceMonitor'
 startInstanceMonitor()
+
+// Trial manager — check trial expiry every hour
+import { runTrialManager } from '@/jobs/trialManager'
+setInterval(runTrialManager, 3600000) // every hour
+setTimeout(runTrialManager, 60000) // first run after 1 min

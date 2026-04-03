@@ -263,7 +263,12 @@ a:hover { text-decoration: underline; }
     <input class="form-input" id="cust-phone" type="tel" placeholder="05X-XXXXXXX" autocomplete="tel"/>
   </div>
 
-  <button class="btn btn-primary" id="btn-pay" onclick="handleCheckout()">לתשלום</button>
+  <div id="trial-banner" style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:10px;padding:14px 16px;margin-bottom:14px;text-align:center">
+    <div style="font-size:1rem;font-weight:700;color:#065F46;margin-bottom:4px">🎉 7 ימי ניסיון בחינם</div>
+    <div style="font-size:0.82rem;color:#047857">החיוב הראשון רק אחרי 7 ימים. ביטול בכל עת.</div>
+  </div>
+
+  <button class="btn btn-primary" id="btn-pay" onclick="handleCheckout()">התחילו ניסיון חינם →</button>
   <div class="msg" id="msg-checkout"></div>
 
   <div class="secure-badge">
