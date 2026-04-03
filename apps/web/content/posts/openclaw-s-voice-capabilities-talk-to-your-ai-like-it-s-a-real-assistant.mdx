@@ -2,17 +2,17 @@
 title: OpenClaw's Voice Capabilities — Talk to Your AI Like It's a Real Assistant
 slug: openclaw-s-voice-capabilities-talk-to-your-ai-like-it-s-a-real-assistant
 description:
-    OpenClaw speaks and listens. Explore voice integration with ElevenLabs,
-    Whisper, and natural conversation with your AI agent.
+    OpenClaw speaks and listens. Explore voice integration with Piper TTS,
+    speech recognition, and natural conversation with your AI agent.
 author: ClawHost
 publishedAt: '2026-02-26'
 tags:
     - openclaw
-    - ' voice'
-    - ' audio'
-    - ' tts'
-    - ' stt'
-    - ' conversation'
+    - voice
+    - audio
+    - tts
+    - stt
+    - conversation
 coverImage: /blogs/openclaw-s-voice-capabilities-talk-to-your-ai-like-it-s-a-real-assistant.webp
 ---
 
@@ -84,19 +84,19 @@ Agent response text:
 "You have 5 meetings today. Standup is at 10 AM in Conference B.
 Product review at 1 PM. One-on-one at 3 PM..."
 
-ElevenLabs synthesis:
+Piper TTS synthesis:
 Input: Text response
 Output: Natural voice audio
-Voice: Your choice (100+ voices)
+Voice: Your choice from available voice models
 Personality: Matches your preference (warm, professional, etc.)
 ```
 
 **Technical details**:
 
-- Uses ElevenLabs or other TTS providers
-- Supports 100+ voice variations
-- Can clone your voice (with training)
-- Supports emotion and speaking style
+- Uses Piper TTS for speech synthesis (runs locally, no cloud API needed)
+- Supports multiple voice models and languages
+- Fully self-hosted — no data sent to third-party services
+- Lightweight and fast, suitable for real-time conversations
 
 **Realistic performance**:
 
@@ -378,7 +378,7 @@ voice_processing = {
     option_2: {
         name: 'Cloud processing',
         transcription: 'OpenAI Whisper API',
-        synthesis: 'ElevenLabs or similar',
+        synthesis: 'Cloud TTS provider',
         privacy: 'API logs minimal, data deleted after processing',
         tradeoff: 'Faster, requires API keys'
     }

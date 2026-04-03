@@ -1,5 +1,5 @@
 ---
-title: The \"openclaw doctor\" Command - Diagnosing Your Setup
+title: The "openclaw doctor" Command - Diagnosing Your Setup
 slug: the-openclaw-doctor-command-diagnosing-your-setup
 description: Something broken? Run 'openclaw doctor'. This command diagnoses your setup and fixes common issues automatically.
 author: ClawHost
@@ -11,170 +11,160 @@ tags:
 coverImage: /blogs/the-openclaw-doctor-command-diagnosing-your-setup.webp
 ---
 
-## Understanding The \"openclaw doctor\" Command
+## When Something Is Not Working Right
 
-Something broken? Run 'openclaw doctor'. This command diagnoses your setup and fixes common issues automatically. This article provides comprehensive insights into this topic, exploring its implications, use cases, and best practices.
+You have set up OpenClaw, configured your agents, connected a channel, and everything was working. Then one day, something stops. Maybe your agent is not responding. Maybe messages are going through but responses are slow. Maybe a channel that was working yesterday is now silent.
 
-## What You'll Learn
+Your first instinct might be to start checking logs, restarting services, and testing individual components. That works, but it is slow and easy to miss things. OpenClaw provides a better starting point: the doctor command.
 
-This guide covers:
+The doctor command is a built-in diagnostic tool that systematically examines your OpenClaw setup, identifies issues, and tells you what to fix. It is the fastest way to go from "something is wrong" to "here is exactly what is wrong and how to fix it."
 
-- Core concepts and fundamentals
-- Practical applications and real-world examples
-- Best practices and optimization strategies
-- Common challenges and solutions
-- Getting started and next steps
+## What the Doctor Command Does
 
-## Key Concepts
+When you run the doctor command, it performs a structured series of checks against every critical component of your OpenClaw installation. It examines your configuration, tests connectivity to external services, verifies that internal components are working, and reports its findings in a clear, actionable format.
 
-### Foundation
+The doctor does not just check whether things exist. It checks whether they work. There is a significant difference between "you have a model API key configured" and "your model API key is valid and the API is responding." The doctor verifies the latter.
 
-The \"openclaw doctor\" Command represents a significant shift in how we approach modern problems. It's not just a tool or feature—it's a fundamental change in methodology that affects how professionals work.
+## The Diagnostic Checks
 
-Understanding the basics is essential before diving deeper:
+The doctor command runs through several categories of checks, from the most fundamental (is the configuration valid?) to the most specific (can this particular channel deliver messages?).
 
-- **Core principle:** The foundation that makes everything work
-- **Primary benefit:** Why this matters for users and teams
-- **Integration points:** Where it fits into existing workflows
-- **Scalability:** How it grows with your needs
+### Configuration Validation
 
-### Implementation Details
+The first thing the doctor examines is your openclaw.json configuration file:
 
-The practical implementation involves several key components:
+- **Syntax:** Is the JSON valid? A misplaced comma or missing bracket will prevent OpenClaw from starting, and the doctor identifies the exact location of the syntax error
+- **Required fields:** Are all mandatory configuration fields present? The doctor checks for agent definitions, model configurations, and channel setups
+- **Value validation:** Do the configured values make sense? For example, does the specified model name match a supported model? Do channel configurations include all required parameters?
+- **File references:** Does the soul.md file referenced by each agent actually exist at the specified path?
 
-1. **Getting started** - Initial setup and configuration
-2. **Configuration** - Customizing for your specific use case
-3. **Integration** - Connecting with existing tools and systems
-4. **Optimization** - Fine-tuning performance and efficiency
-5. **Monitoring** - Tracking usage and measuring success
+Configuration errors are the most common cause of issues after making changes, and the doctor catches them quickly.
 
-## Real-World Applications
+### Model Connectivity
 
-### Enterprise Use Cases
+For each configured language model, the doctor tests:
 
-Large organizations benefit from:
+- **API reachability:** Can the system connect to the model provider's API endpoint? Network issues, firewall rules, or DNS problems can prevent this
+- **Authentication:** Is the API key valid? Keys can expire, be revoked, or be incorrectly copied with extra whitespace
+- **Basic functionality:** Can the model actually process a request? The doctor sends a minimal test prompt and verifies that a response comes back. This catches issues like insufficient API credits or account suspensions
 
-- Significant efficiency gains through automation
-- Better resource utilization and cost savings
-- Improved consistency and quality control
-- Enhanced team collaboration and communication
-- Scalability to handle growing demands
+Model connectivity issues are particularly common when setting up a new deployment or after rotating API keys.
 
-### Individual and Small Team Use Cases
+### Channel Configuration
 
-Individuals and smaller teams experience:
+Each connected channel undergoes its own set of checks:
 
-- Time savings on repetitive tasks
-- Ability to focus on higher-value work
-- Improved productivity without additional hiring
-- Access to capabilities previously requiring specialized expertise
-- Flexibility to adapt to changing needs
+- **Credentials:** Are the channel's API tokens or authentication credentials valid?
+- **Connection status:** Can the channel connect to its platform? A Telegram bot token might be valid but the Telegram API might be unreachable from your server
+- **Webhook configuration:** For channels that use webhooks, is the webhook URL correctly configured and accessible from the outside?
+- **Permissions:** Does the bot or integration have the necessary permissions on its platform? A Discord bot might be connected but lack permission to read messages in the configured channel
 
-### Specific Examples
+### Gateway Health
 
-Consider these practical scenarios:
+The doctor verifies that the Gateway is functioning correctly:
 
-**Example 1:** A developer using this for code automation saves 10+ hours per week on routine tasks, allowing them to focus on architecture and innovation.
+- **Process status:** Is the Gateway process running?
+- **Responsiveness:** Can the Gateway accept incoming requests?
+- **Session store:** Is the session storage system accessible and writable?
+- **Binding integrity:** Are the configured agent-channel bindings valid? Do they reference agents and channels that actually exist?
 
-**Example 2:** A content team leveraging this for publishing workflows increases output by 40% without adding staff.
+### System Resources
 
-**Example 3:** An operations team using this for infrastructure management reduces downtime by 60% through proactive monitoring and response.
+The doctor also checks the underlying system:
 
-## Best Practices and Optimization
+- **Memory availability:** Is there sufficient free memory for normal operation?
+- **Disk space:** Is there enough disk space for logs, sessions, and temporary files?
+- **Required dependencies:** Are all system-level dependencies installed and accessible?
 
-### Do's
+## Reading the Doctor's Output
 
-✅ Start with a clear understanding of your goals
-✅ Implement gradually, not all at once
-✅ Measure and track results
-✅ Involve your team in the process
-✅ Regularly review and optimize
-✅ Keep documentation updated
-✅ Plan for future scaling
+The doctor presents its findings in a structured format. Each check is listed with a status indicator:
 
-### Don'ts
+- **Pass:** The check succeeded. The component is working correctly
+- **Warning:** The check passed but something looks suboptimal. For example, disk space is available but lower than recommended
+- **Fail:** The check failed. There is a concrete problem that needs to be addressed
+- **Skip:** The check was skipped because a prerequisite check failed. For example, channel message delivery is not tested if the channel's credentials are invalid
 
-❌ Don't implement without understanding your needs
-❌ Don't skip the planning phase
-❌ Don't assume one solution fits all use cases
-❌ Don't neglect monitoring and maintenance
-❌ Don't forget about security and compliance
-❌ Don't overestimate what can be achieved immediately
+For each warning or failure, the doctor includes a description of what it found and a recommendation for how to fix it. These recommendations are specific and actionable. Instead of "model API error," you get something like "API key for Claude returned 401 Unauthorized. Verify that the key in your configuration matches an active key in your provider account."
 
-## Common Challenges and Solutions
+## Common Issues the Doctor Finds
 
-### Challenge 1: Learning Curve
+Based on typical deployments, here are the issues the doctor most frequently identifies:
 
-Many teams initially struggle with adoption due to the learning curve.
+### Invalid or Expired API Keys
 
-**Solution:** Provide proper training, documentation, and support. Start with simple use cases and gradually increase complexity.
+This is the single most common issue. API keys for language models, channels, or other services have been entered incorrectly or have expired. The doctor tests each key and tells you exactly which ones are not working.
 
-### Challenge 2: Integration with Existing Systems
+**How to fix it:** Verify the key in your provider's dashboard. Copy it fresh, being careful not to include leading or trailing whitespace. Update your openclaw.json with the correct key.
 
-Connecting to legacy systems or specialized tools can be complex.
+### Configuration Syntax Errors
 
-**Solution:** Use middleware solutions, APIs, and custom integrations. Plan the integration architecture carefully.
+After editing openclaw.json by hand, it is easy to introduce a syntax error. A missing comma, an extra bracket, or a mismatched quote will prevent the configuration from being parsed.
 
-### Challenge 3: Scaling Issues
+**How to fix it:** The doctor points to the location of the syntax error. Fix the JSON at the indicated position. Consider using a text editor with JSON validation to catch these errors before saving.
 
-What works for small teams might not scale to enterprise levels.
+### Missing Soul Files
 
-**Solution:** Design with scalability in mind from the beginning. Use proper infrastructure, monitoring, and load balancing.
+An agent references a soul.md file that does not exist at the specified path. This can happen after moving files around or when a path is typed incorrectly.
 
-### Challenge 4: Security and Compliance
+**How to fix it:** Create the soul.md file at the expected path, or update the agent configuration to point to the correct location.
 
-Ensuring security and regulatory compliance is critical.
+### Channel Permission Issues
 
-**Solution:** Implement proper authentication, encryption, auditing, and compliance measures. Regular security reviews are essential.
+A channel is connected to its platform but lacks the permissions needed to function. A Discord bot might not have the "Read Messages" or "Send Messages" permission in the target channel. A WhatsApp integration might not have been properly authorized.
 
-## Getting Started
+**How to fix it:** Check the bot's permissions on the relevant platform. Grant the necessary permissions through the platform's admin interface.
 
-### Step 1: Assess Your Needs
+### Network Connectivity Problems
 
-Clearly define what you want to achieve and what problems you want to solve.
+The server cannot reach an external API endpoint. This might be due to firewall rules, DNS configuration, or network outages.
 
-### Step 2: Plan Your Implementation
+**How to fix it:** Test connectivity manually using standard network tools. Check your server's firewall rules and DNS resolution. Verify that outbound HTTPS traffic is not blocked.
 
-Create a detailed plan including timeline, resources, and milestones.
+### Insufficient System Resources
 
-### Step 3: Set Up Infrastructure
+The server is running low on memory, disk space, or both. This is more common on smaller server instances that are running OpenClaw alongside other services.
 
-Prepare the necessary infrastructure, tools, and environment.
+**How to fix it:** Free up resources by clearing old logs, removing unused files, or upgrading to a larger server instance.
 
-### Step 4: Initial Implementation
+## When to Run the Doctor
 
-Start with a pilot project or limited rollout to test and validate.
+The doctor command is useful in several situations:
 
-### Step 5: Measure and Iterate
+### After Initial Setup
 
-Track metrics, gather feedback, and continuously improve.
+Run the doctor immediately after setting up a new OpenClaw deployment. It validates that everything is configured correctly before you start relying on the system. Catching configuration issues at this stage is much less stressful than discovering them when a user reports a problem.
 
-### Step 6: Scale Gradually
+### After Configuration Changes
 
-As you gain confidence and see results, expand your usage and complexity.
+Whenever you modify openclaw.json, add a new agent, connect a new channel, or change API keys, run the doctor to verify that your changes are correct. This is especially important for changes that involve external credentials, since a typo in an API key will not produce an immediate error but will cause failures when the key is actually used.
 
-## Measuring Success
+### When Something Breaks
 
-Track these key metrics:
+If your agents stop responding or a channel goes silent, the doctor is your first diagnostic step. It systematically checks every component and tells you exactly where the problem is, saving you from manually testing each piece.
 
-- **Efficiency gains:** Time saved or tasks automated
-- **Quality improvements:** Error reduction or consistency gains
-- **Cost savings:** Reduced overhead or improved ROI
-- **User satisfaction:** Team adoption and satisfaction scores
-- **Scalability:** Ability to handle growing volumes
+### Periodically for Maintenance
 
-## The Future
+Even when everything seems to be working, running the doctor periodically can catch issues before they become problems. An API key that expires next week will still pass today, but regularly checking your setup helps you stay on top of credential rotation and other maintenance tasks.
 
-The \"openclaw doctor\" Command continues to evolve. Emerging trends include:
+## The Doctor and the Heartbeat
 
-- Enhanced automation capabilities
-- Better integration with AI and machine learning
-- Improved user experience and accessibility
-- Stronger security and compliance features
-- Wider industry adoption
+The doctor command and the heartbeat system are complementary tools. The heartbeat runs continuously in the background, monitoring the ongoing health of your deployment. The doctor is a manual, on-demand tool that performs a comprehensive examination.
 
-## Conclusion
+The heartbeat might alert you that a component is degraded. The doctor gives you the detailed diagnosis. Together, they provide both continuous monitoring and deep diagnostic capability.
 
-The \"openclaw doctor\" Command represents a meaningful advancement in how work gets done. Whether you're an individual, small team, or large enterprise, understanding and properly implementing this technology can significantly improve your productivity and outcomes.
+Think of the heartbeat as the check engine light on your dashboard and the doctor as the mechanic who plugs in the diagnostic tool to tell you exactly what triggered the light.
 
-The key is starting with a clear plan, implementing thoughtfully, measuring results, and continuously optimizing based on real-world feedback.
+## Interpreting Results: Not Every Warning Is Urgent
+
+The doctor command is thorough, and it may report warnings for conditions that are technically suboptimal but not actually causing problems. For example, it might warn about disk space being below the recommended threshold even though you have plenty of room for your actual usage patterns.
+
+Use judgment when reviewing doctor output. Failures need immediate attention. Warnings should be investigated but may not require action. The doctor provides information; you decide what to prioritize.
+
+It is also worth noting that some checks depend on external services. If a model provider's API is temporarily slow due to their own infrastructure issues, the doctor might report degraded model connectivity. Before troubleshooting on your end, verify whether the issue is on the provider's side.
+
+## Building Confidence in Your Deployment
+
+One of the underappreciated benefits of the doctor command is the confidence it provides. When you run the doctor and everything passes, you know your system is in good shape. When you make a change and the doctor confirms everything still works, you can proceed without anxiety.
+
+This confidence matters especially for production deployments where downtime has real consequences. The doctor gives you a fast, reliable way to verify system health, turning what would otherwise be a nerve-wracking manual process into a straightforward automated check.

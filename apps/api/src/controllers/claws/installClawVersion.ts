@@ -5,6 +5,7 @@ import type {
 } from '@/ts/Interfaces'
 
 import { eq } from 'drizzle-orm'
+import { externalUrls } from '@openclaw/shared'
 import { db } from '@/db'
 import { claws } from '@/db/schema'
 import executeSSH from '@/services/ssh'
@@ -14,7 +15,7 @@ import { ok, fail } from '@/lib/response'
 
 const VERSION_REGEX = /^[a-zA-Z0-9._-]+$/
 const OUTDATED_CUTOFF = new Date('2026-02-01')
-const NPM_REGISTRY_URL = 'https://registry.npmjs.org/openclaw'
+const NPM_REGISTRY_URL = externalUrls.NPM.REGISTRY('openclaw')
 
 const installClawVersion = async (c: AuthenticatedContext) => {
     try {

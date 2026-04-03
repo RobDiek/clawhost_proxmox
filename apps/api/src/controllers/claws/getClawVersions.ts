@@ -4,13 +4,14 @@ import type {
     NpmDownloadsResponse
 } from '@/ts/Interfaces'
 
+import { externalUrls } from '@openclaw/shared'
 import executeSSH from '@/services/ssh'
 import { findUserClaw } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 
-const NPM_REGISTRY_URL = 'https://registry.npmjs.org/openclaw'
-const NPM_DOWNLOADS_URL = 'https://api.npmjs.org/versions/openclaw/last-week'
+const NPM_REGISTRY_URL = externalUrls.NPM.REGISTRY('openclaw')
+const NPM_DOWNLOADS_URL = externalUrls.NPM.DOWNLOADS('openclaw')
 
 const getClawVersions = async (c: AuthenticatedContext) => {
     try {

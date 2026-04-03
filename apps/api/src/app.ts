@@ -10,7 +10,7 @@ import { verifyToken } from '@/services/firebase'
 import { eq, sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { users } from '@/db/schema'
-import { authMethod, userRole } from '@openclaw/shared'
+import { authMethod, externalUrls, userRole } from '@openclaw/shared'
 import { environment } from '@/lib/constants'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
@@ -38,12 +38,12 @@ app.use(
     cors({
         origin: isDev
             ? [
-                  'https://clawhost.cloud',
-                  'https://www.clawhost.cloud',
+                  externalUrls.CLAWHOST.BASE,
+                  externalUrls.CLAWHOST.WWW,
                   'http://localhost:1111',
                   'http://localhost:3333'
               ]
-            : ['https://clawhost.cloud', 'https://www.clawhost.cloud'],
+            : [externalUrls.CLAWHOST.BASE, externalUrls.CLAWHOST.WWW],
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowHeaders: ['Content-Type', 'Authorization', 'X-Referral-Code'],
         exposeHeaders: ['X-Sample-Rate', 'X-Channels', 'X-Audio-Format'],

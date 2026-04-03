@@ -11,170 +11,263 @@ tags:
 coverImage: /blogs/building-custom-skills-for-openclaw-a-developer-s-guide.webp
 ---
 
-## Understanding Building Custom Skills for OpenClaw
+## What Is an OpenClaw Skill?
+
+A skill is a self-contained plugin that gives an OpenClaw agent new capabilities. Without skills, your agent can hold conversations but cannot take actions in the world. Skills bridge that gap by exposing tool functions -- discrete operations that the agent can invoke when a user's request requires them.
+
+For example, a web search skill provides a tool function that accepts a search query and returns results. A file management skill provides functions for reading, writing, and listing files. A notification skill provides functions for sending messages through various channels.
+
+Skills are installed through ClawHub, OpenClaw's skill marketplace. Anyone can build a skill, test it locally, and publish it for the community to use. This guide walks through the entire process from an empty directory to a published skill.
+
+## Skill Structure
+
+Every OpenClaw skill follows a consistent directory structure. Understanding this structure is the first step toward building your own.
+
+```
+my-skill/
+  manifest.json
+  src/
+    index.ts
+    tools/
+      myToolFunction.ts
+  README.md
+```
+
+The key components are:
+
+**manifest.json** -- The skill's metadata file. This declares the skill's name, version, description, author, permissions, and the tool functions it exposes. Think of it as the skill's identity card and contract with the OpenClaw runtime.
+
+**src/index.ts** -- The entry point. This file exports the skill's configuration and registers the tool functions that will be available to the agent.
+
+**src/tools/** -- Individual tool function files. Each file defines a single tool function with its input schema, logic, and output format. Keeping tool functions in separate files maintains clarity as your skill grows.
+
+**README.md** -- Documentation for your skill. This is displayed on your skill's ClawHub page and should explain what the skill does, how to configure it, and any prerequisites.
+
+## The Manifest File
+
+The manifest is the most important file in your skill. It tells OpenClaw everything it needs to know about your skill without executing any code.
+
+```json
+{
+  "name": "my-weather-skill",
+  "version": "1.0.0",
+  "description": "Provides current weather data and forecasts for any location",
+  "author": "your-username",
+  "license": "MIT",
+  "permissions": {
+    "network": {
+      "domains": ["api.openweathermap.org"]
+    },
+    "env": ["WEATHER_API_KEY"]
+  },
+  "tools": [
+    {
+      "name": "get_current_weather",
+      "description": "Get the current weather for a specified city or location",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "City name or coordinates (e.g., 'London' or '51.5,-0.1')"
+          },
+          "units": {
+            "type": "string",
+            "enum": ["metric", "imperial"],
+            "description": "Temperature units"
+          }
+        },
+        "required": ["location"]
+      }
+    },
+    {
+      "name": "get_forecast",
+      "description": "Get a multi-day weather forecast for a specified location",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "City name or coordinates"
+          },
+          "days": {
+            "type": "number",
+            "description": "Number of days to forecast (1-7)"
+          }
+        },
+        "required": ["location"]
+      }
+    }
+  ]
+}
+```
+
+Let's break down the key sections:
+
+**name** -- A unique identifier for your skill on ClawHub. Use lowercase with hyphens. This cannot be changed after publishing.
+
+**version** -- Semantic versioning (major.minor.patch). Increment the major version for breaking changes, minor for new features, and patch for bug fixes.
 
-Create your own OpenClaw skills. Step-by-step guide to building, testing, and publishing custom extensions on ClawHub. This article provides comprehensive insights into this topic, exploring its implications, use cases, and best practices.
+**permissions** -- The resources your skill needs access to. This is what users review before installing. The example above declares network access limited to a specific weather API domain and read access to one environment variable for the API key. Always request the minimum permissions necessary.
 
-## What You'll Learn
+**tools** -- An array of tool function declarations. Each tool has a name, a human-readable description (which the agent uses to decide when to call it), and a JSON Schema definition of its parameters. The descriptions matter -- they are how the agent understands what each tool does and when to use it.
 
-This guide covers:
+## Defining Tool Functions
 
-- Core concepts and fundamentals
-- Practical applications and real-world examples
-- Best practices and optimization strategies
-- Common challenges and solutions
-- Getting started and next steps
+Tool functions are where your skill's logic lives. Each function receives structured input (matching the parameters schema in your manifest) and returns a result that the agent can use in its response.
 
-## Key Concepts
+Here is what a tool function implementation looks like:
 
-### Foundation
+```typescript
+const getCurrentWeather = async (params) => {
+  const { location, units = 'metric' } = params
+  const apiKey = process.env.WEATHER_API_KEY
 
-Building Custom Skills for OpenClaw represents a significant shift in how we approach modern problems. It's not just a tool or feature—it's a fundamental change in methodology that affects how professionals work.
+  const response = await fetch(
+    `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&units=${units}&appid=${apiKey}`
+  )
 
-Understanding the basics is essential before diving deeper:
+  if (!response.ok) {
+    return {
+      error: `Failed to fetch weather for ${location}: ${response.statusText}`
+    }
+  }
 
-- **Core principle:** The foundation that makes everything work
-- **Primary benefit:** Why this matters for users and teams
-- **Integration points:** Where it fits into existing workflows
-- **Scalability:** How it grows with your needs
+  const data = await response.json()
 
-### Implementation Details
+  return {
+    location: data.name,
+    country: data.sys.country,
+    temperature: data.main.temp,
+    feelsLike: data.main.feels_like,
+    humidity: data.main.humidity,
+    description: data.weather[0].description,
+    windSpeed: data.wind.speed,
+    units: units
+  }
+}
+```
 
-The practical implementation involves several key components:
+Several principles apply when writing tool functions:
 
-1. **Getting started** - Initial setup and configuration
-2. **Configuration** - Customizing for your specific use case
-3. **Integration** - Connecting with existing tools and systems
-4. **Optimization** - Fine-tuning performance and efficiency
-5. **Monitoring** - Tracking usage and measuring success
+**Return structured data.** The agent will interpret your function's return value and incorporate it into its response to the user. Structured objects with clear field names work better than raw strings or HTML.
 
-## Real-World Applications
+**Handle errors gracefully.** If something goes wrong -- a network request fails, an API returns an unexpected format, a required parameter is missing -- return a clear error message rather than throwing an unhandled exception. The agent can communicate errors to the user more helpfully when it has context.
 
-### Enterprise Use Cases
+**Keep functions focused.** Each tool function should do one thing well. If you find a function growing complex, consider splitting it into multiple tools. An agent can call multiple tool functions in sequence to accomplish a complex task.
 
-Large organizations benefit from:
+**Respect the permission boundaries.** Only access the resources declared in your manifest. Attempting to access undeclared resources will be blocked by the runtime sandbox, and your skill will generate permission violation logs on the user's instance.
 
-- Significant efficiency gains through automation
-- Better resource utilization and cost savings
-- Improved consistency and quality control
-- Enhanced team collaboration and communication
-- Scalability to handle growing demands
+## The Entry Point
 
-### Individual and Small Team Use Cases
+Your skill's entry point (src/index.ts) ties everything together by exporting the skill configuration and registering the tool function implementations:
 
-Individuals and smaller teams experience:
+```typescript
+import getCurrentWeather from './tools/getCurrentWeather'
+import getForecast from './tools/getForecast'
 
-- Time savings on repetitive tasks
-- Ability to focus on higher-value work
-- Improved productivity without additional hiring
-- Access to capabilities previously requiring specialized expertise
-- Flexibility to adapt to changing needs
+const skill = {
+  tools: {
+    get_current_weather: getCurrentWeather,
+    get_forecast: getForecast
+  },
+  setup: async (config) => {
+    if (!process.env.WEATHER_API_KEY) {
+      throw new Error(
+        'WEATHER_API_KEY environment variable is required. Get one at openweathermap.org'
+      )
+    }
+  }
+}
 
-### Specific Examples
+export default skill
+```
 
-Consider these practical scenarios:
+The **tools** object maps tool names (matching the names in your manifest) to their implementations.
 
-**Example 1:** A developer using this for code automation saves 10+ hours per week on routine tasks, allowing them to focus on architecture and innovation.
+The **setup** function runs once when the skill is loaded. Use it for validation (checking that required environment variables are set), initialization (creating clients, loading configuration), and any one-time setup your skill needs.
 
-**Example 2:** A content team leveraging this for publishing workflows increases output by 40% without adding staff.
+## Writing Good Tool Descriptions
 
-**Example 3:** An operations team using this for infrastructure management reduces downtime by 60% through proactive monitoring and response.
+The descriptions you write for your tools directly affect how well the agent uses them. The agent reads these descriptions to decide which tool to call and what parameters to provide. Poor descriptions lead to the agent calling the wrong tool or passing incorrect parameters.
 
-## Best Practices and Optimization
+Good descriptions are:
 
-### Do's
+- **Specific about what the tool does.** "Get the current weather for a specified city or location" is better than "Weather function."
+- **Clear about expected input.** "City name or coordinates (e.g., 'London' or '51.5,-0.1')" tells the agent exactly what format to use.
+- **Honest about limitations.** If your tool only supports certain regions, languages, or data ranges, say so in the description.
 
-✅ Start with a clear understanding of your goals
-✅ Implement gradually, not all at once
-✅ Measure and track results
-✅ Involve your team in the process
-✅ Regularly review and optimize
-✅ Keep documentation updated
-✅ Plan for future scaling
+For parameter descriptions, include examples when the expected format is not obvious. The agent performs better when it can pattern-match against examples rather than interpreting abstract format specifications.
 
-### Don'ts
+## Testing Locally
 
-❌ Don't implement without understanding your needs
-❌ Don't skip the planning phase
-❌ Don't assume one solution fits all use cases
-❌ Don't neglect monitoring and maintenance
-❌ Don't forget about security and compliance
-❌ Don't overestimate what can be achieved immediately
+Before publishing to ClawHub, you should test your skill thoroughly in a local environment. There are several approaches:
 
-## Common Challenges and Solutions
+**Unit testing tool functions.** Since tool functions are regular TypeScript functions that accept parameters and return results, you can test them with any standard testing framework. Mock external API calls to test error handling and edge cases without depending on live services.
 
-### Challenge 1: Learning Curve
+**Integration testing with a local OpenClaw instance.** If you have OpenClaw running locally, you can install your skill directly from the filesystem. This lets you verify that the manifest is parsed correctly, permissions are enforced as expected, tool functions are invoked properly by the agent, and the agent uses your tools appropriately in conversation.
 
-Many teams initially struggle with adoption due to the learning curve.
+**Manual testing through the terminal.** OpenClaw's terminal interface lets you interact with your agent directly. Install your skill, then have a conversation that should trigger your tool functions. Verify that the agent calls the right tools with the right parameters and incorporates the results correctly.
 
-**Solution:** Provide proper training, documentation, and support. Start with simple use cases and gradually increase complexity.
+Common issues caught during testing include:
 
-### Challenge 2: Integration with Existing Systems
+- Mismatched tool names between the manifest and the entry point
+- Parameter schemas that do not match what the function actually expects
+- Missing error handling for network failures or invalid input
+- Permissions that are too restrictive (blocking legitimate operations) or too broad (requesting more than needed)
+- Tool descriptions that confuse the agent about when to use each function
 
-Connecting to legacy systems or specialized tools can be complex.
+## Publishing to ClawHub
 
-**Solution:** Use middleware solutions, APIs, and custom integrations. Plan the integration architecture carefully.
+Once your skill is tested and ready, publishing to ClawHub involves a few steps:
 
-### Challenge 3: Scaling Issues
+**Validate your manifest.** Ensure all required fields are present, your tool schemas are valid JSON Schema, and your permissions accurately reflect what your skill needs.
 
-What works for small teams might not scale to enterprise levels.
+**Write clear documentation.** Your README should cover what the skill does and why someone would want it, what environment variables or configuration are needed, example conversations showing the skill in action, and any known limitations.
 
-**Solution:** Design with scalability in mind from the beginning. Use proper infrastructure, monitoring, and load balancing.
+**Submit to ClawHub.** The submission process includes automated checks that validate your manifest structure, scan for common issues, and verify that your declared permissions are consistent with your code.
 
-### Challenge 4: Security and Compliance
+**Respond to feedback.** If the review process flags issues, address them promptly. Common feedback includes requests to narrow permission scopes, improve tool descriptions, or fix manifest inconsistencies.
 
-Ensuring security and regulatory compliance is critical.
+After approval, your skill appears on ClawHub and is available for anyone to discover and install.
 
-**Solution:** Implement proper authentication, encryption, auditing, and compliance measures. Regular security reviews are essential.
+## Updating Your Skill
 
-## Getting Started
+After publishing, you will inevitably need to release updates -- fixing bugs, adding features, or adapting to changes in external APIs.
 
-### Step 1: Assess Your Needs
+**Increment the version** in your manifest according to semantic versioning. Users who have your skill installed will be notified of available updates.
 
-Clearly define what you want to achieve and what problems you want to solve.
+**If permissions change, be transparent.** Adding new permissions in an update requires users to re-approve. Explain in your changelog why the new permissions are needed. Users are more likely to accept changes they understand.
 
-### Step 2: Plan Your Implementation
+**Maintain backward compatibility when possible.** If you need to change a tool function's parameters or behavior in a breaking way, increment the major version and document the migration path.
 
-Create a detailed plan including timeline, resources, and milestones.
+## Best Practices
 
-### Step 3: Set Up Infrastructure
+Drawing from the experience of successful skill developers, here are patterns worth following:
 
-Prepare the necessary infrastructure, tools, and environment.
+**Start small.** Your first skill should do one thing well with one or two tool functions. You can always expand it later. A focused skill is easier to build, test, debug, and explain to users.
 
-### Step 4: Initial Implementation
+**Follow the principle of least privilege.** Request only the permissions your skill actually needs. If you can accomplish your goal with network access to one domain instead of unrestricted network access, choose the narrower scope. Users notice and appreciate this.
 
-Start with a pilot project or limited rollout to test and validate.
+**Make setup failures clear.** If your skill requires an API key or specific configuration, check for it in the setup function and provide a helpful error message that tells the user exactly what they need to do.
 
-### Step 5: Measure and Iterate
+**Return actionable data.** When a tool function succeeds, return data in a format that the agent can easily interpret and communicate to the user. When it fails, return error messages that explain what went wrong and suggest how to fix it.
 
-Track metrics, gather feedback, and continuously improve.
+**Keep your source code public.** Open source skills earn more trust, receive more installations, and benefit from community bug reports and contributions.
 
-### Step 6: Scale Gradually
+**Test with real conversations.** Unit tests verify that your code works. Testing with real agent conversations verifies that your tool descriptions are effective and the agent uses your tools appropriately. Both are necessary.
 
-As you gain confidence and see results, expand your usage and complexity.
+**Document thoroughly.** A well-documented skill reduces support requests, increases user satisfaction, and makes it easier for others to contribute. Include setup instructions, usage examples, and troubleshooting guidance.
 
-## Measuring Success
+## Skill Ideas to Get You Started
 
-Track these key metrics:
+If you are looking for inspiration, consider building skills in areas where you have domain expertise:
 
-- **Efficiency gains:** Time saved or tasks automated
-- **Quality improvements:** Error reduction or consistency gains
-- **Cost savings:** Reduced overhead or improved ROI
-- **User satisfaction:** Team adoption and satisfaction scores
-- **Scalability:** Ability to handle growing volumes
+- **Developer tools:** Skills that interact with version control systems, CI/CD pipelines, package registries, or code analysis tools.
+- **Communication:** Skills that integrate with email services, team chat platforms, or SMS gateways.
+- **Data processing:** Skills that transform, analyze, or visualize data from various sources.
+- **Home automation:** Skills that interface with smart home platforms like Home Assistant.
+- **Productivity:** Skills that manage calendars, to-do lists, note-taking apps, or project management tools.
+- **Monitoring:** Skills that track uptime, performance metrics, or security events.
 
-## The Future
-
-Building Custom Skills for OpenClaw continues to evolve. Emerging trends include:
-
-- Enhanced automation capabilities
-- Better integration with AI and machine learning
-- Improved user experience and accessibility
-- Stronger security and compliance features
-- Wider industry adoption
-
-## Conclusion
-
-Building Custom Skills for OpenClaw represents a meaningful advancement in how work gets done. Whether you're an individual, small team, or large enterprise, understanding and properly implementing this technology can significantly improve your productivity and outcomes.
-
-The key is starting with a clear plan, implementing thoughtfully, measuring results, and continuously optimizing based on real-world feedback.
+The best skills solve a real problem that the developer personally experiences. If you find yourself wishing your agent could do something it cannot, that is a strong signal that a skill for it would be valuable to others too.

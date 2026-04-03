@@ -8,10 +8,10 @@ author: ClawHost
 publishedAt: '2026-02-26'
 tags:
     - openclaw
-    - ' self-hosting'
-    - ' vps'
-    - ' deployment'
-    - ' privacy'
+    - self-hosting
+    - vps
+    - deployment
+    - privacy
 coverImage: /blogs/self-hosting-openclaw-running-your-own-ai-agent-on-a-vps.webp
 ---
 
@@ -52,9 +52,9 @@ After a certain scale, self-hosting is cheaper than API calls:
 
 ```
 Cloud API model (e.g., Claude API):
-- First 100M tokens: $3 per 1M tokens
-- Monthly cost at 1B tokens: $3,000
-- Annual: $36,000
+- Cost varies by model and usage
+- Heavy usage (1B tokens/month) can cost thousands
+- Annual costs add up quickly at scale
 
 Self-hosted model:
 - VPS cost: $50-200/month
@@ -88,8 +88,8 @@ Cloud services lock you into their constraints.
 Cloud services have outages:
 
 ```
-2024: OpenAI API had 99.9% uptime
-(That's ~7 hours of downtime per year)
+Cloud APIs occasionally experience outages
+(Even major providers have hours of downtime per year)
 
 Self-hosted:
 - You control uptime
@@ -382,9 +382,9 @@ For complete privacy, run the LLM locally using Ollama:
 
 ```bash
 # Install Ollama
-curl https://ollama.ai/install.sh | sh
+curl https://ollama.com/install.sh | sh
 
-# Download a model (Llama 2, Mistral, etc.)
+# Download a model (Llama 3, Mistral, etc.)
 ollama pull mistral
 
 # Run Ollama server (runs on localhost:11434)
@@ -559,7 +559,7 @@ Monthly costs:
 Total: $70-115/month
 
 vs. ClawHost: $20-500/month depending on features and usage
-vs. Cloud APIs: $0.15/M tokens * 1B tokens/month = $150+/month
+vs. Cloud APIs: Variable, depends on model and usage volume
 ```
 
 For heavy usage, self-hosting breaks even or saves money.

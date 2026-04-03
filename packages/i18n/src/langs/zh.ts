@@ -543,17 +543,12 @@ const zh: Translations = {
         otpHeading: '您的登录验证码是：',
         otpExpiry:
             '验证码将在 10 分钟后过期。如果这不是您本人的操作，请忽略此邮件。',
-        changelogSubject: 'ClawHost 有什么新变化',
-        changelogPreview: '查看 ClawHost 的最新更新：{{title}}',
-        changelogHeading: '最新动态',
-        changelogButton: '查看更新日志',
-        changelogVisitButton: '访问 ClawHost',
-        changelogFooter: '您收到此邮件是因为您拥有 ClawHost 账户。',
         featureFooter: '您收到此邮件是因为您拥有 ClawHost 账户。',
         features: {
             terminal: {
                 subject: '您知道吗？您拥有一个网页终端',
                 preview: '直接从浏览器访问您的服务器',
+                tag: '网页终端',
                 heading: '您的服务器只需一次点击',
                 description:
                     '使用我们内置的终端直接从浏览器访问您的服务器。无需 SSH 客户端——只需打开 ClawHost 即可开始输入命令。',
@@ -562,6 +557,7 @@ const zh: Translations = {
             logs: {
                 subject: '您知道吗？仪表板中有实时日志',
                 preview: '无需离开浏览器即可监控服务器日志',
+                tag: '实时日志',
                 heading: '查看服务器正在做什么',
                 description:
                     '从 ClawHost 仪表板实时监控服务器日志。无需离开浏览器即可诊断问题、跟踪部署和调试应用程序。',
@@ -570,6 +566,7 @@ const zh: Translations = {
             channels: {
                 subject: '您知道吗？可以将代理连接到 Discord、Slack 等',
                 preview: '将您的 AI 代理绑定到通讯频道',
+                tag: '频道',
                 heading: '您的代理，无处不在',
                 description:
                     '将您的 AI 代理连接到 Discord、Slack、WhatsApp 等。配置频道并将其绑定到代理——全部在 ClawHost 仪表板中完成。',
@@ -578,6 +575,7 @@ const zh: Translations = {
             fileExplorer: {
                 subject: '您知道吗？可以从浏览器编辑服务器文件',
                 preview: '无需 SSH 即可浏览、读取和编辑文件',
+                tag: '文件浏览器',
                 heading: '文件触手可及',
                 description:
                     '直接从 ClawHost 仪表板浏览、读取和编辑服务器上的文件。语法高亮、搜索和即时保存——无需 SSH。',
@@ -586,6 +584,7 @@ const zh: Translations = {
             playground: {
                 subject: '您知道吗？可以可视化您的基础设施',
                 preview: '在交互式画布上查看您的 Claws 和代理',
+                tag: '工作台',
                 heading: '纵览全局',
                 description:
                     '工作台提供交互式图形画布，展示您所有的 Claws 和代理。点击任意节点即可管理——基础设施的可视化控制中心。',
@@ -594,6 +593,7 @@ const zh: Translations = {
             agentChat: {
                 subject: '您知道吗？可以与您的 AI 代理聊天',
                 preview: '直接从仪表板与您的代理对话',
+                tag: '代理聊天',
                 heading: '与您的代理对话',
                 description:
                     '直接从 ClawHost 仪表板与您的 AI 代理聊天。发送消息、附加图片并查看对话历史——一切尽在一处。',
@@ -602,6 +602,7 @@ const zh: Translations = {
             voiceMode: {
                 subject: '您知道吗？可以用语音与代理交流',
                 preview: '使用语音转文字和文字转语音与您的代理交互',
+                tag: '语音模式',
                 heading: '说出来，别打字',
                 description:
                     '使用语音模式与您的 AI 代理免提交流。语音转文字用于输入，文字转语音用于回复——可选择多种语音。',
@@ -610,6 +611,7 @@ const zh: Translations = {
             skills: {
                 subject: '您知道吗？ClawHub 上有 5,000+ 技能',
                 preview: '一键浏览和安装社区技能',
+                tag: 'ClawHub 技能',
                 heading: '即刻扩展您的代理',
                 description:
                     '在 ClawHub 上浏览超过 5,000 个现成技能，一键安装。网页搜索、代码执行、图像生成等应有尽有。',
@@ -618,6 +620,7 @@ const zh: Translations = {
             bindings: {
                 subject: '您知道吗？可以将代理绑定到特定频道',
                 preview: '控制哪个代理在哪个频道响应',
+                tag: '绑定',
                 heading: '一个频道一个代理',
                 description:
                     '将特定代理绑定到特定频道。支持代理在 Discord，助手在 WhatsApp——由您决定谁在哪里响应。',
@@ -626,6 +629,7 @@ const zh: Translations = {
             envVars: {
                 subject: '您知道吗？可以管理环境变量',
                 preview: '无需 SSH 即可设置 API 密钥和配置',
+                tag: '环境变量',
                 heading: '无需 SSH 即可配置',
                 description:
                     '直接从 ClawHost 仪表板添加、编辑和删除环境变量。设置 API 密钥、密钥和配置——无需终端。',
@@ -634,6 +638,7 @@ const zh: Translations = {
             diagnostics: {
                 subject: '您知道吗？内置健康检查',
                 preview: '从仪表板监控服务器健康状况',
+                tag: '诊断',
                 heading: '了解您的服务器是否健康',
                 description:
                     '对您的 Claw 运行诊断以检查服务状态、内存使用情况和端口可用性。在问题出现之前发现它们。',
@@ -642,6 +647,7 @@ const zh: Translations = {
             sshKeys: {
                 subject: '您知道吗？可以从 ClawHost 管理 SSH 密钥',
                 preview: '在仪表板中生成和管理 SSH 密钥对',
+                tag: 'SSH 密钥',
                 heading: 'SSH 密钥，简化管理',
                 description:
                     '生成 SSH 密钥对、复制公钥和下载私钥——全部在 ClawHost 仪表板中完成。将密钥分配给 Claws 以实现安全访问。',
@@ -650,6 +656,7 @@ const zh: Translations = {
             exportConfig: {
                 subject: '您知道吗？可以导出您的 Claw 配置',
                 preview: '将您的 Claw 设置下载为便携式配置',
+                tag: '导出配置',
                 heading: '随身携带您的配置',
                 description:
                     '将您的 Claw 配置和设置导出为可下载文件。备份您的设置或用它来复制您的环境。',
@@ -658,6 +665,7 @@ const zh: Translations = {
             multiLanguage: {
                 subject: '您知道吗？ClawHost 支持您的语言',
                 preview: '使用 14 种语言操作 ClawHost',
+                tag: '多语言',
                 heading: '用您的语言使用 ClawHost',
                 description:
                     '将整个 ClawHost 仪表板切换为 14 种语言中的任何一种。从按钮到错误消息——全面翻译。',
@@ -666,6 +674,7 @@ const zh: Translations = {
             subdomain: {
                 subject: '您知道吗？每个 Claw 都有自己的子域名',
                 preview: '使用自定义 URL 从任何地方访问您的 Claw',
+                tag: '自定义子域名',
                 heading: '随时随地访问',
                 description:
                     '每个 Claw 都有一个唯一的子域名，让您可以从任何地方访问您的 OpenClaw 实例。无需端口转发、无需本地网络——只需一个 URL。',
@@ -674,6 +683,7 @@ const zh: Translations = {
             darkMode: {
                 subject: '您知道吗？ClawHost 支持深色模式',
                 preview: '在浅色和深色主题之间切换',
+                tag: '深色模式',
                 heading: '护眼体验',
                 description:
                     '在 ClawHost 仪表板中切换浅色和深色主题。您的偏好会自动保存并在每次访问时应用。',
@@ -682,6 +692,7 @@ const zh: Translations = {
             reinstall: {
                 subject: '您知道吗？一键重新安装 OpenClaw',
                 preview: '重置您的 OpenClaw 实例而不丢失服务器',
+                tag: '重新安装',
                 heading: '全新开始，同一台服务器',
                 description:
                     '一键在现有服务器上重新安装 OpenClaw 运行时。您的服务器保持不变——只有 OpenClaw 会获得全新安装。',
@@ -690,6 +701,7 @@ const zh: Translations = {
             yearlyPlans: {
                 subject: '您知道吗？年付方案更省钱',
                 preview: '切换到年付账单，花费更少',
+                tag: '年付方案',
                 heading: '花得少，得到多',
                 description:
                     '切换到年付账单，节省您的 Claw 订阅费用。同样优质的服务，更低的价格——随时取消。',

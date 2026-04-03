@@ -48,9 +48,9 @@ const Blog: FC = (): ReactNode => {
                 </p>
 
                 {allPosts.length > 0 ? (
-                    <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
+                    <div className='grid min-w-0 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
                         {allPosts.map((post) => (
-                            <div key={post.slug} className='cv-auto'>
+                            <div key={post.slug} className='min-w-0'>
                                 <BlogCard post={post} />
                             </div>
                         ))}

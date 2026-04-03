@@ -1,5 +1,6 @@
 import ApiError from '#shared/ApiError'
 import API_PATHS from '#shared/apiPaths'
+import EXTERNAL_URLS from '#shared/externalUrls'
 import RequestClient from '#shared/RequestClient'
 import authMethod from '#shared/authMethod'
 import billingInterval from '#shared/billingInterval'
@@ -22,6 +23,7 @@ export type { ApiEnvelope, RequestOptions, RequestConfig } from '#shared/types'
 export {
     ApiError,
     API_PATHS as apiPaths,
+    EXTERNAL_URLS as externalUrls,
     RequestClient,
     authMethod,
     billingInterval,

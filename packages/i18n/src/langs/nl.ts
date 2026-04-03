@@ -578,17 +578,12 @@ const nl: Translations = {
         otpHeading: 'Je inlogcode is:',
         otpExpiry:
             'Code verloopt over 10 minuten. Als jij dit niet was, negeer deze e-mail.',
-        changelogSubject: 'Wat is er nieuw bij ClawHost',
-        changelogPreview: 'Bekijk de laatste updates van ClawHost: {{title}}',
-        changelogHeading: 'Wat is er nieuw',
-        changelogButton: 'Changelog bekijken',
-        changelogVisitButton: 'ClawHost bezoeken',
-        changelogFooter: 'Je ontvangt dit omdat je een ClawHost-account hebt.',
         featureFooter: 'Je ontvangt dit omdat je een ClawHost-account hebt.',
         features: {
             terminal: {
                 subject: 'Wist je dat? Je hebt een webterminal',
                 preview: 'Toegang tot je server direct vanuit de browser',
+                tag: 'Webterminal',
                 heading: 'Je server is \u00e9\u00e9n klik verwijderd',
                 description:
                     'Krijg direct toegang tot je server vanuit je browser met onze ingebouwde terminal. Geen SSH-client nodig \u2014 open gewoon ClawHost en begin met typen.',
@@ -597,6 +592,7 @@ const nl: Translations = {
             logs: {
                 subject: 'Wist je dat? Realtime logs in je dashboard',
                 preview: 'Monitor je serverlogs zonder de browser te verlaten',
+                tag: 'Live Logs',
                 heading: 'Bekijk wat je server doet',
                 description:
                     'Monitor je serverlogs in realtime vanuit het ClawHost-dashboard. Diagnose problemen, volg deployments en debug je applicaties zonder de browser te verlaten.',
@@ -606,6 +602,7 @@ const nl: Translations = {
                 subject:
                     'Wist je dat? Verbind agents met Discord, Slack en meer',
                 preview: 'Koppel je AI-agents aan communicatiekanalen',
+                tag: 'Kanalen',
                 heading: 'Je agents, overal',
                 description:
                     'Verbind je AI-agents met Discord, Slack, WhatsApp en meer. Configureer kanalen en koppel ze aan agents \u2014 alles vanuit het ClawHost-dashboard.',
@@ -615,6 +612,7 @@ const nl: Translations = {
                 subject:
                     'Wist je dat? Bewerk serverbestanden vanuit je browser',
                 preview: 'Blader, lees en bewerk bestanden zonder SSH',
+                tag: 'Bestandsverkenner',
                 heading: 'Je bestanden, binnen handbereik',
                 description:
                     'Blader, lees en bewerk bestanden op je server direct vanuit het ClawHost-dashboard. Syntaxmarkering, zoeken en direct opslaan \u2014 geen SSH nodig.',
@@ -623,6 +621,7 @@ const nl: Translations = {
             playground: {
                 subject: 'Wist je dat? Visualiseer je infrastructuur',
                 preview: 'Bekijk je claws en agents op een interactief canvas',
+                tag: 'Speeltuin',
                 heading: 'Zie het grote geheel',
                 description:
                     'De Playground geeft je een interactief grafiekcanvas met al je claws en agents. Klik op een knooppunt om het te beheren \u2014 een visueel commandocentrum voor je infrastructuur.',
@@ -631,6 +630,7 @@ const nl: Translations = {
             agentChat: {
                 subject: 'Wist je dat? Chat met je AI-agents',
                 preview: 'Praat met je agents direct vanuit het dashboard',
+                tag: 'Agent Chat',
                 heading: 'Praat met je agents',
                 description:
                     'Chat met je AI-agents direct vanuit het ClawHost-dashboard. Stuur berichten, voeg afbeeldingen toe en bekijk gespreksgeschiedenis \u2014 alles op \u00e9\u00e9n plek.',
@@ -640,6 +640,7 @@ const nl: Translations = {
                 subject: 'Wist je dat? Praat met je agents via spraak',
                 preview:
                     'Gebruik spraak-naar-tekst en tekst-naar-spraak met je agents',
+                tag: 'Spraakmodus',
                 heading: 'Spreek, typ niet',
                 description:
                     'Gebruik de spraakmodus om handsfree met je AI-agents te praten. Spraak-naar-tekst voor invoer, tekst-naar-spraak voor antwoorden \u2014 kies uit meerdere stemmen.',
@@ -649,6 +650,7 @@ const nl: Translations = {
                 subject: 'Wist je dat? 5.000+ skills op ClawHub',
                 preview:
                     'Blader en installeer communityskills met \u00e9\u00e9n klik',
+                tag: 'ClawHub Vaardigheden',
                 heading: 'Breid je agents direct uit',
                 description:
                     'Blader door meer dan 5.000 kant-en-klare skills op ClawHub en installeer ze met \u00e9\u00e9n klik. Zoeken op het web, code-uitvoering, afbeeldingen genereren en nog veel meer.',
@@ -657,6 +659,7 @@ const nl: Translations = {
             bindings: {
                 subject: 'Wist je dat? Koppel agents aan specifieke kanalen',
                 preview: 'Bepaal welke agent op welk kanaal reageert',
+                tag: 'Koppelingen',
                 heading: '\u00c9\u00e9n agent per kanaal',
                 description:
                     'Koppel specifieke agents aan specifieke kanalen. Je supportagent op Discord, je assistent op WhatsApp \u2014 jij bepaalt wie waar reageert.',
@@ -665,6 +668,7 @@ const nl: Translations = {
             envVars: {
                 subject: 'Wist je dat? Beheer omgevingsvariabelen',
                 preview: 'Stel API-sleutels en configuratie in zonder SSH',
+                tag: 'Omgevingsvariabelen',
                 heading: 'Configureren zonder SSH',
                 description:
                     'Voeg omgevingsvariabelen toe, bewerk en verwijder ze direct vanuit het ClawHost-dashboard. Stel API-sleutels, geheimen en configuratie in \u2014 geen terminal nodig.',
@@ -674,6 +678,7 @@ const nl: Translations = {
                 subject: 'Wist je dat? Ingebouwde gezondheidscontroles',
                 preview:
                     'Monitor de gezondheid van je server vanuit het dashboard',
+                tag: 'Diagnostiek',
                 heading: 'Weet dat je server gezond is',
                 description:
                     'Voer diagnostiek uit op je claw om de servicestatus, geheugengebruik en poortbeschikbaarheid te controleren. Ontdek problemen voordat ze groter worden.',
@@ -682,6 +687,7 @@ const nl: Translations = {
             sshKeys: {
                 subject: 'Wist je dat? Beheer SSH-sleutels vanuit ClawHost',
                 preview: 'Genereer en beheer SSH-sleutelparen in het dashboard',
+                tag: 'SSH-sleutels',
                 heading: 'SSH-sleutels, vereenvoudigd',
                 description:
                     'Genereer SSH-sleutelparen, kopieer publieke sleutels en download priv\u00e9sleutels \u2014 alles vanuit het ClawHost-dashboard. Wijs sleutels toe aan claws voor veilige toegang.',
@@ -691,6 +697,7 @@ const nl: Translations = {
                 subject: 'Wist je dat? Exporteer je claw-configuratie',
                 preview:
                     'Download je claw-instellingen als een draagbare configuratie',
+                tag: 'Exporteer Config',
                 heading: 'Neem je configuratie mee',
                 description:
                     'Exporteer je claw-configuratie en instellingen als een downloadbaar bestand. Maak een back-up van je setup of gebruik het om je omgeving te repliceren.',
@@ -699,6 +706,7 @@ const nl: Translations = {
             multiLanguage: {
                 subject: 'Wist je dat? ClawHost spreekt jouw taal',
                 preview: 'Gebruik ClawHost in 14 talen',
+                tag: 'Meertalig',
                 heading: 'ClawHost in jouw taal',
                 description:
                     'Schakel het hele ClawHost-dashboard om naar een van de 14 talen. Van knoppen tot foutmeldingen \u2014 volledig vertaald.',
@@ -708,6 +716,7 @@ const nl: Translations = {
                 subject: 'Wist je dat? Elke claw krijgt een eigen subdomein',
                 preview:
                     'Toegang tot je claw vanaf overal met een aangepaste URL',
+                tag: 'Aangepast Subdomein',
                 heading: 'Toegang vanaf overal',
                 description:
                     'Elke claw krijgt een uniek subdomein zodat je overal toegang hebt tot je OpenClaw-instantie. Geen port forwarding, geen lokale netwerken \u2014 gewoon een URL.',
@@ -716,6 +725,7 @@ const nl: Translations = {
             darkMode: {
                 subject: 'Wist je dat? ClawHost heeft een donkere modus',
                 preview: 'Schakel tussen licht en donker thema',
+                tag: 'Donkere Modus',
                 heading: 'Prettig voor de ogen',
                 description:
                     'Schakel tussen licht en donker thema in het ClawHost-dashboard. Je voorkeur wordt opgeslagen en automatisch toegepast bij elk bezoek.',
@@ -726,6 +736,7 @@ const nl: Translations = {
                     'Wist je dat? Herinstalleer OpenClaw met \u00e9\u00e9n klik',
                 preview:
                     'Reset je OpenClaw-instantie zonder je server te verliezen',
+                tag: 'Herinstalleren',
                 heading: 'Nieuwe start, dezelfde server',
                 description:
                     'Herinstalleer de OpenClaw-runtime op je bestaande server met \u00e9\u00e9n klik. Je server blijft intact \u2014 alleen OpenClaw krijgt een schone installatie.',
@@ -735,6 +746,7 @@ const nl: Translations = {
                 subject: 'Wist je dat? Bespaar met jaarplannen',
                 preview:
                     'Schakel over naar jaarlijkse facturering en betaal minder',
+                tag: 'Jaarlijkse Plannen',
                 heading: 'Betaal minder, krijg meer',
                 description:
                     'Schakel over naar jaarlijkse facturering en bespaar op je claw-abonnement. Dezelfde geweldige service, lagere prijs \u2014 annuleer wanneer je wilt.',

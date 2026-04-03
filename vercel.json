@@ -16,6 +16,10 @@
         {
             "path": "/api/cron/send-feature-emails",
             "schedule": "*/10 * * * *"
+        },
+        {
+            "path": "/api/cron/generate-blog-post",
+            "schedule": "0 * * * *"
         }
     ]
 }
