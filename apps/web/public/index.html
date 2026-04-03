@@ -1681,7 +1681,7 @@ document.getElementById('partners-overlay').addEventListener('click', function(e
 
 function submitPartnerForm() {
   var contact = document.getElementById('partner-contact').value.trim();
-  if (!contact) { alert('הכניסו טלפון או אימייל'); return; }
+  if (!contact) { document.getElementById('partner-contact').style.borderColor='#EF4444'; return; }
   var message = document.getElementById('partner-message').value.trim();
 
   fetch('https://api.clawflow.flowmatic.co.il/hosting/support', {

@@ -2564,8 +2564,8 @@ function apiArchiveOutput(outputId) {
   }).catch(function() { showToast('שגיאת תקשורת', 'error'); });
 }
 
-function apiDeleteOutput(outputId) {
-  if (!confirm('למחוק לצמיתות?')) return;
+async function apiDeleteOutput(outputId) {
+  var _ok = await cfConfirm('מחיקה לצמיתות', 'בטוחים? פעולה זו לא ניתנת לביטול.'); if (!_ok) return;
   fetch(API + '/hosting/instances/' + instanceId + '/outputs/' + outputId, {
     method: 'DELETE',
     headers: { 'Authorization': 'Bearer ' + token }
@@ -3035,8 +3035,8 @@ function startMetaOAuth() {
   }).catch(function() { showToast('שגיאת תקשורת', 'error'); });
 }
 
-function disconnectMeta() {
-  if (!confirm('לנתק את Meta Ads?')) return;
+async function disconnectMeta() {
+  var _ok = await cfConfirm('ניתוק Meta Ads', 'לנתק את Meta Ads?'); if (!_ok) return;
   fetch(API + '/hosting/instances/' + instanceId + '/integrations/meta/disconnect', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + token }
@@ -4686,7 +4686,7 @@ function connectGoogle() {
 }
 
 async function disconnectGoogle() {
-  if (!confirm('לנתק את חשבון Google?')) return;
+  var _ok = await cfConfirm('ניתוק Google', 'לנתק את חשבון Google?'); if (!_ok) return;
   var iid = localStorage.getItem('cf_instance_id');
   try {
     await fetch(API + '/hosting/integrations/google/disconnect?instanceId=' + iid, {
@@ -4815,7 +4815,7 @@ function connectMicrosoft() {
 }
 
 async function disconnectMicrosoft() {
-  if (!confirm('לנתק את חשבון Microsoft 365?')) return;
+  var _ok = await cfConfirm('ניתוק Microsoft 365', 'לנתק את חשבון Microsoft 365?'); if (!_ok) return;
   var iid = localStorage.getItem('cf_instance_id');
   try {
     await fetch(API + '/hosting/integrations/microsoft/disconnect?instanceId=' + iid, {
@@ -6108,7 +6108,7 @@ async function createBackupNow() {
 }
 
 async function restoreBackup(name) {
-  if (!confirm('לשחזר מגיבוי ' + name + '?\nהשרת ייעצר לרגע ויחזור.')) return;
+  var _ok = await cfConfirm('שחזור מגיבוי', 'לשחזר מגיבוי ' + name + '?\nהשרת ייעצר לרגע ויחזור.'); if (!_ok) return;
   var instanceId = localStorage.getItem('cf_instance_id');
   showToast('משחזר...', 'info');
   try {
@@ -6543,7 +6543,7 @@ async function refreshWaTemplates() {
 }
 
 async function sendWaBroadcast(templateId) {
-  if (!confirm('לשלוח לכל אנשי הקשר עם opt-in?')) return;
+  var _ok = await cfConfirm('שליחת רשימה', 'לשלוח לכל אנשי הקשר עם opt-in?'); if (!_ok) return;
   try {
     var res = await fetch(API + '/hosting/instances/' + instanceId + '/whatsapp/send', {
       method: 'POST',
@@ -6724,7 +6724,7 @@ async function deleteMemory(memoryId) {
 }
 
 async function clearAllMemories() {
-  if (!confirm('למחוק את כל הזיכרונות? פעולה זו לא ניתנת לביטול.')) return;
+  var _ok = await cfConfirm('מחיקת כל הזיכרונות', 'למחוק את כל הזיכרונות? פעולה זו לא ניתנת לביטול.'); if (!_ok) return;
   try {
     await fetch(API + '/hosting/instances/' + instanceId + '/memories', {
       method: 'DELETE',
