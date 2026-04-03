@@ -68,17 +68,22 @@ export const checkout = async (c: Context<HonoEnv>) => {
             return fail(c, 'Customer details are required.', 400)
         }
 
-        // Check subdomain availability — clean up stale awaiting_payment first
+        // Check subdomain availability
         if (subdomainName) {
-            // Auto-cleanup: delete instances stuck in awaiting_payment for 1+ hour
-            await db.delete(instances).where(
-                and(
+            // Auto-cleanup: delete ANY awaiting_payment instance with this subdomain
+            // (user abandoned checkout — safe to reclaim)
+            const stalePayments = await db.select({ id: instances.id })
+                .from(instances)
+                .where(and(
                     eq(instances.subdomainName, subdomainName),
-                    eq(instances.status, 'awaiting_payment'),
-                    lt(instances.createdAt, new Date(Date.now() - 3600000))
-                )
-            ).catch(() => {})
+                    eq(instances.status, 'awaiting_payment')
+                ))
+            for (const stale of stalePayments) {
+                await db.delete(payments).where(eq(payments.instanceId, stale.id)).catch(() => {})
+                await db.delete(instances).where(eq(instances.id, stale.id)).catch(() => {})
+            }
 
+            // Now check if subdomain is taken by an ACTIVE instance
             const [existing] = await db.select({ id: instances.id, status: instances.status })
                 .from(instances)
                 .where(eq(instances.subdomainName, subdomainName))
