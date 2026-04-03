@@ -41,15 +41,17 @@ const OLLAMA_MODELS = [
     { id: 'llama3.1:70b', name: 'Llama 3.1 (70B)', ramRequired: 42, desc: 'חזק מאוד — דורש שרת ייעודי (32GB+ RAM)' },
 ]
 
-// Calculate available RAM for Ollama (total - system - services)
-// Conservative estimates — better to under-promise than OOM
+// Calculate available RAM for Ollama models
+// NOTE: plans.ts defines MATEH as 4GB — that's for plan auto-selection (peak usage).
+// Runtime RAM is lower. These are RUNTIME estimates (what's actually consumed).
 function calcAvailableRam(planRam: number, components: string[]): number {
     const systemOverhead = 1.5  // OS + Docker + kernel caches
     const gatewayRam = 0.5      // OpenClaw gateway + Node.js
     const automationRam = 0.8   // n8n / Activepieces + postgres (AP)
     const qdrantRam = 0.5       // Qdrant (Mem0) vector storage
-    const agentRam = components.includes('mt') ? 1.5 : 0.5  // MATEH sub-agents need more
-    return Math.max(0, planRam - systemOverhead - gatewayRam - automationRam - qdrantRam - agentRam)
+    const agentRam = components.includes('mt') ? 2.0 : 0.5  // MATEH runtime (not peak 4GB)
+    const ollamaDaemon = components.includes('ol') ? 0.3 : 0  // Ollama service itself
+    return Math.max(0, planRam - systemOverhead - gatewayRam - automationRam - qdrantRam - agentRam - ollamaDaemon)
 }
 
 // GET /instances/:id/ollama/status — check Ollama state + available models
@@ -124,6 +126,20 @@ export const installOllama = async (c: Context) => {
         const components = (instance.selectedComponents as string[]) || []
         const plan = PLANS.find(p => p.key === instance.planKey) || PLANS[0]
         const availableRam = calcAvailableRam(plan.ram, components)
+
+        // Minimum RAM check — at least Business plan (8GB) recommended
+        if (plan.ram < 8) {
+            const suggestedPlan = PLANS.find(p => p.ram >= 8)
+            return fail(c, JSON.stringify({
+                error: 'plan_too_small',
+                message: `Ollama דורש לפחות תוכנית עסקי (8GB RAM). התוכנית הנוכחית: ${plan.nameHe} (${plan.ram}GB).`,
+                currentPlan: plan.key,
+                suggestedPlan: suggestedPlan?.key || 'business',
+                suggestedPlanName: suggestedPlan?.nameHe || 'עסקי',
+                suggestedPrice: suggestedPlan?.priceIls || 169,
+                currentPrice: plan.priceIls,
+            }), 400)
+        }
 
         // Minimum 3GB free RAM for any Ollama model
         if (availableRam < 3) {

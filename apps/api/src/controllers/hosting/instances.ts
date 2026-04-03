@@ -179,16 +179,26 @@ export const upgradePlan = async (c: Context<HonoEnv>) => {
             return fail(c, 'No server to upgrade.', 400)
         }
 
-        // Record upgrade payment (price difference)
+        // Record upgrade — price difference will be reflected in next billing cycle
+        // TODO: integrate AllPay subscription update for pro-rated charge
+        // For now: record as pending, Hetzner upgrade proceeds, billing adjusted next month
         const priceDiff = targetPlanInfo.priceIls - currentPlan.priceIls
         await db.insert(payments).values({
             id: randomBytes(5).toString('hex'),
             instanceId,
             allpayOrderId: `upgrade-${instanceId}-${Date.now()}`,
             amountIls: String(priceDiff),
-            status: 'paid',
-            paidAt: new Date(),
+            status: 'pending_billing_update',
+            paidAt: null,
         })
+
+        // Alert admin to manually update AllPay subscription amount
+        await telegram.alertAdmin(
+            `⬆️ Plan upgrade: ${instanceId}\n` +
+            `${currentPlan.key} (₪${currentPlan.priceIls}) → ${targetPlan} (₪${targetPlanInfo.priceIls})\n` +
+            `Diff: ₪${priceDiff}/month\n` +
+            `⚠️ Update AllPay subscription manually!`
+        ).catch(() => {})
 
         // Update status to upgrading
         await db.update(instances)
