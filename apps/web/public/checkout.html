@@ -335,20 +335,35 @@ function addRow(label, value) {
   rowsEl.appendChild(div);
 }
 
-addRow('תוכנית ' + plan.he, '₪' + plan.price + '/חודש');
+var isAnnual = billingPeriod === 'annual';
+var discount = isAnnual ? 0.82 : 1;  // 18% discount for annual
+var periodLabel = isAnnual ? '/חודש (שנתי)' : '/חודש';
+var periodNote = isAnnual ? ' · 18% הנחה' : '';
+
+var planPrice = Math.round(plan.price * discount);
+addRow('תוכנית ' + plan.he, '₪' + planPrice + periodLabel);
 if (storageGb > 0) {
-  var storagePrice = storageGb <= 20 ? 9 : storageGb <= 100 ? 39 : 199;
-  addRow('אחסון נוסף +' + storageGb + 'GB', '₪' + storagePrice + '/חודש');
+  var storagePrice = Math.round((storageGb <= 20 ? 9 : storageGb <= 100 ? 39 : 199) * discount);
+  addRow('אחסון נוסף +' + storageGb + 'GB', '₪' + storagePrice + periodLabel);
 }
+var backupPrice = 0;
 if (components.includes('bk')) {
-  addRow('גיבוי יומי', '₪19/חודש');
+  backupPrice = Math.round(19 * discount);
+  addRow('גיבוי יומי', '₪' + backupPrice + periodLabel);
 }
 
 // Total
-var total = plan.price;
-if (storageGb > 0) total += (storageGb <= 20 ? 9 : storageGb <= 100 ? 39 : 199);
-if (components.includes('bk')) total += 19;
-document.getElementById('total-price').textContent = '₪' + total + '/חודש';
+var monthlyTotal = planPrice;
+if (storageGb > 0) monthlyTotal += Math.round((storageGb <= 20 ? 9 : storageGb <= 100 ? 39 : 199) * discount);
+if (components.includes('bk')) monthlyTotal += backupPrice;
+
+if (isAnnual) {
+  var yearlyTotal = monthlyTotal * 12;
+  var savedPerYear = Math.round((plan.price + (storageGb > 0 ? (storageGb <= 20 ? 9 : storageGb <= 100 ? 39 : 199) : 0) + (components.includes('bk') ? 19 : 0)) * 12 * 0.18);
+  document.getElementById('total-price').innerHTML = '₪' + monthlyTotal + '/חודש<div style="font-size:0.82rem;color:#10B981;margin-top:4px">₪' + yearlyTotal + ' לשנה · חוסכים ₪' + savedPerYear + '</div>';
+} else {
+  document.getElementById('total-price').textContent = '₪' + monthlyTotal + '/חודש';
+}
 
 // Fill email
 document.getElementById('cust-email').value = email || '';
@@ -395,7 +410,8 @@ async function handleCheckout() {
         customerEmail: email,
         customerName: name,
         customerPhone: phone,
-        subdomainName: subdomainName || undefined
+        subdomainName: subdomainName || undefined,
+        billingPeriod: billingPeriod
       })
     });
 
@@ -418,7 +434,7 @@ async function handleCheckout() {
     }
 
     // Track checkout initiation
-    if (window.plausible) plausible('Checkout Started', {props: {plan: planKey}, revenue: {currency: 'ILS', amount: totalPrice}});
+    if (window.plausible) plausible('Checkout Started', {props: {plan: planKey, billing: billingPeriod}, revenue: {currency: 'ILS', amount: monthlyTotal}});
 
     // Redirect to AllPay payment page
     if (data.data && data.data.paymentUrl) {
