@@ -12,6 +12,7 @@ import {
     THEMES
 } from '@/lib/constants'
 import getBaseDomain from '@/lib/getBaseDomain'
+import getEnv from '@/lib/getEnv'
 import getLocale from '@/lib/getLocale'
 import TRUNCATE_LENGTHS from '@/lib/truncateLengths'
 import fireConfetti from '@/lib/fireConfetti'
@@ -32,6 +33,7 @@ export {
     LANGUAGES,
     RELEASES,
     getBaseDomain,
+    getEnv,
     getLocale,
     TRUNCATE_LENGTHS,
     fireConfetti,

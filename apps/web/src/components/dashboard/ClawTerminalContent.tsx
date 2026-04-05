@@ -15,6 +15,7 @@ import { Button } from '@/components/ui'
 import { ScrollToBottomButton } from '@/components/shared'
 import { useTerminalStore } from '@/lib/store'
 import { TERMINAL_STATUS } from '@/lib/constants'
+import getEnv from '@/lib/getEnv'
 import '@xterm/xterm/css/xterm.css'
 
 let connectCounter = 0
@@ -243,7 +244,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
 
             const { terminal, fitAndCrop } = createTerminal(container)
 
-            const apiUrl = import.meta.env.VITE_API_URL || ''
+            const apiUrl = getEnv('VITE_API_URL')
             const wsUrl = apiUrl.startsWith('http')
                 ? `${apiUrl.replace(/^http/, 'ws')}/claws/${clawId}/terminal?token=${encodeURIComponent(token)}`
                 : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/claws/${clawId}/terminal?token=${encodeURIComponent(token)}`
