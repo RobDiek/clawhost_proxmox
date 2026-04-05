@@ -9,7 +9,7 @@ import { getCachedToken } from '@/lib/firebase'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 
-import getEnv from '@/lib/getEnv'
+import { getEnv } from '@/lib'
 
 const BASE_URL = getEnv('VITE_API_URL')
 const BUFFER_THRESHOLD = 4096

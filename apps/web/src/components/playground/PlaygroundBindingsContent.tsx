@@ -24,8 +24,7 @@ import { Skeleton } from '@/components/ui'
 import { api } from '@/lib'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import { useClawVersion } from '@/hooks'
-import CLAW_BINDINGS_QUERY_KEY from '@/hooks/usePlayground/CLAW_BINDINGS_QUERY_KEY'
+import { useClawVersion, CLAW_BINDINGS_QUERY_KEY } from '@/hooks'
 
 const CHANNEL_META: Record<string, ChannelMetaEntry> = {
     whatsapp: { icon: WhatsappLogoIcon, label: 'playground.channelsWhatsApp' },

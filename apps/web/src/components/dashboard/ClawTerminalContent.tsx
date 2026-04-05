@@ -15,7 +15,7 @@ import { Button } from '@/components/ui'
 import { ScrollToBottomButton } from '@/components/shared'
 import { useTerminalStore } from '@/lib/store'
 import { TERMINAL_STATUS } from '@/lib/constants'
-import getEnv from '@/lib/getEnv'
+import { getEnv } from '@/lib'
 import '@xterm/xterm/css/xterm.css'
 
 let connectCounter = 0

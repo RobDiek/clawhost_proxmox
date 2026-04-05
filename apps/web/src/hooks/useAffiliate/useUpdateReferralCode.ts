@@ -5,8 +5,7 @@ import { api } from '@/lib'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { t } from '@openclaw/i18n'
-import AFFILIATE_QUERY_KEY from '@/hooks/useAffiliate/AFFILIATE_QUERY_KEY'
-import PROFILE_QUERY_KEY from '@/hooks/useUser/PROFILE_QUERY_KEY'
+import { AFFILIATE_QUERY_KEY, PROFILE_QUERY_KEY } from '@/hooks'
 
 const useUpdateReferralCode = () => {
     const queryClient = useQueryClient()

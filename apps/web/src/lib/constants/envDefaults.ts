@@ -1,7 +1,6 @@
 const ENV_DEFAULTS = {
     VITE_API_URL: 'https://api.clawhost.cloud',
     VITE_FIREBASE_API_KEY: 'AIzaSyDsBtUiX7c7SLKAR1mmH0SZrDoqbnJDwL8',
-    VITE_FIREBASE_AUTH_DOMAIN: 'clawhost.cloud',
     VITE_FIREBASE_PROJECT_ID: 'clawhost-prod',
     VITE_FIREBASE_STORAGE_BUCKET: 'clawhost-prod.firebasestorage.app',
     VITE_FIREBASE_MESSAGING_SENDER_ID: '413543198584',

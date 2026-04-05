@@ -32,8 +32,7 @@ import { api, copyToClipboard } from '@/lib'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { aiModels, validateAgentName } from '@/lib/claw-utils'
-import { PLAYGROUND_AGENTS_QUERY_KEY } from '@/hooks'
-import CLAW_ENV_QUERY_KEY from '@/hooks/usePlayground/CLAW_ENV_QUERY_KEY'
+import { PLAYGROUND_AGENTS_QUERY_KEY, CLAW_ENV_QUERY_KEY } from '@/hooks'
 
 const CreateAgentModal: FC<CreateAgentModalProps> = ({
     clawId: clawIdProp,

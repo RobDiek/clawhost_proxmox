@@ -1,4 +1,4 @@
-import api from '@/lib/api'
+import { api } from '@/lib/api'
 import cn from '@/lib/utils'
 import PATHS from '@/lib/paths'
 import {

@@ -23,13 +23,14 @@ import {
 } from 'firebase/auth'
 import { t } from '@openclaw/i18n'
 import { auth, AUTH_STORAGE_KEY, PROFILE_CACHE_KEY } from '@/lib/firebase'
-import { api } from '@/lib'
-import getEnv from '@/lib/getEnv'
+import { api, getEnv } from '@/lib'
 import AuthContext from '@/lib/auth/AuthContext'
 import STORAGE_KEYS from '@/lib/storageKeys'
-import PROFILE_QUERY_KEY from '@/hooks/useUser/PROFILE_QUERY_KEY'
-import CLAWS_QUERY_KEY from '@/hooks/useClaws/CLAWS_QUERY_KEY'
-import USER_STATS_QUERY_KEY from '@/hooks/useUser/USER_STATS_QUERY_KEY'
+import {
+    PROFILE_QUERY_KEY,
+    CLAWS_QUERY_KEY,
+    USER_STATS_QUERY_KEY
+} from '@/hooks'
 
 const readCachedProfile = (): CachedProfile | null => {
     try {
@@ -174,7 +175,7 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
         const electronAPI = (window as unknown as ElectronWindow).electronAPI
 
         if (electronAPI?.isDesktop) {
-            const authDomain = getEnv('VITE_FIREBASE_AUTH_DOMAIN')
+            const authDomain = `${getEnv('VITE_FIREBASE_PROJECT_ID')}.firebaseapp.com`
             const clientId = import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID
             const redirectUri = `https://${authDomain}/__/auth/handler`
             const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=openid+email+profile&prompt=select_account`
@@ -233,7 +234,7 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
         const electronAPI = (window as unknown as ElectronWindow).electronAPI
 
         if (electronAPI?.isDesktop) {
-            const authDomain = getEnv('VITE_FIREBASE_AUTH_DOMAIN')
+            const authDomain = `${getEnv('VITE_FIREBASE_PROJECT_ID')}.firebaseapp.com`
             const clientId = import.meta.env.VITE_GITHUB_OAUTH_CLIENT_ID
             const redirectUri = `https://${authDomain}/__/auth/handler`
             const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`

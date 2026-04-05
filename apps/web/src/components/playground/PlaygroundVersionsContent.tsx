@@ -30,8 +30,7 @@ import {
 import { api, getLocale } from '@/lib'
 import { useUIStore, useVersionsStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import CLAW_VERSIONS_QUERY_KEY from '@/hooks/useClaws/CLAW_VERSIONS_QUERY_KEY'
-import CLAW_VERSION_QUERY_KEY from '@/hooks/useClaws/CLAW_VERSION_QUERY_KEY'
+import { CLAW_VERSIONS_QUERY_KEY, CLAW_VERSION_QUERY_KEY } from '@/hooks'
 
 const CHANGELOG_BASE_URL = 'https://www.npmjs.com/package/openclaw/v/'
 

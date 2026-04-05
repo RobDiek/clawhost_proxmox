@@ -46,10 +46,14 @@ import {
     PlaygroundDetailSettingsTab
 } from '@/components/playground'
 import { useQueryClient } from '@tanstack/react-query'
-import { useClawVersion, useRenameClaw, useUpdateClawSubdomain } from '@/hooks'
+import {
+    useClawVersion,
+    useRenameClaw,
+    useUpdateClawSubdomain,
+    CLAW_VERSION_QUERY_KEY
+} from '@/hooks'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import CLAW_VERSION_QUERY_KEY from '@/hooks/useClaws/CLAW_VERSION_QUERY_KEY'
 import { generateSlug } from '@/lib/claw-utils'
 
 const tabStateMap: Record<string, PlaygroundDetailTab> = {}
