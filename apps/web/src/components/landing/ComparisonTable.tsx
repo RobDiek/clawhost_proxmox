@@ -50,6 +50,7 @@ const ComparisonTable: FC<ComparisonTableProps> = ({
                                             width={120}
                                             height={24}
                                         />
+                                        
                                         {logoSuffix && (
                                             <span className='font-clash text-foreground translate-y-px text-sm font-bold'>
                                                 {logoSuffix}

@@ -4,7 +4,6 @@ const CDN_URL = externalUrls.CLAWHOST.CDN
 const SITE_URL = externalUrls.CLAWHOST.BASE
 
 const CDN_ASSETS = {
-    LOGO: `${CDN_URL}/assets/clawhost-logo.png`,
     LOGO_DARK: `${CDN_URL}/assets/clawhost-logo-dark.png`,
     LOGO_LIGHT: `${CDN_URL}/assets/clawhost-logo-light.png`,
     FEATURE_TERMINAL: `${CDN_URL}/assets/features/terminal.gif`,

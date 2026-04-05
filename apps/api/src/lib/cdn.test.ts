@@ -1,10 +1,6 @@
 import CDN_ASSETS from '@/lib/cdn'
 
 describe('CDN_ASSETS', () => {
-    it('has LOGO url', () => {
-        expect(CDN_ASSETS.LOGO).toContain('clawhost-logo.png')
-    })
-
     it('has LOGO_DARK url', () => {
         expect(CDN_ASSETS.LOGO_DARK).toContain('clawhost-logo-dark.png')
     })
