@@ -33,3 +33,4 @@ clawhost-articles.json
 
 # Piper TTS models (large binary files, deployed separately)
 apps/api/models/
+apps/auth/
