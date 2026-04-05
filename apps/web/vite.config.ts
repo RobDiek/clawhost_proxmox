@@ -82,6 +82,11 @@ export default defineConfig(({ mode }) => {
                     target: `http://localhost:${env.VITE_API_PORT}`,
                     changeOrigin: true,
                     rewrite: (path) => path.replace(/^\/api/, '')
+                },
+                '/__/auth': {
+                    target: 'https://clawhost-prod.firebaseapp.com',
+                    changeOrigin: true,
+                    secure: true
                 }
             }
         }
