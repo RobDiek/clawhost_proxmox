@@ -1,9 +1,9 @@
 import { RequestClient } from '@openclaw/shared'
 import { signOut } from 'firebase/auth'
 import { auth, clearTokenCache, getCachedToken } from '@/lib/firebase'
-import getEnv from '@/lib/getEnv'
+import Envs from '@/lib/Envs'
 
-const BASE_URL = getEnv('VITE_API_URL')
+const BASE_URL = Envs.VITE_API_URL
 
 const client = new RequestClient({
     baseUrl: BASE_URL,

@@ -1,6 +1,5 @@
 import AFFILIATE_PERIOD from '@/lib/constants/affiliatePeriod'
 import STORAGE_KEYS from '@/lib/storageKeys'
-import ENV_DEFAULTS from '@/lib/constants/envDefaults'
 import AGENT_DETAIL_TABS from '@/lib/constants/agentDetailTabs'
 import CHANGELOG_FEATURE_TYPE from '@/lib/constants/changelogFeatureType'
 import CHAT_CONTENT_BLOCK_TYPE from '@/lib/constants/chatContentBlockType'
@@ -29,7 +28,6 @@ import TOAST_TYPE from '@/lib/constants/toastType'
 
 export {
     AFFILIATE_PERIOD,
-    ENV_DEFAULTS,
     AGENT_DETAIL_TABS,
     CHANGELOG_FEATURE_TYPE,
     CHAT_CONTENT_BLOCK_TYPE,
