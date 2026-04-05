@@ -23,7 +23,7 @@ import {
 } from 'firebase/auth'
 import { t } from '@openclaw/i18n'
 import { auth, AUTH_STORAGE_KEY, PROFILE_CACHE_KEY } from '@/lib/firebase'
-import { api, getEnv } from '@/lib'
+import { api, Envs } from '@/lib'
 import AuthContext from '@/lib/auth/AuthContext'
 import STORAGE_KEYS from '@/lib/storageKeys'
 import {
@@ -175,7 +175,7 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
         const electronAPI = (window as unknown as ElectronWindow).electronAPI
 
         if (electronAPI?.isDesktop) {
-            const authDomain = `${getEnv('VITE_FIREBASE_PROJECT_ID')}.firebaseapp.com`
+            const authDomain = `${Envs.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`
             const clientId = import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID
             const redirectUri = `https://${authDomain}/__/auth/handler`
             const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=openid+email+profile&prompt=select_account`
@@ -234,7 +234,7 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
         const electronAPI = (window as unknown as ElectronWindow).electronAPI
 
         if (electronAPI?.isDesktop) {
-            const authDomain = `${getEnv('VITE_FIREBASE_PROJECT_ID')}.firebaseapp.com`
+            const authDomain = `${Envs.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`
             const clientId = import.meta.env.VITE_GITHUB_OAUTH_CLIENT_ID
             const redirectUri = `https://${authDomain}/__/auth/handler`
             const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`

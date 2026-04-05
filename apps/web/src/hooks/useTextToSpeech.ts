@@ -9,9 +9,9 @@ import { getCachedToken } from '@/lib/firebase'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 
-import { getEnv } from '@/lib'
+import { Envs } from '@/lib'
 
-const BASE_URL = getEnv('VITE_API_URL')
+const BASE_URL = Envs.VITE_API_URL
 const BUFFER_THRESHOLD = 4096
 
 const useTextToSpeech = (): UseTextToSpeechReturn => {

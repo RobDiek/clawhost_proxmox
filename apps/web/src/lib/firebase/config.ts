@@ -1,14 +1,14 @@
 import { initializeApp } from 'firebase/app'
 
-import getEnv from '@/lib/getEnv'
+import Envs from '@/lib/Envs'
 
 const firebaseConfig = {
-    apiKey: getEnv('VITE_FIREBASE_API_KEY'),
+    apiKey: Envs.VITE_FIREBASE_API_KEY,
     authDomain: window.location.host,
-    projectId: getEnv('VITE_FIREBASE_PROJECT_ID'),
-    storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET'),
-    messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID'),
-    appId: getEnv('VITE_FIREBASE_APP_ID')
+    projectId: Envs.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: Envs.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: Envs.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: Envs.VITE_FIREBASE_APP_ID
 }
 
 const app = initializeApp(firebaseConfig)
