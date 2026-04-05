@@ -12,6 +12,7 @@ import { useUIStore } from '@/lib/store'
 import {
     LOGIN_LOADING_METHOD,
     OAUTH_PROVIDER,
+    STORAGE_KEYS,
     TOAST_TYPE
 } from '@/lib/constants'
 import { ROUTES } from '@/lib'
@@ -29,7 +30,6 @@ import {
     CircleNotchIcon,
     ArrowLeftIcon
 } from '@phosphor-icons/react'
-import STORAGE_KEYS from '@/lib/storageKeys'
 
 const COOLDOWN_KEY = STORAGE_KEYS.OTP_SENT_AT
 const COOLDOWN_DURATION = 60

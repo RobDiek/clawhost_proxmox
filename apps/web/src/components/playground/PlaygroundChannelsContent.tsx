@@ -40,10 +40,12 @@ import {
 import { api, copyToClipboard } from '@/lib'
 import { useUIStore, useChannelsStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import { useClawVersion } from '@/hooks'
-import CLAW_CHANNELS_QUERY_KEY from '@/hooks/usePlayground/CLAW_CHANNELS_QUERY_KEY'
-import WHATSAPP_PAIR_INITIAL_QUERY_KEY from '@/hooks/usePlayground/WHATSAPP_PAIR_INITIAL_QUERY_KEY'
-import WHATSAPP_PAIR_STATUS_QUERY_KEY from '@/hooks/usePlayground/WHATSAPP_PAIR_STATUS_QUERY_KEY'
+import {
+    useClawVersion,
+    CLAW_CHANNELS_QUERY_KEY,
+    WHATSAPP_PAIR_INITIAL_QUERY_KEY,
+    WHATSAPP_PAIR_STATUS_QUERY_KEY
+} from '@/hooks'
 
 const CHANNEL_DEFINITIONS: ChannelDefinition[] = [
     {

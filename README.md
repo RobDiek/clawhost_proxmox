@@ -481,8 +481,7 @@ pnpm --filter api email:dev    # Preview email templates at localhost:3333
 
 The web app builds to `apps/web/dist/` as a static SPA with pre-rendered pages and a generated sitemap. Deploy to any static hosting provider:
 
-- **Vercel** (includes `vercel.json` with SPA rewrites)
-- Cloudflare Pages
+- **Cloudflare Pages** (includes `_redirects` and `functions/` for SPA rewrites)
 - Netlify
 - Nginx / Apache
 

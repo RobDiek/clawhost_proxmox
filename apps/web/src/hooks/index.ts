@@ -50,7 +50,8 @@ import {
     CLAWS_QUERY_KEY,
     CLAW_FILES_QUERY_KEY,
     CLAW_FILE_QUERY_KEY,
-    CLAW_VERSION_QUERY_KEY
+    CLAW_VERSION_QUERY_KEY,
+    CLAW_VERSIONS_QUERY_KEY
 } from '@/hooks/useClaws'
 
 import {
@@ -91,7 +92,13 @@ import {
     useClawAgents,
     useAllClawAgents,
     usePlaygroundGraph,
-    PLAYGROUND_AGENTS_QUERY_KEY
+    PLAYGROUND_AGENTS_QUERY_KEY,
+    CLAW_CHANNELS_QUERY_KEY,
+    WHATSAPP_PAIR_INITIAL_QUERY_KEY,
+    WHATSAPP_PAIR_STATUS_QUERY_KEY,
+    CLAW_ENV_QUERY_KEY,
+    AGENT_CONFIG_QUERY_KEY,
+    CLAW_BINDINGS_QUERY_KEY
 } from '@/hooks/usePlayground'
 
 import useAgentChat from '@/hooks/useAgentChat/useAgentChat'
@@ -158,6 +165,7 @@ export {
     CLAW_FILES_QUERY_KEY,
     CLAW_FILE_QUERY_KEY,
     CLAW_VERSION_QUERY_KEY,
+    CLAW_VERSIONS_QUERY_KEY,
     useSSHKeys,
     useCreateSSHKey,
     useDeleteSSHKey,
@@ -184,6 +192,12 @@ export {
     useAllClawAgents,
     usePlaygroundGraph,
     PLAYGROUND_AGENTS_QUERY_KEY,
+    CLAW_CHANNELS_QUERY_KEY,
+    WHATSAPP_PAIR_INITIAL_QUERY_KEY,
+    WHATSAPP_PAIR_STATUS_QUERY_KEY,
+    CLAW_ENV_QUERY_KEY,
+    AGENT_CONFIG_QUERY_KEY,
+    CLAW_BINDINGS_QUERY_KEY,
     useAgentChat,
     useDebouncedValue,
     useNetworkStatus,

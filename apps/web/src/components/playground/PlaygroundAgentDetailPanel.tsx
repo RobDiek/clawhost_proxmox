@@ -33,8 +33,7 @@ import { api } from '@/lib'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { aiModels } from '@/lib/claw-utils'
-import { PLAYGROUND_AGENTS_QUERY_KEY } from '@/hooks'
-import AGENT_CONFIG_QUERY_KEY from '@/hooks/usePlayground/AGENT_CONFIG_QUERY_KEY'
+import { PLAYGROUND_AGENTS_QUERY_KEY, AGENT_CONFIG_QUERY_KEY } from '@/hooks'
 
 const agentTabStateMap: Record<string, PlaygroundAgentDetailTab> = {}
 const deletingAgentIds = new Set<string>()

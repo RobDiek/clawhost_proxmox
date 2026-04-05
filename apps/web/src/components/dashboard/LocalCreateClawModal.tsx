@@ -23,7 +23,7 @@ import {
     EyeSlashIcon
 } from '@phosphor-icons/react'
 import { api } from '@/lib'
-import CLAWS_QUERY_KEY from '@/hooks/useClaws/CLAWS_QUERY_KEY'
+import { CLAWS_QUERY_KEY } from '@/hooks'
 
 const generateReadablePassword = (): string => {
     const words = [

@@ -78,57 +78,10 @@ import type {
 } from '@/ts/Interfaces'
 import type { AdminAnalyticsRange, AffiliatePeriod } from '@/ts/Types'
 
-import { RequestClient } from '@openclaw/shared'
-import { signOut } from 'firebase/auth'
-import { auth, clearTokenCache, getCachedToken } from '@/lib/firebase'
 import { apiPaths as API_PATHS } from '@openclaw/shared'
-import STORAGE_KEYS from '@/lib/storageKeys'
-
-import getEnv from '@/lib/getEnv'
-
-const BASE_URL = getEnv('VITE_API_URL')
-
-const THREE_MONTHS_MS = 3 * 30 * 24 * 60 * 60 * 1000
-
-const getReferralCode = (): string | null => {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEYS.REFERRAL)
-        if (!raw || raw === 'none') return null
-        const stored = JSON.parse(raw)
-        if (Date.now() - stored.timestamp > THREE_MONTHS_MS) return null
-        return stored.code || null
-    } catch {
-        return null
-    }
-}
-
-const getReferralHeaders = (): Record<string, string> => {
-    const code = getReferralCode()
-    return code ? { 'X-Referral-Code': code } : {}
-}
-
-const client = new RequestClient({
-    baseUrl: BASE_URL,
-    getHeaders: async (): Promise<Record<string, string>> => {
-        const token = await getCachedToken()
-        const headers: Record<string, string> = {}
-        if (token) headers.Authorization = `Bearer ${token}`
-        return headers
-    },
-    onUnauthorized: async (): Promise<boolean> => {
-        clearTokenCache()
-        const token = await getCachedToken(true)
-        if (!token) {
-            await signOut(auth)
-            return false
-        }
-        return true
-    }
-})
-
-const publicClient = new RequestClient({
-    baseUrl: BASE_URL
-})
+import { getCachedToken } from '@/lib/firebase'
+import { client, publicClient, BASE_URL } from '@/lib/api/client'
+import getReferralHeaders from '@/lib/api/getReferralHeaders'
 
 const api = {
     sendOtp: (email: string) =>

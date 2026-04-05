@@ -13,9 +13,8 @@ import {
 } from '@/hooks'
 import { getLocale, ROUTES } from '@/lib'
 import { useAuth } from '@/lib/auth'
-import { AFFILIATE_PERIOD, TOAST_TYPE } from '@/lib/constants'
+import { AFFILIATE_PERIOD, STORAGE_KEYS, TOAST_TYPE } from '@/lib/constants'
 import { useUIStore } from '@/lib/store'
-import STORAGE_KEYS from '@/lib/storageKeys'
 import {
     ErrorState,
     Header,
