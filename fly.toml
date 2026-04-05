@@ -1,9 +1,4 @@
-# fly.toml app configuration file generated for clawhost on 2026-03-01T04:09:19Z
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
-app = 'clawhost'
+app = 'clawhost-api'
 primary_region = 'iad'
 
 [build]
