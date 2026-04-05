@@ -84,7 +84,9 @@ import { auth, clearTokenCache, getCachedToken } from '@/lib/firebase'
 import { apiPaths as API_PATHS } from '@openclaw/shared'
 import STORAGE_KEYS from '@/lib/storageKeys'
 
-const BASE_URL = import.meta.env.VITE_API_URL || '/api'
+import getEnv from '@/lib/getEnv'
+
+const BASE_URL = getEnv('VITE_API_URL')
 
 const THREE_MONTHS_MS = 3 * 30 * 24 * 60 * 60 * 1000
 
