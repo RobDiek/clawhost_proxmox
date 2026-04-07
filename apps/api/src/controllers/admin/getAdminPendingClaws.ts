@@ -22,7 +22,6 @@ const getAdminPendingClaws = async (c: AuthenticatedContext) => {
                 .select({
                     id: pendingClaws.id,
                     name: pendingClaws.name,
-                    provider: pendingClaws.provider,
                     planId: pendingClaws.planId,
                     location: pendingClaws.location,
                     priceMonthly: pendingClaws.priceMonthly,

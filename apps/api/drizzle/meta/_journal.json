@@ -176,6 +176,20 @@
       "when": 1775260800000,
       "tag": "0024_referral_payments",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1775865600000,
+      "tag": "0025_cascade_claw_exports",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1775865700000,
+      "tag": "0026_drop_provider_columns",
+      "breakpoints": true
     }
   ]
 }

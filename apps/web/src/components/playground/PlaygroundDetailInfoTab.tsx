@@ -2,10 +2,8 @@ import type { FC, ReactNode } from 'react'
 import type { PlaygroundDetailInfoTabProps } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
-import { clawProvider } from '@openclaw/shared'
 import { getLocale } from '@/lib'
 import { CopyableField } from '@/components/dashboard'
-import { ProviderIcon } from '@/components/shared'
 import { Skeleton } from '@/components/ui'
 import { locationFlags, locationNames } from '@/lib/claw-utils'
 
@@ -47,13 +45,6 @@ const PlaygroundDetailInfoTab: FC<PlaygroundDetailInfoTabProps> = ({
                     />
                 )}
 
-                {claw.provider === clawProvider.local && claw.port && (
-                    <CopyableField
-                        label={t('dashboard.port')}
-                        value={String(claw.port)}
-                    />
-                )}
-
                 {showVersion && versionLoading && (
                     <div className='bg-foreground/5 rounded-lg px-3 py-2'>
                         <span className='text-muted-foreground block text-xs'>
@@ -71,39 +62,20 @@ const PlaygroundDetailInfoTab: FC<PlaygroundDetailInfoTabProps> = ({
                 )}
 
                 <CopyableField
-                    label={t('dashboard.provider')}
+                    label={t('dashboard.location')}
+                    value={`${flag || ''} ${locationName}`.trim()}
+                />
+
+                <CopyableField
+                    label={t('dashboard.plan')}
                     value={
-                        claw.provider === clawProvider.local
-                            ? t('createClaw.providerLocal')
-                            : t('createClaw.providerHetzner')
-                    }
-                    icon={
-                        <ProviderIcon
-                            provider={claw.provider}
-                            className='h-3.5 w-3.5 shrink-0'
-                        />
+                        plan
+                            ? `${plan.name.replace(/([A-Za-z])(\d)/, '$1 $2')} (${plan.cpu} vCPU, ${plan.memory}GB RAM, ${plan.disk}GB SSD)`
+                            : claw.planId
                     }
                 />
 
-                {claw.provider !== clawProvider.local && (
-                    <CopyableField
-                        label={t('dashboard.location')}
-                        value={`${flag || ''} ${locationName}`.trim()}
-                    />
-                )}
-
-                {claw.provider !== clawProvider.local && (
-                    <CopyableField
-                        label={t('dashboard.plan')}
-                        value={
-                            plan
-                                ? `${plan.name.replace(/([A-Za-z])(\d)/, '$1 $2')} (${plan.cpu} vCPU, ${plan.memory}GB RAM, ${plan.disk}GB SSD)`
-                                : claw.planId
-                        }
-                    />
-                )}
-
-                {claw.provider !== clawProvider.local && monthlyPrice && (
+                {monthlyPrice && (
                     <CopyableField
                         label={t('dashboard.planCost')}
                         value={

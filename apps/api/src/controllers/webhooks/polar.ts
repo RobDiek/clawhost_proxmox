@@ -176,7 +176,6 @@ const handlePolarWebhook = async (c: Context) => {
                 const claw = await db
                     .select({
                         id: claws.id,
-                        provider: claws.provider,
                         providerServerId: claws.providerServerId,
                         subdomain: claws.subdomain,
                         deletionScheduledAt: claws.deletionScheduledAt

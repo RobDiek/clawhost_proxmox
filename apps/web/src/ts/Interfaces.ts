@@ -49,7 +49,6 @@ export interface Volume {
 export interface Claw {
     id: string
     name: string
-    provider: string
     status: ClawStatus
     ip: string | null
     planId: string
@@ -359,11 +358,6 @@ export interface ClawMascotProps {
 
 export interface ClawAvatarProps {
     size?: ClawAvatarSize
-    className?: string
-}
-
-export interface ProviderIconProps {
-    provider: string
     className?: string
 }
 
@@ -1962,7 +1956,6 @@ export interface AdminUsersResponse {
 export interface AdminUserDetailClaw {
     id: string
     name: string
-    provider: string
     status: string
     ip: string | null
     planId: string
@@ -2073,7 +2066,6 @@ export interface AdminReferralListItem {
 export interface AdminPendingClawListItem {
     id: string
     name: string
-    provider: string
     planId: string
     location: string
     priceMonthly: number
@@ -2136,7 +2128,6 @@ export interface AdminPaginatedResponse<T> {
 export interface AdminClawListItem {
     id: string
     name: string
-    provider: string
     status: string
     ip: string | null
     planId: string

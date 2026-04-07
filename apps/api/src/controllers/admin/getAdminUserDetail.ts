@@ -42,7 +42,6 @@ const getAdminUserDetail = async (c: AuthenticatedContext) => {
                 .select({
                     id: claws.id,
                     name: claws.name,
-                    provider: claws.provider,
                     status: claws.status,
                     ip: claws.ip,
                     planId: claws.planId,

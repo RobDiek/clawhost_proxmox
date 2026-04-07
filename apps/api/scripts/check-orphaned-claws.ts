@@ -34,7 +34,6 @@ const run = async () => {
         console.log(
             `    Subscription Status: ${claw.subscriptionStatus || 'none'}`
         )
-        console.log(`    Provider: ${claw.provider}`)
         console.log(`    Plan: ${claw.planId}`)
         console.log(`    Location: ${claw.location || 'unknown'}`)
         console.log(`    IP: ${claw.ip || 'none'}`)

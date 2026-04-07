@@ -9,7 +9,6 @@ import LanguageSelector from '@/components/shared/LanguageSelector'
 import NetworkStatus from '@/components/shared/NetworkStatus'
 import PanelPlaceholder from '@/components/shared/PanelPlaceholder'
 import PlansSkeleton from '@/components/shared/PlansSkeleton'
-import ProviderIcon from '@/components/shared/ProviderIcon'
 import ScrollToBottomButton from '@/components/shared/ScrollToBottomButton'
 import ThemeToggle from '@/components/shared/ThemeToggle'
 import Toast from '@/components/shared/Toast'
@@ -29,7 +28,6 @@ export {
     NetworkStatus,
     PanelPlaceholder,
     PlansSkeleton,
-    ProviderIcon,
     ScrollToBottomButton,
     ThemeToggle,
     Toast,

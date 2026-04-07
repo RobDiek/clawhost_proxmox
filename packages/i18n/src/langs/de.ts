@@ -966,7 +966,6 @@ const de: Translations = {
         created: 'Erstellt',
         sshKey: 'SSH-Schlüssel',
         storage: 'Speicher',
-        provider: 'Anbieter',
         nextBilling: 'Nächste Abrechnung',
         lastBilling: 'Letzte Abrechnung',
         version: 'Version',
@@ -1109,8 +1108,6 @@ const de: Translations = {
             'Nur Buchstaben, Zahlen und Bindestriche sind erlaubt!',
         autoGenerateNameHint:
             'Leer lassen, um automatisch einen Namen zu generieren.',
-        providerHetzner: 'Cloud',
-        providerLocal: 'Lokal',
         location: 'Standort',
         locationUnavailable: 'Nicht verfügbar',
         locationUnavailableForPlan: 'Nicht verfügbar',
