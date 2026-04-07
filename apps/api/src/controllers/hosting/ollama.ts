@@ -31,16 +31,17 @@ function sshExec(ip: string, command: string, password?: string, timeoutMs = 600
 }
 
 // Model definitions with RAM requirements (updated April 2026)
+// IDs must match Ollama registry names exactly (ollama.com/library)
 const OLLAMA_MODELS = [
     { id: 'qwen3:8b', name: 'Qwen 3 (8B)', ramRequired: 5, desc: 'הטוב ביותר בעברית — מומלץ לשיווק ותוכן', recommended: true },
-    { id: 'llama4-scout', name: 'Llama 4 Scout (17B)', ramRequired: 11, desc: 'Meta — מצוין לעברית, MoE יעיל' },
     { id: 'gemma3:12b', name: 'Gemma 3 (12B)', ramRequired: 8, desc: 'Google — רב-שפתי, תמונות + טקסט' },
     { id: 'phi4:14b', name: 'Phi-4 (14B)', ramRequired: 9, desc: 'Microsoft — חזק בהיגיון ומתמטיקה' },
-    { id: 'mistral-small3.1:24b', name: 'Mistral Small 3.1 (24B)', ramRequired: 15, desc: 'מהיר, 128K context, Vision' },
     { id: 'qwen3:1.7b', name: 'Qwen 3 (1.7B)', ramRequired: 2, desc: 'קטן ומהיר — סיווג, תרגום, משימות פשוטות' },
-    { id: 'devstral', name: 'Devstral (24B)', ramRequired: 15, desc: 'Mistral — מיועד לקוד, סוכני פיתוח' },
+    { id: 'qwen3:4b', name: 'Qwen 3 (4B)', ramRequired: 3, desc: 'מאוזן — טוב בעברית, חסכוני ב-RAM' },
+    { id: 'mistral-small3.1:24b', name: 'Mistral Small 3.1 (24B)', ramRequired: 15, desc: 'מהיר, 128K context, Vision' },
+    { id: 'devstral:24b', name: 'Devstral (24B)', ramRequired: 15, desc: 'Mistral — מיועד לקוד, סוכני פיתוח' },
     { id: 'qwen3:32b', name: 'Qwen 3 (32B)', ramRequired: 20, desc: 'עברית מצוינת — דורש Pro+ תוכנית' },
-    { id: 'llama4-maverick', name: 'Llama 4 Maverick (400B MoE)', ramRequired: 48, desc: 'חזק מאוד — דורש שרת ייעודי' },
+    { id: 'llama4:scout', name: 'Llama 4 Scout (109B MoE)', ramRequired: 48, desc: 'Meta — חזק מאוד, דורש שרת ייעודי' },
 ]
 
 // Calculate available RAM for Ollama models
