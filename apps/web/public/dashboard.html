@@ -41,6 +41,48 @@ input{font-family:inherit}
 .hamburger{display:none;background:none;border:none;color:#6B7280;padding:4px}
 .hamburger svg{width:24px;height:24px}
 
+/* ===== Agent Switcher ===== */
+.agent-switcher{position:relative;display:flex;align-items:center}
+.agent-switcher-btn{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 8px;border:1px solid #E5E7EB;border-radius:8px;background:#fff;cursor:pointer;transition:all .15s;font-family:inherit;font-size:.85rem;color:#111827}
+.agent-switcher-btn:hover{background:#F9FAFB;border-color:#D1D5DB}
+.agent-switcher-btn .as-icon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.agent-switcher-btn .as-icon svg{width:16px;height:16px}
+.agent-switcher-btn .as-icon.oc{background:#EFF6FF;color:#2563EB}
+.agent-switcher-btn .as-icon.mt{background:#FEF3C7;color:#D97706}
+.agent-switcher-btn .as-icon.bare{background:#F0FDF4;color:#059669}
+.agent-switcher-btn .as-name{font-weight:600;white-space:nowrap}
+.agent-switcher-btn .as-chevron{color:#9CA3AF;transition:transform .2s}
+.agent-switcher-btn.open .as-chevron{transform:rotate(180deg)}
+.agent-switcher-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid #E5E7EB;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.08);min-width:220px;padding:4px;display:none;z-index:200}
+.agent-switcher-dropdown.show{display:block}
+.agent-switcher-option{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background .1s;border:none;background:none;width:100%;text-align:right;font-family:inherit;font-size:.85rem;color:#111827}
+.agent-switcher-option:hover{background:#F3F4F6}
+.agent-switcher-option.active{background:#EFF6FF}
+.agent-switcher-option .as-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.agent-switcher-option .as-icon svg{width:16px;height:16px}
+.agent-switcher-option .as-opt-info{flex:1}
+.agent-switcher-option .as-opt-name{font-weight:600;font-size:.88rem}
+.agent-switcher-option .as-opt-desc{font-size:.75rem;color:#6B7280}
+.agent-switcher-option .as-opt-check{color:#2563EB;opacity:0;font-size:1.1rem}
+.agent-switcher-option.active .as-opt-check{opacity:1}
+
+/* ===== Dashboard Mascot ===== */
+.dash-mascot{position:fixed;bottom:24px;left:24px;z-index:80;display:flex;align-items:flex-end;gap:8px;pointer-events:none}
+.dash-mascot-bot{width:52px;height:52px;pointer-events:auto;cursor:pointer;animation:dashMascotFloat 3s ease-in-out infinite;flex-shrink:0}
+.dash-mascot-bot.excited{animation:dashMascotBounce .45s ease}
+.dash-mascot-bubble{background:#fff;border:1px solid #E5E7EB;border-radius:12px 12px 12px 4px;padding:10px 14px;font-size:.82rem;color:#4B5563;line-height:1.5;max-width:260px;box-shadow:0 2px 8px rgba(0,0,0,.06);pointer-events:auto;opacity:0;transform:translateY(8px);transition:all .3s ease}
+.dash-mascot-bubble.show{opacity:1;transform:translateY(0)}
+.dash-mascot .mascot-eye{animation:dashMascotBlink 4s infinite}
+.dash-mascot .mascot-mouth{opacity:0;transition:opacity .2s}
+.dash-mascot-bot.speaking .mascot-mouth{opacity:1;animation:dashMascotTalk .4s steps(2) infinite}
+.dash-mascot-close{position:absolute;top:4px;left:4px;width:18px;height:18px;border-radius:50%;background:#F3F4F6;border:none;font-size:.7rem;color:#9CA3AF;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.dash-mascot-close:hover{background:#E5E7EB;color:#6B7280}
+@keyframes dashMascotFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes dashMascotBounce{0%{transform:scale(1)}30%{transform:scale(1.15)}60%{transform:scale(.95)}100%{transform:scale(1)}}
+@keyframes dashMascotBlink{0%,90%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes dashMascotTalk{0%{transform:scaleY(1)}50%{transform:scaleY(.6)}}
+@media(max-width:768px){.dash-mascot{bottom:72px;left:12px}.dash-mascot-bubble{max-width:200px;font-size:.78rem}}
+
 /* ===== Sidebar (collapsed, expand on hover) ===== */
 .sidebar{position:fixed;top:52px;right:0;bottom:0;width:54px;background:#fff;border-left:1px solid #E5E7EB;display:flex;flex-direction:column;z-index:90;overflow:hidden;transition:width .25s ease}
 .sidebar:hover{width:210px;box-shadow:-4px 0 20px rgba(0,0,0,.08)}
@@ -567,6 +609,15 @@ input{font-family:inherit}
 <header class="header">
   <div class="header-right">
     <a href="/dashboard" style="text-decoration:none"><img src="/logo-clawflow.png" alt="ClawFlow" style="height:24px"></a>
+    <!-- Agent Switcher -->
+    <div class="agent-switcher" id="agentSwitcher">
+      <button class="agent-switcher-btn" id="agentSwitcherBtn" onclick="toggleAgentSwitcher()">
+        <div class="as-icon oc" id="asSwitcherIcon"></div>
+        <span class="as-name" id="asSwitcherName">OpenClaw</span>
+        <svg class="as-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="agent-switcher-dropdown" id="agentSwitcherDropdown"></div>
+    </div>
   </div>
   <div class="header-left">
     <button class="debug-btn" onclick="toggleDebugPanel()" title="אבחון ותיקון">
@@ -688,6 +739,42 @@ input{font-family:inherit}
 
   <!-- Tab: Home (ראשי) -->
   <div class="tab-content" id="tab-home">
+
+    <!-- Agent Context Bar (shown when multi-agent) -->
+    <div id="agentContextBar" style="display:none;background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:14px 20px;margin-bottom:16px;align-items:center;gap:12px">
+      <div id="acbIcon" class="agent-icon-circle oc" style="width:38px;height:38px"></div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:1rem" id="acbName">OpenClaw Personal</div>
+        <div style="font-size:.82rem;color:#6B7280" id="acbDesc">עוזר אישי</div>
+      </div>
+      <div class="status-badge running" id="acbStatus"><span class="status-dot"></span>פעיל</div>
+      <a id="acbOpenLink" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="font-size:.82rem">פתחו ↗</a>
+    </div>
+
+    <!-- Bare Agent Quick Access (shown only for bare) -->
+    <div id="bareHomeView" style="display:none">
+      <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:12px;padding:20px;margin-bottom:16px">
+        <div style="font-weight:700;font-size:1.05rem;margin-bottom:12px">🖥 שרת נקי — גישה מהירה</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="bareQuickLinks"></div>
+        <div style="margin-top:14px;display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="switchTab('developer')" style="font-size:.82rem">→ אזור מפתחים</button>
+          <button class="btn btn-outline btn-sm" onclick="switchTab('integrations')" style="font-size:.82rem">תוספים</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- OC Personal Quick Chat (shown only for oc) -->
+    <div id="ocHomeView" style="display:none">
+      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.5" style="width:28px;height:28px;flex-shrink:0"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"/></svg>
+        <div style="flex:1">
+          <div style="font-weight:600;color:#1E40AF">צ'אט עם העוזר האישי</div>
+          <div style="font-size:.82rem;color:#3B82F6">שאלו שאלות, בקשו טיוטות, נהלו משימות</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="switchTab('chat')" style="font-size:.85rem">פתחו צ'אט →</button>
+      </div>
+    </div>
+
     <!-- Row 1: Tasks + Notifications (2 columns on desktop) -->
     <div class="home-top-grid">
       <!-- Column 1: משימות הגדרה + משימות פעילות -->
@@ -1896,6 +1983,252 @@ var instanceData = null;
 var tokenVisible = false;
 var dataLoaded = false;
 
+/* ===== AGENT SWITCHER ===== */
+var activeAgent = localStorage.getItem('cf_active_agent') || '';
+
+function getAgentComponents() {
+  return components.filter(function(c) { return c === 'oc' || c === 'mt' || c === 'bare'; });
+}
+
+function initAgentSwitcher() {
+  var agents = getAgentComponents();
+  if (agents.length === 0) agents = ['oc'];
+  // Set default active agent
+  if (!activeAgent || agents.indexOf(activeAgent) === -1) {
+    activeAgent = agents[0];
+    localStorage.setItem('cf_active_agent', activeAgent);
+  }
+  renderAgentSwitcherBtn();
+  renderAgentSwitcherDropdown();
+  applyAgentContext();
+}
+
+function renderAgentSwitcherBtn() {
+  var comp = COMPONENTS[activeAgent] || COMPONENTS.oc;
+  var iconEl = document.getElementById('asSwitcherIcon');
+  var nameEl = document.getElementById('asSwitcherName');
+  if (iconEl) {
+    iconEl.className = 'as-icon ' + (comp.iconClass || 'oc');
+    iconEl.innerHTML = SVG_ICONS[comp.svgKey] || SVG_ICONS.robot;
+  }
+  if (nameEl) nameEl.textContent = comp.name;
+  // Hide switcher if only one agent
+  var agents = getAgentComponents();
+  var switcher = document.getElementById('agentSwitcher');
+  if (switcher) switcher.style.display = agents.length <= 1 ? 'none' : '';
+}
+
+function renderAgentSwitcherDropdown() {
+  var agents = getAgentComponents();
+  var dd = document.getElementById('agentSwitcherDropdown');
+  if (!dd) return;
+  var html = '';
+  agents.forEach(function(c) {
+    var comp = COMPONENTS[c] || { name: c, iconClass: 'oc', svgKey: 'robot', desc: '' };
+    var isActive = c === activeAgent;
+    html += '<button class="agent-switcher-option' + (isActive ? ' active' : '') + '" onclick="switchAgent(\'' + c + '\')">' +
+      '<div class="as-icon ' + comp.iconClass + '">' + (SVG_ICONS[comp.svgKey] || SVG_ICONS.robot) + '</div>' +
+      '<div class="as-opt-info">' +
+        '<div class="as-opt-name">' + comp.name + '</div>' +
+        '<div class="as-opt-desc">' + (comp.desc || '') + '</div>' +
+      '</div>' +
+      '<span class="as-opt-check">&#10003;</span>' +
+    '</button>';
+  });
+  dd.innerHTML = html;
+}
+
+function toggleAgentSwitcher() {
+  var dd = document.getElementById('agentSwitcherDropdown');
+  var btn = document.getElementById('agentSwitcherBtn');
+  if (!dd) return;
+  var isOpen = dd.classList.contains('show');
+  dd.classList.toggle('show', !isOpen);
+  if (btn) btn.classList.toggle('open', !isOpen);
+  // Always remove previous listener first
+  document.removeEventListener('click', closeAgentSwitcherOnOutside);
+  // Close on outside click (only when opening)
+  if (!isOpen) {
+    setTimeout(function() {
+      document.addEventListener('click', closeAgentSwitcherOnOutside);
+    }, 0);
+  }
+}
+
+function closeAgentSwitcherOnOutside(e) {
+  var switcher = document.getElementById('agentSwitcher');
+  if (switcher && !switcher.contains(e.target)) {
+    document.getElementById('agentSwitcherDropdown').classList.remove('show');
+    document.getElementById('agentSwitcherBtn').classList.remove('open');
+    document.removeEventListener('click', closeAgentSwitcherOnOutside);
+  }
+}
+
+function switchAgent(agentType) {
+  if (agentType === activeAgent) {
+    toggleAgentSwitcher();
+    return;
+  }
+  activeAgent = agentType;
+  localStorage.setItem('cf_active_agent', agentType);
+  renderAgentSwitcherBtn();
+  renderAgentSwitcherDropdown();
+  toggleAgentSwitcher();
+  applyAgentContext();
+  // Trigger mascot message for agent switch
+  dashMascotOnAgentSwitch(agentType);
+  // Re-render current tab
+  var currentTab = document.querySelector('.sidebar-item.active');
+  if (currentTab) {
+    var tabId = currentTab.getAttribute('data-tab');
+    if (tabId === 'home') renderHome();
+    if (tabId === 'agents') { renderAgentsTab(); openAgentDetail(agentType); }
+  }
+}
+
+function applyAgentContext() {
+  var isBare = activeAgent === 'bare';
+  // Bare agent: hide chat in sidebar and bottom nav (no conversational agent)
+  var sidebarChat = document.querySelector('.sidebar-item[data-tab="chat"]');
+  if (sidebarChat) sidebarChat.style.display = isBare ? 'none' : '';
+  var bottomChat = document.querySelector('.bottom-nav-item[data-tab="chat"]');
+  if (bottomChat) bottomChat.style.display = isBare ? 'none' : '';
+  // If bare agent is active and user was on chat tab, switch to home
+  if (isBare) {
+    var activeTab = document.querySelector('.sidebar-item.active');
+    if (activeTab && activeTab.getAttribute('data-tab') === 'chat') {
+      switchTab('home');
+    }
+  }
+}
+
+/* ===== DASHBOARD MASCOT ===== */
+var dashMascotTimer = null;
+var dashMascotHidden = sessionStorage.getItem('cf_mascot_hidden') === '1';
+
+var DASH_MASCOT_MSGS = {
+  welcome: {
+    oc: 'שלום! אני כאן לעזור. בדקו שמפתח AI מחובר כדי שאוכל להתחיל לעבוד 🔑',
+    mt: 'הצוות השיווקי שלכם מוכן! מלאו את הפרופיל העסקי כדי שנתחיל לעבוד 📊',
+    bare: 'השרת מוכן! גשו לאזור המפתחים לניהול קבצים וקונסול 💻',
+  },
+  agentSwitch: {
+    oc: 'עברתם לעוזר האישי — צ\'אט, יומן, משימות',
+    mt: 'עברתם ל-MATEH — שיווק, מחקר, אסטרטגיה',
+    bare: 'עברתם לשרת נקי — קוד, קבצים, חופש מלא',
+  },
+  taskDone: 'כל הכבוד! ✅ ממשיכים לשלב הבא?',
+  allSetup: 'הכל מוגדר! 🎉 הסוכנים שלכם פועלים אוטומטית.',
+  tips: {
+    oc: ['בדקו את הצ\'אט — העוזר שלכם מחכה לשאלות', 'חברו את Google Calendar כדי לסנכרן את היומן'],
+    mt: ['הריצו מחקר שוק כדי לקבל תובנות על המתחרים', 'הגדירו את ה-Daily Brief לשעה שנוחה לכם', 'בדקו את תור האישורים — ייתכן שיש תוכן ממתין'],
+    bare: ['גשו לקונסול להתקין חבילות נוספות', 'השתמשו בלשונית קבצים לניהול הפרויקט'],
+  }
+};
+
+function initDashMascot() {
+  if (dashMascotHidden) {
+    var mascotEl = document.getElementById('dashMascot');
+    if (mascotEl) mascotEl.style.display = 'none';
+    return;
+  }
+  // Show welcome message after a short delay
+  setTimeout(function() {
+    var agent = activeAgent || 'oc';
+    var msg = DASH_MASCOT_MSGS.welcome[agent] || DASH_MASCOT_MSGS.welcome.oc;
+    showMascotBubble(msg);
+  }, 2000);
+
+  // Show random tips every 60 seconds
+  setInterval(function() {
+    if (dashMascotHidden) return;
+    var bubble = document.getElementById('dashMascotBubble');
+    if (bubble && bubble.classList.contains('show')) return; // don't interrupt
+    var agent = activeAgent || 'oc';
+    var tips = DASH_MASCOT_MSGS.tips[agent] || [];
+    if (tips.length > 0) {
+      var tip = tips[Math.floor(Math.random() * tips.length)];
+      showMascotBubble(tip);
+    }
+  }, 60000);
+}
+
+function showMascotBubble(msg) {
+  var bubble = document.getElementById('dashMascotBubble');
+  var textEl = document.getElementById('dashMascotText');
+  var bot = document.getElementById('dashMascotBot');
+  if (!bubble || !textEl) return;
+  // Typewriter effect
+  bubble.classList.add('show');
+  if (bot) { bot.classList.add('speaking'); }
+  textEl.textContent = '';
+  var i = 0;
+  clearInterval(dashMascotTimer);
+  dashMascotTimer = setInterval(function() {
+    if (i < msg.length) {
+      textEl.textContent += msg[i];
+      i++;
+    } else {
+      clearInterval(dashMascotTimer);
+      if (bot) bot.classList.remove('speaking');
+      // Auto-hide after 8 seconds
+      setTimeout(function() {
+        bubble.classList.remove('show');
+      }, 8000);
+    }
+  }, 25);
+}
+
+function hideMascotBubble() {
+  var bubble = document.getElementById('dashMascotBubble');
+  if (bubble) bubble.classList.remove('show');
+}
+
+function dashMascotClick() {
+  var bubble = document.getElementById('dashMascotBubble');
+  if (bubble && bubble.classList.contains('show')) {
+    hideMascotBubble();
+  } else {
+    // Show a contextual tip
+    var agent = activeAgent || 'oc';
+    var tips = DASH_MASCOT_MSGS.tips[agent] || [];
+    if (tips.length > 0) {
+      var tip = tips[Math.floor(Math.random() * tips.length)];
+      showMascotBubble(tip);
+    }
+  }
+  // Bounce animation
+  var bot = document.getElementById('dashMascotBot');
+  if (bot) {
+    bot.classList.remove('excited');
+    void bot.offsetWidth; // trigger reflow
+    bot.classList.add('excited');
+  }
+}
+
+function dashMascotOnAgentSwitch(agentType) {
+  var msg = DASH_MASCOT_MSGS.agentSwitch[agentType] || '';
+  if (msg) {
+    var bot = document.getElementById('dashMascotBot');
+    if (bot) {
+      bot.classList.remove('excited');
+      void bot.offsetWidth;
+      bot.classList.add('excited');
+    }
+    showMascotBubble(msg);
+  }
+}
+
+function dashMascotOnTaskDone() {
+  showMascotBubble(DASH_MASCOT_MSGS.taskDone);
+  var bot = document.getElementById('dashMascotBot');
+  if (bot) {
+    bot.classList.remove('excited');
+    void bot.offsetWidth;
+    bot.classList.add('excited');
+  }
+}
+
 // Auto-load instance from API
 (async function autoLoadInstance() {
   try {
@@ -1925,11 +2258,17 @@ var dataLoaded = false;
       if (inst.aiProviderType) localStorage.setItem('cf_api_key_saved', inst.aiProviderType);
       if (inst.telegramBotToken) localStorage.setItem('cf_telegram_saved', '1');
       dataLoaded = true;
+      // Init agent switcher + mascot
+      initAgentSwitcher();
+      initDashMascot();
       // Re-render all views with real data
       renderHome();
       if (typeof renderAgentsTab === 'function') renderAgentsTab();
-      if (typeof renderIntegrations === 'function') renderIntegrations();
       if (typeof renderSavedAnswers === 'function') renderSavedAnswers();
+      // Stagger integration checks to avoid 429 rate limit
+      setTimeout(function() {
+        if (typeof renderIntegrations === 'function') renderIntegrations();
+      }, 800);
     }
   } catch(e) {
     console.error('Auto-load instance error:', e);
@@ -1938,13 +2277,13 @@ var dataLoaded = false;
   }
 })();
 
-// Failsafe: if instanceData still null after 3 seconds, force refresh
+// Failsafe: if instanceData still null after 8 seconds, force refresh
 setTimeout(function() {
   if (!instanceData) {
-    console.warn('[failsafe] instanceData still null after 3s, forcing refresh');
+    console.warn('[failsafe] instanceData still null after 8s, forcing refresh');
     refreshInstanceData();
   }
-}, 3000);
+}, 8000);
 
 // Refresh instance data from API and re-render
 async function refreshInstanceData() {
@@ -1963,6 +2302,7 @@ async function refreshInstanceData() {
       if (inst.hasOpenaiKey) localStorage.setItem('cf_openai_saved', '1');
       if (inst.telegramBotToken) localStorage.setItem('cf_telegram_saved', '1');
       // Re-render
+      initAgentSwitcher();
       renderHome();
       renderAgentsTab();
     }
@@ -1976,7 +2316,8 @@ document.addEventListener('DOMContentLoaded', function() {
   renderHeader();
   // Show loading state — real data rendered by autoLoadInstance callback
   addIntegrationTooltips();
-  checkGoogleStatus();
+  // Delay Google status check to avoid 429 (autoLoadInstance fires first)
+  setTimeout(checkGoogleStatus, 1500);
   renderBilling();
   renderSettings();
   renderAdvanced();
@@ -2034,6 +2375,71 @@ function renderHeader() {
   document.getElementById('headerAvatar').textContent = firstLetter;
 }
 
+function renderAgentHomeContext() {
+  var agents = getAgentComponents();
+  var isMultiAgent = agents.length > 1;
+  var agent = activeAgent || 'oc';
+  var comp = COMPONENTS[agent] || COMPONENTS.oc;
+
+  // Agent Context Bar — only visible when multi-agent
+  var acb = document.getElementById('agentContextBar');
+  if (acb) {
+    acb.style.display = isMultiAgent ? 'flex' : 'none';
+    if (isMultiAgent) {
+      var acbIcon = document.getElementById('acbIcon');
+      if (acbIcon) {
+        acbIcon.className = 'agent-icon-circle ' + (comp.iconClass || 'oc');
+        acbIcon.innerHTML = SVG_ICONS[comp.svgKey] || SVG_ICONS.robot;
+      }
+      var acbName = document.getElementById('acbName');
+      if (acbName) acbName.textContent = comp.name;
+      var acbDesc = document.getElementById('acbDesc');
+      if (acbDesc) acbDesc.textContent = comp.desc || '';
+      var acbLink = document.getElementById('acbOpenLink');
+      if (acbLink) {
+        if (agent === 'bare') {
+          acbLink.textContent = 'אזור מפתחים →';
+          acbLink.removeAttribute('href');
+          acbLink.removeAttribute('target');
+          acbLink.onclick = function() { switchTab('developer'); };
+        } else {
+          acbLink.textContent = 'פתחו ↗';
+          acbLink.href = buildAgentUrl(agentUrl, openclawToken);
+          acbLink.setAttribute('target', '_blank');
+          acbLink.onclick = null;
+        }
+      }
+    }
+  }
+
+  // Per-agent home views
+  var bareHome = document.getElementById('bareHomeView');
+  var ocHome = document.getElementById('ocHomeView');
+  if (bareHome) bareHome.style.display = agent === 'bare' ? '' : 'none';
+  if (ocHome) ocHome.style.display = agent === 'oc' ? '' : 'none';
+
+  // Bare: quick links
+  if (agent === 'bare' && bareHome) {
+    var links = document.getElementById('bareQuickLinks');
+    if (links) {
+      var a = agentUrl && agentUrl !== '#' ? agentUrl : '';
+      var f = flowsUrl && flowsUrl !== '#' ? flowsUrl : '';
+      links.innerHTML = (a ? '<a href="' + a + '" target="_blank" rel="noopener" style="display:block;padding:10px 14px;background:#fff;border:1px solid #E5E7EB;border-radius:8px;text-decoration:none;color:#111827">' +
+        '<div style="font-weight:600;font-size:.88rem">OpenClaw Dashboard ↗</div>' +
+        '<div style="font-size:.75rem;color:#6B7280;direction:ltr;margin-top:2px">' + a + '</div></a>' : '') +
+        (f ? '<a href="' + f + '" target="_blank" rel="noopener" style="display:block;padding:10px 14px;background:#fff;border:1px solid #E5E7EB;border-radius:8px;text-decoration:none;color:#111827">' +
+        '<div style="font-weight:600;font-size:.88rem">Automation Tool ↗</div>' +
+        '<div style="font-size:.75rem;color:#6B7280;direction:ltr;margin-top:2px">' + f + '</div></a>' : '');
+    }
+  }
+
+  // MATEH: show approval queue, content calendar
+  var hasMATEH = components.indexOf('mt') !== -1;
+  var aqWrapper = document.getElementById('approvalQueueWrapper');
+  if (aqWrapper) aqWrapper.style.display = (agent === 'mt' || (!isMultiAgent && hasMATEH)) ? '' : 'none';
+
+}
+
 function renderHome() {
   // Check if VPS is still provisioning
   checkProvisioningStatus();
@@ -2041,6 +2447,9 @@ function renderHome() {
   var name = localStorage.getItem('cf_user_name') || email.split('@')[0] || '';
   var greetEl = document.getElementById('greetingText');
   if (greetEl) greetEl.textContent = 'שלום, ' + name;
+
+  // Render per-agent home views
+  renderAgentHomeContext();
 
   // Wait for data before rendering (prevent showing wrong state)
   if (!dataLoaded || !instanceData) {
@@ -2962,8 +3371,32 @@ function toggleTaskExpand(el) {
 async function loadOllamaStatus() {
   var hasOl = components.indexOf('ol') !== -1;
   var statusEl = document.getElementById('ollama-status');
+  var bodyEl = document.getElementById('int-ollama-body');
   if (!statusEl) return;
-  if (!hasOl) { statusEl.textContent = 'לא נבחר'; statusEl.style.color = '#9CA3AF'; return; }
+
+  if (!hasOl) {
+    statusEl.textContent = 'לא מותקן';
+    statusEl.style.color = '#9CA3AF';
+    if (bodyEl) {
+      // Check if plan supports Ollama (needs 8GB+ free RAM)
+      var currentPlan = PLANS[planKey] || PLANS.personal;
+      var canInstall = currentPlan.ram >= 16; // Pro+ plans
+      bodyEl.innerHTML =
+        '<div style="font-size:.82rem;color:#6B7280;margin-bottom:10px">' +
+          'Ollama מריץ מודלי AI מקומיים על השרת — ללא עלויות API, פרטיות מלאה. דורש 8GB+ RAM פנוי.' +
+        '</div>' +
+        (canInstall
+          ? '<button class="btn btn-primary btn-sm" onclick="doInstallOllama()" style="font-size:.82rem">🚀 התקינו Ollama</button>'
+          : '<div style="background:#FFF7ED;border:1px solid #FDE68A;border-radius:8px;padding:10px;font-size:.82rem;margin-bottom:8px">' +
+              '<div style="font-weight:600;color:#92400E;margin-bottom:4px">נדרשת תוכנית פרו ומעלה</div>' +
+              '<div style="color:#78716C">Ollama דורש לפחות 8GB RAM פנוי. התוכנית הנוכחית (' + currentPlan.name + ', ' + currentPlan.ram + 'GB) לא מספיקה.</div>' +
+            '</div>' +
+            '<button class="btn btn-outline btn-sm" onclick="window.location.href=\'/\'" style="font-size:.82rem">⬆️ שדרגו תוכנית</button>'
+        );
+    }
+    return;
+  }
+
   if (!instanceId) return;
   statusEl.textContent = 'בודק...';
   try {
@@ -3645,11 +4078,14 @@ function renderAgentsTab() {
   agentComps.forEach(function(c) {
     var comp = COMPONENTS[c] || { name: c, iconClass: 'oc', svgKey: 'robot', desc: '' };
     var iconSvg = SVG_ICONS[comp.svgKey] || SVG_ICONS.robot;
-    html += '<div class="int-card" style="cursor:pointer" onclick="openAgentDetail(\'' + c + '\')">' +
+    var isActive = c === activeAgent;
+    var activeBorder = isActive ? 'border-color:#2563EB;box-shadow:0 0 0 2px rgba(37,99,235,.15)' : '';
+    html += '<div class="int-card" style="cursor:pointer;' + activeBorder + '" onclick="openAgentDetail(\'' + c + '\')">' +
       '<div class="int-card-header">' +
         '<div class="int-icon" style="background:#EFF6FF">' + iconSvg + '</div>' +
         '<div>' +
           '<strong>' + comp.name + '</strong>' +
+          (isActive ? '<span style="font-size:.72rem;background:#DBEAFE;color:#2563EB;padding:1px 8px;border-radius:10px;margin-right:6px">פעיל</span>' : '') +
           '<div class="int-status connected">&#10003; פעיל</div>' +
         '</div>' +
       '</div>' +
@@ -5108,14 +5544,7 @@ function checkMicrosoftStatus() {
 }
 
 /* ===== 2FA (TOTP) ===== */
-async function check2faStatus() {
-  try {
-    var res = await fetch(API + '/hosting/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
-    var d = await res.json();
-    // Check from user object if 2FA is enabled (we check via a setup call)
-    // Simple approach: try to get user profile and see totpEnabled
-    // Since /me doesn't return totpEnabled, we'll track locally
-  } catch(e) {}
+function check2faStatus() {
   var enabled = localStorage.getItem('cf_2fa_enabled') === 'true';
   if (enabled) {
     document.getElementById('twofa-status').textContent = 'פעיל';
@@ -7115,6 +7544,25 @@ document.addEventListener('keydown', function(e) {
     </div>
     <div class="task-popup-body" id="taskPopupBody"></div>
     <div class="task-popup-footer" id="taskPopupFooter"></div>
+  </div>
+</div>
+
+<!-- Dashboard Mascot -->
+<div class="dash-mascot" id="dashMascot">
+  <svg class="dash-mascot-bot" id="dashMascotBot" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" onclick="dashMascotClick()">
+    <rect x="12" y="20" width="40" height="34" rx="10" fill="#1E3A5F"/>
+    <rect x="16" y="24" width="32" height="26" rx="7" fill="#2563EB" opacity=".15"/>
+    <circle cx="32" cy="12" r="4" fill="#2563EB"/>
+    <line x1="32" y1="16" x2="32" y2="20" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+    <g class="mascot-eye" style="transform-origin:25px 35px"><circle cx="25" cy="35" r="4" fill="white"/><circle cx="25" cy="35" r="2" fill="#0F172A"/></g>
+    <g class="mascot-eye" style="transform-origin:39px 35px"><circle cx="39" cy="35" r="4" fill="white"/><circle cx="39" cy="35" r="2" fill="#0F172A"/></g>
+    <rect class="mascot-mouth" x="27" y="44" width="10" height="3" rx="1.5" fill="#64B5F6" style="transform-origin:32px 45.5px"/>
+    <rect x="10" y="32" width="4" height="10" rx="2" fill="#1E3A5F"/>
+    <rect x="50" y="32" width="4" height="10" rx="2" fill="#1E3A5F"/>
+  </svg>
+  <div class="dash-mascot-bubble" id="dashMascotBubble" style="position:relative">
+    <button class="dash-mascot-close" onclick="hideMascotBubble()">&times;</button>
+    <span id="dashMascotText"></span>
   </div>
 </div>
 
