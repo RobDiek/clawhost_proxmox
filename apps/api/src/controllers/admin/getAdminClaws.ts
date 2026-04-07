@@ -1,6 +1,6 @@
 import type { AuthenticatedContext } from '@/ts/Types'
 
-import { asc, count, desc, ilike, sql } from 'drizzle-orm'
+import { asc, count, desc, ilike, or, sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { claws, users } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
@@ -20,7 +20,12 @@ const getAdminClaws = async (c: AuthenticatedContext) => {
         const conditions = []
 
         if (search) {
-            conditions.push(ilike(claws.name, `%${search}%`))
+            conditions.push(
+                or(
+                    ilike(claws.name, `%${search}%`),
+                    ilike(claws.ip, `%${search}%`)
+                )!
+            )
         }
 
         const whereClause =

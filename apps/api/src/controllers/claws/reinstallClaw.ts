@@ -9,6 +9,7 @@ import cloudflare from '@/services/cloudflare'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 import {
+    findUserClaw,
     generateCloudInit,
     generatePassword,
     generateServerName,
@@ -20,18 +21,13 @@ const REINSTALL_WINDOW = 86_400_000
 
 const reinstallClaw = async (c: AuthenticatedContext) => {
     try {
+        const userId = c.get('userId')
         const id = c.req.param('id')!
-        const claw = await db
-            .select()
-            .from(claws)
-            .where(eq(claws.id, id))
-            .limit(1)
+        const existing = await findUserClaw(userId, id, c.get('isAdmin'))
 
-        if (!claw[0]) {
+        if (!existing) {
             return fail(c, t('api.clawNotFound'), 404)
         }
-
-        const existing = claw[0]
 
         const nonReinstallableStatuses: string[] = [
             clawStatus.creating,

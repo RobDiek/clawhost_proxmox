@@ -43,7 +43,8 @@ const hardDeleteClaw = async (c: AuthenticatedContext) => {
         ])
 
         return ok(c, null, t('api.clawHardDeleted'))
-    } catch {
+    } catch (err) {
+        console.error('Hard delete claw error:', err)
         return fail(c, t('api.failedToHardDeleteClaw'), 500)
     }
 }

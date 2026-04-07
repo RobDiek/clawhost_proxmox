@@ -1,5 +1,9 @@
 import { Hono } from 'hono'
-import { generateBlogPost, sendFeatureEmails } from '@/controllers/cron'
+import {
+    generateBlogPost,
+    sendFeatureEmails,
+    cleanupExpiredOtps
+} from '@/controllers/cron'
 import { fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
 
@@ -17,5 +21,6 @@ app.use('*', async (c, next) => {
 
 app.get('/generate-blog-post', generateBlogPost)
 app.get('/send-feature-emails', sendFeatureEmails)
+app.get('/cleanup-expired-otps', cleanupExpiredOtps)
 
 export default app

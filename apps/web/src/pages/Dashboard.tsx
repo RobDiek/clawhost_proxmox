@@ -43,8 +43,7 @@ import {
     CreateClawModal,
     DashboardChatView,
     DashboardHeader,
-    DashboardPlaygroundView,
-    LocalCreateClawModal
+    DashboardPlaygroundView
 } from '@/components/dashboard'
 import { PlaygroundLoadingState } from '@/components/playground'
 import { useAuth } from '@/lib/auth'
@@ -385,14 +384,6 @@ const Dashboard: FC = (): ReactNode => {
                     />
                 )}
             </div>
-
-            {showCreate && isLocal && (
-                <LocalCreateClawModal
-                    onClose={() => {
-                        setShowCreate(false)
-                    }}
-                />
-            )}
 
             {showCreate && !isLocal && plans.length > 0 && (
                 <CreateClawModal

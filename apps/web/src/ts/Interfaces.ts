@@ -486,10 +486,6 @@ export interface CreateClawModalProps {
     onNavigateToSSHKeys: () => void
 }
 
-export interface LocalCreateClawModalProps {
-    onClose: () => void
-}
-
 export interface ClawCardActions {
     onStart: () => void
     onShowStopModal: () => void
@@ -629,15 +625,6 @@ export interface AIModelOption {
     name: string
     provider: string
     envVar: string
-}
-
-export interface CreateClawData {
-    name: string
-    planId: string
-    location: string
-    password?: string
-    sshKeyId?: string
-    volumeSize?: number
 }
 
 export interface PurchaseClawData {

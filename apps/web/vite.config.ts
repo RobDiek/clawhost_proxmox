@@ -18,12 +18,15 @@ export default defineConfig(({ mode }) => {
     const wrangler = JSON.parse(
         readFileSync(path.resolve(__dirname, 'wrangler.json'), 'utf-8')
     )
-    const wranglerEnv = Object.fromEntries(
-        Object.entries(wrangler.vars || {}).map(([key, value]) => [
-            `import.meta.env.${key}`,
-            JSON.stringify(value)
-        ])
-    )
+    const wranglerEnv =
+        mode === 'production'
+            ? Object.fromEntries(
+                  Object.entries(wrangler.vars || {}).map(([key, value]) => [
+                      `import.meta.env.${key}`,
+                      JSON.stringify(value)
+                  ])
+              )
+            : {}
 
     return {
         define: {

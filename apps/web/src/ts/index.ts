@@ -82,7 +82,6 @@ export type {
     CreateAgentData,
     CreateAgentModalProps,
     CreateAgentResponse,
-    CreateClawData,
     CreateSSHKeyData,
     ResolveCredentialConflictData,
     DeleteAgentData,

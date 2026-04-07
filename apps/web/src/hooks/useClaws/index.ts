@@ -10,7 +10,6 @@ import CLAW_VERSIONS_QUERY_KEY from '@/hooks/useClaws/CLAW_VERSIONS_QUERY_KEY'
 import useClaws from '@/hooks/useClaws/useClaws'
 import useAdminClaws from '@/hooks/useClaws/useAdminClaws'
 import useClaw from '@/hooks/useClaws/useClaw'
-import useCreateClaw from '@/hooks/useClaws/useCreateClaw'
 import usePurchaseClaw from '@/hooks/useClaws/usePurchaseClaw'
 import useStartClaw from '@/hooks/useClaws/useStartClaw'
 import useStopClaw from '@/hooks/useClaws/useStopClaw'
@@ -46,7 +45,6 @@ export {
     useClaws,
     useAdminClaws,
     useClaw,
-    useCreateClaw,
     usePurchaseClaw,
     useStartClaw,
     useStopClaw,

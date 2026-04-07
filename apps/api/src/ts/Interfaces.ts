@@ -459,15 +459,6 @@ export interface UpdateProfileBody {
     name?: string
 }
 
-export interface CreateClawBody {
-    name: string
-    planId: string
-    location: string
-    password?: string
-    sshKeyId?: string
-    volumeSize?: number
-}
-
 export interface InitiateClawPurchaseBody {
     name?: string
     planId: string
