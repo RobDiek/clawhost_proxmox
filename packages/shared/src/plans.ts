@@ -28,11 +28,13 @@ const PLANS: PlanInfo[] = [
 
 const COMPONENTS: ComponentInfo[] = [
     { id: 'oc', nameHe: 'OpenClaw Personal', nameEn: 'OpenClaw Personal', ram: 1.0, category: 'agent', available: true },
+    { id: 'bare', nameHe: 'OpenClaw נקי', nameEn: 'OpenClaw Bare', ram: 0.5, category: 'agent', available: true },
     { id: 'mt', nameHe: 'MATEH — סוכן שיווקי', nameEn: 'MATEH — Marketing Agent', ram: 4.0, category: 'agent', available: true },
     { id: 'sv', nameHe: 'נציג מכירות ותמיכה', nameEn: 'Sales & Support Agent', ram: 2.0, category: 'agent', available: false },
     { id: 'ec', nameHe: 'eCommerce Agent', nameEn: 'eCommerce Agent', ram: 2.0, category: 'agent', available: false },
     { id: 'n8', nameHe: 'n8n', nameEn: 'n8n', ram: 0.5, category: 'automation', available: true },
     { id: 'ap', nameHe: 'Activepieces', nameEn: 'Activepieces', ram: 0.5, category: 'automation', available: true },
+    { id: 'df', nameHe: 'Dify AI Studio', nameEn: 'Dify AI Studio', ram: 1.0, category: 'automation', available: true },
     { id: 'ol', nameHe: 'Ollama (מודל מקומי)', nameEn: 'Ollama (Local Model)', ram: 8.0, category: 'ai', available: true },
 ]
 

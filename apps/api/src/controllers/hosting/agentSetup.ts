@@ -1565,7 +1565,7 @@ export const setupAgents = async (c: Context) => {
 
         // Determine agent type from selected components
         const components = (instance.selectedComponents as string[]) || []
-        const agentType: 'mt' | 'oc' = components.includes('mt') ? 'mt' : 'oc'
+        const agentType: 'mt' | 'oc' | 'bare' = components.includes('mt') ? 'mt' : components.includes('bare') ? 'bare' : 'oc'
 
         console.log(`Deploying ${agentType} agent system to ${instance.ip}...`)
         await deployAgentSystem(instance.ip, userMd, brandMd, brandSlug, gatewayToken, subdomain, instance.rootPassword || undefined, agentType)
@@ -1595,7 +1595,7 @@ export const addAgentToInstance = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const { agentType } = await c.req.json<{ agentType: 'mt' | 'oc' }>()
 
-        if (!agentType || !['mt', 'oc'].includes(agentType)) {
+        if (!agentType || !['mt', 'oc', 'bare'].includes(agentType)) {
             return fail(c, 'Invalid agent type', 400)
         }
 
@@ -1716,6 +1716,11 @@ export const addAgentToInstance = async (c: Context) => {
             `, instance.rootPassword || undefined)
         }
 
+        if (agentType === 'bare') {
+            // Bare agent — just ensure gateway is running, no templates needed
+            await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
+        }
+
         // Update instance components in DB
         const newComponents = [...currentComponents, agentType]
         await db.update(instances).set({
@@ -1743,7 +1748,7 @@ export const removeAgentFromInstance = async (c: Context) => {
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
         const { agentType } = await c.req.json<{ agentType: 'mt' | 'oc' }>()
 
-        if (!agentType || !['mt', 'oc'].includes(agentType)) {
+        if (!agentType || !['mt', 'oc', 'bare'].includes(agentType)) {
             return fail(c, 'Invalid agent type', 400)
         }
 
@@ -1756,7 +1761,7 @@ export const removeAgentFromInstance = async (c: Context) => {
         }
 
         // Must keep at least one agent
-        const agentComponents = currentComponents.filter(c => ['mt', 'oc'].includes(c))
+        const agentComponents = currentComponents.filter(c => ['mt', 'oc', 'bare'].includes(c))
         if (agentComponents.length <= 1) {
             return fail(c, 'לא ניתן להסיר את הסוכן האחרון', 400)
         }
@@ -1787,6 +1792,9 @@ export const removeAgentFromInstance = async (c: Context) => {
                 '
                 systemctl restart openclaw-gateway
             `, instance.rootPassword || undefined)
+        } else if (agentType === 'bare') {
+            // Bare — nothing to clean up, just restart
+            await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
         }
 
         // Update DB

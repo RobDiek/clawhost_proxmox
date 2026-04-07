@@ -3751,6 +3751,16 @@ function showAddAgentDialog() {
     (hasOc ? '<div style="font-size:0.75rem;color:#10B981;margin-top:4px">&#10003; מותקן</div>' : '<div style="font-size:0.75rem;color:#2563EB;margin-top:4px">→ הוסיפו</div>') +
   '</div>';
 
+  // Bare (clean OpenClaw)
+  var hasBare = components.indexOf('bare') !== -1;
+  bodyHtml += '<div class="int-card' + (hasBare ? ' connected' : '') + '" style="cursor:pointer" onclick="' + (hasBare ? "showToast('כבר מותקן','success')" : "addAgentRequest('bare')") + '">' +
+    '<div class="int-card-header">' +
+      '<div class="int-icon" style="background:#F3F4F6"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6B7280" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 13h4"/></svg></div>' +
+      '<div><strong>OpenClaw נקי</strong><div style="font-size:.78rem;color:#6B7280">שרת OpenClaw ריק — בנו את הסוכנים בעצמכם. גישה מלאה לקבצים והגדרות.</div></div>' +
+    '</div>' +
+    (hasBare ? '<div style="font-size:0.75rem;color:#10B981;margin-top:4px">&#10003; מותקן</div>' : '<div style="font-size:0.75rem;color:#2563EB;margin-top:4px">→ הוסיפו</div>') +
+  '</div>';
+
   bodyHtml += '</div>';
 
   document.getElementById('taskPopupBody').innerHTML = bodyHtml;
