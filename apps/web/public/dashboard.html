@@ -3411,24 +3411,31 @@ async function loadOllamaStatus() {
     if (d.running) {
       statusEl.textContent = 'פעיל'; statusEl.style.color = '#10B981';
       if (bodyEl) {
-        var html = '<div style="font-size:.82rem;color:#6B7280;margin-bottom:8px">RAM פנוי: ' + d.currentPlan.availableRam + 'GB</div>';
-        html += '<div id="ollama-models-list" style="margin-bottom:10px">';
+        var installedModels = d.models.filter(function(m) { return m.installed; });
+        var installedHtml = installedModels.length > 0
+          ? installedModels.map(function(m) { return '<span style="display:inline-flex;align-items:center;gap:4px;background:#D1FAE5;color:#065F46;padding:2px 10px;border-radius:12px;font-size:.75rem">✓ ' + m.name + '</span>'; }).join(' ')
+          : '<span style="font-size:.82rem;color:#9CA3AF">אין מודלים מותקנים</span>';
+        var html = '<div style="margin-bottom:8px">' + installedHtml + '</div>';
+        html += '<div style="font-size:.78rem;color:#9CA3AF;margin-bottom:6px">RAM פנוי: ' + d.currentPlan.availableRam + 'GB</div>';
+        html += '<details style="margin-bottom:10px">' +
+          '<summary style="cursor:pointer;font-size:.85rem;font-weight:500;color:#2563EB;user-select:none;padding:4px 0">הורידו מודלים נוספים (' + d.models.length + ')</summary>' +
+          '<div style="margin-top:8px;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden">';
         d.models.forEach(function(m) {
-          html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F3F4F6;font-size:.82rem">' +
+          html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #F3F4F6;font-size:.82rem">' +
             '<div style="flex:1">' +
               '<div style="font-weight:600">' + m.name + (m.recommended ? ' ⭐' : '') + '</div>' +
-              '<div style="color:#6B7280;font-size:.75rem">' + m.desc + ' (' + m.ramRequired + 'GB)' + '</div>' +
+              '<div style="color:#6B7280;font-size:.75rem">' + m.desc + ' · ' + m.ramRequired + 'GB RAM</div>' +
             '</div>';
           if (m.installed) {
-            html += '<span style="color:#10B981;font-size:.78rem">✓ מותקן</span>';
+            html += '<span style="color:#10B981;font-size:.78rem;white-space:nowrap">✓ מותקן</span>';
           } else if (m.canRun) {
-            html += '<button class="btn btn-outline btn-sm" onclick="doPullModel(\'' + m.id + '\')" style="font-size:.72rem;padding:2px 10px">הורידו</button>';
+            html += '<button class="btn btn-outline btn-sm" onclick="doPullModel(\'' + m.id + '\')" style="font-size:.72rem;padding:2px 10px;white-space:nowrap">הורידו</button>';
           } else {
-            html += '<span style="color:#9CA3AF;font-size:.72rem">' + (m.needsPlan || 'לא מספיק RAM') + '</span>';
+            html += '<span style="color:#9CA3AF;font-size:.7rem;text-align:left;max-width:100px">' + (m.needsPlan || 'לא מספיק RAM') + '</span>';
           }
           html += '</div>';
         });
-        html += '</div>';
+        html += '</div></details>';
         html += '<button class="btn btn-outline btn-sm" onclick="loadOllamaStatus()" style="font-size:0.75rem">&#8635; רענון</button>';
         bodyEl.innerHTML = html;
       }

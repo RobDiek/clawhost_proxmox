@@ -30,15 +30,17 @@ function sshExec(ip: string, command: string, password?: string, timeoutMs = 600
     })
 }
 
-// Model definitions with RAM requirements
+// Model definitions with RAM requirements (updated April 2026)
 const OLLAMA_MODELS = [
-    { id: 'llama3.1:8b', name: 'Llama 3.1 (8B)', ramRequired: 6, desc: 'מודל כללי — עברית סבירה', recommended: true },
-    { id: 'mistral:7b', name: 'Mistral (7B)', ramRequired: 5, desc: 'מהיר — אנגלית מצוינת, עברית בסיסית' },
-    { id: 'codellama:7b', name: 'CodeLlama (7B)', ramRequired: 5, desc: 'מיועד לקוד — לא מתאים לעברית' },
-    { id: 'gemma2:9b', name: 'Gemma 2 (9B)', ramRequired: 7, desc: 'Google — איכות גבוהה, צורך הרבה RAM' },
-    { id: 'qwen2.5:7b', name: 'Qwen 2.5 (7B)', ramRequired: 5, desc: 'טוב בעברית — מומלץ למשימות פנימיות' },
-    { id: 'phi4-mini', name: 'Phi-4 Mini (3.8B)', ramRequired: 3, desc: 'קטן ומהיר — מומלץ לסיווג ומשימות פשוטות' },
-    { id: 'llama3.1:70b', name: 'Llama 3.1 (70B)', ramRequired: 42, desc: 'חזק מאוד — דורש שרת ייעודי (32GB+ RAM)' },
+    { id: 'qwen3:8b', name: 'Qwen 3 (8B)', ramRequired: 5, desc: 'הטוב ביותר בעברית — מומלץ לשיווק ותוכן', recommended: true },
+    { id: 'llama4-scout', name: 'Llama 4 Scout (17B)', ramRequired: 12, desc: 'Meta — מצוין לעברית, MoE יעיל' },
+    { id: 'gemma3:12b', name: 'Gemma 3 (12B)', ramRequired: 8, desc: 'Google — רב-שפתי, תמונות + טקסט' },
+    { id: 'phi4:14b', name: 'Phi-4 (14B)', ramRequired: 9, desc: 'Microsoft — חזק בהיגיון ומתמטיקה' },
+    { id: 'mistral-small3.1:24b', name: 'Mistral Small 3.1 (24B)', ramRequired: 15, desc: 'מהיר, 128K context, Vision' },
+    { id: 'qwen3:1.7b', name: 'Qwen 3 (1.7B)', ramRequired: 2, desc: 'קטן ומהיר — סיווג, תרגום, משימות פשוטות' },
+    { id: 'devstral', name: 'Devstral (24B)', ramRequired: 15, desc: 'Mistral — מיועד לקוד, סוכני פיתוח' },
+    { id: 'qwen3:32b', name: 'Qwen 3 (32B)', ramRequired: 20, desc: 'עברית מצוינת — דורש Pro+ תוכנית' },
+    { id: 'llama4-maverick', name: 'Llama 4 Maverick (400B MoE)', ramRequired: 48, desc: 'חזק מאוד — דורש שרת ייעודי' },
 ]
 
 // Calculate available RAM for Ollama models
