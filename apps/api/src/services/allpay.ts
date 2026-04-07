@@ -138,8 +138,14 @@ const allpay = {
     parseWebhook(body: Record<string, unknown>): WebhookResult {
         const status = body.status as number
         const orderId = body.order_id as string
-        const instanceId = (body.add_field_1 as string) || ''
-        const planKey = (body.add_field_2 as string) || ''
+        let instanceId = (body.add_field_1 as string) || ''
+        let planKey = (body.add_field_2 as string) || ''
+
+        // Fallback: extract instanceId from orderId format "oc-{instanceId}-{timestamp}"
+        if (!instanceId && orderId?.startsWith('oc-')) {
+            const parts = orderId.split('-')
+            if (parts.length >= 2) instanceId = parts[1]
+        }
 
         let event: WebhookResult['event']
         if (status === 1) {
