@@ -33,7 +33,7 @@ function sshExec(ip: string, command: string, password?: string, timeoutMs = 600
 // Model definitions with RAM requirements (updated April 2026)
 const OLLAMA_MODELS = [
     { id: 'qwen3:8b', name: 'Qwen 3 (8B)', ramRequired: 5, desc: 'הטוב ביותר בעברית — מומלץ לשיווק ותוכן', recommended: true },
-    { id: 'llama4-scout', name: 'Llama 4 Scout (17B)', ramRequired: 12, desc: 'Meta — מצוין לעברית, MoE יעיל' },
+    { id: 'llama4-scout', name: 'Llama 4 Scout (17B)', ramRequired: 11, desc: 'Meta — מצוין לעברית, MoE יעיל' },
     { id: 'gemma3:12b', name: 'Gemma 3 (12B)', ramRequired: 8, desc: 'Google — רב-שפתי, תמונות + טקסט' },
     { id: 'phi4:14b', name: 'Phi-4 (14B)', ramRequired: 9, desc: 'Microsoft — חזק בהיגיון ומתמטיקה' },
     { id: 'mistral-small3.1:24b', name: 'Mistral Small 3.1 (24B)', ramRequired: 15, desc: 'מהיר, 128K context, Vision' },
@@ -47,12 +47,12 @@ const OLLAMA_MODELS = [
 // NOTE: plans.ts defines MATEH as 4GB — that's for plan auto-selection (peak usage).
 // Runtime RAM is lower. These are RUNTIME estimates (what's actually consumed).
 function calcAvailableRam(planRam: number, components: string[]): number {
-    const systemOverhead = 1.5  // OS + Docker + kernel caches
-    const gatewayRam = 0.5      // OpenClaw gateway + Node.js
-    const automationRam = 0.8   // n8n / Activepieces + postgres (AP)
-    const qdrantRam = 0.5       // Qdrant (Mem0) vector storage
-    const agentRam = components.includes('mt') ? 2.0 : 0.5  // MATEH runtime (not peak 4GB)
-    const ollamaDaemon = components.includes('ol') ? 0.3 : 0  // Ollama service itself
+    const systemOverhead = 1.0  // OS + kernel caches (Linux is lean)
+    const gatewayRam = 0.3      // OpenClaw gateway + Node.js
+    const automationRam = 0.5   // n8n / Activepieces (idle)
+    const qdrantRam = 0.3       // Qdrant (Mem0) — small footprint when idle
+    const agentRam = components.includes('mt') ? 1.5 : 0.3  // MATEH runtime (not peak)
+    const ollamaDaemon = components.includes('ol') ? 0.2 : 0  // Ollama service itself
     return Math.max(0, planRam - systemOverhead - gatewayRam - automationRam - qdrantRam - agentRam - ollamaDaemon)
 }
 
