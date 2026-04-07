@@ -3429,7 +3429,7 @@ async function loadOllamaStatus() {
           if (m.installed) {
             html += '<span style="color:#10B981;font-size:.78rem;white-space:nowrap">✓ מותקן</span>';
           } else if (m.canRun) {
-            html += '<button class="btn btn-outline btn-sm" onclick="doPullModel(\'' + m.id + '\')" style="font-size:.72rem;padding:2px 10px;white-space:nowrap">הורידו</button>';
+            html += '<button class="btn btn-outline btn-sm" onclick="doPullModel(\'' + m.id + '\',this)" style="font-size:.72rem;padding:2px 10px;white-space:nowrap">הורידו</button>';
           } else {
             html += '<span style="color:#9CA3AF;font-size:.7rem;text-align:left;max-width:100px">' + (m.needsPlan || 'לא מספיק RAM') + '</span>';
           }
@@ -3503,7 +3503,14 @@ async function doInstallOllama() {
   }
 }
 
-async function doPullModel(modelId) {
+async function doPullModel(modelId, btn) {
+  // Update button to show progress
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border:2px solid #D1D5DB;border-top-color:#2563EB;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0"></span>מוריד...</span>';
+    btn.style.pointerEvents = 'none';
+    btn.style.opacity = '0.7';
+  }
   showToast('מוריד מודל... זה עלול לקחת כמה דקות', 'info');
   try {
     var res = await fetch(API + '/hosting/instances/' + instanceId + '/ollama/pull', {
@@ -3513,10 +3520,31 @@ async function doPullModel(modelId) {
     });
     var data = await res.json();
     if (data.success) {
+      if (btn) {
+        btn.innerHTML = '⏳ מותקן בקרוב...';
+        btn.style.background = '#FEF3C7';
+        btn.style.borderColor = '#FDE68A';
+        btn.style.color = '#92400E';
+      }
       showToast(data.message, 'success');
-      setTimeout(loadOllamaStatus, 30000); // re-check after 30s
+      // Poll for completion
+      var pollCount = 0;
+      var pollInterval = setInterval(function() {
+        pollCount++;
+        if (pollCount > 20) { clearInterval(pollInterval); loadOllamaStatus(); return; }
+        fetch(API + '/hosting/instances/' + instanceId + '/ollama/status', { headers: { 'Authorization': 'Bearer ' + token } })
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            if (d.success && d.data.installedModels && d.data.installedModels.some(function(m) { return m.indexOf(modelId.split(':')[0]) !== -1; })) {
+              clearInterval(pollInterval);
+              if (btn) { btn.innerHTML = '✓ מותקן'; btn.style.background = '#D1FAE5'; btn.style.borderColor = '#A7F3D0'; btn.style.color = '#065F46'; }
+              showToast(modelId + ' הותקן בהצלחה!', 'success');
+              setTimeout(loadOllamaStatus, 2000);
+            }
+          }).catch(function() {});
+      }, 15000);
     } else {
-      // Check if insufficient RAM
+      if (btn) { btn.innerHTML = 'הורידו'; btn.disabled = false; btn.style.pointerEvents = ''; btn.style.opacity = ''; }
       try {
         var errData = JSON.parse(data.message);
         if (errData.error === 'insufficient_ram') {
@@ -3526,7 +3554,10 @@ async function doPullModel(modelId) {
       } catch {}
       showToast(data.message || 'שגיאה', 'error');
     }
-  } catch (e) { showToast('שגיאה', 'error'); }
+  } catch (e) {
+    if (btn) { btn.innerHTML = 'הורידו'; btn.disabled = false; btn.style.pointerEvents = ''; btn.style.opacity = ''; }
+    showToast('שגיאה', 'error');
+  }
 }
 
 function showOllamaUpgrade(modelId, suggestedPlan, message) {
