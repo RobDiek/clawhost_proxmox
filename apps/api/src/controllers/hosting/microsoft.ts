@@ -227,7 +227,7 @@ export const microsoftDisconnect = async (c: Context) => {
         if (instance?.ip) {
             try {
                 await sshExec(instance.ip,
-                    `su - openclaw -c 'openclaw mcp unset ms-365 2>/dev/null' && systemctl restart openclaw-gateway`,
+                    `rm -f /home/openclaw/.openclaw/mcp-servers/ms-365.json && systemctl restart openclaw-gateway`,
                     instance.rootPassword || undefined)
             } catch { /* best effort */ }
         }
@@ -305,7 +305,7 @@ async function deployMicrosoftToVPS(ip: string, password: string | undefined, cr
     const b64Cred = Buffer.from(credsJson).toString('base64')
     await sshExec(ip, `
         echo '${b64}' | base64 -d > /tmp/mcp-cfg.json &&
-        su - openclaw -c 'openclaw mcp set ms-365 "$(cat /tmp/mcp-cfg.json)" 2>/dev/null' &&
+        mkdir -p /home/openclaw/.openclaw/mcp-servers && cp /tmp/mcp-cfg.json /home/openclaw/.openclaw/mcp-servers/ms-365.json && chown -R openclaw:openclaw /home/openclaw/.openclaw/mcp-servers &&
         rm -f /tmp/mcp-cfg.json &&
         mkdir -p /home/openclaw/.openclaw/credentials &&
         echo '${b64Cred}' | base64 -d > /home/openclaw/.openclaw/credentials/microsoft.json &&

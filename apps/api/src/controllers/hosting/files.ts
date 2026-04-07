@@ -459,7 +459,7 @@ export const saveIntegration = async (c: Context) => {
                 if (mcpConfig) {
                     const b64Mcp = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
                     await sshExecInstance(instance, `
-                        echo '${b64Mcp}' | base64 -d > /tmp/mcp-cfg.json && su - openclaw -c 'openclaw mcp set "${mcpServerId[type]}" "$(cat /tmp/mcp-cfg.json)" 2>/dev/null' && rm -f /tmp/mcp-cfg.json
+                        mkdir -p /home/openclaw/.openclaw/mcp-servers && echo '${b64Mcp}' | base64 -d > /home/openclaw/.openclaw/mcp-servers/${mcpServerId[type]}.json && chown -R openclaw:openclaw /home/openclaw/.openclaw/mcp-servers
                     `)
                     await sshExecInstance(instance, 'systemctl restart openclaw-gateway')
                 }

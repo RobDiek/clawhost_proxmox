@@ -213,7 +213,9 @@ export const addMcpServer = async (c: Context) => {
         // MCP set + restart in single SSH call
         await sshExec(instance.ip, `
             echo '${b64Config}' | base64 -d > /tmp/mcp-cfg.json &&
-            su - openclaw -c 'openclaw mcp set "${body.serverId}" "$(cat /tmp/mcp-cfg.json)" 2>/dev/null' &&
+            mkdir -p /home/openclaw/.openclaw/mcp-servers &&
+            cp /tmp/mcp-cfg.json /home/openclaw/.openclaw/mcp-servers/${body.serverId}.json &&
+            chown -R openclaw:openclaw /home/openclaw/.openclaw/mcp-servers &&
             rm -f /tmp/mcp-cfg.json &&
             systemctl restart openclaw-gateway
         `, instance.rootPassword || undefined)
@@ -239,7 +241,7 @@ export const removeMcpServer = async (c: Context) => {
         if (!instance?.ip) return fail(c, 'Instance not ready', 400)
 
         await sshExec(instance.ip, `
-            su - openclaw -c 'openclaw mcp unset "${serverId}" 2>/dev/null' && systemctl restart openclaw-gateway
+            rm -f /home/openclaw/.openclaw/mcp-servers/${serverId}.json && systemctl restart openclaw-gateway
         `, instance.rootPassword || undefined)
 
         return ok(c, null, `MCP server ${serverId} removed`)

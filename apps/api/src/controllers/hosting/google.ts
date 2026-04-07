@@ -237,7 +237,7 @@ export const googleDisconnect = async (c: Context) => {
         if (instance.ip) {
             try {
                 await sshExec(instance.ip,
-                    `su - openclaw -c 'openclaw mcp unset google-workspace 2>/dev/null' && systemctl restart openclaw-gateway`,
+                    `rm -f /home/openclaw/.openclaw/mcp-servers/google-workspace.json && systemctl restart openclaw-gateway`,
                     instance.rootPassword || undefined)
             } catch { /* best effort */ }
         }
@@ -311,7 +311,9 @@ async function deployGoogleToVPS(ip: string, password: string | undefined, creds
     const b64Cred = Buffer.from(credJson).toString('base64')
     await sshExec(ip, `
         echo '${b64}' | base64 -d > /tmp/mcp-cfg.json &&
-        su - openclaw -c 'openclaw mcp set google-workspace "$(cat /tmp/mcp-cfg.json)" 2>/dev/null' &&
+        mkdir -p /home/openclaw/.openclaw/mcp-servers &&
+        cp /tmp/mcp-cfg.json /home/openclaw/.openclaw/mcp-servers/google-workspace.json &&
+        chown -R openclaw:openclaw /home/openclaw/.openclaw/mcp-servers &&
         rm -f /tmp/mcp-cfg.json &&
         mkdir -p /home/openclaw/.openclaw/credentials &&
         echo '${b64Cred}' | base64 -d > /home/openclaw/.openclaw/credentials/google.json &&
