@@ -228,13 +228,13 @@ const subscriptions = {
         const polar = getPolarClient()
         try {
             await polar.subscriptions.revoke({ id: subscriptionId })
-        } catch (err) {
+        } catch (error) {
             const body =
-                err && typeof err === 'object' && 'body' in err
-                    ? String((err as { body: unknown }).body)
+                error && typeof error === 'object' && 'body' in error
+                    ? String((error as { body: unknown }).body)
                     : ''
             if (body.includes('AlreadyCanceledSubscription')) return
-            throw err
+            throw error
         }
     }
 }

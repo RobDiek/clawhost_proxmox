@@ -1,20 +1,21 @@
 import { useCallback } from 'react'
+import { ROUTES } from '@/lib'
 
 const prefetchedRoutes = new Set<string>()
 
 const routeImportMap: Record<string, () => Promise<unknown>> = {
-    '/login': () => import('@/pages/Login'),
-    '/claws': () => import('@/pages/Dashboard'),
-    '/ssh-keys': () => import('@/pages/SSHKeys'),
-    '/account': () => import('@/pages/Account'),
-    '/billing': () => import('@/pages/Billing'),
-    '/affiliate': () => import('@/pages/Affiliate'),
-    '/license': () => import('@/pages/License'),
-    '/terms': () => import('@/pages/Terms'),
-    '/privacy': () => import('@/pages/Privacy'),
-    '/changelog': () => import('@/pages/Changelog'),
-    '/blog': () => import('@/pages/Blog'),
-    '/compare': () => import('@/pages/Compare')
+    [ROUTES.LOGIN]: () => import('@/pages/Login'),
+    [ROUTES.CLAWS]: () => import('@/pages/Dashboard'),
+    [ROUTES.SSH_KEYS]: () => import('@/pages/SSHKeys'),
+    [ROUTES.ACCOUNT]: () => import('@/pages/Account'),
+    [ROUTES.BILLING]: () => import('@/pages/Billing'),
+    [ROUTES.AFFILIATE]: () => import('@/pages/Affiliate'),
+    [ROUTES.LICENSE]: () => import('@/pages/License'),
+    [ROUTES.TERMS]: () => import('@/pages/Terms'),
+    [ROUTES.PRIVACY]: () => import('@/pages/Privacy'),
+    [ROUTES.CHANGELOG]: () => import('@/pages/Changelog'),
+    [ROUTES.BLOG]: () => import('@/pages/Blog'),
+    [ROUTES.COMPARE]: () => import('@/pages/Compare')
 }
 
 const useRoutePrefetch = (): { prefetchRoute: (path: string) => void } => {

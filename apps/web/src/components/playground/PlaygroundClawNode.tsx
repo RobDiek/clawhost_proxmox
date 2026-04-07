@@ -133,8 +133,8 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                 `${claw.name}-${Math.random().toString(36).slice(2, 5)}-export.tar.gz`
             )
             showToast(t('dashboard.exportSuccess'), TOAST_TYPE.SUCCESS)
-        } catch (err) {
-            const retryAfter = (err as ExportRateLimitError).retryAfter
+        } catch (error) {
+            const retryAfter = (error as ExportRateLimitError).retryAfter
             if (retryAfter && retryAfter > 30) {
                 const minutes = Math.ceil(retryAfter / 60)
                 showToast(

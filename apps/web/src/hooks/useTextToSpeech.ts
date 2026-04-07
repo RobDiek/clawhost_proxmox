@@ -272,10 +272,13 @@ const useTextToSpeech = (): UseTextToSpeechReturn => {
                         setActiveMessageId(null)
                     }
                 }, remainingDuration * 1000)
-            } catch (err) {
-                if (err instanceof DOMException && err.name === 'AbortError')
+            } catch (error) {
+                if (
+                    error instanceof DOMException &&
+                    error.name === 'AbortError'
+                )
                     return
-                throw err
+                throw error
             }
         },
         [getAudioContext]
@@ -321,8 +324,11 @@ const useTextToSpeech = (): UseTextToSpeechReturn => {
                 }
 
                 await playStreamingAudio(messageId, res)
-            } catch (err) {
-                if (err instanceof DOMException && err.name === 'AbortError') {
+            } catch (error) {
+                if (
+                    error instanceof DOMException &&
+                    error.name === 'AbortError'
+                ) {
                     setLoadingMessageId(null)
                     return
                 }
