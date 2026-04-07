@@ -976,7 +976,6 @@ const pl: Translations = {
         created: 'Utworzono',
         sshKey: 'Klucz SSH',
         storage: 'Pamięć',
-        provider: 'Dostawca',
         nextBilling: 'Następna płatność',
         lastBilling: 'Ostatnia płatność',
         version: 'Wersja',
@@ -1110,8 +1109,6 @@ const pl: Translations = {
         clawNameInvalidChars: 'Dozwolone są tylko litery, cyfry i myślniki !',
         autoGenerateNameHint:
             'Pozostaw puste, aby wygenerować nazwę automatycznie.',
-        providerHetzner: 'Cloud',
-        providerLocal: 'Lokalny',
         location: 'Lokalizacja',
         locationUnavailable: 'Niedostępna',
         locationUnavailableForPlan: 'Niedostępna',

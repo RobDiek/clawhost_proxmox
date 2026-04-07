@@ -1,6 +1,5 @@
 import type { FC, ReactNode } from 'react'
 import type {
-    ElectronWindow,
     PlaygroundDetailPanelProps,
     PlaygroundTabConfig
 } from '@/ts/Interfaces'
@@ -12,7 +11,6 @@ import { CLAW_DETAIL_TABS } from '@/lib/constants'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import {
-    clawProvider,
     clawStatus,
     inputValidation,
     OPENCLAW_VERSION
@@ -396,8 +394,7 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                                 )}
                             </h3>
                             {claw.status !== clawStatus.configuring &&
-                                claw.status !== clawStatus.awaitingPayment &&
-                                claw.provider !== clawProvider.local && (
+                                claw.status !== clawStatus.awaitingPayment && (
                                     <a
                                         href={`https://${claw.subdomain || generateSlug(claw.id)}.${getBaseDomain()}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`}
                                         target='_blank'
@@ -409,26 +406,6 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                                             generateSlug(claw.id)}
                                         .{getBaseDomain()}
                                     </a>
-                                )}
-                            {claw.provider === clawProvider.local &&
-                                claw.subdomain && (
-                                    <button
-                                        type='button'
-                                        onClick={() => {
-                                            const url = `http://127.0.0.1:${claw.port}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`
-                                            const eApi = (
-                                                window as unknown as ElectronWindow
-                                            ).electronAPI
-                                            if (eApi?.openExternal) {
-                                                eApi.openExternal(url)
-                                            } else {
-                                                window.open(url, '_blank')
-                                            }
-                                        }}
-                                        className='text-muted-foreground hover:text-foreground/80 block truncate text-xs leading-tight transition-colors'
-                                    >
-                                        {claw.subdomain}.clawhost
-                                    </button>
                                 )}
                         </div>
                     </div>

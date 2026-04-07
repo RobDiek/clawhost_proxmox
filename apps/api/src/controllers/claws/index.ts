@@ -1,6 +1,5 @@
 import getClaws from '@/controllers/claws/getClaws'
 import getClaw from '@/controllers/claws/getClaw'
-import createClaw from '@/controllers/claws/createClaw'
 import initiateClawPurchase from '@/controllers/claws/initiateClawPurchase'
 import syncClaw from '@/controllers/claws/syncClaw'
 import startClaw from '@/controllers/claws/startClaw'
@@ -53,7 +52,6 @@ export {
     getClaws,
     getAdminClaws,
     getClaw,
-    createClaw,
     initiateClawPurchase,
     syncClaw,
     startClaw,

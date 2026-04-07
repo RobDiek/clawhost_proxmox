@@ -25,3 +25,13 @@ jobs:
           curl -s -X GET \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             https://api.clawhost.cloud/cron/generate-blog-post
+
+  cleanup-expired-otps:
+    if: github.event.schedule == '0 * * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cleanup expired OTPs
+        run: |
+          curl -s -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://api.clawhost.cloud/cron/cleanup-expired-otps

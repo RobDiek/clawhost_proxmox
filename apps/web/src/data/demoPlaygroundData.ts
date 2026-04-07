@@ -12,7 +12,6 @@ const demoClaws: Claw[] = [
     {
         id: 'demo-1',
         name: 'personal-claw',
-        provider: 'hetzner',
         status: 'running',
         ip: '45.33.21.98',
         planId: 'cx22',

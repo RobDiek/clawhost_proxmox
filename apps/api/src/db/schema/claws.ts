@@ -10,7 +10,6 @@ const claws = pgTable(
             .notNull()
             .references(() => users.id, { onDelete: 'cascade' }),
         name: text('name').notNull(),
-        provider: text('provider').notNull().default('hetzner'),
         providerServerId: text('provider_server_id'),
         status: text('status').notNull().default('creating'),
         ip: text('ip'),

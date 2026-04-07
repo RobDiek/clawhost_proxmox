@@ -5,7 +5,6 @@ import {
     getClaws,
     getAdminClaws,
     getClaw,
-    createClaw,
     initiateClawPurchase,
     syncClaw,
     startClaw,
@@ -59,7 +58,6 @@ const app = new Hono<HonoEnv>()
 app.get('/', getClaws)
 app.get('/admin', adminOnly, getAdminClaws)
 app.get('/:id', getClaw)
-app.post('/', createClaw)
 app.post('/purchase', initiateClawPurchase)
 app.delete('/pending/:id', cancelPendingClaw)
 app.post('/:id/sync', syncClaw)

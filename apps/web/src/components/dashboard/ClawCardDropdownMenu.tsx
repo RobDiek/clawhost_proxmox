@@ -3,7 +3,7 @@ import type { ClawCardDropdownMenuProps } from '@/ts/Interfaces'
 
 import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
-import { clawProvider, clawStatus } from '@openclaw/shared'
+import { clawStatus } from '@openclaw/shared'
 import { getBaseDomain } from '@/lib'
 import { generateSlug } from '@/lib/claw-utils'
 import {
@@ -97,18 +97,10 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                     <Fragment>
                         <DropdownMenuItem
                             onClick={() => {
-                                let url: string
-                                if (
-                                    claw.provider === clawProvider.local &&
-                                    claw.port
-                                ) {
-                                    url = `http://127.0.0.1:${claw.port}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`
-                                } else {
-                                    const subdomain =
-                                        claw.subdomain || generateSlug(claw.id)
-                                    const domain = `${subdomain}.${getBaseDomain()}`
-                                    url = `https://${domain}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`
-                                }
+                                const subdomain =
+                                    claw.subdomain || generateSlug(claw.id)
+                                const domain = `${subdomain}.${getBaseDomain()}`
+                                const url = `https://${domain}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`
                                 window.open(url, '_blank')
                             }}
                         >
@@ -132,7 +124,7 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                         </DropdownMenuItem>
                     </Fragment>
                 )}
-                {claw.provider !== clawProvider.local && claw.ip && (
+                {claw.ip && (
                     <Fragment>
                         {hasActionItems && <DropdownMenuSeparator />}
                         <DropdownMenuItem onClick={actions.onShowCredentials}>
@@ -152,7 +144,7 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                             <ExportIcon className='mr-2 h-4 w-4' />
                             {t('dashboard.exportData')}
                         </DropdownMenuItem>
-                        {claw.provider !== clawProvider.local && isAdmin && (
+                        {isAdmin && (
                             <DropdownMenuItem
                                 onClick={actions.onUpdateInstance}
                                 disabled={isLoading}
@@ -161,15 +153,13 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                                 {t('dashboard.updateInstance')}
                             </DropdownMenuItem>
                         )}
-                        {claw.provider !== clawProvider.local && (
-                            <DropdownMenuItem
-                                onClick={actions.onShowReinstallModal}
-                                disabled={isLoading}
-                            >
-                                <ArrowCounterClockwiseIcon className='mr-2 h-4 w-4' />
-                                {t('dashboard.reinstallInstance')}
-                            </DropdownMenuItem>
-                        )}
+                        <DropdownMenuItem
+                            onClick={actions.onShowReinstallModal}
+                            disabled={isLoading}
+                        >
+                            <ArrowCounterClockwiseIcon className='mr-2 h-4 w-4' />
+                            {t('dashboard.reinstallInstance')}
+                        </DropdownMenuItem>
                     </Fragment>
                 )}
                 {(hasActionItems || claw.ip) && <DropdownMenuSeparator />}
@@ -192,15 +182,6 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                             {t('dashboard.cancelPurchase')}
                         </DropdownMenuItem>
                     </Fragment>
-                ) : claw.provider === clawProvider.local ? (
-                    <DropdownMenuItem
-                        onClick={actions.onShowDeleteModal}
-                        disabled={isLoading}
-                        className='text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400'
-                    >
-                        <TrashIcon className='mr-2 h-4 w-4' />
-                        {t('common.delete')}
-                    </DropdownMenuItem>
                 ) : isScheduledForDeletion ? (
                     <Fragment>
                         <DropdownMenuItem

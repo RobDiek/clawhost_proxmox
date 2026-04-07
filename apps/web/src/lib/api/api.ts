@@ -31,7 +31,6 @@ import type {
     ClawVersionResponse,
     ClawVersionsResponse,
     InstallClawVersionResponse,
-    CreateClawData,
     CreateSSHKeyData,
     CustomerPortalResponse,
     DeleteClawResponse,
@@ -111,8 +110,6 @@ const api = {
             `${API_PATHS.CLAWS.byId(id)}${sync ? '?sync=true' : ''}`
         ),
     syncClaw: (id: string) => client.post<Claw>(API_PATHS.CLAWS.SYNC(id)),
-    createClaw: (data: CreateClawData) =>
-        client.post<Claw>(API_PATHS.CLAWS.BASE, data),
     purchaseClaw: (data: PurchaseClawData) =>
         client.post<PurchaseClawResponse>(API_PATHS.CLAWS.PURCHASE, data, {
             headers: getReferralHeaders()

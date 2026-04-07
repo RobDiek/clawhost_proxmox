@@ -17,7 +17,6 @@ import {
     generateSlug
 } from '@/lib/claw-utils'
 import ClawMascot from '@/components/ClawMascot'
-import ProviderIcon from '@/components/ProviderIcon'
 import StatusBadge from '@/components/StatusBadge'
 import CopyableField from '@/components/CopyableField'
 import VoiceChatModal from '@/components/VoiceChatModal'
@@ -44,8 +43,6 @@ const ClawCard: FC<ClawCardProps> = ({ claw, plan }): ReactNode => {
     const locationName = claw.location
         ? locationNames[claw.location] || claw.location
         : ''
-
-    const providerLabel = t('createClaw.providerHetzner')
 
     const planLabel = plan
         ? `${plan.name.replace(/([A-Za-z])(\d)/, '$1 $2')} (${plan.cpu} vCPU, ${plan.memory}GB RAM, ${plan.disk}GB SSD)`
@@ -113,18 +110,6 @@ const ClawCard: FC<ClawCardProps> = ({ claw, plan }): ReactNode => {
                                 width={fieldWidth || undefined}
                             />
                         )}
-
-                        <CopyableField
-                            label={t('dashboard.provider')}
-                            value={providerLabel}
-                            icon={
-                                <ProviderIcon
-                                    provider={claw.provider}
-                                    size={14}
-                                />
-                            }
-                            width={fieldWidth || undefined}
-                        />
 
                         {locationName && (
                             <CopyableField

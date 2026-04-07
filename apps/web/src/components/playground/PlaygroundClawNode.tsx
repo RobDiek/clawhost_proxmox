@@ -8,7 +8,7 @@ import type {
 
 import { Fragment, useState } from 'react'
 import { t } from '@openclaw/i18n'
-import { clawStatus, clawProvider, userRole } from '@openclaw/shared'
+import { clawStatus, userRole } from '@openclaw/shared'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { api, getLocale, getBaseDomain, TRUNCATE_LENGTHS } from '@/lib'
@@ -24,7 +24,6 @@ import {
     useProfile,
     useCancelPendingClaw
 } from '@/hooks'
-import { ProviderIcon } from '@/components/shared'
 import { getStatusConfig, generateSlug } from '@/lib/claw-utils'
 import {
     PlusIcon,
@@ -243,10 +242,6 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                 } ${isRunning && !isSelected ? 'shadow-[0_0_30px_rgba(239,83,80,0.08)]' : ''}`}
             >
                 <div className='border-border flex items-center gap-2 border-b px-4 py-3'>
-                    <ProviderIcon
-                        provider={claw.provider}
-                        className='h-5 w-5'
-                    />
                     <div className='flex flex-1 items-center gap-2 overflow-hidden'>
                         {claw.name.length > TRUNCATE_LENGTHS.NODE_CLAW_NAME ? (
                             <Tooltip>
@@ -342,18 +337,12 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                 {canShowAgents && (
                     <div className='px-4 py-3'>
                         {claw.status === clawStatus.running &&
-                            agentCount > 0 &&
-                            (claw.provider === clawProvider.local &&
-                            claw.subdomain ? (
-                                <p className='text-muted-foreground mb-2 truncate text-xs'>
-                                    {claw.subdomain}.clawhost
-                                </p>
-                            ) : claw.provider !== clawProvider.local ? (
+                            agentCount > 0 && (
                                 <p className='text-muted-foreground mb-2 truncate text-xs'>
                                     {claw.subdomain || generateSlug(claw.id)}.
                                     {getBaseDomain()}
                                 </p>
-                            ) : null)}
+                            )}
 
                         <div className='flex items-center gap-2'>
                             {isLoadingAgents ? (

@@ -229,7 +229,6 @@ const run = async () => {
         id,
         userId,
         name: clawName,
-        provider: 'hetzner',
         status: clawStatus.creating,
         planId,
         location,

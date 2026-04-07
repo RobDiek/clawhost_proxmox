@@ -12,7 +12,6 @@ import CreateClawModal from '@/components/dashboard/CreateClawModal'
 import DashboardChatView from '@/components/dashboard/DashboardChatView'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
 import DashboardPlaygroundView from '@/components/dashboard/DashboardPlaygroundView'
-import LocalCreateClawModal from '@/components/dashboard/LocalCreateClawModal'
 
 export {
     ClawCardDialogs,
@@ -28,6 +27,5 @@ export {
     CreateClawModal,
     DashboardChatView,
     DashboardHeader,
-    DashboardPlaygroundView,
-    LocalCreateClawModal
+    DashboardPlaygroundView
 }

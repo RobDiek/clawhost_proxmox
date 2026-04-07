@@ -970,7 +970,6 @@ const nl: Translations = {
         created: 'Aangemaakt',
         sshKey: 'SSH-sleutel',
         storage: 'Opslag',
-        provider: 'Provider',
         nextBilling: 'Volgende facturering',
         lastBilling: 'Laatste facturering',
         version: 'Versie',
@@ -1108,8 +1107,6 @@ const nl: Translations = {
         clawNameInvalidChars:
             'Alleen letters, cijfers en streepjes zijn toegestaan!',
         autoGenerateNameHint: 'Laat leeg om automatisch een naam te genereren.',
-        providerHetzner: 'Cloud',
-        providerLocal: 'Lokaal',
         location: 'Locatie',
         locationUnavailable: 'Niet beschikbaar',
         locationUnavailableForPlan: 'Niet beschikbaar',

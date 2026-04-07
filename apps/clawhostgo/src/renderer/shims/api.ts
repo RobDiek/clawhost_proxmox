@@ -57,7 +57,7 @@ import { RequestClient } from '@openclaw/shared'
 import { signOut } from 'firebase/auth'
 import { auth, clearTokenCache, getCachedToken } from '@/lib/firebase'
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.clawhost.cloud'
+const BASE_URL = import.meta.env.VITE_API_URL
 
 const client = new RequestClient({
     baseUrl: BASE_URL,

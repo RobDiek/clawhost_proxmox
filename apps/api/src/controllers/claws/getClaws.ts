@@ -97,7 +97,6 @@ const getClaws = async (c: AuthenticatedContext) => {
             .map(({ pending: p, paid, checkoutUrl }) => ({
                 id: `pending-${p.id}`,
                 name: p.name,
-                provider: p.provider,
                 status: paid ? clawStatus.creating : clawStatus.awaitingPayment,
                 ip: null,
                 planId: p.planId,

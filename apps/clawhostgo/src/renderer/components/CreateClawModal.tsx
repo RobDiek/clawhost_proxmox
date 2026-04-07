@@ -20,7 +20,7 @@ import {
     EyeIcon,
     EyeSlashIcon
 } from '@phosphor-icons/react'
-import { api } from '@/lib/api'
+import api from '@electron/shims/api'
 
 const generateReadablePassword = (): string => {
     const words = [

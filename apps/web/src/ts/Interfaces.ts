@@ -49,7 +49,6 @@ export interface Volume {
 export interface Claw {
     id: string
     name: string
-    provider: string
     status: ClawStatus
     ip: string | null
     planId: string
@@ -362,11 +361,6 @@ export interface ClawAvatarProps {
     className?: string
 }
 
-export interface ProviderIconProps {
-    provider: string
-    className?: string
-}
-
 export interface HeaderProps {
     showNavLinks?: boolean
     navLinks?: NavLink[]
@@ -484,10 +478,6 @@ export interface CreateClawModalProps {
     preselectedPlanId?: string | null
     onClose: () => void
     onNavigateToSSHKeys: () => void
-}
-
-export interface LocalCreateClawModalProps {
-    onClose: () => void
 }
 
 export interface ClawCardActions {
@@ -629,15 +619,6 @@ export interface AIModelOption {
     name: string
     provider: string
     envVar: string
-}
-
-export interface CreateClawData {
-    name: string
-    planId: string
-    location: string
-    password?: string
-    sshKeyId?: string
-    volumeSize?: number
 }
 
 export interface PurchaseClawData {
@@ -1975,7 +1956,6 @@ export interface AdminUsersResponse {
 export interface AdminUserDetailClaw {
     id: string
     name: string
-    provider: string
     status: string
     ip: string | null
     planId: string
@@ -2086,7 +2066,6 @@ export interface AdminReferralListItem {
 export interface AdminPendingClawListItem {
     id: string
     name: string
-    provider: string
     planId: string
     location: string
     priceMonthly: number
@@ -2149,7 +2128,6 @@ export interface AdminPaginatedResponse<T> {
 export interface AdminClawListItem {
     id: string
     name: string
-    provider: string
     status: string
     ip: string | null
     planId: string
