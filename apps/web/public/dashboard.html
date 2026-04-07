@@ -2422,11 +2422,12 @@ function renderAgentHomeContext() {
   if (agent === 'bare' && bareHome) {
     var links = document.getElementById('bareQuickLinks');
     if (links) {
-      var a = agentUrl && agentUrl !== '#' ? agentUrl : '';
+      var a = agentUrl && agentUrl !== '#' ? buildAgentUrl(agentUrl, openclawToken) : '';
+      var aDisplay = agentUrl && agentUrl !== '#' ? agentUrl : '';
       var f = flowsUrl && flowsUrl !== '#' ? flowsUrl : '';
       links.innerHTML = (a ? '<a href="' + a + '" target="_blank" rel="noopener" style="display:block;padding:10px 14px;background:#fff;border:1px solid #E5E7EB;border-radius:8px;text-decoration:none;color:#111827">' +
         '<div style="font-weight:600;font-size:.88rem">OpenClaw Dashboard ↗</div>' +
-        '<div style="font-size:.75rem;color:#6B7280;direction:ltr;margin-top:2px">' + a + '</div></a>' : '') +
+        '<div style="font-size:.75rem;color:#6B7280;direction:ltr;margin-top:2px">' + aDisplay + '</div></a>' : '') +
         (f ? '<a href="' + f + '" target="_blank" rel="noopener" style="display:block;padding:10px 14px;background:#fff;border:1px solid #E5E7EB;border-radius:8px;text-decoration:none;color:#111827">' +
         '<div style="font-weight:600;font-size:.88rem">Automation Tool ↗</div>' +
         '<div style="font-size:.75rem;color:#6B7280;direction:ltr;margin-top:2px">' + f + '</div></a>' : '');
