@@ -54,7 +54,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
             billingPeriod
         } = body as {
             components: string[]
-            automationTool: 'n8n' | 'activepieces'
+            automationTool: 'n8n' | 'activepieces' | 'dify'
             addons: string[]
             customerEmail: string
             customerName: string
@@ -194,7 +194,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
                 // Start real provisioning in background
                 const hasOllama = components.includes('ol')
                 const hasBackup = (addons || []).includes('backup')
-                const autoTool = (automationTool || 'activepieces') as 'n8n' | 'activepieces'
+                const autoTool = (automationTool || 'activepieces') as 'n8n' | 'activepieces' | 'dify'
 
                 provisioner.provision({
                     instanceId,
@@ -274,16 +274,21 @@ export const handleAllpayWebhook = async (c: Context) => {
     try {
         const body = await c.req.json() as Record<string, unknown>
 
+        console.log('[AllPay webhook] Received:', JSON.stringify(body).substring(0, 500))
+
         // Verify AllPay signature
         if (!allpay.verifyWebhookSignature(body)) {
-            console.error('AllPay webhook: invalid signature')
+            console.error('[AllPay webhook] Invalid signature. Body keys:', Object.keys(body).join(','))
             return fail(c, 'Invalid signature.', 401)
         }
 
         const { event, orderId, metadata } = allpay.parseWebhook(body)
         const instanceId = metadata.instanceId
 
+        console.log(`[AllPay webhook] event=${event} orderId=${orderId} instanceId=${instanceId}`)
+
         if (!instanceId) {
+            console.error('[AllPay webhook] Missing instanceId. metadata:', JSON.stringify(metadata))
             return fail(c, 'Missing instanceId in metadata.', 400)
         }
 
@@ -347,7 +352,7 @@ export const handleAllpayWebhook = async (c: Context) => {
             const components = (instance.selectedComponents as string[]) || []
             const hasOllama = components.includes('ol')
             const hasBackup = components.includes('bk')
-            const automationTool = (instance.automationTool as 'n8n' | 'activepieces') || 'activepieces'
+            const automationTool = (instance.automationTool as 'n8n' | 'activepieces' | 'dify') || 'activepieces'
 
             const result = await provisioner.provision({
                 instanceId,
@@ -378,7 +383,7 @@ export const handleAllpayWebhook = async (c: Context) => {
 
                     // Auto-create n8n/Activepieces owner account
                     try {
-                        const flowsPort = automationTool === 'n8n' ? 5678 : 8080
+                        const flowsPort = automationTool === 'n8n' ? 5678 : automationTool === 'dify' ? 3101 : 8080
                         await fetch(`http://${result.ip}:${flowsPort}/rest/owner/setup`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
