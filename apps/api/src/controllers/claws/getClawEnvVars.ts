@@ -33,11 +33,11 @@ const getClawEnvVars = async (c: AuthenticatedContext) => {
         } catch {
             return fail(c, t('api.failedToReadFile'), 500)
         }
-    } catch (err) {
-        console.error('Get claw env vars error:', err)
+    } catch (error) {
+        console.error('getClawEnvVars', error)
         return fail(
             c,
-            err instanceof Error ? err.message : t('api.failedToReadFile'),
+            error instanceof Error ? error.message : t('api.failedToReadFile'),
             500
         )
     }

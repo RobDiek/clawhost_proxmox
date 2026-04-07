@@ -35,8 +35,8 @@ const updateAdminUser = async (c: AuthenticatedContext) => {
         await db.update(users).set(updates).where(eq(users.id, userId))
 
         return ok(c, null, t('api.adminUserUpdated'))
-    } catch (err) {
-        console.error(err)
+    } catch (error) {
+        console.error('updateAdminUser', error)
         return fail(c, t('api.failedToUpdateAdminUser'), 500)
     }
 }

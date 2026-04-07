@@ -74,12 +74,12 @@ const purchaseLicense = async (c: AuthenticatedContext) => {
             { checkoutUrl: checkout.url },
             t('api.licenseCheckoutCreated')
         )
-    } catch (err) {
-        console.error('License purchase error:', err)
+    } catch (error) {
+        console.error('purchaseLicense', error)
         return fail(
             c,
-            err instanceof Error
-                ? err.message
+            error instanceof Error
+                ? error.message
                 : t('api.failedToPurchaseLicense'),
             500
         )

@@ -62,11 +62,11 @@ const repairClaw = async (c: AuthenticatedContext) => {
         }
 
         return fail(c, t('api.repairGatewayNotResponding'), 500)
-    } catch (err) {
-        console.error('Repair claw error:', err)
+    } catch (error) {
+        console.error('repairClaw', error)
         return fail(
             c,
-            err instanceof Error ? err.message : t('api.failedToRepairClaw'),
+            error instanceof Error ? error.message : t('api.failedToRepairClaw'),
             500
         )
     }

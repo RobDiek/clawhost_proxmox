@@ -129,8 +129,8 @@ const provisionClaw = async (
         await Promise.all([
             cloudflare
                 .createDNSRecord(subdomain, ip)
-                .catch((dnsErr) =>
-                    console.error('Failed to create DNS record:', dnsErr)
+                .catch((dnsError) =>
+                    console.error('provisionClaw', dnsError)
                 ),
             db
                 .update(claws)
@@ -165,14 +165,14 @@ const provisionClaw = async (
                     location: pending.location,
                     status: 'available'
                 })
-            } catch (volumeErr) {
-                console.error('Failed to create volume:', volumeErr)
+            } catch (volumeError) {
+                console.error('provisionClaw', volumeError)
             }
         }
 
         return { success: true, clawId: id, referralCode: pending.referralCode }
-    } catch (err) {
-        console.error('Provision claw error:', err)
+    } catch (error) {
+        console.error('provisionClaw', error)
         return {
             success: false,
             error: t('api.failedToProvisionClaw')

@@ -190,8 +190,8 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                     terminal.cols,
                     terminal.rows
                 )
-            } catch (err) {
-                console.error('[terminal] spawn failed:', err)
+            } catch (error) {
+                console.error('connectDesktop', error)
                 setStatus(TERMINAL_STATUS.ERROR)
                 return
             }

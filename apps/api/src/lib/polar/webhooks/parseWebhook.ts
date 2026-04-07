@@ -45,8 +45,8 @@ const parseWebhook = async (c: Context): Promise<WebhookEvent | null> => {
     try {
         const event = JSON.parse(payload) as WebhookEvent
         return event
-    } catch {
-        console.error('Failed to parse webhook payload')
+    } catch (error) {
+        console.error('parseWebhook', error)
         return null
     }
 }

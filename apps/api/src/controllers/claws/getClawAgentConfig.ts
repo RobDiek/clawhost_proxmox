@@ -85,11 +85,11 @@ const getClawAgentConfig = async (c: AuthenticatedContext) => {
         } catch {
             return fail(c, t('api.agentsFetchFailed'), 500)
         }
-    } catch (err) {
-        console.error('Get agent config error:', err)
+    } catch (error) {
+        console.error('getClawAgentConfig', error)
         return fail(
             c,
-            err instanceof Error ? err.message : t('api.agentsFetchFailed'),
+            error instanceof Error ? error.message : t('api.agentsFetchFailed'),
             500
         )
     }

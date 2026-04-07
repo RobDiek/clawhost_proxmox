@@ -67,8 +67,8 @@ const getPlans = async (c: Context) => {
             .sort((a, b) => planOrder.indexOf(a.id) - planOrder.indexOf(b.id))
 
         return ok(c, { plans, atCapacity }, t('api.plansFetched'))
-    } catch (err) {
-        console.error('Failed to fetch plans:', err)
+    } catch (error) {
+        console.error('getPlans', error)
         return fail(c, t('api.failedToFetchPlans'), 500)
     }
 }

@@ -185,8 +185,8 @@ app.use('/*', async (c, next) => {
         c.set('userId', decoded.uid)
         c.set('isAdmin', admin)
         return next()
-    } catch (err) {
-        console.error('Auth middleware error:', err)
+    } catch (error) {
+        console.error('authMiddleware', error)
         return fail(c, t('api.internalServerError'), 500)
     }
 })

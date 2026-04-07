@@ -112,8 +112,8 @@ const reinstallClaw = async (c: AuthenticatedContext) => {
         await Promise.all([
             cloudflare
                 .createDNSRecord(existing.subdomain!, ip)
-                .catch((dnsErr) =>
-                    console.error('Failed to create DNS record:', dnsErr)
+                .catch((dnsError) =>
+                    console.error('reinstallClaw', dnsError)
                 ),
             db
                 .update(claws)
@@ -147,11 +147,13 @@ const reinstallClaw = async (c: AuthenticatedContext) => {
         )
 
         return ok(c, null, t('api.reinstallSuccess'))
-    } catch (err) {
-        console.error('Reinstall claw error:', err)
+    } catch (error) {
+        console.error('reinstallClaw', error)
         return fail(
             c,
-            err instanceof Error ? err.message : t('api.failedToReinstallClaw'),
+            error instanceof Error
+                ? error.message
+                : t('api.failedToReinstallClaw'),
             500
         )
     }

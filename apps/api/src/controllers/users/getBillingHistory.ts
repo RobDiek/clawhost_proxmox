@@ -48,8 +48,8 @@ const getBillingHistory = async (c: AuthenticatedContext) => {
             },
             t('api.billingHistoryFetched')
         )
-    } catch (err) {
-        console.error('Get billing history error:', err)
+    } catch (error) {
+        console.error('getBillingHistory', error)
         return fail(c, t('api.failedToGetBillingHistory'), 500)
     }
 }

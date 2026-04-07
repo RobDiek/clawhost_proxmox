@@ -116,8 +116,8 @@ const getAdminUsers = async (c: AuthenticatedContext) => {
             },
             t('api.adminUsersFetched')
         )
-    } catch (err) {
-        console.error(err)
+    } catch (error) {
+        console.error('getAdminUsers', error)
         return fail(c, t('api.failedToGetAdminUsers'), 500)
     }
 }

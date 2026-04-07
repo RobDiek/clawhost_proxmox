@@ -44,11 +44,8 @@ const deleteSSHKey = async (c: AuthenticatedContext) => {
             providerDeletions.push(
                 getProvider()
                     .deleteSSHKey(key[0].providerKeyId)
-                    .catch((err) =>
-                        console.error(
-                            'Failed to delete SSH key from Hetzner:',
-                            err
-                        )
+                    .catch((error) =>
+                        console.error('deleteSSHKey', error)
                     )
             )
         }

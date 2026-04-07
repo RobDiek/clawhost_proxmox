@@ -79,8 +79,8 @@ const syncClaw = async (c: AuthenticatedContext) => {
             }),
             t('api.clawSynced')
         )
-    } catch (err) {
-        console.error('Failed to sync server status:', err)
+    } catch (error) {
+        console.error('syncClaw', error)
         return fail(c, t('api.failedToSyncClaw'), 500)
     }
 }

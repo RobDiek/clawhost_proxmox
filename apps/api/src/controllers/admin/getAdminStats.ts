@@ -69,8 +69,8 @@ const getAdminStats = async (c: AuthenticatedContext) => {
             },
             t('api.adminStatsFetched')
         )
-    } catch (err) {
-        console.error(err)
+    } catch (error) {
+        console.error('getAdminStats', error)
         return fail(c, t('api.failedToGetAdminStats'), 500)
     }
 }

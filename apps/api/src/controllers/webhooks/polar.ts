@@ -66,8 +66,8 @@ const trackReferral = async (
             .update(users)
             .set({ referredBy: referralCode })
             .where(eq(users.id, userId))
-    } catch (err) {
-        console.error('Failed to track referral:', err)
+    } catch (error) {
+        console.error('trackReferral', error)
     }
 }
 
@@ -153,8 +153,8 @@ const handlePolarWebhook = async (c: Context) => {
                             )
                         }
                     })
-                    .catch((err) =>
-                        console.error(`Failed to provision claw: ${err}`)
+                    .catch((error) =>
+                        console.error('handlePolarWebhook', error)
                     )
             },
 
@@ -192,11 +192,8 @@ const handlePolarWebhook = async (c: Context) => {
                     cleanupClaw(claw[0].id, {
                         providerServerId: claw[0].providerServerId,
                         subdomain: claw[0].subdomain
-                    }).catch((err) => {
-                        console.error(
-                            `Failed to cleanup claw ${claw[0].id}:`,
-                            err
-                        )
+                    }).catch((error) => {
+                        console.error('handlePolarWebhook', error)
                         db.update(claws)
                             .set({
                                 subscriptionStatus: subscriptionStatus.revoked,
@@ -225,8 +222,8 @@ const handlePolarWebhook = async (c: Context) => {
                                     .set({ status: clawStatus.stopped })
                                     .where(eq(claws.id, claw[0].id))
                             )
-                            .catch((err) =>
-                                console.error(`Failed to stop server: ${err}`)
+                            .catch((error) =>
+                                console.error('handlePolarWebhook', error)
                             )
                     ]).catch(() => {})
                 } else {
@@ -265,16 +262,16 @@ const handlePolarWebhook = async (c: Context) => {
                             .update(claws)
                             .set({ status: clawStatus.stopped })
                             .where(eq(claws.id, updated[0].id))
-                    } catch (err) {
-                        console.error(`Failed to stop server: ${err}`)
+                    } catch (error) {
+                        console.error('handlePolarWebhook', error)
                     }
                 }
             }
         })
 
         return ok(c, { received: true }, t('api.webhookReceived'))
-    } catch (err) {
-        console.error('Webhook error:', err)
+    } catch (error) {
+        console.error('handlePolarWebhook', error)
         return fail(c, t('api.webhookProcessingFailed'), 500)
     }
 }

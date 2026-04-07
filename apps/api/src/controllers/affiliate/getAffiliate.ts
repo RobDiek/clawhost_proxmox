@@ -72,11 +72,11 @@ const getAffiliate = async (c: AuthenticatedContext) => {
             },
             t('api.affiliateFetched')
         )
-    } catch (err) {
-        console.error('Get affiliate error:', err)
+    } catch (error) {
+        console.error('getAffiliate', error)
         return fail(
             c,
-            err instanceof Error ? err.message : t('api.failedToGetAffiliate'),
+            error instanceof Error ? error.message : t('api.failedToGetAffiliate'),
             500
         )
     }

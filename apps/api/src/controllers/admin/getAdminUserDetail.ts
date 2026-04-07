@@ -100,8 +100,8 @@ const getAdminUserDetail = async (c: AuthenticatedContext) => {
             },
             t('api.adminUserDetailFetched')
         )
-    } catch (err) {
-        console.error(err)
+    } catch (error) {
+        console.error('getAdminUserDetail', error)
         return fail(c, t('api.failedToGetAdminUserDetail'), 500)
     }
 }

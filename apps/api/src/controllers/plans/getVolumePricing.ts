@@ -19,8 +19,8 @@ const getVolumePricing = async (c: Context) => {
             },
             t('api.volumePricingFetched')
         )
-    } catch (err) {
-        console.error('Failed to fetch volume pricing:', err)
+    } catch (error) {
+        console.error('getVolumePricing', error)
         return fail(c, t('api.failedToFetchVolumePricing'), 500)
     }
 }

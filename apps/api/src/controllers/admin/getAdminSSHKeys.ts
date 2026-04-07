@@ -62,8 +62,8 @@ const getAdminSSHKeys = async (c: AuthenticatedContext) => {
             { items: keyRows, total, page, totalPages },
             t('api.adminSSHKeysFetched')
         )
-    } catch (err) {
-        console.error(err)
+    } catch (error) {
+        console.error('getAdminSSHKeys', error)
         return fail(c, t('api.failedToGetAdminSSHKeys'), 500)
     }
 }

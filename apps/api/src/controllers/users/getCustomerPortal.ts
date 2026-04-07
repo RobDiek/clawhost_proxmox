@@ -37,8 +37,8 @@ const getCustomerPortal = async (c: AuthenticatedContext) => {
             { url: session.customerPortalUrl },
             t('api.customerPortalFetched')
         )
-    } catch (err) {
-        console.error('Get customer portal error:', err)
+    } catch (error) {
+        console.error('getCustomerPortal', error)
         return fail(c, t('api.failedToGetCustomerPortal'), 500)
     }
 }

@@ -126,12 +126,12 @@ const getClawAgents = async (c: AuthenticatedContext) => {
                 t('api.agentsFetchFailed')
             )
         }
-    } catch (err) {
-        console.error('Get claw agents error:', err)
+    } catch (error) {
+        console.error('getClawAgents', error)
         return fail(
             c,
-            err instanceof Error
-                ? err.message
+            error instanceof Error
+                ? error.message
                 : t('api.failedToGetDiagnostics'),
             500
         )

@@ -29,10 +29,10 @@ const hardDeleteClaw = async (c: AuthenticatedContext) => {
             claw[0].polarSubscriptionId
                 ? subscriptions
                       .revoke(claw[0].polarSubscriptionId)
-                      .catch((subErr) => {
+                      .catch((subError) => {
                           console.error(
-                              'Failed to revoke subscription:',
-                              subErr
+                              'hardDeleteClaw',
+                              subError
                           )
                       })
                 : Promise.resolve(),
@@ -43,8 +43,8 @@ const hardDeleteClaw = async (c: AuthenticatedContext) => {
         ])
 
         return ok(c, null, t('api.clawHardDeleted'))
-    } catch (err) {
-        console.error('Hard delete claw error:', err)
+    } catch (error) {
+        console.error('hardDeleteClaw', error)
         return fail(c, t('api.failedToHardDeleteClaw'), 500)
     }
 }

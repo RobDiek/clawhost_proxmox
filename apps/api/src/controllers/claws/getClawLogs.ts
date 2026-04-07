@@ -26,12 +26,12 @@ const getClawLogs = async (c: AuthenticatedContext) => {
         )
 
         return ok(c, { logs: output }, t('api.logsFetched'))
-    } catch (err) {
-        console.error('Get claw logs error:', err)
+    } catch (error) {
+        console.error('getClawLogs', error)
         return fail(
             c,
-            err instanceof Error
-                ? err.message
+            error instanceof Error
+                ? error.message
                 : t('api.failedToGetDiagnostics'),
             500
         )

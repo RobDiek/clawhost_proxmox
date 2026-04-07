@@ -61,8 +61,8 @@ const generateSpeech = async (c: AuthenticatedContext) => {
                 })
             })
         })
-    } catch (err) {
-        console.error('TTS generation failed:', err)
+    } catch (error) {
+        console.error('generateSpeech', error)
         return fail(c, t('api.ttsGenerationFailed'), 500)
     }
 }

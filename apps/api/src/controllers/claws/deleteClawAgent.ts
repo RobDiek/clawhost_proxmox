@@ -107,11 +107,11 @@ const deleteClawAgent = async (c: AuthenticatedContext) => {
         } catch {
             return fail(c, t('api.agentDeleteFailed'), 500)
         }
-    } catch (err) {
-        console.error('Delete claw agent error:', err)
+    } catch (error) {
+        console.error('deleteClawAgent', error)
         return fail(
             c,
-            err instanceof Error ? err.message : t('api.agentDeleteFailed'),
+            error instanceof Error ? error.message : t('api.agentDeleteFailed'),
             500
         )
     }

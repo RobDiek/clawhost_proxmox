@@ -85,8 +85,8 @@ const getAdminAnalytics = async (c: AuthenticatedContext) => {
         }
 
         return ok(c, analytics, t('api.adminAnalyticsFetched'))
-    } catch (err) {
-        console.error(err)
+    } catch (error) {
+        console.error('getAdminAnalytics', error)
         return fail(c, t('api.failedToGetAdminAnalytics'), 500)
     }
 }

@@ -88,7 +88,7 @@ const sendOtp = async (c: Context) => {
         })
 
         if (error) {
-            console.error('Resend error:', error)
+            console.error('sendOtp', error)
             return fail(c, t('api.failedToSendEmail'), 500)
         }
 
