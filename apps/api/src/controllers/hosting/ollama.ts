@@ -32,17 +32,22 @@ function sshExec(ip: string, command: string, password?: string, timeoutMs = 600
 
 // Model definitions with RAM requirements (updated April 2026)
 // IDs must match Ollama registry names exactly (ollama.com/library)
+// 'tier' groups models: light (2-3GB), standard (5-9GB), heavy (15+GB)
 const OLLAMA_MODELS = [
-    { id: 'qwen3:8b', name: 'Qwen 3 (8B)', ramRequired: 5, desc: 'הטוב ביותר בעברית — מומלץ לשיווק ותוכן', recommended: true },
-    { id: 'gemma4', name: 'Gemma 4 (12B)', ramRequired: 8, desc: 'Google — רב-שפתי, Vision, חשיבה מתקדמת' },
-    { id: 'qwen3.5:4b', name: 'Qwen 3.5 (4B)', ramRequired: 3, desc: 'מאוזן — טוב בעברית, חסכוני ב-RAM' },
-    { id: 'phi4:14b', name: 'Phi-4 (14B)', ramRequired: 9, desc: 'Microsoft — חזק בהיגיון ומתמטיקה' },
-    { id: 'qwen3:1.7b', name: 'Qwen 3 (1.7B)', ramRequired: 2, desc: 'קטן ומהיר — סיווג, תרגום, משימות פשוטות' },
-    { id: 'gemma4:e4b', name: 'Gemma 4 Edge (4B)', ramRequired: 3, desc: 'Google — קל למכשירי קצה, Vision' },
-    { id: 'devstral:24b', name: 'Devstral (24B)', ramRequired: 15, desc: 'Mistral — #1 קוד פתוח, סוכני פיתוח' },
-    { id: 'mistral-small3.1:24b', name: 'Mistral Small 3.1 (24B)', ramRequired: 15, desc: 'מהיר, 128K context, Vision' },
-    { id: 'qwen3.5:27b', name: 'Qwen 3.5 (27B)', ramRequired: 17, desc: 'עברית מצוינת — דורש Pro+ תוכנית' },
-    { id: 'llama4:scout', name: 'Llama 4 Scout (109B MoE)', ramRequired: 48, desc: 'Meta — Vision, רב-שפתי, דורש שרת ייעודי' },
+    // === Recommended for MATEH (Hebrew marketing) ===
+    { id: 'qwen3.5:4b', name: 'Qwen 3.5 (4B)', ramRequired: 3, desc: 'דור חדש — עברית טובה, מהיר, חסכוני. מומלץ להתחלה', recommended: true, tier: 'light' },
+    { id: 'gemma4', name: 'Gemma 4 (12B)', ramRequired: 8, desc: 'Google — הטוב ביותר באיכות. Vision + חשיבה + 128K context', tier: 'standard' },
+    // === Good general-purpose ===
+    { id: 'qwen3.5:9b', name: 'Qwen 3.5 (9B)', ramRequired: 6, desc: '#1 בבנצ\'מרקים בקטגוריה. 201 שפות, hybrid thinking', tier: 'standard' },
+    { id: 'phi4:14b', name: 'Phi-4 (14B)', ramRequired: 9, desc: 'Microsoft — חזק בהיגיון, מתמטיקה וניתוח', tier: 'standard' },
+    // === Lightweight ===
+    { id: 'qwen3.5:0.8b', name: 'Qwen 3.5 (0.8B)', ramRequired: 1, desc: 'זעיר — סיווג, ניתוב, משימות פשוטות', tier: 'light' },
+    { id: 'gemma4:e4b', name: 'Gemma 4 Edge (4B)', ramRequired: 3, desc: 'Google — קל, Vision, מתאים לעיבוד תמונות', tier: 'light' },
+    // === Heavy (need Developer plan 32GB) ===
+    { id: 'qwen3.5:27b', name: 'Qwen 3.5 (27B)', ramRequired: 17, desc: 'עברית מצוינת, חשיבה עמוקה — הטוב ביותר ל-MATEH', tier: 'heavy' },
+    { id: 'devstral:24b', name: 'Devstral (24B)', ramRequired: 15, desc: 'Mistral — #1 קוד פתוח לפיתוח ו-agents', tier: 'heavy' },
+    { id: 'mistral-small3.1:24b', name: 'Mistral Small 3.1 (24B)', ramRequired: 15, desc: '128K context, Vision, מהיר', tier: 'heavy' },
+    { id: 'gemma4:31b', name: 'Gemma 4 (31B)', ramRequired: 20, desc: 'Google Flagship — הכי חזק, reasoning מתקדם', tier: 'heavy' },
 ]
 
 // Calculate available RAM for Ollama models
@@ -89,15 +94,19 @@ export const getOllamaStatus = async (c: Context) => {
         }
 
         // Build model list with availability info
-        const models = OLLAMA_MODELS.map(m => ({
-            ...m,
-            canRun: m.ramRequired <= availableRam,
-            installed: installedModels.some(im => im.startsWith(m.id.split(':')[0])),
-            needsPlan: !ollamaSelected ? 'Ollama לא נבחר — נדרש שדרוג תוכנית' :
-                        m.ramRequired > availableRam ? `נדרש ${m.ramRequired}GB RAM — יש ${availableRam.toFixed(1)}GB פנוי` : null,
-            suggestedPlan: m.ramRequired > availableRam ?
-                PLANS.find(p => calcAvailableRam(p.ram, components) >= m.ramRequired)?.key || null : null,
-        }))
+        const models = OLLAMA_MODELS.map(m => {
+            const canRun = m.ramRequired <= availableRam
+            const suggested = !canRun ? PLANS.find(p => calcAvailableRam(p.ram, components) >= m.ramRequired) : null
+            return {
+                ...m,
+                canRun,
+                installed: installedModels.some(im => im.startsWith(m.id.split(':')[0])),
+                needsPlan: !canRun ? `נדרש ${m.ramRequired}GB — יש ${availableRam.toFixed(1)}GB` : null,
+                suggestedPlan: suggested?.key || null,
+                suggestedPlanName: suggested?.nameHe || null,
+                suggestedPlanPrice: suggested?.priceIls || null,
+            }
+        })
 
         return ok(c, {
             installed,

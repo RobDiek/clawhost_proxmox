@@ -3414,28 +3414,48 @@ async function loadOllamaStatus() {
         var installedModels = d.models.filter(function(m) { return m.installed; });
         var installedHtml = installedModels.length > 0
           ? installedModels.map(function(m) { return '<span style="display:inline-flex;align-items:center;gap:4px;background:#D1FAE5;color:#065F46;padding:2px 10px;border-radius:12px;font-size:.75rem">✓ ' + m.name + '</span>'; }).join(' ')
-          : '<span style="font-size:.82rem;color:#9CA3AF">אין מודלים מותקנים</span>';
+          : '<span style="font-size:.82rem;color:#9CA3AF">אין מודלים מותקנים — בחרו מודל מהרשימה</span>';
         var html = '<div style="margin-bottom:8px">' + installedHtml + '</div>';
-        html += '<div style="font-size:.78rem;color:#9CA3AF;margin-bottom:6px">RAM פנוי: ' + d.currentPlan.availableRam + 'GB</div>';
-        html += '<details style="margin-bottom:10px">' +
-          '<summary style="cursor:pointer;font-size:.85rem;font-weight:500;color:#2563EB;user-select:none;padding:4px 0">הורידו מודלים נוספים (' + d.models.length + ')</summary>' +
-          '<div style="margin-top:8px;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden">';
+        html += '<div style="font-size:.78rem;color:#9CA3AF;margin-bottom:6px">תוכנית ' + d.currentPlan.name + ' · RAM פנוי: ' + d.currentPlan.availableRam + 'GB</div>';
+        // Group by tier
+        var tiers = { light: [], standard: [], heavy: [] };
+        d.models.forEach(function(m) { (tiers[m.tier || 'standard'] = tiers[m.tier || 'standard'] || []).push(m); });
+        var availableModels = d.models.filter(function(m) { return m.canRun && !m.installed; });
+        var needUpgradeModels = d.models.filter(function(m) { return !m.canRun; });
+        // Available models (open by default)
+        html += '<details open style="margin-bottom:8px">' +
+          '<summary style="cursor:pointer;font-size:.85rem;font-weight:500;color:#2563EB;user-select:none;padding:4px 0">מודלים זמינים (' + availableModels.length + ')</summary>' +
+          '<div style="margin-top:6px;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden">';
         d.models.forEach(function(m) {
+          if (!m.canRun || m.installed) return;
           html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #F3F4F6;font-size:.82rem">' +
             '<div style="flex:1">' +
-              '<div style="font-weight:600">' + m.name + (m.recommended ? ' ⭐' : '') + '</div>' +
-              '<div style="color:#6B7280;font-size:.75rem">' + m.desc + ' · ' + m.ramRequired + 'GB RAM</div>' +
-            '</div>';
-          if (m.installed) {
-            html += '<span style="color:#10B981;font-size:.78rem;white-space:nowrap">✓ מותקן</span>';
-          } else if (m.canRun) {
-            html += '<button class="btn btn-outline btn-sm" onclick="doPullModel(\'' + m.id + '\',this)" style="font-size:.72rem;padding:2px 10px;white-space:nowrap">הורידו</button>';
-          } else {
-            html += '<span style="color:#9CA3AF;font-size:.7rem;text-align:left;max-width:100px">' + (m.needsPlan || 'לא מספיק RAM') + '</span>';
-          }
-          html += '</div>';
+              '<div style="font-weight:600">' + m.name + (m.recommended ? ' ⭐ מומלץ' : '') + '</div>' +
+              '<div style="color:#6B7280;font-size:.75rem">' + m.desc + ' · ' + m.ramRequired + 'GB</div>' +
+            '</div>' +
+            '<button class="btn btn-outline btn-sm" onclick="doPullModel(\'' + m.id + '\',this)" style="font-size:.72rem;padding:2px 10px;white-space:nowrap">הורידו</button>' +
+          '</div>';
         });
+        if (availableModels.length === 0) html += '<div style="padding:12px;color:#9CA3AF;font-size:.82rem;text-align:center">כל המודלים הזמינים מותקנים</div>';
         html += '</div></details>';
+        // Upgrade models (collapsed)
+        if (needUpgradeModels.length > 0) {
+          html += '<details style="margin-bottom:8px">' +
+            '<summary style="cursor:pointer;font-size:.85rem;font-weight:500;color:#9CA3AF;user-select:none;padding:4px 0">דורשים שדרוג תוכנית (' + needUpgradeModels.length + ')</summary>' +
+            '<div style="margin-top:6px;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden">';
+          needUpgradeModels.forEach(function(m) {
+            html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #F3F4F6;font-size:.82rem;opacity:.7">' +
+              '<div style="flex:1">' +
+                '<div style="font-weight:600">' + m.name + '</div>' +
+                '<div style="color:#6B7280;font-size:.75rem">' + m.desc + ' · ' + m.ramRequired + 'GB</div>' +
+              '</div>' +
+              (m.suggestedPlan
+                ? '<button class="btn btn-outline btn-sm" onclick="upgradeForModel(\'' + m.suggestedPlan + '\',\'' + m.suggestedPlanName + '\',' + m.suggestedPlanPrice + ')" style="font-size:.68rem;padding:2px 8px;white-space:nowrap;color:#D97706;border-color:#FDE68A">⬆ ' + m.suggestedPlanName + ' ₪' + m.suggestedPlanPrice + '</button>'
+                : '<span style="color:#9CA3AF;font-size:.7rem">לא זמין</span>') +
+            '</div>';
+          });
+          html += '</div></details>';
+        }
         html += '<button class="btn btn-outline btn-sm" onclick="loadOllamaStatus()" style="font-size:0.75rem">&#8635; רענון</button>';
         bodyEl.innerHTML = html;
       }
@@ -3564,9 +3584,34 @@ function showOllamaUpgrade(modelId, suggestedPlan, message) {
   var prompt = document.getElementById('ollama-upgrade-prompt');
   var msg = document.getElementById('ollama-upgrade-msg');
   var btn = document.getElementById('ollama-upgrade-btn');
-  prompt.style.display = 'block';
-  msg.textContent = message || 'נדרש שדרוג תוכנית להרצת מודל זה';
-  btn.onclick = function() { doUpgradePlan(suggestedPlan); };
+  if (prompt) prompt.style.display = 'block';
+  if (msg) msg.textContent = message || 'נדרש שדרוג תוכנית להרצת מודל זה';
+  if (btn) btn.onclick = function() { doUpgradePlan(suggestedPlan); };
+}
+
+function upgradeForModel(planKey, planName, planPrice) {
+  var currentPrice = (instanceData && instanceData.priceIls) || plan.price;
+  var diff = planPrice - currentPrice;
+  if (!confirm('שדרוג לתוכנית ' + planName + ' (₪' + planPrice + '/חודש)\n\nהפרש: +₪' + diff + '/חודש\nהשרת יכבה לרגע ויחזור עם RAM נוסף.\n\nלהמשיך?')) return;
+  doUpgradePlan(planKey);
+}
+
+async function doUpgradePlan(targetPlan) {
+  showToast('משדרג תוכנית...', 'info');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/upgrade-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ targetPlan: targetPlan })
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('שדרוג התחיל! השרת יחזור תוך 2-3 דקות', 'success');
+      setTimeout(function() { refreshInstanceData(); loadOllamaStatus(); }, 180000);
+    } else {
+      showToast(data.message || 'שגיאה בשדרוג', 'error');
+    }
+  } catch (e) { showToast('שגיאה בשדרוג', 'error'); }
 }
 
 // ── MCP Server Management ──
