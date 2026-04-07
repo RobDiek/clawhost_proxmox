@@ -1,4 +1,4 @@
-app = 'clawhost'
+app = 'clawhost-api'
 primary_region = 'lax'
 
 [build]
