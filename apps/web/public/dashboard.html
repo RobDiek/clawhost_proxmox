@@ -2960,7 +2960,23 @@ function toggleTaskExpand(el) {
 
 /* ===== Ollama Status & Model Management ===== */
 async function loadOllamaStatus() {
-  checkOllamaStatus();
+  var hasOl = components.indexOf('ol') !== -1;
+  var statusEl = document.getElementById('ollama-status');
+  if (!statusEl) return;
+  if (!hasOl) { statusEl.textContent = 'לא נבחר'; statusEl.style.color = '#9CA3AF'; return; }
+  if (!instanceId) return;
+  statusEl.textContent = 'בודק...';
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/stats', { headers: { 'Authorization': 'Bearer ' + token } });
+    var data = await res.json();
+    if (data.success && data.data.docker && data.data.docker.toLowerCase().includes('ollama')) {
+      statusEl.textContent = 'פעיל'; statusEl.style.color = '#10B981';
+    } else if (data.success) {
+      statusEl.textContent = 'לא פעיל'; statusEl.style.color = '#F59E0B';
+    } else {
+      statusEl.textContent = 'לא זמין'; statusEl.style.color = '#EF4444';
+    }
+  } catch (e) { statusEl.textContent = 'שגיאה'; statusEl.style.color = '#EF4444'; }
 }
 
 async function doInstallOllama() {
