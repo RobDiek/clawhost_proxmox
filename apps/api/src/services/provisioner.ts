@@ -8,7 +8,7 @@ import { renderCloudInit } from '@/services/cloudInit'
 interface ProvisionParams {
     instanceId: string
     planKey: string
-    automationTool: 'n8n' | 'activepieces'
+    automationTool: 'n8n' | 'activepieces' | 'dify'
     hasOllama: boolean
     hasBackup: boolean
     telegramChatId?: string
@@ -67,12 +67,14 @@ const provisioner = {
             cloudInitScript
         )
 
-        const subdomainAgent = `${name}.openclaw`
-        const subdomainFlows = `${name}-flows.openclaw`
+        const subdomainAgent = `${name}.clawflow`
+        const subdomainFlows = `${name}-flows.clawflow`
+        const subdomainObs = `${name}-obs.clawflow`
 
         await Promise.all([
             cloudflare.createDNSRecord(subdomainAgent, server.ip),
             cloudflare.createDNSRecord(subdomainFlows, server.ip),
+            cloudflare.createDNSRecord(subdomainObs, server.ip),
         ])
 
         return {
@@ -155,10 +157,12 @@ const provisioner = {
         const flowsHost = subdomainFlows
             ? subdomainFlows.replace('.flowmatic.co.il', '')
             : `${instanceId}-flows.clawflow`
+        const obsHost = agentHost.replace('.clawflow', '-obs.clawflow')
 
         const records = await Promise.all([
             cloudflare.findDNSRecord(agentHost).catch(() => null),
             cloudflare.findDNSRecord(flowsHost).catch(() => null),
+            cloudflare.findDNSRecord(obsHost).catch(() => null),
         ])
 
         await Promise.all(
