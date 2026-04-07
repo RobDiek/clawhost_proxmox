@@ -100,7 +100,7 @@ export const getOllamaStatus = async (c: Context) => {
             return {
                 ...m,
                 canRun,
-                installed: installedModels.some(im => im.startsWith(m.id.split(':')[0])),
+                installed: installedModels.some(im => im === m.id || im.startsWith(m.id + ':')),
                 needsPlan: !canRun ? `נדרש ${m.ramRequired}GB — יש ${availableRam.toFixed(1)}GB` : null,
                 suggestedPlan: suggested?.key || null,
                 suggestedPlanName: suggested?.nameHe || null,
