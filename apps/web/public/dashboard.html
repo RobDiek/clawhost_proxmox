@@ -3400,79 +3400,100 @@ async function loadOllamaStatus() {
   if (!instanceId) return;
   statusEl.textContent = 'בודק...';
   try {
-    var res = await fetch(API + '/hosting/instances/' + instanceId + '/stats', { headers: { 'Authorization': 'Bearer ' + token } });
+    // Use dedicated /ollama/status endpoint (checks systemd, not Docker)
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/ollama/status', { headers: { 'Authorization': 'Bearer ' + token } });
     var data = await res.json();
-    if (data.success && data.data.docker && data.data.docker.toLowerCase().includes('ollama')) {
+    if (!data.success) {
+      statusEl.textContent = 'לא זמין'; statusEl.style.color = '#EF4444';
+      return;
+    }
+    var d = data.data;
+    if (d.running) {
       statusEl.textContent = 'פעיל'; statusEl.style.color = '#10B981';
       if (bodyEl) {
-        bodyEl.innerHTML =
-          '<div id="ollama-models-list" style="margin-bottom:8px"></div>' +
-          '<div id="ollama-upgrade-prompt" style="display:none;background:#FFF7ED;border:1px solid #FDE68A;border-radius:8px;padding:12px;margin-bottom:8px;font-size:0.82rem">' +
-            '<div style="font-weight:600;color:#92400E;margin-bottom:4px" id="ollama-upgrade-msg"></div>' +
-            '<button class="btn btn-primary btn-sm" id="ollama-upgrade-btn" style="font-size:0.78rem">⬆️ שדרגו תוכנית</button>' +
-          '</div>' +
-          '<button class="btn btn-outline btn-sm" onclick="loadOllamaStatus()" style="font-size:0.75rem">&#8635; רענון</button>';
-        loadOllamaModels();
+        var html = '<div style="font-size:.82rem;color:#6B7280;margin-bottom:8px">RAM פנוי: ' + d.currentPlan.availableRam + 'GB</div>';
+        html += '<div id="ollama-models-list" style="margin-bottom:10px">';
+        d.models.forEach(function(m) {
+          html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F3F4F6;font-size:.82rem">' +
+            '<div style="flex:1">' +
+              '<div style="font-weight:600">' + m.name + (m.recommended ? ' ⭐' : '') + '</div>' +
+              '<div style="color:#6B7280;font-size:.75rem">' + m.desc + ' (' + m.ramRequired + 'GB)' + '</div>' +
+            '</div>';
+          if (m.installed) {
+            html += '<span style="color:#10B981;font-size:.78rem">✓ מותקן</span>';
+          } else if (m.canRun) {
+            html += '<button class="btn btn-outline btn-sm" onclick="doPullModel(\'' + m.id + '\')" style="font-size:.72rem;padding:2px 10px">הורידו</button>';
+          } else {
+            html += '<span style="color:#9CA3AF;font-size:.72rem">' + (m.needsPlan || 'לא מספיק RAM') + '</span>';
+          }
+          html += '</div>';
+        });
+        html += '</div>';
+        html += '<button class="btn btn-outline btn-sm" onclick="loadOllamaStatus()" style="font-size:0.75rem">&#8635; רענון</button>';
+        bodyEl.innerHTML = html;
       }
-    } else if (data.success) {
-      statusEl.textContent = 'לא פעיל'; statusEl.style.color = '#F59E0B';
+    } else if (d.installed) {
+      statusEl.textContent = 'מותקן — לא פעיל'; statusEl.style.color = '#F59E0B';
       if (bodyEl) {
         bodyEl.innerHTML =
           '<div style="font-size:.82rem;color:#6B7280;margin-bottom:10px">' +
-            'Ollama נבחר אבל לא פועל על השרת. לחצו להתקנה — ייקח כ-2 דקות.' +
+            'Ollama מותקן אבל לא רץ. לחצו להפעלה.' +
           '</div>' +
           '<div style="display:flex;gap:8px">' +
-            '<button class="btn btn-primary btn-sm" onclick="doInstallOllama()" style="font-size:.82rem">🚀 התקינו והפעילו</button>' +
+            '<button class="btn btn-primary btn-sm" onclick="doInstallOllama()" style="font-size:.82rem">▶ הפעילו</button>' +
             '<button class="btn btn-outline btn-sm" onclick="loadOllamaStatus()" style="font-size:0.75rem">&#8635; רענון</button>' +
           '</div>';
       }
     } else {
-      statusEl.textContent = 'לא זמין'; statusEl.style.color = '#EF4444';
-    }
-  } catch (e) { statusEl.textContent = 'שגיאה'; statusEl.style.color = '#EF4444'; }
-}
-
-async function loadOllamaModels() {
-  try {
-    var res = await fetch(API + '/hosting/instances/' + instanceId + '/ollama/status', { headers: { 'Authorization': 'Bearer ' + token } });
-    var data = await res.json();
-    if (!data.success) return;
-    var d = data.data;
-    var modelsEl = document.getElementById('ollama-models-list');
-    if (!modelsEl) return;
-    var html = '<div style="font-size:.82rem;color:#6B7280;margin-bottom:6px">RAM פנוי: ' + d.currentPlan.availableRam + 'GB</div>';
-    d.models.forEach(function(m) {
-      var isInstalled = m.installed;
-      var canRun = m.canRun;
-      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F3F4F6;font-size:.82rem">' +
-        '<div style="flex:1">' +
-          '<div style="font-weight:600">' + m.name + (m.recommended ? ' ⭐' : '') + '</div>' +
-          '<div style="color:#6B7280;font-size:.75rem">' + m.desc + ' (' + m.ramRequired + 'GB)' + '</div>' +
-        '</div>';
-      if (isInstalled) {
-        html += '<span style="color:#10B981;font-size:.78rem">✓ מותקן</span>';
-      } else if (canRun) {
-        html += '<button class="btn btn-outline btn-sm" onclick="doPullModel(\'' + m.id + '\')" style="font-size:.72rem;padding:2px 10px">הורידו</button>';
-      } else {
-        html += '<span style="color:#9CA3AF;font-size:.72rem">' + (m.needsPlan || 'לא מספיק RAM') + '</span>';
+      statusEl.textContent = 'לא מותקן'; statusEl.style.color = '#F59E0B';
+      if (bodyEl) {
+        bodyEl.innerHTML =
+          '<div style="font-size:.82rem;color:#6B7280;margin-bottom:10px">' +
+            'Ollama נבחר אבל לא מותקן על השרת. לחצו להתקנה — ייקח כ-2 דקות.' +
+          '</div>' +
+          '<div style="display:flex;gap:8px">' +
+            '<button class="btn btn-primary btn-sm" onclick="doInstallOllama()" style="font-size:.82rem">🚀 התקינו</button>' +
+            '<button class="btn btn-outline btn-sm" onclick="loadOllamaStatus()" style="font-size:0.75rem">&#8635; רענון</button>' +
+          '</div>';
       }
-      html += '</div>';
-    });
-    modelsEl.innerHTML = html;
-  } catch (e) { console.error('loadOllamaModels error:', e); }
+    }
+  } catch (e) {
+    statusEl.textContent = 'שגיאה'; statusEl.style.color = '#EF4444';
+    console.error('loadOllamaStatus error:', e);
+  }
 }
 
 async function doInstallOllama() {
-  showToast('מתקין Ollama...', 'info');
+  showToast('מתקין Ollama... ייקח כ-2 דקות', 'info');
+  var statusEl = document.getElementById('ollama-status');
+  if (statusEl) { statusEl.textContent = 'מתקין...'; statusEl.style.color = '#3B82F6'; }
   try {
     var res = await fetch(API + '/hosting/instances/' + instanceId + '/ollama/install', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token }
     });
     var data = await res.json();
-    if (data.success) { showToast('Ollama הותקן!', 'success'); loadOllamaStatus(); }
-    else showToast(data.message || 'שגיאה', 'error');
-  } catch (e) { showToast('שגיאה', 'error'); }
+    if (data.success) {
+      showToast('Ollama הותקן!', 'success');
+      // Wait a few seconds for service to start, then refresh
+      setTimeout(loadOllamaStatus, 5000);
+    } else {
+      // Parse structured error for plan-too-small / insufficient-ram
+      try {
+        var errData = JSON.parse(data.message);
+        if (errData.error === 'plan_too_small' || errData.error === 'insufficient_ram') {
+          showOllamaUpgrade(null, errData.suggestedPlan, errData.message);
+          if (statusEl) { statusEl.textContent = 'נדרש שדרוג'; statusEl.style.color = '#F59E0B'; }
+          return;
+        }
+      } catch {}
+      showToast(data.message || 'שגיאה', 'error');
+      if (statusEl) { statusEl.textContent = 'שגיאה'; statusEl.style.color = '#EF4444'; }
+    }
+  } catch (e) {
+    showToast('שגיאה בהתקנה', 'error');
+    if (statusEl) { statusEl.textContent = 'שגיאה'; statusEl.style.color = '#EF4444'; }
+  }
 }
 
 async function doPullModel(modelId) {
