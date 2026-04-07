@@ -335,6 +335,7 @@ export const getMyInstances = async (c: Context) => {
             aiProviderType: i.aiProviderType,
             hasAnthropicKey: !!i.aiProviderKey,
             hasOpenaiKey: !!i.openaiApiKey,
+            hasOllama: ((i.selectedComponents as string[]) || []).includes('ol'),
             telegramBotToken: i.telegramBotToken ? true : false,
             googleTokens: i.googleTokens ? {
                 connected: true,

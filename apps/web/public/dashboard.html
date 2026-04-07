@@ -2108,7 +2108,7 @@ var dashMascotHidden = sessionStorage.getItem('cf_mascot_hidden') === '1';
 
 var DASH_MASCOT_MSGS = {
   welcome: {
-    oc: 'שלום! אני כאן לעזור. בדקו שמפתח AI מחובר כדי שאוכל להתחיל לעבוד 🔑',
+    oc: 'שלום! אני כאן לעזור. בדקו שמודל AI מחובר (Ollama או מפתח API) כדי שאוכל להתחיל 🔑',
     mt: 'הצוות השיווקי שלכם מוכן! מלאו את הפרופיל העסקי כדי שנתחיל לעבוד 📊',
     bare: 'השרת מוכן! גשו לאזור המפתחים לניהול קבצים וקונסול 💻',
   },
@@ -2481,6 +2481,8 @@ function renderHome() {
   var step = (instanceData && instanceData.onboardingStep) || 0;
   // Only check actual server data — not onboarding step (step can advance via skip)
   var hasApiKey = !!(instanceData && (instanceData.aiProviderType || instanceData.hasAnthropicKey || instanceData.hasOpenaiKey));
+  var hasOllama = !!(instanceData && instanceData.hasOllama);
+  var hasAiProvider = hasApiKey || hasOllama;
   var hasTelegram = !!(instanceData && instanceData.telegramBotToken);
   var isMATEH = components.indexOf('mt') !== -1;
   var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
@@ -2490,9 +2492,11 @@ function renderHome() {
   var hiddenTasks = JSON.parse(localStorage.getItem('cf_hidden_tasks') || '[]');
 
   // Base tasks (infra)
+  var aiLabel = hasOllama ? 'מודל AI מחובר (Ollama)' : 'מפתח AI מחובר';
+  var aiDesc = hasOllama && !hasApiKey ? 'Ollama פעיל — מודל מקומי. ניתן גם לחבר Anthropic / OpenAI' : 'Anthropic / OpenAI / Ollama — נדרש להפעלת הסוכנים';
   var tasks = [
     { id: 'vps', label: 'שרת VPS פעיל', done: true, desc: 'השרת שלכם פועל ומוכן' },
-    { id: 'api', label: 'מפתח AI מחובר', done: !!hasApiKey, action: "switchTab('integrations')", actionLabel: 'חברו', desc: 'Anthropic / OpenAI — נדרש להפעלת הסוכנים' },
+    { id: 'api', label: aiLabel, done: !!hasAiProvider, action: "switchTab('integrations')", actionLabel: 'חברו', desc: aiDesc },
     { id: 'telegram', label: 'בוט Telegram מחובר', done: !!hasTelegram, action: "switchTab('integrations')", actionLabel: 'חברו', desc: 'לקבלת עדכונים, Daily Brief ואישורי פרסום' },
   ];
 
@@ -2603,6 +2607,8 @@ function getNotifications() {
   var notifs = [];
   var step = (instanceData && instanceData.onboardingStep) || 0;
   var hasApiKey = !!(instanceData && (instanceData.aiProviderType || instanceData.hasAnthropicKey || instanceData.hasOpenaiKey));
+  var hasOllamaProvider = !!(instanceData && instanceData.hasOllama);
+  var hasAnyAi = hasApiKey || hasOllamaProvider;
   var hasTelegram = !!(instanceData && instanceData.telegramBotToken);
   var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
   var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && instanceData.researchData.report)));
