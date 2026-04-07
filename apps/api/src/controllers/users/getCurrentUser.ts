@@ -31,11 +31,11 @@ const getCurrentUser = async (c: AuthenticatedContext) => {
         }
 
         return ok(c, user[0], t('api.profileFetched'))
-    } catch (err) {
-        console.error('Get user error:', err)
+    } catch (error) {
+        console.error('getCurrentUser', error)
         return fail(
             c,
-            err instanceof Error ? err.message : t('api.failedToGetProfile'),
+            error instanceof Error ? error.message : t('api.failedToGetProfile'),
             500
         )
     }

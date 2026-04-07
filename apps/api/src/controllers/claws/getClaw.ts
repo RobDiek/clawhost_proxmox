@@ -46,8 +46,8 @@ const getClaw = async (c: AuthenticatedContext) => {
                         t('api.clawFetched')
                     )
                 }
-            } catch (err) {
-                console.error('Failed to sync server status:', err)
+            } catch (error) {
+                console.error('getClaw', error)
             }
         }
 

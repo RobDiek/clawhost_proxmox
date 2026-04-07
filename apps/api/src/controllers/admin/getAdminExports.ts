@@ -48,8 +48,8 @@ const getAdminExports = async (c: AuthenticatedContext) => {
             { items: rows, total, page, totalPages },
             t('api.adminExportsFetched')
         )
-    } catch (err) {
-        console.error(err)
+    } catch (error) {
+        console.error('getAdminExports', error)
         return fail(c, t('api.failedToGetAdminExports'), 500)
     }
 }

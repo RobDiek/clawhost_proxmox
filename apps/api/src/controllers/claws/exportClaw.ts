@@ -58,11 +58,11 @@ const exportClaw = async (c: AuthenticatedContext) => {
                 'Content-Disposition': `attachment; filename="${filename}"`
             }
         })
-    } catch (err) {
-        console.error('Export claw error:', err)
+    } catch (error) {
+        console.error('exportClaw', error)
         return fail(
             c,
-            err instanceof Error ? err.message : t('api.failedToExportClaw'),
+            error instanceof Error ? error.message : t('api.failedToExportClaw'),
             500
         )
     }

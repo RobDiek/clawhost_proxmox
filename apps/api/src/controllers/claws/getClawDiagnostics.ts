@@ -41,12 +41,12 @@ const getClawDiagnostics = async (c: AuthenticatedContext) => {
             },
             t('api.diagnosticsFetched')
         )
-    } catch (err) {
-        console.error('Get claw diagnostics error:', err)
+    } catch (error) {
+        console.error('getClawDiagnostics', error)
         return fail(
             c,
-            err instanceof Error
-                ? err.message
+            error instanceof Error
+                ? error.message
                 : t('api.failedToGetDiagnostics'),
             500
         )

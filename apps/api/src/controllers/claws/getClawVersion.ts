@@ -28,11 +28,11 @@ const getClawVersion = async (c: AuthenticatedContext) => {
         return ok(c, {
             version: output.trim() || 'unknown'
         })
-    } catch (err) {
-        console.error('Get claw version error:', err)
+    } catch (error) {
+        console.error('getClawVersion', error)
         return fail(
             c,
-            err instanceof Error ? err.message : t('api.failedToGetVersion'),
+            error instanceof Error ? error.message : t('api.failedToGetVersion'),
             500
         )
     }

@@ -49,8 +49,8 @@ const getAdminWaitlist = async (c: AuthenticatedContext) => {
             { items: rows, total, page, totalPages },
             t('api.adminWaitlistFetched')
         )
-    } catch (err) {
-        console.error(err)
+    } catch (error) {
+        console.error('getAdminWaitlist', error)
         return fail(c, t('api.failedToGetAdminWaitlist'), 500)
     }
 }

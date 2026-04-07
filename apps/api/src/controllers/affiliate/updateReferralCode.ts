@@ -74,12 +74,12 @@ const updateReferralCode = async (c: AuthenticatedContext) => {
             .where(eq(users.id, userId))
 
         return ok(c, { referralCode: code }, t('api.referralCodeUpdated'))
-    } catch (err) {
-        console.error('Update referral code error:', err)
+    } catch (error) {
+        console.error('updateReferralCode', error)
         return fail(
             c,
-            err instanceof Error
-                ? err.message
+            error instanceof Error
+                ? error.message
                 : t('api.failedToUpdateReferralCode'),
             500
         )

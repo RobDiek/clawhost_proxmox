@@ -48,12 +48,12 @@ const generateCode = async (c: AuthenticatedContext) => {
             .where(eq(users.id, userId))
 
         return ok(c, { referralCode: code }, t('api.referralCodeGenerated'))
-    } catch (err) {
-        console.error('Generate referral code error:', err)
+    } catch (error) {
+        console.error('generateCode', error)
         return fail(
             c,
-            err instanceof Error
-                ? err.message
+            error instanceof Error
+                ? error.message
                 : t('api.failedToGenerateReferralCode'),
             500
         )

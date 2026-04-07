@@ -49,8 +49,8 @@ const getUserStats = async (c: AuthenticatedContext) => {
             },
             t('api.statsFetched')
         )
-    } catch (err) {
-        console.error('Get user stats error:', err)
+    } catch (error) {
+        console.error('getUserStats', error)
         return fail(c, t('api.failedToGetStats'), 500)
     }
 }

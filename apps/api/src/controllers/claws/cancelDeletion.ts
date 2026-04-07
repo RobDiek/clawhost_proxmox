@@ -26,8 +26,8 @@ const cancelDeletion = async (c: AuthenticatedContext) => {
         if (claw.polarSubscriptionId) {
             try {
                 await subscriptions.uncancel(claw.polarSubscriptionId)
-            } catch (subErr) {
-                console.error('Failed to uncancel subscription:', subErr)
+            } catch (subError) {
+                console.error('cancelDeletion', subError)
                 return fail(c, t('api.failedToCancelScheduledDeletion'), 500)
             }
         }

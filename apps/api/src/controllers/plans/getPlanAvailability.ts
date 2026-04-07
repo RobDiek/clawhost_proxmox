@@ -63,8 +63,8 @@ const getPlanAvailability = async (c: Context) => {
         }
 
         return ok(c, availability, t('api.planAvailabilityFetched'))
-    } catch (err) {
-        console.error('Failed to fetch plan availability:', err)
+    } catch (error) {
+        console.error('getPlanAvailability', error)
         return fail(c, t('api.failedToFetchPlanAvailability'), 500)
     }
 }

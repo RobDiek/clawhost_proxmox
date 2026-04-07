@@ -24,8 +24,8 @@ const syncClawServers = async (clawList: ClawRow[]): Promise<ClawRow[]> => {
 
     try {
         serverMap = await getProvider().getServers()
-    } catch (err) {
-        console.error('Failed to fetch servers:', err)
+    } catch (error) {
+        console.error('syncClawServers', error)
     }
 
     const syncedClaws = await Promise.all(
@@ -58,10 +58,8 @@ const syncClawServers = async (clawList: ClawRow[]): Promise<ClawRow[]> => {
                                     )
                                 }
                             })
-                            .catch(() => {
-                                console.error(
-                                    `Failed to fix DNS for ${claw.subdomain}`
-                                )
+                            .catch((error) => {
+                                console.error('syncClawServers', error)
                             }),
                         db
                             .update(claws)

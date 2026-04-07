@@ -9,8 +9,8 @@ const getLocations = async (c: Context) => {
         const provider = getProvider()
         const locations = await provider.getLocations()
         return ok(c, locations, t('api.locationsFetched'))
-    } catch (err) {
-        console.error('Failed to fetch locations:', err)
+    } catch (error) {
+        console.error('getLocations', error)
         return fail(c, t('api.failedToFetchLocations'), 500)
     }
 }

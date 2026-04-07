@@ -43,8 +43,8 @@ const getAdminEmails = async (c: AuthenticatedContext) => {
             { items: rows, total, page, totalPages },
             t('api.adminEmailsFetched')
         )
-    } catch (err) {
-        console.error(err)
+    } catch (error) {
+        console.error('getAdminEmails', error)
         return fail(c, t('api.failedToGetAdminEmails'), 500)
     }
 }

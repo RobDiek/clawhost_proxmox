@@ -40,9 +40,9 @@ const registerClawTerminalHandlers = (): void => {
                         TERM: 'xterm-256color'
                     } as Record<string, string>
                 })
-            } catch (err) {
-                console.error('[terminal] spawn failed:', err)
-                throw err
+            } catch (error) {
+                console.error('clawTerminal', error)
+                throw error
             }
 
             terminals.set(id, term)

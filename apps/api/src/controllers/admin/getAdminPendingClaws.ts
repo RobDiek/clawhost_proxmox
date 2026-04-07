@@ -50,8 +50,8 @@ const getAdminPendingClaws = async (c: AuthenticatedContext) => {
             { items: rows, total, page, totalPages },
             t('api.adminPendingClawsFetched')
         )
-    } catch (err) {
-        console.error(err)
+    } catch (error) {
+        console.error('getAdminPendingClaws', error)
         return fail(c, t('api.failedToGetAdminPendingClaws'), 500)
     }
 }

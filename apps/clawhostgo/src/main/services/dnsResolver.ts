@@ -106,8 +106,8 @@ const startDns = (): void => {
         server?.send(response, rinfo.port, rinfo.address)
     })
 
-    server.on('error', (err) => {
-        console.error('[dns] server error:', err.message)
+    server.on('error', (error) => {
+        console.error('startDns', error)
         server?.close()
         server = null
         if (retryCount < MAX_RETRIES) {
@@ -168,9 +168,9 @@ const ensurePortRedirect = (): void => {
         fs.writeFileSync(tmpScript, script, { mode: 0o755 })
         exec(
             `osascript -e 'do shell script "${tmpScript}" with administrator privileges'`,
-            (pfErr) => {
-                if (pfErr) {
-                    console.error('[dns] pfctl setup failed:', pfErr.message)
+            (pfError) => {
+                if (pfError) {
+                    console.error('ensurePortRedirect', pfError)
                 }
                 try {
                     fs.unlinkSync(tmpScript)

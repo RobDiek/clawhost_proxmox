@@ -40,8 +40,8 @@ const deleteClaw = async (c: AuthenticatedContext) => {
                 if (checkout?.subscriptionId) {
                     await subscriptions.revoke(checkout.subscriptionId)
                 }
-            } catch (subErr) {
-                console.error('Failed to revoke pending subscription:', subErr)
+            } catch (subError) {
+                console.error('deleteClaw', subError)
             }
 
             return ok(c, { scheduled: false }, t('api.clawDeleted'))
@@ -83,11 +83,8 @@ const deleteClaw = async (c: AuthenticatedContext) => {
                         t('api.clawDeletionScheduled')
                     )
                 }
-            } catch (subErr) {
-                console.error(
-                    'Failed to schedule deletion via subscription:',
-                    subErr
-                )
+            } catch (subError) {
+                console.error('deleteClaw', subError)
             }
         }
 
@@ -95,11 +92,8 @@ const deleteClaw = async (c: AuthenticatedContext) => {
             claw.polarSubscriptionId
                 ? subscriptions
                       .revoke(claw.polarSubscriptionId)
-                      .catch((subErr) => {
-                          console.error(
-                              'Failed to revoke subscription:',
-                              subErr
-                          )
+                      .catch((subError) => {
+                          console.error('deleteClaw', subError)
                       })
                 : Promise.resolve(),
             cleanupClaw(id, {

@@ -12,8 +12,8 @@ const getAdminBilling = async (c: AuthenticatedContext) => {
         const result = await orders.listAll(page, limit)
 
         return ok(c, result, t('api.adminBillingFetched'))
-    } catch (err) {
-        console.error(err)
+    } catch (error) {
+        console.error('getAdminBilling', error)
         return fail(c, t('api.failedToGetAdminBilling'), 500)
     }
 }

@@ -74,8 +74,8 @@ const getAdminClaws = async (c: AuthenticatedContext) => {
             { items: clawRows, total, page, totalPages },
             t('api.adminClawsFetched')
         )
-    } catch (err) {
-        console.error(err)
+    } catch (error) {
+        console.error('getAdminClaws', error)
         return fail(c, t('api.failedToGetAdminClaws'), 500)
     }
 }
