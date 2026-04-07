@@ -2960,25 +2960,12 @@ function toggleTaskExpand(el) {
 
 /* ===== Ollama Status & Model Management ===== */
 async function loadOllamaStatus() {
+  // Use the working checkOllamaStatus from integrations
+  checkOllamaStatus();
+  return;
+  /* Legacy code below — disabled, endpoints don't exist */
   var statusEl = document.getElementById('ollama-status');
-  var planInfo = document.getElementById('ollama-plan-info');
-  var modelsList = document.getElementById('ollama-models-list');
-  var upgradePrompt = document.getElementById('ollama-upgrade-prompt');
   if (!statusEl) return;
-
-  statusEl.textContent = 'בודק...';
-  statusEl.style.color = '#9CA3AF';
-
-  try {
-    var res = await fetch(API + '/hosting/instances/' + instanceId + '/ollama/status', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
-    var data = await res.json();
-    if (!data.success || !data.data) {
-      statusEl.textContent = 'שגיאה';
-      statusEl.style.color = '#EF4444';
-      return;
-    }
 
     var s = data.data;
 
@@ -6688,52 +6675,15 @@ function showToast(msg, type) {
   el._t = setTimeout(function() { el.classList.remove('show'); }, 3000);
 }
 
-// ── Referral Program ──
-async function loadReferralData() {
-  try {
-    // Load referral code
-    var res = await fetch(API + '/hosting/referral/my-code', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
-    var data = await res.json();
-    if (data.success && data.data) {
-      document.getElementById('referral-link').value = data.data.link;
-    }
-
-    // Load referral stats
-    var res2 = await fetch(API + '/hosting/referral/my-referrals', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
-    var data2 = await res2.json();
-    if (data2.success && data2.data) {
-      var s = data2.data.stats;
-      document.getElementById('ref-stats-converted').textContent = s.converted;
-      document.getElementById('ref-stats-trial').textContent = s.trial;
-
-      var history = (data2.data.referrals || []).slice(0, 5);
-      if (history.length > 0) {
-        document.getElementById('ref-history').innerHTML = history.map(function(r) {
-          var icon = r.status === 'converted' || r.status === 'rewarded' ? '✅' : r.status === 'trial_started' ? '⏳' : '📨';
-          var label = r.status === 'converted' || r.status === 'rewarded' ? 'הצטרף — קיבלתם חודש!' :
-                      r.status === 'trial_started' ? 'בתקופת ניסיון' : 'ממתין';
-          return '<div style="padding:3px 0">' + icon + ' ' + (r.email || '—') + ' — ' + label + '</div>';
-        }).join('');
-      }
-    }
-  } catch (e) { /* non-critical */ }
-}
-
+// ── Referral Program (disabled — endpoints not implemented yet) ──
+function loadReferralData() { /* TODO: implement referral API */ }
 function copyReferralLink() {
   var input = document.getElementById('referral-link');
-  input.select();
-  navigator.clipboard.writeText(input.value).then(function() {
-    showToast('הקישור הועתק!', 'success');
-  });
+  if (input) { input.select(); navigator.clipboard.writeText(input.value).then(function() { showToast('הקישור הועתק!', 'success'); }); }
 }
 
-// Load referral on settings tab
 document.addEventListener('click', function(e) {
-  if (e.target.closest('[data-tab="settings"]')) setTimeout(loadReferralData, 150);
+  if (false && e.target.closest('[data-tab="settings"]')) setTimeout(loadReferralData, 150);
 });
 
 // ── Google Business Profile ──
