@@ -453,6 +453,18 @@ input{font-family:inherit}
 .report-modal { background:#fff; border-radius:16px; width:100%; max-width:800px; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 16px 48px rgba(0,0,0,.15); }
 .report-modal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 24px; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
 .report-modal-header h3 { font-size:1.1rem; font-weight:700; }
+/* ===== Confirm Dialog ===== */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+.confirm-overlay.show{opacity:1;pointer-events:auto}
+.confirm-box{background:#fff;border-radius:14px;width:100%;max-width:380px;box-shadow:0 12px 40px rgba(0,0,0,.15);transform:scale(.95);transition:transform .2s}
+.confirm-overlay.show .confirm-box{transform:scale(1)}
+.confirm-body{padding:24px 24px 16px;text-align:center}
+.confirm-icon{font-size:2rem;margin-bottom:10px}
+.confirm-title{font-size:1rem;font-weight:700;color:#111827;margin-bottom:6px}
+.confirm-desc{font-size:.85rem;color:#6B7280;line-height:1.5}
+.confirm-actions{display:flex;gap:8px;padding:0 24px 20px;justify-content:center}
+.confirm-actions .btn{min-width:100px;justify-content:center}
+
 .report-modal-body { padding:24px; overflow-y:auto; font-size:0.9rem; line-height:1.8; direction:rtl; }
 .report-modal-body h2 { font-size:1.15rem; font-weight:700; margin:20px 0 10px; color:#111827; }
 .report-modal-body h3 { font-size:1rem; font-weight:600; margin:16px 0 8px; color:#1F2937; }
@@ -3601,8 +3613,36 @@ async function doPullModel(modelId, btn) {
   }
 }
 
+/* ===== Custom Confirm Dialog ===== */
+var _confirmResolve = null;
+
+function showConfirm(opts) {
+  // opts: { icon, title, desc, okText, okClass, cancelText }
+  document.getElementById('confirmIcon').textContent = opts.icon || '⚠';
+  document.getElementById('confirmTitle').textContent = opts.title || 'אתם בטוחים?';
+  document.getElementById('confirmDesc').textContent = opts.desc || '';
+  var okBtn = document.getElementById('confirmOkBtn');
+  okBtn.textContent = opts.okText || 'אישור';
+  okBtn.className = 'btn ' + (opts.okClass || 'btn-danger-outline');
+  document.getElementById('confirmCancelBtn').textContent = opts.cancelText || 'ביטול';
+  document.getElementById('confirmOverlay').classList.add('show');
+  return new Promise(function(resolve) { _confirmResolve = resolve; });
+}
+
+function closeConfirm(result) {
+  document.getElementById('confirmOverlay').classList.remove('show');
+  if (_confirmResolve) { _confirmResolve(result); _confirmResolve = null; }
+}
+
 async function doDeleteModel(modelId, btn) {
-  if (!confirm('למחוק את המודל ' + modelId + '?\nהמודל יימחק מהשרת ויפנה מקום ב-RAM ודיסק.')) return;
+  var confirmed = await showConfirm({
+    icon: '🗑️',
+    title: 'מחיקת מודל ' + modelId,
+    desc: 'המודל יימחק מהשרת ויפנה מקום ב-RAM ודיסק. ניתן להוריד שוב בכל עת.',
+    okText: 'מחקו',
+    okClass: 'btn-danger-outline',
+  });
+  if (!confirmed) return;
   if (btn) { btn.textContent = '...'; btn.disabled = true; }
   try {
     var res = await fetch(API + '/hosting/instances/' + instanceId + '/ollama/model', {
@@ -3633,10 +3673,17 @@ function showOllamaUpgrade(modelId, suggestedPlan, message) {
   if (btn) btn.onclick = function() { doUpgradePlan(suggestedPlan); };
 }
 
-function upgradeForModel(planKey, planName, planPrice) {
+async function upgradeForModel(planKey, planName, planPrice) {
   var currentPrice = (instanceData && instanceData.priceIls) || plan.price;
   var diff = planPrice - currentPrice;
-  if (!confirm('שדרוג לתוכנית ' + planName + ' (₪' + planPrice + '/חודש)\n\nהפרש: +₪' + diff + '/חודש\nהשרת יכבה לרגע ויחזור עם RAM נוסף.\n\nלהמשיך?')) return;
+  var confirmed = await showConfirm({
+    icon: '⬆️',
+    title: 'שדרוג לתוכנית ' + planName,
+    desc: '₪' + planPrice + '/חודש (הפרש: +₪' + diff + '/חודש). השרת יכבה לרגע ויחזור עם RAM נוסף.',
+    okText: 'שדרגו',
+    okClass: 'btn-primary',
+  });
+  if (!confirmed) return;
   doUpgradePlan(planKey);
 }
 
@@ -7797,6 +7844,21 @@ document.addEventListener('keydown', function(e) {
     </div>
     <div class="task-popup-body" id="taskPopupBody"></div>
     <div class="task-popup-footer" id="taskPopupFooter"></div>
+  </div>
+</div>
+
+<!-- Confirm Dialog -->
+<div class="confirm-overlay" id="confirmOverlay" onclick="if(event.target===this)closeConfirm(false)">
+  <div class="confirm-box">
+    <div class="confirm-body">
+      <div class="confirm-icon" id="confirmIcon">🗑️</div>
+      <div class="confirm-title" id="confirmTitle"></div>
+      <div class="confirm-desc" id="confirmDesc"></div>
+    </div>
+    <div class="confirm-actions">
+      <button class="btn btn-outline" onclick="closeConfirm(false)" id="confirmCancelBtn">ביטול</button>
+      <button class="btn btn-danger-outline" onclick="closeConfirm(true)" id="confirmOkBtn">מחקו</button>
+    </div>
   </div>
 </div>
 
