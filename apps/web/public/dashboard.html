@@ -3881,9 +3881,9 @@ async function upgradeForModel(planKey, planName, planPrice) {
 async function installTwentyCRM() {
   // Check RAM
   var currentPlan = PLANS[planKey] || PLANS.personal;
-  var usedRam = 0;
-  components.forEach(function(c) { usedRam += (COMPONENT_RAM[c] || 0); });
-  usedRam += COMPONENT_RAM.base || 0.5;
+  var ramMap = { base: 0.5, oc: 1, mt: 4, bare: 1, n8: 0.5, ap: 0.5, ol: 8, tw: 2 };
+  var usedRam = ramMap.base;
+  components.forEach(function(c) { usedRam += (ramMap[c] || 0); });
   var freeRam = currentPlan.ram - usedRam;
 
   if (freeRam < 2) {
