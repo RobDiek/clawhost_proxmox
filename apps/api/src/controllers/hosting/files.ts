@@ -472,11 +472,9 @@ cfg = json.loads(base64.b64decode('${configScript}'))
 with open('${CONFIG}') as f: d = json.load(f)
 defaults = d.setdefault('agents', {}).setdefault('defaults', {})
 model = defaults.setdefault('model', {})
-# Only set primary if no other provider is already primary, or if same provider
-current = model.get('primary', '')
-if not current or current.startswith('ollama/') or current.startswith('${type}/'):
-    model['primary'] = cfg['primary']
-    model['fallbacks'] = cfg['fallbacks']
+# Always set primary to the last saved provider (user intent)
+model['primary'] = cfg['primary']
+model['fallbacks'] = cfg['fallbacks']
 # Always merge models (don't overwrite other providers)
 existing = defaults.setdefault('models', {})
 for k, v in cfg['models'].items():
