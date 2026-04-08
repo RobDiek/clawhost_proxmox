@@ -1065,8 +1065,14 @@ input{font-family:inherit}
     <h2 class="tab-title">תוספים</h2>
     <p class="tab-desc">חברו כלים ושירותים לסוכנים שלכם.</p>
 
+    <!-- Agent context notice for integrations -->
+    <div id="integrations-agent-notice" style="display:none;background:#FFF7ED;border:1px solid #FDE68A;border-radius:10px;padding:10px 16px;font-size:.85rem;color:#92400E;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+      <span>⚠</span>
+      <span id="integrations-agent-notice-text"></span>
+    </div>
+
     <!-- AI Models -->
-    <div class="section-title">מודלי AI</div>
+    <div class="section-title" data-int-section="ai">מודלי AI</div>
     <div class="integrations-grid">
       <div class="int-card" id="anthropic-card" data-tooltip="Claude AI — המודלים המתקדמים ביותר של Anthropic. נדרש למערכת MATEH ולמרבית פעולות הסוכנים. Opus לניתוח עמוק, Sonnet לעבודה שוטפת, Haiku לפעולות מהירות וזולות.">
         <div class="int-card-header">
@@ -1118,7 +1124,7 @@ input{font-family:inherit}
     </div>
 
     <!-- Communication Channels -->
-    <div class="section-title">ערוצי תקשורת</div>
+    <div class="section-title" data-int-section="channels">ערוצי תקשורת</div>
     <div class="integrations-grid">
       <div class="int-card" id="telegram-card">
         <div class="int-card-header">
@@ -1179,7 +1185,7 @@ input{font-family:inherit}
     </div>
 
     <!-- Productivity -->
-    <div class="section-title">כלי עבודה</div>
+    <div class="section-title" data-int-section="tools">כלי עבודה</div>
     <div class="integrations-grid">
 
       <!-- Google Workspace (unified: Calendar, Drive, Gmail, Sheets, YouTube, Ads) -->
@@ -1305,7 +1311,7 @@ input{font-family:inherit}
     </div>
 
     <!-- Publishing Channels -->
-    <div class="section-title">ערוצי פרסום</div>
+    <div class="section-title" data-int-section="publishing">ערוצי פרסום</div>
     <div class="integrations-grid" id="publishingChannels">
 
       <!-- 1. WordPress Blog -->
@@ -2083,6 +2089,7 @@ function switchAgent(agentType) {
     var tabId = currentTab.getAttribute('data-tab');
     if (tabId === 'home') renderHome();
     if (tabId === 'agents') { renderAgentsTab(); openAgentDetail(agentType); }
+    if (tabId === 'integrations') filterIntegrationsByAgent();
   }
 }
 
@@ -4367,7 +4374,47 @@ function showAddAgentDialog() {
   document.getElementById('taskPopupOverlay').classList.remove('hidden');
 }
 
+// Per-agent integration visibility
+// Until full agent isolation (roadmap/15-agent-isolation.md), filter UI only
+var AGENT_INTEGRATIONS = {
+  mt: { ai: true, channels: true, tools: true, publishing: true },      // MATEH: everything
+  oc: { ai: true, channels: true, tools: true, publishing: false },     // Personal: no publishing
+  bare: { ai: true, channels: false, tools: false, publishing: false }, // Bare: only AI models
+};
+
+function filterIntegrationsByAgent() {
+  var agents = getAgentComponents();
+  var isMultiAgent = agents.length > 1;
+  var agent = activeAgent || 'oc';
+  var allowed = AGENT_INTEGRATIONS[agent] || AGENT_INTEGRATIONS.oc;
+
+  // Show notice when multi-agent
+  var notice = document.getElementById('integrations-agent-notice');
+  var noticeText = document.getElementById('integrations-agent-notice-text');
+  if (notice && isMultiAgent) {
+    var comp = COMPONENTS[agent] || COMPONENTS.oc;
+    notice.style.display = 'flex';
+    noticeText.textContent = 'מציג תוספים עבור ' + comp.name + '. החלפת סוכן תשנה את התוספים המוצגים.';
+  } else if (notice) {
+    notice.style.display = 'none';
+  }
+
+  // Show/hide sections + their following grid
+  document.querySelectorAll('[data-int-section]').forEach(function(section) {
+    var sectionType = section.getAttribute('data-int-section');
+    var show = !isMultiAgent || allowed[sectionType];
+    section.style.display = show ? '' : 'none';
+    // Hide the integrations-grid that follows this section-title
+    var next = section.nextElementSibling;
+    if (next && (next.classList.contains('integrations-grid') || next.id === 'mcpServersList')) {
+      next.style.display = show ? '' : 'none';
+    }
+  });
+}
+
 function renderIntegrations() {
+  // Filter integration sections by active agent type
+  filterIntegrationsByAgent();
   // Check Ollama status
   loadOllamaStatus();
   // Load MCP servers

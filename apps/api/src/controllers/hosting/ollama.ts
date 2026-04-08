@@ -179,6 +179,9 @@ export const installOllama = async (c: Context) => {
             fi
         `, instance.rootPassword || undefined, 300000)  // 5 min for download + install
 
+        // Register Ollama provider in openclaw.json
+        await registerOllamaProvider(instance.ip, instance.rootPassword || undefined)
+
         // Update components in DB if not already included
         if (!components.includes('ol')) {
             const newComponents = [...components, 'ol']
@@ -240,8 +243,10 @@ export const pullOllamaModel = async (c: Context) => {
         // Model ID is from our hardcoded whitelist — safe from injection
         const safeModelId = modelInfo.id.replace(/[^a-zA-Z0-9.:_-]/g, '')
         sshExec(instance.ip, `ollama pull "${safeModelId}" 2>&1`, instance.rootPassword || undefined, 1800000)
-            .then(() => {
+            .then(async () => {
                 console.log(`Ollama model ${modelInfo.id} pulled on instance ${instanceId}`)
+                // Register model in openclaw.json so agents can use it
+                await registerOllamaModel(instance.ip, modelInfo.id, modelInfo.name, instance.rootPassword || undefined)
             })
             .catch((err) => {
                 console.error(`Ollama pull failed on ${instanceId}:`, err)
@@ -255,5 +260,61 @@ export const pullOllamaModel = async (c: Context) => {
     } catch (err) {
         console.error('pullOllamaModel error:', err)
         return fail(c, 'Failed to pull model', 500)
+    }
+}
+
+// Register Ollama as a provider in openclaw.json (creates models.providers.ollama section)
+async function registerOllamaProvider(ip: string, password?: string): Promise<void> {
+    try {
+        await sshExec(ip, `
+            CONFIG="/home/openclaw/.openclaw/openclaw.json"
+            if [ -f "$CONFIG" ]; then
+                python3 -c "
+import json
+with open('$CONFIG') as f: d = json.load(f)
+d.setdefault('models', {}).setdefault('providers', {})['ollama'] = {
+    'baseUrl': 'http://127.0.0.1:11434',
+    'models': []
+}
+with open('$CONFIG', 'w') as f: json.dump(d, f, indent=2)
+print('OK')
+"
+                chown openclaw:openclaw "$CONFIG"
+            fi
+        `, password)
+        console.log(`Ollama provider registered in openclaw.json on ${ip}`)
+    } catch (err) {
+        console.error(`Failed to register Ollama provider on ${ip}:`, err)
+    }
+}
+
+// Register a specific model in the ollama provider section of openclaw.json
+async function registerOllamaModel(ip: string, modelId: string, modelName: string, password?: string): Promise<void> {
+    try {
+        // Escape for shell safety — modelId is from our whitelist but be safe
+        const safeId = modelId.replace(/'/g, '')
+        const safeName = modelName.replace(/'/g, '')
+        await sshExec(ip, `
+            CONFIG="/home/openclaw/.openclaw/openclaw.json"
+            if [ -f "$CONFIG" ]; then
+                python3 -c "
+import json
+with open('$CONFIG') as f: d = json.load(f)
+prov = d.setdefault('models', {}).setdefault('providers', {}).setdefault('ollama', {'baseUrl': 'http://127.0.0.1:11434', 'models': []})
+existing = [m['id'] for m in prov.get('models', [])]
+if '${safeId}' not in existing:
+    prov.setdefault('models', []).append({'id': '${safeId}', 'name': '${safeName}', 'api': 'ollama'})
+# Also add to agents.defaults.models for easy selection
+d.setdefault('agents', {}).setdefault('defaults', {}).setdefault('models', {})['ollama/${safeId}'] = {'alias': '${safeId}'.split(':')[0]}
+with open('$CONFIG', 'w') as f: json.dump(d, f, indent=2)
+print('OK')
+"
+                chown openclaw:openclaw "$CONFIG"
+                systemctl restart openclaw-gateway 2>/dev/null || true
+            fi
+        `, password)
+        console.log(`Ollama model ${modelId} registered in openclaw.json on ${ip}`)
+    } catch (err) {
+        console.error(`Failed to register Ollama model ${modelId} on ${ip}:`, err)
     }
 }
