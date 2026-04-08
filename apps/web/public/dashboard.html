@@ -6485,11 +6485,11 @@ async function saveSubAgentModels() {
     });
 
     // Also save model config to DB (for research/strategy to read)
-    await fetch(API + '/hosting/instances/' + iid + '/integrations/save', {
+    fetch(API + '/hosting/instances/' + iid + '/integrations/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ type: 'sub-agent-models', key: JSON.stringify(models) })
-    });
+      body: JSON.stringify({ type: 'sub-agent-models', key: JSON.stringify(models) || '{}' })
+    }).catch(function() {});
 
     if (res.ok) {
       showToast('מודלים עודכנו בהצלחה', 'success');
@@ -6531,6 +6531,7 @@ document.addEventListener('change', function(e) {
 
 function loadAgentActivityLog() {
   var logEl = document.getElementById('agent-activity-log');
+  if (!logEl) return;
   if (!instanceId) {
     logEl.innerHTML = '<div style="text-align:center;color:#9CA3AF;font-size:0.85rem;padding:20px 0">לא זמין</div>';
     return;
