@@ -1625,6 +1625,63 @@ input{font-family:inherit}
     <!-- MCP servers loaded dynamically into existing categories (hidden from user) -->
     <div id="mcpServersList" style="display:none"></div>
 
+    <!-- Management Tools -->
+    <div class="section-title" data-int-section="management">כלי ניהול</div>
+    <div class="integrations-grid">
+      <div class="int-card" id="twenty-card" style="grid-column:span 2">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#EDEDFF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="#5B5BD6" stroke-width="1.5"/><path d="M8 12h8M12 8v8" stroke="#5B5BD6" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div><strong>Twenty CRM</strong><div class="int-status" id="twenty-status">לא מותקן</div></div>
+        </div>
+        <div class="int-card-body hidden" id="twenty-body">
+          <div style="font-size:.82rem;color:#6B7280;margin-bottom:10px">מערכת CRM — ניהול לידים, לקוחות, משימות, תוכן ופרויקטים. הסוכנים עובדים ישירות עם ה-CRM דרך MCP (29 כלים).</div>
+
+          <!-- Not installed state -->
+          <div id="twenty-not-installed">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+              <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px">
+                <div style="font-size:.75rem;color:#9CA3AF;margin-bottom:2px">דרישות</div>
+                <div style="font-size:.82rem;font-weight:600">2GB RAM · 1GB Disk</div>
+                <div style="font-size:.72rem;color:#6B7280;margin-top:2px">PostgreSQL + Docker</div>
+              </div>
+              <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px">
+                <div style="font-size:.75rem;color:#9CA3AF;margin-bottom:2px">מה כלול</div>
+                <div style="font-size:.72rem;color:#6B7280;line-height:1.5">Kanban · לוח שנה · Custom Objects · Email sync · Workflows · API (GraphQL + REST)</div>
+              </div>
+            </div>
+
+            <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px;margin-bottom:10px;font-size:.78rem;color:#1E40AF">
+              <strong>📋 תהליך התקנה (~5 דקות):</strong>
+              <ol style="margin:6px 0 0 16px;padding:0;font-size:.75rem;line-height:1.6">
+                <li>בדיקת RAM פנוי (נדרש 2GB)</li>
+                <li>התקנת Twenty CRM + PostgreSQL (Docker)</li>
+                <li>הגדרת subdomain: <span style="direction:ltr;unicode-bidi:isolate">crm.{subdomain}.clawflow.flowmatic.co.il</span></li>
+                <li>הגדרת SSL + Nginx</li>
+                <li>התקנת MCP Server לחיבור סוכני AI</li>
+              </ol>
+            </div>
+
+            <button class="btn btn-primary" onclick="installTwentyCRM()" id="btn-install-twenty" style="font-size:.85rem;width:100%">🚀 התקינו Twenty CRM</button>
+          </div>
+
+          <!-- Installed state -->
+          <div id="twenty-installed" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:10px">
+              <span style="color:#10B981;font-size:1rem">✓</span>
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:.88rem;color:#065F46">Twenty CRM פעיל</div>
+                <div style="font-size:.75rem;color:#6B7280;direction:ltr" id="twenty-url"></div>
+              </div>
+              <a id="twenty-open-link" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="font-size:.78rem">פתחו CRM ↗</a>
+            </div>
+            <div style="font-size:.78rem;color:#6B7280">
+              <strong>MCP Server:</strong> מחובר · 29 כלים (Contacts, Companies, Tasks, Notes, Opportunities)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Automation -->
     <div class="section-title">אוטומציות</div>
     <div class="integrations-grid" id="automationIntegration">
@@ -3820,6 +3877,87 @@ async function upgradeForModel(planKey, planName, planPrice) {
   doUpgradePlan(planKey);
 }
 
+/* ===== Twenty CRM ===== */
+async function installTwentyCRM() {
+  // Check RAM
+  var currentPlan = PLANS[planKey] || PLANS.personal;
+  var usedRam = 0;
+  components.forEach(function(c) { usedRam += (COMPONENT_RAM[c] || 0); });
+  usedRam += COMPONENT_RAM.base || 0.5;
+  var freeRam = currentPlan.ram - usedRam;
+
+  if (freeRam < 2) {
+    var confirmed = await showConfirm({
+      icon: '⚠️',
+      title: 'אין מספיק RAM',
+      desc: 'Twenty CRM דורש 2GB RAM. יש ' + freeRam.toFixed(1) + 'GB פנוי. נדרש שדרוג תוכנית.',
+      okText: 'שדרגו תוכנית',
+      okClass: 'btn-primary',
+    });
+    if (confirmed) upgradeForModel(planKey === 'personal' ? 'business' : 'pro', currentPlan.name, currentPlan.price + 100);
+    return;
+  }
+
+  var confirmed = await showConfirm({
+    icon: '🚀',
+    title: 'התקנת Twenty CRM',
+    desc: 'יותקן CRM על השרת שלכם (2GB RAM, ~1GB disk). התהליך ייקח ~5 דקות. השרת ימשיך לפעול.',
+    okText: 'התקינו',
+    okClass: 'btn-primary',
+  });
+  if (!confirmed) return;
+
+  var btn = document.getElementById('btn-install-twenty');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border:2px solid #D1D5DB;border-top-color:#2563EB;border-radius:50%;animation:spin .8s linear infinite"></span>מתקין...</span>'; }
+
+  showToast('מתקין Twenty CRM... ייקח ~5 דקות', 'info');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/integrations/twenty/install', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('Twenty CRM הותקן בהצלחה!', 'success');
+      showTwentyInstalled(data.data);
+      // Update components in localStorage
+      if (components.indexOf('tw') === -1) {
+        components.push('tw');
+        localStorage.setItem('cf_instance_components', JSON.stringify(components));
+      }
+    } else {
+      showToast(data.message || 'שגיאה בהתקנה', 'error');
+      if (btn) { btn.disabled = false; btn.innerHTML = '🚀 התקינו Twenty CRM'; }
+    }
+  } catch (e) {
+    showToast('שגיאה בהתקנה', 'error');
+    if (btn) { btn.disabled = false; btn.innerHTML = '🚀 התקינו Twenty CRM'; }
+  }
+}
+
+function showTwentyInstalled(data) {
+  var notInstalled = document.getElementById('twenty-not-installed');
+  var installed = document.getElementById('twenty-installed');
+  var statusEl = document.getElementById('twenty-status');
+  if (notInstalled) notInstalled.style.display = 'none';
+  if (installed) installed.style.display = '';
+  if (statusEl) { statusEl.textContent = '✓ פעיל'; statusEl.className = 'int-status connected'; }
+  var urlEl = document.getElementById('twenty-url');
+  var linkEl = document.getElementById('twenty-open-link');
+  var crmUrl = data && data.url ? data.url : 'https://crm.' + (instanceData && instanceData.subdomainName || subdomain) + '.clawflow.flowmatic.co.il';
+  if (urlEl) urlEl.textContent = crmUrl;
+  if (linkEl) linkEl.href = crmUrl;
+}
+
+function checkTwentyStatus() {
+  if (components.indexOf('tw') !== -1) {
+    showTwentyInstalled({});
+    // Expand the card body
+    var body = document.getElementById('twenty-body');
+    if (body) body.classList.remove('hidden');
+  }
+}
+
 async function doUpgradePlan(targetPlan) {
   showToast('משדרג תוכנית...', 'info');
   try {
@@ -4585,9 +4723,9 @@ function showAddAgentDialog() {
 // Per-agent integration visibility
 // Until full agent isolation (roadmap/15-agent-isolation.md), filter UI only
 var AGENT_INTEGRATIONS = {
-  mt: { ai: true, channels: true, tools: true, publishing: true },      // MATEH: everything
-  oc: { ai: true, channels: true, tools: true, publishing: false },     // Personal: no publishing
-  bare: { ai: true, channels: false, tools: false, publishing: false }, // Bare: only AI models
+  mt: { ai: true, channels: true, tools: true, publishing: true, management: true },      // MATEH: everything
+  oc: { ai: true, channels: true, tools: true, publishing: false, management: true },     // Personal: no publishing
+  bare: { ai: true, channels: false, tools: false, publishing: false, management: false }, // Bare: only AI models
 };
 
 function filterIntegrationsByAgent() {
@@ -4623,6 +4761,8 @@ function filterIntegrationsByAgent() {
 function renderIntegrations() {
   // Filter integration sections by active agent type
   filterIntegrationsByAgent();
+  // Check Twenty CRM status
+  checkTwentyStatus();
   // Init Ollama backend UI (Groq / GPU / CPU selector)
   initOllamaBackendUI();
   // Ollama CPU status no longer shown (removed CPU option)

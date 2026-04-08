@@ -130,7 +130,8 @@ import {
     getAgentIntegrationEndpoint,
     setAgentIntegrationEndpoint,
     deleteAgentIntegrationEndpoint,
-    deleteOllamaModel
+    deleteOllamaModel,
+    installTwenty
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -258,6 +259,9 @@ app.get('/instances/:id/ollama/status', getOllamaStatus)
 app.post('/instances/:id/ollama/install', installOllama)
 app.post('/instances/:id/ollama/pull', pullOllamaModel)
 app.delete('/instances/:id/ollama/model', deleteOllamaModel)
+
+// ── Twenty CRM ──
+app.post('/instances/:id/integrations/twenty/install', installTwenty)
 
 // ── Referral Program ──
 app.get('/referral/my-code', getMyReferralCode)
