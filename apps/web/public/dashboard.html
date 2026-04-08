@@ -1374,13 +1374,52 @@ input{font-family:inherit}
         </div><!-- /int-card-body Microsoft -->
       </div>
 
-      <!-- Notion (coming soon) -->
-      <div class="int-card">
+      <!-- Twenty CRM (moved here from כלי ניהול) -->
+      <div class="int-card" id="twenty-card" style="grid-column:span 2">
         <div class="int-card-header">
-          <div class="int-icon" style="background:#111"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4V4z" fill="white"/><path d="M7 7h4v10H7V7z" fill="#111"/><path d="M13 7h4v6h-4V7z" fill="#111"/></svg></div>
-          <div><strong>Notion</strong><div class="int-status soon">בקרוב</div></div>
+          <div class="int-icon" style="background:#EDEDFF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="#5B5BD6" stroke-width="1.5"/><path d="M8 12h8M12 8v8" stroke="#5B5BD6" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div><strong>Twenty CRM</strong><div class="int-status" id="twenty-status">לא מותקן</div></div>
         </div>
-        <div style="font-size:0.78rem;color:#6B7280;margin:4px 0">סנכרון משימות, מסמכים ובסיסי נתונים</div>
+        <div class="int-card-body hidden" id="twenty-body">
+          <div style="font-size:.82rem;color:#6B7280;margin-bottom:10px">מערכת CRM — ניהול לידים, לקוחות, משימות, תוכן ופרויקטים. הסוכנים עובדים ישירות עם ה-CRM דרך MCP (29 כלים).</div>
+          <div id="twenty-not-installed">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+              <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px">
+                <div style="font-size:.75rem;color:#9CA3AF;margin-bottom:2px">דרישות</div>
+                <div style="font-size:.82rem;font-weight:600">2GB RAM · 1GB Disk</div>
+                <div style="font-size:.72rem;color:#6B7280;margin-top:2px">PostgreSQL + Docker</div>
+              </div>
+              <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px">
+                <div style="font-size:.75rem;color:#9CA3AF;margin-bottom:2px">מה כלול</div>
+                <div style="font-size:.72rem;color:#6B7280;line-height:1.5">Kanban · לוח שנה · Custom Objects · Email sync · Workflows · API (GraphQL + REST)</div>
+              </div>
+            </div>
+            <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px;margin-bottom:10px;font-size:.78rem;color:#1E40AF">
+              <strong>📋 תהליך התקנה (~5 דקות):</strong>
+              <ol style="margin:6px 0 0 16px;padding:0;font-size:.75rem;line-height:1.6">
+                <li>בדיקת RAM פנוי (נדרש 2GB)</li>
+                <li>התקנת Twenty CRM + PostgreSQL (Docker)</li>
+                <li>הגדרת subdomain: <span style="direction:ltr;unicode-bidi:isolate">crm.{subdomain}.clawflow.flowmatic.co.il</span></li>
+                <li>הגדרת SSL + Nginx</li>
+                <li>התקנת MCP Server לחיבור סוכני AI</li>
+              </ol>
+            </div>
+            <button class="btn btn-primary" onclick="installTwentyCRM()" id="btn-install-twenty" style="font-size:.85rem;width:100%">🚀 התקינו Twenty CRM</button>
+          </div>
+          <div id="twenty-installed" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:10px">
+              <span style="color:#10B981;font-size:1rem">✓</span>
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:.88rem;color:#065F46">Twenty CRM פעיל</div>
+                <div style="font-size:.75rem;color:#6B7280;direction:ltr" id="twenty-url"></div>
+              </div>
+              <a id="twenty-open-link" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="font-size:.78rem">פתחו CRM ↗</a>
+            </div>
+            <div style="font-size:.78rem;color:#6B7280">
+              <strong>MCP Server:</strong> מחובר · 29 כלים (Contacts, Companies, Tasks, Notes, Opportunities)
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -1624,63 +1663,6 @@ input{font-family:inherit}
 
     <!-- MCP servers loaded dynamically into existing categories (hidden from user) -->
     <div id="mcpServersList" style="display:none"></div>
-
-    <!-- Management Tools -->
-    <div class="section-title" data-int-section="management">כלי ניהול</div>
-    <div class="integrations-grid">
-      <div class="int-card" id="twenty-card" style="grid-column:span 2">
-        <div class="int-card-header">
-          <div class="int-icon" style="background:#EDEDFF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="#5B5BD6" stroke-width="1.5"/><path d="M8 12h8M12 8v8" stroke="#5B5BD6" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-          <div><strong>Twenty CRM</strong><div class="int-status" id="twenty-status">לא מותקן</div></div>
-        </div>
-        <div class="int-card-body hidden" id="twenty-body">
-          <div style="font-size:.82rem;color:#6B7280;margin-bottom:10px">מערכת CRM — ניהול לידים, לקוחות, משימות, תוכן ופרויקטים. הסוכנים עובדים ישירות עם ה-CRM דרך MCP (29 כלים).</div>
-
-          <!-- Not installed state -->
-          <div id="twenty-not-installed">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-              <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px">
-                <div style="font-size:.75rem;color:#9CA3AF;margin-bottom:2px">דרישות</div>
-                <div style="font-size:.82rem;font-weight:600">2GB RAM · 1GB Disk</div>
-                <div style="font-size:.72rem;color:#6B7280;margin-top:2px">PostgreSQL + Docker</div>
-              </div>
-              <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px">
-                <div style="font-size:.75rem;color:#9CA3AF;margin-bottom:2px">מה כלול</div>
-                <div style="font-size:.72rem;color:#6B7280;line-height:1.5">Kanban · לוח שנה · Custom Objects · Email sync · Workflows · API (GraphQL + REST)</div>
-              </div>
-            </div>
-
-            <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px;margin-bottom:10px;font-size:.78rem;color:#1E40AF">
-              <strong>📋 תהליך התקנה (~5 דקות):</strong>
-              <ol style="margin:6px 0 0 16px;padding:0;font-size:.75rem;line-height:1.6">
-                <li>בדיקת RAM פנוי (נדרש 2GB)</li>
-                <li>התקנת Twenty CRM + PostgreSQL (Docker)</li>
-                <li>הגדרת subdomain: <span style="direction:ltr;unicode-bidi:isolate">crm.{subdomain}.clawflow.flowmatic.co.il</span></li>
-                <li>הגדרת SSL + Nginx</li>
-                <li>התקנת MCP Server לחיבור סוכני AI</li>
-              </ol>
-            </div>
-
-            <button class="btn btn-primary" onclick="installTwentyCRM()" id="btn-install-twenty" style="font-size:.85rem;width:100%">🚀 התקינו Twenty CRM</button>
-          </div>
-
-          <!-- Installed state -->
-          <div id="twenty-installed" style="display:none">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:10px">
-              <span style="color:#10B981;font-size:1rem">✓</span>
-              <div style="flex:1">
-                <div style="font-weight:600;font-size:.88rem;color:#065F46">Twenty CRM פעיל</div>
-                <div style="font-size:.75rem;color:#6B7280;direction:ltr" id="twenty-url"></div>
-              </div>
-              <a id="twenty-open-link" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="font-size:.78rem">פתחו CRM ↗</a>
-            </div>
-            <div style="font-size:.78rem;color:#6B7280">
-              <strong>MCP Server:</strong> מחובר · 29 כלים (Contacts, Companies, Tasks, Notes, Opportunities)
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Automation -->
     <div class="section-title">אוטומציות</div>
@@ -4723,9 +4705,9 @@ function showAddAgentDialog() {
 // Per-agent integration visibility
 // Until full agent isolation (roadmap/15-agent-isolation.md), filter UI only
 var AGENT_INTEGRATIONS = {
-  mt: { ai: true, channels: true, tools: true, publishing: true, management: true },      // MATEH: everything
-  oc: { ai: true, channels: true, tools: true, publishing: false, management: true },     // Personal: no publishing
-  bare: { ai: true, channels: false, tools: false, publishing: false, management: false }, // Bare: only AI models
+  mt: { ai: true, channels: true, tools: true, publishing: true },      // MATEH: everything
+  oc: { ai: true, channels: true, tools: true, publishing: false },     // Personal: no publishing
+  bare: { ai: true, channels: false, tools: false, publishing: false }, // Bare: only AI models
 };
 
 function filterIntegrationsByAgent() {
@@ -5055,7 +5037,7 @@ function addIntegrationTooltips() {
     'Resend': 'שירות Email API מתקדם — שליחה אמינה עם מעקב פתיחה/לחיצה, תבניות HTML, ו-domain authentication. אידיאלי לניוזלטרים ומיילים טרנזקציוניים.',
     'Microsoft Outlook': 'חיבור לחשבון Microsoft 365 — שליחת אימיילים וניהול תיבת הדואר דרך הסוכנים. דורש OAuth עם חשבון Microsoft.',
     'Microsoft Calendar': 'ניהול יומן Microsoft 365 — אירועים, תזכורות, הזמנות לפגישות. חלופה ל-Google Calendar למשתמשי Microsoft.',
-    'Notion': 'סנכרון עם Notion — ניהול משימות, מסמכים, בסיסי נתונים. הסוכנים יוכלו לעדכן דפים, ליצור תוכן ולקרוא מידע ישירות מ-Notion.',
+    'Twenty CRM': 'מערכת CRM מובנית — ניהול לידים, לקוחות, משימות, תוכן ופרויקטים. הסוכנים עובדים ישירות עם ה-CRM דרך MCP (29 כלים). 2GB RAM.',
     'Gmail': 'שליחת אימיילים דרך חשבון Gmail שלכם. חלק מחיבור Google Workspace — הסוכנים יוכלו לשלוח אימיילים, follow-up ועדכונים בשמכם.',
     'Google Drive': 'גישה למסמכים ב-Google Drive — קריאת Docs, Sheets ו-Slides. הסוכנים יוכלו לחפש מידע במסמכים שלכם לצורך יצירת תוכן.',
     'Google Sheets': 'קריאה וכתיבה ב-Google Sheets — ניהול נתונים, דוחות, רשימות לידים. הסוכנים יוכלו לעדכן טבלאות ולשלוף מידע אוטומטית.',
