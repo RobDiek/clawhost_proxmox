@@ -1128,11 +1128,11 @@ input{font-family:inherit}
           <div style="font-size:.82rem;color:#6B7280;margin-bottom:12px">הריצו Llama, Qwen, Gemma ומודלים נוספים. בחרו איך להריץ:</div>
 
           <!-- Backend selection -->
-          <div id="ollama-backend-select" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+          <div id="ollama-backend-select" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
             <!-- Groq Cloud -->
             <div class="ollama-backend-opt" onclick="selectOllamaBackend('groq')" id="ollama-opt-groq" style="border:2px solid #E5E7EB;border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;text-align:center">
               <div style="font-size:1.3rem;margin-bottom:4px">⚡</div>
-              <div style="font-weight:700;font-size:.88rem">Groq Cloud</div>
+              <div style="font-weight:700;font-size:.88rem">Groq Cloud <span style="background:#2563EB;color:#fff;font-size:.6rem;padding:1px 6px;border-radius:8px;font-weight:500;vertical-align:middle">מומלץ</span></div>
               <div style="font-size:.72rem;color:#10B981;font-weight:600;margin:4px 0">מומלץ — חינם להתחלה</div>
               <div style="font-size:.72rem;color:#6B7280">~300 tok/s · Llama 4, Qwen, Gemma</div>
               <div style="font-size:.68rem;color:#9CA3AF;margin-top:4px">חינם: 30K tok/דקה · 500K/יום</div>
@@ -1147,15 +1147,7 @@ input{font-family:inherit}
               <div style="font-size:.68rem;color:#9CA3AF;margin-top:4px">מ-€184/חודש (Hetzner GEX44)</div>
               <div style="font-size:.68rem;color:#9CA3AF">פרטיות מלאה · בלי הגבלות</div>
             </div>
-            <!-- CPU Local -->
-            <div class="ollama-backend-opt" onclick="selectOllamaBackend('cpu')" id="ollama-opt-cpu" style="border:2px solid #E5E7EB;border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;text-align:center;opacity:.7">
-              <div style="font-size:1.3rem;margin-bottom:4px">💻</div>
-              <div style="font-weight:700;font-size:.88rem">CPU מקומי</div>
-              <div style="font-size:.72rem;color:#EF4444;font-weight:600;margin:4px 0">מוגבל</div>
-              <div style="font-size:.72rem;color:#6B7280">רק מודלים קטנים (0.8B-4B)</div>
-              <div style="font-size:.68rem;color:#9CA3AF;margin-top:4px">חינם — כלול בתוכנית</div>
-              <div style="font-size:.68rem;color:#9CA3AF">לסיווג/ניתוב בלבד</div>
-            </div>
+            <!-- CPU Local removed — misleading for users -->
           </div>
 
           <!-- Groq panel (hidden by default) -->
@@ -1190,14 +1182,7 @@ input{font-family:inherit}
             <div style="margin-top:10px"><button class="btn btn-outline btn-sm" onclick="window.open('https://www.hetzner.com/dedicated-rootserver/gex44/','_blank')" style="font-size:.78rem">🔗 Hetzner GPU Servers</button> <button class="btn btn-outline btn-sm" style="font-size:.78rem;margin-right:6px" onclick="showToast('צרו קשר בטלגרם לעזרה בהגדרה','info')">📞 עזרה בהגדרה</button></div>
           </div>
 
-          <!-- CPU panel (hidden by default) -->
-          <div id="ollama-panel-cpu" style="display:none">
-            <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:12px;margin-bottom:10px;font-size:.82rem">
-              <strong>⚠️ מוגבל</strong> — הרצה על CPU ללא GPU מתאימה רק למודלים קטנים (0.8B-4B) למשימות סיווג וניתוב. <strong>לא מתאים לכתיבת תוכן או שיחה</strong> — מודלים גדולים יחרגו מזמן התגובה.
-            </div>
-            <div id="ollama-cpu-models"></div>
-            <button class="btn btn-outline btn-sm" onclick="loadOllamaStatus()" style="font-size:0.75rem">&#8635; רענון</button>
-          </div>
+          <!-- CPU panel removed -->
 
           <!-- Upgrade prompt (shared) -->
           <div id="ollama-upgrade-prompt" style="display:none;background:#FFF7ED;border:1px solid #FDE68A;border-radius:8px;padding:12px;margin-top:8px;font-size:0.82rem">
@@ -3489,15 +3474,11 @@ function selectOllamaBackend(backend) {
   // Show/hide panels
   document.getElementById('ollama-panel-groq').style.display = backend === 'groq' ? '' : 'none';
   document.getElementById('ollama-panel-gpu').style.display = backend === 'gpu' ? '' : 'none';
-  document.getElementById('ollama-panel-cpu').style.display = backend === 'cpu' ? '' : 'none';
-  // Load CPU models if selected
-  if (backend === 'cpu') loadOllamaStatus();
   // Update status
   var statusEl = document.getElementById('ollama-status');
   if (statusEl) {
     if (backend === 'groq') statusEl.textContent = localStorage.getItem('cf_groq_saved') ? 'Groq מחובר' : 'Groq — נדרש API Key';
     else if (backend === 'gpu') statusEl.textContent = 'GPU — נדרש שרת';
-    else if (backend === 'cpu') statusEl.textContent = 'CPU מקומי';
   }
 }
 
@@ -4611,8 +4592,7 @@ function renderIntegrations() {
   filterIntegrationsByAgent();
   // Init Ollama backend UI (Groq / GPU / CPU selector)
   initOllamaBackendUI();
-  // Only load Ollama CPU status if CPU backend selected
-  if (ollamaBackend === 'cpu') loadOllamaStatus();
+  // Ollama CPU status no longer shown (removed CPU option)
   // Load MCP servers
   loadMcpServers();
   // Check Microsoft status
