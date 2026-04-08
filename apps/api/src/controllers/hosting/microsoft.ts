@@ -7,6 +7,7 @@ import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import crypto from 'crypto'
 import { resolveUserId } from './authHelper'
+import { setAgentIntegration, removeAgentIntegration, getPrimaryAgent } from '@/services/agentIntegrations'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 
@@ -182,6 +183,13 @@ export const microsoftCallback = async (c: Context) => {
             .set({ microsoftTokens: microsoftTokens as any })
             .where(eq(instances.id, instanceId))
 
+        // Write to per-agent integrations
+        const [instForAgent] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const agentType = getPrimaryAgent((instForAgent?.selectedComponents as string[]) || [])
+        await setAgentIntegration(instanceId, agentType, 'microsoft', {
+            email, displayName, scopes, connectedAt: new Date().toISOString(),
+        }).catch(err => console.error('Failed to set agent microsoft integration:', err))
+
         console.log(`Microsoft 365 connected for instance ${instanceId}: ${email} (scopes: ${scopes})`)
 
         // Deploy credentials to VPS
@@ -222,6 +230,14 @@ export const microsoftDisconnect = async (c: Context) => {
         await db.update(instances)
             .set({ microsoftTokens: null })
             .where(eq(instances.id, instanceId))
+
+        // Remove from per-agent integrations (all agents)
+        const components = (instance.selectedComponents as string[]) || []
+        for (const at of ['oc', 'mt', 'bare'] as const) {
+            if (components.includes(at)) {
+                await removeAgentIntegration(instanceId, at, 'microsoft').catch(() => {})
+            }
+        }
 
         // Remove MCP server from VPS (combined into single SSH call)
         if (instance?.ip) {

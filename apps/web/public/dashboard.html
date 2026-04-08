@@ -4421,8 +4421,12 @@ function renderIntegrations() {
   loadMcpServers();
   // Check Microsoft status
   checkMicrosoftStatus();
-  // Update Anthropic status
-  var hasAnthropic = (instanceData && instanceData.hasAnthropicKey) || localStorage.getItem('cf_api_key_saved');
+
+  // Per-agent integration status (from agent_integrations table)
+  var agentInts = (instanceData && instanceData.agentIntegrations && instanceData.agentIntegrations[activeAgent]) || {};
+
+  // Update Anthropic status — check per-agent first, then legacy
+  var hasAnthropic = agentInts.api_key ? agentInts.api_key.connected : ((instanceData && instanceData.hasAnthropicKey) || localStorage.getItem('cf_api_key_saved'));
   if (hasAnthropic) {
     var antEl = document.getElementById('anthropic-status');
     if (antEl) { antEl.textContent = '\u2713 מחובר'; antEl.className = 'int-status connected'; }
@@ -4439,12 +4443,19 @@ function renderIntegrations() {
     if (oaiCard) oaiCard.classList.add('connected');
   }
 
-  // Update Telegram status
-  if ((instanceData && instanceData.telegramBotToken) || localStorage.getItem('cf_telegram_saved')) {
+  // Update Telegram status — per-agent
+  var hasTelegram = agentInts.telegram ? agentInts.telegram.connected : ((instanceData && instanceData.telegramBotToken) || localStorage.getItem('cf_telegram_saved'));
+  if (hasTelegram) {
     var tgStatus = document.getElementById('telegram-status');
     if (tgStatus) { tgStatus.textContent = '\u2713 מחובר'; tgStatus.className = 'int-status connected'; }
     var tgCard = document.getElementById('telegram-card');
     if (tgCard) tgCard.classList.add('connected');
+  } else {
+    // Reset to disconnected if agent doesn't have telegram
+    var tgStatus = document.getElementById('telegram-status');
+    if (tgStatus) { tgStatus.textContent = 'לא מחובר'; tgStatus.className = 'int-status'; }
+    var tgCard = document.getElementById('telegram-card');
+    if (tgCard) tgCard.classList.remove('connected');
   }
 
   // Update publishing channels status

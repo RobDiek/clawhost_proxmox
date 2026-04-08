@@ -6,6 +6,7 @@ import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { resolveUserId, getOwnedInstance } from './authHelper'
+import { setAgentIntegration, getPrimaryAgent } from '@/services/agentIntegrations'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 
@@ -261,6 +262,13 @@ export const setupTelegram = async (c: Context) => {
                 onboardingCompleted: !hasMATEH
             })
             .where(eq(instances.id, instanceId))
+
+        // Write to per-agent integrations table
+        // agentType comes from request body or defaults to primary agent
+        const agentType = (await c.req.json().catch(() => ({}))).agentType || getPrimaryAgent(components)
+        await setAgentIntegration(instanceId, agentType as any, 'telegram', {
+            botToken, chatId,
+        }).catch(err => console.error('Failed to set agent integration:', err))
 
         return ok(c, { chatId: chatId ? 'detected' : 'pending' }, 'Telegram connected.' + (chatId ? '' : ' שלחו /start לבוט כדי להפעיל פרסום.'))
     } catch (err) {

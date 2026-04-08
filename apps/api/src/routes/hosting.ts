@@ -110,7 +110,26 @@ import {
     listBackups,
     createBackup,
     restoreBackup,
-    backupReport
+    backupReport,
+    getLitellmStatusEndpoint,
+    setLitellmApiKeyEndpoint,
+    getLitellmUsageEndpoint,
+    deepCrawlCompetitors,
+    getCrawlStatus,
+    uploadKnowledgeDoc,
+    searchKnowledgeEndpoint,
+    listKnowledgeDocs,
+    deleteKnowledgeDoc,
+    guardScan,
+    guardStatus,
+    deployCrewEndpoint,
+    runCrewEndpoint,
+    listCrewsEndpoint,
+    getLangfuseStatus,
+    listAgentIntegrations,
+    getAgentIntegrationEndpoint,
+    setAgentIntegrationEndpoint,
+    deleteAgentIntegrationEndpoint
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -206,6 +225,33 @@ app.post('/instances/:id/mcp/add', addMcpServer)
 app.delete('/instances/:id/mcp/:serverId', removeMcpServer)
 app.get('/mcp/catalog', getMcpCatalog)
 
+// ── Langfuse (Observability) ──
+app.get('/instances/:id/langfuse/status', getLangfuseStatus)
+
+// ── CrewAI (Multi-agent) ──
+app.post('/instances/:id/crews/deploy', deployCrewEndpoint)
+app.post('/instances/:id/crews/:crewName/run', runCrewEndpoint)
+app.get('/instances/:id/crews', listCrewsEndpoint)
+
+// ── LLM Guard (Security) ──
+app.post('/instances/:id/guard/scan', guardScan)
+app.get('/instances/:id/guard/status', guardStatus)
+
+// ── Knowledge Base (RAG) ──
+app.post('/instances/:id/knowledge/upload', uploadKnowledgeDoc)
+app.post('/instances/:id/knowledge/search', searchKnowledgeEndpoint)
+app.get('/instances/:id/knowledge/documents', listKnowledgeDocs)
+app.delete('/instances/:id/knowledge/:docId', deleteKnowledgeDoc)
+
+// ── Crawl4AI (Research Deep Crawl) ──
+app.post('/instances/:id/research/deep-crawl', deepCrawlCompetitors)
+app.get('/instances/:id/research/crawl-status', getCrawlStatus)
+
+// ── LiteLLM AI Gateway ──
+app.get('/instances/:id/litellm/status', getLitellmStatusEndpoint)
+app.post('/instances/:id/litellm/api-key', setLitellmApiKeyEndpoint)
+app.get('/instances/:id/litellm/usage', getLitellmUsageEndpoint)
+
 // ── Ollama ──
 app.get('/instances/:id/ollama/status', getOllamaStatus)
 app.post('/instances/:id/ollama/install', installOllama)
@@ -237,6 +283,12 @@ app.post('/instances/:id/whatsapp/templates/:templateId/submit', submitWaTemplat
 app.post('/instances/:id/whatsapp/templates/refresh', refreshWaTemplateStatus)
 app.post('/instances/:id/whatsapp/send', sendWaBroadcast)
 app.get('/instances/:id/whatsapp/sends', getWaSends)
+
+// ── Agent Integrations (per-agent isolation) ──
+app.get('/instances/:id/agents/:agentType/integrations', listAgentIntegrations)
+app.get('/instances/:id/agents/:agentType/integrations/:type', getAgentIntegrationEndpoint)
+app.post('/instances/:id/agents/:agentType/integrations/:type', setAgentIntegrationEndpoint)
+app.delete('/instances/:id/agents/:agentType/integrations/:type', deleteAgentIntegrationEndpoint)
 
 // ── Health (Self-Healing) ──
 app.get('/instances/:id/health', getHealthStatus)

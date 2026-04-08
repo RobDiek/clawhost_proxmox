@@ -5,6 +5,21 @@ import { db } from '@/db'
 import { otpCodes, users, instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import telegram from '@/services/telegram'
+import { getAllIntegrations as getAllIntegrationsRaw } from '@/services/agentIntegrations'
+
+// Helper to format agent integrations grouped by agent type
+async function getAllIntegrationsForInstance(instanceId: string) {
+    const raw = await getAllIntegrationsRaw(instanceId)
+    const grouped: Record<string, Record<string, { connected: boolean; status: string }>> = {}
+    for (const r of raw) {
+        if (!grouped[r.agentType]) grouped[r.agentType] = {}
+        grouped[r.agentType][r.integrationType] = {
+            connected: r.status === 'connected',
+            status: r.status,
+        }
+    }
+    return grouped
+}
 
 // ── Simple JWT (no external deps) ──────────────────────────
 
@@ -336,6 +351,7 @@ export const getMyInstances = async (c: Context) => {
             hasAnthropicKey: !!i.aiProviderKey,
             hasOpenaiKey: !!i.openaiApiKey,
             hasOllama: ((i.selectedComponents as string[]) || []).includes('ol'),
+            // Legacy integration fields (shared across agents — backwards compat)
             telegramBotToken: i.telegramBotToken ? true : false,
             googleTokens: i.googleTokens ? {
                 connected: true,
@@ -354,6 +370,8 @@ export const getMyInstances = async (c: Context) => {
                 displayName: (i.microsoftTokens as any)?.displayName,
                 scopes: (i.microsoftTokens as any)?.scopes || [],
             } : null,
+            // Per-agent integrations (new: loaded separately)
+            agentIntegrations: await getAllIntegrationsForInstance(i.id),
             createdAt: i.createdAt,
         })), 'Instances found.')
     } catch (err) {

@@ -349,6 +349,28 @@ export const instanceAddons = pgTable(
     ]
 )
 
+// ── Agent Integrations (per-agent isolation) ──
+export const agentIntegrations = pgTable(
+    'agent_integrations',
+    {
+        id: uuid('id').primaryKey().defaultRandom(),
+        instanceId: text('instance_id')
+            .notNull()
+            .references(() => instances.id, { onDelete: 'cascade' }),
+        agentType: text('agent_type').notNull(),          // 'oc' | 'mt' | 'bare'
+        integrationType: text('integration_type').notNull(), // 'telegram' | 'google' | 'meta' | 'microsoft' | 'whatsapp' | 'gbp' | 'api_key'
+        config: jsonb('config').notNull().default({}),    // integration-specific config (tokens, keys, etc.)
+        status: text('status').notNull().default('connected'), // 'connected' | 'disconnected' | 'pending'
+        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => [
+        index('agent_int_instance_idx').on(table.instanceId),
+        index('agent_int_agent_idx').on(table.instanceId, table.agentType),
+        unique('agent_int_unique').on(table.instanceId, table.agentType, table.integrationType),
+    ]
+)
+
 // ── Agent Outputs (approval queue) ──
 export const agentOutputs = pgTable(
     'agent_outputs',
@@ -474,6 +496,48 @@ export const referrals = pgTable('referrals', {
     index('referrals_referrer_idx').on(table.referrerUserId),
     index('referrals_code_idx').on(table.referralCode),
 ])
+
+// ── Knowledge Base (pgvector RAG) ──
+export const knowledgeDocuments = pgTable(
+    'knowledge_documents',
+    {
+        id: text('id').primaryKey(),
+        instanceId: text('instance_id')
+            .notNull()
+            .references(() => instances.id, { onDelete: 'cascade' }),
+        filename: text('filename').notNull(),
+        contentType: text('content_type').notNull(), // 'text/plain', 'text/markdown', 'application/pdf', 'text/csv'
+        rawContent: text('raw_content'),             // original text (truncated to 50k chars)
+        chunkCount: integer('chunk_count').default(0),
+        status: text('status').notNull().default('processing'), // processing | ready | failed
+        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => [
+        index('knowledge_docs_instance_idx').on(table.instanceId),
+    ]
+)
+
+export const knowledgeChunks = pgTable(
+    'knowledge_chunks',
+    {
+        id: text('id').primaryKey(),
+        documentId: text('document_id')
+            .notNull()
+            .references(() => knowledgeDocuments.id, { onDelete: 'cascade' }),
+        instanceId: text('instance_id')
+            .notNull()
+            .references(() => instances.id, { onDelete: 'cascade' }),
+        chunkIndex: integer('chunk_index').notNull(),
+        content: text('content').notNull(),
+        // embedding vector stored as jsonb (float array) — pgvector extension query done via raw SQL
+        embedding: jsonb('embedding').$type<number[]>(),
+        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => [
+        index('knowledge_chunks_instance_idx').on(table.instanceId),
+        index('knowledge_chunks_doc_idx').on(table.documentId),
+    ]
+)
 
 // ── Google Business Profile ──
 export const gbpConfig = pgTable('gbp_config', {

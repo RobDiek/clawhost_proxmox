@@ -7,6 +7,7 @@ import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import crypto from 'crypto'
 import { resolveUserId } from './authHelper'
+import { setAgentIntegration, removeAgentIntegration, getPrimaryAgent } from '@/services/agentIntegrations'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 
@@ -179,6 +180,12 @@ export const googleCallback = async (c: Context) => {
             .set({ googleTokens: googleTokens as any })
             .where(eq(instances.id, instanceId))
 
+        // Write to per-agent integrations
+        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        const agentType = getPrimaryAgent((inst?.selectedComponents as string[]) || [])
+        await setAgentIntegration(instanceId, agentType, 'google', googleTokens as any)
+            .catch(err => console.error('Failed to set agent google integration:', err))
+
         console.log(`Google connected for instance ${instanceId}: ${email} (scopes: ${scopes})`)
 
         // Deploy credentials to VPS so agent can use Google APIs
@@ -232,6 +239,14 @@ export const googleDisconnect = async (c: Context) => {
         await db.update(instances)
             .set({ googleTokens: null })
             .where(eq(instances.id, instanceId))
+
+        // Remove from per-agent integrations (all agents)
+        const components = (instance.selectedComponents as string[]) || []
+        for (const at of ['oc', 'mt', 'bare'] as const) {
+            if (components.includes(at)) {
+                await removeAgentIntegration(instanceId, at, 'google').catch(() => {})
+            }
+        }
 
         // Remove MCP server from VPS (combined into single SSH call)
         if (instance.ip) {

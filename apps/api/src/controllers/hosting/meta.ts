@@ -15,6 +15,7 @@ import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
+import { setAgentIntegration, removeAgentIntegration } from '@/services/agentIntegrations'
 
 const REDIRECT_URI = process.env.META_REDIRECT_URI ||
     'https://api.clawflow.flowmatic.co.il/hosting/integrations/meta/callback'
@@ -171,6 +172,12 @@ export const metaCallback = async (c: Context) => {
             })
             .where(eq(instances.id, instanceId))
 
+        // Write to per-agent integrations (Meta is always for MATEH)
+        await setAgentIntegration(instanceId, 'mt', 'meta', {
+            pageName: pages[0]?.name, instagramAccountId, adAccountId: adAccounts[0]?.id,
+            connectedAt: new Date().toISOString(), status: 'connected',
+        }).catch(err => console.error('Failed to set agent meta integration:', err))
+
         console.log(`Meta connected for ${instanceId}: ${pages.length} pages, ${adAccounts.length} ad accounts, IG: ${instagramAccountId || 'none'}`)
 
         // Sync channel status to VPS
@@ -194,6 +201,9 @@ export const metaDisconnect = async (c: Context) => {
         await db.update(instances)
             .set({ metaTokens: null as any })
             .where(eq(instances.id, instanceId))
+
+        // Remove from per-agent integrations
+        await removeAgentIntegration(instanceId, 'mt', 'meta').catch(() => {})
 
         return ok(c, null, 'Meta disconnected')
     } catch (err) {
