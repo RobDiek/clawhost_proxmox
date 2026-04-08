@@ -193,6 +193,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
 
                 // Start real provisioning in background
                 const hasOllama = components.includes('ol')
+                const hasTwenty = components.includes('tw')
                 const hasBackup = (addons || []).includes('backup')
                 const autoTool = (automationTool || 'activepieces') as 'n8n' | 'activepieces' | 'dify'
 
@@ -201,6 +202,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
                     planKey: pricing.planKey,
                     automationTool: autoTool,
                     hasOllama,
+                    hasTwenty,
                     hasBackup,
                     subdomainName: subdomainName || undefined,
                 }).then(async (result) => {
@@ -351,6 +353,7 @@ export const handleAllpayWebhook = async (c: Context) => {
 
             const components = (instance.selectedComponents as string[]) || []
             const hasOllama = components.includes('ol')
+            const hasTwenty = components.includes('tw')
             const hasBackup = components.includes('bk')
             const automationTool = (instance.automationTool as 'n8n' | 'activepieces' | 'dify') || 'activepieces'
 
@@ -359,6 +362,7 @@ export const handleAllpayWebhook = async (c: Context) => {
                 planKey: instance.planKey,
                 automationTool,
                 hasOllama,
+                hasTwenty,
                 hasBackup,
                 telegramChatId: instance.telegramChatId || undefined
             })

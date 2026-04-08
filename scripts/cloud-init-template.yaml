@@ -39,6 +39,97 @@ runcmd:
     - apt-get install -y -qq python3-pip chromium-browser ffmpeg 2>/dev/null || true
     - snap install chromium 2>/dev/null || true
     - pip3 install --break-system-packages openai-whisper 2>/dev/null || true
+    - pip3 install --break-system-packages crawl4ai 2>/dev/null || true
+    - pip3 install --break-system-packages llm-guard 2>/dev/null || true
+    - pip3 install --break-system-packages crewai crewai-tools 2>/dev/null || true
+    # Crawl4AI post-install: download browser if needed
+    - python3 -c "from crawl4ai import AsyncWebCrawler" 2>/dev/null || true
+
+    # ── LLM Guard scanner script ──
+    - |
+        cat > /opt/openclaw/llm-guard-scan.py << 'LGEOF'
+        #!/usr/bin/env python3
+        """LLM Guard scanner — validates input/output for AI agents.
+        Usage: echo '{"text":"...","direction":"input"}' | python3 llm-guard-scan.py
+        Returns: {"safe":true/false,"score":0.0-1.0,"flagged":[],"sanitized":"..."}
+        """
+        import sys, json
+
+        def scan_input(text):
+            try:
+                from llm_guard.input_scanners import PromptInjection, TokenLimit, Toxicity
+                from llm_guard.input_scanners.prompt_injection import MatchType
+
+                scanners = [
+                    PromptInjection(threshold=0.7, match_type=MatchType.FULL),
+                    TokenLimit(limit=8000),
+                    Toxicity(threshold=0.7),
+                ]
+
+                flagged = []
+                sanitized = text
+                max_score = 0.0
+
+                for scanner in scanners:
+                    sanitized, is_valid, risk_score = scanner.scan("", sanitized)
+                    if not is_valid:
+                        flagged.append(scanner.__class__.__name__)
+                    max_score = max(max_score, risk_score)
+
+                return {
+                    "safe": len(flagged) == 0,
+                    "score": round(max_score, 3),
+                    "flagged": flagged,
+                    "sanitized": sanitized[:10000]
+                }
+            except ImportError:
+                return {"safe": True, "score": 0, "flagged": [], "sanitized": text, "error": "llm-guard not installed"}
+            except Exception as e:
+                return {"safe": True, "score": 0, "flagged": [], "sanitized": text, "error": str(e)}
+
+        def scan_output(text):
+            try:
+                from llm_guard.output_scanners import NoRefusal, Relevance, Sensitive
+
+                scanners = [
+                    NoRefusal(threshold=0.5),
+                    Sensitive(threshold=0.5),
+                ]
+
+                flagged = []
+                sanitized = text
+                max_score = 0.0
+
+                for scanner in scanners:
+                    sanitized, is_valid, risk_score = scanner.scan("", sanitized)
+                    if not is_valid:
+                        flagged.append(scanner.__class__.__name__)
+                    max_score = max(max_score, risk_score)
+
+                return {
+                    "safe": len(flagged) == 0,
+                    "score": round(max_score, 3),
+                    "flagged": flagged,
+                    "sanitized": sanitized[:10000]
+                }
+            except ImportError:
+                return {"safe": True, "score": 0, "flagged": [], "sanitized": text, "error": "llm-guard not installed"}
+            except Exception as e:
+                return {"safe": True, "score": 0, "flagged": [], "sanitized": text, "error": str(e)}
+
+        if __name__ == "__main__":
+            data = json.loads(sys.stdin.read())
+            text = data.get("text", "")
+            direction = data.get("direction", "input")
+
+            if direction == "output":
+                result = scan_output(text)
+            else:
+                result = scan_input(text)
+
+            print(json.dumps(result))
+        LGEOF
+    - chmod +x /opt/openclaw/llm-guard-scan.py
 
     # ── Pre-cache MCP server packages (speeds up first connection) ──
     - |
@@ -288,6 +379,73 @@ runcmd:
         DCEOF
     {{/IS_ACTIVEPIECES}}
 
+    {{#IS_DIFY}}
+    - mkdir -p /opt/openclaw/data/{dify-db,dify-redis,dify-storage}
+    - |
+        cat > /opt/openclaw/docker-compose.yml << 'DCEOF'
+        services:
+          dify-api:
+            image: langgenius/dify-api:latest
+            restart: unless-stopped
+            ports: ["127.0.0.1:3100:5001"]
+            depends_on: [dify-postgres, dify-redis]
+            environment:
+              - MODE=api
+              - SECRET_KEY={{OPENCLAW_TOKEN}}
+              - DB_USERNAME=dify
+              - DB_PASSWORD={{AUTOMATION_PASSWORD}}
+              - DB_HOST=dify-postgres
+              - DB_PORT=5432
+              - DB_DATABASE=dify
+              - REDIS_HOST=dify-redis
+              - REDIS_PORT=6379
+              - STORAGE_TYPE=local
+              - STORAGE_LOCAL_PATH=/app/storage
+              - CONSOLE_WEB_URL=https://{{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il
+              - APP_WEB_URL=https://{{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il
+              - INIT_PASSWORD={{AUTOMATION_PASSWORD}}
+            volumes:
+              - /opt/openclaw/data/dify-storage:/app/storage
+          dify-web:
+            image: langgenius/dify-web:latest
+            restart: unless-stopped
+            ports: ["127.0.0.1:3101:3000"]
+            environment:
+              - CONSOLE_API_URL=https://{{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il
+              - APP_API_URL=https://{{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il
+          dify-worker:
+            image: langgenius/dify-api:latest
+            restart: unless-stopped
+            depends_on: [dify-postgres, dify-redis]
+            environment:
+              - MODE=worker
+              - SECRET_KEY={{OPENCLAW_TOKEN}}
+              - DB_USERNAME=dify
+              - DB_PASSWORD={{AUTOMATION_PASSWORD}}
+              - DB_HOST=dify-postgres
+              - DB_PORT=5432
+              - DB_DATABASE=dify
+              - REDIS_HOST=dify-redis
+              - REDIS_PORT=6379
+              - STORAGE_TYPE=local
+              - STORAGE_LOCAL_PATH=/app/storage
+            volumes:
+              - /opt/openclaw/data/dify-storage:/app/storage
+          dify-postgres:
+            image: postgres:16-alpine
+            restart: unless-stopped
+            environment:
+              POSTGRES_DB: dify
+              POSTGRES_USER: dify
+              POSTGRES_PASSWORD: {{AUTOMATION_PASSWORD}}
+            volumes: ["/opt/openclaw/data/dify-db:/var/lib/postgresql/data"]
+          dify-redis:
+            image: redis:7-alpine
+            restart: unless-stopped
+            volumes: ["/opt/openclaw/data/dify-redis:/data"]
+        DCEOF
+    {{/IS_DIFY}}
+
     - chown -R 1000:1000 /opt/openclaw/data/n8n 2>/dev/null || true
     - cd /opt/openclaw && docker compose up -d
 
@@ -304,6 +462,84 @@ runcmd:
             volumes: ["/opt/openclaw/data/qdrant:/qdrant/storage"]
         QDEOF
     - cd /opt/openclaw && docker compose -f docker-compose.yml -f docker-compose.qdrant.yml up -d qdrant
+
+    {{#HAS_TWENTY}}
+    # ── Twenty CRM ──
+    - |
+        cat > /opt/openclaw/docker-compose.twenty.yml << 'TWEOF'
+        services:
+          twenty:
+            image: twentycrm/twenty:latest
+            restart: unless-stopped
+            ports: ["127.0.0.1:3080:3000"]
+            depends_on:
+              twenty-db:
+                condition: service_healthy
+            environment:
+              - SERVER_URL=https://crm.{{SUBDOMAIN_NAME}}.clawflow.flowmatic.co.il
+              - FRONT_BASE_URL=https://crm.{{SUBDOMAIN_NAME}}.clawflow.flowmatic.co.il
+              - PG_DATABASE_URL=postgresql://twenty:twenty@twenty-db:5432/twenty
+              - STORAGE_TYPE=local
+              - STORAGE_LOCAL_PATH=/app/.local-storage
+              - ACCESS_TOKEN_SECRET={{OPENCLAW_TOKEN}}
+              - LOGIN_TOKEN_SECRET={{AUTOMATION_PASSWORD}}
+              - SIGN_IN_PREFILLED=true
+            volumes:
+              - /opt/openclaw/data/twenty:/app/.local-storage
+
+          twenty-db:
+            image: twentycrm/twenty-postgres:latest
+            restart: unless-stopped
+            volumes:
+              - /opt/openclaw/data/twenty-db:/bitnami/postgresql
+            environment:
+              - POSTGRESQL_USERNAME=twenty
+              - POSTGRESQL_PASSWORD=twenty
+              - POSTGRESQL_DATABASE=twenty
+            healthcheck:
+              test: ["CMD-SHELL", "pg_isready -U twenty -d twenty"]
+              interval: 5s
+              timeout: 5s
+              retries: 10
+        TWEOF
+    - mkdir -p /opt/openclaw/data/twenty /opt/openclaw/data/twenty-db
+    - cd /opt/openclaw && docker compose -f docker-compose.twenty.yml up -d
+
+    # Add Twenty CRM nginx config
+    - |
+        cat >> /etc/nginx/sites-available/openclaw << 'TWNGX'
+
+        server {
+            listen 80;
+            server_name crm.{{SUBDOMAIN_NAME}}.clawflow.flowmatic.co.il;
+            location / {
+                proxy_pass http://127.0.0.1:3080;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_read_timeout 300s;
+            }
+        }
+        TWNGX
+    - nginx -t && systemctl reload nginx
+
+    # SSL for Twenty CRM subdomain
+    - |
+        for i in $(seq 1 20); do
+          certbot --nginx \
+            -d crm.{{SUBDOMAIN_NAME}}.clawflow.flowmatic.co.il \
+            --non-interactive --agree-tos \
+            -m devops@flowmatic.co.il && break
+          sleep 15
+        done
+
+    # Install Twenty CRM MCP server for OpenClaw agents
+    - npm install -g @iflow-mcp/oumnya-twenty-mcp-server 2>/dev/null || true
+    {{/HAS_TWENTY}}
 
     {{#HAS_OLLAMA}}
     # ── Ollama ──
@@ -340,6 +576,110 @@ runcmd:
     # Restart gateway to pick up Ollama embedder config
     - systemctl restart openclaw-gateway
     {{/HAS_OLLAMA}}
+
+    # ── Langfuse LLM Observability ──
+    - mkdir -p /opt/openclaw/data/{langfuse-db,langfuse-clickhouse}
+    - |
+        cat > /opt/openclaw/docker-compose.langfuse.yml << 'LFEOF'
+        services:
+          langfuse:
+            image: langfuse/langfuse:latest
+            restart: unless-stopped
+            ports: ["127.0.0.1:3200:3000"]
+            depends_on: [langfuse-postgres]
+            environment:
+              - DATABASE_URL=postgresql://langfuse:{{AUTOMATION_PASSWORD}}@langfuse-postgres:5432/langfuse
+              - NEXTAUTH_URL=https://{{SUBDOMAIN_NAME}}-obs.clawflow.flowmatic.co.il
+              - NEXTAUTH_SECRET={{OPENCLAW_TOKEN}}
+              - SALT={{AUTOMATION_PASSWORD}}
+              - TELEMETRY_ENABLED=false
+              - LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES=false
+              - LANGFUSE_DEFAULT_PROJECT_ID={{INSTANCE_ID}}
+              - LANGFUSE_INIT_ORG_ID={{INSTANCE_ID}}
+              - LANGFUSE_INIT_ORG_NAME=OpenClaw
+              - LANGFUSE_INIT_PROJECT_ID={{INSTANCE_ID}}
+              - LANGFUSE_INIT_PROJECT_NAME=AI Agents
+              - LANGFUSE_INIT_PROJECT_PUBLIC_KEY=pk-{{INSTANCE_ID}}
+              - LANGFUSE_INIT_PROJECT_SECRET_KEY={{OPENCLAW_TOKEN}}
+              - LANGFUSE_INIT_USER_EMAIL=admin@openclaw.local
+              - LANGFUSE_INIT_USER_PASSWORD={{AUTOMATION_PASSWORD}}
+              - LANGFUSE_INIT_USER_NAME=Admin
+          langfuse-postgres:
+            image: postgres:16-alpine
+            restart: unless-stopped
+            environment:
+              POSTGRES_DB: langfuse
+              POSTGRES_USER: langfuse
+              POSTGRES_PASSWORD: {{AUTOMATION_PASSWORD}}
+            volumes: ["/opt/openclaw/data/langfuse-db:/var/lib/postgresql/data"]
+        LFEOF
+    - cd /opt/openclaw && docker compose -f docker-compose.yml -f docker-compose.qdrant.yml -f docker-compose.langfuse.yml up -d langfuse langfuse-postgres
+
+    # ── LiteLLM AI Gateway ──
+    - mkdir -p /opt/openclaw/data/litellm
+    - |
+        cat > /opt/openclaw/litellm-config.yaml << 'LLMEOF'
+        model_list:
+          - model_name: default
+            litellm_params:
+              model: anthropic/claude-sonnet-4-6
+              api_key: os.environ/ANTHROPIC_API_KEY
+          - model_name: default
+            litellm_params:
+              model: openai/gpt-4o
+              api_key: os.environ/OPENAI_API_KEY
+          - model_name: opus
+            litellm_params:
+              model: anthropic/claude-opus-4-6
+              api_key: os.environ/ANTHROPIC_API_KEY
+          - model_name: sonnet
+            litellm_params:
+              model: anthropic/claude-sonnet-4-6
+              api_key: os.environ/ANTHROPIC_API_KEY
+          - model_name: haiku
+            litellm_params:
+              model: anthropic/claude-haiku-4-5-20251001
+              api_key: os.environ/ANTHROPIC_API_KEY
+          - model_name: gpt4o
+            litellm_params:
+              model: openai/gpt-4o
+              api_key: os.environ/OPENAI_API_KEY
+          - model_name: gpt4o-mini
+            litellm_params:
+              model: openai/gpt-4o-mini
+              api_key: os.environ/OPENAI_API_KEY
+          - model_name: local
+            litellm_params:
+              model: ollama/llama3.1:8b
+              api_base: http://host.docker.internal:11434
+
+        litellm_settings:
+          drop_params: true
+          set_verbose: false
+          request_timeout: 300
+          num_retries: 2
+          fallbacks:
+            - default: [opus, sonnet, gpt4o]
+          success_callback: []
+          failure_callback: []
+
+        general_settings:
+          master_key: {{OPENCLAW_TOKEN}}
+          database_url: null
+        LLMEOF
+    - |
+        cat > /opt/openclaw/docker-compose.litellm.yml << 'LITEOF'
+        services:
+          litellm:
+            image: ghcr.io/berriai/litellm:main-latest
+            restart: unless-stopped
+            ports: ["127.0.0.1:4000:4000"]
+            volumes:
+              - /opt/openclaw/litellm-config.yaml:/app/config.yaml
+            command: ["--config", "/app/config.yaml", "--port", "4000"]
+            extra_hosts: ["host.docker.internal:host-gateway"]
+        LITEOF
+    - cd /opt/openclaw && docker compose -f docker-compose.yml -f docker-compose.qdrant.yml -f docker-compose.litellm.yml up -d litellm
 
     # ── Nginx ──
     - |
@@ -402,8 +742,60 @@ runcmd:
                 return 404;
             }
 
+            # Dify API routes (only active when Dify is the automation tool)
+            location /console/api {
+                proxy_pass http://127.0.0.1:3100;
+                proxy_http_version 1.1;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
+            location /api {
+                proxy_pass http://127.0.0.1:3100;
+                proxy_http_version 1.1;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
+            location /v1 {
+                proxy_pass http://127.0.0.1:3100;
+                proxy_http_version 1.1;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
+            location /files {
+                proxy_pass http://127.0.0.1:3100;
+                proxy_http_version 1.1;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
             location / {
-                proxy_pass http://127.0.0.1:8080;
+                proxy_pass http://127.0.0.1:{{AUTOMATION_PORT}};
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+        }
+        server {
+            listen 80;
+            server_name {{SUBDOMAIN_NAME}}-obs.clawflow.flowmatic.co.il;
+
+            location / {
+                proxy_pass http://127.0.0.1:3200;
                 proxy_http_version 1.1;
                 proxy_set_header Upgrade $http_upgrade;
                 proxy_set_header Connection 'upgrade';
@@ -426,6 +818,7 @@ runcmd:
           certbot --nginx \
             -d {{SUBDOMAIN_NAME}}.clawflow.flowmatic.co.il \
             -d {{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il \
+            -d {{SUBDOMAIN_NAME}}-obs.clawflow.flowmatic.co.il \
             --non-interactive --agree-tos \
             -m devops@flowmatic.co.il && break
           sleep 15
