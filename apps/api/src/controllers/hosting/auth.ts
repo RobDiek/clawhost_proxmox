@@ -328,7 +328,8 @@ export const getMyInstances = async (c: Context) => {
         // Filter out awaiting_payment
         const filtered = result.filter(i => i.status !== 'awaiting_payment')
 
-        return ok(c, filtered.map(i => ({
+        // Build response with per-agent integrations
+        const instancesWithIntegrations = await Promise.all(filtered.map(async (i) => ({
             id: i.id,
             planKey: i.planKey,
             priceIls: i.priceIls,
@@ -373,7 +374,9 @@ export const getMyInstances = async (c: Context) => {
             // Per-agent integrations (new: loaded separately)
             agentIntegrations: await getAllIntegrationsForInstance(i.id),
             createdAt: i.createdAt,
-        })), 'Instances found.')
+        })))
+
+        return ok(c, instancesWithIntegrations, 'Instances found.')
     } catch (err) {
         console.error('getMyInstances error:', err)
         return fail(c, 'Failed to get instances.', 500)
