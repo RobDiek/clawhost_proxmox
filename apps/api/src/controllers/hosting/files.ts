@@ -379,6 +379,7 @@ export const saveIntegration = async (c: Context) => {
             anthropic: setEnvVar('ANTHROPIC_API_KEY'),
             openai: setEnvVar('OPENAI_API_KEY'),
             gemini: setEnvVar('GOOGLE_API_KEY'),
+            groq: setEnvVar('GROQ_API_KEY'),
             telegram: `su - openclaw -c 'openclaw channels add --channel telegram --token "'\\''${safeKey}'\\'' --name "telegram-main" 2>/dev/null'`,
             brave: writeConfig(`${VPS_HOME}/skills-config`, 'brave-search.json', { braveApiKey: key }),
             brightdata: writeConfig(`${VPS_HOME}/skills-config`, 'bright-data.json', { apiKey: key }),

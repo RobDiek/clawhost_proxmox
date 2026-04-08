@@ -1108,6 +1108,18 @@ input{font-family:inherit}
           <a href="https://platform.openai.com" target="_blank" class="int-help-link">פתחו חשבון ב-OpenAI &#8599;</a>
         </div>
       </div>
+      <div class="int-card" id="groq-card" data-tooltip="Groq — inference מהיר במיוחד (~300 tok/s). מריץ Llama 4, Qwen, Gemma בחינם עד 30K tokens/דקה. מומלץ כברירת מחדל — חינם להתחלה.">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#F0F0FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" fill="#F55036"/><path d="M8 8h3v8H8V8zm5 0h3v3h-3V8zm0 5h3v3h-3v-3z" fill="white"/></svg></div>
+          <div><strong>Groq</strong><div class="int-status" id="groq-status">לא מחובר</div></div>
+        </div>
+        <div class="int-card-body hidden" id="int-groq-body">
+          <div style="font-size:.82rem;color:#6B7280;margin-bottom:8px">⚡ הכי מהיר בשוק — חינם עד 30K tokens/דקה. מומלץ להתחלה.</div>
+          <input type="password" id="groq-key" placeholder="gsk_..." dir="ltr" class="int-input"/>
+          <button class="btn btn-primary btn-sm" onclick="saveApiKey('groq')">שמרו</button>
+          <a href="https://console.groq.com" target="_blank" class="int-help-link">פתחו חשבון ב-Groq (חינם) &#8599;</a>
+        </div>
+      </div>
       <div class="int-card">
         <div class="int-card-header">
           <div class="int-icon" style="background:#E3F2FD"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#FBBC04"/><path d="M12 2C6.48 2 2 6.48 2 12h10V2z" fill="#4285F4"/><path d="M12 12H2c0 5.52 4.48 10 10 10V12z" fill="#34A853"/><path d="M22 12c0-5.52-4.48-10-10-10v10h10z" fill="#EA4335"/><circle cx="12" cy="12" r="4" fill="white"/><path d="M12 8.8l1.8 3.6H14l1.8-3.6h-1.2l-1.2 2.4-1.2-2.4H12z" fill="#4285F4"/></svg></div>
@@ -2501,7 +2513,8 @@ function renderHome() {
   // Only check actual server data — not onboarding step (step can advance via skip)
   var hasApiKey = !!(instanceData && (instanceData.aiProviderType || instanceData.hasAnthropicKey || instanceData.hasOpenaiKey));
   var hasOllama = !!(instanceData && instanceData.hasOllama);
-  var hasAiProvider = hasApiKey || hasOllama;
+  var hasGroqKey = !!localStorage.getItem('cf_groq_saved');
+  var hasAiProvider = hasApiKey || hasOllama || hasGroqKey;
   var hasTelegram = !!(instanceData && instanceData.telegramBotToken);
   var isMATEH = components.indexOf('mt') !== -1;
   var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
@@ -4518,6 +4531,15 @@ function renderIntegrations() {
     if (oaiCard) oaiCard.classList.add('connected');
   }
 
+  // Update Groq status
+  var hasGroq = localStorage.getItem('cf_groq_saved');
+  if (hasGroq) {
+    var groqEl = document.getElementById('groq-status');
+    if (groqEl) { groqEl.textContent = '\u2713 מחובר'; groqEl.className = 'int-status connected'; }
+    var groqCard = document.getElementById('groq-card');
+    if (groqCard) groqCard.classList.add('connected');
+  }
+
   // Update Telegram status — per-agent
   var hasTelegram = agentInts.telegram ? agentInts.telegram.connected : ((instanceData && instanceData.telegramBotToken) || localStorage.getItem('cf_telegram_saved'));
   if (hasTelegram) {
@@ -4759,6 +4781,7 @@ function addIntegrationTooltips() {
   var tips = {
     'anthropic-card': 'Claude AI של Anthropic — המודלים המתקדמים ביותר לשיווק. Opus לניתוח עמוק ואסטרטגיה, Sonnet לכתיבת תוכן ומשימות שוטפות, Haiku לפעולות מהירות בעלות נמוכה. נדרש להפעלת מערכת MATEH.',
     'openai-card': 'GPT-4o של OpenAI — מודל חלופי מהיר. משמש כ-fallback אוטומטי כשAnthropicב-rate limit. נדרש גם לתמלול הודעות קוליות בטלגרם (Whisper). מומלץ לחבר לצד Anthropic.',
+    'groq-card': 'Groq — inference הכי מהיר בשוק (~300 tokens/שנייה). מריץ Llama 4 Scout, Qwen, Gemma — כולם open source. חינם עד 30,000 tokens/דקה (500K/יום). מומלץ כברירת מחדל להתחלה — אפס עלויות.',
     'telegram-card': 'Telegram Bot — הערוץ הראשי לתקשורת עם הסוכנים שלכם. דרכו תקבלו Daily Brief כל בוקר, אישורי פרסום, דוחות שבועיים, והתראות. צרו בוט דרך @BotFather והדביקו את הטוקן.',
     'google-card': 'Google Workspace — חיבור OAuth אחד שנותן גישה ל-Calendar (ניהול אירועים ופגישות), Drive (מסמכים), Gmail (שליחת אימיילים), ו-Sheets (נתונים). הסוכנים יוכלו לנהל את היומן שלכם ולשלוח אימיילים בשמכם.',
   };
@@ -4959,7 +4982,9 @@ async function saveApiKey(provider) {
     });
     if (!res.ok) throw new Error('failed');
 
-    localStorage.setItem('cf_api_key_saved', provider);
+    if (provider === 'openai') localStorage.setItem('cf_openai_saved', '1');
+    else if (provider === 'groq') localStorage.setItem('cf_groq_saved', '1');
+    else localStorage.setItem('cf_api_key_saved', provider);
     localStorage.setItem('cf_api_key_provider', provider);
     var statusEl = document.getElementById(provider + '-status');
     if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
@@ -6422,6 +6447,12 @@ function getAvailableModels() {
   if (hasOpenai) {
     models.push({ value: 'openai/gpt-4o', label: 'GPT-4o' });
     models.push({ value: 'openai/gpt-4o-mini', label: 'GPT-4o mini (חסכוני)' });
+  }
+  var hasGroqProvider = localStorage.getItem('cf_groq_saved');
+  if (hasGroqProvider) {
+    models.push({ value: 'groq/llama-4-scout-17b-16e-instruct', label: 'Groq Llama 4 Scout (⚡ מהיר)' });
+    models.push({ value: 'groq/qwen-qwq-32b', label: 'Groq Qwen QwQ 32B' });
+    models.push({ value: 'groq/gemma2-9b-it', label: 'Groq Gemma 2 9B (חסכוני)' });
   }
   if (hasOllama && window._ollamaInstalledModels && window._ollamaInstalledModels.length > 0) {
     window._ollamaInstalledModels.forEach(function(m) {
