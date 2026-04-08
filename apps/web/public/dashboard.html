@@ -1128,7 +1128,7 @@ input{font-family:inherit}
           <div style="font-size:.82rem;color:#6B7280;margin-bottom:12px">הריצו Llama, Qwen, Gemma ומודלים נוספים. בחרו איך להריץ:</div>
 
           <!-- Backend selection -->
-          <div id="ollama-backend-select" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <div id="ollama-backend-select" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
             <!-- Groq Cloud -->
             <div class="ollama-backend-opt" onclick="selectOllamaBackend('groq')" id="ollama-opt-groq" style="border:2px solid #E5E7EB;border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;text-align:center">
               <div style="font-size:1.3rem;margin-bottom:4px">⚡</div>
@@ -1137,6 +1137,15 @@ input{font-family:inherit}
               <div style="font-size:.72rem;color:#6B7280">~300 tok/s · Llama 4, Qwen, Gemma</div>
               <div style="font-size:.68rem;color:#9CA3AF;margin-top:4px">חינם: 30K tok/דקה · 500K/יום</div>
               <div style="font-size:.68rem;color:#9CA3AF">בתשלום: $0.05-0.90/M tokens</div>
+            </div>
+            <!-- Cerebras -->
+            <div class="ollama-backend-opt" onclick="selectOllamaBackend('cerebras')" id="ollama-opt-cerebras" style="border:2px solid #E5E7EB;border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;text-align:center;opacity:.7">
+              <div style="font-size:1.3rem;margin-bottom:4px">🧠</div>
+              <div style="font-weight:700;font-size:.88rem">Cerebras</div>
+              <div style="font-size:.72rem;color:#2563EB;font-weight:600;margin:4px 0">הכי מהיר בעולם</div>
+              <div style="font-size:.72rem;color:#6B7280">~3000 tok/s · GPT OSS, Qwen 3, Llama</div>
+              <div style="font-size:.68rem;color:#9CA3AF;margin-top:4px">חינם: 1M tok/יום</div>
+              <div style="font-size:.68rem;color:#9CA3AF">בתשלום: $0.10-2.75/M tokens</div>
             </div>
             <!-- GPU Server -->
             <div class="ollama-backend-opt" onclick="selectOllamaBackend('gpu')" id="ollama-opt-gpu" style="border:2px solid #E5E7EB;border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;text-align:center;opacity:.7">
@@ -1175,6 +1184,31 @@ input{font-family:inherit}
               <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>GPT OSS 20B</strong><br/><span style="color:#6B7280;font-size:.75rem">OpenAI Open Source — מהיר במיוחד (1000 tok/s)</span></span><span style="color:#10B981;font-size:.72rem;white-space:nowrap">$0.075 / $0.30</span></div>
               <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>Llama 3.3 70B</strong><br/><span style="color:#6B7280;font-size:.75rem">Meta — מתקדם, 128K context</span></span><span style="color:#10B981;font-size:.72rem;white-space:nowrap">$0.59 / $0.79</span></div>
               <div style="display:flex;align-items:center;gap:6px;padding:8px 12px"><span style="flex:1"><strong>Llama 3.1 8B</strong><br/><span style="color:#6B7280;font-size:.75rem">Meta — הכי זול וקל, 128K context</span></span><span style="color:#10B981;font-size:.72rem;white-space:nowrap">$0.05 / $0.08</span></div>
+            </div>
+            <div style="font-size:.68rem;color:#9CA3AF;margin-top:6px;text-align:left;direction:ltr">מחירים: input / output per 1M tokens</div>
+          </div>
+
+          <!-- Cerebras panel (hidden by default) -->
+          <div id="ollama-panel-cerebras" style="display:none">
+            <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px;margin-bottom:10px;font-size:.82rem">
+              <strong>🧠 Cerebras</strong> — הכי מהיר בעולם (~3000 tok/s). נרשמו בחינם ב-<a href="https://cloud.cerebras.ai" target="_blank" style="color:#2563EB">cloud.cerebras.ai</a> והעתיקו את ה-API Key.
+            </div>
+            <div id="cerebras-key-input" style="display:flex;gap:6px;margin-bottom:10px">
+              <input type="password" id="cerebras-key" placeholder="csk-..." dir="ltr" class="int-input" style="flex:1"/>
+              <button class="btn btn-primary btn-sm" onclick="saveApiKey('cerebras')">שמרו</button>
+            </div>
+            <div id="cerebras-key-saved" style="display:none;margin-bottom:10px">
+              <div style="display:flex;align-items:center;gap:8px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:8px 12px">
+                <span style="color:#2563EB;font-size:.9rem">✓</span>
+                <span style="flex:1;font-family:monospace;font-size:.82rem;color:#1E40AF;direction:ltr" id="cerebras-key-masked">csk_****</span>
+                <button class="btn btn-danger-outline btn-sm" onclick="disconnectCerebras()" style="font-size:.72rem;padding:2px 10px">נתקו</button>
+              </div>
+            </div>
+            <div style="font-size:.78rem;color:#6B7280;margin-bottom:8px">מודלים זמינים ב-Cerebras (אפריל 2026):</div>
+            <div style="border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;font-size:.82rem">
+              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>GPT OSS 120B</strong> ⭐<br/><span style="color:#6B7280;font-size:.75rem">OpenAI Open Source — ~3000 tok/s</span></span><span style="color:#2563EB;font-size:.72rem;white-space:nowrap">$0.35 / $0.75</span></div>
+              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>Qwen 3 235B</strong><br/><span style="color:#6B7280;font-size:.75rem">Alibaba — חשיבה עמוקה, ~1400 tok/s</span></span><span style="color:#2563EB;font-size:.72rem;white-space:nowrap">$0.60 / $1.20</span></div>
+              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px"><span style="flex:1"><strong>Llama 3.1 8B</strong><br/><span style="color:#6B7280;font-size:.75rem">Meta — הכי זול, ~2200 tok/s</span></span><span style="color:#2563EB;font-size:.72rem;white-space:nowrap">$0.10 / $0.10</span></div>
             </div>
             <div style="font-size:.68rem;color:#9CA3AF;margin-top:6px;text-align:left;direction:ltr">מחירים: input / output per 1M tokens</div>
           </div>
@@ -2549,7 +2583,8 @@ function renderHome() {
   var hasApiKey = !!(instanceData && (instanceData.aiProviderType || instanceData.hasAnthropicKey || instanceData.hasOpenaiKey));
   var hasOllama = !!(instanceData && instanceData.hasOllama);
   var hasGroqKey = !!localStorage.getItem('cf_groq_saved');
-  var hasAiProvider = hasApiKey || hasOllama || hasGroqKey;
+  var hasCerebrasKey = !!localStorage.getItem('cf_cerebras_saved');
+  var hasAiProvider = hasApiKey || hasOllama || hasGroqKey || hasCerebrasKey;
   var hasTelegram = !!(instanceData && instanceData.telegramBotToken);
   var isMATEH = components.indexOf('mt') !== -1;
   var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
@@ -3462,11 +3497,13 @@ function selectOllamaBackend(backend) {
   }
   // Show/hide panels
   document.getElementById('ollama-panel-groq').style.display = backend === 'groq' ? '' : 'none';
+  document.getElementById('ollama-panel-cerebras').style.display = backend === 'cerebras' ? '' : 'none';
   document.getElementById('ollama-panel-gpu').style.display = backend === 'gpu' ? '' : 'none';
   // Update status
   var statusEl = document.getElementById('ollama-status');
   if (statusEl) {
     if (backend === 'groq') statusEl.textContent = localStorage.getItem('cf_groq_saved') ? 'Groq מחובר' : 'Groq — נדרש API Key';
+    else if (backend === 'cerebras') statusEl.textContent = localStorage.getItem('cf_cerebras_saved') ? 'Cerebras מחובר' : 'Cerebras — נדרש API Key';
     else if (backend === 'gpu') statusEl.textContent = 'GPU — נדרש שרת';
   }
 }
@@ -5069,6 +5106,7 @@ async function saveApiKey(provider) {
 
     if (provider === 'openai') localStorage.setItem('cf_openai_saved', '1');
     else if (provider === 'groq') localStorage.setItem('cf_groq_saved', '1');
+    else if (provider === 'cerebras') localStorage.setItem('cf_cerebras_saved', '1');
     else localStorage.setItem('cf_api_key_saved', provider);
 
     // Save per-agent integration (agent isolation)
@@ -5083,10 +5121,9 @@ async function saveApiKey(provider) {
     if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
     var card = document.getElementById(provider + '-card');
     if (card) card.classList.add('connected-card');
-    // Show masked key for Groq
-    if (provider === 'groq') {
-      showGroqSavedState(val);
-    }
+    // Show masked key
+    if (provider === 'groq') showGroqSavedState(val);
+    if (provider === 'cerebras') showCerebrasSavedState(val);
     showToast('מפתח ' + provider + ' נשמר בהצלחה', 'success');
     refreshInstanceData();
   } catch (e) {
@@ -5102,6 +5139,29 @@ function showGroqSavedState(fullKey) {
   if (inputDiv) inputDiv.style.display = 'none';
   if (savedDiv) savedDiv.style.display = '';
   if (maskedEl) maskedEl.textContent = masked;
+}
+
+function showCerebrasSavedState(fullKey) {
+  var masked = fullKey ? fullKey.substring(0, 6) + '••••••••' + fullKey.substring(fullKey.length - 4) : 'csk_••••••••';
+  var inputDiv = document.getElementById('cerebras-key-input');
+  var savedDiv = document.getElementById('cerebras-key-saved');
+  var maskedEl = document.getElementById('cerebras-key-masked');
+  if (inputDiv) inputDiv.style.display = 'none';
+  if (savedDiv) savedDiv.style.display = '';
+  if (maskedEl) maskedEl.textContent = masked;
+}
+
+async function disconnectCerebras() {
+  var confirmed = await showConfirm({ icon: '🔌', title: 'נתק את Cerebras?', desc: 'המפתח יימחק מהשרת.', okText: 'נתקו', okClass: 'btn-danger-outline' });
+  if (!confirmed) return;
+  localStorage.removeItem('cf_cerebras_saved');
+  var inputDiv = document.getElementById('cerebras-key-input');
+  var savedDiv = document.getElementById('cerebras-key-saved');
+  if (inputDiv) { inputDiv.style.display = 'flex'; document.getElementById('cerebras-key').value = ''; }
+  if (savedDiv) savedDiv.style.display = 'none';
+  showToast('Cerebras נותק', 'success');
+  var iid = localStorage.getItem('cf_instance_id');
+  if (iid) fetch(API + '/hosting/instances/' + iid + '/agents/' + (activeAgent||'oc') + '/integrations/api_key', { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } }).catch(function(){});
 }
 
 async function disconnectGroq() {
@@ -6580,6 +6640,10 @@ var ALL_MODELS = [
   { value: 'groq/qwen/qwen3-32b', label: 'Groq Qwen 3 32B', provider: 'groq', tag: 'עברית' },
   { value: 'groq/openai/gpt-oss-20b', label: 'Groq GPT OSS 20B', provider: 'groq', tag: 'מהיר' },
   { value: 'groq/meta-llama/llama-3.3-70b-versatile', label: 'Groq Llama 3.3 70B', provider: 'groq', tag: '' },
+  // Cerebras
+  { value: 'cerebras/gpt-oss-120b', label: 'Cerebras GPT OSS 120B', provider: 'cerebras', tag: 'הכי מהיר' },
+  { value: 'cerebras/qwen-3-235b-a22b-instruct-2507', label: 'Cerebras Qwen 3 235B', provider: 'cerebras', tag: 'עברית' },
+  { value: 'cerebras/llama3.1-8b', label: 'Cerebras Llama 3.1 8B', provider: 'cerebras', tag: 'חסכוני' },
   // OpenAI
   { value: 'openai/gpt-4o', label: 'GPT-4o', provider: 'openai', tag: '' },
   { value: 'openai/gpt-4o-mini', label: 'GPT-4o mini', provider: 'openai', tag: 'חסכוני' },
@@ -6589,7 +6653,8 @@ function getAvailableModels(subAgentId) {
   var hasAnthropic = (instanceData && instanceData.hasAnthropicKey) || localStorage.getItem('cf_api_key_saved') === 'anthropic';
   var hasOpenai = (instanceData && instanceData.hasOpenaiKey) || localStorage.getItem('cf_openai_saved');
   var hasGroq = !!localStorage.getItem('cf_groq_saved');
-  var providerStatus = { anthropic: hasAnthropic, groq: hasGroq, openai: hasOpenai };
+  var hasCerebras = !!localStorage.getItem('cf_cerebras_saved');
+  var providerStatus = { anthropic: hasAnthropic, groq: hasGroq, openai: hasOpenai, cerebras: hasCerebras };
 
   // Find recommended model for this sub-agent
   var subAgent = SUB_AGENTS.find(function(a) { return a.id === subAgentId; });

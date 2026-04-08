@@ -380,6 +380,7 @@ export const saveIntegration = async (c: Context) => {
             openai: setEnvVar('OPENAI_API_KEY'),
             gemini: setEnvVar('GOOGLE_API_KEY'),
             groq: setEnvVar('GROQ_API_KEY'),
+            cerebras: setEnvVar('CEREBRAS_API_KEY'),
             telegram: `su - openclaw -c 'openclaw channels add --channel telegram --token "'\\''${safeKey}'\\'' --name "telegram-main" 2>/dev/null'`,
             brave: writeConfig(`${VPS_HOME}/skills-config`, 'brave-search.json', { braveApiKey: key }),
             brightdata: writeConfig(`${VPS_HOME}/skills-config`, 'bright-data.json', { apiKey: key }),
@@ -420,7 +421,7 @@ export const saveIntegration = async (c: Context) => {
         await sshExecInstance(instance, `${cmd} && chown -R openclaw:openclaw /home/openclaw/.openclaw && systemctl restart openclaw-gateway`)
 
         // Configure OpenClaw primary model when AI provider key is saved
-        if (type === 'groq' || type === 'anthropic' || type === 'openai') {
+        if (type === 'groq' || type === 'anthropic' || type === 'openai' || type === 'cerebras') {
             const CONFIG = '/home/openclaw/.openclaw/openclaw.json'
             const modelConfigs: Record<string, { primary: string; fallbacks: string[]; models: Record<string, { alias: string }> }> = {
                 groq: {
@@ -448,6 +449,15 @@ export const saveIntegration = async (c: Context) => {
                     models: {
                         'openai/gpt-4o': { alias: 'gpt4o' },
                         'openai/gpt-4o-mini': { alias: 'gpt4o-mini' },
+                    },
+                },
+                cerebras: {
+                    primary: 'cerebras/gpt-oss-120b',
+                    fallbacks: ['cerebras/llama3.1-8b'],
+                    models: {
+                        'cerebras/gpt-oss-120b': { alias: 'gpt-oss' },
+                        'cerebras/llama3.1-8b': { alias: 'llama-fast' },
+                        'cerebras/qwen-3-235b-a22b-instruct-2507': { alias: 'qwen' },
                     },
                 },
             }
