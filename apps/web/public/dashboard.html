@@ -1159,13 +1159,16 @@ input{font-family:inherit}
               <input type="password" id="groq-key" placeholder="gsk_..." dir="ltr" class="int-input" style="flex:1"/>
               <button class="btn btn-primary btn-sm" onclick="saveApiKey('groq')">שמרו</button>
             </div>
-            <div style="font-size:.78rem;color:#6B7280;margin-bottom:8px">מודלים זמינים ב-Groq:</div>
+            <div style="font-size:.78rem;color:#6B7280;margin-bottom:8px">מודלים זמינים ב-Groq (אפריל 2026):</div>
             <div style="border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;font-size:.82rem">
-              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>Llama 4 Scout (17B MoE)</strong> ⭐<br/><span style="color:#6B7280;font-size:.75rem">Meta — הטוב ביותר באיזון מהירות/איכות</span></span><span style="color:#10B981;font-size:.72rem">$0.11/M</span></div>
-              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>Qwen QwQ 32B</strong><br/><span style="color:#6B7280;font-size:.75rem">Alibaba — חשיבה עמוקה, עברית טובה</span></span><span style="color:#10B981;font-size:.72rem">$0.20/M</span></div>
-              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>Gemma 2 9B</strong><br/><span style="color:#6B7280;font-size:.75rem">Google — חסכוני, מהיר</span></span><span style="color:#10B981;font-size:.72rem">$0.05/M</span></div>
-              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px"><span style="flex:1"><strong>Llama 3.3 70B</strong><br/><span style="color:#6B7280;font-size:.75rem">Meta — מתקדם, context ארוך</span></span><span style="color:#10B981;font-size:.72rem">$0.27/M</span></div>
+              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>GPT OSS 120B</strong> ⭐<br/><span style="color:#6B7280;font-size:.75rem">OpenAI Open Source — 128K context, איכות גבוהה</span></span><span style="color:#10B981;font-size:.72rem;white-space:nowrap">$0.15 / $0.60</span></div>
+              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>Llama 4 Scout (17Bx16E MoE)</strong><br/><span style="color:#6B7280;font-size:.75rem">Meta — מהיר, 128K context</span></span><span style="color:#10B981;font-size:.72rem;white-space:nowrap">$0.11 / $0.34</span></div>
+              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>Qwen 3 32B</strong><br/><span style="color:#6B7280;font-size:.75rem">Alibaba — חשיבה עמוקה, 131K context, עברית טובה</span></span><span style="color:#10B981;font-size:.72rem;white-space:nowrap">$0.29 / $0.59</span></div>
+              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>GPT OSS 20B</strong><br/><span style="color:#6B7280;font-size:.75rem">OpenAI Open Source — מהיר במיוחד (1000 tok/s)</span></span><span style="color:#10B981;font-size:.72rem;white-space:nowrap">$0.075 / $0.30</span></div>
+              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>Llama 3.3 70B</strong><br/><span style="color:#6B7280;font-size:.75rem">Meta — מתקדם, 128K context</span></span><span style="color:#10B981;font-size:.72rem;white-space:nowrap">$0.59 / $0.79</span></div>
+              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px"><span style="flex:1"><strong>Llama 3.1 8B</strong><br/><span style="color:#6B7280;font-size:.75rem">Meta — הכי זול וקל, 128K context</span></span><span style="color:#10B981;font-size:.72rem;white-space:nowrap">$0.05 / $0.08</span></div>
             </div>
+            <div style="font-size:.68rem;color:#9CA3AF;margin-top:6px;text-align:left;direction:ltr">מחירים: input / output per 1M tokens</div>
           </div>
 
           <!-- GPU panel (hidden by default) -->
@@ -6538,9 +6541,10 @@ function getAvailableModels() {
   }
   var hasGroqProvider = localStorage.getItem('cf_groq_saved');
   if (hasGroqProvider) {
-    models.push({ value: 'groq/llama-4-scout-17b-16e-instruct', label: 'Groq Llama 4 Scout (⚡ מהיר)' });
-    models.push({ value: 'groq/qwen-qwq-32b', label: 'Groq Qwen QwQ 32B' });
-    models.push({ value: 'groq/gemma2-9b-it', label: 'Groq Gemma 2 9B (חסכוני)' });
+    models.push({ value: 'groq/openai/gpt-oss-120b', label: 'Groq GPT OSS 120B (⭐ מומלץ)' });
+    models.push({ value: 'groq/meta-llama/llama-4-scout-17b-16e-instruct', label: 'Groq Llama 4 Scout' });
+    models.push({ value: 'groq/qwen/qwen3-32b', label: 'Groq Qwen 3 32B' });
+    models.push({ value: 'groq/openai/gpt-oss-20b', label: 'Groq GPT OSS 20B (⚡ מהיר)' });
   }
   if (hasOllama && window._ollamaInstalledModels && window._ollamaInstalledModels.length > 0) {
     window._ollamaInstalledModels.forEach(function(m) {
