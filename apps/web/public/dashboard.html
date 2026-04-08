@@ -1108,18 +1108,7 @@ input{font-family:inherit}
           <a href="https://platform.openai.com" target="_blank" class="int-help-link">פתחו חשבון ב-OpenAI &#8599;</a>
         </div>
       </div>
-      <div class="int-card" id="groq-card" data-tooltip="Groq — inference מהיר במיוחד (~300 tok/s). מריץ Llama 4, Qwen, Gemma בחינם עד 30K tokens/דקה. מומלץ כברירת מחדל — חינם להתחלה.">
-        <div class="int-card-header">
-          <div class="int-icon" style="background:#F0F0FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" fill="#F55036"/><path d="M8 8h3v8H8V8zm5 0h3v3h-3V8zm0 5h3v3h-3v-3z" fill="white"/></svg></div>
-          <div><strong>Groq</strong><div class="int-status" id="groq-status">לא מחובר</div></div>
-        </div>
-        <div class="int-card-body hidden" id="int-groq-body">
-          <div style="font-size:.82rem;color:#6B7280;margin-bottom:8px">⚡ הכי מהיר בשוק — חינם עד 30K tokens/דקה. מומלץ להתחלה.</div>
-          <input type="password" id="groq-key" placeholder="gsk_..." dir="ltr" class="int-input"/>
-          <button class="btn btn-primary btn-sm" onclick="saveApiKey('groq')">שמרו</button>
-          <a href="https://console.groq.com" target="_blank" class="int-help-link">פתחו חשבון ב-Groq (חינם) &#8599;</a>
-        </div>
-      </div>
+      <!-- Groq integrated into Open Source Models card below -->
       <div class="int-card">
         <div class="int-card-header">
           <div class="int-icon" style="background:#E3F2FD"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#FBBC04"/><path d="M12 2C6.48 2 2 6.48 2 12h10V2z" fill="#4285F4"/><path d="M12 12H2c0 5.52 4.48 10 10 10V12z" fill="#34A853"/><path d="M22 12c0-5.52-4.48-10-10-10v10h10z" fill="#EA4335"/><circle cx="12" cy="12" r="4" fill="white"/><path d="M12 8.8l1.8 3.6H14l1.8-3.6h-1.2l-1.2 2.4-1.2-2.4H12z" fill="#4285F4"/></svg></div>
@@ -1175,8 +1164,8 @@ input{font-family:inherit}
               <strong>⚡ Groq Cloud</strong> — הדרך המהירה והזולה ביותר להריץ מודלים Open Source. נרשמו בחינם ב-<a href="https://console.groq.com" target="_blank" style="color:#2563EB">console.groq.com</a> והעתיקו את ה-API Key.
             </div>
             <div style="display:flex;gap:6px;margin-bottom:10px">
-              <input type="password" id="groq-key-ollama" placeholder="gsk_..." dir="ltr" class="int-input" style="flex:1"/>
-              <button class="btn btn-primary btn-sm" onclick="saveApiKey('groq');document.getElementById('groq-key').value=document.getElementById('groq-key-ollama').value">שמרו</button>
+              <input type="password" id="groq-key" placeholder="gsk_..." dir="ltr" class="int-input" style="flex:1"/>
+              <button class="btn btn-primary btn-sm" onclick="saveApiKey('groq')">שמרו</button>
             </div>
             <div style="font-size:.78rem;color:#6B7280;margin-bottom:8px">מודלים זמינים ב-Groq:</div>
             <div style="border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;font-size:.82rem">
