@@ -1411,27 +1411,10 @@ input{font-family:inherit}
         </div>
       </div>
 
-      <!-- 2. Telegram -->
-      <div class="int-card" id="pub-telegram-card">
-        <div class="int-card-header">
-          <div class="int-icon" style="background:#E0F2FE"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="#0EA5E9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-          <div><strong>Telegram</strong><div class="int-status" id="pub-telegram-status">בודק...</div></div>
-        </div>
-        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">תוכן, דוחות, Daily Brief — ישירות לטלגרם שלכם</div>
-      </div>
+      <!-- Telegram removed — already in ערוצי תקשורת -->
+      <!-- Google Ads removed — part of Google Workspace scope (כלי עבודה) -->
 
-      <!-- 3. Google Ads -->
-      <div class="int-card" id="pub-gads-card">
-        <div class="int-card-header">
-          <div class="int-icon" style="background:#E8F5E9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3.28 20.09l5.27-15.4a2.5 2.5 0 014.72 0L20.72 20.1" stroke="#FBBC04" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="18.5" r="2.5" fill="#4285F4"/><circle cx="17.5" cy="18.5" r="2.5" fill="#34A853"/><circle cx="12" cy="5.5" r="2.5" fill="#EA4335"/></svg></div>
-          <div><strong>Google Ads</strong><div class="int-status warning">דורש חיבור</div></div>
-        </div>
-        <div style="font-size:0.78rem;color:#6B7280;margin:6px 0">יצירה, ניהול ואופטימיזציה של קמפיינים — אוטומטי</div>
-        <button class="btn btn-primary btn-sm" onclick="connectGoogleAds()" style="margin-top:4px">→ חברו Google Ads</button>
-        <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px"><a href="#" onclick="showPublishGuide('googleads');return false" style="color:#2563EB">📖 מדריך חיבור מפורט</a></div>
-      </div>
-
-      <!-- 4. Meta Ads (Facebook + Instagram) -->
+      <!-- Meta Ads (Facebook + Instagram) -->
       <div class="int-card" id="pub-metaads-card">
         <div class="int-card-header">
           <div class="int-icon" style="background:#EFF6FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6 2 11c0 2.8 1.2 5.3 3.2 7L4 22l4.2-2.2c1.2.4 2.4.6 3.8.6 5.52 0 10-4 10-9s-4.48-9.4-10-9.4z" stroke="#0081FB" stroke-width="1.5"/></svg></div>
@@ -1603,15 +1586,8 @@ input{font-family:inherit}
 
     </div>
 
-    <!-- MCP Servers -->
-    <div class="section-title" style="display:flex;align-items:center;gap:8px">
-      שרתי MCP
-      <span style="font-size:0.7rem;background:#DBEAFE;color:#1D4ED8;padding:2px 8px;border-radius:99px;font-weight:500">Protocol</span>
-    </div>
-    <p style="font-size:0.78rem;color:#6B7280;margin:-8px 0 12px">שרתי Model Context Protocol מאפשרים לסוכנים שלכם לגשת לכלים חיצוניים.</p>
-    <div class="integrations-grid" id="mcpServersList">
-      <div style="text-align:center;padding:20px;color:#9CA3AF;font-size:0.85rem" id="mcp-loading">טוען שרתי MCP...</div>
-    </div>
+    <!-- MCP servers loaded dynamically into existing categories (hidden from user) -->
+    <div id="mcpServersList" style="display:none"></div>
 
     <!-- Automation -->
     <div class="section-title">אוטומציות</div>
@@ -4598,7 +4574,7 @@ function filterIntegrationsByAgent() {
     section.style.display = show ? '' : 'none';
     // Hide the integrations-grid that follows this section-title
     var next = section.nextElementSibling;
-    if (next && (next.classList.contains('integrations-grid') || next.id === 'mcpServersList')) {
+    if (next && next.classList.contains('integrations-grid')) {
       next.style.display = show ? '' : 'none';
     }
   });
