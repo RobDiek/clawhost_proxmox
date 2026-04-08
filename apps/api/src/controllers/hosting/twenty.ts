@@ -54,6 +54,9 @@ export const installTwenty = async (c: Context) => {
         const openclawToken = instance.openclawToken || 'twenty-secret'
         const automationPassword = instance.automationPassword || 'twenty-pass'
 
+        // Generate APP_SECRET
+        const appSecret = require('crypto').randomBytes(32).toString('hex')
+
         // Deploy Twenty CRM via SSH
         await sshExec(instance.ip, `
             # Create docker-compose for Twenty
@@ -66,15 +69,21 @@ services:
     depends_on:
       twenty-db:
         condition: service_healthy
+      twenty-redis:
+        condition: service_started
     environment:
       - SERVER_URL=https://crm.${subdomain}.clawflow.flowmatic.co.il
       - FRONT_BASE_URL=https://crm.${subdomain}.clawflow.flowmatic.co.il
       - PG_DATABASE_URL=postgresql://twenty:twenty@twenty-db:5432/twenty
+      - REDIS_URL=redis://twenty-redis:6379
       - STORAGE_TYPE=local
       - STORAGE_LOCAL_PATH=/app/.local-storage
       - ACCESS_TOKEN_SECRET=${openclawToken}
       - LOGIN_TOKEN_SECRET=${automationPassword}
-      - SIGN_IN_PREFILLED=true
+      - APP_SECRET=${appSecret}
+      - IS_BILLING_ENABLED=false
+      - DEFAULT_SUBDOMAIN=twenty
+
     volumes:
       - /opt/openclaw/data/twenty:/app/.local-storage
 
@@ -92,8 +101,15 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  twenty-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - /opt/openclaw/data/twenty-redis:/data
 TWEOF
-            mkdir -p /opt/openclaw/data/twenty /opt/openclaw/data/twenty-db
+            mkdir -p /opt/openclaw/data/twenty /opt/openclaw/data/twenty-db /opt/openclaw/data/twenty-redis
+            chown -R 1001:1001 /opt/openclaw/data/twenty-db
             cd /opt/openclaw && docker compose -f docker-compose.twenty.yml up -d
         `, instance.rootPassword || undefined, 300000)
 
