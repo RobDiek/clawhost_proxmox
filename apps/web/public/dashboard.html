@@ -6526,66 +6526,77 @@ function openAgentQuestionnaire() {
 }
 
 // Sub-agents data — defaults match AGENTS.md routing
+// Sub-agents with recommended model per role
 var SUB_AGENTS = [
-  { id: 'mateh', name: 'מטה', role: 'מתאם ומנהל', defaultModel: 'anthropic/claude-opus-4-6' },
-  { id: 'sayer', name: 'סייר', role: 'מחקר אינטרנט', defaultModel: 'anthropic/claude-opus-4-6' },
-  { id: 'meater', name: 'מאתר', role: 'מחקר SERP', defaultModel: 'anthropic/claude-sonnet-4-6' },
-  { id: 'maazin', name: 'מאזין', role: 'האזנה חברתית', defaultModel: 'anthropic/claude-sonnet-4-6' },
-  { id: 'menateach', name: 'מנתח', role: 'ניתוח הזדמנויות', defaultModel: 'anthropic/claude-opus-4-6' },
-  { id: 'et', name: 'עט', role: 'כתיבת תוכן', defaultModel: 'anthropic/claude-sonnet-4-6' },
-  { id: 'yotzer', name: 'יוצר', role: 'קריאייטיב', defaultModel: 'anthropic/claude-sonnet-4-6' },
-  { id: 'shaliach', name: 'שליח', role: 'הפצה', defaultModel: 'anthropic/claude-haiku-4-5-20251001' },
-  { id: 'migdalor', name: 'מגדלור', role: 'ביקורת AEO', defaultModel: 'anthropic/claude-sonnet-4-6' },
+  { id: 'mateh', name: 'מטה', role: 'מתאם ומנהל', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: 'anthropic/claude-sonnet-4-6' },
+  { id: 'sayer', name: 'סייר', role: 'מחקר אינטרנט', defaultModel: 'groq/openai/gpt-oss-120b', recommended: 'groq/openai/gpt-oss-120b' },
+  { id: 'meater', name: 'מאתר', role: 'מחקר SERP', defaultModel: 'groq/openai/gpt-oss-120b', recommended: 'groq/openai/gpt-oss-120b' },
+  { id: 'maazin', name: 'מאזין', role: 'האזנה חברתית', defaultModel: 'groq/openai/gpt-oss-20b', recommended: 'groq/openai/gpt-oss-20b' },
+  { id: 'menateach', name: 'מנתח', role: 'ניתוח הזדמנויות', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: 'anthropic/claude-sonnet-4-6' },
+  { id: 'et', name: 'עט', role: 'כתיבת תוכן', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: 'anthropic/claude-sonnet-4-6' },
+  { id: 'yotzer', name: 'יוצר', role: 'קריאייטיב', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: 'anthropic/claude-sonnet-4-6' },
+  { id: 'shaliach', name: 'שליח', role: 'הפצה', defaultModel: 'groq/openai/gpt-oss-20b', recommended: 'groq/openai/gpt-oss-20b' },
+  { id: 'migdalor', name: 'מגדלור', role: 'ביקורת AEO', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: 'anthropic/claude-sonnet-4-6' },
 ];
 
-// Build available models based on connected provider
-function getAvailableModels() {
+// All possible models — always show all, dim unavailable
+var ALL_MODELS = [
+  // Anthropic
+  { value: 'anthropic/claude-opus-4-6', label: 'Claude Opus 4.6', provider: 'anthropic', tag: 'מתקדם' },
+  { value: 'anthropic/claude-sonnet-4-6', label: 'Claude Sonnet 4.6', provider: 'anthropic', tag: 'מומלץ לתוכן' },
+  { value: 'anthropic/claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5', provider: 'anthropic', tag: 'חסכוני' },
+  // Groq
+  { value: 'groq/openai/gpt-oss-120b', label: 'Groq GPT OSS 120B', provider: 'groq', tag: 'מומלץ למחקר' },
+  { value: 'groq/meta-llama/llama-4-scout-17b-16e-instruct', label: 'Groq Llama 4 Scout', provider: 'groq', tag: '' },
+  { value: 'groq/qwen/qwen3-32b', label: 'Groq Qwen 3 32B', provider: 'groq', tag: 'עברית' },
+  { value: 'groq/openai/gpt-oss-20b', label: 'Groq GPT OSS 20B', provider: 'groq', tag: 'מהיר' },
+  { value: 'groq/meta-llama/llama-3.3-70b-versatile', label: 'Groq Llama 3.3 70B', provider: 'groq', tag: '' },
+  // OpenAI
+  { value: 'openai/gpt-4o', label: 'GPT-4o', provider: 'openai', tag: '' },
+  { value: 'openai/gpt-4o-mini', label: 'GPT-4o mini', provider: 'openai', tag: 'חסכוני' },
+];
+
+function getAvailableModels(subAgentId) {
   var hasAnthropic = (instanceData && instanceData.hasAnthropicKey) || localStorage.getItem('cf_api_key_saved') === 'anthropic';
   var hasOpenai = (instanceData && instanceData.hasOpenaiKey) || localStorage.getItem('cf_openai_saved');
-  var hasOllama = components.indexOf('ol') !== -1;
-  var models = [];
+  var hasGroq = !!localStorage.getItem('cf_groq_saved');
+  var providerStatus = { anthropic: hasAnthropic, groq: hasGroq, openai: hasOpenai };
 
-  if (hasAnthropic) {
-    models.push({ value: 'anthropic/claude-opus-4-6', label: 'Claude Opus 4.6 (מתקדם)' });
-    models.push({ value: 'anthropic/claude-sonnet-4-6', label: 'Claude Sonnet 4.6 (מומלץ)' });
-    models.push({ value: 'anthropic/claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 (חסכוני)' });
-  }
-  if (hasOpenai) {
-    models.push({ value: 'openai/gpt-4o', label: 'GPT-4o' });
-    models.push({ value: 'openai/gpt-4o-mini', label: 'GPT-4o mini (חסכוני)' });
-  }
-  var hasGroqProvider = localStorage.getItem('cf_groq_saved');
-  if (hasGroqProvider) {
-    models.push({ value: 'groq/openai/gpt-oss-120b', label: 'Groq GPT OSS 120B (⭐ מומלץ)' });
-    models.push({ value: 'groq/meta-llama/llama-4-scout-17b-16e-instruct', label: 'Groq Llama 4 Scout' });
-    models.push({ value: 'groq/qwen/qwen3-32b', label: 'Groq Qwen 3 32B' });
-    models.push({ value: 'groq/openai/gpt-oss-20b', label: 'Groq GPT OSS 20B (⚡ מהיר)' });
-  }
-  if (hasOllama && window._ollamaInstalledModels && window._ollamaInstalledModels.length > 0) {
-    window._ollamaInstalledModels.forEach(function(m) {
-      models.push({ value: 'ollama/' + m, label: 'Ollama ' + m + ' (מקומי)' });
-    });
-  } else if (hasOllama) {
-    models.push({ value: 'ollama/local', label: 'Ollama (מקומי)' });
-  }
+  // Find recommended model for this sub-agent
+  var subAgent = SUB_AGENTS.find(function(a) { return a.id === subAgentId; });
+  var recommended = subAgent ? subAgent.recommended : '';
 
-  // Fallback if nothing connected
-  if (models.length === 0) {
-    models.push({ value: 'anthropic/claude-sonnet-4-6', label: 'Claude Sonnet 4.6 (ברירת מחדל)' });
-  }
-
-  return models;
+  return ALL_MODELS.map(function(m) {
+    var enabled = !!providerStatus[m.provider];
+    var isRecommended = m.value === recommended;
+    var labelParts = m.label;
+    if (isRecommended) labelParts += ' ⭐';
+    if (m.tag) labelParts += ' (' + m.tag + ')';
+    if (!enabled) labelParts += ' — לא מחובר';
+    return { value: m.value, label: labelParts, enabled: enabled, recommended: isRecommended };
+  });
 }
 
 function renderSubAgents() {
   var grid = document.getElementById('sub-agents-grid');
   var savedModels = JSON.parse(localStorage.getItem('cf_sub_agent_models') || '{}');
-  var availableModels = getAvailableModels();
   grid.innerHTML = '<div class="sub-agent-row" style="font-weight:600;background:#F3F4F6"><span>שם</span><span>תפקיד</span><span>מודל</span><span>סטטוס</span></div>' +
     SUB_AGENTS.map(function(a) {
       var model = savedModels[a.id] || a.defaultModel;
+      var availableModels = getAvailableModels(a.id);
+      // Sort: recommended first, then enabled, then disabled
+      availableModels.sort(function(x, y) {
+        if (x.recommended && !y.recommended) return -1;
+        if (!x.recommended && y.recommended) return 1;
+        if (x.enabled && !y.enabled) return -1;
+        if (!x.enabled && y.enabled) return 1;
+        return 0;
+      });
       var opts = availableModels.map(function(m) {
-        return '<option value="' + m.value + '"' + (m.value === model ? ' selected' : '') + '>' + m.label + '</option>';
+        return '<option value="' + m.value + '"' +
+          (m.value === model ? ' selected' : '') +
+          (!m.enabled ? ' disabled style="color:#ccc"' : '') +
+          '>' + m.label + '</option>';
       }).join('');
       return '<div class="sub-agent-row">' +
         '<span class="sub-agent-name">' + a.name + '</span>' +
