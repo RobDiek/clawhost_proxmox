@@ -3490,8 +3490,13 @@ function initOllamaBackendUI() {
   if (ollamaBackend) {
     selectOllamaBackend(ollamaBackend);
   }
-  // If Groq key already saved, show connected
-  if (localStorage.getItem('cf_groq_saved') && ollamaBackend === 'groq') {
+  // Check per-agent Groq status
+  var agentInts = (instanceData && instanceData.agentIntegrations && instanceData.agentIntegrations[activeAgent]) || {};
+  var hasGroqForThisAgent = (agentInts.api_key && agentInts.api_key.connected) || false;
+  // For single-agent, use global
+  var agents = getAgentComponents();
+  if (agents.length <= 1) hasGroqForThisAgent = !!localStorage.getItem('cf_groq_saved');
+  if (hasGroqForThisAgent && ollamaBackend === 'groq') {
     var statusEl = document.getElementById('ollama-status');
     if (statusEl) { statusEl.textContent = 'Groq מחובר'; statusEl.style.color = '#10B981'; }
   }
@@ -4622,13 +4627,15 @@ function renderIntegrations() {
     if (oaiCard) oaiCard.classList.add('connected');
   }
 
-  // Update Groq status
-  var hasGroq = localStorage.getItem('cf_groq_saved');
-  if (hasGroq) {
-    var groqEl = document.getElementById('groq-status');
-    if (groqEl) { groqEl.textContent = '\u2713 מחובר'; groqEl.className = 'int-status connected'; }
-    var groqCard = document.getElementById('groq-card');
-    if (groqCard) groqCard.classList.add('connected');
+  // Update Groq/Ollama status — per-agent
+  var agentApiInt = agentInts.api_key || {};
+  var hasGroqForAgent = agentApiInt.connected && (agentApiInt.provider === 'groq' || localStorage.getItem('cf_groq_saved'));
+  // For single-agent, fall back to global
+  var agents = getAgentComponents();
+  if (agents.length <= 1) hasGroqForAgent = !!localStorage.getItem('cf_groq_saved');
+  if (hasGroqForAgent) {
+    var ollamaStatusEl = document.getElementById('ollama-status');
+    if (ollamaStatusEl) { ollamaStatusEl.textContent = 'Groq מחובר'; ollamaStatusEl.style.color = '#10B981'; }
   }
 
   // Update Telegram status — per-agent
@@ -5076,6 +5083,14 @@ async function saveApiKey(provider) {
     if (provider === 'openai') localStorage.setItem('cf_openai_saved', '1');
     else if (provider === 'groq') localStorage.setItem('cf_groq_saved', '1');
     else localStorage.setItem('cf_api_key_saved', provider);
+
+    // Save per-agent integration (agent isolation)
+    var agentType = activeAgent || 'oc';
+    fetch(API + '/hosting/instances/' + iid + '/agents/' + agentType + '/integrations/api_key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ config: { provider: provider, connected: true } })
+    }).catch(function() {});
     localStorage.setItem('cf_api_key_provider', provider);
     var statusEl = document.getElementById(provider + '-status');
     if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
