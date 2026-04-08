@@ -3429,7 +3429,12 @@ async function loadOllamaStatus() {
       if (bodyEl) {
         var installedModels = d.models.filter(function(m) { return m.installed; });
         var installedHtml = installedModels.length > 0
-          ? installedModels.map(function(m) { return '<span style="display:inline-flex;align-items:center;gap:4px;background:#D1FAE5;color:#065F46;padding:2px 10px;border-radius:12px;font-size:.75rem">✓ ' + m.name + '</span>'; }).join(' ')
+          ? installedModels.map(function(m) {
+              return '<span style="display:inline-flex;align-items:center;gap:4px;background:#D1FAE5;color:#065F46;padding:2px 6px 2px 10px;border-radius:12px;font-size:.75rem">' +
+                '✓ ' + m.name +
+                '<button onclick="doDeleteModel(\'' + m.id + '\',this)" style="background:none;border:none;color:#065F46;opacity:.5;cursor:pointer;font-size:.85rem;padding:0 2px;line-height:1" title="מחקו מודל">×</button>' +
+              '</span>';
+            }).join(' ')
           : '<span style="font-size:.82rem;color:#9CA3AF">אין מודלים מותקנים — בחרו מודל מהרשימה</span>';
         var html = '<div style="margin-bottom:8px">' + installedHtml + '</div>';
         html += '<div style="font-size:.78rem;color:#9CA3AF;margin-bottom:6px">תוכנית ' + d.currentPlan.name + ' · RAM פנוי: ' + d.currentPlan.availableRam + 'GB</div>';
@@ -3593,6 +3598,29 @@ async function doPullModel(modelId, btn) {
   } catch (e) {
     if (btn) { btn.innerHTML = 'הורידו'; btn.disabled = false; btn.style.pointerEvents = ''; btn.style.opacity = ''; }
     showToast('שגיאה', 'error');
+  }
+}
+
+async function doDeleteModel(modelId, btn) {
+  if (!confirm('למחוק את המודל ' + modelId + '?\nהמודל יימחק מהשרת ויפנה מקום ב-RAM ודיסק.')) return;
+  if (btn) { btn.textContent = '...'; btn.disabled = true; }
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/ollama/model', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ model: modelId })
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast(modelId + ' נמחק', 'success');
+      setTimeout(loadOllamaStatus, 1000);
+    } else {
+      showToast(data.message || 'שגיאה', 'error');
+      if (btn) { btn.textContent = '×'; btn.disabled = false; }
+    }
+  } catch (e) {
+    showToast('שגיאה במחיקה', 'error');
+    if (btn) { btn.textContent = '×'; btn.disabled = false; }
   }
 }
 

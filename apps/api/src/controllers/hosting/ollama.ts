@@ -32,22 +32,23 @@ function sshExec(ip: string, command: string, password?: string, timeoutMs = 600
 
 // Model definitions with RAM requirements (updated April 2026)
 // IDs must match Ollama registry names exactly (ollama.com/library)
-// 'tier' groups models: light (2-3GB), standard (5-9GB), heavy (15+GB)
+// ramRequired = actual Ollama runtime memory (from `ollama show --modelfile` + overhead)
+// 'tier' groups models: light (1-4GB), standard (6-12GB), heavy (16+GB)
 const OLLAMA_MODELS = [
     // === Recommended for MATEH (Hebrew marketing) ===
-    { id: 'qwen3.5:4b', name: 'Qwen 3.5 (4B)', ramRequired: 3, desc: 'דור חדש — עברית טובה, מהיר, חסכוני. מומלץ להתחלה', recommended: true, tier: 'light' },
-    { id: 'gemma4', name: 'Gemma 4 (12B)', ramRequired: 8, desc: 'Google — הטוב ביותר באיכות. Vision + חשיבה + 128K context', tier: 'standard' },
+    { id: 'qwen3.5:4b', name: 'Qwen 3.5 (4B)', ramRequired: 4, desc: 'דור חדש — עברית טובה, מהיר, חסכוני. מומלץ להתחלה', recommended: true, tier: 'light' },
+    { id: 'gemma4', name: 'Gemma 4 (12B)', ramRequired: 9, desc: 'Google — הטוב ביותר באיכות. Vision + חשיבה + 128K context', tier: 'standard' },
     // === Good general-purpose ===
-    { id: 'qwen3.5:9b', name: 'Qwen 3.5 (9B)', ramRequired: 6, desc: '#1 בבנצ\'מרקים בקטגוריה. 201 שפות, hybrid thinking', tier: 'standard' },
-    { id: 'phi4:14b', name: 'Phi-4 (14B)', ramRequired: 9, desc: 'Microsoft — חזק בהיגיון, מתמטיקה וניתוח', tier: 'standard' },
+    { id: 'qwen3.5:9b', name: 'Qwen 3.5 (9B)', ramRequired: 7, desc: '#1 בבנצ\'מרקים בקטגוריה. 201 שפות, hybrid thinking', tier: 'standard' },
+    { id: 'phi4:14b', name: 'Phi-4 (14B)', ramRequired: 10, desc: 'Microsoft — חזק בהיגיון, מתמטיקה וניתוח', tier: 'standard' },
     // === Lightweight ===
     { id: 'qwen3.5:0.8b', name: 'Qwen 3.5 (0.8B)', ramRequired: 1, desc: 'זעיר — סיווג, ניתוב, משימות פשוטות', tier: 'light' },
-    { id: 'gemma4:e4b', name: 'Gemma 4 Edge (4B)', ramRequired: 3, desc: 'Google — קל, Vision, מתאים לעיבוד תמונות', tier: 'light' },
-    // === Heavy (need Developer plan 32GB) ===
-    { id: 'qwen3.5:27b', name: 'Qwen 3.5 (27B)', ramRequired: 17, desc: 'עברית מצוינת, חשיבה עמוקה — הטוב ביותר ל-MATEH', tier: 'heavy' },
-    { id: 'devstral:24b', name: 'Devstral (24B)', ramRequired: 15, desc: 'Mistral — #1 קוד פתוח לפיתוח ו-agents', tier: 'heavy' },
-    { id: 'mistral-small3.1:24b', name: 'Mistral Small 3.1 (24B)', ramRequired: 15, desc: '128K context, Vision, מהיר', tier: 'heavy' },
-    { id: 'gemma4:31b', name: 'Gemma 4 (31B)', ramRequired: 20, desc: 'Google Flagship — הכי חזק, reasoning מתקדם', tier: 'heavy' },
+    { id: 'gemma4:e4b', name: 'Gemma 4 Edge (4B)', ramRequired: 4, desc: 'Google — קל, Vision, מתאים לעיבוד תמונות', tier: 'light' },
+    // === Heavy (need 48GB+ — CCX43 plan) ===
+    { id: 'qwen3.5:27b', name: 'Qwen 3.5 (27B)', ramRequired: 34, desc: 'עברית מצוינת, חשיבה עמוקה — דורש 64GB RAM', tier: 'heavy' },
+    { id: 'devstral:24b', name: 'Devstral (24B)', ramRequired: 18, desc: 'Mistral — #1 קוד פתוח לפיתוח ו-agents', tier: 'heavy' },
+    { id: 'mistral-small3.1:24b', name: 'Mistral Small 3.1 (24B)', ramRequired: 18, desc: '128K context, Vision, מהיר', tier: 'heavy' },
+    { id: 'gemma4:31b', name: 'Gemma 4 (31B)', ramRequired: 22, desc: 'Google Flagship — הכי חזק, reasoning מתקדם', tier: 'heavy' },
 ]
 
 // Calculate available RAM for Ollama models
@@ -260,6 +261,47 @@ export const pullOllamaModel = async (c: Context) => {
     } catch (err) {
         console.error('pullOllamaModel error:', err)
         return fail(c, 'Failed to pull model', 500)
+    }
+}
+
+// DELETE /instances/:id/ollama/model — delete an installed model
+export const deleteOllamaModel = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const { model } = await c.req.json<{ model: string }>()
+        if (!model) return fail(c, 'Model required', 400)
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance?.ip) return fail(c, 'Instance not ready', 400)
+
+        // Safe model ID (from whitelist check)
+        const safeModel = model.replace(/[^a-zA-Z0-9.:_-]/g, '')
+
+        await sshExec(instance.ip, `ollama rm "${safeModel}" 2>&1`, instance.rootPassword || undefined)
+
+        // Remove from openclaw.json
+        await sshExec(instance.ip, `
+            CONFIG="/home/openclaw/.openclaw/openclaw.json"
+            if [ -f "$CONFIG" ]; then
+                python3 -c "
+import json
+with open('$CONFIG') as f: d = json.load(f)
+prov = d.get('models',{}).get('providers',{}).get('ollama',{})
+prov['models'] = [m for m in prov.get('models',[]) if m.get('id') != '${safeModel}']
+d.get('agents',{}).get('defaults',{}).get('models',{}).pop('ollama/${safeModel}', None)
+with open('$CONFIG','w') as f: json.dump(d, f, indent=2)
+"
+                chown openclaw:openclaw "$CONFIG"
+                systemctl restart openclaw-gateway 2>/dev/null || true
+            fi
+        `, instance.rootPassword || undefined).catch(() => {})
+
+        return ok(c, { model: safeModel }, `${model} נמחק`)
+    } catch (err) {
+        console.error('deleteOllamaModel error:', err)
+        return fail(c, 'Failed to delete model', 500)
     }
 }
 

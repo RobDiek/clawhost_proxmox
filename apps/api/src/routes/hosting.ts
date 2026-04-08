@@ -129,7 +129,8 @@ import {
     listAgentIntegrations,
     getAgentIntegrationEndpoint,
     setAgentIntegrationEndpoint,
-    deleteAgentIntegrationEndpoint
+    deleteAgentIntegrationEndpoint,
+    deleteOllamaModel
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -256,6 +257,7 @@ app.get('/instances/:id/litellm/usage', getLitellmUsageEndpoint)
 app.get('/instances/:id/ollama/status', getOllamaStatus)
 app.post('/instances/:id/ollama/install', installOllama)
 app.post('/instances/:id/ollama/pull', pullOllamaModel)
+app.delete('/instances/:id/ollama/model', deleteOllamaModel)
 
 // ── Referral Program ──
 app.get('/referral/my-code', getMyReferralCode)
