@@ -3415,6 +3415,8 @@ async function loadOllamaStatus() {
       return;
     }
     var d = data.data;
+    // Store installed models for sub-agent model selector
+    window._ollamaInstalledModels = d.installedModels || [];
     if (d.running) {
       statusEl.textContent = 'פעיל'; statusEl.style.color = '#10B981';
       if (bodyEl) {
@@ -6288,8 +6290,12 @@ function getAvailableModels() {
     models.push({ value: 'openai/gpt-4o', label: 'GPT-4o' });
     models.push({ value: 'openai/gpt-4o-mini', label: 'GPT-4o mini (חסכוני)' });
   }
-  if (hasOllama) {
-    models.push({ value: 'ollama/llama3.1:8b', label: 'Ollama Llama 3.1 (מקומי)' });
+  if (hasOllama && window._ollamaInstalledModels && window._ollamaInstalledModels.length > 0) {
+    window._ollamaInstalledModels.forEach(function(m) {
+      models.push({ value: 'ollama/' + m, label: 'Ollama ' + m + ' (מקומי)' });
+    });
+  } else if (hasOllama) {
+    models.push({ value: 'ollama/local', label: 'Ollama (מקומי)' });
   }
 
   // Fallback if nothing connected
