@@ -6615,17 +6615,17 @@ function openAgentQuestionnaire() {
 }
 
 // Sub-agents data — defaults match AGENTS.md routing
-// Sub-agents with recommended model per role
+// Sub-agents with recommended models per role (multiple recommendations allowed)
 var SUB_AGENTS = [
-  { id: 'mateh', name: 'מטה', role: 'מתאם ומנהל', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: 'anthropic/claude-sonnet-4-6' },
-  { id: 'sayer', name: 'סייר', role: 'מחקר אינטרנט', defaultModel: 'groq/openai/gpt-oss-120b', recommended: 'groq/openai/gpt-oss-120b' },
-  { id: 'meater', name: 'מאתר', role: 'מחקר SERP', defaultModel: 'groq/openai/gpt-oss-120b', recommended: 'groq/openai/gpt-oss-120b' },
-  { id: 'maazin', name: 'מאזין', role: 'האזנה חברתית', defaultModel: 'groq/openai/gpt-oss-20b', recommended: 'groq/openai/gpt-oss-20b' },
-  { id: 'menateach', name: 'מנתח', role: 'ניתוח הזדמנויות', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: 'anthropic/claude-sonnet-4-6' },
-  { id: 'et', name: 'עט', role: 'כתיבת תוכן', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: 'anthropic/claude-sonnet-4-6' },
-  { id: 'yotzer', name: 'יוצר', role: 'קריאייטיב', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: 'anthropic/claude-sonnet-4-6' },
-  { id: 'shaliach', name: 'שליח', role: 'הפצה', defaultModel: 'groq/openai/gpt-oss-20b', recommended: 'groq/openai/gpt-oss-20b' },
-  { id: 'migdalor', name: 'מגדלור', role: 'ביקורת AEO', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: 'anthropic/claude-sonnet-4-6' },
+  { id: 'mateh', name: 'מטה', role: 'מתאם ומנהל', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'cerebras/gpt-oss-120b', 'groq/openai/gpt-oss-120b'] },
+  { id: 'sayer', name: 'סייר', role: 'מחקר אינטרנט', defaultModel: 'groq/openai/gpt-oss-120b', recommended: ['groq/openai/gpt-oss-120b', 'cerebras/gpt-oss-120b', 'cerebras/qwen-3-235b-a22b-instruct-2507'] },
+  { id: 'meater', name: 'מאתר', role: 'מחקר SERP', defaultModel: 'groq/openai/gpt-oss-120b', recommended: ['groq/openai/gpt-oss-120b', 'cerebras/gpt-oss-120b'] },
+  { id: 'maazin', name: 'מאזין', role: 'האזנה חברתית', defaultModel: 'groq/openai/gpt-oss-20b', recommended: ['groq/openai/gpt-oss-20b', 'cerebras/llama3.1-8b'] },
+  { id: 'menateach', name: 'מנתח', role: 'ניתוח הזדמנויות', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'cerebras/qwen-3-235b-a22b-instruct-2507', 'groq/qwen/qwen3-32b'] },
+  { id: 'et', name: 'עט', role: 'כתיבת תוכן', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6'] },
+  { id: 'yotzer', name: 'יוצר', role: 'קריאייטיב', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6'] },
+  { id: 'shaliach', name: 'שליח', role: 'הפצה', defaultModel: 'groq/openai/gpt-oss-20b', recommended: ['groq/openai/gpt-oss-20b', 'cerebras/llama3.1-8b', 'anthropic/claude-haiku-4-5-20251001'] },
+  { id: 'migdalor', name: 'מגדלור', role: 'ביקורת AEO', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'cerebras/gpt-oss-120b', 'groq/openai/gpt-oss-120b'] },
 ];
 
 // All possible models — always show all, dim unavailable
@@ -6656,15 +6656,15 @@ function getAvailableModels(subAgentId) {
   var hasCerebras = !!localStorage.getItem('cf_cerebras_saved');
   var providerStatus = { anthropic: hasAnthropic, groq: hasGroq, openai: hasOpenai, cerebras: hasCerebras };
 
-  // Find recommended model for this sub-agent
+  // Find recommended models for this sub-agent (array)
   var subAgent = SUB_AGENTS.find(function(a) { return a.id === subAgentId; });
-  var recommended = subAgent ? subAgent.recommended : '';
+  var recommendedList = subAgent ? subAgent.recommended : [];
 
   return ALL_MODELS.map(function(m) {
     var enabled = !!providerStatus[m.provider];
-    var isRecommended = m.value === recommended;
+    var isRecommended = recommendedList.indexOf(m.value) !== -1;
     var labelParts = m.label;
-    if (isRecommended) labelParts += ' ⭐';
+    if (isRecommended) labelParts += ' ⭐ מומלץ';
     if (m.tag) labelParts += ' (' + m.tag + ')';
     if (!enabled) labelParts += ' — לא מחובר';
     return { value: m.value, label: labelParts, enabled: enabled, recommended: isRecommended };
