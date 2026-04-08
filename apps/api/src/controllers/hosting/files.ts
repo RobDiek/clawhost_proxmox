@@ -419,6 +419,71 @@ export const saveIntegration = async (c: Context) => {
 
         await sshExecInstance(instance, `${cmd} && chown -R openclaw:openclaw /home/openclaw/.openclaw && systemctl restart openclaw-gateway`)
 
+        // Configure OpenClaw primary model when AI provider key is saved
+        if (type === 'groq' || type === 'anthropic' || type === 'openai') {
+            const CONFIG = '/home/openclaw/.openclaw/openclaw.json'
+            const modelConfigs: Record<string, { primary: string; fallbacks: string[]; models: Record<string, { alias: string }> }> = {
+                groq: {
+                    primary: 'groq/openai/gpt-oss-120b',
+                    fallbacks: ['groq/openai/gpt-oss-20b'],
+                    models: {
+                        'groq/openai/gpt-oss-120b': { alias: 'gpt-oss' },
+                        'groq/openai/gpt-oss-20b': { alias: 'gpt-oss-fast' },
+                        'groq/meta-llama/llama-4-scout-17b-16e-instruct': { alias: 'scout' },
+                        'groq/qwen/qwen3-32b': { alias: 'qwen' },
+                    },
+                },
+                anthropic: {
+                    primary: 'anthropic/claude-sonnet-4-6',
+                    fallbacks: ['anthropic/claude-haiku-4-5-20251001'],
+                    models: {
+                        'anthropic/claude-opus-4-6': { alias: 'opus' },
+                        'anthropic/claude-sonnet-4-6': { alias: 'sonnet' },
+                        'anthropic/claude-haiku-4-5-20251001': { alias: 'haiku' },
+                    },
+                },
+                openai: {
+                    primary: 'openai/gpt-4o',
+                    fallbacks: ['openai/gpt-4o-mini'],
+                    models: {
+                        'openai/gpt-4o': { alias: 'gpt4o' },
+                        'openai/gpt-4o-mini': { alias: 'gpt4o-mini' },
+                    },
+                },
+            }
+            const cfg = modelConfigs[type]
+            if (cfg) {
+                const configScript = Buffer.from(JSON.stringify(cfg)).toString('base64')
+                try {
+                    await sshExecInstance(instance, `
+                        python3 -c "
+import json, base64, sys
+cfg = json.loads(base64.b64decode('${configScript}'))
+with open('${CONFIG}') as f: d = json.load(f)
+defaults = d.setdefault('agents', {}).setdefault('defaults', {})
+model = defaults.setdefault('model', {})
+# Only set primary if no other provider is already primary, or if same provider
+current = model.get('primary', '')
+if not current or current.startswith('ollama/') or current.startswith('${type}/'):
+    model['primary'] = cfg['primary']
+    model['fallbacks'] = cfg['fallbacks']
+# Always merge models (don't overwrite other providers)
+existing = defaults.setdefault('models', {})
+for k, v in cfg['models'].items():
+    existing[k] = v
+with open('${CONFIG}', 'w') as f: json.dump(d, f, indent=2)
+print('OK: primary=' + model['primary'])
+"
+                        chown openclaw:openclaw ${CONFIG}
+                        systemctl restart openclaw-gateway
+                    `)
+                    console.log(`OpenClaw config updated: ${type} provider set as primary`)
+                } catch (err) {
+                    console.error(`Failed to update OpenClaw config for ${type}:`, err)
+                }
+            }
+        }
+
         // Deploy MCP server for integrations that have one
         const mcpDeployments: Record<string, () => object | null> = {
             brave: () => ({
