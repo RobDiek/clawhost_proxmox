@@ -386,7 +386,7 @@ export const saveIntegration = async (c: Context) => {
             replicate: writeConfig(`${VPS_HOME}/skills-config`, 'replicate.json', { apiToken: key }),
             ollama: `systemctl start ollama 2>/dev/null; ollama pull '${safeKey}' 2>/dev/null & cd /home/openclaw && openclaw provider add ollama --model '${safeKey}' 2>/dev/null || (mkdir -p ${VPS_HOME}/providers && echo '${Buffer.from(JSON.stringify({ provider: 'ollama', model: key })).toString('base64')}' | base64 -d > ${VPS_HOME}/providers/ollama.json)`,
             resend: writeConfig(`${VPS_HOME}/skills-config`, 'resend.json', { apiKey: key }),
-            smtp: writeConfig(`${VPS_HOME}/skills-config`, 'smtp.json', JSON.parse(key)),
+            smtp: (() => { try { return writeConfig(`${VPS_HOME}/skills-config`, 'smtp.json', JSON.parse(key)); } catch { return writeConfig(`${VPS_HOME}/skills-config`, 'smtp.json', { data: key }); } })(),
             wordpress: (() => { try { const p = JSON.parse(key); return writeConfig(`${VPS_HOME}/skills-config`, 'wordpress.json', p.constructor === Object ? p : { data: key }); } catch { return writeConfig(`${VPS_HOME}/skills-config`, 'wordpress.json', { data: key }); } })(),
             'newsletter-recipients': (() => { try { const p = JSON.parse(key); return writeConfig(`${VPS_HOME}/skills-config`, 'newsletter-recipients.json', p.constructor === Object ? p : { data: key }); } catch { return writeConfig(`${VPS_HOME}/skills-config`, 'newsletter-recipients.json', { data: key }); } })(),
         }
