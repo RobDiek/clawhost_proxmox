@@ -1130,19 +1130,91 @@ input{font-family:inherit}
           <button class="btn btn-primary btn-sm" onclick="saveIntegration('gemini')">שמרו</button>
         </div>
       </div>
-      <div class="int-card" id="ollama-card">
+      <div class="int-card" id="ollama-card" style="grid-column:span 2">
         <div class="int-card-header">
           <div class="int-icon" style="background:#111"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z" fill="white"/><path d="M8.5 8h3v8h-3V8zm4 0h3v8h-3V8z" fill="#111"/></svg></div>
-          <div><strong>Ollama (מקומי)</strong><div class="int-status" id="ollama-status">בודק...</div></div>
+          <div><strong>מודלים Open Source</strong><div class="int-status" id="ollama-status">בחרו שיטת הרצה</div></div>
         </div>
         <div class="int-card-body" id="int-ollama-body">
-          <div id="ollama-plan-info" style="font-size:.82rem;color:#6B7280;margin-bottom:8px"></div>
-          <div id="ollama-models-list" style="margin-bottom:8px"></div>
-          <div id="ollama-upgrade-prompt" style="display:none;background:#FFF7ED;border:1px solid #FDE68A;border-radius:8px;padding:12px;margin-bottom:8px;font-size:0.82rem">
+          <div style="font-size:.82rem;color:#6B7280;margin-bottom:12px">הריצו Llama, Qwen, Gemma ומודלים נוספים. בחרו איך להריץ:</div>
+
+          <!-- Backend selection -->
+          <div id="ollama-backend-select" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+            <!-- Groq Cloud -->
+            <div class="ollama-backend-opt" onclick="selectOllamaBackend('groq')" id="ollama-opt-groq" style="border:2px solid #E5E7EB;border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;text-align:center">
+              <div style="font-size:1.3rem;margin-bottom:4px">⚡</div>
+              <div style="font-weight:700;font-size:.88rem">Groq Cloud</div>
+              <div style="font-size:.72rem;color:#10B981;font-weight:600;margin:4px 0">מומלץ — חינם להתחלה</div>
+              <div style="font-size:.72rem;color:#6B7280">~300 tok/s · Llama 4, Qwen, Gemma</div>
+              <div style="font-size:.68rem;color:#9CA3AF;margin-top:4px">חינם: 30K tok/דקה · 500K/יום</div>
+              <div style="font-size:.68rem;color:#9CA3AF">בתשלום: $0.05-0.90/M tokens</div>
+            </div>
+            <!-- GPU Server -->
+            <div class="ollama-backend-opt" onclick="selectOllamaBackend('gpu')" id="ollama-opt-gpu" style="border:2px solid #E5E7EB;border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;text-align:center;opacity:.7">
+              <div style="font-size:1.3rem;margin-bottom:4px">🖥</div>
+              <div style="font-weight:700;font-size:.88rem">GPU שרת</div>
+              <div style="font-size:.72rem;color:#F59E0B;font-weight:600;margin:4px 0">ביצועים גבוהים</div>
+              <div style="font-size:.72rem;color:#6B7280">RTX 4000+ · כל מודל עד 70B</div>
+              <div style="font-size:.68rem;color:#9CA3AF;margin-top:4px">מ-€184/חודש (Hetzner GEX44)</div>
+              <div style="font-size:.68rem;color:#9CA3AF">פרטיות מלאה · בלי הגבלות</div>
+            </div>
+            <!-- CPU Local -->
+            <div class="ollama-backend-opt" onclick="selectOllamaBackend('cpu')" id="ollama-opt-cpu" style="border:2px solid #E5E7EB;border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;text-align:center;opacity:.7">
+              <div style="font-size:1.3rem;margin-bottom:4px">💻</div>
+              <div style="font-weight:700;font-size:.88rem">CPU מקומי</div>
+              <div style="font-size:.72rem;color:#EF4444;font-weight:600;margin:4px 0">מוגבל</div>
+              <div style="font-size:.72rem;color:#6B7280">רק מודלים קטנים (0.8B-4B)</div>
+              <div style="font-size:.68rem;color:#9CA3AF;margin-top:4px">חינם — כלול בתוכנית</div>
+              <div style="font-size:.68rem;color:#9CA3AF">לסיווג/ניתוב בלבד</div>
+            </div>
+          </div>
+
+          <!-- Groq panel (hidden by default) -->
+          <div id="ollama-panel-groq" style="display:none">
+            <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:12px;margin-bottom:10px;font-size:.82rem">
+              <strong>⚡ Groq Cloud</strong> — הדרך המהירה והזולה ביותר להריץ מודלים Open Source. נרשמו בחינם ב-<a href="https://console.groq.com" target="_blank" style="color:#2563EB">console.groq.com</a> והעתיקו את ה-API Key.
+            </div>
+            <div style="display:flex;gap:6px;margin-bottom:10px">
+              <input type="password" id="groq-key-ollama" placeholder="gsk_..." dir="ltr" class="int-input" style="flex:1"/>
+              <button class="btn btn-primary btn-sm" onclick="saveApiKey('groq');document.getElementById('groq-key').value=document.getElementById('groq-key-ollama').value">שמרו</button>
+            </div>
+            <div style="font-size:.78rem;color:#6B7280;margin-bottom:8px">מודלים זמינים ב-Groq:</div>
+            <div style="border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;font-size:.82rem">
+              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>Llama 4 Scout (17B MoE)</strong> ⭐<br/><span style="color:#6B7280;font-size:.75rem">Meta — הטוב ביותר באיזון מהירות/איכות</span></span><span style="color:#10B981;font-size:.72rem">$0.11/M</span></div>
+              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>Qwen QwQ 32B</strong><br/><span style="color:#6B7280;font-size:.75rem">Alibaba — חשיבה עמוקה, עברית טובה</span></span><span style="color:#10B981;font-size:.72rem">$0.20/M</span></div>
+              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>Gemma 2 9B</strong><br/><span style="color:#6B7280;font-size:.75rem">Google — חסכוני, מהיר</span></span><span style="color:#10B981;font-size:.72rem">$0.05/M</span></div>
+              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px"><span style="flex:1"><strong>Llama 3.3 70B</strong><br/><span style="color:#6B7280;font-size:.75rem">Meta — מתקדם, context ארוך</span></span><span style="color:#10B981;font-size:.72rem">$0.27/M</span></div>
+            </div>
+          </div>
+
+          <!-- GPU panel (hidden by default) -->
+          <div id="ollama-panel-gpu" style="display:none">
+            <div style="background:#FFF7ED;border:1px solid #FDE68A;border-radius:8px;padding:12px;margin-bottom:10px;font-size:.82rem">
+              <strong>🖥 GPU שרת ייעודי</strong> — הריצו כל מודל Open Source במהירות מלאה. דורש שרת GPU נפרד (Hetzner GEX44 מ-€184/חודש).
+            </div>
+            <div style="border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;font-size:.82rem;margin-bottom:10px">
+              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>Hetzner GEX44</strong><br/><span style="color:#6B7280;font-size:.75rem">RTX 4000 SFF Ada · 20GB VRAM · AMD Ryzen 7</span></span><span style="font-weight:600;font-size:.82rem">€184/חודש</span></div>
+              <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #F3F4F6"><span style="flex:1"><strong>Hetzner GEX88</strong><br/><span style="color:#6B7280;font-size:.75rem">RTX 6000 Ada · 48GB VRAM · AMD Ryzen 9</span></span><span style="font-weight:600;font-size:.82rem">~€350/חודש</span></div>
+            </div>
+            <div style="font-size:.78rem;color:#6B7280;margin-bottom:6px">מודלים שירוצו על GPU:</div>
+            <div style="font-size:.75rem;color:#9CA3AF">Qwen 3.5 27B · Gemma 4 31B · Llama 4 Scout · Devstral 24B — כולם במהירות מלאה</div>
+            <div style="margin-top:10px"><button class="btn btn-outline btn-sm" onclick="window.open('https://www.hetzner.com/dedicated-rootserver/gex44/','_blank')" style="font-size:.78rem">🔗 Hetzner GPU Servers</button> <button class="btn btn-outline btn-sm" style="font-size:.78rem;margin-right:6px" onclick="showToast('צרו קשר בטלגרם לעזרה בהגדרה','info')">📞 עזרה בהגדרה</button></div>
+          </div>
+
+          <!-- CPU panel (hidden by default) -->
+          <div id="ollama-panel-cpu" style="display:none">
+            <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:12px;margin-bottom:10px;font-size:.82rem">
+              <strong>⚠️ מוגבל</strong> — הרצה על CPU ללא GPU מתאימה רק למודלים קטנים (0.8B-4B) למשימות סיווג וניתוב. <strong>לא מתאים לכתיבת תוכן או שיחה</strong> — מודלים גדולים יחרגו מזמן התגובה.
+            </div>
+            <div id="ollama-cpu-models"></div>
+            <button class="btn btn-outline btn-sm" onclick="loadOllamaStatus()" style="font-size:0.75rem">&#8635; רענון</button>
+          </div>
+
+          <!-- Upgrade prompt (shared) -->
+          <div id="ollama-upgrade-prompt" style="display:none;background:#FFF7ED;border:1px solid #FDE68A;border-radius:8px;padding:12px;margin-top:8px;font-size:0.82rem">
             <div style="font-weight:600;color:#92400E;margin-bottom:4px" id="ollama-upgrade-msg"></div>
             <button class="btn btn-primary btn-sm" id="ollama-upgrade-btn" style="font-size:0.78rem">⬆️ שדרגו תוכנית</button>
           </div>
-          <button class="btn btn-outline btn-sm" onclick="loadOllamaStatus()" style="font-size:0.75rem">&#8635; רענון</button>
         </div>
       </div>
     </div>
@@ -3407,10 +3479,55 @@ function toggleTaskExpand(el) {
 }
 
 /* ===== Ollama Status & Model Management ===== */
+/* ===== Ollama Backend Selection ===== */
+var ollamaBackend = localStorage.getItem('cf_ollama_backend') || '';
+
+function selectOllamaBackend(backend) {
+  ollamaBackend = backend;
+  localStorage.setItem('cf_ollama_backend', backend);
+  // Highlight selected option
+  document.querySelectorAll('.ollama-backend-opt').forEach(function(el) {
+    el.style.borderColor = '#E5E7EB';
+    el.style.background = '#fff';
+    el.style.opacity = '0.7';
+  });
+  var selected = document.getElementById('ollama-opt-' + backend);
+  if (selected) {
+    selected.style.borderColor = '#2563EB';
+    selected.style.background = '#EFF6FF';
+    selected.style.opacity = '1';
+  }
+  // Show/hide panels
+  document.getElementById('ollama-panel-groq').style.display = backend === 'groq' ? '' : 'none';
+  document.getElementById('ollama-panel-gpu').style.display = backend === 'gpu' ? '' : 'none';
+  document.getElementById('ollama-panel-cpu').style.display = backend === 'cpu' ? '' : 'none';
+  // Load CPU models if selected
+  if (backend === 'cpu') loadOllamaStatus();
+  // Update status
+  var statusEl = document.getElementById('ollama-status');
+  if (statusEl) {
+    if (backend === 'groq') statusEl.textContent = localStorage.getItem('cf_groq_saved') ? 'Groq מחובר' : 'Groq — נדרש API Key';
+    else if (backend === 'gpu') statusEl.textContent = 'GPU — נדרש שרת';
+    else if (backend === 'cpu') statusEl.textContent = 'CPU מקומי';
+  }
+}
+
+// Restore saved selection on page load
+function initOllamaBackendUI() {
+  if (ollamaBackend) {
+    selectOllamaBackend(ollamaBackend);
+  }
+  // If Groq key already saved, show connected
+  if (localStorage.getItem('cf_groq_saved') && ollamaBackend === 'groq') {
+    var statusEl = document.getElementById('ollama-status');
+    if (statusEl) { statusEl.textContent = 'Groq מחובר'; statusEl.style.color = '#10B981'; }
+  }
+}
+
 async function loadOllamaStatus() {
   var hasOl = components.indexOf('ol') !== -1;
   var statusEl = document.getElementById('ollama-status');
-  var bodyEl = document.getElementById('int-ollama-body');
+  var bodyEl = document.getElementById('ollama-cpu-models');
   if (!statusEl) return;
 
   if (!hasOl) {
@@ -4503,8 +4620,10 @@ function filterIntegrationsByAgent() {
 function renderIntegrations() {
   // Filter integration sections by active agent type
   filterIntegrationsByAgent();
-  // Check Ollama status
-  loadOllamaStatus();
+  // Init Ollama backend UI (Groq / GPU / CPU selector)
+  initOllamaBackendUI();
+  // Only load Ollama CPU status if CPU backend selected
+  if (ollamaBackend === 'cpu') loadOllamaStatus();
   // Load MCP servers
   loadMcpServers();
   // Check Microsoft status
