@@ -36,6 +36,7 @@ const COMPONENTS: ComponentInfo[] = [
     { id: 'ap', nameHe: 'Activepieces', nameEn: 'Activepieces', ram: 0.5, category: 'automation', available: true },
     { id: 'df', nameHe: 'Dify AI Studio', nameEn: 'Dify AI Studio', ram: 1.0, category: 'automation', available: true },
     { id: 'ol', nameHe: 'Ollama (מודל מקומי)', nameEn: 'Ollama (Local Model)', ram: 8.0, category: 'ai', available: true },
+    { id: 'tw', nameHe: 'Twenty CRM', nameEn: 'Twenty CRM', ram: 2.0, category: 'extras', available: true },
 ]
 
 const ADDONS = [

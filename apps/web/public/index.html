@@ -1202,7 +1202,7 @@ const PLANS = [
 
 const COMPONENT_RAM = {
   base: 0.5, oc: 1, mt: 4, bare: 1,
-  n8: 0.5, ap: 0.5, ol: 8,
+  n8: 0.5, ap: 0.5, ol: 8, tw: 2,
 };
 
 const CATEGORIES = [
@@ -1346,6 +1346,20 @@ const ITEMS = [
       featHe: ['\u05D2\u05D9\u05D1\u05D5\u05D9 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05DB\u05DC \u05D9\u05D5\u05DD \u05D1\u05D7\u05E6\u05D5\u05EA', '7 \u05D9\u05DE\u05D9 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DC\u05E9\u05D7\u05D6\u05D5\u05E8', '\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D1\u05DC\u05D7\u05D9\u05E6\u05D4 \u05D0\u05D7\u05EA \u05DE\u05DC\u05D5\u05D7 \u05D4\u05D1\u05E7\u05E8\u05D4', '\u05D0\u05D7\u05E1\u05D5\u05DF \u05D2\u05D9\u05D1\u05D5\u05D9 \u05DC\u05D0 \u05E0\u05DB\u05DC\u05DC \u05D1\u05DE\u05DB\u05E1\u05EA \u05D4-VPS'],
       featEn: ['Automatic backup every night', '7-day restore history', 'One-click restore from Dashboard', 'Backup storage outside VPS quota'],
       tech: '+\u20AA19/\u05D7\u05D5\u05D3\u05E9', price: 19,
+    },
+  },
+  {
+    id: 'tw', cat: 'extras', ram: 2,
+    he: 'Twenty CRM', en: 'Twenty CRM',
+    descHe: 'מערכת CRM מובנית — ניהול לידים, לקוחות, משימות, תוכן ופרויקטים. הסוכנים עובדים ישירות עם ה-CRM.',
+    descEn: 'Built-in CRM — manage leads, clients, tasks, content & projects. Agents work directly with CRM data.',
+    detail: {
+      tagHe: 'CRM עסקי', tagEn: 'Business CRM', tagBg: '#1a1a2e', tagColor: '#5B5BD6',
+      descHe: 'Twenty CRM — מערכת ניהול לקוחות ופרויקטים Open Source. הסוכנים יוצרים לידים, מעדכנים סטטוסים, מנהלים משימות ומאחסנים מחקרי שוק — הכל אוטומטי. ממשק ויזואלי עם Kanban, טבלאות, לוח שנה ודוחות.',
+      descEn: 'Twenty CRM — Open Source customer & project management. Agents create leads, update statuses, manage tasks and store market research — all automated. Visual interface with Kanban, tables, calendar and reports.',
+      featHe: ['ניהול לידים ולקוחות — אנשי קשר, חברות, הזדמנויות', 'Kanban Board — צפייה ויזואלית בסטטוס כל משימה', 'לוח שנה — סנכרון עם Google Calendar', 'Custom Objects — יצירת שדות וטבלאות מותאמים', 'אינטגרציה עם סוכני AI — MCP Server מובנה (29 כלים)', 'אימייל מובנה — סנכרון תיבת דואר', 'Workflows — אוטומציות פנימיות', 'API מלא — GraphQL + REST'],
+      featEn: ['Contact & Company management — leads, clients, opportunities', 'Kanban Board — visual task status tracking', 'Calendar — Google Calendar sync', 'Custom Objects — create custom fields and tables', 'AI Agent integration — built-in MCP Server (29 tools)', 'Built-in email — mailbox sync', 'Workflows — internal automations', 'Full API — GraphQL + REST'],
+      tech: 'RAM: 2GB · PostgreSQL (shared) · Disk: ~1GB',
     },
   },
   {

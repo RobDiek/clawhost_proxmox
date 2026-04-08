@@ -61,7 +61,8 @@ function calcAvailableRam(planRam: number, components: string[]): number {
     const qdrantRam = 0.3       // Qdrant (Mem0) — small footprint when idle
     const agentRam = components.includes('mt') ? 1.5 : 0.3  // MATEH runtime (not peak)
     const ollamaDaemon = components.includes('ol') ? 0.2 : 0  // Ollama service itself
-    return Math.max(0, planRam - systemOverhead - gatewayRam - automationRam - qdrantRam - agentRam - ollamaDaemon)
+    const twentyRam = components.includes('tw') ? 1.5 : 0    // Twenty CRM (PostgreSQL shared)
+    return Math.max(0, planRam - systemOverhead - gatewayRam - automationRam - qdrantRam - agentRam - ollamaDaemon - twentyRam)
 }
 
 // GET /instances/:id/ollama/status — check Ollama state + available models
