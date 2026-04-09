@@ -113,6 +113,18 @@ print('MCP configured:', '$CFG')
         console.error('Twenty MCP setup failed (non-critical):', mcpErr)
     }
 
+    // Create sub-agent users if MATEH is installed
+    const [currentInstance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+    const comps = (currentInstance?.selectedComponents as string[]) || []
+    if (comps.includes('mt')) {
+        try {
+            await createMatehAgentUsers(ip, sshPassword)
+            console.log(`MATEH sub-agents created in Twenty for ${instanceId}`)
+        } catch (agentErr) {
+            console.error('MATEH agent users creation failed (non-critical):', agentErr)
+        }
+    }
+
     // Save Twenty credentials to instance (merge into researchData)
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     const existing = (typeof inst?.researchData === 'object' && inst.researchData) ? inst.researchData as Record<string, unknown> : {}
@@ -124,6 +136,52 @@ print('MCP configured:', '$CFG')
             ...(twentyApiKey ? { twentyApiKey } : {}),
         } as any,
     }).where(eq(instances.id, instanceId))
+}
+
+/** MATEH sub-agents as CRM users — each agent gets its own identity in Twenty */
+const MATEH_AGENTS = [
+    { id: 'sayer',     firstName: 'סייר',    lastName: 'סוכן' },
+    { id: 'meater',    firstName: 'מאתר',    lastName: 'סוכן' },
+    { id: 'maazin',    firstName: 'מאזין',   lastName: 'סוכן' },
+    { id: 'menateach', firstName: 'מנתח',    lastName: 'סוכן' },
+    { id: 'et',        firstName: 'עט',      lastName: 'סוכן' },
+    { id: 'yotzer',    firstName: 'יוצר',    lastName: 'סוכן' },
+    { id: 'shaliach',  firstName: 'שליח',    lastName: 'סוכן' },
+    { id: 'migdalor',  firstName: 'מגדלור',  lastName: 'סוכן' },
+]
+
+async function createMatehAgentUsers(ip: string, sshPassword?: string) {
+    // Build SQL for all agents in one batch
+    const sqlParts = MATEH_AGENTS.map(a => {
+        const email = `${a.id}@agent.clawflow.local`
+        return `
+DO $$ DECLARE
+  uid UUID; wsid UUID; wschema TEXT; uwid UUID := gen_random_uuid(); wmid UUID := gen_random_uuid();
+BEGIN
+  -- Get workspace
+  SELECT id INTO wsid FROM core.workspace WHERE "activationStatus"='ACTIVE' LIMIT 1;
+  SELECT schema INTO wschema FROM core."dataSource" WHERE "workspaceId"=wsid LIMIT 1;
+  IF wsid IS NULL OR wschema IS NULL THEN RETURN; END IF;
+
+  -- Create user
+  INSERT INTO core."user" (id, "firstName", "lastName", email, "isEmailVerified", disabled, "canImpersonate", "canAccessFullAdminPanel", locale, "createdAt", "updatedAt")
+  VALUES (gen_random_uuid(), '${a.firstName}', '${a.lastName}', '${email}', true, false, false, false, 'he', NOW(), NOW())
+  ON CONFLICT (email) WHERE "deletedAt" IS NULL DO NOTHING;
+
+  SELECT id INTO uid FROM core."user" WHERE email='${email}' AND "deletedAt" IS NULL LIMIT 1;
+
+  -- Link to workspace
+  INSERT INTO core."userWorkspace" (id, "userId", "workspaceId", "createdAt", "updatedAt")
+  VALUES (uwid, uid, wsid, NOW(), NOW()) ON CONFLICT DO NOTHING;
+
+  -- Create workspace member
+  EXECUTE format('INSERT INTO %I."workspaceMember" (id, "userId", "nameFirstName", "nameLastName", "userEmail", locale, "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) ON CONFLICT DO NOTHING', wschema)
+  USING wmid, uid, '${a.firstName}', '${a.lastName}', '${email}', 'he';
+END $$;`
+    }).join('\n')
+
+    const cmd = `PGPASSWORD=twenty docker exec -i -e PGPASSWORD=twenty openclaw-twenty-db-1 psql -U twenty -d twenty << 'SQEOF'\n${sqlParts}\nSQEOF`
+    await sshExec(ip, cmd, sshPassword, 30000)
 }
 
 export const installTwenty = async (c: Context) => {
