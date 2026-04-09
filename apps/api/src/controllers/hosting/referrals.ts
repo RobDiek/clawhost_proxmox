@@ -4,14 +4,10 @@ import { db } from '@/db'
 import { referrals, instances, users } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { randomBytes } from 'crypto'
+import { resolveUserId } from './authHelper'
 
 function generateCode(): string {
     return 'CF-' + randomBytes(4).toString('base64url').toUpperCase().slice(0, 8)
-}
-
-// Helper: get userId from JWT
-function resolveUserId(c: Context): string | null {
-    return c.get('userId') || null
 }
 
 // GET /referral/my-code — get or create referral code for current user
