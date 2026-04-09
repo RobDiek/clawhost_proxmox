@@ -68,11 +68,69 @@ async function autoSetupTwentyAdmin(ip: string, instanceId: string, userId: stri
     const result = await sshExec(ip, signupCmd, sshPassword, 30000)
     console.log(`Twenty auto-setup for ${instanceId}: ${result}`)
 
+    // Generate API key for MCP integration (agents need this)
+    let twentyApiKey = ''
+    try {
+        // Get workspace ID from Twenty DB
+        const wsIdCmd = `PGPASSWORD=twenty docker exec -e PGPASSWORD=twenty openclaw-twenty-db-1 psql -U twenty -d twenty -t -A -c "SELECT id FROM core.workspace WHERE \\"activationStatus\\"='ACTIVE' LIMIT 1;"`
+        const wsId = (await sshExec(ip, wsIdCmd, sshPassword, 15000)).trim()
+
+        if (wsId) {
+            // Generate API key via Twenty CLI (NODE_ENV=development unlocks the command)
+            const apiKeyCmd = `docker exec -e NODE_ENV=development openclaw-twenty-1 node dist/command/command workspace:generate-api-key --workspace-id ${wsId} 2>&1 | grep "TOKEN:" | sed "s/.*TOKEN://"`
+            twentyApiKey = (await sshExec(ip, apiKeyCmd, sshPassword, 60000)).trim()
+            console.log(`Twenty API key generated for ${instanceId}: ${twentyApiKey ? 'OK' : 'EMPTY'}`)
+        }
+
+        // Configure MCP server in OpenClaw
+        if (twentyApiKey) {
+            const mcpConfigCmd = `
+CONFIG=$(find /home -name openclaw.json -path "*/.openclaw/*" 2>/dev/null | head -1)
+[ -z "$CONFIG" ] && CONFIG=$(find /root -name openclaw.json -path "*/.openclaw/*" 2>/dev/null | head -1)
+[ -z "$CONFIG" ] && CONFIG="/home/openclaw/.openclaw/openclaw.json"
+mkdir -p "$(dirname "$CONFIG")"
+python3 << 'PYEOF'
+import json, os
+config_path = os.popen('find /home -name openclaw.json -path "*/.openclaw/*" 2>/dev/null | head -1').read().strip()
+if not config_path:
+    config_path = os.popen('find /root -name openclaw.json -path "*/.openclaw/*" 2>/dev/null | head -1').read().strip()
+if not config_path:
+    config_path = "/home/openclaw/.openclaw/openclaw.json"
+config = {}
+if os.path.exists(config_path):
+    with open(config_path) as f:
+        config = json.load(f)
+config.setdefault("mcp", {}).setdefault("servers", {})
+config["mcp"]["servers"]["twenty-crm"] = {
+    "command": "npx",
+    "args": ["-y", "@iflow-mcp/oumnya-twenty-mcp-server"],
+    "env": {
+        "TWENTY_API_KEY": "${twentyApiKey}",
+        "TWENTY_API_URL": "http://127.0.0.1:3080"
+    }
+}
+os.makedirs(os.path.dirname(config_path), exist_ok=True)
+with open(config_path, "w") as f:
+    json.dump(config, f, indent=2)
+print(f"MCP configured: {config_path}")
+PYEOF`
+            await sshExec(ip, mcpConfigCmd, sshPassword, 15000)
+            console.log(`Twenty MCP server configured for ${instanceId}`)
+        }
+    } catch (mcpErr) {
+        console.error('Twenty MCP setup failed (non-critical):', mcpErr)
+    }
+
     // Save Twenty credentials to instance (merge into researchData)
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     const existing = (typeof inst?.researchData === 'object' && inst.researchData) ? inst.researchData as Record<string, unknown> : {}
     await db.update(instances).set({
-        researchData: { ...existing, twentyEmail: email, twentyPassword: twentyPassword } as any,
+        researchData: {
+            ...existing,
+            twentyEmail: email,
+            twentyPassword: twentyPassword,
+            ...(twentyApiKey ? { twentyApiKey } : {}),
+        } as any,
     }).where(eq(instances.id, instanceId))
 }
 
