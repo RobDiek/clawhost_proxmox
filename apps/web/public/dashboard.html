@@ -5383,6 +5383,9 @@ async function saveTelegram() {
 }
 
 function renderSettingsPage() {
+  // Load referral data
+  loadReferralData();
+
   // Name display
   var nameDisplay = document.getElementById('settingsNameDisplay');
   if (nameDisplay) nameDisplay.textContent = localStorage.getItem('cf_user_name') || email || '—';
@@ -7763,16 +7766,40 @@ function showToast(msg, type) {
   el._t = setTimeout(function() { el.classList.remove('show'); }, 3000);
 }
 
-// ── Referral Program (disabled — endpoints not implemented yet) ──
-function loadReferralData() { /* TODO: implement referral API */ }
+// ── Referral Program ──
+async function loadReferralData() {
+  try {
+    // Get or create referral code
+    var res = await fetch(API + '/hosting/referral/my-code', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (data.success && data.data) {
+      var linkEl = document.getElementById('referral-link');
+      if (linkEl) linkEl.value = data.data.link || '';
+    }
+
+    // Get referral stats
+    var res2 = await fetch(API + '/hosting/referral/my-referrals', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data2 = await res2.json();
+    if (data2.success && data2.data && data2.data.stats) {
+      var s = data2.data.stats;
+      var convEl = document.getElementById('ref-stats-converted');
+      var trialEl = document.getElementById('ref-stats-trial');
+      if (convEl) convEl.textContent = s.converted || 0;
+      if (trialEl) trialEl.textContent = s.trial || 0;
+    }
+  } catch (e) {
+    console.error('Referral load error:', e);
+  }
+}
+
 function copyReferralLink() {
   var input = document.getElementById('referral-link');
   if (input) { input.select(); navigator.clipboard.writeText(input.value).then(function() { showToast('הקישור הועתק!', 'success'); }); }
 }
-
-document.addEventListener('click', function(e) {
-  if (false && e.target.closest('[data-tab="settings"]')) setTimeout(loadReferralData, 150);
-});
 
 // ── Google Business Profile ──
 async function loadGbpStatus() {
