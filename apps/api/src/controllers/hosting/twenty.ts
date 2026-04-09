@@ -39,9 +39,10 @@ function sshExec(ip: string, command: string, password?: string, timeoutMs = 300
 
 /**
  * Wait for Twenty to be ready, then create admin account via GraphQL.
+ * Uses signUpInWorkspace which creates both user AND workspace.
  * Runs in background — if it fails, user can still register manually.
  */
-async function autoSetupTwentyAdmin(ip: string, instanceId: string, userId: string | null, password?: string) {
+async function autoSetupTwentyAdmin(ip: string, instanceId: string, userId: string | null, sshPassword?: string) {
     // Get user email from DB
     let email = 'admin@clawflow.co.il'
     if (userId) {
@@ -51,18 +52,20 @@ async function autoSetupTwentyAdmin(ip: string, instanceId: string, userId: stri
 
     // Generate a password for the Twenty admin
     const twentyPassword = randomBytes(12).toString('base64url')
-
-    // Wait for Twenty to become healthy (up to 2.5 min)
     const twentyUrl = 'http://127.0.0.1:3080'
-    const healthCmd = `for i in $(seq 1 30); do curl -sf -o /dev/null ${twentyUrl}/metadata -H 'Content-Type: application/json' -d '{"query":"{currentUser{id}}"}' && break; echo "waiting $i..."; sleep 5; done`
-    await sshExec(ip, healthCmd, password, 180000)
 
-    // Create first user via signUp mutation on /metadata endpoint
-    const mutation = `mutation { signUp(email: "${email}", password: "${twentyPassword}", locale: "en") { __typename } }`
+    // Fix storage permissions (Twenty runs as node user)
+    await sshExec(ip, 'chmod 777 /opt/openclaw/data/twenty', sshPassword, 10000)
+
+    // Wait for Twenty to become healthy (up to 3 min)
+    const healthCmd = `for i in $(seq 1 36); do curl -sf -o /dev/null ${twentyUrl}/metadata -H 'Content-Type: application/json' -d '{"query":"{__typename}"}' && break; echo "waiting $i..."; sleep 5; done`
+    await sshExec(ip, healthCmd, sshPassword, 210000)
+
+    // signUpInWorkspace creates user + workspace in one call
+    const mutation = `mutation { signUpInWorkspace(email: "${email}", password: "${twentyPassword}") { __typename } }`
     const payload = JSON.stringify({ query: mutation })
-
     const signupCmd = `curl -s -X POST ${twentyUrl}/metadata -H 'Content-Type: application/json' -d '${payload.replace(/'/g, "'\\''")}'`
-    const result = await sshExec(ip, signupCmd, password, 30000)
+    const result = await sshExec(ip, signupCmd, sshPassword, 30000)
     console.log(`Twenty auto-setup for ${instanceId}: ${result}`)
 
     // Save Twenty credentials to instance (merge into researchData)
@@ -147,6 +150,7 @@ services:
 TWEOF
             mkdir -p /opt/openclaw/data/twenty /opt/openclaw/data/twenty-db /opt/openclaw/data/twenty-redis
             chown -R 1001:1001 /opt/openclaw/data/twenty-db
+            chmod 777 /opt/openclaw/data/twenty
             cd /opt/openclaw && docker compose -f docker-compose.twenty.yml up -d
         `, instance.rootPassword || undefined, 300000)
 
