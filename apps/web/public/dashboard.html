@@ -1419,6 +1419,19 @@ input{font-family:inherit}
               </div>
               <a id="twenty-open-link" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="font-size:.78rem">פתחו CRM ↗</a>
             </div>
+            <div id="twenty-credentials" style="display:none;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px;margin-bottom:10px">
+              <div style="font-size:.78rem;font-weight:600;margin-bottom:6px;color:#374151">פרטי התחברות</div>
+              <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:.75rem">
+                <span style="color:#6B7280">Email:</span>
+                <span id="twenty-email" style="direction:ltr;font-family:monospace" dir="ltr"></span>
+                <span style="color:#6B7280">סיסמה:</span>
+                <span style="direction:ltr;font-family:monospace" dir="ltr">
+                  <span id="twenty-pass-masked">••••••••</span>
+                  <span id="twenty-pass-clear" style="display:none"></span>
+                  <button onclick="toggleTwentyPass()" style="background:none;border:none;cursor:pointer;font-size:.72rem;color:#2563EB;margin-right:6px" id="twenty-pass-toggle">הצגה</button>
+                </span>
+              </div>
+            </div>
             <div style="font-size:.78rem;color:#6B7280">
               <strong>MCP Server:</strong> מחובר · 29 כלים (Contacts, Companies, Tasks, Notes, Opportunities)
             </div>
@@ -3933,6 +3946,29 @@ function showTwentyInstalled(data) {
   var crmUrl = data && data.url ? data.url : 'https://crm.' + (instanceData && instanceData.subdomainName || subdomain) + '.clawflow.flowmatic.co.il';
   if (urlEl) urlEl.textContent = crmUrl;
   if (linkEl) linkEl.href = crmUrl;
+
+  // Show credentials if available (from instance researchData)
+  var rd = instanceData && instanceData.researchData;
+  if (rd && rd.twentyEmail && rd.twentyPassword) {
+    var credsEl = document.getElementById('twenty-credentials');
+    var emailEl = document.getElementById('twenty-email');
+    var passEl = document.getElementById('twenty-pass-clear');
+    if (credsEl) credsEl.style.display = '';
+    if (emailEl) emailEl.textContent = rd.twentyEmail;
+    if (passEl) passEl.textContent = rd.twentyPassword;
+  }
+}
+
+function toggleTwentyPass() {
+  var masked = document.getElementById('twenty-pass-masked');
+  var clear = document.getElementById('twenty-pass-clear');
+  var btn = document.getElementById('twenty-pass-toggle');
+  if (!masked || !clear || !btn) return;
+  if (masked.style.display === 'none') {
+    masked.style.display = ''; clear.style.display = 'none'; btn.textContent = 'הצגה';
+  } else {
+    masked.style.display = 'none'; clear.style.display = ''; btn.textContent = 'הסתרה';
+  }
 }
 
 function checkTwentyStatus() {

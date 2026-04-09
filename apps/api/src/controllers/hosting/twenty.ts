@@ -9,7 +9,7 @@ import type { Context } from 'hono'
 import { readFileSync } from 'fs'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { instances } from '@/db/schema'
+import { instances, users } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import { resolveUserId, getOwnedInstance } from './authHelper'
@@ -34,6 +34,43 @@ function sshExec(ip: string, command: string, password?: string, timeoutMs = 300
         try { opts.privateKey = readFileSync(SSH_KEY_PATH) } catch {}
         conn.connect(opts)
     })
+}
+
+/**
+ * Wait for Twenty to be ready, then create admin account via GraphQL.
+ * Runs in background — if it fails, user can still register manually.
+ */
+async function autoSetupTwentyAdmin(ip: string, instanceId: string, userId: string | null, password?: string) {
+    // Get user email from DB
+    let email = 'admin@clawflow.co.il'
+    if (userId) {
+        const [user] = await db.select().from(users).where(eq(users.id, userId))
+        if (user?.email) email = user.email
+    }
+
+    // Generate a password for the Twenty admin
+    const twentyPassword = require('crypto').randomBytes(12).toString('base64url')
+
+    // Wait for Twenty to become healthy (up to 2 min)
+    const twentyUrl = 'http://127.0.0.1:3080'
+    const healthCmd = `for i in $(seq 1 24); do curl -sf -o /dev/null ${twentyUrl}/api && break; echo "waiting $i..."; sleep 5; done`
+    await sshExec(ip, healthCmd, password, 150000)
+
+    // Call signUpInNewWorkspace GraphQL mutation
+    const mutation = JSON.stringify({
+        query: `mutation SignUp { signUpInNewWorkspace(input: { email: "${email}", password: "${twentyPassword}" }) { loginToken { token expiresAt } } }`
+    })
+
+    const signupCmd = `curl -s -X POST ${twentyUrl}/api -H 'Content-Type: application/json' -d '${mutation.replace(/'/g, "'\\''")}'`
+    const result = await sshExec(ip, signupCmd, password, 30000)
+    console.log(`Twenty auto-setup for ${instanceId}: ${result}`)
+
+    // Save Twenty credentials to instance (merge into researchData)
+    const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+    const existing = (typeof inst?.researchData === 'object' && inst.researchData) ? inst.researchData as Record<string, unknown> : {}
+    await db.update(instances).set({
+        researchData: { ...existing, twentyEmail: email, twentyPassword: twentyPassword } as any,
+    }).where(eq(instances.id, instanceId))
 }
 
 export const installTwenty = async (c: Context) => {
@@ -169,6 +206,12 @@ TWNGX
 
         const crmUrl = `https://crm.${subdomain}.clawflow.flowmatic.co.il`
         console.log(`Twenty CRM installed on ${instanceId}: ${crmUrl}`)
+
+        // Auto-create admin account (background — Twenty needs ~30s to start)
+        const userId = resolveUserId(c)
+        autoSetupTwentyAdmin(instance.ip, instanceId, userId, instance.rootPassword || undefined).catch(err => {
+            console.error('Twenty auto-setup failed (user can still register manually):', err)
+        })
 
         return ok(c, { url: crmUrl }, 'Twenty CRM installed')
     } catch (err) {
