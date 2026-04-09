@@ -62,7 +62,9 @@ async function autoSetupTwentyAdmin(ip: string, instanceId: string, userId: stri
     await sshExec(ip, healthCmd, sshPassword, 210000)
 
     // signUpInWorkspace creates user + workspace in one call
-    const mutation = `mutation { signUpInWorkspace(email: "${email}", password: "${twentyPassword}") { __typename } }`
+    const safeEmail = email.replace(/["\\]/g, '')
+    const safePass = twentyPassword.replace(/["\\]/g, '')
+    const mutation = `mutation { signUpInWorkspace(email: "${safeEmail}", password: "${safePass}") { __typename } }`
     const payload = JSON.stringify({ query: mutation })
     const signupCmd = `curl -s -X POST ${twentyUrl}/metadata -H 'Content-Type: application/json' -d '${payload.replace(/'/g, "'\\''")}'`
     const result = await sshExec(ip, signupCmd, sshPassword, 30000)
@@ -71,9 +73,9 @@ async function autoSetupTwentyAdmin(ip: string, instanceId: string, userId: stri
     // Generate API key for MCP integration (agents need this)
     let twentyApiKey = ''
     try {
-        // Get workspace ID from Twenty DB
-        const wsIdCmd = `PGPASSWORD=twenty docker exec -e PGPASSWORD=twenty openclaw-twenty-db-1 psql -U twenty -d twenty -t -A -c "SELECT id FROM core.workspace WHERE \\"activationStatus\\"='ACTIVE' LIMIT 1;"`
-        const wsId = (await sshExec(ip, wsIdCmd, sshPassword, 15000)).trim()
+        // Wait for workspace to become ACTIVE (signUpInWorkspace sets PENDING_CREATION initially)
+        const waitWsCmd = `for i in $(seq 1 12); do WS=$(PGPASSWORD=twenty docker exec -e PGPASSWORD=twenty openclaw-twenty-db-1 psql -U twenty -d twenty -t -A -c "SELECT id FROM core.workspace WHERE \\"activationStatus\\"='ACTIVE' LIMIT 1;"); [ -n "$WS" ] && echo "$WS" && exit 0; sleep 5; done; PGPASSWORD=twenty docker exec -e PGPASSWORD=twenty openclaw-twenty-db-1 psql -U twenty -d twenty -t -A -c "SELECT id FROM core.workspace LIMIT 1;"`
+        const wsId = (await sshExec(ip, waitWsCmd, sshPassword, 90000)).trim()
 
         if (wsId) {
             // Generate API key via Twenty CLI (NODE_ENV=development unlocks the command)
@@ -84,36 +86,26 @@ async function autoSetupTwentyAdmin(ip: string, instanceId: string, userId: stri
 
         // Configure MCP server in OpenClaw
         if (twentyApiKey) {
+            // Use sed-based approach to avoid heredoc interpolation issues
+            const escapedKey = twentyApiKey.replace(/[/\\&]/g, '\\$&')
             const mcpConfigCmd = `
-CONFIG=$(find /home -name openclaw.json -path "*/.openclaw/*" 2>/dev/null | head -1)
-[ -z "$CONFIG" ] && CONFIG=$(find /root -name openclaw.json -path "*/.openclaw/*" 2>/dev/null | head -1)
-[ -z "$CONFIG" ] && CONFIG="/home/openclaw/.openclaw/openclaw.json"
-mkdir -p "$(dirname "$CONFIG")"
-python3 << 'PYEOF'
-import json, os
-config_path = os.popen('find /home -name openclaw.json -path "*/.openclaw/*" 2>/dev/null | head -1').read().strip()
-if not config_path:
-    config_path = os.popen('find /root -name openclaw.json -path "*/.openclaw/*" 2>/dev/null | head -1').read().strip()
-if not config_path:
-    config_path = "/home/openclaw/.openclaw/openclaw.json"
-config = {}
-if os.path.exists(config_path):
-    with open(config_path) as f:
-        config = json.load(f)
-config.setdefault("mcp", {}).setdefault("servers", {})
-config["mcp"]["servers"]["twenty-crm"] = {
-    "command": "npx",
-    "args": ["-y", "@iflow-mcp/oumnya-twenty-mcp-server"],
-    "env": {
-        "TWENTY_API_KEY": "${twentyApiKey}",
-        "TWENTY_API_URL": "http://127.0.0.1:3080"
-    }
+CFG=$(find /home -name openclaw.json -path "*/.openclaw/*" 2>/dev/null | head -1)
+[ -z "$CFG" ] && CFG=$(find /root -name openclaw.json -path "*/.openclaw/*" 2>/dev/null | head -1)
+[ -z "$CFG" ] && CFG="/home/openclaw/.openclaw/openclaw.json"
+mkdir -p "$(dirname "$CFG")"
+[ ! -f "$CFG" ] && echo '{}' > "$CFG"
+python3 -c "
+import json, sys
+cfg = json.load(open('$CFG'))
+cfg.setdefault('mcp',{}).setdefault('servers',{})
+cfg['mcp']['servers']['twenty-crm'] = {
+  'command': 'npx',
+  'args': ['-y', '@iflow-mcp/oumnya-twenty-mcp-server'],
+  'env': {'TWENTY_API_KEY': sys.argv[1], 'TWENTY_API_URL': 'http://127.0.0.1:3080'}
 }
-os.makedirs(os.path.dirname(config_path), exist_ok=True)
-with open(config_path, "w") as f:
-    json.dump(config, f, indent=2)
-print(f"MCP configured: {config_path}")
-PYEOF`
+json.dump(cfg, open('$CFG','w'), indent=2)
+print('MCP configured:', '$CFG')
+" '${escapedKey}'`
             await sshExec(ip, mcpConfigCmd, sshPassword, 15000)
             console.log(`Twenty MCP server configured for ${instanceId}`)
         }

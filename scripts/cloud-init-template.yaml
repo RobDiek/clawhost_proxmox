@@ -515,6 +515,7 @@ runcmd:
         TWEOF
     - mkdir -p /opt/openclaw/data/twenty /opt/openclaw/data/twenty-db /opt/openclaw/data/twenty-redis
     - chown -R 1001:1001 /opt/openclaw/data/twenty-db
+    - chmod 777 /opt/openclaw/data/twenty
     - cd /opt/openclaw && docker compose -f docker-compose.twenty.yml up -d
 
     # Add Twenty CRM nginx config
