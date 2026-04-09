@@ -7,6 +7,7 @@
 
 import type { Context } from 'hono'
 import { readFileSync } from 'fs'
+import { randomBytes } from 'crypto'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances, users } from '@/db/schema'
@@ -49,7 +50,7 @@ async function autoSetupTwentyAdmin(ip: string, instanceId: string, userId: stri
     }
 
     // Generate a password for the Twenty admin
-    const twentyPassword = require('crypto').randomBytes(12).toString('base64url')
+    const twentyPassword = randomBytes(12).toString('base64url')
 
     // Wait for Twenty to become healthy (up to 2 min)
     const twentyUrl = 'http://127.0.0.1:3080'
@@ -92,7 +93,7 @@ export const installTwenty = async (c: Context) => {
         const automationPassword = instance.automationPassword || 'twenty-pass'
 
         // Generate APP_SECRET
-        const appSecret = require('crypto').randomBytes(32).toString('hex')
+        const appSecret = randomBytes(32).toString('hex')
 
         // Deploy Twenty CRM via SSH
         await sshExec(instance.ip, `
