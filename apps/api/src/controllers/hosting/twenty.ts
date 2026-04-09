@@ -52,17 +52,16 @@ async function autoSetupTwentyAdmin(ip: string, instanceId: string, userId: stri
     // Generate a password for the Twenty admin
     const twentyPassword = randomBytes(12).toString('base64url')
 
-    // Wait for Twenty to become healthy (up to 2 min)
+    // Wait for Twenty to become healthy (up to 2.5 min)
     const twentyUrl = 'http://127.0.0.1:3080'
-    const healthCmd = `for i in $(seq 1 24); do curl -sf -o /dev/null ${twentyUrl}/api && break; echo "waiting $i..."; sleep 5; done`
-    await sshExec(ip, healthCmd, password, 150000)
+    const healthCmd = `for i in $(seq 1 30); do curl -sf -o /dev/null ${twentyUrl}/metadata -H 'Content-Type: application/json' -d '{"query":"{currentUser{id}}"}' && break; echo "waiting $i..."; sleep 5; done`
+    await sshExec(ip, healthCmd, password, 180000)
 
-    // Call signUpInNewWorkspace GraphQL mutation
-    const mutation = JSON.stringify({
-        query: `mutation SignUp { signUpInNewWorkspace(input: { email: "${email}", password: "${twentyPassword}" }) { loginToken { token expiresAt } } }`
-    })
+    // Create first user via signUp mutation on /metadata endpoint
+    const mutation = `mutation { signUp(email: "${email}", password: "${twentyPassword}", locale: "en") { __typename } }`
+    const payload = JSON.stringify({ query: mutation })
 
-    const signupCmd = `curl -s -X POST ${twentyUrl}/api -H 'Content-Type: application/json' -d '${mutation.replace(/'/g, "'\\''")}'`
+    const signupCmd = `curl -s -X POST ${twentyUrl}/metadata -H 'Content-Type: application/json' -d '${payload.replace(/'/g, "'\\''")}'`
     const result = await sshExec(ip, signupCmd, password, 30000)
     console.log(`Twenty auto-setup for ${instanceId}: ${result}`)
 
