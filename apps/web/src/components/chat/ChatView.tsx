@@ -2,10 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type {
     ChatViewProps,
     ChatSelectedAgent,
-    ClawCardActions,
-    ClawWithAgents,
-    ErrorWithMessage,
-    ExportRateLimitError
+    ClawWithAgents
 } from '@/ts/Interfaces'
 import type { GatewayConnectionState } from '@/ts/Types'
 
@@ -28,37 +25,21 @@ import {
     TreeStructureIcon,
     ListBulletsIcon
 } from '@phosphor-icons/react'
-import { useUIStore, usePreferencesStore } from '@/lib/store'
+import { usePreferencesStore } from '@/lib/store'
 import {
     CHAT_SIDEBAR_VIEW_MODE,
-    GATEWAY_CONNECTION_STATE,
-    TOAST_TYPE
+    GATEWAY_CONNECTION_STATE
 } from '@/lib/constants'
 import { ClawAvatar } from '@/components/shared'
-import { getBaseDomain, api } from '@/lib'
+import { getBaseDomain } from '@/lib'
 import { generateSlug } from '@/lib/claw-utils'
-import {
-    useStartClaw,
-    useStopClaw,
-    useRestartClaw,
-    useDeleteClaw,
-    useCancelDeletion,
-    useHardDeleteClaw,
-    useRepairClaw,
-    useReinstallClaw,
-    useProfile,
-    useCancelPendingClaw
-} from '@/hooks'
+import { useProfile, useClawCardActions } from '@/hooks'
 import ChatSidebar from '@/components/chat/ChatSidebar'
 import ChatEmptyState from '@/components/chat/ChatEmptyState'
 import { ChatSkeleton } from '@/components/playground/AgentChat'
 import {
     ClawCardDropdownMenu,
-    ClawCardDialogs,
-    ClawCredentialsDialog,
-    ClawDiagnosticsDialog,
-    ClawLogsDialog,
-    ClawConfigDialog
+    ClawCardDialogsBundle
 } from '@/components/dashboard'
 import {
     AgentChat,
@@ -82,7 +63,6 @@ const ChatView: FC<ChatViewProps> = ({
     initialClawTab,
     onClawTabChange
 }): ReactNode => {
-    const { showToast } = useUIStore()
     const chatSidebarView = usePreferencesStore((s) => s.chatSidebarView)
     const setChatSidebarView = usePreferencesStore((s) => s.setChatSidebarView)
 
@@ -96,30 +76,7 @@ const ChatView: FC<ChatViewProps> = ({
     const [activeConnectionState, setActiveConnectionState] =
         useState<GatewayConnectionState>(GATEWAY_CONNECTION_STATE.DISCONNECTED)
     const isInitialMount = useRef(true)
-    const [showDeleteModal, setShowDeleteModal] = useState(false)
-    const [showStopModal, setShowStopModal] = useState(false)
-    const [showRestartModal, setShowRestartModal] = useState(false)
-    const [showHardDeleteModal, setShowHardDeleteModal] = useState(false)
-    const [showDiagnostics, setShowDiagnostics] = useState(false)
-    const [showLogs, setShowLogs] = useState(false)
-    const [showConfigDialog, setShowConfigDialog] = useState(false)
-    const [showReinstallModal, setShowReinstallModal] = useState(false)
-    const [showCredentials, setShowCredentials] = useState(false)
-    const [credentialsPassword, setCredentialsPassword] = useState<
-        string | null
-    >(null)
-    const [isFetchingCredentials, setIsFetchingCredentials] = useState(false)
-    const [isExporting, setIsExporting] = useState(false)
 
-    const startMutation = useStartClaw()
-    const stopMutation = useStopClaw()
-    const restartMutation = useRestartClaw()
-    const deleteMutation = useDeleteClaw()
-    const cancelDeletionMutation = useCancelDeletion()
-    const hardDeleteMutation = useHardDeleteClaw()
-    const repairMutation = useRepairClaw()
-    const reinstallMutation = useReinstallClaw()
-    const cancelPendingMutation = useCancelPendingClaw()
     const { data: profile } = useProfile({ enabled: true })
 
     useEffect(() => {
@@ -258,127 +215,11 @@ const ChatView: FC<ChatViewProps> = ({
 
     const headerDropdownClaw = activeClaw
 
-    const isMutating =
-        startMutation.isPending ||
-        stopMutation.isPending ||
-        restartMutation.isPending ||
-        deleteMutation.isPending ||
-        cancelDeletionMutation.isPending ||
-        hardDeleteMutation.isPending ||
-        repairMutation.isPending ||
-        reinstallMutation.isPending ||
-        cancelPendingMutation.isPending ||
-        isExporting ||
-        isFetchingCredentials
-
-    const handleShowCredentials = async () => {
-        if (!headerDropdownClaw) return
-        setIsFetchingCredentials(true)
-        try {
-            if (headerDropdownClaw.hasRootPassword) {
-                const res = await api.getClawCredentials(headerDropdownClaw.id)
-                setCredentialsPassword(res.rootPassword || null)
-            } else {
-                setCredentialsPassword(null)
-            }
-            setShowCredentials(true)
-        } catch {
-            showToast(t('errors.noPasswordAvailable'), TOAST_TYPE.ERROR)
-        } finally {
-            setIsFetchingCredentials(false)
-        }
-    }
-
-    const headerClawActions = useMemo((): ClawCardActions | null => {
-        if (!headerDropdownClaw) return null
-        const claw = headerDropdownClaw
-
-        const handleExport = async () => {
-            setIsExporting(true)
-            try {
-                await api.exportClaw(
-                    claw.id,
-                    `${claw.name}-${Math.random().toString(36).slice(2, 5)}-export.tar.gz`
-                )
-                showToast(t('dashboard.exportSuccess'), TOAST_TYPE.SUCCESS)
-            } catch (error) {
-                const retryAfter = (error as ExportRateLimitError).retryAfter
-                if (retryAfter && retryAfter > 30) {
-                    showToast(
-                        t('dashboard.exportRateLimited', {
-                            minutes: String(Math.ceil(retryAfter / 60))
-                        }),
-                        TOAST_TYPE.WARNING
-                    )
-                } else if (retryAfter && retryAfter > 0) {
-                    showToast(
-                        t('dashboard.exportRateLimitedSeconds', {
-                            seconds: String(retryAfter)
-                        }),
-                        TOAST_TYPE.WARNING
-                    )
-                } else {
-                    showToast(t('dashboard.exportFailed'), TOAST_TYPE.ERROR)
-                }
-            } finally {
-                setIsExporting(false)
-            }
-        }
-
-        return {
-            onStart: () =>
-                startMutation.mutate(claw.id, {
-                    onError: (err) => {
-                        const message =
-                            err instanceof Error
-                                ? err.message
-                                : typeof err === 'object' &&
-                                    err !== null &&
-                                    'message' in err
-                                  ? String((err as ErrorWithMessage).message)
-                                  : t('dashboard.startFailed')
-                        showToast(message, TOAST_TYPE.ERROR)
-                    }
-                }),
-            onShowStopModal: () => setShowStopModal(true),
-            onShowRestartModal: () => setShowRestartModal(true),
-            onShowDeleteModal: () => setShowDeleteModal(true),
-            onCancelDeletion: () => cancelDeletionMutation.mutate(claw.id),
-            onShowHardDeleteModal: () => setShowHardDeleteModal(true),
-            onShowDiagnostics: () => setShowDiagnostics(true),
-            onShowLogs: () => setShowLogs(true),
-            onShowConfig: () => setShowConfigDialog(true),
-            onUpdateInstance: () =>
-                repairMutation.mutate(claw.id, {
-                    onSuccess: () =>
-                        showToast(
-                            t('dashboard.updateInstanceSuccess'),
-                            TOAST_TYPE.SUCCESS
-                        ),
-                    onError: () =>
-                        showToast(
-                            t('dashboard.updateInstanceFailed'),
-                            TOAST_TYPE.ERROR
-                        )
-                }),
-            onShowReinstallModal: () => setShowReinstallModal(true),
-            onShowCredentials: handleShowCredentials,
-            onExport: handleExport,
-            onResumeCheckout: () => {
-                if (claw.checkoutUrl) window.open(claw.checkoutUrl, '_blank')
-            },
-            onCancelPending: () =>
-                cancelPendingMutation.mutate(claw.id.replace('pending-', ''))
-        }
-    }, [
-        headerDropdownClaw,
-        showToast,
-        startMutation,
-        cancelDeletionMutation,
-        repairMutation,
-        reinstallMutation,
-        cancelPendingMutation
-    ])
+    const {
+        actions: headerClawActions,
+        isMutating,
+        dialogsProps
+    } = useClawCardActions({ claw: headerDropdownClaw })
 
     return (
         <div className='relative flex h-full w-full overflow-hidden'>
@@ -655,78 +496,7 @@ const ChatView: FC<ChatViewProps> = ({
                     )}
                 </div>
             </div>
-            {headerDropdownClaw && (
-                <Fragment>
-                    <ClawCardDialogs
-                        clawName={headerDropdownClaw.name}
-                        showDeleteModal={showDeleteModal}
-                        setShowDeleteModal={setShowDeleteModal}
-                        showStopModal={showStopModal}
-                        setShowStopModal={setShowStopModal}
-                        showRestartModal={showRestartModal}
-                        setShowRestartModal={setShowRestartModal}
-                        showHardDeleteModal={showHardDeleteModal}
-                        setShowHardDeleteModal={setShowHardDeleteModal}
-                        onDelete={() =>
-                            deleteMutation.mutate(headerDropdownClaw.id)
-                        }
-                        onStop={() =>
-                            stopMutation.mutate(headerDropdownClaw.id)
-                        }
-                        onRestart={() =>
-                            restartMutation.mutate(headerDropdownClaw.id)
-                        }
-                        onHardDelete={() =>
-                            hardDeleteMutation.mutate(headerDropdownClaw.id)
-                        }
-                        isDeletePending={deleteMutation.isPending}
-                        isStopPending={stopMutation.isPending}
-                        isRestartPending={restartMutation.isPending}
-                        isHardDeletePending={hardDeleteMutation.isPending}
-                        showReinstallModal={showReinstallModal}
-                        setShowReinstallModal={setShowReinstallModal}
-                        onReinstall={() =>
-                            reinstallMutation.mutate(headerDropdownClaw.id, {
-                                onSuccess: () =>
-                                    showToast(
-                                        t('dashboard.reinstallInstanceSuccess'),
-                                        'success'
-                                    ),
-                                onError: (err: Error) =>
-                                    showToast(
-                                        err.message ||
-                                            t(
-                                                'dashboard.reinstallInstanceFailed'
-                                            ),
-                                        'error'
-                                    )
-                            })
-                        }
-                        isReinstallPending={reinstallMutation.isPending}
-                    />
-                    <ClawDiagnosticsDialog
-                        clawId={headerDropdownClaw.id}
-                        open={showDiagnostics}
-                        onOpenChange={setShowDiagnostics}
-                    />
-                    <ClawLogsDialog
-                        clawId={headerDropdownClaw.id}
-                        open={showLogs}
-                        onOpenChange={setShowLogs}
-                    />
-                    <ClawConfigDialog
-                        clawId={headerDropdownClaw.id}
-                        open={showConfigDialog}
-                        onOpenChange={setShowConfigDialog}
-                    />
-                    <ClawCredentialsDialog
-                        clawIp={headerDropdownClaw.ip || ''}
-                        rootPassword={credentialsPassword}
-                        open={showCredentials}
-                        onOpenChange={setShowCredentials}
-                    />
-                </Fragment>
-            )}
+            {dialogsProps && <ClawCardDialogsBundle {...dialogsProps} />}
         </div>
     )
 }

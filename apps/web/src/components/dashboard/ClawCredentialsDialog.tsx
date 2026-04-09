@@ -3,8 +3,7 @@ import type { ClawCredentialsDialogProps } from '@/ts/Interfaces'
 
 import { useState, useEffect } from 'react'
 import { t } from '@openclaw/i18n'
-import { useUIStore } from '@/lib/store'
-import { TOAST_TYPE } from '@/lib/constants'
+import { useToast } from '@/hooks'
 import { copyToClipboard } from '@/lib'
 import {
     CheckIcon,
@@ -28,7 +27,7 @@ const ClawCredentialsDialog: FC<ClawCredentialsDialogProps> = ({
     open,
     onOpenChange
 }): ReactNode => {
-    const { showToast } = useUIStore()
+    const toast = useToast()
     const [showPassword, setShowPassword] = useState(false)
     const [showSsh, setShowSsh] = useState(false)
     const [copiedField, setCopiedField] = useState<string | null>(null)
@@ -48,7 +47,7 @@ const ClawCredentialsDialog: FC<ClawCredentialsDialogProps> = ({
     const handleCopy = async (value: string, field: string) => {
         await copyToClipboard(value)
         setCopiedField(field)
-        showToast(t('common.copied'), TOAST_TYPE.SUCCESS)
+        toast.success(t('common.copied'))
         setTimeout(() => setCopiedField(null), 2000)
     }
 

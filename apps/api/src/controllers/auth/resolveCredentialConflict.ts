@@ -13,6 +13,7 @@ import { db } from '@/db'
 import { users } from '@/db/schema'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
+import withErrorHandler from '@/lib/withErrorHandler'
 
 const verifyGithubToken = async (accessToken: string) => {
     const [userRes, emailsRes] = await Promise.all([
@@ -55,22 +56,19 @@ const verifyGoogleToken = async (accessToken: string) => {
     }
 }
 
-const resolveCredentialConflict = async (c: Context) => {
-    try {
+const resolveCredentialConflict = withErrorHandler('resolveCredentialConflict')(
+    async (c: Context) => {
         const { accessToken, providerId } =
             await c.req.json<ResolveCredentialConflictBody>()
 
-        if (!accessToken || !providerId) {
+        if (!accessToken || !providerId)
             return fail(c, t('api.missingRequiredFields'), 400)
-        }
 
         const verifier =
             providerId === 'github.com' ? verifyGithubToken : verifyGoogleToken
         const verified = await verifier(accessToken)
 
-        if (!verified?.email) {
-            return fail(c, t('api.invalidCredentials'), 401)
-        }
+        if (!verified?.email) return fail(c, t('api.invalidCredentials'), 401)
 
         const existingUser = await db
             .select()
@@ -79,9 +77,7 @@ const resolveCredentialConflict = async (c: Context) => {
             .limit(1)
             .then((rows) => rows[0])
 
-        if (!existingUser) {
-            return fail(c, t('api.userNotFound'), 404)
-        }
+        if (!existingUser) return fail(c, t('api.userNotFound'), 404)
 
         const method =
             providerId === 'google.com' ? authMethod.google : authMethod.github
@@ -100,19 +96,17 @@ const resolveCredentialConflict = async (c: Context) => {
                 .update(users)
                 .set({
                     authMethods: sql`CASE
-                        WHEN ${method} = ANY(COALESCE(${users.authMethods}, '{}'))
-                        THEN COALESCE(${users.authMethods}, '{}')
-                        ELSE array_append(COALESCE(${users.authMethods}, '{}'), ${method})
-                    END`
+                    WHEN ${method} = ANY(COALESCE(${users.authMethods}, '{}'))
+                    THEN COALESCE(${users.authMethods}, '{}')
+                    ELSE array_append(COALESCE(${users.authMethods}, '{}'), ${method})
+                END`
                 })
                 .where(eq(users.id, existingUser.id))
         ])
 
         const customToken = await auth().createCustomToken(existingUser.id)
         return ok(c, { customToken }, t('api.accountLinked'))
-    } catch {
-        return fail(c, t('api.internalServerError'), 500)
     }
-}
+)
 
 export default resolveCredentialConflict

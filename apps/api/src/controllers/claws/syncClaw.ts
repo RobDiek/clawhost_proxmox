@@ -1,5 +1,3 @@
-import type { AuthenticatedContext } from '@/ts/Types'
-
 import { eq } from 'drizzle-orm'
 import { clawStatus } from '@openclaw/shared'
 import { db } from '@/db'
@@ -7,22 +5,22 @@ import { claws } from '@/db/schema'
 import { getProvider } from '@/services/provider'
 import {
     checkSubdomainReady,
-    findUserClaw,
-    sanitizeClaw
+    sanitizeClaw,
+    withClaw
 } from '@/controllers/claws/helpers'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
+import withErrorHandler from '@/lib/withErrorHandler'
 
-const syncClaw = async (c: AuthenticatedContext) => {
-    const userId = c.get('userId')
-    const id = c.req.param('id')!
-    const claw = await findUserClaw(userId, id, c.get('isAdmin'))
+const syncClaw = withErrorHandler(
+    'syncClaw',
+    'api.failedToSyncClaw'
+)(
+    withClaw()(async (c, claw) => {
+        const id = c.req.param('id')!
 
-    if (!claw || !claw.providerServerId) {
-        return fail(c, t('api.clawNotFound'), 404)
-    }
+        if (!claw.providerServerId) return fail(c, t('api.clawNotFound'), 404)
 
-    try {
         const provider = getProvider()
         const serverStatus = await provider.getServer(claw.providerServerId)
 
@@ -79,10 +77,7 @@ const syncClaw = async (c: AuthenticatedContext) => {
             }),
             t('api.clawSynced')
         )
-    } catch (error) {
-        console.error('syncClaw', error)
-        return fail(c, t('api.failedToSyncClaw'), 500)
-    }
-}
+    })
+)
 
 export default syncClaw

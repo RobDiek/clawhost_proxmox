@@ -20,9 +20,7 @@ const executeClawHubOperation = async (
         feature
     )
 
-    if (!supported) {
-        return { supported: false, version }
-    }
+    if (!supported) return { supported: false, version }
 
     await ensureClawHub(ip, rootPassword)
 

@@ -617,10 +617,12 @@ const fr: Translations = {
         features: {
             terminal: {
                 subject: 'Vous avez un terminal web',
-                preview: 'Exécutez des commandes dans votre navigateur, sans SSH',
+                preview:
+                    'Exécutez des commandes dans votre navigateur, sans SSH',
                 tag: 'Terminal Web',
                 heading: 'Commandes depuis votre navigateur',
-                description: 'Un terminal complet dans votre tableau de bord. Cliquez sur votre claw, tapez vos commandes. Pas de client SSH requis.',
+                description:
+                    'Un terminal complet dans votre tableau de bord. Cliquez sur votre claw, tapez vos commandes. Pas de client SSH requis.',
                 cta: 'Ouvrir le Terminal'
             },
             logs: {
@@ -628,7 +630,8 @@ const fr: Translations = {
                 preview: 'Regardez les logs de votre serveur en direct',
                 tag: 'Logs en Direct',
                 heading: 'Vos logs en direct',
-                description: 'Chaque requête, chaque erreur, diffusée en temps réel sur votre tableau de bord. Fini le tail de fichiers en SSH.',
+                description:
+                    'Chaque requête, chaque erreur, diffusée en temps réel sur votre tableau de bord. Fini le tail de fichiers en SSH.',
                 cta: 'Voir les Logs'
             },
             channels: {
@@ -636,23 +639,27 @@ const fr: Translations = {
                 preview: 'Vos agents peuvent vivre là où sont vos utilisateurs',
                 tag: 'Canaux',
                 heading: 'Vos agents, là où sont vos utilisateurs',
-                description: 'Discord, Slack, WhatsApp, Telegram — connectez vos agents IA à n\'importe quelle plateforme en moins d\'une minute.',
+                description:
+                    "Discord, Slack, WhatsApp, Telegram — connectez vos agents IA à n'importe quelle plateforme en moins d'une minute.",
                 cta: 'Configurer les Canaux'
             },
             fileExplorer: {
-                subject: 'Modifiez les fichiers serveur depuis votre navigateur',
+                subject:
+                    'Modifiez les fichiers serveur depuis votre navigateur',
                 preview: 'Parcourez et modifiez des fichiers sans SSH',
                 tag: 'Explorateur de Fichiers',
                 heading: 'Modifiez vos fichiers sans SSH',
-                description: 'Parcourez, modifiez et enregistrez des fichiers avec coloration syntaxique. Pas de SSH, pas de FTP — cliquez et tapez.',
-                cta: 'Ouvrir l\'Explorateur'
+                description:
+                    'Parcourez, modifiez et enregistrez des fichiers avec coloration syntaxique. Pas de SSH, pas de FTP — cliquez et tapez.',
+                cta: "Ouvrir l'Explorateur"
             },
             playground: {
                 subject: 'Visualisez votre infrastructure',
                 preview: 'Voyez vos claws et agents sur un canevas',
                 tag: 'Playground',
                 heading: 'Votre infrastructure, visualisée',
-                description: 'Un graphe interactif de tous vos claws et agents. Déplacez, zoomez, cliquez sur n\'importe quel nœud pour le gérer.',
+                description:
+                    "Un graphe interactif de tous vos claws et agents. Déplacez, zoomez, cliquez sur n'importe quel nœud pour le gérer.",
                 cta: 'Ouvrir le Playground'
             },
             agentChat: {
@@ -660,7 +667,8 @@ const fr: Translations = {
                 preview: 'Parlez à vos agents depuis le tableau de bord',
                 tag: 'Chat Agent',
                 heading: 'Parlez à vos agents',
-                description: 'Ouvrez un chat, envoyez un message, obtenez une réponse. Joignez des images, parcourez l\'historique, changez d\'agent.',
+                description:
+                    "Ouvrez un chat, envoyez un message, obtenez une réponse. Joignez des images, parcourez l'historique, changez d'agent.",
                 cta: 'Commencer à Chatter'
             },
             voiceMode: {
@@ -668,7 +676,8 @@ const fr: Translations = {
                 preview: 'Communiquez avec vos agents en mains libres',
                 tag: 'Mode Vocal',
                 heading: 'Parlez, ne tapez pas',
-                description: 'Parlez à vos agents IA à voix haute et écoutez leurs réponses. Plusieurs voix, totalement mains libres.',
+                description:
+                    'Parlez à vos agents IA à voix haute et écoutez leurs réponses. Plusieurs voix, totalement mains libres.',
                 cta: 'Essayer le Mode Vocal'
             },
             skills: {
@@ -676,7 +685,8 @@ const fr: Translations = {
                 preview: 'Installez des skills communautaires en un clic',
                 tag: 'Skills ClawHub',
                 heading: '5 000+ skills, un clic pour installer',
-                description: 'Recherche web, exécution de code, génération d\'images — parcourez ClawHub et ajoutez de nouvelles capacités à vos agents.',
+                description:
+                    "Recherche web, exécution de code, génération d'images — parcourez ClawHub et ajoutez de nouvelles capacités à vos agents.",
                 cta: 'Parcourir ClawHub'
             },
             bindings: {
@@ -684,15 +694,17 @@ const fr: Translations = {
                 preview: 'Contrôlez quel agent répond où',
                 tag: 'Liaisons',
                 heading: 'Bon agent, bon canal',
-                description: 'Votre agent support sur Discord, votre assistant sur WhatsApp. Vous décidez qui répond où.',
+                description:
+                    'Votre agent support sur Discord, votre assistant sur WhatsApp. Vous décidez qui répond où.',
                 cta: 'Configurer les Liaisons'
             },
             envVars: {
-                subject: 'Gérez les variables d\'env depuis le tableau de bord',
+                subject: "Gérez les variables d'env depuis le tableau de bord",
                 preview: 'Définissez clés API et secrets sans SSH',
-                tag: 'Variables d\'Environnement',
+                tag: "Variables d'Environnement",
                 heading: 'Secrets et clés, sans SSH',
-                description: 'Ajoutez, modifiez ou supprimez des variables d\'environnement depuis une interface claire. Les changements prennent effet immédiatement.',
+                description:
+                    "Ajoutez, modifiez ou supprimez des variables d'environnement depuis une interface claire. Les changements prennent effet immédiatement.",
                 cta: 'Gérer les Variables'
             },
             diagnostics: {
@@ -700,7 +712,8 @@ const fr: Translations = {
                 preview: 'Vérifiez la santé de votre serveur en un clic',
                 tag: 'Diagnostics',
                 heading: 'Votre serveur est-il en forme ?',
-                description: 'Vérifiez le statut des services, la mémoire, le disque et les ports en un clic. Repérez les problèmes avant les pannes.',
+                description:
+                    'Vérifiez le statut des services, la mémoire, le disque et les ports en un clic. Repérez les problèmes avant les pannes.',
                 cta: 'Lancer les Diagnostics'
             },
             sshKeys: {
@@ -708,7 +721,8 @@ const fr: Translations = {
                 preview: 'Générez et gérez des paires de clés facilement',
                 tag: 'Clés SSH',
                 heading: 'Clés SSH, simplifiées',
-                description: 'Générez des paires de clés, copiez les clés publiques, téléchargez les privées — le tout depuis le tableau de bord.',
+                description:
+                    'Générez des paires de clés, copiez les clés publiques, téléchargez les privées — le tout depuis le tableau de bord.',
                 cta: 'Gérer les Clés SSH'
             },
             exportConfig: {
@@ -716,7 +730,8 @@ const fr: Translations = {
                 preview: 'Téléchargez votre configuration en un fichier',
                 tag: 'Export Config',
                 heading: 'Emportez votre config',
-                description: 'Exportez agents, skills, canaux et paramètres en un seul fichier. Sauvegardez ou répliquez votre configuration.',
+                description:
+                    'Exportez agents, skills, canaux et paramètres en un seul fichier. Sauvegardez ou répliquez votre configuration.',
                 cta: 'Exporter la Config'
             },
             multiLanguage: {
@@ -724,15 +739,17 @@ const fr: Translations = {
                 preview: 'Changez la langue du tableau de bord',
                 tag: 'Multi-Langue',
                 heading: '14 langues, entièrement traduit',
-                description: 'Passez ClawHost en français, anglais, espagnol, allemand et 10 autres. Chaque bouton, chaque message.',
+                description:
+                    'Passez ClawHost en français, anglais, espagnol, allemand et 10 autres. Chaque bouton, chaque message.',
                 cta: 'Changer de Langue'
             },
             subdomain: {
                 subject: 'Votre claw a sa propre URL',
-                preview: 'Accédez à votre claw de n\'importe où',
+                preview: "Accédez à votre claw de n'importe où",
                 tag: 'Sous-domaine',
                 heading: 'Votre claw, votre URL',
-                description: 'Chaque claw obtient un sous-domaine unique comme monclaw.clawhost.cloud. Accessible partout, sans VPN.',
+                description:
+                    'Chaque claw obtient un sous-domaine unique comme monclaw.clawhost.cloud. Accessible partout, sans VPN.',
                 cta: 'Voir Votre Sous-domaine'
             },
             darkMode: {
@@ -740,7 +757,8 @@ const fr: Translations = {
                 preview: 'Basculez entre thèmes clair et sombre',
                 tag: 'Mode Sombre',
                 heading: 'Du repos pour vos yeux',
-                description: 'Basculez entre clair et sombre en un clic. Votre préférence est sauvegardée automatiquement.',
+                description:
+                    'Basculez entre clair et sombre en un clic. Votre préférence est sauvegardée automatiquement.',
                 cta: 'Essayer le Mode Sombre'
             },
             reinstall: {
@@ -748,7 +766,8 @@ const fr: Translations = {
                 preview: 'Réinstallez OpenClaw sans perdre votre serveur',
                 tag: 'Réinstallation',
                 heading: 'Nouveau départ, même serveur',
-                description: 'La réinstallation efface le runtime OpenClaw et vous donne une page blanche. Votre serveur, IP et clés restent intacts.',
+                description:
+                    'La réinstallation efface le runtime OpenClaw et vous donne une page blanche. Votre serveur, IP et clés restent intacts.',
                 cta: 'En Savoir Plus'
             },
             yearlyPlans: {
@@ -756,7 +775,8 @@ const fr: Translations = {
                 preview: 'Même service, prix réduit',
                 tag: 'Plans Annuels',
                 heading: 'Même claw, facture réduite',
-                description: 'Passez à la facturation annuelle et payez moins. Pas de différence de fonctionnalités. Changez quand vous voulez.',
+                description:
+                    'Passez à la facturation annuelle et payez moins. Pas de différence de fonctionnalités. Changez quand vous voulez.',
                 cta: 'Voir les Plans'
             }
         }
@@ -2374,7 +2394,8 @@ const fr: Translations = {
         usersTab: 'Utilisateurs',
         totalUsers: '{{count}} utilisateurs',
         noUsers: 'Aucun utilisateur',
-        noUsersDescription: 'Aucun utilisateur trouvé correspondant à vos filtres.',
+        noUsersDescription:
+            'Aucun utilisateur trouvé correspondant à vos filtres.',
         genericErrorDescription: 'Une erreur est survenue. Veuillez réessayer.',
         genericEmptyDescription: 'Rien à afficher pour le moment.',
         failedToLoadUsers: 'Échec du chargement des utilisateurs !',

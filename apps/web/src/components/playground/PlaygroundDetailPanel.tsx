@@ -1,35 +1,16 @@
 import type { FC, ReactNode } from 'react'
-import type {
-    PlaygroundDetailPanelProps,
-    PlaygroundTabConfig
-} from '@/ts/Interfaces'
+import type { PlaygroundDetailPanelProps } from '@/ts/Interfaces'
 import type { PlaygroundDetailTab } from '@/ts/Types'
-import type { TranslationKey } from '@openclaw/i18n'
 
-import { useCallback, useState, useMemo, useEffect } from 'react'
-import { CLAW_DETAIL_TABS } from '@/lib/constants'
+import { useCallback, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
+import { clawStatus, OPENCLAW_VERSION } from '@openclaw/shared'
+import { CLAW_DETAIL_TABS } from '@/lib/constants'
 import {
-    clawStatus,
-    inputValidation,
-    OPENCLAW_VERSION
-} from '@openclaw/shared'
-import { getBaseDomain, TRUNCATE_LENGTHS } from '@/lib'
-import {
-    XIcon,
-    InfoIcon,
-    ScrollIcon,
-    PulseIcon,
-    KeyIcon,
-    LightningIcon,
-    GearSixIcon,
-    TerminalWindowIcon,
-    ArrowSquareOutIcon,
-    ChatsCircleIcon
-} from '@phosphor-icons/react'
-import { ClawAvatar, ClawMascotOutline } from '@/components/shared'
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
+    CONFIGURING_DISABLED_TABS,
+    AWAITING_PAYMENT_DISABLED_TABS
+} from '@/lib/playgroundDetailTabs'
 import {
     ClawLogsContent,
     ClawDiagnosticsContent,
@@ -41,84 +22,17 @@ import {
     PlaygroundVersionsContent,
     PlaygroundChannelsContent,
     PlaygroundDetailInfoTab,
-    PlaygroundDetailSettingsTab
+    PlaygroundDetailSettingsTab,
+    PlaygroundDetailHeader,
+    PlaygroundDetailTabBar
 } from '@/components/playground'
 import { useQueryClient } from '@tanstack/react-query'
 import {
     useClawVersion,
-    useRenameClaw,
-    useUpdateClawSubdomain,
-    CLAW_VERSION_QUERY_KEY
+    CLAW_VERSION_QUERY_KEY,
+    useClawSettingsForm
 } from '@/hooks'
-import { useUIStore } from '@/lib/store'
-import { TOAST_TYPE } from '@/lib/constants'
-import { generateSlug } from '@/lib/claw-utils'
-
-const tabStateMap: Record<string, PlaygroundDetailTab> = {}
-
-const tabs: PlaygroundTabConfig<PlaygroundDetailTab>[] = [
-    { id: CLAW_DETAIL_TABS.INFO, label: 'playground.tabInfo', icon: InfoIcon },
-    {
-        id: CLAW_DETAIL_TABS.CHANNELS,
-        label: 'playground.tabChannels',
-        icon: ChatsCircleIcon
-    },
-    {
-        id: CLAW_DETAIL_TABS.TERMINAL,
-        label: 'playground.tabTerminal',
-        icon: TerminalWindowIcon
-    },
-    {
-        id: CLAW_DETAIL_TABS.LOGS,
-        label: 'playground.tabLogs',
-        icon: ScrollIcon
-    },
-    {
-        id: CLAW_DETAIL_TABS.VARIABLES,
-        label: 'playground.tabEnvs',
-        icon: KeyIcon
-    },
-    {
-        id: CLAW_DETAIL_TABS.SKILLS,
-        label: 'playground.tabSkills',
-        icon: LightningIcon
-    },
-    {
-        id: CLAW_DETAIL_TABS.VERSIONS,
-        label: 'playground.tabVersions',
-        icon: ClawMascotOutline
-    },
-    {
-        id: CLAW_DETAIL_TABS.DIAGNOSTICS,
-        label: 'playground.tabDiagnostics',
-        icon: PulseIcon
-    },
-    {
-        id: CLAW_DETAIL_TABS.SETTINGS,
-        label: 'playground.tabSettings',
-        icon: GearSixIcon
-    }
-]
-
-const CONFIGURING_DISABLED_TABS: PlaygroundDetailTab[] = [
-    CLAW_DETAIL_TABS.CHANNELS,
-    CLAW_DETAIL_TABS.VERSIONS,
-    CLAW_DETAIL_TABS.VARIABLES,
-    CLAW_DETAIL_TABS.SKILLS,
-    CLAW_DETAIL_TABS.LOGS,
-    CLAW_DETAIL_TABS.DIAGNOSTICS,
-    CLAW_DETAIL_TABS.TERMINAL
-]
-
-const AWAITING_PAYMENT_DISABLED_TABS: PlaygroundDetailTab[] = [
-    CLAW_DETAIL_TABS.CHANNELS,
-    CLAW_DETAIL_TABS.VERSIONS,
-    CLAW_DETAIL_TABS.VARIABLES,
-    CLAW_DETAIL_TABS.SKILLS,
-    CLAW_DETAIL_TABS.LOGS,
-    CLAW_DETAIL_TABS.DIAGNOSTICS,
-    CLAW_DETAIL_TABS.TERMINAL
-]
+import { usePlaygroundDetailTabStore } from '@/lib/store'
 
 const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
     claw,
@@ -150,157 +64,44 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
         },
         [isAwaitingPayment]
     )
+    const tabStateMap = usePlaygroundDetailTabStore((s) => s.tabStateMap)
+    const setTab = usePlaygroundDetailTabStore((s) => s.setTab)
     const activeTab = tabStateMap[claw.id] || CLAW_DETAIL_TABS.INFO
     const setActiveTab = useCallback(
         (tab: PlaygroundDetailTab) => {
             if (isTabDisabled(tab)) return
-            tabStateMap[claw.id] = tab
-            setRenderKey((k) => k + 1)
+            setTab(claw.id, tab)
             if (onTabChange) onTabChange(tab)
         },
-        [claw.id, onTabChange, isTabDisabled]
+        [claw.id, onTabChange, isTabDisabled, setTab]
     )
     useEffect(() => {
         if (initialTab && initialTab !== tabStateMap[claw.id]) {
             const safeTab = isTabDisabled(initialTab)
                 ? CLAW_DETAIL_TABS.INFO
                 : initialTab
-            tabStateMap[claw.id] = safeTab
-            setRenderKey((k) => k + 1)
+            setTab(claw.id, safeTab)
         }
-    }, [initialTab, claw.id, isTabDisabled])
+    }, [initialTab, claw.id, isTabDisabled, tabStateMap, setTab])
     useEffect(() => {
         if (isTabDisabled(activeTab)) {
-            tabStateMap[claw.id] = CLAW_DETAIL_TABS.INFO
-            setRenderKey((k) => k + 1)
+            setTab(claw.id, CLAW_DETAIL_TABS.INFO)
             if (onTabChange) onTabChange(CLAW_DETAIL_TABS.INFO)
         }
-    }, [isTabDisabled, activeTab, claw.id, onTabChange])
-    const [, setRenderKey] = useState(0)
-    const [settingsName, setSettingsName] = useState(claw.name)
-    const [settingsNameError, setSettingsNameError] = useState('')
-    const [settingsSubdomain, setSettingsSubdomain] = useState(
-        claw.subdomain || ''
-    )
-    const [settingsSubdomainError, setSettingsSubdomainError] = useState('')
-    const renameMutation = useRenameClaw()
-    const subdomainMutation = useUpdateClawSubdomain()
-    const { showToast } = useUIStore()
+    }, [isTabDisabled, activeTab, claw.id, onTabChange, setTab])
 
-    useEffect(() => {
-        setSettingsName(claw.name)
-        setSettingsNameError('')
-    }, [claw.name])
-
-    useEffect(() => {
-        setSettingsSubdomain(claw.subdomain || '')
-        setSettingsSubdomainError('')
-    }, [claw.subdomain])
-
-    const handleSettingsNameChange = useCallback((value: string) => {
-        setSettingsName(value)
-        if (value.trim() && !/^[a-zA-Z0-9-]+$/.test(value)) {
-            setSettingsNameError(t('dashboard.renameInvalidChars'))
-        } else {
-            setSettingsNameError('')
-        }
-    }, [])
-
-    const handleSettingsSubdomainChange = useCallback((value: string) => {
-        setSettingsSubdomain(value)
-        const subdomainRegex = new RegExp(
-            `^[a-z0-9]{${inputValidation.SUBDOMAIN.MIN},${inputValidation.SUBDOMAIN.MAX}}$`
-        )
-        if (value.trim() && !subdomainRegex.test(value)) {
-            setSettingsSubdomainError(
-                t('playground.subdomainInvalid', {
-                    min: inputValidation.SUBDOMAIN.MIN,
-                    max: inputValidation.SUBDOMAIN.MAX
-                })
-            )
-        } else {
-            setSettingsSubdomainError('')
-        }
-    }, [])
-
-    const nameHasChanges = settingsName.trim() !== claw.name
-    const subdomainHasChanges =
-        settingsSubdomain.trim() !== (claw.subdomain || '')
-    const settingsHasChanges = nameHasChanges || subdomainHasChanges
-
-    const handleSettingsSave = useCallback(() => {
-        const trimmedName = settingsName.trim()
-        const trimmedSubdomain = settingsSubdomain.trim()
-
-        if (nameHasChanges && trimmedName && trimmedName !== claw.name) {
-            if (!/^[a-zA-Z0-9-]+$/.test(trimmedName)) {
-                setSettingsNameError(t('dashboard.renameInvalidChars'))
-                return
-            }
-            renameMutation.mutate(
-                { id: claw.id, name: trimmedName },
-                {
-                    onSuccess: () => {
-                        showToast(
-                            t('dashboard.renameSuccess'),
-                            TOAST_TYPE.SUCCESS
-                        )
-                    },
-                    onError: () => {
-                        showToast(t('dashboard.renameFailed'), TOAST_TYPE.ERROR)
-                    }
-                }
-            )
-        }
-
-        if (
-            subdomainHasChanges &&
-            trimmedSubdomain &&
-            trimmedSubdomain !== (claw.subdomain || '')
-        ) {
-            const subdomainRegex = new RegExp(
-                `^[a-z0-9]{${inputValidation.SUBDOMAIN.MIN},${inputValidation.SUBDOMAIN.MAX}}$`
-            )
-            if (!subdomainRegex.test(trimmedSubdomain)) {
-                setSettingsSubdomainError(
-                    t('playground.subdomainInvalid', {
-                        min: inputValidation.SUBDOMAIN.MIN,
-                        max: inputValidation.SUBDOMAIN.MAX
-                    })
-                )
-                return
-            }
-            subdomainMutation.mutate(
-                { id: claw.id, subdomain: trimmedSubdomain },
-                {
-                    onSuccess: () => {
-                        showToast(
-                            t('playground.subdomainUpdated'),
-                            TOAST_TYPE.SUCCESS
-                        )
-                    },
-                    onError: (err) => {
-                        const raw = err instanceof Error ? err.message : ''
-                        const message = raw.includes('already in use')
-                            ? t('playground.subdomainInUse')
-                            : t('playground.subdomainUpdateFailed')
-                        showToast(message, TOAST_TYPE.ERROR)
-                    }
-                }
-            )
-        }
-    }, [
+    const {
         settingsName,
+        settingsNameError,
         settingsSubdomain,
-        claw.name,
-        claw.subdomain,
-        claw.id,
-        nameHasChanges,
-        subdomainHasChanges,
-        renameMutation,
-        subdomainMutation,
-        showToast
-    ])
+        settingsSubdomainError,
+        settingsHasChanges,
+        renamePending,
+        subdomainPending,
+        handleSettingsNameChange,
+        handleSettingsSubdomainChange,
+        handleSettingsSave
+    } = useClawSettingsForm(claw)
 
     const isInfoTab = activeTab === 'info'
     const queryClient = useQueryClient()
@@ -368,94 +169,19 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
             <div
                 className={`flex h-full w-full flex-col ${fullScreen ? 'bg-background' : 'bg-background md:border-border md:bg-background/95 md:border-l md:backdrop-blur-xl'}`}
             >
-                <div className='border-border flex items-center justify-between border-b px-5 py-2.5'>
-                    <div className='flex items-center gap-2.5'>
-                        <ClawAvatar />
-                        <div className='space-y-px'>
-                            <h3 className='text-foreground text-sm font-semibold leading-tight'>
-                                {claw.name.length >
-                                TRUNCATE_LENGTHS.PANEL_NAME ? (
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <span>
-                                                {claw.name.slice(
-                                                    0,
-                                                    TRUNCATE_LENGTHS.PANEL_NAME
-                                                )}
-                                                ...
-                                            </span>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            {claw.name}
-                                        </TooltipContent>
-                                    </Tooltip>
-                                ) : (
-                                    <span>{claw.name}</span>
-                                )}
-                            </h3>
-                            {claw.status !== clawStatus.configuring &&
-                                claw.status !== clawStatus.awaitingPayment && (
-                                    <a
-                                        href={`https://${claw.subdomain || generateSlug(claw.id)}.${getBaseDomain()}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`}
-                                        target='_blank'
-                                        rel='noopener noreferrer'
-                                        className='text-muted-foreground hover:text-foreground/80 flex items-center gap-1 truncate text-xs leading-tight transition-colors'
-                                    >
-                                        <ArrowSquareOutIcon className='h-3 w-3 shrink-0' />
-                                        {claw.subdomain ||
-                                            generateSlug(claw.id)}
-                                        .{getBaseDomain()}
-                                    </a>
-                                )}
-                        </div>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className={`text-muted-foreground hover:bg-foreground/10 hover:text-foreground rounded-lg p-1.5 transition-colors ${fullScreen ? 'md:hidden' : ''}`}
-                    >
-                        <XIcon className='h-4 w-4' weight='bold' />
-                    </button>
-                </div>
+                <PlaygroundDetailHeader
+                    claw={claw}
+                    onClose={onClose}
+                    fullScreen={fullScreen}
+                />
 
-                <div
-                    className={`border-border flex border-b ${fullScreen ? '' : 'overflow-x-auto'}`}
-                >
-                    {tabs.map((tab) => {
-                        const disabled = isTabDisabled(tab.id)
-                        const tabButton = (
-                            <button
-                                key={tab.id}
-                                onClick={() =>
-                                    !disabled && setActiveTab(tab.id)
-                                }
-                                disabled={disabled}
-                                className={`flex items-center justify-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors ${fullScreen ? 'flex-1' : 'shrink-0'} ${
-                                    disabled
-                                        ? 'text-muted-foreground/40 cursor-not-allowed border-transparent'
-                                        : activeTab === tab.id
-                                          ? 'text-foreground border-[#ef5350]'
-                                          : 'text-muted-foreground hover:text-foreground/80 border-transparent'
-                                }`}
-                            >
-                                <tab.icon className='h-3.5 w-3.5' />
-                                {t(tab.label as TranslationKey)}
-                            </button>
-                        )
-                        if (disabled) {
-                            return (
-                                <Tooltip key={tab.id}>
-                                    <TooltipTrigger asChild>
-                                        {tabButton}
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        {getDisabledTooltip(tab.id)}
-                                    </TooltipContent>
-                                </Tooltip>
-                            )
-                        }
-                        return tabButton
-                    })}
-                </div>
+                <PlaygroundDetailTabBar
+                    activeTab={activeTab}
+                    fullScreen={fullScreen}
+                    isTabDisabled={isTabDisabled}
+                    getDisabledTooltip={getDisabledTooltip}
+                    setActiveTab={setActiveTab}
+                />
 
                 <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
                     {activeTab === 'info' && (
@@ -553,8 +279,8 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                             settingsSubdomain={settingsSubdomain}
                             settingsSubdomainError={settingsSubdomainError}
                             settingsHasChanges={settingsHasChanges}
-                            renamePending={renameMutation.isPending}
-                            subdomainPending={subdomainMutation.isPending}
+                            renamePending={renamePending}
+                            subdomainPending={subdomainPending}
                             onNameChange={handleSettingsNameChange}
                             onSubdomainChange={handleSettingsSubdomainChange}
                             onSave={handleSettingsSave}

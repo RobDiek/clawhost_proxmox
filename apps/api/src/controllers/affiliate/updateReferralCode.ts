@@ -15,9 +15,8 @@ const updateReferralCode = async (c: AuthenticatedContext) => {
         const userId = c.get('userId')
         const body = await c.req.json<UpdateReferralCodeBody>()
 
-        if (!body.code || typeof body.code !== 'string') {
+        if (!body.code || typeof body.code !== 'string')
             return fail(c, t('api.missingRequiredFields'), 400)
-        }
 
         const code = body.code.toLowerCase().trim()
 
@@ -47,13 +46,10 @@ const updateReferralCode = async (c: AuthenticatedContext) => {
             .where(eq(users.id, userId))
             .limit(1)
 
-        if (!user[0]) {
-            return fail(c, t('api.userNotFound'), 404)
-        }
+        if (!user[0]) return fail(c, t('api.userNotFound'), 404)
 
-        if (user[0].referralCodeChanged) {
+        if (user[0].referralCodeChanged)
             return fail(c, t('api.referralCodeAlreadyChanged'), 400)
-        }
 
         const existing = await db
             .select({ id: users.id })
@@ -61,9 +57,7 @@ const updateReferralCode = async (c: AuthenticatedContext) => {
             .where(eq(users.referralCode, code))
             .limit(1)
 
-        if (existing[0]) {
-            return fail(c, t('api.referralCodeTaken'), 400)
-        }
+        if (existing[0]) return fail(c, t('api.referralCodeTaken'), 400)
 
         await db
             .update(users)

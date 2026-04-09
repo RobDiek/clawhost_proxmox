@@ -17,8 +17,14 @@ import getLocale from '@/lib/getLocale'
 import TRUNCATE_LENGTHS from '@/lib/truncateLengths'
 import fireConfetti from '@/lib/fireConfetti'
 import copyToClipboard from '@/lib/copyToClipboard'
+import generateRandomAgentName from '@/lib/generateRandomAgentName'
 import reportWebVitals from '@/lib/reportWebVitals'
 import { formatDate, formatCurrency } from '@/lib/formatters'
+import {
+    tabs as PLAYGROUND_DETAIL_TABS,
+    CONFIGURING_DISABLED_TABS as PLAYGROUND_CONFIGURING_DISABLED_TABS,
+    AWAITING_PAYMENT_DISABLED_TABS as PLAYGROUND_AWAITING_PAYMENT_DISABLED_TABS
+} from '@/lib/playgroundDetailTabs'
 
 export {
     api,
@@ -38,7 +44,11 @@ export {
     TRUNCATE_LENGTHS,
     fireConfetti,
     copyToClipboard,
+    generateRandomAgentName,
     reportWebVitals,
     formatDate,
-    formatCurrency
+    formatCurrency,
+    PLAYGROUND_DETAIL_TABS,
+    PLAYGROUND_CONFIGURING_DISABLED_TABS,
+    PLAYGROUND_AWAITING_PAYMENT_DISABLED_TABS
 }

@@ -13,8 +13,8 @@ import {
 } from '@/hooks'
 import { getLocale, ROUTES } from '@/lib'
 import { useAuth } from '@/lib/auth'
-import { AFFILIATE_PERIOD, STORAGE_KEYS, TOAST_TYPE } from '@/lib/constants'
-import { useUIStore } from '@/lib/store'
+import { AFFILIATE_PERIOD, TOAST_TYPE } from '@/lib/constants'
+import { useUIStore, usePreferencesStore } from '@/lib/store'
 import {
     ErrorState,
     Header,
@@ -38,6 +38,10 @@ const Affiliate: FC = (): ReactNode => {
     const generateCode = useGenerateReferralCode()
     const updateCode = useUpdateReferralCode()
     const showToast = useUIStore((s) => s.showToast)
+    const storedAffiliatePeriod = usePreferencesStore((s) => s.affiliatePeriod)
+    const setStoredAffiliatePeriod = usePreferencesStore(
+        (s) => s.setAffiliatePeriod
+    )
     const generatedRef = useRef(false)
 
     const [searchParams, setSearchParams] = useSearchParams()
@@ -49,9 +53,8 @@ const Affiliate: FC = (): ReactNode => {
         if (urlPeriod && PERIODS.includes(urlPeriod as AffiliatePeriod)) {
             return urlPeriod as AffiliatePeriod
         }
-        const saved = localStorage.getItem(STORAGE_KEYS.AFFILIATE_PERIOD)
-        if (saved && PERIODS.includes(saved as AffiliatePeriod)) {
-            return saved as AffiliatePeriod
+        if (PERIODS.includes(storedAffiliatePeriod)) {
+            return storedAffiliatePeriod
         }
         return AFFILIATE_PERIOD.ALL
     })()
@@ -71,7 +74,7 @@ const Affiliate: FC = (): ReactNode => {
 
     const setPeriod = useCallback(
         (p: AffiliatePeriod) => {
-            localStorage.setItem(STORAGE_KEYS.AFFILIATE_PERIOD, p)
+            setStoredAffiliatePeriod(p)
             setSearchParams(
                 (prev) => {
                     prev.set('period', p)
@@ -80,7 +83,7 @@ const Affiliate: FC = (): ReactNode => {
                 { replace: false }
             )
         },
-        [setSearchParams]
+        [setSearchParams, setStoredAffiliatePeriod]
     )
 
     const [showLoading, setShowLoading] = useState(true)

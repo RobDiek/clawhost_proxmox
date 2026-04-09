@@ -2317,7 +2317,8 @@ const tr: Translations = {
         totalUsers: '{{count}} kullanıcı',
         noUsers: 'Kullanıcı yok',
         noUsersDescription: 'Filtrelerinize uyan kullanıcı bulunamadı.',
-        genericErrorDescription: 'Bir şeyler yanlış gitti. Lütfen tekrar deneyin.',
+        genericErrorDescription:
+            'Bir şeyler yanlış gitti. Lütfen tekrar deneyin.',
         genericEmptyDescription: 'Henüz burada gösterilecek bir şey yok.',
         failedToLoadUsers: 'Kullanıcılar yüklenemedi!',
         failedToLoadUsersDescription:

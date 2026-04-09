@@ -1,38 +1,29 @@
-import type { AuthenticatedContext } from '@/ts/Types'
 import type { ClawBindingEntry, ClawBindingAgent } from '@/ts/Interfaces'
 
-import executeSSH from '@/services/ssh'
 import {
     BASE_DIR,
-    findUserClaw,
-    parseJsonFromSSH
+    parseJsonFromSSH,
+    readClawConfigFile,
+    ClawMissingCredentialsError,
+    withClaw
 } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
+import withErrorHandler from '@/lib/withErrorHandler'
 
-const getClawBindings = async (c: AuthenticatedContext) => {
-    try {
-        const userId = c.get('userId')
-        const id = c.req.param('id')!
-        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
-
-        if (!claw) {
-            return fail(c, t('api.clawNotFound'), 404)
-        }
-
-        if (!claw.ip || !claw.rootPassword) {
-            return fail(c, t('api.bindingsFetchFailed'), 400)
-        }
-
+const getClawBindings = withErrorHandler(
+    'getClawBindings',
+    'api.bindingsFetchFailed'
+)(
+    withClaw()(async (c, claw) => {
         try {
-            const output = await executeSSH(
-                claw.ip,
-                claw.rootPassword,
-                `cat ${BASE_DIR}/openclaw.json 2>/dev/null || echo '{}'`,
-                5000
+            const config = await readClawConfigFile(
+                claw,
+                `${BASE_DIR}/openclaw.json`,
+                (raw) => parseJsonFromSSH(raw),
+                { fallback: '{}' }
             )
 
-            const config = parseJsonFromSSH(output)
             const bindings: ClawBindingEntry[] = Array.isArray(config?.bindings)
                 ? (config.bindings as ClawBindingEntry[])
                 : []
@@ -53,12 +44,12 @@ const getClawBindings = async (c: AuthenticatedContext) => {
                 { bindings, channels, agents },
                 t('api.bindingsFetched')
             )
-        } catch {
+        } catch (error) {
+            if (error instanceof ClawMissingCredentialsError)
+                return fail(c, t('api.bindingsFetchFailed'), 400)
             return fail(c, t('api.bindingsFetchFailed'), 500)
         }
-    } catch {
-        return fail(c, t('api.bindingsFetchFailed'), 500)
-    }
-}
+    })
+)
 
 export default getClawBindings

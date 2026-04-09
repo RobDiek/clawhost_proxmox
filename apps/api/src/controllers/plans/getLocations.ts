@@ -1,18 +1,17 @@
 import type { Context } from 'hono'
 
 import { getProvider } from '@/services/provider'
-import { ok, fail } from '@/lib/response'
+import { ok } from '@/lib/response'
 import { t } from '@openclaw/i18n'
+import withErrorHandler from '@/lib/withErrorHandler'
 
-const getLocations = async (c: Context) => {
-    try {
-        const provider = getProvider()
-        const locations = await provider.getLocations()
-        return ok(c, locations, t('api.locationsFetched'))
-    } catch (error) {
-        console.error('getLocations', error)
-        return fail(c, t('api.failedToFetchLocations'), 500)
-    }
-}
+const getLocations = withErrorHandler(
+    'getLocations',
+    'api.failedToFetchLocations'
+)(async (c: Context) => {
+    const provider = getProvider()
+    const locations = await provider.getLocations()
+    return ok(c, locations, t('api.locationsFetched'))
+})
 
 export default getLocations

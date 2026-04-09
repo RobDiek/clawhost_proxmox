@@ -1,21 +1,14 @@
-import type { AuthenticatedContext } from '@/ts/Types'
-
-import { findUserClaw } from '@/controllers/claws/helpers'
+import { withClaw } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
-import { ok, fail } from '@/lib/response'
+import { ok } from '@/lib/response'
 import { browseSkills } from '@/services/clawhub'
+import withErrorHandler from '@/lib/withErrorHandler'
 
-const browseClawHubSkills = async (c: AuthenticatedContext) => {
-    try {
-        const userId = c.get('userId')
-        const id = c.req.param('id')!
-
-        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
-
-        if (!claw) {
-            return fail(c, t('api.clawNotFound'), 404)
-        }
-
+const browseClawHubSkills = withErrorHandler(
+    'browseClawHubSkills',
+    'api.clawHubSearchFailed'
+)(
+    withClaw()(async (c) => {
         const result = await browseSkills({
             query: c.req.query('query') || undefined,
             limit: c.req.query('limit')
@@ -33,9 +26,7 @@ const browseClawHubSkills = async (c: AuthenticatedContext) => {
             },
             t('api.clawHubSearchSuccess')
         )
-    } catch {
-        return fail(c, t('api.clawHubSearchFailed'), 500)
-    }
-}
+    })
+)
 
 export default browseClawHubSkills

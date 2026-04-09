@@ -2305,7 +2305,8 @@ const hi: Translations = {
         usersTab: 'उपयोगकर्ता',
         totalUsers: '{{count}} उपयोगकर्ता',
         noUsers: 'कोई उपयोगकर्ता नहीं',
-        noUsersDescription: 'आपके फ़िल्टर से मेल खाने वाला कोई उपयोगकर्ता नहीं मिला.',
+        noUsersDescription:
+            'आपके फ़िल्टर से मेल खाने वाला कोई उपयोगकर्ता नहीं मिला.',
         genericErrorDescription: 'कुछ गलत हो गया. कृपया पुनः प्रयास करें.',
         genericEmptyDescription: 'यहाँ अभी कुछ दिखाने को नहीं है.',
         failedToLoadUsers: 'उपयोगकर्ता लोड करने में विफल!',

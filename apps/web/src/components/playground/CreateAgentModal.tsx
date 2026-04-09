@@ -1,18 +1,10 @@
 import type { FC, ReactNode } from 'react'
 import type { ClawAgentsResponse, CreateAgentModalProps } from '@/ts/Interfaces'
-import type { TranslationKey } from '@openclaw/i18n'
 
-import { Fragment, useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
-import {
-    CheckCircleIcon,
-    CheckIcon,
-    CircleNotchIcon,
-    CopyIcon,
-    EyeIcon,
-    EyeSlashIcon
-} from '@phosphor-icons/react'
+import { CircleNotchIcon } from '@phosphor-icons/react'
 import {
     Dialog,
     DialogContent,
@@ -24,15 +16,17 @@ import {
     SelectContent,
     SelectItem,
     SelectGroup,
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent
+    SecretInputField
 } from '@/components/ui'
-import { api, copyToClipboard } from '@/lib'
+import { api, generateRandomAgentName } from '@/lib'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { aiModels, validateAgentName } from '@/lib/claw-utils'
-import { PLAYGROUND_AGENTS_QUERY_KEY, CLAW_ENV_QUERY_KEY } from '@/hooks'
+import {
+    PLAYGROUND_AGENTS_QUERY_KEY,
+    CLAW_ENV_QUERY_KEY,
+    useAgentNameValidation
+} from '@/hooks'
 
 const CreateAgentModal: FC<CreateAgentModalProps> = ({
     clawId: clawIdProp,
@@ -41,12 +35,8 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
     open,
     onOpenChange
 }): ReactNode => {
-    const [name, setName] = useState('')
-    const [nameError, setNameError] = useState<TranslationKey | null>(null)
     const [selectedModel, setSelectedModel] = useState('')
     const [apiKeyValue, setApiKeyValue] = useState('')
-    const [showApiKey, setShowApiKey] = useState(false)
-    const [copied, setCopied] = useState(false)
     const [pickedClawId, setPickedClawId] = useState('')
     const { showToast } = useUIStore()
     const queryClient = useQueryClient()
@@ -80,6 +70,14 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
         return cached?.agents.map((a) => a.name) || []
     }, [queryClient, effectiveClawId])
 
+    const {
+        name,
+        nameError,
+        handleNameChange,
+        setNameError,
+        reset: resetName
+    } = useAgentNameValidation(existingAgentNames)
+
     const modelsByProvider = useMemo(() => {
         const grouped: Record<string, typeof aiModels> = {}
         aiModels.forEach((model) => {
@@ -107,22 +105,11 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
     }, [selectedModelOption, envData])
 
     const resetForm = useCallback(() => {
-        setName('')
-        setNameError(null)
+        resetName()
         setSelectedModel('')
         setApiKeyValue('')
-        setShowApiKey(false)
-        setCopied(false)
         setPickedClawId('')
-    }, [])
-
-    const handleCopyApiKey = useCallback(async () => {
-        if (existingKeyValue) {
-            await copyToClipboard(existingKeyValue)
-            setCopied(true)
-            setTimeout(() => setCopied(false), 2000)
-        }
-    }, [existingKeyValue])
+    }, [resetName])
 
     const createMutation = useMutation({
         mutationFn: (finalName: string) => {
@@ -163,19 +150,6 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
         }
     })
 
-    const handleNameChange = useCallback(
-        (value: string) => {
-            setName(value)
-            if (value.trim()) {
-                const error = validateAgentName(value, existingAgentNames)
-                setNameError(error)
-            } else {
-                setNameError(null)
-            }
-        },
-        [existingAgentNames]
-    )
-
     const handleSubmit = useCallback(() => {
         let finalName = name.trim()
         if (finalName) {
@@ -185,69 +159,20 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                 return
             }
         } else {
-            const adjectives = [
-                'swift',
-                'brave',
-                'calm',
-                'clever',
-                'gentle',
-                'mighty',
-                'silent',
-                'golden',
-                'cosmic',
-                'nimble',
-                'jolly',
-                'witty',
-                'noble',
-                'vivid',
-                'crisp'
-            ]
-            const nouns = [
-                'falcon',
-                'lynx',
-                'raven',
-                'owl',
-                'fox',
-                'wolf',
-                'bear',
-                'crane',
-                'spark',
-                'frost',
-                'ember',
-                'cedar',
-                'brook',
-                'storm',
-                'drift'
-            ]
-            const adj =
-                adjectives[Math.floor(Math.random() * adjectives.length)]
-            const noun = nouns[Math.floor(Math.random() * nouns.length)]
-            finalName = `${adj}-${noun}`
-            while (
-                existingAgentNames.some(
-                    (n) => n.toLowerCase() === finalName.toLowerCase()
-                )
-            ) {
-                const adj2 =
-                    adjectives[Math.floor(Math.random() * adjectives.length)]
-                const noun2 = nouns[Math.floor(Math.random() * nouns.length)]
-                finalName = `${adj2}-${noun2}`
-            }
+            finalName = generateRandomAgentName(existingAgentNames)
         }
         createMutation.mutate(finalName)
-    }, [name, existingAgentNames, createMutation])
+    }, [name, existingAgentNames, createMutation, setNameError])
 
     const handleModelChange = useCallback((model: string) => {
         setSelectedModel(model)
         setApiKeyValue('')
-        setShowApiKey(false)
     }, [])
 
     const handleClawChange = useCallback((id: string) => {
         setPickedClawId(id)
         setSelectedModel('')
         setApiKeyValue('')
-        setShowApiKey(false)
     }, [])
 
     const handleOpenChange = useCallback(
@@ -378,96 +303,20 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                     </div>
 
                     {selectedModelOption && (
-                        <div>
-                            <div className='mb-2 flex items-center justify-between'>
-                                <label className='text-muted-foreground text-xs font-medium'>
-                                    {t('playground.addAgentApiKey')}
-                                </label>
-                                <div className='flex items-center'>
-                                    {existingKeyValue && (
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <button
-                                                    type='button'
-                                                    onClick={handleCopyApiKey}
-                                                    className='text-muted-foreground hover:text-foreground/80 rounded p-1 transition-colors'
-                                                >
-                                                    {copied ? (
-                                                        <CheckIcon className='h-3.5 w-3.5 text-green-600 dark:text-green-400' />
-                                                    ) : (
-                                                        <CopyIcon className='h-3.5 w-3.5' />
-                                                    )}
-                                                </button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                {t('common.copy')}
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    )}
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <button
-                                                type='button'
-                                                onClick={() =>
-                                                    setShowApiKey(!showApiKey)
-                                                }
-                                                className='text-muted-foreground hover:text-foreground/80 rounded p-1 transition-colors'
-                                            >
-                                                {showApiKey ? (
-                                                    <EyeSlashIcon className='h-3.5 w-3.5' />
-                                                ) : (
-                                                    <EyeIcon className='h-3.5 w-3.5' />
-                                                )}
-                                            </button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            {showApiKey
-                                                ? t('common.hide')
-                                                : t('common.show')}
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </div>
-                            </div>
-                            {existingKeyValue ? (
-                                <Fragment>
-                                    <input
-                                        type={showApiKey ? 'text' : 'password'}
-                                        value={existingKeyValue}
-                                        readOnly
-                                        className='border-border bg-foreground/5 text-muted-foreground w-full rounded-md border px-3 py-2 font-mono text-[11px] outline-none'
-                                    />
-                                    <p className='mt-1.5 flex items-center gap-1 text-[11px] text-green-600 dark:text-green-400'>
-                                        <CheckCircleIcon
-                                            className='h-3 w-3'
-                                            weight='fill'
-                                        />
-                                        {t(
-                                            'playground.addAgentApiKeyConfigured',
-                                            {
-                                                envVar: selectedModelOption.envVar
-                                            }
-                                        )}
-                                    </p>
-                                </Fragment>
-                            ) : (
-                                <Fragment>
-                                    <input
-                                        type={showApiKey ? 'text' : 'password'}
-                                        value={apiKeyValue}
-                                        onChange={(e) =>
-                                            setApiKeyValue(e.target.value)
-                                        }
-                                        placeholder={t(
-                                            'playground.addAgentApiKeyPlaceholder'
-                                        )}
-                                        className='border-border bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border px-3 py-2 font-mono text-[11px] outline-none transition-colors focus:border-[#ef5350]/50'
-                                    />
-                                    <p className='text-muted-foreground mt-1.5 font-mono text-[11px]'>
-                                        {selectedModelOption.envVar}
-                                    </p>
-                                </Fragment>
+                        <SecretInputField
+                            label={t('playground.addAgentApiKey')}
+                            value={apiKeyValue}
+                            onChange={setApiKeyValue}
+                            placeholder={t(
+                                'playground.addAgentApiKeyPlaceholder'
                             )}
-                        </div>
+                            existingValue={existingKeyValue}
+                            configuredLabel={t(
+                                'playground.addAgentApiKeyConfigured',
+                                { envVar: selectedModelOption.envVar }
+                            )}
+                            helperText={selectedModelOption.envVar}
+                        />
                     )}
                 </div>
 

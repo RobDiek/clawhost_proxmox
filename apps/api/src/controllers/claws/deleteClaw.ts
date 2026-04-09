@@ -12,100 +12,95 @@ import {
 } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
+import withErrorHandler from '@/lib/withErrorHandler'
 
-const deleteClaw = async (c: AuthenticatedContext) => {
-    try {
-        const userId = c.get('userId')
-        const id = c.req.param('id')!
+const deleteClaw = withErrorHandler(
+    'deleteClaw',
+    'api.failedToDeleteClaw'
+)(async (c: AuthenticatedContext) => {
+    const userId = c.get('userId')
+    const id = c.req.param('id')!
 
-        if (id.startsWith('pending-')) {
-            const pendingId = id.replace('pending-', '')
-            const result = await db
-                .delete(pendingClaws)
-                .where(
-                    and(
-                        eq(pendingClaws.id, pendingId),
-                        eq(pendingClaws.userId, userId)
-                    )
+    if (id.startsWith('pending-')) {
+        const pendingId = id.replace('pending-', '')
+        const result = await db
+            .delete(pendingClaws)
+            .where(
+                and(
+                    eq(pendingClaws.id, pendingId),
+                    eq(pendingClaws.userId, userId)
                 )
-                .returning()
+            )
+            .returning()
 
-            if (!result[0]) {
-                return fail(c, t('api.pendingClawNotFound'), 404)
+        if (!result[0]) return fail(c, t('api.pendingClawNotFound'), 404)
+
+        const pending = result[0]
+        try {
+            const checkout = await checkouts.get(pending.checkoutId)
+            if (checkout?.subscriptionId) {
+                await subscriptions.revoke(checkout.subscriptionId)
             }
-
-            const pending = result[0]
-            try {
-                const checkout = await checkouts.get(pending.checkoutId)
-                if (checkout?.subscriptionId) {
-                    await subscriptions.revoke(checkout.subscriptionId)
-                }
-            } catch (subError) {
-                console.error('deleteClaw', subError)
-            }
-
-            return ok(c, { scheduled: false }, t('api.clawDeleted'))
+        } catch (subError) {
+            console.error('deleteClaw', subError)
         }
 
-        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
+        return ok(c, { scheduled: false }, t('api.clawDeleted'))
+    }
 
-        if (!claw) {
-            return fail(c, t('api.clawNotFound'), 404)
-        }
+    const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
-        if (claw.polarSubscriptionId) {
-            try {
-                const sub = await subscriptions.get(claw.polarSubscriptionId)
+    if (!claw) return fail(c, t('api.clawNotFound'), 404)
 
-                if (sub && sub.currentPeriodEnd) {
-                    await subscriptions.cancel(claw.polarSubscriptionId)
+    if (claw.polarSubscriptionId) {
+        try {
+            const sub = await subscriptions.get(claw.polarSubscriptionId)
 
-                    await db
-                        .update(claws)
-                        .set({
+            if (sub && sub.currentPeriodEnd) {
+                await subscriptions.cancel(claw.polarSubscriptionId)
+
+                await db
+                    .update(claws)
+                    .set({
+                        deletionScheduledAt: sub.currentPeriodEnd,
+                        subscriptionStatus: subscriptionStatus.canceled
+                    })
+                    .where(eq(claws.id, id))
+
+                return ok(
+                    c,
+                    {
+                        scheduled: true,
+                        deletionScheduledAt: sub.currentPeriodEnd.toISOString(),
+                        claw: sanitizeClaw({
+                            ...claw,
                             deletionScheduledAt: sub.currentPeriodEnd,
                             subscriptionStatus: subscriptionStatus.canceled
                         })
-                        .where(eq(claws.id, id))
-
-                    return ok(
-                        c,
-                        {
-                            scheduled: true,
-                            deletionScheduledAt:
-                                sub.currentPeriodEnd.toISOString(),
-                            claw: sanitizeClaw({
-                                ...claw,
-                                deletionScheduledAt: sub.currentPeriodEnd,
-                                subscriptionStatus: subscriptionStatus.canceled
-                            })
-                        },
-                        t('api.clawDeletionScheduled')
-                    )
-                }
-            } catch (subError) {
-                console.error('deleteClaw', subError)
+                    },
+                    t('api.clawDeletionScheduled')
+                )
             }
+        } catch (subError) {
+            console.error('deleteClaw', subError)
         }
-
-        await Promise.all([
-            claw.polarSubscriptionId
-                ? subscriptions
-                      .revoke(claw.polarSubscriptionId)
-                      .catch((subError) => {
-                          console.error('deleteClaw', subError)
-                      })
-                : Promise.resolve(),
-            cleanupClaw(id, {
-                providerServerId: claw.providerServerId,
-                subdomain: claw.subdomain
-            })
-        ])
-
-        return ok(c, { scheduled: false }, t('api.clawDeleted'))
-    } catch {
-        return fail(c, t('api.failedToDeleteClaw'), 500)
     }
-}
+
+    await Promise.all([
+        claw.polarSubscriptionId
+            ? subscriptions
+                  .revoke(claw.polarSubscriptionId)
+                  .catch((subError) => {
+                      console.error('deleteClaw', subError)
+                  })
+            : Promise.resolve(),
+        cleanupClaw(id, {
+            providerServerId: claw.providerServerId,
+            subdomain: claw.subdomain
+        })
+    ])
+
+    return ok(c, { scheduled: false }, t('api.clawDeleted'))
+})
 
 export default deleteClaw

@@ -1,8 +1,9 @@
 import type { Context } from 'hono'
 
 import { getProvider } from '@/services/provider'
-import { ok, fail } from '@/lib/response'
+import { ok } from '@/lib/response'
 import { t } from '@openclaw/i18n'
+import withErrorHandler from '@/lib/withErrorHandler'
 
 const serverPrices: Record<string, number> = {
     cx23: 10,
@@ -26,47 +27,45 @@ const serverPrices: Record<string, number> = {
     ccx63: 350
 }
 
-const getPlanAvailability = async (c: Context) => {
-    try {
-        const provider = getProvider()
+const getPlanAvailability = withErrorHandler(
+    'getPlanAvailability',
+    'api.failedToFetchPlanAvailability'
+)(async (c: Context) => {
+    const provider = getProvider()
 
-        const [serverTypes, datacenters] = await Promise.all([
-            provider.getRawServerTypes(),
-            provider.getDatacenters()
-        ])
+    const [serverTypes, datacenters] = await Promise.all([
+        provider.getRawServerTypes(),
+        provider.getDatacenters()
+    ])
 
-        const nameToId = new Map<string, number>()
-        for (const st of serverTypes) {
-            nameToId.set(st.name, st.id)
-        }
-
-        const locationsByType = new Map<number, Set<string>>()
-        for (const dc of datacenters) {
-            for (const typeId of dc.availableServerTypeIds) {
-                let locs = locationsByType.get(typeId)
-                if (!locs) {
-                    locs = new Set()
-                    locationsByType.set(typeId, locs)
-                }
-                locs.add(dc.locationName)
-            }
-        }
-
-        const availability: Record<string, string[]> = {}
-
-        for (const planName of Object.keys(serverPrices)) {
-            const serverTypeId = nameToId.get(planName)
-            if (!serverTypeId) continue
-            availability[planName] = Array.from(
-                locationsByType.get(serverTypeId) || []
-            )
-        }
-
-        return ok(c, availability, t('api.planAvailabilityFetched'))
-    } catch (error) {
-        console.error('getPlanAvailability', error)
-        return fail(c, t('api.failedToFetchPlanAvailability'), 500)
+    const nameToId = new Map<string, number>()
+    for (const st of serverTypes) {
+        nameToId.set(st.name, st.id)
     }
-}
+
+    const locationsByType = new Map<number, Set<string>>()
+    for (const dc of datacenters) {
+        for (const typeId of dc.availableServerTypeIds) {
+            let locs = locationsByType.get(typeId)
+            if (!locs) {
+                locs = new Set()
+                locationsByType.set(typeId, locs)
+            }
+            locs.add(dc.locationName)
+        }
+    }
+
+    const availability: Record<string, string[]> = {}
+
+    for (const planName of Object.keys(serverPrices)) {
+        const serverTypeId = nameToId.get(planName)
+        if (!serverTypeId) continue
+        availability[planName] = Array.from(
+            locationsByType.get(serverTypeId) || []
+        )
+    }
+
+    return ok(c, availability, t('api.planAvailabilityFetched'))
+})
 
 export default getPlanAvailability

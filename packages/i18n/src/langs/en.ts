@@ -570,7 +570,8 @@ const en = {
                 preview: 'Run commands in your browser, no SSH needed',
                 tag: 'Web Terminal',
                 heading: 'Run commands from your browser',
-                description: 'Full terminal right in your dashboard. Click your claw, start typing. No SSH client needed.',
+                description:
+                    'Full terminal right in your dashboard. Click your claw, start typing. No SSH client needed.',
                 cta: 'Open Terminal'
             },
             logs: {
@@ -578,7 +579,8 @@ const en = {
                 preview: 'Watch your server logs live',
                 tag: 'Live Logs',
                 heading: 'Watch your logs live',
-                description: 'Every request, every error, streaming to your dashboard in real time. No more tailing files over SSH.',
+                description:
+                    'Every request, every error, streaming to your dashboard in real time. No more tailing files over SSH.',
                 cta: 'View Logs'
             },
             channels: {
@@ -586,7 +588,8 @@ const en = {
                 preview: 'Your agents can live where your users are',
                 tag: 'Channels',
                 heading: 'Put your agents where your users are',
-                description: 'Discord, Slack, WhatsApp, Telegram — connect your AI agents to any platform in under a minute.',
+                description:
+                    'Discord, Slack, WhatsApp, Telegram — connect your AI agents to any platform in under a minute.',
                 cta: 'Set Up Channels'
             },
             fileExplorer: {
@@ -594,7 +597,8 @@ const en = {
                 preview: 'Browse and edit files without SSH',
                 tag: 'File Explorer',
                 heading: 'Edit files without SSH',
-                description: 'Browse, edit, and save files on your server with syntax highlighting. No SSH, no FTP — just click and type.',
+                description:
+                    'Browse, edit, and save files on your server with syntax highlighting. No SSH, no FTP — just click and type.',
                 cta: 'Open File Explorer'
             },
             playground: {
@@ -602,7 +606,8 @@ const en = {
                 preview: 'See your claws and agents on a canvas',
                 tag: 'Playground',
                 heading: 'Your infrastructure, visualized',
-                description: 'An interactive graph of all your claws and agents. Drag, zoom, click any node to manage it.',
+                description:
+                    'An interactive graph of all your claws and agents. Drag, zoom, click any node to manage it.',
                 cta: 'Open Playground'
             },
             agentChat: {
@@ -610,15 +615,17 @@ const en = {
                 preview: 'Talk to your agents from the dashboard',
                 tag: 'Agent Chat',
                 heading: 'Talk to your agents',
-                description: 'Open a chat, send a message, get a response. Attach images, browse history, switch between agents.',
+                description:
+                    'Open a chat, send a message, get a response. Attach images, browse history, switch between agents.',
                 cta: 'Start Chatting'
             },
             voiceMode: {
                 subject: 'Talk to your agents with voice',
                 preview: 'Speak to your agents hands-free',
                 tag: 'Voice Mode',
-                heading: 'Speak, don\'t type',
-                description: 'Talk to your AI agents out loud and hear their responses. Multiple voices, fully hands-free.',
+                heading: "Speak, don't type",
+                description:
+                    'Talk to your AI agents out loud and hear their responses. Multiple voices, fully hands-free.',
                 cta: 'Try Voice Mode'
             },
             skills: {
@@ -626,7 +633,8 @@ const en = {
                 preview: 'Install community skills with one click',
                 tag: 'ClawHub Skills',
                 heading: '5,000+ skills, one click to install',
-                description: 'Web search, code execution, image generation — browse ClawHub and add new abilities to your agents instantly.',
+                description:
+                    'Web search, code execution, image generation — browse ClawHub and add new abilities to your agents instantly.',
                 cta: 'Browse ClawHub'
             },
             bindings: {
@@ -634,7 +642,8 @@ const en = {
                 preview: 'Control which agent responds where',
                 tag: 'Bindings',
                 heading: 'Right agent, right channel',
-                description: 'Your support agent on Discord, your assistant on WhatsApp. You decide who responds where.',
+                description:
+                    'Your support agent on Discord, your assistant on WhatsApp. You decide who responds where.',
                 cta: 'Configure Bindings'
             },
             envVars: {
@@ -642,7 +651,8 @@ const en = {
                 preview: 'Set API keys and secrets without SSH',
                 tag: 'Environment Variables',
                 heading: 'Secrets and keys, no SSH needed',
-                description: 'Add, edit, or remove environment variables from a clean UI. Changes take effect immediately.',
+                description:
+                    'Add, edit, or remove environment variables from a clean UI. Changes take effect immediately.',
                 cta: 'Manage Variables'
             },
             diagnostics: {
@@ -650,7 +660,8 @@ const en = {
                 preview: 'Check your server health in one click',
                 tag: 'Diagnostics',
                 heading: 'Is your server healthy?',
-                description: 'Check service status, memory, disk, and ports in one click. Spot issues before they become outages.',
+                description:
+                    'Check service status, memory, disk, and ports in one click. Spot issues before they become outages.',
                 cta: 'Run Diagnostics'
             },
             sshKeys: {
@@ -658,7 +669,8 @@ const en = {
                 preview: 'Generate and manage key pairs easily',
                 tag: 'SSH Keys',
                 heading: 'SSH keys, simplified',
-                description: 'Generate key pairs, copy public keys, download private keys — all from the dashboard. No terminal needed.',
+                description:
+                    'Generate key pairs, copy public keys, download private keys — all from the dashboard. No terminal needed.',
                 cta: 'Manage SSH Keys'
             },
             exportConfig: {
@@ -666,7 +678,8 @@ const en = {
                 preview: 'Download your setup as a portable file',
                 tag: 'Export Config',
                 heading: 'Take your config with you',
-                description: 'Export your agents, skills, channels, and settings as a single file. Back up or replicate your setup.',
+                description:
+                    'Export your agents, skills, channels, and settings as a single file. Back up or replicate your setup.',
                 cta: 'Export Config'
             },
             multiLanguage: {
@@ -674,7 +687,8 @@ const en = {
                 preview: 'Switch the dashboard to your language',
                 tag: 'Multi-Language',
                 heading: '14 languages, fully translated',
-                description: 'Switch ClawHost to English, French, Spanish, German, and 10 more. Every button, every message.',
+                description:
+                    'Switch ClawHost to English, French, Spanish, German, and 10 more. Every button, every message.',
                 cta: 'Change Language'
             },
             subdomain: {
@@ -682,7 +696,8 @@ const en = {
                 preview: 'Access your claw from anywhere',
                 tag: 'Custom Subdomain',
                 heading: 'Your claw, your URL',
-                description: 'Every claw gets a unique subdomain like myclaw.clawhost.cloud. Accessible from anywhere, no VPN needed.',
+                description:
+                    'Every claw gets a unique subdomain like myclaw.clawhost.cloud. Accessible from anywhere, no VPN needed.',
                 cta: 'View Your Subdomain'
             },
             darkMode: {
@@ -690,7 +705,8 @@ const en = {
                 preview: 'Switch between light and dark themes',
                 tag: 'Dark Mode',
                 heading: 'Easy on the eyes',
-                description: 'Toggle between light and dark with one click. Your preference is saved automatically.',
+                description:
+                    'Toggle between light and dark with one click. Your preference is saved automatically.',
                 cta: 'Try Dark Mode'
             },
             reinstall: {
@@ -698,7 +714,8 @@ const en = {
                 preview: 'Reinstall OpenClaw without losing your server',
                 tag: 'Reinstall',
                 heading: 'Fresh start, same server',
-                description: 'Reinstall wipes the OpenClaw runtime and gives you a clean slate. Your server, IP, and keys stay the same.',
+                description:
+                    'Reinstall wipes the OpenClaw runtime and gives you a clean slate. Your server, IP, and keys stay the same.',
                 cta: 'Learn More'
             },
             yearlyPlans: {
@@ -706,7 +723,8 @@ const en = {
                 preview: 'Same service, lower price',
                 tag: 'Yearly Plans',
                 heading: 'Same claw, smaller bill',
-                description: 'Switch to annual billing and pay less. No feature differences, no catch. Switch anytime from your account.',
+                description:
+                    'Switch to annual billing and pay less. No feature differences, no catch. Switch anytime from your account.',
                 cta: 'View Plans'
             }
         }

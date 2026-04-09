@@ -1,16 +1,6 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib'
-import updateClawInCaches from '@/hooks/useClaws/updateClawInCaches'
+import createClawLifecycleMutation from '@/hooks/useClaws/createClawLifecycleMutation'
 
-const useStartClaw = () => {
-    const queryClient = useQueryClient()
-
-    return useMutation({
-        mutationFn: (id: string) => api.startClaw(id),
-        onSuccess: (updatedClaw, id) => {
-            updateClawInCaches(queryClient, id, updatedClaw)
-        }
-    })
-}
+const useStartClaw = createClawLifecycleMutation((id) => api.startClaw(id))
 
 export default useStartClaw

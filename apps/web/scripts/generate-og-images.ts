@@ -10,7 +10,10 @@ import { decompress } from 'wawoff2'
 const CONTENT = path.resolve(import.meta.dirname, '../content/posts')
 const OUTPUT = path.resolve(import.meta.dirname, '../public/og')
 const FONTS_DIR = path.resolve(import.meta.dirname, '../public/fonts')
-const LOGO_PATH = path.resolve(import.meta.dirname, '../public/clawhost-logo-og.png')
+const LOGO_PATH = path.resolve(
+    import.meta.dirname,
+    '../public/clawhost-logo-og.png'
+)
 
 const WIDTH = 1200
 const HEIGHT = 630
@@ -20,13 +23,17 @@ const hashString = (str: string): number => {
     let hash = 0
     for (let i = 0; i < str.length; i++) {
         const char = str.charCodeAt(i)
-        hash = ((hash << 5) - hash) + char
+        hash = (hash << 5) - hash + char
         hash |= 0
     }
     return Math.abs(hash)
 }
 
-const createOgImage = (title: string, slug: string, logoDataUri: string): {
+const createOgImage = (
+    title: string,
+    slug: string,
+    logoDataUri: string
+): {
     type: string
     props: Record<string, unknown>
 } => {
@@ -88,7 +95,8 @@ const createOgImage = (title: string, slug: string, logoDataUri: string): {
                             left: 0,
                             right: 0,
                             height: '50%',
-                            background: 'linear-gradient(to top, #0a0a0f, transparent)'
+                            background:
+                                'linear-gradient(to top, #0a0a0f, transparent)'
                         }
                     }
                 },
@@ -131,7 +139,8 @@ const createOgImage = (title: string, slug: string, logoDataUri: string): {
                                 type: 'div',
                                 props: {
                                     style: {
-                                        fontSize: title.length > 60 ? '40px' : '48px',
+                                        fontSize:
+                                            title.length > 60 ? '40px' : '48px',
                                         fontFamily: 'Clash Display',
                                         fontWeight: 700,
                                         color: '#ffffff',
@@ -213,7 +222,9 @@ const generateOgImages = async (): Promise<void> => {
         generated++
     }
 
-    console.log(`OG images: ${generated} generated, ${skipped} skipped (already exist)`)
+    console.log(
+        `OG images: ${generated} generated, ${skipped} skipped (already exist)`
+    )
 }
 
 generateOgImages()

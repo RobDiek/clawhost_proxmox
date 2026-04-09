@@ -1,8 +1,15 @@
-import type { ComponentType, ElementType, ReactNode, RefObject } from 'react'
+import type {
+    ComponentType,
+    ElementType,
+    FormEvent,
+    MutableRefObject,
+    ReactNode,
+    RefObject
+} from 'react'
 import type { MotionValue } from 'framer-motion'
 import type { User } from 'firebase/auth'
 import type { Node, Edge } from '@xyflow/react'
-import type { UseQueryResult } from '@tanstack/react-query'
+import type { QueryClient, UseQueryResult } from '@tanstack/react-query'
 import type { TranslationKey } from '@openclaw/i18n'
 import type {
     AdminAnalyticsRange,
@@ -16,6 +23,8 @@ import type {
     DashboardTab,
     GatewayConnectionState,
     Language,
+    LoginLoadingMethod,
+    OAuthProvider,
     PlaygroundAgentDetailTab,
     PlaygroundDetailTab,
     ThemeMode,
@@ -138,6 +147,46 @@ export interface UserStats {
     orderCount: number
 }
 
+export interface AccountProfileSectionProps {
+    name: string
+    profileName: string | null
+    email: string
+    isLocal: boolean
+    joinedDate: string | undefined
+    clawCount: number
+    sshKeyCount: number
+    hasChanges: boolean
+    isPending: boolean
+    onNameChange: (value: string) => void
+    onSave: () => void
+}
+
+export interface AccountSettingsSectionProps {
+    showLocal: boolean
+    showAdmin: boolean
+    openLinksWindowed: boolean
+    setOpenLinksWindowed: (value: boolean) => void
+    adminMode: boolean
+    setAdminMode: (value: boolean) => void
+}
+
+export interface ConnectedAccountsSectionProps {
+    authMethods: AuthMethod[] | undefined
+    linkingProvider: AuthMethod | null
+    unlinkingProvider: AuthMethod | null
+    providerBusy: boolean
+    onLink: (provider: OAuthProvider) => void
+    onUnlink: (provider: OAuthProvider) => void
+}
+
+export interface UseLinkedProviderReturn {
+    linkingProvider: AuthMethod | null
+    unlinkingProvider: AuthMethod | null
+    providerBusy: boolean
+    handleLinkProvider: (provider: OAuthProvider) => Promise<void>
+    handleUnlinkProvider: (provider: OAuthProvider) => Promise<void>
+}
+
 export interface BillingOrder {
     id: string
     status: string
@@ -171,6 +220,45 @@ export interface ToastData {
     duration?: number
 }
 
+export interface UseToastReturn {
+    success: (text: string) => void
+    error: (text: string) => void
+    warning: (text: string) => void
+    info: (text: string) => void
+}
+
+export interface UseCopyWithFeedbackReturn {
+    copied: boolean
+    copy: (value: string) => void
+}
+
+export interface UseCreateClawFormValues {
+    name: string
+    planId: string
+    location: string
+    password: string
+    showPassword: boolean
+    selectedSshKeyId: string
+    volumeSize: number
+    billingCycle: BillingInterval
+    showAdvanced: boolean
+    agreedToTerms: boolean
+}
+
+export interface UseCreateClawFormErrors {
+    name: string
+}
+
+export interface UseCreateClawFormReturn {
+    values: UseCreateClawFormValues
+    errors: UseCreateClawFormErrors
+    setField: <K extends keyof UseCreateClawFormValues>(
+        key: K,
+        value: UseCreateClawFormValues[K]
+    ) => void
+    reset: () => void
+}
+
 export interface UIState {
     isCreateModalOpen: boolean
     setCreateModalOpen: (open: boolean) => void
@@ -196,6 +284,8 @@ export interface PreferencesState {
     setChatSidebarView: (view: ChatSidebarViewMode) => void
     product: Product
     setProduct: (product: Product) => void
+    affiliatePeriod: AffiliatePeriod
+    setAffiliatePeriod: (period: AffiliatePeriod) => void
 }
 
 export interface ChannelsState {
@@ -243,7 +333,62 @@ export interface VariablesState {
     setDeleteIndex: (value: number | null) => void
     dontAskAgain: boolean
     setDontAskAgain: (value: boolean) => void
+    skipDeleteConfirmation: boolean
+    setSkipDeleteConfirmation: (value: boolean) => void
     resetVariablesState: () => void
+}
+
+export interface EnvVarRowProps {
+    envVar: EnvVar
+    index: number
+    keyError: string | null
+    valueError: string | null
+    showValue: boolean
+    isCopied: boolean
+    isPending: boolean
+    onChange: (index: number, field: 'key' | 'value', val: string) => void
+    onToggleVisibility: (key: string) => void
+    onCopyValue: (key: string, value: string) => Promise<void>
+    onRemove: (index: number) => void
+}
+
+export interface EnvVarsEmptyStateProps {
+    onAdd: () => void
+}
+
+export interface DeleteEnvVarDialogProps {
+    open: boolean
+    envKey: string
+    dontAskAgain: boolean
+    isPending: boolean
+    onOpenChange: (open: boolean) => void
+    onDontAskAgainChange: (value: boolean) => void
+    onConfirm: () => void
+}
+
+export interface UseEnvVarsFormParams {
+    clawId: string
+    mockEnvVars?: Record<string, string>
+}
+
+export interface UseEnvVarsFormReturn {
+    envVars: Array<EnvVar>
+    errors: Array<EnvVarValidationError>
+    hasErrors: boolean
+    hasChanges: boolean
+    isLoading: boolean
+    isError: boolean
+    isSavePending: boolean
+    isDeletePending: boolean
+    handleAddVar: () => void
+    handleVarChange: (
+        index: number,
+        field: 'key' | 'value',
+        val: string
+    ) => void
+    handleRemoveVar: (index: number) => void
+    handleConfirmDelete: () => void
+    save: () => void
 }
 
 export interface ClawHubState {
@@ -543,6 +688,51 @@ export interface ClawCardDialogsProps {
     isReinstallPending: boolean
 }
 
+export interface UseClawCardActionsParams {
+    claw: Claw | null
+}
+
+export interface UseClawCardActionsReturn {
+    actions: ClawCardActions | null
+    isMutating: boolean
+    dialogsProps: ClawCardDialogsBundleProps | null
+}
+
+export interface ClawCardDialogsBundleProps {
+    clawId: string
+    clawName: string
+    clawIp: string
+    showDeleteModal: boolean
+    setShowDeleteModal: (open: boolean) => void
+    showStopModal: boolean
+    setShowStopModal: (open: boolean) => void
+    showRestartModal: boolean
+    setShowRestartModal: (open: boolean) => void
+    showHardDeleteModal: boolean
+    setShowHardDeleteModal: (open: boolean) => void
+    showReinstallModal: boolean
+    setShowReinstallModal: (open: boolean) => void
+    showDiagnostics: boolean
+    setShowDiagnostics: (open: boolean) => void
+    showLogs: boolean
+    setShowLogs: (open: boolean) => void
+    showConfigDialog: boolean
+    setShowConfigDialog: (open: boolean) => void
+    showCredentials: boolean
+    setShowCredentials: (open: boolean) => void
+    credentialsPassword: string | null
+    onDelete: () => void
+    onStop: () => void
+    onRestart: () => void
+    onHardDelete: () => void
+    onReinstall: () => void
+    isDeletePending: boolean
+    isStopPending: boolean
+    isRestartPending: boolean
+    isHardDeletePending: boolean
+    isReinstallPending: boolean
+}
+
 export interface SSHKeyCardProps {
     sshKey: SSHKey
 }
@@ -821,6 +1011,61 @@ export interface ClawFileExplorerDialogProps {
     onOpenChange: (open: boolean) => void
 }
 
+export interface FileTreeProps {
+    folders: [string, ClawFileEntry[]][]
+    rootFiles: ClawFileEntry[]
+    selectedPath: string
+    onSelectFile: (path: string) => void
+}
+
+export interface FileTreeItemProps {
+    file: ClawFileEntry
+    isLast: boolean
+    selectedPath: string
+    onSelectFile: (path: string) => void
+}
+
+export interface FileEditorProps {
+    selectedFile: ClawFileEntry | undefined
+    fileType: ClawFileType
+    isEditable: boolean
+    isJson: boolean
+    displayContent: string
+    hasUnsavedChanges: boolean
+    jsonError: boolean
+    resolvedTheme: string
+    onChange: (value: string) => void
+    onJsonChange: (value: string) => void
+    onClose: () => void
+}
+
+export interface UseFileEditorParams {
+    clawId: string
+    files: ClawFileEntry[] | undefined
+}
+
+export interface UseFileEditorReturn {
+    selectedPath: string
+    editedContent: string
+    jsonError: boolean
+    selectedFile: ClawFileEntry | undefined
+    fileType: ClawFileType
+    isEditable: boolean
+    isJson: boolean
+    displayContent: string
+    hasUnsavedChanges: boolean
+    fileContentIsPending: boolean
+    fileContentIsError: boolean
+    fileContentError: Error | null
+    fileContentData: ReadClawFileResponse | undefined
+    isSaving: boolean
+    handleSelectFile: (path: string) => void
+    handleChange: (value: string) => void
+    handleJsonChange: (value: string) => void
+    handleSave: () => void
+    reset: () => void
+}
+
 export interface UseProfileOptions {
     enabled?: boolean
     staleTime?: number
@@ -943,6 +1188,38 @@ export interface PlaygroundDetailSettingsTabProps {
     onSave: () => void
 }
 
+export interface PlaygroundDetailHeaderProps {
+    claw: Claw
+    onClose: () => void
+    fullScreen?: boolean
+}
+
+export interface PlaygroundDetailTabBarProps {
+    activeTab: PlaygroundDetailTab
+    fullScreen?: boolean
+    isTabDisabled: (tabId: PlaygroundDetailTab) => boolean
+    getDisabledTooltip: (tabId: PlaygroundDetailTab) => string
+    setActiveTab: (tab: PlaygroundDetailTab) => void
+}
+
+export interface PlaygroundDetailTabState {
+    tabStateMap: Record<string, PlaygroundDetailTab>
+    setTab: (clawId: string, tab: PlaygroundDetailTab) => void
+}
+
+export interface UseClawSettingsFormReturn {
+    settingsName: string
+    settingsNameError: string
+    settingsSubdomain: string
+    settingsSubdomainError: string
+    settingsHasChanges: boolean
+    renamePending: boolean
+    subdomainPending: boolean
+    handleSettingsNameChange: (value: string) => void
+    handleSettingsSubdomainChange: (value: string) => void
+    handleSettingsSave: () => void
+}
+
 export interface PlaygroundToolbarProps {
     zoom: number
     onFitView: () => void
@@ -996,6 +1273,24 @@ export interface CreateAgentModalProps {
     clawsWithAgents?: ClawWithAgents[]
     open: boolean
     onOpenChange: (open: boolean) => void
+}
+
+export interface SecretInputFieldProps {
+    label: string
+    value: string
+    onChange: (value: string) => void
+    placeholder?: string
+    existingValue?: string
+    configuredLabel?: string
+    helperText?: string
+}
+
+export interface UseAgentNameValidationReturn {
+    name: string
+    nameError: TranslationKey | null
+    handleNameChange: (value: string) => void
+    setNameError: (error: TranslationKey | null) => void
+    reset: () => void
 }
 
 export interface PlaygroundAgentDetailPanelProps {
@@ -1303,6 +1598,17 @@ export interface UseTextToSpeechReturn {
     setOutputDeviceId: (deviceId: string | null) => void
 }
 
+export interface PlayStreamingAudioParams {
+    messageId: string
+    response: Response
+    ctx: AudioContext
+    outputDeviceId: string | null
+    isPlayingRef: { current: boolean }
+    cache: Map<string, AudioBuffer>
+    setLoadingMessageId: (id: string | null) => void
+    setActiveMessageId: (id: string | null) => void
+}
+
 export interface ChatSpeechButtonProps {
     messageId: string
     text: string
@@ -1346,6 +1652,57 @@ export interface VoiceModeOverlayProps {
     ttsActiveMessageId: string | null
     ttsLoadingMessageId: string | null
     setOutputDeviceId: (deviceId: string | null) => void
+}
+
+export interface UseAudioDevicesReturn {
+    inputDevices: MediaDeviceInfo[]
+    outputDevices: MediaDeviceInfo[]
+    selectedInputId: string
+    selectedOutputId: string
+    setSelectedInputId: (id: string) => void
+    setSelectedOutputId: (id: string) => void
+    hasNoInput: boolean
+    hasNoOutput: boolean
+}
+
+export interface UseVoiceRecorderParams {
+    sendMessageRef: MutableRefObject<(text: string) => void>
+    hasNoInput: boolean
+}
+
+export interface UseVoiceRecorderReturn {
+    isRecording: boolean
+    isTranscribing: boolean
+    intensity: number
+    setIntensity: (value: number) => void
+    startRecording: () => Promise<void>
+    stopAndTranscribe: () => Promise<void> | undefined
+    cleanup: () => void
+}
+
+export interface UseIdleVoiceAnimationParams {
+    isRecording: boolean
+    isTranscribing: boolean
+    isStreaming: boolean
+    typingIndicator: ChatTypingIndicator
+    ttsActiveMessageId: string | null
+    ttsLoadingMessageId: string | null
+    setIntensity: (value: number) => void
+}
+
+export interface UseAutoSpeakLastMessageParams {
+    sessionMessages: ChatMessage[]
+    speak: (messageId: string, text: string) => void
+}
+
+export interface DeviceSelectorDropdownProps {
+    icon: ReactNode
+    label: string
+    value: string
+    onValueChange: (value: string) => void
+    devices: MediaDeviceInfo[]
+    fallbackLabel: string
+    emptyLabel: string
 }
 
 export interface VoiceOrbProps {
@@ -1473,6 +1830,55 @@ export interface ChannelFieldDefinition {
     secret?: boolean
     type?: 'text' | 'select'
     options?: ChannelFieldOption[]
+}
+
+export interface ChannelCardProps {
+    def: ChannelDefinition
+    config: ChannelConfig
+    isWhatsAppPaired: boolean
+    visibleSecrets: Record<string, boolean>
+    toggleSecret: (id: string) => void
+    toggleChannel: (key: string) => void
+    updateField: (channelKey: string, fieldKey: string, value: string) => void
+    copyField: (value: string) => void
+    whatsAppPairing: UseWhatsAppPairingReturn
+    initialCheckDone: boolean
+    whatsAppEnabled: boolean
+}
+
+export interface WhatsAppPairingPanelProps {
+    whatsAppPairing: UseWhatsAppPairingReturn
+    initialCheckDone: boolean
+    whatsAppEnabled: boolean
+}
+
+export interface ChannelFieldInputProps {
+    def: ChannelDefinition
+    field: ChannelFieldDefinition
+    config: ChannelConfig
+    visibleSecrets: Record<string, boolean>
+    toggleSecret: (id: string) => void
+    updateField: (channelKey: string, fieldKey: string, value: string) => void
+    copyField: (value: string) => void
+}
+
+export interface UseWhatsAppPairingParams {
+    clawId: string
+    whatsAppEnabled: boolean
+}
+
+export interface UseWhatsAppPairingReturn {
+    isPairing: boolean
+    isRepairing: boolean
+    isWhatsAppPaired: boolean
+    setIsWhatsAppPaired: (v: boolean) => void
+    setIsRepairing: (v: boolean) => void
+    pairStatus: WhatsAppPairStatusResponse | undefined
+    qrImageUrl: string
+    qrRefreshed: boolean
+    pairMutationPending: boolean
+    triggerPair: (force?: boolean) => void
+    triggerRepair: () => void
 }
 
 export interface PlaygroundSkillsContentProps {
@@ -1676,6 +2082,14 @@ export interface ClawBindingsResponse {
 
 export interface UpdateClawBindingsData {
     bindings: Binding[]
+}
+
+export interface AdminPaginatedQueryParams {
+    page: number
+    limit: number
+    search?: string
+    sort?: string
+    [key: string]: string | number | boolean | undefined
 }
 
 export interface PlaygroundBindingsContentProps {
@@ -2006,13 +2420,8 @@ export interface AdminUserRowProps {
     onSelect: (userId: string) => void
 }
 
-export interface AdminUserDetailModalProps {
-    userId: string | null
-    onClose: () => void
-}
-
 export interface AdminUsersTabProps {
-    totalUsers: number
+    onSelectEntity: (entity: AdminEntitySelection) => void
 }
 
 export interface AdminAnalyticsDataPoint {
@@ -2190,6 +2599,13 @@ export interface UpdateAdminUserData {
 export interface UpdateAdminUserMutationParams {
     id: string
     data: UpdateAdminUserData
+}
+
+export interface CreateApiMutationOptions<TArgs, TResult> {
+    invalidateKeys?:
+        | ReadonlyArray<readonly unknown[]>
+        | ((args: TArgs, result: TResult) => ReadonlyArray<readonly unknown[]>)
+    onSuccess?: (result: TResult, args: TArgs, queryClient: QueryClient) => void
 }
 
 export interface RangeBucketConfig {
@@ -2478,10 +2894,15 @@ export interface BillingOrderCardProps {
     order: BillingOrder
     loadingInvoiceIds: Set<string>
     onViewInvoice: (orderId: string) => void
-    formatDate: (dateString: string | undefined) => string
-    formatCurrency: (amount: number, currency: string) => string
-    getStatusBadge: (status: string) => ReactNode
-    getBillingReasonLabel: (reason: string) => string
+}
+
+export interface BillingStatusConfig {
+    className: string
+    labelKey: TranslationKey
+}
+
+export interface BillingStatusBadgeProps {
+    status: string
 }
 
 export interface CompareTableMobileProps {
@@ -2497,4 +2918,117 @@ export interface CompareTableDesktopProps {
     competitors: CompareCompetitor[]
     colSpan: number
     renderValue: (value: CompareFeatureValue) => ReactNode
+}
+
+export interface UseBundledSkillsParams {
+    clawId: string
+    agentId?: string
+    isAgentMode: boolean
+    search: string
+}
+
+export interface UseBundledSkillsReturn {
+    filteredBundledSkills: BundledSkillInfo[]
+    isBundledActive: (skill: BundledSkillInfo) => boolean
+    handleBundledAction: (name: string) => void
+    isBundledLoading: boolean
+    installedSet: Set<string>
+}
+
+export interface UseClawHubSkillsParams {
+    clawId: string
+    agentId?: string
+    debouncedSearch: string
+    isBundledLoading: boolean
+    scrollRef: RefObject<HTMLDivElement>
+    sentinelRef: RefObject<HTMLDivElement>
+}
+
+export interface UseClawHubSkillsReturn {
+    clawHubSkills: ClawHubSearchResult[]
+    installedSlugs: Set<string>
+    updatesMap: Map<string, string>
+    isClawHubFirstLoad: boolean
+    isBrowseError: boolean
+    isFetchingNextPage: boolean
+    browseHasNextPage: boolean
+    handleClawHubAction: (slug: string) => void
+}
+
+export interface BundledSkillRowProps {
+    skill: BundledSkillInfo
+    active: boolean
+    isPending: boolean
+    pendingSkill: string | null
+    onAction: (name: string) => void
+}
+
+export interface ClawHubSkillRowProps {
+    skill: ClawHubSearchResult
+    isInstalled: boolean
+    hasUpdate: boolean
+    latestVersion: string | undefined
+    isPending: boolean
+    pendingSlug: string | null
+    onAction: (slug: string) => void
+}
+
+export interface SkillsSearchBarProps {
+    search: string
+    onSearchChange: (value: string) => void
+    disabled: boolean
+}
+
+export interface SkillsEmptyStateProps {
+    hasSearch: boolean
+    isAgentMode: boolean
+}
+
+export interface UseOtpFlowParams {
+    email: string
+    cooldown: number
+    startCooldown: () => void
+    onCodeSent: () => void
+}
+
+export interface UseOtpFlowReturn {
+    code: string[]
+    codeError: boolean
+    emailError: string
+    loadingMethod: LoginLoadingMethod
+    isCodeComplete: boolean
+    inputRefs: MutableRefObject<(HTMLInputElement | null)[]>
+    setEmailError: (value: string) => void
+    handleSendOtp: () => Promise<void>
+    handleVerifyOtp: (fullCode: string) => Promise<void>
+    handleCodeChange: (value: string, index: number) => void
+    handleCodeKeyDown: (key: string, index: number) => void
+    handleResend: () => Promise<void>
+    handleOAuth: (provider: OAuthProvider) => Promise<void>
+    resetCode: () => void
+}
+
+export interface EmailStepProps {
+    email: string
+    setEmail: (value: string) => void
+    emailError: string
+    loadingMethod: LoginLoadingMethod
+    cooldown: number
+    onSubmit: (e: FormEvent) => void
+    onOAuth: (provider: OAuthProvider) => void
+}
+
+export interface OtpCodeStepProps {
+    email: string
+    code: string[]
+    codeError: boolean
+    isCodeComplete: boolean
+    loadingMethod: LoginLoadingMethod
+    cooldown: number
+    inputRefs: MutableRefObject<(HTMLInputElement | null)[]>
+    onCodeChange: (value: string, index: number) => void
+    onCodeKeyDown: (key: string, index: number) => void
+    onVerify: () => void
+    onResend: () => void
+    onChangeEmail: () => void
 }

@@ -20,23 +20,18 @@ const deleteClawAgent = async (c: AuthenticatedContext) => {
         const id = c.req.param('id')!
         const body = await c.req.json<DeleteClawAgentBody>()
 
-        if (!body.agentId || typeof body.agentId !== 'string') {
+        if (!body.agentId || typeof body.agentId !== 'string')
             return fail(c, t('api.missingRequiredFields'), 400)
-        }
 
-        if (body.agentId === 'main') {
+        if (body.agentId === 'main')
             return fail(c, t('api.cannotDeleteMainAgent'), 400)
-        }
 
         const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
-        if (!claw) {
-            return fail(c, t('api.clawNotFound'), 404)
-        }
+        if (!claw) return fail(c, t('api.clawNotFound'), 404)
 
-        if (!claw.ip || !claw.rootPassword) {
+        if (!claw.ip || !claw.rootPassword)
             return fail(c, t('api.agentDeleteFailed'), 400)
-        }
 
         try {
             const { supported, version } = await checkFeatureVersion(
@@ -70,9 +65,7 @@ const deleteClawAgent = async (c: AuthenticatedContext) => {
 
             applyToolsDefaults(config)
 
-            if (!config.agents) {
-                return fail(c, t('api.agentDeleteFailed'), 404)
-            }
+            if (!config.agents) return fail(c, t('api.agentDeleteFailed'), 404)
 
             const agents = config.agents as Record<string, unknown>
             const defaults = (agents.defaults || {}) as Record<string, unknown>
@@ -87,13 +80,11 @@ const deleteClawAgent = async (c: AuthenticatedContext) => {
                     (a.name as string) === body.agentId
             )
 
-            if (agentIndex === -1) {
+            if (agentIndex === -1)
                 return fail(c, t('api.agentDeleteFailed'), 404)
-            }
 
-            if (agentList.length <= 1) {
+            if (agentList.length <= 1)
                 return fail(c, t('api.cannotDeleteMainAgent'), 400)
-            }
 
             agentList.splice(agentIndex, 1)
             agentList.forEach((a) => {

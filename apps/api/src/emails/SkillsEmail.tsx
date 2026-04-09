@@ -5,7 +5,15 @@ import { Button, Img, Section, Text } from '@react-email/components'
 
 import CDN_ASSETS from '@/lib/cdn'
 import FeatureEmailLayout from '@/emails/FeatureEmailLayout'
-import { subheading, heading, paragraph, button, buttonContainer, featureGifSection, featureGif } from '@/lib/emailStyles'
+import {
+    subheading,
+    heading,
+    paragraph,
+    button,
+    buttonContainer,
+    featureGifSection,
+    featureGif
+} from '@/lib/emailStyles'
 
 const SkillsEmail: FC = (): ReactNode => {
     return (
@@ -19,10 +27,10 @@ const SkillsEmail: FC = (): ReactNode => {
 
             <Section style={featureGifSection}>
                 <Img
-                        src={CDN_ASSETS.FEATURE_SKILLS}
-                        width='560'
-                        alt={t('emails.features.skills.tag')}
-                        style={featureGif}
+                    src={CDN_ASSETS.FEATURE_SKILLS}
+                    width='560'
+                    alt={t('emails.features.skills.tag')}
+                    style={featureGif}
                 />
             </Section>
 

@@ -11,13 +11,10 @@ const getClawLogs = async (c: AuthenticatedContext) => {
         const id = c.req.param('id')!
         const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
-        if (!claw) {
-            return fail(c, t('api.clawNotFound'), 404)
-        }
+        if (!claw) return fail(c, t('api.clawNotFound'), 404)
 
-        if (!claw.ip || !claw.rootPassword) {
+        if (!claw.ip || !claw.rootPassword)
             return fail(c, t('api.failedToGetDiagnostics'), 400)
-        }
 
         const output = await executeSSH(
             claw.ip,

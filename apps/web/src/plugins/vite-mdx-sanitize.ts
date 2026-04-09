@@ -15,9 +15,7 @@ const sanitizeFrontmatter = (raw: string): string => {
         .map((line: string) => {
             if (line.match(/^\s*-\s+['"`]/)) {
                 const match = line.match(/^(\s*-\s+)['"`]\s*(.+?)\s*['"`]/)
-                if (match) {
-                    return `${match[1]}${match[2]}`
-                }
+                if (match) return `${match[1]}${match[2]}`
             }
 
             if (/^\s*\d+\s*:/.test(line)) {

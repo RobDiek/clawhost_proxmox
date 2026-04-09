@@ -19,9 +19,7 @@ const validateAgentName = (
             (!currentName || n.toLowerCase() !== currentName.toLowerCase())
     )
 
-    if (isDuplicate) {
-        return 'playground.agentNameDuplicate'
-    }
+    if (isDuplicate) return 'playground.agentNameDuplicate'
 
     return null
 }

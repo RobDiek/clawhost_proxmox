@@ -80,9 +80,7 @@ const sendFeatureEmails = async (c: Context) => {
             const targetFeature = FEATURE_EMAILS.find(
                 (f) => f.key === featureParam
             )
-            if (!targetFeature) {
-                return fail(c, t('api.invalidFeatureKey'), 400)
-            }
+            if (!targetFeature) return fail(c, t('api.invalidFeatureKey'), 400)
 
             const pendingUsers = await db
                 .select({ id: users.id, email: users.email })

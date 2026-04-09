@@ -28,9 +28,7 @@ const BlogPost: FC = (): ReactNode => {
     const meta = slug ? getPostMeta(slug) : null
     const Content = slug ? getPostComponent(slug) : null
 
-    if (!meta || !Content) {
-        return <NotFound />
-    }
+    if (!meta || !Content) return <NotFound />
 
     const formattedDate = new Date(meta.publishedAt).toLocaleDateString(
         getLocale(),

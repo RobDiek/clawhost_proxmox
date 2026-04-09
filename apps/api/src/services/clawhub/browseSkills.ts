@@ -45,9 +45,7 @@ const fetchAllSkills = async (): Promise<ClawHubSearchResult[]> => {
         const items = response.items || []
         allItems.push(...items)
 
-        if (!response.nextCursor || items.length === 0) {
-            break
-        }
+        if (!response.nextCursor || items.length === 0) break
 
         cursor = response.nextCursor
     }

@@ -6,9 +6,8 @@ import GITHUB_STARS_QUERY_KEY from '@/hooks/useGitHubStars/GITHUB_STARS_QUERY_KE
 const GITHUB_REPO = 'bfzli/clawhost'
 
 const formatStars = (count: number): string => {
-    if (count >= 1000) {
+    if (count >= 1000)
         return `${(count / 1000).toFixed(1).replace(/\.0$/, '')}k`
-    }
     return count.toString()
 }
 

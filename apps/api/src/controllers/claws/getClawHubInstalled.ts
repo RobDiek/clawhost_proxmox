@@ -3,17 +3,17 @@ import type {
     ClawHubInstalledSkill,
     RawClawHubSkillItem
 } from '@/ts/Interfaces'
-import type { AuthenticatedContext } from '@/ts/Types'
 
 import executeSSH from '@/services/ssh'
 import {
-    findUserClaw,
     ensureClawHub,
     BASE_DIR,
-    parseJsonArrayFromSSH
+    parseJsonArrayFromSSH,
+    withClaw
 } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
+import withErrorHandler from '@/lib/withErrorHandler'
 
 const normalizeSlug = (raw: string): string => {
     const trimmed = raw.trim().toLowerCase()
@@ -36,20 +36,11 @@ const normalizeSkill = (item: RawClawHubSkillItem): ClawHubInstalledSkill => {
     }
 }
 
-const getClawHubInstalled = async (c: AuthenticatedContext) => {
-    try {
-        const userId = c.get('userId')
-        const id = c.req.param('id')!
-        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
-
-        if (!claw) {
-            return fail(c, t('api.clawNotFound'), 404)
-        }
-
-        if (!claw.ip || !claw.rootPassword) {
-            return fail(c, t('api.clawHubFetchFailed'), 400)
-        }
-
+const getClawHubInstalled = withErrorHandler(
+    'getClawHubInstalled',
+    'api.clawHubFetchFailed'
+)(
+    withClaw({ requireSSH: 'api.clawHubFetchFailed' })(async (c, claw) => {
         try {
             let agentId: string | undefined
             try {
@@ -59,7 +50,7 @@ const getClawHubInstalled = async (c: AuthenticatedContext) => {
                 agentId = undefined
             }
 
-            await ensureClawHub(claw.ip, claw.rootPassword)
+            await ensureClawHub(claw.ip!, claw.rootPassword!)
 
             let clawHubCmd = 'clawhub list --json'
 
@@ -71,8 +62,8 @@ const getClawHubInstalled = async (c: AuthenticatedContext) => {
             const cmd = `su - openclaw -c "${clawHubCmd}" 2>/dev/null || echo '[]'`
 
             const output = await executeSSH(
-                claw.ip,
-                claw.rootPassword,
+                claw.ip!,
+                claw.rootPassword!,
                 cmd,
                 30000
             )
@@ -87,9 +78,7 @@ const getClawHubInstalled = async (c: AuthenticatedContext) => {
         } catch {
             return fail(c, t('api.clawHubFetchFailed'), 500)
         }
-    } catch {
-        return fail(c, t('api.clawHubFetchFailed'), 500)
-    }
-}
+    })
+)
 
 export default getClawHubInstalled

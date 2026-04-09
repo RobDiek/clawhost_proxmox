@@ -4,8 +4,7 @@ import type { AffiliateStatsGridProps } from '@/ts/Interfaces'
 import { useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { inputValidation } from '@openclaw/shared'
-import { copyToClipboard } from '@/lib'
-import { useUIStore } from '@/lib/store'
+import { useToast, useCopyWithFeedback } from '@/hooks'
 import { Button, Input, Skeleton } from '@/components/ui'
 import {
     CopyIcon,
@@ -25,18 +24,16 @@ const AffiliateStatsGrid: FC<AffiliateStatsGridProps> = ({
     onCopy,
     isPending
 }): ReactNode => {
-    const showToast = useUIStore((s) => s.showToast)
+    const toast = useToast()
+    const { copied, copy } = useCopyWithFeedback()
     const [editing, setEditing] = useState(false)
     const [newCode, setNewCode] = useState('')
-    const [copied, setCopied] = useState(false)
 
-    const handleCopy = async () => {
+    const handleCopy = () => {
         if (!referralCode) return
         const url = `${window.location.origin}?ref=${referralCode}`
-        await copyToClipboard(url)
-        setCopied(true)
+        copy(url)
         onCopy()
-        setTimeout(() => setCopied(false), 2000)
     }
 
     const handleSave = () => {
@@ -45,12 +42,11 @@ const AffiliateStatsGrid: FC<AffiliateStatsGridProps> = ({
             trimmed.length < inputValidation.REFERRAL_CODE.MIN ||
             trimmed.length > inputValidation.REFERRAL_CODE.MAX
         ) {
-            showToast(
+            toast.error(
                 t('affiliate.invalidCodeLength', {
                     min: String(inputValidation.REFERRAL_CODE.MIN),
                     max: String(inputValidation.REFERRAL_CODE.MAX)
-                }),
-                'error'
+                })
             )
             return
         }

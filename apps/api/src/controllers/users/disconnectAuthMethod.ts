@@ -24,9 +24,7 @@ const disconnectAuthMethod = async (c: AuthenticatedContext) => {
             .where(eq(users.id, userId))
             .limit(1)
 
-        if (!user[0]) {
-            return fail(c, t('api.userNotFound'), 404)
-        }
+        if (!user[0]) return fail(c, t('api.userNotFound'), 404)
 
         const methods = user[0].authMethods || []
 

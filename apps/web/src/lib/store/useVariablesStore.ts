@@ -24,13 +24,18 @@ const useVariablesStore = create<VariablesState>((set) => ({
     dontAskAgain: false,
     setDontAskAgain: (value) => set({ dontAskAgain: value }),
 
+    skipDeleteConfirmation: false,
+    setSkipDeleteConfirmation: (value) =>
+        set({ skipDeleteConfirmation: value }),
+
     resetVariablesState: () =>
         set({
             showValues: {},
             copiedKey: null,
             showErrors: false,
             deleteIndex: null,
-            dontAskAgain: false
+            dontAskAgain: false,
+            skipDeleteConfirmation: false
         })
 }))
 

@@ -37,7 +37,12 @@ import { BillingOrderCard } from '@/components/billing'
 
 import { CompareTableDesktop, CompareTableMobile } from '@/components/compare'
 
-import { ConnectedAccountRow } from '@/components/account'
+import {
+    ConnectedAccountRow,
+    AccountProfileSection,
+    AccountSettingsSection,
+    ConnectedAccountsSection
+} from '@/components/account'
 
 import {
     AffiliateConfirmDialog,
@@ -76,6 +81,9 @@ export {
     CompareTableDesktop,
     CompareTableMobile,
     ConnectedAccountRow,
+    AccountProfileSection,
+    AccountSettingsSection,
+    ConnectedAccountsSection,
     AffiliateConfirmDialog,
     AffiliatePaymentHistory,
     AffiliatePeriodSelector,

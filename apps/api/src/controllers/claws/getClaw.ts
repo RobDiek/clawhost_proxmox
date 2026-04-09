@@ -1,23 +1,16 @@
-import type { AuthenticatedContext } from '@/ts/Types'
-
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { claws } from '@/db/schema'
 import { getProvider } from '@/services/provider'
-import { findUserClaw, sanitizeClaw } from '@/controllers/claws/helpers'
-import { ok, fail } from '@/lib/response'
+import { sanitizeClaw, withClaw } from '@/controllers/claws/helpers'
+import { ok } from '@/lib/response'
 import { t } from '@openclaw/i18n'
+import withErrorHandler from '@/lib/withErrorHandler'
 
-const getClaw = async (c: AuthenticatedContext) => {
-    try {
-        const userId = c.get('userId')
+const getClaw = withErrorHandler('getClaw')(
+    withClaw()(async (c, claw) => {
         const id = c.req.param('id')!
         const sync = c.req.query('sync') === 'true'
-        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
-
-        if (!claw) {
-            return fail(c, t('api.clawNotFound'), 404)
-        }
 
         if (sync && claw.providerServerId) {
             try {
@@ -52,9 +45,7 @@ const getClaw = async (c: AuthenticatedContext) => {
         }
 
         return ok(c, sanitizeClaw(claw), t('api.clawFetched'))
-    } catch {
-        return fail(c, t('api.internalServerError'), 500)
-    }
-}
+    })
+)
 
 export default getClaw

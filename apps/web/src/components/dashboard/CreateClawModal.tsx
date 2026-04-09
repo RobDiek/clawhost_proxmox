@@ -1,22 +1,20 @@
 import type { FC, ReactNode } from 'react'
 import type { CreateClawModalProps, ErrorResponse } from '@/ts/Interfaces'
-import type { BillingInterval } from '@/ts/Types'
 
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { t } from '@openclaw/i18n'
 import { billingInterval } from '@openclaw/shared'
 import { Link } from 'react-router-dom'
-import { useUIStore } from '@/lib/store'
-import { TOAST_TYPE } from '@/lib/constants'
 import { ROUTES } from '@/lib'
 import {
     usePurchaseClaw,
     usePlans,
     useLocations,
     useVolumePricing,
-    usePlanAvailability
+    usePlanAvailability,
+    useToast,
+    useCreateClawForm
 } from '@/hooks'
-import { generatePassword } from '@/lib/claw-utils'
 import {
     Button,
     Input,
@@ -47,9 +45,6 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
     onClose,
     onNavigateToSSHKeys
 }): ReactNode => {
-    const [name, setName] = useState('')
-    const [nameError, setNameError] = useState('')
-
     const {
         plans: providerPlans,
         isLoading: isLoadingPlans,
@@ -85,7 +80,6 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
         plans.find((p) => p.id === preselectedPlanId && !p.disabled)
             ? preselectedPlanId
             : getFirstEnabledPlan(plans)
-    const [planId, setPlanId] = useState(initialPlanId)
 
     const isLocationAvailableForPlan = (
         locationId: string,
@@ -105,26 +99,32 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
         return available?.id || locations[0]?.id || ''
     }
 
-    const [location, setLocation] = useState(
+    const { values, errors, setField } = useCreateClawForm(
+        initialPlanId,
         getFirstAvailableLocation(initialPlanId)
     )
-    const [password, setPassword] = useState(generatePassword())
-    const [showPassword, setShowPassword] = useState(false)
-    const [selectedSshKeyId, setSelectedSshKeyId] = useState<string>('')
-    const [volumeSize, setVolumeSize] = useState<number>(0)
-    const [billingCycle, setBillingCycle] = useState<BillingInterval>(
-        billingInterval.YEAR
-    )
-    const [showAdvanced, setShowAdvanced] = useState(false)
-    const [agreedToTerms, setAgreedToTerms] = useState(false)
-    const { showToast } = useUIStore()
+    const {
+        name,
+        planId,
+        location,
+        password,
+        showPassword,
+        selectedSshKeyId,
+        volumeSize,
+        billingCycle,
+        showAdvanced,
+        agreedToTerms
+    } = values
+    const nameError = errors.name
+
+    const toast = useToast()
 
     useEffect(() => {
         if (!planId && plans.length > 0) {
             const firstPlan = getFirstEnabledPlan(plans)
             if (firstPlan) {
-                setPlanId(firstPlan)
-                setLocation(getFirstAvailableLocation(firstPlan))
+                setField('planId', firstPlan)
+                setField('location', getFirstAvailableLocation(firstPlan))
             }
         }
     }, [plans, locations])
@@ -134,8 +134,8 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
             if (!isPlanAvailable(planId)) {
                 const betterPlan = getFirstEnabledPlan(plans)
                 if (betterPlan) {
-                    setPlanId(betterPlan)
-                    setLocation(getFirstAvailableLocation(betterPlan))
+                    setField('planId', betterPlan)
+                    setField('location', getFirstAvailableLocation(betterPlan))
                     return
                 }
             }
@@ -147,7 +147,7 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                 (l) => l.id === location
             )?.disabled
             if (!currentAvailable || currentDisabled) {
-                setLocation(getFirstAvailableLocation(planId))
+                setField('location', getFirstAvailableLocation(planId))
             }
         }
     }, [planAvailability, planId])
@@ -156,17 +156,17 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
 
     const handleCreate = () => {
         if (name && !/^[a-zA-Z0-9-]+$/.test(name)) {
-            setNameError(t('createClaw.clawNameInvalidChars'))
+            setField('name', name)
             return
         }
         if (!location) {
-            showToast(t('errors.invalidLocation'), TOAST_TYPE.ERROR)
+            toast.error(t('errors.invalidLocation'))
             return
         }
 
         const selectedPlanData = plans.find((p) => p.id === planId)
         if (!selectedPlanData) {
-            showToast(t('errors.invalidPlan'), TOAST_TYPE.ERROR)
+            toast.error(t('errors.invalidPlan'))
             return
         }
 
@@ -197,19 +197,15 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
             {
                 onSuccess: (data) => {
                     if ((data as unknown as ErrorResponse).error) {
-                        showToast(
-                            (data as unknown as ErrorResponse).error as string,
-                            'error'
+                        toast.error(
+                            (data as unknown as ErrorResponse).error as string
                         )
                         return
                     }
                     window.location.href = data.checkoutUrl
                 },
                 onError: (err: Error) => {
-                    showToast(
-                        err.message || t('errors.failedToCreateClaw'),
-                        'error'
-                    )
+                    toast.error(err.message || t('errors.failedToCreateClaw'))
                 }
             }
         )
@@ -252,17 +248,7 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                         <Input
                             type='text'
                             value={name}
-                            onChange={(e) => {
-                                const val = e.target.value
-                                setName(val)
-                                if (val && !/^[a-zA-Z0-9-]+$/.test(val)) {
-                                    setNameError(
-                                        t('createClaw.clawNameInvalidChars')
-                                    )
-                                } else {
-                                    setNameError('')
-                                }
-                            }}
+                            onChange={(e) => setField('name', e.target.value)}
                             placeholder={t('createClaw.clawNamePlaceholder')}
                             className={`h-11 ${nameError ? 'border-red-500/50' : ''}`}
                         />
@@ -280,15 +266,17 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                         atCapacity={atCapacity}
                         isLoading={isProviderLoading}
                         isLocationAvailableForPlan={isLocationAvailableForPlan}
-                        onLocationChange={setLocation}
-                        onPlanChange={setPlanId}
+                        onLocationChange={(v) => setField('location', v)}
+                        onPlanChange={(v) => setField('planId', v)}
                         plans={plans}
                         isPlanAvailable={isPlanAvailable}
                     />
 
                     <BillingIntervalSelector
                         billingCycle={billingCycle}
-                        onBillingCycleChange={setBillingCycle}
+                        onBillingCycleChange={(v) =>
+                            setField('billingCycle', v)
+                        }
                     />
 
                     <PlanSelector
@@ -300,27 +288,29 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                         preselectedPlanId={preselectedPlanId}
                         isLocationAvailableForPlan={isLocationAvailableForPlan}
                         isPlanAvailable={isPlanAvailable}
-                        onPlanChange={setPlanId}
-                        onLocationChange={setLocation}
+                        onPlanChange={(v) => setField('planId', v)}
+                        onLocationChange={(v) => setField('location', v)}
                         getFirstAvailableLocation={getFirstAvailableLocation}
                     />
 
                     <AdvancedOptions
                         showAdvanced={showAdvanced}
-                        onToggleAdvanced={() => setShowAdvanced(!showAdvanced)}
+                        onToggleAdvanced={() =>
+                            setField('showAdvanced', !showAdvanced)
+                        }
                         password={password}
-                        onPasswordChange={setPassword}
+                        onPasswordChange={(v) => setField('password', v)}
                         showPassword={showPassword}
                         onToggleShowPassword={() =>
-                            setShowPassword(!showPassword)
+                            setField('showPassword', !showPassword)
                         }
                         sshKeys={sshKeys}
                         selectedSshKeyId={selectedSshKeyId}
-                        onSshKeyChange={setSelectedSshKeyId}
+                        onSshKeyChange={(v) => setField('selectedSshKeyId', v)}
                         onNavigateToSSHKeys={onNavigateToSSHKeys}
                         volumePricing={volumePricing}
                         volumeSize={volumeSize}
-                        onVolumeSizeChange={setVolumeSize}
+                        onVolumeSizeChange={(v) => setField('volumeSize', v)}
                     />
 
                     {selectedPlan && (
@@ -339,7 +329,7 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                         <Checkbox
                             checked={agreedToTerms}
                             onCheckedChange={(checked) =>
-                                setAgreedToTerms(!!checked)
+                                setField('agreedToTerms', !!checked)
                             }
                             className='mt-0.5'
                         />

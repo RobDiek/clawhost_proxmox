@@ -1,28 +1,19 @@
 import type { BundledSkillInfo, SkillEntryConfig } from '@/ts/Interfaces'
-import type { AuthenticatedContext } from '@/ts/Types'
 
 import executeSSH from '@/services/ssh'
-import { BASE_DIR, findUserClaw } from '@/controllers/claws/helpers'
+import { BASE_DIR, withClaw } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
+import withErrorHandler from '@/lib/withErrorHandler'
 
 const SKILLS_SEPARATOR = '---SKILLS_SEPARATOR---'
 const DESC_SEPARATOR = '---DESC_SEPARATOR---'
 
-const getClawSkills = async (c: AuthenticatedContext) => {
-    try {
-        const userId = c.get('userId')
-        const id = c.req.param('id')!
-        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
-
-        if (!claw) {
-            return fail(c, t('api.clawNotFound'), 404)
-        }
-
-        if (!claw.ip || !claw.rootPassword) {
-            return fail(c, t('api.skillsFetchFailed'), 400)
-        }
-
+const getClawSkills = withErrorHandler(
+    'getClawSkills',
+    'api.skillsFetchFailed'
+)(
+    withClaw({ requireSSH: 'api.skillsFetchFailed' })(async (c, claw) => {
         try {
             const echoLine = 'echo "$n' + DESC_SEPARATOR + '$d"'
             const forBody =
@@ -33,8 +24,8 @@ const getClawSkills = async (c: AuthenticatedContext) => {
                 forBody +
                 '; done; fi'
             const output = await executeSSH(
-                claw.ip,
-                claw.rootPassword,
+                claw.ip!,
+                claw.rootPassword!,
                 `cat ${BASE_DIR}/openclaw.json 2>/dev/null || echo '{}'; echo '${SKILLS_SEPARATOR}'; ${skillsCmd}`,
                 20000
             )
@@ -75,9 +66,7 @@ const getClawSkills = async (c: AuthenticatedContext) => {
         } catch {
             return fail(c, t('api.skillsFetchFailed'), 500)
         }
-    } catch {
-        return fail(c, t('api.skillsFetchFailed'), 500)
-    }
-}
+    })
+)
 
 export default getClawSkills

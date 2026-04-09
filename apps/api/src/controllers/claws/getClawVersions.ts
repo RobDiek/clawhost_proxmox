@@ -19,13 +19,10 @@ const getClawVersions = async (c: AuthenticatedContext) => {
         const id = c.req.param('id')!
         const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
-        if (!claw) {
-            return fail(c, t('api.clawNotFound'), 404)
-        }
+        if (!claw) return fail(c, t('api.clawNotFound'), 404)
 
-        if (!claw.ip || !claw.rootPassword) {
+        if (!claw.ip || !claw.rootPassword)
             return fail(c, t('api.failedToGetVersions'), 400)
-        }
 
         const [currentOutput, registryResponse, downloadsResponse] =
             await Promise.all([
@@ -42,9 +39,8 @@ const getClawVersions = async (c: AuthenticatedContext) => {
 
         const currentVersion = currentOutput.trim() || 'unknown'
 
-        if (!registryResponse.ok) {
+        if (!registryResponse.ok)
             return fail(c, t('api.failedToGetVersions'), 502)
-        }
 
         const registry =
             (await registryResponse.json()) as NpmRegistryVersionsResponse
@@ -77,7 +73,9 @@ const getClawVersions = async (c: AuthenticatedContext) => {
         console.error('getClawVersions', error)
         return fail(
             c,
-            error instanceof Error ? error.message : t('api.failedToGetVersions'),
+            error instanceof Error
+                ? error.message
+                : t('api.failedToGetVersions'),
             500
         )
     }

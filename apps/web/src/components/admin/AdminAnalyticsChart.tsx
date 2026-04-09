@@ -1,5 +1,9 @@
 import type { FC, ReactNode } from 'react'
-import type { AdminAnalyticsChartProps, AdminAnalyticsDataPoint, RangeBucketConfig } from '@/ts/Interfaces'
+import type {
+    AdminAnalyticsChartProps,
+    AdminAnalyticsDataPoint,
+    RangeBucketConfig
+} from '@/ts/Interfaces'
 
 import { useMemo } from 'react'
 import {
@@ -62,12 +66,16 @@ const fillBuckets = (
 const formatXAxis = (dateStr: string, range: string): string => {
     const date = new Date(dateStr)
     const locale = getLocale()
-    if (range === 'day') {
-        return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
-    }
-    if (range === 'year' || range === 'all') {
-        return date.toLocaleDateString(locale, { month: 'short', year: '2-digit' })
-    }
+    if (range === 'day')
+        return date.toLocaleTimeString(locale, {
+            hour: '2-digit',
+            minute: '2-digit'
+        })
+    if (range === 'year' || range === 'all')
+        return date.toLocaleDateString(locale, {
+            month: 'short',
+            year: '2-digit'
+        })
     return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
 }
 
@@ -82,9 +90,11 @@ const formatTooltipDate = (dateStr: string, range: string): string => {
             minute: '2-digit'
         })
     }
-    if (range === 'year' || range === 'all') {
-        return date.toLocaleDateString(locale, { month: 'long', year: 'numeric' })
-    }
+    if (range === 'year' || range === 'all')
+        return date.toLocaleDateString(locale, {
+            month: 'long',
+            year: 'numeric'
+        })
     return date.toLocaleDateString(locale, {
         month: 'short',
         day: 'numeric',
@@ -102,25 +112,37 @@ const AdminAnalyticsChart: FC<AdminAnalyticsChartProps> = ({
     const total = data.reduce((sum, d) => sum + d.count, 0)
 
     return (
-        <div className='border-border rounded-lg border p-4 outline-none' tabIndex={-1}>
+        <div
+            className='border-border rounded-lg border p-4 outline-none'
+            tabIndex={-1}
+        >
             <div className='mb-3 flex items-center justify-between'>
                 <h4 className='text-sm font-medium'>{title}</h4>
                 <span className='text-muted-foreground text-xs'>{total}</span>
             </div>
             <ResponsiveContainer width='100%' height={200}>
                 <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray='3 3' stroke='hsl(var(--border))' />
+                    <CartesianGrid
+                        strokeDasharray='3 3'
+                        stroke='hsl(var(--border))'
+                    />
                     <XAxis
                         dataKey='date'
                         tickFormatter={(val) => formatXAxis(val, range)}
-                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                        tick={{
+                            fontSize: 10,
+                            fill: 'hsl(var(--muted-foreground))'
+                        }}
                         axisLine={false}
                         tickLine={false}
                         interval='preserveStartEnd'
                     />
                     <YAxis
                         allowDecimals={false}
-                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                        tick={{
+                            fontSize: 10,
+                            fill: 'hsl(var(--muted-foreground))'
+                        }}
                         axisLine={false}
                         tickLine={false}
                         width={30}
@@ -132,7 +154,9 @@ const AdminAnalyticsChart: FC<AdminAnalyticsChartProps> = ({
                             borderRadius: '8px',
                             fontSize: '12px'
                         }}
-                        labelFormatter={(val) => formatTooltipDate(val as string, range)}
+                        labelFormatter={(val) =>
+                            formatTooltipDate(val as string, range)
+                        }
                     />
                     <Line
                         type='monotone'

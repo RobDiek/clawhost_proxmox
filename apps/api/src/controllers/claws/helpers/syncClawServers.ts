@@ -88,9 +88,8 @@ const syncClawServers = async (clawList: ClawRow[]): Promise<ClawRow[]> => {
                 return { ...claw, ip: live.ip }
             }
 
-            if (claw.status === clawStatus.unreachable) {
+            if (claw.status === clawStatus.unreachable)
                 return { ...claw, ip: live.ip }
-            }
 
             const completionStates = transitionCompletedBy[claw.status]
             if (completionStates && !completionStates.includes(live.status)) {

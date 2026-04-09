@@ -223,6 +223,7 @@ The AI security landscape evolves rapidly. Techniques that were considered safe 
 Use this as a quick reference. Each item maps to a detailed section above.
 
 **Server:**
+
 - SSH key-only authentication enabled
 - SSH port changed from default
 - Firewall configured with deny-all default
@@ -230,6 +231,7 @@ Use this as a quick reference. Each item maps to a detailed section above.
 - Fail2Ban installed and configured
 
 **Application:**
+
 - API keys stored in environment variables, not in code
 - API provider spending limits configured
 - Agent tool permissions restricted to minimum needed
@@ -237,18 +239,21 @@ Use this as a quick reference. Each item maps to a detailed section above.
 - Management interface secured with strong auth
 
 **Network:**
+
 - TLS enabled on all connections
 - HTTP redirected to HTTPS
 - Management access restricted by IP or VPN
 - Outbound connections limited where possible
 
 **AI-Specific:**
+
 - System prompts define clear boundaries
 - Agent actions validated before execution
 - External data treated as untrusted
 - Conversation data retention policy defined
 
 **Operations:**
+
 - Logging enabled and monitored
 - Alerts configured for critical events
 - Backups running and tested

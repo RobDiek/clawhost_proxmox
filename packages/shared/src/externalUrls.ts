@@ -37,7 +37,8 @@ const EXTERNAL_URLS = {
     },
     NPM: {
         REGISTRY: (pkg: string) => `https://registry.npmjs.org/${pkg}`,
-        DOWNLOADS: (pkg: string) => `https://api.npmjs.org/versions/${pkg}/last-week`
+        DOWNLOADS: (pkg: string) =>
+            `https://api.npmjs.org/versions/${pkg}/last-week`
     }
 } as const
 

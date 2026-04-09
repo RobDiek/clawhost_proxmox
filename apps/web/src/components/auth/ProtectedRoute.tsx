@@ -12,17 +12,12 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({ children }): ReactNode => {
     const wasPreviouslyAuthed =
         localStorage.getItem(AUTH_STORAGE_KEY) === 'true'
 
-    if (!wasPreviouslyAuthed && !user) {
+    if (!wasPreviouslyAuthed && !user)
         return <Navigate to={ROUTES.LOGIN} replace />
-    }
 
-    if (loading && wasPreviouslyAuthed) {
-        return null
-    }
+    if (loading && wasPreviouslyAuthed) return null
 
-    if (!loading && !user) {
-        return <Navigate to={ROUTES.LOGIN} replace />
-    }
+    if (!loading && !user) return <Navigate to={ROUTES.LOGIN} replace />
 
     return <Fragment>{children}</Fragment>
 }

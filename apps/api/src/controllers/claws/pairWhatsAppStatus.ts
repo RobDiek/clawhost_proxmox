@@ -1,28 +1,18 @@
-import type { AuthenticatedContext } from '@/ts/Types'
-
 import executeSSH from '@/services/ssh'
-import { findUserClaw, WHATSAPP_PATHS } from '@/controllers/claws/helpers'
+import { WHATSAPP_PATHS, withClaw } from '@/controllers/claws/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
+import withErrorHandler from '@/lib/withErrorHandler'
 
-const pairWhatsAppStatus = async (c: AuthenticatedContext) => {
-    try {
-        const userId = c.get('userId')
-        const id = c.req.param('id')!
-        const claw = await findUserClaw(userId, id, c.get('isAdmin'))
-
-        if (!claw) {
-            return fail(c, t('api.clawNotFound'), 404)
-        }
-
-        if (!claw.ip || !claw.rootPassword) {
-            return fail(c, t('api.whatsappPairFailed'), 400)
-        }
-
+const pairWhatsAppStatus = withErrorHandler(
+    'pairWhatsAppStatus',
+    'api.whatsappPairFailed'
+)(
+    withClaw({ requireSSH: 'api.whatsappPairFailed' })(async (c, claw) => {
         try {
             const output = await executeSSH(
-                claw.ip,
-                claw.rootPassword,
+                claw.ip!,
+                claw.rootPassword!,
                 [
                     `ls ${WHATSAPP_PATHS.CREDS_DIR}/*/creds.json 2>/dev/null && echo "STATUS:CREDS_FOUND" || echo "STATUS:NO_CREDS"`,
                     `echo "===SEPARATOR==="`,
@@ -45,8 +35,8 @@ const pairWhatsAppStatus = async (c: AuthenticatedContext) => {
 
             if (credsSection.includes('STATUS:CREDS_FOUND')) {
                 await executeSSH(
-                    claw.ip,
-                    claw.rootPassword,
+                    claw.ip!,
+                    claw.rootPassword!,
                     `kill $(cat ${WHATSAPP_PATHS.PAIR_PID} 2>/dev/null) 2>/dev/null; rm -f ${WHATSAPP_PATHS.PAIR_LOG} ${WHATSAPP_PATHS.PAIR_PID}`,
                     5000
                 ).catch(() => {})
@@ -58,9 +48,7 @@ const pairWhatsAppStatus = async (c: AuthenticatedContext) => {
             const hasLogContent =
                 !logSection.includes('STATUS:NO_LOG') && logSection.length > 0
 
-            if (!logExists) {
-                return ok(c, { status: 'waiting' })
-            }
+            if (!logExists) return ok(c, { status: 'waiting' })
 
             if (hasLogContent) {
                 const logLines = logSection.split('\n')
@@ -121,9 +109,7 @@ const pairWhatsAppStatus = async (c: AuthenticatedContext) => {
         } catch {
             return fail(c, t('api.whatsappPairFailed'), 500)
         }
-    } catch {
-        return fail(c, t('api.whatsappPairFailed'), 500)
-    }
-}
+    })
+)
 
 export default pairWhatsAppStatus

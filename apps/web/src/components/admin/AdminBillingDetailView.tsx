@@ -54,9 +54,11 @@ const AdminBillingDetailView: FC<AdminBillingDetailViewProps> = ({
                         />
                         <AdminDetailField
                             label={t('admin.billingType')}
-                            value={order.subscriptionId
-                                ? t('admin.billingFilterService')
-                                : t('admin.billingFilterLicense')}
+                            value={
+                                order.subscriptionId
+                                    ? t('admin.billingFilterService')
+                                    : t('admin.billingFilterLicense')
+                            }
                         />
                         <AdminDetailField
                             label={t('admin.joined')}

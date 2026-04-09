@@ -1,5 +1,9 @@
 import type { AuthenticatedContext } from '@/ts/Types'
-import type { AdminAnalyticsDataPoint, AnalyticsRangeConfig, AnalyticsTableConfig } from '@/ts/Interfaces'
+import type {
+    AdminAnalyticsDataPoint,
+    AnalyticsRangeConfig,
+    AnalyticsTableConfig
+} from '@/ts/Interfaces'
 import type { PgTable } from 'drizzle-orm/pg-core'
 
 import { sql } from 'drizzle-orm'
@@ -17,6 +21,7 @@ import {
 } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
+import withErrorHandler from '@/lib/withErrorHandler'
 
 const RANGE_CONFIG: Record<string, AnalyticsRangeConfig> = {
     day: { trunc: 'hour', offset: '24 hours' },
@@ -39,9 +44,15 @@ const safeBucketQuery = async (
                 count: sql<number>`count(*)::int`
             })
             .from(table)
-            .where(sql`${sql.raw(column)} >= NOW() - INTERVAL '${sql.raw(offset)}'`)
-            .groupBy(sql`date_trunc(${sql.raw(`'${trunc}'`)}, ${sql.raw(column)})`)
-            .orderBy(sql`date_trunc(${sql.raw(`'${trunc}'`)}, ${sql.raw(column)}) ASC`)
+            .where(
+                sql`${sql.raw(column)} >= NOW() - INTERVAL '${sql.raw(offset)}'`
+            )
+            .groupBy(
+                sql`date_trunc(${sql.raw(`'${trunc}'`)}, ${sql.raw(column)})`
+            )
+            .orderBy(
+                sql`date_trunc(${sql.raw(`'${trunc}'`)}, ${sql.raw(column)}) ASC`
+            )
 
         return rows.map((row) => ({
             date: new Date(row.date).toISOString(),
@@ -64,31 +75,32 @@ const TABLE_CONFIG: AnalyticsTableConfig[] = [
     { key: 'emails', table: emails, column: 'sent_at' }
 ]
 
-const getAdminAnalytics = async (c: AuthenticatedContext) => {
-    try {
-        const range = c.req.query('range') || 'week'
-        const config = RANGE_CONFIG[range]
-        if (!config) {
-            return fail(c, t('api.failedToGetAdminAnalytics'), 400)
-        }
+const getAdminAnalytics = withErrorHandler(
+    'getAdminAnalytics',
+    'api.failedToGetAdminAnalytics'
+)(async (c: AuthenticatedContext) => {
+    const range = c.req.query('range') || 'week'
+    const config = RANGE_CONFIG[range]
+    if (!config) return fail(c, t('api.failedToGetAdminAnalytics'), 400)
 
-        const results = await Promise.all(
-            TABLE_CONFIG.map(async ({ key, table, column }) => ({
-                key,
-                data: await safeBucketQuery(table, column, config.trunc, config.offset)
-            }))
-        )
+    const results = await Promise.all(
+        TABLE_CONFIG.map(async ({ key, table, column }) => ({
+            key,
+            data: await safeBucketQuery(
+                table,
+                column,
+                config.trunc,
+                config.offset
+            )
+        }))
+    )
 
-        const analytics: Record<string, AdminAnalyticsDataPoint[]> = {}
-        for (const { key, data } of results) {
-            analytics[key] = data
-        }
-
-        return ok(c, analytics, t('api.adminAnalyticsFetched'))
-    } catch (error) {
-        console.error('getAdminAnalytics', error)
-        return fail(c, t('api.failedToGetAdminAnalytics'), 500)
+    const analytics: Record<string, AdminAnalyticsDataPoint[]> = {}
+    for (const { key, data } of results) {
+        analytics[key] = data
     }
-}
+
+    return ok(c, analytics, t('api.adminAnalyticsFetched'))
+})
 
 export default getAdminAnalytics

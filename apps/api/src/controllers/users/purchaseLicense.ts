@@ -24,18 +24,13 @@ const purchaseLicense = async (c: AuthenticatedContext) => {
             .where(eq(users.id, userId))
             .limit(1)
 
-        if (!user[0]) {
-            return fail(c, t('api.userNotFound'), 404)
-        }
+        if (!user[0]) return fail(c, t('api.userNotFound'), 404)
 
-        if (user[0].hasLicense) {
+        if (user[0].hasLicense)
             return fail(c, t('api.licenseAlreadyPurchased'), 400)
-        }
 
         const productId = process.env.POLAR_PRODUCT_LICENSE
-        if (!productId) {
-            return fail(c, t('api.licenseNotAvailable'), 500)
-        }
+        if (!productId) return fail(c, t('api.licenseNotAvailable'), 500)
 
         const customer = await customers.getOrCreate({
             email: user[0].email,

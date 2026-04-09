@@ -30,6 +30,13 @@ import mergeEnvVars from '@/controllers/claws/helpers/mergeEnvVars'
 import writeConfigAndRestart from '@/controllers/claws/helpers/writeConfigAndRestart'
 import executeServerLifecycle from '@/controllers/claws/helpers/executeServerLifecycle'
 import executeClawHubOperation from '@/controllers/claws/helpers/executeClawHubOperation'
+import readClawConfigFile from '@/controllers/claws/helpers/readClawConfigFile'
+import ClawMissingCredentialsError from '@/controllers/claws/helpers/clawMissingCredentialsError'
+import ClawConfigReadError from '@/controllers/claws/helpers/clawConfigReadError'
+import withClaw from '@/controllers/claws/helpers/withClaw'
+import SUPPORTED_CHANNELS from '@/controllers/claws/helpers/supportedChannels'
+import applySandboxOffDefaults from '@/controllers/claws/helpers/applySandboxOffDefaults'
+import withFeatureGatedConfigUpdate from '@/controllers/claws/helpers/withFeatureGatedConfigUpdate'
 
 export {
     applyToolsDefaults,
@@ -63,5 +70,12 @@ export {
     writeConfigAndRestart,
     executeServerLifecycle,
     executeClawHubOperation,
-    invalidateVersionCache
+    invalidateVersionCache,
+    readClawConfigFile,
+    ClawMissingCredentialsError,
+    ClawConfigReadError,
+    withClaw,
+    SUPPORTED_CHANNELS,
+    applySandboxOffDefaults,
+    withFeatureGatedConfigUpdate
 }

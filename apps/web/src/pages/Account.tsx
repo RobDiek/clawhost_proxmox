@@ -1,35 +1,23 @@
 import type { FC, ReactNode } from 'react'
-import type { AuthMethod, OAuthProvider } from '@/ts/Types'
 
-import { Fragment, useState, useEffect, useCallback } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
-import { authMethod, userRole, inputValidation } from '@openclaw/shared'
+import { userRole } from '@openclaw/shared'
 import { useAuth } from '@/lib/auth'
 import { useUIStore, usePreferencesStore } from '@/lib/store'
-import { OAUTH_PROVIDER, TOAST_TYPE } from '@/lib/constants'
-import { api, getLocale, ROUTES } from '@/lib'
+import { TOAST_TYPE } from '@/lib/constants'
+import { api, ROUTES } from '@/lib'
 import {
     useProfile,
     useUpdateProfile,
     useUserStats,
+    useLinkedProvider,
     PROFILE_QUERY_KEY
 } from '@/hooks'
 import {
-    Input,
-    Label,
-    Avatar,
-    AvatarFallback,
-    Button,
-    Checkbox,
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent
-} from '@/components/ui'
-import {
-    ConnectedAccountRow,
     Header,
     LandingFooter,
     LicenseCard,
@@ -40,25 +28,18 @@ import {
     UserDropdown,
     PageBackground,
     PageTitle,
-    ClawMascotOutline,
-    PageHeader
+    PageHeader,
+    AccountProfileSection,
+    AccountSettingsSection,
+    ConnectedAccountsSection
 } from '@/components'
-import {
-    CircleNotchIcon,
-    CalendarIcon,
-    KeyIcon,
-    EnvelopeIcon
-} from '@phosphor-icons/react'
+import { CircleNotchIcon } from '@phosphor-icons/react'
 
 const Account: FC = (): ReactNode => {
     const {
         user,
         loading: authLoading,
         updateCachedProfile,
-        linkGoogle,
-        linkGithub,
-        unlinkGoogle,
-        unlinkGithub,
         isLocal,
         signOut
     } = useAuth()
@@ -71,14 +52,17 @@ const Account: FC = (): ReactNode => {
     const [name, setName] = useState('')
     const [hasChanges, setHasChanges] = useState(false)
     const [isPurchasingLicense, setIsPurchasingLicense] = useState(false)
-    const [linkingProvider, setLinkingProvider] = useState<AuthMethod | null>(
-        null
-    )
-    const [unlinkingProvider, setUnlinkingProvider] =
-        useState<AuthMethod | null>(null)
 
     const { data: profile } = useProfile({ enabled: !!user })
     const { data: userStats } = useUserStats()
+
+    const {
+        linkingProvider,
+        unlinkingProvider,
+        providerBusy,
+        handleLinkProvider,
+        handleUnlinkProvider
+    } = useLinkedProvider()
 
     useEffect(() => {
         if (profile?.name) {
@@ -134,99 +118,9 @@ const Account: FC = (): ReactNode => {
         setHasChanges(value !== (profile?.name || ''))
     }
 
-    const providerBusy = !!linkingProvider || !!unlinkingProvider
-
-    const handleLinkProvider = useCallback(
-        async (provider: OAuthProvider) => {
-            if (providerBusy) return
-            setLinkingProvider(provider)
-            try {
-                if (provider === OAUTH_PROVIDER.GOOGLE) {
-                    await linkGoogle()
-                } else {
-                    await linkGithub()
-                }
-                await api.connectAuthMethod(provider)
-                await queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY })
-                showToast(
-                    t('account.providerConnected', {
-                        provider:
-                            provider === OAUTH_PROVIDER.GOOGLE
-                                ? t('account.authGoogle')
-                                : t('account.authGithub')
-                    }),
-                    TOAST_TYPE.SUCCESS
-                )
-            } catch (err: unknown) {
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : t('errors.somethingWentWrong')
-                showToast(message, TOAST_TYPE.ERROR)
-            } finally {
-                setLinkingProvider(null)
-            }
-        },
-        [providerBusy, linkGoogle, linkGithub, queryClient, showToast]
-    )
-
-    const handleUnlinkProvider = useCallback(
-        async (provider: OAuthProvider) => {
-            if (providerBusy) return
-            setUnlinkingProvider(provider)
-            try {
-                await api.disconnectAuthMethod(provider)
-                if (provider === OAUTH_PROVIDER.GOOGLE) {
-                    await unlinkGoogle()
-                } else {
-                    await unlinkGithub()
-                }
-                await queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY })
-                showToast(
-                    t('account.providerDisconnected', {
-                        provider:
-                            provider === OAUTH_PROVIDER.GOOGLE
-                                ? t('account.authGoogle')
-                                : t('account.authGithub')
-                    }),
-                    TOAST_TYPE.SUCCESS
-                )
-            } catch (err: unknown) {
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : t('errors.somethingWentWrong')
-                showToast(message, TOAST_TYPE.ERROR)
-            } finally {
-                setUnlinkingProvider(null)
-            }
-        },
-        [providerBusy, unlinkGoogle, unlinkGithub, queryClient, showToast]
-    )
-
     const email = user?.email || profile?.email || ''
     const displayName =
         name || profile?.name || (isLocal ? t('account.noNameSet') : email)
-
-    const getInitials = (text: string) => {
-        if (!text) return '?'
-        const parts = text.split(' ')
-        if (parts.length > 1) {
-            return (
-                parts[0].charAt(0) + parts[parts.length - 1].charAt(0)
-            ).toUpperCase()
-        }
-        return text.charAt(0).toUpperCase()
-    }
-
-    const formatDate = (dateString: string | undefined) => {
-        if (!dateString) return '...'
-        return new Date(dateString).toLocaleDateString(getLocale(), {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        })
-    }
 
     const joinedDate = isLocal
         ? profile?.createdAt
@@ -287,161 +181,28 @@ const Account: FC = (): ReactNode => {
                                 description={t('account.manageYourAccount')}
                             />
 
-                            <div className='border-border bg-foreground/5 rounded-xl border p-8 backdrop-blur-sm'>
-                                <div className='mb-6'>
-                                    <h2 className='text-lg font-medium'>
-                                        {t('account.profileInformation')}
-                                    </h2>
-                                    <p className='text-muted-foreground mt-1 text-sm'>
-                                        {t('account.profileDescription')}
-                                    </p>
-                                </div>
+                            <AccountProfileSection
+                                name={name}
+                                profileName={profile?.name ?? null}
+                                email={email}
+                                isLocal={!!isLocal}
+                                joinedDate={joinedDate}
+                                clawCount={userStats?.clawCount ?? 0}
+                                sshKeyCount={userStats?.sshKeyCount ?? 0}
+                                hasChanges={hasChanges}
+                                isPending={updateMutation.isPending}
+                                onNameChange={handleNameChange}
+                                onSave={handleSave}
+                            />
 
-                                <div className='mb-8 flex items-center gap-5'>
-                                    <Avatar className='h-16 w-16 shrink-0'>
-                                        <AvatarFallback className='bg-gradient-to-br from-[#ef5350] to-[#c62828] text-3xl font-semibold text-white'>
-                                            {getInitials(displayName)}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div className='flex-1'>
-                                        <p className='text-lg font-medium'>
-                                            {name ||
-                                                profile?.name ||
-                                                t('account.noNameSet')}
-                                        </p>
-                                        <div className='text-muted-foreground mt-1 flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:gap-6'>
-                                            <div className='flex items-center gap-1.5'>
-                                                <CalendarIcon className='h-4 w-4' />
-                                                <span>
-                                                    {t('account.joined')}{' '}
-                                                    {formatDate(joinedDate)}
-                                                </span>
-                                            </div>
-                                            <div className='flex items-center gap-1.5'>
-                                                <ClawMascotOutline className='h-4 w-4' />
-                                                <span>
-                                                    {userStats?.clawCount ?? 0}{' '}
-                                                    {t('account.claws')}
-                                                </span>
-                                            </div>
-                                            {!isLocal && (
-                                                <div className='flex items-center gap-1.5'>
-                                                    <KeyIcon className='h-4 w-4' />
-                                                    <span>
-                                                        {userStats?.sshKeyCount ??
-                                                            0}{' '}
-                                                        {t('account.sshKeys')}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className='space-y-6'>
-                                    <div className='max-w-xs space-y-2'>
-                                        <Label htmlFor='name'>
-                                            {t('account.displayName')}
-                                        </Label>
-                                        <Input
-                                            id='name'
-                                            type='text'
-                                            value={name}
-                                            onChange={(e) =>
-                                                handleNameChange(e.target.value)
-                                            }
-                                            onKeyDown={(e) => {
-                                                if (
-                                                    e.key === 'Enter' &&
-                                                    hasChanges &&
-                                                    !updateMutation.isPending
-                                                ) {
-                                                    handleSave()
-                                                }
-                                            }}
-                                            placeholder={t(
-                                                'account.enterYourName'
-                                            )}
-                                            maxLength={
-                                                inputValidation.USER_NAME.MAX
-                                            }
-                                        />
-                                    </div>
-
-                                    {!isLocal && (
-                                        <div className='max-w-xs space-y-2'>
-                                            <Label htmlFor='email'>
-                                                {t('account.emailAddress')}
-                                            </Label>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Input
-                                                        id='email'
-                                                        type='email'
-                                                        value={email}
-                                                        readOnly
-                                                        className='cursor-not-allowed opacity-50'
-                                                    />
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>
-                                                        {t(
-                                                            'account.emailNotEditable'
-                                                        )}
-                                                    </p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </div>
-                                    )}
-
-                                    <div className='flex justify-end pt-6'>
-                                        <Button
-                                            onClick={handleSave}
-                                            disabled={
-                                                !hasChanges ||
-                                                updateMutation.isPending
-                                            }
-                                        >
-                                            {updateMutation.isPending && (
-                                                <CircleNotchIcon className='h-4 w-4 animate-spin' />
-                                            )}
-                                            {t('common.save')}
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {isLocal && (
-                                <div className='border-border bg-foreground/5 mt-6 rounded-xl border p-8 backdrop-blur-sm'>
-                                    <div className='mb-6'>
-                                        <h2 className='text-lg font-medium'>
-                                            {t('account.settings')}
-                                        </h2>
-                                        <p className='text-muted-foreground mt-1 text-sm'>
-                                            {t('account.settingsDescription')}
-                                        </p>
-                                    </div>
-
-                                    <label className='flex cursor-pointer items-center gap-3'>
-                                        <Checkbox
-                                            checked={openLinksWindowed}
-                                            onCheckedChange={(checked) =>
-                                                setOpenLinksWindowed(!!checked)
-                                            }
-                                        />
-                                        <div>
-                                            <span className='text-sm'>
-                                                {t('account.openLinksWindowed')}
-                                            </span>
-                                            <p className='text-muted-foreground text-xs'>
-                                                {t(
-                                                    'account.openLinksWindowedDescription'
-                                                )}
-                                            </p>
-                                        </div>
-                                    </label>
-                                </div>
-                            )}
+                            <AccountSettingsSection
+                                showLocal={!!isLocal}
+                                showAdmin={false}
+                                openLinksWindowed={openLinksWindowed}
+                                setOpenLinksWindowed={setOpenLinksWindowed}
+                                adminMode={adminMode}
+                                setAdminMode={setAdminMode}
+                            />
 
                             {profile?.role === userRole.admin && (
                                 <div
@@ -471,142 +232,25 @@ const Account: FC = (): ReactNode => {
                                 </div>
                             )}
 
-                            <div className='border-border bg-foreground/5 mt-6 rounded-xl border p-8 backdrop-blur-sm'>
-                                <div className='mb-6'>
-                                    <h2 className='text-lg font-medium'>
-                                        {t('account.connectedAccounts')}
-                                    </h2>
-                                    <p className='text-muted-foreground mt-1 text-sm'>
-                                        {t(
-                                            'account.connectedAccountsDescription'
-                                        )}
-                                    </p>
-                                </div>
+                            <ConnectedAccountsSection
+                                authMethods={profile?.authMethods}
+                                linkingProvider={linkingProvider}
+                                unlinkingProvider={unlinkingProvider}
+                                providerBusy={providerBusy}
+                                onLink={handleLinkProvider}
+                                onUnlink={handleUnlinkProvider}
+                            />
 
-                                <div className='space-y-3'>
-                                    <ConnectedAccountRow
-                                        icon={
-                                            <EnvelopeIcon className='text-foreground/60 h-5 w-5' />
-                                        }
-                                        label={t('account.authEmail')}
-                                        isConnected={true}
-                                        isDisabled
-                                        isPending={false}
-                                    />
-
-                                    <ConnectedAccountRow
-                                        icon={
-                                            <svg
-                                                width='20'
-                                                height='20'
-                                                viewBox='0 0 24 24'
-                                            >
-                                                <path
-                                                    d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z'
-                                                    fill='#4285F4'
-                                                />
-                                                <path
-                                                    d='M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z'
-                                                    fill='#34A853'
-                                                />
-                                                <path
-                                                    d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z'
-                                                    fill='#FBBC05'
-                                                />
-                                                <path
-                                                    d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'
-                                                    fill='#EA4335'
-                                                />
-                                            </svg>
-                                        }
-                                        label={t('account.authGoogle')}
-                                        isConnected={
-                                            !!profile?.authMethods?.includes(
-                                                authMethod.google
-                                            )
-                                        }
-                                        isPending={providerBusy}
-                                        isLoading={
-                                            linkingProvider ===
-                                                OAUTH_PROVIDER.GOOGLE ||
-                                            unlinkingProvider ===
-                                                OAUTH_PROVIDER.GOOGLE
-                                        }
-                                        onConnect={() =>
-                                            handleLinkProvider(
-                                                OAUTH_PROVIDER.GOOGLE
-                                            )
-                                        }
-                                        onDisconnect={() =>
-                                            handleUnlinkProvider(
-                                                OAUTH_PROVIDER.GOOGLE
-                                            )
-                                        }
-                                    />
-
-                                    <ConnectedAccountRow
-                                        icon={
-                                            <svg
-                                                width='20'
-                                                height='20'
-                                                viewBox='0 0 24 24'
-                                                fill='currentColor'
-                                                className='text-foreground'
-                                            >
-                                                <path d='M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z' />
-                                            </svg>
-                                        }
-                                        label={t('account.authGithub')}
-                                        isConnected={
-                                            !!profile?.authMethods?.includes(
-                                                authMethod.github
-                                            )
-                                        }
-                                        isPending={providerBusy}
-                                        isLoading={
-                                            linkingProvider ===
-                                                OAUTH_PROVIDER.GITHUB ||
-                                            unlinkingProvider ===
-                                                OAUTH_PROVIDER.GITHUB
-                                        }
-                                        onConnect={() =>
-                                            handleLinkProvider(
-                                                OAUTH_PROVIDER.GITHUB
-                                            )
-                                        }
-                                        onDisconnect={() =>
-                                            handleUnlinkProvider(
-                                                OAUTH_PROVIDER.GITHUB
-                                            )
-                                        }
-                                    />
-                                </div>
-                            </div>
-
-                            {!isLocal && profile?.role === userRole.admin && (
-                                <div className='border-border bg-foreground/5 mt-6 rounded-xl border p-8 backdrop-blur-sm'>
-                                    <div className='mb-6'>
-                                        <h2 className='text-lg font-medium'>
-                                            {t('account.settings')}
-                                        </h2>
-                                        <p className='text-muted-foreground mt-1 text-sm'>
-                                            {t('account.settingsDescription')}
-                                        </p>
-                                    </div>
-
-                                    <label className='flex cursor-pointer items-center gap-3'>
-                                        <Checkbox
-                                            checked={adminMode}
-                                            onCheckedChange={(checked) =>
-                                                setAdminMode(!!checked)
-                                            }
-                                        />
-                                        <span className='text-sm'>
-                                            {t('account.showAllClaws')}
-                                        </span>
-                                    </label>
-                                </div>
-                            )}
+                            <AccountSettingsSection
+                                showLocal={false}
+                                showAdmin={
+                                    !isLocal && profile?.role === userRole.admin
+                                }
+                                openLinksWindowed={openLinksWindowed}
+                                setOpenLinksWindowed={setOpenLinksWindowed}
+                                adminMode={adminMode}
+                                setAdminMode={setAdminMode}
+                            />
                         </Fragment>
                     )}
                 </motion.main>

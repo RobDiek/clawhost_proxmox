@@ -1,12 +1,10 @@
 import type { PurchaseClawData } from '@/ts/Interfaces'
 
-import { useMutation } from '@tanstack/react-query'
 import { api } from '@/lib'
+import createApiMutation from '@/hooks/createApiMutation'
 
-const usePurchaseClaw = () => {
-    return useMutation({
-        mutationFn: (data: PurchaseClawData) => api.purchaseClaw(data)
-    })
-}
+const usePurchaseClaw = createApiMutation((data: PurchaseClawData) =>
+    api.purchaseClaw(data)
+)
 
 export default usePurchaseClaw

@@ -2330,7 +2330,8 @@ const pl: Translations = {
         usersTab: 'Użytkownicy',
         totalUsers: '{{count}} użytkowników',
         noUsers: 'Brak użytkowników',
-        noUsersDescription: 'Nie znaleziono użytkowników pasujących do filtrów.',
+        noUsersDescription:
+            'Nie znaleziono użytkowników pasujących do filtrów.',
         genericErrorDescription: 'Coś poszło nie tak. Spróbuj ponownie.',
         genericEmptyDescription: 'Nie ma tu jeszcze nic do pokazania.',
         failedToLoadUsers: 'Nie udało się załadować użytkowników!',

@@ -1,29 +1,11 @@
 import type { FC, ReactNode } from 'react'
-import type {
-    ClawCardActions,
-    ErrorWithMessage,
-    ExportRateLimitError,
-    PlaygroundClawNodeProps
-} from '@/ts/Interfaces'
+import type { PlaygroundClawNodeProps } from '@/ts/Interfaces'
 
 import { Fragment, useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { clawStatus, userRole } from '@openclaw/shared'
-import { useUIStore } from '@/lib/store'
-import { TOAST_TYPE } from '@/lib/constants'
-import { api, getLocale, getBaseDomain, TRUNCATE_LENGTHS } from '@/lib'
-import {
-    useStartClaw,
-    useStopClaw,
-    useRestartClaw,
-    useDeleteClaw,
-    useCancelDeletion,
-    useHardDeleteClaw,
-    useRepairClaw,
-    useReinstallClaw,
-    useProfile,
-    useCancelPendingClaw
-} from '@/hooks'
+import { getLocale, getBaseDomain, TRUNCATE_LENGTHS } from '@/lib'
+import { useProfile, useClawCardActions } from '@/hooks'
 import { getStatusConfig, generateSlug } from '@/lib/claw-utils'
 import {
     PlusIcon,
@@ -33,11 +15,7 @@ import {
 } from '@phosphor-icons/react'
 import {
     ClawCardDropdownMenu,
-    ClawCardDialogs,
-    ClawCredentialsDialog,
-    ClawDiagnosticsDialog,
-    ClawLogsDialog,
-    ClawConfigDialog
+    ClawCardDialogsBundle
 } from '@/components/dashboard'
 import { CreateAgentModal } from '@/components/playground'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
@@ -65,170 +43,15 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
     const isUnreachable = claw.status === clawStatus.unreachable
     const canShowAgents = isRunning || isUnreachable
 
-    const { showToast } = useUIStore()
-    const [showDeleteModal, setShowDeleteModal] = useState(false)
-    const [showStopModal, setShowStopModal] = useState(false)
-    const [showRestartModal, setShowRestartModal] = useState(false)
-    const [showHardDeleteModal, setShowHardDeleteModal] = useState(false)
-    const [showDiagnostics, setShowDiagnostics] = useState(false)
-    const [showLogs, setShowLogs] = useState(false)
-    const [showConfig, setShowConfig] = useState(false)
-    const [showReinstallModal, setShowReinstallModal] = useState(false)
-    const [showCredentials, setShowCredentials] = useState(false)
-    const [credentialsPassword, setCredentialsPassword] = useState<
-        string | null
-    >(null)
-    const [isFetchingCredentials, setIsFetchingCredentials] = useState(false)
-    const [isExporting, setIsExporting] = useState(false)
     const [showAddAgent, setShowAddAgent] = useState(false)
 
-    const startMutation = useStartClaw()
-    const stopMutation = useStopClaw()
-    const restartMutation = useRestartClaw()
-    const deleteMutation = useDeleteClaw()
-    const cancelDeletionMutation = useCancelDeletion()
-    const hardDeleteMutation = useHardDeleteClaw()
-    const repairMutation = useRepairClaw()
-    const reinstallMutation = useReinstallClaw()
-    const cancelPendingMutation = useCancelPendingClaw()
+    const { actions, isMutating, dialogsProps } = useClawCardActions({ claw })
 
     const { data: profile } = useProfile({ enabled: true })
-
-    const isMutating =
-        startMutation.isPending ||
-        stopMutation.isPending ||
-        restartMutation.isPending ||
-        deleteMutation.isPending ||
-        cancelDeletionMutation.isPending ||
-        hardDeleteMutation.isPending ||
-        repairMutation.isPending ||
-        reinstallMutation.isPending ||
-        cancelPendingMutation.isPending ||
-        isExporting ||
-        isFetchingCredentials
 
     const isScheduledForDeletion = !!claw.deletionScheduledAt
     const hasActionItems =
         claw.status === clawStatus.running || claw.status === clawStatus.stopped
-
-    const handleUpdateInstance = () => {
-        repairMutation.mutate(claw.id, {
-            onSuccess: () => {
-                showToast(
-                    t('dashboard.updateInstanceSuccess'),
-                    TOAST_TYPE.SUCCESS
-                )
-            },
-            onError: () => {
-                showToast(t('dashboard.updateInstanceFailed'), TOAST_TYPE.ERROR)
-            }
-        })
-    }
-
-    const handleExport = async () => {
-        setIsExporting(true)
-        try {
-            await api.exportClaw(
-                claw.id,
-                `${claw.name}-${Math.random().toString(36).slice(2, 5)}-export.tar.gz`
-            )
-            showToast(t('dashboard.exportSuccess'), TOAST_TYPE.SUCCESS)
-        } catch (error) {
-            const retryAfter = (error as ExportRateLimitError).retryAfter
-            if (retryAfter && retryAfter > 30) {
-                const minutes = Math.ceil(retryAfter / 60)
-                showToast(
-                    t('dashboard.exportRateLimited', {
-                        minutes: String(minutes)
-                    }),
-                    TOAST_TYPE.WARNING
-                )
-            } else if (retryAfter && retryAfter > 0) {
-                showToast(
-                    t('dashboard.exportRateLimitedSeconds', {
-                        seconds: String(retryAfter)
-                    }),
-                    TOAST_TYPE.WARNING
-                )
-            } else {
-                showToast(t('dashboard.exportFailed'), TOAST_TYPE.ERROR)
-            }
-        } finally {
-            setIsExporting(false)
-        }
-    }
-
-    const handleReinstall = () => {
-        reinstallMutation.mutate(claw.id, {
-            onSuccess: () => {
-                showToast(
-                    t('dashboard.reinstallInstanceSuccess'),
-                    TOAST_TYPE.SUCCESS
-                )
-            },
-            onError: (err: Error) => {
-                showToast(
-                    err.message || t('dashboard.reinstallInstanceFailed'),
-                    TOAST_TYPE.ERROR
-                )
-            }
-        })
-    }
-
-    const handleShowCredentials = async () => {
-        setIsFetchingCredentials(true)
-        try {
-            if (claw.hasRootPassword) {
-                const res = await api.getClawCredentials(claw.id)
-                setCredentialsPassword(res.rootPassword || null)
-            } else {
-                setCredentialsPassword(null)
-            }
-            setShowCredentials(true)
-        } catch {
-            showToast(t('errors.noPasswordAvailable'), TOAST_TYPE.ERROR)
-        } finally {
-            setIsFetchingCredentials(false)
-        }
-    }
-
-    const actions: ClawCardActions = {
-        onStart: () =>
-            startMutation.mutate(claw.id, {
-                onError: (err) => {
-                    const message =
-                        err instanceof Error
-                            ? err.message
-                            : typeof err === 'object' &&
-                                err !== null &&
-                                'message' in err
-                              ? String((err as ErrorWithMessage).message)
-                              : t('dashboard.startFailed')
-                    showToast(message, TOAST_TYPE.ERROR)
-                }
-            }),
-        onShowStopModal: () => setShowStopModal(true),
-        onShowRestartModal: () => setShowRestartModal(true),
-        onShowDeleteModal: () => setShowDeleteModal(true),
-        onCancelDeletion: () => cancelDeletionMutation.mutate(claw.id),
-        onShowHardDeleteModal: () => setShowHardDeleteModal(true),
-        onShowDiagnostics: () => setShowDiagnostics(true),
-        onShowLogs: () => setShowLogs(true),
-        onShowConfig: () => setShowConfig(true),
-        onUpdateInstance: handleUpdateInstance,
-        onShowReinstallModal: () => setShowReinstallModal(true),
-        onShowCredentials: handleShowCredentials,
-        onExport: handleExport,
-        onResumeCheckout: () => {
-            if (claw.checkoutUrl) {
-                window.open(claw.checkoutUrl, '_blank')
-            }
-        },
-        onCancelPending: () => {
-            const pendingId = claw.id.replace('pending-', '')
-            cancelPendingMutation.mutate(pendingId)
-        }
-    }
 
     return (
         <Fragment>
@@ -277,7 +100,7 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                             {status.label}
                         </span>
                     </div>
-                    {!readOnly && (
+                    {!readOnly && actions && (
                         <Fragment>
                             <div
                                 className='flex shrink-0 items-center'
@@ -454,50 +277,7 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                     style={handleStyle}
                 />
             </div>
-            <ClawCardDialogs
-                clawName={claw.name}
-                showDeleteModal={showDeleteModal}
-                setShowDeleteModal={setShowDeleteModal}
-                showStopModal={showStopModal}
-                setShowStopModal={setShowStopModal}
-                showRestartModal={showRestartModal}
-                setShowRestartModal={setShowRestartModal}
-                showHardDeleteModal={showHardDeleteModal}
-                setShowHardDeleteModal={setShowHardDeleteModal}
-                onDelete={() => deleteMutation.mutate(claw.id)}
-                onStop={() => stopMutation.mutate(claw.id)}
-                onRestart={() => restartMutation.mutate(claw.id)}
-                onHardDelete={() => hardDeleteMutation.mutate(claw.id)}
-                isDeletePending={deleteMutation.isPending}
-                isStopPending={stopMutation.isPending}
-                isRestartPending={restartMutation.isPending}
-                isHardDeletePending={hardDeleteMutation.isPending}
-                showReinstallModal={showReinstallModal}
-                setShowReinstallModal={setShowReinstallModal}
-                onReinstall={handleReinstall}
-                isReinstallPending={reinstallMutation.isPending}
-            />
-            <ClawDiagnosticsDialog
-                clawId={claw.id}
-                open={showDiagnostics}
-                onOpenChange={setShowDiagnostics}
-            />
-            <ClawLogsDialog
-                clawId={claw.id}
-                open={showLogs}
-                onOpenChange={setShowLogs}
-            />
-            <ClawConfigDialog
-                clawId={claw.id}
-                open={showConfig}
-                onOpenChange={setShowConfig}
-            />
-            <ClawCredentialsDialog
-                clawIp={claw.ip || ''}
-                rootPassword={credentialsPassword}
-                open={showCredentials}
-                onOpenChange={setShowCredentials}
-            />
+            {dialogsProps && <ClawCardDialogsBundle {...dialogsProps} />}
             <CreateAgentModal
                 clawId={claw.id}
                 clawName={claw.name}
