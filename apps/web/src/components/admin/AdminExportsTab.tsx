@@ -51,7 +51,9 @@ const AdminExportsTab: FC<AdminResourceTabProps> = ({
     return (
         <Fragment>
             <div className='mb-4 flex items-center justify-between'>
-                <h3 className='text-xl font-semibold'>{t('admin.exportsTab')}</h3>
+                <h3 className='text-xl font-semibold'>
+                    {t('admin.exportsTab')}
+                </h3>
                 <Select value={sortOrder} onValueChange={setSortOrder}>
                     <SelectTrigger
                         className='h-10 w-full sm:w-40'

@@ -7,17 +7,13 @@ import verifyWebhookSignature from '@/lib/polar/webhooks/verifyWebhookSignature'
 const parseWebhook = async (c: Context): Promise<WebhookEvent | null> => {
     const config = getPolarConfig()
 
-    if (!config.webhookSecret) {
-        return null
-    }
+    if (!config.webhookSecret) return null
 
     const webhookId = c.req.header('webhook-id')
     const timestamp = c.req.header('webhook-timestamp')
     const signature = c.req.header('webhook-signature')
 
-    if (!webhookId || !timestamp || !signature) {
-        return null
-    }
+    if (!webhookId || !timestamp || !signature) return null
 
     const WEBHOOK_TOLERANCE_SECONDS = 300
     const ts = parseInt(timestamp, 10)

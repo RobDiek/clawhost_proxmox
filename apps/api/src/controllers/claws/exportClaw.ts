@@ -17,22 +17,18 @@ const exportClaw = async (c: AuthenticatedContext) => {
         const id = c.req.param('id')!
         const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
-        if (!claw) {
-            return fail(c, t('api.clawNotFound'), 404)
-        }
+        if (!claw) return fail(c, t('api.clawNotFound'), 404)
 
-        if (!claw.ip || !claw.rootPassword) {
+        if (!claw.ip || !claw.rootPassword)
             return fail(c, t('api.clawNotReady'), 400)
-        }
 
         const retryAfter = await checkRateLimit(
             `export:${id}`,
             EXPORT_RATE_LIMIT_WINDOW
         )
 
-        if (retryAfter > 3) {
+        if (retryAfter > 3)
             return fail(c, t('api.exportRateLimited'), 429, { retryAfter })
-        }
 
         const buffer = await sshBuffer(
             claw.ip,
@@ -62,7 +58,9 @@ const exportClaw = async (c: AuthenticatedContext) => {
         console.error('exportClaw', error)
         return fail(
             c,
-            error instanceof Error ? error.message : t('api.failedToExportClaw'),
+            error instanceof Error
+                ? error.message
+                : t('api.failedToExportClaw'),
             500
         )
     }

@@ -56,9 +56,8 @@ const useAgentChat = ({
 
         setMessages((prev) => {
             const last = prev[prev.length - 1]
-            if (last && last.status === CHAT_MESSAGE_STATUS.STREAMING) {
+            if (last && last.status === CHAT_MESSAGE_STATUS.STREAMING)
                 return [...prev.slice(0, -1), { ...last, content }]
-            }
             return prev
         })
     }, [])

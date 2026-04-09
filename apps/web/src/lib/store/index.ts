@@ -7,6 +7,7 @@ import useVariablesStore from '@/lib/store/useVariablesStore'
 import useClawHubStore from '@/lib/store/useClawHubStore'
 import useTerminalStore from '@/lib/store/useTerminalStore'
 import useDashboardStore from '@/lib/store/useDashboardStore'
+import usePlaygroundDetailTabStore from '@/lib/store/usePlaygroundDetailTabStore'
 
 export {
     useUIStore,
@@ -17,5 +18,6 @@ export {
     useVariablesStore,
     useClawHubStore,
     useTerminalStore,
-    useDashboardStore
+    useDashboardStore,
+    usePlaygroundDetailTabStore
 }

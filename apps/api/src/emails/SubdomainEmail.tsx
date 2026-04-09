@@ -5,13 +5,23 @@ import { Button, Img, Section, Text } from '@react-email/components'
 
 import CDN_ASSETS from '@/lib/cdn'
 import FeatureEmailLayout from '@/emails/FeatureEmailLayout'
-import { subheading, heading, paragraph, button, buttonContainer, featureGifSection, featureGif } from '@/lib/emailStyles'
+import {
+    subheading,
+    heading,
+    paragraph,
+    button,
+    buttonContainer,
+    featureGifSection,
+    featureGif
+} from '@/lib/emailStyles'
 
 const SubdomainEmail: FC = (): ReactNode => {
     return (
         <FeatureEmailLayout preview={t('emails.features.subdomain.preview')}>
             <Text style={subheading}>{t('emails.features.subdomain.tag')}</Text>
-            <Text style={heading}>{t('emails.features.subdomain.heading')}</Text>
+            <Text style={heading}>
+                {t('emails.features.subdomain.heading')}
+            </Text>
 
             <Text style={paragraph}>
                 {t('emails.features.subdomain.description')}
@@ -19,10 +29,10 @@ const SubdomainEmail: FC = (): ReactNode => {
 
             <Section style={featureGifSection}>
                 <Img
-                        src={CDN_ASSETS.FEATURE_SUBDOMAIN}
-                        width='560'
-                        alt={t('emails.features.subdomain.tag')}
-                        style={featureGif}
+                    src={CDN_ASSETS.FEATURE_SUBDOMAIN}
+                    width='560'
+                    alt={t('emails.features.subdomain.tag')}
+                    style={featureGif}
                 />
             </Section>
 

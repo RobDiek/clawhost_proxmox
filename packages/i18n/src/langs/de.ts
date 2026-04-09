@@ -607,7 +607,8 @@ const de: Translations = {
                 preview: 'Befehle im Browser ausführen, ohne SSH',
                 tag: 'Web-Terminal',
                 heading: 'Befehle direkt im Browser',
-                description: 'Ein vollständiges Terminal in deinem Dashboard. Klick auf deinen Claw, los geht\'s. Kein SSH-Client nötig.',
+                description:
+                    "Ein vollständiges Terminal in deinem Dashboard. Klick auf deinen Claw, los geht's. Kein SSH-Client nötig.",
                 cta: 'Terminal Öffnen'
             },
             logs: {
@@ -615,7 +616,8 @@ const de: Translations = {
                 preview: 'Server-Logs live verfolgen',
                 tag: 'Live-Logs',
                 heading: 'Deine Logs live',
-                description: 'Jede Anfrage, jeder Fehler, live auf dein Dashboard gestreamt. Kein manuelles Log-Durchsuchen per SSH mehr.',
+                description:
+                    'Jede Anfrage, jeder Fehler, live auf dein Dashboard gestreamt. Kein manuelles Log-Durchsuchen per SSH mehr.',
                 cta: 'Logs Anzeigen'
             },
             channels: {
@@ -623,7 +625,8 @@ const de: Translations = {
                 preview: 'Deine Agenten können dort sein, wo deine Nutzer sind',
                 tag: 'Kanäle',
                 heading: 'Deine Agenten, wo deine Nutzer sind',
-                description: 'Discord, Slack, WhatsApp, Telegram — verbinde deine KI-Agenten mit jeder Plattform in unter einer Minute.',
+                description:
+                    'Discord, Slack, WhatsApp, Telegram — verbinde deine KI-Agenten mit jeder Plattform in unter einer Minute.',
                 cta: 'Kanäle Einrichten'
             },
             fileExplorer: {
@@ -631,7 +634,8 @@ const de: Translations = {
                 preview: 'Dateien durchsuchen und bearbeiten ohne SSH',
                 tag: 'Datei-Explorer',
                 heading: 'Dateien bearbeiten ohne SSH',
-                description: 'Durchsuche, bearbeite und speichere Dateien mit Syntaxhervorhebung. Kein SSH, kein FTP — klicken und tippen.',
+                description:
+                    'Durchsuche, bearbeite und speichere Dateien mit Syntaxhervorhebung. Kein SSH, kein FTP — klicken und tippen.',
                 cta: 'Explorer Öffnen'
             },
             playground: {
@@ -639,7 +643,8 @@ const de: Translations = {
                 preview: 'Claws und Agenten auf einer Leinwand sehen',
                 tag: 'Playground',
                 heading: 'Deine Infrastruktur, visualisiert',
-                description: 'Ein interaktiver Graph aller Claws und Agenten. Ziehen, zoomen, auf jeden Knoten klicken zum Verwalten.',
+                description:
+                    'Ein interaktiver Graph aller Claws und Agenten. Ziehen, zoomen, auf jeden Knoten klicken zum Verwalten.',
                 cta: 'Playground Öffnen'
             },
             agentChat: {
@@ -647,7 +652,8 @@ const de: Translations = {
                 preview: 'Sprich mit deinen Agenten vom Dashboard',
                 tag: 'Agenten-Chat',
                 heading: 'Sprich mit deinen Agenten',
-                description: 'Chat öffnen, Nachricht senden, Antwort erhalten. Bilder anhängen, Verlauf durchsuchen, zwischen Agenten wechseln.',
+                description:
+                    'Chat öffnen, Nachricht senden, Antwort erhalten. Bilder anhängen, Verlauf durchsuchen, zwischen Agenten wechseln.',
                 cta: 'Chat Starten'
             },
             voiceMode: {
@@ -655,7 +661,8 @@ const de: Translations = {
                 preview: 'Freihändig mit Agenten kommunizieren',
                 tag: 'Sprachmodus',
                 heading: 'Sprechen statt tippen',
-                description: 'Sprich laut mit deinen KI-Agenten und höre ihre Antworten. Mehrere Stimmen, komplett freihändig.',
+                description:
+                    'Sprich laut mit deinen KI-Agenten und höre ihre Antworten. Mehrere Stimmen, komplett freihändig.',
                 cta: 'Sprachmodus Testen'
             },
             skills: {
@@ -663,7 +670,8 @@ const de: Translations = {
                 preview: 'Community-Skills mit einem Klick installieren',
                 tag: 'ClawHub-Skills',
                 heading: '5.000+ Skills, ein Klick zum Installieren',
-                description: 'Websuche, Code-Ausführung, Bildgenerierung — durchsuche ClawHub und erweitere deine Agenten sofort.',
+                description:
+                    'Websuche, Code-Ausführung, Bildgenerierung — durchsuche ClawHub und erweitere deine Agenten sofort.',
                 cta: 'ClawHub Durchsuchen'
             },
             bindings: {
@@ -671,7 +679,8 @@ const de: Translations = {
                 preview: 'Kontrolliere welcher Agent wo antwortet',
                 tag: 'Verknüpfungen',
                 heading: 'Richtiger Agent, richtiger Kanal',
-                description: 'Dein Support-Agent auf Discord, dein Assistent auf WhatsApp. Du entscheidest wer wo antwortet.',
+                description:
+                    'Dein Support-Agent auf Discord, dein Assistent auf WhatsApp. Du entscheidest wer wo antwortet.',
                 cta: 'Verknüpfungen Konfigurieren'
             },
             envVars: {
@@ -679,7 +688,8 @@ const de: Translations = {
                 preview: 'API-Keys und Secrets ohne SSH setzen',
                 tag: 'Umgebungsvariablen',
                 heading: 'Secrets und Keys, ohne SSH',
-                description: 'Umgebungsvariablen über eine saubere Oberfläche hinzufügen, bearbeiten oder löschen. Änderungen werden sofort wirksam.',
+                description:
+                    'Umgebungsvariablen über eine saubere Oberfläche hinzufügen, bearbeiten oder löschen. Änderungen werden sofort wirksam.',
                 cta: 'Variablen Verwalten'
             },
             diagnostics: {
@@ -687,7 +697,8 @@ const de: Translations = {
                 preview: 'Server-Gesundheit mit einem Klick prüfen',
                 tag: 'Diagnose',
                 heading: 'Ist dein Server gesund?',
-                description: 'Services, Speicher, Festplatte und Ports mit einem Klick prüfen. Probleme erkennen bevor sie zu Ausfällen werden.',
+                description:
+                    'Services, Speicher, Festplatte und Ports mit einem Klick prüfen. Probleme erkennen bevor sie zu Ausfällen werden.',
                 cta: 'Diagnose Starten'
             },
             sshKeys: {
@@ -695,7 +706,8 @@ const de: Translations = {
                 preview: 'Schlüsselpaare einfach generieren und verwalten',
                 tag: 'SSH-Schlüssel',
                 heading: 'SSH-Schlüssel, vereinfacht',
-                description: 'Schlüsselpaare generieren, öffentliche kopieren, private herunterladen — alles vom Dashboard.',
+                description:
+                    'Schlüsselpaare generieren, öffentliche kopieren, private herunterladen — alles vom Dashboard.',
                 cta: 'SSH-Schlüssel Verwalten'
             },
             exportConfig: {
@@ -703,7 +715,8 @@ const de: Translations = {
                 preview: 'Konfiguration als Datei herunterladen',
                 tag: 'Config Exportieren',
                 heading: 'Config mitnehmen',
-                description: 'Agenten, Skills, Kanäle und Einstellungen als eine Datei exportieren. Sichern oder Setup replizieren.',
+                description:
+                    'Agenten, Skills, Kanäle und Einstellungen als eine Datei exportieren. Sichern oder Setup replizieren.',
                 cta: 'Config Exportieren'
             },
             multiLanguage: {
@@ -711,7 +724,8 @@ const de: Translations = {
                 preview: 'Dashboard-Sprache wechseln',
                 tag: 'Mehrsprachig',
                 heading: '14 Sprachen, vollständig übersetzt',
-                description: 'Wechsle ClawHost zu Deutsch, Englisch, Französisch, Spanisch und 10 weitere. Jeder Button, jede Nachricht.',
+                description:
+                    'Wechsle ClawHost zu Deutsch, Englisch, Französisch, Spanisch und 10 weitere. Jeder Button, jede Nachricht.',
                 cta: 'Sprache Ändern'
             },
             subdomain: {
@@ -719,7 +733,8 @@ const de: Translations = {
                 preview: 'Greife von überall auf deinen Claw zu',
                 tag: 'Subdomain',
                 heading: 'Dein Claw, deine URL',
-                description: 'Jeder Claw bekommt eine einzigartige Subdomain wie meinclaw.clawhost.cloud. Von überall erreichbar, ohne VPN.',
+                description:
+                    'Jeder Claw bekommt eine einzigartige Subdomain wie meinclaw.clawhost.cloud. Von überall erreichbar, ohne VPN.',
                 cta: 'Deine Subdomain Anzeigen'
             },
             darkMode: {
@@ -727,7 +742,8 @@ const de: Translations = {
                 preview: 'Zwischen hellem und dunklem Theme wechseln',
                 tag: 'Dunkelmodus',
                 heading: 'Schonend für die Augen',
-                description: 'Mit einem Klick zwischen Hell und Dunkel wechseln. Deine Einstellung wird automatisch gespeichert.',
+                description:
+                    'Mit einem Klick zwischen Hell und Dunkel wechseln. Deine Einstellung wird automatisch gespeichert.',
                 cta: 'Dunkelmodus Testen'
             },
             reinstall: {
@@ -735,7 +751,8 @@ const de: Translations = {
                 preview: 'OpenClaw neu installieren ohne Server zu verlieren',
                 tag: 'Neuinstallation',
                 heading: 'Neuanfang, gleicher Server',
-                description: 'Neuinstallation löscht die OpenClaw-Runtime und gibt dir eine saubere Seite. Server, IP und Schlüssel bleiben gleich.',
+                description:
+                    'Neuinstallation löscht die OpenClaw-Runtime und gibt dir eine saubere Seite. Server, IP und Schlüssel bleiben gleich.',
                 cta: 'Mehr Erfahren'
             },
             yearlyPlans: {
@@ -743,7 +760,8 @@ const de: Translations = {
                 preview: 'Gleicher Service, niedrigerer Preis',
                 tag: 'Jahrespläne',
                 heading: 'Gleicher Claw, kleinere Rechnung',
-                description: 'Wechsle zur jährlichen Abrechnung und zahle weniger. Keine Funktionsunterschiede. Jederzeit wechselbar.',
+                description:
+                    'Wechsle zur jährlichen Abrechnung und zahle weniger. Keine Funktionsunterschiede. Jederzeit wechselbar.',
                 cta: 'Pläne Anzeigen'
             }
         }
@@ -2349,8 +2367,10 @@ const de: Translations = {
         usersTab: 'Benutzer',
         totalUsers: '{{count}} Benutzer',
         noUsers: 'Noch keine Benutzer',
-        noUsersDescription: 'Keine Benutzer gefunden, die Ihren Filtern entsprechen.',
-        genericErrorDescription: 'Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.',
+        noUsersDescription:
+            'Keine Benutzer gefunden, die Ihren Filtern entsprechen.',
+        genericErrorDescription:
+            'Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.',
         genericEmptyDescription: 'Hier gibt es noch nichts anzuzeigen.',
         failedToLoadUsers: 'Benutzer konnten nicht geladen werden!',
         failedToLoadUsersDescription:
@@ -2435,7 +2455,8 @@ const de: Translations = {
         noExportsFound: 'Keine Exporte',
         noEmailsFound: 'Keine E-Mails',
         failedToLoadReferrals: 'Empfehlungen konnten nicht geladen werden!',
-        failedToLoadPendingClaws: 'Ausstehende Claws konnten nicht geladen werden!',
+        failedToLoadPendingClaws:
+            'Ausstehende Claws konnten nicht geladen werden!',
         failedToLoadWaitlist: 'Warteliste konnte nicht geladen werden!',
         failedToLoadExports: 'Exporte konnten nicht geladen werden!',
         failedToLoadEmails: 'E-Mails konnten nicht geladen werden!',

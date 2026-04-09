@@ -14,6 +14,8 @@ import { authMethod, externalUrls, userRole } from '@openclaw/shared'
 import { environment } from '@/lib/constants'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
+import { browseSkills } from '@/services/clawhub'
+
 import {
     adminRoutes,
     affiliateRoutes,
@@ -27,7 +29,6 @@ import {
     waitlistRoutes,
     webhooksRoutes
 } from '@/routes'
-import { browseSkills } from '@/services/clawhub'
 
 const app = new Hono<HonoEnv>()
 
@@ -41,7 +42,7 @@ app.use(
                   externalUrls.CLAWHOST.BASE,
                   externalUrls.CLAWHOST.WWW,
                   'http://localhost:1111',
-                  'http://localhost:3333'
+                  'https://localhost:1111'
               ]
             : [externalUrls.CLAWHOST.BASE, externalUrls.CLAWHOST.WWW],
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -52,7 +53,7 @@ app.use(
 )
 
 app.use('*', compress())
-if (isDev) app.use('*', logger())
+app.use('*', logger())
 app.use('*', bodyLimit({ maxSize: 1024 * 1024 }))
 
 app.use('*', async (c, next) => {
@@ -122,9 +123,7 @@ app.use('/*', async (c, next) => {
 
         const decoded = await verifyToken(token)
 
-        if (!decoded) {
-            return fail(c, t('api.invalidToken'), 401)
-        }
+        if (!decoded) return fail(c, t('api.invalidToken'), 401)
 
         const signInProvider = decoded.firebase?.sign_in_provider
         const resolvedAuthMethod =
@@ -152,7 +151,9 @@ app.use('/*', async (c, next) => {
                     END`
                 })
                 .where(eq(users.id, decoded.uid))
-        } else if (decoded.email) {
+        } 
+        
+        else if (decoded.email) {
             await db
                 .insert(users)
                 .values({
@@ -171,9 +172,9 @@ app.use('/*', async (c, next) => {
                         END`
                     }
                 })
-        } else {
-            return fail(c, t('api.unauthorized'), 401)
         }
+        
+        else return fail(c, t('api.unauthorized'), 401)
 
         const admin = existingUser?.role === userRole.admin
 
@@ -185,7 +186,9 @@ app.use('/*', async (c, next) => {
         c.set('userId', decoded.uid)
         c.set('isAdmin', admin)
         return next()
-    } catch (error) {
+    } 
+    
+    catch (error) {
         console.error('authMiddleware', error)
         return fail(c, t('api.internalServerError'), 500)
     }

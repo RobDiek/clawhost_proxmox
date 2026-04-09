@@ -38,9 +38,7 @@ const customers = {
 
     async getOrCreate(data: CreatePolarCustomerParams): Promise<PolarCustomer> {
         const existing = await this.getByExternalId(data.externalId)
-        if (existing) {
-            return existing
-        }
+        if (existing) return existing
         return this.create(data)
     },
 

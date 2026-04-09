@@ -49,6 +49,7 @@ import {
     SelectItem,
     SelectGroup
 } from '@/components/ui/select'
+import SecretInputField from '@/components/ui/SecretInputField'
 import Separator from '@/components/ui/separator'
 import Skeleton from '@/components/ui/skeleton'
 import Slider from '@/components/ui/slider'
@@ -109,6 +110,7 @@ export {
     SelectContent,
     SelectItem,
     SelectGroup,
+    SecretInputField,
     Separator,
     Skeleton,
     Slider,

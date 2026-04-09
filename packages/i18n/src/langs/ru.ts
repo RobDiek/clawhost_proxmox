@@ -2309,8 +2309,10 @@ const ru: Translations = {
         usersTab: 'Пользователи',
         totalUsers: '{{count}} пользователей',
         noUsers: 'Нет пользователей',
-        noUsersDescription: 'Не найдено пользователей, соответствующих вашим фильтрам.',
-        genericErrorDescription: 'Что-то пошло не так. Пожалуйста, попробуйте снова.',
+        noUsersDescription:
+            'Не найдено пользователей, соответствующих вашим фильтрам.',
+        genericErrorDescription:
+            'Что-то пошло не так. Пожалуйста, попробуйте снова.',
         genericEmptyDescription: 'Здесь пока нечего показывать.',
         failedToLoadUsers: 'Не удалось загрузить пользователей!',
         failedToLoadUsersDescription:

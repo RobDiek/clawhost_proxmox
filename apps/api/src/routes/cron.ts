@@ -12,9 +12,8 @@ const app = new Hono()
 app.use('*', async (c, next) => {
     const secret = c.req.header('Authorization')?.replace('Bearer ', '')
 
-    if (!secret || secret !== process.env.CRON_SECRET) {
+    if (!secret || secret !== process.env.CRON_SECRET)
         return fail(c, t('api.unauthorized'), 401)
-    }
 
     return next()
 })

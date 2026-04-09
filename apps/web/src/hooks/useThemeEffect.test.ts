@@ -5,9 +5,8 @@ describe('useThemeEffect logic', () => {
         mode: string,
         prefersDark: boolean
     ): 'dark' | 'light' => {
-        if (mode === THEMES.SYSTEM) {
+        if (mode === THEMES.SYSTEM)
             return prefersDark ? THEMES.DARK : THEMES.LIGHT
-        }
         return mode as 'dark' | 'light'
     }
 

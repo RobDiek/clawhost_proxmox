@@ -5,13 +5,25 @@ import { Button, Img, Section, Text } from '@react-email/components'
 
 import CDN_ASSETS from '@/lib/cdn'
 import FeatureEmailLayout from '@/emails/FeatureEmailLayout'
-import { subheading, heading, paragraph, button, buttonContainer, featureGifSection, featureGif } from '@/lib/emailStyles'
+import {
+    subheading,
+    heading,
+    paragraph,
+    button,
+    buttonContainer,
+    featureGifSection,
+    featureGif
+} from '@/lib/emailStyles'
 
 const ExportConfigEmail: FC = (): ReactNode => {
     return (
         <FeatureEmailLayout preview={t('emails.features.exportConfig.preview')}>
-            <Text style={subheading}>{t('emails.features.exportConfig.tag')}</Text>
-            <Text style={heading}>{t('emails.features.exportConfig.heading')}</Text>
+            <Text style={subheading}>
+                {t('emails.features.exportConfig.tag')}
+            </Text>
+            <Text style={heading}>
+                {t('emails.features.exportConfig.heading')}
+            </Text>
 
             <Text style={paragraph}>
                 {t('emails.features.exportConfig.description')}
@@ -19,10 +31,10 @@ const ExportConfigEmail: FC = (): ReactNode => {
 
             <Section style={featureGifSection}>
                 <Img
-                        src={CDN_ASSETS.FEATURE_EXPORT_CONFIG}
-                        width='560'
-                        alt={t('emails.features.exportConfig.tag')}
-                        style={featureGif}
+                    src={CDN_ASSETS.FEATURE_EXPORT_CONFIG}
+                    width='560'
+                    alt={t('emails.features.exportConfig.tag')}
+                    style={featureGif}
                 />
             </Section>
 

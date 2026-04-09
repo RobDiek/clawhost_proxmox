@@ -44,13 +44,10 @@ const installClawVersion = async (c: AuthenticatedContext) => {
 
         const claw = clawResult
 
-        if (!claw[0]) {
-            return fail(c, t('api.clawNotFound'), 404)
-        }
+        if (!claw[0]) return fail(c, t('api.clawNotFound'), 404)
 
-        if (!claw[0].ip || !claw[0].rootPassword) {
+        if (!claw[0].ip || !claw[0].rootPassword)
             return fail(c, t('api.failedToInstallVersion'), 400)
-        }
 
         const installCommands = [
             'systemctl stop openclaw-gateway || true',
@@ -72,9 +69,7 @@ const installClawVersion = async (c: AuthenticatedContext) => {
 
         const success = output.includes('GATEWAY_OK')
 
-        if (success) {
-            return ok(c, { version }, t('api.installVersionSuccess'))
-        }
+        if (success) return ok(c, { version }, t('api.installVersionSuccess'))
 
         return fail(c, t('api.failedToInstallVersion'), 500)
     } catch (error) {

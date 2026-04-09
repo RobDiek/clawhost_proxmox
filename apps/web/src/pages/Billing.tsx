@@ -7,9 +7,8 @@ import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import { api, getLocale } from '@/lib'
+import { api } from '@/lib'
 import { useUserStats, useBillingHistory } from '@/hooks'
-import { Badge } from '@/components/ui'
 import { BillingOrderCard } from '@/components/billing'
 import {
     Header,
@@ -76,72 +75,6 @@ const Billing: FC = (): ReactNode => {
         BILLING_PAGE_SIZE,
         remainingBillingCount
     )
-
-    const formatDate = (dateString: string | undefined) => {
-        if (!dateString) return '...'
-        return new Date(dateString).toLocaleDateString(getLocale(), {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        })
-    }
-
-    const formatCurrency = (amount: number, currency: string) => {
-        return new Intl.NumberFormat(getLocale(), {
-            style: 'currency',
-            currency: currency.toUpperCase()
-        }).format(amount / 100)
-    }
-
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'paid':
-                return (
-                    <Badge className='pointer-events-none border-green-500/30 bg-green-500/20 text-green-600 dark:text-green-400'>
-                        {t('billing.statusPaid')}
-                    </Badge>
-                )
-            case 'pending':
-                return (
-                    <Badge className='pointer-events-none border-yellow-500/30 bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'>
-                        {t('billing.statusPending')}
-                    </Badge>
-                )
-            case 'refunded':
-                return (
-                    <Badge className='pointer-events-none border-red-500/30 bg-red-500/20 text-red-600 dark:text-red-400'>
-                        {t('billing.statusRefunded')}
-                    </Badge>
-                )
-            case 'partially_refunded':
-                return (
-                    <Badge className='pointer-events-none border-orange-500/30 bg-orange-500/20 text-orange-600 dark:text-orange-400'>
-                        {t('billing.statusPartiallyRefunded')}
-                    </Badge>
-                )
-            default:
-                return (
-                    <Badge variant='outline' className='pointer-events-none'>
-                        {status}
-                    </Badge>
-                )
-        }
-    }
-
-    const getBillingReasonLabel = (reason: string) => {
-        switch (reason) {
-            case 'purchase':
-                return t('billing.billingReasonPurchase')
-            case 'subscription_create':
-                return t('billing.billingReasonSubscriptionCreate')
-            case 'subscription_cycle':
-                return t('billing.billingReasonSubscriptionCycle')
-            case 'subscription_update':
-                return t('billing.billingReasonSubscriptionUpdate')
-            default:
-                return reason
-        }
-    }
 
     const handleViewInvoice = async (orderId: string) => {
         setLoadingInvoiceIds((prev) => new Set(prev).add(orderId))
@@ -276,12 +209,6 @@ const Billing: FC = (): ReactNode => {
                                                 }
                                                 onViewInvoice={
                                                     handleViewInvoice
-                                                }
-                                                formatDate={formatDate}
-                                                formatCurrency={formatCurrency}
-                                                getStatusBadge={getStatusBadge}
-                                                getBillingReasonLabel={
-                                                    getBillingReasonLabel
                                                 }
                                             />
                                         )

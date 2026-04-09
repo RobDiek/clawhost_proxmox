@@ -93,9 +93,8 @@ const PlaygroundBindingsContent: FC<PlaygroundBindingsContentProps> = ({
         (channel: string) => {
             setBindings((prev) => {
                 const existing = prev.find((b) => b.match.channel === channel)
-                if (existing && existing.agentId === agentId) {
+                if (existing && existing.agentId === agentId)
                     return prev.filter((b) => b.match.channel !== channel)
-                }
                 const filtered = prev.filter((b) => b.match.channel !== channel)
                 return [...filtered, { agentId, match: { channel } }]
             })

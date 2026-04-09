@@ -1,4 +1,5 @@
-import type { TranscriptionResult } from '@/ts/Interfaces'
+import type { OAuthCredential } from 'firebase/auth'
+import type { OAuthWindowResult, TranscriptionResult } from '@/ts/Interfaces'
 import type {
     authMethod,
     billingInterval,
@@ -121,3 +122,13 @@ export type TranscriberFunction = (
 ) => Promise<TranscriptionResult>
 
 export type AdminAnalyticsRange = 'day' | 'week' | 'month' | 'year' | 'all'
+
+export type ResolveConflictFn = (
+    credential: OAuthCredential | null,
+    providerId: string
+) => Promise<boolean>
+
+export type ElectronOAuthFn = (
+    providerUrl: string,
+    callbackPrefix: string
+) => Promise<OAuthWindowResult>

@@ -2339,7 +2339,8 @@ const nl: Translations = {
         usersTab: 'Gebruikers',
         totalUsers: '{{count}} gebruikers',
         noUsers: 'Nog geen gebruikers',
-        noUsersDescription: 'Geen gebruikers gevonden die overeenkomen met uw filters.',
+        noUsersDescription:
+            'Geen gebruikers gevonden die overeenkomen met uw filters.',
         genericErrorDescription: 'Er is iets misgegaan. Probeer het opnieuw.',
         genericEmptyDescription: 'Hier is nog niets te zien.',
         failedToLoadUsers: 'Kan gebruikers niet laden!',

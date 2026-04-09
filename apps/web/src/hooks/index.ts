@@ -101,6 +101,7 @@ import {
 } from '@/hooks/usePlayground'
 
 import useAgentChat from '@/hooks/useAgentChat/useAgentChat'
+import useClawCardActions from '@/hooks/useClawCardActions'
 import useGatewayState from '@/hooks/useGatewayState'
 import useScrollToBottom from '@/hooks/useScrollToBottom'
 import useSpeechRecognition from '@/hooks/useSpeechRecognition'
@@ -116,6 +117,13 @@ import useRoutePrefetch from '@/hooks/useRoutePrefetch'
 import useInfiniteScrollObserver from '@/hooks/useInfiniteScrollObserver'
 import usePaginationState from '@/hooks/usePaginationState'
 import useURLStateRestoration from '@/hooks/useURLStateRestoration'
+import useClawSettingsForm from '@/hooks/useClawSettingsForm'
+import useLinkedProvider from '@/hooks/useLinkedProvider'
+import useAgentNameValidation from '@/hooks/useAgentNameValidation'
+import createApiMutation from '@/hooks/createApiMutation'
+import useToast from '@/hooks/useToast'
+import useCopyWithFeedback from '@/hooks/useCopyWithFeedback'
+import useCreateClawForm from '@/hooks/useCreateClawForm'
 
 export {
     ADMIN_USERS_QUERY_KEY,
@@ -197,6 +205,7 @@ export {
     AGENT_CONFIG_QUERY_KEY,
     CLAW_BINDINGS_QUERY_KEY,
     useAgentChat,
+    useClawCardActions,
     useDebouncedValue,
     useNetworkStatus,
     useGatewayState,
@@ -211,5 +220,12 @@ export {
     useRoutePrefetch,
     useInfiniteScrollObserver,
     usePaginationState,
-    useURLStateRestoration
+    useURLStateRestoration,
+    useClawSettingsForm,
+    useLinkedProvider,
+    useAgentNameValidation,
+    createApiMutation,
+    useToast,
+    useCopyWithFeedback,
+    useCreateClawForm
 }

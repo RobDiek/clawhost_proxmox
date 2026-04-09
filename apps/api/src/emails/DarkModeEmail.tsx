@@ -5,7 +5,15 @@ import { Button, Img, Section, Text } from '@react-email/components'
 
 import CDN_ASSETS from '@/lib/cdn'
 import FeatureEmailLayout from '@/emails/FeatureEmailLayout'
-import { subheading, heading, paragraph, button, buttonContainer, featureGifSection, featureGif } from '@/lib/emailStyles'
+import {
+    subheading,
+    heading,
+    paragraph,
+    button,
+    buttonContainer,
+    featureGifSection,
+    featureGif
+} from '@/lib/emailStyles'
 
 const DarkModeEmail: FC = (): ReactNode => {
     return (
@@ -19,10 +27,10 @@ const DarkModeEmail: FC = (): ReactNode => {
 
             <Section style={featureGifSection}>
                 <Img
-                        src={CDN_ASSETS.FEATURE_DARK_MODE}
-                        width='560'
-                        alt={t('emails.features.darkMode.tag')}
-                        style={featureGif}
+                    src={CDN_ASSETS.FEATURE_DARK_MODE}
+                    width='560'
+                    alt={t('emails.features.darkMode.tag')}
+                    style={featureGif}
                 />
             </Section>
 

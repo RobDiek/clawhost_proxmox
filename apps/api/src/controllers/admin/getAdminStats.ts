@@ -13,10 +13,11 @@ import {
     clawExports,
     emails
 } from '@/db/schema'
-import { ok, fail } from '@/lib/response'
+import { ok } from '@/lib/response'
 import { t } from '@openclaw/i18n'
 import orders from '@/lib/polar/orders'
 import type { PgTable } from 'drizzle-orm/pg-core'
+import withErrorHandler from '@/lib/withErrorHandler'
 
 const safeCount = async (table: PgTable): Promise<number> => {
     try {
@@ -27,52 +28,50 @@ const safeCount = async (table: PgTable): Promise<number> => {
     }
 }
 
-const getAdminStats = async (c: AuthenticatedContext) => {
-    try {
-        const [
-            userCount,
-            clawCount,
-            pendingClawCount,
-            sshKeyCount,
-            volumeCount,
-            referralCount,
-            waitlistCount,
-            exportCount,
-            emailCount,
-            billingData
-        ] = await Promise.all([
-            safeCount(users),
-            safeCount(claws),
-            safeCount(pendingClaws),
-            safeCount(sshKeys),
-            safeCount(volumes),
-            safeCount(referrals),
-            safeCount(waitlist),
-            safeCount(clawExports),
-            safeCount(emails),
-            orders.listAll(1, 1).catch(() => ({ totalCount: 0 }))
-        ])
+const getAdminStats = withErrorHandler(
+    'getAdminStats',
+    'api.failedToGetAdminStats'
+)(async (c: AuthenticatedContext) => {
+    const [
+        userCount,
+        clawCount,
+        pendingClawCount,
+        sshKeyCount,
+        volumeCount,
+        referralCount,
+        waitlistCount,
+        exportCount,
+        emailCount,
+        billingData
+    ] = await Promise.all([
+        safeCount(users),
+        safeCount(claws),
+        safeCount(pendingClaws),
+        safeCount(sshKeys),
+        safeCount(volumes),
+        safeCount(referrals),
+        safeCount(waitlist),
+        safeCount(clawExports),
+        safeCount(emails),
+        orders.listAll(1, 1).catch(() => ({ totalCount: 0 }))
+    ])
 
-        return ok(
-            c,
-            {
-                users: userCount,
-                claws: clawCount,
-                pendingClaws: pendingClawCount,
-                sshKeys: sshKeyCount,
-                volumes: volumeCount,
-                referrals: referralCount,
-                waitlist: waitlistCount,
-                exports: exportCount,
-                emails: emailCount,
-                billing: billingData.totalCount
-            },
-            t('api.adminStatsFetched')
-        )
-    } catch (error) {
-        console.error('getAdminStats', error)
-        return fail(c, t('api.failedToGetAdminStats'), 500)
-    }
-}
+    return ok(
+        c,
+        {
+            users: userCount,
+            claws: clawCount,
+            pendingClaws: pendingClawCount,
+            sshKeys: sshKeyCount,
+            volumes: volumeCount,
+            referrals: referralCount,
+            waitlist: waitlistCount,
+            exports: exportCount,
+            emails: emailCount,
+            billing: billingData.totalCount
+        },
+        t('api.adminStatsFetched')
+    )
+})
 
 export default getAdminStats

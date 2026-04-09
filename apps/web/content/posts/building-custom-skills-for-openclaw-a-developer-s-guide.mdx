@@ -49,56 +49,56 @@ The manifest is the most important file in your skill. It tells OpenClaw everyth
 
 ```json
 {
-  "name": "my-weather-skill",
-  "version": "1.0.0",
-  "description": "Provides current weather data and forecasts for any location",
-  "author": "your-username",
-  "license": "MIT",
-  "permissions": {
-    "network": {
-      "domains": ["api.openweathermap.org"]
-    },
-    "env": ["WEATHER_API_KEY"]
-  },
-  "tools": [
-    {
-      "name": "get_current_weather",
-      "description": "Get the current weather for a specified city or location",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "location": {
-            "type": "string",
-            "description": "City name or coordinates (e.g., 'London' or '51.5,-0.1')"
-          },
-          "units": {
-            "type": "string",
-            "enum": ["metric", "imperial"],
-            "description": "Temperature units"
-          }
+    "name": "my-weather-skill",
+    "version": "1.0.0",
+    "description": "Provides current weather data and forecasts for any location",
+    "author": "your-username",
+    "license": "MIT",
+    "permissions": {
+        "network": {
+            "domains": ["api.openweathermap.org"]
         },
-        "required": ["location"]
-      }
+        "env": ["WEATHER_API_KEY"]
     },
-    {
-      "name": "get_forecast",
-      "description": "Get a multi-day weather forecast for a specified location",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "location": {
-            "type": "string",
-            "description": "City name or coordinates"
-          },
-          "days": {
-            "type": "number",
-            "description": "Number of days to forecast (1-7)"
-          }
+    "tools": [
+        {
+            "name": "get_current_weather",
+            "description": "Get the current weather for a specified city or location",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "City name or coordinates (e.g., 'London' or '51.5,-0.1')"
+                    },
+                    "units": {
+                        "type": "string",
+                        "enum": ["metric", "imperial"],
+                        "description": "Temperature units"
+                    }
+                },
+                "required": ["location"]
+            }
         },
-        "required": ["location"]
-      }
-    }
-  ]
+        {
+            "name": "get_forecast",
+            "description": "Get a multi-day weather forecast for a specified location",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "City name or coordinates"
+                    },
+                    "days": {
+                        "type": "number",
+                        "description": "Number of days to forecast (1-7)"
+                    }
+                },
+                "required": ["location"]
+            }
+        }
+    ]
 }
 ```
 
@@ -120,31 +120,31 @@ Here is what a tool function implementation looks like:
 
 ```typescript
 const getCurrentWeather = async (params) => {
-  const { location, units = 'metric' } = params
-  const apiKey = process.env.WEATHER_API_KEY
+    const { location, units = 'metric' } = params
+    const apiKey = process.env.WEATHER_API_KEY
 
-  const response = await fetch(
-    `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&units=${units}&appid=${apiKey}`
-  )
+    const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&units=${units}&appid=${apiKey}`
+    )
 
-  if (!response.ok) {
-    return {
-      error: `Failed to fetch weather for ${location}: ${response.statusText}`
+    if (!response.ok) {
+        return {
+            error: `Failed to fetch weather for ${location}: ${response.statusText}`
+        }
     }
-  }
 
-  const data = await response.json()
+    const data = await response.json()
 
-  return {
-    location: data.name,
-    country: data.sys.country,
-    temperature: data.main.temp,
-    feelsLike: data.main.feels_like,
-    humidity: data.main.humidity,
-    description: data.weather[0].description,
-    windSpeed: data.wind.speed,
-    units: units
-  }
+    return {
+        location: data.name,
+        country: data.sys.country,
+        temperature: data.main.temp,
+        feelsLike: data.main.feels_like,
+        humidity: data.main.humidity,
+        description: data.weather[0].description,
+        windSpeed: data.wind.speed,
+        units: units
+    }
 }
 ```
 
@@ -167,17 +167,17 @@ import getCurrentWeather from './tools/getCurrentWeather'
 import getForecast from './tools/getForecast'
 
 const skill = {
-  tools: {
-    get_current_weather: getCurrentWeather,
-    get_forecast: getForecast
-  },
-  setup: async (config) => {
-    if (!process.env.WEATHER_API_KEY) {
-      throw new Error(
-        'WEATHER_API_KEY environment variable is required. Get one at openweathermap.org'
-      )
+    tools: {
+        get_current_weather: getCurrentWeather,
+        get_forecast: getForecast
+    },
+    setup: async (config) => {
+        if (!process.env.WEATHER_API_KEY) {
+            throw new Error(
+                'WEATHER_API_KEY environment variable is required. Get one at openweathermap.org'
+            )
+        }
     }
-  }
 }
 
 export default skill

@@ -2361,7 +2361,8 @@ const it: Translations = {
         usersTab: 'Utenti',
         totalUsers: '{{count}} utenti',
         noUsers: 'Nessun utente',
-        noUsersDescription: 'Nessun utente trovato corrispondente ai tuoi filtri.',
+        noUsersDescription:
+            'Nessun utente trovato corrispondente ai tuoi filtri.',
         genericErrorDescription: 'Qualcosa è andato storto. Riprova.',
         genericEmptyDescription: 'Niente da mostrare qui per ora.',
         failedToLoadUsers: 'Impossibile caricare gli utenti!',

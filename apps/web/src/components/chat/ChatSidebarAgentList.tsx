@@ -25,9 +25,7 @@ const ChatSidebarAgentList: FC<ChatSidebarAgentListProps> = ({
         isReachable ? claw.gatewayToken : null
     )
 
-    if (!isReachable) {
-        return null
-    }
+    if (!isReachable) return null
 
     if (isLoading && agents.length === 0) {
         return (

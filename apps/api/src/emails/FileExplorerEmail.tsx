@@ -5,13 +5,25 @@ import { Button, Img, Section, Text } from '@react-email/components'
 
 import CDN_ASSETS from '@/lib/cdn'
 import FeatureEmailLayout from '@/emails/FeatureEmailLayout'
-import { subheading, heading, paragraph, button, buttonContainer, featureGifSection, featureGif } from '@/lib/emailStyles'
+import {
+    subheading,
+    heading,
+    paragraph,
+    button,
+    buttonContainer,
+    featureGifSection,
+    featureGif
+} from '@/lib/emailStyles'
 
 const FileExplorerEmail: FC = (): ReactNode => {
     return (
         <FeatureEmailLayout preview={t('emails.features.fileExplorer.preview')}>
-            <Text style={subheading}>{t('emails.features.fileExplorer.tag')}</Text>
-            <Text style={heading}>{t('emails.features.fileExplorer.heading')}</Text>
+            <Text style={subheading}>
+                {t('emails.features.fileExplorer.tag')}
+            </Text>
+            <Text style={heading}>
+                {t('emails.features.fileExplorer.heading')}
+            </Text>
 
             <Text style={paragraph}>
                 {t('emails.features.fileExplorer.description')}
@@ -19,10 +31,10 @@ const FileExplorerEmail: FC = (): ReactNode => {
 
             <Section style={featureGifSection}>
                 <Img
-                        src={CDN_ASSETS.FEATURE_FILE_EXPLORER}
-                        width='560'
-                        alt={t('emails.features.fileExplorer.tag')}
-                        style={featureGif}
+                    src={CDN_ASSETS.FEATURE_FILE_EXPLORER}
+                    width='560'
+                    alt={t('emails.features.fileExplorer.tag')}
+                    style={featureGif}
                 />
             </Section>
 

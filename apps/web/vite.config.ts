@@ -1,5 +1,5 @@
 import { defineConfig, loadEnv } from 'vite'
-import { readFileSync } from 'fs'
+import { existsSync, readFileSync } from 'fs'
 
 import path from 'path'
 import react from '@vitejs/plugin-react'
@@ -86,6 +86,12 @@ export default defineConfig(({ mode }) => {
         },
         server: {
             port: Number(env.VITE_PORT) || 1111,
+            https: existsSync(path.resolve(__dirname, '.certs/cert.pem'))
+                ? {
+                    key: readFileSync(path.resolve(__dirname, '.certs/key.pem')),
+                    cert: readFileSync(path.resolve(__dirname, '.certs/cert.pem'))
+                }
+                : undefined,
             proxy: {
                 '/ws': {
                     target: `ws://localhost:${env.VITE_WS_PORT}`,
@@ -100,7 +106,32 @@ export default defineConfig(({ mode }) => {
                     target: 'https://clawhost-prod.firebaseapp.com',
                     changeOrigin: true,
                     secure: true
+                },
+                '/__/firebase': {
+                    target: 'https://clawhost-prod.firebaseapp.com',
+                    changeOrigin: true,
+                    secure: true
                 }
+            },
+            setupMiddlewares(middlewares) {
+                const port = Number(env.VITE_PORT) || 1111
+                middlewares.unshift({
+                    name: 'firebase-init-override',
+                    path: '/__/firebase/init.json',
+                    handler(_req, res) {
+                        res.setHeader('Content-Type', 'application/json')
+                        res.end(JSON.stringify({
+                            apiKey: env.VITE_FIREBASE_API_KEY,
+                            appId: env.VITE_FIREBASE_APP_ID,
+                            authDomain: `localhost:${port}`,
+                            databaseURL: '',
+                            messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+                            projectId: env.VITE_FIREBASE_PROJECT_ID,
+                            storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET
+                        }))
+                    }
+                })
+                return middlewares
             }
         }
     }

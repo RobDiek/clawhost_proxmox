@@ -14,19 +14,15 @@ const getClawAgentConfig = async (c: AuthenticatedContext) => {
         const id = c.req.param('id')!
         const body = await c.req.json<GetAgentConfigBody>()
 
-        if (!body.agentId || typeof body.agentId !== 'string') {
+        if (!body.agentId || typeof body.agentId !== 'string')
             return fail(c, t('api.missingRequiredFields'), 400)
-        }
 
         const claw = await findUserClaw(userId, id, c.get('isAdmin'))
 
-        if (!claw) {
-            return fail(c, t('api.clawNotFound'), 404)
-        }
+        if (!claw) return fail(c, t('api.clawNotFound'), 404)
 
-        if (!claw.ip || !claw.rootPassword) {
+        if (!claw.ip || !claw.rootPassword)
             return fail(c, t('api.agentsFetchFailed'), 400)
-        }
 
         try {
             const output = await executeSSH(

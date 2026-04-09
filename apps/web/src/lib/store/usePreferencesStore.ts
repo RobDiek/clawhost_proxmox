@@ -4,6 +4,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { setLanguage as setI18nLanguage, loadLanguage } from '@openclaw/i18n'
 import {
+    AFFILIATE_PERIOD,
     CHAT_SIDEBAR_VIEW_MODE,
     DASHBOARD_TABS,
     THEMES,
@@ -34,7 +35,9 @@ const usePreferencesStore = create<PreferencesState>()(
             chatSidebarView: CHAT_SIDEBAR_VIEW_MODE.TREE,
             setChatSidebarView: (view) => set({ chatSidebarView: view }),
             product: 'cloud',
-            setProduct: (product) => set({ product })
+            setProduct: (product) => set({ product }),
+            affiliatePeriod: AFFILIATE_PERIOD.ALL,
+            setAffiliatePeriod: (period) => set({ affiliatePeriod: period })
         }),
         {
             name: STORAGE_KEYS.PREFERENCES,
@@ -59,9 +62,13 @@ const usePreferencesStore = create<PreferencesState>()(
                 if (version < 6) {
                     state.product = state.product || 'cloud'
                 }
+                if (version < 7) {
+                    state.affiliatePeriod =
+                        state.affiliatePeriod || AFFILIATE_PERIOD.ALL
+                }
                 return state
             },
-            version: 6
+            version: 7
         }
     )
 )

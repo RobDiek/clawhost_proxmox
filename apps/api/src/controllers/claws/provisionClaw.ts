@@ -30,18 +30,16 @@ const provisionClaw = async (
             .where(eq(claws.polarSubscriptionId, params.subscriptionId))
             .limit(1)
 
-        if (existingClaw[0]) {
+        if (existingClaw[0])
             return { success: true, clawId: existingClaw[0].id }
-        }
 
         const claimed = await db
             .delete(pendingClaws)
             .where(eq(pendingClaws.id, params.pendingClawId))
             .returning()
 
-        if (!claimed[0]) {
+        if (!claimed[0])
             return { success: false, error: t('api.pendingClawNotFound') }
-        }
 
         const pending = claimed[0]
 
@@ -65,9 +63,8 @@ const provisionClaw = async (
         if (
             !selectedPlan ||
             selectedPlan.memory < inputValidation.MIN_MEMORY_GB.MIN
-        ) {
+        )
             return { success: false, error: t('api.planBelowMinimumMemory') }
-        }
 
         const id = crypto.randomUUID()
         const subdomain = generateSlug(id)
@@ -129,9 +126,7 @@ const provisionClaw = async (
         await Promise.all([
             cloudflare
                 .createDNSRecord(subdomain, ip)
-                .catch((dnsError) =>
-                    console.error('provisionClaw', dnsError)
-                ),
+                .catch((dnsError) => console.error('provisionClaw', dnsError)),
             db
                 .update(claws)
                 .set({

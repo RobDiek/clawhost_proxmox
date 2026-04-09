@@ -26,16 +26,16 @@ const getCurrentUser = async (c: AuthenticatedContext) => {
             .where(eq(users.id, userId))
             .limit(1)
 
-        if (!user[0]) {
-            return fail(c, t('api.userNotFound'), 404)
-        }
+        if (!user[0]) return fail(c, t('api.userNotFound'), 404)
 
         return ok(c, user[0], t('api.profileFetched'))
     } catch (error) {
         console.error('getCurrentUser', error)
         return fail(
             c,
-            error instanceof Error ? error.message : t('api.failedToGetProfile'),
+            error instanceof Error
+                ? error.message
+                : t('api.failedToGetProfile'),
             500
         )
     }

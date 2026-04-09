@@ -8,18 +8,14 @@ import Cloudflare from 'cloudflare'
 
 const getClient = () => {
     const token = process.env.CLOUDFLARE_API_TOKEN
-    if (!token) {
-        throw new Error('CLOUDFLARE_API_TOKEN is not set')
-    }
+    if (!token) throw new Error('CLOUDFLARE_API_TOKEN is not set')
 
     return new Cloudflare({ apiToken: token })
 }
 
 const getZoneId = () => {
     const zoneId = process.env.CLOUDFLARE_ZONE_ID
-    if (!zoneId) {
-        throw new Error('CLOUDFLARE_ZONE_ID is not set')
-    }
+    if (!zoneId) throw new Error('CLOUDFLARE_ZONE_ID is not set')
     return zoneId
 }
 

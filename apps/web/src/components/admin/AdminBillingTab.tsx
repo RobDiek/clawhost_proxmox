@@ -4,7 +4,11 @@ import type { AdminResourceTabProps, BillingOrder } from '@/ts/Interfaces'
 import { Fragment, useState, useMemo } from 'react'
 import { t } from '@openclaw/i18n'
 import { formatDate, formatCurrency } from '@/lib'
-import { useAdminBillingList, useInfiniteScrollObserver, usePaginationState } from '@/hooks'
+import {
+    useAdminBillingList,
+    useInfiniteScrollObserver,
+    usePaginationState
+} from '@/hooks'
 import {
     Card,
     CardContent,
@@ -47,16 +51,17 @@ const AdminBillingTab: FC<AdminResourceTabProps> = ({
 
     const filteredItems = useMemo(() => {
         if (billingFilter === 'all') return allItems
-        if (billingFilter === 'service') {
+        if (billingFilter === 'service')
             return allItems.filter((item: BillingOrder) => item.subscriptionId)
-        }
         return allItems.filter((item: BillingOrder) => !item.subscriptionId)
     }, [allItems, billingFilter])
 
     return (
         <Fragment>
             <div className='mb-4 flex items-center justify-between'>
-                <h3 className='text-xl font-semibold'>{t('admin.billingTab')}</h3>
+                <h3 className='text-xl font-semibold'>
+                    {t('admin.billingTab')}
+                </h3>
                 <Select value={billingFilter} onValueChange={setBillingFilter}>
                     <SelectTrigger
                         className='h-10 w-full sm:w-48'
@@ -123,14 +128,17 @@ const AdminBillingTab: FC<AdminResourceTabProps> = ({
                                         <div className='min-w-0'>
                                             <div className='flex items-center gap-2'>
                                                 <span className='truncate font-medium'>
-                                                    {order.productName || order.billingReason}
+                                                    {order.productName ||
+                                                        order.billingReason}
                                                 </span>
                                                 <AdminStatusBadge
                                                     status={order.status}
                                                 />
                                             </div>
                                             <p className='text-muted-foreground truncate text-sm'>
-                                                {formatCurrency(order.totalAmount)}
+                                                {formatCurrency(
+                                                    order.totalAmount
+                                                )}
                                                 {order.subscriptionId
                                                     ? ` · ${t('admin.billingFilterService')}`
                                                     : ` · ${t('admin.billingFilterLicense')}`}

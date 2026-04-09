@@ -17,13 +17,10 @@ const repairClaw = async (c: AuthenticatedContext) => {
             .where(eq(claws.id, id))
             .limit(1)
 
-        if (!claw[0]) {
-            return fail(c, t('api.clawNotFound'), 404)
-        }
+        if (!claw[0]) return fail(c, t('api.clawNotFound'), 404)
 
-        if (!claw[0].ip || !claw[0].rootPassword) {
+        if (!claw[0].ip || !claw[0].rootPassword)
             return fail(c, t('api.failedToRepairClaw'), 400)
-        }
 
         const repairCommands = [
             "sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config",
@@ -57,16 +54,16 @@ const repairClaw = async (c: AuthenticatedContext) => {
                 .where(eq(claws.id, id))
         }
 
-        if (success) {
-            return ok(c, null, t('api.repairSuccess'))
-        }
+        if (success) return ok(c, null, t('api.repairSuccess'))
 
         return fail(c, t('api.repairGatewayNotResponding'), 500)
     } catch (error) {
         console.error('repairClaw', error)
         return fail(
             c,
-            error instanceof Error ? error.message : t('api.failedToRepairClaw'),
+            error instanceof Error
+                ? error.message
+                : t('api.failedToRepairClaw'),
             500
         )
     }

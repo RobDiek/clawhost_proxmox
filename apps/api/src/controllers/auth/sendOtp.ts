@@ -38,9 +38,7 @@ const sendOtp = async (c: Context) => {
 
         const { email } = await c.req.json<SendOtpBody>()
 
-        if (!email) {
-            return fail(c, t('api.emailRequired'), 400)
-        }
+        if (!email) return fail(c, t('api.emailRequired'), 400)
 
         if (
             !EMAIL_REGEX.test(email) ||
@@ -56,9 +54,8 @@ const sendOtp = async (c: Context) => {
                 .where(eq(users.email, email.toLowerCase()))
                 .then((rows) => rows[0])
 
-            if (!existingUser) {
+            if (!existingUser)
                 return fail(c, t('api.plusAddressingNotAllowed'), 400)
-            }
         }
 
         const emailRetry = await checkRateLimit(`email:${email.toLowerCase()}`)

@@ -5,13 +5,23 @@ import { Button, Img, Section, Text } from '@react-email/components'
 
 import CDN_ASSETS from '@/lib/cdn'
 import FeatureEmailLayout from '@/emails/FeatureEmailLayout'
-import { subheading, heading, paragraph, button, buttonContainer, featureGifSection, featureGif } from '@/lib/emailStyles'
+import {
+    subheading,
+    heading,
+    paragraph,
+    button,
+    buttonContainer,
+    featureGifSection,
+    featureGif
+} from '@/lib/emailStyles'
 
 const AgentChatEmail: FC = (): ReactNode => {
     return (
         <FeatureEmailLayout preview={t('emails.features.agentChat.preview')}>
             <Text style={subheading}>{t('emails.features.agentChat.tag')}</Text>
-            <Text style={heading}>{t('emails.features.agentChat.heading')}</Text>
+            <Text style={heading}>
+                {t('emails.features.agentChat.heading')}
+            </Text>
 
             <Text style={paragraph}>
                 {t('emails.features.agentChat.description')}
@@ -19,10 +29,10 @@ const AgentChatEmail: FC = (): ReactNode => {
 
             <Section style={featureGifSection}>
                 <Img
-                        src={CDN_ASSETS.FEATURE_AGENT_CHAT}
-                        width='560'
-                        alt={t('emails.features.agentChat.tag')}
-                        style={featureGif}
+                    src={CDN_ASSETS.FEATURE_AGENT_CHAT}
+                    width='560'
+                    alt={t('emails.features.agentChat.tag')}
+                    style={featureGif}
                 />
             </Section>
 

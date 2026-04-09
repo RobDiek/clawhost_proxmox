@@ -3,9 +3,7 @@ import type { CopyableFieldProps } from '@/ts/Interfaces'
 
 import { useState } from 'react'
 import { t } from '@openclaw/i18n'
-import { useUIStore } from '@/lib/store'
-import { TOAST_TYPE } from '@/lib/constants'
-import { copyToClipboard } from '@/lib'
+import { useToast, useCopyWithFeedback } from '@/hooks'
 import {
     CheckIcon,
     CopyIcon,
@@ -19,15 +17,13 @@ const CopyableField: FC<CopyableFieldProps> = ({
     icon,
     secret
 }): ReactNode => {
-    const [isCopied, setIsCopied] = useState(false)
     const [isRevealed, setIsRevealed] = useState(false)
-    const { showToast } = useUIStore()
+    const toast = useToast()
+    const { copied, copy } = useCopyWithFeedback()
 
-    const handleCopy = async () => {
-        await copyToClipboard(value)
-        setIsCopied(true)
-        showToast(t('common.copiedWithLabel', { label }), TOAST_TYPE.SUCCESS)
-        setTimeout(() => setIsCopied(false), 2000)
+    const handleCopy = () => {
+        copy(value)
+        toast.success(t('common.copiedWithLabel', { label }))
     }
 
     const handleToggleReveal = (e: React.MouseEvent) => {
@@ -64,7 +60,7 @@ const CopyableField: FC<CopyableFieldProps> = ({
                         )}
                     </button>
                 )}
-                {isCopied ? (
+                {copied ? (
                     <CheckIcon className='h-4 w-4 text-green-500' />
                 ) : (
                     <CopyIcon className='text-muted-foreground h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100' />

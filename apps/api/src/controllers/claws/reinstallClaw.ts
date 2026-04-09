@@ -25,9 +25,7 @@ const reinstallClaw = async (c: AuthenticatedContext) => {
         const id = c.req.param('id')!
         const existing = await findUserClaw(userId, id, c.get('isAdmin'))
 
-        if (!existing) {
-            return fail(c, t('api.clawNotFound'), 404)
-        }
+        if (!existing) return fail(c, t('api.clawNotFound'), 404)
 
         const nonReinstallableStatuses: string[] = [
             clawStatus.creating,
@@ -40,9 +38,8 @@ const reinstallClaw = async (c: AuthenticatedContext) => {
 
         if (!c.get('isAdmin') && existing.lastReinstalledAt) {
             const elapsed = Date.now() - existing.lastReinstalledAt.getTime()
-            if (elapsed < REINSTALL_WINDOW) {
+            if (elapsed < REINSTALL_WINDOW)
                 return fail(c, t('api.reinstallRateLimited'), 429)
-            }
         }
 
         const provider = getProvider()
@@ -112,9 +109,7 @@ const reinstallClaw = async (c: AuthenticatedContext) => {
         await Promise.all([
             cloudflare
                 .createDNSRecord(existing.subdomain!, ip)
-                .catch((dnsError) =>
-                    console.error('reinstallClaw', dnsError)
-                ),
+                .catch((dnsError) => console.error('reinstallClaw', dnsError)),
             db
                 .update(claws)
                 .set({

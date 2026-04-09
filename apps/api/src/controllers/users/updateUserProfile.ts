@@ -38,7 +38,9 @@ const updateUserProfile = async (c: AuthenticatedContext) => {
         console.error('updateUserProfile', error)
         return fail(
             c,
-            error instanceof Error ? error.message : t('api.failedToUpdateProfile'),
+            error instanceof Error
+                ? error.message
+                : t('api.failedToUpdateProfile'),
             500
         )
     }

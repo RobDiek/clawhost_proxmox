@@ -1,4 +1,5 @@
 import ClawCardDialogs from '@/components/dashboard/ClawCardDialogs'
+import ClawCardDialogsBundle from '@/components/dashboard/ClawCardDialogsBundle'
 import ClawCardDropdownMenu from '@/components/dashboard/ClawCardDropdownMenu'
 import ClawConfigDialog from '@/components/dashboard/ClawConfigDialog'
 import ClawCredentialsDialog from '@/components/dashboard/ClawCredentialsDialog'
@@ -15,6 +16,7 @@ import DashboardPlaygroundView from '@/components/dashboard/DashboardPlaygroundV
 
 export {
     ClawCardDialogs,
+    ClawCardDialogsBundle,
     ClawCardDropdownMenu,
     ClawConfigDialog,
     ClawCredentialsDialog,
