@@ -4,7 +4,11 @@ import type { BillingPeriod } from '@/ts/Interfaces'
 import { desc } from 'drizzle-orm'
 import { db } from '@/db'
 import { claws, users, volumes } from '@/db/schema'
-import { sanitizeClaw, syncClawServers } from '@/controllers/claws/helpers'
+import {
+    sanitizeClaw,
+    syncClawServers,
+    decryptClawSecrets
+} from '@/controllers/claws/helpers'
 import { subscriptions } from '@/lib/polar'
 import { ok } from '@/lib/response'
 import { t } from '@openclaw/i18n'
@@ -58,7 +62,11 @@ const getAdminClaws = withErrorHandler('getAdminClaws')(async (
         }
     })
 
-    return ok(c, clawsWithVolumes.map(sanitizeClaw), t('api.clawsFetched'))
+    return ok(
+        c,
+        clawsWithVolumes.map((claw) => sanitizeClaw(decryptClawSecrets(claw))),
+        t('api.clawsFetched')
+    )
 })
 
 export default getAdminClaws

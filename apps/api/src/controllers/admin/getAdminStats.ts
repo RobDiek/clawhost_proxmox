@@ -1,4 +1,5 @@
 import type { AuthenticatedContext } from '@/ts/Types'
+import type { PgTable } from 'drizzle-orm/pg-core'
 
 import { count } from 'drizzle-orm'
 import { db } from '@/db'
@@ -16,7 +17,6 @@ import {
 import { ok } from '@/lib/response'
 import { t } from '@openclaw/i18n'
 import orders from '@/lib/polar/orders'
-import type { PgTable } from 'drizzle-orm/pg-core'
 import withErrorHandler from '@/lib/withErrorHandler'
 
 const safeCount = async (table: PgTable): Promise<number> => {

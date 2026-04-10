@@ -4,7 +4,7 @@ import type { ChatSidebarClawHeaderProps } from '@/ts/Interfaces'
 import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
 import { clawStatus, userRole } from '@openclaw/shared'
-import { ClockIcon } from '@phosphor-icons/react'
+import { ClockIcon, WarningIcon } from '@phosphor-icons/react'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
 import { getLocale, TRUNCATE_LENGTHS } from '@/lib'
 import { CLAW_AVATAR_SIZE } from '@/lib/constants'
@@ -30,6 +30,7 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
     const { data: profile } = useProfile({ enabled: true })
 
     const isScheduledForDeletion = !!claw.deletionScheduledAt
+    const isPastDue = claw.subscriptionStatus === 'past_due'
     const hasActionItems =
         claw.status === clawStatus.running || claw.status === clawStatus.stopped
 
@@ -75,7 +76,24 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
                             {claw.name}
                         </p>
                     )}
-                    {isScheduledForDeletion ? (
+                    {isPastDue ? (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className='flex items-center gap-1'>
+                                    <WarningIcon
+                                        className='h-3 w-3 shrink-0 text-orange-500'
+                                        weight='fill'
+                                    />
+                                    <span className='truncate text-[11px] text-orange-500'>
+                                        {t('dashboard.pastDue')}
+                                    </span>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent side='bottom'>
+                                <p>{t('dashboard.pastDueDescription')}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    ) : isScheduledForDeletion ? (
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <div className='flex items-center gap-1'>

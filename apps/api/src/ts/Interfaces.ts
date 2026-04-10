@@ -467,6 +467,8 @@ export interface VerifyOtpBody {
 export interface ResolveCredentialConflictBody {
     accessToken: string
     providerId: string
+    email: string
+    code: string
 }
 
 export interface OtpCodeEmailProps {
@@ -1036,4 +1038,30 @@ export interface AdminUpdateFields {
     name?: string | null
     referralCode?: string | null
     [key: string]: unknown
+}
+
+export interface GitHubFileEntry {
+    name: string
+}
+
+export interface BlogTopicDiscovery {
+    title: string
+    angle: string
+}
+
+export interface GitHubRefResponse {
+    object: { sha: string }
+}
+
+export interface GitHubPullRequestResponse {
+    html_url: string
+}
+
+export interface ServerLifecycleResult {
+    success: boolean
+    status: string
+}
+
+export interface ErrorWithBody {
+    body: unknown
 }

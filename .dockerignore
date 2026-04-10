@@ -5,6 +5,7 @@ dist
 *.tsbuildinfo
 .git
 .env
+.env.*
 apps/web
 apps/auth
 apps/mobile
@@ -12,3 +13,11 @@ apps/clawhostgo
 apps/api/.next
 apps/api/node_modules
 apps/api/models
+*.md
+*.log
+.vscode
+.idea
+.DS_Store
+scripts
+fly.toml
+CLAUDE.md

@@ -9,6 +9,7 @@ import { users, sshKeys, claws, pendingClaws } from '@/db/schema'
 import { checkouts, customers } from '@/lib/polar'
 import { generatePassword } from '@/controllers/claws/helpers'
 import { getProvider } from '@/services/provider'
+import { encrypt } from '@/lib/encryption'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 import { getEnvironment } from '@/lib/environment'
@@ -305,7 +306,7 @@ const initiateClawPurchase = withErrorHandler(
         name,
         planId,
         location,
-        rootPassword: finalPassword,
+        rootPassword: encrypt(finalPassword),
         sshKeyId: sshKeyId || null,
         volumeSize: volumeSize || null,
         priceMonthly: Math.round(priceMonthly * 100),

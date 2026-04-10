@@ -3,6 +3,7 @@ import type { Server } from 'http'
 import { WebSocketServer, WebSocket } from 'ws'
 import { Client } from 'ssh2'
 import { verifyToken } from '@/services/firebase'
+import hostKeyStore from '@/services/hostKeyStore'
 import { findUserClaw, isAdmin } from '@/controllers/claws/helpers'
 
 const setupTerminalSocket = (server: Server) => {
@@ -144,6 +145,12 @@ const handleConnection = (ws: WebSocket, ip: string, password: string) => {
         keepaliveCountMax: 3,
         algorithms: {
             serverHostKey: ['ssh-ed25519', 'ssh-rsa', 'ecdsa-sha2-nistp256']
+        },
+        hostVerifier: (key: Buffer, verify: (valid: boolean) => void) => {
+            hostKeyStore
+                .verify(ip, key)
+                .then((valid) => verify(valid))
+                .catch(() => verify(true))
         }
     })
 }

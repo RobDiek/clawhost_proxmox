@@ -24,8 +24,7 @@ const getCustomerPortal = withErrorHandler(
     if (!polarCustomerId) return fail(c, t('api.noBillingAccount'), 404)
 
     const clientUrl = process.env.CLIENT
-    const http = clientUrl?.includes('localhost') ? 'http' : 'https'
-    const returnUrl = `${http}://${clientUrl}/account`
+    const returnUrl = `https://${clientUrl}/account`
 
     const polar = getPolarClient()
     const session = await polar.customerSessions.create({

@@ -80,8 +80,12 @@ const PlaygroundDetailInfoTab: FC<PlaygroundDetailInfoTabProps> = ({
                         label={t('dashboard.planCost')}
                         value={
                             claw.billingInterval === 'year' && plan
-                                ? `$${plan.priceYearly.toFixed(0)}${t('landing.perYear')}`
-                                : `$${monthlyPrice.toFixed(0)}${t('landing.perMonth')}`
+                                ? t('landing.pricePerYear', {
+                                      price: plan.priceYearly.toFixed(0)
+                                  })
+                                : t('landing.pricePerMonth', {
+                                      price: monthlyPrice.toFixed(0)
+                                  })
                         }
                     />
                 )}

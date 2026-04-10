@@ -22,6 +22,7 @@ import {
 import { CompareTableDesktop, CompareTableMobile } from '@/components/compare'
 import { COMPARE_FEATURE_STATUS } from '@/lib/constants'
 import { PATHS, getBaseDomain } from '@/lib'
+import { SUPPORT_EMAIL } from '@/lib/links'
 import { getCompareData } from '@/data'
 import { GITHUB_REPO_URL } from '@/hooks'
 import { CheckIcon, XIcon, MinusIcon } from '@phosphor-icons/react'
@@ -165,10 +166,10 @@ const Compare: FC = (): ReactNode => {
                 <p className='text-muted-foreground/60 mt-6 text-center text-sm'>
                     {t('compare.disclaimer')}{' '}
                     <a
-                        href='mailto:support@clawhost.cloud'
+                        href={`mailto:${SUPPORT_EMAIL}`}
                         className='text-foreground underline'
                     >
-                        support@clawhost.cloud
+                        {t('common.supportEmail')}
                     </a>{' '}
                     {t('compare.disclaimerOr')}{' '}
                     <a

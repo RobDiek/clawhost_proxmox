@@ -1,7 +1,8 @@
 import type {
     ElectronWindow,
     FirebaseErrorLike,
-    OAuthWindowResult
+    OAuthWindowResult,
+    PendingConflict
 } from '@/ts/Interfaces'
 import type { ElectronOAuthFn, ResolveConflictFn } from '@/ts/Types'
 
@@ -16,7 +17,7 @@ import { Envs } from '@/lib'
 const signInWithGithub = async (
     resolveConflict: ResolveConflictFn,
     electronOAuth: ElectronOAuthFn
-): Promise<void> => {
+): Promise<PendingConflict | null> => {
     const electronAPI = (window as unknown as ElectronWindow).electronAPI
 
     if (electronAPI?.isDesktop) {
@@ -45,22 +46,27 @@ const signInWithGithub = async (
                 firebaseError.code ===
                 'auth/account-exists-with-different-credential'
             ) {
-                const resolved = await resolveConflict(
+                const conflictEmail = firebaseError.customData?.email as
+                    | string
+                    | undefined
+                const pending = resolveConflict(
                     GithubAuthProvider.credentialFromError(
                         error as Parameters<
                             typeof GithubAuthProvider.credentialFromError
                         >[0]
                     ),
-                    'github.com'
+                    'github.com',
+                    conflictEmail
                 )
-                if (resolved) return
+                if (pending) return pending
             }
             throw error
         }
-        return
+        return null
     }
 
     await signInWithRedirect(auth, new GithubAuthProvider())
+    return null
 }
 
 export default signInWithGithub

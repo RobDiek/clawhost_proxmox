@@ -241,7 +241,12 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
                                     </div>
                                     <span className='text-sm font-semibold'>
                                         {volumeSize > 0
-                                            ? `+$${(volumeSize * volumePricing.pricePerGbMonthly).toFixed(2)}${t('landing.perMonth')}`
+                                            ? t('landing.volumePricePerMonth', {
+                                                  price: (
+                                                      volumeSize *
+                                                      volumePricing.pricePerGbMonthly
+                                                  ).toFixed(2)
+                                              })
                                             : t('common.none')}
                                     </span>
                                 </div>

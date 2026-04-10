@@ -1,3 +1,4 @@
+import type { VersionCheckResult } from '@/ts/Interfaces'
 import type { VersionGatedFeature } from '@/ts/Types'
 
 import { versionGatedFeature } from '@openclaw/shared'
@@ -13,7 +14,7 @@ const executeClawHubOperation = async (
     agentId?: string,
     timeout = 50000,
     feature: VersionGatedFeature = versionGatedFeature.skills
-): Promise<{ supported: boolean; version: string }> => {
+): Promise<VersionCheckResult> => {
     const { supported, version } = await checkFeatureVersion(
         ip,
         rootPassword,
@@ -27,6 +28,8 @@ const executeClawHubOperation = async (
     let clawHubCmd = command
 
     if (agentId) {
+        if (!/^[a-zA-Z0-9_-]+$/.test(agentId))
+            throw new Error('Invalid agentId')
         const agentDir = `${BASE_DIR}/agents/${agentId}/workspace/skills`
         clawHubCmd = `${clawHubCmd} --workdir ${agentDir}`
     }

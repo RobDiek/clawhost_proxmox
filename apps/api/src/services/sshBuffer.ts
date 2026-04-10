@@ -1,4 +1,5 @@
 import { Client } from 'ssh2'
+import hostKeyStore from '@/services/hostKeyStore'
 
 const sshBuffer = (
     ip: string,
@@ -54,6 +55,12 @@ const sshBuffer = (
             readyTimeout: 10000,
             algorithms: {
                 serverHostKey: ['ssh-ed25519', 'ssh-rsa', 'ecdsa-sha2-nistp256']
+            },
+            hostVerifier: (key: Buffer, verify: (valid: boolean) => void) => {
+                hostKeyStore
+                    .verify(ip, key)
+                    .then((valid) => verify(valid))
+                    .catch(() => verify(true))
             }
         })
     })

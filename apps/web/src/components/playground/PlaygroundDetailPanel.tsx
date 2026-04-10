@@ -203,7 +203,32 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                             embedded
                             mockLogs={
                                 readOnly
-                                    ? `2026-02-14T10:23:41Z ${t('playground.mockLogStarting')}\n2026-02-14T10:23:42Z ${t('playground.mockLogLoadingModel')}\n2026-02-14T10:23:43Z ${t('playground.mockLogAgentReady')}\n2026-02-14T10:23:44Z ${t('playground.mockLogConnected')}\n2026-02-14T10:24:01Z ${t('playground.mockLogRequestReceived')}\n2026-02-14T10:24:03Z ${t('playground.mockLogResponseSent1')}\n2026-02-14T10:25:12Z ${t('playground.mockLogRequestReceived')}\n2026-02-14T10:25:14Z ${t('playground.mockLogResponseSent2')}\n2026-02-14T10:26:30Z ${t('playground.mockLogHealthCheck')}`
+                                    ? t('playground.mockLogsContent', {
+                                          starting: t(
+                                              'playground.mockLogStarting'
+                                          ),
+                                          loadingModel: t(
+                                              'playground.mockLogLoadingModel'
+                                          ),
+                                          agentReady: t(
+                                              'playground.mockLogAgentReady'
+                                          ),
+                                          connected: t(
+                                              'playground.mockLogConnected'
+                                          ),
+                                          requestReceived: t(
+                                              'playground.mockLogRequestReceived'
+                                          ),
+                                          responseSent1: t(
+                                              'playground.mockLogResponseSent1'
+                                          ),
+                                          responseSent2: t(
+                                              'playground.mockLogResponseSent2'
+                                          ),
+                                          healthCheck: t(
+                                              'playground.mockLogHealthCheck'
+                                          )
+                                      })
                                     : undefined
                             }
                         />

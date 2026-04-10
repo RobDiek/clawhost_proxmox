@@ -13,7 +13,7 @@ export const onRequest: PagesFunction = async (context) => {
     })
 
     if (url.pathname === '/__/firebase/init.json') {
-        const config = await response.json() as Record<string, unknown>
+        const config = (await response.json()) as Record<string, unknown>
         config.authDomain = url.host
         return new Response(JSON.stringify(config), {
             status: response.status,

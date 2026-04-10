@@ -19,6 +19,7 @@ import fireConfetti from '@/lib/fireConfetti'
 import copyToClipboard from '@/lib/copyToClipboard'
 import generateRandomAgentName from '@/lib/generateRandomAgentName'
 import reportWebVitals from '@/lib/reportWebVitals'
+import isSafeRedirectUrl from '@/lib/isSafeRedirectUrl'
 import { formatDate, formatCurrency } from '@/lib/formatters'
 import {
     tabs as PLAYGROUND_DETAIL_TABS,
@@ -50,5 +51,6 @@ export {
     formatCurrency,
     PLAYGROUND_DETAIL_TABS,
     PLAYGROUND_CONFIGURING_DISABLED_TABS,
-    PLAYGROUND_AWAITING_PAYMENT_DISABLED_TABS
+    PLAYGROUND_AWAITING_PAYMENT_DISABLED_TABS,
+    isSafeRedirectUrl
 }

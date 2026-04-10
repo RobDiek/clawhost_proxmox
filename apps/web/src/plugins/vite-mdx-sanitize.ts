@@ -103,9 +103,7 @@ const viteMdxSanitize = (): Plugin => {
         enforce: 'pre',
 
         transform(code: string, id: string) {
-            if (!id.split('?')[0].endsWith('.mdx')) {
-                return null
-            }
+            if (!id.split('?')[0].endsWith('.mdx')) return null
 
             return {
                 code: sanitizeMdx(code),

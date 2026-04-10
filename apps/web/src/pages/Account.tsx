@@ -9,7 +9,7 @@ import { userRole } from '@openclaw/shared'
 import { useAuth } from '@/lib/auth'
 import { useUIStore, usePreferencesStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import { api, ROUTES } from '@/lib'
+import { api, ROUTES, isSafeRedirectUrl } from '@/lib'
 import {
     useProfile,
     useUpdateProfile,
@@ -81,6 +81,7 @@ const Account: FC = (): ReactNode => {
         setIsPurchasingLicense(true)
         try {
             const { checkoutUrl } = await api.purchaseLicense()
+            if (!isSafeRedirectUrl(checkoutUrl)) return
             window.location.href = checkoutUrl
         } catch {
             showToast(t('license.failedToPurchase'), TOAST_TYPE.ERROR)

@@ -24,7 +24,13 @@ import useOtpFlow from '@/pages/Login/useOtpFlow'
 const Login: FC = (): ReactNode => {
     const [email, setEmail] = useState('')
     const [step, setStep] = useState<'email' | 'code'>('email')
-    const { user, loading: authLoading, isLocal } = useAuth()
+    const {
+        user,
+        loading: authLoading,
+        isLocal,
+        pendingConflict,
+        clearPendingConflict
+    } = useAuth()
     const isOffline = useNetworkStatus()
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
@@ -72,6 +78,14 @@ const Login: FC = (): ReactNode => {
         }
     }, [user, navigate])
 
+    useEffect(() => {
+        if (pendingConflict) {
+            setEmail(pendingConflict.email)
+            setStep('code')
+            startCooldown()
+        }
+    }, [pendingConflict])
+
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault()
         handleSendOtp()
@@ -80,6 +94,7 @@ const Login: FC = (): ReactNode => {
     const handleChangeEmail = () => {
         setStep('email')
         resetCode()
+        clearPendingConflict()
     }
 
     if (authLoading || user) {

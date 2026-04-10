@@ -56,7 +56,12 @@ const verifyOtp = withErrorHandler('verifyOtp')(async (c: Context) => {
     if (!updated[0]) return fail(c, t('api.otpMaxAttemptsReached'), 401)
 
     const codeHash = hashCode(code)
-    if (codeHash !== record.codeHash) {
+    const hashA = Buffer.from(codeHash)
+    const hashB = Buffer.from(record.codeHash)
+    if (
+        hashA.length !== hashB.length ||
+        !crypto.timingSafeEqual(hashA, hashB)
+    ) {
         const remaining =
             inputValidation.OTP_MAX_ATTEMPTS.MAX - updated[0].attempts
         return fail(c, t('api.otpInvalidCode'), 401, {
@@ -77,16 +82,23 @@ const verifyOtp = withErrorHandler('verifyOtp')(async (c: Context) => {
 
     if (existingUser) {
         uid = existingUser.id
-    } else {
-        if (email.includes('+')) {
-            return fail(c, t('api.plusAddressingNotAllowed'), 400)
+        try {
+            await auth().updateUser(uid, { email: normalizedEmail })
+        } catch (error) {
+            console.error('verifyOtp', error)
         }
+    } else {
+        if (email.includes('+'))
+            return fail(c, t('api.plusAddressingNotAllowed'), 400)
 
         uid = crypto.randomUUID()
-        await db.insert(users).values({
-            id: uid,
-            email: normalizedEmail
-        })
+        await Promise.all([
+            db.insert(users).values({
+                id: uid,
+                email: normalizedEmail
+            }),
+            auth().createUser({ uid, email: normalizedEmail })
+        ])
     }
 
     const keysToClean = [`email:${normalizedEmail}`]

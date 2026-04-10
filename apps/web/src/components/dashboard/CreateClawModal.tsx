@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 import { t } from '@openclaw/i18n'
 import { billingInterval } from '@openclaw/shared'
 import { Link } from 'react-router-dom'
-import { ROUTES } from '@/lib'
+import { ROUTES, isSafeRedirectUrl } from '@/lib'
 import {
     usePurchaseClaw,
     usePlans,
@@ -202,7 +202,8 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                         )
                         return
                     }
-                    window.location.href = data.checkoutUrl
+                    if (isSafeRedirectUrl(data.checkoutUrl))
+                        window.location.href = data.checkoutUrl
                 },
                 onError: (err: Error) => {
                     toast.error(err.message || t('errors.failedToCreateClaw'))

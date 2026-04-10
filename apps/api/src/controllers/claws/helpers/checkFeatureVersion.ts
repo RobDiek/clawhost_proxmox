@@ -3,10 +3,9 @@ import type { VersionGatedFeature } from '@/ts/Types'
 
 import executeSSH from '@/services/ssh'
 import isVersionSupported from '@/controllers/claws/helpers/isVersionSupported'
+import versionCache from '@/controllers/claws/helpers/versionCache'
 
 const VERSION_CACHE_TTL = 120_000
-
-const versionCache = new Map<string, { version: string; expiresAt: number }>()
 
 const getClawVersion = async (
     ip: string,
@@ -41,9 +40,4 @@ const checkFeatureVersion = async (
     return { supported, version }
 }
 
-const invalidateVersionCache = (ip: string): void => {
-    versionCache.delete(ip)
-}
-
 export default checkFeatureVersion
-export { invalidateVersionCache }

@@ -46,7 +46,8 @@ const exportClaw = async (c: AuthenticatedContext) => {
             setRateLimit(`export:${id}`)
         ])
 
-        const filename = `${claw.name}-export.tar.gz`
+        const safeName = claw.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+        const filename = `${safeName}-export.tar.gz`
 
         return new Response(new Uint8Array(buffer), {
             headers: {

@@ -1,3 +1,4 @@
+import type { ServerLifecycleResult } from '@/ts/Interfaces'
 import type { ClawRow } from '@/ts/Types'
 
 import { eq } from 'drizzle-orm'
@@ -23,7 +24,7 @@ const LIFECYCLE_CONFIG = {
 const executeServerLifecycle = async (
     claw: ClawRow,
     operation: 'start' | 'stop' | 'restart'
-): Promise<{ success: boolean; status: string }> => {
+): Promise<ServerLifecycleResult> => {
     const config = LIFECYCLE_CONFIG[operation]
     const previousStatus = claw.status
 

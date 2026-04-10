@@ -1,6 +1,6 @@
 {
     "name": "web",
-    "version": "0.0.181",
+    "version": "0.0.182",
     "private": true,
     "type": "module",
     "scripts": {
@@ -58,6 +58,7 @@
         "react-markdown": "^10.1.0",
         "react-router-dom": "^6.28.0",
         "recharts": "^3.8.1",
+        "rehype-sanitize": "^6.0.0",
         "remark-frontmatter": "^5.0.0",
         "remark-gfm": "^4.0.1",
         "remark-mdx-frontmatter": "^5.2.0",

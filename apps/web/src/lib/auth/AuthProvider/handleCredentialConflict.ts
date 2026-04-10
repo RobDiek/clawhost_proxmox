@@ -1,20 +1,17 @@
 import type { OAuthCredential } from 'firebase/auth'
+import type { PendingConflict } from '@/ts/Interfaces'
 
-import { signInWithCustomToken } from 'firebase/auth'
-import { auth } from '@/lib/firebase'
-import { api } from '@/lib'
-
-const handleCredentialConflict = async (
+const handleCredentialConflict = (
     credential: OAuthCredential | null,
-    providerId: string
-): Promise<boolean> => {
-    if (!credential?.accessToken) return false
-    const { customToken } = await api.resolveCredentialConflict({
+    providerId: string,
+    conflictEmail: string | undefined
+): PendingConflict | null => {
+    if (!credential?.accessToken || !conflictEmail) return null
+    return {
         accessToken: credential.accessToken,
-        providerId
-    })
-    await signInWithCustomToken(auth, customToken)
-    return true
+        providerId,
+        email: conflictEmail
+    }
 }
 
 export default handleCredentialConflict

@@ -21,6 +21,7 @@ const claws = pgTable(
         }),
         subdomain: text('subdomain').unique(),
         gatewayToken: text('gateway_token'),
+        hostKeyFingerprint: text('host_key_fingerprint'),
         polarSubscriptionId: text('polar_subscription_id').unique(),
         polarProductId: text('polar_product_id'),
         polarCustomerId: text('polar_customer_id'),

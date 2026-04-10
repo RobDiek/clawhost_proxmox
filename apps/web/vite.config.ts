@@ -61,7 +61,7 @@ export default defineConfig(({ mode }) => {
             ]
         },
         build: {
-            sourcemap: 'hidden',
+            sourcemap: false,
             rollupOptions: {
                 output: {
                     manualChunks: {
@@ -88,9 +88,13 @@ export default defineConfig(({ mode }) => {
             port: Number(env.VITE_PORT) || 1111,
             https: existsSync(path.resolve(__dirname, '.certs/cert.pem'))
                 ? {
-                    key: readFileSync(path.resolve(__dirname, '.certs/key.pem')),
-                    cert: readFileSync(path.resolve(__dirname, '.certs/cert.pem'))
-                }
+                      key: readFileSync(
+                          path.resolve(__dirname, '.certs/key.pem')
+                      ),
+                      cert: readFileSync(
+                          path.resolve(__dirname, '.certs/cert.pem')
+                      )
+                  }
                 : undefined,
             proxy: {
                 '/ws': {
@@ -120,15 +124,18 @@ export default defineConfig(({ mode }) => {
                     path: '/__/firebase/init.json',
                     handler(_req, res) {
                         res.setHeader('Content-Type', 'application/json')
-                        res.end(JSON.stringify({
-                            apiKey: env.VITE_FIREBASE_API_KEY,
-                            appId: env.VITE_FIREBASE_APP_ID,
-                            authDomain: `localhost:${port}`,
-                            databaseURL: '',
-                            messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-                            projectId: env.VITE_FIREBASE_PROJECT_ID,
-                            storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET
-                        }))
+                        res.end(
+                            JSON.stringify({
+                                apiKey: env.VITE_FIREBASE_API_KEY,
+                                appId: env.VITE_FIREBASE_APP_ID,
+                                authDomain: `localhost:${port}`,
+                                databaseURL: '',
+                                messagingSenderId:
+                                    env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+                                projectId: env.VITE_FIREBASE_PROJECT_ID,
+                                storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET
+                            })
+                        )
                     }
                 })
                 return middlewares
