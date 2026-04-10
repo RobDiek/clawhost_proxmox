@@ -1,4 +1,7 @@
-import 'dotenv/config'
+import { config } from 'dotenv'
+// Load root .env first (RESEND, etc.), then api-level .env (overrides)
+config({ path: '../../.env' })
+config()
 
 import type { Server } from 'http'
 
