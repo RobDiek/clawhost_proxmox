@@ -198,10 +198,6 @@ const RELEASES: ChangelogRelease[] = [
         descriptionKey: 'changelog.release6Description',
         features: [
             {
-                key: 'changelog.release6Feature1',
-                type: CHANGELOG_FEATURE_TYPE.ADDED
-            },
-            {
                 key: 'changelog.release6Feature2',
                 type: CHANGELOG_FEATURE_TYPE.ADDED
             },

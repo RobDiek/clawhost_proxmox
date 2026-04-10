@@ -3,7 +3,6 @@ import type { PlaygroundDetailTab } from '@/ts/Types'
 import { CLAW_DETAIL_TABS } from '@/lib/constants'
 
 const AWAITING_PAYMENT_DISABLED_TABS: PlaygroundDetailTab[] = [
-    CLAW_DETAIL_TABS.CHANNELS,
     CLAW_DETAIL_TABS.VERSIONS,
     CLAW_DETAIL_TABS.VARIABLES,
     CLAW_DETAIL_TABS.SKILLS,

@@ -474,25 +474,8 @@ const hi: Translations = {
         invalidToken: 'अमान्य टोकन!',
         notFound: 'नहीं मिला!',
         healthOk: 'API चल रही है.',
-        channelsFetched: 'चैनल सफलतापूर्वक प्राप्त हुए.',
-        channelsUpdated: 'चैनल सफलतापूर्वक अपडेट हुए.',
-        channelsUpdateFailed: 'चैनल अपडेट नहीं हो सके!',
-        channelsFetchFailed: 'चैनल प्राप्त नहीं हो सके!',
-        channelMissingRequired: 'सक्षम चैनल के लिए आवश्यक फ़ील्ड गायब हैं!',
-        whatsappPairStarted: 'WhatsApp पेयरिंग शुरू हुई.',
-        whatsappPairFailed: 'WhatsApp पेयरिंग विफल!',
-        whatsappAlreadyPaired: 'WhatsApp पहले से पेयर है!',
-        whatsappVersionUnsupported:
-            'यह संस्करण डैशबोर्ड से चैनल कॉन्फ़िगरेशन का समर्थन नहीं करता। मैन्युअल रूप से कॉन्फ़िगर करने के लिए टर्मिनल टैब का उपयोग करें या OpenClaw अपग्रेड करें।',
         featureVersionUnsupported:
             'यह सुविधा संस्करण {{version}} पर समर्थित नहीं है। कृपया OpenClaw अपडेट करें या मैन्युअल रूप से प्रबंधित करने के लिए टर्मिनल का उपयोग करें।',
-        bindingsFetched: 'बाइंडिंग सफलतापूर्वक प्राप्त हुईं.',
-        bindingsFetchFailed: 'बाइंडिंग प्राप्त नहीं हो सकीं!',
-        bindingsUpdated: 'बाइंडिंग सफलतापूर्वक अपडेट हुईं.',
-        bindingsUpdateFailed: 'बाइंडिंग अपडेट नहीं हो सकीं!',
-        bindingsInvalidFormat: 'अमान्य बाइंडिंग प्रारूप!',
-        bindingsInvalidChannel: 'बाइंडिंग में असमर्थित चैनल!',
-        bindingsDuplicateChannel: 'एक चैनल केवल एक एजेंट से जोड़ा जा सकता है!',
         skillsFetched: 'स्किल सफलतापूर्वक प्राप्त हुईं.',
         skillsUpdated: 'स्किल सफलतापूर्वक अपडेट हुईं.',
         skillsUpdateFailed: 'स्किल अपडेट नहीं हो सकीं!',
@@ -594,16 +577,6 @@ const hi: Translations = {
                     'ClawHost डैशबोर्ड से रीयल टाइम में अपने सर्वर लॉग मॉनिटर करें. ब्राउज़र छोड़े बिना समस्याओं का निदान करें, डिप्लॉयमेंट ट्रैक करें और अपने एप्लिकेशन डीबग करें.',
                 cta: 'लॉग देखें'
             },
-            channels: {
-                subject:
-                    'क्या आप जानते हैं? एजेंट को Discord, Slack और अन्य से कनेक्ट करें',
-                preview: 'अपने AI एजेंट को संचार चैनलों से जोड़ें',
-                tag: 'चैनल्स',
-                heading: 'आपके एजेंट, हर जगह',
-                description:
-                    'अपने AI एजेंट को Discord, Slack, WhatsApp और अन्य से कनेक्ट करें. चैनल कॉन्फ़िगर करें और उन्हें एजेंट से जोड़ें — सब कुछ ClawHost डैशबोर्ड से.',
-                cta: 'चैनल सेट करें'
-            },
             fileExplorer: {
                 subject:
                     'क्या आप जानते हैं? ब्राउज़र से सर्वर फ़ाइलें संपादित करें',
@@ -652,16 +625,6 @@ const hi: Translations = {
                 description:
                     'ClawHub पर 5,000 से अधिक तैयार स्किल ब्राउज़ करें और एक क्लिक में इंस्टॉल करें. वेब सर्च, कोड एक्ज़ीक्यूशन, इमेज जनरेशन और बहुत कुछ.',
                 cta: 'ClawHub ब्राउज़ करें'
-            },
-            bindings: {
-                subject: 'क्या आप जानते हैं? एजेंट को विशिष्ट चैनलों से जोड़ें',
-                preview:
-                    'नियंत्रित करें कि कौन सा एजेंट किस चैनल पर प्रतिक्रिया दे',
-                tag: 'बाइंडिंग्स',
-                heading: 'प्रति चैनल एक एजेंट',
-                description:
-                    'विशिष्ट एजेंट को विशिष्ट चैनलों से जोड़ें. Discord पर आपका सहायता एजेंट, WhatsApp पर आपका सहायक — आप तय करें कि कौन कहाँ जवाब दे.',
-                cta: 'बाइंडिंग कॉन्फ़िगर करें'
             },
             envVars: {
                 subject: 'क्या आप जानते हैं? एनवायरनमेंट वेरिएबल प्रबंधित करें',
@@ -1275,7 +1238,7 @@ const hi: Translations = {
             'ClawHost से सीधे मूल OpenClaw पैनल तक पहुँचें. OpenClaw जो कुछ भी प्रदान करता है उस पर पूर्ण संपादन एक्सेस.',
         clawHostControl: 'ClawHost नियंत्रण',
         clawHostControlDescription:
-            'प्लेटफ़ॉर्म से सीधे फ़ाइलें, अपडेट, चैनल, वेरिएबल, स्किल और अन्य कॉन्फ़िगरेशन विकल्प प्रबंधित करें.',
+            'प्लेटफ़ॉर्म से सीधे फ़ाइलें, अपडेट, वेरिएबल, स्किल और अन्य कॉन्फ़िगरेशन विकल्प प्रबंधित करें.',
         skillsMarketplace: '5,000+ स्किल',
         skillsMarketplaceDescription:
             'एक क्लिक में 5,000 से अधिक तैयार स्किल ब्राउज़ और इंस्टॉल करें. अपने OpenClaw को तुरंत विस्तारित करें.',
@@ -1378,7 +1341,7 @@ const hi: Translations = {
             'होस्टेड AI टूल के विपरीत, ClawHost आपको OpenClaw इंस्टॉल के साथ एक वास्तविक सर्वर देता है. आप बुनियादी ढाँचे के मालिक हैं, सब कुछ नियंत्रित करते हैं और किसी साझा प्लेटफ़ॉर्म या मॉडल से सीमित नहीं हैं.',
         faq4Question: 'क्या मुझे तकनीकी ज्ञान चाहिए?',
         faq4Answer:
-            'नहीं. हम सभी बुनियादी ढाँचा, सेटअप और रखरखाव संभालते हैं. आप OpenClaw को इसके UI के माध्यम से कॉन्फ़िगर और प्रबंधित कर सकते हैं, चैनलों से कनेक्ट कर सकते हैं और उपयोग को अनुकूलित कर सकते हैं — बिना सर्वर या बुनियादी ढाँचे को छुए.',
+            'नहीं. हम सभी बुनियादी ढाँचा, सेटअप और रखरखाव संभालते हैं. आप OpenClaw को इसके UI के माध्यम से कॉन्फ़िगर और प्रबंधित कर सकते हैं और उपयोग को अनुकूलित कर सकते हैं — बिना सर्वर या बुनियादी ढाँचे को छुए.',
         faq5Question: 'कौन से स्थान उपलब्ध हैं?',
         faq5Answer:
             'हम दुनिया भर में कई सर्वर स्थान प्रदान करते हैं, जिनमें यूएसए, यूरोप और अन्य शामिल हैं. आवश्यकता होने पर आप विभिन्न क्षेत्रों में कई सर्वरों पर OpenClaw तैनात कर सकते हैं.',
@@ -1400,7 +1363,7 @@ const hi: Translations = {
         comparisonOwnershipUs: 'आप पूरी तरह अपने सर्वर के मालिक हैं',
         comparisonOwnershipOthers: 'आपके पास कुछ नहीं है',
         comparisonSubdomainUs: 'सबडोमेन के माध्यम से एक्सेस',
-        comparisonSubdomainOthers: 'केवल सोशल चैनलों से एक्सेस',
+        comparisonSubdomainOthers: 'केवल तृतीय-पक्ष प्लेटफ़ॉर्म से एक्सेस',
         comparisonInfraUs: 'ऑन-डिमांड बुनियादी ढाँचा',
         comparisonInfraOthers: 'सीमित सर्वर',
         comparisonDataUs: 'अपने डेटा के मालिक बनें',
@@ -1418,7 +1381,7 @@ const hi: Translations = {
         comparisonSocialsUs: 'सोशल मीडिया उपस्थिति',
         comparisonSocialsOthers: 'कोई सोशल मीडिया नहीं',
         comparisonChatUs: 'अपने क्लॉ से सीधे चैट करें',
-        comparisonChatOthers: 'केवल चैनलों के माध्यम से चैट',
+        comparisonChatOthers: 'केवल तृतीय-पक्ष प्लेटफ़ॉर्म के माध्यम से चैट',
         comparisonVersionUs: 'एक-क्लिक संस्करण स्विचिंग',
         comparisonVersionOthers: 'केवल मैनुअल अपडेट',
         comparisonTerminalUs: 'बिल्ट-इन वेब टर्मिनल',
@@ -1570,11 +1533,9 @@ const hi: Translations = {
         release7Feature4:
             'एजेंट के लिए अटैचमेंट व्यू और उपयोग, चैट में चित्र और दस्तावेज़ भेजें',
         release6Date: '16 फ़रवरी 2026',
-        release6Title: 'चैनल, स्किल और एजेंट चैट',
+        release6Title: 'स्किल और एजेंट चैट',
         release6Description:
-            'अपने OpenClaw चैनल, स्किल और एजेंट पर पूर्ण नियंत्रण. डैशबोर्ड से सीधे सब कुछ प्रबंधित और चैट करें.',
-        release6Feature1:
-            'सर्वर को छुए बिना सीधे चैनल प्रबंधित करें, जोड़ें, हटाएँ और कॉन्फ़िगर करें',
+            'अपने OpenClaw स्किल और एजेंट पर पूर्ण नियंत्रण. डैशबोर्ड से सीधे सब कुछ प्रबंधित और चैट करें.',
         release6Feature2:
             'डैशबोर्ड से सीधे स्किल प्रबंधित करें, एजेंट स्किल इंस्टॉल, अपडेट और व्यवस्थित करें',
         release6Feature3:
@@ -1830,72 +1791,12 @@ const hi: Translations = {
         chatNoPreview: 'कोई प्रीव्यू उपलब्ध नहीं.',
         chatDownloadFile: 'फ़ाइल डाउनलोड करें',
         chatCopyMessage: 'संदेश कॉपी करें',
-        tabChannels: 'चैनल',
-        channelsDescription:
-            'इस इंस्टेंस के लिए मैसेजिंग चैनल कॉन्फ़िगर करें. संदेश बाइंडिंग के माध्यम से एजेंट को भेजे जाते हैं.',
-        channelsWhatsApp: 'WhatsApp',
-        channelsWhatsAppPairDevice: 'डिवाइस पेयर करें',
-        channelsWhatsAppPairing: 'QR कोड की प्रतीक्षा...',
-        channelsWhatsAppScanQr:
-            'अपना डिवाइस लिंक करने के लिए WhatsApp से इस QR कोड को स्कैन करें.',
-        channelsWhatsAppScanInstructions:
-            'WhatsApp खोलें > सेटिंग्स > लिंक्ड डिवाइस > डिवाइस लिंक करें',
-        channelsWhatsAppQrRefreshed:
-            'पिछला QR कोड समाप्त हो गया. नीचे नया स्कैन करें.',
-        channelsWhatsAppPaired: 'WhatsApp सफलतापूर्वक पेयर हुआ.',
-        channelsWhatsAppPairFailed: 'पेयरिंग विफल. कृपया पुनः प्रयास करें!',
-        channelsWhatsAppAlreadyPaired: 'WhatsApp पहले से पेयर है!',
-        channelsWhatsAppUnpair: 'अनपेयर',
-        channelsWhatsAppConnected: 'कनेक्टेड',
-        channelsWhatsAppRepair: 'पुनः पेयर करें',
-        channelsWhatsAppChecking: 'कनेक्शन जाँच हो रही है...',
-        channelsVersionUnsupported:
-            'इस संस्करण में चैनल कॉन्फ़िगरेशन उपलब्ध नहीं है। आप टर्मिनल टैब का उपयोग करके मैन्युअल रूप से कनेक्ट कर सकते हैं या OpenClaw अपग्रेड कर सकते हैं।',
-        channelsVersionUnsupportedDocs: 'सेटअप गाइड देखें',
         featureVersionUnsupported: '{{feature}} {{version}} पर समर्थित नहीं है',
         featureVersionUnsupportedDescription:
             'हम इस संस्करण में UI के माध्यम से {{feature}} प्रबंधन का समर्थन नहीं करते। आप SSH, टर्मिनल या OpenClaw कंट्रोल पैनल के माध्यम से इसे प्रबंधित कर सकते हैं।',
         featureVersionUnsupportedButton: 'संस्करणों पर जाएं',
         featureVersionUnsupportedSupported: 'समर्थित संस्करण:',
         featureVersionUnsupportedNewer: 'नए संस्करण',
-        channelsTelegram: 'Telegram',
-        channelsDiscord: 'Discord',
-        channelsSlack: 'Slack',
-        channelsSignal: 'Signal',
-        channelsEnabled: 'सक्षम',
-        channelsAccount: 'खाता फ़ोन नंबर',
-        channelsAccountPlaceholder: '+15551234567',
-        channelsBotToken: 'बॉट टोकन',
-        channelsBotTokenPlaceholder: 'बॉट टोकन दर्ज करें',
-        channelsAppToken: 'ऐप टोकन',
-        channelsAppTokenPlaceholder: 'ऐप टोकन दर्ज करें',
-        channelsToken: 'बॉट टोकन',
-        channelsTokenPlaceholder: 'बॉट टोकन दर्ज करें',
-        channelsSigningSecret: 'साइनिंग सीक्रेट',
-        channelsSigningSecretPlaceholder: 'साइनिंग सीक्रेट दर्ज करें',
-        channelsDmPolicy: 'DM नीति',
-        channelsDmPolicyOpen: 'खुला',
-        channelsDmPolicyPairing: 'पेयरिंग',
-        channelsDmPolicyAllowlist: 'अनुमति सूची',
-        channelsDmPolicyDisabled: 'अक्षम',
-        channelsAllowFrom: 'से अनुमति दें',
-        channelsAllowFromPlaceholder: 'अनुमत ID, अल्पविराम से अलग',
-        channelsSave: 'सहेजें',
-        channelsSaved: 'चैनल सफलतापूर्वक अपडेट हुए.',
-        channelsSaveFailed: 'चैनल अपडेट करने में विफल!',
-        channelsLoading: 'चैनल लोड हो रहे हैं...',
-        channelsLoadFailed: 'चैनल लोड करने में विफल!',
-        channelsLoadFailedDescription:
-            'चैनल कॉन्फ़िगरेशन प्राप्त नहीं हो सका. कृपया पुनः प्रयास करें.',
-        channelsNoChanges: 'सहेजने के लिए कोई बदलाव नहीं.',
-        bindingsDescription:
-            'इस एजेंट को मैसेजिंग चैनल असाइन करें. प्रत्येक चैनल एक समय में केवल एक एजेंट को भेजा जा सकता है.',
-        bindingsNoChannels: 'कोई चैनल सक्षम नहीं.',
-        bindingsNoChannelsDescription:
-            'पहले इंस्टेंस सेटिंग्स में चैनल सक्षम करें, फिर उन्हें यहाँ एजेंट को असाइन करें.',
-        bindingsSaving: 'सहेजा जा रहा है...',
-        bindingsSaved: 'बाइंडिंग सफलतापूर्वक अपडेट हुईं.',
-        bindingsSaveFailed: 'बाइंडिंग अपडेट करने में विफल!',
         tabSkills: 'स्किल',
         skillsDescription:
             'इस इंस्टेंस पर सभी एजेंट के लिए उपलब्ध साझा स्किल प्रबंधित करें.',
@@ -2217,7 +2118,6 @@ const hi: Translations = {
         featureMultipleInstances: 'एकाधिक इंस्टेंस',
         featureMultipleAgents: 'प्रति इंस्टेंस एकाधिक एजेंट',
         featureSkillsMarketplace: 'स्किल मार्केटप्लेस',
-        featureChannelSupport: 'चैनल सपोर्ट',
         featureAgentConfig: 'एजेंट कॉन्फ़िगरेशन',
         featureDataOwnership: 'पूर्ण डेटा स्वामित्व',
         featureDataExport: 'डेटा निर्यात',
@@ -2269,10 +2169,6 @@ const hi: Translations = {
         singleInstance: 'एकल',
         fiveThousandSkills: '5,000+ स्किल (ClawHub)',
         noMarketplace: 'कोई मार्केटप्लेस नहीं',
-        allChannels: 'WhatsApp, Telegram, Discord, Slack, Signal',
-        telegramDiscord: 'Telegram, Discord',
-        discordGithubSlack: 'Discord, GitHub, Slack',
-        telegramGmailWhatsapp: 'Telegram, Gmail, WhatsApp',
         appOnly: 'केवल ऐप',
         fullConfig: 'पूर्ण कॉन्फ़िगरेशन',
         limitedConfig: 'सीमित',

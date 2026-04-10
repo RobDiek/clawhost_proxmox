@@ -477,28 +477,8 @@ const ja: Translations = {
         invalidToken: '無効なトークンです!',
         notFound: '見つかりません!',
         healthOk: 'APIは稼働中です.',
-        channelsFetched: 'チャンネルを取得しました.',
-        channelsUpdated: 'チャンネルを更新しました.',
-        channelsUpdateFailed: 'チャンネルを更新できませんでした!',
-        channelsFetchFailed: 'チャンネルを取得できませんでした!',
-        channelMissingRequired:
-            '有効なチャンネルに必須フィールドが不足しています!',
-        whatsappPairStarted: 'WhatsAppペアリングを開始しました.',
-        whatsappPairFailed: 'WhatsAppペアリングに失敗しました!',
-        whatsappAlreadyPaired: 'WhatsAppは既にペアリング済みです!',
-        whatsappVersionUnsupported:
-            'このバージョンではダッシュボードからのチャンネル設定はサポートされていません。ターミナルタブから手動で設定するか、OpenClawをアップグレードしてください。',
         featureVersionUnsupported:
             'この機能はバージョン {{version}} ではサポートされていません。OpenClawを更新するか、ターミナルを使用して手動で管理してください。',
-        bindingsFetched: 'バインディングを取得しました.',
-        bindingsFetchFailed: 'バインディングを取得できませんでした!',
-        bindingsUpdated: 'バインディングを更新しました.',
-        bindingsUpdateFailed: 'バインディングを更新できませんでした!',
-        bindingsInvalidFormat: '無効なバインディング形式です!',
-        bindingsInvalidChannel:
-            'バインディングにサポートされていないチャンネルがあります!',
-        bindingsDuplicateChannel:
-            '1つのチャンネルは1つのエージェントにのみバインドできます!',
         skillsFetched: 'スキルを取得しました.',
         skillsUpdated: 'スキルを更新しました.',
         skillsUpdateFailed: 'スキルを更新できませんでした!',
@@ -600,16 +580,6 @@ const ja: Translations = {
                     'ClawHostダッシュボードからリアルタイムでサーバーログを監視。問題の診断、デプロイの追跡、アプリケーションのデバッグをブラウザから。',
                 cta: 'ログを見る'
             },
-            channels: {
-                subject: 'ご存知ですか？エージェントをDiscord、Slackなどに接続',
-                preview:
-                    'AIエージェントをコミュニケーションチャンネルにバインド',
-                tag: 'チャンネル',
-                heading: 'エージェントをどこでも',
-                description:
-                    'AIエージェントをDiscord、Slack、WhatsAppなどに接続。チャンネルの設定とエージェントへのバインド — すべてClawHostダッシュボードから。',
-                cta: 'チャンネルを設定'
-            },
             fileExplorer: {
                 subject: 'ご存知ですか？ブラウザからサーバーファイルを編集',
                 preview: 'SSH不要でファイルの閲覧、読み取り、編集',
@@ -654,16 +624,6 @@ const ja: Translations = {
                 description:
                     'ClawHubで5,000以上のスキルを閲覧し、ワンクリックでインストール。Web検索、コード実行、画像生成など。',
                 cta: 'ClawHubを閲覧'
-            },
-            bindings: {
-                subject:
-                    'ご存知ですか？エージェントを特定のチャンネルにバインド',
-                preview: 'どのエージェントがどのチャンネルで応答するかを制御',
-                tag: 'バインディング',
-                heading: 'チャンネルごとに1エージェント',
-                description:
-                    '特定のエージェントを特定のチャンネルにバインド。DiscordにはサポートエージェントをWhatsAppにはアシスタントを — 誰がどこで応答するかはあなた次第。',
-                cta: 'バインディングを設定'
             },
             envVars: {
                 subject: 'ご存知ですか？環境変数を管理',
@@ -1268,7 +1228,7 @@ const ja: Translations = {
             'ClawHostからネイティブOpenClawパネルに直接アクセス。OpenClawが提供するすべてへのフル編集アクセス。',
         clawHostControl: 'ClawHostコントロール',
         clawHostControlDescription:
-            'ファイル、アップデート、チャンネル、変数、スキルなどの設定オプションをプラットフォームから直接管理。',
+            'ファイル、アップデート、変数、スキルなどの設定オプションをプラットフォームから直接管理。',
         skillsMarketplace: '5,000以上のスキル',
         skillsMarketplaceDescription:
             'ワンクリックで5,000以上のスキルを閲覧・インストール。OpenClawを即座に拡張。',
@@ -1371,7 +1331,7 @@ const ja: Translations = {
             'ホスティングされたAIツールとは異なり、ClawHostはOpenClawがインストールされた実際のサーバーを提供します。インフラを所有し、すべてをコントロールし、共有プラットフォームやモデルに制限されません.',
         faq4Question: '技術的な知識は必要ですか？',
         faq4Answer:
-            'いいえ。インフラ、セットアップ、メンテナンスはすべて私たちが対応します。UIを通じてOpenClawの設定と管理、チャンネルへの接続、使い方のカスタマイズができます — サーバーやインフラに触れる必要はありません.',
+            'いいえ。インフラ、セットアップ、メンテナンスはすべて私たちが対応します。UIを通じてOpenClawの設定と管理、使い方のカスタマイズができます — サーバーやインフラに触れる必要はありません.',
         faq5Question: 'どのロケーションが利用可能ですか？',
         faq5Answer:
             '米国、ヨーロッパなど世界中に複数のサーバーロケーションを提供しています. 必要に応じて、異なるリージョンの複数のサーバーにOpenClawをデプロイできます.',
@@ -1393,7 +1353,8 @@ const ja: Translations = {
         comparisonOwnershipUs: 'サーバーを完全に所有',
         comparisonOwnershipOthers: '何も所有しない',
         comparisonSubdomainUs: 'サブドメイン経由でアクセス',
-        comparisonSubdomainOthers: 'ソーシャルチャンネルでのみアクセス',
+        comparisonSubdomainOthers:
+            'サードパーティプラットフォーム経由のみアクセス',
         comparisonInfraUs: 'オンデマンドインフラ',
         comparisonInfraOthers: '限定されたサーバー',
         comparisonDataUs: 'データを所有',
@@ -1411,7 +1372,7 @@ const ja: Translations = {
         comparisonSocialsUs: 'ソーシャルメディアでの存在',
         comparisonSocialsOthers: 'ソーシャルメディアなし',
         comparisonChatUs: 'Clawと直接チャット',
-        comparisonChatOthers: 'チャンネル経由のみチャット',
+        comparisonChatOthers: 'サードパーティプラットフォーム経由のみチャット',
         comparisonVersionUs: 'ワンクリックバージョン切替',
         comparisonVersionOthers: '手動アップデートのみ',
         comparisonTerminalUs: '内蔵Webターミナル',
@@ -1557,11 +1518,9 @@ const ja: Translations = {
         release7Feature4:
             'エージェント向けの添付ファイルの表示と使用、チャットで画像やドキュメントを送信',
         release6Date: '2026年2月16日',
-        release6Title: 'チャンネル、スキル & エージェントチャット',
+        release6Title: 'スキル & エージェントチャット',
         release6Description:
-            'OpenClawのチャンネル、スキル、エージェントの完全なコントロール。ダッシュボードから直接すべてを管理・チャット。',
-        release6Feature1:
-            'チャンネルを直接管理、サーバーに触れずにチャンネルの追加、削除、設定',
+            'OpenClawのスキルとエージェントの完全なコントロール。ダッシュボードから直接すべてを管理・チャット。',
         release6Feature2:
             'スキルを直接管理、ダッシュボードからエージェントスキルのインストール、更新、整理',
         release6Feature3:
@@ -1816,29 +1775,6 @@ const ja: Translations = {
         chatNoPreview: 'プレビューはありません。',
         chatDownloadFile: 'ファイルをダウンロード',
         chatCopyMessage: 'メッセージをコピー',
-        tabChannels: 'チャンネル',
-        channelsDescription:
-            'このインスタンスのメッセージングチャンネルを設定。メッセージはバインディング経由でエージェントにルーティングされます。',
-        channelsWhatsApp: 'WhatsApp',
-        channelsWhatsAppPairDevice: 'デバイスをペアリング',
-        channelsWhatsAppPairing: 'QRコードを待機中...',
-        channelsWhatsAppScanQr:
-            'WhatsAppでこのQRコードをスキャンしてデバイスをリンク。',
-        channelsWhatsAppScanInstructions:
-            'WhatsAppを開く > 設定 > リンクされたデバイス > デバイスをリンク',
-        channelsWhatsAppQrRefreshed:
-            '前のQRコードの有効期限が切れました。下の新しいコードをスキャンしてください。',
-        channelsWhatsAppPaired: 'WhatsAppをペアリングしました。',
-        channelsWhatsAppPairFailed:
-            'ペアリングに失敗しました。再試行してください！',
-        channelsWhatsAppAlreadyPaired: 'WhatsAppは既にペアリングされています！',
-        channelsWhatsAppUnpair: 'ペアリング解除',
-        channelsWhatsAppConnected: '接続済み',
-        channelsWhatsAppRepair: '再ペアリング',
-        channelsWhatsAppChecking: '接続を確認中...',
-        channelsVersionUnsupported:
-            'このバージョンではチャンネル設定は利用できません。ターミナルタブから手動で接続するか、OpenClawをアップグレードしてください。',
-        channelsVersionUnsupportedDocs: 'セットアップガイドを見る',
         featureVersionUnsupported:
             '{{feature}} は {{version}} でサポートされていません',
         featureVersionUnsupportedDescription:
@@ -1846,44 +1782,6 @@ const ja: Translations = {
         featureVersionUnsupportedButton: 'バージョンへ移動',
         featureVersionUnsupportedSupported: 'サポートされているバージョン:',
         featureVersionUnsupportedNewer: 'より新しいバージョン',
-        channelsTelegram: 'Telegram',
-        channelsDiscord: 'Discord',
-        channelsSlack: 'Slack',
-        channelsSignal: 'Signal',
-        channelsEnabled: '有効',
-        channelsAccount: 'アカウント電話番号',
-        channelsAccountPlaceholder: '+15551234567',
-        channelsBotToken: 'Botトークン',
-        channelsBotTokenPlaceholder: 'Botトークンを入力',
-        channelsAppToken: 'アプリトークン',
-        channelsAppTokenPlaceholder: 'アプリトークンを入力',
-        channelsToken: 'Botトークン',
-        channelsTokenPlaceholder: 'Botトークンを入力',
-        channelsSigningSecret: '署名シークレット',
-        channelsSigningSecretPlaceholder: '署名シークレットを入力',
-        channelsDmPolicy: 'DMポリシー',
-        channelsDmPolicyOpen: 'オープン',
-        channelsDmPolicyPairing: 'ペアリング',
-        channelsDmPolicyAllowlist: '許可リスト',
-        channelsDmPolicyDisabled: '無効',
-        channelsAllowFrom: '許可元',
-        channelsAllowFromPlaceholder: '許可するID、カンマ区切り',
-        channelsSave: '保存',
-        channelsSaved: 'チャンネルを更新しました。',
-        channelsSaveFailed: 'チャンネルの更新に失敗しました！',
-        channelsLoading: 'チャンネルを読み込み中...',
-        channelsLoadFailed: 'チャンネルの読み込みに失敗しました！',
-        channelsLoadFailedDescription:
-            'チャンネル設定を取得できませんでした。再試行してください。',
-        channelsNoChanges: '保存する変更はありません。',
-        bindingsDescription:
-            'このエージェントにメッセージングチャンネルを割り当て。各チャンネルは一度に1つのエージェントにのみルーティング可能。',
-        bindingsNoChannels: '有効なチャンネルがありません。',
-        bindingsNoChannelsDescription:
-            'まずインスタンス設定でチャンネルを有効にしてから、ここでエージェントに割り当ててください。',
-        bindingsSaving: '保存中...',
-        bindingsSaved: 'バインディングを更新しました。',
-        bindingsSaveFailed: 'バインディングの更新に失敗しました！',
         tabSkills: 'スキル',
         skillsDescription:
             'このインスタンスのすべてのエージェントで利用可能な共有スキルを管理。',
@@ -2198,7 +2096,6 @@ const ja: Translations = {
         featureMultipleInstances: '複数インスタンス',
         featureMultipleAgents: 'インスタンスごとに複数エージェント',
         featureSkillsMarketplace: 'スキルマーケットプレイス',
-        featureChannelSupport: 'チャネルサポート',
         featureAgentConfig: 'エージェント設定',
         featureDataOwnership: '完全なデータ所有権',
         featureDataExport: 'データエクスポート',
@@ -2250,10 +2147,6 @@ const ja: Translations = {
         singleInstance: '単一',
         fiveThousandSkills: '5,000以上のスキル（ClawHub）',
         noMarketplace: 'マーケットプレイスなし',
-        allChannels: 'WhatsApp、Telegram、Discord、Slack、Signal',
-        telegramDiscord: 'Telegram、Discord',
-        discordGithubSlack: 'Discord、GitHub、Slack',
-        telegramGmailWhatsapp: 'Telegram、Gmail、WhatsApp',
         appOnly: 'アプリのみ',
         fullConfig: '完全な設定',
         limitedConfig: '限定的',

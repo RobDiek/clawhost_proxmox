@@ -490,27 +490,8 @@ const it: Translations = {
         invalidToken: 'Token non valido!',
         notFound: 'Non trovato!',
         healthOk: 'API in esecuzione.',
-        channelsFetched: 'Canali recuperati con successo.',
-        channelsUpdated: 'Canali aggiornati con successo.',
-        channelsUpdateFailed: 'Impossibile aggiornare i canali!',
-        channelsFetchFailed: 'Impossibile recuperare i canali!',
-        channelMissingRequired:
-            'Campi obbligatori mancanti per il canale abilitato!',
-        whatsappPairStarted: 'Associazione WhatsApp avviata.',
-        whatsappPairFailed: 'Associazione WhatsApp fallita!',
-        whatsappAlreadyPaired: 'WhatsApp è già associato!',
-        whatsappVersionUnsupported:
-            'Questa versione non supporta la configurazione dei canali dalla dashboard. Usa la scheda Terminale per configurare manualmente o aggiorna OpenClaw.',
         featureVersionUnsupported:
             'Questa funzionalità non è supportata nella versione {{version}}. Aggiorna OpenClaw o usa il Terminale per gestire manualmente.',
-        bindingsFetched: 'Binding recuperati con successo.',
-        bindingsFetchFailed: 'Impossibile recuperare i binding!',
-        bindingsUpdated: 'Binding aggiornati con successo.',
-        bindingsUpdateFailed: 'Impossibile aggiornare i binding!',
-        bindingsInvalidFormat: 'Formato binding non valido!',
-        bindingsInvalidChannel: 'Canale non supportato nel binding!',
-        bindingsDuplicateChannel:
-            'Un canale può essere associato a un solo agente!',
         skillsFetched: 'Skill recuperate con successo.',
         skillsUpdated: 'Skill aggiornate con successo.',
         skillsUpdateFailed: 'Impossibile aggiornare le skill!',
@@ -618,16 +599,6 @@ const it: Translations = {
                     'Monitora i log del tuo server in tempo reale dalla dashboard ClawHost. Diagnostica problemi, segui i deployment e fai debug delle applicazioni senza lasciare il browser.',
                 cta: 'Vedi Log'
             },
-            channels: {
-                subject:
-                    'Lo sapevi? Connetti gli agenti a Discord, Slack e altro',
-                preview: 'Collega i tuoi agenti AI ai canali di comunicazione',
-                tag: 'Canali',
-                heading: 'I tuoi agenti, ovunque',
-                description:
-                    'Connetti i tuoi agenti AI a Discord, Slack, WhatsApp e altro. Configura i canali e collegali agli agenti — tutto dalla dashboard ClawHost.',
-                cta: 'Configura Canali'
-            },
             fileExplorer: {
                 subject: 'Lo sapevi? Modifica i file del server dal browser',
                 preview: 'Sfoglia, leggi e modifica i file senza SSH',
@@ -673,15 +644,6 @@ const it: Translations = {
                 description:
                     "Sfoglia oltre 5.000 skill pronte all'uso su ClawHub e installale con un singolo clic. Ricerca web, esecuzione codice, generazione immagini e molto altro.",
                 cta: 'Sfoglia ClawHub'
-            },
-            bindings: {
-                subject: 'Lo sapevi? Associa gli agenti a canali specifici',
-                preview: 'Controlla quale agente risponde su quale canale',
-                tag: 'Binding',
-                heading: 'Un agente per canale',
-                description:
-                    'Associa agenti specifici a canali specifici. Il tuo agente di supporto su Discord, il tuo assistente su WhatsApp — decidi tu chi risponde dove.',
-                cta: 'Configura Associazioni'
             },
             envVars: {
                 subject: "Lo sapevi? Gestisci le variabili d'ambiente",
@@ -1304,7 +1266,7 @@ const it: Translations = {
             'Accedi al pannello nativo di OpenClaw direttamente da ClawHost. Accesso completo in modifica a tutto ciò che OpenClaw offre.',
         clawHostControl: 'Controllo ClawHost',
         clawHostControlDescription:
-            'Gestisci file, aggiornamenti, canali, variabili, skill e altre opzioni di configurazione direttamente dalla piattaforma.',
+            'Gestisci file, aggiornamenti, variabili, skill e altre opzioni di configurazione direttamente dalla piattaforma.',
         skillsMarketplace: 'Oltre 5.000 Skill',
         skillsMarketplaceDescription:
             "Sfoglia e installa tra oltre 5.000 skill pronte all'uso con un singolo clic. Estendi il tuo OpenClaw istantaneamente.",
@@ -1408,7 +1370,7 @@ const it: Translations = {
             "A differenza degli strumenti AI hosted, ClawHost ti dà un vero server con OpenClaw installato. Possiedi l'infrastruttura, controlli tutto e non sei limitato da una piattaforma o modello condiviso.",
         faq4Question: 'Ho bisogno di conoscenze tecniche?',
         faq4Answer:
-            "No. Gestiamo tutta l'infrastruttura, la configurazione e la manutenzione. Puoi configurare e gestire OpenClaw tramite la sua interfaccia, connetterti ai canali e personalizzare l'utilizzo — senza toccare server o infrastruttura.",
+            "No. Gestiamo tutta l'infrastruttura, la configurazione e la manutenzione. Puoi configurare e gestire OpenClaw tramite la sua interfaccia e personalizzare l'utilizzo — senza toccare server o infrastruttura.",
         faq5Question: 'Quali posizioni sono disponibili?',
         faq5Answer:
             'Offriamo più posizioni server in tutto il mondo, inclusi Stati Uniti, Europa e altro. Puoi distribuire OpenClaw su più server in diverse regioni se necessario.',
@@ -1430,7 +1392,8 @@ const it: Translations = {
         comparisonOwnershipUs: 'Possiedi completamente il tuo server',
         comparisonOwnershipOthers: 'Non possiedi nulla',
         comparisonSubdomainUs: 'Accesso tramite sottodominio',
-        comparisonSubdomainOthers: 'Accesso solo con canali social',
+        comparisonSubdomainOthers:
+            'Accesso solo tramite piattaforme di terze parti',
         comparisonInfraUs: 'Infrastruttura on-demand',
         comparisonInfraOthers: 'Server limitati',
         comparisonDataUs: 'Possiedi i tuoi dati',
@@ -1448,7 +1411,7 @@ const it: Translations = {
         comparisonSocialsUs: 'Presenza sui social media',
         comparisonSocialsOthers: 'Nessun social media',
         comparisonChatUs: 'Chatta direttamente con il tuo Claw',
-        comparisonChatOthers: 'Chat solo tramite canali',
+        comparisonChatOthers: 'Chat solo tramite piattaforme di terze parti',
         comparisonVersionUs: 'Cambio versione con un clic',
         comparisonVersionOthers: 'Solo aggiornamenti manuali',
         comparisonTerminalUs: 'Terminale web integrato',
@@ -1609,11 +1572,9 @@ const it: Translations = {
         release7Feature4:
             'Visualizzazione e utilizzo allegati per gli agenti, invia immagini e documenti in chat',
         release6Date: '16 febbraio 2026',
-        release6Title: 'Canali, skill e chat agenti',
+        release6Title: 'Skill e chat agenti',
         release6Description:
-            'Controllo completo sui canali, le skill e gli agenti OpenClaw. Gestisci e chatta con tutto direttamente dalla dashboard.',
-        release6Feature1:
-            'Gestisci i canali direttamente, aggiungi, rimuovi e configura i canali senza toccare il server',
+            'Controllo completo sulle skill e gli agenti OpenClaw. Gestisci e chatta con tutto direttamente dalla dashboard.',
         release6Feature2:
             'Gestisci le skill direttamente, installa, aggiorna e organizza le skill degli agenti dalla dashboard',
         release6Feature3:
@@ -1883,72 +1844,12 @@ const it: Translations = {
         chatNoPreview: 'Nessuna anteprima disponibile.',
         chatDownloadFile: 'Scarica file',
         chatCopyMessage: 'Copia messaggio',
-        tabChannels: 'Canali',
-        channelsDescription:
-            'Configura i canali di messaggistica per questa istanza. I messaggi vengono indirizzati agli agenti tramite associazioni.',
-        channelsWhatsApp: 'WhatsApp',
-        channelsWhatsAppPairDevice: 'Associa Dispositivo',
-        channelsWhatsAppPairing: 'In attesa del codice QR...',
-        channelsWhatsAppScanQr:
-            'Scansiona questo codice QR con WhatsApp per collegare il tuo dispositivo.',
-        channelsWhatsAppScanInstructions:
-            'Apri WhatsApp > Impostazioni > Dispositivi Collegati > Collega un Dispositivo',
-        channelsWhatsAppQrRefreshed:
-            'Il codice QR precedente è scaduto. Scansiona quello nuovo qui sotto.',
-        channelsWhatsAppPaired: 'WhatsApp associato con successo.',
-        channelsWhatsAppPairFailed: 'Associazione fallita. Riprova!',
-        channelsWhatsAppAlreadyPaired: 'WhatsApp è già associato!',
-        channelsWhatsAppUnpair: 'Dissocia',
-        channelsWhatsAppConnected: 'Connesso',
-        channelsWhatsAppRepair: 'Riassocia',
-        channelsWhatsAppChecking: 'Verifica connessione...',
-        channelsVersionUnsupported:
-            'La configurazione dei canali non è disponibile in questa versione. Puoi collegarti manualmente usando la scheda Terminale o aggiornare OpenClaw.',
-        channelsVersionUnsupportedDocs: 'Vedi guida alla configurazione',
         featureVersionUnsupported: '{{feature}} non supportato su {{version}}',
         featureVersionUnsupportedDescription:
             'Non supportiamo la gestione di {{feature}} con questa versione tramite la nostra interfaccia. Puoi comunque gestirlo tramite SSH, Terminale o il pannello di controllo OpenClaw.',
         featureVersionUnsupportedButton: 'Vai alle Versioni',
         featureVersionUnsupportedSupported: 'Versioni supportate:',
         featureVersionUnsupportedNewer: 'versioni successive',
-        channelsTelegram: 'Telegram',
-        channelsDiscord: 'Discord',
-        channelsSlack: 'Slack',
-        channelsSignal: 'Signal',
-        channelsEnabled: 'Abilitato',
-        channelsAccount: 'Numero di Telefono Account',
-        channelsAccountPlaceholder: '+15551234567',
-        channelsBotToken: 'Token Bot',
-        channelsBotTokenPlaceholder: 'Inserisci token bot',
-        channelsAppToken: 'Token App',
-        channelsAppTokenPlaceholder: 'Inserisci token app',
-        channelsToken: 'Token Bot',
-        channelsTokenPlaceholder: 'Inserisci token bot',
-        channelsSigningSecret: 'Segreto di Firma',
-        channelsSigningSecretPlaceholder: 'Inserisci segreto di firma',
-        channelsDmPolicy: 'Politica DM',
-        channelsDmPolicyOpen: 'Aperto',
-        channelsDmPolicyPairing: 'Associazione',
-        channelsDmPolicyAllowlist: 'Lista consentiti',
-        channelsDmPolicyDisabled: 'Disabilitato',
-        channelsAllowFrom: 'Consenti Da',
-        channelsAllowFromPlaceholder: 'ID consentiti, separati da virgola',
-        channelsSave: 'Salva',
-        channelsSaved: 'Canali aggiornati con successo.',
-        channelsSaveFailed: 'Impossibile aggiornare i canali!',
-        channelsLoading: 'Caricamento canali...',
-        channelsLoadFailed: 'Impossibile caricare i canali!',
-        channelsLoadFailedDescription:
-            'Impossibile recuperare la configurazione dei canali. Riprova.',
-        channelsNoChanges: 'Nessuna modifica da salvare.',
-        bindingsDescription:
-            'Assegna canali di messaggistica a questo agente. Ogni canale può essere indirizzato a un solo agente alla volta.',
-        bindingsNoChannels: 'Nessun canale abilitato.',
-        bindingsNoChannelsDescription:
-            "Abilita prima i canali nelle impostazioni dell'istanza, poi assegnali agli agenti qui.",
-        bindingsSaving: 'Salvataggio...',
-        bindingsSaved: 'Associazioni aggiornate con successo.',
-        bindingsSaveFailed: 'Impossibile aggiornare le associazioni!',
         tabSkills: 'Skill',
         skillsDescription:
             'Gestisci le skill condivise disponibili per tutti gli agenti su questa istanza.',
@@ -2273,7 +2174,6 @@ const it: Translations = {
         featureMultipleInstances: 'Istanze multiple',
         featureMultipleAgents: 'Agenti multipli per istanza',
         featureSkillsMarketplace: 'Marketplace skill',
-        featureChannelSupport: 'Supporto canali',
         featureAgentConfig: 'Configurazione agente',
         featureDataOwnership: 'Proprietà completa dei dati',
         featureDataExport: 'Esportazione dati',
@@ -2325,10 +2225,6 @@ const it: Translations = {
         singleInstance: 'Singola',
         fiveThousandSkills: 'Oltre 5.000 skill (ClawHub)',
         noMarketplace: 'Nessun marketplace',
-        allChannels: 'WhatsApp, Telegram, Discord, Slack, Signal',
-        telegramDiscord: 'Telegram, Discord',
-        discordGithubSlack: 'Discord, GitHub, Slack',
-        telegramGmailWhatsapp: 'Telegram, Gmail, WhatsApp',
         appOnly: 'Solo app',
         fullConfig: 'Configurazione completa',
         limitedConfig: 'Limitata',

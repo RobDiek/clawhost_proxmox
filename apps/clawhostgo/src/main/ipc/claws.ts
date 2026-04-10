@@ -106,13 +106,6 @@ const DEFAULT_OPENCLAW_CONFIG = (subdomain: string, gatewayToken?: string) => ({
         },
         trustedProxies: ['127.0.0.1', '::1']
     },
-    channels: {
-        whatsapp: { dmPolicy: 'open', allowFrom: ['*'] },
-        telegram: { dmPolicy: 'open', allowFrom: ['*'] },
-        discord: {},
-        slack: {},
-        signal: { dmPolicy: 'open', allowFrom: ['*'] }
-    },
     commands: {
         restart: true,
         bash: true

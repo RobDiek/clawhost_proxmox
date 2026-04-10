@@ -465,25 +465,8 @@ const tr: Translations = {
         invalidToken: 'Geçersiz token!',
         notFound: 'Bulunamadı!',
         healthOk: 'API çalışıyor.',
-        channelsFetched: 'Kanallar başarıyla getirildi.',
-        channelsUpdated: 'Kanallar başarıyla güncellendi.',
-        channelsUpdateFailed: 'Kanallar güncellenemedi!',
-        channelsFetchFailed: 'Kanallar getirilemedi!',
-        channelMissingRequired: 'Etkin kanal için gerekli alanlar eksik!',
-        whatsappPairStarted: 'WhatsApp eşleştirme başlatıldı.',
-        whatsappPairFailed: 'WhatsApp eşleştirme başarısız!',
-        whatsappAlreadyPaired: 'WhatsApp zaten eşleştirilmiş!',
-        whatsappVersionUnsupported:
-            "Bu sürüm panelden kanal yapılandırmasını desteklemiyor. Manuel olarak yapılandırmak için Terminal sekmesini kullanın veya OpenClaw'ı güncelleyin.",
         featureVersionUnsupported:
             "Bu özellik {{version}} sürümünde desteklenmiyor. Lütfen OpenClaw'ı güncelleyin veya manuel yönetim için Terminali kullanın.",
-        bindingsFetched: 'Bağlamalar başarıyla getirildi.',
-        bindingsFetchFailed: 'Bağlamalar getirilemedi!',
-        bindingsUpdated: 'Bağlamalar başarıyla güncellendi.',
-        bindingsUpdateFailed: 'Bağlamalar güncellenemedi!',
-        bindingsInvalidFormat: 'Geçersiz bağlama biçimi!',
-        bindingsInvalidChannel: 'Bağlamada desteklenmeyen kanal!',
-        bindingsDuplicateChannel: 'Bir kanal yalnızca bir ajana bağlanabilir!',
         skillsFetched: 'Yetenekler başarıyla getirildi.',
         skillsUpdated: 'Yetenekler başarıyla güncellendi.',
         skillsUpdateFailed: 'Yetenekler güncellenemedi!',
@@ -587,17 +570,6 @@ const tr: Translations = {
                     'ClawHost panelinden sunucu günlüklerinizi gerçek zamanlı izleyin. Sorunları teşhis edin, dağıtımları takip edin ve uygulamalarınızı tarayıcıdan ayrılmadan hata ayıklayın.',
                 cta: 'Günlükleri Görüntüle'
             },
-            channels: {
-                subject:
-                    'Biliyor muydunuz? Ajanları Discord, Slack ve daha fazlasına bağlayın',
-                preview:
-                    'Yapay zeka ajanlarınızı iletişim kanallarına bağlayın',
-                tag: 'Kanallar',
-                heading: 'Ajanlarınız, her yerde',
-                description:
-                    'Yapay zeka ajanlarınızı Discord, Slack, WhatsApp ve daha fazlasına bağlayın. Kanalları yapılandırın ve ajanlara bağlayın — hepsi ClawHost panelinden.',
-                cta: 'Kanalları Ayarla'
-            },
             fileExplorer: {
                 subject:
                     'Biliyor muydunuz? Sunucu dosyalarını tarayıcıdan düzenleyin',
@@ -647,17 +619,6 @@ const tr: Translations = {
                 description:
                     "ClawHub'da 5.000'den fazla hazır yeteneği göz atın ve tek tıkla yükleyin. Web araması, kod çalıştırma, görsel oluşturma ve çok daha fazlası.",
                 cta: "ClawHub'ı Göz Atın"
-            },
-            bindings: {
-                subject:
-                    'Biliyor muydunuz? Ajanları belirli kanallara bağlayın',
-                preview:
-                    'Hangi ajanın hangi kanalda yanıt vereceğini kontrol edin',
-                tag: 'Bağlamalar',
-                heading: 'Kanal başına bir ajan',
-                description:
-                    "Belirli ajanları belirli kanallara bağlayın. Destek ajanınız Discord'da, asistanınız WhatsApp'ta — kimin nerede yanıt vereceğine siz karar verin.",
-                cta: 'Bağlamaları Yapılandır'
             },
             envVars: {
                 subject: 'Biliyor muydunuz? Ortam değişkenlerini yönetin',
@@ -1273,7 +1234,7 @@ const tr: Translations = {
             "Yerel OpenClaw paneline doğrudan ClawHost'tan erişin. OpenClaw'un sunduğu her şeye tam düzenleme erişimi.",
         clawHostControl: 'ClawHost Kontrolü',
         clawHostControlDescription:
-            'Dosyaları, güncellemeleri, kanalları, değişkenleri, yetenekleri ve daha fazla yapılandırma seçeneğini doğrudan platformdan yönetin.',
+            'Dosyaları, güncellemeleri, değişkenleri, yetenekleri ve daha fazla yapılandırma seçeneğini doğrudan platformdan yönetin.',
         skillsMarketplace: '5.000+ Yetenek',
         skillsMarketplaceDescription:
             "5.000'den fazla hazır yeteneği tek tıkla göz atın ve yükleyin. OpenClaw'unuzu anında genişletin.",
@@ -1377,7 +1338,7 @@ const tr: Translations = {
             'Barındırılan yapay zeka araçlarından farklı olarak, ClawHost size OpenClaw yüklü gerçek bir sunucu verir. Altyapının sahibi sizsiniz, her şeyi kontrol edersiniz ve paylaşımlı bir platform veya model tarafından sınırlanmazsınız.',
         faq4Question: 'Teknik bilgiye ihtiyacım var mı?',
         faq4Answer:
-            "Hayır. Tüm altyapı, kurulum ve bakımı biz yönetiyoruz. OpenClaw'u arayüzü üzerinden yapılandırabilir ve yönetebilir, kanallara bağlanabilir ve kullanımı özelleştirebilirsiniz — sunuculara veya altyapıya dokunmadan.",
+            "Hayır. Tüm altyapı, kurulum ve bakımı biz yönetiyoruz. OpenClaw'u arayüzü üzerinden yapılandırabilir ve yönetebilir ve kullanımı özelleştirebilirsiniz — sunuculara veya altyapıya dokunmadan.",
         faq5Question: 'Hangi konumlar mevcut?',
         faq5Answer:
             "ABD, Avrupa ve daha fazlası dahil olmak üzere dünya genelinde birden fazla sunucu konumu sunuyoruz. Gerekirse OpenClaw'u farklı bölgelerdeki birden fazla sunucuda dağıtabilirsiniz.",
@@ -1399,7 +1360,7 @@ const tr: Translations = {
         comparisonOwnershipUs: 'Sunucunuzun tam sahibisiniz',
         comparisonOwnershipOthers: 'Hiçbir şeyin sahibi değilsiniz',
         comparisonSubdomainUs: 'Alt alan adı ile erişim',
-        comparisonSubdomainOthers: 'Yalnızca sosyal kanallarla erişim',
+        comparisonSubdomainOthers: 'Yalnızca üçüncü taraf platformlarla erişim',
         comparisonInfraUs: 'İsteğe bağlı altyapı',
         comparisonInfraOthers: 'Sınırlı sunucular',
         comparisonDataUs: 'Verilerinizin sahibisiniz',
@@ -1417,7 +1378,8 @@ const tr: Translations = {
         comparisonSocialsUs: 'Sosyal medya varlığı',
         comparisonSocialsOthers: 'Sosyal medya yok',
         comparisonChatUs: "Claw'ınızla doğrudan sohbet",
-        comparisonChatOthers: 'Yalnızca kanallar üzerinden sohbet',
+        comparisonChatOthers:
+            'Yalnızca üçüncü taraf platformlar üzerinden sohbet',
         comparisonVersionUs: 'Tek tıkla sürüm değiştirme',
         comparisonVersionOthers: 'Yalnızca manuel güncellemeler',
         comparisonTerminalUs: 'Yerleşik web terminali',
@@ -1577,11 +1539,9 @@ const tr: Translations = {
         release7Feature4:
             'Ajanlar için ek görünümü ve kullanımı, sohbette resim ve belge gönderin',
         release6Date: '16 Şubat 2026',
-        release6Title: 'Kanallar, Yetenekler ve Ajan Sohbeti',
+        release6Title: 'Yetenekler ve Ajan Sohbeti',
         release6Description:
-            'OpenClaw kanallarınız, yetenekleriniz ve ajanlarınız üzerinde tam kontrol. Her şeyi doğrudan panelden yönetin ve sohbet edin.',
-        release6Feature1:
-            'Kanalları doğrudan yönetin, sunucuya dokunmadan kanal ekleyin, kaldırın ve yapılandırın',
+            'OpenClaw yetenekleriniz ve ajanlarınız üzerinde tam kontrol. Her şeyi doğrudan panelden yönetin ve sohbet edin.',
         release6Feature2:
             'Yetenekleri doğrudan yönetin, panelden ajan yeteneklerini yükleyin, güncelleyin ve düzenleyin',
         release6Feature3:
@@ -1837,29 +1797,6 @@ const tr: Translations = {
         chatNoPreview: 'Önizleme mevcut değil.',
         chatDownloadFile: 'Dosyayı indir',
         chatCopyMessage: 'Mesajı kopyala',
-        tabChannels: 'Kanallar',
-        channelsDescription:
-            'Bu örnek için mesajlaşma kanallarını yapılandırın. Mesajlar bağlamalar aracılığıyla ajanlara yönlendirilir.',
-        channelsWhatsApp: 'WhatsApp',
-        channelsWhatsAppPairDevice: 'Cihaz Eşleştir',
-        channelsWhatsAppPairing: 'QR kodu bekleniyor...',
-        channelsWhatsAppScanQr:
-            'Cihazınızı bağlamak için bu QR kodunu WhatsApp ile tarayın.',
-        channelsWhatsAppScanInstructions:
-            "WhatsApp'ı açın > Ayarlar > Bağlı Cihazlar > Cihaz Bağla",
-        channelsWhatsAppQrRefreshed:
-            'Önceki QR kodunun süresi doldu. Aşağıdaki yeni kodu tarayın.',
-        channelsWhatsAppPaired: 'WhatsApp başarıyla eşleştirildi.',
-        channelsWhatsAppPairFailed:
-            'Eşleştirme başarısız. Lütfen tekrar deneyin!',
-        channelsWhatsAppAlreadyPaired: 'WhatsApp zaten eşleştirilmiş!',
-        channelsWhatsAppUnpair: 'Eşleştirmeyi Kaldır',
-        channelsWhatsAppConnected: 'Bağlı',
-        channelsWhatsAppRepair: 'Yeniden Eşleştir',
-        channelsWhatsAppChecking: 'Bağlantı kontrol ediliyor...',
-        channelsVersionUnsupported:
-            "Bu sürümde kanal yapılandırması mevcut değil. Terminal sekmesini kullanarak manuel olarak bağlanabilir veya OpenClaw'ı güncelleyebilirsiniz.",
-        channelsVersionUnsupportedDocs: 'Kurulum kılavuzunu görüntüle',
         featureVersionUnsupported:
             '{{feature}} {{version}} üzerinde desteklenmiyor',
         featureVersionUnsupportedDescription:
@@ -1867,45 +1804,6 @@ const tr: Translations = {
         featureVersionUnsupportedButton: 'Sürümlere Git',
         featureVersionUnsupportedSupported: 'Desteklenen sürümler:',
         featureVersionUnsupportedNewer: 'daha yeni sürümler',
-        channelsTelegram: 'Telegram',
-        channelsDiscord: 'Discord',
-        channelsSlack: 'Slack',
-        channelsSignal: 'Signal',
-        channelsEnabled: 'Etkin',
-        channelsAccount: 'Hesap Telefon Numarası',
-        channelsAccountPlaceholder: '+15551234567',
-        channelsBotToken: 'Bot Token',
-        channelsBotTokenPlaceholder: 'Bot token girin',
-        channelsAppToken: 'App Token',
-        channelsAppTokenPlaceholder: 'App token girin',
-        channelsToken: 'Bot Token',
-        channelsTokenPlaceholder: 'Bot token girin',
-        channelsSigningSecret: 'İmzalama Anahtarı',
-        channelsSigningSecretPlaceholder: 'İmzalama anahtarını girin',
-        channelsDmPolicy: 'DM Politikası',
-        channelsDmPolicyOpen: 'Açık',
-        channelsDmPolicyPairing: 'Eşleştirme',
-        channelsDmPolicyAllowlist: 'İzin Listesi',
-        channelsDmPolicyDisabled: 'Devre Dışı',
-        channelsAllowFrom: 'Şuradan İzin Ver',
-        channelsAllowFromPlaceholder:
-            'İzin verilen kimlikler, virgülle ayrılmış',
-        channelsSave: 'Kaydet',
-        channelsSaved: 'Kanallar başarıyla güncellendi.',
-        channelsSaveFailed: 'Kanallar güncellenemedi!',
-        channelsLoading: 'Kanallar yükleniyor...',
-        channelsLoadFailed: 'Kanallar yüklenemedi!',
-        channelsLoadFailedDescription:
-            'Kanal yapılandırması alınamadı. Lütfen tekrar deneyin.',
-        channelsNoChanges: 'Kaydedilecek değişiklik yok.',
-        bindingsDescription:
-            'Bu ajana mesajlaşma kanalları atayın. Her kanal aynı anda yalnızca bir ajana yönlendirilebilir.',
-        bindingsNoChannels: 'Etkin kanal yok.',
-        bindingsNoChannelsDescription:
-            'Önce örnek ayarlarında kanalları etkinleştirin, ardından burada ajanlara atayın.',
-        bindingsSaving: 'Kaydediliyor...',
-        bindingsSaved: 'Bağlamalar başarıyla güncellendi.',
-        bindingsSaveFailed: 'Bağlamalar güncellenemedi!',
         tabSkills: 'Yetenekler',
         skillsDescription:
             'Bu örnekteki tüm ajanlar için kullanılabilir paylaşımlı yetenekleri yönetin.',
@@ -2228,7 +2126,6 @@ const tr: Translations = {
         featureMultipleInstances: 'Birden fazla örnek',
         featureMultipleAgents: 'Örnek başına birden fazla ajan',
         featureSkillsMarketplace: 'Yetenek pazaryeri',
-        featureChannelSupport: 'Kanal desteği',
         featureAgentConfig: 'Ajan yapılandırması',
         featureDataOwnership: 'Tam veri sahipliği',
         featureDataExport: 'Veri dışa aktarma',
@@ -2280,10 +2177,6 @@ const tr: Translations = {
         singleInstance: 'Tek',
         fiveThousandSkills: '5.000+ yetenek (ClawHub)',
         noMarketplace: 'Pazaryeri yok',
-        allChannels: 'WhatsApp, Telegram, Discord, Slack, Signal',
-        telegramDiscord: 'Telegram, Discord',
-        discordGithubSlack: 'Discord, GitHub, Slack',
-        telegramGmailWhatsapp: 'Telegram, Gmail, WhatsApp',
         appOnly: 'Yalnızca uygulama',
         fullConfig: 'Tam yapılandırma',
         limitedConfig: 'Sınırlı',

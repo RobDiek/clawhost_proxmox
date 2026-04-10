@@ -478,27 +478,8 @@ const nl: Translations = {
         invalidToken: 'Ongeldig token!',
         notFound: 'Niet gevonden!',
         healthOk: 'API is actief.',
-        channelsFetched: 'Kanalen succesvol opgehaald.',
-        channelsUpdated: 'Kanalen succesvol bijgewerkt.',
-        channelsUpdateFailed: 'Kanalen bijwerken mislukt!',
-        channelsFetchFailed: 'Kanalen ophalen mislukt!',
-        channelMissingRequired:
-            'Verplichte velden ontbreken voor ingeschakeld kanaal!',
-        whatsappPairStarted: 'WhatsApp-koppeling gestart.',
-        whatsappPairFailed: 'WhatsApp-koppeling mislukt!',
-        whatsappAlreadyPaired: 'WhatsApp is al gekoppeld!',
-        whatsappVersionUnsupported:
-            'Deze versie ondersteunt geen kanaalconfiguratie vanuit het dashboard. Gebruik het Terminal-tabblad om handmatig te configureren of werk OpenClaw bij.',
         featureVersionUnsupported:
             'Deze functie wordt niet ondersteund in versie {{version}}. Werk OpenClaw bij of gebruik de Terminal om dit handmatig te beheren.',
-        bindingsFetched: 'Bindingen succesvol opgehaald.',
-        bindingsFetchFailed: 'Bindingen ophalen mislukt!',
-        bindingsUpdated: 'Bindingen succesvol bijgewerkt.',
-        bindingsUpdateFailed: 'Bindingen bijwerken mislukt!',
-        bindingsInvalidFormat: 'Ongeldig bindingsformaat!',
-        bindingsInvalidChannel: 'Niet-ondersteund kanaal in binding!',
-        bindingsDuplicateChannel:
-            'Een kanaal kan slechts aan één agent worden gekoppeld!',
         skillsFetched: 'Skills succesvol opgehaald.',
         skillsUpdated: 'Skills succesvol bijgewerkt.',
         skillsUpdateFailed: 'Skills bijwerken mislukt!',
@@ -599,16 +580,6 @@ const nl: Translations = {
                     'Monitor je serverlogs in realtime vanuit het ClawHost-dashboard. Diagnose problemen, volg deployments en debug je applicaties zonder de browser te verlaten.',
                 cta: 'Logs bekijken'
             },
-            channels: {
-                subject:
-                    'Wist je dat? Verbind agents met Discord, Slack en meer',
-                preview: 'Koppel je AI-agents aan communicatiekanalen',
-                tag: 'Kanalen',
-                heading: 'Je agents, overal',
-                description:
-                    'Verbind je AI-agents met Discord, Slack, WhatsApp en meer. Configureer kanalen en koppel ze aan agents \u2014 alles vanuit het ClawHost-dashboard.',
-                cta: 'Kanalen instellen'
-            },
             fileExplorer: {
                 subject:
                     'Wist je dat? Bewerk serverbestanden vanuit je browser',
@@ -656,15 +627,6 @@ const nl: Translations = {
                 description:
                     'Blader door meer dan 5.000 kant-en-klare skills op ClawHub en installeer ze met \u00e9\u00e9n klik. Zoeken op het web, code-uitvoering, afbeeldingen genereren en nog veel meer.',
                 cta: 'ClawHub verkennen'
-            },
-            bindings: {
-                subject: 'Wist je dat? Koppel agents aan specifieke kanalen',
-                preview: 'Bepaal welke agent op welk kanaal reageert',
-                tag: 'Koppelingen',
-                heading: '\u00c9\u00e9n agent per kanaal',
-                description:
-                    'Koppel specifieke agents aan specifieke kanalen. Je supportagent op Discord, je assistent op WhatsApp \u2014 jij bepaalt wie waar reageert.',
-                cta: 'Koppelingen configureren'
             },
             envVars: {
                 subject: 'Wist je dat? Beheer omgevingsvariabelen',
@@ -1287,7 +1249,7 @@ const nl: Translations = {
             'Krijg direct toegang tot het native OpenClaw-paneel vanuit ClawHost. Volledige bewerkingstoegang tot alles wat OpenClaw biedt.',
         clawHostControl: 'ClawHost Control',
         clawHostControlDescription:
-            'Beheer bestanden, updates, kanalen, variabelen, skills en meer configuratieopties direct vanuit het platform.',
+            'Beheer bestanden, updates, variabelen, skills en meer configuratieopties direct vanuit het platform.',
         skillsMarketplace: '5.000+ skills',
         skillsMarketplaceDescription:
             'Blader en installeer uit meer dan 5.000 kant-en-klare skills met \u00e9\u00e9n klik. Breid je OpenClaw direct uit.',
@@ -1391,7 +1353,7 @@ const nl: Translations = {
             'In tegenstelling tot gehoste AI-tools geeft ClawHost je een echte server met OpenClaw ge\u00efnstalleerd. Je bezit de infrastructuur, hebt overal controle over en wordt niet beperkt door een gedeeld platform of model.',
         faq4Question: 'Heb ik technische kennis nodig?',
         faq4Answer:
-            'Nee. Wij regelen alle infrastructuur, installatie en onderhoud. Je kunt OpenClaw configureren en beheren via de UI, verbinden met kanalen en gebruik aanpassen \u2014 zonder servers of infrastructuur aan te raken.',
+            'Nee. Wij regelen alle infrastructuur, installatie en onderhoud. Je kunt OpenClaw configureren en beheren via de UI en gebruik aanpassen \u2014 zonder servers of infrastructuur aan te raken.',
         faq5Question: 'Welke locaties zijn beschikbaar?',
         faq5Answer:
             "We bieden meerdere serverlocaties wereldwijd, waaronder de VS, Europa en meer. Je kunt OpenClaw indien nodig op meerdere servers in verschillende regio's implementeren.",
@@ -1414,7 +1376,7 @@ const nl: Translations = {
         comparisonOwnershipUs: 'Je bezit je server volledig',
         comparisonOwnershipOthers: 'Je bezit niets',
         comparisonSubdomainUs: 'Toegang via subdomein',
-        comparisonSubdomainOthers: 'Alleen toegang via sociale kanalen',
+        comparisonSubdomainOthers: 'Alleen toegang via externe platformen',
         comparisonInfraUs: 'On-demand infrastructuur',
         comparisonInfraOthers: 'Beperkte servers',
         comparisonDataUs: 'Bezit je eigen data',
@@ -1432,7 +1394,7 @@ const nl: Translations = {
         comparisonSocialsUs: 'Aanwezigheid op sociale media',
         comparisonSocialsOthers: 'Geen sociale media',
         comparisonChatUs: 'Chat direct met je Claw',
-        comparisonChatOthers: 'Alleen chatten via kanalen',
+        comparisonChatOthers: 'Alleen chatten via externe platformen',
         comparisonVersionUs: 'Versiewisseling met \u00e9\u00e9n klik',
         comparisonVersionOthers: 'Alleen handmatige updates',
         comparisonTerminalUs: 'Ingebouwde webterminal',
@@ -1590,11 +1552,9 @@ const nl: Translations = {
         release7Feature4:
             'Bijlagenweergave en -gebruik voor agents, stuur afbeeldingen en documenten in chat',
         release6Date: '16 februari 2026',
-        release6Title: 'Kanalen, skills & agent-chat',
+        release6Title: 'Skills & agent-chat',
         release6Description:
-            'Volledige controle over je OpenClaw-kanalen, skills en agents. Beheer en chat met alles direct vanuit het dashboard.',
-        release6Feature1:
-            'Beheer kanalen direct, voeg toe, verwijder en configureer kanalen zonder de server aan te raken',
+            'Volledige controle over je OpenClaw-skills en agents. Beheer en chat met alles direct vanuit het dashboard.',
         release6Feature2:
             'Beheer skills direct, installeer, update en organiseer agent-skills vanuit het dashboard',
         release6Feature3:
@@ -1858,28 +1818,6 @@ const nl: Translations = {
         chatNoPreview: 'Geen voorbeeld beschikbaar.',
         chatDownloadFile: 'Bestand downloaden',
         chatCopyMessage: 'Bericht kopi\u00ebren',
-        tabChannels: 'Kanalen',
-        channelsDescription:
-            'Configureer berichtenkanalen voor deze instantie. Berichten worden via koppelingen naar agents gerouteerd.',
-        channelsWhatsApp: 'WhatsApp',
-        channelsWhatsAppPairDevice: 'Apparaat koppelen',
-        channelsWhatsAppPairing: 'Wachten op QR-code...',
-        channelsWhatsAppScanQr:
-            'Scan deze QR-code met WhatsApp om je apparaat te koppelen.',
-        channelsWhatsAppScanInstructions:
-            'Open WhatsApp > Instellingen > Gekoppelde apparaten > Apparaat koppelen',
-        channelsWhatsAppQrRefreshed:
-            'De vorige QR-code is verlopen. Scan de nieuwe hieronder.',
-        channelsWhatsAppPaired: 'WhatsApp succesvol gekoppeld.',
-        channelsWhatsAppPairFailed: 'Koppelen mislukt. Probeer het opnieuw!',
-        channelsWhatsAppAlreadyPaired: 'WhatsApp is al gekoppeld!',
-        channelsWhatsAppUnpair: 'Ontkoppelen',
-        channelsWhatsAppConnected: 'Verbonden',
-        channelsWhatsAppRepair: 'Opnieuw koppelen',
-        channelsWhatsAppChecking: 'Verbinding controleren...',
-        channelsVersionUnsupported:
-            'Kanaalconfiguratie is niet beschikbaar in deze versie. Je kunt handmatig verbinden via het Terminal-tabblad of OpenClaw bijwerken.',
-        channelsVersionUnsupportedDocs: 'Installatiehandleiding bekijken',
         featureVersionUnsupported:
             '{{feature}} niet ondersteund op {{version}}',
         featureVersionUnsupportedDescription:
@@ -1887,45 +1825,6 @@ const nl: Translations = {
         featureVersionUnsupportedButton: 'Ga naar Versies',
         featureVersionUnsupportedSupported: 'Ondersteunde versies:',
         featureVersionUnsupportedNewer: 'nieuwere versies',
-        channelsTelegram: 'Telegram',
-        channelsDiscord: 'Discord',
-        channelsSlack: 'Slack',
-        channelsSignal: 'Signal',
-        channelsEnabled: 'Ingeschakeld',
-        channelsAccount: 'Telefoonnummer account',
-        channelsAccountPlaceholder: '+31612345678',
-        channelsBotToken: 'Bot-token',
-        channelsBotTokenPlaceholder: 'Voer bot-token in',
-        channelsAppToken: 'App-token',
-        channelsAppTokenPlaceholder: 'Voer app-token in',
-        channelsToken: 'Bot-token',
-        channelsTokenPlaceholder: 'Voer bot-token in',
-        channelsSigningSecret: 'Ondertekeningsgeheim',
-        channelsSigningSecretPlaceholder: 'Voer ondertekeningsgeheim in',
-        channelsDmPolicy: 'DM-beleid',
-        channelsDmPolicyOpen: 'Open',
-        channelsDmPolicyPairing: 'Koppeling',
-        channelsDmPolicyAllowlist: 'Toestaanlijst',
-        channelsDmPolicyDisabled: 'Uitgeschakeld',
-        channelsAllowFrom: 'Toestaan van',
-        channelsAllowFromPlaceholder:
-            "Toegestane ID's, gescheiden door komma's",
-        channelsSave: 'Opslaan',
-        channelsSaved: 'Kanalen succesvol bijgewerkt.',
-        channelsSaveFailed: 'Kanalen bijwerken mislukt!',
-        channelsLoading: 'Kanalen laden...',
-        channelsLoadFailed: 'Kanalen laden mislukt!',
-        channelsLoadFailedDescription:
-            'Kon kanaalconfiguratie niet ophalen. Probeer het opnieuw.',
-        channelsNoChanges: 'Geen wijzigingen om op te slaan.',
-        bindingsDescription:
-            'Wijs berichtenkanalen toe aan deze agent. Elk kanaal kan slechts aan \u00e9\u00e9n agent tegelijk worden gekoppeld.',
-        bindingsNoChannels: 'Geen kanalen ingeschakeld.',
-        bindingsNoChannelsDescription:
-            'Schakel eerst kanalen in bij de instantie-instellingen en wijs ze hier toe aan agents.',
-        bindingsSaving: 'Opslaan...',
-        bindingsSaved: 'Koppelingen succesvol bijgewerkt.',
-        bindingsSaveFailed: 'Koppelingen bijwerken mislukt!',
         tabSkills: 'Skills',
         skillsDescription:
             'Beheer gedeelde skills die beschikbaar zijn voor alle agents op deze instantie.',
@@ -2251,7 +2150,6 @@ const nl: Translations = {
         featureMultipleInstances: 'Meerdere instanties',
         featureMultipleAgents: 'Meerdere agents per instantie',
         featureSkillsMarketplace: 'Skillsmarktplaats',
-        featureChannelSupport: 'Kanaalondersteuning',
         featureAgentConfig: 'Agent-configuratie',
         featureDataOwnership: 'Volledig gegevenseigendom',
         featureDataExport: 'Gegevensexport',
@@ -2303,10 +2201,6 @@ const nl: Translations = {
         singleInstance: 'Enkelvoudig',
         fiveThousandSkills: '5.000+ skills (ClawHub)',
         noMarketplace: 'Geen marktplaats',
-        allChannels: 'WhatsApp, Telegram, Discord, Slack, Signal',
-        telegramDiscord: 'Telegram, Discord',
-        discordGithubSlack: 'Discord, GitHub, Slack',
-        telegramGmailWhatsapp: 'Telegram, Gmail, WhatsApp',
         appOnly: 'Alleen app',
         fullConfig: 'Volledige configuratie',
         limitedConfig: 'Beperkt',

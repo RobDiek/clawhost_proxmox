@@ -3,8 +3,6 @@ import type {
     BrowseClawHubData,
     Claw,
     ClawAgentsResponse,
-    ClawBindingsResponse,
-    ClawChannelsResponse,
     ClawCredentialsResponse,
     ClawEnvVarsResponse,
     ClawFilesResponse,
@@ -30,14 +28,10 @@ import type {
     RenameClawData,
     UpdateAgentConfigData,
     UpdateAgentSkillsData,
-    UpdateClawBindingsData,
-    UpdateClawChannelsData,
     UpdateClawEnvVarsData,
     UpdateClawFileData,
     UpdateClawSkillsData,
-    UpdateClawSubdomainData,
-    WhatsAppPairResponse,
-    WhatsAppPairStatusResponse
+    UpdateClawSubdomainData
 } from '@/ts/Interfaces'
 
 import { apiPaths as API_PATHS } from '@openclaw/shared'
@@ -110,22 +104,6 @@ const claws = {
         ),
     deleteClawAgent: (id: string, data: DeleteAgentData) =>
         client.post<void>(API_PATHS.CLAWS.AGENTS.DELETE(id), data),
-    getClawChannels: (id: string) =>
-        client.post<ClawChannelsResponse>(API_PATHS.CLAWS.CHANNELS.BASE(id)),
-    updateClawChannels: (id: string, data: UpdateClawChannelsData) =>
-        client.put<void>(API_PATHS.CLAWS.CHANNELS.BASE(id), data),
-    pairWhatsApp: (id: string, force?: boolean) =>
-        client.post<WhatsAppPairResponse>(
-            `${API_PATHS.CLAWS.CHANNELS.WHATSAPP_PAIR(id)}${force ? '?force=true' : ''}`
-        ),
-    pairWhatsAppStatus: (id: string) =>
-        client.post<WhatsAppPairStatusResponse>(
-            API_PATHS.CLAWS.CHANNELS.WHATSAPP_PAIR_STATUS(id)
-        ),
-    getClawBindings: (id: string) =>
-        client.post<ClawBindingsResponse>(API_PATHS.CLAWS.BINDINGS(id)),
-    updateClawBindings: (id: string, data: UpdateClawBindingsData) =>
-        client.put<void>(API_PATHS.CLAWS.BINDINGS(id), data),
     getClawSkills: (id: string) =>
         client.post<ClawSkillsResponse>(API_PATHS.CLAWS.SKILLS(id)),
     updateClawSkills: (id: string, data: UpdateClawSkillsData) =>

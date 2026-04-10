@@ -676,35 +676,6 @@ export interface PlanOrder {
     order: string[]
 }
 
-export interface ChannelConfig {
-    enabled: boolean
-    dmPolicy?: string
-    allowFrom?: string[]
-    botToken?: string
-    token?: string
-    appToken?: string
-    signingSecret?: string
-    account?: string
-}
-
-export interface ClawChannelsResponse {
-    channels: Record<string, ChannelConfig>
-}
-
-export interface UpdateClawChannelsBody {
-    channels: Record<string, ChannelConfig>
-}
-
-export interface WhatsAppPairResponse {
-    status: 'started' | 'already_paired'
-}
-
-export interface WhatsAppPairStatusResponse {
-    status: 'waiting' | 'qr_ready' | 'paired' | 'failed' | 'not_started'
-    qr?: string
-    log?: string
-}
-
 export interface SkillEntryConfig {
     enabled: boolean
     apiKey?: string
@@ -857,37 +828,8 @@ export interface RenameClawBody {
     name: string
 }
 
-export interface BindingMatch {
-    channel: string
-}
-
-export interface Binding {
-    agentId: string
-    match: BindingMatch
-}
-
-export interface ClawBindingsResponse {
-    bindings: Binding[]
-    channels: Record<string, ChannelConfig>
-    agents: Array<{ id: string; name: string }>
-}
-
-export interface UpdateClawBindingsBody {
-    bindings: Binding[]
-}
-
 export interface RootLayoutProps {
     children: React.ReactNode
-}
-
-export interface ClawBindingEntry {
-    agentId: string
-    match: { channel: string }
-}
-
-export interface ClawBindingAgent {
-    id: string
-    name: string
 }
 
 export interface GithubEmailEntry {

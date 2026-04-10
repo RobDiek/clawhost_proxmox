@@ -1,6 +1,5 @@
 import useUIStore from '@/lib/store/useUIStore'
 import usePreferencesStore from '@/lib/store/usePreferencesStore'
-import useChannelsStore from '@/lib/store/useChannelsStore'
 import useSkillsStore from '@/lib/store/useSkillsStore'
 import useVersionsStore from '@/lib/store/useVersionsStore'
 import useVariablesStore from '@/lib/store/useVariablesStore'
@@ -12,7 +11,6 @@ import usePlaygroundDetailTabStore from '@/lib/store/usePlaygroundDetailTabStore
 export {
     useUIStore,
     usePreferencesStore,
-    useChannelsStore,
     useSkillsStore,
     useVersionsStore,
     useVariablesStore,

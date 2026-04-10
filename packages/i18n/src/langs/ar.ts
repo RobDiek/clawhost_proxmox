@@ -461,25 +461,8 @@ const ar: Translations = {
         invalidToken: 'رمز مميز غير صالح !',
         notFound: 'غير موجود !',
         healthOk: 'API يعمل.',
-        channelsFetched: 'تم جلب القنوات بنجاح.',
-        channelsUpdated: 'تم تحديث القنوات بنجاح.',
-        channelsUpdateFailed: 'تعذر تحديث القنوات !',
-        channelsFetchFailed: 'تعذر جلب القنوات !',
-        channelMissingRequired: 'الحقول المطلوبة مفقودة للقناة المفعّلة !',
-        whatsappPairStarted: 'بدأ اقتران WhatsApp.',
-        whatsappPairFailed: 'فشل اقتران WhatsApp !',
-        whatsappAlreadyPaired: 'WhatsApp مقترن بالفعل !',
-        whatsappVersionUnsupported:
-            'هذا الإصدار لا يدعم تكوين القنوات من لوحة التحكم. استخدم علامة تبويب الطرفية للتكوين يدوياً أو قم بترقية OpenClaw.',
         featureVersionUnsupported:
             'هذه الميزة غير مدعومة في الإصدار {{version}}. يرجى تحديث OpenClaw أو استخدام الطرفية للإدارة يدويًا.',
-        bindingsFetched: 'تم جلب الربط بنجاح.',
-        bindingsFetchFailed: 'تعذر جلب الربط !',
-        bindingsUpdated: 'تم تحديث الربط بنجاح.',
-        bindingsUpdateFailed: 'تعذر تحديث الربط !',
-        bindingsInvalidFormat: 'تنسيق الربط غير صالح !',
-        bindingsInvalidChannel: 'قناة غير مدعومة في الربط !',
-        bindingsDuplicateChannel: 'يمكن ربط القناة بوكيل واحد فقط !',
         skillsFetched: 'تم جلب المهارات بنجاح.',
         skillsUpdated: 'تم تحديث المهارات بنجاح.',
         skillsUpdateFailed: 'تعذر تحديث المهارات !',
@@ -579,15 +562,6 @@ const ar: Translations = {
                     'راقب سجلات خادمك في الوقت الفعلي من لوحة تحكم ClawHost. شخّص المشاكل وتتبّع عمليات النشر وأصلح تطبيقاتك دون مغادرة المتصفح.',
                 cta: 'عرض السجلات'
             },
-            channels: {
-                subject: 'هل تعلم؟ اربط الوكلاء بـ Discord وSlack والمزيد',
-                preview: 'اربط وكلاء الذكاء الاصطناعي بقنوات الاتصال',
-                tag: 'القنوات',
-                heading: 'وكلاؤك في كل مكان',
-                description:
-                    'اربط وكلاء الذكاء الاصطناعي بـ Discord وSlack وWhatsApp والمزيد. قم بتهيئة القنوات وربطها بالوكلاء — كل ذلك من لوحة تحكم ClawHost.',
-                cta: 'إعداد القنوات'
-            },
             fileExplorer: {
                 subject: 'هل تعلم؟ حرّر ملفات الخادم من متصفحك',
                 preview: 'تصفّح واقرأ وحرّر الملفات بدون SSH',
@@ -632,15 +606,6 @@ const ar: Translations = {
                 description:
                     'تصفّح أكثر من 5,000 مهارة جاهزة على ClawHub وثبّتها بنقرة واحدة. بحث الويب وتنفيذ الأكواد وتوليد الصور والمزيد.',
                 cta: 'تصفّح ClawHub'
-            },
-            bindings: {
-                subject: 'هل تعلم؟ اربط الوكلاء بقنوات محددة',
-                preview: 'تحكم في أي وكيل يرد على أي قناة',
-                tag: 'الروابط',
-                heading: 'وكيل واحد لكل قناة',
-                description:
-                    'اربط وكلاء محددين بقنوات محددة. وكيل الدعم على Discord ومساعدك على WhatsApp — أنت تقرر من يرد أين.',
-                cta: 'تهيئة الربط'
             },
             envVars: {
                 subject: 'هل تعلم؟ إدارة متغيرات البيئة',
@@ -1233,7 +1198,7 @@ const ar: Translations = {
             'الوصول إلى لوحة OpenClaw الأصلية مباشرة من ClawHost. وصول كامل للتحرير لكل ما يقدمه OpenClaw.',
         clawHostControl: 'تحكم ClawHost',
         clawHostControlDescription:
-            'إدارة الملفات والتحديثات والقنوات والمتغيرات والمهارات والمزيد من خيارات التهيئة مباشرة من المنصة.',
+            'إدارة الملفات والتحديثات والمتغيرات والمهارات والمزيد من خيارات التهيئة مباشرة من المنصة.',
         skillsMarketplace: 'أكثر من 5,000 مهارة',
         skillsMarketplaceDescription:
             'تصفّح وثبّت من أكثر من 5,000 مهارة جاهزة بنقرة واحدة. وسّع OpenClaw فوراً.',
@@ -1336,7 +1301,7 @@ const ar: Translations = {
             'على عكس أدوات الذكاء الاصطناعي المستضافة، يمنحك ClawHost خادماً حقيقياً مع OpenClaw مثبت. أنت تملك البنية التحتية وتتحكم في كل شيء ولست مقيداً بمنصة أو نموذج مشترك.',
         faq4Question: 'هل أحتاج معرفة تقنية؟',
         faq4Answer:
-            'لا. نحن نتولى كل البنية التحتية والإعداد والصيانة. يمكنك تهيئة وإدارة OpenClaw عبر واجهته والاتصال بالقنوات وتخصيص الاستخدام — بدون لمس الخوادم أو البنية التحتية.',
+            'لا. نحن نتولى كل البنية التحتية والإعداد والصيانة. يمكنك تهيئة وإدارة OpenClaw عبر واجهته وتخصيص الاستخدام — بدون لمس الخوادم أو البنية التحتية.',
         faq5Question: 'ما المواقع المتاحة؟',
         faq5Answer:
             'نقدم عدة مواقع خوادم حول العالم، بما في ذلك الولايات المتحدة وأوروبا والمزيد. يمكنك نشر OpenClaw على عدة خوادم في مناطق مختلفة إذا لزم الأمر.',
@@ -1358,7 +1323,7 @@ const ar: Translations = {
         comparisonOwnershipUs: 'تملك خادمك بالكامل',
         comparisonOwnershipOthers: 'لا تملك شيئاً',
         comparisonSubdomainUs: 'الوصول عبر نطاق فرعي',
-        comparisonSubdomainOthers: 'الوصول فقط عبر القنوات الاجتماعية',
+        comparisonSubdomainOthers: 'الوصول فقط عبر منصات خارجية',
         comparisonInfraUs: 'بنية تحتية حسب الطلب',
         comparisonInfraOthers: 'خوادم محدودة',
         comparisonDataUs: 'امتلك بياناتك',
@@ -1376,7 +1341,7 @@ const ar: Translations = {
         comparisonSocialsUs: 'تواجد على وسائل التواصل الاجتماعي',
         comparisonSocialsOthers: 'لا تواجد على وسائل التواصل الاجتماعي',
         comparisonChatUs: 'تحدث مباشرة مع مخلبك',
-        comparisonChatOthers: 'محادثة فقط عبر القنوات',
+        comparisonChatOthers: 'محادثة فقط عبر منصات خارجية',
         comparisonVersionUs: 'تبديل الإصدار بنقرة واحدة',
         comparisonVersionOthers: 'تحديثات يدوية فقط',
         comparisonTerminalUs: 'طرفية ويب مدمجة',
@@ -1522,11 +1487,9 @@ const ar: Translations = {
         release7Feature4:
             'عرض واستخدام المرفقات للوكلاء، أرسل صوراً ومستندات في المحادثة',
         release6Date: '16 فبراير 2026',
-        release6Title: 'القنوات والمهارات ومحادثة الوكلاء',
+        release6Title: 'المهارات ومحادثة الوكلاء',
         release6Description:
-            'تحكم كامل في قنوات ومهارات ووكلاء OpenClaw. أدر وتحدث مع كل شيء مباشرة من لوحة التحكم.',
-        release6Feature1:
-            'إدارة القنوات مباشرة، إضافة وإزالة وتهيئة القنوات دون لمس الخادم',
+            'تحكم كامل في مهارات ووكلاء OpenClaw. أدر وتحدث مع كل شيء مباشرة من لوحة التحكم.',
         release6Feature2:
             'إدارة المهارات مباشرة، تثبيت وتحديث وتنظيم مهارات الوكلاء من لوحة التحكم',
         release6Feature3:
@@ -1770,71 +1733,12 @@ const ar: Translations = {
         chatNoPreview: 'لا توجد معاينة متاحة.',
         chatDownloadFile: 'تنزيل الملف',
         chatCopyMessage: 'نسخ الرسالة',
-        tabChannels: 'القنوات',
-        channelsDescription:
-            'تهيئة قنوات المراسلة لهذه النسخة. يتم توجيه الرسائل إلى الوكلاء عبر الربط.',
-        channelsWhatsApp: 'WhatsApp',
-        channelsWhatsAppPairDevice: 'ربط الجهاز',
-        channelsWhatsAppPairing: 'في انتظار رمز QR...',
-        channelsWhatsAppScanQr: 'امسح رمز QR هذا بـ WhatsApp لربط جهازك.',
-        channelsWhatsAppScanInstructions:
-            'افتح WhatsApp > الإعدادات > الأجهزة المرتبطة > ربط جهاز',
-        channelsWhatsAppQrRefreshed:
-            'انتهت صلاحية رمز QR السابق. امسح الرمز الجديد أدناه.',
-        channelsWhatsAppPaired: 'تم ربط WhatsApp بنجاح.',
-        channelsWhatsAppPairFailed: 'فشل الربط. يرجى المحاولة مرة أخرى !',
-        channelsWhatsAppAlreadyPaired: 'WhatsApp مرتبط بالفعل !',
-        channelsWhatsAppUnpair: 'إلغاء الربط',
-        channelsWhatsAppConnected: 'متصل',
-        channelsWhatsAppRepair: 'إعادة الربط',
-        channelsWhatsAppChecking: 'جارٍ فحص الاتصال...',
-        channelsVersionUnsupported:
-            'تكوين القنوات غير متاح في هذا الإصدار. يمكنك الاتصال يدوياً باستخدام علامة تبويب الطرفية أو ترقية OpenClaw.',
-        channelsVersionUnsupportedDocs: 'عرض دليل الإعداد',
         featureVersionUnsupported: '{{feature}} غير مدعوم على {{version}}',
         featureVersionUnsupportedDescription:
             'لا ندعم إدارة {{feature}} مع هذا الإصدار عبر واجهتنا. يمكنك إدارته عبر SSH أو الطرفية أو لوحة تحكم OpenClaw.',
         featureVersionUnsupportedButton: 'الذهاب إلى الإصدارات',
         featureVersionUnsupportedSupported: 'الإصدارات المدعومة:',
         featureVersionUnsupportedNewer: 'الإصدارات الأحدث',
-        channelsTelegram: 'Telegram',
-        channelsDiscord: 'Discord',
-        channelsSlack: 'Slack',
-        channelsSignal: 'Signal',
-        channelsEnabled: 'مفعّل',
-        channelsAccount: 'رقم هاتف الحساب',
-        channelsAccountPlaceholder: '+15551234567',
-        channelsBotToken: 'رمز البوت',
-        channelsBotTokenPlaceholder: 'أدخل رمز البوت',
-        channelsAppToken: 'رمز التطبيق',
-        channelsAppTokenPlaceholder: 'أدخل رمز التطبيق',
-        channelsToken: 'رمز البوت',
-        channelsTokenPlaceholder: 'أدخل رمز البوت',
-        channelsSigningSecret: 'سر التوقيع',
-        channelsSigningSecretPlaceholder: 'أدخل سر التوقيع',
-        channelsDmPolicy: 'سياسة الرسائل الخاصة',
-        channelsDmPolicyOpen: 'مفتوح',
-        channelsDmPolicyPairing: 'ربط',
-        channelsDmPolicyAllowlist: 'قائمة السماح',
-        channelsDmPolicyDisabled: 'معطّل',
-        channelsAllowFrom: 'السماح من',
-        channelsAllowFromPlaceholder: 'المعرّفات المسموح بها، مفصولة بفواصل',
-        channelsSave: 'حفظ',
-        channelsSaved: 'تم تحديث القنوات بنجاح.',
-        channelsSaveFailed: 'فشل في تحديث القنوات !',
-        channelsLoading: 'جارٍ تحميل القنوات...',
-        channelsLoadFailed: 'فشل في تحميل القنوات !',
-        channelsLoadFailedDescription:
-            'تعذر استرداد تهيئة القنوات. يرجى المحاولة مرة أخرى.',
-        channelsNoChanges: 'لا توجد تغييرات للحفظ.',
-        bindingsDescription:
-            'تعيين قنوات المراسلة لهذا الوكيل. كل قناة يمكن توجيهها لوكيل واحد فقط في كل مرة.',
-        bindingsNoChannels: 'لا توجد قنوات مفعّلة.',
-        bindingsNoChannelsDescription:
-            'فعّل القنوات في إعدادات النسخة أولاً، ثم عيّنها للوكلاء هنا.',
-        bindingsSaving: 'جارٍ الحفظ...',
-        bindingsSaved: 'تم تحديث الربط بنجاح.',
-        bindingsSaveFailed: 'فشل في تحديث الربط !',
         tabSkills: 'المهارات',
         skillsDescription:
             'إدارة المهارات المشتركة المتاحة لجميع الوكلاء على هذه النسخة.',
@@ -2141,7 +2045,6 @@ const ar: Translations = {
         featureMultipleInstances: 'نسخ متعددة',
         featureMultipleAgents: 'وكلاء متعددون لكل نسخة',
         featureSkillsMarketplace: 'سوق المهارات',
-        featureChannelSupport: 'دعم القنوات',
         featureAgentConfig: 'تهيئة الوكيل',
         featureDataOwnership: 'ملكية كاملة للبيانات',
         featureDataExport: 'تصدير البيانات',
@@ -2193,10 +2096,6 @@ const ar: Translations = {
         singleInstance: 'واحدة',
         fiveThousandSkills: 'أكثر من 5,000 مهارة (ClawHub)',
         noMarketplace: 'لا يوجد سوق',
-        allChannels: 'WhatsApp، Telegram، Discord، Slack، Signal',
-        telegramDiscord: 'Telegram، Discord',
-        discordGithubSlack: 'Discord، GitHub، Slack',
-        telegramGmailWhatsapp: 'Telegram، Gmail، WhatsApp',
         appOnly: 'التطبيق فقط',
         fullConfig: 'تهيئة كاملة',
         limitedConfig: 'محدودة',

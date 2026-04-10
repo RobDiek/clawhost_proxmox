@@ -473,27 +473,8 @@ const ru: Translations = {
         invalidToken: 'Недопустимый токен!',
         notFound: 'Не найдено!',
         healthOk: 'API работает.',
-        channelsFetched: 'Каналы успешно загружены.',
-        channelsUpdated: 'Каналы успешно обновлены.',
-        channelsUpdateFailed: 'Не удалось обновить каналы!',
-        channelsFetchFailed: 'Не удалось загрузить каналы!',
-        channelMissingRequired:
-            'Отсутствуют обязательные поля для включённого канала!',
-        whatsappPairStarted: 'Сопряжение WhatsApp начато.',
-        whatsappPairFailed: 'Сопряжение WhatsApp не удалось!',
-        whatsappAlreadyPaired: 'WhatsApp уже сопряжён!',
-        whatsappVersionUnsupported:
-            'Эта версия не поддерживает настройку каналов через панель управления. Используйте вкладку «Терминал» для ручной настройки или обновите OpenClaw.',
         featureVersionUnsupported:
             'Эта функция не поддерживается в версии {{version}}. Обновите OpenClaw или используйте Терминал для ручного управления.',
-        bindingsFetched: 'Привязки успешно загружены.',
-        bindingsFetchFailed: 'Не удалось загрузить привязки!',
-        bindingsUpdated: 'Привязки успешно обновлены.',
-        bindingsUpdateFailed: 'Не удалось обновить привязки!',
-        bindingsInvalidFormat: 'Недопустимый формат привязки!',
-        bindingsInvalidChannel: 'Неподдерживаемый канал в привязке!',
-        bindingsDuplicateChannel:
-            'Канал может быть привязан только к одному агенту!',
         skillsFetched: 'Навыки успешно загружены.',
         skillsUpdated: 'Навыки успешно обновлены.',
         skillsUpdateFailed: 'Не удалось обновить навыки!',
@@ -597,16 +578,6 @@ const ru: Translations = {
                     'Отслеживайте логи сервера в реальном времени из панели ClawHost. Диагностируйте проблемы, отслеживайте развёртывания и отлаживайте приложения, не покидая браузер.',
                 cta: 'Просмотреть логи'
             },
-            channels: {
-                subject:
-                    'Знаете ли вы? Подключите агентов к Discord, Slack и другим',
-                preview: 'Привяжите ваших ИИ-агентов к каналам связи',
-                tag: 'Каналы',
-                heading: 'Ваши агенты — везде',
-                description:
-                    'Подключите ваших ИИ-агентов к Discord, Slack, WhatsApp и другим платформам. Настраивайте каналы и привязывайте их к агентам — всё из панели ClawHost.',
-                cta: 'Настроить каналы'
-            },
             fileExplorer: {
                 subject: 'Знаете ли вы? Редактируйте файлы сервера из браузера',
                 preview: 'Просматривайте, читайте и редактируйте файлы без SSH',
@@ -652,16 +623,6 @@ const ru: Translations = {
                 description:
                     'Просмотрите более 5 000 готовых навыков на ClawHub и установите их одним кликом. Веб-поиск, выполнение кода, генерация изображений и многое другое.',
                 cta: 'Обзор ClawHub'
-            },
-            bindings: {
-                subject:
-                    'Знаете ли вы? Привяжите агентов к определённым каналам',
-                preview: 'Контролируйте, какой агент отвечает на каком канале',
-                tag: 'Привязки',
-                heading: 'Один агент на канал',
-                description:
-                    'Привяжите конкретных агентов к конкретным каналам. Ваш агент поддержки в Discord, ваш помощник в WhatsApp — вы решаете, кто где отвечает.',
-                cta: 'Настроить привязки'
             },
             envVars: {
                 subject: 'Знаете ли вы? Управляйте переменными окружения',
@@ -1271,7 +1232,7 @@ const ru: Translations = {
             'Доступ к нативной панели OpenClaw прямо из ClawHost. Полный доступ к редактированию всего, что предлагает OpenClaw.',
         clawHostControl: 'Управление ClawHost',
         clawHostControlDescription:
-            'Управляйте файлами, обновлениями, каналами, переменными, навыками и другими параметрами конфигурации прямо из платформы.',
+            'Управляйте файлами, обновлениями, переменными, навыками и другими параметрами конфигурации прямо из платформы.',
         skillsMarketplace: '5 000+ навыков',
         skillsMarketplaceDescription:
             'Просматривайте и устанавливайте более 5 000 готовых навыков одним кликом. Расширяйте OpenClaw мгновенно.',
@@ -1375,7 +1336,7 @@ const ru: Translations = {
             'В отличие от размещённых ИИ-инструментов, ClawHost даёт вам реальный сервер с установленным OpenClaw. Вы владеете инфраструктурой, контролируете всё и не ограничены общей платформой или моделью.',
         faq4Question: 'Нужны ли технические знания?',
         faq4Answer:
-            'Нет. Мы берём на себя всю инфраструктуру, настройку и обслуживание. Вы можете настраивать и управлять OpenClaw через его интерфейс, подключать каналы и настраивать использование — не касаясь серверов или инфраструктуры.',
+            'Нет. Мы берём на себя всю инфраструктуру, настройку и обслуживание. Вы можете настраивать и управлять OpenClaw через его интерфейс и настраивать использование — не касаясь серверов или инфраструктуры.',
         faq5Question: 'Какие локации доступны?',
         faq5Answer:
             'Мы предлагаем несколько серверных локаций по всему миру, включая США, Европу и другие. При необходимости вы можете развернуть OpenClaw на нескольких серверах в разных регионах.',
@@ -1397,7 +1358,7 @@ const ru: Translations = {
         comparisonOwnershipUs: 'Вы полностью владеете сервером',
         comparisonOwnershipOthers: 'Вы не владеете ничем',
         comparisonSubdomainUs: 'Доступ через поддомен',
-        comparisonSubdomainOthers: 'Доступ только через социальные каналы',
+        comparisonSubdomainOthers: 'Доступ только через сторонние платформы',
         comparisonInfraUs: 'Инфраструктура по запросу',
         comparisonInfraOthers: 'Ограниченные серверы',
         comparisonDataUs: 'Владейте своими данными',
@@ -1415,7 +1376,7 @@ const ru: Translations = {
         comparisonSocialsUs: 'Присутствие в соцсетях',
         comparisonSocialsOthers: 'Нет соцсетей',
         comparisonChatUs: 'Чат напрямую с вашим клоу',
-        comparisonChatOthers: 'Чат только через каналы',
+        comparisonChatOthers: 'Чат только через сторонние платформы',
         comparisonVersionUs: 'Переключение версии в один клик',
         comparisonVersionOthers: 'Только ручные обновления',
         comparisonTerminalUs: 'Встроенный веб-терминал',
@@ -1568,11 +1529,9 @@ const ru: Translations = {
         release7Feature4:
             'Просмотр и использование вложений для агентов, отправка изображений и документов в чате',
         release6Date: '16 февраля 2026',
-        release6Title: 'Каналы, навыки и чат с агентами',
+        release6Title: 'Навыки и чат с агентами',
         release6Description:
-            'Полный контроль над каналами, навыками и агентами OpenClaw. Управляйте и общайтесь со всем прямо из панели.',
-        release6Feature1:
-            'Управление каналами напрямую, добавление, удаление и настройка каналов без работы с сервером',
+            'Полный контроль над навыками и агентами OpenClaw. Управляйте и общайтесь со всем прямо из панели.',
         release6Feature2:
             'Управление навыками напрямую, установка, обновление и организация навыков агентов из панели',
         release6Feature3:
@@ -1829,28 +1788,6 @@ const ru: Translations = {
         chatNoPreview: 'Предпросмотр недоступен.',
         chatDownloadFile: 'Скачать файл',
         chatCopyMessage: 'Копировать сообщение',
-        tabChannels: 'Каналы',
-        channelsDescription:
-            'Настройте каналы обмена сообщениями для этого экземпляра. Сообщения маршрутизируются агентам через привязки.',
-        channelsWhatsApp: 'WhatsApp',
-        channelsWhatsAppPairDevice: 'Связать устройство',
-        channelsWhatsAppPairing: 'Ожидание QR-кода...',
-        channelsWhatsAppScanQr:
-            'Отсканируйте этот QR-код с помощью WhatsApp, чтобы связать устройство.',
-        channelsWhatsAppScanInstructions:
-            'Откройте WhatsApp > Настройки > Связанные устройства > Связать устройство',
-        channelsWhatsAppQrRefreshed:
-            'Предыдущий QR-код истёк. Отсканируйте новый ниже.',
-        channelsWhatsAppPaired: 'WhatsApp успешно связан.',
-        channelsWhatsAppPairFailed: 'Связывание не удалось. Попробуйте снова !',
-        channelsWhatsAppAlreadyPaired: 'WhatsApp уже связан !',
-        channelsWhatsAppUnpair: 'Отвязать',
-        channelsWhatsAppConnected: 'Подключён',
-        channelsWhatsAppRepair: 'Связать заново',
-        channelsWhatsAppChecking: 'Проверка соединения...',
-        channelsVersionUnsupported:
-            'Настройка каналов недоступна в этой версии. Вы можете подключиться вручную через вкладку «Терминал» или обновить OpenClaw.',
-        channelsVersionUnsupportedDocs: 'Руководство по настройке',
         featureVersionUnsupported:
             '{{feature}} не поддерживается на {{version}}',
         featureVersionUnsupportedDescription:
@@ -1858,44 +1795,6 @@ const ru: Translations = {
         featureVersionUnsupportedButton: 'Перейти к Версиям',
         featureVersionUnsupportedSupported: 'Поддерживаемые версии:',
         featureVersionUnsupportedNewer: 'более новые версии',
-        channelsTelegram: 'Telegram',
-        channelsDiscord: 'Discord',
-        channelsSlack: 'Slack',
-        channelsSignal: 'Signal',
-        channelsEnabled: 'Включён',
-        channelsAccount: 'Номер телефона аккаунта',
-        channelsAccountPlaceholder: '+15551234567',
-        channelsBotToken: 'Токен бота',
-        channelsBotTokenPlaceholder: 'Введите токен бота',
-        channelsAppToken: 'Токен приложения',
-        channelsAppTokenPlaceholder: 'Введите токен приложения',
-        channelsToken: 'Токен бота',
-        channelsTokenPlaceholder: 'Введите токен бота',
-        channelsSigningSecret: 'Секрет подписи',
-        channelsSigningSecretPlaceholder: 'Введите секрет подписи',
-        channelsDmPolicy: 'Политика ЛС',
-        channelsDmPolicyOpen: 'Открытая',
-        channelsDmPolicyPairing: 'Связывание',
-        channelsDmPolicyAllowlist: 'Список разрешённых',
-        channelsDmPolicyDisabled: 'Отключено',
-        channelsAllowFrom: 'Разрешить от',
-        channelsAllowFromPlaceholder: 'Разрешённые ID, через запятую',
-        channelsSave: 'Сохранить',
-        channelsSaved: 'Каналы успешно обновлены.',
-        channelsSaveFailed: 'Не удалось обновить каналы !',
-        channelsLoading: 'Загрузка каналов...',
-        channelsLoadFailed: 'Не удалось загрузить каналы !',
-        channelsLoadFailedDescription:
-            'Не удалось получить конфигурацию каналов. Попробуйте снова.',
-        channelsNoChanges: 'Нет изменений для сохранения.',
-        bindingsDescription:
-            'Назначьте каналы обмена сообщениями этому агенту. Каждый канал может быть маршрутизирован только одному агенту одновременно.',
-        bindingsNoChannels: 'Нет включённых каналов.',
-        bindingsNoChannelsDescription:
-            'Сначала включите каналы в настройках экземпляра, затем назначьте их агентам здесь.',
-        bindingsSaving: 'Сохранение...',
-        bindingsSaved: 'Привязки успешно обновлены.',
-        bindingsSaveFailed: 'Не удалось обновить привязки !',
         tabSkills: 'Навыки',
         skillsDescription:
             'Управляйте общими навыками, доступными всем агентам на этом экземпляре.',
@@ -2221,7 +2120,6 @@ const ru: Translations = {
         featureMultipleInstances: 'Несколько экземпляров',
         featureMultipleAgents: 'Несколько агентов на экземпляр',
         featureSkillsMarketplace: 'Маркетплейс навыков',
-        featureChannelSupport: 'Поддержка каналов',
         featureAgentConfig: 'Конфигурация агента',
         featureDataOwnership: 'Полное владение данными',
         featureDataExport: 'Экспорт данных',
@@ -2273,10 +2171,6 @@ const ru: Translations = {
         singleInstance: 'Один',
         fiveThousandSkills: '5 000+ навыков (ClawHub)',
         noMarketplace: 'Нет маркетплейса',
-        allChannels: 'WhatsApp, Telegram, Discord, Slack, Signal',
-        telegramDiscord: 'Telegram, Discord',
-        discordGithubSlack: 'Discord, GitHub, Slack',
-        telegramGmailWhatsapp: 'Telegram, Gmail, WhatsApp',
         appOnly: 'Только приложение',
         fullConfig: 'Полная конфигурация',
         limitedConfig: 'Ограниченная',

@@ -233,7 +233,6 @@ function create(data: CreateUserParams): void {} // USE THIS
 - Playground Types: `PlaygroundClawNodeData`, `PlaygroundAgentNodeData`
 - Agent/Chat Types: `ClawAgent`, `ChatMessage`, `ChatAttachment`, `ChatHistoryEntry`, `UseAgentChatParams`, `UseAgentChatReturn`
 - File System Types: `ClawFileEntry`, `ClawFilesResponse`, `ReadClawFileResponse`, `UpdateClawFileData`
-- Channel/Binding Types: `ChannelConfig`, `Binding`, `ClawChannelsResponse`, `ClawBindingsResponse`
 - Skills/ClawHub Types: `BundledSkillInfo`, `ClawSkillsResponse`, `ClawHubSearchResult`, `ClawHubBrowseResponse`
 - Version Types: `ClawVersionResponse`, `ClawVersionsResponse`
 - Blog Types: `BlogPostFrontmatter`, `BlogPostMeta`, `Testimonial`, `Faq`, `CompareCompetitor`, `CompareFeature`
@@ -245,12 +244,11 @@ function create(data: CreateUserParams): void {} // USE THIS
 - Hetzner Types: `HetznerServer`, `HetznerServerType`, `HetznerLocation`, `HetznerDatacenter`, `HetznerVolume`, `HetznerSSHKey`, etc.
 - Polar/Payment Types: `CheckoutSession`, `PolarSubscription`, `PolarOrder`, `PolarProduct`, `PolarCustomer`, webhook data types
 - Claw Operation Types: `CreateClawBody`, `InitiateClawPurchase`, `ProvisionClawParams`
-- Agent Types: `ClawAgent`, `ClawChannelsResponse`, `ClawSkillsResponse`, `ClawBindingsResponse`
+- Agent Types: `ClawAgent`, `ClawSkillsResponse`
 - Auth Types: `SendOtpBody`, `VerifyOtpBody`, `ResolveCredentialConflictBody`
 - ClawHub Types: `ClawHubSearchResult`, `ClawHubInstalledSkill`, `ClawHubBrowseResultPage`
 - File Types: `ClawFileEntry`, `ReadClawFileBody`, `UpdateClawFileBody`
 - Diagnostics Types: `DiagnosticsStatusResponse`, `DiagnosticsLogsResponse`
-- WhatsApp Types: `WhatsAppPairResponse`, `WhatsAppPairStatusResponse`
 - Cache Types: `CacheEntry<T>`, `SkillsCacheEntry`
 - TTS Types: `PiperVoice`, `PiperSynthesisResult`, `GenerateSpeechBody`
 - DNS Types: `CloudflareDNSRecord`
@@ -370,7 +368,7 @@ import { Fragment } from 'react'
 - `dashboard/` for dashboard-specific components (CreateClawModal, ClawCard dropdowns/dialogs, diagnostics, logs, terminal, config, file explorer)
 - `chat/` for chat interface (ChatView, ChatSidebar with tree/list views, ChatSidebarItem, ChatEmptyState)
 - `agent-chat/` for agent communication (AgentChat, ChatBubble, ChatInput, ChatMarkdown, VoiceOrb, VoiceModeOverlay, ChatSpeechButton, ChatTypingIndicator)
-- `playground/` for graph visualization (PlaygroundCanvas, ClawNode, AgentNode, DetailPanel, Toolbar, ChannelsContent, VariablesContent, BindingsContent, SkillsContent, ClawHubContent, VersionsContent)
+- `playground/` for graph visualization (PlaygroundCanvas, ClawNode, AgentNode, DetailPanel, Toolbar, VariablesContent, SkillsContent, ClawHubContent, VersionsContent)
 - Root level for shared components (Header, Footer, Logo, EmptyState, Toast, ProtectedRoute, etc.)
 - Keep components focused and composable
 
@@ -451,12 +449,6 @@ pnpm --filter api db:migrate   # Run migrations
 - `PUT /:id/agent-config` - Update agent config
 - `GET /:id/env` - Get environment variables
 - `PUT /:id/env` - Update environment variables
-- `POST /:id/channels` - Get channel configs
-- `PUT /:id/channels` - Update channel configs
-- `POST /:id/channels/whatsapp/pair` - Initiate WhatsApp pairing
-- `POST /:id/channels/whatsapp/pair-status` - Check pairing status
-- `POST /:id/bindings` - Get agent-channel bindings
-- `PUT /:id/bindings` - Update bindings
 - `POST /:id/skills` - Get bundled skills
 - `PUT /:id/skills` - Update bundled skills
 - `POST /:id/agents/:agentId/skills` - Get agent skills

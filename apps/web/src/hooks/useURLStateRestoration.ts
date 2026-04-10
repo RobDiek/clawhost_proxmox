@@ -108,18 +108,15 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
 
         const validAgentTabs: PlaygroundAgentDetailTab[] = [
             AGENT_DETAIL_TABS.CHAT,
-            AGENT_DETAIL_TABS.CHANNELS,
             AGENT_DETAIL_TABS.SKILLS,
             AGENT_DETAIL_TABS.CONFIGURATION
         ]
         const validChatAgentTabs: PlaygroundAgentDetailTab[] = [
             AGENT_DETAIL_TABS.CONFIGURATION,
-            AGENT_DETAIL_TABS.CHANNELS,
             AGENT_DETAIL_TABS.SKILLS
         ]
         const validClawTabs: PlaygroundDetailTab[] = [
             CLAW_DETAIL_TABS.INFO,
-            CLAW_DETAIL_TABS.CHANNELS,
             CLAW_DETAIL_TABS.TERMINAL,
             CLAW_DETAIL_TABS.VARIABLES,
             CLAW_DETAIL_TABS.LOGS,

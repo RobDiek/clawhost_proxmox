@@ -35,7 +35,6 @@ ClawHost is an open-source, self-hostable cloud hosting platform that lets anyon
 - **Chat Interface** — Real-time WebSocket chat with your OpenClaw agents
 - **Browser Terminal** — Full SSH terminal access directly from the dashboard via WebSocket
 - **Text-to-Speech** — Local TTS synthesis with Piper for reading agent responses aloud
-- **Channel Integrations** — Connect Telegram, Discord, Slack, Signal, and WhatsApp (with in-app QR pairing)
 - **Skills & ClawHub** — Browse, install, and manage skills from the ClawHub marketplace
 - **Diagnostics & Logs** — Monitor server health, view logs, and repair instances
 - **File & Env Management** — Edit configuration files and environment variables remotely
@@ -386,21 +385,6 @@ pnpm --filter api email:dev    # Preview email templates at localhost:3333
 | `POST` | `/api/claws/:id/agent-config`  | Get agent configuration    |
 | `PUT`  | `/api/claws/:id/agent-config`  | Update agent configuration |
 
-**Claw Channels**
-
-| Method | Endpoint                                       | Description                  |
-| ------ | ---------------------------------------------- | ---------------------------- |
-| `POST` | `/api/claws/:id/channels`                      | Get configured channels      |
-| `PUT`  | `/api/claws/:id/channels`                      | Update channel configuration |
-| `POST` | `/api/claws/:id/channels/whatsapp/pair`        | Start WhatsApp QR pairing    |
-| `POST` | `/api/claws/:id/channels/whatsapp/pair-status` | Check WhatsApp pair status   |
-
-**Claw Bindings**
-
-| Method | Endpoint                  | Description          |
-| ------ | ------------------------- | -------------------- |
-| `POST` | `/api/claws/:id/bindings` | Get claw bindings    |
-| `PUT`  | `/api/claws/:id/bindings` | Update claw bindings |
 
 **Claw Skills**
 
@@ -518,7 +502,7 @@ The `scripts/cloud-init.yaml` template configures every new instance with:
 - UFW firewall (ports 22, 80, 443)
 - systemd service for automatic OpenClaw startup
 
-Once provisioned, users can manage their claws through the dashboard — configuring agents, channels, skills, environment variables, and files all remotely via SSH. A browser-based terminal provides direct shell access via WebSocket, and text-to-speech lets users listen to agent responses.
+Once provisioned, users can manage their claws through the dashboard — configuring agents, skills, environment variables, and files all remotely via SSH. A browser-based terminal provides direct shell access via WebSocket, and text-to-speech lets users listen to agent responses.
 
 ## Customization
 

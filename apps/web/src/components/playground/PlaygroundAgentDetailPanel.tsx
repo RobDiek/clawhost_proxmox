@@ -16,14 +16,9 @@ import { t } from '@openclaw/i18n'
 import {
     ChatCircleIcon,
     GearSixIcon,
-    LightningIcon,
-    ChatsCircleIcon
+    LightningIcon
 } from '@phosphor-icons/react'
-import {
-    AgentChat,
-    PlaygroundSkillsContent,
-    PlaygroundBindingsContent
-} from '@/components/playground'
+import { AgentChat, PlaygroundSkillsContent } from '@/components/playground'
 import {
     AgentDetailHeader,
     AgentDetailConfigTab,
@@ -44,11 +39,6 @@ const tabs: PlaygroundTabConfig<PlaygroundAgentDetailTab>[] = [
         id: AGENT_DETAIL_TABS.CHAT,
         label: 'playground.tabChat',
         icon: ChatCircleIcon
-    },
-    {
-        id: AGENT_DETAIL_TABS.CHANNELS,
-        label: 'playground.tabChannels',
-        icon: ChatsCircleIcon
     },
     {
         id: AGENT_DETAIL_TABS.SKILLS,
@@ -84,12 +74,12 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
         [hideChatTab]
     )
     const defaultTab = hideChatTab
-        ? AGENT_DETAIL_TABS.CHANNELS
+        ? AGENT_DETAIL_TABS.SKILLS
         : AGENT_DETAIL_TABS.CHAT
     const rawActiveTab = agentTabStateMap[agent.id] || defaultTab
     const activeTab =
         hideChatTab && rawActiveTab === AGENT_DETAIL_TABS.CHAT
-            ? AGENT_DETAIL_TABS.CHANNELS
+            ? AGENT_DETAIL_TABS.SKILLS
             : rawActiveTab
     const setActiveTab = useCallback(
         (tab: PlaygroundAgentDetailTab) => {
@@ -272,15 +262,6 @@ const PlaygroundAgentDetailPanel: FC<PlaygroundAgentDetailPanelProps> = ({
                             readOnly={readOnly}
                         />
                     )}
-
-                    {!isExpanded &&
-                        activeTab === AGENT_DETAIL_TABS.CHANNELS && (
-                            <PlaygroundBindingsContent
-                                clawId={clawId}
-                                agentId={agent.id}
-                                onGoToVersions={onGoToVersions}
-                            />
-                        )}
 
                     {!isExpanded && activeTab === AGENT_DETAIL_TABS.SKILLS && (
                         <PlaygroundSkillsContent

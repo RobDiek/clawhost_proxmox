@@ -4,13 +4,11 @@ import { t } from '@openclaw/i18n'
 import { featureEmailKey } from '@/lib/constants'
 import TerminalEmail from '@/emails/TerminalEmail'
 import LogsEmail from '@/emails/LogsEmail'
-import ChannelsEmail from '@/emails/ChannelsEmail'
 import FileExplorerEmail from '@/emails/FileExplorerEmail'
 import PlaygroundEmail from '@/emails/PlaygroundEmail'
 import AgentChatEmail from '@/emails/AgentChatEmail'
 import VoiceModeEmail from '@/emails/VoiceModeEmail'
 import SkillsEmail from '@/emails/SkillsEmail'
-import BindingsEmail from '@/emails/BindingsEmail'
 import EnvVarsEmail from '@/emails/EnvVarsEmail'
 import DiagnosticsEmail from '@/emails/DiagnosticsEmail'
 import SshKeysEmail from '@/emails/SshKeysEmail'
@@ -31,11 +29,6 @@ const FEATURE_EMAILS: FeatureEmailDefinition[] = [
         key: featureEmailKey.logs,
         subject: t('emails.features.logs.subject'),
         render: () => LogsEmail({})
-    },
-    {
-        key: featureEmailKey.channels,
-        subject: t('emails.features.channels.subject'),
-        render: () => ChannelsEmail({})
     },
     {
         key: featureEmailKey.fileExplorer,
@@ -61,11 +54,6 @@ const FEATURE_EMAILS: FeatureEmailDefinition[] = [
         key: featureEmailKey.skills,
         subject: t('emails.features.skills.subject'),
         render: () => SkillsEmail({})
-    },
-    {
-        key: featureEmailKey.bindings,
-        subject: t('emails.features.bindings.subject'),
-        render: () => BindingsEmail({})
     },
     {
         key: featureEmailKey.envVars,

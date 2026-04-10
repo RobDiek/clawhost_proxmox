@@ -32,7 +32,7 @@ const languages: Record<string, Record<string, unknown>> = {
 
 const getKeys = (obj: Record<string, unknown>, prefix = ''): string[] => {
     const keys: string[] = []
-    
+
     for (const key of Object.keys(obj)) {
         const fullKey = prefix ? `${prefix}.${key}` : key
         const value = obj[key]
@@ -41,8 +41,8 @@ const getKeys = (obj: Record<string, unknown>, prefix = ''): string[] => {
             typeof value === 'object' &&
             value !== null &&
             !Array.isArray(value)
-        ) keys.push(...getKeys(value as Record<string, unknown>, fullKey))
-        
+        )
+            keys.push(...getKeys(value as Record<string, unknown>, fullKey))
         else keys.push(fullKey)
     }
 
@@ -86,8 +86,8 @@ for (const [lang, translations] of Object.entries(languages)) {
 }
 
 if (hasErrors) {
-    console.error('\n🚫 i18n validation failed! All language files must have the same keys as en.ts\n')
+    console.error(
+        '\n🚫 i18n validation failed! All language files must have the same keys as en.ts\n'
+    )
     process.exit(1)
-} 
-
-else console.log('✅ All 14 language files have matching keys.')
+} else console.log('✅ All 14 language files have matching keys.')

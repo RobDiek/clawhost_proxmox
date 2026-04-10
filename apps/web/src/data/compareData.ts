@@ -370,31 +370,6 @@ const getCompareData = (): CompareData => ({
                     }
                 },
                 {
-                    nameKey: 'compare.featureChannelSupport',
-                    values: {
-                        clawhost: {
-                            status: COMPARE_FEATURE_STATUS.YES,
-                            detailKey: 'compare.allChannels'
-                        },
-                        lobsterfarm: {
-                            status: COMPARE_FEATURE_STATUS.PARTIAL,
-                            detailKey: 'compare.telegramGmailWhatsapp'
-                        },
-                        simpleclaw: {
-                            status: COMPARE_FEATURE_STATUS.PARTIAL,
-                            detailKey: 'compare.telegramDiscord'
-                        },
-                        myclawai: {
-                            status: COMPARE_FEATURE_STATUS.PARTIAL,
-                            detailKey: 'compare.discordGithubSlack'
-                        },
-                        quickclaw: {
-                            status: COMPARE_FEATURE_STATUS.NO,
-                            detailKey: 'compare.appOnly'
-                        }
-                    }
-                },
-                {
                     nameKey: 'compare.featureAgentConfig',
                     values: {
                         clawhost: {

@@ -17,7 +17,6 @@ import BASE_DIR from '@/controllers/claws/helpers/baseDir'
 import DOMAIN from '@/controllers/claws/helpers/constants'
 import syncClawServers from '@/controllers/claws/helpers/syncClawServers'
 import OPENCLAW_VERSION from '@/controllers/claws/helpers/openclawVersion'
-import WHATSAPP_PATHS from '@/controllers/claws/helpers/whatsappPaths'
 import isVersionAtLeast from '@/controllers/claws/helpers/isVersionAtLeast'
 import parseClawVersion from '@/controllers/claws/helpers/parseClawVersion'
 import isVersionSupported from '@/controllers/claws/helpers/isVersionSupported'
@@ -35,7 +34,6 @@ import readClawConfigFile from '@/controllers/claws/helpers/readClawConfigFile'
 import ClawMissingCredentialsError from '@/controllers/claws/helpers/clawMissingCredentialsError'
 import ClawConfigReadError from '@/controllers/claws/helpers/clawConfigReadError'
 import withClaw from '@/controllers/claws/helpers/withClaw'
-import SUPPORTED_CHANNELS from '@/controllers/claws/helpers/supportedChannels'
 import applySandboxOffDefaults from '@/controllers/claws/helpers/applySandboxOffDefaults'
 import withFeatureGatedConfigUpdate from '@/controllers/claws/helpers/withFeatureGatedConfigUpdate'
 
@@ -59,7 +57,6 @@ export {
     DOMAIN,
     syncClawServers,
     OPENCLAW_VERSION,
-    WHATSAPP_PATHS,
     isVersionAtLeast,
     parseClawVersion,
     isVersionSupported,
@@ -77,7 +74,6 @@ export {
     ClawMissingCredentialsError,
     ClawConfigReadError,
     withClaw,
-    SUPPORTED_CHANNELS,
     applySandboxOffDefaults,
     withFeatureGatedConfigUpdate
 }

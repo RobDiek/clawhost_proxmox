@@ -107,9 +107,8 @@ const generateBlogContent = async (
         instructions: `You are a senior technical writer for ClawHost, the managed hosting platform for OpenClaw.
 
 OpenClaw is an open-source AI agent framework with:
-- Multi-channel support (WhatsApp, Telegram, Discord, webchat)
-- Skills/plugins ecosystem (ClawHub marketplace)
 - Multi-agent architecture
+- Skills/plugins ecosystem (ClawHub marketplace)
 - Voice capabilities (Piper TTS)
 - Browser automation
 - Runs on VPS or via ClawHost managed hosting

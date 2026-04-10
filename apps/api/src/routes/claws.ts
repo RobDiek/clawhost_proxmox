@@ -28,8 +28,6 @@ import {
     deleteClawAgent,
     getClawEnvVars,
     updateClawEnvVars,
-    getClawChannels,
-    updateClawChannels,
     getClawSkills,
     updateClawSkills,
     getAgentSkills,
@@ -44,10 +42,6 @@ import {
     updateClawHubSkill,
     checkClawHubUpdates,
     renameClaw,
-    pairWhatsApp,
-    pairWhatsAppStatus,
-    getClawBindings,
-    updateClawBindings,
     getClawCredentials,
     cancelPendingClaw
 } from '@/controllers/claws'
@@ -78,12 +72,6 @@ app.post('/:id/agents/create', createClawAgent)
 app.post('/:id/agents/delete', deleteClawAgent)
 app.get('/:id/env', getClawEnvVars)
 app.put('/:id/env', updateClawEnvVars)
-app.post('/:id/channels', getClawChannels)
-app.put('/:id/channels', updateClawChannels)
-app.post('/:id/channels/whatsapp/pair', pairWhatsApp)
-app.post('/:id/channels/whatsapp/pair-status', pairWhatsAppStatus)
-app.post('/:id/bindings', getClawBindings)
-app.put('/:id/bindings', updateClawBindings)
 app.post('/:id/skills', getClawSkills)
 app.put('/:id/skills', updateClawSkills)
 app.post('/:id/agents/:agentId/skills', getAgentSkills)

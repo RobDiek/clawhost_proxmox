@@ -288,24 +288,6 @@ export interface PreferencesState {
     setAffiliatePeriod: (period: AffiliatePeriod) => void
 }
 
-export interface ChannelsState {
-    isPairing: boolean
-    setIsPairing: (value: boolean) => void
-    pollEnabled: boolean
-    setPollEnabled: (value: boolean) => void
-    versionUnsupported: boolean
-    setVersionUnsupported: (value: boolean) => void
-    isWhatsAppPaired: boolean
-    setIsWhatsAppPaired: (value: boolean) => void
-    isRepairing: boolean
-    setIsRepairing: (value: boolean) => void
-    initialCheckDone: boolean
-    setInitialCheckDone: (value: boolean) => void
-    visibleSecrets: Record<string, boolean>
-    toggleSecret: (fieldId: string) => void
-    resetPairingState: () => void
-}
-
 export interface SkillsState {
     pendingSkill: string | null
     setPendingSkill: (value: string | null) => void
@@ -1768,35 +1750,6 @@ export interface UseSpeechRecognitionReturn {
     toggle: () => void
 }
 
-export interface ChannelConfig {
-    enabled: boolean
-    dmPolicy?: string
-    allowFrom?: string[]
-    botToken?: string
-    token?: string
-    appToken?: string
-    signingSecret?: string
-    account?: string
-}
-
-export interface ClawChannelsResponse {
-    channels: Record<string, ChannelConfig>
-}
-
-export interface UpdateClawChannelsData {
-    channels: Record<string, ChannelConfig>
-}
-
-export interface WhatsAppPairResponse {
-    status: 'started' | 'already_paired'
-}
-
-export interface WhatsAppPairStatusResponse {
-    status: 'waiting' | 'qr_ready' | 'paired' | 'failed' | 'not_started'
-    qr?: string
-    log?: string
-}
-
 export interface SkillEntryConfig {
     enabled: boolean
     apiKey?: string
@@ -1830,91 +1783,6 @@ export interface GetAgentSkillsResponse {
 export interface UpdateAgentSkillsData {
     action: 'install' | 'remove'
     skillName: string
-}
-
-export interface PlaygroundChannelsContentProps {
-    clawId: string
-    onGoToVersions?: () => void
-}
-
-export interface ChannelMetaEntry {
-    icon: ElementType
-    label: TranslationKey
-}
-
-export interface ChannelConfigWithApplicationId extends ChannelConfig {
-    applicationId?: string
-}
-
-export interface ChannelDefinition {
-    key: string
-    label: TranslationKey
-    icon: ElementType
-    fields: ChannelFieldDefinition[]
-}
-
-export interface ChannelFieldOption {
-    value: string
-    label: TranslationKey
-}
-
-export interface ChannelFieldDefinition {
-    key: keyof ChannelConfig
-    label: TranslationKey
-    placeholder: TranslationKey
-    required?: boolean
-    secret?: boolean
-    type?: 'text' | 'select'
-    options?: ChannelFieldOption[]
-}
-
-export interface ChannelCardProps {
-    def: ChannelDefinition
-    config: ChannelConfig
-    isWhatsAppPaired: boolean
-    visibleSecrets: Record<string, boolean>
-    toggleSecret: (id: string) => void
-    toggleChannel: (key: string) => void
-    updateField: (channelKey: string, fieldKey: string, value: string) => void
-    copyField: (value: string) => void
-    whatsAppPairing: UseWhatsAppPairingReturn
-    initialCheckDone: boolean
-    whatsAppEnabled: boolean
-}
-
-export interface WhatsAppPairingPanelProps {
-    whatsAppPairing: UseWhatsAppPairingReturn
-    initialCheckDone: boolean
-    whatsAppEnabled: boolean
-}
-
-export interface ChannelFieldInputProps {
-    def: ChannelDefinition
-    field: ChannelFieldDefinition
-    config: ChannelConfig
-    visibleSecrets: Record<string, boolean>
-    toggleSecret: (id: string) => void
-    updateField: (channelKey: string, fieldKey: string, value: string) => void
-    copyField: (value: string) => void
-}
-
-export interface UseWhatsAppPairingParams {
-    clawId: string
-    whatsAppEnabled: boolean
-}
-
-export interface UseWhatsAppPairingReturn {
-    isPairing: boolean
-    isRepairing: boolean
-    isWhatsAppPaired: boolean
-    setIsWhatsAppPaired: (v: boolean) => void
-    setIsRepairing: (v: boolean) => void
-    pairStatus: WhatsAppPairStatusResponse | undefined
-    qrImageUrl: string
-    qrRefreshed: boolean
-    pairMutationPending: boolean
-    triggerPair: (force?: boolean) => void
-    triggerRepair: () => void
 }
 
 export interface PlaygroundSkillsContentProps {
@@ -2101,37 +1969,12 @@ export interface TruncateTooltipProps {
     children: ReactNode
 }
 
-export interface BindingMatch {
-    channel: string
-}
-
-export interface Binding {
-    agentId: string
-    match: BindingMatch
-}
-
-export interface ClawBindingsResponse {
-    bindings: Binding[]
-    channels: Record<string, ChannelConfig>
-    agents: Array<{ id: string; name: string }>
-}
-
-export interface UpdateClawBindingsData {
-    bindings: Binding[]
-}
-
 export interface AdminPaginatedQueryParams {
     page: number
     limit: number
     search?: string
     sort?: string
     [key: string]: string | number | boolean | undefined
-}
-
-export interface PlaygroundBindingsContentProps {
-    clawId: string
-    agentId: string
-    onGoToVersions?: () => void
 }
 
 export interface CompareData {

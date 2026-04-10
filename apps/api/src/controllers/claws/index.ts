@@ -24,8 +24,6 @@ import createClawAgent from '@/controllers/claws/createClawAgent'
 import deleteClawAgent from '@/controllers/claws/deleteClawAgent'
 import getClawEnvVars from '@/controllers/claws/getClawEnvVars'
 import updateClawEnvVars from '@/controllers/claws/updateClawEnvVars'
-import getClawChannels from '@/controllers/claws/getClawChannels'
-import updateClawChannels from '@/controllers/claws/updateClawChannels'
 import getClawSkills from '@/controllers/claws/getClawSkills'
 import updateClawSkills from '@/controllers/claws/updateClawSkills'
 import getAgentSkills from '@/controllers/claws/getAgentSkills'
@@ -40,10 +38,6 @@ import removeClawHubSkill from '@/controllers/claws/removeClawHubSkill'
 import updateClawHubSkill from '@/controllers/claws/updateClawHubSkill'
 import checkClawHubUpdates from '@/controllers/claws/checkClawHubUpdates'
 import renameClaw from '@/controllers/claws/renameClaw'
-import pairWhatsApp from '@/controllers/claws/pairWhatsApp'
-import pairWhatsAppStatus from '@/controllers/claws/pairWhatsAppStatus'
-import getClawBindings from '@/controllers/claws/getClawBindings'
-import updateClawBindings from '@/controllers/claws/updateClawBindings'
 import getClawCredentials from '@/controllers/claws/getClawCredentials'
 import cancelPendingClaw from '@/controllers/claws/cancelPendingClaw'
 import provisionClaw from '@/controllers/claws/provisionClaw'
@@ -75,8 +69,6 @@ export {
     deleteClawAgent,
     getClawEnvVars,
     updateClawEnvVars,
-    getClawChannels,
-    updateClawChannels,
     getClawSkills,
     updateClawSkills,
     getAgentSkills,
@@ -91,10 +83,6 @@ export {
     updateClawHubSkill,
     checkClawHubUpdates,
     renameClaw,
-    pairWhatsApp,
-    pairWhatsAppStatus,
-    getClawBindings,
-    updateClawBindings,
     getClawCredentials,
     cancelPendingClaw,
     provisionClaw

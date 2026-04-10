@@ -8,19 +8,13 @@ import {
     KeyIcon,
     LightningIcon,
     GearSixIcon,
-    TerminalWindowIcon,
-    ChatsCircleIcon
+    TerminalWindowIcon
 } from '@phosphor-icons/react'
 import { CLAW_DETAIL_TABS } from '@/lib/constants'
 import { ClawMascotOutline } from '@/components/shared'
 
 const tabs: PlaygroundTabConfig<PlaygroundDetailTab>[] = [
     { id: CLAW_DETAIL_TABS.INFO, label: 'playground.tabInfo', icon: InfoIcon },
-    {
-        id: CLAW_DETAIL_TABS.CHANNELS,
-        label: 'playground.tabChannels',
-        icon: ChatsCircleIcon
-    },
     {
         id: CLAW_DETAIL_TABS.TERMINAL,
         label: 'playground.tabTerminal',

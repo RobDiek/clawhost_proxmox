@@ -43,14 +43,6 @@ const API_PATHS = {
             SKILLS: (clawId: string, agentId: string) =>
                 `/claws/${clawId}/agents/${agentId}/skills`
         },
-        CHANNELS: {
-            BASE: (id: string) => `/claws/${id}/channels`,
-            WHATSAPP_PAIR: (id: string) =>
-                `/claws/${id}/channels/whatsapp/pair`,
-            WHATSAPP_PAIR_STATUS: (id: string) =>
-                `/claws/${id}/channels/whatsapp/pair-status`
-        },
-        BINDINGS: (id: string) => `/claws/${id}/bindings`,
         SKILLS: (id: string) => `/claws/${id}/skills`,
         FILES: {
             BASE: (id: string) => `/claws/${id}/files`,

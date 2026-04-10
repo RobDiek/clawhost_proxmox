@@ -20,7 +20,6 @@ import {
     PlaygroundVariablesContent,
     PlaygroundSkillsContent,
     PlaygroundVersionsContent,
-    PlaygroundChannelsContent,
     PlaygroundDetailInfoTab,
     PlaygroundDetailSettingsTab,
     PlaygroundDetailHeader,
@@ -271,15 +270,6 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
 
                     {activeTab === 'versions' && (
                         <PlaygroundVersionsContent clawId={claw.id} />
-                    )}
-
-                    {activeTab === 'channels' && (
-                        <PlaygroundChannelsContent
-                            clawId={claw.id}
-                            onGoToVersions={() =>
-                                setActiveTab(CLAW_DETAIL_TABS.VERSIONS)
-                            }
-                        />
                     )}
 
                     {activeTab === 'variables' && (

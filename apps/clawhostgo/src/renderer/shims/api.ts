@@ -8,7 +8,6 @@ import type {
     RenameClawData,
     UpdateClawSubdomainData,
     ClawAgentsResponse,
-    ClawChannelsResponse,
     ClawFilesResponse,
     ClawSkillsResponse,
     ClawVersionResponse,
@@ -32,17 +31,12 @@ import type {
     DeleteAgentData,
     UpdateAgentConfigData,
     UpdateAgentSkillsData,
-    UpdateClawChannelsData,
-    WhatsAppPairResponse,
-    WhatsAppPairStatusResponse,
     BrowseClawHubData,
     ClawHubSkillActionData,
     ClawHubUpdateData,
     ClawHubBrowseResponse,
     ClawHubInstalledResponse,
     ClawHubUpdatesResponse,
-    ClawBindingsResponse,
-    UpdateClawBindingsData,
     UpdateClawEnvVarsData,
     UpdateClawFileData,
     UpdateClawSkillsData,
@@ -163,18 +157,6 @@ const api = {
         invoke('createClawAgent', id, data) as Promise<CreateAgentResponse>,
     deleteClawAgent: (id: string, data: DeleteAgentData) =>
         invoke('deleteClawAgent', id, data) as Promise<void>,
-    getClawChannels: (id: string) =>
-        invoke('getClawChannels', id) as Promise<ClawChannelsResponse>,
-    updateClawChannels: (id: string, data: UpdateClawChannelsData) =>
-        invoke('updateClawChannels', id, data) as Promise<void>,
-    pairWhatsApp: (id: string) =>
-        invoke('pairWhatsApp', id) as Promise<WhatsAppPairResponse>,
-    pairWhatsAppStatus: (id: string) =>
-        invoke('pairWhatsAppStatus', id) as Promise<WhatsAppPairStatusResponse>,
-    getClawBindings: (id: string) =>
-        invoke('getClawBindings', id) as Promise<ClawBindingsResponse>,
-    updateClawBindings: (id: string, data: UpdateClawBindingsData) =>
-        invoke('updateClawBindings', id, data) as Promise<void>,
     getClawSkills: (id: string) =>
         invoke('getClawSkills', id) as Promise<ClawSkillsResponse>,
     updateClawSkills: (id: string, data: UpdateClawSkillsData) =>
