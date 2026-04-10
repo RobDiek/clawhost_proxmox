@@ -1,5 +1,6 @@
 import type {
     CacheEntry,
+    ErrorWithBody,
     PolarSubscription,
     PolarSubscriptionRaw,
     PolarItemsResult
@@ -231,7 +232,7 @@ const subscriptions = {
         } catch (error) {
             const body =
                 error && typeof error === 'object' && 'body' in error
-                    ? String((error as { body: unknown }).body)
+                    ? String((error as ErrorWithBody).body)
                     : ''
             if (body.includes('AlreadyCanceledSubscription')) return
             throw error

@@ -46,8 +46,7 @@ const purchaseLicense = async (c: AuthenticatedContext) => {
         }
 
         const url = process.env.CLIENT
-        const http = url?.includes('localhost') ? 'http' : 'https'
-        const successUrl = `${http}://${url}/account?payment=success&checkout_id={CHECKOUT_ID}`
+        const successUrl = `https://${url}/account?payment=success&checkout_id={CHECKOUT_ID}`
 
         const referralCode = c.req.header('X-Referral-Code') || null
 

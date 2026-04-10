@@ -53,6 +53,12 @@ import {
 
 import { BlogCard, BlogCTA } from '@/components/blog'
 
+import {
+    LegalContactSection,
+    LegalPageLayout,
+    LegalSection
+} from '@/components/legal'
+
 import { GoPricingCard, GoWaitlistCTA, GoWaitlistForm } from '@/components/go'
 
 import { LicenseCard, LicenseRequired, ProtectedRoute } from '@/components/auth'
@@ -70,6 +76,7 @@ import {
     PanelPlaceholder,
     PlansSkeleton,
     ScrollToBottomButton,
+    SupportButton,
     ThemeToggle,
     Toast,
     TruncateTooltip,
@@ -117,6 +124,9 @@ export {
     LandingDemoPreview,
     LanguageSelector,
     LandingFooter,
+    LegalContactSection,
+    LegalPageLayout,
+    LegalSection,
     LicenseCard,
     LicenseRequired,
     Logo,
@@ -135,6 +145,7 @@ export {
     ScrollToTop,
     SelfHostButton,
     StatsRow,
+    SupportButton,
     ThemeToggle,
     Toast,
     TruncateTooltip,

@@ -61,6 +61,7 @@ export type {
     ToastData,
     UIState,
     AuthContextType,
+    PendingConflict,
     ClawDiagnosticsContentProps,
     ClawLogsContentProps,
     ParsedLogLine,

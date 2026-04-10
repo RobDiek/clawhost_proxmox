@@ -9,6 +9,7 @@ import {
     ActionButton,
     LanguageSelector,
     Logo,
+    SupportButton,
     ThemeToggle,
     UserDropdown
 } from '@/components'
@@ -125,6 +126,7 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({
                             </Fragment>
                         )}
                     <div className='flex items-center gap-1.5'>
+                        <SupportButton showLabel />
                         <LanguageSelector />
                         <ThemeToggle />
                     </div>

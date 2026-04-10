@@ -10,6 +10,7 @@ import NetworkStatus from '@/components/shared/NetworkStatus'
 import PanelPlaceholder from '@/components/shared/PanelPlaceholder'
 import PlansSkeleton from '@/components/shared/PlansSkeleton'
 import ScrollToBottomButton from '@/components/shared/ScrollToBottomButton'
+import SupportButton from '@/components/shared/SupportButton'
 import ThemeToggle from '@/components/shared/ThemeToggle'
 import Toast from '@/components/shared/Toast'
 import TruncateTooltip from '@/components/shared/TruncateTooltip'
@@ -29,6 +30,7 @@ export {
     PanelPlaceholder,
     PlansSkeleton,
     ScrollToBottomButton,
+    SupportButton,
     ThemeToggle,
     Toast,
     TruncateTooltip,

@@ -97,7 +97,13 @@ const SSHKeys: FC = (): ReactNode => {
             >
                 <PageHeader
                     title={t('sshKeys.title')}
-                    description={`${sshKeys?.length ?? 0} ${sshKeys?.length === 1 ? t('sshKeys.key') : t('sshKeys.keys')}`}
+                    description={t('sshKeys.keyCountDescription', {
+                        count: sshKeys?.length ?? 0,
+                        label:
+                            sshKeys?.length === 1
+                                ? t('sshKeys.key')
+                                : t('sshKeys.keys')
+                    })}
                     action={
                         sshKeys && sshKeys.length > 0 ? (
                             <ActionButton

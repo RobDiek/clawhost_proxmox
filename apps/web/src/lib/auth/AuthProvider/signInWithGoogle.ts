@@ -1,4 +1,8 @@
-import type { ElectronWindow, FirebaseErrorLike } from '@/ts/Interfaces'
+import type {
+    ElectronWindow,
+    FirebaseErrorLike,
+    PendingConflict
+} from '@/ts/Interfaces'
 import type { ElectronOAuthFn, ResolveConflictFn } from '@/ts/Types'
 
 import {
@@ -12,7 +16,7 @@ import { Envs } from '@/lib'
 const signInWithGoogle = async (
     resolveConflict: ResolveConflictFn,
     electronOAuth: ElectronOAuthFn
-): Promise<void> => {
+): Promise<PendingConflict | null> => {
     const electronAPI = (window as unknown as ElectronWindow).electronAPI
 
     if (electronAPI?.isDesktop) {
@@ -36,22 +40,27 @@ const signInWithGoogle = async (
                 firebaseError.code ===
                 'auth/account-exists-with-different-credential'
             ) {
-                const resolved = await resolveConflict(
+                const conflictEmail = firebaseError.customData?.email as
+                    | string
+                    | undefined
+                const pending = resolveConflict(
                     GoogleAuthProvider.credentialFromError(
                         error as Parameters<
                             typeof GoogleAuthProvider.credentialFromError
                         >[0]
                     ),
-                    'google.com'
+                    'google.com',
+                    conflictEmail
                 )
-                if (resolved) return
+                if (pending) return pending
             }
             throw error
         }
-        return
+        return null
     }
 
     await signInWithRedirect(auth, new GoogleAuthProvider())
+    return null
 }
 
 export default signInWithGoogle

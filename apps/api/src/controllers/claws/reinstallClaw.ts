@@ -6,6 +6,8 @@ import { db } from '@/db'
 import { claws, sshKeys, volumes } from '@/db/schema'
 import { getProvider } from '@/services/provider'
 import cloudflare from '@/services/cloudflare'
+import hostKeyStore from '@/services/hostKeyStore'
+import { encrypt } from '@/lib/encryption'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 import {
@@ -79,6 +81,8 @@ const reinstallClaw = async (c: AuthenticatedContext) => {
                 : Promise.resolve()
         ])
 
+        if (existing.ip) hostKeyStore.clear(existing.ip)
+
         const newPassword = generatePassword()
         const newGatewayToken = generateToken()
 
@@ -116,8 +120,9 @@ const reinstallClaw = async (c: AuthenticatedContext) => {
                     providerServerId: serverId.toString(),
                     status: clawStatus.configuring,
                     ip,
-                    rootPassword: newPassword,
-                    gatewayToken: newGatewayToken,
+                    rootPassword: encrypt(newPassword),
+                    gatewayToken: encrypt(newGatewayToken),
+                    hostKeyFingerprint: null,
                     lastReinstalledAt: new Date()
                 })
                 .where(eq(claws.id, id))

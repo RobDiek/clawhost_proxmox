@@ -458,12 +458,21 @@ export interface VerifyOtpResponse {
 export interface ResolveCredentialConflictData {
     accessToken: string
     providerId: string
+    email: string
+    code: string
+}
+
+export interface PendingConflict {
+    accessToken: string
+    providerId: string
+    email: string
 }
 
 export interface AuthContextType {
     user: User | null
     loading: boolean
     cachedProfile: CachedProfile | null
+    pendingConflict: PendingConflict | null
     updateCachedProfile: (data: Partial<CachedProfile>) => void
     sendOtp: (email: string) => Promise<void>
     verifyOtp: (email: string, code: string) => Promise<void>
@@ -474,6 +483,7 @@ export interface AuthContextType {
     unlinkGoogle: () => Promise<void>
     unlinkGithub: () => Promise<void>
     signOut: () => Promise<void>
+    clearPendingConflict: () => void
     isLocal?: boolean
 }
 
@@ -504,6 +514,10 @@ export interface ClawMascotProps {
 export interface ClawAvatarProps {
     size?: ClawAvatarSize
     className?: string
+}
+
+export interface SupportButtonProps {
+    showLabel?: boolean
 }
 
 export interface HeaderProps {
@@ -583,6 +597,27 @@ export interface PageTitleProps {
     author?: string
 }
 
+export interface LegalPageLayoutProps {
+    titleKey: TranslationKey
+    descriptionKey: TranslationKey
+    lastUpdatedKey: TranslationKey
+    image?: string
+    url: string
+    children: ReactNode
+}
+
+export interface LegalSectionProps {
+    titleKey: TranslationKey
+    textKey?: TranslationKey
+    items?: TranslationKey[]
+    children?: ReactNode
+}
+
+export interface LegalContactSectionProps {
+    titleKey: TranslationKey
+    textKey: TranslationKey
+}
+
 export interface PageHeaderProps {
     title: string
     description?: string
@@ -641,6 +676,7 @@ export interface ClawCardActions {
     onExport: () => void
     onResumeCheckout: () => void
     onCancelPending: () => void
+    onUpdatePayment: () => void
 }
 
 export interface ExportRateLimitError extends Error {
@@ -2216,6 +2252,7 @@ export interface EnvVarValidationError {
 
 export interface FirebaseErrorLike {
     code?: string
+    customData?: Record<string, unknown>
 }
 
 export interface ErrorWithMessage {

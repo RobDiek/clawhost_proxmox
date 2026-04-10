@@ -27,7 +27,8 @@ import {
     ArrowsClockwiseIcon,
     ArrowCounterClockwiseIcon,
     ExportIcon,
-    ArrowSquareOutIcon
+    ArrowSquareOutIcon,
+    CreditCardIcon
 } from '@phosphor-icons/react'
 
 const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
@@ -84,6 +85,18 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                 )}
             </DropdownMenuTrigger>
             <DropdownMenuContent align='end' collisionPadding={8}>
+                {claw.subscriptionStatus === 'past_due' && (
+                    <Fragment>
+                        <DropdownMenuItem
+                            onClick={actions.onUpdatePayment}
+                            className='text-orange-600 focus:text-orange-600 dark:text-orange-400 dark:focus:text-orange-400'
+                        >
+                            <CreditCardIcon className='mr-2 h-4 w-4' />
+                            {t('dashboard.updatePayment')}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                    </Fragment>
+                )}
                 {claw.status === clawStatus.stopped && (
                     <DropdownMenuItem
                         onClick={actions.onStart}

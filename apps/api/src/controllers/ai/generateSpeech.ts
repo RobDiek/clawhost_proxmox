@@ -23,16 +23,13 @@ const generateSpeech = withErrorHandler(
 )(async (c: AuthenticatedContext) => {
     const body = await c.req.json<GenerateSpeechBody>()
 
-    if (!body.text || !body.text.trim()) {
+    if (!body.text || !body.text.trim())
         return fail(c, t('api.textRequired'), 400)
-    }
 
     const voice = body.voice || DEFAULT_VOICE
     const modelPath = path.join(MODELS_DIR, `${voice}.onnx`)
 
-    if (!existsSync(modelPath)) {
-        return fail(c, t('api.voiceNotFound'), 400)
-    }
+    if (!existsSync(modelPath)) return fail(c, t('api.voiceNotFound'), 400)
 
     const { child, sampleRate, channels } = synthesizeStream(
         body.text.trim(),

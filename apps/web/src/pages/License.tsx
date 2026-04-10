@@ -9,7 +9,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/lib/auth'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import { api, ROUTES } from '@/lib'
+import { api, ROUTES, isSafeRedirectUrl } from '@/lib'
 import { useProfile, PROFILE_QUERY_KEY } from '@/hooks'
 import { Button, Badge } from '@/components/ui'
 import {
@@ -47,6 +47,7 @@ const License: FC = (): ReactNode => {
         setIsPurchasing(true)
         try {
             const { checkoutUrl } = await api.purchaseLicense()
+            if (!isSafeRedirectUrl(checkoutUrl)) return
             window.location.href = checkoutUrl
         } catch {
             showToast(t('license.failedToPurchase'), TOAST_TYPE.ERROR)

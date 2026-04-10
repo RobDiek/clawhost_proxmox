@@ -10,7 +10,7 @@ import { useState, useMemo } from 'react'
 import { t } from '@openclaw/i18n'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import { api } from '@/lib'
+import { api, isSafeRedirectUrl } from '@/lib'
 import {
     useStartClaw,
     useStopClaw,
@@ -160,11 +160,19 @@ const useClawCardActions = ({
             onShowCredentials: handleShowCredentials,
             onExport: handleExport,
             onResumeCheckout: () => {
-                if (target.checkoutUrl)
+                if (target.checkoutUrl && isSafeRedirectUrl(target.checkoutUrl))
                     window.open(target.checkoutUrl, '_blank')
             },
             onCancelPending: () =>
-                cancelPendingMutation.mutate(target.id.replace('pending-', ''))
+                cancelPendingMutation.mutate(target.id.replace('pending-', '')),
+            onUpdatePayment: async () => {
+                try {
+                    const { url } = await api.getCustomerPortal()
+                    window.open(url, '_blank')
+                } catch {
+                    showToast(t('billing.failedToLoadPortal'), TOAST_TYPE.ERROR)
+                }
+            }
         }
     }, [
         claw,

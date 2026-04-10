@@ -6,6 +6,7 @@ import { db } from '@/db'
 import { claws } from '@/db/schema'
 import { getEnvironment, PROD } from '@/lib/environment'
 import { provisionClaw } from '@/controllers/claws'
+import { subscriptions } from '@/lib/polar'
 import trackReferral from '@/controllers/webhooks/polar/trackReferral'
 
 const onSubscriptionActive = async (
@@ -35,11 +36,13 @@ const onSubscriptionActive = async (
         productId: data.productId
     })
         .then((result) => {
-            if (
-                result.success &&
-                result.referralCode &&
-                data.metadata?.userId
-            ) {
+            if (!result.success) {
+                subscriptions.revoke(data.id).catch((revokeError) => {
+                    console.error('onSubscriptionActive', revokeError)
+                })
+                return
+            }
+            if (result.referralCode && data.metadata?.userId) {
                 trackReferral(
                     data.metadata.userId,
                     result.referralCode,

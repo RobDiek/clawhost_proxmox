@@ -11,7 +11,8 @@ import {
     PlusIcon,
     ClockIcon,
     CircleNotchIcon,
-    AndroidLogoIcon
+    AndroidLogoIcon,
+    WarningIcon
 } from '@phosphor-icons/react'
 import {
     ClawCardDropdownMenu,
@@ -50,6 +51,7 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
     const { data: profile } = useProfile({ enabled: true })
 
     const isScheduledForDeletion = !!claw.deletionScheduledAt
+    const isPastDue = claw.subscriptionStatus === 'past_due'
     const hasActionItems =
         claw.status === clawStatus.running || claw.status === clawStatus.stopped
 
@@ -204,6 +206,26 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                                     </span>
                                 </div>
                             )}
+                            {isPastDue && (
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className='flex items-center gap-1.5 rounded-md bg-orange-500/10 px-2 py-1'>
+                                            <WarningIcon
+                                                className='h-3 w-3 text-orange-500'
+                                                weight='fill'
+                                            />
+                                            <span className='text-xs text-orange-500'>
+                                                {t('dashboard.pastDue')}
+                                            </span>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent side='top'>
+                                        <p>
+                                            {t('dashboard.pastDueDescription')}
+                                        </p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            )}
                             {isScheduledForDeletion && (
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -240,6 +262,26 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                                 </Tooltip>
                             )}
                         </div>
+                    </div>
+                )}
+                {!canShowAgents && isPastDue && (
+                    <div className='px-4 py-3'>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className='flex items-center gap-1.5 rounded-md bg-orange-500/10 px-2 py-1'>
+                                    <WarningIcon
+                                        className='h-3 w-3 text-orange-500'
+                                        weight='fill'
+                                    />
+                                    <span className='text-xs text-orange-500'>
+                                        {t('dashboard.pastDue')}
+                                    </span>
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent side='top'>
+                                <p>{t('dashboard.pastDueDescription')}</p>
+                            </TooltipContent>
+                        </Tooltip>
                     </div>
                 )}
                 {!canShowAgents && isScheduledForDeletion && (

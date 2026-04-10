@@ -1,7 +1,6 @@
 import { externalUrls } from '@openclaw/shared'
 
 const CDN_URL = externalUrls.CLAWHOST.CDN
-const SITE_URL = externalUrls.CLAWHOST.BASE
 
 const CDN_ASSETS = {
     LOGO_DARK: `${CDN_URL}/assets/clawhost-logo-dark.png`,
@@ -26,5 +25,4 @@ const CDN_ASSETS = {
     FEATURE_YEARLY_PLANS: `${CDN_URL}/assets/features/yearly-plans.gif`
 }
 
-export { SITE_URL }
 export default CDN_ASSETS

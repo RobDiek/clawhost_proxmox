@@ -39,7 +39,7 @@ const Footer: FC = (): ReactNode => {
                                 {t('footer.changelog')}
                             </Link>
                             <a
-                                href={SUPPORT_EMAIL}
+                                href={`mailto:${SUPPORT_EMAIL}`}
                                 className='text-muted-foreground hover:text-foreground text-sm transition-colors'
                             >
                                 {t('footer.getInTouch')}

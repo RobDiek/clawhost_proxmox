@@ -5,7 +5,8 @@ import type {
     CachedProfile,
     ElectronWindow,
     FirebaseErrorLike,
-    OAuthWindowResult
+    OAuthWindowResult,
+    PendingConflict
 } from '@/ts/Interfaces'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -42,6 +43,8 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
     const [cachedProfile, setCachedProfile] = useState<CachedProfile | null>(
         readCachedProfile
     )
+    const [pendingConflict, setPendingConflict] =
+        useState<PendingConflict | null>(null)
     const fetchedRef = useRef(false)
 
     useEffect(() => {
@@ -79,6 +82,8 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
         })
     }, [])
 
+    const resolveConflict = useCallback(handleCredentialConflict, [])
+
     useEffect(() => {
         getRedirectResult(auth).catch(async (error) => {
             const firebaseError = error as FirebaseErrorLike
@@ -86,13 +91,24 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
                 firebaseError.code ===
                 'auth/account-exists-with-different-credential'
             ) {
+                const conflictEmail = firebaseError.customData?.email as
+                    | string
+                    | undefined
                 const googleCred = GoogleAuthProvider.credentialFromError(
                     error as Parameters<
                         typeof GoogleAuthProvider.credentialFromError
                     >[0]
                 )
                 if (googleCred) {
-                    await handleCredentialConflict(googleCred, 'google.com')
+                    const pending = handleCredentialConflict(
+                        googleCred,
+                        'google.com',
+                        conflictEmail
+                    )
+                    if (pending) {
+                        setPendingConflict(pending)
+                        await api.sendOtp(pending.email)
+                    }
                     return
                 }
                 const githubCred = GithubAuthProvider.credentialFromError(
@@ -101,7 +117,15 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
                     >[0]
                 )
                 if (githubCred) {
-                    await handleCredentialConflict(githubCred, 'github.com')
+                    const pending = handleCredentialConflict(
+                        githubCred,
+                        'github.com',
+                        conflictEmail
+                    )
+                    if (pending) {
+                        setPendingConflict(pending)
+                        await api.sendOtp(pending.email)
+                    }
                     return
                 }
             }
@@ -161,12 +185,27 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
         await api.sendOtp(email)
     }, [])
 
-    const verifyOtp = useCallback(async (email: string, code: string) => {
-        const { customToken } = await api.verifyOtp(email, code)
-        await signInWithCustomToken(auth, customToken)
-    }, [])
-
-    const resolveConflict = useCallback(handleCredentialConflict, [])
+    const verifyOtp = useCallback(
+        async (email: string, code: string) => {
+            if (
+                pendingConflict &&
+                pendingConflict.email.toLowerCase() === email.toLowerCase()
+            ) {
+                const { customToken } = await api.resolveCredentialConflict({
+                    accessToken: pendingConflict.accessToken,
+                    providerId: pendingConflict.providerId,
+                    email: pendingConflict.email,
+                    code
+                })
+                setPendingConflict(null)
+                await signInWithCustomToken(auth, customToken)
+                return
+            }
+            const { customToken } = await api.verifyOtp(email, code)
+            await signInWithCustomToken(auth, customToken)
+        },
+        [pendingConflict]
+    )
 
     const electronOAuth = useCallback(
         async (providerUrl: string, callbackPrefix: string) => {
@@ -183,15 +222,21 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
         []
     )
 
-    const signInWithGoogle = useCallback(
-        () => signInWithGoogleFn(resolveConflict, electronOAuth),
-        [resolveConflict, electronOAuth]
-    )
+    const signInWithGoogle = useCallback(async () => {
+        const pending = await signInWithGoogleFn(resolveConflict, electronOAuth)
+        if (pending) {
+            setPendingConflict(pending)
+            await api.sendOtp(pending.email)
+        }
+    }, [resolveConflict, electronOAuth])
 
-    const signInWithGithub = useCallback(
-        () => signInWithGithubFn(resolveConflict, electronOAuth),
-        [resolveConflict, electronOAuth]
-    )
+    const signInWithGithub = useCallback(async () => {
+        const pending = await signInWithGithubFn(resolveConflict, electronOAuth)
+        if (pending) {
+            setPendingConflict(pending)
+            await api.sendOtp(pending.email)
+        }
+    }, [resolveConflict, electronOAuth])
 
     const linkGoogle = useCallback(async () => {
         if (!user) return
@@ -239,6 +284,10 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
         await firebaseSignOut(auth)
     }, [])
 
+    const clearPendingConflict = useCallback(() => {
+        setPendingConflict(null)
+    }, [])
+
     const isLocal =
         document.documentElement.getAttribute('data-electron') === 'true'
 
@@ -248,6 +297,7 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
                 user,
                 loading,
                 cachedProfile,
+                pendingConflict,
                 updateCachedProfile,
                 sendOtp,
                 verifyOtp,
@@ -258,6 +308,7 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
                 unlinkGoogle,
                 unlinkGithub,
                 signOut,
+                clearPendingConflict,
                 isLocal
             }}
         >

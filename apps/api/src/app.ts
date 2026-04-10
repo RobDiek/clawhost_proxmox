@@ -61,7 +61,15 @@ app.use('*', async (c, next) => {
     c.header('X-Content-Type-Options', 'nosniff')
     c.header('X-Frame-Options', 'DENY')
     c.header('Referrer-Policy', 'strict-origin-when-cross-origin')
-    c.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+    c.header(
+        'Strict-Transport-Security',
+        'max-age=31536000; includeSubDomains; preload'
+    )
+    c.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+    c.header(
+        'Content-Security-Policy',
+        "default-src 'self'; script-src 'self' https://www.googletagmanager.com https://datafa.st; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://*.clawhost.cloud https://*.googleapis.com https://*.firebaseio.com https://datafa.st; font-src 'self'; frame-ancestors 'none'"
+    )
 })
 
 app.get('/', (c) => ok(c, null, t('api.healthOk')))
@@ -151,9 +159,7 @@ app.use('/*', async (c, next) => {
                     END`
                 })
                 .where(eq(users.id, decoded.uid))
-        } 
-        
-        else if (decoded.email) {
+        } else if (decoded.email) {
             await db
                 .insert(users)
                 .values({
@@ -172,9 +178,7 @@ app.use('/*', async (c, next) => {
                         END`
                     }
                 })
-        }
-        
-        else return fail(c, t('api.unauthorized'), 401)
+        } else return fail(c, t('api.unauthorized'), 401)
 
         const admin = existingUser?.role === userRole.admin
 
@@ -186,9 +190,7 @@ app.use('/*', async (c, next) => {
         c.set('userId', decoded.uid)
         c.set('isAdmin', admin)
         return next()
-    } 
-    
-    catch (error) {
+    } catch (error) {
         console.error('authMiddleware', error)
         return fail(c, t('api.internalServerError'), 500)
     }

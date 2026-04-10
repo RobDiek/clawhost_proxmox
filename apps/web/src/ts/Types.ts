@@ -1,5 +1,9 @@
 import type { OAuthCredential } from 'firebase/auth'
-import type { OAuthWindowResult, TranscriptionResult } from '@/ts/Interfaces'
+import type {
+    OAuthWindowResult,
+    PendingConflict,
+    TranscriptionResult
+} from '@/ts/Interfaces'
 import type {
     authMethod,
     billingInterval,
@@ -125,8 +129,9 @@ export type AdminAnalyticsRange = 'day' | 'week' | 'month' | 'year' | 'all'
 
 export type ResolveConflictFn = (
     credential: OAuthCredential | null,
-    providerId: string
-) => Promise<boolean>
+    providerId: string,
+    conflictEmail: string | undefined
+) => PendingConflict | null
 
 export type ElectronOAuthFn = (
     providerUrl: string,

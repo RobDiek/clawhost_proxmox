@@ -5,7 +5,11 @@ import { eq, desc, gt, and } from 'drizzle-orm'
 import { clawStatus } from '@openclaw/shared'
 import { db } from '@/db'
 import { claws, volumes, pendingClaws } from '@/db/schema'
-import { sanitizeClaw, syncClawServers } from '@/controllers/claws/helpers'
+import {
+    sanitizeClaw,
+    syncClawServers,
+    decryptClawSecrets
+} from '@/controllers/claws/helpers'
 import { subscriptions, checkouts } from '@/lib/polar'
 import { ok } from '@/lib/response'
 import { t } from '@openclaw/i18n'
@@ -119,7 +123,12 @@ const getClaws = withErrorHandler('getClaws')(async (
 
     return ok(
         c,
-        [...pendingAsClaw, ...clawsWithVolumes.map(sanitizeClaw)],
+        [
+            ...pendingAsClaw,
+            ...clawsWithVolumes.map((claw) =>
+                sanitizeClaw(decryptClawSecrets(claw))
+            )
+        ],
         t('api.clawsFetched')
     )
 })

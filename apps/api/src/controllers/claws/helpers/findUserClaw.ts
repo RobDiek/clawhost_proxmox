@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { claws } from '@/db/schema'
+import decryptClawSecrets from '@/controllers/claws/helpers/decryptClawSecrets'
 
 const findUserClaw = async (
     userId: string,
@@ -16,7 +17,7 @@ const findUserClaw = async (
     if (!claw[0]) return null
     if (claw[0].userId !== userId && !isAdmin) return null
 
-    return claw[0]
+    return decryptClawSecrets(claw[0])
 }
 
 export default findUserClaw

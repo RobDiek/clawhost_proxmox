@@ -10,6 +10,7 @@ import sanitizeClaw from '@/controllers/claws/helpers/sanitizeClaw'
 import safeShellWrite from '@/controllers/claws/helpers/safeShellWrite'
 import validateEnvVars from '@/controllers/claws/helpers/validateEnvVars'
 import findUserClaw from '@/controllers/claws/helpers/findUserClaw'
+import decryptClawSecrets from '@/controllers/claws/helpers/decryptClawSecrets'
 import ensureClawHub from '@/controllers/claws/helpers/ensureClawHub'
 import applyToolsDefaults from '@/controllers/claws/helpers/applyToolsDefaults'
 import BASE_DIR from '@/controllers/claws/helpers/baseDir'
@@ -21,7 +22,7 @@ import isVersionAtLeast from '@/controllers/claws/helpers/isVersionAtLeast'
 import parseClawVersion from '@/controllers/claws/helpers/parseClawVersion'
 import isVersionSupported from '@/controllers/claws/helpers/isVersionSupported'
 import checkFeatureVersion from '@/controllers/claws/helpers/checkFeatureVersion'
-import { invalidateVersionCache } from '@/controllers/claws/helpers/checkFeatureVersion'
+import invalidateVersionCache from '@/controllers/claws/helpers/invalidateVersionCache'
 import SUPPORTED_VERSIONS from '@/controllers/claws/helpers/supportedVersions'
 import parseJsonFromSSH from '@/controllers/claws/helpers/parseJsonFromSSH'
 import parseJsonArrayFromSSH from '@/controllers/claws/helpers/parseJsonArrayFromSSH'
@@ -49,6 +50,7 @@ export {
     cleanupClaw,
     isAdmin,
     findUserClaw,
+    decryptClawSecrets,
     sanitizeClaw,
     safeShellWrite,
     validateEnvVars,

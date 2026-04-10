@@ -18,6 +18,7 @@ import {
     generateCloudInit,
     DOMAIN
 } from '@/controllers/claws/helpers'
+import { encrypt, decrypt } from '@/lib/encryption'
 import { t } from '@openclaw/i18n'
 
 const provisionClaw = async (
@@ -77,8 +78,10 @@ const provisionClaw = async (
             }
         }
 
+        const plainRootPassword = decrypt(pending.rootPassword || '')
+
         const cloudInitScript = generateCloudInit(
-            pending.rootPassword || '',
+            plainRootPassword,
             subdomain,
             DOMAIN,
             gatewayToken
@@ -94,7 +97,7 @@ const provisionClaw = async (
             rootPassword: pending.rootPassword,
             sshKeyId: pending.sshKeyId,
             subdomain,
-            gatewayToken,
+            gatewayToken: encrypt(gatewayToken),
             polarSubscriptionId: params.subscriptionId,
             polarProductId: params.productId,
             polarCustomerId: params.customerId,
@@ -111,7 +114,7 @@ const provisionClaw = async (
                 serverName,
                 pending.planId,
                 pending.location,
-                pending.rootPassword || undefined,
+                plainRootPassword || undefined,
                 providerSshKeyIds,
                 '',
                 cloudInitScript

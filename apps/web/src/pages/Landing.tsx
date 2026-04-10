@@ -244,7 +244,9 @@ const Landing: FC = (): ReactNode => {
                             <StatsRow
                                 stats={[
                                     {
-                                        value: `$25${t('landing.perMonth')}`,
+                                        value: t('landing.startingPriceValue', {
+                                            price: '25'
+                                        }),
                                         label: t('landing.startingPrice')
                                     },
                                     {

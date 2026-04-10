@@ -6,8 +6,8 @@ import THREADS_URL from '@/lib/links/THREADS_URL'
 import YOUTUBE_URL from '@/lib/links/YOUTUBE_URL'
 import TIKTOK_URL from '@/lib/links/TIKTOK_URL'
 import TUTORIAL_URL from '@/lib/links/TUTORIAL_URL'
-import SUPPORT_EMAIL from '@/lib/links/SUPPORT_EMAIL'
-import LEGAL_EMAIL from '@/lib/links/LEGAL_EMAIL'
+
+const SUPPORT_EMAIL = 'support@clawhost.cloud'
 
 export {
     PRODUCT_HUNT_URL,
@@ -18,6 +18,5 @@ export {
     YOUTUBE_URL,
     TIKTOK_URL,
     TUTORIAL_URL,
-    SUPPORT_EMAIL,
-    LEGAL_EMAIL
+    SUPPORT_EMAIL
 }

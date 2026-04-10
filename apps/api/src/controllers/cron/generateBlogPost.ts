@@ -1,4 +1,10 @@
 import type { Context } from 'hono'
+import type {
+    BlogTopicDiscovery,
+    GitHubFileEntry,
+    GitHubPullRequestResponse,
+    GitHubRefResponse
+} from '@/ts/Interfaces'
 
 import OpenAI from 'openai'
 import { externalUrls } from '@openclaw/shared'
@@ -41,7 +47,7 @@ const fetchExistingSlugs = async (token: string): Promise<string[]> => {
 
     if (!res.ok) return []
 
-    const files = (await res.json()) as { name: string }[]
+    const files = (await res.json()) as GitHubFileEntry[]
     return files
         .filter((f) => f.name.endsWith('.mdx'))
         .map((f) => f.name.replace('.mdx', ''))
@@ -50,7 +56,7 @@ const fetchExistingSlugs = async (token: string): Promise<string[]> => {
 const discoverTrendingTopic = async (
     openai: OpenAI,
     existingSlugs: string[]
-): Promise<{ title: string; angle: string }> => {
+): Promise<BlogTopicDiscovery> => {
     const slugList = existingSlugs.slice(0, 50).join('\n')
 
     const res = await openai.responses.create({
@@ -139,7 +145,7 @@ const getProductionSha = async (token: string): Promise<string | null> => {
 
     if (!res.ok) return null
 
-    const data = (await res.json()) as { object: { sha: string } }
+    const data = (await res.json()) as GitHubRefResponse
     return data.object.sha
 }
 
@@ -201,7 +207,7 @@ const createPullRequest = async (
 
     if (!res.ok) return null
 
-    const data = (await res.json()) as { html_url: string }
+    const data = (await res.json()) as GitHubPullRequestResponse
     return data.html_url
 }
 

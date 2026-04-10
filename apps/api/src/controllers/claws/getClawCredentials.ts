@@ -9,6 +9,7 @@ const getClawCredentials = withErrorHandler(
     withClaw()(async (c, claw) => {
         return ok(c, {
             rootPassword: claw.rootPassword,
+            gatewayToken: claw.gatewayToken,
             ip: claw.ip
         })
     })

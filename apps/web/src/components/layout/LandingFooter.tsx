@@ -320,7 +320,7 @@ const LandingFooter: FC = (): ReactNode => {
                             </li>
                             <li>
                                 <a
-                                    href={SUPPORT_EMAIL}
+                                    href={`mailto:${SUPPORT_EMAIL}`}
                                     className='text-muted-foreground hover:text-foreground transition'
                                 >
                                     {t('footer.getInTouch')}

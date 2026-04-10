@@ -14,9 +14,8 @@ const connectAuthMethod = async (c: AuthenticatedContext) => {
         const userId = c.get('userId')
         const method = c.req.param('method')!
 
-        if (!VALID_METHODS.includes(method as (typeof VALID_METHODS)[number])) {
+        if (!VALID_METHODS.includes(method as (typeof VALID_METHODS)[number]))
             return fail(c, t('api.invalidAuthMethod'), 400)
-        }
 
         await db
             .update(users)

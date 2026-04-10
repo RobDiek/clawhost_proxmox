@@ -41,9 +41,8 @@ const createSSHKey = withErrorHandler(
         )
     }
 
-    if (!publicKey.startsWith('ssh-') && !publicKey.startsWith('ecdsa-')) {
+    if (!publicKey.startsWith('ssh-') && !publicKey.startsWith('ecdsa-'))
         return fail(c, t('api.invalidSshKeyFormat'), 400)
-    }
 
     const keyLabel = `${name}-${userId.slice(0, 8)}`
 

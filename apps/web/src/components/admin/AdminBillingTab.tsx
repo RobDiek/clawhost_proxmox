@@ -139,9 +139,18 @@ const AdminBillingTab: FC<AdminResourceTabProps> = ({
                                                 {formatCurrency(
                                                     order.totalAmount
                                                 )}
-                                                {order.subscriptionId
-                                                    ? ` · ${t('admin.billingFilterService')}`
-                                                    : ` · ${t('admin.billingFilterLicense')}`}
+                                                {t(
+                                                    'admin.billingOrderTypeLabel',
+                                                    {
+                                                        type: order.subscriptionId
+                                                            ? t(
+                                                                  'admin.billingFilterService'
+                                                              )
+                                                            : t(
+                                                                  'admin.billingFilterLicense'
+                                                              )
+                                                    }
+                                                )}
                                             </p>
                                         </div>
                                     </div>

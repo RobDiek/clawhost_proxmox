@@ -6,14 +6,26 @@ import type {
     ResolveCredentialConflictBody
 } from '@/ts/Interfaces'
 
-import { eq, sql } from 'drizzle-orm'
-import { authMethod, externalUrls } from '@openclaw/shared'
+import crypto from 'crypto'
+import { eq, and, gt, sql } from 'drizzle-orm'
+import { authMethod, externalUrls, inputValidation } from '@openclaw/shared'
 import { auth } from '@/services/firebase'
 import { db } from '@/db'
-import { users } from '@/db/schema'
+import { users, otpCodes } from '@/db/schema'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
+import {
+    getClientIp,
+    checkRateLimit,
+    setRateLimit
+} from '@/controllers/auth/rateLimit'
 import withErrorHandler from '@/lib/withErrorHandler'
+
+const hashCode = (code: string): string => {
+    return crypto.createHash('sha256').update(code).digest('hex')
+}
+
+const RESOLVE_RATE_LIMIT_WINDOW = 60_000
 
 const verifyGithubToken = async (accessToken: string) => {
     const [userRes, emailsRes] = await Promise.all([
@@ -58,11 +70,62 @@ const verifyGoogleToken = async (accessToken: string) => {
 
 const resolveCredentialConflict = withErrorHandler('resolveCredentialConflict')(
     async (c: Context) => {
-        const { accessToken, providerId } =
-            await c.req.json<ResolveCredentialConflictBody>()
+        const {
+            accessToken,
+            providerId,
+            email: conflictEmail,
+            code
+        } = await c.req.json<ResolveCredentialConflictBody>()
 
-        if (!accessToken || !providerId)
+        if (!accessToken || !providerId || !conflictEmail || !code)
             return fail(c, t('api.missingRequiredFields'), 400)
+
+        const ip = getClientIp(c)
+        if (ip) {
+            const retryAfter = await checkRateLimit(
+                `resolve-conflict:${ip}`,
+                RESOLVE_RATE_LIMIT_WINDOW
+            )
+            if (retryAfter > 0)
+                return fail(c, t('api.rateLimitExceeded'), 429, { retryAfter })
+        }
+
+        const normalizedEmail = conflictEmail.toLowerCase()
+
+        const otpRecord = await db
+            .select()
+            .from(otpCodes)
+            .where(
+                and(
+                    eq(otpCodes.email, normalizedEmail),
+                    gt(otpCodes.expiresAt, new Date())
+                )
+            )
+            .limit(1)
+            .then((rows) => rows[0])
+
+        if (!otpRecord) return fail(c, t('api.otpExpiredOrNotFound'), 401)
+
+        if (otpRecord.attempts >= inputValidation.OTP_MAX_ATTEMPTS.MAX) {
+            await db.delete(otpCodes).where(eq(otpCodes.id, otpRecord.id))
+            return fail(c, t('api.otpMaxAttemptsReached'), 401)
+        }
+
+        await db
+            .update(otpCodes)
+            .set({ attempts: sql`${otpCodes.attempts} + 1` })
+            .where(eq(otpCodes.id, otpRecord.id))
+
+        const codeHash = hashCode(code)
+        const hashA = Buffer.from(codeHash)
+        const hashB = Buffer.from(otpRecord.codeHash)
+        if (
+            hashA.length !== hashB.length ||
+            !crypto.timingSafeEqual(hashA, hashB)
+        )
+            return fail(c, t('api.otpInvalidCode'), 401)
+
+        await db.delete(otpCodes).where(eq(otpCodes.id, otpRecord.id))
 
         const verifier =
             providerId === 'github.com' ? verifyGithubToken : verifyGoogleToken
@@ -70,10 +133,13 @@ const resolveCredentialConflict = withErrorHandler('resolveCredentialConflict')(
 
         if (!verified?.email) return fail(c, t('api.invalidCredentials'), 401)
 
+        if (verified.email.toLowerCase() !== normalizedEmail)
+            return fail(c, t('api.invalidCredentials'), 401)
+
         const existingUser = await db
             .select()
             .from(users)
-            .where(eq(users.email, verified.email.toLowerCase()))
+            .where(eq(users.email, normalizedEmail))
             .limit(1)
             .then((rows) => rows[0])
 
@@ -103,6 +169,8 @@ const resolveCredentialConflict = withErrorHandler('resolveCredentialConflict')(
                 })
                 .where(eq(users.id, existingUser.id))
         ])
+
+        if (ip) await setRateLimit(`resolve-conflict:${ip}`)
 
         const customToken = await auth().createCustomToken(existingUser.id)
         return ok(c, { customToken }, t('api.accountLinked'))

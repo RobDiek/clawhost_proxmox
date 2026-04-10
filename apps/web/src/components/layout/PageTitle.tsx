@@ -41,7 +41,7 @@ const PageTitle: FC<PageTitleProps> = ({
     author
 }): ReactNode => {
     useEffect(() => {
-        const fullTitle = `${title} - ${t('common.brandName')}`
+        const fullTitle = t('common.pageTitleWithBrand', { title })
         document.title = fullTitle
         setMetaTag('property', 'og:title', fullTitle)
         setMetaTag('name', 'twitter:title', fullTitle)
