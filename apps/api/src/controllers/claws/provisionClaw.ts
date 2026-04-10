@@ -78,7 +78,10 @@ const provisionClaw = async (
             }
         }
 
-        const plainRootPassword = decrypt(pending.rootPassword || '')
+        if (!pending.rootPassword)
+            return { success: false, error: t('api.failedToProvisionClaw') }
+
+        const plainRootPassword = decrypt(pending.rootPassword)
 
         const cloudInitScript = generateCloudInit(
             plainRootPassword,

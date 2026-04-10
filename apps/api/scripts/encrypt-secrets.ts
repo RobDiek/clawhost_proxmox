@@ -59,11 +59,17 @@ const captureHostKey = (
 }
 
 const run = async () => {
-    if (!process.env.ENCRYPTION_KEY) {
+    const encryptionKey = process.env.ENCRYPTION_KEY
+    if (!encryptionKey) {
         log('ERROR: ENCRYPTION_KEY not set. Generate one with:')
         log(
             "  node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\""
         )
+        process.exit(1)
+    }
+
+    if (encryptionKey.length !== 64 || !/^[0-9a-f]+$/i.test(encryptionKey)) {
+        log('ERROR: ENCRYPTION_KEY must be exactly 64 hex characters (32 bytes)')
         process.exit(1)
     }
 
