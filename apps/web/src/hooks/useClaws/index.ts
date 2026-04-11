@@ -7,6 +7,7 @@ import CLAW_FILE_QUERY_KEY from '@/hooks/useClaws/CLAW_FILE_QUERY_KEY'
 import CLAW_DIAGNOSTICS_QUERY_KEY from '@/hooks/useClaws/CLAW_DIAGNOSTICS_QUERY_KEY'
 import CLAW_LOGS_QUERY_KEY from '@/hooks/useClaws/CLAW_LOGS_QUERY_KEY'
 import CLAW_VERSIONS_QUERY_KEY from '@/hooks/useClaws/CLAW_VERSIONS_QUERY_KEY'
+import CLAW_METRICS_QUERY_KEY from '@/hooks/useClaws/CLAW_METRICS_QUERY_KEY'
 import useClaws from '@/hooks/useClaws/useClaws'
 import useAdminClaws from '@/hooks/useClaws/useAdminClaws'
 import usePurchaseClaw from '@/hooks/useClaws/usePurchaseClaw'
@@ -27,6 +28,7 @@ import useClawVersion from '@/hooks/useClaws/useClawVersion'
 import useRenameClaw from '@/hooks/useClaws/useRenameClaw'
 import useUpdateClawSubdomain from '@/hooks/useClaws/useUpdateClawSubdomain'
 import useCancelPendingClaw from '@/hooks/useClaws/useCancelPendingClaw'
+import useClawMetrics from '@/hooks/useClaws/useClawMetrics'
 import updateClawInCaches from '@/hooks/useClaws/updateClawInCaches'
 import removeClawFromCaches from '@/hooks/useClaws/removeClawFromCaches'
 
@@ -60,6 +62,8 @@ export {
     useRenameClaw,
     useUpdateClawSubdomain,
     useCancelPendingClaw,
+    useClawMetrics,
+    CLAW_METRICS_QUERY_KEY,
     updateClawInCaches,
     removeClawFromCaches
 }

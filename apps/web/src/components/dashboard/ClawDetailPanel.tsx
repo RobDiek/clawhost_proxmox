@@ -17,6 +17,7 @@ import {
     ClawTerminalContent,
     ClawConfigContent,
     ClawVersionsContent,
+    ClawMetricsContent,
     ClawDetailInfoTab,
     ClawDetailSettingsTab,
     ClawDetailHeader,
@@ -271,8 +272,13 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                         <ClawConfigContent clawId={claw.id} />
                     )}
 
+                    {activeTab === 'metrics' && (
+                        <ClawMetricsContent clawId={claw.id} />
+                    )}
+
                     {activeTab === 'settings' && (
                         <ClawDetailSettingsTab
+                            clawId={claw.id}
                             settingsName={settingsName}
                             settingsNameError={settingsNameError}
                             settingsSubdomain={settingsSubdomain}

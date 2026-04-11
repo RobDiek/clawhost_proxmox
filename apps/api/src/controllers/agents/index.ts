@@ -26,6 +26,7 @@ import cancelPendingClaw from '@/controllers/agents/cancelPendingClaw'
 import updateClawSubdomain from '@/controllers/agents/updateClawSubdomain'
 import checkSubdomainAvailability from '@/controllers/agents/checkSubdomainAvailability'
 import provisionClaw from '@/controllers/agents/provisionClaw'
+import getClawMetrics from '@/controllers/agents/getClawMetrics'
 
 export {
     getClaws,
@@ -55,5 +56,6 @@ export {
     cancelPendingClaw,
     updateClawSubdomain,
     checkSubdomainAvailability,
-    provisionClaw
+    provisionClaw,
+    getClawMetrics
 }

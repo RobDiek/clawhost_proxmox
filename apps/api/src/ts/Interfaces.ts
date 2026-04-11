@@ -605,6 +605,28 @@ export interface GitHubPullRequestResponse {
     html_url: string
 }
 
+export interface ClawMetricsResponse {
+    cpu: { usagePercent: number; cores: number }
+    memory: { total: number; used: number; available: number }
+    disk: {
+        total: number
+        used: number
+        available: number
+        usagePercent: number
+    }
+    loadAvg: { load1: number; load5: number; load15: number }
+    network: { rxBytes: number; txBytes: number; interface: string }
+    processes: {
+        pid: number
+        user: string
+        cpu: number
+        mem: number
+        command: string
+    }[]
+    uptime: string
+    timestamp: number
+}
+
 export interface ServerLifecycleResult {
     success: boolean
     status: string

@@ -28,7 +28,8 @@ import {
     getClawCredentials,
     cancelPendingClaw,
     updateClawSubdomain,
-    checkSubdomainAvailability
+    checkSubdomainAvailability,
+    getClawMetrics
 } from '@/controllers/agents'
 import adminOnly from '@/middleware/adminOnly'
 
@@ -58,6 +59,7 @@ app.post('/:id/version', getClawVersion)
 app.post('/:id/versions', getClawVersions)
 app.post('/:id/install-version', adminOnly, installClawVersion)
 app.get('/:id/credentials', getClawCredentials)
+app.post('/:id/metrics', getClawMetrics)
 app.patch('/:id/subdomain', updateClawSubdomain)
 app.patch('/:id', renameClaw)
 app.delete('/:id', deleteClaw)

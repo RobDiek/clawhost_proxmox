@@ -3,6 +3,7 @@ import type {
     CheckSubdomainResponse,
     ClawCredentialsResponse,
     ClawFilesResponse,
+    ClawMetricsResponse,
     ClawVersionResponse,
     ClawVersionsResponse,
     DeleteClawResponse,
@@ -106,7 +107,9 @@ const claws = {
             path
         }),
     updateClawFile: (id: string, data: UpdateClawFileData) =>
-        client.put<void>(API_PATHS.CLAWS.FILES.BASE(id), data)
+        client.put<void>(API_PATHS.CLAWS.FILES.BASE(id), data),
+    getClawMetrics: (id: string) =>
+        client.post<ClawMetricsResponse>(API_PATHS.CLAWS.METRICS(id))
 }
 
 export default claws

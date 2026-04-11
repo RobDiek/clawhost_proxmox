@@ -844,6 +844,59 @@ export interface DiagnosticsLogsResponse {
     logs: string
 }
 
+export interface ClawMetricsCpu {
+    usagePercent: number
+    cores: number
+}
+
+export interface ClawMetricsMemory {
+    total: number
+    used: number
+    available: number
+}
+
+export interface ClawMetricsDisk {
+    total: number
+    used: number
+    available: number
+    usagePercent: number
+}
+
+export interface ClawMetricsLoadAvg {
+    load1: number
+    load5: number
+    load15: number
+}
+
+export interface ClawMetricsNetwork {
+    rxBytes: number
+    txBytes: number
+    interface: string
+}
+
+export interface ClawMetricsProcess {
+    pid: number
+    user: string
+    cpu: number
+    mem: number
+    command: string
+}
+
+export interface ClawMetricsResponse {
+    cpu: ClawMetricsCpu
+    memory: ClawMetricsMemory
+    disk: ClawMetricsDisk
+    loadAvg: ClawMetricsLoadAvg
+    network: ClawMetricsNetwork
+    processes: ClawMetricsProcess[]
+    uptime: string
+    timestamp: number
+}
+
+export interface ClawMetricsContentProps {
+    clawId: string
+}
+
 export interface ClawFileEntry {
     path: string
     name: string
@@ -1032,6 +1085,7 @@ export interface ClawBillingContentProps {
 }
 
 export interface ClawDetailSettingsTabProps {
+    clawId: string
     settingsName: string
     settingsNameError: string
     settingsSubdomain: string

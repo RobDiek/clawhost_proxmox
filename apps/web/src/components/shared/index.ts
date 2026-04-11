@@ -6,6 +6,7 @@ import ClawMascotOutline from '@/components/shared/ClawMascotOutline'
 import EmptyState from '@/components/shared/EmptyState'
 import ErrorState from '@/components/shared/ErrorState'
 import LanguageSelector from '@/components/shared/LanguageSelector'
+import LiveBadge from '@/components/shared/LiveBadge'
 import NetworkStatus from '@/components/shared/NetworkStatus'
 import PanelPlaceholder from '@/components/shared/PanelPlaceholder'
 import PlansSkeleton from '@/components/shared/PlansSkeleton'
@@ -25,6 +26,7 @@ export {
     EmptyState,
     ErrorState,
     LanguageSelector,
+    LiveBadge,
     NetworkStatus,
     PanelPlaceholder,
     PlansSkeleton,

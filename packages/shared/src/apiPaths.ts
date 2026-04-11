@@ -41,7 +41,8 @@ const API_PATHS = {
             BASE: (id: string) => `${AGENTS}/${id}/files`,
             READ: (id: string) => `${AGENTS}/${id}/files/read`
         },
-        TERMINAL: (id: string) => `${AGENTS}/${id}/terminal`
+        TERMINAL: (id: string) => `${AGENTS}/${id}/terminal`,
+        METRICS: (id: string) => `${AGENTS}/${id}/metrics`
     },
     AFFILIATE: {
         BASE: '/affiliate',

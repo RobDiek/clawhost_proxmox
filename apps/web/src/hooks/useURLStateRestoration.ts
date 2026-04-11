@@ -60,7 +60,11 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
             CLAW_DETAIL_TABS.INFO,
             CLAW_DETAIL_TABS.TERMINAL,
             CLAW_DETAIL_TABS.LOGS,
-            CLAW_DETAIL_TABS.DIAGNOSTICS
+            CLAW_DETAIL_TABS.DIAGNOSTICS,
+            CLAW_DETAIL_TABS.VERSIONS,
+            CLAW_DETAIL_TABS.FILES,
+            CLAW_DETAIL_TABS.METRICS,
+            CLAW_DETAIL_TABS.SETTINGS
         ]
 
         if (settingsParam) {

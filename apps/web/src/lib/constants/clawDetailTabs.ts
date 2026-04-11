@@ -5,6 +5,7 @@ const CLAW_DETAIL_TABS = {
     TERMINAL: 'terminal',
     VERSIONS: 'versions',
     FILES: 'files',
+    METRICS: 'metrics',
     SETTINGS: 'settings'
 } as const
 
