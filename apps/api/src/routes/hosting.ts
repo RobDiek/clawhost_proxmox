@@ -309,6 +309,7 @@ app.delete('/instances/:id/memories', clearMemories)
 // ── Microsoft 365 OAuth ──
 app.get('/integrations/microsoft/auth', microsoftAuth)
 app.get('/integrations/microsoft/callback', microsoftCallback)
+app.get('/oauth/microsoft/callback', microsoftCallback)  // Azure redirect URI compat
 app.post('/integrations/microsoft/disconnect', microsoftDisconnect)
 app.get('/integrations/microsoft/status', microsoftStatus)
 
