@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp, integer, index } from 'drizzle-orm/pg-core'
 import users from '@/db/schema/users'
-import claws from '@/db/schema/claws'
+import claws from '@/db/schema/agents'
 
 const volumes = pgTable(
     'volumes',

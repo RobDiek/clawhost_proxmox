@@ -1,0 +1,18 @@
+import { withClaw } from '@/controllers/agents/helpers'
+import { ok } from '@/lib/response'
+import withErrorHandler from '@/lib/withErrorHandler'
+
+const getClawCredentials = withErrorHandler(
+    'getClawCredentials',
+    'api.clawNotFound'
+)(
+    withClaw()(async (c, claw) => {
+        return ok(c, {
+            rootPassword: claw.rootPassword,
+            gatewayToken: claw.gatewayToken,
+            ip: claw.ip
+        })
+    })
+)
+
+export default getClawCredentials
