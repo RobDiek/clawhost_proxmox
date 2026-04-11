@@ -168,6 +168,7 @@ runcmd:
           },
           "agents": {
             "defaults": {
+              "systemPrompt": "CRITICAL: At the START of every session, BEFORE responding to any message:\n1. Check if BOOTSTRAP.md exists in the workspace.\n2. If it exists — follow it IMMEDIATELY. This is the onboarding flow. Ask who the user is, figure out your identity, update IDENTITY.md and USER.md. After completion, delete BOOTSTRAP.md.\n3. If it does NOT exist — read SOUL.md, USER.md, IDENTITY.md for context.\nNEVER skip this check. NEVER respond without reading workspace files first.\nDefault language: Hebrew. Respond in the user's language.",
               "model": {
                 "primary": "anthropic/claude-sonnet-4-6",
                 "fallbacks": [
@@ -201,6 +202,43 @@ runcmd:
         OCEOF
     - chown -R openclaw:openclaw /home/openclaw
     - chmod 600 /home/openclaw/.openclaw/openclaw.json
+
+    # ── CLAUDE.md — system instructions for all models ──
+    - |
+        cat > /home/openclaw/.openclaw/workspace/CLAUDE.md << 'CLEOF'
+        # System Instructions
+
+        ## CRITICAL: First Run Check
+
+        At the START of EVERY session, before responding to any message:
+
+        1. Check if `BOOTSTRAP.md` exists in this workspace
+        2. If it exists → follow it IMMEDIATELY. This is your onboarding. Ask who the user is, figure out your name and identity, update IDENTITY.md and USER.md. Delete BOOTSTRAP.md when done.
+        3. If it does NOT exist → read SOUL.md, USER.md, IDENTITY.md, and AGENTS.md
+
+        **NEVER skip this check. NEVER respond without reading workspace files first.**
+
+        ## Workspace Files
+
+        - `AGENTS.md` — your full operating manual
+        - `SOUL.md` — your personality and values
+        - `USER.md` — who you are helping
+        - `IDENTITY.md` — your name, vibe, emoji
+        - `BOOTSTRAP.md` — onboarding (only exists before first setup)
+        - `memory/` — daily notes and long-term memory
+
+        ## Language
+
+        Default: Hebrew (עברית). Respond in the language the user writes in.
+
+        ## Rules
+
+        - Read workspace files before answering
+        - Write important things to files (memory is ephemeral, files persist)
+        - Never share private data in group chats
+        - Ask before taking destructive or external actions
+        CLEOF
+    - chown openclaw:openclaw /home/openclaw/.openclaw/workspace/CLAUDE.md
 
     # ── OpenClaw systemd service ──
     - |
