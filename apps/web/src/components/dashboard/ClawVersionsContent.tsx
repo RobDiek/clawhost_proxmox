@@ -136,10 +136,16 @@ const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
                                 ))}
 
                             {!isLoading &&
-                                filteredVersions.map((entry) => {
+                                filteredVersions.map((entry, idx) => {
                                     const isCurrent =
                                         versionsData?.currentVersion ===
                                         entry.version
+                                    const isBeta = entry.version.includes('beta')
+                                    const latestStableIdx = !debouncedSearch
+                                        ? filteredVersions.findIndex((v) => !v.version.includes('beta'))
+                                        : -1
+                                    const isLatest =
+                                        idx === latestStableIdx && !isBeta
                                     const isInstalling =
                                         installingVersion === entry.version
                                     const isSupported = isVersionSupported(
@@ -149,11 +155,7 @@ const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
                                     return (
                                         <div
                                             key={entry.version}
-                                            className={`border-border flex items-center justify-between rounded-lg border px-3 py-2.5 transition-colors ${
-                                                isCurrent
-                                                    ? 'bg-foreground/[0.06]'
-                                                    : 'bg-foreground/[0.02]'
-                                            }`}
+                                            className='border-border bg-foreground/[0.02] flex items-center justify-between rounded-lg border px-3 py-2.5 transition-colors'
                                         >
                                             <div className='min-w-0 flex-1'>
                                                 <div className='flex items-center gap-2'>
@@ -162,9 +164,16 @@ const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
                                                         {entry.version}
                                                     </span>
                                                     {isCurrent && (
-                                                        <span className='rounded bg-green-500/20 px-1.5 py-0.5 text-[10px] font-medium text-green-400'>
+                                                        <span className='bg-foreground/10 text-muted-foreground rounded px-1.5 py-0.5 text-[10px] font-medium'>
                                                             {t(
                                                                 'clawDetail.versionCurrent'
+                                                            )}
+                                                        </span>
+                                                    )}
+                                                    {isLatest && (
+                                                        <span className='rounded bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-medium text-blue-400'>
+                                                            {t(
+                                                                'clawDetail.versionLatest'
                                                             )}
                                                         </span>
                                                     )}

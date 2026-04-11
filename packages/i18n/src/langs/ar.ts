@@ -3,6 +3,7 @@ import type { Translations } from '#i18n/types'
 const ar: Translations = {
     common: {
         loading: 'جارٍ التحميل...',
+        noResults: 'لم يتم العثور على نتائج.',
         save: 'حفظ',
         cancel: 'إلغاء',
         confirm: 'تأكيد',
@@ -291,6 +292,7 @@ const ar: Translations = {
         sshKeyNotFound: 'لم يتم العثور على مفتاح SSH !',
         pendingClawNotFound: 'لم يتم العثور على Claw المعلق !',
         clawNotScheduledForDeletion: 'لم تتم جدولة Claw للحذف !',
+        clawDeletionAlreadyPassed: 'تاريخ الحذف قد مضى بالفعل !',
         clawLimitReached:
             'لقد وصلت إلى الحد الأقصى وهو {{max}} claws. يرجى التواصل مع الدعم لزيادة هذا الحد !',
         sshKeyLimitReached:
@@ -603,24 +605,6 @@ const ar: Translations = {
                 description:
                     'بدّل إلى الفوترة السنوية ووفّر على اشتراك مخلبك. نفس الخدمة الممتازة بسعر أقل — ألغِ في أي وقت.',
                 cta: 'عرض الخطط'
-            },
-            simplifiedPlatform: {
-                subject: 'ClawHost just got Simpler - ClawHost',
-                preview:
-                    'القنوات والمهارات والمزيد تُدار الآن مباشرة في OpenClaw',
-                tag: 'تحديث المنصة',
-                heading: 'ClawHost Simplified',
-                description:
-                    'أزلنا إدارة القنوات والوكلاء والدردشة والمهارات من لوحة تحكم ClawHost. هذه الميزات تُدار الآن مباشرة على نسخة OpenClaw الخاصة بك.',
-                removed:
-                    'تحديداً، أزلنا: قنوات المراسلة (واتساب، تيليجرام، ديسكورد، سلاك، سيجنال)، سوق المهارات (ClawHub)، ودردشة الوكيل والوضع الصوتي. كل هذا لا يزال موجوداً في OpenClaw — فقط توقفنا عن تغليفه.',
-                why: 'الحفاظ على تزامن واجهاتنا مع كل إصدار من OpenClaw كان غير مستدام. التحديثات كانت تصدر، وواجهتنا كانت تتأخر — مما يتركك مع أدوات تحكم قديمة وميزات غير مكتملة.',
-                benefit:
-                    'بإزالة هذه الطبقات، تتفاعل مباشرة مع OpenClaw. تتعلم النظام الحقيقي، وليس واجهة ثانية قد تصبح قديمة. معرفتك تنتقل معك أينما يعمل OpenClaw.',
-                action: 'لا شيء يتعطل. مخالبك وخوادمك وفواتيرك وميزات لوحة التحكم الأساسية لم تتغير. لتهيئة القنوات أو المهارات أو الوكلاء، استخدم نسخة OpenClaw مباشرة.',
-                closing:
-                    'نعلم أن إزالة الميزات لا تبدو جيدة أبداً. لكن هذا يحررنا للتركيز على ما يهم — الشحن أسرع لمنظومة OpenClaw، وتحسين تجربة الاستضافة، وبناء أشياء تُحدث فرقاً حقيقياً لك. شكراً لكونك جزءاً من هذه الرحلة، ولاستمرارك فيها.',
-                cta: 'زيارة ClawHost'
             }
         }
     },
@@ -789,6 +773,9 @@ const ar: Translations = {
         clawCountLabel: '{{count}} مخالب',
         clawCountLabelSingular: '{{count}} مخلب',
         newClaw: 'مخلب جديد',
+        searchAgents: 'البحث عن الوكلاء...',
+        searchAgentsCount: 'البحث في {{count}} وكلاء...',
+        noAgentsMatchSearch: 'لم يتم العثور على وكلاء يطابقون بحثك.',
         clawActions: 'إجراءات المخلب',
         noAgentsYet: 'لا يوجد وكلاء',
         noAgentsDescription:
@@ -843,6 +830,7 @@ const ar: Translations = {
         deletionDate: 'سيتم حذف هذا المخلب في {{date}}',
         deletionTooltip: 'مجدول للحذف في {{date}}. للإلغاء، استخدم القائمة.',
         pastDue: 'فشل الدفع',
+        deletionFailed: 'فشل الحذف',
         pastDueDescription:
             'فشل الدفع الخاص بك. إذا لم يتم حل المشكلة خلال 14 يومًا، سيتم حذف هذا الـ claw نهائيًا.',
         updatePayment: 'تحديث الدفع',
@@ -1489,6 +1477,9 @@ const ar: Translations = {
         versionsChangelog: 'عرض سجلات التغيير على npm',
         versionCurrent: 'الحالي',
         versionLatest: 'الأحدث',
+        updateAvailable: 'A newer version of OpenClaw is available',
+        updateAvailableDescription: 'A new version of OpenClaw ({{version}}) is available for your instance.',
+        goToVersions: 'Go to Versions',
         versionInstall: 'تثبيت',
         versionInstalling: 'جارٍ التثبيت...',
         versionInstallSuccess: 'تم تثبيت الإصدار {{version}} بنجاح.',

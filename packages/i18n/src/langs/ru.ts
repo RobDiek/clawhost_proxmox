@@ -3,6 +3,7 @@ import type { Translations } from '#i18n/types'
 const ru: Translations = {
     common: {
         loading: 'Загрузка...',
+        noResults: 'Результаты не найдены.',
         save: 'Сохранить',
         cancel: 'Отмена',
         confirm: 'Подтвердить',
@@ -297,6 +298,7 @@ const ru: Translations = {
         sshKeyNotFound: 'SSH-ключ не найден!',
         pendingClawNotFound: 'Ожидающий claw не найден!',
         clawNotScheduledForDeletion: 'Claw не запланирован к удалению!',
+        clawDeletionAlreadyPassed: 'Дата удаления уже прошла!',
         clawLimitReached:
             'Вы достигли лимита в {{max}} claws. Свяжитесь с поддержкой для увеличения лимита!',
         sshKeyLimitReached:
@@ -618,24 +620,6 @@ const ru: Translations = {
                 description:
                     'Перейдите на годовую оплату и экономьте на подписке клоу. Тот же отличный сервис, ниже цена — отмена в любое время.',
                 cta: 'Просмотреть тарифы'
-            },
-            simplifiedPlatform: {
-                subject: 'ClawHost just got Simpler - ClawHost',
-                preview:
-                    'Каналы, навыки и другое теперь управляются напрямую в OpenClaw',
-                tag: 'Обновление платформы',
-                heading: 'ClawHost Simplified',
-                description:
-                    'Мы удалили управление каналами, агентами, чатом и навыками из панели ClawHost. Эти функции теперь управляются непосредственно на вашем экземпляре OpenClaw.',
-                removed:
-                    'Конкретно мы удалили: каналы обмена сообщениями (WhatsApp, Telegram, Discord, Slack, Signal), маркетплейс навыков (ClawHub), и чат агента и голосовой режим. Всё это по-прежнему существует в OpenClaw — мы просто перестали оборачивать их.',
-                why: 'Поддержание синхронизации наших интерфейсов с каждым релизом OpenClaw было неустойчивым. Обновления выходили, а наш интерфейс отставал — оставляя вас с устаревшими элементами управления и неполными функциями.',
-                benefit:
-                    'Убрав эти слои, вы взаимодействуете с OpenClaw напрямую. Вы изучаете настоящую систему, а не второй интерфейс, который может устареть. Ваши знания применимы везде, где работает OpenClaw.',
-                action: 'Ничего не ломается. Ваши клоу, серверы, биллинг и основные функции панели не изменились. Для настройки каналов, навыков или агентов используйте ваш экземпляр OpenClaw напрямую.',
-                closing:
-                    'Мы понимаем, что удаление функций никогда не звучит хорошо. Но это даёт нам свободу сосредоточиться на главном — быстрее доставлять обновления для экосистемы OpenClaw, улучшать основной опыт хостинга и создавать то, что действительно важно для вас. Спасибо, что вы с нами на этом пути, и что продолжаете идти вместе.',
-                cta: 'Посетить ClawHost'
             }
         }
     },
@@ -808,6 +792,10 @@ const ru: Translations = {
         clawCountLabel: '{{count}} клоу',
         clawCountLabelSingular: '{{count}} клоу',
         newClaw: 'Новый клоу',
+        searchAgents: 'Поиск агентов...',
+        searchAgentsCount: 'Поиск {{count}} агентов...',
+        noAgentsMatchSearch:
+            'Агенты, соответствующие вашему поиску, не найдены.',
         clawActions: 'Действия с клоу',
         noAgentsYet: 'Нет агентов',
         noAgentsDescription:
@@ -863,6 +851,7 @@ const ru: Translations = {
         deletionTooltip:
             'Удаление запланировано на {{date}}. Чтобы отменить, используйте меню.',
         pastDue: 'Ошибка оплаты',
+        deletionFailed: 'Удаление не удалось',
         pastDueDescription:
             'Ваш платёж не прошёл. Если не будет решено в течение 14 дней, этот клоу будет удалён навсегда.',
         updatePayment: 'Обновить оплату',
@@ -1536,6 +1525,9 @@ const ru: Translations = {
         versionsChangelog: 'Просмотреть журнал изменений на npm',
         versionCurrent: 'Текущая',
         versionLatest: 'Последняя',
+        updateAvailable: 'A newer version of OpenClaw is available',
+        updateAvailableDescription: 'A new version of OpenClaw ({{version}}) is available for your instance.',
+        goToVersions: 'Go to Versions',
         versionInstall: 'Установить',
         versionInstalling: 'Установка...',
         versionInstallSuccess: 'Версия {{version}} успешно установлена.',

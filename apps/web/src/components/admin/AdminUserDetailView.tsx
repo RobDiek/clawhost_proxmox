@@ -92,8 +92,9 @@ const AdminUserDetailView: FC<AdminUserDetailViewProps> = ({
                 <DialogHeader>
                     <DialogTitle>{t('admin.userDetail')}</DialogTitle>
                 </DialogHeader>
+
                 <div className='flex items-center justify-center py-12'>
-                    <CircleNotchIcon className='text-primary h-8 w-8 animate-spin' />
+                    <CircleNotchIcon className='text-foreground/50 h-7 w-7 animate-spin' />
                 </div>
             </Fragment>
         )
@@ -117,6 +118,7 @@ const AdminUserDetailView: FC<AdminUserDetailViewProps> = ({
             <DialogHeader>
                 <DialogTitle>{t('admin.userDetail')}</DialogTitle>
             </DialogHeader>
+
             <div className='space-y-6 pt-8'>
                 <div className='flex items-center gap-3'>
                     <div className='bg-primary/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full'>

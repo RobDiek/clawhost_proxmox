@@ -3,7 +3,7 @@ import type { ClawDetailInfoTabProps } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
 import { getLocale } from '@/lib'
-import { CopyableField } from '@/components/dashboard'
+import { CopyableField, UpdateAvailableBanner } from '@/components/dashboard'
 import { Skeleton } from '@/components/ui'
 import { locationFlags, locationNames } from '@/lib/claw-utils'
 
@@ -14,7 +14,9 @@ const ClawDetailInfoTab: FC<ClawDetailInfoTabProps> = ({
     fullScreen,
     showVersion,
     versionLoading,
-    versionDisplay
+    versionDisplay,
+    isOutdated,
+    onGoToVersions
 }): ReactNode => {
     const plan = plans.find((p) => p.id === claw.planId)
     const monthlyPrice = plan ? plan.priceMonthly : null
@@ -28,6 +30,10 @@ const ClawDetailInfoTab: FC<ClawDetailInfoTabProps> = ({
 
     return (
         <div className='h-full overflow-y-auto p-5'>
+            {isOutdated && onGoToVersions && (
+                <UpdateAvailableBanner onGoToVersions={onGoToVersions} />
+            )}
+
             <div
                 className={`grid gap-2 ${fullScreen ? 'grid-cols-3' : 'grid-cols-2'}`}
             >
@@ -176,6 +182,7 @@ const ClawDetailInfoTab: FC<ClawDetailInfoTabProps> = ({
                     />
                 )}
             </div>
+
         </div>
     )
 }

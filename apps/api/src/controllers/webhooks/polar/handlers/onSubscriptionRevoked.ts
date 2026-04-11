@@ -14,6 +14,7 @@ const onSubscriptionRevoked = async (data: SubscriptionWebhookData) => {
             id: claws.id,
             providerServerId: claws.providerServerId,
             subdomain: claws.subdomain,
+            ip: claws.ip,
             deletionScheduledAt: claws.deletionScheduledAt
         })
         .from(claws)
@@ -25,7 +26,8 @@ const onSubscriptionRevoked = async (data: SubscriptionWebhookData) => {
     if (claw[0].deletionScheduledAt) {
         cleanupClaw(claw[0].id, {
             providerServerId: claw[0].providerServerId,
-            subdomain: claw[0].subdomain
+            subdomain: claw[0].subdomain,
+            ip: claw[0].ip
         }).catch((error) => {
             console.error('onSubscriptionRevoked', error)
             db.update(claws)

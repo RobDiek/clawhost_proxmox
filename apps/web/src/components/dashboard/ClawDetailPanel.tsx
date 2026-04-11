@@ -15,7 +15,6 @@ import {
     ClawLogsContent,
     ClawDiagnosticsContent,
     ClawTerminalContent,
-    ClawBillingContent,
     ClawConfigContent,
     ClawVersionsContent,
     ClawDetailInfoTab,
@@ -140,10 +139,7 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
         if (versionQuery.isLoading) return null
         if (versionQuery.isError || !versionQuery.data) return null
         if (versionQuery.data.version === 'unknown') return null
-        const raw = versionQuery.data.version
-        return raw
-            .replace(/\s*\([a-f0-9]+\)\s*$/, '')
-            .replace(/^OpenClaw\s*/i, '')
+        return versionQuery.data.version
     }, [
         readOnly,
         versionQuery.isLoading,
@@ -192,6 +188,14 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                             showVersion={showVersion}
                             versionLoading={versionLoading}
                             versionDisplay={versionDisplay}
+                            isOutdated={
+                                !!versionDisplay &&
+                                versionDisplay !== OPENCLAW_VERSION &&
+                                !versionLoading
+                            }
+                            onGoToVersions={() =>
+                                setTab(claw.id, CLAW_DETAIL_TABS.VERSIONS)
+                            }
                         />
                     )}
 
@@ -265,10 +269,6 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
 
                     {activeTab === 'files' && (
                         <ClawConfigContent clawId={claw.id} />
-                    )}
-
-                    {activeTab === 'billing' && (
-                        <ClawBillingContent claw={claw} />
                     )}
 
                     {activeTab === 'settings' && (

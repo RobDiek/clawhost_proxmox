@@ -16,8 +16,7 @@ const CDN_ASSETS = {
     FEATURE_SUBDOMAIN: `${EMAILS}/features/subdomain.gif`,
     FEATURE_DARK_MODE: `${EMAILS}/features/dark-mode.gif`,
     FEATURE_REINSTALL: `${EMAILS}/features/reinstall.gif`,
-    FEATURE_YEARLY_PLANS: `${EMAILS}/features/yearly-plans.gif`,
-    EMAIL_SIMPLIFIED_PLATFORM: `${EMAILS}/lobster-moving-fast.gif`,
+    FEATURE_YEARLY_PLANS: `${EMAILS}/features/yearly-plans.gif`
 }
 
 export default CDN_ASSETS

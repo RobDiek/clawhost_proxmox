@@ -1,10 +1,10 @@
 import type { FC, ReactNode } from 'react'
 
 import { Fragment, useState, useEffect } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useSearchParams, Link, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
-import { goLicense } from '@openclaw/shared'
+import { goLicense, userRole } from '@openclaw/shared'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/lib/auth'
 import { useUIStore } from '@/lib/store'
@@ -28,12 +28,13 @@ import {
 
 const License: FC = (): ReactNode => {
     const { loading: authLoading } = useAuth()
-    const { data: profile } = useProfile()
+    const { data: profile, isLoading: isProfileLoading } = useProfile()
     const { showToast } = useUIStore()
     const queryClient = useQueryClient()
     const [searchParams, setSearchParams] = useSearchParams()
     const [isPurchasing, setIsPurchasing] = useState(false)
 
+    const isAdmin = profile?.role === userRole.admin
     const hasLicense = profile?.hasLicense ?? false
 
     useEffect(() => {
@@ -42,6 +43,9 @@ const License: FC = (): ReactNode => {
         queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY })
         setSearchParams({}, { replace: true })
     }, [])
+
+    if (!authLoading && !isProfileLoading && !isAdmin)
+        return <Navigate to={ROUTES.CLAWS} replace />
 
     const handlePurchase = async () => {
         setIsPurchasing(true)
@@ -81,7 +85,7 @@ const License: FC = (): ReactNode => {
             >
                 {authLoading ? (
                     <div className='flex min-h-[60vh] items-center justify-center'>
-                        <CircleNotchIcon className='text-primary h-8 w-8 animate-spin' />
+                        <CircleNotchIcon className='text-foreground/50 h-7 w-7 animate-spin' />
                     </div>
                 ) : (
                     <Fragment>

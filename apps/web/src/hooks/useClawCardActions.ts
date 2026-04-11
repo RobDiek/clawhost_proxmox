@@ -19,7 +19,8 @@ import {
     useCancelDeletion,
     useHardDeleteClaw,
     useReinstallClaw,
-    useCancelPendingClaw
+    useCancelPendingClaw,
+    useCustomerPortal
 } from '@/hooks'
 
 const useClawCardActions = ({
@@ -40,6 +41,7 @@ const useClawCardActions = ({
     >(null)
     const [isFetchingCredentials, setIsFetchingCredentials] = useState(false)
     const [isExporting, setIsExporting] = useState(false)
+    const { openPortal, isLoading: isPortalLoading } = useCustomerPortal()
 
     const startMutation = useStartClaw()
     const stopMutation = useStopClaw()
@@ -60,7 +62,8 @@ const useClawCardActions = ({
         reinstallMutation.isPending ||
         cancelPendingMutation.isPending ||
         isExporting ||
-        isFetchingCredentials
+        isFetchingCredentials ||
+        isPortalLoading
 
     const actions = useMemo((): ClawCardActions | null => {
         if (!claw) return null
@@ -147,14 +150,7 @@ const useClawCardActions = ({
             },
             onCancelPending: () =>
                 cancelPendingMutation.mutate(target.id.replace('pending-', '')),
-            onUpdatePayment: async () => {
-                try {
-                    const { url } = await api.getCustomerPortal()
-                    window.open(url, '_blank')
-                } catch {
-                    showToast(t('billing.failedToLoadPortal'), TOAST_TYPE.ERROR)
-                }
-            }
+            onUpdatePayment: () => openPortal(target.id)
         }
     }, [
         claw,

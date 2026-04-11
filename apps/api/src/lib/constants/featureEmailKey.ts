@@ -9,8 +9,7 @@ const featureEmailKey = {
     subdomain: 'subdomain',
     darkMode: 'darkMode',
     reinstall: 'reinstall',
-    yearlyPlans: 'yearlyPlans',
-    simplifiedPlatform: 'simplifiedPlatform'
+    yearlyPlans: 'yearlyPlans'
 } as const
 
 export default featureEmailKey

@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { api } from '@/lib'
-import { useUserStats, useBillingHistory } from '@/hooks'
+import { useUserStats, useBillingHistory, useCustomerPortal } from '@/hooks'
 import { BillingOrderCard } from '@/components/billing'
 import {
     Header,
@@ -34,7 +34,7 @@ const Billing: FC = (): ReactNode => {
     const [loadingInvoiceIds, setLoadingInvoiceIds] = useState<Set<string>>(
         new Set()
     )
-    const [isPortalLoading, setIsPortalLoading] = useState(false)
+    const { openPortal, isLoading: isPortalLoading } = useCustomerPortal()
 
     const { data: userStats, isLoading: isStatsLoading } = useUserStats()
     const billingTotal = userStats?.orderCount ?? 0
@@ -92,17 +92,7 @@ const Billing: FC = (): ReactNode => {
         }
     }
 
-    const handleManageBilling = async () => {
-        setIsPortalLoading(true)
-        try {
-            const { url } = await api.getCustomerPortal()
-            window.open(url, '_blank')
-        } catch {
-            showToast(t('billing.failedToLoadPortal'), TOAST_TYPE.ERROR)
-        } finally {
-            setIsPortalLoading(false)
-        }
-    }
+    const handleManageBilling = () => openPortal()
 
     return (
         <div className='bg-background text-foreground relative flex min-h-screen flex-col'>
@@ -122,7 +112,7 @@ const Billing: FC = (): ReactNode => {
             >
                 {authLoading ? (
                     <div className='flex min-h-[60vh] items-center justify-center'>
-                        <CircleNotchIcon className='text-primary h-8 w-8 animate-spin' />
+                        <CircleNotchIcon className='text-foreground/50 h-7 w-7 animate-spin' />
                     </div>
                 ) : (
                     <Fragment>

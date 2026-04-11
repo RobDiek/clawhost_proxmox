@@ -18,6 +18,9 @@ const cancelDeletion = withErrorHandler(
         if (!claw.deletionScheduledAt)
             return fail(c, t('api.clawNotScheduledForDeletion'), 400)
 
+        if (new Date(claw.deletionScheduledAt) <= new Date())
+            return fail(c, t('api.clawDeletionAlreadyPassed'), 400)
+
         if (claw.polarSubscriptionId) {
             try {
                 await subscriptions.uncancel(claw.polarSubscriptionId)

@@ -1,7 +1,6 @@
 import type { AuthenticatedContext } from '@/ts/Types'
 
-import executeSSH from '@/services/ssh'
-import { findUserClaw } from '@/controllers/agents/helpers'
+import { findUserClaw, fetchClawVersion } from '@/controllers/agents/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 
@@ -16,15 +15,9 @@ const getClawVersion = async (c: AuthenticatedContext) => {
         if (!claw.ip || !claw.rootPassword)
             return fail(c, t('api.failedToGetVersion'), 400)
 
-        const output = await executeSSH(
-            claw.ip,
-            claw.rootPassword,
-            'su - openclaw -c "openclaw --version" 2>/dev/null || echo "unknown"'
-        )
+        const version = await fetchClawVersion(claw.ip, claw.rootPassword)
 
-        return ok(c, {
-            version: output.trim() || 'unknown'
-        })
+        return ok(c, { version })
     } catch (error) {
         console.error('getClawVersion', error)
         return fail(

@@ -31,7 +31,8 @@ const hardDeleteClaw = withErrorHandler(
             : Promise.resolve(),
         cleanupClaw(id, {
             providerServerId: claw[0].providerServerId,
-            subdomain: claw[0].subdomain
+            subdomain: claw[0].subdomain,
+            ip: claw[0].ip
         })
     ])
 

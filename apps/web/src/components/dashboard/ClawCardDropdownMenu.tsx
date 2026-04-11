@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { ClawCardDropdownMenuProps } from '@/ts/Interfaces'
 
-import { Fragment } from 'react'
+import { Fragment, useState, useEffect, useRef, useCallback } from 'react'
 import { t } from '@openclaw/i18n'
 import { clawStatus } from '@openclaw/shared'
 import {
@@ -35,6 +35,39 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
     isAdmin,
     compact
 }): ReactNode => {
+    const [open, setOpen] = useState(false)
+    const triggerRef = useRef<HTMLButtonElement>(null)
+
+    const handleClose = useCallback(() => setOpen(false), [])
+
+    useEffect(() => {
+        if (!open) return
+
+        const scrollableParents: HTMLElement[] = []
+        let el = triggerRef.current?.parentElement
+        while (el) {
+            const style = getComputedStyle(el)
+            if (
+                style.overflow === 'auto' ||
+                style.overflow === 'scroll' ||
+                style.overflowY === 'auto' ||
+                style.overflowY === 'scroll'
+            )
+                scrollableParents.push(el)
+            el = el.parentElement
+        }
+
+        scrollableParents.forEach((parent) =>
+            parent.addEventListener('scroll', handleClose, { passive: true })
+        )
+
+        return () => {
+            scrollableParents.forEach((parent) =>
+                parent.removeEventListener('scroll', handleClose)
+            )
+        }
+    }, [open, handleClose])
+
     if (isLoading) {
         return compact ? (
             <button
@@ -57,10 +90,11 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
     }
 
     return (
-        <DropdownMenu modal={false}>
+        <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger asChild>
                 {compact ? (
                     <button
+                        ref={triggerRef}
                         aria-label={t('dashboard.clawActions')}
                         className='text-muted-foreground hover:bg-foreground/10 hover:text-foreground shrink-0 rounded-md p-1 transition-colors'
                     >
@@ -71,6 +105,7 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                     </button>
                 ) : (
                     <Button
+                        ref={triggerRef}
                         variant='ghost'
                         size='icon'
                         aria-label={t('dashboard.clawActions')}
@@ -80,18 +115,6 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                 )}
             </DropdownMenuTrigger>
             <DropdownMenuContent align='end' collisionPadding={8}>
-                {claw.subscriptionStatus === 'past_due' && (
-                    <Fragment>
-                        <DropdownMenuItem
-                            onClick={actions.onUpdatePayment}
-                            className='text-orange-600 focus:text-orange-600 dark:text-orange-400 dark:focus:text-orange-400'
-                        >
-                            <CreditCardIcon className='mr-2 h-4 w-4' />
-                            {t('dashboard.updatePayment')}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                    </Fragment>
-                )}
                 {claw.status === clawStatus.stopped && (
                     <DropdownMenuItem
                         onClick={actions.onStart}
@@ -145,6 +168,17 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                             <ArrowCounterClockwiseIcon className='mr-2 h-4 w-4' />
                             {t('dashboard.reinstallInstance')}
                         </DropdownMenuItem>
+                        {claw.polarSubscriptionId && (
+                            <DropdownMenuItem
+                                onClick={actions.onUpdatePayment}
+                                className='text-orange-600 focus:text-orange-600 dark:text-orange-400 dark:focus:text-orange-400'
+                            >
+                                <CreditCardIcon className='mr-2 h-4 w-4' />
+                                {claw.subscriptionStatus === 'past_due'
+                                    ? t('dashboard.updatePayment')
+                                    : t('billing.manageBilling')}
+                            </DropdownMenuItem>
+                        )}
                     </Fragment>
                 )}
                 {(hasActionItems || claw.ip) && <DropdownMenuSeparator />}
@@ -208,7 +242,8 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                             className='text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400'
                         >
                             <TrashIcon className='mr-2 h-4 w-4' />
-                            {claw.id.startsWith('pending-')
+                            {claw.id.startsWith('pending-') ||
+                            claw.subscriptionStatus === 'canceled'
                                 ? t('common.delete')
                                 : t('dashboard.scheduleDeletion')}
                         </DropdownMenuItem>

@@ -339,7 +339,7 @@
     background-image:
         linear-gradient(rgba(239, 83, 80, 0.03) 1px, transparent 1px),
         linear-gradient(90deg, rgba(239, 83, 80, 0.03) 1px, transparent 1px);
-    background-size: 24px 24px;
+    background-size: 50px 50px;
 }
 .dark .playground-grid {
     background-image:

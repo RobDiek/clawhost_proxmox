@@ -17,6 +17,7 @@ import syncClawServers from '@/controllers/agents/helpers/syncClawServers'
 import isVersionAtLeast from '@/controllers/agents/helpers/isVersionAtLeast'
 import parseClawVersion from '@/controllers/agents/helpers/parseClawVersion'
 import invalidateVersionCache from '@/controllers/agents/helpers/invalidateVersionCache'
+import fetchClawVersion from '@/controllers/agents/helpers/fetchClawVersion'
 import executeServerLifecycle from '@/controllers/agents/helpers/executeServerLifecycle'
 import withClaw from '@/controllers/agents/helpers/withClaw'
 
@@ -41,5 +42,6 @@ export {
     parseClawVersion,
     executeServerLifecycle,
     invalidateVersionCache,
+    fetchClawVersion,
     withClaw
 }

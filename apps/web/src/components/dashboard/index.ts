@@ -21,6 +21,7 @@ import CreateClawModal from '@/components/dashboard/CreateClawModal'
 import DashboardChatView from '@/components/dashboard/DashboardChatView'
 import DashboardHeader from '@/components/dashboard/DashboardHeader'
 import DashboardLoadingState from '@/components/dashboard/DashboardLoadingState'
+import UpdateAvailableBanner from '@/components/dashboard/UpdateAvailableBanner'
 
 export {
     ClawCardDialogs,
@@ -45,5 +46,6 @@ export {
     CreateClawModal,
     DashboardChatView,
     DashboardHeader,
-    DashboardLoadingState
+    DashboardLoadingState,
+    UpdateAvailableBanner
 }

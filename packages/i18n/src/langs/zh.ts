@@ -3,6 +3,7 @@ import type { Translations } from '#i18n/types'
 const zh: Translations = {
     common: {
         loading: '加载中...',
+        noResults: '未找到结果.',
         save: '保存',
         cancel: '取消',
         confirm: '确认',
@@ -284,6 +285,7 @@ const zh: Translations = {
         sshKeyNotFound: 'SSH 密钥未找到!',
         pendingClawNotFound: '待处理的 claw 未找到!',
         clawNotScheduledForDeletion: 'Claw 未计划删除!',
+        clawDeletionAlreadyPassed: 'Claw 删除日期已过!',
         clawLimitReached:
             '您已达到 {{max}} 个 claws 的限制。请联系支持团队以提高此限制!',
         sshKeyLimitReached:
@@ -589,23 +591,6 @@ const zh: Translations = {
                 description:
                     '切换到年付账单，节省您的 Claw 订阅费用。同样优质的服务，更低的价格——随时取消。',
                 cta: '查看方案'
-            },
-            simplifiedPlatform: {
-                subject: 'ClawHost just got Simpler - ClawHost',
-                preview: '频道、技能等现在直接在 OpenClaw 中管理',
-                tag: '平台更新',
-                heading: 'ClawHost Simplified',
-                description:
-                    '我们从 ClawHost 控制面板中移除了频道、代理、聊天、技能管理。这些功能现在直接在您的 OpenClaw 实例上管理。',
-                removed:
-                    '具体移除了：消息频道（WhatsApp、Telegram、Discord、Slack、Signal）、技能市场（ClawHub）、以及代理聊天和语音模式。所有这些在 OpenClaw 中仍然存在——我们只是不再包装它们。',
-                why: '让我们的界面与每个 OpenClaw 版本保持同步是不可持续的。上游更新发布后，我们的界面会滞后——让您面对过时的控件和不完整的功能。',
-                benefit:
-                    '通过移除这些层，您直接与 OpenClaw 交互。您学习的是真实的系统，而不是可能过时的第二个界面。您的知识可以在 OpenClaw 运行的任何地方使用。',
-                action: '不会有任何损坏。您的 claw、服务器、账单和核心控制面板功能保持不变。要配置频道、技能或代理，请直接使用您的 OpenClaw 实例。',
-                closing:
-                    '我们知道移除功能听起来不太好。但这让我们能专注于真正重要的事——更快地为 OpenClaw 生态系统交付、改善核心托管体验、以及构建对您真正有价值的东西。感谢您一路同行，并继续与我们同行。',
-                cta: '访问 ClawHost'
             }
         }
     },
@@ -767,6 +752,9 @@ const zh: Translations = {
         clawCountLabel: '{{count}} 个 claws',
         clawCountLabelSingular: '{{count}} 个 claw',
         newClaw: '新建 Claw',
+        searchAgents: '搜索代理...',
+        searchAgentsCount: '搜索 {{count}} 个代理...',
+        noAgentsMatchSearch: '未找到匹配搜索的代理.',
         clawActions: 'Claw 操作',
         noAgentsYet: '暂无代理',
         noAgentsDescription:
@@ -819,6 +807,7 @@ const zh: Translations = {
         deletionDate: '此 Claw 将于 {{date}} 删除',
         deletionTooltip: '计划于 {{date}} 删除。如需取消，请使用菜单。',
         pastDue: '支付失败',
+        deletionFailed: '删除失败',
         pastDueDescription:
             '您的支付失败。如果 14 天内未解决，此 Claw 将被永久删除。',
         updatePayment: '更新支付',
@@ -1426,6 +1415,9 @@ const zh: Translations = {
         versionsChangelog: '在 npm 上查看更新日志',
         versionCurrent: '当前',
         versionLatest: '最新',
+        updateAvailable: 'A newer version of OpenClaw is available',
+        updateAvailableDescription: 'A new version of OpenClaw ({{version}}) is available for your instance.',
+        goToVersions: 'Go to Versions',
         versionInstall: '安装',
         versionInstalling: '正在安装...',
         versionInstallSuccess: '版本 {{version}} 安装成功。',

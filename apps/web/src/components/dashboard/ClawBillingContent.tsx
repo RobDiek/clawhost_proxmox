@@ -23,8 +23,7 @@ const ClawBillingContent: FC<ClawBillingContentProps> = ({
         return data.pages
             .flatMap((page) => page.items)
             .filter(
-                (order) =>
-                    order.subscriptionId === claw.polarSubscriptionId
+                (order) => order.subscriptionId === claw.polarSubscriptionId
             )
     }, [data, claw.polarSubscriptionId])
 

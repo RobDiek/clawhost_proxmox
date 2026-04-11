@@ -102,7 +102,7 @@ const FileEditor: FC<FileEditorProps> = ({
                 </button>
             </div>
             <div
-                className={`min-h-0 flex-1 overflow-auto rounded-b-md rounded-tr-md border bg-[#1e1e1e] dark:bg-[#1e1e1e] [&_.cm-editor]:!h-full [&_.cm-editor_.cm-content]:!min-h-full [&_.cm-editor_.cm-gutters]:!min-h-full [&_.cm-editor_.cm-scroller]:!overflow-auto ${
+                className={`min-h-0 flex-1 overflow-auto rounded-b-md rounded-tr-md border bg-black [&_.cm-editor]:!h-full [&_.cm-editor_.cm-content]:!min-h-full [&_.cm-editor_.cm-gutters]:!min-h-full [&_.cm-editor_.cm-scroller]:!overflow-auto ${
                     jsonError ? 'border-red-500/50' : 'border-border'
                 }`}
             >

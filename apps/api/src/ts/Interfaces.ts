@@ -409,6 +409,7 @@ export interface ProvisionClawResponse {
 export interface ClawCleanupData {
     providerServerId: string | null
     subdomain: string | null
+    ip: string | null
 }
 
 export interface SendOtpBody {
@@ -491,6 +492,11 @@ export interface PolarItemsResult {
 export interface CacheEntry<T> {
     data: T
     expiry: number
+}
+
+export interface VersionsCacheData {
+    latestVersion: string
+    versions: { version: string; publishedAt: string; downloads: number }[]
 }
 
 export interface AuthCacheData {
