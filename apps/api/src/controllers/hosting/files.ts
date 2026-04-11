@@ -531,15 +531,24 @@ print('OK: primary=' + model['primary'])
             try {
                 const mcpConfig = mcpDeployments[type]()
                 if (mcpConfig) {
+                    const serverId = mcpServerId[type] || type
                     const b64Mcp = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
+                    // Write MCP config into openclaw.json (not just mcp-servers/ dir)
                     await sshExecInstance(instance, `
-                        mkdir -p /home/openclaw/.openclaw/mcp-servers && echo '${b64Mcp}' | base64 -d > /home/openclaw/.openclaw/mcp-servers/${mcpServerId[type]}.json && chown -R openclaw:openclaw /home/openclaw/.openclaw/mcp-servers
+                        python3 -c "
+import json, base64, sys
+cfg_path = '/home/openclaw/.openclaw/openclaw.json'
+with open(cfg_path) as f: d = json.load(f)
+d.setdefault('mcp', {}).setdefault('servers', {})
+d['mcp']['servers']['${serverId}'] = json.loads(base64.b64decode(sys.argv[1]))
+with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
+" '${b64Mcp}' &&
+                        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json
                     `)
                     await sshExecInstance(instance, 'systemctl restart openclaw-gateway')
                 }
             } catch (mcpErr) {
                 console.error(`MCP deploy for ${type} failed:`, mcpErr)
-                // Non-critical — legacy config file was already written
             }
         }
 

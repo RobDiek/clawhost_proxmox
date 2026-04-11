@@ -332,16 +332,33 @@ async function deployMicrosoftToVPS(ip: string, password: string | undefined, cr
         email: creds.email,
     })
 
-    // Combined into single SSH call: MCP set + legacy creds + restart
-    const b64 = Buffer.from(mcpConfig).toString('base64')
+    // Deploy MCP config into openclaw.json + legacy creds file
     const b64Cred = Buffer.from(credsJson).toString('base64')
+    const mcpEntry = Buffer.from(JSON.stringify({
+        command: 'npx',
+        args: ['-y', '@softeria/ms-365-mcp-server'],
+        env: {
+            MS_CLIENT_ID: creds.clientId,
+            MS_CLIENT_SECRET: creds.clientSecret,
+            MS_REFRESH_TOKEN: creds.refreshToken,
+            MS_TENANT_ID: MS_TENANT,
+        },
+    })).toString('base64')
+
     await sshExec(ip, `
-        echo '${b64}' | base64 -d > /tmp/mcp-cfg.json &&
-        mkdir -p /home/openclaw/.openclaw/mcp-servers && cp /tmp/mcp-cfg.json /home/openclaw/.openclaw/mcp-servers/ms-365.json && chown -R openclaw:openclaw /home/openclaw/.openclaw/mcp-servers &&
-        rm -f /tmp/mcp-cfg.json &&
         mkdir -p /home/openclaw/.openclaw/credentials &&
         echo '${b64Cred}' | base64 -d > /home/openclaw/.openclaw/credentials/microsoft.json &&
         chown -R openclaw:openclaw /home/openclaw/.openclaw/credentials &&
+        python3 -c "
+import json, base64, sys
+cfg_path = '/home/openclaw/.openclaw/openclaw.json'
+with open(cfg_path) as f: d = json.load(f)
+d.setdefault('mcp', {}).setdefault('servers', {})
+d['mcp']['servers']['ms-365'] = json.loads(base64.b64decode(sys.argv[1]))
+with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
+print('MCP ms-365 configured')
+" '${mcpEntry}' &&
+        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
         systemctl restart openclaw-gateway
     `, password)
 
