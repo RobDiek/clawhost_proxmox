@@ -9,6 +9,22 @@ import crypto from 'crypto'
 import { resolveUserId } from './authHelper'
 import { setAgentIntegration, removeAgentIntegration, getPrimaryAgent } from '@/services/agentIntegrations'
 
+/** Parse JWT from ?token= query param (for OAuth redirects that can't send Authorization header) */
+function resolveUserIdFromQuery(c: Context): string | null {
+    const queryToken = c.req.query('token')
+    if (!queryToken) return null
+    const parts = queryToken.split('.')
+    if (parts.length !== 3) return null
+    const secret = process.env.JWT_SECRET || ''
+    const expected = crypto.createHmac('sha256', secret).update(`${parts[0]}.${parts[1]}`).digest('base64url')
+    if (parts[2] !== expected) return null
+    try {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
+        if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null
+        return payload.sub || null
+    } catch { return null }
+}
+
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 
 let sshKeyCache: Buffer | null = null
@@ -62,8 +78,8 @@ export const microsoftAuth = async (c: Context) => {
         if (!instanceId) return fail(c, 'instanceId required', 400)
         if (!MS_CLIENT_ID) return fail(c, 'Microsoft OAuth not configured. Set MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET.', 500)
 
-        // Verify ownership
-        const userId = resolveUserId(c)
+        // Verify ownership (token from query param — OAuth redirect has no Authorization header)
+        const userId = resolveUserId(c) || resolveUserIdFromQuery(c)
         if (!userId) return fail(c, 'Authentication required', 401)
         const [inst] = await db.select().from(instances).where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
         if (!inst) return fail(c, 'Instance not found', 404)

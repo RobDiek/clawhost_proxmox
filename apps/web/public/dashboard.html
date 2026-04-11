@@ -4266,7 +4266,7 @@ function connectYouTube() {
     var iid = localStorage.getItem('cf_instance_id');
     var currentScopes = instanceData.googleTokens.scopes || ['calendar'];
     if (currentScopes.indexOf('youtube') === -1) currentScopes.push('youtube');
-    window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + currentScopes.join(',');
+    window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + currentScopes.join(',') + '&token=' + token;
   } else {
     showToast('חברו קודם Google Workspace בכלי עבודה, ואז הוסיפו YouTube', 'info');
     switchTab('integrations');
@@ -4290,7 +4290,7 @@ function connectGoogleAds() {
     var iid = localStorage.getItem('cf_instance_id');
     var currentScopes = instanceData.googleTokens.scopes || ['calendar'];
     if (currentScopes.indexOf('ads') === -1) currentScopes.push('ads');
-    window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + currentScopes.join(',');
+    window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + currentScopes.join(',') + '&token=' + token;
   } else {
     showToast('חברו קודם Google Workspace בכלי עבודה, ואז הוסיפו Google Ads', 'info');
     switchTab('integrations');
@@ -6047,7 +6047,7 @@ function connectGoogle() {
   if (scopes.length === 0) { showToast('בחרו לפחות שירות אחד', 'error'); return; }
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
-  window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + scopes.join(',');
+  window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + scopes.join(',') + '&token=' + token;
 }
 
 async function disconnectGoogle() {
@@ -6177,7 +6177,7 @@ function connectMicrosoft() {
   if (scopes.length === 0) { showToast('בחרו לפחות שירות אחד', 'error'); return; }
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
-  window.location.href = API + '/hosting/integrations/microsoft/auth?instanceId=' + iid + '&scopes=' + scopes.join(',');
+  window.location.href = API + '/hosting/integrations/microsoft/auth?instanceId=' + iid + '&scopes=' + scopes.join(',') + '&token=' + token;
 }
 
 async function disconnectMicrosoft() {
