@@ -196,39 +196,6 @@ runcmd:
                 "reserveTokensFloor": 25000
               }
             }
-          },
-          "mcpServers": {},
-          "openclaw-mem0": {
-            "enabled": true,
-            "config": {
-              "mode": "open-source",
-              "userId": "{{INSTANCE_ID}}",
-              "autoRecall": true,
-              "autoCapture": true,
-              "includeAgentId": true,
-              "gracefulDegradation": true,
-              "maxMemories": 1000,
-              "memoryTtlDays": 365,
-              "customPrompt": "You are a memory extraction assistant. Extract key facts from the conversation. CRITICAL: Extract and store facts in the ORIGINAL LANGUAGE they were stated in. Hebrew stays Hebrew, English stays English. Never translate. Focus on: personal preferences, work context, communication style, recurring tasks, names, relationships, important decisions, and business information.",
-              "oss": {
-                "embedder": {
-                  "provider": "huggingface",
-                  "config": { "model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2" }
-                },
-                "vectorStore": {
-                  "provider": "qdrant",
-                  "config": {
-                    "host": "127.0.0.1",
-                    "port": 6333,
-                    "collectionName": "openclaw_memories"
-                  }
-                },
-                "llm": {
-                  "provider": "anthropic",
-                  "config": { "model": "claude-haiku-4-5-20251001", "temperature": 0.1 }
-                }
-              }
-            }
           }
         }
         OCEOF
@@ -575,19 +542,8 @@ runcmd:
     - |
         OCJSON="/home/openclaw/.openclaw/openclaw.json"
         node -e "
-          const fs = require('fs');
-          const c = JSON.parse(fs.readFileSync('$OCJSON','utf-8'));
-          if (c['openclaw-mem0']?.config?.oss) {
-            c['openclaw-mem0'].config.oss.embedder = {
-              provider: 'ollama',
-              config: { model: 'nomic-embed-text', ollama_base_url: 'http://127.0.0.1:11434' }
-            };
-            fs.writeFileSync('$OCJSON', JSON.stringify(c, null, 2));
-          }
+          echo 'Ollama ready'
         " 2>/dev/null || true
-        chown openclaw:openclaw "$OCJSON"
-    # Restart gateway to pick up Ollama embedder config
-    - systemctl restart openclaw-gateway
     {{/HAS_OLLAMA}}
 
     # ── Langfuse LLM Observability ──
