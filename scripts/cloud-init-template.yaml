@@ -814,7 +814,7 @@ runcmd:
         find "$BACKUP_DIR" -name "backup-*.tar.gz" -mtime +7 -delete
 
         # Report to API
-        BACKUP_SIZE=$(stat -f%z "$BACKUP_FILE" 2>/dev/null || stat -c%s "$BACKUP_FILE" 2>/dev/null || echo "0")
+        BACKUP_SIZE=$(stat -c%s "$BACKUP_FILE" 2>/dev/null || echo "0")
         BACKUP_COUNT=$(ls -1 "$BACKUP_DIR"/backup-*.tar.gz 2>/dev/null | wc -l)
         curl -sf -X POST "$API_URL/hosting/instances/$INSTANCE_ID/backup-report" \
           -H "Content-Type: application/json" \

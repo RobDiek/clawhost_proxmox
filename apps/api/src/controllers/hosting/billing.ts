@@ -221,7 +221,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
                         // Auto-create automation owner account
                         if (isReady) {
                             try {
-                                const port = autoTool === 'n8n' ? 5678 : 8080
+                                const port = autoTool === 'n8n' ? 5678 : autoTool === 'dify' ? 3101 : 8080
                                 await fetch(`http://${result.ip}:${port}/rest/owner/setup`, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
@@ -364,6 +364,7 @@ export const handleAllpayWebhook = async (c: Context) => {
                 hasOllama,
                 hasTwenty,
                 hasBackup,
+                subdomainName: instance.subdomainName || undefined,
                 telegramChatId: instance.telegramChatId || undefined
             })
 
