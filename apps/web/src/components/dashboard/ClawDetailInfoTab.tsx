@@ -2,9 +2,8 @@ import type { FC, ReactNode } from 'react'
 import type { ClawDetailInfoTabProps } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
-import { OPENCLAW_VERSION } from '@openclaw/shared'
 import { getLocale } from '@/lib'
-import { CopyableField } from '@/components/dashboard'
+import { CopyableField, UpdateAvailableBanner } from '@/components/dashboard'
 import { Skeleton } from '@/components/ui'
 import { locationFlags, locationNames } from '@/lib/claw-utils'
 
@@ -31,18 +30,8 @@ const ClawDetailInfoTab: FC<ClawDetailInfoTabProps> = ({
 
     return (
         <div className='h-full overflow-y-auto p-5'>
-            {isOutdated && (
-                <div className='mb-3 flex items-center justify-between rounded-lg border border-blue-500/20 bg-blue-500/10 px-3 py-2.5'>
-                    <p className='text-xs text-blue-400'>
-                        OpenClaw {OPENCLAW_VERSION} {t('clawDetail.updateAvailableDescription')}
-                    </p>
-                    <button
-                        onClick={onGoToVersions}
-                        className='shrink-0 rounded-md bg-blue-500/20 px-2.5 py-1 text-xs font-medium text-blue-400 transition-colors hover:bg-blue-500/30'
-                    >
-                        {t('clawDetail.goToVersions')}
-                    </button>
-                </div>
+            {isOutdated && onGoToVersions && (
+                <UpdateAvailableBanner onGoToVersions={onGoToVersions} />
             )}
 
             <div

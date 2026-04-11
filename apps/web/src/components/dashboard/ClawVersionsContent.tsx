@@ -140,8 +140,12 @@ const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
                                     const isCurrent =
                                         versionsData?.currentVersion ===
                                         entry.version
+                                    const isBeta = entry.version.includes('beta')
+                                    const latestStableIdx = !debouncedSearch
+                                        ? filteredVersions.findIndex((v) => !v.version.includes('beta'))
+                                        : -1
                                     const isLatest =
-                                        idx === 0 && !debouncedSearch
+                                        idx === latestStableIdx && !isBeta
                                     const isInstalling =
                                         installingVersion === entry.version
                                     const isSupported = isVersionSupported(
@@ -164,14 +168,14 @@ const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
                                                         {entry.version}
                                                     </span>
                                                     {isCurrent && (
-                                                        <span className='rounded bg-green-500/20 px-1.5 py-0.5 text-[10px] font-medium text-green-400'>
+                                                        <span className='bg-foreground/10 text-muted-foreground rounded px-1.5 py-0.5 text-[10px] font-medium'>
                                                             {t(
                                                                 'clawDetail.versionCurrent'
                                                             )}
                                                         </span>
                                                     )}
                                                     {isLatest && (
-                                                        <span className='rounded bg-purple-500/20 px-1.5 py-0.5 text-[10px] font-medium text-purple-400'>
+                                                        <span className='rounded bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-medium text-blue-400'>
                                                             {t(
                                                                 'clawDetail.versionLatest'
                                                             )}

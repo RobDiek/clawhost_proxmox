@@ -1416,7 +1416,7 @@ const zh: Translations = {
         versionCurrent: '当前',
         versionLatest: '最新',
         updateAvailable: 'A newer version of OpenClaw is available',
-        updateAvailableDescription: 'Go to Versions to upgrade your instance.',
+        updateAvailableDescription: 'A new version of OpenClaw ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: '安装',
         versionInstalling: '正在安装...',

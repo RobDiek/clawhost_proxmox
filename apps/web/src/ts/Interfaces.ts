@@ -1023,6 +1023,10 @@ export interface ClawDetailInfoTabProps {
     onGoToVersions?: () => void
 }
 
+export interface UpdateAvailableBannerProps {
+    onGoToVersions: () => void
+}
+
 export interface ClawBillingContentProps {
     claw: Claw
 }

@@ -1533,7 +1533,7 @@ const tr: Translations = {
         versionCurrent: 'Mevcut',
         versionLatest: 'En Son',
         updateAvailable: 'A newer version of OpenClaw is available',
-        updateAvailableDescription: 'Go to Versions to upgrade your instance.',
+        updateAvailableDescription: 'A new version of OpenClaw ({{version}}) is available for your instance.',
         goToVersions: 'Go to Versions',
         versionInstall: 'Yükle',
         versionInstalling: 'Yükleniyor...',
