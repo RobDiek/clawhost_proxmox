@@ -1,8 +1,8 @@
 import type { FC, ReactNode } from 'react'
-import type { PlaygroundDetailPanelProps } from '@/ts/Interfaces'
-import type { PlaygroundDetailTab } from '@/ts/Types'
+import type { ClawDetailPanelProps } from '@/ts/Interfaces'
+import type { ClawDetailTab } from '@/ts/Types'
 
-import { useCallback, useMemo, useEffect } from 'react'
+import { useCallback, useMemo, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { clawStatus, OPENCLAW_VERSION } from '@openclaw/shared'
@@ -10,29 +10,29 @@ import { CLAW_DETAIL_TABS } from '@/lib/constants'
 import {
     CONFIGURING_DISABLED_TABS,
     AWAITING_PAYMENT_DISABLED_TABS
-} from '@/lib/playgroundDetailTabs'
+} from '@/lib/clawDetailTabs'
 import {
     ClawLogsContent,
     ClawDiagnosticsContent,
     ClawTerminalContent,
-    ClawConfigContent
+    ClawConfigContent,
+    ClawVersionsContent,
+    ClawDetailInfoTab,
+    ClawDetailSettingsTab,
+    ClawDetailHeader,
+    ClawDetailTabBar
 } from '@/components/dashboard'
-import {
-    PlaygroundVersionsContent,
-    PlaygroundDetailInfoTab,
-    PlaygroundDetailSettingsTab,
-    PlaygroundDetailHeader,
-    PlaygroundDetailTabBar
-} from '@/components/playground'
 import { useQueryClient } from '@tanstack/react-query'
 import {
     useClawVersion,
     CLAW_VERSION_QUERY_KEY,
     useClawSettingsForm
 } from '@/hooks'
-import { usePlaygroundDetailTabStore } from '@/lib/store'
+import { useClawDetailTabStore, useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
+import { api } from '@/lib'
 
-const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
+const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
     claw,
     plans,
     sshKeys,
@@ -45,28 +45,28 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
     const isConfiguring = claw.status === clawStatus.configuring
     const isAwaitingPayment = claw.status === clawStatus.awaitingPayment
     const isTabDisabled = useCallback(
-        (tabId: PlaygroundDetailTab) =>
+        (tabId: ClawDetailTab) =>
             (isConfiguring && CONFIGURING_DISABLED_TABS.includes(tabId)) ||
             (isAwaitingPayment &&
                 AWAITING_PAYMENT_DISABLED_TABS.includes(tabId)),
         [isConfiguring, isAwaitingPayment]
     )
     const getDisabledTooltip = useCallback(
-        (tabId: PlaygroundDetailTab) => {
+        (tabId: ClawDetailTab) => {
             if (
                 isAwaitingPayment &&
                 AWAITING_PAYMENT_DISABLED_TABS.includes(tabId)
             )
-                return t('playground.tabDisabledAwaitingPayment')
-            return t('playground.tabDisabledConfiguring')
+                return t('clawDetail.tabDisabledAwaitingPayment')
+            return t('clawDetail.tabDisabledConfiguring')
         },
         [isAwaitingPayment]
     )
-    const tabStateMap = usePlaygroundDetailTabStore((s) => s.tabStateMap)
-    const setTab = usePlaygroundDetailTabStore((s) => s.setTab)
+    const tabStateMap = useClawDetailTabStore((s) => s.tabStateMap)
+    const setTab = useClawDetailTabStore((s) => s.setTab)
     const activeTab = tabStateMap[claw.id] || CLAW_DETAIL_TABS.INFO
     const setActiveTab = useCallback(
-        (tab: PlaygroundDetailTab) => {
+        (tab: ClawDetailTab) => {
             if (isTabDisabled(tab)) return
             setTab(claw.id, tab)
             if (onTabChange) onTabChange(tab)
@@ -100,6 +100,19 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
         handleSettingsSubdomainChange,
         handleSettingsSave
     } = useClawSettingsForm(claw)
+
+    const { showToast } = useUIStore()
+    const [isExporting, setIsExporting] = useState(false)
+    const handleExport = useCallback(async () => {
+        setIsExporting(true)
+        try {
+            await api.exportClaw(claw.id, `${claw.name}-export.tar.gz`)
+            showToast(t('dashboard.exportSuccess'), TOAST_TYPE.SUCCESS)
+        } catch {
+            showToast(t('dashboard.exportFailed'), TOAST_TYPE.ERROR)
+        }
+        setIsExporting(false)
+    }, [claw.id, claw.name, showToast])
 
     const isInfoTab = activeTab === 'info'
     const queryClient = useQueryClient()
@@ -167,13 +180,13 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
             <div
                 className={`flex h-full w-full flex-col ${fullScreen ? 'bg-background' : 'bg-background md:border-border md:bg-background/95 md:border-l md:backdrop-blur-xl'}`}
             >
-                <PlaygroundDetailHeader
+                <ClawDetailHeader
                     claw={claw}
                     onClose={onClose}
                     fullScreen={fullScreen}
                 />
 
-                <PlaygroundDetailTabBar
+                <ClawDetailTabBar
                     activeTab={activeTab}
                     fullScreen={fullScreen}
                     isTabDisabled={isTabDisabled}
@@ -183,7 +196,7 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
 
                 <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
                     {activeTab === 'info' && (
-                        <PlaygroundDetailInfoTab
+                        <ClawDetailInfoTab
                             claw={claw}
                             plans={plans}
                             sshKeys={sshKeys}
@@ -201,30 +214,30 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                             embedded
                             mockLogs={
                                 readOnly
-                                    ? t('playground.mockLogsContent', {
+                                    ? t('clawDetail.mockLogsContent', {
                                           starting: t(
-                                              'playground.mockLogStarting'
+                                              'clawDetail.mockLogStarting'
                                           ),
                                           loadingModel: t(
-                                              'playground.mockLogLoadingModel'
+                                              'clawDetail.mockLogLoadingModel'
                                           ),
                                           agentReady: t(
-                                              'playground.mockLogAgentReady'
+                                              'clawDetail.mockLogAgentReady'
                                           ),
                                           connected: t(
-                                              'playground.mockLogConnected'
+                                              'clawDetail.mockLogConnected'
                                           ),
                                           requestReceived: t(
-                                              'playground.mockLogRequestReceived'
+                                              'clawDetail.mockLogRequestReceived'
                                           ),
                                           responseSent1: t(
-                                              'playground.mockLogResponseSent1'
+                                              'clawDetail.mockLogResponseSent1'
                                           ),
                                           responseSent2: t(
-                                              'playground.mockLogResponseSent2'
+                                              'clawDetail.mockLogResponseSent2'
                                           ),
                                           healthCheck: t(
-                                              'playground.mockLogHealthCheck'
+                                              'clawDetail.mockLogHealthCheck'
                                           )
                                       })
                                     : undefined
@@ -259,7 +272,7 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                     )}
 
                     {activeTab === 'versions' && (
-                        <PlaygroundVersionsContent clawId={claw.id} />
+                        <ClawVersionsContent clawId={claw.id} />
                     )}
 
                     {activeTab === 'files' && (
@@ -267,7 +280,7 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                     )}
 
                     {activeTab === 'settings' && (
-                        <PlaygroundDetailSettingsTab
+                        <ClawDetailSettingsTab
                             settingsName={settingsName}
                             settingsNameError={settingsNameError}
                             settingsSubdomain={settingsSubdomain}
@@ -278,6 +291,8 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                             onNameChange={handleSettingsNameChange}
                             onSubdomainChange={handleSettingsSubdomainChange}
                             onSave={handleSettingsSave}
+                            onExport={handleExport}
+                            isExporting={isExporting}
                         />
                     )}
                 </div>
@@ -286,4 +301,4 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
     )
 }
 
-export default PlaygroundDetailPanel
+export default ClawDetailPanel

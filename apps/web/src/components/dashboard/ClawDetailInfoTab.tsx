@@ -1,5 +1,5 @@
 import type { FC, ReactNode } from 'react'
-import type { PlaygroundDetailInfoTabProps } from '@/ts/Interfaces'
+import type { ClawDetailInfoTabProps } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
 import { getLocale } from '@/lib'
@@ -7,7 +7,7 @@ import { CopyableField } from '@/components/dashboard'
 import { Skeleton } from '@/components/ui'
 import { locationFlags, locationNames } from '@/lib/claw-utils'
 
-const PlaygroundDetailInfoTab: FC<PlaygroundDetailInfoTabProps> = ({
+const ClawDetailInfoTab: FC<ClawDetailInfoTabProps> = ({
     claw,
     plans,
     sshKeys,
@@ -171,4 +171,4 @@ const PlaygroundDetailInfoTab: FC<PlaygroundDetailInfoTabProps> = ({
     )
 }
 
-export default PlaygroundDetailInfoTab
+export default ClawDetailInfoTab

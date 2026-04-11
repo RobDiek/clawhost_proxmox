@@ -1,5 +1,5 @@
 import type { FC, ReactNode } from 'react'
-import type { PlaygroundVersionsContentProps } from '@/ts/Interfaces'
+import type { ClawVersionsContentProps } from '@/ts/Interfaces'
 
 import { Fragment, useState, useMemo, useRef } from 'react'
 import { useDebouncedValue } from '@/hooks'
@@ -34,7 +34,7 @@ import { CLAW_VERSIONS_QUERY_KEY, CLAW_VERSION_QUERY_KEY } from '@/hooks'
 
 const CHANGELOG_BASE_URL = 'https://www.npmjs.com/package/openclaw/v/'
 
-const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
+const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
     clawId
 }): ReactNode => {
     const [search, setSearch] = useState('')
@@ -67,7 +67,7 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
             api.installClawVersion(clawId, version),
         onSuccess: (_data, version) => {
             showToast(
-                t('playground.versionInstallSuccess', { version }),
+                t('clawDetail.versionInstallSuccess', { version }),
                 'success'
             )
             queryClient.invalidateQueries({
@@ -79,7 +79,7 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
             setInstallingVersion(null)
         },
         onError: () => {
-            showToast(t('playground.versionInstallFailed'), TOAST_TYPE.ERROR)
+            showToast(t('clawDetail.versionInstallFailed'), TOAST_TYPE.ERROR)
             setInstallingVersion(null)
         }
     })
@@ -118,7 +118,7 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                             type='text'
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder={t('playground.versionsSearch')}
+                            placeholder={t('clawDetail.versionsSearch')}
                             className='border-border bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border py-2 pl-8 pr-3 text-xs outline-none transition-colors focus:border-[#ef5350]/50'
                         />
                     </div>
@@ -164,7 +164,7 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                                                     {isCurrent && (
                                                         <span className='rounded bg-green-500/20 px-1.5 py-0.5 text-[10px] font-medium text-green-400'>
                                                             {t(
-                                                                'playground.versionCurrent'
+                                                                'clawDetail.versionCurrent'
                                                             )}
                                                         </span>
                                                     )}
@@ -176,14 +176,14 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                                                                 >
                                                                     <span className='flex cursor-default items-center gap-0.5 rounded bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-medium text-blue-400'>
                                                                         {t(
-                                                                            'playground.versionSupported'
+                                                                            'clawDetail.versionSupported'
                                                                         )}
                                                                         <InfoIcon className='h-2.5 w-2.5' />
                                                                     </span>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
                                                                     {t(
-                                                                        'playground.versionSupportedTooltip'
+                                                                        'clawDetail.versionSupportedTooltip'
                                                                     )}
                                                                 </TooltipContent>
                                                             </Tooltip>
@@ -208,7 +208,7 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                                                     </span>
                                                     <span className='text-muted-foreground text-[10px]'>
                                                         {t(
-                                                            'playground.versionDownloads',
+                                                            'clawDetail.versionDownloads',
                                                             {
                                                                 count: new Intl.NumberFormat(
                                                                     getLocale()
@@ -232,7 +232,7 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                                                     >
                                                         <ArrowSquareOutIcon className='h-2.5 w-2.5' />
                                                         {t(
-                                                            'playground.versionChangelog'
+                                                            'clawDetail.versionChangelog'
                                                         )}
                                                     </a>
                                                 </div>
@@ -255,14 +255,14 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                                                         <Fragment>
                                                             <CircleNotchIcon className='h-3 w-3 animate-spin' />
                                                             {t(
-                                                                'playground.versionInstalling'
+                                                                'clawDetail.versionInstalling'
                                                             )}
                                                         </Fragment>
                                                     ) : (
                                                         <Fragment>
                                                             <DownloadSimpleIcon className='h-3 w-3' />
                                                             {t(
-                                                                'playground.versionInstall'
+                                                                'clawDetail.versionInstall'
                                                             )}
                                                         </Fragment>
                                                     )}
@@ -277,17 +277,17 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                             {isError ? (
                                 <PanelPlaceholder
                                     icon={<ClawMascot className='h-5 w-5' />}
-                                    title={t('playground.versionsEmpty')}
+                                    title={t('clawDetail.versionsEmpty')}
                                     description={t(
-                                        'playground.versionsErrorDescription'
+                                        'clawDetail.versionsErrorDescription'
                                     )}
                                 />
                             ) : (
                                 <PanelPlaceholder
                                     icon={<ClawMascot className='h-5 w-5' />}
-                                    title={t('playground.versionsEmpty')}
+                                    title={t('clawDetail.versionsEmpty')}
                                     description={t(
-                                        'playground.versionsEmptyDescription'
+                                        'clawDetail.versionsEmptyDescription'
                                     )}
                                 />
                             )}
@@ -305,12 +305,12 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
-                            {t('playground.versionInstallConfirmTitle', {
+                            {t('clawDetail.versionInstallConfirmTitle', {
                                 version: confirmVersion ?? ''
                             })}
                         </DialogTitle>
                         <DialogDescription>
-                            {t('playground.versionInstallConfirmDescription')}
+                            {t('clawDetail.versionInstallConfirmDescription')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className='mt-4 flex justify-end gap-3'>
@@ -324,7 +324,7 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
                             variant='destructive'
                             onClick={handleConfirmInstall}
                         >
-                            {t('playground.versionInstall')}
+                            {t('clawDetail.versionInstall')}
                         </Button>
                     </div>
                 </DialogContent>
@@ -333,4 +333,4 @@ const PlaygroundVersionsContent: FC<PlaygroundVersionsContentProps> = ({
     )
 }
 
-export default PlaygroundVersionsContent
+export default ClawVersionsContent

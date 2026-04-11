@@ -70,7 +70,6 @@ const en = {
     },
     nav: {
         claws: 'Claws',
-        playground: 'Playground',
         sshKeys: 'SSH Keys',
         account: 'Account',
         billing: 'Billing',
@@ -533,15 +532,6 @@ const en = {
                     'Browse, edit, and save files on your server with syntax highlighting. No SSH, no FTP — just click and type.',
                 cta: 'Open File Explorer'
             },
-            playground: {
-                subject: 'Visualize your infrastructure',
-                preview: 'See your claws and agents on a canvas',
-                tag: 'Playground',
-                heading: 'Your infrastructure, visualized',
-                description:
-                    'An interactive graph of all your claws and agents. Drag, zoom, click any node to manage it.',
-                cta: 'Open Playground'
-            },
             diagnostics: {
                 subject: 'Built-in server health checks',
                 preview: 'Check your server health in one click',
@@ -931,8 +921,6 @@ const en = {
         dnsSetupButton: 'Set Up DNS',
         dnsSetupSuccess: 'DNS resolver configured successfully.',
         dnsSetupError: 'Failed to configure DNS resolver!',
-        listTab: 'List',
-        playgroundTab: 'Playground',
         userTab: 'User',
         adminTab: 'Admin',
         adminTitle: 'Admin',
@@ -1472,22 +1460,12 @@ const en = {
         release4Feature4:
             'Removed grid and list view toggle in favor of a unified dashboard layout'
     },
-    playground: {
-        title: 'Playground',
-        description:
-            'Visualize your Claws and their agents in an interactive graph.',
-        subtitle: 'Agent topology across your infrastructure',
+    clawDetail: {
         noClawsYet: 'No Claws',
         noClawsDescription: 'Deploy your first Claw to interact with it.',
         selectClaw: 'Select a Claw',
         selectClawDescription:
             'Choose a Claw from the sidebar to view its details.',
-        unreachable: 'Unreachable',
-        offline: 'Offline',
-        zoomLabel: '{{percent}}%',
-        fitView: 'Center',
-        nodesOutOfView: 'Claws out of view',
-        nodeOutOfView: 'Claw out of view',
         closeDetails: 'Close',
         tabInfo: 'Info',
         tabLogs: 'Logs',

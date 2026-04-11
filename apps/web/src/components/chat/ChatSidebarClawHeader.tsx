@@ -120,7 +120,9 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
                         </Tooltip>
                     ) : claw.status === clawStatus.running ? (
                         <p className='text-muted-foreground truncate text-[11px]'>
-                            {(claw.subdomain || generateSlug(claw.id)) + '.' + getBaseDomain()}
+                            {(claw.subdomain || generateSlug(claw.id)) +
+                                '.' +
+                                getBaseDomain()}
                         </p>
                     ) : (
                         <p className='text-muted-foreground truncate text-[11px]'>

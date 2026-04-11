@@ -1,8 +1,8 @@
-import type { PlaygroundDetailTabState } from '@/ts/Interfaces'
+import type { ClawDetailTabState } from '@/ts/Interfaces'
 
 import { create } from 'zustand'
 
-const usePlaygroundDetailTabStore = create<PlaygroundDetailTabState>((set) => ({
+const useClawDetailTabStore = create<ClawDetailTabState>((set) => ({
     tabStateMap: {},
     setTab: (clawId, tab) =>
         set((state) => ({
@@ -10,4 +10,4 @@ const usePlaygroundDetailTabStore = create<PlaygroundDetailTabState>((set) => ({
         }))
 }))
 
-export default usePlaygroundDetailTabStore
+export default useClawDetailTabStore

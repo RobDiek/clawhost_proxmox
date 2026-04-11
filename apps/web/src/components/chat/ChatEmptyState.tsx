@@ -9,12 +9,14 @@ const ChatEmptyState: FC = (): ReactNode => {
             <div className='bg-foreground/5 flex h-12 w-12 items-center justify-center rounded-xl'>
                 <ClawMascot className='h-6 w-6' />
             </div>
+
             <div className='text-center'>
                 <p className='text-foreground/80 text-sm font-medium'>
-                    {t('playground.selectClaw')}
+                    {t('clawDetail.selectClaw')}
                 </p>
+
                 <p className='text-muted-foreground mt-1 text-xs'>
-                    {t('playground.selectClawDescription')}
+                    {t('clawDetail.selectClawDescription')}
                 </p>
             </div>
         </div>

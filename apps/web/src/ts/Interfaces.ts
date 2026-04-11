@@ -8,7 +8,6 @@ import type {
 } from 'react'
 import type { MotionValue } from 'framer-motion'
 import type { User } from 'firebase/auth'
-import type { Node, Edge } from '@xyflow/react'
 import type { QueryClient } from '@tanstack/react-query'
 import type { TranslationKey } from '@openclaw/i18n'
 import type {
@@ -21,8 +20,7 @@ import type {
     Language,
     LoginLoadingMethod,
     OAuthProvider,
-    DashboardTab,
-    PlaygroundDetailTab,
+    ClawDetailTab,
     ThemeMode,
     ClawFileType,
     CompareFeatureStatus,
@@ -266,8 +264,6 @@ export interface UIState {
 export interface PreferencesState {
     adminMode: boolean
     setAdminMode: (mode: boolean) => void
-    dashboardTab: DashboardTab
-    setDashboardTab: (tab: DashboardTab) => void
     theme: ThemeMode
     setTheme: (theme: ThemeMode) => void
     language: Language
@@ -299,14 +295,10 @@ export interface TerminalState {
 }
 
 export interface DashboardState {
-    selectedClawId: string | null
-    setSelectedClawId: (value: string | null) => void
     chatSettingsClawId: string | null
     setChatSettingsClawId: (value: string | null) => void
-    chatClawTab: PlaygroundDetailTab | null
-    setChatClawTab: (value: PlaygroundDetailTab | null) => void
-    playgroundClawTab: PlaygroundDetailTab | null
-    setPlaygroundClawTab: (value: PlaygroundDetailTab | null) => void
+    chatClawTab: ClawDetailTab | null
+    setChatClawTab: (value: ClawDetailTab | null) => void
     showCreate: boolean
     setShowCreate: (value: boolean) => void
     preselectedPlanId: string | null
@@ -827,7 +819,7 @@ export interface InstallClawVersionResponse {
     version: string
 }
 
-export interface PlaygroundVersionsContentProps {
+export interface ClawVersionsContentProps {
     clawId: string
 }
 
@@ -1000,46 +992,18 @@ export interface FaqSectionProps {
     faqs: Faq[]
 }
 
-export interface PlaygroundClawNodeData {
-    claw: Claw
-    isSelected: boolean
-    readOnly?: boolean
-}
-
-export interface PlaygroundClawNodeProps {
-    data: PlaygroundClawNodeData
-}
-
-export interface PlaygroundCanvasProps {
-    initialNodes: Node[]
-    initialEdges: Edge[]
-    onNodeClick?: (clawId: string) => void
-    onPaneClick?: () => void
-    panelOpen?: boolean
-    selectedClawId?: string | null
-    initialZoom?: number
-    allowPageScroll?: boolean
-}
-
-export interface PlaygroundCanvasInnerProps extends PlaygroundCanvasProps {
-    zoom: number
-    onZoomChange: (zoom: number) => void
-    isFitView: boolean
-    onFitViewChange: (value: boolean) => void
-}
-
-export interface PlaygroundDetailPanelProps {
+export interface ClawDetailPanelProps {
     claw: Claw
     plans: Plan[]
     sshKeys: SSHKey[]
     onClose: () => void
     readOnly?: boolean
-    initialTab?: PlaygroundDetailTab
-    onTabChange?: (tab: PlaygroundDetailTab) => void
+    initialTab?: ClawDetailTab
+    onTabChange?: (tab: ClawDetailTab) => void
     fullScreen?: boolean
 }
 
-export interface PlaygroundDetailInfoTabProps {
+export interface ClawDetailInfoTabProps {
     claw: Claw
     plans: Plan[]
     sshKeys: SSHKey[]
@@ -1049,7 +1013,7 @@ export interface PlaygroundDetailInfoTabProps {
     versionDisplay: string | null
 }
 
-export interface PlaygroundDetailSettingsTabProps {
+export interface ClawDetailSettingsTabProps {
     settingsName: string
     settingsNameError: string
     settingsSubdomain: string
@@ -1057,28 +1021,30 @@ export interface PlaygroundDetailSettingsTabProps {
     settingsHasChanges: boolean
     renamePending: boolean
     subdomainPending: boolean
+    isExporting: boolean
     onNameChange: (value: string) => void
     onSubdomainChange: (value: string) => void
     onSave: () => void
+    onExport: () => void
 }
 
-export interface PlaygroundDetailHeaderProps {
+export interface ClawDetailHeaderProps {
     claw: Claw
     onClose: () => void
     fullScreen?: boolean
 }
 
-export interface PlaygroundDetailTabBarProps {
-    activeTab: PlaygroundDetailTab
+export interface ClawDetailTabBarProps {
+    activeTab: ClawDetailTab
     fullScreen?: boolean
-    isTabDisabled: (tabId: PlaygroundDetailTab) => boolean
-    getDisabledTooltip: (tabId: PlaygroundDetailTab) => string
-    setActiveTab: (tab: PlaygroundDetailTab) => void
+    isTabDisabled: (tabId: ClawDetailTab) => boolean
+    getDisabledTooltip: (tabId: ClawDetailTab) => string
+    setActiveTab: (tab: ClawDetailTab) => void
 }
 
-export interface PlaygroundDetailTabState {
-    tabStateMap: Record<string, PlaygroundDetailTab>
-    setTab: (clawId: string, tab: PlaygroundDetailTab) => void
+export interface ClawDetailTabState {
+    tabStateMap: Record<string, ClawDetailTab>
+    setTab: (clawId: string, tab: ClawDetailTab) => void
 }
 
 export interface UseClawSettingsFormReturn {
@@ -1092,14 +1058,6 @@ export interface UseClawSettingsFormReturn {
     handleSettingsNameChange: (value: string) => void
     handleSettingsSubdomainChange: (value: string) => void
     handleSettingsSave: () => void
-}
-
-export interface PlaygroundToolbarProps {
-    zoom: number
-    onFitView: () => void
-    isFitView: boolean
-    nodesOutOfView: boolean
-    clawCount: number
 }
 
 export interface LanguageOption {
@@ -1202,16 +1160,10 @@ export interface SimplePlanCardProps {
     features: SimplePlanFeature[]
 }
 
-export interface PlaygroundTabConfig<T extends string = string> {
+export interface ClawDetailTabConfig<T extends string = string> {
     id: T
     label: string
     icon: ElementType
-}
-
-export interface DemoPlaygroundData {
-    nodes: Node[]
-    edges: Edge[]
-    claws: Claw[]
 }
 
 export interface TruncateTooltipProps {
@@ -1887,7 +1839,6 @@ export interface ChangelogRelease {
 }
 
 export interface DashboardHeaderProps {
-    dashboardTab: DashboardTab
     isLocal: boolean
     isLoading: boolean
     displayedClaws: Claw[]
@@ -1897,7 +1848,6 @@ export interface DashboardHeaderProps {
     openLinksWindowed: boolean
     appVersion: string | null
     dropdownFooterLinks: FooterLink[]
-    onTabChange: (tab: DashboardTab) => void
     onCreateClick: () => void
     onDnsSetup: () => void
     onSignOut: () => Promise<void>
@@ -1909,9 +1859,9 @@ export interface DashboardChatViewProps {
     sshKeys: SSHKey[]
     adminMode: boolean
     chatSettingsClawId: string | null
-    chatClawTab: PlaygroundDetailTab | null
+    chatClawTab: ClawDetailTab | null
     onSettingsClawChange: (clawId: string | null) => void
-    onClawTabChange: (tab: PlaygroundDetailTab | null) => void
+    onClawTabChange: (tab: ClawDetailTab | null) => void
     onCreateClick: () => void
 }
 
@@ -1938,38 +1888,16 @@ export interface ChatSidebarClawHeaderProps {
     onOpenClawSettings: (clawId: string) => void
 }
 
-export interface DashboardPlaygroundViewProps {
-    displayedClaws: Claw[]
-    adminMode: boolean
-    nodes: Node[]
-    edges: Edge[]
-    plans: Plan[]
-    sshKeys: SSHKey[]
-    selectedClawId: string | null
-    playgroundClawTab: PlaygroundDetailTab | null
-    isLoading: boolean
-    activeIsError: boolean
-    onClawSelect: (clawId: string | null) => void
-    onPlaygroundClawTabChange: (tab: PlaygroundDetailTab | null) => void
-    onCreateClick: () => void
-}
-
 export interface UseURLStateRestorationParams {
     searchParams: URLSearchParams
     setSearchParams: (
         params: Record<string, string>,
         options?: { replace?: boolean }
     ) => void
-    dashboardTab: DashboardTab
-    setDashboardTab: (tab: DashboardTab) => void
-    selectedClawId: string | null
-    setSelectedClawId: (value: string | null) => void
-    playgroundClawTab: PlaygroundDetailTab | null
-    setPlaygroundClawTab: (value: PlaygroundDetailTab | null) => void
     chatSettingsClawId: string | null
     setChatSettingsClawId: (value: string | null) => void
-    chatClawTab: PlaygroundDetailTab | null
-    setChatClawTab: (value: PlaygroundDetailTab | null) => void
+    chatClawTab: ClawDetailTab | null
+    setChatClawTab: (value: ClawDetailTab | null) => void
     setShowCreate: (value: boolean) => void
     setPreselectedPlanId: (value: string | null) => void
     showToast: (message: string, type: ToastType) => void

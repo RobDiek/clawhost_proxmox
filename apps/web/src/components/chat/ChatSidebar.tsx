@@ -28,7 +28,7 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                     <ClawMascot className='h-5 w-5' />
                 </div>
                 <p className='text-muted-foreground mt-3 text-center text-xs'>
-                    {t('playground.noClawsDescription')}
+                    {t('clawDetail.noClawsDescription')}
                 </p>
             </div>
         )

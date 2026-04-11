@@ -72,7 +72,6 @@ const tr: Translations = {
     },
     nav: {
         claws: "Claw'lar",
-        playground: 'Playground',
         sshKeys: 'SSH Anahtarları',
         account: 'Hesap',
         billing: 'Faturalama',
@@ -538,16 +537,6 @@ const tr: Translations = {
                     'ClawHost panelinden sunucunuzdaki dosyaları doğrudan göz atın, okuyun ve düzenleyin. Sözdizimi vurgulama, arama ve anında kaydetme — SSH gerekmez.',
                 cta: 'Dosya Gezginini Aç'
             },
-            playground: {
-                subject: 'Biliyor muydunuz? Altyapınızı görselleştirin',
-                preview:
-                    "Claw'larınızı ve ajanlarınızı etkileşimli bir tuvalde görün",
-                tag: 'Oyun Alanı',
-                heading: 'Büyük resmi görün',
-                description:
-                    "Playground, tüm claw'larınızı ve ajanlarınızı gösteren etkileşimli bir grafik tuval sunar. Yönetmek için herhangi bir düğüme tıklayın — altyapınız için görsel bir komut merkezi.",
-                cta: "Playground'u Aç"
-            },
             diagnostics: {
                 subject: 'Biliyor muydunuz? Yerleşik sağlık kontrolleri',
                 preview: 'Sunucu sağlığını panelden izleyin',
@@ -943,8 +932,6 @@ const tr: Translations = {
         dnsSetupButton: 'DNS Ayarla',
         dnsSetupSuccess: 'DNS çözümleyici başarıyla yapılandırıldı.',
         dnsSetupError: 'DNS çözümleyici yapılandırılamadı!',
-        listTab: 'Claws',
-        playgroundTab: 'Playground',
         userTab: 'Kullanıcı',
         adminTab: 'Yönetici',
         adminTitle: 'Yönetici',
@@ -1494,22 +1481,12 @@ const tr: Translations = {
         release4Feature4:
             'Birleşik panel düzeni lehine ızgara ve liste görünümü geçişi kaldırıldı'
     },
-    playground: {
-        title: 'Playground',
-        description:
-            "Claw'larınızı ve ajanlarını etkileşimli bir grafikte görselleştirin.",
-        subtitle: 'Altyapınız genelinde ajan topolojisi',
+    clawDetail: {
         noClawsYet: 'Claw Yok',
         noClawsDescription: "Etkileşime geçmek için ilk Claw'ınızı dağıtın.",
         selectClaw: 'Bir Claw Seçin',
         selectClawDescription:
             'Ayrıntılarını görüntülemek için kenar çubuğundan bir Claw seçin.',
-        unreachable: 'Erişilemiyor',
-        offline: 'Çevrimdışı',
-        zoomLabel: '{{percent}}%',
-        fitView: 'Ortala',
-        nodesOutOfView: "Görünüm dışında claw'lar",
-        nodeOutOfView: 'Görünüm dışında claw',
         closeDetails: 'Kapat',
         tabInfo: 'Bilgi',
         tabLogs: 'Günlükler',

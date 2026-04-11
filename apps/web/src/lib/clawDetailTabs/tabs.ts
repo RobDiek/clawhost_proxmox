@@ -1,5 +1,5 @@
-import type { PlaygroundTabConfig } from '@/ts/Interfaces'
-import type { PlaygroundDetailTab } from '@/ts/Types'
+import type { ClawDetailTabConfig } from '@/ts/Interfaces'
+import type { ClawDetailTab } from '@/ts/Types'
 
 import {
     InfoIcon,
@@ -12,36 +12,36 @@ import {
 } from '@phosphor-icons/react'
 import { CLAW_DETAIL_TABS } from '@/lib/constants'
 
-const tabs: PlaygroundTabConfig<PlaygroundDetailTab>[] = [
-    { id: CLAW_DETAIL_TABS.INFO, label: 'playground.tabInfo', icon: InfoIcon },
+const tabs: ClawDetailTabConfig<ClawDetailTab>[] = [
+    { id: CLAW_DETAIL_TABS.INFO, label: 'clawDetail.tabInfo', icon: InfoIcon },
     {
         id: CLAW_DETAIL_TABS.TERMINAL,
-        label: 'playground.tabTerminal',
+        label: 'clawDetail.tabTerminal',
         icon: TerminalWindowIcon
     },
     {
         id: CLAW_DETAIL_TABS.LOGS,
-        label: 'playground.tabLogs',
+        label: 'clawDetail.tabLogs',
         icon: ScrollIcon
     },
     {
         id: CLAW_DETAIL_TABS.VERSIONS,
-        label: 'playground.tabVersions',
+        label: 'clawDetail.tabVersions',
         icon: TagIcon
     },
     {
         id: CLAW_DETAIL_TABS.FILES,
-        label: 'playground.tabFiles',
+        label: 'clawDetail.tabFiles',
         icon: FolderSimpleIcon
     },
     {
         id: CLAW_DETAIL_TABS.DIAGNOSTICS,
-        label: 'playground.tabDiagnostics',
+        label: 'clawDetail.tabDiagnostics',
         icon: PulseIcon
     },
     {
         id: CLAW_DETAIL_TABS.SETTINGS,
-        label: 'playground.tabSettings',
+        label: 'clawDetail.tabSettings',
         icon: GearSixIcon
     }
 ]

@@ -72,7 +72,6 @@ const pl: Translations = {
     },
     nav: {
         claws: 'Claws',
-        playground: 'Playground',
         sshKeys: 'Klucze SSH',
         account: 'Konto',
         billing: 'Płatności',
@@ -552,16 +551,6 @@ const pl: Translations = {
                     'Przeglądaj, czytaj i edytuj pliki na serwerze bezpośrednio z panelu ClawHost. Podświetlanie składni, wyszukiwanie i natychmiastowy zapis — bez SSH.',
                 cta: 'Otwórz eksplorator plików'
             },
-            playground: {
-                subject: 'Czy wiesz? Wizualizuj swoją infrastrukturę',
-                preview:
-                    'Zobacz swoje claws i agentów na interaktywnym płótnie',
-                tag: 'Plac zabaw',
-                heading: 'Zobacz pełny obraz',
-                description:
-                    'Playground daje Ci interaktywne płótno grafowe pokazujące wszystkie Twoje claws i agentów. Kliknij dowolny węzeł, aby nim zarządzać — wizualne centrum dowodzenia Twoją infrastrukturą.',
-                cta: 'Otwórz Playground'
-            },
             diagnostics: {
                 subject: 'Czy wiesz? Wbudowane kontrole stanu',
                 preview: 'Monitoruj stan serwera z panelu',
@@ -957,8 +946,6 @@ const pl: Translations = {
         dnsSetupButton: 'Skonfiguruj DNS',
         dnsSetupSuccess: 'Resolver DNS skonfigurowany pomyślnie.',
         dnsSetupError: 'Nie udało się skonfigurować resolvera DNS !',
-        listTab: 'Claws',
-        playgroundTab: 'Playground',
         userTab: 'Użytkownik',
         adminTab: 'Admin',
         adminTitle: 'Admin',
@@ -1503,23 +1490,13 @@ const pl: Translations = {
         release4Feature4:
             'Usunięto przełącznik widoku siatki i listy na rzecz jednolitego układu panelu'
     },
-    playground: {
-        title: 'Playground',
-        description:
-            'Wizualizuj swoje Claws i ich agentów na interaktywnym grafie.',
-        subtitle: 'Topologia agentów w Twojej infrastrukturze',
+    clawDetail: {
         noClawsYet: 'Brak Claws',
         noClawsDescription:
             'Wdróż swojego pierwszego Claw, aby z nim interakcjonować.',
         selectClaw: 'Wybierz Claw',
         selectClawDescription:
             'Wybierz Claw z paska bocznego, aby zobaczyć szczegóły.',
-        unreachable: 'Nieosiągalny',
-        offline: 'Offline',
-        zoomLabel: '{{percent}}%',
-        fitView: 'Wyśrodkuj',
-        nodesOutOfView: 'Claws poza widokiem',
-        nodeOutOfView: 'Claw poza widokiem',
         closeDetails: 'Zamknij',
         tabInfo: 'Info',
         tabLogs: 'Logi',

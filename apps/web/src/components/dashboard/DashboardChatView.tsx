@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { ListIcon, XIcon } from '@phosphor-icons/react'
 import { EmptyState, ClawMascot } from '@/components'
-import { PlaygroundDetailPanel } from '@/components/playground'
+import { ClawDetailPanel } from '@/components/dashboard'
 import { ChatSidebar } from '@/components/chat'
 import { ChatEmptyState } from '@/components/chat'
 
@@ -88,12 +88,12 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
                             title={
                                 adminMode
                                     ? t('dashboard.adminNoClaws')
-                                    : t('playground.noClawsYet')
+                                    : t('clawDetail.noClawsYet')
                             }
                             description={
                                 adminMode
                                     ? t('dashboard.adminDescription')
-                                    : t('playground.noClawsDescription')
+                                    : t('clawDetail.noClawsDescription')
                             }
                             actionLabel={t('nav.deployOpenClaw')}
                             onAction={onCreateClick}
@@ -175,7 +175,7 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
                             )}
                         </AnimatePresence>
                         {settingsClaw ? (
-                            <PlaygroundDetailPanel
+                            <ClawDetailPanel
                                 key={`fullscreen-${settingsClaw.id}`}
                                 claw={settingsClaw}
                                 plans={plans}

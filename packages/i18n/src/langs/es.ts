@@ -72,7 +72,6 @@ const es: Translations = {
     },
     nav: {
         claws: 'Claws',
-        playground: 'Playground',
         sshKeys: 'Claves SSH',
         account: 'Cuenta',
         billing: 'Facturación',
@@ -562,15 +561,6 @@ const es: Translations = {
                     'Navega, edita y guarda archivos con resaltado de sintaxis. Sin SSH, sin FTP — haz clic y escribe.',
                 cta: 'Abrir Explorador'
             },
-            playground: {
-                subject: 'Visualiza tu infraestructura',
-                preview: 'Ve tus claws y agentes en un lienzo',
-                tag: 'Playground',
-                heading: 'Tu infraestructura, visualizada',
-                description:
-                    'Un grafo interactivo de todos tus claws y agentes. Arrastra, haz zoom, clic en cualquier nodo para gestionarlo.',
-                cta: 'Abrir Playground'
-            },
             diagnostics: {
                 subject: 'Chequeos de salud integrados',
                 preview: 'Verifica la salud de tu servidor en un clic',
@@ -965,8 +955,6 @@ const es: Translations = {
         dnsSetupButton: 'Configurar DNS',
         dnsSetupSuccess: 'Resolvedor DNS configurado exitosamente.',
         dnsSetupError: '¡Error al configurar el resolvedor DNS!',
-        listTab: 'Claws',
-        playgroundTab: 'Playground',
         userTab: 'Usuario',
         adminTab: 'Admin',
         adminTitle: 'Admin',
@@ -1523,22 +1511,12 @@ const es: Translations = {
         release4Feature4:
             'Se eliminó la alternancia entre vista de cuadrícula y lista en favor de un diseño de panel unificado'
     },
-    playground: {
-        title: 'Playground',
-        description:
-            'Visualiza tus Claws y sus agentes en un grafo interactivo.',
-        subtitle: 'Topología de agentes a través de tu infraestructura',
+    clawDetail: {
         noClawsYet: 'Sin Claws',
         noClawsDescription: 'Despliega tu primer Claw para interactuar con él.',
         selectClaw: 'Selecciona un Claw',
         selectClawDescription:
             'Elige un Claw de la barra lateral para ver sus detalles.',
-        unreachable: 'Inaccesible',
-        offline: 'Fuera de línea',
-        zoomLabel: '{{percent}}%',
-        fitView: 'Centrar',
-        nodesOutOfView: 'Claws fuera de vista',
-        nodeOutOfView: 'Claw fuera de vista',
         closeDetails: 'Cerrar',
         tabInfo: 'Info',
         tabLogs: 'Registros',

@@ -5,11 +5,9 @@ import CLAW_AVATAR_SIZE from '@/lib/constants/clawAvatarSize'
 import CLAW_DETAIL_TABS from '@/lib/constants/clawDetailTabs'
 import COMPARE_FEATURE_STATUS from '@/lib/constants/compareFeatureStatus'
 import COPIED_FIELD_TYPE from '@/lib/constants/copiedFieldType'
-import DASHBOARD_TABS from '@/lib/constants/dashboardTabs'
 import LANGUAGES from '@/lib/constants/languages'
 import LOGIN_LOADING_METHOD from '@/lib/constants/loginLoadingMethod'
 import OAUTH_PROVIDER from '@/lib/constants/oauthProvider'
-import PLAYGROUND_NODE_TYPE from '@/lib/constants/playgroundNodeType'
 import PRODUCT from '@/lib/constants/product'
 import RELEASES from '@/lib/constants/releases'
 import ROUTES from '@/lib/constants/routes'
@@ -26,11 +24,9 @@ export {
     CLAW_DETAIL_TABS,
     COMPARE_FEATURE_STATUS,
     COPIED_FIELD_TYPE,
-    DASHBOARD_TABS,
     LANGUAGES,
     LOGIN_LOADING_METHOD,
     OAUTH_PROVIDER,
-    PLAYGROUND_NODE_TYPE,
     PRODUCT,
     RELEASES,
     ROUTES,

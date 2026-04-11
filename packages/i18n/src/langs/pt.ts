@@ -72,7 +72,6 @@ const pt: Translations = {
     },
     nav: {
         claws: 'Claws',
-        playground: 'Playground',
         sshKeys: 'Chaves SSH',
         account: 'Conta',
         billing: 'Faturamento',
@@ -554,15 +553,6 @@ const pt: Translations = {
                     'Navegue, leia e edite arquivos no seu servidor diretamente pelo painel do ClawHost. Destaque de sintaxe, busca e salvamento instantâneo — sem necessidade de SSH.',
                 cta: 'Abrir Explorador de Arquivos'
             },
-            playground: {
-                subject: 'Você sabia? Visualize sua infraestrutura',
-                preview: 'Veja seus claws e agentes em um canvas interativo',
-                tag: 'Playground',
-                heading: 'Veja o panorama completo',
-                description:
-                    'O Playground oferece um canvas gráfico interativo mostrando todos os seus claws e agentes. Clique em qualquer nó para gerenciá-lo — um centro de comando visual para sua infraestrutura.',
-                cta: 'Abrir Playground'
-            },
             diagnostics: {
                 subject: 'Você sabia? Verificações de saúde integradas',
                 preview: 'Monitore a saúde do seu servidor pelo painel',
@@ -960,8 +950,6 @@ const pt: Translations = {
         dnsSetupButton: 'Configurar DNS',
         dnsSetupSuccess: 'Resolvedor DNS configurado com sucesso.',
         dnsSetupError: 'Falha ao configurar resolvedor DNS!',
-        listTab: 'Claws',
-        playgroundTab: 'Playground',
         userTab: 'Usuário',
         adminTab: 'Admin',
         adminTitle: 'Admin',
@@ -1514,23 +1502,13 @@ const pt: Translations = {
         release4Feature4:
             'Removida alternância de visualização em grade e lista em favor de um layout de painel unificado'
     },
-    playground: {
-        title: 'Playground',
-        description:
-            'Visualize seus Claws e seus agentes em um gráfico interativo.',
-        subtitle: 'Topologia de agentes em sua infraestrutura',
+    clawDetail: {
         noClawsYet: 'Sem Claws',
         noClawsDescription:
             'Implante seu primeiro Claw para interagir com ele.',
         selectClaw: 'Selecione um Claw',
         selectClawDescription:
             'Escolha um Claw na barra lateral para ver seus detalhes.',
-        unreachable: 'Inacessível',
-        offline: 'Offline',
-        zoomLabel: '{{percent}}%',
-        fitView: 'Centralizar',
-        nodesOutOfView: 'Claws fora da visualização',
-        nodeOutOfView: 'Claw fora da visualização',
         closeDetails: 'Fechar',
         tabInfo: 'Info',
         tabLogs: 'Logs',

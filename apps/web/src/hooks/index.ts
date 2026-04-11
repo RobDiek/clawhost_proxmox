@@ -87,8 +87,6 @@ import {
     GITHUB_STARS_QUERY_KEY
 } from '@/hooks/useGitHubStars'
 
-import { usePlaygroundGraph } from '@/hooks/usePlayground'
-
 import useClawCardActions from '@/hooks/useClawCardActions'
 import useScrollToBottom from '@/hooks/useScrollToBottom'
 import useDebouncedValue from '@/hooks/useDebouncedValue'
@@ -178,7 +176,6 @@ export {
     useGitHubStars,
     GITHUB_REPO_URL,
     GITHUB_STARS_QUERY_KEY,
-    usePlaygroundGraph,
     useClawCardActions,
     useDebouncedValue,
     useNetworkStatus,

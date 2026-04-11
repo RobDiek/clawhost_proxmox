@@ -1,6 +1,6 @@
 import type { FC, ReactNode } from 'react'
 
-const PlaygroundLoadingState: FC = (): ReactNode => {
+const DashboardLoadingState: FC = (): ReactNode => {
     return (
         <div className='flex h-full flex-col items-center justify-center gap-5'>
             <div className='playground-loading-track bg-foreground/10 h-1 w-56 overflow-hidden rounded-full'>
@@ -10,4 +10,4 @@ const PlaygroundLoadingState: FC = (): ReactNode => {
     )
 }
 
-export default PlaygroundLoadingState
+export default DashboardLoadingState

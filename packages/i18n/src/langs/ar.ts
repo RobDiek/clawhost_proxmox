@@ -72,7 +72,6 @@ const ar: Translations = {
     },
     nav: {
         claws: 'Claws',
-        playground: 'ساحة التجربة',
         sshKeys: 'مفاتيح SSH',
         account: 'الحساب',
         billing: 'الفواتير',
@@ -528,15 +527,6 @@ const ar: Translations = {
                     'تصفّح واقرأ وحرّر الملفات على خادمك مباشرة من لوحة تحكم ClawHost. تلوين بناء الجمل والبحث والحفظ الفوري — بدون SSH.',
                 cta: 'فتح مستكشف الملفات'
             },
-            playground: {
-                subject: 'هل تعلم؟ تصوّر بنيتك التحتية',
-                preview: 'شاهد المخالب والوكلاء على لوحة تفاعلية',
-                tag: 'الملعب',
-                heading: 'شاهد الصورة الكاملة',
-                description:
-                    'يمنحك Playground لوحة رسم بياني تفاعلية تعرض جميع المخالب والوكلاء. انقر على أي عقدة لإدارتها — مركز تحكم مرئي لبنيتك التحتية.',
-                cta: 'فتح Playground'
-            },
             diagnostics: {
                 subject: 'هل تعلم؟ فحوصات صحية مدمجة',
                 preview: 'راقب صحة خادمك من لوحة التحكم',
@@ -917,8 +907,6 @@ const ar: Translations = {
         dnsSetupButton: 'إعداد DNS',
         dnsSetupSuccess: 'تم تهيئة محلل DNS بنجاح.',
         dnsSetupError: 'فشل في تهيئة محلل DNS !',
-        listTab: 'Claws',
-        playgroundTab: 'Playground',
         userTab: 'المستخدم',
         adminTab: 'المشرف',
         adminTitle: 'المشرف',
@@ -1443,20 +1431,11 @@ const ar: Translations = {
         release4Feature4:
             'إزالة تبديل العرض الشبكي والقائمة لصالح تخطيط لوحة تحكم موحد'
     },
-    playground: {
-        title: 'Playground',
-        description: 'تصور المخالب ووكلائها في رسم بياني تفاعلي.',
-        subtitle: 'بنية الوكلاء عبر بنيتك التحتية',
+    clawDetail: {
         noClawsYet: 'لا توجد مخالب',
         noClawsDescription: 'انشر أول مخلب للتفاعل معه.',
         selectClaw: 'اختر مخلبًا',
         selectClawDescription: 'اختر مخلبًا من الشريط الجانبي لعرض تفاصيله.',
-        unreachable: 'غير قابل للوصول',
-        offline: 'غير متصل',
-        zoomLabel: '{{percent}}%',
-        fitView: 'توسيط',
-        nodesOutOfView: 'مخالب خارج العرض',
-        nodeOutOfView: 'مخلب خارج العرض',
         closeDetails: 'إغلاق',
         tabInfo: 'معلومات',
         tabLogs: 'السجلات',

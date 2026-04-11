@@ -72,7 +72,6 @@ const ja: Translations = {
     },
     nav: {
         claws: 'Claws',
-        playground: 'プレイグラウンド',
         sshKeys: 'SSHキー',
         account: 'アカウント',
         billing: '請求',
@@ -543,15 +542,6 @@ const ja: Translations = {
                     'ClawHostダッシュボードからサーバー上のファイルを直接閲覧、読み取り、編集。シンタックスハイライト、検索、即座の保存 — SSH不要。',
                 cta: 'ファイルエクスプローラーを開く'
             },
-            playground: {
-                subject: 'ご存知ですか？インフラを視覚化',
-                preview: 'インタラクティブキャンバスでClawとエージェントを表示',
-                tag: 'プレイグラウンド',
-                heading: '全体像を把握',
-                description:
-                    'Playgroundは、すべてのClawとエージェントを表示するインタラクティブグラフキャンバスを提供します。ノードをクリックして管理 — インフラのビジュアルコマンドセンター。',
-                cta: 'Playgroundを開く'
-            },
             diagnostics: {
                 subject: 'ご存知ですか？内蔵ヘルスチェック',
                 preview: 'ダッシュボードからサーバーの健全性を監視',
@@ -940,8 +930,6 @@ const ja: Translations = {
         dnsSetupButton: 'DNSを設定',
         dnsSetupSuccess: 'DNSリゾルバーを設定しました。',
         dnsSetupError: 'DNSリゾルバーの設定に失敗しました！',
-        listTab: 'Claws',
-        playgroundTab: 'Playground',
         userTab: 'ユーザー',
         adminTab: '管理者',
         adminTitle: '管理者',
@@ -1471,20 +1459,11 @@ const ja: Translations = {
         release4Feature4:
             '統一ダッシュボードレイアウトに伴いグリッド・リスト表示の切り替えを削除'
     },
-    playground: {
-        title: 'Playground',
-        description: 'インタラクティブグラフでClawとエージェントを視覚化。',
-        subtitle: 'インフラ全体のエージェントトポロジー',
+    clawDetail: {
         noClawsYet: 'Clawなし',
         noClawsDescription: '最初のClawをデプロイしてやり取りを開始。',
         selectClaw: 'Clawを選択',
         selectClawDescription: 'サイドバーからClawを選択して詳細を表示します。',
-        unreachable: '到達不能',
-        offline: 'オフライン',
-        zoomLabel: '{{percent}}%',
-        fitView: '中央',
-        nodesOutOfView: 'Clawが画面外',
-        nodeOutOfView: 'Clawが画面外',
         closeDetails: '閉じる',
         tabInfo: '情報',
         tabLogs: 'ログ',

@@ -72,7 +72,6 @@ const fr: Translations = {
     },
     nav: {
         claws: 'Claws',
-        playground: 'Playground',
         sshKeys: 'Clés SSH',
         account: 'Compte',
         billing: 'Facturation',
@@ -574,15 +573,6 @@ const fr: Translations = {
                     'Parcourez, modifiez et enregistrez des fichiers avec coloration syntaxique. Pas de SSH, pas de FTP — cliquez et tapez.',
                 cta: "Ouvrir l'Explorateur"
             },
-            playground: {
-                subject: 'Visualisez votre infrastructure',
-                preview: 'Voyez vos claws et agents sur un canevas',
-                tag: 'Playground',
-                heading: 'Votre infrastructure, visualisée',
-                description:
-                    "Un graphe interactif de tous vos claws et agents. Déplacez, zoomez, cliquez sur n'importe quel nœud pour le gérer.",
-                cta: 'Ouvrir le Playground'
-            },
             diagnostics: {
                 subject: 'Vérifications de santé intégrées',
                 preview: 'Vérifiez la santé de votre serveur en un clic',
@@ -986,8 +976,6 @@ const fr: Translations = {
         dnsSetupButton: 'Configurer DNS',
         dnsSetupSuccess: 'Résolveur DNS configuré avec succès.',
         dnsSetupError: 'Échec de la configuration du résolveur DNS !',
-        listTab: 'Claws',
-        playgroundTab: 'Playground',
         userTab: 'Utilisateur',
         adminTab: 'Admin',
         adminTitle: 'Admin',
@@ -1550,22 +1538,12 @@ const fr: Translations = {
         release4Feature4:
             "Suppression de la bascule vue grille/liste au profit d\'une mise en page unifiée du tableau de bord"
     },
-    playground: {
-        title: 'Playground',
-        description:
-            'Visualisez vos Claws et leurs agents dans un graphe interactif.',
-        subtitle: 'Topologie des agents à travers votre infrastructure',
+    clawDetail: {
         noClawsYet: 'Aucun Claw',
         noClawsDescription: 'Déployez votre premier Claw pour interagir avec.',
         selectClaw: 'Sélectionnez un Claw',
         selectClawDescription:
             'Choisissez un Claw dans la barre latérale pour voir ses détails.',
-        unreachable: 'Injoignable',
-        offline: 'Hors ligne',
-        zoomLabel: '{{percent}}%',
-        fitView: 'Centrer',
-        nodesOutOfView: 'Claws hors du champ',
-        nodeOutOfView: 'Claw hors du champ',
         closeDetails: 'Fermer',
         tabInfo: 'Info',
         tabLogs: 'Journaux',

@@ -1,5 +1,5 @@
 import type { FC, ReactNode } from 'react'
-import type { PlaygroundDetailHeaderProps } from '@/ts/Interfaces'
+import type { ClawDetailHeaderProps } from '@/ts/Interfaces'
 
 import { XIcon, ArrowSquareOutIcon } from '@phosphor-icons/react'
 import { clawStatus } from '@openclaw/shared'
@@ -8,7 +8,7 @@ import { generateSlug } from '@/lib/claw-utils'
 import { ClawAvatar } from '@/components/shared'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
 
-const PlaygroundDetailHeader: FC<PlaygroundDetailHeaderProps> = ({
+const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
     claw,
     onClose,
     fullScreen
@@ -61,4 +61,4 @@ const PlaygroundDetailHeader: FC<PlaygroundDetailHeaderProps> = ({
     )
 }
 
-export default PlaygroundDetailHeader
+export default ClawDetailHeader

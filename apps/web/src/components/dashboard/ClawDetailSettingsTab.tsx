@@ -1,12 +1,12 @@
 import type { FC, ReactNode } from 'react'
-import type { PlaygroundDetailSettingsTabProps } from '@/ts/Interfaces'
+import type { ClawDetailSettingsTabProps } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
 import { inputValidation } from '@openclaw/shared'
-import { CircleNotchIcon } from '@phosphor-icons/react'
+import { CircleNotchIcon, ExportIcon } from '@phosphor-icons/react'
 import { useAuth } from '@/lib/auth'
 
-const PlaygroundDetailSettingsTab: FC<PlaygroundDetailSettingsTabProps> = ({
+const ClawDetailSettingsTab: FC<ClawDetailSettingsTabProps> = ({
     settingsName,
     settingsNameError,
     settingsSubdomain,
@@ -14,9 +14,11 @@ const PlaygroundDetailSettingsTab: FC<PlaygroundDetailSettingsTabProps> = ({
     settingsHasChanges,
     renamePending,
     subdomainPending,
+    isExporting,
     onNameChange,
     onSubdomainChange,
-    onSave
+    onSave,
+    onExport
 }): ReactNode => {
     const { isLocal } = useAuth()
 
@@ -25,7 +27,7 @@ const PlaygroundDetailSettingsTab: FC<PlaygroundDetailSettingsTabProps> = ({
             <div className='space-y-5'>
                 <div>
                     <label className='text-muted-foreground mb-2 block text-xs font-medium'>
-                        {t('playground.settingsName')}
+                        {t('clawDetail.settingsName')}
                     </label>
                     <input
                         type='text'
@@ -41,7 +43,7 @@ const PlaygroundDetailSettingsTab: FC<PlaygroundDetailSettingsTabProps> = ({
                                 onSave()
                             }
                         }}
-                        placeholder={t('playground.settingsNamePlaceholder')}
+                        placeholder={t('clawDetail.settingsNamePlaceholder')}
                         className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border px-3 py-2 text-sm outline-none transition-colors focus:border-[#ef5350]/50 ${
                             settingsNameError
                                 ? 'border-red-500/50'
@@ -54,7 +56,7 @@ const PlaygroundDetailSettingsTab: FC<PlaygroundDetailSettingsTabProps> = ({
                         </p>
                     ) : (
                         <p className='text-muted-foreground mt-1.5 text-[11px]'>
-                            {t('playground.settingsNameDescription')}
+                            {t('clawDetail.settingsNameDescription')}
                         </p>
                     )}
                 </div>
@@ -62,7 +64,7 @@ const PlaygroundDetailSettingsTab: FC<PlaygroundDetailSettingsTabProps> = ({
                 {isLocal && (
                     <div>
                         <label className='text-muted-foreground mb-2 block text-xs font-medium'>
-                            {t('playground.subdomain')}
+                            {t('clawDetail.subdomain')}
                         </label>
                         <div className='flex items-center gap-0'>
                             <input
@@ -84,7 +86,7 @@ const PlaygroundDetailSettingsTab: FC<PlaygroundDetailSettingsTabProps> = ({
                                     }
                                 }}
                                 placeholder={t(
-                                    'playground.subdomainPlaceholder'
+                                    'clawDetail.subdomainPlaceholder'
                                 )}
                                 className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-l-md border border-r-0 px-3 py-2 text-sm outline-none transition-colors focus:border-[#ef5350]/50 ${
                                     settingsSubdomainError
@@ -102,7 +104,7 @@ const PlaygroundDetailSettingsTab: FC<PlaygroundDetailSettingsTabProps> = ({
                             </p>
                         ) : (
                             <p className='text-muted-foreground mt-1.5 text-[11px]'>
-                                {t('playground.subdomainDescription', {
+                                {t('clawDetail.subdomainDescription', {
                                     min: inputValidation.SUBDOMAIN.MIN,
                                     max: inputValidation.SUBDOMAIN.MAX
                                 })}
@@ -125,11 +127,26 @@ const PlaygroundDetailSettingsTab: FC<PlaygroundDetailSettingsTabProps> = ({
                     {(renamePending || subdomainPending) && (
                         <CircleNotchIcon className='h-4 w-4 animate-spin' />
                     )}
-                    {t('playground.settingsSave')}
+                    {t('clawDetail.settingsSave')}
                 </button>
+
+                <div className='border-border border-t pt-5'>
+                    <button
+                        onClick={onExport}
+                        disabled={isExporting}
+                        className='text-muted-foreground hover:text-foreground hover:bg-foreground/5 flex w-full items-center gap-2 rounded-lg border border-transparent px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50'
+                    >
+                        {isExporting ? (
+                            <CircleNotchIcon className='h-4 w-4 animate-spin' />
+                        ) : (
+                            <ExportIcon className='h-4 w-4' />
+                        )}
+                        {t('dashboard.exportData')}
+                    </button>
+                </div>
             </div>
         </div>
     )
 }
 
-export default PlaygroundDetailSettingsTab
+export default ClawDetailSettingsTab

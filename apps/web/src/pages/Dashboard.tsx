@@ -8,7 +8,7 @@ import { t } from '@openclaw/i18n'
 import { userRole } from '@openclaw/shared'
 import { useUIStore, usePreferencesStore, useDashboardStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import { ROUTES, DASHBOARD_TABS } from '@/lib'
+import { ROUTES } from '@/lib'
 import {
     useClaws,
     useAdminClaws,
@@ -17,7 +17,6 @@ import {
     useLocations,
     useVolumePricing,
     usePlanAvailability,
-    usePlaygroundGraph,
     useProfile,
     useNetworkStatus,
     useAppVersion,
@@ -35,9 +34,8 @@ import {
     CreateClawModal,
     DashboardChatView,
     DashboardHeader,
-    DashboardPlaygroundView
+    DashboardLoadingState
 } from '@/components/dashboard'
-import { PlaygroundLoadingState } from '@/components/playground'
 import { useAuth } from '@/lib/auth'
 
 const Dashboard: FC = (): ReactNode => {
@@ -47,12 +45,8 @@ const Dashboard: FC = (): ReactNode => {
         () => searchParams.get('payment') === 'success'
     )
     const {
-        selectedClawId,
-        setSelectedClawId,
         chatSettingsClawId,
         setChatSettingsClawId,
-        playgroundClawTab,
-        setPlaygroundClawTab,
         chatClawTab,
         setChatClawTab,
         showCreate,
@@ -61,12 +55,7 @@ const Dashboard: FC = (): ReactNode => {
         setPreselectedPlanId
     } = useDashboardStore()
     const { showToast } = useUIStore()
-    const {
-        adminMode: adminModeRaw,
-        dashboardTab,
-        setDashboardTab,
-        openLinksWindowed
-    } = usePreferencesStore()
+    const { adminMode: adminModeRaw, openLinksWindowed } = usePreferencesStore()
 
     const [minLoadingMet, setMinLoadingMet] = useState(false)
 
@@ -131,14 +120,8 @@ const Dashboard: FC = (): ReactNode => {
     useURLStateRestoration({
         searchParams,
         setSearchParams,
-        dashboardTab,
-        setDashboardTab,
-        selectedClawId,
-        setSelectedClawId,
         chatSettingsClawId,
         setChatSettingsClawId,
-        playgroundClawTab,
-        setPlaygroundClawTab,
         chatClawTab,
         setChatClawTab,
         setShowCreate,
@@ -184,27 +167,9 @@ const Dashboard: FC = (): ReactNode => {
     const isLoading =
         authLoading || activeClawsLoading || (!awaitingClaw && !minLoadingMet)
 
-    const { nodes, edges } = usePlaygroundGraph(displayedClaws)
-
     const chatEmpty =
-        dashboardTab === DASHBOARD_TABS.LIST &&
-        !isLoading &&
-        !activeIsError &&
-        displayedClaws.length === 0
-    const chatHasContent =
-        dashboardTab === DASHBOARD_TABS.LIST &&
-        !isLoading &&
-        !activeIsError &&
-        displayedClaws.length > 0
-    const showFullBackground =
-        dashboardTab === DASHBOARD_TABS.PLAYGROUND ||
-        chatEmpty ||
-        activeIsError ||
-        isLoading
-
-    const handleClawSelect = useCallback((clawId: string | null) => {
-        setSelectedClawId(clawId)
-    }, [])
+        !isLoading && !activeIsError && displayedClaws.length === 0
+    const showFullBackground = chatEmpty || activeIsError || isLoading
 
     const handleCreateClick = useCallback(() => {
         setShowCreate(true)
@@ -229,22 +194,15 @@ const Dashboard: FC = (): ReactNode => {
                 <div className='playground-grid pointer-events-none fixed inset-0 opacity-50' />
             )}
             <div
-                className={`playground-gradient pointer-events-none fixed inset-0 ${isLocal || chatHasContent ? 'opacity-30' : ''}`}
+                className={`playground-gradient pointer-events-none fixed inset-0 ${isLocal || (!isLoading && !activeIsError && displayedClaws.length > 0) ? 'opacity-30' : ''}`}
             />
             <PageTitle
-                title={
-                    adminMode ? t('dashboard.adminTitle') : t('dashboard.title')
-                }
-                description={
-                    adminMode
-                        ? t('dashboard.adminDescription')
-                        : t('dashboard.description')
-                }
+                title={t('dashboard.title')}
+                description={t('dashboard.description')}
                 noIndex
             />
 
             <DashboardHeader
-                dashboardTab={dashboardTab}
                 isLocal={!!isLocal}
                 isLoading={isLoading}
                 displayedClaws={displayedClaws}
@@ -254,7 +212,6 @@ const Dashboard: FC = (): ReactNode => {
                 openLinksWindowed={openLinksWindowed}
                 appVersion={appVersion}
                 dropdownFooterLinks={dropdownFooterLinks || []}
-                onTabChange={setDashboardTab}
                 onCreateClick={handleCreateClick}
                 onDnsSetup={handleDnsSetup}
                 onSignOut={signOut}
@@ -275,9 +232,9 @@ const Dashboard: FC = (): ReactNode => {
                     </div>
                 ) : isLoading ? (
                     <div className='flex h-full min-w-0 flex-1 items-center justify-center'>
-                        <PlaygroundLoadingState />
+                        <DashboardLoadingState />
                     </div>
-                ) : dashboardTab === DASHBOARD_TABS.LIST ? (
+                ) : (
                     <DashboardChatView
                         displayedClaws={displayedClaws}
                         plans={plans}
@@ -287,22 +244,6 @@ const Dashboard: FC = (): ReactNode => {
                         chatClawTab={chatClawTab}
                         onSettingsClawChange={setChatSettingsClawId}
                         onClawTabChange={setChatClawTab}
-                        onCreateClick={handleCreateClick}
-                    />
-                ) : (
-                    <DashboardPlaygroundView
-                        displayedClaws={displayedClaws}
-                        adminMode={adminMode}
-                        nodes={nodes}
-                        edges={edges}
-                        plans={plans}
-                        sshKeys={sshKeys || []}
-                        selectedClawId={selectedClawId}
-                        playgroundClawTab={playgroundClawTab}
-                        isLoading={isLoading}
-                        activeIsError={activeIsError}
-                        onClawSelect={handleClawSelect}
-                        onPlaygroundClawTabChange={setPlaygroundClawTab}
                         onCreateClick={handleCreateClick}
                     />
                 )}

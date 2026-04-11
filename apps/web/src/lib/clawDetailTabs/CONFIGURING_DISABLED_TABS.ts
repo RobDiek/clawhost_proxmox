@@ -1,8 +1,8 @@
-import type { PlaygroundDetailTab } from '@/ts/Types'
+import type { ClawDetailTab } from '@/ts/Types'
 
 import { CLAW_DETAIL_TABS } from '@/lib/constants'
 
-const CONFIGURING_DISABLED_TABS: PlaygroundDetailTab[] = [
+const CONFIGURING_DISABLED_TABS: ClawDetailTab[] = [
     CLAW_DETAIL_TABS.VERSIONS,
     CLAW_DETAIL_TABS.FILES,
     CLAW_DETAIL_TABS.LOGS,

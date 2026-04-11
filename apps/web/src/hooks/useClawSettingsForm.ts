@@ -45,7 +45,7 @@ const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
         )
         if (value.trim() && !subdomainRegex.test(value)) {
             setSettingsSubdomainError(
-                t('playground.subdomainInvalid', {
+                t('clawDetail.subdomainInvalid', {
                     min: inputValidation.SUBDOMAIN.MIN,
                     max: inputValidation.SUBDOMAIN.MAX
                 })
@@ -95,7 +95,7 @@ const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
             )
             if (!subdomainRegex.test(trimmedSubdomain)) {
                 setSettingsSubdomainError(
-                    t('playground.subdomainInvalid', {
+                    t('clawDetail.subdomainInvalid', {
                         min: inputValidation.SUBDOMAIN.MIN,
                         max: inputValidation.SUBDOMAIN.MAX
                     })
@@ -107,15 +107,15 @@ const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
                 {
                     onSuccess: () => {
                         showToast(
-                            t('playground.subdomainUpdated'),
+                            t('clawDetail.subdomainUpdated'),
                             TOAST_TYPE.SUCCESS
                         )
                     },
                     onError: (err) => {
                         const raw = err instanceof Error ? err.message : ''
                         const message = raw.includes('already in use')
-                            ? t('playground.subdomainInUse')
-                            : t('playground.subdomainUpdateFailed')
+                            ? t('clawDetail.subdomainInUse')
+                            : t('clawDetail.subdomainUpdateFailed')
                         showToast(message, TOAST_TYPE.ERROR)
                     }
                 }

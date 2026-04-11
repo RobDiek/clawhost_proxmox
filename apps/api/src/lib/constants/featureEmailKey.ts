@@ -2,7 +2,6 @@ const featureEmailKey = {
     terminal: 'terminal',
     logs: 'logs',
     fileExplorer: 'fileExplorer',
-    playground: 'playground',
     diagnostics: 'diagnostics',
     sshKeys: 'sshKeys',
     exportConfig: 'exportConfig',

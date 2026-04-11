@@ -18,10 +18,8 @@ import type {
     CLAW_DETAIL_TABS,
     COMPARE_FEATURE_STATUS,
     COPIED_FIELD_TYPE,
-    DASHBOARD_TABS,
     LOGIN_LOADING_METHOD,
     OAUTH_PROVIDER,
-    PLAYGROUND_NODE_TYPE,
     PRODUCT,
     ROUTES,
     SSH_KEY_MODAL_MODE,
@@ -48,10 +46,7 @@ export type AuthMethod = (typeof authMethod)[keyof typeof authMethod]
 
 export type OAuthProvider = (typeof OAUTH_PROVIDER)[keyof typeof OAUTH_PROVIDER]
 
-export type PlaygroundNodeType =
-    (typeof PLAYGROUND_NODE_TYPE)[keyof typeof PLAYGROUND_NODE_TYPE]
-
-export type PlaygroundDetailTab =
+export type ClawDetailTab =
     (typeof CLAW_DETAIL_TABS)[keyof typeof CLAW_DETAIL_TABS]
 
 export type CompareFeatureStatus =
@@ -68,8 +63,6 @@ export type LoginLoadingMethod =
     | null
 
 export type Route = (typeof ROUTES)[keyof typeof ROUTES]
-
-export type DashboardTab = (typeof DASHBOARD_TABS)[keyof typeof DASHBOARD_TABS]
 
 export type ThemeMode = (typeof THEMES)[keyof typeof THEMES]
 

@@ -1,12 +1,12 @@
 import type { FC, ReactNode } from 'react'
-import type { PlaygroundDetailTabBarProps } from '@/ts/Interfaces'
+import type { ClawDetailTabBarProps } from '@/ts/Interfaces'
 import type { TranslationKey } from '@openclaw/i18n'
 
 import { t } from '@openclaw/i18n'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
-import { tabs } from '@/lib/playgroundDetailTabs'
+import { tabs } from '@/lib/clawDetailTabs'
 
-const PlaygroundDetailTabBar: FC<PlaygroundDetailTabBarProps> = ({
+const ClawDetailTabBar: FC<ClawDetailTabBarProps> = ({
     activeTab,
     fullScreen,
     isTabDisabled,
@@ -52,4 +52,4 @@ const PlaygroundDetailTabBar: FC<PlaygroundDetailTabBarProps> = ({
     )
 }
 
-export default PlaygroundDetailTabBar
+export default ClawDetailTabBar

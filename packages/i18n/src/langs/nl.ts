@@ -72,7 +72,6 @@ const nl: Translations = {
     },
     nav: {
         claws: 'Claws',
-        playground: 'Playground',
         sshKeys: 'SSH-sleutels',
         account: 'Account',
         billing: 'Facturatie',
@@ -545,15 +544,6 @@ const nl: Translations = {
                     'Blader, lees en bewerk bestanden op je server direct vanuit het ClawHost-dashboard. Syntaxmarkering, zoeken en direct opslaan \u2014 geen SSH nodig.',
                 cta: 'Bestandsverkenner openen'
             },
-            playground: {
-                subject: 'Wist je dat? Visualiseer je infrastructuur',
-                preview: 'Bekijk je claws en agents op een interactief canvas',
-                tag: 'Speeltuin',
-                heading: 'Zie het grote geheel',
-                description:
-                    'De Playground geeft je een interactief grafiekcanvas met al je claws en agents. Klik op een knooppunt om het te beheren \u2014 een visueel commandocentrum voor je infrastructuur.',
-                cta: 'Playground openen'
-            },
             diagnostics: {
                 subject: 'Wist je dat? Ingebouwde gezondheidscontroles',
                 preview:
@@ -956,8 +946,6 @@ const nl: Translations = {
         dnsSetupButton: 'DNS instellen',
         dnsSetupSuccess: 'DNS-resolver succesvol geconfigureerd.',
         dnsSetupError: 'DNS-resolver configureren mislukt!',
-        listTab: 'Claws',
-        playgroundTab: 'Playground',
         userTab: 'Gebruiker',
         adminTab: 'Admin',
         adminTitle: 'Admin',
@@ -1507,22 +1495,12 @@ const nl: Translations = {
         release4Feature4:
             'Raster- en lijstweergave-schakelaar verwijderd ten gunste van een uniforme dashboardindeling'
     },
-    playground: {
-        title: 'Playground',
-        description:
-            'Visualiseer je Claws en hun agents in een interactieve grafiek.',
-        subtitle: 'Agent-topologie over je infrastructuur',
+    clawDetail: {
         noClawsYet: 'Geen Claws',
         noClawsDescription: 'Deploy je eerste Claw om ermee te communiceren.',
         selectClaw: 'Selecteer een Claw',
         selectClawDescription:
             'Kies een Claw in de zijbalk om de details te bekijken.',
-        unreachable: 'Onbereikbaar',
-        offline: 'Offline',
-        zoomLabel: '{{percent}}%',
-        fitView: 'Centreren',
-        nodesOutOfView: 'Claws buiten beeld',
-        nodeOutOfView: 'Claw buiten beeld',
         closeDetails: 'Sluiten',
         tabInfo: 'Info',
         tabLogs: 'Logs',

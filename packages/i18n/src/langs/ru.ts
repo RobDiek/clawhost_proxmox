@@ -72,7 +72,6 @@ const ru: Translations = {
     },
     nav: {
         claws: 'Claws',
-        playground: 'Песочница',
         sshKeys: 'SSH-ключи',
         account: 'Аккаунт',
         billing: 'Оплата',
@@ -542,15 +541,6 @@ const ru: Translations = {
                     'Просматривайте, читайте и редактируйте файлы на сервере прямо из панели ClawHost. Подсветка синтаксиса, поиск и мгновенное сохранение — без SSH.',
                 cta: 'Открыть проводник'
             },
-            playground: {
-                subject: 'Знаете ли вы? Визуализируйте свою инфраструктуру',
-                preview: 'Смотрите ваши клоу и агентов на интерактивном холсте',
-                tag: 'Площадка',
-                heading: 'Видьте общую картину',
-                description:
-                    'Playground предоставляет интерактивный граф со всеми вашими клоу и агентами. Нажмите на любой узел для управления — визуальный центр управления вашей инфраструктурой.',
-                cta: 'Открыть Playground'
-            },
             diagnostics: {
                 subject: 'Знаете ли вы? Встроенные проверки состояния',
                 preview: 'Контролируйте состояние сервера из панели',
@@ -942,8 +932,6 @@ const ru: Translations = {
         dnsSetupButton: 'Настроить DNS',
         dnsSetupSuccess: 'DNS-резолвер успешно настроен.',
         dnsSetupError: 'Не удалось настроить DNS-резолвер !',
-        listTab: 'Claws',
-        playgroundTab: 'Playground',
         userTab: 'Пользователь',
         adminTab: 'Админ',
         adminTitle: 'Админ',
@@ -1484,23 +1472,13 @@ const ru: Translations = {
         release4Feature4:
             'Удалён переключатель вида сетка/список в пользу единого макета панели'
     },
-    playground: {
-        title: 'Playground',
-        description:
-            'Визуализируйте ваши клоу и их агентов на интерактивном графе.',
-        subtitle: 'Топология агентов вашей инфраструктуры',
+    clawDetail: {
         noClawsYet: 'Нет клоу',
         noClawsDescription:
             'Разверните свой первый клоу, чтобы взаимодействовать с ним.',
         selectClaw: 'Выберите клоу',
         selectClawDescription:
             'Выберите клоу на боковой панели, чтобы просмотреть его детали.',
-        unreachable: 'Недоступен',
-        offline: 'Не в сети',
-        zoomLabel: '{{percent}}%',
-        fitView: 'Центрировать',
-        nodesOutOfView: 'Клоу за пределами видимости',
-        nodeOutOfView: 'Клоу за пределами видимости',
         closeDetails: 'Закрыть',
         tabInfo: 'Инфо',
         tabLogs: 'Логи',

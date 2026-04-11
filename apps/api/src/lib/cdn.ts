@@ -8,7 +8,6 @@ const CDN_ASSETS = {
     FEATURE_TERMINAL: `${CDN_URL}/assets/features/terminal.gif`,
     FEATURE_LOGS: `${CDN_URL}/assets/features/logs.gif`,
     FEATURE_FILE_EXPLORER: `${CDN_URL}/assets/features/file-explorer.gif`,
-    FEATURE_PLAYGROUND: `${CDN_URL}/assets/features/playground.gif`,
     FEATURE_DIAGNOSTICS: `${CDN_URL}/assets/features/diagnostics.gif`,
     FEATURE_SSH_KEYS: `${CDN_URL}/assets/features/ssh-keys.gif`,
     FEATURE_EXPORT_CONFIG: `${CDN_URL}/assets/features/export-config.gif`,

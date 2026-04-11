@@ -23,7 +23,6 @@ import {
     ClockCountdownIcon,
     ArrowsClockwiseIcon,
     ArrowCounterClockwiseIcon,
-    ExportIcon,
     ArrowSquareOutIcon,
     CreditCardIcon
 } from '@phosphor-icons/react'
@@ -140,10 +139,6 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                                 {t('dashboard.viewServerCredentials')}
                             </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem onClick={actions.onExport}>
-                            <ExportIcon className='mr-2 h-4 w-4' />
-                            {t('dashboard.exportData')}
-                        </DropdownMenuItem>
                         {isAdmin && (
                             <DropdownMenuItem
                                 onClick={actions.onUpdateInstance}

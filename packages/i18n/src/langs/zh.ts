@@ -72,7 +72,6 @@ const zh: Translations = {
     },
     nav: {
         claws: 'Claws',
-        playground: '游乐场',
         sshKeys: 'SSH 密钥',
         account: '账户',
         billing: '账单',
@@ -515,15 +514,6 @@ const zh: Translations = {
                     '直接从 ClawHost 仪表板浏览、读取和编辑服务器上的文件。语法高亮、搜索和即时保存——无需 SSH。',
                 cta: '打开文件浏览器'
             },
-            playground: {
-                subject: '您知道吗？可以可视化您的基础设施',
-                preview: '在交互式画布上查看您的 Claws 和代理',
-                tag: '工作台',
-                heading: '纵览全局',
-                description:
-                    '工作台提供交互式图形画布，展示您所有的 Claws 和代理。点击任意节点即可管理——基础设施的可视化控制中心。',
-                cta: '打开工作台'
-            },
             diagnostics: {
                 subject: '您知道吗？内置健康检查',
                 preview: '从仪表板监控服务器健康状况',
@@ -892,8 +882,6 @@ const zh: Translations = {
         dnsSetupButton: '设置 DNS',
         dnsSetupSuccess: 'DNS 解析器配置成功。',
         dnsSetupError: '配置 DNS 解析器失败！',
-        listTab: 'Claws',
-        playgroundTab: '工作台',
         userTab: '用户',
         adminTab: '管理',
         adminTitle: '管理',
@@ -1381,20 +1369,11 @@ const zh: Translations = {
         release4Feature3: '交互式工作台，基于图形的 Claws 和代理可视化',
         release4Feature4: '移除网格和列表视图切换，改用统一的仪表板布局'
     },
-    playground: {
-        title: '工作台',
-        description: '在交互式图形中可视化您的 Claws 及其代理.',
-        subtitle: '基础设施中的代理拓扑',
+    clawDetail: {
         noClawsYet: '暂无 Claws',
         noClawsDescription: '部署您的第一个 Claw 并与其交互.',
         selectClaw: '选择一个 Claw',
         selectClawDescription: '从侧边栏选择一个 Claw 来查看其详情。',
-        unreachable: '不可达',
-        offline: '离线',
-        zoomLabel: '{{percent}}%',
-        fitView: '居中',
-        nodesOutOfView: 'Claws 不在视野内',
-        nodeOutOfView: 'Claw 不在视野内',
         closeDetails: '关闭',
         tabInfo: '信息',
         tabLogs: '日志',

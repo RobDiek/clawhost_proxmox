@@ -5,7 +5,6 @@ describe('usePreferencesStore', () => {
     beforeEach(() => {
         usePreferencesStore.setState({
             adminMode: false,
-            dashboardTab: 'chat',
             theme: 'dark',
             language: 'en',
             openLinksWindowed: false,
@@ -16,7 +15,6 @@ describe('usePreferencesStore', () => {
     it('has correct initial defaults', () => {
         const state = usePreferencesStore.getState()
         expect(state.adminMode).toBe(false)
-        expect(state.dashboardTab).toBe('chat')
         expect(state.theme).toBe('dark')
         expect(state.language).toBe('en')
         expect(state.product).toBe(PRODUCT.CLOUD)
@@ -25,11 +23,6 @@ describe('usePreferencesStore', () => {
     it('toggles admin mode', () => {
         usePreferencesStore.getState().setAdminMode(true)
         expect(usePreferencesStore.getState().adminMode).toBe(true)
-    })
-
-    it('changes dashboard tab', () => {
-        usePreferencesStore.getState().setDashboardTab('playground')
-        expect(usePreferencesStore.getState().dashboardTab).toBe('playground')
     })
 
     it('changes theme', () => {

@@ -3,7 +3,6 @@ import cn from '@/lib/utils'
 import PATHS from '@/lib/paths'
 import {
     CLAW_DETAIL_TABS,
-    DASHBOARD_TABS,
     LANGUAGES,
     RELEASES,
     ROUTES,
@@ -20,10 +19,10 @@ import reportWebVitals from '@/lib/reportWebVitals'
 import isSafeRedirectUrl from '@/lib/isSafeRedirectUrl'
 import { formatDate, formatCurrency } from '@/lib/formatters'
 import {
-    tabs as PLAYGROUND_DETAIL_TABS,
-    CONFIGURING_DISABLED_TABS as PLAYGROUND_CONFIGURING_DISABLED_TABS,
-    AWAITING_PAYMENT_DISABLED_TABS as PLAYGROUND_AWAITING_PAYMENT_DISABLED_TABS
-} from '@/lib/playgroundDetailTabs'
+    tabs as CLAW_DETAIL_TAB_LIST,
+    CONFIGURING_DISABLED_TABS as CLAW_CONFIGURING_DISABLED_TABS,
+    AWAITING_PAYMENT_DISABLED_TABS as CLAW_AWAITING_PAYMENT_DISABLED_TABS
+} from '@/lib/clawDetailTabs'
 
 export {
     api,
@@ -31,7 +30,6 @@ export {
     PATHS,
     ROUTES,
     SCROLL_SECTIONS,
-    DASHBOARD_TABS,
     CLAW_DETAIL_TABS,
     THEMES,
     LANGUAGES,
@@ -45,8 +43,8 @@ export {
     reportWebVitals,
     formatDate,
     formatCurrency,
-    PLAYGROUND_DETAIL_TABS,
-    PLAYGROUND_CONFIGURING_DISABLED_TABS,
-    PLAYGROUND_AWAITING_PAYMENT_DISABLED_TABS,
+    CLAW_DETAIL_TAB_LIST,
+    CLAW_CONFIGURING_DISABLED_TABS,
+    CLAW_AWAITING_PAYMENT_DISABLED_TABS,
     isSafeRedirectUrl
 }

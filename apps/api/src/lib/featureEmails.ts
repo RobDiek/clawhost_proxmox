@@ -5,7 +5,6 @@ import { featureEmailKey } from '@/lib/constants'
 import TerminalEmail from '@/emails/TerminalEmail'
 import LogsEmail from '@/emails/LogsEmail'
 import FileExplorerEmail from '@/emails/FileExplorerEmail'
-import PlaygroundEmail from '@/emails/PlaygroundEmail'
 import DiagnosticsEmail from '@/emails/DiagnosticsEmail'
 import SshKeysEmail from '@/emails/SshKeysEmail'
 import ExportConfigEmail from '@/emails/ExportConfigEmail'
@@ -31,11 +30,6 @@ const FEATURE_EMAILS: FeatureEmailDefinition[] = [
         key: featureEmailKey.fileExplorer,
         subject: t('emails.features.fileExplorer.subject'),
         render: () => FileExplorerEmail({})
-    },
-    {
-        key: featureEmailKey.playground,
-        subject: t('emails.features.playground.subject'),
-        render: () => PlaygroundEmail({})
     },
     {
         key: featureEmailKey.diagnostics,
