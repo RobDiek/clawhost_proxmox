@@ -5,12 +5,15 @@ import { db } from '@/db'
 import { claws, volumes } from '@/db/schema'
 import { getProvider } from '@/services/provider'
 import cloudflare from '@/services/cloudflare'
+import hostKeyStore from '@/services/hostKeyStore'
 
 const cleanupClaw = async (
     clawId: string,
     claw: ClawCleanupData
 ): Promise<void> => {
     const provider = getProvider()
+
+    if (claw.ip) hostKeyStore.clear(claw.ip)
 
     const clawVolumes = await db
         .select()

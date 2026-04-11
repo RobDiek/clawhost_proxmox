@@ -99,7 +99,8 @@ const deleteClaw = withErrorHandler(
             : Promise.resolve(),
         cleanupClaw(id, {
             providerServerId: claw.providerServerId,
-            subdomain: claw.subdomain
+            subdomain: claw.subdomain,
+            ip: claw.ip
         })
     ])
 

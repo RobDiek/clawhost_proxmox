@@ -409,6 +409,7 @@ export interface ProvisionClawResponse {
 export interface ClawCleanupData {
     providerServerId: string | null
     subdomain: string | null
+    ip: string | null
 }
 
 export interface SendOtpBody {
