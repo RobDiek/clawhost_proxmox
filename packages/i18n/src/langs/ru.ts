@@ -72,7 +72,6 @@ const ru: Translations = {
     },
     nav: {
         claws: 'Claws',
-        playground: 'Песочница',
         sshKeys: 'SSH-ключи',
         account: 'Аккаунт',
         billing: 'Оплата',
@@ -148,8 +147,6 @@ const ru: Translations = {
         comparisonSetupOthers: 'Развёртывание в один клик',
         comparisonUpdatesUs: 'Автоматические обновления',
         comparisonUpdatesOthers: 'Автоматические обновления',
-        comparisonAgentsUs: 'Несколько агентов',
-        comparisonAgentsOthers: 'Несколько агентов',
         faqTitle: 'Вопросы',
         faqHeading: 'Частые вопросы',
         faqDescription: 'Всё, что нужно знать о ClawHost Go.',
@@ -205,7 +202,6 @@ const ru: Translations = {
         failedToStartClaw: 'Не удалось запустить claw!',
         noVersionAssigned: 'Этому claw не назначена версия OpenClaw!',
         invalidAgentName: 'Недопустимое имя агента!',
-        agentNameAlreadyExists: 'Агент с таким именем уже существует!',
         invalidPath: 'Недопустимый путь!',
         fileNotFound: 'Файл не найден!',
         purchasingNotAvailable: 'Покупка недоступна в локальном режиме!',
@@ -268,9 +264,9 @@ const ru: Translations = {
         pageNotFoundDescription:
             'Страница, которую вы ищете, не существует или была перемещена.',
         goToHomepage: 'На главную',
-        failedToLoadClaws: 'Не удалось загрузить claws!',
-        failedToLoadClawsDescription:
-            'Не удалось загрузить ваши Claws. Проверьте подключение и попробуйте снова!',
+        failedToLoadAgents: 'Не удалось загрузить agents!',
+        failedToLoadAgentsDescription:
+            'Не удалось загрузить ваши Agents. Проверьте подключение и попробуйте снова!',
         failedToLoadSSHKeys: 'Не удалось загрузить SSH-ключи!',
         failedToLoadSSHKeysDescription:
             'Не удалось загрузить ваши SSH-ключи. Проверьте подключение и попробуйте снова!',
@@ -310,7 +306,6 @@ const ru: Translations = {
         invalidSshKeyFormat: 'Недопустимый формат публичного SSH-ключа!',
         sshKeyInUse: 'Этот SSH-ключ используется одним или несколькими claws!',
         inputTooLong: 'Ввод превышает максимально допустимую длину!',
-        invalidEnvVars: 'Недопустимые имена или значения переменных окружения!',
         invalidEmailFormat: 'Недопустимый формат email!',
         plusAddressingNotAllowed:
             'Plus-адресация не разрешена для входа по email!',
@@ -384,17 +379,21 @@ const ru: Translations = {
         failedToGetLogs: 'Не удалось загрузить логи!',
         failedToGetLogsDescription:
             'Не удалось получить логи для этого экземпляра. Пожалуйста, попробуйте позже.',
-        failedToRepairClaw: 'Не удалось восстановить экземпляр!',
-        repairSuccess: 'Экземпляр успешно восстановлен.',
-        repairGatewayNotResponding:
-            'Восстановление выполнено, но шлюз пока не отвечает. Ему может потребоваться больше времени для запуска.',
         failedToReinstallClaw: 'Не удалось переустановить экземпляр!',
         reinstallSuccess: 'Экземпляр успешно переустановлен.',
         reinstallRateLimited:
             'Переустановка возможна только раз в 24 часа. Свяжитесь с командой, если хотите снять это ограничение.',
+        subdomainRateLimited:
+            'Изменение поддомена возможно только раз в 24 часа. Свяжитесь с командой, если хотите снять это ограничение.',
+        subdomainUpdated: 'Поддомен успешно обновлён.',
+        invalidSubdomain: 'Недопустимый поддомен. Используйте 3-20 строчных букв и цифр!',
+        subdomainAlreadyInUse: 'Этот поддомен уже используется!',
         clawBusy: 'Claw в данный момент подготавливается или удаляется!',
         reinstallGatewayNotResponding:
             'Переустановка завершена, но шлюз пока не отвечает. Ему может потребоваться больше времени для запуска.',
+        failedToRepairClaw: 'Failed to repair the instance!',
+        repairSuccess: 'Instance repaired successfully.',
+        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Не удалось экспортировать данные claw!',
         clawNotReady: 'Claw не готов к экспорту!',
         exportRateLimited:
@@ -447,21 +446,6 @@ const ru: Translations = {
         locationsFetched: 'Локации успешно загружены.',
         volumePricingFetched: 'Цены на тома успешно загружены.',
         planAvailabilityFetched: 'Доступность тарифов успешно загружена.',
-        agentsFetched: 'Агенты успешно загружены.',
-        agentsFetchFailed:
-            'Не удалось подключиться к экземпляру для загрузки агентов!',
-        agentConfigFetched: 'Конфигурация агента успешно загружена.',
-        agentConfigUpdated: 'Конфигурация агента успешно обновлена.',
-        agentConfigUpdateFailed: 'Не удалось обновить конфигурацию агента!',
-        agentCreated: 'Агент успешно создан.',
-        agentCreateFailed: 'Не удалось создать агента на экземпляре!',
-        agentDeleted: 'Агент успешно удалён.',
-        agentDeleteFailed: 'Не удалось удалить агента с экземпляра!',
-        cannotDeleteMainAgent:
-            'Невозможно удалить единственного оставшегося агента!',
-        agentNameInvalid:
-            'Имя агента может содержать только буквы, цифры и дефисы!',
-        agentNameDuplicate: 'Агент с таким именем уже существует!',
         diagnosticsFetched: 'Диагностика успешно загружена.',
         logsFetched: 'Логи успешно загружены.',
         filesFetched: 'Файлы успешно загружены.',
@@ -473,50 +457,8 @@ const ru: Translations = {
         invalidToken: 'Недопустимый токен!',
         notFound: 'Не найдено!',
         healthOk: 'API работает.',
-        channelsFetched: 'Каналы успешно загружены.',
-        channelsUpdated: 'Каналы успешно обновлены.',
-        channelsUpdateFailed: 'Не удалось обновить каналы!',
-        channelsFetchFailed: 'Не удалось загрузить каналы!',
-        channelMissingRequired:
-            'Отсутствуют обязательные поля для включённого канала!',
-        whatsappPairStarted: 'Сопряжение WhatsApp начато.',
-        whatsappPairFailed: 'Сопряжение WhatsApp не удалось!',
-        whatsappAlreadyPaired: 'WhatsApp уже сопряжён!',
-        whatsappVersionUnsupported:
-            'Эта версия не поддерживает настройку каналов через панель управления. Используйте вкладку «Терминал» для ручной настройки или обновите OpenClaw.',
         featureVersionUnsupported:
             'Эта функция не поддерживается в версии {{version}}. Обновите OpenClaw или используйте Терминал для ручного управления.',
-        bindingsFetched: 'Привязки успешно загружены.',
-        bindingsFetchFailed: 'Не удалось загрузить привязки!',
-        bindingsUpdated: 'Привязки успешно обновлены.',
-        bindingsUpdateFailed: 'Не удалось обновить привязки!',
-        bindingsInvalidFormat: 'Недопустимый формат привязки!',
-        bindingsInvalidChannel: 'Неподдерживаемый канал в привязке!',
-        bindingsDuplicateChannel:
-            'Канал может быть привязан только к одному агенту!',
-        skillsFetched: 'Навыки успешно загружены.',
-        skillsUpdated: 'Навыки успешно обновлены.',
-        skillsUpdateFailed: 'Не удалось обновить навыки!',
-        skillsFetchFailed: 'Не удалось загрузить навыки!',
-        agentSkillsFetched: 'Навыки агента успешно загружены.',
-        agentSkillsUpdated: 'Навыки агента успешно обновлены.',
-        agentSkillsUpdateFailed: 'Не удалось обновить навыки агента!',
-        agentSkillsFetchFailed: 'Не удалось загрузить навыки агента!',
-        invalidSkillName:
-            'Имя навыка может содержать только буквы, цифры, дефисы и подчёркивания!',
-        skillNotFound: 'Навык не найден!',
-        clawHubSearchSuccess: 'Поиск в ClawHub завершён.',
-        clawHubSearchFailed: 'Не удалось выполнить поиск в ClawHub!',
-        clawHubFetched: 'Навыки ClawHub загружены.',
-        clawHubFetchFailed: 'Не удалось загрузить навыки ClawHub!',
-        clawHubInstalled: 'Навык установлен из ClawHub.',
-        clawHubInstallFailed: 'Не удалось установить навык из ClawHub!',
-        clawHubRemoved: 'Навык ClawHub удалён.',
-        clawHubRemoveFailed: 'Не удалось удалить навык ClawHub!',
-        clawHubUpdated: 'Навык обновлён.',
-        clawHubUpdateFailed: 'Не удалось обновить навык ClawHub!',
-        clawHubUpdatesFetched: 'Проверка обновлений завершена.',
-        clawHubUpdatesFailed: 'Не удалось проверить обновления!',
         invalidAuthMethod: 'Недопустимый метод аутентификации!',
         authMethodNotConnected: 'Этот метод аутентификации не подключён!',
         authMethodConnected: 'Метод аутентификации успешно подключён.',
@@ -526,9 +468,6 @@ const ru: Translations = {
         failedToDisconnectAuthMethod:
             'Не удалось отключить метод аутентификации!',
         textRequired: 'Текст обязателен!',
-        voiceNotFound: 'Голосовая модель не найдена!',
-        ttsGenerationFailed: 'Не удалось сгенерировать речь!',
-        voicesFetched: 'Голоса успешно загружены.',
         featureEmailsDisabled:
             'Информационные письма в настоящее время отключены.',
         featureEmailsSent: 'Информационные письма успешно отправлены.',
@@ -566,7 +505,6 @@ const ru: Translations = {
         adminWaitlistFetched: 'Waitlist fetched.',
         failedToGetAdminWaitlist: 'Failed to fetch waitlist!',
         adminExportsFetched: 'Exports fetched.',
-        failedToGetAdminExports: 'Failed to fetch exports!',
         adminEmailsFetched: 'Emails fetched.',
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
@@ -597,16 +535,6 @@ const ru: Translations = {
                     'Отслеживайте логи сервера в реальном времени из панели ClawHost. Диагностируйте проблемы, отслеживайте развёртывания и отлаживайте приложения, не покидая браузер.',
                 cta: 'Просмотреть логи'
             },
-            channels: {
-                subject:
-                    'Знаете ли вы? Подключите агентов к Discord, Slack и другим',
-                preview: 'Привяжите ваших ИИ-агентов к каналам связи',
-                tag: 'Каналы',
-                heading: 'Ваши агенты — везде',
-                description:
-                    'Подключите ваших ИИ-агентов к Discord, Slack, WhatsApp и другим платформам. Настраивайте каналы и привязывайте их к агентам — всё из панели ClawHost.',
-                cta: 'Настроить каналы'
-            },
             fileExplorer: {
                 subject: 'Знаете ли вы? Редактируйте файлы сервера из браузера',
                 preview: 'Просматривайте, читайте и редактируйте файлы без SSH',
@@ -615,62 +543,6 @@ const ru: Translations = {
                 description:
                     'Просматривайте, читайте и редактируйте файлы на сервере прямо из панели ClawHost. Подсветка синтаксиса, поиск и мгновенное сохранение — без SSH.',
                 cta: 'Открыть проводник'
-            },
-            playground: {
-                subject: 'Знаете ли вы? Визуализируйте свою инфраструктуру',
-                preview: 'Смотрите ваши клоу и агентов на интерактивном холсте',
-                tag: 'Площадка',
-                heading: 'Видьте общую картину',
-                description:
-                    'Playground предоставляет интерактивный граф со всеми вашими клоу и агентами. Нажмите на любой узел для управления — визуальный центр управления вашей инфраструктурой.',
-                cta: 'Открыть Playground'
-            },
-            agentChat: {
-                subject: 'Знаете ли вы? Общайтесь с ИИ-агентами',
-                preview: 'Разговаривайте с агентами прямо из панели',
-                tag: 'Чат с агентом',
-                heading: 'Общайтесь с агентами',
-                description:
-                    'Общайтесь с ИИ-агентами прямо из панели ClawHost. Отправляйте сообщения, прикрепляйте изображения и просматривайте историю — всё в одном месте.',
-                cta: 'Начать общение'
-            },
-            voiceMode: {
-                subject: 'Знаете ли вы? Говорите с агентами голосом',
-                preview: 'Используйте распознавание и синтез речи с агентами',
-                tag: 'Голосовой режим',
-                heading: 'Говорите, а не печатайте',
-                description:
-                    'Используйте голосовой режим для общения с ИИ-агентами без рук. Распознавание речи для ввода, синтез речи для ответов — выбирайте из нескольких голосов.',
-                cta: 'Попробовать голосовой режим'
-            },
-            skills: {
-                subject: 'Знаете ли вы? 5 000+ навыков на ClawHub',
-                preview:
-                    'Просматривайте и устанавливайте навыки сообщества в один клик',
-                tag: 'Навыки ClawHub',
-                heading: 'Расширяйте агентов мгновенно',
-                description:
-                    'Просмотрите более 5 000 готовых навыков на ClawHub и установите их одним кликом. Веб-поиск, выполнение кода, генерация изображений и многое другое.',
-                cta: 'Обзор ClawHub'
-            },
-            bindings: {
-                subject:
-                    'Знаете ли вы? Привяжите агентов к определённым каналам',
-                preview: 'Контролируйте, какой агент отвечает на каком канале',
-                tag: 'Привязки',
-                heading: 'Один агент на канал',
-                description:
-                    'Привяжите конкретных агентов к конкретным каналам. Ваш агент поддержки в Discord, ваш помощник в WhatsApp — вы решаете, кто где отвечает.',
-                cta: 'Настроить привязки'
-            },
-            envVars: {
-                subject: 'Знаете ли вы? Управляйте переменными окружения',
-                preview: 'Устанавливайте API-ключи и конфигурацию без SSH',
-                tag: 'Переменные окружения',
-                heading: 'Настройка без SSH',
-                description:
-                    'Добавляйте, редактируйте и удаляйте переменные окружения прямо из панели ClawHost. Устанавливайте API-ключи, секреты и конфигурацию — без терминала.',
-                cta: 'Управление переменными'
             },
             diagnostics: {
                 subject: 'Знаете ли вы? Встроенные проверки состояния',
@@ -744,20 +616,36 @@ const ru: Translations = {
                 description:
                     'Перейдите на годовую оплату и экономьте на подписке клоу. Тот же отличный сервис, ниже цена — отмена в любое время.',
                 cta: 'Просмотреть тарифы'
+            },
+            simplifiedPlatform: {
+                subject: 'Мы упростили ClawHost',
+                preview:
+                    'Каналы, навыки и другое теперь управляются напрямую в OpenClaw',
+                tag: 'Обновление платформы',
+                heading: 'ClawHost стал проще',
+                description:
+                    'Мы удалили управление каналами, агентами, чатом и навыками из панели ClawHost. Эти функции теперь управляются непосредственно на вашем экземпляре OpenClaw.',
+                removed:
+                    'Конкретно мы удалили: каналы обмена сообщениями (WhatsApp, Telegram, Discord, Slack, Signal), маркетплейс навыков (ClawHub), и чат агента и голосовой режим. Всё это по-прежнему существует в OpenClaw — мы просто перестали оборачивать их.',
+                why: 'Поддержание синхронизации наших интерфейсов с каждым релизом OpenClaw было неустойчивым. Обновления выходили, а наш интерфейс отставал — оставляя вас с устаревшими элементами управления и неполными функциями.',
+                benefit:
+                    'Убрав эти слои, вы взаимодействуете с OpenClaw напрямую. Вы изучаете настоящую систему, а не второй интерфейс, который может устареть. Ваши знания применимы везде, где работает OpenClaw.',
+                action: 'Ничего не ломается. Ваши клоу, серверы, биллинг и основные функции панели не изменились. Для настройки каналов, навыков или агентов используйте ваш экземпляр OpenClaw напрямую.',
+                cta: 'Открыть панель'
             }
         }
     },
     auth: {
-        signIn: 'Войти',
+        signIn: 'Аутентификация',
         signInDescription:
             'Войдите в аккаунт ClawHost для управления экземплярами OpenClaw.',
-        signingIn: 'Вход...',
+        signingIn: 'Аутентификация...',
         verifyCode: 'Подтвердить код',
         checkYourEmail: 'Проверьте почту',
         checkYourEmailHeading: 'Проверьте почту',
         codeSentTo: 'Мы отправили 6-значный код на',
         signInToDeployOpenClaw:
-            'Войдите для управления и развёртывания экземпляров OpenClaw.',
+            'Авторизуйтесь для управления и развёртывания агентов в один клик.',
         emailAddress: 'Адрес электронной почты',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'Продолжить с Email',
@@ -835,7 +723,6 @@ const ru: Translations = {
             'Вы можете подключить только аккаунты с тем же адресом электронной почты !',
         settings: 'Настройки',
         settingsDescription: 'Управляйте настройками панели.',
-        showAllClaws: 'Показать все клоу всех пользователей',
         openLinksWindowed: 'Открывать ссылки во встроенном окне',
         openLinksWindowedDescription:
             'При включении внешние ссылки открываются внутри приложения, а не в системном браузере.'
@@ -888,7 +775,6 @@ const ru: Translations = {
         paymentSuccess: 'Оплата прошла успешно. Ваша лицензия теперь активна.',
         failedToPurchase: 'Не удалось начать оформление !',
         featureUnlimitedClaws: 'Неограниченное количество OpenClaw',
-        featureUnlimitedAgents: 'Неограниченное количество агентов',
         featureDevices: 'Неограниченное количество устройств',
         featureUpdates: 'Обновления навсегда',
         featureSupport: 'Приоритетная поддержка',
@@ -919,9 +805,9 @@ const ru: Translations = {
         clawCountLabelSingular: '{{count}} клоу',
         newClaw: 'Новый клоу',
         clawActions: 'Действия с клоу',
-        noClawsYet: 'Нет клоу',
-        noClawsDescription:
-            'Развёрнутых клоу не найдено. Но вы можете развернуть свой первый клоу в любое время от $25/мес. Просто ИИ это.',
+        noAgentsYet: 'Нет агентов',
+        noAgentsDescription:
+            'Развёрнутых агентов не найдено. Но вы можете развернуть своего первого агента в любое время от $25/мес. Просто ИИ это.',
         deleteClaw: 'Удалить клоу',
         deleteClawConfirmation: 'Вы уверены, что хотите удалить',
         deleteClawWarning:
@@ -940,7 +826,7 @@ const ru: Translations = {
         copySshWithKey: 'Копировать SSH (с ключом)',
         copySshWithPassword: 'Копировать SSH (с паролем)',
         connect: 'Копировать SSH-команду',
-        viewServerCredentials: 'Просмотреть учётные данные сервера',
+        viewServerCredentials: 'Учётные данные сервера',
         serverCredentials: 'Учётные данные сервера',
         serverCredentialsDescription:
             'Используйте эти учётные данные для подключения к серверу через SSH.',
@@ -966,7 +852,7 @@ const ru: Translations = {
         gatewayToken: 'Токен шлюза',
         gatewayTokenDescription:
             'Используйте этот токен для аутентификации со шлюзом',
-        contactSupport: 'Поддержка',
+        contactSupport: 'Связаться с поддержкой',
         scheduledForDeletion: 'Запланировано удаление',
         scheduledDeletionShort: 'Удаление {{date}}',
         deletionDate: 'Этот клоу будет удалён {{date}}',
@@ -990,12 +876,10 @@ const ru: Translations = {
             'Проверьте состояние вашего экземпляра OpenClaw.',
         diagnosticsStatus: 'Статус',
         diagnosticsLogs: 'Логи',
-        diagnosticsRepair: 'Восстановление',
-        diagnosticsRepairDescription:
-            'Снимите ограничения памяти, примените последнюю конфигурацию сервиса и перезапустите шлюз. Это исправляет большинство распространённых проблем.',
-        diagnosticsRepairSuccess: 'Экземпляр успешно восстановлен.',
-        diagnosticsRepairFailed:
-            'Восстановление применено, но шлюз пока не отвечает !',
+        diagnosticsRepair: 'Repair',
+        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairSuccess: 'Instance repaired successfully.',
+        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'Подключение к экземпляру...',
         diagnosticsNoLogs:
             'Логи недоступны. Запустите экземпляр для генерации логов.',
@@ -1017,9 +901,6 @@ const ru: Translations = {
         fileExplorerNoFiles: 'Файлы не найдены',
         fileExplorerSearchFiles: 'Поиск файлов...',
         fileExplorerNoSearchResults: 'Совпадающих файлов нет.',
-        updateInstance: 'Обновить экземпляр',
-        updateInstanceSuccess: 'Экземпляр успешно обновлён.',
-        updateInstanceFailed: 'Не удалось обновить экземпляр !',
         startFailed: 'Не удалось запустить клоу !',
         renameSuccess: 'Клоу успешно переименован.',
         renameFailed: 'Не удалось переименовать клоу !',
@@ -1032,6 +913,8 @@ const ru: Translations = {
         reinstallInstanceFailed: 'Не удалось переустановить экземпляр !',
         openControlPanel: 'Открыть панель управления',
         exportData: 'Экспорт клоу (.zip)',
+        exportAgent: 'Export Agent',
+        exportAgentTooltip: 'Download this agent as a .zip file',
         exportStarted:
             'Подготовка экспорта, это может занять некоторое время...',
         exportSuccess: 'Клоу успешно экспортирован.',
@@ -1048,8 +931,6 @@ const ru: Translations = {
         dnsSetupButton: 'Настроить DNS',
         dnsSetupSuccess: 'DNS-резолвер успешно настроен.',
         dnsSetupError: 'Не удалось настроить DNS-резолвер !',
-        chatTab: 'Чат',
-        playgroundTab: 'Playground',
         userTab: 'Пользователь',
         adminTab: 'Админ',
         adminTitle: 'Админ',
@@ -1057,6 +938,7 @@ const ru: Translations = {
         adminNoClaws: 'На платформе пока нет клоу.',
         adminAccessDenied: 'У вас нет прав для доступа к этой странице.',
         owner: 'Владелец',
+        agentType: 'Agent',
         status: {
             running: 'Работает',
             stopped: 'Остановлен',
@@ -1075,21 +957,6 @@ const ru: Translations = {
             unknown: 'Неизвестно',
             checking: 'Проверка'
         }
-    },
-    chat: {
-        explorer: 'Обозреватель',
-        selectAgent: 'Ничего не выбрано',
-        selectAgentDescription: 'Выберите claw или агента на боковой панели.',
-        noAgents: 'Нет доступных агентов',
-        noAgentsDescription:
-            'Разверните клоу, чтобы начать общение с агентами.',
-        openSidebar: 'Открыть боковую панель',
-        clawNotReady: 'Клоу ещё не готов',
-        notConfigured: 'Не настроен',
-        addAgent: 'Добавить агента',
-        viewTree: 'Древовидный вид',
-        viewList: 'Список',
-        clawSettings: 'Настройки клоу'
     },
     createClaw: {
         title: 'Развернуть OpenClaw',
@@ -1269,18 +1136,9 @@ const ru: Translations = {
         openclawControl: 'Управление OpenClaw',
         openclawControlDescription:
             'Доступ к нативной панели OpenClaw прямо из ClawHost. Полный доступ к редактированию всего, что предлагает OpenClaw.',
-        clawHostControl: 'Управление ClawHost',
+        clawHostControl: 'Полный доступ к серверу',
         clawHostControlDescription:
-            'Управляйте файлами, обновлениями, каналами, переменными, навыками и другими параметрами конфигурации прямо из платформы.',
-        skillsMarketplace: '5 000+ навыков',
-        skillsMarketplaceDescription:
-            'Просматривайте и устанавливайте более 5 000 готовых навыков одним кликом. Расширяйте OpenClaw мгновенно.',
-        directChat: 'Прямой чат',
-        directChatDescription:
-            'Общайтесь с ИИ-агентами прямо из платформы. Без внешних инструментов и интерфейсов.',
-        multipleAgents: 'Несколько агентов',
-        multipleAgentsDescription:
-            'Запускайте и управляйте несколькими ИИ-агентами на одном экземпляре. Каждый со своей конфигурацией и назначением.',
+            'Терминал в браузере, файловый менеджер, логи, диагностика и управление версиями — всё из вашей панели.',
         multipleClaws: 'Несколько клоу',
         multipleClawsDescription:
             'Разворачивайте и управляйте несколькими экземплярами OpenClaw из одной панели. Масштабируйтесь по мере роста.',
@@ -1375,7 +1233,7 @@ const ru: Translations = {
             'В отличие от размещённых ИИ-инструментов, ClawHost даёт вам реальный сервер с установленным OpenClaw. Вы владеете инфраструктурой, контролируете всё и не ограничены общей платформой или моделью.',
         faq4Question: 'Нужны ли технические знания?',
         faq4Answer:
-            'Нет. Мы берём на себя всю инфраструктуру, настройку и обслуживание. Вы можете настраивать и управлять OpenClaw через его интерфейс, подключать каналы и настраивать использование — не касаясь серверов или инфраструктуры.',
+            'Нет. Мы берём на себя всю инфраструктуру, настройку и обслуживание. Вы можете настраивать и управлять OpenClaw через его интерфейс и настраивать использование — не касаясь серверов или инфраструктуры.',
         faq5Question: 'Какие локации доступны?',
         faq5Answer:
             'Мы предлагаем несколько серверных локаций по всему миру, включая США, Европу и другие. При необходимости вы можете развернуть OpenClaw на нескольких серверах в разных регионах.',
@@ -1397,15 +1255,13 @@ const ru: Translations = {
         comparisonOwnershipUs: 'Вы полностью владеете сервером',
         comparisonOwnershipOthers: 'Вы не владеете ничем',
         comparisonSubdomainUs: 'Доступ через поддомен',
-        comparisonSubdomainOthers: 'Доступ только через социальные каналы',
+        comparisonSubdomainOthers: 'Доступ только через сторонние платформы',
         comparisonInfraUs: 'Инфраструктура по запросу',
         comparisonInfraOthers: 'Ограниченные серверы',
         comparisonDataUs: 'Владейте своими данными',
         comparisonDataOthers: 'Вы не владеете данными',
         comparisonMultipleUs: 'Несколько OpenClaw, один клоу',
         comparisonMultipleOthers: 'Только один OpenClaw',
-        comparisonAgentsUs: 'Несколько агентов на клоу',
-        comparisonAgentsOthers: 'Только один агент',
         comparisonOpenSourceUs: 'Полностью открытый код',
         comparisonOpenSourceOthers: 'Закрытый код',
         comparisonExportUs: 'Экспортируйте OpenClaw куда угодно',
@@ -1414,8 +1270,6 @@ const ru: Translations = {
         comparisonProvidersOthers: 'Только один провайдер',
         comparisonSocialsUs: 'Присутствие в соцсетях',
         comparisonSocialsOthers: 'Нет соцсетей',
-        comparisonChatUs: 'Чат напрямую с вашим клоу',
-        comparisonChatOthers: 'Чат только через каналы',
         comparisonVersionUs: 'Переключение версии в один клик',
         comparisonVersionOthers: 'Только ручные обновления',
         comparisonTerminalUs: 'Встроенный веб-терминал',
@@ -1466,6 +1320,8 @@ const ru: Translations = {
             'Нативное мобильное приложение для мониторинга и управления экземплярами OpenClaw на ходу',
         upcomingReleaseFeature13:
             'Бета-релиз ClawHost Go для macOS и Windows, локальное развёртывание OpenClaw в один клик',
+        upcomingReleaseFeature14:
+            'Развёртывание в один клик для агентов Hermes, таких как OpenClaw',
         upcomingReleaseFeature3: 'Поддержка тёмной и светлой тем',
         upcomingReleaseFeature4:
             'Улучшения производительности, стабильности и отзывчивости',
@@ -1484,6 +1340,15 @@ const ru: Translations = {
             'Лендинг для ClawHost Go, локальный хостинг с ClawHost',
         upcomingReleaseFeature12:
             'Настольное приложение для macOS и Windows для локального развёртывания OpenClaw в один клик',
+        release15Date: '11 апреля 2026',
+        release15Title: 'Упрощение и пользовательские поддомены',
+        release15Description:
+            'Упрощение платформы путём переноса управляемых функций в OpenClaw, удаление представления playground и введение изменяемых пользовательских поддоменов.',
+        release15Feature1:
+            'Упрощение и перенос управляемых функций в OpenClaw, больше никаких чата ClawHost, агентов, каналов, переменных и навыков',
+        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '1 апреля 2026',
         release14Title:
             'Миграция на Hetzner, партнёрская система и новые языки',
@@ -1527,8 +1392,6 @@ const ru: Translations = {
             'Запросы функций от сообщества, расширенная поддержка редактирования файлов и различные исправления ошибок.',
         release10Feature1:
             'Запросы функций, автоматически управляемые и публикуемые агентами OpenClaw',
-        release10Feature2:
-            'Исправлена периодическая ошибка установки навыков из маркетплейса ClawHub',
         release10Feature3:
             'Исправлено переключение провайдера модели, которое не применялось и продолжало использовать начальную модель',
         release10Feature4:
@@ -1558,23 +1421,17 @@ const ru: Translations = {
         release7Date: '16 февраля 2026',
         release7Title: 'Рефакторинг чата и голосовой ввод',
         release7Description:
-            'Крупные улучшения чата и Playground с голосовым взаимодействием, маркетплейсом навыков ClawHub и вложениями файлов для агентов.',
+            'Крупные улучшения чата и Playground с голосовым взаимодействием и вложениями файлов для агентов.',
         release7Feature1:
             'Рефакторинг чата и Playground для более плавного и отзывчивого взаимодействия',
         release7Feature2:
             'Голосовое взаимодействие с чатами, запись и транскрипция речи прямо в браузере',
-        release7Feature3:
-            'Интеграция навыков ClawHub с 5 000+ навыков для установки и управления',
         release7Feature4:
             'Просмотр и использование вложений для агентов, отправка изображений и документов в чате',
         release6Date: '16 февраля 2026',
-        release6Title: 'Каналы, навыки и чат с агентами',
+        release6Title: 'Чат с агентами',
         release6Description:
-            'Полный контроль над каналами, навыками и агентами OpenClaw. Управляйте и общайтесь со всем прямо из панели.',
-        release6Feature1:
-            'Управление каналами напрямую, добавление, удаление и настройка каналов без работы с сервером',
-        release6Feature2:
-            'Управление навыками напрямую, установка, обновление и организация навыков агентов из панели',
+            'Полный контроль над агентами OpenClaw. Управляйте и общайтесь со всем прямо из панели.',
         release6Feature3:
             'Чат с агентами из Playground, взаимодействие с любым агентом в реальном времени',
         release6Feature4:
@@ -1626,26 +1483,13 @@ const ru: Translations = {
         release4Feature4:
             'Удалён переключатель вида сетка/список в пользу единого макета панели'
     },
-    playground: {
-        title: 'Playground',
-        description:
-            'Визуализируйте ваши клоу и их агентов на интерактивном графе.',
-        subtitle: 'Топология агентов вашей инфраструктуры',
-        noClawsYet: 'Нет клоу',
-        noClawsDescription:
-            'Разверните свой первый клоу, чтобы взаимодействовать с ним.',
-        loadingAgents: 'Загрузка агентов',
-        unreachable: 'Недоступен',
-        offline: 'Не в сети',
-        noAgents: 'Нет агентов',
-        agentCount: '{{count}} агент',
-        agentCountPlural: '{{count}} агентов',
-        agentModel: 'Модель',
-        zoomLabel: '{{percent}}%',
-        fitView: 'Центрировать',
-        nodesOutOfView: 'Клоу за пределами видимости',
-        nodeOutOfView: 'Клоу за пределами видимости',
-        addAgent: 'Добавить агента',
+    clawDetail: {
+        noAgentsYet: 'Нет агентов',
+        noAgentsDescription:
+            'Разверните своего первого агента, чтобы взаимодействовать с ним.',
+        selectClaw: 'Выберите клоу',
+        selectClawDescription:
+            'Выберите клоу на боковой панели, чтобы просмотреть его детали.',
         closeDetails: 'Закрыть',
         tabInfo: 'Инфо',
         tabLogs: 'Логи',
@@ -1663,194 +1507,7 @@ const ru: Translations = {
         loadingTip2: 'Знаете ли вы, что OpenClaw — это открытый код?',
         loadingTip3:
             'ClawHost — первый в мире проект, позволяющий хостить OpenClaw в один клик.',
-        tabChat: 'Чат',
-        tabConfiguration: 'Конфигурация',
         tabSettings: 'Настройки',
-        tabEnvs: 'Переменные',
-        agentOnClaw: 'на {{clawName}}',
-        cannotDeleteDefaultAgent: 'Агента по умолчанию нельзя удалить !',
-        configurationModel: 'Модель',
-        configurationModelPlaceholder: 'Выберите модель',
-        configurationModelDescription:
-            'ИИ-модель, которую использует этот агент. Смена модели может потребовать установки соответствующего API-ключа.',
-        configurationEnvVars: 'Переменные окружения',
-        configurationEnvVarsDescription:
-            'API-ключи и переменные окружения, хранящиеся в ~/.openclaw/.env на экземпляре.',
-        configurationAddEnvVar: 'Добавить переменную',
-        configurationKeyPlaceholder: 'VARIABLE_NAME',
-        configurationValuePlaceholder: 'значение',
-        configurationSave: 'Сохранить',
-        configurationSaving: 'Сохранение...',
-        configurationSaved: 'Конфигурация агента сохранена.',
-        configurationSaveFailed: 'Не удалось сохранить конфигурацию агента !',
-        configurationLoading: 'Загрузка конфигурации...',
-        configurationLoadFailed: 'Не удалось загрузить конфигурацию агента !',
-        configurationLoadFailedDescription:
-            'Не удалось получить конфигурацию этого агента. Попробуйте позже.',
-        configurationRemoveVar: 'Удалить',
-        configurationApiKey: 'API-ключ',
-        configurationApiKeyDescription:
-            'Требуется для {{modelName}}. Этот ключ хранится в ~/.openclaw/.env на экземпляре.',
-        configurationApiKeyPlaceholder: 'Введите ваш API-ключ',
-        tabVariables: 'Переменные',
-        variablesDescription:
-            'Переменные окружения, хранящиеся в ~/.openclaw/.env на этом экземпляре.',
-        variablesEmpty: 'Переменные окружения не найдены.',
-        variablesAddVariable: 'Добавить переменную',
-        variablesSave: 'Сохранить переменные',
-        variablesSaving: 'Сохранение...',
-        variablesSaved: 'Переменные окружения сохранены.',
-        variablesSaveFailed: 'Не удалось сохранить переменные окружения !',
-        variablesLoading: 'Загрузка переменных...',
-        variablesLoadFailed: 'Не удалось загрузить переменные окружения !',
-        variablesLoadFailedDescription:
-            'Не удалось получить переменные для этого экземпляра. Попробуйте позже.',
-        variablesInvalidKey: 'Только буквы, цифры и подчёркивания !',
-        variablesEmptyValue: 'Значение не может быть пустым !',
-        variablesDuplicateKey: 'Дублирующееся имя переменной !',
-        variablesDeleteTitle: 'Удалить переменную',
-        variablesDeleteDescription:
-            'Вы уверены, что хотите удалить {{key}}? Это немедленно удалит её с экземпляра.',
-        variablesDeleteConfirm: 'Удалить',
-        variablesDontAskAgain:
-            'Не спрашивать снова при удалении переменных в этой сессии',
-        variablesDeleted: 'Переменная удалена.',
-        variablesOperationPending:
-            'Отключено, пока выполняется предыдущая операция.',
-        addAgentTitle: 'Добавить агента',
-        addAgentDescription: 'Добавить нового агента в {{clawName}}.',
-        addAgentDescriptionNoClaw: 'Выберите клоу и настройте нового агента.',
-        addAgentSelectClaw: 'Клоу',
-        addAgentSelectClawPlaceholder: 'Выберите клоу',
-        addAgentName: 'Имя',
-        addAgentNamePlaceholder: 'Введите имя агента',
-        addAgentModel: 'Модель',
-        addAgentModelPlaceholder: 'Выберите модель',
-        addAgentApiKey: 'API-ключ',
-        addAgentApiKeyPlaceholder: 'Введите ваш API-ключ (необязательно)',
-        addAgentApiKeyConfigured:
-            '{{envVar}} уже задан. Отредактируйте во вкладке «Переменные» после добавления.',
-        addAgentSubmit: 'Добавить агента',
-        addAgentSuccess: 'Агент успешно добавлен.',
-        addAgentFailed: 'Не удалось добавить агента !',
-        deleteAgent: 'Удалить агента',
-        deleteAgentTitle: 'Удалить агента',
-        deleteAgentDescription:
-            'Вы уверены, что хотите удалить агента «{{agentName}}»? Это действие нельзя отменить. Переменные окружения не будут удалены.',
-        deleteAgentConfirm: 'Удалить',
-        agentDontAskAgain:
-            'Не спрашивать снова при удалении агентов в этой сессии',
-        deleteAgentDeleting: 'Удаление...',
-        deleteAgentSuccess: 'Агент успешно удалён.',
-        deleteAgentFailed: 'Не удалось удалить агента !',
-        configurationName: 'Имя',
-        configurationNamePlaceholder: 'Введите имя агента',
-        configurationNameDescription: 'Только буквы, цифры и дефисы.',
-        agentNameRequired: 'Имя агента обязательно !',
-        agentNameInvalidChars: 'Допускаются только буквы, цифры и дефисы !',
-        agentNameDuplicate: 'Агент с таким именем уже существует !',
-        chatConnecting: 'Подключение...',
-        chatAuthenticating: 'Аутентификация...',
-        chatDisconnected: 'Отключён',
-        chatError: 'Ошибка подключения !',
-        chatConnected: 'Подключён',
-        chatInputPlaceholder: 'Введите сообщение...',
-        chatInputDisabled: 'Подключитесь для общения с этим агентом',
-        chatSend: 'Отправить сообщение',
-        chatAbort: 'Остановить',
-        chatStopProcess: 'Остановить процесс',
-        chatRemoveAttachment: 'Удалить вложение',
-        chatThinking: 'Думает',
-        chatLoadingHistory: 'Загрузка сообщений...',
-        chatNoMessages: 'Нет сообщений',
-        chatNoMessagesDescription:
-            'Отправьте сообщение, чтобы начать разговор с этим агентом.',
-        chatErrorMessage: 'Произошла ошибка при генерации ответа !',
-        chatAbortedMessage: 'Ответ был остановлен.',
-        chatPlaySpeech: 'Прочитать вслух',
-        chatReplaySpeech: 'Воспроизвести заново',
-        chatStopSpeech: 'Остановить',
-        chatSpeechFailed: 'Не удалось сгенерировать речь !',
-        chatReadOnlyPlaceholder: 'Чат доступен на ваших собственных клоу.',
-        chatReadOnlyUser: 'Привет! Можешь помочь мне настроить проект Node.js?',
-        chatReadOnlyAssistant:
-            'Конечно! Я могу помочь инициализировать новый проект Node.js. Хотите, чтобы я создал package.json с основными зависимостями?',
-        chatReadOnlyReply:
-            'Это превью! Разверните свой OpenClaw в один клик и начните общаться с ИИ-агентами за минуты!',
-        chatReadOnlyUser2: 'Можешь запустить набор тестов и проверить ошибки?',
-        chatReadOnlyAssistant2:
-            'Конечно! Запускаю все тесты. 3 пройдено, 0 ошибок. Всё в порядке — все проверки проходят.',
-        chatReadOnlyGoUser:
-            'Привет, можешь помочь автоматизировать мой пайплайн развёртывания?',
-        chatReadOnlyGoAssistant:
-            'Безусловно! Я могу настроить CI/CD-пайплайн для вас. Начнём с GitHub Actions, который собирает, тестирует и деплоит автоматически?',
-        chatReadOnlyGoReply:
-            'Это превью! Получите ClawHost Go и запустите OpenClaw локально — ваша машина, ваши данные, без облака.',
-        chatReadOnlyGoUser2:
-            'Можешь мониторить мои локальные сервисы и оповещать, если что-то упадёт?',
-        chatReadOnlyGoAssistant2:
-            'Уже на этом! Настрою проверки состояния для всех ваших сервисов. Сейчас мониторю 4 эндпоинта — все здоровы и отвечают.',
-        chatConnectionFailed: 'Не удалось подключиться к этому агенту !',
-        chatConnectionFailedDescription:
-            'Убедитесь, что клоу запущен и доступен.',
-        chatNotConfigured: 'Агент не настроен.',
-        chatNotConfiguredDescription:
-            'Выберите модель и установите API-ключ во вкладке «Конфигурация», чтобы начать общение.',
-        chatConfigureButton: 'Настроить агента',
-        chatToday: 'Сегодня',
-        chatYesterday: 'Вчера',
-        chatExpandFullscreen: 'Развернуть чат',
-        chatAttachFile: 'Прикрепить файл',
-        chatDropFiles: 'Перетащите файлы для прикрепления',
-        chatDropFilesDescription: 'Изображения, PDF и текстовые файлы до 5 МБ.',
-        chatVoiceInput: 'Голосовой ввод',
-        chatVoiceListening: 'Слушаю...',
-        chatVoiceNotSupported:
-            'Голосовой ввод не поддерживается в этом браузере.',
-        chatVoiceMode: 'Голосовой режим',
-        chatVoiceModeTapToSpeak: 'Нажмите, чтобы начать говорить',
-        chatVoiceModeListening: 'Слушаю...',
-        chatVoiceModeClose: 'Завершить голосовой режим',
-        chatVoiceModeTranscribing: 'Транскрибирование...',
-        chatVoiceModeThinking: 'Думает...',
-        chatVoiceModeResponding: 'Отвечает...',
-        chatVoiceModePreparing: 'Подготовка речи...',
-        chatVoiceModeSpeaking: 'Говорит...',
-        chatVoiceModeInputDevice: 'Микрофон',
-        chatVoiceModeOutputDevice: 'Динамик',
-        chatVoiceModeNotSupported:
-            'Распознавание голоса не поддерживается в этом браузере.',
-        chatVoiceModeNoMicrophone:
-            'Микрофон не обнаружен. Подключите его для использования голосового режима.',
-        chatVoiceModeNoSpeaker:
-            'Динамик не обнаружен. Подключите его для использования голосового режима.',
-        chatAttachmentNotSupported:
-            'Этот тип файла не поддерживается. Используйте изображения, PDF или текстовые файлы.',
-        chatNoPreview: 'Предпросмотр недоступен.',
-        chatDownloadFile: 'Скачать файл',
-        chatCopyMessage: 'Копировать сообщение',
-        tabChannels: 'Каналы',
-        channelsDescription:
-            'Настройте каналы обмена сообщениями для этого экземпляра. Сообщения маршрутизируются агентам через привязки.',
-        channelsWhatsApp: 'WhatsApp',
-        channelsWhatsAppPairDevice: 'Связать устройство',
-        channelsWhatsAppPairing: 'Ожидание QR-кода...',
-        channelsWhatsAppScanQr:
-            'Отсканируйте этот QR-код с помощью WhatsApp, чтобы связать устройство.',
-        channelsWhatsAppScanInstructions:
-            'Откройте WhatsApp > Настройки > Связанные устройства > Связать устройство',
-        channelsWhatsAppQrRefreshed:
-            'Предыдущий QR-код истёк. Отсканируйте новый ниже.',
-        channelsWhatsAppPaired: 'WhatsApp успешно связан.',
-        channelsWhatsAppPairFailed: 'Связывание не удалось. Попробуйте снова !',
-        channelsWhatsAppAlreadyPaired: 'WhatsApp уже связан !',
-        channelsWhatsAppUnpair: 'Отвязать',
-        channelsWhatsAppConnected: 'Подключён',
-        channelsWhatsAppRepair: 'Связать заново',
-        channelsWhatsAppChecking: 'Проверка соединения...',
-        channelsVersionUnsupported:
-            'Настройка каналов недоступна в этой версии. Вы можете подключиться вручную через вкладку «Терминал» или обновить OpenClaw.',
-        channelsVersionUnsupportedDocs: 'Руководство по настройке',
         featureVersionUnsupported:
             '{{feature}} не поддерживается на {{version}}',
         featureVersionUnsupportedDescription:
@@ -1858,96 +1515,8 @@ const ru: Translations = {
         featureVersionUnsupportedButton: 'Перейти к Версиям',
         featureVersionUnsupportedSupported: 'Поддерживаемые версии:',
         featureVersionUnsupportedNewer: 'более новые версии',
-        channelsTelegram: 'Telegram',
-        channelsDiscord: 'Discord',
-        channelsSlack: 'Slack',
-        channelsSignal: 'Signal',
-        channelsEnabled: 'Включён',
-        channelsAccount: 'Номер телефона аккаунта',
-        channelsAccountPlaceholder: '+15551234567',
-        channelsBotToken: 'Токен бота',
-        channelsBotTokenPlaceholder: 'Введите токен бота',
-        channelsAppToken: 'Токен приложения',
-        channelsAppTokenPlaceholder: 'Введите токен приложения',
-        channelsToken: 'Токен бота',
-        channelsTokenPlaceholder: 'Введите токен бота',
-        channelsSigningSecret: 'Секрет подписи',
-        channelsSigningSecretPlaceholder: 'Введите секрет подписи',
-        channelsDmPolicy: 'Политика ЛС',
-        channelsDmPolicyOpen: 'Открытая',
-        channelsDmPolicyPairing: 'Связывание',
-        channelsDmPolicyAllowlist: 'Список разрешённых',
-        channelsDmPolicyDisabled: 'Отключено',
-        channelsAllowFrom: 'Разрешить от',
-        channelsAllowFromPlaceholder: 'Разрешённые ID, через запятую',
-        channelsSave: 'Сохранить',
-        channelsSaved: 'Каналы успешно обновлены.',
-        channelsSaveFailed: 'Не удалось обновить каналы !',
-        channelsLoading: 'Загрузка каналов...',
-        channelsLoadFailed: 'Не удалось загрузить каналы !',
-        channelsLoadFailedDescription:
-            'Не удалось получить конфигурацию каналов. Попробуйте снова.',
-        channelsNoChanges: 'Нет изменений для сохранения.',
-        bindingsDescription:
-            'Назначьте каналы обмена сообщениями этому агенту. Каждый канал может быть маршрутизирован только одному агенту одновременно.',
-        bindingsNoChannels: 'Нет включённых каналов.',
-        bindingsNoChannelsDescription:
-            'Сначала включите каналы в настройках экземпляра, затем назначьте их агентам здесь.',
-        bindingsSaving: 'Сохранение...',
-        bindingsSaved: 'Привязки успешно обновлены.',
-        bindingsSaveFailed: 'Не удалось обновить привязки !',
-        tabSkills: 'Навыки',
-        skillsDescription:
-            'Управляйте общими навыками, доступными всем агентам на этом экземпляре.',
-        skillsSearch: 'Поиск навыков...',
-        skillsNoResults: 'Навыки по вашему запросу не найдены.',
-        skillsEmpty: 'Нет навыков',
-        skillsSave: 'Сохранить навыки',
-        skillsSaved: 'Навыки успешно обновлены.',
-        skillsSaveFailed: 'Не удалось обновить навыки !',
-        skillsLoading: 'Загрузка навыков...',
-        skillsLoadFailed: 'Не удалось загрузить навыки !',
-        skillsLoadFailedDescription:
-            'Не удалось получить конфигурацию навыков. Попробуйте снова.',
-        agentSkillsDescription:
-            'Навыки, установленные в рабочем пространстве этого агента.',
-        agentSkillsInstalling: 'Установка...',
-        agentSkillsInstalled: 'Навык успешно установлен.',
-        agentSkillsInstallFailed: 'Не удалось установить навык !',
-        agentSkillsRemoving: 'Удаление...',
-        agentSkillsRemoved: 'Навык успешно удалён.',
-        agentSkillsRemoveFailed: 'Не удалось удалить навык !',
-        agentSkillsEmpty: 'Навыки не установлены.',
-        agentSkillsEmptyDescription:
-            'Установите навык для расширения возможностей этого агента.',
-        agentSkillsNamePlaceholder: 'Название навыка',
-        agentSkillsConfirmRemove: 'Удалить навык «{{skillName}}»?',
-        agentSkillsConfirmRemoveDescription:
-            'Это удалит навык из рабочего пространства агента.',
-        skillsBundledTab: 'Встроенные',
-        skillsClawHubTab: 'ClawHub',
-        clawHubSearch: 'Поиск навыков ClawHub...',
-        clawHubNoResults: 'Навыки на ClawHub не найдены.',
-        clawHubEmpty: 'Навыки ClawHub не установлены.',
-        clawHubEmptyDescription:
-            'Ищите и устанавливайте навыки из маркетплейса ClawHub.',
-        clawHubInstall: 'Установить',
-        clawHubInstalled: 'Навык установлен из ClawHub.',
-        clawHubInstallFailed: 'Не удалось установить навык из ClawHub !',
-        clawHubRemove: 'Удалить',
-        clawHubRemoved: 'Навык ClawHub удалён.',
-        clawHubRemoveFailed: 'Не удалось удалить навык ClawHub !',
-        clawHubUpdate: 'Обновить',
-        clawHubUpdated: 'Навык обновлён из ClawHub.',
-        clawHubUpdateFailed: 'Не удалось обновить навык ClawHub !',
-        clawHubUpdateAvailable: 'v{{version}} доступна',
-        clawHubBy: 'от {{author}}',
-        clawHubDownloads: '{{count}} загрузок',
-        clawHubVersion: 'v{{version}}',
-        clawHubLoadFailed: 'Не удалось загрузить ClawHub !',
-        clawHubLoadFailedDescription:
-            'Не удалось подключиться к маркетплейсу ClawHub. Попробуйте снова.',
         tabVersions: 'Версии',
+        tabFiles: 'Проводник',
         versionsSearch: 'Поиск версий...',
         versionsEmpty: 'Версии не найдены',
         versionsEmptyDescription: 'Версии по вашему запросу не найдены.',
@@ -2145,8 +1714,9 @@ const ru: Translations = {
             'Сообщения и уведомления будут отображаться здесь.',
         settingsPlaceholder:
             'Настройки аккаунта и предпочтения будут отображаться здесь.',
-        signIn: 'Войти',
-        signInDescription: 'Войдите для управления экземплярами OpenClaw.',
+        signIn: 'Аутентификация',
+        signInDescription:
+            'Авторизуйтесь для управления и развёртывания ваших агентов.',
         enterEmail: 'Адрес электронной почты',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'Продолжить с Email',
@@ -2160,21 +1730,17 @@ const ru: Translations = {
         changeEmail: 'Изменить email',
         invalidCode: 'Неверный код !',
         codeExpired: 'Код истёк. Запросите новый.',
-        signingIn: 'Вход...',
+        signingIn: 'Аутентификация...',
         signOut: 'Выйти',
         signedInAs: 'Вы вошли как',
         loadMore: 'Загрузить ещё',
-        chatWithYourClaw: 'Общайтесь с вашим клоу',
         deployClaw: 'Развернуть клоу',
-        deployYourFirstClaw: 'Разверните ваш первый клоу',
-        voiceMode: 'Голосовой режим',
-        voiceListening: 'Слушаю...',
-        voiceTapToSpeak: 'Нажмите на сферу, чтобы начать'
+        deployYourFirstClaw: 'Разверните ваш первый клоу'
     },
     announcement: {
         title: 'Уведомление о сервисе',
         message:
-            'Из-за высокого спроса развёртывания {{providers}} временно недоступны. Существующие клоу работают нормально.'
+            'Из-за высокого спроса развёртывания {{providers}} временно недоступны. Существующие агенты работают нормально.'
     },
     productHunt: {
         liveOn: 'Мы на',
@@ -2216,13 +1782,8 @@ const ru: Translations = {
         featureSubdomainAccess: 'Доступ через поддомен',
         featureThemes: 'Светлая и тёмная темы',
         featureSetupTime: 'Время настройки',
-        featureTechnicalSkill: 'Требуемые технические навыки',
         featureOneClickDeploy: 'Развёртывание в один клик',
         featureMultipleInstances: 'Несколько экземпляров',
-        featureMultipleAgents: 'Несколько агентов на экземпляр',
-        featureSkillsMarketplace: 'Маркетплейс навыков',
-        featureChannelSupport: 'Поддержка каналов',
-        featureAgentConfig: 'Конфигурация агента',
         featureDataOwnership: 'Полное владение данными',
         featureDataExport: 'Экспорт данных',
         featureBackups: 'Резервные копии',
@@ -2237,7 +1798,6 @@ const ru: Translations = {
         featureMultiLanguage: 'Мультиязычный интерфейс',
         featureMobileApp: 'Мобильное приложение',
         featureDesktopApp: 'Настольное приложение',
-        featureDirectChat: 'Прямой чат',
         featureOneClickVersion: 'Переключение версии в один клик',
         featureWebTerminal: 'Доступ через веб-терминал',
         featureSocials: 'Социальные сети',
@@ -2271,12 +1831,7 @@ const ru: Translations = {
         minimal: 'Минимальные',
         unlimited: 'Неограниченно',
         singleInstance: 'Один',
-        fiveThousandSkills: '5 000+ навыков (ClawHub)',
         noMarketplace: 'Нет маркетплейса',
-        allChannels: 'WhatsApp, Telegram, Discord, Slack, Signal',
-        telegramDiscord: 'Telegram, Discord',
-        discordGithubSlack: 'Discord, GitHub, Slack',
-        telegramGmailWhatsapp: 'Telegram, Gmail, WhatsApp',
         appOnly: 'Только приложение',
         fullConfig: 'Полная конфигурация',
         limitedConfig: 'Ограниченная',
@@ -2306,7 +1861,6 @@ const ru: Translations = {
         iosMacOs: 'iOS и macOS',
         macOsOnly: 'Только macOS',
         viaTelegram: 'Через Telegram',
-        builtInChat: 'Встроенный',
         builtInTerminal: 'SSH не нужен',
         notAvailable: 'Недоступно',
         disclaimer: 'Что-то изменилось или неверно? Напишите нам на',
@@ -2368,7 +1922,7 @@ const ru: Translations = {
         noClawsFound: 'Нет Claws',
         noSSHKeysFound: 'Нет SSH-ключей',
         noVolumesFound: 'Нет Томов',
-        failedToLoadClaws: 'Не удалось загрузить claws!',
+        failedToLoadAgents: 'Не удалось загрузить agents!',
         failedToLoadSSHKeys: 'Не удалось загрузить SSH-ключи!',
         failedToLoadVolumes: 'Не удалось загрузить тома!',
         owner: 'Владелец',
@@ -2377,10 +1931,12 @@ const ru: Translations = {
         referralsTab: 'Рефералы',
         pendingClawsTab: 'Ожидающие',
         waitlistTab: 'Список ожидания',
-        exportsTab: 'Экспорты',
         emailsTab: 'Письма',
         analyticsTab: 'Аналитика',
         billingTab: 'Биллинг',
+        settingsTab: 'Настройки',
+        settingsDescription: 'Управляйте настройками администратора.',
+        showAllAgents: 'Показать всех агентов всех пользователей',
         billingFilterAll: 'Все заказы',
         billingFilterService: 'Сервис Claw',
         billingFilterLicense: 'Лицензия',
@@ -2408,12 +1964,10 @@ const ru: Translations = {
         noReferralsFound: 'Нет Рефералов',
         noPendingClawsFound: 'Нет Ожидающих Claws',
         noWaitlistFound: 'Нет Списка Ожидания',
-        noExportsFound: 'Нет Экспортов',
         noEmailsFound: 'Нет Писем',
         failedToLoadReferrals: 'Не удалось загрузить рефералов!',
         failedToLoadPendingClaws: 'Не удалось загрузить ожидающие claws!',
         failedToLoadWaitlist: 'Не удалось загрузить список ожидания!',
-        failedToLoadExports: 'Не удалось загрузить экспорты!',
         failedToLoadEmails: 'Не удалось загрузить письма!',
         referrer: 'Реферер',
         referred: 'Приглашённый',

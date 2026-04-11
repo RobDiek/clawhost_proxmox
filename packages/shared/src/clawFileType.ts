@@ -4,6 +4,8 @@ const clawFileType = {
     javascript: 'javascript',
     typescript: 'typescript',
     yaml: 'yaml',
+    html: 'html',
+    shell: 'shell',
     text: 'text',
     unknown: 'unknown'
 } as const

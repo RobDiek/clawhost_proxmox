@@ -72,7 +72,6 @@ const tr: Translations = {
     },
     nav: {
         claws: "Claw'lar",
-        playground: 'Playground',
         sshKeys: 'SSH Anahtarları',
         account: 'Hesap',
         billing: 'Faturalama',
@@ -80,7 +79,7 @@ const tr: Translations = {
         license: 'Lisans',
         signOut: 'Çıkış yap',
         admin: 'Yönetici',
-        login: 'Giriş',
+        login: 'Giriş Yap',
         deploy: 'Dağıt',
         deployOpenClaw: 'OpenClaw Dağıt',
         mainNavigation: 'Ana navigasyon',
@@ -148,8 +147,6 @@ const tr: Translations = {
         comparisonSetupOthers: 'Tek tıkla dağıt',
         comparisonUpdatesUs: 'Otomatik güncellemeler',
         comparisonUpdatesOthers: 'Otomatik güncellemeler',
-        comparisonAgentsUs: 'Birden fazla ajan',
-        comparisonAgentsOthers: 'Birden fazla ajan',
         faqTitle: 'Sorular',
         faqHeading: 'Sık Sorulan Sorular',
         faqDescription: 'ClawHost Go hakkında bilmeniz gereken her şey.',
@@ -205,7 +202,6 @@ const tr: Translations = {
         failedToStartClaw: 'Claw başlatılamadı!',
         noVersionAssigned: "Bu claw'a atanmış OpenClaw sürümü yok!",
         invalidAgentName: 'Geçersiz ajan adı!',
-        agentNameAlreadyExists: 'Bu isimde bir ajan zaten var!',
         invalidPath: 'Geçersiz yol!',
         fileNotFound: 'Dosya bulunamadı!',
         purchasingNotAvailable: 'Yerel modda satın alma mevcut değil!',
@@ -265,9 +261,9 @@ const tr: Translations = {
         notFound: 'Sayfa bulunamadı!',
         pageNotFoundDescription: 'Aradığınız sayfa mevcut değil veya taşınmış.',
         goToHomepage: 'Ana Sayfaya Git',
-        failedToLoadClaws: "Claw'lar yüklenemedi!",
-        failedToLoadClawsDescription:
-            "Claw'larınız yüklenemedi. Lütfen bağlantınızı kontrol edip tekrar deneyin!",
+        failedToLoadAgents: 'Agents yüklenemedi!',
+        failedToLoadAgentsDescription:
+            'Agents yüklenemedi. Lütfen bağlantınızı kontrol edip tekrar deneyin!',
         failedToLoadSSHKeys: 'SSH anahtarları yüklenemedi!',
         failedToLoadSSHKeysDescription:
             'SSH anahtarlarınız yüklenemedi. Lütfen bağlantınızı kontrol edip tekrar deneyin!',
@@ -308,7 +304,6 @@ const tr: Translations = {
         sshKeyInUse:
             'Bu SSH anahtarı şu anda bir veya daha fazla claw tarafından kullanılıyor!',
         inputTooLong: 'Girdi izin verilen maksimum uzunluğu aşıyor!',
-        invalidEnvVars: 'Geçersiz ortam değişkeni adları veya değerleri!',
         invalidEmailFormat: 'Geçersiz e-posta biçimi!',
         plusAddressingNotAllowed:
             'E-posta girişi için artı adresleme izin verilmiyor!',
@@ -378,17 +373,21 @@ const tr: Translations = {
         failedToGetLogs: 'Günlükler yüklenemedi!',
         failedToGetLogsDescription:
             'Bu örnek için günlükler alınamadı. Lütfen daha sonra tekrar deneyin.',
-        failedToRepairClaw: 'Örnek onarılamadı!',
-        repairSuccess: 'Örnek başarıyla onarıldı.',
-        repairGatewayNotResponding:
-            'Onarım uygulandı ancak ağ geçidi henüz yanıt vermiyor. Başlaması için daha fazla zamana ihtiyacı olabilir.',
         failedToReinstallClaw: 'Örnek yeniden yüklenemedi!',
         reinstallSuccess: 'Örnek başarıyla yeniden yüklendi.',
         reinstallRateLimited:
             'Yalnızca 24 saatte bir yeniden yükleme yapabilirsiniz. Bu limiti kaldırmak istiyorsanız lütfen ekiple iletişime geçin.',
+        subdomainRateLimited:
+            'Alt alan adınızı yalnızca 24 saatte bir değiştirebilirsiniz. Bu limiti kaldırmak istiyorsanız lütfen ekiple iletişime geçin.',
+        subdomainUpdated: 'Alt alan adı başarıyla güncellendi.',
+        invalidSubdomain: 'Geçersiz alt alan adı. 3-20 küçük harf ve rakam kullanın!',
+        subdomainAlreadyInUse: 'Bu alt alan adı zaten kullanımda!',
         clawBusy: 'Claw şu anda hazırlanıyor veya siliniyor!',
         reinstallGatewayNotResponding:
             'Yeniden yükleme tamamlandı ancak ağ geçidi henüz yanıt vermiyor. Başlaması için daha fazla zamana ihtiyacı olabilir.',
+        failedToRepairClaw: 'Failed to repair the instance!',
+        repairSuccess: 'Instance repaired successfully.',
+        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Claw verileri dışa aktarılamadı!',
         clawNotReady: 'Claw dışa aktarma için hazır değil!',
         exportRateLimited:
@@ -442,18 +441,6 @@ const tr: Translations = {
         locationsFetched: 'Konumlar başarıyla getirildi.',
         volumePricingFetched: 'Birim fiyatlandırması başarıyla getirildi.',
         planAvailabilityFetched: 'Plan uygunluğu başarıyla getirildi.',
-        agentsFetched: 'Ajanlar başarıyla getirildi.',
-        agentsFetchFailed: 'Ajanları getirmek için örneğe ulaşılamadı!',
-        agentConfigFetched: 'Ajan yapılandırması başarıyla getirildi.',
-        agentConfigUpdated: 'Ajan yapılandırması başarıyla güncellendi.',
-        agentConfigUpdateFailed: 'Ajan yapılandırması güncellenemedi!',
-        agentCreated: 'Ajan başarıyla oluşturuldu.',
-        agentCreateFailed: 'Örnekte ajan oluşturulamadı!',
-        agentDeleted: 'Ajan başarıyla silindi.',
-        agentDeleteFailed: 'Örnekten ajan silinemedi!',
-        cannotDeleteMainAgent: 'Kalan tek ajan silinemez!',
-        agentNameInvalid: 'Ajan adı yalnızca harf, rakam ve tire içermelidir!',
-        agentNameDuplicate: 'Bu isimde bir ajan zaten var!',
         diagnosticsFetched: 'Tanılama başarıyla getirildi.',
         logsFetched: 'Günlükler başarıyla getirildi.',
         filesFetched: 'Dosyalar başarıyla getirildi.',
@@ -465,48 +452,8 @@ const tr: Translations = {
         invalidToken: 'Geçersiz token!',
         notFound: 'Bulunamadı!',
         healthOk: 'API çalışıyor.',
-        channelsFetched: 'Kanallar başarıyla getirildi.',
-        channelsUpdated: 'Kanallar başarıyla güncellendi.',
-        channelsUpdateFailed: 'Kanallar güncellenemedi!',
-        channelsFetchFailed: 'Kanallar getirilemedi!',
-        channelMissingRequired: 'Etkin kanal için gerekli alanlar eksik!',
-        whatsappPairStarted: 'WhatsApp eşleştirme başlatıldı.',
-        whatsappPairFailed: 'WhatsApp eşleştirme başarısız!',
-        whatsappAlreadyPaired: 'WhatsApp zaten eşleştirilmiş!',
-        whatsappVersionUnsupported:
-            "Bu sürüm panelden kanal yapılandırmasını desteklemiyor. Manuel olarak yapılandırmak için Terminal sekmesini kullanın veya OpenClaw'ı güncelleyin.",
         featureVersionUnsupported:
             "Bu özellik {{version}} sürümünde desteklenmiyor. Lütfen OpenClaw'ı güncelleyin veya manuel yönetim için Terminali kullanın.",
-        bindingsFetched: 'Bağlamalar başarıyla getirildi.',
-        bindingsFetchFailed: 'Bağlamalar getirilemedi!',
-        bindingsUpdated: 'Bağlamalar başarıyla güncellendi.',
-        bindingsUpdateFailed: 'Bağlamalar güncellenemedi!',
-        bindingsInvalidFormat: 'Geçersiz bağlama biçimi!',
-        bindingsInvalidChannel: 'Bağlamada desteklenmeyen kanal!',
-        bindingsDuplicateChannel: 'Bir kanal yalnızca bir ajana bağlanabilir!',
-        skillsFetched: 'Yetenekler başarıyla getirildi.',
-        skillsUpdated: 'Yetenekler başarıyla güncellendi.',
-        skillsUpdateFailed: 'Yetenekler güncellenemedi!',
-        skillsFetchFailed: 'Yetenekler getirilemedi!',
-        agentSkillsFetched: 'Ajan yetenekleri başarıyla getirildi.',
-        agentSkillsUpdated: 'Ajan yetenekleri başarıyla güncellendi.',
-        agentSkillsUpdateFailed: 'Ajan yetenekleri güncellenemedi!',
-        agentSkillsFetchFailed: 'Ajan yetenekleri getirilemedi!',
-        invalidSkillName:
-            'Yetenek adı yalnızca harf, rakam, tire ve alt çizgi içermelidir!',
-        skillNotFound: 'Yetenek bulunamadı!',
-        clawHubSearchSuccess: 'ClawHub araması tamamlandı.',
-        clawHubSearchFailed: 'ClawHub aranamadı!',
-        clawHubFetched: 'ClawHub yetenekleri getirildi.',
-        clawHubFetchFailed: 'ClawHub yetenekleri getirilemedi!',
-        clawHubInstalled: "Yetenek ClawHub'dan yüklendi.",
-        clawHubInstallFailed: "ClawHub'dan yetenek yüklenemedi!",
-        clawHubRemoved: 'ClawHub yeteneği kaldırıldı.',
-        clawHubRemoveFailed: 'ClawHub yeteneği kaldırılamadı!',
-        clawHubUpdated: 'Yetenek güncellendi.',
-        clawHubUpdateFailed: 'ClawHub yeteneği güncellenemedi!',
-        clawHubUpdatesFetched: 'Güncelleme kontrolü tamamlandı.',
-        clawHubUpdatesFailed: 'Güncellemeler kontrol edilemedi!',
         invalidAuthMethod: 'Geçersiz kimlik doğrulama yöntemi!',
         authMethodNotConnected: 'Bu kimlik doğrulama yöntemi bağlı değil!',
         authMethodConnected: 'Kimlik doğrulama yöntemi başarıyla bağlandı.',
@@ -516,9 +463,6 @@ const tr: Translations = {
         failedToDisconnectAuthMethod:
             'Kimlik doğrulama yöntemi bağlantısı kesilemedi!',
         textRequired: 'Metin gereklidir!',
-        voiceNotFound: 'Ses modeli bulunamadı!',
-        ttsGenerationFailed: 'Konuşma oluşturulamadı!',
-        voicesFetched: 'Sesler başarıyla getirildi.',
         featureEmailsDisabled: 'Özellik e-postaları şu anda devre dışı.',
         featureEmailsSent: 'Özellik e-postaları başarıyla gönderildi.',
         featureEmailsFailed: 'Özellik e-postaları gönderilemedi!',
@@ -555,7 +499,6 @@ const tr: Translations = {
         adminWaitlistFetched: 'Waitlist fetched.',
         failedToGetAdminWaitlist: 'Failed to fetch waitlist!',
         adminExportsFetched: 'Exports fetched.',
-        failedToGetAdminExports: 'Failed to fetch exports!',
         adminEmailsFetched: 'Emails fetched.',
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
@@ -587,17 +530,6 @@ const tr: Translations = {
                     'ClawHost panelinden sunucu günlüklerinizi gerçek zamanlı izleyin. Sorunları teşhis edin, dağıtımları takip edin ve uygulamalarınızı tarayıcıdan ayrılmadan hata ayıklayın.',
                 cta: 'Günlükleri Görüntüle'
             },
-            channels: {
-                subject:
-                    'Biliyor muydunuz? Ajanları Discord, Slack ve daha fazlasına bağlayın',
-                preview:
-                    'Yapay zeka ajanlarınızı iletişim kanallarına bağlayın',
-                tag: 'Kanallar',
-                heading: 'Ajanlarınız, her yerde',
-                description:
-                    'Yapay zeka ajanlarınızı Discord, Slack, WhatsApp ve daha fazlasına bağlayın. Kanalları yapılandırın ve ajanlara bağlayın — hepsi ClawHost panelinden.',
-                cta: 'Kanalları Ayarla'
-            },
             fileExplorer: {
                 subject:
                     'Biliyor muydunuz? Sunucu dosyalarını tarayıcıdan düzenleyin',
@@ -607,67 +539,6 @@ const tr: Translations = {
                 description:
                     'ClawHost panelinden sunucunuzdaki dosyaları doğrudan göz atın, okuyun ve düzenleyin. Sözdizimi vurgulama, arama ve anında kaydetme — SSH gerekmez.',
                 cta: 'Dosya Gezginini Aç'
-            },
-            playground: {
-                subject: 'Biliyor muydunuz? Altyapınızı görselleştirin',
-                preview:
-                    "Claw'larınızı ve ajanlarınızı etkileşimli bir tuvalde görün",
-                tag: 'Oyun Alanı',
-                heading: 'Büyük resmi görün',
-                description:
-                    "Playground, tüm claw'larınızı ve ajanlarınızı gösteren etkileşimli bir grafik tuval sunar. Yönetmek için herhangi bir düğüme tıklayın — altyapınız için görsel bir komut merkezi.",
-                cta: "Playground'u Aç"
-            },
-            agentChat: {
-                subject:
-                    'Biliyor muydunuz? Yapay zeka ajanlarınızla sohbet edin',
-                preview: 'Ajanlarınızla doğrudan panelden konuşun',
-                tag: 'Ajan Sohbeti',
-                heading: 'Ajanlarınızla konuşun',
-                description:
-                    'ClawHost panelinden yapay zeka ajanlarınızla doğrudan sohbet edin. Mesaj gönderin, resim ekleyin ve konuşma geçmişini görün — hepsi tek bir yerde.',
-                cta: 'Sohbete Başla'
-            },
-            voiceMode: {
-                subject: 'Biliyor muydunuz? Ajanlarınızla sesli konuşun',
-                preview:
-                    'Ajanlarınızla konuşmadan metne ve metinden konuşmaya özelliğini kullanın',
-                tag: 'Ses Modu',
-                heading: 'Konuşun, yazmayın',
-                description:
-                    'Yapay zeka ajanlarınızla eller serbest konuşmak için ses modunu kullanın. Girdi için konuşmadan metne, yanıtlar için metinden konuşmaya — birden fazla ses arasından seçim yapın.',
-                cta: 'Ses Modunu Deneyin'
-            },
-            skills: {
-                subject: "Biliyor muydunuz? ClawHub'da 5.000'den fazla yetenek",
-                preview:
-                    'Topluluk yeteneklerini tek tıkla göz atın ve yükleyin',
-                tag: 'ClawHub Becerileri',
-                heading: 'Ajanlarınızı anında genişletin',
-                description:
-                    "ClawHub'da 5.000'den fazla hazır yeteneği göz atın ve tek tıkla yükleyin. Web araması, kod çalıştırma, görsel oluşturma ve çok daha fazlası.",
-                cta: "ClawHub'ı Göz Atın"
-            },
-            bindings: {
-                subject:
-                    'Biliyor muydunuz? Ajanları belirli kanallara bağlayın',
-                preview:
-                    'Hangi ajanın hangi kanalda yanıt vereceğini kontrol edin',
-                tag: 'Bağlamalar',
-                heading: 'Kanal başına bir ajan',
-                description:
-                    "Belirli ajanları belirli kanallara bağlayın. Destek ajanınız Discord'da, asistanınız WhatsApp'ta — kimin nerede yanıt vereceğine siz karar verin.",
-                cta: 'Bağlamaları Yapılandır'
-            },
-            envVars: {
-                subject: 'Biliyor muydunuz? Ortam değişkenlerini yönetin',
-                preview:
-                    'SSH olmadan API anahtarları ve yapılandırma ayarlayın',
-                tag: 'Ortam Değişkenleri',
-                heading: 'SSH olmadan yapılandırın',
-                description:
-                    'ClawHost panelinden ortam değişkenlerini doğrudan ekleyin, düzenleyin ve kaldırın. API anahtarları, gizli bilgiler ve yapılandırma ayarlayın — terminal gerekmez.',
-                cta: 'Değişkenleri Yönet'
             },
             diagnostics: {
                 subject: 'Biliyor muydunuz? Yerleşik sağlık kontrolleri',
@@ -744,20 +615,36 @@ const tr: Translations = {
                 description:
                     'Yıllık faturalamaya geçin ve claw aboneliğinizde tasarruf edin. Aynı harika hizmet, daha düşük fiyat — istediğiniz zaman iptal edin.',
                 cta: 'Planları Görüntüle'
+            },
+            simplifiedPlatform: {
+                subject: "ClawHost'u sadeleştirdik",
+                preview:
+                    "Kanallar, yetenekler ve daha fazlası artık doğrudan OpenClaw'da yönetiliyor",
+                tag: 'Platform Güncellemesi',
+                heading: 'ClawHost artık daha basit',
+                description:
+                    'ClawHost panelinden kanal, ajan, sohbet ve yetenek yönetimini kaldırdık. Bu özellikler artık doğrudan OpenClaw örneğinizde yönetiliyor.',
+                removed:
+                    "Özellikle kaldırdığımız: mesajlaşma kanalları (WhatsApp, Telegram, Discord, Slack, Signal), yetenek pazaryeri (ClawHub), ve ajan sohbeti ve sesli mod. Bunların hepsi OpenClaw'da hâlâ mevcut — sadece sarmalamayı bıraktık.",
+                why: 'Arayüzlerimizi her OpenClaw sürümüyle senkronize tutmak sürdürülebilir değildi. Güncellemeler yukarı akışta geliyordu ve arayüzümüz geride kalıyordu — sizi eski kontrollerle ve eksik özelliklerle baş başa bırakıyordu.',
+                benefit:
+                    "Bu katmanları kaldırarak, OpenClaw ile doğrudan etkileşime geçiyorsunuz. Eskiyebilecek ikinci bir arayüz yerine gerçek sistemi öğreniyorsunuz. Bilginiz OpenClaw'ın çalıştığı her yerde geçerli.",
+                action: 'Hiçbir şey bozulmuyor. Pençeleriniz, sunucularınız, faturalamanız ve panelin temel özellikleri değişmedi. Kanalları, yetenekleri veya ajanları yapılandırmak için OpenClaw örneğinizi doğrudan kullanın.',
+                cta: 'Paneli Aç'
             }
         }
     },
     auth: {
-        signIn: 'Giriş Yap',
+        signIn: 'Kimlik Doğrulama',
         signInDescription:
             'OpenClaw örneklerinizi yönetmek için ClawHost hesabınıza giriş yapın.',
-        signingIn: 'Giriş yapılıyor...',
+        signingIn: 'Kimlik doğrulanıyor...',
         verifyCode: 'Kodu Doğrula',
         checkYourEmail: 'E-postanızı Kontrol Edin',
         checkYourEmailHeading: 'E-postanızı kontrol edin',
         codeSentTo: '6 haneli bir kod gönderdik:',
         signInToDeployOpenClaw:
-            'OpenClaw örneklerini yönetmek ve dağıtmak için giriş yapın.',
+            'Tek tıkla ajanları yönetmek ve dağıtmak için kimlik doğrulayın.',
         emailAddress: 'E-posta Adresi',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'E-posta ile Devam Et',
@@ -836,7 +723,6 @@ const tr: Translations = {
             'Yalnızca aynı e-posta adresini kullanan hesapları bağlayabilirsiniz!',
         settings: 'Ayarlar',
         settingsDescription: 'Panel tercihlerinizi yönetin.',
-        showAllClaws: "Tüm kullanıcılardan tüm claw'ları göster",
         openLinksWindowed: 'Bağlantıları pencereli görünümde aç',
         openLinksWindowedDescription:
             'Etkinleştirildiğinde, harici bağlantılar sistem tarayıcısı yerine uygulama içinde açılır.'
@@ -890,7 +776,6 @@ const tr: Translations = {
         paymentSuccess: 'Ödeme başarılı. Lisansınız artık aktif.',
         failedToPurchase: 'Ödeme sayfası başlatılamadı!',
         featureUnlimitedClaws: 'Sınırsız OpenClaw',
-        featureUnlimitedAgents: 'Sınırsız Ajan',
         featureDevices: 'Sınırsız Cihaz',
         featureUpdates: 'Sonsuz Güncellemeler',
         featureSupport: 'Öncelikli Destek',
@@ -921,9 +806,9 @@ const tr: Translations = {
         clawCountLabelSingular: '{{count}} claw',
         newClaw: 'Yeni Claw',
         clawActions: 'Claw işlemleri',
-        noClawsYet: 'Claw Yok',
-        noClawsDescription:
-            "Dağıtılmış claw bulunamadı. Ancak ilk claw'ınızı $25/ay'dan başlayan fiyatlarla istediğiniz zaman dağıtabilirsiniz. Yapay zeka ile yapın.",
+        noAgentsYet: 'Ajan Yok',
+        noAgentsDescription:
+            "Dağıtılmış ajan bulunamadı. Ancak ilk ajanınızı $25/ay'dan başlayan fiyatlarla istediğiniz zaman dağıtabilirsiniz. Yapay zeka ile yapın.",
         deleteClaw: "Claw'u Sil",
         deleteClawConfirmation: 'Silmek istediğinizden emin misiniz:',
         deleteClawWarning:
@@ -942,7 +827,7 @@ const tr: Translations = {
         copySshWithKey: 'SSH Kopyala (anahtar ile)',
         copySshWithPassword: 'SSH Kopyala (şifre ile)',
         connect: 'SSH Komutunu Kopyala',
-        viewServerCredentials: 'Sunucu Kimlik Bilgilerini Görüntüle',
+        viewServerCredentials: 'Sunucu Kimlik Bilgileri',
         serverCredentials: 'Sunucu Kimlik Bilgileri',
         serverCredentialsDescription:
             'Sunucunuza SSH ile bağlanmak için bu kimlik bilgilerini kullanın.',
@@ -968,7 +853,7 @@ const tr: Translations = {
         gatewayToken: 'Ağ Geçidi Token',
         gatewayTokenDescription:
             "Ağ geçidinizle kimlik doğrulamak için bu token'ı kullanın",
-        contactSupport: 'Destek',
+        contactSupport: 'Destek ile İletişim',
         scheduledForDeletion: 'Silme Planlandı',
         scheduledDeletionShort: '{{date}} tarihinde silinecek',
         deletionDate: 'Bu claw {{date}} tarihinde silinecek',
@@ -991,12 +876,10 @@ const tr: Translations = {
         diagnosticsDescription: 'OpenClaw örneğinizin sağlığını kontrol edin.',
         diagnosticsStatus: 'Durum',
         diagnosticsLogs: 'Günlükler',
-        diagnosticsRepair: 'Onar',
-        diagnosticsRepairDescription:
-            'Bellek limitlerini kaldırın, en son servis yapılandırmasını uygulayın ve ağ geçidini yeniden başlatın. Bu, çoğu yaygın sorunu çözer.',
-        diagnosticsRepairSuccess: 'Örnek başarıyla onarıldı.',
-        diagnosticsRepairFailed:
-            'Onarım uygulandı ancak ağ geçidi henüz yanıt vermiyor!',
+        diagnosticsRepair: 'Repair',
+        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairSuccess: 'Instance repaired successfully.',
+        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'Örneğe bağlanılıyor...',
         diagnosticsNoLogs:
             'Günlük mevcut değil. Günlük oluşturmak için örneğinizi başlatın.',
@@ -1019,9 +902,6 @@ const tr: Translations = {
         fileExplorerNoFiles: 'Dosya bulunamadı',
         fileExplorerSearchFiles: 'Dosya ara...',
         fileExplorerNoSearchResults: 'Eşleşen dosya yok.',
-        updateInstance: 'Örneği Güncelle',
-        updateInstanceSuccess: 'Örnek başarıyla güncellendi.',
-        updateInstanceFailed: 'Örnek güncellenemedi!',
         startFailed: 'Claw başlatılamadı!',
         renameSuccess: 'Claw başarıyla yeniden adlandırıldı.',
         renameFailed: 'Claw yeniden adlandırılamadı!',
@@ -1034,6 +914,8 @@ const tr: Translations = {
         reinstallInstanceFailed: 'Örnek yeniden yüklenemedi!',
         openControlPanel: 'Kontrol Panelini Aç',
         exportData: "Claw'u Dışa Aktar (.zip)",
+        exportAgent: 'Export Agent',
+        exportAgentTooltip: 'Download this agent as a .zip file',
         exportStarted: 'Dışa aktarma hazırlanıyor, bu biraz zaman alabilir...',
         exportSuccess: 'Claw başarıyla dışa aktarıldı.',
         exportFailed: 'Claw verileri dışa aktarılamadı!',
@@ -1049,8 +931,6 @@ const tr: Translations = {
         dnsSetupButton: 'DNS Ayarla',
         dnsSetupSuccess: 'DNS çözümleyici başarıyla yapılandırıldı.',
         dnsSetupError: 'DNS çözümleyici yapılandırılamadı!',
-        chatTab: 'Sohbet',
-        playgroundTab: 'Playground',
         userTab: 'Kullanıcı',
         adminTab: 'Yönetici',
         adminTitle: 'Yönetici',
@@ -1058,6 +938,7 @@ const tr: Translations = {
         adminNoClaws: 'Platformda henüz claw yok.',
         adminAccessDenied: 'Bu sayfaya erişim izniniz yok.',
         owner: 'Sahip',
+        agentType: 'Agent',
         status: {
             running: 'Çalışıyor',
             stopped: 'Durduruldu',
@@ -1076,21 +957,6 @@ const tr: Translations = {
             unknown: 'Bilinmiyor',
             checking: 'Kontrol Ediliyor'
         }
-    },
-    chat: {
-        explorer: 'Gezgin',
-        selectAgent: 'Seçim yok',
-        selectAgentDescription: 'Kenar çubuğundan bir claw veya ajan seçin.',
-        noAgents: 'Mevcut ajan yok',
-        noAgentsDescription:
-            'Ajanlarla sohbet etmeye başlamak için bir claw dağıtın.',
-        openSidebar: 'Kenar çubuğunu aç',
-        clawNotReady: 'Claw henüz hazır değil',
-        notConfigured: 'Yapılandırılmamış',
-        addAgent: 'Ajan ekle',
-        viewTree: 'Ağaç görünümü',
-        viewList: 'Liste görünümü',
-        clawSettings: 'Claw ayarları'
     },
     createClaw: {
         title: 'OpenClaw Dağıt',
@@ -1271,18 +1137,9 @@ const tr: Translations = {
         openclawControl: 'OpenClaw Kontrolü',
         openclawControlDescription:
             "Yerel OpenClaw paneline doğrudan ClawHost'tan erişin. OpenClaw'un sunduğu her şeye tam düzenleme erişimi.",
-        clawHostControl: 'ClawHost Kontrolü',
+        clawHostControl: 'Tam Sunucu Erişimi',
         clawHostControlDescription:
-            'Dosyaları, güncellemeleri, kanalları, değişkenleri, yetenekleri ve daha fazla yapılandırma seçeneğini doğrudan platformdan yönetin.',
-        skillsMarketplace: '5.000+ Yetenek',
-        skillsMarketplaceDescription:
-            "5.000'den fazla hazır yeteneği tek tıkla göz atın ve yükleyin. OpenClaw'unuzu anında genişletin.",
-        directChat: 'Doğrudan Sohbet',
-        directChatDescription:
-            'Yapay zeka ajanlarınızla doğrudan platformdan sohbet edin. Harici araç veya arayüz gerekmez.',
-        multipleAgents: 'Birden Fazla Ajan',
-        multipleAgentsDescription:
-            'Tek bir örnekte birden fazla yapay zeka ajanı çalıştırın ve yönetin. Her birinin kendi yapılandırması ve amacı var.',
+            'Tarayıcı terminali, dosya gezgini, loglar, tanılama ve sürüm yönetimi — hepsi kontrol panelinizden.',
         multipleClaws: 'Birden Fazla Claw',
         multipleClawsDescription:
             'Tek bir panelden birden fazla OpenClaw örneği dağıtın ve yönetin. Büyüdükçe ölçeklendirin.',
@@ -1377,7 +1234,7 @@ const tr: Translations = {
             'Barındırılan yapay zeka araçlarından farklı olarak, ClawHost size OpenClaw yüklü gerçek bir sunucu verir. Altyapının sahibi sizsiniz, her şeyi kontrol edersiniz ve paylaşımlı bir platform veya model tarafından sınırlanmazsınız.',
         faq4Question: 'Teknik bilgiye ihtiyacım var mı?',
         faq4Answer:
-            "Hayır. Tüm altyapı, kurulum ve bakımı biz yönetiyoruz. OpenClaw'u arayüzü üzerinden yapılandırabilir ve yönetebilir, kanallara bağlanabilir ve kullanımı özelleştirebilirsiniz — sunuculara veya altyapıya dokunmadan.",
+            "Hayır. Tüm altyapı, kurulum ve bakımı biz yönetiyoruz. OpenClaw'u arayüzü üzerinden yapılandırabilir ve yönetebilir ve kullanımı özelleştirebilirsiniz — sunuculara veya altyapıya dokunmadan.",
         faq5Question: 'Hangi konumlar mevcut?',
         faq5Answer:
             "ABD, Avrupa ve daha fazlası dahil olmak üzere dünya genelinde birden fazla sunucu konumu sunuyoruz. Gerekirse OpenClaw'u farklı bölgelerdeki birden fazla sunucuda dağıtabilirsiniz.",
@@ -1399,15 +1256,13 @@ const tr: Translations = {
         comparisonOwnershipUs: 'Sunucunuzun tam sahibisiniz',
         comparisonOwnershipOthers: 'Hiçbir şeyin sahibi değilsiniz',
         comparisonSubdomainUs: 'Alt alan adı ile erişim',
-        comparisonSubdomainOthers: 'Yalnızca sosyal kanallarla erişim',
+        comparisonSubdomainOthers: 'Yalnızca üçüncü taraf platformlarla erişim',
         comparisonInfraUs: 'İsteğe bağlı altyapı',
         comparisonInfraOthers: 'Sınırlı sunucular',
         comparisonDataUs: 'Verilerinizin sahibisiniz',
         comparisonDataOthers: 'Verilerinizin sahibi değilsiniz',
         comparisonMultipleUs: 'Birden fazla OpenClaw, tek Claw',
         comparisonMultipleOthers: 'Yalnızca tek OpenClaw',
-        comparisonAgentsUs: 'Claw başına birden fazla ajan',
-        comparisonAgentsOthers: 'Yalnızca tek ajan',
         comparisonOpenSourceUs: 'Tamamen açık kaynak',
         comparisonOpenSourceOthers: 'Kapalı kaynak',
         comparisonExportUs: "OpenClaw'unuzu her yere dışa aktarın",
@@ -1416,8 +1271,6 @@ const tr: Translations = {
         comparisonProvidersOthers: 'Yalnızca tek sağlayıcı',
         comparisonSocialsUs: 'Sosyal medya varlığı',
         comparisonSocialsOthers: 'Sosyal medya yok',
-        comparisonChatUs: "Claw'ınızla doğrudan sohbet",
-        comparisonChatOthers: 'Yalnızca kanallar üzerinden sohbet',
         comparisonVersionUs: 'Tek tıkla sürüm değiştirme',
         comparisonVersionOthers: 'Yalnızca manuel güncellemeler',
         comparisonTerminalUs: 'Yerleşik web terminali',
@@ -1470,6 +1323,8 @@ const tr: Translations = {
             'Hareket halindeyken OpenClaw örneklerinizi izlemek ve yönetmek için yerel mobil uygulama',
         upcomingReleaseFeature13:
             'macOS ve Windows için ClawHost Go beta sürümü, tek tıkla OpenClaw yerel olarak dağıtın',
+        upcomingReleaseFeature14:
+            'OpenClaw gibi Hermes ajanları için tek tıkla dağıtım',
         upcomingReleaseFeature3: 'Koyu ve açık tema desteği',
         upcomingReleaseFeature4:
             'Performans, kararlılık ve yanıt verme iyileştirmeleri',
@@ -1489,6 +1344,15 @@ const tr: Translations = {
             'ClawHost Go için açılış sayfası, ClawHost ile yerel barındırma',
         upcomingReleaseFeature12:
             'macOS ve Windows için tek tıkla yerel OpenClaw dağıtımı için masaüstü uygulaması',
+        release15Date: '11 Nisan 2026',
+        release15Title: 'Sadeleştirme ve özel alt alan adları',
+        release15Description:
+            'Yönetilen özelliklerin OpenClaw\'a taşınmasıyla platform sadeleştirildi, playground görünümü kaldırıldı ve değiştirilebilir özel alt alan adları tanıtıldı.',
+        release15Feature1:
+            'Yönetilen özellikler sadeleştirildi ve OpenClaw\'a taşındı, artık ClawHost sohbet, ajanlar, kanallar, değişkenler ve beceriler yok',
+        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '1 Nisan 2026',
         release14Title: 'Hetzner geçişi, ortaklık sistemi ve yeni diller',
         release14Description:
@@ -1533,8 +1397,6 @@ const tr: Translations = {
             'Topluluk odaklı özellik istekleri, genişletilmiş dosya düzenleme desteği ve çeşitli hata düzeltmeleri.',
         release10Feature1:
             'OpenClaw ajanları tarafından otomatik olarak yönetilen ve yayınlanan özellik istekleri',
-        release10Feature2:
-            'ClawHub pazaryerinden yeteneklerin bazen yüklenememesi düzeltildi',
         release10Feature3:
             'Model sağlayıcı değiştirmenin yansımaması ve hâlâ ilk modeli kullanması düzeltildi',
         release10Feature4:
@@ -1567,23 +1429,17 @@ const tr: Translations = {
         release7Date: '16 Şubat 2026',
         release7Title: 'Sohbet Yeniden Düzenleme ve Sesli Giriş',
         release7Description:
-            'Sesli etkileşim, ClawHub yetenekleri pazaryeri ve ajanlar için dosya ekleri ile büyük sohbet ve playground iyileştirmeleri.',
+            'Sesli etkileşim ve ajanlar için dosya ekleri ile büyük sohbet ve playground iyileştirmeleri.',
         release7Feature1:
             'Daha akıcı, daha duyarlı bir deneyim için sohbet ve playground yeniden düzenlemesi',
         release7Feature2:
             'Sohbetlerle sesli etkileşim, doğrudan tarayıcıda konuşma kaydedin ve yazıya dökün',
-        release7Feature3:
-            "5.000'den fazla yüklenebilir ve yönetilebilir yetenekle ClawHub yetenekleri entegrasyonu",
         release7Feature4:
             'Ajanlar için ek görünümü ve kullanımı, sohbette resim ve belge gönderin',
         release6Date: '16 Şubat 2026',
-        release6Title: 'Kanallar, Yetenekler ve Ajan Sohbeti',
+        release6Title: 'Ajan Sohbeti',
         release6Description:
-            'OpenClaw kanallarınız, yetenekleriniz ve ajanlarınız üzerinde tam kontrol. Her şeyi doğrudan panelden yönetin ve sohbet edin.',
-        release6Feature1:
-            'Kanalları doğrudan yönetin, sunucuya dokunmadan kanal ekleyin, kaldırın ve yapılandırın',
-        release6Feature2:
-            'Yetenekleri doğrudan yönetin, panelden ajan yeteneklerini yükleyin, güncelleyin ve düzenleyin',
+            'OpenClaw ajanlarınız üzerinde tam kontrol. Her şeyi doğrudan panelden yönetin ve sohbet edin.',
         release6Feature3:
             "Playground'dan ajanlarınızla sohbet edin, herhangi bir ajanla gerçek zamanlı etkileşime geçin",
         release6Feature4:
@@ -1636,25 +1492,12 @@ const tr: Translations = {
         release4Feature4:
             'Birleşik panel düzeni lehine ızgara ve liste görünümü geçişi kaldırıldı'
     },
-    playground: {
-        title: 'Playground',
-        description:
-            "Claw'larınızı ve ajanlarını etkileşimli bir grafikte görselleştirin.",
-        subtitle: 'Altyapınız genelinde ajan topolojisi',
-        noClawsYet: 'Claw Yok',
-        noClawsDescription: "Etkileşime geçmek için ilk Claw'ınızı dağıtın.",
-        loadingAgents: 'Ajanlar yükleniyor',
-        unreachable: 'Erişilemiyor',
-        offline: 'Çevrimdışı',
-        noAgents: 'Ajan yok',
-        agentCount: '{{count}} Ajan',
-        agentCountPlural: '{{count}} Ajan',
-        agentModel: 'Model',
-        zoomLabel: '{{percent}}%',
-        fitView: 'Ortala',
-        nodesOutOfView: "Görünüm dışında claw'lar",
-        nodeOutOfView: 'Görünüm dışında claw',
-        addAgent: 'Ajan ekle',
+    clawDetail: {
+        noAgentsYet: 'Ajan Yok',
+        noAgentsDescription: 'Etkileşime geçmek için ilk Ajanınızı dağıtın.',
+        selectClaw: 'Bir Claw Seçin',
+        selectClawDescription:
+            'Ayrıntılarını görüntülemek için kenar çubuğundan bir Claw seçin.',
         closeDetails: 'Kapat',
         tabInfo: 'Bilgi',
         tabLogs: 'Günlükler',
@@ -1672,194 +1515,7 @@ const tr: Translations = {
         loadingTip2: "OpenClaw'un açık kaynak olduğunu biliyor muydunuz?",
         loadingTip3:
             'ClawHost, tek tıkla OpenClaw barındırmaya izin veren ilk projedir.',
-        tabChat: 'Sohbet',
-        tabConfiguration: 'Yapılandırma',
         tabSettings: 'Ayarlar',
-        tabEnvs: 'Değişkenler',
-        agentOnClaw: '{{clawName}} üzerinde',
-        cannotDeleteDefaultAgent: 'Varsayılan ajan kaldırılamaz!',
-        configurationModel: 'Model',
-        configurationModelPlaceholder: 'Bir model seçin',
-        configurationModelDescription:
-            'Bu ajanın kullandığı yapay zeka modeli. Modeli değiştirmek ilgili API anahtarının ayarlanmasını gerektirebilir.',
-        configurationEnvVars: 'Ortam Değişkenleri',
-        configurationEnvVarsDescription:
-            'Örnekte ~/.openclaw/.env dosyasında saklanan API anahtarları ve ortam değişkenleri.',
-        configurationAddEnvVar: 'Değişken Ekle',
-        configurationKeyPlaceholder: 'DEGISKEN_ADI',
-        configurationValuePlaceholder: 'değer',
-        configurationSave: 'Kaydet',
-        configurationSaving: 'Kaydediliyor...',
-        configurationSaved: 'Ajan yapılandırması kaydedildi.',
-        configurationSaveFailed: 'Ajan yapılandırması kaydedilemedi!',
-        configurationLoading: 'Yapılandırma yükleniyor...',
-        configurationLoadFailed: 'Ajan yapılandırması yüklenemedi!',
-        configurationLoadFailedDescription:
-            'Bu ajan için yapılandırma alınamadı. Lütfen daha sonra tekrar deneyin.',
-        configurationRemoveVar: 'Kaldır',
-        configurationApiKey: 'API Anahtarı',
-        configurationApiKeyDescription:
-            '{{modelName}} için gerekli. Bu anahtar örnekte ~/.openclaw/.env dosyasında saklanır.',
-        configurationApiKeyPlaceholder: 'API anahtarınızı girin',
-        tabVariables: 'Değişkenler',
-        variablesDescription:
-            'Bu örnekte ~/.openclaw/.env dosyasında saklanan ortam değişkenleri.',
-        variablesEmpty: 'Ortam değişkeni bulunamadı.',
-        variablesAddVariable: 'Değişken Ekle',
-        variablesSave: 'Değişkenleri Kaydet',
-        variablesSaving: 'Kaydediliyor...',
-        variablesSaved: 'Ortam değişkenleri kaydedildi.',
-        variablesSaveFailed: 'Ortam değişkenleri kaydedilemedi!',
-        variablesLoading: 'Değişkenler yükleniyor...',
-        variablesLoadFailed: 'Ortam değişkenleri yüklenemedi!',
-        variablesLoadFailedDescription:
-            'Bu örnek için değişkenler alınamadı. Lütfen daha sonra tekrar deneyin.',
-        variablesInvalidKey: 'Yalnızca harf, rakam ve alt çizgi!',
-        variablesEmptyValue: 'Değer boş olamaz!',
-        variablesDuplicateKey: 'Yinelenen değişken adı!',
-        variablesDeleteTitle: 'Değişkeni Sil',
-        variablesDeleteDescription:
-            '{{key}} değişkenini silmek istediğinizden emin misiniz? Bu, örnekten hemen kaldırılacaktır.',
-        variablesDeleteConfirm: 'Sil',
-        variablesDontAskAgain: 'Bu oturumda değişken silerken tekrar sorma',
-        variablesDeleted: 'Değişken silindi.',
-        variablesOperationPending: 'Önceki işlem tamamlanırken devre dışı.',
-        addAgentTitle: 'Ajan Ekle',
-        addAgentDescription: '{{clawName}} üzerine yeni bir ajan ekleyin.',
-        addAgentDescriptionNoClaw:
-            'Bir claw seçin ve yeni ajanınızı yapılandırın.',
-        addAgentSelectClaw: 'Claw',
-        addAgentSelectClawPlaceholder: 'Bir claw seçin',
-        addAgentName: 'Ad',
-        addAgentNamePlaceholder: 'Ajan adını girin',
-        addAgentModel: 'Model',
-        addAgentModelPlaceholder: 'Bir model seçin',
-        addAgentApiKey: 'API Anahtarı',
-        addAgentApiKeyPlaceholder: 'API anahtarınızı girin (isteğe bağlı)',
-        addAgentApiKeyConfigured:
-            '{{envVar}} zaten ayarlanmış. Ekledikten sonra Değişkenler sekmesinde düzenleyin.',
-        addAgentSubmit: 'Ajan Ekle',
-        addAgentSuccess: 'Ajan başarıyla eklendi.',
-        addAgentFailed: 'Ajan eklenemedi!',
-        deleteAgent: 'Ajanı Sil',
-        deleteAgentTitle: 'Ajanı Sil',
-        deleteAgentDescription:
-            '"{{agentName}}" ajanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz. Ortam değişkenleri kaldırılmayacaktır.',
-        deleteAgentConfirm: 'Sil',
-        agentDontAskAgain: 'Bu oturumda ajan silerken tekrar sorma',
-        deleteAgentDeleting: 'Siliniyor...',
-        deleteAgentSuccess: 'Ajan başarıyla silindi.',
-        deleteAgentFailed: 'Ajan silinemedi!',
-        configurationName: 'Ad',
-        configurationNamePlaceholder: 'Ajan adını girin',
-        configurationNameDescription: 'Yalnızca harf, rakam ve tire.',
-        agentNameRequired: 'Ajan adı gerekli!',
-        agentNameInvalidChars: 'Yalnızca harf, rakam ve tire kullanılabilir!',
-        agentNameDuplicate: 'Bu isimde bir ajan zaten var!',
-        chatConnecting: 'Bağlanılıyor...',
-        chatAuthenticating: 'Kimlik doğrulanıyor...',
-        chatDisconnected: 'Bağlantı kesildi',
-        chatError: 'Bağlantı hatası!',
-        chatConnected: 'Bağlandı',
-        chatInputPlaceholder: 'Bir mesaj yazın...',
-        chatInputDisabled: 'Bu ajanla sohbet etmek için bağlanın',
-        chatSend: 'Mesaj gönder',
-        chatAbort: 'Durdur',
-        chatStopProcess: 'İşlemi durdur',
-        chatRemoveAttachment: 'Eki kaldır',
-        chatThinking: 'Düşünüyor',
-        chatLoadingHistory: 'Mesajlar yükleniyor...',
-        chatNoMessages: 'Mesaj yok',
-        chatNoMessagesDescription:
-            'Bu ajanla bir sohbet başlatmak için mesaj gönderin.',
-        chatErrorMessage: 'Yanıt oluşturulurken bir hata oluştu!',
-        chatAbortedMessage: 'Yanıt durduruldu.',
-        chatPlaySpeech: 'Sesli oku',
-        chatReplaySpeech: 'Tekrar oynat',
-        chatStopSpeech: 'Durdur',
-        chatSpeechFailed: 'Konuşma oluşturulamadı!',
-        chatReadOnlyPlaceholder: "Sohbet kendi Claw'larınızda kullanılabilir.",
-        chatReadOnlyUser:
-            'Merhaba! Node.js projesi kurmama yardım edebilir misiniz?',
-        chatReadOnlyAssistant:
-            'Tabii ki! Yeni bir Node.js projesi başlatmanıza yardımcı olabilirim. Yaygın bağımlılıklarla bir package.json oluşturmamı ister misiniz?',
-        chatReadOnlyReply:
-            "Bu bir önizleme! Kendi OpenClaw'unuzu tek tıkla dağıtın ve dakikalar içinde yapay zeka ajanlarınızla sohbet etmeye başlayın!",
-        chatReadOnlyUser2:
-            'Test paketini çalıştırıp hataları kontrol edebilir misin?',
-        chatReadOnlyAssistant2:
-            'Tabii! Tüm testleri şimdi çalıştıracağım. 3 geçti, 0 başarısız. Her şey iyi görünüyor — tüm doğrulamalar geçiyor.',
-        chatReadOnlyGoUser:
-            'Hey, dağıtım hattımı otomatikleştirmeme yardım edebilir misin?',
-        chatReadOnlyGoAssistant:
-            'Kesinlikle! Sizin için bir CI/CD hattı kurabilirim. Otomatik olarak derleyen, test eden ve dağıtan bir GitHub Actions iş akışıyla başlamamı ister misiniz?',
-        chatReadOnlyGoReply:
-            "Bu bir önizleme! ClawHost Go edinin ve OpenClaw'u yerel olarak çalıştırın — sizin makineniz, sizin verileriniz, bulut gerekmez.",
-        chatReadOnlyGoUser2:
-            'Yerel servislerimi izleyebilir ve bir şey çökerse beni uyarabilir misin?',
-        chatReadOnlyGoAssistant2:
-            'Üzerindeyim! Tüm servisleriniz için sağlık kontrolleri ayarlayacağım. Şu anda 4 uç noktayı izliyorum — hepsi sağlıklı ve yanıt veriyor.',
-        chatConnectionFailed: 'Bu ajana bağlanılamadı!',
-        chatConnectionFailedDescription:
-            "Claw'ın çalıştığından ve erişilebilir olduğundan emin olun.",
-        chatNotConfigured: 'Ajan yapılandırılmamış.',
-        chatNotConfiguredDescription:
-            'Sohbete başlamak için Yapılandırma sekmesinde bir model seçin ve API anahtarı ayarlayın.',
-        chatConfigureButton: 'Ajanı Yapılandır',
-        chatToday: 'Bugün',
-        chatYesterday: 'Dün',
-        chatExpandFullscreen: 'Sohbeti genişlet',
-        chatAttachFile: 'Dosya ekle',
-        chatDropFiles: 'Eklemek için dosyaları bırakın',
-        chatDropFilesDescription:
-            "Resimler, PDF'ler ve metin dosyaları, 5 MB'a kadar.",
-        chatVoiceInput: 'Sesli giriş',
-        chatVoiceListening: 'Dinleniyor...',
-        chatVoiceNotSupported: 'Bu tarayıcıda sesli giriş desteklenmiyor.',
-        chatVoiceMode: 'Ses Modu',
-        chatVoiceModeTapToSpeak: 'Konuşmaya başlamak için dokunun',
-        chatVoiceModeListening: 'Dinleniyor...',
-        chatVoiceModeClose: 'Ses modunu bitir',
-        chatVoiceModeTranscribing: 'Yazıya döküyor...',
-        chatVoiceModeThinking: 'Düşünüyor...',
-        chatVoiceModeResponding: 'Yanıtlıyor...',
-        chatVoiceModePreparing: 'Konuşma hazırlanıyor...',
-        chatVoiceModeSpeaking: 'Konuşuyor...',
-        chatVoiceModeInputDevice: 'Mikrofon',
-        chatVoiceModeOutputDevice: 'Hoparlör',
-        chatVoiceModeNotSupported: 'Bu tarayıcıda ses tanıma desteklenmiyor.',
-        chatVoiceModeNoMicrophone:
-            'Mikrofon algılanmadı. Ses modunu kullanmak için bir tane bağlayın.',
-        chatVoiceModeNoSpeaker:
-            'Hoparlör algılanmadı. Ses modunu kullanmak için bir tane bağlayın.',
-        chatAttachmentNotSupported:
-            'Bu dosya türü desteklenmiyor. Resim, PDF veya metin dosyası kullanın.',
-        chatNoPreview: 'Önizleme mevcut değil.',
-        chatDownloadFile: 'Dosyayı indir',
-        chatCopyMessage: 'Mesajı kopyala',
-        tabChannels: 'Kanallar',
-        channelsDescription:
-            'Bu örnek için mesajlaşma kanallarını yapılandırın. Mesajlar bağlamalar aracılığıyla ajanlara yönlendirilir.',
-        channelsWhatsApp: 'WhatsApp',
-        channelsWhatsAppPairDevice: 'Cihaz Eşleştir',
-        channelsWhatsAppPairing: 'QR kodu bekleniyor...',
-        channelsWhatsAppScanQr:
-            'Cihazınızı bağlamak için bu QR kodunu WhatsApp ile tarayın.',
-        channelsWhatsAppScanInstructions:
-            "WhatsApp'ı açın > Ayarlar > Bağlı Cihazlar > Cihaz Bağla",
-        channelsWhatsAppQrRefreshed:
-            'Önceki QR kodunun süresi doldu. Aşağıdaki yeni kodu tarayın.',
-        channelsWhatsAppPaired: 'WhatsApp başarıyla eşleştirildi.',
-        channelsWhatsAppPairFailed:
-            'Eşleştirme başarısız. Lütfen tekrar deneyin!',
-        channelsWhatsAppAlreadyPaired: 'WhatsApp zaten eşleştirilmiş!',
-        channelsWhatsAppUnpair: 'Eşleştirmeyi Kaldır',
-        channelsWhatsAppConnected: 'Bağlı',
-        channelsWhatsAppRepair: 'Yeniden Eşleştir',
-        channelsWhatsAppChecking: 'Bağlantı kontrol ediliyor...',
-        channelsVersionUnsupported:
-            "Bu sürümde kanal yapılandırması mevcut değil. Terminal sekmesini kullanarak manuel olarak bağlanabilir veya OpenClaw'ı güncelleyebilirsiniz.",
-        channelsVersionUnsupportedDocs: 'Kurulum kılavuzunu görüntüle',
         featureVersionUnsupported:
             '{{feature}} {{version}} üzerinde desteklenmiyor',
         featureVersionUnsupportedDescription:
@@ -1867,96 +1523,8 @@ const tr: Translations = {
         featureVersionUnsupportedButton: 'Sürümlere Git',
         featureVersionUnsupportedSupported: 'Desteklenen sürümler:',
         featureVersionUnsupportedNewer: 'daha yeni sürümler',
-        channelsTelegram: 'Telegram',
-        channelsDiscord: 'Discord',
-        channelsSlack: 'Slack',
-        channelsSignal: 'Signal',
-        channelsEnabled: 'Etkin',
-        channelsAccount: 'Hesap Telefon Numarası',
-        channelsAccountPlaceholder: '+15551234567',
-        channelsBotToken: 'Bot Token',
-        channelsBotTokenPlaceholder: 'Bot token girin',
-        channelsAppToken: 'App Token',
-        channelsAppTokenPlaceholder: 'App token girin',
-        channelsToken: 'Bot Token',
-        channelsTokenPlaceholder: 'Bot token girin',
-        channelsSigningSecret: 'İmzalama Anahtarı',
-        channelsSigningSecretPlaceholder: 'İmzalama anahtarını girin',
-        channelsDmPolicy: 'DM Politikası',
-        channelsDmPolicyOpen: 'Açık',
-        channelsDmPolicyPairing: 'Eşleştirme',
-        channelsDmPolicyAllowlist: 'İzin Listesi',
-        channelsDmPolicyDisabled: 'Devre Dışı',
-        channelsAllowFrom: 'Şuradan İzin Ver',
-        channelsAllowFromPlaceholder:
-            'İzin verilen kimlikler, virgülle ayrılmış',
-        channelsSave: 'Kaydet',
-        channelsSaved: 'Kanallar başarıyla güncellendi.',
-        channelsSaveFailed: 'Kanallar güncellenemedi!',
-        channelsLoading: 'Kanallar yükleniyor...',
-        channelsLoadFailed: 'Kanallar yüklenemedi!',
-        channelsLoadFailedDescription:
-            'Kanal yapılandırması alınamadı. Lütfen tekrar deneyin.',
-        channelsNoChanges: 'Kaydedilecek değişiklik yok.',
-        bindingsDescription:
-            'Bu ajana mesajlaşma kanalları atayın. Her kanal aynı anda yalnızca bir ajana yönlendirilebilir.',
-        bindingsNoChannels: 'Etkin kanal yok.',
-        bindingsNoChannelsDescription:
-            'Önce örnek ayarlarında kanalları etkinleştirin, ardından burada ajanlara atayın.',
-        bindingsSaving: 'Kaydediliyor...',
-        bindingsSaved: 'Bağlamalar başarıyla güncellendi.',
-        bindingsSaveFailed: 'Bağlamalar güncellenemedi!',
-        tabSkills: 'Yetenekler',
-        skillsDescription:
-            'Bu örnekteki tüm ajanlar için kullanılabilir paylaşımlı yetenekleri yönetin.',
-        skillsSearch: 'Yetenek ara...',
-        skillsNoResults: 'Aramanızla eşleşen yetenek yok.',
-        skillsEmpty: 'Yetenek Yok',
-        skillsSave: 'Yetenekleri Kaydet',
-        skillsSaved: 'Yetenekler başarıyla güncellendi.',
-        skillsSaveFailed: 'Yetenekler güncellenemedi!',
-        skillsLoading: 'Yetenekler yükleniyor...',
-        skillsLoadFailed: 'Yetenekler yüklenemedi!',
-        skillsLoadFailedDescription:
-            'Yetenek yapılandırması alınamadı. Lütfen tekrar deneyin.',
-        agentSkillsDescription: 'Bu ajan çalışma alanında yüklü yetenekler.',
-        agentSkillsInstalling: 'Yükleniyor...',
-        agentSkillsInstalled: 'Yetenek başarıyla yüklendi.',
-        agentSkillsInstallFailed: 'Yetenek yüklenemedi!',
-        agentSkillsRemoving: 'Kaldırılıyor...',
-        agentSkillsRemoved: 'Yetenek başarıyla kaldırıldı.',
-        agentSkillsRemoveFailed: 'Yetenek kaldırılamadı!',
-        agentSkillsEmpty: 'Yüklü yetenek yok.',
-        agentSkillsEmptyDescription:
-            'Bu ajanın yeteneklerini genişletmek için bir yetenek yükleyin.',
-        agentSkillsNamePlaceholder: 'Yetenek adı',
-        agentSkillsConfirmRemove: '"{{skillName}}" yeteneği kaldırılsın mı?',
-        agentSkillsConfirmRemoveDescription:
-            'Bu, yeteneği ajan çalışma alanından silecektir.',
-        skillsBundledTab: 'Paketlenmiş',
-        skillsClawHubTab: 'ClawHub',
-        clawHubSearch: 'ClawHub yeteneklerini ara...',
-        clawHubNoResults: "ClawHub'da yetenek bulunamadı.",
-        clawHubEmpty: 'Yüklü ClawHub yeteneği yok.',
-        clawHubEmptyDescription:
-            'ClawHub pazaryerinden yetenek arayın ve yükleyin.',
-        clawHubInstall: 'Yükle',
-        clawHubInstalled: "Yetenek ClawHub'dan yüklendi.",
-        clawHubInstallFailed: "ClawHub'dan yetenek yüklenemedi!",
-        clawHubRemove: 'Kaldır',
-        clawHubRemoved: 'ClawHub yeteneği kaldırıldı.',
-        clawHubRemoveFailed: 'ClawHub yeteneği kaldırılamadı!',
-        clawHubUpdate: 'Güncelle',
-        clawHubUpdated: "Yetenek ClawHub'dan güncellendi.",
-        clawHubUpdateFailed: 'ClawHub yeteneği güncellenemedi!',
-        clawHubUpdateAvailable: 'v{{version}} mevcut',
-        clawHubBy: '{{author}} tarafından',
-        clawHubDownloads: '{{count}} indirme',
-        clawHubVersion: 'v{{version}}',
-        clawHubLoadFailed: 'ClawHub yüklenemedi!',
-        clawHubLoadFailedDescription:
-            'ClawHub pazaryerine bağlanılamadı. Lütfen tekrar deneyin.',
         tabVersions: 'Sürümler',
+        tabFiles: 'Dosya Gezgini',
         versionsSearch: 'Sürüm ara...',
         versionsEmpty: 'Sürüm bulunamadı',
         versionsEmptyDescription: 'Aramanızla eşleşen sürüm yok.',
@@ -2151,8 +1719,9 @@ const tr: Translations = {
         comingSoon: 'Yakında',
         messagesPlaceholder: 'Mesajlar ve bildirimler burada görünecek.',
         settingsPlaceholder: 'Hesap ayarları ve tercihleri burada görünecek.',
-        signIn: 'Giriş Yap',
-        signInDescription: 'OpenClaw örneklerinizi yönetmek için giriş yapın.',
+        signIn: 'Kimlik Doğrulama',
+        signInDescription:
+            'Ajanlarınızı yönetmek ve dağıtmak için kimlik doğrulayın.',
         enterEmail: 'E-posta Adresi',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'E-posta ile Devam Et',
@@ -2167,21 +1736,17 @@ const tr: Translations = {
         changeEmail: 'E-postayı değiştir',
         invalidCode: 'Geçersiz kod!',
         codeExpired: 'Kodun süresi doldu. Lütfen yeni bir tane talep edin.',
-        signingIn: 'Giriş yapılıyor...',
+        signingIn: 'Kimlik doğrulanıyor...',
         signOut: 'Çıkış Yap',
         signedInAs: 'Giriş yapılan hesap:',
         loadMore: 'Daha Fazla Yükle',
-        chatWithYourClaw: "Claw'ınızla sohbet edin",
         deployClaw: 'Claw Dağıt',
-        deployYourFirstClaw: "İlk Claw'ınızı dağıtın",
-        voiceMode: 'Ses Modu',
-        voiceListening: 'Dinleniyor...',
-        voiceTapToSpeak: 'Başlamak için küreye dokunun'
+        deployYourFirstClaw: "İlk Claw'ınızı dağıtın"
     },
     announcement: {
         title: 'Hizmet Bildirimi',
         message:
-            "Yoğun talep nedeniyle {{providers}} dağıtımları geçici olarak kullanılamıyor. Mevcut claw'lar normal çalışıyor."
+            'Yoğun talep nedeniyle {{providers}} dağıtımları geçici olarak kullanılamıyor. Mevcut ajanlar normal çalışıyor.'
     },
     productHunt: {
         liveOn: 'Yayında',
@@ -2223,13 +1788,8 @@ const tr: Translations = {
         featureSubdomainAccess: 'Alt alan adı erişimi',
         featureThemes: 'Açık ve koyu temalar',
         featureSetupTime: 'Kurulum süresi',
-        featureTechnicalSkill: 'Teknik bilgi gereksinimi',
         featureOneClickDeploy: 'Tek tıkla dağıtım',
         featureMultipleInstances: 'Birden fazla örnek',
-        featureMultipleAgents: 'Örnek başına birden fazla ajan',
-        featureSkillsMarketplace: 'Yetenek pazaryeri',
-        featureChannelSupport: 'Kanal desteği',
-        featureAgentConfig: 'Ajan yapılandırması',
         featureDataOwnership: 'Tam veri sahipliği',
         featureDataExport: 'Veri dışa aktarma',
         featureBackups: 'Yedeklemeler',
@@ -2244,7 +1804,6 @@ const tr: Translations = {
         featureMultiLanguage: 'Çoklu dil arayüzü',
         featureMobileApp: 'Mobil uygulama',
         featureDesktopApp: 'Masaüstü uygulaması',
-        featureDirectChat: 'Doğrudan sohbet',
         featureOneClickVersion: 'Tek tıkla sürüm değiştirme',
         featureWebTerminal: 'Web terminal erişimi',
         featureSocials: 'Sosyal medya',
@@ -2278,12 +1837,7 @@ const tr: Translations = {
         minimal: 'Minimal',
         unlimited: 'Sınırsız',
         singleInstance: 'Tek',
-        fiveThousandSkills: '5.000+ yetenek (ClawHub)',
         noMarketplace: 'Pazaryeri yok',
-        allChannels: 'WhatsApp, Telegram, Discord, Slack, Signal',
-        telegramDiscord: 'Telegram, Discord',
-        discordGithubSlack: 'Discord, GitHub, Slack',
-        telegramGmailWhatsapp: 'Telegram, Gmail, WhatsApp',
         appOnly: 'Yalnızca uygulama',
         fullConfig: 'Tam yapılandırma',
         limitedConfig: 'Sınırlı',
@@ -2313,7 +1867,6 @@ const tr: Translations = {
         iosMacOs: 'iOS ve macOS',
         macOsOnly: 'Yalnızca macOS',
         viaTelegram: 'Telegram üzerinden',
-        builtInChat: 'Yerleşik',
         builtInTerminal: 'SSH gerekmez',
         notAvailable: 'Mevcut değil',
         disclaimer: 'Bir şey değişti veya yanlış mı? Bize e-posta gönderin:',
@@ -2374,7 +1927,7 @@ const tr: Translations = {
         noClawsFound: 'Claw Yok',
         noSSHKeysFound: 'SSH Anahtarı Yok',
         noVolumesFound: 'Birim Yok',
-        failedToLoadClaws: 'Claws yüklenemedi!',
+        failedToLoadAgents: 'Agents yüklenemedi!',
         failedToLoadSSHKeys: 'SSH anahtarları yüklenemedi!',
         failedToLoadVolumes: 'Birimler yüklenemedi!',
         owner: 'Sahip',
@@ -2383,10 +1936,12 @@ const tr: Translations = {
         referralsTab: 'Yönlendirmeler',
         pendingClawsTab: 'Bekleyen',
         waitlistTab: 'Bekleme Listesi',
-        exportsTab: 'Dışa Aktarımlar',
         emailsTab: 'E-postalar',
         analyticsTab: 'Analitik',
         billingTab: 'Faturalandırma',
+        settingsTab: 'Ayarlar',
+        settingsDescription: 'Yönetici tercihlerinizi yönetin.',
+        showAllAgents: 'Tüm kullanıcılardan tüm ajanları göster',
         billingFilterAll: 'Tüm siparişler',
         billingFilterService: 'Claw Hizmeti',
         billingFilterLicense: 'Lisans',
@@ -2414,12 +1969,10 @@ const tr: Translations = {
         noReferralsFound: 'Yönlendirme Yok',
         noPendingClawsFound: 'Bekleyen Claw Yok',
         noWaitlistFound: 'Bekleme Listesi Yok',
-        noExportsFound: 'Dışa Aktarım Yok',
         noEmailsFound: 'E-posta Yok',
         failedToLoadReferrals: 'Yönlendirmeler yüklenemedi!',
         failedToLoadPendingClaws: 'Bekleyen clawlar yüklenemedi!',
         failedToLoadWaitlist: 'Bekleme listesi yüklenemedi!',
-        failedToLoadExports: 'Dışa aktarımlar yüklenemedi!',
         failedToLoadEmails: 'E-postalar yüklenemedi!',
         referrer: 'Yönlendiren',
         referred: 'Yönlendirilen',

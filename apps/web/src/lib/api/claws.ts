@@ -1,43 +1,20 @@
 import type {
-    AgentConfigResponse,
-    BrowseClawHubData,
     Claw,
-    ClawAgentsResponse,
-    ClawBindingsResponse,
-    ClawChannelsResponse,
+    CheckSubdomainResponse,
     ClawCredentialsResponse,
-    ClawEnvVarsResponse,
     ClawFilesResponse,
-    ClawHubBrowseResponse,
-    ClawHubInstalledResponse,
-    ClawHubSkillActionData,
-    ClawHubUpdateData,
-    ClawHubUpdatesResponse,
-    ClawSkillsResponse,
     ClawVersionResponse,
     ClawVersionsResponse,
-    CreateAgentData,
-    CreateAgentResponse,
-    DeleteAgentData,
     DeleteClawResponse,
     DiagnosticsLogsResponse,
     DiagnosticsStatusResponse,
-    GetAgentSkillsResponse,
     InstallClawVersionResponse,
     PurchaseClawData,
     PurchaseClawResponse,
     ReadClawFileResponse,
     RenameClawData,
-    UpdateAgentConfigData,
-    UpdateAgentSkillsData,
-    UpdateClawBindingsData,
-    UpdateClawChannelsData,
-    UpdateClawEnvVarsData,
     UpdateClawFileData,
-    UpdateClawSkillsData,
-    UpdateClawSubdomainData,
-    WhatsAppPairResponse,
-    WhatsAppPairStatusResponse
+    UpdateClawSubdomainData
 } from '@/ts/Interfaces'
 
 import { apiPaths as API_PATHS } from '@openclaw/shared'
@@ -66,6 +43,10 @@ const claws = {
         client.patch<Claw>(API_PATHS.CLAWS.byId(id), data),
     updateClawSubdomain: (id: string, data: UpdateClawSubdomainData) =>
         client.patch<Claw>(API_PATHS.CLAWS.SUBDOMAIN(id), data),
+    checkSubdomain: (subdomain: string) =>
+        client.get<CheckSubdomainResponse>(
+            `${API_PATHS.CLAWS.CHECK_SUBDOMAIN}?subdomain=${encodeURIComponent(subdomain)}`
+        ),
     cancelDeletion: (id: string) =>
         client.post<Claw>(API_PATHS.CLAWS.CANCEL_DELETION(id)),
     hardDeleteClaw: (id: string) =>
@@ -95,82 +76,6 @@ const claws = {
             API_PATHS.CLAWS.INSTALL_VERSION(id),
             { version }
         ),
-    getClawAgents: (id: string) =>
-        client.post<ClawAgentsResponse>(API_PATHS.CLAWS.AGENTS.BASE(id)),
-    getClawAgentConfig: (id: string, agentId: string) =>
-        client.post<AgentConfigResponse>(API_PATHS.CLAWS.AGENTS.CONFIG(id), {
-            agentId
-        }),
-    updateClawAgentConfig: (id: string, data: UpdateAgentConfigData) =>
-        client.put<void>(API_PATHS.CLAWS.AGENTS.CONFIG(id), data),
-    createClawAgent: (id: string, data: CreateAgentData) =>
-        client.post<CreateAgentResponse>(
-            API_PATHS.CLAWS.AGENTS.CREATE(id),
-            data
-        ),
-    deleteClawAgent: (id: string, data: DeleteAgentData) =>
-        client.post<void>(API_PATHS.CLAWS.AGENTS.DELETE(id), data),
-    getClawChannels: (id: string) =>
-        client.post<ClawChannelsResponse>(API_PATHS.CLAWS.CHANNELS.BASE(id)),
-    updateClawChannels: (id: string, data: UpdateClawChannelsData) =>
-        client.put<void>(API_PATHS.CLAWS.CHANNELS.BASE(id), data),
-    pairWhatsApp: (id: string, force?: boolean) =>
-        client.post<WhatsAppPairResponse>(
-            `${API_PATHS.CLAWS.CHANNELS.WHATSAPP_PAIR(id)}${force ? '?force=true' : ''}`
-        ),
-    pairWhatsAppStatus: (id: string) =>
-        client.post<WhatsAppPairStatusResponse>(
-            API_PATHS.CLAWS.CHANNELS.WHATSAPP_PAIR_STATUS(id)
-        ),
-    getClawBindings: (id: string) =>
-        client.post<ClawBindingsResponse>(API_PATHS.CLAWS.BINDINGS(id)),
-    updateClawBindings: (id: string, data: UpdateClawBindingsData) =>
-        client.put<void>(API_PATHS.CLAWS.BINDINGS(id), data),
-    getClawSkills: (id: string) =>
-        client.post<ClawSkillsResponse>(API_PATHS.CLAWS.SKILLS(id)),
-    updateClawSkills: (id: string, data: UpdateClawSkillsData) =>
-        client.put<void>(API_PATHS.CLAWS.SKILLS(id), data),
-    getAgentSkills: (clawId: string, agentId: string) =>
-        client.post<GetAgentSkillsResponse>(
-            API_PATHS.CLAWS.AGENTS.SKILLS(clawId, agentId),
-            { agentId }
-        ),
-    updateAgentSkills: (
-        clawId: string,
-        agentId: string,
-        data: UpdateAgentSkillsData
-    ) => client.put<void>(API_PATHS.CLAWS.AGENTS.SKILLS(clawId, agentId), data),
-    browseClawHubSkills: (clawId: string, params: BrowseClawHubData) => {
-        const qs = new URLSearchParams()
-        if (params.query) qs.set('query', params.query)
-        if (params.limit) qs.set('limit', String(params.limit))
-        if (params.cursor) qs.set('cursor', params.cursor)
-        if (params.agentId) qs.set('agentId', params.agentId)
-        const str = qs.toString()
-        return client.get<ClawHubBrowseResponse>(
-            `${API_PATHS.CLAWS.CLAWHUB.SKILLS(clawId)}${str ? `?${str}` : ''}`
-        )
-    },
-    getClawHubInstalled: (clawId: string, agentId?: string) =>
-        client.post<ClawHubInstalledResponse>(
-            API_PATHS.CLAWS.CLAWHUB.INSTALLED(clawId),
-            agentId ? { agentId } : {}
-        ),
-    installClawHubSkill: (clawId: string, data: ClawHubSkillActionData) =>
-        client.post<void>(API_PATHS.CLAWS.CLAWHUB.INSTALL(clawId), data),
-    removeClawHubSkill: (clawId: string, data: ClawHubSkillActionData) =>
-        client.post<void>(API_PATHS.CLAWS.CLAWHUB.REMOVE(clawId), data),
-    updateClawHubSkill: (clawId: string, data: ClawHubUpdateData) =>
-        client.post<void>(API_PATHS.CLAWS.CLAWHUB.UPDATE(clawId), data),
-    checkClawHubUpdates: (clawId: string, agentId?: string) =>
-        client.post<ClawHubUpdatesResponse>(
-            API_PATHS.CLAWS.CLAWHUB.UPDATES(clawId),
-            agentId ? { agentId } : {}
-        ),
-    getClawEnvVars: (id: string) =>
-        client.get<ClawEnvVarsResponse>(API_PATHS.CLAWS.ENV(id)),
-    updateClawEnvVars: (id: string, data: UpdateClawEnvVarsData) =>
-        client.put<void>(API_PATHS.CLAWS.ENV(id), data),
     exportClaw: async (id: string, filename: string) => {
         const token = await getCachedToken()
         const res = await fetch(`${BASE_URL}${API_PATHS.CLAWS.EXPORT(id)}`, {

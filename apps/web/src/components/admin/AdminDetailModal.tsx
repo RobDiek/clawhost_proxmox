@@ -6,7 +6,6 @@ import type {
     AdminVolumeListItem,
     AdminPendingClawListItem,
     AdminReferralListItem,
-    AdminExportListItem,
     AdminEmailListItem,
     BillingOrder
 } from '@/ts/Interfaces'
@@ -17,7 +16,6 @@ import AdminSSHKeyDetailView from '@/components/admin/AdminSSHKeyDetailView'
 import AdminVolumeDetailView from '@/components/admin/AdminVolumeDetailView'
 import AdminPendingClawDetailView from '@/components/admin/AdminPendingClawDetailView'
 import AdminReferralDetailView from '@/components/admin/AdminReferralDetailView'
-import AdminExportDetailView from '@/components/admin/AdminExportDetailView'
 import AdminEmailDetailView from '@/components/admin/AdminEmailDetailView'
 import AdminBillingDetailView from '@/components/admin/AdminBillingDetailView'
 import AdminUserDetailView from '@/components/admin/AdminUserDetailView'
@@ -71,14 +69,6 @@ const AdminDetailModal: FC<AdminDetailModalProps> = ({
                 return (
                     <AdminReferralDetailView
                         referral={entity.data as AdminReferralListItem}
-                        onClose={onClose}
-                        onNavigateToUser={onNavigateToUser}
-                    />
-                )
-            case 'export':
-                return (
-                    <AdminExportDetailView
-                        exportItem={entity.data as AdminExportListItem}
                         onClose={onClose}
                         onNavigateToUser={onNavigateToUser}
                     />

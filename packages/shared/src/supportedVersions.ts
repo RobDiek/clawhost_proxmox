@@ -9,36 +9,7 @@ const parseVersion = (raw: string): number[] => {
     ]
 }
 
-const SUPPORTED_VERSIONS: Record<string, string[]> = {
-    channels: [
-        '2026.3.28',
-        '2026.3.24',
-        '2026.3.23-2',
-        '2026.3.23-1',
-        '2026.3.23'
-    ],
-    skills: [
-        '2026.3.28',
-        '2026.3.24',
-        '2026.3.23-2',
-        '2026.3.23-1',
-        '2026.3.23'
-    ],
-    bindings: [
-        '2026.3.28',
-        '2026.3.24',
-        '2026.3.23-2',
-        '2026.3.23-1',
-        '2026.3.23'
-    ],
-    agents: [
-        '2026.3.28',
-        '2026.3.24',
-        '2026.3.23-2',
-        '2026.3.23-1',
-        '2026.3.23'
-    ]
-}
+const SUPPORTED_VERSIONS: Record<string, string[]> = {}
 
 const isFeatureSupported = (version: string, feature: string): boolean => {
     const versions = SUPPORTED_VERSIONS[feature]

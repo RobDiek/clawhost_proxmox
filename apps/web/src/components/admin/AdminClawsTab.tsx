@@ -20,7 +20,6 @@ import {
     SelectTrigger
 } from '@/components/ui'
 import { EmptyState, ErrorState } from '@/components'
-import { PLAYGROUND_NODE_TYPE } from '@/lib/constants'
 import { HardDrivesIcon, MagnifyingGlassIcon } from '@phosphor-icons/react'
 import AdminStatusBadge from '@/components/admin/AdminStatusBadge'
 import AdminUserSkeleton from '@/pages/AdminUserSkeleton'
@@ -90,7 +89,7 @@ const AdminClawsTab: FC<AdminResourceTabProps> = ({
             {isError ? (
                 <div className='py-8'>
                     <ErrorState
-                        title={t('admin.failedToLoadClaws')}
+                        title={t('admin.failedToLoadAgents')}
                         description={t('admin.genericErrorDescription')}
                         onRetry={() => refetch()}
                     />
@@ -119,7 +118,7 @@ const AdminClawsTab: FC<AdminResourceTabProps> = ({
                             className='hover:bg-foreground/10 cursor-pointer transition-colors'
                             onClick={() =>
                                 onSelectEntity({
-                                    type: PLAYGROUND_NODE_TYPE.CLAW,
+                                    type: 'claw',
                                     id: claw.id,
                                     data: claw
                                 })

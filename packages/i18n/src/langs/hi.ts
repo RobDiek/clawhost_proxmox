@@ -72,7 +72,6 @@ const hi: Translations = {
     },
     nav: {
         claws: 'क्लॉज़',
-        playground: 'प्लेग्राउंड',
         sshKeys: 'SSH कुंजियाँ',
         account: 'खाता',
         billing: 'बिलिंग',
@@ -148,8 +147,6 @@ const hi: Translations = {
         comparisonSetupOthers: 'एक क्लिक में डिप्लॉय करें',
         comparisonUpdatesUs: 'स्वचालित अपडेट',
         comparisonUpdatesOthers: 'स्वचालित अपडेट',
-        comparisonAgentsUs: 'एकाधिक एजेंट',
-        comparisonAgentsOthers: 'एकाधिक एजेंट',
         faqTitle: 'प्रश्न',
         faqHeading: 'सामान्य प्रश्न',
         faqDescription:
@@ -207,7 +204,6 @@ const hi: Translations = {
         noVersionAssigned:
             'इस क्लॉ को कोई OpenClaw संस्करण असाइन नहीं किया गया है!',
         invalidAgentName: 'अमान्य एजेंट नाम!',
-        agentNameAlreadyExists: 'इस नाम का एक एजेंट पहले से मौजूद है!',
         invalidPath: 'अमान्य पथ!',
         fileNotFound: 'फ़ाइल नहीं मिली!',
         purchasingNotAvailable: 'स्थानीय मोड में खरीदारी उपलब्ध नहीं है!',
@@ -269,9 +265,9 @@ const hi: Translations = {
         pageNotFoundDescription:
             'जो पृष्ठ आप खोज रहे हैं वह मौजूद नहीं है या स्थानांतरित कर दिया गया है.',
         goToHomepage: 'होमपेज पर जाएँ',
-        failedToLoadClaws: 'क्लॉज़ लोड करने में विफल!',
-        failedToLoadClawsDescription:
-            'हम आपके क्लॉज़ लोड नहीं कर सके. कृपया अपना कनेक्शन जाँचें और पुनः प्रयास करें!',
+        failedToLoadAgents: 'एजेंट्स लोड करने में विफल!',
+        failedToLoadAgentsDescription:
+            'हम आपके एजेंट्स लोड नहीं कर सके. कृपया अपना कनेक्शन जाँचें और पुनः प्रयास करें!',
         failedToLoadSSHKeys: 'SSH कुंजियाँ लोड करने में विफल!',
         failedToLoadSSHKeysDescription:
             'हम आपकी SSH कुंजियाँ लोड नहीं कर सके. कृपया अपना कनेक्शन जाँचें और पुनः प्रयास करें!',
@@ -313,7 +309,6 @@ const hi: Translations = {
         sshKeyInUse:
             'यह SSH कुंजी वर्तमान में एक या अधिक क्लॉज़ द्वारा उपयोग में है!',
         inputTooLong: 'इनपुट अधिकतम अनुमत लंबाई से अधिक है!',
-        invalidEnvVars: 'अमान्य एनवायरनमेंट वेरिएबल नाम या मान!',
         invalidEmailFormat: 'अमान्य ईमेल प्रारूप!',
         plusAddressingNotAllowed:
             'ईमेल लॉगिन के लिए प्लस एड्रेसिंग की अनुमति नहीं है!',
@@ -384,17 +379,21 @@ const hi: Translations = {
         failedToGetLogs: 'लॉग लोड करने में विफल!',
         failedToGetLogsDescription:
             'इस इंस्टेंस के लॉग प्राप्त नहीं हो सके. कृपया बाद में पुनः प्रयास करें.',
-        failedToRepairClaw: 'इंस्टेंस की मरम्मत करने में विफल!',
-        repairSuccess: 'इंस्टेंस सफलतापूर्वक ठीक हो गया.',
-        repairGatewayNotResponding:
-            'मरम्मत लागू हो गई लेकिन गेटवे अभी तक प्रतिक्रिया नहीं दे रहा. इसे शुरू होने में और समय लग सकता है.',
         failedToReinstallClaw: 'इंस्टेंस पुनः इंस्टॉल करने में विफल!',
         reinstallSuccess: 'इंस्टेंस सफलतापूर्वक पुनः इंस्टॉल हो गया.',
         reinstallRateLimited:
             'आप हर 24 घंटे में केवल एक बार पुनः इंस्टॉल कर सकते हैं. यदि आप यह सीमा हटाना चाहते हैं तो कृपया टीम से संपर्क करें.',
+        subdomainRateLimited:
+            'आप हर 24 घंटे में केवल एक बार सबडोमेन बदल सकते हैं. यदि आप यह सीमा हटाना चाहते हैं तो कृपया टीम से संपर्क करें.',
+        subdomainUpdated: 'सबडोमेन सफलतापूर्वक अपडेट हो गया.',
+        invalidSubdomain: 'अमान्य सबडोमेन. 3-20 छोटे अक्षर और संख्याएँ उपयोग करें!',
+        subdomainAlreadyInUse: 'यह सबडोमेन पहले से उपयोग में है!',
         clawBusy: 'क्लॉ वर्तमान में प्रावधान या हटाया जा रहा है!',
         reinstallGatewayNotResponding:
             'पुनः इंस्टॉल पूरा हो गया लेकिन गेटवे अभी तक प्रतिक्रिया नहीं दे रहा. इसे शुरू होने में और समय लग सकता है.',
+        failedToRepairClaw: 'Failed to repair the instance!',
+        repairSuccess: 'Instance repaired successfully.',
+        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'क्लॉ डेटा निर्यात करने में विफल!',
         clawNotReady: 'क्लॉ निर्यात के लिए तैयार नहीं है!',
         exportRateLimited:
@@ -449,20 +448,6 @@ const hi: Translations = {
         locationsFetched: 'स्थान सफलतापूर्वक प्राप्त हुए.',
         volumePricingFetched: 'वॉल्यूम मूल्य सफलतापूर्वक प्राप्त हुआ.',
         planAvailabilityFetched: 'प्लान उपलब्धता सफलतापूर्वक प्राप्त हुई.',
-        agentsFetched: 'एजेंट सफलतापूर्वक प्राप्त हुए.',
-        agentsFetchFailed:
-            'एजेंट प्राप्त करने के लिए इंस्टेंस तक नहीं पहुँच सके!',
-        agentConfigFetched: 'एजेंट कॉन्फ़िगरेशन सफलतापूर्वक प्राप्त हुआ.',
-        agentConfigUpdated: 'एजेंट कॉन्फ़िगरेशन सफलतापूर्वक अपडेट हुआ.',
-        agentConfigUpdateFailed: 'एजेंट कॉन्फ़िगरेशन अपडेट नहीं हो सका!',
-        agentCreated: 'एजेंट सफलतापूर्वक बनाया गया.',
-        agentCreateFailed: 'इंस्टेंस पर एजेंट नहीं बनाया जा सका!',
-        agentDeleted: 'एजेंट सफलतापूर्वक हटाया गया.',
-        agentDeleteFailed: 'इंस्टेंस से एजेंट नहीं हटाया जा सका!',
-        cannotDeleteMainAgent: 'एकमात्र शेष एजेंट को हटाया नहीं जा सकता!',
-        agentNameInvalid:
-            'एजेंट नाम में केवल अक्षर, संख्याएँ और डैश होने चाहिए!',
-        agentNameDuplicate: 'इस नाम का एक एजेंट पहले से मौजूद है!',
         diagnosticsFetched: 'डायग्नोस्टिक्स सफलतापूर्वक प्राप्त हुए.',
         logsFetched: 'लॉग सफलतापूर्वक प्राप्त हुए.',
         filesFetched: 'फ़ाइलें सफलतापूर्वक प्राप्त हुईं.',
@@ -474,48 +459,8 @@ const hi: Translations = {
         invalidToken: 'अमान्य टोकन!',
         notFound: 'नहीं मिला!',
         healthOk: 'API चल रही है.',
-        channelsFetched: 'चैनल सफलतापूर्वक प्राप्त हुए.',
-        channelsUpdated: 'चैनल सफलतापूर्वक अपडेट हुए.',
-        channelsUpdateFailed: 'चैनल अपडेट नहीं हो सके!',
-        channelsFetchFailed: 'चैनल प्राप्त नहीं हो सके!',
-        channelMissingRequired: 'सक्षम चैनल के लिए आवश्यक फ़ील्ड गायब हैं!',
-        whatsappPairStarted: 'WhatsApp पेयरिंग शुरू हुई.',
-        whatsappPairFailed: 'WhatsApp पेयरिंग विफल!',
-        whatsappAlreadyPaired: 'WhatsApp पहले से पेयर है!',
-        whatsappVersionUnsupported:
-            'यह संस्करण डैशबोर्ड से चैनल कॉन्फ़िगरेशन का समर्थन नहीं करता। मैन्युअल रूप से कॉन्फ़िगर करने के लिए टर्मिनल टैब का उपयोग करें या OpenClaw अपग्रेड करें।',
         featureVersionUnsupported:
             'यह सुविधा संस्करण {{version}} पर समर्थित नहीं है। कृपया OpenClaw अपडेट करें या मैन्युअल रूप से प्रबंधित करने के लिए टर्मिनल का उपयोग करें।',
-        bindingsFetched: 'बाइंडिंग सफलतापूर्वक प्राप्त हुईं.',
-        bindingsFetchFailed: 'बाइंडिंग प्राप्त नहीं हो सकीं!',
-        bindingsUpdated: 'बाइंडिंग सफलतापूर्वक अपडेट हुईं.',
-        bindingsUpdateFailed: 'बाइंडिंग अपडेट नहीं हो सकीं!',
-        bindingsInvalidFormat: 'अमान्य बाइंडिंग प्रारूप!',
-        bindingsInvalidChannel: 'बाइंडिंग में असमर्थित चैनल!',
-        bindingsDuplicateChannel: 'एक चैनल केवल एक एजेंट से जोड़ा जा सकता है!',
-        skillsFetched: 'स्किल सफलतापूर्वक प्राप्त हुईं.',
-        skillsUpdated: 'स्किल सफलतापूर्वक अपडेट हुईं.',
-        skillsUpdateFailed: 'स्किल अपडेट नहीं हो सकीं!',
-        skillsFetchFailed: 'स्किल प्राप्त नहीं हो सकीं!',
-        agentSkillsFetched: 'एजेंट स्किल सफलतापूर्वक प्राप्त हुईं.',
-        agentSkillsUpdated: 'एजेंट स्किल सफलतापूर्वक अपडेट हुईं.',
-        agentSkillsUpdateFailed: 'एजेंट स्किल अपडेट नहीं हो सकीं!',
-        agentSkillsFetchFailed: 'एजेंट स्किल प्राप्त नहीं हो सकीं!',
-        invalidSkillName:
-            'स्किल नाम में केवल अक्षर, संख्याएँ, डैश और अंडरस्कोर होने चाहिए!',
-        skillNotFound: 'स्किल नहीं मिली!',
-        clawHubSearchSuccess: 'ClawHub खोज पूरी हुई.',
-        clawHubSearchFailed: 'ClawHub में खोज नहीं हो सकी!',
-        clawHubFetched: 'ClawHub स्किल प्राप्त हुईं.',
-        clawHubFetchFailed: 'ClawHub स्किल प्राप्त नहीं हो सकीं!',
-        clawHubInstalled: 'ClawHub से स्किल इंस्टॉल हुई.',
-        clawHubInstallFailed: 'ClawHub से स्किल इंस्टॉल नहीं हो सकी!',
-        clawHubRemoved: 'ClawHub स्किल हटाई गई.',
-        clawHubRemoveFailed: 'ClawHub स्किल नहीं हटाई जा सकी!',
-        clawHubUpdated: 'स्किल अपडेट हुई.',
-        clawHubUpdateFailed: 'ClawHub स्किल अपडेट नहीं हो सकी!',
-        clawHubUpdatesFetched: 'अपडेट जाँच पूरी हुई.',
-        clawHubUpdatesFailed: 'अपडेट की जाँच नहीं हो सकी!',
         invalidAuthMethod: 'अमान्य प्रमाणीकरण विधि!',
         authMethodNotConnected: 'यह प्रमाणीकरण विधि कनेक्ट नहीं है!',
         authMethodConnected: 'प्रमाणीकरण विधि सफलतापूर्वक कनेक्ट हुई.',
@@ -524,9 +469,6 @@ const hi: Translations = {
         failedToDisconnectAuthMethod:
             'प्रमाणीकरण विधि डिस्कनेक्ट करने में विफल!',
         textRequired: 'टेक्स्ट आवश्यक है!',
-        voiceNotFound: 'वॉइस मॉडल नहीं मिला!',
-        ttsGenerationFailed: 'स्पीच जनरेट करने में विफल!',
-        voicesFetched: 'वॉइस सफलतापूर्वक प्राप्त हुईं.',
         featureEmailsDisabled: 'फ़ीचर ईमेल वर्तमान में अक्षम हैं.',
         featureEmailsSent: 'फ़ीचर ईमेल सफलतापूर्वक भेजे गए.',
         featureEmailsFailed: 'फ़ीचर ईमेल भेजने में विफल!',
@@ -563,7 +505,6 @@ const hi: Translations = {
         adminWaitlistFetched: 'Waitlist fetched.',
         failedToGetAdminWaitlist: 'Failed to fetch waitlist!',
         adminExportsFetched: 'Exports fetched.',
-        failedToGetAdminExports: 'Failed to fetch exports!',
         adminEmailsFetched: 'Emails fetched.',
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
@@ -594,16 +535,6 @@ const hi: Translations = {
                     'ClawHost डैशबोर्ड से रीयल टाइम में अपने सर्वर लॉग मॉनिटर करें. ब्राउज़र छोड़े बिना समस्याओं का निदान करें, डिप्लॉयमेंट ट्रैक करें और अपने एप्लिकेशन डीबग करें.',
                 cta: 'लॉग देखें'
             },
-            channels: {
-                subject:
-                    'क्या आप जानते हैं? एजेंट को Discord, Slack और अन्य से कनेक्ट करें',
-                preview: 'अपने AI एजेंट को संचार चैनलों से जोड़ें',
-                tag: 'चैनल्स',
-                heading: 'आपके एजेंट, हर जगह',
-                description:
-                    'अपने AI एजेंट को Discord, Slack, WhatsApp और अन्य से कनेक्ट करें. चैनल कॉन्फ़िगर करें और उन्हें एजेंट से जोड़ें — सब कुछ ClawHost डैशबोर्ड से.',
-                cta: 'चैनल सेट करें'
-            },
             fileExplorer: {
                 subject:
                     'क्या आप जानते हैं? ब्राउज़र से सर्वर फ़ाइलें संपादित करें',
@@ -614,63 +545,6 @@ const hi: Translations = {
                 description:
                     'ClawHost डैशबोर्ड से सीधे अपने सर्वर पर फ़ाइलें ब्राउज़ करें, पढ़ें और संपादित करें. सिंटैक्स हाइलाइटिंग, खोज और तुरंत सहेजना — कोई SSH नहीं चाहिए.',
                 cta: 'फ़ाइल एक्सप्लोरर खोलें'
-            },
-            playground: {
-                subject:
-                    'क्या आप जानते हैं? अपने बुनियादी ढाँचे को विज़ुअलाइज़ करें',
-                preview: 'इंटरैक्टिव कैनवास पर अपने क्लॉज़ और एजेंट देखें',
-                tag: 'प्लेग्राउंड',
-                heading: 'पूरी तस्वीर देखें',
-                description:
-                    'प्लेग्राउंड आपको एक इंटरैक्टिव ग्राफ़ कैनवास देता है जो आपके सभी क्लॉज़ और एजेंट दिखाता है. प्रबंधित करने के लिए किसी भी नोड पर क्लिक करें — आपके बुनियादी ढाँचे के लिए एक विज़ुअल कमांड सेंटर.',
-                cta: 'प्लेग्राउंड खोलें'
-            },
-            agentChat: {
-                subject: 'क्या आप जानते हैं? अपने AI एजेंट से चैट करें',
-                preview: 'डैशबोर्ड से सीधे अपने एजेंट से बात करें',
-                tag: 'एजेंट चैट',
-                heading: 'अपने एजेंट से बात करें',
-                description:
-                    'ClawHost डैशबोर्ड से सीधे अपने AI एजेंट से चैट करें. संदेश भेजें, चित्र संलग्न करें और बातचीत का इतिहास देखें — सब एक जगह.',
-                cta: 'चैटिंग शुरू करें'
-            },
-            voiceMode: {
-                subject: 'क्या आप जानते हैं? वॉइस से अपने एजेंट से बात करें',
-                preview:
-                    'अपने एजेंट के साथ स्पीच-टू-टेक्स्ट और टेक्स्ट-टू-स्पीच का उपयोग करें',
-                tag: 'वॉयस मोड',
-                heading: 'बोलें, टाइप न करें',
-                description:
-                    'वॉइस मोड का उपयोग करके हैंड्स-फ़्री अपने AI एजेंट से बात करें. इनपुट के लिए स्पीच-टू-टेक्स्ट, प्रतिक्रियाओं के लिए टेक्स्ट-टू-स्पीच — कई वॉइस में से चुनें.',
-                cta: 'वॉइस मोड आज़माएँ'
-            },
-            skills: {
-                subject: 'क्या आप जानते हैं? ClawHub पर 5,000+ स्किल',
-                preview: 'एक क्लिक में कम्युनिटी स्किल ब्राउज़ और इंस्टॉल करें',
-                tag: 'ClawHub स्किल्स',
-                heading: 'अपने एजेंट को तुरंत विस्तारित करें',
-                description:
-                    'ClawHub पर 5,000 से अधिक तैयार स्किल ब्राउज़ करें और एक क्लिक में इंस्टॉल करें. वेब सर्च, कोड एक्ज़ीक्यूशन, इमेज जनरेशन और बहुत कुछ.',
-                cta: 'ClawHub ब्राउज़ करें'
-            },
-            bindings: {
-                subject: 'क्या आप जानते हैं? एजेंट को विशिष्ट चैनलों से जोड़ें',
-                preview:
-                    'नियंत्रित करें कि कौन सा एजेंट किस चैनल पर प्रतिक्रिया दे',
-                tag: 'बाइंडिंग्स',
-                heading: 'प्रति चैनल एक एजेंट',
-                description:
-                    'विशिष्ट एजेंट को विशिष्ट चैनलों से जोड़ें. Discord पर आपका सहायता एजेंट, WhatsApp पर आपका सहायक — आप तय करें कि कौन कहाँ जवाब दे.',
-                cta: 'बाइंडिंग कॉन्फ़िगर करें'
-            },
-            envVars: {
-                subject: 'क्या आप जानते हैं? एनवायरनमेंट वेरिएबल प्रबंधित करें',
-                preview: 'SSH के बिना API कुंजियाँ और कॉन्फ़िग सेट करें',
-                tag: 'एनवायरनमेंट वेरिएबल्स',
-                heading: 'SSH के बिना कॉन्फ़िगर करें',
-                description:
-                    'ClawHost डैशबोर्ड से सीधे एनवायरनमेंट वेरिएबल जोड़ें, संपादित करें और हटाएँ. API कुंजियाँ, सीक्रेट और कॉन्फ़िगरेशन सेट करें — कोई टर्मिनल नहीं चाहिए.',
-                cta: 'वेरिएबल प्रबंधित करें'
             },
             diagnostics: {
                 subject: 'क्या आप जानते हैं? बिल्ट-इन हेल्थ चेक',
@@ -748,20 +622,36 @@ const hi: Translations = {
                 description:
                     'वार्षिक बिलिंग पर स्विच करें और अपनी क्लॉ सब्सक्रिप्शन पर बचत करें. वही शानदार सेवा, कम कीमत — कभी भी रद्द करें.',
                 cta: 'प्लान देखें'
+            },
+            simplifiedPlatform: {
+                subject: 'हमने ClawHost को सरल बनाया',
+                preview:
+                    'चैनल, स्किल्स और अन्य अब सीधे OpenClaw में प्रबंधित होते हैं',
+                tag: 'प्लेटफ़ॉर्म अपडेट',
+                heading: 'ClawHost अब और सरल है',
+                description:
+                    'हमने ClawHost डैशबोर्ड से चैनल, एजेंट, चैट और स्किल्स प्रबंधन हटा दिया है. ये सुविधाएँ अब सीधे आपके OpenClaw इंस्टेंस पर प्रबंधित होती हैं.',
+                removed:
+                    'विशेष रूप से, हमने हटाया: मैसेजिंग चैनल (WhatsApp, Telegram, Discord, Slack, Signal), स्किल्स मार्केटप्लेस (ClawHub), और एजेंट चैट और वॉइस मोड. ये सभी OpenClaw में मौजूद हैं — हमने बस इन्हें रैप करना बंद कर दिया.',
+                why: 'हर OpenClaw रिलीज़ के साथ अपने इंटरफ़ेस को सिंक रखना टिकाऊ नहीं था. अपस्ट्रीम अपडेट आते थे, और हमारा UI पीछे रह जाता था — आपको पुराने कंट्रोल्स और अधूरी सुविधाएँ मिलती थीं.',
+                benefit:
+                    'इन परतों को हटाकर, आप सीधे OpenClaw से इंटरैक्ट करते हैं. आप असली सिस्टम सीखते हैं, कोई दूसरा इंटरफ़ेस नहीं जो पुराना हो सकता है. आपका ज्ञान हर जगह काम आता है जहाँ OpenClaw चलता है.',
+                action: 'कुछ भी नहीं टूटता. आपके क्लॉज़, सर्वर, बिलिंग और डैशबोर्ड की मुख्य सुविधाएँ अपरिवर्तित हैं. चैनल, स्किल्स या एजेंट कॉन्फ़िगर करने के लिए, सीधे अपना OpenClaw इंस्टेंस इस्तेमाल करें.',
+                cta: 'डैशबोर्ड खोलें'
             }
         }
     },
     auth: {
-        signIn: 'साइन इन',
+        signIn: 'प्रमाणीकरण',
         signInDescription:
             'अपने OpenClaw इंस्टेंस प्रबंधित करने के लिए अपने ClawHost खाते में साइन इन करें.',
-        signingIn: 'साइन इन हो रहा है...',
+        signingIn: 'प्रमाणित हो रहा है...',
         verifyCode: 'कोड सत्यापित करें',
         checkYourEmail: 'अपना ईमेल जाँचें',
         checkYourEmailHeading: 'अपना ईमेल जाँचें',
         codeSentTo: 'हमने 6 अंकों का कोड भेजा है',
         signInToDeployOpenClaw:
-            'OpenClaw इंस्टेंस प्रबंधित और डिप्लॉय करने के लिए साइन इन करें.',
+            'एक क्लिक में एजेंट प्रबंधित और डिप्लॉय करने के लिए प्रमाणित करें.',
         emailAddress: 'ईमेल पता',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'ईमेल से जारी रखें',
@@ -840,7 +730,6 @@ const hi: Translations = {
             'आप केवल उन खातों को कनेक्ट कर सकते हैं जो समान ईमेल पते का उपयोग करते हैं!',
         settings: 'सेटिंग्स',
         settingsDescription: 'अपनी डैशबोर्ड प्राथमिकताएँ प्रबंधित करें.',
-        showAllClaws: 'सभी उपयोगकर्ताओं के सभी क्लॉज़ दिखाएँ',
         openLinksWindowed: 'विंडो व्यू में लिंक खोलें',
         openLinksWindowedDescription:
             'सक्षम होने पर, बाहरी लिंक सिस्टम ब्राउज़र के बजाय ऐप के अंदर खुलते हैं.'
@@ -893,7 +782,6 @@ const hi: Translations = {
         paymentSuccess: 'भुगतान सफल. आपका लाइसेंस अब सक्रिय है.',
         failedToPurchase: 'चेकआउट शुरू करने में विफल!',
         featureUnlimitedClaws: 'असीमित OpenClaws',
-        featureUnlimitedAgents: 'असीमित एजेंट',
         featureDevices: 'असीमित डिवाइस',
         featureUpdates: 'हमेशा के लिए अपडेट',
         featureSupport: 'प्राथमिकता सहायता',
@@ -924,9 +812,9 @@ const hi: Translations = {
         clawCountLabelSingular: '{{count}} क्लॉ',
         newClaw: 'नया क्लॉ',
         clawActions: 'क्लॉ कार्य',
-        noClawsYet: 'कोई क्लॉज़ नहीं',
-        noClawsDescription:
-            'कोई डिप्लॉय किया गया क्लॉ नहीं मिला. लेकिन आप $25/माह से शुरू करके कभी भी अपना पहला क्लॉ डिप्लॉय कर सकते हैं. बस AI करें.',
+        noAgentsYet: 'कोई एजेंट नहीं',
+        noAgentsDescription:
+            'कोई डिप्लॉय किया गया एजेंट नहीं मिला. लेकिन आप $25/माह से शुरू करके कभी भी अपना पहला एजेंट डिप्लॉय कर सकते हैं. बस AI करें.',
         deleteClaw: 'क्लॉ हटाएँ',
         deleteClawConfirmation: 'क्या आप वाकई हटाना चाहते हैं',
         deleteClawWarning:
@@ -945,7 +833,7 @@ const hi: Translations = {
         copySshWithKey: 'SSH कॉपी करें (कुंजी के साथ)',
         copySshWithPassword: 'SSH कॉपी करें (पासवर्ड के साथ)',
         connect: 'SSH कमांड कॉपी करें',
-        viewServerCredentials: 'सर्वर क्रेडेंशियल देखें',
+        viewServerCredentials: 'सर्वर क्रेडेंशियल',
         serverCredentials: 'सर्वर क्रेडेंशियल',
         serverCredentialsDescription:
             'SSH के माध्यम से अपने सर्वर से कनेक्ट करने के लिए इन क्रेडेंशियल का उपयोग करें.',
@@ -971,7 +859,7 @@ const hi: Translations = {
         gatewayToken: 'गेटवे टोकन',
         gatewayTokenDescription:
             'अपने गेटवे से प्रमाणित करने के लिए इस टोकन का उपयोग करें',
-        contactSupport: 'सहायता',
+        contactSupport: 'सहायता से संपर्क करें',
         scheduledForDeletion: 'हटाने के लिए शेड्यूल',
         scheduledDeletionShort: '{{date}} को हटाया जाएगा',
         deletionDate: 'यह क्लॉ {{date}} को हटाया जाएगा',
@@ -994,12 +882,10 @@ const hi: Translations = {
         diagnosticsDescription: 'अपने OpenClaw इंस्टेंस की सेहत जाँचें.',
         diagnosticsStatus: 'स्थिति',
         diagnosticsLogs: 'लॉग',
-        diagnosticsRepair: 'मरम्मत',
-        diagnosticsRepairDescription:
-            'मेमोरी सीमाएँ हटाएँ, नवीनतम सर्विस कॉन्फ़िगरेशन लागू करें और गेटवे पुनः शुरू करें. यह अधिकांश सामान्य समस्याओं को ठीक करता है.',
-        diagnosticsRepairSuccess: 'इंस्टेंस सफलतापूर्वक ठीक हो गया.',
-        diagnosticsRepairFailed:
-            'मरम्मत लागू हुई लेकिन गेटवे अभी तक प्रतिक्रिया नहीं दे रहा!',
+        diagnosticsRepair: 'Repair',
+        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairSuccess: 'Instance repaired successfully.',
+        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'इंस्टेंस से कनेक्ट हो रहा है...',
         diagnosticsNoLogs:
             'कोई लॉग उपलब्ध नहीं. लॉग जनरेट करने के लिए अपना इंस्टेंस शुरू करें.',
@@ -1022,9 +908,6 @@ const hi: Translations = {
         fileExplorerNoFiles: 'कोई फ़ाइलें नहीं मिलीं',
         fileExplorerSearchFiles: 'फ़ाइलें खोजें...',
         fileExplorerNoSearchResults: 'कोई मिलती-जुलती फ़ाइलें नहीं.',
-        updateInstance: 'इंस्टेंस अपडेट करें',
-        updateInstanceSuccess: 'इंस्टेंस सफलतापूर्वक अपडेट हुआ.',
-        updateInstanceFailed: 'इंस्टेंस अपडेट करने में विफल!',
         startFailed: 'क्लॉ शुरू करने में विफल!',
         renameSuccess: 'क्लॉ का नाम सफलतापूर्वक बदला गया.',
         renameFailed: 'क्लॉ का नाम बदलने में विफल!',
@@ -1037,6 +920,8 @@ const hi: Translations = {
         reinstallInstanceFailed: 'इंस्टेंस पुनः इंस्टॉल करने में विफल!',
         openControlPanel: 'कंट्रोल पैनल खोलें',
         exportData: 'क्लॉ निर्यात करें (.zip)',
+        exportAgent: 'Export Agent',
+        exportAgentTooltip: 'Download this agent as a .zip file',
         exportStarted: 'निर्यात तैयार हो रहा है, इसमें कुछ समय लग सकता है...',
         exportSuccess: 'क्लॉ सफलतापूर्वक निर्यात हुआ.',
         exportFailed: 'क्लॉ डेटा निर्यात करने में विफल!',
@@ -1052,8 +937,6 @@ const hi: Translations = {
         dnsSetupButton: 'DNS सेट करें',
         dnsSetupSuccess: 'DNS रिज़ॉल्वर सफलतापूर्वक कॉन्फ़िगर हुआ.',
         dnsSetupError: 'DNS रिज़ॉल्वर कॉन्फ़िगर करने में विफल!',
-        chatTab: 'चैट',
-        playgroundTab: 'प्लेग्राउंड',
         userTab: 'उपयोगकर्ता',
         adminTab: 'एडमिन',
         adminTitle: 'एडमिन',
@@ -1061,6 +944,7 @@ const hi: Translations = {
         adminNoClaws: 'प्लेटफ़ॉर्म पर अभी तक कोई क्लॉज़ नहीं.',
         adminAccessDenied: 'आपको इस पृष्ठ तक पहुँचने की अनुमति नहीं है.',
         owner: 'मालिक',
+        agentType: 'Agent',
         status: {
             running: 'चल रहा है',
             stopped: 'रुका हुआ',
@@ -1079,21 +963,6 @@ const hi: Translations = {
             unknown: 'अज्ञात',
             checking: 'जाँच हो रही है'
         }
-    },
-    chat: {
-        explorer: 'एक्सप्लोरर',
-        selectAgent: 'कोई चयन नहीं',
-        selectAgentDescription: 'साइडबार से एक क्लॉ या एजेंट चुनें।',
-        noAgents: 'कोई एजेंट उपलब्ध नहीं',
-        noAgentsDescription:
-            'एजेंट से चैट शुरू करने के लिए एक क्लॉ डिप्लॉय करें.',
-        openSidebar: 'साइडबार खोलें',
-        clawNotReady: 'क्लॉ अभी तैयार नहीं है',
-        notConfigured: 'कॉन्फ़िगर नहीं है',
-        addAgent: 'एजेंट जोड़ें',
-        viewTree: 'ट्री व्यू',
-        viewList: 'सूची व्यू',
-        clawSettings: 'क्लॉ सेटिंग्स'
     },
     createClaw: {
         title: 'OpenClaw डिप्लॉय करें',
@@ -1273,18 +1142,9 @@ const hi: Translations = {
         openclawControl: 'OpenClaw नियंत्रण',
         openclawControlDescription:
             'ClawHost से सीधे मूल OpenClaw पैनल तक पहुँचें. OpenClaw जो कुछ भी प्रदान करता है उस पर पूर्ण संपादन एक्सेस.',
-        clawHostControl: 'ClawHost नियंत्रण',
+        clawHostControl: 'पूर्ण सर्वर एक्सेस',
         clawHostControlDescription:
-            'प्लेटफ़ॉर्म से सीधे फ़ाइलें, अपडेट, चैनल, वेरिएबल, स्किल और अन्य कॉन्फ़िगरेशन विकल्प प्रबंधित करें.',
-        skillsMarketplace: '5,000+ स्किल',
-        skillsMarketplaceDescription:
-            'एक क्लिक में 5,000 से अधिक तैयार स्किल ब्राउज़ और इंस्टॉल करें. अपने OpenClaw को तुरंत विस्तारित करें.',
-        directChat: 'सीधी चैट',
-        directChatDescription:
-            'प्लेटफ़ॉर्म से सीधे अपने AI एजेंट से चैट करें. किसी बाहरी टूल या इंटरफ़ेस की ज़रूरत नहीं.',
-        multipleAgents: 'एकाधिक एजेंट',
-        multipleAgentsDescription:
-            'एक ही इंस्टेंस पर कई AI एजेंट चलाएँ और प्रबंधित करें. प्रत्येक का अपना कॉन्फ़िगरेशन और उद्देश्य.',
+            'ब्राउज़र टर्मिनल, फ़ाइल एक्सप्लोरर, लॉग, डायग्नोस्टिक्स और वर्शन प्रबंधन — सब कुछ आपके डैशबोर्ड से.',
         multipleClaws: 'एकाधिक क्लॉज़',
         multipleClawsDescription:
             'एक ही डैशबोर्ड से कई OpenClaw इंस्टेंस डिप्लॉय और प्रबंधित करें. जैसे-जैसे आप बढ़ें, स्केल करें.',
@@ -1378,7 +1238,7 @@ const hi: Translations = {
             'होस्टेड AI टूल के विपरीत, ClawHost आपको OpenClaw इंस्टॉल के साथ एक वास्तविक सर्वर देता है. आप बुनियादी ढाँचे के मालिक हैं, सब कुछ नियंत्रित करते हैं और किसी साझा प्लेटफ़ॉर्म या मॉडल से सीमित नहीं हैं.',
         faq4Question: 'क्या मुझे तकनीकी ज्ञान चाहिए?',
         faq4Answer:
-            'नहीं. हम सभी बुनियादी ढाँचा, सेटअप और रखरखाव संभालते हैं. आप OpenClaw को इसके UI के माध्यम से कॉन्फ़िगर और प्रबंधित कर सकते हैं, चैनलों से कनेक्ट कर सकते हैं और उपयोग को अनुकूलित कर सकते हैं — बिना सर्वर या बुनियादी ढाँचे को छुए.',
+            'नहीं. हम सभी बुनियादी ढाँचा, सेटअप और रखरखाव संभालते हैं. आप OpenClaw को इसके UI के माध्यम से कॉन्फ़िगर और प्रबंधित कर सकते हैं और उपयोग को अनुकूलित कर सकते हैं — बिना सर्वर या बुनियादी ढाँचे को छुए.',
         faq5Question: 'कौन से स्थान उपलब्ध हैं?',
         faq5Answer:
             'हम दुनिया भर में कई सर्वर स्थान प्रदान करते हैं, जिनमें यूएसए, यूरोप और अन्य शामिल हैं. आवश्यकता होने पर आप विभिन्न क्षेत्रों में कई सर्वरों पर OpenClaw तैनात कर सकते हैं.',
@@ -1400,15 +1260,13 @@ const hi: Translations = {
         comparisonOwnershipUs: 'आप पूरी तरह अपने सर्वर के मालिक हैं',
         comparisonOwnershipOthers: 'आपके पास कुछ नहीं है',
         comparisonSubdomainUs: 'सबडोमेन के माध्यम से एक्सेस',
-        comparisonSubdomainOthers: 'केवल सोशल चैनलों से एक्सेस',
+        comparisonSubdomainOthers: 'केवल तृतीय-पक्ष प्लेटफ़ॉर्म से एक्सेस',
         comparisonInfraUs: 'ऑन-डिमांड बुनियादी ढाँचा',
         comparisonInfraOthers: 'सीमित सर्वर',
         comparisonDataUs: 'अपने डेटा के मालिक बनें',
         comparisonDataOthers: 'अपने डेटा के मालिक नहीं',
         comparisonMultipleUs: 'एकाधिक OpenClaw, एक क्लॉ',
         comparisonMultipleOthers: 'केवल एक OpenClaw',
-        comparisonAgentsUs: 'प्रति क्लॉ एकाधिक एजेंट',
-        comparisonAgentsOthers: 'केवल एक एजेंट',
         comparisonOpenSourceUs: 'पूर्ण रूप से ओपन सोर्स',
         comparisonOpenSourceOthers: 'क्लोज़्ड सोर्स',
         comparisonExportUs: 'अपना OpenClaw कहीं भी निर्यात करें',
@@ -1417,8 +1275,6 @@ const hi: Translations = {
         comparisonProvidersOthers: 'केवल एक प्रदाता',
         comparisonSocialsUs: 'सोशल मीडिया उपस्थिति',
         comparisonSocialsOthers: 'कोई सोशल मीडिया नहीं',
-        comparisonChatUs: 'अपने क्लॉ से सीधे चैट करें',
-        comparisonChatOthers: 'केवल चैनलों के माध्यम से चैट',
         comparisonVersionUs: 'एक-क्लिक संस्करण स्विचिंग',
         comparisonVersionOthers: 'केवल मैनुअल अपडेट',
         comparisonTerminalUs: 'बिल्ट-इन वेब टर्मिनल',
@@ -1468,6 +1324,8 @@ const hi: Translations = {
             'चलते-फिरते अपने OpenClaw इंस्टेंस मॉनिटर और प्रबंधित करने के लिए नेटिव मोबाइल ऐप',
         upcomingReleaseFeature13:
             'macOS और Windows के लिए ClawHost Go का बीटा रिलीज़, एक क्लिक में OpenClaw स्थानीय रूप से डिप्लॉय करें',
+        upcomingReleaseFeature14:
+            'OpenClaw जैसे Hermes एजेंटों के लिए एक क्लिक डिप्लॉय',
         upcomingReleaseFeature3: 'डार्क और लाइट थीम सपोर्ट',
         upcomingReleaseFeature4:
             'प्रदर्शन, स्थिरता और प्रतिक्रियाशीलता में सुधार',
@@ -1487,6 +1345,15 @@ const hi: Translations = {
             'ClawHost Go के लिए लैंडिंग पेज, ClawHost के साथ स्थानीय होस्टिंग',
         upcomingReleaseFeature12:
             'एक क्लिक में स्थानीय रूप से OpenClaw डिप्लॉय करने के लिए macOS और Windows के लिए डेस्कटॉप ऐप',
+        release15Date: '11 अप्रैल 2026',
+        release15Title: 'सरलीकरण और कस्टम सबडोमेन',
+        release15Description:
+            'प्रबंधित सुविधाओं को OpenClaw में माइग्रेट करके प्लेटफ़ॉर्म को सरल बनाया, प्लेग्राउंड व्यू हटाया और बदलने योग्य कस्टम सबडोमेन पेश किए।',
+        release15Feature1:
+            'सरलीकरण और प्रबंधित सुविधाओं को OpenClaw में माइग्रेट किया, अब कोई ClawHost चैट, एजेंट, चैनल, वेरिएबल और स्किल नहीं',
+        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '1 अप्रैल 2026',
         release14Title: 'Hetzner माइग्रेशन, एफिलिएट सिस्टम और नई भाषाएं',
         release14Description:
@@ -1530,8 +1397,6 @@ const hi: Translations = {
             'समुदाय-संचालित फ़ीचर अनुरोध, विस्तारित फ़ाइल संपादन समर्थन और विभिन्न बग फ़िक्स.',
         release10Feature1:
             'OpenClaw एजेंट द्वारा स्वचालित रूप से प्रबंधित और प्रकाशित फ़ीचर अनुरोध',
-        release10Feature2:
-            'ClawHub मार्केटप्लेस से स्किल कभी-कभी इंस्टॉल न होने की समस्या ठीक की',
         release10Feature3:
             'मॉडल प्रदाता स्विचिंग प्रतिबिंबित न होने और अभी भी प्रारंभिक मॉडल का उपयोग करने की समस्या ठीक की',
         release10Feature4: 'प्लेटफ़ॉर्म भर में कई सुधार और बग फ़िक्स',
@@ -1560,23 +1425,17 @@ const hi: Translations = {
         release7Date: '16 फ़रवरी 2026',
         release7Title: 'चैट पुनर्गठन और वॉइस इनपुट',
         release7Description:
-            'वॉइस इंटरैक्शन, ClawHub स्किल मार्केटप्लेस और एजेंट के लिए फ़ाइल अटैचमेंट के साथ प्रमुख चैट और प्लेग्राउंड सुधार.',
+            'वॉइस इंटरैक्शन और एजेंट के लिए फ़ाइल अटैचमेंट के साथ प्रमुख चैट और प्लेग्राउंड सुधार.',
         release7Feature1:
             'एक सहज, अधिक प्रतिक्रियाशील अनुभव के लिए चैट और प्लेग्राउंड पुनर्गठन',
         release7Feature2:
             'चैट में वॉइस इंटरैक्शन, ब्राउज़र में सीधे स्पीच रिकॉर्ड और ट्रांसक्राइब करें',
-        release7Feature3:
-            'इंस्टॉल और प्रबंधित करने के लिए 5,000+ स्किल उपलब्ध के साथ ClawHub स्किल एकीकरण',
         release7Feature4:
             'एजेंट के लिए अटैचमेंट व्यू और उपयोग, चैट में चित्र और दस्तावेज़ भेजें',
         release6Date: '16 फ़रवरी 2026',
-        release6Title: 'चैनल, स्किल और एजेंट चैट',
+        release6Title: 'एजेंट चैट',
         release6Description:
-            'अपने OpenClaw चैनल, स्किल और एजेंट पर पूर्ण नियंत्रण. डैशबोर्ड से सीधे सब कुछ प्रबंधित और चैट करें.',
-        release6Feature1:
-            'सर्वर को छुए बिना सीधे चैनल प्रबंधित करें, जोड़ें, हटाएँ और कॉन्फ़िगर करें',
-        release6Feature2:
-            'डैशबोर्ड से सीधे स्किल प्रबंधित करें, एजेंट स्किल इंस्टॉल, अपडेट और व्यवस्थित करें',
+            'अपने OpenClaw एजेंट पर पूर्ण नियंत्रण. डैशबोर्ड से सीधे सब कुछ प्रबंधित और चैट करें.',
         release6Feature3:
             'प्लेग्राउंड से अपने एजेंट से चैट करें, किसी भी एजेंट से रीयल टाइम में बातचीत करें',
         release6Feature4:
@@ -1628,26 +1487,12 @@ const hi: Translations = {
         release4Feature4:
             'एकीकृत डैशबोर्ड लेआउट के पक्ष में ग्रिड और सूची व्यू टॉगल हटाया गया'
     },
-    playground: {
-        title: 'प्लेग्राउंड',
-        description:
-            'इंटरैक्टिव ग्राफ़ में अपने क्लॉज़ और उनके एजेंट विज़ुअलाइज़ करें.',
-        subtitle: 'आपके बुनियादी ढाँचे में एजेंट टोपोलॉजी',
-        noClawsYet: 'कोई क्लॉज़ नहीं',
-        noClawsDescription:
-            'इसके साथ बातचीत करने के लिए अपना पहला क्लॉ डिप्लॉय करें.',
-        loadingAgents: 'एजेंट लोड हो रहे हैं',
-        unreachable: 'अप्राप्य',
-        offline: 'ऑफ़लाइन',
-        noAgents: 'कोई एजेंट नहीं',
-        agentCount: '{{count}} एजेंट',
-        agentCountPlural: '{{count}} एजेंट',
-        agentModel: 'मॉडल',
-        zoomLabel: '{{percent}}%',
-        fitView: 'केंद्र',
-        nodesOutOfView: 'क्लॉज़ दृश्य से बाहर',
-        nodeOutOfView: 'क्लॉ दृश्य से बाहर',
-        addAgent: 'एजेंट जोड़ें',
+    clawDetail: {
+        noAgentsYet: 'कोई एजेंट नहीं',
+        noAgentsDescription:
+            'इसके साथ बातचीत करने के लिए अपना पहला एजेंट डिप्लॉय करें.',
+        selectClaw: 'एक क्लॉ चुनें',
+        selectClawDescription: 'विवरण देखने के लिए साइडबार से एक क्लॉ चुनें.',
         closeDetails: 'बंद करें',
         tabInfo: 'जानकारी',
         tabLogs: 'लॉग',
@@ -1665,288 +1510,15 @@ const hi: Translations = {
         loadingTip2: 'क्या आप जानते हैं कि OpenClaw ओपन-सोर्स है?',
         loadingTip3:
             'ClawHost एक-क्लिक OpenClaw होस्टिंग की अनुमति देने वाला पहला प्रोजेक्ट है.',
-        tabChat: 'चैट',
-        tabConfiguration: 'कॉन्फ़िगरेशन',
         tabSettings: 'सेटिंग्स',
-        tabEnvs: 'एन्व',
-        agentOnClaw: '{{clawName}} पर',
-        cannotDeleteDefaultAgent: 'डिफ़ॉल्ट एजेंट को हटाया नहीं जा सकता!',
-        configurationModel: 'मॉडल',
-        configurationModelPlaceholder: 'एक मॉडल चुनें',
-        configurationModelDescription:
-            'यह एजेंट जो AI मॉडल उपयोग करता है. मॉडल बदलने के लिए संबंधित API कुंजी सेट करनी पड़ सकती है.',
-        configurationEnvVars: 'एनवायरनमेंट वेरिएबल',
-        configurationEnvVarsDescription:
-            'इंस्टेंस पर ~/.openclaw/.env में संग्रहीत API कुंजियाँ और एनवायरनमेंट वेरिएबल.',
-        configurationAddEnvVar: 'वेरिएबल जोड़ें',
-        configurationKeyPlaceholder: 'VARIABLE_NAME',
-        configurationValuePlaceholder: 'मान',
-        configurationSave: 'सहेजें',
-        configurationSaving: 'सहेजा जा रहा है...',
-        configurationSaved: 'एजेंट कॉन्फ़िगरेशन सहेजा गया.',
-        configurationSaveFailed: 'एजेंट कॉन्फ़िगरेशन सहेजने में विफल!',
-        configurationLoading: 'कॉन्फ़िगरेशन लोड हो रहा है...',
-        configurationLoadFailed: 'एजेंट कॉन्फ़िगरेशन लोड करने में विफल!',
-        configurationLoadFailedDescription:
-            'इस एजेंट का कॉन्फ़िगरेशन प्राप्त नहीं हो सका. कृपया बाद में पुनः प्रयास करें.',
-        configurationRemoveVar: 'हटाएँ',
-        configurationApiKey: 'API कुंजी',
-        configurationApiKeyDescription:
-            '{{modelName}} के लिए आवश्यक. यह कुंजी इंस्टेंस पर ~/.openclaw/.env में संग्रहीत है.',
-        configurationApiKeyPlaceholder: 'अपनी API कुंजी दर्ज करें',
-        tabVariables: 'वेरिएबल',
-        variablesDescription:
-            'इस इंस्टेंस पर ~/.openclaw/.env में संग्रहीत एनवायरनमेंट वेरिएबल.',
-        variablesEmpty: 'कोई एनवायरनमेंट वेरिएबल नहीं मिले.',
-        variablesAddVariable: 'वेरिएबल जोड़ें',
-        variablesSave: 'वेरिएबल सहेजें',
-        variablesSaving: 'सहेजा जा रहा है...',
-        variablesSaved: 'एनवायरनमेंट वेरिएबल सहेजे गए.',
-        variablesSaveFailed: 'एनवायरनमेंट वेरिएबल सहेजने में विफल!',
-        variablesLoading: 'वेरिएबल लोड हो रहे हैं...',
-        variablesLoadFailed: 'एनवायरनमेंट वेरिएबल लोड करने में विफल!',
-        variablesLoadFailedDescription:
-            'इस इंस्टेंस के वेरिएबल प्राप्त नहीं हो सके. कृपया बाद में पुनः प्रयास करें.',
-        variablesInvalidKey: 'केवल अक्षर, संख्याएँ और अंडरस्कोर!',
-        variablesEmptyValue: 'मान खाली नहीं हो सकता!',
-        variablesDuplicateKey: 'डुप्लिकेट वेरिएबल नाम!',
-        variablesDeleteTitle: 'वेरिएबल हटाएँ',
-        variablesDeleteDescription:
-            'क्या आप वाकई {{key}} हटाना चाहते हैं? यह तुरंत इंस्टेंस से हटा दिया जाएगा.',
-        variablesDeleteConfirm: 'हटाएँ',
-        variablesDontAskAgain: 'इस सत्र में वेरिएबल हटाते समय दोबारा न पूछें',
-        variablesDeleted: 'वेरिएबल हटाया गया.',
-        variablesOperationPending: 'पिछली कार्रवाई पूरी होने तक अक्षम.',
-        addAgentTitle: 'एजेंट जोड़ें',
-        addAgentDescription: '{{clawName}} में एक नया एजेंट जोड़ें.',
-        addAgentDescriptionNoClaw:
-            'एक क्लॉ चुनें और अपना नया एजेंट कॉन्फ़िगर करें.',
-        addAgentSelectClaw: 'क्लॉ',
-        addAgentSelectClawPlaceholder: 'एक क्लॉ चुनें',
-        addAgentName: 'नाम',
-        addAgentNamePlaceholder: 'एजेंट नाम दर्ज करें',
-        addAgentModel: 'मॉडल',
-        addAgentModelPlaceholder: 'एक मॉडल चुनें',
-        addAgentApiKey: 'API कुंजी',
-        addAgentApiKeyPlaceholder: 'अपनी API कुंजी दर्ज करें (वैकल्पिक)',
-        addAgentApiKeyConfigured:
-            '{{envVar}} पहले से सेट है. जोड़ने के बाद Variables टैब में संपादित करें.',
-        addAgentSubmit: 'एजेंट जोड़ें',
-        addAgentSuccess: 'एजेंट सफलतापूर्वक जोड़ा गया.',
-        addAgentFailed: 'एजेंट जोड़ने में विफल!',
-        deleteAgent: 'एजेंट हटाएँ',
-        deleteAgentTitle: 'एजेंट हटाएँ',
-        deleteAgentDescription:
-            'क्या आप वाकई एजेंट "{{agentName}}" को हटाना चाहते हैं? यह कार्य पूर्ववत नहीं किया जा सकता. एनवायरनमेंट वेरिएबल नहीं हटाए जाएँगे.',
-        deleteAgentConfirm: 'हटाएँ',
-        agentDontAskAgain: 'इस सत्र में एजेंट हटाते समय दोबारा न पूछें',
-        deleteAgentDeleting: 'हटाया जा रहा है...',
-        deleteAgentSuccess: 'एजेंट सफलतापूर्वक हटाया गया.',
-        deleteAgentFailed: 'एजेंट हटाने में विफल!',
-        configurationName: 'नाम',
-        configurationNamePlaceholder: 'एजेंट नाम दर्ज करें',
-        configurationNameDescription: 'केवल अक्षर, संख्याएँ और डैश.',
-        agentNameRequired: 'एजेंट नाम आवश्यक है!',
-        agentNameInvalidChars: 'केवल अक्षर, संख्याएँ और डैश की अनुमति है!',
-        agentNameDuplicate: 'इस नाम का एक एजेंट पहले से मौजूद है!',
-        chatConnecting: 'कनेक्ट हो रहा है...',
-        chatAuthenticating: 'प्रमाणित हो रहा है...',
-        chatDisconnected: 'डिस्कनेक्ट',
-        chatError: 'कनेक्शन त्रुटि!',
-        chatConnected: 'कनेक्टेड',
-        chatInputPlaceholder: 'एक संदेश टाइप करें...',
-        chatInputDisabled: 'इस एजेंट से चैट करने के लिए कनेक्ट करें',
-        chatSend: 'संदेश भेजें',
-        chatAbort: 'रोकें',
-        chatStopProcess: 'प्रक्रिया रोकें',
-        chatRemoveAttachment: 'अटैचमेंट हटाएँ',
-        chatThinking: 'सोच रहा है',
-        chatLoadingHistory: 'संदेश लोड हो रहे हैं...',
-        chatNoMessages: 'कोई संदेश नहीं',
-        chatNoMessagesDescription:
-            'इस एजेंट के साथ बातचीत शुरू करने के लिए एक संदेश भेजें.',
-        chatErrorMessage: 'प्रतिक्रिया जनरेट करते समय एक त्रुटि हुई!',
-        chatAbortedMessage: 'प्रतिक्रिया रोक दी गई.',
-        chatPlaySpeech: 'ज़ोर से पढ़ें',
-        chatReplaySpeech: 'फिर से चलाएँ',
-        chatStopSpeech: 'रोकें',
-        chatSpeechFailed: 'स्पीच जनरेट करने में विफल!',
-        chatReadOnlyPlaceholder: 'चैट आपके अपने क्लॉज़ पर उपलब्ध है.',
-        chatReadOnlyUser:
-            'नमस्ते! क्या आप मुझे Node.js प्रोजेक्ट सेटअप करने में मदद कर सकते हैं?',
-        chatReadOnlyAssistant:
-            'बिल्कुल! मैं आपको एक नया Node.js प्रोजेक्ट शुरू करने में मदद कर सकता हूँ. क्या आप चाहेंगे कि मैं कुछ सामान्य डिपेंडेंसी के साथ package.json बनाऊँ?',
-        chatReadOnlyReply:
-            'यह एक प्रीव्यू है! एक क्लिक में अपना OpenClaw डिप्लॉय करें और मिनटों में अपने AI एजेंट से चैटिंग शुरू करें!',
-        chatReadOnlyUser2:
-            'क्या आप टेस्ट सूट चला सकते हैं और विफलताओं की जाँच कर सकते हैं?',
-        chatReadOnlyAssistant2:
-            'ज़रूर! मैं अभी सभी टेस्ट चलाता हूँ. 3 पास, 0 फ़ेल. सब कुछ अच्छा दिख रहा है — सभी अभिकथन पास हो रहे हैं.',
-        chatReadOnlyGoUser:
-            'हेलो, क्या आप मेरी डिप्लॉयमेंट पाइपलाइन ऑटोमेट करने में मदद कर सकते हैं?',
-        chatReadOnlyGoAssistant:
-            'बिल्कुल! मैं आपके लिए CI/CD पाइपलाइन सेट कर सकता हूँ. क्या आप चाहेंगे कि मैं एक GitHub Actions वर्कफ़्लो से शुरू करूँ जो स्वचालित रूप से बिल्ड, टेस्ट और डिप्लॉय करे?',
-        chatReadOnlyGoReply:
-            'यह एक प्रीव्यू है! ClawHost Go प्राप्त करें और OpenClaw स्थानीय रूप से चलाएँ — आपकी मशीन, आपका डेटा, कोई क्लाउड नहीं चाहिए.',
-        chatReadOnlyGoUser2:
-            'क्या आप मेरी स्थानीय सेवाओं को मॉनिटर कर सकते हैं और कुछ डाउन होने पर मुझे अलर्ट कर सकते हैं?',
-        chatReadOnlyGoAssistant2:
-            'काम पर हूँ! मैं आपकी सभी सेवाओं के लिए हेल्थ चेक सेट करता हूँ. वर्तमान में 4 एंडपॉइंट मॉनिटर हो रहे हैं — सभी स्वस्थ और प्रतिक्रिया दे रहे हैं.',
-        chatConnectionFailed: 'इस एजेंट से कनेक्ट करने में विफल!',
-        chatConnectionFailedDescription:
-            'सुनिश्चित करें कि क्लॉ चल रहा है और पहुँच योग्य है.',
-        chatNotConfigured: 'एजेंट कॉन्फ़िगर नहीं है.',
-        chatNotConfiguredDescription:
-            'चैटिंग शुरू करने के लिए Configuration टैब में एक मॉडल चुनें और API कुंजी सेट करें.',
-        chatConfigureButton: 'एजेंट कॉन्फ़िगर करें',
-        chatToday: 'आज',
-        chatYesterday: 'कल',
-        chatExpandFullscreen: 'चैट विस्तारित करें',
-        chatAttachFile: 'फ़ाइल संलग्न करें',
-        chatDropFiles: 'संलग्न करने के लिए फ़ाइलें ड्रॉप करें',
-        chatDropFilesDescription: '5 MB तक की छवियाँ, PDF और टेक्स्ट फ़ाइलें.',
-        chatVoiceInput: 'वॉइस इनपुट',
-        chatVoiceListening: 'सुन रहा है...',
-        chatVoiceNotSupported: 'इस ब्राउज़र में वॉइस इनपुट समर्थित नहीं है.',
-        chatVoiceMode: 'वॉइस मोड',
-        chatVoiceModeTapToSpeak: 'बोलना शुरू करने के लिए टैप करें',
-        chatVoiceModeListening: 'सुन रहा है...',
-        chatVoiceModeClose: 'वॉइस मोड समाप्त करें',
-        chatVoiceModeTranscribing: 'ट्रांसक्राइब हो रहा है...',
-        chatVoiceModeThinking: 'सोच रहा है...',
-        chatVoiceModeResponding: 'प्रतिक्रिया दे रहा है...',
-        chatVoiceModePreparing: 'स्पीच तैयार हो रही है...',
-        chatVoiceModeSpeaking: 'बोल रहा है...',
-        chatVoiceModeInputDevice: 'माइक्रोफ़ोन',
-        chatVoiceModeOutputDevice: 'स्पीकर',
-        chatVoiceModeNotSupported:
-            'इस ब्राउज़र में वॉइस पहचान समर्थित नहीं है.',
-        chatVoiceModeNoMicrophone:
-            'कोई माइक्रोफ़ोन नहीं मिला. वॉइस मोड का उपयोग करने के लिए एक कनेक्ट करें.',
-        chatVoiceModeNoSpeaker:
-            'कोई स्पीकर नहीं मिला. वॉइस मोड का उपयोग करने के लिए एक कनेक्ट करें.',
-        chatAttachmentNotSupported:
-            'यह फ़ाइल प्रकार समर्थित नहीं है. छवियाँ, PDF या टेक्स्ट फ़ाइलें उपयोग करें.',
-        chatNoPreview: 'कोई प्रीव्यू उपलब्ध नहीं.',
-        chatDownloadFile: 'फ़ाइल डाउनलोड करें',
-        chatCopyMessage: 'संदेश कॉपी करें',
-        tabChannels: 'चैनल',
-        channelsDescription:
-            'इस इंस्टेंस के लिए मैसेजिंग चैनल कॉन्फ़िगर करें. संदेश बाइंडिंग के माध्यम से एजेंट को भेजे जाते हैं.',
-        channelsWhatsApp: 'WhatsApp',
-        channelsWhatsAppPairDevice: 'डिवाइस पेयर करें',
-        channelsWhatsAppPairing: 'QR कोड की प्रतीक्षा...',
-        channelsWhatsAppScanQr:
-            'अपना डिवाइस लिंक करने के लिए WhatsApp से इस QR कोड को स्कैन करें.',
-        channelsWhatsAppScanInstructions:
-            'WhatsApp खोलें > सेटिंग्स > लिंक्ड डिवाइस > डिवाइस लिंक करें',
-        channelsWhatsAppQrRefreshed:
-            'पिछला QR कोड समाप्त हो गया. नीचे नया स्कैन करें.',
-        channelsWhatsAppPaired: 'WhatsApp सफलतापूर्वक पेयर हुआ.',
-        channelsWhatsAppPairFailed: 'पेयरिंग विफल. कृपया पुनः प्रयास करें!',
-        channelsWhatsAppAlreadyPaired: 'WhatsApp पहले से पेयर है!',
-        channelsWhatsAppUnpair: 'अनपेयर',
-        channelsWhatsAppConnected: 'कनेक्टेड',
-        channelsWhatsAppRepair: 'पुनः पेयर करें',
-        channelsWhatsAppChecking: 'कनेक्शन जाँच हो रही है...',
-        channelsVersionUnsupported:
-            'इस संस्करण में चैनल कॉन्फ़िगरेशन उपलब्ध नहीं है। आप टर्मिनल टैब का उपयोग करके मैन्युअल रूप से कनेक्ट कर सकते हैं या OpenClaw अपग्रेड कर सकते हैं।',
-        channelsVersionUnsupportedDocs: 'सेटअप गाइड देखें',
         featureVersionUnsupported: '{{feature}} {{version}} पर समर्थित नहीं है',
         featureVersionUnsupportedDescription:
             'हम इस संस्करण में UI के माध्यम से {{feature}} प्रबंधन का समर्थन नहीं करते। आप SSH, टर्मिनल या OpenClaw कंट्रोल पैनल के माध्यम से इसे प्रबंधित कर सकते हैं।',
         featureVersionUnsupportedButton: 'संस्करणों पर जाएं',
         featureVersionUnsupportedSupported: 'समर्थित संस्करण:',
         featureVersionUnsupportedNewer: 'नए संस्करण',
-        channelsTelegram: 'Telegram',
-        channelsDiscord: 'Discord',
-        channelsSlack: 'Slack',
-        channelsSignal: 'Signal',
-        channelsEnabled: 'सक्षम',
-        channelsAccount: 'खाता फ़ोन नंबर',
-        channelsAccountPlaceholder: '+15551234567',
-        channelsBotToken: 'बॉट टोकन',
-        channelsBotTokenPlaceholder: 'बॉट टोकन दर्ज करें',
-        channelsAppToken: 'ऐप टोकन',
-        channelsAppTokenPlaceholder: 'ऐप टोकन दर्ज करें',
-        channelsToken: 'बॉट टोकन',
-        channelsTokenPlaceholder: 'बॉट टोकन दर्ज करें',
-        channelsSigningSecret: 'साइनिंग सीक्रेट',
-        channelsSigningSecretPlaceholder: 'साइनिंग सीक्रेट दर्ज करें',
-        channelsDmPolicy: 'DM नीति',
-        channelsDmPolicyOpen: 'खुला',
-        channelsDmPolicyPairing: 'पेयरिंग',
-        channelsDmPolicyAllowlist: 'अनुमति सूची',
-        channelsDmPolicyDisabled: 'अक्षम',
-        channelsAllowFrom: 'से अनुमति दें',
-        channelsAllowFromPlaceholder: 'अनुमत ID, अल्पविराम से अलग',
-        channelsSave: 'सहेजें',
-        channelsSaved: 'चैनल सफलतापूर्वक अपडेट हुए.',
-        channelsSaveFailed: 'चैनल अपडेट करने में विफल!',
-        channelsLoading: 'चैनल लोड हो रहे हैं...',
-        channelsLoadFailed: 'चैनल लोड करने में विफल!',
-        channelsLoadFailedDescription:
-            'चैनल कॉन्फ़िगरेशन प्राप्त नहीं हो सका. कृपया पुनः प्रयास करें.',
-        channelsNoChanges: 'सहेजने के लिए कोई बदलाव नहीं.',
-        bindingsDescription:
-            'इस एजेंट को मैसेजिंग चैनल असाइन करें. प्रत्येक चैनल एक समय में केवल एक एजेंट को भेजा जा सकता है.',
-        bindingsNoChannels: 'कोई चैनल सक्षम नहीं.',
-        bindingsNoChannelsDescription:
-            'पहले इंस्टेंस सेटिंग्स में चैनल सक्षम करें, फिर उन्हें यहाँ एजेंट को असाइन करें.',
-        bindingsSaving: 'सहेजा जा रहा है...',
-        bindingsSaved: 'बाइंडिंग सफलतापूर्वक अपडेट हुईं.',
-        bindingsSaveFailed: 'बाइंडिंग अपडेट करने में विफल!',
-        tabSkills: 'स्किल',
-        skillsDescription:
-            'इस इंस्टेंस पर सभी एजेंट के लिए उपलब्ध साझा स्किल प्रबंधित करें.',
-        skillsSearch: 'स्किल खोजें...',
-        skillsNoResults: 'आपकी खोज से कोई स्किल मेल नहीं खाती.',
-        skillsEmpty: 'कोई स्किल नहीं',
-        skillsSave: 'स्किल सहेजें',
-        skillsSaved: 'स्किल सफलतापूर्वक अपडेट हुईं.',
-        skillsSaveFailed: 'स्किल अपडेट करने में विफल!',
-        skillsLoading: 'स्किल लोड हो रही हैं...',
-        skillsLoadFailed: 'स्किल लोड करने में विफल!',
-        skillsLoadFailedDescription:
-            'स्किल कॉन्फ़िगरेशन प्राप्त नहीं हो सका. कृपया पुनः प्रयास करें.',
-        agentSkillsDescription: 'इस एजेंट वर्कस्पेस में इंस्टॉल की गई स्किल.',
-        agentSkillsInstalling: 'इंस्टॉल हो रही है...',
-        agentSkillsInstalled: 'स्किल सफलतापूर्वक इंस्टॉल हुई.',
-        agentSkillsInstallFailed: 'स्किल इंस्टॉल करने में विफल!',
-        agentSkillsRemoving: 'हटाई जा रही है...',
-        agentSkillsRemoved: 'स्किल सफलतापूर्वक हटाई गई.',
-        agentSkillsRemoveFailed: 'स्किल हटाने में विफल!',
-        agentSkillsEmpty: 'कोई स्किल इंस्टॉल नहीं.',
-        agentSkillsEmptyDescription:
-            'इस एजेंट की क्षमताओं को विस्तारित करने के लिए एक स्किल इंस्टॉल करें.',
-        agentSkillsNamePlaceholder: 'स्किल नाम',
-        agentSkillsConfirmRemove: 'स्किल "{{skillName}}" हटाएँ?',
-        agentSkillsConfirmRemoveDescription:
-            'यह एजेंट वर्कस्पेस से स्किल हटा देगा.',
-        skillsBundledTab: 'बंडल्ड',
-        skillsClawHubTab: 'ClawHub',
-        clawHubSearch: 'ClawHub स्किल खोजें...',
-        clawHubNoResults: 'ClawHub पर कोई स्किल नहीं मिली.',
-        clawHubEmpty: 'कोई ClawHub स्किल इंस्टॉल नहीं.',
-        clawHubEmptyDescription:
-            'ClawHub मार्केटप्लेस से स्किल खोजें और इंस्टॉल करें.',
-        clawHubInstall: 'इंस्टॉल',
-        clawHubInstalled: 'ClawHub से स्किल इंस्टॉल हुई.',
-        clawHubInstallFailed: 'ClawHub से स्किल इंस्टॉल करने में विफल!',
-        clawHubRemove: 'हटाएँ',
-        clawHubRemoved: 'ClawHub स्किल हटाई गई.',
-        clawHubRemoveFailed: 'ClawHub स्किल हटाने में विफल!',
-        clawHubUpdate: 'अपडेट',
-        clawHubUpdated: 'ClawHub से स्किल अपडेट हुई.',
-        clawHubUpdateFailed: 'ClawHub स्किल अपडेट करने में विफल!',
-        clawHubUpdateAvailable: 'v{{version}} उपलब्ध',
-        clawHubBy: '{{author}} द्वारा',
-        clawHubDownloads: '{{count}} डाउनलोड',
-        clawHubVersion: 'v{{version}}',
-        clawHubLoadFailed: 'ClawHub लोड करने में विफल!',
-        clawHubLoadFailedDescription:
-            'ClawHub मार्केटप्लेस से कनेक्ट नहीं हो सका. कृपया पुनः प्रयास करें.',
         tabVersions: 'संस्करण',
+        tabFiles: 'फ़ाइल एक्सप्लोरर',
         versionsSearch: 'संस्करण खोजें...',
         versionsEmpty: 'कोई संस्करण नहीं मिला',
         versionsEmptyDescription: 'आपकी खोज से कोई संस्करण मेल नहीं खाता.',
@@ -2139,9 +1711,9 @@ const hi: Translations = {
         comingSoon: 'जल्द आ रहा है',
         messagesPlaceholder: 'संदेश और सूचनाएँ यहाँ दिखाई देंगी.',
         settingsPlaceholder: 'खाता सेटिंग्स और प्राथमिकताएँ यहाँ दिखाई देंगी.',
-        signIn: 'साइन इन',
+        signIn: 'प्रमाणीकरण',
         signInDescription:
-            'अपने OpenClaw इंस्टेंस प्रबंधित करने के लिए साइन इन करें.',
+            'अपने एजेंट प्रबंधित और डिप्लॉय करने के लिए प्रमाणित करें.',
         enterEmail: 'ईमेल पता',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'ईमेल से जारी रखें',
@@ -2156,21 +1728,17 @@ const hi: Translations = {
         changeEmail: 'ईमेल बदलें',
         invalidCode: 'अमान्य कोड!',
         codeExpired: 'कोड समाप्त हो गया. कृपया नया अनुरोध करें.',
-        signingIn: 'साइन इन हो रहा है...',
+        signingIn: 'प्रमाणित हो रहा है...',
         signOut: 'साइन आउट',
         signedInAs: 'इस रूप में साइन इन',
         loadMore: 'और लोड करें',
-        chatWithYourClaw: 'अपने क्लॉ से चैट करें',
         deployClaw: 'क्लॉ डिप्लॉय करें',
-        deployYourFirstClaw: 'अपना पहला क्लॉ डिप्लॉय करें',
-        voiceMode: 'वॉइस मोड',
-        voiceListening: 'सुन रहा है...',
-        voiceTapToSpeak: 'शुरू करने के लिए ऑर्ब को टैप करें'
+        deployYourFirstClaw: 'अपना पहला क्लॉ डिप्लॉय करें'
     },
     announcement: {
         title: 'सेवा सूचना',
         message:
-            'उच्च मांग के कारण, Claw डिप्लॉयमेंट अस्थायी रूप से अनुपलब्ध है. मौजूदा क्लॉज़ सामान्य रूप से चल रहे हैं.'
+            'उच्च मांग के कारण, एजेंट डिप्लॉयमेंट अस्थायी रूप से अनुपलब्ध है. मौजूदा एजेंट सामान्य रूप से चल रहे हैं.'
     },
     productHunt: {
         liveOn: 'लाइव है',
@@ -2212,13 +1780,8 @@ const hi: Translations = {
         featureSubdomainAccess: 'सबडोमेन एक्सेस',
         featureThemes: 'लाइट और डार्क थीम',
         featureSetupTime: 'सेटअप समय',
-        featureTechnicalSkill: 'तकनीकी कौशल आवश्यक',
         featureOneClickDeploy: 'एक-क्लिक डिप्लॉय',
         featureMultipleInstances: 'एकाधिक इंस्टेंस',
-        featureMultipleAgents: 'प्रति इंस्टेंस एकाधिक एजेंट',
-        featureSkillsMarketplace: 'स्किल मार्केटप्लेस',
-        featureChannelSupport: 'चैनल सपोर्ट',
-        featureAgentConfig: 'एजेंट कॉन्फ़िगरेशन',
         featureDataOwnership: 'पूर्ण डेटा स्वामित्व',
         featureDataExport: 'डेटा निर्यात',
         featureBackups: 'बैकअप',
@@ -2233,7 +1796,6 @@ const hi: Translations = {
         featureMultiLanguage: 'बहु-भाषा UI',
         featureMobileApp: 'मोबाइल ऐप',
         featureDesktopApp: 'डेस्कटॉप ऐप',
-        featureDirectChat: 'सीधी चैट',
         featureOneClickVersion: 'एक-क्लिक संस्करण स्विच',
         featureWebTerminal: 'वेब टर्मिनल एक्सेस',
         featureSocials: 'सोशल मीडिया',
@@ -2267,12 +1829,7 @@ const hi: Translations = {
         minimal: 'न्यूनतम',
         unlimited: 'असीमित',
         singleInstance: 'एकल',
-        fiveThousandSkills: '5,000+ स्किल (ClawHub)',
         noMarketplace: 'कोई मार्केटप्लेस नहीं',
-        allChannels: 'WhatsApp, Telegram, Discord, Slack, Signal',
-        telegramDiscord: 'Telegram, Discord',
-        discordGithubSlack: 'Discord, GitHub, Slack',
-        telegramGmailWhatsapp: 'Telegram, Gmail, WhatsApp',
         appOnly: 'केवल ऐप',
         fullConfig: 'पूर्ण कॉन्फ़िगरेशन',
         limitedConfig: 'सीमित',
@@ -2302,7 +1859,6 @@ const hi: Translations = {
         iosMacOs: 'iOS और macOS',
         macOsOnly: 'केवल macOS',
         viaTelegram: 'Telegram के माध्यम से',
-        builtInChat: 'बिल्ट-इन',
         builtInTerminal: 'कोई SSH नहीं चाहिए',
         notAvailable: 'उपलब्ध नहीं',
         disclaimer: 'कुछ बदला या गलत है? हमें ईमेल करें',
@@ -2363,7 +1919,7 @@ const hi: Translations = {
         noClawsFound: 'कोई Claw नहीं',
         noSSHKeysFound: 'कोई SSH कुंजी नहीं',
         noVolumesFound: 'कोई वॉल्यूम नहीं',
-        failedToLoadClaws: 'Claws लोड करने में विफल!',
+        failedToLoadAgents: 'Agents लोड करने में विफल!',
         failedToLoadSSHKeys: 'SSH कुंजियाँ लोड करने में विफल!',
         failedToLoadVolumes: 'वॉल्यूम लोड करने में विफल!',
         owner: 'मालिक',
@@ -2372,10 +1928,12 @@ const hi: Translations = {
         referralsTab: 'रेफ़रल',
         pendingClawsTab: 'लंबित',
         waitlistTab: 'प्रतीक्षा सूची',
-        exportsTab: 'निर्यात',
         emailsTab: 'ईमेल',
         analyticsTab: 'विश्लेषण',
         billingTab: 'बिलिंग',
+        settingsTab: 'सेटिंग्स',
+        settingsDescription: 'अपनी व्यवस्थापक प्राथमिकताएँ प्रबंधित करें.',
+        showAllAgents: 'सभी उपयोगकर्ताओं के सभी एजेंट दिखाएँ',
         billingFilterAll: 'सभी ऑर्डर',
         billingFilterService: 'Claw सेवा',
         billingFilterLicense: 'लाइसेंस',
@@ -2403,12 +1961,10 @@ const hi: Translations = {
         noReferralsFound: 'कोई रेफरल नहीं',
         noPendingClawsFound: 'कोई लंबित Claw नहीं',
         noWaitlistFound: 'कोई प्रतीक्षा सूची नहीं',
-        noExportsFound: 'कोई निर्यात नहीं',
         noEmailsFound: 'कोई ईमेल नहीं',
         failedToLoadReferrals: 'रेफ़रल लोड करने में विफल!',
         failedToLoadPendingClaws: 'लंबित Claws लोड करने में विफल!',
         failedToLoadWaitlist: 'प्रतीक्षा सूची लोड करने में विफल!',
-        failedToLoadExports: 'निर्यात लोड करने में विफल!',
         failedToLoadEmails: 'ईमेल लोड करने में विफल!',
         referrer: 'रेफ़रर',
         referred: 'रेफ़र किया गया',

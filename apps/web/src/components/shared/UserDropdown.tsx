@@ -21,14 +21,15 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui'
-import ClawMascotOutline from '@/components/shared/ClawMascotOutline'
 import {
+    RobotIcon,
     KeyIcon,
     UserIcon,
     SignOutIcon,
     ReceiptIcon,
     HandshakeIcon,
-    ShieldCheckIcon
+    ShieldCheckIcon,
+    CertificateIcon
 } from '@phosphor-icons/react'
 
 const UserDropdown: FC<UserDropdownProps> = ({
@@ -104,7 +105,7 @@ const UserDropdown: FC<UserDropdownProps> = ({
                     onClick={() => navigate(ROUTES.CLAWS)}
                     className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.CLAWS ? 'bg-foreground/10' : ''}`}
                 >
-                    <ClawMascotOutline className='h-4 w-4' />
+                    <RobotIcon className='h-4 w-4' />
                     {t('nav.claws')}
                 </DropdownMenuItem>
                 {!hideSSHKeys && (
@@ -137,6 +138,16 @@ const UserDropdown: FC<UserDropdownProps> = ({
                     >
                         <ReceiptIcon className='h-4 w-4' />
                         {t('nav.billing')}
+                    </DropdownMenuItem>
+                )}
+
+                {isAdmin && (
+                    <DropdownMenuItem
+                        onClick={() => navigate(ROUTES.LICENSE)}
+                        className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.LICENSE ? 'bg-foreground/10' : ''}`}
+                    >
+                        <CertificateIcon className='h-4 w-4' />
+                        {t('nav.license')}
                     </DropdownMenuItem>
                 )}
 

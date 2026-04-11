@@ -18,9 +18,14 @@ const decrypt = (ciphertext: string): string => {
         decipher.setAuthTag(tag)
         return decipher.update(encrypted) + decipher.final('utf8')
     } catch (error) {
-        if (error instanceof Error && error.message.startsWith('Invalid ciphertext'))
+        if (
+            error instanceof Error &&
+            error.message.startsWith('Invalid ciphertext')
+        )
             throw error
-        throw new Error('Decryption failed: data may be corrupted or key is incorrect')
+        throw new Error(
+            'Decryption failed: data may be corrupted or key is incorrect'
+        )
     }
 }
 

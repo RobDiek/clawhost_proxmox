@@ -1,16 +1,11 @@
 import type {
-    AgentConfigResponse,
     BillingHistoryResponse,
-    ClawEnvVarsResponse,
     BillingInvoiceResponse,
     Claw,
     ClawCredentialsResponse,
     RenameClawData,
     UpdateClawSubdomainData,
-    ClawAgentsResponse,
-    ClawChannelsResponse,
     ClawFilesResponse,
-    ClawSkillsResponse,
     ClawVersionResponse,
     ClawVersionsResponse,
     InstallClawVersionResponse,
@@ -19,7 +14,6 @@ import type {
     DeleteClawResponse,
     DiagnosticsLogsResponse,
     DiagnosticsStatusResponse,
-    GetAgentSkillsResponse,
     Location,
     PlansResponse,
     PlanAvailability,
@@ -27,25 +21,7 @@ import type {
     ReadClawFileResponse,
     ResolveCredentialConflictData,
     SSHKey,
-    CreateAgentData,
-    CreateAgentResponse,
-    DeleteAgentData,
-    UpdateAgentConfigData,
-    UpdateAgentSkillsData,
-    UpdateClawChannelsData,
-    WhatsAppPairResponse,
-    WhatsAppPairStatusResponse,
-    BrowseClawHubData,
-    ClawHubSkillActionData,
-    ClawHubUpdateData,
-    ClawHubBrowseResponse,
-    ClawHubInstalledResponse,
-    ClawHubUpdatesResponse,
-    ClawBindingsResponse,
-    UpdateClawBindingsData,
-    UpdateClawEnvVarsData,
     UpdateClawFileData,
-    UpdateClawSkillsData,
     UpdateProfileData,
     UserProfile,
     UserStats,
@@ -151,73 +127,6 @@ const api = {
             id,
             version
         ) as Promise<InstallClawVersionResponse>,
-    getClawAgents: (id: string) =>
-        invoke('getClawAgents', id) as Promise<ClawAgentsResponse>,
-    getClawAgentConfig: (id: string, agentId: string) =>
-        invoke('getClawAgentConfig', id, {
-            agentId
-        }) as Promise<AgentConfigResponse>,
-    updateClawAgentConfig: (id: string, data: UpdateAgentConfigData) =>
-        invoke('updateClawAgentConfig', id, data) as Promise<void>,
-    createClawAgent: (id: string, data: CreateAgentData) =>
-        invoke('createClawAgent', id, data) as Promise<CreateAgentResponse>,
-    deleteClawAgent: (id: string, data: DeleteAgentData) =>
-        invoke('deleteClawAgent', id, data) as Promise<void>,
-    getClawChannels: (id: string) =>
-        invoke('getClawChannels', id) as Promise<ClawChannelsResponse>,
-    updateClawChannels: (id: string, data: UpdateClawChannelsData) =>
-        invoke('updateClawChannels', id, data) as Promise<void>,
-    pairWhatsApp: (id: string) =>
-        invoke('pairWhatsApp', id) as Promise<WhatsAppPairResponse>,
-    pairWhatsAppStatus: (id: string) =>
-        invoke('pairWhatsAppStatus', id) as Promise<WhatsAppPairStatusResponse>,
-    getClawBindings: (id: string) =>
-        invoke('getClawBindings', id) as Promise<ClawBindingsResponse>,
-    updateClawBindings: (id: string, data: UpdateClawBindingsData) =>
-        invoke('updateClawBindings', id, data) as Promise<void>,
-    getClawSkills: (id: string) =>
-        invoke('getClawSkills', id) as Promise<ClawSkillsResponse>,
-    updateClawSkills: (id: string, data: UpdateClawSkillsData) =>
-        invoke('updateClawSkills', id, data) as Promise<void>,
-    getAgentSkills: (clawId: string, agentId: string) =>
-        invoke(
-            'getAgentSkills',
-            clawId,
-            agentId
-        ) as Promise<GetAgentSkillsResponse>,
-    updateAgentSkills: (
-        clawId: string,
-        agentId: string,
-        data: UpdateAgentSkillsData
-    ) => invoke('updateAgentSkills', clawId, agentId, data) as Promise<void>,
-    browseClawHubSkills: (_clawId: string, params: BrowseClawHubData) => {
-        const qs = new URLSearchParams()
-        if (params.query) qs.set('query', params.query)
-        if (params.limit) qs.set('limit', String(params.limit))
-        if (params.cursor) qs.set('cursor', params.cursor)
-        const str = qs.toString()
-        return publicClient.get<ClawHubBrowseResponse>(
-            `/clawhub/skills${str ? `?${str}` : ''}`
-        )
-    },
-    getClawHubInstalled: (clawId: string, agentId?: string) =>
-        invoke('getClawHubInstalled', clawId, {
-            agentId
-        }) as Promise<ClawHubInstalledResponse>,
-    installClawHubSkill: (clawId: string, data: ClawHubSkillActionData) =>
-        invoke('installClawHubSkill', clawId, data) as Promise<void>,
-    removeClawHubSkill: (clawId: string, data: ClawHubSkillActionData) =>
-        invoke('removeClawHubSkill', clawId, data) as Promise<void>,
-    updateClawHubSkill: (clawId: string, data: ClawHubUpdateData) =>
-        invoke('updateClawHubSkill', clawId, data) as Promise<void>,
-    checkClawHubUpdates: (clawId: string, agentId?: string) =>
-        invoke('checkClawHubUpdates', clawId, {
-            agentId
-        }) as Promise<ClawHubUpdatesResponse>,
-    getClawEnvVars: (id: string) =>
-        invoke('getClawEnvVars', id) as Promise<ClawEnvVarsResponse>,
-    updateClawEnvVars: (id: string, data: UpdateClawEnvVarsData) =>
-        invoke('updateClawEnvVars', id, data) as Promise<void>,
     exportClaw: async (id: string, filename: string) => {
         await invoke('exportClaw', id, filename)
     },

@@ -1,5 +1,5 @@
-import demoPlaygroundData from '@/data/demoPlaygroundData'
+import demoClaws from '@/data/demoClaws'
 import getCompareData from '@/data/compareData'
 import getLegalLinks from '@/data/legalLinks'
 
-export { demoPlaygroundData, getCompareData, getLegalLinks }
+export { demoClaws, getCompareData, getLegalLinks }

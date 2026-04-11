@@ -1,86 +1,202 @@
 import type { FC, ReactNode } from 'react'
 import type { DashboardChatViewProps } from '@/ts/Interfaces'
 
-import { Suspense, lazy } from 'react'
-import { motion } from 'framer-motion'
+import {
+    Fragment,
+    useState,
+    useEffect,
+    useMemo,
+    useCallback,
+    useRef
+} from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
+import { ListIcon, XIcon } from '@phosphor-icons/react'
 import { EmptyState, ClawMascot } from '@/components'
-import { PlaygroundLoadingState } from '@/components/playground'
-
-const ChatView = lazy(() => import('@/components/chat/ChatView'))
+import { ClawDetailPanel } from '@/components/dashboard'
+import { ChatSidebar } from '@/components/chat'
+import { ChatEmptyState } from '@/components/chat'
 
 const DashboardChatView: FC<DashboardChatViewProps> = ({
     displayedClaws,
-    agentQueries,
     plans,
     sshKeys,
     adminMode,
-    chatSelectedAgent,
     chatSettingsClawId,
-    chatAgentTab,
     chatClawTab,
-    onAgentSelect,
-    onConfigureAgent,
-    onCreateAgent,
     onSettingsClawChange,
-    onAgentTabChange,
     onClawTabChange,
     onCreateClick
 }): ReactNode => {
-    return (
-        <Suspense
-            fallback={
-                <div className='flex h-full min-w-0 flex-1 items-center justify-center'>
-                    <PlaygroundLoadingState />
-                </div>
+    const [settingsClawId, setSettingsClawId] = useState<string | null>(
+        chatSettingsClawId || null
+    )
+    const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+    const isInitialMount = useRef(true)
+
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false
+            return
+        }
+        onSettingsClawChange?.(settingsClawId)
+    }, [settingsClawId])
+
+    useEffect(() => {
+        if (!settingsClawId && displayedClaws.length > 0)
+            setSettingsClawId(displayedClaws[0].id)
+    }, [settingsClawId, displayedClaws])
+
+    const settingsClaw = useMemo(() => {
+        if (!settingsClawId) return null
+        return displayedClaws.find((c) => c.id === settingsClawId) || null
+    }, [displayedClaws, settingsClawId])
+
+    const closeMobileSidebar = useCallback(() => {
+        setMobileSidebarOpen(false)
+    }, [])
+
+    const handleOpenClawSettings = useCallback(
+        (clawId: string) => {
+            if (settingsClawId === clawId) {
+                setSettingsClawId(null)
+                setMobileSidebarOpen(false)
+                return
             }
-        >
+            setSettingsClawId(clawId)
+            setMobileSidebarOpen(false)
+        },
+        [settingsClawId]
+    )
+
+    const handleCloseClawSettings = useCallback(() => {
+        setSettingsClawId(null)
+    }, [])
+
+    const mobileLabel = useMemo(() => {
+        if (settingsClaw) return settingsClaw.name
+        return t('nav.claws')
+    }, [settingsClaw])
+
+    if (displayedClaws.length === 0) {
+        return (
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
                 className='flex h-full min-w-0 flex-1'
             >
-                {displayedClaws.length === 0 ? (
-                    <div className='flex h-full min-w-0 flex-1 items-center justify-center'>
-                        <div className='-mt-20'>
-                            <EmptyState
-                                icon={<ClawMascot className='h-10 w-10' />}
-                                title={
-                                    adminMode
-                                        ? t('dashboard.adminNoClaws')
-                                        : t('playground.noClawsYet')
-                                }
-                                description={
-                                    adminMode
-                                        ? t('dashboard.adminDescription')
-                                        : t('playground.noClawsDescription')
-                                }
-                                actionLabel={t('nav.deployOpenClaw')}
-                                onAction={onCreateClick}
-                            />
-                        </div>
+                <div className='flex h-full min-w-0 flex-1 items-center justify-center'>
+                    <div className='-mt-20'>
+                        <EmptyState
+                            icon={<ClawMascot className='h-10 w-10' />}
+                            title={
+                                adminMode
+                                    ? t('dashboard.adminNoClaws')
+                                    : t('clawDetail.noAgentsYet')
+                            }
+                            description={
+                                adminMode
+                                    ? t('dashboard.adminDescription')
+                                    : t('clawDetail.noAgentsDescription')
+                            }
+                            actionLabel={t('nav.deployOpenClaw')}
+                            onAction={onCreateClick}
+                        />
                     </div>
-                ) : (
-                    <ChatView
-                        claws={displayedClaws}
-                        agentQueries={agentQueries}
-                        plans={plans}
-                        sshKeys={sshKeys}
-                        selectedAgent={chatSelectedAgent}
-                        onAgentSelect={onAgentSelect}
-                        onConfigureAgent={onConfigureAgent}
-                        onCreateAgent={onCreateAgent}
-                        initialSettingsClawId={chatSettingsClawId}
-                        onSettingsClawChange={onSettingsClawChange}
-                        initialAgentTab={chatAgentTab || undefined}
-                        onAgentTabChange={onAgentTabChange}
-                        initialClawTab={chatClawTab || undefined}
-                        onClawTabChange={onClawTabChange}
-                    />
-                )}
+                </div>
             </motion.div>
-        </Suspense>
+        )
+    }
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className='flex h-full min-w-0 flex-1'
+        >
+            <div className='relative flex h-full w-full overflow-hidden'>
+                <div className='playground-grid pointer-events-none absolute inset-0 opacity-50' />
+                <div className='hidden md:block'>
+                    <ChatSidebar
+                        claws={displayedClaws}
+                        selectedClawId={settingsClawId}
+                        onOpenClawSettings={handleOpenClawSettings}
+                    />
+                </div>
+                <div className='max-md:bg-background flex min-w-0 flex-1 flex-col max-md:relative max-md:z-10'>
+                    {!settingsClaw && (
+                        <div className='border-border bg-background flex items-center gap-2 border-b px-4 py-2.5 md:hidden'>
+                            <button
+                                onClick={() =>
+                                    setMobileSidebarOpen(!mobileSidebarOpen)
+                                }
+                                className='text-muted-foreground hover:bg-foreground/10 hover:text-foreground rounded-lg p-1.5 transition-colors'
+                            >
+                                {mobileSidebarOpen ? (
+                                    <XIcon className='h-5 w-5' weight='bold' />
+                                ) : (
+                                    <ListIcon
+                                        className='h-5 w-5'
+                                        weight='bold'
+                                    />
+                                )}
+                            </button>
+                            <span className='text-foreground/80 min-w-0 flex-1 truncate text-sm font-medium'>
+                                {mobileLabel}
+                            </span>
+                        </div>
+                    )}
+                    <div className='relative flex min-h-0 flex-1 flex-col'>
+                        <AnimatePresence>
+                            {mobileSidebarOpen && (
+                                <Fragment>
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.15 }}
+                                        className='absolute inset-0 z-20 bg-black/50 md:hidden'
+                                        onClick={closeMobileSidebar}
+                                    />
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.15 }}
+                                        className='bg-background absolute inset-0 z-30 overflow-y-auto md:hidden'
+                                    >
+                                        <ChatSidebar
+                                            claws={displayedClaws}
+                                            selectedClawId={settingsClawId}
+                                            onOpenClawSettings={
+                                                handleOpenClawSettings
+                                            }
+                                            onClose={closeMobileSidebar}
+                                        />
+                                    </motion.div>
+                                </Fragment>
+                            )}
+                        </AnimatePresence>
+                        {settingsClaw ? (
+                            <ClawDetailPanel
+                                key={`fullscreen-${settingsClaw.id}`}
+                                claw={settingsClaw}
+                                plans={plans}
+                                sshKeys={sshKeys}
+                                onClose={handleCloseClawSettings}
+                                initialTab={chatClawTab || undefined}
+                                onTabChange={onClawTabChange}
+                                fullScreen
+                            />
+                        ) : (
+                            <ChatEmptyState />
+                        )}
+                    </div>
+                </div>
+            </div>
+        </motion.div>
     )
 }
 

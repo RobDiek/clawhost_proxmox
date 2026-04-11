@@ -4,14 +4,7 @@ import { t } from '@openclaw/i18n'
 import { featureEmailKey } from '@/lib/constants'
 import TerminalEmail from '@/emails/TerminalEmail'
 import LogsEmail from '@/emails/LogsEmail'
-import ChannelsEmail from '@/emails/ChannelsEmail'
 import FileExplorerEmail from '@/emails/FileExplorerEmail'
-import PlaygroundEmail from '@/emails/PlaygroundEmail'
-import AgentChatEmail from '@/emails/AgentChatEmail'
-import VoiceModeEmail from '@/emails/VoiceModeEmail'
-import SkillsEmail from '@/emails/SkillsEmail'
-import BindingsEmail from '@/emails/BindingsEmail'
-import EnvVarsEmail from '@/emails/EnvVarsEmail'
 import DiagnosticsEmail from '@/emails/DiagnosticsEmail'
 import SshKeysEmail from '@/emails/SshKeysEmail'
 import ExportConfigEmail from '@/emails/ExportConfigEmail'
@@ -20,6 +13,7 @@ import SubdomainEmail from '@/emails/SubdomainEmail'
 import DarkModeEmail from '@/emails/DarkModeEmail'
 import ReinstallEmail from '@/emails/ReinstallEmail'
 import YearlyPlansEmail from '@/emails/YearlyPlansEmail'
+import SimplifiedPlatformEmail from '@/emails/SimplifiedPlatformEmail'
 
 const FEATURE_EMAILS: FeatureEmailDefinition[] = [
     {
@@ -33,44 +27,9 @@ const FEATURE_EMAILS: FeatureEmailDefinition[] = [
         render: () => LogsEmail({})
     },
     {
-        key: featureEmailKey.channels,
-        subject: t('emails.features.channels.subject'),
-        render: () => ChannelsEmail({})
-    },
-    {
         key: featureEmailKey.fileExplorer,
         subject: t('emails.features.fileExplorer.subject'),
         render: () => FileExplorerEmail({})
-    },
-    {
-        key: featureEmailKey.playground,
-        subject: t('emails.features.playground.subject'),
-        render: () => PlaygroundEmail({})
-    },
-    {
-        key: featureEmailKey.agentChat,
-        subject: t('emails.features.agentChat.subject'),
-        render: () => AgentChatEmail({})
-    },
-    {
-        key: featureEmailKey.voiceMode,
-        subject: t('emails.features.voiceMode.subject'),
-        render: () => VoiceModeEmail({})
-    },
-    {
-        key: featureEmailKey.skills,
-        subject: t('emails.features.skills.subject'),
-        render: () => SkillsEmail({})
-    },
-    {
-        key: featureEmailKey.bindings,
-        subject: t('emails.features.bindings.subject'),
-        render: () => BindingsEmail({})
-    },
-    {
-        key: featureEmailKey.envVars,
-        subject: t('emails.features.envVars.subject'),
-        render: () => EnvVarsEmail({})
     },
     {
         key: featureEmailKey.diagnostics,
@@ -111,6 +70,11 @@ const FEATURE_EMAILS: FeatureEmailDefinition[] = [
         key: featureEmailKey.yearlyPlans,
         subject: t('emails.features.yearlyPlans.subject'),
         render: () => YearlyPlansEmail({})
+    },
+    {
+        key: featureEmailKey.simplifiedPlatform,
+        subject: t('emails.features.simplifiedPlatform.subject'),
+        render: () => SimplifiedPlatformEmail({})
     }
 ]
 

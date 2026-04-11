@@ -23,9 +23,9 @@ const API_PATHS = {
         CANCEL_DELETION: (id: string) => `/claws/${id}/cancel-deletion`,
         HARD_DELETE: (id: string) => `/claws/${id}/hard-delete`,
         SUBDOMAIN: (id: string) => `/claws/${id}/subdomain`,
+        CHECK_SUBDOMAIN: '/claws/check-subdomain',
         REINSTALL: (id: string) => `/claws/${id}/reinstall`,
         CREDENTIALS: (id: string) => `/claws/${id}/credentials`,
-        ENV: (id: string) => `/claws/${id}/env`,
         EXPORT: (id: string) => `/claws/${id}/export`,
         DIAGNOSTICS: {
             STATUS: (id: string) => `/claws/${id}/diagnostics/status`,
@@ -35,34 +35,9 @@ const API_PATHS = {
         VERSION: (id: string) => `/claws/${id}/version`,
         VERSIONS: (id: string) => `/claws/${id}/versions`,
         INSTALL_VERSION: (id: string) => `/claws/${id}/install-version`,
-        AGENTS: {
-            BASE: (id: string) => `/claws/${id}/agents`,
-            CREATE: (id: string) => `/claws/${id}/agents/create`,
-            DELETE: (id: string) => `/claws/${id}/agents/delete`,
-            CONFIG: (id: string) => `/claws/${id}/agent-config`,
-            SKILLS: (clawId: string, agentId: string) =>
-                `/claws/${clawId}/agents/${agentId}/skills`
-        },
-        CHANNELS: {
-            BASE: (id: string) => `/claws/${id}/channels`,
-            WHATSAPP_PAIR: (id: string) =>
-                `/claws/${id}/channels/whatsapp/pair`,
-            WHATSAPP_PAIR_STATUS: (id: string) =>
-                `/claws/${id}/channels/whatsapp/pair-status`
-        },
-        BINDINGS: (id: string) => `/claws/${id}/bindings`,
-        SKILLS: (id: string) => `/claws/${id}/skills`,
         FILES: {
             BASE: (id: string) => `/claws/${id}/files`,
             READ: (id: string) => `/claws/${id}/files/read`
-        },
-        CLAWHUB: {
-            SKILLS: (id: string) => `/claws/${id}/clawhub/skills`,
-            INSTALLED: (id: string) => `/claws/${id}/clawhub/installed`,
-            INSTALL: (id: string) => `/claws/${id}/clawhub/install`,
-            REMOVE: (id: string) => `/claws/${id}/clawhub/remove`,
-            UPDATE: (id: string) => `/claws/${id}/clawhub/update`,
-            UPDATES: (id: string) => `/claws/${id}/clawhub/updates`
         }
     },
     AFFILIATE: {
@@ -84,10 +59,6 @@ const API_PATHS = {
             `/users/me/billing/${orderId}/invoice`,
         AUTH_METHOD: (method: string) => `/users/me/auth/${method}`
     },
-    AI: {
-        TTS: '/ai/tts',
-        VOICES: '/ai/voices'
-    },
     WAITLIST: {
         BASE: '/waitlist',
         STATUS: '/waitlist/status'
@@ -105,7 +76,6 @@ const API_PATHS = {
         VOLUMES: '/admin/volumes',
         REFERRALS: '/admin/referrals',
         WAITLIST: '/admin/waitlist',
-        EXPORTS: '/admin/exports',
         EMAILS: '/admin/emails'
     },
     WEBHOOKS: {

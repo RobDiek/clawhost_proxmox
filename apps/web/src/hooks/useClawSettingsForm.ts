@@ -1,12 +1,15 @@
 import type { Claw } from '@/ts/Interfaces'
 import type { UseClawSettingsFormReturn } from '@/ts/Interfaces'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { inputValidation } from '@openclaw/shared'
 import { useRenameClaw, useUpdateClawSubdomain } from '@/hooks/useClaws'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
+import { api } from '@/lib'
+
+const SUBDOMAIN_CHECK_DELAY = 500
 
 const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
     const [settingsName, setSettingsName] = useState(claw.name)
@@ -15,9 +18,11 @@ const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
         claw.subdomain || ''
     )
     const [settingsSubdomainError, setSettingsSubdomainError] = useState('')
+    const [subdomainChecking, setSubdomainChecking] = useState(false)
     const renameMutation = useRenameClaw()
     const subdomainMutation = useUpdateClawSubdomain()
     const { showToast } = useUIStore()
+    const checkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     useEffect(() => {
         setSettingsName(claw.name)
@@ -28,6 +33,10 @@ const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
         setSettingsSubdomain(claw.subdomain || '')
         setSettingsSubdomainError('')
     }, [claw.subdomain])
+
+    const subdomainRegex = new RegExp(
+        `^[a-z0-9]{${inputValidation.SUBDOMAIN.MIN},${inputValidation.SUBDOMAIN.MAX}}$`
+    )
 
     const handleSettingsNameChange = useCallback((value: string) => {
         setSettingsName(value)
@@ -40,18 +49,46 @@ const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
 
     const handleSettingsSubdomainChange = useCallback((value: string) => {
         setSettingsSubdomain(value)
-        const subdomainRegex = new RegExp(
-            `^[a-z0-9]{${inputValidation.SUBDOMAIN.MIN},${inputValidation.SUBDOMAIN.MAX}}$`
-        )
-        if (value.trim() && !subdomainRegex.test(value)) {
+
+        if (checkTimerRef.current) clearTimeout(checkTimerRef.current)
+
+        if (!value.trim() || !subdomainRegex.test(value)) {
+            setSubdomainChecking(false)
             setSettingsSubdomainError(
-                t('playground.subdomainInvalid', {
+                t('clawDetail.subdomainInvalid', {
                     min: inputValidation.SUBDOMAIN.MIN,
                     max: inputValidation.SUBDOMAIN.MAX
                 })
             )
-        } else {
+            return
+        }
+
+        if (value.trim() === (claw.subdomain || '')) {
+            setSubdomainChecking(false)
             setSettingsSubdomainError('')
+            return
+        }
+
+        setSubdomainChecking(true)
+        setSettingsSubdomainError('')
+
+        checkTimerRef.current = setTimeout(async () => {
+            try {
+                const result = await api.checkSubdomain(value.trim())
+                if (!result.available) {
+                    setSettingsSubdomainError(t('clawDetail.subdomainInUse'))
+                }
+            } catch {
+                setSettingsSubdomainError(t('clawDetail.subdomainUpdateFailed'))
+            } finally {
+                setSubdomainChecking(false)
+            }
+        }, SUBDOMAIN_CHECK_DELAY)
+    }, [claw.subdomain, subdomainRegex])
+
+    useEffect(() => {
+        return () => {
+            if (checkTimerRef.current) clearTimeout(checkTimerRef.current)
         }
     }, [])
 
@@ -90,12 +127,9 @@ const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
             trimmedSubdomain &&
             trimmedSubdomain !== (claw.subdomain || '')
         ) {
-            const subdomainRegex = new RegExp(
-                `^[a-z0-9]{${inputValidation.SUBDOMAIN.MIN},${inputValidation.SUBDOMAIN.MAX}}$`
-            )
             if (!subdomainRegex.test(trimmedSubdomain)) {
                 setSettingsSubdomainError(
-                    t('playground.subdomainInvalid', {
+                    t('clawDetail.subdomainInvalid', {
                         min: inputValidation.SUBDOMAIN.MIN,
                         max: inputValidation.SUBDOMAIN.MAX
                     })
@@ -107,15 +141,15 @@ const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
                 {
                     onSuccess: () => {
                         showToast(
-                            t('playground.subdomainUpdated'),
+                            t('clawDetail.subdomainUpdated'),
                             TOAST_TYPE.SUCCESS
                         )
                     },
                     onError: (err) => {
-                        const raw = err instanceof Error ? err.message : ''
-                        const message = raw.includes('already in use')
-                            ? t('playground.subdomainInUse')
-                            : t('playground.subdomainUpdateFailed')
+                        const message =
+                            err instanceof Error && err.message
+                                ? err.message
+                                : t('clawDetail.subdomainUpdateFailed')
                         showToast(message, TOAST_TYPE.ERROR)
                     }
                 }
@@ -131,6 +165,7 @@ const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
         subdomainHasChanges,
         renameMutation,
         subdomainMutation,
+        subdomainRegex,
         showToast
     ])
 
@@ -141,7 +176,7 @@ const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
         settingsSubdomainError,
         settingsHasChanges,
         renamePending: renameMutation.isPending,
-        subdomainPending: subdomainMutation.isPending,
+        subdomainPending: subdomainMutation.isPending || subdomainChecking,
         handleSettingsNameChange,
         handleSettingsSubdomainChange,
         handleSettingsSave

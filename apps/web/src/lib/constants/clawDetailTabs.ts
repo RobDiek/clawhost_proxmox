@@ -1,12 +1,10 @@
 const CLAW_DETAIL_TABS = {
     INFO: 'info',
-    CHANNELS: 'channels',
-    VARIABLES: 'variables',
     LOGS: 'logs',
     DIAGNOSTICS: 'diagnostics',
     TERMINAL: 'terminal',
-    SKILLS: 'skills',
     VERSIONS: 'versions',
+    FILES: 'files',
     SETTINGS: 'settings'
 } as const
 

@@ -386,7 +386,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                         <div className='flex flex-col items-center gap-3'>
                             <CircleNotchIcon className='text-muted-foreground h-6 w-6 animate-spin' />
                             <span className='text-muted-foreground text-xs'>
-                                {t('playground.terminalConnecting')}
+                                {t('clawDetail.terminalConnecting')}
                             </span>
                         </div>
                     )}
@@ -402,8 +402,8 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                             <p className='text-foreground/80 text-sm font-medium'>
                                 {t(
                                     status === TERMINAL_STATUS.ERROR
-                                        ? 'playground.terminalError'
-                                        : 'playground.terminalDisconnected'
+                                        ? 'clawDetail.terminalError'
+                                        : 'clawDetail.terminalDisconnected'
                                 )}
                             </p>
                             <Button
@@ -412,7 +412,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                                 onClick={connect}
                             >
                                 <ArrowClockwiseIcon className='mr-2 h-3.5 w-3.5' />
-                                {t('playground.terminalReconnect')}
+                                {t('clawDetail.terminalReconnect')}
                             </Button>
                         </div>
                     )}

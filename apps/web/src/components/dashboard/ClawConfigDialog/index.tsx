@@ -182,9 +182,11 @@ const ClawConfigDialog: FC<ClawFileExplorerDialogProps> = ({
                                 hasUnsavedChanges={editor.hasUnsavedChanges}
                                 jsonError={editor.jsonError}
                                 resolvedTheme={resolvedTheme}
+                                isSaving={editor.isSaving}
                                 onChange={editor.handleChange}
                                 onJsonChange={editor.handleJsonChange}
                                 onClose={() => editor.handleSelectFile('')}
+                                onSave={editor.handleSave}
                             />
                         )}
                     </div>

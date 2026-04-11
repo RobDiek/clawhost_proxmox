@@ -6,7 +6,6 @@ import ClawCardDialogs from '@/components/dashboard/ClawCardDialogs'
 import ClawCredentialsDialog from '@/components/dashboard/ClawCredentialsDialog'
 import ClawDiagnosticsDialog from '@/components/dashboard/ClawDiagnosticsDialog'
 import ClawLogsDialog from '@/components/dashboard/ClawLogsDialog'
-import ClawConfigDialog from '@/components/dashboard/ClawConfigDialog'
 
 const ClawCardDialogsBundle: FC<ClawCardDialogsBundleProps> = ({
     clawId,
@@ -26,8 +25,6 @@ const ClawCardDialogsBundle: FC<ClawCardDialogsBundleProps> = ({
     setShowDiagnostics,
     showLogs,
     setShowLogs,
-    showConfigDialog,
-    setShowConfigDialog,
     showCredentials,
     setShowCredentials,
     credentialsPassword,
@@ -76,11 +73,6 @@ const ClawCardDialogsBundle: FC<ClawCardDialogsBundleProps> = ({
                 clawId={clawId}
                 open={showLogs}
                 onOpenChange={setShowLogs}
-            />
-            <ClawConfigDialog
-                clawId={clawId}
-                open={showConfigDialog}
-                onOpenChange={setShowConfigDialog}
             />
             <ClawCredentialsDialog
                 clawIp={clawIp}

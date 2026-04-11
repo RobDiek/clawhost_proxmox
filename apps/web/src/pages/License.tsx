@@ -57,7 +57,6 @@ const License: FC = (): ReactNode => {
 
     const features = [
         t('license.featureUnlimitedClaws'),
-        t('license.featureUnlimitedAgents'),
         t('license.featureDevices'),
         t('license.featureUpdates'),
         t('license.featureSupport'),

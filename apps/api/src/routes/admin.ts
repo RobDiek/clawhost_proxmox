@@ -6,7 +6,6 @@ import {
     getAdminBilling,
     getAdminClaws,
     getAdminEmails,
-    getAdminExports,
     getAdminPendingClaws,
     getAdminReferrals,
     getAdminSSHKeys,
@@ -34,7 +33,6 @@ app.get('/ssh-keys', getAdminSSHKeys)
 app.get('/volumes', getAdminVolumes)
 app.get('/referrals', getAdminReferrals)
 app.get('/waitlist', getAdminWaitlist)
-app.get('/exports', getAdminExports)
 app.get('/emails', getAdminEmails)
 
 export default app

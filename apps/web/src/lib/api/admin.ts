@@ -3,7 +3,6 @@ import type {
     AdminBillingApiResponse,
     AdminClawsResponse,
     AdminEmailListItem,
-    AdminExportListItem,
     AdminPaginatedResponse,
     AdminPendingClawListItem,
     AdminReferralListItem,
@@ -90,10 +89,6 @@ const admin = {
     ) =>
         client.get<AdminPaginatedResponse<AdminWaitlistListItem>>(
             `${API_PATHS.ADMIN.WAITLIST}?${buildAdminPaginatedQuery({ page, limit, search, sort })}`
-        ),
-    listAdminExports: (page: number = 1, limit: number = 20, sort?: string) =>
-        client.get<AdminPaginatedResponse<AdminExportListItem>>(
-            `${API_PATHS.ADMIN.EXPORTS}?${buildAdminPaginatedQuery({ page, limit, sort })}`
         ),
     listAdminEmails: (page: number = 1, limit: number = 20, sort?: string) =>
         client.get<AdminPaginatedResponse<AdminEmailListItem>>(

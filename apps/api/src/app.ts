@@ -14,12 +14,10 @@ import { authMethod, externalUrls, userRole } from '@openclaw/shared'
 import { environment } from '@/lib/constants'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
-import { browseSkills } from '@/services/clawhub'
 
 import {
     adminRoutes,
     affiliateRoutes,
-    aiRoutes,
     authRoutes,
     clawsRoutes,
     cronRoutes,
@@ -47,7 +45,7 @@ app.use(
             : [externalUrls.CLAWHOST.BASE, externalUrls.CLAWHOST.WWW],
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowHeaders: ['Content-Type', 'Authorization', 'X-Referral-Code'],
-        exposeHeaders: ['X-Sample-Rate', 'X-Channels', 'X-Audio-Format'],
+        exposeHeaders: [],
         maxAge: 86400
     })
 )
@@ -79,28 +77,6 @@ app.route('/cron', cronRoutes)
 app.route('/plans', plansRoutes)
 app.route('/waitlist', waitlistRoutes)
 app.route('/webhooks', webhooksRoutes)
-app.get('/clawhub/skills', async (c) => {
-    try {
-        const result = await browseSkills({
-            query: c.req.query('query') || undefined,
-            limit: c.req.query('limit')
-                ? Number(c.req.query('limit'))
-                : undefined,
-            cursor: c.req.query('cursor') || undefined
-        })
-        return ok(
-            c,
-            {
-                skills: result.skills,
-                nextCursor: result.nextCursor,
-                hasMore: result.hasMore
-            },
-            t('api.clawHubSearchSuccess')
-        )
-    } catch {
-        return fail(c, t('api.clawHubSearchFailed'), 500)
-    }
-})
 
 const AUTH_CACHE_TTL = 5 * 60 * 1000
 const AUTH_CACHE_CLEANUP_INTERVAL = 10 * 60 * 1000
@@ -198,7 +174,6 @@ app.use('/*', async (c, next) => {
 
 app.route('/admin', adminRoutes)
 app.route('/affiliate', affiliateRoutes)
-app.route('/ai', aiRoutes)
 app.route('/claws', clawsRoutes)
 app.route('/ssh-keys', sshKeysRoutes)
 app.route('/users', usersRoutes)

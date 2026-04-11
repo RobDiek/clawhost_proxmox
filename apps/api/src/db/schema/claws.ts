@@ -33,6 +33,9 @@ const claws = pgTable(
         lastReinstalledAt: timestamp('last_reinstalled_at', {
             withTimezone: true
         }),
+        lastSubdomainChangedAt: timestamp('last_subdomain_changed_at', {
+            withTimezone: true
+        }),
         createdAt: timestamp('created_at', { withTimezone: true })
             .defaultNow()
             .notNull()

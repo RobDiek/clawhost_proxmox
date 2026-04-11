@@ -72,7 +72,6 @@ const de: Translations = {
     },
     nav: {
         claws: 'Claws',
-        playground: 'Playground',
         sshKeys: 'SSH-Schlüssel',
         account: 'Konto',
         billing: 'Abrechnung',
@@ -148,8 +147,6 @@ const de: Translations = {
         comparisonSetupOthers: 'Mit einem Klick bereitstellen',
         comparisonUpdatesUs: 'Automatische Updates',
         comparisonUpdatesOthers: 'Automatische Updates',
-        comparisonAgentsUs: 'Mehrere Agenten',
-        comparisonAgentsOthers: 'Mehrere Agenten',
         faqTitle: 'Fragen',
         faqHeading: 'Häufige Fragen',
         faqDescription: 'Alles, was Sie über ClawHost Go wissen müssen.',
@@ -205,7 +202,6 @@ const de: Translations = {
         failedToStartClaw: 'Claw konnte nicht gestartet werden!',
         noVersionAssigned: 'Keine OpenClaw-Version diesem Claw zugewiesen!',
         invalidAgentName: 'Ungültiger Agentenname!',
-        agentNameAlreadyExists: 'Ein Agent mit diesem Namen existiert bereits!',
         invalidPath: 'Ungültiger Pfad!',
         fileNotFound: 'Datei nicht gefunden!',
         purchasingNotAvailable: 'Kauf ist im lokalen Modus nicht verfügbar!',
@@ -271,9 +267,9 @@ const de: Translations = {
         pageNotFoundDescription:
             'Die gesuchte Seite existiert nicht oder wurde verschoben.',
         goToHomepage: 'Zur Startseite',
-        failedToLoadClaws: 'Claws konnten nicht geladen werden!',
-        failedToLoadClawsDescription:
-            'Deine Claws konnten nicht geladen werden. Bitte überprüfe deine Verbindung und versuche es erneut!',
+        failedToLoadAgents: 'Agents konnten nicht geladen werden!',
+        failedToLoadAgentsDescription:
+            'Deine Agents konnten nicht geladen werden. Bitte überprüfe deine Verbindung und versuche es erneut!',
         failedToLoadSSHKeys: 'SSH-Schlüssel konnten nicht geladen werden!',
         failedToLoadSSHKeysDescription:
             'Deine SSH-Schlüssel konnten nicht geladen werden. Bitte überprüfe deine Verbindung und versuche es erneut!',
@@ -317,7 +313,6 @@ const de: Translations = {
         sshKeyInUse:
             'Dieser SSH-Schlüssel wird derzeit von einem oder mehreren Claws verwendet!',
         inputTooLong: 'Eingabe überschreitet die maximal zulässige Länge!',
-        invalidEnvVars: 'Ungültige Umgebungsvariablennamen oder -werte!',
         invalidEmailFormat: 'Ungültiges E-Mail-Format!',
         plusAddressingNotAllowed:
             'Plus-Adressierung ist für die E-Mail-Anmeldung nicht erlaubt!',
@@ -399,17 +394,21 @@ const de: Translations = {
         failedToGetLogs: 'Logs konnten nicht geladen werden!',
         failedToGetLogsDescription:
             'Logs für diese Instanz konnten nicht abgerufen werden. Bitte versuche es später erneut!',
-        failedToRepairClaw: 'Instanz konnte nicht repariert werden!',
-        repairSuccess: 'Instanz erfolgreich repariert.',
-        repairGatewayNotResponding:
-            'Reparatur durchgeführt, aber das Gateway antwortet noch nicht. Es benötigt möglicherweise mehr Zeit zum Starten!',
         failedToReinstallClaw: 'Instanz konnte nicht neu installiert werden!',
         reinstallSuccess: 'Instanz erfolgreich neu installiert.',
         reinstallRateLimited:
             'Du kannst nur einmal alle 24 Stunden neu installieren. Kontaktiere das Team, falls du dieses Limit aufheben möchtest.',
+        subdomainRateLimited:
+            'Du kannst deine Subdomain nur einmal alle 24 Stunden ändern. Kontaktiere das Team, falls du dieses Limit aufheben möchtest.',
+        subdomainUpdated: 'Subdomain erfolgreich aktualisiert.',
+        invalidSubdomain: 'Ungültige Subdomain. Verwende 3-20 Kleinbuchstaben und Zahlen!',
+        subdomainAlreadyInUse: 'Diese Subdomain wird bereits verwendet!',
         clawBusy: 'Claw wird derzeit bereitgestellt oder gelöscht!',
         reinstallGatewayNotResponding:
             'Neuinstallation abgeschlossen, aber das Gateway antwortet noch nicht. Es benötigt möglicherweise mehr Zeit zum Starten!',
+        failedToRepairClaw: 'Failed to repair the instance!',
+        repairSuccess: 'Instance repaired successfully.',
+        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Claw-Daten konnten nicht exportiert werden!',
         clawNotReady: 'Claw ist nicht bereit für den Export!',
         exportRateLimited:
@@ -463,24 +462,6 @@ const de: Translations = {
         locationsFetched: 'Standorte erfolgreich abgerufen.',
         volumePricingFetched: 'Volumenpreise erfolgreich abgerufen.',
         planAvailabilityFetched: 'Planverfügbarkeit erfolgreich abgerufen.',
-        agentsFetched: 'Agenten erfolgreich abgerufen.',
-        agentsFetchFailed:
-            'Instanz konnte nicht erreicht werden, um Agenten abzurufen!',
-        agentConfigFetched: 'Agentenkonfiguration erfolgreich abgerufen.',
-        agentConfigUpdated: 'Agentenkonfiguration erfolgreich aktualisiert.',
-        agentConfigUpdateFailed:
-            'Agentenkonfiguration konnte nicht aktualisiert werden!',
-        agentCreated: 'Agent erfolgreich erstellt.',
-        agentCreateFailed:
-            'Agent konnte auf der Instanz nicht erstellt werden!',
-        agentDeleted: 'Agent erfolgreich gelöscht.',
-        agentDeleteFailed:
-            'Agent konnte von der Instanz nicht gelöscht werden!',
-        cannotDeleteMainAgent:
-            'Der letzte verbleibende Agent kann nicht gelöscht werden!',
-        agentNameInvalid:
-            'Agentenname darf nur Buchstaben, Zahlen und Bindestriche enthalten!',
-        agentNameDuplicate: 'Ein Agent mit diesem Namen existiert bereits!',
         diagnosticsFetched: 'Diagnose erfolgreich abgerufen.',
         logsFetched: 'Logs erfolgreich abgerufen.',
         filesFetched: 'Dateien erfolgreich abgerufen.',
@@ -492,52 +473,8 @@ const de: Translations = {
         invalidToken: 'Ungültiges Token!',
         notFound: 'Nicht gefunden!',
         healthOk: 'API läuft.',
-        channelsFetched: 'Kanäle erfolgreich abgerufen.',
-        channelsUpdated: 'Kanäle erfolgreich aktualisiert.',
-        channelsUpdateFailed: 'Kanäle konnten nicht aktualisiert werden!',
-        channelsFetchFailed: 'Kanäle konnten nicht abgerufen werden!',
-        channelMissingRequired: 'Pflichtfelder für aktivierten Kanal fehlen!',
-        whatsappPairStarted: 'WhatsApp-Kopplung gestartet.',
-        whatsappPairFailed: 'WhatsApp-Kopplung fehlgeschlagen!',
-        whatsappAlreadyPaired: 'WhatsApp ist bereits gekoppelt!',
-        whatsappVersionUnsupported:
-            'Diese Version unterstützt die Kanalkonfiguration über das Dashboard nicht. Verwenden Sie den Terminal-Tab zur manuellen Konfiguration oder aktualisieren Sie OpenClaw.',
         featureVersionUnsupported:
             'Diese Funktion wird in Version {{version}} nicht unterstützt. Bitte aktualisieren Sie OpenClaw oder verwenden Sie das Terminal zur manuellen Verwaltung.',
-        bindingsFetched: 'Bindungen erfolgreich abgerufen.',
-        bindingsFetchFailed: 'Bindungen konnten nicht abgerufen werden!',
-        bindingsUpdated: 'Bindungen erfolgreich aktualisiert.',
-        bindingsUpdateFailed: 'Bindungen konnten nicht aktualisiert werden!',
-        bindingsInvalidFormat: 'Ungültiges Bindungsformat!',
-        bindingsInvalidChannel: 'Nicht unterstützter Kanal in der Bindung!',
-        bindingsDuplicateChannel:
-            'Ein Kanal kann nur einem Agenten zugewiesen werden!',
-        skillsFetched: 'Skills erfolgreich abgerufen.',
-        skillsUpdated: 'Skills erfolgreich aktualisiert.',
-        skillsUpdateFailed: 'Skills konnten nicht aktualisiert werden!',
-        skillsFetchFailed: 'Skills konnten nicht abgerufen werden!',
-        agentSkillsFetched: 'Agenten-Skills erfolgreich abgerufen.',
-        agentSkillsUpdated: 'Agenten-Skills erfolgreich aktualisiert.',
-        agentSkillsUpdateFailed:
-            'Agenten-Skills konnten nicht aktualisiert werden!',
-        agentSkillsFetchFailed:
-            'Agenten-Skills konnten nicht abgerufen werden!',
-        invalidSkillName:
-            'Skill-Name darf nur Buchstaben, Zahlen, Bindestriche und Unterstriche enthalten!',
-        skillNotFound: 'Skill nicht gefunden!',
-        clawHubSearchSuccess: 'ClawHub-Suche abgeschlossen.',
-        clawHubSearchFailed: 'ClawHub konnte nicht durchsucht werden!',
-        clawHubFetched: 'ClawHub-Skills abgerufen.',
-        clawHubFetchFailed: 'ClawHub-Skills konnten nicht abgerufen werden!',
-        clawHubInstalled: 'Skill von ClawHub installiert.',
-        clawHubInstallFailed:
-            'Skill von ClawHub konnte nicht installiert werden!',
-        clawHubRemoved: 'ClawHub-Skill entfernt.',
-        clawHubRemoveFailed: 'ClawHub-Skill konnte nicht entfernt werden!',
-        clawHubUpdated: 'Skill aktualisiert.',
-        clawHubUpdateFailed: 'ClawHub-Skill konnte nicht aktualisiert werden!',
-        clawHubUpdatesFetched: 'Update-Prüfung abgeschlossen.',
-        clawHubUpdatesFailed: 'Updates konnten nicht geprüft werden!',
         invalidAuthMethod: 'Ungültige Authentifizierungsmethode!',
         authMethodNotConnected:
             'Diese Authentifizierungsmethode ist nicht verbunden!',
@@ -549,9 +486,6 @@ const de: Translations = {
         failedToDisconnectAuthMethod:
             'Authentifizierungsmethode konnte nicht getrennt werden!',
         textRequired: 'Text ist erforderlich!',
-        voiceNotFound: 'Stimmmodell nicht gefunden!',
-        ttsGenerationFailed: 'Sprachgenerierung fehlgeschlagen!',
-        voicesFetched: 'Stimmen erfolgreich abgerufen.',
         featureEmailsDisabled: 'Feature-E-Mails sind derzeit deaktiviert.',
         featureEmailsSent: 'Feature-E-Mails erfolgreich gesendet.',
         featureEmailsFailed: 'Fehler beim Senden der Feature-E-Mails!',
@@ -590,7 +524,6 @@ const de: Translations = {
         adminWaitlistFetched: 'Waitlist fetched.',
         failedToGetAdminWaitlist: 'Failed to fetch waitlist!',
         adminExportsFetched: 'Exports fetched.',
-        failedToGetAdminExports: 'Failed to fetch exports!',
         adminEmailsFetched: 'Emails fetched.',
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
@@ -621,15 +554,6 @@ const de: Translations = {
                     'Jede Anfrage, jeder Fehler, live auf dein Dashboard gestreamt. Kein manuelles Log-Durchsuchen per SSH mehr.',
                 cta: 'Logs Anzeigen'
             },
-            channels: {
-                subject: 'Agenten mit Discord, Slack & mehr verbinden',
-                preview: 'Deine Agenten können dort sein, wo deine Nutzer sind',
-                tag: 'Kanäle',
-                heading: 'Deine Agenten, wo deine Nutzer sind',
-                description:
-                    'Discord, Slack, WhatsApp, Telegram — verbinde deine KI-Agenten mit jeder Plattform in unter einer Minute.',
-                cta: 'Kanäle Einrichten'
-            },
             fileExplorer: {
                 subject: 'Server-Dateien im Browser bearbeiten',
                 preview: 'Dateien durchsuchen und bearbeiten ohne SSH',
@@ -638,60 +562,6 @@ const de: Translations = {
                 description:
                     'Durchsuche, bearbeite und speichere Dateien mit Syntaxhervorhebung. Kein SSH, kein FTP — klicken und tippen.',
                 cta: 'Explorer Öffnen'
-            },
-            playground: {
-                subject: 'Infrastruktur visualisieren',
-                preview: 'Claws und Agenten auf einer Leinwand sehen',
-                tag: 'Playground',
-                heading: 'Deine Infrastruktur, visualisiert',
-                description:
-                    'Ein interaktiver Graph aller Claws und Agenten. Ziehen, zoomen, auf jeden Knoten klicken zum Verwalten.',
-                cta: 'Playground Öffnen'
-            },
-            agentChat: {
-                subject: 'Chatte mit deinen KI-Agenten',
-                preview: 'Sprich mit deinen Agenten vom Dashboard',
-                tag: 'Agenten-Chat',
-                heading: 'Sprich mit deinen Agenten',
-                description:
-                    'Chat öffnen, Nachricht senden, Antwort erhalten. Bilder anhängen, Verlauf durchsuchen, zwischen Agenten wechseln.',
-                cta: 'Chat Starten'
-            },
-            voiceMode: {
-                subject: 'Sprich mit deinen Agenten per Stimme',
-                preview: 'Freihändig mit Agenten kommunizieren',
-                tag: 'Sprachmodus',
-                heading: 'Sprechen statt tippen',
-                description:
-                    'Sprich laut mit deinen KI-Agenten und höre ihre Antworten. Mehrere Stimmen, komplett freihändig.',
-                cta: 'Sprachmodus Testen'
-            },
-            skills: {
-                subject: 'Über 5.000 Skills auf ClawHub',
-                preview: 'Community-Skills mit einem Klick installieren',
-                tag: 'ClawHub-Skills',
-                heading: '5.000+ Skills, ein Klick zum Installieren',
-                description:
-                    'Websuche, Code-Ausführung, Bildgenerierung — durchsuche ClawHub und erweitere deine Agenten sofort.',
-                cta: 'ClawHub Durchsuchen'
-            },
-            bindings: {
-                subject: 'Agenten an Kanäle binden',
-                preview: 'Kontrolliere welcher Agent wo antwortet',
-                tag: 'Verknüpfungen',
-                heading: 'Richtiger Agent, richtiger Kanal',
-                description:
-                    'Dein Support-Agent auf Discord, dein Assistent auf WhatsApp. Du entscheidest wer wo antwortet.',
-                cta: 'Verknüpfungen Konfigurieren'
-            },
-            envVars: {
-                subject: 'Umgebungsvariablen vom Dashboard verwalten',
-                preview: 'API-Keys und Secrets ohne SSH setzen',
-                tag: 'Umgebungsvariablen',
-                heading: 'Secrets und Keys, ohne SSH',
-                description:
-                    'Umgebungsvariablen über eine saubere Oberfläche hinzufügen, bearbeiten oder löschen. Änderungen werden sofort wirksam.',
-                cta: 'Variablen Verwalten'
             },
             diagnostics: {
                 subject: 'Integrierte Gesundheitschecks',
@@ -717,7 +587,7 @@ const de: Translations = {
                 tag: 'Config Exportieren',
                 heading: 'Config mitnehmen',
                 description:
-                    'Agenten, Skills, Kanäle und Einstellungen als eine Datei exportieren. Sichern oder Setup replizieren.',
+                    'Agenten und Einstellungen als eine Datei exportieren. Sichern oder Setup replizieren.',
                 cta: 'Config Exportieren'
             },
             multiLanguage: {
@@ -764,20 +634,36 @@ const de: Translations = {
                 description:
                     'Wechsle zur jährlichen Abrechnung und zahle weniger. Keine Funktionsunterschiede. Jederzeit wechselbar.',
                 cta: 'Pläne Anzeigen'
+            },
+            simplifiedPlatform: {
+                subject: 'Wir haben ClawHost vereinfacht',
+                preview:
+                    'Kanäle, Skills und mehr werden jetzt direkt in OpenClaw verwaltet',
+                tag: 'Plattform-Update',
+                heading: 'ClawHost wird einfacher',
+                description:
+                    'Wir haben die Verwaltung von Kanälen, Agenten, Chat, Skills aus dem ClawHost-Dashboard entfernt. Diese Funktionen werden jetzt direkt auf deiner OpenClaw-Instanz verwaltet.',
+                removed:
+                    'Konkret haben wir entfernt: Messaging-Kanäle (WhatsApp, Telegram, Discord, Slack, Signal), den Skills-Marktplatz (ClawHub), und Agent-Chat und Sprachmodus. All das existiert weiterhin in OpenClaw — wir haben nur aufgehört, es zu umhüllen.',
+                why: 'Unsere Oberflächen mit jeder OpenClaw-Version synchron zu halten war nicht tragbar. Updates kamen upstream, und unsere Oberfläche hinkte hinterher — mit veralteten Steuerungen und unvollständigen Funktionen.',
+                benefit:
+                    'Durch das Entfernen dieser Schichten interagierst du direkt mit OpenClaw. Du lernst das echte System, nicht eine zweite Oberfläche, die veralten kann. Dein Wissen ist überall übertragbar, wo OpenClaw läuft.',
+                action: 'Nichts geht kaputt. Deine Claws, Server, Abrechnung und die Kernfunktionen des Dashboards bleiben unverändert. Um Kanäle, Skills oder Agenten zu konfigurieren, nutze deine OpenClaw-Instanz direkt.',
+                cta: 'Dashboard Öffnen'
             }
         }
     },
     auth: {
-        signIn: 'Anmelden',
+        signIn: 'Authentifizierung',
         signInDescription:
             'Melde dich bei deinem ClawHost-Konto an, um deine OpenClaw-Instanzen zu verwalten.',
-        signingIn: 'Anmeldung...',
+        signingIn: 'Authentifizierung läuft...',
         verifyCode: 'Code bestätigen',
         checkYourEmail: 'Prüfe deine E-Mail',
         checkYourEmailHeading: 'Prüfe deine E-Mail',
         codeSentTo: 'Wir haben einen 6-stelligen Code gesendet an',
         signInToDeployOpenClaw:
-            'Melde dich an, um OpenClaw-Instanzen zu verwalten und bereitzustellen.',
+            'Authentifiziere dich, um Agenten mit einem Klick zu verwalten und bereitzustellen.',
         emailAddress: 'E-Mail-Adresse',
         emailPlaceholder: 'beispiel@clawhost.cloud',
         continueWithEmail: 'Weiter mit E-Mail',
@@ -857,7 +743,6 @@ const de: Translations = {
             'Du kannst nur Konten verknüpfen, die dieselbe E-Mail-Adresse verwenden!',
         settings: 'Einstellungen',
         settingsDescription: 'Verwalte deine Dashboard-Einstellungen.',
-        showAllClaws: 'Alle Claws aller Benutzer anzeigen',
         openLinksWindowed: 'Links in einer Fensteransicht öffnen',
         openLinksWindowedDescription:
             'Wenn aktiviert, werden externe Links in der App statt im Systembrowser geöffnet.'
@@ -912,7 +797,6 @@ const de: Translations = {
         paymentSuccess: 'Zahlung erfolgreich. Deine Lizenz ist jetzt aktiv.',
         failedToPurchase: 'Checkout konnte nicht gestartet werden!',
         featureUnlimitedClaws: 'Unbegrenzte OpenClaws',
-        featureUnlimitedAgents: 'Unbegrenzte Agenten',
         featureDevices: 'Unbegrenzte Geräte',
         featureUpdates: 'Updates für immer',
         featureSupport: 'Prioritäts-Support',
@@ -943,9 +827,9 @@ const de: Translations = {
         clawCountLabelSingular: '{{count}} Claw',
         newClaw: 'Neuer Claw',
         clawActions: 'Claw-Aktionen',
-        noClawsYet: 'Keine Claws',
-        noClawsDescription:
-            'Kein bereitgestellter Claw gefunden. Aber du kannst jederzeit deinen ersten Claw ab 25 $/Monat bereitstellen. Einfach per KI.',
+        noAgentsYet: 'Keine Agenten',
+        noAgentsDescription:
+            'Kein bereitgestellter Agent gefunden. Aber du kannst jederzeit deinen ersten Agent ab 25 $/Monat bereitstellen. Einfach per KI.',
         deleteClaw: 'Claw löschen',
         deleteClawConfirmation: 'Bist du sicher, dass du löschen möchtest',
         deleteClawWarning:
@@ -991,7 +875,7 @@ const de: Translations = {
         gatewayToken: 'Gateway-Token',
         gatewayTokenDescription:
             'Verwende dieses Token zur Authentifizierung mit deinem Gateway',
-        contactSupport: 'Support',
+        contactSupport: 'Support kontaktieren',
         scheduledForDeletion: 'Zur Löschung vorgemerkt',
         scheduledDeletionShort: 'Löschung am {{date}}',
         deletionDate: 'Dieser Claw wird am {{date}} gelöscht',
@@ -1015,12 +899,10 @@ const de: Translations = {
             'Überprüfe den Zustand deiner OpenClaw-Instanz.',
         diagnosticsStatus: 'Status',
         diagnosticsLogs: 'Logs',
-        diagnosticsRepair: 'Reparieren',
-        diagnosticsRepairDescription:
-            'Speicherlimits entfernen, neueste Dienstkonfiguration anwenden und das Gateway neu starten. Dies behebt die meisten häufigen Probleme.',
-        diagnosticsRepairSuccess: 'Instanz erfolgreich repariert.',
-        diagnosticsRepairFailed:
-            'Reparatur durchgeführt, aber das Gateway antwortet noch nicht!',
+        diagnosticsRepair: 'Repair',
+        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairSuccess: 'Instance repaired successfully.',
+        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'Verbindung zur Instanz wird hergestellt...',
         diagnosticsNoLogs:
             'Keine Logs verfügbar. Starte deine Instanz, um Logs zu generieren.',
@@ -1045,9 +927,6 @@ const de: Translations = {
         fileExplorerNoFiles: 'Keine Dateien gefunden',
         fileExplorerSearchFiles: 'Dateien suchen...',
         fileExplorerNoSearchResults: 'Keine passenden Dateien.',
-        updateInstance: 'Instanz aktualisieren',
-        updateInstanceSuccess: 'Instanz erfolgreich aktualisiert.',
-        updateInstanceFailed: 'Instanz konnte nicht aktualisiert werden!',
         startFailed: 'Claw konnte nicht gestartet werden!',
         renameSuccess: 'Claw erfolgreich umbenannt.',
         renameFailed: 'Claw konnte nicht umbenannt werden!',
@@ -1061,6 +940,8 @@ const de: Translations = {
         reinstallInstanceFailed: 'Instanz konnte nicht neu installiert werden!',
         openControlPanel: 'Systemsteuerung öffnen',
         exportData: 'Claw exportieren (.zip)',
+        exportAgent: 'Export Agent',
+        exportAgentTooltip: 'Download this agent as a .zip file',
         exportStarted:
             'Export wird vorbereitet, das kann einen Moment dauern...',
         exportSuccess: 'Claw erfolgreich exportiert.',
@@ -1077,8 +958,6 @@ const de: Translations = {
         dnsSetupButton: 'DNS einrichten',
         dnsSetupSuccess: 'DNS-Resolver erfolgreich konfiguriert.',
         dnsSetupError: 'DNS-Resolver konnte nicht konfiguriert werden!',
-        chatTab: 'Chat',
-        playgroundTab: 'Playground',
         userTab: 'Benutzer',
         adminTab: 'Admin',
         adminTitle: 'Admin',
@@ -1087,6 +966,7 @@ const de: Translations = {
         adminAccessDenied:
             'Du hast keine Berechtigung, auf diese Seite zuzugreifen!',
         owner: 'Besitzer',
+        agentType: 'Agent',
         status: {
             running: 'Läuft',
             stopped: 'Gestoppt',
@@ -1105,22 +985,6 @@ const de: Translations = {
             unknown: 'Unbekannt',
             checking: 'Wird überprüft'
         }
-    },
-    chat: {
-        explorer: 'Explorer',
-        selectAgent: 'Keine Auswahl',
-        selectAgentDescription:
-            'Wähle ein Claw oder einen Agenten aus der Seitenleiste.',
-        noAgents: 'Keine Agenten verfügbar',
-        noAgentsDescription:
-            'Stelle einen Claw bereit, um mit Agenten zu chatten',
-        openSidebar: 'Seitenleiste öffnen',
-        clawNotReady: 'Claw ist noch nicht bereit',
-        notConfigured: 'Nicht konfiguriert',
-        addAgent: 'Agent hinzufügen',
-        viewTree: 'Baumansicht',
-        viewList: 'Listenansicht',
-        clawSettings: 'Claw-Einstellungen'
     },
     createClaw: {
         title: 'OpenClaw bereitstellen',
@@ -1304,18 +1168,9 @@ const de: Translations = {
         openclawControl: 'OpenClaw-Steuerung',
         openclawControlDescription:
             'Greife direkt von ClawHost auf das native OpenClaw-Panel zu. Voller Bearbeitungszugriff auf alles, was OpenClaw bietet.',
-        clawHostControl: 'ClawHost-Steuerung',
+        clawHostControl: 'Voller Serverzugang',
         clawHostControlDescription:
-            'Verwalte Dateien, Updates, Kanäle, Variablen, Skills und weitere Konfigurationsoptionen direkt von der Plattform aus.',
-        skillsMarketplace: '5.000+ Skills',
-        skillsMarketplaceDescription:
-            'Durchsuche und installiere über 5.000 fertige Skills mit einem einzigen Klick. Erweitere dein OpenClaw sofort.',
-        directChat: 'Direkter Chat',
-        directChatDescription:
-            'Chatte direkt von der Plattform mit deinen KI-Agenten. Keine externen Tools oder Oberflächen nötig.',
-        multipleAgents: 'Mehrere Agenten',
-        multipleAgentsDescription:
-            'Führe mehrere KI-Agenten auf einer einzigen Instanz aus und verwalte sie. Jeder mit eigener Konfiguration und Zweck.',
+            'Browser-Terminal, Datei-Explorer, Logs, Diagnose und Versionsverwaltung — alles aus deinem Dashboard.',
         multipleClaws: 'Mehrere Claws',
         multipleClawsDescription:
             'Stelle mehrere OpenClaw-Instanzen über ein einziges Dashboard bereit und verwalte sie. Skaliere nach Bedarf.',
@@ -1410,7 +1265,7 @@ const de: Translations = {
             'Anders als gehostete KI-Werkzeuge gibt dir ClawHost einen echten Server mit installiertem OpenClaw. Du besitzt die Infrastruktur, kontrollierst alles und bist nicht durch eine geteilte Plattform oder ein Modell eingeschränkt.',
         faq4Question: 'Brauche ich technisches Wissen?',
         faq4Answer:
-            'Nein. Wir kümmern uns um die gesamte Infrastruktur, Einrichtung und Wartung. Du kannst OpenClaw über die Benutzeroberfläche konfigurieren und verwalten, Kanäle verbinden und die Nutzung anpassen – ohne Server oder Infrastruktur anfassen zu müssen.',
+            'Nein. Wir kümmern uns um die gesamte Infrastruktur, Einrichtung und Wartung. Du kannst OpenClaw über die Benutzeroberfläche konfigurieren und verwalten und die Nutzung anpassen – ohne Server oder Infrastruktur anfassen zu müssen.',
         faq5Question: 'Welche Standorte sind verfügbar?',
         faq5Answer:
             'Wir bieten mehrere Serverstandorte weltweit an, darunter die USA, Europa und mehr. Du kannst OpenClaw bei Bedarf auf mehreren Servern in verschiedenen Regionen deployen.',
@@ -1432,15 +1287,13 @@ const de: Translations = {
         comparisonOwnershipUs: 'Du besitzt deinen Server vollständig',
         comparisonOwnershipOthers: 'Du besitzt nichts',
         comparisonSubdomainUs: 'Zugriff über Subdomain',
-        comparisonSubdomainOthers: 'Zugriff nur über soziale Kanäle',
+        comparisonSubdomainOthers: 'Zugriff nur über Drittanbieter-Plattformen',
         comparisonInfraUs: 'On-Demand-Infrastruktur',
         comparisonInfraOthers: 'Begrenzte Server',
         comparisonDataUs: 'Deine Daten gehören dir',
         comparisonDataOthers: 'Deine Daten gehören dir nicht',
         comparisonMultipleUs: 'Mehrere OpenClaw, ein Claw',
         comparisonMultipleOthers: 'Nur ein OpenClaw',
-        comparisonAgentsUs: 'Mehrere Agenten pro Claw',
-        comparisonAgentsOthers: 'Nur ein Agent',
         comparisonOpenSourceUs: 'Vollständig Open Source',
         comparisonOpenSourceOthers: 'Closed Source',
         comparisonExportUs: 'Exportiere dein OpenClaw überallhin',
@@ -1449,8 +1302,6 @@ const de: Translations = {
         comparisonProvidersOthers: 'Nur ein einzelner Anbieter',
         comparisonSocialsUs: 'Präsenz in sozialen Medien',
         comparisonSocialsOthers: 'Keine sozialen Medien',
-        comparisonChatUs: 'Direkt mit deinem Claw chatten',
-        comparisonChatOthers: 'Chat nur über Kanäle',
         comparisonVersionUs: 'Versionswechsel mit einem Klick',
         comparisonVersionOthers: 'Nur manuelle Updates',
         comparisonTerminalUs: 'Integriertes Web-Terminal',
@@ -1503,6 +1354,8 @@ const de: Translations = {
             'Native mobile App zur Überwachung und Verwaltung deiner OpenClaw-Instanzen unterwegs',
         upcomingReleaseFeature13:
             'Beta-Version von ClawHost Go für macOS und Windows, OpenClaw lokal mit einem Klick deployen',
+        upcomingReleaseFeature14:
+            'Ein-Klick-Bereitstellung für Hermes-Agenten wie OpenClaw',
         upcomingReleaseFeature3: 'Unterstützung für dunkles und helles Design',
         upcomingReleaseFeature4:
             'Verbesserungen bei Leistung, Stabilität und Reaktionsfähigkeit',
@@ -1522,6 +1375,15 @@ const de: Translations = {
             'Landingpage für ClawHost Go, lokales Hosting mit ClawHost',
         upcomingReleaseFeature12:
             'Desktop-App für macOS und Windows, um OpenClaw lokal mit einem Klick bereitzustellen',
+        release15Date: '11. April 2026',
+        release15Title: 'Vereinfachung & benutzerdefinierte Subdomains',
+        release15Description:
+            'Vereinfachung der Plattform durch Migration der verwalteten Funktionen zu OpenClaw, Entfernung der Playground-Ansicht und Einführung änderbarer benutzerdefinierter Subdomains.',
+        release15Feature1:
+            'Vereinfachung und Migration der verwalteten Funktionen zu OpenClaw, kein ClawHost-Chat, Agenten, Kanäle, Variablen und Fähigkeiten mehr',
+        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '1. April 2026',
         release14Title: 'Hetzner-Migration, Affiliate-System & neue Sprachen',
         release14Description:
@@ -1566,8 +1428,6 @@ const de: Translations = {
             'Community-getriebene Feature-Anfragen, erweiterte Dateibearbeitungsunterstützung und verschiedene Fehlerbehebungen.',
         release10Feature1:
             'Feature-Anfragen automatisch verwaltet und veröffentlicht durch OpenClaw-Agenten',
-        release10Feature2:
-            'Behebung von Skills, die manchmal nicht vom ClawHub-Marktplatz installiert werden konnten',
         release10Feature3:
             'Behebung des Modellanbieterwechsels, der sich nicht auswirkte und weiterhin das ursprüngliche Modell verwendete',
         release10Feature4:
@@ -1599,23 +1459,17 @@ const de: Translations = {
         release7Date: '16. Februar 2026',
         release7Title: 'Chat-Refactoring & Spracheingabe',
         release7Description:
-            'Große Chat- und Playground-Verbesserungen mit Sprachinteraktion, ClawHub-Skills-Marktplatz und Dateianhängen für Agenten.',
+            'Große Chat- und Playground-Verbesserungen mit Sprachinteraktion und Dateianhängen für Agenten.',
         release7Feature1:
             'Chat- und Playground-Refactoring für ein flüssigeres, reaktionsschnelleres Erlebnis',
         release7Feature2:
             'Sprachinteraktion mit Chats, Sprache direkt im Browser aufnehmen und transkribieren',
-        release7Feature3:
-            'ClawHub-Skills-Integration mit über 5.000 verfügbaren Skills zum Installieren und Verwalten',
         release7Feature4:
             'Anhänge-Ansicht und -Nutzung für Agenten, Bilder und Dokumente im Chat senden',
         release6Date: '16. Februar 2026',
-        release6Title: 'Kanäle, Skills & Agenten-Chat',
+        release6Title: 'Agenten-Chat',
         release6Description:
-            'Volle Kontrolle über deine OpenClaw-Kanäle, -Skills und -Agenten. Verwalte und chatte mit allem direkt vom Dashboard aus.',
-        release6Feature1:
-            'Kanäle direkt verwalten, hinzufügen, entfernen und konfigurieren, ohne den Server anzufassen',
-        release6Feature2:
-            'Skills direkt verwalten, installieren, aktualisieren und Agenten-Skills vom Dashboard aus organisieren',
+            'Volle Kontrolle über deine OpenClaw-Agenten. Verwalte und chatte mit allem direkt vom Dashboard aus.',
         release6Feature3:
             'Chatte mit deinen Agenten im Playground, interagiere mit jedem Agenten in Echtzeit',
         release6Feature4:
@@ -1668,26 +1522,13 @@ const de: Translations = {
         release4Feature4:
             'Raster- und Listenansicht-Umschalter zugunsten eines einheitlichen Dashboard-Layouts entfernt'
     },
-    playground: {
-        title: 'Playground',
-        description:
-            'Visualisiere deine Claws und deren Agenten in einem interaktiven Graphen.',
-        subtitle: 'Agenten-Topologie über deine Infrastruktur',
-        noClawsYet: 'Keine Claws',
-        noClawsDescription:
-            'Stelle deinen ersten Claw bereit, um mit ihm zu interagieren.',
-        loadingAgents: 'Agenten laden',
-        unreachable: 'Nicht erreichbar',
-        offline: 'Offline',
-        noAgents: 'Keine Agenten',
-        agentCount: '{{count}} Agent',
-        agentCountPlural: '{{count}} Agenten',
-        agentModel: 'Modell',
-        zoomLabel: '{{percent}} %',
-        fitView: 'Zentrieren',
-        nodesOutOfView: 'Claws außerhalb der Ansicht',
-        nodeOutOfView: 'Claw außerhalb der Ansicht',
-        addAgent: 'Agent hinzufügen',
+    clawDetail: {
+        noAgentsYet: 'Keine Agenten',
+        noAgentsDescription:
+            'Stelle deinen ersten Agent bereit, um mit ihm zu interagieren.',
+        selectClaw: 'Wähle einen Claw',
+        selectClawDescription:
+            'Wähle einen Claw in der Seitenleiste aus, um seine Details anzuzeigen.',
         closeDetails: 'Schließen',
         tabInfo: 'Info',
         tabLogs: 'Logs',
@@ -1706,204 +1547,7 @@ const de: Translations = {
         loadingTip2: 'Wusstest du, dass OpenClaw Open Source ist?',
         loadingTip3:
             'ClawHost ist das erste Projekt überhaupt, das Ein-Klick-OpenClaw-Hosting ermöglicht.',
-        tabChat: 'Chat',
-        tabConfiguration: 'Konfiguration',
         tabSettings: 'Einstellungen',
-        tabEnvs: 'Umgebungsvariablen',
-        agentOnClaw: 'auf {{clawName}}',
-        cannotDeleteDefaultAgent: 'Standardagent kann nicht entfernt werden!',
-        configurationModel: 'Modell',
-        configurationModelPlaceholder: 'Modell auswählen',
-        configurationModelDescription:
-            'Das KI-Modell, das dieser Agent verwendet. Das Ändern des Modells kann das Setzen des entsprechenden API-Schlüssels erfordern.',
-        configurationEnvVars: 'Umgebungsvariablen',
-        configurationEnvVarsDescription:
-            'API-Schlüssel und Umgebungsvariablen, gespeichert in ~/.openclaw/.env auf der Instanz.',
-        configurationAddEnvVar: 'Variable hinzufügen',
-        configurationKeyPlaceholder: 'VARIABLEN_NAME',
-        configurationValuePlaceholder: 'Wert',
-        configurationSave: 'Speichern',
-        configurationSaving: 'Wird gespeichert...',
-        configurationSaved: 'Agentenkonfiguration gespeichert.',
-        configurationSaveFailed:
-            'Agentenkonfiguration konnte nicht gespeichert werden!',
-        configurationLoading: 'Konfiguration wird geladen...',
-        configurationLoadFailed:
-            'Agentenkonfiguration konnte nicht geladen werden!',
-        configurationLoadFailedDescription:
-            'Die Konfiguration für diesen Agenten konnte nicht abgerufen werden. Bitte versuche es später erneut!',
-        configurationRemoveVar: 'Entfernen',
-        configurationApiKey: 'API-Schlüssel',
-        configurationApiKeyDescription:
-            'Erforderlich für {{modelName}}. Dieser Schlüssel wird in ~/.openclaw/.env auf der Instanz gespeichert.',
-        configurationApiKeyPlaceholder: 'Gib deinen API-Schlüssel ein',
-        tabVariables: 'Variablen',
-        variablesDescription:
-            'Umgebungsvariablen, gespeichert in ~/.openclaw/.env auf dieser Instanz.',
-        variablesEmpty: 'Keine Umgebungsvariablen gefunden.',
-        variablesAddVariable: 'Variable hinzufügen',
-        variablesSave: 'Variablen speichern',
-        variablesSaving: 'Wird gespeichert...',
-        variablesSaved: 'Umgebungsvariablen gespeichert.',
-        variablesSaveFailed:
-            'Umgebungsvariablen konnten nicht gespeichert werden!',
-        variablesLoading: 'Variablen werden geladen...',
-        variablesLoadFailed: 'Umgebungsvariablen konnten nicht geladen werden!',
-        variablesLoadFailedDescription:
-            'Variablen für diese Instanz konnten nicht abgerufen werden. Bitte versuche es später erneut!',
-        variablesInvalidKey: 'Nur Buchstaben, Zahlen und Unterstriche!',
-        variablesEmptyValue: 'Wert darf nicht leer sein!',
-        variablesDuplicateKey: 'Doppelter Variablenname!',
-        variablesDeleteTitle: 'Variable löschen',
-        variablesDeleteDescription:
-            'Bist du sicher, dass du {{key}} löschen möchtest? Dies entfernt sie sofort von der Instanz.',
-        variablesDeleteConfirm: 'Löschen',
-        variablesDontAskAgain:
-            'Beim Löschen von Variablen in dieser Sitzung nicht mehr fragen',
-        variablesDeleted: 'Variable gelöscht.',
-        variablesOperationPending:
-            'Deaktiviert, bis ein vorheriger Vorgang abgeschlossen ist.',
-        addAgentTitle: 'Agent hinzufügen',
-        addAgentDescription: 'Füge einen neuen Agenten zu {{clawName}} hinzu.',
-        addAgentDescriptionNoClaw:
-            'Wähle einen Claw aus und konfiguriere deinen neuen Agenten.',
-        addAgentSelectClaw: 'Claw',
-        addAgentSelectClawPlaceholder: 'Claw auswählen',
-        addAgentName: 'Name',
-        addAgentNamePlaceholder: 'Agentennamen eingeben',
-        addAgentModel: 'Modell',
-        addAgentModelPlaceholder: 'Modell auswählen',
-        addAgentApiKey: 'API-Schlüssel',
-        addAgentApiKeyPlaceholder: 'API-Schlüssel eingeben (optional)',
-        addAgentApiKeyConfigured:
-            '{{envVar}} bereits gesetzt. Änderbar im Tab Variablen nach dem Hinzufügen.',
-        addAgentSubmit: 'Agent hinzufügen',
-        addAgentSuccess: 'Agent erfolgreich hinzugefügt.',
-        addAgentFailed: 'Agent konnte nicht hinzugefügt werden!',
-        deleteAgent: 'Agent löschen',
-        deleteAgentTitle: 'Agent löschen',
-        deleteAgentDescription:
-            'Bist du sicher, dass du den Agenten „{{agentName}}" löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden. Umgebungsvariablen werden nicht entfernt.',
-        deleteAgentConfirm: 'Löschen',
-        agentDontAskAgain:
-            'Beim Löschen von Agenten in dieser Sitzung nicht mehr fragen',
-        deleteAgentDeleting: 'Wird gelöscht...',
-        deleteAgentSuccess: 'Agent erfolgreich gelöscht.',
-        deleteAgentFailed: 'Agent konnte nicht gelöscht werden!',
-        configurationName: 'Name',
-        configurationNamePlaceholder: 'Agentennamen eingeben',
-        configurationNameDescription:
-            'Nur Buchstaben, Zahlen und Bindestriche.',
-        agentNameRequired: 'Agentenname ist erforderlich!',
-        agentNameInvalidChars:
-            'Nur Buchstaben, Zahlen und Bindestriche sind erlaubt!',
-        agentNameDuplicate: 'Ein Agent mit diesem Namen existiert bereits!',
-        chatConnecting: 'Verbindung wird hergestellt...',
-        chatAuthenticating: 'Authentifizierung...',
-        chatDisconnected: 'Getrennt',
-        chatError: 'Verbindungsfehler!',
-        chatConnected: 'Verbunden',
-        chatInputPlaceholder: 'Nachricht eingeben...',
-        chatInputDisabled: 'Verbinde dich, um mit diesem Agenten zu chatten',
-        chatSend: 'Nachricht senden',
-        chatAbort: 'Stopp',
-        chatStopProcess: 'Prozess stoppen',
-        chatRemoveAttachment: 'Anhang entfernen',
-        chatThinking: 'Denkt nach',
-        chatLoadingHistory: 'Nachrichten werden geladen...',
-        chatNoMessages: 'Keine Nachrichten',
-        chatNoMessagesDescription:
-            'Sende eine Nachricht, um eine Unterhaltung mit diesem Agenten zu starten.',
-        chatErrorMessage:
-            'Beim Generieren einer Antwort ist ein Fehler aufgetreten!',
-        chatAbortedMessage: 'Antwort wurde gestoppt.',
-        chatPlaySpeech: 'Vorlesen',
-        chatReplaySpeech: 'Wiederholen',
-        chatStopSpeech: 'Stoppen',
-        chatSpeechFailed: 'Sprachgenerierung fehlgeschlagen!',
-        chatReadOnlyPlaceholder: 'Chat verfügbar auf deinen eigenen Claws.',
-        chatReadOnlyUser:
-            'Hallo! Kannst du mir helfen, ein Node.js-Projekt einzurichten?',
-        chatReadOnlyAssistant:
-            'Natürlich! Ich kann dir helfen, ein neues Node.js-Projekt zu initialisieren. Soll ich eine package.json mit einigen gängigen Abhängigkeiten erstellen?',
-        chatReadOnlyReply:
-            'Dies ist eine Vorschau! Stelle dein eigenes OpenClaw mit einem Klick bereit und chatte in wenigen Minuten mit deinen KI-Agenten!',
-        chatReadOnlyUser2:
-            'Kannst du die Testsuite ausführen und auf Fehler prüfen?',
-        chatReadOnlyAssistant2:
-            'Klar! Ich führe jetzt alle Tests aus. 3 bestanden, 0 fehlgeschlagen. Alles in Ordnung — alle Assertions bestehen.',
-        chatReadOnlyGoUser:
-            'Hey, kannst du mir helfen, meine Deployment-Pipeline zu automatisieren?',
-        chatReadOnlyGoAssistant:
-            'Auf jeden Fall! Ich kann eine CI/CD-Pipeline für dich einrichten. Soll ich mit einem GitHub Actions Workflow beginnen, der automatisch baut, testet und deployt?',
-        chatReadOnlyGoReply:
-            'Dies ist eine Vorschau! Hol dir ClawHost Go und führe OpenClaw lokal aus — dein Rechner, deine Daten, kein Cloud nötig.',
-        chatReadOnlyGoUser2:
-            'Kannst du meine lokalen Services überwachen und mich warnen, wenn etwas ausfällt?',
-        chatReadOnlyGoAssistant2:
-            'Bin dran! Ich richte Health-Checks für alle deine Services ein. Überwache aktuell 4 Endpoints — alle gesund und erreichbar.',
-        chatConnectionFailed: 'Verbindung zu diesem Agenten fehlgeschlagen!',
-        chatConnectionFailedDescription:
-            'Stelle sicher, dass der Claw läuft und erreichbar ist!',
-        chatNotConfigured: 'Agent nicht konfiguriert!',
-        chatNotConfiguredDescription:
-            'Wähle ein Modell und setze einen API-Schlüssel im Konfiguration-Tab, um den Chat zu starten.',
-        chatConfigureButton: 'Agent konfigurieren',
-        chatToday: 'Heute',
-        chatYesterday: 'Gestern',
-        chatExpandFullscreen: 'Chat erweitern',
-        chatAttachFile: 'Datei anhängen',
-        chatDropFiles: 'Dateien ablegen zum Anhängen',
-        chatDropFilesDescription: 'Bilder, PDFs und Textdateien bis 5 MB.',
-        chatVoiceInput: 'Spracheingabe',
-        chatVoiceListening: 'Hört zu...',
-        chatVoiceNotSupported:
-            'Spracheingabe wird in diesem Browser nicht unterstützt!',
-        chatVoiceMode: 'Sprachmodus',
-        chatVoiceModeTapToSpeak: 'Tippen zum Sprechen',
-        chatVoiceModeListening: 'Zuhören...',
-        chatVoiceModeClose: 'Sprachmodus beenden',
-        chatVoiceModeTranscribing: 'Transkribieren...',
-        chatVoiceModeThinking: 'Denken...',
-        chatVoiceModeResponding: 'Antworten...',
-        chatVoiceModePreparing: 'Sprache vorbereiten...',
-        chatVoiceModeSpeaking: 'Sprechen...',
-        chatVoiceModeInputDevice: 'Mikrofon',
-        chatVoiceModeOutputDevice: 'Lautsprecher',
-        chatVoiceModeNotSupported:
-            'Spracherkennung wird in diesem Browser nicht unterstützt.',
-        chatVoiceModeNoMicrophone:
-            'Kein Mikrofon erkannt. Verbinde eines, um den Sprachmodus zu verwenden.',
-        chatVoiceModeNoSpeaker:
-            'Kein Lautsprecher erkannt. Verbinde einen, um den Sprachmodus zu verwenden.',
-        chatAttachmentNotSupported:
-            'Dieser Dateityp wird nicht unterstützt. Verwende Bilder, PDFs oder Textdateien!',
-        chatNoPreview: 'Keine Vorschau verfügbar.',
-        chatDownloadFile: 'Datei herunterladen',
-        chatCopyMessage: 'Nachricht kopieren',
-        tabChannels: 'Kanäle',
-        channelsDescription:
-            'Konfiguriere Messaging-Kanäle für diese Instanz. Nachrichten werden über Bindungen an Agenten weitergeleitet.',
-        channelsWhatsApp: 'WhatsApp',
-        channelsWhatsAppPairDevice: 'Gerät koppeln',
-        channelsWhatsAppPairing: 'Warte auf QR-Code...',
-        channelsWhatsAppScanQr:
-            'Scanne diesen QR-Code mit WhatsApp, um dein Gerät zu koppeln.',
-        channelsWhatsAppScanInstructions:
-            'Öffne WhatsApp > Einstellungen > Verknüpfte Geräte > Gerät hinzufügen',
-        channelsWhatsAppQrRefreshed:
-            'Der vorherige QR-Code ist abgelaufen. Scanne den neuen unten.',
-        channelsWhatsAppPaired: 'WhatsApp erfolgreich gekoppelt.',
-        channelsWhatsAppPairFailed:
-            'Kopplung fehlgeschlagen. Bitte versuche es erneut!',
-        channelsWhatsAppAlreadyPaired: 'WhatsApp ist bereits gekoppelt!',
-        channelsWhatsAppUnpair: 'Entkoppeln',
-        channelsWhatsAppConnected: 'Verbunden',
-        channelsWhatsAppRepair: 'Neu koppeln',
-        channelsWhatsAppChecking: 'Verbindung wird überprüft...',
-        channelsVersionUnsupported:
-            'Die Kanalkonfiguration ist in dieser Version nicht verfügbar. Sie können manuell über den Terminal-Tab verbinden oder OpenClaw aktualisieren.',
-        channelsVersionUnsupportedDocs: 'Einrichtungsanleitung anzeigen',
         featureVersionUnsupported:
             '{{feature}} nicht unterstützt auf {{version}}',
         featureVersionUnsupportedDescription:
@@ -1911,97 +1555,8 @@ const de: Translations = {
         featureVersionUnsupportedButton: 'Zu Versionen',
         featureVersionUnsupportedSupported: 'Unterstützte Versionen:',
         featureVersionUnsupportedNewer: 'neuere Versionen',
-        channelsTelegram: 'Telegram',
-        channelsDiscord: 'Discord',
-        channelsSlack: 'Slack',
-        channelsSignal: 'Signal',
-        channelsEnabled: 'Aktiviert',
-        channelsAccount: 'Konto-Telefonnummer',
-        channelsAccountPlaceholder: '+49151234567',
-        channelsBotToken: 'Bot-Token',
-        channelsBotTokenPlaceholder: 'Bot-Token eingeben',
-        channelsAppToken: 'App-Token',
-        channelsAppTokenPlaceholder: 'App-Token eingeben',
-        channelsToken: 'Bot-Token',
-        channelsTokenPlaceholder: 'Bot-Token eingeben',
-        channelsSigningSecret: 'Signaturgeheimnis',
-        channelsSigningSecretPlaceholder: 'Signaturgeheimnis eingeben',
-        channelsDmPolicy: 'DM-Richtlinie',
-        channelsDmPolicyOpen: 'Offen',
-        channelsDmPolicyPairing: 'Kopplung',
-        channelsDmPolicyAllowlist: 'Erlaubnisliste',
-        channelsDmPolicyDisabled: 'Deaktiviert',
-        channelsAllowFrom: 'Erlauben von',
-        channelsAllowFromPlaceholder: 'Erlaubte IDs, kommagetrennt',
-        channelsSave: 'Speichern',
-        channelsSaved: 'Kanäle erfolgreich aktualisiert.',
-        channelsSaveFailed: 'Kanäle konnten nicht aktualisiert werden!',
-        channelsLoading: 'Kanäle werden geladen...',
-        channelsLoadFailed: 'Kanäle konnten nicht geladen werden!',
-        channelsLoadFailedDescription:
-            'Kanalkonfiguration konnte nicht abgerufen werden. Bitte versuche es erneut!',
-        channelsNoChanges: 'Keine Änderungen zum Speichern.',
-        bindingsDescription:
-            'Weise diesem Agenten Messaging-Kanäle zu. Jeder Kanal kann nur einem Agenten gleichzeitig zugewiesen werden.',
-        bindingsNoChannels: 'Keine Kanäle aktiviert.',
-        bindingsNoChannelsDescription:
-            'Aktiviere zuerst Kanäle in den Instanz-Einstellungen und weise sie dann hier den Agenten zu.',
-        bindingsSaving: 'Wird gespeichert...',
-        bindingsSaved: 'Bindungen erfolgreich aktualisiert.',
-        bindingsSaveFailed: 'Fehler beim Aktualisieren der Bindungen!',
-        tabSkills: 'Skills',
-        skillsDescription:
-            'Verwalte gemeinsame Skills, die allen Agenten auf dieser Instanz zur Verfügung stehen.',
-        skillsSearch: 'Skills suchen...',
-        skillsNoResults: 'Keine Skills entsprechen deiner Suche.',
-        skillsEmpty: 'Keine Skills',
-        skillsSave: 'Skills speichern',
-        skillsSaved: 'Skills erfolgreich aktualisiert.',
-        skillsSaveFailed: 'Skills konnten nicht aktualisiert werden!',
-        skillsLoading: 'Skills werden geladen...',
-        skillsLoadFailed: 'Skills konnten nicht geladen werden!',
-        skillsLoadFailedDescription:
-            'Skills-Konfiguration konnte nicht abgerufen werden. Bitte versuche es erneut!',
-        agentSkillsDescription:
-            'In diesem Agenten-Arbeitsbereich installierte Skills.',
-        agentSkillsInstalling: 'Wird installiert...',
-        agentSkillsInstalled: 'Skill erfolgreich installiert.',
-        agentSkillsInstallFailed: 'Skill konnte nicht installiert werden!',
-        agentSkillsRemoving: 'Wird entfernt...',
-        agentSkillsRemoved: 'Skill erfolgreich entfernt.',
-        agentSkillsRemoveFailed: 'Skill konnte nicht entfernt werden!',
-        agentSkillsEmpty: 'Keine Skills installiert.',
-        agentSkillsEmptyDescription:
-            'Installiere einen Skill, um die Fähigkeiten dieses Agenten zu erweitern.',
-        agentSkillsNamePlaceholder: 'Skill-Name',
-        agentSkillsConfirmRemove: 'Skill „{{skillName}}" entfernen?',
-        agentSkillsConfirmRemoveDescription:
-            'Dies löscht den Skill aus dem Agenten-Arbeitsbereich.',
-        skillsBundledTab: 'Gebündelt',
-        skillsClawHubTab: 'ClawHub',
-        clawHubSearch: 'ClawHub-Skills suchen...',
-        clawHubNoResults: 'Keine Skills auf ClawHub gefunden.',
-        clawHubEmpty: 'Keine ClawHub-Skills installiert.',
-        clawHubEmptyDescription:
-            'Suche und installiere Skills vom ClawHub-Marktplatz.',
-        clawHubInstall: 'Installieren',
-        clawHubInstalled: 'Skill von ClawHub installiert.',
-        clawHubInstallFailed:
-            'Skill von ClawHub konnte nicht installiert werden!',
-        clawHubRemove: 'Entfernen',
-        clawHubRemoved: 'ClawHub-Skill entfernt.',
-        clawHubRemoveFailed: 'ClawHub-Skill konnte nicht entfernt werden!',
-        clawHubUpdate: 'Aktualisieren',
-        clawHubUpdated: 'Skill von ClawHub aktualisiert.',
-        clawHubUpdateFailed: 'ClawHub-Skill konnte nicht aktualisiert werden!',
-        clawHubUpdateAvailable: 'v{{version}} verfügbar',
-        clawHubBy: 'von {{author}}',
-        clawHubDownloads: '{{count}} Downloads',
-        clawHubVersion: 'v{{version}}',
-        clawHubLoadFailed: 'ClawHub konnte nicht geladen werden!',
-        clawHubLoadFailedDescription:
-            'Verbindung zum ClawHub-Marktplatz konnte nicht hergestellt werden. Bitte versuche es erneut!',
         tabVersions: 'Versionen',
+        tabFiles: 'Datei-Explorer',
         versionsSearch: 'Versionen suchen...',
         versionsEmpty: 'Keine Versionen gefunden',
         versionsEmptyDescription:
@@ -2201,9 +1756,9 @@ const de: Translations = {
             'Nachrichten und Benachrichtigungen werden hier angezeigt.',
         settingsPlaceholder:
             'Kontoeinstellungen und Präferenzen werden hier angezeigt.',
-        signIn: 'Anmelden',
+        signIn: 'Authentifizierung',
         signInDescription:
-            'Melde dich an, um deine OpenClaw-Instanzen zu verwalten.',
+            'Authentifiziere dich, um deine Agenten zu verwalten und bereitzustellen.',
         enterEmail: 'E-Mail-Adresse',
         emailPlaceholder: 'beispiel@clawhost.cloud',
         continueWithEmail: 'Weiter mit E-Mail',
@@ -2218,21 +1773,17 @@ const de: Translations = {
         changeEmail: 'E-Mail ändern',
         invalidCode: 'Ungültiger Code!',
         codeExpired: 'Code abgelaufen. Bitte fordere einen neuen an!',
-        signingIn: 'Anmeldung...',
+        signingIn: 'Authentifizierung läuft...',
         signOut: 'Abmelden',
         signedInAs: 'Angemeldet als',
         loadMore: 'Mehr laden',
-        chatWithYourClaw: 'Chatte mit deinem Claw',
         deployClaw: 'Claw bereitstellen',
-        deployYourFirstClaw: 'Stelle deinen ersten Claw bereit',
-        voiceMode: 'Sprachmodus',
-        voiceListening: 'Zuhören...',
-        voiceTapToSpeak: 'Tippe auf die Kugel zum Starten'
+        deployYourFirstClaw: 'Stelle deinen ersten Claw bereit'
     },
     announcement: {
         title: 'Servicehinweis',
         message:
-            'Aufgrund hoher Nachfrage ist die Claw-Bereitstellung vorübergehend nicht verfügbar. Bestehende Claws laufen normal.'
+            'Aufgrund hoher Nachfrage ist die Agent-Bereitstellung vorübergehend nicht verfügbar. Bestehende Agents laufen normal.'
     },
     productHunt: {
         liveOn: 'Live auf',
@@ -2274,13 +1825,8 @@ const de: Translations = {
         featureSubdomainAccess: 'Zugang über Subdomain',
         featureThemes: 'Helles und dunkles Theme',
         featureSetupTime: 'Einrichtungszeit',
-        featureTechnicalSkill: 'Technische Kenntnisse erforderlich',
         featureOneClickDeploy: 'Ein-Klick-Bereitstellung',
         featureMultipleInstances: 'Mehrere Instanzen',
-        featureMultipleAgents: 'Mehrere Agenten pro Instanz',
-        featureSkillsMarketplace: 'Skills-Marktplatz',
-        featureChannelSupport: 'Kanal-Unterstützung',
-        featureAgentConfig: 'Agenten-Konfiguration',
         featureDataOwnership: 'Vollständiges Dateneigentum',
         featureDataExport: 'Datenexport',
         featureBackups: 'Backups',
@@ -2295,7 +1841,6 @@ const de: Translations = {
         featureMultiLanguage: 'Mehrsprachige Oberfläche',
         featureMobileApp: 'Mobile App',
         featureDesktopApp: 'Desktop-App',
-        featureDirectChat: 'Direkter Chat',
         featureOneClickVersion: 'Versionswechsel mit einem Klick',
         featureWebTerminal: 'Web-Terminal',
         featureSocials: 'Soziale Medien',
@@ -2329,12 +1874,7 @@ const de: Translations = {
         minimal: 'Minimal',
         unlimited: 'Unbegrenzt',
         singleInstance: 'Einzeln',
-        fiveThousandSkills: '5.000+ Skills (ClawHub)',
         noMarketplace: 'Kein Marktplatz',
-        allChannels: 'WhatsApp, Telegram, Discord, Slack, Signal',
-        telegramDiscord: 'Telegram, Discord',
-        discordGithubSlack: 'Discord, GitHub, Slack',
-        telegramGmailWhatsapp: 'Telegram, Gmail, WhatsApp',
         appOnly: 'Nur App',
         fullConfig: 'Vollständige Konfiguration',
         limitedConfig: 'Begrenzt',
@@ -2364,7 +1904,6 @@ const de: Translations = {
         iosMacOs: 'iOS & macOS',
         macOsOnly: 'Nur macOS',
         viaTelegram: 'Über Telegram',
-        builtInChat: 'Integriert',
         builtInTerminal: 'Kein SSH nötig',
         notAvailable: 'Nicht verfügbar',
         disclaimer: 'Etwas geändert oder falsch? Schreib uns an',
@@ -2426,7 +1965,7 @@ const de: Translations = {
         noClawsFound: 'Keine Claws',
         noSSHKeysFound: 'Keine SSH-Schlüssel',
         noVolumesFound: 'Keine Volumes',
-        failedToLoadClaws: 'Claws konnten nicht geladen werden!',
+        failedToLoadAgents: 'Agents konnten nicht geladen werden!',
         failedToLoadSSHKeys: 'SSH-Schlüssel konnten nicht geladen werden!',
         failedToLoadVolumes: 'Volumes konnten nicht geladen werden!',
         owner: 'Besitzer',
@@ -2435,10 +1974,12 @@ const de: Translations = {
         referralsTab: 'Empfehlungen',
         pendingClawsTab: 'Ausstehend',
         waitlistTab: 'Warteliste',
-        exportsTab: 'Exporte',
         emailsTab: 'E-Mails',
         analyticsTab: 'Analysen',
         billingTab: 'Abrechnung',
+        settingsTab: 'Einstellungen',
+        settingsDescription: 'Verwalte deine Administratoreinstellungen.',
+        showAllAgents: 'Alle Agenten aller Benutzer anzeigen',
         billingFilterAll: 'Alle Bestellungen',
         billingFilterService: 'Claw-Dienst',
         billingFilterLicense: 'Lizenz',
@@ -2466,13 +2007,11 @@ const de: Translations = {
         noReferralsFound: 'Keine Empfehlungen',
         noPendingClawsFound: 'Keine Ausstehenden Claws',
         noWaitlistFound: 'Keine Warteliste',
-        noExportsFound: 'Keine Exporte',
         noEmailsFound: 'Keine E-Mails',
         failedToLoadReferrals: 'Empfehlungen konnten nicht geladen werden!',
         failedToLoadPendingClaws:
             'Ausstehende Claws konnten nicht geladen werden!',
         failedToLoadWaitlist: 'Warteliste konnte nicht geladen werden!',
-        failedToLoadExports: 'Exporte konnten nicht geladen werden!',
         failedToLoadEmails: 'E-Mails konnten nicht geladen werden!',
         referrer: 'Empfehlender',
         referred: 'Empfohlener',

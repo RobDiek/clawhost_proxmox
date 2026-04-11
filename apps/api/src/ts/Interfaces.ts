@@ -1,47 +1,15 @@
-import type { ChildProcess } from 'child_process'
 import type { ReactNode } from 'react'
 import type {
     BillingInterval,
-    ClawFileType,
     FeatureEmailKey,
     SubscriptionStatus,
-    VersionGatedFeature,
     WebhookEventType
 } from '@/ts/Types'
 import type { PgTable } from 'drizzle-orm/pg-core'
 import type { TranslationKey } from '@openclaw/i18n'
 
-export interface ApiResponse<T = null> {
-    success: boolean
-    data: T
-    message: string
-    code: number
-    version: string
-}
-
-export interface ReadClawConfigFileOptions {
-    fallback?: string
-    timeout?: number
-}
-
 export interface WithClawOptions {
     requireSSH?: boolean | TranslationKey
-}
-
-export interface ExportRateLimitData {
-    retryAfter: number
-}
-
-export interface FeatureGatedConfigUpdateParams {
-    ip: string
-    rootPassword: string
-    feature: VersionGatedFeature
-    mutate: (config: Record<string, unknown>) => void | Promise<void>
-}
-
-export interface FeatureGatedConfigUpdateResult {
-    ok: boolean
-    unsupportedVersion?: string
 }
 
 export interface CloudProvider {
@@ -182,10 +150,6 @@ export interface HetznerDatacentersResponse {
     datacenters: HetznerDatacenter[]
 }
 
-export interface HetznerSSHKeysResponse {
-    ssh_keys: HetznerSSHKey[]
-}
-
 export interface HetznerSSHKeyResponse {
     ssh_key: HetznerSSHKey
 }
@@ -226,14 +190,6 @@ export interface LocationInfo {
     city: string
     country: string
     disabled: boolean
-}
-
-export interface HetznerSSHKeyInfo {
-    id: number
-    name: string
-    fingerprint: string
-    publicKey: string
-    createdAt: string
 }
 
 export interface CreateSSHKeyResult {
@@ -505,54 +461,7 @@ export interface CloudflareDNSLookup {
     ip: string
 }
 
-export interface PrerenderMeta {
-    title: string
-    description: string
-    url: string
-    type: string
-    image: string
-    jsonLd: Record<string, unknown>
-    articleMeta?: ArticleMeta
-}
-
-export interface ArticleMeta {
-    publishedTime: string
-    modifiedTime?: string
-    author: string
-    tags: string[]
-}
-
-export interface DiagnosticsStatusResponse {
-    service: string
-    port: string
-    memory: string
-}
-
-export interface DiagnosticsLogsResponse {
-    logs: string
-}
-
-export interface DiagnosticsRepairResponse {
-    success: boolean
-    message: string
-}
-
-export interface ClawFileEntry {
-    path: string
-    name: string
-    fileType: ClawFileType
-}
-
-export interface ClawFilesResponse {
-    files: ClawFileEntry[]
-}
-
 export interface ReadClawFileBody {
-    path: string
-}
-
-export interface ReadClawFileResponse {
-    content: string
     path: string
 }
 
@@ -561,97 +470,9 @@ export interface UpdateClawFileBody {
     content: string
 }
 
-export interface UpdateClawFileResponse {
-    success: boolean
-    message: string
-}
-
 export interface BillingPeriod {
     start?: string
     end?: string
-}
-
-export interface DeleteClawResponse {
-    scheduled: boolean
-    deletionScheduledAt?: string
-    claw?: Record<string, unknown>
-}
-
-export interface InitiateClawPurchaseResponse {
-    checkoutUrl: string
-    checkoutId: string
-    pendingClawId: string
-    expiresAt: string
-}
-
-export interface ClawAgent {
-    id: string
-    name: string
-    model: string | null
-    status: string
-    directory: string | null
-}
-
-export interface ClawAgentsResponse {
-    agents: ClawAgent[]
-    reachable: boolean
-}
-
-export interface RawClawConfigAgent {
-    id?: string
-    name?: string
-    model?: string
-    status?: string
-    workspace?: string
-    directory?: string
-}
-
-export interface RawClawHubSkillItem {
-    slug?: string
-    name?: string
-    package?: string
-    id?: string
-    displayName?: string
-    version?: string
-    currentVersion?: string
-    hasUpdate?: boolean
-    updateAvailable?: boolean
-    latestVersion?: string
-}
-
-export interface UpdateClawEnvVarsBody {
-    envVars: Record<string, string>
-}
-
-export interface GetAgentConfigBody {
-    agentId: string
-}
-
-export interface UpdateAgentConfigBody {
-    agentId: string
-    name?: string
-    model: string | null
-    envVars: Record<string, string>
-}
-
-export interface AgentConfigResponse {
-    agent: {
-        id: string
-        name: string
-        model: string | null
-    }
-    envVars: Record<string, string>
-    defaultModel: string | null
-}
-
-export interface CreateClawAgentBody {
-    name: string
-    model?: string | null
-    envVars?: Record<string, string>
-}
-
-export interface DeleteClawAgentBody {
-    agentId: string
 }
 
 export interface OrderCustomerResult {
@@ -667,168 +488,6 @@ export interface PolarItemsResult {
     items: unknown[]
 }
 
-export interface RegionMeta {
-    city: string
-    country: string
-}
-
-export interface PlanOrder {
-    order: string[]
-}
-
-export interface ChannelConfig {
-    enabled: boolean
-    dmPolicy?: string
-    allowFrom?: string[]
-    botToken?: string
-    token?: string
-    appToken?: string
-    signingSecret?: string
-    account?: string
-}
-
-export interface ClawChannelsResponse {
-    channels: Record<string, ChannelConfig>
-}
-
-export interface UpdateClawChannelsBody {
-    channels: Record<string, ChannelConfig>
-}
-
-export interface WhatsAppPairResponse {
-    status: 'started' | 'already_paired'
-}
-
-export interface WhatsAppPairStatusResponse {
-    status: 'waiting' | 'qr_ready' | 'paired' | 'failed' | 'not_started'
-    qr?: string
-    log?: string
-}
-
-export interface SkillEntryConfig {
-    enabled: boolean
-    apiKey?: string
-    env?: Record<string, string>
-    config?: Record<string, unknown>
-}
-
-export interface BundledSkillInfo {
-    name: string
-    enabled: boolean
-    description?: string
-}
-
-export interface ClawSkillsResponse {
-    skills: BundledSkillInfo[]
-    entries: Record<string, SkillEntryConfig>
-}
-
-export interface UpdateClawSkillsBody {
-    entries: Record<string, SkillEntryConfig>
-}
-
-export interface AgentSkillInfo {
-    name: string
-}
-
-export interface GetAgentSkillsBody {
-    agentId: string
-}
-
-export interface GetAgentSkillsResponse {
-    skills: AgentSkillInfo[]
-}
-
-export interface UpdateAgentSkillsBody {
-    action: 'install' | 'remove'
-    skillName: string
-}
-
-export interface ClawHubSearchResult {
-    slug: string
-    name: string
-    description: string
-    author: string
-    version: string
-    downloads: number
-    tags: string[]
-}
-
-export interface ClawHubInstalledSkill {
-    slug: string
-    name: string
-    version: string
-    hasUpdate: boolean
-    latestVersion?: string
-}
-
-export interface BrowseClawHubSkillsQuery {
-    query?: string
-    limit?: number
-    cursor?: string
-    agentId?: string
-}
-
-export interface ClawHubInstallBody {
-    slug: string
-    agentId?: string
-}
-
-export interface ClawHubRemoveBody {
-    slug: string
-    agentId?: string
-}
-
-export interface ClawHubUpdateBody {
-    slug?: string
-    all?: boolean
-    agentId?: string
-}
-
-export interface ClawHubBrowseResponse {
-    skills: ClawHubSearchResult[]
-}
-
-export interface ClawHubInstalledResponse {
-    skills: ClawHubInstalledSkill[]
-}
-
-export interface ClawHubUpdatesResponse {
-    updates: ClawHubInstalledSkill[]
-}
-
-export interface ClawHubAPISearchHit {
-    score: number
-    slug: string
-    displayName: string
-    summary: string
-    version: string
-    updatedAt: string
-}
-
-export interface ClawHubAPISkillItem {
-    slug: string
-    displayName: string
-    summary: string
-    version: string
-    updatedAt: string
-    downloads?: number
-    author?: string
-    tags?: string[]
-}
-
-export interface BrowseClawHubSkillsParams {
-    query?: string
-    limit?: number
-    cursor?: string
-}
-
-export interface ClawHubBrowseResultPage {
-    skills: ClawHubSearchResult[]
-    nextCursor: string | null
-    hasMore: boolean
-}
-
 export interface CacheEntry<T> {
     data: T
     expiry: number
@@ -839,89 +498,17 @@ export interface AuthCacheData {
     isAdmin: boolean
 }
 
-export interface SkillsCacheEntry {
-    data: ClawHubSearchResult[]
-    expires: number
-}
-
-export interface ClawHubAPISkillsPage {
-    items: ClawHubAPISkillItem[]
-    nextCursor?: string | null
-}
-
-export interface AgentIdBody {
-    agentId?: string
-}
-
 export interface RenameClawBody {
     name: string
 }
 
-export interface BindingMatch {
-    channel: string
-}
-
-export interface Binding {
-    agentId: string
-    match: BindingMatch
-}
-
-export interface ClawBindingsResponse {
-    bindings: Binding[]
-    channels: Record<string, ChannelConfig>
-    agents: Array<{ id: string; name: string }>
-}
-
-export interface UpdateClawBindingsBody {
-    bindings: Binding[]
-}
-
-export interface RootLayoutProps {
-    children: React.ReactNode
-}
-
-export interface ClawBindingEntry {
-    agentId: string
-    match: { channel: string }
-}
-
-export interface ClawBindingAgent {
-    id: string
-    name: string
+export interface UpdateClawSubdomainBody {
+    subdomain: string
 }
 
 export interface GithubEmailEntry {
     primary: boolean
     email: string
-}
-
-export interface GenerateSpeechBody {
-    text: string
-    voice?: string
-}
-
-export interface PiperVoice {
-    id: string
-    name: string
-    gender: string
-    quality: string
-}
-
-export interface PiperModelConfig {
-    sampleRate: number
-    channels: number
-}
-
-export interface PiperSynthesisResult {
-    audio: Buffer
-    sampleRate: number
-    channels: number
-}
-
-export interface PiperStreamResult {
-    child: ChildProcess
-    sampleRate: number
-    channels: number
 }
 
 export interface NpmRegistryTimeResponse {
@@ -935,11 +522,6 @@ export interface NpmRegistryVersionsResponse {
 
 export interface NpmDownloadsResponse {
     downloads: Record<string, number>
-}
-
-export interface VersionCheckResult {
-    supported: boolean
-    version: string
 }
 
 export interface InstallVersionBody {
@@ -963,10 +545,6 @@ export interface JoinWaitlistBody {
     email: string
 }
 
-export interface WaitlistStatusResponse {
-    joined: boolean
-}
-
 export interface FeatureEmailLayoutProps {
     preview: string
     children: ReactNode
@@ -978,44 +556,8 @@ export interface FeatureEmailDefinition {
     render: () => ReactNode
 }
 
-export interface AffiliateInfoResponse {
-    referrals: AffiliateReferralEntry[]
-}
-
-export interface GenerateReferralCodeResponse {
-    referralCode: string
-}
-
-export interface AffiliateReferralEntry {
-    id: string
-    referredEmail: string
-    status: string
-    earnedAmount: number
-    createdAt: string
-}
-
 export interface UpdateReferralCodeBody {
     code: string
-}
-
-export interface AdminUserListItem {
-    id: string
-    email: string
-    name: string | null
-    role: string
-    authMethods: string[] | null
-    hasLicense: boolean
-    referralCode: string | null
-    createdAt: Date
-    clawCount: number
-    sshKeyCount: number
-}
-
-export interface AdminUsersResponse {
-    items: AdminUserListItem[]
-    total: number
-    page: number
-    totalPages: number
 }
 
 export interface AdminAnalyticsDataPoint {

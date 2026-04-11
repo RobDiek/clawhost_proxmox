@@ -9,7 +9,6 @@ import CLAW_LOGS_QUERY_KEY from '@/hooks/useClaws/CLAW_LOGS_QUERY_KEY'
 import CLAW_VERSIONS_QUERY_KEY from '@/hooks/useClaws/CLAW_VERSIONS_QUERY_KEY'
 import useClaws from '@/hooks/useClaws/useClaws'
 import useAdminClaws from '@/hooks/useClaws/useAdminClaws'
-import useClaw from '@/hooks/useClaws/useClaw'
 import usePurchaseClaw from '@/hooks/useClaws/usePurchaseClaw'
 import useStartClaw from '@/hooks/useClaws/useStartClaw'
 import useStopClaw from '@/hooks/useClaws/useStopClaw'
@@ -17,7 +16,6 @@ import useRestartClaw from '@/hooks/useClaws/useRestartClaw'
 import useDeleteClaw from '@/hooks/useClaws/useDeleteClaw'
 import useCancelDeletion from '@/hooks/useClaws/useCancelDeletion'
 import useHardDeleteClaw from '@/hooks/useClaws/useHardDeleteClaw'
-import useSyncClaw from '@/hooks/useClaws/useSyncClaw'
 import useClawDiagnostics from '@/hooks/useClaws/useClawDiagnostics'
 import useClawLogs from '@/hooks/useClaws/useClawLogs'
 import useRepairClaw from '@/hooks/useClaws/useRepairClaw'
@@ -44,7 +42,6 @@ export {
     CLAW_VERSIONS_QUERY_KEY,
     useClaws,
     useAdminClaws,
-    useClaw,
     usePurchaseClaw,
     useStartClaw,
     useStopClaw,
@@ -52,7 +49,6 @@ export {
     useDeleteClaw,
     useCancelDeletion,
     useHardDeleteClaw,
-    useSyncClaw,
     useClawDiagnostics,
     useClawLogs,
     useRepairClaw,

@@ -1,22 +1,51 @@
 import type { ReactNode } from 'react'
-import type { ClawFileType } from '@/ts/Types'
 
 import {
     FileIcon,
     FileJsIcon,
     FileTsIcon,
     FileMdIcon,
-    FileTextIcon
+    FileTextIcon,
+    FileHtmlIcon,
+    FileCssIcon,
+    FilePyIcon,
+    FileCodeIcon
 } from '@phosphor-icons/react'
 
-const getFileIcon = (fileType: ClawFileType, className: string): ReactNode => {
-    if (fileType === 'json' || fileType === 'javascript')
-        return <FileJsIcon className={className} />
-    if (fileType === 'typescript') return <FileTsIcon className={className} />
-    if (fileType === 'markdown') return <FileMdIcon className={className} />
-    if (fileType === 'yaml' || fileType === 'text')
-        return <FileTextIcon className={className} />
-    return <FileIcon className={className} />
+const EXT_ICON_MAP: Record<string, typeof FileIcon> = {
+    js: FileJsIcon,
+    mjs: FileJsIcon,
+    cjs: FileJsIcon,
+    jsx: FileJsIcon,
+    ts: FileTsIcon,
+    tsx: FileTsIcon,
+    md: FileMdIcon,
+    mdx: FileMdIcon,
+    html: FileHtmlIcon,
+    htm: FileHtmlIcon,
+    css: FileCssIcon,
+    scss: FileCssIcon,
+    py: FilePyIcon,
+    sh: FileCodeIcon,
+    bash: FileCodeIcon,
+    zsh: FileCodeIcon,
+    fish: FileCodeIcon,
+    json: FileCodeIcon,
+    jsonl: FileCodeIcon,
+    yaml: FileTextIcon,
+    yml: FileTextIcon,
+    toml: FileTextIcon,
+    txt: FileTextIcon,
+    env: FileTextIcon,
+    cfg: FileTextIcon,
+    ini: FileTextIcon,
+    conf: FileTextIcon
 }
 
-export default getFileIcon
+const getFileIconByName = (filename: string, className: string): ReactNode => {
+    const ext = filename.split('.').pop()?.toLowerCase() || ''
+    const IconComponent = EXT_ICON_MAP[ext] || FileIcon
+    return <IconComponent className={className} />
+}
+
+export default getFileIconByName

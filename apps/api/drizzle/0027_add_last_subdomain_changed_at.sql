@@ -1,0 +1,1 @@
+ALTER TABLE "claws" ADD COLUMN "last_subdomain_changed_at" timestamp with time zone;

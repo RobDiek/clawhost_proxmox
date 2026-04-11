@@ -1,8 +1,8 @@
 const PATHS = {
     HOME: '/',
     GO: 'go',
-    LOGIN: 'login',
-    CLAWS: 'claws',
+    LOGIN: 'auth',
+    CLAWS: 'agents',
     SSH_KEYS: 'ssh-keys',
     ACCOUNT: 'account',
     BILLING: 'billing',

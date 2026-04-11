@@ -43,11 +43,8 @@ import {
     GaugeIcon,
     CreditCardIcon,
     LinkIcon,
-    ChatCircleDotsIcon,
     SlidersHorizontalIcon,
     GearSixIcon,
-    PuzzlePieceIcon,
-    UsersThreeIcon,
     StackIcon,
     GitBranchIcon
 } from '@phosphor-icons/react'
@@ -335,23 +332,6 @@ const Landing: FC = (): ReactNode => {
                             description: t('landing.clawHostControlDescription')
                         },
                         {
-                            icon: PuzzlePieceIcon,
-                            title: t('landing.skillsMarketplace'),
-                            description: t(
-                                'landing.skillsMarketplaceDescription'
-                            )
-                        },
-                        {
-                            icon: ChatCircleDotsIcon,
-                            title: t('landing.directChat'),
-                            description: t('landing.directChatDescription')
-                        },
-                        {
-                            icon: UsersThreeIcon,
-                            title: t('landing.multipleAgents'),
-                            description: t('landing.multipleAgentsDescription')
-                        },
-                        {
                             icon: StackIcon,
                             title: t('landing.multipleClaws'),
                             description: t('landing.multipleClawsDescription')
@@ -403,10 +383,6 @@ const Landing: FC = (): ReactNode => {
                             others: t('landing.comparisonMultipleOthers')
                         },
                         {
-                            us: t('landing.comparisonAgentsUs'),
-                            others: t('landing.comparisonAgentsOthers')
-                        },
-                        {
                             us: t('landing.comparisonOpenSourceUs'),
                             others: t('landing.comparisonOpenSourceOthers')
                         },
@@ -417,10 +393,6 @@ const Landing: FC = (): ReactNode => {
                         {
                             us: t('landing.comparisonProvidersUs'),
                             others: t('landing.comparisonProvidersOthers')
-                        },
-                        {
-                            us: t('landing.comparisonChatUs'),
-                            others: t('landing.comparisonChatOthers')
                         },
                         {
                             us: t('landing.comparisonVersionUs'),

@@ -21,11 +21,11 @@ import {
     AdminBillingTab,
     AdminClawsTab,
     AdminEmailsTab,
-    AdminExportsTab,
     AdminPendingClawsTab,
     AdminReferralsTab,
     AdminSSHKeysTab,
     AdminDetailModal,
+    AdminSettingsTab,
     AdminVolumesTab,
     AdminWaitlistTab
 } from '@/components/admin'
@@ -44,10 +44,10 @@ import {
     HandshakeIcon,
     HourglassIcon,
     ClockCountdownIcon,
-    ExportIcon,
     EnvelopeIcon,
     ChartLineUpIcon,
-    CreditCardIcon
+    CreditCardIcon,
+    GearSixIcon
 } from '@phosphor-icons/react'
 import AdminUserSkeleton from '@/pages/AdminUserSkeleton'
 import { UsersTab } from '@/pages/Admin/tabs'
@@ -61,9 +61,9 @@ const ADMIN_TABS = {
     VOLUMES: 'volumes',
     REFERRALS: 'referrals',
     WAITLIST: 'waitlist',
-    EXPORTS: 'exports',
     EMAILS: 'emails',
-    BILLING: 'billing'
+    BILLING: 'billing',
+    SETTINGS: 'settings'
 } as const
 
 const Admin: FC = (): ReactNode => {
@@ -185,12 +185,6 @@ const Admin: FC = (): ReactNode => {
                                         count: stats?.waitlist
                                     },
                                     {
-                                        key: ADMIN_TABS.EXPORTS,
-                                        icon: ExportIcon,
-                                        label: t('admin.exportsTab'),
-                                        count: stats?.exports
-                                    },
-                                    {
                                         key: ADMIN_TABS.EMAILS,
                                         icon: EnvelopeIcon,
                                         label: t('admin.emailsTab'),
@@ -201,6 +195,13 @@ const Admin: FC = (): ReactNode => {
                                         icon: CreditCardIcon,
                                         label: t('admin.billingTab'),
                                         count: stats?.billing
+                                    },
+                                    {
+                                        key: ADMIN_TABS.SETTINGS,
+                                        icon: GearSixIcon,
+                                        label: t('admin.settingsTab'),
+                                        count: undefined,
+                                        showLabel: true
                                     }
                                 ].map((tab) => {
                                     const isActive = activeTab === tab.key
@@ -273,11 +274,6 @@ const Admin: FC = (): ReactNode => {
                                     onSelectEntity={setSelectedEntity}
                                 />
                             )}
-                            {activeTab === ADMIN_TABS.EXPORTS && (
-                                <AdminExportsTab
-                                    onSelectEntity={setSelectedEntity}
-                                />
-                            )}
                             {activeTab === ADMIN_TABS.EMAILS && (
                                 <AdminEmailsTab
                                     onSelectEntity={setSelectedEntity}
@@ -293,6 +289,9 @@ const Admin: FC = (): ReactNode => {
                             )}
                             {activeTab === ADMIN_TABS.USERS && (
                                 <UsersTab onSelectEntity={setSelectedEntity} />
+                            )}
+                            {activeTab === ADMIN_TABS.SETTINGS && (
+                                <AdminSettingsTab />
                             )}
                         </div>
                     </Fragment>

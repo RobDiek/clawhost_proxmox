@@ -61,14 +61,6 @@ const registerStubHandlers = (): void => {
         const config = configStore.readConfig()
         return config.claws
     })
-
-    ipcMain.handle('pairWhatsApp', () => {
-        return { qrCode: null, status: 'unavailable' }
-    })
-
-    ipcMain.handle('pairWhatsAppStatus', () => {
-        return { status: 'unavailable' }
-    })
 }
 
 export default registerStubHandlers

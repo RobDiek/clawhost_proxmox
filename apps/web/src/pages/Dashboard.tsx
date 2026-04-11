@@ -1,21 +1,14 @@
 import type { FC, ReactNode } from 'react'
 import type { Claw, ElectronWindow } from '@/ts/Interfaces'
 
-import {
-    Fragment,
-    lazy,
-    useState,
-    useEffect,
-    useMemo,
-    useCallback
-} from 'react'
+import { Fragment, useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { userRole } from '@openclaw/shared'
 import { useUIStore, usePreferencesStore, useDashboardStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import { ROUTES, DASHBOARD_TABS, AGENT_DETAIL_TABS } from '@/lib'
+import { ROUTES } from '@/lib'
 import {
     useClaws,
     useAdminClaws,
@@ -24,8 +17,6 @@ import {
     useLocations,
     useVolumePricing,
     usePlanAvailability,
-    useAllClawAgents,
-    usePlaygroundGraph,
     useProfile,
     useNetworkStatus,
     useAppVersion,
@@ -43,14 +34,9 @@ import {
     CreateClawModal,
     DashboardChatView,
     DashboardHeader,
-    DashboardPlaygroundView
+    DashboardLoadingState
 } from '@/components/dashboard'
-import { PlaygroundLoadingState } from '@/components/playground'
 import { useAuth } from '@/lib/auth'
-
-const CreateAgentModal = lazy(
-    () => import('@/components/playground/CreateAgentModal')
-)
 
 const Dashboard: FC = (): ReactNode => {
     const navigate = useNavigate()
@@ -59,40 +45,17 @@ const Dashboard: FC = (): ReactNode => {
         () => searchParams.get('payment') === 'success'
     )
     const {
-        selectedClawId,
-        setSelectedClawId,
-        selectedAgentId,
-        setSelectedAgentId,
-        selectedAgentClawId,
-        setSelectedAgentClawId,
-        chatSelectedAgent,
-        setChatSelectedAgent,
         chatSettingsClawId,
         setChatSettingsClawId,
-        chatAgentTab,
-        setChatAgentTab,
-        playgroundAgentTab,
-        setPlaygroundAgentTab,
-        playgroundClawTab,
-        setPlaygroundClawTab,
         chatClawTab,
         setChatClawTab,
         showCreate,
         setShowCreate,
         preselectedPlanId,
-        setPreselectedPlanId,
-        createAgentClawId,
-        setCreateAgentClawId,
-        createAgentClawName,
-        setCreateAgentClawName
+        setPreselectedPlanId
     } = useDashboardStore()
     const { showToast } = useUIStore()
-    const {
-        adminMode: adminModeRaw,
-        dashboardTab,
-        setDashboardTab,
-        openLinksWindowed
-    } = usePreferencesStore()
+    const { adminMode: adminModeRaw, openLinksWindowed } = usePreferencesStore()
 
     const [minLoadingMet, setMinLoadingMet] = useState(false)
 
@@ -157,24 +120,8 @@ const Dashboard: FC = (): ReactNode => {
     useURLStateRestoration({
         searchParams,
         setSearchParams,
-        dashboardTab,
-        setDashboardTab,
-        selectedClawId,
-        setSelectedClawId,
-        selectedAgentId,
-        setSelectedAgentId,
-        selectedAgentClawId,
-        setSelectedAgentClawId,
-        chatSelectedAgent,
-        setChatSelectedAgent,
         chatSettingsClawId,
         setChatSettingsClawId,
-        chatAgentTab,
-        setChatAgentTab,
-        playgroundAgentTab,
-        setPlaygroundAgentTab,
-        playgroundClawTab,
-        setPlaygroundClawTab,
         chatClawTab,
         setChatClawTab,
         setShowCreate,
@@ -182,25 +129,6 @@ const Dashboard: FC = (): ReactNode => {
         showToast,
         awaitingClaw
     })
-
-    const handleConfigureAgent = useCallback(
-        (agentId: string, clawId: string) => {
-            setDashboardTab(DASHBOARD_TABS.PLAYGROUND)
-            setSelectedAgentId(agentId)
-            setSelectedAgentClawId(clawId)
-            setSelectedClawId(null)
-            setPlaygroundAgentTab(AGENT_DETAIL_TABS.CONFIGURATION)
-        },
-        [setDashboardTab]
-    )
-
-    const handleCreateAgent = useCallback(
-        (clawId: string, clawName: string) => {
-            setCreateAgentClawId(clawId)
-            setCreateAgentClawName(clawName)
-        },
-        []
-    )
 
     const {
         data: claws,
@@ -239,36 +167,9 @@ const Dashboard: FC = (): ReactNode => {
     const isLoading =
         authLoading || activeClawsLoading || (!awaitingClaw && !minLoadingMet)
 
-    const agentQueries = useAllClawAgents(displayedClaws)
-    const { nodes, edges } = usePlaygroundGraph(displayedClaws, agentQueries)
-
     const chatEmpty =
-        dashboardTab === DASHBOARD_TABS.CHAT &&
-        !isLoading &&
-        !activeIsError &&
-        displayedClaws.length === 0
-    const chatHasContent =
-        dashboardTab === DASHBOARD_TABS.CHAT &&
-        !isLoading &&
-        !activeIsError &&
-        displayedClaws.length > 0
-    const showFullBackground =
-        dashboardTab === DASHBOARD_TABS.PLAYGROUND ||
-        chatEmpty ||
-        activeIsError ||
-        isLoading
-
-    const handleClawSelect = useCallback((clawId: string | null) => {
-        setSelectedClawId(clawId)
-    }, [])
-
-    const handleAgentSelect = useCallback(
-        (agentId: string | null, clawId: string | null) => {
-            setSelectedAgentId(agentId)
-            setSelectedAgentClawId(clawId)
-        },
-        []
-    )
+        !isLoading && !activeIsError && displayedClaws.length === 0
+    const showFullBackground = chatEmpty || activeIsError || isLoading
 
     const handleCreateClick = useCallback(() => {
         setShowCreate(true)
@@ -293,22 +194,15 @@ const Dashboard: FC = (): ReactNode => {
                 <div className='playground-grid pointer-events-none fixed inset-0 opacity-50' />
             )}
             <div
-                className={`playground-gradient pointer-events-none fixed inset-0 ${isLocal || chatHasContent ? 'opacity-30' : ''}`}
+                className={`playground-gradient pointer-events-none fixed inset-0 ${isLocal || (!isLoading && !activeIsError && displayedClaws.length > 0) ? 'opacity-30' : ''}`}
             />
             <PageTitle
-                title={
-                    adminMode ? t('dashboard.adminTitle') : t('dashboard.title')
-                }
-                description={
-                    adminMode
-                        ? t('dashboard.adminDescription')
-                        : t('dashboard.description')
-                }
+                title={t('dashboard.title')}
+                description={t('dashboard.description')}
                 noIndex
             />
 
             <DashboardHeader
-                dashboardTab={dashboardTab}
                 isLocal={!!isLocal}
                 isLoading={isLoading}
                 displayedClaws={displayedClaws}
@@ -318,7 +212,6 @@ const Dashboard: FC = (): ReactNode => {
                 openLinksWindowed={openLinksWindowed}
                 appVersion={appVersion}
                 dropdownFooterLinks={dropdownFooterLinks || []}
-                onTabChange={setDashboardTab}
                 onCreateClick={handleCreateClick}
                 onDnsSetup={handleDnsSetup}
                 onSignOut={signOut}
@@ -329,9 +222,9 @@ const Dashboard: FC = (): ReactNode => {
                     <div className='flex h-full min-w-0 flex-1 items-center justify-center'>
                         <div className='-mt-20'>
                             <ErrorState
-                                title={t('errors.failedToLoadClaws')}
+                                title={t('errors.failedToLoadAgents')}
                                 description={t(
-                                    'errors.failedToLoadClawsDescription'
+                                    'errors.failedToLoadAgentsDescription'
                                 )}
                                 onRetry={() => activeRefetch()}
                             />
@@ -339,47 +232,18 @@ const Dashboard: FC = (): ReactNode => {
                     </div>
                 ) : isLoading ? (
                     <div className='flex h-full min-w-0 flex-1 items-center justify-center'>
-                        <PlaygroundLoadingState />
+                        <DashboardLoadingState />
                     </div>
-                ) : dashboardTab === DASHBOARD_TABS.CHAT ? (
+                ) : (
                     <DashboardChatView
                         displayedClaws={displayedClaws}
-                        agentQueries={agentQueries}
                         plans={plans}
                         sshKeys={sshKeys || []}
                         adminMode={adminMode}
-                        chatSelectedAgent={chatSelectedAgent}
                         chatSettingsClawId={chatSettingsClawId}
-                        chatAgentTab={chatAgentTab}
                         chatClawTab={chatClawTab}
-                        onAgentSelect={setChatSelectedAgent}
-                        onConfigureAgent={handleConfigureAgent}
-                        onCreateAgent={handleCreateAgent}
                         onSettingsClawChange={setChatSettingsClawId}
-                        onAgentTabChange={setChatAgentTab}
                         onClawTabChange={setChatClawTab}
-                        onCreateClick={handleCreateClick}
-                    />
-                ) : (
-                    <DashboardPlaygroundView
-                        displayedClaws={displayedClaws}
-                        agentQueries={agentQueries}
-                        adminMode={adminMode}
-                        nodes={nodes}
-                        edges={edges}
-                        plans={plans}
-                        sshKeys={sshKeys || []}
-                        selectedClawId={selectedClawId}
-                        selectedAgentId={selectedAgentId}
-                        selectedAgentClawId={selectedAgentClawId}
-                        playgroundClawTab={playgroundClawTab}
-                        playgroundAgentTab={playgroundAgentTab}
-                        isLoading={isLoading}
-                        activeIsError={activeIsError}
-                        onClawSelect={handleClawSelect}
-                        onAgentSelect={handleAgentSelect}
-                        onPlaygroundClawTabChange={setPlaygroundClawTab}
-                        onPlaygroundAgentTabChange={setPlaygroundAgentTab}
                         onCreateClick={handleCreateClick}
                     />
                 )}
@@ -401,20 +265,6 @@ const Dashboard: FC = (): ReactNode => {
                         setShowCreate(false)
                         setPreselectedPlanId(null)
                         navigate(ROUTES.SSH_KEYS)
-                    }}
-                />
-            )}
-
-            {createAgentClawId && (
-                <CreateAgentModal
-                    clawId={createAgentClawId}
-                    clawName={createAgentClawName}
-                    open={!!createAgentClawId}
-                    onOpenChange={(open) => {
-                        if (!open) {
-                            setCreateAgentClawId(null)
-                            setCreateAgentClawName('')
-                        }
                     }}
                 />
             )}
