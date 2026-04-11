@@ -155,11 +155,7 @@ const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
                                     return (
                                         <div
                                             key={entry.version}
-                                            className={`border-border flex items-center justify-between rounded-lg border px-3 py-2.5 transition-colors ${
-                                                isCurrent
-                                                    ? 'bg-foreground/[0.06]'
-                                                    : 'bg-foreground/[0.02]'
-                                            }`}
+                                            className='border-border bg-foreground/[0.02] flex items-center justify-between rounded-lg border px-3 py-2.5 transition-colors'
                                         >
                                             <div className='min-w-0 flex-1'>
                                                 <div className='flex items-center gap-2'>

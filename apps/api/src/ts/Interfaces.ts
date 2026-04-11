@@ -494,6 +494,11 @@ export interface CacheEntry<T> {
     expiry: number
 }
 
+export interface VersionsCacheData {
+    latestVersion: string
+    versions: { version: string; publishedAt: string; downloads: number }[]
+}
+
 export interface AuthCacheData {
     userId: string
     isAdmin: boolean

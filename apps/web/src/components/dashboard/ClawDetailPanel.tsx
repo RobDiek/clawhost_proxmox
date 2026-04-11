@@ -139,10 +139,7 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
         if (versionQuery.isLoading) return null
         if (versionQuery.isError || !versionQuery.data) return null
         if (versionQuery.data.version === 'unknown') return null
-        const raw = versionQuery.data.version
-        return raw
-            .replace(/\s*\([a-f0-9]+\)\s*$/, '')
-            .replace(/^OpenClaw\s*/i, '')
+        return versionQuery.data.version
     }, [
         readOnly,
         versionQuery.isLoading,
