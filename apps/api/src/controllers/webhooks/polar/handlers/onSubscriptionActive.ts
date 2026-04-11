@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { claws } from '@/db/schema'
 import { getEnvironment, PROD } from '@/lib/environment'
-import { provisionClaw } from '@/controllers/claws'
+import { provisionClaw } from '@/controllers/agents'
 import { subscriptions } from '@/lib/polar'
 import trackReferral from '@/controllers/webhooks/polar/trackReferral'
 

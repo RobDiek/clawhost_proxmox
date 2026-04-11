@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from 'ws'
 import { Client } from 'ssh2'
 import { verifyToken } from '@/services/firebase'
 import hostKeyStore from '@/services/hostKeyStore'
-import { findUserClaw, isAdmin } from '@/controllers/claws/helpers'
+import { findUserClaw, isAdmin } from '@/controllers/agents/helpers'
 import { apiPaths } from '@openclaw/shared'
 
 const TERMINAL_PATTERN = new RegExp(

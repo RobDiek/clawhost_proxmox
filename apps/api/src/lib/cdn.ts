@@ -17,6 +17,7 @@ const CDN_ASSETS = {
     FEATURE_REINSTALL: `${CDN_URL}/assets/features/reinstall.gif`,
     FEATURE_YEARLY_PLANS: `${CDN_URL}/assets/features/yearly-plans.gif`,
     EMAIL_SIMPLIFIED_PLATFORM: `${CDN_URL}/assets/emails/lobster-moving-fast.gif`,
+    ICON_GITHUB: `${CDN_URL}/assets/icons/github.png`,
     ICON_PRODUCT_HUNT: `${CDN_URL}/assets/icons/product-hunt.png`,
     ICON_X: `${CDN_URL}/assets/icons/x.png`,
     ICON_FACEBOOK: `${CDN_URL}/assets/icons/facebook.png`,

@@ -75,11 +75,7 @@ export default defineConfig(({ mode }) => {
                         ],
                         phosphor: ['@phosphor-icons/react'],
                         firebase: ['firebase/app', 'firebase/auth'],
-                        tanstack: [
-                            '@tanstack/react-query',
-                            '@tanstack/react-query-persist-client',
-                            '@tanstack/query-sync-storage-persister'
-                        ]
+                        tanstack: ['@tanstack/react-query']
                     }
                 }
             }

@@ -5,7 +5,7 @@ import { clawStatus } from '@openclaw/shared'
 import { db } from '@/db'
 import { claws } from '@/db/schema'
 import { subscriptionStatus } from '@/lib/constants'
-import { cleanupClaw } from '@/controllers/claws/helpers'
+import { cleanupClaw } from '@/controllers/agents/helpers'
 import { getProvider } from '@/services/provider'
 
 const onSubscriptionRevoked = async (data: SubscriptionWebhookData) => {
