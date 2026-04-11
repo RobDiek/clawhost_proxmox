@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import type {
     BillingInterval,
-    ClawFileType,
     FeatureEmailKey,
     SubscriptionStatus,
     WebhookEventType
@@ -9,20 +8,8 @@ import type {
 import type { PgTable } from 'drizzle-orm/pg-core'
 import type { TranslationKey } from '@openclaw/i18n'
 
-export interface ApiResponse<T = null> {
-    success: boolean
-    data: T
-    message: string
-    code: number
-    version: string
-}
-
 export interface WithClawOptions {
     requireSSH?: boolean | TranslationKey
-}
-
-export interface ExportRateLimitData {
-    retryAfter: number
 }
 
 export interface CloudProvider {
@@ -163,10 +150,6 @@ export interface HetznerDatacentersResponse {
     datacenters: HetznerDatacenter[]
 }
 
-export interface HetznerSSHKeysResponse {
-    ssh_keys: HetznerSSHKey[]
-}
-
 export interface HetznerSSHKeyResponse {
     ssh_key: HetznerSSHKey
 }
@@ -207,14 +190,6 @@ export interface LocationInfo {
     city: string
     country: string
     disabled: boolean
-}
-
-export interface HetznerSSHKeyInfo {
-    id: number
-    name: string
-    fingerprint: string
-    publicKey: string
-    createdAt: string
 }
 
 export interface CreateSSHKeyResult {
@@ -486,54 +461,7 @@ export interface CloudflareDNSLookup {
     ip: string
 }
 
-export interface PrerenderMeta {
-    title: string
-    description: string
-    url: string
-    type: string
-    image: string
-    jsonLd: Record<string, unknown>
-    articleMeta?: ArticleMeta
-}
-
-export interface ArticleMeta {
-    publishedTime: string
-    modifiedTime?: string
-    author: string
-    tags: string[]
-}
-
-export interface DiagnosticsStatusResponse {
-    service: string
-    port: string
-    memory: string
-}
-
-export interface DiagnosticsLogsResponse {
-    logs: string
-}
-
-export interface DiagnosticsRepairResponse {
-    success: boolean
-    message: string
-}
-
-export interface ClawFileEntry {
-    path: string
-    name: string
-    fileType: ClawFileType
-}
-
-export interface ClawFilesResponse {
-    files: ClawFileEntry[]
-}
-
 export interface ReadClawFileBody {
-    path: string
-}
-
-export interface ReadClawFileResponse {
-    content: string
     path: string
 }
 
@@ -542,27 +470,9 @@ export interface UpdateClawFileBody {
     content: string
 }
 
-export interface UpdateClawFileResponse {
-    success: boolean
-    message: string
-}
-
 export interface BillingPeriod {
     start?: string
     end?: string
-}
-
-export interface DeleteClawResponse {
-    scheduled: boolean
-    deletionScheduledAt?: string
-    claw?: Record<string, unknown>
-}
-
-export interface InitiateClawPurchaseResponse {
-    checkoutUrl: string
-    checkoutId: string
-    pendingClawId: string
-    expiresAt: string
 }
 
 export interface OrderCustomerResult {
@@ -578,15 +488,6 @@ export interface PolarItemsResult {
     items: unknown[]
 }
 
-export interface RegionMeta {
-    city: string
-    country: string
-}
-
-export interface PlanOrder {
-    order: string[]
-}
-
 export interface CacheEntry<T> {
     data: T
     expiry: number
@@ -599,10 +500,6 @@ export interface AuthCacheData {
 
 export interface RenameClawBody {
     name: string
-}
-
-export interface RootLayoutProps {
-    children: React.ReactNode
 }
 
 export interface GithubEmailEntry {
@@ -644,10 +541,6 @@ export interface JoinWaitlistBody {
     email: string
 }
 
-export interface WaitlistStatusResponse {
-    joined: boolean
-}
-
 export interface FeatureEmailLayoutProps {
     preview: string
     children: ReactNode
@@ -659,44 +552,8 @@ export interface FeatureEmailDefinition {
     render: () => ReactNode
 }
 
-export interface AffiliateInfoResponse {
-    referrals: AffiliateReferralEntry[]
-}
-
-export interface GenerateReferralCodeResponse {
-    referralCode: string
-}
-
-export interface AffiliateReferralEntry {
-    id: string
-    referredEmail: string
-    status: string
-    earnedAmount: number
-    createdAt: string
-}
-
 export interface UpdateReferralCodeBody {
     code: string
-}
-
-export interface AdminUserListItem {
-    id: string
-    email: string
-    name: string | null
-    role: string
-    authMethods: string[] | null
-    hasLicense: boolean
-    referralCode: string | null
-    createdAt: Date
-    clawCount: number
-    sshKeyCount: number
-}
-
-export interface AdminUsersResponse {
-    items: AdminUserListItem[]
-    total: number
-    page: number
-    totalPages: number
 }
 
 export interface AdminAnalyticsDataPoint {

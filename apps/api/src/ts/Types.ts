@@ -1,9 +1,7 @@
 import type { Context } from 'hono'
 import type {
-    authMethod,
     billingInterval,
-    clawFileType,
-    userRole
+    clawFileType
 } from '@openclaw/shared'
 import type {
     environment,
@@ -22,10 +20,6 @@ export type SubscriptionStatus =
 
 export type WebhookEventType =
     (typeof webhookEventType)[keyof typeof webhookEventType]
-
-export type AuthMethod = (typeof authMethod)[keyof typeof authMethod]
-
-export type UserRole = (typeof userRole)[keyof typeof userRole]
 
 export type Environment = (typeof environment)[keyof typeof environment]
 
