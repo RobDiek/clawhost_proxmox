@@ -443,9 +443,6 @@ const en = {
         planAvailabilityFetched: 'Plan availability fetched successfully.',
         agentsFetched: 'Agents fetched successfully.',
         agentsFetchFailed: 'Could not reach instance to fetch agents!',
-        agentConfigFetched: 'Agent configuration fetched successfully.',
-        agentConfigUpdated: 'Agent configuration updated successfully.',
-        agentConfigUpdateFailed: 'Could not update agent configuration!',
         agentCreated: 'Agent created successfully.',
         agentCreateFailed: 'Could not create agent on the instance!',
         agentDeleted: 'Agent deleted successfully.',
@@ -467,29 +464,6 @@ const en = {
         healthOk: 'API is running.',
         featureVersionUnsupported:
             'This feature is not supported on version {{version}}. Please update OpenClaw or use the Terminal to manage this manually.',
-        skillsFetched: 'Skills fetched successfully.',
-        skillsUpdated: 'Skills updated successfully.',
-        skillsUpdateFailed: 'Could not update skills!',
-        skillsFetchFailed: 'Could not fetch skills!',
-        agentSkillsFetched: 'Agent skills fetched successfully.',
-        agentSkillsUpdated: 'Agent skills updated successfully.',
-        agentSkillsUpdateFailed: 'Could not update agent skills!',
-        agentSkillsFetchFailed: 'Could not fetch agent skills!',
-        invalidSkillName:
-            'Skill name must only contain letters, numbers, dashes, and underscores!',
-        skillNotFound: 'Skill not found!',
-        clawHubSearchSuccess: 'ClawHub search completed.',
-        clawHubSearchFailed: 'Could not search ClawHub!',
-        clawHubFetched: 'ClawHub skills fetched.',
-        clawHubFetchFailed: 'Could not fetch ClawHub skills!',
-        clawHubInstalled: 'Skill installed from ClawHub.',
-        clawHubInstallFailed: 'Could not install skill from ClawHub!',
-        clawHubRemoved: 'ClawHub skill removed.',
-        clawHubRemoveFailed: 'Could not remove ClawHub skill!',
-        clawHubUpdated: 'Skill updated.',
-        clawHubUpdateFailed: 'Could not update ClawHub skill!',
-        clawHubUpdatesFetched: 'Update check completed.',
-        clawHubUpdatesFailed: 'Could not check for updates!',
         invalidAuthMethod: 'Invalid auth method!',
         authMethodNotConnected: 'This auth method is not connected!',
         authMethodConnected: 'Auth method connected successfully.',
@@ -603,15 +577,6 @@ const en = {
                     'Talk to your AI agents out loud and hear their responses. Multiple voices, fully hands-free.',
                 cta: 'Try Voice Mode'
             },
-            skills: {
-                subject: '5,000+ skills on ClawHub',
-                preview: 'Install community skills with one click',
-                tag: 'ClawHub Skills',
-                heading: '5,000+ skills, one click to install',
-                description:
-                    'Web search, code execution, image generation — browse ClawHub and add new abilities to your agents instantly.',
-                cta: 'Browse ClawHub'
-            },
             envVars: {
                 subject: 'Manage env vars from the dashboard',
                 preview: 'Set API keys and secrets without SSH',
@@ -645,7 +610,7 @@ const en = {
                 tag: 'Export Config',
                 heading: 'Take your config with you',
                 description:
-                    'Export your agents, skills, and settings as a single file. Back up or replicate your setup.',
+                    'Export your agents and settings as a single file. Back up or replicate your setup.',
                 cta: 'Export Config'
             },
             multiLanguage: {
@@ -692,6 +657,22 @@ const en = {
                 description:
                     'Switch to annual billing and pay less. No feature differences, no catch. Switch anytime from your account.',
                 cta: 'View Plans'
+            },
+            simplifiedPlatform: {
+                subject: 'We simplified ClawHost',
+                preview:
+                    'Channels, skills, and more are now managed directly in OpenClaw',
+                tag: 'Platform Update',
+                heading: 'ClawHost just got simpler',
+                description:
+                    'We removed channels, agents, chat, skills, and variables management from the ClawHost dashboard. These features are now managed directly on your OpenClaw instance.',
+                removed:
+                    'Specifically, we dropped: messaging channels (WhatsApp, Telegram, Discord, Slack, Signal), the skills marketplace (ClawHub), agent chat and voice mode, and the variables editor. All of these still exist in OpenClaw itself — we just stopped wrapping them.',
+                why: 'Keeping our wrappers in sync with every OpenClaw release was unsustainable. Updates would ship upstream, and our UI would lag behind — leaving you with outdated controls and incomplete features.',
+                benefit:
+                    'By removing these layers, you interact with OpenClaw directly. You learn the real system, not a second interface that may fall out of date. Your knowledge transfers everywhere OpenClaw runs.',
+                action: 'Nothing breaks. Your claws, servers, billing, and core dashboard features are unchanged. To configure channels, skills, or agents, use your OpenClaw instance directly.',
+                cta: 'Open Dashboard'
             }
         }
     },
@@ -1031,7 +1012,6 @@ const en = {
         noAgentsDescription: 'Deploy a claw to start chatting with agents.',
         openSidebar: 'Open sidebar',
         clawNotReady: 'Claw is not ready yet',
-        notConfigured: 'Not configured',
         addAgent: 'Add agent',
         viewTree: 'Tree view',
         viewList: 'List view',
@@ -1214,10 +1194,7 @@ const en = {
             'Access the native OpenClaw panel directly from ClawHost. Full editing access to everything OpenClaw offers.',
         clawHostControl: 'ClawHost Control',
         clawHostControlDescription:
-            'Manage files, updates, variables, skills, and more configuration options directly from the platform.',
-        skillsMarketplace: '5,000+ Skills',
-        skillsMarketplaceDescription:
-            'Browse and install from over 5,000 ready-made skills with a single click. Extend your OpenClaw instantly.',
+            'Manage files, updates, variables, and more configuration options directly from the platform.',
         directChat: 'Direct Chat',
         directChatDescription:
             'Chat with your AI agents directly from the platform. No need for external tools or interfaces.',
@@ -1470,8 +1447,6 @@ const en = {
             'Community-driven feature requests, expanded file editing support, and various bug fixes.',
         release10Feature1:
             'Feature requests automatically managed and published by OpenClaw agents',
-        release10Feature2:
-            'Fixed skills sometimes failing to install from ClawHub marketplace',
         release10Feature3:
             'Fixed model provider switching not reflecting and still using the initial model',
         release10Feature4:
@@ -1503,21 +1478,17 @@ const en = {
         release7Date: 'February 16, 2026',
         release7Title: 'Chat Refactoring & Voice Input',
         release7Description:
-            'Major chat and playground improvements with voice interaction, ClawHub skills marketplace, and file attachments for agents.',
+            'Major chat and playground improvements with voice interaction and file attachments for agents.',
         release7Feature1:
             'Chat and playground refactoring for a smoother, more responsive experience',
         release7Feature2:
             'Voice interaction with chats, record and transcribe speech directly in the browser',
-        release7Feature3:
-            'ClawHub skills integration with 5,000+ skills available to install and manage',
         release7Feature4:
             'Attachments view and usage for agents, send images and documents in chat',
         release6Date: 'February 16, 2026',
-        release6Title: 'Skills & Agent Chat',
+        release6Title: 'Agent Chat',
         release6Description:
-            'Full control over your OpenClaw skills and agents. Manage and chat with everything directly from the dashboard.',
-        release6Feature2:
-            'Manage skills directly, install, update, and organize agent skills from the dashboard',
+            'Full control over your OpenClaw agents. Manage and chat with everything directly from the dashboard.',
         release6Feature3:
             'Chat with your agents from the playground, interact with any agent in real time',
         release6Feature4:
@@ -1606,34 +1577,10 @@ const en = {
         loadingTip3:
             'ClawHost is the first ever project to allow one-click OpenClaw hosting.',
         tabChat: 'Chat',
-        tabConfiguration: 'Configuration',
         tabSettings: 'Settings',
         tabEnvs: 'Envs',
         agentOnClaw: 'on {{clawName}}',
         cannotDeleteDefaultAgent: 'Default agent cannot be removed!',
-        configurationModel: 'Model',
-        configurationModelPlaceholder: 'Select a model',
-        configurationModelDescription:
-            'The AI model this agent uses. Changing the model may require setting the corresponding API key.',
-        configurationEnvVars: 'Environment Variables',
-        configurationEnvVarsDescription:
-            'API keys and environment variables stored in ~/.openclaw/.env on the instance.',
-        configurationAddEnvVar: 'Add Variable',
-        configurationKeyPlaceholder: 'VARIABLE_NAME',
-        configurationValuePlaceholder: 'value',
-        configurationSave: 'Save',
-        configurationSaving: 'Saving...',
-        configurationSaved: 'Agent configuration saved.',
-        configurationSaveFailed: 'Failed to save agent configuration!',
-        configurationLoading: 'Loading configuration...',
-        configurationLoadFailed: 'Failed to load agent configuration!',
-        configurationLoadFailedDescription:
-            'Could not retrieve the configuration for this agent. Please try again later.',
-        configurationRemoveVar: 'Remove',
-        configurationApiKey: 'API Key',
-        configurationApiKeyDescription:
-            'Required for {{modelName}}. This key is stored in ~/.openclaw/.env on the instance.',
-        configurationApiKeyPlaceholder: 'Enter your API key',
         tabVariables: 'Variables',
         variablesDescription:
             'Environment variables stored in ~/.openclaw/.env on this instance.',
@@ -1650,6 +1597,8 @@ const en = {
         variablesInvalidKey: 'Letters, numbers, and underscores only!',
         variablesEmptyValue: 'Value cannot be empty!',
         variablesDuplicateKey: 'Duplicate variable name!',
+        variablesKeyPlaceholder: 'KEY',
+        variablesValuePlaceholder: 'Value',
         variablesDeleteTitle: 'Delete Variable',
         variablesDeleteDescription:
             'Are you sure you want to delete {{key}}? This will immediately remove it from the instance.',
@@ -1685,9 +1634,6 @@ const en = {
         deleteAgentDeleting: 'Deleting...',
         deleteAgentSuccess: 'Agent deleted successfully.',
         deleteAgentFailed: 'Failed to delete agent!',
-        configurationName: 'Name',
-        configurationNamePlaceholder: 'Enter agent name',
-        configurationNameDescription: 'Letters, numbers, and dashes only.',
         agentNameRequired: 'Agent name is required!',
         agentNameInvalidChars: 'Only letters, numbers, and dashes are allowed!',
         agentNameDuplicate: 'An agent with this name already exists!',
@@ -1735,10 +1681,6 @@ const en = {
         chatConnectionFailed: 'Failed to connect to this agent!',
         chatConnectionFailedDescription:
             'Make sure the Claw is running and reachable.',
-        chatNotConfigured: 'Agent not configured.',
-        chatNotConfiguredDescription:
-            'Select a model and set an API key in the Configuration tab to start chatting.',
-        chatConfigureButton: 'Configure Agent',
         chatToday: 'Today',
         chatYesterday: 'Yesterday',
         chatExpandFullscreen: 'Expand chat',
@@ -1776,56 +1718,6 @@ const en = {
         featureVersionUnsupportedButton: 'Go to Versions',
         featureVersionUnsupportedSupported: 'Supported versions:',
         featureVersionUnsupportedNewer: 'newer versions',
-        tabSkills: 'Skills',
-        skillsDescription:
-            'Manage shared skills available to all agents on this instance.',
-        skillsSearch: 'Search skills...',
-        skillsNoResults: 'No skills match your search.',
-        skillsEmpty: 'No Skills',
-        skillsSave: 'Save Skills',
-        skillsSaved: 'Skills updated successfully.',
-        skillsSaveFailed: 'Failed to update skills!',
-        skillsLoading: 'Loading skills...',
-        skillsLoadFailed: 'Failed to load skills!',
-        skillsLoadFailedDescription:
-            'Could not retrieve skills configuration. Please try again.',
-        agentSkillsDescription: 'Skills installed in this agent workspace.',
-        agentSkillsInstalling: 'Installing...',
-        agentSkillsInstalled: 'Skill installed successfully.',
-        agentSkillsInstallFailed: 'Failed to install skill!',
-        agentSkillsRemoving: 'Removing...',
-        agentSkillsRemoved: 'Skill removed successfully.',
-        agentSkillsRemoveFailed: 'Failed to remove skill!',
-        agentSkillsEmpty: 'No skills installed.',
-        agentSkillsEmptyDescription:
-            'Install a skill to extend this agent capabilities.',
-        agentSkillsNamePlaceholder: 'Skill name',
-        agentSkillsConfirmRemove: 'Remove skill "{{skillName}}"?',
-        agentSkillsConfirmRemoveDescription:
-            'This will delete the skill from the agent workspace.',
-        skillsBundledTab: 'Bundled',
-        skillsClawHubTab: 'ClawHub',
-        clawHubSearch: 'Search ClawHub skills...',
-        clawHubNoResults: 'No skills found on ClawHub.',
-        clawHubEmpty: 'No ClawHub skills installed.',
-        clawHubEmptyDescription:
-            'Search and install skills from the ClawHub marketplace.',
-        clawHubInstall: 'Install',
-        clawHubInstalled: 'Skill installed from ClawHub.',
-        clawHubInstallFailed: 'Failed to install skill from ClawHub!',
-        clawHubRemove: 'Remove',
-        clawHubRemoved: 'ClawHub skill removed.',
-        clawHubRemoveFailed: 'Failed to remove ClawHub skill!',
-        clawHubUpdate: 'Update',
-        clawHubUpdated: 'Skill updated from ClawHub.',
-        clawHubUpdateFailed: 'Failed to update ClawHub skill!',
-        clawHubUpdateAvailable: 'v{{version}} available',
-        clawHubBy: 'by {{author}}',
-        clawHubDownloads: '{{count}} downloads',
-        clawHubVersion: 'v{{version}}',
-        clawHubLoadFailed: 'Failed to load ClawHub!',
-        clawHubLoadFailedDescription:
-            'Could not connect to ClawHub marketplace. Please try again.',
         tabVersions: 'Versions',
         versionsSearch: 'Search versions...',
         versionsEmpty: 'No versions found',
@@ -2092,11 +1984,9 @@ const en = {
         featureSubdomainAccess: 'Subdomain access',
         featureThemes: 'Light & dark themes',
         featureSetupTime: 'Setup time',
-        featureTechnicalSkill: 'Technical skill required',
         featureOneClickDeploy: 'One-click deploy',
         featureMultipleInstances: 'Multiple instances',
         featureMultipleAgents: 'Multiple agents per instance',
-        featureSkillsMarketplace: 'Skills marketplace',
         featureAgentConfig: 'Agent configuration',
         featureDataOwnership: 'Full data ownership',
         featureDataExport: 'Data export',
@@ -2146,7 +2036,6 @@ const en = {
         minimal: 'Minimal',
         unlimited: 'Unlimited',
         singleInstance: 'Single',
-        fiveThousandSkills: '5,000+ skills (ClawHub)',
         noMarketplace: 'No marketplace',
         appOnly: 'App only',
         fullConfig: 'Full configuration',

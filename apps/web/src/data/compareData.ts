@@ -266,31 +266,6 @@ const getCompareData = (): CompareData => ({
                     }
                 },
                 {
-                    nameKey: 'compare.featureTechnicalSkill',
-                    values: {
-                        clawhost: {
-                            status: COMPARE_FEATURE_STATUS.YES,
-                            detailKey: 'compare.noneRequired'
-                        },
-                        lobsterfarm: {
-                            status: COMPARE_FEATURE_STATUS.YES,
-                            detailKey: 'compare.noneRequired'
-                        },
-                        simpleclaw: {
-                            status: COMPARE_FEATURE_STATUS.YES,
-                            detailKey: 'compare.noneRequired'
-                        },
-                        myclawai: {
-                            status: COMPARE_FEATURE_STATUS.YES,
-                            detailKey: 'compare.minimal'
-                        },
-                        quickclaw: {
-                            status: COMPARE_FEATURE_STATUS.YES,
-                            detailKey: 'compare.noneRequired'
-                        }
-                    }
-                },
-                {
                     nameKey: 'compare.featureOneClickDeploy',
                     values: {
                         clawhost: { status: COMPARE_FEATURE_STATUS.YES },
@@ -354,19 +329,6 @@ const getCompareData = (): CompareData => ({
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleInstance'
                         }
-                    }
-                },
-                {
-                    nameKey: 'compare.featureSkillsMarketplace',
-                    values: {
-                        clawhost: {
-                            status: COMPARE_FEATURE_STATUS.YES,
-                            detailKey: 'compare.fiveThousandSkills'
-                        },
-                        lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {

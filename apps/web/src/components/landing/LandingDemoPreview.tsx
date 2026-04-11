@@ -80,12 +80,6 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
     const [demoChatSettingsClawId, setDemoChatSettingsClawId] = useState<
         string | null
     >(null)
-    const [demoChatConfigAgentId, setDemoChatConfigAgentId] = useState<
-        string | null
-    >(null)
-    const [demoChatConfigClawId, setDemoChatConfigClawId] = useState<
-        string | null
-    >(null)
 
     const demoClaw = demoClawId
         ? mobileDemoData.claws.find((c) => c.id === demoClawId) || null
@@ -122,17 +116,6 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
 
     const demoChatSettingsClaw = demoChatSettingsClawId
         ? mobileDemoData.claws.find((c) => c.id === demoChatSettingsClawId) ||
-          null
-        : null
-    const demoChatConfigClaw = demoChatConfigClawId
-        ? mobileDemoData.claws.find((c) => c.id === demoChatConfigClawId) ||
-          null
-        : null
-    const demoChatConfigAgentList = demoChatConfigClaw
-        ? mobileDemoData.agentsByClawId[demoChatConfigClaw.id] || []
-        : []
-    const demoChatConfigAgent = demoChatConfigAgentId
-        ? demoChatConfigAgentList.find((a) => a.id === demoChatConfigAgentId) ||
           null
         : null
 
@@ -291,7 +274,6 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                                       }
                                     : null
                             }
-                            configAgent={null}
                             selectedClawId={demoChatSettingsClawId}
                             readOnly
                             onAgentSelect={(selection) => {
@@ -300,13 +282,6 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                                         ? null
                                         : selection.agentId
                                 )
-                                setDemoChatSettingsClawId(null)
-                                setDemoChatConfigAgentId(null)
-                                setDemoChatConfigClawId(null)
-                            }}
-                            onConfigureAgent={(agentId, clawId) => {
-                                setDemoChatConfigAgentId(agentId)
-                                setDemoChatConfigClawId(clawId)
                                 setDemoChatSettingsClawId(null)
                             }}
                             onCreateAgent={() => {}}
@@ -317,8 +292,6 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                                         : clawId
                                 )
                                 setDemoChatAgentId(null)
-                                setDemoChatConfigAgentId(null)
-                                setDemoChatConfigClawId(null)
                             }}
                         />
                         <div className='relative flex min-h-0 min-w-0 flex-1 translate-x-0 overflow-hidden'>
@@ -350,26 +323,6 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                                     <ChatEmptyState />
                                 )}
                             </div>
-                            <AnimatePresence>
-                                {demoChatConfigAgent && demoChatConfigClaw && (
-                                    <PlaygroundAgentDetailPanel
-                                        key={`chat-config-${demoChatConfigAgent.id}`}
-                                        agent={demoChatConfigAgent}
-                                        clawId={demoChatConfigClaw.id}
-                                        clawName={demoChatConfigClaw.name}
-                                        isOnlyAgent={
-                                            demoChatConfigAgentList.length <= 1
-                                        }
-                                        onClose={() => {
-                                            setDemoChatConfigAgentId(null)
-                                            setDemoChatConfigClawId(null)
-                                        }}
-                                        readOnly
-                                        hideChatTab
-                                        initialTab='configuration'
-                                    />
-                                )}
-                            </AnimatePresence>
                         </div>
                     </div>
                 )}

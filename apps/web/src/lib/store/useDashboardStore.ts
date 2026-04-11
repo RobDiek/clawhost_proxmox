@@ -18,9 +18,6 @@ const useDashboardStore = create<DashboardState>((set) => ({
     chatSettingsClawId: null,
     setChatSettingsClawId: (value) => set({ chatSettingsClawId: value }),
 
-    chatAgentTab: null,
-    setChatAgentTab: (value) => set({ chatAgentTab: value }),
-
     playgroundAgentTab: null,
     setPlaygroundAgentTab: (value) => set({ playgroundAgentTab: value }),
 
@@ -49,7 +46,6 @@ const useDashboardStore = create<DashboardState>((set) => ({
             selectedAgentClawId: null,
             chatSelectedAgent: null,
             chatSettingsClawId: null,
-            chatAgentTab: null,
             playgroundAgentTab: null,
             playgroundClawTab: null,
             chatClawTab: null,

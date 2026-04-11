@@ -35,7 +35,6 @@ import {
     GitBranchIcon,
     SlidersHorizontalIcon,
     GearSixIcon,
-    PuzzlePieceIcon,
     ChatCircleDotsIcon,
     UsersThreeIcon
 } from '@phosphor-icons/react'
@@ -85,11 +84,6 @@ const getGoFeatures = (): FeatureItem[] => [
         icon: GearSixIcon,
         title: t('landing.clawHostControl'),
         description: t('landing.clawHostControlDescription')
-    },
-    {
-        icon: PuzzlePieceIcon,
-        title: t('landing.skillsMarketplace'),
-        description: t('landing.skillsMarketplaceDescription')
     },
     {
         icon: ChatCircleDotsIcon,

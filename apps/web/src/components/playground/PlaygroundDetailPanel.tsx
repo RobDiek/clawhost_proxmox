@@ -18,7 +18,6 @@ import {
 } from '@/components/dashboard'
 import {
     PlaygroundVariablesContent,
-    PlaygroundSkillsContent,
     PlaygroundVersionsContent,
     PlaygroundDetailInfoTab,
     PlaygroundDetailSettingsTab,
@@ -256,15 +255,6 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
                         <ClawTerminalContent
                             clawId={claw.id}
                             enabled={activeTab === 'terminal'}
-                        />
-                    )}
-
-                    {activeTab === 'skills' && (
-                        <PlaygroundSkillsContent
-                            clawId={claw.id}
-                            onGoToVersions={() =>
-                                setActiveTab(CLAW_DETAIL_TABS.VERSIONS)
-                            }
                         />
                     )}
 

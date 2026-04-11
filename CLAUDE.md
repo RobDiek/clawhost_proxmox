@@ -233,7 +233,6 @@ function create(data: CreateUserParams): void {} // USE THIS
 - Playground Types: `PlaygroundClawNodeData`, `PlaygroundAgentNodeData`
 - Agent/Chat Types: `ClawAgent`, `ChatMessage`, `ChatAttachment`, `ChatHistoryEntry`, `UseAgentChatParams`, `UseAgentChatReturn`
 - File System Types: `ClawFileEntry`, `ClawFilesResponse`, `ReadClawFileResponse`, `UpdateClawFileData`
-- Skills/ClawHub Types: `BundledSkillInfo`, `ClawSkillsResponse`, `ClawHubSearchResult`, `ClawHubBrowseResponse`
 - Version Types: `ClawVersionResponse`, `ClawVersionsResponse`
 - Blog Types: `BlogPostFrontmatter`, `BlogPostMeta`, `Testimonial`, `Faq`, `CompareCompetitor`, `CompareFeature`
 
@@ -244,12 +243,11 @@ function create(data: CreateUserParams): void {} // USE THIS
 - Hetzner Types: `HetznerServer`, `HetznerServerType`, `HetznerLocation`, `HetznerDatacenter`, `HetznerVolume`, `HetznerSSHKey`, etc.
 - Polar/Payment Types: `CheckoutSession`, `PolarSubscription`, `PolarOrder`, `PolarProduct`, `PolarCustomer`, webhook data types
 - Claw Operation Types: `CreateClawBody`, `InitiateClawPurchase`, `ProvisionClawParams`
-- Agent Types: `ClawAgent`, `ClawSkillsResponse`
+- Agent Types: `ClawAgent`
 - Auth Types: `SendOtpBody`, `VerifyOtpBody`, `ResolveCredentialConflictBody`
-- ClawHub Types: `ClawHubSearchResult`, `ClawHubInstalledSkill`, `ClawHubBrowseResultPage`
 - File Types: `ClawFileEntry`, `ReadClawFileBody`, `UpdateClawFileBody`
 - Diagnostics Types: `DiagnosticsStatusResponse`, `DiagnosticsLogsResponse`
-- Cache Types: `CacheEntry<T>`, `SkillsCacheEntry`
+- Cache Types: `CacheEntry<T>`
 - TTS Types: `PiperVoice`, `PiperSynthesisResult`, `GenerateSpeechBody`
 - DNS Types: `CloudflareDNSRecord`
 - Email Props: `OtpCodeEmailProps`
@@ -368,7 +366,7 @@ import { Fragment } from 'react'
 - `dashboard/` for dashboard-specific components (CreateClawModal, ClawCard dropdowns/dialogs, diagnostics, logs, terminal, config, file explorer)
 - `chat/` for chat interface (ChatView, ChatSidebar with tree/list views, ChatSidebarItem, ChatEmptyState)
 - `agent-chat/` for agent communication (AgentChat, ChatBubble, ChatInput, ChatMarkdown, VoiceOrb, VoiceModeOverlay, ChatSpeechButton, ChatTypingIndicator)
-- `playground/` for graph visualization (PlaygroundCanvas, ClawNode, AgentNode, DetailPanel, Toolbar, VariablesContent, SkillsContent, ClawHubContent, VersionsContent)
+- `playground/` for graph visualization (PlaygroundCanvas, ClawNode, AgentNode, DetailPanel, Toolbar, VariablesContent, VersionsContent)
 - Root level for shared components (Header, Footer, Logo, EmptyState, Toast, ProtectedRoute, etc.)
 - Keep components focused and composable
 
@@ -401,7 +399,6 @@ pnpm --filter api db:migrate   # Run migrations
 **Unauthenticated endpoints** (no token required):
 
 - `GET /` - Health check
-- `GET /clawhub/skills` - Public ClawHub skill browsing
 
 **Auth Routes** (`/auth`):
 
@@ -445,14 +442,8 @@ pnpm --filter api db:migrate   # Run migrations
 - `POST /:id/agents` - List agents
 - `POST /:id/agents/create` - Create agent
 - `POST /:id/agents/delete` - Delete agent
-- `POST /:id/agent-config` - Get agent config
-- `PUT /:id/agent-config` - Update agent config
 - `GET /:id/env` - Get environment variables
 - `PUT /:id/env` - Update environment variables
-- `POST /:id/skills` - Get bundled skills
-- `PUT /:id/skills` - Update bundled skills
-- `POST /:id/agents/:agentId/skills` - Get agent skills
-- `PUT /:id/agents/:agentId/skills` - Update agent skills
 - `POST /:id/files` - List files
 - `POST /:id/files/read` - Read file content
 - `PUT /:id/files` - Update file content
@@ -460,12 +451,6 @@ pnpm --filter api db:migrate   # Run migrations
 - `POST /:id/versions` - List available versions
 - `POST /:id/install-version` - Install version (admin-only)
 - `POST /:id/credentials` - Get credentials
-- `GET /:id/clawhub/skills` - Browse ClawHub skills
-- `POST /:id/clawhub/installed` - Get installed ClawHub skills
-- `POST /:id/clawhub/install` - Install ClawHub skill
-- `POST /:id/clawhub/remove` - Remove ClawHub skill
-- `POST /:id/clawhub/update` - Update ClawHub skill
-- `POST /:id/clawhub/updates` - Check for skill updates
 - WebSocket: `/:id/terminal` - Real-time terminal access
 
 **SSH Keys Routes** (`/ssh-keys`):
@@ -640,7 +625,6 @@ VITE_FIREBASE_APP_ID=...
 | Terminal WebSocket | `apps/api/src/services/terminalSocket.ts`       |
 | Piper TTS Service  | `apps/api/src/services/piper.ts`                |
 | Polar Services     | `apps/api/src/services/polar/`                  |
-| ClawHub Service    | `apps/api/src/services/clawhub/`                |
 | Claw Helpers       | `apps/api/src/controllers/claws/helpers/`       |
 | Web Entry          | `apps/web/src/main.tsx`                         |
 | Web Routes         | `apps/web/src/App.tsx`                          |

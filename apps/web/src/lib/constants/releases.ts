@@ -102,10 +102,6 @@ const RELEASES: ChangelogRelease[] = [
                 type: CHANGELOG_FEATURE_TYPE.ADDED
             },
             {
-                key: 'changelog.release10Feature2',
-                type: CHANGELOG_FEATURE_TYPE.ADDED
-            },
-            {
                 key: 'changelog.release10Feature3',
                 type: CHANGELOG_FEATURE_TYPE.ADDED
             },
@@ -183,10 +179,6 @@ const RELEASES: ChangelogRelease[] = [
                 type: CHANGELOG_FEATURE_TYPE.ADDED
             },
             {
-                key: 'changelog.release7Feature3',
-                type: CHANGELOG_FEATURE_TYPE.ADDED
-            },
-            {
                 key: 'changelog.release7Feature4',
                 type: CHANGELOG_FEATURE_TYPE.ADDED
             }
@@ -197,10 +189,6 @@ const RELEASES: ChangelogRelease[] = [
         titleKey: 'changelog.release6Title',
         descriptionKey: 'changelog.release6Description',
         features: [
-            {
-                key: 'changelog.release6Feature2',
-                type: CHANGELOG_FEATURE_TYPE.ADDED
-            },
             {
                 key: 'changelog.release6Feature3',
                 type: CHANGELOG_FEATURE_TYPE.ADDED

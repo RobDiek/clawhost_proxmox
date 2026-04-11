@@ -38,23 +38,11 @@ const API_PATHS = {
         AGENTS: {
             BASE: (id: string) => `/claws/${id}/agents`,
             CREATE: (id: string) => `/claws/${id}/agents/create`,
-            DELETE: (id: string) => `/claws/${id}/agents/delete`,
-            CONFIG: (id: string) => `/claws/${id}/agent-config`,
-            SKILLS: (clawId: string, agentId: string) =>
-                `/claws/${clawId}/agents/${agentId}/skills`
+            DELETE: (id: string) => `/claws/${id}/agents/delete`
         },
-        SKILLS: (id: string) => `/claws/${id}/skills`,
         FILES: {
             BASE: (id: string) => `/claws/${id}/files`,
             READ: (id: string) => `/claws/${id}/files/read`
-        },
-        CLAWHUB: {
-            SKILLS: (id: string) => `/claws/${id}/clawhub/skills`,
-            INSTALLED: (id: string) => `/claws/${id}/clawhub/installed`,
-            INSTALL: (id: string) => `/claws/${id}/clawhub/install`,
-            REMOVE: (id: string) => `/claws/${id}/clawhub/remove`,
-            UPDATE: (id: string) => `/claws/${id}/clawhub/update`,
-            UPDATES: (id: string) => `/claws/${id}/clawhub/updates`
         }
     },
     AFFILIATE: {

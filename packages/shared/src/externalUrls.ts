@@ -32,9 +32,6 @@ const EXTERNAL_URLS = {
     HETZNER: {
         API: 'https://api.hetzner.cloud/v1'
     },
-    CLAWHUB: {
-        API: 'https://clawhub.ai/api/v1'
-    },
     NPM: {
         REGISTRY: (pkg: string) => `https://registry.npmjs.org/${pkg}`,
         DOWNLOADS: (pkg: string) =>

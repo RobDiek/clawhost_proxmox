@@ -444,9 +444,6 @@ const tr: Translations = {
         planAvailabilityFetched: 'Plan uygunluğu başarıyla getirildi.',
         agentsFetched: 'Ajanlar başarıyla getirildi.',
         agentsFetchFailed: 'Ajanları getirmek için örneğe ulaşılamadı!',
-        agentConfigFetched: 'Ajan yapılandırması başarıyla getirildi.',
-        agentConfigUpdated: 'Ajan yapılandırması başarıyla güncellendi.',
-        agentConfigUpdateFailed: 'Ajan yapılandırması güncellenemedi!',
         agentCreated: 'Ajan başarıyla oluşturuldu.',
         agentCreateFailed: 'Örnekte ajan oluşturulamadı!',
         agentDeleted: 'Ajan başarıyla silindi.',
@@ -467,29 +464,6 @@ const tr: Translations = {
         healthOk: 'API çalışıyor.',
         featureVersionUnsupported:
             "Bu özellik {{version}} sürümünde desteklenmiyor. Lütfen OpenClaw'ı güncelleyin veya manuel yönetim için Terminali kullanın.",
-        skillsFetched: 'Yetenekler başarıyla getirildi.',
-        skillsUpdated: 'Yetenekler başarıyla güncellendi.',
-        skillsUpdateFailed: 'Yetenekler güncellenemedi!',
-        skillsFetchFailed: 'Yetenekler getirilemedi!',
-        agentSkillsFetched: 'Ajan yetenekleri başarıyla getirildi.',
-        agentSkillsUpdated: 'Ajan yetenekleri başarıyla güncellendi.',
-        agentSkillsUpdateFailed: 'Ajan yetenekleri güncellenemedi!',
-        agentSkillsFetchFailed: 'Ajan yetenekleri getirilemedi!',
-        invalidSkillName:
-            'Yetenek adı yalnızca harf, rakam, tire ve alt çizgi içermelidir!',
-        skillNotFound: 'Yetenek bulunamadı!',
-        clawHubSearchSuccess: 'ClawHub araması tamamlandı.',
-        clawHubSearchFailed: 'ClawHub aranamadı!',
-        clawHubFetched: 'ClawHub yetenekleri getirildi.',
-        clawHubFetchFailed: 'ClawHub yetenekleri getirilemedi!',
-        clawHubInstalled: "Yetenek ClawHub'dan yüklendi.",
-        clawHubInstallFailed: "ClawHub'dan yetenek yüklenemedi!",
-        clawHubRemoved: 'ClawHub yeteneği kaldırıldı.',
-        clawHubRemoveFailed: 'ClawHub yeteneği kaldırılamadı!',
-        clawHubUpdated: 'Yetenek güncellendi.',
-        clawHubUpdateFailed: 'ClawHub yeteneği güncellenemedi!',
-        clawHubUpdatesFetched: 'Güncelleme kontrolü tamamlandı.',
-        clawHubUpdatesFailed: 'Güncellemeler kontrol edilemedi!',
         invalidAuthMethod: 'Geçersiz kimlik doğrulama yöntemi!',
         authMethodNotConnected: 'Bu kimlik doğrulama yöntemi bağlı değil!',
         authMethodConnected: 'Kimlik doğrulama yöntemi başarıyla bağlandı.',
@@ -610,16 +584,6 @@ const tr: Translations = {
                     'Yapay zeka ajanlarınızla eller serbest konuşmak için ses modunu kullanın. Girdi için konuşmadan metne, yanıtlar için metinden konuşmaya — birden fazla ses arasından seçim yapın.',
                 cta: 'Ses Modunu Deneyin'
             },
-            skills: {
-                subject: "Biliyor muydunuz? ClawHub'da 5.000'den fazla yetenek",
-                preview:
-                    'Topluluk yeteneklerini tek tıkla göz atın ve yükleyin',
-                tag: 'ClawHub Becerileri',
-                heading: 'Ajanlarınızı anında genişletin',
-                description:
-                    "ClawHub'da 5.000'den fazla hazır yeteneği göz atın ve tek tıkla yükleyin. Web araması, kod çalıştırma, görsel oluşturma ve çok daha fazlası.",
-                cta: "ClawHub'ı Göz Atın"
-            },
             envVars: {
                 subject: 'Biliyor muydunuz? Ortam değişkenlerini yönetin',
                 preview:
@@ -705,6 +669,22 @@ const tr: Translations = {
                 description:
                     'Yıllık faturalamaya geçin ve claw aboneliğinizde tasarruf edin. Aynı harika hizmet, daha düşük fiyat — istediğiniz zaman iptal edin.',
                 cta: 'Planları Görüntüle'
+            },
+            simplifiedPlatform: {
+                subject: "ClawHost'u sadeleştirdik",
+                preview:
+                    "Kanallar, yetenekler ve daha fazlası artık doğrudan OpenClaw'da yönetiliyor",
+                tag: 'Platform Güncellemesi',
+                heading: 'ClawHost artık daha basit',
+                description:
+                    'ClawHost panelinden kanal, ajan, sohbet, yetenek ve değişken yönetimini kaldırdık. Bu özellikler artık doğrudan OpenClaw örneğinizde yönetiliyor.',
+                removed:
+                    "Özellikle kaldırdığımız: mesajlaşma kanalları (WhatsApp, Telegram, Discord, Slack, Signal), yetenek pazaryeri (ClawHub), ajan sohbeti ve sesli mod, ve değişken düzenleyici. Bunların hepsi OpenClaw'da hâlâ mevcut — sadece sarmalamayı bıraktık.",
+                why: 'Arayüzlerimizi her OpenClaw sürümüyle senkronize tutmak sürdürülebilir değildi. Güncellemeler yukarı akışta geliyordu ve arayüzümüz geride kalıyordu — sizi eski kontrollerle ve eksik özelliklerle baş başa bırakıyordu.',
+                benefit:
+                    "Bu katmanları kaldırarak, OpenClaw ile doğrudan etkileşime geçiyorsunuz. Eskiyebilecek ikinci bir arayüz yerine gerçek sistemi öğreniyorsunuz. Bilginiz OpenClaw'ın çalıştığı her yerde geçerli.",
+                action: 'Hiçbir şey bozulmuyor. Pençeleriniz, sunucularınız, faturalamanız ve panelin temel özellikleri değişmedi. Kanalları, yetenekleri veya ajanları yapılandırmak için OpenClaw örneğinizi doğrudan kullanın.',
+                cta: 'Paneli Aç'
             }
         }
     },
@@ -1047,7 +1027,6 @@ const tr: Translations = {
             'Ajanlarla sohbet etmeye başlamak için bir claw dağıtın.',
         openSidebar: 'Kenar çubuğunu aç',
         clawNotReady: 'Claw henüz hazır değil',
-        notConfigured: 'Yapılandırılmamış',
         addAgent: 'Ajan ekle',
         viewTree: 'Ağaç görünümü',
         viewList: 'Liste görünümü',
@@ -1234,10 +1213,7 @@ const tr: Translations = {
             "Yerel OpenClaw paneline doğrudan ClawHost'tan erişin. OpenClaw'un sunduğu her şeye tam düzenleme erişimi.",
         clawHostControl: 'ClawHost Kontrolü',
         clawHostControlDescription:
-            'Dosyaları, güncellemeleri, değişkenleri, yetenekleri ve daha fazla yapılandırma seçeneğini doğrudan platformdan yönetin.',
-        skillsMarketplace: '5.000+ Yetenek',
-        skillsMarketplaceDescription:
-            "5.000'den fazla hazır yeteneği tek tıkla göz atın ve yükleyin. OpenClaw'unuzu anında genişletin.",
+            'Dosyaları, güncellemeleri, değişkenleri ve daha fazla yapılandırma seçeneğini doğrudan platformdan yönetin.',
         directChat: 'Doğrudan Sohbet',
         directChatDescription:
             'Yapay zeka ajanlarınızla doğrudan platformdan sohbet edin. Harici araç veya arayüz gerekmez.',
@@ -1495,8 +1471,6 @@ const tr: Translations = {
             'Topluluk odaklı özellik istekleri, genişletilmiş dosya düzenleme desteği ve çeşitli hata düzeltmeleri.',
         release10Feature1:
             'OpenClaw ajanları tarafından otomatik olarak yönetilen ve yayınlanan özellik istekleri',
-        release10Feature2:
-            'ClawHub pazaryerinden yeteneklerin bazen yüklenememesi düzeltildi',
         release10Feature3:
             'Model sağlayıcı değiştirmenin yansımaması ve hâlâ ilk modeli kullanması düzeltildi',
         release10Feature4:
@@ -1529,21 +1503,17 @@ const tr: Translations = {
         release7Date: '16 Şubat 2026',
         release7Title: 'Sohbet Yeniden Düzenleme ve Sesli Giriş',
         release7Description:
-            'Sesli etkileşim, ClawHub yetenekleri pazaryeri ve ajanlar için dosya ekleri ile büyük sohbet ve playground iyileştirmeleri.',
+            'Sesli etkileşim ve ajanlar için dosya ekleri ile büyük sohbet ve playground iyileştirmeleri.',
         release7Feature1:
             'Daha akıcı, daha duyarlı bir deneyim için sohbet ve playground yeniden düzenlemesi',
         release7Feature2:
             'Sohbetlerle sesli etkileşim, doğrudan tarayıcıda konuşma kaydedin ve yazıya dökün',
-        release7Feature3:
-            "5.000'den fazla yüklenebilir ve yönetilebilir yetenekle ClawHub yetenekleri entegrasyonu",
         release7Feature4:
             'Ajanlar için ek görünümü ve kullanımı, sohbette resim ve belge gönderin',
         release6Date: '16 Şubat 2026',
-        release6Title: 'Yetenekler ve Ajan Sohbeti',
+        release6Title: 'Ajan Sohbeti',
         release6Description:
-            'OpenClaw yetenekleriniz ve ajanlarınız üzerinde tam kontrol. Her şeyi doğrudan panelden yönetin ve sohbet edin.',
-        release6Feature2:
-            'Yetenekleri doğrudan yönetin, panelden ajan yeteneklerini yükleyin, güncelleyin ve düzenleyin',
+            'OpenClaw ajanlarınız üzerinde tam kontrol. Her şeyi doğrudan panelden yönetin ve sohbet edin.',
         release6Feature3:
             "Playground'dan ajanlarınızla sohbet edin, herhangi bir ajanla gerçek zamanlı etkileşime geçin",
         release6Feature4:
@@ -1633,34 +1603,10 @@ const tr: Translations = {
         loadingTip3:
             'ClawHost, tek tıkla OpenClaw barındırmaya izin veren ilk projedir.',
         tabChat: 'Sohbet',
-        tabConfiguration: 'Yapılandırma',
         tabSettings: 'Ayarlar',
         tabEnvs: 'Değişkenler',
         agentOnClaw: '{{clawName}} üzerinde',
         cannotDeleteDefaultAgent: 'Varsayılan ajan kaldırılamaz!',
-        configurationModel: 'Model',
-        configurationModelPlaceholder: 'Bir model seçin',
-        configurationModelDescription:
-            'Bu ajanın kullandığı yapay zeka modeli. Modeli değiştirmek ilgili API anahtarının ayarlanmasını gerektirebilir.',
-        configurationEnvVars: 'Ortam Değişkenleri',
-        configurationEnvVarsDescription:
-            'Örnekte ~/.openclaw/.env dosyasında saklanan API anahtarları ve ortam değişkenleri.',
-        configurationAddEnvVar: 'Değişken Ekle',
-        configurationKeyPlaceholder: 'DEGISKEN_ADI',
-        configurationValuePlaceholder: 'değer',
-        configurationSave: 'Kaydet',
-        configurationSaving: 'Kaydediliyor...',
-        configurationSaved: 'Ajan yapılandırması kaydedildi.',
-        configurationSaveFailed: 'Ajan yapılandırması kaydedilemedi!',
-        configurationLoading: 'Yapılandırma yükleniyor...',
-        configurationLoadFailed: 'Ajan yapılandırması yüklenemedi!',
-        configurationLoadFailedDescription:
-            'Bu ajan için yapılandırma alınamadı. Lütfen daha sonra tekrar deneyin.',
-        configurationRemoveVar: 'Kaldır',
-        configurationApiKey: 'API Anahtarı',
-        configurationApiKeyDescription:
-            '{{modelName}} için gerekli. Bu anahtar örnekte ~/.openclaw/.env dosyasında saklanır.',
-        configurationApiKeyPlaceholder: 'API anahtarınızı girin',
         tabVariables: 'Değişkenler',
         variablesDescription:
             'Bu örnekte ~/.openclaw/.env dosyasında saklanan ortam değişkenleri.',
@@ -1677,6 +1623,8 @@ const tr: Translations = {
         variablesInvalidKey: 'Yalnızca harf, rakam ve alt çizgi!',
         variablesEmptyValue: 'Değer boş olamaz!',
         variablesDuplicateKey: 'Yinelenen değişken adı!',
+        variablesKeyPlaceholder: 'ANAHTAR',
+        variablesValuePlaceholder: 'Değer',
         variablesDeleteTitle: 'Değişkeni Sil',
         variablesDeleteDescription:
             '{{key}} değişkenini silmek istediğinizden emin misiniz? Bu, örnekten hemen kaldırılacaktır.',
@@ -1710,9 +1658,6 @@ const tr: Translations = {
         deleteAgentDeleting: 'Siliniyor...',
         deleteAgentSuccess: 'Ajan başarıyla silindi.',
         deleteAgentFailed: 'Ajan silinemedi!',
-        configurationName: 'Ad',
-        configurationNamePlaceholder: 'Ajan adını girin',
-        configurationNameDescription: 'Yalnızca harf, rakam ve tire.',
         agentNameRequired: 'Ajan adı gerekli!',
         agentNameInvalidChars: 'Yalnızca harf, rakam ve tire kullanılabilir!',
         agentNameDuplicate: 'Bu isimde bir ajan zaten var!',
@@ -1762,10 +1707,6 @@ const tr: Translations = {
         chatConnectionFailed: 'Bu ajana bağlanılamadı!',
         chatConnectionFailedDescription:
             "Claw'ın çalıştığından ve erişilebilir olduğundan emin olun.",
-        chatNotConfigured: 'Ajan yapılandırılmamış.',
-        chatNotConfiguredDescription:
-            'Sohbete başlamak için Yapılandırma sekmesinde bir model seçin ve API anahtarı ayarlayın.',
-        chatConfigureButton: 'Ajanı Yapılandır',
         chatToday: 'Bugün',
         chatYesterday: 'Dün',
         chatExpandFullscreen: 'Sohbeti genişlet',
@@ -1804,56 +1745,6 @@ const tr: Translations = {
         featureVersionUnsupportedButton: 'Sürümlere Git',
         featureVersionUnsupportedSupported: 'Desteklenen sürümler:',
         featureVersionUnsupportedNewer: 'daha yeni sürümler',
-        tabSkills: 'Yetenekler',
-        skillsDescription:
-            'Bu örnekteki tüm ajanlar için kullanılabilir paylaşımlı yetenekleri yönetin.',
-        skillsSearch: 'Yetenek ara...',
-        skillsNoResults: 'Aramanızla eşleşen yetenek yok.',
-        skillsEmpty: 'Yetenek Yok',
-        skillsSave: 'Yetenekleri Kaydet',
-        skillsSaved: 'Yetenekler başarıyla güncellendi.',
-        skillsSaveFailed: 'Yetenekler güncellenemedi!',
-        skillsLoading: 'Yetenekler yükleniyor...',
-        skillsLoadFailed: 'Yetenekler yüklenemedi!',
-        skillsLoadFailedDescription:
-            'Yetenek yapılandırması alınamadı. Lütfen tekrar deneyin.',
-        agentSkillsDescription: 'Bu ajan çalışma alanında yüklü yetenekler.',
-        agentSkillsInstalling: 'Yükleniyor...',
-        agentSkillsInstalled: 'Yetenek başarıyla yüklendi.',
-        agentSkillsInstallFailed: 'Yetenek yüklenemedi!',
-        agentSkillsRemoving: 'Kaldırılıyor...',
-        agentSkillsRemoved: 'Yetenek başarıyla kaldırıldı.',
-        agentSkillsRemoveFailed: 'Yetenek kaldırılamadı!',
-        agentSkillsEmpty: 'Yüklü yetenek yok.',
-        agentSkillsEmptyDescription:
-            'Bu ajanın yeteneklerini genişletmek için bir yetenek yükleyin.',
-        agentSkillsNamePlaceholder: 'Yetenek adı',
-        agentSkillsConfirmRemove: '"{{skillName}}" yeteneği kaldırılsın mı?',
-        agentSkillsConfirmRemoveDescription:
-            'Bu, yeteneği ajan çalışma alanından silecektir.',
-        skillsBundledTab: 'Paketlenmiş',
-        skillsClawHubTab: 'ClawHub',
-        clawHubSearch: 'ClawHub yeteneklerini ara...',
-        clawHubNoResults: "ClawHub'da yetenek bulunamadı.",
-        clawHubEmpty: 'Yüklü ClawHub yeteneği yok.',
-        clawHubEmptyDescription:
-            'ClawHub pazaryerinden yetenek arayın ve yükleyin.',
-        clawHubInstall: 'Yükle',
-        clawHubInstalled: "Yetenek ClawHub'dan yüklendi.",
-        clawHubInstallFailed: "ClawHub'dan yetenek yüklenemedi!",
-        clawHubRemove: 'Kaldır',
-        clawHubRemoved: 'ClawHub yeteneği kaldırıldı.',
-        clawHubRemoveFailed: 'ClawHub yeteneği kaldırılamadı!',
-        clawHubUpdate: 'Güncelle',
-        clawHubUpdated: "Yetenek ClawHub'dan güncellendi.",
-        clawHubUpdateFailed: 'ClawHub yeteneği güncellenemedi!',
-        clawHubUpdateAvailable: 'v{{version}} mevcut',
-        clawHubBy: '{{author}} tarafından',
-        clawHubDownloads: '{{count}} indirme',
-        clawHubVersion: 'v{{version}}',
-        clawHubLoadFailed: 'ClawHub yüklenemedi!',
-        clawHubLoadFailedDescription:
-            'ClawHub pazaryerine bağlanılamadı. Lütfen tekrar deneyin.',
         tabVersions: 'Sürümler',
         versionsSearch: 'Sürüm ara...',
         versionsEmpty: 'Sürüm bulunamadı',
@@ -2121,11 +2012,9 @@ const tr: Translations = {
         featureSubdomainAccess: 'Alt alan adı erişimi',
         featureThemes: 'Açık ve koyu temalar',
         featureSetupTime: 'Kurulum süresi',
-        featureTechnicalSkill: 'Teknik bilgi gereksinimi',
         featureOneClickDeploy: 'Tek tıkla dağıtım',
         featureMultipleInstances: 'Birden fazla örnek',
         featureMultipleAgents: 'Örnek başına birden fazla ajan',
-        featureSkillsMarketplace: 'Yetenek pazaryeri',
         featureAgentConfig: 'Ajan yapılandırması',
         featureDataOwnership: 'Tam veri sahipliği',
         featureDataExport: 'Veri dışa aktarma',
@@ -2175,7 +2064,6 @@ const tr: Translations = {
         minimal: 'Minimal',
         unlimited: 'Sınırsız',
         singleInstance: 'Tek',
-        fiveThousandSkills: '5.000+ yetenek (ClawHub)',
         noMarketplace: 'Pazaryeri yok',
         appOnly: 'Yalnızca uygulama',
         fullConfig: 'Tam yapılandırma',

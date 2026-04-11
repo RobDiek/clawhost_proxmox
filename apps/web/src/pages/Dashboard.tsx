@@ -15,7 +15,7 @@ import { t } from '@openclaw/i18n'
 import { userRole } from '@openclaw/shared'
 import { useUIStore, usePreferencesStore, useDashboardStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import { ROUTES, DASHBOARD_TABS, AGENT_DETAIL_TABS } from '@/lib'
+import { ROUTES, DASHBOARD_TABS } from '@/lib'
 import {
     useClaws,
     useAdminClaws,
@@ -69,8 +69,6 @@ const Dashboard: FC = (): ReactNode => {
         setChatSelectedAgent,
         chatSettingsClawId,
         setChatSettingsClawId,
-        chatAgentTab,
-        setChatAgentTab,
         playgroundAgentTab,
         setPlaygroundAgentTab,
         playgroundClawTab,
@@ -169,8 +167,6 @@ const Dashboard: FC = (): ReactNode => {
         setChatSelectedAgent,
         chatSettingsClawId,
         setChatSettingsClawId,
-        chatAgentTab,
-        setChatAgentTab,
         playgroundAgentTab,
         setPlaygroundAgentTab,
         playgroundClawTab,
@@ -182,17 +178,6 @@ const Dashboard: FC = (): ReactNode => {
         showToast,
         awaitingClaw
     })
-
-    const handleConfigureAgent = useCallback(
-        (agentId: string, clawId: string) => {
-            setDashboardTab(DASHBOARD_TABS.PLAYGROUND)
-            setSelectedAgentId(agentId)
-            setSelectedAgentClawId(clawId)
-            setSelectedClawId(null)
-            setPlaygroundAgentTab(AGENT_DETAIL_TABS.CONFIGURATION)
-        },
-        [setDashboardTab]
-    )
 
     const handleCreateAgent = useCallback(
         (clawId: string, clawName: string) => {
@@ -350,13 +335,10 @@ const Dashboard: FC = (): ReactNode => {
                         adminMode={adminMode}
                         chatSelectedAgent={chatSelectedAgent}
                         chatSettingsClawId={chatSettingsClawId}
-                        chatAgentTab={chatAgentTab}
                         chatClawTab={chatClawTab}
                         onAgentSelect={setChatSelectedAgent}
-                        onConfigureAgent={handleConfigureAgent}
                         onCreateAgent={handleCreateAgent}
                         onSettingsClawChange={setChatSettingsClawId}
-                        onAgentTabChange={setChatAgentTab}
                         onClawTabChange={setChatClawTab}
                         onCreateClick={handleCreateClick}
                     />

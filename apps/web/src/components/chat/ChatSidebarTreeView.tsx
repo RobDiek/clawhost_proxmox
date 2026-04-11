@@ -13,7 +13,6 @@ const ChatSidebarTreeView: FC<ChatSidebarTreeViewProps> = ({
     activeConnectionState,
     readOnly,
     onAgentClick,
-    onConfigureAgent,
     onCreateAgent,
     onOpenClawSettings
 }): ReactNode => {
@@ -49,7 +48,6 @@ const ChatSidebarTreeView: FC<ChatSidebarTreeViewProps> = ({
                             activeConnectionState={activeConnectionState}
                             readOnly={readOnly}
                             onAgentClick={onAgentClick}
-                            onConfigureAgent={onConfigureAgent}
                             onCreateAgent={onCreateAgent}
                         />
                     </div>

@@ -11,11 +11,7 @@ import { t } from '@openclaw/i18n'
 import { api } from '@/lib'
 import { useUIStore, useVariablesStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import {
-    PLAYGROUND_AGENTS_QUERY_KEY,
-    CLAW_ENV_QUERY_KEY,
-    AGENT_CONFIG_QUERY_KEY
-} from '@/hooks'
+import { PLAYGROUND_AGENTS_QUERY_KEY, CLAW_ENV_QUERY_KEY } from '@/hooks'
 
 const ENV_KEY_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/
 
@@ -100,9 +96,6 @@ const useEnvVarsForm = ({
         })
         queryClient.invalidateQueries({
             queryKey: [PLAYGROUND_AGENTS_QUERY_KEY, clawId]
-        })
-        queryClient.invalidateQueries({
-            queryKey: [...AGENT_CONFIG_QUERY_KEY, clawId]
         })
     }, [queryClient, clawId])
 

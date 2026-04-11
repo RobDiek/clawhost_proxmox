@@ -10,13 +10,6 @@ const parseVersion = (raw: string): number[] => {
 }
 
 const SUPPORTED_VERSIONS: Record<string, string[]> = {
-    skills: [
-        '2026.3.28',
-        '2026.3.24',
-        '2026.3.23-2',
-        '2026.3.23-1',
-        '2026.3.23'
-    ],
     agents: [
         '2026.3.28',
         '2026.3.24',

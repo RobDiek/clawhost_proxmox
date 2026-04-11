@@ -17,7 +17,6 @@ const ChatSidebarAgentList: FC<ChatSidebarAgentListProps> = ({
     activeConnectionState,
     readOnly,
     onAgentClick,
-    onConfigureAgent,
     onCreateAgent
 }): ReactNode => {
     const gatewayState = useGatewayState(
@@ -86,7 +85,6 @@ const ChatSidebarAgentList: FC<ChatSidebarAgentListProps> = ({
                                       : undefined
                         }
                         onClick={() => onAgentClick(agent.id, claw.id)}
-                        onConfigure={() => onConfigureAgent(agent.id, claw.id)}
                     />
                 )
             })}

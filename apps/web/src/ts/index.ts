@@ -25,8 +25,6 @@ export type {
 } from '@/ts/Types'
 
 export type {
-    AgentConfigResponse,
-    AgentConfigSummary,
     LanguageOption,
     AIModelOption,
     Claw,
@@ -51,7 +49,6 @@ export type {
     SSHKey,
     BillingHistoryResponse,
     BillingOrder,
-    UpdateAgentConfigData,
     UpdateClawEnvVarsData,
     UserProfile,
     UserStats,
@@ -111,14 +108,6 @@ export type {
     GatewayHistoryResult,
     UseAgentChatParams,
     UseAgentChatReturn,
-    ClawHubSearchResult,
-    ClawHubInstalledSkill,
-    ClawHubBrowseResponse,
-    ClawHubInstalledResponse,
-    ClawHubUpdatesResponse,
-    BrowseClawHubData,
-    ClawHubSkillActionData,
-    ClawHubUpdateData,
     CompareData,
     CompareCompetitor,
     CompareFeatureValue,

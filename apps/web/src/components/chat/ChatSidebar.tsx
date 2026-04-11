@@ -17,12 +17,10 @@ import ChatSidebarListView from '@/components/chat/ChatSidebarListView'
 const ChatSidebar: FC<ChatSidebarProps> = ({
     clawsWithAgents,
     selectedAgent,
-    configAgent,
     selectedClawId,
     activeConnectionState,
     readOnly,
     onAgentSelect,
-    onConfigureAgent,
     onCreateAgent,
     onOpenClawSettings,
     onClose
@@ -142,7 +140,6 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                         activeConnectionState={activeConnectionState}
                         readOnly={readOnly}
                         onAgentClick={handleAgentClick}
-                        onConfigureAgent={onConfigureAgent}
                         onCreateAgent={onCreateAgent}
                         onOpenClawSettings={handleClawSettings}
                     />
@@ -150,11 +147,9 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                     <ChatSidebarListView
                         clawsWithAgents={clawsWithAgents}
                         selectedAgent={selectedAgent}
-                        configAgent={configAgent}
                         activeConnectionState={activeConnectionState}
                         readOnly={readOnly}
                         onAgentClick={handleAgentClick}
-                        onConfigureAgent={onConfigureAgent}
                     />
                 )}
             </div>

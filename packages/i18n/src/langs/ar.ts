@@ -439,9 +439,6 @@ const ar: Translations = {
         planAvailabilityFetched: 'تم جلب توفر الخطط بنجاح.',
         agentsFetched: 'تم جلب الوكلاء بنجاح.',
         agentsFetchFailed: 'تعذر الوصول إلى المثيل لجلب الوكلاء !',
-        agentConfigFetched: 'تم جلب إعدادات الوكيل بنجاح.',
-        agentConfigUpdated: 'تم تحديث إعدادات الوكيل بنجاح.',
-        agentConfigUpdateFailed: 'تعذر تحديث إعدادات الوكيل !',
         agentCreated: 'تم إنشاء الوكيل بنجاح.',
         agentCreateFailed: 'تعذر إنشاء الوكيل على المثيل !',
         agentDeleted: 'تم حذف الوكيل بنجاح.',
@@ -463,29 +460,6 @@ const ar: Translations = {
         healthOk: 'API يعمل.',
         featureVersionUnsupported:
             'هذه الميزة غير مدعومة في الإصدار {{version}}. يرجى تحديث OpenClaw أو استخدام الطرفية للإدارة يدويًا.',
-        skillsFetched: 'تم جلب المهارات بنجاح.',
-        skillsUpdated: 'تم تحديث المهارات بنجاح.',
-        skillsUpdateFailed: 'تعذر تحديث المهارات !',
-        skillsFetchFailed: 'تعذر جلب المهارات !',
-        agentSkillsFetched: 'تم جلب مهارات الوكيل بنجاح.',
-        agentSkillsUpdated: 'تم تحديث مهارات الوكيل بنجاح.',
-        agentSkillsUpdateFailed: 'تعذر تحديث مهارات الوكيل !',
-        agentSkillsFetchFailed: 'تعذر جلب مهارات الوكيل !',
-        invalidSkillName:
-            'يجب أن يحتوي اسم المهارة على حروف وأرقام وشرطات وشرطات سفلية فقط !',
-        skillNotFound: 'لم يتم العثور على المهارة !',
-        clawHubSearchSuccess: 'اكتمل بحث ClawHub.',
-        clawHubSearchFailed: 'تعذر البحث في ClawHub !',
-        clawHubFetched: 'تم جلب مهارات ClawHub.',
-        clawHubFetchFailed: 'تعذر جلب مهارات ClawHub !',
-        clawHubInstalled: 'تم تثبيت المهارة من ClawHub.',
-        clawHubInstallFailed: 'تعذر تثبيت المهارة من ClawHub !',
-        clawHubRemoved: 'تم إزالة مهارة ClawHub.',
-        clawHubRemoveFailed: 'تعذر إزالة مهارة ClawHub !',
-        clawHubUpdated: 'تم تحديث المهارة.',
-        clawHubUpdateFailed: 'تعذر تحديث مهارة ClawHub !',
-        clawHubUpdatesFetched: 'اكتمل التحقق من التحديثات.',
-        clawHubUpdatesFailed: 'تعذر التحقق من التحديثات !',
         invalidAuthMethod: 'طريقة مصادقة غير صالحة !',
         authMethodNotConnected: 'طريقة المصادقة هذه غير متصلة !',
         authMethodConnected: 'تم ربط طريقة المصادقة بنجاح.',
@@ -598,15 +572,6 @@ const ar: Translations = {
                     'استخدم وضع الصوت للتحدث مع وكلاء الذكاء الاصطناعي بدون استخدام اليدين. تحويل الكلام لنص للإدخال والنص لكلام للردود — اختر من عدة أصوات.',
                 cta: 'جرّب وضع الصوت'
             },
-            skills: {
-                subject: 'هل تعلم؟ أكثر من 5,000 مهارة على ClawHub',
-                preview: 'تصفّح وثبّت مهارات المجتمع بنقرة واحدة',
-                tag: 'مهارات ClawHub',
-                heading: 'وسّع وكلاءك فوراً',
-                description:
-                    'تصفّح أكثر من 5,000 مهارة جاهزة على ClawHub وثبّتها بنقرة واحدة. بحث الويب وتنفيذ الأكواد وتوليد الصور والمزيد.',
-                cta: 'تصفّح ClawHub'
-            },
             envVars: {
                 subject: 'هل تعلم؟ إدارة متغيرات البيئة',
                 preview: 'اضبط مفاتيح API والإعدادات بدون SSH',
@@ -687,6 +652,22 @@ const ar: Translations = {
                 description:
                     'بدّل إلى الفوترة السنوية ووفّر على اشتراك مخلبك. نفس الخدمة الممتازة بسعر أقل — ألغِ في أي وقت.',
                 cta: 'عرض الخطط'
+            },
+            simplifiedPlatform: {
+                subject: 'قمنا بتبسيط ClawHost',
+                preview:
+                    'القنوات والمهارات والمزيد تُدار الآن مباشرة في OpenClaw',
+                tag: 'تحديث المنصة',
+                heading: 'ClawHost أصبح أبسط',
+                description:
+                    'أزلنا إدارة القنوات والوكلاء والدردشة والمهارات والمتغيرات من لوحة تحكم ClawHost. هذه الميزات تُدار الآن مباشرة على نسخة OpenClaw الخاصة بك.',
+                removed:
+                    'تحديداً، أزلنا: قنوات المراسلة (واتساب، تيليجرام، ديسكورد، سلاك، سيجنال)، سوق المهارات (ClawHub)، دردشة الوكيل والوضع الصوتي، ومحرر المتغيرات. كل هذا لا يزال موجوداً في OpenClaw — فقط توقفنا عن تغليفه.',
+                why: 'الحفاظ على تزامن واجهاتنا مع كل إصدار من OpenClaw كان غير مستدام. التحديثات كانت تصدر، وواجهتنا كانت تتأخر — مما يتركك مع أدوات تحكم قديمة وميزات غير مكتملة.',
+                benefit:
+                    'بإزالة هذه الطبقات، تتفاعل مباشرة مع OpenClaw. تتعلم النظام الحقيقي، وليس واجهة ثانية قد تصبح قديمة. معرفتك تنتقل معك أينما يعمل OpenClaw.',
+                action: 'لا شيء يتعطل. مخالبك وخوادمك وفواتيرك وميزات لوحة التحكم الأساسية لم تتغير. لتهيئة القنوات أو المهارات أو الوكلاء، استخدم نسخة OpenClaw مباشرة.',
+                cta: 'فتح لوحة التحكم'
             }
         }
     },
@@ -1017,7 +998,6 @@ const ar: Translations = {
         noAgentsDescription: 'انشر مخلباً لبدء المحادثة مع الوكلاء.',
         openSidebar: 'فتح الشريط الجانبي',
         clawNotReady: 'المخلب غير جاهز بعد',
-        notConfigured: 'غير مهيأ',
         addAgent: 'إضافة وكيل',
         viewTree: 'عرض شجري',
         viewList: 'عرض قائمة',
@@ -1198,10 +1178,7 @@ const ar: Translations = {
             'الوصول إلى لوحة OpenClaw الأصلية مباشرة من ClawHost. وصول كامل للتحرير لكل ما يقدمه OpenClaw.',
         clawHostControl: 'تحكم ClawHost',
         clawHostControlDescription:
-            'إدارة الملفات والتحديثات والمتغيرات والمهارات والمزيد من خيارات التهيئة مباشرة من المنصة.',
-        skillsMarketplace: 'أكثر من 5,000 مهارة',
-        skillsMarketplaceDescription:
-            'تصفّح وثبّت من أكثر من 5,000 مهارة جاهزة بنقرة واحدة. وسّع OpenClaw فوراً.',
+            'إدارة الملفات والتحديثات والمتغيرات والمزيد من خيارات التهيئة مباشرة من المنصة.',
         directChat: 'محادثة مباشرة',
         directChatDescription:
             'تحدث مع وكلاء الذكاء الاصطناعي مباشرة من المنصة. لا حاجة لأدوات أو واجهات خارجية.',
@@ -1449,7 +1426,6 @@ const ar: Translations = {
             'طلبات ميزات مدفوعة من المجتمع ودعم موسّع لتحرير الملفات وإصلاحات متنوعة.',
         release10Feature1:
             'طلبات الميزات تُدار وتُنشر تلقائياً بواسطة وكلاء OpenClaw',
-        release10Feature2: 'إصلاح فشل تثبيت المهارات أحياناً من سوق ClawHub',
         release10Feature3:
             'إصلاح تبديل مزود النموذج الذي لم يكن ينعكس واستمرار استخدام النموذج الأولي',
         release10Feature4: 'عدة تحسينات وإصلاحات عبر المنصة',
@@ -1477,21 +1453,17 @@ const ar: Translations = {
         release7Date: '16 فبراير 2026',
         release7Title: 'إعادة هيكلة المحادثة والإدخال الصوتي',
         release7Description:
-            'تحسينات رئيسية في المحادثة وPlayground مع التفاعل الصوتي وسوق مهارات ClawHub والمرفقات للوكلاء.',
+            'تحسينات رئيسية في المحادثة وPlayground مع التفاعل الصوتي والمرفقات للوكلاء.',
         release7Feature1:
             'إعادة هيكلة المحادثة وPlayground لتجربة أكثر سلاسة واستجابة',
         release7Feature2:
             'التفاعل الصوتي مع المحادثات، سجّل وحوّل الكلام مباشرة في المتصفح',
-        release7Feature3:
-            'تكامل مهارات ClawHub مع أكثر من 5,000 مهارة متاحة للتثبيت والإدارة',
         release7Feature4:
             'عرض واستخدام المرفقات للوكلاء، أرسل صوراً ومستندات في المحادثة',
         release6Date: '16 فبراير 2026',
-        release6Title: 'المهارات ومحادثة الوكلاء',
+        release6Title: 'محادثة الوكلاء',
         release6Description:
-            'تحكم كامل في مهارات ووكلاء OpenClaw. أدر وتحدث مع كل شيء مباشرة من لوحة التحكم.',
-        release6Feature2:
-            'إدارة المهارات مباشرة، تثبيت وتحديث وتنظيم مهارات الوكلاء من لوحة التحكم',
+            'تحكم كامل في وكلاء OpenClaw. أدر وتحدث مع كل شيء مباشرة من لوحة التحكم.',
         release6Feature3:
             'تحدث مع وكلائك من Playground، تفاعل مع أي وكيل في الوقت الفعلي',
         release6Feature4:
@@ -1572,34 +1544,10 @@ const ar: Translations = {
         loadingTip2: 'هل تعلم أن OpenClaw مفتوح المصدر؟',
         loadingTip3: 'ClawHost هو أول مشروع يتيح استضافة OpenClaw بنقرة واحدة.',
         tabChat: 'المحادثة',
-        tabConfiguration: 'التهيئة',
         tabSettings: 'الإعدادات',
         tabEnvs: 'المتغيرات',
         agentOnClaw: 'على {{clawName}}',
         cannotDeleteDefaultAgent: 'لا يمكن إزالة الوكيل الافتراضي !',
-        configurationModel: 'النموذج',
-        configurationModelPlaceholder: 'اختر نموذجاً',
-        configurationModelDescription:
-            'نموذج الذكاء الاصطناعي الذي يستخدمه هذا الوكيل. تغيير النموذج قد يتطلب ضبط مفتاح API المقابل.',
-        configurationEnvVars: 'متغيرات البيئة',
-        configurationEnvVarsDescription:
-            'مفاتيح API ومتغيرات البيئة المخزنة في ~/.openclaw/.env على النسخة.',
-        configurationAddEnvVar: 'إضافة متغير',
-        configurationKeyPlaceholder: 'VARIABLE_NAME',
-        configurationValuePlaceholder: 'القيمة',
-        configurationSave: 'حفظ',
-        configurationSaving: 'جارٍ الحفظ...',
-        configurationSaved: 'تم حفظ تهيئة الوكيل.',
-        configurationSaveFailed: 'فشل في حفظ تهيئة الوكيل !',
-        configurationLoading: 'جارٍ تحميل التهيئة...',
-        configurationLoadFailed: 'فشل في تحميل تهيئة الوكيل !',
-        configurationLoadFailedDescription:
-            'تعذر استرداد تهيئة هذا الوكيل. يرجى المحاولة مرة أخرى لاحقاً.',
-        configurationRemoveVar: 'إزالة',
-        configurationApiKey: 'مفتاح API',
-        configurationApiKeyDescription:
-            'مطلوب لـ {{modelName}}. هذا المفتاح مخزن في ~/.openclaw/.env على النسخة.',
-        configurationApiKeyPlaceholder: 'أدخل مفتاح API',
         tabVariables: 'المتغيرات',
         variablesDescription:
             'متغيرات البيئة المخزنة في ~/.openclaw/.env على هذه النسخة.',
@@ -1616,6 +1564,8 @@ const ar: Translations = {
         variablesInvalidKey: 'أحرف وأرقام وشرطات سفلية فقط !',
         variablesEmptyValue: 'القيمة لا يمكن أن تكون فارغة !',
         variablesDuplicateKey: 'اسم متغير مكرر !',
+        variablesKeyPlaceholder: 'المفتاح',
+        variablesValuePlaceholder: 'القيمة',
         variablesDeleteTitle: 'حذف المتغير',
         variablesDeleteDescription:
             'هل أنت متأكد أنك تريد حذف {{key}}؟ سيتم إزالته فوراً من النسخة.',
@@ -1649,9 +1599,6 @@ const ar: Translations = {
         deleteAgentDeleting: 'جارٍ الحذف...',
         deleteAgentSuccess: 'تم حذف الوكيل بنجاح.',
         deleteAgentFailed: 'فشل في حذف الوكيل !',
-        configurationName: 'الاسم',
-        configurationNamePlaceholder: 'أدخل اسم الوكيل',
-        configurationNameDescription: 'أحرف وأرقام وشرطات فقط.',
         agentNameRequired: 'اسم الوكيل مطلوب !',
         agentNameInvalidChars: 'يُسمح فقط بالأحرف والأرقام والشرطات !',
         agentNameDuplicate: 'وكيل بهذا الاسم موجود بالفعل !',
@@ -1699,10 +1646,6 @@ const ar: Translations = {
         chatConnectionFailed: 'فشل الاتصال بهذا الوكيل !',
         chatConnectionFailedDescription:
             'تأكد أن المخلب يعمل ويمكن الوصول إليه.',
-        chatNotConfigured: 'الوكيل غير مهيأ.',
-        chatNotConfiguredDescription:
-            'اختر نموذجاً واضبط مفتاح API في تبويب التهيئة لبدء المحادثة.',
-        chatConfigureButton: 'تهيئة الوكيل',
         chatToday: 'اليوم',
         chatYesterday: 'أمس',
         chatExpandFullscreen: 'توسيع المحادثة',
@@ -1739,54 +1682,6 @@ const ar: Translations = {
         featureVersionUnsupportedButton: 'الذهاب إلى الإصدارات',
         featureVersionUnsupportedSupported: 'الإصدارات المدعومة:',
         featureVersionUnsupportedNewer: 'الإصدارات الأحدث',
-        tabSkills: 'المهارات',
-        skillsDescription:
-            'إدارة المهارات المشتركة المتاحة لجميع الوكلاء على هذه النسخة.',
-        skillsSearch: 'البحث في المهارات...',
-        skillsNoResults: 'لا توجد مهارات تطابق بحثك.',
-        skillsEmpty: 'لا توجد مهارات',
-        skillsSave: 'حفظ المهارات',
-        skillsSaved: 'تم تحديث المهارات بنجاح.',
-        skillsSaveFailed: 'فشل في تحديث المهارات !',
-        skillsLoading: 'جارٍ تحميل المهارات...',
-        skillsLoadFailed: 'فشل في تحميل المهارات !',
-        skillsLoadFailedDescription:
-            'تعذر استرداد تهيئة المهارات. يرجى المحاولة مرة أخرى.',
-        agentSkillsDescription: 'المهارات المثبتة في مساحة عمل هذا الوكيل.',
-        agentSkillsInstalling: 'جارٍ التثبيت...',
-        agentSkillsInstalled: 'تم تثبيت المهارة بنجاح.',
-        agentSkillsInstallFailed: 'فشل في تثبيت المهارة !',
-        agentSkillsRemoving: 'جارٍ الإزالة...',
-        agentSkillsRemoved: 'تم إزالة المهارة بنجاح.',
-        agentSkillsRemoveFailed: 'فشل في إزالة المهارة !',
-        agentSkillsEmpty: 'لم يتم تثبيت مهارات.',
-        agentSkillsEmptyDescription: 'ثبّت مهارة لتوسيع قدرات هذا الوكيل.',
-        agentSkillsNamePlaceholder: 'اسم المهارة',
-        agentSkillsConfirmRemove: 'إزالة المهارة "{{skillName}}"؟',
-        agentSkillsConfirmRemoveDescription:
-            'سيؤدي هذا إلى حذف المهارة من مساحة عمل الوكيل.',
-        skillsBundledTab: 'مدمجة',
-        skillsClawHubTab: 'ClawHub',
-        clawHubSearch: 'البحث في مهارات ClawHub...',
-        clawHubNoResults: 'لم يتم العثور على مهارات في ClawHub.',
-        clawHubEmpty: 'لم يتم تثبيت مهارات ClawHub.',
-        clawHubEmptyDescription: 'ابحث وثبّت المهارات من سوق ClawHub.',
-        clawHubInstall: 'تثبيت',
-        clawHubInstalled: 'تم تثبيت المهارة من ClawHub.',
-        clawHubInstallFailed: 'فشل في تثبيت المهارة من ClawHub !',
-        clawHubRemove: 'إزالة',
-        clawHubRemoved: 'تم إزالة مهارة ClawHub.',
-        clawHubRemoveFailed: 'فشل في إزالة مهارة ClawHub !',
-        clawHubUpdate: 'تحديث',
-        clawHubUpdated: 'تم تحديث المهارة من ClawHub.',
-        clawHubUpdateFailed: 'فشل في تحديث مهارة ClawHub !',
-        clawHubUpdateAvailable: 'v{{version}} متاح',
-        clawHubBy: 'بواسطة {{author}}',
-        clawHubDownloads: '{{count}} تنزيل',
-        clawHubVersion: 'v{{version}}',
-        clawHubLoadFailed: 'فشل في تحميل ClawHub !',
-        clawHubLoadFailedDescription:
-            'تعذر الاتصال بسوق ClawHub. يرجى المحاولة مرة أخرى.',
         tabVersions: 'الإصدارات',
         versionsSearch: 'البحث في الإصدارات...',
         versionsEmpty: 'لم يتم العثور على إصدارات',
@@ -2040,11 +1935,9 @@ const ar: Translations = {
         featureSubdomainAccess: 'وصول عبر النطاق الفرعي',
         featureThemes: 'سمات فاتحة وداكنة',
         featureSetupTime: 'وقت الإعداد',
-        featureTechnicalSkill: 'مهارة تقنية مطلوبة',
         featureOneClickDeploy: 'نشر بنقرة واحدة',
         featureMultipleInstances: 'نسخ متعددة',
         featureMultipleAgents: 'وكلاء متعددون لكل نسخة',
-        featureSkillsMarketplace: 'سوق المهارات',
         featureAgentConfig: 'تهيئة الوكيل',
         featureDataOwnership: 'ملكية كاملة للبيانات',
         featureDataExport: 'تصدير البيانات',
@@ -2094,7 +1987,6 @@ const ar: Translations = {
         minimal: 'الحد الأدنى',
         unlimited: 'غير محدود',
         singleInstance: 'واحدة',
-        fiveThousandSkills: 'أكثر من 5,000 مهارة (ClawHub)',
         noMarketplace: 'لا يوجد سوق',
         appOnly: 'التطبيق فقط',
         fullConfig: 'تهيئة كاملة',

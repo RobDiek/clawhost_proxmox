@@ -100,7 +100,7 @@ const PlaygroundVariablesContent: FC<PlaygroundVariablesContentProps> = ({
     const dialogEnvKey =
         deleteIndex !== null
             ? envVars[deleteIndex]?.key ||
-              t('playground.configurationKeyPlaceholder')
+              t('playground.variablesKeyPlaceholder')
             : ''
 
     return (

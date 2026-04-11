@@ -11,7 +11,6 @@ const CDN_ASSETS = {
     FEATURE_PLAYGROUND: `${CDN_URL}/assets/features/playground.gif`,
     FEATURE_AGENT_CHAT: `${CDN_URL}/assets/features/agent-chat.gif`,
     FEATURE_VOICE_MODE: `${CDN_URL}/assets/features/voice-mode.gif`,
-    FEATURE_SKILLS: `${CDN_URL}/assets/features/skills.gif`,
     FEATURE_ENV_VARS: `${CDN_URL}/assets/features/env-vars.gif`,
     FEATURE_DIAGNOSTICS: `${CDN_URL}/assets/features/diagnostics.gif`,
     FEATURE_SSH_KEYS: `${CDN_URL}/assets/features/ssh-keys.gif`,

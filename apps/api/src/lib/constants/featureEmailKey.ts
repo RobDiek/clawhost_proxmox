@@ -5,7 +5,6 @@ const featureEmailKey = {
     playground: 'playground',
     agentChat: 'agentChat',
     voiceMode: 'voiceMode',
-    skills: 'skills',
     envVars: 'envVars',
     diagnostics: 'diagnostics',
     sshKeys: 'sshKeys',
@@ -14,7 +13,8 @@ const featureEmailKey = {
     subdomain: 'subdomain',
     darkMode: 'darkMode',
     reinstall: 'reinstall',
-    yearlyPlans: 'yearlyPlans'
+    yearlyPlans: 'yearlyPlans',
+    simplifiedPlatform: 'simplifiedPlatform'
 } as const
 
 export default featureEmailKey

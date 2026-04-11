@@ -1,5 +1,4 @@
 const versionGatedFeature = {
-    skills: 'skills',
     agents: 'agents'
 } as const
 

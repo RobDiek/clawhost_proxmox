@@ -3,7 +3,7 @@ import type { ChatSidebarItemProps } from '@/ts/Interfaces'
 
 import { useMemo } from 'react'
 import { t } from '@openclaw/i18n'
-import { GearSixIcon, AndroidLogoIcon } from '@phosphor-icons/react'
+import { AndroidLogoIcon } from '@phosphor-icons/react'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
 import { TRUNCATE_LENGTHS } from '@/lib'
 import { GATEWAY_CONNECTION_STATE } from '@/lib/constants'
@@ -15,8 +15,7 @@ const ChatSidebarItem: FC<ChatSidebarItemProps> = ({
     isLast,
     isChecking,
     connectionState,
-    onClick,
-    onConfigure
+    onClick
 }): ReactNode => {
     const modelName =
         typeof agent.model === 'string'
@@ -122,26 +121,11 @@ const ChatSidebarItem: FC<ChatSidebarItemProps> = ({
                             {agent.name}
                         </p>
                     )}
-                    {modelName ? (
+                    {modelName && (
                         <p className='text-muted-foreground truncate text-[11px]'>
                             {modelName}
                         </p>
-                    ) : (
-                        <p className='text-muted-foreground truncate text-[11px] italic'>
-                            {t('chat.notConfigured')}
-                        </p>
                     )}
-                </div>
-                <div
-                    role='button'
-                    tabIndex={-1}
-                    onClick={(e) => {
-                        e.stopPropagation()
-                        onConfigure()
-                    }}
-                    className='text-muted-foreground hover:bg-foreground/10 hover:text-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors'
-                >
-                    <GearSixIcon className='h-3 w-3' weight='bold' />
                 </div>
             </button>
         </div>

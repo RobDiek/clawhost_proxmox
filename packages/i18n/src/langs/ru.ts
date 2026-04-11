@@ -450,9 +450,6 @@ const ru: Translations = {
         agentsFetched: 'Агенты успешно загружены.',
         agentsFetchFailed:
             'Не удалось подключиться к экземпляру для загрузки агентов!',
-        agentConfigFetched: 'Конфигурация агента успешно загружена.',
-        agentConfigUpdated: 'Конфигурация агента успешно обновлена.',
-        agentConfigUpdateFailed: 'Не удалось обновить конфигурацию агента!',
         agentCreated: 'Агент успешно создан.',
         agentCreateFailed: 'Не удалось создать агента на экземпляре!',
         agentDeleted: 'Агент успешно удалён.',
@@ -475,29 +472,6 @@ const ru: Translations = {
         healthOk: 'API работает.',
         featureVersionUnsupported:
             'Эта функция не поддерживается в версии {{version}}. Обновите OpenClaw или используйте Терминал для ручного управления.',
-        skillsFetched: 'Навыки успешно загружены.',
-        skillsUpdated: 'Навыки успешно обновлены.',
-        skillsUpdateFailed: 'Не удалось обновить навыки!',
-        skillsFetchFailed: 'Не удалось загрузить навыки!',
-        agentSkillsFetched: 'Навыки агента успешно загружены.',
-        agentSkillsUpdated: 'Навыки агента успешно обновлены.',
-        agentSkillsUpdateFailed: 'Не удалось обновить навыки агента!',
-        agentSkillsFetchFailed: 'Не удалось загрузить навыки агента!',
-        invalidSkillName:
-            'Имя навыка может содержать только буквы, цифры, дефисы и подчёркивания!',
-        skillNotFound: 'Навык не найден!',
-        clawHubSearchSuccess: 'Поиск в ClawHub завершён.',
-        clawHubSearchFailed: 'Не удалось выполнить поиск в ClawHub!',
-        clawHubFetched: 'Навыки ClawHub загружены.',
-        clawHubFetchFailed: 'Не удалось загрузить навыки ClawHub!',
-        clawHubInstalled: 'Навык установлен из ClawHub.',
-        clawHubInstallFailed: 'Не удалось установить навык из ClawHub!',
-        clawHubRemoved: 'Навык ClawHub удалён.',
-        clawHubRemoveFailed: 'Не удалось удалить навык ClawHub!',
-        clawHubUpdated: 'Навык обновлён.',
-        clawHubUpdateFailed: 'Не удалось обновить навык ClawHub!',
-        clawHubUpdatesFetched: 'Проверка обновлений завершена.',
-        clawHubUpdatesFailed: 'Не удалось проверить обновления!',
         invalidAuthMethod: 'Недопустимый метод аутентификации!',
         authMethodNotConnected: 'Этот метод аутентификации не подключён!',
         authMethodConnected: 'Метод аутентификации успешно подключён.',
@@ -614,16 +588,6 @@ const ru: Translations = {
                     'Используйте голосовой режим для общения с ИИ-агентами без рук. Распознавание речи для ввода, синтез речи для ответов — выбирайте из нескольких голосов.',
                 cta: 'Попробовать голосовой режим'
             },
-            skills: {
-                subject: 'Знаете ли вы? 5 000+ навыков на ClawHub',
-                preview:
-                    'Просматривайте и устанавливайте навыки сообщества в один клик',
-                tag: 'Навыки ClawHub',
-                heading: 'Расширяйте агентов мгновенно',
-                description:
-                    'Просмотрите более 5 000 готовых навыков на ClawHub и установите их одним кликом. Веб-поиск, выполнение кода, генерация изображений и многое другое.',
-                cta: 'Обзор ClawHub'
-            },
             envVars: {
                 subject: 'Знаете ли вы? Управляйте переменными окружения',
                 preview: 'Устанавливайте API-ключи и конфигурацию без SSH',
@@ -705,6 +669,22 @@ const ru: Translations = {
                 description:
                     'Перейдите на годовую оплату и экономьте на подписке клоу. Тот же отличный сервис, ниже цена — отмена в любое время.',
                 cta: 'Просмотреть тарифы'
+            },
+            simplifiedPlatform: {
+                subject: 'Мы упростили ClawHost',
+                preview:
+                    'Каналы, навыки и другое теперь управляются напрямую в OpenClaw',
+                tag: 'Обновление платформы',
+                heading: 'ClawHost стал проще',
+                description:
+                    'Мы удалили управление каналами, агентами, чатом, навыками и переменными из панели ClawHost. Эти функции теперь управляются непосредственно на вашем экземпляре OpenClaw.',
+                removed:
+                    'Конкретно мы удалили: каналы обмена сообщениями (WhatsApp, Telegram, Discord, Slack, Signal), маркетплейс навыков (ClawHub), чат агента и голосовой режим, а также редактор переменных. Всё это по-прежнему существует в OpenClaw — мы просто перестали оборачивать их.',
+                why: 'Поддержание синхронизации наших интерфейсов с каждым релизом OpenClaw было неустойчивым. Обновления выходили, а наш интерфейс отставал — оставляя вас с устаревшими элементами управления и неполными функциями.',
+                benefit:
+                    'Убрав эти слои, вы взаимодействуете с OpenClaw напрямую. Вы изучаете настоящую систему, а не второй интерфейс, который может устареть. Ваши знания применимы везде, где работает OpenClaw.',
+                action: 'Ничего не ломается. Ваши клоу, серверы, биллинг и основные функции панели не изменились. Для настройки каналов, навыков или агентов используйте ваш экземпляр OpenClaw напрямую.',
+                cta: 'Открыть панель'
             }
         }
     },
@@ -1046,7 +1026,6 @@ const ru: Translations = {
             'Разверните клоу, чтобы начать общение с агентами.',
         openSidebar: 'Открыть боковую панель',
         clawNotReady: 'Клоу ещё не готов',
-        notConfigured: 'Не настроен',
         addAgent: 'Добавить агента',
         viewTree: 'Древовидный вид',
         viewList: 'Список',
@@ -1232,10 +1211,7 @@ const ru: Translations = {
             'Доступ к нативной панели OpenClaw прямо из ClawHost. Полный доступ к редактированию всего, что предлагает OpenClaw.',
         clawHostControl: 'Управление ClawHost',
         clawHostControlDescription:
-            'Управляйте файлами, обновлениями, переменными, навыками и другими параметрами конфигурации прямо из платформы.',
-        skillsMarketplace: '5 000+ навыков',
-        skillsMarketplaceDescription:
-            'Просматривайте и устанавливайте более 5 000 готовых навыков одним кликом. Расширяйте OpenClaw мгновенно.',
+            'Управляйте файлами, обновлениями, переменными и другими параметрами конфигурации прямо из платформы.',
         directChat: 'Прямой чат',
         directChatDescription:
             'Общайтесь с ИИ-агентами прямо из платформы. Без внешних инструментов и интерфейсов.',
@@ -1488,8 +1464,6 @@ const ru: Translations = {
             'Запросы функций от сообщества, расширенная поддержка редактирования файлов и различные исправления ошибок.',
         release10Feature1:
             'Запросы функций, автоматически управляемые и публикуемые агентами OpenClaw',
-        release10Feature2:
-            'Исправлена периодическая ошибка установки навыков из маркетплейса ClawHub',
         release10Feature3:
             'Исправлено переключение провайдера модели, которое не применялось и продолжало использовать начальную модель',
         release10Feature4:
@@ -1519,21 +1493,17 @@ const ru: Translations = {
         release7Date: '16 февраля 2026',
         release7Title: 'Рефакторинг чата и голосовой ввод',
         release7Description:
-            'Крупные улучшения чата и Playground с голосовым взаимодействием, маркетплейсом навыков ClawHub и вложениями файлов для агентов.',
+            'Крупные улучшения чата и Playground с голосовым взаимодействием и вложениями файлов для агентов.',
         release7Feature1:
             'Рефакторинг чата и Playground для более плавного и отзывчивого взаимодействия',
         release7Feature2:
             'Голосовое взаимодействие с чатами, запись и транскрипция речи прямо в браузере',
-        release7Feature3:
-            'Интеграция навыков ClawHub с 5 000+ навыков для установки и управления',
         release7Feature4:
             'Просмотр и использование вложений для агентов, отправка изображений и документов в чате',
         release6Date: '16 февраля 2026',
-        release6Title: 'Навыки и чат с агентами',
+        release6Title: 'Чат с агентами',
         release6Description:
-            'Полный контроль над навыками и агентами OpenClaw. Управляйте и общайтесь со всем прямо из панели.',
-        release6Feature2:
-            'Управление навыками напрямую, установка, обновление и организация навыков агентов из панели',
+            'Полный контроль над агентами OpenClaw. Управляйте и общайтесь со всем прямо из панели.',
         release6Feature3:
             'Чат с агентами из Playground, взаимодействие с любым агентом в реальном времени',
         release6Feature4:
@@ -1623,34 +1593,10 @@ const ru: Translations = {
         loadingTip3:
             'ClawHost — первый в мире проект, позволяющий хостить OpenClaw в один клик.',
         tabChat: 'Чат',
-        tabConfiguration: 'Конфигурация',
         tabSettings: 'Настройки',
         tabEnvs: 'Переменные',
         agentOnClaw: 'на {{clawName}}',
         cannotDeleteDefaultAgent: 'Агента по умолчанию нельзя удалить !',
-        configurationModel: 'Модель',
-        configurationModelPlaceholder: 'Выберите модель',
-        configurationModelDescription:
-            'ИИ-модель, которую использует этот агент. Смена модели может потребовать установки соответствующего API-ключа.',
-        configurationEnvVars: 'Переменные окружения',
-        configurationEnvVarsDescription:
-            'API-ключи и переменные окружения, хранящиеся в ~/.openclaw/.env на экземпляре.',
-        configurationAddEnvVar: 'Добавить переменную',
-        configurationKeyPlaceholder: 'VARIABLE_NAME',
-        configurationValuePlaceholder: 'значение',
-        configurationSave: 'Сохранить',
-        configurationSaving: 'Сохранение...',
-        configurationSaved: 'Конфигурация агента сохранена.',
-        configurationSaveFailed: 'Не удалось сохранить конфигурацию агента !',
-        configurationLoading: 'Загрузка конфигурации...',
-        configurationLoadFailed: 'Не удалось загрузить конфигурацию агента !',
-        configurationLoadFailedDescription:
-            'Не удалось получить конфигурацию этого агента. Попробуйте позже.',
-        configurationRemoveVar: 'Удалить',
-        configurationApiKey: 'API-ключ',
-        configurationApiKeyDescription:
-            'Требуется для {{modelName}}. Этот ключ хранится в ~/.openclaw/.env на экземпляре.',
-        configurationApiKeyPlaceholder: 'Введите ваш API-ключ',
         tabVariables: 'Переменные',
         variablesDescription:
             'Переменные окружения, хранящиеся в ~/.openclaw/.env на этом экземпляре.',
@@ -1667,6 +1613,8 @@ const ru: Translations = {
         variablesInvalidKey: 'Только буквы, цифры и подчёркивания !',
         variablesEmptyValue: 'Значение не может быть пустым !',
         variablesDuplicateKey: 'Дублирующееся имя переменной !',
+        variablesKeyPlaceholder: 'КЛЮЧ',
+        variablesValuePlaceholder: 'Значение',
         variablesDeleteTitle: 'Удалить переменную',
         variablesDeleteDescription:
             'Вы уверены, что хотите удалить {{key}}? Это немедленно удалит её с экземпляра.',
@@ -1702,9 +1650,6 @@ const ru: Translations = {
         deleteAgentDeleting: 'Удаление...',
         deleteAgentSuccess: 'Агент успешно удалён.',
         deleteAgentFailed: 'Не удалось удалить агента !',
-        configurationName: 'Имя',
-        configurationNamePlaceholder: 'Введите имя агента',
-        configurationNameDescription: 'Только буквы, цифры и дефисы.',
         agentNameRequired: 'Имя агента обязательно !',
         agentNameInvalidChars: 'Допускаются только буквы, цифры и дефисы !',
         agentNameDuplicate: 'Агент с таким именем уже существует !',
@@ -1752,10 +1697,6 @@ const ru: Translations = {
         chatConnectionFailed: 'Не удалось подключиться к этому агенту !',
         chatConnectionFailedDescription:
             'Убедитесь, что клоу запущен и доступен.',
-        chatNotConfigured: 'Агент не настроен.',
-        chatNotConfiguredDescription:
-            'Выберите модель и установите API-ключ во вкладке «Конфигурация», чтобы начать общение.',
-        chatConfigureButton: 'Настроить агента',
         chatToday: 'Сегодня',
         chatYesterday: 'Вчера',
         chatExpandFullscreen: 'Развернуть чат',
@@ -1795,57 +1736,6 @@ const ru: Translations = {
         featureVersionUnsupportedButton: 'Перейти к Версиям',
         featureVersionUnsupportedSupported: 'Поддерживаемые версии:',
         featureVersionUnsupportedNewer: 'более новые версии',
-        tabSkills: 'Навыки',
-        skillsDescription:
-            'Управляйте общими навыками, доступными всем агентам на этом экземпляре.',
-        skillsSearch: 'Поиск навыков...',
-        skillsNoResults: 'Навыки по вашему запросу не найдены.',
-        skillsEmpty: 'Нет навыков',
-        skillsSave: 'Сохранить навыки',
-        skillsSaved: 'Навыки успешно обновлены.',
-        skillsSaveFailed: 'Не удалось обновить навыки !',
-        skillsLoading: 'Загрузка навыков...',
-        skillsLoadFailed: 'Не удалось загрузить навыки !',
-        skillsLoadFailedDescription:
-            'Не удалось получить конфигурацию навыков. Попробуйте снова.',
-        agentSkillsDescription:
-            'Навыки, установленные в рабочем пространстве этого агента.',
-        agentSkillsInstalling: 'Установка...',
-        agentSkillsInstalled: 'Навык успешно установлен.',
-        agentSkillsInstallFailed: 'Не удалось установить навык !',
-        agentSkillsRemoving: 'Удаление...',
-        agentSkillsRemoved: 'Навык успешно удалён.',
-        agentSkillsRemoveFailed: 'Не удалось удалить навык !',
-        agentSkillsEmpty: 'Навыки не установлены.',
-        agentSkillsEmptyDescription:
-            'Установите навык для расширения возможностей этого агента.',
-        agentSkillsNamePlaceholder: 'Название навыка',
-        agentSkillsConfirmRemove: 'Удалить навык «{{skillName}}»?',
-        agentSkillsConfirmRemoveDescription:
-            'Это удалит навык из рабочего пространства агента.',
-        skillsBundledTab: 'Встроенные',
-        skillsClawHubTab: 'ClawHub',
-        clawHubSearch: 'Поиск навыков ClawHub...',
-        clawHubNoResults: 'Навыки на ClawHub не найдены.',
-        clawHubEmpty: 'Навыки ClawHub не установлены.',
-        clawHubEmptyDescription:
-            'Ищите и устанавливайте навыки из маркетплейса ClawHub.',
-        clawHubInstall: 'Установить',
-        clawHubInstalled: 'Навык установлен из ClawHub.',
-        clawHubInstallFailed: 'Не удалось установить навык из ClawHub !',
-        clawHubRemove: 'Удалить',
-        clawHubRemoved: 'Навык ClawHub удалён.',
-        clawHubRemoveFailed: 'Не удалось удалить навык ClawHub !',
-        clawHubUpdate: 'Обновить',
-        clawHubUpdated: 'Навык обновлён из ClawHub.',
-        clawHubUpdateFailed: 'Не удалось обновить навык ClawHub !',
-        clawHubUpdateAvailable: 'v{{version}} доступна',
-        clawHubBy: 'от {{author}}',
-        clawHubDownloads: '{{count}} загрузок',
-        clawHubVersion: 'v{{version}}',
-        clawHubLoadFailed: 'Не удалось загрузить ClawHub !',
-        clawHubLoadFailedDescription:
-            'Не удалось подключиться к маркетплейсу ClawHub. Попробуйте снова.',
         tabVersions: 'Версии',
         versionsSearch: 'Поиск версий...',
         versionsEmpty: 'Версии не найдены',
@@ -2115,11 +2005,9 @@ const ru: Translations = {
         featureSubdomainAccess: 'Доступ через поддомен',
         featureThemes: 'Светлая и тёмная темы',
         featureSetupTime: 'Время настройки',
-        featureTechnicalSkill: 'Требуемые технические навыки',
         featureOneClickDeploy: 'Развёртывание в один клик',
         featureMultipleInstances: 'Несколько экземпляров',
         featureMultipleAgents: 'Несколько агентов на экземпляр',
-        featureSkillsMarketplace: 'Маркетплейс навыков',
         featureAgentConfig: 'Конфигурация агента',
         featureDataOwnership: 'Полное владение данными',
         featureDataExport: 'Экспорт данных',
@@ -2169,7 +2057,6 @@ const ru: Translations = {
         minimal: 'Минимальные',
         unlimited: 'Неограниченно',
         singleInstance: 'Один',
-        fiveThousandSkills: '5 000+ навыков (ClawHub)',
         noMarketplace: 'Нет маркетплейса',
         appOnly: 'Только приложение',
         fullConfig: 'Полная конфигурация',

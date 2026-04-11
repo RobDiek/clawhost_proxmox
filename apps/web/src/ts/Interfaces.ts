@@ -288,14 +288,6 @@ export interface PreferencesState {
     setAffiliatePeriod: (period: AffiliatePeriod) => void
 }
 
-export interface SkillsState {
-    pendingSkill: string | null
-    setPendingSkill: (value: string | null) => void
-    pendingSlug: string | null
-    setPendingSlug: (value: string | null) => void
-    resetSkillsState: () => void
-}
-
 export interface VersionsState {
     installingVersion: string | null
     setInstallingVersion: (value: string | null) => void
@@ -373,14 +365,6 @@ export interface UseEnvVarsFormReturn {
     save: () => void
 }
 
-export interface ClawHubState {
-    pendingSlug: string | null
-    setPendingSlug: (value: string | null) => void
-    page: number
-    setPage: (value: number | ((prev: number) => number)) => void
-    resetClawHubState: () => void
-}
-
 export interface TerminalState {
     status: TerminalStatus
     setStatus: (
@@ -402,8 +386,6 @@ export interface DashboardState {
     setChatSelectedAgent: (value: ChatSelectedAgent | null) => void
     chatSettingsClawId: string | null
     setChatSettingsClawId: (value: string | null) => void
-    chatAgentTab: PlaygroundAgentDetailTab | null
-    setChatAgentTab: (value: PlaygroundAgentDetailTab | null) => void
     playgroundAgentTab: PlaygroundAgentDetailTab | null
     setPlaygroundAgentTab: (value: PlaygroundAgentDetailTab | null) => void
     playgroundClawTab: PlaygroundDetailTab | null
@@ -1252,25 +1234,6 @@ export interface LanguageOption {
     flag: string
 }
 
-export interface AgentConfigSummary {
-    id: string
-    name: string
-    model: string | null
-}
-
-export interface AgentConfigResponse {
-    agent: AgentConfigSummary
-    envVars: Record<string, string>
-    defaultModel: string | null
-}
-
-export interface UpdateAgentConfigData {
-    agentId: string
-    name?: string
-    model: string | null
-    envVars: Record<string, string>
-}
-
 export interface CreateAgentData {
     name: string
     model?: string | null
@@ -1320,9 +1283,6 @@ export interface PlaygroundAgentDetailPanelProps {
     readOnly?: boolean
     gatewayToken?: string | null
     subdomain?: string | null
-    initialTab?: PlaygroundAgentDetailTab
-    onTabChange?: (tab: PlaygroundAgentDetailTab) => void
-    hideChatTab?: boolean
     onGoToVersions?: () => void
 }
 
@@ -1333,20 +1293,9 @@ export interface AgentDetailHeaderProps {
     isExpanded: boolean
     isDeleting: boolean
     readOnly?: boolean
-    hideChatTab?: boolean
-    activeTab: PlaygroundAgentDetailTab
     onToggleExpand: () => void
     onDeleteClick: () => void
     onClose: () => void
-}
-
-export interface AgentDetailConfigTabProps {
-    agent: ClawAgent
-    clawId: string
-    configData: AgentConfigResponse | undefined
-    isConfigLoading: boolean
-    isConfigError: boolean
-    readOnly?: boolean
 }
 
 export interface AgentDeleteDialogProps {
@@ -1591,8 +1540,6 @@ export interface AgentChatProps {
     gatewayToken: string | null | undefined
     agentModel: string | null
     readOnly?: boolean
-    onConfigure?: () => void
-    configureDisabled?: boolean
     onConnectionStateChange?: (state: GatewayConnectionState) => void
 }
 
@@ -1750,102 +1697,6 @@ export interface UseSpeechRecognitionReturn {
     toggle: () => void
 }
 
-export interface SkillEntryConfig {
-    enabled: boolean
-    apiKey?: string
-    env?: Record<string, string>
-    config?: Record<string, unknown>
-}
-
-export interface BundledSkillInfo {
-    name: string
-    enabled: boolean
-    description?: string
-}
-
-export interface ClawSkillsResponse {
-    skills: BundledSkillInfo[]
-    entries: Record<string, SkillEntryConfig>
-}
-
-export interface UpdateClawSkillsData {
-    entries: Record<string, SkillEntryConfig>
-}
-
-export interface AgentSkillInfo {
-    name: string
-}
-
-export interface GetAgentSkillsResponse {
-    skills: AgentSkillInfo[]
-}
-
-export interface UpdateAgentSkillsData {
-    action: 'install' | 'remove'
-    skillName: string
-}
-
-export interface PlaygroundSkillsContentProps {
-    clawId: string
-    agentId?: string
-    onGoToVersions?: () => void
-}
-
-export interface ClawHubSearchResult {
-    slug: string
-    name: string
-    description: string
-    author: string
-    version: string
-    downloads: number
-    tags: string[]
-}
-
-export interface ClawHubInstalledSkill {
-    slug: string
-    name: string
-    version: string
-    hasUpdate: boolean
-    latestVersion?: string
-}
-
-export interface ClawHubBrowseResponse {
-    skills: ClawHubSearchResult[]
-    nextCursor: string | null
-    hasMore: boolean
-}
-
-export interface ClawHubInstalledResponse {
-    skills: ClawHubInstalledSkill[]
-}
-
-export interface ClawHubUpdatesResponse {
-    updates: ClawHubInstalledSkill[]
-}
-
-export interface BrowseClawHubData {
-    query?: string
-    limit?: number
-    cursor?: string
-    agentId?: string
-}
-
-export interface ClawHubSkillActionData {
-    slug: string
-    agentId?: string
-}
-
-export interface ClawHubUpdateData {
-    slug?: string
-    all?: boolean
-    agentId?: string
-}
-
-export interface PlaygroundClawHubContentProps {
-    clawId: string
-    agentId?: string
-}
-
 export interface ChatSidebarItemProps {
     agent: ClawAgent
     isActive: boolean
@@ -1854,7 +1705,6 @@ export interface ChatSidebarItemProps {
     connectionState?: GatewayConnectionState
     readOnly?: boolean
     onClick: () => void
-    onConfigure: () => void
 }
 
 export interface ChatSelectedAgent {
@@ -1872,12 +1722,10 @@ export interface ClawWithAgents {
 export interface ChatSidebarProps {
     clawsWithAgents: ClawWithAgents[]
     selectedAgent: ChatSelectedAgent | null
-    configAgent: ChatSelectedAgent | null
     selectedClawId: string | null
     activeConnectionState?: GatewayConnectionState
     readOnly?: boolean
     onAgentSelect: (selection: ChatSelectedAgent) => void
-    onConfigureAgent: (agentId: string, clawId: string) => void
     onCreateAgent: (clawId: string, clawName: string) => void
     onOpenClawSettings: (clawId: string) => void
     onClose?: () => void
@@ -1890,7 +1738,6 @@ export interface ChatSidebarTreeViewProps {
     activeConnectionState?: GatewayConnectionState
     readOnly?: boolean
     onAgentClick: (agentId: string, clawId: string) => void
-    onConfigureAgent: (agentId: string, clawId: string) => void
     onCreateAgent: (clawId: string, clawName: string) => void
     onOpenClawSettings: (clawId: string) => void
 }
@@ -1898,11 +1745,9 @@ export interface ChatSidebarTreeViewProps {
 export interface ChatSidebarListViewProps {
     clawsWithAgents: ClawWithAgents[]
     selectedAgent: ChatSelectedAgent | null
-    configAgent: ChatSelectedAgent | null
     activeConnectionState?: GatewayConnectionState
     readOnly?: boolean
     onAgentClick: (agentId: string, clawId: string) => void
-    onConfigureAgent: (agentId: string, clawId: string) => void
 }
 
 export interface ChatSidebarListItemProps {
@@ -1919,7 +1764,6 @@ export interface ChatSidebarListItemProps {
     activeConnectionState?: GatewayConnectionState
     readOnly?: boolean
     onClick: () => void
-    onConfigure: () => void
 }
 
 export interface ChatSidebarAgentListProps {
@@ -1931,7 +1775,6 @@ export interface ChatSidebarAgentListProps {
     activeConnectionState?: GatewayConnectionState
     readOnly?: boolean
     onAgentClick: (agentId: string, clawId: string) => void
-    onConfigureAgent: (agentId: string, clawId: string) => void
     onCreateAgent: (clawId: string, clawName: string) => void
 }
 
@@ -1954,12 +1797,9 @@ export interface ChatViewProps {
     sshKeys: SSHKey[]
     selectedAgent: ChatSelectedAgent | null
     onAgentSelect: (selection: ChatSelectedAgent | null) => void
-    onConfigureAgent: (agentId: string, clawId: string) => void
     onCreateAgent: (clawId: string, clawName: string) => void
     initialSettingsClawId?: string | null
     onSettingsClawChange?: (clawId: string | null) => void
-    initialAgentTab?: PlaygroundAgentDetailTab
-    onAgentTabChange?: (tab: PlaygroundAgentDetailTab | null) => void
     initialClawTab?: PlaygroundDetailTab
     onClawTabChange?: (tab: PlaygroundDetailTab | null) => void
 }
@@ -2671,13 +2511,10 @@ export interface DashboardChatViewProps {
     adminMode: boolean
     chatSelectedAgent: ChatSelectedAgent | null
     chatSettingsClawId: string | null
-    chatAgentTab: PlaygroundAgentDetailTab | null
     chatClawTab: PlaygroundDetailTab | null
     onAgentSelect: (value: ChatSelectedAgent | null) => void
-    onConfigureAgent: (agentId: string, clawId: string) => void
     onCreateAgent: (clawId: string, clawName: string) => void
     onSettingsClawChange: (value: string | null) => void
-    onAgentTabChange: (value: PlaygroundAgentDetailTab | null) => void
     onClawTabChange: (value: PlaygroundDetailTab | null) => void
     onCreateClick: () => void
 }
@@ -2722,8 +2559,6 @@ export interface UseURLStateRestorationParams {
     setChatSelectedAgent: (value: ChatSelectedAgent | null) => void
     chatSettingsClawId: string | null
     setChatSettingsClawId: (value: string | null) => void
-    chatAgentTab: PlaygroundAgentDetailTab | null
-    setChatAgentTab: (value: PlaygroundAgentDetailTab | null) => void
     playgroundAgentTab: PlaygroundAgentDetailTab | null
     setPlaygroundAgentTab: (value: PlaygroundAgentDetailTab | null) => void
     playgroundClawTab: PlaygroundDetailTab | null
@@ -2798,70 +2633,6 @@ export interface CompareTableDesktopProps {
     competitors: CompareCompetitor[]
     colSpan: number
     renderValue: (value: CompareFeatureValue) => ReactNode
-}
-
-export interface UseBundledSkillsParams {
-    clawId: string
-    agentId?: string
-    isAgentMode: boolean
-    search: string
-}
-
-export interface UseBundledSkillsReturn {
-    filteredBundledSkills: BundledSkillInfo[]
-    isBundledActive: (skill: BundledSkillInfo) => boolean
-    handleBundledAction: (name: string) => void
-    isBundledLoading: boolean
-    installedSet: Set<string>
-}
-
-export interface UseClawHubSkillsParams {
-    clawId: string
-    agentId?: string
-    debouncedSearch: string
-    isBundledLoading: boolean
-    scrollRef: RefObject<HTMLDivElement>
-    sentinelRef: RefObject<HTMLDivElement>
-}
-
-export interface UseClawHubSkillsReturn {
-    clawHubSkills: ClawHubSearchResult[]
-    installedSlugs: Set<string>
-    updatesMap: Map<string, string>
-    isClawHubFirstLoad: boolean
-    isBrowseError: boolean
-    isFetchingNextPage: boolean
-    browseHasNextPage: boolean
-    handleClawHubAction: (slug: string) => void
-}
-
-export interface BundledSkillRowProps {
-    skill: BundledSkillInfo
-    active: boolean
-    isPending: boolean
-    pendingSkill: string | null
-    onAction: (name: string) => void
-}
-
-export interface ClawHubSkillRowProps {
-    skill: ClawHubSearchResult
-    isInstalled: boolean
-    hasUpdate: boolean
-    latestVersion: string | undefined
-    isPending: boolean
-    pendingSlug: string | null
-    onAction: (slug: string) => void
-}
-
-export interface SkillsSearchBarProps {
-    search: string
-    onSearchChange: (value: string) => void
-    disabled: boolean
-}
-
-export interface SkillsEmptyStateProps {
-    hasSearch: boolean
-    isAgentMode: boolean
 }
 
 export interface UseOtpFlowParams {

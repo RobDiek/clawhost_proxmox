@@ -1,17 +1,9 @@
 import type {
-    AgentConfigResponse,
-    BrowseClawHubData,
     Claw,
     ClawAgentsResponse,
     ClawCredentialsResponse,
     ClawEnvVarsResponse,
     ClawFilesResponse,
-    ClawHubBrowseResponse,
-    ClawHubInstalledResponse,
-    ClawHubSkillActionData,
-    ClawHubUpdateData,
-    ClawHubUpdatesResponse,
-    ClawSkillsResponse,
     ClawVersionResponse,
     ClawVersionsResponse,
     CreateAgentData,
@@ -20,17 +12,13 @@ import type {
     DeleteClawResponse,
     DiagnosticsLogsResponse,
     DiagnosticsStatusResponse,
-    GetAgentSkillsResponse,
     InstallClawVersionResponse,
     PurchaseClawData,
     PurchaseClawResponse,
     ReadClawFileResponse,
     RenameClawData,
-    UpdateAgentConfigData,
-    UpdateAgentSkillsData,
     UpdateClawEnvVarsData,
     UpdateClawFileData,
-    UpdateClawSkillsData,
     UpdateClawSubdomainData
 } from '@/ts/Interfaces'
 
@@ -91,12 +79,6 @@ const claws = {
         ),
     getClawAgents: (id: string) =>
         client.post<ClawAgentsResponse>(API_PATHS.CLAWS.AGENTS.BASE(id)),
-    getClawAgentConfig: (id: string, agentId: string) =>
-        client.post<AgentConfigResponse>(API_PATHS.CLAWS.AGENTS.CONFIG(id), {
-            agentId
-        }),
-    updateClawAgentConfig: (id: string, data: UpdateAgentConfigData) =>
-        client.put<void>(API_PATHS.CLAWS.AGENTS.CONFIG(id), data),
     createClawAgent: (id: string, data: CreateAgentData) =>
         client.post<CreateAgentResponse>(
             API_PATHS.CLAWS.AGENTS.CREATE(id),
@@ -104,47 +86,6 @@ const claws = {
         ),
     deleteClawAgent: (id: string, data: DeleteAgentData) =>
         client.post<void>(API_PATHS.CLAWS.AGENTS.DELETE(id), data),
-    getClawSkills: (id: string) =>
-        client.post<ClawSkillsResponse>(API_PATHS.CLAWS.SKILLS(id)),
-    updateClawSkills: (id: string, data: UpdateClawSkillsData) =>
-        client.put<void>(API_PATHS.CLAWS.SKILLS(id), data),
-    getAgentSkills: (clawId: string, agentId: string) =>
-        client.post<GetAgentSkillsResponse>(
-            API_PATHS.CLAWS.AGENTS.SKILLS(clawId, agentId),
-            { agentId }
-        ),
-    updateAgentSkills: (
-        clawId: string,
-        agentId: string,
-        data: UpdateAgentSkillsData
-    ) => client.put<void>(API_PATHS.CLAWS.AGENTS.SKILLS(clawId, agentId), data),
-    browseClawHubSkills: (clawId: string, params: BrowseClawHubData) => {
-        const qs = new URLSearchParams()
-        if (params.query) qs.set('query', params.query)
-        if (params.limit) qs.set('limit', String(params.limit))
-        if (params.cursor) qs.set('cursor', params.cursor)
-        if (params.agentId) qs.set('agentId', params.agentId)
-        const str = qs.toString()
-        return client.get<ClawHubBrowseResponse>(
-            `${API_PATHS.CLAWS.CLAWHUB.SKILLS(clawId)}${str ? `?${str}` : ''}`
-        )
-    },
-    getClawHubInstalled: (clawId: string, agentId?: string) =>
-        client.post<ClawHubInstalledResponse>(
-            API_PATHS.CLAWS.CLAWHUB.INSTALLED(clawId),
-            agentId ? { agentId } : {}
-        ),
-    installClawHubSkill: (clawId: string, data: ClawHubSkillActionData) =>
-        client.post<void>(API_PATHS.CLAWS.CLAWHUB.INSTALL(clawId), data),
-    removeClawHubSkill: (clawId: string, data: ClawHubSkillActionData) =>
-        client.post<void>(API_PATHS.CLAWS.CLAWHUB.REMOVE(clawId), data),
-    updateClawHubSkill: (clawId: string, data: ClawHubUpdateData) =>
-        client.post<void>(API_PATHS.CLAWS.CLAWHUB.UPDATE(clawId), data),
-    checkClawHubUpdates: (clawId: string, agentId?: string) =>
-        client.post<ClawHubUpdatesResponse>(
-            API_PATHS.CLAWS.CLAWHUB.UPDATES(clawId),
-            agentId ? { agentId } : {}
-        ),
     getClawEnvVars: (id: string) =>
         client.get<ClawEnvVarsResponse>(API_PATHS.CLAWS.ENV(id)),
     updateClawEnvVars: (id: string, data: UpdateClawEnvVarsData) =>

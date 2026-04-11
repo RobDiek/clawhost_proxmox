@@ -606,42 +606,8 @@ export interface RawClawConfigAgent {
     directory?: string
 }
 
-export interface RawClawHubSkillItem {
-    slug?: string
-    name?: string
-    package?: string
-    id?: string
-    displayName?: string
-    version?: string
-    currentVersion?: string
-    hasUpdate?: boolean
-    updateAvailable?: boolean
-    latestVersion?: string
-}
-
 export interface UpdateClawEnvVarsBody {
     envVars: Record<string, string>
-}
-
-export interface GetAgentConfigBody {
-    agentId: string
-}
-
-export interface UpdateAgentConfigBody {
-    agentId: string
-    name?: string
-    model: string | null
-    envVars: Record<string, string>
-}
-
-export interface AgentConfigResponse {
-    agent: {
-        id: string
-        name: string
-        model: string | null
-    }
-    envVars: Record<string, string>
-    defaultModel: string | null
 }
 
 export interface CreateClawAgentBody {
@@ -676,130 +642,6 @@ export interface PlanOrder {
     order: string[]
 }
 
-export interface SkillEntryConfig {
-    enabled: boolean
-    apiKey?: string
-    env?: Record<string, string>
-    config?: Record<string, unknown>
-}
-
-export interface BundledSkillInfo {
-    name: string
-    enabled: boolean
-    description?: string
-}
-
-export interface ClawSkillsResponse {
-    skills: BundledSkillInfo[]
-    entries: Record<string, SkillEntryConfig>
-}
-
-export interface UpdateClawSkillsBody {
-    entries: Record<string, SkillEntryConfig>
-}
-
-export interface AgentSkillInfo {
-    name: string
-}
-
-export interface GetAgentSkillsBody {
-    agentId: string
-}
-
-export interface GetAgentSkillsResponse {
-    skills: AgentSkillInfo[]
-}
-
-export interface UpdateAgentSkillsBody {
-    action: 'install' | 'remove'
-    skillName: string
-}
-
-export interface ClawHubSearchResult {
-    slug: string
-    name: string
-    description: string
-    author: string
-    version: string
-    downloads: number
-    tags: string[]
-}
-
-export interface ClawHubInstalledSkill {
-    slug: string
-    name: string
-    version: string
-    hasUpdate: boolean
-    latestVersion?: string
-}
-
-export interface BrowseClawHubSkillsQuery {
-    query?: string
-    limit?: number
-    cursor?: string
-    agentId?: string
-}
-
-export interface ClawHubInstallBody {
-    slug: string
-    agentId?: string
-}
-
-export interface ClawHubRemoveBody {
-    slug: string
-    agentId?: string
-}
-
-export interface ClawHubUpdateBody {
-    slug?: string
-    all?: boolean
-    agentId?: string
-}
-
-export interface ClawHubBrowseResponse {
-    skills: ClawHubSearchResult[]
-}
-
-export interface ClawHubInstalledResponse {
-    skills: ClawHubInstalledSkill[]
-}
-
-export interface ClawHubUpdatesResponse {
-    updates: ClawHubInstalledSkill[]
-}
-
-export interface ClawHubAPISearchHit {
-    score: number
-    slug: string
-    displayName: string
-    summary: string
-    version: string
-    updatedAt: string
-}
-
-export interface ClawHubAPISkillItem {
-    slug: string
-    displayName: string
-    summary: string
-    version: string
-    updatedAt: string
-    downloads?: number
-    author?: string
-    tags?: string[]
-}
-
-export interface BrowseClawHubSkillsParams {
-    query?: string
-    limit?: number
-    cursor?: string
-}
-
-export interface ClawHubBrowseResultPage {
-    skills: ClawHubSearchResult[]
-    nextCursor: string | null
-    hasMore: boolean
-}
-
 export interface CacheEntry<T> {
     data: T
     expiry: number
@@ -808,16 +650,6 @@ export interface CacheEntry<T> {
 export interface AuthCacheData {
     userId: string
     isAdmin: boolean
-}
-
-export interface SkillsCacheEntry {
-    data: ClawHubSearchResult[]
-    expires: number
-}
-
-export interface ClawHubAPISkillsPage {
-    items: ClawHubAPISkillItem[]
-    nextCursor?: string | null
 }
 
 export interface AgentIdBody {

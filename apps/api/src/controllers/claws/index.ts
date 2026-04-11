@@ -18,25 +18,13 @@ import getAdminClaws from '@/controllers/claws/getAdminClaws'
 import reinstallClaw from '@/controllers/claws/reinstallClaw'
 import exportClaw from '@/controllers/claws/exportClaw'
 import getClawAgents from '@/controllers/claws/getClawAgents'
-import getClawAgentConfig from '@/controllers/claws/getClawAgentConfig'
-import updateClawAgentConfig from '@/controllers/claws/updateClawAgentConfig'
 import createClawAgent from '@/controllers/claws/createClawAgent'
 import deleteClawAgent from '@/controllers/claws/deleteClawAgent'
 import getClawEnvVars from '@/controllers/claws/getClawEnvVars'
 import updateClawEnvVars from '@/controllers/claws/updateClawEnvVars'
-import getClawSkills from '@/controllers/claws/getClawSkills'
-import updateClawSkills from '@/controllers/claws/updateClawSkills'
-import getAgentSkills from '@/controllers/claws/getAgentSkills'
-import updateAgentSkills from '@/controllers/claws/updateAgentSkills'
 import getClawVersion from '@/controllers/claws/getClawVersion'
 import getClawVersions from '@/controllers/claws/getClawVersions'
 import installClawVersion from '@/controllers/claws/installClawVersion'
-import browseClawHubSkills from '@/controllers/claws/browseClawHubSkills'
-import getClawHubInstalled from '@/controllers/claws/getClawHubInstalled'
-import installClawHubSkill from '@/controllers/claws/installClawHubSkill'
-import removeClawHubSkill from '@/controllers/claws/removeClawHubSkill'
-import updateClawHubSkill from '@/controllers/claws/updateClawHubSkill'
-import checkClawHubUpdates from '@/controllers/claws/checkClawHubUpdates'
 import renameClaw from '@/controllers/claws/renameClaw'
 import getClawCredentials from '@/controllers/claws/getClawCredentials'
 import cancelPendingClaw from '@/controllers/claws/cancelPendingClaw'
@@ -63,25 +51,13 @@ export {
     reinstallClaw,
     exportClaw,
     getClawAgents,
-    getClawAgentConfig,
-    updateClawAgentConfig,
     createClawAgent,
     deleteClawAgent,
     getClawEnvVars,
     updateClawEnvVars,
-    getClawSkills,
-    updateClawSkills,
-    getAgentSkills,
-    updateAgentSkills,
     getClawVersion,
     getClawVersions,
     installClawVersion,
-    browseClawHubSkills,
-    getClawHubInstalled,
-    installClawHubSkill,
-    removeClawHubSkill,
-    updateClawHubSkill,
-    checkClawHubUpdates,
     renameClaw,
     getClawCredentials,
     cancelPendingClaw,

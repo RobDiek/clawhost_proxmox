@@ -458,10 +458,6 @@ const pl: Translations = {
         agentsFetched: 'Agenci pobrani pomyślnie.',
         agentsFetchFailed:
             'Nie udało się połączyć z instancją, aby pobrać agentów !',
-        agentConfigFetched: 'Konfiguracja agenta pobrana pomyślnie.',
-        agentConfigUpdated: 'Konfiguracja agenta zaktualizowana pomyślnie.',
-        agentConfigUpdateFailed:
-            'Nie udało się zaktualizować konfiguracji agenta !',
         agentCreated: 'Agent utworzony pomyślnie.',
         agentCreateFailed: 'Nie udało się utworzyć agenta na instancji !',
         agentDeleted: 'Agent usunięty pomyślnie.',
@@ -483,32 +479,6 @@ const pl: Translations = {
         healthOk: 'API działa.',
         featureVersionUnsupported:
             'Ta funkcja nie jest obsługiwana w wersji {{version}}. Zaktualizuj OpenClaw lub użyj Terminala do ręcznego zarządzania.',
-        skillsFetched: 'Umiejętności pobrane pomyślnie.',
-        skillsUpdated: 'Umiejętności zaktualizowane pomyślnie.',
-        skillsUpdateFailed: 'Nie udało się zaktualizować umiejętności !',
-        skillsFetchFailed: 'Nie udało się pobrać umiejętności !',
-        agentSkillsFetched: 'Umiejętności agenta pobrane pomyślnie.',
-        agentSkillsUpdated: 'Umiejętności agenta zaktualizowane pomyślnie.',
-        agentSkillsUpdateFailed:
-            'Nie udało się zaktualizować umiejętności agenta !',
-        agentSkillsFetchFailed: 'Nie udało się pobrać umiejętności agenta !',
-        invalidSkillName:
-            'Nazwa umiejętności może zawierać tylko litery, cyfry, myślniki i podkreślenia !',
-        skillNotFound: 'Nie znaleziono umiejętności !',
-        clawHubSearchSuccess: 'Wyszukiwanie ClawHub zakończone.',
-        clawHubSearchFailed: 'Nie udało się wyszukać w ClawHub !',
-        clawHubFetched: 'Umiejętności ClawHub pobrane.',
-        clawHubFetchFailed: 'Nie udało się pobrać umiejętności ClawHub !',
-        clawHubInstalled: 'Umiejętność zainstalowana z ClawHub.',
-        clawHubInstallFailed:
-            'Nie udało się zainstalować umiejętności z ClawHub !',
-        clawHubRemoved: 'Umiejętność ClawHub usunięta.',
-        clawHubRemoveFailed: 'Nie udało się usunąć umiejętności ClawHub !',
-        clawHubUpdated: 'Umiejętność zaktualizowana.',
-        clawHubUpdateFailed:
-            'Nie udało się zaktualizować umiejętności ClawHub !',
-        clawHubUpdatesFetched: 'Sprawdzanie aktualizacji zakończone.',
-        clawHubUpdatesFailed: 'Nie udało się sprawdzić aktualizacji !',
         invalidAuthMethod: 'Nieprawidłowa metoda uwierzytelniania !',
         authMethodNotConnected:
             'Ta metoda uwierzytelniania nie jest połączona !',
@@ -630,16 +600,6 @@ const pl: Translations = {
                     'Użyj trybu głosowego, aby rozmawiać z agentami AI bez użycia rąk. Mowa na tekst do wprowadzania, tekst na mowę do odpowiedzi — wybierz spośród wielu głosów.',
                 cta: 'Wypróbuj tryb głosowy'
             },
-            skills: {
-                subject: 'Czy wiesz? Ponad 5000 umiejętności na ClawHub',
-                preview:
-                    'Przeglądaj i instaluj umiejętności społeczności jednym kliknięciem',
-                tag: 'Umiejętności ClawHub',
-                heading: 'Rozszerz swoich agentów natychmiast',
-                description:
-                    'Przeglądaj ponad 5000 gotowych umiejętności na ClawHub i instaluj je jednym kliknięciem. Wyszukiwanie w sieci, wykonywanie kodu, generowanie obrazów i wiele więcej.',
-                cta: 'Przeglądaj ClawHub'
-            },
             envVars: {
                 subject: 'Czy wiesz? Zarządzaj zmiennymi środowiskowymi',
                 preview: 'Ustaw klucze API i konfigurację bez SSH',
@@ -722,6 +682,22 @@ const pl: Translations = {
                 description:
                     'Przejdź na rozliczenie roczne i oszczędzaj na subskrypcji claw. Ta sama świetna usługa, niższa cena — anuluj w dowolnym momencie.',
                 cta: 'Zobacz plany'
+            },
+            simplifiedPlatform: {
+                subject: 'Uprościliśmy ClawHost',
+                preview:
+                    'Kanały, umiejętności i więcej są teraz zarządzane bezpośrednio w OpenClaw',
+                tag: 'Aktualizacja platformy',
+                heading: 'ClawHost jest teraz prostszy',
+                description:
+                    'Usunęliśmy zarządzanie kanałami, agentami, czatem, umiejętnościami i zmiennymi z panelu ClawHost. Te funkcje są teraz zarządzane bezpośrednio na Twojej instancji OpenClaw.',
+                removed:
+                    'Konkretnie usunęliśmy: kanały komunikacyjne (WhatsApp, Telegram, Discord, Slack, Signal), marketplace umiejętności (ClawHub), czat agenta i tryb głosowy, oraz edytor zmiennych. Wszystko to nadal istnieje w OpenClaw — po prostu przestaliśmy to opakowywać.',
+                why: 'Utrzymywanie naszych interfejsów zsynchronizowanych z każdym wydaniem OpenClaw było nie do utrzymania. Aktualizacje pojawiały się upstream, a nasz interfejs zostawał w tyle — zostawiając Cię z przestarzałymi kontrolkami i niekompletnymi funkcjami.',
+                benefit:
+                    'Usuwając te warstwy, korzystasz bezpośrednio z OpenClaw. Uczysz się prawdziwego systemu, nie drugiego interfejsu, który może się zdezaktualizować. Twoja wiedza jest przenośna wszędzie, gdzie działa OpenClaw.',
+                action: 'Nic się nie psuje. Twoje clawy, serwery, rozliczenia i podstawowe funkcje panelu pozostają bez zmian. Aby skonfigurować kanały, umiejętności lub agentów, użyj bezpośrednio swojej instancji OpenClaw.',
+                cta: 'Otwórz Panel'
             }
         }
     },
@@ -1065,7 +1041,6 @@ const pl: Translations = {
         noAgentsDescription: 'Wdróż claw, aby rozpocząć czat z agentami.',
         openSidebar: 'Otwórz panel boczny',
         clawNotReady: 'Claw nie jest jeszcze gotowy',
-        notConfigured: 'Nieskonfigurowany',
         addAgent: 'Dodaj agenta',
         viewTree: 'Widok drzewa',
         viewList: 'Widok listy',
@@ -1250,10 +1225,7 @@ const pl: Translations = {
             'Uzyskaj dostęp do natywnego panelu OpenClaw bezpośrednio z ClawHost. Pełny dostęp do edycji wszystkiego, co oferuje OpenClaw.',
         clawHostControl: 'Panel ClawHost',
         clawHostControlDescription:
-            'Zarządzaj plikami, aktualizacjami, zmiennymi, umiejętnościami i innymi opcjami konfiguracji bezpośrednio z platformy.',
-        skillsMarketplace: 'Ponad 5000 umiejętności',
-        skillsMarketplaceDescription:
-            'Przeglądaj i instaluj spośród ponad 5000 gotowych umiejętności jednym kliknięciem. Rozszerz OpenClaw natychmiast.',
+            'Zarządzaj plikami, aktualizacjami, zmiennymi i innymi opcjami konfiguracji bezpośrednio z platformy.',
         directChat: 'Bezpośredni czat',
         directChatDescription:
             'Rozmawiaj ze swoimi agentami AI bezpośrednio z platformy. Bez potrzeby zewnętrznych narzędzi czy interfejsów.',
@@ -1509,8 +1481,6 @@ const pl: Translations = {
             'Prośby o funkcje od społeczności, rozszerzona obsługa edycji plików i różne poprawki błędów.',
         release10Feature1:
             'Prośby o funkcje automatycznie zarządzane i publikowane przez agentów OpenClaw',
-        release10Feature2:
-            'Naprawiono błąd instalacji umiejętności z ClawHub marketplace',
         release10Feature3:
             'Naprawiono przełączanie dostawcy modelu nie odzwierciedlające zmian i nadal używające początkowego modelu',
         release10Feature4: 'Wiele ulepszeń i poprawek błędów na platformie',
@@ -1540,21 +1510,17 @@ const pl: Translations = {
         release7Date: '16 lutego 2026',
         release7Title: 'Refaktoryzacja czatu i wejście głosowe',
         release7Description:
-            'Duże ulepszenia czatu i playground z interakcją głosową, marketplace umiejętności ClawHub i załącznikami plików dla agentów.',
+            'Duże ulepszenia czatu i playground z interakcją głosową i załącznikami plików dla agentów.',
         release7Feature1:
             'Refaktoryzacja czatu i playground dla płynniejszego, bardziej responsywnego doświadczenia',
         release7Feature2:
             'Interakcja głosowa z czatami, nagrywanie i transkrypcja mowy bezpośrednio w przeglądarce',
-        release7Feature3:
-            'Integracja umiejętności ClawHub z ponad 5000 umiejętnościami do instalacji i zarządzania',
         release7Feature4:
             'Podgląd i użycie załączników dla agentów, wysyłanie obrazów i dokumentów w czacie',
         release6Date: '16 lutego 2026',
-        release6Title: 'Umiejętności i czat z agentem',
+        release6Title: 'Czat z agentem',
         release6Description:
-            'Pełna kontrola nad umiejętnościami i agentami OpenClaw. Zarządzaj i czatuj ze wszystkim bezpośrednio z panelu.',
-        release6Feature2:
-            'Zarządzanie umiejętnościami bezpośrednio, instalowanie, aktualizowanie i organizowanie umiejętności agentów z panelu',
+            'Pełna kontrola nad agentami OpenClaw. Zarządzaj i czatuj ze wszystkim bezpośrednio z panelu.',
         release6Feature3:
             'Czat z agentami z playground, interakcja z dowolnym agentem w czasie rzeczywistym',
         release6Feature4:
@@ -1646,35 +1612,10 @@ const pl: Translations = {
         loadingTip3:
             'ClawHost to pierwszy projekt umożliwiający hosting OpenClaw jednym kliknięciem.',
         tabChat: 'Czat',
-        tabConfiguration: 'Konfiguracja',
         tabSettings: 'Ustawienia',
         tabEnvs: 'Zmienne',
         agentOnClaw: 'na {{clawName}}',
         cannotDeleteDefaultAgent: 'Domyślny agent nie może zostać usunięty !',
-        configurationModel: 'Model',
-        configurationModelPlaceholder: 'Wybierz model',
-        configurationModelDescription:
-            'Model AI, którego używa ten agent. Zmiana modelu może wymagać ustawienia odpowiedniego klucza API.',
-        configurationEnvVars: 'Zmienne środowiskowe',
-        configurationEnvVarsDescription:
-            'Klucze API i zmienne środowiskowe przechowywane w ~/.openclaw/.env na instancji.',
-        configurationAddEnvVar: 'Dodaj zmienną',
-        configurationKeyPlaceholder: 'VARIABLE_NAME',
-        configurationValuePlaceholder: 'wartość',
-        configurationSave: 'Zapisz',
-        configurationSaving: 'Zapisywanie...',
-        configurationSaved: 'Konfiguracja agenta zapisana.',
-        configurationSaveFailed: 'Nie udało się zapisać konfiguracji agenta !',
-        configurationLoading: 'Ładowanie konfiguracji...',
-        configurationLoadFailed:
-            'Nie udało się załadować konfiguracji agenta !',
-        configurationLoadFailedDescription:
-            'Nie udało się pobrać konfiguracji tego agenta. Spróbuj ponownie później.',
-        configurationRemoveVar: 'Usuń',
-        configurationApiKey: 'Klucz API',
-        configurationApiKeyDescription:
-            'Wymagany dla {{modelName}}. Ten klucz jest przechowywany w ~/.openclaw/.env na instancji.',
-        configurationApiKeyPlaceholder: 'Wpisz swój klucz API',
         tabVariables: 'Zmienne',
         variablesDescription:
             'Zmienne środowiskowe przechowywane w ~/.openclaw/.env na tej instancji.',
@@ -1692,6 +1633,8 @@ const pl: Translations = {
         variablesInvalidKey: 'Tylko litery, cyfry i podkreślenia !',
         variablesEmptyValue: 'Wartość nie może być pusta !',
         variablesDuplicateKey: 'Zduplikowana nazwa zmiennej !',
+        variablesKeyPlaceholder: 'KLUCZ',
+        variablesValuePlaceholder: 'Wartość',
         variablesDeleteTitle: 'Usuń zmienną',
         variablesDeleteDescription:
             'Czy na pewno chcesz usunąć {{key}}? Zostanie natychmiast usunięta z instancji.',
@@ -1727,9 +1670,6 @@ const pl: Translations = {
         deleteAgentDeleting: 'Usuwanie...',
         deleteAgentSuccess: 'Agent usunięty pomyślnie.',
         deleteAgentFailed: 'Nie udało się usunąć agenta !',
-        configurationName: 'Nazwa',
-        configurationNamePlaceholder: 'Wpisz nazwę agenta',
-        configurationNameDescription: 'Tylko litery, cyfry i myślniki.',
         agentNameRequired: 'Nazwa agenta jest wymagana !',
         agentNameInvalidChars: 'Dozwolone są tylko litery, cyfry i myślniki !',
         agentNameDuplicate: 'Agent o tej nazwie już istnieje !',
@@ -1779,10 +1719,6 @@ const pl: Translations = {
         chatConnectionFailed: 'Nie udało się połączyć z tym agentem !',
         chatConnectionFailedDescription:
             'Upewnij się, że Claw działa i jest osiągalny.',
-        chatNotConfigured: 'Agent nie skonfigurowany.',
-        chatNotConfiguredDescription:
-            'Wybierz model i ustaw klucz API w zakładce Konfiguracja, aby rozpocząć czat.',
-        chatConfigureButton: 'Skonfiguruj agenta',
         chatToday: 'Dzisiaj',
         chatYesterday: 'Wczoraj',
         chatExpandFullscreen: 'Rozwiń czat',
@@ -1821,59 +1757,6 @@ const pl: Translations = {
         featureVersionUnsupportedButton: 'Przejdź do Wersji',
         featureVersionUnsupportedSupported: 'Obsługiwane wersje:',
         featureVersionUnsupportedNewer: 'nowsze wersje',
-        tabSkills: 'Umiejętności',
-        skillsDescription:
-            'Zarządzaj współdzielonymi umiejętnościami dostępnymi dla wszystkich agentów na tej instancji.',
-        skillsSearch: 'Szukaj umiejętności...',
-        skillsNoResults: 'Brak umiejętności pasujących do wyszukiwania.',
-        skillsEmpty: 'Brak umiejętności',
-        skillsSave: 'Zapisz umiejętności',
-        skillsSaved: 'Umiejętności zaktualizowane pomyślnie.',
-        skillsSaveFailed: 'Nie udało się zaktualizować umiejętności !',
-        skillsLoading: 'Ładowanie umiejętności...',
-        skillsLoadFailed: 'Nie udało się załadować umiejętności !',
-        skillsLoadFailedDescription:
-            'Nie udało się pobrać konfiguracji umiejętności. Spróbuj ponownie.',
-        agentSkillsDescription:
-            'Umiejętności zainstalowane w przestrzeni roboczej agenta.',
-        agentSkillsInstalling: 'Instalowanie...',
-        agentSkillsInstalled: 'Umiejętność zainstalowana pomyślnie.',
-        agentSkillsInstallFailed: 'Nie udało się zainstalować umiejętności !',
-        agentSkillsRemoving: 'Usuwanie...',
-        agentSkillsRemoved: 'Umiejętność usunięta pomyślnie.',
-        agentSkillsRemoveFailed: 'Nie udało się usunąć umiejętności !',
-        agentSkillsEmpty: 'Brak zainstalowanych umiejętności.',
-        agentSkillsEmptyDescription:
-            'Zainstaluj umiejętność, aby rozszerzyć możliwości agenta.',
-        agentSkillsNamePlaceholder: 'Nazwa umiejętności',
-        agentSkillsConfirmRemove: 'Usunąć umiejętność „{{skillName}}"?',
-        agentSkillsConfirmRemoveDescription:
-            'Spowoduje to usunięcie umiejętności z przestrzeni roboczej agenta.',
-        skillsBundledTab: 'Wbudowane',
-        skillsClawHubTab: 'ClawHub',
-        clawHubSearch: 'Szukaj umiejętności ClawHub...',
-        clawHubNoResults: 'Nie znaleziono umiejętności na ClawHub.',
-        clawHubEmpty: 'Brak zainstalowanych umiejętności ClawHub.',
-        clawHubEmptyDescription:
-            'Szukaj i instaluj umiejętności z marketplace ClawHub.',
-        clawHubInstall: 'Zainstaluj',
-        clawHubInstalled: 'Umiejętność zainstalowana z ClawHub.',
-        clawHubInstallFailed:
-            'Nie udało się zainstalować umiejętności z ClawHub !',
-        clawHubRemove: 'Usuń',
-        clawHubRemoved: 'Umiejętność ClawHub usunięta.',
-        clawHubRemoveFailed: 'Nie udało się usunąć umiejętności ClawHub !',
-        clawHubUpdate: 'Aktualizuj',
-        clawHubUpdated: 'Umiejętność zaktualizowana z ClawHub.',
-        clawHubUpdateFailed:
-            'Nie udało się zaktualizować umiejętności ClawHub !',
-        clawHubUpdateAvailable: 'v{{version}} dostępna',
-        clawHubBy: 'przez {{author}}',
-        clawHubDownloads: '{{count}} pobrań',
-        clawHubVersion: 'v{{version}}',
-        clawHubLoadFailed: 'Nie udało się załadować ClawHub !',
-        clawHubLoadFailedDescription:
-            'Nie udało się połączyć z marketplace ClawHub. Spróbuj ponownie.',
         tabVersions: 'Wersje',
         versionsSearch: 'Szukaj wersji...',
         versionsEmpty: 'Nie znaleziono wersji',
@@ -2138,11 +2021,9 @@ const pl: Translations = {
         featureSubdomainAccess: 'Dostęp przez subdomenę',
         featureThemes: 'Jasny i ciemny motyw',
         featureSetupTime: 'Czas konfiguracji',
-        featureTechnicalSkill: 'Wymagane umiejętności techniczne',
         featureOneClickDeploy: 'Wdrożenie jednym kliknięciem',
         featureMultipleInstances: 'Wiele instancji',
         featureMultipleAgents: 'Wielu agentów na instancję',
-        featureSkillsMarketplace: 'Marketplace umiejętności',
         featureAgentConfig: 'Konfiguracja agenta',
         featureDataOwnership: 'Pełna własność danych',
         featureDataExport: 'Eksport danych',
@@ -2192,7 +2073,6 @@ const pl: Translations = {
         minimal: 'Minimalne',
         unlimited: 'Nieograniczone',
         singleInstance: 'Jedna',
-        fiveThousandSkills: '5000+ umiejętności (ClawHub)',
         noMarketplace: 'Brak marketplace',
         appOnly: 'Tylko aplikacja',
         fullConfig: 'Pełna konfiguracja',

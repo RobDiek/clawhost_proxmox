@@ -12,8 +12,7 @@ const ChatSidebarListView: FC<ChatSidebarListViewProps> = ({
     selectedAgent,
     activeConnectionState,
     readOnly,
-    onAgentClick,
-    onConfigureAgent
+    onAgentClick
 }): ReactNode => {
     const [showAddAgent, setShowAddAgent] = useState(false)
 
@@ -58,7 +57,6 @@ const ChatSidebarListView: FC<ChatSidebarListViewProps> = ({
                         }
                         readOnly={readOnly}
                         onClick={() => onAgentClick(agent.id, claw.id)}
-                        onConfigure={() => onConfigureAgent(agent.id, claw.id)}
                     />
                 ))}
                 {!readOnly && hasReachableClaws && (

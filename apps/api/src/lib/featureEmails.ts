@@ -8,7 +8,6 @@ import FileExplorerEmail from '@/emails/FileExplorerEmail'
 import PlaygroundEmail from '@/emails/PlaygroundEmail'
 import AgentChatEmail from '@/emails/AgentChatEmail'
 import VoiceModeEmail from '@/emails/VoiceModeEmail'
-import SkillsEmail from '@/emails/SkillsEmail'
 import EnvVarsEmail from '@/emails/EnvVarsEmail'
 import DiagnosticsEmail from '@/emails/DiagnosticsEmail'
 import SshKeysEmail from '@/emails/SshKeysEmail'
@@ -18,6 +17,7 @@ import SubdomainEmail from '@/emails/SubdomainEmail'
 import DarkModeEmail from '@/emails/DarkModeEmail'
 import ReinstallEmail from '@/emails/ReinstallEmail'
 import YearlyPlansEmail from '@/emails/YearlyPlansEmail'
+import SimplifiedPlatformEmail from '@/emails/SimplifiedPlatformEmail'
 
 const FEATURE_EMAILS: FeatureEmailDefinition[] = [
     {
@@ -49,11 +49,6 @@ const FEATURE_EMAILS: FeatureEmailDefinition[] = [
         key: featureEmailKey.voiceMode,
         subject: t('emails.features.voiceMode.subject'),
         render: () => VoiceModeEmail({})
-    },
-    {
-        key: featureEmailKey.skills,
-        subject: t('emails.features.skills.subject'),
-        render: () => SkillsEmail({})
     },
     {
         key: featureEmailKey.envVars,
@@ -99,6 +94,11 @@ const FEATURE_EMAILS: FeatureEmailDefinition[] = [
         key: featureEmailKey.yearlyPlans,
         subject: t('emails.features.yearlyPlans.subject'),
         render: () => YearlyPlansEmail({})
+    },
+    {
+        key: featureEmailKey.simplifiedPlatform,
+        subject: t('emails.features.simplifiedPlatform.subject'),
+        render: () => SimplifiedPlatformEmail({})
     }
 ]
 

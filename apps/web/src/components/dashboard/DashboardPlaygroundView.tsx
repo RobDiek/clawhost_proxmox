@@ -29,13 +29,11 @@ const DashboardPlaygroundView: FC<DashboardPlaygroundViewProps> = ({
     selectedAgentId,
     selectedAgentClawId,
     playgroundClawTab,
-    playgroundAgentTab,
     isLoading,
     activeIsError,
     onClawSelect,
     onAgentSelect,
     onPlaygroundClawTabChange,
-    onPlaygroundAgentTabChange,
     onCreateClick
 }): ReactNode => {
     const activeClaws = displayedClaws
@@ -162,15 +160,8 @@ const DashboardPlaygroundView: FC<DashboardPlaygroundViewProps> = ({
                             isOnlyAgent={isSelectedAgentOnly}
                             gatewayToken={selectedAgentClaw.gatewayToken}
                             subdomain={selectedAgentClaw.subdomain}
-                            initialTab={playgroundAgentTab || undefined}
-                            onTabChange={onPlaygroundAgentTabChange}
                             onClose={() => {
                                 onAgentSelect(null, null)
-                            }}
-                            onGoToVersions={() => {
-                                onAgentSelect(null, null)
-                                onClawSelect(selectedAgentClaw.id)
-                                onPlaygroundClawTabChange('versions')
                             }}
                         />
                     )}

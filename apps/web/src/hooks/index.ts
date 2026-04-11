@@ -92,8 +92,7 @@ import {
     useAllClawAgents,
     usePlaygroundGraph,
     PLAYGROUND_AGENTS_QUERY_KEY,
-    CLAW_ENV_QUERY_KEY,
-    AGENT_CONFIG_QUERY_KEY
+    CLAW_ENV_QUERY_KEY
 } from '@/hooks/usePlayground'
 
 import useAgentChat from '@/hooks/useAgentChat/useAgentChat'
@@ -195,7 +194,6 @@ export {
     usePlaygroundGraph,
     PLAYGROUND_AGENTS_QUERY_KEY,
     CLAW_ENV_QUERY_KEY,
-    AGENT_CONFIG_QUERY_KEY,
     useAgentChat,
     useClawCardActions,
     useDebouncedValue,

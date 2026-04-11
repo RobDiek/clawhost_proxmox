@@ -455,9 +455,6 @@ const nl: Translations = {
         agentsFetched: 'Agents succesvol opgehaald.',
         agentsFetchFailed:
             'Kon de instantie niet bereiken om agents op te halen!',
-        agentConfigFetched: 'Agentconfiguratie succesvol opgehaald.',
-        agentConfigUpdated: 'Agentconfiguratie succesvol bijgewerkt.',
-        agentConfigUpdateFailed: 'Agentconfiguratie bijwerken mislukt!',
         agentCreated: 'Agent succesvol aangemaakt.',
         agentCreateFailed: 'Kon agent niet aanmaken op de instantie!',
         agentDeleted: 'Agent succesvol verwijderd.',
@@ -480,29 +477,6 @@ const nl: Translations = {
         healthOk: 'API is actief.',
         featureVersionUnsupported:
             'Deze functie wordt niet ondersteund in versie {{version}}. Werk OpenClaw bij of gebruik de Terminal om dit handmatig te beheren.',
-        skillsFetched: 'Skills succesvol opgehaald.',
-        skillsUpdated: 'Skills succesvol bijgewerkt.',
-        skillsUpdateFailed: 'Skills bijwerken mislukt!',
-        skillsFetchFailed: 'Skills ophalen mislukt!',
-        agentSkillsFetched: 'Agentskills succesvol opgehaald.',
-        agentSkillsUpdated: 'Agentskills succesvol bijgewerkt.',
-        agentSkillsUpdateFailed: 'Agentskills bijwerken mislukt!',
-        agentSkillsFetchFailed: 'Agentskills ophalen mislukt!',
-        invalidSkillName:
-            'Skillnaam mag alleen letters, cijfers, koppeltekens en underscores bevatten!',
-        skillNotFound: 'Skill niet gevonden!',
-        clawHubSearchSuccess: 'ClawHub-zoekopdracht voltooid.',
-        clawHubSearchFailed: 'Kon niet zoeken in ClawHub!',
-        clawHubFetched: 'ClawHub-skills opgehaald.',
-        clawHubFetchFailed: 'ClawHub-skills ophalen mislukt!',
-        clawHubInstalled: 'Skill geïnstalleerd vanuit ClawHub.',
-        clawHubInstallFailed: 'Skill installeren vanuit ClawHub mislukt!',
-        clawHubRemoved: 'ClawHub-skill verwijderd.',
-        clawHubRemoveFailed: 'ClawHub-skill verwijderen mislukt!',
-        clawHubUpdated: 'Skill bijgewerkt.',
-        clawHubUpdateFailed: 'ClawHub-skill bijwerken mislukt!',
-        clawHubUpdatesFetched: 'Updatecontrole voltooid.',
-        clawHubUpdatesFailed: 'Kon niet controleren op updates!',
         invalidAuthMethod: 'Ongeldige authenticatiemethode!',
         authMethodNotConnected: 'Deze authenticatiemethode is niet verbonden!',
         authMethodConnected: 'Authenticatiemethode succesvol verbonden.',
@@ -618,16 +592,6 @@ const nl: Translations = {
                     'Gebruik de spraakmodus om handsfree met je AI-agents te praten. Spraak-naar-tekst voor invoer, tekst-naar-spraak voor antwoorden \u2014 kies uit meerdere stemmen.',
                 cta: 'Spraakmodus proberen'
             },
-            skills: {
-                subject: 'Wist je dat? 5.000+ skills op ClawHub',
-                preview:
-                    'Blader en installeer communityskills met \u00e9\u00e9n klik',
-                tag: 'ClawHub Vaardigheden',
-                heading: 'Breid je agents direct uit',
-                description:
-                    'Blader door meer dan 5.000 kant-en-klare skills op ClawHub en installeer ze met \u00e9\u00e9n klik. Zoeken op het web, code-uitvoering, afbeeldingen genereren en nog veel meer.',
-                cta: 'ClawHub verkennen'
-            },
             envVars: {
                 subject: 'Wist je dat? Beheer omgevingsvariabelen',
                 preview: 'Stel API-sleutels en configuratie in zonder SSH',
@@ -714,6 +678,22 @@ const nl: Translations = {
                 description:
                     'Schakel over naar jaarlijkse facturering en bespaar op je claw-abonnement. Dezelfde geweldige service, lagere prijs \u2014 annuleer wanneer je wilt.',
                 cta: 'Plannen bekijken'
+            },
+            simplifiedPlatform: {
+                subject: 'We hebben ClawHost vereenvoudigd',
+                preview:
+                    'Kanalen, vaardigheden en meer worden nu direct in OpenClaw beheerd',
+                tag: 'Platform Update',
+                heading: 'ClawHost is nu eenvoudiger',
+                description:
+                    'We hebben het beheer van kanalen, agents, chat, vaardigheden en variabelen uit het ClawHost-dashboard verwijderd. Deze functies worden nu direct op je OpenClaw-instantie beheerd.',
+                removed:
+                    'Specifiek hebben we verwijderd: berichtenkanalen (WhatsApp, Telegram, Discord, Slack, Signal), de vaardigheden-marktplaats (ClawHub), agent-chat en spraakfunctie, en de variabelen-editor. Dit alles bestaat nog steeds in OpenClaw — we zijn alleen gestopt met het inpakken ervan.',
+                why: 'Onze interfaces synchroon houden met elke OpenClaw-release was niet vol te houden. Updates kwamen upstream, en onze interface liep achter — waardoor je verouderde knoppen en onvolledige functies kreeg.',
+                benefit:
+                    'Door deze lagen te verwijderen, werk je direct met OpenClaw. Je leert het echte systeem, niet een tweede interface die verouderd kan raken. Je kennis is overal bruikbaar waar OpenClaw draait.',
+                action: 'Er gaat niets kapot. Je claws, servers, facturering en kernfuncties van het dashboard blijven ongewijzigd. Om kanalen, vaardigheden of agents te configureren, gebruik je OpenClaw-instantie direct.',
+                cta: 'Dashboard Openen'
             }
         }
     },
@@ -1061,7 +1041,6 @@ const nl: Translations = {
             'Deploy een claw om te beginnen met chatten met agents.',
         openSidebar: 'Zijbalk openen',
         clawNotReady: 'Claw is nog niet gereed',
-        notConfigured: 'Niet geconfigureerd',
         addAgent: 'Agent toevoegen',
         viewTree: 'Boomweergave',
         viewList: 'Lijstweergave',
@@ -1249,10 +1228,7 @@ const nl: Translations = {
             'Krijg direct toegang tot het native OpenClaw-paneel vanuit ClawHost. Volledige bewerkingstoegang tot alles wat OpenClaw biedt.',
         clawHostControl: 'ClawHost Control',
         clawHostControlDescription:
-            'Beheer bestanden, updates, variabelen, skills en meer configuratieopties direct vanuit het platform.',
-        skillsMarketplace: '5.000+ skills',
-        skillsMarketplaceDescription:
-            'Blader en installeer uit meer dan 5.000 kant-en-klare skills met \u00e9\u00e9n klik. Breid je OpenClaw direct uit.',
+            'Beheer bestanden, updates, variabelen en meer configuratieopties direct vanuit het platform.',
         directChat: 'Directe chat',
         directChatDescription:
             'Chat met je AI-agents direct vanuit het platform. Geen externe tools of interfaces nodig.',
@@ -1509,8 +1485,6 @@ const nl: Translations = {
             'Door de community aangestuurde functieverzoeken, uitgebreide bestandsbewerkingsondersteuning en diverse bugfixes.',
         release10Feature1:
             'Functieverzoeken automatisch beheerd en gepubliceerd door OpenClaw-agents',
-        release10Feature2:
-            'Probleem opgelost waarbij skills soms niet konden worden ge\u00efnstalleerd vanuit de ClawHub-marktplaats',
         release10Feature3:
             'Probleem opgelost waarbij het wisselen van modelprovider niet werd weergegeven en het oorspronkelijke model bleef gebruiken',
         release10Feature4:
@@ -1542,21 +1516,17 @@ const nl: Translations = {
         release7Date: '16 februari 2026',
         release7Title: 'Chat-herstructurering & spraakinvoer',
         release7Description:
-            'Grote chat- en playground-verbeteringen met spraakinteractie, ClawHub-skillsmarktplaats en bestandsbijlagen voor agents.',
+            'Grote chat- en playground-verbeteringen met spraakinteractie en bestandsbijlagen voor agents.',
         release7Feature1:
             'Chat- en playground-herstructurering voor een soepelere, responsievere ervaring',
         release7Feature2:
             'Spraakinteractie met chats, neem spraak op en transcribeer direct in de browser',
-        release7Feature3:
-            'ClawHub-skillsintegratie met 5.000+ skills beschikbaar om te installeren en beheren',
         release7Feature4:
             'Bijlagenweergave en -gebruik voor agents, stuur afbeeldingen en documenten in chat',
         release6Date: '16 februari 2026',
-        release6Title: 'Skills & agent-chat',
+        release6Title: 'Agent-chat',
         release6Description:
-            'Volledige controle over je OpenClaw-skills en agents. Beheer en chat met alles direct vanuit het dashboard.',
-        release6Feature2:
-            'Beheer skills direct, installeer, update en organiseer agent-skills vanuit het dashboard',
+            'Volledige controle over je OpenClaw-agents. Beheer en chat met alles direct vanuit het dashboard.',
         release6Feature3:
             'Chat met je agents vanuit de playground, communiceer met elke agent in realtime',
         release6Feature4:
@@ -1647,34 +1617,10 @@ const nl: Translations = {
         loadingTip3:
             'ClawHost is het allereerste project dat OpenClaw-hosting met \u00e9\u00e9n klik mogelijk maakt.',
         tabChat: 'Chat',
-        tabConfiguration: 'Configuratie',
         tabSettings: 'Instellingen',
         tabEnvs: 'Variabelen',
         agentOnClaw: 'op {{clawName}}',
         cannotDeleteDefaultAgent: 'Standaard agent kan niet worden verwijderd!',
-        configurationModel: 'Model',
-        configurationModelPlaceholder: 'Selecteer een model',
-        configurationModelDescription:
-            'Het AI-model dat deze agent gebruikt. Het wijzigen van het model kan vereisen dat je de bijbehorende API-sleutel instelt.',
-        configurationEnvVars: 'Omgevingsvariabelen',
-        configurationEnvVarsDescription:
-            'API-sleutels en omgevingsvariabelen opgeslagen in ~/.openclaw/.env op de instantie.',
-        configurationAddEnvVar: 'Variabele toevoegen',
-        configurationKeyPlaceholder: 'VARIABELE_NAAM',
-        configurationValuePlaceholder: 'waarde',
-        configurationSave: 'Opslaan',
-        configurationSaving: 'Opslaan...',
-        configurationSaved: 'Agent-configuratie opgeslagen.',
-        configurationSaveFailed: 'Agent-configuratie opslaan mislukt!',
-        configurationLoading: 'Configuratie laden...',
-        configurationLoadFailed: 'Agent-configuratie laden mislukt!',
-        configurationLoadFailedDescription:
-            'Kon de configuratie voor deze agent niet ophalen. Probeer het later opnieuw.',
-        configurationRemoveVar: 'Verwijderen',
-        configurationApiKey: 'API-sleutel',
-        configurationApiKeyDescription:
-            'Vereist voor {{modelName}}. Deze sleutel wordt opgeslagen in ~/.openclaw/.env op de instantie.',
-        configurationApiKeyPlaceholder: 'Voer je API-sleutel in',
         tabVariables: 'Variabelen',
         variablesDescription:
             'Omgevingsvariabelen opgeslagen in ~/.openclaw/.env op deze instantie.',
@@ -1691,6 +1637,8 @@ const nl: Translations = {
         variablesInvalidKey: 'Alleen letters, cijfers en underscores!',
         variablesEmptyValue: 'Waarde mag niet leeg zijn!',
         variablesDuplicateKey: 'Dubbele variabelenaam!',
+        variablesKeyPlaceholder: 'SLEUTEL',
+        variablesValuePlaceholder: 'Waarde',
         variablesDeleteTitle: 'Variabele verwijderen',
         variablesDeleteDescription:
             'Weet je zeker dat je {{key}} wilt verwijderen? Dit verwijdert het onmiddellijk van de instantie.',
@@ -1727,9 +1675,6 @@ const nl: Translations = {
         deleteAgentDeleting: 'Verwijderen...',
         deleteAgentSuccess: 'Agent succesvol verwijderd.',
         deleteAgentFailed: 'Agent verwijderen mislukt!',
-        configurationName: 'Naam',
-        configurationNamePlaceholder: 'Voer agentnaam in',
-        configurationNameDescription: 'Alleen letters, cijfers en streepjes.',
         agentNameRequired: 'Agentnaam is verplicht!',
         agentNameInvalidChars:
             'Alleen letters, cijfers en streepjes zijn toegestaan!',
@@ -1781,10 +1726,6 @@ const nl: Translations = {
         chatConnectionFailed: 'Verbinden met deze agent mislukt!',
         chatConnectionFailedDescription:
             'Zorg ervoor dat de Claw actief en bereikbaar is.',
-        chatNotConfigured: 'Agent niet geconfigureerd.',
-        chatNotConfiguredDescription:
-            'Selecteer een model en stel een API-sleutel in op het tabblad Configuratie om te beginnen met chatten.',
-        chatConfigureButton: 'Agent configureren',
         chatToday: 'Vandaag',
         chatYesterday: 'Gisteren',
         chatExpandFullscreen: 'Chat uitvouwen',
@@ -1825,57 +1766,6 @@ const nl: Translations = {
         featureVersionUnsupportedButton: 'Ga naar Versies',
         featureVersionUnsupportedSupported: 'Ondersteunde versies:',
         featureVersionUnsupportedNewer: 'nieuwere versies',
-        tabSkills: 'Skills',
-        skillsDescription:
-            'Beheer gedeelde skills die beschikbaar zijn voor alle agents op deze instantie.',
-        skillsSearch: 'Skills zoeken...',
-        skillsNoResults: 'Geen skills komen overeen met je zoekopdracht.',
-        skillsEmpty: 'Geen skills',
-        skillsSave: 'Skills opslaan',
-        skillsSaved: 'Skills succesvol bijgewerkt.',
-        skillsSaveFailed: 'Skills bijwerken mislukt!',
-        skillsLoading: 'Skills laden...',
-        skillsLoadFailed: 'Skills laden mislukt!',
-        skillsLoadFailedDescription:
-            'Kon skillsconfiguratie niet ophalen. Probeer het opnieuw.',
-        agentSkillsDescription:
-            'Skills ge\u00efnstalleerd in deze agent-werkruimte.',
-        agentSkillsInstalling: 'Installeren...',
-        agentSkillsInstalled: 'Skill succesvol ge\u00efnstalleerd.',
-        agentSkillsInstallFailed: 'Skill installeren mislukt!',
-        agentSkillsRemoving: 'Verwijderen...',
-        agentSkillsRemoved: 'Skill succesvol verwijderd.',
-        agentSkillsRemoveFailed: 'Skill verwijderen mislukt!',
-        agentSkillsEmpty: 'Geen skills ge\u00efnstalleerd.',
-        agentSkillsEmptyDescription:
-            'Installeer een skill om de mogelijkheden van deze agent uit te breiden.',
-        agentSkillsNamePlaceholder: 'Skillnaam',
-        agentSkillsConfirmRemove: 'Skill "{{skillName}}" verwijderen?',
-        agentSkillsConfirmRemoveDescription:
-            'Dit verwijdert de skill uit de agent-werkruimte.',
-        skillsBundledTab: 'Gebundeld',
-        skillsClawHubTab: 'ClawHub',
-        clawHubSearch: 'ClawHub-skills zoeken...',
-        clawHubNoResults: 'Geen skills gevonden op ClawHub.',
-        clawHubEmpty: 'Geen ClawHub-skills ge\u00efnstalleerd.',
-        clawHubEmptyDescription:
-            'Zoek en installeer skills vanuit de ClawHub-marktplaats.',
-        clawHubInstall: 'Installeren',
-        clawHubInstalled: 'Skill ge\u00efnstalleerd vanuit ClawHub.',
-        clawHubInstallFailed: 'Skill installeren vanuit ClawHub mislukt!',
-        clawHubRemove: 'Verwijderen',
-        clawHubRemoved: 'ClawHub-skill verwijderd.',
-        clawHubRemoveFailed: 'ClawHub-skill verwijderen mislukt!',
-        clawHubUpdate: 'Bijwerken',
-        clawHubUpdated: 'Skill bijgewerkt vanuit ClawHub.',
-        clawHubUpdateFailed: 'ClawHub-skill bijwerken mislukt!',
-        clawHubUpdateAvailable: 'v{{version}} beschikbaar',
-        clawHubBy: 'door {{author}}',
-        clawHubDownloads: '{{count}} downloads',
-        clawHubVersion: 'v{{version}}',
-        clawHubLoadFailed: 'ClawHub laden mislukt!',
-        clawHubLoadFailedDescription:
-            'Kon geen verbinding maken met de ClawHub-marktplaats. Probeer het opnieuw.',
         tabVersions: 'Versies',
         versionsSearch: 'Versies zoeken...',
         versionsEmpty: 'Geen versies gevonden',
@@ -2145,11 +2035,9 @@ const nl: Translations = {
         featureSubdomainAccess: 'Subdomeintoegang',
         featureThemes: 'Licht & donker thema',
         featureSetupTime: 'Installatietijd',
-        featureTechnicalSkill: 'Technische kennis vereist',
         featureOneClickDeploy: 'Deployment met \u00e9\u00e9n klik',
         featureMultipleInstances: 'Meerdere instanties',
         featureMultipleAgents: 'Meerdere agents per instantie',
-        featureSkillsMarketplace: 'Skillsmarktplaats',
         featureAgentConfig: 'Agent-configuratie',
         featureDataOwnership: 'Volledig gegevenseigendom',
         featureDataExport: 'Gegevensexport',
@@ -2199,7 +2087,6 @@ const nl: Translations = {
         minimal: 'Minimaal',
         unlimited: 'Onbeperkt',
         singleInstance: 'Enkelvoudig',
-        fiveThousandSkills: '5.000+ skills (ClawHub)',
         noMarketplace: 'Geen marktplaats',
         appOnly: 'Alleen app',
         fullConfig: 'Volledige configuratie',

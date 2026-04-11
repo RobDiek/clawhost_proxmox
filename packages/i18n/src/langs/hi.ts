@@ -452,9 +452,6 @@ const hi: Translations = {
         agentsFetched: 'एजेंट सफलतापूर्वक प्राप्त हुए.',
         agentsFetchFailed:
             'एजेंट प्राप्त करने के लिए इंस्टेंस तक नहीं पहुँच सके!',
-        agentConfigFetched: 'एजेंट कॉन्फ़िगरेशन सफलतापूर्वक प्राप्त हुआ.',
-        agentConfigUpdated: 'एजेंट कॉन्फ़िगरेशन सफलतापूर्वक अपडेट हुआ.',
-        agentConfigUpdateFailed: 'एजेंट कॉन्फ़िगरेशन अपडेट नहीं हो सका!',
         agentCreated: 'एजेंट सफलतापूर्वक बनाया गया.',
         agentCreateFailed: 'इंस्टेंस पर एजेंट नहीं बनाया जा सका!',
         agentDeleted: 'एजेंट सफलतापूर्वक हटाया गया.',
@@ -476,29 +473,6 @@ const hi: Translations = {
         healthOk: 'API चल रही है.',
         featureVersionUnsupported:
             'यह सुविधा संस्करण {{version}} पर समर्थित नहीं है। कृपया OpenClaw अपडेट करें या मैन्युअल रूप से प्रबंधित करने के लिए टर्मिनल का उपयोग करें।',
-        skillsFetched: 'स्किल सफलतापूर्वक प्राप्त हुईं.',
-        skillsUpdated: 'स्किल सफलतापूर्वक अपडेट हुईं.',
-        skillsUpdateFailed: 'स्किल अपडेट नहीं हो सकीं!',
-        skillsFetchFailed: 'स्किल प्राप्त नहीं हो सकीं!',
-        agentSkillsFetched: 'एजेंट स्किल सफलतापूर्वक प्राप्त हुईं.',
-        agentSkillsUpdated: 'एजेंट स्किल सफलतापूर्वक अपडेट हुईं.',
-        agentSkillsUpdateFailed: 'एजेंट स्किल अपडेट नहीं हो सकीं!',
-        agentSkillsFetchFailed: 'एजेंट स्किल प्राप्त नहीं हो सकीं!',
-        invalidSkillName:
-            'स्किल नाम में केवल अक्षर, संख्याएँ, डैश और अंडरस्कोर होने चाहिए!',
-        skillNotFound: 'स्किल नहीं मिली!',
-        clawHubSearchSuccess: 'ClawHub खोज पूरी हुई.',
-        clawHubSearchFailed: 'ClawHub में खोज नहीं हो सकी!',
-        clawHubFetched: 'ClawHub स्किल प्राप्त हुईं.',
-        clawHubFetchFailed: 'ClawHub स्किल प्राप्त नहीं हो सकीं!',
-        clawHubInstalled: 'ClawHub से स्किल इंस्टॉल हुई.',
-        clawHubInstallFailed: 'ClawHub से स्किल इंस्टॉल नहीं हो सकी!',
-        clawHubRemoved: 'ClawHub स्किल हटाई गई.',
-        clawHubRemoveFailed: 'ClawHub स्किल नहीं हटाई जा सकी!',
-        clawHubUpdated: 'स्किल अपडेट हुई.',
-        clawHubUpdateFailed: 'ClawHub स्किल अपडेट नहीं हो सकी!',
-        clawHubUpdatesFetched: 'अपडेट जाँच पूरी हुई.',
-        clawHubUpdatesFailed: 'अपडेट की जाँच नहीं हो सकी!',
         invalidAuthMethod: 'अमान्य प्रमाणीकरण विधि!',
         authMethodNotConnected: 'यह प्रमाणीकरण विधि कनेक्ट नहीं है!',
         authMethodConnected: 'प्रमाणीकरण विधि सफलतापूर्वक कनेक्ट हुई.',
@@ -617,15 +591,6 @@ const hi: Translations = {
                     'वॉइस मोड का उपयोग करके हैंड्स-फ़्री अपने AI एजेंट से बात करें. इनपुट के लिए स्पीच-टू-टेक्स्ट, प्रतिक्रियाओं के लिए टेक्स्ट-टू-स्पीच — कई वॉइस में से चुनें.',
                 cta: 'वॉइस मोड आज़माएँ'
             },
-            skills: {
-                subject: 'क्या आप जानते हैं? ClawHub पर 5,000+ स्किल',
-                preview: 'एक क्लिक में कम्युनिटी स्किल ब्राउज़ और इंस्टॉल करें',
-                tag: 'ClawHub स्किल्स',
-                heading: 'अपने एजेंट को तुरंत विस्तारित करें',
-                description:
-                    'ClawHub पर 5,000 से अधिक तैयार स्किल ब्राउज़ करें और एक क्लिक में इंस्टॉल करें. वेब सर्च, कोड एक्ज़ीक्यूशन, इमेज जनरेशन और बहुत कुछ.',
-                cta: 'ClawHub ब्राउज़ करें'
-            },
             envVars: {
                 subject: 'क्या आप जानते हैं? एनवायरनमेंट वेरिएबल प्रबंधित करें',
                 preview: 'SSH के बिना API कुंजियाँ और कॉन्फ़िग सेट करें',
@@ -711,6 +676,22 @@ const hi: Translations = {
                 description:
                     'वार्षिक बिलिंग पर स्विच करें और अपनी क्लॉ सब्सक्रिप्शन पर बचत करें. वही शानदार सेवा, कम कीमत — कभी भी रद्द करें.',
                 cta: 'प्लान देखें'
+            },
+            simplifiedPlatform: {
+                subject: 'हमने ClawHost को सरल बनाया',
+                preview:
+                    'चैनल, स्किल्स और अन्य अब सीधे OpenClaw में प्रबंधित होते हैं',
+                tag: 'प्लेटफ़ॉर्म अपडेट',
+                heading: 'ClawHost अब और सरल है',
+                description:
+                    'हमने ClawHost डैशबोर्ड से चैनल, एजेंट, चैट, स्किल्स और वेरिएबल्स प्रबंधन हटा दिया है. ये सुविधाएँ अब सीधे आपके OpenClaw इंस्टेंस पर प्रबंधित होती हैं.',
+                removed:
+                    'विशेष रूप से, हमने हटाया: मैसेजिंग चैनल (WhatsApp, Telegram, Discord, Slack, Signal), स्किल्स मार्केटप्लेस (ClawHub), एजेंट चैट और वॉइस मोड, और वेरिएबल्स एडिटर. ये सभी OpenClaw में मौजूद हैं — हमने बस इन्हें रैप करना बंद कर दिया.',
+                why: 'हर OpenClaw रिलीज़ के साथ अपने इंटरफ़ेस को सिंक रखना टिकाऊ नहीं था. अपस्ट्रीम अपडेट आते थे, और हमारा UI पीछे रह जाता था — आपको पुराने कंट्रोल्स और अधूरी सुविधाएँ मिलती थीं.',
+                benefit:
+                    'इन परतों को हटाकर, आप सीधे OpenClaw से इंटरैक्ट करते हैं. आप असली सिस्टम सीखते हैं, कोई दूसरा इंटरफ़ेस नहीं जो पुराना हो सकता है. आपका ज्ञान हर जगह काम आता है जहाँ OpenClaw चलता है.',
+                action: 'कुछ भी नहीं टूटता. आपके क्लॉज़, सर्वर, बिलिंग और डैशबोर्ड की मुख्य सुविधाएँ अपरिवर्तित हैं. चैनल, स्किल्स या एजेंट कॉन्फ़िगर करने के लिए, सीधे अपना OpenClaw इंस्टेंस इस्तेमाल करें.',
+                cta: 'डैशबोर्ड खोलें'
             }
         }
     },
@@ -1052,7 +1033,6 @@ const hi: Translations = {
             'एजेंट से चैट शुरू करने के लिए एक क्लॉ डिप्लॉय करें.',
         openSidebar: 'साइडबार खोलें',
         clawNotReady: 'क्लॉ अभी तैयार नहीं है',
-        notConfigured: 'कॉन्फ़िगर नहीं है',
         addAgent: 'एजेंट जोड़ें',
         viewTree: 'ट्री व्यू',
         viewList: 'सूची व्यू',
@@ -1238,10 +1218,7 @@ const hi: Translations = {
             'ClawHost से सीधे मूल OpenClaw पैनल तक पहुँचें. OpenClaw जो कुछ भी प्रदान करता है उस पर पूर्ण संपादन एक्सेस.',
         clawHostControl: 'ClawHost नियंत्रण',
         clawHostControlDescription:
-            'प्लेटफ़ॉर्म से सीधे फ़ाइलें, अपडेट, वेरिएबल, स्किल और अन्य कॉन्फ़िगरेशन विकल्प प्रबंधित करें.',
-        skillsMarketplace: '5,000+ स्किल',
-        skillsMarketplaceDescription:
-            'एक क्लिक में 5,000 से अधिक तैयार स्किल ब्राउज़ और इंस्टॉल करें. अपने OpenClaw को तुरंत विस्तारित करें.',
+            'प्लेटफ़ॉर्म से सीधे फ़ाइलें, अपडेट, वेरिएबल और अन्य कॉन्फ़िगरेशन विकल्प प्रबंधित करें.',
         directChat: 'सीधी चैट',
         directChatDescription:
             'प्लेटफ़ॉर्म से सीधे अपने AI एजेंट से चैट करें. किसी बाहरी टूल या इंटरफ़ेस की ज़रूरत नहीं.',
@@ -1493,8 +1470,6 @@ const hi: Translations = {
             'समुदाय-संचालित फ़ीचर अनुरोध, विस्तारित फ़ाइल संपादन समर्थन और विभिन्न बग फ़िक्स.',
         release10Feature1:
             'OpenClaw एजेंट द्वारा स्वचालित रूप से प्रबंधित और प्रकाशित फ़ीचर अनुरोध',
-        release10Feature2:
-            'ClawHub मार्केटप्लेस से स्किल कभी-कभी इंस्टॉल न होने की समस्या ठीक की',
         release10Feature3:
             'मॉडल प्रदाता स्विचिंग प्रतिबिंबित न होने और अभी भी प्रारंभिक मॉडल का उपयोग करने की समस्या ठीक की',
         release10Feature4: 'प्लेटफ़ॉर्म भर में कई सुधार और बग फ़िक्स',
@@ -1523,21 +1498,17 @@ const hi: Translations = {
         release7Date: '16 फ़रवरी 2026',
         release7Title: 'चैट पुनर्गठन और वॉइस इनपुट',
         release7Description:
-            'वॉइस इंटरैक्शन, ClawHub स्किल मार्केटप्लेस और एजेंट के लिए फ़ाइल अटैचमेंट के साथ प्रमुख चैट और प्लेग्राउंड सुधार.',
+            'वॉइस इंटरैक्शन और एजेंट के लिए फ़ाइल अटैचमेंट के साथ प्रमुख चैट और प्लेग्राउंड सुधार.',
         release7Feature1:
             'एक सहज, अधिक प्रतिक्रियाशील अनुभव के लिए चैट और प्लेग्राउंड पुनर्गठन',
         release7Feature2:
             'चैट में वॉइस इंटरैक्शन, ब्राउज़र में सीधे स्पीच रिकॉर्ड और ट्रांसक्राइब करें',
-        release7Feature3:
-            'इंस्टॉल और प्रबंधित करने के लिए 5,000+ स्किल उपलब्ध के साथ ClawHub स्किल एकीकरण',
         release7Feature4:
             'एजेंट के लिए अटैचमेंट व्यू और उपयोग, चैट में चित्र और दस्तावेज़ भेजें',
         release6Date: '16 फ़रवरी 2026',
-        release6Title: 'स्किल और एजेंट चैट',
+        release6Title: 'एजेंट चैट',
         release6Description:
-            'अपने OpenClaw स्किल और एजेंट पर पूर्ण नियंत्रण. डैशबोर्ड से सीधे सब कुछ प्रबंधित और चैट करें.',
-        release6Feature2:
-            'डैशबोर्ड से सीधे स्किल प्रबंधित करें, एजेंट स्किल इंस्टॉल, अपडेट और व्यवस्थित करें',
+            'अपने OpenClaw एजेंट पर पूर्ण नियंत्रण. डैशबोर्ड से सीधे सब कुछ प्रबंधित और चैट करें.',
         release6Feature3:
             'प्लेग्राउंड से अपने एजेंट से चैट करें, किसी भी एजेंट से रीयल टाइम में बातचीत करें',
         release6Feature4:
@@ -1627,34 +1598,10 @@ const hi: Translations = {
         loadingTip3:
             'ClawHost एक-क्लिक OpenClaw होस्टिंग की अनुमति देने वाला पहला प्रोजेक्ट है.',
         tabChat: 'चैट',
-        tabConfiguration: 'कॉन्फ़िगरेशन',
         tabSettings: 'सेटिंग्स',
         tabEnvs: 'एन्व',
         agentOnClaw: '{{clawName}} पर',
         cannotDeleteDefaultAgent: 'डिफ़ॉल्ट एजेंट को हटाया नहीं जा सकता!',
-        configurationModel: 'मॉडल',
-        configurationModelPlaceholder: 'एक मॉडल चुनें',
-        configurationModelDescription:
-            'यह एजेंट जो AI मॉडल उपयोग करता है. मॉडल बदलने के लिए संबंधित API कुंजी सेट करनी पड़ सकती है.',
-        configurationEnvVars: 'एनवायरनमेंट वेरिएबल',
-        configurationEnvVarsDescription:
-            'इंस्टेंस पर ~/.openclaw/.env में संग्रहीत API कुंजियाँ और एनवायरनमेंट वेरिएबल.',
-        configurationAddEnvVar: 'वेरिएबल जोड़ें',
-        configurationKeyPlaceholder: 'VARIABLE_NAME',
-        configurationValuePlaceholder: 'मान',
-        configurationSave: 'सहेजें',
-        configurationSaving: 'सहेजा जा रहा है...',
-        configurationSaved: 'एजेंट कॉन्फ़िगरेशन सहेजा गया.',
-        configurationSaveFailed: 'एजेंट कॉन्फ़िगरेशन सहेजने में विफल!',
-        configurationLoading: 'कॉन्फ़िगरेशन लोड हो रहा है...',
-        configurationLoadFailed: 'एजेंट कॉन्फ़िगरेशन लोड करने में विफल!',
-        configurationLoadFailedDescription:
-            'इस एजेंट का कॉन्फ़िगरेशन प्राप्त नहीं हो सका. कृपया बाद में पुनः प्रयास करें.',
-        configurationRemoveVar: 'हटाएँ',
-        configurationApiKey: 'API कुंजी',
-        configurationApiKeyDescription:
-            '{{modelName}} के लिए आवश्यक. यह कुंजी इंस्टेंस पर ~/.openclaw/.env में संग्रहीत है.',
-        configurationApiKeyPlaceholder: 'अपनी API कुंजी दर्ज करें',
         tabVariables: 'वेरिएबल',
         variablesDescription:
             'इस इंस्टेंस पर ~/.openclaw/.env में संग्रहीत एनवायरनमेंट वेरिएबल.',
@@ -1671,6 +1618,8 @@ const hi: Translations = {
         variablesInvalidKey: 'केवल अक्षर, संख्याएँ और अंडरस्कोर!',
         variablesEmptyValue: 'मान खाली नहीं हो सकता!',
         variablesDuplicateKey: 'डुप्लिकेट वेरिएबल नाम!',
+        variablesKeyPlaceholder: 'कुंजी',
+        variablesValuePlaceholder: 'मान',
         variablesDeleteTitle: 'वेरिएबल हटाएँ',
         variablesDeleteDescription:
             'क्या आप वाकई {{key}} हटाना चाहते हैं? यह तुरंत इंस्टेंस से हटा दिया जाएगा.',
@@ -1704,9 +1653,6 @@ const hi: Translations = {
         deleteAgentDeleting: 'हटाया जा रहा है...',
         deleteAgentSuccess: 'एजेंट सफलतापूर्वक हटाया गया.',
         deleteAgentFailed: 'एजेंट हटाने में विफल!',
-        configurationName: 'नाम',
-        configurationNamePlaceholder: 'एजेंट नाम दर्ज करें',
-        configurationNameDescription: 'केवल अक्षर, संख्याएँ और डैश.',
         agentNameRequired: 'एजेंट नाम आवश्यक है!',
         agentNameInvalidChars: 'केवल अक्षर, संख्याएँ और डैश की अनुमति है!',
         agentNameDuplicate: 'इस नाम का एक एजेंट पहले से मौजूद है!',
@@ -1756,10 +1702,6 @@ const hi: Translations = {
         chatConnectionFailed: 'इस एजेंट से कनेक्ट करने में विफल!',
         chatConnectionFailedDescription:
             'सुनिश्चित करें कि क्लॉ चल रहा है और पहुँच योग्य है.',
-        chatNotConfigured: 'एजेंट कॉन्फ़िगर नहीं है.',
-        chatNotConfiguredDescription:
-            'चैटिंग शुरू करने के लिए Configuration टैब में एक मॉडल चुनें और API कुंजी सेट करें.',
-        chatConfigureButton: 'एजेंट कॉन्फ़िगर करें',
         chatToday: 'आज',
         chatYesterday: 'कल',
         chatExpandFullscreen: 'चैट विस्तारित करें',
@@ -1797,56 +1739,6 @@ const hi: Translations = {
         featureVersionUnsupportedButton: 'संस्करणों पर जाएं',
         featureVersionUnsupportedSupported: 'समर्थित संस्करण:',
         featureVersionUnsupportedNewer: 'नए संस्करण',
-        tabSkills: 'स्किल',
-        skillsDescription:
-            'इस इंस्टेंस पर सभी एजेंट के लिए उपलब्ध साझा स्किल प्रबंधित करें.',
-        skillsSearch: 'स्किल खोजें...',
-        skillsNoResults: 'आपकी खोज से कोई स्किल मेल नहीं खाती.',
-        skillsEmpty: 'कोई स्किल नहीं',
-        skillsSave: 'स्किल सहेजें',
-        skillsSaved: 'स्किल सफलतापूर्वक अपडेट हुईं.',
-        skillsSaveFailed: 'स्किल अपडेट करने में विफल!',
-        skillsLoading: 'स्किल लोड हो रही हैं...',
-        skillsLoadFailed: 'स्किल लोड करने में विफल!',
-        skillsLoadFailedDescription:
-            'स्किल कॉन्फ़िगरेशन प्राप्त नहीं हो सका. कृपया पुनः प्रयास करें.',
-        agentSkillsDescription: 'इस एजेंट वर्कस्पेस में इंस्टॉल की गई स्किल.',
-        agentSkillsInstalling: 'इंस्टॉल हो रही है...',
-        agentSkillsInstalled: 'स्किल सफलतापूर्वक इंस्टॉल हुई.',
-        agentSkillsInstallFailed: 'स्किल इंस्टॉल करने में विफल!',
-        agentSkillsRemoving: 'हटाई जा रही है...',
-        agentSkillsRemoved: 'स्किल सफलतापूर्वक हटाई गई.',
-        agentSkillsRemoveFailed: 'स्किल हटाने में विफल!',
-        agentSkillsEmpty: 'कोई स्किल इंस्टॉल नहीं.',
-        agentSkillsEmptyDescription:
-            'इस एजेंट की क्षमताओं को विस्तारित करने के लिए एक स्किल इंस्टॉल करें.',
-        agentSkillsNamePlaceholder: 'स्किल नाम',
-        agentSkillsConfirmRemove: 'स्किल "{{skillName}}" हटाएँ?',
-        agentSkillsConfirmRemoveDescription:
-            'यह एजेंट वर्कस्पेस से स्किल हटा देगा.',
-        skillsBundledTab: 'बंडल्ड',
-        skillsClawHubTab: 'ClawHub',
-        clawHubSearch: 'ClawHub स्किल खोजें...',
-        clawHubNoResults: 'ClawHub पर कोई स्किल नहीं मिली.',
-        clawHubEmpty: 'कोई ClawHub स्किल इंस्टॉल नहीं.',
-        clawHubEmptyDescription:
-            'ClawHub मार्केटप्लेस से स्किल खोजें और इंस्टॉल करें.',
-        clawHubInstall: 'इंस्टॉल',
-        clawHubInstalled: 'ClawHub से स्किल इंस्टॉल हुई.',
-        clawHubInstallFailed: 'ClawHub से स्किल इंस्टॉल करने में विफल!',
-        clawHubRemove: 'हटाएँ',
-        clawHubRemoved: 'ClawHub स्किल हटाई गई.',
-        clawHubRemoveFailed: 'ClawHub स्किल हटाने में विफल!',
-        clawHubUpdate: 'अपडेट',
-        clawHubUpdated: 'ClawHub से स्किल अपडेट हुई.',
-        clawHubUpdateFailed: 'ClawHub स्किल अपडेट करने में विफल!',
-        clawHubUpdateAvailable: 'v{{version}} उपलब्ध',
-        clawHubBy: '{{author}} द्वारा',
-        clawHubDownloads: '{{count}} डाउनलोड',
-        clawHubVersion: 'v{{version}}',
-        clawHubLoadFailed: 'ClawHub लोड करने में विफल!',
-        clawHubLoadFailedDescription:
-            'ClawHub मार्केटप्लेस से कनेक्ट नहीं हो सका. कृपया पुनः प्रयास करें.',
         tabVersions: 'संस्करण',
         versionsSearch: 'संस्करण खोजें...',
         versionsEmpty: 'कोई संस्करण नहीं मिला',
@@ -2113,11 +2005,9 @@ const hi: Translations = {
         featureSubdomainAccess: 'सबडोमेन एक्सेस',
         featureThemes: 'लाइट और डार्क थीम',
         featureSetupTime: 'सेटअप समय',
-        featureTechnicalSkill: 'तकनीकी कौशल आवश्यक',
         featureOneClickDeploy: 'एक-क्लिक डिप्लॉय',
         featureMultipleInstances: 'एकाधिक इंस्टेंस',
         featureMultipleAgents: 'प्रति इंस्टेंस एकाधिक एजेंट',
-        featureSkillsMarketplace: 'स्किल मार्केटप्लेस',
         featureAgentConfig: 'एजेंट कॉन्फ़िगरेशन',
         featureDataOwnership: 'पूर्ण डेटा स्वामित्व',
         featureDataExport: 'डेटा निर्यात',
@@ -2167,7 +2057,6 @@ const hi: Translations = {
         minimal: 'न्यूनतम',
         unlimited: 'असीमित',
         singleInstance: 'एकल',
-        fiveThousandSkills: '5,000+ स्किल (ClawHub)',
         noMarketplace: 'कोई मार्केटप्लेस नहीं',
         appOnly: 'केवल ऐप',
         fullConfig: 'पूर्ण कॉन्फ़िगरेशन',

@@ -12,7 +12,6 @@ import {
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
 import { ClawAvatar } from '@/components/shared'
 import { TRUNCATE_LENGTHS } from '@/lib'
-import { AGENT_DETAIL_TABS } from '@/lib/constants'
 
 const AgentDetailHeader: FC<AgentDetailHeaderProps> = ({
     agent,
@@ -21,8 +20,6 @@ const AgentDetailHeader: FC<AgentDetailHeaderProps> = ({
     isExpanded,
     isDeleting,
     readOnly,
-    hideChatTab,
-    activeTab,
     onToggleExpand,
     onDeleteClick,
     onClose
@@ -74,25 +71,16 @@ const AgentDetailHeader: FC<AgentDetailHeaderProps> = ({
                 </div>
             </div>
             <div className='flex items-center gap-1'>
-                {!hideChatTab &&
-                    (activeTab === AGENT_DETAIL_TABS.CHAT || isExpanded) && (
-                        <button
-                            onClick={onToggleExpand}
-                            className='text-muted-foreground hover:bg-foreground/10 hover:text-foreground rounded-lg p-1.5 transition-colors'
-                        >
-                            {isExpanded ? (
-                                <ArrowsInIcon
-                                    className='h-4 w-4'
-                                    weight='bold'
-                                />
-                            ) : (
-                                <ArrowsOutIcon
-                                    className='h-4 w-4'
-                                    weight='bold'
-                                />
-                            )}
-                        </button>
+                <button
+                    onClick={onToggleExpand}
+                    className='text-muted-foreground hover:bg-foreground/10 hover:text-foreground rounded-lg p-1.5 transition-colors'
+                >
+                    {isExpanded ? (
+                        <ArrowsInIcon className='h-4 w-4' weight='bold' />
+                    ) : (
+                        <ArrowsOutIcon className='h-4 w-4' weight='bold' />
                     )}
+                </button>
                 {!readOnly &&
                     (agent.id === 'main' || isOnlyAgent ? (
                         <Tooltip>

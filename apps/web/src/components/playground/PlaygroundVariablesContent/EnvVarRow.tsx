@@ -36,7 +36,7 @@ const EnvVarRow: FC<EnvVarRowProps> = ({
                     type='text'
                     value={envVar.key}
                     onChange={(e) => onChange(index, 'key', e.target.value)}
-                    placeholder={t('playground.configurationKeyPlaceholder')}
+                    placeholder={t('playground.variablesKeyPlaceholder')}
                     className={`placeholder:text-muted-foreground bg-transparent font-mono text-xs font-medium outline-none ${
                         keyError
                             ? 'text-red-600 dark:text-red-400'
@@ -105,7 +105,7 @@ const EnvVarRow: FC<EnvVarRowProps> = ({
                 type={showValue ? 'text' : 'password'}
                 value={envVar.value}
                 onChange={(e) => onChange(index, 'value', e.target.value)}
-                placeholder={t('playground.configurationValuePlaceholder')}
+                placeholder={t('playground.variablesValuePlaceholder')}
                 className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border px-2.5 py-1.5 font-mono text-xs outline-none transition-colors focus:border-[#ef5350]/50 ${
                     valueError ? 'border-red-500/40' : 'border-border'
                 }`}

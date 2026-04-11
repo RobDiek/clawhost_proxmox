@@ -31,8 +31,6 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
         setChatSelectedAgent,
         chatSettingsClawId,
         setChatSettingsClawId,
-        chatAgentTab,
-        setChatAgentTab,
         playgroundAgentTab,
         setPlaygroundAgentTab,
         playgroundClawTab,
@@ -107,21 +105,14 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
         const settingsClawParam = searchParams.get('settingsClaw')
 
         const validAgentTabs: PlaygroundAgentDetailTab[] = [
-            AGENT_DETAIL_TABS.CHAT,
-            AGENT_DETAIL_TABS.SKILLS,
-            AGENT_DETAIL_TABS.CONFIGURATION
-        ]
-        const validChatAgentTabs: PlaygroundAgentDetailTab[] = [
-            AGENT_DETAIL_TABS.CONFIGURATION,
-            AGENT_DETAIL_TABS.SKILLS
+            AGENT_DETAIL_TABS.CHAT
         ]
         const validClawTabs: PlaygroundDetailTab[] = [
             CLAW_DETAIL_TABS.INFO,
             CLAW_DETAIL_TABS.TERMINAL,
             CLAW_DETAIL_TABS.VARIABLES,
             CLAW_DETAIL_TABS.LOGS,
-            CLAW_DETAIL_TABS.DIAGNOSTICS,
-            CLAW_DETAIL_TABS.SKILLS
+            CLAW_DETAIL_TABS.DIAGNOSTICS
         ]
 
         if (agentParam && clawParam) {
@@ -130,13 +121,6 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
                     agentId: agentParam,
                     clawId: clawParam
                 })
-                if (agentTabParam) {
-                    setChatAgentTab(
-                        validChatAgentTabs.includes(agentTabParam)
-                            ? agentTabParam
-                            : AGENT_DETAIL_TABS.CONFIGURATION
-                    )
-                }
             } else {
                 setSelectedAgentId(agentParam)
                 setSelectedAgentClawId(clawParam)
@@ -187,9 +171,7 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
                 urlParams.agent = chatSelectedAgent.agentId
                 urlParams.claw = chatSelectedAgent.clawId
             }
-            if (chatAgentTab) {
-                urlParams.agentTab = chatAgentTab
-            } else if (chatSettingsClawId) {
+            if (chatSettingsClawId) {
                 urlParams.settingsClaw = chatSettingsClawId
                 if (chatClawTab) urlParams.clawTab = chatClawTab
             }
@@ -207,7 +189,6 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
     }, [
         dashboardTab,
         chatSelectedAgent,
-        chatAgentTab,
         chatSettingsClawId,
         chatClawTab,
         selectedAgentId,

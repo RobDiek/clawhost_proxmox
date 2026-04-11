@@ -454,9 +454,6 @@ const ja: Translations = {
         agentsFetched: 'エージェントを取得しました.',
         agentsFetchFailed:
             'インスタンスに接続してエージェントを取得できませんでした!',
-        agentConfigFetched: 'エージェント設定を取得しました.',
-        agentConfigUpdated: 'エージェント設定を更新しました.',
-        agentConfigUpdateFailed: 'エージェント設定を更新できませんでした!',
         agentCreated: 'エージェントを作成しました.',
         agentCreateFailed: 'インスタンスでエージェントを作成できませんでした!',
         agentDeleted: 'エージェントを削除しました.',
@@ -479,30 +476,6 @@ const ja: Translations = {
         healthOk: 'APIは稼働中です.',
         featureVersionUnsupported:
             'この機能はバージョン {{version}} ではサポートされていません。OpenClawを更新するか、ターミナルを使用して手動で管理してください。',
-        skillsFetched: 'スキルを取得しました.',
-        skillsUpdated: 'スキルを更新しました.',
-        skillsUpdateFailed: 'スキルを更新できませんでした!',
-        skillsFetchFailed: 'スキルを取得できませんでした!',
-        agentSkillsFetched: 'エージェントスキルを取得しました.',
-        agentSkillsUpdated: 'エージェントスキルを更新しました.',
-        agentSkillsUpdateFailed: 'エージェントスキルを更新できませんでした!',
-        agentSkillsFetchFailed: 'エージェントスキルを取得できませんでした!',
-        invalidSkillName:
-            'スキル名は英字、数字、ハイフン、アンダースコアのみ使用できます!',
-        skillNotFound: 'スキルが見つかりません!',
-        clawHubSearchSuccess: 'ClawHub検索が完了しました.',
-        clawHubSearchFailed: 'ClawHubを検索できませんでした!',
-        clawHubFetched: 'ClawHubスキルを取得しました.',
-        clawHubFetchFailed: 'ClawHubスキルを取得できませんでした!',
-        clawHubInstalled: 'ClawHubからスキルをインストールしました.',
-        clawHubInstallFailed:
-            'ClawHubからスキルをインストールできませんでした!',
-        clawHubRemoved: 'ClawHubスキルを削除しました.',
-        clawHubRemoveFailed: 'ClawHubスキルを削除できませんでした!',
-        clawHubUpdated: 'スキルを更新しました.',
-        clawHubUpdateFailed: 'ClawHubスキルを更新できませんでした!',
-        clawHubUpdatesFetched: 'アップデート確認が完了しました.',
-        clawHubUpdatesFailed: 'アップデートを確認できませんでした!',
         invalidAuthMethod: '無効な認証方法です!',
         authMethodNotConnected: 'この認証方法は接続されていません!',
         authMethodConnected: '認証方法を接続しました.',
@@ -616,15 +589,6 @@ const ja: Translations = {
                     'ボイスモードでAIエージェントとハンズフリーで会話。入力は音声認識、応答は音声合成 — 複数の音声から選択。',
                 cta: 'ボイスモードを試す'
             },
-            skills: {
-                subject: 'ご存知ですか？ClawHubに5,000以上のスキル',
-                preview: 'ワンクリックでコミュニティスキルを閲覧・インストール',
-                tag: 'ClawHubスキル',
-                heading: 'エージェントを即座に拡張',
-                description:
-                    'ClawHubで5,000以上のスキルを閲覧し、ワンクリックでインストール。Web検索、コード実行、画像生成など。',
-                cta: 'ClawHubを閲覧'
-            },
             envVars: {
                 subject: 'ご存知ですか？環境変数を管理',
                 preview: 'SSH不要でAPIキーと設定を設定',
@@ -705,6 +669,22 @@ const ja: Translations = {
                 description:
                     '年間契約に切り替えてClawサブスクリプションを節約。同じ素晴らしいサービス、より低い価格 — いつでもキャンセル可能。',
                 cta: 'プランを見る'
+            },
+            simplifiedPlatform: {
+                subject: 'ClawHostをシンプルにしました',
+                preview:
+                    'チャンネル、スキルなどはOpenClawで直接管理されるようになりました',
+                tag: 'プラットフォーム更新',
+                heading: 'ClawHostがよりシンプルに',
+                description:
+                    'ClawHostダッシュボードからチャンネル、エージェント、チャット、スキル、変数の管理を削除しました。これらの機能はOpenClawインスタンスで直接管理されるようになりました。',
+                removed:
+                    '具体的に削除したもの：メッセージングチャンネル（WhatsApp、Telegram、Discord、Slack、Signal）、スキルマーケットプレイス（ClawHub）、エージェントチャットとボイスモード、変数エディタ。これらはすべてOpenClawに存在し続けています — ラッピングを停止しただけです。',
+                why: 'OpenClawの各リリースに合わせてインターフェースを同期し続けることは持続不可能でした。アップストリームで更新が出ても、UIが遅れ — 古いコントロールと不完全な機能が残りました。',
+                benefit:
+                    'これらのレイヤーを削除することで、OpenClawと直接やり取りできます。古くなる可能性のある別のインターフェースではなく、本物のシステムを学べます。その知識はOpenClawが動作するどこにでも活かせます。',
+                action: '何も壊れません。Claw、サーバー、請求、ダッシュボードのコア機能は変わりません。チャンネル、スキル、エージェントを設定するには、OpenClawインスタンスを直接使用してください。',
+                cta: 'ダッシュボードを開く'
             }
         }
     },
@@ -1045,7 +1025,6 @@ const ja: Translations = {
             'Clawをデプロイしてエージェントとのチャットを開始。',
         openSidebar: 'サイドバーを開く',
         clawNotReady: 'Clawはまだ準備ができていません',
-        notConfigured: '未設定',
         addAgent: 'エージェントを追加',
         viewTree: 'ツリー表示',
         viewList: 'リスト表示',
@@ -1228,10 +1207,7 @@ const ja: Translations = {
             'ClawHostからネイティブOpenClawパネルに直接アクセス。OpenClawが提供するすべてへのフル編集アクセス。',
         clawHostControl: 'ClawHostコントロール',
         clawHostControlDescription:
-            'ファイル、アップデート、変数、スキルなどの設定オプションをプラットフォームから直接管理。',
-        skillsMarketplace: '5,000以上のスキル',
-        skillsMarketplaceDescription:
-            'ワンクリックで5,000以上のスキルを閲覧・インストール。OpenClawを即座に拡張。',
+            'ファイル、アップデート、変数などの設定オプションをプラットフォームから直接管理。',
         directChat: 'ダイレクトチャット',
         directChatDescription:
             'プラットフォームから直接AIエージェントとチャット。外部ツールやインターフェース不要。',
@@ -1480,8 +1456,6 @@ const ja: Translations = {
             'コミュニティ主導の機能リクエスト、拡張ファイル編集サポート、各種バグ修正。',
         release10Feature1:
             'OpenClawエージェントによる自動管理・公開の機能リクエスト',
-        release10Feature2:
-            'ClawHubマーケットプレイスからのスキルインストールが時々失敗する問題を修正',
         release10Feature3:
             'モデルプロバイダーの切り替えが反映されず初期モデルを使い続ける問題を修正',
         release10Feature4: 'プラットフォーム全体の改善とバグ修正',
@@ -1508,21 +1482,17 @@ const ja: Translations = {
         release7Date: '2026年2月16日',
         release7Title: 'チャットリファクタリング & 音声入力',
         release7Description:
-            '音声インタラクション、ClawHubスキルマーケットプレイス、エージェント向けファイル添付を含むチャットとPlaygroundの大幅な改善。',
+            '音声インタラクションとエージェント向けファイル添付を含むチャットとPlaygroundの大幅な改善。',
         release7Feature1:
             'よりスムーズでレスポンシブな体験のためのチャットとPlaygroundのリファクタリング',
         release7Feature2:
             'チャットでの音声インタラクション、ブラウザで直接音声を録音・文字起こし',
-        release7Feature3:
-            '5,000以上のスキルのインストール・管理が可能なClawHubスキル統合',
         release7Feature4:
             'エージェント向けの添付ファイルの表示と使用、チャットで画像やドキュメントを送信',
         release6Date: '2026年2月16日',
-        release6Title: 'スキル & エージェントチャット',
+        release6Title: 'エージェントチャット',
         release6Description:
-            'OpenClawのスキルとエージェントの完全なコントロール。ダッシュボードから直接すべてを管理・チャット。',
-        release6Feature2:
-            'スキルを直接管理、ダッシュボードからエージェントスキルのインストール、更新、整理',
+            'OpenClawのエージェントの完全なコントロール。ダッシュボードから直接すべてを管理・チャット。',
         release6Feature3:
             'Playgroundからエージェントとチャット、リアルタイムで任意のエージェントとやり取り',
         release6Feature4:
@@ -1609,34 +1579,10 @@ const ja: Translations = {
         loadingTip3:
             'ClawHostは、ワンクリックOpenClawホスティングを可能にした史上初のプロジェクトです。',
         tabChat: 'チャット',
-        tabConfiguration: '設定',
         tabSettings: '設定',
         tabEnvs: '環境変数',
         agentOnClaw: '{{clawName}}上',
         cannotDeleteDefaultAgent: 'デフォルトエージェントは削除できません！',
-        configurationModel: 'モデル',
-        configurationModelPlaceholder: 'モデルを選択',
-        configurationModelDescription:
-            'このエージェントが使用するAIモデル。モデルの変更には対応するAPIキーの設定が必要な場合があります。',
-        configurationEnvVars: '環境変数',
-        configurationEnvVarsDescription:
-            'インスタンスの~/.openclaw/.envに保存されたAPIキーと環境変数。',
-        configurationAddEnvVar: '変数を追加',
-        configurationKeyPlaceholder: 'VARIABLE_NAME',
-        configurationValuePlaceholder: '値',
-        configurationSave: '保存',
-        configurationSaving: '保存中...',
-        configurationSaved: 'エージェント設定を保存しました。',
-        configurationSaveFailed: 'エージェント設定の保存に失敗しました！',
-        configurationLoading: '設定を読み込み中...',
-        configurationLoadFailed: 'エージェント設定の読み込みに失敗しました！',
-        configurationLoadFailedDescription:
-            'このエージェントの設定を取得できませんでした。後でもう一度お試しください。',
-        configurationRemoveVar: '削除',
-        configurationApiKey: 'APIキー',
-        configurationApiKeyDescription:
-            '{{modelName}}に必要です。このキーはインスタンスの~/.openclaw/.envに保存されます。',
-        configurationApiKeyPlaceholder: 'APIキーを入力',
         tabVariables: '変数',
         variablesDescription:
             'このインスタンスの~/.openclaw/.envに保存された環境変数。',
@@ -1653,6 +1599,8 @@ const ja: Translations = {
         variablesInvalidKey: '英字、数字、アンダースコアのみ使用できます！',
         variablesEmptyValue: '値は空にできません！',
         variablesDuplicateKey: '変数名が重複しています！',
+        variablesKeyPlaceholder: 'キー',
+        variablesValuePlaceholder: '値',
         variablesDeleteTitle: '変数を削除',
         variablesDeleteDescription:
             '{{key}}を削除してもよろしいですか？インスタンスから即座に削除されます。',
@@ -1687,9 +1635,6 @@ const ja: Translations = {
         deleteAgentDeleting: '削除中...',
         deleteAgentSuccess: 'エージェントを削除しました。',
         deleteAgentFailed: 'エージェントの削除に失敗しました！',
-        configurationName: '名前',
-        configurationNamePlaceholder: 'エージェント名を入力',
-        configurationNameDescription: '英字、数字、ダッシュのみ。',
         agentNameRequired: 'エージェント名は必須です！',
         agentNameInvalidChars: '英字、数字、ダッシュのみ使用できます！',
         agentNameDuplicate: 'この名前のエージェントは既に存在します！',
@@ -1739,10 +1684,6 @@ const ja: Translations = {
         chatConnectionFailed: 'このエージェントへの接続に失敗しました！',
         chatConnectionFailedDescription:
             'Clawが実行中で到達可能であることを確認してください。',
-        chatNotConfigured: 'エージェントが設定されていません。',
-        chatNotConfiguredDescription:
-            '設定タブでモデルを選択しAPIキーを設定してチャットを開始してください。',
-        chatConfigureButton: 'エージェントを設定',
         chatToday: '今日',
         chatYesterday: '昨日',
         chatExpandFullscreen: 'チャットを拡大',
@@ -1782,57 +1723,6 @@ const ja: Translations = {
         featureVersionUnsupportedButton: 'バージョンへ移動',
         featureVersionUnsupportedSupported: 'サポートされているバージョン:',
         featureVersionUnsupportedNewer: 'より新しいバージョン',
-        tabSkills: 'スキル',
-        skillsDescription:
-            'このインスタンスのすべてのエージェントで利用可能な共有スキルを管理。',
-        skillsSearch: 'スキルを検索...',
-        skillsNoResults: '検索に一致するスキルがありません。',
-        skillsEmpty: 'スキルなし',
-        skillsSave: 'スキルを保存',
-        skillsSaved: 'スキルを更新しました。',
-        skillsSaveFailed: 'スキルの更新に失敗しました！',
-        skillsLoading: 'スキルを読み込み中...',
-        skillsLoadFailed: 'スキルの読み込みに失敗しました！',
-        skillsLoadFailedDescription:
-            'スキル設定を取得できませんでした。再試行してください。',
-        agentSkillsDescription:
-            'このエージェントワークスペースにインストールされたスキル。',
-        agentSkillsInstalling: 'インストール中...',
-        agentSkillsInstalled: 'スキルをインストールしました。',
-        agentSkillsInstallFailed: 'スキルのインストールに失敗しました！',
-        agentSkillsRemoving: '削除中...',
-        agentSkillsRemoved: 'スキルを削除しました。',
-        agentSkillsRemoveFailed: 'スキルの削除に失敗しました！',
-        agentSkillsEmpty: 'インストール済みスキルなし。',
-        agentSkillsEmptyDescription:
-            'スキルをインストールしてこのエージェントの機能を拡張。',
-        agentSkillsNamePlaceholder: 'スキル名',
-        agentSkillsConfirmRemove: 'スキル「{{skillName}}」を削除しますか？',
-        agentSkillsConfirmRemoveDescription:
-            'エージェントワークスペースからスキルが削除されます。',
-        skillsBundledTab: 'バンドル',
-        skillsClawHubTab: 'ClawHub',
-        clawHubSearch: 'ClawHubスキルを検索...',
-        clawHubNoResults: 'ClawHubにスキルが見つかりません。',
-        clawHubEmpty: 'ClawHubスキルがインストールされていません。',
-        clawHubEmptyDescription:
-            'ClawHubマーケットプレイスからスキルを検索・インストール。',
-        clawHubInstall: 'インストール',
-        clawHubInstalled: 'ClawHubからスキルをインストールしました。',
-        clawHubInstallFailed: 'ClawHubからのスキルインストールに失敗しました！',
-        clawHubRemove: '削除',
-        clawHubRemoved: 'ClawHubスキルを削除しました。',
-        clawHubRemoveFailed: 'ClawHubスキルの削除に失敗しました！',
-        clawHubUpdate: '更新',
-        clawHubUpdated: 'ClawHubからスキルを更新しました。',
-        clawHubUpdateFailed: 'ClawHubスキルの更新に失敗しました！',
-        clawHubUpdateAvailable: 'v{{version}}利用可能',
-        clawHubBy: '{{author}}作',
-        clawHubDownloads: '{{count}}ダウンロード',
-        clawHubVersion: 'v{{version}}',
-        clawHubLoadFailed: 'ClawHubの読み込みに失敗しました！',
-        clawHubLoadFailedDescription:
-            'ClawHubマーケットプレイスに接続できませんでした。再試行してください。',
         tabVersions: 'バージョン',
         versionsSearch: 'バージョンを検索...',
         versionsEmpty: 'バージョンが見つかりません',
@@ -2091,11 +1981,9 @@ const ja: Translations = {
         featureSubdomainAccess: 'サブドメインアクセス',
         featureThemes: 'ライト＆ダークテーマ',
         featureSetupTime: 'セットアップ時間',
-        featureTechnicalSkill: '必要な技術スキル',
         featureOneClickDeploy: 'ワンクリックデプロイ',
         featureMultipleInstances: '複数インスタンス',
         featureMultipleAgents: 'インスタンスごとに複数エージェント',
-        featureSkillsMarketplace: 'スキルマーケットプレイス',
         featureAgentConfig: 'エージェント設定',
         featureDataOwnership: '完全なデータ所有権',
         featureDataExport: 'データエクスポート',
@@ -2145,7 +2033,6 @@ const ja: Translations = {
         minimal: '最小限',
         unlimited: '無制限',
         singleInstance: '単一',
-        fiveThousandSkills: '5,000以上のスキル（ClawHub）',
         noMarketplace: 'マーケットプレイスなし',
         appOnly: 'アプリのみ',
         fullConfig: '完全な設定',

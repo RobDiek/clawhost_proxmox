@@ -108,7 +108,6 @@ const generateBlogContent = async (
 
 OpenClaw is an open-source AI agent framework with:
 - Multi-agent architecture
-- Skills/plugins ecosystem (ClawHub marketplace)
 - Voice capabilities (Piper TTS)
 - Browser automation
 - Runs on VPS or via ClawHost managed hosting

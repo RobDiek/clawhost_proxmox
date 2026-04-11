@@ -9,7 +9,7 @@ import type {
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { t } from '@openclaw/i18n'
-import { GearSixIcon, PaperPlaneRightIcon } from '@phosphor-icons/react'
+import { PaperPlaneRightIcon } from '@phosphor-icons/react'
 import { useAgentChat, useScrollToBottom, useTextToSpeech } from '@/hooks'
 import {
     CHAT_MESSAGE_ROLE,
@@ -49,10 +49,7 @@ const AgentChat: FC<AgentChatProps> = ({
     agentName,
     subdomain,
     gatewayToken,
-    agentModel,
     readOnly,
-    onConfigure,
-    configureDisabled,
     onConnectionStateChange
 }): ReactNode => {
     const product = usePreferencesStore((s) => s.product)
@@ -313,37 +310,6 @@ const AgentChat: FC<AgentChatProps> = ({
                         </button>
                     </form>
                 </div>
-            </div>
-        )
-    }
-
-    if (!agentModel) {
-        return (
-            <div className='flex h-full flex-col items-center justify-center gap-3 px-14 pb-16'>
-                <div className='bg-foreground/5 flex h-12 w-12 items-center justify-center rounded-xl'>
-                    <GearSixIcon
-                        className='text-muted-foreground h-6 w-6'
-                        weight='duotone'
-                    />
-                </div>
-                <div className='text-center'>
-                    <p className='text-foreground/80 text-sm font-medium'>
-                        {t('playground.chatNotConfigured')}
-                    </p>
-                    <p className='text-muted-foreground mt-1 text-xs'>
-                        {t('playground.chatNotConfiguredDescription')}
-                    </p>
-                </div>
-                {onConfigure && (
-                    <button
-                        onClick={onConfigure}
-                        disabled={configureDisabled}
-                        className='bg-foreground/10 text-foreground hover:bg-foreground/15 mt-2 flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40'
-                    >
-                        <GearSixIcon className='h-3.5 w-3.5' weight='bold' />
-                        {t('playground.chatConfigureButton')}
-                    </button>
-                )}
             </div>
         )
     }

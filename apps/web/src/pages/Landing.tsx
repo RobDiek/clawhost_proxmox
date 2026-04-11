@@ -46,7 +46,6 @@ import {
     ChatCircleDotsIcon,
     SlidersHorizontalIcon,
     GearSixIcon,
-    PuzzlePieceIcon,
     UsersThreeIcon,
     StackIcon,
     GitBranchIcon
@@ -333,13 +332,6 @@ const Landing: FC = (): ReactNode => {
                             icon: GearSixIcon,
                             title: t('landing.clawHostControl'),
                             description: t('landing.clawHostControlDescription')
-                        },
-                        {
-                            icon: PuzzlePieceIcon,
-                            title: t('landing.skillsMarketplace'),
-                            description: t(
-                                'landing.skillsMarketplaceDescription'
-                            )
                         },
                         {
                             icon: ChatCircleDotsIcon,

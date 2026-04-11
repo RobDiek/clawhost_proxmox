@@ -22,25 +22,13 @@ import {
     reinstallClaw,
     exportClaw,
     getClawAgents,
-    getClawAgentConfig,
-    updateClawAgentConfig,
     createClawAgent,
     deleteClawAgent,
     getClawEnvVars,
     updateClawEnvVars,
-    getClawSkills,
-    updateClawSkills,
-    getAgentSkills,
-    updateAgentSkills,
     getClawVersion,
     getClawVersions,
     installClawVersion,
-    browseClawHubSkills,
-    getClawHubInstalled,
-    installClawHubSkill,
-    removeClawHubSkill,
-    updateClawHubSkill,
-    checkClawHubUpdates,
     renameClaw,
     getClawCredentials,
     cancelPendingClaw
@@ -66,28 +54,16 @@ app.post('/:id/diagnostics/repair', adminOnly, repairClaw)
 app.post('/:id/reinstall', reinstallClaw)
 app.get('/:id/export', exportClaw)
 app.post('/:id/agents', getClawAgents)
-app.post('/:id/agent-config', getClawAgentConfig)
-app.put('/:id/agent-config', updateClawAgentConfig)
 app.post('/:id/agents/create', createClawAgent)
 app.post('/:id/agents/delete', deleteClawAgent)
 app.get('/:id/env', getClawEnvVars)
 app.put('/:id/env', updateClawEnvVars)
-app.post('/:id/skills', getClawSkills)
-app.put('/:id/skills', updateClawSkills)
-app.post('/:id/agents/:agentId/skills', getAgentSkills)
-app.put('/:id/agents/:agentId/skills', updateAgentSkills)
 app.post('/:id/files', listClawFiles)
 app.post('/:id/files/read', readClawFile)
 app.put('/:id/files', updateClawFile)
 app.post('/:id/version', getClawVersion)
 app.post('/:id/versions', getClawVersions)
 app.post('/:id/install-version', adminOnly, installClawVersion)
-app.get('/:id/clawhub/skills', browseClawHubSkills)
-app.post('/:id/clawhub/installed', getClawHubInstalled)
-app.post('/:id/clawhub/install', installClawHubSkill)
-app.post('/:id/clawhub/remove', removeClawHubSkill)
-app.post('/:id/clawhub/update', updateClawHubSkill)
-app.post('/:id/clawhub/updates', checkClawHubUpdates)
 app.get('/:id/credentials', getClawCredentials)
 app.patch('/:id', renameClaw)
 app.delete('/:id', deleteClaw)

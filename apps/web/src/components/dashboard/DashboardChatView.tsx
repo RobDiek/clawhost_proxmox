@@ -17,13 +17,10 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
     adminMode,
     chatSelectedAgent,
     chatSettingsClawId,
-    chatAgentTab,
     chatClawTab,
     onAgentSelect,
-    onConfigureAgent,
     onCreateAgent,
     onSettingsClawChange,
-    onAgentTabChange,
     onClawTabChange,
     onCreateClick
 }): ReactNode => {
@@ -69,12 +66,9 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
                         sshKeys={sshKeys}
                         selectedAgent={chatSelectedAgent}
                         onAgentSelect={onAgentSelect}
-                        onConfigureAgent={onConfigureAgent}
                         onCreateAgent={onCreateAgent}
                         initialSettingsClawId={chatSettingsClawId}
                         onSettingsClawChange={onSettingsClawChange}
-                        initialAgentTab={chatAgentTab || undefined}
-                        onAgentTabChange={onAgentTabChange}
                         initialClawTab={chatClawTab || undefined}
                         onClawTabChange={onClawTabChange}
                     />

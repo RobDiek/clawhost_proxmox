@@ -6,7 +6,6 @@ import {
     ScrollIcon,
     PulseIcon,
     KeyIcon,
-    LightningIcon,
     GearSixIcon,
     TerminalWindowIcon
 } from '@phosphor-icons/react'
@@ -29,11 +28,6 @@ const tabs: PlaygroundTabConfig<PlaygroundDetailTab>[] = [
         id: CLAW_DETAIL_TABS.VARIABLES,
         label: 'playground.tabEnvs',
         icon: KeyIcon
-    },
-    {
-        id: CLAW_DETAIL_TABS.SKILLS,
-        label: 'playground.tabSkills',
-        icon: LightningIcon
     },
     {
         id: CLAW_DETAIL_TABS.VERSIONS,

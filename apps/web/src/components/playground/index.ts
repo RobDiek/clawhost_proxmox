@@ -8,7 +8,6 @@ import PlaygroundLoadingState from '@/components/playground/PlaygroundLoadingSta
 import PlaygroundToolbar from '@/components/playground/PlaygroundToolbar'
 import PlaygroundVariablesContent from '@/components/playground/PlaygroundVariablesContent'
 import CreateAgentModal from '@/components/playground/CreateAgentModal'
-import PlaygroundSkillsContent from '@/components/playground/PlaygroundSkillsContent'
 import PlaygroundVersionsContent from '@/components/playground/PlaygroundVersionsContent'
 import PlaygroundDetailInfoTab from '@/components/playground/PlaygroundDetailInfoTab'
 import PlaygroundDetailSettingsTab from '@/components/playground/PlaygroundDetailSettingsTab'
@@ -26,7 +25,6 @@ export {
     PlaygroundToolbar,
     PlaygroundVariablesContent,
     CreateAgentModal,
-    PlaygroundSkillsContent,
     PlaygroundVersionsContent,
     PlaygroundDetailInfoTab,
     PlaygroundDetailSettingsTab,

@@ -11,7 +11,6 @@ import safeShellWrite from '@/controllers/claws/helpers/safeShellWrite'
 import validateEnvVars from '@/controllers/claws/helpers/validateEnvVars'
 import findUserClaw from '@/controllers/claws/helpers/findUserClaw'
 import decryptClawSecrets from '@/controllers/claws/helpers/decryptClawSecrets'
-import ensureClawHub from '@/controllers/claws/helpers/ensureClawHub'
 import applyToolsDefaults from '@/controllers/claws/helpers/applyToolsDefaults'
 import BASE_DIR from '@/controllers/claws/helpers/baseDir'
 import DOMAIN from '@/controllers/claws/helpers/constants'
@@ -29,7 +28,6 @@ import parseEnvFile from '@/controllers/claws/helpers/parseEnvFile'
 import mergeEnvVars from '@/controllers/claws/helpers/mergeEnvVars'
 import writeConfigAndRestart from '@/controllers/claws/helpers/writeConfigAndRestart'
 import executeServerLifecycle from '@/controllers/claws/helpers/executeServerLifecycle'
-import executeClawHubOperation from '@/controllers/claws/helpers/executeClawHubOperation'
 import readClawConfigFile from '@/controllers/claws/helpers/readClawConfigFile'
 import ClawMissingCredentialsError from '@/controllers/claws/helpers/clawMissingCredentialsError'
 import ClawConfigReadError from '@/controllers/claws/helpers/clawConfigReadError'
@@ -52,7 +50,6 @@ export {
     sanitizeClaw,
     safeShellWrite,
     validateEnvVars,
-    ensureClawHub,
     BASE_DIR,
     DOMAIN,
     syncClawServers,
@@ -68,7 +65,6 @@ export {
     mergeEnvVars,
     writeConfigAndRestart,
     executeServerLifecycle,
-    executeClawHubOperation,
     invalidateVersionCache,
     readClawConfigFile,
     ClawMissingCredentialsError,

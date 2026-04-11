@@ -41,11 +41,7 @@ import {
     ClawCardDropdownMenu,
     ClawCardDialogsBundle
 } from '@/components/dashboard'
-import {
-    AgentChat,
-    PlaygroundDetailPanel,
-    PlaygroundAgentDetailPanel
-} from '@/components/playground'
+import { AgentChat, PlaygroundDetailPanel } from '@/components/playground'
 
 const ChatView: FC<ChatViewProps> = ({
     claws,
@@ -54,12 +50,9 @@ const ChatView: FC<ChatViewProps> = ({
     sshKeys,
     selectedAgent,
     onAgentSelect,
-    onConfigureAgent: _onConfigureAgent,
     onCreateAgent,
     initialSettingsClawId,
     onSettingsClawChange,
-    initialAgentTab,
-    onAgentTabChange,
     initialClawTab,
     onClawTabChange
 }): ReactNode => {
@@ -68,9 +61,6 @@ const ChatView: FC<ChatViewProps> = ({
 
     const [settingsClawId, setSettingsClawId] = useState<string | null>(
         initialSettingsClawId || null
-    )
-    const [configAgent, setConfigAgent] = useState<ChatSelectedAgent | null>(
-        null
     )
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
     const [activeConnectionState, setActiveConnectionState] =
@@ -125,26 +115,6 @@ const ChatView: FC<ChatViewProps> = ({
         return claws.find((c) => c.id === settingsClawId) || null
     }, [claws, settingsClawId])
 
-    const configClaw = useMemo(() => {
-        if (!configAgent) return null
-        return claws.find((c) => c.id === configAgent.clawId) || null
-    }, [claws, configAgent])
-
-    const configAgentData = useMemo(() => {
-        if (!configAgent || !configClaw) return null
-        const clawIndex = claws.findIndex((c) => c.id === configAgent.clawId)
-        const query = clawIndex >= 0 ? agentQueries[clawIndex] : null
-        const agents = query?.data?.agents || []
-        return agents.find((a) => a.id === configAgent.agentId) || null
-    }, [configAgent, configClaw, claws, agentQueries])
-
-    const configIsOnlyAgent = useMemo(() => {
-        if (!configAgent) return false
-        const clawIndex = claws.findIndex((c) => c.id === configAgent.clawId)
-        const query = clawIndex >= 0 ? agentQueries[clawIndex] : null
-        return (query?.data?.agents || []).length === 1
-    }, [configAgent, claws, agentQueries])
-
     const closeMobileSidebar = useCallback(() => {
         setMobileSidebarOpen(false)
     }, [])
@@ -164,22 +134,6 @@ const ChatView: FC<ChatViewProps> = ({
             setMobileSidebarOpen(false)
         },
         [onAgentSelect, selectedAgent]
-    )
-
-    const handleConfigureAgent = useCallback(
-        (agentId: string, clawId: string) => {
-            if (
-                configAgent?.agentId === agentId &&
-                configAgent?.clawId === clawId
-            ) {
-                setConfigAgent(null)
-                return
-            }
-            setSettingsClawId(null)
-            onAgentSelect({ agentId, clawId })
-            setConfigAgent({ agentId, clawId })
-        },
-        [configAgent, onAgentSelect]
     )
 
     const handleOpenClawSettings = useCallback(
@@ -228,11 +182,9 @@ const ChatView: FC<ChatViewProps> = ({
                 <ChatSidebar
                     clawsWithAgents={clawsWithAgents}
                     selectedAgent={selectedAgent}
-                    configAgent={configAgent}
                     selectedClawId={settingsClawId}
                     activeConnectionState={activeConnectionState}
                     onAgentSelect={handleAgentSelect}
-                    onConfigureAgent={handleConfigureAgent}
                     onCreateAgent={onCreateAgent}
                     onOpenClawSettings={handleOpenClawSettings}
                 />
@@ -348,13 +300,11 @@ const ChatView: FC<ChatViewProps> = ({
                                     <ChatSidebar
                                         clawsWithAgents={clawsWithAgents}
                                         selectedAgent={selectedAgent}
-                                        configAgent={configAgent}
                                         selectedClawId={settingsClawId}
                                         activeConnectionState={
                                             activeConnectionState
                                         }
                                         onAgentSelect={handleAgentSelect}
-                                        onConfigureAgent={handleConfigureAgent}
                                         onCreateAgent={onCreateAgent}
                                         onOpenClawSettings={
                                             handleOpenClawSettings
@@ -460,35 +410,6 @@ const ChatView: FC<ChatViewProps> = ({
                                         }
                                     />
                                 </div>
-                                <AnimatePresence mode='wait'>
-                                    {configAgentData && configClaw && (
-                                        <motion.div
-                                            key={`${configClaw.id}-${configAgentData.id}`}
-                                            initial={{ width: 0, opacity: 0 }}
-                                            animate={{ width: 380, opacity: 1 }}
-                                            exit={{ width: 0, opacity: 0 }}
-                                            transition={{ duration: 0.2 }}
-                                            className='border-border hidden overflow-hidden border-l md:block'
-                                        >
-                                            <PlaygroundAgentDetailPanel
-                                                agent={configAgentData}
-                                                clawId={configClaw.id}
-                                                clawName={configClaw.name}
-                                                isOnlyAgent={configIsOnlyAgent}
-                                                onClose={() =>
-                                                    setConfigAgent(null)
-                                                }
-                                                gatewayToken={
-                                                    configClaw.gatewayToken
-                                                }
-                                                subdomain={configClaw.subdomain}
-                                                initialTab={initialAgentTab}
-                                                onTabChange={onAgentTabChange}
-                                                hideChatTab
-                                            />
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
                             </div>
                         </div>
                     ) : (
