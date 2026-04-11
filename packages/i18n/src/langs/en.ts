@@ -633,16 +633,16 @@ const en = {
         }
     },
     auth: {
-        signIn: 'Sign In',
+        signIn: 'Authenticate',
         signInDescription:
-            'Sign in to your ClawHost account to manage your OpenClaw instances.',
-        signingIn: 'Signing in...',
+            'Authenticate to your ClawHost account to manage your OpenClaw instances.',
+        signingIn: 'Authenticating...',
         verifyCode: 'Verify Code',
         checkYourEmail: 'Check Your Email',
         checkYourEmailHeading: 'Check your email',
         codeSentTo: 'We sent a 6-digit code to',
         signInToDeployOpenClaw:
-            'Sign-in to manage and deploy OpenClaw instances.',
+            'Authenticate to manage and deploy OpenClaw instances.',
         emailAddress: 'Email Address',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'Continue with Email',
@@ -1707,8 +1707,8 @@ const en = {
         messagesPlaceholder: 'Messages and notifications will appear here.',
         settingsPlaceholder:
             'Account settings and preferences will appear here.',
-        signIn: 'Sign In',
-        signInDescription: 'Sign in to manage your OpenClaw instances.',
+        signIn: 'Authenticate',
+        signInDescription: 'Authenticate to manage your OpenClaw instances.',
         enterEmail: 'Email Address',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'Continue with Email',

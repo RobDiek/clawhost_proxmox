@@ -657,16 +657,16 @@ const pt: Translations = {
         }
     },
     auth: {
-        signIn: 'Entrar',
+        signIn: 'Autenticação',
         signInDescription:
             'Entre na sua conta ClawHost para gerenciar suas instâncias OpenClaw.',
-        signingIn: 'Entrando...',
+        signingIn: 'Autenticando...',
         verifyCode: 'Verificar Código',
         checkYourEmail: 'Verifique Seu Email',
         checkYourEmailHeading: 'Verifique seu email',
         codeSentTo: 'Enviamos um código de 6 dígitos para',
         signInToDeployOpenClaw:
-            'Entre para gerenciar e implantar instâncias OpenClaw.',
+            'Autentique-se para gerenciar e implantar instâncias OpenClaw.',
         emailAddress: 'Endereço de Email',
         emailPlaceholder: 'exemplo@clawhost.cloud',
         continueWithEmail: 'Continuar com Email',
@@ -1755,7 +1755,7 @@ const pt: Translations = {
         messagesPlaceholder: 'Mensagens e notificações aparecerão aqui.',
         settingsPlaceholder:
             'Configurações da conta e preferências aparecerão aqui.',
-        signIn: 'Entrar',
+        signIn: 'Autenticação',
         signInDescription: 'Entre para gerenciar suas instâncias OpenClaw.',
         enterEmail: 'Endereço de Email',
         emailPlaceholder: 'exemplo@clawhost.cloud',
@@ -1771,7 +1771,7 @@ const pt: Translations = {
         changeEmail: 'Alterar email',
         invalidCode: 'Código inválido!',
         codeExpired: 'Código expirado. Solicite um novo.',
-        signingIn: 'Entrando...',
+        signingIn: 'Autenticando...',
         signOut: 'Sair',
         signedInAs: 'Conectado como',
         loadMore: 'Carregar Mais',

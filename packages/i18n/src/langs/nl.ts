@@ -651,16 +651,16 @@ const nl: Translations = {
         }
     },
     auth: {
-        signIn: 'Inloggen',
+        signIn: 'Authenticatie',
         signInDescription:
             'Log in op je ClawHost-account om je OpenClaw-instanties te beheren.',
-        signingIn: 'Inloggen...',
+        signingIn: 'Authenticeren...',
         verifyCode: 'Code verifi\u00ebren',
         checkYourEmail: 'Controleer je e-mail',
         checkYourEmailHeading: 'Controleer je e-mail',
         codeSentTo: 'We hebben een 6-cijferige code gestuurd naar',
         signInToDeployOpenClaw:
-            'Log in om OpenClaw-instanties te beheren en te deployen.',
+            'Authenticeer om OpenClaw-instanties te beheren en te deployen.',
         emailAddress: 'E-mailadres',
         emailPlaceholder: 'voorbeeld@clawhost.cloud',
         continueWithEmail: 'Doorgaan met e-mail',
@@ -1747,7 +1747,7 @@ const nl: Translations = {
         messagesPlaceholder: 'Berichten en meldingen verschijnen hier.',
         settingsPlaceholder:
             'Accountinstellingen en voorkeuren verschijnen hier.',
-        signIn: 'Inloggen',
+        signIn: 'Authenticatie',
         signInDescription: 'Log in om je OpenClaw-instanties te beheren.',
         enterEmail: 'E-mailadres',
         emailPlaceholder: 'voorbeeld@clawhost.cloud',
@@ -1763,7 +1763,7 @@ const nl: Translations = {
         changeEmail: 'E-mail wijzigen',
         invalidCode: 'Ongeldige code!',
         codeExpired: 'Code verlopen. Vraag een nieuwe aan.',
-        signingIn: 'Inloggen...',
+        signingIn: 'Authenticeren...',
         signOut: 'Uitloggen',
         signedInAs: 'Ingelogd als',
         loadMore: 'Meer laden',

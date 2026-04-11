@@ -11,7 +11,6 @@ import goLicense from '#shared/goLicense'
 import INPUT_VALIDATION_LENGTH from '#shared/inputValidation'
 import OPENCLAW_VERSION from '#shared/openclawVersion'
 import userRole from '#shared/userRole'
-import versionGatedFeature from '#shared/versionGatedFeature'
 import {
     isFeatureSupported,
     isVersionSupported,
@@ -34,7 +33,6 @@ export {
     INPUT_VALIDATION_LENGTH as inputValidation,
     OPENCLAW_VERSION,
     userRole,
-    versionGatedFeature,
     isFeatureSupported,
     isVersionSupported,
     SUPPORTED_VERSIONS

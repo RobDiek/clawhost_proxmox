@@ -80,7 +80,7 @@ const es: Translations = {
         license: 'Licencia',
         signOut: 'Cerrar sesión',
         admin: 'Admin',
-        login: 'Acceder',
+        login: 'Iniciar sesión',
         deploy: 'Desplegar',
         deployOpenClaw: 'Desplegar OpenClaw',
         mainNavigation: 'Navegacion principal',
@@ -662,16 +662,16 @@ const es: Translations = {
         }
     },
     auth: {
-        signIn: 'Iniciar sesión',
+        signIn: 'Autenticación',
         signInDescription:
             'Inicia sesión en tu cuenta de ClawHost para administrar tus instancias de OpenClaw.',
-        signingIn: 'Iniciando sesión...',
+        signingIn: 'Autenticando...',
         verifyCode: 'Verificar código',
         checkYourEmail: 'Revisa tu correo',
         checkYourEmailHeading: 'Revisa tu correo',
         codeSentTo: 'Enviamos un código de 6 dígitos a',
         signInToDeployOpenClaw:
-            'Inicia sesión para administrar y desplegar instancias de OpenClaw.',
+            'Autentíquese para administrar y desplegar instancias de OpenClaw.',
         emailAddress: 'Correo electrónico',
         emailPlaceholder: 'ejemplo@clawhost.cloud',
         continueWithEmail: 'Continuar con correo',
@@ -1763,7 +1763,7 @@ const es: Translations = {
         messagesPlaceholder: 'Los mensajes y notificaciones aparecerán aquí.',
         settingsPlaceholder:
             'La configuración de la cuenta y las preferencias aparecerán aquí.',
-        signIn: 'Iniciar sesión',
+        signIn: 'Autenticación',
         signInDescription:
             'Inicia sesión para administrar tus instancias de OpenClaw.',
         enterEmail: 'Correo electrónico',
@@ -1780,7 +1780,7 @@ const es: Translations = {
         changeEmail: 'Cambiar correo',
         invalidCode: 'Código no válido!',
         codeExpired: 'Código expirado. Por favor, solicita uno nuevo!',
-        signingIn: 'Iniciando sesión...',
+        signingIn: 'Autenticando...',
         signOut: 'Cerrar sesión',
         signedInAs: 'Sesión iniciada como',
         loadMore: 'Cargar más',

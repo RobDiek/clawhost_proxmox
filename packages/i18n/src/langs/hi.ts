@@ -650,16 +650,16 @@ const hi: Translations = {
         }
     },
     auth: {
-        signIn: 'साइन इन',
+        signIn: 'प्रमाणीकरण',
         signInDescription:
             'अपने OpenClaw इंस्टेंस प्रबंधित करने के लिए अपने ClawHost खाते में साइन इन करें.',
-        signingIn: 'साइन इन हो रहा है...',
+        signingIn: 'प्रमाणित हो रहा है...',
         verifyCode: 'कोड सत्यापित करें',
         checkYourEmail: 'अपना ईमेल जाँचें',
         checkYourEmailHeading: 'अपना ईमेल जाँचें',
         codeSentTo: 'हमने 6 अंकों का कोड भेजा है',
         signInToDeployOpenClaw:
-            'OpenClaw इंस्टेंस प्रबंधित और डिप्लॉय करने के लिए साइन इन करें.',
+            'प्रमाणित करें OpenClaw इंस्टेंस प्रबंधित और डिप्लॉय करने के लिए.',
         emailAddress: 'ईमेल पता',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'ईमेल से जारी रखें',
@@ -1723,7 +1723,7 @@ const hi: Translations = {
         comingSoon: 'जल्द आ रहा है',
         messagesPlaceholder: 'संदेश और सूचनाएँ यहाँ दिखाई देंगी.',
         settingsPlaceholder: 'खाता सेटिंग्स और प्राथमिकताएँ यहाँ दिखाई देंगी.',
-        signIn: 'साइन इन',
+        signIn: 'प्रमाणीकरण',
         signInDescription:
             'अपने OpenClaw इंस्टेंस प्रबंधित करने के लिए साइन इन करें.',
         enterEmail: 'ईमेल पता',
@@ -1740,7 +1740,7 @@ const hi: Translations = {
         changeEmail: 'ईमेल बदलें',
         invalidCode: 'अमान्य कोड!',
         codeExpired: 'कोड समाप्त हो गया. कृपया नया अनुरोध करें.',
-        signingIn: 'साइन इन हो रहा है...',
+        signingIn: 'प्रमाणित हो रहा है...',
         signOut: 'साइन आउट',
         signedInAs: 'इस रूप में साइन इन',
         loadMore: 'और लोड करें',

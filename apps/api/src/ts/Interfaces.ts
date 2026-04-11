@@ -4,7 +4,6 @@ import type {
     ClawFileType,
     FeatureEmailKey,
     SubscriptionStatus,
-    VersionGatedFeature,
     WebhookEventType
 } from '@/ts/Types'
 import type { PgTable } from 'drizzle-orm/pg-core'
@@ -18,29 +17,12 @@ export interface ApiResponse<T = null> {
     version: string
 }
 
-export interface ReadClawConfigFileOptions {
-    fallback?: string
-    timeout?: number
-}
-
 export interface WithClawOptions {
     requireSSH?: boolean | TranslationKey
 }
 
 export interface ExportRateLimitData {
     retryAfter: number
-}
-
-export interface FeatureGatedConfigUpdateParams {
-    ip: string
-    rootPassword: string
-    feature: VersionGatedFeature
-    mutate: (config: Record<string, unknown>) => void | Promise<void>
-}
-
-export interface FeatureGatedConfigUpdateResult {
-    ok: boolean
-    unsupportedVersion?: string
 }
 
 export interface CloudProvider {
@@ -639,11 +621,6 @@ export interface NpmRegistryVersionsResponse {
 
 export interface NpmDownloadsResponse {
     downloads: Record<string, number>
-}
-
-export interface VersionCheckResult {
-    supported: boolean
-    version: string
 }
 
 export interface InstallVersionBody {

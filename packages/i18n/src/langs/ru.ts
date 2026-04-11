@@ -643,16 +643,16 @@ const ru: Translations = {
         }
     },
     auth: {
-        signIn: 'Войти',
+        signIn: 'Аутентификация',
         signInDescription:
             'Войдите в аккаунт ClawHost для управления экземплярами OpenClaw.',
-        signingIn: 'Вход...',
+        signingIn: 'Аутентификация...',
         verifyCode: 'Подтвердить код',
         checkYourEmail: 'Проверьте почту',
         checkYourEmailHeading: 'Проверьте почту',
         codeSentTo: 'Мы отправили 6-значный код на',
         signInToDeployOpenClaw:
-            'Войдите для управления и развёртывания экземпляров OpenClaw.',
+            'Авторизуйтесь для управления и развёртывания экземпляров OpenClaw.',
         emailAddress: 'Адрес электронной почты',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'Продолжить с Email',
@@ -1725,7 +1725,7 @@ const ru: Translations = {
             'Сообщения и уведомления будут отображаться здесь.',
         settingsPlaceholder:
             'Настройки аккаунта и предпочтения будут отображаться здесь.',
-        signIn: 'Войти',
+        signIn: 'Аутентификация',
         signInDescription: 'Войдите для управления экземплярами OpenClaw.',
         enterEmail: 'Адрес электронной почты',
         emailPlaceholder: 'example@clawhost.cloud',
@@ -1740,7 +1740,7 @@ const ru: Translations = {
         changeEmail: 'Изменить email',
         invalidCode: 'Неверный код !',
         codeExpired: 'Код истёк. Запросите новый.',
-        signingIn: 'Вход...',
+        signingIn: 'Аутентификация...',
         signOut: 'Выйти',
         signedInAs: 'Вы вошли как',
         loadMore: 'Загрузить ещё',

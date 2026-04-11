@@ -107,8 +107,6 @@ const generateBlogContent = async (
         instructions: `You are a senior technical writer for ClawHost, the managed hosting platform for OpenClaw.
 
 OpenClaw is an open-source AI agent framework with:
-- Multi-agent architecture
-- Voice capabilities (Piper TTS)
 - Browser automation
 - Runs on VPS or via ClawHost managed hosting
 - Uses AI models (Claude, GPT-4, local models via Ollama)

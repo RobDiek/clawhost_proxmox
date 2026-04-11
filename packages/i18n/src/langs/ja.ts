@@ -643,16 +643,16 @@ const ja: Translations = {
         }
     },
     auth: {
-        signIn: 'サインイン',
+        signIn: '認証',
         signInDescription:
             'ClawHostアカウントにサインインしてOpenClawインスタンスを管理。',
-        signingIn: 'サインイン中...',
+        signingIn: '認証中...',
         verifyCode: 'コードを確認',
         checkYourEmail: 'メールを確認',
         checkYourEmailHeading: 'メールを確認してください',
         codeSentTo: '6桁のコードを送信しました',
         signInToDeployOpenClaw:
-            'サインインしてOpenClawインスタンスを管理・デプロイ。',
+            '認証してOpenClawインスタンスを管理・デプロイ。',
         emailAddress: 'メールアドレス',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'メールで続行',
@@ -1697,7 +1697,7 @@ const ja: Translations = {
         comingSoon: '近日公開',
         messagesPlaceholder: 'メッセージと通知がここに表示されます。',
         settingsPlaceholder: 'アカウント設定と環境設定がここに表示されます。',
-        signIn: 'サインイン',
+        signIn: '認証',
         signInDescription: 'サインインしてOpenClawインスタンスを管理。',
         enterEmail: 'メールアドレス',
         emailPlaceholder: 'example@clawhost.cloud',
@@ -1713,7 +1713,7 @@ const ja: Translations = {
         invalidCode: '無効なコードです！',
         codeExpired:
             'コードの有効期限が切れました。新しいコードをリクエストしてください。',
-        signingIn: 'サインイン中...',
+        signingIn: '認証中...',
         signOut: 'サインアウト',
         signedInAs: 'ログイン中:',
         loadMore: 'もっと読み込む',

@@ -6,7 +6,7 @@ describe('PATHS', () => {
     })
 
     it('has all expected path segments', () => {
-        expect(PATHS.LOGIN).toBe('login')
+        expect(PATHS.LOGIN).toBe('auth')
         expect(PATHS.CLAWS).toBe('claws')
         expect(PATHS.SSH_KEYS).toBe('ssh-keys')
         expect(PATHS.ACCOUNT).toBe('account')

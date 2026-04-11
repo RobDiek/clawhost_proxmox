@@ -655,16 +655,16 @@ const pl: Translations = {
         }
     },
     auth: {
-        signIn: 'Zaloguj się',
+        signIn: 'Uwierzytelnianie',
         signInDescription:
             'Zaloguj się na swoje konto ClawHost, aby zarządzać instancjami OpenClaw.',
-        signingIn: 'Logowanie...',
+        signingIn: 'Uwierzytelnianie...',
         verifyCode: 'Zweryfikuj kod',
         checkYourEmail: 'Sprawdź email',
         checkYourEmailHeading: 'Sprawdź swoją skrzynkę',
         codeSentTo: 'Wysłaliśmy 6-cyfrowy kod na',
         signInToDeployOpenClaw:
-            'Zaloguj się, aby zarządzać i wdrażać instancje OpenClaw.',
+            'Uwierzytelnij się, aby zarządzać i wdrażać instancje OpenClaw.',
         emailAddress: 'Adres email',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'Kontynuuj z emailem',
@@ -1738,7 +1738,7 @@ const pl: Translations = {
         messagesPlaceholder: 'Wiadomości i powiadomienia pojawią się tutaj.',
         settingsPlaceholder:
             'Ustawienia konta i preferencje pojawią się tutaj.',
-        signIn: 'Zaloguj się',
+        signIn: 'Uwierzytelnianie',
         signInDescription: 'Zaloguj się, aby zarządzać instancjami OpenClaw.',
         enterEmail: 'Adres email',
         emailPlaceholder: 'example@clawhost.cloud',
@@ -1753,7 +1753,7 @@ const pl: Translations = {
         changeEmail: 'Zmień email',
         invalidCode: 'Nieprawidłowy kod !',
         codeExpired: 'Kod wygasł. Poproś o nowy.',
-        signingIn: 'Logowanie...',
+        signingIn: 'Uwierzytelnianie...',
         signOut: 'Wyloguj się',
         signedInAs: 'Zalogowany jako',
         loadMore: 'Załaduj więcej',

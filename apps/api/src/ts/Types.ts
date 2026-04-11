@@ -3,8 +3,7 @@ import type {
     authMethod,
     billingInterval,
     clawFileType,
-    userRole,
-    versionGatedFeature
+    userRole
 } from '@openclaw/shared'
 import type {
     environment,
@@ -38,9 +37,6 @@ export type BillingInterval =
 export type PolarPriceMap = Record<string, number>
 
 export type ClawRow = typeof claws.$inferSelect
-
-export type VersionGatedFeature =
-    (typeof versionGatedFeature)[keyof typeof versionGatedFeature]
 
 export type FeatureEmailKey =
     (typeof featureEmailKey)[keyof typeof featureEmailKey]

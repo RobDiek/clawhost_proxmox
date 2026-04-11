@@ -452,13 +452,6 @@ export interface PanelPlaceholderProps {
     description: string
 }
 
-export interface VersionUnsupportedProps {
-    version: string
-    feature: string
-    featureKey: string
-    onGoToVersions?: () => void
-}
-
 export interface PageTitleProps {
     title: string
     description?: string
