@@ -639,7 +639,9 @@ const nl: Translations = {
                 benefit:
                     'Door deze lagen te verwijderen, werk je direct met OpenClaw. Je leert het echte systeem, niet een tweede interface die verouderd kan raken. Je kennis is overal bruikbaar waar OpenClaw draait.',
                 action: 'Er gaat niets kapot. Je claws, servers, facturering en kernfuncties van het dashboard blijven ongewijzigd. Om kanalen, vaardigheden of agents te configureren, gebruik je OpenClaw-instantie direct.',
-                cta: 'Dashboard Openen'
+                closing:
+                    'We weten dat het verwijderen van functies nooit goed klinkt. Maar het geeft ons de vrijheid om te focussen op wat er toe doet — sneller leveren voor het OpenClaw-ecosysteem, de kernhostingervaring verbeteren, en dingen bouwen die echt het verschil maken voor jou. Bedankt dat je deel uitmaakt van deze reis, en dat je dat blijft doen.',
+                cta: 'Bezoek ClawHost'
             }
         }
     },

@@ -15,7 +15,15 @@ const CDN_ASSETS = {
     FEATURE_SUBDOMAIN: `${CDN_URL}/assets/features/subdomain.gif`,
     FEATURE_DARK_MODE: `${CDN_URL}/assets/features/dark-mode.gif`,
     FEATURE_REINSTALL: `${CDN_URL}/assets/features/reinstall.gif`,
-    FEATURE_YEARLY_PLANS: `${CDN_URL}/assets/features/yearly-plans.gif`
+    FEATURE_YEARLY_PLANS: `${CDN_URL}/assets/features/yearly-plans.gif`,
+    EMAIL_SIMPLIFIED_PLATFORM: `${CDN_URL}/assets/emails/lobster-moving-fast.gif`,
+    ICON_PRODUCT_HUNT: `${CDN_URL}/assets/icons/product-hunt.png`,
+    ICON_X: `${CDN_URL}/assets/icons/x.png`,
+    ICON_FACEBOOK: `${CDN_URL}/assets/icons/facebook.png`,
+    ICON_INSTAGRAM: `${CDN_URL}/assets/icons/instagram.png`,
+    ICON_THREADS: `${CDN_URL}/assets/icons/threads.png`,
+    ICON_YOUTUBE: `${CDN_URL}/assets/icons/youtube.png`,
+    ICON_TIKTOK: `${CDN_URL}/assets/icons/tiktok.png`
 }
 
 export default CDN_ASSETS

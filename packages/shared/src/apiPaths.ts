@@ -1,3 +1,5 @@
+const AGENTS = '/agents'
+
 const API_PATHS = {
     AUTH: {
         SEND_OTP: '/auth/send-otp',
@@ -11,34 +13,35 @@ const API_PATHS = {
         AVAILABILITY: '/plans/availability'
     },
     CLAWS: {
-        BASE: '/claws',
-        ADMIN: '/claws/admin',
-        PURCHASE: '/claws/purchase',
-        byId: (id: string) => `/claws/${id}`,
-        PENDING: (id: string) => `/claws/pending/${id}`,
-        SYNC: (id: string) => `/claws/${id}/sync`,
-        START: (id: string) => `/claws/${id}/start`,
-        STOP: (id: string) => `/claws/${id}/stop`,
-        RESTART: (id: string) => `/claws/${id}/restart`,
-        CANCEL_DELETION: (id: string) => `/claws/${id}/cancel-deletion`,
-        HARD_DELETE: (id: string) => `/claws/${id}/hard-delete`,
-        SUBDOMAIN: (id: string) => `/claws/${id}/subdomain`,
-        CHECK_SUBDOMAIN: '/claws/check-subdomain',
-        REINSTALL: (id: string) => `/claws/${id}/reinstall`,
-        CREDENTIALS: (id: string) => `/claws/${id}/credentials`,
-        EXPORT: (id: string) => `/claws/${id}/export`,
+        BASE: AGENTS,
+        ADMIN: `${AGENTS}/admin`,
+        PURCHASE: `${AGENTS}/purchase`,
+        byId: (id: string) => `${AGENTS}/${id}`,
+        PENDING: (id: string) => `${AGENTS}/pending/${id}`,
+        SYNC: (id: string) => `${AGENTS}/${id}/sync`,
+        START: (id: string) => `${AGENTS}/${id}/start`,
+        STOP: (id: string) => `${AGENTS}/${id}/stop`,
+        RESTART: (id: string) => `${AGENTS}/${id}/restart`,
+        CANCEL_DELETION: (id: string) => `${AGENTS}/${id}/cancel-deletion`,
+        HARD_DELETE: (id: string) => `${AGENTS}/${id}/hard-delete`,
+        SUBDOMAIN: (id: string) => `${AGENTS}/${id}/subdomain`,
+        CHECK_SUBDOMAIN: `${AGENTS}/check-subdomain`,
+        REINSTALL: (id: string) => `${AGENTS}/${id}/reinstall`,
+        CREDENTIALS: (id: string) => `${AGENTS}/${id}/credentials`,
+        EXPORT: (id: string) => `${AGENTS}/${id}/export`,
         DIAGNOSTICS: {
-            STATUS: (id: string) => `/claws/${id}/diagnostics/status`,
-            LOGS: (id: string) => `/claws/${id}/diagnostics/logs`,
-            REPAIR: (id: string) => `/claws/${id}/diagnostics/repair`
+            STATUS: (id: string) => `${AGENTS}/${id}/diagnostics/status`,
+            LOGS: (id: string) => `${AGENTS}/${id}/diagnostics/logs`,
+            REPAIR: (id: string) => `${AGENTS}/${id}/diagnostics/repair`
         },
-        VERSION: (id: string) => `/claws/${id}/version`,
-        VERSIONS: (id: string) => `/claws/${id}/versions`,
-        INSTALL_VERSION: (id: string) => `/claws/${id}/install-version`,
+        VERSION: (id: string) => `${AGENTS}/${id}/version`,
+        VERSIONS: (id: string) => `${AGENTS}/${id}/versions`,
+        INSTALL_VERSION: (id: string) => `${AGENTS}/${id}/install-version`,
         FILES: {
-            BASE: (id: string) => `/claws/${id}/files`,
-            READ: (id: string) => `/claws/${id}/files/read`
-        }
+            BASE: (id: string) => `${AGENTS}/${id}/files`,
+            READ: (id: string) => `${AGENTS}/${id}/files/read`
+        },
+        TERMINAL: (id: string) => `${AGENTS}/${id}/terminal`
     },
     AFFILIATE: {
         BASE: '/affiliate',
@@ -70,8 +73,8 @@ const API_PATHS = {
         STATS: '/admin/stats',
         ANALYTICS: '/admin/analytics',
         BILLING: '/admin/billing',
-        CLAWS: '/admin/claws',
-        PENDING_CLAWS: '/admin/pending-claws',
+        CLAWS: `/admin${AGENTS}`,
+        PENDING_CLAWS: `/admin/pending-agents`,
         SSH_KEYS: '/admin/ssh-keys',
         VOLUMES: '/admin/volumes',
         REFERRALS: '/admin/referrals',

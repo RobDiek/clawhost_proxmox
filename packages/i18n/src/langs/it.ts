@@ -655,7 +655,9 @@ const it: Translations = {
                 benefit:
                     'Rimuovendo questi strati, interagisci direttamente con OpenClaw. Impari il sistema reale, non una seconda interfaccia che può diventare obsoleta. La tua conoscenza è trasferibile ovunque OpenClaw funzioni.',
                 action: 'Nulla si rompe. I tuoi claw, server, fatturazione e le funzionalità principali della dashboard rimangono invariati. Per configurare canali, abilità o agenti, usa direttamente la tua istanza OpenClaw.',
-                cta: 'Apri Dashboard'
+                closing:
+                    'Sappiamo che rimuovere funzionalità non suona mai bene. Ma questo ci libera per concentrarci su ciò che conta — consegnare più velocemente per l\'ecosistema OpenClaw, migliorare l\'esperienza di hosting, e costruire cose che fanno davvero la differenza per te. Grazie per far parte di questo viaggio, e per continuare a farne parte.',
+                cta: 'Visita ClawHost'
             }
         }
     },

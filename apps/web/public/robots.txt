@@ -1,6 +1,6 @@
 User-agent: *
 Allow: /
-Disallow: /claws
+Disallow: /agents
 Disallow: /ssh-keys
 Disallow: /account
 Disallow: /billing

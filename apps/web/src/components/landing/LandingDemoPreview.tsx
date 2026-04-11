@@ -8,6 +8,7 @@ import { demoClaws } from '@/data'
 import { ClawDetailPanel } from '@/components/dashboard'
 import { ChatSidebar, ChatEmptyState } from '@/components/chat'
 import { getBaseDomain } from '@/lib'
+import { apiPaths } from '@openclaw/shared'
 import { LockIcon } from '@phosphor-icons/react'
 
 const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
@@ -42,7 +43,7 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                                     className='h-3 w-3 text-green-500/70'
                                     weight='fill'
                                 />
-                                <span>{`${getBaseDomain()}/claws`}</span>
+                                <span>{`${getBaseDomain()}${apiPaths.CLAWS.BASE}`}</span>
                             </div>
                         )}
                     </div>

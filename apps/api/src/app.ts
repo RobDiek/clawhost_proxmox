@@ -10,7 +10,7 @@ import { verifyToken } from '@/services/firebase'
 import { eq, sql } from 'drizzle-orm'
 import { db } from '@/db'
 import { users } from '@/db/schema'
-import { authMethod, externalUrls, userRole } from '@openclaw/shared'
+import { apiPaths, authMethod, externalUrls, userRole } from '@openclaw/shared'
 import { environment } from '@/lib/constants'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
@@ -174,7 +174,7 @@ app.use('/*', async (c, next) => {
 
 app.route('/admin', adminRoutes)
 app.route('/affiliate', affiliateRoutes)
-app.route('/claws', clawsRoutes)
+app.route(apiPaths.CLAWS.BASE, clawsRoutes)
 app.route('/ssh-keys', sshKeysRoutes)
 app.route('/users', usersRoutes)
 

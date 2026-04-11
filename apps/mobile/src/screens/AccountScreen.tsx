@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { BillingOrder } from '@/ts/Interfaces'
 
-import { useState, useEffect } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import {
     ActivityIndicator,
     Alert,
@@ -273,7 +273,7 @@ const AccountScreen: FC = (): ReactNode => {
                                         color={COLORS.black}
                                     />
                                 ) : (
-                                    <>
+                                    <Fragment>
                                         <Text style={styles.manageBillingText}>
                                             {t('account.manageBilling')}
                                         </Text>
@@ -281,7 +281,7 @@ const AccountScreen: FC = (): ReactNode => {
                                             size={14}
                                             color={COLORS.black}
                                         />
-                                    </>
+                                    </Fragment>
                                 )}
                             </Pressable>
                         )}

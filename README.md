@@ -103,7 +103,6 @@ clawhost/
 | `volumes`      | Persistent storage volumes attached to claws                          |
 | `otpCodes`     | OTP authentication codes with expiration and attempt tracking         |
 | `rateLimits`   | Rate limiting for authentication endpoints                            |
-| `clawExports`  | Export/backup records with file metadata                              |
 
 ## Self-Hosting
 
@@ -321,47 +320,47 @@ pnpm --filter api email:dev    # Preview email templates at localhost:3333
 
 | Method   | Endpoint                         | Description                    |
 | -------- | -------------------------------- | ------------------------------ |
-| `GET`    | `/api/claws`                     | List user's claws              |
-| `GET`    | `/api/claws/:id`                 | Get a specific claw            |
-| `POST`   | `/api/claws`                     | Create a claw (direct)         |
-| `POST`   | `/api/claws/purchase`            | Initiate paid claw purchase    |
-| `DELETE` | `/api/claws/pending/:id`         | Cancel a pending claw          |
-| `POST`   | `/api/claws/:id/sync`            | Sync claw with cloud provider  |
-| `POST`   | `/api/claws/:id/start`           | Start a claw                   |
-| `POST`   | `/api/claws/:id/stop`            | Stop a claw                    |
-| `POST`   | `/api/claws/:id/restart`         | Restart a claw                 |
-| `PATCH`  | `/api/claws/:id`                 | Rename a claw                  |
-| `POST`   | `/api/claws/:id/cancel-deletion` | Cancel scheduled deletion      |
-| `DELETE` | `/api/claws/:id`                 | Delete a claw                  |
-| `GET`    | `/api/claws/:id/export`          | Export claw configuration      |
-| `POST`   | `/api/claws/:id/credentials`     | Get claw credentials           |
-| `POST`   | `/api/claws/:id/version`         | Get installed OpenClaw version |
-| `POST`   | `/api/claws/:id/versions`        | List available versions        |
+| `GET`    | `/api/agents`                     | List user's claws              |
+| `GET`    | `/api/agents/:id`                 | Get a specific claw            |
+| `POST`   | `/api/agents`                     | Create a claw (direct)         |
+| `POST`   | `/api/agents/purchase`            | Initiate paid claw purchase    |
+| `DELETE` | `/api/agents/pending/:id`         | Cancel a pending claw          |
+| `POST`   | `/api/agents/:id/sync`            | Sync claw with cloud provider  |
+| `POST`   | `/api/agents/:id/start`           | Start a claw                   |
+| `POST`   | `/api/agents/:id/stop`            | Stop a claw                    |
+| `POST`   | `/api/agents/:id/restart`         | Restart a claw                 |
+| `PATCH`  | `/api/agents/:id`                 | Rename a claw                  |
+| `POST`   | `/api/agents/:id/cancel-deletion` | Cancel scheduled deletion      |
+| `DELETE` | `/api/agents/:id`                 | Delete a claw                  |
+| `GET`    | `/api/agents/:id/export`          | Export claw configuration      |
+| `POST`   | `/api/agents/:id/credentials`     | Get claw credentials           |
+| `POST`   | `/api/agents/:id/version`         | Get installed OpenClaw version |
+| `POST`   | `/api/agents/:id/versions`        | List available versions        |
 
 **Claw Diagnostics**
 
 | Method | Endpoint                            | Description            |
 | ------ | ----------------------------------- | ---------------------- |
-| `POST` | `/api/claws/:id/diagnostics/status` | Get server diagnostics |
-| `POST` | `/api/claws/:id/diagnostics/logs`   | Get server logs        |
+| `POST` | `/api/agents/:id/diagnostics/status` | Get server diagnostics |
+| `POST` | `/api/agents/:id/diagnostics/logs`   | Get server logs        |
 
 **Claw Files**
 
 | Method | Endpoint                    | Description            |
 | ------ | --------------------------- | ---------------------- |
-| `POST` | `/api/claws/:id/files`      | List files on instance |
-| `POST` | `/api/claws/:id/files/read` | Read a file            |
-| `PUT`  | `/api/claws/:id/files`      | Update a file          |
+| `POST` | `/api/agents/:id/files`      | List files on instance |
+| `POST` | `/api/agents/:id/files/read` | Read a file            |
+| `PUT`  | `/api/agents/:id/files`      | Update a file          |
 
 **Admin Endpoints**
 
 | Method | Endpoint                            | Description                           |
 | ------ | ----------------------------------- | ------------------------------------- |
-| `GET`  | `/api/claws/admin`                  | List all claws (admin only)           |
-| `POST` | `/api/claws/:id/hard-delete`        | Permanently delete (admin only)       |
-| `POST` | `/api/claws/:id/diagnostics/repair` | Repair instance (admin only)          |
-| `POST` | `/api/claws/:id/reinstall`          | Reinstall OS (admin only)             |
-| `POST` | `/api/claws/:id/install-version`    | Install specific version (admin only) |
+| `GET`  | `/api/agents/admin`                  | List all claws (admin only)           |
+| `POST` | `/api/agents/:id/hard-delete`        | Permanently delete (admin only)       |
+| `POST` | `/api/agents/:id/diagnostics/repair` | Repair instance (admin only)          |
+| `POST` | `/api/agents/:id/reinstall`          | Reinstall OS (admin only)             |
+| `POST` | `/api/agents/:id/install-version`    | Install specific version (admin only) |
 
 **SSH Keys**
 
@@ -388,7 +387,7 @@ pnpm --filter api email:dev    # Preview email templates at localhost:3333
 
 | Protocol    | Endpoint                        | Description               |
 | ----------- | ------------------------------- | ------------------------- |
-| `WebSocket` | `/ws/claws/:id/terminal?token=` | Live SSH terminal session |
+| `WebSocket` | `/ws/agents/:id/terminal?token=` | Live SSH terminal session |
 
 ### Webhooks
 

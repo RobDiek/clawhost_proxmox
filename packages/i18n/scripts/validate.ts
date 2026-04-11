@@ -62,32 +62,30 @@ for (const [lang, translations] of Object.entries(languages)) {
 
     if (missing.length > 0) {
         hasErrors = true
-
-        console.error(
-            `\n❌ ${lang.toUpperCase()} is missing ${missing.length} key(s):`
+        process.stderr.write(
+            `\n❌ ${lang.toUpperCase()} is missing ${missing.length} key(s):\n`
         )
 
         for (const key of missing) {
-            console.error(`   - ${key}`)
+            process.stderr.write(`   - ${key}\n`)
         }
     }
 
     if (extra.length > 0) {
         hasErrors = true
-
-        console.error(
-            `\n⚠️  ${lang.toUpperCase()} has ${extra.length} extra key(s):`
+        process.stderr.write(
+            `\n⚠️  ${lang.toUpperCase()} has ${extra.length} extra key(s):\n`
         )
 
         for (const key of extra) {
-            console.error(`   - ${key}`)
+            process.stderr.write(`   - ${key}\n`)
         }
     }
 }
 
 if (hasErrors) {
-    console.error(
-        '\n🚫 i18n validation failed! All language files must have the same keys as en.ts\n'
+    process.stderr.write(
+        '\n🚫 i18n validation failed! All language files must have the same keys as en.ts\n\n'
     )
     process.exit(1)
-} else console.log('✅ All 14 language files have matching keys.')
+} else process.stdout.write('✅ All 14 language files have matching keys.\n')

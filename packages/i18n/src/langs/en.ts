@@ -622,7 +622,9 @@ const en = {
                 benefit:
                     'By removing these layers, you interact with OpenClaw directly. You learn the real system, not a second interface that may fall out of date. Your knowledge transfers everywhere OpenClaw runs.',
                 action: 'Nothing breaks. Your claws, servers, billing, and core dashboard features are unchanged. To configure channels, skills, or agents, use your OpenClaw instance directly.',
-                cta: 'Open Dashboard'
+                closing:
+                    'We know dropping features never sounds great. But this frees us to focus on what matters — shipping faster for the OpenClaw ecosystem, improving the core hosting experience, and building things that actually move the needle for you. Thank you for being part of this journey, and for continuing to be.',
+                cta: 'Visit ClawHost'
             }
         }
     },

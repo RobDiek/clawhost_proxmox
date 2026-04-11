@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { LayoutChangeEvent } from 'react-native'
 import type { ClawCardProps } from '@/ts/Interfaces'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { CaretDown, ChatCircleDots, Waveform } from 'phosphor-react-native'
@@ -91,7 +91,7 @@ const ClawCard: FC<ClawCardProps> = ({ claw, plan }): ReactNode => {
             </Pressable>
 
             {isExpanded && (
-                <>
+                <Fragment>
                     <View style={styles.separator} />
 
                     <View style={styles.fieldsGrid} onLayout={handleGridLayout}>
@@ -202,7 +202,7 @@ const ClawCard: FC<ClawCardProps> = ({ claw, plan }): ReactNode => {
                             </View>
                         </View>
                     )}
-                </>
+                </Fragment>
             )}
 
             {claw.status === clawStatus.running && (
