@@ -403,16 +403,18 @@ const fr: Translations = {
         reinstallRateLimited:
             "Vous ne pouvez réinstaller qu\'une fois toutes les 24 heures. Veuillez contacter l\'équipe si vous souhaitez supprimer cette limite.",
         subdomainRateLimited:
-            'Vous ne pouvez changer votre sous-domaine qu\'une fois toutes les 24 heures. Veuillez contacter l\'équipe si vous souhaitez supprimer cette limite.',
+            "Vous ne pouvez changer votre sous-domaine qu'une fois toutes les 24 heures. Veuillez contacter l'équipe si vous souhaitez supprimer cette limite.",
         subdomainUpdated: 'Sous-domaine mis à jour avec succès.',
-        invalidSubdomain: 'Sous-domaine invalide. Utilisez 3 à 20 lettres minuscules et chiffres !',
+        invalidSubdomain:
+            'Sous-domaine invalide. Utilisez 3 à 20 lettres minuscules et chiffres !',
         subdomainAlreadyInUse: 'Ce sous-domaine est déjà utilisé !',
         clawBusy: 'Le claw est en cours de provisionnement ou de suppression !',
         reinstallGatewayNotResponding:
             'Réinstallation terminée mais la passerelle ne répond pas encore. Elle peut avoir besoin de plus de temps pour démarrer !',
         failedToRepairClaw: 'Failed to repair the instance!',
         repairSuccess: 'Instance repaired successfully.',
-        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
+        repairGatewayNotResponding:
+            'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: "Échec de l\'exportation des données du claw !",
         clawNotReady: "Le claw n\'est pas prêt pour l\'exportation !",
         exportRateLimited:
@@ -649,11 +651,11 @@ const fr: Translations = {
                 cta: 'Voir les Plans'
             },
             simplifiedPlatform: {
-                subject: 'Nous avons simplifié ClawHost',
+                subject: 'ClawHost just got Simpler - ClawHost',
                 preview:
                     'Les canaux, compétences et plus sont maintenant gérés directement dans OpenClaw',
                 tag: 'Mise à jour',
-                heading: 'ClawHost devient plus simple',
+                heading: 'ClawHost Simplified',
                 description:
                     'Nous avons retiré la gestion des canaux, agents, chat et compétences du tableau de bord ClawHost. Ces fonctionnalités sont désormais gérées directement sur votre instance OpenClaw.',
                 removed:
@@ -663,7 +665,7 @@ const fr: Translations = {
                     'En supprimant ces couches, vous interagissez directement avec OpenClaw. Vous apprenez le vrai système, pas une seconde interface qui peut devenir obsolète. Vos connaissances sont transférables partout où OpenClaw fonctionne.',
                 action: 'Rien ne casse. Vos claws, serveurs, facturation et fonctionnalités principales du tableau de bord restent inchangés. Pour configurer les canaux, compétences ou agents, utilisez directement votre instance OpenClaw.',
                 closing:
-                    'Nous savons que retirer des fonctionnalités ne sonne jamais bien. Mais cela nous libère pour nous concentrer sur l\'essentiel — livrer plus vite pour l\'écosystème OpenClaw, améliorer l\'expérience d\'hébergement, et construire ce qui compte vraiment pour vous. Merci de faire partie de cette aventure, et de continuer à en faire partie.',
+                    "Nous savons que retirer des fonctionnalités ne sonne jamais bien. Mais cela nous libère pour nous concentrer sur l'essentiel — livrer plus vite pour l'écosystème OpenClaw, améliorer l'expérience d'hébergement, et construire ce qui compte vraiment pour vous. Merci de faire partie de cette aventure, et de continuer à en faire partie.",
                 cta: 'Visiter ClawHost'
             }
         }
@@ -918,9 +920,11 @@ const fr: Translations = {
         diagnosticsStatus: 'Statut',
         diagnosticsLogs: 'Journaux',
         diagnosticsRepair: 'Repair',
-        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairDescription:
+            'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
         diagnosticsRepairSuccess: 'Instance repaired successfully.',
-        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
+        diagnosticsRepairFailed:
+            'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: "Connexion à l\'instance...",
         diagnosticsNoLogs:
             'Aucun journal disponible. Démarrez votre instance pour générer des journaux.',
@@ -1402,9 +1406,12 @@ const fr: Translations = {
             'Simplification de la plateforme en migrant les fonctionnalités gérées vers OpenClaw, suppression de la vue playground et introduction de sous-domaines personnalisés modifiables.',
         release15Feature1:
             'Simplification et migration des fonctionnalités gérées vers OpenClaw, plus de chat, agents, canaux, variables et compétences ClawHost',
-        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
-        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
-        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
+        release15Feature2:
+            'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3:
+            'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4:
+            'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '1 avril 2026',
         release14Title:
             "Migration Hetzner, système d'affiliation & nouvelles langues",
@@ -1553,7 +1560,8 @@ const fr: Translations = {
     },
     clawDetail: {
         noAgentsYet: 'Aucun Agent',
-        noAgentsDescription: 'Déployez votre premier Agent pour interagir avec.',
+        noAgentsDescription:
+            'Déployez votre premier Agent pour interagir avec.',
         selectClaw: 'Sélectionnez un Claw',
         selectClawDescription:
             'Choisissez un Claw dans la barre latérale pour voir ses détails.',
@@ -1584,6 +1592,8 @@ const fr: Translations = {
         featureVersionUnsupportedNewer: 'versions plus récentes',
         tabVersions: 'Versions',
         tabFiles: 'Explorateur de fichiers',
+        tabBilling: 'Billing',
+        billingEmpty: 'No billing history for this instance.',
         versionsSearch: 'Rechercher des versions...',
         versionsEmpty: 'Aucune version trouvée',
         versionsEmptyDescription:
@@ -2192,6 +2202,6 @@ const fr: Translations = {
         contactText:
             "Si vous avez des questions sur le programme d'affiliation, besoin d'aide avec votre code de parrainage ou souhaitez signaler une violation, contactez-nous à"
     }
-} as const
+}
 
 export default fr

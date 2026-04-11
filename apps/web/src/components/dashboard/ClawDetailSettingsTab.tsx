@@ -65,9 +65,7 @@ const ClawDetailSettingsTab: FC<ClawDetailSettingsTabProps> = ({
                             type='text'
                             value={settingsSubdomain}
                             onChange={(e) =>
-                                onSubdomainChange(
-                                    e.target.value.toLowerCase()
-                                )
+                                onSubdomainChange(e.target.value.toLowerCase())
                             }
                             onKeyDown={(e) => {
                                 if (
@@ -79,9 +77,7 @@ const ClawDetailSettingsTab: FC<ClawDetailSettingsTabProps> = ({
                                     onSave()
                                 }
                             }}
-                            placeholder={t(
-                                'clawDetail.subdomainPlaceholder'
-                            )}
+                            placeholder={t('clawDetail.subdomainPlaceholder')}
                             className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-l-md border border-r-0 px-3 py-2 text-sm outline-none transition-colors focus:border-[#ef5350]/50 ${
                                 settingsSubdomainError
                                     ? 'border-red-500/50'

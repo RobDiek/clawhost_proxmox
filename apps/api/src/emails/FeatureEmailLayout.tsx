@@ -1,6 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { FeatureEmailLayoutProps } from '@/ts/Interfaces'
 
+import { t } from '@openclaw/i18n'
 import {
     Body,
     Container,
@@ -8,7 +9,8 @@ import {
     Img,
     Link,
     Preview,
-    Section
+    Section,
+    Text
 } from '@react-email/components'
 
 import { externalUrls } from '@openclaw/shared'
@@ -18,6 +20,7 @@ import {
     main,
     container,
     body,
+    paragraphMuted,
     logoSection,
     logo
 } from '@/lib/emailStyles'
@@ -49,6 +52,10 @@ const FeatureEmailLayout: FC<FeatureEmailLayoutProps> = ({
                         <EmailFooter />
                     </Section>
                 </Container>
+
+                <Text style={{ ...paragraphMuted, marginTop: '-18px' }}>
+                    {t('emails.featureFooter')}
+                </Text>
             </Body>
         </Html>
     )

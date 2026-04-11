@@ -64,7 +64,7 @@ const ADMIN_TABS = {
     EMAILS: 'emails',
     BILLING: 'billing',
     SETTINGS: 'settings'
-} as const
+}
 
 const Admin: FC = (): ReactNode => {
     const { loading: authLoading } = useAuth()

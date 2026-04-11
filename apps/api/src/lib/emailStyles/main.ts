@@ -1,4 +1,6 @@
-const main = {
+import type { CSSProperties } from 'react'
+
+const main: CSSProperties = {
     backgroundColor: '#fdfdfd',
     backgroundImage:
         'linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px)',

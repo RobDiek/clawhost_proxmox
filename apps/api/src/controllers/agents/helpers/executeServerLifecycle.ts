@@ -19,7 +19,7 @@ const LIFECYCLE_CONFIG = {
         transitionalStatus: 'restarting',
         providerMethod: 'restartServer'
     }
-} as const
+}
 
 const executeServerLifecycle = async (
     claw: ClawRow,
@@ -35,7 +35,7 @@ const executeServerLifecycle = async (
 
     try {
         const provider = getProvider()
-        await provider[config.providerMethod](claw.providerServerId!)
+        await (provider[config.providerMethod as keyof typeof provider] as (id: string) => Promise<void>)(claw.providerServerId!)
         updateCachedServerStatus(
             claw.providerServerId!,
             config.transitionalStatus

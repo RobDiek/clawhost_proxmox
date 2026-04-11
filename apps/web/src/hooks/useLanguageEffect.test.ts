@@ -39,7 +39,7 @@ describe('useLanguageEffect logic', () => {
             'pl',
             'nl',
             'pt'
-        ] as const
+        ]
         for (const lang of languages) {
             setLanguage(lang)
             document.documentElement.lang = lang

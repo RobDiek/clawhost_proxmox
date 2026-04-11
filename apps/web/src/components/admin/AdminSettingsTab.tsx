@@ -21,13 +21,9 @@ const AdminSettingsTab: FC = (): ReactNode => {
             <label className='flex cursor-pointer items-center gap-3'>
                 <Checkbox
                     checked={adminMode}
-                    onCheckedChange={(checked) =>
-                        setAdminMode(!!checked)
-                    }
+                    onCheckedChange={(checked) => setAdminMode(!!checked)}
                 />
-                <span className='text-sm'>
-                    {t('admin.showAllAgents')}
-                </span>
+                <span className='text-sm'>{t('admin.showAllAgents')}</span>
             </label>
         </div>
     )

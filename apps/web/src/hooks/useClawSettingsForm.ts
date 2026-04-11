@@ -47,44 +47,51 @@ const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
         }
     }, [])
 
-    const handleSettingsSubdomainChange = useCallback((value: string) => {
-        setSettingsSubdomain(value)
+    const handleSettingsSubdomainChange = useCallback(
+        (value: string) => {
+            setSettingsSubdomain(value)
 
-        if (checkTimerRef.current) clearTimeout(checkTimerRef.current)
+            if (checkTimerRef.current) clearTimeout(checkTimerRef.current)
 
-        if (!value.trim() || !subdomainRegex.test(value)) {
-            setSubdomainChecking(false)
-            setSettingsSubdomainError(
-                t('clawDetail.subdomainInvalid', {
-                    min: inputValidation.SUBDOMAIN.MIN,
-                    max: inputValidation.SUBDOMAIN.MAX
-                })
-            )
-            return
-        }
-
-        if (value.trim() === (claw.subdomain || '')) {
-            setSubdomainChecking(false)
-            setSettingsSubdomainError('')
-            return
-        }
-
-        setSubdomainChecking(true)
-        setSettingsSubdomainError('')
-
-        checkTimerRef.current = setTimeout(async () => {
-            try {
-                const result = await api.checkSubdomain(value.trim())
-                if (!result.available) {
-                    setSettingsSubdomainError(t('clawDetail.subdomainInUse'))
-                }
-            } catch {
-                setSettingsSubdomainError(t('clawDetail.subdomainUpdateFailed'))
-            } finally {
+            if (!value.trim() || !subdomainRegex.test(value)) {
                 setSubdomainChecking(false)
+                setSettingsSubdomainError(
+                    t('clawDetail.subdomainInvalid', {
+                        min: inputValidation.SUBDOMAIN.MIN,
+                        max: inputValidation.SUBDOMAIN.MAX
+                    })
+                )
+                return
             }
-        }, SUBDOMAIN_CHECK_DELAY)
-    }, [claw.subdomain, subdomainRegex])
+
+            if (value.trim() === (claw.subdomain || '')) {
+                setSubdomainChecking(false)
+                setSettingsSubdomainError('')
+                return
+            }
+
+            setSubdomainChecking(true)
+            setSettingsSubdomainError('')
+
+            checkTimerRef.current = setTimeout(async () => {
+                try {
+                    const result = await api.checkSubdomain(value.trim())
+                    if (!result.available) {
+                        setSettingsSubdomainError(
+                            t('clawDetail.subdomainInUse')
+                        )
+                    }
+                } catch {
+                    setSettingsSubdomainError(
+                        t('clawDetail.subdomainUpdateFailed')
+                    )
+                } finally {
+                    setSubdomainChecking(false)
+                }
+            }, SUBDOMAIN_CHECK_DELAY)
+        },
+        [claw.subdomain, subdomainRegex]
+    )
 
     useEffect(() => {
         return () => {

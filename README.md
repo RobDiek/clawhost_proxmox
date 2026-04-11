@@ -318,8 +318,8 @@ pnpm --filter api email:dev    # Preview email templates at localhost:3333
 
 **Claws (Server Instances)**
 
-| Method   | Endpoint                         | Description                    |
-| -------- | -------------------------------- | ------------------------------ |
+| Method   | Endpoint                          | Description                    |
+| -------- | --------------------------------- | ------------------------------ |
 | `GET`    | `/api/agents`                     | List user's claws              |
 | `GET`    | `/api/agents/:id`                 | Get a specific claw            |
 | `POST`   | `/api/agents`                     | Create a claw (direct)         |
@@ -339,23 +339,23 @@ pnpm --filter api email:dev    # Preview email templates at localhost:3333
 
 **Claw Diagnostics**
 
-| Method | Endpoint                            | Description            |
-| ------ | ----------------------------------- | ---------------------- |
+| Method | Endpoint                             | Description            |
+| ------ | ------------------------------------ | ---------------------- |
 | `POST` | `/api/agents/:id/diagnostics/status` | Get server diagnostics |
 | `POST` | `/api/agents/:id/diagnostics/logs`   | Get server logs        |
 
 **Claw Files**
 
-| Method | Endpoint                    | Description            |
-| ------ | --------------------------- | ---------------------- |
+| Method | Endpoint                     | Description            |
+| ------ | ---------------------------- | ---------------------- |
 | `POST` | `/api/agents/:id/files`      | List files on instance |
 | `POST` | `/api/agents/:id/files/read` | Read a file            |
 | `PUT`  | `/api/agents/:id/files`      | Update a file          |
 
 **Admin Endpoints**
 
-| Method | Endpoint                            | Description                           |
-| ------ | ----------------------------------- | ------------------------------------- |
+| Method | Endpoint                             | Description                           |
+| ------ | ------------------------------------ | ------------------------------------- |
 | `GET`  | `/api/agents/admin`                  | List all claws (admin only)           |
 | `POST` | `/api/agents/:id/hard-delete`        | Permanently delete (admin only)       |
 | `POST` | `/api/agents/:id/diagnostics/repair` | Repair instance (admin only)          |
@@ -385,8 +385,8 @@ pnpm --filter api email:dev    # Preview email templates at localhost:3333
 
 **WebSocket**
 
-| Protocol    | Endpoint                        | Description               |
-| ----------- | ------------------------------- | ------------------------- |
+| Protocol    | Endpoint                         | Description               |
+| ----------- | -------------------------------- | ------------------------- |
 | `WebSocket` | `/ws/agents/:id/terminal?token=` | Live SSH terminal session |
 
 ### Webhooks

@@ -31,7 +31,7 @@ describe('getLanguage / setLanguage', () => {
             'pl',
             'nl',
             'pt'
-        ] as const
+        ]
         for (const lang of languages) {
             setLanguage(lang)
             expect(getLanguage()).toBe(lang)

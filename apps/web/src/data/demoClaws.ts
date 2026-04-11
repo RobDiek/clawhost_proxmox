@@ -15,6 +15,7 @@ const demoClaws: Claw[] = [
         subdomain: 'personal-claw',
         gatewayToken: null,
         subscriptionStatus: 'active',
+        polarSubscriptionId: null,
         billingInterval: null,
         currentPeriodStart: null,
         currentPeriodEnd: null,

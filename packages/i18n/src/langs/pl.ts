@@ -392,14 +392,16 @@ const pl: Translations = {
         subdomainRateLimited:
             'Subdomenę można zmienić tylko raz na 24 godziny. Skontaktuj się z zespołem, jeśli chcesz usunąć ten limit.',
         subdomainUpdated: 'Subdomena zaktualizowana pomyślnie.',
-        invalidSubdomain: 'Nieprawidłowa subdomena. Użyj 3-20 małych liter i cyfr !',
+        invalidSubdomain:
+            'Nieprawidłowa subdomena. Użyj 3-20 małych liter i cyfr !',
         subdomainAlreadyInUse: 'Ta subdomena jest już w użyciu !',
         clawBusy: 'Claw jest obecnie inicjalizowany lub usuwany !',
         reinstallGatewayNotResponding:
             'Ponowna instalacja zakończona, ale gateway jeszcze nie odpowiada. Może potrzebować więcej czasu na uruchomienie.',
         failedToRepairClaw: 'Failed to repair the instance!',
         repairSuccess: 'Instance repaired successfully.',
-        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
+        repairGatewayNotResponding:
+            'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Nie udało się wyeksportować danych claw !',
         clawNotReady: 'Claw nie jest gotowy do eksportu !',
         exportRateLimited:
@@ -629,11 +631,11 @@ const pl: Translations = {
                 cta: 'Zobacz plany'
             },
             simplifiedPlatform: {
-                subject: 'Uprościliśmy ClawHost',
+                subject: 'ClawHost just got Simpler - ClawHost',
                 preview:
                     'Kanały, umiejętności i więcej są teraz zarządzane bezpośrednio w OpenClaw',
                 tag: 'Aktualizacja platformy',
-                heading: 'ClawHost jest teraz prostszy',
+                heading: 'ClawHost Simplified',
                 description:
                     'Usunęliśmy zarządzanie kanałami, agentami, czatem i umiejętnościami z panelu ClawHost. Te funkcje są teraz zarządzane bezpośrednio na Twojej instancji OpenClaw.',
                 removed:
@@ -892,9 +894,11 @@ const pl: Translations = {
         diagnosticsStatus: 'Status',
         diagnosticsLogs: 'Logi',
         diagnosticsRepair: 'Repair',
-        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairDescription:
+            'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
         diagnosticsRepairSuccess: 'Instance repaired successfully.',
-        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
+        diagnosticsRepairFailed:
+            'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'Łączenie z instancją...',
         diagnosticsNoLogs:
             'Brak dostępnych logów. Uruchom instancję, aby wygenerować logi.',
@@ -1374,9 +1378,12 @@ const pl: Translations = {
             'Uproszczenie platformy poprzez migrację zarządzanych funkcji do OpenClaw, usunięcie widoku playground i wprowadzenie zmienialnych niestandardowych subdomen.',
         release15Feature1:
             'Uproszczenie i migracja zarządzanych funkcji do OpenClaw, koniec z czatem ClawHost, agentami, kanałami, zmiennymi i umiejętnościami',
-        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
-        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
-        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
+        release15Feature2:
+            'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3:
+            'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4:
+            'Changeable custom subdomains, update your claw subdomain to your loved one',
         release12Date: '14 marca 2026',
         release12Title: 'Plany roczne, tryb głosowy i więcej',
         release12Description:
@@ -1536,6 +1543,8 @@ const pl: Translations = {
         featureVersionUnsupportedNewer: 'nowsze wersje',
         tabVersions: 'Wersje',
         tabFiles: 'Eksplorator plików',
+        tabBilling: 'Billing',
+        billingEmpty: 'No billing history for this instance.',
         versionsSearch: 'Szukaj wersji...',
         versionsEmpty: 'Nie znaleziono wersji',
         versionsEmptyDescription: 'Brak wersji pasujących do wyszukiwania.',
@@ -2135,6 +2144,6 @@ const pl: Translations = {
         contactText:
             'Jeśli masz pytania dotyczące programu partnerskiego, potrzebujesz pomocy z kodem polecającym lub chcesz zgłosić naruszenie, skontaktuj się z nami pod adresem'
     }
-} as const
+}
 
 export default pl

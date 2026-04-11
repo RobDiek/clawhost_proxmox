@@ -18,7 +18,12 @@ const getFileType = (name: string): ClawFileType => {
         return clawFileType.yaml
     if (name.endsWith('.html') || name.endsWith('.htm'))
         return clawFileType.html
-    if (name.endsWith('.sh') || name.endsWith('.bash') || name.endsWith('.zsh') || name.endsWith('.fish'))
+    if (
+        name.endsWith('.sh') ||
+        name.endsWith('.bash') ||
+        name.endsWith('.zsh') ||
+        name.endsWith('.fish')
+    )
         return clawFileType.shell
     if (!name.includes('.')) return clawFileType.text
     return clawFileType.unknown

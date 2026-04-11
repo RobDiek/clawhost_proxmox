@@ -386,14 +386,16 @@ const hi: Translations = {
         subdomainRateLimited:
             'आप हर 24 घंटे में केवल एक बार सबडोमेन बदल सकते हैं. यदि आप यह सीमा हटाना चाहते हैं तो कृपया टीम से संपर्क करें.',
         subdomainUpdated: 'सबडोमेन सफलतापूर्वक अपडेट हो गया.',
-        invalidSubdomain: 'अमान्य सबडोमेन. 3-20 छोटे अक्षर और संख्याएँ उपयोग करें!',
+        invalidSubdomain:
+            'अमान्य सबडोमेन. 3-20 छोटे अक्षर और संख्याएँ उपयोग करें!',
         subdomainAlreadyInUse: 'यह सबडोमेन पहले से उपयोग में है!',
         clawBusy: 'क्लॉ वर्तमान में प्रावधान या हटाया जा रहा है!',
         reinstallGatewayNotResponding:
             'पुनः इंस्टॉल पूरा हो गया लेकिन गेटवे अभी तक प्रतिक्रिया नहीं दे रहा. इसे शुरू होने में और समय लग सकता है.',
         failedToRepairClaw: 'Failed to repair the instance!',
         repairSuccess: 'Instance repaired successfully.',
-        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
+        repairGatewayNotResponding:
+            'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'क्लॉ डेटा निर्यात करने में विफल!',
         clawNotReady: 'क्लॉ निर्यात के लिए तैयार नहीं है!',
         exportRateLimited:
@@ -624,11 +626,11 @@ const hi: Translations = {
                 cta: 'प्लान देखें'
             },
             simplifiedPlatform: {
-                subject: 'हमने ClawHost को सरल बनाया',
+                subject: 'ClawHost just got Simpler - ClawHost',
                 preview:
                     'चैनल, स्किल्स और अन्य अब सीधे OpenClaw में प्रबंधित होते हैं',
                 tag: 'प्लेटफ़ॉर्म अपडेट',
-                heading: 'ClawHost अब और सरल है',
+                heading: 'ClawHost Simplified',
                 description:
                     'हमने ClawHost डैशबोर्ड से चैनल, एजेंट, चैट और स्किल्स प्रबंधन हटा दिया है. ये सुविधाएँ अब सीधे आपके OpenClaw इंस्टेंस पर प्रबंधित होती हैं.',
                 removed:
@@ -885,9 +887,11 @@ const hi: Translations = {
         diagnosticsStatus: 'स्थिति',
         diagnosticsLogs: 'लॉग',
         diagnosticsRepair: 'Repair',
-        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairDescription:
+            'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
         diagnosticsRepairSuccess: 'Instance repaired successfully.',
-        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
+        diagnosticsRepairFailed:
+            'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'इंस्टेंस से कनेक्ट हो रहा है...',
         diagnosticsNoLogs:
             'कोई लॉग उपलब्ध नहीं. लॉग जनरेट करने के लिए अपना इंस्टेंस शुरू करें.',
@@ -1353,9 +1357,12 @@ const hi: Translations = {
             'प्रबंधित सुविधाओं को OpenClaw में माइग्रेट करके प्लेटफ़ॉर्म को सरल बनाया, प्लेग्राउंड व्यू हटाया और बदलने योग्य कस्टम सबडोमेन पेश किए।',
         release15Feature1:
             'सरलीकरण और प्रबंधित सुविधाओं को OpenClaw में माइग्रेट किया, अब कोई ClawHost चैट, एजेंट, चैनल, वेरिएबल और स्किल नहीं',
-        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
-        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
-        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
+        release15Feature2:
+            'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3:
+            'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4:
+            'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '1 अप्रैल 2026',
         release14Title: 'Hetzner माइग्रेशन, एफिलिएट सिस्टम और नई भाषाएं',
         release14Description:
@@ -1521,6 +1528,8 @@ const hi: Translations = {
         featureVersionUnsupportedNewer: 'नए संस्करण',
         tabVersions: 'संस्करण',
         tabFiles: 'फ़ाइल एक्सप्लोरर',
+        tabBilling: 'Billing',
+        billingEmpty: 'No billing history for this instance.',
         versionsSearch: 'संस्करण खोजें...',
         versionsEmpty: 'कोई संस्करण नहीं मिला',
         versionsEmptyDescription: 'आपकी खोज से कोई संस्करण मेल नहीं खाता.',
@@ -2119,6 +2128,6 @@ const hi: Translations = {
         contactText:
             'यदि आपके पास सहबद्ध कार्यक्रम के बारे में प्रश्न हैं, अपने रेफरल कोड में सहायता चाहिए या उल्लंघन की रिपोर्ट करना चाहते हैं, तो हमसे संपर्क करें'
     }
-} as const
+}
 
 export default hi

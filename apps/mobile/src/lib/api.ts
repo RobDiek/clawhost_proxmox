@@ -81,7 +81,8 @@ const api = {
         client.get<PlanAvailability>(
             `${apiPaths.PLANS.AVAILABILITY}${provider ? `?provider=${provider}` : ''}`
         ),
-    getSSHKeys: (): Promise<SSHKey[]> => client.get<SSHKey[]>(apiPaths.SSH_KEYS.BASE),
+    getSSHKeys: (): Promise<SSHKey[]> =>
+        client.get<SSHKey[]>(apiPaths.SSH_KEYS.BASE),
     purchaseClaw: (data: PurchaseClawData): Promise<PurchaseClawResponse> =>
         client.post<PurchaseClawResponse>(apiPaths.CLAWS.PURCHASE, data)
 }

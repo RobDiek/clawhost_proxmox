@@ -399,7 +399,8 @@ const it: Translations = {
         subdomainRateLimited:
             'Puoi cambiare il tuo sottodominio solo una volta ogni 24 ore. Contatta il team se vuoi rimuovere questo limite.',
         subdomainUpdated: 'Sottodominio aggiornato con successo.',
-        invalidSubdomain: 'Sottodominio non valido. Usa 3-20 lettere minuscole e numeri!',
+        invalidSubdomain:
+            'Sottodominio non valido. Usa 3-20 lettere minuscole e numeri!',
         subdomainAlreadyInUse: 'Questo sottodominio è già in uso!',
         clawBusy:
             'Il claw è attualmente in fase di provisioning o eliminazione!',
@@ -407,7 +408,8 @@ const it: Translations = {
             'Reinstallazione completata ma il gateway non risponde ancora. Potrebbe aver bisogno di più tempo per avviarsi.',
         failedToRepairClaw: 'Failed to repair the instance!',
         repairSuccess: 'Instance repaired successfully.',
-        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
+        repairGatewayNotResponding:
+            'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Impossibile esportare i dati del claw!',
         clawNotReady: "Il claw non è pronto per l'esportazione!",
         exportRateLimited:
@@ -642,11 +644,11 @@ const it: Translations = {
                 cta: 'Vedi Piani'
             },
             simplifiedPlatform: {
-                subject: 'Abbiamo semplificato ClawHost',
+                subject: 'ClawHost just got Simpler - ClawHost',
                 preview:
                     'Canali, abilità e altro sono ora gestiti direttamente in OpenClaw',
                 tag: 'Aggiornamento Piattaforma',
-                heading: 'ClawHost è ora più semplice',
+                heading: 'ClawHost Simplified',
                 description:
                     'Abbiamo rimosso la gestione di canali, agenti, chat e abilità dalla dashboard di ClawHost. Queste funzionalità sono ora gestite direttamente sulla tua istanza OpenClaw.',
                 removed:
@@ -656,7 +658,7 @@ const it: Translations = {
                     'Rimuovendo questi strati, interagisci direttamente con OpenClaw. Impari il sistema reale, non una seconda interfaccia che può diventare obsoleta. La tua conoscenza è trasferibile ovunque OpenClaw funzioni.',
                 action: 'Nulla si rompe. I tuoi claw, server, fatturazione e le funzionalità principali della dashboard rimangono invariati. Per configurare canali, abilità o agenti, usa direttamente la tua istanza OpenClaw.',
                 closing:
-                    'Sappiamo che rimuovere funzionalità non suona mai bene. Ma questo ci libera per concentrarci su ciò che conta — consegnare più velocemente per l\'ecosistema OpenClaw, migliorare l\'esperienza di hosting, e costruire cose che fanno davvero la differenza per te. Grazie per far parte di questo viaggio, e per continuare a farne parte.',
+                    "Sappiamo che rimuovere funzionalità non suona mai bene. Ma questo ci libera per concentrarci su ciò che conta — consegnare più velocemente per l'ecosistema OpenClaw, migliorare l'esperienza di hosting, e costruire cose che fanno davvero la differenza per te. Grazie per far parte di questo viaggio, e per continuare a farne parte.",
                 cta: 'Visita ClawHost'
             }
         }
@@ -908,9 +910,11 @@ const it: Translations = {
         diagnosticsStatus: 'Stato',
         diagnosticsLogs: 'Log',
         diagnosticsRepair: 'Repair',
-        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairDescription:
+            'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
         diagnosticsRepairSuccess: 'Instance repaired successfully.',
-        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
+        diagnosticsRepairFailed:
+            'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: "Connessione all'istanza...",
         diagnosticsNoLogs:
             'Nessun log disponibile. Avvia la tua istanza per generare log.',
@@ -1385,9 +1389,12 @@ const it: Translations = {
             'Semplificazione della piattaforma migrando le funzionalità gestite su OpenClaw, rimozione della vista playground e introduzione di sottodomini personalizzati modificabili.',
         release15Feature1:
             'Semplificazione e migrazione delle funzionalità gestite su OpenClaw, niente più chat, agenti, canali, variabili e competenze di ClawHost',
-        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
-        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
-        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
+        release15Feature2:
+            'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3:
+            'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4:
+            'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '1 aprile 2026',
         release14Title:
             'Migrazione a Hetzner, sistema affiliati e nuove lingue',
@@ -1565,6 +1572,8 @@ const it: Translations = {
         featureVersionUnsupportedNewer: 'versioni successive',
         tabVersions: 'Versioni',
         tabFiles: 'Esplora file',
+        tabBilling: 'Billing',
+        billingEmpty: 'No billing history for this instance.',
         versionsSearch: 'Cerca versioni...',
         versionsEmpty: 'Nessuna versione trovata',
         versionsEmptyDescription:
@@ -2167,6 +2176,6 @@ const it: Translations = {
         contactText:
             'Se hai domande sul programma di affiliazione, hai bisogno di aiuto con il tuo codice di riferimento o vuoi segnalare una violazione, contattaci a'
     }
-} as const
+}
 
 export default it

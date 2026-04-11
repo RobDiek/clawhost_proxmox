@@ -1,4 +1,5 @@
 import type { FC, ReactNode } from 'react'
+import type { AdminAnalyticsResponse } from '@/ts/Interfaces'
 import type { AdminAnalyticsRange } from '@/ts/Types'
 
 import { useState } from 'react'
@@ -32,73 +33,21 @@ import AdminAnalyticsChart from '@/components/admin/AdminAnalyticsChart'
 
 const RANGES = [
     { key: 'day' as AdminAnalyticsRange, label: 'admin.analyticsDay' as const },
-    {
-        key: 'week' as AdminAnalyticsRange,
-        label: 'admin.analyticsWeek' as const
-    },
-    {
-        key: 'month' as AdminAnalyticsRange,
-        label: 'admin.analyticsMonth' as const
-    },
-    {
-        key: 'year' as AdminAnalyticsRange,
-        label: 'admin.analyticsYear' as const
-    },
-    {
-        key: 'all' as AdminAnalyticsRange,
-        label: 'admin.analyticsAllTime' as const
-    }
+    { key: 'week' as AdminAnalyticsRange, label: 'admin.analyticsWeek' as const },
+    { key: 'month' as AdminAnalyticsRange, label: 'admin.analyticsMonth' as const },
+    { key: 'year' as AdminAnalyticsRange, label: 'admin.analyticsYear' as const },
+    { key: 'all' as AdminAnalyticsRange, label: 'admin.analyticsAllTime' as const }
 ]
 
 const RESOURCES = [
-    {
-        key: 'users' as const,
-        label: 'admin.usersTab' as const,
-        icon: UsersIcon,
-        color: '#8b5cf6'
-    },
-    {
-        key: 'claws' as const,
-        label: 'admin.clawsTab' as const,
-        icon: HardDrivesIcon,
-        color: '#3b82f6'
-    },
-    {
-        key: 'sshKeys' as const,
-        label: 'admin.sshKeysTab' as const,
-        icon: KeyIcon,
-        color: '#f59e0b'
-    },
-    {
-        key: 'volumes' as const,
-        label: 'admin.volumesTab' as const,
-        icon: DatabaseIcon,
-        color: '#10b981'
-    },
-    {
-        key: 'pendingClaws' as const,
-        label: 'admin.pendingClawsTab' as const,
-        icon: HourglassIcon,
-        color: '#f97316'
-    },
-    {
-        key: 'referrals' as const,
-        label: 'admin.referralsTab' as const,
-        icon: HandshakeIcon,
-        color: '#ec4899'
-    },
-    {
-        key: 'waitlist' as const,
-        label: 'admin.waitlistTab' as const,
-        icon: ClockCountdownIcon,
-        color: '#06b6d4'
-    },
-    {
-        key: 'emails' as const,
-        label: 'admin.emailsTab' as const,
-        icon: EnvelopeIcon,
-        color: '#a855f7'
-    }
+    { key: 'users' as keyof AdminAnalyticsResponse, label: 'admin.usersTab' as const, icon: UsersIcon, color: '#8b5cf6' },
+    { key: 'claws' as keyof AdminAnalyticsResponse, label: 'admin.clawsTab' as const, icon: HardDrivesIcon, color: '#3b82f6' },
+    { key: 'sshKeys' as keyof AdminAnalyticsResponse, label: 'admin.sshKeysTab' as const, icon: KeyIcon, color: '#f59e0b' },
+    { key: 'volumes' as keyof AdminAnalyticsResponse, label: 'admin.volumesTab' as const, icon: DatabaseIcon, color: '#10b981' },
+    { key: 'pendingClaws' as keyof AdminAnalyticsResponse, label: 'admin.pendingClawsTab' as const, icon: HourglassIcon, color: '#f97316' },
+    { key: 'referrals' as keyof AdminAnalyticsResponse, label: 'admin.referralsTab' as const, icon: HandshakeIcon, color: '#ec4899' },
+    { key: 'waitlist' as keyof AdminAnalyticsResponse, label: 'admin.waitlistTab' as const, icon: ClockCountdownIcon, color: '#06b6d4' },
+    { key: 'emails' as keyof AdminAnalyticsResponse, label: 'admin.emailsTab' as const, icon: EnvelopeIcon, color: '#a855f7' }
 ]
 
 const AdminAnalyticsTab: FC = (): ReactNode => {

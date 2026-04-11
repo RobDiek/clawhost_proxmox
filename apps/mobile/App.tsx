@@ -24,10 +24,10 @@ const navigationTheme = {
         notification: COLORS.destructive
     },
     fonts: {
-        regular: { fontFamily: 'Satoshi-Regular', fontWeight: '400' as const },
-        medium: { fontFamily: 'Satoshi-Medium', fontWeight: '500' as const },
-        bold: { fontFamily: 'Satoshi-Bold', fontWeight: '700' as const },
-        heavy: { fontFamily: 'Satoshi-Bold', fontWeight: '900' as const }
+        regular: { fontFamily: 'Satoshi-Regular', fontWeight: '400' },
+        medium: { fontFamily: 'Satoshi-Medium', fontWeight: '500' },
+        bold: { fontFamily: 'Satoshi-Bold', fontWeight: '700' },
+        heavy: { fontFamily: 'Satoshi-Bold', fontWeight: '900' }
     }
 }
 

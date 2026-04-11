@@ -1,12 +1,12 @@
-import type { FC, ReactNode } from 'react'
+import type { CSSProperties, FC, ReactNode } from 'react'
 
 import { t } from '@openclaw/i18n'
 import { Button, Img, Section, Text } from '@react-email/components'
 
 import CDN_ASSETS from '@/lib/cdn'
 import FeatureEmailLayout from '@/emails/FeatureEmailLayout'
+
 import {
-    subheading,
     heading,
     paragraph,
     button,
@@ -15,7 +15,7 @@ import {
     featureGif
 } from '@/lib/emailStyles'
 
-const leftParagraph = { ...paragraph, textAlign: 'left' as const }
+const leftParagraph: CSSProperties = { ...paragraph, textAlign: 'left' }
 
 const SimplifiedPlatformEmail: FC = (): ReactNode => {
     return (

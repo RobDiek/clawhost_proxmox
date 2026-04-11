@@ -7,7 +7,7 @@ import { users } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
 
-const VALID_METHODS = [authMethod.google, authMethod.github] as const
+const VALID_METHODS = [authMethod.google, authMethod.github]
 
 const disconnectAuthMethod = async (c: AuthenticatedContext) => {
     try {
