@@ -1,6 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { CreateClawModalProps } from '@/ts/Interfaces'
-import { useState, useEffect } from 'react'
+
+import { Fragment, useState, useEffect } from 'react'
 import {
     ActivityIndicator,
     Alert,
@@ -470,7 +471,7 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                     </Pressable>
 
                     {showAdvanced && (
-                        <>
+                        <Fragment>
                             <View style={styles.section}>
                                 <Text style={styles.label}>
                                     {t('createClaw.rootPassword')}
@@ -684,7 +685,7 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                                     </View>
                                 </View>
                             )}
-                        </>
+                        </Fragment>
                     )}
 
                     {selectedPlan && (

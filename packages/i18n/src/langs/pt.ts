@@ -645,7 +645,9 @@ const pt: Translations = {
                 benefit:
                     'Ao remover essas camadas, você interage diretamente com o OpenClaw. Você aprende o sistema real, não uma segunda interface que pode ficar desatualizada. Seu conhecimento é transferível para onde quer que o OpenClaw funcione.',
                 action: 'Nada quebra. Seus claws, servidores, faturamento e funcionalidades principais do painel permanecem inalterados. Para configurar canais, habilidades ou agentes, use sua instância OpenClaw diretamente.',
-                cta: 'Abrir Painel'
+                closing:
+                    'Sabemos que remover funcionalidades nunca soa bem. Mas isso nos libera para focar no que importa — entregar mais rápido para o ecossistema OpenClaw, melhorar a experiência de hospedagem, e construir coisas que realmente fazem diferença para você. Obrigado por fazer parte dessa jornada, e por continuar fazendo.',
+                cta: 'Visitar ClawHost'
             }
         }
     },

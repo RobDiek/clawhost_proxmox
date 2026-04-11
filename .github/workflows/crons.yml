@@ -35,3 +35,13 @@ jobs:
                   curl -s -X GET \
                     -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
                     https://api.clawhost.cloud/cron/cleanup-expired-otps
+
+    cleanup-stale-rate-limits:
+        if: github.event.schedule == '0 * * * *'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Cleanup stale rate limits
+              run: |
+                  curl -s -X GET \
+                    -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+                    https://api.clawhost.cloud/cron/cleanup-stale-rate-limits

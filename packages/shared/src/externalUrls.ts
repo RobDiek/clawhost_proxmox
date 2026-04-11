@@ -36,6 +36,18 @@ const EXTERNAL_URLS = {
         REGISTRY: (pkg: string) => `https://registry.npmjs.org/${pkg}`,
         DOWNLOADS: (pkg: string) =>
             `https://api.npmjs.org/versions/${pkg}/last-week`
+    },
+    SOCIAL: {
+        PRODUCT_HUNT: 'https://www.producthunt.com/posts/clawhost',
+        X: 'https://x.com/tryclawhost',
+        FACEBOOK: 'https://facebook.com/tryclawhost',
+        INSTAGRAM: 'https://instagram.com/tryclawhost',
+        THREADS: 'https://threads.net/@tryclawhost',
+        YOUTUBE: 'https://youtube.com/@clawhost',
+        TIKTOK: 'https://tiktok.com/@clawhost',
+        GITHUB: 'https://github.com/bfzli/clawhost',
+        TUTORIAL: 'https://www.youtube.com/watch?v=clawhost-tutorial',
+        SUPPORT_EMAIL: 'support@clawhost.cloud'
     }
 } as const
 

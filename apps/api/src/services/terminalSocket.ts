@@ -5,6 +5,11 @@ import { Client } from 'ssh2'
 import { verifyToken } from '@/services/firebase'
 import hostKeyStore from '@/services/hostKeyStore'
 import { findUserClaw, isAdmin } from '@/controllers/claws/helpers'
+import { apiPaths } from '@openclaw/shared'
+
+const TERMINAL_PATTERN = new RegExp(
+    `^(?:/ws)?${apiPaths.CLAWS.BASE}/([^/]+)/terminal$`
+)
 
 const setupTerminalSocket = (server: Server) => {
     const wss = new WebSocketServer({ noServer: true })
@@ -15,9 +20,7 @@ const setupTerminalSocket = (server: Server) => {
                 request.url || '',
                 `http://${request.headers.host}`
             )
-            const match = url.pathname.match(
-                /^(?:\/ws)?\/claws\/([^/]+)\/terminal$/
-            )
+            const match = url.pathname.match(TERMINAL_PATTERN)
 
             if (!match) {
                 socket.destroy()

@@ -71,7 +71,7 @@ The variable `claws` is typed as `Claw[]` — the envelope is transparent.
 ### Success with data
 
 ```
-GET /claws → 200
+GET /agents → 200
 {
     "success": true,
     "data": [{ "id": "abc", "name": "my-claw", ... }],
@@ -97,7 +97,7 @@ POST /auth/send-otp → 200
 ### Error
 
 ```
-GET /claws/nonexistent → 404
+GET /agents/nonexistent → 404
 {
     "success": false,
     "data": null,

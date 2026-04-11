@@ -1,32 +1,39 @@
 import type { FC, ReactNode } from 'react'
 
 import { t } from '@openclaw/i18n'
-import { Button, Section, Text } from '@react-email/components'
+import { Button, Img, Section, Text } from '@react-email/components'
 
+import CDN_ASSETS from '@/lib/cdn'
 import FeatureEmailLayout from '@/emails/FeatureEmailLayout'
 import {
     subheading,
     heading,
     paragraph,
     button,
-    buttonContainer
+    buttonContainer,
+    featureGifSection,
+    featureGif
 } from '@/lib/emailStyles'
 
 const leftParagraph = { ...paragraph, textAlign: 'left' as const }
-const leftHeading = { ...heading, textAlign: 'left' as const }
-const leftSubheading = { ...subheading, textAlign: 'left' as const }
 
 const SimplifiedPlatformEmail: FC = (): ReactNode => {
     return (
         <FeatureEmailLayout
             preview={t('emails.features.simplifiedPlatform.preview')}
         >
-            <Text style={leftSubheading}>
-                {t('emails.features.simplifiedPlatform.tag')}
-            </Text>
-            <Text style={leftHeading}>
+            <Text style={heading}>
                 {t('emails.features.simplifiedPlatform.heading')}
             </Text>
+
+            <Section style={featureGifSection}>
+                <Img
+                    src={CDN_ASSETS.EMAIL_SIMPLIFIED_PLATFORM}
+                    width='560'
+                    alt={t('emails.features.simplifiedPlatform.heading')}
+                    style={featureGif}
+                />
+            </Section>
 
             <Text style={leftParagraph}>
                 {t('emails.features.simplifiedPlatform.description')}
@@ -42,6 +49,10 @@ const SimplifiedPlatformEmail: FC = (): ReactNode => {
 
             <Text style={leftParagraph}>
                 {t('emails.features.simplifiedPlatform.action')}
+            </Text>
+
+            <Text style={leftParagraph}>
+                {t('emails.features.simplifiedPlatform.closing')}
             </Text>
 
             <Section style={buttonContainer}>

@@ -1,6 +1,7 @@
 import type { HonoEnv } from '@/ts/Types'
 
 import { Hono } from 'hono'
+import { apiPaths } from '@openclaw/shared'
 import {
     getAdminAnalytics,
     getAdminBilling,
@@ -27,8 +28,8 @@ app.get('/billing', getAdminBilling)
 app.get('/users', getAdminUsers)
 app.get('/users/:id', getAdminUserDetail)
 app.put('/users/:id', updateAdminUser)
-app.get('/claws', getAdminClaws)
-app.get('/pending-claws', getAdminPendingClaws)
+app.get(apiPaths.CLAWS.BASE, getAdminClaws)
+app.get(`/pending${apiPaths.CLAWS.BASE}`, getAdminPendingClaws)
 app.get('/ssh-keys', getAdminSSHKeys)
 app.get('/volumes', getAdminVolumes)
 app.get('/referrals', getAdminReferrals)

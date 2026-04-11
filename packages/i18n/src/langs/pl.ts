@@ -642,7 +642,9 @@ const pl: Translations = {
                 benefit:
                     'Usuwając te warstwy, korzystasz bezpośrednio z OpenClaw. Uczysz się prawdziwego systemu, nie drugiego interfejsu, który może się zdezaktualizować. Twoja wiedza jest przenośna wszędzie, gdzie działa OpenClaw.',
                 action: 'Nic się nie psuje. Twoje clawy, serwery, rozliczenia i podstawowe funkcje panelu pozostają bez zmian. Aby skonfigurować kanały, umiejętności lub agentów, użyj bezpośrednio swojej instancji OpenClaw.',
-                cta: 'Otwórz Panel'
+                closing:
+                    'Wiemy, że usuwanie funkcji nigdy nie brzmi dobrze. Ale to daje nam wolność, by skupić się na tym, co ważne — szybciej dostarczać dla ekosystemu OpenClaw, poprawiać doświadczenie hostingu i budować rzeczy, które naprawdę robią różnicę. Dziękujemy, że jesteś częścią tej podróży i że nadal nią jesteś.',
+                cta: 'Odwiedź ClawHost'
             }
         }
     },

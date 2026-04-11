@@ -649,7 +649,9 @@ const de: Translations = {
                 benefit:
                     'Durch das Entfernen dieser Schichten interagierst du direkt mit OpenClaw. Du lernst das echte System, nicht eine zweite Oberfläche, die veralten kann. Dein Wissen ist überall übertragbar, wo OpenClaw läuft.',
                 action: 'Nichts geht kaputt. Deine Claws, Server, Abrechnung und die Kernfunktionen des Dashboards bleiben unverändert. Um Kanäle, Skills oder Agenten zu konfigurieren, nutze deine OpenClaw-Instanz direkt.',
-                cta: 'Dashboard Öffnen'
+                closing:
+                    'Wir wissen, dass das Entfernen von Funktionen nie gut klingt. Aber es gibt uns die Freiheit, uns auf das Wesentliche zu konzentrieren — schneller für das OpenClaw-Ökosystem zu liefern, das Hosting-Erlebnis zu verbessern und Dinge zu bauen, die für dich wirklich zählen. Danke, dass du Teil dieser Reise bist — und es weiterhin bleibst.',
+                cta: 'ClawHost Besuchen'
             }
         }
     },

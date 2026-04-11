@@ -16,6 +16,7 @@ import { ScrollToBottomButton } from '@/components/shared'
 import { useTerminalStore } from '@/lib/store'
 import { TERMINAL_STATUS } from '@/lib/constants'
 import { Envs } from '@/lib'
+import { apiPaths } from '@openclaw/shared'
 import '@xterm/xterm/css/xterm.css'
 
 let connectCounter = 0
@@ -245,9 +246,10 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
             const { terminal, fitAndCrop } = createTerminal(container)
 
             const apiUrl = Envs.VITE_API_URL
+            const terminalPath = `${apiPaths.CLAWS.TERMINAL(clawId)}?token=${encodeURIComponent(token)}`
             const wsUrl = apiUrl.startsWith('http')
-                ? `${apiUrl.replace(/^http/, 'ws')}/claws/${clawId}/terminal?token=${encodeURIComponent(token)}`
-                : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/claws/${clawId}/terminal?token=${encodeURIComponent(token)}`
+                ? `${apiUrl.replace(/^http/, 'ws')}${terminalPath}`
+                : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws${terminalPath}`
             const ws = new WebSocket(wsUrl)
             wsRef.current = ws
 

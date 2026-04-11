@@ -375,7 +375,6 @@ import { Fragment } from 'react'
 - `pendingClaws` - Claws awaiting payment confirmation (with expiry)
 - `sshKeys` - SSH key management (with Hetzner key IDs)
 - `volumes` - Persistent storage volumes
-- `clawExports` - Exported claw configurations
 - `otpCodes` - OTP authentication codes (hashed, with attempt tracking)
 - `rateLimits` - Rate limiting for auth endpoints
 
@@ -407,7 +406,7 @@ pnpm --filter api db:migrate   # Run migrations
 - `GET /volume-pricing` - Storage pricing
 - `GET /availability` - Plan availability by location
 
-**Claws Routes** (`/claws`):
+**Claws Routes** (`/agents`):
 
 - `GET /` - List user's claws
 - `GET /admin` - List all claws (admin-only)

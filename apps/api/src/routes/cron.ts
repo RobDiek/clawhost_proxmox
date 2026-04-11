@@ -2,7 +2,8 @@ import { Hono } from 'hono'
 import {
     generateBlogPost,
     sendFeatureEmails,
-    cleanupExpiredOtps
+    cleanupExpiredOtps,
+    cleanupStaleRateLimits
 } from '@/controllers/cron'
 import crypto from 'crypto'
 import { fail } from '@/lib/response'
@@ -28,5 +29,6 @@ app.use('*', async (c, next) => {
 app.get('/generate-blog-post', generateBlogPost)
 app.get('/send-feature-emails', sendFeatureEmails)
 app.get('/cleanup-expired-otps', cleanupExpiredOtps)
+app.get('/cleanup-stale-rate-limits', cleanupStaleRateLimits)
 
 export default app

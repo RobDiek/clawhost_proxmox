@@ -630,7 +630,9 @@ const tr: Translations = {
                 benefit:
                     "Bu katmanları kaldırarak, OpenClaw ile doğrudan etkileşime geçiyorsunuz. Eskiyebilecek ikinci bir arayüz yerine gerçek sistemi öğreniyorsunuz. Bilginiz OpenClaw'ın çalıştığı her yerde geçerli.",
                 action: 'Hiçbir şey bozulmuyor. Pençeleriniz, sunucularınız, faturalamanız ve panelin temel özellikleri değişmedi. Kanalları, yetenekleri veya ajanları yapılandırmak için OpenClaw örneğinizi doğrudan kullanın.',
-                cta: 'Paneli Aç'
+                closing:
+                    'Özellikleri kaldırmanın kulağa hiç hoş gelmediğini biliyoruz. Ama bu bize gerçekten önemli olan şeylere odaklanma özgürlüğü veriyor — OpenClaw ekosistemi için daha hızlı teslimat, temel barındırma deneyimini iyileştirme ve sizin için gerçekten fark yaratan şeyler inşa etme. Bu yolculuğun bir parçası olduğunuz ve olmaya devam ettiğiniz için teşekkür ederiz.',
+                cta: 'ClawHost\'u Ziyaret Et'
             }
         }
     },

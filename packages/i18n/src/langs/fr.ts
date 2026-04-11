@@ -662,7 +662,9 @@ const fr: Translations = {
                 benefit:
                     'En supprimant ces couches, vous interagissez directement avec OpenClaw. Vous apprenez le vrai système, pas une seconde interface qui peut devenir obsolète. Vos connaissances sont transférables partout où OpenClaw fonctionne.',
                 action: 'Rien ne casse. Vos claws, serveurs, facturation et fonctionnalités principales du tableau de bord restent inchangés. Pour configurer les canaux, compétences ou agents, utilisez directement votre instance OpenClaw.',
-                cta: 'Ouvrir le Tableau de Bord'
+                closing:
+                    'Nous savons que retirer des fonctionnalités ne sonne jamais bien. Mais cela nous libère pour nous concentrer sur l\'essentiel — livrer plus vite pour l\'écosystème OpenClaw, améliorer l\'expérience d\'hébergement, et construire ce qui compte vraiment pour vous. Merci de faire partie de cette aventure, et de continuer à en faire partie.',
+                cta: 'Visiter ClawHost'
             }
         }
     },
