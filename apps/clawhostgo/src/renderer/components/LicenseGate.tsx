@@ -28,7 +28,7 @@ const LicenseGate: FC<LicenseGateProps> = ({ children }): ReactNode => {
     if (isLoading) {
         return (
             <div className='bg-background flex min-h-screen items-center justify-center'>
-                <CircleNotchIcon className='text-primary h-8 w-8 animate-spin' />
+                <CircleNotchIcon className='text-foreground/50 h-7 w-7 animate-spin' />
             </div>
         )
     }
@@ -36,8 +36,7 @@ const LicenseGate: FC<LicenseGateProps> = ({ children }): ReactNode => {
     if (!profile?.hasLicense) {
         return (
             <div className='bg-background text-foreground fixed inset-0 flex flex-col'>
-                <div className='playground-grid pointer-events-none fixed inset-0 opacity-50' />
-                <div className='playground-gradient pointer-events-none fixed inset-0 opacity-30' />
+                <div className='landing-grid pointer-events-none' />
 
                 <div className='border-border bg-background md:bg-background/80 relative z-10 flex shrink-0 items-center justify-between border-b px-6 py-3 md:backdrop-blur-xl'>
                     <Logo to={ROUTES.CLAWS} />

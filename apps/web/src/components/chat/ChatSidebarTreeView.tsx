@@ -20,7 +20,7 @@ const ChatSidebarTreeView: FC<ChatSidebarTreeViewProps> = ({
                     statusConfigs[claw.status] || statusConfigs.unknown
 
                 return (
-                    <div key={claw.id} className='mb-3 last:mb-0'>
+                    <div key={claw.id} className='mb-1.5 last:mb-0'>
                         <ChatSidebarClawHeader
                             claw={claw}
                             isSelected={selectedClawId === claw.id}

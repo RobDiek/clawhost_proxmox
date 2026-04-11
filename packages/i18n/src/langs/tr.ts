@@ -3,6 +3,7 @@ import type { Translations } from '#i18n/types'
 const tr: Translations = {
     common: {
         loading: 'Yükleniyor...',
+        noResults: 'Sonuç bulunamadı.',
         save: 'Kaydet',
         cancel: 'İptal',
         confirm: 'Onayla',
@@ -293,6 +294,7 @@ const tr: Translations = {
         sshKeyNotFound: 'SSH anahtarı bulunamadı!',
         pendingClawNotFound: 'Bekleyen claw bulunamadı!',
         clawNotScheduledForDeletion: 'Claw silinmek üzere planlanmamış!',
+        clawDeletionAlreadyPassed: 'Silme tarihi zaten geçmiş!',
         clawLimitReached:
             '{{max}} claw sınırına ulaştınız. Bu limiti artırmak için lütfen destekle iletişime geçin!',
         sshKeyLimitReached:
@@ -617,24 +619,6 @@ const tr: Translations = {
                 description:
                     'Yıllık faturalamaya geçin ve claw aboneliğinizde tasarruf edin. Aynı harika hizmet, daha düşük fiyat — istediğiniz zaman iptal edin.',
                 cta: 'Planları Görüntüle'
-            },
-            simplifiedPlatform: {
-                subject: 'ClawHost just got Simpler - ClawHost',
-                preview:
-                    "Kanallar, yetenekler ve daha fazlası artık doğrudan OpenClaw'da yönetiliyor",
-                tag: 'Platform Güncellemesi',
-                heading: 'ClawHost Simplified',
-                description:
-                    'ClawHost panelinden kanal, ajan, sohbet ve yetenek yönetimini kaldırdık. Bu özellikler artık doğrudan OpenClaw örneğinizde yönetiliyor.',
-                removed:
-                    "Özellikle kaldırdığımız: mesajlaşma kanalları (WhatsApp, Telegram, Discord, Slack, Signal), yetenek pazaryeri (ClawHub), ve ajan sohbeti ve sesli mod. Bunların hepsi OpenClaw'da hâlâ mevcut — sadece sarmalamayı bıraktık.",
-                why: 'Arayüzlerimizi her OpenClaw sürümüyle senkronize tutmak sürdürülebilir değildi. Güncellemeler yukarı akışta geliyordu ve arayüzümüz geride kalıyordu — sizi eski kontrollerle ve eksik özelliklerle baş başa bırakıyordu.',
-                benefit:
-                    "Bu katmanları kaldırarak, OpenClaw ile doğrudan etkileşime geçiyorsunuz. Eskiyebilecek ikinci bir arayüz yerine gerçek sistemi öğreniyorsunuz. Bilginiz OpenClaw'ın çalıştığı her yerde geçerli.",
-                action: 'Hiçbir şey bozulmuyor. Pençeleriniz, sunucularınız, faturalamanız ve panelin temel özellikleri değişmedi. Kanalları, yetenekleri veya ajanları yapılandırmak için OpenClaw örneğinizi doğrudan kullanın.',
-                closing:
-                    'Özellikleri kaldırmanın kulağa hiç hoş gelmediğini biliyoruz. Ama bu bize gerçekten önemli olan şeylere odaklanma özgürlüğü veriyor — OpenClaw ekosistemi için daha hızlı teslimat, temel barındırma deneyimini iyileştirme ve sizin için gerçekten fark yaratan şeyler inşa etme. Bu yolculuğun bir parçası olduğunuz ve olmaya devam ettiğiniz için teşekkür ederiz.',
-                cta: "ClawHost'u Ziyaret Et"
             }
         }
     },
@@ -809,6 +793,9 @@ const tr: Translations = {
         clawCountLabel: '{{count}} claw',
         clawCountLabelSingular: '{{count}} claw',
         newClaw: 'Yeni Claw',
+        searchAgents: 'Ajan ara...',
+        searchAgentsCount: '{{count}} ajan ara...',
+        noAgentsMatchSearch: 'Aramanızla eşleşen ajan bulunamadı.',
         clawActions: 'Claw işlemleri',
         noAgentsYet: 'Ajan Yok',
         noAgentsDescription:
@@ -864,6 +851,7 @@ const tr: Translations = {
         deletionTooltip:
             '{{date}} tarihinde silinmek üzere planlandı. İptal etmek için menüyü kullanın.',
         pastDue: 'Ödeme Başarısız',
+        deletionFailed: 'Silme başarısız',
         pastDueDescription:
             'Ödemeniz başarısız oldu. 14 gün içinde çözülmezse, bu claw kalıcı olarak silinecektir.',
         updatePayment: 'Ödemeyi Güncelle',
@@ -1544,6 +1532,9 @@ const tr: Translations = {
         versionsChangelog: 'npm üzerinde değişiklik günlüklerini görüntüle',
         versionCurrent: 'Mevcut',
         versionLatest: 'En Son',
+        updateAvailable: 'A newer version of OpenClaw is available',
+        updateAvailableDescription: 'Go to Versions to upgrade your instance.',
+        goToVersions: 'Go to Versions',
         versionInstall: 'Yükle',
         versionInstalling: 'Yükleniyor...',
         versionInstallSuccess: 'Sürüm {{version}} başarıyla yüklendi.',

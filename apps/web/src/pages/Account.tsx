@@ -144,7 +144,7 @@ const Account: FC = (): ReactNode => {
                 >
                     {authLoading || !profile ? (
                         <div className='flex min-h-[60vh] items-center justify-center'>
-                            <CircleNotchIcon className='text-primary h-8 w-8 animate-spin' />
+                            <CircleNotchIcon className='text-foreground/50 h-7 w-7 animate-spin' />
                         </div>
                     ) : (
                         <Fragment>

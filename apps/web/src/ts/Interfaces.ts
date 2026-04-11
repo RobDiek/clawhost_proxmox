@@ -750,6 +750,11 @@ export interface CustomerPortalResponse {
     url: string
 }
 
+export interface UseCustomerPortalReturn {
+    openPortal: (clawId?: string) => Promise<void>
+    isLoading: boolean
+}
+
 export interface GitHubStarsData {
     count: number
     formatted: string
@@ -1014,6 +1019,8 @@ export interface ClawDetailInfoTabProps {
     showVersion: boolean
     versionLoading: boolean
     versionDisplay: string | null
+    isOutdated: boolean
+    onGoToVersions?: () => void
 }
 
 export interface ClawBillingContentProps {
@@ -1864,6 +1871,12 @@ export interface ChatSidebarTreeViewProps {
     selectedClawId: string | null
     readOnly?: boolean
     onOpenClawSettings: (clawId: string) => void
+}
+
+export interface ChatSidebarSearchProps {
+    value: string
+    onChange: (value: string) => void
+    clawCount: number
 }
 
 export interface ChatSidebarClawHeaderProps {

@@ -52,7 +52,10 @@ const deleteClaw = withErrorHandler(
 
     if (!claw) return fail(c, t('api.clawNotFound'), 404)
 
-    if (claw.polarSubscriptionId) {
+    if (
+        claw.polarSubscriptionId &&
+        claw.subscriptionStatus !== subscriptionStatus.canceled
+    ) {
         try {
             const sub = await subscriptions.get(claw.polarSubscriptionId)
 

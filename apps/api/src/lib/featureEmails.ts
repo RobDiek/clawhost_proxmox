@@ -13,7 +13,6 @@ import SubdomainEmail from '@/emails/SubdomainEmail'
 import DarkModeEmail from '@/emails/DarkModeEmail'
 import ReinstallEmail from '@/emails/ReinstallEmail'
 import YearlyPlansEmail from '@/emails/YearlyPlansEmail'
-import SimplifiedPlatformEmail from '@/emails/SimplifiedPlatformEmail'
 
 const FEATURE_EMAILS: FeatureEmailDefinition[] = [
     {
@@ -70,11 +69,6 @@ const FEATURE_EMAILS: FeatureEmailDefinition[] = [
         key: featureEmailKey.yearlyPlans,
         subject: t('emails.features.yearlyPlans.subject'),
         render: () => YearlyPlansEmail({})
-    },
-    {
-        key: featureEmailKey.simplifiedPlatform,
-        subject: t('emails.features.simplifiedPlatform.subject'),
-        render: () => SimplifiedPlatformEmail({})
     }
 ]
 

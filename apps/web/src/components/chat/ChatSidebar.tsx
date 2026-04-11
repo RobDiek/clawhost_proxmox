@@ -1,10 +1,14 @@
 import type { FC, ReactNode } from 'react'
 import type { ChatSidebarProps } from '@/ts/Interfaces'
 
-import { useCallback } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { ClawMascot } from '@/components/shared'
-import ChatSidebarTreeView from '@/components/chat/ChatSidebarTreeView'
+import {
+    ChatSidebarSearch,
+    ChatSidebarSearchEmpty,
+    ChatSidebarTreeView
+} from '@/components/chat'
 
 const ChatSidebar: FC<ChatSidebarProps> = ({
     claws,
@@ -13,6 +17,8 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
     onOpenClawSettings,
     onClose
 }): ReactNode => {
+    const [search, setSearch] = useState('')
+
     const handleClawSettings = useCallback(
         (clawId: string) => {
             onOpenClawSettings(clawId)
@@ -20,6 +26,16 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
         },
         [onOpenClawSettings, onClose]
     )
+
+    const filteredClaws = useMemo(() => {
+        if (!search.trim()) return claws
+        const query = search.toLowerCase()
+        return claws.filter(
+            (claw) =>
+                claw.name.toLowerCase().includes(query) ||
+                claw.subdomain?.toLowerCase().includes(query)
+        )
+    }, [claws, search])
 
     if (claws.length === 0) {
         return (
@@ -35,14 +51,23 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
     }
 
     return (
-        <div className='bg-background md:border-border relative z-10 flex h-full w-full shrink-0 flex-col md:w-[280px] md:border-r'>
-            <div className='flex-1 overflow-y-auto p-3'>
-                <ChatSidebarTreeView
-                    claws={claws}
-                    selectedClawId={selectedClawId}
-                    readOnly={readOnly}
-                    onOpenClawSettings={handleClawSettings}
-                />
+        <div className='bg-background md:border-border relative z-10 flex h-full w-full shrink-0 flex-col overflow-hidden md:w-[280px] md:border-r'>
+            <ChatSidebarSearch
+                value={search}
+                onChange={setSearch}
+                clawCount={claws.length}
+            />
+            <div className='flex-1 overflow-y-auto px-3 pb-3 pt-2'>
+                {filteredClaws.length === 0 ? (
+                    <ChatSidebarSearchEmpty />
+                ) : (
+                    <ChatSidebarTreeView
+                        claws={filteredClaws}
+                        selectedClawId={selectedClawId}
+                        readOnly={readOnly}
+                        onOpenClawSettings={handleClawSettings}
+                    />
+                )}
             </div>
         </div>
     )

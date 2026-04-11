@@ -3,6 +3,7 @@ import type { Translations } from '#i18n/types'
 const ja: Translations = {
     common: {
         loading: '読み込み中...',
+        noResults: '結果が見つかりません.',
         save: '保存',
         cancel: 'キャンセル',
         confirm: '確認',
@@ -300,6 +301,7 @@ const ja: Translations = {
         sshKeyNotFound: 'SSHキーが見つかりません!',
         pendingClawNotFound: '保留中のClawが見つかりません!',
         clawNotScheduledForDeletion: 'Clawは削除予定に設定されていません!',
+        clawDeletionAlreadyPassed: '削除日はすでに過ぎています!',
         clawLimitReached:
             'Clawsの上限{{max}}件に達しました。上限を引き上げるにはサポートにお問い合わせください!',
         sshKeyLimitReached:
@@ -618,24 +620,6 @@ const ja: Translations = {
                 description:
                     '年間契約に切り替えてClawサブスクリプションを節約。同じ素晴らしいサービス、より低い価格 — いつでもキャンセル可能。',
                 cta: 'プランを見る'
-            },
-            simplifiedPlatform: {
-                subject: 'ClawHost just got Simpler - ClawHost',
-                preview:
-                    'チャンネル、スキルなどはOpenClawで直接管理されるようになりました',
-                tag: 'プラットフォーム更新',
-                heading: 'ClawHost Simplified',
-                description:
-                    'ClawHostダッシュボードからチャンネル、エージェント、チャット、スキルの管理を削除しました。これらの機能はOpenClawインスタンスで直接管理されるようになりました。',
-                removed:
-                    '具体的に削除したもの：メッセージングチャンネル（WhatsApp、Telegram、Discord、Slack、Signal）、スキルマーケットプレイス（ClawHub）、およびエージェントチャットとボイスモード。これらはすべてOpenClawに存在し続けています — ラッピングを停止しただけです。',
-                why: 'OpenClawの各リリースに合わせてインターフェースを同期し続けることは持続不可能でした。アップストリームで更新が出ても、UIが遅れ — 古いコントロールと不完全な機能が残りました。',
-                benefit:
-                    'これらのレイヤーを削除することで、OpenClawと直接やり取りできます。古くなる可能性のある別のインターフェースではなく、本物のシステムを学べます。その知識はOpenClawが動作するどこにでも活かせます。',
-                action: '何も壊れません。Claw、サーバー、請求、ダッシュボードのコア機能は変わりません。チャンネル、スキル、エージェントを設定するには、OpenClawインスタンスを直接使用してください。',
-                closing:
-                    '機能の削除は良い響きではないことは承知しています。しかし、これにより本当に大切なことに集中できます — OpenClawエコシステムへのより迅速な提供、コアホスティング体験の改善、そしてあなたにとって本当に価値のあるものの構築。この旅に参加してくださり、そしてこれからも共に歩んでくださり、ありがとうございます。',
-                cta: 'ClawHostを訪問'
             }
         }
     },
@@ -808,6 +792,9 @@ const ja: Translations = {
         clawCountLabel: '{{count}} Claw',
         clawCountLabelSingular: '{{count}} Claw',
         newClaw: '新しいClaw',
+        searchAgents: 'エージェントを検索...',
+        searchAgentsCount: '{{count}} エージェントを検索...',
+        noAgentsMatchSearch: '検索に一致するエージェントが見つかりません.',
         clawActions: 'Clawアクション',
         noAgentsYet: 'エージェントなし',
         noAgentsDescription:
@@ -865,6 +852,7 @@ const ja: Translations = {
         deletionTooltip:
             '{{date}}に削除予定。キャンセルするにはメニューを使用してください。',
         pastDue: '支払い失敗',
+        deletionFailed: '削除に失敗しました',
         pastDueDescription:
             '支払いに失敗しました。14日以内に解決されない場合、このClawは完全に削除されます。',
         updatePayment: '支払いを更新',
@@ -1521,6 +1509,9 @@ const ja: Translations = {
         versionsChangelog: 'npmで変更履歴を見る',
         versionCurrent: '現在',
         versionLatest: '最新',
+        updateAvailable: 'A newer version of OpenClaw is available',
+        updateAvailableDescription: 'Go to Versions to upgrade your instance.',
+        goToVersions: 'Go to Versions',
         versionInstall: 'インストール',
         versionInstalling: 'インストール中...',
         versionInstallSuccess: 'バージョン{{version}}をインストールしました。',

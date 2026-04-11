@@ -3,6 +3,7 @@ import type { Translations } from '#i18n/types'
 const it: Translations = {
     common: {
         loading: 'Caricamento...',
+        noResults: 'Nessun risultato trovato.',
         save: 'Salva',
         cancel: 'Annulla',
         confirm: 'Conferma',
@@ -303,6 +304,7 @@ const it: Translations = {
         pendingClawNotFound: 'Claw in attesa non trovato!',
         clawNotScheduledForDeletion:
             "Il claw non \u00e8 programmato per l'eliminazione!",
+        clawDeletionAlreadyPassed: 'La data di eliminazione è già passata!',
         clawLimitReached:
             'Hai raggiunto il limite di {{max}} claw. Contatta il supporto per aumentare questo limite!',
         sshKeyLimitReached:
@@ -642,24 +644,6 @@ const it: Translations = {
                 description:
                     'Passa alla fatturazione annuale e risparmia sul tuo abbonamento claw. Stesso ottimo servizio, prezzo inferiore — cancella in qualsiasi momento.',
                 cta: 'Vedi Piani'
-            },
-            simplifiedPlatform: {
-                subject: 'ClawHost just got Simpler - ClawHost',
-                preview:
-                    'Canali, abilità e altro sono ora gestiti direttamente in OpenClaw',
-                tag: 'Aggiornamento Piattaforma',
-                heading: 'ClawHost Simplified',
-                description:
-                    'Abbiamo rimosso la gestione di canali, agenti, chat e abilità dalla dashboard di ClawHost. Queste funzionalità sono ora gestite direttamente sulla tua istanza OpenClaw.',
-                removed:
-                    'Nello specifico, abbiamo rimosso: canali di messaggistica (WhatsApp, Telegram, Discord, Slack, Signal), il marketplace di abilità (ClawHub), e la chat agente e la modalità vocale. Tutto questo esiste ancora in OpenClaw — abbiamo semplicemente smesso di incapsularlo.',
-                why: 'Mantenere le nostre interfacce sincronizzate con ogni rilascio di OpenClaw era insostenibile. Gli aggiornamenti arrivavano a monte e la nostra interfaccia rimaneva indietro — lasciandoti con controlli obsoleti e funzionalità incomplete.',
-                benefit:
-                    'Rimuovendo questi strati, interagisci direttamente con OpenClaw. Impari il sistema reale, non una seconda interfaccia che può diventare obsoleta. La tua conoscenza è trasferibile ovunque OpenClaw funzioni.',
-                action: 'Nulla si rompe. I tuoi claw, server, fatturazione e le funzionalità principali della dashboard rimangono invariati. Per configurare canali, abilità o agenti, usa direttamente la tua istanza OpenClaw.',
-                closing:
-                    "Sappiamo che rimuovere funzionalità non suona mai bene. Ma questo ci libera per concentrarci su ciò che conta — consegnare più velocemente per l'ecosistema OpenClaw, migliorare l'esperienza di hosting, e costruire cose che fanno davvero la differenza per te. Grazie per far parte di questo viaggio, e per continuare a farne parte.",
-                cta: 'Visita ClawHost'
             }
         }
     },
@@ -837,6 +821,10 @@ const it: Translations = {
         clawCountLabel: '{{count}} claw',
         clawCountLabelSingular: '{{count}} claw',
         newClaw: 'Nuovo Claw',
+        searchAgents: 'Cerca agenti...',
+        searchAgentsCount: 'Cerca {{count}} agenti...',
+        noAgentsMatchSearch:
+            'Nessun agente trovato corrispondente alla tua ricerca.',
         clawActions: 'Azioni claw',
         noAgentsYet: 'Nessun Agente',
         noAgentsDescription:
@@ -892,6 +880,7 @@ const it: Translations = {
         deletionTooltip:
             'Eliminazione programmata per il {{date}}. Per annullare, usa il menu.',
         pastDue: 'Pagamento fallito',
+        deletionFailed: 'Eliminazione fallita',
         pastDueDescription:
             'Il tuo pagamento non è andato a buon fine. Se non risolto entro 14 giorni, questo claw verrà eliminato permanentemente.',
         updatePayment: 'Aggiorna pagamento',
@@ -1583,6 +1572,9 @@ const it: Translations = {
         versionsChangelog: 'Vedi changelog su npm',
         versionCurrent: 'Corrente',
         versionLatest: 'Ultima',
+        updateAvailable: 'A newer version of OpenClaw is available',
+        updateAvailableDescription: 'Go to Versions to upgrade your instance.',
+        goToVersions: 'Go to Versions',
         versionInstall: 'Installa',
         versionInstalling: 'Installazione...',
         versionInstallSuccess: 'Versione {{version}} installata con successo.',

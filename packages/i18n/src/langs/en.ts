@@ -1,6 +1,7 @@
 const en = {
     common: {
         loading: 'Loading...',
+        noResults: 'No results found.',
         save: 'Save',
         cancel: 'Cancel',
         confirm: 'Confirm',
@@ -291,6 +292,7 @@ const en = {
         sshKeyNotFound: 'SSH key not found!',
         pendingClawNotFound: 'Pending claw not found!',
         clawNotScheduledForDeletion: 'Claw is not scheduled for deletion!',
+        clawDeletionAlreadyPassed: 'Deletion date has already passed!',
         clawLimitReached:
             "You\'ve reached the limit of {{max}} claws. Please contact support to increase this limit!",
         sshKeyLimitReached:
@@ -608,24 +610,6 @@ const en = {
                 description:
                     'Switch to annual billing and pay less. No feature differences, no catch. Switch anytime from your account.',
                 cta: 'View Plans'
-            },
-            simplifiedPlatform: {
-                subject: 'ClawHost just got Simpler - ClawHost',
-                preview:
-                    'Channels, skills, and more are now managed directly in OpenClaw',
-                tag: 'Platform Update',
-                heading: 'ClawHost Simplified',
-                description:
-                    'We removed channels, agents, chat, and skills management from the ClawHost dashboard. These features are now managed directly on your OpenClaw instance.',
-                removed:
-                    'Specifically, we dropped: messaging channels (WhatsApp, Telegram, Discord, Slack, Signal), the skills marketplace (ClawHub), and agent chat and voice mode. All of these still exist in OpenClaw itself — we just stopped wrapping them.',
-                why: 'Keeping our wrappers in sync with every OpenClaw release was unsustainable. Updates would ship upstream, and our UI would lag behind — leaving you with outdated controls and incomplete features.',
-                benefit:
-                    'By removing these layers, you interact with OpenClaw directly. You learn the real system, not a second interface that may fall out of date. Your knowledge transfers everywhere OpenClaw runs.',
-                action: 'Nothing breaks. Your claws, servers, billing, and core dashboard features are unchanged. To configure channels, skills, or agents, use your OpenClaw instance directly.',
-                closing:
-                    'We know dropping features never sounds great. But this frees us to focus on what matters — shipping faster for the OpenClaw ecosystem, improving the core hosting experience, and building things that actually move the needle for you. Thank you for being part of this journey, and for continuing to be.',
-                cta: 'Visit ClawHost'
             }
         }
     },
@@ -799,6 +783,9 @@ const en = {
         clawCountLabel: '{{count}} claws',
         clawCountLabelSingular: '{{count}} claw',
         newClaw: 'New Claw',
+        searchAgents: 'Search agents...',
+        searchAgentsCount: 'Search {{count}} agents...',
+        noAgentsMatchSearch: 'No agents found matching your search.',
         clawActions: 'Claw actions',
         noAgentsYet: 'No Agents',
         noAgentsDescription:
@@ -854,6 +841,7 @@ const en = {
         deletionTooltip:
             'Scheduled for deletion on {{date}}. To cancel, use the menu.',
         pastDue: 'Payment Failed',
+        deletionFailed: 'Deletion Failed',
         pastDueDescription:
             'Your payment failed. If not resolved within 14 days, this claw will be permanently deleted.',
         updatePayment: 'Update Payment',
@@ -1522,6 +1510,9 @@ const en = {
         versionsChangelog: 'View changelogs on npm',
         versionCurrent: 'Current',
         versionLatest: 'Latest',
+        updateAvailable: 'A newer version of OpenClaw is available',
+        updateAvailableDescription: 'is available for your instance.',
+        goToVersions: 'Go to Versions',
         versionInstall: 'Install',
         versionInstalling: 'Installing...',
         versionInstallSuccess: 'Version {{version}} installed successfully.',

@@ -136,10 +136,12 @@ const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
                                 ))}
 
                             {!isLoading &&
-                                filteredVersions.map((entry) => {
+                                filteredVersions.map((entry, idx) => {
                                     const isCurrent =
                                         versionsData?.currentVersion ===
                                         entry.version
+                                    const isLatest =
+                                        idx === 0 && !debouncedSearch
                                     const isInstalling =
                                         installingVersion === entry.version
                                     const isSupported = isVersionSupported(
@@ -165,6 +167,13 @@ const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
                                                         <span className='rounded bg-green-500/20 px-1.5 py-0.5 text-[10px] font-medium text-green-400'>
                                                             {t(
                                                                 'clawDetail.versionCurrent'
+                                                            )}
+                                                        </span>
+                                                    )}
+                                                    {isLatest && (
+                                                        <span className='rounded bg-purple-500/20 px-1.5 py-0.5 text-[10px] font-medium text-purple-400'>
+                                                            {t(
+                                                                'clawDetail.versionLatest'
                                                             )}
                                                         </span>
                                                     )}

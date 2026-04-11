@@ -3,6 +3,7 @@ import type { Translations } from '#i18n/types'
 const hi: Translations = {
     common: {
         loading: 'लोड हो रहा है...',
+        noResults: 'कोई परिणाम नहीं मिला.',
         save: 'सहेजें',
         cancel: 'रद्द करें',
         confirm: 'पुष्टि करें',
@@ -298,6 +299,7 @@ const hi: Translations = {
         sshKeyNotFound: 'SSH कुंजी नहीं मिली!',
         pendingClawNotFound: 'लंबित क्लॉ नहीं मिला!',
         clawNotScheduledForDeletion: 'क्लॉ हटाने के लिए शेड्यूल नहीं है!',
+        clawDeletionAlreadyPassed: 'हटाने की तारीख पहले ही बीत चुकी है!',
         clawLimitReached:
             'आप {{max}} क्लॉज़ की सीमा तक पहुँच गए हैं. कृपया इस सीमा को बढ़ाने के लिए सहायता से संपर्क करें!',
         sshKeyLimitReached:
@@ -624,24 +626,6 @@ const hi: Translations = {
                 description:
                     'वार्षिक बिलिंग पर स्विच करें और अपनी क्लॉ सब्सक्रिप्शन पर बचत करें. वही शानदार सेवा, कम कीमत — कभी भी रद्द करें.',
                 cta: 'प्लान देखें'
-            },
-            simplifiedPlatform: {
-                subject: 'ClawHost just got Simpler - ClawHost',
-                preview:
-                    'चैनल, स्किल्स और अन्य अब सीधे OpenClaw में प्रबंधित होते हैं',
-                tag: 'प्लेटफ़ॉर्म अपडेट',
-                heading: 'ClawHost Simplified',
-                description:
-                    'हमने ClawHost डैशबोर्ड से चैनल, एजेंट, चैट और स्किल्स प्रबंधन हटा दिया है. ये सुविधाएँ अब सीधे आपके OpenClaw इंस्टेंस पर प्रबंधित होती हैं.',
-                removed:
-                    'विशेष रूप से, हमने हटाया: मैसेजिंग चैनल (WhatsApp, Telegram, Discord, Slack, Signal), स्किल्स मार्केटप्लेस (ClawHub), और एजेंट चैट और वॉइस मोड. ये सभी OpenClaw में मौजूद हैं — हमने बस इन्हें रैप करना बंद कर दिया.',
-                why: 'हर OpenClaw रिलीज़ के साथ अपने इंटरफ़ेस को सिंक रखना टिकाऊ नहीं था. अपस्ट्रीम अपडेट आते थे, और हमारा UI पीछे रह जाता था — आपको पुराने कंट्रोल्स और अधूरी सुविधाएँ मिलती थीं.',
-                benefit:
-                    'इन परतों को हटाकर, आप सीधे OpenClaw से इंटरैक्ट करते हैं. आप असली सिस्टम सीखते हैं, कोई दूसरा इंटरफ़ेस नहीं जो पुराना हो सकता है. आपका ज्ञान हर जगह काम आता है जहाँ OpenClaw चलता है.',
-                action: 'कुछ भी नहीं टूटता. आपके क्लॉज़, सर्वर, बिलिंग और डैशबोर्ड की मुख्य सुविधाएँ अपरिवर्तित हैं. चैनल, स्किल्स या एजेंट कॉन्फ़िगर करने के लिए, सीधे अपना OpenClaw इंस्टेंस इस्तेमाल करें.',
-                closing:
-                    'हम जानते हैं कि सुविधाएँ हटाना कभी अच्छा नहीं लगता. लेकिन इससे हमें वह करने की आज़ादी मिलती है जो मायने रखता है — OpenClaw इकोसिस्टम के लिए तेज़ी से शिप करना, कोर होस्टिंग अनुभव को बेहतर बनाना, और ऐसी चीज़ें बनाना जो आपके लिए वास्तव में फ़र्क करें. इस यात्रा का हिस्सा बनने के लिए, और बने रहने के लिए धन्यवाद.',
-                cta: 'ClawHost पर जाएँ'
             }
         }
     },
@@ -815,6 +799,9 @@ const hi: Translations = {
         clawCountLabel: '{{count}} क्लॉज़',
         clawCountLabelSingular: '{{count}} क्लॉ',
         newClaw: 'नया क्लॉ',
+        searchAgents: 'एजेंट खोजें...',
+        searchAgentsCount: '{{count}} एजेंट खोजें...',
+        noAgentsMatchSearch: 'आपकी खोज से मेल खाने वाला कोई एजेंट नहीं मिला.',
         clawActions: 'क्लॉ कार्य',
         noAgentsYet: 'कोई एजेंट नहीं',
         noAgentsDescription:
@@ -870,6 +857,7 @@ const hi: Translations = {
         deletionTooltip:
             '{{date}} को हटाने के लिए शेड्यूल किया गया. रद्द करने के लिए मेनू का उपयोग करें.',
         pastDue: 'भुगतान विफल',
+        deletionFailed: 'हटाना विफल',
         pastDueDescription:
             'आपका भुगतान विफल हो गया. यदि 14 दिनों में हल नहीं हुआ, तो यह क्लॉ स्थायी रूप से हटा दिया जाएगा.',
         updatePayment: 'भुगतान अपडेट करें',
@@ -1538,6 +1526,9 @@ const hi: Translations = {
         versionsChangelog: 'npm पर चेंजलॉग देखें',
         versionCurrent: 'वर्तमान',
         versionLatest: 'नवीनतम',
+        updateAvailable: 'A newer version of OpenClaw is available',
+        updateAvailableDescription: 'Go to Versions to upgrade your instance.',
+        goToVersions: 'Go to Versions',
         versionInstall: 'इंस्टॉल',
         versionInstalling: 'इंस्टॉल हो रहा है...',
         versionInstallSuccess: 'संस्करण {{version}} सफलतापूर्वक इंस्टॉल हुआ.',

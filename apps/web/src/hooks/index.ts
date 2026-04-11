@@ -103,6 +103,7 @@ import createApiMutation from '@/hooks/createApiMutation'
 import useToast from '@/hooks/useToast'
 import useCopyWithFeedback from '@/hooks/useCopyWithFeedback'
 import useCreateClawForm from '@/hooks/useCreateClawForm'
+import useCustomerPortal from '@/hooks/useCustomerPortal'
 
 export {
     ADMIN_USERS_QUERY_KEY,
@@ -188,5 +189,6 @@ export {
     createApiMutation,
     useToast,
     useCopyWithFeedback,
-    useCreateClawForm
+    useCreateClawForm,
+    useCustomerPortal
 }

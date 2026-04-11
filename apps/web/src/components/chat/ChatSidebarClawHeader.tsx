@@ -30,7 +30,9 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
     const { actions, isMutating, dialogsProps } = useClawCardActions({ claw })
     const { data: profile } = useProfile({ enabled: true })
 
-    const isScheduledForDeletion = !!claw.deletionScheduledAt
+    const isScheduledForDeletion =
+        !!claw.deletionScheduledAt &&
+        new Date(claw.deletionScheduledAt) > new Date()
     const isPastDue = claw.subscriptionStatus === 'past_due'
     const hasActionItems =
         claw.status === clawStatus.running || claw.status === clawStatus.stopped
@@ -118,6 +120,16 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
                                 <p>{t('dashboard.scheduledForDeletion')}</p>
                             </TooltipContent>
                         </Tooltip>
+                    ) : claw.subscriptionStatus === 'canceled' ? (
+                        <div className='flex items-center gap-1'>
+                            <WarningIcon
+                                className='h-3 w-3 shrink-0 text-red-500'
+                                weight='fill'
+                            />
+                            <span className='truncate text-[11px] text-red-500'>
+                                {t('dashboard.deletionFailed')}
+                            </span>
+                        </div>
                     ) : claw.status === clawStatus.running ? (
                         <p className='text-muted-foreground truncate text-[11px]'>
                             {(claw.subdomain || generateSlug(claw.id)) +

@@ -36,6 +36,7 @@ const cleanupClaw = async (
             : Promise.resolve()
     ])
 
+    await db.delete(volumes).where(eq(volumes.clawId, clawId))
     await db.delete(claws).where(eq(claws.id, clawId))
 }
 

@@ -35,7 +35,11 @@ const executeServerLifecycle = async (
 
     try {
         const provider = getProvider()
-        await (provider[config.providerMethod as keyof typeof provider] as (id: string) => Promise<void>)(claw.providerServerId!)
+        await (
+            provider[config.providerMethod as keyof typeof provider] as (
+                id: string
+            ) => Promise<void>
+        )(claw.providerServerId!)
         updateCachedServerStatus(
             claw.providerServerId!,
             config.transitionalStatus

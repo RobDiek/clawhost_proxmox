@@ -8,8 +8,7 @@ import {
     GearSixIcon,
     TerminalWindowIcon,
     TagIcon,
-    FolderSimpleIcon,
-    ReceiptIcon
+    FolderSimpleIcon
 } from '@phosphor-icons/react'
 import { CLAW_DETAIL_TABS } from '@/lib/constants'
 
@@ -34,11 +33,6 @@ const tabs: ClawDetailTabConfig<ClawDetailTab>[] = [
         id: CLAW_DETAIL_TABS.FILES,
         label: 'clawDetail.tabFiles',
         icon: FolderSimpleIcon
-    },
-    {
-        id: CLAW_DETAIL_TABS.BILLING,
-        label: 'clawDetail.tabBilling',
-        icon: ReceiptIcon
     },
     {
         id: CLAW_DETAIL_TABS.DIAGNOSTICS,

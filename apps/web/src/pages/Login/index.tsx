@@ -101,7 +101,7 @@ const Login: FC = (): ReactNode => {
         return (
             <div className='bg-background text-foreground relative flex min-h-screen items-center justify-center px-4'>
                 <PageBackground />
-                <CircleNotchIcon className='text-foreground/50 h-8 w-8 animate-spin' />
+                <CircleNotchIcon className='text-foreground/50 h-7 w-7 animate-spin' />
             </div>
         )
     }

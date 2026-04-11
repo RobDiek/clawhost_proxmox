@@ -3,6 +3,7 @@ import type { Translations } from '#i18n/types'
 const nl: Translations = {
     common: {
         loading: 'Laden...',
+        noResults: 'Geen resultaten gevonden.',
         save: 'Opslaan',
         cancel: 'Annuleren',
         confirm: 'Bevestigen',
@@ -299,6 +300,7 @@ const nl: Translations = {
         sshKeyNotFound: 'SSH-sleutel niet gevonden!',
         pendingClawNotFound: 'Claw in afwachting niet gevonden!',
         clawNotScheduledForDeletion: 'Claw is niet gepland voor verwijdering!',
+        clawDeletionAlreadyPassed: 'Verwijderingsdatum is al verstreken!',
         clawLimitReached:
             'Je hebt de limiet van {{max}} claws bereikt. Neem contact op met support om deze limiet te verhogen!',
         sshKeyLimitReached:
@@ -626,24 +628,6 @@ const nl: Translations = {
                 description:
                     'Schakel over naar jaarlijkse facturering en bespaar op je claw-abonnement. Dezelfde geweldige service, lagere prijs \u2014 annuleer wanneer je wilt.',
                 cta: 'Plannen bekijken'
-            },
-            simplifiedPlatform: {
-                subject: 'ClawHost just got Simpler - ClawHost',
-                preview:
-                    'Kanalen, vaardigheden en meer worden nu direct in OpenClaw beheerd',
-                tag: 'Platform Update',
-                heading: 'ClawHost Simplified',
-                description:
-                    'We hebben het beheer van kanalen, agents, chat en vaardigheden uit het ClawHost-dashboard verwijderd. Deze functies worden nu direct op je OpenClaw-instantie beheerd.',
-                removed:
-                    'Specifiek hebben we verwijderd: berichtenkanalen (WhatsApp, Telegram, Discord, Slack, Signal), de vaardigheden-marktplaats (ClawHub), en agent-chat en spraakfunctie. Dit alles bestaat nog steeds in OpenClaw — we zijn alleen gestopt met het inpakken ervan.',
-                why: 'Onze interfaces synchroon houden met elke OpenClaw-release was niet vol te houden. Updates kwamen upstream, en onze interface liep achter — waardoor je verouderde knoppen en onvolledige functies kreeg.',
-                benefit:
-                    'Door deze lagen te verwijderen, werk je direct met OpenClaw. Je leert het echte systeem, niet een tweede interface die verouderd kan raken. Je kennis is overal bruikbaar waar OpenClaw draait.',
-                action: 'Er gaat niets kapot. Je claws, servers, facturering en kernfuncties van het dashboard blijven ongewijzigd. Om kanalen, vaardigheden of agents te configureren, gebruik je OpenClaw-instantie direct.',
-                closing:
-                    'We weten dat het verwijderen van functies nooit goed klinkt. Maar het geeft ons de vrijheid om te focussen op wat er toe doet — sneller leveren voor het OpenClaw-ecosysteem, de kernhostingervaring verbeteren, en dingen bouwen die echt het verschil maken voor jou. Bedankt dat je deel uitmaakt van deze reis, en dat je dat blijft doen.',
-                cta: 'Bezoek ClawHost'
             }
         }
     },
@@ -819,6 +803,10 @@ const nl: Translations = {
         clawCountLabel: '{{count}} claws',
         clawCountLabelSingular: '{{count}} claw',
         newClaw: 'Nieuwe Claw',
+        searchAgents: 'Agenten zoeken...',
+        searchAgentsCount: '{{count}} agenten zoeken...',
+        noAgentsMatchSearch:
+            'Geen agenten gevonden die overeenkomen met je zoekopdracht.',
         clawActions: 'Claw-acties',
         noAgentsYet: 'Geen Agenten',
         noAgentsDescription:
@@ -874,6 +862,7 @@ const nl: Translations = {
         deletionTooltip:
             'Gepland voor verwijdering op {{date}}. Gebruik het menu om te annuleren.',
         pastDue: 'Betaling mislukt',
+        deletionFailed: 'Verwijdering mislukt',
         pastDueDescription:
             'Je betaling is mislukt. Als dit niet binnen 14 dagen wordt opgelost, wordt deze claw permanent verwijderd.',
         updatePayment: 'Betaling bijwerken',
@@ -1560,6 +1549,9 @@ const nl: Translations = {
         versionsChangelog: 'Changelogs bekijken op npm',
         versionCurrent: 'Huidig',
         versionLatest: 'Nieuwste',
+        updateAvailable: 'A newer version of OpenClaw is available',
+        updateAvailableDescription: 'Go to Versions to upgrade your instance.',
+        goToVersions: 'Go to Versions',
         versionInstall: 'Installeren',
         versionInstalling: 'Installeren...',
         versionInstallSuccess:
