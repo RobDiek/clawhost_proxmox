@@ -266,9 +266,9 @@ const ja: Translations = {
         pageNotFoundDescription:
             'お探しのページは存在しないか、移動されました.',
         goToHomepage: 'ホームページへ',
-        failedToLoadClaws: 'Clawsの読み込みに失敗しました!',
-        failedToLoadClawsDescription:
-            'Clawsを読み込めませんでした。接続を確認して、もう一度お試しください!',
+        failedToLoadAgents: 'Agentsの読み込みに失敗しました!',
+        failedToLoadAgentsDescription:
+            'Agentsを読み込めませんでした。接続を確認して、もう一度お試しください!',
         failedToLoadSSHKeys: 'SSHキーの読み込みに失敗しました!',
         failedToLoadSSHKeysDescription:
             'SSHキーを読み込めませんでした。接続を確認して、もう一度お試しください!',
@@ -381,17 +381,21 @@ const ja: Translations = {
         failedToGetLogs: 'ログの読み込みに失敗しました!',
         failedToGetLogsDescription:
             'このインスタンスのログを取得できませんでした。後でもう一度お試しください.',
-        failedToRepairClaw: 'インスタンスの修復に失敗しました!',
-        repairSuccess: 'インスタンスを修復しました.',
-        repairGatewayNotResponding:
-            '修復は適用されましたが、ゲートウェイがまだ応答していません。起動にもう少し時間がかかる場合があります.',
         failedToReinstallClaw: 'インスタンスの再インストールに失敗しました!',
         reinstallSuccess: 'インスタンスを再インストールしました.',
         reinstallRateLimited:
             '再インストールは24時間に1回のみ可能です。この制限を解除するにはチームにお問い合わせください.',
+        subdomainRateLimited:
+            'サブドメインの変更は24時間に1回のみ可能です。この制限を解除するにはチームにお問い合わせください.',
+        subdomainUpdated: 'サブドメインを更新しました.',
+        invalidSubdomain: '無効なサブドメインです。3〜20文字の小文字英字と数字を使用してください!',
+        subdomainAlreadyInUse: 'このサブドメインは既に使用されています!',
         clawBusy: 'Clawは現在プロビジョニング中または削除中です!',
         reinstallGatewayNotResponding:
             '再インストールは完了しましたが、ゲートウェイがまだ応答していません。起動にもう少し時間がかかる場合があります.',
+        failedToRepairClaw: 'Failed to repair the instance!',
+        repairSuccess: 'Instance repaired successfully.',
+        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Clawデータのエクスポートに失敗しました!',
         clawNotReady: 'Clawはエクスポートの準備ができていません!',
         exportRateLimited:
@@ -502,7 +506,6 @@ const ja: Translations = {
         adminWaitlistFetched: 'Waitlist fetched.',
         failedToGetAdminWaitlist: 'Failed to fetch waitlist!',
         adminExportsFetched: 'Exports fetched.',
-        failedToGetAdminExports: 'Failed to fetch exports!',
         adminEmailsFetched: 'Emails fetched.',
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
@@ -642,7 +645,7 @@ const ja: Translations = {
         checkYourEmailHeading: 'メールを確認してください',
         codeSentTo: '6桁のコードを送信しました',
         signInToDeployOpenClaw:
-            '認証してOpenClawインスタンスを管理・デプロイ。',
+            'ワンクリックでエージェントを管理・デプロイするために認証してください。',
         emailAddress: 'メールアドレス',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'メールで続行',
@@ -720,7 +723,6 @@ const ja: Translations = {
             '同じメールアドレスを使用するアカウントのみ接続できます！',
         settings: '設定',
         settingsDescription: 'ダッシュボードの設定を管理。',
-        showAllClaws: 'すべてのユーザーのClawを表示',
         openLinksWindowed: 'リンクをウィンドウビューで開く',
         openLinksWindowedDescription:
             '有効にすると、外部リンクがシステムブラウザではなくアプリ内で開きます。'
@@ -803,9 +805,9 @@ const ja: Translations = {
         clawCountLabelSingular: '{{count}} Claw',
         newClaw: '新しいClaw',
         clawActions: 'Clawアクション',
-        noClawsYet: 'Clawなし',
-        noClawsDescription:
-            'デプロイ済みのClawが見つかりません。$25/月から最初のClawをいつでもデプロイできます。AIにお任せ。',
+        noAgentsYet: 'エージェントなし',
+        noAgentsDescription:
+            'デプロイ済みのエージェントが見つかりません。$25/月から最初のエージェントをいつでもデプロイできます。AIにお任せ。',
         deleteClaw: 'Clawを削除',
         deleteClawConfirmation: '本当に削除しますか',
         deleteClawWarning:
@@ -852,7 +854,7 @@ const ja: Translations = {
         gatewayToken: 'ゲートウェイトークン',
         gatewayTokenDescription:
             'このトークンを使用してゲートウェイで認証します',
-        contactSupport: 'サポート',
+        contactSupport: 'サポートに連絡',
         scheduledForDeletion: '削除予定',
         scheduledDeletionShort: '{{date}}に削除',
         deletionDate: 'このClawは{{date}}に削除されます',
@@ -875,12 +877,10 @@ const ja: Translations = {
         diagnosticsDescription: 'OpenClawインスタンスの健全性を確認。',
         diagnosticsStatus: 'ステータス',
         diagnosticsLogs: 'ログ',
-        diagnosticsRepair: '修復',
-        diagnosticsRepairDescription:
-            'メモリ制限を解除し、最新のサービス設定を適用し、ゲートウェイを再起動します。ほとんどの一般的な問題を修正します。',
-        diagnosticsRepairSuccess: 'インスタンスを修復しました。',
-        diagnosticsRepairFailed:
-            '修復を適用しましたが、ゲートウェイがまだ応答していません！',
+        diagnosticsRepair: 'Repair',
+        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairSuccess: 'Instance repaired successfully.',
+        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'インスタンスに接続中...',
         diagnosticsNoLogs:
             'ログがありません。インスタンスを起動してログを生成してください。',
@@ -902,9 +902,6 @@ const ja: Translations = {
         fileExplorerNoFiles: 'ファイルが見つかりません',
         fileExplorerSearchFiles: 'ファイルを検索...',
         fileExplorerNoSearchResults: '一致するファイルがありません。',
-        updateInstance: 'インスタンスを更新',
-        updateInstanceSuccess: 'インスタンスを更新しました。',
-        updateInstanceFailed: 'インスタンスの更新に失敗しました！',
         startFailed: 'Clawの起動に失敗しました！',
         renameSuccess: 'Clawの名前を変更しました。',
         renameFailed: 'Clawの名前変更に失敗しました！',
@@ -917,6 +914,8 @@ const ja: Translations = {
         reinstallInstanceFailed: 'インスタンスの再インストールに失敗しました！',
         openControlPanel: 'コントロールパネルを開く',
         exportData: 'Clawをエクスポート (.zip)',
+        exportAgent: 'Export Agent',
+        exportAgentTooltip: 'Download this agent as a .zip file',
         exportStarted: 'エクスポートを準備中、しばらくお待ちください...',
         exportSuccess: 'Clawをエクスポートしました。',
         exportFailed: 'Clawデータのエクスポートに失敗しました！',
@@ -937,6 +936,7 @@ const ja: Translations = {
         adminNoClaws: 'プラットフォームにClawがまだありません。',
         adminAccessDenied: 'このページにアクセスする権限がありません。',
         owner: 'オーナー',
+        agentType: 'Agent',
         status: {
             running: '実行中',
             stopped: '停止',
@@ -1131,9 +1131,9 @@ const ja: Translations = {
         openclawControl: 'OpenClawコントロール',
         openclawControlDescription:
             'ClawHostからネイティブOpenClawパネルに直接アクセス。OpenClawが提供するすべてへのフル編集アクセス。',
-        clawHostControl: 'ClawHostコントロール',
+        clawHostControl: '完全なサーバーアクセス',
         clawHostControlDescription:
-            'ファイル、アップデートなどの設定オプションをプラットフォームから直接管理。',
+            'ブラウザターミナル、ファイルエクスプローラー、ログ、診断、バージョン管理 — すべてダッシュボードから。',
         multipleClaws: '複数のClaw',
         multipleClawsDescription:
             '単一のダッシュボードから複数のOpenClawインスタンスをデプロイ・管理。成長に合わせてスケール。',
@@ -1314,6 +1314,8 @@ const ja: Translations = {
             '外出先でOpenClawインスタンスを監視・管理するネイティブモバイルアプリ',
         upcomingReleaseFeature13:
             'macOSとWindows向けClawHost Goベータ版リリース、ワンクリックでOpenClawをローカルデプロイ',
+        upcomingReleaseFeature14:
+            'OpenClawのようなHermesエージェントをワンクリックでデプロイ',
         upcomingReleaseFeature3: 'ダーク・ライトテーマ対応',
         upcomingReleaseFeature4: 'パフォーマンス、安定性、レスポンシブの向上',
         upcomingReleaseFeature5:
@@ -1330,6 +1332,15 @@ const ja: Translations = {
             'ClawHost Goのランディングページ、ClawHostでローカルホスティング',
         upcomingReleaseFeature12:
             'macOSとWindows用デスクトップアプリでワンクリックでOpenClawをローカルデプロイ',
+        release15Date: '2026年4月11日',
+        release15Title: 'シンプル化とカスタムサブドメイン',
+        release15Description:
+            '管理機能をOpenClawに移行してプラットフォームをシンプル化し、プレイグラウンドビューを削除、変更可能なカスタムサブドメインを導入しました。',
+        release15Feature1:
+            '管理機能をシンプル化しOpenClawに移行、ClawHostチャット、エージェント、チャンネル、変数、スキルは廃止',
+        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '2026年4月1日',
         release14Title: 'Hetzner移行、アフィリエイトシステム & 新しい言語',
         release14Description:
@@ -1460,8 +1471,8 @@ const ja: Translations = {
             '統一ダッシュボードレイアウトに伴いグリッド・リスト表示の切り替えを削除'
     },
     clawDetail: {
-        noClawsYet: 'Clawなし',
-        noClawsDescription: '最初のClawをデプロイしてやり取りを開始。',
+        noAgentsYet: 'エージェントなし',
+        noAgentsDescription: '最初のエージェントをデプロイしてやり取りを開始。',
         selectClaw: 'Clawを選択',
         selectClawDescription: 'サイドバーからClawを選択して詳細を表示します。',
         closeDetails: '閉じる',
@@ -1677,7 +1688,7 @@ const ja: Translations = {
         messagesPlaceholder: 'メッセージと通知がここに表示されます。',
         settingsPlaceholder: 'アカウント設定と環境設定がここに表示されます。',
         signIn: '認証',
-        signInDescription: 'サインインしてOpenClawインスタンスを管理。',
+        signInDescription: '認証してエージェントを管理・デプロイ。',
         enterEmail: 'メールアドレス',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'メールで続行',
@@ -1702,7 +1713,7 @@ const ja: Translations = {
     announcement: {
         title: 'サービスのお知らせ',
         message:
-            '需要が高いため、Clawのデプロイは一時的に利用できません。既存のClawは正常に稼働しています。'
+            '需要が高いため、エージェントのデプロイは一時的に利用できません。既存のエージェントは正常に稼働しています。'
     },
     productHunt: {
         liveOn: '公開中',
@@ -1882,7 +1893,7 @@ const ja: Translations = {
         noClawsFound: 'Clawsなし',
         noSSHKeysFound: 'SSHキーなし',
         noVolumesFound: 'ボリュームなし',
-        failedToLoadClaws: 'Clawsの読み込みに失敗しました！',
+        failedToLoadAgents: 'Agentsの読み込みに失敗しました！',
         failedToLoadSSHKeys: 'SSHキーの読み込みに失敗しました！',
         failedToLoadVolumes: 'ボリュームの読み込みに失敗しました！',
         owner: 'オーナー',
@@ -1891,10 +1902,12 @@ const ja: Translations = {
         referralsTab: '紹介',
         pendingClawsTab: '保留中',
         waitlistTab: 'ウェイトリスト',
-        exportsTab: 'エクスポート',
         emailsTab: 'メール',
         analyticsTab: '分析',
         billingTab: '請求',
+        settingsTab: '設定',
+        settingsDescription: '管理者設定を管理。',
+        showAllAgents: 'すべてのユーザーのエージェントを表示',
         billingFilterAll: 'すべての注文',
         billingFilterService: 'Clawサービス',
         billingFilterLicense: 'ライセンス',
@@ -1922,12 +1935,10 @@ const ja: Translations = {
         noReferralsFound: '紹介なし',
         noPendingClawsFound: '保留中のClawsなし',
         noWaitlistFound: 'ウェイトリストなし',
-        noExportsFound: 'エクスポートなし',
         noEmailsFound: 'メールなし',
         failedToLoadReferrals: '紹介の読み込みに失敗しました！',
         failedToLoadPendingClaws: '保留中のClawsの読み込みに失敗しました！',
         failedToLoadWaitlist: 'ウェイトリストの読み込みに失敗しました！',
-        failedToLoadExports: 'エクスポートの読み込みに失敗しました！',
         failedToLoadEmails: 'メールの読み込みに失敗しました！',
         referrer: '紹介者',
         referred: '被紹介者',

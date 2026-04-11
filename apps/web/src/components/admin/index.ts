@@ -7,13 +7,12 @@ import AdminDetailField from '@/components/admin/AdminDetailField'
 import AdminDetailModal from '@/components/admin/AdminDetailModal'
 import AdminEmailDetailView from '@/components/admin/AdminEmailDetailView'
 import AdminEmailsTab from '@/components/admin/AdminEmailsTab'
-import AdminExportDetailView from '@/components/admin/AdminExportDetailView'
-import AdminExportsTab from '@/components/admin/AdminExportsTab'
 import AdminOwnerLink from '@/components/admin/AdminOwnerLink'
 import AdminPendingClawDetailView from '@/components/admin/AdminPendingClawDetailView'
 import AdminPendingClawsTab from '@/components/admin/AdminPendingClawsTab'
 import AdminReferralDetailView from '@/components/admin/AdminReferralDetailView'
 import AdminReferralsTab from '@/components/admin/AdminReferralsTab'
+import AdminSettingsTab from '@/components/admin/AdminSettingsTab'
 import AdminSSHKeyDetailView from '@/components/admin/AdminSSHKeyDetailView'
 import AdminSSHKeysTab from '@/components/admin/AdminSSHKeysTab'
 import AdminStatusBadge from '@/components/admin/AdminStatusBadge'
@@ -34,13 +33,12 @@ export {
     AdminDetailModal,
     AdminEmailDetailView,
     AdminEmailsTab,
-    AdminExportDetailView,
-    AdminExportsTab,
     AdminOwnerLink,
     AdminPendingClawDetailView,
     AdminPendingClawsTab,
     AdminReferralDetailView,
     AdminReferralsTab,
+    AdminSettingsTab,
     AdminSSHKeyDetailView,
     AdminSSHKeysTab,
     AdminStatusBadge,

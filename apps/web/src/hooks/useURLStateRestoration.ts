@@ -40,19 +40,19 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
         }
         if (planParam || deployParam || searchParams.get('payment')) {
             const preserved: Record<string, string> = {}
-            const settingsClaw = searchParams.get('settingsClaw')
-            const clawTab = searchParams.get('clawTab')
-            if (settingsClaw) preserved.settingsClaw = settingsClaw
-            if (clawTab) preserved.clawTab = clawTab
+            const settings = searchParams.get('settings')
+            const tab = searchParams.get('tab')
+            if (settings) preserved.settings = settings
+            if (tab) preserved.tab = tab
             setSearchParams(preserved, { replace: true })
         }
     }, [searchParams, setSearchParams])
 
     useEffect(() => {
-        const clawTabParam = searchParams.get('clawTab') as ClawDetailTab | null
-        const settingsClawParam = searchParams.get('settingsClaw')
+        const tabParam = searchParams.get('tab') as ClawDetailTab | null
+        const settingsParam = searchParams.get('settings')
 
-        if (!settingsClawParam) return
+        if (!settingsParam) return
 
         isRestoringFromUrl.current = true
 
@@ -63,12 +63,12 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
             CLAW_DETAIL_TABS.DIAGNOSTICS
         ]
 
-        if (settingsClawParam) {
-            setChatSettingsClawId(settingsClawParam)
-            if (clawTabParam) {
+        if (settingsParam) {
+            setChatSettingsClawId(settingsParam)
+            if (tabParam) {
                 setChatClawTab(
-                    validClawTabs.includes(clawTabParam)
-                        ? clawTabParam
+                    validClawTabs.includes(tabParam)
+                        ? tabParam
                         : CLAW_DETAIL_TABS.INFO
                 )
             }
@@ -83,8 +83,8 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
         if (isRestoringFromUrl.current) return
         const urlParams: Record<string, string> = {}
         if (chatSettingsClawId) {
-            urlParams.settingsClaw = chatSettingsClawId
-            if (chatClawTab) urlParams.clawTab = chatClawTab
+            urlParams.settings = chatSettingsClawId
+            if (chatClawTab) urlParams.tab = chatClawTab
         }
         setSearchParams(urlParams, { replace: true })
     }, [chatSettingsClawId, chatClawTab])

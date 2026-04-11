@@ -264,9 +264,9 @@ const ru: Translations = {
         pageNotFoundDescription:
             'Страница, которую вы ищете, не существует или была перемещена.',
         goToHomepage: 'На главную',
-        failedToLoadClaws: 'Не удалось загрузить claws!',
-        failedToLoadClawsDescription:
-            'Не удалось загрузить ваши Claws. Проверьте подключение и попробуйте снова!',
+        failedToLoadAgents: 'Не удалось загрузить agents!',
+        failedToLoadAgentsDescription:
+            'Не удалось загрузить ваши Agents. Проверьте подключение и попробуйте снова!',
         failedToLoadSSHKeys: 'Не удалось загрузить SSH-ключи!',
         failedToLoadSSHKeysDescription:
             'Не удалось загрузить ваши SSH-ключи. Проверьте подключение и попробуйте снова!',
@@ -379,17 +379,21 @@ const ru: Translations = {
         failedToGetLogs: 'Не удалось загрузить логи!',
         failedToGetLogsDescription:
             'Не удалось получить логи для этого экземпляра. Пожалуйста, попробуйте позже.',
-        failedToRepairClaw: 'Не удалось восстановить экземпляр!',
-        repairSuccess: 'Экземпляр успешно восстановлен.',
-        repairGatewayNotResponding:
-            'Восстановление выполнено, но шлюз пока не отвечает. Ему может потребоваться больше времени для запуска.',
         failedToReinstallClaw: 'Не удалось переустановить экземпляр!',
         reinstallSuccess: 'Экземпляр успешно переустановлен.',
         reinstallRateLimited:
             'Переустановка возможна только раз в 24 часа. Свяжитесь с командой, если хотите снять это ограничение.',
+        subdomainRateLimited:
+            'Изменение поддомена возможно только раз в 24 часа. Свяжитесь с командой, если хотите снять это ограничение.',
+        subdomainUpdated: 'Поддомен успешно обновлён.',
+        invalidSubdomain: 'Недопустимый поддомен. Используйте 3-20 строчных букв и цифр!',
+        subdomainAlreadyInUse: 'Этот поддомен уже используется!',
         clawBusy: 'Claw в данный момент подготавливается или удаляется!',
         reinstallGatewayNotResponding:
             'Переустановка завершена, но шлюз пока не отвечает. Ему может потребоваться больше времени для запуска.',
+        failedToRepairClaw: 'Failed to repair the instance!',
+        repairSuccess: 'Instance repaired successfully.',
+        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Не удалось экспортировать данные claw!',
         clawNotReady: 'Claw не готов к экспорту!',
         exportRateLimited:
@@ -501,7 +505,6 @@ const ru: Translations = {
         adminWaitlistFetched: 'Waitlist fetched.',
         failedToGetAdminWaitlist: 'Failed to fetch waitlist!',
         adminExportsFetched: 'Exports fetched.',
-        failedToGetAdminExports: 'Failed to fetch exports!',
         adminEmailsFetched: 'Emails fetched.',
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
@@ -642,7 +645,7 @@ const ru: Translations = {
         checkYourEmailHeading: 'Проверьте почту',
         codeSentTo: 'Мы отправили 6-значный код на',
         signInToDeployOpenClaw:
-            'Авторизуйтесь для управления и развёртывания экземпляров OpenClaw.',
+            'Авторизуйтесь для управления и развёртывания агентов в один клик.',
         emailAddress: 'Адрес электронной почты',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'Продолжить с Email',
@@ -720,7 +723,6 @@ const ru: Translations = {
             'Вы можете подключить только аккаунты с тем же адресом электронной почты !',
         settings: 'Настройки',
         settingsDescription: 'Управляйте настройками панели.',
-        showAllClaws: 'Показать все клоу всех пользователей',
         openLinksWindowed: 'Открывать ссылки во встроенном окне',
         openLinksWindowedDescription:
             'При включении внешние ссылки открываются внутри приложения, а не в системном браузере.'
@@ -803,9 +805,9 @@ const ru: Translations = {
         clawCountLabelSingular: '{{count}} клоу',
         newClaw: 'Новый клоу',
         clawActions: 'Действия с клоу',
-        noClawsYet: 'Нет клоу',
-        noClawsDescription:
-            'Развёрнутых клоу не найдено. Но вы можете развернуть свой первый клоу в любое время от $25/мес. Просто ИИ это.',
+        noAgentsYet: 'Нет агентов',
+        noAgentsDescription:
+            'Развёрнутых агентов не найдено. Но вы можете развернуть своего первого агента в любое время от $25/мес. Просто ИИ это.',
         deleteClaw: 'Удалить клоу',
         deleteClawConfirmation: 'Вы уверены, что хотите удалить',
         deleteClawWarning:
@@ -850,7 +852,7 @@ const ru: Translations = {
         gatewayToken: 'Токен шлюза',
         gatewayTokenDescription:
             'Используйте этот токен для аутентификации со шлюзом',
-        contactSupport: 'Поддержка',
+        contactSupport: 'Связаться с поддержкой',
         scheduledForDeletion: 'Запланировано удаление',
         scheduledDeletionShort: 'Удаление {{date}}',
         deletionDate: 'Этот клоу будет удалён {{date}}',
@@ -874,12 +876,10 @@ const ru: Translations = {
             'Проверьте состояние вашего экземпляра OpenClaw.',
         diagnosticsStatus: 'Статус',
         diagnosticsLogs: 'Логи',
-        diagnosticsRepair: 'Восстановление',
-        diagnosticsRepairDescription:
-            'Снимите ограничения памяти, примените последнюю конфигурацию сервиса и перезапустите шлюз. Это исправляет большинство распространённых проблем.',
-        diagnosticsRepairSuccess: 'Экземпляр успешно восстановлен.',
-        diagnosticsRepairFailed:
-            'Восстановление применено, но шлюз пока не отвечает !',
+        diagnosticsRepair: 'Repair',
+        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairSuccess: 'Instance repaired successfully.',
+        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'Подключение к экземпляру...',
         diagnosticsNoLogs:
             'Логи недоступны. Запустите экземпляр для генерации логов.',
@@ -901,9 +901,6 @@ const ru: Translations = {
         fileExplorerNoFiles: 'Файлы не найдены',
         fileExplorerSearchFiles: 'Поиск файлов...',
         fileExplorerNoSearchResults: 'Совпадающих файлов нет.',
-        updateInstance: 'Обновить экземпляр',
-        updateInstanceSuccess: 'Экземпляр успешно обновлён.',
-        updateInstanceFailed: 'Не удалось обновить экземпляр !',
         startFailed: 'Не удалось запустить клоу !',
         renameSuccess: 'Клоу успешно переименован.',
         renameFailed: 'Не удалось переименовать клоу !',
@@ -916,6 +913,8 @@ const ru: Translations = {
         reinstallInstanceFailed: 'Не удалось переустановить экземпляр !',
         openControlPanel: 'Открыть панель управления',
         exportData: 'Экспорт клоу (.zip)',
+        exportAgent: 'Export Agent',
+        exportAgentTooltip: 'Download this agent as a .zip file',
         exportStarted:
             'Подготовка экспорта, это может занять некоторое время...',
         exportSuccess: 'Клоу успешно экспортирован.',
@@ -939,6 +938,7 @@ const ru: Translations = {
         adminNoClaws: 'На платформе пока нет клоу.',
         adminAccessDenied: 'У вас нет прав для доступа к этой странице.',
         owner: 'Владелец',
+        agentType: 'Agent',
         status: {
             running: 'Работает',
             stopped: 'Остановлен',
@@ -1136,9 +1136,9 @@ const ru: Translations = {
         openclawControl: 'Управление OpenClaw',
         openclawControlDescription:
             'Доступ к нативной панели OpenClaw прямо из ClawHost. Полный доступ к редактированию всего, что предлагает OpenClaw.',
-        clawHostControl: 'Управление ClawHost',
+        clawHostControl: 'Полный доступ к серверу',
         clawHostControlDescription:
-            'Управляйте файлами, обновлениями и другими параметрами конфигурации прямо из платформы.',
+            'Терминал в браузере, файловый менеджер, логи, диагностика и управление версиями — всё из вашей панели.',
         multipleClaws: 'Несколько клоу',
         multipleClawsDescription:
             'Разворачивайте и управляйте несколькими экземплярами OpenClaw из одной панели. Масштабируйтесь по мере роста.',
@@ -1320,6 +1320,8 @@ const ru: Translations = {
             'Нативное мобильное приложение для мониторинга и управления экземплярами OpenClaw на ходу',
         upcomingReleaseFeature13:
             'Бета-релиз ClawHost Go для macOS и Windows, локальное развёртывание OpenClaw в один клик',
+        upcomingReleaseFeature14:
+            'Развёртывание в один клик для агентов Hermes, таких как OpenClaw',
         upcomingReleaseFeature3: 'Поддержка тёмной и светлой тем',
         upcomingReleaseFeature4:
             'Улучшения производительности, стабильности и отзывчивости',
@@ -1338,6 +1340,15 @@ const ru: Translations = {
             'Лендинг для ClawHost Go, локальный хостинг с ClawHost',
         upcomingReleaseFeature12:
             'Настольное приложение для macOS и Windows для локального развёртывания OpenClaw в один клик',
+        release15Date: '11 апреля 2026',
+        release15Title: 'Упрощение и пользовательские поддомены',
+        release15Description:
+            'Упрощение платформы путём переноса управляемых функций в OpenClaw, удаление представления playground и введение изменяемых пользовательских поддоменов.',
+        release15Feature1:
+            'Упрощение и перенос управляемых функций в OpenClaw, больше никаких чата ClawHost, агентов, каналов, переменных и навыков',
+        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '1 апреля 2026',
         release14Title:
             'Миграция на Hetzner, партнёрская система и новые языки',
@@ -1473,9 +1484,9 @@ const ru: Translations = {
             'Удалён переключатель вида сетка/список в пользу единого макета панели'
     },
     clawDetail: {
-        noClawsYet: 'Нет клоу',
-        noClawsDescription:
-            'Разверните свой первый клоу, чтобы взаимодействовать с ним.',
+        noAgentsYet: 'Нет агентов',
+        noAgentsDescription:
+            'Разверните своего первого агента, чтобы взаимодействовать с ним.',
         selectClaw: 'Выберите клоу',
         selectClawDescription:
             'Выберите клоу на боковой панели, чтобы просмотреть его детали.',
@@ -1704,7 +1715,8 @@ const ru: Translations = {
         settingsPlaceholder:
             'Настройки аккаунта и предпочтения будут отображаться здесь.',
         signIn: 'Аутентификация',
-        signInDescription: 'Войдите для управления экземплярами OpenClaw.',
+        signInDescription:
+            'Авторизуйтесь для управления и развёртывания ваших агентов.',
         enterEmail: 'Адрес электронной почты',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'Продолжить с Email',
@@ -1728,7 +1740,7 @@ const ru: Translations = {
     announcement: {
         title: 'Уведомление о сервисе',
         message:
-            'Из-за высокого спроса развёртывания {{providers}} временно недоступны. Существующие клоу работают нормально.'
+            'Из-за высокого спроса развёртывания {{providers}} временно недоступны. Существующие агенты работают нормально.'
     },
     productHunt: {
         liveOn: 'Мы на',
@@ -1910,7 +1922,7 @@ const ru: Translations = {
         noClawsFound: 'Нет Claws',
         noSSHKeysFound: 'Нет SSH-ключей',
         noVolumesFound: 'Нет Томов',
-        failedToLoadClaws: 'Не удалось загрузить claws!',
+        failedToLoadAgents: 'Не удалось загрузить agents!',
         failedToLoadSSHKeys: 'Не удалось загрузить SSH-ключи!',
         failedToLoadVolumes: 'Не удалось загрузить тома!',
         owner: 'Владелец',
@@ -1919,10 +1931,12 @@ const ru: Translations = {
         referralsTab: 'Рефералы',
         pendingClawsTab: 'Ожидающие',
         waitlistTab: 'Список ожидания',
-        exportsTab: 'Экспорты',
         emailsTab: 'Письма',
         analyticsTab: 'Аналитика',
         billingTab: 'Биллинг',
+        settingsTab: 'Настройки',
+        settingsDescription: 'Управляйте настройками администратора.',
+        showAllAgents: 'Показать всех агентов всех пользователей',
         billingFilterAll: 'Все заказы',
         billingFilterService: 'Сервис Claw',
         billingFilterLicense: 'Лицензия',
@@ -1950,12 +1964,10 @@ const ru: Translations = {
         noReferralsFound: 'Нет Рефералов',
         noPendingClawsFound: 'Нет Ожидающих Claws',
         noWaitlistFound: 'Нет Списка Ожидания',
-        noExportsFound: 'Нет Экспортов',
         noEmailsFound: 'Нет Писем',
         failedToLoadReferrals: 'Не удалось загрузить рефералов!',
         failedToLoadPendingClaws: 'Не удалось загрузить ожидающие claws!',
         failedToLoadWaitlist: 'Не удалось загрузить список ожидания!',
-        failedToLoadExports: 'Не удалось загрузить экспорты!',
         failedToLoadEmails: 'Не удалось загрузить письма!',
         referrer: 'Реферер',
         referred: 'Приглашённый',

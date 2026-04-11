@@ -222,9 +222,9 @@ const Dashboard: FC = (): ReactNode => {
                     <div className='flex h-full min-w-0 flex-1 items-center justify-center'>
                         <div className='-mt-20'>
                             <ErrorState
-                                title={t('errors.failedToLoadClaws')}
+                                title={t('errors.failedToLoadAgents')}
                                 description={t(
-                                    'errors.failedToLoadClawsDescription'
+                                    'errors.failedToLoadAgentsDescription'
                                 )}
                                 onRetry={() => activeRefetch()}
                             />

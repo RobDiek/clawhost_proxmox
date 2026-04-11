@@ -1,7 +1,6 @@
 import ADMIN_ANALYTICS_QUERY_KEY from '@/hooks/useAdmin/ADMIN_ANALYTICS_QUERY_KEY'
 import ADMIN_BILLING_QUERY_KEY from '@/hooks/useAdmin/ADMIN_BILLING_QUERY_KEY'
 import ADMIN_EMAILS_QUERY_KEY from '@/hooks/useAdmin/ADMIN_EMAILS_QUERY_KEY'
-import ADMIN_EXPORTS_QUERY_KEY from '@/hooks/useAdmin/ADMIN_EXPORTS_QUERY_KEY'
 import ADMIN_PENDING_CLAWS_QUERY_KEY from '@/hooks/useAdmin/ADMIN_PENDING_CLAWS_QUERY_KEY'
 import ADMIN_REFERRALS_QUERY_KEY from '@/hooks/useAdmin/ADMIN_REFERRALS_QUERY_KEY'
 import ADMIN_SSH_KEYS_QUERY_KEY from '@/hooks/useAdmin/ADMIN_SSH_KEYS_QUERY_KEY'
@@ -13,7 +12,6 @@ import useAdminAnalytics from '@/hooks/useAdmin/useAdminAnalytics'
 import useAdminBillingList from '@/hooks/useAdmin/useAdminBillingList'
 import useAdminClawsList from '@/hooks/useAdmin/useAdminClawsList'
 import useAdminEmailsList from '@/hooks/useAdmin/useAdminEmailsList'
-import useAdminExportsList from '@/hooks/useAdmin/useAdminExportsList'
 import useAdminPendingClawsList from '@/hooks/useAdmin/useAdminPendingClawsList'
 import useAdminReferralsList from '@/hooks/useAdmin/useAdminReferralsList'
 import useAdminSSHKeysList from '@/hooks/useAdmin/useAdminSSHKeysList'
@@ -28,7 +26,6 @@ export {
     ADMIN_ANALYTICS_QUERY_KEY,
     ADMIN_BILLING_QUERY_KEY,
     ADMIN_EMAILS_QUERY_KEY,
-    ADMIN_EXPORTS_QUERY_KEY,
     ADMIN_PENDING_CLAWS_QUERY_KEY,
     ADMIN_REFERRALS_QUERY_KEY,
     ADMIN_SSH_KEYS_QUERY_KEY,
@@ -40,7 +37,6 @@ export {
     useAdminBillingList,
     useAdminClawsList,
     useAdminEmailsList,
-    useAdminExportsList,
     useAdminPendingClawsList,
     useAdminReferralsList,
     useAdminSSHKeysList,

@@ -2,7 +2,7 @@ import { ipcMain, app, BrowserWindow, net } from 'electron'
 import { execFile } from 'child_process'
 import registerClawHandlers from '@/main/ipc/claws'
 import registerClawProcessHandlers from '@/main/ipc/clawProcess'
-import registerClawConfigHandlers from '@/main/ipc/clawConfig'
+
 import registerClawFileHandlers from '@/main/ipc/clawFiles'
 import registerClawVersionHandlers from '@/main/ipc/clawVersions'
 import registerStubHandlers from '@/main/ipc/stubs'
@@ -144,7 +144,6 @@ const registerAllHandlers = (): void => {
 
     registerClawHandlers()
     registerClawProcessHandlers()
-    registerClawConfigHandlers()
     registerClawFileHandlers()
     registerClawVersionHandlers()
     registerStubHandlers()

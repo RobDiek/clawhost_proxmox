@@ -42,6 +42,11 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
         onSettingsClawChange?.(settingsClawId)
     }, [settingsClawId])
 
+    useEffect(() => {
+        if (!settingsClawId && displayedClaws.length > 0)
+            setSettingsClawId(displayedClaws[0].id)
+    }, [settingsClawId, displayedClaws])
+
     const settingsClaw = useMemo(() => {
         if (!settingsClawId) return null
         return displayedClaws.find((c) => c.id === settingsClawId) || null
@@ -88,12 +93,12 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
                             title={
                                 adminMode
                                     ? t('dashboard.adminNoClaws')
-                                    : t('clawDetail.noClawsYet')
+                                    : t('clawDetail.noAgentsYet')
                             }
                             description={
                                 adminMode
                                     ? t('dashboard.adminDescription')
-                                    : t('clawDetail.noClawsDescription')
+                                    : t('clawDetail.noAgentsDescription')
                             }
                             actionLabel={t('nav.deployOpenClaw')}
                             onAction={onCreateClick}

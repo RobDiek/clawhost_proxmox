@@ -23,6 +23,7 @@ const API_PATHS = {
         CANCEL_DELETION: (id: string) => `/claws/${id}/cancel-deletion`,
         HARD_DELETE: (id: string) => `/claws/${id}/hard-delete`,
         SUBDOMAIN: (id: string) => `/claws/${id}/subdomain`,
+        CHECK_SUBDOMAIN: '/claws/check-subdomain',
         REINSTALL: (id: string) => `/claws/${id}/reinstall`,
         CREDENTIALS: (id: string) => `/claws/${id}/credentials`,
         EXPORT: (id: string) => `/claws/${id}/export`,
@@ -75,7 +76,6 @@ const API_PATHS = {
         VOLUMES: '/admin/volumes',
         REFERRALS: '/admin/referrals',
         WAITLIST: '/admin/waitlist',
-        EXPORTS: '/admin/exports',
         EMAILS: '/admin/emails'
     },
     WEBHOOKS: {

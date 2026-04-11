@@ -254,9 +254,9 @@ const zh: Translations = {
         notFound: '页面未找到!',
         pageNotFoundDescription: '您要查找的页面不存在或已被移动.',
         goToHomepage: '返回首页',
-        failedToLoadClaws: '加载 claws 失败!',
-        failedToLoadClawsDescription:
-            '无法加载您的 Claws。请检查您的网络连接后重试!',
+        failedToLoadAgents: '加载 agents 失败!',
+        failedToLoadAgentsDescription:
+            '无法加载您的 Agents。请检查您的网络连接后重试!',
         failedToLoadSSHKeys: '加载 SSH 密钥失败!',
         failedToLoadSSHKeysDescription:
             '无法加载您的 SSH 密钥。请检查您的网络连接后重试!',
@@ -359,17 +359,21 @@ const zh: Translations = {
             '无法获取诊断信息。实例可能已离线或正在启动中.',
         failedToGetLogs: '加载日志失败!',
         failedToGetLogsDescription: '无法获取此实例的日志。请稍后重试.',
-        failedToRepairClaw: '修复实例失败!',
-        repairSuccess: '实例修复成功.',
-        repairGatewayNotResponding:
-            '修复已应用，但网关尚未响应。可能需要更多时间启动.',
         failedToReinstallClaw: '重新安装实例失败!',
         reinstallSuccess: '实例重新安装成功.',
         reinstallRateLimited:
             '每 24 小时只能重新安装一次。如需取消此限制，请联系团队.',
+        subdomainRateLimited:
+            '每 24 小时只能更改一次子域名。如需取消此限制，请联系团队.',
+        subdomainUpdated: '子域名更新成功.',
+        invalidSubdomain: '无效的子域名。请使用 3-20 个小写字母和数字!',
+        subdomainAlreadyInUse: '此子域名已被使用!',
         clawBusy: 'Claw 正在配置或删除中!',
         reinstallGatewayNotResponding:
             '重新安装已完成，但网关尚未响应。可能需要更多时间启动.',
+        failedToRepairClaw: 'Failed to repair the instance!',
+        repairSuccess: 'Instance repaired successfully.',
+        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: '导出 claw 数据失败!',
         clawNotReady: 'Claw 尚未准备好导出!',
         exportRateLimited: '此 claw 最近已导出过。请等待后再次导出!',
@@ -475,7 +479,6 @@ const zh: Translations = {
         adminWaitlistFetched: 'Waitlist fetched.',
         failedToGetAdminWaitlist: 'Failed to fetch waitlist!',
         adminExportsFetched: 'Exports fetched.',
-        failedToGetAdminExports: 'Failed to fetch exports!',
         adminEmailsFetched: 'Emails fetched.',
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
@@ -611,7 +614,7 @@ const zh: Translations = {
         checkYourEmail: '检查您的邮箱',
         checkYourEmailHeading: '检查您的邮箱',
         codeSentTo: '我们已向以下地址发送了 6 位验证码',
-        signInToDeployOpenClaw: '认证以管理和部署 OpenClaw 实例。',
+        signInToDeployOpenClaw: '认证以一键管理和部署代理。',
         emailAddress: '电子邮箱',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: '使用邮箱继续',
@@ -684,7 +687,6 @@ const zh: Translations = {
         providerEmailMismatch: '您只能关联使用相同电子邮箱地址的账户！',
         settings: '设置',
         settingsDescription: '管理您的仪表板偏好设置。',
-        showAllClaws: '显示所有用户的所有 Claws',
         openLinksWindowed: '在窗口视图中打开链接',
         openLinksWindowedDescription:
             '启用后，外部链接将在应用内打开，而不是使用系统浏览器。'
@@ -763,9 +765,9 @@ const zh: Translations = {
         clawCountLabelSingular: '{{count}} 个 claw',
         newClaw: '新建 Claw',
         clawActions: 'Claw 操作',
-        noClawsYet: '暂无 Claws',
-        noClawsDescription:
-            '未找到已部署的 Claw。但您可以随时部署您的第一个 Claw，起步价 $25/月。让 AI 来完成吧。',
+        noAgentsYet: '暂无代理',
+        noAgentsDescription:
+            '未找到已部署的代理。但您可以随时部署您的第一个代理，起步价 $25/月。让 AI 来完成吧。',
         deleteClaw: '删除 Claw',
         deleteClawConfirmation: '您确定要删除',
         deleteClawWarning:
@@ -808,7 +810,7 @@ const zh: Translations = {
         version: '版本',
         gatewayToken: '网关令牌',
         gatewayTokenDescription: '使用此令牌对您的网关进行身份验证',
-        contactSupport: '支持',
+        contactSupport: '联系支持',
         scheduledForDeletion: '已计划删除',
         scheduledDeletionShort: '{{date}} 删除',
         deletionDate: '此 Claw 将于 {{date}} 删除',
@@ -830,11 +832,10 @@ const zh: Translations = {
         diagnosticsDescription: '检查您的 OpenClaw 实例的健康状况。',
         diagnosticsStatus: '状态',
         diagnosticsLogs: '日志',
-        diagnosticsRepair: '修复',
-        diagnosticsRepairDescription:
-            '移除内存限制，应用最新服务配置，并重启网关。这可以修复大多数常见问题。',
-        diagnosticsRepairSuccess: '实例修复成功。',
-        diagnosticsRepairFailed: '修复已应用但网关尚未响应！',
+        diagnosticsRepair: 'Repair',
+        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairSuccess: 'Instance repaired successfully.',
+        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: '正在连接到实例...',
         diagnosticsNoLogs: '暂无日志。启动您的实例以生成日志。',
         diagnosticsIssueDetected: '检测到您的实例存在问题。',
@@ -854,9 +855,6 @@ const zh: Translations = {
         fileExplorerNoFiles: '未找到文件',
         fileExplorerSearchFiles: '搜索文件...',
         fileExplorerNoSearchResults: '没有匹配的文件。',
-        updateInstance: '更新实例',
-        updateInstanceSuccess: '实例更新成功。',
-        updateInstanceFailed: '更新实例失败！',
         startFailed: '启动 Claw 失败！',
         renameSuccess: 'Claw 重命名成功。',
         renameFailed: '重命名 Claw 失败！',
@@ -869,6 +867,8 @@ const zh: Translations = {
         reinstallInstanceFailed: '重新安装实例失败！',
         openControlPanel: '打开控制面板',
         exportData: '导出 Claw (.zip)',
+        exportAgent: 'Export Agent',
+        exportAgentTooltip: 'Download this agent as a .zip file',
         exportStarted: '正在准备导出，这可能需要一些时间...',
         exportSuccess: 'Claw 导出成功。',
         exportFailed: '导出 Claw 数据失败！',
@@ -889,6 +889,7 @@ const zh: Translations = {
         adminNoClaws: '平台上暂无 Claws。',
         adminAccessDenied: '您没有访问此页面的权限。',
         owner: '所有者',
+        agentType: 'Agent',
         status: {
             running: '运行中',
             stopped: '已停止',
@@ -1077,8 +1078,9 @@ const zh: Translations = {
         openclawControl: 'OpenClaw 控制',
         openclawControlDescription:
             '直接从 ClawHost 访问原生 OpenClaw 面板。完全编辑 OpenClaw 提供的所有内容。',
-        clawHostControl: 'ClawHost 控制',
-        clawHostControlDescription: '直接从平台管理文件、更新和更多配置选项。',
+        clawHostControl: '完整服务器访问',
+        clawHostControlDescription:
+            '浏览器终端、文件管理器、日志、诊断和版本管理 — 全部在您的仪表板中完成。',
         multipleClaws: '多 Claws',
         multipleClawsDescription:
             '从单个仪表板部署和管理多个 OpenClaw 实例。随着增长而扩展。',
@@ -1268,6 +1270,17 @@ const zh: Translations = {
             '适用于 macOS 和 Windows 的桌面应用，一键本地部署 OpenClaw',
         upcomingReleaseFeature13:
             'ClawHost Go macOS 和 Windows 测试版发布，一键本地部署 OpenClaw',
+        upcomingReleaseFeature14:
+            '一键部署 Hermes 代理（如 OpenClaw）',
+        release15Date: '2026年4月11日',
+        release15Title: '简化与自定义子域名',
+        release15Description:
+            '通过将托管功能迁移到 OpenClaw 简化平台，移除 Playground 视图，并引入可更改的自定义子域名。',
+        release15Feature1:
+            '简化并将托管功能迁移到 OpenClaw，不再有 ClawHost 聊天、代理、频道、变量和技能',
+        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '2026年4月1日',
         release14Title: 'Hetzner 迁移、联盟系统与新语言',
         release14Description:
@@ -1370,8 +1383,8 @@ const zh: Translations = {
         release4Feature4: '移除网格和列表视图切换，改用统一的仪表板布局'
     },
     clawDetail: {
-        noClawsYet: '暂无 Claws',
-        noClawsDescription: '部署您的第一个 Claw 并与其交互.',
+        noAgentsYet: '暂无代理',
+        noAgentsDescription: '部署您的第一个代理并与其交互.',
         selectClaw: '选择一个 Claw',
         selectClawDescription: '从侧边栏选择一个 Claw 来查看其详情。',
         closeDetails: '关闭',
@@ -1569,7 +1582,7 @@ const zh: Translations = {
         messagesPlaceholder: '消息和通知将显示在这里。',
         settingsPlaceholder: '账户设置和偏好将显示在这里。',
         signIn: '认证',
-        signInDescription: '登录以管理您的 OpenClaw 实例。',
+        signInDescription: '认证以管理和部署您的代理。',
         enterEmail: '电子邮箱',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: '使用邮箱继续',
@@ -1593,7 +1606,7 @@ const zh: Translations = {
     announcement: {
         title: '服务通知',
         message:
-            '由于需求量大，{{providers}} 部署暂时不可用。现有 Claws 运行正常。'
+            '由于需求量大，{{providers}} 部署暂时不可用。现有代理运行正常。'
     },
     productHunt: {
         liveOn: '已上线',
@@ -1771,7 +1784,7 @@ const zh: Translations = {
         noClawsFound: '没有Claws',
         noSSHKeysFound: '没有SSH密钥',
         noVolumesFound: '没有卷',
-        failedToLoadClaws: '加载Claws失败！',
+        failedToLoadAgents: '加载Agents失败！',
         failedToLoadSSHKeys: '加载SSH密钥失败！',
         failedToLoadVolumes: '加载卷失败！',
         owner: '所有者',
@@ -1780,10 +1793,12 @@ const zh: Translations = {
         referralsTab: '推荐',
         pendingClawsTab: '待处理',
         waitlistTab: '等待列表',
-        exportsTab: '导出',
         emailsTab: '邮件',
         analyticsTab: '分析',
         billingTab: '账单',
+        settingsTab: '设置',
+        settingsDescription: '管理您的管理员偏好设置。',
+        showAllAgents: '显示所有用户的所有代理',
         billingFilterAll: '所有订单',
         billingFilterService: 'Claw 服务',
         billingFilterLicense: '许可证',
@@ -1811,12 +1826,10 @@ const zh: Translations = {
         noReferralsFound: '没有推荐',
         noPendingClawsFound: '没有待处理的Claws',
         noWaitlistFound: '没有等待列表',
-        noExportsFound: '没有导出',
         noEmailsFound: '没有邮件',
         failedToLoadReferrals: '加载推荐失败！',
         failedToLoadPendingClaws: '加载待处理Claws失败！',
         failedToLoadWaitlist: '加载等待列表失败！',
-        failedToLoadExports: '加载导出失败！',
         failedToLoadEmails: '加载邮件失败！',
         referrer: '推荐人',
         referred: '被推荐人',

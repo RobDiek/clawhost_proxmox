@@ -267,9 +267,9 @@ const de: Translations = {
         pageNotFoundDescription:
             'Die gesuchte Seite existiert nicht oder wurde verschoben.',
         goToHomepage: 'Zur Startseite',
-        failedToLoadClaws: 'Claws konnten nicht geladen werden!',
-        failedToLoadClawsDescription:
-            'Deine Claws konnten nicht geladen werden. Bitte überprüfe deine Verbindung und versuche es erneut!',
+        failedToLoadAgents: 'Agents konnten nicht geladen werden!',
+        failedToLoadAgentsDescription:
+            'Deine Agents konnten nicht geladen werden. Bitte überprüfe deine Verbindung und versuche es erneut!',
         failedToLoadSSHKeys: 'SSH-Schlüssel konnten nicht geladen werden!',
         failedToLoadSSHKeysDescription:
             'Deine SSH-Schlüssel konnten nicht geladen werden. Bitte überprüfe deine Verbindung und versuche es erneut!',
@@ -394,17 +394,21 @@ const de: Translations = {
         failedToGetLogs: 'Logs konnten nicht geladen werden!',
         failedToGetLogsDescription:
             'Logs für diese Instanz konnten nicht abgerufen werden. Bitte versuche es später erneut!',
-        failedToRepairClaw: 'Instanz konnte nicht repariert werden!',
-        repairSuccess: 'Instanz erfolgreich repariert.',
-        repairGatewayNotResponding:
-            'Reparatur durchgeführt, aber das Gateway antwortet noch nicht. Es benötigt möglicherweise mehr Zeit zum Starten!',
         failedToReinstallClaw: 'Instanz konnte nicht neu installiert werden!',
         reinstallSuccess: 'Instanz erfolgreich neu installiert.',
         reinstallRateLimited:
             'Du kannst nur einmal alle 24 Stunden neu installieren. Kontaktiere das Team, falls du dieses Limit aufheben möchtest.',
+        subdomainRateLimited:
+            'Du kannst deine Subdomain nur einmal alle 24 Stunden ändern. Kontaktiere das Team, falls du dieses Limit aufheben möchtest.',
+        subdomainUpdated: 'Subdomain erfolgreich aktualisiert.',
+        invalidSubdomain: 'Ungültige Subdomain. Verwende 3-20 Kleinbuchstaben und Zahlen!',
+        subdomainAlreadyInUse: 'Diese Subdomain wird bereits verwendet!',
         clawBusy: 'Claw wird derzeit bereitgestellt oder gelöscht!',
         reinstallGatewayNotResponding:
             'Neuinstallation abgeschlossen, aber das Gateway antwortet noch nicht. Es benötigt möglicherweise mehr Zeit zum Starten!',
+        failedToRepairClaw: 'Failed to repair the instance!',
+        repairSuccess: 'Instance repaired successfully.',
+        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Claw-Daten konnten nicht exportiert werden!',
         clawNotReady: 'Claw ist nicht bereit für den Export!',
         exportRateLimited:
@@ -520,7 +524,6 @@ const de: Translations = {
         adminWaitlistFetched: 'Waitlist fetched.',
         failedToGetAdminWaitlist: 'Failed to fetch waitlist!',
         adminExportsFetched: 'Exports fetched.',
-        failedToGetAdminExports: 'Failed to fetch exports!',
         adminEmailsFetched: 'Emails fetched.',
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
@@ -660,7 +663,7 @@ const de: Translations = {
         checkYourEmailHeading: 'Prüfe deine E-Mail',
         codeSentTo: 'Wir haben einen 6-stelligen Code gesendet an',
         signInToDeployOpenClaw:
-            'Authentifizieren Sie sich, um OpenClaw-Instanzen zu verwalten und bereitzustellen.',
+            'Authentifiziere dich, um Agenten mit einem Klick zu verwalten und bereitzustellen.',
         emailAddress: 'E-Mail-Adresse',
         emailPlaceholder: 'beispiel@clawhost.cloud',
         continueWithEmail: 'Weiter mit E-Mail',
@@ -740,7 +743,6 @@ const de: Translations = {
             'Du kannst nur Konten verknüpfen, die dieselbe E-Mail-Adresse verwenden!',
         settings: 'Einstellungen',
         settingsDescription: 'Verwalte deine Dashboard-Einstellungen.',
-        showAllClaws: 'Alle Claws aller Benutzer anzeigen',
         openLinksWindowed: 'Links in einer Fensteransicht öffnen',
         openLinksWindowedDescription:
             'Wenn aktiviert, werden externe Links in der App statt im Systembrowser geöffnet.'
@@ -825,9 +827,9 @@ const de: Translations = {
         clawCountLabelSingular: '{{count}} Claw',
         newClaw: 'Neuer Claw',
         clawActions: 'Claw-Aktionen',
-        noClawsYet: 'Keine Claws',
-        noClawsDescription:
-            'Kein bereitgestellter Claw gefunden. Aber du kannst jederzeit deinen ersten Claw ab 25 $/Monat bereitstellen. Einfach per KI.',
+        noAgentsYet: 'Keine Agenten',
+        noAgentsDescription:
+            'Kein bereitgestellter Agent gefunden. Aber du kannst jederzeit deinen ersten Agent ab 25 $/Monat bereitstellen. Einfach per KI.',
         deleteClaw: 'Claw löschen',
         deleteClawConfirmation: 'Bist du sicher, dass du löschen möchtest',
         deleteClawWarning:
@@ -873,7 +875,7 @@ const de: Translations = {
         gatewayToken: 'Gateway-Token',
         gatewayTokenDescription:
             'Verwende dieses Token zur Authentifizierung mit deinem Gateway',
-        contactSupport: 'Support',
+        contactSupport: 'Support kontaktieren',
         scheduledForDeletion: 'Zur Löschung vorgemerkt',
         scheduledDeletionShort: 'Löschung am {{date}}',
         deletionDate: 'Dieser Claw wird am {{date}} gelöscht',
@@ -897,12 +899,10 @@ const de: Translations = {
             'Überprüfe den Zustand deiner OpenClaw-Instanz.',
         diagnosticsStatus: 'Status',
         diagnosticsLogs: 'Logs',
-        diagnosticsRepair: 'Reparieren',
-        diagnosticsRepairDescription:
-            'Speicherlimits entfernen, neueste Dienstkonfiguration anwenden und das Gateway neu starten. Dies behebt die meisten häufigen Probleme.',
-        diagnosticsRepairSuccess: 'Instanz erfolgreich repariert.',
-        diagnosticsRepairFailed:
-            'Reparatur durchgeführt, aber das Gateway antwortet noch nicht!',
+        diagnosticsRepair: 'Repair',
+        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairSuccess: 'Instance repaired successfully.',
+        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'Verbindung zur Instanz wird hergestellt...',
         diagnosticsNoLogs:
             'Keine Logs verfügbar. Starte deine Instanz, um Logs zu generieren.',
@@ -927,9 +927,6 @@ const de: Translations = {
         fileExplorerNoFiles: 'Keine Dateien gefunden',
         fileExplorerSearchFiles: 'Dateien suchen...',
         fileExplorerNoSearchResults: 'Keine passenden Dateien.',
-        updateInstance: 'Instanz aktualisieren',
-        updateInstanceSuccess: 'Instanz erfolgreich aktualisiert.',
-        updateInstanceFailed: 'Instanz konnte nicht aktualisiert werden!',
         startFailed: 'Claw konnte nicht gestartet werden!',
         renameSuccess: 'Claw erfolgreich umbenannt.',
         renameFailed: 'Claw konnte nicht umbenannt werden!',
@@ -943,6 +940,8 @@ const de: Translations = {
         reinstallInstanceFailed: 'Instanz konnte nicht neu installiert werden!',
         openControlPanel: 'Systemsteuerung öffnen',
         exportData: 'Claw exportieren (.zip)',
+        exportAgent: 'Export Agent',
+        exportAgentTooltip: 'Download this agent as a .zip file',
         exportStarted:
             'Export wird vorbereitet, das kann einen Moment dauern...',
         exportSuccess: 'Claw erfolgreich exportiert.',
@@ -967,6 +966,7 @@ const de: Translations = {
         adminAccessDenied:
             'Du hast keine Berechtigung, auf diese Seite zuzugreifen!',
         owner: 'Besitzer',
+        agentType: 'Agent',
         status: {
             running: 'Läuft',
             stopped: 'Gestoppt',
@@ -1168,9 +1168,9 @@ const de: Translations = {
         openclawControl: 'OpenClaw-Steuerung',
         openclawControlDescription:
             'Greife direkt von ClawHost auf das native OpenClaw-Panel zu. Voller Bearbeitungszugriff auf alles, was OpenClaw bietet.',
-        clawHostControl: 'ClawHost-Steuerung',
+        clawHostControl: 'Voller Serverzugang',
         clawHostControlDescription:
-            'Verwalte Dateien, Updates und weitere Konfigurationsoptionen direkt von der Plattform aus.',
+            'Browser-Terminal, Datei-Explorer, Logs, Diagnose und Versionsverwaltung — alles aus deinem Dashboard.',
         multipleClaws: 'Mehrere Claws',
         multipleClawsDescription:
             'Stelle mehrere OpenClaw-Instanzen über ein einziges Dashboard bereit und verwalte sie. Skaliere nach Bedarf.',
@@ -1354,6 +1354,8 @@ const de: Translations = {
             'Native mobile App zur Überwachung und Verwaltung deiner OpenClaw-Instanzen unterwegs',
         upcomingReleaseFeature13:
             'Beta-Version von ClawHost Go für macOS und Windows, OpenClaw lokal mit einem Klick deployen',
+        upcomingReleaseFeature14:
+            'Ein-Klick-Bereitstellung für Hermes-Agenten wie OpenClaw',
         upcomingReleaseFeature3: 'Unterstützung für dunkles und helles Design',
         upcomingReleaseFeature4:
             'Verbesserungen bei Leistung, Stabilität und Reaktionsfähigkeit',
@@ -1373,6 +1375,15 @@ const de: Translations = {
             'Landingpage für ClawHost Go, lokales Hosting mit ClawHost',
         upcomingReleaseFeature12:
             'Desktop-App für macOS und Windows, um OpenClaw lokal mit einem Klick bereitzustellen',
+        release15Date: '11. April 2026',
+        release15Title: 'Vereinfachung & benutzerdefinierte Subdomains',
+        release15Description:
+            'Vereinfachung der Plattform durch Migration der verwalteten Funktionen zu OpenClaw, Entfernung der Playground-Ansicht und Einführung änderbarer benutzerdefinierter Subdomains.',
+        release15Feature1:
+            'Vereinfachung und Migration der verwalteten Funktionen zu OpenClaw, kein ClawHost-Chat, Agenten, Kanäle, Variablen und Fähigkeiten mehr',
+        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '1. April 2026',
         release14Title: 'Hetzner-Migration, Affiliate-System & neue Sprachen',
         release14Description:
@@ -1512,9 +1523,9 @@ const de: Translations = {
             'Raster- und Listenansicht-Umschalter zugunsten eines einheitlichen Dashboard-Layouts entfernt'
     },
     clawDetail: {
-        noClawsYet: 'Keine Claws',
-        noClawsDescription:
-            'Stelle deinen ersten Claw bereit, um mit ihm zu interagieren.',
+        noAgentsYet: 'Keine Agenten',
+        noAgentsDescription:
+            'Stelle deinen ersten Agent bereit, um mit ihm zu interagieren.',
         selectClaw: 'Wähle einen Claw',
         selectClawDescription:
             'Wähle einen Claw in der Seitenleiste aus, um seine Details anzuzeigen.',
@@ -1747,7 +1758,7 @@ const de: Translations = {
             'Kontoeinstellungen und Präferenzen werden hier angezeigt.',
         signIn: 'Authentifizierung',
         signInDescription:
-            'Melde dich an, um deine OpenClaw-Instanzen zu verwalten.',
+            'Authentifiziere dich, um deine Agenten zu verwalten und bereitzustellen.',
         enterEmail: 'E-Mail-Adresse',
         emailPlaceholder: 'beispiel@clawhost.cloud',
         continueWithEmail: 'Weiter mit E-Mail',
@@ -1772,7 +1783,7 @@ const de: Translations = {
     announcement: {
         title: 'Servicehinweis',
         message:
-            'Aufgrund hoher Nachfrage ist die Claw-Bereitstellung vorübergehend nicht verfügbar. Bestehende Claws laufen normal.'
+            'Aufgrund hoher Nachfrage ist die Agent-Bereitstellung vorübergehend nicht verfügbar. Bestehende Agents laufen normal.'
     },
     productHunt: {
         liveOn: 'Live auf',
@@ -1954,7 +1965,7 @@ const de: Translations = {
         noClawsFound: 'Keine Claws',
         noSSHKeysFound: 'Keine SSH-Schlüssel',
         noVolumesFound: 'Keine Volumes',
-        failedToLoadClaws: 'Claws konnten nicht geladen werden!',
+        failedToLoadAgents: 'Agents konnten nicht geladen werden!',
         failedToLoadSSHKeys: 'SSH-Schlüssel konnten nicht geladen werden!',
         failedToLoadVolumes: 'Volumes konnten nicht geladen werden!',
         owner: 'Besitzer',
@@ -1963,10 +1974,12 @@ const de: Translations = {
         referralsTab: 'Empfehlungen',
         pendingClawsTab: 'Ausstehend',
         waitlistTab: 'Warteliste',
-        exportsTab: 'Exporte',
         emailsTab: 'E-Mails',
         analyticsTab: 'Analysen',
         billingTab: 'Abrechnung',
+        settingsTab: 'Einstellungen',
+        settingsDescription: 'Verwalte deine Administratoreinstellungen.',
+        showAllAgents: 'Alle Agenten aller Benutzer anzeigen',
         billingFilterAll: 'Alle Bestellungen',
         billingFilterService: 'Claw-Dienst',
         billingFilterLicense: 'Lizenz',
@@ -1994,13 +2007,11 @@ const de: Translations = {
         noReferralsFound: 'Keine Empfehlungen',
         noPendingClawsFound: 'Keine Ausstehenden Claws',
         noWaitlistFound: 'Keine Warteliste',
-        noExportsFound: 'Keine Exporte',
         noEmailsFound: 'Keine E-Mails',
         failedToLoadReferrals: 'Empfehlungen konnten nicht geladen werden!',
         failedToLoadPendingClaws:
             'Ausstehende Claws konnten nicht geladen werden!',
         failedToLoadWaitlist: 'Warteliste konnte nicht geladen werden!',
-        failedToLoadExports: 'Exporte konnten nicht geladen werden!',
         failedToLoadEmails: 'E-Mails konnten nicht geladen werden!',
         referrer: 'Empfehlender',
         referred: 'Empfohlener',

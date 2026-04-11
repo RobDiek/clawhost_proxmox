@@ -23,6 +23,8 @@ import installClawVersion from '@/controllers/claws/installClawVersion'
 import renameClaw from '@/controllers/claws/renameClaw'
 import getClawCredentials from '@/controllers/claws/getClawCredentials'
 import cancelPendingClaw from '@/controllers/claws/cancelPendingClaw'
+import updateClawSubdomain from '@/controllers/claws/updateClawSubdomain'
+import checkSubdomainAvailability from '@/controllers/claws/checkSubdomainAvailability'
 import provisionClaw from '@/controllers/claws/provisionClaw'
 
 export {
@@ -51,5 +53,7 @@ export {
     renameClaw,
     getClawCredentials,
     cancelPendingClaw,
+    updateClawSubdomain,
+    checkSubdomainAvailability,
     provisionClaw
 }

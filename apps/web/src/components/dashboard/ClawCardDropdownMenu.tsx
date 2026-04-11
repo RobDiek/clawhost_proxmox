@@ -21,7 +21,6 @@ import {
     TerminalIcon,
     CircleNotchIcon,
     ClockCountdownIcon,
-    ArrowsClockwiseIcon,
     ArrowCounterClockwiseIcon,
     ArrowSquareOutIcon,
     CreditCardIcon
@@ -137,15 +136,6 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                             >
                                 <TerminalIcon className='mr-2 h-4 w-4' />
                                 {t('dashboard.viewServerCredentials')}
-                            </DropdownMenuItem>
-                        )}
-                        {isAdmin && (
-                            <DropdownMenuItem
-                                onClick={actions.onUpdateInstance}
-                                disabled={isLoading}
-                            >
-                                <ArrowsClockwiseIcon className='mr-2 h-4 w-4' />
-                                {t('dashboard.updateInstance')}
                             </DropdownMenuItem>
                         )}
                         <DropdownMenuItem

@@ -89,7 +89,7 @@ const AdminClawsTab: FC<AdminResourceTabProps> = ({
             {isError ? (
                 <div className='py-8'>
                     <ErrorState
-                        title={t('admin.failedToLoadClaws')}
+                        title={t('admin.failedToLoadAgents')}
                         description={t('admin.genericErrorDescription')}
                         onRetry={() => refetch()}
                     />

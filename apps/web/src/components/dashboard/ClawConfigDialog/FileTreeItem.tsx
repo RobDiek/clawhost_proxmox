@@ -1,10 +1,8 @@
 import type { FC, ReactNode } from 'react'
 import type { FileTreeItemProps } from '@/ts/Interfaces'
 
-import {
-    getFileIcon,
-    getFileIconColor
-} from '@/components/dashboard/ClawConfigDialog/editorThemes'
+import { getFileIconColor } from '@/components/dashboard/ClawConfigDialog/editorThemes'
+import getFileIconByName from '@/components/dashboard/ClawConfigDialog/editorThemes/getFileIcon'
 
 const FileTreeItem: FC<FileTreeItemProps> = ({
     file,
@@ -25,7 +23,7 @@ const FileTreeItem: FC<FileTreeItemProps> = ({
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground/80'
             }`}
         >
-            {getFileIcon(file.fileType, getFileIconColor(file.fileType))}
+            {getFileIconByName(file.name, getFileIconColor(file.fileType))}
             <span className='truncate'>{file.name}</span>
         </button>
     )

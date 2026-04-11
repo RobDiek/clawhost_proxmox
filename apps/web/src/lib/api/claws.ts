@@ -1,5 +1,6 @@
 import type {
     Claw,
+    CheckSubdomainResponse,
     ClawCredentialsResponse,
     ClawFilesResponse,
     ClawVersionResponse,
@@ -42,6 +43,10 @@ const claws = {
         client.patch<Claw>(API_PATHS.CLAWS.byId(id), data),
     updateClawSubdomain: (id: string, data: UpdateClawSubdomainData) =>
         client.patch<Claw>(API_PATHS.CLAWS.SUBDOMAIN(id), data),
+    checkSubdomain: (subdomain: string) =>
+        client.get<CheckSubdomainResponse>(
+            `${API_PATHS.CLAWS.CHECK_SUBDOMAIN}?subdomain=${encodeURIComponent(subdomain)}`
+        ),
     cancelDeletion: (id: string) =>
         client.post<Claw>(API_PATHS.CLAWS.CANCEL_DELETION(id)),
     hardDeleteClaw: (id: string) =>

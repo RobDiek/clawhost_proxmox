@@ -1,18 +1,22 @@
-import type { ClawFileType } from '@/ts/Types'
 import type { Extension } from '@codemirror/state'
 
-import { json } from '@codemirror/lang-json'
-import { javascript } from '@codemirror/lang-javascript'
-import { markdown } from '@codemirror/lang-markdown'
-import { yaml } from '@codemirror/lang-yaml'
+import { languages } from '@codemirror/language-data'
+import { LanguageDescription } from '@codemirror/language'
 
-const getLanguageExtension = (fileType: ClawFileType): Extension | null => {
-    if (fileType === 'json') return json()
-    if (fileType === 'javascript') return javascript()
-    if (fileType === 'typescript') return javascript({ typescript: true })
-    if (fileType === 'markdown') return markdown()
-    if (fileType === 'yaml') return yaml()
-    return null
+const cache = new Map<string, Extension | null>()
+
+const getLanguageExtension = async (
+    filename: string
+): Promise<Extension | null> => {
+    if (cache.has(filename)) return cache.get(filename)!
+    const desc = LanguageDescription.matchFilename(languages, filename)
+    if (!desc) {
+        cache.set(filename, null)
+        return null
+    }
+    const support = await desc.load()
+    cache.set(filename, support)
+    return support
 }
 
 export default getLanguageExtension

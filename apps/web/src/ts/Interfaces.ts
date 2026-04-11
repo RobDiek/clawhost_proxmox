@@ -67,6 +67,7 @@ export interface Claw {
     volumes?: Volume[]
     ownerEmail?: string | null
     deletionScheduledAt: string | null
+    lastSubdomainChangedAt: string | null
     checkoutUrl?: string | null
     createdAt: string
     port?: number
@@ -154,12 +155,8 @@ export interface AccountProfileSectionProps {
 }
 
 export interface AccountSettingsSectionProps {
-    showLocal: boolean
-    showAdmin: boolean
     openLinksWindowed: boolean
     setOpenLinksWindowed: (value: boolean) => void
-    adminMode: boolean
-    setAdminMode: (value: boolean) => void
 }
 
 export interface ConnectedAccountsSectionProps {
@@ -529,7 +526,6 @@ export interface ClawCardActions {
     onShowHardDeleteModal: () => void
     onShowDiagnostics: () => void
     onShowLogs: () => void
-    onUpdateInstance: () => void
     onShowReinstallModal: () => void
     onShowCredentials: () => void
     onExport: () => void
@@ -736,6 +732,10 @@ export interface UpdateClawSubdomainData {
     subdomain: string
 }
 
+export interface CheckSubdomainResponse {
+    available: boolean
+}
+
 export interface CreateSSHKeyData {
     name: string
     publicKey: string
@@ -931,9 +931,11 @@ export interface FileEditorProps {
     hasUnsavedChanges: boolean
     jsonError: boolean
     resolvedTheme: string
+    isSaving: boolean
     onChange: (value: string) => void
     onJsonChange: (value: string) => void
     onClose: () => void
+    onSave: () => void
 }
 
 export interface UseFileEditorParams {
@@ -1021,11 +1023,9 @@ export interface ClawDetailSettingsTabProps {
     settingsHasChanges: boolean
     renamePending: boolean
     subdomainPending: boolean
-    isExporting: boolean
     onNameChange: (value: string) => void
     onSubdomainChange: (value: string) => void
     onSave: () => void
-    onExport: () => void
 }
 
 export interface ClawDetailHeaderProps {
@@ -1509,7 +1509,6 @@ export interface AdminAnalyticsResponse {
     volumes: AdminAnalyticsDataPoint[]
     referrals: AdminAnalyticsDataPoint[]
     waitlist: AdminAnalyticsDataPoint[]
-    exports: AdminAnalyticsDataPoint[]
     emails: AdminAnalyticsDataPoint[]
 }
 
@@ -1528,7 +1527,6 @@ export interface AdminStats {
     volumes: number
     referrals: number
     waitlist: number
-    exports: number
     emails: number
     billing: number
 }
@@ -1562,16 +1560,6 @@ export interface AdminWaitlistListItem {
     email: string
     userId: string | null
     createdAt: string
-}
-
-export interface AdminExportListItem {
-    id: string
-    fileSize: number | null
-    createdAt: string
-    userId: string
-    clawId: string
-    ownerEmail: string | null
-    clawName: string | null
 }
 
 export interface AdminEmailListItem {
@@ -1695,7 +1683,6 @@ export interface AdminEntitySelection {
         | 'pending-claw'
         | 'referral'
         | 'waitlist'
-        | 'export'
         | 'email'
         | 'billing'
     id: string
@@ -1754,12 +1741,6 @@ export interface AdminPendingClawDetailViewProps {
 
 export interface AdminReferralDetailViewProps {
     referral: AdminReferralListItem
-    onClose: () => void
-    onNavigateToUser: (userId: string) => void
-}
-
-export interface AdminExportDetailViewProps {
-    exportItem: AdminExportListItem
     onClose: () => void
     onNavigateToUser: (userId: string) => void
 }

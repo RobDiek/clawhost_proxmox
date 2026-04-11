@@ -24,7 +24,6 @@ import {
     HourglassIcon,
     HandshakeIcon,
     ClockCountdownIcon,
-    ExportIcon,
     EnvelopeIcon,
     ChartLineUpIcon,
     FunnelIcon
@@ -93,12 +92,6 @@ const RESOURCES = [
         label: 'admin.waitlistTab' as const,
         icon: ClockCountdownIcon,
         color: '#06b6d4'
-    },
-    {
-        key: 'exports' as const,
-        label: 'admin.exportsTab' as const,
-        icon: ExportIcon,
-        color: '#84cc16'
     },
     {
         key: 'emails' as const,

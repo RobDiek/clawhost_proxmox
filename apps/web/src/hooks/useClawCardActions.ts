@@ -18,7 +18,6 @@ import {
     useDeleteClaw,
     useCancelDeletion,
     useHardDeleteClaw,
-    useRepairClaw,
     useReinstallClaw,
     useCancelPendingClaw
 } from '@/hooks'
@@ -48,7 +47,6 @@ const useClawCardActions = ({
     const deleteMutation = useDeleteClaw()
     const cancelDeletionMutation = useCancelDeletion()
     const hardDeleteMutation = useHardDeleteClaw()
-    const repairMutation = useRepairClaw()
     const reinstallMutation = useReinstallClaw()
     const cancelPendingMutation = useCancelPendingClaw()
 
@@ -59,7 +57,6 @@ const useClawCardActions = ({
         deleteMutation.isPending ||
         cancelDeletionMutation.isPending ||
         hardDeleteMutation.isPending ||
-        repairMutation.isPending ||
         reinstallMutation.isPending ||
         cancelPendingMutation.isPending ||
         isExporting ||
@@ -141,19 +138,6 @@ const useClawCardActions = ({
             onShowHardDeleteModal: () => setShowHardDeleteModal(true),
             onShowDiagnostics: () => setShowDiagnostics(true),
             onShowLogs: () => setShowLogs(true),
-            onUpdateInstance: () =>
-                repairMutation.mutate(target.id, {
-                    onSuccess: () =>
-                        showToast(
-                            t('dashboard.updateInstanceSuccess'),
-                            TOAST_TYPE.SUCCESS
-                        ),
-                    onError: () =>
-                        showToast(
-                            t('dashboard.updateInstanceFailed'),
-                            TOAST_TYPE.ERROR
-                        )
-                }),
             onShowReinstallModal: () => setShowReinstallModal(true),
             onShowCredentials: handleShowCredentials,
             onExport: handleExport,
@@ -177,7 +161,6 @@ const useClawCardActions = ({
         showToast,
         startMutation,
         cancelDeletionMutation,
-        repairMutation,
         cancelPendingMutation
     ])
 

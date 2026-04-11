@@ -267,9 +267,9 @@ const nl: Translations = {
         pageNotFoundDescription:
             'De pagina die je zoekt bestaat niet of is verplaatst.',
         goToHomepage: 'Naar de startpagina',
-        failedToLoadClaws: 'Claws laden mislukt!',
-        failedToLoadClawsDescription:
-            'We konden je Claws niet laden. Controleer je verbinding en probeer het opnieuw!',
+        failedToLoadAgents: 'Agents laden mislukt!',
+        failedToLoadAgentsDescription:
+            'We konden je Agents niet laden. Controleer je verbinding en probeer het opnieuw!',
         failedToLoadSSHKeys: 'SSH-sleutels laden mislukt!',
         failedToLoadSSHKeysDescription:
             'We konden je SSH-sleutels niet laden. Controleer je verbinding en probeer het opnieuw!',
@@ -383,17 +383,21 @@ const nl: Translations = {
         failedToGetLogs: 'Logs laden mislukt!',
         failedToGetLogsDescription:
             'Kon logs voor deze instantie niet ophalen. Probeer het later opnieuw.',
-        failedToRepairClaw: 'Instantie repareren mislukt!',
-        repairSuccess: 'Instantie succesvol gerepareerd.',
-        repairGatewayNotResponding:
-            'Reparatie toegepast, maar de gateway reageert nog niet. Het kan meer tijd nodig hebben om op te starten.',
         failedToReinstallClaw: 'Instantie opnieuw installeren mislukt!',
         reinstallSuccess: 'Instantie succesvol opnieuw geïnstalleerd.',
         reinstallRateLimited:
             'Je kunt slechts eenmaal per 24 uur opnieuw installeren. Neem contact op met het team als je deze limiet wilt verwijderen.',
+        subdomainRateLimited:
+            'Je kunt je subdomein slechts eenmaal per 24 uur wijzigen. Neem contact op met het team als je deze limiet wilt verwijderen.',
+        subdomainUpdated: 'Subdomein succesvol bijgewerkt.',
+        invalidSubdomain: 'Ongeldig subdomein. Gebruik 3-20 kleine letters en cijfers!',
+        subdomainAlreadyInUse: 'Dit subdomein is al in gebruik!',
         clawBusy: 'Claw wordt momenteel ingericht of verwijderd!',
         reinstallGatewayNotResponding:
             'Herinstallatie voltooid, maar de gateway reageert nog niet. Het kan meer tijd nodig hebben om op te starten.',
+        failedToRepairClaw: 'Failed to repair the instance!',
+        repairSuccess: 'Instance repaired successfully.',
+        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Clawgegevens exporteren mislukt!',
         clawNotReady: 'Claw is niet klaar voor export!',
         exportRateLimited:
@@ -504,7 +508,6 @@ const nl: Translations = {
         adminWaitlistFetched: 'Waitlist fetched.',
         failedToGetAdminWaitlist: 'Failed to fetch waitlist!',
         adminExportsFetched: 'Exports fetched.',
-        failedToGetAdminExports: 'Failed to fetch exports!',
         adminEmailsFetched: 'Emails fetched.',
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
@@ -650,7 +653,7 @@ const nl: Translations = {
         checkYourEmailHeading: 'Controleer je e-mail',
         codeSentTo: 'We hebben een 6-cijferige code gestuurd naar',
         signInToDeployOpenClaw:
-            'Authenticeer om OpenClaw-instanties te beheren en te deployen.',
+            'Authenticeer om agents met \u00e9\u00e9n klik te beheren en te deployen.',
         emailAddress: 'E-mailadres',
         emailPlaceholder: 'voorbeeld@clawhost.cloud',
         continueWithEmail: 'Doorgaan met e-mail',
@@ -730,7 +733,6 @@ const nl: Translations = {
             'Je kunt alleen accounts verbinden die hetzelfde e-mailadres gebruiken!',
         settings: 'Instellingen',
         settingsDescription: 'Beheer je dashboardvoorkeuren.',
-        showAllClaws: 'Toon alle claws van alle gebruikers',
         openLinksWindowed: 'Links openen in een vensterweergave',
         openLinksWindowedDescription:
             'Wanneer ingeschakeld, openen externe links binnen de app in plaats van de systeembrowser.'
@@ -814,9 +816,9 @@ const nl: Translations = {
         clawCountLabelSingular: '{{count}} claw',
         newClaw: 'Nieuwe Claw',
         clawActions: 'Claw-acties',
-        noClawsYet: 'Geen Claws',
-        noClawsDescription:
-            'Er is geen gedeployde claw gevonden. Maar je kunt je eerste claw op elk moment deployen vanaf $25/m. Gewoon AI gebruiken.',
+        noAgentsYet: 'Geen Agenten',
+        noAgentsDescription:
+            'Er is geen gedeployde agent gevonden. Maar je kunt je eerste agent op elk moment deployen vanaf $25/m. Gewoon AI gebruiken.',
         deleteClaw: 'Claw verwijderen',
         deleteClawConfirmation: 'Weet je zeker dat je wilt verwijderen',
         deleteClawWarning:
@@ -861,7 +863,7 @@ const nl: Translations = {
         gatewayToken: 'Gateway-token',
         gatewayTokenDescription:
             'Gebruik dit token om te authenticeren met je gateway',
-        contactSupport: 'Ondersteuning',
+        contactSupport: 'Contact Support',
         scheduledForDeletion: 'Gepland voor verwijdering',
         scheduledDeletionShort: 'Verwijderd op {{date}}',
         deletionDate: 'Deze claw wordt verwijderd op {{date}}',
@@ -885,12 +887,10 @@ const nl: Translations = {
             'Controleer de gezondheid van je OpenClaw-instantie.',
         diagnosticsStatus: 'Status',
         diagnosticsLogs: 'Logs',
-        diagnosticsRepair: 'Repareren',
-        diagnosticsRepairDescription:
-            'Verwijder geheugenlimieten, pas de nieuwste serviceconfiguratie toe en herstart de gateway. Dit lost de meeste veelvoorkomende problemen op.',
-        diagnosticsRepairSuccess: 'Instantie succesvol gerepareerd.',
-        diagnosticsRepairFailed:
-            'Reparatie toegepast maar gateway reageert nog niet!',
+        diagnosticsRepair: 'Repair',
+        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairSuccess: 'Instance repaired successfully.',
+        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'Verbinden met instantie...',
         diagnosticsNoLogs:
             'Geen logs beschikbaar. Start je instantie om logs te genereren.',
@@ -915,9 +915,6 @@ const nl: Translations = {
         fileExplorerNoFiles: 'Geen bestanden gevonden',
         fileExplorerSearchFiles: 'Bestanden zoeken...',
         fileExplorerNoSearchResults: 'Geen overeenkomende bestanden.',
-        updateInstance: 'Instantie bijwerken',
-        updateInstanceSuccess: 'Instantie succesvol bijgewerkt.',
-        updateInstanceFailed: 'Instantie bijwerken mislukt!',
         startFailed: 'Claw starten mislukt!',
         renameSuccess: 'Claw succesvol hernoemd.',
         renameFailed: 'Claw hernoemen mislukt!',
@@ -931,6 +928,8 @@ const nl: Translations = {
         reinstallInstanceFailed: 'Instantie herinstalleren mislukt!',
         openControlPanel: 'Configuratiepaneel openen',
         exportData: 'Claw exporteren (.zip)',
+        exportAgent: 'Export Agent',
+        exportAgentTooltip: 'Download this agent as a .zip file',
         exportStarted: 'Export wordt voorbereid, dit kan even duren...',
         exportSuccess: 'Claw succesvol ge\u00ebxporteerd.',
         exportFailed: 'Claw-gegevens exporteren mislukt!',
@@ -953,6 +952,7 @@ const nl: Translations = {
         adminNoClaws: 'Nog geen claws op het platform.',
         adminAccessDenied: 'Je hebt geen toestemming om deze pagina te openen.',
         owner: 'Eigenaar',
+        agentType: 'Agent',
         status: {
             running: 'Actief',
             stopped: 'Gestopt',
@@ -1152,9 +1152,9 @@ const nl: Translations = {
         openclawControl: 'OpenClaw Control',
         openclawControlDescription:
             'Krijg direct toegang tot het native OpenClaw-paneel vanuit ClawHost. Volledige bewerkingstoegang tot alles wat OpenClaw biedt.',
-        clawHostControl: 'ClawHost Control',
+        clawHostControl: 'Volledige servertoegang',
         clawHostControlDescription:
-            'Beheer bestanden, updates en meer configuratieopties direct vanuit het platform.',
+            'Browserterminal, bestandsverkenner, logs, diagnostiek en versiebeheer — alles vanuit je dashboard.',
         multipleClaws: 'Meerdere Claws',
         multipleClawsDescription:
             'Deploy en beheer meerdere OpenClaw-instanties vanuit \u00e9\u00e9n dashboard. Schaal mee naarmate je groeit.',
@@ -1338,6 +1338,8 @@ const nl: Translations = {
             'Native mobiele app om je OpenClaw-instanties onderweg te monitoren en te beheren',
         upcomingReleaseFeature13:
             'Bètarelease van ClawHost Go voor macOS en Windows, deploy OpenClaw lokaal met één klik',
+        upcomingReleaseFeature14:
+            'Eén-klik deploy voor Hermes-agents zoals OpenClaw',
         upcomingReleaseFeature3: 'Ondersteuning voor donker en licht thema',
         upcomingReleaseFeature4:
             'Verbeteringen in prestaties, stabiliteit en responsiviteit',
@@ -1369,6 +1371,15 @@ const nl: Translations = {
             '10 nieuwe talen toegevoegd: Chinees, Hindi, Arabisch, Russisch, Japans, Turks, Italiaans, Pools, Nederlands en Portugees',
         release14Feature4:
             'Interne tools voor stabiele functieondersteuning voor huidige OpenClaw-versies, zonder ondersteuning voor oudere versies',
+        release15Date: '11 april 2026',
+        release15Title: 'Vereenvoudiging & aangepaste subdomeinen',
+        release15Description:
+            'Vereenvoudiging van het platform door beheerde functies naar OpenClaw te migreren, de playground-weergave te verwijderen en aanpasbare subdomeinen te introduceren.',
+        release15Feature1:
+            'Vereenvoudiging en migratie van beheerde functies naar OpenClaw, geen ClawHost-chat, agents, kanalen, variabelen en vaardigheden meer',
+        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
         release12Date: '14 maart 2026',
         release12Title: 'Jaarplannen, spraakmodus & meer',
         release12Description:
@@ -1496,8 +1507,8 @@ const nl: Translations = {
             'Raster- en lijstweergave-schakelaar verwijderd ten gunste van een uniforme dashboardindeling'
     },
     clawDetail: {
-        noClawsYet: 'Geen Claws',
-        noClawsDescription: 'Deploy je eerste Claw om ermee te communiceren.',
+        noAgentsYet: 'Geen Agenten',
+        noAgentsDescription: 'Deploy je eerste Agent om ermee te communiceren.',
         selectClaw: 'Selecteer een Claw',
         selectClawDescription:
             'Kies een Claw in de zijbalk om de details te bekijken.',
@@ -1726,7 +1737,8 @@ const nl: Translations = {
         settingsPlaceholder:
             'Accountinstellingen en voorkeuren verschijnen hier.',
         signIn: 'Authenticatie',
-        signInDescription: 'Log in om je OpenClaw-instanties te beheren.',
+        signInDescription:
+            'Authenticeer om je agents te beheren en te deployen.',
         enterEmail: 'E-mailadres',
         emailPlaceholder: 'voorbeeld@clawhost.cloud',
         continueWithEmail: 'Doorgaan met e-mail',
@@ -1751,7 +1763,7 @@ const nl: Translations = {
     announcement: {
         title: 'Servicemelding',
         message:
-            'Door hoge vraag is Claw-deployment tijdelijk niet beschikbaar. Bestaande claws draaien normaal.'
+            'Door hoge vraag is agentdeployment tijdelijk niet beschikbaar. Bestaande agents draaien normaal.'
     },
     productHunt: {
         liveOn: 'Live op',
@@ -1932,7 +1944,7 @@ const nl: Translations = {
         noClawsFound: 'Geen Claws',
         noSSHKeysFound: 'Geen SSH-sleutels',
         noVolumesFound: 'Geen Volumes',
-        failedToLoadClaws: 'Kan claws niet laden!',
+        failedToLoadAgents: 'Kan agents niet laden!',
         failedToLoadSSHKeys: 'Kan SSH-sleutels niet laden!',
         failedToLoadVolumes: 'Kan volumes niet laden!',
         owner: 'Eigenaar',
@@ -1941,10 +1953,12 @@ const nl: Translations = {
         referralsTab: 'Verwijzingen',
         pendingClawsTab: 'Wachtend',
         waitlistTab: 'Wachtlijst',
-        exportsTab: 'Exports',
         emailsTab: 'E-mails',
         analyticsTab: 'Analyse',
         billingTab: 'Facturering',
+        settingsTab: 'Instellingen',
+        settingsDescription: 'Beheer je beheerdersinstellingen.',
+        showAllAgents: 'Toon alle agenten van alle gebruikers',
         billingFilterAll: 'Alle bestellingen',
         billingFilterService: 'Claw-service',
         billingFilterLicense: 'Licentie',
@@ -1972,12 +1986,10 @@ const nl: Translations = {
         noReferralsFound: 'Geen Verwijzingen',
         noPendingClawsFound: 'Geen Wachtende Claws',
         noWaitlistFound: 'Geen Wachtlijst',
-        noExportsFound: 'Geen Exports',
         noEmailsFound: 'Geen E-mails',
         failedToLoadReferrals: 'Kan verwijzingen niet laden!',
         failedToLoadPendingClaws: 'Kan wachtende claws niet laden!',
         failedToLoadWaitlist: 'Kan wachtlijst niet laden!',
-        failedToLoadExports: 'Kan exports niet laden!',
         failedToLoadEmails: 'Kan e-mails niet laden!',
         referrer: 'Verwijzer',
         referred: 'Verwezen',

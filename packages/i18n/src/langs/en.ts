@@ -69,7 +69,7 @@ const en = {
         toggleTheme: 'Toggle theme'
     },
     nav: {
-        claws: 'Claws',
+        claws: 'Agents',
         sshKeys: 'SSH Keys',
         account: 'Account',
         billing: 'Billing',
@@ -79,7 +79,7 @@ const en = {
         admin: 'Admin',
         login: 'Login',
         deploy: 'Deploy',
-        deployOpenClaw: 'Deploy OpenClaw',
+        deployOpenClaw: 'Deploy Agent',
         mainNavigation: 'Main navigation',
         footerNavigation: 'Footer navigation',
         toggleMenu: 'Toggle menu',
@@ -260,9 +260,9 @@ const en = {
         pageNotFoundDescription:
             "The page you\'re looking for doesn\'t exist or has been moved.",
         goToHomepage: 'Go to Homepage',
-        failedToLoadClaws: 'Failed to load claws!',
-        failedToLoadClawsDescription:
-            "We couldn\'t load your Claws. Please check your connection and try again!",
+        failedToLoadAgents: 'Failed to load agents!',
+        failedToLoadAgentsDescription:
+            "We couldn\'t load your Agents. Please check your connection and try again!",
         failedToLoadSSHKeys: 'Failed to load SSH keys!',
         failedToLoadSSHKeysDescription:
             "We couldn\'t load your SSH keys. Please check your connection and try again!",
@@ -372,17 +372,22 @@ const en = {
         failedToGetLogs: 'Failed to load logs!',
         failedToGetLogsDescription:
             'Could not retrieve logs for this instance. Please try again later.',
-        failedToRepairClaw: 'Failed to repair the instance!',
-        repairSuccess: 'Instance repaired successfully.',
-        repairGatewayNotResponding:
-            'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToReinstallClaw: 'Failed to reinstall the instance!',
         reinstallSuccess: 'Instance reinstalled successfully.',
         reinstallRateLimited:
             'You can only reinstall once every 24 hours. Please contact the team in case you want to remove this limit.',
+        subdomainRateLimited:
+            'You can only change your subdomain once every 24 hours. Please contact the team in case you want to remove this limit.',
+        subdomainUpdated: 'Subdomain updated successfully.',
+        invalidSubdomain: 'Invalid subdomain. Use 3-20 lowercase letters and numbers!',
+        subdomainAlreadyInUse: 'This subdomain is already in use!',
         clawBusy: 'Claw is currently being provisioned or deleted!',
         reinstallGatewayNotResponding:
             'Reinstall completed but gateway is not responding yet. It may need more time to start.',
+        failedToRepairClaw: 'Failed to repair the instance!',
+        repairSuccess: 'Instance repaired successfully.',
+        repairGatewayNotResponding:
+            'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Failed to export claw data!',
         clawNotReady: 'Claw is not ready for export!',
         exportRateLimited:
@@ -492,7 +497,6 @@ const en = {
         adminWaitlistFetched: 'Waitlist fetched successfully.',
         failedToGetAdminWaitlist: 'Failed to fetch waitlist!',
         adminExportsFetched: 'Exports fetched successfully.',
-        failedToGetAdminExports: 'Failed to fetch exports!',
         adminEmailsFetched: 'Emails fetched successfully.',
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
@@ -632,7 +636,7 @@ const en = {
         checkYourEmailHeading: 'Check your email',
         codeSentTo: 'We sent a 6-digit code to',
         signInToDeployOpenClaw:
-            'Authenticate to manage and deploy OpenClaw instances.',
+            'Authenticate to manage and deploy agents with one click.',
         emailAddress: 'Email Address',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'Continue with Email',
@@ -711,7 +715,6 @@ const en = {
             'You can only connect accounts that use the same email address!',
         settings: 'Settings',
         settingsDescription: 'Manage your dashboard preferences.',
-        showAllClaws: 'Show all claws from all users',
         openLinksWindowed: 'Open links in a windowed view',
         openLinksWindowedDescription:
             'When enabled, external links open inside the app instead of the system browser.'
@@ -764,7 +767,7 @@ const en = {
         paymentSuccess: 'Payment successful. Your license is now active.',
         failedToPurchase: 'Failed to start checkout!',
         featureUnlimitedClaws: 'Unlimited OpenClaws',
-        featureDevices: 'Unlimited Devices',
+        featureDevices: 'Unlimited Owned Devices',
         featureUpdates: 'Forever Updates',
         featureSupport: 'Priority Support',
         featureCloud: 'All Cloud Features, Locally',
@@ -785,7 +788,7 @@ const en = {
         dismiss: 'Dismiss'
     },
     dashboard: {
-        title: 'Claws',
+        title: 'Agents',
         description:
             'View and manage your deployed OpenClaw instances. Start, stop, restart, and monitor your VPS servers.',
         claw: 'claw',
@@ -794,9 +797,9 @@ const en = {
         clawCountLabelSingular: '{{count}} claw',
         newClaw: 'New Claw',
         clawActions: 'Claw actions',
-        noClawsYet: 'No Claws',
-        noClawsDescription:
-            'No deployed claw was found. But you can deploy your first claw anytime starting from $25/m. Just AI it.',
+        noAgentsYet: 'No Agents',
+        noAgentsDescription:
+            'No deployed agent was found. But you can deploy your first agent anytime starting from $25/m. Just AI it.',
         deleteClaw: 'Delete Claw',
         deleteClawConfirmation: 'Are you sure you want to delete',
         deleteClawWarning:
@@ -841,7 +844,7 @@ const en = {
         gatewayToken: 'Gateway Token',
         gatewayTokenDescription:
             'Use this token to authenticate with your gateway',
-        contactSupport: 'Support',
+        contactSupport: 'Contact Support',
         scheduledForDeletion: 'Scheduled for Deletion',
         scheduledDeletionShort: 'Deletes {{date}}',
         deletionDate: 'This claw will be deleted on {{date}}',
@@ -892,9 +895,6 @@ const en = {
         fileExplorerNoFiles: 'No files found',
         fileExplorerSearchFiles: 'Search files...',
         fileExplorerNoSearchResults: 'No matching files.',
-        updateInstance: 'Update Instance',
-        updateInstanceSuccess: 'Instance updated successfully.',
-        updateInstanceFailed: 'Failed to update instance!',
         startFailed: 'Failed to start claw!',
         renameSuccess: 'Claw renamed successfully.',
         renameFailed: 'Failed to rename claw!',
@@ -907,8 +907,10 @@ const en = {
         reinstallInstanceFailed: 'Failed to reinstall instance!',
         openControlPanel: 'Open Control Panel',
         exportData: 'Export Claw (.zip)',
+        exportAgent: 'Export Agent',
+        exportAgentTooltip: 'Download this agent as a .zip file',
         exportStarted: 'Preparing export, this may take a moment...',
-        exportSuccess: 'Claw exported successfully.',
+        exportSuccess: 'Agent exported successfully.',
         exportFailed: 'Failed to export claw data!',
         exportRateLimited: 'You can export again in {{minutes}} minutes.',
         exportRateLimitedSeconds:
@@ -928,6 +930,7 @@ const en = {
         adminNoClaws: 'No claws on the platform yet.',
         adminAccessDenied: 'You do not have permission to access this page.',
         owner: 'Owner',
+        agentType: 'Agent',
         status: {
             running: 'Running',
             stopped: 'Stopped',
@@ -948,7 +951,7 @@ const en = {
         }
     },
     createClaw: {
-        title: 'Deploy OpenClaw',
+        title: 'Deploy Agent',
         description: 'Configure your server and start building with AI.',
         clawName: 'Name',
         clawNamePlaceholder: 'e.g. cozy-panda',
@@ -1072,7 +1075,7 @@ const en = {
         servers: 'Servers',
         zeroCount: 'Zero',
         zeroConfig: 'Zero Config',
-        dashboardPreviewTitle: 'Claws',
+        dashboardPreviewTitle: 'Agents',
         dashboardPreviewSubtitle: '5 added claws',
         deployNew: 'Deploy New',
         running: 'Running',
@@ -1122,9 +1125,9 @@ const en = {
         openclawControl: 'OpenClaw Control',
         openclawControlDescription:
             'Access the native OpenClaw panel directly from ClawHost. Full editing access to everything OpenClaw offers.',
-        clawHostControl: 'ClawHost Control',
+        clawHostControl: 'Full Server Access',
         clawHostControlDescription:
-            'Manage files, updates, and more configuration options directly from the platform.',
+            'Browser terminal, file explorer, logs, diagnostics, and version management — all from your dashboard.',
         multipleClaws: 'Multiple Claws',
         multipleClawsDescription:
             'Deploy and manage multiple OpenClaw instances from a single dashboard. Scale as you grow.',
@@ -1306,6 +1309,8 @@ const en = {
             'Native mobile app to monitor and manage your OpenClaw instances on the go',
         upcomingReleaseFeature13:
             'Beta release of ClawHost Go for macOS and Windows, deploy OpenClaw locally with one click',
+        upcomingReleaseFeature14:
+            'One click deploy for Hermes agents like OpenClaw',
         upcomingReleaseFeature3: 'Dark and light theme support',
         upcomingReleaseFeature4:
             'Performance, stability, and responsiveness enhancements',
@@ -1325,6 +1330,18 @@ const en = {
             'Landing page for ClawHost Go, local hosting with ClawHost',
         upcomingReleaseFeature12:
             'Desktop app for macOS and Windows to deploy OpenClaw locally with one click',
+        release15Date: 'April 11, 2026',
+        release15Title: 'Simplification, File Explorer & Custom Subdomains',
+        release15Description:
+            'Simplified the platform, enhanced the file explorer with full editing and 100+ language syntax support, and introduced custom subdomains.',
+        release15Feature1:
+            'Simplified and moved managed features to OpenClaw, no more ClawHost chat, agents, channels, variables, and skills',
+        release15Feature2:
+            'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3:
+            'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4:
+            'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: 'April 1, 2026',
         release14Title: 'Hetzner Migration, Affiliate System & New Languages',
         release14Description:
@@ -1461,8 +1478,8 @@ const en = {
             'Removed grid and list view toggle in favor of a unified dashboard layout'
     },
     clawDetail: {
-        noClawsYet: 'No Claws',
-        noClawsDescription: 'Deploy your first Claw to interact with it.',
+        noAgentsYet: 'No Agents',
+        noAgentsDescription: 'Deploy your first Agent to interact with it.',
         selectClaw: 'Select a Claw',
         selectClawDescription:
             'Choose a Claw from the sidebar to view its details.',
@@ -1686,7 +1703,7 @@ const en = {
         settingsPlaceholder:
             'Account settings and preferences will appear here.',
         signIn: 'Authenticate',
-        signInDescription: 'Authenticate to manage your OpenClaw instances.',
+        signInDescription: 'Authenticate to manage and deploy your agents.',
         enterEmail: 'Email Address',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'Continue with Email',
@@ -1711,7 +1728,7 @@ const en = {
     announcement: {
         title: 'Service Notice',
         message:
-            'Due to high demand, Claw deployment is temporarily unavailable. Existing claws are running normally.'
+            'Due to high demand, agent deployment is temporarily unavailable. Existing agents are running normally.'
     },
     productHunt: {
         liveOn: 'Live on',
@@ -1864,7 +1881,7 @@ const en = {
         referralCode: 'Referral Code',
         referredBy: 'Referred By',
         joined: 'Joined',
-        claws: 'Claws',
+        claws: 'Agents',
         sshKeys: 'SSH Keys',
         volumes: 'Volumes',
         billing: 'Billing',
@@ -1885,13 +1902,13 @@ const en = {
         saveUser: 'Save',
         userUpdated: 'User updated.',
         userUpdateFailed: 'Failed to update user!',
-        clawsTab: 'Claws',
+        clawsTab: 'Agents',
         sshKeysTab: 'SSH Keys',
         volumesTab: 'Volumes',
         noClawsFound: 'No Claws',
         noSSHKeysFound: 'No SSH Keys',
         noVolumesFound: 'No Volumes',
-        failedToLoadClaws: 'Failed to load claws!',
+        failedToLoadAgents: 'Failed to load agents!',
         failedToLoadSSHKeys: 'Failed to load SSH keys!',
         failedToLoadVolumes: 'Failed to load volumes!',
         owner: 'Owner',
@@ -1900,10 +1917,12 @@ const en = {
         referralsTab: 'Referrals',
         pendingClawsTab: 'Pending',
         waitlistTab: 'Waitlist',
-        exportsTab: 'Exports',
         emailsTab: 'Emails',
         analyticsTab: 'Analytics',
         billingTab: 'Billing',
+        settingsTab: 'Settings',
+        settingsDescription: 'Manage your admin preferences.',
+        showAllAgents: 'Show all agents from all users',
         billingFilterAll: 'All Orders',
         billingFilterService: 'Claw Service',
         billingFilterLicense: 'License',
@@ -1931,12 +1950,10 @@ const en = {
         noReferralsFound: 'No Referrals',
         noPendingClawsFound: 'No Pending Claws',
         noWaitlistFound: 'No Waitlist Entries',
-        noExportsFound: 'No Exports',
         noEmailsFound: 'No Emails',
         failedToLoadReferrals: 'Failed to load referrals!',
         failedToLoadPendingClaws: 'Failed to load pending claws!',
         failedToLoadWaitlist: 'Failed to load waitlist!',
-        failedToLoadExports: 'Failed to load exports!',
         failedToLoadEmails: 'Failed to load emails!',
         referrer: 'Referrer',
         referred: 'Referred',

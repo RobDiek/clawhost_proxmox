@@ -16,6 +16,33 @@ const RELEASES: ChangelogRelease[] = [
             {
                 key: 'changelog.upcomingReleaseFeature13',
                 type: CHANGELOG_FEATURE_TYPE.ADDED
+            },
+            {
+                key: 'changelog.upcomingReleaseFeature14',
+                type: CHANGELOG_FEATURE_TYPE.ADDED
+            }
+        ]
+    },
+    {
+        dateKey: 'changelog.release15Date',
+        titleKey: 'changelog.release15Title',
+        descriptionKey: 'changelog.release15Description',
+        features: [
+            {
+                key: 'changelog.release15Feature1',
+                type: CHANGELOG_FEATURE_TYPE.ADDED
+            },
+            {
+                key: 'changelog.release15Feature2',
+                type: CHANGELOG_FEATURE_TYPE.ADDED
+            },
+            {
+                key: 'changelog.release15Feature3',
+                type: CHANGELOG_FEATURE_TYPE.ADDED
+            },
+            {
+                key: 'changelog.release15Feature4',
+                type: CHANGELOG_FEATURE_TYPE.ADDED
             }
         ]
     },

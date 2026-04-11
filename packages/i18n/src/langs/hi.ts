@@ -265,9 +265,9 @@ const hi: Translations = {
         pageNotFoundDescription:
             'जो पृष्ठ आप खोज रहे हैं वह मौजूद नहीं है या स्थानांतरित कर दिया गया है.',
         goToHomepage: 'होमपेज पर जाएँ',
-        failedToLoadClaws: 'क्लॉज़ लोड करने में विफल!',
-        failedToLoadClawsDescription:
-            'हम आपके क्लॉज़ लोड नहीं कर सके. कृपया अपना कनेक्शन जाँचें और पुनः प्रयास करें!',
+        failedToLoadAgents: 'एजेंट्स लोड करने में विफल!',
+        failedToLoadAgentsDescription:
+            'हम आपके एजेंट्स लोड नहीं कर सके. कृपया अपना कनेक्शन जाँचें और पुनः प्रयास करें!',
         failedToLoadSSHKeys: 'SSH कुंजियाँ लोड करने में विफल!',
         failedToLoadSSHKeysDescription:
             'हम आपकी SSH कुंजियाँ लोड नहीं कर सके. कृपया अपना कनेक्शन जाँचें और पुनः प्रयास करें!',
@@ -379,17 +379,21 @@ const hi: Translations = {
         failedToGetLogs: 'लॉग लोड करने में विफल!',
         failedToGetLogsDescription:
             'इस इंस्टेंस के लॉग प्राप्त नहीं हो सके. कृपया बाद में पुनः प्रयास करें.',
-        failedToRepairClaw: 'इंस्टेंस की मरम्मत करने में विफल!',
-        repairSuccess: 'इंस्टेंस सफलतापूर्वक ठीक हो गया.',
-        repairGatewayNotResponding:
-            'मरम्मत लागू हो गई लेकिन गेटवे अभी तक प्रतिक्रिया नहीं दे रहा. इसे शुरू होने में और समय लग सकता है.',
         failedToReinstallClaw: 'इंस्टेंस पुनः इंस्टॉल करने में विफल!',
         reinstallSuccess: 'इंस्टेंस सफलतापूर्वक पुनः इंस्टॉल हो गया.',
         reinstallRateLimited:
             'आप हर 24 घंटे में केवल एक बार पुनः इंस्टॉल कर सकते हैं. यदि आप यह सीमा हटाना चाहते हैं तो कृपया टीम से संपर्क करें.',
+        subdomainRateLimited:
+            'आप हर 24 घंटे में केवल एक बार सबडोमेन बदल सकते हैं. यदि आप यह सीमा हटाना चाहते हैं तो कृपया टीम से संपर्क करें.',
+        subdomainUpdated: 'सबडोमेन सफलतापूर्वक अपडेट हो गया.',
+        invalidSubdomain: 'अमान्य सबडोमेन. 3-20 छोटे अक्षर और संख्याएँ उपयोग करें!',
+        subdomainAlreadyInUse: 'यह सबडोमेन पहले से उपयोग में है!',
         clawBusy: 'क्लॉ वर्तमान में प्रावधान या हटाया जा रहा है!',
         reinstallGatewayNotResponding:
             'पुनः इंस्टॉल पूरा हो गया लेकिन गेटवे अभी तक प्रतिक्रिया नहीं दे रहा. इसे शुरू होने में और समय लग सकता है.',
+        failedToRepairClaw: 'Failed to repair the instance!',
+        repairSuccess: 'Instance repaired successfully.',
+        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'क्लॉ डेटा निर्यात करने में विफल!',
         clawNotReady: 'क्लॉ निर्यात के लिए तैयार नहीं है!',
         exportRateLimited:
@@ -501,7 +505,6 @@ const hi: Translations = {
         adminWaitlistFetched: 'Waitlist fetched.',
         failedToGetAdminWaitlist: 'Failed to fetch waitlist!',
         adminExportsFetched: 'Exports fetched.',
-        failedToGetAdminExports: 'Failed to fetch exports!',
         adminEmailsFetched: 'Emails fetched.',
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
@@ -648,7 +651,7 @@ const hi: Translations = {
         checkYourEmailHeading: 'अपना ईमेल जाँचें',
         codeSentTo: 'हमने 6 अंकों का कोड भेजा है',
         signInToDeployOpenClaw:
-            'प्रमाणित करें OpenClaw इंस्टेंस प्रबंधित और डिप्लॉय करने के लिए.',
+            'एक क्लिक में एजेंट प्रबंधित और डिप्लॉय करने के लिए प्रमाणित करें.',
         emailAddress: 'ईमेल पता',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'ईमेल से जारी रखें',
@@ -727,7 +730,6 @@ const hi: Translations = {
             'आप केवल उन खातों को कनेक्ट कर सकते हैं जो समान ईमेल पते का उपयोग करते हैं!',
         settings: 'सेटिंग्स',
         settingsDescription: 'अपनी डैशबोर्ड प्राथमिकताएँ प्रबंधित करें.',
-        showAllClaws: 'सभी उपयोगकर्ताओं के सभी क्लॉज़ दिखाएँ',
         openLinksWindowed: 'विंडो व्यू में लिंक खोलें',
         openLinksWindowedDescription:
             'सक्षम होने पर, बाहरी लिंक सिस्टम ब्राउज़र के बजाय ऐप के अंदर खुलते हैं.'
@@ -810,9 +812,9 @@ const hi: Translations = {
         clawCountLabelSingular: '{{count}} क्लॉ',
         newClaw: 'नया क्लॉ',
         clawActions: 'क्लॉ कार्य',
-        noClawsYet: 'कोई क्लॉज़ नहीं',
-        noClawsDescription:
-            'कोई डिप्लॉय किया गया क्लॉ नहीं मिला. लेकिन आप $25/माह से शुरू करके कभी भी अपना पहला क्लॉ डिप्लॉय कर सकते हैं. बस AI करें.',
+        noAgentsYet: 'कोई एजेंट नहीं',
+        noAgentsDescription:
+            'कोई डिप्लॉय किया गया एजेंट नहीं मिला. लेकिन आप $25/माह से शुरू करके कभी भी अपना पहला एजेंट डिप्लॉय कर सकते हैं. बस AI करें.',
         deleteClaw: 'क्लॉ हटाएँ',
         deleteClawConfirmation: 'क्या आप वाकई हटाना चाहते हैं',
         deleteClawWarning:
@@ -857,7 +859,7 @@ const hi: Translations = {
         gatewayToken: 'गेटवे टोकन',
         gatewayTokenDescription:
             'अपने गेटवे से प्रमाणित करने के लिए इस टोकन का उपयोग करें',
-        contactSupport: 'सहायता',
+        contactSupport: 'सहायता से संपर्क करें',
         scheduledForDeletion: 'हटाने के लिए शेड्यूल',
         scheduledDeletionShort: '{{date}} को हटाया जाएगा',
         deletionDate: 'यह क्लॉ {{date}} को हटाया जाएगा',
@@ -880,12 +882,10 @@ const hi: Translations = {
         diagnosticsDescription: 'अपने OpenClaw इंस्टेंस की सेहत जाँचें.',
         diagnosticsStatus: 'स्थिति',
         diagnosticsLogs: 'लॉग',
-        diagnosticsRepair: 'मरम्मत',
-        diagnosticsRepairDescription:
-            'मेमोरी सीमाएँ हटाएँ, नवीनतम सर्विस कॉन्फ़िगरेशन लागू करें और गेटवे पुनः शुरू करें. यह अधिकांश सामान्य समस्याओं को ठीक करता है.',
-        diagnosticsRepairSuccess: 'इंस्टेंस सफलतापूर्वक ठीक हो गया.',
-        diagnosticsRepairFailed:
-            'मरम्मत लागू हुई लेकिन गेटवे अभी तक प्रतिक्रिया नहीं दे रहा!',
+        diagnosticsRepair: 'Repair',
+        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairSuccess: 'Instance repaired successfully.',
+        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'इंस्टेंस से कनेक्ट हो रहा है...',
         diagnosticsNoLogs:
             'कोई लॉग उपलब्ध नहीं. लॉग जनरेट करने के लिए अपना इंस्टेंस शुरू करें.',
@@ -908,9 +908,6 @@ const hi: Translations = {
         fileExplorerNoFiles: 'कोई फ़ाइलें नहीं मिलीं',
         fileExplorerSearchFiles: 'फ़ाइलें खोजें...',
         fileExplorerNoSearchResults: 'कोई मिलती-जुलती फ़ाइलें नहीं.',
-        updateInstance: 'इंस्टेंस अपडेट करें',
-        updateInstanceSuccess: 'इंस्टेंस सफलतापूर्वक अपडेट हुआ.',
-        updateInstanceFailed: 'इंस्टेंस अपडेट करने में विफल!',
         startFailed: 'क्लॉ शुरू करने में विफल!',
         renameSuccess: 'क्लॉ का नाम सफलतापूर्वक बदला गया.',
         renameFailed: 'क्लॉ का नाम बदलने में विफल!',
@@ -923,6 +920,8 @@ const hi: Translations = {
         reinstallInstanceFailed: 'इंस्टेंस पुनः इंस्टॉल करने में विफल!',
         openControlPanel: 'कंट्रोल पैनल खोलें',
         exportData: 'क्लॉ निर्यात करें (.zip)',
+        exportAgent: 'Export Agent',
+        exportAgentTooltip: 'Download this agent as a .zip file',
         exportStarted: 'निर्यात तैयार हो रहा है, इसमें कुछ समय लग सकता है...',
         exportSuccess: 'क्लॉ सफलतापूर्वक निर्यात हुआ.',
         exportFailed: 'क्लॉ डेटा निर्यात करने में विफल!',
@@ -945,6 +944,7 @@ const hi: Translations = {
         adminNoClaws: 'प्लेटफ़ॉर्म पर अभी तक कोई क्लॉज़ नहीं.',
         adminAccessDenied: 'आपको इस पृष्ठ तक पहुँचने की अनुमति नहीं है.',
         owner: 'मालिक',
+        agentType: 'Agent',
         status: {
             running: 'चल रहा है',
             stopped: 'रुका हुआ',
@@ -1142,9 +1142,9 @@ const hi: Translations = {
         openclawControl: 'OpenClaw नियंत्रण',
         openclawControlDescription:
             'ClawHost से सीधे मूल OpenClaw पैनल तक पहुँचें. OpenClaw जो कुछ भी प्रदान करता है उस पर पूर्ण संपादन एक्सेस.',
-        clawHostControl: 'ClawHost नियंत्रण',
+        clawHostControl: 'पूर्ण सर्वर एक्सेस',
         clawHostControlDescription:
-            'प्लेटफ़ॉर्म से सीधे फ़ाइलें, अपडेट और अन्य कॉन्फ़िगरेशन विकल्प प्रबंधित करें.',
+            'ब्राउज़र टर्मिनल, फ़ाइल एक्सप्लोरर, लॉग, डायग्नोस्टिक्स और वर्शन प्रबंधन — सब कुछ आपके डैशबोर्ड से.',
         multipleClaws: 'एकाधिक क्लॉज़',
         multipleClawsDescription:
             'एक ही डैशबोर्ड से कई OpenClaw इंस्टेंस डिप्लॉय और प्रबंधित करें. जैसे-जैसे आप बढ़ें, स्केल करें.',
@@ -1324,6 +1324,8 @@ const hi: Translations = {
             'चलते-फिरते अपने OpenClaw इंस्टेंस मॉनिटर और प्रबंधित करने के लिए नेटिव मोबाइल ऐप',
         upcomingReleaseFeature13:
             'macOS और Windows के लिए ClawHost Go का बीटा रिलीज़, एक क्लिक में OpenClaw स्थानीय रूप से डिप्लॉय करें',
+        upcomingReleaseFeature14:
+            'OpenClaw जैसे Hermes एजेंटों के लिए एक क्लिक डिप्लॉय',
         upcomingReleaseFeature3: 'डार्क और लाइट थीम सपोर्ट',
         upcomingReleaseFeature4:
             'प्रदर्शन, स्थिरता और प्रतिक्रियाशीलता में सुधार',
@@ -1343,6 +1345,15 @@ const hi: Translations = {
             'ClawHost Go के लिए लैंडिंग पेज, ClawHost के साथ स्थानीय होस्टिंग',
         upcomingReleaseFeature12:
             'एक क्लिक में स्थानीय रूप से OpenClaw डिप्लॉय करने के लिए macOS और Windows के लिए डेस्कटॉप ऐप',
+        release15Date: '11 अप्रैल 2026',
+        release15Title: 'सरलीकरण और कस्टम सबडोमेन',
+        release15Description:
+            'प्रबंधित सुविधाओं को OpenClaw में माइग्रेट करके प्लेटफ़ॉर्म को सरल बनाया, प्लेग्राउंड व्यू हटाया और बदलने योग्य कस्टम सबडोमेन पेश किए।',
+        release15Feature1:
+            'सरलीकरण और प्रबंधित सुविधाओं को OpenClaw में माइग्रेट किया, अब कोई ClawHost चैट, एजेंट, चैनल, वेरिएबल और स्किल नहीं',
+        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '1 अप्रैल 2026',
         release14Title: 'Hetzner माइग्रेशन, एफिलिएट सिस्टम और नई भाषाएं',
         release14Description:
@@ -1477,9 +1488,9 @@ const hi: Translations = {
             'एकीकृत डैशबोर्ड लेआउट के पक्ष में ग्रिड और सूची व्यू टॉगल हटाया गया'
     },
     clawDetail: {
-        noClawsYet: 'कोई क्लॉज़ नहीं',
-        noClawsDescription:
-            'इसके साथ बातचीत करने के लिए अपना पहला क्लॉ डिप्लॉय करें.',
+        noAgentsYet: 'कोई एजेंट नहीं',
+        noAgentsDescription:
+            'इसके साथ बातचीत करने के लिए अपना पहला एजेंट डिप्लॉय करें.',
         selectClaw: 'एक क्लॉ चुनें',
         selectClawDescription: 'विवरण देखने के लिए साइडबार से एक क्लॉ चुनें.',
         closeDetails: 'बंद करें',
@@ -1702,7 +1713,7 @@ const hi: Translations = {
         settingsPlaceholder: 'खाता सेटिंग्स और प्राथमिकताएँ यहाँ दिखाई देंगी.',
         signIn: 'प्रमाणीकरण',
         signInDescription:
-            'अपने OpenClaw इंस्टेंस प्रबंधित करने के लिए साइन इन करें.',
+            'अपने एजेंट प्रबंधित और डिप्लॉय करने के लिए प्रमाणित करें.',
         enterEmail: 'ईमेल पता',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'ईमेल से जारी रखें',
@@ -1727,7 +1738,7 @@ const hi: Translations = {
     announcement: {
         title: 'सेवा सूचना',
         message:
-            'उच्च मांग के कारण, Claw डिप्लॉयमेंट अस्थायी रूप से अनुपलब्ध है. मौजूदा क्लॉज़ सामान्य रूप से चल रहे हैं.'
+            'उच्च मांग के कारण, एजेंट डिप्लॉयमेंट अस्थायी रूप से अनुपलब्ध है. मौजूदा एजेंट सामान्य रूप से चल रहे हैं.'
     },
     productHunt: {
         liveOn: 'लाइव है',
@@ -1908,7 +1919,7 @@ const hi: Translations = {
         noClawsFound: 'कोई Claw नहीं',
         noSSHKeysFound: 'कोई SSH कुंजी नहीं',
         noVolumesFound: 'कोई वॉल्यूम नहीं',
-        failedToLoadClaws: 'Claws लोड करने में विफल!',
+        failedToLoadAgents: 'Agents लोड करने में विफल!',
         failedToLoadSSHKeys: 'SSH कुंजियाँ लोड करने में विफल!',
         failedToLoadVolumes: 'वॉल्यूम लोड करने में विफल!',
         owner: 'मालिक',
@@ -1917,10 +1928,12 @@ const hi: Translations = {
         referralsTab: 'रेफ़रल',
         pendingClawsTab: 'लंबित',
         waitlistTab: 'प्रतीक्षा सूची',
-        exportsTab: 'निर्यात',
         emailsTab: 'ईमेल',
         analyticsTab: 'विश्लेषण',
         billingTab: 'बिलिंग',
+        settingsTab: 'सेटिंग्स',
+        settingsDescription: 'अपनी व्यवस्थापक प्राथमिकताएँ प्रबंधित करें.',
+        showAllAgents: 'सभी उपयोगकर्ताओं के सभी एजेंट दिखाएँ',
         billingFilterAll: 'सभी ऑर्डर',
         billingFilterService: 'Claw सेवा',
         billingFilterLicense: 'लाइसेंस',
@@ -1948,12 +1961,10 @@ const hi: Translations = {
         noReferralsFound: 'कोई रेफरल नहीं',
         noPendingClawsFound: 'कोई लंबित Claw नहीं',
         noWaitlistFound: 'कोई प्रतीक्षा सूची नहीं',
-        noExportsFound: 'कोई निर्यात नहीं',
         noEmailsFound: 'कोई ईमेल नहीं',
         failedToLoadReferrals: 'रेफ़रल लोड करने में विफल!',
         failedToLoadPendingClaws: 'लंबित Claws लोड करने में विफल!',
         failedToLoadWaitlist: 'प्रतीक्षा सूची लोड करने में विफल!',
-        failedToLoadExports: 'निर्यात लोड करने में विफल!',
         failedToLoadEmails: 'ईमेल लोड करने में विफल!',
         referrer: 'रेफ़रर',
         referred: 'रेफ़र किया गया',

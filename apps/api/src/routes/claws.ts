@@ -26,7 +26,9 @@ import {
     installClawVersion,
     renameClaw,
     getClawCredentials,
-    cancelPendingClaw
+    cancelPendingClaw,
+    updateClawSubdomain,
+    checkSubdomainAvailability
 } from '@/controllers/claws'
 import adminOnly from '@/middleware/adminOnly'
 
@@ -34,6 +36,7 @@ const app = new Hono<HonoEnv>()
 
 app.get('/', getClaws)
 app.get('/admin', adminOnly, getAdminClaws)
+app.get('/check-subdomain', checkSubdomainAvailability)
 app.get('/:id', getClaw)
 app.post('/purchase', initiateClawPurchase)
 app.delete('/pending/:id', cancelPendingClaw)
@@ -55,6 +58,7 @@ app.post('/:id/version', getClawVersion)
 app.post('/:id/versions', getClawVersions)
 app.post('/:id/install-version', adminOnly, installClawVersion)
 app.get('/:id/credentials', getClawCredentials)
+app.patch('/:id/subdomain', updateClawSubdomain)
 app.patch('/:id', renameClaw)
 app.delete('/:id', deleteClaw)
 

@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { ClawDetailPanelProps } from '@/ts/Interfaces'
 import type { ClawDetailTab } from '@/ts/Types'
 
-import { useCallback, useMemo, useEffect, useState } from 'react'
+import { useCallback, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { clawStatus, OPENCLAW_VERSION } from '@openclaw/shared'
@@ -28,9 +28,7 @@ import {
     CLAW_VERSION_QUERY_KEY,
     useClawSettingsForm
 } from '@/hooks'
-import { useClawDetailTabStore, useUIStore } from '@/lib/store'
-import { TOAST_TYPE } from '@/lib/constants'
-import { api } from '@/lib'
+import { useClawDetailTabStore } from '@/lib/store'
 
 const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
     claw,
@@ -101,19 +99,6 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
         handleSettingsSave
     } = useClawSettingsForm(claw)
 
-    const { showToast } = useUIStore()
-    const [isExporting, setIsExporting] = useState(false)
-    const handleExport = useCallback(async () => {
-        setIsExporting(true)
-        try {
-            await api.exportClaw(claw.id, `${claw.name}-export.tar.gz`)
-            showToast(t('dashboard.exportSuccess'), TOAST_TYPE.SUCCESS)
-        } catch {
-            showToast(t('dashboard.exportFailed'), TOAST_TYPE.ERROR)
-        }
-        setIsExporting(false)
-    }, [claw.id, claw.name, showToast])
-
     const isInfoTab = activeTab === 'info'
     const queryClient = useQueryClient()
     const versionQuery = useClawVersion(
@@ -155,7 +140,9 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
         if (versionQuery.isError || !versionQuery.data) return null
         if (versionQuery.data.version === 'unknown') return null
         const raw = versionQuery.data.version
-        return raw.replace(/\s*\([a-f0-9]+\)\s*$/, '')
+        return raw
+            .replace(/\s*\([a-f0-9]+\)\s*$/, '')
+            .replace(/^OpenClaw\s*/i, '')
     }, [
         readOnly,
         versionQuery.isLoading,
@@ -291,8 +278,6 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                             onNameChange={handleSettingsNameChange}
                             onSubdomainChange={handleSettingsSubdomainChange}
                             onSave={handleSettingsSave}
-                            onExport={handleExport}
-                            isExporting={isExporting}
                         />
                     )}
                 </div>

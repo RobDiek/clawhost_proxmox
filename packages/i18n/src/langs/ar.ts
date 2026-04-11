@@ -260,9 +260,9 @@ const ar: Translations = {
         pageNotFoundDescription:
             'الصفحة التي تبحث عنها غير موجودة أو تم نقلها.',
         goToHomepage: 'الذهاب إلى الصفحة الرئيسية',
-        failedToLoadClaws: 'فشل تحميل Claws !',
-        failedToLoadClawsDescription:
-            'لم نتمكن من تحميل Claws الخاصة بك. يرجى التحقق من اتصالك والمحاولة مجدداً !',
+        failedToLoadAgents: 'فشل تحميل Agents !',
+        failedToLoadAgentsDescription:
+            'لم نتمكن من تحميل Agents الخاصة بك. يرجى التحقق من اتصالك والمحاولة مجدداً !',
         failedToLoadSSHKeys: 'فشل تحميل مفاتيح SSH !',
         failedToLoadSSHKeysDescription:
             'لم نتمكن من تحميل مفاتيح SSH الخاصة بك. يرجى التحقق من اتصالك والمحاولة مجدداً !',
@@ -369,17 +369,21 @@ const ar: Translations = {
         failedToGetLogs: 'فشل تحميل السجلات !',
         failedToGetLogsDescription:
             'تعذر استرداد سجلات هذا المثيل. يرجى المحاولة لاحقاً.',
-        failedToRepairClaw: 'فشل إصلاح المثيل !',
-        repairSuccess: 'تم إصلاح المثيل بنجاح.',
-        repairGatewayNotResponding:
-            'تم تطبيق الإصلاح لكن البوابة لا تستجيب بعد. قد تحتاج إلى مزيد من الوقت للبدء.',
         failedToReinstallClaw: 'فشل إعادة تثبيت المثيل !',
         reinstallSuccess: 'تم إعادة تثبيت المثيل بنجاح.',
         reinstallRateLimited:
             'يمكنك إعادة التثبيت مرة واحدة فقط كل 24 ساعة. يرجى التواصل مع الفريق إذا كنت تريد إزالة هذا الحد.',
+        subdomainRateLimited:
+            'يمكنك تغيير النطاق الفرعي مرة واحدة فقط كل 24 ساعة. يرجى التواصل مع الفريق إذا كنت تريد إزالة هذا الحد.',
+        subdomainUpdated: 'تم تحديث النطاق الفرعي بنجاح.',
+        invalidSubdomain: 'نطاق فرعي غير صالح. استخدم 3-20 حرفاً صغيراً وأرقاماً !',
+        subdomainAlreadyInUse: 'هذا النطاق الفرعي مستخدم بالفعل !',
         clawBusy: 'Claw قيد التجهيز أو الحذف حالياً !',
         reinstallGatewayNotResponding:
             'اكتملت إعادة التثبيت لكن البوابة لا تستجيب بعد. قد تحتاج إلى مزيد من الوقت للبدء.',
+        failedToRepairClaw: 'Failed to repair the instance!',
+        repairSuccess: 'Instance repaired successfully.',
+        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'فشل تصدير بيانات Claw !',
         clawNotReady: 'Claw غير جاهز للتصدير !',
         exportRateLimited:
@@ -488,7 +492,6 @@ const ar: Translations = {
         adminWaitlistFetched: 'Waitlist fetched.',
         failedToGetAdminWaitlist: 'Failed to fetch waitlist!',
         adminExportsFetched: 'Exports fetched.',
-        failedToGetAdminExports: 'Failed to fetch exports!',
         adminEmailsFetched: 'Emails fetched.',
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
@@ -626,7 +629,7 @@ const ar: Translations = {
         checkYourEmail: 'تحقق من بريدك الإلكتروني',
         checkYourEmailHeading: 'تحقق من بريدك الإلكتروني',
         codeSentTo: 'أرسلنا رمزاً مكوناً من 6 أرقام إلى',
-        signInToDeployOpenClaw: 'قم بالمصادقة لإدارة ونشر نسخ OpenClaw.',
+        signInToDeployOpenClaw: 'قم بالمصادقة لإدارة ونشر الوكلاء بنقرة واحدة.',
         emailAddress: 'البريد الإلكتروني',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'المتابعة بالبريد الإلكتروني',
@@ -702,7 +705,6 @@ const ar: Translations = {
             'يمكنك فقط ربط الحسابات التي تستخدم نفس عنوان البريد الإلكتروني !',
         settings: 'الإعدادات',
         settingsDescription: 'إدارة تفضيلات لوحة التحكم.',
-        showAllClaws: 'عرض جميع المخالب من جميع المستخدمين',
         openLinksWindowed: 'فتح الروابط في عرض نافذة',
         openLinksWindowedDescription:
             'عند التفعيل، تُفتح الروابط الخارجية داخل التطبيق بدلاً من متصفح النظام.'
@@ -784,9 +786,9 @@ const ar: Translations = {
         clawCountLabelSingular: '{{count}} مخلب',
         newClaw: 'مخلب جديد',
         clawActions: 'إجراءات المخلب',
-        noClawsYet: 'لا توجد مخالب',
-        noClawsDescription:
-            'لم يتم العثور على مخلب منشور. لكن يمكنك نشر أول مخلب في أي وقت بدءاً من $25/شهر. فقط استخدم الذكاء الاصطناعي.',
+        noAgentsYet: 'لا يوجد وكلاء',
+        noAgentsDescription:
+            'لم يتم العثور على وكيل منشور. لكن يمكنك نشر أول وكيل في أي وقت بدءاً من $25/شهر. فقط استخدم الذكاء الاصطناعي.',
         deleteClaw: 'حذف المخلب',
         deleteClawConfirmation: 'هل أنت متأكد أنك تريد حذف',
         deleteClawWarning:
@@ -831,7 +833,7 @@ const ar: Translations = {
         gatewayToken: 'رمز البوابة',
         gatewayTokenDescription:
             'استخدم هذا الرمز للمصادقة مع البوابة الخاصة بك',
-        contactSupport: 'الدعم',
+        contactSupport: 'اتصل بالدعم',
         scheduledForDeletion: 'مجدول للحذف',
         scheduledDeletionShort: 'يُحذف في {{date}}',
         deletionDate: 'سيتم حذف هذا المخلب في {{date}}',
@@ -853,11 +855,10 @@ const ar: Translations = {
         diagnosticsDescription: 'فحص صحة نسخة OpenClaw الخاصة بك.',
         diagnosticsStatus: 'الحالة',
         diagnosticsLogs: 'السجلات',
-        diagnosticsRepair: 'إصلاح',
-        diagnosticsRepairDescription:
-            'إزالة حدود الذاكرة وتطبيق أحدث تهيئة للخدمة وإعادة تشغيل البوابة. هذا يصلح معظم المشاكل الشائعة.',
-        diagnosticsRepairSuccess: 'تم إصلاح النسخة بنجاح.',
-        diagnosticsRepairFailed: 'تم تطبيق الإصلاح لكن البوابة لا تستجيب بعد !',
+        diagnosticsRepair: 'Repair',
+        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairSuccess: 'Instance repaired successfully.',
+        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'جارٍ الاتصال بالنسخة...',
         diagnosticsNoLogs: 'لا توجد سجلات متاحة. شغّل نسختك لتوليد السجلات.',
         diagnosticsIssueDetected: 'تم اكتشاف مشكلة في نسختك.',
@@ -878,9 +879,6 @@ const ar: Translations = {
         fileExplorerNoFiles: 'لم يتم العثور على ملفات',
         fileExplorerSearchFiles: 'البحث في الملفات...',
         fileExplorerNoSearchResults: 'لا توجد ملفات مطابقة.',
-        updateInstance: 'تحديث النسخة',
-        updateInstanceSuccess: 'تم تحديث النسخة بنجاح.',
-        updateInstanceFailed: 'فشل في تحديث النسخة !',
         startFailed: 'فشل في تشغيل المخلب !',
         renameSuccess: 'تم إعادة تسمية المخلب بنجاح.',
         renameFailed: 'فشل في إعادة تسمية المخلب !',
@@ -893,6 +891,8 @@ const ar: Translations = {
         reinstallInstanceFailed: 'فشل في إعادة تثبيت النسخة !',
         openControlPanel: 'فتح لوحة التحكم',
         exportData: 'تصدير المخلب (.zip)',
+        exportAgent: 'Export Agent',
+        exportAgentTooltip: 'Download this agent as a .zip file',
         exportStarted: 'جارٍ تحضير التصدير، قد يستغرق لحظة...',
         exportSuccess: 'تم تصدير المخلب بنجاح.',
         exportFailed: 'فشل في تصدير بيانات المخلب !',
@@ -914,6 +914,7 @@ const ar: Translations = {
         adminNoClaws: 'لا توجد مخالب على المنصة بعد.',
         adminAccessDenied: 'ليس لديك صلاحية للوصول إلى هذه الصفحة.',
         owner: 'المالك',
+        agentType: 'Agent',
         status: {
             running: 'يعمل',
             stopped: 'متوقف',
@@ -1106,9 +1107,9 @@ const ar: Translations = {
         openclawControl: 'تحكم OpenClaw',
         openclawControlDescription:
             'الوصول إلى لوحة OpenClaw الأصلية مباشرة من ClawHost. وصول كامل للتحرير لكل ما يقدمه OpenClaw.',
-        clawHostControl: 'تحكم ClawHost',
+        clawHostControl: 'وصول كامل للخادم',
         clawHostControlDescription:
-            'إدارة الملفات والتحديثات والمزيد من خيارات التهيئة مباشرة من المنصة.',
+            'طرفية في المتصفح، مستكشف الملفات، السجلات، التشخيصات وإدارة الإصدارات — كل ذلك من لوحة التحكم.',
         multipleClaws: 'مخالب متعددة',
         multipleClawsDescription:
             'انشر وأدر نسخ OpenClaw متعددة من لوحة تحكم واحدة. وسّع مع نموك.',
@@ -1288,6 +1289,8 @@ const ar: Translations = {
             'تطبيق هاتف أصلي لمراقبة وإدارة نسخ OpenClaw أثناء التنقل',
         upcomingReleaseFeature13:
             'إصدار تجريبي من ClawHost Go لنظامي macOS وWindows، انشر OpenClaw محلياً بنقرة واحدة',
+        upcomingReleaseFeature14:
+            'نشر بنقرة واحدة لوكلاء Hermes مثل OpenClaw',
         upcomingReleaseFeature3: 'دعم السمات الداكنة والفاتحة',
         upcomingReleaseFeature4: 'تحسينات في الأداء والاستقرار والاستجابة',
         upcomingReleaseFeature5:
@@ -1304,6 +1307,15 @@ const ar: Translations = {
             'صفحة هبوط لـ ClawHost Go، الاستضافة المحلية مع ClawHost',
         upcomingReleaseFeature12:
             'تطبيق سطح المكتب لـ macOS وWindows لنشر OpenClaw محلياً بنقرة واحدة',
+        release15Date: '11 أبريل 2026',
+        release15Title: 'تبسيط ونطاقات فرعية مخصصة',
+        release15Description:
+            'تبسيط المنصة بنقل الميزات المُدارة إلى OpenClaw، وإزالة عرض الملعب، وتقديم نطاقات فرعية مخصصة قابلة للتغيير.',
+        release15Feature1:
+            'تبسيط ونقل الميزات المُدارة إلى OpenClaw، لا مزيد من دردشة ClawHost والوكلاء والقنوات والمتغيرات والمهارات',
+        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '1 أبريل 2026',
         release14Title: 'الانتقال إلى Hetzner، نظام الإحالة ولغات جديدة',
         release14Description:
@@ -1432,8 +1444,8 @@ const ar: Translations = {
             'إزالة تبديل العرض الشبكي والقائمة لصالح تخطيط لوحة تحكم موحد'
     },
     clawDetail: {
-        noClawsYet: 'لا توجد مخالب',
-        noClawsDescription: 'انشر أول مخلب للتفاعل معه.',
+        noAgentsYet: 'لا يوجد وكلاء',
+        noAgentsDescription: 'انشر أول وكيل للتفاعل معه.',
         selectClaw: 'اختر مخلبًا',
         selectClawDescription: 'اختر مخلبًا من الشريط الجانبي لعرض تفاصيله.',
         closeDetails: 'إغلاق',
@@ -1642,7 +1654,7 @@ const ar: Translations = {
         messagesPlaceholder: 'ستظهر الرسائل والإشعارات هنا.',
         settingsPlaceholder: 'ستظهر إعدادات الحساب والتفضيلات هنا.',
         signIn: 'المصادقة',
-        signInDescription: 'سجّل الدخول لإدارة نسخ OpenClaw.',
+        signInDescription: 'قم بالمصادقة لإدارة ونشر وكلائك.',
         enterEmail: 'البريد الإلكتروني',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'المتابعة بالبريد الإلكتروني',
@@ -1666,7 +1678,7 @@ const ar: Translations = {
     announcement: {
         title: 'إشعار الخدمة',
         message:
-            'بسبب الطلب المرتفع، نشر Claw غير متاح مؤقتاً. المخالب الموجودة تعمل بشكل طبيعي.'
+            'بسبب الطلب المرتفع، نشر الوكلاء غير متاح مؤقتاً. الوكلاء الموجودون يعملون بشكل طبيعي.'
     },
     productHunt: {
         liveOn: 'متاح على',
@@ -1845,7 +1857,7 @@ const ar: Translations = {
         noClawsFound: 'لا توجد Claws',
         noSSHKeysFound: 'لا توجد مفاتيح SSH',
         noVolumesFound: 'لا توجد أقراص',
-        failedToLoadClaws: 'فشل تحميل Claws!',
+        failedToLoadAgents: 'فشل تحميل Agents!',
         failedToLoadSSHKeys: 'فشل تحميل مفاتيح SSH!',
         failedToLoadVolumes: 'فشل تحميل الأقراص!',
         owner: 'المالك',
@@ -1854,10 +1866,12 @@ const ar: Translations = {
         referralsTab: 'الإحالات',
         pendingClawsTab: 'معلقة',
         waitlistTab: 'قائمة الانتظار',
-        exportsTab: 'الصادرات',
         emailsTab: 'الرسائل',
         analyticsTab: 'تحليلات',
         billingTab: 'الفوترة',
+        settingsTab: 'الإعدادات',
+        settingsDescription: 'إدارة تفضيلات المسؤول.',
+        showAllAgents: 'عرض جميع الوكلاء من جميع المستخدمين',
         billingFilterAll: 'جميع الطلبات',
         billingFilterService: 'خدمة Claw',
         billingFilterLicense: 'ترخيص',
@@ -1885,12 +1899,10 @@ const ar: Translations = {
         noReferralsFound: 'لا توجد إحالات',
         noPendingClawsFound: 'لا توجد Claws معلقة',
         noWaitlistFound: 'لا توجد قائمة انتظار',
-        noExportsFound: 'لا توجد صادرات',
         noEmailsFound: 'لا توجد رسائل بريد',
         failedToLoadReferrals: 'فشل في تحميل الإحالات!',
         failedToLoadPendingClaws: 'فشل في تحميل Claws المعلقة!',
         failedToLoadWaitlist: 'فشل في تحميل قائمة الانتظار!',
-        failedToLoadExports: 'فشل في تحميل الصادرات!',
         failedToLoadEmails: 'فشل في تحميل الرسائل!',
         referrer: 'المُحيل',
         referred: 'المُحال',

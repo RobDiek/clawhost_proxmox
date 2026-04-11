@@ -70,7 +70,7 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({
                             </Fragment>
                         )}
                     <div className='flex items-center gap-1.5'>
-                        <SupportButton showLabel />
+                        <SupportButton />
                         <LanguageSelector />
                         <ThemeToggle />
                     </div>

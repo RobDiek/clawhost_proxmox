@@ -502,6 +502,10 @@ export interface RenameClawBody {
     name: string
 }
 
+export interface UpdateClawSubdomainBody {
+    subdomain: string
+}
+
 export interface GithubEmailEntry {
     primary: boolean
     email: string

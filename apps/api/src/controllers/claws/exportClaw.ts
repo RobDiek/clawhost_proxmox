@@ -1,8 +1,5 @@
 import type { AuthenticatedContext } from '@/ts/Types'
 
-import crypto from 'crypto'
-import { db } from '@/db'
-import { clawExports } from '@/db/schema'
 import sshBuffer from '@/services/sshBuffer'
 import { findUserClaw } from '@/controllers/claws/helpers'
 import { checkRateLimit, setRateLimit } from '@/controllers/auth/rateLimit'
@@ -36,15 +33,7 @@ const exportClaw = async (c: AuthenticatedContext) => {
             'tar czf - -C /home/openclaw .openclaw'
         )
 
-        await Promise.all([
-            db.insert(clawExports).values({
-                id: crypto.randomUUID(),
-                userId,
-                clawId: id,
-                fileSize: buffer.length
-            }),
-            setRateLimit(`export:${id}`)
-        ])
+        await setRateLimit(`export:${id}`)
 
         const safeName = claw.name.replace(/[^a-zA-Z0-9._-]/g, '_')
         const filename = `${safeName}-export.tar.gz`

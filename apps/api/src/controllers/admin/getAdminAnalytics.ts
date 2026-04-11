@@ -16,7 +16,6 @@ import {
     volumes,
     referrals,
     waitlist,
-    clawExports,
     emails
 } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
@@ -71,7 +70,6 @@ const TABLE_CONFIG: AnalyticsTableConfig[] = [
     { key: 'volumes', table: volumes, column: 'created_at' },
     { key: 'referrals', table: referrals, column: 'created_at' },
     { key: 'waitlist', table: waitlist, column: 'created_at' },
-    { key: 'exports', table: clawExports, column: 'created_at' },
     { key: 'emails', table: emails, column: 'sent_at' }
 ]
 

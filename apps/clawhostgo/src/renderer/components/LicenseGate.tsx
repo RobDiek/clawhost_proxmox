@@ -1,6 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { LicenseGateProps } from '@/ts/Interfaces'
 
+import { Fragment } from 'react'
 import { useAuth } from '@/lib/auth'
 import { useProfile } from '@/hooks'
 import {
@@ -59,7 +60,7 @@ const LicenseGate: FC<LicenseGateProps> = ({ children }): ReactNode => {
         )
     }
 
-    return <>{children}</>
+    return <Fragment>{children}</Fragment>
 }
 
 export default LicenseGate

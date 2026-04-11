@@ -19,6 +19,7 @@ const demoClaws: Claw[] = [
         currentPeriodStart: null,
         currentPeriodEnd: null,
         deletionScheduledAt: null,
+        lastSubdomainChangedAt: null,
         createdAt: '2026-01-15T00:00:00Z'
     }
 ]

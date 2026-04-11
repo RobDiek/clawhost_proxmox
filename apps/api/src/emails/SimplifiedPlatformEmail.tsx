@@ -12,35 +12,35 @@ import {
     buttonContainer
 } from '@/lib/emailStyles'
 
+const leftParagraph = { ...paragraph, textAlign: 'left' as const }
+const leftHeading = { ...heading, textAlign: 'left' as const }
+const leftSubheading = { ...subheading, textAlign: 'left' as const }
+
 const SimplifiedPlatformEmail: FC = (): ReactNode => {
     return (
         <FeatureEmailLayout
             preview={t('emails.features.simplifiedPlatform.preview')}
         >
-            <Text style={subheading}>
+            <Text style={leftSubheading}>
                 {t('emails.features.simplifiedPlatform.tag')}
             </Text>
-            <Text style={heading}>
+            <Text style={leftHeading}>
                 {t('emails.features.simplifiedPlatform.heading')}
             </Text>
 
-            <Text style={paragraph}>
+            <Text style={leftParagraph}>
                 {t('emails.features.simplifiedPlatform.description')}
             </Text>
 
-            <Text style={paragraph}>
-                {t('emails.features.simplifiedPlatform.removed')}
-            </Text>
-
-            <Text style={paragraph}>
+            <Text style={leftParagraph}>
                 {t('emails.features.simplifiedPlatform.why')}
             </Text>
 
-            <Text style={paragraph}>
+            <Text style={leftParagraph}>
                 {t('emails.features.simplifiedPlatform.benefit')}
             </Text>
 
-            <Text style={paragraph}>
+            <Text style={leftParagraph}>
                 {t('emails.features.simplifiedPlatform.action')}
             </Text>
 

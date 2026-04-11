@@ -1,8 +1,5 @@
 import type { Context } from 'hono'
-import type {
-    billingInterval,
-    clawFileType
-} from '@openclaw/shared'
+import type { billingInterval, clawFileType } from '@openclaw/shared'
 import type {
     environment,
     featureEmailKey,

@@ -7,7 +7,6 @@ import { t } from '@openclaw/i18n'
 import { useClawFile, useUpdateClawFile, CLAW_FILE_QUERY_KEY } from '@/hooks'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import { editableFileTypes } from '@/components/dashboard/ClawConfigDialog/editorThemes'
 
 const useFileEditor = ({
     clawId,
@@ -22,7 +21,7 @@ const useFileEditor = ({
 
     const selectedFile = files?.find((f) => f.path === selectedPath)
     const fileType: ClawFileType = selectedFile?.fileType ?? 'unknown'
-    const isEditable = editableFileTypes.includes(fileType)
+    const isEditable = true
     const isJson = fileType === 'json'
 
     const fileContent = useClawFile(

@@ -261,9 +261,9 @@ const tr: Translations = {
         notFound: 'Sayfa bulunamadı!',
         pageNotFoundDescription: 'Aradığınız sayfa mevcut değil veya taşınmış.',
         goToHomepage: 'Ana Sayfaya Git',
-        failedToLoadClaws: "Claw'lar yüklenemedi!",
-        failedToLoadClawsDescription:
-            "Claw'larınız yüklenemedi. Lütfen bağlantınızı kontrol edip tekrar deneyin!",
+        failedToLoadAgents: 'Agents yüklenemedi!',
+        failedToLoadAgentsDescription:
+            'Agents yüklenemedi. Lütfen bağlantınızı kontrol edip tekrar deneyin!',
         failedToLoadSSHKeys: 'SSH anahtarları yüklenemedi!',
         failedToLoadSSHKeysDescription:
             'SSH anahtarlarınız yüklenemedi. Lütfen bağlantınızı kontrol edip tekrar deneyin!',
@@ -373,17 +373,21 @@ const tr: Translations = {
         failedToGetLogs: 'Günlükler yüklenemedi!',
         failedToGetLogsDescription:
             'Bu örnek için günlükler alınamadı. Lütfen daha sonra tekrar deneyin.',
-        failedToRepairClaw: 'Örnek onarılamadı!',
-        repairSuccess: 'Örnek başarıyla onarıldı.',
-        repairGatewayNotResponding:
-            'Onarım uygulandı ancak ağ geçidi henüz yanıt vermiyor. Başlaması için daha fazla zamana ihtiyacı olabilir.',
         failedToReinstallClaw: 'Örnek yeniden yüklenemedi!',
         reinstallSuccess: 'Örnek başarıyla yeniden yüklendi.',
         reinstallRateLimited:
             'Yalnızca 24 saatte bir yeniden yükleme yapabilirsiniz. Bu limiti kaldırmak istiyorsanız lütfen ekiple iletişime geçin.',
+        subdomainRateLimited:
+            'Alt alan adınızı yalnızca 24 saatte bir değiştirebilirsiniz. Bu limiti kaldırmak istiyorsanız lütfen ekiple iletişime geçin.',
+        subdomainUpdated: 'Alt alan adı başarıyla güncellendi.',
+        invalidSubdomain: 'Geçersiz alt alan adı. 3-20 küçük harf ve rakam kullanın!',
+        subdomainAlreadyInUse: 'Bu alt alan adı zaten kullanımda!',
         clawBusy: 'Claw şu anda hazırlanıyor veya siliniyor!',
         reinstallGatewayNotResponding:
             'Yeniden yükleme tamamlandı ancak ağ geçidi henüz yanıt vermiyor. Başlaması için daha fazla zamana ihtiyacı olabilir.',
+        failedToRepairClaw: 'Failed to repair the instance!',
+        repairSuccess: 'Instance repaired successfully.',
+        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Claw verileri dışa aktarılamadı!',
         clawNotReady: 'Claw dışa aktarma için hazır değil!',
         exportRateLimited:
@@ -495,7 +499,6 @@ const tr: Translations = {
         adminWaitlistFetched: 'Waitlist fetched.',
         failedToGetAdminWaitlist: 'Failed to fetch waitlist!',
         adminExportsFetched: 'Exports fetched.',
-        failedToGetAdminExports: 'Failed to fetch exports!',
         adminEmailsFetched: 'Emails fetched.',
         failedToGetAdminEmails: 'Failed to fetch emails!'
     },
@@ -641,7 +644,7 @@ const tr: Translations = {
         checkYourEmailHeading: 'E-postanızı kontrol edin',
         codeSentTo: '6 haneli bir kod gönderdik:',
         signInToDeployOpenClaw:
-            'Kimlik doğrulayarak OpenClaw örneklerini yönetin ve dağıtın.',
+            'Tek tıkla ajanları yönetmek ve dağıtmak için kimlik doğrulayın.',
         emailAddress: 'E-posta Adresi',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'E-posta ile Devam Et',
@@ -720,7 +723,6 @@ const tr: Translations = {
             'Yalnızca aynı e-posta adresini kullanan hesapları bağlayabilirsiniz!',
         settings: 'Ayarlar',
         settingsDescription: 'Panel tercihlerinizi yönetin.',
-        showAllClaws: "Tüm kullanıcılardan tüm claw'ları göster",
         openLinksWindowed: 'Bağlantıları pencereli görünümde aç',
         openLinksWindowedDescription:
             'Etkinleştirildiğinde, harici bağlantılar sistem tarayıcısı yerine uygulama içinde açılır.'
@@ -804,9 +806,9 @@ const tr: Translations = {
         clawCountLabelSingular: '{{count}} claw',
         newClaw: 'Yeni Claw',
         clawActions: 'Claw işlemleri',
-        noClawsYet: 'Claw Yok',
-        noClawsDescription:
-            "Dağıtılmış claw bulunamadı. Ancak ilk claw'ınızı $25/ay'dan başlayan fiyatlarla istediğiniz zaman dağıtabilirsiniz. Yapay zeka ile yapın.",
+        noAgentsYet: 'Ajan Yok',
+        noAgentsDescription:
+            "Dağıtılmış ajan bulunamadı. Ancak ilk ajanınızı $25/ay'dan başlayan fiyatlarla istediğiniz zaman dağıtabilirsiniz. Yapay zeka ile yapın.",
         deleteClaw: "Claw'u Sil",
         deleteClawConfirmation: 'Silmek istediğinizden emin misiniz:',
         deleteClawWarning:
@@ -851,7 +853,7 @@ const tr: Translations = {
         gatewayToken: 'Ağ Geçidi Token',
         gatewayTokenDescription:
             "Ağ geçidinizle kimlik doğrulamak için bu token'ı kullanın",
-        contactSupport: 'Destek',
+        contactSupport: 'Destek ile İletişim',
         scheduledForDeletion: 'Silme Planlandı',
         scheduledDeletionShort: '{{date}} tarihinde silinecek',
         deletionDate: 'Bu claw {{date}} tarihinde silinecek',
@@ -874,12 +876,10 @@ const tr: Translations = {
         diagnosticsDescription: 'OpenClaw örneğinizin sağlığını kontrol edin.',
         diagnosticsStatus: 'Durum',
         diagnosticsLogs: 'Günlükler',
-        diagnosticsRepair: 'Onar',
-        diagnosticsRepairDescription:
-            'Bellek limitlerini kaldırın, en son servis yapılandırmasını uygulayın ve ağ geçidini yeniden başlatın. Bu, çoğu yaygın sorunu çözer.',
-        diagnosticsRepairSuccess: 'Örnek başarıyla onarıldı.',
-        diagnosticsRepairFailed:
-            'Onarım uygulandı ancak ağ geçidi henüz yanıt vermiyor!',
+        diagnosticsRepair: 'Repair',
+        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairSuccess: 'Instance repaired successfully.',
+        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'Örneğe bağlanılıyor...',
         diagnosticsNoLogs:
             'Günlük mevcut değil. Günlük oluşturmak için örneğinizi başlatın.',
@@ -902,9 +902,6 @@ const tr: Translations = {
         fileExplorerNoFiles: 'Dosya bulunamadı',
         fileExplorerSearchFiles: 'Dosya ara...',
         fileExplorerNoSearchResults: 'Eşleşen dosya yok.',
-        updateInstance: 'Örneği Güncelle',
-        updateInstanceSuccess: 'Örnek başarıyla güncellendi.',
-        updateInstanceFailed: 'Örnek güncellenemedi!',
         startFailed: 'Claw başlatılamadı!',
         renameSuccess: 'Claw başarıyla yeniden adlandırıldı.',
         renameFailed: 'Claw yeniden adlandırılamadı!',
@@ -917,6 +914,8 @@ const tr: Translations = {
         reinstallInstanceFailed: 'Örnek yeniden yüklenemedi!',
         openControlPanel: 'Kontrol Panelini Aç',
         exportData: "Claw'u Dışa Aktar (.zip)",
+        exportAgent: 'Export Agent',
+        exportAgentTooltip: 'Download this agent as a .zip file',
         exportStarted: 'Dışa aktarma hazırlanıyor, bu biraz zaman alabilir...',
         exportSuccess: 'Claw başarıyla dışa aktarıldı.',
         exportFailed: 'Claw verileri dışa aktarılamadı!',
@@ -939,6 +938,7 @@ const tr: Translations = {
         adminNoClaws: 'Platformda henüz claw yok.',
         adminAccessDenied: 'Bu sayfaya erişim izniniz yok.',
         owner: 'Sahip',
+        agentType: 'Agent',
         status: {
             running: 'Çalışıyor',
             stopped: 'Durduruldu',
@@ -1137,9 +1137,9 @@ const tr: Translations = {
         openclawControl: 'OpenClaw Kontrolü',
         openclawControlDescription:
             "Yerel OpenClaw paneline doğrudan ClawHost'tan erişin. OpenClaw'un sunduğu her şeye tam düzenleme erişimi.",
-        clawHostControl: 'ClawHost Kontrolü',
+        clawHostControl: 'Tam Sunucu Erişimi',
         clawHostControlDescription:
-            'Dosyaları, güncellemeleri ve daha fazla yapılandırma seçeneğini doğrudan platformdan yönetin.',
+            'Tarayıcı terminali, dosya gezgini, loglar, tanılama ve sürüm yönetimi — hepsi kontrol panelinizden.',
         multipleClaws: 'Birden Fazla Claw',
         multipleClawsDescription:
             'Tek bir panelden birden fazla OpenClaw örneği dağıtın ve yönetin. Büyüdükçe ölçeklendirin.',
@@ -1323,6 +1323,8 @@ const tr: Translations = {
             'Hareket halindeyken OpenClaw örneklerinizi izlemek ve yönetmek için yerel mobil uygulama',
         upcomingReleaseFeature13:
             'macOS ve Windows için ClawHost Go beta sürümü, tek tıkla OpenClaw yerel olarak dağıtın',
+        upcomingReleaseFeature14:
+            'OpenClaw gibi Hermes ajanları için tek tıkla dağıtım',
         upcomingReleaseFeature3: 'Koyu ve açık tema desteği',
         upcomingReleaseFeature4:
             'Performans, kararlılık ve yanıt verme iyileştirmeleri',
@@ -1342,6 +1344,15 @@ const tr: Translations = {
             'ClawHost Go için açılış sayfası, ClawHost ile yerel barındırma',
         upcomingReleaseFeature12:
             'macOS ve Windows için tek tıkla yerel OpenClaw dağıtımı için masaüstü uygulaması',
+        release15Date: '11 Nisan 2026',
+        release15Title: 'Sadeleştirme ve özel alt alan adları',
+        release15Description:
+            'Yönetilen özelliklerin OpenClaw\'a taşınmasıyla platform sadeleştirildi, playground görünümü kaldırıldı ve değiştirilebilir özel alt alan adları tanıtıldı.',
+        release15Feature1:
+            'Yönetilen özellikler sadeleştirildi ve OpenClaw\'a taşındı, artık ClawHost sohbet, ajanlar, kanallar, değişkenler ve beceriler yok',
+        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '1 Nisan 2026',
         release14Title: 'Hetzner geçişi, ortaklık sistemi ve yeni diller',
         release14Description:
@@ -1482,8 +1493,8 @@ const tr: Translations = {
             'Birleşik panel düzeni lehine ızgara ve liste görünümü geçişi kaldırıldı'
     },
     clawDetail: {
-        noClawsYet: 'Claw Yok',
-        noClawsDescription: "Etkileşime geçmek için ilk Claw'ınızı dağıtın.",
+        noAgentsYet: 'Ajan Yok',
+        noAgentsDescription: 'Etkileşime geçmek için ilk Ajanınızı dağıtın.',
         selectClaw: 'Bir Claw Seçin',
         selectClawDescription:
             'Ayrıntılarını görüntülemek için kenar çubuğundan bir Claw seçin.',
@@ -1709,7 +1720,8 @@ const tr: Translations = {
         messagesPlaceholder: 'Mesajlar ve bildirimler burada görünecek.',
         settingsPlaceholder: 'Hesap ayarları ve tercihleri burada görünecek.',
         signIn: 'Kimlik Doğrulama',
-        signInDescription: 'OpenClaw örneklerinizi yönetmek için giriş yapın.',
+        signInDescription:
+            'Ajanlarınızı yönetmek ve dağıtmak için kimlik doğrulayın.',
         enterEmail: 'E-posta Adresi',
         emailPlaceholder: 'example@clawhost.cloud',
         continueWithEmail: 'E-posta ile Devam Et',
@@ -1734,7 +1746,7 @@ const tr: Translations = {
     announcement: {
         title: 'Hizmet Bildirimi',
         message:
-            "Yoğun talep nedeniyle {{providers}} dağıtımları geçici olarak kullanılamıyor. Mevcut claw'lar normal çalışıyor."
+            'Yoğun talep nedeniyle {{providers}} dağıtımları geçici olarak kullanılamıyor. Mevcut ajanlar normal çalışıyor.'
     },
     productHunt: {
         liveOn: 'Yayında',
@@ -1915,7 +1927,7 @@ const tr: Translations = {
         noClawsFound: 'Claw Yok',
         noSSHKeysFound: 'SSH Anahtarı Yok',
         noVolumesFound: 'Birim Yok',
-        failedToLoadClaws: 'Claws yüklenemedi!',
+        failedToLoadAgents: 'Agents yüklenemedi!',
         failedToLoadSSHKeys: 'SSH anahtarları yüklenemedi!',
         failedToLoadVolumes: 'Birimler yüklenemedi!',
         owner: 'Sahip',
@@ -1924,10 +1936,12 @@ const tr: Translations = {
         referralsTab: 'Yönlendirmeler',
         pendingClawsTab: 'Bekleyen',
         waitlistTab: 'Bekleme Listesi',
-        exportsTab: 'Dışa Aktarımlar',
         emailsTab: 'E-postalar',
         analyticsTab: 'Analitik',
         billingTab: 'Faturalandırma',
+        settingsTab: 'Ayarlar',
+        settingsDescription: 'Yönetici tercihlerinizi yönetin.',
+        showAllAgents: 'Tüm kullanıcılardan tüm ajanları göster',
         billingFilterAll: 'Tüm siparişler',
         billingFilterService: 'Claw Hizmeti',
         billingFilterLicense: 'Lisans',
@@ -1955,12 +1969,10 @@ const tr: Translations = {
         noReferralsFound: 'Yönlendirme Yok',
         noPendingClawsFound: 'Bekleyen Claw Yok',
         noWaitlistFound: 'Bekleme Listesi Yok',
-        noExportsFound: 'Dışa Aktarım Yok',
         noEmailsFound: 'E-posta Yok',
         failedToLoadReferrals: 'Yönlendirmeler yüklenemedi!',
         failedToLoadPendingClaws: 'Bekleyen clawlar yüklenemedi!',
         failedToLoadWaitlist: 'Bekleme listesi yüklenemedi!',
-        failedToLoadExports: 'Dışa aktarımlar yüklenemedi!',
         failedToLoadEmails: 'E-postalar yüklenemedi!',
         referrer: 'Yönlendiren',
         referred: 'Yönlendirilen',

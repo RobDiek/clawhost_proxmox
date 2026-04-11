@@ -1,12 +1,20 @@
 import type { FC, ReactNode } from 'react'
 import type { ClawFileExplorerContentProps } from '@/ts/Interfaces'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { t } from '@openclaw/i18n'
-import { Button, Skeleton } from '@/components/ui'
+import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
+import { api } from '@/lib'
+import {
+    Skeleton,
+    Tooltip,
+    TooltipTrigger,
+    TooltipContent
+} from '@/components/ui'
 import {
     CircleNotchIcon,
-    FloppyDiskIcon,
+    DownloadSimpleIcon,
     MagnifyingGlassIcon,
     FileIcon
 } from '@phosphor-icons/react'
@@ -21,6 +29,19 @@ import useFileEditor from '@/components/dashboard/ClawConfigDialog/useFileEditor
 const ClawConfigContent: FC<ClawFileExplorerContentProps> = ({
     clawId
 }): ReactNode => {
+    const { showToast } = useUIStore()
+    const [isExporting, setIsExporting] = useState(false)
+    const handleExport = useCallback(async () => {
+        setIsExporting(true)
+        try {
+            await api.exportClaw(clawId, `${clawId}-export.tar.gz`)
+            showToast(t('dashboard.exportSuccess'), TOAST_TYPE.SUCCESS)
+        } catch {
+            showToast(t('dashboard.exportFailed'), TOAST_TYPE.ERROR)
+        }
+        setIsExporting(false)
+    }, [clawId, showToast])
+
     const storeTheme = usePreferencesStore((s) => s.theme)
     const resolvedTheme =
         storeTheme === THEMES.SYSTEM
@@ -59,8 +80,29 @@ const ClawConfigContent: FC<ClawFileExplorerContentProps> = ({
 
     return (
         <div className='flex h-full flex-col overflow-hidden'>
-            <div className='text-muted-foreground px-4 pt-3 text-xs'>
-                {t('dashboard.fileExplorerDescription')}
+            <div className='flex items-center justify-between px-4 pt-3'>
+                <span className='text-muted-foreground text-xs'>
+                    {t('dashboard.fileExplorerDescription')}
+                </span>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <button
+                            onClick={handleExport}
+                            disabled={isExporting}
+                            className='border-border bg-foreground/5 hover:bg-foreground/10 text-foreground flex shrink-0 items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors disabled:opacity-50'
+                        >
+                            {isExporting ? (
+                                <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />
+                            ) : (
+                                <DownloadSimpleIcon className='h-3.5 w-3.5' />
+                            )}
+                            {t('dashboard.exportAgent')}
+                        </button>
+                    </TooltipTrigger>
+                    <TooltipContent side='bottom'>
+                        {t('dashboard.exportAgentTooltip')}
+                    </TooltipContent>
+                </Tooltip>
             </div>
 
             <div className='flex min-h-0 flex-1 gap-3 overflow-hidden p-4'>
@@ -117,7 +159,7 @@ const ClawConfigContent: FC<ClawFileExplorerContentProps> = ({
                     </div>
                 </div>
 
-                <div className='flex min-w-0 flex-1 flex-col gap-2'>
+                <div className='flex min-w-0 flex-1 flex-col'>
                     {!editor.selectedPath && (
                         <div className='border-border bg-muted text-muted-foreground flex flex-1 flex-col items-center justify-center gap-2 rounded-md border text-sm'>
                             <FileIcon className='text-muted-foreground h-8 w-8' />
@@ -125,9 +167,9 @@ const ClawConfigContent: FC<ClawFileExplorerContentProps> = ({
                         </div>
                     )}
                     {editor.selectedPath && editor.fileContentIsPending && (
-                        <div className='flex flex-col'>
-                            <div className='bg-muted/60 h-7 w-28 rounded-b-none rounded-t-md' />
-                            <Skeleton className='h-[486px] rounded-b-sm rounded-tl-none rounded-tr-sm' />
+                        <div className='flex min-h-0 flex-1 flex-col'>
+                            <div className='bg-muted/60 h-7 w-28 shrink-0 rounded-b-none rounded-t-md' />
+                            <Skeleton className='min-h-0 flex-1 rounded-b-sm rounded-tl-none rounded-tr-sm' />
                         </div>
                     )}
                     {editor.selectedPath && editor.fileContentIsError && (
@@ -146,34 +188,14 @@ const ClawConfigContent: FC<ClawFileExplorerContentProps> = ({
                             hasUnsavedChanges={editor.hasUnsavedChanges}
                             jsonError={editor.jsonError}
                             resolvedTheme={resolvedTheme}
+                            isSaving={editor.isSaving}
                             onChange={editor.handleChange}
                             onJsonChange={editor.handleJsonChange}
                             onClose={() => editor.handleSelectFile('')}
+                            onSave={editor.handleSave}
                         />
                     )}
                 </div>
-            </div>
-
-            <div className='border-border flex justify-end border-t px-4 py-3'>
-                <Button
-                    onClick={editor.handleSave}
-                    disabled={
-                        !editor.isEditable ||
-                        !editor.selectedPath ||
-                        !editor.fileContentData ||
-                        !editor.hasUnsavedChanges ||
-                        editor.jsonError ||
-                        editor.isSaving
-                    }
-                    size='default'
-                >
-                    {editor.isSaving ? (
-                        <CircleNotchIcon className='mr-2 h-4 w-4 animate-spin' />
-                    ) : (
-                        <FloppyDiskIcon className='mr-2 h-4 w-4' />
-                    )}
-                    {t('dashboard.fileExplorerSave')}
-                </Button>
             </div>
         </div>
     )
