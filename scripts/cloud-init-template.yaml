@@ -168,7 +168,6 @@ runcmd:
           },
           "agents": {
             "defaults": {
-              "systemPrompt": "CRITICAL: At the START of every session, BEFORE responding to any message:\n1. Check if BOOTSTRAP.md exists in the workspace.\n2. If it exists — follow it IMMEDIATELY. This is the onboarding flow. Ask who the user is, figure out your identity, update IDENTITY.md and USER.md. After completion, delete BOOTSTRAP.md.\n3. If it does NOT exist — read SOUL.md, USER.md, IDENTITY.md for context.\nNEVER skip this check. NEVER respond without reading workspace files first.\nDefault language: Hebrew. Respond in the user's language.",
               "model": {
                 "primary": "anthropic/claude-sonnet-4-6",
                 "fallbacks": [
