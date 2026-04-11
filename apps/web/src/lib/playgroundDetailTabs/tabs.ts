@@ -6,10 +6,11 @@ import {
     ScrollIcon,
     PulseIcon,
     GearSixIcon,
-    TerminalWindowIcon
+    TerminalWindowIcon,
+    TagIcon,
+    FolderSimpleIcon
 } from '@phosphor-icons/react'
 import { CLAW_DETAIL_TABS } from '@/lib/constants'
-import { ClawMascotOutline } from '@/components/shared'
 
 const tabs: PlaygroundTabConfig<PlaygroundDetailTab>[] = [
     { id: CLAW_DETAIL_TABS.INFO, label: 'playground.tabInfo', icon: InfoIcon },
@@ -26,7 +27,12 @@ const tabs: PlaygroundTabConfig<PlaygroundDetailTab>[] = [
     {
         id: CLAW_DETAIL_TABS.VERSIONS,
         label: 'playground.tabVersions',
-        icon: ClawMascotOutline
+        icon: TagIcon
+    },
+    {
+        id: CLAW_DETAIL_TABS.FILES,
+        label: 'playground.tabFiles',
+        icon: FolderSimpleIcon
     },
     {
         id: CLAW_DETAIL_TABS.DIAGNOSTICS,

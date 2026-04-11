@@ -9,28 +9,22 @@ import type {
 import type { MotionValue } from 'framer-motion'
 import type { User } from 'firebase/auth'
 import type { Node, Edge } from '@xyflow/react'
-import type { QueryClient, UseQueryResult } from '@tanstack/react-query'
+import type { QueryClient } from '@tanstack/react-query'
 import type { TranslationKey } from '@openclaw/i18n'
 import type {
     AdminAnalyticsRange,
     AffiliatePeriod,
     AuthMethod,
     BillingInterval,
-    ChatMessageRole,
-    ChatMessageStatus,
     ClawAvatarSize,
     ClawStatus,
-    DashboardTab,
-    GatewayConnectionState,
     Language,
     LoginLoadingMethod,
     OAuthProvider,
-    PlaygroundAgentDetailTab,
+    DashboardTab,
     PlaygroundDetailTab,
     ThemeMode,
     ClawFileType,
-    ChatSidebarViewMode,
-    ChatTypingIndicator,
     CompareFeatureStatus,
     TerminalStatus,
     ToastType,
@@ -280,8 +274,6 @@ export interface PreferencesState {
     setLanguage: (language: Language) => void
     openLinksWindowed: boolean
     setOpenLinksWindowed: (value: boolean) => void
-    chatSidebarView: ChatSidebarViewMode
-    setChatSidebarView: (view: ChatSidebarViewMode) => void
     product: Product
     setProduct: (product: Product) => void
     affiliatePeriod: AffiliatePeriod
@@ -309,28 +301,16 @@ export interface TerminalState {
 export interface DashboardState {
     selectedClawId: string | null
     setSelectedClawId: (value: string | null) => void
-    selectedAgentId: string | null
-    setSelectedAgentId: (value: string | null) => void
-    selectedAgentClawId: string | null
-    setSelectedAgentClawId: (value: string | null) => void
-    chatSelectedAgent: ChatSelectedAgent | null
-    setChatSelectedAgent: (value: ChatSelectedAgent | null) => void
     chatSettingsClawId: string | null
     setChatSettingsClawId: (value: string | null) => void
-    playgroundAgentTab: PlaygroundAgentDetailTab | null
-    setPlaygroundAgentTab: (value: PlaygroundAgentDetailTab | null) => void
-    playgroundClawTab: PlaygroundDetailTab | null
-    setPlaygroundClawTab: (value: PlaygroundDetailTab | null) => void
     chatClawTab: PlaygroundDetailTab | null
     setChatClawTab: (value: PlaygroundDetailTab | null) => void
+    playgroundClawTab: PlaygroundDetailTab | null
+    setPlaygroundClawTab: (value: PlaygroundDetailTab | null) => void
     showCreate: boolean
     setShowCreate: (value: boolean) => void
     preselectedPlanId: string | null
     setPreselectedPlanId: (value: string | null) => void
-    createAgentClawId: string | null
-    setCreateAgentClawId: (value: string | null) => void
-    createAgentClawName: string
-    setCreateAgentClawName: (value: string) => void
     resetDashboardState: () => void
 }
 
@@ -564,7 +544,6 @@ export interface ClawCardActions {
     onShowHardDeleteModal: () => void
     onShowDiagnostics: () => void
     onShowLogs: () => void
-    onShowConfig: () => void
     onUpdateInstance: () => void
     onShowReinstallModal: () => void
     onShowCredentials: () => void
@@ -647,8 +626,6 @@ export interface ClawCardDialogsBundleProps {
     setShowDiagnostics: (open: boolean) => void
     showLogs: boolean
     setShowLogs: (open: boolean) => void
-    showConfigDialog: boolean
-    setShowConfigDialog: (open: boolean) => void
     showCredentials: boolean
     setShowCredentials: (open: boolean) => void
     credentialsPassword: string | null
@@ -942,6 +919,10 @@ export interface ClawFileExplorerDialogProps {
     onOpenChange: (open: boolean) => void
 }
 
+export interface ClawFileExplorerContentProps {
+    clawId: string
+}
+
 export interface FileTreeProps {
     folders: [string, ClawFileEntry[]][]
     rootFiles: ClawFileEntry[]
@@ -1026,54 +1007,23 @@ export interface FaqSectionProps {
     faqs: Faq[]
 }
 
-export interface ClawAgent {
-    id: string
-    name: string
-    model: string | null
-    status: string
-    directory: string | null
-}
-
-export interface ClawAgentsResponse {
-    agents: ClawAgent[]
-    reachable: boolean
-}
-
 export interface PlaygroundClawNodeData {
     claw: Claw
-    agentCount: number
-    isLoadingAgents: boolean
     isSelected: boolean
     readOnly?: boolean
-}
-
-export interface PlaygroundAgentNodeData {
-    agent: ClawAgent
-    clawName: string
-    clawId: string
-    isSelected: boolean
-    subdomain: string | null
-    gatewayToken: string | null
 }
 
 export interface PlaygroundClawNodeProps {
     data: PlaygroundClawNodeData
 }
 
-export interface PlaygroundAgentNodeProps {
-    data: PlaygroundAgentNodeData
-}
-
 export interface PlaygroundCanvasProps {
     initialNodes: Node[]
     initialEdges: Edge[]
     onNodeClick?: (clawId: string) => void
-    onAgentClick?: (agentId: string, clawId: string) => void
     onPaneClick?: () => void
     panelOpen?: boolean
     selectedClawId?: string | null
-    selectedAgentId?: string | null
-    selectedAgentClawId?: string | null
     initialZoom?: number
     allowPageScroll?: boolean
 }
@@ -1165,28 +1115,6 @@ export interface LanguageOption {
     flag: string
 }
 
-export interface CreateAgentData {
-    name: string
-    model?: string | null
-    envVars?: Record<string, string>
-}
-
-export interface CreateAgentResponse {
-    agent: ClawAgent
-}
-
-export interface DeleteAgentData {
-    agentId: string
-}
-
-export interface CreateAgentModalProps {
-    clawId?: string
-    clawName?: string
-    clawsWithAgents?: ClawWithAgents[]
-    open: boolean
-    onOpenChange: (open: boolean) => void
-}
-
 export interface SecretInputFieldProps {
     label: string
     value: string
@@ -1195,45 +1123,6 @@ export interface SecretInputFieldProps {
     existingValue?: string
     configuredLabel?: string
     helperText?: string
-}
-
-export interface UseAgentNameValidationReturn {
-    name: string
-    nameError: TranslationKey | null
-    handleNameChange: (value: string) => void
-    setNameError: (error: TranslationKey | null) => void
-    reset: () => void
-}
-
-export interface PlaygroundAgentDetailPanelProps {
-    agent: ClawAgent
-    clawId: string
-    clawName: string
-    isOnlyAgent: boolean
-    onClose: () => void
-    readOnly?: boolean
-    gatewayToken?: string | null
-    subdomain?: string | null
-    onGoToVersions?: () => void
-}
-
-export interface AgentDetailHeaderProps {
-    agent: ClawAgent
-    clawName: string
-    isOnlyAgent: boolean
-    isExpanded: boolean
-    isDeleting: boolean
-    readOnly?: boolean
-    onToggleExpand: () => void
-    onDeleteClick: () => void
-    onClose: () => void
-}
-
-export interface AgentDeleteDialogProps {
-    open: boolean
-    onOpenChange: (open: boolean) => void
-    agentName: string
-    onConfirm: (skipFuture: boolean) => void
 }
 
 export interface HeroButtonsProps {
@@ -1330,396 +1219,6 @@ export interface DemoPlaygroundData {
     nodes: Node[]
     edges: Edge[]
     claws: Claw[]
-    agentsByClawId: Record<string, ClawAgent[]>
-}
-
-export interface ChatHistoryEntry {
-    role: string
-    content: unknown
-}
-
-export interface ChatImageSource {
-    type: string
-    mediaType: string
-    data: string
-    filename?: string
-}
-
-export interface ChatMessage {
-    id: string
-    role: ChatMessageRole
-    content: string
-    status: ChatMessageStatus
-    runId?: string
-    timestamp?: string
-    images?: ChatImageSource[]
-}
-
-export interface RawChatMessage {
-    content?: string | unknown[]
-    text?: string
-}
-
-export interface RawChatChoice {
-    message?: RawChatMessage
-    delta?: RawChatMessage
-}
-
-export interface RawChatContentObject {
-    content?: string | unknown[]
-    text?: string
-    choices?: RawChatChoice[]
-}
-
-export interface ChatEventPayload {
-    runId: string
-    sessionKey: string
-    seq: number
-    state: 'delta' | 'final' | 'aborted' | 'error'
-    message?: unknown
-    errorMessage?: string
-}
-
-export interface ChatAttachment {
-    type: string
-    source: ChatImageSource
-}
-
-export interface ChatLightboxProps {
-    image: ChatImageSource
-    fileName?: string
-    onClose: () => void
-}
-
-export interface ChatSendParams {
-    sessionKey: string
-    message: string
-    idempotencyKey: string
-    deliver: boolean
-    attachments?: ChatAttachment[]
-}
-
-export interface ChatHistoryParams {
-    sessionKey: string
-    limit: number
-}
-
-export interface ChatAbortParams {
-    sessionKey: string
-    runId: string
-}
-
-export interface UseAgentChatParams {
-    subdomain: string | null | undefined
-    gatewayToken: string | null | undefined
-    agentId: string
-    enabled: boolean
-}
-
-export interface UseAgentChatReturn {
-    messages: ChatMessage[]
-    connectionState: GatewayConnectionState
-    isLoading: boolean
-    isStreaming: boolean
-    typingIndicator: ChatTypingIndicator
-    sendMessage: (
-        text: string,
-        attachments?: ChatAttachment[],
-        previews?: ChatImageSource[]
-    ) => void
-    abortResponse: () => void
-}
-
-export interface GatewayPendingRequest {
-    resolve: (payload: unknown) => void
-    reject: (error: Error) => void
-    timer: ReturnType<typeof setTimeout>
-}
-
-export interface GatewaySession {
-    key?: string
-    sessionKey?: string
-}
-
-export interface GatewaySessionsResult {
-    sessions?: GatewaySession[]
-}
-
-export interface GatewayHistoryResult {
-    messages?: ChatHistoryEntry[]
-    history?: ChatHistoryEntry[]
-}
-
-export interface AgentChatProps {
-    agentId: string
-    agentName?: string
-    clawId: string
-    subdomain: string | null | undefined
-    gatewayToken: string | null | undefined
-    agentModel: string | null
-    readOnly?: boolean
-    onConnectionStateChange?: (state: GatewayConnectionState) => void
-}
-
-export interface ChatBubbleProps {
-    message: ChatMessage
-    onSpeak?: (messageId: string, text: string) => void
-    onStop?: () => void
-    isSpeaking?: boolean
-    isLoading?: boolean
-}
-
-export interface ChatTypingIndicatorProps {
-    state: ChatTypingIndicator
-}
-
-export interface UseTextToSpeechReturn {
-    activeMessageId: string | null
-    loadingMessageId: string | null
-    speak: (messageId: string, text: string) => void
-    stop: () => void
-    setOutputDeviceId: (deviceId: string | null) => void
-}
-
-export interface PlayStreamingAudioParams {
-    messageId: string
-    response: Response
-    ctx: AudioContext
-    outputDeviceId: string | null
-    isPlayingRef: { current: boolean }
-    cache: Map<string, AudioBuffer>
-    setLoadingMessageId: (id: string | null) => void
-    setActiveMessageId: (id: string | null) => void
-}
-
-export interface ChatSpeechButtonProps {
-    messageId: string
-    text: string
-    isSpeaking: boolean
-    isLoading: boolean
-    onSpeak: (messageId: string, text: string) => void
-    onStop: () => void
-}
-
-export interface ChatInputAttachment {
-    file: File
-    preview: string
-}
-
-export interface ChatInputHandle {
-    addFiles: (files: File[]) => void
-}
-
-export interface ChatInputProps {
-    isConnected: boolean
-    isStreaming: boolean
-    isProcessing: boolean
-    onSend: (
-        text: string,
-        attachments?: ChatAttachment[],
-        previews?: ChatImageSource[]
-    ) => void
-    onAbort: () => void
-    allowAttach?: boolean
-    onVoiceMode?: () => void
-}
-
-export interface VoiceModeOverlayProps {
-    onClose: () => void
-    messages: ChatMessage[]
-    sendMessage: (text: string) => void
-    isStreaming: boolean
-    typingIndicator: ChatTypingIndicator
-    speak: (messageId: string, text: string) => void
-    stopSpeech: () => void
-    ttsActiveMessageId: string | null
-    ttsLoadingMessageId: string | null
-    setOutputDeviceId: (deviceId: string | null) => void
-}
-
-export interface UseAudioDevicesReturn {
-    inputDevices: MediaDeviceInfo[]
-    outputDevices: MediaDeviceInfo[]
-    selectedInputId: string
-    selectedOutputId: string
-    setSelectedInputId: (id: string) => void
-    setSelectedOutputId: (id: string) => void
-    hasNoInput: boolean
-    hasNoOutput: boolean
-}
-
-export interface UseVoiceRecorderParams {
-    sendMessageRef: MutableRefObject<(text: string) => void>
-    hasNoInput: boolean
-}
-
-export interface UseVoiceRecorderReturn {
-    isRecording: boolean
-    isTranscribing: boolean
-    intensity: number
-    setIntensity: (value: number) => void
-    startRecording: () => Promise<void>
-    stopAndTranscribe: () => Promise<void> | undefined
-    cleanup: () => void
-}
-
-export interface UseIdleVoiceAnimationParams {
-    isRecording: boolean
-    isTranscribing: boolean
-    isStreaming: boolean
-    typingIndicator: ChatTypingIndicator
-    ttsActiveMessageId: string | null
-    ttsLoadingMessageId: string | null
-    setIntensity: (value: number) => void
-}
-
-export interface UseAutoSpeakLastMessageParams {
-    sessionMessages: ChatMessage[]
-    speak: (messageId: string, text: string) => void
-}
-
-export interface DeviceSelectorDropdownProps {
-    icon: ReactNode
-    label: string
-    value: string
-    onValueChange: (value: string) => void
-    devices: MediaDeviceInfo[]
-    fallbackLabel: string
-    emptyLabel: string
-}
-
-export interface VoiceOrbProps {
-    intensity: number
-    size?: number
-}
-
-export interface ChatMarkdownProps {
-    content: string
-}
-
-export interface ChatDateSeparatorProps {
-    date: string
-}
-
-export interface ChatEmptyStateProps {
-    isError: boolean
-}
-
-export interface ChatStatusBarProps {
-    connectionState: GatewayConnectionState
-}
-
-export interface UseSpeechRecognitionReturn {
-    isRecording: boolean
-    isTranscribing: boolean
-    toggle: () => void
-}
-
-export interface ChatSidebarItemProps {
-    agent: ClawAgent
-    isActive: boolean
-    isLast: boolean
-    isChecking?: boolean
-    connectionState?: GatewayConnectionState
-    readOnly?: boolean
-    onClick: () => void
-}
-
-export interface ChatSelectedAgent {
-    agentId: string
-    clawId: string
-}
-
-export interface ClawWithAgents {
-    claw: Claw
-    agents: ClawAgent[]
-    isLoading: boolean
-    isReachable: boolean
-}
-
-export interface ChatSidebarProps {
-    clawsWithAgents: ClawWithAgents[]
-    selectedAgent: ChatSelectedAgent | null
-    selectedClawId: string | null
-    activeConnectionState?: GatewayConnectionState
-    readOnly?: boolean
-    onAgentSelect: (selection: ChatSelectedAgent) => void
-    onCreateAgent: (clawId: string, clawName: string) => void
-    onOpenClawSettings: (clawId: string) => void
-    onClose?: () => void
-}
-
-export interface ChatSidebarTreeViewProps {
-    clawsWithAgents: ClawWithAgents[]
-    selectedAgent: ChatSelectedAgent | null
-    selectedClawId: string | null
-    activeConnectionState?: GatewayConnectionState
-    readOnly?: boolean
-    onAgentClick: (agentId: string, clawId: string) => void
-    onCreateAgent: (clawId: string, clawName: string) => void
-    onOpenClawSettings: (clawId: string) => void
-}
-
-export interface ChatSidebarListViewProps {
-    clawsWithAgents: ClawWithAgents[]
-    selectedAgent: ChatSelectedAgent | null
-    activeConnectionState?: GatewayConnectionState
-    readOnly?: boolean
-    onAgentClick: (agentId: string, clawId: string) => void
-}
-
-export interface ChatSidebarListItemProps {
-    agentId: string
-    agentName: string
-    agentModel: string | null
-    agentStatus: string
-    clawId: string
-    clawName: string
-    clawSubdomain: string | null
-    clawGatewayToken: string | null
-    isReachable: boolean
-    isActive: boolean
-    activeConnectionState?: GatewayConnectionState
-    readOnly?: boolean
-    onClick: () => void
-}
-
-export interface ChatSidebarAgentListProps {
-    claw: Claw
-    agents: ClawAgent[]
-    isLoading: boolean
-    isReachable: boolean
-    selectedAgent: ChatSelectedAgent | null
-    activeConnectionState?: GatewayConnectionState
-    readOnly?: boolean
-    onAgentClick: (agentId: string, clawId: string) => void
-    onCreateAgent: (clawId: string, clawName: string) => void
-}
-
-export interface ChatSidebarClawHeaderProps {
-    claw: Claw
-    agentCount: number
-    isLoadingAgents: boolean
-    isReachable: boolean
-    isSelected: boolean
-    statusConfig: StatusConfig
-    readOnly?: boolean
-    onOpenClawSettings: (clawId: string) => void
-    onCreateAgent: (clawId: string, clawName: string) => void
-}
-
-export interface ChatViewProps {
-    claws: Claw[]
-    agentQueries: UseQueryResult<ClawAgentsResponse>[]
-    plans: Plan[]
-    sshKeys: SSHKey[]
-    selectedAgent: ChatSelectedAgent | null
-    onAgentSelect: (selection: ChatSelectedAgent | null) => void
-    onCreateAgent: (clawId: string, clawName: string) => void
-    initialSettingsClawId?: string | null
-    onSettingsClawChange?: (clawId: string | null) => void
-    initialClawTab?: PlaygroundDetailTab
-    onClawTabChange?: (tab: PlaygroundDetailTab | null) => void
 }
 
 export interface TruncateTooltipProps {
@@ -2413,39 +1912,52 @@ export interface DashboardHeaderProps {
 
 export interface DashboardChatViewProps {
     displayedClaws: Claw[]
-    agentQueries: UseQueryResult<ClawAgentsResponse>[]
     plans: Plan[]
     sshKeys: SSHKey[]
     adminMode: boolean
-    chatSelectedAgent: ChatSelectedAgent | null
     chatSettingsClawId: string | null
     chatClawTab: PlaygroundDetailTab | null
-    onAgentSelect: (value: ChatSelectedAgent | null) => void
-    onCreateAgent: (clawId: string, clawName: string) => void
-    onSettingsClawChange: (value: string | null) => void
-    onClawTabChange: (value: PlaygroundDetailTab | null) => void
+    onSettingsClawChange: (clawId: string | null) => void
+    onClawTabChange: (tab: PlaygroundDetailTab | null) => void
     onCreateClick: () => void
+}
+
+export interface ChatSidebarProps {
+    claws: Claw[]
+    selectedClawId: string | null
+    readOnly?: boolean
+    onOpenClawSettings: (clawId: string) => void
+    onClose?: () => void
+}
+
+export interface ChatSidebarTreeViewProps {
+    claws: Claw[]
+    selectedClawId: string | null
+    readOnly?: boolean
+    onOpenClawSettings: (clawId: string) => void
+}
+
+export interface ChatSidebarClawHeaderProps {
+    claw: Claw
+    isSelected: boolean
+    statusConfig: StatusConfig
+    readOnly?: boolean
+    onOpenClawSettings: (clawId: string) => void
 }
 
 export interface DashboardPlaygroundViewProps {
     displayedClaws: Claw[]
-    agentQueries: UseQueryResult<ClawAgentsResponse>[]
     adminMode: boolean
     nodes: Node[]
     edges: Edge[]
     plans: Plan[]
     sshKeys: SSHKey[]
     selectedClawId: string | null
-    selectedAgentId: string | null
-    selectedAgentClawId: string | null
     playgroundClawTab: PlaygroundDetailTab | null
-    playgroundAgentTab: PlaygroundAgentDetailTab | null
     isLoading: boolean
     activeIsError: boolean
     onClawSelect: (clawId: string | null) => void
-    onAgentSelect: (agentId: string | null, clawId: string | null) => void
     onPlaygroundClawTabChange: (tab: PlaygroundDetailTab | null) => void
-    onPlaygroundAgentTabChange: (tab: PlaygroundAgentDetailTab | null) => void
     onCreateClick: () => void
 }
 
@@ -2459,18 +1971,10 @@ export interface UseURLStateRestorationParams {
     setDashboardTab: (tab: DashboardTab) => void
     selectedClawId: string | null
     setSelectedClawId: (value: string | null) => void
-    selectedAgentId: string | null
-    setSelectedAgentId: (value: string | null) => void
-    selectedAgentClawId: string | null
-    setSelectedAgentClawId: (value: string | null) => void
-    chatSelectedAgent: ChatSelectedAgent | null
-    setChatSelectedAgent: (value: ChatSelectedAgent | null) => void
-    chatSettingsClawId: string | null
-    setChatSettingsClawId: (value: string | null) => void
-    playgroundAgentTab: PlaygroundAgentDetailTab | null
-    setPlaygroundAgentTab: (value: PlaygroundAgentDetailTab | null) => void
     playgroundClawTab: PlaygroundDetailTab | null
     setPlaygroundClawTab: (value: PlaygroundDetailTab | null) => void
+    chatSettingsClawId: string | null
+    setChatSettingsClawId: (value: string | null) => void
     chatClawTab: PlaygroundDetailTab | null
     setChatClawTab: (value: PlaygroundDetailTab | null) => void
     setShowCreate: (value: boolean) => void

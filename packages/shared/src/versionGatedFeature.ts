@@ -1,5 +1,3 @@
-const versionGatedFeature = {
-    agents: 'agents'
-} as const
+const versionGatedFeature = {} as const
 
 export default versionGatedFeature

@@ -18,7 +18,6 @@ import { t } from '@openclaw/i18n'
 import {
     adminRoutes,
     affiliateRoutes,
-    aiRoutes,
     authRoutes,
     clawsRoutes,
     cronRoutes,
@@ -46,7 +45,7 @@ app.use(
             : [externalUrls.CLAWHOST.BASE, externalUrls.CLAWHOST.WWW],
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowHeaders: ['Content-Type', 'Authorization', 'X-Referral-Code'],
-        exposeHeaders: ['X-Sample-Rate', 'X-Channels', 'X-Audio-Format'],
+        exposeHeaders: [],
         maxAge: 86400
     })
 )
@@ -175,7 +174,6 @@ app.use('/*', async (c, next) => {
 
 app.route('/admin', adminRoutes)
 app.route('/affiliate', affiliateRoutes)
-app.route('/ai', aiRoutes)
 app.route('/claws', clawsRoutes)
 app.route('/ssh-keys', sshKeysRoutes)
 app.route('/users', usersRoutes)

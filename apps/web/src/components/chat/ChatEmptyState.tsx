@@ -11,10 +11,10 @@ const ChatEmptyState: FC = (): ReactNode => {
             </div>
             <div className='text-center'>
                 <p className='text-foreground/80 text-sm font-medium'>
-                    {t('chat.selectAgent')}
+                    {t('playground.selectClaw')}
                 </p>
                 <p className='text-muted-foreground mt-1 text-xs'>
-                    {t('chat.selectAgentDescription')}
+                    {t('playground.selectClawDescription')}
                 </p>
             </div>
         </div>

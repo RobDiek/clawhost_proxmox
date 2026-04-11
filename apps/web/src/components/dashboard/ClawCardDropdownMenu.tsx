@@ -4,8 +4,6 @@ import type { ClawCardDropdownMenuProps } from '@/ts/Interfaces'
 import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
 import { clawStatus } from '@openclaw/shared'
-import { getBaseDomain } from '@/lib'
-import { generateSlug } from '@/lib/claw-utils'
 import {
     Button,
     DropdownMenu,
@@ -23,7 +21,6 @@ import {
     TerminalIcon,
     CircleNotchIcon,
     ClockCountdownIcon,
-    FolderSimpleIcon,
     ArrowsClockwiseIcon,
     ArrowCounterClockwiseIcon,
     ExportIcon,
@@ -109,19 +106,6 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                 {claw.status === clawStatus.running && (
                     <Fragment>
                         <DropdownMenuItem
-                            onClick={() => {
-                                const subdomain =
-                                    claw.subdomain || generateSlug(claw.id)
-                                const domain = `${subdomain}.${getBaseDomain()}`
-                                const url = `https://${domain}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`
-                                window.open(url, '_blank')
-                            }}
-                        >
-                            <ArrowSquareOutIcon className='mr-2 h-4 w-4' />
-                            {t('dashboard.openControlPanel')}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
                             onClick={actions.onShowStopModal}
                             disabled={isLoading}
                         >
@@ -135,24 +119,27 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                             <ArrowClockwiseIcon className='mr-2 h-4 w-4' />
                             {t('dashboard.restart')}
                         </DropdownMenuItem>
-                    </Fragment>
-                )}
-                {claw.ip && (
-                    <Fragment>
-                        {hasActionItems && <DropdownMenuSeparator />}
-                        <DropdownMenuItem onClick={actions.onShowCredentials}>
-                            <TerminalIcon className='mr-2 h-4 w-4' />
-                            {t('dashboard.viewServerCredentials')}
-                        </DropdownMenuItem>
+                        {claw.ip && (
+                            <DropdownMenuItem
+                                onClick={actions.onShowCredentials}
+                            >
+                                <TerminalIcon className='mr-2 h-4 w-4' />
+                                {t('dashboard.viewServerCredentials')}
+                            </DropdownMenuItem>
+                        )}
                     </Fragment>
                 )}
                 {claw.ip && (
                     <Fragment>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={actions.onShowConfig}>
-                            <FolderSimpleIcon className='mr-2 h-4 w-4' />
-                            {t('dashboard.fileExplorer')}
-                        </DropdownMenuItem>
+                        {claw.status !== clawStatus.running && (
+                            <DropdownMenuItem
+                                onClick={actions.onShowCredentials}
+                            >
+                                <TerminalIcon className='mr-2 h-4 w-4' />
+                                {t('dashboard.viewServerCredentials')}
+                            </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={actions.onExport}>
                             <ExportIcon className='mr-2 h-4 w-4' />
                             {t('dashboard.exportData')}

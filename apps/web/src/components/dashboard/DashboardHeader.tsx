@@ -14,7 +14,7 @@ import {
     UserDropdown
 } from '@/components'
 import {
-    ChatCircleDotsIcon,
+    ListIcon,
     CircleNotchIcon,
     GraphIcon,
     LightningIcon
@@ -46,25 +46,25 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({
                         ?.isDesktop && <BetaBadge />}
                     <div className='border-border flex items-center rounded-lg border p-0.5'>
                         <button
-                            onClick={() => onTabChange(DASHBOARD_TABS.CHAT)}
-                            className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${dashboardTab === DASHBOARD_TABS.CHAT ? 'bg-foreground/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                            onClick={() => onTabChange(DASHBOARD_TABS.LIST)}
+                            className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${dashboardTab === DASHBOARD_TABS.LIST ? 'bg-foreground/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         >
-                            <ChatCircleDotsIcon
+                            <ListIcon
                                 className='h-3.5 w-3.5'
                                 weight={
-                                    dashboardTab === DASHBOARD_TABS.CHAT
+                                    dashboardTab === DASHBOARD_TABS.LIST
                                         ? 'fill'
                                         : 'regular'
                                 }
                             />
                             <span
                                 className={
-                                    dashboardTab === DASHBOARD_TABS.CHAT
+                                    dashboardTab === DASHBOARD_TABS.LIST
                                         ? 'hidden sm:inline'
                                         : 'hidden md:inline'
                                 }
                             >
-                                {t('dashboard.chatTab')}
+                                {t('dashboard.listTab')}
                             </span>
                         </button>
                         <button

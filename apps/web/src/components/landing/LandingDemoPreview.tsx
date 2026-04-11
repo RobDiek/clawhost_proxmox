@@ -1,8 +1,8 @@
 import type { FC, ReactNode } from 'react'
-import type { ClawWithAgents, LandingDemoPreviewProps } from '@/ts/Interfaces'
+import type { LandingDemoPreviewProps } from '@/ts/Interfaces'
 import type { DashboardTab } from '@/ts/Types'
 
-import { Fragment, useState, useEffect, useMemo } from 'react'
+import { Fragment, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { Logo } from '@/components/layout'
@@ -10,113 +10,32 @@ import { Logo } from '@/components/layout'
 import { demoPlaygroundData } from '@/data'
 import {
     PlaygroundCanvas,
-    PlaygroundDetailPanel,
-    PlaygroundAgentDetailPanel,
-    AgentChat
+    PlaygroundDetailPanel
 } from '@/components/playground'
 import { ChatSidebar, ChatEmptyState } from '@/components/chat'
 import { DASHBOARD_TABS, getBaseDomain } from '@/lib'
-import { LockIcon, ChatCircleDotsIcon, GraphIcon } from '@phosphor-icons/react'
+import { LockIcon, ListIcon, GraphIcon } from '@phosphor-icons/react'
 
 const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
     urlOverride,
     hideTitleBar = false
 }): ReactNode => {
-    const [isMobile, setIsMobile] = useState(
-        typeof window !== 'undefined' && window.innerWidth < 768
-    )
-
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768)
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
-
-    const mobileDemoData = useMemo(() => {
-        if (!isMobile) return demoPlaygroundData
-        const keepAgentId = 'agent-1a'
-        const nodes = demoPlaygroundData.nodes
-            .filter((n) => {
-                if (n.type !== 'agentNode') return true
-                const data = n.data as Record<string, unknown>
-                const agent = data.agent as Record<string, unknown>
-                return agent?.id === keepAgentId
-            })
-            .map((n) => {
-                if (n.type === 'clawNode') {
-                    return {
-                        ...n,
-                        data: { ...n.data, agentCount: 1 },
-                        position: { x: 0, y: 0 }
-                    }
-                }
-                return { ...n, position: { x: 20, y: 170 } }
-            })
-        const nodeIds = new Set(nodes.map((n) => n.id))
-        const edges = demoPlaygroundData.edges.filter(
-            (e) => nodeIds.has(e.source) && nodeIds.has(e.target)
-        )
-        const agentsByClawId: Record<
-            string,
-            (typeof demoPlaygroundData.agentsByClawId)[string]
-        > = {}
-        for (const [clawId, agents] of Object.entries(
-            demoPlaygroundData.agentsByClawId
-        )) {
-            agentsByClawId[clawId] = agents.filter((a) => a.id === keepAgentId)
-        }
-        return { ...demoPlaygroundData, nodes, edges, agentsByClawId }
-    }, [isMobile])
-
     const [demoPreviewTab, setDemoPreviewTab] = useState<DashboardTab>(
-        DASHBOARD_TABS.CHAT
+        DASHBOARD_TABS.LIST
     )
     const [demoClawId, setDemoClawId] = useState<string | null>(null)
-    const [demoAgentId, setDemoAgentId] = useState<string | null>(null)
-    const [demoAgentClawId, setDemoAgentClawId] = useState<string | null>(null)
-    const [demoChatAgentId, setDemoChatAgentId] = useState<string | null>(
-        'agent-1a'
-    )
     const [demoChatSettingsClawId, setDemoChatSettingsClawId] = useState<
         string | null
     >(null)
 
     const demoClaw = demoClawId
-        ? mobileDemoData.claws.find((c) => c.id === demoClawId) || null
+        ? demoPlaygroundData.claws.find((c) => c.id === demoClawId) || null
         : null
-
-    const demoAgentClaw = demoAgentClawId
-        ? mobileDemoData.claws.find((c) => c.id === demoAgentClawId) || null
-        : null
-
-    const demoAgentList = demoAgentClaw
-        ? mobileDemoData.agentsByClawId[demoAgentClaw.id] || []
-        : []
-
-    const demoAgent = demoAgentId
-        ? demoAgentList.find((a) => a.id === demoAgentId) || null
-        : null
-
-    const demoChatClaw = mobileDemoData.claws[0]
-    const demoChatAgents = demoChatClaw
-        ? mobileDemoData.agentsByClawId[demoChatClaw.id] || []
-        : []
-    const demoChatAgent = demoChatAgentId
-        ? demoChatAgents.find((a) => a.id === demoChatAgentId) || null
-        : null
-
-    const demoChatClawsWithAgents = useMemo((): ClawWithAgents[] => {
-        return mobileDemoData.claws.map((claw) => ({
-            claw,
-            agents: mobileDemoData.agentsByClawId[claw.id] || [],
-            isLoading: false,
-            isReachable: true
-        }))
-    }, [mobileDemoData])
 
     const demoChatSettingsClaw = demoChatSettingsClawId
-        ? mobileDemoData.claws.find((c) => c.id === demoChatSettingsClawId) ||
-          null
+        ? demoPlaygroundData.claws.find(
+              (c) => c.id === demoChatSettingsClawId
+          ) || null
         : null
 
     return (
@@ -155,20 +74,20 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                     <div className='border-border flex items-center rounded-lg border p-0.5'>
                         <button
                             onClick={() =>
-                                setDemoPreviewTab(DASHBOARD_TABS.CHAT)
+                                setDemoPreviewTab(DASHBOARD_TABS.LIST)
                             }
-                            className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${demoPreviewTab === DASHBOARD_TABS.CHAT ? 'bg-foreground/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                            className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${demoPreviewTab === DASHBOARD_TABS.LIST ? 'bg-foreground/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         >
-                            <ChatCircleDotsIcon
+                            <ListIcon
                                 className='h-3.5 w-3.5'
                                 weight={
-                                    demoPreviewTab === DASHBOARD_TABS.CHAT
+                                    demoPreviewTab === DASHBOARD_TABS.LIST
                                         ? 'fill'
                                         : 'regular'
                                 }
                             />
                             <span className='hidden sm:inline'>
-                                {t('dashboard.chatTab')}
+                                {t('dashboard.listTab')}
                             </span>
                         </button>
                         <button
@@ -199,36 +118,22 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                         <div className='relative min-w-0 flex-1'>
                             <div className='playground-grid h-full'>
                                 <PlaygroundCanvas
-                                    initialNodes={mobileDemoData.nodes}
-                                    initialEdges={mobileDemoData.edges}
+                                    initialNodes={demoPlaygroundData.nodes}
+                                    initialEdges={demoPlaygroundData.edges}
                                     initialZoom={1.25}
                                     allowPageScroll
                                     onNodeClick={(clawId) => {
-                                        setDemoAgentId(null)
-                                        setDemoAgentClawId(null)
                                         setDemoClawId(
                                             demoClawId === clawId
                                                 ? null
                                                 : clawId
                                         )
                                     }}
-                                    onAgentClick={(agentId, clawId) => {
-                                        setDemoClawId(null)
-                                        setDemoAgentId(
-                                            demoAgentId === agentId
-                                                ? null
-                                                : agentId
-                                        )
-                                        setDemoAgentClawId(clawId)
-                                    }}
                                     onPaneClick={() => {
                                         setDemoClawId(null)
-                                        setDemoAgentId(null)
-                                        setDemoAgentClawId(null)
                                     }}
-                                    panelOpen={!!demoClaw || !!demoAgent}
+                                    panelOpen={!!demoClaw}
                                     selectedClawId={demoClawId}
-                                    selectedAgentId={demoAgentId}
                                 />
                             </div>
                         </div>
@@ -244,59 +149,26 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                                     readOnly
                                 />
                             )}
-
-                            {demoAgent && demoAgentClaw && (
-                                <PlaygroundAgentDetailPanel
-                                    key='agent-panel'
-                                    agent={demoAgent}
-                                    clawId={demoAgentClaw.id}
-                                    clawName={demoAgentClaw.name}
-                                    isOnlyAgent={demoAgentList.length <= 1}
-                                    onClose={() => {
-                                        setDemoAgentId(null)
-                                        setDemoAgentClawId(null)
-                                    }}
-                                    readOnly
-                                />
-                            )}
                         </AnimatePresence>
                     </div>
                 ) : (
                     <div className='relative flex min-w-0 flex-1 overflow-hidden'>
                         <div className='playground-grid pointer-events-none absolute inset-0 opacity-50' />
                         <ChatSidebar
-                            clawsWithAgents={demoChatClawsWithAgents}
-                            selectedAgent={
-                                demoChatAgentId && demoChatClaw
-                                    ? {
-                                          agentId: demoChatAgentId,
-                                          clawId: demoChatClaw.id
-                                      }
-                                    : null
-                            }
+                            claws={demoPlaygroundData.claws}
                             selectedClawId={demoChatSettingsClawId}
                             readOnly
-                            onAgentSelect={(selection) => {
-                                setDemoChatAgentId(
-                                    demoChatAgentId === selection.agentId
-                                        ? null
-                                        : selection.agentId
-                                )
-                                setDemoChatSettingsClawId(null)
-                            }}
-                            onCreateAgent={() => {}}
                             onOpenClawSettings={(clawId) => {
                                 setDemoChatSettingsClawId(
                                     demoChatSettingsClawId === clawId
                                         ? null
                                         : clawId
                                 )
-                                setDemoChatAgentId(null)
                             }}
                         />
                         <div className='relative flex min-h-0 min-w-0 flex-1 translate-x-0 overflow-hidden'>
                             <div className='min-w-0 flex-1'>
-                                {demoChatSettingsClaw && !demoChatAgentId ? (
+                                {demoChatSettingsClaw ? (
                                     <PlaygroundDetailPanel
                                         key={`chat-settings-${demoChatSettingsClaw.id}`}
                                         claw={demoChatSettingsClaw}
@@ -307,17 +179,6 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                                         }
                                         readOnly
                                         fullScreen
-                                    />
-                                ) : demoChatAgent ? (
-                                    <AgentChat
-                                        key={demoChatAgent.id}
-                                        agentId={demoChatAgent.id}
-                                        agentName={demoChatAgent.name}
-                                        clawId={demoChatClaw.id}
-                                        subdomain={null}
-                                        gatewayToken={null}
-                                        agentModel={demoChatAgent.model}
-                                        readOnly
                                     />
                                 ) : (
                                     <ChatEmptyState />

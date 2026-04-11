@@ -5,7 +5,6 @@ import { persist } from 'zustand/middleware'
 import { setLanguage as setI18nLanguage, loadLanguage } from '@openclaw/i18n'
 import {
     AFFILIATE_PERIOD,
-    CHAT_SIDEBAR_VIEW_MODE,
     DASHBOARD_TABS,
     THEMES,
     LANGUAGES
@@ -19,7 +18,7 @@ const usePreferencesStore = create<PreferencesState>()(
         (set) => ({
             adminMode: false,
             setAdminMode: (mode) => set({ adminMode: mode }),
-            dashboardTab: DASHBOARD_TABS.CHAT,
+            dashboardTab: DASHBOARD_TABS.LIST,
             setDashboardTab: (tab) => set({ dashboardTab: tab }),
             theme: THEMES.DARK,
             setTheme: (theme) => set({ theme }),
@@ -32,8 +31,6 @@ const usePreferencesStore = create<PreferencesState>()(
             },
             openLinksWindowed: false,
             setOpenLinksWindowed: (value) => set({ openLinksWindowed: value }),
-            chatSidebarView: CHAT_SIDEBAR_VIEW_MODE.TREE,
-            setChatSidebarView: (view) => set({ chatSidebarView: view }),
             product: 'cloud',
             setProduct: (product) => set({ product }),
             affiliatePeriod: AFFILIATE_PERIOD.ALL,
@@ -44,7 +41,7 @@ const usePreferencesStore = create<PreferencesState>()(
             migrate: (persisted, version) => {
                 const state = persisted as PreferencesState
                 if (!VALID_TABS.has(state.dashboardTab)) {
-                    state.dashboardTab = DASHBOARD_TABS.CHAT
+                    state.dashboardTab = DASHBOARD_TABS.LIST
                 }
                 if (version < 2) {
                     state.theme = state.theme || THEMES.SYSTEM
@@ -54,10 +51,6 @@ const usePreferencesStore = create<PreferencesState>()(
                 }
                 if (version < 4) {
                     state.openLinksWindowed = state.openLinksWindowed ?? false
-                }
-                if (version < 5) {
-                    state.chatSidebarView =
-                        state.chatSidebarView || CHAT_SIDEBAR_VIEW_MODE.TREE
                 }
                 if (version < 6) {
                     state.product = state.product || 'cloud'

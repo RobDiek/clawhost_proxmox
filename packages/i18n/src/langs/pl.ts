@@ -148,8 +148,6 @@ const pl: Translations = {
         comparisonSetupOthers: 'Wdróż jednym kliknięciem',
         comparisonUpdatesUs: 'Automatyczne aktualizacje',
         comparisonUpdatesOthers: 'Automatyczne aktualizacje',
-        comparisonAgentsUs: 'Wielu agentów',
-        comparisonAgentsOthers: 'Wielu agentów',
         faqTitle: 'Pytania',
         faqHeading: 'Często zadawane pytania',
         faqDescription: 'Wszystko, co musisz wiedzieć o ClawHost Go.',
@@ -205,7 +203,6 @@ const pl: Translations = {
         failedToStartClaw: 'Nie udało się uruchomić claw !',
         noVersionAssigned: 'Nie przypisano wersji OpenClaw do tego claw !',
         invalidAgentName: 'Nieprawidłowa nazwa agenta !',
-        agentNameAlreadyExists: 'Agent o tej nazwie już istnieje !',
         invalidPath: 'Nieprawidłowa ścieżka !',
         fileNotFound: 'Nie znaleziono pliku !',
         purchasingNotAvailable: 'Zakupy nie są dostępne w trybie lokalnym !',
@@ -453,18 +450,6 @@ const pl: Translations = {
         locationsFetched: 'Lokalizacje pobrane pomyślnie.',
         volumePricingFetched: 'Cennik wolumenów pobrany pomyślnie.',
         planAvailabilityFetched: 'Dostępność planów pobrana pomyślnie.',
-        agentsFetched: 'Agenci pobrani pomyślnie.',
-        agentsFetchFailed:
-            'Nie udało się połączyć z instancją, aby pobrać agentów !',
-        agentCreated: 'Agent utworzony pomyślnie.',
-        agentCreateFailed: 'Nie udało się utworzyć agenta na instancji !',
-        agentDeleted: 'Agent usunięty pomyślnie.',
-        agentDeleteFailed: 'Nie udało się usunąć agenta z instancji !',
-        cannotDeleteMainAgent: 'Nie można usunąć jedynego pozostałego agenta !',
-        agentNameInvalid:
-            'Nazwa agenta może zawierać tylko litery, cyfry i myślniki !',
-        agentNameDuplicate: 'Agent o tej nazwie już istnieje !',
-        invalidEnvVars: 'Nieprawidłowe zmienne środowiskowe!',
         diagnosticsFetched: 'Diagnostyka pobrana pomyślnie.',
         logsFetched: 'Logi pobrane pomyślnie.',
         filesFetched: 'Pliki pobrane pomyślnie.',
@@ -488,9 +473,6 @@ const pl: Translations = {
         failedToDisconnectAuthMethod:
             'Nie udało się odłączyć metody uwierzytelniania !',
         textRequired: 'Tekst jest wymagany !',
-        voiceNotFound: 'Nie znaleziono modelu głosu !',
-        ttsGenerationFailed: 'Nie udało się wygenerować mowy !',
-        voicesFetched: 'Głosy pobrane pomyślnie.',
         featureEmailsDisabled: 'Emaile o funkcjach są obecnie wyłączone.',
         featureEmailsSent: 'Emaile o funkcjach wysłane pomyślnie.',
         featureEmailsFailed: 'Nie udało się wysłać emaili o funkcjach !',
@@ -579,25 +561,6 @@ const pl: Translations = {
                 description:
                     'Playground daje Ci interaktywne płótno grafowe pokazujące wszystkie Twoje claws i agentów. Kliknij dowolny węzeł, aby nim zarządzać — wizualne centrum dowodzenia Twoją infrastrukturą.',
                 cta: 'Otwórz Playground'
-            },
-            agentChat: {
-                subject: 'Czy wiesz? Rozmawiaj ze swoimi agentami AI',
-                preview: 'Rozmawiaj z agentami bezpośrednio z panelu',
-                tag: 'Czat z agentem',
-                heading: 'Rozmawiaj ze swoimi agentami',
-                description:
-                    'Czatuj ze swoimi agentami AI bezpośrednio z panelu ClawHost. Wysyłaj wiadomości, dołączaj obrazy i przeglądaj historię rozmów — wszystko w jednym miejscu.',
-                cta: 'Rozpocznij czat'
-            },
-            voiceMode: {
-                subject: 'Czy wiesz? Rozmawiaj z agentami głosem',
-                preview:
-                    'Użyj mowy na tekst i tekstu na mowę ze swoimi agentami',
-                tag: 'Tryb głosowy',
-                heading: 'Mów, nie pisz',
-                description:
-                    'Użyj trybu głosowego, aby rozmawiać z agentami AI bez użycia rąk. Mowa na tekst do wprowadzania, tekst na mowę do odpowiedzi — wybierz spośród wielu głosów.',
-                cta: 'Wypróbuj tryb głosowy'
             },
             diagnostics: {
                 subject: 'Czy wiesz? Wbudowane kontrole stanu',
@@ -835,7 +798,6 @@ const pl: Translations = {
             'Płatność zakończona sukcesem. Twoja licencja jest teraz aktywna.',
         failedToPurchase: 'Nie udało się rozpocząć płatności !',
         featureUnlimitedClaws: 'Nieograniczone OpenClaws',
-        featureUnlimitedAgents: 'Nieograniczeni agenci',
         featureDevices: 'Nieograniczone urządzenia',
         featureUpdates: 'Aktualizacje na zawsze',
         featureSupport: 'Priorytetowe wsparcie',
@@ -887,7 +849,7 @@ const pl: Translations = {
         copySshWithKey: 'Kopiuj SSH (z kluczem)',
         copySshWithPassword: 'Kopiuj SSH (z hasłem)',
         connect: 'Kopiuj polecenie SSH',
-        viewServerCredentials: 'Pokaż dane serwera',
+        viewServerCredentials: 'Dane serwera',
         serverCredentials: 'Dane serwera',
         serverCredentialsDescription:
             'Użyj tych danych, aby połączyć się z serwerem przez SSH.',
@@ -995,7 +957,7 @@ const pl: Translations = {
         dnsSetupButton: 'Skonfiguruj DNS',
         dnsSetupSuccess: 'Resolver DNS skonfigurowany pomyślnie.',
         dnsSetupError: 'Nie udało się skonfigurować resolvera DNS !',
-        chatTab: 'Czat',
+        listTab: 'Claws',
         playgroundTab: 'Playground',
         userTab: 'Użytkownik',
         adminTab: 'Admin',
@@ -1022,19 +984,6 @@ const pl: Translations = {
             unknown: 'Nieznany',
             checking: 'Sprawdzanie'
         }
-    },
-    chat: {
-        explorer: 'Eksplorator',
-        selectAgent: 'Brak wyboru',
-        selectAgentDescription: 'Wybierz claw lub agenta z panelu bocznego.',
-        noAgents: 'Brak dostępnych agentów',
-        noAgentsDescription: 'Wdróż claw, aby rozpocząć czat z agentami.',
-        openSidebar: 'Otwórz panel boczny',
-        clawNotReady: 'Claw nie jest jeszcze gotowy',
-        addAgent: 'Dodaj agenta',
-        viewTree: 'Widok drzewa',
-        viewList: 'Widok listy',
-        clawSettings: 'Ustawienia claw'
     },
     createClaw: {
         title: 'Wdróż OpenClaw',
@@ -1216,12 +1165,6 @@ const pl: Translations = {
         clawHostControl: 'Panel ClawHost',
         clawHostControlDescription:
             'Zarządzaj plikami, aktualizacjami i innymi opcjami konfiguracji bezpośrednio z platformy.',
-        directChat: 'Bezpośredni czat',
-        directChatDescription:
-            'Rozmawiaj ze swoimi agentami AI bezpośrednio z platformy. Bez potrzeby zewnętrznych narzędzi czy interfejsów.',
-        multipleAgents: 'Wielu agentów',
-        multipleAgentsDescription:
-            'Uruchamiaj i zarządzaj wieloma agentami AI na jednej instancji. Każdy z własną konfiguracją i przeznaczeniem.',
         multipleClaws: 'Wiele Claws',
         multipleClawsDescription:
             'Wdrażaj i zarządzaj wieloma instancjami OpenClaw z jednego panelu. Skaluj wraz ze wzrostem.',
@@ -1345,8 +1288,6 @@ const pl: Translations = {
         comparisonDataOthers: 'Nie posiadasz swoich danych',
         comparisonMultipleUs: 'Wiele OpenClaw, jeden Claw',
         comparisonMultipleOthers: 'Tylko jeden OpenClaw',
-        comparisonAgentsUs: 'Wielu agentów na Claw',
-        comparisonAgentsOthers: 'Tylko jeden agent',
         comparisonOpenSourceUs: 'W pełni open source',
         comparisonOpenSourceOthers: 'Zamknięte źródło',
         comparisonExportUs: 'Eksportuj OpenClaw gdziekolwiek',
@@ -1355,8 +1296,6 @@ const pl: Translations = {
         comparisonProvidersOthers: 'Tylko jeden dostawca',
         comparisonSocialsUs: 'Obecność w mediach społecznościowych',
         comparisonSocialsOthers: 'Brak mediów społecznościowych',
-        comparisonChatUs: 'Czatuj bezpośrednio ze swoim Claw',
-        comparisonChatOthers: 'Czat tylko przez platformy zewnętrzne',
         comparisonVersionUs: 'Zmiana wersji jednym kliknięciem',
         comparisonVersionOthers: 'Tylko ręczne aktualizacje',
         comparisonTerminalUs: 'Wbudowany terminal webowy',
@@ -1572,18 +1511,15 @@ const pl: Translations = {
         noClawsYet: 'Brak Claws',
         noClawsDescription:
             'Wdróż swojego pierwszego Claw, aby z nim interakcjonować.',
-        loadingAgents: 'Ładowanie agentów',
+        selectClaw: 'Wybierz Claw',
+        selectClawDescription:
+            'Wybierz Claw z paska bocznego, aby zobaczyć szczegóły.',
         unreachable: 'Nieosiągalny',
         offline: 'Offline',
-        noAgents: 'Brak agentów',
-        agentCount: '{{count}} Agent',
-        agentCountPlural: '{{count}} Agentów',
-        agentModel: 'Model',
         zoomLabel: '{{percent}}%',
         fitView: 'Wyśrodkuj',
         nodesOutOfView: 'Claws poza widokiem',
         nodeOutOfView: 'Claw poza widokiem',
-        addAgent: 'Dodaj agenta',
         closeDetails: 'Zamknij',
         tabInfo: 'Info',
         tabLogs: 'Logi',
@@ -1601,117 +1537,7 @@ const pl: Translations = {
         loadingTip2: 'Czy wiesz, że OpenClaw jest open source?',
         loadingTip3:
             'ClawHost to pierwszy projekt umożliwiający hosting OpenClaw jednym kliknięciem.',
-        tabChat: 'Czat',
         tabSettings: 'Ustawienia',
-        agentOnClaw: 'na {{clawName}}',
-        cannotDeleteDefaultAgent: 'Domyślny agent nie może zostać usunięty !',
-        addAgentTitle: 'Dodaj agenta',
-        addAgentDescription: 'Dodaj nowego agenta do {{clawName}}.',
-        addAgentDescriptionNoClaw: 'Wybierz claw i skonfiguruj nowego agenta.',
-        addAgentSelectClaw: 'Claw',
-        addAgentSelectClawPlaceholder: 'Wybierz claw',
-        addAgentName: 'Nazwa',
-        addAgentNamePlaceholder: 'Wpisz nazwę agenta',
-        addAgentModel: 'Model',
-        addAgentModelPlaceholder: 'Wybierz model',
-        addAgentApiKey: 'Klucz API',
-        addAgentApiKeyPlaceholder: 'Wpisz klucz API (opcjonalnie)',
-        addAgentApiKeyConfigured:
-            '{{envVar}} jest już skonfigurowany na tej instancji.',
-        addAgentSubmit: 'Dodaj agenta',
-        addAgentSuccess: 'Agent dodany pomyślnie.',
-        addAgentFailed: 'Nie udało się dodać agenta !',
-        deleteAgent: 'Usuń agenta',
-        deleteAgentTitle: 'Usuń agenta',
-        deleteAgentDescription:
-            'Czy na pewno chcesz usunąć agenta „{{agentName}}"? Tej akcji nie można cofnąć.',
-        deleteAgentConfirm: 'Usuń',
-        agentDontAskAgain:
-            'Nie pytaj ponownie przy usuwaniu agentów w tej sesji',
-        deleteAgentDeleting: 'Usuwanie...',
-        deleteAgentSuccess: 'Agent usunięty pomyślnie.',
-        deleteAgentFailed: 'Nie udało się usunąć agenta !',
-        agentNameRequired: 'Nazwa agenta jest wymagana !',
-        agentNameInvalidChars: 'Dozwolone są tylko litery, cyfry i myślniki !',
-        agentNameDuplicate: 'Agent o tej nazwie już istnieje !',
-        chatConnecting: 'Łączenie...',
-        chatAuthenticating: 'Uwierzytelnianie...',
-        chatDisconnected: 'Rozłączony',
-        chatError: 'Błąd połączenia !',
-        chatConnected: 'Połączony',
-        chatInputPlaceholder: 'Wpisz wiadomość...',
-        chatInputDisabled: 'Połącz się, aby czatować z tym agentem',
-        chatSend: 'Wyślij wiadomość',
-        chatAbort: 'Zatrzymaj',
-        chatStopProcess: 'Zatrzymaj proces',
-        chatRemoveAttachment: 'Usuń załącznik',
-        chatThinking: 'Myślenie',
-        chatLoadingHistory: 'Ładowanie wiadomości...',
-        chatNoMessages: 'Brak wiadomości',
-        chatNoMessagesDescription:
-            'Wyślij wiadomość, aby rozpocząć rozmowę z tym agentem.',
-        chatErrorMessage: 'Wystąpił błąd podczas generowania odpowiedzi !',
-        chatAbortedMessage: 'Odpowiedź została zatrzymana.',
-        chatPlaySpeech: 'Czytaj na głos',
-        chatReplaySpeech: 'Odtwórz ponownie',
-        chatStopSpeech: 'Zatrzymaj',
-        chatSpeechFailed: 'Nie udało się wygenerować mowy !',
-        chatReadOnlyPlaceholder: 'Czat dostępny na Twoich własnych Claws.',
-        chatReadOnlyUser:
-            'Cześć! Czy możesz mi pomóc skonfigurować projekt Node.js?',
-        chatReadOnlyAssistant:
-            'Oczywiście! Mogę pomóc Ci zainicjalizować nowy projekt Node.js. Czy chcesz, żebym utworzył package.json z popularnymi zależnościami?',
-        chatReadOnlyReply:
-            'To jest podgląd! Wdróż własnego OpenClaw jednym kliknięciem i zacznij czatować ze swoimi agentami AI w kilka minut!',
-        chatReadOnlyUser2:
-            'Czy możesz uruchomić zestaw testów i sprawdzić błędy?',
-        chatReadOnlyAssistant2:
-            'Jasne! Uruchamiam wszystkie testy. 3 przeszły, 0 błędów. Wszystko wygląda dobrze — wszystkie asercje przechodzą.',
-        chatReadOnlyGoUser:
-            'Hej, czy możesz mi pomóc zautomatyzować pipeline wdrożeniowy?',
-        chatReadOnlyGoAssistant:
-            'Oczywiście! Mogę skonfigurować pipeline CI/CD. Chcesz, żebym zaczął od workflow GitHub Actions, który automatycznie buduje, testuje i wdraża?',
-        chatReadOnlyGoReply:
-            'To jest podgląd! Pobierz ClawHost Go i uruchom OpenClaw lokalnie — Twój komputer, Twoje dane, bez chmury.',
-        chatReadOnlyGoUser2:
-            'Czy możesz monitorować moje lokalne usługi i ostrzec mnie, jeśli coś padnie?',
-        chatReadOnlyGoAssistant2:
-            'Już się tym zajmuję! Skonfiguruję kontrole stanu dla wszystkich Twoich usług. Obecnie monitoruję 4 endpointy — wszystkie zdrowe i odpowiadają.',
-        chatConnectionFailed: 'Nie udało się połączyć z tym agentem !',
-        chatConnectionFailedDescription:
-            'Upewnij się, że Claw działa i jest osiągalny.',
-        chatToday: 'Dzisiaj',
-        chatYesterday: 'Wczoraj',
-        chatExpandFullscreen: 'Rozwiń czat',
-        chatAttachFile: 'Dołącz plik',
-        chatDropFiles: 'Upuść pliki, aby dołączyć',
-        chatDropFilesDescription: 'Obrazy, PDF-y i pliki tekstowe do 5 MB.',
-        chatVoiceInput: 'Wejście głosowe',
-        chatVoiceListening: 'Słucham...',
-        chatVoiceNotSupported:
-            'Wejście głosowe nie jest obsługiwane w tej przeglądarce.',
-        chatVoiceMode: 'Tryb głosowy',
-        chatVoiceModeTapToSpeak: 'Dotknij, aby zacząć mówić',
-        chatVoiceModeListening: 'Słucham...',
-        chatVoiceModeClose: 'Zakończ tryb głosowy',
-        chatVoiceModeTranscribing: 'Transkrypcja...',
-        chatVoiceModeThinking: 'Myślenie...',
-        chatVoiceModeResponding: 'Odpowiadanie...',
-        chatVoiceModePreparing: 'Przygotowywanie mowy...',
-        chatVoiceModeSpeaking: 'Mówienie...',
-        chatVoiceModeInputDevice: 'Mikrofon',
-        chatVoiceModeOutputDevice: 'Głośnik',
-        chatVoiceModeNotSupported:
-            'Rozpoznawanie głosu nie jest obsługiwane w tej przeglądarce.',
-        chatVoiceModeNoMicrophone:
-            'Nie wykryto mikrofonu. Podłącz go, aby użyć trybu głosowego.',
-        chatVoiceModeNoSpeaker:
-            'Nie wykryto głośnika. Podłącz go, aby użyć trybu głosowego.',
-        chatAttachmentNotSupported:
-            'Ten typ pliku nie jest obsługiwany. Użyj obrazów, PDF-ów lub plików tekstowych.',
-        chatNoPreview: 'Podgląd niedostępny.',
-        chatDownloadFile: 'Pobierz plik',
-        chatCopyMessage: 'Kopiuj wiadomość',
         featureVersionUnsupported: '{{feature}} nie obsługiwane na {{version}}',
         featureVersionUnsupportedDescription:
             'Nie obsługujemy zarządzania {{feature}} w tej wersji przez nasz interfejs. Możesz nadal zarządzać tym przez SSH, Terminal lub panel sterowania OpenClaw.',
@@ -1719,6 +1545,7 @@ const pl: Translations = {
         featureVersionUnsupportedSupported: 'Obsługiwane wersje:',
         featureVersionUnsupportedNewer: 'nowsze wersje',
         tabVersions: 'Wersje',
+        tabFiles: 'Eksplorator plików',
         versionsSearch: 'Szukaj wersji...',
         versionsEmpty: 'Nie znaleziono wersji',
         versionsEmptyDescription: 'Brak wersji pasujących do wyszukiwania.',
@@ -1930,12 +1757,8 @@ const pl: Translations = {
         signOut: 'Wyloguj się',
         signedInAs: 'Zalogowany jako',
         loadMore: 'Załaduj więcej',
-        chatWithYourClaw: 'Czatuj ze swoim Claw',
         deployClaw: 'Wdróż Claw',
-        deployYourFirstClaw: 'Wdróż swojego pierwszego Claw',
-        voiceMode: 'Tryb głosowy',
-        voiceListening: 'Słucham...',
-        voiceTapToSpeak: 'Dotknij kulę, aby zacząć'
+        deployYourFirstClaw: 'Wdróż swojego pierwszego Claw'
     },
     announcement: {
         title: 'Informacja o usłudze',
@@ -1984,8 +1807,6 @@ const pl: Translations = {
         featureSetupTime: 'Czas konfiguracji',
         featureOneClickDeploy: 'Wdrożenie jednym kliknięciem',
         featureMultipleInstances: 'Wiele instancji',
-        featureMultipleAgents: 'Wielu agentów na instancję',
-        featureAgentConfig: 'Konfiguracja agenta',
         featureDataOwnership: 'Pełna własność danych',
         featureDataExport: 'Eksport danych',
         featureBackups: 'Kopie zapasowe',
@@ -2000,7 +1821,6 @@ const pl: Translations = {
         featureMultiLanguage: 'Wielojęzyczny interfejs',
         featureMobileApp: 'Aplikacja mobilna',
         featureDesktopApp: 'Aplikacja desktopowa',
-        featureDirectChat: 'Bezpośredni czat',
         featureOneClickVersion: 'Zmiana wersji jednym kliknięciem',
         featureWebTerminal: 'Dostęp przez terminal webowy',
         featureSocials: 'Media społecznościowe',
@@ -2064,7 +1884,6 @@ const pl: Translations = {
         iosMacOs: 'iOS i macOS',
         macOsOnly: 'Tylko macOS',
         viaTelegram: 'Przez Telegram',
-        builtInChat: 'Wbudowany',
         builtInTerminal: 'Bez potrzeby SSH',
         notAvailable: 'Niedostępne',
         disclaimer: 'Coś się zmieniło lub jest błąd? Napisz do nas na',

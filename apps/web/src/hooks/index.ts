@@ -87,19 +87,10 @@ import {
     GITHUB_STARS_QUERY_KEY
 } from '@/hooks/useGitHubStars'
 
-import {
-    useClawAgents,
-    useAllClawAgents,
-    usePlaygroundGraph,
-    PLAYGROUND_AGENTS_QUERY_KEY
-} from '@/hooks/usePlayground'
+import { usePlaygroundGraph } from '@/hooks/usePlayground'
 
-import useAgentChat from '@/hooks/useAgentChat/useAgentChat'
 import useClawCardActions from '@/hooks/useClawCardActions'
-import useGatewayState from '@/hooks/useGatewayState'
 import useScrollToBottom from '@/hooks/useScrollToBottom'
-import useSpeechRecognition from '@/hooks/useSpeechRecognition'
-import useTextToSpeech from '@/hooks/useTextToSpeech'
 import useDebouncedValue from '@/hooks/useDebouncedValue'
 import useNetworkStatus from '@/hooks/useNetworkStatus'
 import useThemeEffect from '@/hooks/useThemeEffect'
@@ -113,7 +104,6 @@ import usePaginationState from '@/hooks/usePaginationState'
 import useURLStateRestoration from '@/hooks/useURLStateRestoration'
 import useClawSettingsForm from '@/hooks/useClawSettingsForm'
 import useLinkedProvider from '@/hooks/useLinkedProvider'
-import useAgentNameValidation from '@/hooks/useAgentNameValidation'
 import createApiMutation from '@/hooks/createApiMutation'
 import useToast from '@/hooks/useToast'
 import useCopyWithFeedback from '@/hooks/useCopyWithFeedback'
@@ -188,18 +178,11 @@ export {
     useGitHubStars,
     GITHUB_REPO_URL,
     GITHUB_STARS_QUERY_KEY,
-    useClawAgents,
-    useAllClawAgents,
     usePlaygroundGraph,
-    PLAYGROUND_AGENTS_QUERY_KEY,
-    useAgentChat,
     useClawCardActions,
     useDebouncedValue,
     useNetworkStatus,
-    useGatewayState,
     useScrollToBottom,
-    useSpeechRecognition,
-    useTextToSpeech,
     useThemeEffect,
     useLanguageEffect,
     useAppVersion,
@@ -211,7 +194,6 @@ export {
     useURLStateRestoration,
     useClawSettingsForm,
     useLinkedProvider,
-    useAgentNameValidation,
     createApiMutation,
     useToast,
     useCopyWithFeedback,

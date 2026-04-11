@@ -5,7 +5,6 @@ import type {
     ClawCredentialsResponse,
     RenameClawData,
     UpdateClawSubdomainData,
-    ClawAgentsResponse,
     ClawFilesResponse,
     ClawVersionResponse,
     ClawVersionsResponse,
@@ -22,9 +21,6 @@ import type {
     ReadClawFileResponse,
     ResolveCredentialConflictData,
     SSHKey,
-    CreateAgentData,
-    CreateAgentResponse,
-    DeleteAgentData,
     UpdateClawFileData,
     UpdateProfileData,
     UserProfile,
@@ -131,12 +127,6 @@ const api = {
             id,
             version
         ) as Promise<InstallClawVersionResponse>,
-    getClawAgents: (id: string) =>
-        invoke('getClawAgents', id) as Promise<ClawAgentsResponse>,
-    createClawAgent: (id: string, data: CreateAgentData) =>
-        invoke('createClawAgent', id, data) as Promise<CreateAgentResponse>,
-    deleteClawAgent: (id: string, data: DeleteAgentData) =>
-        invoke('deleteClawAgent', id, data) as Promise<void>,
     exportClaw: async (id: string, filename: string) => {
         await invoke('exportClaw', id, filename)
     },

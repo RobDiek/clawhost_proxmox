@@ -2,7 +2,6 @@ import { api } from '@/lib/api'
 import cn from '@/lib/utils'
 import PATHS from '@/lib/paths'
 import {
-    AGENT_DETAIL_TABS,
     CLAW_DETAIL_TABS,
     DASHBOARD_TABS,
     LANGUAGES,
@@ -17,7 +16,6 @@ import getLocale from '@/lib/getLocale'
 import TRUNCATE_LENGTHS from '@/lib/truncateLengths'
 import fireConfetti from '@/lib/fireConfetti'
 import copyToClipboard from '@/lib/copyToClipboard'
-import generateRandomAgentName from '@/lib/generateRandomAgentName'
 import reportWebVitals from '@/lib/reportWebVitals'
 import isSafeRedirectUrl from '@/lib/isSafeRedirectUrl'
 import { formatDate, formatCurrency } from '@/lib/formatters'
@@ -34,7 +32,6 @@ export {
     ROUTES,
     SCROLL_SECTIONS,
     DASHBOARD_TABS,
-    AGENT_DETAIL_TABS,
     CLAW_DETAIL_TABS,
     THEMES,
     LANGUAGES,
@@ -45,7 +42,6 @@ export {
     TRUNCATE_LENGTHS,
     fireConfetti,
     copyToClipboard,
-    generateRandomAgentName,
     reportWebVitals,
     formatDate,
     formatCurrency,

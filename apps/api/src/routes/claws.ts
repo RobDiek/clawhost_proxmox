@@ -21,9 +21,6 @@ import {
     updateClawFile,
     reinstallClaw,
     exportClaw,
-    getClawAgents,
-    createClawAgent,
-    deleteClawAgent,
     getClawVersion,
     getClawVersions,
     installClawVersion,
@@ -51,9 +48,6 @@ app.post('/:id/diagnostics/logs', getClawLogs)
 app.post('/:id/diagnostics/repair', adminOnly, repairClaw)
 app.post('/:id/reinstall', reinstallClaw)
 app.get('/:id/export', exportClaw)
-app.post('/:id/agents', getClawAgents)
-app.post('/:id/agents/create', createClawAgent)
-app.post('/:id/agents/delete', deleteClawAgent)
 app.post('/:id/files', listClawFiles)
 app.post('/:id/files/read', readClawFile)
 app.put('/:id/files', updateClawFile)

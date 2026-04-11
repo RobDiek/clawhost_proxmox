@@ -6,8 +6,6 @@ import TerminalEmail from '@/emails/TerminalEmail'
 import LogsEmail from '@/emails/LogsEmail'
 import FileExplorerEmail from '@/emails/FileExplorerEmail'
 import PlaygroundEmail from '@/emails/PlaygroundEmail'
-import AgentChatEmail from '@/emails/AgentChatEmail'
-import VoiceModeEmail from '@/emails/VoiceModeEmail'
 import DiagnosticsEmail from '@/emails/DiagnosticsEmail'
 import SshKeysEmail from '@/emails/SshKeysEmail'
 import ExportConfigEmail from '@/emails/ExportConfigEmail'
@@ -38,16 +36,6 @@ const FEATURE_EMAILS: FeatureEmailDefinition[] = [
         key: featureEmailKey.playground,
         subject: t('emails.features.playground.subject'),
         render: () => PlaygroundEmail({})
-    },
-    {
-        key: featureEmailKey.agentChat,
-        subject: t('emails.features.agentChat.subject'),
-        render: () => AgentChatEmail({})
-    },
-    {
-        key: featureEmailKey.voiceMode,
-        subject: t('emails.features.voiceMode.subject'),
-        render: () => VoiceModeEmail({})
     },
     {
         key: featureEmailKey.diagnostics,

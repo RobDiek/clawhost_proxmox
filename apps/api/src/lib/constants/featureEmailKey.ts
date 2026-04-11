@@ -3,8 +3,6 @@ const featureEmailKey = {
     logs: 'logs',
     fileExplorer: 'fileExplorer',
     playground: 'playground',
-    agentChat: 'agentChat',
-    voiceMode: 'voiceMode',
     diagnostics: 'diagnostics',
     sshKeys: 'sshKeys',
     exportConfig: 'exportConfig',

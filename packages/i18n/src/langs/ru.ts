@@ -148,8 +148,6 @@ const ru: Translations = {
         comparisonSetupOthers: 'Развёртывание в один клик',
         comparisonUpdatesUs: 'Автоматические обновления',
         comparisonUpdatesOthers: 'Автоматические обновления',
-        comparisonAgentsUs: 'Несколько агентов',
-        comparisonAgentsOthers: 'Несколько агентов',
         faqTitle: 'Вопросы',
         faqHeading: 'Частые вопросы',
         faqDescription: 'Всё, что нужно знать о ClawHost Go.',
@@ -205,7 +203,6 @@ const ru: Translations = {
         failedToStartClaw: 'Не удалось запустить claw!',
         noVersionAssigned: 'Этому claw не назначена версия OpenClaw!',
         invalidAgentName: 'Недопустимое имя агента!',
-        agentNameAlreadyExists: 'Агент с таким именем уже существует!',
         invalidPath: 'Недопустимый путь!',
         fileNotFound: 'Файл не найден!',
         purchasingNotAvailable: 'Покупка недоступна в локальном режиме!',
@@ -446,19 +443,6 @@ const ru: Translations = {
         locationsFetched: 'Локации успешно загружены.',
         volumePricingFetched: 'Цены на тома успешно загружены.',
         planAvailabilityFetched: 'Доступность тарифов успешно загружена.',
-        agentsFetched: 'Агенты успешно загружены.',
-        agentsFetchFailed:
-            'Не удалось подключиться к экземпляру для загрузки агентов!',
-        agentCreated: 'Агент успешно создан.',
-        agentCreateFailed: 'Не удалось создать агента на экземпляре!',
-        agentDeleted: 'Агент успешно удалён.',
-        agentDeleteFailed: 'Не удалось удалить агента с экземпляра!',
-        cannotDeleteMainAgent:
-            'Невозможно удалить единственного оставшегося агента!',
-        agentNameInvalid:
-            'Имя агента может содержать только буквы, цифры и дефисы!',
-        agentNameDuplicate: 'Агент с таким именем уже существует!',
-        invalidEnvVars: 'Неверные переменные окружения!',
         diagnosticsFetched: 'Диагностика успешно загружена.',
         logsFetched: 'Логи успешно загружены.',
         filesFetched: 'Файлы успешно загружены.',
@@ -481,9 +465,6 @@ const ru: Translations = {
         failedToDisconnectAuthMethod:
             'Не удалось отключить метод аутентификации!',
         textRequired: 'Текст обязателен!',
-        voiceNotFound: 'Голосовая модель не найдена!',
-        ttsGenerationFailed: 'Не удалось сгенерировать речь!',
-        voicesFetched: 'Голоса успешно загружены.',
         featureEmailsDisabled:
             'Информационные письма в настоящее время отключены.',
         featureEmailsSent: 'Информационные письма успешно отправлены.',
@@ -569,24 +550,6 @@ const ru: Translations = {
                 description:
                     'Playground предоставляет интерактивный граф со всеми вашими клоу и агентами. Нажмите на любой узел для управления — визуальный центр управления вашей инфраструктурой.',
                 cta: 'Открыть Playground'
-            },
-            agentChat: {
-                subject: 'Знаете ли вы? Общайтесь с ИИ-агентами',
-                preview: 'Разговаривайте с агентами прямо из панели',
-                tag: 'Чат с агентом',
-                heading: 'Общайтесь с агентами',
-                description:
-                    'Общайтесь с ИИ-агентами прямо из панели ClawHost. Отправляйте сообщения, прикрепляйте изображения и просматривайте историю — всё в одном месте.',
-                cta: 'Начать общение'
-            },
-            voiceMode: {
-                subject: 'Знаете ли вы? Говорите с агентами голосом',
-                preview: 'Используйте распознавание и синтез речи с агентами',
-                tag: 'Голосовой режим',
-                heading: 'Говорите, а не печатайте',
-                description:
-                    'Используйте голосовой режим для общения с ИИ-агентами без рук. Распознавание речи для ввода, синтез речи для ответов — выбирайте из нескольких голосов.',
-                cta: 'Попробовать голосовой режим'
             },
             diagnostics: {
                 subject: 'Знаете ли вы? Встроенные проверки состояния',
@@ -820,7 +783,6 @@ const ru: Translations = {
         paymentSuccess: 'Оплата прошла успешно. Ваша лицензия теперь активна.',
         failedToPurchase: 'Не удалось начать оформление !',
         featureUnlimitedClaws: 'Неограниченное количество OpenClaw',
-        featureUnlimitedAgents: 'Неограниченное количество агентов',
         featureDevices: 'Неограниченное количество устройств',
         featureUpdates: 'Обновления навсегда',
         featureSupport: 'Приоритетная поддержка',
@@ -872,7 +834,7 @@ const ru: Translations = {
         copySshWithKey: 'Копировать SSH (с ключом)',
         copySshWithPassword: 'Копировать SSH (с паролем)',
         connect: 'Копировать SSH-команду',
-        viewServerCredentials: 'Просмотреть учётные данные сервера',
+        viewServerCredentials: 'Учётные данные сервера',
         serverCredentials: 'Учётные данные сервера',
         serverCredentialsDescription:
             'Используйте эти учётные данные для подключения к серверу через SSH.',
@@ -980,7 +942,7 @@ const ru: Translations = {
         dnsSetupButton: 'Настроить DNS',
         dnsSetupSuccess: 'DNS-резолвер успешно настроен.',
         dnsSetupError: 'Не удалось настроить DNS-резолвер !',
-        chatTab: 'Чат',
+        listTab: 'Claws',
         playgroundTab: 'Playground',
         userTab: 'Пользователь',
         adminTab: 'Админ',
@@ -1007,20 +969,6 @@ const ru: Translations = {
             unknown: 'Неизвестно',
             checking: 'Проверка'
         }
-    },
-    chat: {
-        explorer: 'Обозреватель',
-        selectAgent: 'Ничего не выбрано',
-        selectAgentDescription: 'Выберите claw или агента на боковой панели.',
-        noAgents: 'Нет доступных агентов',
-        noAgentsDescription:
-            'Разверните клоу, чтобы начать общение с агентами.',
-        openSidebar: 'Открыть боковую панель',
-        clawNotReady: 'Клоу ещё не готов',
-        addAgent: 'Добавить агента',
-        viewTree: 'Древовидный вид',
-        viewList: 'Список',
-        clawSettings: 'Настройки клоу'
     },
     createClaw: {
         title: 'Развернуть OpenClaw',
@@ -1203,12 +1151,6 @@ const ru: Translations = {
         clawHostControl: 'Управление ClawHost',
         clawHostControlDescription:
             'Управляйте файлами, обновлениями и другими параметрами конфигурации прямо из платформы.',
-        directChat: 'Прямой чат',
-        directChatDescription:
-            'Общайтесь с ИИ-агентами прямо из платформы. Без внешних инструментов и интерфейсов.',
-        multipleAgents: 'Несколько агентов',
-        multipleAgentsDescription:
-            'Запускайте и управляйте несколькими ИИ-агентами на одном экземпляре. Каждый со своей конфигурацией и назначением.',
         multipleClaws: 'Несколько клоу',
         multipleClawsDescription:
             'Разворачивайте и управляйте несколькими экземплярами OpenClaw из одной панели. Масштабируйтесь по мере роста.',
@@ -1332,8 +1274,6 @@ const ru: Translations = {
         comparisonDataOthers: 'Вы не владеете данными',
         comparisonMultipleUs: 'Несколько OpenClaw, один клоу',
         comparisonMultipleOthers: 'Только один OpenClaw',
-        comparisonAgentsUs: 'Несколько агентов на клоу',
-        comparisonAgentsOthers: 'Только один агент',
         comparisonOpenSourceUs: 'Полностью открытый код',
         comparisonOpenSourceOthers: 'Закрытый код',
         comparisonExportUs: 'Экспортируйте OpenClaw куда угодно',
@@ -1342,8 +1282,6 @@ const ru: Translations = {
         comparisonProvidersOthers: 'Только один провайдер',
         comparisonSocialsUs: 'Присутствие в соцсетях',
         comparisonSocialsOthers: 'Нет соцсетей',
-        comparisonChatUs: 'Чат напрямую с вашим клоу',
-        comparisonChatOthers: 'Чат только через сторонние платформы',
         comparisonVersionUs: 'Переключение версии в один клик',
         comparisonVersionOthers: 'Только ручные обновления',
         comparisonTerminalUs: 'Встроенный веб-терминал',
@@ -1554,18 +1492,15 @@ const ru: Translations = {
         noClawsYet: 'Нет клоу',
         noClawsDescription:
             'Разверните свой первый клоу, чтобы взаимодействовать с ним.',
-        loadingAgents: 'Загрузка агентов',
+        selectClaw: 'Выберите клоу',
+        selectClawDescription:
+            'Выберите клоу на боковой панели, чтобы просмотреть его детали.',
         unreachable: 'Недоступен',
         offline: 'Не в сети',
-        noAgents: 'Нет агентов',
-        agentCount: '{{count}} агент',
-        agentCountPlural: '{{count}} агентов',
-        agentModel: 'Модель',
         zoomLabel: '{{percent}}%',
         fitView: 'Центрировать',
         nodesOutOfView: 'Клоу за пределами видимости',
         nodeOutOfView: 'Клоу за пределами видимости',
-        addAgent: 'Добавить агента',
         closeDetails: 'Закрыть',
         tabInfo: 'Инфо',
         tabLogs: 'Логи',
@@ -1583,114 +1518,7 @@ const ru: Translations = {
         loadingTip2: 'Знаете ли вы, что OpenClaw — это открытый код?',
         loadingTip3:
             'ClawHost — первый в мире проект, позволяющий хостить OpenClaw в один клик.',
-        tabChat: 'Чат',
         tabSettings: 'Настройки',
-        agentOnClaw: 'на {{clawName}}',
-        cannotDeleteDefaultAgent: 'Агента по умолчанию нельзя удалить !',
-        addAgentTitle: 'Добавить агента',
-        addAgentDescription: 'Добавить нового агента в {{clawName}}.',
-        addAgentDescriptionNoClaw: 'Выберите клоу и настройте нового агента.',
-        addAgentSelectClaw: 'Клоу',
-        addAgentSelectClawPlaceholder: 'Выберите клоу',
-        addAgentName: 'Имя',
-        addAgentNamePlaceholder: 'Введите имя агента',
-        addAgentModel: 'Модель',
-        addAgentModelPlaceholder: 'Выберите модель',
-        addAgentApiKey: 'API-ключ',
-        addAgentApiKeyPlaceholder: 'Введите ваш API-ключ (необязательно)',
-        addAgentApiKeyConfigured: '{{envVar}} уже настроен на этом экземпляре.',
-        addAgentSubmit: 'Добавить агента',
-        addAgentSuccess: 'Агент успешно добавлен.',
-        addAgentFailed: 'Не удалось добавить агента !',
-        deleteAgent: 'Удалить агента',
-        deleteAgentTitle: 'Удалить агента',
-        deleteAgentDescription:
-            'Вы уверены, что хотите удалить агента «{{agentName}}»? Это действие нельзя отменить.',
-        deleteAgentConfirm: 'Удалить',
-        agentDontAskAgain:
-            'Не спрашивать снова при удалении агентов в этой сессии',
-        deleteAgentDeleting: 'Удаление...',
-        deleteAgentSuccess: 'Агент успешно удалён.',
-        deleteAgentFailed: 'Не удалось удалить агента !',
-        agentNameRequired: 'Имя агента обязательно !',
-        agentNameInvalidChars: 'Допускаются только буквы, цифры и дефисы !',
-        agentNameDuplicate: 'Агент с таким именем уже существует !',
-        chatConnecting: 'Подключение...',
-        chatAuthenticating: 'Аутентификация...',
-        chatDisconnected: 'Отключён',
-        chatError: 'Ошибка подключения !',
-        chatConnected: 'Подключён',
-        chatInputPlaceholder: 'Введите сообщение...',
-        chatInputDisabled: 'Подключитесь для общения с этим агентом',
-        chatSend: 'Отправить сообщение',
-        chatAbort: 'Остановить',
-        chatStopProcess: 'Остановить процесс',
-        chatRemoveAttachment: 'Удалить вложение',
-        chatThinking: 'Думает',
-        chatLoadingHistory: 'Загрузка сообщений...',
-        chatNoMessages: 'Нет сообщений',
-        chatNoMessagesDescription:
-            'Отправьте сообщение, чтобы начать разговор с этим агентом.',
-        chatErrorMessage: 'Произошла ошибка при генерации ответа !',
-        chatAbortedMessage: 'Ответ был остановлен.',
-        chatPlaySpeech: 'Прочитать вслух',
-        chatReplaySpeech: 'Воспроизвести заново',
-        chatStopSpeech: 'Остановить',
-        chatSpeechFailed: 'Не удалось сгенерировать речь !',
-        chatReadOnlyPlaceholder: 'Чат доступен на ваших собственных клоу.',
-        chatReadOnlyUser: 'Привет! Можешь помочь мне настроить проект Node.js?',
-        chatReadOnlyAssistant:
-            'Конечно! Я могу помочь инициализировать новый проект Node.js. Хотите, чтобы я создал package.json с основными зависимостями?',
-        chatReadOnlyReply:
-            'Это превью! Разверните свой OpenClaw в один клик и начните общаться с ИИ-агентами за минуты!',
-        chatReadOnlyUser2: 'Можешь запустить набор тестов и проверить ошибки?',
-        chatReadOnlyAssistant2:
-            'Конечно! Запускаю все тесты. 3 пройдено, 0 ошибок. Всё в порядке — все проверки проходят.',
-        chatReadOnlyGoUser:
-            'Привет, можешь помочь автоматизировать мой пайплайн развёртывания?',
-        chatReadOnlyGoAssistant:
-            'Безусловно! Я могу настроить CI/CD-пайплайн для вас. Начнём с GitHub Actions, который собирает, тестирует и деплоит автоматически?',
-        chatReadOnlyGoReply:
-            'Это превью! Получите ClawHost Go и запустите OpenClaw локально — ваша машина, ваши данные, без облака.',
-        chatReadOnlyGoUser2:
-            'Можешь мониторить мои локальные сервисы и оповещать, если что-то упадёт?',
-        chatReadOnlyGoAssistant2:
-            'Уже на этом! Настрою проверки состояния для всех ваших сервисов. Сейчас мониторю 4 эндпоинта — все здоровы и отвечают.',
-        chatConnectionFailed: 'Не удалось подключиться к этому агенту !',
-        chatConnectionFailedDescription:
-            'Убедитесь, что клоу запущен и доступен.',
-        chatToday: 'Сегодня',
-        chatYesterday: 'Вчера',
-        chatExpandFullscreen: 'Развернуть чат',
-        chatAttachFile: 'Прикрепить файл',
-        chatDropFiles: 'Перетащите файлы для прикрепления',
-        chatDropFilesDescription: 'Изображения, PDF и текстовые файлы до 5 МБ.',
-        chatVoiceInput: 'Голосовой ввод',
-        chatVoiceListening: 'Слушаю...',
-        chatVoiceNotSupported:
-            'Голосовой ввод не поддерживается в этом браузере.',
-        chatVoiceMode: 'Голосовой режим',
-        chatVoiceModeTapToSpeak: 'Нажмите, чтобы начать говорить',
-        chatVoiceModeListening: 'Слушаю...',
-        chatVoiceModeClose: 'Завершить голосовой режим',
-        chatVoiceModeTranscribing: 'Транскрибирование...',
-        chatVoiceModeThinking: 'Думает...',
-        chatVoiceModeResponding: 'Отвечает...',
-        chatVoiceModePreparing: 'Подготовка речи...',
-        chatVoiceModeSpeaking: 'Говорит...',
-        chatVoiceModeInputDevice: 'Микрофон',
-        chatVoiceModeOutputDevice: 'Динамик',
-        chatVoiceModeNotSupported:
-            'Распознавание голоса не поддерживается в этом браузере.',
-        chatVoiceModeNoMicrophone:
-            'Микрофон не обнаружен. Подключите его для использования голосового режима.',
-        chatVoiceModeNoSpeaker:
-            'Динамик не обнаружен. Подключите его для использования голосового режима.',
-        chatAttachmentNotSupported:
-            'Этот тип файла не поддерживается. Используйте изображения, PDF или текстовые файлы.',
-        chatNoPreview: 'Предпросмотр недоступен.',
-        chatDownloadFile: 'Скачать файл',
-        chatCopyMessage: 'Копировать сообщение',
         featureVersionUnsupported:
             '{{feature}} не поддерживается на {{version}}',
         featureVersionUnsupportedDescription:
@@ -1699,6 +1527,7 @@ const ru: Translations = {
         featureVersionUnsupportedSupported: 'Поддерживаемые версии:',
         featureVersionUnsupportedNewer: 'более новые версии',
         tabVersions: 'Версии',
+        tabFiles: 'Проводник',
         versionsSearch: 'Поиск версий...',
         versionsEmpty: 'Версии не найдены',
         versionsEmptyDescription: 'Версии по вашему запросу не найдены.',
@@ -1915,12 +1744,8 @@ const ru: Translations = {
         signOut: 'Выйти',
         signedInAs: 'Вы вошли как',
         loadMore: 'Загрузить ещё',
-        chatWithYourClaw: 'Общайтесь с вашим клоу',
         deployClaw: 'Развернуть клоу',
-        deployYourFirstClaw: 'Разверните ваш первый клоу',
-        voiceMode: 'Голосовой режим',
-        voiceListening: 'Слушаю...',
-        voiceTapToSpeak: 'Нажмите на сферу, чтобы начать'
+        deployYourFirstClaw: 'Разверните ваш первый клоу'
     },
     announcement: {
         title: 'Уведомление о сервисе',
@@ -1969,8 +1794,6 @@ const ru: Translations = {
         featureSetupTime: 'Время настройки',
         featureOneClickDeploy: 'Развёртывание в один клик',
         featureMultipleInstances: 'Несколько экземпляров',
-        featureMultipleAgents: 'Несколько агентов на экземпляр',
-        featureAgentConfig: 'Конфигурация агента',
         featureDataOwnership: 'Полное владение данными',
         featureDataExport: 'Экспорт данных',
         featureBackups: 'Резервные копии',
@@ -1985,7 +1808,6 @@ const ru: Translations = {
         featureMultiLanguage: 'Мультиязычный интерфейс',
         featureMobileApp: 'Мобильное приложение',
         featureDesktopApp: 'Настольное приложение',
-        featureDirectChat: 'Прямой чат',
         featureOneClickVersion: 'Переключение версии в один клик',
         featureWebTerminal: 'Доступ через веб-терминал',
         featureSocials: 'Социальные сети',
@@ -2049,7 +1871,6 @@ const ru: Translations = {
         iosMacOs: 'iOS и macOS',
         macOsOnly: 'Только macOS',
         viaTelegram: 'Через Telegram',
-        builtInChat: 'Встроенный',
         builtInTerminal: 'SSH не нужен',
         notAvailable: 'Недоступно',
         disclaimer: 'Что-то изменилось или неверно? Напишите нам на',

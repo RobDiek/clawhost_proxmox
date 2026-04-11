@@ -1,14 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { Claw, ElectronWindow } from '@/ts/Interfaces'
 
-import {
-    Fragment,
-    lazy,
-    useState,
-    useEffect,
-    useMemo,
-    useCallback
-} from 'react'
+import { Fragment, useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
@@ -24,7 +17,6 @@ import {
     useLocations,
     useVolumePricing,
     usePlanAvailability,
-    useAllClawAgents,
     usePlaygroundGraph,
     useProfile,
     useNetworkStatus,
@@ -48,10 +40,6 @@ import {
 import { PlaygroundLoadingState } from '@/components/playground'
 import { useAuth } from '@/lib/auth'
 
-const CreateAgentModal = lazy(
-    () => import('@/components/playground/CreateAgentModal')
-)
-
 const Dashboard: FC = (): ReactNode => {
     const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams()
@@ -61,16 +49,8 @@ const Dashboard: FC = (): ReactNode => {
     const {
         selectedClawId,
         setSelectedClawId,
-        selectedAgentId,
-        setSelectedAgentId,
-        selectedAgentClawId,
-        setSelectedAgentClawId,
-        chatSelectedAgent,
-        setChatSelectedAgent,
         chatSettingsClawId,
         setChatSettingsClawId,
-        playgroundAgentTab,
-        setPlaygroundAgentTab,
         playgroundClawTab,
         setPlaygroundClawTab,
         chatClawTab,
@@ -78,11 +58,7 @@ const Dashboard: FC = (): ReactNode => {
         showCreate,
         setShowCreate,
         preselectedPlanId,
-        setPreselectedPlanId,
-        createAgentClawId,
-        setCreateAgentClawId,
-        createAgentClawName,
-        setCreateAgentClawName
+        setPreselectedPlanId
     } = useDashboardStore()
     const { showToast } = useUIStore()
     const {
@@ -159,16 +135,8 @@ const Dashboard: FC = (): ReactNode => {
         setDashboardTab,
         selectedClawId,
         setSelectedClawId,
-        selectedAgentId,
-        setSelectedAgentId,
-        selectedAgentClawId,
-        setSelectedAgentClawId,
-        chatSelectedAgent,
-        setChatSelectedAgent,
         chatSettingsClawId,
         setChatSettingsClawId,
-        playgroundAgentTab,
-        setPlaygroundAgentTab,
         playgroundClawTab,
         setPlaygroundClawTab,
         chatClawTab,
@@ -178,14 +146,6 @@ const Dashboard: FC = (): ReactNode => {
         showToast,
         awaitingClaw
     })
-
-    const handleCreateAgent = useCallback(
-        (clawId: string, clawName: string) => {
-            setCreateAgentClawId(clawId)
-            setCreateAgentClawName(clawName)
-        },
-        []
-    )
 
     const {
         data: claws,
@@ -224,16 +184,15 @@ const Dashboard: FC = (): ReactNode => {
     const isLoading =
         authLoading || activeClawsLoading || (!awaitingClaw && !minLoadingMet)
 
-    const agentQueries = useAllClawAgents(displayedClaws)
-    const { nodes, edges } = usePlaygroundGraph(displayedClaws, agentQueries)
+    const { nodes, edges } = usePlaygroundGraph(displayedClaws)
 
     const chatEmpty =
-        dashboardTab === DASHBOARD_TABS.CHAT &&
+        dashboardTab === DASHBOARD_TABS.LIST &&
         !isLoading &&
         !activeIsError &&
         displayedClaws.length === 0
     const chatHasContent =
-        dashboardTab === DASHBOARD_TABS.CHAT &&
+        dashboardTab === DASHBOARD_TABS.LIST &&
         !isLoading &&
         !activeIsError &&
         displayedClaws.length > 0
@@ -246,14 +205,6 @@ const Dashboard: FC = (): ReactNode => {
     const handleClawSelect = useCallback((clawId: string | null) => {
         setSelectedClawId(clawId)
     }, [])
-
-    const handleAgentSelect = useCallback(
-        (agentId: string | null, clawId: string | null) => {
-            setSelectedAgentId(agentId)
-            setSelectedAgentClawId(clawId)
-        },
-        []
-    )
 
     const handleCreateClick = useCallback(() => {
         setShowCreate(true)
@@ -326,18 +277,14 @@ const Dashboard: FC = (): ReactNode => {
                     <div className='flex h-full min-w-0 flex-1 items-center justify-center'>
                         <PlaygroundLoadingState />
                     </div>
-                ) : dashboardTab === DASHBOARD_TABS.CHAT ? (
+                ) : dashboardTab === DASHBOARD_TABS.LIST ? (
                     <DashboardChatView
                         displayedClaws={displayedClaws}
-                        agentQueries={agentQueries}
                         plans={plans}
                         sshKeys={sshKeys || []}
                         adminMode={adminMode}
-                        chatSelectedAgent={chatSelectedAgent}
                         chatSettingsClawId={chatSettingsClawId}
                         chatClawTab={chatClawTab}
-                        onAgentSelect={setChatSelectedAgent}
-                        onCreateAgent={handleCreateAgent}
                         onSettingsClawChange={setChatSettingsClawId}
                         onClawTabChange={setChatClawTab}
                         onCreateClick={handleCreateClick}
@@ -345,23 +292,17 @@ const Dashboard: FC = (): ReactNode => {
                 ) : (
                     <DashboardPlaygroundView
                         displayedClaws={displayedClaws}
-                        agentQueries={agentQueries}
                         adminMode={adminMode}
                         nodes={nodes}
                         edges={edges}
                         plans={plans}
                         sshKeys={sshKeys || []}
                         selectedClawId={selectedClawId}
-                        selectedAgentId={selectedAgentId}
-                        selectedAgentClawId={selectedAgentClawId}
                         playgroundClawTab={playgroundClawTab}
-                        playgroundAgentTab={playgroundAgentTab}
                         isLoading={isLoading}
                         activeIsError={activeIsError}
                         onClawSelect={handleClawSelect}
-                        onAgentSelect={handleAgentSelect}
                         onPlaygroundClawTabChange={setPlaygroundClawTab}
-                        onPlaygroundAgentTabChange={setPlaygroundAgentTab}
                         onCreateClick={handleCreateClick}
                     />
                 )}
@@ -383,20 +324,6 @@ const Dashboard: FC = (): ReactNode => {
                         setShowCreate(false)
                         setPreselectedPlanId(null)
                         navigate(ROUTES.SSH_KEYS)
-                    }}
-                />
-            )}
-
-            {createAgentClawId && (
-                <CreateAgentModal
-                    clawId={createAgentClawId}
-                    clawName={createAgentClawName}
-                    open={!!createAgentClawId}
-                    onOpenChange={(open) => {
-                        if (!open) {
-                            setCreateAgentClawId(null)
-                            setCreateAgentClawName('')
-                        }
                     }}
                 />
             )}

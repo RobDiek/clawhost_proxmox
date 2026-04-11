@@ -1,24 +1,17 @@
 import type { FC, ReactNode } from 'react'
 import type { PlaygroundClawNodeProps } from '@/ts/Interfaces'
 
-import { Fragment, useState } from 'react'
+import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
 import { clawStatus, userRole } from '@openclaw/shared'
 import { getLocale, getBaseDomain, TRUNCATE_LENGTHS } from '@/lib'
 import { useProfile, useClawCardActions } from '@/hooks'
 import { getStatusConfig, generateSlug } from '@/lib/claw-utils'
-import {
-    PlusIcon,
-    ClockIcon,
-    CircleNotchIcon,
-    AndroidLogoIcon,
-    WarningIcon
-} from '@phosphor-icons/react'
+import { ClockIcon, CircleNotchIcon, WarningIcon } from '@phosphor-icons/react'
 import {
     ClawCardDropdownMenu,
     ClawCardDialogsBundle
 } from '@/components/dashboard'
-import { CreateAgentModal } from '@/components/playground'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
 import { Handle, Position } from '@xyflow/react'
 
@@ -36,15 +29,13 @@ const handleStyle = {
 const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
     data
 }): ReactNode => {
-    const { claw, agentCount, isLoadingAgents, isSelected, readOnly } = data
+    const { claw, isSelected, readOnly } = data
     const statusConfigs = getStatusConfig()
     const status = statusConfigs[claw.status] || statusConfigs.unknown
 
     const isRunning = claw.status === clawStatus.running
     const isUnreachable = claw.status === clawStatus.unreachable
     const canShowAgents = isRunning || isUnreachable
-
-    const [showAddAgent, setShowAddAgent] = useState(false)
 
     const { actions, isMutating, dialogsProps } = useClawCardActions({ claw })
 
@@ -103,106 +94,39 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                         </span>
                     </div>
                     {!readOnly && actions && (
-                        <Fragment>
-                            <div
-                                className='flex shrink-0 items-center'
-                                onClick={(e) => e.stopPropagation()}
-                                onPointerDown={(e) => e.stopPropagation()}
-                                onMouseDown={(e) => e.stopPropagation()}
-                            >
-                                <ClawCardDropdownMenu
-                                    claw={claw}
-                                    actions={actions}
-                                    isLoading={isMutating}
-                                    hasActionItems={hasActionItems}
-                                    isScheduledForDeletion={
-                                        isScheduledForDeletion
-                                    }
-                                    isAdmin={profile?.role === userRole.admin}
-                                    compact
-                                />
-                            </div>
-                            {canShowAgents && (
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                if (!isLoadingAgents)
-                                                    setShowAddAgent(true)
-                                            }}
-                                            onPointerDown={(e) =>
-                                                e.stopPropagation()
-                                            }
-                                            onMouseDown={(e) =>
-                                                e.stopPropagation()
-                                            }
-                                            disabled={isLoadingAgents}
-                                            className={`shrink-0 rounded-md p-1 transition-colors ${
-                                                isLoadingAgents
-                                                    ? 'text-muted-foreground/50 cursor-not-allowed'
-                                                    : 'text-muted-foreground hover:bg-foreground/10 hover:text-foreground'
-                                            }`}
-                                        >
-                                            <PlusIcon
-                                                className='h-3.5 w-3.5'
-                                                weight='bold'
-                                            />
-                                        </button>
-                                    </TooltipTrigger>
-                                    <TooltipContent side='top'>
-                                        <p>{t('playground.addAgent')}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            )}
-                        </Fragment>
+                        <div
+                            className='flex shrink-0 items-center'
+                            onClick={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => e.stopPropagation()}
+                        >
+                            <ClawCardDropdownMenu
+                                claw={claw}
+                                actions={actions}
+                                isLoading={isMutating}
+                                hasActionItems={hasActionItems}
+                                isScheduledForDeletion={isScheduledForDeletion}
+                                isAdmin={profile?.role === userRole.admin}
+                                compact
+                            />
+                        </div>
                     )}
                 </div>
 
                 {canShowAgents && (
                     <div className='px-4 py-3'>
-                        {claw.status === clawStatus.running &&
-                            agentCount > 0 && (
-                                <p className='text-muted-foreground mb-2 truncate text-xs'>
-                                    {claw.subdomain || generateSlug(claw.id)}.
-                                    {getBaseDomain()}
-                                </p>
-                            )}
+                        {claw.status === clawStatus.running && (
+                            <p className='text-muted-foreground mb-2 truncate text-xs'>
+                                {claw.subdomain || generateSlug(claw.id)}.
+                                {getBaseDomain()}
+                            </p>
+                        )}
 
                         <div className='flex items-center gap-2'>
-                            {isLoadingAgents ? (
-                                <div className='bg-foreground/5 flex items-center gap-1.5 rounded-md px-2 py-1'>
-                                    <div className='border-border border-t-foreground/40 h-3 w-3 animate-spin rounded-full border' />
-                                    <span className='text-muted-foreground text-xs'>
-                                        {t('playground.loadingAgents')}
-                                    </span>
-                                </div>
-                            ) : isUnreachable ? (
+                            {isUnreachable && (
                                 <div className='bg-muted-foreground/10 flex items-center gap-1.5 rounded-md px-2 py-1'>
                                     <span className='text-muted-foreground text-xs'>
                                         {t('playground.offline')}
-                                    </span>
-                                </div>
-                            ) : agentCount === 0 ? (
-                                <div className='bg-foreground/5 flex items-center gap-1.5 rounded-md px-2 py-1'>
-                                    <span className='text-muted-foreground text-xs'>
-                                        {t('playground.noAgents')}
-                                    </span>
-                                </div>
-                            ) : (
-                                <div className='flex items-center gap-1.5 rounded-md bg-[#ef5350]/10 px-2 py-1'>
-                                    <AndroidLogoIcon
-                                        className='h-3 w-3 text-[#ef5350]'
-                                        weight='fill'
-                                    />
-                                    <span className='text-xs text-[#ef5350]'>
-                                        {agentCount === 1
-                                            ? t('playground.agentCount', {
-                                                  count: String(agentCount)
-                                              })
-                                            : t('playground.agentCountPlural', {
-                                                  count: String(agentCount)
-                                              })}
                                     </span>
                                 </div>
                             )}
@@ -320,12 +244,6 @@ const PlaygroundClawNode: FC<PlaygroundClawNodeProps> = ({
                 />
             </div>
             {dialogsProps && <ClawCardDialogsBundle {...dialogsProps} />}
-            <CreateAgentModal
-                clawId={claw.id}
-                clawName={claw.name}
-                open={showAddAgent}
-                onOpenChange={setShowAddAgent}
-            />
         </Fragment>
     )
 }

@@ -31,10 +31,7 @@ ClawHost is an open-source, self-hostable cloud hosting platform that lets anyon
 - **One-Click Deploy** — Pick a plan, pay, and OpenClaw is live within minutes
 - **Hetzner Cloud** — Reliable, high-performance VPS provisioning powered by Hetzner
 - **Dedicated VPS** — Real servers with full root access, not shared containers
-- **Agent Playground** — Visual canvas for managing AI agents with drag-and-drop workflows
-- **Chat Interface** — Real-time WebSocket chat with your OpenClaw agents
 - **Browser Terminal** — Full SSH terminal access directly from the dashboard via WebSocket
-- **Text-to-Speech** — Local TTS synthesis with Piper for reading agent responses aloud
 - **Diagnostics & Logs** — Monitor server health, view logs, and repair instances
 - **File Management** — Edit configuration files remotely
 - **Version Management** — View installed OpenClaw version, browse available versions, and upgrade
@@ -79,7 +76,6 @@ clawhost/
 | **Server Provisioning** | [Hetzner Cloud](https://docs.hetzner.cloud)                                                                     |
 | **Remote Management**   | SSH2 for remote command execution, file management, and diagnostics                                             |
 | **Browser Terminal**    | [xterm.js](https://xtermjs.org) with WebSocket proxy over SSH2                                                  |
-| **Text-to-Speech**      | [Piper](https://github.com/rhasspy/piper) for local neural TTS synthesis                                        |
 | **DNS**                 | [Cloudflare API](https://developers.cloudflare.com/api)                                                         |
 | **Billing**             | [Polar.sh](https://polar.sh)                                                                                    |
 | **Email**               | [Resend](https://resend.com) with React Email                                                                   |
@@ -171,9 +167,6 @@ PORT=2222
 WS_PORT=2223
 CLIENT=localhost:1111
 
-# Text-to-Speech (optional — required only for TTS feature)
-PIPER_BINARY=piper
-PIPER_MODELS_DIR=/path/to/piper/models
 ```
 
 **Web** — create `apps/web/.env`:
@@ -255,20 +248,6 @@ All three sign-in methods (OTP, Google, GitHub) are always displayed in the UI, 
 
 </details>
 
-<details>
-<summary><strong>Piper TTS (optional)</strong></summary>
-
-Text-to-speech is powered by [Piper](https://github.com/rhasspy/piper), a fast local neural TTS engine. This is optional — the platform works without it, but the chat speech feature will be unavailable.
-
-1. Download the Piper binary for your platform from the [Piper releases](https://github.com/rhasspy/piper/releases)
-2. Download voice model `.onnx` files and their `.onnx.json` configs from [Piper voices](https://github.com/rhasspy/piper/blob/master/VOICES.md)
-3. Place models in a directory (e.g., `ai/models/`)
-4. Set environment variables:
-    - `PIPER_BINARY` — path to the piper binary (defaults to `piper` on PATH)
-    - `PIPER_MODELS_DIR` — path to the models directory (defaults to `ai/models/` relative to the API)
-
-</details>
-
 ### 4. Initialize Database
 
 ```bash
@@ -338,13 +317,6 @@ pnpm --filter api email:dev    # Preview email templates at localhost:3333
 
 ### Protected Endpoints (Bearer token required)
 
-**AI (Text-to-Speech)**
-
-| Method | Endpoint         | Description                     |
-| ------ | ---------------- | ------------------------------- |
-| `POST` | `/api/ai/tts`    | Generate speech audio from text |
-| `GET`  | `/api/ai/voices` | List available TTS voices       |
-
 **Claws (Server Instances)**
 
 | Method   | Endpoint                         | Description                    |
@@ -372,14 +344,6 @@ pnpm --filter api email:dev    # Preview email templates at localhost:3333
 | ------ | ----------------------------------- | ---------------------- |
 | `POST` | `/api/claws/:id/diagnostics/status` | Get server diagnostics |
 | `POST` | `/api/claws/:id/diagnostics/logs`   | Get server logs        |
-
-**Claw Agents**
-
-| Method | Endpoint                       | Description        |
-| ------ | ------------------------------ | ------------------ |
-| `POST` | `/api/claws/:id/agents`        | List agents        |
-| `POST` | `/api/claws/:id/agents/create` | Create a new agent |
-| `POST` | `/api/claws/:id/agents/delete` | Delete an agent    |
 
 **Claw Files**
 
@@ -475,7 +439,7 @@ The `scripts/cloud-init.yaml` template configures every new instance with:
 - UFW firewall (ports 22, 80, 443)
 - systemd service for automatic OpenClaw startup
 
-Once provisioned, users can manage their claws through the dashboard — configuring agents and files all remotely via SSH. A browser-based terminal provides direct shell access via WebSocket, and text-to-speech lets users listen to agent responses.
+Once provisioned, users can manage their claws through the dashboard — configuring files remotely via SSH. A browser-based terminal provides direct shell access via WebSocket.
 
 ## Customization
 

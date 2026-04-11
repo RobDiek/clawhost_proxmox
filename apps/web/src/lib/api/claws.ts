@@ -1,13 +1,9 @@
 import type {
     Claw,
-    ClawAgentsResponse,
     ClawCredentialsResponse,
     ClawFilesResponse,
     ClawVersionResponse,
     ClawVersionsResponse,
-    CreateAgentData,
-    CreateAgentResponse,
-    DeleteAgentData,
     DeleteClawResponse,
     DiagnosticsLogsResponse,
     DiagnosticsStatusResponse,
@@ -75,15 +71,6 @@ const claws = {
             API_PATHS.CLAWS.INSTALL_VERSION(id),
             { version }
         ),
-    getClawAgents: (id: string) =>
-        client.post<ClawAgentsResponse>(API_PATHS.CLAWS.AGENTS.BASE(id)),
-    createClawAgent: (id: string, data: CreateAgentData) =>
-        client.post<CreateAgentResponse>(
-            API_PATHS.CLAWS.AGENTS.CREATE(id),
-            data
-        ),
-    deleteClawAgent: (id: string, data: DeleteAgentData) =>
-        client.post<void>(API_PATHS.CLAWS.AGENTS.DELETE(id), data),
     exportClaw: async (id: string, filename: string) => {
         const token = await getCachedToken()
         const res = await fetch(`${BASE_URL}${API_PATHS.CLAWS.EXPORT(id)}`, {

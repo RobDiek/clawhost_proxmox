@@ -8,7 +8,6 @@ import cleanupClaw from '@/controllers/claws/helpers/cleanupClaw'
 import isAdmin from '@/controllers/claws/helpers/isAdmin'
 import sanitizeClaw from '@/controllers/claws/helpers/sanitizeClaw'
 import safeShellWrite from '@/controllers/claws/helpers/safeShellWrite'
-import validateEnvVars from '@/controllers/claws/helpers/validateEnvVars'
 import findUserClaw from '@/controllers/claws/helpers/findUserClaw'
 import decryptClawSecrets from '@/controllers/claws/helpers/decryptClawSecrets'
 import applyToolsDefaults from '@/controllers/claws/helpers/applyToolsDefaults'
@@ -24,8 +23,6 @@ import invalidateVersionCache from '@/controllers/claws/helpers/invalidateVersio
 import SUPPORTED_VERSIONS from '@/controllers/claws/helpers/supportedVersions'
 import parseJsonFromSSH from '@/controllers/claws/helpers/parseJsonFromSSH'
 import parseJsonArrayFromSSH from '@/controllers/claws/helpers/parseJsonArrayFromSSH'
-import parseEnvFile from '@/controllers/claws/helpers/parseEnvFile'
-import mergeEnvVars from '@/controllers/claws/helpers/mergeEnvVars'
 import writeConfigAndRestart from '@/controllers/claws/helpers/writeConfigAndRestart'
 import executeServerLifecycle from '@/controllers/claws/helpers/executeServerLifecycle'
 import readClawConfigFile from '@/controllers/claws/helpers/readClawConfigFile'
@@ -49,7 +46,6 @@ export {
     decryptClawSecrets,
     sanitizeClaw,
     safeShellWrite,
-    validateEnvVars,
     BASE_DIR,
     DOMAIN,
     syncClawServers,
@@ -61,8 +57,6 @@ export {
     SUPPORTED_VERSIONS,
     parseJsonFromSSH,
     parseJsonArrayFromSSH,
-    parseEnvFile,
-    mergeEnvVars,
     writeConfigAndRestart,
     executeServerLifecycle,
     invalidateVersionCache,

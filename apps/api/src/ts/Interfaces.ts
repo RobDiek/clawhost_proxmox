@@ -1,4 +1,3 @@
-import type { ChildProcess } from 'child_process'
 import type { ReactNode } from 'react'
 import type {
     BillingInterval,
@@ -584,38 +583,6 @@ export interface InitiateClawPurchaseResponse {
     expiresAt: string
 }
 
-export interface ClawAgent {
-    id: string
-    name: string
-    model: string | null
-    status: string
-    directory: string | null
-}
-
-export interface ClawAgentsResponse {
-    agents: ClawAgent[]
-    reachable: boolean
-}
-
-export interface RawClawConfigAgent {
-    id?: string
-    name?: string
-    model?: string
-    status?: string
-    workspace?: string
-    directory?: string
-}
-
-export interface CreateClawAgentBody {
-    name: string
-    model?: string | null
-    envVars?: Record<string, string>
-}
-
-export interface DeleteClawAgentBody {
-    agentId: string
-}
-
 export interface OrderCustomerResult {
     customerId: string
 }
@@ -648,10 +615,6 @@ export interface AuthCacheData {
     isAdmin: boolean
 }
 
-export interface AgentIdBody {
-    agentId?: string
-}
-
 export interface RenameClawBody {
     name: string
 }
@@ -663,35 +626,6 @@ export interface RootLayoutProps {
 export interface GithubEmailEntry {
     primary: boolean
     email: string
-}
-
-export interface GenerateSpeechBody {
-    text: string
-    voice?: string
-}
-
-export interface PiperVoice {
-    id: string
-    name: string
-    gender: string
-    quality: string
-}
-
-export interface PiperModelConfig {
-    sampleRate: number
-    channels: number
-}
-
-export interface PiperSynthesisResult {
-    audio: Buffer
-    sampleRate: number
-    channels: number
-}
-
-export interface PiperStreamResult {
-    child: ChildProcess
-    sampleRate: number
-    channels: number
 }
 
 export interface NpmRegistryTimeResponse {

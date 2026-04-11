@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { DashboardPlaygroundViewProps } from '@/ts/Interfaces'
 
-import { Suspense, lazy, useMemo } from 'react'
+import { Suspense, lazy } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { EmptyState, ClawMascot } from '@/components'
@@ -13,62 +13,27 @@ const PlaygroundCanvas = lazy(
 const PlaygroundDetailPanel = lazy(
     () => import('@/components/playground/PlaygroundDetailPanel')
 )
-const PlaygroundAgentDetailPanel = lazy(
-    () => import('@/components/playground/PlaygroundAgentDetailPanel')
-)
 
 const DashboardPlaygroundView: FC<DashboardPlaygroundViewProps> = ({
     displayedClaws,
-    agentQueries,
     adminMode,
     nodes,
     edges,
     plans,
     sshKeys,
     selectedClawId,
-    selectedAgentId,
-    selectedAgentClawId,
     playgroundClawTab,
     isLoading,
     activeIsError,
     onClawSelect,
-    onAgentSelect,
     onPlaygroundClawTabChange,
     onCreateClick
 }): ReactNode => {
     const activeClaws = displayedClaws
 
-    const selectedClaw =
-        selectedClawId && !selectedAgentId
-            ? activeClaws?.find((c) => c.id === selectedClawId) || null
-            : null
-
-    const selectedAgentClaw = selectedAgentClawId
-        ? activeClaws?.find((c) => c.id === selectedAgentClawId) || null
+    const selectedClaw = selectedClawId
+        ? activeClaws?.find((c) => c.id === selectedClawId) || null
         : null
-
-    const selectedAgentResult = useMemo(() => {
-        if (!selectedAgentId || !selectedAgentClaw) return null
-        const clawIndex = displayedClaws.findIndex(
-            (c) => c.id === selectedAgentClawId
-        )
-        const query = clawIndex >= 0 ? agentQueries[clawIndex] : null
-        const agents = query?.data?.agents || []
-        const agent = agents.find((a) => a.id === selectedAgentId) || null
-        return {
-            agent,
-            isOnly: agents.length <= 1
-        }
-    }, [
-        selectedAgentId,
-        selectedAgentClaw,
-        displayedClaws,
-        selectedAgentClawId,
-        agentQueries
-    ])
-
-    const selectedAgent = selectedAgentResult?.agent || null
-    const isSelectedAgentOnly = selectedAgentResult?.isOnly || false
 
     return (
         <Suspense
@@ -91,20 +56,12 @@ const DashboardPlaygroundView: FC<DashboardPlaygroundViewProps> = ({
                         initialEdges={edges}
                         onNodeClick={(clawId) => {
                             onClawSelect(clawId)
-                            onAgentSelect(null, null)
-                        }}
-                        onAgentClick={(agentId, clawId) => {
-                            onAgentSelect(agentId, clawId)
-                            onClawSelect(null)
                         }}
                         onPaneClick={() => {
                             onClawSelect(null)
-                            onAgentSelect(null, null)
                         }}
-                        panelOpen={!!selectedClaw || !!selectedAgent}
+                        panelOpen={!!selectedClaw}
                         selectedClawId={selectedClawId}
-                        selectedAgentId={selectedAgentId}
-                        selectedAgentClawId={selectedAgentClawId}
                     />
 
                     {!isLoading &&
@@ -148,21 +105,6 @@ const DashboardPlaygroundView: FC<DashboardPlaygroundViewProps> = ({
                             onClose={() => onClawSelect(null)}
                             initialTab={playgroundClawTab || undefined}
                             onTabChange={onPlaygroundClawTabChange}
-                        />
-                    )}
-
-                    {selectedAgent && selectedAgentClaw && (
-                        <PlaygroundAgentDetailPanel
-                            key={`agent-panel-${selectedAgent.id}`}
-                            agent={selectedAgent}
-                            clawId={selectedAgentClaw.id}
-                            clawName={selectedAgentClaw.name}
-                            isOnlyAgent={isSelectedAgentOnly}
-                            gatewayToken={selectedAgentClaw.gatewayToken}
-                            subdomain={selectedAgentClaw.subdomain}
-                            onClose={() => {
-                                onAgentSelect(null, null)
-                            }}
                         />
                     )}
                 </AnimatePresence>

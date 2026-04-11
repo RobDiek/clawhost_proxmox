@@ -34,9 +34,7 @@ import {
     ShieldCheckIcon,
     GitBranchIcon,
     SlidersHorizontalIcon,
-    GearSixIcon,
-    ChatCircleDotsIcon,
-    UsersThreeIcon
+    GearSixIcon
 } from '@phosphor-icons/react'
 
 const getGoFeatures = (): FeatureItem[] => [
@@ -84,16 +82,6 @@ const getGoFeatures = (): FeatureItem[] => [
         icon: GearSixIcon,
         title: t('landing.clawHostControl'),
         description: t('landing.clawHostControlDescription')
-    },
-    {
-        icon: ChatCircleDotsIcon,
-        title: t('landing.directChat'),
-        description: t('landing.directChatDescription')
-    },
-    {
-        icon: UsersThreeIcon,
-        title: t('landing.multipleAgents'),
-        description: t('landing.multipleAgentsDescription')
     }
 ]
 
@@ -366,10 +354,6 @@ const Go: FC = (): ReactNode => {
                         {
                             us: t('go.comparisonUpdatesUs'),
                             others: t('go.comparisonUpdatesOthers')
-                        },
-                        {
-                            us: t('go.comparisonAgentsUs'),
-                            others: t('go.comparisonAgentsOthers')
                         }
                     ]}
                     showFullComparisonLink={false}

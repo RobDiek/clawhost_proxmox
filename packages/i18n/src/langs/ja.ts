@@ -147,8 +147,6 @@ const ja: Translations = {
         comparisonSetupOthers: 'ワンクリックでデプロイ',
         comparisonUpdatesUs: '自動アップデート',
         comparisonUpdatesOthers: '自動アップデート',
-        comparisonAgentsUs: '複数エージェント',
-        comparisonAgentsOthers: '複数エージェント',
         faqTitle: '質問',
         faqHeading: 'よくある質問',
         faqDescription: 'ClawHost Goについて知っておくべきすべてのこと.',
@@ -206,7 +204,6 @@ const ja: Translations = {
         noVersionAssigned:
             'このClawにOpenClawバージョンが割り当てられていません!',
         invalidAgentName: '無効なエージェント名です!',
-        agentNameAlreadyExists: 'この名前のエージェントは既に存在します!',
         invalidPath: '無効なパスです!',
         fileNotFound: 'ファイルが見つかりません!',
         purchasingNotAvailable: 'ローカルモードでは購入できません!',
@@ -450,19 +447,6 @@ const ja: Translations = {
         locationsFetched: 'ロケーションを取得しました.',
         volumePricingFetched: 'ボリューム料金を取得しました.',
         planAvailabilityFetched: 'プランの利用可能状況を取得しました.',
-        agentsFetched: 'エージェントを取得しました.',
-        agentsFetchFailed:
-            'インスタンスに接続してエージェントを取得できませんでした!',
-        agentCreated: 'エージェントを作成しました.',
-        agentCreateFailed: 'インスタンスでエージェントを作成できませんでした!',
-        agentDeleted: 'エージェントを削除しました.',
-        agentDeleteFailed:
-            'インスタンスからエージェントを削除できませんでした!',
-        cannotDeleteMainAgent: '最後のエージェントは削除できません!',
-        agentNameInvalid:
-            'エージェント名は英字、数字、ハイフンのみ使用できます!',
-        agentNameDuplicate: 'この名前のエージェントは既に存在します!',
-        invalidEnvVars: '無効な環境変数!',
         diagnosticsFetched: '診断情報を取得しました.',
         logsFetched: 'ログを取得しました.',
         filesFetched: 'ファイルを取得しました.',
@@ -483,9 +467,6 @@ const ja: Translations = {
         failedToConnectAuthMethod: '認証方法の接続に失敗しました!',
         failedToDisconnectAuthMethod: '認証方法の切断に失敗しました!',
         textRequired: 'テキストは必須です!',
-        voiceNotFound: '音声モデルが見つかりません!',
-        ttsGenerationFailed: '音声生成に失敗しました!',
-        voicesFetched: '音声を取得しました.',
         featureEmailsDisabled: '機能メールは現在無効です.',
         featureEmailsSent: '機能メールを送信しました.',
         featureEmailsFailed: '機能メールの送信に失敗しました!',
@@ -570,24 +551,6 @@ const ja: Translations = {
                 description:
                     'Playgroundは、すべてのClawとエージェントを表示するインタラクティブグラフキャンバスを提供します。ノードをクリックして管理 — インフラのビジュアルコマンドセンター。',
                 cta: 'Playgroundを開く'
-            },
-            agentChat: {
-                subject: 'ご存知ですか？AIエージェントとチャット',
-                preview: 'ダッシュボードから直接エージェントと会話',
-                tag: 'エージェントチャット',
-                heading: 'エージェントと会話',
-                description:
-                    'ClawHostダッシュボードから直接AIエージェントとチャット。メッセージの送信、画像の添付、会話履歴の表示 — すべて一か所で。',
-                cta: 'チャットを開始'
-            },
-            voiceMode: {
-                subject: 'ご存知ですか？音声でエージェントと会話',
-                preview: 'エージェントで音声入力と音声出力を使用',
-                tag: '音声モード',
-                heading: 'タイプせずに話す',
-                description:
-                    'ボイスモードでAIエージェントとハンズフリーで会話。入力は音声認識、応答は音声合成 — 複数の音声から選択。',
-                cta: 'ボイスモードを試す'
             },
             diagnostics: {
                 subject: 'ご存知ですか？内蔵ヘルスチェック',
@@ -820,7 +783,6 @@ const ja: Translations = {
         paymentSuccess: '支払いが完了しました。ライセンスが有効になりました。',
         failedToPurchase: 'チェックアウトの開始に失敗しました！',
         featureUnlimitedClaws: '無制限のOpenClaw',
-        featureUnlimitedAgents: '無制限のエージェント',
         featureDevices: '無制限のデバイス',
         featureUpdates: '永久アップデート',
         featureSupport: '優先サポート',
@@ -978,7 +940,7 @@ const ja: Translations = {
         dnsSetupButton: 'DNSを設定',
         dnsSetupSuccess: 'DNSリゾルバーを設定しました。',
         dnsSetupError: 'DNSリゾルバーの設定に失敗しました！',
-        chatTab: 'チャット',
+        listTab: 'Claws',
         playgroundTab: 'Playground',
         userTab: 'ユーザー',
         adminTab: '管理者',
@@ -1005,21 +967,6 @@ const ja: Translations = {
             unknown: '不明',
             checking: '確認中'
         }
-    },
-    chat: {
-        explorer: 'エクスプローラー',
-        selectAgent: '未選択',
-        selectAgentDescription:
-            'サイドバーからクローまたはエージェントを選択してください。',
-        noAgents: '利用可能なエージェントなし',
-        noAgentsDescription:
-            'Clawをデプロイしてエージェントとのチャットを開始。',
-        openSidebar: 'サイドバーを開く',
-        clawNotReady: 'Clawはまだ準備ができていません',
-        addAgent: 'エージェントを追加',
-        viewTree: 'ツリー表示',
-        viewList: 'リスト表示',
-        clawSettings: 'Claw設定'
     },
     createClaw: {
         title: 'OpenClawをデプロイ',
@@ -1199,12 +1146,6 @@ const ja: Translations = {
         clawHostControl: 'ClawHostコントロール',
         clawHostControlDescription:
             'ファイル、アップデートなどの設定オプションをプラットフォームから直接管理。',
-        directChat: 'ダイレクトチャット',
-        directChatDescription:
-            'プラットフォームから直接AIエージェントとチャット。外部ツールやインターフェース不要。',
-        multipleAgents: '複数エージェント',
-        multipleAgentsDescription:
-            '単一インスタンスで複数のAIエージェントを実行・管理。それぞれ独自の設定と目的を持ちます。',
         multipleClaws: '複数のClaw',
         multipleClawsDescription:
             '単一のダッシュボードから複数のOpenClawインスタンスをデプロイ・管理。成長に合わせてスケール。',
@@ -1328,8 +1269,6 @@ const ja: Translations = {
         comparisonDataOthers: 'データを所有しない',
         comparisonMultipleUs: '複数のOpenClaw、1つのClaw',
         comparisonMultipleOthers: '単一のOpenClawのみ',
-        comparisonAgentsUs: 'Clawごとに複数エージェント',
-        comparisonAgentsOthers: 'エージェント1つのみ',
         comparisonOpenSourceUs: '完全オープンソース',
         comparisonOpenSourceOthers: 'クローズドソース',
         comparisonExportUs: 'OpenClawをどこにでもエクスポート',
@@ -1338,8 +1277,6 @@ const ja: Translations = {
         comparisonProvidersOthers: '単一プロバイダーのみ',
         comparisonSocialsUs: 'ソーシャルメディアでの存在',
         comparisonSocialsOthers: 'ソーシャルメディアなし',
-        comparisonChatUs: 'Clawと直接チャット',
-        comparisonChatOthers: 'サードパーティプラットフォーム経由のみチャット',
         comparisonVersionUs: 'ワンクリックバージョン切替',
         comparisonVersionOthers: '手動アップデートのみ',
         comparisonTerminalUs: '内蔵Webターミナル',
@@ -1540,18 +1477,14 @@ const ja: Translations = {
         subtitle: 'インフラ全体のエージェントトポロジー',
         noClawsYet: 'Clawなし',
         noClawsDescription: '最初のClawをデプロイしてやり取りを開始。',
-        loadingAgents: 'エージェントを読み込み中',
+        selectClaw: 'Clawを選択',
+        selectClawDescription: 'サイドバーからClawを選択して詳細を表示します。',
         unreachable: '到達不能',
         offline: 'オフライン',
-        noAgents: 'エージェントなし',
-        agentCount: '{{count}}エージェント',
-        agentCountPlural: '{{count}}エージェント',
-        agentModel: 'モデル',
         zoomLabel: '{{percent}}%',
         fitView: '中央',
         nodesOutOfView: 'Clawが画面外',
         nodeOutOfView: 'Clawが画面外',
-        addAgent: 'エージェントを追加',
         closeDetails: '閉じる',
         tabInfo: '情報',
         tabLogs: 'ログ',
@@ -1569,117 +1502,7 @@ const ja: Translations = {
         loadingTip2: 'OpenClawがオープンソースであることをご存知ですか？',
         loadingTip3:
             'ClawHostは、ワンクリックOpenClawホスティングを可能にした史上初のプロジェクトです。',
-        tabChat: 'チャット',
         tabSettings: '設定',
-        agentOnClaw: '{{clawName}}上',
-        cannotDeleteDefaultAgent: 'デフォルトエージェントは削除できません！',
-        addAgentTitle: 'エージェントを追加',
-        addAgentDescription: '{{clawName}}に新しいエージェントを追加。',
-        addAgentDescriptionNoClaw: 'Clawを選択して新しいエージェントを設定。',
-        addAgentSelectClaw: 'Claw',
-        addAgentSelectClawPlaceholder: 'Clawを選択',
-        addAgentName: '名前',
-        addAgentNamePlaceholder: 'エージェント名を入力',
-        addAgentModel: 'モデル',
-        addAgentModelPlaceholder: 'モデルを選択',
-        addAgentApiKey: 'APIキー',
-        addAgentApiKeyPlaceholder: 'APIキーを入力（任意）',
-        addAgentApiKeyConfigured:
-            '{{envVar}} はこのインスタンスで既に設定されています。',
-        addAgentSubmit: 'エージェントを追加',
-        addAgentSuccess: 'エージェントを追加しました。',
-        addAgentFailed: 'エージェントの追加に失敗しました！',
-        deleteAgent: 'エージェントを削除',
-        deleteAgentTitle: 'エージェントを削除',
-        deleteAgentDescription:
-            'エージェント「{{agentName}}」を削除してもよろしいですか？この操作は元に戻せません。',
-        deleteAgentConfirm: '削除',
-        agentDontAskAgain:
-            'このセッションでエージェントを削除する際に再度確認しない',
-        deleteAgentDeleting: '削除中...',
-        deleteAgentSuccess: 'エージェントを削除しました。',
-        deleteAgentFailed: 'エージェントの削除に失敗しました！',
-        agentNameRequired: 'エージェント名は必須です！',
-        agentNameInvalidChars: '英字、数字、ダッシュのみ使用できます！',
-        agentNameDuplicate: 'この名前のエージェントは既に存在します！',
-        chatConnecting: '接続中...',
-        chatAuthenticating: '認証中...',
-        chatDisconnected: '切断',
-        chatError: '接続エラー！',
-        chatConnected: '接続済み',
-        chatInputPlaceholder: 'メッセージを入力...',
-        chatInputDisabled: 'このエージェントとチャットするには接続してください',
-        chatSend: 'メッセージを送信',
-        chatAbort: '停止',
-        chatStopProcess: 'プロセスを停止',
-        chatRemoveAttachment: '添付を削除',
-        chatThinking: '考え中',
-        chatLoadingHistory: 'メッセージを読み込み中...',
-        chatNoMessages: 'メッセージなし',
-        chatNoMessagesDescription:
-            'メッセージを送信してこのエージェントとの会話を開始。',
-        chatErrorMessage: '応答の生成中にエラーが発生しました！',
-        chatAbortedMessage: '応答が停止されました。',
-        chatPlaySpeech: '読み上げ',
-        chatReplaySpeech: 'リプレイ',
-        chatStopSpeech: '停止',
-        chatSpeechFailed: '音声の生成に失敗しました！',
-        chatReadOnlyPlaceholder: 'チャットは自分のClawで利用可能です。',
-        chatReadOnlyUser:
-            'こんにちは！Node.jsプロジェクトのセットアップを手伝ってもらえますか？',
-        chatReadOnlyAssistant:
-            'もちろん！新しいNode.jsプロジェクトの初期化をお手伝いします。一般的な依存関係を含むpackage.jsonを作成しましょうか？',
-        chatReadOnlyReply:
-            'これはプレビューです！ワンクリックで自分のOpenClawをデプロイし、数分でAIエージェントとのチャットを開始！',
-        chatReadOnlyUser2:
-            'テストスイートを実行して失敗がないか確認できますか？',
-        chatReadOnlyAssistant2:
-            'はい！今すぐすべてのテストを実行します。3件パス、0件失敗。すべて正常 — すべてのアサーションが通過しています。',
-        chatReadOnlyGoUser:
-            'デプロイパイプラインの自動化を手伝ってもらえますか？',
-        chatReadOnlyGoAssistant:
-            'もちろん！CI/CDパイプラインをセットアップできます。ビルド、テスト、自動デプロイを行うGitHub Actionsワークフローから始めましょうか？',
-        chatReadOnlyGoReply:
-            'これはプレビューです！ClawHost Goを入手してOpenClawをローカルで実行 — あなたのマシン、あなたのデータ、クラウド不要。',
-        chatReadOnlyGoUser2:
-            'ローカルサービスを監視して、何かダウンした場合にアラートを出せますか？',
-        chatReadOnlyGoAssistant2:
-            '了解！すべてのサービスにヘルスチェックをセットアップします。現在4つのエンドポイントを監視中 — すべて正常で応答しています。',
-        chatConnectionFailed: 'このエージェントへの接続に失敗しました！',
-        chatConnectionFailedDescription:
-            'Clawが実行中で到達可能であることを確認してください。',
-        chatToday: '今日',
-        chatYesterday: '昨日',
-        chatExpandFullscreen: 'チャットを拡大',
-        chatAttachFile: 'ファイルを添付',
-        chatDropFiles: 'ファイルをドロップして添付',
-        chatDropFilesDescription: '画像、PDF、テキストファイル（最大5 MB）。',
-        chatVoiceInput: '音声入力',
-        chatVoiceListening: '聞いています...',
-        chatVoiceNotSupported:
-            'このブラウザでは音声入力がサポートされていません。',
-        chatVoiceMode: 'ボイスモード',
-        chatVoiceModeTapToSpeak: 'タップして話し始める',
-        chatVoiceModeListening: '聞いています...',
-        chatVoiceModeClose: 'ボイスモードを終了',
-        chatVoiceModeTranscribing: '文字起こし中...',
-        chatVoiceModeThinking: '考え中...',
-        chatVoiceModeResponding: '応答中...',
-        chatVoiceModePreparing: '音声を準備中...',
-        chatVoiceModeSpeaking: '話しています...',
-        chatVoiceModeInputDevice: 'マイク',
-        chatVoiceModeOutputDevice: 'スピーカー',
-        chatVoiceModeNotSupported:
-            'このブラウザでは音声認識がサポートされていません。',
-        chatVoiceModeNoMicrophone:
-            'マイクが検出されませんでした。ボイスモードを使用するには接続してください。',
-        chatVoiceModeNoSpeaker:
-            'スピーカーが検出されませんでした。ボイスモードを使用するには接続してください。',
-        chatAttachmentNotSupported:
-            'このファイルタイプはサポートされていません。画像、PDF、またはテキストファイルを使用してください。',
-        chatNoPreview: 'プレビューはありません。',
-        chatDownloadFile: 'ファイルをダウンロード',
-        chatCopyMessage: 'メッセージをコピー',
         featureVersionUnsupported:
             '{{feature}} は {{version}} でサポートされていません',
         featureVersionUnsupportedDescription:
@@ -1688,6 +1511,7 @@ const ja: Translations = {
         featureVersionUnsupportedSupported: 'サポートされているバージョン:',
         featureVersionUnsupportedNewer: 'より新しいバージョン',
         tabVersions: 'バージョン',
+        tabFiles: 'ファイルエクスプローラー',
         versionsSearch: 'バージョンを検索...',
         versionsEmpty: 'バージョンが見つかりません',
         versionsEmptyDescription: '検索に一致するバージョンがありません。',
@@ -1893,12 +1717,8 @@ const ja: Translations = {
         signOut: 'サインアウト',
         signedInAs: 'ログイン中:',
         loadMore: 'もっと読み込む',
-        chatWithYourClaw: 'Clawとチャット',
         deployClaw: 'Clawをデプロイ',
-        deployYourFirstClaw: '最初のClawをデプロイ',
-        voiceMode: 'ボイスモード',
-        voiceListening: '聞いています...',
-        voiceTapToSpeak: 'オーブをタップして開始'
+        deployYourFirstClaw: '最初のClawをデプロイ'
     },
     announcement: {
         title: 'サービスのお知らせ',
@@ -1947,8 +1767,6 @@ const ja: Translations = {
         featureSetupTime: 'セットアップ時間',
         featureOneClickDeploy: 'ワンクリックデプロイ',
         featureMultipleInstances: '複数インスタンス',
-        featureMultipleAgents: 'インスタンスごとに複数エージェント',
-        featureAgentConfig: 'エージェント設定',
         featureDataOwnership: '完全なデータ所有権',
         featureDataExport: 'データエクスポート',
         featureBackups: 'バックアップ',
@@ -1963,7 +1781,6 @@ const ja: Translations = {
         featureMultiLanguage: '多言語UI',
         featureMobileApp: 'モバイルアプリ',
         featureDesktopApp: 'デスクトップアプリ',
-        featureDirectChat: 'ダイレクトチャット',
         featureOneClickVersion: 'ワンクリックバージョン切替',
         featureWebTerminal: 'Webターミナルアクセス',
         featureSocials: 'ソーシャルメディア',
@@ -2027,7 +1844,6 @@ const ja: Translations = {
         iosMacOs: 'iOS & macOS',
         macOsOnly: 'macOSのみ',
         viaTelegram: 'Telegram経由',
-        builtInChat: '内蔵',
         builtInTerminal: 'SSH不要',
         notAvailable: '利用不可',
         disclaimer: '変更点や誤りがありますか？メールでご連絡ください：',

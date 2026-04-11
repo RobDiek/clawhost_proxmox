@@ -1,12 +1,10 @@
 import type { Node, Edge } from '@xyflow/react'
-import type { Claw, ClawAgent, DemoPlaygroundData } from '@/ts/Interfaces'
+import type { Claw, DemoPlaygroundData } from '@/ts/Interfaces'
 
 import dagre from 'dagre'
 
 const CLAW_NODE_WIDTH = 280
 const CLAW_NODE_HEIGHT = 140
-const AGENT_NODE_WIDTH = 240
-const AGENT_NODE_HEIGHT = 100
 
 const demoClaws: Claw[] = [
     {
@@ -31,25 +29,6 @@ const demoClaws: Claw[] = [
     }
 ]
 
-const demoAgents: ClawAgent[][] = [
-    [
-        {
-            id: 'agent-1a',
-            name: 'code-assistant',
-            model: 'claude-sonnet-4-5-20250929',
-            status: 'running',
-            directory: null
-        },
-        {
-            id: 'agent-1b',
-            name: 'test-runner',
-            model: 'gpt-4o',
-            status: 'running',
-            directory: null
-        }
-    ]
-]
-
 const buildDemoGraph = (): DemoPlaygroundData => {
     const nodes: Node[] = []
     const edges: Edge[] = []
@@ -64,8 +43,7 @@ const buildDemoGraph = (): DemoPlaygroundData => {
         marginy: 40
     })
 
-    demoClaws.forEach((claw, index) => {
-        const agents = demoAgents[index] || []
+    demoClaws.forEach((claw) => {
         const clawNodeId = `claw-${claw.id}`
 
         g.setNode(clawNodeId, {
@@ -79,48 +57,9 @@ const buildDemoGraph = (): DemoPlaygroundData => {
             position: { x: 0, y: 0 },
             data: {
                 claw,
-                agentCount: agents.length,
-                isLoadingAgents: false,
                 readOnly: true
             } as Record<string, unknown>,
             draggable: false
-        })
-
-        agents.forEach((agent) => {
-            const agentNodeId = `agent-${claw.id}-${agent.id}`
-
-            g.setNode(agentNodeId, {
-                width: AGENT_NODE_WIDTH,
-                height: AGENT_NODE_HEIGHT
-            })
-
-            nodes.push({
-                id: agentNodeId,
-                type: 'agentNode',
-                position: { x: 0, y: 0 },
-                data: {
-                    agent,
-                    clawName: claw.name,
-                    clawId: claw.id,
-                    isSelected: false,
-                    subdomain: null,
-                    gatewayToken: null
-                } as Record<string, unknown>,
-                draggable: false
-            })
-
-            g.setEdge(clawNodeId, agentNodeId)
-
-            edges.push({
-                id: `edge-${clawNodeId}-${agentNodeId}`,
-                source: clawNodeId,
-                target: agentNodeId,
-                type: 'straight',
-                style: {
-                    stroke: 'hsl(var(--muted-foreground) / 0.3)',
-                    strokeWidth: 1.5
-                }
-            })
         })
     })
 
@@ -129,23 +68,14 @@ const buildDemoGraph = (): DemoPlaygroundData => {
     nodes.forEach((node) => {
         const dagreNode = g.node(node.id)
         if (dagreNode) {
-            const width =
-                node.type === 'clawNode' ? CLAW_NODE_WIDTH : AGENT_NODE_WIDTH
-            const height =
-                node.type === 'clawNode' ? CLAW_NODE_HEIGHT : AGENT_NODE_HEIGHT
             node.position = {
-                x: dagreNode.x - width / 2,
-                y: dagreNode.y - height / 2
+                x: dagreNode.x - CLAW_NODE_WIDTH / 2,
+                y: dagreNode.y - CLAW_NODE_HEIGHT / 2
             }
         }
     })
 
-    const agentsByClawId: Record<string, ClawAgent[]> = {}
-    demoClaws.forEach((claw, index) => {
-        agentsByClawId[claw.id] = demoAgents[index] || []
-    })
-
-    return { nodes, edges, claws: demoClaws, agentsByClawId }
+    return { nodes, edges, claws: demoClaws }
 }
 
 const demoPlaygroundData: DemoPlaygroundData = buildDemoGraph()

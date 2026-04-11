@@ -148,8 +148,6 @@ const hi: Translations = {
         comparisonSetupOthers: 'एक क्लिक में डिप्लॉय करें',
         comparisonUpdatesUs: 'स्वचालित अपडेट',
         comparisonUpdatesOthers: 'स्वचालित अपडेट',
-        comparisonAgentsUs: 'एकाधिक एजेंट',
-        comparisonAgentsOthers: 'एकाधिक एजेंट',
         faqTitle: 'प्रश्न',
         faqHeading: 'सामान्य प्रश्न',
         faqDescription:
@@ -207,7 +205,6 @@ const hi: Translations = {
         noVersionAssigned:
             'इस क्लॉ को कोई OpenClaw संस्करण असाइन नहीं किया गया है!',
         invalidAgentName: 'अमान्य एजेंट नाम!',
-        agentNameAlreadyExists: 'इस नाम का एक एजेंट पहले से मौजूद है!',
         invalidPath: 'अमान्य पथ!',
         fileNotFound: 'फ़ाइल नहीं मिली!',
         purchasingNotAvailable: 'स्थानीय मोड में खरीदारी उपलब्ध नहीं है!',
@@ -448,18 +445,6 @@ const hi: Translations = {
         locationsFetched: 'स्थान सफलतापूर्वक प्राप्त हुए.',
         volumePricingFetched: 'वॉल्यूम मूल्य सफलतापूर्वक प्राप्त हुआ.',
         planAvailabilityFetched: 'प्लान उपलब्धता सफलतापूर्वक प्राप्त हुई.',
-        agentsFetched: 'एजेंट सफलतापूर्वक प्राप्त हुए.',
-        agentsFetchFailed:
-            'एजेंट प्राप्त करने के लिए इंस्टेंस तक नहीं पहुँच सके!',
-        agentCreated: 'एजेंट सफलतापूर्वक बनाया गया.',
-        agentCreateFailed: 'इंस्टेंस पर एजेंट नहीं बनाया जा सका!',
-        agentDeleted: 'एजेंट सफलतापूर्वक हटाया गया.',
-        agentDeleteFailed: 'इंस्टेंस से एजेंट नहीं हटाया जा सका!',
-        cannotDeleteMainAgent: 'एकमात्र शेष एजेंट को हटाया नहीं जा सकता!',
-        agentNameInvalid:
-            'एजेंट नाम में केवल अक्षर, संख्याएँ और डैश होने चाहिए!',
-        agentNameDuplicate: 'इस नाम का एक एजेंट पहले से मौजूद है!',
-        invalidEnvVars: 'अमान्य पर्यावरण चर!',
         diagnosticsFetched: 'डायग्नोस्टिक्स सफलतापूर्वक प्राप्त हुए.',
         logsFetched: 'लॉग सफलतापूर्वक प्राप्त हुए.',
         filesFetched: 'फ़ाइलें सफलतापूर्वक प्राप्त हुईं.',
@@ -481,9 +466,6 @@ const hi: Translations = {
         failedToDisconnectAuthMethod:
             'प्रमाणीकरण विधि डिस्कनेक्ट करने में विफल!',
         textRequired: 'टेक्स्ट आवश्यक है!',
-        voiceNotFound: 'वॉइस मॉडल नहीं मिला!',
-        ttsGenerationFailed: 'स्पीच जनरेट करने में विफल!',
-        voicesFetched: 'वॉइस सफलतापूर्वक प्राप्त हुईं.',
         featureEmailsDisabled: 'फ़ीचर ईमेल वर्तमान में अक्षम हैं.',
         featureEmailsSent: 'फ़ीचर ईमेल सफलतापूर्वक भेजे गए.',
         featureEmailsFailed: 'फ़ीचर ईमेल भेजने में विफल!',
@@ -571,25 +553,6 @@ const hi: Translations = {
                 description:
                     'प्लेग्राउंड आपको एक इंटरैक्टिव ग्राफ़ कैनवास देता है जो आपके सभी क्लॉज़ और एजेंट दिखाता है. प्रबंधित करने के लिए किसी भी नोड पर क्लिक करें — आपके बुनियादी ढाँचे के लिए एक विज़ुअल कमांड सेंटर.',
                 cta: 'प्लेग्राउंड खोलें'
-            },
-            agentChat: {
-                subject: 'क्या आप जानते हैं? अपने AI एजेंट से चैट करें',
-                preview: 'डैशबोर्ड से सीधे अपने एजेंट से बात करें',
-                tag: 'एजेंट चैट',
-                heading: 'अपने एजेंट से बात करें',
-                description:
-                    'ClawHost डैशबोर्ड से सीधे अपने AI एजेंट से चैट करें. संदेश भेजें, चित्र संलग्न करें और बातचीत का इतिहास देखें — सब एक जगह.',
-                cta: 'चैटिंग शुरू करें'
-            },
-            voiceMode: {
-                subject: 'क्या आप जानते हैं? वॉइस से अपने एजेंट से बात करें',
-                preview:
-                    'अपने एजेंट के साथ स्पीच-टू-टेक्स्ट और टेक्स्ट-टू-स्पीच का उपयोग करें',
-                tag: 'वॉयस मोड',
-                heading: 'बोलें, टाइप न करें',
-                description:
-                    'वॉइस मोड का उपयोग करके हैंड्स-फ़्री अपने AI एजेंट से बात करें. इनपुट के लिए स्पीच-टू-टेक्स्ट, प्रतिक्रियाओं के लिए टेक्स्ट-टू-स्पीच — कई वॉइस में से चुनें.',
-                cta: 'वॉइस मोड आज़माएँ'
             },
             diagnostics: {
                 subject: 'क्या आप जानते हैं? बिल्ट-इन हेल्थ चेक',
@@ -828,7 +791,6 @@ const hi: Translations = {
         paymentSuccess: 'भुगतान सफल. आपका लाइसेंस अब सक्रिय है.',
         failedToPurchase: 'चेकआउट शुरू करने में विफल!',
         featureUnlimitedClaws: 'असीमित OpenClaws',
-        featureUnlimitedAgents: 'असीमित एजेंट',
         featureDevices: 'असीमित डिवाइस',
         featureUpdates: 'हमेशा के लिए अपडेट',
         featureSupport: 'प्राथमिकता सहायता',
@@ -880,7 +842,7 @@ const hi: Translations = {
         copySshWithKey: 'SSH कॉपी करें (कुंजी के साथ)',
         copySshWithPassword: 'SSH कॉपी करें (पासवर्ड के साथ)',
         connect: 'SSH कमांड कॉपी करें',
-        viewServerCredentials: 'सर्वर क्रेडेंशियल देखें',
+        viewServerCredentials: 'सर्वर क्रेडेंशियल',
         serverCredentials: 'सर्वर क्रेडेंशियल',
         serverCredentialsDescription:
             'SSH के माध्यम से अपने सर्वर से कनेक्ट करने के लिए इन क्रेडेंशियल का उपयोग करें.',
@@ -987,7 +949,7 @@ const hi: Translations = {
         dnsSetupButton: 'DNS सेट करें',
         dnsSetupSuccess: 'DNS रिज़ॉल्वर सफलतापूर्वक कॉन्फ़िगर हुआ.',
         dnsSetupError: 'DNS रिज़ॉल्वर कॉन्फ़िगर करने में विफल!',
-        chatTab: 'चैट',
+        listTab: 'Claws',
         playgroundTab: 'प्लेग्राउंड',
         userTab: 'उपयोगकर्ता',
         adminTab: 'एडमिन',
@@ -1014,20 +976,6 @@ const hi: Translations = {
             unknown: 'अज्ञात',
             checking: 'जाँच हो रही है'
         }
-    },
-    chat: {
-        explorer: 'एक्सप्लोरर',
-        selectAgent: 'कोई चयन नहीं',
-        selectAgentDescription: 'साइडबार से एक क्लॉ या एजेंट चुनें।',
-        noAgents: 'कोई एजेंट उपलब्ध नहीं',
-        noAgentsDescription:
-            'एजेंट से चैट शुरू करने के लिए एक क्लॉ डिप्लॉय करें.',
-        openSidebar: 'साइडबार खोलें',
-        clawNotReady: 'क्लॉ अभी तैयार नहीं है',
-        addAgent: 'एजेंट जोड़ें',
-        viewTree: 'ट्री व्यू',
-        viewList: 'सूची व्यू',
-        clawSettings: 'क्लॉ सेटिंग्स'
     },
     createClaw: {
         title: 'OpenClaw डिप्लॉय करें',
@@ -1210,12 +1158,6 @@ const hi: Translations = {
         clawHostControl: 'ClawHost नियंत्रण',
         clawHostControlDescription:
             'प्लेटफ़ॉर्म से सीधे फ़ाइलें, अपडेट और अन्य कॉन्फ़िगरेशन विकल्प प्रबंधित करें.',
-        directChat: 'सीधी चैट',
-        directChatDescription:
-            'प्लेटफ़ॉर्म से सीधे अपने AI एजेंट से चैट करें. किसी बाहरी टूल या इंटरफ़ेस की ज़रूरत नहीं.',
-        multipleAgents: 'एकाधिक एजेंट',
-        multipleAgentsDescription:
-            'एक ही इंस्टेंस पर कई AI एजेंट चलाएँ और प्रबंधित करें. प्रत्येक का अपना कॉन्फ़िगरेशन और उद्देश्य.',
         multipleClaws: 'एकाधिक क्लॉज़',
         multipleClawsDescription:
             'एक ही डैशबोर्ड से कई OpenClaw इंस्टेंस डिप्लॉय और प्रबंधित करें. जैसे-जैसे आप बढ़ें, स्केल करें.',
@@ -1338,8 +1280,6 @@ const hi: Translations = {
         comparisonDataOthers: 'अपने डेटा के मालिक नहीं',
         comparisonMultipleUs: 'एकाधिक OpenClaw, एक क्लॉ',
         comparisonMultipleOthers: 'केवल एक OpenClaw',
-        comparisonAgentsUs: 'प्रति क्लॉ एकाधिक एजेंट',
-        comparisonAgentsOthers: 'केवल एक एजेंट',
         comparisonOpenSourceUs: 'पूर्ण रूप से ओपन सोर्स',
         comparisonOpenSourceOthers: 'क्लोज़्ड सोर्स',
         comparisonExportUs: 'अपना OpenClaw कहीं भी निर्यात करें',
@@ -1348,8 +1288,6 @@ const hi: Translations = {
         comparisonProvidersOthers: 'केवल एक प्रदाता',
         comparisonSocialsUs: 'सोशल मीडिया उपस्थिति',
         comparisonSocialsOthers: 'कोई सोशल मीडिया नहीं',
-        comparisonChatUs: 'अपने क्लॉ से सीधे चैट करें',
-        comparisonChatOthers: 'केवल तृतीय-पक्ष प्लेटफ़ॉर्म के माध्यम से चैट',
         comparisonVersionUs: 'एक-क्लिक संस्करण स्विचिंग',
         comparisonVersionOthers: 'केवल मैनुअल अपडेट',
         comparisonTerminalUs: 'बिल्ट-इन वेब टर्मिनल',
@@ -1559,18 +1497,14 @@ const hi: Translations = {
         noClawsYet: 'कोई क्लॉज़ नहीं',
         noClawsDescription:
             'इसके साथ बातचीत करने के लिए अपना पहला क्लॉ डिप्लॉय करें.',
-        loadingAgents: 'एजेंट लोड हो रहे हैं',
+        selectClaw: 'एक क्लॉ चुनें',
+        selectClawDescription: 'विवरण देखने के लिए साइडबार से एक क्लॉ चुनें.',
         unreachable: 'अप्राप्य',
         offline: 'ऑफ़लाइन',
-        noAgents: 'कोई एजेंट नहीं',
-        agentCount: '{{count}} एजेंट',
-        agentCountPlural: '{{count}} एजेंट',
-        agentModel: 'मॉडल',
         zoomLabel: '{{percent}}%',
         fitView: 'केंद्र',
         nodesOutOfView: 'क्लॉज़ दृश्य से बाहर',
         nodeOutOfView: 'क्लॉ दृश्य से बाहर',
-        addAgent: 'एजेंट जोड़ें',
         closeDetails: 'बंद करें',
         tabInfo: 'जानकारी',
         tabLogs: 'लॉग',
@@ -1588,116 +1522,7 @@ const hi: Translations = {
         loadingTip2: 'क्या आप जानते हैं कि OpenClaw ओपन-सोर्स है?',
         loadingTip3:
             'ClawHost एक-क्लिक OpenClaw होस्टिंग की अनुमति देने वाला पहला प्रोजेक्ट है.',
-        tabChat: 'चैट',
         tabSettings: 'सेटिंग्स',
-        agentOnClaw: '{{clawName}} पर',
-        cannotDeleteDefaultAgent: 'डिफ़ॉल्ट एजेंट को हटाया नहीं जा सकता!',
-        addAgentTitle: 'एजेंट जोड़ें',
-        addAgentDescription: '{{clawName}} में एक नया एजेंट जोड़ें.',
-        addAgentDescriptionNoClaw:
-            'एक क्लॉ चुनें और अपना नया एजेंट कॉन्फ़िगर करें.',
-        addAgentSelectClaw: 'क्लॉ',
-        addAgentSelectClawPlaceholder: 'एक क्लॉ चुनें',
-        addAgentName: 'नाम',
-        addAgentNamePlaceholder: 'एजेंट नाम दर्ज करें',
-        addAgentModel: 'मॉडल',
-        addAgentModelPlaceholder: 'एक मॉडल चुनें',
-        addAgentApiKey: 'API कुंजी',
-        addAgentApiKeyPlaceholder: 'अपनी API कुंजी दर्ज करें (वैकल्पिक)',
-        addAgentApiKeyConfigured:
-            '{{envVar}} पहले से इस इंस्टेंस पर कॉन्फ़िगर है.',
-        addAgentSubmit: 'एजेंट जोड़ें',
-        addAgentSuccess: 'एजेंट सफलतापूर्वक जोड़ा गया.',
-        addAgentFailed: 'एजेंट जोड़ने में विफल!',
-        deleteAgent: 'एजेंट हटाएँ',
-        deleteAgentTitle: 'एजेंट हटाएँ',
-        deleteAgentDescription:
-            'क्या आप वाकई एजेंट "{{agentName}}" को हटाना चाहते हैं? यह कार्य पूर्ववत नहीं किया जा सकता.',
-        deleteAgentConfirm: 'हटाएँ',
-        agentDontAskAgain: 'इस सत्र में एजेंट हटाते समय दोबारा न पूछें',
-        deleteAgentDeleting: 'हटाया जा रहा है...',
-        deleteAgentSuccess: 'एजेंट सफलतापूर्वक हटाया गया.',
-        deleteAgentFailed: 'एजेंट हटाने में विफल!',
-        agentNameRequired: 'एजेंट नाम आवश्यक है!',
-        agentNameInvalidChars: 'केवल अक्षर, संख्याएँ और डैश की अनुमति है!',
-        agentNameDuplicate: 'इस नाम का एक एजेंट पहले से मौजूद है!',
-        chatConnecting: 'कनेक्ट हो रहा है...',
-        chatAuthenticating: 'प्रमाणित हो रहा है...',
-        chatDisconnected: 'डिस्कनेक्ट',
-        chatError: 'कनेक्शन त्रुटि!',
-        chatConnected: 'कनेक्टेड',
-        chatInputPlaceholder: 'एक संदेश टाइप करें...',
-        chatInputDisabled: 'इस एजेंट से चैट करने के लिए कनेक्ट करें',
-        chatSend: 'संदेश भेजें',
-        chatAbort: 'रोकें',
-        chatStopProcess: 'प्रक्रिया रोकें',
-        chatRemoveAttachment: 'अटैचमेंट हटाएँ',
-        chatThinking: 'सोच रहा है',
-        chatLoadingHistory: 'संदेश लोड हो रहे हैं...',
-        chatNoMessages: 'कोई संदेश नहीं',
-        chatNoMessagesDescription:
-            'इस एजेंट के साथ बातचीत शुरू करने के लिए एक संदेश भेजें.',
-        chatErrorMessage: 'प्रतिक्रिया जनरेट करते समय एक त्रुटि हुई!',
-        chatAbortedMessage: 'प्रतिक्रिया रोक दी गई.',
-        chatPlaySpeech: 'ज़ोर से पढ़ें',
-        chatReplaySpeech: 'फिर से चलाएँ',
-        chatStopSpeech: 'रोकें',
-        chatSpeechFailed: 'स्पीच जनरेट करने में विफल!',
-        chatReadOnlyPlaceholder: 'चैट आपके अपने क्लॉज़ पर उपलब्ध है.',
-        chatReadOnlyUser:
-            'नमस्ते! क्या आप मुझे Node.js प्रोजेक्ट सेटअप करने में मदद कर सकते हैं?',
-        chatReadOnlyAssistant:
-            'बिल्कुल! मैं आपको एक नया Node.js प्रोजेक्ट शुरू करने में मदद कर सकता हूँ. क्या आप चाहेंगे कि मैं कुछ सामान्य डिपेंडेंसी के साथ package.json बनाऊँ?',
-        chatReadOnlyReply:
-            'यह एक प्रीव्यू है! एक क्लिक में अपना OpenClaw डिप्लॉय करें और मिनटों में अपने AI एजेंट से चैटिंग शुरू करें!',
-        chatReadOnlyUser2:
-            'क्या आप टेस्ट सूट चला सकते हैं और विफलताओं की जाँच कर सकते हैं?',
-        chatReadOnlyAssistant2:
-            'ज़रूर! मैं अभी सभी टेस्ट चलाता हूँ. 3 पास, 0 फ़ेल. सब कुछ अच्छा दिख रहा है — सभी अभिकथन पास हो रहे हैं.',
-        chatReadOnlyGoUser:
-            'हेलो, क्या आप मेरी डिप्लॉयमेंट पाइपलाइन ऑटोमेट करने में मदद कर सकते हैं?',
-        chatReadOnlyGoAssistant:
-            'बिल्कुल! मैं आपके लिए CI/CD पाइपलाइन सेट कर सकता हूँ. क्या आप चाहेंगे कि मैं एक GitHub Actions वर्कफ़्लो से शुरू करूँ जो स्वचालित रूप से बिल्ड, टेस्ट और डिप्लॉय करे?',
-        chatReadOnlyGoReply:
-            'यह एक प्रीव्यू है! ClawHost Go प्राप्त करें और OpenClaw स्थानीय रूप से चलाएँ — आपकी मशीन, आपका डेटा, कोई क्लाउड नहीं चाहिए.',
-        chatReadOnlyGoUser2:
-            'क्या आप मेरी स्थानीय सेवाओं को मॉनिटर कर सकते हैं और कुछ डाउन होने पर मुझे अलर्ट कर सकते हैं?',
-        chatReadOnlyGoAssistant2:
-            'काम पर हूँ! मैं आपकी सभी सेवाओं के लिए हेल्थ चेक सेट करता हूँ. वर्तमान में 4 एंडपॉइंट मॉनिटर हो रहे हैं — सभी स्वस्थ और प्रतिक्रिया दे रहे हैं.',
-        chatConnectionFailed: 'इस एजेंट से कनेक्ट करने में विफल!',
-        chatConnectionFailedDescription:
-            'सुनिश्चित करें कि क्लॉ चल रहा है और पहुँच योग्य है.',
-        chatToday: 'आज',
-        chatYesterday: 'कल',
-        chatExpandFullscreen: 'चैट विस्तारित करें',
-        chatAttachFile: 'फ़ाइल संलग्न करें',
-        chatDropFiles: 'संलग्न करने के लिए फ़ाइलें ड्रॉप करें',
-        chatDropFilesDescription: '5 MB तक की छवियाँ, PDF और टेक्स्ट फ़ाइलें.',
-        chatVoiceInput: 'वॉइस इनपुट',
-        chatVoiceListening: 'सुन रहा है...',
-        chatVoiceNotSupported: 'इस ब्राउज़र में वॉइस इनपुट समर्थित नहीं है.',
-        chatVoiceMode: 'वॉइस मोड',
-        chatVoiceModeTapToSpeak: 'बोलना शुरू करने के लिए टैप करें',
-        chatVoiceModeListening: 'सुन रहा है...',
-        chatVoiceModeClose: 'वॉइस मोड समाप्त करें',
-        chatVoiceModeTranscribing: 'ट्रांसक्राइब हो रहा है...',
-        chatVoiceModeThinking: 'सोच रहा है...',
-        chatVoiceModeResponding: 'प्रतिक्रिया दे रहा है...',
-        chatVoiceModePreparing: 'स्पीच तैयार हो रही है...',
-        chatVoiceModeSpeaking: 'बोल रहा है...',
-        chatVoiceModeInputDevice: 'माइक्रोफ़ोन',
-        chatVoiceModeOutputDevice: 'स्पीकर',
-        chatVoiceModeNotSupported:
-            'इस ब्राउज़र में वॉइस पहचान समर्थित नहीं है.',
-        chatVoiceModeNoMicrophone:
-            'कोई माइक्रोफ़ोन नहीं मिला. वॉइस मोड का उपयोग करने के लिए एक कनेक्ट करें.',
-        chatVoiceModeNoSpeaker:
-            'कोई स्पीकर नहीं मिला. वॉइस मोड का उपयोग करने के लिए एक कनेक्ट करें.',
-        chatAttachmentNotSupported:
-            'यह फ़ाइल प्रकार समर्थित नहीं है. छवियाँ, PDF या टेक्स्ट फ़ाइलें उपयोग करें.',
-        chatNoPreview: 'कोई प्रीव्यू उपलब्ध नहीं.',
-        chatDownloadFile: 'फ़ाइल डाउनलोड करें',
-        chatCopyMessage: 'संदेश कॉपी करें',
         featureVersionUnsupported: '{{feature}} {{version}} पर समर्थित नहीं है',
         featureVersionUnsupportedDescription:
             'हम इस संस्करण में UI के माध्यम से {{feature}} प्रबंधन का समर्थन नहीं करते। आप SSH, टर्मिनल या OpenClaw कंट्रोल पैनल के माध्यम से इसे प्रबंधित कर सकते हैं।',
@@ -1705,6 +1530,7 @@ const hi: Translations = {
         featureVersionUnsupportedSupported: 'समर्थित संस्करण:',
         featureVersionUnsupportedNewer: 'नए संस्करण',
         tabVersions: 'संस्करण',
+        tabFiles: 'फ़ाइल एक्सप्लोरर',
         versionsSearch: 'संस्करण खोजें...',
         versionsEmpty: 'कोई संस्करण नहीं मिला',
         versionsEmptyDescription: 'आपकी खोज से कोई संस्करण मेल नहीं खाता.',
@@ -1918,12 +1744,8 @@ const hi: Translations = {
         signOut: 'साइन आउट',
         signedInAs: 'इस रूप में साइन इन',
         loadMore: 'और लोड करें',
-        chatWithYourClaw: 'अपने क्लॉ से चैट करें',
         deployClaw: 'क्लॉ डिप्लॉय करें',
-        deployYourFirstClaw: 'अपना पहला क्लॉ डिप्लॉय करें',
-        voiceMode: 'वॉइस मोड',
-        voiceListening: 'सुन रहा है...',
-        voiceTapToSpeak: 'शुरू करने के लिए ऑर्ब को टैप करें'
+        deployYourFirstClaw: 'अपना पहला क्लॉ डिप्लॉय करें'
     },
     announcement: {
         title: 'सेवा सूचना',
@@ -1972,8 +1794,6 @@ const hi: Translations = {
         featureSetupTime: 'सेटअप समय',
         featureOneClickDeploy: 'एक-क्लिक डिप्लॉय',
         featureMultipleInstances: 'एकाधिक इंस्टेंस',
-        featureMultipleAgents: 'प्रति इंस्टेंस एकाधिक एजेंट',
-        featureAgentConfig: 'एजेंट कॉन्फ़िगरेशन',
         featureDataOwnership: 'पूर्ण डेटा स्वामित्व',
         featureDataExport: 'डेटा निर्यात',
         featureBackups: 'बैकअप',
@@ -1988,7 +1808,6 @@ const hi: Translations = {
         featureMultiLanguage: 'बहु-भाषा UI',
         featureMobileApp: 'मोबाइल ऐप',
         featureDesktopApp: 'डेस्कटॉप ऐप',
-        featureDirectChat: 'सीधी चैट',
         featureOneClickVersion: 'एक-क्लिक संस्करण स्विच',
         featureWebTerminal: 'वेब टर्मिनल एक्सेस',
         featureSocials: 'सोशल मीडिया',
@@ -2052,7 +1871,6 @@ const hi: Translations = {
         iosMacOs: 'iOS और macOS',
         macOsOnly: 'केवल macOS',
         viaTelegram: 'Telegram के माध्यम से',
-        builtInChat: 'बिल्ट-इन',
         builtInTerminal: 'कोई SSH नहीं चाहिए',
         notAvailable: 'उपलब्ध नहीं',
         disclaimer: 'कुछ बदला या गलत है? हमें ईमेल करें',

@@ -1,5 +1,5 @@
 const DASHBOARD_TABS = {
-    CHAT: 'chat',
+    LIST: 'list',
     PLAYGROUND: 'playground'
 } as const
 

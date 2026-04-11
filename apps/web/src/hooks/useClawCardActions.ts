@@ -34,7 +34,6 @@ const useClawCardActions = ({
     const [showHardDeleteModal, setShowHardDeleteModal] = useState(false)
     const [showDiagnostics, setShowDiagnostics] = useState(false)
     const [showLogs, setShowLogs] = useState(false)
-    const [showConfigDialog, setShowConfigDialog] = useState(false)
     const [showReinstallModal, setShowReinstallModal] = useState(false)
     const [showCredentials, setShowCredentials] = useState(false)
     const [credentialsPassword, setCredentialsPassword] = useState<
@@ -142,7 +141,6 @@ const useClawCardActions = ({
             onShowHardDeleteModal: () => setShowHardDeleteModal(true),
             onShowDiagnostics: () => setShowDiagnostics(true),
             onShowLogs: () => setShowLogs(true),
-            onShowConfig: () => setShowConfigDialog(true),
             onUpdateInstance: () =>
                 repairMutation.mutate(target.id, {
                     onSuccess: () =>
@@ -203,8 +201,6 @@ const useClawCardActions = ({
             setShowDiagnostics,
             showLogs,
             setShowLogs,
-            showConfigDialog,
-            setShowConfigDialog,
             showCredentials,
             setShowCredentials,
             credentialsPassword,
@@ -241,7 +237,6 @@ const useClawCardActions = ({
         showReinstallModal,
         showDiagnostics,
         showLogs,
-        showConfigDialog,
         showCredentials,
         credentialsPassword,
         deleteMutation,

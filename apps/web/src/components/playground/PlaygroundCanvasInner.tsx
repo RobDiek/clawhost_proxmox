@@ -1,6 +1,5 @@
 import type { FC, ReactNode } from 'react'
 import type {
-    PlaygroundAgentNodeData,
     PlaygroundClawNodeData,
     PlaygroundCanvasInnerProps
 } from '@/ts/Interfaces'
@@ -15,22 +14,15 @@ import {
     useOnViewportChange
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import {
-    PlaygroundClawNode,
-    PlaygroundAgentNode,
-    PlaygroundToolbar
-} from '@/components/playground'
+import { PlaygroundClawNode, PlaygroundToolbar } from '@/components/playground'
 
 const PlaygroundCanvasInner: FC<PlaygroundCanvasInnerProps> = ({
     initialNodes,
     initialEdges,
     onNodeClick,
-    onAgentClick,
     onPaneClick,
     panelOpen,
     selectedClawId,
-    selectedAgentId,
-    selectedAgentClawId,
     initialZoom,
     allowPageScroll,
     zoom,
@@ -40,8 +32,7 @@ const PlaygroundCanvasInner: FC<PlaygroundCanvasInnerProps> = ({
 }): ReactNode => {
     const nodeTypes = useMemo(
         () => ({
-            clawNode: PlaygroundClawNode,
-            agentNode: PlaygroundAgentNode
+            clawNode: PlaygroundClawNode
         }),
         []
     )
@@ -63,35 +54,18 @@ const PlaygroundCanvasInner: FC<PlaygroundCanvasInnerProps> = ({
     }, [])
 
     const selectedClawIdRef = useRef(selectedClawId)
-    const selectedAgentIdRef = useRef(selectedAgentId)
-    const selectedAgentClawIdRef = useRef(selectedAgentClawId)
     selectedClawIdRef.current = selectedClawId
-    selectedAgentIdRef.current = selectedAgentId
-    selectedAgentClawIdRef.current = selectedAgentClawId
 
     const prevNodeCountRef = useRef(initialNodes.length)
 
     useEffect(() => {
         const curSelectedClawId = selectedClawIdRef.current
-        const curSelectedAgentId = selectedAgentIdRef.current
-        const curSelectedAgentClawId = selectedAgentClawIdRef.current
 
         setNodes(
             initialNodes.map((node) => {
                 if (node.type === 'clawNode') {
                     const clawId = node.id.replace('claw-', '')
-                    const isSelected =
-                        curSelectedClawId === clawId && !curSelectedAgentId
-                    return { ...node, data: { ...node.data, isSelected } }
-                }
-                if (node.type === 'agentNode') {
-                    const nodeData =
-                        node.data as unknown as PlaygroundAgentNodeData
-                    const agentId = nodeData.agent?.id as string
-                    const clawId = nodeData.clawId as string
-                    const isSelected =
-                        curSelectedAgentId === agentId &&
-                        curSelectedAgentClawId === clawId
+                    const isSelected = curSelectedClawId === clawId
                     return { ...node, data: { ...node.data, isSelected } }
                 }
                 return node
@@ -125,25 +99,9 @@ const PlaygroundCanvasInner: FC<PlaygroundCanvasInnerProps> = ({
             prev.map((node) => {
                 if (node.type === 'clawNode') {
                     const clawId = node.id.replace('claw-', '')
-                    const isSelected =
-                        selectedClawId === clawId && !selectedAgentId
+                    const isSelected = selectedClawId === clawId
                     if (
                         (node.data as unknown as PlaygroundClawNodeData)
-                            .isSelected === isSelected
-                    )
-                        return node
-                    return { ...node, data: { ...node.data, isSelected } }
-                }
-                if (node.type === 'agentNode') {
-                    const nodeData =
-                        node.data as unknown as PlaygroundAgentNodeData
-                    const agentId = nodeData.agent?.id as string
-                    const clawId = nodeData.clawId as string
-                    const isSelected =
-                        selectedAgentId === agentId &&
-                        selectedAgentClawId === clawId
-                    if (
-                        (node.data as unknown as PlaygroundAgentNodeData)
                             .isSelected === isSelected
                     )
                         return node
@@ -152,7 +110,7 @@ const PlaygroundCanvasInner: FC<PlaygroundCanvasInnerProps> = ({
                 return node
             })
         )
-    }, [selectedClawId, selectedAgentId, selectedAgentClawId, setNodes])
+    }, [selectedClawId, setNodes])
 
     useEffect(() => {
         let timeout: ReturnType<typeof setTimeout>
@@ -320,16 +278,8 @@ const PlaygroundCanvasInner: FC<PlaygroundCanvasInnerProps> = ({
                 const clawId = node.id.replace('claw-', '')
                 onNodeClick(clawId)
             }
-            if (node.type === 'agentNode' && onAgentClick) {
-                const nodeData = node.data as unknown as PlaygroundAgentNodeData
-                const agentId = nodeData.agent?.id as string
-                const clawId = nodeData.clawId as string
-                if (agentId && clawId) {
-                    onAgentClick(agentId, clawId)
-                }
-            }
         },
-        [onNodeClick, onAgentClick]
+        [onNodeClick]
     )
 
     const handlePaneClick = useCallback(() => {

@@ -28,7 +28,6 @@ openclaw.anywhere/
 - **Cloud Provider**: Hetzner Cloud
 - **DNS**: Cloudflare
 - **SSH/Terminal**: SSH2 + WebSocket (ws) for remote terminal access
-- **Text-to-Speech**: Piper TTS engine
 - **Runtime**: Node.js 20+ with tsx
 
 ### Frontend (apps/web)
@@ -230,8 +229,7 @@ function create(data: CreateUserParams): void {} // USE THIS
 - Auth Interfaces: `AuthContextType`, `VerifyOtpResponse`, `CachedProfile`, `ResolveCredentialConflictData`
 - Component Props: `HeaderProps`, `EmptyStateProps`, `ClawCardProps`, `PlaygroundCanvasProps`, `PlaygroundDetailPanelProps`, etc.
 - Hook Data Types: `CreateClawData`, `PurchaseClawData`, `CreateSSHKeyData`, `RenameClawData`, `UpdateClawSubdomainData`, etc.
-- Playground Types: `PlaygroundClawNodeData`, `PlaygroundAgentNodeData`
-- Agent/Chat Types: `ClawAgent`, `ChatMessage`, `ChatAttachment`, `ChatHistoryEntry`, `UseAgentChatParams`, `UseAgentChatReturn`
+- Playground Types: `PlaygroundClawNodeData`
 - File System Types: `ClawFileEntry`, `ClawFilesResponse`, `ReadClawFileResponse`, `UpdateClawFileData`
 - Version Types: `ClawVersionResponse`, `ClawVersionsResponse`
 - Blog Types: `BlogPostFrontmatter`, `BlogPostMeta`, `Testimonial`, `Faq`, `CompareCompetitor`, `CompareFeature`
@@ -243,12 +241,10 @@ function create(data: CreateUserParams): void {} // USE THIS
 - Hetzner Types: `HetznerServer`, `HetznerServerType`, `HetznerLocation`, `HetznerDatacenter`, `HetznerVolume`, `HetznerSSHKey`, etc.
 - Polar/Payment Types: `CheckoutSession`, `PolarSubscription`, `PolarOrder`, `PolarProduct`, `PolarCustomer`, webhook data types
 - Claw Operation Types: `CreateClawBody`, `InitiateClawPurchase`, `ProvisionClawParams`
-- Agent Types: `ClawAgent`
 - Auth Types: `SendOtpBody`, `VerifyOtpBody`, `ResolveCredentialConflictBody`
 - File Types: `ClawFileEntry`, `ReadClawFileBody`, `UpdateClawFileBody`
 - Diagnostics Types: `DiagnosticsStatusResponse`, `DiagnosticsLogsResponse`
 - Cache Types: `CacheEntry<T>`
-- TTS Types: `PiperVoice`, `PiperSynthesisResult`, `GenerateSpeechBody`
 - DNS Types: `CloudflareDNSRecord`
 - Email Props: `OtpCodeEmailProps`
 
@@ -358,15 +354,13 @@ import { Fragment } from 'react'
 - Use PageTitle for document title management
 - Include PageBackground for consistent styling
 - Public pages: Landing, Login, Blog, BlogPost, Compare, Terms, Privacy, Changelog, NotFound
-- Protected pages: Dashboard (with Chat and Playground tabs), Account, SSHKeys, Billing
+- Protected pages: Dashboard (with Playground tab), Account, SSHKeys, Billing
 
 **Web Components** (`apps/web/src/components/`):
 
 - `ui/` for shadcn/ui primitives
 - `dashboard/` for dashboard-specific components (CreateClawModal, ClawCard dropdowns/dialogs, diagnostics, logs, terminal, config, file explorer)
-- `chat/` for chat interface (ChatView, ChatSidebar with tree/list views, ChatSidebarItem, ChatEmptyState)
-- `agent-chat/` for agent communication (AgentChat, ChatBubble, ChatInput, ChatMarkdown, VoiceOrb, VoiceModeOverlay, ChatSpeechButton, ChatTypingIndicator)
-- `playground/` for graph visualization (PlaygroundCanvas, ClawNode, AgentNode, DetailPanel, Toolbar, VersionsContent)
+- `playground/` for graph visualization (PlaygroundCanvas, ClawNode, DetailPanel, Toolbar, VersionsContent)
 - Root level for shared components (Header, Footer, Logo, EmptyState, Toast, ProtectedRoute, etc.)
 - Keep components focused and composable
 
@@ -413,11 +407,6 @@ pnpm --filter api db:migrate   # Run migrations
 - `GET /volume-pricing` - Storage pricing
 - `GET /availability` - Plan availability by location
 
-**AI Routes** (`/ai`):
-
-- `POST /tts` - Text-to-speech generation (Piper)
-- `GET /voices` - Available TTS voices
-
 **Claws Routes** (`/claws`):
 
 - `GET /` - List user's claws
@@ -439,9 +428,6 @@ pnpm --filter api db:migrate   # Run migrations
 - `POST /:id/diagnostics/repair` - Attempt repair (admin-only)
 - `POST /:id/reinstall` - Reinstall OpenClaw (rate-limited to once per 24h for non-admins)
 - `GET /:id/export` - Export claw configuration
-- `POST /:id/agents` - List agents
-- `POST /:id/agents/create` - Create agent
-- `POST /:id/agents/delete` - Delete agent
 - `POST /:id/files` - List files
 - `POST /:id/files/read` - Read file content
 - `PUT /:id/files` - Update file content
@@ -489,14 +475,13 @@ The provider resolver includes in-memory caching with TTL (5 min for server type
 - **Cloudflare**: API token needs DNS edit permissions for the zone. Creates A records for each claw subdomain (60s TTL)
 - **Resend**: Verify your sending domain. `FROM_EMAIL` defaults to `OpenClaw <noreply@openclaw.com>`
 - **Polar**: Create an organization, generate an access token, and configure a webhook pointing to `POST /api/webhooks/polar` with the secret
-- **Piper TTS** (optional): Install the Piper binary and download voice models. Set `PIPER_BINARY` and `PIPER_MODELS_DIR` env vars
 
 ### State Management (Web)
 
 **Zustand Stores** (`apps/web/src/lib/store/`):
 
 - `useUIStore` - Toast notifications, create modal state, ProductHunt banner
-- `usePreferencesStore` - User preferences (persisted): theme, language, admin mode, chat sidebar view mode
+- `usePreferencesStore` - User preferences (persisted): theme, language, admin mode
 
 ### Naming Conventions
 
@@ -590,9 +575,6 @@ POLAR_WEBHOOK_SECRET=...
 POLAR_PRODUCT_HETZNER_CX23=...
 # ... (one POLAR_PRODUCT_* per plan, generated by create-polar-products script)
 
-# Piper TTS (optional)
-PIPER_BINARY=piper
-PIPER_MODELS_DIR=./models
 ```
 
 **Web** (apps/web/.env):
@@ -621,7 +603,6 @@ VITE_FIREBASE_APP_ID=...
 | Cloudflare Service | `apps/api/src/services/cloudflare.ts`           |
 | SSH Service        | `apps/api/src/services/ssh.ts`                  |
 | Terminal WebSocket | `apps/api/src/services/terminalSocket.ts`       |
-| Piper TTS Service  | `apps/api/src/services/piper.ts`                |
 | Polar Services     | `apps/api/src/services/polar/`                  |
 | Claw Helpers       | `apps/api/src/controllers/claws/helpers/`       |
 | Web Entry          | `apps/web/src/main.tsx`                         |
@@ -634,7 +615,6 @@ VITE_FIREBASE_APP_ID=...
 | Gateway Client     | `apps/web/src/lib/gateway/`                     |
 | Dashboard Tabs     | `apps/web/src/lib/dashboardTabs.ts`             |
 | Claw Detail Tabs   | `apps/web/src/lib/clawDetailTabs.ts`            |
-| Agent Detail Tabs  | `apps/web/src/lib/agentDetailTabs.ts`           |
 | Blog Utilities     | `apps/web/src/lib/blog/`                        |
 | Claw Utilities     | `apps/web/src/lib/claw-utils/`                  |
 | Types (Web)        | `apps/web/src/ts/Types.ts`                      |
@@ -683,7 +663,6 @@ import { t } from '@openclaw/i18n'
 - `account.*` - Account management
 - `billing.*` - Billing and payment
 - `dashboard.*` - Dashboard/Claws page
-- `chat.*` - Chat and playground chat interface
 - `createClaw.*` - Create Claw modal
 - `sshKeys.*` - SSH Keys page
 - `landing.*` - Landing page
@@ -695,7 +674,7 @@ import { t } from '@openclaw/i18n'
 - `terms.*` - Terms of service
 - `announcement.*` - Service announcements
 - `productHunt.*` - ProductHunt banner
-- `playground.*` - Playground/agent management
+- `playground.*` - Playground management
 
 **When adding new features:**
 

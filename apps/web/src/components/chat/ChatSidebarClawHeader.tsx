@@ -4,9 +4,14 @@ import type { ChatSidebarClawHeaderProps } from '@/ts/Interfaces'
 import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
 import { clawStatus, userRole } from '@openclaw/shared'
-import { ClockIcon, WarningIcon } from '@phosphor-icons/react'
+import {
+    ArrowSquareOutIcon,
+    ClockIcon,
+    WarningIcon
+} from '@phosphor-icons/react'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
-import { getLocale, TRUNCATE_LENGTHS } from '@/lib'
+import { getBaseDomain, getLocale, TRUNCATE_LENGTHS } from '@/lib'
+import { generateSlug } from '@/lib/claw-utils'
 import { CLAW_AVATAR_SIZE } from '@/lib/constants'
 import { ClawAvatar } from '@/components/shared'
 import { useProfile, useClawCardActions } from '@/hooks'
@@ -17,14 +22,10 @@ import {
 
 const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
     claw,
-    agentCount,
-    isLoadingAgents,
-    isReachable: _isReachable,
     isSelected,
     statusConfig,
     readOnly,
-    onOpenClawSettings,
-    onCreateAgent: _onCreateAgent
+    onOpenClawSettings
 }): ReactNode => {
     const { actions, isMutating, dialogsProps } = useClawCardActions({ claw })
     const { data: profile } = useProfile({ enabled: true })
@@ -117,29 +118,13 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
                                 <p>{t('dashboard.scheduledForDeletion')}</p>
                             </TooltipContent>
                         </Tooltip>
-                    ) : claw.status === clawStatus.creating ||
-                      claw.status === clawStatus.configuring ||
-                      claw.status === clawStatus.awaitingPayment ? (
+                    ) : claw.status === clawStatus.running ? (
                         <p className='text-muted-foreground truncate text-[11px]'>
-                            {statusConfig.label}
-                        </p>
-                    ) : claw.status === clawStatus.stopped ? (
-                        <p className='text-muted-foreground truncate text-[11px]'>
-                            {statusConfig.label}
-                        </p>
-                    ) : isLoadingAgents ? (
-                        <p className='text-muted-foreground truncate text-[11px]'>
-                            {t('playground.loadingAgents')}
+                            {(claw.subdomain || generateSlug(claw.id)) + '.' + getBaseDomain()}
                         </p>
                     ) : (
                         <p className='text-muted-foreground truncate text-[11px]'>
-                            {agentCount === 1
-                                ? t('playground.agentCount', {
-                                      count: String(agentCount)
-                                  })
-                                : t('playground.agentCountPlural', {
-                                      count: String(agentCount)
-                                  })}
+                            {statusConfig.label}
                         </p>
                     )}
                 </div>
@@ -148,6 +133,28 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
                         className='flex shrink-0 items-center gap-1'
                         onClick={(e) => e.stopPropagation()}
                     >
+                        {claw.status === clawStatus.running && (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        onClick={() => {
+                                            const subdomain =
+                                                claw.subdomain ||
+                                                generateSlug(claw.id)
+                                            const domain = `${subdomain}.${getBaseDomain()}`
+                                            const url = `https://${domain}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`
+                                            window.open(url, '_blank')
+                                        }}
+                                        className='text-muted-foreground hover:bg-foreground/10 hover:text-foreground shrink-0 rounded-md p-1 transition-colors'
+                                    >
+                                        <ArrowSquareOutIcon className='h-3.5 w-3.5' />
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent side='bottom'>
+                                    {t('dashboard.openControlPanel')}
+                                </TooltipContent>
+                            </Tooltip>
+                        )}
                         <div>
                             <ClawCardDropdownMenu
                                 claw={claw}

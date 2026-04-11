@@ -14,7 +14,8 @@ import {
 import {
     ClawLogsContent,
     ClawDiagnosticsContent,
-    ClawTerminalContent
+    ClawTerminalContent,
+    ClawConfigContent
 } from '@/components/dashboard'
 import {
     PlaygroundVersionsContent,
@@ -259,6 +260,10 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
 
                     {activeTab === 'versions' && (
                         <PlaygroundVersionsContent clawId={claw.id} />
+                    )}
+
+                    {activeTab === 'files' && (
+                        <ClawConfigContent clawId={claw.id} />
                     )}
 
                     {activeTab === 'settings' && (

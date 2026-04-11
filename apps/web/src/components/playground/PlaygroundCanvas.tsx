@@ -10,12 +10,9 @@ const PlaygroundCanvas: FC<PlaygroundCanvasProps> = ({
     initialNodes,
     initialEdges,
     onNodeClick,
-    onAgentClick,
     onPaneClick,
     panelOpen,
     selectedClawId,
-    selectedAgentId,
-    selectedAgentClawId,
     initialZoom,
     allowPageScroll
 }): ReactNode => {
@@ -28,12 +25,9 @@ const PlaygroundCanvas: FC<PlaygroundCanvasProps> = ({
                 initialNodes={initialNodes}
                 initialEdges={initialEdges}
                 onNodeClick={onNodeClick}
-                onAgentClick={onAgentClick}
                 onPaneClick={onPaneClick}
                 panelOpen={panelOpen}
                 selectedClawId={selectedClawId}
-                selectedAgentId={selectedAgentId}
-                selectedAgentClawId={selectedAgentClawId}
                 initialZoom={initialZoom}
                 allowPageScroll={allowPageScroll}
                 zoom={zoom}

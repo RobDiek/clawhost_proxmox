@@ -9,7 +9,6 @@ import type {
 import type {
     environment,
     featureEmailKey,
-    piperVoiceQuality,
     subscriptionStatus,
     webhookEventType
 } from '@/lib/constants'
@@ -32,9 +31,6 @@ export type UserRole = (typeof userRole)[keyof typeof userRole]
 export type Environment = (typeof environment)[keyof typeof environment]
 
 export type ClawFileType = (typeof clawFileType)[keyof typeof clawFileType]
-
-export type PiperVoiceQuality =
-    (typeof piperVoiceQuality)[keyof typeof piperVoiceQuality]
 
 export type BillingInterval =
     (typeof billingInterval)[keyof typeof billingInterval]

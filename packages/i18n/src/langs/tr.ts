@@ -148,8 +148,6 @@ const tr: Translations = {
         comparisonSetupOthers: 'Tek tıkla dağıt',
         comparisonUpdatesUs: 'Otomatik güncellemeler',
         comparisonUpdatesOthers: 'Otomatik güncellemeler',
-        comparisonAgentsUs: 'Birden fazla ajan',
-        comparisonAgentsOthers: 'Birden fazla ajan',
         faqTitle: 'Sorular',
         faqHeading: 'Sık Sorulan Sorular',
         faqDescription: 'ClawHost Go hakkında bilmeniz gereken her şey.',
@@ -205,7 +203,6 @@ const tr: Translations = {
         failedToStartClaw: 'Claw başlatılamadı!',
         noVersionAssigned: "Bu claw'a atanmış OpenClaw sürümü yok!",
         invalidAgentName: 'Geçersiz ajan adı!',
-        agentNameAlreadyExists: 'Bu isimde bir ajan zaten var!',
         invalidPath: 'Geçersiz yol!',
         fileNotFound: 'Dosya bulunamadı!',
         purchasingNotAvailable: 'Yerel modda satın alma mevcut değil!',
@@ -441,16 +438,6 @@ const tr: Translations = {
         locationsFetched: 'Konumlar başarıyla getirildi.',
         volumePricingFetched: 'Birim fiyatlandırması başarıyla getirildi.',
         planAvailabilityFetched: 'Plan uygunluğu başarıyla getirildi.',
-        agentsFetched: 'Ajanlar başarıyla getirildi.',
-        agentsFetchFailed: 'Ajanları getirmek için örneğe ulaşılamadı!',
-        agentCreated: 'Ajan başarıyla oluşturuldu.',
-        agentCreateFailed: 'Örnekte ajan oluşturulamadı!',
-        agentDeleted: 'Ajan başarıyla silindi.',
-        agentDeleteFailed: 'Örnekten ajan silinemedi!',
-        cannotDeleteMainAgent: 'Kalan tek ajan silinemez!',
-        agentNameInvalid: 'Ajan adı yalnızca harf, rakam ve tire içermelidir!',
-        agentNameDuplicate: 'Bu isimde bir ajan zaten var!',
-        invalidEnvVars: 'Geçersiz ortam değişkenleri!',
         diagnosticsFetched: 'Tanılama başarıyla getirildi.',
         logsFetched: 'Günlükler başarıyla getirildi.',
         filesFetched: 'Dosyalar başarıyla getirildi.',
@@ -473,9 +460,6 @@ const tr: Translations = {
         failedToDisconnectAuthMethod:
             'Kimlik doğrulama yöntemi bağlantısı kesilemedi!',
         textRequired: 'Metin gereklidir!',
-        voiceNotFound: 'Ses modeli bulunamadı!',
-        ttsGenerationFailed: 'Konuşma oluşturulamadı!',
-        voicesFetched: 'Sesler başarıyla getirildi.',
         featureEmailsDisabled: 'Özellik e-postaları şu anda devre dışı.',
         featureEmailsSent: 'Özellik e-postaları başarıyla gönderildi.',
         featureEmailsFailed: 'Özellik e-postaları gönderilemedi!',
@@ -563,26 +547,6 @@ const tr: Translations = {
                 description:
                     "Playground, tüm claw'larınızı ve ajanlarınızı gösteren etkileşimli bir grafik tuval sunar. Yönetmek için herhangi bir düğüme tıklayın — altyapınız için görsel bir komut merkezi.",
                 cta: "Playground'u Aç"
-            },
-            agentChat: {
-                subject:
-                    'Biliyor muydunuz? Yapay zeka ajanlarınızla sohbet edin',
-                preview: 'Ajanlarınızla doğrudan panelden konuşun',
-                tag: 'Ajan Sohbeti',
-                heading: 'Ajanlarınızla konuşun',
-                description:
-                    'ClawHost panelinden yapay zeka ajanlarınızla doğrudan sohbet edin. Mesaj gönderin, resim ekleyin ve konuşma geçmişini görün — hepsi tek bir yerde.',
-                cta: 'Sohbete Başla'
-            },
-            voiceMode: {
-                subject: 'Biliyor muydunuz? Ajanlarınızla sesli konuşun',
-                preview:
-                    'Ajanlarınızla konuşmadan metne ve metinden konuşmaya özelliğini kullanın',
-                tag: 'Ses Modu',
-                heading: 'Konuşun, yazmayın',
-                description:
-                    'Yapay zeka ajanlarınızla eller serbest konuşmak için ses modunu kullanın. Girdi için konuşmadan metne, yanıtlar için metinden konuşmaya — birden fazla ses arasından seçim yapın.',
-                cta: 'Ses Modunu Deneyin'
             },
             diagnostics: {
                 subject: 'Biliyor muydunuz? Yerleşik sağlık kontrolleri',
@@ -821,7 +785,6 @@ const tr: Translations = {
         paymentSuccess: 'Ödeme başarılı. Lisansınız artık aktif.',
         failedToPurchase: 'Ödeme sayfası başlatılamadı!',
         featureUnlimitedClaws: 'Sınırsız OpenClaw',
-        featureUnlimitedAgents: 'Sınırsız Ajan',
         featureDevices: 'Sınırsız Cihaz',
         featureUpdates: 'Sonsuz Güncellemeler',
         featureSupport: 'Öncelikli Destek',
@@ -873,7 +836,7 @@ const tr: Translations = {
         copySshWithKey: 'SSH Kopyala (anahtar ile)',
         copySshWithPassword: 'SSH Kopyala (şifre ile)',
         connect: 'SSH Komutunu Kopyala',
-        viewServerCredentials: 'Sunucu Kimlik Bilgilerini Görüntüle',
+        viewServerCredentials: 'Sunucu Kimlik Bilgileri',
         serverCredentials: 'Sunucu Kimlik Bilgileri',
         serverCredentialsDescription:
             'Sunucunuza SSH ile bağlanmak için bu kimlik bilgilerini kullanın.',
@@ -980,7 +943,7 @@ const tr: Translations = {
         dnsSetupButton: 'DNS Ayarla',
         dnsSetupSuccess: 'DNS çözümleyici başarıyla yapılandırıldı.',
         dnsSetupError: 'DNS çözümleyici yapılandırılamadı!',
-        chatTab: 'Sohbet',
+        listTab: 'Claws',
         playgroundTab: 'Playground',
         userTab: 'Kullanıcı',
         adminTab: 'Yönetici',
@@ -1007,20 +970,6 @@ const tr: Translations = {
             unknown: 'Bilinmiyor',
             checking: 'Kontrol Ediliyor'
         }
-    },
-    chat: {
-        explorer: 'Gezgin',
-        selectAgent: 'Seçim yok',
-        selectAgentDescription: 'Kenar çubuğundan bir claw veya ajan seçin.',
-        noAgents: 'Mevcut ajan yok',
-        noAgentsDescription:
-            'Ajanlarla sohbet etmeye başlamak için bir claw dağıtın.',
-        openSidebar: 'Kenar çubuğunu aç',
-        clawNotReady: 'Claw henüz hazır değil',
-        addAgent: 'Ajan ekle',
-        viewTree: 'Ağaç görünümü',
-        viewList: 'Liste görünümü',
-        clawSettings: 'Claw ayarları'
     },
     createClaw: {
         title: 'OpenClaw Dağıt',
@@ -1204,12 +1153,6 @@ const tr: Translations = {
         clawHostControl: 'ClawHost Kontrolü',
         clawHostControlDescription:
             'Dosyaları, güncellemeleri ve daha fazla yapılandırma seçeneğini doğrudan platformdan yönetin.',
-        directChat: 'Doğrudan Sohbet',
-        directChatDescription:
-            'Yapay zeka ajanlarınızla doğrudan platformdan sohbet edin. Harici araç veya arayüz gerekmez.',
-        multipleAgents: 'Birden Fazla Ajan',
-        multipleAgentsDescription:
-            'Tek bir örnekte birden fazla yapay zeka ajanı çalıştırın ve yönetin. Her birinin kendi yapılandırması ve amacı var.',
         multipleClaws: 'Birden Fazla Claw',
         multipleClawsDescription:
             'Tek bir panelden birden fazla OpenClaw örneği dağıtın ve yönetin. Büyüdükçe ölçeklendirin.',
@@ -1333,8 +1276,6 @@ const tr: Translations = {
         comparisonDataOthers: 'Verilerinizin sahibi değilsiniz',
         comparisonMultipleUs: 'Birden fazla OpenClaw, tek Claw',
         comparisonMultipleOthers: 'Yalnızca tek OpenClaw',
-        comparisonAgentsUs: 'Claw başına birden fazla ajan',
-        comparisonAgentsOthers: 'Yalnızca tek ajan',
         comparisonOpenSourceUs: 'Tamamen açık kaynak',
         comparisonOpenSourceOthers: 'Kapalı kaynak',
         comparisonExportUs: "OpenClaw'unuzu her yere dışa aktarın",
@@ -1343,9 +1284,6 @@ const tr: Translations = {
         comparisonProvidersOthers: 'Yalnızca tek sağlayıcı',
         comparisonSocialsUs: 'Sosyal medya varlığı',
         comparisonSocialsOthers: 'Sosyal medya yok',
-        comparisonChatUs: "Claw'ınızla doğrudan sohbet",
-        comparisonChatOthers:
-            'Yalnızca üçüncü taraf platformlar üzerinden sohbet',
         comparisonVersionUs: 'Tek tıkla sürüm değiştirme',
         comparisonVersionOthers: 'Yalnızca manuel güncellemeler',
         comparisonTerminalUs: 'Yerleşik web terminali',
@@ -1563,18 +1501,15 @@ const tr: Translations = {
         subtitle: 'Altyapınız genelinde ajan topolojisi',
         noClawsYet: 'Claw Yok',
         noClawsDescription: "Etkileşime geçmek için ilk Claw'ınızı dağıtın.",
-        loadingAgents: 'Ajanlar yükleniyor',
+        selectClaw: 'Bir Claw Seçin',
+        selectClawDescription:
+            'Ayrıntılarını görüntülemek için kenar çubuğundan bir Claw seçin.',
         unreachable: 'Erişilemiyor',
         offline: 'Çevrimdışı',
-        noAgents: 'Ajan yok',
-        agentCount: '{{count}} Ajan',
-        agentCountPlural: '{{count}} Ajan',
-        agentModel: 'Model',
         zoomLabel: '{{percent}}%',
         fitView: 'Ortala',
         nodesOutOfView: "Görünüm dışında claw'lar",
         nodeOutOfView: 'Görünüm dışında claw',
-        addAgent: 'Ajan ekle',
         closeDetails: 'Kapat',
         tabInfo: 'Bilgi',
         tabLogs: 'Günlükler',
@@ -1592,116 +1527,7 @@ const tr: Translations = {
         loadingTip2: "OpenClaw'un açık kaynak olduğunu biliyor muydunuz?",
         loadingTip3:
             'ClawHost, tek tıkla OpenClaw barındırmaya izin veren ilk projedir.',
-        tabChat: 'Sohbet',
         tabSettings: 'Ayarlar',
-        agentOnClaw: '{{clawName}} üzerinde',
-        cannotDeleteDefaultAgent: 'Varsayılan ajan kaldırılamaz!',
-        addAgentTitle: 'Ajan Ekle',
-        addAgentDescription: '{{clawName}} üzerine yeni bir ajan ekleyin.',
-        addAgentDescriptionNoClaw:
-            'Bir claw seçin ve yeni ajanınızı yapılandırın.',
-        addAgentSelectClaw: 'Claw',
-        addAgentSelectClawPlaceholder: 'Bir claw seçin',
-        addAgentName: 'Ad',
-        addAgentNamePlaceholder: 'Ajan adını girin',
-        addAgentModel: 'Model',
-        addAgentModelPlaceholder: 'Bir model seçin',
-        addAgentApiKey: 'API Anahtarı',
-        addAgentApiKeyPlaceholder: 'API anahtarınızı girin (isteğe bağlı)',
-        addAgentApiKeyConfigured:
-            '{{envVar}} bu örnekte zaten yapılandırılmış.',
-        addAgentSubmit: 'Ajan Ekle',
-        addAgentSuccess: 'Ajan başarıyla eklendi.',
-        addAgentFailed: 'Ajan eklenemedi!',
-        deleteAgent: 'Ajanı Sil',
-        deleteAgentTitle: 'Ajanı Sil',
-        deleteAgentDescription:
-            '"{{agentName}}" ajanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
-        deleteAgentConfirm: 'Sil',
-        agentDontAskAgain: 'Bu oturumda ajan silerken tekrar sorma',
-        deleteAgentDeleting: 'Siliniyor...',
-        deleteAgentSuccess: 'Ajan başarıyla silindi.',
-        deleteAgentFailed: 'Ajan silinemedi!',
-        agentNameRequired: 'Ajan adı gerekli!',
-        agentNameInvalidChars: 'Yalnızca harf, rakam ve tire kullanılabilir!',
-        agentNameDuplicate: 'Bu isimde bir ajan zaten var!',
-        chatConnecting: 'Bağlanılıyor...',
-        chatAuthenticating: 'Kimlik doğrulanıyor...',
-        chatDisconnected: 'Bağlantı kesildi',
-        chatError: 'Bağlantı hatası!',
-        chatConnected: 'Bağlandı',
-        chatInputPlaceholder: 'Bir mesaj yazın...',
-        chatInputDisabled: 'Bu ajanla sohbet etmek için bağlanın',
-        chatSend: 'Mesaj gönder',
-        chatAbort: 'Durdur',
-        chatStopProcess: 'İşlemi durdur',
-        chatRemoveAttachment: 'Eki kaldır',
-        chatThinking: 'Düşünüyor',
-        chatLoadingHistory: 'Mesajlar yükleniyor...',
-        chatNoMessages: 'Mesaj yok',
-        chatNoMessagesDescription:
-            'Bu ajanla bir sohbet başlatmak için mesaj gönderin.',
-        chatErrorMessage: 'Yanıt oluşturulurken bir hata oluştu!',
-        chatAbortedMessage: 'Yanıt durduruldu.',
-        chatPlaySpeech: 'Sesli oku',
-        chatReplaySpeech: 'Tekrar oynat',
-        chatStopSpeech: 'Durdur',
-        chatSpeechFailed: 'Konuşma oluşturulamadı!',
-        chatReadOnlyPlaceholder: "Sohbet kendi Claw'larınızda kullanılabilir.",
-        chatReadOnlyUser:
-            'Merhaba! Node.js projesi kurmama yardım edebilir misiniz?',
-        chatReadOnlyAssistant:
-            'Tabii ki! Yeni bir Node.js projesi başlatmanıza yardımcı olabilirim. Yaygın bağımlılıklarla bir package.json oluşturmamı ister misiniz?',
-        chatReadOnlyReply:
-            "Bu bir önizleme! Kendi OpenClaw'unuzu tek tıkla dağıtın ve dakikalar içinde yapay zeka ajanlarınızla sohbet etmeye başlayın!",
-        chatReadOnlyUser2:
-            'Test paketini çalıştırıp hataları kontrol edebilir misin?',
-        chatReadOnlyAssistant2:
-            'Tabii! Tüm testleri şimdi çalıştıracağım. 3 geçti, 0 başarısız. Her şey iyi görünüyor — tüm doğrulamalar geçiyor.',
-        chatReadOnlyGoUser:
-            'Hey, dağıtım hattımı otomatikleştirmeme yardım edebilir misin?',
-        chatReadOnlyGoAssistant:
-            'Kesinlikle! Sizin için bir CI/CD hattı kurabilirim. Otomatik olarak derleyen, test eden ve dağıtan bir GitHub Actions iş akışıyla başlamamı ister misiniz?',
-        chatReadOnlyGoReply:
-            "Bu bir önizleme! ClawHost Go edinin ve OpenClaw'u yerel olarak çalıştırın — sizin makineniz, sizin verileriniz, bulut gerekmez.",
-        chatReadOnlyGoUser2:
-            'Yerel servislerimi izleyebilir ve bir şey çökerse beni uyarabilir misin?',
-        chatReadOnlyGoAssistant2:
-            'Üzerindeyim! Tüm servisleriniz için sağlık kontrolleri ayarlayacağım. Şu anda 4 uç noktayı izliyorum — hepsi sağlıklı ve yanıt veriyor.',
-        chatConnectionFailed: 'Bu ajana bağlanılamadı!',
-        chatConnectionFailedDescription:
-            "Claw'ın çalıştığından ve erişilebilir olduğundan emin olun.",
-        chatToday: 'Bugün',
-        chatYesterday: 'Dün',
-        chatExpandFullscreen: 'Sohbeti genişlet',
-        chatAttachFile: 'Dosya ekle',
-        chatDropFiles: 'Eklemek için dosyaları bırakın',
-        chatDropFilesDescription:
-            "Resimler, PDF'ler ve metin dosyaları, 5 MB'a kadar.",
-        chatVoiceInput: 'Sesli giriş',
-        chatVoiceListening: 'Dinleniyor...',
-        chatVoiceNotSupported: 'Bu tarayıcıda sesli giriş desteklenmiyor.',
-        chatVoiceMode: 'Ses Modu',
-        chatVoiceModeTapToSpeak: 'Konuşmaya başlamak için dokunun',
-        chatVoiceModeListening: 'Dinleniyor...',
-        chatVoiceModeClose: 'Ses modunu bitir',
-        chatVoiceModeTranscribing: 'Yazıya döküyor...',
-        chatVoiceModeThinking: 'Düşünüyor...',
-        chatVoiceModeResponding: 'Yanıtlıyor...',
-        chatVoiceModePreparing: 'Konuşma hazırlanıyor...',
-        chatVoiceModeSpeaking: 'Konuşuyor...',
-        chatVoiceModeInputDevice: 'Mikrofon',
-        chatVoiceModeOutputDevice: 'Hoparlör',
-        chatVoiceModeNotSupported: 'Bu tarayıcıda ses tanıma desteklenmiyor.',
-        chatVoiceModeNoMicrophone:
-            'Mikrofon algılanmadı. Ses modunu kullanmak için bir tane bağlayın.',
-        chatVoiceModeNoSpeaker:
-            'Hoparlör algılanmadı. Ses modunu kullanmak için bir tane bağlayın.',
-        chatAttachmentNotSupported:
-            'Bu dosya türü desteklenmiyor. Resim, PDF veya metin dosyası kullanın.',
-        chatNoPreview: 'Önizleme mevcut değil.',
-        chatDownloadFile: 'Dosyayı indir',
-        chatCopyMessage: 'Mesajı kopyala',
         featureVersionUnsupported:
             '{{feature}} {{version}} üzerinde desteklenmiyor',
         featureVersionUnsupportedDescription:
@@ -1710,6 +1536,7 @@ const tr: Translations = {
         featureVersionUnsupportedSupported: 'Desteklenen sürümler:',
         featureVersionUnsupportedNewer: 'daha yeni sürümler',
         tabVersions: 'Sürümler',
+        tabFiles: 'Dosya Gezgini',
         versionsSearch: 'Sürüm ara...',
         versionsEmpty: 'Sürüm bulunamadı',
         versionsEmptyDescription: 'Aramanızla eşleşen sürüm yok.',
@@ -1924,12 +1751,8 @@ const tr: Translations = {
         signOut: 'Çıkış Yap',
         signedInAs: 'Giriş yapılan hesap:',
         loadMore: 'Daha Fazla Yükle',
-        chatWithYourClaw: "Claw'ınızla sohbet edin",
         deployClaw: 'Claw Dağıt',
-        deployYourFirstClaw: "İlk Claw'ınızı dağıtın",
-        voiceMode: 'Ses Modu',
-        voiceListening: 'Dinleniyor...',
-        voiceTapToSpeak: 'Başlamak için küreye dokunun'
+        deployYourFirstClaw: "İlk Claw'ınızı dağıtın"
     },
     announcement: {
         title: 'Hizmet Bildirimi',
@@ -1978,8 +1801,6 @@ const tr: Translations = {
         featureSetupTime: 'Kurulum süresi',
         featureOneClickDeploy: 'Tek tıkla dağıtım',
         featureMultipleInstances: 'Birden fazla örnek',
-        featureMultipleAgents: 'Örnek başına birden fazla ajan',
-        featureAgentConfig: 'Ajan yapılandırması',
         featureDataOwnership: 'Tam veri sahipliği',
         featureDataExport: 'Veri dışa aktarma',
         featureBackups: 'Yedeklemeler',
@@ -1994,7 +1815,6 @@ const tr: Translations = {
         featureMultiLanguage: 'Çoklu dil arayüzü',
         featureMobileApp: 'Mobil uygulama',
         featureDesktopApp: 'Masaüstü uygulaması',
-        featureDirectChat: 'Doğrudan sohbet',
         featureOneClickVersion: 'Tek tıkla sürüm değiştirme',
         featureWebTerminal: 'Web terminal erişimi',
         featureSocials: 'Sosyal medya',
@@ -2058,7 +1878,6 @@ const tr: Translations = {
         iosMacOs: 'iOS ve macOS',
         macOsOnly: 'Yalnızca macOS',
         viaTelegram: 'Telegram üzerinden',
-        builtInChat: 'Yerleşik',
         builtInTerminal: 'SSH gerekmez',
         notAvailable: 'Mevcut değil',
         disclaimer: 'Bir şey değişti veya yanlış mı? Bize e-posta gönderin:',

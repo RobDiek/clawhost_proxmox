@@ -34,11 +34,6 @@ const API_PATHS = {
         VERSION: (id: string) => `/claws/${id}/version`,
         VERSIONS: (id: string) => `/claws/${id}/versions`,
         INSTALL_VERSION: (id: string) => `/claws/${id}/install-version`,
-        AGENTS: {
-            BASE: (id: string) => `/claws/${id}/agents`,
-            CREATE: (id: string) => `/claws/${id}/agents/create`,
-            DELETE: (id: string) => `/claws/${id}/agents/delete`
-        },
         FILES: {
             BASE: (id: string) => `/claws/${id}/files`,
             READ: (id: string) => `/claws/${id}/files/read`
@@ -62,10 +57,6 @@ const API_PATHS = {
         ORDER_INVOICE: (orderId: string) =>
             `/users/me/billing/${orderId}/invoice`,
         AUTH_METHOD: (method: string) => `/users/me/auth/${method}`
-    },
-    AI: {
-        TTS: '/ai/tts',
-        VOICES: '/ai/voices'
     },
     WAITLIST: {
         BASE: '/waitlist',

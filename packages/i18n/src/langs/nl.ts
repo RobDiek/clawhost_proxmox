@@ -148,8 +148,6 @@ const nl: Translations = {
         comparisonSetupOthers: 'Deployen met één klik',
         comparisonUpdatesUs: 'Automatische updates',
         comparisonUpdatesOthers: 'Automatische updates',
-        comparisonAgentsUs: 'Meerdere agents',
-        comparisonAgentsOthers: 'Meerdere agents',
         faqTitle: 'Vragen',
         faqHeading: 'Veelgestelde vragen',
         faqDescription: 'Alles wat je moet weten over ClawHost Go.',
@@ -205,7 +203,6 @@ const nl: Translations = {
         failedToStartClaw: 'Claw starten mislukt!',
         noVersionAssigned: 'Geen OpenClaw-versie toegewezen aan deze claw!',
         invalidAgentName: 'Ongeldige agentnaam!',
-        agentNameAlreadyExists: 'Er bestaat al een agent met deze naam!',
         invalidPath: 'Ongeldig pad!',
         fileNotFound: 'Bestand niet gevonden!',
         purchasingNotAvailable:
@@ -451,19 +448,6 @@ const nl: Translations = {
         locationsFetched: 'Locaties succesvol opgehaald.',
         volumePricingFetched: 'Volumeprijzen succesvol opgehaald.',
         planAvailabilityFetched: 'Planbeschikbaarheid succesvol opgehaald.',
-        agentsFetched: 'Agents succesvol opgehaald.',
-        agentsFetchFailed:
-            'Kon de instantie niet bereiken om agents op te halen!',
-        agentCreated: 'Agent succesvol aangemaakt.',
-        agentCreateFailed: 'Kon agent niet aanmaken op de instantie!',
-        agentDeleted: 'Agent succesvol verwijderd.',
-        agentDeleteFailed: 'Kon agent niet verwijderen van de instantie!',
-        cannotDeleteMainAgent:
-            'Kan de enige overgebleven agent niet verwijderen!',
-        agentNameInvalid:
-            'Agentnaam mag alleen letters, cijfers en koppeltekens bevatten!',
-        agentNameDuplicate: 'Er bestaat al een agent met deze naam!',
-        invalidEnvVars: 'Ongeldige omgevingsvariabelen!',
         diagnosticsFetched: 'Diagnostiek succesvol opgehaald.',
         logsFetched: 'Logs succesvol opgehaald.',
         filesFetched: 'Bestanden succesvol opgehaald.',
@@ -485,9 +469,6 @@ const nl: Translations = {
         failedToDisconnectAuthMethod:
             'Authenticatiemethode ontkoppelen mislukt!',
         textRequired: 'Tekst is vereist!',
-        voiceNotFound: 'Stemmodel niet gevonden!',
-        ttsGenerationFailed: 'Spraak genereren mislukt!',
-        voicesFetched: 'Stemmen succesvol opgehaald.',
         featureEmailsDisabled: 'Feature-e-mails zijn momenteel uitgeschakeld.',
         featureEmailsSent: 'Feature-e-mails succesvol verzonden.',
         featureEmailsFailed: 'Feature-e-mails verzenden mislukt!',
@@ -572,25 +553,6 @@ const nl: Translations = {
                 description:
                     'De Playground geeft je een interactief grafiekcanvas met al je claws en agents. Klik op een knooppunt om het te beheren \u2014 een visueel commandocentrum voor je infrastructuur.',
                 cta: 'Playground openen'
-            },
-            agentChat: {
-                subject: 'Wist je dat? Chat met je AI-agents',
-                preview: 'Praat met je agents direct vanuit het dashboard',
-                tag: 'Agent Chat',
-                heading: 'Praat met je agents',
-                description:
-                    'Chat met je AI-agents direct vanuit het ClawHost-dashboard. Stuur berichten, voeg afbeeldingen toe en bekijk gespreksgeschiedenis \u2014 alles op \u00e9\u00e9n plek.',
-                cta: 'Begin met chatten'
-            },
-            voiceMode: {
-                subject: 'Wist je dat? Praat met je agents via spraak',
-                preview:
-                    'Gebruik spraak-naar-tekst en tekst-naar-spraak met je agents',
-                tag: 'Spraakmodus',
-                heading: 'Spreek, typ niet',
-                description:
-                    'Gebruik de spraakmodus om handsfree met je AI-agents te praten. Spraak-naar-tekst voor invoer, tekst-naar-spraak voor antwoorden \u2014 kies uit meerdere stemmen.',
-                cta: 'Spraakmodus proberen'
             },
             diagnostics: {
                 subject: 'Wist je dat? Ingebouwde gezondheidscontroles',
@@ -832,7 +794,6 @@ const nl: Translations = {
         paymentSuccess: 'Betaling geslaagd. Je licentie is nu actief.',
         failedToPurchase: 'Afrekenen starten mislukt!',
         featureUnlimitedClaws: 'Onbeperkt OpenClaws',
-        featureUnlimitedAgents: 'Onbeperkt agents',
         featureDevices: 'Onbeperkt apparaten',
         featureUpdates: 'Updates voor altijd',
         featureSupport: 'Prioriteitsondersteuning',
@@ -884,7 +845,7 @@ const nl: Translations = {
         copySshWithKey: 'SSH kopi\u00ebren (met sleutel)',
         copySshWithPassword: 'SSH kopi\u00ebren (met wachtwoord)',
         connect: 'SSH-commando kopi\u00ebren',
-        viewServerCredentials: 'Serverreferenties bekijken',
+        viewServerCredentials: 'Serverreferenties',
         serverCredentials: 'Serverreferenties',
         serverCredentialsDescription:
             'Gebruik deze referenties om via SSH verbinding te maken met je server.',
@@ -995,7 +956,7 @@ const nl: Translations = {
         dnsSetupButton: 'DNS instellen',
         dnsSetupSuccess: 'DNS-resolver succesvol geconfigureerd.',
         dnsSetupError: 'DNS-resolver configureren mislukt!',
-        chatTab: 'Chat',
+        listTab: 'Claws',
         playgroundTab: 'Playground',
         userTab: 'Gebruiker',
         adminTab: 'Admin',
@@ -1022,20 +983,6 @@ const nl: Translations = {
             unknown: 'Onbekend',
             checking: 'Controleren'
         }
-    },
-    chat: {
-        explorer: 'Verkenner',
-        selectAgent: 'Geen selectie',
-        selectAgentDescription: 'Selecteer een claw of agent uit de zijbalk.',
-        noAgents: 'Geen agents beschikbaar',
-        noAgentsDescription:
-            'Deploy een claw om te beginnen met chatten met agents.',
-        openSidebar: 'Zijbalk openen',
-        clawNotReady: 'Claw is nog niet gereed',
-        addAgent: 'Agent toevoegen',
-        viewTree: 'Boomweergave',
-        viewList: 'Lijstweergave',
-        clawSettings: 'Claw-instellingen'
     },
     createClaw: {
         title: 'OpenClaw deployen',
@@ -1220,12 +1167,6 @@ const nl: Translations = {
         clawHostControl: 'ClawHost Control',
         clawHostControlDescription:
             'Beheer bestanden, updates en meer configuratieopties direct vanuit het platform.',
-        directChat: 'Directe chat',
-        directChatDescription:
-            'Chat met je AI-agents direct vanuit het platform. Geen externe tools of interfaces nodig.',
-        multipleAgents: 'Meerdere agents',
-        multipleAgentsDescription:
-            'Draai en beheer meerdere AI-agents op \u00e9\u00e9n instantie. Elk met een eigen configuratie en doel.',
         multipleClaws: 'Meerdere Claws',
         multipleClawsDescription:
             'Deploy en beheer meerdere OpenClaw-instanties vanuit \u00e9\u00e9n dashboard. Schaal mee naarmate je groeit.',
@@ -1350,8 +1291,6 @@ const nl: Translations = {
         comparisonDataOthers: 'Bezit je data niet',
         comparisonMultipleUs: 'Meerdere OpenClaw, \u00e9\u00e9n Claw',
         comparisonMultipleOthers: 'Alleen \u00e9\u00e9n OpenClaw',
-        comparisonAgentsUs: 'Meerdere agents per Claw',
-        comparisonAgentsOthers: 'Slechts \u00e9\u00e9n agent',
         comparisonOpenSourceUs: 'Volledig open source',
         comparisonOpenSourceOthers: 'Gesloten broncode',
         comparisonExportUs: 'Exporteer je OpenClaw overal naartoe',
@@ -1360,8 +1299,6 @@ const nl: Translations = {
         comparisonProvidersOthers: 'Slechts \u00e9\u00e9n provider',
         comparisonSocialsUs: 'Aanwezigheid op sociale media',
         comparisonSocialsOthers: 'Geen sociale media',
-        comparisonChatUs: 'Chat direct met je Claw',
-        comparisonChatOthers: 'Alleen chatten via externe platformen',
         comparisonVersionUs: 'Versiewisseling met \u00e9\u00e9n klik',
         comparisonVersionOthers: 'Alleen handmatige updates',
         comparisonTerminalUs: 'Ingebouwde webterminal',
@@ -1577,18 +1514,15 @@ const nl: Translations = {
         subtitle: 'Agent-topologie over je infrastructuur',
         noClawsYet: 'Geen Claws',
         noClawsDescription: 'Deploy je eerste Claw om ermee te communiceren.',
-        loadingAgents: 'Agents laden',
+        selectClaw: 'Selecteer een Claw',
+        selectClawDescription:
+            'Kies een Claw in de zijbalk om de details te bekijken.',
         unreachable: 'Onbereikbaar',
         offline: 'Offline',
-        noAgents: 'Geen agents',
-        agentCount: '{{count}} agent',
-        agentCountPlural: '{{count}} agents',
-        agentModel: 'Model',
         zoomLabel: '{{percent}}%',
         fitView: 'Centreren',
         nodesOutOfView: 'Claws buiten beeld',
         nodeOutOfView: 'Claw buiten beeld',
-        addAgent: 'Agent toevoegen',
         closeDetails: 'Sluiten',
         tabInfo: 'Info',
         tabLogs: 'Logs',
@@ -1607,121 +1541,7 @@ const nl: Translations = {
         loadingTip2: 'Wist je dat OpenClaw open-source is?',
         loadingTip3:
             'ClawHost is het allereerste project dat OpenClaw-hosting met \u00e9\u00e9n klik mogelijk maakt.',
-        tabChat: 'Chat',
         tabSettings: 'Instellingen',
-        agentOnClaw: 'op {{clawName}}',
-        cannotDeleteDefaultAgent: 'Standaard agent kan niet worden verwijderd!',
-        addAgentTitle: 'Agent toevoegen',
-        addAgentDescription: 'Voeg een nieuwe agent toe aan {{clawName}}.',
-        addAgentDescriptionNoClaw:
-            'Selecteer een claw en configureer je nieuwe agent.',
-        addAgentSelectClaw: 'Claw',
-        addAgentSelectClawPlaceholder: 'Selecteer een claw',
-        addAgentName: 'Naam',
-        addAgentNamePlaceholder: 'Voer agentnaam in',
-        addAgentModel: 'Model',
-        addAgentModelPlaceholder: 'Selecteer een model',
-        addAgentApiKey: 'API-sleutel',
-        addAgentApiKeyPlaceholder: 'Voer je API-sleutel in (optioneel)',
-        addAgentApiKeyConfigured:
-            '{{envVar}} is al geconfigureerd op deze instantie.',
-        addAgentSubmit: 'Agent toevoegen',
-        addAgentSuccess: 'Agent succesvol toegevoegd.',
-        addAgentFailed: 'Agent toevoegen mislukt!',
-        deleteAgent: 'Agent verwijderen',
-        deleteAgentTitle: 'Agent verwijderen',
-        deleteAgentDescription:
-            'Weet je zeker dat je de agent "{{agentName}}" wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
-        deleteAgentConfirm: 'Verwijderen',
-        agentDontAskAgain:
-            'Niet meer vragen bij het verwijderen van agents deze sessie',
-        deleteAgentDeleting: 'Verwijderen...',
-        deleteAgentSuccess: 'Agent succesvol verwijderd.',
-        deleteAgentFailed: 'Agent verwijderen mislukt!',
-        agentNameRequired: 'Agentnaam is verplicht!',
-        agentNameInvalidChars:
-            'Alleen letters, cijfers en streepjes zijn toegestaan!',
-        agentNameDuplicate: 'Een agent met deze naam bestaat al!',
-        chatConnecting: 'Verbinden...',
-        chatAuthenticating: 'Authenticeren...',
-        chatDisconnected: 'Losgekoppeld',
-        chatError: 'Verbindingsfout!',
-        chatConnected: 'Verbonden',
-        chatInputPlaceholder: 'Typ een bericht...',
-        chatInputDisabled: 'Verbind om met deze agent te chatten',
-        chatSend: 'Bericht versturen',
-        chatAbort: 'Stoppen',
-        chatStopProcess: 'Proces stoppen',
-        chatRemoveAttachment: 'Bijlage verwijderen',
-        chatThinking: 'Nadenken',
-        chatLoadingHistory: 'Berichten laden...',
-        chatNoMessages: 'Geen berichten',
-        chatNoMessagesDescription:
-            'Stuur een bericht om een gesprek met deze agent te starten.',
-        chatErrorMessage:
-            'Er is een fout opgetreden bij het genereren van een antwoord!',
-        chatAbortedMessage: 'Antwoord is gestopt.',
-        chatPlaySpeech: 'Voorlezen',
-        chatReplaySpeech: 'Opnieuw afspelen',
-        chatStopSpeech: 'Stoppen',
-        chatSpeechFailed: 'Spraak genereren mislukt!',
-        chatReadOnlyPlaceholder: 'Chat beschikbaar op je eigen Claws.',
-        chatReadOnlyUser:
-            'Hallo! Kun je me helpen een Node.js-project op te zetten?',
-        chatReadOnlyAssistant:
-            'Natuurlijk! Ik kan je helpen een nieuw Node.js-project te initialiseren. Wil je dat ik een package.json maak met enkele veelgebruikte dependencies?',
-        chatReadOnlyReply:
-            'Dit is een preview! Deploy je eigen OpenClaw met \u00e9\u00e9n klik en begin binnen minuten met chatten met je AI-agents!',
-        chatReadOnlyUser2:
-            'Kun je de testsuite uitvoeren en controleren op fouten?',
-        chatReadOnlyAssistant2:
-            'Zeker! Ik voer nu alle tests uit. 3 geslaagd, 0 gefaald. Alles ziet er goed uit \u2014 alle asserties slagen.',
-        chatReadOnlyGoUser:
-            'Hoi, kun je me helpen mijn deployment-pipeline te automatiseren?',
-        chatReadOnlyGoAssistant:
-            'Absoluut! Ik kan een CI/CD-pipeline voor je opzetten. Zal ik beginnen met een GitHub Actions-workflow die automatisch bouwt, test en deployt?',
-        chatReadOnlyGoReply:
-            'Dit is een preview! Download ClawHost Go en draai OpenClaw lokaal \u2014 jouw machine, jouw data, geen cloud nodig.',
-        chatReadOnlyGoUser2:
-            'Kun je mijn lokale services monitoren en me waarschuwen als er iets uitvalt?',
-        chatReadOnlyGoAssistant2:
-            'Ik ben ermee bezig! Ik stel gezondheidscontroles in voor al je services. Momenteel monitor ik 4 endpoints \u2014 allemaal gezond en reagerend.',
-        chatConnectionFailed: 'Verbinden met deze agent mislukt!',
-        chatConnectionFailedDescription:
-            'Zorg ervoor dat de Claw actief en bereikbaar is.',
-        chatToday: 'Vandaag',
-        chatYesterday: 'Gisteren',
-        chatExpandFullscreen: 'Chat uitvouwen',
-        chatAttachFile: 'Bestand bijvoegen',
-        chatDropFiles: 'Sleep bestanden om bij te voegen',
-        chatDropFilesDescription:
-            "Afbeeldingen, PDF's en tekstbestanden tot 5 MB.",
-        chatVoiceInput: 'Spraakinvoer',
-        chatVoiceListening: 'Luisteren...',
-        chatVoiceNotSupported:
-            'Spraakinvoer wordt niet ondersteund in deze browser.',
-        chatVoiceMode: 'Spraakmodus',
-        chatVoiceModeTapToSpeak: 'Tik om te beginnen met spreken',
-        chatVoiceModeListening: 'Luisteren...',
-        chatVoiceModeClose: 'Spraakmodus be\u00ebindigen',
-        chatVoiceModeTranscribing: 'Transcriberen...',
-        chatVoiceModeThinking: 'Nadenken...',
-        chatVoiceModeResponding: 'Antwoorden...',
-        chatVoiceModePreparing: 'Spraak voorbereiden...',
-        chatVoiceModeSpeaking: 'Spreken...',
-        chatVoiceModeInputDevice: 'Microfoon',
-        chatVoiceModeOutputDevice: 'Speaker',
-        chatVoiceModeNotSupported:
-            'Spraakherkenning wordt niet ondersteund in deze browser.',
-        chatVoiceModeNoMicrophone:
-            'Geen microfoon gedetecteerd. Sluit er een aan om de spraakmodus te gebruiken.',
-        chatVoiceModeNoSpeaker:
-            'Geen speaker gedetecteerd. Sluit er een aan om de spraakmodus te gebruiken.',
-        chatAttachmentNotSupported:
-            "Dit bestandstype wordt niet ondersteund. Gebruik afbeeldingen, PDF's of tekstbestanden.",
-        chatNoPreview: 'Geen voorbeeld beschikbaar.',
-        chatDownloadFile: 'Bestand downloaden',
-        chatCopyMessage: 'Bericht kopi\u00ebren',
         featureVersionUnsupported:
             '{{feature}} niet ondersteund op {{version}}',
         featureVersionUnsupportedDescription:
@@ -1730,6 +1550,7 @@ const nl: Translations = {
         featureVersionUnsupportedSupported: 'Ondersteunde versies:',
         featureVersionUnsupportedNewer: 'nieuwere versies',
         tabVersions: 'Versies',
+        tabFiles: 'Bestandsverkenner',
         versionsSearch: 'Versies zoeken...',
         versionsEmpty: 'Geen versies gevonden',
         versionsEmptyDescription:
@@ -1946,12 +1767,8 @@ const nl: Translations = {
         signOut: 'Uitloggen',
         signedInAs: 'Ingelogd als',
         loadMore: 'Meer laden',
-        chatWithYourClaw: 'Chat met je Claw',
         deployClaw: 'Claw deployen',
-        deployYourFirstClaw: 'Deploy je eerste Claw',
-        voiceMode: 'Spraakmodus',
-        voiceListening: 'Luisteren...',
-        voiceTapToSpeak: 'Tik op de bol om te beginnen'
+        deployYourFirstClaw: 'Deploy je eerste Claw'
     },
     announcement: {
         title: 'Servicemelding',
@@ -2000,8 +1817,6 @@ const nl: Translations = {
         featureSetupTime: 'Installatietijd',
         featureOneClickDeploy: 'Deployment met \u00e9\u00e9n klik',
         featureMultipleInstances: 'Meerdere instanties',
-        featureMultipleAgents: 'Meerdere agents per instantie',
-        featureAgentConfig: 'Agent-configuratie',
         featureDataOwnership: 'Volledig gegevenseigendom',
         featureDataExport: 'Gegevensexport',
         featureBackups: 'Back-ups',
@@ -2016,7 +1831,6 @@ const nl: Translations = {
         featureMultiLanguage: 'Meertalige UI',
         featureMobileApp: 'Mobiele app',
         featureDesktopApp: 'Desktop-app',
-        featureDirectChat: 'Directe chat',
         featureOneClickVersion: 'Versiewisseling met \u00e9\u00e9n klik',
         featureWebTerminal: 'Webterminal-toegang',
         featureSocials: 'Sociale media',
@@ -2080,7 +1894,6 @@ const nl: Translations = {
         iosMacOs: 'iOS & macOS',
         macOsOnly: 'Alleen macOS',
         viaTelegram: 'Via Telegram',
-        builtInChat: 'Ingebouwd',
         builtInTerminal: 'Geen SSH nodig',
         notAvailable: 'Niet beschikbaar',
         disclaimer: 'Iets veranderd of onjuist? Stuur ons een e-mail op',
