@@ -6,7 +6,7 @@ import { users, referrals, referralPayments } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
 
-const VALID_PERIODS = ['today', 'week', 'month', 'year', 'all'] as const
+const VALID_PERIODS = ['today', 'week', 'month', 'year', 'all']
 
 const getCutoffDate = (period: string): Date | null => {
     if (period === 'all') return null

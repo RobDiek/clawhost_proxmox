@@ -1,4 +1,6 @@
-const container = {
+import type { CSSProperties } from 'react'
+
+const container: CSSProperties = {
     margin: '0 auto',
     padding: '36px 20px',
     paddingBottom: '36px',

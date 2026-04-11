@@ -388,14 +388,16 @@ const ja: Translations = {
         subdomainRateLimited:
             'サブドメインの変更は24時間に1回のみ可能です。この制限を解除するにはチームにお問い合わせください.',
         subdomainUpdated: 'サブドメインを更新しました.',
-        invalidSubdomain: '無効なサブドメインです。3〜20文字の小文字英字と数字を使用してください!',
+        invalidSubdomain:
+            '無効なサブドメインです。3〜20文字の小文字英字と数字を使用してください!',
         subdomainAlreadyInUse: 'このサブドメインは既に使用されています!',
         clawBusy: 'Clawは現在プロビジョニング中または削除中です!',
         reinstallGatewayNotResponding:
             '再インストールは完了しましたが、ゲートウェイがまだ応答していません。起動にもう少し時間がかかる場合があります.',
         failedToRepairClaw: 'Failed to repair the instance!',
         repairSuccess: 'Instance repaired successfully.',
-        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
+        repairGatewayNotResponding:
+            'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Clawデータのエクスポートに失敗しました!',
         clawNotReady: 'Clawはエクスポートの準備ができていません!',
         exportRateLimited:
@@ -618,11 +620,11 @@ const ja: Translations = {
                 cta: 'プランを見る'
             },
             simplifiedPlatform: {
-                subject: 'ClawHostをシンプルにしました',
+                subject: 'ClawHost just got Simpler - ClawHost',
                 preview:
                     'チャンネル、スキルなどはOpenClawで直接管理されるようになりました',
                 tag: 'プラットフォーム更新',
-                heading: 'ClawHostがよりシンプルに',
+                heading: 'ClawHost Simplified',
                 description:
                     'ClawHostダッシュボードからチャンネル、エージェント、チャット、スキルの管理を削除しました。これらの機能はOpenClawインスタンスで直接管理されるようになりました。',
                 removed:
@@ -880,9 +882,11 @@ const ja: Translations = {
         diagnosticsStatus: 'ステータス',
         diagnosticsLogs: 'ログ',
         diagnosticsRepair: 'Repair',
-        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairDescription:
+            'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
         diagnosticsRepairSuccess: 'Instance repaired successfully.',
-        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
+        diagnosticsRepairFailed:
+            'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'インスタンスに接続中...',
         diagnosticsNoLogs:
             'ログがありません。インスタンスを起動してログを生成してください。',
@@ -1340,9 +1344,12 @@ const ja: Translations = {
             '管理機能をOpenClawに移行してプラットフォームをシンプル化し、プレイグラウンドビューを削除、変更可能なカスタムサブドメインを導入しました。',
         release15Feature1:
             '管理機能をシンプル化しOpenClawに移行、ClawHostチャット、エージェント、チャンネル、変数、スキルは廃止',
-        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
-        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
-        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
+        release15Feature2:
+            'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3:
+            'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4:
+            'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '2026年4月1日',
         release14Title: 'Hetzner移行、アフィリエイトシステム & 新しい言語',
         release14Description:
@@ -1504,6 +1511,8 @@ const ja: Translations = {
         featureVersionUnsupportedNewer: 'より新しいバージョン',
         tabVersions: 'バージョン',
         tabFiles: 'ファイルエクスプローラー',
+        tabBilling: 'Billing',
+        billingEmpty: 'No billing history for this instance.',
         versionsSearch: 'バージョンを検索...',
         versionsEmpty: 'バージョンが見つかりません',
         versionsEmptyDescription: '検索に一致するバージョンがありません。',
@@ -2093,6 +2102,6 @@ const ja: Translations = {
         contactText:
             'アフィリエイトプログラムについてのご質問、紹介コードに関するサポート、または違反の報告は、以下までお問い合わせください'
     }
-} as const
+}
 
 export default ja

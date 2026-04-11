@@ -66,7 +66,6 @@ export default defineConfig(({ mode }) => {
                 output: {
                     manualChunks: {
                         'framer-motion': ['framer-motion'],
-                        'react-flow': ['@xyflow/react'],
                         codemirror: [
                             '@codemirror/state',
                             '@codemirror/view',

@@ -1,3 +1,3 @@
-const AFFILIATE_QUERY_KEY = ['affiliate'] as const
+const AFFILIATE_QUERY_KEY = ['affiliate']
 
 export default AFFILIATE_QUERY_KEY

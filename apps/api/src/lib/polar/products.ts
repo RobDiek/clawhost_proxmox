@@ -58,7 +58,7 @@ const products = {
             organizationId: config.organizationId,
             prices: [
                 {
-                    amountType: 'fixed' as const,
+                    amountType: 'fixed',
                     priceAmount: data.priceAmountCents,
                     priceCurrency: 'usd'
                 }

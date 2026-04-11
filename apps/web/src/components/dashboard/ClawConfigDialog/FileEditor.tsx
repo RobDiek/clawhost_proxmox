@@ -65,17 +65,13 @@ const FileEditor: FC<FileEditorProps> = ({
         [langExt, saveKeymap]
     )
 
-    const canSave =
-        isEditable && hasUnsavedChanges && !jsonError && !isSaving
+    const canSave = isEditable && hasUnsavedChanges && !jsonError && !isSaving
 
     return (
         <div className='flex min-h-0 flex-1 flex-col overflow-hidden pb-2'>
             <div className='flex shrink-0 items-end justify-between gap-2'>
                 <div className='border-border bg-muted text-foreground/80 flex items-center gap-1.5 rounded-t-md border border-b-0 px-3 py-1.5 text-xs'>
-                    {getFileIconByName(
-                        filename,
-                        getFileIconColor(fileType)
-                    )}
+                    {getFileIconByName(filename, getFileIconColor(fileType))}
                     {filename}
                     {hasUnsavedChanges && (
                         <span className='h-1.5 w-1.5 shrink-0 rounded-full bg-white/80' />
@@ -106,7 +102,7 @@ const FileEditor: FC<FileEditorProps> = ({
                 </button>
             </div>
             <div
-                className={`min-h-0 flex-1 overflow-auto rounded-b-md rounded-tr-md border bg-[#1e1e1e] dark:bg-[#1e1e1e] [&_.cm-editor]:!h-full [&_.cm-editor_.cm-scroller]:!overflow-auto [&_.cm-editor_.cm-content]:!min-h-full [&_.cm-editor_.cm-gutters]:!min-h-full ${
+                className={`min-h-0 flex-1 overflow-auto rounded-b-md rounded-tr-md border bg-[#1e1e1e] dark:bg-[#1e1e1e] [&_.cm-editor]:!h-full [&_.cm-editor_.cm-content]:!min-h-full [&_.cm-editor_.cm-gutters]:!min-h-full [&_.cm-editor_.cm-scroller]:!overflow-auto ${
                     jsonError ? 'border-red-500/50' : 'border-border'
                 }`}
             >

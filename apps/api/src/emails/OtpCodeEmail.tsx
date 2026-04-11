@@ -1,4 +1,4 @@
-import type { FC, ReactNode } from 'react'
+import type { CSSProperties, FC, ReactNode } from 'react'
 import type { OtpCodeEmailProps } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
@@ -24,21 +24,21 @@ import {
     logo
 } from '@/lib/emailStyles'
 
-const codeWrapper = {
-    textAlign: 'center' as const,
+const codeWrapper: CSSProperties = {
+    textAlign: 'center',
     margin: '8px 0 20px'
 }
 
-const codeBox = {
+const codeBox: CSSProperties = {
     backgroundColor: '#f4f4f5',
     borderRadius: '8px',
     padding: '16px 24px',
-    display: 'inline-block' as const
+    display: 'inline-block'
 }
 
-const codeStyle = {
+const codeStyle: CSSProperties = {
     fontSize: '32px',
-    fontWeight: '700' as const,
+    fontWeight: '700',
     letterSpacing: '8px',
     color: '#18181b',
     margin: '0',

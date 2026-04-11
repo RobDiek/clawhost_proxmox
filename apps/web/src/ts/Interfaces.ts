@@ -61,6 +61,7 @@ export interface Claw {
     subdomain: string | null
     gatewayToken: string | null
     subscriptionStatus: string | null
+    polarSubscriptionId: string | null
     billingInterval: string | null
     currentPeriodStart: string | null
     currentPeriodEnd: string | null
@@ -1013,6 +1014,10 @@ export interface ClawDetailInfoTabProps {
     showVersion: boolean
     versionLoading: boolean
     versionDisplay: string | null
+}
+
+export interface ClawBillingContentProps {
+    claw: Claw
 }
 
 export interface ClawDetailSettingsTabProps {

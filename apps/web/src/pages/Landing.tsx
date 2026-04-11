@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useScroll, useTransform } from 'framer-motion'
 import { t } from '@openclaw/i18n'
+import { externalUrls } from '@openclaw/shared'
 import {
     PageTitle,
     Header,
@@ -168,7 +169,7 @@ const Landing: FC = (): ReactNode => {
                     '@type': 'Organization',
                     name: 'ClawHost',
                     url: `https://${getBaseDomain()}`,
-                    logo: 'https://cdn.clawhost.cloud/assets/clawhost-logo-light.png',
+                    logo: `${externalUrls.CLAWHOST.CDN_GENERALS}/clawhost-logo-light.png`,
                     sameAs: [
                         TWITTER_URL,
                         FACEBOOK_URL,

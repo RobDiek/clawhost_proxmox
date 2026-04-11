@@ -386,14 +386,16 @@ const ru: Translations = {
         subdomainRateLimited:
             'Изменение поддомена возможно только раз в 24 часа. Свяжитесь с командой, если хотите снять это ограничение.',
         subdomainUpdated: 'Поддомен успешно обновлён.',
-        invalidSubdomain: 'Недопустимый поддомен. Используйте 3-20 строчных букв и цифр!',
+        invalidSubdomain:
+            'Недопустимый поддомен. Используйте 3-20 строчных букв и цифр!',
         subdomainAlreadyInUse: 'Этот поддомен уже используется!',
         clawBusy: 'Claw в данный момент подготавливается или удаляется!',
         reinstallGatewayNotResponding:
             'Переустановка завершена, но шлюз пока не отвечает. Ему может потребоваться больше времени для запуска.',
         failedToRepairClaw: 'Failed to repair the instance!',
         repairSuccess: 'Instance repaired successfully.',
-        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
+        repairGatewayNotResponding:
+            'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Не удалось экспортировать данные claw!',
         clawNotReady: 'Claw не готов к экспорту!',
         exportRateLimited:
@@ -618,11 +620,11 @@ const ru: Translations = {
                 cta: 'Просмотреть тарифы'
             },
             simplifiedPlatform: {
-                subject: 'Мы упростили ClawHost',
+                subject: 'ClawHost just got Simpler - ClawHost',
                 preview:
                     'Каналы, навыки и другое теперь управляются напрямую в OpenClaw',
                 tag: 'Обновление платформы',
-                heading: 'ClawHost стал проще',
+                heading: 'ClawHost Simplified',
                 description:
                     'Мы удалили управление каналами, агентами, чатом и навыками из панели ClawHost. Эти функции теперь управляются непосредственно на вашем экземпляре OpenClaw.',
                 removed:
@@ -879,9 +881,11 @@ const ru: Translations = {
         diagnosticsStatus: 'Статус',
         diagnosticsLogs: 'Логи',
         diagnosticsRepair: 'Repair',
-        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairDescription:
+            'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
         diagnosticsRepairSuccess: 'Instance repaired successfully.',
-        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
+        diagnosticsRepairFailed:
+            'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'Подключение к экземпляру...',
         diagnosticsNoLogs:
             'Логи недоступны. Запустите экземпляр для генерации логов.',
@@ -1348,9 +1352,12 @@ const ru: Translations = {
             'Упрощение платформы путём переноса управляемых функций в OpenClaw, удаление представления playground и введение изменяемых пользовательских поддоменов.',
         release15Feature1:
             'Упрощение и перенос управляемых функций в OpenClaw, больше никаких чата ClawHost, агентов, каналов, переменных и навыков',
-        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
-        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
-        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
+        release15Feature2:
+            'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3:
+            'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4:
+            'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '1 апреля 2026',
         release14Title:
             'Миграция на Hetzner, партнёрская система и новые языки',
@@ -1519,6 +1526,8 @@ const ru: Translations = {
         featureVersionUnsupportedNewer: 'более новые версии',
         tabVersions: 'Версии',
         tabFiles: 'Проводник',
+        tabBilling: 'Billing',
+        billingEmpty: 'No billing history for this instance.',
         versionsSearch: 'Поиск версий...',
         versionsEmpty: 'Версии не найдены',
         versionsEmptyDescription: 'Версии по вашему запросу не найдены.',
@@ -2123,6 +2132,6 @@ const ru: Translations = {
         contactText:
             'Если у вас есть вопросы о партнёрской программе, нужна помощь с реферальным кодом или вы хотите сообщить о нарушении, свяжитесь с нами по адресу'
     }
-} as const
+}
 
 export default ru

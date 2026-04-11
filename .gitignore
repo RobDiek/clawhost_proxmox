@@ -1,3 +1,5 @@
+# Ignores
+
 node_modules
 dist
 .next
@@ -15,9 +17,6 @@ ios
 out
 .vite
 resources
-
-# SECURITY: Never commit maintenance files or sensitive data to public repo
-# Keep these in workspace ONLY
 *.sh
 *.pem
 .pem
@@ -30,7 +29,3 @@ github_app_auth.js
 trigger-deployment.js
 get-next-article.js
 clawhost-articles.json
-
-# Piper TTS models (large binary files, deployed separately)
-apps/api/models/
-apps/auth/

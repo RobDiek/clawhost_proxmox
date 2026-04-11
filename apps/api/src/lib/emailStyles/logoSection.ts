@@ -1,5 +1,7 @@
-const logoSection = {
-    textAlign: 'center' as const,
+import type { CSSProperties } from 'react'
+
+const logoSection: CSSProperties = {
+    textAlign: 'center',
     marginBottom: '20px'
 }
 

@@ -1,6 +1,7 @@
 import ClawCardDialogs from '@/components/dashboard/ClawCardDialogs'
 import ClawCardDialogsBundle from '@/components/dashboard/ClawCardDialogsBundle'
 import ClawCardDropdownMenu from '@/components/dashboard/ClawCardDropdownMenu'
+import ClawBillingContent from '@/components/dashboard/ClawBillingContent'
 import ClawConfigContent from '@/components/dashboard/ClawConfigDialog/ClawConfigContent'
 import ClawConfigDialog from '@/components/dashboard/ClawConfigDialog'
 import ClawCredentialsDialog from '@/components/dashboard/ClawCredentialsDialog'
@@ -23,6 +24,7 @@ import DashboardLoadingState from '@/components/dashboard/DashboardLoadingState'
 
 export {
     ClawCardDialogs,
+    ClawBillingContent,
     ClawCardDialogsBundle,
     ClawCardDropdownMenu,
     ClawConfigContent,

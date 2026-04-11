@@ -3,6 +3,7 @@ import type { FC, ReactNode } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
+import { externalUrls } from '@openclaw/shared'
 import {
     ArrowLeftIcon,
     CalendarBlankIcon,
@@ -91,7 +92,7 @@ const BlogPost: FC = (): ReactNode => {
                         name: 'ClawHost',
                         logo: {
                             '@type': 'ImageObject',
-                            url: 'https://cdn.clawhost.cloud/assets/clawhost-logo-light.png'
+                            url: `${externalUrls.CLAWHOST.CDN_GENERALS}/clawhost-logo-light.png`
                         }
                     },
                     mainEntityOfPage: {

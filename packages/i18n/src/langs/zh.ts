@@ -373,7 +373,8 @@ const zh: Translations = {
             '重新安装已完成，但网关尚未响应。可能需要更多时间启动.',
         failedToRepairClaw: 'Failed to repair the instance!',
         repairSuccess: 'Instance repaired successfully.',
-        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
+        repairGatewayNotResponding:
+            'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: '导出 claw 数据失败!',
         clawNotReady: 'Claw 尚未准备好导出!',
         exportRateLimited: '此 claw 最近已导出过。请等待后再次导出!',
@@ -590,10 +591,10 @@ const zh: Translations = {
                 cta: '查看方案'
             },
             simplifiedPlatform: {
-                subject: '我们简化了 ClawHost',
+                subject: 'ClawHost just got Simpler - ClawHost',
                 preview: '频道、技能等现在直接在 OpenClaw 中管理',
                 tag: '平台更新',
-                heading: 'ClawHost 变得更简单了',
+                heading: 'ClawHost Simplified',
                 description:
                     '我们从 ClawHost 控制面板中移除了频道、代理、聊天、技能管理。这些功能现在直接在您的 OpenClaw 实例上管理。',
                 removed:
@@ -835,9 +836,11 @@ const zh: Translations = {
         diagnosticsStatus: '状态',
         diagnosticsLogs: '日志',
         diagnosticsRepair: 'Repair',
-        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairDescription:
+            'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
         diagnosticsRepairSuccess: 'Instance repaired successfully.',
-        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
+        diagnosticsRepairFailed:
+            'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: '正在连接到实例...',
         diagnosticsNoLogs: '暂无日志。启动您的实例以生成日志。',
         diagnosticsIssueDetected: '检测到您的实例存在问题。',
@@ -1272,17 +1275,19 @@ const zh: Translations = {
             '适用于 macOS 和 Windows 的桌面应用，一键本地部署 OpenClaw',
         upcomingReleaseFeature13:
             'ClawHost Go macOS 和 Windows 测试版发布，一键本地部署 OpenClaw',
-        upcomingReleaseFeature14:
-            '一键部署 Hermes 代理（如 OpenClaw）',
+        upcomingReleaseFeature14: '一键部署 Hermes 代理（如 OpenClaw）',
         release15Date: '2026年4月11日',
         release15Title: '简化与自定义子域名',
         release15Description:
             '通过将托管功能迁移到 OpenClaw 简化平台，移除 Playground 视图，并引入可更改的自定义子域名。',
         release15Feature1:
             '简化并将托管功能迁移到 OpenClaw，不再有 ClawHost 聊天、代理、频道、变量和技能',
-        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
-        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
-        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
+        release15Feature2:
+            'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3:
+            'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4:
+            'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '2026年4月1日',
         release14Title: 'Hetzner 迁移、联盟系统与新语言',
         release14Description:
@@ -1412,6 +1417,8 @@ const zh: Translations = {
         featureVersionUnsupportedNewer: '更新版本',
         tabVersions: '版本',
         tabFiles: '文件管理器',
+        tabBilling: 'Billing',
+        billingEmpty: 'No billing history for this instance.',
         versionsSearch: '搜索版本...',
         versionsEmpty: '未找到版本',
         versionsEmptyDescription: '没有匹配您搜索的版本。',
@@ -1975,6 +1982,6 @@ const zh: Translations = {
         contactText:
             '如果您对联盟计划有疑问、需要推荐码方面的帮助或想举报违规行为，请通过以下方式联系我们'
     }
-} as const
+}
 
 export default zh

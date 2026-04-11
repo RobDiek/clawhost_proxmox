@@ -390,14 +390,16 @@ const nl: Translations = {
         subdomainRateLimited:
             'Je kunt je subdomein slechts eenmaal per 24 uur wijzigen. Neem contact op met het team als je deze limiet wilt verwijderen.',
         subdomainUpdated: 'Subdomein succesvol bijgewerkt.',
-        invalidSubdomain: 'Ongeldig subdomein. Gebruik 3-20 kleine letters en cijfers!',
+        invalidSubdomain:
+            'Ongeldig subdomein. Gebruik 3-20 kleine letters en cijfers!',
         subdomainAlreadyInUse: 'Dit subdomein is al in gebruik!',
         clawBusy: 'Claw wordt momenteel ingericht of verwijderd!',
         reinstallGatewayNotResponding:
             'Herinstallatie voltooid, maar de gateway reageert nog niet. Het kan meer tijd nodig hebben om op te starten.',
         failedToRepairClaw: 'Failed to repair the instance!',
         repairSuccess: 'Instance repaired successfully.',
-        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
+        repairGatewayNotResponding:
+            'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Clawgegevens exporteren mislukt!',
         clawNotReady: 'Claw is niet klaar voor export!',
         exportRateLimited:
@@ -626,11 +628,11 @@ const nl: Translations = {
                 cta: 'Plannen bekijken'
             },
             simplifiedPlatform: {
-                subject: 'We hebben ClawHost vereenvoudigd',
+                subject: 'ClawHost just got Simpler - ClawHost',
                 preview:
                     'Kanalen, vaardigheden en meer worden nu direct in OpenClaw beheerd',
                 tag: 'Platform Update',
-                heading: 'ClawHost is nu eenvoudiger',
+                heading: 'ClawHost Simplified',
                 description:
                     'We hebben het beheer van kanalen, agents, chat en vaardigheden uit het ClawHost-dashboard verwijderd. Deze functies worden nu direct op je OpenClaw-instantie beheerd.',
                 removed:
@@ -890,9 +892,11 @@ const nl: Translations = {
         diagnosticsStatus: 'Status',
         diagnosticsLogs: 'Logs',
         diagnosticsRepair: 'Repair',
-        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairDescription:
+            'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
         diagnosticsRepairSuccess: 'Instance repaired successfully.',
-        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
+        diagnosticsRepairFailed:
+            'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'Verbinden met instantie...',
         diagnosticsNoLogs:
             'Geen logs beschikbaar. Start je instantie om logs te genereren.',
@@ -1379,9 +1383,12 @@ const nl: Translations = {
             'Vereenvoudiging van het platform door beheerde functies naar OpenClaw te migreren, de playground-weergave te verwijderen en aanpasbare subdomeinen te introduceren.',
         release15Feature1:
             'Vereenvoudiging en migratie van beheerde functies naar OpenClaw, geen ClawHost-chat, agents, kanalen, variabelen en vaardigheden meer',
-        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
-        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
-        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
+        release15Feature2:
+            'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3:
+            'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4:
+            'Changeable custom subdomains, update your claw subdomain to your loved one',
         release12Date: '14 maart 2026',
         release12Title: 'Jaarplannen, spraakmodus & meer',
         release12Description:
@@ -1542,6 +1549,8 @@ const nl: Translations = {
         featureVersionUnsupportedNewer: 'nieuwere versies',
         tabVersions: 'Versies',
         tabFiles: 'Bestandsverkenner',
+        tabBilling: 'Billing',
+        billingEmpty: 'No billing history for this instance.',
         versionsSearch: 'Versies zoeken...',
         versionsEmpty: 'Geen versies gevonden',
         versionsEmptyDescription:
@@ -2147,6 +2156,6 @@ const nl: Translations = {
         contactText:
             'Als je vragen hebt over het partnerprogramma, hulp nodig hebt met je verwijzingscode of een schending wilt melden, neem dan contact met ons op via'
     }
-} as const
+}
 
 export default nl

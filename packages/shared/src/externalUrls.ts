@@ -1,4 +1,5 @@
 const DOMAIN = 'clawhost.cloud'
+const LINKS = `https://l.${DOMAIN}`
 
 const EXTERNAL_URLS = {
     CLAWHOST: {
@@ -7,6 +8,9 @@ const EXTERNAL_URLS = {
         WWW: `https://www.${DOMAIN}`,
         API: `https://api.${DOMAIN}`,
         CDN: `https://cdn.${DOMAIN}`,
+        CDN_GENERALS: `https://cdn.${DOMAIN}/assets/generals`,
+        CDN_EMAILS: `https://cdn.${DOMAIN}/assets/emails`,
+        LINKS,
         subdomain: (name: string) => `https://${name}.${DOMAIN}`
     },
     GITHUB: {
@@ -38,17 +42,17 @@ const EXTERNAL_URLS = {
             `https://api.npmjs.org/versions/${pkg}/last-week`
     },
     SOCIAL: {
-        PRODUCT_HUNT: 'https://www.producthunt.com/posts/clawhost',
-        X: 'https://x.com/tryclawhost',
-        FACEBOOK: 'https://facebook.com/tryclawhost',
-        INSTAGRAM: 'https://instagram.com/tryclawhost',
-        THREADS: 'https://threads.net/@tryclawhost',
-        YOUTUBE: 'https://youtube.com/@clawhost',
-        TIKTOK: 'https://tiktok.com/@clawhost',
-        GITHUB: 'https://github.com/bfzli/clawhost',
-        TUTORIAL: 'https://www.youtube.com/watch?v=clawhost-tutorial',
-        SUPPORT_EMAIL: 'support@clawhost.cloud'
+        PRODUCT_HUNT: `${LINKS}/producthunt`,
+        X: `${LINKS}/x`,
+        FACEBOOK: `${LINKS}/facebook`,
+        INSTAGRAM: `${LINKS}/instagram`,
+        THREADS: `${LINKS}/threads`,
+        YOUTUBE: `${LINKS}/youtube`,
+        TIKTOK: `${LINKS}/tiktok`,
+        GITHUB: `${LINKS}/github`,
+        TUTORIAL: `${LINKS}/tutorial`,
+        SUPPORT_EMAIL: `support@${DOMAIN}`
     }
-} as const
+}
 
 export default EXTERNAL_URLS

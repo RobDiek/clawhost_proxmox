@@ -380,14 +380,16 @@ const tr: Translations = {
         subdomainRateLimited:
             'Alt alan adınızı yalnızca 24 saatte bir değiştirebilirsiniz. Bu limiti kaldırmak istiyorsanız lütfen ekiple iletişime geçin.',
         subdomainUpdated: 'Alt alan adı başarıyla güncellendi.',
-        invalidSubdomain: 'Geçersiz alt alan adı. 3-20 küçük harf ve rakam kullanın!',
+        invalidSubdomain:
+            'Geçersiz alt alan adı. 3-20 küçük harf ve rakam kullanın!',
         subdomainAlreadyInUse: 'Bu alt alan adı zaten kullanımda!',
         clawBusy: 'Claw şu anda hazırlanıyor veya siliniyor!',
         reinstallGatewayNotResponding:
             'Yeniden yükleme tamamlandı ancak ağ geçidi henüz yanıt vermiyor. Başlaması için daha fazla zamana ihtiyacı olabilir.',
         failedToRepairClaw: 'Failed to repair the instance!',
         repairSuccess: 'Instance repaired successfully.',
-        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
+        repairGatewayNotResponding:
+            'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Claw verileri dışa aktarılamadı!',
         clawNotReady: 'Claw dışa aktarma için hazır değil!',
         exportRateLimited:
@@ -617,11 +619,11 @@ const tr: Translations = {
                 cta: 'Planları Görüntüle'
             },
             simplifiedPlatform: {
-                subject: "ClawHost'u sadeleştirdik",
+                subject: 'ClawHost just got Simpler - ClawHost',
                 preview:
                     "Kanallar, yetenekler ve daha fazlası artık doğrudan OpenClaw'da yönetiliyor",
                 tag: 'Platform Güncellemesi',
-                heading: 'ClawHost artık daha basit',
+                heading: 'ClawHost Simplified',
                 description:
                     'ClawHost panelinden kanal, ajan, sohbet ve yetenek yönetimini kaldırdık. Bu özellikler artık doğrudan OpenClaw örneğinizde yönetiliyor.',
                 removed:
@@ -632,7 +634,7 @@ const tr: Translations = {
                 action: 'Hiçbir şey bozulmuyor. Pençeleriniz, sunucularınız, faturalamanız ve panelin temel özellikleri değişmedi. Kanalları, yetenekleri veya ajanları yapılandırmak için OpenClaw örneğinizi doğrudan kullanın.',
                 closing:
                     'Özellikleri kaldırmanın kulağa hiç hoş gelmediğini biliyoruz. Ama bu bize gerçekten önemli olan şeylere odaklanma özgürlüğü veriyor — OpenClaw ekosistemi için daha hızlı teslimat, temel barındırma deneyimini iyileştirme ve sizin için gerçekten fark yaratan şeyler inşa etme. Bu yolculuğun bir parçası olduğunuz ve olmaya devam ettiğiniz için teşekkür ederiz.',
-                cta: 'ClawHost\'u Ziyaret Et'
+                cta: "ClawHost'u Ziyaret Et"
             }
         }
     },
@@ -879,9 +881,11 @@ const tr: Translations = {
         diagnosticsStatus: 'Durum',
         diagnosticsLogs: 'Günlükler',
         diagnosticsRepair: 'Repair',
-        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairDescription:
+            'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
         diagnosticsRepairSuccess: 'Instance repaired successfully.',
-        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
+        diagnosticsRepairFailed:
+            'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'Örneğe bağlanılıyor...',
         diagnosticsNoLogs:
             'Günlük mevcut değil. Günlük oluşturmak için örneğinizi başlatın.',
@@ -1349,12 +1353,15 @@ const tr: Translations = {
         release15Date: '11 Nisan 2026',
         release15Title: 'Sadeleştirme ve özel alt alan adları',
         release15Description:
-            'Yönetilen özelliklerin OpenClaw\'a taşınmasıyla platform sadeleştirildi, playground görünümü kaldırıldı ve değiştirilebilir özel alt alan adları tanıtıldı.',
+            "Yönetilen özelliklerin OpenClaw'a taşınmasıyla platform sadeleştirildi, playground görünümü kaldırıldı ve değiştirilebilir özel alt alan adları tanıtıldı.",
         release15Feature1:
-            'Yönetilen özellikler sadeleştirildi ve OpenClaw\'a taşındı, artık ClawHost sohbet, ajanlar, kanallar, değişkenler ve beceriler yok',
-        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
-        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
-        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
+            "Yönetilen özellikler sadeleştirildi ve OpenClaw'a taşındı, artık ClawHost sohbet, ajanlar, kanallar, değişkenler ve beceriler yok",
+        release15Feature2:
+            'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3:
+            'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4:
+            'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '1 Nisan 2026',
         release14Title: 'Hetzner geçişi, ortaklık sistemi ve yeni diller',
         release14Description:
@@ -1527,6 +1534,8 @@ const tr: Translations = {
         featureVersionUnsupportedNewer: 'daha yeni sürümler',
         tabVersions: 'Sürümler',
         tabFiles: 'Dosya Gezgini',
+        tabBilling: 'Billing',
+        billingEmpty: 'No billing history for this instance.',
         versionsSearch: 'Sürüm ara...',
         versionsEmpty: 'Sürüm bulunamadı',
         versionsEmptyDescription: 'Aramanızla eşleşen sürüm yok.',
@@ -2128,6 +2137,6 @@ const tr: Translations = {
         contactText:
             'Ortaklık programı hakkında sorularınız varsa, yönlendirme kodunuzla ilgili yardıma ihtiyacınız varsa veya bir ihlal bildirmek istiyorsanız, bize ulaşın'
     }
-} as const
+}
 
 export default tr

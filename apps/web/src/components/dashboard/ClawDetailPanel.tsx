@@ -15,6 +15,7 @@ import {
     ClawLogsContent,
     ClawDiagnosticsContent,
     ClawTerminalContent,
+    ClawBillingContent,
     ClawConfigContent,
     ClawVersionsContent,
     ClawDetailInfoTab,
@@ -264,6 +265,10 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
 
                     {activeTab === 'files' && (
                         <ClawConfigContent clawId={claw.id} />
+                    )}
+
+                    {activeTab === 'billing' && (
+                        <ClawBillingContent claw={claw} />
                     )}
 
                     {activeTab === 'settings' && (

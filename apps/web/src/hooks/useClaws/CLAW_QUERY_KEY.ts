@@ -1,3 +1,3 @@
-const CLAW_QUERY_KEY = ['claw'] as const
+const CLAW_QUERY_KEY = ['claw']
 
 export default CLAW_QUERY_KEY

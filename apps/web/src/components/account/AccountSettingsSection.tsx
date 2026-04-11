@@ -11,9 +11,7 @@ const AccountSettingsSection: FC<AccountSettingsSectionProps> = ({
     return (
         <div className='border-border bg-foreground/5 mt-6 rounded-xl border p-8 backdrop-blur-sm'>
             <div className='mb-6'>
-                <h2 className='text-lg font-medium'>
-                    {t('account.settings')}
-                </h2>
+                <h2 className='text-lg font-medium'>{t('account.settings')}</h2>
                 <p className='text-muted-foreground mt-1 text-sm'>
                     {t('account.settingsDescription')}
                 </p>

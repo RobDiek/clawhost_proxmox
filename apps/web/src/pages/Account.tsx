@@ -39,8 +39,7 @@ const Account: FC = (): ReactNode => {
         signOut
     } = useAuth()
     const { showToast } = useUIStore()
-    const { openLinksWindowed, setOpenLinksWindowed } =
-        usePreferencesStore()
+    const { openLinksWindowed, setOpenLinksWindowed } = usePreferencesStore()
     const [name, setName] = useState('')
     const [hasChanges, setHasChanges] = useState(false)
 
@@ -183,7 +182,6 @@ const Account: FC = (): ReactNode => {
                                 onLink={handleLinkProvider}
                                 onUnlink={handleUnlinkProvider}
                             />
-
                         </Fragment>
                     )}
                 </motion.main>

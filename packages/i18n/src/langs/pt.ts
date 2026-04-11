@@ -393,14 +393,16 @@ const pt: Translations = {
         subdomainRateLimited:
             'Você só pode alterar seu subdomínio uma vez a cada 24 horas. Entre em contato com a equipe caso queira remover este limite.',
         subdomainUpdated: 'Subdomínio atualizado com sucesso.',
-        invalidSubdomain: 'Subdomínio inválido. Use 3-20 letras minúsculas e números!',
+        invalidSubdomain:
+            'Subdomínio inválido. Use 3-20 letras minúsculas e números!',
         subdomainAlreadyInUse: 'Este subdomínio já está em uso!',
         clawBusy: 'O claw está sendo provisionado ou excluído no momento!',
         reinstallGatewayNotResponding:
             'Reinstalação concluída, mas o gateway ainda não está respondendo. Pode precisar de mais tempo para iniciar.',
         failedToRepairClaw: 'Failed to repair the instance!',
         repairSuccess: 'Instance repaired successfully.',
-        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
+        repairGatewayNotResponding:
+            'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'Falha ao exportar dados do claw!',
         clawNotReady: 'O claw não está pronto para exportação!',
         exportRateLimited:
@@ -632,11 +634,11 @@ const pt: Translations = {
                 cta: 'Ver Planos'
             },
             simplifiedPlatform: {
-                subject: 'Simplificamos o ClawHost',
+                subject: 'ClawHost just got Simpler - ClawHost',
                 preview:
                     'Canais, habilidades e mais agora são gerenciados diretamente no OpenClaw',
                 tag: 'Atualização da Plataforma',
-                heading: 'ClawHost ficou mais simples',
+                heading: 'ClawHost Simplified',
                 description:
                     'Removemos o gerenciamento de canais, agentes, chat e habilidades do painel do ClawHost. Esses recursos agora são gerenciados diretamente na sua instância OpenClaw.',
                 removed:
@@ -897,9 +899,11 @@ const pt: Translations = {
         diagnosticsStatus: 'Status',
         diagnosticsLogs: 'Logs',
         diagnosticsRepair: 'Repair',
-        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairDescription:
+            'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
         diagnosticsRepairSuccess: 'Instance repaired successfully.',
-        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
+        diagnosticsRepairFailed:
+            'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'Conectando à instância...',
         diagnosticsNoLogs:
             'Nenhum log disponível. Inicie sua instância para gerar logs.',
@@ -1381,9 +1385,12 @@ const pt: Translations = {
             'Simplificação da plataforma migrando funcionalidades gerenciadas para o OpenClaw, remoção da visualização playground e introdução de subdomínios personalizados alteráveis.',
         release15Feature1:
             'Simplificação e migração de funcionalidades gerenciadas para o OpenClaw, sem mais chat, agentes, canais, variáveis e habilidades do ClawHost',
-        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
-        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
-        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
+        release15Feature2:
+            'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3:
+            'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4:
+            'Changeable custom subdomains, update your claw subdomain to your loved one',
         release12Date: '14 de março de 2026',
         release12Title: 'Planos Anuais, Modo de Voz e Mais',
         release12Description:
@@ -1549,6 +1556,8 @@ const pt: Translations = {
         featureVersionUnsupportedNewer: 'versões mais recentes',
         tabVersions: 'Versões',
         tabFiles: 'Explorador de arquivos',
+        tabBilling: 'Billing',
+        billingEmpty: 'No billing history for this instance.',
         versionsSearch: 'Buscar versões...',
         versionsEmpty: 'Nenhuma versão encontrada',
         versionsEmptyDescription: 'Nenhuma versão corresponde à sua busca.',
@@ -2152,6 +2161,6 @@ const pt: Translations = {
         contactText:
             'Se você tem perguntas sobre o programa de afiliados, precisa de ajuda com seu código de indicação ou deseja reportar uma violação, entre em contato conosco em'
     }
-} as const
+}
 
 export default pt

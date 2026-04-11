@@ -84,6 +84,6 @@ const API_PATHS = {
     WEBHOOKS: {
         POLAR: '/webhooks/polar'
     }
-} as const
+}
 
 export default API_PATHS

@@ -13,6 +13,7 @@ import { users } from '@/db/schema'
 import { apiPaths, authMethod, externalUrls, userRole } from '@openclaw/shared'
 import { environment } from '@/lib/constants'
 import { ok, fail } from '@/lib/response'
+import { addContact } from '@/services/resend'
 import { t } from '@openclaw/i18n'
 
 import {
@@ -154,6 +155,8 @@ app.use('/*', async (c, next) => {
                         END`
                     }
                 })
+
+            addContact(decoded.email, decoded.name)
         } else return fail(c, t('api.unauthorized'), 401)
 
         const admin = existingUser?.role === userRole.admin

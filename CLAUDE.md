@@ -603,7 +603,7 @@ VITE_FIREBASE_APP_ID=...
 | SSH Service        | `apps/api/src/services/ssh.ts`                  |
 | Terminal WebSocket | `apps/api/src/services/terminalSocket.ts`       |
 | Polar Services     | `apps/api/src/services/polar/`                  |
-| Claw Helpers       | `apps/api/src/controllers/agents/helpers/`       |
+| Claw Helpers       | `apps/api/src/controllers/agents/helpers/`      |
 | Web Entry          | `apps/web/src/main.tsx`                         |
 | Web Routes         | `apps/web/src/App.tsx`                          |
 | Auth Context       | `apps/web/src/lib/auth/`                        |

@@ -379,7 +379,8 @@ const en = {
         subdomainRateLimited:
             'You can only change your subdomain once every 24 hours. Please contact the team in case you want to remove this limit.',
         subdomainUpdated: 'Subdomain updated successfully.',
-        invalidSubdomain: 'Invalid subdomain. Use 3-20 lowercase letters and numbers!',
+        invalidSubdomain:
+            'Invalid subdomain. Use 3-20 lowercase letters and numbers!',
         subdomainAlreadyInUse: 'This subdomain is already in use!',
         clawBusy: 'Claw is currently being provisioned or deleted!',
         reinstallGatewayNotResponding:
@@ -609,11 +610,11 @@ const en = {
                 cta: 'View Plans'
             },
             simplifiedPlatform: {
-                subject: 'We simplified ClawHost',
+                subject: 'ClawHost just got Simpler - ClawHost',
                 preview:
                     'Channels, skills, and more are now managed directly in OpenClaw',
                 tag: 'Platform Update',
-                heading: 'ClawHost just got simpler',
+                heading: 'ClawHost Simplified',
                 description:
                     'We removed channels, agents, chat, and skills management from the ClawHost dashboard. These features are now managed directly on your OpenClaw instance.',
                 removed:
@@ -1511,6 +1512,8 @@ const en = {
         featureVersionUnsupportedNewer: 'newer versions',
         tabVersions: 'Versions',
         tabFiles: 'File Explorer',
+        tabBilling: 'Billing',
+        billingEmpty: 'No billing history for this instance.',
         versionsSearch: 'Search versions...',
         versionsEmpty: 'No versions found',
         versionsEmptyDescription: 'No versions match your search.',
@@ -2108,6 +2111,6 @@ const en = {
         contactText:
             'If you have questions about the affiliate program, need help with your referral code, or want to report a violation, reach out to us at'
     }
-} as const
+}
 
 export default en

@@ -376,14 +376,16 @@ const ar: Translations = {
         subdomainRateLimited:
             'يمكنك تغيير النطاق الفرعي مرة واحدة فقط كل 24 ساعة. يرجى التواصل مع الفريق إذا كنت تريد إزالة هذا الحد.',
         subdomainUpdated: 'تم تحديث النطاق الفرعي بنجاح.',
-        invalidSubdomain: 'نطاق فرعي غير صالح. استخدم 3-20 حرفاً صغيراً وأرقاماً !',
+        invalidSubdomain:
+            'نطاق فرعي غير صالح. استخدم 3-20 حرفاً صغيراً وأرقاماً !',
         subdomainAlreadyInUse: 'هذا النطاق الفرعي مستخدم بالفعل !',
         clawBusy: 'Claw قيد التجهيز أو الحذف حالياً !',
         reinstallGatewayNotResponding:
             'اكتملت إعادة التثبيت لكن البوابة لا تستجيب بعد. قد تحتاج إلى مزيد من الوقت للبدء.',
         failedToRepairClaw: 'Failed to repair the instance!',
         repairSuccess: 'Instance repaired successfully.',
-        repairGatewayNotResponding: 'Repair applied but gateway is not responding yet. It may need more time to start.',
+        repairGatewayNotResponding:
+            'Repair applied but gateway is not responding yet. It may need more time to start.',
         failedToExportClaw: 'فشل تصدير بيانات Claw !',
         clawNotReady: 'Claw غير جاهز للتصدير !',
         exportRateLimited:
@@ -603,11 +605,11 @@ const ar: Translations = {
                 cta: 'عرض الخطط'
             },
             simplifiedPlatform: {
-                subject: 'قمنا بتبسيط ClawHost',
+                subject: 'ClawHost just got Simpler - ClawHost',
                 preview:
                     'القنوات والمهارات والمزيد تُدار الآن مباشرة في OpenClaw',
                 tag: 'تحديث المنصة',
-                heading: 'ClawHost أصبح أبسط',
+                heading: 'ClawHost Simplified',
                 description:
                     'أزلنا إدارة القنوات والوكلاء والدردشة والمهارات من لوحة تحكم ClawHost. هذه الميزات تُدار الآن مباشرة على نسخة OpenClaw الخاصة بك.',
                 removed:
@@ -858,9 +860,11 @@ const ar: Translations = {
         diagnosticsStatus: 'الحالة',
         diagnosticsLogs: 'السجلات',
         diagnosticsRepair: 'Repair',
-        diagnosticsRepairDescription: 'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
+        diagnosticsRepairDescription:
+            'Remove memory limits, apply latest service configuration, and restart the gateway. This fixes most common issues.',
         diagnosticsRepairSuccess: 'Instance repaired successfully.',
-        diagnosticsRepairFailed: 'Repair applied but gateway is not responding yet!',
+        diagnosticsRepairFailed:
+            'Repair applied but gateway is not responding yet!',
         diagnosticsLoading: 'جارٍ الاتصال بالنسخة...',
         diagnosticsNoLogs: 'لا توجد سجلات متاحة. شغّل نسختك لتوليد السجلات.',
         diagnosticsIssueDetected: 'تم اكتشاف مشكلة في نسختك.',
@@ -1291,8 +1295,7 @@ const ar: Translations = {
             'تطبيق هاتف أصلي لمراقبة وإدارة نسخ OpenClaw أثناء التنقل',
         upcomingReleaseFeature13:
             'إصدار تجريبي من ClawHost Go لنظامي macOS وWindows، انشر OpenClaw محلياً بنقرة واحدة',
-        upcomingReleaseFeature14:
-            'نشر بنقرة واحدة لوكلاء Hermes مثل OpenClaw',
+        upcomingReleaseFeature14: 'نشر بنقرة واحدة لوكلاء Hermes مثل OpenClaw',
         upcomingReleaseFeature3: 'دعم السمات الداكنة والفاتحة',
         upcomingReleaseFeature4: 'تحسينات في الأداء والاستقرار والاستجابة',
         upcomingReleaseFeature5:
@@ -1315,9 +1318,12 @@ const ar: Translations = {
             'تبسيط المنصة بنقل الميزات المُدارة إلى OpenClaw، وإزالة عرض الملعب، وتقديم نطاقات فرعية مخصصة قابلة للتغيير.',
         release15Feature1:
             'تبسيط ونقل الميزات المُدارة إلى OpenClaw، لا مزيد من دردشة ClawHost والوكلاء والقنوات والمتغيرات والمهارات',
-        release15Feature2: 'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
-        release15Feature3: 'Removed playground view for a cleaner, more focused dashboard experience',
-        release15Feature4: 'Changeable custom subdomains, update your claw subdomain to your loved one',
+        release15Feature2:
+            'Enhanced file explorer with full editing support, 100+ language syntax highlighting, and export as .zip',
+        release15Feature3:
+            'Removed playground view for a cleaner, more focused dashboard experience',
+        release15Feature4:
+            'Changeable custom subdomains, update your claw subdomain to your loved one',
         release14Date: '1 أبريل 2026',
         release14Title: 'الانتقال إلى Hetzner، نظام الإحالة ولغات جديدة',
         release14Description:
@@ -1473,6 +1479,8 @@ const ar: Translations = {
         featureVersionUnsupportedNewer: 'الإصدارات الأحدث',
         tabVersions: 'الإصدارات',
         tabFiles: 'مستكشف الملفات',
+        tabBilling: 'Billing',
+        billingEmpty: 'No billing history for this instance.',
         versionsSearch: 'البحث في الإصدارات...',
         versionsEmpty: 'لم يتم العثور على إصدارات',
         versionsEmptyDescription: 'لا توجد إصدارات تطابق بحثك.',
@@ -2056,6 +2064,6 @@ const ar: Translations = {
         contactText:
             'إذا كانت لديك أسئلة حول برنامج الشراكة أو تحتاج إلى مساعدة بشأن رمز الإحالة الخاص بك أو ترغب في الإبلاغ عن مخالفة، تواصل معنا على'
     }
-} as const
+}
 
 export default ar

@@ -1,5 +1,5 @@
 describe('useThemeEffect logic', () => {
-    const THEMES = { LIGHT: 'light', DARK: 'dark', SYSTEM: 'system' } as const
+    const THEMES = { LIGHT: 'light', DARK: 'dark', SYSTEM: 'system' }
 
     const resolveTheme = (
         mode: string,

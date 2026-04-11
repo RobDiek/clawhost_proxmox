@@ -1,4 +1,6 @@
-const button = {
+import type { CSSProperties } from 'react'
+
+const button: CSSProperties = {
     background: 'linear-gradient(to right, #ef5350, #c62828)',
     backgroundColor: '#ef5350',
     borderRadius: '9999px',
@@ -6,7 +8,7 @@ const button = {
     fontSize: '15px',
     fontWeight: '600',
     textDecoration: 'none',
-    textAlign: 'center' as const,
+    textAlign: 'center',
     padding: '14px 32px',
     width: 'auto',
     marginBottom: '20px'
