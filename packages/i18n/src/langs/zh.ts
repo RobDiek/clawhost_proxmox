@@ -297,7 +297,6 @@ const zh: Translations = {
         invalidSshKeyFormat: '无效的 SSH 公钥格式!',
         sshKeyInUse: '此 SSH 密钥目前正被一个或多个 claws 使用!',
         inputTooLong: '输入超过最大允许长度!',
-        invalidEnvVars: '无效的环境变量名称或值!',
         invalidEmailFormat: '无效的邮箱格式!',
         plusAddressingNotAllowed: '邮箱登录不允许使用加号地址!',
         invalidRedirectUrl: '无效的重定向 URL!',
@@ -434,6 +433,7 @@ const zh: Translations = {
         cannotDeleteMainAgent: '无法删除唯一剩余的代理!',
         agentNameInvalid: '代理名称只能包含字母、数字和连字符!',
         agentNameDuplicate: '已存在同名的代理!',
+        invalidEnvVars: '无效的环境变量!',
         diagnosticsFetched: '诊断信息获取成功.',
         logsFetched: '日志获取成功.',
         filesFetched: '文件获取成功.',
@@ -558,15 +558,6 @@ const zh: Translations = {
                     '使用语音模式与您的 AI 代理免提交流。语音转文字用于输入，文字转语音用于回复——可选择多种语音。',
                 cta: '试试语音模式'
             },
-            envVars: {
-                subject: '您知道吗？可以管理环境变量',
-                preview: '无需 SSH 即可设置 API 密钥和配置',
-                tag: '环境变量',
-                heading: '无需 SSH 即可配置',
-                description:
-                    '直接从 ClawHost 仪表板添加、编辑和删除环境变量。设置 API 密钥、密钥和配置——无需终端。',
-                cta: '管理变量'
-            },
             diagnostics: {
                 subject: '您知道吗？内置健康检查',
                 preview: '从仪表板监控服务器健康状况',
@@ -645,9 +636,9 @@ const zh: Translations = {
                 tag: '平台更新',
                 heading: 'ClawHost 变得更简单了',
                 description:
-                    '我们从 ClawHost 控制面板中移除了频道、代理、聊天、技能和变量管理。这些功能现在直接在您的 OpenClaw 实例上管理。',
+                    '我们从 ClawHost 控制面板中移除了频道、代理、聊天、技能管理。这些功能现在直接在您的 OpenClaw 实例上管理。',
                 removed:
-                    '具体移除了：消息频道（WhatsApp、Telegram、Discord、Slack、Signal）、技能市场（ClawHub）、代理聊天和语音模式、以及变量编辑器。所有这些在 OpenClaw 中仍然存在——我们只是不再包装它们。',
+                    '具体移除了：消息频道（WhatsApp、Telegram、Discord、Slack、Signal）、技能市场（ClawHub）、以及代理聊天和语音模式。所有这些在 OpenClaw 中仍然存在——我们只是不再包装它们。',
                 why: '让我们的界面与每个 OpenClaw 版本保持同步是不可持续的。上游更新发布后，我们的界面会滞后——让您面对过时的控件和不完整的功能。',
                 benefit:
                     '通过移除这些层，您直接与 OpenClaw 交互。您学习的是真实的系统，而不是可能过时的第二个界面。您的知识可以在 OpenClaw 运行的任何地方使用。',
@@ -1147,8 +1138,7 @@ const zh: Translations = {
         openclawControlDescription:
             '直接从 ClawHost 访问原生 OpenClaw 面板。完全编辑 OpenClaw 提供的所有内容。',
         clawHostControl: 'ClawHost 控制',
-        clawHostControlDescription:
-            '直接从平台管理文件、更新、变量和更多配置选项。',
+        clawHostControlDescription: '直接从平台管理文件、更新和更多配置选项。',
         directChat: '直接聊天',
         directChatDescription:
             '直接从平台与您的 AI 代理聊天。无需外部工具或界面。',
@@ -1483,32 +1473,8 @@ const zh: Translations = {
         loadingTip3: 'ClawHost 是首个支持一键 OpenClaw 托管的项目.',
         tabChat: '聊天',
         tabSettings: '设置',
-        tabEnvs: '环境变量',
         agentOnClaw: '在 {{clawName}} 上',
         cannotDeleteDefaultAgent: '默认代理无法删除！',
-        tabVariables: '变量',
-        variablesDescription: '存储在此实例 ~/.openclaw/.env 中的环境变量。',
-        variablesEmpty: '未找到环境变量。',
-        variablesAddVariable: '添加变量',
-        variablesSave: '保存变量',
-        variablesSaving: '正在保存...',
-        variablesSaved: '环境变量已保存。',
-        variablesSaveFailed: '保存环境变量失败！',
-        variablesLoading: '正在加载变量...',
-        variablesLoadFailed: '加载环境变量失败！',
-        variablesLoadFailedDescription: '无法获取此实例的变量。请稍后重试。',
-        variablesInvalidKey: '仅允许字母、数字和下划线！',
-        variablesEmptyValue: '值不能为空！',
-        variablesDuplicateKey: '变量名重复！',
-        variablesKeyPlaceholder: '键',
-        variablesValuePlaceholder: '值',
-        variablesDeleteTitle: '删除变量',
-        variablesDeleteDescription:
-            '您确定要删除 {{key}} 吗？这将立即从实例中删除它。',
-        variablesDeleteConfirm: '删除',
-        variablesDontAskAgain: '本次会话中删除变量时不再询问',
-        variablesDeleted: '变量已删除。',
-        variablesOperationPending: '前一个操作完成前禁用。',
         addAgentTitle: '添加代理',
         addAgentDescription: '向 {{clawName}} 添加新代理。',
         addAgentDescriptionNoClaw: '选择一个 Claw 并配置您的新代理。',
@@ -1520,15 +1486,14 @@ const zh: Translations = {
         addAgentModelPlaceholder: '选择模型',
         addAgentApiKey: 'API 密钥',
         addAgentApiKeyPlaceholder: '输入您的 API 密钥（可选）',
-        addAgentApiKeyConfigured:
-            '{{envVar}} 已设置。添加后可在变量标签中编辑。',
+        addAgentApiKeyConfigured: '{{envVar}} 已在此实例上配置。',
         addAgentSubmit: '添加代理',
         addAgentSuccess: '代理添加成功。',
         addAgentFailed: '添加代理失败！',
         deleteAgent: '删除代理',
         deleteAgentTitle: '删除代理',
         deleteAgentDescription:
-            '您确定要删除代理 "{{agentName}}" 吗？此操作无法撤销。环境变量不会被删除。',
+            '您确定要删除代理 "{{agentName}}" 吗？此操作无法撤销。',
         deleteAgentConfirm: '删除',
         agentDontAskAgain: '本次会话中删除代理时不再询问',
         deleteAgentDeleting: '正在删除...',

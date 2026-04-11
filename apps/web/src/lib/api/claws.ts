@@ -2,7 +2,6 @@ import type {
     Claw,
     ClawAgentsResponse,
     ClawCredentialsResponse,
-    ClawEnvVarsResponse,
     ClawFilesResponse,
     ClawVersionResponse,
     ClawVersionsResponse,
@@ -17,7 +16,6 @@ import type {
     PurchaseClawResponse,
     ReadClawFileResponse,
     RenameClawData,
-    UpdateClawEnvVarsData,
     UpdateClawFileData,
     UpdateClawSubdomainData
 } from '@/ts/Interfaces'
@@ -86,10 +84,6 @@ const claws = {
         ),
     deleteClawAgent: (id: string, data: DeleteAgentData) =>
         client.post<void>(API_PATHS.CLAWS.AGENTS.DELETE(id), data),
-    getClawEnvVars: (id: string) =>
-        client.get<ClawEnvVarsResponse>(API_PATHS.CLAWS.ENV(id)),
-    updateClawEnvVars: (id: string, data: UpdateClawEnvVarsData) =>
-        client.put<void>(API_PATHS.CLAWS.ENV(id), data),
     exportClaw: async (id: string, filename: string) => {
         const token = await getCachedToken()
         const res = await fetch(`${BASE_URL}${API_PATHS.CLAWS.EXPORT(id)}`, {

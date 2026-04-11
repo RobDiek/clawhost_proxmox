@@ -314,7 +314,6 @@ const nl: Translations = {
         sshKeyInUse:
             'Deze SSH-sleutel wordt momenteel gebruikt door een of meer claws!',
         inputTooLong: 'Invoer overschrijdt de maximaal toegestane lengte!',
-        invalidEnvVars: 'Ongeldige omgevingsvariabele namen of waarden!',
         invalidEmailFormat: 'Ongeldig e-mailformaat!',
         plusAddressingNotAllowed:
             'Plus-adressering is niet toegestaan voor e-mailinlog!',
@@ -464,6 +463,7 @@ const nl: Translations = {
         agentNameInvalid:
             'Agentnaam mag alleen letters, cijfers en koppeltekens bevatten!',
         agentNameDuplicate: 'Er bestaat al een agent met deze naam!',
+        invalidEnvVars: 'Ongeldige omgevingsvariabelen!',
         diagnosticsFetched: 'Diagnostiek succesvol opgehaald.',
         logsFetched: 'Logs succesvol opgehaald.',
         filesFetched: 'Bestanden succesvol opgehaald.',
@@ -592,15 +592,6 @@ const nl: Translations = {
                     'Gebruik de spraakmodus om handsfree met je AI-agents te praten. Spraak-naar-tekst voor invoer, tekst-naar-spraak voor antwoorden \u2014 kies uit meerdere stemmen.',
                 cta: 'Spraakmodus proberen'
             },
-            envVars: {
-                subject: 'Wist je dat? Beheer omgevingsvariabelen',
-                preview: 'Stel API-sleutels en configuratie in zonder SSH',
-                tag: 'Omgevingsvariabelen',
-                heading: 'Configureren zonder SSH',
-                description:
-                    'Voeg omgevingsvariabelen toe, bewerk en verwijder ze direct vanuit het ClawHost-dashboard. Stel API-sleutels, geheimen en configuratie in \u2014 geen terminal nodig.',
-                cta: 'Variabelen beheren'
-            },
             diagnostics: {
                 subject: 'Wist je dat? Ingebouwde gezondheidscontroles',
                 preview:
@@ -686,9 +677,9 @@ const nl: Translations = {
                 tag: 'Platform Update',
                 heading: 'ClawHost is nu eenvoudiger',
                 description:
-                    'We hebben het beheer van kanalen, agents, chat, vaardigheden en variabelen uit het ClawHost-dashboard verwijderd. Deze functies worden nu direct op je OpenClaw-instantie beheerd.',
+                    'We hebben het beheer van kanalen, agents, chat en vaardigheden uit het ClawHost-dashboard verwijderd. Deze functies worden nu direct op je OpenClaw-instantie beheerd.',
                 removed:
-                    'Specifiek hebben we verwijderd: berichtenkanalen (WhatsApp, Telegram, Discord, Slack, Signal), de vaardigheden-marktplaats (ClawHub), agent-chat en spraakfunctie, en de variabelen-editor. Dit alles bestaat nog steeds in OpenClaw — we zijn alleen gestopt met het inpakken ervan.',
+                    'Specifiek hebben we verwijderd: berichtenkanalen (WhatsApp, Telegram, Discord, Slack, Signal), de vaardigheden-marktplaats (ClawHub), en agent-chat en spraakfunctie. Dit alles bestaat nog steeds in OpenClaw — we zijn alleen gestopt met het inpakken ervan.',
                 why: 'Onze interfaces synchroon houden met elke OpenClaw-release was niet vol te houden. Updates kwamen upstream, en onze interface liep achter — waardoor je verouderde knoppen en onvolledige functies kreeg.',
                 benefit:
                     'Door deze lagen te verwijderen, werk je direct met OpenClaw. Je leert het echte systeem, niet een tweede interface die verouderd kan raken. Je kennis is overal bruikbaar waar OpenClaw draait.',
@@ -1228,7 +1219,7 @@ const nl: Translations = {
             'Krijg direct toegang tot het native OpenClaw-paneel vanuit ClawHost. Volledige bewerkingstoegang tot alles wat OpenClaw biedt.',
         clawHostControl: 'ClawHost Control',
         clawHostControlDescription:
-            'Beheer bestanden, updates, variabelen en meer configuratieopties direct vanuit het platform.',
+            'Beheer bestanden, updates en meer configuratieopties direct vanuit het platform.',
         directChat: 'Directe chat',
         directChatDescription:
             'Chat met je AI-agents direct vanuit het platform. Geen externe tools of interfaces nodig.',
@@ -1618,36 +1609,8 @@ const nl: Translations = {
             'ClawHost is het allereerste project dat OpenClaw-hosting met \u00e9\u00e9n klik mogelijk maakt.',
         tabChat: 'Chat',
         tabSettings: 'Instellingen',
-        tabEnvs: 'Variabelen',
         agentOnClaw: 'op {{clawName}}',
         cannotDeleteDefaultAgent: 'Standaard agent kan niet worden verwijderd!',
-        tabVariables: 'Variabelen',
-        variablesDescription:
-            'Omgevingsvariabelen opgeslagen in ~/.openclaw/.env op deze instantie.',
-        variablesEmpty: 'Geen omgevingsvariabelen gevonden.',
-        variablesAddVariable: 'Variabele toevoegen',
-        variablesSave: 'Variabelen opslaan',
-        variablesSaving: 'Opslaan...',
-        variablesSaved: 'Omgevingsvariabelen opgeslagen.',
-        variablesSaveFailed: 'Omgevingsvariabelen opslaan mislukt!',
-        variablesLoading: 'Variabelen laden...',
-        variablesLoadFailed: 'Omgevingsvariabelen laden mislukt!',
-        variablesLoadFailedDescription:
-            'Kon variabelen voor deze instantie niet ophalen. Probeer het later opnieuw.',
-        variablesInvalidKey: 'Alleen letters, cijfers en underscores!',
-        variablesEmptyValue: 'Waarde mag niet leeg zijn!',
-        variablesDuplicateKey: 'Dubbele variabelenaam!',
-        variablesKeyPlaceholder: 'SLEUTEL',
-        variablesValuePlaceholder: 'Waarde',
-        variablesDeleteTitle: 'Variabele verwijderen',
-        variablesDeleteDescription:
-            'Weet je zeker dat je {{key}} wilt verwijderen? Dit verwijdert het onmiddellijk van de instantie.',
-        variablesDeleteConfirm: 'Verwijderen',
-        variablesDontAskAgain:
-            'Niet meer vragen bij het verwijderen van variabelen deze sessie',
-        variablesDeleted: 'Variabele verwijderd.',
-        variablesOperationPending:
-            'Uitgeschakeld terwijl een vorige bewerking wordt voltooid.',
         addAgentTitle: 'Agent toevoegen',
         addAgentDescription: 'Voeg een nieuwe agent toe aan {{clawName}}.',
         addAgentDescriptionNoClaw:
@@ -1661,14 +1624,14 @@ const nl: Translations = {
         addAgentApiKey: 'API-sleutel',
         addAgentApiKeyPlaceholder: 'Voer je API-sleutel in (optioneel)',
         addAgentApiKeyConfigured:
-            '{{envVar}} is al ingesteld. Bewerk in het tabblad Variabelen na toevoegen.',
+            '{{envVar}} is al geconfigureerd op deze instantie.',
         addAgentSubmit: 'Agent toevoegen',
         addAgentSuccess: 'Agent succesvol toegevoegd.',
         addAgentFailed: 'Agent toevoegen mislukt!',
         deleteAgent: 'Agent verwijderen',
         deleteAgentTitle: 'Agent verwijderen',
         deleteAgentDescription:
-            'Weet je zeker dat je de agent "{{agentName}}" wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt. Omgevingsvariabelen worden niet verwijderd.',
+            'Weet je zeker dat je de agent "{{agentName}}" wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
         deleteAgentConfirm: 'Verwijderen',
         agentDontAskAgain:
             'Niet meer vragen bij het verwijderen van agents deze sessie',

@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { ClawAgentsResponse, CreateAgentModalProps } from '@/ts/Interfaces'
 
 import { useState, useMemo, useCallback } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
 import { CircleNotchIcon } from '@phosphor-icons/react'
 import {
@@ -22,11 +22,7 @@ import { api, generateRandomAgentName } from '@/lib'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { aiModels, validateAgentName } from '@/lib/claw-utils'
-import {
-    PLAYGROUND_AGENTS_QUERY_KEY,
-    CLAW_ENV_QUERY_KEY,
-    useAgentNameValidation
-} from '@/hooks'
+import { PLAYGROUND_AGENTS_QUERY_KEY, useAgentNameValidation } from '@/hooks'
 
 const CreateAgentModal: FC<CreateAgentModalProps> = ({
     clawId: clawIdProp,
@@ -54,13 +50,6 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
         const found = reachableClaws.find((c) => c.claw.id === pickedClawId)
         return found?.claw.name || ''
     }, [clawNameProp, reachableClaws, pickedClawId])
-
-    const { data: envData } = useQuery({
-        queryKey: [...CLAW_ENV_QUERY_KEY, effectiveClawId],
-        queryFn: () => api.getClawEnvVars(effectiveClawId),
-        enabled: open && !!effectiveClawId,
-        staleTime: 30000
-    })
 
     const existingAgentNames = useMemo(() => {
         const cached = queryClient.getQueryData<ClawAgentsResponse>([
@@ -99,11 +88,6 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
         [selectedModel]
     )
 
-    const existingKeyValue = useMemo(() => {
-        if (!selectedModelOption || !envData?.envVars) return ''
-        return envData.envVars[selectedModelOption.envVar] || ''
-    }, [selectedModelOption, envData])
-
     const resetForm = useCallback(() => {
         resetName()
         setSelectedModel('')
@@ -139,9 +123,6 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                     }
                 }
             )
-            queryClient.invalidateQueries({
-                queryKey: [...CLAW_ENV_QUERY_KEY, effectiveClawId]
-            })
             resetForm()
             onOpenChange(false)
         },
@@ -310,7 +291,7 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                             placeholder={t(
                                 'playground.addAgentApiKeyPlaceholder'
                             )}
-                            existingValue={existingKeyValue}
+                            existingValue=''
                             configuredLabel={t(
                                 'playground.addAgentApiKeyConfigured',
                                 { envVar: selectedModelOption.envVar }

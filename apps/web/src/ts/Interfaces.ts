@@ -296,75 +296,6 @@ export interface VersionsState {
     resetVersionsState: () => void
 }
 
-export interface VariablesState {
-    showValues: Record<string, boolean>
-    toggleValue: (key: string) => void
-    copiedKey: string | null
-    setCopiedKey: (value: string | null) => void
-    showErrors: boolean
-    setShowErrors: (value: boolean) => void
-    deleteIndex: number | null
-    setDeleteIndex: (value: number | null) => void
-    dontAskAgain: boolean
-    setDontAskAgain: (value: boolean) => void
-    skipDeleteConfirmation: boolean
-    setSkipDeleteConfirmation: (value: boolean) => void
-    resetVariablesState: () => void
-}
-
-export interface EnvVarRowProps {
-    envVar: EnvVar
-    index: number
-    keyError: string | null
-    valueError: string | null
-    showValue: boolean
-    isCopied: boolean
-    isPending: boolean
-    onChange: (index: number, field: 'key' | 'value', val: string) => void
-    onToggleVisibility: (key: string) => void
-    onCopyValue: (key: string, value: string) => Promise<void>
-    onRemove: (index: number) => void
-}
-
-export interface EnvVarsEmptyStateProps {
-    onAdd: () => void
-}
-
-export interface DeleteEnvVarDialogProps {
-    open: boolean
-    envKey: string
-    dontAskAgain: boolean
-    isPending: boolean
-    onOpenChange: (open: boolean) => void
-    onDontAskAgainChange: (value: boolean) => void
-    onConfirm: () => void
-}
-
-export interface UseEnvVarsFormParams {
-    clawId: string
-    mockEnvVars?: Record<string, string>
-}
-
-export interface UseEnvVarsFormReturn {
-    envVars: Array<EnvVar>
-    errors: Array<EnvVarValidationError>
-    hasErrors: boolean
-    hasChanges: boolean
-    isLoading: boolean
-    isError: boolean
-    isSavePending: boolean
-    isDeletePending: boolean
-    handleAddVar: () => void
-    handleVarChange: (
-        index: number,
-        field: 'key' | 'value',
-        val: string
-    ) => void
-    handleRemoveVar: (index: number) => void
-    handleConfirmDelete: () => void
-    save: () => void
-}
-
 export interface TerminalState {
     status: TerminalStatus
     setStatus: (
@@ -1305,19 +1236,6 @@ export interface AgentDeleteDialogProps {
     onConfirm: (skipFuture: boolean) => void
 }
 
-export interface ClawEnvVarsResponse {
-    envVars: Record<string, string>
-}
-
-export interface UpdateClawEnvVarsData {
-    envVars: Record<string, string>
-}
-
-export interface PlaygroundVariablesContentProps {
-    clawId: string
-    mockEnvVars?: Record<string, string>
-}
-
 export interface HeroButtonsProps {
     deployLabel: string
     githubLabel: string
@@ -1921,16 +1839,6 @@ export interface SelectGroupProps {
     label: string
     children: ReactNode
     isLast?: boolean
-}
-
-export interface EnvVar {
-    key: string
-    value: string
-}
-
-export interface EnvVarValidationError {
-    key: string | null
-    value: string | null
 }
 
 export interface FirebaseErrorLike {

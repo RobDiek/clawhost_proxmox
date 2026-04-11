@@ -20,8 +20,6 @@ import exportClaw from '@/controllers/claws/exportClaw'
 import getClawAgents from '@/controllers/claws/getClawAgents'
 import createClawAgent from '@/controllers/claws/createClawAgent'
 import deleteClawAgent from '@/controllers/claws/deleteClawAgent'
-import getClawEnvVars from '@/controllers/claws/getClawEnvVars'
-import updateClawEnvVars from '@/controllers/claws/updateClawEnvVars'
 import getClawVersion from '@/controllers/claws/getClawVersion'
 import getClawVersions from '@/controllers/claws/getClawVersions'
 import installClawVersion from '@/controllers/claws/installClawVersion'
@@ -53,8 +51,6 @@ export {
     getClawAgents,
     createClawAgent,
     deleteClawAgent,
-    getClawEnvVars,
-    updateClawEnvVars,
     getClawVersion,
     getClawVersions,
     installClawVersion,

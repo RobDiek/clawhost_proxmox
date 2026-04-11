@@ -36,7 +36,7 @@ ClawHost is an open-source, self-hostable cloud hosting platform that lets anyon
 - **Browser Terminal** — Full SSH terminal access directly from the dashboard via WebSocket
 - **Text-to-Speech** — Local TTS synthesis with Piper for reading agent responses aloud
 - **Diagnostics & Logs** — Monitor server health, view logs, and repair instances
-- **File & Env Management** — Edit configuration files and environment variables remotely
+- **File Management** — Edit configuration files remotely
 - **Version Management** — View installed OpenClaw version, browse available versions, and upgrade
 - **Automatic SSL** — HTTPS via Let's Encrypt, configured automatically
 - **DNS Management** — Automatic subdomain creation via Cloudflare
@@ -381,15 +381,13 @@ pnpm --filter api email:dev    # Preview email templates at localhost:3333
 | `POST` | `/api/claws/:id/agents/create` | Create a new agent |
 | `POST` | `/api/claws/:id/agents/delete` | Delete an agent    |
 
-**Claw Files & Environment**
+**Claw Files**
 
-| Method | Endpoint                    | Description                  |
-| ------ | --------------------------- | ---------------------------- |
-| `POST` | `/api/claws/:id/files`      | List files on instance       |
-| `POST` | `/api/claws/:id/files/read` | Read a file                  |
-| `PUT`  | `/api/claws/:id/files`      | Update a file                |
-| `GET`  | `/api/claws/:id/env`        | Get environment variables    |
-| `PUT`  | `/api/claws/:id/env`        | Update environment variables |
+| Method | Endpoint                    | Description            |
+| ------ | --------------------------- | ---------------------- |
+| `POST` | `/api/claws/:id/files`      | List files on instance |
+| `POST` | `/api/claws/:id/files/read` | Read a file            |
+| `PUT`  | `/api/claws/:id/files`      | Update a file          |
 
 **Admin Endpoints**
 
@@ -477,7 +475,7 @@ The `scripts/cloud-init.yaml` template configures every new instance with:
 - UFW firewall (ports 22, 80, 443)
 - systemd service for automatic OpenClaw startup
 
-Once provisioned, users can manage their claws through the dashboard — configuring agents, environment variables, and files all remotely via SSH. A browser-based terminal provides direct shell access via WebSocket, and text-to-speech lets users listen to agent responses.
+Once provisioned, users can manage their claws through the dashboard — configuring agents and files all remotely via SSH. A browser-based terminal provides direct shell access via WebSocket, and text-to-speech lets users listen to agent responses.
 
 ## Customization
 

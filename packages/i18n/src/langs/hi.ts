@@ -313,7 +313,6 @@ const hi: Translations = {
         sshKeyInUse:
             'यह SSH कुंजी वर्तमान में एक या अधिक क्लॉज़ द्वारा उपयोग में है!',
         inputTooLong: 'इनपुट अधिकतम अनुमत लंबाई से अधिक है!',
-        invalidEnvVars: 'अमान्य एनवायरनमेंट वेरिएबल नाम या मान!',
         invalidEmailFormat: 'अमान्य ईमेल प्रारूप!',
         plusAddressingNotAllowed:
             'ईमेल लॉगिन के लिए प्लस एड्रेसिंग की अनुमति नहीं है!',
@@ -460,6 +459,7 @@ const hi: Translations = {
         agentNameInvalid:
             'एजेंट नाम में केवल अक्षर, संख्याएँ और डैश होने चाहिए!',
         agentNameDuplicate: 'इस नाम का एक एजेंट पहले से मौजूद है!',
+        invalidEnvVars: 'अमान्य पर्यावरण चर!',
         diagnosticsFetched: 'डायग्नोस्टिक्स सफलतापूर्वक प्राप्त हुए.',
         logsFetched: 'लॉग सफलतापूर्वक प्राप्त हुए.',
         filesFetched: 'फ़ाइलें सफलतापूर्वक प्राप्त हुईं.',
@@ -591,15 +591,6 @@ const hi: Translations = {
                     'वॉइस मोड का उपयोग करके हैंड्स-फ़्री अपने AI एजेंट से बात करें. इनपुट के लिए स्पीच-टू-टेक्स्ट, प्रतिक्रियाओं के लिए टेक्स्ट-टू-स्पीच — कई वॉइस में से चुनें.',
                 cta: 'वॉइस मोड आज़माएँ'
             },
-            envVars: {
-                subject: 'क्या आप जानते हैं? एनवायरनमेंट वेरिएबल प्रबंधित करें',
-                preview: 'SSH के बिना API कुंजियाँ और कॉन्फ़िग सेट करें',
-                tag: 'एनवायरनमेंट वेरिएबल्स',
-                heading: 'SSH के बिना कॉन्फ़िगर करें',
-                description:
-                    'ClawHost डैशबोर्ड से सीधे एनवायरनमेंट वेरिएबल जोड़ें, संपादित करें और हटाएँ. API कुंजियाँ, सीक्रेट और कॉन्फ़िगरेशन सेट करें — कोई टर्मिनल नहीं चाहिए.',
-                cta: 'वेरिएबल प्रबंधित करें'
-            },
             diagnostics: {
                 subject: 'क्या आप जानते हैं? बिल्ट-इन हेल्थ चेक',
                 preview: 'डैशबोर्ड से अपने सर्वर की सेहत मॉनिटर करें',
@@ -684,9 +675,9 @@ const hi: Translations = {
                 tag: 'प्लेटफ़ॉर्म अपडेट',
                 heading: 'ClawHost अब और सरल है',
                 description:
-                    'हमने ClawHost डैशबोर्ड से चैनल, एजेंट, चैट, स्किल्स और वेरिएबल्स प्रबंधन हटा दिया है. ये सुविधाएँ अब सीधे आपके OpenClaw इंस्टेंस पर प्रबंधित होती हैं.',
+                    'हमने ClawHost डैशबोर्ड से चैनल, एजेंट, चैट और स्किल्स प्रबंधन हटा दिया है. ये सुविधाएँ अब सीधे आपके OpenClaw इंस्टेंस पर प्रबंधित होती हैं.',
                 removed:
-                    'विशेष रूप से, हमने हटाया: मैसेजिंग चैनल (WhatsApp, Telegram, Discord, Slack, Signal), स्किल्स मार्केटप्लेस (ClawHub), एजेंट चैट और वॉइस मोड, और वेरिएबल्स एडिटर. ये सभी OpenClaw में मौजूद हैं — हमने बस इन्हें रैप करना बंद कर दिया.',
+                    'विशेष रूप से, हमने हटाया: मैसेजिंग चैनल (WhatsApp, Telegram, Discord, Slack, Signal), स्किल्स मार्केटप्लेस (ClawHub), और एजेंट चैट और वॉइस मोड. ये सभी OpenClaw में मौजूद हैं — हमने बस इन्हें रैप करना बंद कर दिया.',
                 why: 'हर OpenClaw रिलीज़ के साथ अपने इंटरफ़ेस को सिंक रखना टिकाऊ नहीं था. अपस्ट्रीम अपडेट आते थे, और हमारा UI पीछे रह जाता था — आपको पुराने कंट्रोल्स और अधूरी सुविधाएँ मिलती थीं.',
                 benefit:
                     'इन परतों को हटाकर, आप सीधे OpenClaw से इंटरैक्ट करते हैं. आप असली सिस्टम सीखते हैं, कोई दूसरा इंटरफ़ेस नहीं जो पुराना हो सकता है. आपका ज्ञान हर जगह काम आता है जहाँ OpenClaw चलता है.',
@@ -1218,7 +1209,7 @@ const hi: Translations = {
             'ClawHost से सीधे मूल OpenClaw पैनल तक पहुँचें. OpenClaw जो कुछ भी प्रदान करता है उस पर पूर्ण संपादन एक्सेस.',
         clawHostControl: 'ClawHost नियंत्रण',
         clawHostControlDescription:
-            'प्लेटफ़ॉर्म से सीधे फ़ाइलें, अपडेट, वेरिएबल और अन्य कॉन्फ़िगरेशन विकल्प प्रबंधित करें.',
+            'प्लेटफ़ॉर्म से सीधे फ़ाइलें, अपडेट और अन्य कॉन्फ़िगरेशन विकल्प प्रबंधित करें.',
         directChat: 'सीधी चैट',
         directChatDescription:
             'प्लेटफ़ॉर्म से सीधे अपने AI एजेंट से चैट करें. किसी बाहरी टूल या इंटरफ़ेस की ज़रूरत नहीं.',
@@ -1599,34 +1590,8 @@ const hi: Translations = {
             'ClawHost एक-क्लिक OpenClaw होस्टिंग की अनुमति देने वाला पहला प्रोजेक्ट है.',
         tabChat: 'चैट',
         tabSettings: 'सेटिंग्स',
-        tabEnvs: 'एन्व',
         agentOnClaw: '{{clawName}} पर',
         cannotDeleteDefaultAgent: 'डिफ़ॉल्ट एजेंट को हटाया नहीं जा सकता!',
-        tabVariables: 'वेरिएबल',
-        variablesDescription:
-            'इस इंस्टेंस पर ~/.openclaw/.env में संग्रहीत एनवायरनमेंट वेरिएबल.',
-        variablesEmpty: 'कोई एनवायरनमेंट वेरिएबल नहीं मिले.',
-        variablesAddVariable: 'वेरिएबल जोड़ें',
-        variablesSave: 'वेरिएबल सहेजें',
-        variablesSaving: 'सहेजा जा रहा है...',
-        variablesSaved: 'एनवायरनमेंट वेरिएबल सहेजे गए.',
-        variablesSaveFailed: 'एनवायरनमेंट वेरिएबल सहेजने में विफल!',
-        variablesLoading: 'वेरिएबल लोड हो रहे हैं...',
-        variablesLoadFailed: 'एनवायरनमेंट वेरिएबल लोड करने में विफल!',
-        variablesLoadFailedDescription:
-            'इस इंस्टेंस के वेरिएबल प्राप्त नहीं हो सके. कृपया बाद में पुनः प्रयास करें.',
-        variablesInvalidKey: 'केवल अक्षर, संख्याएँ और अंडरस्कोर!',
-        variablesEmptyValue: 'मान खाली नहीं हो सकता!',
-        variablesDuplicateKey: 'डुप्लिकेट वेरिएबल नाम!',
-        variablesKeyPlaceholder: 'कुंजी',
-        variablesValuePlaceholder: 'मान',
-        variablesDeleteTitle: 'वेरिएबल हटाएँ',
-        variablesDeleteDescription:
-            'क्या आप वाकई {{key}} हटाना चाहते हैं? यह तुरंत इंस्टेंस से हटा दिया जाएगा.',
-        variablesDeleteConfirm: 'हटाएँ',
-        variablesDontAskAgain: 'इस सत्र में वेरिएबल हटाते समय दोबारा न पूछें',
-        variablesDeleted: 'वेरिएबल हटाया गया.',
-        variablesOperationPending: 'पिछली कार्रवाई पूरी होने तक अक्षम.',
         addAgentTitle: 'एजेंट जोड़ें',
         addAgentDescription: '{{clawName}} में एक नया एजेंट जोड़ें.',
         addAgentDescriptionNoClaw:
@@ -1640,14 +1605,14 @@ const hi: Translations = {
         addAgentApiKey: 'API कुंजी',
         addAgentApiKeyPlaceholder: 'अपनी API कुंजी दर्ज करें (वैकल्पिक)',
         addAgentApiKeyConfigured:
-            '{{envVar}} पहले से सेट है. जोड़ने के बाद Variables टैब में संपादित करें.',
+            '{{envVar}} पहले से इस इंस्टेंस पर कॉन्फ़िगर है.',
         addAgentSubmit: 'एजेंट जोड़ें',
         addAgentSuccess: 'एजेंट सफलतापूर्वक जोड़ा गया.',
         addAgentFailed: 'एजेंट जोड़ने में विफल!',
         deleteAgent: 'एजेंट हटाएँ',
         deleteAgentTitle: 'एजेंट हटाएँ',
         deleteAgentDescription:
-            'क्या आप वाकई एजेंट "{{agentName}}" को हटाना चाहते हैं? यह कार्य पूर्ववत नहीं किया जा सकता. एनवायरनमेंट वेरिएबल नहीं हटाए जाएँगे.',
+            'क्या आप वाकई एजेंट "{{agentName}}" को हटाना चाहते हैं? यह कार्य पूर्ववत नहीं किया जा सकता.',
         deleteAgentConfirm: 'हटाएँ',
         agentDontAskAgain: 'इस सत्र में एजेंट हटाते समय दोबारा न पूछें',
         deleteAgentDeleting: 'हटाया जा रहा है...',

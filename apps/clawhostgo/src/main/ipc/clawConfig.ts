@@ -223,48 +223,6 @@ const registerClawConfigHandlers = (): void => {
             return { success: true }
         }
     )
-
-    ipcMain.handle(
-        'getClawEnvVars',
-        (_event: IpcMainInvokeEvent, id: string) => {
-            const claw = configStore.findClaw(id)
-            if (!claw) throw new Error(t('go.clawNotFound'))
-
-            const clawDir = configStore.getClawDir(claw.name)
-            const envPath = path.join(clawDir, '.env')
-            const vars = parseEnvFile(envPath)
-            return { envVars: vars }
-        }
-    )
-
-    ipcMain.handle(
-        'updateClawEnvVars',
-        async (
-            _event: IpcMainInvokeEvent,
-            id: string,
-            data: { envVars: Record<string, string> }
-        ) => {
-            const claw = configStore.findClaw(id)
-            if (!claw) throw new Error(t('go.clawNotFound'))
-
-            const clawDir = configStore.getClawDir(claw.name)
-            const envPath = path.join(clawDir, '.env')
-            const existing = parseEnvFile(envPath)
-
-            for (const [key, value] of Object.entries(data.envVars)) {
-                if (value === '') {
-                    delete existing[key]
-                } else {
-                    existing[key] = value
-                }
-            }
-
-            fs.writeFileSync(envPath, serializeEnvFile(existing))
-
-            await restartGatewayIfRunning(id)
-            return { success: true }
-        }
-    )
 }
 
 export default registerClawConfigHandlers

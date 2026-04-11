@@ -305,7 +305,6 @@ const en = {
         invalidSshKeyFormat: 'Invalid SSH public key format!',
         sshKeyInUse: 'This SSH key is currently in use by one or more claws!',
         inputTooLong: 'Input exceeds maximum allowed length!',
-        invalidEnvVars: 'Invalid environment variable names or values!',
         invalidEmailFormat: 'Invalid email format!',
         plusAddressingNotAllowed:
             'Plus addressing is not allowed for email login!',
@@ -451,6 +450,7 @@ const en = {
         agentNameInvalid:
             'Agent name must only contain letters, numbers, and dashes!',
         agentNameDuplicate: 'An agent with this name already exists!',
+        invalidEnvVars: 'Invalid environment variables!',
         diagnosticsFetched: 'Diagnostics fetched successfully.',
         logsFetched: 'Logs fetched successfully.',
         filesFetched: 'Files fetched successfully.',
@@ -577,15 +577,6 @@ const en = {
                     'Talk to your AI agents out loud and hear their responses. Multiple voices, fully hands-free.',
                 cta: 'Try Voice Mode'
             },
-            envVars: {
-                subject: 'Manage env vars from the dashboard',
-                preview: 'Set API keys and secrets without SSH',
-                tag: 'Environment Variables',
-                heading: 'Secrets and keys, no SSH needed',
-                description:
-                    'Add, edit, or remove environment variables from a clean UI. Changes take effect immediately.',
-                cta: 'Manage Variables'
-            },
             diagnostics: {
                 subject: 'Built-in server health checks',
                 preview: 'Check your server health in one click',
@@ -665,9 +656,9 @@ const en = {
                 tag: 'Platform Update',
                 heading: 'ClawHost just got simpler',
                 description:
-                    'We removed channels, agents, chat, skills, and variables management from the ClawHost dashboard. These features are now managed directly on your OpenClaw instance.',
+                    'We removed channels, agents, chat, and skills management from the ClawHost dashboard. These features are now managed directly on your OpenClaw instance.',
                 removed:
-                    'Specifically, we dropped: messaging channels (WhatsApp, Telegram, Discord, Slack, Signal), the skills marketplace (ClawHub), agent chat and voice mode, and the variables editor. All of these still exist in OpenClaw itself — we just stopped wrapping them.',
+                    'Specifically, we dropped: messaging channels (WhatsApp, Telegram, Discord, Slack, Signal), the skills marketplace (ClawHub), and agent chat and voice mode. All of these still exist in OpenClaw itself — we just stopped wrapping them.',
                 why: 'Keeping our wrappers in sync with every OpenClaw release was unsustainable. Updates would ship upstream, and our UI would lag behind — leaving you with outdated controls and incomplete features.',
                 benefit:
                     'By removing these layers, you interact with OpenClaw directly. You learn the real system, not a second interface that may fall out of date. Your knowledge transfers everywhere OpenClaw runs.',
@@ -1194,7 +1185,7 @@ const en = {
             'Access the native OpenClaw panel directly from ClawHost. Full editing access to everything OpenClaw offers.',
         clawHostControl: 'ClawHost Control',
         clawHostControlDescription:
-            'Manage files, updates, variables, and more configuration options directly from the platform.',
+            'Manage files, updates, and more configuration options directly from the platform.',
         directChat: 'Direct Chat',
         directChatDescription:
             'Chat with your AI agents directly from the platform. No need for external tools or interfaces.',
@@ -1578,36 +1569,8 @@ const en = {
             'ClawHost is the first ever project to allow one-click OpenClaw hosting.',
         tabChat: 'Chat',
         tabSettings: 'Settings',
-        tabEnvs: 'Envs',
         agentOnClaw: 'on {{clawName}}',
         cannotDeleteDefaultAgent: 'Default agent cannot be removed!',
-        tabVariables: 'Variables',
-        variablesDescription:
-            'Environment variables stored in ~/.openclaw/.env on this instance.',
-        variablesEmpty: 'No environment variables found.',
-        variablesAddVariable: 'Add Variable',
-        variablesSave: 'Save Variables',
-        variablesSaving: 'Saving...',
-        variablesSaved: 'Environment variables saved.',
-        variablesSaveFailed: 'Failed to save environment variables!',
-        variablesLoading: 'Loading variables...',
-        variablesLoadFailed: 'Failed to load environment variables!',
-        variablesLoadFailedDescription:
-            'Could not retrieve variables for this instance. Please try again later.',
-        variablesInvalidKey: 'Letters, numbers, and underscores only!',
-        variablesEmptyValue: 'Value cannot be empty!',
-        variablesDuplicateKey: 'Duplicate variable name!',
-        variablesKeyPlaceholder: 'KEY',
-        variablesValuePlaceholder: 'Value',
-        variablesDeleteTitle: 'Delete Variable',
-        variablesDeleteDescription:
-            'Are you sure you want to delete {{key}}? This will immediately remove it from the instance.',
-        variablesDeleteConfirm: 'Delete',
-        variablesDontAskAgain:
-            "Don\'t ask again when deleting variables this session",
-        variablesDeleted: 'Variable deleted.',
-        variablesOperationPending:
-            'Disabled while a previous operation completes.',
         addAgentTitle: 'Add Agent',
         addAgentDescription: 'Add a new agent to {{clawName}}.',
         addAgentDescriptionNoClaw:
@@ -1621,14 +1584,14 @@ const en = {
         addAgentApiKey: 'API Key',
         addAgentApiKeyPlaceholder: 'Enter your API key (optional)',
         addAgentApiKeyConfigured:
-            '{{envVar}} already set. Edit in Variables tab after adding.',
+            '{{envVar}} is already configured on this instance.',
         addAgentSubmit: 'Add Agent',
         addAgentSuccess: 'Agent added successfully.',
         addAgentFailed: 'Failed to add agent!',
         deleteAgent: 'Delete Agent',
         deleteAgentTitle: 'Delete Agent',
         deleteAgentDescription:
-            'Are you sure you want to delete the agent "{{agentName}}"? This action cannot be undone. Environment variables will not be removed.',
+            'Are you sure you want to delete the agent "{{agentName}}"? This action cannot be undone.',
         deleteAgentConfirm: 'Delete',
         agentDontAskAgain: "Don\'t ask again when deleting agents this session",
         deleteAgentDeleting: 'Deleting...',

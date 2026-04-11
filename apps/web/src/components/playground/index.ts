@@ -6,7 +6,6 @@ import PlaygroundCanvas from '@/components/playground/PlaygroundCanvas'
 import PlaygroundDetailPanel from '@/components/playground/PlaygroundDetailPanel'
 import PlaygroundLoadingState from '@/components/playground/PlaygroundLoadingState'
 import PlaygroundToolbar from '@/components/playground/PlaygroundToolbar'
-import PlaygroundVariablesContent from '@/components/playground/PlaygroundVariablesContent'
 import CreateAgentModal from '@/components/playground/CreateAgentModal'
 import PlaygroundVersionsContent from '@/components/playground/PlaygroundVersionsContent'
 import PlaygroundDetailInfoTab from '@/components/playground/PlaygroundDetailInfoTab'
@@ -23,7 +22,6 @@ export {
     PlaygroundDetailPanel,
     PlaygroundLoadingState,
     PlaygroundToolbar,
-    PlaygroundVariablesContent,
     CreateAgentModal,
     PlaygroundVersionsContent,
     PlaygroundDetailInfoTab,

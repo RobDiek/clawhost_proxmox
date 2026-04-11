@@ -366,7 +366,7 @@ import { Fragment } from 'react'
 - `dashboard/` for dashboard-specific components (CreateClawModal, ClawCard dropdowns/dialogs, diagnostics, logs, terminal, config, file explorer)
 - `chat/` for chat interface (ChatView, ChatSidebar with tree/list views, ChatSidebarItem, ChatEmptyState)
 - `agent-chat/` for agent communication (AgentChat, ChatBubble, ChatInput, ChatMarkdown, VoiceOrb, VoiceModeOverlay, ChatSpeechButton, ChatTypingIndicator)
-- `playground/` for graph visualization (PlaygroundCanvas, ClawNode, AgentNode, DetailPanel, Toolbar, VariablesContent, VersionsContent)
+- `playground/` for graph visualization (PlaygroundCanvas, ClawNode, AgentNode, DetailPanel, Toolbar, VersionsContent)
 - Root level for shared components (Header, Footer, Logo, EmptyState, Toast, ProtectedRoute, etc.)
 - Keep components focused and composable
 
@@ -442,8 +442,6 @@ pnpm --filter api db:migrate   # Run migrations
 - `POST /:id/agents` - List agents
 - `POST /:id/agents/create` - Create agent
 - `POST /:id/agents/delete` - Delete agent
-- `GET /:id/env` - Get environment variables
-- `PUT /:id/env` - Update environment variables
 - `POST /:id/files` - List files
 - `POST /:id/files/read` - Read file content
 - `PUT /:id/files` - Update file content

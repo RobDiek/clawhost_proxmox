@@ -8,7 +8,6 @@ import FileExplorerEmail from '@/emails/FileExplorerEmail'
 import PlaygroundEmail from '@/emails/PlaygroundEmail'
 import AgentChatEmail from '@/emails/AgentChatEmail'
 import VoiceModeEmail from '@/emails/VoiceModeEmail'
-import EnvVarsEmail from '@/emails/EnvVarsEmail'
 import DiagnosticsEmail from '@/emails/DiagnosticsEmail'
 import SshKeysEmail from '@/emails/SshKeysEmail'
 import ExportConfigEmail from '@/emails/ExportConfigEmail'
@@ -49,11 +48,6 @@ const FEATURE_EMAILS: FeatureEmailDefinition[] = [
         key: featureEmailKey.voiceMode,
         subject: t('emails.features.voiceMode.subject'),
         render: () => VoiceModeEmail({})
-    },
-    {
-        key: featureEmailKey.envVars,
-        subject: t('emails.features.envVars.subject'),
-        render: () => EnvVarsEmail({})
     },
     {
         key: featureEmailKey.diagnostics,

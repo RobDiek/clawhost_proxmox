@@ -1,6 +1,5 @@
 import type {
     BillingHistoryResponse,
-    ClawEnvVarsResponse,
     BillingInvoiceResponse,
     Claw,
     ClawCredentialsResponse,
@@ -26,7 +25,6 @@ import type {
     CreateAgentData,
     CreateAgentResponse,
     DeleteAgentData,
-    UpdateClawEnvVarsData,
     UpdateClawFileData,
     UpdateProfileData,
     UserProfile,
@@ -139,10 +137,6 @@ const api = {
         invoke('createClawAgent', id, data) as Promise<CreateAgentResponse>,
     deleteClawAgent: (id: string, data: DeleteAgentData) =>
         invoke('deleteClawAgent', id, data) as Promise<void>,
-    getClawEnvVars: (id: string) =>
-        invoke('getClawEnvVars', id) as Promise<ClawEnvVarsResponse>,
-    updateClawEnvVars: (id: string, data: UpdateClawEnvVarsData) =>
-        invoke('updateClawEnvVars', id, data) as Promise<void>,
     exportClaw: async (id: string, filename: string) => {
         await invoke('exportClaw', id, filename)
     },

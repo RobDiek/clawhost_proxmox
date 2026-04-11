@@ -110,7 +110,6 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
         const validClawTabs: PlaygroundDetailTab[] = [
             CLAW_DETAIL_TABS.INFO,
             CLAW_DETAIL_TABS.TERMINAL,
-            CLAW_DETAIL_TABS.VARIABLES,
             CLAW_DETAIL_TABS.LOGS,
             CLAW_DETAIL_TABS.DIAGNOSTICS
         ]

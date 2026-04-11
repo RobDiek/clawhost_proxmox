@@ -308,7 +308,6 @@ const tr: Translations = {
         sshKeyInUse:
             'Bu SSH anahtarı şu anda bir veya daha fazla claw tarafından kullanılıyor!',
         inputTooLong: 'Girdi izin verilen maksimum uzunluğu aşıyor!',
-        invalidEnvVars: 'Geçersiz ortam değişkeni adları veya değerleri!',
         invalidEmailFormat: 'Geçersiz e-posta biçimi!',
         plusAddressingNotAllowed:
             'E-posta girişi için artı adresleme izin verilmiyor!',
@@ -451,6 +450,7 @@ const tr: Translations = {
         cannotDeleteMainAgent: 'Kalan tek ajan silinemez!',
         agentNameInvalid: 'Ajan adı yalnızca harf, rakam ve tire içermelidir!',
         agentNameDuplicate: 'Bu isimde bir ajan zaten var!',
+        invalidEnvVars: 'Geçersiz ortam değişkenleri!',
         diagnosticsFetched: 'Tanılama başarıyla getirildi.',
         logsFetched: 'Günlükler başarıyla getirildi.',
         filesFetched: 'Dosyalar başarıyla getirildi.',
@@ -584,16 +584,6 @@ const tr: Translations = {
                     'Yapay zeka ajanlarınızla eller serbest konuşmak için ses modunu kullanın. Girdi için konuşmadan metne, yanıtlar için metinden konuşmaya — birden fazla ses arasından seçim yapın.',
                 cta: 'Ses Modunu Deneyin'
             },
-            envVars: {
-                subject: 'Biliyor muydunuz? Ortam değişkenlerini yönetin',
-                preview:
-                    'SSH olmadan API anahtarları ve yapılandırma ayarlayın',
-                tag: 'Ortam Değişkenleri',
-                heading: 'SSH olmadan yapılandırın',
-                description:
-                    'ClawHost panelinden ortam değişkenlerini doğrudan ekleyin, düzenleyin ve kaldırın. API anahtarları, gizli bilgiler ve yapılandırma ayarlayın — terminal gerekmez.',
-                cta: 'Değişkenleri Yönet'
-            },
             diagnostics: {
                 subject: 'Biliyor muydunuz? Yerleşik sağlık kontrolleri',
                 preview: 'Sunucu sağlığını panelden izleyin',
@@ -677,9 +667,9 @@ const tr: Translations = {
                 tag: 'Platform Güncellemesi',
                 heading: 'ClawHost artık daha basit',
                 description:
-                    'ClawHost panelinden kanal, ajan, sohbet, yetenek ve değişken yönetimini kaldırdık. Bu özellikler artık doğrudan OpenClaw örneğinizde yönetiliyor.',
+                    'ClawHost panelinden kanal, ajan, sohbet ve yetenek yönetimini kaldırdık. Bu özellikler artık doğrudan OpenClaw örneğinizde yönetiliyor.',
                 removed:
-                    "Özellikle kaldırdığımız: mesajlaşma kanalları (WhatsApp, Telegram, Discord, Slack, Signal), yetenek pazaryeri (ClawHub), ajan sohbeti ve sesli mod, ve değişken düzenleyici. Bunların hepsi OpenClaw'da hâlâ mevcut — sadece sarmalamayı bıraktık.",
+                    "Özellikle kaldırdığımız: mesajlaşma kanalları (WhatsApp, Telegram, Discord, Slack, Signal), yetenek pazaryeri (ClawHub), ve ajan sohbeti ve sesli mod. Bunların hepsi OpenClaw'da hâlâ mevcut — sadece sarmalamayı bıraktık.",
                 why: 'Arayüzlerimizi her OpenClaw sürümüyle senkronize tutmak sürdürülebilir değildi. Güncellemeler yukarı akışta geliyordu ve arayüzümüz geride kalıyordu — sizi eski kontrollerle ve eksik özelliklerle baş başa bırakıyordu.',
                 benefit:
                     "Bu katmanları kaldırarak, OpenClaw ile doğrudan etkileşime geçiyorsunuz. Eskiyebilecek ikinci bir arayüz yerine gerçek sistemi öğreniyorsunuz. Bilginiz OpenClaw'ın çalıştığı her yerde geçerli.",
@@ -1213,7 +1203,7 @@ const tr: Translations = {
             "Yerel OpenClaw paneline doğrudan ClawHost'tan erişin. OpenClaw'un sunduğu her şeye tam düzenleme erişimi.",
         clawHostControl: 'ClawHost Kontrolü',
         clawHostControlDescription:
-            'Dosyaları, güncellemeleri, değişkenleri ve daha fazla yapılandırma seçeneğini doğrudan platformdan yönetin.',
+            'Dosyaları, güncellemeleri ve daha fazla yapılandırma seçeneğini doğrudan platformdan yönetin.',
         directChat: 'Doğrudan Sohbet',
         directChatDescription:
             'Yapay zeka ajanlarınızla doğrudan platformdan sohbet edin. Harici araç veya arayüz gerekmez.',
@@ -1604,34 +1594,8 @@ const tr: Translations = {
             'ClawHost, tek tıkla OpenClaw barındırmaya izin veren ilk projedir.',
         tabChat: 'Sohbet',
         tabSettings: 'Ayarlar',
-        tabEnvs: 'Değişkenler',
         agentOnClaw: '{{clawName}} üzerinde',
         cannotDeleteDefaultAgent: 'Varsayılan ajan kaldırılamaz!',
-        tabVariables: 'Değişkenler',
-        variablesDescription:
-            'Bu örnekte ~/.openclaw/.env dosyasında saklanan ortam değişkenleri.',
-        variablesEmpty: 'Ortam değişkeni bulunamadı.',
-        variablesAddVariable: 'Değişken Ekle',
-        variablesSave: 'Değişkenleri Kaydet',
-        variablesSaving: 'Kaydediliyor...',
-        variablesSaved: 'Ortam değişkenleri kaydedildi.',
-        variablesSaveFailed: 'Ortam değişkenleri kaydedilemedi!',
-        variablesLoading: 'Değişkenler yükleniyor...',
-        variablesLoadFailed: 'Ortam değişkenleri yüklenemedi!',
-        variablesLoadFailedDescription:
-            'Bu örnek için değişkenler alınamadı. Lütfen daha sonra tekrar deneyin.',
-        variablesInvalidKey: 'Yalnızca harf, rakam ve alt çizgi!',
-        variablesEmptyValue: 'Değer boş olamaz!',
-        variablesDuplicateKey: 'Yinelenen değişken adı!',
-        variablesKeyPlaceholder: 'ANAHTAR',
-        variablesValuePlaceholder: 'Değer',
-        variablesDeleteTitle: 'Değişkeni Sil',
-        variablesDeleteDescription:
-            '{{key}} değişkenini silmek istediğinizden emin misiniz? Bu, örnekten hemen kaldırılacaktır.',
-        variablesDeleteConfirm: 'Sil',
-        variablesDontAskAgain: 'Bu oturumda değişken silerken tekrar sorma',
-        variablesDeleted: 'Değişken silindi.',
-        variablesOperationPending: 'Önceki işlem tamamlanırken devre dışı.',
         addAgentTitle: 'Ajan Ekle',
         addAgentDescription: '{{clawName}} üzerine yeni bir ajan ekleyin.',
         addAgentDescriptionNoClaw:
@@ -1645,14 +1609,14 @@ const tr: Translations = {
         addAgentApiKey: 'API Anahtarı',
         addAgentApiKeyPlaceholder: 'API anahtarınızı girin (isteğe bağlı)',
         addAgentApiKeyConfigured:
-            '{{envVar}} zaten ayarlanmış. Ekledikten sonra Değişkenler sekmesinde düzenleyin.',
+            '{{envVar}} bu örnekte zaten yapılandırılmış.',
         addAgentSubmit: 'Ajan Ekle',
         addAgentSuccess: 'Ajan başarıyla eklendi.',
         addAgentFailed: 'Ajan eklenemedi!',
         deleteAgent: 'Ajanı Sil',
         deleteAgentTitle: 'Ajanı Sil',
         deleteAgentDescription:
-            '"{{agentName}}" ajanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz. Ortam değişkenleri kaldırılmayacaktır.',
+            '"{{agentName}}" ajanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
         deleteAgentConfirm: 'Sil',
         agentDontAskAgain: 'Bu oturumda ajan silerken tekrar sorma',
         deleteAgentDeleting: 'Siliniyor...',

@@ -319,7 +319,6 @@ const es: Translations = {
         sshKeyInUse:
             'Esta clave SSH está siendo utilizada por uno o más claws!',
         inputTooLong: 'La entrada excede la longitud máxima permitida!',
-        invalidEnvVars: 'Nombres o valores de variables de entorno no válidos!',
         invalidEmailFormat: 'Formato de correo electrónico no válido!',
         plusAddressingNotAllowed:
             'No se permite el uso del signo + en el correo electrónico para iniciar sesión!',
@@ -474,6 +473,7 @@ const es: Translations = {
         agentNameInvalid:
             'El nombre del agente solo puede contener letras, números y guiones!',
         agentNameDuplicate: 'Ya existe un agente con este nombre!',
+        invalidEnvVars: '¡Variables de entorno inválidas!',
         diagnosticsFetched: 'Diagnósticos obtenidos exitosamente.',
         logsFetched: 'Registros obtenidos exitosamente.',
         filesFetched: 'Archivos obtenidos exitosamente.',
@@ -607,15 +607,6 @@ const es: Translations = {
                     'Habla con tus agentes IA en voz alta y escucha sus respuestas. Varias voces, totalmente manos libres.',
                 cta: 'Probar Modo Voz'
             },
-            envVars: {
-                subject: 'Gestiona variables de entorno desde el panel',
-                preview: 'Configura claves API y secretos sin SSH',
-                tag: 'Variables de Entorno',
-                heading: 'Secretos y claves, sin SSH',
-                description:
-                    'Agrega, edita o elimina variables de entorno desde una interfaz limpia. Los cambios surten efecto al instante.',
-                cta: 'Gestionar Variables'
-            },
             diagnostics: {
                 subject: 'Chequeos de salud integrados',
                 preview: 'Verifica la salud de tu servidor en un clic',
@@ -695,9 +686,9 @@ const es: Translations = {
                 tag: 'Actualización',
                 heading: 'ClawHost ahora es más simple',
                 description:
-                    'Eliminamos la gestión de canales, agentes, chat, habilidades y variables del panel de ClawHost. Estas funciones ahora se gestionan directamente en tu instancia de OpenClaw.',
+                    'Eliminamos la gestión de canales, agentes, chat, habilidades del panel de ClawHost. Estas funciones ahora se gestionan directamente en tu instancia de OpenClaw.',
                 removed:
-                    'Específicamente, eliminamos: canales de mensajería (WhatsApp, Telegram, Discord, Slack, Signal), el mercado de habilidades (ClawHub), el chat de agente y modo de voz, y el editor de variables. Todo esto sigue existiendo en OpenClaw — simplemente dejamos de envolverlo.',
+                    'Específicamente, eliminamos: canales de mensajería (WhatsApp, Telegram, Discord, Slack, Signal), el mercado de habilidades (ClawHub), y el chat de agente y modo de voz. Todo esto sigue existiendo en OpenClaw — simplemente dejamos de envolverlo.',
                 why: 'Mantener nuestras interfaces sincronizadas con cada versión de OpenClaw era insostenible. Las actualizaciones llegaban upstream, y nuestra interfaz se quedaba atrás — dejándote con controles desactualizados y funciones incompletas.',
                 benefit:
                     'Al eliminar estas capas, interactúas directamente con OpenClaw. Aprendes el sistema real, no una segunda interfaz que puede quedar desactualizada. Tu conocimiento es transferible a donde sea que OpenClaw funcione.',
@@ -1234,7 +1225,7 @@ const es: Translations = {
             'Accede al panel nativo de OpenClaw directamente desde ClawHost. Acceso completo de edición a todo lo que OpenClaw ofrece.',
         clawHostControl: 'Control ClawHost',
         clawHostControlDescription:
-            'Gestiona archivos, actualizaciones, variables y más opciones de configuración directamente desde la plataforma.',
+            'Gestiona archivos, actualizaciones y más opciones de configuración directamente desde la plataforma.',
         directChat: 'Chat directo',
         directChatDescription:
             'Chatea con tus agentes de IA directamente desde la plataforma. Sin necesidad de herramientas o interfaces externas.',
@@ -1633,37 +1624,9 @@ const es: Translations = {
             'ClawHost es el primer proyecto en permitir hospedaje de OpenClaw con un solo clic.',
         tabChat: 'Chat',
         tabSettings: 'Ajustes',
-        tabEnvs: 'Vars',
         agentOnClaw: 'en {{clawName}}',
         cannotDeleteDefaultAgent:
             'El agente predeterminado no puede ser eliminado!',
-        tabVariables: 'Variables',
-        variablesDescription:
-            'Variables de entorno almacenadas en ~/.openclaw/.env en esta instancia.',
-        variablesEmpty: 'No se encontraron variables de entorno.',
-        variablesAddVariable: 'Agregar variable',
-        variablesSave: 'Guardar variables',
-        variablesSaving: 'Guardando...',
-        variablesSaved: 'Variables de entorno guardadas.',
-        variablesSaveFailed: 'Error al guardar las variables de entorno!',
-        variablesLoading: 'Cargando variables...',
-        variablesLoadFailed: 'Error al cargar las variables de entorno!',
-        variablesLoadFailedDescription:
-            'No se pudieron obtener las variables de esta instancia. Por favor, intenta más tarde.',
-        variablesInvalidKey: 'Solo letras, números y guiones bajos!',
-        variablesEmptyValue: 'El valor no puede estar vacío!',
-        variablesDuplicateKey: 'Nombre de variable duplicado!',
-        variablesKeyPlaceholder: 'CLAVE',
-        variablesValuePlaceholder: 'Valor',
-        variablesDeleteTitle: 'Eliminar variable',
-        variablesDeleteDescription:
-            '¿Estás seguro de que deseas eliminar {{key}}? Esto la eliminará inmediatamente de la instancia.',
-        variablesDeleteConfirm: 'Eliminar',
-        variablesDontAskAgain:
-            'No volver a preguntar al eliminar variables en esta sesión',
-        variablesDeleted: 'Variable eliminada.',
-        variablesOperationPending:
-            'Deshabilitado mientras se completa una operación anterior.',
         addAgentTitle: 'Agregar agente',
         addAgentDescription: 'Agrega un nuevo agente a {{clawName}}.',
         addAgentDescriptionNoClaw:
@@ -1677,14 +1640,14 @@ const es: Translations = {
         addAgentApiKey: 'Clave API',
         addAgentApiKeyPlaceholder: 'Ingresa tu clave API (opcional)',
         addAgentApiKeyConfigured:
-            '{{envVar}} ya configurado. Editable en la pestaña Variables después de agregar.',
+            '{{envVar}} ya está configurado en esta instancia.',
         addAgentSubmit: 'Agregar agente',
         addAgentSuccess: 'Agente agregado exitosamente.',
         addAgentFailed: 'Error al agregar el agente!',
         deleteAgent: 'Eliminar agente',
         deleteAgentTitle: 'Eliminar agente',
         deleteAgentDescription:
-            '¿Estás seguro de que deseas eliminar el agente "{{agentName}}"? Esta acción no se puede deshacer. Las variables de entorno no serán eliminadas.',
+            '¿Estás seguro de que deseas eliminar el agente "{{agentName}}"? Esta acción no se puede deshacer.',
         deleteAgentConfirm: 'Eliminar',
         agentDontAskAgain:
             'No volver a preguntar al eliminar agentes en esta sesión',

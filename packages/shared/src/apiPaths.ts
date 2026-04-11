@@ -25,7 +25,6 @@ const API_PATHS = {
         SUBDOMAIN: (id: string) => `/claws/${id}/subdomain`,
         REINSTALL: (id: string) => `/claws/${id}/reinstall`,
         CREDENTIALS: (id: string) => `/claws/${id}/credentials`,
-        ENV: (id: string) => `/claws/${id}/env`,
         EXPORT: (id: string) => `/claws/${id}/export`,
         DIAGNOSTICS: {
             STATUS: (id: string) => `/claws/${id}/diagnostics/status`,

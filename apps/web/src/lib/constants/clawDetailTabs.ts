@@ -1,6 +1,5 @@
 const CLAW_DETAIL_TABS = {
     INFO: 'info',
-    VARIABLES: 'variables',
     LOGS: 'logs',
     DIAGNOSTICS: 'diagnostics',
     TERMINAL: 'terminal',

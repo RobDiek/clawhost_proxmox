@@ -606,10 +606,6 @@ export interface RawClawConfigAgent {
     directory?: string
 }
 
-export interface UpdateClawEnvVarsBody {
-    envVars: Record<string, string>
-}
-
 export interface CreateClawAgentBody {
     name: string
     model?: string | null

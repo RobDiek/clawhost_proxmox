@@ -17,7 +17,6 @@ import {
     ClawTerminalContent
 } from '@/components/dashboard'
 import {
-    PlaygroundVariablesContent,
     PlaygroundVersionsContent,
     PlaygroundDetailInfoTab,
     PlaygroundDetailSettingsTab,
@@ -260,21 +259,6 @@ const PlaygroundDetailPanel: FC<PlaygroundDetailPanelProps> = ({
 
                     {activeTab === 'versions' && (
                         <PlaygroundVersionsContent clawId={claw.id} />
-                    )}
-
-                    {activeTab === 'variables' && (
-                        <PlaygroundVariablesContent
-                            clawId={claw.id}
-                            mockEnvVars={
-                                readOnly
-                                    ? {
-                                          ANTHROPIC_API_KEY:
-                                              'sk-ant-api03-••••••••',
-                                          OPENAI_API_KEY: 'sk-proj-••••••••'
-                                      }
-                                    : undefined
-                            }
-                        />
                     )}
 
                     {activeTab === 'settings' && (

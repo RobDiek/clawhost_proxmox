@@ -5,7 +5,6 @@ const featureEmailKey = {
     playground: 'playground',
     agentChat: 'agentChat',
     voiceMode: 'voiceMode',
-    envVars: 'envVars',
     diagnostics: 'diagnostics',
     sshKeys: 'sshKeys',
     exportConfig: 'exportConfig',

@@ -304,7 +304,6 @@ const ar: Translations = {
         invalidSshKeyFormat: 'تنسيق مفتاح SSH العام غير صالح !',
         sshKeyInUse: 'مفتاح SSH هذا مستخدم حالياً بواسطة claw واحد أو أكثر !',
         inputTooLong: 'المدخل يتجاوز الطول الأقصى المسموح !',
-        invalidEnvVars: 'أسماء أو قيم متغيرات البيئة غير صالحة !',
         invalidEmailFormat: 'تنسيق البريد الإلكتروني غير صالح !',
         plusAddressingNotAllowed:
             'عنونة Plus غير مسموحة لتسجيل الدخول بالبريد الإلكتروني !',
@@ -447,6 +446,7 @@ const ar: Translations = {
         agentNameInvalid:
             'يجب أن يحتوي اسم الوكيل على حروف وأرقام وشرطات فقط !',
         agentNameDuplicate: 'يوجد وكيل بهذا الاسم بالفعل !',
+        invalidEnvVars: 'متغيرات البيئة غير صالحة!',
         diagnosticsFetched: 'تم جلب التشخيصات بنجاح.',
         logsFetched: 'تم جلب السجلات بنجاح.',
         filesFetched: 'تم جلب الملفات بنجاح.',
@@ -572,15 +572,6 @@ const ar: Translations = {
                     'استخدم وضع الصوت للتحدث مع وكلاء الذكاء الاصطناعي بدون استخدام اليدين. تحويل الكلام لنص للإدخال والنص لكلام للردود — اختر من عدة أصوات.',
                 cta: 'جرّب وضع الصوت'
             },
-            envVars: {
-                subject: 'هل تعلم؟ إدارة متغيرات البيئة',
-                preview: 'اضبط مفاتيح API والإعدادات بدون SSH',
-                tag: 'متغيرات البيئة',
-                heading: 'اضبط الإعدادات بدون SSH',
-                description:
-                    'أضف وحرّر واحذف متغيرات البيئة مباشرة من لوحة تحكم ClawHost. اضبط مفاتيح API والأسرار والإعدادات — بدون الحاجة للطرفية.',
-                cta: 'إدارة المتغيرات'
-            },
             diagnostics: {
                 subject: 'هل تعلم؟ فحوصات صحية مدمجة',
                 preview: 'راقب صحة خادمك من لوحة التحكم',
@@ -660,9 +651,9 @@ const ar: Translations = {
                 tag: 'تحديث المنصة',
                 heading: 'ClawHost أصبح أبسط',
                 description:
-                    'أزلنا إدارة القنوات والوكلاء والدردشة والمهارات والمتغيرات من لوحة تحكم ClawHost. هذه الميزات تُدار الآن مباشرة على نسخة OpenClaw الخاصة بك.',
+                    'أزلنا إدارة القنوات والوكلاء والدردشة والمهارات من لوحة تحكم ClawHost. هذه الميزات تُدار الآن مباشرة على نسخة OpenClaw الخاصة بك.',
                 removed:
-                    'تحديداً، أزلنا: قنوات المراسلة (واتساب، تيليجرام، ديسكورد، سلاك، سيجنال)، سوق المهارات (ClawHub)، دردشة الوكيل والوضع الصوتي، ومحرر المتغيرات. كل هذا لا يزال موجوداً في OpenClaw — فقط توقفنا عن تغليفه.',
+                    'تحديداً، أزلنا: قنوات المراسلة (واتساب، تيليجرام، ديسكورد، سلاك، سيجنال)، سوق المهارات (ClawHub)، ودردشة الوكيل والوضع الصوتي. كل هذا لا يزال موجوداً في OpenClaw — فقط توقفنا عن تغليفه.',
                 why: 'الحفاظ على تزامن واجهاتنا مع كل إصدار من OpenClaw كان غير مستدام. التحديثات كانت تصدر، وواجهتنا كانت تتأخر — مما يتركك مع أدوات تحكم قديمة وميزات غير مكتملة.',
                 benefit:
                     'بإزالة هذه الطبقات، تتفاعل مباشرة مع OpenClaw. تتعلم النظام الحقيقي، وليس واجهة ثانية قد تصبح قديمة. معرفتك تنتقل معك أينما يعمل OpenClaw.',
@@ -1178,7 +1169,7 @@ const ar: Translations = {
             'الوصول إلى لوحة OpenClaw الأصلية مباشرة من ClawHost. وصول كامل للتحرير لكل ما يقدمه OpenClaw.',
         clawHostControl: 'تحكم ClawHost',
         clawHostControlDescription:
-            'إدارة الملفات والتحديثات والمتغيرات والمزيد من خيارات التهيئة مباشرة من المنصة.',
+            'إدارة الملفات والتحديثات والمزيد من خيارات التهيئة مباشرة من المنصة.',
         directChat: 'محادثة مباشرة',
         directChatDescription:
             'تحدث مع وكلاء الذكاء الاصطناعي مباشرة من المنصة. لا حاجة لأدوات أو واجهات خارجية.',
@@ -1545,35 +1536,8 @@ const ar: Translations = {
         loadingTip3: 'ClawHost هو أول مشروع يتيح استضافة OpenClaw بنقرة واحدة.',
         tabChat: 'المحادثة',
         tabSettings: 'الإعدادات',
-        tabEnvs: 'المتغيرات',
         agentOnClaw: 'على {{clawName}}',
         cannotDeleteDefaultAgent: 'لا يمكن إزالة الوكيل الافتراضي !',
-        tabVariables: 'المتغيرات',
-        variablesDescription:
-            'متغيرات البيئة المخزنة في ~/.openclaw/.env على هذه النسخة.',
-        variablesEmpty: 'لم يتم العثور على متغيرات بيئة.',
-        variablesAddVariable: 'إضافة متغير',
-        variablesSave: 'حفظ المتغيرات',
-        variablesSaving: 'جارٍ الحفظ...',
-        variablesSaved: 'تم حفظ متغيرات البيئة.',
-        variablesSaveFailed: 'فشل في حفظ متغيرات البيئة !',
-        variablesLoading: 'جارٍ تحميل المتغيرات...',
-        variablesLoadFailed: 'فشل في تحميل متغيرات البيئة !',
-        variablesLoadFailedDescription:
-            'تعذر استرداد المتغيرات لهذه النسخة. يرجى المحاولة مرة أخرى لاحقاً.',
-        variablesInvalidKey: 'أحرف وأرقام وشرطات سفلية فقط !',
-        variablesEmptyValue: 'القيمة لا يمكن أن تكون فارغة !',
-        variablesDuplicateKey: 'اسم متغير مكرر !',
-        variablesKeyPlaceholder: 'المفتاح',
-        variablesValuePlaceholder: 'القيمة',
-        variablesDeleteTitle: 'حذف المتغير',
-        variablesDeleteDescription:
-            'هل أنت متأكد أنك تريد حذف {{key}}؟ سيتم إزالته فوراً من النسخة.',
-        variablesDeleteConfirm: 'حذف',
-        variablesDontAskAgain:
-            'لا تسأل مرة أخرى عند حذف المتغيرات في هذه الجلسة',
-        variablesDeleted: 'تم حذف المتغير.',
-        variablesOperationPending: 'معطّل أثناء اكتمال عملية سابقة.',
         addAgentTitle: 'إضافة وكيل',
         addAgentDescription: 'إضافة وكيل جديد إلى {{clawName}}.',
         addAgentDescriptionNoClaw: 'اختر مخلباً وهيئ وكيلك الجديد.',
@@ -1585,15 +1549,14 @@ const ar: Translations = {
         addAgentModelPlaceholder: 'اختر نموذجاً',
         addAgentApiKey: 'مفتاح API',
         addAgentApiKeyPlaceholder: 'أدخل مفتاح API (اختياري)',
-        addAgentApiKeyConfigured:
-            '{{envVar}} مضبوط بالفعل. حرّره في تبويب المتغيرات بعد الإضافة.',
+        addAgentApiKeyConfigured: '{{envVar}} مُهيّأ بالفعل على هذه النسخة.',
         addAgentSubmit: 'إضافة وكيل',
         addAgentSuccess: 'تم إضافة الوكيل بنجاح.',
         addAgentFailed: 'فشل في إضافة الوكيل !',
         deleteAgent: 'حذف الوكيل',
         deleteAgentTitle: 'حذف الوكيل',
         deleteAgentDescription:
-            'هل أنت متأكد أنك تريد حذف الوكيل "{{agentName}}"؟ لا يمكن التراجع عن هذا الإجراء. لن تتم إزالة متغيرات البيئة.',
+            'هل أنت متأكد أنك تريد حذف الوكيل "{{agentName}}"؟ لا يمكن التراجع عن هذا الإجراء.',
         deleteAgentConfirm: 'حذف',
         agentDontAskAgain: 'لا تسأل مرة أخرى عند حذف الوكلاء في هذه الجلسة',
         deleteAgentDeleting: 'جارٍ الحذف...',

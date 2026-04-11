@@ -314,7 +314,6 @@ const ja: Translations = {
         invalidSshKeyFormat: '無効なSSH公開鍵形式です!',
         sshKeyInUse: 'このSSHキーは1つ以上のClawsで使用中です!',
         inputTooLong: '入力が最大許容長を超えています!',
-        invalidEnvVars: '無効な環境変数名または値です!',
         invalidEmailFormat: '無効なメール形式です!',
         plusAddressingNotAllowed:
             'メールログインではプラスアドレッシングは許可されていません!',
@@ -463,6 +462,7 @@ const ja: Translations = {
         agentNameInvalid:
             'エージェント名は英字、数字、ハイフンのみ使用できます!',
         agentNameDuplicate: 'この名前のエージェントは既に存在します!',
+        invalidEnvVars: '無効な環境変数!',
         diagnosticsFetched: '診断情報を取得しました.',
         logsFetched: 'ログを取得しました.',
         filesFetched: 'ファイルを取得しました.',
@@ -589,15 +589,6 @@ const ja: Translations = {
                     'ボイスモードでAIエージェントとハンズフリーで会話。入力は音声認識、応答は音声合成 — 複数の音声から選択。',
                 cta: 'ボイスモードを試す'
             },
-            envVars: {
-                subject: 'ご存知ですか？環境変数を管理',
-                preview: 'SSH不要でAPIキーと設定を設定',
-                tag: '環境変数',
-                heading: 'SSH不要で設定',
-                description:
-                    'ClawHostダッシュボードから直接環境変数を追加、編集、削除。APIキー、シークレット、設定を設定 — ターミナル不要。',
-                cta: '変数を管理'
-            },
             diagnostics: {
                 subject: 'ご存知ですか？内蔵ヘルスチェック',
                 preview: 'ダッシュボードからサーバーの健全性を監視',
@@ -677,9 +668,9 @@ const ja: Translations = {
                 tag: 'プラットフォーム更新',
                 heading: 'ClawHostがよりシンプルに',
                 description:
-                    'ClawHostダッシュボードからチャンネル、エージェント、チャット、スキル、変数の管理を削除しました。これらの機能はOpenClawインスタンスで直接管理されるようになりました。',
+                    'ClawHostダッシュボードからチャンネル、エージェント、チャット、スキルの管理を削除しました。これらの機能はOpenClawインスタンスで直接管理されるようになりました。',
                 removed:
-                    '具体的に削除したもの：メッセージングチャンネル（WhatsApp、Telegram、Discord、Slack、Signal）、スキルマーケットプレイス（ClawHub）、エージェントチャットとボイスモード、変数エディタ。これらはすべてOpenClawに存在し続けています — ラッピングを停止しただけです。',
+                    '具体的に削除したもの：メッセージングチャンネル（WhatsApp、Telegram、Discord、Slack、Signal）、スキルマーケットプレイス（ClawHub）、およびエージェントチャットとボイスモード。これらはすべてOpenClawに存在し続けています — ラッピングを停止しただけです。',
                 why: 'OpenClawの各リリースに合わせてインターフェースを同期し続けることは持続不可能でした。アップストリームで更新が出ても、UIが遅れ — 古いコントロールと不完全な機能が残りました。',
                 benefit:
                     'これらのレイヤーを削除することで、OpenClawと直接やり取りできます。古くなる可能性のある別のインターフェースではなく、本物のシステムを学べます。その知識はOpenClawが動作するどこにでも活かせます。',
@@ -1207,7 +1198,7 @@ const ja: Translations = {
             'ClawHostからネイティブOpenClawパネルに直接アクセス。OpenClawが提供するすべてへのフル編集アクセス。',
         clawHostControl: 'ClawHostコントロール',
         clawHostControlDescription:
-            'ファイル、アップデート、変数などの設定オプションをプラットフォームから直接管理。',
+            'ファイル、アップデートなどの設定オプションをプラットフォームから直接管理。',
         directChat: 'ダイレクトチャット',
         directChatDescription:
             'プラットフォームから直接AIエージェントとチャット。外部ツールやインターフェース不要。',
@@ -1580,35 +1571,8 @@ const ja: Translations = {
             'ClawHostは、ワンクリックOpenClawホスティングを可能にした史上初のプロジェクトです。',
         tabChat: 'チャット',
         tabSettings: '設定',
-        tabEnvs: '環境変数',
         agentOnClaw: '{{clawName}}上',
         cannotDeleteDefaultAgent: 'デフォルトエージェントは削除できません！',
-        tabVariables: '変数',
-        variablesDescription:
-            'このインスタンスの~/.openclaw/.envに保存された環境変数。',
-        variablesEmpty: '環境変数が見つかりません。',
-        variablesAddVariable: '変数を追加',
-        variablesSave: '変数を保存',
-        variablesSaving: '保存中...',
-        variablesSaved: '環境変数を保存しました。',
-        variablesSaveFailed: '環境変数の保存に失敗しました！',
-        variablesLoading: '変数を読み込み中...',
-        variablesLoadFailed: '環境変数の読み込みに失敗しました！',
-        variablesLoadFailedDescription:
-            'このインスタンスの変数を取得できませんでした。後でもう一度お試しください。',
-        variablesInvalidKey: '英字、数字、アンダースコアのみ使用できます！',
-        variablesEmptyValue: '値は空にできません！',
-        variablesDuplicateKey: '変数名が重複しています！',
-        variablesKeyPlaceholder: 'キー',
-        variablesValuePlaceholder: '値',
-        variablesDeleteTitle: '変数を削除',
-        variablesDeleteDescription:
-            '{{key}}を削除してもよろしいですか？インスタンスから即座に削除されます。',
-        variablesDeleteConfirm: '削除',
-        variablesDontAskAgain:
-            'このセッションで変数を削除する際に再度確認しない',
-        variablesDeleted: '変数を削除しました。',
-        variablesOperationPending: '前の操作が完了するまで無効です。',
         addAgentTitle: 'エージェントを追加',
         addAgentDescription: '{{clawName}}に新しいエージェントを追加。',
         addAgentDescriptionNoClaw: 'Clawを選択して新しいエージェントを設定。',
@@ -1621,14 +1585,14 @@ const ja: Translations = {
         addAgentApiKey: 'APIキー',
         addAgentApiKeyPlaceholder: 'APIキーを入力（任意）',
         addAgentApiKeyConfigured:
-            '{{envVar}}は設定済みです。追加後に変数タブで編集してください。',
+            '{{envVar}} はこのインスタンスで既に設定されています。',
         addAgentSubmit: 'エージェントを追加',
         addAgentSuccess: 'エージェントを追加しました。',
         addAgentFailed: 'エージェントの追加に失敗しました！',
         deleteAgent: 'エージェントを削除',
         deleteAgentTitle: 'エージェントを削除',
         deleteAgentDescription:
-            'エージェント「{{agentName}}」を削除してもよろしいですか？この操作は元に戻せません。環境変数は削除されません。',
+            'エージェント「{{agentName}}」を削除してもよろしいですか？この操作は元に戻せません。',
         deleteAgentConfirm: '削除',
         agentDontAskAgain:
             'このセッションでエージェントを削除する際に再度確認しない',

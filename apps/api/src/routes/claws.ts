@@ -24,8 +24,6 @@ import {
     getClawAgents,
     createClawAgent,
     deleteClawAgent,
-    getClawEnvVars,
-    updateClawEnvVars,
     getClawVersion,
     getClawVersions,
     installClawVersion,
@@ -56,8 +54,6 @@ app.get('/:id/export', exportClaw)
 app.post('/:id/agents', getClawAgents)
 app.post('/:id/agents/create', createClawAgent)
 app.post('/:id/agents/delete', deleteClawAgent)
-app.get('/:id/env', getClawEnvVars)
-app.put('/:id/env', updateClawEnvVars)
 app.post('/:id/files', listClawFiles)
 app.post('/:id/files/read', readClawFile)
 app.put('/:id/files', updateClawFile)

@@ -320,8 +320,6 @@ const fr: Translations = {
         sshKeyInUse:
             'Cette clé SSH est actuellement utilisée par un ou plusieurs claws !',
         inputTooLong: 'La saisie dépasse la longueur maximale autorisée !',
-        invalidEnvVars:
-            "Noms ou valeurs de variables d\'environnement invalides !",
         invalidEmailFormat: "Format d\'email invalide !",
         plusAddressingNotAllowed:
             "L\'adressage avec le signe + n\'est pas autorisé pour la connexion par email !",
@@ -484,6 +482,7 @@ const fr: Translations = {
         agentNameInvalid:
             "Le nom de l\'agent ne doit contenir que des lettres, des chiffres et des tirets !",
         agentNameDuplicate: 'Un agent avec ce nom existe déjà !',
+        invalidEnvVars: "Variables d'environnement invalides !",
         diagnosticsFetched: 'Diagnostics récupérés avec succès.',
         logsFetched: 'Journaux récupérés avec succès.',
         filesFetched: 'Fichiers récupérés avec succès.',
@@ -621,15 +620,6 @@ const fr: Translations = {
                     'Parlez à vos agents IA à voix haute et écoutez leurs réponses. Plusieurs voix, totalement mains libres.',
                 cta: 'Essayer le Mode Vocal'
             },
-            envVars: {
-                subject: "Gérez les variables d'env depuis le tableau de bord",
-                preview: 'Définissez clés API et secrets sans SSH',
-                tag: "Variables d'Environnement",
-                heading: 'Secrets et clés, sans SSH',
-                description:
-                    "Ajoutez, modifiez ou supprimez des variables d'environnement depuis une interface claire. Les changements prennent effet immédiatement.",
-                cta: 'Gérer les Variables'
-            },
             diagnostics: {
                 subject: 'Vérifications de santé intégrées',
                 preview: 'Vérifiez la santé de votre serveur en un clic',
@@ -709,9 +699,9 @@ const fr: Translations = {
                 tag: 'Mise à jour',
                 heading: 'ClawHost devient plus simple',
                 description:
-                    'Nous avons retiré la gestion des canaux, agents, chat, compétences et variables du tableau de bord ClawHost. Ces fonctionnalités sont désormais gérées directement sur votre instance OpenClaw.',
+                    'Nous avons retiré la gestion des canaux, agents, chat et compétences du tableau de bord ClawHost. Ces fonctionnalités sont désormais gérées directement sur votre instance OpenClaw.',
                 removed:
-                    "Concrètement, nous avons supprimé : les canaux de messagerie (WhatsApp, Telegram, Discord, Slack, Signal), le marché de compétences (ClawHub), le chat agent et le mode vocal, et l'éditeur de variables. Tout cela existe toujours dans OpenClaw — nous avons simplement arrêté de les encapsuler.",
+                    'Concrètement, nous avons supprimé : les canaux de messagerie (WhatsApp, Telegram, Discord, Slack, Signal), le marché de compétences (ClawHub), et le chat agent et le mode vocal. Tout cela existe toujours dans OpenClaw — nous avons simplement arrêté de les encapsuler.',
                 why: "Maintenir nos interfaces en synchronisation avec chaque version d'OpenClaw était insoutenable. Les mises à jour arrivaient en amont, et notre interface prenait du retard — vous laissant avec des contrôles obsolètes et des fonctionnalités incomplètes.",
                 benefit:
                     'En supprimant ces couches, vous interagissez directement avec OpenClaw. Vous apprenez le vrai système, pas une seconde interface qui peut devenir obsolète. Vos connaissances sont transférables partout où OpenClaw fonctionne.',
@@ -1261,7 +1251,7 @@ const fr: Translations = {
             "Accédez au panneau natif d\'OpenClaw directement depuis ClawHost. Accès complet en édition à tout ce qu\'OpenClaw offre.",
         clawHostControl: 'Contrôle ClawHost',
         clawHostControlDescription:
-            'Gérez les fichiers, mises à jour, variables et plus de configurations directement depuis la plateforme.',
+            'Gérez les fichiers, mises à jour et plus de configurations directement depuis la plateforme.',
         directChat: 'Chat direct',
         directChatDescription:
             "Discutez avec vos agents IA directement depuis la plateforme. Pas besoin d\'outils ou d\'interfaces externes.",
@@ -1661,39 +1651,9 @@ const fr: Translations = {
             "ClawHost est le tout premier projet permettant l\'hébergement d\'OpenClaw en un clic.",
         tabChat: 'Chat',
         tabSettings: 'Paramètres',
-        tabEnvs: 'Envs',
         agentOnClaw: 'sur {{clawName}}',
         cannotDeleteDefaultAgent:
             "L\'agent par défaut ne peut pas être supprimé !",
-        tabVariables: 'Variables',
-        variablesDescription:
-            "Variables d\'environnement stockées dans ~/.openclaw/.env sur cette instance.",
-        variablesEmpty: "Aucune variable d\'environnement trouvée.",
-        variablesAddVariable: 'Ajouter une variable',
-        variablesSave: 'Enregistrer les variables',
-        variablesSaving: 'Enregistrement...',
-        variablesSaved: "Variables d\'environnement enregistrées.",
-        variablesSaveFailed:
-            "Échec de l\'enregistrement des variables d\'environnement !",
-        variablesLoading: 'Chargement des variables...',
-        variablesLoadFailed:
-            "Échec du chargement des variables d\'environnement !",
-        variablesLoadFailedDescription:
-            'Impossible de récupérer les variables pour cette instance. Veuillez réessayer plus tard !',
-        variablesInvalidKey: 'Lettres, chiffres et underscores uniquement !',
-        variablesEmptyValue: 'La valeur ne peut pas être vide !',
-        variablesDuplicateKey: 'Nom de variable en double !',
-        variablesKeyPlaceholder: 'CLÉ',
-        variablesValuePlaceholder: 'Valeur',
-        variablesDeleteTitle: 'Supprimer la variable',
-        variablesDeleteDescription:
-            "Êtes-vous sûr de vouloir supprimer {{key}} ? Cela la supprimera immédiatement de l\'instance.",
-        variablesDeleteConfirm: 'Supprimer',
-        variablesDontAskAgain:
-            'Ne plus demander lors de la suppression de variables cette session',
-        variablesDeleted: 'Variable supprimée.',
-        variablesOperationPending:
-            "Désactivé pendant qu\'une opération précédente se termine.",
         addAgentTitle: 'Ajouter un agent',
         addAgentDescription: 'Ajouter un nouvel agent à {{clawName}}.',
         addAgentDescriptionNoClaw:
@@ -1707,14 +1667,14 @@ const fr: Translations = {
         addAgentApiKey: 'Clé API',
         addAgentApiKeyPlaceholder: 'Entrez votre clé API (optionnel)',
         addAgentApiKeyConfigured:
-            "{{envVar}} déjà configuré. Modifiable dans l\'onglet Variables après ajout.",
+            '{{envVar}} est déjà configuré sur cette instance.',
         addAgentSubmit: "Ajouter l\'agent",
         addAgentSuccess: 'Agent ajouté avec succès.',
         addAgentFailed: "Échec de l\'ajout de l\'agent !",
         deleteAgent: "Supprimer l\'agent",
         deleteAgentTitle: "Supprimer l\'agent",
         deleteAgentDescription:
-            'Êtes-vous sûr de vouloir supprimer l\'agent "{{agentName}}" ? Cette action est irréversible. Les variables d\'environnement ne seront pas supprimées.',
+            'Êtes-vous sûr de vouloir supprimer l\'agent "{{agentName}}" ? Cette action est irréversible.',
         deleteAgentConfirm: 'Supprimer',
         agentDontAskAgain:
             "Ne plus demander lors de la suppression d\'agents cette session",
