@@ -2,12 +2,11 @@ import type { FC, ReactNode } from 'react'
 import type { ClawDetailSettingsTabProps } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
-import { clawStatus, inputValidation, userRole } from '@openclaw/shared'
+import { inputValidation, userRole } from '@openclaw/shared'
 import {
     CircleNotchIcon,
     TrashIcon,
-    ClockCountdownIcon,
-    ArrowSquareOutIcon
+    ClockCountdownIcon
 } from '@phosphor-icons/react'
 import {
     EmojiColorPicker,
@@ -15,7 +14,7 @@ import {
     ClawCardDialogsBundle
 } from '@/components/dashboard'
 import { useProfile, useClawCardActions } from '@/hooks'
-import { isSafeRedirectUrl, getLocale } from '@/lib'
+import { getLocale } from '@/lib'
 
 const ClawDetailSettingsTab: FC<ClawDetailSettingsTabProps> = ({
     claw,
@@ -32,230 +31,207 @@ const ClawDetailSettingsTab: FC<ClawDetailSettingsTabProps> = ({
     onNameChange,
     onSubdomainChange,
     onEmojiChange,
-    onSave,
-    onClose
+    onSave
 }): ReactNode => {
-    const { actions, isMutating, dialogsProps } = useClawCardActions({ claw })
+    const { actions, dialogsProps } = useClawCardActions({ claw })
     const { data: profile } = useProfile({ enabled: true })
     const isAdmin = profile?.role === userRole.admin
     const isScheduledForDeletion =
         !!claw.deletionScheduledAt &&
         new Date(claw.deletionScheduledAt) > new Date()
 
-    const isAwaitingPayment = claw.status === clawStatus.awaitingPayment
-
     return (
         <div className='h-full overflow-y-auto p-5'>
             <div className='space-y-5'>
-                {!isAwaitingPayment && (
-                    <EmojiColorPicker
-                        emoji={currentEmoji}
-                        emojiColor={currentEmojiColor}
-                        onEmojiChange={onEmojiChange}
-                    />
-                )}
+                <EmojiColorPicker
+                    emoji={currentEmoji}
+                    emojiColor={currentEmojiColor}
+                    onEmojiChange={onEmojiChange}
+                />
 
-                {!isAwaitingPayment && (
-                    <div>
-                        <label className='text-muted-foreground mb-2 block text-xs font-medium'>
-                            {t('clawDetail.settingsName')}
-                        </label>
+                <div>
+                    <label className='text-muted-foreground mb-2 block text-xs font-medium'>
+                        {t('clawDetail.settingsName')}
+                    </label>
+                    <input
+                        type='text'
+                        value={settingsName}
+                        onChange={(e) => onNameChange(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (
+                                e.key === 'Enter' &&
+                                settingsHasChanges &&
+                                !settingsNameError &&
+                                !renamePending
+                            ) {
+                                onSave()
+                            }
+                        }}
+                        placeholder={t('clawDetail.settingsNamePlaceholder')}
+                        className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border px-3 py-2 text-sm outline-none transition-colors focus:border-[#ef5350]/50 ${
+                            settingsNameError
+                                ? 'border-red-500/50'
+                                : 'border-border'
+                        }`}
+                    />
+                    {settingsNameError ? (
+                        <p className='mt-1.5 text-[11px] text-red-600 dark:text-red-400'>
+                            {settingsNameError}
+                        </p>
+                    ) : (
+                        <p className='text-muted-foreground mt-1.5 text-[11px]'>
+                            {t('clawDetail.settingsNameDescription')}
+                        </p>
+                    )}
+                </div>
+
+                <div>
+                    <label className='text-muted-foreground mb-2 block text-xs font-medium'>
+                        {t('clawDetail.subdomain')}
+                    </label>
+                    <div className='flex items-center gap-0'>
                         <input
                             type='text'
-                            value={settingsName}
-                            onChange={(e) => onNameChange(e.target.value)}
+                            value={settingsSubdomain}
+                            onChange={(e) =>
+                                onSubdomainChange(e.target.value.toLowerCase())
+                            }
                             onKeyDown={(e) => {
                                 if (
                                     e.key === 'Enter' &&
                                     settingsHasChanges &&
-                                    !settingsNameError &&
-                                    !renamePending
+                                    !settingsSubdomainError &&
+                                    !subdomainPending
                                 ) {
                                     onSave()
                                 }
                             }}
-                            placeholder={t('clawDetail.settingsNamePlaceholder')}
-                            className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border px-3 py-2 text-sm outline-none transition-colors focus:border-[#ef5350]/50 ${
-                                settingsNameError
+                            placeholder={t('clawDetail.subdomainPlaceholder')}
+                            className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-l-md border border-r-0 px-3 py-2 text-sm outline-none transition-colors focus:border-[#ef5350]/50 ${
+                                settingsSubdomainError
                                     ? 'border-red-500/50'
                                     : 'border-border'
                             }`}
                         />
-                        {settingsNameError ? (
-                            <p className='mt-1.5 text-[11px] text-red-600 dark:text-red-400'>
-                                {settingsNameError}
-                            </p>
-                        ) : (
-                            <p className='text-muted-foreground mt-1.5 text-[11px]'>
-                                {t('clawDetail.settingsNameDescription')}
-                            </p>
-                        )}
+                        <span className='border-border bg-foreground/5 text-muted-foreground flex items-center rounded-r-md border px-3 py-2 text-sm'>
+                            .clawhost.cloud
+                        </span>
                     </div>
-                )}
+                    {settingsSubdomainError ? (
+                        <p className='mt-1.5 text-[11px] text-red-600 dark:text-red-400'>
+                            {settingsSubdomainError}
+                        </p>
+                    ) : (
+                        <p className='text-muted-foreground mt-1.5 text-[11px]'>
+                            {t('clawDetail.subdomainDescription', {
+                                min: inputValidation.SUBDOMAIN.MIN,
+                                max: inputValidation.SUBDOMAIN.MAX
+                            })}
+                        </p>
+                    )}
+                </div>
 
-                {!isAwaitingPayment && (
-                    <div>
-                        <label className='text-muted-foreground mb-2 block text-xs font-medium'>
-                            {t('clawDetail.subdomain')}
-                        </label>
-                        <div className='flex items-center gap-0'>
-                            <input
-                                type='text'
-                                value={settingsSubdomain}
-                                onChange={(e) =>
-                                    onSubdomainChange(e.target.value.toLowerCase())
-                                }
-                                onKeyDown={(e) => {
-                                    if (
-                                        e.key === 'Enter' &&
-                                        settingsHasChanges &&
-                                        !settingsSubdomainError &&
-                                        !subdomainPending
-                                    ) {
-                                        onSave()
-                                    }
-                                }}
-                                placeholder={t('clawDetail.subdomainPlaceholder')}
-                                className={`bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-l-md border border-r-0 px-3 py-2 text-sm outline-none transition-colors focus:border-[#ef5350]/50 ${
-                                    settingsSubdomainError
-                                        ? 'border-red-500/50'
-                                        : 'border-border'
-                                }`}
-                            />
-                            <span className='border-border bg-foreground/5 text-muted-foreground flex items-center rounded-r-md border px-3 py-2 text-sm'>
-                                .clawhost.cloud
-                            </span>
-                        </div>
-                        {settingsSubdomainError ? (
-                            <p className='mt-1.5 text-[11px] text-red-600 dark:text-red-400'>
-                                {settingsSubdomainError}
-                            </p>
-                        ) : (
-                            <p className='text-muted-foreground mt-1.5 text-[11px]'>
-                                {t('clawDetail.subdomainDescription', {
-                                    min: inputValidation.SUBDOMAIN.MIN,
-                                    max: inputValidation.SUBDOMAIN.MAX
-                                })}
-                            </p>
-                        )}
-                    </div>
-                )}
+                <button
+                    onClick={onSave}
+                    disabled={
+                        !settingsHasChanges ||
+                        !!settingsNameError ||
+                        !!settingsSubdomainError ||
+                        renamePending ||
+                        subdomainPending ||
+                        emojiPending
+                    }
+                    className='flex w-full items-center justify-center gap-2 rounded-lg bg-[#ef5350] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#e53935] disabled:cursor-not-allowed disabled:opacity-50'
+                >
+                    {(renamePending || subdomainPending || emojiPending) && (
+                        <CircleNotchIcon className='h-4 w-4 animate-spin' />
+                    )}
+                    {t('clawDetail.settingsSave')}
+                </button>
 
-                {!isAwaitingPayment && (
-                    <button
-                        onClick={onSave}
-                        disabled={
-                            !settingsHasChanges ||
-                            !!settingsNameError ||
-                            !!settingsSubdomainError ||
-                            renamePending ||
-                            subdomainPending ||
-                            emojiPending
-                        }
-                        className='flex w-full items-center justify-center gap-2 rounded-lg bg-[#ef5350] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#e53935] disabled:cursor-not-allowed disabled:opacity-50'
-                    >
-                        {(renamePending || subdomainPending || emojiPending) && (
-                            <CircleNotchIcon className='h-4 w-4 animate-spin' />
-                        )}
-                        {t('clawDetail.settingsSave')}
-                    </button>
-                )}
-
-                {!isAwaitingPayment && <ExportSection clawId={claw.id} />}
+                <ExportSection clawId={claw.id} />
 
                 {actions && (
-                    <div className={isAwaitingPayment ? '' : 'border-border border-t pt-5'}>
+                    <div className='border-border border-t pt-5'>
                         <label className='text-muted-foreground mb-2 block text-xs font-medium'>
-                            {isAwaitingPayment
-                                ? t('clawDetail.settingsOptions')
-                                : t('clawDetail.settingsDangerZone')}
+                            {t('clawDetail.settingsDangerZone')}
                         </label>
-                        {claw.status === clawStatus.awaitingPayment ? (
-                            <div className='flex items-center gap-2'>
-                                {claw.checkoutUrl && isSafeRedirectUrl(claw.checkoutUrl) && (
+                        {isScheduledForDeletion ? (
+                            <div className='space-y-2'>
+                                <div className='flex items-center gap-2'>
                                     <button
-                                        onClick={actions.onResumeCheckout}
-                                        className='border-border bg-foreground/5 hover:bg-foreground/10 text-foreground flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium transition-colors'
+                                        onClick={actions.onCancelDeletion}
+                                        disabled={dialogsProps?.isCancelDeletionPending}
+                                        className='flex items-center gap-1.5 rounded-md border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-xs font-medium text-orange-600 transition-colors hover:bg-orange-500/20 disabled:opacity-50 dark:text-orange-400'
                                     >
-                                        <ArrowSquareOutIcon className='h-3.5 w-3.5' />
-                                        {t('dashboard.resumeCheckout')}
+                                        {dialogsProps?.isCancelDeletionPending ? (
+                                            <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />
+                                        ) : (
+                                            <ClockCountdownIcon className='h-3.5 w-3.5' />
+                                        )}
+                                        {t('dashboard.cancelDeletion')}
                                     </button>
-                                )}
+                                    {isAdmin && (
+                                        <button
+                                            onClick={actions.onShowHardDeleteModal}
+                                            disabled={dialogsProps?.isHardDeletePending}
+                                            className='flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-50 dark:text-red-400'
+                                        >
+                                            <TrashIcon className='h-3.5 w-3.5' />
+                                            {t('dashboard.hardDelete')}
+                                        </button>
+                                    )}
+                                </div>
+                                <p className='text-muted-foreground text-[11px]'>
+                                    {t('clawDetail.settingsScheduledDeletionDescription', {
+                                        date: new Date(claw.deletionScheduledAt!).toLocaleDateString(
+                                            getLocale(),
+                                            { year: 'numeric', month: 'short', day: 'numeric' }
+                                        )
+                                    })}
+                                </p>
+                            </div>
+                        ) : (
+                            <div className='space-y-2'>
                                 <button
-                                    onClick={() => {
-                                        actions.onCancelPending()
-                                        onClose()
-                                    }}
-                                    disabled={isMutating}
+                                    onClick={actions.onShowDeleteModal}
+                                    disabled={dialogsProps?.isDeletePending}
                                     className='flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-50 dark:text-red-400'
                                 >
                                     <TrashIcon className='h-3.5 w-3.5' />
-                                    {t('dashboard.cancelPurchase')}
+                                    {claw.id.startsWith('pending-') ||
+                                    claw.subscriptionStatus === 'canceled'
+                                        ? t('common.delete')
+                                        : t('dashboard.scheduleDeletion')}
                                 </button>
+                                <p className='text-muted-foreground text-[11px]'>
+                                    {t('clawDetail.settingsDangerZoneDescription')}
+                                </p>
                             </div>
-                        ) : isScheduledForDeletion ? (
-                            <div className='flex items-center gap-2'>
-                                <button
-                                    onClick={actions.onCancelDeletion}
-                                    className='flex items-center gap-1.5 rounded-md border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-xs font-medium text-orange-600 transition-colors hover:bg-orange-500/20 dark:text-orange-400'
-                                >
-                                    <ClockCountdownIcon className='h-3.5 w-3.5' />
-                                    {t('dashboard.cancelDeletion')}
-                                </button>
-                                {isAdmin && (
-                                    <button
-                                        onClick={actions.onShowHardDeleteModal}
-                                        disabled={isMutating}
-                                        className='flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-50 dark:text-red-400'
-                                    >
-                                        <TrashIcon className='h-3.5 w-3.5' />
-                                        {t('dashboard.hardDelete')}
-                                    </button>
-                                )}
-                            </div>
-                        ) : (
-                            <button
-                                onClick={actions.onShowDeleteModal}
-                                disabled={isMutating}
-                                className='flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-50 dark:text-red-400'
-                            >
-                                <TrashIcon className='h-3.5 w-3.5' />
-                                {claw.id.startsWith('pending-') ||
-                                claw.subscriptionStatus === 'canceled'
-                                    ? t('common.delete')
-                                    : t('dashboard.scheduleDeletion')}
-                            </button>
-                        )}
-                        {!isAwaitingPayment && (
-                            <p className='text-muted-foreground mt-1.5 text-[11px]'>
-                                {t('clawDetail.settingsDangerZoneDescription')}
-                            </p>
                         )}
                     </div>
                 )}
 
-                {!isAwaitingPayment && (
-                    <div className='border-border border-t pt-5'>
-                        <label className='text-muted-foreground mb-2 block text-xs font-medium'>
-                            {t('clawDetail.settingsDetails')}
-                        </label>
-                        <div className='space-y-1.5 text-[11px]'>
-                            {claw.createdAt && (
-                                <p className='text-muted-foreground'>
-                                    {t('dashboard.created')}: {new Date(claw.createdAt).toLocaleDateString(
-                                        getLocale(),
-                                        { year: 'numeric', month: 'short', day: 'numeric' }
-                                    )}
-                                </p>
-                            )}
-                            {isAdmin && claw.ownerEmail && (
-                                <p className='text-muted-foreground'>
-                                    {t('dashboard.owner')}: {claw.ownerEmail}
-                                </p>
-                            )}
-                        </div>
+                <div className='border-border border-t pt-5'>
+                    <label className='text-muted-foreground mb-2 block text-xs font-medium'>
+                        {t('clawDetail.settingsDetails')}
+                    </label>
+                    <div className='space-y-1.5 text-[11px]'>
+                        {claw.createdAt && (
+                            <p className='text-muted-foreground'>
+                                {t('dashboard.created')}: {new Date(claw.createdAt).toLocaleDateString(
+                                    getLocale(),
+                                    { year: 'numeric', month: 'short', day: 'numeric' }
+                                )}
+                            </p>
+                        )}
+                        {isAdmin && claw.ownerEmail && (
+                            <p className='text-muted-foreground'>
+                                {t('dashboard.owner')}: {claw.ownerEmail}
+                            </p>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
             {dialogsProps && <ClawCardDialogsBundle {...dialogsProps} />}
         </div>

@@ -1,17 +1,19 @@
 import type { FC, ReactNode } from 'react'
 import type { UpdateAvailableBannerProps } from '@/ts/Interfaces'
 
+import { InfoIcon } from '@phosphor-icons/react'
 import { t } from '@openclaw/i18n'
-import { OPENCLAW_VERSION } from '@openclaw/shared'
 
 const UpdateAvailableBanner: FC<UpdateAvailableBannerProps> = ({
+    latestVersion,
     onGoToVersions
 }): ReactNode => {
     return (
-        <div className='bg-foreground/5 mb-3 flex items-center justify-between rounded-lg px-3 py-2.5'>
-            <p className='text-muted-foreground text-xs'>
+        <div className='border-border flex items-center gap-2 border-b px-3.5 py-2.5'>
+            <InfoIcon size={14} className='text-muted-foreground shrink-0' />
+            <p className='text-muted-foreground flex-1 text-xs'>
                 {t('clawDetail.updateAvailableDescription', {
-                    version: OPENCLAW_VERSION
+                    version: latestVersion
                 })}
             </p>
             <button

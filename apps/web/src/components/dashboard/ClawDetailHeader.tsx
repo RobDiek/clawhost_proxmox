@@ -2,6 +2,14 @@ import type { FC, ReactNode } from 'react'
 import type { ClawDetailHeaderProps } from '@/ts/Interfaces'
 
 import { Fragment } from 'react'
+import { t } from '@openclaw/i18n'
+import { clawStatus } from '@openclaw/shared'
+import { generateSlug, getStatusConfig } from '@/lib/claw-utils'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
+import { useClawCardActions } from '@/hooks'
+import { ClawCardDialogsBundle, HeaderActionButton } from '@/components/dashboard'
+import { getBaseDomain, TRUNCATE_LENGTHS } from '@/lib'
+
 import {
     XIcon,
     ArrowSquareOutIcon,
@@ -9,16 +17,6 @@ import {
     StopIcon,
     ArrowsClockwiseIcon
 } from '@phosphor-icons/react'
-import { t } from '@openclaw/i18n'
-import { clawStatus } from '@openclaw/shared'
-import { getBaseDomain, TRUNCATE_LENGTHS } from '@/lib'
-import { generateSlug, getStatusConfig } from '@/lib/claw-utils'
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
-import { useClawCardActions } from '@/hooks'
-import {
-    ClawCardDialogsBundle,
-    HeaderActionButton
-} from '@/components/dashboard'
 
 const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
     claw,
@@ -28,8 +26,11 @@ const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
 }): ReactNode => {
     const { actions, isMutating, dialogsProps } = useClawCardActions({ claw })
 
-    const hasActionItems =
-        claw.status === clawStatus.running || claw.status === clawStatus.stopped
+    const isPending =
+        claw.status === clawStatus.creating ||
+        claw.status === clawStatus.configuring ||
+        claw.status === clawStatus.awaitingPayment
+    const hasActionItems = claw.status === clawStatus.running || claw.status === clawStatus.stopped
     const statusConfigs = getStatusConfig()
     const statusConfig = statusConfigs[claw.status]
 
@@ -56,7 +57,8 @@ const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
                                 <span>{claw.name}</span>
                             )}
                         </h3>
-                        {claw.status !== clawStatus.configuring &&
+                        {claw.status !== clawStatus.creating &&
+                            claw.status !== clawStatus.configuring &&
                             claw.status !== clawStatus.awaitingPayment && (
                                 <div className='text-muted-foreground flex items-center gap-1.5 text-xs leading-tight'>
                                     <a
@@ -82,7 +84,7 @@ const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
                     </div>
                 </div>
                 <div className='flex items-center gap-1.5'>
-                    {statusConfig && (
+                    {statusConfig && !isPending && (
                         <span
                             className={`border-border inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-medium leading-none ${statusConfig.bgColor}`}
                         >

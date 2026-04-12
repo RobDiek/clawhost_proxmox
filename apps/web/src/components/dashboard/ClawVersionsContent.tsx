@@ -182,7 +182,7 @@ const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
                                                         {entry.version}
                                                     </span>
                                                     {isCurrent && (
-                                                        <span className='bg-foreground/10 text-muted-foreground rounded px-1.5 py-0.5 text-[10px] font-medium'>
+                                                        <span className='rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-500'>
                                                             {t(
                                                                 'clawDetail.versionCurrent'
                                                             )}

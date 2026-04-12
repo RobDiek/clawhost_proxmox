@@ -9,7 +9,6 @@ import clawProvider from '#shared/clawProvider'
 import clawStatus from '#shared/clawStatus'
 import goLicense from '#shared/goLicense'
 import INPUT_VALIDATION_LENGTH from '#shared/inputValidation'
-import OPENCLAW_VERSION from '#shared/openclawVersion'
 import userRole from '#shared/userRole'
 import {
     isFeatureSupported,
@@ -31,7 +30,6 @@ export {
     clawStatus,
     goLicense,
     INPUT_VALIDATION_LENGTH as inputValidation,
-    OPENCLAW_VERSION,
     userRole,
     isFeatureSupported,
     isVersionSupported,

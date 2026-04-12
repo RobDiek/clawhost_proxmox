@@ -6,7 +6,7 @@ import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 import { execFile } from 'child_process'
-import { clawProvider, clawStatus, OPENCLAW_VERSION } from '@openclaw/shared'
+import { clawProvider, clawStatus } from '@openclaw/shared'
 import { t } from '@openclaw/i18n'
 import {
     configStore,
@@ -201,7 +201,8 @@ const registerClawHandlers = (): void => {
                 throw new Error(t('go.clawNameAlreadyExists'))
             }
 
-            const version = OPENCLAW_VERSION
+            const version = await versionManager.getLatestVersion()
+            if (!version) throw new Error(t('go.failedToFetchLatestVersion'))
 
             const id = crypto.randomUUID()
             const port = configStore.getNextAvailablePort()

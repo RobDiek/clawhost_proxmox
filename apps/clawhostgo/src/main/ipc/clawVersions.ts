@@ -1,7 +1,6 @@
 import type { IpcMainInvokeEvent } from 'electron'
 
 import { ipcMain } from 'electron'
-import { OPENCLAW_VERSION } from '@openclaw/shared'
 import { configStore, versionManager, processManager } from '@/main/services'
 import { t } from '@openclaw/i18n'
 
@@ -11,7 +10,7 @@ const registerClawVersionHandlers = (): void => {
         (_event: IpcMainInvokeEvent, id: string) => {
             const claw = configStore.findClaw(id)
             if (!claw) throw new Error(t('go.clawNotFound'))
-            return { version: claw.version || OPENCLAW_VERSION }
+            return { version: claw.version || null }
         }
     )
 

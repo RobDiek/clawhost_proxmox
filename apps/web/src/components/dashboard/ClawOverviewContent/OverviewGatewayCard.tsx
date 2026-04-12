@@ -20,7 +20,8 @@ const OverviewGatewayCard: FC<OverviewGatewayCardProps> = ({
     gateway,
     clawId
 }): ReactNode => {
-    const isHealthy = gateway.active && gateway.reachable
+    const isHealthy = gateway.active && gateway.portListening
+    const hasIssue = !gateway.active || !gateway.portListening
     const repair = useRepairClaw()
     const showToast = useUIStore((s) => s.showToast)
 
@@ -99,21 +100,21 @@ const OverviewGatewayCard: FC<OverviewGatewayCardProps> = ({
                 </div>
                 <div className='bg-foreground/5 rounded-lg px-3 py-2 text-center'>
                     <GlobeIcon
-                        className={`mx-auto h-4 w-4 ${gateway.reachable ? 'text-green-500' : 'text-red-500'}`}
+                        className={`mx-auto h-4 w-4 ${gateway.ready ? 'text-green-500' : 'text-yellow-500'}`}
                     />
                     <span className='text-muted-foreground mt-1 block text-[10px]'>
-                        API
+                        {t('clawDetail.overviewReady')}
                     </span>
                     <span
-                        className={`block text-xs font-medium ${gateway.reachable ? 'text-green-500' : 'text-red-500'}`}
+                        className={`block text-xs font-medium ${gateway.ready ? 'text-green-500' : 'text-yellow-500'}`}
                     >
-                        {gateway.reachable
-                            ? t('clawDetail.overviewOnline')
-                            : t('clawDetail.overviewOffline')}
+                        {gateway.ready
+                            ? t('clawDetail.overviewReady')
+                            : t('clawDetail.overviewNotReady')}
                     </span>
                 </div>
             </div>
-            {!isHealthy && (
+            {hasIssue && (
                 <div className='mt-3 flex items-center justify-between rounded-md bg-yellow-500/10 p-3'>
                     <span className='text-sm text-yellow-700 dark:text-yellow-400'>
                         {t('dashboard.diagnosticsIssueDetected')}

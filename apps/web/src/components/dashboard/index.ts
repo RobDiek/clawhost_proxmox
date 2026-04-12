@@ -5,6 +5,7 @@ import ClawConfigContent from '@/components/dashboard/ClawConfigDialog/ClawConfi
 import ClawConfigDialog from '@/components/dashboard/ClawConfigDialog'
 import ClawCredentialsDialog from '@/components/dashboard/ClawCredentialsDialog'
 import ClawDetailHeader from '@/components/dashboard/ClawDetailHeader'
+import ClawPendingView from '@/components/dashboard/ClawPendingView'
 import ClawPreviewContent from '@/components/dashboard/ClawPreviewContent'
 import ClawDetailPanel from '@/components/dashboard/ClawDetailPanel'
 import ClawDetailSettingsTab from '@/components/dashboard/ClawDetailSettingsTab'
@@ -39,6 +40,7 @@ export {
     ClawConfigDialog,
     ClawCredentialsDialog,
     ClawDetailHeader,
+    ClawPendingView,
     ClawPreviewContent,
     ClawDetailPanel,
     ClawDetailSettingsTab,

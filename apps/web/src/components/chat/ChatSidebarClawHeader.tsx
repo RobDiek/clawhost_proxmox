@@ -76,7 +76,7 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
                                 window.open(url, '_blank')
                             }}
                             disabled={claw.status !== clawStatus.running}
-                            className='text-muted-foreground shrink-0 rounded-md p-1 transition-colors disabled:pointer-events-none disabled:opacity-30 hover:bg-foreground/10 hover:text-foreground'
+                            className='text-muted-foreground shrink-0 rounded-md p-1 transition-colors disabled:cursor-default disabled:opacity-30 hover:bg-foreground/10 hover:text-foreground'
                         >
                             <ArrowSquareOutIcon className='h-3.5 w-3.5' />
                         </button>

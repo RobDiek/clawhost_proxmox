@@ -2,15 +2,12 @@ import type { FC, ReactNode } from 'react'
 import type { ClawDetailPanelProps } from '@/ts/Interfaces'
 import type { ClawDetailTab } from '@/ts/Types'
 
-import { useCallback, useMemo, useEffect } from 'react'
+import { Fragment, useCallback, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useQuery } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
-import { clawStatus, OPENCLAW_VERSION } from '@openclaw/shared'
+import { clawStatus } from '@openclaw/shared'
 import { CLAW_DETAIL_TABS } from '@/lib/constants'
-import {
-    CONFIGURING_DISABLED_TABS,
-    AWAITING_PAYMENT_DISABLED_TABS
-} from '@/lib/clawDetailTabs'
 import {
     ClawLogsContent,
     ClawTerminalContent,
@@ -26,12 +23,16 @@ import {
     ClawDetailSettingsTab,
     ClawDetailHeader,
     ClawDetailTabBar,
+    ClawPendingView,
     UpdateAvailableBanner
 } from '@/components/dashboard'
 import {
     useClawVersion,
-    useClawSettingsForm
+    useClawSettingsForm,
+    useCancelPendingClaw,
+    CLAW_VERSIONS_QUERY_KEY
 } from '@/hooks'
+import { api } from '@/lib'
 import { useClawDetailTabStore } from '@/lib/store'
 
 const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
@@ -44,54 +45,25 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
     onTabChange,
     fullScreen
 }): ReactNode => {
-    const isConfiguring = claw.status === clawStatus.configuring
-    const isAwaitingPayment = claw.status === clawStatus.awaitingPayment
-    const isTabDisabled = useCallback(
-        (tabId: ClawDetailTab) =>
-            (isConfiguring && CONFIGURING_DISABLED_TABS.includes(tabId)) ||
-            (isAwaitingPayment &&
-                AWAITING_PAYMENT_DISABLED_TABS.includes(tabId)),
-        [isConfiguring, isAwaitingPayment]
-    )
-    const getDisabledTooltip = useCallback(
-        (tabId: ClawDetailTab) => {
-            if (
-                isAwaitingPayment &&
-                AWAITING_PAYMENT_DISABLED_TABS.includes(tabId)
-            )
-                return t('clawDetail.tabDisabledAwaitingPayment')
-            return t('clawDetail.tabDisabledConfiguring')
-        },
-        [isAwaitingPayment]
-    )
+    const isPending =
+        claw.status === clawStatus.configuring ||
+        claw.status === clawStatus.creating ||
+        claw.status === clawStatus.awaitingPayment
+    const cancelPending = useCancelPendingClaw()
     const tabStateMap = useClawDetailTabStore((s) => s.tabStateMap)
     const setTab = useClawDetailTabStore((s) => s.setTab)
-    const defaultTab = isAwaitingPayment
-        ? CLAW_DETAIL_TABS.SETTINGS
-        : CLAW_DETAIL_TABS.OVERVIEW
-    const activeTab = tabStateMap[claw.id] || defaultTab
+    const activeTab = tabStateMap[claw.id] || CLAW_DETAIL_TABS.OVERVIEW
     const setActiveTab = useCallback(
         (tab: ClawDetailTab) => {
-            if (isTabDisabled(tab)) return
             setTab(claw.id, tab)
             if (onTabChange) onTabChange(tab)
         },
-        [claw.id, onTabChange, isTabDisabled, setTab]
+        [claw.id, onTabChange, setTab]
     )
     useEffect(() => {
-        if (initialTab && initialTab !== tabStateMap[claw.id]) {
-            const safeTab = isTabDisabled(initialTab)
-                ? defaultTab
-                : initialTab
-            setTab(claw.id, safeTab)
-        }
-    }, [initialTab, claw.id, isTabDisabled, tabStateMap, setTab])
-    useEffect(() => {
-        if (isTabDisabled(activeTab)) {
-            setTab(claw.id, defaultTab)
-            if (onTabChange) onTabChange(defaultTab)
-        }
-    }, [isTabDisabled, activeTab, claw.id, onTabChange, setTab])
+        if (initialTab && initialTab !== tabStateMap[claw.id])
+            setTab(claw.id, initialTab)
+    }, [initialTab, claw.id, tabStateMap, setTab])
 
     const {
         settingsEmoji,
@@ -110,29 +82,30 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
         handleSettingsSave
     } = useClawSettingsForm(claw)
 
-    const versionQuery = useClawVersion(
-        claw.id,
-        !readOnly &&
-            !!claw.ip &&
-            !isConfiguring &&
-            !isAwaitingPayment
-    )
+    const canQuery = !readOnly && !!claw.ip && !isPending
+    const versionQuery = useClawVersion(claw.id, canQuery)
+    const versionsQuery = useQuery({
+        queryKey: [...CLAW_VERSIONS_QUERY_KEY, claw.id],
+        queryFn: () => api.getClawVersions(claw.id),
+        enabled: canQuery,
+        staleTime: 1000 * 60 * 30,
+        retry: 1
+    })
+    const latestVersion = versionsQuery.data?.latestVersion ?? null
     const versionDisplay = useMemo(() => {
-        if (readOnly) return OPENCLAW_VERSION
         if (versionQuery.isLoading) return null
         if (versionQuery.isError || !versionQuery.data) return null
         if (versionQuery.data.version === 'unknown') return null
         return versionQuery.data.version
     }, [
-        readOnly,
         versionQuery.isLoading,
         versionQuery.isError,
         versionQuery.data
     ])
     const isOutdated =
         !!versionDisplay &&
-        versionDisplay !== OPENCLAW_VERSION &&
-        !versionQuery.isLoading
+        !!latestVersion &&
+        versionDisplay !== latestVersion
 
     const Wrapper = fullScreen ? 'div' : motion.div
     const wrapperProps = fullScreen
@@ -158,125 +131,139 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                     versionDisplay={versionDisplay}
                 />
 
-                <ClawDetailTabBar
-                    activeTab={activeTab}
-                    fullScreen={fullScreen}
-                    isTabDisabled={isTabDisabled}
-                    getDisabledTooltip={getDisabledTooltip}
-                    setActiveTab={setActiveTab}
-                />
-
-                <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
-                    {isOutdated && (
-                        <UpdateAvailableBanner
-                            onGoToVersions={() =>
-                                setTab(claw.id, CLAW_DETAIL_TABS.VERSIONS)
-                            }
+                {isPending ? (
+                    <ClawPendingView
+                        status={claw.status}
+                        checkoutUrl={claw.checkoutUrl}
+                        onCancel={claw.status === clawStatus.awaitingPayment ? () => {
+                            cancelPending.mutate(claw.id.replace('pending-', ''))
+                            onClose()
+                        } : undefined}
+                        cancelPending={cancelPending.isPending}
+                    />
+                ) : (
+                    <Fragment>
+                        <ClawDetailTabBar
+                            activeTab={activeTab}
+                            fullScreen={fullScreen}
+                            isTabDisabled={() => false}
+                            getDisabledTooltip={() => ''}
+                            setActiveTab={setActiveTab}
                         />
-                    )}
 
-                    {activeTab === CLAW_DETAIL_TABS.OVERVIEW && (
-                        <ClawOverviewContent clawId={claw.id} />
-                    )}
+                        <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
+                            {isOutdated && latestVersion && activeTab !== CLAW_DETAIL_TABS.VERSIONS && (
+                                <UpdateAvailableBanner
+                                    latestVersion={latestVersion}
+                                    onGoToVersions={() =>
+                                        setTab(claw.id, CLAW_DETAIL_TABS.VERSIONS)
+                                    }
+                                />
+                            )}
 
-                    {activeTab === CLAW_DETAIL_TABS.PREVIEW && (
-                        <ClawPreviewContent claw={claw} />
-                    )}
+                            {activeTab === CLAW_DETAIL_TABS.OVERVIEW && (
+                                <ClawOverviewContent clawId={claw.id} />
+                            )}
 
-                    {activeTab === CLAW_DETAIL_TABS.LOGS && (
-                        <ClawLogsContent
-                            clawId={claw.id}
-                            enabled
-                            embedded
-                            mockLogs={
-                                readOnly
-                                    ? t('clawDetail.mockLogsContent', {
-                                          starting: t(
-                                              'clawDetail.mockLogStarting'
-                                          ),
-                                          loadingModel: t(
-                                              'clawDetail.mockLogLoadingModel'
-                                          ),
-                                          agentReady: t(
-                                              'clawDetail.mockLogAgentReady'
-                                          ),
-                                          connected: t(
-                                              'clawDetail.mockLogConnected'
-                                          ),
-                                          requestReceived: t(
-                                              'clawDetail.mockLogRequestReceived'
-                                          ),
-                                          responseSent1: t(
-                                              'clawDetail.mockLogResponseSent1'
-                                          ),
-                                          responseSent2: t(
-                                              'clawDetail.mockLogResponseSent2'
-                                          ),
-                                          healthCheck: t(
-                                              'clawDetail.mockLogHealthCheck'
-                                          )
-                                      })
-                                    : undefined
-                            }
-                        />
-                    )}
+                            {activeTab === CLAW_DETAIL_TABS.PREVIEW && (
+                                <ClawPreviewContent claw={claw} />
+                            )}
 
-                    {activeTab === CLAW_DETAIL_TABS.TERMINAL && (
-                        <ClawTerminalContent
-                            clawId={claw.id}
-                            enabled={activeTab === CLAW_DETAIL_TABS.TERMINAL}
-                        />
-                    )}
+                            {activeTab === CLAW_DETAIL_TABS.LOGS && (
+                                <ClawLogsContent
+                                    clawId={claw.id}
+                                    enabled
+                                    embedded
+                                    mockLogs={
+                                        readOnly
+                                            ? t('clawDetail.mockLogsContent', {
+                                                  starting: t(
+                                                      'clawDetail.mockLogStarting'
+                                                  ),
+                                                  loadingModel: t(
+                                                      'clawDetail.mockLogLoadingModel'
+                                                  ),
+                                                  agentReady: t(
+                                                      'clawDetail.mockLogAgentReady'
+                                                  ),
+                                                  connected: t(
+                                                      'clawDetail.mockLogConnected'
+                                                  ),
+                                                  requestReceived: t(
+                                                      'clawDetail.mockLogRequestReceived'
+                                                  ),
+                                                  responseSent1: t(
+                                                      'clawDetail.mockLogResponseSent1'
+                                                  ),
+                                                  responseSent2: t(
+                                                      'clawDetail.mockLogResponseSent2'
+                                                  ),
+                                                  healthCheck: t(
+                                                      'clawDetail.mockLogHealthCheck'
+                                                  )
+                                              })
+                                            : undefined
+                                    }
+                                />
+                            )}
 
-                    {activeTab === CLAW_DETAIL_TABS.VERSIONS && (
-                        <ClawVersionsContent clawId={claw.id} />
-                    )}
+                            {activeTab === CLAW_DETAIL_TABS.TERMINAL && (
+                                <ClawTerminalContent
+                                    clawId={claw.id}
+                                    enabled={activeTab === CLAW_DETAIL_TABS.TERMINAL}
+                                />
+                            )}
 
-                    {activeTab === CLAW_DETAIL_TABS.FILES && (
-                        <ClawConfigContent clawId={claw.id} />
-                    )}
+                            {activeTab === CLAW_DETAIL_TABS.VERSIONS && (
+                                <ClawVersionsContent clawId={claw.id} />
+                            )}
 
-                    {activeTab === CLAW_DETAIL_TABS.MONITOR && (
-                        <ClawMonitorContent clawId={claw.id} />
-                    )}
+                            {activeTab === CLAW_DETAIL_TABS.FILES && (
+                                <ClawConfigContent clawId={claw.id} />
+                            )}
 
-                    {activeTab === CLAW_DETAIL_TABS.VOLUMES && (
-                        <ClawVolumesContent volumes={claw.volumes || []} />
-                    )}
+                            {activeTab === CLAW_DETAIL_TABS.MONITOR && (
+                                <ClawMonitorContent clawId={claw.id} />
+                            )}
 
-                    {activeTab === CLAW_DETAIL_TABS.SECURITY && (
-                        <ClawSecurityContent claw={claw} sshKeys={sshKeys} />
-                    )}
+                            {activeTab === CLAW_DETAIL_TABS.VOLUMES && (
+                                <ClawVolumesContent volumes={claw.volumes || []} />
+                            )}
 
-                    {activeTab === CLAW_DETAIL_TABS.BILLING && (
-                        <ClawBillingContent claw={claw} plans={plans} />
-                    )}
+                            {activeTab === CLAW_DETAIL_TABS.SECURITY && (
+                                <ClawSecurityContent claw={claw} sshKeys={sshKeys} />
+                            )}
 
-                    {activeTab === CLAW_DETAIL_TABS.SERVER && (
-                        <ClawServerContent claw={claw} plans={plans} />
-                    )}
+                            {activeTab === CLAW_DETAIL_TABS.BILLING && (
+                                <ClawBillingContent claw={claw} plans={plans} />
+                            )}
 
-                    {activeTab === CLAW_DETAIL_TABS.SETTINGS && (
-                        <ClawDetailSettingsTab
-                            claw={claw}
-                            currentEmoji={settingsEmoji}
-                            currentEmojiColor={settingsEmojiColor}
-                            settingsName={settingsName}
-                            settingsNameError={settingsNameError}
-                            settingsSubdomain={settingsSubdomain}
-                            settingsSubdomainError={settingsSubdomainError}
-                            settingsHasChanges={settingsHasChanges}
-                            renamePending={renamePending}
-                            subdomainPending={subdomainPending}
-                            emojiPending={emojiPending}
-                            onNameChange={handleSettingsNameChange}
-                            onSubdomainChange={handleSettingsSubdomainChange}
-                            onEmojiChange={handleEmojiChange}
-                            onSave={handleSettingsSave}
-                            onClose={onClose}
-                        />
-                    )}
-                </div>
+                            {activeTab === CLAW_DETAIL_TABS.SERVER && (
+                                <ClawServerContent claw={claw} plans={plans} />
+                            )}
+
+                            {activeTab === CLAW_DETAIL_TABS.SETTINGS && (
+                                <ClawDetailSettingsTab
+                                    claw={claw}
+                                    currentEmoji={settingsEmoji}
+                                    currentEmojiColor={settingsEmojiColor}
+                                    settingsName={settingsName}
+                                    settingsNameError={settingsNameError}
+                                    settingsSubdomain={settingsSubdomain}
+                                    settingsSubdomainError={settingsSubdomainError}
+                                    settingsHasChanges={settingsHasChanges}
+                                    renamePending={renamePending}
+                                    subdomainPending={subdomainPending}
+                                    emojiPending={emojiPending}
+                                    onNameChange={handleSettingsNameChange}
+                                    onSubdomainChange={handleSettingsSubdomainChange}
+                                    onEmojiChange={handleEmojiChange}
+                                    onSave={handleSettingsSave}
+                                />
+                            )}
+                        </div>
+                    </Fragment>
+                )}
             </div>
         </Wrapper>
     )

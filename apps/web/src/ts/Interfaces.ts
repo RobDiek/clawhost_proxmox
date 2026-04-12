@@ -587,6 +587,10 @@ export interface ClawCardDialogsProps {
     setShowReinstallModal: (open: boolean) => void
     onReinstall: () => void
     isReinstallPending: boolean
+    showCancelDeletionModal: boolean
+    setShowCancelDeletionModal: (show: boolean) => void
+    onCancelDeletion: () => void
+    isCancelDeletionPending: boolean
 }
 
 export interface UseClawCardActionsParams {
@@ -634,6 +638,10 @@ export interface ClawCardDialogsBundleProps {
     isRestartPending: boolean
     isHardDeletePending: boolean
     isReinstallPending: boolean
+    showCancelDeletionModal: boolean
+    setShowCancelDeletionModal: (show: boolean) => void
+    onCancelDeletion: () => void
+    isCancelDeletionPending: boolean
 }
 
 export interface SSHKeyCardProps {
@@ -921,6 +929,7 @@ export interface ClawOverviewGateway {
     active: boolean
     reachable: boolean
     portListening: boolean
+    ready: boolean
 }
 
 export interface ClawOverviewInstance {
@@ -1223,6 +1232,7 @@ export interface ClawDetailPanelProps {
 }
 
 export interface UpdateAvailableBannerProps {
+    latestVersion: string
     onGoToVersions: () => void
 }
 
@@ -1256,7 +1266,6 @@ export interface ClawDetailSettingsTabProps {
     onSubdomainChange: (value: string) => void
     onEmojiChange: (emoji: string | null, emojiColor: string | null) => void
     onSave: () => void
-    onClose: () => void
 }
 
 export interface SectionHeaderProps {
@@ -2200,6 +2209,13 @@ export interface UsePaginationStateReturn<T> {
     total: number
     remaining: number
     skeletonCount: number
+}
+
+export interface ClawPendingViewProps {
+    status: string
+    checkoutUrl?: string | null
+    onCancel?: () => void
+    cancelPending?: boolean
 }
 
 export interface BillingOrderCardProps {

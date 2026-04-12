@@ -19,11 +19,7 @@ import copyToClipboard from '@/lib/copyToClipboard'
 import reportWebVitals from '@/lib/reportWebVitals'
 import isSafeRedirectUrl from '@/lib/isSafeRedirectUrl'
 import { formatDate, formatCurrency } from '@/lib/formatters'
-import {
-    tabs as CLAW_DETAIL_TAB_LIST,
-    CONFIGURING_DISABLED_TABS as CLAW_CONFIGURING_DISABLED_TABS,
-    AWAITING_PAYMENT_DISABLED_TABS as CLAW_AWAITING_PAYMENT_DISABLED_TABS
-} from '@/lib/clawDetailTabs'
+import { tabs as CLAW_DETAIL_TAB_LIST } from '@/lib/clawDetailTabs'
 
 export {
     api,
@@ -46,7 +42,5 @@ export {
     formatDate,
     formatCurrency,
     CLAW_DETAIL_TAB_LIST,
-    CLAW_CONFIGURING_DISABLED_TABS,
-    CLAW_AWAITING_PAYMENT_DISABLED_TABS,
     isSafeRedirectUrl
 }
