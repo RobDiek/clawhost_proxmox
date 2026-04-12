@@ -365,6 +365,29 @@ app.get('/models/health', async (c) => {
     return ok(c, getModelHealth())
 })
 
+// ── Contact Form (public, no auth) ──
+app.post('/contact', async (c) => {
+    const { ok, fail } = await import('@/lib/response')
+    try {
+        const { name, phone, type, message } = await c.req.json<{ name: string; phone: string; type: string; message: string }>()
+        if (!name || !phone) return fail(c, 'שם וטלפון חובה', 400)
+
+        const telegram = await import('@/services/telegram')
+        const text = `📩 *פנייה חדשה מהאתר*\n\n` +
+            `👤 *שם:* ${name}\n` +
+            `📱 *טלפון:* ${phone}\n` +
+            `📋 *סוג:* ${type || 'לא צוין'}\n` +
+            `💬 *הודעה:* ${message || 'ללא'}\n\n` +
+            `🕐 ${new Date().toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' })}`
+
+        await telegram.alertAdmin(text)
+        return ok(c, null, 'הפנייה נשלחה בהצלחה')
+    } catch (err) {
+        console.error('Contact form error:', err)
+        return fail(c, 'שגיאה בשליחה', 500)
+    }
+})
+
 // ── Admin ──
 app.get('/admin/instances', adminGetInstances)
 app.get('/admin/revenue', adminGetRevenue)
