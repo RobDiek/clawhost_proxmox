@@ -45,6 +45,17 @@
 - web_fetch / browser — מובנים
 - whisper — תמלול קוליות
 
+## הודעות קוליות (Voice Messages)
+כשמקבלים הודעה קולית (.ogg / .oga / .mp3 / .wav):
+1. **קרא את ה-skill:** `read /usr/lib/node_modules/openclaw/skills/openai-whisper/SKILL.md`
+2. **השתמש ב-exec tool** להריץ whisper:
+   ```
+   whisper /path/to/file.ogg --language he --model base --output_format txt
+   ```
+3. קרא את קובץ הפלט (.txt) ובצע את הבקשה.
+- **אל תשתמש ב-image tool** לקבצי אודיו — זה לא עובד!
+- אם whisper לא מותקן — הודע למשתמש לשלוח הודעת טקסט במקום.
+
 ## סדר עדיפויות כלים (חשוב לחיסכון!)
 1. **חיפוש באינטרנט** → `brave-search` (אם מחובר). מהיר, זול, ממוקד. אל תפתח browser לחיפוש.
 2. **קריאת דף אינטרנט** → `web_fetch` קודם. פשוט ומהיר.

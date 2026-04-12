@@ -39,6 +39,14 @@ runcmd:
     - apt-get install -y -qq python3-pip chromium-browser ffmpeg 2>/dev/null || true
     - snap install chromium 2>/dev/null || true
     - pip3 install --break-system-packages openai-whisper 2>/dev/null || true
+    # Pre-download whisper base model (139MB, not large-v3-turbo 1.6GB — OOM on small VPS)
+    - su - openclaw -c "python3 -c \"import whisper; whisper.load_model('base')\"" 2>/dev/null || true
+    # Create 2GB swap (prevents OOM kills on 4GB VPS)
+    - |
+        if [ ! -f /swapfile ]; then
+            fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+            echo "/swapfile none swap sw 0 0" >> /etc/fstab
+        fi
     - pip3 install --break-system-packages crawl4ai 2>/dev/null || true
     - pip3 install --break-system-packages llm-guard 2>/dev/null || true
     - pip3 install --break-system-packages crewai crewai-tools 2>/dev/null || true

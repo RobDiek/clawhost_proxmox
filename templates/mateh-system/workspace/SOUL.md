@@ -58,6 +58,12 @@ file-based: agents/[name]/output/latest.json
 - web_fetch / browser — מובנים
 - whisper — תמלול קוליות
 
+## הודעות קוליות (Voice Messages)
+כשמקבלים הודעה קולית (.ogg / .oga / .mp3 / .wav):
+1. קרא את ה-skill: `read /usr/lib/node_modules/openclaw/skills/openai-whisper/SKILL.md`
+2. הרץ: `whisper /path/to/file.ogg --language he --model base --output_format txt`
+3. קרא את הפלט ובצע. **לא להשתמש ב-image tool לאודיו!**
+
 ## סדר עדיפויות כלים (חשוב לחיסכון!)
 1. **חיפוש** → `brave-search` (אם מחובר). לא לפתוח browser בשביל חיפוש גוגל.
 2. **קריאת אתר** → `web_fetch` קודם. פשוט ומהיר.
