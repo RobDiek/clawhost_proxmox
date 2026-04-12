@@ -58,15 +58,11 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
 const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'https://api.clawflow.flowmatic.co.il/hosting/integrations/google/callback'
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://clawflow.flowmatic.co.il'
 
-// Available Google scopes
+// Available Google scopes (limited to what google-lite-mcp.js supports)
 const SCOPE_MAP: Record<string, string> = {
     calendar: 'https://www.googleapis.com/auth/calendar',
-    drive: 'https://www.googleapis.com/auth/drive.readonly',
     gmail: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send',
-    sheets: 'https://www.googleapis.com/auth/spreadsheets',
-    youtube: 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube',
-    ads: 'https://www.googleapis.com/auth/adwords',
-    gbp: 'https://www.googleapis.com/auth/business.manage',
+    contacts: 'https://www.googleapis.com/auth/contacts',
 }
 
 // ── GET /integrations/google/auth ──
@@ -309,42 +305,37 @@ export const googleStatus = async (c: Context) => {
     }
 }
 
-// ── Deploy Google credentials to client VPS ──
+// ── Deploy lightweight Google MCP server to VPS ──
+// Uses google-lite-mcp.js (10 tools) instead of @presto-ai/google-workspace-mcp (25-30 tools)
 async function deployGoogleToVPS(ip: string, password: string | undefined, creds: {
     clientId: string
     clientSecret: string
     accessToken: string
     refreshToken: string
-}): Promise<void> {
-    console.log(`Deploying Google MCP server to ${ip}...`)
+}, scopes?: string): Promise<void> {
+    console.log(`Deploying google-lite MCP server to ${ip} (scopes: ${scopes || 'calendar,gmail,contacts'})...`)
 
-    // Configure Google Workspace MCP server via openclaw CLI
-    const mcpConfig = JSON.stringify({
-        command: 'npx',
-        args: ['-y', '@presto-ai/google-workspace-mcp'],
+    // Deploy our lite MCP script to the VPS
+    const { resolve } = await import('path')
+    const mcpScript = readFileSync(resolve(__dirname, '../../../../scripts/google-lite-mcp.js'), 'utf-8')
+    const scriptB64 = Buffer.from(mcpScript).toString('base64')
+
+    const mcpConfig = {
+        command: 'node',
+        args: ['/opt/openclaw/google-lite-mcp.js'],
         env: {
             GOOGLE_CLIENT_ID: creds.clientId,
             GOOGLE_CLIENT_SECRET: creds.clientSecret,
             GOOGLE_REFRESH_TOKEN: creds.refreshToken,
+            GOOGLE_SCOPES: scopes || 'calendar,gmail,contacts',
         },
-    })
+    }
 
-    // Also keep legacy credential file for backward compatibility
-    const credJson = JSON.stringify({
-        type: 'authorized_user',
-        client_id: creds.clientId,
-        client_secret: creds.clientSecret,
-        refresh_token: creds.refreshToken,
-    })
-
-    // Deploy MCP config into openclaw.json + legacy creds file
-    const b64Cred = Buffer.from(credJson).toString('base64')
-    const mcpEntry = Buffer.from(mcpConfig).toString('base64')
+    const mcpEntry = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
 
     await sshExec(ip, `
-        mkdir -p /home/openclaw/.openclaw/credentials &&
-        echo '${b64Cred}' | base64 -d > /home/openclaw/.openclaw/credentials/google.json &&
-        chown -R openclaw:openclaw /home/openclaw/.openclaw/credentials &&
+        echo '${scriptB64}' | base64 -d > /opt/openclaw/google-lite-mcp.js &&
+        chmod 644 /opt/openclaw/google-lite-mcp.js &&
         python3 -c "
 import json, base64, sys
 cfg_path = '/home/openclaw/.openclaw/openclaw.json'
@@ -352,13 +343,13 @@ with open(cfg_path) as f: d = json.load(f)
 d.setdefault('mcp', {}).setdefault('servers', {})
 d['mcp']['servers']['google-workspace'] = json.loads(base64.b64decode(sys.argv[1]))
 with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
-print('MCP google-workspace configured')
+print('MCP google-lite configured')
 " '${mcpEntry}' &&
         chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
         systemctl restart openclaw-gateway
     `, password)
 
-    console.log(`Google MCP server deployed to ${ip}`)
+    console.log(`google-lite MCP server deployed to ${ip}`)
 }
 
 // ── Update SOUL.md with available tools after integration ──

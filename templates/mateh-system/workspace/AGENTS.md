@@ -36,3 +36,9 @@
 
 ## העברת נתונים
 agents/[name]/output/latest.json
+
+## ניהול זיכרון (Memory Management)
+- **MEMORY.md** — מוגבל ל-80 שורות. אם גדל — סכם עובדות ישנות ומחק.
+- **memory/YYYY-MM-DD.md** — קבצים מעל 30 יום → סכם עיקר ל-MEMORY.md → מחק.
+- **Mem0** (vector): נשמר אוטומטית. כפילויות מסוננות. אין צורך בניהול ידני.
+- **heartbeat memory cleanup**: פעם בשבוע, ב-heartbeat — בדוק גודל memory/ ונקה ישנים.

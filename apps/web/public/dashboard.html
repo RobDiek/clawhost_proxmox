@@ -1030,7 +1030,11 @@ input{font-family:inherit}
               <select id="model-complex" class="sub-agent-model-select" style="width:100%"></select>
             </div>
           </div>
-          <div style="margin-top:10px;font-size:0.75rem;color:#9CA3AF">הסוכן בוחר אוטומטית את המודל המתאים לפי סוג המשימה. פשוט = מהיר וחסכוני, מורכב = חזק ומדויק.</div>
+          <div style="margin-top:12px">
+            <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">Heartbeat (בדיקות רקע כל 4 שעות)</div>
+            <select id="model-heartbeat" class="sub-agent-model-select" style="width:50%"></select>
+          </div>
+          <div style="margin-top:10px;font-size:0.75rem;color:#9CA3AF">הסוכן בוחר אוטומטית את המודל המתאים לפי סוג המשימה. פשוט = מהיר וחסכוני, מורכב = חזק ומדויק. Heartbeat = בדיקות רקע (יומן, מיילים).</div>
           <div style="margin-top:10px;text-align:left">
             <button class="btn btn-outline" onclick="saveModelPrefs()" style="font-size:0.82rem">&#128190; שמרו שינויים</button>
           </div>
@@ -1336,14 +1340,11 @@ input{font-family:inherit}
         </div>
         <div class="int-card-body hidden" id="google-body">
           <div id="google-not-connected">
-            <p style="font-size:0.82rem;color:#6B7280;margin-bottom:10px">חיבור אחד — גישה לכל שירותי Google</p>
+            <p style="font-size:0.82rem;color:#6B7280;margin-bottom:10px">Calendar, Gmail, Contacts</p>
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
               <label class="chip-label"><input type="checkbox" name="google-scope" value="calendar" checked/><span class="chip">📅 Calendar</span></label>
-              <label class="chip-label"><input type="checkbox" name="google-scope" value="drive"/><span class="chip">📁 Drive</span></label>
-              <label class="chip-label"><input type="checkbox" name="google-scope" value="gmail"/><span class="chip">✉️ Gmail</span></label>
-              <label class="chip-label"><input type="checkbox" name="google-scope" value="sheets"/><span class="chip">📊 Sheets</span></label>
-              <label class="chip-label"><input type="checkbox" name="google-scope" value="ads"/><span class="chip">📢 Google Ads</span></label>
-              <label class="chip-label"><input type="checkbox" name="google-scope" value="gbp"/><span class="chip">📍 Business Profile</span></label>
+              <label class="chip-label"><input type="checkbox" name="google-scope" value="gmail" checked/><span class="chip">✉️ Gmail</span></label>
+              <label class="chip-label"><input type="checkbox" name="google-scope" value="contacts" checked/><span class="chip">👤 Contacts</span></label>
             </div>
             <button class="btn btn-primary btn-sm" onclick="connectGoogle()">→ חברו חשבון Google</button>
           </div>
@@ -1357,11 +1358,8 @@ input{font-family:inherit}
             <div id="google-scope-editor" style="display:none;margin-top:10px;padding:10px;background:#F9FAFB;border-radius:8px">
               <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
                 <label class="chip-label"><input type="checkbox" name="google-scope-edit" value="calendar"/><span class="chip">📅 Calendar</span></label>
-                <label class="chip-label"><input type="checkbox" name="google-scope-edit" value="drive"/><span class="chip">📁 Drive</span></label>
                 <label class="chip-label"><input type="checkbox" name="google-scope-edit" value="gmail"/><span class="chip">✉️ Gmail</span></label>
-                <label class="chip-label"><input type="checkbox" name="google-scope-edit" value="sheets"/><span class="chip">📊 Sheets</span></label>
-                <label class="chip-label"><input type="checkbox" name="google-scope-edit" value="ads"/><span class="chip">📢 Google Ads</span></label>
-                <label class="chip-label"><input type="checkbox" name="google-scope-edit" value="gbp"/><span class="chip">📍 Business Profile</span></label>
+                <label class="chip-label"><input type="checkbox" name="google-scope-edit" value="contacts"/><span class="chip">👤 Contacts</span></label>
               </div>
               <button class="btn btn-primary btn-sm" onclick="reconnectGoogleWithScopes()">→ עדכנו הרשאות</button>
             </div>
@@ -6989,12 +6987,14 @@ function loadModelPrefs() {
 
   buildOpts('model-simple', simpleTags, defaultSimple);
   buildOpts('model-complex', complexTags, defaultComplex);
+  buildOpts('model-heartbeat', simpleTags, saved.heartbeat || 'anthropic/claude-haiku-4-5-20251001');
 }
 
 async function saveModelPrefs() {
   var simple = document.getElementById('model-simple').value;
   var complex = document.getElementById('model-complex').value;
-  var prefs = { simple: simple, complex: complex };
+  var heartbeat = document.getElementById('model-heartbeat').value;
+  var prefs = { simple: simple, complex: complex, heartbeat: heartbeat };
   localStorage.setItem('cf_model_prefs', JSON.stringify(prefs));
 
   var iid = localStorage.getItem('cf_instance_id');

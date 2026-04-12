@@ -609,12 +609,13 @@ with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
         // Save model preferences (Personal/Bare agents — simple vs complex model)
         if (type === 'model-prefs') {
             try {
-                const prefs = JSON.parse(key) as { simple: string; complex: string }
+                const prefs = JSON.parse(key) as { simple: string; complex: string; heartbeat?: string }
                 const CONFIG = '/home/openclaw/.openclaw/openclaw.json'
 
                 // Validate model format
                 if (prefs.simple && !/^[a-zA-Z0-9\/_.-]+$/.test(prefs.simple)) throw new Error('Invalid simple model')
                 if (prefs.complex && !/^[a-zA-Z0-9\/_.-]+$/.test(prefs.complex)) throw new Error('Invalid complex model')
+                if (prefs.heartbeat && !/^[a-zA-Z0-9\/_.-]+$/.test(prefs.heartbeat)) throw new Error('Invalid heartbeat model')
 
                 const configScript = Buffer.from(JSON.stringify(prefs)).toString('base64')
                 await sshExecInstance(instance, `
@@ -631,8 +632,13 @@ model['fallbacks'] = [prefs['complex']]
 # Configure subagents to use the complex model
 sa = defaults.setdefault('subagents', {})
 sa['model'] = prefs['complex']
+# Configure heartbeat model
+hb = defaults.setdefault('heartbeat', {})
+hb['model'] = prefs.get('heartbeat', prefs['simple'])
+hb['every'] = hb.get('every', '4h')
+hb['lightContext'] = True
 with open('${CONFIG}', 'w') as f: json.dump(d, f, indent=2)
-print('OK: primary=' + prefs['simple'] + ' complex=' + prefs['complex'])
+print('OK: primary=' + prefs['simple'] + ' complex=' + prefs['complex'] + ' heartbeat=' + hb['model'])
 "
                     chown openclaw:openclaw ${CONFIG}
                     systemctl restart openclaw-gateway

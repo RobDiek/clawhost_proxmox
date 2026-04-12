@@ -48,12 +48,12 @@ const MCP_SERVERS: Record<string, {
     category: string
 }> = {
     'google-workspace': {
-        name: 'Google Workspace',
-        nameHe: 'Google Workspace',
-        package: '@presto-ai/google-workspace-mcp',
-        command: 'npx',
-        args: ['-y', '@presto-ai/google-workspace-mcp'],
-        envKeys: ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN'],
+        name: 'Google Workspace (Lite)',
+        nameHe: 'Google Workspace (קל)',
+        package: 'google-lite-mcp.js',
+        command: 'node',
+        args: ['/opt/openclaw/google-lite-mcp.js'],
+        envKeys: ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN', 'GOOGLE_SCOPES'],
         category: 'productivity',
     },
     'ms-365': {
