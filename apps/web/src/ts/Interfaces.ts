@@ -1311,6 +1311,7 @@ export interface ClawDetailHeaderProps {
 export interface ClawDetailTabBarProps {
     activeTab: ClawDetailTab
     fullScreen?: boolean
+    readOnly?: boolean
     isTabDisabled: (tabId: ClawDetailTab) => boolean
     getDisabledTooltip: (tabId: ClawDetailTab) => string
     setActiveTab: (tab: ClawDetailTab) => void

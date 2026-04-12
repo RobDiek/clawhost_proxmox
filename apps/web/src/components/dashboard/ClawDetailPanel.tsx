@@ -168,6 +168,7 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                         <ClawDetailTabBar
                             activeTab={activeTab}
                             fullScreen={fullScreen}
+                            readOnly={readOnly}
                             isTabDisabled={() => false}
                             getDisabledTooltip={() => ''}
                             setActiveTab={setActiveTab}
