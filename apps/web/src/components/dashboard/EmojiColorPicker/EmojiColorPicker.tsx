@@ -1,11 +1,10 @@
 import type { FC, ReactNode } from 'react'
-import type { EmojiColorPickerProps } from '@/ts/Interfaces'
+import type { EmojiColorPickerProps, EmojiMartData } from '@/ts/Interfaces'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { t } from '@openclaw/i18n'
 import { ShuffleIcon, TrashIcon } from '@phosphor-icons/react'
 import Picker from '@emoji-mart/react'
-import data from '@emoji-mart/data'
 import { usePreferencesStore } from '@/lib/store'
 import { AVATAR_COLORS, THEMES, CLAW_AVATAR_SIZE } from '@/lib/constants'
 import { randomColor } from '@/lib/claw-utils'
@@ -23,11 +22,18 @@ const EmojiColorPicker: FC<EmojiColorPickerProps> = ({
     onEmojiChange
 }): ReactNode => {
     const [emojiOpen, setEmojiOpen] = useState(false)
+    const [emojiData, setEmojiData] = useState<unknown>(null)
     const storeTheme = usePreferencesStore((s) => s.theme)
     const isDark =
         storeTheme === THEMES.DARK ||
         (storeTheme === THEMES.SYSTEM &&
             window.matchMedia('(prefers-color-scheme: dark)').matches)
+
+    useEffect(() => {
+        if (emojiOpen && !emojiData) {
+            import('@emoji-mart/data').then((mod) => setEmojiData(mod.default))
+        }
+    }, [emojiOpen, emojiData])
 
     const handleEmojiSelect = useCallback(
         (selected: string | null) => {
@@ -44,18 +50,16 @@ const EmojiColorPicker: FC<EmojiColorPickerProps> = ({
         [onEmojiChange, emoji]
     )
 
-    const handleRandomize = useCallback(() => {
-        const emojis = (
-            data as {
-                emojis: Record<string, { skins: { native: string }[] }>
-            }
-        ).emojis
+    const handleRandomize = useCallback(async () => {
+        const data = emojiData ?? (await import('@emoji-mart/data')).default
+        if (!emojiData) setEmojiData(data)
+        const emojis = (data as EmojiMartData).emojis
         const keys = Object.keys(emojis)
         const randomKey = keys[Math.floor(Math.random() * keys.length)]
-        const emojiData = emojis[randomKey]
-        if (emojiData?.skins?.[0]?.native)
-            onEmojiChange(emojiData.skins[0].native, randomColor())
-    }, [onEmojiChange])
+        const emojiEntry = emojis[randomKey]
+        if (emojiEntry?.skins?.[0]?.native)
+            onEmojiChange(emojiEntry.skins[0].native, randomColor())
+    }, [onEmojiChange, emojiData])
 
     return (
         <div className='space-y-5'>
@@ -79,18 +83,24 @@ const EmojiColorPicker: FC<EmojiColorPickerProps> = ({
                             align='start'
                             className='p-0'
                         >
-                            <Picker
-                                data={data}
-                                onEmojiSelect={(e: { native: string }) =>
-                                    handleEmojiSelect(e.native)
-                                }
-                                theme={isDark ? 'dark' : 'light'}
-                                set='native'
-                                skinTonePosition='none'
-                                previewPosition='none'
-                                perLine={8}
-                                maxFrequentRows={1}
-                            />
+                            {emojiData ? (
+                                <Picker
+                                    data={emojiData}
+                                    onEmojiSelect={(e: { native: string }) =>
+                                        handleEmojiSelect(e.native)
+                                    }
+                                    theme={isDark ? 'dark' : 'light'}
+                                    set='native'
+                                    skinTonePosition='none'
+                                    previewPosition='none'
+                                    perLine={8}
+                                    maxFrequentRows={1}
+                                />
+                            ) : (
+                                <div className='flex h-[350px] w-[352px] items-center justify-center'>
+                                    <div className='border-primary h-5 w-5 animate-spin rounded-full border-2 border-t-transparent' />
+                                </div>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                     <div className='flex flex-col gap-2'>

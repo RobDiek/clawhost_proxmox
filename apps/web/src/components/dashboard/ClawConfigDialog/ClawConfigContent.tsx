@@ -8,13 +8,15 @@ import { MagnifyingGlassIcon, FileIcon } from '@phosphor-icons/react'
 import { usePreferencesStore } from '@/lib/store'
 import { THEMES } from '@/lib'
 import { useClawFiles } from '@/hooks'
+import { demoFiles } from '@/data'
 import FileTreeSkeleton from '@/components/dashboard/ClawConfigDialog/FileTreeSkeleton'
 import FileTree from '@/components/dashboard/ClawConfigDialog/FileTree'
 import FileEditor from '@/components/dashboard/ClawConfigDialog/FileEditor'
 import useFileEditor from '@/components/dashboard/ClawConfigDialog/useFileEditor'
 
 const ClawConfigContent: FC<ClawFileExplorerContentProps> = ({
-    clawId
+    clawId,
+    readOnly
 }): ReactNode => {
     const storeTheme = usePreferencesStore((s) => s.theme)
     const resolvedTheme =
@@ -23,10 +25,13 @@ const ClawConfigContent: FC<ClawFileExplorerContentProps> = ({
                 ? THEMES.DARK
                 : THEMES.LIGHT
             : storeTheme
-    const files = useClawFiles(clawId, true)
+    const liveFiles = useClawFiles(clawId, !readOnly)
+    const files = readOnly
+        ? { data: demoFiles, isPending: false, isError: false, error: null }
+        : liveFiles
     const [searchQuery, setSearchQuery] = useState('')
 
-    const editor = useFileEditor({ clawId, files: files.data?.files })
+    const editor = useFileEditor({ clawId, files: files.data?.files, readOnly })
 
     const filteredFiles = files.data?.files.filter((file) =>
         searchQuery === ''

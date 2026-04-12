@@ -6,6 +6,7 @@ import { GaugeIcon } from '@phosphor-icons/react'
 import { Skeleton } from '@/components/ui'
 import { PanelPlaceholder, LiveBadge } from '@/components/shared'
 import { useClawOverview } from '@/hooks'
+import { demoOverview } from '@/data'
 import {
     OverviewGatewayCard,
     OverviewInstanceCard,
@@ -14,9 +15,11 @@ import {
 } from '@/components/dashboard/ClawOverviewContent'
 
 const ClawOverviewContent: FC<ClawOverviewContentProps> = ({
-    clawId
+    clawId,
+    readOnly
 }): ReactNode => {
-    const { data, isPending, isError } = useClawOverview(clawId, true)
+    const { data: liveData, isPending, isError } = useClawOverview(clawId, !readOnly)
+    const data = readOnly ? demoOverview : liveData
 
     if (isError)
         return (

@@ -36,6 +36,7 @@ const useClawCardActions = ({
     const [showDiagnostics, setShowDiagnostics] = useState(false)
     const [showLogs, setShowLogs] = useState(false)
     const [showReinstallModal, setShowReinstallModal] = useState(false)
+    const [showCancelDeletionModal, setShowCancelDeletionModal] = useState(false)
     const [showCredentials, setShowCredentials] = useState(false)
     const [credentialsPassword, setCredentialsPassword] = useState<
         string | null
@@ -139,7 +140,7 @@ const useClawCardActions = ({
             onShowStopModal: () => setShowStopModal(true),
             onShowRestartModal: () => setShowRestartModal(true),
             onShowDeleteModal: () => setShowDeleteModal(true),
-            onCancelDeletion: () => cancelDeletionMutation.mutate(target.id),
+            onCancelDeletion: () => setShowCancelDeletionModal(true),
             onShowHardDeleteModal: () => setShowHardDeleteModal(true),
             onShowDiagnostics: () => setShowDiagnostics(true),
             onShowLogs: () => setShowLogs(true),
@@ -224,7 +225,11 @@ const useClawCardActions = ({
             isStopPending: stopMutation.isPending,
             isRestartPending: restartMutation.isPending,
             isHardDeletePending: hardDeleteMutation.isPending,
-            isReinstallPending: reinstallMutation.isPending
+            isReinstallPending: reinstallMutation.isPending,
+            showCancelDeletionModal,
+            setShowCancelDeletionModal,
+            onCancelDeletion: () => cancelDeletionMutation.mutate(claw.id),
+            isCancelDeletionPending: cancelDeletionMutation.isPending
         }
     }, [
         claw,
@@ -234,6 +239,7 @@ const useClawCardActions = ({
         showRestartModal,
         showHardDeleteModal,
         showReinstallModal,
+        showCancelDeletionModal,
         showDiagnostics,
         showLogs,
         showCredentials,

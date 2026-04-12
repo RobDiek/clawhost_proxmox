@@ -48,13 +48,7 @@ const generateCode = async (c: AuthenticatedContext) => {
         return ok(c, { referralCode: code }, t('api.referralCodeGenerated'))
     } catch (error) {
         console.error('generateCode', error)
-        return fail(
-            c,
-            error instanceof Error
-                ? error.message
-                : t('api.failedToGenerateReferralCode'),
-            500
-        )
+        return fail(c, t('api.failedToGenerateReferralCode'), 500)
     }
 }
 

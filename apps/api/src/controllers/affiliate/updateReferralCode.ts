@@ -70,13 +70,7 @@ const updateReferralCode = async (c: AuthenticatedContext) => {
         return ok(c, { referralCode: code }, t('api.referralCodeUpdated'))
     } catch (error) {
         console.error('updateReferralCode', error)
-        return fail(
-            c,
-            error instanceof Error
-                ? error.message
-                : t('api.failedToUpdateReferralCode'),
-            500
-        )
+        return fail(c, t('api.failedToUpdateReferralCode'), 500)
     }
 }
 

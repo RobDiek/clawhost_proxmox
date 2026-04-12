@@ -112,22 +112,18 @@ const updateClawSubdomain = withErrorHandler('updateClawSubdomain')(async (
         15000
     )
 
+    const oldFullDomain = `${oldSubdomain}.${DOMAIN}`
+    const sslEmail = `ssl@${DOMAIN}`
+    const q = (s: string): string => `'${s.replace(/'/g, "'\\''")}'`
+
     await executeSSH(
         claw.ip,
         claw.rootPassword,
         [
-            'certbot delete --cert-name ' +
-                `${oldSubdomain}.${DOMAIN}` +
-                ' --non-interactive 2>/dev/null || true',
+            `certbot delete --cert-name ${q(oldFullDomain)} --non-interactive 2>/dev/null || true`,
             'nginx -t && systemctl reload nginx',
-            'for i in $(seq 1 24); do if host ' +
-                fullDomain +
-                ' 1.1.1.1 > /dev/null 2>&1; then sleep 15; break; fi; sleep 5; done',
-            'certbot --nginx -d ' +
-                fullDomain +
-                ' --non-interactive --agree-tos --email ssl@' +
-                DOMAIN +
-                ' --redirect'
+            `for i in $(seq 1 24); do if host ${q(fullDomain)} 1.1.1.1 > /dev/null 2>&1; then sleep 15; break; fi; sleep 5; done`,
+            `certbot --nginx -d ${q(fullDomain)} --non-interactive --agree-tos --email ${q(sslEmail)} --redirect`
         ].join(' && '),
         120000
     )

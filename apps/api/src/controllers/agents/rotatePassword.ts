@@ -52,13 +52,7 @@ const rotatePassword = withClaw({ requireSSH: 'api.failedToRotatePassword' })(
             return ok(c, { rotated: true }, t('api.passwordRotated'))
         } catch (error) {
             console.error('rotatePassword', error)
-            return fail(
-                c,
-                error instanceof Error
-                    ? error.message
-                    : t('api.failedToRotatePassword'),
-                500
-            )
+            return fail(c, t('api.failedToRotatePassword'), 500)
         }
     }
 )

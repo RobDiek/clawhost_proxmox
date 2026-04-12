@@ -41,7 +41,11 @@ const ClawCardDialogsBundle: FC<ClawCardDialogsBundleProps> = ({
     isStopPending,
     isRestartPending,
     isHardDeletePending,
-    isReinstallPending
+    isReinstallPending,
+    showCancelDeletionModal,
+    setShowCancelDeletionModal,
+    onCancelDeletion,
+    isCancelDeletionPending
 }): ReactNode => {
     return (
         <Fragment>
@@ -71,6 +75,10 @@ const ClawCardDialogsBundle: FC<ClawCardDialogsBundleProps> = ({
                 setShowReinstallModal={setShowReinstallModal}
                 onReinstall={onReinstall}
                 isReinstallPending={isReinstallPending}
+                showCancelDeletionModal={showCancelDeletionModal}
+                setShowCancelDeletionModal={setShowCancelDeletionModal}
+                onCancelDeletion={onCancelDeletion}
+                isCancelDeletionPending={isCancelDeletionPending}
             />
             <ClawDiagnosticsDialog
                 clawId={clawId}

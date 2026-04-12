@@ -29,7 +29,8 @@ const SecretField: FC<SecretFieldProps> = ({
     placeholder,
     saveTooltip,
     hasChanges,
-    saving
+    saving,
+    readOnly
 }): ReactNode => {
     const [revealed, setRevealed] = useState(false)
     const toast = useToast()
@@ -43,6 +44,7 @@ const SecretField: FC<SecretFieldProps> = ({
                     onChange={(e) => onChange(e.target.value)}
                     placeholder={placeholder}
                     className='bg-muted pr-10 font-mono text-sm'
+                    readOnly={readOnly}
                 />
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -79,22 +81,24 @@ const SecretField: FC<SecretFieldProps> = ({
                 </TooltipTrigger>
                 <TooltipContent>{t('common.copy')}</TooltipContent>
             </Tooltip>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button
-                        type='button'
-                        variant='ghost'
-                        size='icon'
-                        onClick={onRandomize}
-                    >
-                        <ArrowClockwiseIcon className='h-4 w-4' />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                    {t('clawDetail.securityRandomize')}
-                </TooltipContent>
-            </Tooltip>
-            {hasChanges && (
+            {!readOnly && (
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            type='button'
+                            variant='ghost'
+                            size='icon'
+                            onClick={onRandomize}
+                        >
+                            <ArrowClockwiseIcon className='h-4 w-4' />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        {t('clawDetail.securityRandomize')}
+                    </TooltipContent>
+                </Tooltip>
+            )}
+            {hasChanges && !readOnly && (
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button

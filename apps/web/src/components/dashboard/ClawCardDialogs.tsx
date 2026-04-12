@@ -30,7 +30,11 @@ const ClawCardDialogs: FC<ClawCardDialogsProps> = ({
     showReinstallModal,
     setShowReinstallModal,
     onReinstall,
-    isReinstallPending
+    isReinstallPending,
+    showCancelDeletionModal,
+    setShowCancelDeletionModal,
+    onCancelDeletion,
+    isCancelDeletionPending
 }): ReactNode => {
     return (
         <Fragment>
@@ -116,6 +120,18 @@ const ClawCardDialogs: FC<ClawCardDialogsProps> = ({
                 }}
                 isPending={isReinstallPending}
                 variant='destructive'
+            />
+            <ConfirmationDialog
+                open={showCancelDeletionModal}
+                onOpenChange={setShowCancelDeletionModal}
+                title={t('dashboard.cancelDeletion')}
+                description={t('dashboard.cancelDeletionConfirmation')}
+                confirmLabel={t('common.confirm')}
+                onConfirm={() => {
+                    onCancelDeletion()
+                    setShowCancelDeletionModal(false)
+                }}
+                isPending={isCancelDeletionPending}
             />
         </Fragment>
     )

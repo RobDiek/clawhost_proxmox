@@ -16,6 +16,7 @@ const AffiliateProgram: FC = (): ReactNode => {
             titleKey='affiliateProgram.title'
             descriptionKey='affiliateProgram.description'
             lastUpdatedKey='affiliateProgram.lastUpdated'
+            image={`https://${getBaseDomain()}/og-image.webp`}
             url={`https://${getBaseDomain()}/${PATHS.AFFILIATE_PROGRAM}`}
         >
             <LegalSection

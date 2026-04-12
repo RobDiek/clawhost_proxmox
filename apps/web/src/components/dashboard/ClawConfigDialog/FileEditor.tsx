@@ -88,18 +88,20 @@ const FileEditor: FC<FileEditorProps> = ({
                         <XIcon className='h-3 w-3' />
                     </button>
                 </div>
-                <button
-                    onClick={handleSave}
-                    disabled={!canSave}
-                    className='mb-1 flex shrink-0 items-center gap-1.5 rounded-md bg-[#ef5350] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#e53935] disabled:opacity-30'
-                >
-                    {isSaving ? (
-                        <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />
-                    ) : (
-                        <FloppyDiskIcon className='h-3.5 w-3.5' />
-                    )}
-                    {t('dashboard.fileExplorerSave')}
-                </button>
+                {isEditable && (
+                    <button
+                        onClick={handleSave}
+                        disabled={!canSave}
+                        className='mb-1 flex shrink-0 items-center gap-1.5 rounded-md bg-[#ef5350] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#e53935] disabled:opacity-30'
+                    >
+                        {isSaving ? (
+                            <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />
+                        ) : (
+                            <FloppyDiskIcon className='h-3.5 w-3.5' />
+                        )}
+                        {t('dashboard.fileExplorerSave')}
+                    </button>
+                )}
             </div>
             <div
                 className={`min-h-0 flex-1 overflow-auto rounded-b-md rounded-tr-md border bg-black [&_.cm-editor]:!h-full [&_.cm-editor_.cm-content]:!min-h-full [&_.cm-editor_.cm-gutters]:!min-h-full [&_.cm-editor_.cm-scroller]:!overflow-auto ${

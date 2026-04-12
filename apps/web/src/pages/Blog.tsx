@@ -20,6 +20,7 @@ const Blog: FC = (): ReactNode => {
             <PageTitle
                 title={t('blog.title')}
                 description={t('blog.description')}
+                image={`https://${getBaseDomain()}/og-blog.webp`}
                 url={`https://${getBaseDomain()}/${PATHS.BLOG}`}
             />
             <JsonLd

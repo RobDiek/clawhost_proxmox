@@ -11,7 +11,8 @@ import BillingStatusBadge from '@/components/billing/BillingStatusBadge'
 const BillingOrderCard: FC<BillingOrderCardProps> = ({
     order,
     loadingInvoiceIds,
-    onViewInvoice
+    onViewInvoice,
+    readOnly
 }): ReactNode => {
     const reasonLabelKey = billingReasonLabels[order.billingReason]
     const reasonLabel = reasonLabelKey ? t(reasonLabelKey) : order.billingReason
@@ -53,20 +54,22 @@ const BillingOrderCard: FC<BillingOrderCardProps> = ({
                     )}
                 </div>
                 <BillingStatusBadge status={order.status} />
-                <Button
-                    variant='ghost'
-                    size='icon'
-                    className='h-7 w-7'
-                    onClick={() => onViewInvoice(order.id)}
-                    disabled={loadingInvoiceIds.has(order.id)}
-                    title={t('billing.viewInvoice')}
-                >
-                    {loadingInvoiceIds.has(order.id) ? (
-                        <CircleNotchIcon className='h-4 w-4 animate-spin' />
-                    ) : (
-                        <DownloadSimpleIcon className='h-4 w-4' />
-                    )}
-                </Button>
+                {!readOnly && (
+                    <Button
+                        variant='ghost'
+                        size='icon'
+                        className='h-7 w-7'
+                        onClick={() => onViewInvoice(order.id)}
+                        disabled={loadingInvoiceIds.has(order.id)}
+                        title={t('billing.viewInvoice')}
+                    >
+                        {loadingInvoiceIds.has(order.id) ? (
+                            <CircleNotchIcon className='h-4 w-4 animate-spin' />
+                        ) : (
+                            <DownloadSimpleIcon className='h-4 w-4' />
+                        )}
+                    </Button>
+                )}
             </div>
         </div>
     )

@@ -10,19 +10,17 @@ import sanitizeClaw from '@/controllers/agents/helpers/sanitizeClaw'
 import safeShellWrite from '@/controllers/agents/helpers/safeShellWrite'
 import findUserClaw from '@/controllers/agents/helpers/findUserClaw'
 import decryptClawSecrets from '@/controllers/agents/helpers/decryptClawSecrets'
-import applyToolsDefaults from '@/controllers/agents/helpers/applyToolsDefaults'
 import BASE_DIR from '@/controllers/agents/helpers/baseDir'
 import DOMAIN from '@/controllers/agents/helpers/constants'
 import syncClawServers from '@/controllers/agents/helpers/syncClawServers'
-import isVersionAtLeast from '@/controllers/agents/helpers/isVersionAtLeast'
-import parseClawVersion from '@/controllers/agents/helpers/parseClawVersion'
 import invalidateVersionCache from '@/controllers/agents/helpers/invalidateVersionCache'
 import fetchClawVersion from '@/controllers/agents/helpers/fetchClawVersion'
 import executeServerLifecycle from '@/controllers/agents/helpers/executeServerLifecycle'
 import withClaw from '@/controllers/agents/helpers/withClaw'
+import generateClawName from '@/controllers/agents/helpers/generateClawName'
+import getPolarProductId from '@/controllers/agents/helpers/getPolarProductId'
 
 export {
-    applyToolsDefaults,
     generateCloudInit,
     checkSubdomainReady,
     generateSlug,
@@ -38,10 +36,10 @@ export {
     BASE_DIR,
     DOMAIN,
     syncClawServers,
-    isVersionAtLeast,
-    parseClawVersion,
     executeServerLifecycle,
     invalidateVersionCache,
     fetchClawVersion,
-    withClaw
+    withClaw,
+    generateClawName,
+    getPolarProductId
 }

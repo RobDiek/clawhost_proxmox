@@ -1,5 +1,3 @@
 import tabs from '@/lib/clawDetailTabs/tabs'
-import CONFIGURING_DISABLED_TABS from '@/lib/clawDetailTabs/CONFIGURING_DISABLED_TABS'
-import AWAITING_PAYMENT_DISABLED_TABS from '@/lib/clawDetailTabs/AWAITING_PAYMENT_DISABLED_TABS'
 
-export { tabs, CONFIGURING_DISABLED_TABS, AWAITING_PAYMENT_DISABLED_TABS }
+export { tabs }

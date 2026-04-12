@@ -3,13 +3,10 @@ vi.mock('@/lib/blog/data', () => ({
         [
             '/content/posts/test.mdx',
             {
-                frontmatter: {
-                    slug: 'test-post',
-                    title: 'Test Post',
-                    description: 'A test post description',
-                    publishedAt: '2024-06-01'
-                },
-                default: () => null
+                slug: 'test-post',
+                title: 'Test Post',
+                description: 'A test post description',
+                publishedAt: '2024-06-01'
             }
         ]
     ]

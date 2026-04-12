@@ -1,5 +1,4 @@
 import type {
-    ComponentType,
     ElementType,
     FormEvent,
     MutableRefObject,
@@ -31,14 +30,6 @@ import type {
     ChangelogFeatureType,
     CopiedFieldType
 } from '@/ts/Types'
-
-export interface ApiResponse<T = null> {
-    success: boolean
-    data: T
-    message: string
-    code: number
-    version: string
-}
 
 export interface Volume {
     id: string
@@ -130,12 +121,6 @@ export interface UserProfile {
 
 export interface LicenseCheckoutResponse {
     checkoutUrl: string
-}
-
-export interface LicenseCardProps {
-    hasLicense: boolean
-    isPurchasing: boolean
-    onPurchase: () => void
 }
 
 export interface UserStats {
@@ -294,6 +279,15 @@ export interface VersionsState {
     resetVersionsState: () => void
 }
 
+export interface UseTerminalConnectionReturn {
+    containerRef: React.RefObject<HTMLDivElement>
+    status: TerminalStatus
+    showScrollButton: boolean
+    showOverlay: boolean
+    connect: () => Promise<void>
+    handleTerminalScrollToBottom: () => void
+}
+
 export interface TerminalState {
     status: TerminalStatus
     setStatus: (
@@ -368,10 +362,6 @@ export interface FooterLink {
     label: string
     href: string
     external?: boolean
-}
-
-export interface SetupScreenProps {
-    onComplete: () => void
 }
 
 export interface LogoProps {
@@ -587,6 +577,10 @@ export interface ClawCardDialogsProps {
     setShowReinstallModal: (open: boolean) => void
     onReinstall: () => void
     isReinstallPending: boolean
+    showCancelDeletionModal: boolean
+    setShowCancelDeletionModal: (show: boolean) => void
+    onCancelDeletion: () => void
+    isCancelDeletionPending: boolean
 }
 
 export interface UseClawCardActionsParams {
@@ -634,6 +628,10 @@ export interface ClawCardDialogsBundleProps {
     isRestartPending: boolean
     isHardDeletePending: boolean
     isReinstallPending: boolean
+    showCancelDeletionModal: boolean
+    setShowCancelDeletionModal: (show: boolean) => void
+    onCancelDeletion: () => void
+    isCancelDeletionPending: boolean
 }
 
 export interface SSHKeyCardProps {
@@ -705,13 +703,6 @@ export interface LicenseGateProps {
 
 export interface AuthProviderProps {
     children: ReactNode
-}
-
-export interface AIModelOption {
-    id: string
-    name: string
-    provider: string
-    envVar: string
 }
 
 export interface PurchaseClawData {
@@ -789,11 +780,6 @@ export interface BlogPostMeta extends BlogPostFrontmatter {
     readingTime: number
 }
 
-export interface BlogPostModule {
-    default: ComponentType
-    frontmatter: BlogPostFrontmatter
-}
-
 export interface BlogCardProps {
     post: BlogPostMeta
 }
@@ -841,6 +827,7 @@ export interface InstallClawVersionResponse {
 
 export interface ClawVersionsContentProps {
     clawId: string
+    readOnly?: boolean
 }
 
 export interface ClawCredentialsResponse {
@@ -921,6 +908,7 @@ export interface ClawOverviewGateway {
     active: boolean
     reachable: boolean
     portListening: boolean
+    ready: boolean
 }
 
 export interface ClawOverviewInstance {
@@ -952,6 +940,7 @@ export interface ClawOverviewResponse {
 
 export interface ClawOverviewContentProps {
     clawId: string
+    readOnly?: boolean
 }
 
 export interface OverviewGatewayCardProps {
@@ -973,15 +962,18 @@ export interface OverviewConfigCardProps {
 
 export interface ClawMonitorContentProps {
     clawId: string
+    readOnly?: boolean
 }
 
 export interface ClawVolumesContentProps {
     volumes: Volume[]
+    readOnly?: boolean
 }
 
 export interface ClawSecurityContentProps {
     claw: Claw
     sshKeys: SSHKey[]
+    readOnly?: boolean
 }
 
 export interface SecretFieldProps {
@@ -993,22 +985,20 @@ export interface SecretFieldProps {
     saveTooltip: string
     hasChanges: boolean
     saving: boolean
+    readOnly?: boolean
 }
 
 export interface SecuritySSHKeySectionProps {
     clawId: string
     sshKeyId: string | null
     sshKeys: SSHKey[]
+    readOnly?: boolean
 }
 
 export interface SecuritySectionProps {
     title: string
     icon: ReactNode
     children: ReactNode
-}
-
-export interface MonitorHealthBannerProps {
-    clawId: string
 }
 
 export interface MetricCardProps {
@@ -1053,6 +1043,7 @@ export interface MonitorNetworkCardProps {
 export interface ClawServerContentProps {
     claw: Claw
     plans: Plan[]
+    readOnly?: boolean
 }
 
 export interface ClawFileEntry {
@@ -1123,6 +1114,7 @@ export interface ClawFileExplorerDialogProps {
 
 export interface ClawFileExplorerContentProps {
     clawId: string
+    readOnly?: boolean
 }
 
 export interface FileTreeProps {
@@ -1158,6 +1150,7 @@ export interface FileEditorProps {
 export interface UseFileEditorParams {
     clawId: string
     files: ClawFileEntry[] | undefined
+    readOnly?: boolean
 }
 
 export interface UseFileEditorReturn {
@@ -1188,17 +1181,6 @@ export interface UseProfileOptions {
     refetchInterval?: number | false
 }
 
-export interface UseClawOptions {
-    sync?: boolean
-}
-
-export interface Testimonial {
-    quote: string
-    author: string
-    role: string
-    avatar: string
-}
-
 export interface Faq {
     question: string
     answer: string
@@ -1223,21 +1205,25 @@ export interface ClawDetailPanelProps {
 }
 
 export interface UpdateAvailableBannerProps {
+    latestVersion: string
     onGoToVersions: () => void
 }
 
 export interface ClawBillingContentProps {
     claw: Claw
     plans: Plan[]
+    readOnly?: boolean
 }
 
 export interface ClawBillingSubscriptionProps {
     claw: Claw
     plan: Plan | undefined
+    readOnly?: boolean
 }
 
 export interface ClawBillingHistoryProps {
     polarSubscriptionId: string | null
+    readOnly?: boolean
 }
 
 export interface ClawDetailSettingsTabProps {
@@ -1256,7 +1242,7 @@ export interface ClawDetailSettingsTabProps {
     onSubdomainChange: (value: string) => void
     onEmojiChange: (emoji: string | null, emojiColor: string | null) => void
     onSave: () => void
-    onClose: () => void
+    readOnly?: boolean
 }
 
 export interface SectionHeaderProps {
@@ -1282,6 +1268,7 @@ export interface ExportSectionProps {
 
 export interface ClawPreviewContentProps {
     claw: Claw
+    readOnly?: boolean
 }
 
 export interface HeaderActionButtonProps {
@@ -1296,6 +1283,7 @@ export interface ClawDetailHeaderProps {
     onClose: () => void
     fullScreen?: boolean
     versionDisplay?: string | null
+    readOnly?: boolean
 }
 
 export interface ClawDetailTabBarProps {
@@ -1418,6 +1406,16 @@ export interface SimplePlanFeature {
     included: boolean
 }
 
+export interface SimplePlanData {
+    planId: string
+    name: string
+    desc: string
+    price: number
+    yearlyPerMonth: number
+    popular: boolean
+    features: SimplePlanFeature[]
+}
+
 export interface SimplePlanCardProps {
     name: string
     description: string
@@ -1428,15 +1426,29 @@ export interface SimplePlanCardProps {
     features: SimplePlanFeature[]
 }
 
+export interface AdminUserClawsSectionProps {
+    claws: AdminUserDetailClaw[]
+}
+
+export interface AdminUserSSHKeysSectionProps {
+    sshKeys: AdminUserDetailSSHKey[]
+    formatDate: (dateString: string | null | undefined) => string
+}
+
+export interface AdminUserVolumesSectionProps {
+    volumes: AdminUserDetailVolume[]
+}
+
+export interface AdminUserBillingSectionProps {
+    billingOrders: BillingOrder[]
+    formatDate: (dateString: string | null | undefined) => string
+    formatCurrency: (amount: number, currency?: string) => string
+}
+
 export interface ClawDetailTabConfig<T extends string = string> {
     id: T
     label: string
     icon: ElementType
-}
-
-export interface TruncateTooltipProps {
-    content: string
-    children: ReactNode
 }
 
 export interface AdminPaginatedQueryParams {
@@ -1483,6 +1495,22 @@ export interface ElectronAPI {
     getDnsStatus: () => Promise<boolean>
     setupDns: () => Promise<boolean>
     invoke: (channel: string, ...args: unknown[]) => Promise<unknown>
+    onTerminalData: (cb: (id: string, data: string) => void) => () => void
+    onTerminalExit: (cb: (id: string) => void) => () => void
+}
+
+export interface WebVitalsMetric {
+    name: string
+    delta: number
+    id: string
+}
+
+export interface GTagWindow {
+    gtag?: (...args: unknown[]) => void
+}
+
+export interface EmojiMartData {
+    emojis: Record<string, { skins: { native: string }[] }>
 }
 
 export interface ScrollToBottomButtonProps {
@@ -1570,14 +1598,6 @@ export interface ErrorWithMessage {
 
 export interface ErrorResponse {
     error?: string
-}
-
-export interface TranscriptionResult {
-    text: string
-}
-
-export interface AudioContextWithSinkId extends AudioContext {
-    setSinkId(id: string): Promise<void>
 }
 
 export interface SitemapRoute {
@@ -1851,12 +1871,6 @@ export interface AdminEmailListItem {
 export interface AdminBillingApiResponse {
     items: BillingOrder[]
     totalCount: number
-    maxPage: number
-}
-
-export interface AdminBillingResponse {
-    items: BillingOrder[]
-    total: number
     maxPage: number
 }
 
@@ -2202,10 +2216,18 @@ export interface UsePaginationStateReturn<T> {
     skeletonCount: number
 }
 
+export interface ClawPendingViewProps {
+    status: string
+    checkoutUrl?: string | null
+    onCancel?: () => void
+    cancelPending?: boolean
+}
+
 export interface BillingOrderCardProps {
     order: BillingOrder
     loadingInvoiceIds: Set<string>
     onViewInvoice: (orderId: string) => void
+    readOnly?: boolean
 }
 
 export interface BillingStatusConfig {

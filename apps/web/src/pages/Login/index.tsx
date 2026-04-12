@@ -73,9 +73,7 @@ const Login: FC = (): ReactNode => {
     }
 
     useEffect(() => {
-        if (user) {
-            navigate(getRedirectUrl())
-        }
+        if (user) navigate(getRedirectUrl())
     }, [user, navigate])
 
     useEffect(() => {

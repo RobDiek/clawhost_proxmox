@@ -1,13 +1,5 @@
 import type { ReactNode } from 'react'
-import type { ClawStatus, ToastType, UserRole } from '@/ts/Types'
-
-export interface ApiResponse<T = null> {
-    success: boolean
-    data: T
-    message: string
-    code: number
-    version: string
-}
+import type { ClawStatus, UserRole } from '@/ts/Types'
 
 export interface Volume {
     id: string
@@ -80,22 +72,11 @@ export interface UserProfile {
     createdAt: string
 }
 
-export interface ToastData {
-    message: string
-    type: ToastType
-    duration?: number
-}
-
 export interface StatusConfig {
     color: string
     bgColor: string
     label: string
     pulse?: boolean
-}
-
-export interface ScreenHeaderProps {
-    title: string
-    action?: ReactNode
 }
 
 export interface ClawCardProps {

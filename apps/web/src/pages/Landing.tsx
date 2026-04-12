@@ -121,9 +121,7 @@ const Landing: FC = (): ReactNode => {
         if (!hash) return
         const id = hash.replace('#', '')
         const el = document.getElementById(id)
-        if (el) {
-            setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100)
-        }
+        if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100)
     }, [hash])
 
     useEffect(() => {

@@ -1,5 +1,4 @@
 import applyToolsDefaults from '@/controllers/agents/helpers/applyToolsDefaults'
-import OPENCLAW_VERSION from '@/controllers/agents/helpers/openclawVersion'
 
 const generateCloudInit = (
     rootPassword: string,
@@ -77,7 +76,7 @@ runcmd:
   - apt-get update -o Dir::Etc::sourcelist="sources.list.d/nodesource.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
   - apt-get install -y nodejs
 
-  - npm install -g openclaw@${OPENCLAW_VERSION}
+  - npm install -g openclaw@latest
 
   - useradd -r -m -d /home/openclaw -s /bin/bash openclaw
   - echo 'openclaw ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/openclaw

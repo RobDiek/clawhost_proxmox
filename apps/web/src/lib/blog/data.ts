@@ -1,12 +1,14 @@
-import type { BlogPostModule } from '@/ts/Interfaces'
+import type { BlogPostFrontmatter } from '@/ts/Interfaces'
 
-const postModules = import.meta.glob<BlogPostModule>(
+const frontmatterModules = import.meta.glob<BlogPostFrontmatter>(
     '../../../content/posts/*.mdx',
     {
-        eager: true
+        eager: true,
+        import: 'frontmatter'
     }
 )
 
-const moduleEntries: [string, BlogPostModule][] = Object.entries(postModules)
+const moduleEntries: [string, BlogPostFrontmatter][] =
+    Object.entries(frontmatterModules)
 
 export default moduleEntries

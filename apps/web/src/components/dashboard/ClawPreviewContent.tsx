@@ -18,9 +18,12 @@ import { TOAST_TYPE } from '@/lib/constants'
 import { PanelPlaceholder } from '@/components/shared'
 
 const ClawPreviewContent: FC<ClawPreviewContentProps> = ({
-    claw
+    claw,
+    readOnly
 }): ReactNode => {
-    const [status, setStatus] = useState<PreviewStatus>(PREVIEW_STATUS.CHECKING)
+    const [status, setStatus] = useState<PreviewStatus>(
+        readOnly ? PREVIEW_STATUS.READY : PREVIEW_STATUS.CHECKING
+    )
     const [enabling, setEnabling] = useState(false)
     const { showToast } = useUIStore()
     const iframeRef = useRef<HTMLIFrameElement | null>(null)
@@ -33,10 +36,11 @@ const ClawPreviewContent: FC<ClawPreviewContentProps> = ({
     }, [claw.id, claw.subdomain, claw.gatewayToken])
 
     useEffect(() => {
+        if (readOnly) return
         api.checkPreview(claw.id)
             .then((res) => setStatus(res.enabled ? PREVIEW_STATUS.READY : PREVIEW_STATUS.NOT_ENABLED))
             .catch(() => setStatus(PREVIEW_STATUS.NOT_ENABLED))
-    }, [claw.id])
+    }, [claw.id, readOnly])
 
     const handleEnable = useCallback(async () => {
         setEnabling(true)
@@ -108,6 +112,29 @@ const ClawPreviewContent: FC<ClawPreviewContentProps> = ({
                     </Button>
                 }
             />
+        )
+    }
+
+    if (readOnly) {
+        return (
+            <div className='flex h-full flex-col items-center justify-center gap-3 p-5'>
+                <div className='border-border bg-foreground/5 w-full max-w-md rounded-lg border p-6'>
+                    <div className='mb-4 flex items-center gap-2'>
+                        <div className='h-2 w-2 rounded-full bg-green-500' />
+                        <span className='text-xs font-medium'>{url}</span>
+                    </div>
+                    <div className='space-y-3'>
+                        <div className='bg-foreground/5 h-8 w-3/4 rounded' />
+                        <div className='bg-foreground/5 h-4 w-full rounded' />
+                        <div className='bg-foreground/5 h-4 w-5/6 rounded' />
+                        <div className='bg-foreground/5 h-4 w-2/3 rounded' />
+                        <div className='mt-4 flex gap-2'>
+                            <div className='bg-foreground/10 h-8 w-20 rounded' />
+                            <div className='bg-foreground/10 h-8 w-20 rounded' />
+                        </div>
+                    </div>
+                </div>
+            </div>
         )
     }
 

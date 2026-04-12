@@ -119,7 +119,10 @@ const ClawLogsContent: FC<ClawLogsContentProps> = ({
                             />
                         )}
                         {parsedLines.map((line, i) => (
-                            <div key={i} className='flex gap-2'>
+                            <div
+                                key={`${line.time}-${i}`}
+                                className='flex gap-2'
+                            >
                                 {line.time && (
                                     <span className='text-muted-foreground/60 shrink-0 font-mono text-[10px] leading-4'>
                                         {line.time}

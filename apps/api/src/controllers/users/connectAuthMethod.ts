@@ -31,13 +31,7 @@ const connectAuthMethod = async (c: AuthenticatedContext) => {
         return ok(c, null, t('api.authMethodConnected'))
     } catch (error) {
         console.error('connectAuthMethod', error)
-        return fail(
-            c,
-            error instanceof Error
-                ? error.message
-                : t('api.failedToConnectAuthMethod'),
-            500
-        )
+        return fail(c, t('api.failedToConnectAuthMethod'), 500)
     }
 }
 

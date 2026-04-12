@@ -6,6 +6,7 @@ import { ChartLineUpIcon, CpuIcon, HardDriveIcon, ClockIcon, GaugeIcon } from '@
 import { Skeleton } from '@/components/ui'
 import { PanelPlaceholder, LiveBadge } from '@/components/shared'
 import { useClawMetrics } from '@/hooks'
+import { demoMetrics } from '@/data'
 import MetricCard from '@/components/dashboard/ClawMonitorContent/MetricCard'
 import UsageBar from '@/components/dashboard/ClawMonitorContent/UsageBar'
 import MonitorChart from '@/components/dashboard/ClawMonitorContent/MonitorChart'
@@ -16,8 +17,9 @@ import useMetricsHistory from '@/components/dashboard/ClawMonitorContent/useMetr
 import formatBytes from '@/components/dashboard/ClawMonitorContent/formatBytes'
 import getUsageColor from '@/components/dashboard/ClawMonitorContent/getUsageColor'
 
-const ClawMonitorContent: FC<ClawMonitorContentProps> = ({ clawId }): ReactNode => {
-    const { data, isPending, isError } = useClawMetrics(clawId, true)
+const ClawMonitorContent: FC<ClawMonitorContentProps> = ({ clawId, readOnly }): ReactNode => {
+    const { data: liveData, isPending, isError } = useClawMetrics(clawId, !readOnly)
+    const data = readOnly ? demoMetrics : liveData
     const { cpuHistory, memHistory } = useMetricsHistory(data)
 
     if (isError) return (

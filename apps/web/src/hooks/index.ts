@@ -1,5 +1,4 @@
 import {
-    ADMIN_USERS_QUERY_KEY,
     useAdminAnalytics,
     useAdminBillingList,
     useAdminClawsList,
@@ -40,8 +39,6 @@ import {
     useUpdateClawFile,
     useReinstallClaw,
     useClawVersion,
-    useRenameClaw,
-    useUpdateClawSubdomain,
     useCancelPendingClaw,
     CLAWS_QUERY_KEY,
     CLAW_FILES_QUERY_KEY,
@@ -49,9 +46,7 @@ import {
     CLAW_VERSION_QUERY_KEY,
     CLAW_VERSIONS_QUERY_KEY,
     useClawMetrics,
-    CLAW_METRICS_QUERY_KEY,
     useClawOverview,
-    CLAW_OVERVIEW_QUERY_KEY,
     useClawCredentials,
     useRotatePassword,
     useRotateGatewayToken,
@@ -61,8 +56,7 @@ import {
 import {
     useSSHKeys,
     useCreateSSHKey,
-    useDeleteSSHKey,
-    SSH_KEYS_QUERY_KEY
+    useDeleteSSHKey
 } from '@/hooks/useSSHKeys'
 
 import {
@@ -71,26 +65,17 @@ import {
     useUserStats,
     useBillingHistory,
     PROFILE_QUERY_KEY,
-    USER_STATS_QUERY_KEY,
-    BILLING_HISTORY_QUERY_KEY
+    USER_STATS_QUERY_KEY
 } from '@/hooks/useUser'
 
 import {
     usePlans,
     useLocations,
     useVolumePricing,
-    usePlanAvailability,
-    PLANS_QUERY_KEY,
-    LOCATIONS_QUERY_KEY,
-    VOLUME_PRICING_QUERY_KEY,
-    PLAN_AVAILABILITY_QUERY_KEY
+    usePlanAvailability
 } from '@/hooks/usePlans'
 
-import {
-    useGitHubStars,
-    GITHUB_REPO_URL,
-    GITHUB_STARS_QUERY_KEY
-} from '@/hooks/useGitHubStars'
+import { useGitHubStars, GITHUB_REPO_URL } from '@/hooks/useGitHubStars'
 
 import useClawCardActions from '@/hooks/useClawCardActions'
 import useScrollToBottom from '@/hooks/useScrollToBottom'
@@ -107,14 +92,13 @@ import usePaginationState from '@/hooks/usePaginationState'
 import useURLStateRestoration from '@/hooks/useURLStateRestoration'
 import useClawSettingsForm from '@/hooks/useClawSettingsForm'
 import useLinkedProvider from '@/hooks/useLinkedProvider'
-import createApiMutation from '@/hooks/createApiMutation'
 import useToast from '@/hooks/useToast'
 import useCopyWithFeedback from '@/hooks/useCopyWithFeedback'
 import useCreateClawForm from '@/hooks/useCreateClawForm'
 import useCustomerPortal from '@/hooks/useCustomerPortal'
+import useTerminalConnection from '@/hooks/useTerminalConnection'
 
 export {
-    ADMIN_USERS_QUERY_KEY,
     useAdminAnalytics,
     useAdminBillingList,
     useAdminClawsList,
@@ -149,8 +133,6 @@ export {
     useUpdateClawFile,
     useReinstallClaw,
     useClawVersion,
-    useRenameClaw,
-    useUpdateClawSubdomain,
     useCancelPendingClaw,
     CLAWS_QUERY_KEY,
     CLAW_FILES_QUERY_KEY,
@@ -158,9 +140,7 @@ export {
     CLAW_VERSION_QUERY_KEY,
     CLAW_VERSIONS_QUERY_KEY,
     useClawMetrics,
-    CLAW_METRICS_QUERY_KEY,
     useClawOverview,
-    CLAW_OVERVIEW_QUERY_KEY,
     useClawCredentials,
     useRotatePassword,
     useRotateGatewayToken,
@@ -168,25 +148,18 @@ export {
     useSSHKeys,
     useCreateSSHKey,
     useDeleteSSHKey,
-    SSH_KEYS_QUERY_KEY,
     useProfile,
     useUpdateProfile,
     useUserStats,
     useBillingHistory,
     PROFILE_QUERY_KEY,
     USER_STATS_QUERY_KEY,
-    BILLING_HISTORY_QUERY_KEY,
     usePlans,
     useLocations,
     useVolumePricing,
     usePlanAvailability,
-    PLANS_QUERY_KEY,
-    LOCATIONS_QUERY_KEY,
-    VOLUME_PRICING_QUERY_KEY,
-    PLAN_AVAILABILITY_QUERY_KEY,
     useGitHubStars,
     GITHUB_REPO_URL,
-    GITHUB_STARS_QUERY_KEY,
     useClawCardActions,
     useDebouncedValue,
     useNetworkStatus,
@@ -202,9 +175,9 @@ export {
     useURLStateRestoration,
     useClawSettingsForm,
     useLinkedProvider,
-    createApiMutation,
     useToast,
     useCopyWithFeedback,
     useCreateClawForm,
-    useCustomerPortal
+    useCustomerPortal,
+    useTerminalConnection
 }
