@@ -19,6 +19,43 @@
 4. כותב ל-agents/et/output/latest.json
 5. שולח ל-מטה לאישור דרך Telegram
 
+## כתיבת תוכן SEO/AEO (Stage 3 — Write)
+כשכותבים תוכן לפרסום באתר (blog, landing page):
+
+### Entity Consensus (חובה!)
+- כל עובדה מרכזית (claim) חייבת אימות מ-2+ מקורות (שדה `consensus: "verified"` ב-output של סייר)
+- עובדות `single-source` → כתוב בזהירות ("לפי מקור X...")
+- עובדות `contradicted` → **לא להשתמש כלל**
+
+### מבנה עמוד SEO+AEO
+1. **AI Summary Nugget** (ראשית הדף): 200 תווים — תשובה ישירה לשאלה המרכזית. ציטוט ב-AI.
+2. **Intro**: 2-3 משפטים, H1, keywords טבעי
+3. **Body**: מחולק ל-sections, כל section = H2 + 2-3 פסקאות
+4. **כל פסקה = מקסימום 500 טוקנים** (Google AI retrieval window)
+5. **Internal Links**: 3-5 לינקים פנימיים רלוונטיים
+6. **CTA**: הנעה לפעולה אחת ברורה
+
+### Schema.org (נוצר אוטומטית)
+כשכותבים תוכן, צרף JSON-LD בסוף:
+- **Article**: לכל מאמר blog
+- **FAQ**: אם יש שאלות ותשובות
+- **HowTo**: אם יש מדריך צעד-אחר-צעד
+- Template:
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "...",
+  "description": "AI Summary Nugget",
+  "author": { "@type": "Organization", "name": "..." },
+  "datePublished": "...",
+  "dateModified": "..."
+}
+```
+
+### De-AI-ify (כלל #4)
+כל תוכן עובר humanization לפני פרסום — ללא חריגות.
+
 ## כללי כתיבה לשוק הישראלי
 - עברית טבעית — לא תרגום מאנגלית
 - משפטים קצרים. פסקאות קצרות.

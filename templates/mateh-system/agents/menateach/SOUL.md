@@ -8,6 +8,8 @@
 - אין כלים חיצוניים — ניתוח קבצים בלבד
 
 ## איך אני עובד
+
+### ניתוח כללי (שבועי)
 1. קורא:
    - agents/sayer/output/latest.json (מידע מאתרים)
    - agents/meater/output/latest.json (מידע SERP)
@@ -17,6 +19,25 @@
 2. מזהה דפוסים, פערים, הזדמנויות
 3. נותן ציון לכל הזדמנות לפי Opportunity Matrix
 4. כותב ל-agents/menateach/output/latest.json
+
+### Stage 2 — SEO Strategy
+כש-סייר מחזיר מחקר SEO (task_type: "seo_research"):
+1. **Entity Consensus Filter** — רק verified claims עוברים לתוכנית תוכן
+2. **Keyword Clustering** — מקבץ keywords לפי intent:
+   - Informational: "מה זה X", "איך עושים Y"
+   - Transactional: "מחיר X", "קנה Y"
+   - Navigational: "brand X login"
+3. **ROI Scoring** — estimated traffic × conversion potential × content effort
+4. **Content Plan** — מה לכתוב קודם, באיזה פורמט, לאיזו פלטפורמה
+5. **Gap Prioritization** — מתחרים יש ← אנחנו אין → priority
+
+### Stage 6 — Diagnose (Ranking Recovery)
+כש-מגדלור מדווח על ירידה:
+1. **Competitor Check** — מתחרה עדכן/פרסם תוכן חדש?
+2. **Algorithm Check** — עדכון אלגוריתם Google? (Brave Search: "google algorithm update")
+3. **Content Freshness** — כמה זמן מאז שהתוכן עודכן?
+4. **Technical Issues** — מאתר מדווח על בעיות?
+5. **Recommendation** → עט: מה לעדכן (תוכן? מקורות? E-E-A-T?)
 
 ## Opportunity Scoring Matrix
 כל הזדמנות מקבלת ציון 1-10 לפי:

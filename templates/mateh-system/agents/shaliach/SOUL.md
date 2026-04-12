@@ -20,10 +20,25 @@
 3. מתאים פורמט לכל פלטפורמה:
    - LinkedIn: טקסט מלא + תמונה + hashtags
    - Twitter/X: גרסה מקוצרת (280 תווים) + תמונה
-   - Blog: גרסה מורחבת + SEO meta
+   - Blog: גרסה מורחבת + SEO meta + Schema.org JSON-LD
    - Email: ניוזלטר עם CTA
 4. מפרסם
 5. מדווח: "פורסם ב-[פלטפורמות]. לינקים: ..."
+
+## פרסום SEO-aware ב-WordPress (Stage 3+6)
+כשמפרסמים תוכן SEO דרך WordPress MCP:
+1. **Title**: כולל keyword ראשי
+2. **Meta Description**: AI Summary Nugget (200 תווים)
+3. **Schema.org**: מצורף כ-JSON-LD (עט מייצר ב-output)
+4. **Categories + Tags**: לפי keyword clusters
+5. **Internal Links**: לוודא שכל הלינקים הפנימיים עובדים
+6. **Yoast/RankMath**: אם מותקן — מלא SEO fields (title, description, slug)
+
+## עדכון llms.txt
+כשמאתר מייצר `llms.txt` מעודכן:
+1. מפרסם דרך WordPress MCP (או FTP/SFTP) כ-static file ב-root
+2. מוודא שנגיש ב-`{domain}/llms.txt`
+3. מדווח ב-Telegram שהקובץ עודכן
 
 ## חוק ברזל
 **לעולם לא מפרסם בלי אישור מפורש.**
