@@ -1023,23 +1023,11 @@ input{font-family:inherit}
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
             <div>
               <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">משימות פשוטות (יומן, מיילים, שיחה)</div>
-              <select id="model-simple" class="sub-agent-model-select" style="width:100%">
-                <option value="anthropic/claude-haiku-4-5-20251001">Haiku (מהיר, חסכוני)</option>
-                <option value="anthropic/claude-sonnet-4-6">Sonnet (מאוזן)</option>
-                <option value="openai/gpt-4o-mini">GPT-4o Mini (חסכוני)</option>
-                <option value="openai/gpt-4o">GPT-4o (מאוזן)</option>
-                <option value="groq/openai/gpt-oss-20b">GPT-OSS 20B (חינמי, Groq)</option>
-                <option value="groq/meta-llama/llama-4-scout-17b-16e-instruct">Llama Scout (חינמי, Groq)</option>
-              </select>
+              <select id="model-simple" class="sub-agent-model-select" style="width:100%"></select>
             </div>
             <div>
               <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">משימות מורכבות (ניתוח, כתיבה ארוכה)</div>
-              <select id="model-complex" class="sub-agent-model-select" style="width:100%">
-                <option value="anthropic/claude-sonnet-4-6">Sonnet (מומלץ)</option>
-                <option value="anthropic/claude-opus-4-6">Opus (חזק ביותר)</option>
-                <option value="openai/gpt-4o">GPT-4o</option>
-                <option value="groq/openai/gpt-oss-120b">GPT-OSS 120B (חינמי, Groq)</option>
-              </select>
+              <select id="model-complex" class="sub-agent-model-select" style="width:100%"></select>
             </div>
           </div>
           <div style="margin-top:10px;font-size:0.75rem;color:#9CA3AF">הסוכן בוחר אוטומטית את המודל המתאים לפי סוג המשימה. פשוט = מהיר וחסכוני, מורכב = חזק ומדויק.</div>
@@ -6947,20 +6935,60 @@ async function saveSubAgentModels() {
 
 // ── Model Preferences (Personal/Bare agents) ──
 function loadModelPrefs() {
-  var iid = localStorage.getItem('cf_instance_id');
-  if (!iid) return;
-  // Load from VPS config
-  fetch(API + '/hosting/instances/' + iid + '/files?path=workspace/SOUL.md', {
-    headers: { 'Authorization': 'Bearer ' + token }
-  }).then(function(r) { return r.json(); }).then(function(d) {
-    if (!d.success || !d.data) return;
-    // Try to detect current models from openclaw.json via server stats
-  }).catch(function() {});
-
-  // Load saved prefs from localStorage
   var saved = JSON.parse(localStorage.getItem('cf_model_prefs') || '{}');
-  if (saved.simple) document.getElementById('model-simple').value = saved.simple;
-  if (saved.complex) document.getElementById('model-complex').value = saved.complex;
+  var defaultSimple = saved.simple || 'anthropic/claude-haiku-4-5-20251001';
+  var defaultComplex = saved.complex || 'anthropic/claude-sonnet-4-6';
+
+  // Reuse the same ALL_MODELS + getAvailableModels logic as MATEH
+  var models = getAvailableModels('personal');
+
+  // Sort: enabled first, then by label
+  models.sort(function(a, b) {
+    if (a.enabled && !b.enabled) return -1;
+    if (!a.enabled && b.enabled) return 1;
+    return 0;
+  });
+
+  // Tags for simple vs complex recommendations
+  var simpleTags = ['anthropic/claude-haiku-4-5-20251001', 'openai/gpt-4o-mini', 'groq/openai/gpt-oss-20b', 'groq/meta-llama/llama-4-scout-17b-16e-instruct', 'cerebras/llama3.1-8b'];
+  var complexTags = ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6', 'openai/gpt-4o', 'groq/openai/gpt-oss-120b', 'cerebras/gpt-oss-120b', 'cerebras/qwen-3-235b-a22b-instruct-2507'];
+
+  function buildOpts(selectId, recommended, defaultVal) {
+    var el = document.getElementById(selectId);
+    if (!el) return;
+    // Sort: recommended first
+    var sorted = models.slice().sort(function(a, b) {
+      var aRec = recommended.indexOf(a.value) !== -1 ? 1 : 0;
+      var bRec = recommended.indexOf(b.value) !== -1 ? 1 : 0;
+      if (aRec !== bRec) return bRec - aRec;
+      if (a.enabled && !b.enabled) return -1;
+      if (!a.enabled && b.enabled) return 1;
+      return 0;
+    });
+    el.innerHTML = sorted.map(function(m) {
+      var isRec = recommended.indexOf(m.value) !== -1;
+      var lbl = m.label;
+      if (isRec) lbl = '⭐ ' + lbl;
+      return '<option value="' + m.value + '"' +
+        (m.value === defaultVal ? ' selected' : '') +
+        (!m.enabled ? ' disabled style="color:#ccc"' : '') +
+        '>' + lbl + '</option>';
+    }).join('');
+  }
+
+  // Add Ollama models if installed
+  if (window._ollamaInstalledModels && window._ollamaInstalledModels.length > 0) {
+    window._ollamaInstalledModels.forEach(function(m) {
+      var id = 'ollama/' + m;
+      if (!models.some(function(x) { return x.value === id; })) {
+        models.push({ value: id, label: 'Ollama ' + m + ' (מקומי)', enabled: true, recommended: false });
+        simpleTags.push(id);
+      }
+    });
+  }
+
+  buildOpts('model-simple', simpleTags, defaultSimple);
+  buildOpts('model-complex', complexTags, defaultComplex);
 }
 
 async function saveModelPrefs() {
