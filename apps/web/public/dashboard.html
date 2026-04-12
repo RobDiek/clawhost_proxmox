@@ -1562,6 +1562,83 @@ input{font-family:inherit}
       </div>
     </div>
 
+    <!-- SEO & AI Visibility -->
+    <div class="section-title" data-int-section="seo">SEO & AI Visibility</div>
+    <div class="integrations-grid">
+
+      <!-- Google Search Console (OAuth) -->
+      <div class="int-card" id="gsc-card" data-tooltip="Google Search Console — ניטור מיקומים בגוגל, תנועה אורגנית, שגיאות אינדוקס. חינם — דורש חשבון Google.">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#E8F5E9"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 10.5 6.5 6.5 0 109.5 17c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 20l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="#4285F4"/><circle cx="9.5" cy="9.5" r="2" fill="#34A853"/></svg></div>
+          <div><strong>Google Search Console</strong><div class="int-status" id="gsc-status">לא מחובר</div></div>
+        </div>
+        <div class="int-card-body hidden" id="int-gsc-body">
+          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">ניטור מיקומים, תנועה, שגיאות אינדוקס. דוחות יומיים ושבועיים אוטומטיים.</div>
+          <div id="gsc-not-connected">
+            <input type="text" id="gsc-site-url" placeholder="https://example.co.il" dir="ltr" class="int-input" style="margin-bottom:6px"/>
+            <button class="btn btn-primary btn-sm" onclick="connectGsc()">&#8594; חברו GSC</button>
+            <div style="font-size:0.72rem;color:#9CA3AF;margin-top:4px">חינם — דורש חשבון Google עם גישה ל-Search Console</div>
+          </div>
+          <div id="gsc-connected" style="display:none">
+            <div style="font-size:0.85rem;color:#10B981;margin-bottom:4px">&#10003; מחובר: <span id="gsc-email"></span></div>
+            <div style="font-size:0.78rem;color:#6B7280;margin-bottom:6px">אתר: <span id="gsc-site" dir="ltr"></span></div>
+            <div style="display:flex;gap:6px">
+              <select id="gsc-site-select" style="font-size:0.78rem;border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;flex:1;direction:ltr" onchange="changeGscSite()"></select>
+              <button class="btn btn-outline btn-sm" onclick="disconnectGsc()" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">נתקו</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DataForSEO (API key) -->
+      <div class="int-card" id="dataforseo-card" data-tooltip="DataForSEO — מחקר מילות מפתח, ניתוח מתחרים, בקלינקים, נראות ב-AI. תשלום לפי שימוש ~$5/חודש.">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#EFF6FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" fill="#2563EB" fill-opacity=".1"/><path d="M7 17V10M12 17V7M17 17V13" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/></svg></div>
+          <div><strong>DataForSEO</strong><div class="int-status" id="dataforseo-status">לא מחובר</div></div>
+        </div>
+        <div class="int-card-body hidden" id="int-dataforseo-body">
+          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">מחקר מילות מפתח, ניתוח מתחרים, בקלינקים, נראות ב-AI — לפי שימוש</div>
+          <div id="dataforseo-not-connected">
+            <input type="text" id="dataforseo-login" placeholder="Login" dir="ltr" class="int-input" style="margin-bottom:4px"/>
+            <input type="password" id="dataforseo-password" placeholder="Password" dir="ltr" class="int-input" style="margin-bottom:6px"/>
+            <button class="btn btn-primary btn-sm" onclick="saveDataforseo()">&#8594; שמרו</button>
+            <a href="https://app.dataforseo.com/register" target="_blank" class="int-help-link">~$5/חודש (500 שאילתות) — חלופה ל-Ahrefs &#8599;</a>
+          </div>
+          <div id="dataforseo-connected" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="color:#10B981;font-size:0.85rem">&#10003;</span>
+              <span style="font-size:0.82rem;color:#374151" id="dataforseo-login-display"></span>
+              <button class="btn btn-outline btn-sm" onclick="disconnectDataforseo()" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">הסירו</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Firecrawl (API key) -->
+      <div class="int-card" id="firecrawl-card" data-tooltip="Firecrawl — סריקת אתרים מלאה, ניתוח טכני, מיפוי תוכן מתחרים, בדיקת קישורים. 500 דפים/חודש חינם.">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#FFF7ED"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C8 2 6 5 6 8c0 2 1 4 3 5.5V15a1 1 0 001 1h4a1 1 0 001-1v-1.5C17 12 18 10 18 8c0-3-2-6-6-6z" stroke="#F97316" stroke-width="1.5"/><path d="M10 18h4M11 20h2" stroke="#F97316" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div><strong>Firecrawl</strong><div class="int-status" id="firecrawl-status">לא מחובר</div></div>
+        </div>
+        <div class="int-card-body hidden" id="int-firecrawl-body">
+          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">סריקת אתרים מלאה — ניתוח טכני, מיפוי תוכן מתחרים, בדיקת קישורים</div>
+          <div id="firecrawl-not-connected">
+            <input type="password" id="firecrawl-key" placeholder="fc-..." dir="ltr" class="int-input" style="margin-bottom:6px"/>
+            <button class="btn btn-primary btn-sm" onclick="saveFirecrawl()">&#8594; שמרו</button>
+            <a href="https://www.firecrawl.dev/" target="_blank" class="int-help-link">500 דפים/חודש חינם &#8599;</a>
+          </div>
+          <div id="firecrawl-connected" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="color:#10B981;font-size:0.85rem">&#10003;</span>
+              <code id="firecrawl-masked" style="font-size:0.78rem;color:#374151;background:#F3F4F6;padding:3px 8px;border-radius:4px"></code>
+              <button class="btn btn-outline btn-sm" onclick="disconnectFirecrawl()" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">הסירו</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
     <!-- Publishing Channels -->
     <div class="section-title" data-int-section="publishing">ערוצי פרסום</div>
     <div class="integrations-grid" id="publishingChannels">
@@ -7436,7 +7513,212 @@ function restoreIntegrationStates() {
       showIntegrationSavedState(type);
     }
   });
+  // Restore SEO integration states
+  restoreSeoIntegrationStates();
 }
+
+/* ===== SEO & AI Visibility Integrations ===== */
+
+async function restoreSeoIntegrationStates() {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) return;
+  // GSC
+  try {
+    var res = await fetch(API + '/hosting/integrations/gsc/status?instanceId=' + iid);
+    var data = await res.json();
+    if (data.success && data.data.connected) {
+      showGscConnected(data.data);
+    }
+  } catch {}
+  // DataForSEO
+  try {
+    var res2 = await fetch(API + '/hosting/integrations/dataforseo/status?instanceId=' + iid);
+    var data2 = await res2.json();
+    if (data2.success && data2.data.connected) {
+      showDataforseoConnected(data2.data.login);
+    }
+  } catch {}
+  // Firecrawl
+  try {
+    var res3 = await fetch(API + '/hosting/integrations/firecrawl/status?instanceId=' + iid);
+    var data3 = await res3.json();
+    if (data3.success && data3.data.connected) {
+      showFirecrawlConnected(data3.data.masked);
+    }
+  } catch {}
+}
+
+// ── GSC ──
+function connectGsc() {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+  var siteUrl = document.getElementById('gsc-site-url').value.trim();
+  var token = localStorage.getItem('cf_token');
+  var url = API + '/hosting/integrations/gsc/auth?instanceId=' + iid + '&token=' + token;
+  if (siteUrl) url += '&siteUrl=' + encodeURIComponent(siteUrl);
+  window.location.href = url;
+}
+
+function showGscConnected(data) {
+  var el = document.getElementById('gsc-not-connected');
+  var elC = document.getElementById('gsc-connected');
+  if (el) el.style.display = 'none';
+  if (elC) elC.style.display = '';
+  var emailEl = document.getElementById('gsc-email');
+  if (emailEl) emailEl.textContent = data.email || '';
+  var siteEl = document.getElementById('gsc-site');
+  if (siteEl) siteEl.textContent = data.siteUrl || '';
+  var selectEl = document.getElementById('gsc-site-select');
+  if (selectEl && data.sites && data.sites.length > 0) {
+    selectEl.innerHTML = '';
+    data.sites.forEach(function(s) {
+      var opt = document.createElement('option');
+      opt.value = s; opt.textContent = s;
+      if (s === data.siteUrl) opt.selected = true;
+      selectEl.appendChild(opt);
+    });
+  }
+  var statusEl = document.getElementById('gsc-status');
+  if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
+  var card = document.getElementById('gsc-card');
+  if (card) card.classList.add('connected-card');
+}
+
+async function changeGscSite() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var siteUrl = document.getElementById('gsc-site-select').value;
+  if (!iid || !siteUrl) return;
+  try {
+    var res = await fetch(API + '/hosting/integrations/gsc/set-site?instanceId=' + iid, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ siteUrl: siteUrl })
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('אתר GSC עודכן', 'success');
+      var siteEl = document.getElementById('gsc-site');
+      if (siteEl) siteEl.textContent = siteUrl;
+    } else { showToast(data.message || 'שגיאה', 'error'); }
+  } catch { showToast('שגיאת תקשורת', 'error'); }
+}
+
+async function disconnectGsc() {
+  if (!confirm('לנתק Google Search Console?')) return;
+  var iid = localStorage.getItem('cf_instance_id');
+  try {
+    await fetch(API + '/hosting/integrations/gsc/disconnect?instanceId=' + iid, { method: 'POST' });
+    showToast('GSC נותק', 'success');
+    document.getElementById('gsc-not-connected').style.display = '';
+    document.getElementById('gsc-connected').style.display = 'none';
+    var statusEl = document.getElementById('gsc-status');
+    if (statusEl) { statusEl.textContent = 'לא מחובר'; statusEl.className = 'int-status'; }
+    var card = document.getElementById('gsc-card');
+    if (card) card.classList.remove('connected-card');
+  } catch { showToast('שגיאה', 'error'); }
+}
+
+// ── DataForSEO ──
+async function saveDataforseo() {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+  var login = document.getElementById('dataforseo-login').value.trim();
+  var password = document.getElementById('dataforseo-password').value.trim();
+  if (!login || !password) { showToast('הכניסו Login ו-Password', 'error'); return; }
+  try {
+    var res = await fetch(API + '/hosting/integrations/dataforseo/save', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instanceId: iid, login: login, password: password })
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('DataForSEO חובר!', 'success');
+      showDataforseoConnected(login);
+    } else { showToast(data.message || 'שגיאה', 'error'); }
+  } catch { showToast('שגיאת תקשורת', 'error'); }
+}
+
+function showDataforseoConnected(login) {
+  document.getElementById('dataforseo-not-connected').style.display = 'none';
+  document.getElementById('dataforseo-connected').style.display = '';
+  document.getElementById('dataforseo-login-display').textContent = login || '';
+  var statusEl = document.getElementById('dataforseo-status');
+  if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
+  var card = document.getElementById('dataforseo-card');
+  if (card) card.classList.add('connected-card');
+}
+
+async function disconnectDataforseo() {
+  if (!confirm('להסיר DataForSEO?')) return;
+  var iid = localStorage.getItem('cf_instance_id');
+  try {
+    await fetch(API + '/hosting/integrations/dataforseo/disconnect?instanceId=' + iid, { method: 'POST' });
+    showToast('DataForSEO הוסר', 'success');
+    document.getElementById('dataforseo-not-connected').style.display = '';
+    document.getElementById('dataforseo-connected').style.display = 'none';
+    var statusEl = document.getElementById('dataforseo-status');
+    if (statusEl) { statusEl.textContent = 'לא מחובר'; statusEl.className = 'int-status'; }
+    var card = document.getElementById('dataforseo-card');
+    if (card) card.classList.remove('connected-card');
+  } catch { showToast('שגיאה', 'error'); }
+}
+
+// ── Firecrawl ──
+async function saveFirecrawl() {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+  var key = document.getElementById('firecrawl-key').value.trim();
+  if (!key) { showToast('הכניסו API Key', 'error'); return; }
+  try {
+    var res = await fetch(API + '/hosting/integrations/firecrawl/save', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instanceId: iid, key: key })
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('Firecrawl חובר!', 'success');
+      showFirecrawlConnected(data.data.masked || key.slice(0, 6) + '****');
+      document.getElementById('firecrawl-key').value = '';
+    } else { showToast(data.message || 'שגיאה', 'error'); }
+  } catch { showToast('שגיאת תקשורת', 'error'); }
+}
+
+function showFirecrawlConnected(masked) {
+  document.getElementById('firecrawl-not-connected').style.display = 'none';
+  document.getElementById('firecrawl-connected').style.display = '';
+  document.getElementById('firecrawl-masked').textContent = masked || '';
+  var statusEl = document.getElementById('firecrawl-status');
+  if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
+  var card = document.getElementById('firecrawl-card');
+  if (card) card.classList.add('connected-card');
+}
+
+async function disconnectFirecrawl() {
+  if (!confirm('להסיר Firecrawl?')) return;
+  var iid = localStorage.getItem('cf_instance_id');
+  try {
+    await fetch(API + '/hosting/integrations/firecrawl/disconnect?instanceId=' + iid, { method: 'POST' });
+    showToast('Firecrawl הוסר', 'success');
+    document.getElementById('firecrawl-not-connected').style.display = '';
+    document.getElementById('firecrawl-connected').style.display = 'none';
+    var statusEl = document.getElementById('firecrawl-status');
+    if (statusEl) { statusEl.textContent = 'לא מחובר'; statusEl.className = 'int-status'; }
+    var card = document.getElementById('firecrawl-card');
+    if (card) card.classList.remove('connected-card');
+  } catch { showToast('שגיאה', 'error'); }
+}
+
+// Handle OAuth redirects (GSC)
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('gsc_connected') === 'true') {
+    showToast('Google Search Console חובר!', 'success');
+    history.replaceState(null, '', window.location.pathname);
+  }
+  if (params.get('gsc_error')) {
+    showToast('שגיאה בחיבור GSC: ' + params.get('gsc_error'), 'error');
+    history.replaceState(null, '', window.location.pathname);
+  }
+})();
 
 async function saveIntegration(type) {
   var keyMap = {

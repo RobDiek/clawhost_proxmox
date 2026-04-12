@@ -149,6 +149,8 @@ runcmd:
           mcp-mail-server \
           mcp-communicator-telegram \
           @mcpware/instagram-mcp \
+          dataforseo-mcp-server \
+          firecrawl-mcp \
           2>/dev/null || true
 
     # ── ms365-lite MCP server deployed by provisioner after cloud-init completes ──

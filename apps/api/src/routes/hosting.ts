@@ -131,7 +131,18 @@ import {
     setAgentIntegrationEndpoint,
     deleteAgentIntegrationEndpoint,
     deleteOllamaModel,
-    installTwenty
+    installTwenty,
+    gscAuth,
+    gscCallback,
+    gscDisconnect,
+    gscStatus,
+    gscSetSite,
+    saveDataforseoKey,
+    getDataforseoStatus,
+    removeDataforseoKey,
+    saveFirecrawlKey,
+    getFirecrawlStatus,
+    removeFirecrawlKey
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -206,6 +217,23 @@ app.get('/integrations/google/auth', googleAuth)
 app.get('/integrations/google/callback', googleCallback)
 app.post('/integrations/google/disconnect', googleDisconnect)
 app.get('/integrations/google/status', googleStatus)
+
+// ── Google Search Console OAuth ──
+app.get('/integrations/gsc/auth', gscAuth)
+app.get('/integrations/gsc/callback', gscCallback)
+app.post('/integrations/gsc/disconnect', gscDisconnect)
+app.get('/integrations/gsc/status', gscStatus)
+app.post('/integrations/gsc/set-site', gscSetSite)
+
+// ── DataForSEO ──
+app.post('/integrations/dataforseo/save', saveDataforseoKey)
+app.get('/integrations/dataforseo/status', getDataforseoStatus)
+app.post('/integrations/dataforseo/disconnect', removeDataforseoKey)
+
+// ── Firecrawl ──
+app.post('/integrations/firecrawl/save', saveFirecrawlKey)
+app.get('/integrations/firecrawl/status', getFirecrawlStatus)
+app.post('/integrations/firecrawl/disconnect', removeFirecrawlKey)
 
 // ── Agent Outputs (approval queue) ──
 app.get('/instances/:id/outputs', getOutputs)

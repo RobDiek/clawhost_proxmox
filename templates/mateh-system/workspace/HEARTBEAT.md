@@ -32,6 +32,38 @@
   - בעיות Schema/meta tags
   - המלצות לשיפור
 
+## יומי — SEO (אם GSC מחובר)
+**GSC Daily Check**
+- סוכן: מגדלור
+- מודל: haiku
+- תוכן:
+  - בדיקת ירידות > 3 מיקומים ב-queries עיקריים
+  - impressions ללא קליקים (הזדמנויות)
+  - שגיאות אינדוקס חדשות
+  - אם יש ירידה משמעותית → התראה ב-Telegram
+
+## שבועי — SEO (יום ד, 09:00 שעון ישראל)
+**SEO Weekly Digest**
+- שרשרת: מגדלור (GSC data) → מנתח (trends) → עט (summary)
+- מודל: sonnet
+- תוכן:
+  - טופ 10 queries + שינויים מהשבוע הקודם
+  - דפים חדשים שנכנסו לאינדוקס
+  - הזדמנויות תוכן (impressions בלי קליקים)
+  - 2-3 המלצות ספציפיות לשיפור
+
+## חודשי — AEO Deep Audit (15 לחודש, 10:00)
+**AI Visibility Audit**
+- סוכן: מגדלור + סייר
+- מודל: sonnet
+- תוכן:
+  - בדיקת ציטוטים ב-ChatGPT, Perplexity, Claude, Gemini (DataForSEO AI Visibility)
+  - entity consensus check — האם AI אומר עלינו דברים נכונים?
+  - llms.txt — עדכון אוטומטי אם צריך
+  - ציון AEO: 1-100 (internal scoring)
+  - השוואה למתחרים
+  - תוכנית פעולה: מה לתקן/לשפר
+
 ## הערות
 - כל המשימות ב-timezone: Asia/Jerusalem
 - אם משימה נכשלת — התראה ב-Telegram + retry אחרי 30 דקות

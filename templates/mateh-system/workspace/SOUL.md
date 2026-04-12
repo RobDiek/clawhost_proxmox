@@ -64,6 +64,20 @@ file-based: agents/[name]/output/latest.json
 2. הרץ: `whisper /path/to/file.ogg --language he --model base --output_format txt`
 3. קרא את הפלט ובצע. **לא להשתמש ב-image tool לאודיו!**
 
+## SEO/AEO כלים (אם מחוברים)
+- **Google Search Console MCP** — positions, impressions, CTR, index coverage, sitemaps (אם מחובר)
+- **DataForSEO MCP** — SERP analysis, keywords, backlinks, AI visibility, PageSpeed (אם מחובר, ~$0.002-0.01/query)
+- **Firecrawl MCP** — full-site crawl, content extraction, competitor analysis (אם מחובר, 500 pages/חודש חינם)
+
+## Entity Consensus (כלל חשוב לתוכן SEO!)
+כשכותבים תוכן לפרסום:
+1. כל עובדה מרכזית חייבת אימות מ-2+ מקורות עצמאיים
+2. סייר מחפש → מנתח מסנן (רק verified claims) → עט כותב סביב עובדות מאומתות
+3. כל פסקה = מקסימום 500 טוקנים (Google AI retrieval window)
+4. AI Summary Nugget (200 תווים) בראש כל עמוד — לציטוט מיידי ב-AI
+5. Schema.org אוטומטי: FAQ, HowTo, Article — לפי סוג התוכן
+6. llms.txt — מעודכן אוטומטית כל חודש עם הדפים החשובים
+
 ## סדר עדיפויות כלים (חשוב לחיסכון!)
 1. **חיפוש** → `brave-search` (אם מחובר). לא לפתוח browser בשביל חיפוש גוגל.
 2. **קריאת אתר** → `web_fetch` קודם. פשוט ומהיר.

@@ -119,6 +119,33 @@ const MCP_SERVERS: Record<string, {
         envKeys: ['MEM0_API_KEY'],
         category: 'memory',
     },
+    'gsc': {
+        name: 'Google Search Console',
+        nameHe: 'Google Search Console',
+        package: '@anthropic/gsc-mcp-server',
+        command: 'npx',
+        args: ['-y', '@anthropic/gsc-mcp-server'],
+        envKeys: ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN', 'GSC_SITE_URL'],
+        category: 'seo',
+    },
+    'dataforseo': {
+        name: 'DataForSEO',
+        nameHe: 'DataForSEO',
+        package: 'dataforseo-mcp-server',
+        command: 'npx',
+        args: ['-y', 'dataforseo-mcp-server'],
+        envKeys: ['DATAFORSEO_LOGIN', 'DATAFORSEO_PASSWORD'],
+        category: 'seo',
+    },
+    'firecrawl': {
+        name: 'Firecrawl',
+        nameHe: 'Firecrawl',
+        package: 'firecrawl-mcp',
+        command: 'npx',
+        args: ['-y', 'firecrawl-mcp'],
+        envKeys: ['FIRECRAWL_API_KEY'],
+        category: 'seo',
+    },
 }
 
 // Validate env vars don't contain shell metacharacters

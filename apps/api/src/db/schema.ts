@@ -282,6 +282,11 @@ export const instances = pgTable(
         metaTokens: jsonb('meta_tokens'),             // { appId, appSecret, userAccessToken, pageAccessToken, pageId, instagramAccountId, adAccountId }
         microsoftTokens: jsonb('microsoft_tokens'),   // { accessToken, refreshToken, expiresAt, scopes[], email }
 
+        // SEO/AEO integrations
+        gscTokens: jsonb('gsc_tokens'),               // { accessToken, refreshToken, expiresAt, email, siteUrl, sites[] }
+        dataforseoKey: text('dataforseo_key'),         // DataForSEO API login:password (encrypted at rest)
+        firecrawlKey: text('firecrawl_key'),           // Firecrawl API key
+
         // Telegram
         telegramChatId: text('telegram_chat_id'),
         telegramBotToken: text('telegram_bot_token'),

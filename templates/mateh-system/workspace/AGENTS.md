@@ -34,6 +34,24 @@
 ## Fallback
 ברירת מחדל: sonnet. אם לא זמין — המערכת עוברת אוטומטית ל-haiku, ואם גם הוא לא זמין — ל-gpt-4o. סוכנים ספציפיים רשומים עם מודלים ייעודיים (ראה טבלה למעלה).
 
+## SEO/AEO Pipeline (6 שלבים)
+
+| שלב | סוכן | מקור נתונים | פעולה | מודל |
+|-----|------|-------------|-------|------|
+| Research | סייר | DataForSEO MCP, Brave, Firecrawl | מחקר gaps + keywords | haiku |
+| Strategy | מנתח | research output | תוכנית תוכן + ROI scoring | opus |
+| Write | עט | content plan | כתיבת תוכן + schema + AI nugget | sonnet |
+| Audit | מאתר | Firecrawl, GSC | technical SEO audit + llms.txt | haiku |
+| Monitor | מגדלור | GSC, DataForSEO AI Visibility | ranking + AI citation tracking | haiku |
+| Fix | עט+שליח | monitoring alerts | content refresh + republish | sonnet |
+
+### כללי SEO content
+- Entity consensus: כל עובדה מאומתת מ-2+ מקורות
+- 500-token chunks: מותאם ל-Google AI retrieval window
+- AI Summary Nugget: 200 תווים בראש כל עמוד — לציטוט ב-AI
+- Schema.org: FAQ, HowTo, Article — נוצר אוטומטית
+- De-AI-ify: תוכן לא נשמע כמו AI כתב אותו (כלל #4)
+
 ## העברת נתונים
 agents/[name]/output/latest.json
 
