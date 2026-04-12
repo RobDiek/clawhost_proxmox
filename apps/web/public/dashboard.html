@@ -1169,8 +1169,16 @@ input{font-family:inherit}
           <div><strong>Google Gemini</strong><div class="int-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-gemini-body">
-          <input type="password" id="int-gemini-key" placeholder="API Key..." dir="ltr" class="int-input"/>
-          <button class="btn btn-primary btn-sm" onclick="saveIntegration('gemini')">שמרו</button>
+          <div id="int-gemini-input">
+            <input type="password" id="int-gemini-key" placeholder="API Key..." dir="ltr" class="int-input"/>
+            <button class="btn btn-primary btn-sm" onclick="saveIntegration('gemini')">שמרו</button>
+          </div>
+          <div id="int-gemini-saved" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px">
+              <code id="int-gemini-masked" style="font-size:0.78rem;color:#374151;background:#F3F4F6;padding:3px 8px;border-radius:4px"></code>
+              <button class="btn btn-outline btn-sm" onclick="disconnectIntegration('gemini')" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">הסירו</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="int-card" id="ollama-card" style="grid-column:span 2">
@@ -1346,9 +1354,17 @@ input{font-family:inherit}
           <div><strong>Resend</strong><div class="int-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-resend-body">
-          <input type="password" id="int-resend-key" placeholder="re_..." dir="ltr" class="int-input"/>
-          <button class="btn btn-primary btn-sm" onclick="saveIntegration('resend')">שמרו</button>
-          <a href="https://resend.com" target="_blank" class="int-help-link">פתחו חשבון ב-Resend &#8599;</a>
+          <div id="int-resend-input">
+            <input type="password" id="int-resend-key" placeholder="re_..." dir="ltr" class="int-input"/>
+            <button class="btn btn-primary btn-sm" onclick="saveIntegration('resend')">שמרו</button>
+            <a href="https://resend.com" target="_blank" class="int-help-link">פתחו חשבון ב-Resend &#8599;</a>
+          </div>
+          <div id="int-resend-saved" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px">
+              <code id="int-resend-masked" style="font-size:0.78rem;color:#374151;background:#F3F4F6;padding:3px 8px;border-radius:4px"></code>
+              <button class="btn btn-outline btn-sm" onclick="disconnectIntegration('resend')" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">הסירו</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1491,9 +1507,17 @@ input{font-family:inherit}
           <div><strong>Brave Search</strong><div class="int-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-brave-body">
-          <input type="password" id="int-brave-key" placeholder="API Key..." dir="ltr" class="int-input"/>
-          <button class="btn btn-primary btn-sm" onclick="saveIntegration('brave')">שמרו</button>
-          <a href="https://brave.com/search/api/" target="_blank" class="int-help-link">$5 חינמי/חודש &#8599;</a>
+          <div id="int-brave-input">
+            <input type="password" id="int-brave-key" placeholder="API Key..." dir="ltr" class="int-input"/>
+            <button class="btn btn-primary btn-sm" onclick="saveIntegration('brave')">שמרו</button>
+            <a href="https://brave.com/search/api/" target="_blank" class="int-help-link">$5 חינמי/חודש &#8599;</a>
+          </div>
+          <div id="int-brave-saved" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px">
+              <code id="int-brave-masked" style="font-size:0.78rem;color:#374151;background:#F3F4F6;padding:3px 8px;border-radius:4px"></code>
+              <button class="btn btn-outline btn-sm" onclick="disconnectIntegration('brave')" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">הסירו</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="int-card">
@@ -1502,8 +1526,16 @@ input{font-family:inherit}
           <div><strong>Bright Data</strong><div class="int-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-brightdata-body">
-          <input type="password" id="int-brightdata-key" placeholder="API Key..." dir="ltr" class="int-input"/>
-          <button class="btn btn-primary btn-sm" onclick="saveIntegration('brightdata')">שמרו</button>
+          <div id="int-brightdata-input">
+            <input type="password" id="int-brightdata-key" placeholder="API Key..." dir="ltr" class="int-input"/>
+            <button class="btn btn-primary btn-sm" onclick="saveIntegration('brightdata')">שמרו</button>
+          </div>
+          <div id="int-brightdata-saved" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px">
+              <code id="int-brightdata-masked" style="font-size:0.78rem;color:#374151;background:#F3F4F6;padding:3px 8px;border-radius:4px"></code>
+              <button class="btn btn-outline btn-sm" onclick="disconnectIntegration('brightdata')" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">הסירו</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1515,9 +1547,17 @@ input{font-family:inherit}
         </div>
         <div class="int-card-body hidden" id="int-replicate-body">
           <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">יצירת תמונות ווידאו — FLUX, Stable Diffusion ועוד</div>
-          <input type="password" id="int-replicate-key" placeholder="r8_..." dir="ltr" class="int-input"/>
-          <button class="btn btn-primary btn-sm" onclick="saveIntegration('replicate')">שמרו</button>
-          <a href="https://replicate.com/account/api-tokens" target="_blank" class="int-help-link">קבלו API Token &#8599;</a>
+          <div id="int-replicate-input">
+            <input type="password" id="int-replicate-key" placeholder="r8_..." dir="ltr" class="int-input"/>
+            <button class="btn btn-primary btn-sm" onclick="saveIntegration('replicate')">שמרו</button>
+            <a href="https://replicate.com/account/api-tokens" target="_blank" class="int-help-link">קבלו API Token &#8599;</a>
+          </div>
+          <div id="int-replicate-saved" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px">
+              <code id="int-replicate-masked" style="font-size:0.78rem;color:#374151;background:#F3F4F6;padding:3px 8px;border-radius:4px"></code>
+              <button class="btn btn-outline btn-sm" onclick="disconnectIntegration('replicate')" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">הסירו</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -4833,6 +4873,8 @@ function renderIntegrations() {
   loadMcpServers();
   // Check Microsoft status
   checkMicrosoftStatus();
+  // Restore key-based integration states (brave, replicate, etc.)
+  restoreIntegrationStates();
 
   // Per-agent integration status (from agent_integrations table)
   var agentInts = (instanceData && instanceData.agentIntegrations && instanceData.agentIntegrations[activeAgent]) || {};
@@ -7352,6 +7394,50 @@ async function deleteAgent(i) {
 }
 
 /* ===== Integration save (catalog) ===== */
+// ── Integration saved state (masked key + delete button) ──
+function showIntegrationSavedState(type, fullKey) {
+  var masked = fullKey ? fullKey.substring(0, Math.min(6, fullKey.length)) + '••••••••' + (fullKey.length > 10 ? fullKey.substring(fullKey.length - 4) : '') : '••••••••';
+  var inputDiv = document.getElementById('int-' + type + '-input');
+  var savedDiv = document.getElementById('int-' + type + '-saved');
+  var maskedEl = document.getElementById('int-' + type + '-masked');
+  if (inputDiv) inputDiv.style.display = 'none';
+  if (savedDiv) savedDiv.style.display = '';
+  if (maskedEl) maskedEl.textContent = masked;
+  // Update status in card header
+  var card = inputDiv ? inputDiv.closest('.int-card') : null;
+  if (card) {
+    var statusEl = card.querySelector('.int-status');
+    if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
+    card.classList.add('connected-card');
+  }
+}
+
+async function disconnectIntegration(type) {
+  var ok = confirm('להסיר את ' + type + '?');
+  if (!ok) return;
+  localStorage.removeItem('cf_' + type + '_saved');
+  var inputDiv = document.getElementById('int-' + type + '-input');
+  var savedDiv = document.getElementById('int-' + type + '-saved');
+  if (inputDiv) inputDiv.style.display = '';
+  if (savedDiv) savedDiv.style.display = 'none';
+  var card = inputDiv ? inputDiv.closest('.int-card') : null;
+  if (card) {
+    var statusEl = card.querySelector('.int-status');
+    if (statusEl) { statusEl.textContent = 'לא מחובר'; statusEl.className = 'int-status'; }
+    card.classList.remove('connected-card');
+  }
+}
+
+// On page load — restore saved integration states
+function restoreIntegrationStates() {
+  var types = ['brave', 'brightdata', 'replicate', 'gemini', 'resend'];
+  types.forEach(function(type) {
+    if (localStorage.getItem('cf_' + type + '_saved')) {
+      showIntegrationSavedState(type);
+    }
+  });
+}
+
 async function saveIntegration(type) {
   var keyMap = {
     anthropic: 'int-anthropic-key',
@@ -7385,10 +7471,11 @@ async function saveIntegration(type) {
     var data = await res.json();
     if (data.success) {
       showToast(type + ' חובר בהצלחה!', 'success');
+      // Persist connected state
+      localStorage.setItem('cf_' + type + '_saved', '1');
+      // Show masked key
+      showIntegrationSavedState(type, key);
       el.value = '';
-      // Update status text
-      var statusEl = document.getElementById('int-' + type + '-status');
-      if (statusEl) { statusEl.textContent = '\u2705 מחובר'; statusEl.className = 'int-status connected'; }
     } else {
       showToast(data.message || 'שגיאה בשמירה', 'error');
     }
