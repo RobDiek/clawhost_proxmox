@@ -471,6 +471,8 @@ const it: Translations = {
         diagnosticsFetched: 'Diagnostica recuperata con successo.',
         metricsFetched: 'Metriche recuperate con successo.',
         failedToGetMetrics: 'Impossibile recuperare le metriche del server!',
+        overviewFetched: 'Panoramica recuperata con successo.',
+        failedToGetOverview: 'Impossibile recuperare la panoramica del gateway!',
         passwordRotated: 'Password root ruotata con successo.',
         failedToRotatePassword: 'Impossibile ruotare la password root!',
         gatewayTokenRotated: 'Token gateway ruotato con successo.',
@@ -1366,6 +1368,28 @@ const it: Translations = {
             'Pagina di presentazione per ClawHost Go, hosting locale con ClawHost',
         upcomingReleaseFeature12:
             'App desktop per macOS e Windows per distribuire OpenClaw in locale con un clic',
+        release16Date: 'April 12, 2026',
+        release16Title: 'New Dashboard Experience & Advanced Tabs',
+        release16Description:
+            'A completely redesigned dashboard with new tabs, simplified navigation, and a cleaner experience for managing your agents.',
+        release16Feature1:
+            'Overview tab to view key information about your OpenClaw instance at a glance',
+        release16Feature2:
+            'Preview tab to embed and interact with your OpenClaw instance directly in the dashboard',
+        release16Feature3:
+            'Monitor tab with live server metrics including CPU, memory, disk, and network usage',
+        release16Feature4:
+            'Storage tab to view attached volumes configured during instance creation',
+        release16Feature5:
+            'Security tab to manage gateway token, root password, SSH keys, and host key fingerprint',
+        release16Feature6:
+            'Billing tab with per-instance subscription details, billing history, and manage billing access',
+        release16Feature7:
+            'Server tab with IP address, location, server type, SSH command, and reinstall option',
+        release16Feature8:
+            'Server customizations with emoji icons and background colors for easy identification',
+        release16Feature9:
+            'New simplified UI with streamlined navigation, search agents, and a cleaner experience',
         release15Date: '11 aprile 2026',
         release15Title: 'Semplificazione e sottodomini personalizzati',
         release15Description:
@@ -1531,6 +1555,46 @@ const it: Translations = {
         selectClawDescription:
             'Scegli un Agente dalla barra laterale per visualizzarne i dettagli.',
         closeDetails: 'Chiudi',
+        tabOverview: 'Panoramica',
+        overviewTitle: 'Panoramica del Gateway',
+        overviewGatewayStatus: 'Stato del Gateway',
+        overviewOnline: 'Online',
+        overviewOffline: 'Offline',
+        overviewVersion: 'Versione',
+        overviewUptime: 'Tempo di attività',
+        overviewSessions: 'Sessioni',
+        overviewSessionsCount: '{{count}} attive',
+        overviewNoSessions: 'Nessuna sessione attiva',
+        overviewSessionName: 'Sessione',
+        overviewSessionModel: 'Modello',
+        overviewSessionMessages: 'Messaggi',
+        overviewSessionLastActive: 'Ultima attività',
+        overviewModels: 'Modelli',
+        overviewError: 'Impossibile caricare la panoramica!',
+        overviewErrorDescription:
+            'Impossibile connettersi al gateway OpenClaw. Verifica che l\'istanza sia in esecuzione.',
+        overviewUptimeDays: '{{days}}g {{hours}}h {{minutes}}m',
+        overviewUptimeHours: '{{hours}}h {{minutes}}m',
+        overviewUptimeMinutes: '{{minutes}}m',
+        overviewService: 'Servizio',
+        overviewServiceActive: 'Attivo',
+        overviewServiceInactive: 'Inattivo',
+        overviewPort: 'Port 18789',
+        overviewPortOpen: 'In ascolto',
+        overviewPortClosed: 'Chiuso',
+        overviewConfiguration: 'Configurazione',
+        overviewBrowser: 'Browser',
+        overviewCommands: 'Comandi Shell',
+        overviewTools: 'Strumenti',
+        overviewSubdomain: 'Sottodominio',
+        overviewInstanceStatus: 'Stato dell\'istanza',
+        overviewModel: 'Model',
+        overviewAgents: 'Agenti',
+        overviewMemoryStatus: 'Memoria',
+        overviewHeartbeat: 'Heartbeat',
+        overviewEvents: 'Eventi',
+        overviewProbes: 'Probes',
+        overviewPlugins: 'Plugins',
         tabPreview: 'Anteprima',
         previewNotEnabled: "L'anteprima non è abilitata per questa istanza.",
         previewNotEnabledDescription:

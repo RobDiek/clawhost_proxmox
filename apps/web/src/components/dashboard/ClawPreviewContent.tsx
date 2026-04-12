@@ -1,5 +1,6 @@
 import type { FC, ReactNode } from 'react'
 import type { ClawPreviewContentProps } from '@/ts/Interfaces'
+import type { PreviewStatus } from '@/ts/Types'
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { t } from '@openclaw/i18n'
@@ -10,7 +11,7 @@ import {
     WarningIcon
 } from '@phosphor-icons/react'
 import { Button } from '@/components/ui'
-import { api, getBaseDomain } from '@/lib'
+import { api, getBaseDomain, PREVIEW_STATUS } from '@/lib'
 import { generateSlug } from '@/lib/claw-utils'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
@@ -19,9 +20,7 @@ import { PanelPlaceholder } from '@/components/shared'
 const ClawPreviewContent: FC<ClawPreviewContentProps> = ({
     claw
 }): ReactNode => {
-    const [status, setStatus] = useState<
-        'checking' | 'not-enabled' | 'ready' | 'error'
-    >('checking')
+    const [status, setStatus] = useState<PreviewStatus>(PREVIEW_STATUS.CHECKING)
     const [enabling, setEnabling] = useState(false)
     const { showToast } = useUIStore()
     const iframeRef = useRef<HTMLIFrameElement | null>(null)
@@ -35,8 +34,8 @@ const ClawPreviewContent: FC<ClawPreviewContentProps> = ({
 
     useEffect(() => {
         api.checkPreview(claw.id)
-            .then((res) => setStatus(res.enabled ? 'ready' : 'not-enabled'))
-            .catch(() => setStatus('not-enabled'))
+            .then((res) => setStatus(res.enabled ? PREVIEW_STATUS.READY : PREVIEW_STATUS.NOT_ENABLED))
+            .catch(() => setStatus(PREVIEW_STATUS.NOT_ENABLED))
     }, [claw.id])
 
     const handleEnable = useCallback(async () => {
@@ -44,7 +43,7 @@ const ClawPreviewContent: FC<ClawPreviewContentProps> = ({
         try {
             await api.enablePreview(claw.id)
             showToast(t('clawDetail.previewEnabled'), TOAST_TYPE.SUCCESS)
-            setStatus('ready')
+            setStatus(PREVIEW_STATUS.READY)
         } catch {
             showToast(t('clawDetail.previewEnableFailed'), TOAST_TYPE.ERROR)
         }
@@ -52,13 +51,19 @@ const ClawPreviewContent: FC<ClawPreviewContentProps> = ({
     }, [claw.id, showToast])
 
     const handleRetry = useCallback(() => {
-        setStatus('ready')
+        setStatus(PREVIEW_STATUS.READY)
         if (iframeRef.current) iframeRef.current.src = url
     }, [url])
 
-    if (status === 'checking') return null
+    if (status === PREVIEW_STATUS.CHECKING) {
+        return (
+            <div className='flex h-full items-center justify-center'>
+                <CircleNotchIcon className='text-muted-foreground h-6 w-6 animate-spin' />
+            </div>
+        )
+    }
 
-    if (status === 'not-enabled') {
+    if (status === PREVIEW_STATUS.NOT_ENABLED) {
         return (
             <PanelPlaceholder
                 icon={
@@ -85,7 +90,7 @@ const ClawPreviewContent: FC<ClawPreviewContentProps> = ({
         )
     }
 
-    if (status === 'error') {
+    if (status === PREVIEW_STATUS.ERROR) {
         return (
             <PanelPlaceholder
                 icon={
@@ -112,7 +117,7 @@ const ClawPreviewContent: FC<ClawPreviewContentProps> = ({
             src={url}
             className='h-full w-full border-0'
             allow='clipboard-read; clipboard-write'
-            onError={() => setStatus('error')}
+            onError={() => setStatus(PREVIEW_STATUS.ERROR)}
         />
     )
 }

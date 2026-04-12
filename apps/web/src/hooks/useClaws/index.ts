@@ -8,6 +8,7 @@ import CLAW_DIAGNOSTICS_QUERY_KEY from '@/hooks/useClaws/CLAW_DIAGNOSTICS_QUERY_
 import CLAW_LOGS_QUERY_KEY from '@/hooks/useClaws/CLAW_LOGS_QUERY_KEY'
 import CLAW_VERSIONS_QUERY_KEY from '@/hooks/useClaws/CLAW_VERSIONS_QUERY_KEY'
 import CLAW_METRICS_QUERY_KEY from '@/hooks/useClaws/CLAW_METRICS_QUERY_KEY'
+import CLAW_OVERVIEW_QUERY_KEY from '@/hooks/useClaws/CLAW_OVERVIEW_QUERY_KEY'
 import useClaws from '@/hooks/useClaws/useClaws'
 import useAdminClaws from '@/hooks/useClaws/useAdminClaws'
 import usePurchaseClaw from '@/hooks/useClaws/usePurchaseClaw'
@@ -30,6 +31,7 @@ import useUpdateClawSubdomain from '@/hooks/useClaws/useUpdateClawSubdomain'
 import useUpdateClawEmoji from '@/hooks/useClaws/useUpdateClawEmoji'
 import useCancelPendingClaw from '@/hooks/useClaws/useCancelPendingClaw'
 import useClawMetrics from '@/hooks/useClaws/useClawMetrics'
+import useClawOverview from '@/hooks/useClaws/useClawOverview'
 import useClawCredentials from '@/hooks/useClaws/useClawCredentials'
 import useRotatePassword from '@/hooks/useClaws/useRotatePassword'
 import useRotateGatewayToken from '@/hooks/useClaws/useRotateGatewayToken'
@@ -70,6 +72,8 @@ export {
     useCancelPendingClaw,
     useClawMetrics,
     CLAW_METRICS_QUERY_KEY,
+    useClawOverview,
+    CLAW_OVERVIEW_QUERY_KEY,
     useClawCredentials,
     useRotatePassword,
     useRotateGatewayToken,

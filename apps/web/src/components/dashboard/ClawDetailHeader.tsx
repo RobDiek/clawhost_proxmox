@@ -13,7 +13,6 @@ import { t } from '@openclaw/i18n'
 import { clawStatus } from '@openclaw/shared'
 import { getBaseDomain, TRUNCATE_LENGTHS } from '@/lib'
 import { generateSlug, getStatusConfig } from '@/lib/claw-utils'
-import { ClawAvatar } from '@/components/shared'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
 import { useClawCardActions } from '@/hooks'
 import {
@@ -24,7 +23,8 @@ import {
 const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
     claw,
     onClose,
-    fullScreen
+    fullScreen,
+    versionDisplay
 }): ReactNode => {
     const { actions, isMutating, dialogsProps } = useClawCardActions({ claw })
 
@@ -35,9 +35,8 @@ const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
 
     return (
         <Fragment>
-            <div className='border-border flex items-center justify-between border-b p-2.5 px-3'>
+            <div className='border-border flex items-center justify-between border-b p-2.5 px-3.5'>
                 <div className='flex items-center gap-2.5'>
-                    <ClawAvatar emoji={claw.emoji} emojiColor={claw.emojiColor} />
                     <div className='space-y-px'>
                         <h3 className='text-foreground text-sm font-semibold leading-tight'>
                             {claw.name.length > TRUNCATE_LENGTHS.PANEL_NAME ? (
@@ -59,16 +58,26 @@ const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
                         </h3>
                         {claw.status !== clawStatus.configuring &&
                             claw.status !== clawStatus.awaitingPayment && (
-                                <a
-                                    href={`https://${claw.subdomain || generateSlug(claw.id)}.${getBaseDomain()}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`}
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    className='text-muted-foreground hover:text-foreground/80 flex items-center gap-1 truncate text-xs leading-tight transition-colors'
-                                >
-                                    <ArrowSquareOutIcon className='h-3 w-3 shrink-0' />
-                                    {claw.subdomain || generateSlug(claw.id)}.
-                                    {getBaseDomain()}
-                                </a>
+                                <div className='text-muted-foreground flex items-center gap-1.5 text-xs leading-tight'>
+                                    <a
+                                        href={`https://${claw.subdomain || generateSlug(claw.id)}.${getBaseDomain()}${claw.gatewayToken ? `/?token=${claw.gatewayToken}` : ''}`}
+                                        target='_blank'
+                                        rel='noopener noreferrer'
+                                        className='hover:text-foreground/80 flex items-center gap-1 truncate transition-colors'
+                                    >
+                                        <ArrowSquareOutIcon className='h-3 w-3 shrink-0' />
+                                        {claw.subdomain || generateSlug(claw.id)}.
+                                        {getBaseDomain()}
+                                    </a>
+                                    {versionDisplay && (
+                                        <span className='flex items-center gap-1.5'>
+                                            <span className='bg-muted-foreground/40 h-0.5 w-0.5 rounded-full' />
+                                            <span>
+                                                {versionDisplay}
+                                            </span>
+                                        </span>
+                                    )}
+                                </div>
                             )}
                     </div>
                 </div>

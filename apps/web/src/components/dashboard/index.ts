@@ -13,6 +13,7 @@ import ClawDiagnosticsContent from '@/components/dashboard/ClawDiagnosticsConten
 import ClawDiagnosticsDialog from '@/components/dashboard/ClawDiagnosticsDialog'
 import ClawLogsContent from '@/components/dashboard/ClawLogsContent'
 import ClawMonitorContent from '@/components/dashboard/ClawMonitorContent'
+import ClawOverviewContent from '@/components/dashboard/ClawOverviewContent'
 import ClawLogsDialog from '@/components/dashboard/ClawLogsDialog'
 import ClawTerminalContent from '@/components/dashboard/ClawTerminalContent'
 import ClawVersionsContent from '@/components/dashboard/ClawVersionsContent'
@@ -46,6 +47,7 @@ export {
     ClawDiagnosticsDialog,
     ClawLogsContent,
     ClawMonitorContent,
+    ClawOverviewContent,
     ClawLogsDialog,
     ClawTerminalContent,
     ClawVersionsContent,

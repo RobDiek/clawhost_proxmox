@@ -3,6 +3,7 @@ import type { WebhookEvent } from '@/ts/Interfaces'
 
 import getPolarConfig from '@/lib/polar/getPolarConfig'
 import verifyWebhookSignature from '@/lib/polar/webhooks/verifyWebhookSignature'
+import snakeToCamel from '@/lib/polar/webhooks/snakeToCamel'
 
 const parseWebhook = async (c: Context): Promise<WebhookEvent | null> => {
     const config = getPolarConfig()
@@ -39,7 +40,8 @@ const parseWebhook = async (c: Context): Promise<WebhookEvent | null> => {
     }
 
     try {
-        const event = JSON.parse(payload) as WebhookEvent
+        const raw = JSON.parse(payload)
+        const event = snakeToCamel(raw) as WebhookEvent
         return event
     } catch (error) {
         console.error('parseWebhook', error)

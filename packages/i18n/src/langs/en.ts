@@ -448,6 +448,8 @@ const en = {
         diagnosticsFetched: 'Diagnostics fetched successfully.',
         metricsFetched: 'Metrics fetched successfully.',
         failedToGetMetrics: 'Failed to fetch server metrics!',
+        overviewFetched: 'Overview fetched successfully.',
+        failedToGetOverview: 'Failed to fetch gateway overview!',
         passwordRotated: 'Root password rotated successfully.',
         failedToRotatePassword: 'Failed to rotate root password!',
         gatewayTokenRotated: 'Gateway token rotated successfully.',
@@ -1316,6 +1318,28 @@ const en = {
             'Landing page for ClawHost Go, local hosting with ClawHost',
         upcomingReleaseFeature12:
             'Desktop app for macOS and Windows to deploy OpenClaw locally with one click',
+        release16Date: 'April 12, 2026',
+        release16Title: 'New Dashboard Experience & Advanced Tabs',
+        release16Description:
+            'A completely redesigned dashboard with new tabs, simplified navigation, and a cleaner experience for managing your agents.',
+        release16Feature1:
+            'Overview tab to view key information about your OpenClaw instance at a glance',
+        release16Feature2:
+            'Preview tab to embed and interact with your OpenClaw instance directly in the dashboard',
+        release16Feature3:
+            'Monitor tab with live server metrics including CPU, memory, disk, and network usage',
+        release16Feature4:
+            'Storage tab to view attached volumes configured during instance creation',
+        release16Feature5:
+            'Security tab to manage gateway token, root password, SSH keys, and host key fingerprint',
+        release16Feature6:
+            'Billing tab with per-instance subscription details, billing history, and manage billing access',
+        release16Feature7:
+            'Server tab with IP address, location, server type, SSH command, and reinstall option',
+        release16Feature8:
+            'Server customizations with emoji icons and background colors for easy identification',
+        release16Feature9:
+            'New simplified UI with streamlined navigation, search agents, and a cleaner experience',
         release15Date: 'April 11, 2026',
         release15Title: 'Simplification, File Explorer & Custom Subdomains',
         release15Description:
@@ -1472,6 +1496,45 @@ const en = {
         selectClawDescription:
             'Choose an Agent from the sidebar to view its details.',
         closeDetails: 'Close',
+        tabOverview: 'Overview',
+        overviewTitle: 'Gateway Overview',
+        overviewGatewayStatus: 'Gateway Status',
+        overviewOnline: 'Online',
+        overviewOffline: 'Offline',
+        overviewVersion: 'Version',
+        overviewUptime: 'Uptime',
+        overviewSessions: 'Sessions',
+        overviewSessionsCount: '{{count}} active',
+        overviewNoSessions: 'No active sessions',
+        overviewSessionName: 'Session',
+        overviewSessionModel: 'Model',
+        overviewSessionMessages: 'Messages',
+        overviewSessionLastActive: 'Last Active',
+        overviewModels: 'Models',
+        overviewError: 'Failed to load overview!',
+        overviewErrorDescription: 'Could not connect to the OpenClaw gateway. Please check that the instance is running.',
+        overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
+        overviewUptimeHours: '{{hours}}h {{minutes}}m',
+        overviewUptimeMinutes: '{{minutes}}m',
+        overviewService: 'Service',
+        overviewServiceActive: 'Active',
+        overviewServiceInactive: 'Inactive',
+        overviewPort: 'Port 18789',
+        overviewPortOpen: 'Listening',
+        overviewPortClosed: 'Closed',
+        overviewConfiguration: 'Configuration',
+        overviewBrowser: 'Browser',
+        overviewCommands: 'Shell Commands',
+        overviewTools: 'Tools',
+        overviewSubdomain: 'Subdomain',
+        overviewInstanceStatus: 'Instance Status',
+        overviewModel: 'Model',
+        overviewAgents: 'Agents',
+        overviewMemoryStatus: 'Memory',
+        overviewHeartbeat: 'Heartbeat',
+        overviewEvents: 'Events',
+        overviewProbes: 'Probes',
+        overviewPlugins: 'Plugins',
         tabPreview: 'Preview',
         previewNotEnabled: 'Preview is not enabled for this instance.',
         previewNotEnabledDescription:

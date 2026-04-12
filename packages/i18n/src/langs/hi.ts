@@ -456,6 +456,8 @@ const hi: Translations = {
         diagnosticsFetched: 'डायग्नोस्टिक्स सफलतापूर्वक प्राप्त हुए.',
         metricsFetched: 'मेट्रिक्स सफलतापूर्वक प्राप्त हुए.',
         failedToGetMetrics: 'सर्वर मेट्रिक्स प्राप्त करने में विफल!',
+        overviewFetched: 'अवलोकन सफलतापूर्वक प्राप्त हुआ.',
+        failedToGetOverview: 'गेटवे अवलोकन प्राप्त करने में विफल!',
         passwordRotated: 'Root पासवर्ड सफलतापूर्वक बदला गया.',
         failedToRotatePassword: 'Root पासवर्ड बदलने में विफल!',
         gatewayTokenRotated: 'गेटवे टोकन सफलतापूर्वक बदला गया.',
@@ -1334,6 +1336,28 @@ const hi: Translations = {
             'ClawHost Go के लिए लैंडिंग पेज, ClawHost के साथ स्थानीय होस्टिंग',
         upcomingReleaseFeature12:
             'एक क्लिक में स्थानीय रूप से OpenClaw डिप्लॉय करने के लिए macOS और Windows के लिए डेस्कटॉप ऐप',
+        release16Date: 'April 12, 2026',
+        release16Title: 'New Dashboard Experience & Advanced Tabs',
+        release16Description:
+            'A completely redesigned dashboard with new tabs, simplified navigation, and a cleaner experience for managing your agents.',
+        release16Feature1:
+            'Overview tab to view key information about your OpenClaw instance at a glance',
+        release16Feature2:
+            'Preview tab to embed and interact with your OpenClaw instance directly in the dashboard',
+        release16Feature3:
+            'Monitor tab with live server metrics including CPU, memory, disk, and network usage',
+        release16Feature4:
+            'Storage tab to view attached volumes configured during instance creation',
+        release16Feature5:
+            'Security tab to manage gateway token, root password, SSH keys, and host key fingerprint',
+        release16Feature6:
+            'Billing tab with per-instance subscription details, billing history, and manage billing access',
+        release16Feature7:
+            'Server tab with IP address, location, server type, SSH command, and reinstall option',
+        release16Feature8:
+            'Server customizations with emoji icons and background colors for easy identification',
+        release16Feature9:
+            'New simplified UI with streamlined navigation, search agents, and a cleaner experience',
         release15Date: '11 अप्रैल 2026',
         release15Title: 'सरलीकरण और कस्टम सबडोमेन',
         release15Description:
@@ -1488,6 +1512,46 @@ const hi: Translations = {
         selectClaw: 'एक एजेंट चुनें',
         selectClawDescription: 'विवरण देखने के लिए साइडबार से एक एजेंट चुनें.',
         closeDetails: 'बंद करें',
+        tabOverview: 'अवलोकन',
+        overviewTitle: 'गेटवे अवलोकन',
+        overviewGatewayStatus: 'गेटवे स्थिति',
+        overviewOnline: 'ऑनलाइन',
+        overviewOffline: 'ऑफलाइन',
+        overviewVersion: 'संस्करण',
+        overviewUptime: 'अपटाइम',
+        overviewSessions: 'सत्र',
+        overviewSessionsCount: '{{count}} सक्रिय',
+        overviewNoSessions: 'कोई सक्रिय सत्र नहीं',
+        overviewSessionName: 'सत्र',
+        overviewSessionModel: 'मॉडल',
+        overviewSessionMessages: 'संदेश',
+        overviewSessionLastActive: 'अंतिम सक्रिय',
+        overviewModels: 'मॉडल',
+        overviewError: 'अवलोकन लोड करने में विफल!',
+        overviewErrorDescription:
+            'OpenClaw गेटवे से कनेक्ट नहीं हो सका। कृपया जांचें कि इंस्टेंस चल रहा है।',
+        overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
+        overviewUptimeHours: '{{hours}}h {{minutes}}m',
+        overviewUptimeMinutes: '{{minutes}}m',
+        overviewService: 'सेवा',
+        overviewServiceActive: 'सक्रिय',
+        overviewServiceInactive: 'निष्क्रिय',
+        overviewPort: 'Port 18789',
+        overviewPortOpen: 'सुन रहा है',
+        overviewPortClosed: 'बंद',
+        overviewConfiguration: 'कॉन्फ़िगरेशन',
+        overviewBrowser: 'Browser',
+        overviewCommands: 'शेल कमांड',
+        overviewTools: 'उपकरण',
+        overviewSubdomain: 'सबडोमेन',
+        overviewInstanceStatus: 'इंस्टेंस स्थिति',
+        overviewModel: 'Model',
+        overviewAgents: 'एजेंट',
+        overviewMemoryStatus: 'मेमोरी',
+        overviewHeartbeat: 'Heartbeat',
+        overviewEvents: 'इवेंट',
+        overviewProbes: 'Probes',
+        overviewPlugins: 'Plugins',
         tabPreview: 'पूर्वावलोकन',
         previewNotEnabled: 'इस इंस्टेंस के लिए पूर्वावलोकन सक्षम नहीं है।',
         previewNotEnabledDescription:

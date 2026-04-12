@@ -449,6 +449,8 @@ const tr: Translations = {
         diagnosticsFetched: 'Tanılama başarıyla getirildi.',
         metricsFetched: 'Metrikler başarıyla getirildi.',
         failedToGetMetrics: 'Sunucu metrikleri alınamadı!',
+        overviewFetched: 'Genel bakış başarıyla getirildi.',
+        failedToGetOverview: 'Ağ geçidi genel bakışı alınamadı!',
         passwordRotated: 'Root şifresi başarıyla değiştirildi.',
         failedToRotatePassword: 'Root şifresi değiştirilemedi!',
         gatewayTokenRotated: 'Ağ geçidi jetonu başarıyla değiştirildi.',
@@ -1332,6 +1334,28 @@ const tr: Translations = {
             'ClawHost Go için açılış sayfası, ClawHost ile yerel barındırma',
         upcomingReleaseFeature12:
             'macOS ve Windows için tek tıkla yerel OpenClaw dağıtımı için masaüstü uygulaması',
+        release16Date: 'April 12, 2026',
+        release16Title: 'New Dashboard Experience & Advanced Tabs',
+        release16Description:
+            'A completely redesigned dashboard with new tabs, simplified navigation, and a cleaner experience for managing your agents.',
+        release16Feature1:
+            'Preview tab to embed and interact with your OpenClaw instance directly in the dashboard',
+        release16Feature2:
+            'Monitor tab with live server metrics including CPU, memory, disk, and network usage',
+        release16Feature3:
+            'Storage tab to view attached volumes configured during instance creation',
+        release16Feature4:
+            'Security tab to manage gateway token, root password, SSH keys, and host key fingerprint',
+        release16Feature5:
+            'Billing tab with per-instance subscription details, billing history, and manage billing access',
+        release16Feature6:
+            'Server tab with IP address, location, server type, SSH command, and reinstall option',
+        release16Feature7:
+            'Server tab with IP address, location, server type, SSH command, and reinstall option',
+        release16Feature8:
+            'Server customizations with emoji icons and background colors for easy identification',
+        release16Feature9:
+            'New simplified UI with streamlined navigation, search agents, and a cleaner experience',
         release15Date: '11 Nisan 2026',
         release15Title: 'Sadeleştirme ve özel alt alan adları',
         release15Description:
@@ -1492,6 +1516,46 @@ const tr: Translations = {
         selectClawDescription:
             'Ayrıntılarını görüntülemek için kenar çubuğundan bir Ajan seçin.',
         closeDetails: 'Kapat',
+        tabOverview: 'Genel Bakış',
+        overviewTitle: 'Ağ Geçidi Genel Bakışı',
+        overviewGatewayStatus: 'Ağ Geçidi Durumu',
+        overviewOnline: 'Çevrimiçi',
+        overviewOffline: 'Çevrimdışı',
+        overviewVersion: 'Sürüm',
+        overviewUptime: 'Çalışma Süresi',
+        overviewSessions: 'Oturumlar',
+        overviewSessionsCount: '{{count}} aktif',
+        overviewNoSessions: 'Aktif oturum yok',
+        overviewSessionName: 'Oturum',
+        overviewSessionModel: 'Model',
+        overviewSessionMessages: 'Mesajlar',
+        overviewSessionLastActive: 'Son Aktivite',
+        overviewModels: 'Modeller',
+        overviewError: 'Genel bakış yüklenemedi!',
+        overviewErrorDescription:
+            'OpenClaw ağ geçidine bağlanılamadı. Lütfen örneğin çalışıp çalışmadığını kontrol edin.',
+        overviewUptimeDays: '{{days}}g {{hours}}s {{minutes}}d',
+        overviewUptimeHours: '{{hours}}s {{minutes}}d',
+        overviewUptimeMinutes: '{{minutes}}d',
+        overviewService: 'Hizmet',
+        overviewServiceActive: 'Aktif',
+        overviewServiceInactive: 'Pasif',
+        overviewPort: 'Port 18789',
+        overviewPortOpen: 'Dinliyor',
+        overviewPortClosed: 'Kapalı',
+        overviewConfiguration: 'Yapılandırma',
+        overviewBrowser: 'Browser',
+        overviewCommands: 'Kabuk Komutları',
+        overviewTools: 'Araçlar',
+        overviewSubdomain: 'Alt alan adı',
+        overviewInstanceStatus: 'Örnek durumu',
+        overviewModel: 'Model',
+        overviewAgents: 'Ajanlar',
+        overviewMemoryStatus: 'Bellek',
+        overviewHeartbeat: 'Heartbeat',
+        overviewEvents: 'Olaylar',
+        overviewProbes: 'Probes',
+        overviewPlugins: 'Plugins',
         tabPreview: 'Önizleme',
         previewNotEnabled: 'Bu örnek için önizleme etkin değil.',
         previewNotEnabledDescription:

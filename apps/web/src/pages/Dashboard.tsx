@@ -179,7 +179,7 @@ const Dashboard: FC = (): ReactNode => {
     const pageTitle = useMemo(() => {
         if (!selectedClaw) return t('dashboard.title')
         const tabConfig =
-            chatClawTab && chatClawTab !== CLAW_DETAIL_TABS.PREVIEW
+            chatClawTab && chatClawTab !== CLAW_DETAIL_TABS.OVERVIEW
                 ? clawDetailTabs.find((tab) => tab.id === chatClawTab)
                 : null
         const tabLabel = tabConfig

@@ -444,6 +444,8 @@ const ar: Translations = {
         diagnosticsFetched: 'تم جلب التشخيصات بنجاح.',
         metricsFetched: 'تم جلب المقاييس بنجاح.',
         failedToGetMetrics: 'فشل في جلب مقاييس الخادم!',
+        overviewFetched: 'تم جلب النظرة العامة بنجاح.',
+        failedToGetOverview: 'فشل في جلب نظرة عامة على البوابة!',
         passwordRotated: 'تم تدوير كلمة مرور Root بنجاح.',
         failedToRotatePassword: 'فشل في تدوير كلمة مرور Root!',
         gatewayTokenRotated: 'تم تدوير رمز البوابة بنجاح.',
@@ -1295,6 +1297,28 @@ const ar: Translations = {
             'صفحة هبوط لـ ClawHost Go، الاستضافة المحلية مع ClawHost',
         upcomingReleaseFeature12:
             'تطبيق سطح المكتب لـ macOS وWindows لنشر OpenClaw محلياً بنقرة واحدة',
+        release16Date: 'April 12, 2026',
+        release16Title: 'New Dashboard Experience & Advanced Tabs',
+        release16Description:
+            'A completely redesigned dashboard with new tabs, simplified navigation, and a cleaner experience for managing your agents.',
+        release16Feature1:
+            'Overview tab to view key information about your OpenClaw instance at a glance',
+        release16Feature2:
+            'Preview tab to embed and interact with your OpenClaw instance directly in the dashboard',
+        release16Feature3:
+            'Monitor tab with live server metrics including CPU, memory, disk, and network usage',
+        release16Feature4:
+            'Storage tab to view attached volumes configured during instance creation',
+        release16Feature5:
+            'Security tab to manage gateway token, root password, SSH keys, and host key fingerprint',
+        release16Feature6:
+            'Billing tab with per-instance subscription details, billing history, and manage billing access',
+        release16Feature7:
+            'Server tab with IP address, location, server type, SSH command, and reinstall option',
+        release16Feature8:
+            'Server customizations with emoji icons and background colors for easy identification',
+        release16Feature9:
+            'New simplified UI with streamlined navigation, search agents, and a cleaner experience',
         release15Date: '11 أبريل 2026',
         release15Title: 'تبسيط ونطاقات فرعية مخصصة',
         release15Description:
@@ -1442,6 +1466,46 @@ const ar: Translations = {
         selectClaw: 'اختر وكيلًا',
         selectClawDescription: 'اختر وكيلًا من الشريط الجانبي لعرض تفاصيله.',
         closeDetails: 'إغلاق',
+        tabOverview: 'نظرة عامة',
+        overviewTitle: 'نظرة عامة على البوابة',
+        overviewGatewayStatus: 'حالة البوابة',
+        overviewOnline: 'متصل',
+        overviewOffline: 'غير متصل',
+        overviewVersion: 'الإصدار',
+        overviewUptime: 'وقت التشغيل',
+        overviewSessions: 'الجلسات',
+        overviewSessionsCount: '{{count}} نشطة',
+        overviewNoSessions: 'لا توجد جلسات نشطة',
+        overviewSessionName: 'جلسة',
+        overviewSessionModel: 'نموذج',
+        overviewSessionMessages: 'الرسائل',
+        overviewSessionLastActive: 'آخر نشاط',
+        overviewModels: 'النماذج',
+        overviewError: 'فشل في تحميل النظرة العامة!',
+        overviewErrorDescription:
+            'تعذر الاتصال ببوابة OpenClaw. يرجى التحقق من أن المثيل قيد التشغيل.',
+        overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
+        overviewUptimeHours: '{{hours}}h {{minutes}}m',
+        overviewUptimeMinutes: '{{minutes}}m',
+        overviewService: 'الخدمة',
+        overviewServiceActive: 'نشط',
+        overviewServiceInactive: 'غير نشط',
+        overviewPort: 'Port 18789',
+        overviewPortOpen: 'يستمع',
+        overviewPortClosed: 'مغلق',
+        overviewConfiguration: 'الإعدادات',
+        overviewBrowser: 'Browser',
+        overviewCommands: 'أوامر الصدفة',
+        overviewTools: 'أدوات',
+        overviewSubdomain: 'نطاق فرعي',
+        overviewInstanceStatus: 'حالة المثيل',
+        overviewModel: 'Model',
+        overviewAgents: 'الوكلاء',
+        overviewMemoryStatus: 'الذاكرة',
+        overviewHeartbeat: 'Heartbeat',
+        overviewEvents: 'الأحداث',
+        overviewProbes: 'Probes',
+        overviewPlugins: 'Plugins',
         tabPreview: 'معاينة',
         previewNotEnabled: 'المعاينة غير مفعلة لهذا الوكيل.',
         previewNotEnabledDescription:

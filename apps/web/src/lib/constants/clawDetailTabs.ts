@@ -1,4 +1,5 @@
 const CLAW_DETAIL_TABS = {
+    OVERVIEW: 'overview',
     PREVIEW: 'preview',
     LOGS: 'logs',
     TERMINAL: 'terminal',

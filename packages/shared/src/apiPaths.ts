@@ -43,6 +43,7 @@ const API_PATHS = {
         },
         TERMINAL: (id: string) => `${AGENTS}/${id}/terminal`,
         METRICS: (id: string) => `${AGENTS}/${id}/metrics`,
+        OVERVIEW: (id: string) => `${AGENTS}/${id}/overview`,
         ENABLE_PREVIEW: (id: string) => `${AGENTS}/${id}/enable-preview`,
         ROTATE_PASSWORD: (id: string) => `${AGENTS}/${id}/rotate-password`,
         ROTATE_GATEWAY_TOKEN: (id: string) =>

@@ -454,6 +454,8 @@ const ru: Translations = {
         diagnosticsFetched: 'Диагностика успешно загружена.',
         metricsFetched: 'Метрики успешно загружены.',
         failedToGetMetrics: 'Не удалось получить метрики сервера!',
+        overviewFetched: 'Обзор успешно загружен.',
+        failedToGetOverview: 'Не удалось загрузить обзор шлюза!',
         passwordRotated: 'Пароль root успешно изменён.',
         failedToRotatePassword: 'Не удалось изменить пароль root!',
         gatewayTokenRotated: 'Токен шлюза успешно изменён.',
@@ -1332,6 +1334,28 @@ const ru: Translations = {
             'Лендинг для ClawHost Go, локальный хостинг с ClawHost',
         upcomingReleaseFeature12:
             'Настольное приложение для macOS и Windows для локального развёртывания OpenClaw в один клик',
+        release16Date: 'April 12, 2026',
+        release16Title: 'New Dashboard Experience & Advanced Tabs',
+        release16Description:
+            'A completely redesigned dashboard with new tabs, simplified navigation, and a cleaner experience for managing your agents.',
+        release16Feature1:
+            'Overview tab to view key information about your OpenClaw instance at a glance',
+        release16Feature2:
+            'Preview tab to embed and interact with your OpenClaw instance directly in the dashboard',
+        release16Feature3:
+            'Monitor tab with live server metrics including CPU, memory, disk, and network usage',
+        release16Feature4:
+            'Storage tab to view attached volumes configured during instance creation',
+        release16Feature5:
+            'Security tab to manage gateway token, root password, SSH keys, and host key fingerprint',
+        release16Feature6:
+            'Billing tab with per-instance subscription details, billing history, and manage billing access',
+        release16Feature7:
+            'Server tab with IP address, location, server type, SSH command, and reinstall option',
+        release16Feature8:
+            'Server customizations with emoji icons and background colors for easy identification',
+        release16Feature9:
+            'New simplified UI with streamlined navigation, search agents, and a cleaner experience',
         release15Date: '11 апреля 2026',
         release15Title: 'Упрощение и пользовательские поддомены',
         release15Description:
@@ -1488,6 +1512,46 @@ const ru: Translations = {
         selectClawDescription:
             'Выберите агента на боковой панели, чтобы просмотреть его детали.',
         closeDetails: 'Закрыть',
+        tabOverview: 'Обзор',
+        overviewTitle: 'Обзор шлюза',
+        overviewGatewayStatus: 'Статус шлюза',
+        overviewOnline: 'Онлайн',
+        overviewOffline: 'Офлайн',
+        overviewVersion: 'Версия',
+        overviewUptime: 'Время работы',
+        overviewSessions: 'Сессии',
+        overviewSessionsCount: '{{count}} активных',
+        overviewNoSessions: 'Нет активных сессий',
+        overviewSessionName: 'Сессия',
+        overviewSessionModel: 'Модель',
+        overviewSessionMessages: 'Сообщения',
+        overviewSessionLastActive: 'Последняя активность',
+        overviewModels: 'Модели',
+        overviewError: 'Не удалось загрузить обзор!',
+        overviewErrorDescription:
+            'Не удалось подключиться к шлюзу OpenClaw. Убедитесь, что экземпляр запущен.',
+        overviewUptimeDays: '{{days}}д {{hours}}ч {{minutes}}м',
+        overviewUptimeHours: '{{hours}}ч {{minutes}}м',
+        overviewUptimeMinutes: '{{minutes}}м',
+        overviewService: 'Сервис',
+        overviewServiceActive: 'Активен',
+        overviewServiceInactive: 'Неактивен',
+        overviewPort: 'Port 18789',
+        overviewPortOpen: 'Прослушивает',
+        overviewPortClosed: 'Закрыт',
+        overviewConfiguration: 'Конфигурация',
+        overviewBrowser: 'Browser',
+        overviewCommands: 'Команды оболочки',
+        overviewTools: 'Инструменты',
+        overviewSubdomain: 'Поддомен',
+        overviewInstanceStatus: 'Статус экземпляра',
+        overviewModel: 'Model',
+        overviewAgents: 'Агенты',
+        overviewMemoryStatus: 'Память',
+        overviewHeartbeat: 'Heartbeat',
+        overviewEvents: 'События',
+        overviewProbes: 'Probes',
+        overviewPlugins: 'Plugins',
         tabPreview: 'Предпросмотр',
         previewNotEnabled: 'Предпросмотр не включен для этого экземпляра.',
         previewNotEnabledDescription:

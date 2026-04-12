@@ -459,6 +459,8 @@ const nl: Translations = {
         diagnosticsFetched: 'Diagnostiek succesvol opgehaald.',
         metricsFetched: 'Statistieken succesvol opgehaald.',
         failedToGetMetrics: 'Kan serverstatistieken niet ophalen!',
+        overviewFetched: 'Overzicht succesvol opgehaald.',
+        failedToGetOverview: 'Kan gateway-overzicht niet ophalen!',
         passwordRotated: 'Root-wachtwoord succesvol geroteerd.',
         failedToRotatePassword: 'Kan root-wachtwoord niet roteren!',
         gatewayTokenRotated: 'Gateway-token succesvol geroteerd.',
@@ -1360,6 +1362,28 @@ const nl: Translations = {
             '10 nieuwe talen toegevoegd: Chinees, Hindi, Arabisch, Russisch, Japans, Turks, Italiaans, Pools, Nederlands en Portugees',
         release14Feature4:
             'Interne tools voor stabiele functieondersteuning voor huidige OpenClaw-versies, zonder ondersteuning voor oudere versies',
+        release16Date: 'April 12, 2026',
+        release16Title: 'New Dashboard Experience & Advanced Tabs',
+        release16Description:
+            'A completely redesigned dashboard with new tabs, simplified navigation, and a cleaner experience for managing your agents.',
+        release16Feature1:
+            'Overview tab to view key information about your OpenClaw instance at a glance',
+        release16Feature2:
+            'Preview tab to embed and interact with your OpenClaw instance directly in the dashboard',
+        release16Feature3:
+            'Monitor tab with live server metrics including CPU, memory, disk, and network usage',
+        release16Feature4:
+            'Storage tab to view attached volumes configured during instance creation',
+        release16Feature5:
+            'Security tab to manage gateway token, root password, SSH keys, and host key fingerprint',
+        release16Feature6:
+            'Billing tab with per-instance subscription details, billing history, and manage billing access',
+        release16Feature7:
+            'Server tab with IP address, location, server type, SSH command, and reinstall option',
+        release16Feature8:
+            'Server customizations with emoji icons and background colors for easy identification',
+        release16Feature9:
+            'New simplified UI with streamlined navigation, search agents, and a cleaner experience',
         release15Date: '11 april 2026',
         release15Title: 'Vereenvoudiging & aangepaste subdomeinen',
         release15Description:
@@ -1507,6 +1531,46 @@ const nl: Translations = {
         selectClawDescription:
             'Kies een Agent in de zijbalk om de details te bekijken.',
         closeDetails: 'Sluiten',
+        tabOverview: 'Overzicht',
+        overviewTitle: 'Gateway-overzicht',
+        overviewGatewayStatus: 'Gatewaystatus',
+        overviewOnline: 'Online',
+        overviewOffline: 'Offline',
+        overviewVersion: 'Versie',
+        overviewUptime: 'Uptime',
+        overviewSessions: 'Sessies',
+        overviewSessionsCount: '{{count}} actief',
+        overviewNoSessions: 'Geen actieve sessies',
+        overviewSessionName: 'Sessie',
+        overviewSessionModel: 'Model',
+        overviewSessionMessages: 'Berichten',
+        overviewSessionLastActive: 'Laatst actief',
+        overviewModels: 'Modellen',
+        overviewError: 'Kan overzicht niet laden!',
+        overviewErrorDescription:
+            'Kan geen verbinding maken met de OpenClaw-gateway. Controleer of de instantie draait.',
+        overviewUptimeDays: '{{days}}d {{hours}}u {{minutes}}m',
+        overviewUptimeHours: '{{hours}}u {{minutes}}m',
+        overviewUptimeMinutes: '{{minutes}}m',
+        overviewService: 'Service',
+        overviewServiceActive: 'Actief',
+        overviewServiceInactive: 'Inactief',
+        overviewPort: 'Port 18789',
+        overviewPortOpen: 'Luisterend',
+        overviewPortClosed: 'Gesloten',
+        overviewConfiguration: 'Configuratie',
+        overviewBrowser: 'Browser',
+        overviewCommands: 'Shell-opdrachten',
+        overviewTools: 'Hulpmiddelen',
+        overviewSubdomain: 'Subdomein',
+        overviewInstanceStatus: 'Instantiestatus',
+        overviewModel: 'Model',
+        overviewAgents: 'Agenten',
+        overviewMemoryStatus: 'Geheugen',
+        overviewHeartbeat: 'Heartbeat',
+        overviewEvents: 'Gebeurtenissen',
+        overviewProbes: 'Probes',
+        overviewPlugins: 'Plugins',
         tabPreview: 'Voorbeeld',
         previewNotEnabled:
             'Voorbeeld is niet ingeschakeld voor deze instantie.',

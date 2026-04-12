@@ -17,6 +17,7 @@ import {
     ClawConfigContent,
     ClawVersionsContent,
     ClawMonitorContent,
+    ClawOverviewContent,
     ClawVolumesContent,
     ClawSecurityContent,
     ClawBillingContent,
@@ -67,7 +68,7 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
     const setTab = useClawDetailTabStore((s) => s.setTab)
     const defaultTab = isAwaitingPayment
         ? CLAW_DETAIL_TABS.SETTINGS
-        : CLAW_DETAIL_TABS.PREVIEW
+        : CLAW_DETAIL_TABS.OVERVIEW
     const activeTab = tabStateMap[claw.id] || defaultTab
     const setActiveTab = useCallback(
         (tab: ClawDetailTab) => {
@@ -154,6 +155,7 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                     claw={claw}
                     onClose={onClose}
                     fullScreen={fullScreen}
+                    versionDisplay={versionDisplay}
                 />
 
                 <ClawDetailTabBar
@@ -171,6 +173,10 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                                 setTab(claw.id, CLAW_DETAIL_TABS.VERSIONS)
                             }
                         />
+                    )}
+
+                    {activeTab === CLAW_DETAIL_TABS.OVERVIEW && (
+                        <ClawOverviewContent clawId={claw.id} />
                     )}
 
                     {activeTab === CLAW_DETAIL_TABS.PREVIEW && (
