@@ -1,5 +1,5 @@
 import type { FC, ReactNode } from 'react'
-import type { ClawTerminalContentProps } from '@/ts/Interfaces'
+import type { ClawTerminalContentProps, ElectronWindow } from '@/ts/Interfaces'
 
 import { useEffect, useRef, useCallback } from 'react'
 import { Terminal } from '@xterm/xterm'
@@ -57,19 +57,8 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
         }
         cleanupListenersRef.current.forEach((fn) => fn())
         cleanupListenersRef.current = []
-        const electronAPI = (
-            window as {
-                electronAPI?: {
-                    invoke: (
-                        channel: string,
-                        ...args: unknown[]
-                    ) => Promise<unknown>
-                }
-            }
-        ).electronAPI
-        if (electronAPI) {
-            electronAPI.invoke('terminal:kill', clawId)
-        }
+        const electronAPI = (window as unknown as ElectronWindow).electronAPI
+        if (electronAPI) electronAPI.invoke('terminal:kill', clawId)
         if (terminalRef.current) {
             terminalRef.current.dispose()
             terminalRef.current = null
@@ -131,9 +120,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
             const screenEl = container.querySelector(
                 '.xterm-screen'
             ) as HTMLElement
-            if (xtermEl && screenEl) {
-                xtermEl.style.height = `${screenEl.offsetHeight}px`
-            }
+            if (xtermEl && screenEl) xtermEl.style.height = `${screenEl.offsetHeight}px`
         }
 
         const fitAndCrop = () => {
@@ -163,20 +150,8 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
 
     const connectDesktop = useCallback(
         async (myId: number, container: HTMLElement) => {
-            const electronAPI = (
-                window as {
-                    electronAPI?: {
-                        invoke: (
-                            channel: string,
-                            ...args: unknown[]
-                        ) => Promise<unknown>
-                        onTerminalData: (
-                            cb: (id: string, data: string) => void
-                        ) => () => void
-                        onTerminalExit: (cb: (id: string) => void) => () => void
-                    }
-                }
-            ).electronAPI
+            const electronAPI = (window as unknown as ElectronWindow)
+                .electronAPI
             if (!electronAPI) {
                 setStatus(TERMINAL_STATUS.ERROR)
                 return
@@ -287,9 +262,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                     reconnectAttemptsRef.current++
                     setStatus(TERMINAL_STATUS.CONNECTING)
                     reconnectTimerRef.current = setTimeout(() => {
-                        if (connectIdRef.current === myId) {
-                            connectRef.current()
-                        }
+                        if (connectIdRef.current === myId) connectRef.current()
                     }, RECONNECT_DELAY)
                 } else {
                     setStatus((prev) =>
@@ -305,15 +278,11 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
             }
 
             terminal.onData((data) => {
-                if (ws.readyState === WebSocket.OPEN) {
-                    ws.send(data)
-                }
+                if (ws.readyState === WebSocket.OPEN) ws.send(data)
             })
 
             terminal.onResize(({ cols, rows }) => {
-                if (ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify({ type: 'resize', cols, rows }))
-                }
+                if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'resize', cols, rows }))
             })
         },
         [clawId, createTerminal]
@@ -333,9 +302,7 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
             return
         }
 
-        const electronAPI = (
-            window as { electronAPI?: { isDesktop?: boolean } }
-        ).electronAPI
+        const electronAPI = (window as unknown as ElectronWindow).electronAPI
         if (electronAPI?.isDesktop) {
             await connectDesktop(myId, container)
         } else {

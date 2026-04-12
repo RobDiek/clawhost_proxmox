@@ -1457,6 +1457,22 @@ export interface ElectronAPI {
     getDnsStatus: () => Promise<boolean>
     setupDns: () => Promise<boolean>
     invoke: (channel: string, ...args: unknown[]) => Promise<unknown>
+    onTerminalData: (cb: (id: string, data: string) => void) => () => void
+    onTerminalExit: (cb: (id: string) => void) => () => void
+}
+
+export interface WebVitalsMetric {
+    name: string
+    delta: number
+    id: string
+}
+
+export interface GTagWindow {
+    gtag?: (...args: unknown[]) => void
+}
+
+export interface EmojiMartData {
+    emojis: Record<string, { skins: { native: string }[] }>
 }
 
 export interface ScrollToBottomButtonProps {

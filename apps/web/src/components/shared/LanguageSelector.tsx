@@ -3,7 +3,7 @@ import type { LanguageOption } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
 import { usePreferencesStore } from '@/lib/store'
-import LANGUAGES from '@/lib/constants/languages'
+import { LANGUAGES } from '@/lib/constants'
 import { GlobeSimpleIcon, CheckIcon } from '@phosphor-icons/react'
 import {
     Button,

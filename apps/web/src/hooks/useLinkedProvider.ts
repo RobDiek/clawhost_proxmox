@@ -46,10 +46,10 @@ const useLinkedProvider = (): UseLinkedProviderReturn => {
                     }),
                     TOAST_TYPE.SUCCESS
                 )
-            } catch (err: unknown) {
+            } catch (error: unknown) {
                 const message =
-                    err instanceof Error
-                        ? err.message
+                    error instanceof Error
+                        ? error.message
                         : t('errors.somethingWentWrong')
                 showToast(message, TOAST_TYPE.ERROR)
             } finally {
@@ -82,10 +82,10 @@ const useLinkedProvider = (): UseLinkedProviderReturn => {
                     }),
                     TOAST_TYPE.SUCCESS
                 )
-            } catch (err: unknown) {
+            } catch (error: unknown) {
                 const message =
-                    err instanceof Error
-                        ? err.message
+                    error instanceof Error
+                        ? error.message
                         : t('errors.somethingWentWrong')
                 showToast(message, TOAST_TYPE.ERROR)
             } finally {

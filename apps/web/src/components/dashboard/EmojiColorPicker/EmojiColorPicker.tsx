@@ -1,5 +1,5 @@
 import type { FC, ReactNode } from 'react'
-import type { EmojiColorPickerProps } from '@/ts/Interfaces'
+import type { EmojiColorPickerProps, EmojiMartData } from '@/ts/Interfaces'
 
 import { useState, useCallback, useEffect } from 'react'
 import { t } from '@openclaw/i18n'
@@ -53,11 +53,7 @@ const EmojiColorPicker: FC<EmojiColorPickerProps> = ({
     const handleRandomize = useCallback(async () => {
         const data = emojiData ?? (await import('@emoji-mart/data')).default
         if (!emojiData) setEmojiData(data)
-        const emojis = (
-            data as {
-                emojis: Record<string, { skins: { native: string }[] }>
-            }
-        ).emojis
+        const emojis = (data as EmojiMartData).emojis
         const keys = Object.keys(emojis)
         const randomKey = keys[Math.floor(Math.random() * keys.length)]
         const emojiEntry = emojis[randomKey]

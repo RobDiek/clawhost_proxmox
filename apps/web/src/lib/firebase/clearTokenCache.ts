@@ -11,9 +11,7 @@ const clearTokenCache = (): void => {
 
 if (!unsubscribe) {
     unsubscribe = onAuthStateChanged(auth, (user) => {
-        if (!user) {
-            clearTokenCache()
-        }
+        if (!user) clearTokenCache()
     })
 }
 

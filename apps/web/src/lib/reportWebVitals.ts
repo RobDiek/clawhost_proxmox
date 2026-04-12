@@ -1,18 +1,10 @@
+import type { WebVitalsMetric, GTagWindow } from '@/ts/Interfaces'
+
 import { onCLS, onINP, onLCP, onFCP, onTTFB } from 'web-vitals'
 
 const reportWebVitals = (): void => {
-    const sendToAnalytics = ({
-        name,
-        delta,
-        id
-    }: {
-        name: string
-        delta: number
-        id: string
-    }) => {
-        const gtag = (
-            window as unknown as { gtag?: (...args: unknown[]) => void }
-        ).gtag
+    const sendToAnalytics = ({ name, delta, id }: WebVitalsMetric) => {
+        const gtag = (window as unknown as GTagWindow).gtag
         if (typeof gtag === 'function') {
             gtag('event', name, {
                 event_category: 'Web Vitals',

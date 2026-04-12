@@ -88,9 +88,7 @@ const Dashboard: FC = (): ReactNode => {
     useEffect(() => {
         if (!isLocal) return
         const api = (window as unknown as ElectronWindow).electronAPI
-        if (api?.getDnsStatus) {
-            api.getDnsStatus().then(setDnsSetup)
-        }
+        if (api?.getDnsStatus) api.getDnsStatus().then(setDnsSetup)
     }, [isLocal])
 
     const handleDnsSetup = useCallback(async () => {

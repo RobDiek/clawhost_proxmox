@@ -100,9 +100,7 @@ const shufflePool = () => {
 }
 
 const generateClawName = (): string => {
-    if (namePool.length === 0) {
-        shufflePool()
-    }
+    if (namePool.length === 0) shufflePool()
     return namePool.pop()!
 }
 

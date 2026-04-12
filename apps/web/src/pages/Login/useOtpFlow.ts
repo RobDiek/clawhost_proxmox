@@ -57,10 +57,10 @@ const useOtpFlow = ({
             setCode(Array(CODE_LENGTH).fill(''))
             setCodeError(false)
             setTimeout(() => inputRefs.current[0]?.focus(), 100)
-        } catch (err: unknown) {
+        } catch (error: unknown) {
             const message =
-                err instanceof Error
-                    ? err.message
+                error instanceof Error
+                    ? error.message
                     : t('errors.somethingWentWrong')
             showToast(message, TOAST_TYPE.ERROR)
         } finally {
@@ -83,9 +83,9 @@ const useOtpFlow = ({
             setCodeError(false)
             try {
                 await verifyOtp(email.trim(), fullCode)
-            } catch (err: unknown) {
+            } catch (error: unknown) {
                 const message =
-                    err instanceof Error ? err.message : t('auth.invalidCode')
+                    error instanceof Error ? error.message : t('auth.invalidCode')
                 showToast(message, TOAST_TYPE.ERROR)
                 setCodeError(true)
                 setCode(Array(CODE_LENGTH).fill(''))
@@ -134,9 +134,7 @@ const useOtpFlow = ({
             setCode(newCode)
             setCodeError(false)
 
-            if (value && index < CODE_LENGTH - 1) {
-                inputRefs.current[index + 1]?.focus()
-            }
+            if (value && index < CODE_LENGTH - 1) inputRefs.current[index + 1]?.focus()
         },
         [code]
     )
@@ -168,10 +166,10 @@ const useOtpFlow = ({
             setCode(Array(CODE_LENGTH).fill(''))
             setCodeError(false)
             inputRefs.current[0]?.focus()
-        } catch (err: unknown) {
+        } catch (error: unknown) {
             const message =
-                err instanceof Error
-                    ? err.message
+                error instanceof Error
+                    ? error.message
                     : t('errors.somethingWentWrong')
             showToast(message, TOAST_TYPE.ERROR)
         } finally {
@@ -189,10 +187,10 @@ const useOtpFlow = ({
                 } else {
                     await signInWithGithub()
                 }
-            } catch (err: unknown) {
+            } catch (error: unknown) {
                 const message =
-                    err instanceof Error
-                        ? err.message
+                    error instanceof Error
+                        ? error.message
                         : t('errors.somethingWentWrong')
                 showToast(message, TOAST_TYPE.ERROR)
             } finally {

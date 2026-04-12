@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import ROUTES from '@/lib/constants/routes'
+import { ROUTES } from '@/lib/constants'
 
 const prefetchedRoutes = new Set<string>()
 

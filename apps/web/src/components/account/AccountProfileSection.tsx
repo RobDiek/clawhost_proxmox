@@ -108,9 +108,7 @@ const AccountProfileSection: FC<AccountProfileSectionProps> = ({
                         value={name}
                         onChange={(e) => onNameChange(e.target.value)}
                         onKeyDown={(e) => {
-                            if (e.key === 'Enter' && hasChanges && !isPending) {
-                                onSave()
-                            }
+                            if (e.key === 'Enter' && hasChanges && !isPending) onSave()
                         }}
                         placeholder={t('account.enterYourName')}
                         maxLength={inputValidation.USER_NAME.MAX}

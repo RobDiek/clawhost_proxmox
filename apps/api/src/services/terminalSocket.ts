@@ -66,9 +66,7 @@ const handleConnection = (ws: WebSocket, ip: string, password: string) => {
     let sshReady = false
 
     const pingTimer = setInterval(() => {
-        if (ws.readyState === WebSocket.OPEN) {
-            ws.ping()
-        }
+        if (ws.readyState === WebSocket.OPEN) ws.ping()
     }, PING_INTERVAL)
 
     ws.on('close', () => {
@@ -87,9 +85,7 @@ const handleConnection = (ws: WebSocket, ip: string, password: string) => {
                 }
 
                 stream.on('data', (data: Buffer) => {
-                    if (ws.readyState === WebSocket.OPEN) {
-                        ws.send(data.toString('utf-8'))
-                    }
+                    if (ws.readyState === WebSocket.OPEN) ws.send(data.toString('utf-8'))
                 })
 
                 stream.on('close', () => {
@@ -127,15 +123,11 @@ const handleConnection = (ws: WebSocket, ip: string, password: string) => {
     })
 
     conn.on('error', () => {
-        if (ws.readyState === WebSocket.OPEN) {
-            ws.close()
-        }
+        if (ws.readyState === WebSocket.OPEN) ws.close()
     })
 
     ws.on('close', () => {
-        if (sshReady) {
-            conn.end()
-        }
+        if (sshReady) conn.end()
     })
 
     conn.connect({

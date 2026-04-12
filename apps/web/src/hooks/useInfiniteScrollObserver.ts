@@ -14,9 +14,7 @@ const useInfiniteScrollObserver = ({
             if (isFetchingNextPage) return
             if (observerRef.current) observerRef.current.disconnect()
             observerRef.current = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting && hasNextPage) {
-                    fetchNextPage()
-                }
+                if (entries[0].isIntersecting && hasNextPage) fetchNextPage()
             })
             if (node) observerRef.current.observe(node)
         },
