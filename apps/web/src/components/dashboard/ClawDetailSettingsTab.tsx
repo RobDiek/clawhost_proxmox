@@ -164,8 +164,8 @@ const ClawDetailSettingsTab: FC<ClawDetailSettingsTabProps> = ({
                                 <div className='flex items-center gap-2'>
                                     <button
                                         onClick={actions.onCancelDeletion}
-                                        disabled={dialogsProps?.isCancelDeletionPending}
-                                        className='flex items-center gap-1.5 rounded-md border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-xs font-medium text-orange-600 transition-colors hover:bg-orange-500/20 disabled:opacity-50 dark:text-orange-400'
+                                        disabled={dialogsProps?.isCancelDeletionPending || dialogsProps?.isHardDeletePending}
+                                        className={`flex items-center gap-1.5 rounded-md border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-xs font-medium text-orange-600 transition-colors hover:bg-orange-500/20 dark:text-orange-400 ${dialogsProps?.isCancelDeletionPending || dialogsProps?.isHardDeletePending ? 'pointer-events-none cursor-default opacity-50' : ''}`}
                                     >
                                         {dialogsProps?.isCancelDeletionPending ? (
                                             <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />
@@ -177,10 +177,14 @@ const ClawDetailSettingsTab: FC<ClawDetailSettingsTabProps> = ({
                                     {isAdmin && (
                                         <button
                                             onClick={actions.onShowHardDeleteModal}
-                                            disabled={dialogsProps?.isHardDeletePending}
-                                            className='flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-50 dark:text-red-400'
+                                            disabled={dialogsProps?.isHardDeletePending || dialogsProps?.isCancelDeletionPending}
+                                            className={`flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-400 ${dialogsProps?.isHardDeletePending || dialogsProps?.isCancelDeletionPending ? 'pointer-events-none cursor-default opacity-50' : ''}`}
                                         >
-                                            <TrashIcon className='h-3.5 w-3.5' />
+                                            {dialogsProps?.isHardDeletePending ? (
+                                                <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />
+                                            ) : (
+                                                <TrashIcon className='h-3.5 w-3.5' />
+                                            )}
                                             {t('dashboard.hardDelete')}
                                         </button>
                                     )}
@@ -199,9 +203,13 @@ const ClawDetailSettingsTab: FC<ClawDetailSettingsTabProps> = ({
                                 <button
                                     onClick={actions.onShowDeleteModal}
                                     disabled={dialogsProps?.isDeletePending}
-                                    className='flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-50 dark:text-red-400'
+                                    className={`flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-400 ${dialogsProps?.isDeletePending ? 'pointer-events-none cursor-default opacity-50' : ''}`}
                                 >
-                                    <TrashIcon className='h-3.5 w-3.5' />
+                                    {dialogsProps?.isDeletePending ? (
+                                        <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />
+                                    ) : (
+                                        <TrashIcon className='h-3.5 w-3.5' />
+                                    )}
                                     {claw.id.startsWith('pending-') ||
                                     claw.subscriptionStatus === 'canceled'
                                         ? t('common.delete')
