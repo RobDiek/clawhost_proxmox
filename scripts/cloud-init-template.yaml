@@ -135,7 +135,6 @@ runcmd:
     - |
         npm install -g \
           @presto-ai/google-workspace-mcp \
-          @softeria/ms-365-mcp-server \
           @brave/brave-search-mcp-server \
           @mem0/mcp-server \
           @respira/wordpress-mcp-server \
@@ -144,6 +143,10 @@ runcmd:
           mcp-communicator-telegram \
           @mcpware/instagram-mcp \
           2>/dev/null || true
+
+    # ── ms365-lite MCP server deployed by provisioner after cloud-init completes ──
+    # Lightweight alternative to @softeria/ms-365-mcp-server (12 tools vs 120+)
+    # Deployed via SSH from provisioner.ts when Microsoft is connected
 
     # ── Firewall ──
     - ufw allow 22/tcp && ufw allow 80/tcp && ufw allow 443/tcp && ufw --force enable
@@ -169,10 +172,10 @@ runcmd:
           "agents": {
             "defaults": {
               "model": {
-                "primary": "anthropic/claude-sonnet-4-6",
+                "primary": "anthropic/claude-haiku-4-5-20251001",
                 "fallbacks": [
-                  "anthropic/claude-haiku-4-5-20251001",
-                  "openai/gpt-4o"
+                  "anthropic/claude-sonnet-4-6",
+                  "openai/gpt-4o-mini"
                 ]
               },
               "models": {

@@ -1016,7 +1016,40 @@ input{font-family:inherit}
         </div>
       </div>
 
-      <!-- 4. Sub-agents with model selector (MATEH only) -->
+      <!-- 4a. Model preferences (Personal/Bare agents) -->
+      <div id="model-prefs-section" style="display:none">
+        <div class="section-title" style="margin-top:28px">העדפות מודל</div>
+        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">משימות פשוטות (יומן, מיילים, שיחה)</div>
+              <select id="model-simple" class="sub-agent-model-select" style="width:100%">
+                <option value="anthropic/claude-haiku-4-5-20251001">Haiku (מהיר, חסכוני)</option>
+                <option value="anthropic/claude-sonnet-4-6">Sonnet (מאוזן)</option>
+                <option value="openai/gpt-4o-mini">GPT-4o Mini (חסכוני)</option>
+                <option value="openai/gpt-4o">GPT-4o (מאוזן)</option>
+                <option value="groq/openai/gpt-oss-20b">GPT-OSS 20B (חינמי, Groq)</option>
+                <option value="groq/meta-llama/llama-4-scout-17b-16e-instruct">Llama Scout (חינמי, Groq)</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">משימות מורכבות (ניתוח, כתיבה ארוכה)</div>
+              <select id="model-complex" class="sub-agent-model-select" style="width:100%">
+                <option value="anthropic/claude-sonnet-4-6">Sonnet (מומלץ)</option>
+                <option value="anthropic/claude-opus-4-6">Opus (חזק ביותר)</option>
+                <option value="openai/gpt-4o">GPT-4o</option>
+                <option value="groq/openai/gpt-oss-120b">GPT-OSS 120B (חינמי, Groq)</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:10px;font-size:0.75rem;color:#9CA3AF">הסוכן בוחר אוטומטית את המודל המתאים לפי סוג המשימה. פשוט = מהיר וחסכוני, מורכב = חזק ומדויק.</div>
+          <div style="margin-top:10px;text-align:left">
+            <button class="btn btn-outline" onclick="saveModelPrefs()" style="font-size:0.82rem">&#128190; שמרו שינויים</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4b. Sub-agents with model selector (MATEH only) -->
       <div id="subagents-section">
         <div class="section-title" style="margin-top:28px">סוכני משנה</div>
         <div class="sub-agents-grid" id="sub-agents-grid"></div>
@@ -1355,16 +1388,13 @@ input{font-family:inherit}
           <div><strong>Microsoft 365</strong><div class="int-status" id="microsoft-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden">
-        <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">Outlook Mail, Calendar, OneDrive, Tasks</div>
+        <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">Calendar, Mail, Contacts</div>
         <div id="ms-scopes-section">
           <div style="font-size:0.78rem;font-weight:600;color:#374151;margin:8px 0 4px">בחרו הרשאות:</div>
           <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
-            <label class="chip-label"><input type="checkbox" name="ms-scope" value="mail" checked/><span class="chip">Outlook Mail</span></label>
             <label class="chip-label"><input type="checkbox" name="ms-scope" value="calendar" checked/><span class="chip">Calendar</span></label>
-            <label class="chip-label"><input type="checkbox" name="ms-scope" value="files"/><span class="chip">OneDrive</span></label>
-            <label class="chip-label"><input type="checkbox" name="ms-scope" value="tasks"/><span class="chip">Tasks</span></label>
-            <label class="chip-label"><input type="checkbox" name="ms-scope" value="contacts"/><span class="chip">Contacts</span></label>
-            <label class="chip-label"><input type="checkbox" name="ms-scope" value="teams"/><span class="chip">Teams Chat</span></label>
+            <label class="chip-label"><input type="checkbox" name="ms-scope" value="mail" checked/><span class="chip">Outlook Mail</span></label>
+            <label class="chip-label"><input type="checkbox" name="ms-scope" value="contacts" checked/><span class="chip">Contacts</span></label>
           </div>
           <button class="btn btn-primary btn-sm" onclick="connectMicrosoft()">חברו Microsoft 365</button>
         </div>
@@ -6668,9 +6698,14 @@ function openAgentDetail(agentType) {
   var questionnaireSection = document.getElementById('agent-questionnaire-details');
   if (questionnaireSection) questionnaireSection.style.display = isMatehAgent ? '' : 'none';
 
-  // Show/hide sub-agents section in config
+  // Show/hide sub-agents section in config (MATEH only)
   var subagentsSection = document.getElementById('subagents-section');
   if (subagentsSection) subagentsSection.style.display = isMatehAgent ? '' : 'none';
+
+  // Show/hide model preferences section (Personal/Bare — not MATEH which has its own sub-agent grid)
+  var modelPrefsSection = document.getElementById('model-prefs-section');
+  if (modelPrefsSection) modelPrefsSection.style.display = (!isMatehAgent) ? '' : 'none';
+  if (!isMatehAgent) loadModelPrefs();
 
   // Show/hide MATEH-only schedules (weekly competitive + monthly AEO)
   var matehSchedules = document.getElementById('mateh-schedules-section');
@@ -6907,6 +6942,83 @@ async function saveSubAgentModels() {
     }
   } catch (e) {
     showToast('שגיאת תקשורת — נשמר מקומית', 'error');
+  }
+}
+
+// ── Model Preferences (Personal/Bare agents) ──
+function loadModelPrefs() {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) return;
+  // Load from VPS config
+  fetch(API + '/hosting/instances/' + iid + '/files?path=workspace/SOUL.md', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (!d.success || !d.data) return;
+    // Try to detect current models from openclaw.json via server stats
+  }).catch(function() {});
+
+  // Load saved prefs from localStorage
+  var saved = JSON.parse(localStorage.getItem('cf_model_prefs') || '{}');
+  if (saved.simple) document.getElementById('model-simple').value = saved.simple;
+  if (saved.complex) document.getElementById('model-complex').value = saved.complex;
+}
+
+async function saveModelPrefs() {
+  var simple = document.getElementById('model-simple').value;
+  var complex = document.getElementById('model-complex').value;
+  var prefs = { simple: simple, complex: complex };
+  localStorage.setItem('cf_model_prefs', JSON.stringify(prefs));
+
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('נשמר מקומית', 'success'); return; }
+
+  showToast('שומר העדפות מודל...', 'info');
+  try {
+    // 1. Update openclaw.json primary model to the simple/cheap one
+    var res = await fetch(API + '/hosting/instances/' + iid + '/integrations/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ type: 'model-prefs', key: JSON.stringify(prefs) })
+    });
+
+    // 2. Update SOUL.md with model routing instructions
+    var soulRes = await fetch(API + '/hosting/instances/' + iid + '/files?path=workspace/SOUL.md', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var soulData = await soulRes.json();
+    if (soulData.success && soulData.data && soulData.data.content) {
+      var soul = soulData.data.content;
+      // Replace model section
+      var modelSection = '\n## בחירת מודל (חשוב!)\nאני רץ על ' + simple + ' כברירת מחדל — מושלם לרוב המשימות.\n\n' +
+        '**משימות פשוטות → ' + simple + ' (ברירת מחדל):**\n' +
+        '- יומן, מיילים, אנשי קשר, תזכורות, שיחה יומיומית, סיכום בוקר\n\n' +
+        '**משימות מורכבות → ' + complex + ' (escalation):**\n' +
+        '- ניתוח מסמכים, כתיבה ארוכה, מחקר, תכנון אסטרטגי, תרגום מקצועי\n' +
+        '- השתמש ב-`sessions_spawn` עם מודל ' + complex + '\n\n' +
+        'אם המשתמש מבקש מודל ספציפי — כבד את הבקשה.\n';
+
+      // Replace existing model section or append
+      if (soul.includes('## בחירת מודל')) {
+        soul = soul.replace(/## בחירת מודל[\s\S]*?(?=\n## |$)/, modelSection.trim() + '\n');
+      } else {
+        // Insert before כללים section
+        soul = soul.replace('## כללים', modelSection + '\n## כללים');
+      }
+
+      await fetch(API + '/hosting/instances/' + iid + '/files', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ path: 'workspace/SOUL.md', content: soul })
+      });
+    }
+
+    if (res.ok) {
+      showToast('העדפות מודל עודכנו', 'success');
+    } else {
+      showToast('שגיאה — נשמר מקומית', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאת תקשורת', 'error');
   }
 }
 

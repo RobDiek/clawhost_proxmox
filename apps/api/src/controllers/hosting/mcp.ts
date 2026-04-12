@@ -57,12 +57,12 @@ const MCP_SERVERS: Record<string, {
         category: 'productivity',
     },
     'ms-365': {
-        name: 'Microsoft 365',
-        nameHe: 'Microsoft 365',
-        package: '@softeria/ms-365-mcp-server',
-        command: 'npx',
-        args: ['-y', '@softeria/ms-365-mcp-server'],
-        envKeys: ['MS_CLIENT_ID', 'MS_CLIENT_SECRET', 'MS_TENANT_ID', 'MS_REFRESH_TOKEN'],
+        name: 'Microsoft 365 (Lite)',
+        nameHe: 'Microsoft 365 (קל)',
+        package: 'ms365-lite-mcp.js',
+        command: 'node',
+        args: ['/opt/openclaw/ms365-lite-mcp.js'],
+        envKeys: ['MS_CLIENT_ID', 'MS_CLIENT_SECRET', 'MS_TENANT_ID', 'MS_REFRESH_TOKEN', 'MS365_SCOPES'],
         category: 'productivity',
     },
     'brave-search': {

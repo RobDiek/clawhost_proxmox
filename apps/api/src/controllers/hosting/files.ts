@@ -382,14 +382,16 @@ export const saveIntegration = async (c: Context) => {
             groq: setEnvVar('GROQ_API_KEY'),
             cerebras: setEnvVar('CEREBRAS_API_KEY'),
             telegram: `su - openclaw -c 'openclaw channels add --channel telegram --token "'\\''${safeKey}'\\'' --name "telegram-main" 2>/dev/null'`,
-            brave: writeConfig(`${VPS_HOME}/skills-config`, 'brave-search.json', { braveApiKey: key }),
+            brave: `echo 'MCP deploy handles brave-search'`,
             brightdata: writeConfig(`${VPS_HOME}/skills-config`, 'bright-data.json', { apiKey: key }),
-            replicate: writeConfig(`${VPS_HOME}/skills-config`, 'replicate.json', { apiToken: key }),
+            replicate: `echo 'MCP deploy handles replicate'`,
             ollama: `systemctl start ollama 2>/dev/null; ollama pull '${safeKey}' 2>/dev/null & cd /home/openclaw && openclaw provider add ollama --model '${safeKey}' 2>/dev/null || (mkdir -p ${VPS_HOME}/providers && echo '${Buffer.from(JSON.stringify({ provider: 'ollama', model: key })).toString('base64')}' | base64 -d > ${VPS_HOME}/providers/ollama.json)`,
             resend: writeConfig(`${VPS_HOME}/skills-config`, 'resend.json', { apiKey: key }),
-            smtp: (() => { try { return writeConfig(`${VPS_HOME}/skills-config`, 'smtp.json', JSON.parse(key)); } catch { return writeConfig(`${VPS_HOME}/skills-config`, 'smtp.json', { data: key }); } })(),
-            wordpress: (() => { try { const p = JSON.parse(key); return writeConfig(`${VPS_HOME}/skills-config`, 'wordpress.json', p.constructor === Object ? p : { data: key }); } catch { return writeConfig(`${VPS_HOME}/skills-config`, 'wordpress.json', { data: key }); } })(),
+            smtp: `echo 'MCP deploy handles email'`,
+            wordpress: `echo 'MCP deploy handles wordpress'`,
             'newsletter-recipients': (() => { try { const p = JSON.parse(key); return writeConfig(`${VPS_HOME}/skills-config`, 'newsletter-recipients.json', p.constructor === Object ? p : { data: key }); } catch { return writeConfig(`${VPS_HOME}/skills-config`, 'newsletter-recipients.json', { data: key }); } })(),
+            'sub-agent-models': `echo 'handled below'`,
+            'model-prefs': `echo 'handled below'`,
         }
 
         const cmd = commands[type]
@@ -435,8 +437,8 @@ export const saveIntegration = async (c: Context) => {
                     },
                 },
                 anthropic: {
-                    primary: 'anthropic/claude-sonnet-4-6',
-                    fallbacks: ['anthropic/claude-haiku-4-5-20251001'],
+                    primary: 'anthropic/claude-haiku-4-5-20251001',
+                    fallbacks: ['anthropic/claude-sonnet-4-6'],
                     models: {
                         'anthropic/claude-opus-4-6': { alias: 'opus' },
                         'anthropic/claude-sonnet-4-6': { alias: 'sonnet' },
@@ -444,8 +446,8 @@ export const saveIntegration = async (c: Context) => {
                     },
                 },
                 openai: {
-                    primary: 'openai/gpt-4o',
-                    fallbacks: ['openai/gpt-4o-mini'],
+                    primary: 'openai/gpt-4o-mini',
+                    fallbacks: ['openai/gpt-4o'],
                     models: {
                         'openai/gpt-4o': { alias: 'gpt4o' },
                         'openai/gpt-4o-mini': { alias: 'gpt4o-mini' },
@@ -604,6 +606,43 @@ with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
             }
         }
 
+        // Save model preferences (Personal/Bare agents — simple vs complex model)
+        if (type === 'model-prefs') {
+            try {
+                const prefs = JSON.parse(key) as { simple: string; complex: string }
+                const CONFIG = '/home/openclaw/.openclaw/openclaw.json'
+
+                // Validate model format
+                if (prefs.simple && !/^[a-zA-Z0-9\/_.-]+$/.test(prefs.simple)) throw new Error('Invalid simple model')
+                if (prefs.complex && !/^[a-zA-Z0-9\/_.-]+$/.test(prefs.complex)) throw new Error('Invalid complex model')
+
+                const configScript = Buffer.from(JSON.stringify(prefs)).toString('base64')
+                await sshExecInstance(instance, `
+                    python3 -c "
+import json, base64, sys
+prefs = json.loads(base64.b64decode('${configScript}'))
+with open('${CONFIG}') as f: d = json.load(f)
+defaults = d.setdefault('agents', {}).setdefault('defaults', {})
+model = defaults.setdefault('model', {})
+# Set simple model as primary (used for most requests)
+model['primary'] = prefs['simple']
+# Set complex model as fallback
+model['fallbacks'] = [prefs['complex']]
+# Configure subagents to use the complex model
+sa = defaults.setdefault('subagents', {})
+sa['model'] = prefs['complex']
+with open('${CONFIG}', 'w') as f: json.dump(d, f, indent=2)
+print('OK: primary=' + prefs['simple'] + ' complex=' + prefs['complex'])
+"
+                    chown openclaw:openclaw ${CONFIG}
+                    systemctl restart openclaw-gateway
+                `)
+                console.log(`Model prefs updated: simple=${prefs.simple} complex=${prefs.complex}`)
+            } catch (e) {
+                console.error('model-prefs update error:', e)
+            }
+        }
+
         // Sync channel status to VPS after any integration change
         try {
             const { syncChannelsToVPS } = await import('@/services/channelSync')
@@ -628,30 +667,48 @@ export const testSmtp = async (c: Context) => {
         const instance = await getInstance(instanceId, userId)
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
-        // Read SMTP config from VPS and send test email via Python
+        // Read SMTP config from MCP server env in openclaw.json
         const result = await sshExecInstance(instance, `
             python3 -c "
 import json, smtplib
 from email.mime.text import MIMEText
 
-with open('/home/openclaw/.openclaw/skills-config/smtp.json') as f:
-    cfg = json.load(f)
+with open('/home/openclaw/.openclaw/openclaw.json') as f:
+    d = json.load(f)
+
+env = d.get('mcp', {}).get('servers', {}).get('email', {}).get('env', {})
+host = env.get('SMTP_HOST', '')
+port = int(env.get('SMTP_PORT', '587'))
+user = env.get('SMTP_USER', '')
+pw = env.get('SMTP_PASS', '')
+
+if not host or not user:
+    # Fallback: try legacy skills-config
+    import os
+    legacy = '/home/openclaw/.openclaw/skills-config/smtp.json'
+    if os.path.exists(legacy):
+        with open(legacy) as f2: cfg = json.load(f2)
+        host = cfg.get('host', '')
+        port = int(cfg.get('port', 587))
+        user = cfg.get('user', '')
+        pw = cfg.get('pass', '')
+
+if not host or not user:
+    print('ERROR: SMTP not configured')
+    exit(1)
 
 msg = MIMEText('This is a test email from ClawFlow SMTP integration.\\n\\nIf you see this, SMTP is configured correctly!', 'plain', 'utf-8')
 msg['Subject'] = 'ClawFlow SMTP Test'
-msg['From'] = cfg.get('from', 'ClawFlow') + ' <' + cfg['user'] + '>'
+msg['From'] = 'ClawFlow <' + user + '>'
 msg['To'] = '${to.replace(/'/g, '')}'
 
-use_ssl = cfg.get('secure') == 'ssl'
-port = cfg.get('port', 587)
-
-if use_ssl:
-    server = smtplib.SMTP_SSL(cfg['host'], port, timeout=10)
+if port == 465:
+    server = smtplib.SMTP_SSL(host, port, timeout=10)
 else:
-    server = smtplib.SMTP(cfg['host'], port, timeout=10)
+    server = smtplib.SMTP(host, port, timeout=10)
     server.starttls()
 
-server.login(cfg['user'], cfg['pass'])
+server.login(user, pw)
 server.send_message(msg)
 server.quit()
 print('OK')

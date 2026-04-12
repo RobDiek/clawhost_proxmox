@@ -1,5 +1,6 @@
 import type { Context } from 'hono'
 import { readFileSync } from 'fs'
+import path from 'path'
 import { eq, and } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
@@ -63,17 +64,14 @@ const MS_TENANT = 'common' // supports personal + work accounts
 const SCOPE_MAP: Record<string, string> = {
     mail: 'Mail.Read Mail.Send',
     calendar: 'Calendars.ReadWrite',
-    contacts: 'Contacts.Read',
-    files: 'Files.ReadWrite',
-    teams: 'Chat.ReadWrite',
-    tasks: 'Tasks.ReadWrite',
+    contacts: 'Contacts.ReadWrite',
 }
 
 // ── GET /integrations/microsoft/auth ──
 export const microsoftAuth = async (c: Context) => {
     try {
         const instanceId = c.req.query('instanceId')
-        const scopeParam = c.req.query('scopes') || 'mail,calendar'
+        const scopeParam = c.req.query('scopes') || 'calendar,mail,contacts'
 
         if (!instanceId) return fail(c, 'instanceId required', 400)
         if (!MS_CLIENT_ID) return fail(c, 'Microsoft OAuth not configured. Set MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET.', 500)
@@ -218,7 +216,7 @@ export const microsoftCallback = async (c: Context) => {
                     clientId: MS_CLIENT_ID,
                     clientSecret: MS_CLIENT_SECRET,
                     email,
-                })
+                }, scopes)
             } catch (err) {
                 console.error('Failed to deploy Microsoft creds to VPS:', err)
             }
@@ -301,54 +299,43 @@ export const microsoftStatus = async (c: Context) => {
     }
 }
 
-// ── Deploy Microsoft 365 MCP server to VPS ──
+// ── Deploy lightweight Microsoft 365 MCP server to VPS ──
+// Uses our ms365-lite-mcp.js (8 tools) instead of @softeria/ms-365-mcp-server (120+ tools)
+// This reduces token usage from ~135K to ~5K per session
 async function deployMicrosoftToVPS(ip: string, password: string | undefined, creds: {
     accessToken: string
     refreshToken: string
     clientId: string
     clientSecret: string
     email: string
-}): Promise<void> {
-    console.log(`Deploying Microsoft 365 MCP server to ${ip}...`)
+}, scopes?: string): Promise<void> {
+    console.log(`Deploying ms365-lite MCP server to ${ip} (scopes: ${scopes || 'calendar,mail'})...`)
 
-    // Configure Microsoft 365 MCP server via openclaw CLI
-    const mcpConfig = JSON.stringify({
-        command: 'npx',
-        args: ['-y', '@softeria/ms-365-mcp-server'],
+    // First, deploy our lite MCP script to the VPS
+    const mcpScript = readFileSync(
+        path.join(__dirname, '../../../../scripts/ms365-lite-mcp.js'),
+        'utf-8'
+    )
+    const scriptB64 = Buffer.from(mcpScript).toString('base64')
+
+    // MCP config uses our lite server instead of the heavy npm package
+    const mcpConfig = {
+        command: 'node',
+        args: ['/opt/openclaw/ms365-lite-mcp.js'],
         env: {
             MS_CLIENT_ID: creds.clientId,
             MS_CLIENT_SECRET: creds.clientSecret,
             MS_REFRESH_TOKEN: creds.refreshToken,
             MS_TENANT_ID: MS_TENANT,
+            MS365_SCOPES: scopes || 'calendar,mail,contacts',
         },
-    })
+    }
 
-    // Also keep legacy credential file for backward compatibility
-    const credsJson = JSON.stringify({
-        type: 'microsoft_oauth',
-        client_id: creds.clientId,
-        client_secret: creds.clientSecret,
-        refresh_token: creds.refreshToken,
-        email: creds.email,
-    })
-
-    // Deploy MCP config into openclaw.json + legacy creds file
-    const b64Cred = Buffer.from(credsJson).toString('base64')
-    const mcpEntry = Buffer.from(JSON.stringify({
-        command: 'npx',
-        args: ['-y', '@softeria/ms-365-mcp-server'],
-        env: {
-            MS_CLIENT_ID: creds.clientId,
-            MS_CLIENT_SECRET: creds.clientSecret,
-            MS_REFRESH_TOKEN: creds.refreshToken,
-            MS_TENANT_ID: MS_TENANT,
-        },
-    })).toString('base64')
+    const mcpEntry = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
 
     await sshExec(ip, `
-        mkdir -p /home/openclaw/.openclaw/credentials &&
-        echo '${b64Cred}' | base64 -d > /home/openclaw/.openclaw/credentials/microsoft.json &&
-        chown -R openclaw:openclaw /home/openclaw/.openclaw/credentials &&
+        echo '${scriptB64}' | base64 -d > /opt/openclaw/ms365-lite-mcp.js &&
+        chmod 644 /opt/openclaw/ms365-lite-mcp.js &&
         python3 -c "
 import json, base64, sys
 cfg_path = '/home/openclaw/.openclaw/openclaw.json'
@@ -356,11 +343,11 @@ with open(cfg_path) as f: d = json.load(f)
 d.setdefault('mcp', {}).setdefault('servers', {})
 d['mcp']['servers']['ms-365'] = json.loads(base64.b64decode(sys.argv[1]))
 with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
-print('MCP ms-365 configured')
+print('MCP ms-365-lite configured')
 " '${mcpEntry}' &&
         chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
         systemctl restart openclaw-gateway
     `, password)
 
-    console.log(`Microsoft 365 MCP server deployed to ${ip}`)
+    console.log(`ms365-lite MCP server deployed to ${ip}`)
 }

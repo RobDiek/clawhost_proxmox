@@ -11,11 +11,35 @@
  */
 
 import type { Context } from 'hono'
+import { readFileSync } from 'fs'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { ok, fail } from '@/lib/response'
 import { setAgentIntegration, removeAgentIntegration } from '@/services/agentIntegrations'
+import { Client } from 'ssh2'
+
+const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
+
+function sshExec(ip: string, command: string, password?: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const conn = new Client()
+        let output = ''
+        const timer = setTimeout(() => { conn.end(); reject(new Error('SSH timeout')) }, 30000)
+        conn.on('ready', () => {
+            conn.exec(command, (err, stream) => {
+                if (err) { clearTimeout(timer); conn.end(); return reject(err) }
+                stream.on('data', (d: Buffer) => { output += d.toString() })
+                stream.stderr.on('data', (d: Buffer) => { output += d.toString() })
+                stream.on('close', () => { clearTimeout(timer); conn.end(); resolve(output.trim()) })
+            })
+        }).on('error', (err) => { clearTimeout(timer); reject(err) })
+        const opts: Record<string, unknown> = { host: ip, port: 22, username: 'root', readyTimeout: 10000 }
+        if (password) opts.password = password
+        try { opts.privateKey = readFileSync(SSH_KEY_PATH) } catch {}
+        conn.connect(opts)
+    })
+}
 
 const REDIRECT_URI = process.env.META_REDIRECT_URI ||
     'https://api.clawflow.flowmatic.co.il/hosting/integrations/meta/callback'
@@ -180,6 +204,20 @@ export const metaCallback = async (c: Context) => {
 
         console.log(`Meta connected for ${instanceId}: ${pages.length} pages, ${adAccounts.length} ad accounts, IG: ${instagramAccountId || 'none'}`)
 
+        // Deploy Instagram MCP server to VPS
+        if (instance.ip && instagramAccountId) {
+            try {
+                await deployInstagramMCP(
+                    instance.ip,
+                    instance.rootPassword || undefined,
+                    pages[0]?.access_token || longLivedToken,
+                    instagramAccountId
+                )
+            } catch (mcpErr) {
+                console.error('Instagram MCP deploy failed:', mcpErr)
+            }
+        }
+
         // Sync channel status to VPS
         try {
             const { syncChannelsToVPS } = await import('@/services/channelSync')
@@ -198,12 +236,24 @@ export const metaDisconnect = async (c: Context) => {
     try {
         const instanceId = c.req.query('instanceId') || c.req.param('id')
 
+        // Get instance for VPS cleanup
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+
         await db.update(instances)
             .set({ metaTokens: null as any })
             .where(eq(instances.id, instanceId))
 
         // Remove from per-agent integrations
         await removeAgentIntegration(instanceId, 'mt', 'meta').catch(() => {})
+
+        // Remove Instagram MCP server from VPS
+        if (instance?.ip) {
+            try {
+                await removeInstagramMCP(instance.ip, instance.rootPassword || undefined)
+            } catch (mcpErr) {
+                console.error('Instagram MCP removal failed:', mcpErr)
+            }
+        }
 
         return ok(c, null, 'Meta disconnected')
     } catch (err) {
@@ -233,4 +283,61 @@ export const metaStatus = async (c: Context) => {
     } catch (err) {
         return fail(c, 'Failed to check status', 500)
     }
+}
+
+// ── Deploy Instagram MCP server to VPS ──
+async function deployInstagramMCP(
+    ip: string,
+    password: string | undefined,
+    accessToken: string,
+    instagramAccountId: string
+): Promise<void> {
+    console.log(`Deploying Instagram MCP server to ${ip}...`)
+
+    const mcpConfig = JSON.stringify({
+        command: 'npx',
+        args: ['-y', '@mcpware/instagram-mcp'],
+        env: {
+            INSTAGRAM_ACCESS_TOKEN: accessToken,
+            INSTAGRAM_ACCOUNT_ID: instagramAccountId,
+        },
+    })
+
+    const mcpEntry = Buffer.from(mcpConfig).toString('base64')
+
+    await sshExec(ip, `
+        python3 -c "
+import json, base64, sys
+cfg_path = '/home/openclaw/.openclaw/openclaw.json'
+with open(cfg_path) as f: d = json.load(f)
+d.setdefault('mcp', {}).setdefault('servers', {})
+d['mcp']['servers']['instagram'] = json.loads(base64.b64decode(sys.argv[1]))
+with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
+print('MCP instagram configured')
+" '${mcpEntry}' &&
+        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
+        systemctl restart openclaw-gateway
+    `, password)
+
+    console.log(`Instagram MCP server deployed to ${ip}`)
+}
+
+// ── Remove Instagram MCP server from VPS ──
+async function removeInstagramMCP(ip: string, password?: string): Promise<void> {
+    await sshExec(ip, `
+        python3 -c "
+import json
+cfg_path = '/home/openclaw/.openclaw/openclaw.json'
+with open(cfg_path) as f: d = json.load(f)
+servers = d.get('mcp', {}).get('servers', {})
+if 'instagram' in servers:
+    del servers['instagram']
+    with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
+    print('MCP instagram removed')
+else:
+    print('instagram not found')
+" &&
+        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
+        systemctl restart openclaw-gateway
+    `, password)
 }
