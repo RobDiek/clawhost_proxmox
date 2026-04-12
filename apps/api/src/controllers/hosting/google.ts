@@ -331,12 +331,14 @@ async function deployGoogleToVPS(ip: string, password: string | undefined, creds
         },
     }
 
-    const mcpConfigJson = JSON.stringify(mcpConfig).replace(/'/g, "'\\''")
+    const mcpB64 = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
 
     await sshExec(ip, `
         echo '${scriptB64}' | base64 -d > /opt/openclaw/google-lite-mcp.js &&
         chmod 644 /opt/openclaw/google-lite-mcp.js &&
-        su - openclaw -c 'openclaw config set mcp.servers.google-workspace '\\''${mcpConfigJson}'\\'' --strict-json 2>/dev/null' &&
+        echo '${mcpB64}' | base64 -d > /tmp/oc-mcp-google.json &&
+        su - openclaw -c "cat /tmp/oc-mcp-google.json | xargs -0 openclaw config set mcp.servers.google-workspace --strict-json" &&
+        rm -f /tmp/oc-mcp-google.json &&
         systemctl restart openclaw-gateway
     `, password)
 

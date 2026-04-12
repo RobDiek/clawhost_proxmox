@@ -303,10 +303,12 @@ async function deployInstagramMCP(
         },
     }
 
-    const mcpJson = JSON.stringify(mcpConfig).replace(/'/g, "'\\''")
+    const mcpB64 = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
 
     await sshExec(ip, `
-        su - openclaw -c 'openclaw config set mcp.servers.instagram '\\''${mcpJson}'\\'' --strict-json 2>/dev/null' &&
+        echo '${mcpB64}' | base64 -d > /tmp/oc-mcp-ig.json &&
+        su - openclaw -c "cat /tmp/oc-mcp-ig.json | xargs -0 openclaw config set mcp.servers.instagram --strict-json" &&
+        rm -f /tmp/oc-mcp-ig.json &&
         systemctl restart openclaw-gateway
     `, password)
 

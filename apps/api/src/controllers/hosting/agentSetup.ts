@@ -423,12 +423,12 @@ EOFPAIR
     await new Promise(r => setTimeout(r, 3000))
 
     // Set default tool profile: messaging + useful extras (saves ~50% tokens vs full)
-    // Use openclaw config set to avoid gateway config overwrite
     try {
+        const toolsB64 = Buffer.from('{"profile":"messaging","alsoAllow":["pdf","web_fetch","image","browser"]}').toString('base64')
         await sshExec(ip, `
-            su - openclaw -c '
-            openclaw config set agents.list[0].tools '\\''{"profile":"messaging","alsoAllow":["pdf","web_fetch","image","browser"]}'\\'' --strict-json 2>/dev/null
-            '
+            echo '${toolsB64}' | base64 -d > /tmp/oc-tools.json &&
+            su - openclaw -c "cat /tmp/oc-tools.json | xargs -0 openclaw config set agents.list[0].tools --strict-json" &&
+            rm -f /tmp/oc-tools.json
         `, password)
         console.log('Default tool profile (messaging) set for new instance')
     } catch (err) {

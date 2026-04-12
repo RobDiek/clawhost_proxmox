@@ -331,12 +331,14 @@ async function deployMicrosoftToVPS(ip: string, password: string | undefined, cr
         },
     }
 
-    const mcpConfigJson = JSON.stringify(mcpConfig).replace(/'/g, "'\\''")
+    const mcpB64 = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
 
     await sshExec(ip, `
         echo '${scriptB64}' | base64 -d > /opt/openclaw/ms365-lite-mcp.js &&
         chmod 644 /opt/openclaw/ms365-lite-mcp.js &&
-        su - openclaw -c 'openclaw config set mcp.servers.ms-365 '\\''${mcpConfigJson}'\\'' --strict-json 2>/dev/null' &&
+        echo '${mcpB64}' | base64 -d > /tmp/oc-mcp-ms365.json &&
+        su - openclaw -c "cat /tmp/oc-mcp-ms365.json | xargs -0 openclaw config set mcp.servers.ms-365 --strict-json" &&
+        rm -f /tmp/oc-mcp-ms365.json &&
         systemctl restart openclaw-gateway
     `, password)
 

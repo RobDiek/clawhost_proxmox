@@ -467,15 +467,16 @@ export const saveIntegration = async (c: Context) => {
             const cfg = modelConfigs[type]
             if (cfg) {
                 try {
-                    // Use openclaw config set to avoid gateway config overwrite
-                    const modelsJson = JSON.stringify(cfg.models).replace(/'/g, "'\\''")
-                    const fallbacksJson = JSON.stringify(cfg.fallbacks).replace(/'/g, "'\\''")
+                    // Use openclaw config set via temp files (avoids SSH quoting issues + gateway overwrite)
+                    const modelsB64 = Buffer.from(JSON.stringify(cfg.models)).toString('base64')
+                    const fallbacksB64 = Buffer.from(JSON.stringify(cfg.fallbacks)).toString('base64')
                     await sshExecInstance(instance, `
-                        su - openclaw -c '
-                        openclaw config set agents.defaults.model.primary "${cfg.primary}" 2>/dev/null
-                        openclaw config set agents.defaults.model.fallbacks '\\''${fallbacksJson}'\\'' --strict-json 2>/dev/null
-                        openclaw config set agents.defaults.models '\\''${modelsJson}'\\'' --strict-json 2>/dev/null
-                        ' &&
+                        su - openclaw -c "openclaw config set agents.defaults.model.primary ${cfg.primary}" &&
+                        echo '${fallbacksB64}' | base64 -d > /tmp/oc-fallbacks.json &&
+                        su - openclaw -c "cat /tmp/oc-fallbacks.json | xargs -0 openclaw config set agents.defaults.model.fallbacks --strict-json" &&
+                        echo '${modelsB64}' | base64 -d > /tmp/oc-models.json &&
+                        su - openclaw -c "cat /tmp/oc-models.json | xargs -0 openclaw config set agents.defaults.models --strict-json" &&
+                        rm -f /tmp/oc-fallbacks.json /tmp/oc-models.json &&
                         systemctl restart openclaw-gateway
                     `)
                     console.log(`OpenClaw config updated: ${type} provider set as primary`)
@@ -525,10 +526,12 @@ export const saveIntegration = async (c: Context) => {
                 const mcpConfig = mcpDeployments[type]()
                 if (mcpConfig) {
                     const serverId = mcpServerId[type] || type
-                    const mcpJson = JSON.stringify(mcpConfig).replace(/'/g, "'\\''")
-                    // Use openclaw config set to avoid gateway config overwrite
+                    const mcpB64 = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
+                    // Use openclaw config set via temp file (avoids SSH quoting issues)
                     await sshExecInstance(instance, `
-                        su - openclaw -c 'openclaw config set mcp.servers.${serverId} '\\''${mcpJson}'\\'' --strict-json 2>/dev/null'
+                        echo '${mcpB64}' | base64 -d > /tmp/oc-mcp-${serverId}.json &&
+                        su - openclaw -c "cat /tmp/oc-mcp-${serverId}.json | xargs -0 openclaw config set mcp.servers.${serverId} --strict-json" &&
+                        rm -f /tmp/oc-mcp-${serverId}.json
                     `)
                     await sshExecInstance(instance, 'systemctl restart openclaw-gateway')
                 }
@@ -599,10 +602,12 @@ export const saveIntegration = async (c: Context) => {
                 const alsoAllow = (toolConfig.alsoAllow || []).filter(t => validTools.includes(t))
 
                 const CONFIG = '/home/openclaw/.openclaw/openclaw.json'
-                // Use openclaw config set to avoid gateway config overwrite
-                const toolsCfgJson = JSON.stringify({ profile: toolConfig.profile, alsoAllow }).replace(/'/g, "'\\''")
+                // Use openclaw config set via temp file
+                const toolsB64 = Buffer.from(JSON.stringify({ profile: toolConfig.profile, alsoAllow })).toString('base64')
                 await sshExecInstance(instance, `
-                    su - openclaw -c 'openclaw config set agents.list[0].tools '\\''${toolsCfgJson}'\\'' --strict-json 2>/dev/null' &&
+                    echo '${toolsB64}' | base64 -d > /tmp/oc-tools.json &&
+                    su - openclaw -c "cat /tmp/oc-tools.json | xargs -0 openclaw config set agents.list[0].tools --strict-json" &&
+                    rm -f /tmp/oc-tools.json &&
                     systemctl restart openclaw-gateway
                 `)
                 console.log(`Tool profile updated: ${toolConfig.profile} +${alsoAllow.join(',')}`)
@@ -622,17 +627,18 @@ export const saveIntegration = async (c: Context) => {
                 if (prefs.complex && !/^[a-zA-Z0-9\/_.-]+$/.test(prefs.complex)) throw new Error('Invalid complex model')
                 if (prefs.heartbeat && !/^[a-zA-Z0-9\/_.-]+$/.test(prefs.heartbeat)) throw new Error('Invalid heartbeat model')
 
-                // Use openclaw config set to avoid gateway config overwrite
+                // Use openclaw config set via temp files
                 const hbModel = prefs.heartbeat || prefs.simple
+                const fallbacksB64 = Buffer.from(JSON.stringify([prefs.complex])).toString('base64')
                 await sshExecInstance(instance, `
-                    su - openclaw -c '
-                    openclaw config set agents.defaults.model.primary "${prefs.simple}" 2>/dev/null
-                    openclaw config set agents.defaults.model.fallbacks "[\"${prefs.complex}\"]" --strict-json 2>/dev/null
-                    openclaw config set agents.defaults.subagents.model "${prefs.complex}" 2>/dev/null
-                    openclaw config set agents.defaults.heartbeat.model "${hbModel}" 2>/dev/null
-                    openclaw config set agents.defaults.heartbeat.every "4h" 2>/dev/null
-                    openclaw config set agents.defaults.heartbeat.lightContext true --strict-json 2>/dev/null
-                    ' &&
+                    su - openclaw -c "openclaw config set agents.defaults.model.primary ${prefs.simple}" &&
+                    echo '${fallbacksB64}' | base64 -d > /tmp/oc-fb.json &&
+                    su - openclaw -c "cat /tmp/oc-fb.json | xargs -0 openclaw config set agents.defaults.model.fallbacks --strict-json" &&
+                    su - openclaw -c "openclaw config set agents.defaults.subagents.model ${prefs.complex}" &&
+                    su - openclaw -c "openclaw config set agents.defaults.heartbeat.model ${hbModel}" &&
+                    su - openclaw -c "openclaw config set agents.defaults.heartbeat.every 4h" &&
+                    su - openclaw -c "openclaw config set agents.defaults.heartbeat.lightContext true --strict-json" &&
+                    rm -f /tmp/oc-fb.json &&
                     systemctl restart openclaw-gateway
                 `)
                 console.log(`Model prefs updated: simple=${prefs.simple} complex=${prefs.complex}`)
