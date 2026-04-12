@@ -458,6 +458,8 @@ const ja: Translations = {
         diagnosticsFetched: '診断情報を取得しました.',
         metricsFetched: 'メトリクスを取得しました.',
         failedToGetMetrics: 'サーバーメトリクスの取得に失敗しました!',
+        overviewFetched: '概要を取得しました.',
+        failedToGetOverview: 'ゲートウェイの概要の取得に失敗しました!',
         passwordRotated: 'Rootパスワードのローテーションに成功しました.',
         failedToRotatePassword: 'Rootパスワードのローテーションに失敗しました!',
         gatewayTokenRotated:
@@ -1323,6 +1325,28 @@ const ja: Translations = {
             'ClawHost Goのランディングページ、ClawHostでローカルホスティング',
         upcomingReleaseFeature12:
             'macOSとWindows用デスクトップアプリでワンクリックでOpenClawをローカルデプロイ',
+        release16Date: 'April 12, 2026',
+        release16Title: 'New Dashboard Experience & Advanced Tabs',
+        release16Description:
+            'A completely redesigned dashboard with new tabs, simplified navigation, and a cleaner experience for managing your agents.',
+        release16Feature1:
+            'Overview tab to view key information about your OpenClaw instance at a glance',
+        release16Feature2:
+            'Preview tab to embed and interact with your OpenClaw instance directly in the dashboard',
+        release16Feature3:
+            'Monitor tab with live server metrics including CPU, memory, disk, and network usage',
+        release16Feature4:
+            'Storage tab to view attached volumes configured during instance creation',
+        release16Feature5:
+            'Security tab to manage gateway token, root password, SSH keys, and host key fingerprint',
+        release16Feature6:
+            'Billing tab with per-instance subscription details, billing history, and manage billing access',
+        release16Feature7:
+            'Server tab with IP address, location, server type, SSH command, and reinstall option',
+        release16Feature8:
+            'Server customizations with emoji icons and background colors for easy identification',
+        release16Feature9:
+            'New simplified UI with streamlined navigation, search agents, and a cleaner experience',
         release15Date: '2026年4月11日',
         release15Title: 'シンプル化とカスタムサブドメイン',
         release15Description:
@@ -1473,6 +1497,46 @@ const ja: Translations = {
         selectClawDescription:
             'サイドバーからエージェントを選択して詳細を表示します。',
         closeDetails: '閉じる',
+        tabOverview: '概要',
+        overviewTitle: 'ゲートウェイ概要',
+        overviewGatewayStatus: 'ゲートウェイステータス',
+        overviewOnline: 'オンライン',
+        overviewOffline: 'オフライン',
+        overviewVersion: 'バージョン',
+        overviewUptime: '稼働時間',
+        overviewSessions: 'セッション',
+        overviewSessionsCount: '{{count}} アクティブ',
+        overviewNoSessions: 'アクティブなセッションはありません',
+        overviewSessionName: 'セッション',
+        overviewSessionModel: 'モデル',
+        overviewSessionMessages: 'メッセージ',
+        overviewSessionLastActive: '最終アクティブ',
+        overviewModels: 'モデル',
+        overviewError: '概要の読み込みに失敗しました!',
+        overviewErrorDescription:
+            'OpenClawゲートウェイに接続できませんでした。インスタンスが実行中であることを確認してください。',
+        overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
+        overviewUptimeHours: '{{hours}}h {{minutes}}m',
+        overviewUptimeMinutes: '{{minutes}}m',
+        overviewService: 'サービス',
+        overviewServiceActive: 'アクティブ',
+        overviewServiceInactive: '非アクティブ',
+        overviewPort: 'Port 18789',
+        overviewPortOpen: 'リスニング中',
+        overviewPortClosed: '閉鎖',
+        overviewConfiguration: '設定',
+        overviewBrowser: 'Browser',
+        overviewCommands: 'シェルコマンド',
+        overviewTools: 'ツール',
+        overviewSubdomain: 'サブドメイン',
+        overviewInstanceStatus: 'インスタンスステータス',
+        overviewModel: 'Model',
+        overviewAgents: 'エージェント',
+        overviewMemoryStatus: 'メモリ',
+        overviewHeartbeat: 'Heartbeat',
+        overviewEvents: 'イベント',
+        overviewProbes: 'Probes',
+        overviewPlugins: 'Plugins',
         tabPreview: 'プレビュー',
         previewNotEnabled:
             'このインスタンスではプレビューが有効になっていません。',

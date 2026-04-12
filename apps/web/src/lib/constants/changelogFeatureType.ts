@@ -1,5 +1,6 @@
 const CHANGELOG_FEATURE_TYPE = {
     ADDED: 'added',
+    IMPROVED: 'improved',
     DROPPED: 'dropped'
 } as const
 

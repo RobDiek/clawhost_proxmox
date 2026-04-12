@@ -3,6 +3,7 @@ import type { ClawDetailTab } from '@/ts/Types'
 import { CLAW_DETAIL_TABS } from '@/lib/constants'
 
 const AWAITING_PAYMENT_DISABLED_TABS: ClawDetailTab[] = [
+    CLAW_DETAIL_TABS.OVERVIEW,
     CLAW_DETAIL_TABS.PREVIEW,
     CLAW_DETAIL_TABS.VERSIONS,
     CLAW_DETAIL_TABS.FILES,

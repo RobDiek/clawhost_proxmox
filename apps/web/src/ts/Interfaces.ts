@@ -908,6 +908,69 @@ export interface ClawMetricsResponse {
     timestamp: number
 }
 
+export interface ClawOverviewSession {
+    key: string
+    name: string
+    model: string
+    started: string
+    updated: string
+    messageCount: number
+}
+
+export interface ClawOverviewGateway {
+    active: boolean
+    reachable: boolean
+    portListening: boolean
+}
+
+export interface ClawOverviewInstance {
+    version: string | null
+    model: string | null
+    contextWindow: string | null
+    activeSessions: number
+    memory: string | null
+    agents: string | null
+    heartbeat: string | null
+    events: string | null
+    probes: string | null
+}
+
+export interface ClawOverviewConfig {
+    browserEnabled: boolean
+    commandsEnabled: boolean
+    tools: string[]
+}
+
+export interface ClawOverviewResponse {
+    gateway: ClawOverviewGateway
+    instance: ClawOverviewInstance
+    config: ClawOverviewConfig | null
+    sessions: ClawOverviewSession[] | null
+    apiStatus: Record<string, unknown> | null
+    timestamp: number
+}
+
+export interface ClawOverviewContentProps {
+    clawId: string
+}
+
+export interface OverviewGatewayCardProps {
+    gateway: ClawOverviewGateway
+    clawId: string
+}
+
+export interface OverviewInstanceCardProps {
+    instance: ClawOverviewInstance
+}
+
+export interface OverviewSessionsTableProps {
+    sessions: ClawOverviewSession[] | null
+}
+
+export interface OverviewConfigCardProps {
+    config: ClawOverviewConfig | null
+}
+
 export interface ClawMonitorContentProps {
     clawId: string
 }
@@ -1232,6 +1295,7 @@ export interface ClawDetailHeaderProps {
     claw: Claw
     onClose: () => void
     fullScreen?: boolean
+    versionDisplay?: string | null
 }
 
 export interface ClawDetailTabBarProps {

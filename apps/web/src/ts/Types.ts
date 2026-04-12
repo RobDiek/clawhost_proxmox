@@ -20,6 +20,7 @@ import type {
     COPIED_FIELD_TYPE,
     LOGIN_LOADING_METHOD,
     OAUTH_PROVIDER,
+    PREVIEW_STATUS,
     PRODUCT,
     ROUTES,
     SSH_KEY_MODAL_MODE,
@@ -48,6 +49,9 @@ export type OAuthProvider = (typeof OAUTH_PROVIDER)[keyof typeof OAUTH_PROVIDER]
 
 export type ClawDetailTab =
     (typeof CLAW_DETAIL_TABS)[keyof typeof CLAW_DETAIL_TABS]
+
+export type PreviewStatus =
+    (typeof PREVIEW_STATUS)[keyof typeof PREVIEW_STATUS]
 
 export type CompareFeatureStatus =
     (typeof COMPARE_FEATURE_STATUS)[keyof typeof COMPARE_FEATURE_STATUS]

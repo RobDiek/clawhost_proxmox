@@ -12,11 +12,17 @@ import {
     BrowserIcon,
     ShieldCheckIcon,
     ReceiptIcon,
-    HardDrivesIcon
+    HardDrivesIcon,
+    GaugeIcon
 } from '@phosphor-icons/react'
 import { CLAW_DETAIL_TABS } from '@/lib/constants'
 
 const tabs: ClawDetailTabConfig<ClawDetailTab>[] = [
+    {
+        id: CLAW_DETAIL_TABS.OVERVIEW,
+        label: 'clawDetail.tabOverview',
+        icon: GaugeIcon
+    },
     {
         id: CLAW_DETAIL_TABS.PREVIEW,
         label: 'clawDetail.tabPreview',

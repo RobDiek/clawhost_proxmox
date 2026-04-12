@@ -9,7 +9,6 @@ import { useClawMetrics } from '@/hooks'
 import MetricCard from '@/components/dashboard/ClawMonitorContent/MetricCard'
 import UsageBar from '@/components/dashboard/ClawMonitorContent/UsageBar'
 import MonitorChart from '@/components/dashboard/ClawMonitorContent/MonitorChart'
-import MonitorHealthBanner from '@/components/dashboard/ClawMonitorContent/MonitorHealthBanner'
 import MonitorNetworkCard from '@/components/dashboard/ClawMonitorContent/MonitorNetworkCard'
 import MonitorLoadAvgChart from '@/components/dashboard/ClawMonitorContent/MonitorLoadAvgChart'
 import MonitorProcessTable from '@/components/dashboard/ClawMonitorContent/MonitorProcessTable'
@@ -66,7 +65,6 @@ const ClawMonitorContent: FC<ClawMonitorContentProps> = ({ clawId }): ReactNode 
                     </div>
                 )}
             </div>
-            <MonitorHealthBanner clawId={clawId} />
             <MetricCard title={t('clawDetail.metricsCpu')} icon={<CpuIcon className='h-4 w-4' style={{ color: cpuColor }} />}>
                 <UsageBar value={data.cpu.usagePercent} color={cpuColor} label={`${data.cpu.usagePercent}%`} detail={`${data.cpu.cores} ${data.cpu.cores === 1 ? 'core' : 'cores'}`} />
                 {cpuHistory.length > 1 && <MonitorChart data={cpuHistory} color={cpuColor} label='CPU' />}

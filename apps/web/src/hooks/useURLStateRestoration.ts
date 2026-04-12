@@ -57,6 +57,7 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
         isRestoringFromUrl.current = true
 
         const validClawTabs: ClawDetailTab[] = [
+            CLAW_DETAIL_TABS.OVERVIEW,
             CLAW_DETAIL_TABS.PREVIEW,
             CLAW_DETAIL_TABS.TERMINAL,
             CLAW_DETAIL_TABS.LOGS,
@@ -75,7 +76,7 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
             setChatClawTab(
                 tabParam && validClawTabs.includes(tabParam)
                     ? tabParam
-                    : CLAW_DETAIL_TABS.PREVIEW
+                    : CLAW_DETAIL_TABS.OVERVIEW
             )
         }
 

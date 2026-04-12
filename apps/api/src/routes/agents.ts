@@ -30,6 +30,7 @@ import {
     updateClawSubdomain,
     checkSubdomainAvailability,
     getClawMetrics,
+    getClawOverview,
     enablePreview,
     rotatePassword,
     rotateGatewayToken,
@@ -65,6 +66,7 @@ app.post('/:id/versions', getClawVersions)
 app.post('/:id/install-version', adminOnly, installClawVersion)
 app.get('/:id/credentials', getClawCredentials)
 app.post('/:id/metrics', getClawMetrics)
+app.post('/:id/overview', getClawOverview)
 app.post('/:id/enable-preview', enablePreview)
 app.post('/:id/rotate-password', rotatePassword)
 app.post('/:id/rotate-gateway-token', rotateGatewayToken)

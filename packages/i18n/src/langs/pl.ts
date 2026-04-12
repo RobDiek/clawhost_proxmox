@@ -461,6 +461,8 @@ const pl: Translations = {
         diagnosticsFetched: 'Diagnostyka pobrana pomyślnie.',
         metricsFetched: 'Metryki pobrane pomyślnie.',
         failedToGetMetrics: 'Nie udało się pobrać metryk serwera!',
+        overviewFetched: 'Przegląd pobrany pomyślnie.',
+        failedToGetOverview: 'Nie udało się pobrać przeglądu bramy!',
         passwordRotated: 'Hasło root zostało pomyślnie zmienione.',
         failedToRotatePassword: 'Nie udało się zmienić hasła root!',
         gatewayTokenRotated: 'Token bramy został pomyślnie zmieniony.',
@@ -1355,6 +1357,28 @@ const pl: Translations = {
             'Dodano 10 nowych języków: chiński, hindi, arabski, rosyjski, japoński, turecki, włoski, polski, holenderski i portugalski',
         release14Feature4:
             'Wewnętrzne narzędzia zapewniające stabilne wsparcie funkcji dla bieżących wersji OpenClaw, bez obsługi starszych wersji',
+        release16Date: 'April 12, 2026',
+        release16Title: 'New Dashboard Experience & Advanced Tabs',
+        release16Description:
+            'A completely redesigned dashboard with new tabs, simplified navigation, and a cleaner experience for managing your agents.',
+        release16Feature1:
+            'Overview tab to view key information about your OpenClaw instance at a glance',
+        release16Feature2:
+            'Preview tab to embed and interact with your OpenClaw instance directly in the dashboard',
+        release16Feature3:
+            'Monitor tab with live server metrics including CPU, memory, disk, and network usage',
+        release16Feature4:
+            'Storage tab to view attached volumes configured during instance creation',
+        release16Feature5:
+            'Security tab to manage gateway token, root password, SSH keys, and host key fingerprint',
+        release16Feature6:
+            'Billing tab with per-instance subscription details, billing history, and manage billing access',
+        release16Feature7:
+            'Server tab with IP address, location, server type, SSH command, and reinstall option',
+        release16Feature8:
+            'Server customizations with emoji icons and background colors for easy identification',
+        release16Feature9:
+            'New simplified UI with streamlined navigation, search agents, and a cleaner experience',
         release15Date: '11 kwietnia 2026',
         release15Title: 'Uproszczenie i niestandardowe subdomeny',
         release15Description:
@@ -1503,6 +1527,46 @@ const pl: Translations = {
         selectClawDescription:
             'Wybierz Agenta z paska bocznego, aby zobaczyć szczegóły.',
         closeDetails: 'Zamknij',
+        tabOverview: 'Przegląd',
+        overviewTitle: 'Przegląd bramy',
+        overviewGatewayStatus: 'Status bramy',
+        overviewOnline: 'Online',
+        overviewOffline: 'Offline',
+        overviewVersion: 'Wersja',
+        overviewUptime: 'Czas pracy',
+        overviewSessions: 'Sesje',
+        overviewSessionsCount: '{{count}} aktywnych',
+        overviewNoSessions: 'Brak aktywnych sesji',
+        overviewSessionName: 'Sesja',
+        overviewSessionModel: 'Model',
+        overviewSessionMessages: 'Wiadomości',
+        overviewSessionLastActive: 'Ostatnia aktywność',
+        overviewModels: 'Modele',
+        overviewError: 'Nie udało się załadować przeglądu!',
+        overviewErrorDescription:
+            'Nie można połączyć się z bramą OpenClaw. Sprawdź, czy instancja jest uruchomiona.',
+        overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
+        overviewUptimeHours: '{{hours}}h {{minutes}}m',
+        overviewUptimeMinutes: '{{minutes}}m',
+        overviewService: 'Usługa',
+        overviewServiceActive: 'Aktywna',
+        overviewServiceInactive: 'Nieaktywna',
+        overviewPort: 'Port 18789',
+        overviewPortOpen: 'Nasłuchuje',
+        overviewPortClosed: 'Zamknięty',
+        overviewConfiguration: 'Konfiguracja',
+        overviewBrowser: 'Browser',
+        overviewCommands: 'Polecenia powłoki',
+        overviewTools: 'Narzędzia',
+        overviewSubdomain: 'Subdomena',
+        overviewInstanceStatus: 'Status instancji',
+        overviewModel: 'Model',
+        overviewAgents: 'Agenci',
+        overviewMemoryStatus: 'Pamięć',
+        overviewHeartbeat: 'Heartbeat',
+        overviewEvents: 'Zdarzenia',
+        overviewProbes: 'Probes',
+        overviewPlugins: 'Plugins',
         tabPreview: 'Podgląd',
         previewNotEnabled: 'Podgląd nie jest włączony dla tej instancji.',
         previewNotEnabledDescription:

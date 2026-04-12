@@ -27,6 +27,7 @@ import updateClawSubdomain from '@/controllers/agents/updateClawSubdomain'
 import checkSubdomainAvailability from '@/controllers/agents/checkSubdomainAvailability'
 import provisionClaw from '@/controllers/agents/provisionClaw'
 import getClawMetrics from '@/controllers/agents/getClawMetrics'
+import getClawOverview from '@/controllers/agents/getClawOverview'
 import enablePreview from '@/controllers/agents/enablePreview'
 import rotatePassword from '@/controllers/agents/rotatePassword'
 import rotateGatewayToken from '@/controllers/agents/rotateGatewayToken'
@@ -63,6 +64,7 @@ export {
     checkSubdomainAvailability,
     provisionClaw,
     getClawMetrics,
+    getClawOverview,
     enablePreview,
     rotatePassword,
     rotateGatewayToken,

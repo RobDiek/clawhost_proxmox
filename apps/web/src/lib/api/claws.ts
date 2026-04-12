@@ -4,6 +4,7 @@ import type {
     ClawCredentialsResponse,
     ClawFilesResponse,
     ClawMetricsResponse,
+    ClawOverviewResponse,
     ClawVersionResponse,
     ClawVersionsResponse,
     DeleteClawResponse,
@@ -112,6 +113,8 @@ const claws = {
         client.put<void>(API_PATHS.CLAWS.FILES.BASE(id), data),
     getClawMetrics: (id: string) =>
         client.post<ClawMetricsResponse>(API_PATHS.CLAWS.METRICS(id)),
+    getClawOverview: (id: string) =>
+        client.post<ClawOverviewResponse>(API_PATHS.CLAWS.OVERVIEW(id)),
     checkPreview: (id: string) =>
         client.post<{ enabled: boolean }>(
             `${API_PATHS.CLAWS.ENABLE_PREVIEW(id)}?check=true`

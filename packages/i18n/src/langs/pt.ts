@@ -463,6 +463,8 @@ const pt: Translations = {
         diagnosticsFetched: 'Diagnósticos obtidos com sucesso.',
         metricsFetched: 'Métricas obtidas com sucesso.',
         failedToGetMetrics: 'Falha ao obter métricas do servidor!',
+        overviewFetched: 'Visão geral obtida com sucesso.',
+        failedToGetOverview: 'Falha ao obter visão geral do gateway!',
         passwordRotated: 'Senha root rotacionada com sucesso.',
         failedToRotatePassword: 'Falha ao rotacionar a senha root!',
         gatewayTokenRotated: 'Token de gateway rotacionado com sucesso.',
@@ -1362,6 +1364,28 @@ const pt: Translations = {
             '10 novos idiomas adicionados: chinês, hindi, árabe, russo, japonês, turco, italiano, polonês, holandês e português',
         release14Feature4:
             'Ferramentas internas para fornecer suporte estável de funcionalidades para versões atuais do OpenClaw, sem suporte para versões anteriores',
+        release16Date: 'April 12, 2026',
+        release16Title: 'New Dashboard Experience & Advanced Tabs',
+        release16Description:
+            'A completely redesigned dashboard with new tabs, simplified navigation, and a cleaner experience for managing your agents.',
+        release16Feature1:
+            'Overview tab to view key information about your OpenClaw instance at a glance',
+        release16Feature2:
+            'Preview tab to embed and interact with your OpenClaw instance directly in the dashboard',
+        release16Feature3:
+            'Monitor tab with live server metrics including CPU, memory, disk, and network usage',
+        release16Feature4:
+            'Storage tab to view attached volumes configured during instance creation',
+        release16Feature5:
+            'Security tab to manage gateway token, root password, SSH keys, and host key fingerprint',
+        release16Feature6:
+            'Billing tab with per-instance subscription details, billing history, and manage billing access',
+        release16Feature7:
+            'Server tab with IP address, location, server type, SSH command, and reinstall option',
+        release16Feature8:
+            'Server customizations with emoji icons and background colors for easy identification',
+        release16Feature9:
+            'New simplified UI with streamlined navigation, search agents, and a cleaner experience',
         release15Date: '11 de abril de 2026',
         release15Title: 'Simplificação e subdomínios personalizados',
         release15Description:
@@ -1515,6 +1539,46 @@ const pt: Translations = {
         selectClawDescription:
             'Escolha um Agente na barra lateral para ver seus detalhes.',
         closeDetails: 'Fechar',
+        tabOverview: 'Visão geral',
+        overviewTitle: 'Visão geral do Gateway',
+        overviewGatewayStatus: 'Status do Gateway',
+        overviewOnline: 'Online',
+        overviewOffline: 'Offline',
+        overviewVersion: 'Versão',
+        overviewUptime: 'Tempo de atividade',
+        overviewSessions: 'Sessões',
+        overviewSessionsCount: '{{count}} ativas',
+        overviewNoSessions: 'Sem sessões ativas',
+        overviewSessionName: 'Sessão',
+        overviewSessionModel: 'Modelo',
+        overviewSessionMessages: 'Mensagens',
+        overviewSessionLastActive: 'Última atividade',
+        overviewModels: 'Modelos',
+        overviewError: 'Falha ao carregar visão geral!',
+        overviewErrorDescription:
+            'Não foi possível conectar ao gateway OpenClaw. Verifique se a instância está em execução.',
+        overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
+        overviewUptimeHours: '{{hours}}h {{minutes}}m',
+        overviewUptimeMinutes: '{{minutes}}m',
+        overviewService: 'Serviço',
+        overviewServiceActive: 'Ativo',
+        overviewServiceInactive: 'Inativo',
+        overviewPort: 'Port 18789',
+        overviewPortOpen: 'Escutando',
+        overviewPortClosed: 'Fechado',
+        overviewConfiguration: 'Configuração',
+        overviewBrowser: 'Browser',
+        overviewCommands: 'Comandos Shell',
+        overviewTools: 'Ferramentas',
+        overviewSubdomain: 'Subdomínio',
+        overviewInstanceStatus: 'Status da instância',
+        overviewModel: 'Model',
+        overviewAgents: 'Agentes',
+        overviewMemoryStatus: 'Memória',
+        overviewHeartbeat: 'Heartbeat',
+        overviewEvents: 'Eventos',
+        overviewProbes: 'Probes',
+        overviewPlugins: 'Plugins',
         tabPreview: 'Visualizar',
         previewNotEnabled:
             'A visualização não está habilitada para esta instância.',
