@@ -44,7 +44,11 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
     }, [settingsClawId])
 
     useEffect(() => {
-        if (!hasAutoSelected.current && !settingsClawId && displayedClaws.length > 0) {
+        if (
+            !hasAutoSelected.current &&
+            !settingsClawId &&
+            displayedClaws.length > 0
+        ) {
             hasAutoSelected.current = true
             setSettingsClawId(displayedClaws[0].id)
         }
@@ -202,7 +206,9 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
                                     <ChatSidebar
                                         claws={displayedClaws}
                                         selectedClawId={settingsClawId}
-                                        onOpenClawSettings={handleOpenClawSettings}
+                                        onOpenClawSettings={
+                                            handleOpenClawSettings
+                                        }
                                     />
                                 </div>
                             </Fragment>

@@ -43,7 +43,12 @@ const API_PATHS = {
         },
         TERMINAL: (id: string) => `${AGENTS}/${id}/terminal`,
         METRICS: (id: string) => `${AGENTS}/${id}/metrics`,
-        ENABLE_PREVIEW: (id: string) => `${AGENTS}/${id}/enable-preview`
+        ENABLE_PREVIEW: (id: string) => `${AGENTS}/${id}/enable-preview`,
+        ROTATE_PASSWORD: (id: string) => `${AGENTS}/${id}/rotate-password`,
+        ROTATE_GATEWAY_TOKEN: (id: string) =>
+            `${AGENTS}/${id}/rotate-gateway-token`,
+        EMOJI: (id: string) => `${AGENTS}/${id}/emoji`,
+        SSH_KEY: (id: string) => `${AGENTS}/${id}/ssh-key`
     },
     AFFILIATE: {
         BASE: '/affiliate',

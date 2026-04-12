@@ -27,8 +27,13 @@ import useReinstallClaw from '@/hooks/useClaws/useReinstallClaw'
 import useClawVersion from '@/hooks/useClaws/useClawVersion'
 import useRenameClaw from '@/hooks/useClaws/useRenameClaw'
 import useUpdateClawSubdomain from '@/hooks/useClaws/useUpdateClawSubdomain'
+import useUpdateClawEmoji from '@/hooks/useClaws/useUpdateClawEmoji'
 import useCancelPendingClaw from '@/hooks/useClaws/useCancelPendingClaw'
 import useClawMetrics from '@/hooks/useClaws/useClawMetrics'
+import useClawCredentials from '@/hooks/useClaws/useClawCredentials'
+import useRotatePassword from '@/hooks/useClaws/useRotatePassword'
+import useRotateGatewayToken from '@/hooks/useClaws/useRotateGatewayToken'
+import useUpdateClawSSHKey from '@/hooks/useClaws/useUpdateClawSSHKey'
 import updateClawInCaches from '@/hooks/useClaws/updateClawInCaches'
 import removeClawFromCaches from '@/hooks/useClaws/removeClawFromCaches'
 
@@ -61,9 +66,14 @@ export {
     useClawVersion,
     useRenameClaw,
     useUpdateClawSubdomain,
+    useUpdateClawEmoji,
     useCancelPendingClaw,
     useClawMetrics,
     CLAW_METRICS_QUERY_KEY,
+    useClawCredentials,
+    useRotatePassword,
+    useRotateGatewayToken,
+    useUpdateClawSSHKey,
     updateClawInCaches,
     removeClawFromCaches
 }

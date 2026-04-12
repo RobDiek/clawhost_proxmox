@@ -1,16 +1,26 @@
 import type { FC, ReactNode } from 'react'
 import type { ClawDetailSettingsTabProps } from '@/ts/Interfaces'
 
-import { useState, useCallback } from 'react'
 import { t } from '@openclaw/i18n'
-import { inputValidation } from '@openclaw/shared'
-import { CircleNotchIcon, DownloadSimpleIcon } from '@phosphor-icons/react'
-import { api } from '@/lib'
-import { useUIStore } from '@/lib/store'
-import { TOAST_TYPE } from '@/lib/constants'
+import { clawStatus, inputValidation, userRole } from '@openclaw/shared'
+import {
+    CircleNotchIcon,
+    TrashIcon,
+    ClockCountdownIcon,
+    ArrowSquareOutIcon
+} from '@phosphor-icons/react'
+import {
+    EmojiColorPicker,
+    ExportSection,
+    ClawCardDialogsBundle
+} from '@/components/dashboard'
+import { useProfile, useClawCardActions } from '@/hooks'
+import { isSafeRedirectUrl, getLocale } from '@/lib'
 
 const ClawDetailSettingsTab: FC<ClawDetailSettingsTabProps> = ({
-    clawId,
+    claw,
+    currentEmoji,
+    currentEmojiColor,
     settingsName,
     settingsNameError,
     settingsSubdomain,
@@ -18,27 +28,28 @@ const ClawDetailSettingsTab: FC<ClawDetailSettingsTabProps> = ({
     settingsHasChanges,
     renamePending,
     subdomainPending,
+    emojiPending,
     onNameChange,
     onSubdomainChange,
+    onEmojiChange,
     onSave
 }): ReactNode => {
-    const { showToast } = useUIStore()
-    const [isExporting, setIsExporting] = useState(false)
-
-    const handleExport = useCallback(async () => {
-        setIsExporting(true)
-        try {
-            await api.exportClaw(clawId, `${clawId}-export.tar.gz`)
-            showToast(t('dashboard.exportSuccess'), TOAST_TYPE.SUCCESS)
-        } catch {
-            showToast(t('dashboard.exportFailed'), TOAST_TYPE.ERROR)
-        }
-        setIsExporting(false)
-    }, [clawId, showToast])
+    const { actions, isMutating, dialogsProps } = useClawCardActions({ claw })
+    const { data: profile } = useProfile({ enabled: true })
+    const isAdmin = profile?.role === userRole.admin
+    const isScheduledForDeletion =
+        !!claw.deletionScheduledAt &&
+        new Date(claw.deletionScheduledAt) > new Date()
 
     return (
         <div className='h-full overflow-y-auto p-5'>
             <div className='space-y-5'>
+                <EmojiColorPicker
+                    emoji={currentEmoji}
+                    emojiColor={currentEmojiColor}
+                    onEmojiChange={onEmojiChange}
+                />
+
                 <div>
                     <label className='text-muted-foreground mb-2 block text-xs font-medium'>
                         {t('clawDetail.settingsName')}
@@ -128,37 +139,105 @@ const ClawDetailSettingsTab: FC<ClawDetailSettingsTabProps> = ({
                         !!settingsNameError ||
                         !!settingsSubdomainError ||
                         renamePending ||
-                        subdomainPending
+                        subdomainPending ||
+                        emojiPending
                     }
                     className='flex w-full items-center justify-center gap-2 rounded-lg bg-[#ef5350] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#e53935] disabled:cursor-not-allowed disabled:opacity-50'
                 >
-                    {(renamePending || subdomainPending) && (
+                    {(renamePending || subdomainPending || emojiPending) && (
                         <CircleNotchIcon className='h-4 w-4 animate-spin' />
                     )}
                     {t('clawDetail.settingsSave')}
                 </button>
 
+                <ExportSection clawId={claw.id} />
+
+                {actions && (
+                    <div className='border-border border-t pt-5'>
+                        <label className='text-muted-foreground mb-2 block text-xs font-medium'>
+                            {t('clawDetail.settingsDangerZone')}
+                        </label>
+                        {claw.status === clawStatus.awaitingPayment ? (
+                            <div className='flex items-center gap-2'>
+                                {claw.checkoutUrl && isSafeRedirectUrl(claw.checkoutUrl) && (
+                                    <button
+                                        onClick={actions.onResumeCheckout}
+                                        className='border-border bg-foreground/5 hover:bg-foreground/10 text-foreground flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium transition-colors'
+                                    >
+                                        <ArrowSquareOutIcon className='h-3.5 w-3.5' />
+                                        {t('dashboard.resumeCheckout')}
+                                    </button>
+                                )}
+                                <button
+                                    onClick={actions.onCancelPending}
+                                    disabled={isMutating}
+                                    className='flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-50 dark:text-red-400'
+                                >
+                                    <TrashIcon className='h-3.5 w-3.5' />
+                                    {t('dashboard.cancelPurchase')}
+                                </button>
+                            </div>
+                        ) : isScheduledForDeletion ? (
+                            <div className='flex items-center gap-2'>
+                                <button
+                                    onClick={actions.onCancelDeletion}
+                                    className='flex items-center gap-1.5 rounded-md border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-xs font-medium text-orange-600 transition-colors hover:bg-orange-500/20 dark:text-orange-400'
+                                >
+                                    <ClockCountdownIcon className='h-3.5 w-3.5' />
+                                    {t('dashboard.cancelDeletion')}
+                                </button>
+                                {isAdmin && (
+                                    <button
+                                        onClick={actions.onShowHardDeleteModal}
+                                        disabled={isMutating}
+                                        className='flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-50 dark:text-red-400'
+                                    >
+                                        <TrashIcon className='h-3.5 w-3.5' />
+                                        {t('dashboard.hardDelete')}
+                                    </button>
+                                )}
+                            </div>
+                        ) : (
+                            <button
+                                onClick={actions.onShowDeleteModal}
+                                disabled={isMutating}
+                                className='flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-50 dark:text-red-400'
+                            >
+                                <TrashIcon className='h-3.5 w-3.5' />
+                                {claw.id.startsWith('pending-') ||
+                                claw.subscriptionStatus === 'canceled'
+                                    ? t('common.delete')
+                                    : t('dashboard.scheduleDeletion')}
+                            </button>
+                        )}
+                        <p className='text-muted-foreground mt-1.5 text-[11px]'>
+                            {t('clawDetail.settingsDangerZoneDescription')}
+                        </p>
+                    </div>
+                )}
+
                 <div className='border-border border-t pt-5'>
                     <label className='text-muted-foreground mb-2 block text-xs font-medium'>
-                        {t('dashboard.exportAgent')}
+                        {t('clawDetail.settingsDetails')}
                     </label>
-                    <button
-                        onClick={handleExport}
-                        disabled={isExporting}
-                        className='border-border bg-foreground/5 hover:bg-foreground/10 text-foreground flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium transition-colors disabled:opacity-50'
-                    >
-                        {isExporting ? (
-                            <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />
-                        ) : (
-                            <DownloadSimpleIcon className='h-3.5 w-3.5' />
+                    <div className='space-y-1.5 text-[11px]'>
+                        {claw.createdAt && (
+                            <p className='text-muted-foreground'>
+                                {t('dashboard.created')}: {new Date(claw.createdAt).toLocaleDateString(
+                                    getLocale(),
+                                    { year: 'numeric', month: 'short', day: 'numeric' }
+                                )}
+                            </p>
                         )}
-                        {t('dashboard.exportAgentButton')}
-                    </button>
-                    <p className='text-muted-foreground mt-1.5 text-[11px]'>
-                        {t('dashboard.exportAgentTooltip')}
-                    </p>
+                        {isAdmin && claw.ownerEmail && (
+                            <p className='text-muted-foreground'>
+                                {t('dashboard.owner')}: {claw.ownerEmail}
+                            </p>
+                        )}
+                    </div>
                 </div>
             </div>
+            {dialogsProps && <ClawCardDialogsBundle {...dialogsProps} />}
         </div>
     )
 }

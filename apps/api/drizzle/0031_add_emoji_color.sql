@@ -1,0 +1,1 @@
+ALTER TABLE "claws" ADD COLUMN IF NOT EXISTS "emoji_color" text;

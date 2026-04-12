@@ -58,13 +58,15 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
 
         const validClawTabs: ClawDetailTab[] = [
             CLAW_DETAIL_TABS.PREVIEW,
-            CLAW_DETAIL_TABS.INFO,
             CLAW_DETAIL_TABS.TERMINAL,
             CLAW_DETAIL_TABS.LOGS,
             CLAW_DETAIL_TABS.VERSIONS,
             CLAW_DETAIL_TABS.FILES,
             CLAW_DETAIL_TABS.MONITOR,
             CLAW_DETAIL_TABS.VOLUMES,
+            CLAW_DETAIL_TABS.SERVER,
+            CLAW_DETAIL_TABS.SECURITY,
+            CLAW_DETAIL_TABS.BILLING,
             CLAW_DETAIL_TABS.SETTINGS
         ]
 
@@ -74,7 +76,7 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
                 setChatClawTab(
                     validClawTabs.includes(tabParam)
                         ? tabParam
-                        : CLAW_DETAIL_TABS.INFO
+                        : CLAW_DETAIL_TABS.PREVIEW
                 )
             }
         }

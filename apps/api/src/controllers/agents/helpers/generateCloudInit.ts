@@ -170,7 +170,9 @@ runcmd:
             proxy_read_timeout 86400;
             proxy_send_timeout 86400;
 
-            add_header Content-Security-Policy "frame-ancestors https://${domain} https://*.${domain}" always;
+            proxy_hide_header Content-Security-Policy;
+            proxy_hide_header X-Frame-Options;
+            add_header Content-Security-Policy "frame-ancestors https://${domain} https://*.${domain} http://localhost:* https://localhost:*" always;
         }
     }
     NGINXEOF

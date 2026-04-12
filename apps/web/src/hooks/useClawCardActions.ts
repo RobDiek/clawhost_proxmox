@@ -28,6 +28,7 @@ const useClawCardActions = ({
 }: UseClawCardActionsParams): UseClawCardActionsReturn => {
     const { showToast } = useUIStore()
 
+    const [showStartModal, setShowStartModal] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [showStopModal, setShowStopModal] = useState(false)
     const [showRestartModal, setShowRestartModal] = useState(false)
@@ -134,6 +135,7 @@ const useClawCardActions = ({
                         showToast(message, TOAST_TYPE.ERROR)
                     }
                 }),
+            onShowStartModal: () => setShowStartModal(true),
             onShowStopModal: () => setShowStopModal(true),
             onShowRestartModal: () => setShowRestartModal(true),
             onShowDeleteModal: () => setShowDeleteModal(true),
@@ -166,6 +168,8 @@ const useClawCardActions = ({
             clawId: claw.id,
             clawName: claw.name,
             clawIp: claw.ip || '',
+            showStartModal,
+            setShowStartModal,
             showDeleteModal,
             setShowDeleteModal,
             showStopModal,
@@ -183,6 +187,20 @@ const useClawCardActions = ({
             showCredentials,
             setShowCredentials,
             credentialsPassword,
+            onStart: () =>
+                startMutation.mutate(claw.id, {
+                    onError: (err) => {
+                        const message =
+                            err instanceof Error
+                                ? err.message
+                                : typeof err === 'object' &&
+                                    err !== null &&
+                                    'message' in err
+                                  ? String((err as ErrorWithMessage).message)
+                                  : t('dashboard.startFailed')
+                        showToast(message, TOAST_TYPE.ERROR)
+                    }
+                }),
             onDelete: () => deleteMutation.mutate(claw.id),
             onStop: () => stopMutation.mutate(claw.id),
             onRestart: () => restartMutation.mutate(claw.id),
@@ -201,6 +219,7 @@ const useClawCardActions = ({
                             TOAST_TYPE.ERROR
                         )
                 }),
+            isStartPending: startMutation.isPending,
             isDeletePending: deleteMutation.isPending,
             isStopPending: stopMutation.isPending,
             isRestartPending: restartMutation.isPending,
@@ -209,6 +228,7 @@ const useClawCardActions = ({
         }
     }, [
         claw,
+        showStartModal,
         showDeleteModal,
         showStopModal,
         showRestartModal,

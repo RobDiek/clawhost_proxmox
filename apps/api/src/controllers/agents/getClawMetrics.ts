@@ -19,7 +19,8 @@ const parseMemory = (raw: string) => {
 
 const parseDisk = (raw: string) => {
     const lines = raw.trim().split('\n')
-    const dataLine = lines.find((l) => l.startsWith('/')) || lines[lines.length - 1]
+    const dataLine =
+        lines.find((l) => l.startsWith('/')) || lines[lines.length - 1]
     if (!dataLine) return { total: 0, used: 0, available: 0, usagePercent: 0 }
     const parts = dataLine.split(/\s+/)
     return {
@@ -52,14 +53,10 @@ const parseLoadAvg = (raw: string) => {
 
 const parseNetwork = (raw: string) => {
     const lines = raw.trim().split('\n')
-    const eth0Line = lines.find(
-        (l) => l.includes('eth0:') || l.includes('ens')
-    )
+    const eth0Line = lines.find((l) => l.includes('eth0:') || l.includes('ens'))
     if (!eth0Line) return { rxBytes: 0, txBytes: 0, interface: 'eth0' }
     const parts = eth0Line.split(/[:\s]+/).filter(Boolean)
-    const ifaceIdx = parts.findIndex(
-        (p) => p === 'eth0' || p.startsWith('ens')
-    )
+    const ifaceIdx = parts.findIndex((p) => p === 'eth0' || p.startsWith('ens'))
     return {
         rxBytes: parseInt(parts[ifaceIdx + 1] || '0', 10),
         txBytes: parseInt(parts[ifaceIdx + 9] || '0', 10),
@@ -110,19 +107,27 @@ const getClawMetrics = withClaw({ requireSSH: 'api.failedToGetMetrics' })(
                 'nproc 2>&1'
             ].join('; ')
 
-            const output = await executeSSH(claw.ip!, claw.rootPassword!, command)
+            const output = await executeSSH(
+                claw.ip!,
+                claw.rootPassword!,
+                command
+            )
             const parts = output.split(SEPARATOR)
 
-            return ok(c, {
-                cpu: parseCpu(parts[0] || '', parts[7] || ''),
-                memory: parseMemory(parts[1] || ''),
-                disk: parseDisk(parts[2] || ''),
-                loadAvg: parseLoadAvg(parts[3] || ''),
-                network: parseNetwork(parts[4] || ''),
-                processes: parseProcesses(parts[5] || ''),
-                uptime: parseUptime(parts[6] || ''),
-                timestamp: Date.now()
-            }, t('api.metricsFetched'))
+            return ok(
+                c,
+                {
+                    cpu: parseCpu(parts[0] || '', parts[7] || ''),
+                    memory: parseMemory(parts[1] || ''),
+                    disk: parseDisk(parts[2] || ''),
+                    loadAvg: parseLoadAvg(parts[3] || ''),
+                    network: parseNetwork(parts[4] || ''),
+                    processes: parseProcesses(parts[5] || ''),
+                    uptime: parseUptime(parts[6] || ''),
+                    timestamp: Date.now()
+                },
+                t('api.metricsFetched')
+            )
         } catch (error) {
             console.error('getClawMetrics', error)
             return fail(

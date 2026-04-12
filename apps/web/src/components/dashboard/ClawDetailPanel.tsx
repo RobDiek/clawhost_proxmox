@@ -18,16 +18,17 @@ import {
     ClawVersionsContent,
     ClawMonitorContent,
     ClawVolumesContent,
+    ClawSecurityContent,
+    ClawBillingContent,
+    ClawServerContent,
     ClawPreviewContent,
-    ClawDetailInfoTab,
     ClawDetailSettingsTab,
     ClawDetailHeader,
-    ClawDetailTabBar
+    ClawDetailTabBar,
+    UpdateAvailableBanner
 } from '@/components/dashboard'
-import { useQueryClient } from '@tanstack/react-query'
 import {
     useClawVersion,
-    CLAW_VERSION_QUERY_KEY,
     useClawSettingsForm
 } from '@/hooks'
 import { useClawDetailTabStore } from '@/lib/store'
@@ -89,6 +90,8 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
     }, [isTabDisabled, activeTab, claw.id, onTabChange, setTab])
 
     const {
+        settingsEmoji,
+        settingsEmojiColor,
         settingsName,
         settingsNameError,
         settingsSubdomain,
@@ -96,46 +99,20 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
         settingsHasChanges,
         renamePending,
         subdomainPending,
+        emojiPending,
+        handleEmojiChange,
         handleSettingsNameChange,
         handleSettingsSubdomainChange,
         handleSettingsSave
     } = useClawSettingsForm(claw)
 
-    const isInfoTab = activeTab === 'info'
-    const queryClient = useQueryClient()
     const versionQuery = useClawVersion(
         claw.id,
-        isInfoTab &&
-            !readOnly &&
+        !readOnly &&
             !!claw.ip &&
             !isConfiguring &&
             !isAwaitingPayment
     )
-    useEffect(() => {
-        if (
-            isInfoTab &&
-            !readOnly &&
-            claw.ip &&
-            !isConfiguring &&
-            !isAwaitingPayment &&
-            queryClient.getQueryData([...CLAW_VERSION_QUERY_KEY, claw.id])
-        ) {
-            queryClient.resetQueries({
-                queryKey: [...CLAW_VERSION_QUERY_KEY, claw.id]
-            })
-        }
-    }, [
-        isInfoTab,
-        readOnly,
-        claw.ip,
-        claw.id,
-        queryClient,
-        isConfiguring,
-        isAwaitingPayment
-    ])
-    const showVersion =
-        !isConfiguring && !isAwaitingPayment && (readOnly || !!claw.ip)
-    const versionLoading = !readOnly && versionQuery.isLoading
     const versionDisplay = useMemo(() => {
         if (readOnly) return OPENCLAW_VERSION
         if (versionQuery.isLoading) return null
@@ -148,6 +125,10 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
         versionQuery.isError,
         versionQuery.data
     ])
+    const isOutdated =
+        !!versionDisplay &&
+        versionDisplay !== OPENCLAW_VERSION &&
+        !versionQuery.isLoading
 
     const Wrapper = fullScreen ? 'div' : motion.div
     const wrapperProps = fullScreen
@@ -181,31 +162,19 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                 />
 
                 <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
-                    {activeTab === 'preview' && (
-                        <ClawPreviewContent claw={claw} />
-                    )}
-
-                    {activeTab === 'info' && (
-                        <ClawDetailInfoTab
-                            claw={claw}
-                            plans={plans}
-                            sshKeys={sshKeys}
-                            fullScreen={fullScreen}
-                            showVersion={showVersion}
-                            versionLoading={versionLoading}
-                            versionDisplay={versionDisplay}
-                            isOutdated={
-                                !!versionDisplay &&
-                                versionDisplay !== OPENCLAW_VERSION &&
-                                !versionLoading
-                            }
+                    {isOutdated && (
+                        <UpdateAvailableBanner
                             onGoToVersions={() =>
                                 setTab(claw.id, CLAW_DETAIL_TABS.VERSIONS)
                             }
                         />
                     )}
 
-                    {activeTab === 'logs' && (
+                    {activeTab === CLAW_DETAIL_TABS.PREVIEW && (
+                        <ClawPreviewContent claw={claw} />
+                    )}
+
+                    {activeTab === CLAW_DETAIL_TABS.LOGS && (
                         <ClawLogsContent
                             clawId={claw.id}
                             enabled
@@ -243,34 +212,46 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                         />
                     )}
 
-                    {activeTab === 'terminal' && (
+                    {activeTab === CLAW_DETAIL_TABS.TERMINAL && (
                         <ClawTerminalContent
                             clawId={claw.id}
-                            enabled={activeTab === 'terminal'}
+                            enabled={activeTab === CLAW_DETAIL_TABS.TERMINAL}
                         />
                     )}
 
-                    {activeTab === 'versions' && (
+                    {activeTab === CLAW_DETAIL_TABS.VERSIONS && (
                         <ClawVersionsContent clawId={claw.id} />
                     )}
 
-                    {activeTab === 'files' && (
+                    {activeTab === CLAW_DETAIL_TABS.FILES && (
                         <ClawConfigContent clawId={claw.id} />
                     )}
 
-                    {activeTab === 'monitor' && (
+                    {activeTab === CLAW_DETAIL_TABS.MONITOR && (
                         <ClawMonitorContent clawId={claw.id} />
                     )}
 
-                    {activeTab === 'volumes' && (
-                        <ClawVolumesContent
-                            volumes={claw.volumes || []}
-                        />
+                    {activeTab === CLAW_DETAIL_TABS.VOLUMES && (
+                        <ClawVolumesContent volumes={claw.volumes || []} />
                     )}
 
-                    {activeTab === 'settings' && (
+                    {activeTab === CLAW_DETAIL_TABS.SECURITY && (
+                        <ClawSecurityContent claw={claw} sshKeys={sshKeys} />
+                    )}
+
+                    {activeTab === CLAW_DETAIL_TABS.BILLING && (
+                        <ClawBillingContent claw={claw} plans={plans} />
+                    )}
+
+                    {activeTab === CLAW_DETAIL_TABS.SERVER && (
+                        <ClawServerContent claw={claw} plans={plans} />
+                    )}
+
+                    {activeTab === CLAW_DETAIL_TABS.SETTINGS && (
                         <ClawDetailSettingsTab
-                            clawId={claw.id}
+                            claw={claw}
+                            currentEmoji={settingsEmoji}
+                            currentEmojiColor={settingsEmojiColor}
                             settingsName={settingsName}
                             settingsNameError={settingsNameError}
                             settingsSubdomain={settingsSubdomain}
@@ -278,8 +259,10 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                             settingsHasChanges={settingsHasChanges}
                             renamePending={renamePending}
                             subdomainPending={subdomainPending}
+                            emojiPending={emojiPending}
                             onNameChange={handleSettingsNameChange}
                             onSubdomainChange={handleSettingsSubdomainChange}
+                            onEmojiChange={handleEmojiChange}
                             onSave={handleSettingsSave}
                         />
                     )}

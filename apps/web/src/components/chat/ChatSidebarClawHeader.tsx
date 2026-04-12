@@ -46,7 +46,7 @@ const ChatSidebarClawHeader: FC<ChatSidebarClawHeaderProps> = ({
                 }`}
             >
                 <div className='relative shrink-0'>
-                    <ClawAvatar size={CLAW_AVATAR_SIZE.SM} />
+                    <ClawAvatar emoji={claw.emoji} emojiColor={claw.emojiColor} size={CLAW_AVATAR_SIZE.SM} />
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <div className='border-background absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border-2'>

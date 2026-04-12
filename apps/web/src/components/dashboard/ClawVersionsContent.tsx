@@ -121,7 +121,9 @@ const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder={
                                 versionsData?.versions.length
-                                    ? t('clawDetail.versionsSearchCount', { count: versionsData.versions.length })
+                                    ? t('clawDetail.versionsSearchCount', {
+                                          count: versionsData.versions.length
+                                      })
                                     : t('clawDetail.versionsSearch')
                             }
                             className='border-border bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border py-2 pl-8 pr-8 text-xs outline-none transition-colors focus:border-[#ef5350]/50'
@@ -153,9 +155,12 @@ const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
                                     const isCurrent =
                                         versionsData?.currentVersion ===
                                         entry.version
-                                    const isBeta = entry.version.includes('beta')
+                                    const isBeta =
+                                        entry.version.includes('beta')
                                     const latestStableIdx = !debouncedSearch
-                                        ? filteredVersions.findIndex((v) => !v.version.includes('beta'))
+                                        ? filteredVersions.findIndex(
+                                              (v) => !v.version.includes('beta')
+                                          )
                                         : -1
                                     const isLatest =
                                         idx === latestStableIdx && !isBeta

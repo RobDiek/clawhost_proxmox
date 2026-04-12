@@ -12,7 +12,7 @@ import {
     ArrowClockwiseIcon
 } from '@phosphor-icons/react'
 import { Button } from '@/components/ui'
-import { ScrollToBottomButton } from '@/components/shared'
+import { ScrollToBottomButton, PanelPlaceholder } from '@/components/shared'
 import { useTerminalStore } from '@/lib/store'
 import { TERMINAL_STATUS } from '@/lib/constants'
 import { Envs } from '@/lib'
@@ -394,29 +394,30 @@ const ClawTerminalContent: FC<ClawTerminalContentProps> = ({
                     )}
                     {(status === TERMINAL_STATUS.ERROR ||
                         status === TERMINAL_STATUS.DISCONNECTED) && (
-                        <div className='flex flex-col items-center gap-3'>
-                            <div className='bg-foreground/5 flex h-12 w-12 items-center justify-center rounded-xl'>
+                        <PanelPlaceholder
+                            icon={
                                 <TerminalWindowIcon
                                     className='text-muted-foreground h-6 w-6'
                                     weight='duotone'
                                 />
-                            </div>
-                            <p className='text-foreground/80 text-sm font-medium'>
-                                {t(
-                                    status === TERMINAL_STATUS.ERROR
-                                        ? 'clawDetail.terminalError'
-                                        : 'clawDetail.terminalDisconnected'
-                                )}
-                            </p>
-                            <Button
-                                size='sm'
-                                variant='outline'
-                                onClick={connect}
-                            >
-                                <ArrowClockwiseIcon className='mr-2 h-3.5 w-3.5' />
-                                {t('clawDetail.terminalReconnect')}
-                            </Button>
-                        </div>
+                            }
+                            title={t(
+                                status === TERMINAL_STATUS.ERROR
+                                    ? 'clawDetail.terminalError'
+                                    : 'clawDetail.terminalDisconnected'
+                            )}
+                            description=''
+                            action={
+                                <Button
+                                    size='sm'
+                                    variant='outline'
+                                    onClick={connect}
+                                >
+                                    <ArrowClockwiseIcon className='mr-2 h-3.5 w-3.5' />
+                                    {t('clawDetail.terminalReconnect')}
+                                </Button>
+                            }
+                        />
                     )}
                 </div>
             )}

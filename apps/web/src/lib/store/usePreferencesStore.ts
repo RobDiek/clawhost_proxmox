@@ -25,7 +25,10 @@ const usePreferencesStore = create<PreferencesState>()(
             product: 'cloud',
             setProduct: (product) => set({ product }),
             affiliatePeriod: AFFILIATE_PERIOD.ALL,
-            setAffiliatePeriod: (period) => set({ affiliatePeriod: period })
+            setAffiliatePeriod: (period) => set({ affiliatePeriod: period }),
+            sidebarCollapsed: false,
+            setSidebarCollapsed: (collapsed) =>
+                set({ sidebarCollapsed: collapsed })
         }),
         {
             name: STORAGE_KEYS.PREFERENCES,
@@ -47,9 +50,12 @@ const usePreferencesStore = create<PreferencesState>()(
                     state.affiliatePeriod =
                         state.affiliatePeriod || AFFILIATE_PERIOD.ALL
                 }
+                if (version < 8) {
+                    state.sidebarCollapsed = state.sidebarCollapsed ?? false
+                }
                 return state
             },
-            version: 7
+            version: 8
         }
     )
 )

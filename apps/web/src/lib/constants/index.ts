@@ -1,4 +1,5 @@
 import AFFILIATE_PERIOD from '@/lib/constants/affiliatePeriod'
+import AVATAR_COLORS from '@/lib/constants/avatarColors'
 import STORAGE_KEYS from '@/lib/storageKeys'
 import CHANGELOG_FEATURE_TYPE from '@/lib/constants/changelogFeatureType'
 import CLAW_AVATAR_SIZE from '@/lib/constants/clawAvatarSize'
@@ -19,6 +20,7 @@ import TOAST_TYPE from '@/lib/constants/toastType'
 
 export {
     AFFILIATE_PERIOD,
+    AVATAR_COLORS,
     CHANGELOG_FEATURE_TYPE,
     CLAW_AVATAR_SIZE,
     CLAW_DETAIL_TABS,

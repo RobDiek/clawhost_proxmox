@@ -4,7 +4,7 @@ import type { AdvancedOptionsProps } from '@/ts/Interfaces'
 import { t } from '@openclaw/i18n'
 import { useUIStore } from '@/lib/store'
 import { copyToClipboard } from '@/lib'
-import { generatePassword } from '@/lib/claw-utils'
+import { generatePassword, generateToken } from '@/lib/claw-utils'
 import {
     Button,
     Input,
@@ -23,7 +23,7 @@ import {
     ArrowClockwiseIcon,
     CaretDownIcon
 } from '@phosphor-icons/react'
-import { ClawMascot } from '@/components/shared'
+import { DatabaseIcon } from '@phosphor-icons/react'
 
 const AdvancedOptions: FC<AdvancedOptionsProps> = ({
     showAdvanced,
@@ -32,6 +32,10 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
     onPasswordChange,
     showPassword,
     onToggleShowPassword,
+    gatewayToken,
+    onGatewayTokenChange,
+    showGatewayToken,
+    onToggleShowGatewayToken,
     sshKeys,
     selectedSshKeyId,
     onSshKeyChange,
@@ -142,6 +146,92 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
                     </div>
 
                     <div className='space-y-2'>
+                        <Label>{t('createClaw.gatewayToken')}</Label>
+                        <div className='flex items-center gap-2'>
+                            <div className='relative flex-1'>
+                                <Input
+                                    type={
+                                        showGatewayToken ? 'text' : 'password'
+                                    }
+                                    value={gatewayToken}
+                                    onChange={(e) =>
+                                        onGatewayTokenChange(e.target.value)
+                                    }
+                                    placeholder={t(
+                                        'createClaw.gatewayTokenPlaceholder'
+                                    )}
+                                    className='bg-muted pr-10 font-mono text-sm'
+                                />
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button
+                                            type='button'
+                                            onClick={onToggleShowGatewayToken}
+                                            className='text-muted-foreground hover:text-foreground absolute right-3 top-1/2 -translate-y-1/2'
+                                        >
+                                            {showGatewayToken ? (
+                                                <EyeSlashIcon className='h-4 w-4' />
+                                            ) : (
+                                                <EyeIcon className='h-4 w-4' />
+                                            )}
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {showGatewayToken
+                                            ? t('common.hide')
+                                            : t('common.show')}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </div>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        type='button'
+                                        variant='ghost'
+                                        size='icon'
+                                        onClick={async () => {
+                                            await copyToClipboard(gatewayToken)
+                                            showToast(
+                                                t('createClaw.tokenCopied'),
+                                                'success'
+                                            )
+                                        }}
+                                    >
+                                        <CopyIcon className='h-4 w-4' />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {t('common.copy')}
+                                </TooltipContent>
+                            </Tooltip>
+                            <TooltipProvider delayDuration={200}>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            type='button'
+                                            variant='ghost'
+                                            size='icon'
+                                            onClick={() =>
+                                                onGatewayTokenChange(
+                                                    generateToken()
+                                                )
+                                            }
+                                        >
+                                            <ArrowClockwiseIcon className='h-4 w-4' />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {t('createClaw.regenerateToken')}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
+                        <p className='text-muted-foreground text-xs'>
+                            {t('createClaw.autoGenerateGatewayTokenHint')}
+                        </p>
+                    </div>
+
+                    <div className='space-y-2'>
                         <Label>{t('createClaw.sshKeyOptional')}</Label>
                         {sshKeys.length > 0 ? (
                             <div className='space-y-2'>
@@ -234,7 +324,7 @@ const AdvancedOptions: FC<AdvancedOptionsProps> = ({
                             >
                                 <div className='flex items-center justify-between'>
                                     <div className='flex items-center gap-2'>
-                                        <ClawMascot className='h-4 w-4' />
+                                        <DatabaseIcon className='h-4 w-4' />
                                         <span className='text-sm font-medium'>
                                             {t('createClaw.volumeStorage')}
                                         </span>

@@ -8,7 +8,7 @@ import { t } from '@openclaw/i18n'
 import { userRole } from '@openclaw/shared'
 import { useUIStore, usePreferencesStore, useDashboardStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import { ROUTES } from '@/lib'
+import { ROUTES, CLAW_DETAIL_TABS } from '@/lib'
 import { tabs as clawDetailTabs } from '@/lib/clawDetailTabs'
 import {
     useClaws,
@@ -178,10 +178,13 @@ const Dashboard: FC = (): ReactNode => {
 
     const pageTitle = useMemo(() => {
         if (!selectedClaw) return t('dashboard.title')
-        const tabConfig = chatClawTab && chatClawTab !== 'info'
-            ? clawDetailTabs.find((tab) => tab.id === chatClawTab)
-            : null
-        const tabLabel = tabConfig ? ` ${t(tabConfig.label as Parameters<typeof t>[0])}` : ''
+        const tabConfig =
+            chatClawTab && chatClawTab !== CLAW_DETAIL_TABS.PREVIEW
+                ? clawDetailTabs.find((tab) => tab.id === chatClawTab)
+                : null
+        const tabLabel = tabConfig
+            ? ` ${t(tabConfig.label as Parameters<typeof t>[0])}`
+            : ''
         return `${selectedClaw.name}${tabLabel}`
     }, [selectedClaw, chatClawTab])
 

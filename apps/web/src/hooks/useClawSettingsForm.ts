@@ -4,7 +4,7 @@ import type { UseClawSettingsFormReturn } from '@/ts/Interfaces'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { inputValidation } from '@openclaw/shared'
-import { useRenameClaw, useUpdateClawSubdomain } from '@/hooks/useClaws'
+import { useRenameClaw, useUpdateClawSubdomain, useUpdateClawEmoji } from '@/hooks/useClaws'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { api } from '@/lib'
@@ -12,6 +12,8 @@ import { api } from '@/lib'
 const SUBDOMAIN_CHECK_DELAY = 500
 
 const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
+    const [settingsEmoji, setSettingsEmoji] = useState<string | null>(claw.emoji)
+    const [settingsEmojiColor, setSettingsEmojiColor] = useState<string | null>(claw.emojiColor)
     const [settingsName, setSettingsName] = useState(claw.name)
     const [settingsNameError, setSettingsNameError] = useState('')
     const [settingsSubdomain, setSettingsSubdomain] = useState(
@@ -21,8 +23,14 @@ const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
     const [subdomainChecking, setSubdomainChecking] = useState(false)
     const renameMutation = useRenameClaw()
     const subdomainMutation = useUpdateClawSubdomain()
+    const emojiMutation = useUpdateClawEmoji()
     const { showToast } = useUIStore()
     const checkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    useEffect(() => {
+        setSettingsEmoji(claw.emoji)
+        setSettingsEmojiColor(claw.emojiColor)
+    }, [claw.emoji, claw.emojiColor])
 
     useEffect(() => {
         setSettingsName(claw.name)
@@ -99,77 +107,66 @@ const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
         }
     }, [])
 
+    const emojiHasChanges = settingsEmoji !== claw.emoji || settingsEmojiColor !== claw.emojiColor
     const nameHasChanges = settingsName.trim() !== claw.name
     const subdomainHasChanges =
         settingsSubdomain.trim() !== (claw.subdomain || '')
-    const settingsHasChanges = nameHasChanges || subdomainHasChanges
+    const settingsHasChanges = emojiHasChanges || nameHasChanges || subdomainHasChanges
+
+    const handleEmojiChange = useCallback((emoji: string | null, emojiColor: string | null) => {
+        setSettingsEmoji(emoji)
+        setSettingsEmojiColor(emojiColor)
+    }, [])
 
     const handleSettingsSave = useCallback(() => {
         const trimmedName = settingsName.trim()
         const trimmedSubdomain = settingsSubdomain.trim()
 
-        if (nameHasChanges && trimmedName && trimmedName !== claw.name) {
-            if (!/^[a-zA-Z0-9-]+$/.test(trimmedName)) {
-                setSettingsNameError(t('dashboard.renameInvalidChars'))
-                return
-            }
-            renameMutation.mutate(
-                { id: claw.id, name: trimmedName },
-                {
-                    onSuccess: () => {
-                        showToast(
-                            t('dashboard.renameSuccess'),
-                            TOAST_TYPE.SUCCESS
-                        )
-                    },
-                    onError: () => {
-                        showToast(t('dashboard.renameFailed'), TOAST_TYPE.ERROR)
-                    }
-                }
-            )
+        if (nameHasChanges && trimmedName && !/^[a-zA-Z0-9-]+$/.test(trimmedName)) {
+            setSettingsNameError(t('dashboard.renameInvalidChars'))
+            return
         }
 
-        if (
-            subdomainHasChanges &&
-            trimmedSubdomain &&
-            trimmedSubdomain !== (claw.subdomain || '')
-        ) {
-            if (!subdomainRegex.test(trimmedSubdomain)) {
-                setSettingsSubdomainError(
-                    t('clawDetail.subdomainInvalid', {
-                        min: inputValidation.SUBDOMAIN.MIN,
-                        max: inputValidation.SUBDOMAIN.MAX
-                    })
-                )
-                return
-            }
-            subdomainMutation.mutate(
-                { id: claw.id, subdomain: trimmedSubdomain },
-                {
-                    onSuccess: () => {
-                        showToast(
-                            t('clawDetail.subdomainUpdated'),
-                            TOAST_TYPE.SUCCESS
-                        )
-                    },
-                    onError: (err) => {
-                        const message =
-                            err instanceof Error && err.message
-                                ? err.message
-                                : t('clawDetail.subdomainUpdateFailed')
-                        showToast(message, TOAST_TYPE.ERROR)
-                    }
-                }
+        if (subdomainHasChanges && trimmedSubdomain && !subdomainRegex.test(trimmedSubdomain)) {
+            setSettingsSubdomainError(
+                t('clawDetail.subdomainInvalid', {
+                    min: inputValidation.SUBDOMAIN.MIN,
+                    max: inputValidation.SUBDOMAIN.MAX
+                })
             )
+            return
         }
+
+        const mutations: Promise<unknown>[] = []
+
+        if (emojiHasChanges)
+            mutations.push(emojiMutation.mutateAsync({ id: claw.id, emoji: settingsEmoji, emojiColor: settingsEmojiColor }))
+
+        if (nameHasChanges && trimmedName && trimmedName !== claw.name)
+            mutations.push(renameMutation.mutateAsync({ id: claw.id, name: trimmedName }))
+
+        if (subdomainHasChanges && trimmedSubdomain && trimmedSubdomain !== (claw.subdomain || ''))
+            mutations.push(subdomainMutation.mutateAsync({ id: claw.id, subdomain: trimmedSubdomain }))
+
+        if (mutations.length === 0) return
+
+        Promise.all(mutations)
+            .then(() => showToast(t('clawDetail.settingsUpdated'), TOAST_TYPE.SUCCESS))
+            .catch(() => showToast(t('clawDetail.settingsUpdateFailed'), TOAST_TYPE.ERROR))
     }, [
+        settingsEmoji,
+        settingsEmojiColor,
         settingsName,
         settingsSubdomain,
+        claw.emoji,
+        claw.emojiColor,
         claw.name,
         claw.subdomain,
         claw.id,
+        emojiHasChanges,
         nameHasChanges,
         subdomainHasChanges,
+        emojiMutation,
         renameMutation,
         subdomainMutation,
         subdomainRegex,
@@ -177,6 +174,8 @@ const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
     ])
 
     return {
+        settingsEmoji,
+        settingsEmojiColor,
         settingsName,
         settingsNameError,
         settingsSubdomain,
@@ -184,6 +183,8 @@ const useClawSettingsForm = (claw: Claw): UseClawSettingsFormReturn => {
         settingsHasChanges,
         renamePending: renameMutation.isPending,
         subdomainPending: subdomainMutation.isPending || subdomainChecking,
+        emojiPending: emojiMutation.isPending,
+        handleEmojiChange,
         handleSettingsNameChange,
         handleSettingsSubdomainChange,
         handleSettingsSave

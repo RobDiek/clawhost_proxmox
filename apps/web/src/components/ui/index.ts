@@ -43,6 +43,12 @@ import Checkbox from '@/components/ui/checkbox'
 import Input from '@/components/ui/input'
 import Label from '@/components/ui/label'
 import {
+    Popover,
+    PopoverTrigger,
+    PopoverContent,
+    PopoverAnchor
+} from '@/components/ui/popover'
+import {
     Select,
     SelectTrigger,
     SelectContent,
@@ -105,6 +111,10 @@ export {
     Checkbox,
     Input,
     Label,
+    Popover,
+    PopoverTrigger,
+    PopoverContent,
+    PopoverAnchor,
     Select,
     SelectTrigger,
     SelectContent,

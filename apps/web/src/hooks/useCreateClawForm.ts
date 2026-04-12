@@ -7,7 +7,7 @@ import type {
 import { useState, useCallback } from 'react'
 import { t } from '@openclaw/i18n'
 import { billingInterval } from '@openclaw/shared'
-import { generatePassword } from '@/lib/claw-utils'
+import { generatePassword, generateToken } from '@/lib/claw-utils'
 
 const buildInitialValues = (
     initialPlanId: string,
@@ -18,6 +18,8 @@ const buildInitialValues = (
     location: initialLocation,
     password: generatePassword(),
     showPassword: false,
+    gatewayToken: generateToken(),
+    showGatewayToken: false,
     selectedSshKeyId: '',
     volumeSize: 0,
     billingCycle: billingInterval.YEAR,

@@ -49,7 +49,7 @@ const installClawVersion = async (c: AuthenticatedContext) => {
         if (!claw[0].ip || !claw[0].rootPassword)
             return fail(c, t('api.failedToInstallVersion'), 400)
 
-        const nginxPatch = `grep -q 'frame-ancestors' /etc/nginx/sites-available/openclaw || (sed -i '/proxy_send_timeout/a\\            add_header Content-Security-Policy "frame-ancestors https://${DOMAIN} https://*.${DOMAIN}" always;' /etc/nginx/sites-available/openclaw && nginx -t && systemctl reload nginx) || true`
+        const nginxPatch = `(grep -q 'proxy_hide_header Content-Security-Policy' /etc/nginx/sites-available/openclaw || sed -i 's|proxy_send_timeout 86400;|proxy_send_timeout 86400;\\n            proxy_hide_header Content-Security-Policy;\\n            proxy_hide_header X-Frame-Options;\\n            add_header Content-Security-Policy "frame-ancestors https://${DOMAIN} https://*.${DOMAIN} http://localhost:* https://localhost:*" always;|g' /etc/nginx/sites-available/openclaw) && nginx -t && systemctl reload nginx || true`
 
         const installCommands = [
             'systemctl stop openclaw-gateway || true',

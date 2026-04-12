@@ -17,6 +17,7 @@ const pendingClaws = pgTable(
         sshKeyId: text('ssh_key_id').references(() => sshKeys.id, {
             onDelete: 'set null'
         }),
+        gatewayToken: text('gateway_token'),
         volumeSize: integer('volume_size'),
         priceMonthly: integer('price_monthly').notNull(),
         billingInterval: text('billing_interval'),

@@ -1,0 +1,1 @@
+ALTER TABLE "pending_claws" ADD COLUMN IF NOT EXISTS "gateway_token" text;

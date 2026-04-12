@@ -69,7 +69,9 @@ const provisionClaw = async (
 
         const id = crypto.randomUUID()
         const subdomain = generateSlug(id)
-        const gatewayToken = generateToken()
+        const gatewayToken = pending.gatewayToken
+            ? decrypt(pending.gatewayToken)
+            : generateToken()
 
         let providerSshKeyIds: number[] | undefined
         if (sshKeyResult && sshKeyResult[0]) {

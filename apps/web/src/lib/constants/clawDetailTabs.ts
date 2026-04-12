@@ -1,12 +1,14 @@
 const CLAW_DETAIL_TABS = {
     PREVIEW: 'preview',
-    INFO: 'info',
     LOGS: 'logs',
     TERMINAL: 'terminal',
     VERSIONS: 'versions',
     FILES: 'files',
     MONITOR: 'monitor',
     VOLUMES: 'volumes',
+    SECURITY: 'security',
+    BILLING: 'billing',
+    SERVER: 'server',
     SETTINGS: 'settings'
 } as const
 

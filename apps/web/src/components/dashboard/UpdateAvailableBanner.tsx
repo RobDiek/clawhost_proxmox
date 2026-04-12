@@ -10,7 +10,9 @@ const UpdateAvailableBanner: FC<UpdateAvailableBannerProps> = ({
     return (
         <div className='bg-foreground/5 mb-3 flex items-center justify-between rounded-lg px-3 py-2.5'>
             <p className='text-muted-foreground text-xs'>
-                {t('clawDetail.updateAvailableDescription', { version: OPENCLAW_VERSION })}
+                {t('clawDetail.updateAvailableDescription', {
+                    version: OPENCLAW_VERSION
+                })}
             </p>
             <button
                 onClick={onGoToVersions}

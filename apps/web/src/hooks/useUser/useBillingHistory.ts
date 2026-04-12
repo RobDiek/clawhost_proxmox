@@ -9,7 +9,8 @@ const useBillingHistory = (limit: number = 10) => {
         initialPageParam: 1,
         getNextPageParam: (lastPage) =>
             lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
-        staleTime: 5 * 60 * 1000
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000
     })
 }
 

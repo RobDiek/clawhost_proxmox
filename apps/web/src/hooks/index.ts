@@ -49,7 +49,11 @@ import {
     CLAW_VERSION_QUERY_KEY,
     CLAW_VERSIONS_QUERY_KEY,
     useClawMetrics,
-    CLAW_METRICS_QUERY_KEY
+    CLAW_METRICS_QUERY_KEY,
+    useClawCredentials,
+    useRotatePassword,
+    useRotateGatewayToken,
+    useUpdateClawSSHKey
 } from '@/hooks/useClaws'
 
 import {
@@ -153,6 +157,10 @@ export {
     CLAW_VERSIONS_QUERY_KEY,
     useClawMetrics,
     CLAW_METRICS_QUERY_KEY,
+    useClawCredentials,
+    useRotatePassword,
+    useRotateGatewayToken,
+    useUpdateClawSSHKey,
     useSSHKeys,
     useCreateSSHKey,
     useDeleteSSHKey,

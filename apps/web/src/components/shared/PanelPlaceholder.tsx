@@ -16,9 +16,11 @@ const PanelPlaceholder: FC<PanelPlaceholderProps> = ({
                 <p className='text-foreground/80 text-sm font-medium'>
                     {title}
                 </p>
-                <p className='text-muted-foreground mt-1 text-xs'>
-                    {description}
-                </p>
+                {description && (
+                    <p className='text-muted-foreground mt-1 text-xs'>
+                        {description}
+                    </p>
+                )}
             </div>
             {action}
         </div>

@@ -4,10 +4,7 @@ import type { ClawFileExplorerContentProps } from '@/ts/Interfaces'
 import { useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { Skeleton } from '@/components/ui'
-import {
-    MagnifyingGlassIcon,
-    FileIcon
-} from '@phosphor-icons/react'
+import { MagnifyingGlassIcon, FileIcon } from '@phosphor-icons/react'
 import { usePreferencesStore } from '@/lib/store'
 import { THEMES } from '@/lib'
 import { useClawFiles } from '@/hooks'

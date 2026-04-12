@@ -6,11 +6,36 @@ import executeSSH from '@/services/ssh'
 const enablePreview = withClaw({ requireSSH: 'api.failedToEnablePreview' })(
     async (c, claw) => {
         try {
-            const command = `grep -q 'frame-ancestors' /etc/nginx/sites-available/openclaw || (sed -i '/proxy_send_timeout/a\\            add_header Content-Security-Policy "frame-ancestors https://${DOMAIN} https://*.${DOMAIN}" always;' /etc/nginx/sites-available/openclaw && nginx -t && systemctl reload nginx)`
+            const checkOnly = c.req.query('check') === 'true'
+
+            const checkResult = await executeSSH(
+                claw.ip!,
+                claw.rootPassword!,
+                "grep -q 'proxy_hide_header Content-Security-Policy' /etc/nginx/sites-available/openclaw && grep -q 'localhost' /etc/nginx/sites-available/openclaw && echo 'ENABLED' || echo 'DISABLED'"
+            )
+
+            const alreadyEnabled = checkResult.trim() === 'ENABLED'
+
+            if (alreadyEnabled || checkOnly)
+                return ok(c, { enabled: alreadyEnabled })
+
+            const patchLines = [
+                'proxy_hide_header Content-Security-Policy;',
+                'proxy_hide_header X-Frame-Options;',
+                `add_header Content-Security-Policy "frame-ancestors https://${DOMAIN} https://*.${DOMAIN} http://localhost:* https://localhost:*" always;`
+            ]
+                .map((line) => `            ${line}`)
+                .join('\\n')
+
+            const command = [
+                "sed -i '/proxy_hide_header Content-Security-Policy/d; /proxy_hide_header X-Frame-Options/d; /frame-ancestors/d' /etc/nginx/sites-available/openclaw",
+                `sed -i 's|proxy_send_timeout 86400;|proxy_send_timeout 86400;\\n${patchLines}|g' /etc/nginx/sites-available/openclaw`,
+                'nginx -t && systemctl reload nginx'
+            ].join(' && ')
 
             await executeSSH(claw.ip!, claw.rootPassword!, command)
 
-            return ok(c, null, t('api.enablePreviewSuccess'))
+            return ok(c, { enabled: true }, t('api.enablePreviewSuccess'))
         } catch (error) {
             console.error('enablePreview', error)
             return fail(

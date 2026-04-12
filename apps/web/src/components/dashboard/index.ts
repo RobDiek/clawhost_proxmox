@@ -7,7 +7,6 @@ import ClawConfigDialog from '@/components/dashboard/ClawConfigDialog'
 import ClawCredentialsDialog from '@/components/dashboard/ClawCredentialsDialog'
 import ClawDetailHeader from '@/components/dashboard/ClawDetailHeader'
 import ClawPreviewContent from '@/components/dashboard/ClawPreviewContent'
-import ClawDetailInfoTab from '@/components/dashboard/ClawDetailInfoTab'
 import ClawDetailPanel from '@/components/dashboard/ClawDetailPanel'
 import ClawDetailSettingsTab from '@/components/dashboard/ClawDetailSettingsTab'
 import ClawDetailTabBar from '@/components/dashboard/ClawDetailTabBar'
@@ -19,6 +18,12 @@ import ClawLogsDialog from '@/components/dashboard/ClawLogsDialog'
 import ClawTerminalContent from '@/components/dashboard/ClawTerminalContent'
 import ClawVersionsContent from '@/components/dashboard/ClawVersionsContent'
 import ClawVolumesContent from '@/components/dashboard/ClawVolumesContent'
+import ClawSecurityContent from '@/components/dashboard/ClawSecurityContent'
+import ClawServerContent from '@/components/dashboard/ClawServerContent'
+import HeaderActionButton from '@/components/dashboard/HeaderActionButton'
+import EmojiColorPicker from '@/components/dashboard/EmojiColorPicker'
+import ExportSection from '@/components/dashboard/ExportSection'
+import SectionHeader from '@/components/dashboard/SectionHeader'
 import CopyableField from '@/components/dashboard/CopyableField'
 import CreateClawModal from '@/components/dashboard/CreateClawModal'
 import DashboardChatView from '@/components/dashboard/DashboardChatView'
@@ -36,7 +41,6 @@ export {
     ClawCredentialsDialog,
     ClawDetailHeader,
     ClawPreviewContent,
-    ClawDetailInfoTab,
     ClawDetailPanel,
     ClawDetailSettingsTab,
     ClawDetailTabBar,
@@ -48,6 +52,12 @@ export {
     ClawTerminalContent,
     ClawVersionsContent,
     ClawVolumesContent,
+    ClawSecurityContent,
+    ClawServerContent,
+    EmojiColorPicker,
+    ExportSection,
+    SectionHeader,
+    HeaderActionButton,
     CopyableField,
     CreateClawModal,
     DashboardChatView,

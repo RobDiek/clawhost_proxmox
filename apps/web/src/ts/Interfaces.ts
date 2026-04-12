@@ -50,6 +50,8 @@ export interface Volume {
 export interface Claw {
     id: string
     name: string
+    emoji: string | null
+    emojiColor: string | null
     status: ClawStatus
     ip: string | null
     planId: string
@@ -60,6 +62,7 @@ export interface Claw {
     providerServerId: string | null
     subdomain: string | null
     gatewayToken: string | null
+    hostKeyFingerprint: string | null
     subscriptionStatus: string | null
     polarSubscriptionId: string | null
     billingInterval: string | null
@@ -160,6 +163,11 @@ export interface AccountSettingsSectionProps {
     setOpenLinksWindowed: (value: boolean) => void
 }
 
+export interface AccountBillingSectionProps {
+    isPortalLoading: boolean
+    onManageBilling: () => void
+}
+
 export interface ConnectedAccountsSectionProps {
     authMethods: AuthMethod[] | undefined
     linkingProvider: AuthMethod | null
@@ -228,6 +236,8 @@ export interface UseCreateClawFormValues {
     location: string
     password: string
     showPassword: boolean
+    gatewayToken: string
+    showGatewayToken: boolean
     selectedSshKeyId: string
     volumeSize: number
     billingCycle: BillingInterval
@@ -272,6 +282,8 @@ export interface PreferencesState {
     setProduct: (product: Product) => void
     affiliatePeriod: AffiliatePeriod
     setAffiliatePeriod: (period: AffiliatePeriod) => void
+    sidebarCollapsed: boolean
+    setSidebarCollapsed: (collapsed: boolean) => void
 }
 
 export interface VersionsState {
@@ -377,6 +389,8 @@ export interface ClawMascotProps {
 }
 
 export interface ClawAvatarProps {
+    emoji?: string | null
+    emojiColor?: string | null
     size?: ClawAvatarSize
     className?: string
 }
@@ -439,7 +453,7 @@ export interface ErrorStateProps {
 export interface PanelPlaceholderProps {
     icon: ReactNode
     title: string
-    description: string
+    description?: string
     action?: ReactNode
 }
 
@@ -521,6 +535,7 @@ export interface CreateClawModalProps {
 
 export interface ClawCardActions {
     onStart: () => void
+    onShowStartModal: () => void
     onShowStopModal: () => void
     onShowRestartModal: () => void
     onShowDeleteModal: () => void
@@ -559,6 +574,8 @@ export interface ClawCardDropdownMenuProps {
 
 export interface ClawCardDialogsProps {
     clawName: string
+    showStartModal: boolean
+    setShowStartModal: (open: boolean) => void
     showDeleteModal: boolean
     setShowDeleteModal: (open: boolean) => void
     showStopModal: boolean
@@ -567,10 +584,12 @@ export interface ClawCardDialogsProps {
     setShowRestartModal: (open: boolean) => void
     showHardDeleteModal: boolean
     setShowHardDeleteModal: (open: boolean) => void
+    onStart: () => void
     onDelete: () => void
     onStop: () => void
     onRestart: () => void
     onHardDelete: () => void
+    isStartPending: boolean
     isDeletePending: boolean
     isStopPending: boolean
     isRestartPending: boolean
@@ -595,6 +614,8 @@ export interface ClawCardDialogsBundleProps {
     clawId: string
     clawName: string
     clawIp: string
+    showStartModal: boolean
+    setShowStartModal: (open: boolean) => void
     showDeleteModal: boolean
     setShowDeleteModal: (open: boolean) => void
     showStopModal: boolean
@@ -612,11 +633,13 @@ export interface ClawCardDialogsBundleProps {
     showCredentials: boolean
     setShowCredentials: (open: boolean) => void
     credentialsPassword: string | null
+    onStart: () => void
     onDelete: () => void
     onStop: () => void
     onRestart: () => void
     onHardDelete: () => void
     onReinstall: () => void
+    isStartPending: boolean
     isDeletePending: boolean
     isStopPending: boolean
     isRestartPending: boolean
@@ -707,6 +730,7 @@ export interface PurchaseClawData {
     planId: string
     location: string
     password?: string
+    gatewayToken?: string
     sshKeyId?: string
     volumeSize?: number
     priceMonthly: number
@@ -832,6 +856,7 @@ export interface ClawVersionsContentProps {
 
 export interface ClawCredentialsResponse {
     rootPassword: string | null
+    gatewayToken: string | null
     ip: string | null
 }
 
@@ -900,6 +925,82 @@ export interface ClawMonitorContentProps {
 
 export interface ClawVolumesContentProps {
     volumes: Volume[]
+}
+
+export interface ClawSecurityContentProps {
+    claw: Claw
+    sshKeys: SSHKey[]
+}
+
+export interface SecretFieldProps {
+    value: string
+    onChange: (value: string) => void
+    onRandomize: () => void
+    onSave: () => void
+    placeholder: string
+    saveTooltip: string
+    hasChanges: boolean
+    saving: boolean
+}
+
+export interface SecuritySSHKeySectionProps {
+    clawId: string
+    sshKeyId: string | null
+    sshKeys: SSHKey[]
+}
+
+export interface SecuritySectionProps {
+    title: string
+    icon: ReactNode
+    children: ReactNode
+}
+
+export interface MonitorHealthBannerProps {
+    clawId: string
+}
+
+export interface MetricCardProps {
+    title: string
+    icon: ReactNode
+    children: ReactNode
+}
+
+export interface UsageBarProps {
+    value: number
+    color: string
+    label: string
+    detail: string
+}
+
+export interface MetricsHistoryPoint {
+    time: string
+    value: number
+}
+
+export interface MonitorChartProps {
+    data: MetricsHistoryPoint[]
+    color: string
+    label: string
+}
+
+export interface MonitorProcessTableProps {
+    processes: ClawMetricsProcess[]
+}
+
+export interface MonitorLoadAvgChartProps {
+    load1: number
+    load5: number
+    load15: number
+}
+
+export interface MonitorNetworkCardProps {
+    rxBytes: number
+    txBytes: number
+}
+
+export interface ClawServerContentProps {
+    claw: Claw
+    plans: Plan[]
 }
 
 export interface ClawFileEntry {
@@ -1069,28 +1170,19 @@ export interface ClawDetailPanelProps {
     fullScreen?: boolean
 }
 
-export interface ClawDetailInfoTabProps {
-    claw: Claw
-    plans: Plan[]
-    sshKeys: SSHKey[]
-    fullScreen?: boolean
-    showVersion: boolean
-    versionLoading: boolean
-    versionDisplay: string | null
-    isOutdated: boolean
-    onGoToVersions?: () => void
-}
-
 export interface UpdateAvailableBannerProps {
     onGoToVersions: () => void
 }
 
 export interface ClawBillingContentProps {
     claw: Claw
+    plans: Plan[]
 }
 
 export interface ClawDetailSettingsTabProps {
-    clawId: string
+    claw: Claw
+    currentEmoji: string | null
+    currentEmojiColor: string | null
     settingsName: string
     settingsNameError: string
     settingsSubdomain: string
@@ -1098,13 +1190,37 @@ export interface ClawDetailSettingsTabProps {
     settingsHasChanges: boolean
     renamePending: boolean
     subdomainPending: boolean
+    emojiPending: boolean
     onNameChange: (value: string) => void
     onSubdomainChange: (value: string) => void
+    onEmojiChange: (emoji: string | null, emojiColor: string | null) => void
     onSave: () => void
+}
+
+export interface SectionHeaderProps {
+    title: string
+    action?: ReactNode
+}
+
+export interface EmojiColorPickerProps {
+    emoji: string | null
+    emojiColor: string | null
+    onEmojiChange: (emoji: string | null, color: string | null) => void
+}
+
+export interface ExportSectionProps {
+    clawId: string
 }
 
 export interface ClawPreviewContentProps {
     claw: Claw
+}
+
+export interface HeaderActionButtonProps {
+    icon: ElementType
+    label: string
+    onClick: () => void
+    disabled: boolean
 }
 
 export interface ClawDetailHeaderProps {
@@ -1127,6 +1243,8 @@ export interface ClawDetailTabState {
 }
 
 export interface UseClawSettingsFormReturn {
+    settingsEmoji: string | null
+    settingsEmojiColor: string | null
     settingsName: string
     settingsNameError: string
     settingsSubdomain: string
@@ -1134,6 +1252,8 @@ export interface UseClawSettingsFormReturn {
     settingsHasChanges: boolean
     renamePending: boolean
     subdomainPending: boolean
+    emojiPending: boolean
+    handleEmojiChange: (emoji: string | null, emojiColor: string | null) => void
     handleSettingsNameChange: (value: string) => void
     handleSettingsSubdomainChange: (value: string) => void
     handleSettingsSave: () => void
@@ -1324,6 +1444,12 @@ export interface UpdateClawSubdomainMutationParams extends UpdateClawSubdomainDa
     id: string
 }
 
+export interface UpdateClawEmojiMutationParams {
+    id: string
+    emoji: string | null
+    emojiColor: string | null
+}
+
 export interface SelectContextValue {
     value: string
     onValueChange: (value: string) => void
@@ -1453,6 +1579,10 @@ export interface AdvancedOptionsProps {
     onPasswordChange: (password: string) => void
     showPassword: boolean
     onToggleShowPassword: () => void
+    gatewayToken: string
+    onGatewayTokenChange: (token: string) => void
+    showGatewayToken: boolean
+    onToggleShowGatewayToken: () => void
     sshKeys: SSHKey[]
     selectedSshKeyId: string
     onSshKeyChange: (id: string) => void

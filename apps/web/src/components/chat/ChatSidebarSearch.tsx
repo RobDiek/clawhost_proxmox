@@ -15,7 +15,7 @@ const ChatSidebarSearch: FC<ChatSidebarSearchProps> = ({
             : t('dashboard.searchAgents')
 
     return (
-        <div className='px-3 pb-2 pt-3'>
+        <div className='min-w-0 flex-1'>
             <div className='relative'>
                 <MagnifyingGlassIcon className='text-muted-foreground absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2' />
                 <input

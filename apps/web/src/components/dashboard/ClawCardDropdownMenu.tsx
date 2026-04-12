@@ -13,12 +13,8 @@ import {
     DropdownMenuTrigger
 } from '@/components/ui'
 import {
-    PlayIcon,
-    SquareIcon,
-    ArrowClockwiseIcon,
     TrashIcon,
     DotsThreeOutlineIcon,
-    TerminalIcon,
     CircleNotchIcon,
     ClockCountdownIcon,
     ArrowCounterClockwiseIcon,
@@ -115,59 +111,8 @@ const ClawCardDropdownMenu: FC<ClawCardDropdownMenuProps> = ({
                 )}
             </DropdownMenuTrigger>
             <DropdownMenuContent align='end' collisionPadding={8}>
-                {claw.status === clawStatus.stopped && (
-                    <DropdownMenuItem
-                        onClick={actions.onStart}
-                        disabled={isLoading}
-                    >
-                        <PlayIcon className='mr-2 h-4 w-4' />
-                        {t('dashboard.start')}
-                    </DropdownMenuItem>
-                )}
-                {claw.status === clawStatus.running && (
-                    <Fragment>
-                        <DropdownMenuItem
-                            onClick={actions.onShowStopModal}
-                            disabled={isLoading}
-                        >
-                            <SquareIcon className='mr-2 h-4 w-4' />
-                            {t('dashboard.stop')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={actions.onShowRestartModal}
-                            disabled={isLoading}
-                        >
-                            <ArrowClockwiseIcon className='mr-2 h-4 w-4' />
-                            {t('dashboard.restart')}
-                        </DropdownMenuItem>
-                        {claw.ip && (
-                            <DropdownMenuItem
-                                onClick={actions.onShowCredentials}
-                            >
-                                <TerminalIcon className='mr-2 h-4 w-4' />
-                                {t('dashboard.viewServerCredentials')}
-                            </DropdownMenuItem>
-                        )}
-                    </Fragment>
-                )}
                 {claw.ip && (
                     <Fragment>
-                        <DropdownMenuSeparator />
-                        {claw.status !== clawStatus.running && (
-                            <DropdownMenuItem
-                                onClick={actions.onShowCredentials}
-                            >
-                                <TerminalIcon className='mr-2 h-4 w-4' />
-                                {t('dashboard.viewServerCredentials')}
-                            </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                            onClick={actions.onShowReinstallModal}
-                            disabled={isLoading}
-                        >
-                            <ArrowCounterClockwiseIcon className='mr-2 h-4 w-4' />
-                            {t('dashboard.reinstallInstance')}
-                        </DropdownMenuItem>
                         {claw.polarSubscriptionId && (
                             <DropdownMenuItem
                                 onClick={actions.onUpdatePayment}

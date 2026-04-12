@@ -41,6 +41,7 @@ import {
     ConnectedAccountRow,
     AccountProfileSection,
     AccountSettingsSection,
+    AccountBillingSection,
     ConnectedAccountsSection
 } from '@/components/account'
 
@@ -90,6 +91,7 @@ export {
     ConnectedAccountRow,
     AccountProfileSection,
     AccountSettingsSection,
+    AccountBillingSection,
     ConnectedAccountsSection,
     AffiliateConfirmDialog,
     AffiliatePaymentHistory,

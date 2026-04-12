@@ -2,7 +2,14 @@ import type { FC, ReactNode } from 'react'
 import type { ClawDetailHeaderProps } from '@/ts/Interfaces'
 
 import { Fragment } from 'react'
-import { XIcon, ArrowSquareOutIcon } from '@phosphor-icons/react'
+import {
+    XIcon,
+    ArrowSquareOutIcon,
+    PlayIcon,
+    StopIcon,
+    ArrowsClockwiseIcon
+} from '@phosphor-icons/react'
+import { t } from '@openclaw/i18n'
 import { clawStatus, userRole } from '@openclaw/shared'
 import { getBaseDomain, TRUNCATE_LENGTHS } from '@/lib'
 import { generateSlug } from '@/lib/claw-utils'
@@ -11,7 +18,8 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
 import { useProfile, useClawCardActions } from '@/hooks'
 import {
     ClawCardDropdownMenu,
-    ClawCardDialogsBundle
+    ClawCardDialogsBundle,
+    HeaderActionButton
 } from '@/components/dashboard'
 
 const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
@@ -26,14 +34,13 @@ const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
         !!claw.deletionScheduledAt &&
         new Date(claw.deletionScheduledAt) > new Date()
     const hasActionItems =
-        claw.status === clawStatus.running ||
-        claw.status === clawStatus.stopped
+        claw.status === clawStatus.running || claw.status === clawStatus.stopped
 
     return (
         <Fragment>
-            <div className='border-border flex items-center justify-between border-b px-5 py-2.5'>
+            <div className='border-border flex items-center justify-between border-b px-3 p-2.5'>
                 <div className='flex items-center gap-2.5'>
-                    <ClawAvatar />
+                    <ClawAvatar emoji={claw.emoji} emojiColor={claw.emojiColor} />
                     <div className='space-y-px'>
                         <h3 className='text-foreground text-sm font-semibold leading-tight'>
                             {claw.name.length > TRUNCATE_LENGTHS.PANEL_NAME ? (
@@ -68,7 +75,35 @@ const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
                             )}
                     </div>
                 </div>
-                <div className='flex items-center gap-1'>
+                <div className='flex items-center gap-1.5'>
+                    {actions && hasActionItems && (
+                        <div className='flex items-center gap-1'>
+                            {claw.status === clawStatus.stopped && (
+                                <HeaderActionButton
+                                    icon={PlayIcon}
+                                    label={t('dashboard.startServer')}
+                                    onClick={actions.onStart}
+                                    disabled={isMutating}
+                                />
+                            )}
+                            {claw.status === clawStatus.running && (
+                                <HeaderActionButton
+                                    icon={StopIcon}
+                                    label={t('dashboard.stopServer')}
+                                    onClick={actions.onShowStopModal}
+                                    disabled={isMutating}
+                                />
+                            )}
+                            {claw.status === clawStatus.running && (
+                                <HeaderActionButton
+                                    icon={ArrowsClockwiseIcon}
+                                    label={t('dashboard.restartServer')}
+                                    onClick={actions.onShowRestartModal}
+                                    disabled={isMutating}
+                                />
+                            )}
+                        </div>
+                    )}
                     {actions && (
                         <div className={fullScreen ? 'md:hidden' : ''}>
                             <ClawCardDropdownMenu
@@ -90,9 +125,7 @@ const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
                     </button>
                 </div>
             </div>
-            {dialogsProps && (
-                <ClawCardDialogsBundle {...dialogsProps} />
-            )}
+            {dialogsProps && <ClawCardDialogsBundle {...dialogsProps} />}
         </Fragment>
     )
 }

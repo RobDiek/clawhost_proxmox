@@ -1,0 +1,157 @@
+import type { FC, ReactNode } from 'react'
+import type { EmojiColorPickerProps } from '@/ts/Interfaces'
+
+import { useState, useCallback } from 'react'
+import { t } from '@openclaw/i18n'
+import { ShuffleIcon, TrashIcon } from '@phosphor-icons/react'
+import Picker from '@emoji-mart/react'
+import data from '@emoji-mart/data'
+import { usePreferencesStore } from '@/lib/store'
+import { AVATAR_COLORS, THEMES, CLAW_AVATAR_SIZE } from '@/lib/constants'
+import { randomColor } from '@/lib/claw-utils'
+import { ClawAvatar } from '@/components/shared'
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent
+} from '@/components/ui'
+
+const ColorSwatch: FC<{
+    color: string | null
+    selected: boolean
+    onClick: () => void
+}> = ({ color, selected, onClick }): ReactNode => (
+    <button
+        onClick={onClick}
+        className={`h-6 w-6 rounded-md transition-all ${!color ? 'bg-muted' : ''} ${selected ? 'ring-foreground/50 ring-2 ring-offset-1 ring-offset-transparent' : 'hover:scale-110'}`}
+        style={color ? { backgroundColor: color } : undefined}
+    />
+)
+
+const EmojiColorPicker: FC<EmojiColorPickerProps> = ({
+    emoji,
+    emojiColor,
+    onEmojiChange
+}): ReactNode => {
+    const [emojiOpen, setEmojiOpen] = useState(false)
+    const storeTheme = usePreferencesStore((s) => s.theme)
+    const isDark =
+        storeTheme === THEMES.DARK ||
+        (storeTheme === THEMES.SYSTEM &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches)
+
+    const handleEmojiSelect = useCallback(
+        (selected: string | null) => {
+            onEmojiChange(selected, selected ? emojiColor : null)
+            setEmojiOpen(false)
+        },
+        [onEmojiChange, emojiColor]
+    )
+
+    const handleColorSelect = useCallback(
+        (color: string | null) => {
+            onEmojiChange(emoji, color)
+        },
+        [onEmojiChange, emoji]
+    )
+
+    const handleRandomize = useCallback(() => {
+        const emojis = (
+            data as {
+                emojis: Record<string, { skins: { native: string }[] }>
+            }
+        ).emojis
+        const keys = Object.keys(emojis)
+        const randomKey = keys[Math.floor(Math.random() * keys.length)]
+        const emojiData = emojis[randomKey]
+        if (emojiData?.skins?.[0]?.native)
+            onEmojiChange(emojiData.skins[0].native, randomColor())
+    }, [onEmojiChange])
+
+    return (
+        <div className='space-y-5'>
+            <div>
+                <label className='text-muted-foreground mb-2 block text-xs font-medium'>
+                    {t('clawDetail.settingsIcon')}
+                </label>
+                <div className='flex items-center gap-3'>
+                    <DropdownMenu open={emojiOpen} onOpenChange={setEmojiOpen}>
+                        <DropdownMenuTrigger asChild>
+                            <button className='hover:bg-foreground/10 rounded-xl transition-colors'>
+                                <ClawAvatar
+                                    emoji={emoji}
+                                    emojiColor={emojiColor}
+                                    size={CLAW_AVATAR_SIZE.LG}
+                                />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                            side='bottom'
+                            align='start'
+                            className='p-0'
+                        >
+                            <Picker
+                                data={data}
+                                onEmojiSelect={(e: { native: string }) =>
+                                    handleEmojiSelect(e.native)
+                                }
+                                theme={isDark ? 'dark' : 'light'}
+                                set='native'
+                                skinTonePosition='none'
+                                previewPosition='none'
+                                perLine={8}
+                                maxFrequentRows={1}
+                            />
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <div className='flex flex-col gap-2'>
+                        <p className='text-muted-foreground text-[11px]'>
+                            {t('clawDetail.settingsIconDescription')}
+                        </p>
+                        <div className='flex items-center gap-3'>
+                            <button
+                                onClick={handleRandomize}
+                                className='text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-[11px] transition-colors'
+                            >
+                                <ShuffleIcon className='h-3 w-3' />
+                                {t('clawDetail.settingsIconRandomize')}
+                            </button>
+                            {emoji && (
+                                <button
+                                    onClick={() => handleEmojiSelect(null)}
+                                    className='text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-[11px] transition-colors'
+                                >
+                                    <TrashIcon className='h-3 w-3' />
+                                    {t('clawDetail.settingsIconRemove')}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label className='text-muted-foreground mb-2 block text-xs font-medium'>
+                    {t('clawDetail.settingsBackground')}
+                </label>
+                <div className='flex flex-wrap items-center gap-1.5'>
+                    <ColorSwatch
+                        color={null}
+                        selected={!emojiColor}
+                        onClick={() => handleColorSelect(null)}
+                    />
+                    {AVATAR_COLORS.map((color) => (
+                        <ColorSwatch
+                            key={color}
+                            color={color}
+                            selected={emojiColor === color}
+                            onClick={() => handleColorSelect(color)}
+                        />
+                    ))}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default EmojiColorPicker
