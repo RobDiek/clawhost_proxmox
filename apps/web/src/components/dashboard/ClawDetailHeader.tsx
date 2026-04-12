@@ -22,7 +22,8 @@ const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
     claw,
     onClose,
     fullScreen,
-    versionDisplay
+    versionDisplay,
+    readOnly
 }): ReactNode => {
     const { actions, isMutating, dialogsProps } = useClawCardActions({ claw })
 
@@ -94,7 +95,7 @@ const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
                             {statusConfig.label}
                         </span>
                     )}
-                    {actions && hasActionItems && (
+                    {actions && hasActionItems && !readOnly && (
                         <div className='flex items-center gap-1'>
                             {claw.status === clawStatus.stopped && (
                                 <HeaderActionButton

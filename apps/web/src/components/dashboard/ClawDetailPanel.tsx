@@ -27,7 +27,8 @@ import {
     ClawDetailHeader,
     ClawDetailTabBar,
     ClawPendingView,
-    UpdateAvailableBanner
+    UpdateAvailableBanner,
+    DemoTerminal
 } from '@/components/dashboard'
 import {
     useClawVersion,
@@ -150,6 +151,7 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                     onClose={onClose}
                     fullScreen={fullScreen}
                     versionDisplay={versionDisplay}
+                    readOnly={readOnly}
                 />
 
                 {isPending ? (
@@ -168,7 +170,6 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                         <ClawDetailTabBar
                             activeTab={activeTab}
                             fullScreen={fullScreen}
-                            readOnly={readOnly}
                             isTabDisabled={() => false}
                             getDisabledTooltip={() => ''}
                             setActiveTab={setActiveTab}
@@ -197,7 +198,7 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.PREVIEW && (
-                                <ClawPreviewContent claw={claw} />
+                                <ClawPreviewContent claw={claw} readOnly={readOnly} />
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.LOGS && (
@@ -239,38 +240,43 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.TERMINAL && (
-                                <Suspense fallback={<TabFallback />}>
-                                    <ClawTerminalContent
-                                        clawId={claw.id}
-                                        enabled={
-                                            activeTab ===
-                                            CLAW_DETAIL_TABS.TERMINAL
-                                        }
-                                    />
-                                </Suspense>
+                                readOnly ? (
+                                    <DemoTerminal />
+                                ) : (
+                                    <Suspense fallback={<TabFallback />}>
+                                        <ClawTerminalContent
+                                            clawId={claw.id}
+                                            enabled={
+                                                activeTab ===
+                                                CLAW_DETAIL_TABS.TERMINAL
+                                            }
+                                        />
+                                    </Suspense>
+                                )
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.VERSIONS && (
                                 <Suspense fallback={<TabFallback />}>
-                                    <ClawVersionsContent clawId={claw.id} />
+                                    <ClawVersionsContent clawId={claw.id} readOnly={readOnly} />
                                 </Suspense>
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.FILES && (
                                 <Suspense fallback={<TabFallback />}>
-                                    <ClawConfigContent clawId={claw.id} />
+                                    <ClawConfigContent clawId={claw.id} readOnly={readOnly} />
                                 </Suspense>
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.MONITOR && (
                                 <Suspense fallback={<TabFallback />}>
-                                    <ClawMonitorContent clawId={claw.id} />
+                                    <ClawMonitorContent clawId={claw.id} readOnly={readOnly} />
                                 </Suspense>
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.VOLUMES && (
                                 <ClawVolumesContent
                                     volumes={claw.volumes || []}
+                                    readOnly={readOnly}
                                 />
                             )}
 
@@ -278,15 +284,16 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                                 <ClawSecurityContent
                                     claw={claw}
                                     sshKeys={sshKeys}
+                                    readOnly={readOnly}
                                 />
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.BILLING && (
-                                <ClawBillingContent claw={claw} plans={plans} />
+                                <ClawBillingContent claw={claw} plans={plans} readOnly={readOnly} />
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.SERVER && (
-                                <ClawServerContent claw={claw} plans={plans} />
+                                <ClawServerContent claw={claw} plans={plans} readOnly={readOnly} />
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.SETTINGS && (
@@ -310,6 +317,7 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                                     }
                                     onEmojiChange={handleEmojiChange}
                                     onSave={handleSettingsSave}
+                                    readOnly={readOnly}
                                 />
                             )}
                         </div>

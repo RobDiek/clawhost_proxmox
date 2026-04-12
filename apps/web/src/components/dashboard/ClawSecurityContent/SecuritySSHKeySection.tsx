@@ -18,7 +18,8 @@ import SecuritySection from '@/components/dashboard/ClawSecurityContent/Security
 const SecuritySSHKeySection: FC<SecuritySSHKeySectionProps> = ({
     clawId,
     sshKeyId,
-    sshKeys
+    sshKeys,
+    readOnly
 }): ReactNode => {
     const updateSSHKey = useUpdateClawSSHKey()
     const toast = useToast()
@@ -108,16 +109,18 @@ const SecuritySSHKeySection: FC<SecuritySSHKeySectionProps> = ({
                             {t('createClaw.addSshKeyForPasswordlessLogin')}
                         </p>
                     </div>
-                    <Button
-                        type='button'
-                        variant='secondary'
-                        size='sm'
-                        onClick={() =>
-                            window.location.assign(`/${PATHS.SSH_KEYS}`)
-                        }
-                    >
-                        {t('common.addKey')}
-                    </Button>
+                    {!readOnly && (
+                        <Button
+                            type='button'
+                            variant='secondary'
+                            size='sm'
+                            onClick={() =>
+                                window.location.assign(`/${PATHS.SSH_KEYS}`)
+                            }
+                        >
+                            {t('common.addKey')}
+                        </Button>
+                    )}
                 </div>
             )}
         </SecuritySection>

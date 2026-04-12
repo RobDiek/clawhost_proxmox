@@ -4,7 +4,7 @@ import type { LandingDemoPreviewProps } from '@/ts/Interfaces'
 import { Fragment, useState } from 'react'
 import { Logo } from '@/components/layout'
 
-import { demoClaws } from '@/data'
+import { demoClaws, demoPlan } from '@/data'
 import { ClawDetailPanel } from '@/components/dashboard'
 import { ChatSidebar, ChatEmptyState } from '@/components/chat'
 import { getBaseDomain } from '@/lib'
@@ -80,7 +80,7 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                                 <ClawDetailPanel
                                     key={`chat-settings-${demoChatSettingsClaw.id}`}
                                     claw={demoChatSettingsClaw}
-                                    plans={[]}
+                                    plans={[demoPlan]}
                                     sshKeys={[]}
                                     onClose={() =>
                                         setDemoChatSettingsClawId(null)

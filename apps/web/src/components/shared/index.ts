@@ -14,7 +14,6 @@ import ScrollToBottomButton from '@/components/shared/ScrollToBottomButton'
 import SupportButton from '@/components/shared/SupportButton'
 import ThemeToggle from '@/components/shared/ThemeToggle'
 import Toast from '@/components/shared/Toast'
-import TruncateTooltip from '@/components/shared/TruncateTooltip'
 import UserDropdown from '@/components/shared/UserDropdown'
 
 export {
@@ -34,6 +33,5 @@ export {
     SupportButton,
     ThemeToggle,
     Toast,
-    TruncateTooltip,
     UserDropdown
 }

@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { verifyWebhookSignature } from '@/lib/polar/webhooks'
+import verifyWebhookSignature from '@/lib/polar/webhooks/verifyWebhookSignature'
 
 describe('verifyWebhookSignature', () => {
     const secret = 'test-secret-key'

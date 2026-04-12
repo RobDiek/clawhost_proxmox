@@ -40,23 +40,26 @@ const hasVolumes = (volumes: ClawVolumesContentProps['volumes']) =>
     volumes && volumes.length > 0
 
 const ClawVolumesContent: FC<ClawVolumesContentProps> = ({
-    volumes
+    volumes,
+    readOnly
 }): ReactNode => {
     return (
         <div className='flex h-full flex-col overflow-y-auto p-5'>
-            <div className='text-muted-foreground mb-4 flex items-start gap-2 rounded-lg bg-blue-500/5 p-3 text-xs'>
-                <InfoIcon className='mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-500' />
-                <p>
-                    {t('clawDetail.volumesReadOnly')}{' '}
-                    <a
-                        href={`mailto:${t('common.supportEmail')}`}
-                        className='text-blue-500 underline decoration-transparent transition-colors hover:decoration-blue-500'
-                    >
-                        {t('clawDetail.volumesContactSupport')}
-                    </a>
-                    .
-                </p>
-            </div>
+            {!readOnly && (
+                <div className='text-muted-foreground mb-4 flex items-start gap-2 rounded-lg bg-blue-500/5 p-3 text-xs'>
+                    <InfoIcon className='mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-500' />
+                    <p>
+                        {t('clawDetail.volumesReadOnly')}{' '}
+                        <a
+                            href={`mailto:${t('common.supportEmail')}`}
+                            className='text-blue-500 underline decoration-transparent transition-colors hover:decoration-blue-500'
+                        >
+                            {t('clawDetail.volumesContactSupport')}
+                        </a>
+                        .
+                    </p>
+                </div>
+            )}
 
             {hasVolumes(volumes) ? (
                 <div className='space-y-3'>

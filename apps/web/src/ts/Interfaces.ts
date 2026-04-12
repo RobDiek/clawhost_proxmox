@@ -1,5 +1,4 @@
 import type {
-    ComponentType,
     ElementType,
     FormEvent,
     MutableRefObject,
@@ -31,14 +30,6 @@ import type {
     ChangelogFeatureType,
     CopiedFieldType
 } from '@/ts/Types'
-
-export interface ApiResponse<T = null> {
-    success: boolean
-    data: T
-    message: string
-    code: number
-    version: string
-}
 
 export interface Volume {
     id: string
@@ -130,12 +121,6 @@ export interface UserProfile {
 
 export interface LicenseCheckoutResponse {
     checkoutUrl: string
-}
-
-export interface LicenseCardProps {
-    hasLicense: boolean
-    isPurchasing: boolean
-    onPurchase: () => void
 }
 
 export interface UserStats {
@@ -368,10 +353,6 @@ export interface FooterLink {
     label: string
     href: string
     external?: boolean
-}
-
-export interface SetupScreenProps {
-    onComplete: () => void
 }
 
 export interface LogoProps {
@@ -715,13 +696,6 @@ export interface AuthProviderProps {
     children: ReactNode
 }
 
-export interface AIModelOption {
-    id: string
-    name: string
-    provider: string
-    envVar: string
-}
-
 export interface PurchaseClawData {
     name: string
     planId: string
@@ -797,11 +771,6 @@ export interface BlogPostMeta extends BlogPostFrontmatter {
     readingTime: number
 }
 
-export interface BlogPostModule {
-    default: ComponentType
-    frontmatter: BlogPostFrontmatter
-}
-
 export interface BlogCardProps {
     post: BlogPostMeta
 }
@@ -849,6 +818,7 @@ export interface InstallClawVersionResponse {
 
 export interface ClawVersionsContentProps {
     clawId: string
+    readOnly?: boolean
 }
 
 export interface ClawCredentialsResponse {
@@ -983,15 +953,18 @@ export interface OverviewConfigCardProps {
 
 export interface ClawMonitorContentProps {
     clawId: string
+    readOnly?: boolean
 }
 
 export interface ClawVolumesContentProps {
     volumes: Volume[]
+    readOnly?: boolean
 }
 
 export interface ClawSecurityContentProps {
     claw: Claw
     sshKeys: SSHKey[]
+    readOnly?: boolean
 }
 
 export interface SecretFieldProps {
@@ -1003,22 +976,20 @@ export interface SecretFieldProps {
     saveTooltip: string
     hasChanges: boolean
     saving: boolean
+    readOnly?: boolean
 }
 
 export interface SecuritySSHKeySectionProps {
     clawId: string
     sshKeyId: string | null
     sshKeys: SSHKey[]
+    readOnly?: boolean
 }
 
 export interface SecuritySectionProps {
     title: string
     icon: ReactNode
     children: ReactNode
-}
-
-export interface MonitorHealthBannerProps {
-    clawId: string
 }
 
 export interface MetricCardProps {
@@ -1063,6 +1034,7 @@ export interface MonitorNetworkCardProps {
 export interface ClawServerContentProps {
     claw: Claw
     plans: Plan[]
+    readOnly?: boolean
 }
 
 export interface ClawFileEntry {
@@ -1133,6 +1105,7 @@ export interface ClawFileExplorerDialogProps {
 
 export interface ClawFileExplorerContentProps {
     clawId: string
+    readOnly?: boolean
 }
 
 export interface FileTreeProps {
@@ -1168,6 +1141,7 @@ export interface FileEditorProps {
 export interface UseFileEditorParams {
     clawId: string
     files: ClawFileEntry[] | undefined
+    readOnly?: boolean
 }
 
 export interface UseFileEditorReturn {
@@ -1196,17 +1170,6 @@ export interface UseProfileOptions {
     enabled?: boolean
     staleTime?: number
     refetchInterval?: number | false
-}
-
-export interface UseClawOptions {
-    sync?: boolean
-}
-
-export interface Testimonial {
-    quote: string
-    author: string
-    role: string
-    avatar: string
 }
 
 export interface Faq {
@@ -1240,15 +1203,18 @@ export interface UpdateAvailableBannerProps {
 export interface ClawBillingContentProps {
     claw: Claw
     plans: Plan[]
+    readOnly?: boolean
 }
 
 export interface ClawBillingSubscriptionProps {
     claw: Claw
     plan: Plan | undefined
+    readOnly?: boolean
 }
 
 export interface ClawBillingHistoryProps {
     polarSubscriptionId: string | null
+    readOnly?: boolean
 }
 
 export interface ClawDetailSettingsTabProps {
@@ -1267,6 +1233,7 @@ export interface ClawDetailSettingsTabProps {
     onSubdomainChange: (value: string) => void
     onEmojiChange: (emoji: string | null, emojiColor: string | null) => void
     onSave: () => void
+    readOnly?: boolean
 }
 
 export interface SectionHeaderProps {
@@ -1292,6 +1259,7 @@ export interface ExportSectionProps {
 
 export interface ClawPreviewContentProps {
     claw: Claw
+    readOnly?: boolean
 }
 
 export interface HeaderActionButtonProps {
@@ -1306,12 +1274,12 @@ export interface ClawDetailHeaderProps {
     onClose: () => void
     fullScreen?: boolean
     versionDisplay?: string | null
+    readOnly?: boolean
 }
 
 export interface ClawDetailTabBarProps {
     activeTab: ClawDetailTab
     fullScreen?: boolean
-    readOnly?: boolean
     isTabDisabled: (tabId: ClawDetailTab) => boolean
     getDisabledTooltip: (tabId: ClawDetailTab) => string
     setActiveTab: (tab: ClawDetailTab) => void
@@ -1445,11 +1413,6 @@ export interface ClawDetailTabConfig<T extends string = string> {
     icon: ElementType
 }
 
-export interface TruncateTooltipProps {
-    content: string
-    children: ReactNode
-}
-
 export interface AdminPaginatedQueryParams {
     page: number
     limit: number
@@ -1581,14 +1544,6 @@ export interface ErrorWithMessage {
 
 export interface ErrorResponse {
     error?: string
-}
-
-export interface TranscriptionResult {
-    text: string
-}
-
-export interface AudioContextWithSinkId extends AudioContext {
-    setSinkId(id: string): Promise<void>
 }
 
 export interface SitemapRoute {
@@ -1862,12 +1817,6 @@ export interface AdminEmailListItem {
 export interface AdminBillingApiResponse {
     items: BillingOrder[]
     totalCount: number
-    maxPage: number
-}
-
-export interface AdminBillingResponse {
-    items: BillingOrder[]
-    total: number
     maxPage: number
 }
 
@@ -2224,6 +2173,7 @@ export interface BillingOrderCardProps {
     order: BillingOrder
     loadingInvoiceIds: Set<string>
     onViewInvoice: (orderId: string) => void
+    readOnly?: boolean
 }
 
 export interface BillingStatusConfig {

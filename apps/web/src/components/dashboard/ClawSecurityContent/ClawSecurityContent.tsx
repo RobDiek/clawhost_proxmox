@@ -16,11 +16,15 @@ import SecuritySection from '@/components/dashboard/ClawSecurityContent/Security
 import SecretField from '@/components/dashboard/ClawSecurityContent/SecretField'
 import SecuritySSHKeySection from '@/components/dashboard/ClawSecurityContent/SecuritySSHKeySection'
 
+const DEMO_PASSWORD = 'x9Kf2mPq7wLn4R'
+const DEMO_TOKEN = 'gw_demo_4a8b2c1d3e5f6789'
+
 const ClawSecurityContent: FC<ClawSecurityContentProps> = ({
     claw,
-    sshKeys
+    sshKeys,
+    readOnly
 }): ReactNode => {
-    const credentials = useClawCredentials(claw.id)
+    const credentials = useClawCredentials(readOnly ? '' : claw.id)
     const rotatePassword = useRotatePassword()
     const rotateGatewayToken = useRotateGatewayToken()
     const toast = useToast()
@@ -63,17 +67,18 @@ const ClawSecurityContent: FC<ClawSecurityContentProps> = ({
                 clawId={claw.id}
                 sshKeyId={claw.sshKeyId}
                 sshKeys={sshKeys}
+                readOnly={readOnly}
             />
 
             <SecuritySection
                 title={t('clawDetail.securityPassword')}
                 icon={<ShieldCheckIcon className='h-4 w-4 text-blue-500' />}
             >
-                {credentials.loading ? (
+                {!readOnly && credentials.loading ? (
                     <Skeleton className='h-10 w-full rounded-lg' />
                 ) : (
                     <SecretField
-                        value={credentials.password}
+                        value={readOnly ? DEMO_PASSWORD : credentials.password}
                         onChange={credentials.setPassword}
                         onRandomize={() =>
                             credentials.setPassword(generatePassword())
@@ -81,8 +86,9 @@ const ClawSecurityContent: FC<ClawSecurityContentProps> = ({
                         onSave={handleSavePassword}
                         placeholder={t('createClaw.rootPasswordPlaceholder')}
                         saveTooltip={t('clawDetail.securitySavePassword')}
-                        hasChanges={credentials.passwordChanged}
+                        hasChanges={readOnly ? false : credentials.passwordChanged}
                         saving={rotatePassword.isPending}
+                        readOnly={readOnly}
                     />
                 )}
             </SecuritySection>
@@ -91,11 +97,11 @@ const ClawSecurityContent: FC<ClawSecurityContentProps> = ({
                 title={t('clawDetail.securityGatewayToken')}
                 icon={<ShieldCheckIcon className='h-4 w-4 text-purple-500' />}
             >
-                {credentials.loading ? (
+                {!readOnly && credentials.loading ? (
                     <Skeleton className='h-10 w-full rounded-lg' />
                 ) : (
                     <SecretField
-                        value={credentials.gatewayToken}
+                        value={readOnly ? DEMO_TOKEN : credentials.gatewayToken}
                         onChange={credentials.setGatewayToken}
                         onRandomize={() =>
                             credentials.setGatewayToken(generateToken())
@@ -103,8 +109,9 @@ const ClawSecurityContent: FC<ClawSecurityContentProps> = ({
                         onSave={handleSaveGatewayToken}
                         placeholder={t('createClaw.gatewayTokenPlaceholder')}
                         saveTooltip={t('clawDetail.securitySaveToken')}
-                        hasChanges={credentials.tokenChanged}
+                        hasChanges={readOnly ? false : credentials.tokenChanged}
                         saving={rotateGatewayToken.isPending}
+                        readOnly={readOnly}
                     />
                 )}
             </SecuritySection>

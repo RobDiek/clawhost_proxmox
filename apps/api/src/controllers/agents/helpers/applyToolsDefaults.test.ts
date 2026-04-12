@@ -1,4 +1,4 @@
-import { applyToolsDefaults } from '@/controllers/agents/helpers'
+import applyToolsDefaults from '@/controllers/agents/helpers/applyToolsDefaults'
 
 describe('applyToolsDefaults', () => {
     it('adds default profile when missing', () => {

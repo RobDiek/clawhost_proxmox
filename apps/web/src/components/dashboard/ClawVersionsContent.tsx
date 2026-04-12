@@ -32,11 +32,13 @@ import { api, getLocale } from '@/lib'
 import { useUIStore, useVersionsStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { CLAW_VERSIONS_QUERY_KEY, CLAW_VERSION_QUERY_KEY } from '@/hooks'
+import { demoVersions } from '@/data'
 
 const CHANGELOG_BASE_URL = 'https://www.npmjs.com/package/openclaw/v/'
 
 const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
-    clawId
+    clawId,
+    readOnly
 }): ReactNode => {
     const [search, setSearch] = useState('')
     const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300)
@@ -51,8 +53,8 @@ const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
     const scrollRef = useRef<HTMLDivElement | null>(null)
 
     const {
-        data: versionsData,
-        isLoading,
+        data: liveVersionsData,
+        isLoading: liveLoading,
         isError
     } = useQuery({
         queryKey: [...CLAW_VERSIONS_QUERY_KEY, clawId],
@@ -60,8 +62,11 @@ const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
         staleTime: 0,
         gcTime: 0,
         retry: 1,
-        refetchOnMount: 'always'
+        refetchOnMount: 'always',
+        enabled: !readOnly
     })
+    const versionsData = readOnly ? demoVersions : liveVersionsData
+    const isLoading = readOnly ? false : liveLoading
 
     const installMutation = useMutation({
         mutationFn: (version: string) =>
@@ -265,7 +270,7 @@ const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
                                                 </div>
                                             </div>
 
-                                            {!isCurrent && (
+                                            {!isCurrent && !readOnly && (
                                                 <button
                                                     onClick={() =>
                                                         handleInstall(

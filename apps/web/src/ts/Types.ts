@@ -1,8 +1,7 @@
 import type { OAuthCredential } from 'firebase/auth'
 import type {
     OAuthWindowResult,
-    PendingConflict,
-    TranscriptionResult
+    PendingConflict
 } from '@/ts/Interfaces'
 import type {
     authMethod,
@@ -22,7 +21,6 @@ import type {
     OAUTH_PROVIDER,
     PREVIEW_STATUS,
     PRODUCT,
-    ROUTES,
     SSH_KEY_MODAL_MODE,
     TERMINAL_STATUS,
     THEMES,
@@ -66,8 +64,6 @@ export type LoginLoadingMethod =
     | (typeof LOGIN_LOADING_METHOD)[keyof typeof LOGIN_LOADING_METHOD]
     | null
 
-export type Route = (typeof ROUTES)[keyof typeof ROUTES]
-
 export type ThemeMode = (typeof THEMES)[keyof typeof THEMES]
 
 export type Language = (typeof LANGUAGES)[keyof typeof LANGUAGES]
@@ -84,10 +80,6 @@ export type AffiliatePeriod =
 
 export type ChangelogFeatureType =
     (typeof CHANGELOG_FEATURE_TYPE)[keyof typeof CHANGELOG_FEATURE_TYPE]
-
-export type TranscriberFunction = (
-    audio: Float32Array
-) => Promise<TranscriptionResult>
 
 export type AdminAnalyticsRange = 'day' | 'week' | 'month' | 'year' | 'all'
 

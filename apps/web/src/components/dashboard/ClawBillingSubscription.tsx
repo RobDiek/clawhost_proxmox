@@ -10,12 +10,13 @@ import { Button } from '@/components/ui'
 
 const ClawBillingSubscription: FC<ClawBillingSubscriptionProps> = ({
     claw,
-    plan
+    plan,
+    readOnly
 }): ReactNode => {
     const monthlyPrice = plan ? plan.priceMonthly : null
     const { openPortal, isLoading: isPortalLoading } = useCustomerPortal()
 
-    const manageBillingAction = claw.polarSubscriptionId ? (
+    const manageBillingAction = readOnly ? undefined : claw.polarSubscriptionId ? (
         <Button
             variant='outline'
             size='sm'

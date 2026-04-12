@@ -21,7 +21,7 @@ import { locationFlags, locationNames } from '@/lib/claw-utils'
 import { TOAST_TYPE } from '@/lib/constants'
 import { useUIStore } from '@/lib/store'
 
-const ClawServerContent: FC<ClawServerContentProps> = ({ claw, plans }): ReactNode => {
+const ClawServerContent: FC<ClawServerContentProps> = ({ claw, plans, readOnly }): ReactNode => {
     const toast = useToast()
     const { showToast } = useUIStore()
     const reinstallMutation = useReinstallClaw()
@@ -39,6 +39,11 @@ const ClawServerContent: FC<ClawServerContentProps> = ({ claw, plans }): ReactNo
     const flag = claw.location ? locationFlags[claw.location] : null
 
     useEffect(() => {
+        if (readOnly) {
+            setRootPassword('demoP@ss123')
+            setLoading(false)
+            return
+        }
         const fetchCredentials = async () => {
             try {
                 const res = await api.getClawCredentials(claw.id)
@@ -50,7 +55,7 @@ const ClawServerContent: FC<ClawServerContentProps> = ({ claw, plans }): ReactNo
             }
         }
         fetchCredentials()
-    }, [claw.id])
+    }, [claw.id, readOnly])
 
     const sshCommand = rootPassword
         ? `sshpass -p '${rootPassword}' ssh -o StrictHostKeyChecking=no root@${claw.ip}`
@@ -162,28 +167,30 @@ const ClawServerContent: FC<ClawServerContentProps> = ({ claw, plans }): ReactNo
                 </p>
             </div>
 
-            <div className='border-border rounded-lg border p-4'>
-                <div className='mb-3 flex items-center gap-2'>
-                    <ArrowCounterClockwiseIcon className='h-4 w-4 text-red-500' />
-                    <h4 className='text-sm font-medium'>
+            {!readOnly && (
+                <div className='border-border rounded-lg border p-4'>
+                    <div className='mb-3 flex items-center gap-2'>
+                        <ArrowCounterClockwiseIcon className='h-4 w-4 text-red-500' />
+                        <h4 className='text-sm font-medium'>
+                            {t('dashboard.reinstallInstance')}
+                        </h4>
+                    </div>
+                    <p className='text-muted-foreground mb-3 text-sm'>
+                        {t('clawDetail.reinstallDescription')}
+                    </p>
+                    <Button
+                        variant='destructive'
+                        size='sm'
+                        onClick={() => setShowReinstallModal(true)}
+                        disabled={reinstallMutation.isPending}
+                    >
+                        {reinstallMutation.isPending && (
+                            <CircleNotchIcon className='mr-2 h-4 w-4 animate-spin' />
+                        )}
                         {t('dashboard.reinstallInstance')}
-                    </h4>
+                    </Button>
                 </div>
-                <p className='text-muted-foreground mb-3 text-sm'>
-                    {t('clawDetail.reinstallDescription')}
-                </p>
-                <Button
-                    variant='destructive'
-                    size='sm'
-                    onClick={() => setShowReinstallModal(true)}
-                    disabled={reinstallMutation.isPending}
-                >
-                    {reinstallMutation.isPending && (
-                        <CircleNotchIcon className='mr-2 h-4 w-4 animate-spin' />
-                    )}
-                    {t('dashboard.reinstallInstance')}
-                </Button>
-            </div>
+            )}
 
             <ConfirmationDialog
                 open={showReinstallModal}

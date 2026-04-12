@@ -7,10 +7,12 @@ import { t } from '@openclaw/i18n'
 import { useClawFile, useUpdateClawFile, CLAW_FILE_QUERY_KEY } from '@/hooks'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
+import { demoFileContent } from '@/data'
 
 const useFileEditor = ({
     clawId,
-    files
+    files,
+    readOnly
 }: UseFileEditorParams): UseFileEditorReturn => {
     const queryClient = useQueryClient()
     const updateFile = useUpdateClawFile()
@@ -21,14 +23,22 @@ const useFileEditor = ({
 
     const selectedFile = files?.find((f) => f.path === selectedPath)
     const fileType: ClawFileType = selectedFile?.fileType ?? 'unknown'
-    const isEditable = true
+    const isEditable = !readOnly
     const isJson = fileType === 'json'
 
-    const fileContent = useClawFile(
+    const liveFileContent = useClawFile(
         clawId,
         selectedPath,
-        selectedPath.length > 0
+        selectedPath.length > 0 && !readOnly
     )
+    const fileContent = readOnly && selectedPath
+        ? {
+            data: { ...demoFileContent, path: selectedPath },
+            isPending: false,
+            isError: false,
+            error: null
+        }
+        : liveFileContent
 
     const handleSelectFile = (path: string) => {
         if (path === selectedPath) return

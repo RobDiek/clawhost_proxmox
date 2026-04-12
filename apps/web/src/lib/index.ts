@@ -3,7 +3,6 @@ import cn from '@/lib/utils'
 import PATHS from '@/lib/paths'
 import {
     CLAW_DETAIL_TABS,
-    LANGUAGES,
     PREVIEW_STATUS,
     RELEASES,
     ROUTES,
@@ -19,7 +18,6 @@ import copyToClipboard from '@/lib/copyToClipboard'
 import reportWebVitals from '@/lib/reportWebVitals'
 import isSafeRedirectUrl from '@/lib/isSafeRedirectUrl'
 import { formatDate, formatCurrency } from '@/lib/formatters'
-import { tabs as CLAW_DETAIL_TAB_LIST } from '@/lib/clawDetailTabs'
 
 export {
     api,
@@ -30,7 +28,6 @@ export {
     CLAW_DETAIL_TABS,
     PREVIEW_STATUS,
     THEMES,
-    LANGUAGES,
     RELEASES,
     getBaseDomain,
     Envs,
@@ -41,6 +38,5 @@ export {
     reportWebVitals,
     formatDate,
     formatCurrency,
-    CLAW_DETAIL_TAB_LIST,
     isSafeRedirectUrl
 }

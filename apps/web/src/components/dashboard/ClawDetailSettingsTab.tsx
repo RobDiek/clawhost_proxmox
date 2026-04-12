@@ -31,7 +31,8 @@ const ClawDetailSettingsTab: FC<ClawDetailSettingsTabProps> = ({
     onNameChange,
     onSubdomainChange,
     onEmojiChange,
-    onSave
+    onSave,
+    readOnly
 }): ReactNode => {
     const { actions, dialogsProps } = useClawCardActions({ claw })
     const { data: profile } = useProfile({ enabled: true })
@@ -131,27 +132,29 @@ const ClawDetailSettingsTab: FC<ClawDetailSettingsTabProps> = ({
                     )}
                 </div>
 
-                <button
-                    onClick={onSave}
-                    disabled={
-                        !settingsHasChanges ||
-                        !!settingsNameError ||
-                        !!settingsSubdomainError ||
-                        renamePending ||
-                        subdomainPending ||
-                        emojiPending
-                    }
-                    className='flex w-full items-center justify-center gap-2 rounded-lg bg-[#ef5350] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#e53935] disabled:cursor-not-allowed disabled:opacity-50'
-                >
-                    {(renamePending || subdomainPending || emojiPending) && (
-                        <CircleNotchIcon className='h-4 w-4 animate-spin' />
-                    )}
-                    {t('clawDetail.settingsSave')}
-                </button>
+                {!readOnly && (
+                    <button
+                        onClick={onSave}
+                        disabled={
+                            !settingsHasChanges ||
+                            !!settingsNameError ||
+                            !!settingsSubdomainError ||
+                            renamePending ||
+                            subdomainPending ||
+                            emojiPending
+                        }
+                        className='flex w-full items-center justify-center gap-2 rounded-lg bg-[#ef5350] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#e53935] disabled:cursor-not-allowed disabled:opacity-50'
+                    >
+                        {(renamePending || subdomainPending || emojiPending) && (
+                            <CircleNotchIcon className='h-4 w-4 animate-spin' />
+                        )}
+                        {t('clawDetail.settingsSave')}
+                    </button>
+                )}
 
-                <ExportSection clawId={claw.id} />
+                {!readOnly && <ExportSection clawId={claw.id} />}
 
-                {actions && (
+                {actions && !readOnly && (
                     <div className='border-border border-t pt-5'>
                         <label className='text-muted-foreground mb-2 block text-xs font-medium'>
                             {t('clawDetail.settingsDangerZone')}
@@ -219,7 +222,7 @@ const ClawDetailSettingsTab: FC<ClawDetailSettingsTabProps> = ({
                     <div className='space-y-1.5 text-[11px]'>
                         {claw.createdAt && (
                             <p className='text-muted-foreground'>
-                                {t('dashboard.created')}: {new Date(claw.createdAt).toLocaleDateString(
+                                {t('dashboard.created')}: {new Date(readOnly ? Date.now() : claw.createdAt).toLocaleDateString(
                                     getLocale(),
                                     { year: 'numeric', month: 'short', day: 'numeric' }
                                 )}

@@ -305,14 +305,6 @@ export interface PolarOrderRaw {
     createdAt: Date | string
 }
 
-export interface PolarProduct {
-    id: string
-    name: string
-    description?: string
-    isRecurring: boolean
-    isArchived: boolean
-}
-
 export interface PolarProductPrice {
     priceAmount: number
     priceCurrency: string
@@ -325,13 +317,6 @@ export interface PolarProductRaw {
     isRecurring: boolean
     isArchived: boolean
     prices?: PolarProductPrice[]
-}
-
-export interface CreatePolarProductParams {
-    name: string
-    description?: string
-    priceAmountCents: number
-    recurringInterval?: BillingInterval
 }
 
 export interface PolarCustomer {
@@ -621,28 +606,6 @@ export interface GitHubRefResponse {
 
 export interface GitHubPullRequestResponse {
     html_url: string
-}
-
-export interface ClawMetricsResponse {
-    cpu: { usagePercent: number; cores: number }
-    memory: { total: number; used: number; available: number }
-    disk: {
-        total: number
-        used: number
-        available: number
-        usagePercent: number
-    }
-    loadAvg: { load1: number; load5: number; load15: number }
-    network: { rxBytes: number; txBytes: number; interface: string }
-    processes: {
-        pid: number
-        user: string
-        cpu: number
-        mem: number
-        command: string
-    }[]
-    uptime: string
-    timestamp: number
 }
 
 export interface ServerLifecycleResult {
