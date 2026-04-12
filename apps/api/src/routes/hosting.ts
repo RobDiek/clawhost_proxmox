@@ -372,7 +372,7 @@ app.post('/contact', async (c) => {
         const { name, phone, type, message } = await c.req.json<{ name: string; phone: string; type: string; message: string }>()
         if (!name || !phone) return fail(c, 'שם וטלפון חובה', 400)
 
-        const telegram = await import('@/services/telegram')
+        const { default: telegram } = await import('@/services/telegram')
         const text = `📩 *פנייה חדשה מהאתר*\n\n` +
             `👤 *שם:* ${name}\n` +
             `📱 *טלפון:* ${phone}\n` +
