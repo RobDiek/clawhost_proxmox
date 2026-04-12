@@ -466,26 +466,16 @@ export const saveIntegration = async (c: Context) => {
             }
             const cfg = modelConfigs[type]
             if (cfg) {
-                const configScript = Buffer.from(JSON.stringify(cfg)).toString('base64')
                 try {
+                    // Use openclaw config set to avoid gateway config overwrite
+                    const modelsJson = JSON.stringify(cfg.models).replace(/'/g, "'\\''")
+                    const fallbacksJson = JSON.stringify(cfg.fallbacks).replace(/'/g, "'\\''")
                     await sshExecInstance(instance, `
-                        python3 -c "
-import json, base64, sys
-cfg = json.loads(base64.b64decode('${configScript}'))
-with open('${CONFIG}') as f: d = json.load(f)
-defaults = d.setdefault('agents', {}).setdefault('defaults', {})
-model = defaults.setdefault('model', {})
-# Always set primary to the last saved provider (user intent)
-model['primary'] = cfg['primary']
-model['fallbacks'] = cfg['fallbacks']
-# Always merge models (don't overwrite other providers)
-existing = defaults.setdefault('models', {})
-for k, v in cfg['models'].items():
-    existing[k] = v
-with open('${CONFIG}', 'w') as f: json.dump(d, f, indent=2)
-print('OK: primary=' + model['primary'])
-"
-                        chown openclaw:openclaw ${CONFIG}
+                        su - openclaw -c '
+                        openclaw config set agents.defaults.model.primary "${cfg.primary}" 2>/dev/null
+                        openclaw config set agents.defaults.model.fallbacks '\\''${fallbacksJson}'\\'' --strict-json 2>/dev/null
+                        openclaw config set agents.defaults.models '\\''${modelsJson}'\\'' --strict-json 2>/dev/null
+                        ' &&
                         systemctl restart openclaw-gateway
                     `)
                     console.log(`OpenClaw config updated: ${type} provider set as primary`)
@@ -535,18 +525,10 @@ print('OK: primary=' + model['primary'])
                 const mcpConfig = mcpDeployments[type]()
                 if (mcpConfig) {
                     const serverId = mcpServerId[type] || type
-                    const b64Mcp = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
-                    // Write MCP config into openclaw.json (not just mcp-servers/ dir)
+                    const mcpJson = JSON.stringify(mcpConfig).replace(/'/g, "'\\''")
+                    // Use openclaw config set to avoid gateway config overwrite
                     await sshExecInstance(instance, `
-                        python3 -c "
-import json, base64, sys
-cfg_path = '/home/openclaw/.openclaw/openclaw.json'
-with open(cfg_path) as f: d = json.load(f)
-d.setdefault('mcp', {}).setdefault('servers', {})
-d['mcp']['servers']['${serverId}'] = json.loads(base64.b64decode(sys.argv[1]))
-with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
-" '${b64Mcp}' &&
-                        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json
+                        su - openclaw -c 'openclaw config set mcp.servers.${serverId} '\\''${mcpJson}'\\'' --strict-json 2>/dev/null'
                     `)
                     await sshExecInstance(instance, 'systemctl restart openclaw-gateway')
                 }
@@ -617,27 +599,10 @@ with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
                 const alsoAllow = (toolConfig.alsoAllow || []).filter(t => validTools.includes(t))
 
                 const CONFIG = '/home/openclaw/.openclaw/openclaw.json'
-                const toolsJson = Buffer.from(JSON.stringify({ profile: toolConfig.profile, alsoAllow })).toString('base64')
+                // Use openclaw config set to avoid gateway config overwrite
+                const toolsCfgJson = JSON.stringify({ profile: toolConfig.profile, alsoAllow }).replace(/'/g, "'\\''")
                 await sshExecInstance(instance, `
-                    python3 -c "
-import json, base64, sys
-tools_cfg = json.loads(base64.b64decode('${toolsJson}'))
-cfg_path = '${CONFIG}'
-with open(cfg_path) as f: d = json.load(f)
-agents_list = d.setdefault('agents', {}).setdefault('list', [])
-main = None
-for a in agents_list:
-    if a.get('id') == 'main' or a.get('default'):
-        main = a
-        break
-if not main:
-    main = {'id': 'main', 'default': True}
-    agents_list.append(main)
-main['tools'] = tools_cfg
-with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
-print('OK: profile=' + tools_cfg['profile'] + ' alsoAllow=' + str(tools_cfg.get('alsoAllow', [])))
-"
-                    chown openclaw:openclaw ${CONFIG}
+                    su - openclaw -c 'openclaw config set agents.list[0].tools '\\''${toolsCfgJson}'\\'' --strict-json 2>/dev/null' &&
                     systemctl restart openclaw-gateway
                 `)
                 console.log(`Tool profile updated: ${toolConfig.profile} +${alsoAllow.join(',')}`)
@@ -657,30 +622,17 @@ print('OK: profile=' + tools_cfg['profile'] + ' alsoAllow=' + str(tools_cfg.get(
                 if (prefs.complex && !/^[a-zA-Z0-9\/_.-]+$/.test(prefs.complex)) throw new Error('Invalid complex model')
                 if (prefs.heartbeat && !/^[a-zA-Z0-9\/_.-]+$/.test(prefs.heartbeat)) throw new Error('Invalid heartbeat model')
 
-                const configScript = Buffer.from(JSON.stringify(prefs)).toString('base64')
+                // Use openclaw config set to avoid gateway config overwrite
+                const hbModel = prefs.heartbeat || prefs.simple
                 await sshExecInstance(instance, `
-                    python3 -c "
-import json, base64, sys
-prefs = json.loads(base64.b64decode('${configScript}'))
-with open('${CONFIG}') as f: d = json.load(f)
-defaults = d.setdefault('agents', {}).setdefault('defaults', {})
-model = defaults.setdefault('model', {})
-# Set simple model as primary (used for most requests)
-model['primary'] = prefs['simple']
-# Set complex model as fallback
-model['fallbacks'] = [prefs['complex']]
-# Configure subagents to use the complex model
-sa = defaults.setdefault('subagents', {})
-sa['model'] = prefs['complex']
-# Configure heartbeat model
-hb = defaults.setdefault('heartbeat', {})
-hb['model'] = prefs.get('heartbeat', prefs['simple'])
-hb['every'] = hb.get('every', '4h')
-hb['lightContext'] = True
-with open('${CONFIG}', 'w') as f: json.dump(d, f, indent=2)
-print('OK: primary=' + prefs['simple'] + ' complex=' + prefs['complex'] + ' heartbeat=' + hb['model'])
-"
-                    chown openclaw:openclaw ${CONFIG}
+                    su - openclaw -c '
+                    openclaw config set agents.defaults.model.primary "${prefs.simple}" 2>/dev/null
+                    openclaw config set agents.defaults.model.fallbacks "[\"${prefs.complex}\"]" --strict-json 2>/dev/null
+                    openclaw config set agents.defaults.subagents.model "${prefs.complex}" 2>/dev/null
+                    openclaw config set agents.defaults.heartbeat.model "${hbModel}" 2>/dev/null
+                    openclaw config set agents.defaults.heartbeat.every "4h" 2>/dev/null
+                    openclaw config set agents.defaults.heartbeat.lightContext true --strict-json 2>/dev/null
+                    ' &&
                     systemctl restart openclaw-gateway
                 `)
                 console.log(`Model prefs updated: simple=${prefs.simple} complex=${prefs.complex}`)

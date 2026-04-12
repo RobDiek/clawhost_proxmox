@@ -423,26 +423,12 @@ EOFPAIR
     await new Promise(r => setTimeout(r, 3000))
 
     // Set default tool profile: messaging + useful extras (saves ~50% tokens vs full)
+    // Use openclaw config set to avoid gateway config overwrite
     try {
         await sshExec(ip, `
-            python3 -c "
-import json
-cfg_path = '/home/openclaw/.openclaw/openclaw.json'
-with open(cfg_path) as f: d = json.load(f)
-agents_list = d.setdefault('agents', {}).setdefault('list', [])
-main = None
-for a in agents_list:
-    if a.get('id') == 'main' or a.get('default'):
-        main = a
-        break
-if not main:
-    main = {'id': 'main', 'default': True}
-    agents_list.append(main)
-main['tools'] = {'profile': 'messaging', 'alsoAllow': ['pdf', 'web_fetch', 'image', 'browser']}
-with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
-print('Tool profile: messaging + alsoAllow set')
-" &&
-            chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json
+            su - openclaw -c '
+            openclaw config set agents.list[0].tools '\\''{"profile":"messaging","alsoAllow":["pdf","web_fetch","image","browser"]}'\\'' --strict-json 2>/dev/null
+            '
         `, password)
         console.log('Default tool profile (messaging) set for new instance')
     } catch (err) {

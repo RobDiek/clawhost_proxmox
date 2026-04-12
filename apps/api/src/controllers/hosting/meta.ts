@@ -294,28 +294,19 @@ async function deployInstagramMCP(
 ): Promise<void> {
     console.log(`Deploying Instagram MCP server to ${ip}...`)
 
-    const mcpConfig = JSON.stringify({
+    const mcpConfig = {
         command: 'npx',
         args: ['-y', '@mcpware/instagram-mcp'],
         env: {
             INSTAGRAM_ACCESS_TOKEN: accessToken,
             INSTAGRAM_ACCOUNT_ID: instagramAccountId,
         },
-    })
+    }
 
-    const mcpEntry = Buffer.from(mcpConfig).toString('base64')
+    const mcpJson = JSON.stringify(mcpConfig).replace(/'/g, "'\\''")
 
     await sshExec(ip, `
-        python3 -c "
-import json, base64, sys
-cfg_path = '/home/openclaw/.openclaw/openclaw.json'
-with open(cfg_path) as f: d = json.load(f)
-d.setdefault('mcp', {}).setdefault('servers', {})
-d['mcp']['servers']['instagram'] = json.loads(base64.b64decode(sys.argv[1]))
-with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
-print('MCP instagram configured')
-" '${mcpEntry}' &&
-        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
+        su - openclaw -c 'openclaw config set mcp.servers.instagram '\\''${mcpJson}'\\'' --strict-json 2>/dev/null' &&
         systemctl restart openclaw-gateway
     `, password)
 
@@ -324,20 +315,9 @@ print('MCP instagram configured')
 
 // ── Remove Instagram MCP server from VPS ──
 async function removeInstagramMCP(ip: string, password?: string): Promise<void> {
+    // Use openclaw config set to remove MCP server (set to null removes key)
     await sshExec(ip, `
-        python3 -c "
-import json
-cfg_path = '/home/openclaw/.openclaw/openclaw.json'
-with open(cfg_path) as f: d = json.load(f)
-servers = d.get('mcp', {}).get('servers', {})
-if 'instagram' in servers:
-    del servers['instagram']
-    with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
-    print('MCP instagram removed')
-else:
-    print('instagram not found')
-" &&
-        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
+        su - openclaw -c 'openclaw config set mcp.servers.instagram null --strict-json 2>/dev/null' &&
         systemctl restart openclaw-gateway
     `, password)
 }

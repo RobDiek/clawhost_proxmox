@@ -331,21 +331,12 @@ async function deployMicrosoftToVPS(ip: string, password: string | undefined, cr
         },
     }
 
-    const mcpEntry = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
+    const mcpConfigJson = JSON.stringify(mcpConfig).replace(/'/g, "'\\''")
 
     await sshExec(ip, `
         echo '${scriptB64}' | base64 -d > /opt/openclaw/ms365-lite-mcp.js &&
         chmod 644 /opt/openclaw/ms365-lite-mcp.js &&
-        python3 -c "
-import json, base64, sys
-cfg_path = '/home/openclaw/.openclaw/openclaw.json'
-with open(cfg_path) as f: d = json.load(f)
-d.setdefault('mcp', {}).setdefault('servers', {})
-d['mcp']['servers']['ms-365'] = json.loads(base64.b64decode(sys.argv[1]))
-with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
-print('MCP ms-365-lite configured')
-" '${mcpEntry}' &&
-        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
+        su - openclaw -c 'openclaw config set mcp.servers.ms-365 '\\''${mcpConfigJson}'\\'' --strict-json 2>/dev/null' &&
         systemctl restart openclaw-gateway
     `, password)
 
