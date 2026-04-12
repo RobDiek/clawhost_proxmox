@@ -365,6 +365,56 @@ app.get('/models/health', async (c) => {
     return ok(c, getModelHealth())
 })
 
+// ── Newsletter Subscribe (public, no auth) ──
+app.post('/newsletter', async (c) => {
+    const { ok, fail } = await import('@/lib/response')
+    try {
+        const { email } = await c.req.json<{ email: string }>()
+        if (!email || !email.includes('@')) return fail(c, 'אימייל לא תקין', 400)
+
+        // Add to Resend audience
+        const RESEND_KEY = 're_QtnrmnjT_6m26FLWi6MnLBkmPXDDCHu5c'
+        // First, get or create audience
+        const audiencesRes = await fetch('https://api.resend.com/audiences', {
+            headers: { 'Authorization': `Bearer ${RESEND_KEY}` }
+        })
+        const audiences = await audiencesRes.json() as { data?: Array<{ id: string; name: string }> }
+        let audienceId = audiences.data?.[0]?.id
+
+        if (!audienceId) {
+            // Create audience
+            const createRes = await fetch('https://api.resend.com/audiences', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: 'Flowmatic Newsletter' })
+            })
+            const created = await createRes.json() as { id?: string }
+            audienceId = created.id
+        }
+
+        if (!audienceId) return fail(c, 'שגיאה ביצירת רשימה', 500)
+
+        // Add contact to audience
+        const addRes = await fetch(`https://api.resend.com/audiences/${audienceId}/contacts`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, unsubscribed: false })
+        })
+        const addData = await addRes.json() as { id?: string; error?: any }
+
+        if (addData.error) {
+            console.error('Resend add contact error:', addData.error)
+            return fail(c, 'שגיאה בהרשמה', 500)
+        }
+
+        console.log(`Newsletter: ${email} added to audience ${audienceId}`)
+        return ok(c, null, 'נרשמת בהצלחה!')
+    } catch (err) {
+        console.error('Newsletter error:', err)
+        return fail(c, 'שגיאה בהרשמה', 500)
+    }
+})
+
 // ── Contact Form (public, no auth) ──
 app.post('/contact', async (c) => {
     const { ok, fail } = await import('@/lib/response')
