@@ -322,7 +322,7 @@ async function deployMicrosoftToVPS(ip: string, password: string | undefined, cr
 
     // First, deploy our lite MCP script to the VPS
     const mcpScript = readFileSync(
-        path.join(__dirname, '../../../../scripts/ms365-lite-mcp.js'),
+        path.resolve(process.cwd(), '../../scripts/ms365-lite-mcp.js'),
         'utf-8'
     )
     const scriptB64 = Buffer.from(mcpScript).toString('base64')

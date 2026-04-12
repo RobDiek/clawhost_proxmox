@@ -326,7 +326,7 @@ async function deployGoogleToVPS(ip: string, password: string | undefined, creds
 
     // Deploy our lite MCP script to the VPS
     const { resolve } = await import('path')
-    const mcpScript = readFileSync(resolve(__dirname, '../../../../scripts/google-lite-mcp.js'), 'utf-8')
+    const mcpScript = readFileSync(resolve(process.cwd(), '../../scripts/google-lite-mcp.js'), 'utf-8')
     const scriptB64 = Buffer.from(mcpScript).toString('base64')
 
     const mcpConfig = {
