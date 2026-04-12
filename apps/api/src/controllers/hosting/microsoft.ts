@@ -253,12 +253,21 @@ export const microsoftDisconnect = async (c: Context) => {
             }
         }
 
-        // Remove MCP server from VPS via openclaw config set
+        // Remove MCP server: stop → edit → start
         if (instance?.ip) {
             try {
-                await sshExec(instance.ip,
-                    `su - openclaw -c "openclaw config set mcp.servers.ms-365 null --strict-json 2>/dev/null" && systemctl restart openclaw-gateway`,
-                    instance.rootPassword || undefined)
+                await sshExec(instance.ip, `
+                    systemctl stop openclaw-gateway &&
+                    python3 -c "
+import json
+p = '/home/openclaw/.openclaw/openclaw.json'
+with open(p) as f: d = json.load(f)
+d.get('mcp', {}).get('servers', {}).pop('ms-365', None)
+with open(p, 'w') as f: json.dump(d, f, indent=2)
+" &&
+                    chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
+                    systemctl start openclaw-gateway
+                `, instance.rootPassword || undefined)
             } catch { /* best effort */ }
         }
 
@@ -333,13 +342,25 @@ async function deployMicrosoftToVPS(ip: string, password: string | undefined, cr
 
     const mcpB64 = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
 
+    // CRITICAL: stop gateway FIRST, then edit config, then start.
+    // Gateway overwrites openclaw.json from internal state on hot-reload.
+    // Only when stopped does it accept file changes.
     await sshExec(ip, `
         echo '${scriptB64}' | base64 -d > /opt/openclaw/ms365-lite-mcp.js &&
         chmod 644 /opt/openclaw/ms365-lite-mcp.js &&
-        echo '${mcpB64}' | base64 -d > /tmp/oc-mcp-ms365.json &&
-        su - openclaw -c "cat /tmp/oc-mcp-ms365.json | xargs -0 openclaw config set mcp.servers.ms-365 --strict-json" &&
-        rm -f /tmp/oc-mcp-ms365.json &&
-        systemctl restart openclaw-gateway
+        systemctl stop openclaw-gateway &&
+        python3 -c "
+import json, base64, sys
+cfg = json.loads(base64.b64decode(sys.argv[1]))
+p = '/home/openclaw/.openclaw/openclaw.json'
+with open(p) as f: d = json.load(f)
+d.setdefault('mcp', {}).setdefault('servers', {})
+d['mcp']['servers']['ms-365'] = cfg
+with open(p, 'w') as f: json.dump(d, f, indent=2)
+print('ms-365 configured: ' + cfg['command'])
+" '${mcpB64}' &&
+        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
+        systemctl start openclaw-gateway
     `, password)
 
     console.log(`ms365-lite MCP server deployed to ${ip}`)

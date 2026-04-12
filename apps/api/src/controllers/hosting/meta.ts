@@ -305,11 +305,21 @@ async function deployInstagramMCP(
 
     const mcpB64 = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
 
+    // CRITICAL: stop → edit → start
     await sshExec(ip, `
-        echo '${mcpB64}' | base64 -d > /tmp/oc-mcp-ig.json &&
-        su - openclaw -c "cat /tmp/oc-mcp-ig.json | xargs -0 openclaw config set mcp.servers.instagram --strict-json" &&
-        rm -f /tmp/oc-mcp-ig.json &&
-        systemctl restart openclaw-gateway
+        systemctl stop openclaw-gateway &&
+        python3 -c "
+import json, base64, sys
+cfg = json.loads(base64.b64decode(sys.argv[1]))
+p = '/home/openclaw/.openclaw/openclaw.json'
+with open(p) as f: d = json.load(f)
+d.setdefault('mcp', {}).setdefault('servers', {})
+d['mcp']['servers']['instagram'] = cfg
+with open(p, 'w') as f: json.dump(d, f, indent=2)
+print('instagram configured')
+" '${mcpB64}' &&
+        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
+        systemctl start openclaw-gateway
     `, password)
 
     console.log(`Instagram MCP server deployed to ${ip}`)
@@ -317,9 +327,17 @@ async function deployInstagramMCP(
 
 // ── Remove Instagram MCP server from VPS ──
 async function removeInstagramMCP(ip: string, password?: string): Promise<void> {
-    // Use openclaw config set to remove MCP server (set to null removes key)
     await sshExec(ip, `
-        su - openclaw -c 'openclaw config set mcp.servers.instagram null --strict-json 2>/dev/null' &&
-        systemctl restart openclaw-gateway
+        systemctl stop openclaw-gateway &&
+        python3 -c "
+import json
+p = '/home/openclaw/.openclaw/openclaw.json'
+with open(p) as f: d = json.load(f)
+d.get('mcp', {}).get('servers', {}).pop('instagram', None)
+with open(p, 'w') as f: json.dump(d, f, indent=2)
+print('instagram removed')
+" &&
+        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
+        systemctl start openclaw-gateway
     `, password)
 }

@@ -423,12 +423,29 @@ EOFPAIR
     await new Promise(r => setTimeout(r, 3000))
 
     // Set default tool profile: messaging + useful extras (saves ~50% tokens vs full)
+    // Note: gateway was just restarted above, so stop→edit→start pattern
     try {
-        const toolsB64 = Buffer.from('{"profile":"messaging","alsoAllow":["pdf","web_fetch","image","browser"]}').toString('base64')
         await sshExec(ip, `
-            echo '${toolsB64}' | base64 -d > /tmp/oc-tools.json &&
-            su - openclaw -c "cat /tmp/oc-tools.json | xargs -0 openclaw config set agents.list[0].tools --strict-json" &&
-            rm -f /tmp/oc-tools.json
+            systemctl stop openclaw-gateway &&
+            python3 -c "
+import json
+p = '/home/openclaw/.openclaw/openclaw.json'
+with open(p) as f: d = json.load(f)
+agents_list = d.setdefault('agents', {}).setdefault('list', [])
+main = None
+for a in agents_list:
+    if a.get('id') == 'main' or a.get('default'):
+        main = a
+        break
+if not main:
+    main = {'id': 'main', 'default': True}
+    agents_list.append(main)
+main['tools'] = {'profile': 'messaging', 'alsoAllow': ['pdf', 'web_fetch', 'image', 'browser']}
+with open(p, 'w') as f: json.dump(d, f, indent=2)
+print('tools profile: messaging')
+" &&
+            chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
+            systemctl start openclaw-gateway
         `, password)
         console.log('Default tool profile (messaging) set for new instance')
     } catch (err) {

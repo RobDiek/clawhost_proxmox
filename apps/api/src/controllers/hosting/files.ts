@@ -467,17 +467,28 @@ export const saveIntegration = async (c: Context) => {
             const cfg = modelConfigs[type]
             if (cfg) {
                 try {
-                    // Use openclaw config set via temp files (avoids SSH quoting issues + gateway overwrite)
-                    const modelsB64 = Buffer.from(JSON.stringify(cfg.models)).toString('base64')
-                    const fallbacksB64 = Buffer.from(JSON.stringify(cfg.fallbacks)).toString('base64')
+                    // CRITICAL: stop gateway → edit config → start gateway
+                    // Gateway overwrites openclaw.json from internal state on hot-reload
+                    const cfgB64 = Buffer.from(JSON.stringify(cfg)).toString('base64')
                     await sshExecInstance(instance, `
-                        su - openclaw -c "openclaw config set agents.defaults.model.primary ${cfg.primary}" &&
-                        echo '${fallbacksB64}' | base64 -d > /tmp/oc-fallbacks.json &&
-                        su - openclaw -c "cat /tmp/oc-fallbacks.json | xargs -0 openclaw config set agents.defaults.model.fallbacks --strict-json" &&
-                        echo '${modelsB64}' | base64 -d > /tmp/oc-models.json &&
-                        su - openclaw -c "cat /tmp/oc-models.json | xargs -0 openclaw config set agents.defaults.models --strict-json" &&
-                        rm -f /tmp/oc-fallbacks.json /tmp/oc-models.json &&
-                        systemctl restart openclaw-gateway
+                        systemctl stop openclaw-gateway &&
+                        python3 -c "
+import json, base64, sys
+cfg = json.loads(base64.b64decode(sys.argv[1]))
+p = '/home/openclaw/.openclaw/openclaw.json'
+with open(p) as f: d = json.load(f)
+defaults = d.setdefault('agents', {}).setdefault('defaults', {})
+model = defaults.setdefault('model', {})
+model['primary'] = cfg['primary']
+model['fallbacks'] = cfg['fallbacks']
+existing = defaults.setdefault('models', {})
+for k, v in cfg['models'].items():
+    existing[k] = v
+with open(p, 'w') as f: json.dump(d, f, indent=2)
+print('OK: primary=' + model['primary'])
+" '${cfgB64}' &&
+                        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
+                        systemctl start openclaw-gateway
                     `)
                     console.log(`OpenClaw config updated: ${type} provider set as primary`)
                 } catch (err) {
@@ -527,13 +538,22 @@ export const saveIntegration = async (c: Context) => {
                 if (mcpConfig) {
                     const serverId = mcpServerId[type] || type
                     const mcpB64 = Buffer.from(JSON.stringify(mcpConfig)).toString('base64')
-                    // Use openclaw config set via temp file (avoids SSH quoting issues)
+                    // CRITICAL: stop → edit → start (gateway overwrites on hot-reload)
                     await sshExecInstance(instance, `
-                        echo '${mcpB64}' | base64 -d > /tmp/oc-mcp-${serverId}.json &&
-                        su - openclaw -c "cat /tmp/oc-mcp-${serverId}.json | xargs -0 openclaw config set mcp.servers.${serverId} --strict-json" &&
-                        rm -f /tmp/oc-mcp-${serverId}.json
+                        systemctl stop openclaw-gateway &&
+                        python3 -c "
+import json, base64, sys
+cfg = json.loads(base64.b64decode(sys.argv[1]))
+p = '/home/openclaw/.openclaw/openclaw.json'
+with open(p) as f: d = json.load(f)
+d.setdefault('mcp', {}).setdefault('servers', {})
+d['mcp']['servers']['${serverId}'] = cfg
+with open(p, 'w') as f: json.dump(d, f, indent=2)
+print('${serverId} configured')
+" '${mcpB64}' &&
+                        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
+                        systemctl start openclaw-gateway
                     `)
-                    await sshExecInstance(instance, 'systemctl restart openclaw-gateway')
                 }
             } catch (mcpErr) {
                 console.error(`MCP deploy for ${type} failed:`, mcpErr)
@@ -602,13 +622,30 @@ export const saveIntegration = async (c: Context) => {
                 const alsoAllow = (toolConfig.alsoAllow || []).filter(t => validTools.includes(t))
 
                 const CONFIG = '/home/openclaw/.openclaw/openclaw.json'
-                // Use openclaw config set via temp file
+                // CRITICAL: stop → edit → start
                 const toolsB64 = Buffer.from(JSON.stringify({ profile: toolConfig.profile, alsoAllow })).toString('base64')
                 await sshExecInstance(instance, `
-                    echo '${toolsB64}' | base64 -d > /tmp/oc-tools.json &&
-                    su - openclaw -c "cat /tmp/oc-tools.json | xargs -0 openclaw config set agents.list[0].tools --strict-json" &&
-                    rm -f /tmp/oc-tools.json &&
-                    systemctl restart openclaw-gateway
+                    systemctl stop openclaw-gateway &&
+                    python3 -c "
+import json, base64, sys
+tools_cfg = json.loads(base64.b64decode(sys.argv[1]))
+p = '/home/openclaw/.openclaw/openclaw.json'
+with open(p) as f: d = json.load(f)
+agents_list = d.setdefault('agents', {}).setdefault('list', [])
+main = None
+for a in agents_list:
+    if a.get('id') == 'main' or a.get('default'):
+        main = a
+        break
+if not main:
+    main = {'id': 'main', 'default': True}
+    agents_list.append(main)
+main['tools'] = tools_cfg
+with open(p, 'w') as f: json.dump(d, f, indent=2)
+print('tools profile set: ' + tools_cfg['profile'])
+" '${toolsB64}' &&
+                    chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
+                    systemctl start openclaw-gateway
                 `)
                 console.log(`Tool profile updated: ${toolConfig.profile} +${alsoAllow.join(',')}`)
             } catch (e) {
@@ -627,19 +664,31 @@ export const saveIntegration = async (c: Context) => {
                 if (prefs.complex && !/^[a-zA-Z0-9\/_.-]+$/.test(prefs.complex)) throw new Error('Invalid complex model')
                 if (prefs.heartbeat && !/^[a-zA-Z0-9\/_.-]+$/.test(prefs.heartbeat)) throw new Error('Invalid heartbeat model')
 
-                // Use openclaw config set via temp files
+                // CRITICAL: stop → edit → start
                 const hbModel = prefs.heartbeat || prefs.simple
-                const fallbacksB64 = Buffer.from(JSON.stringify([prefs.complex])).toString('base64')
+                const prefsB64 = Buffer.from(JSON.stringify(prefs)).toString('base64')
                 await sshExecInstance(instance, `
-                    su - openclaw -c "openclaw config set agents.defaults.model.primary ${prefs.simple}" &&
-                    echo '${fallbacksB64}' | base64 -d > /tmp/oc-fb.json &&
-                    su - openclaw -c "cat /tmp/oc-fb.json | xargs -0 openclaw config set agents.defaults.model.fallbacks --strict-json" &&
-                    su - openclaw -c "openclaw config set agents.defaults.subagents.model ${prefs.complex}" &&
-                    su - openclaw -c "openclaw config set agents.defaults.heartbeat.model ${hbModel}" &&
-                    su - openclaw -c "openclaw config set agents.defaults.heartbeat.every 4h" &&
-                    su - openclaw -c "openclaw config set agents.defaults.heartbeat.lightContext true --strict-json" &&
-                    rm -f /tmp/oc-fb.json &&
-                    systemctl restart openclaw-gateway
+                    systemctl stop openclaw-gateway &&
+                    python3 -c "
+import json, base64, sys
+prefs = json.loads(base64.b64decode(sys.argv[1]))
+p = '/home/openclaw/.openclaw/openclaw.json'
+with open(p) as f: d = json.load(f)
+defaults = d.setdefault('agents', {}).setdefault('defaults', {})
+model = defaults.setdefault('model', {})
+model['primary'] = prefs['simple']
+model['fallbacks'] = [prefs['complex']]
+sa = defaults.setdefault('subagents', {})
+sa['model'] = prefs['complex']
+hb = defaults.setdefault('heartbeat', {})
+hb['model'] = prefs.get('heartbeat', prefs['simple'])
+hb['every'] = hb.get('every', '4h')
+hb['lightContext'] = True
+with open(p, 'w') as f: json.dump(d, f, indent=2)
+print('OK: primary=' + prefs['simple'])
+" '${prefsB64}' &&
+                    chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
+                    systemctl start openclaw-gateway
                 `)
                 console.log(`Model prefs updated: simple=${prefs.simple} complex=${prefs.complex}`)
             } catch (e) {
