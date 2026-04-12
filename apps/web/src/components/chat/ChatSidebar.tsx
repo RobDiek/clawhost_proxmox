@@ -47,7 +47,7 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
 
     if (claws.length === 0) {
         return (
-            <div className='md:border-border flex h-full w-full shrink-0 flex-col items-center justify-center px-6 md:w-[280px] md:border-r'>
+            <div className='md:border-border flex h-full w-full shrink-0 flex-col items-center justify-center px-6 md:w-[250px] md:border-r'>
                 <div className='bg-foreground/5 flex h-10 w-10 items-center justify-center rounded-xl'>
                     <ClawMascot className='h-5 w-5' />
                 </div>
@@ -109,7 +109,7 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
     }
 
     return (
-        <div className='bg-background md:border-border relative z-10 flex h-full w-full shrink-0 flex-col overflow-hidden md:w-[280px] md:border-r'>
+        <div className='bg-background md:border-border relative z-10 flex h-full w-full shrink-0 flex-col overflow-hidden md:w-[250px] md:border-r'>
             <div className='flex items-center gap-1.5 px-3 pb-2 pt-3'>
                 <Tooltip>
                     <TooltipTrigger asChild>

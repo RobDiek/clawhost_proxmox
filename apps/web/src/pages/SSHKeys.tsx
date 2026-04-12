@@ -77,7 +77,6 @@ const SSHKeys: FC = (): ReactNode => {
                         <UserDropdown
                             displayName={localDisplayName}
                             onSignOut={async () => {}}
-                            hideBilling
                             hideSignOut
                             footerLinks={dropdownFooterLinks}
                             openLinksWindowed={openLinksWindowed}

@@ -427,7 +427,6 @@ export interface UserDropdownProps {
     displayName: string
     onSignOut: () => Promise<void>
     onOpen?: () => void
-    hideBilling?: boolean
     hideSSHKeys?: boolean
     hideSignOut?: boolean
     footerLinks?: FooterLink[]
@@ -560,16 +559,6 @@ export interface ClawCredentialsDialogProps {
     rootPassword: string | null
     open: boolean
     onOpenChange: (open: boolean) => void
-}
-
-export interface ClawCardDropdownMenuProps {
-    claw: Claw
-    actions: ClawCardActions
-    isLoading: boolean
-    hasActionItems: boolean
-    isScheduledForDeletion: boolean
-    isAdmin: boolean
-    compact?: boolean
 }
 
 export interface ClawCardDialogsProps {
@@ -1179,6 +1168,15 @@ export interface ClawBillingContentProps {
     plans: Plan[]
 }
 
+export interface ClawBillingSubscriptionProps {
+    claw: Claw
+    plan: Plan | undefined
+}
+
+export interface ClawBillingHistoryProps {
+    polarSubscriptionId: string | null
+}
+
 export interface ClawDetailSettingsTabProps {
     claw: Claw
     currentEmoji: string | null
@@ -1195,11 +1193,18 @@ export interface ClawDetailSettingsTabProps {
     onSubdomainChange: (value: string) => void
     onEmojiChange: (emoji: string | null, emojiColor: string | null) => void
     onSave: () => void
+    onClose: () => void
 }
 
 export interface SectionHeaderProps {
     title: string
     action?: ReactNode
+}
+
+export interface ColorSwatchProps {
+    color: string | null
+    selected: boolean
+    onClick: () => void
 }
 
 export interface EmojiColorPickerProps {
@@ -2080,7 +2085,6 @@ export interface ChatSidebarClawHeaderProps {
     claw: Claw
     isSelected: boolean
     statusConfig: StatusConfig
-    readOnly?: boolean
     onOpenClawSettings: (clawId: string) => void
 }
 

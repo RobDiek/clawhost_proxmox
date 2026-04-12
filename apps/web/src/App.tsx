@@ -14,7 +14,6 @@ const Login = lazy(() => import('@/pages/Login'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const SSHKeys = lazy(() => import('@/pages/SSHKeys'))
 const Account = lazy(() => import('@/pages/Account'))
-const Billing = lazy(() => import('@/pages/Billing'))
 const Affiliate = lazy(() => import('@/pages/Affiliate'))
 const Admin = lazy(() => import('@/pages/Admin'))
 const License = lazy(() => import('@/pages/License'))
@@ -86,15 +85,7 @@ const App: FC = (): ReactNode => {
                                 </ProtectedRoute>
                             }
                         />
-                        <Route
-                            path={ROUTES.BILLING}
-                            element={
-                                <ProtectedRoute>
-                                    <Billing />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
+<Route
                             path={ROUTES.AFFILIATE}
                             element={
                                 <ProtectedRoute>

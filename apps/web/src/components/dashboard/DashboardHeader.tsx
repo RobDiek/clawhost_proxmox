@@ -65,7 +65,6 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({
                     <UserDropdown
                         displayName={displayName}
                         onSignOut={onSignOut}
-                        hideBilling={isLocal}
                         hideSSHKeys={isLocal}
                         hideSignOut={isLocal}
                         footerLinks={dropdownFooterLinks}

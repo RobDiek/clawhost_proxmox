@@ -15,7 +15,7 @@ const ClawDetailTabBar: FC<ClawDetailTabBarProps> = ({
 }): ReactNode => {
     return (
         <div
-            className={`border-border flex flex-nowrap overflow-x-auto border-b`}
+            className='border-border flex select-none flex-nowrap overflow-x-auto border-b'
         >
             {tabs.map((tab) => {
                 const disabled = isTabDisabled(tab.id)

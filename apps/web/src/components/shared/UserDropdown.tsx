@@ -26,7 +26,6 @@ import {
     KeyIcon,
     UserIcon,
     SignOutIcon,
-    ReceiptIcon,
     HandshakeIcon,
     ShieldCheckIcon,
     CertificateIcon
@@ -36,7 +35,6 @@ const UserDropdown: FC<UserDropdownProps> = ({
     displayName,
     onSignOut,
     onOpen,
-    hideBilling,
     hideSSHKeys,
     hideSignOut,
     footerLinks,
@@ -131,16 +129,6 @@ const UserDropdown: FC<UserDropdownProps> = ({
                     <UserIcon className='h-4 w-4' />
                     {t('nav.account')}
                 </DropdownMenuItem>
-                {!hideBilling && (
-                    <DropdownMenuItem
-                        onClick={() => navigate(ROUTES.BILLING)}
-                        className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.BILLING ? 'bg-foreground/10' : ''}`}
-                    >
-                        <ReceiptIcon className='h-4 w-4' />
-                        {t('nav.billing')}
-                    </DropdownMenuItem>
-                )}
-
                 {isAdmin && (
                     <DropdownMenuItem
                         onClick={() => navigate(ROUTES.LICENSE)}

@@ -199,7 +199,7 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
                             />
                         ) : (
                             <Fragment>
-                                <div className='hidden md:flex md:flex-1'>
+                                <div className='hidden md:flex md:flex-1 md:items-center md:justify-center'>
                                     <ChatEmptyState />
                                 </div>
                                 <div className='flex-1 overflow-y-auto md:hidden'>

@@ -131,6 +131,7 @@ const ClawServerContent: FC<ClawServerContentProps> = ({ claw, plans }): ReactNo
                             {t('dashboard.sshCommand')}
                         </h4>
                     </div>
+                    
                     <div className='flex items-center gap-1'>
                         <button
                             onClick={() => setShowSsh((p) => !p)}

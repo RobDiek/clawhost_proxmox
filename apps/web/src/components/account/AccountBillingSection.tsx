@@ -32,7 +32,6 @@ const AccountBillingSection: FC<AccountBillingSectionProps> = ({
                     </span>
                 </div>
                 <Button
-                    variant='outline'
                     size='sm'
                     onClick={onManageBilling}
                     disabled={isPortalLoading}

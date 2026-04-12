@@ -10,7 +10,7 @@ const ChatSidebarSearch: FC<ChatSidebarSearchProps> = ({
     clawCount
 }): ReactNode => {
     const placeholder =
-        clawCount > 0
+        clawCount > 1
             ? t('dashboard.searchAgentsCount', { count: clawCount })
             : t('dashboard.searchAgents')
 

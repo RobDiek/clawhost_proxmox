@@ -7,7 +7,6 @@ const ROUTES = {
     CLAWS: `/${PATHS.CLAWS}`,
     SSH_KEYS: `/${PATHS.SSH_KEYS}`,
     ACCOUNT: `/${PATHS.ACCOUNT}`,
-    BILLING: `/${PATHS.BILLING}`,
     ADMIN: `/${PATHS.ADMIN}`,
     LICENSE: `/${PATHS.LICENSE}`,
     TERMS: `/${PATHS.TERMS}`,

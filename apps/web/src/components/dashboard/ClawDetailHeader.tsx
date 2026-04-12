@@ -10,14 +10,13 @@ import {
     ArrowsClockwiseIcon
 } from '@phosphor-icons/react'
 import { t } from '@openclaw/i18n'
-import { clawStatus, userRole } from '@openclaw/shared'
+import { clawStatus } from '@openclaw/shared'
 import { getBaseDomain, TRUNCATE_LENGTHS } from '@/lib'
-import { generateSlug } from '@/lib/claw-utils'
+import { generateSlug, getStatusConfig } from '@/lib/claw-utils'
 import { ClawAvatar } from '@/components/shared'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
-import { useProfile, useClawCardActions } from '@/hooks'
+import { useClawCardActions } from '@/hooks'
 import {
-    ClawCardDropdownMenu,
     ClawCardDialogsBundle,
     HeaderActionButton
 } from '@/components/dashboard'
@@ -28,17 +27,15 @@ const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
     fullScreen
 }): ReactNode => {
     const { actions, isMutating, dialogsProps } = useClawCardActions({ claw })
-    const { data: profile } = useProfile({ enabled: true })
 
-    const isScheduledForDeletion =
-        !!claw.deletionScheduledAt &&
-        new Date(claw.deletionScheduledAt) > new Date()
     const hasActionItems =
         claw.status === clawStatus.running || claw.status === clawStatus.stopped
+    const statusConfigs = getStatusConfig()
+    const statusConfig = statusConfigs[claw.status]
 
     return (
         <Fragment>
-            <div className='border-border flex items-center justify-between border-b px-3 p-2.5'>
+            <div className='border-border flex items-center justify-between border-b p-2.5 px-3'>
                 <div className='flex items-center gap-2.5'>
                     <ClawAvatar emoji={claw.emoji} emojiColor={claw.emojiColor} />
                     <div className='space-y-px'>
@@ -76,6 +73,16 @@ const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
                     </div>
                 </div>
                 <div className='flex items-center gap-1.5'>
+                    {statusConfig && (
+                        <span
+                            className={`border-border inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-medium leading-none ${statusConfig.bgColor}`}
+                        >
+                            <span
+                                className={`h-1.5 w-1.5 rounded-full ${statusConfig.color} ${statusConfig.pulse ? 'animate-pulse' : ''}`}
+                            />
+                            {statusConfig.label}
+                        </span>
+                    )}
                     {actions && hasActionItems && (
                         <div className='flex items-center gap-1'>
                             {claw.status === clawStatus.stopped && (
@@ -102,19 +109,6 @@ const ClawDetailHeader: FC<ClawDetailHeaderProps> = ({
                                     disabled={isMutating}
                                 />
                             )}
-                        </div>
-                    )}
-                    {actions && (
-                        <div className={fullScreen ? 'md:hidden' : ''}>
-                            <ClawCardDropdownMenu
-                                claw={claw}
-                                actions={actions}
-                                isLoading={isMutating}
-                                hasActionItems={hasActionItems}
-                                isScheduledForDeletion={isScheduledForDeletion}
-                                isAdmin={profile?.role === userRole.admin}
-                                compact
-                            />
                         </div>
                     )}
                     <button

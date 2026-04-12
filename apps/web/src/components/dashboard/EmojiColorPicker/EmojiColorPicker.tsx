@@ -15,18 +15,7 @@ import {
     DropdownMenuTrigger,
     DropdownMenuContent
 } from '@/components/ui'
-
-const ColorSwatch: FC<{
-    color: string | null
-    selected: boolean
-    onClick: () => void
-}> = ({ color, selected, onClick }): ReactNode => (
-    <button
-        onClick={onClick}
-        className={`h-6 w-6 rounded-md transition-all ${!color ? 'bg-muted' : ''} ${selected ? 'ring-foreground/50 ring-2 ring-offset-1 ring-offset-transparent' : 'hover:scale-110'}`}
-        style={color ? { backgroundColor: color } : undefined}
-    />
-)
+import ColorSwatch from '@/components/dashboard/EmojiColorPicker/ColorSwatch'
 
 const EmojiColorPicker: FC<EmojiColorPickerProps> = ({
     emoji,

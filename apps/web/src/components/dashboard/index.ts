@@ -1,6 +1,5 @@
 import ClawCardDialogs from '@/components/dashboard/ClawCardDialogs'
 import ClawCardDialogsBundle from '@/components/dashboard/ClawCardDialogsBundle'
-import ClawCardDropdownMenu from '@/components/dashboard/ClawCardDropdownMenu'
 import ClawBillingContent from '@/components/dashboard/ClawBillingContent'
 import ClawConfigContent from '@/components/dashboard/ClawConfigDialog/ClawConfigContent'
 import ClawConfigDialog from '@/components/dashboard/ClawConfigDialog'
@@ -21,7 +20,7 @@ import ClawVolumesContent from '@/components/dashboard/ClawVolumesContent'
 import ClawSecurityContent from '@/components/dashboard/ClawSecurityContent'
 import ClawServerContent from '@/components/dashboard/ClawServerContent'
 import HeaderActionButton from '@/components/dashboard/HeaderActionButton'
-import EmojiColorPicker from '@/components/dashboard/EmojiColorPicker'
+import { EmojiColorPicker } from '@/components/dashboard/EmojiColorPicker'
 import ExportSection from '@/components/dashboard/ExportSection'
 import SectionHeader from '@/components/dashboard/SectionHeader'
 import CopyableField from '@/components/dashboard/CopyableField'
@@ -35,7 +34,6 @@ export {
     ClawCardDialogs,
     ClawBillingContent,
     ClawCardDialogsBundle,
-    ClawCardDropdownMenu,
     ClawConfigContent,
     ClawConfigDialog,
     ClawCredentialsDialog,

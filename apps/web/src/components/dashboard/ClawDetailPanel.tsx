@@ -65,7 +65,10 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
     )
     const tabStateMap = useClawDetailTabStore((s) => s.tabStateMap)
     const setTab = useClawDetailTabStore((s) => s.setTab)
-    const activeTab = tabStateMap[claw.id] || CLAW_DETAIL_TABS.PREVIEW
+    const defaultTab = isAwaitingPayment
+        ? CLAW_DETAIL_TABS.SETTINGS
+        : CLAW_DETAIL_TABS.PREVIEW
+    const activeTab = tabStateMap[claw.id] || defaultTab
     const setActiveTab = useCallback(
         (tab: ClawDetailTab) => {
             if (isTabDisabled(tab)) return
@@ -77,15 +80,15 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
     useEffect(() => {
         if (initialTab && initialTab !== tabStateMap[claw.id]) {
             const safeTab = isTabDisabled(initialTab)
-                ? CLAW_DETAIL_TABS.PREVIEW
+                ? defaultTab
                 : initialTab
             setTab(claw.id, safeTab)
         }
     }, [initialTab, claw.id, isTabDisabled, tabStateMap, setTab])
     useEffect(() => {
         if (isTabDisabled(activeTab)) {
-            setTab(claw.id, CLAW_DETAIL_TABS.PREVIEW)
-            if (onTabChange) onTabChange(CLAW_DETAIL_TABS.PREVIEW)
+            setTab(claw.id, defaultTab)
+            if (onTabChange) onTabChange(defaultTab)
         }
     }, [isTabDisabled, activeTab, claw.id, onTabChange, setTab])
 
@@ -264,6 +267,7 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                             onSubdomainChange={handleSettingsSubdomainChange}
                             onEmojiChange={handleEmojiChange}
                             onSave={handleSettingsSave}
+                            onClose={onClose}
                         />
                     )}
                 </div>

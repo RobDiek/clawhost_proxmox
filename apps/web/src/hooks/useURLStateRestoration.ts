@@ -72,13 +72,11 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
 
         if (settingsParam) {
             setChatSettingsClawId(settingsParam)
-            if (tabParam) {
-                setChatClawTab(
-                    validClawTabs.includes(tabParam)
-                        ? tabParam
-                        : CLAW_DETAIL_TABS.PREVIEW
-                )
-            }
+            setChatClawTab(
+                tabParam && validClawTabs.includes(tabParam)
+                    ? tabParam
+                    : CLAW_DETAIL_TABS.PREVIEW
+            )
         }
 
         requestAnimationFrame(() => {

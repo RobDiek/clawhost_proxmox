@@ -75,7 +75,6 @@ const fr: Translations = {
         claws: 'Claws',
         sshKeys: 'Clés SSH',
         account: 'Compte',
-        billing: 'Facturation',
         affiliate: 'Affiliation',
         license: 'Licence',
         signOut: 'Se déconnecter',
@@ -722,33 +721,9 @@ const fr: Translations = {
         emailNotEditable:
             "L\'email n\'est pas modifiable. Contactez le support.",
         profileUpdatedSuccessfully: 'Profil mis à jour avec succès.',
-        billingHistory: 'Historique de facturation',
-        billingDescription: 'Votre historique de paiements et factures',
-        date: 'Date',
-        product: 'Produit',
-        amount: 'Montant',
-        status: 'Statut',
-        statusPaid: 'Payé',
-        statusPending: 'En attente',
-        statusRefunded: 'Remboursé',
-        statusPartiallyRefunded: 'Partiellement remboursé',
-        billingReasonPurchase: 'Achat',
-        billingReasonSubscriptionCreate: 'Nouvel abonnement',
-        billingReasonSubscriptionCycle: 'Renouvellement',
-        billingReasonSubscriptionUpdate: "Mise à jour d\'abonnement",
-        noBillingHistory: 'Aucune facturation',
-        noBillingHistoryDescription:
-            "Vous n\'avez aucun historique de paiement. Une fois votre premier claw déployé, vos facturations apparaîtront ici.",
-        failedToLoadBilling:
-            "Échec du chargement de l\'historique de facturation !",
-        viewInvoice: 'Voir la facture',
-        failedToLoadInvoice: 'Échec du chargement de la facture !',
-        couponApplied: 'Coupon : {{name}}',
-        manageBilling: 'Gérer la facturation',
-        failedToLoadPortal: "Échec de l\'ouverture du portail de facturation !",
         billingAndSubscription: 'Facturation & Abonnement',
         billingAndSubscriptionDescription: 'Gérez vos moyens de paiement, abonnements et factures.',
-        viewBillingHistory: 'Consultez votre historique de paiement, factures et abonnements',
+        viewBillingHistory: 'Consultez votre historique de paiement, factures et abonnements.',
         connectedAccounts: 'Comptes connectés',
         connectedAccountsDescription:
             'Gérez les méthodes de connexion liées à votre compte.',
@@ -771,13 +746,6 @@ const fr: Translations = {
             "Lorsque cette option est activée, les liens externes s\'ouvrent dans l\'application au lieu du navigateur système."
     },
     billing: {
-        title: 'Facturation',
-        description:
-            'Consultez votre historique de paiements et gérez votre facturation.',
-        billingHistory: 'Facturation',
-        manageYourBilling:
-            'Consultez votre historique de paiements et gérez vos factures.',
-        billingDescription: 'Votre historique de paiements et factures',
         date: 'Date',
         product: 'Produit',
         amount: 'Montant',
@@ -790,13 +758,8 @@ const fr: Translations = {
         billingReasonSubscriptionCreate: 'Nouvel abonnement',
         billingReasonSubscriptionCycle: 'Renouvellement',
         billingReasonSubscriptionUpdate: "Mise à jour d\'abonnement",
-        noBillingHistory: 'Aucune facturation',
-        noBillingHistoryDescription:
-            "Vous n\'avez aucun historique de paiement. Une fois votre premier claw déployé, vos facturations apparaîtront ici.",
         failedToLoadBilling:
             "Échec du chargement de l\'historique de facturation !",
-        failedToLoadBillingDescription:
-            'Impossible de charger votre historique de facturation. Veuillez vérifier votre connexion et réessayer !',
         viewInvoice: 'Voir la facture',
         failedToLoadInvoice: 'Échec du chargement de la facture !',
         couponApplied: 'Coupon : {{name}}',
@@ -897,6 +860,8 @@ const fr: Translations = {
         domain: 'Domaine',
         ipAddress: 'Adresse IP',
         port: 'Port',
+        subscription: 'Abonnement',
+        history: 'Historique',
         planCost: 'Forfait',
         serverId: 'ID du serveur',
         created: 'Créé le',
@@ -1722,6 +1687,7 @@ const fr: Translations = {
         subdomainUpdated: 'Sous-domaine mis à jour avec succès.',
         subdomainUpdateFailed: 'Échec de la mise à jour du sous-domaine !',
         subdomainInUse: 'Ce sous-domaine est utilisé par un autre claw !',
+        settingsOptions: 'Options',
         settingsDetails: 'Détails',
         settingsDangerZone: 'Zone de danger',
         settingsDangerZoneDescription: 'Supprimer définitivement cette instance et toutes ses données.',

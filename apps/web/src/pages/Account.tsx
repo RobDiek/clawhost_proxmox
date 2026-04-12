@@ -124,7 +124,6 @@ const Account: FC = (): ReactNode => {
                         <UserDropdown
                             displayName={displayName}
                             onSignOut={signOut}
-                            hideBilling
                             hideSSHKeys
                         />
                     </div>
