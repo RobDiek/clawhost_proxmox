@@ -1,5 +1,5 @@
 import type { FC, ReactNode } from 'react'
-import type { ClawMetricsContentProps } from '@/ts/Interfaces'
+import type { ClawMonitorContentProps } from '@/ts/Interfaces'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { t } from '@openclaw/i18n'
@@ -20,11 +20,17 @@ import {
     HardDriveIcon,
     ClockIcon,
     WifiHighIcon,
-    GaugeIcon
+    GaugeIcon,
+    CheckCircleIcon,
+    WarningIcon,
+    WrenchIcon,
+    CircleNotchIcon
 } from '@phosphor-icons/react'
-import { Skeleton } from '@/components/ui'
+import { Button, Skeleton } from '@/components/ui'
 import { PanelPlaceholder, LiveBadge } from '@/components/shared'
-import { useClawMetrics } from '@/hooks'
+import { useClawMetrics, useClawDiagnostics, useRepairClaw } from '@/hooks'
+import { useUIStore } from '@/lib/store'
+import { TOAST_TYPE } from '@/lib/constants'
 
 const HISTORY_SIZE = 60
 
@@ -73,10 +79,35 @@ const MetricCard: FC<{
     </div>
 )
 
-const ClawMetricsContent: FC<ClawMetricsContentProps> = ({
+const ClawMonitorContent: FC<ClawMonitorContentProps> = ({
     clawId
 }): ReactNode => {
     const { data, isPending, isError } = useClawMetrics(clawId, true)
+    const diagnostics = useClawDiagnostics(clawId, true)
+    const repair = useRepairClaw()
+    const showToast = useUIStore((s) => s.showToast)
+
+    const handleRepair = () => {
+        repair.mutate(clawId, {
+            onSuccess: () => {
+                showToast(
+                    t('dashboard.diagnosticsRepairSuccess'),
+                    TOAST_TYPE.SUCCESS
+                )
+            },
+            onError: (err) => {
+                showToast(
+                    err.message || t('api.failedToRepairClaw'),
+                    TOAST_TYPE.ERROR
+                )
+            }
+        })
+    }
+
+    const hasIssue =
+        diagnostics.data &&
+        (!diagnostics.data.service.includes('active (running)') ||
+            diagnostics.data.port.includes('not listening'))
     const cpuHistoryRef = useRef<{ time: string; value: number }[]>([])
     const memHistoryRef = useRef<{ time: string; value: number }[]>([])
     const [cpuHistory, setCpuHistory] = useState<{ time: string; value: number }[]>([])
@@ -176,6 +207,35 @@ const ClawMetricsContent: FC<ClawMetricsContentProps> = ({
                     </div>
                 )}
             </div>
+
+            {diagnostics.data && hasIssue && (
+                <div className='flex items-center justify-between rounded-md bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-400'>
+                    <div className='flex items-center gap-2'>
+                        <WarningIcon className='h-4 w-4 shrink-0' />
+                        {t('dashboard.diagnosticsIssueDetected')}
+                    </div>
+                    <Button
+                        size='sm'
+                        variant='outline'
+                        className='shrink-0 border-yellow-500/30 text-yellow-700 hover:bg-yellow-500/20 hover:text-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-500/20 dark:hover:text-yellow-300'
+                        onClick={handleRepair}
+                        disabled={repair.isPending}
+                    >
+                        {repair.isPending ? (
+                            <CircleNotchIcon className='mr-1 h-3.5 w-3.5 animate-spin' />
+                        ) : (
+                            <WrenchIcon className='mr-1 h-3.5 w-3.5' />
+                        )}
+                        {t('dashboard.diagnosticsRepair')}
+                    </Button>
+                </div>
+            )}
+            {diagnostics.data && !hasIssue && (
+                <div className='flex items-center gap-2 rounded-md bg-green-500/10 p-3 text-sm text-green-700 dark:text-green-400'>
+                    <CheckCircleIcon className='h-4 w-4 shrink-0' />
+                    {t('dashboard.diagnosticsHealthy')}
+                </div>
+            )}
 
             <MetricCard
                 title={t('clawDetail.metricsCpu')}
@@ -416,4 +476,4 @@ const ClawMetricsContent: FC<ClawMetricsContentProps> = ({
     )
 }
 
-export default ClawMetricsContent
+export default ClawMonitorContent

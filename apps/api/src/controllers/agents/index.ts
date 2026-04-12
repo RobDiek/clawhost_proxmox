@@ -27,6 +27,7 @@ import updateClawSubdomain from '@/controllers/agents/updateClawSubdomain'
 import checkSubdomainAvailability from '@/controllers/agents/checkSubdomainAvailability'
 import provisionClaw from '@/controllers/agents/provisionClaw'
 import getClawMetrics from '@/controllers/agents/getClawMetrics'
+import enablePreview from '@/controllers/agents/enablePreview'
 
 export {
     getClaws,
@@ -57,5 +58,6 @@ export {
     updateClawSubdomain,
     checkSubdomainAvailability,
     provisionClaw,
-    getClawMetrics
+    getClawMetrics,
+    enablePreview
 }

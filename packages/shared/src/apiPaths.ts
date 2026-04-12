@@ -42,7 +42,8 @@ const API_PATHS = {
             READ: (id: string) => `${AGENTS}/${id}/files/read`
         },
         TERMINAL: (id: string) => `${AGENTS}/${id}/terminal`,
-        METRICS: (id: string) => `${AGENTS}/${id}/metrics`
+        METRICS: (id: string) => `${AGENTS}/${id}/metrics`,
+        ENABLE_PREVIEW: (id: string) => `${AGENTS}/${id}/enable-preview`
     },
     AFFILIATE: {
         BASE: '/affiliate',

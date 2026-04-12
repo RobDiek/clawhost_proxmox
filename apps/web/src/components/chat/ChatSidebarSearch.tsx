@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { ChatSidebarSearchProps } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
-import { MagnifyingGlassIcon } from '@phosphor-icons/react'
+import { MagnifyingGlassIcon, XIcon } from '@phosphor-icons/react'
 
 const ChatSidebarSearch: FC<ChatSidebarSearchProps> = ({
     value,
@@ -23,8 +23,16 @@ const ChatSidebarSearch: FC<ChatSidebarSearchProps> = ({
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     placeholder={placeholder}
-                    className='bg-foreground/5 text-foreground placeholder:text-muted-foreground h-8 w-full rounded-lg pl-8 pr-3 text-xs outline-none focus:ring-1 focus:ring-white/20'
+                    className='border-border bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border py-2 pl-8 pr-8 text-xs outline-none transition-colors focus:border-[#ef5350]/50'
                 />
+                {value && (
+                    <button
+                        onClick={() => onChange('')}
+                        className='text-muted-foreground hover:text-foreground absolute right-2.5 top-1/2 -translate-y-1/2 transition-colors'
+                    >
+                        <XIcon className='h-3.5 w-3.5' />
+                    </button>
+                )}
             </div>
         </div>
     )

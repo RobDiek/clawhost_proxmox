@@ -5,7 +5,6 @@ import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
 import {
     BetaBadge,
-    ActionButton,
     LanguageSelector,
     Logo,
     SupportButton,
@@ -42,32 +41,21 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({
                     {!isLoading &&
                         displayedClaws &&
                         displayedClaws.length > 0 && (
-                            <Fragment>
-                                <div className='sm:hidden'>
-                                    <Button
-                                        onClick={onCreateClick}
-                                        size='icon'
-                                        className='border-border bg-foreground text-background hover:bg-foreground/90 h-9 w-9 border'
-                                    >
-                                        <LightningIcon
-                                            className='h-5 w-5'
-                                            weight='fill'
-                                        />
-                                    </Button>
-                                </div>
-                                <div className='hidden sm:block'>
-                                    <ActionButton
-                                        onClick={onCreateClick}
-                                        icon={
-                                            <LightningIcon
-                                                className='h-5 w-5'
-                                                weight='fill'
-                                            />
-                                        }
-                                        label={t('createClaw.title')}
-                                    />
-                                </div>
-                            </Fragment>
+                            <Button
+                                onClick={onCreateClick}
+                                className='border-border bg-foreground text-background hover:bg-foreground/90 gap-2 border'
+                            >
+                                <LightningIcon
+                                    className='h-5 w-5'
+                                    weight='fill'
+                                />
+                                <span className='sm:hidden'>
+                                    {t('nav.deploy')}
+                                </span>
+                                <span className='hidden sm:inline'>
+                                    {t('createClaw.title')}
+                                </span>
+                            </Button>
                         )}
                     <div className='flex items-center gap-1.5'>
                         <SupportButton />

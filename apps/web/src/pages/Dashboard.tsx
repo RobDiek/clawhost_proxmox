@@ -9,6 +9,7 @@ import { userRole } from '@openclaw/shared'
 import { useUIStore, usePreferencesStore, useDashboardStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { ROUTES } from '@/lib'
+import { tabs as clawDetailTabs } from '@/lib/clawDetailTabs'
 import {
     useClaws,
     useAdminClaws,
@@ -167,6 +168,23 @@ const Dashboard: FC = (): ReactNode => {
     const isLoading =
         authLoading || activeClawsLoading || (!awaitingClaw && !minLoadingMet)
 
+    const selectedClaw = useMemo(
+        () =>
+            chatSettingsClawId
+                ? displayedClaws.find((c) => c.id === chatSettingsClawId)
+                : null,
+        [chatSettingsClawId, displayedClaws]
+    )
+
+    const pageTitle = useMemo(() => {
+        if (!selectedClaw) return t('dashboard.title')
+        const tabConfig = chatClawTab && chatClawTab !== 'info'
+            ? clawDetailTabs.find((tab) => tab.id === chatClawTab)
+            : null
+        const tabLabel = tabConfig ? ` ${t(tabConfig.label as Parameters<typeof t>[0])}` : ''
+        return `${selectedClaw.name}${tabLabel}`
+    }, [selectedClaw, chatClawTab])
+
     const chatEmpty =
         !isLoading && !activeIsError && displayedClaws.length === 0
     const showFullBackground = chatEmpty || activeIsError || isLoading
@@ -197,7 +215,7 @@ const Dashboard: FC = (): ReactNode => {
                 className={`playground-gradient pointer-events-none fixed inset-0 ${isLocal || (!isLoading && !activeIsError && displayedClaws.length > 0) ? 'opacity-30' : ''}`}
             />
             <PageTitle
-                title={t('dashboard.title')}
+                title={pageTitle}
                 description={t('dashboard.description')}
                 noIndex
             />

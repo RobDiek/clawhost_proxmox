@@ -33,6 +33,7 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
     )
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
     const isInitialMount = useRef(true)
+    const hasAutoSelected = useRef(false)
 
     useEffect(() => {
         if (isInitialMount.current) {
@@ -43,8 +44,10 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
     }, [settingsClawId])
 
     useEffect(() => {
-        if (!settingsClawId && displayedClaws.length > 0)
+        if (!hasAutoSelected.current && !settingsClawId && displayedClaws.length > 0) {
+            hasAutoSelected.current = true
             setSettingsClawId(displayedClaws[0].id)
+        }
     }, [settingsClawId, displayedClaws])
 
     const settingsClaw = useMemo(() => {
@@ -126,7 +129,7 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
                     />
                 </div>
                 <div className='max-md:bg-background flex min-w-0 flex-1 flex-col max-md:relative max-md:z-10'>
-                    {!settingsClaw && (
+                    {!settingsClaw && mobileSidebarOpen && (
                         <div className='border-border bg-background flex items-center gap-2 border-b px-4 py-2.5 md:hidden'>
                             <button
                                 onClick={() =>
@@ -191,7 +194,18 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
                                 fullScreen
                             />
                         ) : (
-                            <ChatEmptyState />
+                            <Fragment>
+                                <div className='hidden md:flex md:flex-1'>
+                                    <ChatEmptyState />
+                                </div>
+                                <div className='flex-1 overflow-y-auto md:hidden'>
+                                    <ChatSidebar
+                                        claws={displayedClaws}
+                                        selectedClawId={settingsClawId}
+                                        onOpenClawSettings={handleOpenClawSettings}
+                                    />
+                                </div>
+                            </Fragment>
                         )}
                     </div>
                 </div>

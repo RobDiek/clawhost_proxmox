@@ -52,7 +52,10 @@ const ClawDiagnosticsContent: FC<ClawDiagnosticsContentProps> = ({
     return (
         <div className='h-full overflow-y-auto'>
             {!diagnostics.isError && !diagnostics.isPending && (
-                <div className='mb-5'>
+                <div className='mb-5 flex items-center gap-2'>
+                    <h3 className='text-sm font-medium'>
+                        {t('dashboard.diagnostics')}
+                    </h3>
                     <LiveBadge />
                 </div>
             )}

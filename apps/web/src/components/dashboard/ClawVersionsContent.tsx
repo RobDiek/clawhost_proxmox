@@ -11,7 +11,8 @@ import {
     MagnifyingGlassIcon,
     DownloadSimpleIcon,
     ArrowSquareOutIcon,
-    InfoIcon
+    InfoIcon,
+    XIcon
 } from '@phosphor-icons/react'
 import { ClawMascot, PanelPlaceholder } from '@/components/shared'
 import {
@@ -118,9 +119,21 @@ const ClawVersionsContent: FC<ClawVersionsContentProps> = ({
                             type='text'
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder={t('clawDetail.versionsSearch')}
-                            className='border-border bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border py-2 pl-8 pr-3 text-xs outline-none transition-colors focus:border-[#ef5350]/50'
+                            placeholder={
+                                versionsData?.versions.length
+                                    ? t('clawDetail.versionsSearchCount', { count: versionsData.versions.length })
+                                    : t('clawDetail.versionsSearch')
+                            }
+                            className='border-border bg-foreground/5 text-foreground placeholder:text-muted-foreground w-full rounded-md border py-2 pl-8 pr-8 text-xs outline-none transition-colors focus:border-[#ef5350]/50'
                         />
+                        {search && (
+                            <button
+                                onClick={() => setSearch('')}
+                                className='text-muted-foreground hover:text-foreground absolute right-2.5 top-1/2 -translate-y-1/2 transition-colors'
+                            >
+                                <XIcon className='h-3.5 w-3.5' />
+                            </button>
+                        )}
                     </div>
                 </div>
 

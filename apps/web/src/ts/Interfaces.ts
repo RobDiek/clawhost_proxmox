@@ -440,6 +440,7 @@ export interface PanelPlaceholderProps {
     icon: ReactNode
     title: string
     description: string
+    action?: ReactNode
 }
 
 export interface PageTitleProps {
@@ -893,8 +894,12 @@ export interface ClawMetricsResponse {
     timestamp: number
 }
 
-export interface ClawMetricsContentProps {
+export interface ClawMonitorContentProps {
     clawId: string
+}
+
+export interface ClawVolumesContentProps {
+    volumes: Volume[]
 }
 
 export interface ClawFileEntry {
@@ -1096,6 +1101,10 @@ export interface ClawDetailSettingsTabProps {
     onNameChange: (value: string) => void
     onSubdomainChange: (value: string) => void
     onSave: () => void
+}
+
+export interface ClawPreviewContentProps {
+    claw: Claw
 }
 
 export interface ClawDetailHeaderProps {

@@ -13,11 +13,12 @@ import {
 } from '@/lib/clawDetailTabs'
 import {
     ClawLogsContent,
-    ClawDiagnosticsContent,
     ClawTerminalContent,
     ClawConfigContent,
     ClawVersionsContent,
-    ClawMetricsContent,
+    ClawMonitorContent,
+    ClawVolumesContent,
+    ClawPreviewContent,
     ClawDetailInfoTab,
     ClawDetailSettingsTab,
     ClawDetailHeader,
@@ -63,7 +64,7 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
     )
     const tabStateMap = useClawDetailTabStore((s) => s.tabStateMap)
     const setTab = useClawDetailTabStore((s) => s.setTab)
-    const activeTab = tabStateMap[claw.id] || CLAW_DETAIL_TABS.INFO
+    const activeTab = tabStateMap[claw.id] || CLAW_DETAIL_TABS.PREVIEW
     const setActiveTab = useCallback(
         (tab: ClawDetailTab) => {
             if (isTabDisabled(tab)) return
@@ -75,15 +76,15 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
     useEffect(() => {
         if (initialTab && initialTab !== tabStateMap[claw.id]) {
             const safeTab = isTabDisabled(initialTab)
-                ? CLAW_DETAIL_TABS.INFO
+                ? CLAW_DETAIL_TABS.PREVIEW
                 : initialTab
             setTab(claw.id, safeTab)
         }
     }, [initialTab, claw.id, isTabDisabled, tabStateMap, setTab])
     useEffect(() => {
         if (isTabDisabled(activeTab)) {
-            setTab(claw.id, CLAW_DETAIL_TABS.INFO)
-            if (onTabChange) onTabChange(CLAW_DETAIL_TABS.INFO)
+            setTab(claw.id, CLAW_DETAIL_TABS.PREVIEW)
+            if (onTabChange) onTabChange(CLAW_DETAIL_TABS.PREVIEW)
         }
     }, [isTabDisabled, activeTab, claw.id, onTabChange, setTab])
 
@@ -180,6 +181,10 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                 />
 
                 <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
+                    {activeTab === 'preview' && (
+                        <ClawPreviewContent claw={claw} />
+                    )}
+
                     {activeTab === 'info' && (
                         <ClawDetailInfoTab
                             claw={claw}
@@ -238,25 +243,6 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                         />
                     )}
 
-                    {activeTab === 'diagnostics' && (
-                        <div className='h-full overflow-y-auto p-5'>
-                            <ClawDiagnosticsContent
-                                clawId={claw.id}
-                                enabled
-                                mockData={
-                                    readOnly
-                                        ? {
-                                              service:
-                                                  '● openclaw.service - OpenClaw Agent\n   Loaded: loaded (/etc/systemd/system/openclaw.service; enabled)\n   Active: active (running) since Fri 2026-02-14 10:23:41 UTC\n Main PID: 1847 (node)\n    Tasks: 11 (limit: 4915)\n   Memory: 128.4M\n      CPU: 2.341s\n   CGroup: /system.slice/openclaw.service\n           └─1847 node /opt/openclaw/server.js',
-                                              port: 'tcp  0  0 0.0.0.0:3000  0.0.0.0:*  LISTEN  1847/node',
-                                              memory: 'Mem: 1987Mi total, 128Mi used, 1640Mi free, 219Mi buff/cache\nSwap: 0B total, 0B used, 0B free'
-                                          }
-                                        : undefined
-                                }
-                            />
-                        </div>
-                    )}
-
                     {activeTab === 'terminal' && (
                         <ClawTerminalContent
                             clawId={claw.id}
@@ -272,8 +258,14 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                         <ClawConfigContent clawId={claw.id} />
                     )}
 
-                    {activeTab === 'metrics' && (
-                        <ClawMetricsContent clawId={claw.id} />
+                    {activeTab === 'monitor' && (
+                        <ClawMonitorContent clawId={claw.id} />
+                    )}
+
+                    {activeTab === 'volumes' && (
+                        <ClawVolumesContent
+                            volumes={claw.volumes || []}
+                        />
                     )}
 
                     {activeTab === 'settings' && (

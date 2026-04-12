@@ -109,7 +109,9 @@ const claws = {
     updateClawFile: (id: string, data: UpdateClawFileData) =>
         client.put<void>(API_PATHS.CLAWS.FILES.BASE(id), data),
     getClawMetrics: (id: string) =>
-        client.post<ClawMetricsResponse>(API_PATHS.CLAWS.METRICS(id))
+        client.post<ClawMetricsResponse>(API_PATHS.CLAWS.METRICS(id)),
+    enablePreview: (id: string) =>
+        client.post<void>(API_PATHS.CLAWS.ENABLE_PREVIEW(id))
 }
 
 export default claws

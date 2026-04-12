@@ -57,13 +57,14 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
         isRestoringFromUrl.current = true
 
         const validClawTabs: ClawDetailTab[] = [
+            CLAW_DETAIL_TABS.PREVIEW,
             CLAW_DETAIL_TABS.INFO,
             CLAW_DETAIL_TABS.TERMINAL,
             CLAW_DETAIL_TABS.LOGS,
-            CLAW_DETAIL_TABS.DIAGNOSTICS,
             CLAW_DETAIL_TABS.VERSIONS,
             CLAW_DETAIL_TABS.FILES,
-            CLAW_DETAIL_TABS.METRICS,
+            CLAW_DETAIL_TABS.MONITOR,
+            CLAW_DETAIL_TABS.VOLUMES,
             CLAW_DETAIL_TABS.SETTINGS
         ]
 

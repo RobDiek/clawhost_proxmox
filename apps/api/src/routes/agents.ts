@@ -29,7 +29,8 @@ import {
     cancelPendingClaw,
     updateClawSubdomain,
     checkSubdomainAvailability,
-    getClawMetrics
+    getClawMetrics,
+    enablePreview
 } from '@/controllers/agents'
 import adminOnly from '@/middleware/adminOnly'
 
@@ -60,6 +61,7 @@ app.post('/:id/versions', getClawVersions)
 app.post('/:id/install-version', adminOnly, installClawVersion)
 app.get('/:id/credentials', getClawCredentials)
 app.post('/:id/metrics', getClawMetrics)
+app.post('/:id/enable-preview', enablePreview)
 app.patch('/:id/subdomain', updateClawSubdomain)
 app.patch('/:id', renameClaw)
 app.delete('/:id', deleteClaw)
