@@ -130,13 +130,7 @@ const getClawMetrics = withClaw({ requireSSH: 'api.failedToGetMetrics' })(
             )
         } catch (error) {
             console.error('getClawMetrics', error)
-            return fail(
-                c,
-                error instanceof Error
-                    ? error.message
-                    : t('api.failedToGetMetrics'),
-                500
-            )
+            return fail(c, t('api.failedToGetMetrics'), 500)
         }
     }
 )

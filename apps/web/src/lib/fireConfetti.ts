@@ -1,6 +1,5 @@
-import confetti from 'canvas-confetti'
-
-const fireConfetti = (): void => {
+const fireConfetti = async (): Promise<void> => {
+    const { default: confetti } = await import('canvas-confetti')
     const duration = 1250
     const end = Date.now() + duration
 

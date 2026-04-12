@@ -132,13 +132,7 @@ const getClawOverview = withClaw({
         )
     } catch (error) {
         console.error('getClawOverview', error)
-        return fail(
-            c,
-            error instanceof Error
-                ? error.message
-                : t('api.failedToGetOverview'),
-            500
-        )
+        return fail(c, t('api.failedToGetOverview'), 500)
     }
 })
 

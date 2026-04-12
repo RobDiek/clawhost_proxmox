@@ -78,6 +78,16 @@ const subscriptions = {
         return result
     },
 
+    async prefetchByCustomer(customerId: string): Promise<void> {
+        const subs = await this.listByCustomer(customerId)
+        for (const sub of subs) {
+            subCache.set(sub.id, {
+                data: sub,
+                expiry: Date.now() + SUB_CACHE_TTL
+            })
+        }
+    },
+
     async listByCustomer(customerId: string): Promise<PolarSubscription[]> {
         const polar = getPolarClient()
 

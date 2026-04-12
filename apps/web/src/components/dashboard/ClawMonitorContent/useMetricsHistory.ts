@@ -4,12 +4,16 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 
 const HISTORY_SIZE = 60
 
-const useMetricsHistory = (data: ClawMetricsResponse | undefined): {
+const useMetricsHistory = (
+    data: ClawMetricsResponse | undefined
+): {
     cpuHistory: MetricsHistoryPoint[]
     memHistory: MetricsHistoryPoint[]
 } => {
     const cpuHistoryRef = useRef<MetricsHistoryPoint[]>([])
     const memHistoryRef = useRef<MetricsHistoryPoint[]>([])
+    const lastCpuRef = useRef<number | null>(null)
+    const lastMemRef = useRef<number | null>(null)
     const [cpuHistory, setCpuHistory] = useState<MetricsHistoryPoint[]>([])
     const [memHistory, setMemHistory] = useState<MetricsHistoryPoint[]>([])
 
@@ -21,15 +25,25 @@ const useMetricsHistory = (data: ClawMetricsResponse | undefined): {
             second: '2-digit'
         })
 
-        cpuHistoryRef.current = [
-            ...cpuHistoryRef.current,
-            { time: now, value: data.cpu.usagePercent }
-        ].slice(-HISTORY_SIZE)
-
+        const cpuValue = data.cpu.usagePercent
         const memPercent =
             data.memory.total > 0
                 ? Math.round((data.memory.used / data.memory.total) * 1000) / 10
                 : 0
+
+        if (
+            cpuValue === lastCpuRef.current &&
+            memPercent === lastMemRef.current
+        )
+            return
+
+        lastCpuRef.current = cpuValue
+        lastMemRef.current = memPercent
+
+        cpuHistoryRef.current = [
+            ...cpuHistoryRef.current,
+            { time: now, value: cpuValue }
+        ].slice(-HISTORY_SIZE)
 
         memHistoryRef.current = [
             ...memHistoryRef.current,

@@ -48,13 +48,7 @@ const updateClawSSHKey = withClaw()(async (c, claw) => {
         return ok(c, { sshKeyId: sshKeyId || null }, t('api.sshKeyUpdated'))
     } catch (error) {
         console.error('updateClawSSHKey', error)
-        return fail(
-            c,
-            error instanceof Error
-                ? error.message
-                : t('api.failedToUpdateSSHKey'),
-            500
-        )
+        return fail(c, t('api.failedToUpdateSSHKey'), 500)
     }
 })
 

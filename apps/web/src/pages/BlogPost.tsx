@@ -1,5 +1,6 @@
 import type { FC, ReactNode } from 'react'
 
+import { Suspense } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
@@ -140,9 +141,15 @@ const BlogPost: FC = (): ReactNode => {
                         </span>
                     </div>
 
-                    <div className='prose dark:prose-invert prose-sm prose-headings:font-clash prose-headings:font-semibold prose-h1:hidden prose-a:text-primary prose-a:no-underline hover:prose-a:underline max-w-none'>
-                        <Content />
-                    </div>
+                    <Suspense
+                        fallback={
+                            <div className='bg-foreground/5 h-96 animate-pulse rounded-lg' />
+                        }
+                    >
+                        <div className='prose dark:prose-invert prose-sm prose-headings:font-clash prose-headings:font-semibold prose-h1:hidden prose-a:text-primary prose-a:no-underline hover:prose-a:underline max-w-none'>
+                            <Content />
+                        </div>
+                    </Suspense>
                 </article>
 
                 <BlogCTA />

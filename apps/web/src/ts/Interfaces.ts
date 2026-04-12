@@ -961,6 +961,7 @@ export interface ClawOverviewResponse {
 
 export interface ClawOverviewContentProps {
     clawId: string
+    readOnly?: boolean
 }
 
 export interface OverviewGatewayCardProps {

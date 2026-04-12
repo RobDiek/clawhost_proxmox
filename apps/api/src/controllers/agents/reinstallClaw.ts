@@ -149,13 +149,7 @@ const reinstallClaw = async (c: AuthenticatedContext) => {
         return ok(c, null, t('api.reinstallSuccess'))
     } catch (error) {
         console.error('reinstallClaw', error)
-        return fail(
-            c,
-            error instanceof Error
-                ? error.message
-                : t('api.failedToReinstallClaw'),
-            500
-        )
+        return fail(c, t('api.failedToReinstallClaw'), 500)
     }
 }
 

@@ -5,7 +5,7 @@ import { useRef, useState, useEffect, useCallback, type FormEvent } from 'react'
 import { useScroll, useTransform } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { goLicense } from '@openclaw/shared'
-import { SCROLL_SECTIONS } from '@/lib'
+import { SCROLL_SECTIONS, PATHS, getBaseDomain } from '@/lib'
 import {
     PageTitle,
     Header,
@@ -225,7 +225,12 @@ const Go: FC = (): ReactNode => {
 
     return (
         <div className='font-satoshi bg-background text-foreground min-h-screen'>
-            <PageTitle title={t('go.pageTitle')} />
+            <PageTitle
+                title={t('go.pageTitle')}
+                description={t('go.description')}
+                image={`https://${getBaseDomain()}/og-go.webp`}
+                url={`https://${getBaseDomain()}/${PATHS.GO}`}
+            />
 
             <div className='landing-gradient pointer-events-none fixed inset-0' />
 

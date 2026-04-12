@@ -1,4 +1,4 @@
-import type { BlogPostMeta, BlogPostModule } from '@/ts/Interfaces'
+import type { BlogPostMeta } from '@/ts/Interfaces'
 
 import moduleEntries from '@/lib/blog/data'
 
@@ -8,13 +8,11 @@ const estimateReadingTime = (description: string): number => {
     return Math.max(1, Math.round(estimatedTotal / 200))
 }
 
-const buildPostMeta = (mod: BlogPostModule): BlogPostMeta => ({
-    ...mod.frontmatter,
-    readingTime: estimateReadingTime(mod.frontmatter.description)
-})
-
 const allPosts: BlogPostMeta[] = moduleEntries
-    .map(([, mod]) => buildPostMeta(mod))
+    .map(([, frontmatter]) => ({
+        ...frontmatter,
+        readingTime: estimateReadingTime(frontmatter.description)
+    }))
     .sort(
         (a, b) =>
             new Date(b.publishedAt).getTime() -

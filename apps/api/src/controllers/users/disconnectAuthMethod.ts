@@ -42,13 +42,7 @@ const disconnectAuthMethod = async (c: AuthenticatedContext) => {
         return ok(c, null, t('api.authMethodDisconnected'))
     } catch (error) {
         console.error('disconnectAuthMethod', error)
-        return fail(
-            c,
-            error instanceof Error
-                ? error.message
-                : t('api.failedToDisconnectAuthMethod'),
-            500
-        )
+        return fail(c, t('api.failedToDisconnectAuthMethod'), 500)
     }
 }
 

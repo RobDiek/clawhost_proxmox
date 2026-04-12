@@ -44,6 +44,10 @@ const getClaws = withErrorHandler('getClaws')(async (
         .filter((c) => c.polarSubscriptionId)
         .map((c) => c.polarSubscriptionId!)
 
+    const customerId = syncedClaws.find((c) => c.polarCustomerId)?.polarCustomerId
+    if (customerId && subIds.length > 0)
+        await subscriptions.prefetchByCustomer(customerId)
+
     const subResults = await subscriptions.getMany(subIds)
 
     const subMap = new Map<string, BillingPeriod>()

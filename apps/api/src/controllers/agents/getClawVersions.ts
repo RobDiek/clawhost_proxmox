@@ -87,13 +87,7 @@ const getClawVersions = async (c: AuthenticatedContext) => {
         console.error('getClawVersions', error)
         if (error instanceof Error && error.message === 'npm_registry_error')
             return fail(c, t('api.failedToGetVersions'), 502)
-        return fail(
-            c,
-            error instanceof Error
-                ? error.message
-                : t('api.failedToGetVersions'),
-            500
-        )
+        return fail(c, t('api.failedToGetVersions'), 500)
     }
 }
 

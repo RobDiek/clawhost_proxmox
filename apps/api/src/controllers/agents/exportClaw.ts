@@ -46,13 +46,7 @@ const exportClaw = async (c: AuthenticatedContext) => {
         })
     } catch (error) {
         console.error('exportClaw', error)
-        return fail(
-            c,
-            error instanceof Error
-                ? error.message
-                : t('api.failedToExportClaw'),
-            500
-        )
+        return fail(c, t('api.failedToExportClaw'), 500)
     }
 }
 

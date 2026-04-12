@@ -77,13 +77,7 @@ const installClawVersion = async (c: AuthenticatedContext) => {
         return fail(c, t('api.failedToInstallVersion'), 500)
     } catch (error) {
         console.error('installClawVersion', error)
-        return fail(
-            c,
-            error instanceof Error
-                ? error.message
-                : t('api.failedToInstallVersion'),
-            500
-        )
+        return fail(c, t('api.failedToInstallVersion'), 500)
     }
 }
 

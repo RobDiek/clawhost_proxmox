@@ -112,6 +112,7 @@ import useToast from '@/hooks/useToast'
 import useCopyWithFeedback from '@/hooks/useCopyWithFeedback'
 import useCreateClawForm from '@/hooks/useCreateClawForm'
 import useCustomerPortal from '@/hooks/useCustomerPortal'
+import usePageVisibility from '@/hooks/usePageVisibility'
 
 export {
     ADMIN_USERS_QUERY_KEY,
@@ -206,5 +207,6 @@ export {
     useToast,
     useCopyWithFeedback,
     useCreateClawForm,
-    useCustomerPortal
+    useCustomerPortal,
+    usePageVisibility
 }

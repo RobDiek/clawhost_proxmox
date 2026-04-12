@@ -38,13 +38,7 @@ const enablePreview = withClaw({ requireSSH: 'api.failedToEnablePreview' })(
             return ok(c, { enabled: true }, t('api.enablePreviewSuccess'))
         } catch (error) {
             console.error('enablePreview', error)
-            return fail(
-                c,
-                error instanceof Error
-                    ? error.message
-                    : t('api.failedToEnablePreview'),
-                500
-            )
+            return fail(c, t('api.failedToEnablePreview'), 500)
         }
     }
 )

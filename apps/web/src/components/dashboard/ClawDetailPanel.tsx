@@ -2,7 +2,14 @@ import type { FC, ReactNode } from 'react'
 import type { ClawDetailPanelProps } from '@/ts/Interfaces'
 import type { ClawDetailTab } from '@/ts/Types'
 
-import { Fragment, useCallback, useMemo, useEffect } from 'react'
+import {
+    Fragment,
+    Suspense,
+    lazy,
+    useCallback,
+    useMemo,
+    useEffect
+} from 'react'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
@@ -10,10 +17,6 @@ import { clawStatus } from '@openclaw/shared'
 import { CLAW_DETAIL_TABS } from '@/lib/constants'
 import {
     ClawLogsContent,
-    ClawTerminalContent,
-    ClawConfigContent,
-    ClawVersionsContent,
-    ClawMonitorContent,
     ClawOverviewContent,
     ClawVolumesContent,
     ClawSecurityContent,
@@ -34,6 +37,25 @@ import {
 } from '@/hooks'
 import { api } from '@/lib'
 import { useClawDetailTabStore } from '@/lib/store'
+
+const ClawTerminalContent = lazy(
+    () => import('@/components/dashboard/ClawTerminalContent')
+)
+const ClawMonitorContent = lazy(
+    () => import('@/components/dashboard/ClawMonitorContent')
+)
+const ClawConfigContent = lazy(
+    () => import('@/components/dashboard/ClawConfigDialog/ClawConfigContent')
+)
+const ClawVersionsContent = lazy(
+    () => import('@/components/dashboard/ClawVersionsContent')
+)
+
+const TabFallback: FC = (): ReactNode => (
+    <div className='flex flex-1 items-center justify-center p-8'>
+        <div className='border-primary h-5 w-5 animate-spin rounded-full border-2 border-t-transparent' />
+    </div>
+)
 
 const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
     claw,
@@ -97,15 +119,14 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
         if (versionQuery.isError || !versionQuery.data) return null
         if (versionQuery.data.version === 'unknown') return null
         return versionQuery.data.version
-    }, [
-        versionQuery.isLoading,
-        versionQuery.isError,
-        versionQuery.data
-    ])
+    }, [versionQuery.isLoading, versionQuery.isError, versionQuery.data])
     const isOutdated =
-        !!versionDisplay &&
-        !!latestVersion &&
-        versionDisplay !== latestVersion
+        !!versionDisplay && !!latestVersion && versionDisplay !== latestVersion
+
+    const handleCancelPending = useCallback(() => {
+        cancelPending.mutate(claw.id.replace('pending-', ''))
+        onClose()
+    }, [cancelPending, claw.id, onClose])
 
     const Wrapper = fullScreen ? 'div' : motion.div
     const wrapperProps = fullScreen
@@ -135,10 +156,11 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                     <ClawPendingView
                         status={claw.status}
                         checkoutUrl={claw.checkoutUrl}
-                        onCancel={claw.status === clawStatus.awaitingPayment ? () => {
-                            cancelPending.mutate(claw.id.replace('pending-', ''))
-                            onClose()
-                        } : undefined}
+                        onCancel={
+                            claw.status === clawStatus.awaitingPayment
+                                ? handleCancelPending
+                                : undefined
+                        }
                         cancelPending={cancelPending.isPending}
                     />
                 ) : (
@@ -152,17 +174,25 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                         />
 
                         <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
-                            {isOutdated && latestVersion && activeTab !== CLAW_DETAIL_TABS.VERSIONS && (
-                                <UpdateAvailableBanner
-                                    latestVersion={latestVersion}
-                                    onGoToVersions={() =>
-                                        setTab(claw.id, CLAW_DETAIL_TABS.VERSIONS)
-                                    }
-                                />
-                            )}
+                            {isOutdated &&
+                                latestVersion &&
+                                activeTab !== CLAW_DETAIL_TABS.VERSIONS && (
+                                    <UpdateAvailableBanner
+                                        latestVersion={latestVersion}
+                                        onGoToVersions={() =>
+                                            setTab(
+                                                claw.id,
+                                                CLAW_DETAIL_TABS.VERSIONS
+                                            )
+                                        }
+                                    />
+                                )}
 
                             {activeTab === CLAW_DETAIL_TABS.OVERVIEW && (
-                                <ClawOverviewContent clawId={claw.id} />
+                                <ClawOverviewContent
+                                    clawId={claw.id}
+                                    readOnly={readOnly}
+                                />
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.PREVIEW && (
@@ -208,30 +238,46 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.TERMINAL && (
-                                <ClawTerminalContent
-                                    clawId={claw.id}
-                                    enabled={activeTab === CLAW_DETAIL_TABS.TERMINAL}
-                                />
+                                <Suspense fallback={<TabFallback />}>
+                                    <ClawTerminalContent
+                                        clawId={claw.id}
+                                        enabled={
+                                            activeTab ===
+                                            CLAW_DETAIL_TABS.TERMINAL
+                                        }
+                                    />
+                                </Suspense>
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.VERSIONS && (
-                                <ClawVersionsContent clawId={claw.id} />
+                                <Suspense fallback={<TabFallback />}>
+                                    <ClawVersionsContent clawId={claw.id} />
+                                </Suspense>
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.FILES && (
-                                <ClawConfigContent clawId={claw.id} />
+                                <Suspense fallback={<TabFallback />}>
+                                    <ClawConfigContent clawId={claw.id} />
+                                </Suspense>
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.MONITOR && (
-                                <ClawMonitorContent clawId={claw.id} />
+                                <Suspense fallback={<TabFallback />}>
+                                    <ClawMonitorContent clawId={claw.id} />
+                                </Suspense>
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.VOLUMES && (
-                                <ClawVolumesContent volumes={claw.volumes || []} />
+                                <ClawVolumesContent
+                                    volumes={claw.volumes || []}
+                                />
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.SECURITY && (
-                                <ClawSecurityContent claw={claw} sshKeys={sshKeys} />
+                                <ClawSecurityContent
+                                    claw={claw}
+                                    sshKeys={sshKeys}
+                                />
                             )}
 
                             {activeTab === CLAW_DETAIL_TABS.BILLING && (
@@ -250,13 +296,17 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                                     settingsName={settingsName}
                                     settingsNameError={settingsNameError}
                                     settingsSubdomain={settingsSubdomain}
-                                    settingsSubdomainError={settingsSubdomainError}
+                                    settingsSubdomainError={
+                                        settingsSubdomainError
+                                    }
                                     settingsHasChanges={settingsHasChanges}
                                     renamePending={renamePending}
                                     subdomainPending={subdomainPending}
                                     emojiPending={emojiPending}
                                     onNameChange={handleSettingsNameChange}
-                                    onSubdomainChange={handleSettingsSubdomainChange}
+                                    onSubdomainChange={
+                                        handleSettingsSubdomainChange
+                                    }
                                     onEmojiChange={handleEmojiChange}
                                     onSave={handleSettingsSave}
                                 />

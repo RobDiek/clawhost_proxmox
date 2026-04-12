@@ -31,6 +31,18 @@ const getAdminClaws = withErrorHandler('getAdminClaws')(async (
         .filter((c) => c.polarSubscriptionId)
         .map((c) => c.polarSubscriptionId!)
 
+    const customerIds = [
+        ...new Set(
+            syncedClaws
+                .filter((c) => c.polarCustomerId)
+                .map((c) => c.polarCustomerId!)
+        )
+    ]
+    if (customerIds.length > 0)
+        await Promise.all(
+            customerIds.map((id) => subscriptions.prefetchByCustomer(id))
+        )
+
     const subResults = await subscriptions.getMany(subIds)
 
     const subMap = new Map<string, BillingPeriod>()

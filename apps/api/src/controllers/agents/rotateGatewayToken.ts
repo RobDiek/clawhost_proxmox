@@ -62,13 +62,7 @@ const rotateGatewayToken = withClaw({
         return ok(c, { rotated: true }, t('api.gatewayTokenRotated'))
     } catch (error) {
         console.error('rotateGatewayToken', error)
-        return fail(
-            c,
-            error instanceof Error
-                ? error.message
-                : t('api.failedToRotateGatewayToken'),
-            500
-        )
+        return fail(c, t('api.failedToRotateGatewayToken'), 500)
     }
 })
 
