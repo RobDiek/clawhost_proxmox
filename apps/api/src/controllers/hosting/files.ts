@@ -392,6 +392,7 @@ export const saveIntegration = async (c: Context) => {
             'newsletter-recipients': (() => { try { const p = JSON.parse(key); return writeConfig(`${VPS_HOME}/skills-config`, 'newsletter-recipients.json', p.constructor === Object ? p : { data: key }); } catch { return writeConfig(`${VPS_HOME}/skills-config`, 'newsletter-recipients.json', { data: key }); } })(),
             'sub-agent-models': `echo 'handled below'`,
             'model-prefs': `echo 'handled below'`,
+            'tool-profile': `echo 'handled below'`,
         }
 
         const cmd = commands[type]
@@ -603,6 +604,45 @@ with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
                 await sshExecInstance(instance, 'systemctl restart openclaw-gateway')
             } catch (e) {
                 console.error('sub-agent-models update error:', e)
+            }
+        }
+
+        // Save tool profile (messaging/full/minimal + extra tools)
+        if (type === 'tool-profile') {
+            try {
+                const toolConfig = JSON.parse(key) as { profile: string; alsoAllow?: string[] }
+                const validProfiles = ['minimal', 'messaging', 'coding', 'full']
+                if (!validProfiles.includes(toolConfig.profile)) throw new Error('Invalid profile')
+                const validTools = ['pdf', 'browser', 'web_fetch', 'image', 'canvas', 'edit', 'process']
+                const alsoAllow = (toolConfig.alsoAllow || []).filter(t => validTools.includes(t))
+
+                const CONFIG = '/home/openclaw/.openclaw/openclaw.json'
+                const toolsJson = Buffer.from(JSON.stringify({ profile: toolConfig.profile, alsoAllow })).toString('base64')
+                await sshExecInstance(instance, `
+                    python3 -c "
+import json, base64, sys
+tools_cfg = json.loads(base64.b64decode('${toolsJson}'))
+cfg_path = '${CONFIG}'
+with open(cfg_path) as f: d = json.load(f)
+agents_list = d.setdefault('agents', {}).setdefault('list', [])
+main = None
+for a in agents_list:
+    if a.get('id') == 'main' or a.get('default'):
+        main = a
+        break
+if not main:
+    main = {'id': 'main', 'default': True}
+    agents_list.append(main)
+main['tools'] = tools_cfg
+with open(cfg_path, 'w') as f: json.dump(d, f, indent=2)
+print('OK: profile=' + tools_cfg['profile'] + ' alsoAllow=' + str(tools_cfg.get('alsoAllow', [])))
+"
+                    chown openclaw:openclaw ${CONFIG}
+                    systemctl restart openclaw-gateway
+                `)
+                console.log(`Tool profile updated: ${toolConfig.profile} +${alsoAllow.join(',')}`)
+            } catch (e) {
+                console.error('tool-profile update error:', e)
             }
         }
 

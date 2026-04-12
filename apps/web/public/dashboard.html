@@ -1041,6 +1041,31 @@ input{font-family:inherit}
         </div>
       </div>
 
+      <!-- 4a2. Tool profile (Personal/Bare agents) -->
+      <div id="tool-profile-section" style="display:none">
+        <div class="section-title" style="margin-top:28px">כלים זמינים</div>
+        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px">
+          <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:6px">פרופיל כלים:</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+            <label class="chip-label"><input type="radio" name="tool-profile" value="messaging" checked/><span class="chip">💬 שיחה (מומלץ — חסכוני)</span></label>
+            <label class="chip-label"><input type="radio" name="tool-profile" value="full"/><span class="chip">🔧 מלא (כל הכלים)</span></label>
+            <label class="chip-label"><input type="radio" name="tool-profile" value="minimal"/><span class="chip">⚡ מינימלי (הכי חסכוני)</span></label>
+          </div>
+          <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">כלים נוספים (גם בפרופיל שיחה):</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+            <label class="chip-label"><input type="checkbox" name="extra-tool" value="pdf" checked/><span class="chip">📄 PDF</span></label>
+            <label class="chip-label"><input type="checkbox" name="extra-tool" value="browser" checked/><span class="chip">🌐 דפדפן</span></label>
+            <label class="chip-label"><input type="checkbox" name="extra-tool" value="web_fetch" checked/><span class="chip">🔗 אחזור אתרים</span></label>
+            <label class="chip-label"><input type="checkbox" name="extra-tool" value="image" checked/><span class="chip">🖼️ תמונות</span></label>
+            <label class="chip-label"><input type="checkbox" name="extra-tool" value="canvas"/><span class="chip">🎨 ציור</span></label>
+          </div>
+          <div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:8px">💡 פרופיל "שיחה" חוסך ~50% מהטוקנים. הוסיפו כלים ספציפיים לפי הצורך.</div>
+          <div style="text-align:left">
+            <button class="btn btn-outline" onclick="saveToolProfile()" style="font-size:0.82rem">&#128190; שמרו</button>
+          </div>
+        </div>
+      </div>
+
       <!-- 4b. Sub-agents with model selector (MATEH only) -->
       <div id="subagents-section">
         <div class="section-title" style="margin-top:28px">סוכני משנה</div>
@@ -6693,6 +6718,10 @@ function openAgentDetail(agentType) {
   if (modelPrefsSection) modelPrefsSection.style.display = (!isMatehAgent) ? '' : 'none';
   if (!isMatehAgent) loadModelPrefs();
 
+  // Show/hide tool profile section (Personal/Bare only)
+  var toolProfileSection = document.getElementById('tool-profile-section');
+  if (toolProfileSection) toolProfileSection.style.display = (!isMatehAgent) ? '' : 'none';
+
   // Show/hide MATEH-only schedules (weekly competitive + monthly AEO)
   var matehSchedules = document.getElementById('mateh-schedules-section');
   if (matehSchedules) matehSchedules.style.display = isMatehAgent ? '' : 'none';
@@ -7044,6 +7073,31 @@ async function saveModelPrefs() {
       showToast('העדפות מודל עודכנו', 'success');
     } else {
       showToast('שגיאה — נשמר מקומית', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאת תקשורת', 'error');
+  }
+}
+
+// ── Tool Profile ──
+async function saveToolProfile() {
+  var profile = document.querySelector('input[name="tool-profile"]:checked').value;
+  var extraTools = Array.from(document.querySelectorAll('input[name="extra-tool"]:checked')).map(function(el) { return el.value; });
+
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) { showToast('Instance not found', 'error'); return; }
+
+  showToast('שומר הגדרות כלים...', 'info');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/integrations/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ type: 'tool-profile', key: JSON.stringify({ profile: profile, alsoAllow: extraTools }) })
+    });
+    if (res.ok) {
+      showToast('הגדרות כלים עודכנו', 'success');
+    } else {
+      showToast('שגיאה בשמירה', 'error');
     }
   } catch (e) {
     showToast('שגיאת תקשורת', 'error');
