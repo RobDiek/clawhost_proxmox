@@ -253,11 +253,11 @@ export const microsoftDisconnect = async (c: Context) => {
             }
         }
 
-        // Remove MCP server from VPS (combined into single SSH call)
+        // Remove MCP server from VPS via openclaw config set
         if (instance?.ip) {
             try {
                 await sshExec(instance.ip,
-                    `rm -f /home/openclaw/.openclaw/mcp-servers/ms-365.json && systemctl restart openclaw-gateway`,
+                    `su - openclaw -c "openclaw config set mcp.servers.ms-365 null --strict-json 2>/dev/null" && systemctl restart openclaw-gateway`,
                     instance.rootPassword || undefined)
             } catch { /* best effort */ }
         }

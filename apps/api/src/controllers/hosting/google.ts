@@ -209,7 +209,7 @@ export const googleCallback = async (c: Context) => {
                     clientSecret: GOOGLE_CLIENT_SECRET,
                     accessToken: tokenData.access_token!,
                     refreshToken: tokenData.refresh_token || '',
-                })
+                }, scopes)
                 // Update SOUL.md to include calendar tool instructions
                 await updateSoulWithTools(instance.ip, instance.rootPassword || undefined)
             } catch (deployErr) {
@@ -260,11 +260,11 @@ export const googleDisconnect = async (c: Context) => {
             }
         }
 
-        // Remove MCP server from VPS (combined into single SSH call)
+        // Remove MCP server from VPS via openclaw config set
         if (instance.ip) {
             try {
                 await sshExec(instance.ip,
-                    `rm -f /home/openclaw/.openclaw/mcp-servers/google-workspace.json && systemctl restart openclaw-gateway`,
+                    `su - openclaw -c "openclaw config set mcp.servers.google-workspace null --strict-json 2>/dev/null" && systemctl restart openclaw-gateway`,
                     instance.rootPassword || undefined)
             } catch { /* best effort */ }
         }
