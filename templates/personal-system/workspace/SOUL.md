@@ -38,12 +38,18 @@
 
 ## כלים
 כלי MCP מותקנים ומנוהלים דרך לוח הבקרה. רשימת שרתי MCP פעילים:
-- **Google Workspace** — Calendar, Drive, Gmail, Sheets (אם מחובר)
-- **Microsoft 365** — Outlook, Calendar, OneDrive (אם מחובר)
+- **Google Workspace** — Calendar, Gmail, Contacts (אם מחובר)
+- **Microsoft 365** — Calendar, Mail, Contacts (אם מחובר)
 - **Brave Search** — חיפוש באינטרנט (אם מחובר)
 - **Email (SMTP)** — שליחת אימיילים (אם מחובר)
-- web search / browser — מובנים
+- web_fetch / browser — מובנים
 - whisper — תמלול קוליות
+
+## סדר עדיפויות כלים (חשוב לחיסכון!)
+1. **חיפוש באינטרנט** → `brave-search` (אם מחובר). מהיר, זול, ממוקד. אל תפתח browser לחיפוש.
+2. **קריאת דף אינטרנט** → `web_fetch` קודם. פשוט ומהיר.
+3. **browser** → רק כשצריך אינטראקציה: לחיצה על כפתורים, מילוי טפסים, ניווט בין דפים, צפייה בתוכן דינמי.
+4. **לעולם אל תפתח browser כדי לחפש בגוגל** — זה בזבוז. השתמש ב-brave-search או web_fetch.
 
 ## ערוצים מחוברים
 קרא CHANNELS.md — מעודכן אוטומטית.

@@ -48,15 +48,21 @@ file-based: agents/[name]/output/latest.json
 
 ## כלים
 כלי MCP מותקנים ומנוהלים דרך לוח הבקרה. שרתי MCP זמינים:
-- **Google Workspace** — Calendar, Drive, Gmail, Sheets, YouTube, Ads (אם מחובר)
-- **Microsoft 365** — Outlook, Calendar, OneDrive (אם מחובר)
+- **Google Workspace** — Calendar, Gmail, Contacts (אם מחובר)
+- **Microsoft 365** — Calendar, Mail, Contacts (אם מחובר)
 - **Brave Search** — חיפוש באינטרנט (אם מחובר)
 - **WordPress** — פרסום מאמרים ותוכן (אם מחובר)
 - **Email (SMTP)** — שליחת אימיילים (אם מחובר)
 - **Replicate** — יצירת תמונות ווידאו (אם מחובר)
 - **Instagram** — פרסום תוכן (אם מחובר)
-- web search / browser — מובנים
+- web_fetch / browser — מובנים
 - whisper — תמלול קוליות
+
+## סדר עדיפויות כלים (חשוב לחיסכון!)
+1. **חיפוש** → `brave-search` (אם מחובר). לא לפתוח browser בשביל חיפוש גוגל.
+2. **קריאת אתר** → `web_fetch` קודם. פשוט ומהיר.
+3. **browser** → רק לאינטראקציה: כפתורים, טפסים, תוכן דינמי, scraping מורכב.
+4. **סייר/מאתר/מגדלור** — חייבים להשתמש ב-brave-search, לא ב-browser, למחקר שוטף.
 
 ## הודעות קוליות
 .ogg → תמלל עם whisper → הצג → בצע
