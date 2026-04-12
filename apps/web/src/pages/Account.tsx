@@ -11,7 +11,8 @@ import {
     useProfile,
     useUpdateProfile,
     useUserStats,
-    useLinkedProvider
+    useLinkedProvider,
+    useCustomerPortal
 } from '@/hooks'
 import {
     Header,
@@ -26,6 +27,7 @@ import {
     PageHeader,
     AccountProfileSection,
     AccountSettingsSection,
+    AccountBillingSection,
     ConnectedAccountsSection
 } from '@/components'
 import { CircleNotchIcon } from '@phosphor-icons/react'
@@ -53,6 +55,8 @@ const Account: FC = (): ReactNode => {
         handleLinkProvider,
         handleUnlinkProvider
     } = useLinkedProvider()
+
+    const { openPortal, isLoading: isPortalLoading } = useCustomerPortal()
 
     useEffect(() => {
         if (profile?.name) {
@@ -120,7 +124,6 @@ const Account: FC = (): ReactNode => {
                         <UserDropdown
                             displayName={displayName}
                             onSignOut={signOut}
-                            hideBilling
                             hideSSHKeys
                         />
                     </div>
@@ -171,6 +174,13 @@ const Account: FC = (): ReactNode => {
                                 <AccountSettingsSection
                                     openLinksWindowed={openLinksWindowed}
                                     setOpenLinksWindowed={setOpenLinksWindowed}
+                                />
+                            )}
+
+                            {!isLocal && (
+                                <AccountBillingSection
+                                    isPortalLoading={isPortalLoading}
+                                    onManageBilling={() => openPortal()}
                                 />
                             )}
 

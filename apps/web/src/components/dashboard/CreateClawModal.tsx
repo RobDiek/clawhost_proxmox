@@ -109,6 +109,8 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
         location,
         password,
         showPassword,
+        gatewayToken,
+        showGatewayToken,
         selectedSshKeyId,
         volumeSize,
         billingCycle,
@@ -189,6 +191,7 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                 planId,
                 location,
                 password: password || undefined,
+                gatewayToken: gatewayToken || undefined,
                 sshKeyId: selectedSshKeyId || undefined,
                 volumeSize: volumeSize > 0 ? volumeSize : undefined,
                 priceMonthly: totalPrice,
@@ -304,6 +307,14 @@ const CreateClawModal: FC<CreateClawModalProps> = ({
                         showPassword={showPassword}
                         onToggleShowPassword={() =>
                             setField('showPassword', !showPassword)
+                        }
+                        gatewayToken={gatewayToken}
+                        onGatewayTokenChange={(v) =>
+                            setField('gatewayToken', v)
+                        }
+                        showGatewayToken={showGatewayToken}
+                        onToggleShowGatewayToken={() =>
+                            setField('showGatewayToken', !showGatewayToken)
                         }
                         sshKeys={sshKeys}
                         selectedSshKeyId={selectedSshKeyId}

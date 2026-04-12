@@ -1,23 +1,10 @@
 import type { FC, ReactNode } from 'react'
 import type { ClawFileExplorerContentProps } from '@/ts/Interfaces'
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { t } from '@openclaw/i18n'
-import { useUIStore } from '@/lib/store'
-import { TOAST_TYPE } from '@/lib/constants'
-import { api } from '@/lib'
-import {
-    Skeleton,
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent
-} from '@/components/ui'
-import {
-    CircleNotchIcon,
-    DownloadSimpleIcon,
-    MagnifyingGlassIcon,
-    FileIcon
-} from '@phosphor-icons/react'
+import { Skeleton } from '@/components/ui'
+import { MagnifyingGlassIcon, FileIcon } from '@phosphor-icons/react'
 import { usePreferencesStore } from '@/lib/store'
 import { THEMES } from '@/lib'
 import { useClawFiles } from '@/hooks'
@@ -29,19 +16,6 @@ import useFileEditor from '@/components/dashboard/ClawConfigDialog/useFileEditor
 const ClawConfigContent: FC<ClawFileExplorerContentProps> = ({
     clawId
 }): ReactNode => {
-    const { showToast } = useUIStore()
-    const [isExporting, setIsExporting] = useState(false)
-    const handleExport = useCallback(async () => {
-        setIsExporting(true)
-        try {
-            await api.exportClaw(clawId, `${clawId}-export.tar.gz`)
-            showToast(t('dashboard.exportSuccess'), TOAST_TYPE.SUCCESS)
-        } catch {
-            showToast(t('dashboard.exportFailed'), TOAST_TYPE.ERROR)
-        }
-        setIsExporting(false)
-    }, [clawId, showToast])
-
     const storeTheme = usePreferencesStore((s) => s.theme)
     const resolvedTheme =
         storeTheme === THEMES.SYSTEM
@@ -80,31 +54,6 @@ const ClawConfigContent: FC<ClawFileExplorerContentProps> = ({
 
     return (
         <div className='flex h-full flex-col overflow-hidden'>
-            <div className='flex items-center justify-between px-4 pt-3'>
-                <span className='text-muted-foreground text-xs'>
-                    {t('dashboard.fileExplorerDescription')}
-                </span>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <button
-                            onClick={handleExport}
-                            disabled={isExporting}
-                            className='border-border bg-foreground/5 hover:bg-foreground/10 text-foreground flex shrink-0 items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors disabled:opacity-50'
-                        >
-                            {isExporting ? (
-                                <CircleNotchIcon className='h-3.5 w-3.5 animate-spin' />
-                            ) : (
-                                <DownloadSimpleIcon className='h-3.5 w-3.5' />
-                            )}
-                            {t('dashboard.exportAgent')}
-                        </button>
-                    </TooltipTrigger>
-                    <TooltipContent side='bottom'>
-                        {t('dashboard.exportAgentTooltip')}
-                    </TooltipContent>
-                </Tooltip>
-            </div>
-
             <div className='flex min-h-0 flex-1 gap-3 overflow-hidden p-4'>
                 <div className='border-border bg-muted flex w-56 shrink-0 flex-col overflow-hidden rounded-md border'>
                     {files.data && files.data.files.length > 0 && (

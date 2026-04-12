@@ -13,19 +13,22 @@ import {
 } from '@/lib/clawDetailTabs'
 import {
     ClawLogsContent,
-    ClawDiagnosticsContent,
     ClawTerminalContent,
     ClawConfigContent,
     ClawVersionsContent,
-    ClawDetailInfoTab,
+    ClawMonitorContent,
+    ClawVolumesContent,
+    ClawSecurityContent,
+    ClawBillingContent,
+    ClawServerContent,
+    ClawPreviewContent,
     ClawDetailSettingsTab,
     ClawDetailHeader,
-    ClawDetailTabBar
+    ClawDetailTabBar,
+    UpdateAvailableBanner
 } from '@/components/dashboard'
-import { useQueryClient } from '@tanstack/react-query'
 import {
     useClawVersion,
-    CLAW_VERSION_QUERY_KEY,
     useClawSettingsForm
 } from '@/hooks'
 import { useClawDetailTabStore } from '@/lib/store'
@@ -62,7 +65,10 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
     )
     const tabStateMap = useClawDetailTabStore((s) => s.tabStateMap)
     const setTab = useClawDetailTabStore((s) => s.setTab)
-    const activeTab = tabStateMap[claw.id] || CLAW_DETAIL_TABS.INFO
+    const defaultTab = isAwaitingPayment
+        ? CLAW_DETAIL_TABS.SETTINGS
+        : CLAW_DETAIL_TABS.PREVIEW
+    const activeTab = tabStateMap[claw.id] || defaultTab
     const setActiveTab = useCallback(
         (tab: ClawDetailTab) => {
             if (isTabDisabled(tab)) return
@@ -74,19 +80,21 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
     useEffect(() => {
         if (initialTab && initialTab !== tabStateMap[claw.id]) {
             const safeTab = isTabDisabled(initialTab)
-                ? CLAW_DETAIL_TABS.INFO
+                ? defaultTab
                 : initialTab
             setTab(claw.id, safeTab)
         }
     }, [initialTab, claw.id, isTabDisabled, tabStateMap, setTab])
     useEffect(() => {
         if (isTabDisabled(activeTab)) {
-            setTab(claw.id, CLAW_DETAIL_TABS.INFO)
-            if (onTabChange) onTabChange(CLAW_DETAIL_TABS.INFO)
+            setTab(claw.id, defaultTab)
+            if (onTabChange) onTabChange(defaultTab)
         }
     }, [isTabDisabled, activeTab, claw.id, onTabChange, setTab])
 
     const {
+        settingsEmoji,
+        settingsEmojiColor,
         settingsName,
         settingsNameError,
         settingsSubdomain,
@@ -94,46 +102,20 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
         settingsHasChanges,
         renamePending,
         subdomainPending,
+        emojiPending,
+        handleEmojiChange,
         handleSettingsNameChange,
         handleSettingsSubdomainChange,
         handleSettingsSave
     } = useClawSettingsForm(claw)
 
-    const isInfoTab = activeTab === 'info'
-    const queryClient = useQueryClient()
     const versionQuery = useClawVersion(
         claw.id,
-        isInfoTab &&
-            !readOnly &&
+        !readOnly &&
             !!claw.ip &&
             !isConfiguring &&
             !isAwaitingPayment
     )
-    useEffect(() => {
-        if (
-            isInfoTab &&
-            !readOnly &&
-            claw.ip &&
-            !isConfiguring &&
-            !isAwaitingPayment &&
-            queryClient.getQueryData([...CLAW_VERSION_QUERY_KEY, claw.id])
-        ) {
-            queryClient.resetQueries({
-                queryKey: [...CLAW_VERSION_QUERY_KEY, claw.id]
-            })
-        }
-    }, [
-        isInfoTab,
-        readOnly,
-        claw.ip,
-        claw.id,
-        queryClient,
-        isConfiguring,
-        isAwaitingPayment
-    ])
-    const showVersion =
-        !isConfiguring && !isAwaitingPayment && (readOnly || !!claw.ip)
-    const versionLoading = !readOnly && versionQuery.isLoading
     const versionDisplay = useMemo(() => {
         if (readOnly) return OPENCLAW_VERSION
         if (versionQuery.isLoading) return null
@@ -146,6 +128,10 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
         versionQuery.isError,
         versionQuery.data
     ])
+    const isOutdated =
+        !!versionDisplay &&
+        versionDisplay !== OPENCLAW_VERSION &&
+        !versionQuery.isLoading
 
     const Wrapper = fullScreen ? 'div' : motion.div
     const wrapperProps = fullScreen
@@ -179,27 +165,19 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                 />
 
                 <div className='flex min-h-0 flex-1 flex-col overflow-hidden'>
-                    {activeTab === 'info' && (
-                        <ClawDetailInfoTab
-                            claw={claw}
-                            plans={plans}
-                            sshKeys={sshKeys}
-                            fullScreen={fullScreen}
-                            showVersion={showVersion}
-                            versionLoading={versionLoading}
-                            versionDisplay={versionDisplay}
-                            isOutdated={
-                                !!versionDisplay &&
-                                versionDisplay !== OPENCLAW_VERSION &&
-                                !versionLoading
-                            }
+                    {isOutdated && (
+                        <UpdateAvailableBanner
                             onGoToVersions={() =>
                                 setTab(claw.id, CLAW_DETAIL_TABS.VERSIONS)
                             }
                         />
                     )}
 
-                    {activeTab === 'logs' && (
+                    {activeTab === CLAW_DETAIL_TABS.PREVIEW && (
+                        <ClawPreviewContent claw={claw} />
+                    )}
+
+                    {activeTab === CLAW_DETAIL_TABS.LOGS && (
                         <ClawLogsContent
                             clawId={claw.id}
                             enabled
@@ -237,42 +215,46 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                         />
                     )}
 
-                    {activeTab === 'diagnostics' && (
-                        <div className='h-full overflow-y-auto p-5'>
-                            <ClawDiagnosticsContent
-                                clawId={claw.id}
-                                enabled
-                                mockData={
-                                    readOnly
-                                        ? {
-                                              service:
-                                                  '● openclaw.service - OpenClaw Agent\n   Loaded: loaded (/etc/systemd/system/openclaw.service; enabled)\n   Active: active (running) since Fri 2026-02-14 10:23:41 UTC\n Main PID: 1847 (node)\n    Tasks: 11 (limit: 4915)\n   Memory: 128.4M\n      CPU: 2.341s\n   CGroup: /system.slice/openclaw.service\n           └─1847 node /opt/openclaw/server.js',
-                                              port: 'tcp  0  0 0.0.0.0:3000  0.0.0.0:*  LISTEN  1847/node',
-                                              memory: 'Mem: 1987Mi total, 128Mi used, 1640Mi free, 219Mi buff/cache\nSwap: 0B total, 0B used, 0B free'
-                                          }
-                                        : undefined
-                                }
-                            />
-                        </div>
-                    )}
-
-                    {activeTab === 'terminal' && (
+                    {activeTab === CLAW_DETAIL_TABS.TERMINAL && (
                         <ClawTerminalContent
                             clawId={claw.id}
-                            enabled={activeTab === 'terminal'}
+                            enabled={activeTab === CLAW_DETAIL_TABS.TERMINAL}
                         />
                     )}
 
-                    {activeTab === 'versions' && (
+                    {activeTab === CLAW_DETAIL_TABS.VERSIONS && (
                         <ClawVersionsContent clawId={claw.id} />
                     )}
 
-                    {activeTab === 'files' && (
+                    {activeTab === CLAW_DETAIL_TABS.FILES && (
                         <ClawConfigContent clawId={claw.id} />
                     )}
 
-                    {activeTab === 'settings' && (
+                    {activeTab === CLAW_DETAIL_TABS.MONITOR && (
+                        <ClawMonitorContent clawId={claw.id} />
+                    )}
+
+                    {activeTab === CLAW_DETAIL_TABS.VOLUMES && (
+                        <ClawVolumesContent volumes={claw.volumes || []} />
+                    )}
+
+                    {activeTab === CLAW_DETAIL_TABS.SECURITY && (
+                        <ClawSecurityContent claw={claw} sshKeys={sshKeys} />
+                    )}
+
+                    {activeTab === CLAW_DETAIL_TABS.BILLING && (
+                        <ClawBillingContent claw={claw} plans={plans} />
+                    )}
+
+                    {activeTab === CLAW_DETAIL_TABS.SERVER && (
+                        <ClawServerContent claw={claw} plans={plans} />
+                    )}
+
+                    {activeTab === CLAW_DETAIL_TABS.SETTINGS && (
                         <ClawDetailSettingsTab
+                            claw={claw}
+                            currentEmoji={settingsEmoji}
+                            currentEmojiColor={settingsEmojiColor}
                             settingsName={settingsName}
                             settingsNameError={settingsNameError}
                             settingsSubdomain={settingsSubdomain}
@@ -280,9 +262,12 @@ const ClawDetailPanel: FC<ClawDetailPanelProps> = ({
                             settingsHasChanges={settingsHasChanges}
                             renamePending={renamePending}
                             subdomainPending={subdomainPending}
+                            emojiPending={emojiPending}
                             onNameChange={handleSettingsNameChange}
                             onSubdomainChange={handleSettingsSubdomainChange}
+                            onEmojiChange={handleEmojiChange}
                             onSave={handleSettingsSave}
+                            onClose={onClose}
                         />
                     )}
                 </div>

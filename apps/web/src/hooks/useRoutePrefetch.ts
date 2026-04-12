@@ -8,7 +8,6 @@ const routeImportMap: Record<string, () => Promise<unknown>> = {
     [ROUTES.CLAWS]: () => import('@/pages/Dashboard'),
     [ROUTES.SSH_KEYS]: () => import('@/pages/SSHKeys'),
     [ROUTES.ACCOUNT]: () => import('@/pages/Account'),
-    [ROUTES.BILLING]: () => import('@/pages/Billing'),
     [ROUTES.AFFILIATE]: () => import('@/pages/Affiliate'),
     [ROUTES.LICENSE]: () => import('@/pages/License'),
     [ROUTES.TERMS]: () => import('@/pages/Terms'),

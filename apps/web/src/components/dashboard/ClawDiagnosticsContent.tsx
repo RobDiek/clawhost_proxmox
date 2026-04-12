@@ -11,7 +11,7 @@ import {
     PulseIcon
 } from '@phosphor-icons/react'
 import { useClawDiagnostics, useRepairClaw } from '@/hooks'
-import { PanelPlaceholder } from '@/components/shared'
+import { PanelPlaceholder, LiveBadge } from '@/components/shared'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 
@@ -51,6 +51,14 @@ const ClawDiagnosticsContent: FC<ClawDiagnosticsContentProps> = ({
 
     return (
         <div className='h-full overflow-y-auto'>
+            {!diagnostics.isError && !diagnostics.isPending && (
+                <div className='mb-5 flex items-center gap-2'>
+                    <h3 className='text-sm font-medium'>
+                        {t('dashboard.diagnostics')}
+                    </h3>
+                    <LiveBadge />
+                </div>
+            )}
             {diagnostics.isError && (
                 <PanelPlaceholder
                     icon={

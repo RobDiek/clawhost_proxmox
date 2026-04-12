@@ -2,18 +2,26 @@ import type { ClawDetailTabConfig } from '@/ts/Interfaces'
 import type { ClawDetailTab } from '@/ts/Types'
 
 import {
-    InfoIcon,
     ScrollIcon,
-    PulseIcon,
     GearSixIcon,
     TerminalWindowIcon,
     TagIcon,
-    FolderSimpleIcon
+    FolderSimpleIcon,
+    ChartLineUpIcon,
+    DatabaseIcon,
+    BrowserIcon,
+    ShieldCheckIcon,
+    ReceiptIcon,
+    HardDrivesIcon
 } from '@phosphor-icons/react'
 import { CLAW_DETAIL_TABS } from '@/lib/constants'
 
 const tabs: ClawDetailTabConfig<ClawDetailTab>[] = [
-    { id: CLAW_DETAIL_TABS.INFO, label: 'clawDetail.tabInfo', icon: InfoIcon },
+    {
+        id: CLAW_DETAIL_TABS.PREVIEW,
+        label: 'clawDetail.tabPreview',
+        icon: BrowserIcon
+    },
     {
         id: CLAW_DETAIL_TABS.TERMINAL,
         label: 'clawDetail.tabTerminal',
@@ -35,9 +43,29 @@ const tabs: ClawDetailTabConfig<ClawDetailTab>[] = [
         icon: FolderSimpleIcon
     },
     {
-        id: CLAW_DETAIL_TABS.DIAGNOSTICS,
-        label: 'clawDetail.tabDiagnostics',
-        icon: PulseIcon
+        id: CLAW_DETAIL_TABS.MONITOR,
+        label: 'clawDetail.tabMonitor',
+        icon: ChartLineUpIcon
+    },
+    {
+        id: CLAW_DETAIL_TABS.VOLUMES,
+        label: 'clawDetail.tabVolumes',
+        icon: DatabaseIcon
+    },
+    {
+        id: CLAW_DETAIL_TABS.SERVER,
+        label: 'clawDetail.tabServer',
+        icon: HardDrivesIcon
+    },
+    {
+        id: CLAW_DETAIL_TABS.SECURITY,
+        label: 'clawDetail.tabSecurity',
+        icon: ShieldCheckIcon
+    },
+    {
+        id: CLAW_DETAIL_TABS.BILLING,
+        label: 'clawDetail.tabBilling',
+        icon: ReceiptIcon
     },
     {
         id: CLAW_DETAIL_TABS.SETTINGS,

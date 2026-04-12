@@ -169,6 +169,10 @@ runcmd:
             proxy_cache_bypass $http_upgrade;
             proxy_read_timeout 86400;
             proxy_send_timeout 86400;
+
+            proxy_hide_header Content-Security-Policy;
+            proxy_hide_header X-Frame-Options;
+            add_header Content-Security-Policy "frame-ancestors https://${domain} https://*.${domain} http://localhost:* https://localhost:*" always;
         }
     }
     NGINXEOF

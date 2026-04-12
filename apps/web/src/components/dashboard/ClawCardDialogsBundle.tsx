@@ -11,6 +11,8 @@ const ClawCardDialogsBundle: FC<ClawCardDialogsBundleProps> = ({
     clawId,
     clawName,
     clawIp,
+    showStartModal,
+    setShowStartModal,
     showDeleteModal,
     setShowDeleteModal,
     showStopModal,
@@ -28,11 +30,13 @@ const ClawCardDialogsBundle: FC<ClawCardDialogsBundleProps> = ({
     showCredentials,
     setShowCredentials,
     credentialsPassword,
+    onStart,
     onDelete,
     onStop,
     onRestart,
     onHardDelete,
     onReinstall,
+    isStartPending,
     isDeletePending,
     isStopPending,
     isRestartPending,
@@ -43,6 +47,8 @@ const ClawCardDialogsBundle: FC<ClawCardDialogsBundleProps> = ({
         <Fragment>
             <ClawCardDialogs
                 clawName={clawName}
+                showStartModal={showStartModal}
+                setShowStartModal={setShowStartModal}
                 showDeleteModal={showDeleteModal}
                 setShowDeleteModal={setShowDeleteModal}
                 showStopModal={showStopModal}
@@ -51,10 +57,12 @@ const ClawCardDialogsBundle: FC<ClawCardDialogsBundleProps> = ({
                 setShowRestartModal={setShowRestartModal}
                 showHardDeleteModal={showHardDeleteModal}
                 setShowHardDeleteModal={setShowHardDeleteModal}
+                onStart={onStart}
                 onDelete={onDelete}
                 onStop={onStop}
                 onRestart={onRestart}
                 onHardDelete={onHardDelete}
+                isStartPending={isStartPending}
                 isDeletePending={isDeletePending}
                 isStopPending={isStopPending}
                 isRestartPending={isRestartPending}

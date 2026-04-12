@@ -422,6 +422,15 @@ html {
     scroll-behavior: smooth;
 }
 
+.scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
 /* Global scrollbar styles */
 * {
     scrollbar-width: thin;

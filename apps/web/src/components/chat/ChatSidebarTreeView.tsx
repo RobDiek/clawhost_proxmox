@@ -8,7 +8,6 @@ import ChatSidebarClawHeader from '@/components/chat/ChatSidebarClawHeader'
 const ChatSidebarTreeView: FC<ChatSidebarTreeViewProps> = ({
     claws,
     selectedClawId,
-    readOnly,
     onOpenClawSettings
 }): ReactNode => {
     const statusConfigs = useMemo(() => getStatusConfig(), [])
@@ -25,7 +24,6 @@ const ChatSidebarTreeView: FC<ChatSidebarTreeViewProps> = ({
                             claw={claw}
                             isSelected={selectedClawId === claw.id}
                             statusConfig={status}
-                            readOnly={readOnly}
                             onOpenClawSettings={onOpenClawSettings}
                         />
                     </div>

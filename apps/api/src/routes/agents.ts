@@ -28,7 +28,13 @@ import {
     getClawCredentials,
     cancelPendingClaw,
     updateClawSubdomain,
-    checkSubdomainAvailability
+    checkSubdomainAvailability,
+    getClawMetrics,
+    enablePreview,
+    rotatePassword,
+    rotateGatewayToken,
+    updateClawEmoji,
+    updateClawSSHKey
 } from '@/controllers/agents'
 import adminOnly from '@/middleware/adminOnly'
 
@@ -58,6 +64,12 @@ app.post('/:id/version', getClawVersion)
 app.post('/:id/versions', getClawVersions)
 app.post('/:id/install-version', adminOnly, installClawVersion)
 app.get('/:id/credentials', getClawCredentials)
+app.post('/:id/metrics', getClawMetrics)
+app.post('/:id/enable-preview', enablePreview)
+app.post('/:id/rotate-password', rotatePassword)
+app.post('/:id/rotate-gateway-token', rotateGatewayToken)
+app.patch('/:id/emoji', updateClawEmoji)
+app.patch('/:id/ssh-key', updateClawSSHKey)
 app.patch('/:id/subdomain', updateClawSubdomain)
 app.patch('/:id', renameClaw)
 app.delete('/:id', deleteClaw)

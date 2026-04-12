@@ -48,7 +48,6 @@ const LicenseGate: FC<LicenseGateProps> = ({ children }): ReactNode => {
                         <UserDropdown
                             displayName={displayName}
                             onSignOut={signOut}
-                            hideBilling
                             hideSSHKeys
                         />
                     </div>

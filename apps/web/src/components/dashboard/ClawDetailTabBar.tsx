@@ -15,7 +15,7 @@ const ClawDetailTabBar: FC<ClawDetailTabBarProps> = ({
 }): ReactNode => {
     return (
         <div
-            className={`border-border flex border-b ${fullScreen ? '' : 'overflow-x-auto'}`}
+            className='border-border flex select-none flex-nowrap overflow-x-auto border-b'
         >
             {tabs.map((tab) => {
                 const disabled = isTabDisabled(tab.id)
@@ -24,7 +24,7 @@ const ClawDetailTabBar: FC<ClawDetailTabBarProps> = ({
                         key={tab.id}
                         onClick={() => !disabled && setActiveTab(tab.id)}
                         disabled={disabled}
-                        className={`flex items-center justify-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors ${fullScreen ? 'flex-1' : 'shrink-0'} ${
+                        className={`flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-xs font-medium transition-colors ${fullScreen ? 'flex-1' : ''} ${
                             disabled
                                 ? 'text-muted-foreground/40 cursor-not-allowed border-transparent'
                                 : activeTab === tab.id

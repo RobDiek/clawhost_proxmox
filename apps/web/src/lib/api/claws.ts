@@ -3,6 +3,7 @@ import type {
     CheckSubdomainResponse,
     ClawCredentialsResponse,
     ClawFilesResponse,
+    ClawMetricsResponse,
     ClawVersionResponse,
     ClawVersionsResponse,
     DeleteClawResponse,
@@ -41,6 +42,8 @@ const claws = {
         client.delete<DeleteClawResponse>(API_PATHS.CLAWS.byId(id)),
     renameClaw: (id: string, data: RenameClawData) =>
         client.patch<Claw>(API_PATHS.CLAWS.byId(id), data),
+    updateClawEmoji: (id: string, emoji: string | null, emojiColor: string | null) =>
+        client.patch<Claw>(API_PATHS.CLAWS.EMOJI(id), { emoji, emojiColor }),
     updateClawSubdomain: (id: string, data: UpdateClawSubdomainData) =>
         client.patch<Claw>(API_PATHS.CLAWS.SUBDOMAIN(id), data),
     checkSubdomain: (subdomain: string) =>
@@ -106,7 +109,27 @@ const claws = {
             path
         }),
     updateClawFile: (id: string, data: UpdateClawFileData) =>
-        client.put<void>(API_PATHS.CLAWS.FILES.BASE(id), data)
+        client.put<void>(API_PATHS.CLAWS.FILES.BASE(id), data),
+    getClawMetrics: (id: string) =>
+        client.post<ClawMetricsResponse>(API_PATHS.CLAWS.METRICS(id)),
+    checkPreview: (id: string) =>
+        client.post<{ enabled: boolean }>(
+            `${API_PATHS.CLAWS.ENABLE_PREVIEW(id)}?check=true`
+        ),
+    enablePreview: (id: string) =>
+        client.post<{ enabled: boolean }>(API_PATHS.CLAWS.ENABLE_PREVIEW(id)),
+    rotatePassword: (id: string, password?: string) =>
+        client.post<void>(
+            API_PATHS.CLAWS.ROTATE_PASSWORD(id),
+            password ? { password } : {}
+        ),
+    rotateGatewayToken: (id: string, token?: string) =>
+        client.post<void>(
+            API_PATHS.CLAWS.ROTATE_GATEWAY_TOKEN(id),
+            token ? { token } : {}
+        ),
+    updateClawSSHKey: (id: string, sshKeyId: string | null) =>
+        client.patch<void>(API_PATHS.CLAWS.SSH_KEY(id), { sshKeyId })
 }
 
 export default claws

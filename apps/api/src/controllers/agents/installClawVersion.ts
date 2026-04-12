@@ -9,7 +9,7 @@ import { externalUrls } from '@openclaw/shared'
 import { db } from '@/db'
 import { claws } from '@/db/schema'
 import executeSSH from '@/services/ssh'
-import { invalidateVersionCache } from '@/controllers/agents/helpers'
+import { invalidateVersionCache, DOMAIN } from '@/controllers/agents/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 
@@ -49,10 +49,13 @@ const installClawVersion = async (c: AuthenticatedContext) => {
         if (!claw[0].ip || !claw[0].rootPassword)
             return fail(c, t('api.failedToInstallVersion'), 400)
 
+        const nginxPatch = `(grep -q 'proxy_hide_header Content-Security-Policy' /etc/nginx/sites-available/openclaw || sed -i 's|proxy_send_timeout 86400;|proxy_send_timeout 86400;\\n            proxy_hide_header Content-Security-Policy;\\n            proxy_hide_header X-Frame-Options;\\n            add_header Content-Security-Policy "frame-ancestors https://${DOMAIN} https://*.${DOMAIN} http://localhost:* https://localhost:*" always;|g' /etc/nginx/sites-available/openclaw) && nginx -t && systemctl reload nginx || true`
+
         const installCommands = [
             'systemctl stop openclaw-gateway || true',
             `npm install -g openclaw@${version}`,
             'su - openclaw -c "openclaw doctor --fix" || true',
+            nginxPatch,
             'systemctl restart openclaw-gateway',
             'sleep 15',
             'curl -sf -o /dev/null --max-time 5 http://127.0.0.1:18789 && echo "GATEWAY_OK" || echo "GATEWAY_FAILED"'

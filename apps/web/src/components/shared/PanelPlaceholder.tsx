@@ -4,7 +4,8 @@ import type { PanelPlaceholderProps } from '@/ts/Interfaces'
 const PanelPlaceholder: FC<PanelPlaceholderProps> = ({
     icon,
     title,
-    description
+    description,
+    action
 }): ReactNode => {
     return (
         <div className='flex h-full flex-col items-center justify-center gap-3 px-14 pb-16'>
@@ -15,10 +16,13 @@ const PanelPlaceholder: FC<PanelPlaceholderProps> = ({
                 <p className='text-foreground/80 text-sm font-medium'>
                     {title}
                 </p>
-                <p className='text-muted-foreground mt-1 text-xs'>
-                    {description}
-                </p>
+                {description && (
+                    <p className='text-muted-foreground mt-1 text-xs'>
+                        {description}
+                    </p>
+                )}
             </div>
+            {action}
         </div>
     )
 }

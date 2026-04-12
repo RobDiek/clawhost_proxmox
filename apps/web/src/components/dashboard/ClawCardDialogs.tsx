@@ -7,6 +7,8 @@ import { ConfirmationDialog } from '@/components/shared'
 
 const ClawCardDialogs: FC<ClawCardDialogsProps> = ({
     clawName,
+    showStartModal,
+    setShowStartModal,
     showDeleteModal,
     setShowDeleteModal,
     showStopModal,
@@ -15,10 +17,12 @@ const ClawCardDialogs: FC<ClawCardDialogsProps> = ({
     setShowRestartModal,
     showHardDeleteModal,
     setShowHardDeleteModal,
+    onStart,
     onDelete,
     onStop,
     onRestart,
     onHardDelete,
+    isStartPending,
     isDeletePending,
     isStopPending,
     isRestartPending,
@@ -30,6 +34,18 @@ const ClawCardDialogs: FC<ClawCardDialogsProps> = ({
 }): ReactNode => {
     return (
         <Fragment>
+            <ConfirmationDialog
+                open={showStartModal}
+                onOpenChange={setShowStartModal}
+                title={t('dashboard.startClaw')}
+                description={t('dashboard.startClawConfirmation')}
+                confirmLabel={t('common.confirm')}
+                onConfirm={() => {
+                    onStart()
+                    setShowStartModal(false)
+                }}
+                isPending={isStartPending}
+            />
             <ConfirmationDialog
                 open={showDeleteModal}
                 onOpenChange={setShowDeleteModal}

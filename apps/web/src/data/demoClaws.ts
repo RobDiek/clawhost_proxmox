@@ -4,6 +4,8 @@ const demoClaws: Claw[] = [
     {
         id: 'demo-1',
         name: 'personal-claw',
+        emoji: null,
+        emojiColor: null,
         status: 'running',
         ip: '45.33.21.98',
         planId: 'cx22',
@@ -14,6 +16,7 @@ const demoClaws: Claw[] = [
         providerServerId: '48291053',
         subdomain: 'personal-claw',
         gatewayToken: null,
+        hostKeyFingerprint: null,
         subscriptionStatus: 'active',
         polarSubscriptionId: null,
         billingInterval: null,

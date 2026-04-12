@@ -446,6 +446,7 @@ export interface InitiateClawPurchaseBody {
     planId: string
     location: string
     password?: string
+    gatewayToken?: string
     sshKeyId?: string
     volumeSize?: number
     priceMonthly: number
@@ -508,6 +509,11 @@ export interface RenameClawBody {
     name: string
 }
 
+export interface UpdateClawEmojiBody {
+    emoji: string | null
+    emojiColor: string | null
+}
+
 export interface UpdateClawSubdomainBody {
     subdomain: string
 }
@@ -532,6 +538,18 @@ export interface NpmDownloadsResponse {
 
 export interface InstallVersionBody {
     version: string
+}
+
+export interface UpdateClawSSHKeyBody {
+    sshKeyId: string | null
+}
+
+export interface RotatePasswordBody {
+    password?: string
+}
+
+export interface RotateGatewayTokenBody {
+    token?: string
 }
 
 export interface GithubUserResponse {
@@ -603,6 +621,28 @@ export interface GitHubRefResponse {
 
 export interface GitHubPullRequestResponse {
     html_url: string
+}
+
+export interface ClawMetricsResponse {
+    cpu: { usagePercent: number; cores: number }
+    memory: { total: number; used: number; available: number }
+    disk: {
+        total: number
+        used: number
+        available: number
+        usagePercent: number
+    }
+    loadAvg: { load1: number; load5: number; load15: number }
+    network: { rxBytes: number; txBytes: number; interface: string }
+    processes: {
+        pid: number
+        user: string
+        cpu: number
+        mem: number
+        command: string
+    }[]
+    uptime: string
+    timestamp: number
 }
 
 export interface ServerLifecycleResult {
