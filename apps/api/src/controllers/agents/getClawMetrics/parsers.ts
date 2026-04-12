@@ -1,10 +1,3 @@
-import { withClaw } from '@/controllers/agents/helpers'
-import { t } from '@openclaw/i18n'
-import { ok, fail } from '@/lib/response'
-import executeSSH from '@/services/ssh'
-
-const SEPARATOR = '---CLAWHOST_METRICS_SEP---'
-
 const parseMemory = (raw: string) => {
     const lines = raw.trim().split('\n')
     const memLine = lines.find((l) => l.startsWith('Mem:'))
@@ -86,53 +79,15 @@ const parseUptime = (raw: string) => {
     return match ? match[1].trim() : raw.trim()
 }
 
-const getClawMetrics = withClaw({ requireSSH: 'api.failedToGetMetrics' })(
-    async (c, claw) => {
-        try {
-            const command = [
-                "top -bn1 | head -5 | grep '%Cpu\\|Tasks'",
-                `echo '${SEPARATOR}'`,
-                'free -b 2>&1',
-                `echo '${SEPARATOR}'`,
-                'df -B1 / 2>&1',
-                `echo '${SEPARATOR}'`,
-                'cat /proc/loadavg 2>&1',
-                `echo '${SEPARATOR}'`,
-                'cat /proc/net/dev 2>&1',
-                `echo '${SEPARATOR}'`,
-                'ps aux --sort=-%cpu --no-headers | head -10 2>&1',
-                `echo '${SEPARATOR}'`,
-                'uptime 2>&1',
-                `echo '${SEPARATOR}'`,
-                'nproc 2>&1'
-            ].join('; ')
+const parseMetricsOutput = (parts: string[]) => ({
+    cpu: parseCpu(parts[0] || '', parts[7] || ''),
+    memory: parseMemory(parts[1] || ''),
+    disk: parseDisk(parts[2] || ''),
+    loadAvg: parseLoadAvg(parts[3] || ''),
+    network: parseNetwork(parts[4] || ''),
+    processes: parseProcesses(parts[5] || ''),
+    uptime: parseUptime(parts[6] || ''),
+    timestamp: Date.now()
+})
 
-            const output = await executeSSH(
-                claw.ip!,
-                claw.rootPassword!,
-                command
-            )
-            const parts = output.split(SEPARATOR)
-
-            return ok(
-                c,
-                {
-                    cpu: parseCpu(parts[0] || '', parts[7] || ''),
-                    memory: parseMemory(parts[1] || ''),
-                    disk: parseDisk(parts[2] || ''),
-                    loadAvg: parseLoadAvg(parts[3] || ''),
-                    network: parseNetwork(parts[4] || ''),
-                    processes: parseProcesses(parts[5] || ''),
-                    uptime: parseUptime(parts[6] || ''),
-                    timestamp: Date.now()
-                },
-                t('api.metricsFetched')
-            )
-        } catch (error) {
-            console.error('getClawMetrics', error)
-            return fail(c, t('api.failedToGetMetrics'), 500)
-        }
-    }
-)
-
-export default getClawMetrics
+export default parseMetricsOutput

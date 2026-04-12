@@ -11,6 +11,8 @@ import LandingDemoPreview from '@/components/landing/LandingDemoPreview'
 import LocalBackground from '@/components/landing/LocalBackground'
 import MacosDesktopPreview from '@/components/landing/MacosDesktopPreview'
 import PricingSection from '@/components/landing/PricingSection'
+import SimplePlanCard from '@/components/landing/SimplePlanCard'
+import buildSimplePlans from '@/components/landing/buildSimplePlans'
 import SelfHostButton from '@/components/landing/SelfHostButton'
 import StatsRow from '@/components/landing/StatsRow'
 import TrustMrrBadge from '@/components/landing/TrustMrrBadge'
@@ -33,5 +35,7 @@ export {
     SelfHostButton,
     StatsRow,
     TrustMrrBadge,
-    VideoModal
+    VideoModal,
+    SimplePlanCard,
+    buildSimplePlans
 }

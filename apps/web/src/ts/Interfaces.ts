@@ -279,6 +279,15 @@ export interface VersionsState {
     resetVersionsState: () => void
 }
 
+export interface UseTerminalConnectionReturn {
+    containerRef: React.RefObject<HTMLDivElement>
+    status: TerminalStatus
+    showScrollButton: boolean
+    showOverlay: boolean
+    connect: () => Promise<void>
+    handleTerminalScrollToBottom: () => void
+}
+
 export interface TerminalState {
     status: TerminalStatus
     setStatus: (
@@ -1397,6 +1406,16 @@ export interface SimplePlanFeature {
     included: boolean
 }
 
+export interface SimplePlanData {
+    planId: string
+    name: string
+    desc: string
+    price: number
+    yearlyPerMonth: number
+    popular: boolean
+    features: SimplePlanFeature[]
+}
+
 export interface SimplePlanCardProps {
     name: string
     description: string
@@ -1405,6 +1424,25 @@ export interface SimplePlanCardProps {
     planId: string
     popular?: boolean
     features: SimplePlanFeature[]
+}
+
+export interface AdminUserClawsSectionProps {
+    claws: AdminUserDetailClaw[]
+}
+
+export interface AdminUserSSHKeysSectionProps {
+    sshKeys: AdminUserDetailSSHKey[]
+    formatDate: (dateString: string | null | undefined) => string
+}
+
+export interface AdminUserVolumesSectionProps {
+    volumes: AdminUserDetailVolume[]
+}
+
+export interface AdminUserBillingSectionProps {
+    billingOrders: BillingOrder[]
+    formatDate: (dateString: string | null | undefined) => string
+    formatCurrency: (amount: number, currency?: string) => string
 }
 
 export interface ClawDetailTabConfig<T extends string = string> {

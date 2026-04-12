@@ -17,6 +17,8 @@ import invalidateVersionCache from '@/controllers/agents/helpers/invalidateVersi
 import fetchClawVersion from '@/controllers/agents/helpers/fetchClawVersion'
 import executeServerLifecycle from '@/controllers/agents/helpers/executeServerLifecycle'
 import withClaw from '@/controllers/agents/helpers/withClaw'
+import generateClawName from '@/controllers/agents/helpers/generateClawName'
+import getPolarProductId from '@/controllers/agents/helpers/getPolarProductId'
 
 export {
     generateCloudInit,
@@ -37,5 +39,7 @@ export {
     executeServerLifecycle,
     invalidateVersionCache,
     fetchClawVersion,
-    withClaw
+    withClaw,
+    generateClawName,
+    getPolarProductId
 }

@@ -75,10 +75,7 @@ import {
     usePlanAvailability
 } from '@/hooks/usePlans'
 
-import {
-    useGitHubStars,
-    GITHUB_REPO_URL
-} from '@/hooks/useGitHubStars'
+import { useGitHubStars, GITHUB_REPO_URL } from '@/hooks/useGitHubStars'
 
 import useClawCardActions from '@/hooks/useClawCardActions'
 import useScrollToBottom from '@/hooks/useScrollToBottom'
@@ -99,6 +96,7 @@ import useToast from '@/hooks/useToast'
 import useCopyWithFeedback from '@/hooks/useCopyWithFeedback'
 import useCreateClawForm from '@/hooks/useCreateClawForm'
 import useCustomerPortal from '@/hooks/useCustomerPortal'
+import useTerminalConnection from '@/hooks/useTerminalConnection'
 
 export {
     useAdminAnalytics,
@@ -180,5 +178,6 @@ export {
     useToast,
     useCopyWithFeedback,
     useCreateClawForm,
-    useCustomerPortal
+    useCustomerPortal,
+    useTerminalConnection
 }

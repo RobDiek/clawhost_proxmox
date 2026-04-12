@@ -22,6 +22,10 @@ import AdminUserRow from '@/components/admin/AdminUserRow'
 import AdminVolumeDetailView from '@/components/admin/AdminVolumeDetailView'
 import AdminVolumesTab from '@/components/admin/AdminVolumesTab'
 import AdminWaitlistTab from '@/components/admin/AdminWaitlistTab'
+import AdminUserClawsSection from '@/components/admin/AdminUserClawsSection'
+import AdminUserSSHKeysSection from '@/components/admin/AdminUserSSHKeysSection'
+import AdminUserVolumesSection from '@/components/admin/AdminUserVolumesSection'
+import AdminUserBillingSection from '@/components/admin/AdminUserBillingSection'
 
 export {
     AdminAnalyticsTab,
@@ -47,5 +51,9 @@ export {
     AdminUserRow,
     AdminVolumeDetailView,
     AdminVolumesTab,
-    AdminWaitlistTab
+    AdminWaitlistTab,
+    AdminUserClawsSection,
+    AdminUserSSHKeysSection,
+    AdminUserVolumesSection,
+    AdminUserBillingSection
 }

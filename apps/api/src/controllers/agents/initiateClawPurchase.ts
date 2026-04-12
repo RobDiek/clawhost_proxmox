@@ -1,5 +1,5 @@
 import type { InitiateClawPurchaseBody } from '@/ts/Interfaces'
-import type { AuthenticatedContext, BillingInterval } from '@/ts/Types'
+import type { AuthenticatedContext } from '@/ts/Types'
 
 import crypto from 'crypto'
 import { eq, and, count, lt } from 'drizzle-orm'
@@ -7,7 +7,11 @@ import { inputValidation, billingInterval } from '@openclaw/shared'
 import { db } from '@/db'
 import { users, sshKeys, claws, pendingClaws } from '@/db/schema'
 import { checkouts, customers } from '@/lib/polar'
-import { generatePassword } from '@/controllers/agents/helpers'
+import {
+    generatePassword,
+    generateClawName,
+    getPolarProductId
+} from '@/controllers/agents/helpers'
 import { getProvider } from '@/services/provider'
 import { encrypt } from '@/lib/encryption'
 import { t } from '@openclaw/i18n'
@@ -15,131 +19,8 @@ import { ok, fail } from '@/lib/response'
 import { getEnvironment } from '@/lib/environment'
 import withErrorHandler from '@/lib/withErrorHandler'
 
-const adjectives = [
-    'cozy',
-    'swift',
-    'brave',
-    'calm',
-    'tiny',
-    'wild',
-    'warm',
-    'cool',
-    'happy',
-    'lucky',
-    'fuzzy',
-    'snowy',
-    'dusty',
-    'misty',
-    'sunny',
-    'sleepy',
-    'clever',
-    'gentle',
-    'mighty',
-    'silent',
-    'golden',
-    'cosmic',
-    'polar',
-    'rusty',
-    'nimble',
-    'jolly',
-    'witty',
-    'noble',
-    'vivid',
-    'crisp'
-]
-
-const nouns = [
-    'claw',
-    'panda',
-    'otter',
-    'fox',
-    'wolf',
-    'bear',
-    'falcon',
-    'lynx',
-    'raven',
-    'crane',
-    'pike',
-    'owl',
-    'hare',
-    'frog',
-    'moth',
-    'finch',
-    'cedar',
-    'maple',
-    'birch',
-    'reef',
-    'dune',
-    'peak',
-    'brook',
-    'grove',
-    'ember',
-    'spark',
-    'drift',
-    'frost',
-    'cloud',
-    'storm'
-]
-
 let lastPendingCleanup = 0
 const CLEANUP_INTERVAL = 60 * 60 * 1000
-
-let namePool: string[] = []
-
-const shufflePool = () => {
-    namePool = []
-    for (const adj of adjectives) {
-        for (const noun of nouns) {
-            namePool.push(`${adj}-${noun}`)
-        }
-    }
-    for (let i = namePool.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1))
-        ;[namePool[i], namePool[j]] = [namePool[j], namePool[i]]
-    }
-}
-
-const generateClawName = (): string => {
-    if (namePool.length === 0) shufflePool()
-    return namePool.pop()!
-}
-
-const PLAN_TO_POLAR: Record<string, string> = {
-    cx23: 'CX23',
-    cx33: 'CX33',
-    cx43: 'CX43',
-    cx53: 'CX53',
-    cpx11: 'CPX11',
-    cpx21: 'CPX21',
-    cpx31: 'CPX31',
-    cpx41: 'CPX41',
-    cpx51: 'CPX51',
-    cax11: 'CAX11',
-    cax21: 'CAX21',
-    cax31: 'CAX31',
-    cax41: 'CAX41',
-    ccx13: 'CCX13',
-    ccx23: 'CCX23',
-    ccx33: 'CCX33',
-    ccx43: 'CCX43',
-    ccx53: 'CCX53',
-    ccx63: 'CCX63'
-}
-
-const getPolarProductId = (
-    planId: string,
-    interval: BillingInterval = billingInterval.MONTH
-): string | null => {
-    const polarName = PLAN_TO_POLAR[planId.toLowerCase()]
-    if (!polarName) return null
-
-    const suffix = interval === billingInterval.YEAR ? '_YEARLY' : '_MONTHLY'
-    const envKey = `POLAR_PRODUCT_${polarName}${suffix}`
-    const envValue = process.env[envKey]
-
-    if (envValue) return envValue
-    else return null
-}
 
 const initiateClawPurchase = withErrorHandler(
     'initiateClawPurchase',
