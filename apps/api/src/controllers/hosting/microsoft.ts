@@ -379,6 +379,8 @@ cfg = json.loads(base64.b64decode(sys.argv[1]))
 p = '/home/openclaw/.openclaw/openclaw.json'
 with open(p) as f: d = json.load(f)
 d.setdefault('mcp', {}).setdefault('servers', {})
+# Remove legacy non-suffixed server (from before agent isolation)
+d['mcp']['servers'].pop('ms-365', None)
 d['mcp']['servers']['${mcpServerName}'] = cfg
 with open(p, 'w') as f: json.dump(d, f, indent=2)
 print('${mcpServerName} configured: ' + cfg['command'])
