@@ -48,6 +48,22 @@ const server = serve(
 setupChatWebSocket(server as Server)
 setupTerminalServer(server as Server)
 
+// Graceful shutdown — close server and release port before exit
+function shutdown(signal: string) {
+    console.log(`\n${signal} received — shutting down gracefully...`)
+    ;(server as Server).close(() => {
+        console.log('Server closed, port released.')
+        process.exit(0)
+    })
+    // Force exit after 5s if server won't close
+    setTimeout(() => {
+        console.error('Forced exit after timeout')
+        process.exit(1)
+    }, 5000)
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+process.on('SIGINT', () => shutdown('SIGINT'))
+
 // Start agent output sync service (polls VPS every 5 min)
 import { startOutputSync } from '@/services/outputSync'
 startOutputSync()
