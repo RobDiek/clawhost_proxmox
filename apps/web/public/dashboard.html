@@ -4818,7 +4818,19 @@ function renderAgentsTab() {
 
 function addAgentRequest(agentType) {
   closeTaskPopup();
-  showToast('מוסיף סוכן... זה עלול לקחת עד דקה', 'info');
+
+  // Show progress popup
+  var agentNames = { mt: 'MATEH — שיווק', oc: 'OpenClaw Personal', bare: 'שרת נקי' };
+  document.getElementById('taskPopupTitle').textContent = 'מוסיף סוכן';
+  document.getElementById('taskPopupBody').innerHTML =
+    '<div style="text-align:center;padding:20px 0">' +
+      '<div style="width:48px;height:48px;border:3px solid #E5E7EB;border-top-color:#2563EB;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px"></div>' +
+      '<div style="font-size:1rem;font-weight:600;color:#111827;margin-bottom:6px">' + (agentNames[agentType] || agentType) + '</div>' +
+      '<div style="font-size:0.85rem;color:#6B7280">מתקין ומגדיר את הסוכן על השרת...</div>' +
+      '<div style="font-size:0.78rem;color:#9CA3AF;margin-top:8px">זה עלול לקחת עד דקה</div>' +
+    '</div>';
+  document.getElementById('taskPopupFooter').innerHTML = '';
+  document.getElementById('taskPopupOverlay').classList.remove('hidden');
 
   fetch(API + '/hosting/instances/' + instanceId + '/agents/add', {
     method: 'POST',
@@ -4843,9 +4855,17 @@ function addAgentRequest(agentType) {
         document.getElementById('taskPopupFooter').innerHTML =
           '<button class="aq-btn edit" onclick="closeTaskPopup()">ביטול</button>' +
           '<button class="aq-btn approve" onclick="closeTaskPopup();switchTab(\'settings\')">→ שדרגו תוכנית</button>';
-        document.getElementById('taskPopupOverlay').classList.remove('hidden');
       } else {
-        showToast('הסוכן נוסף בהצלחה!', 'success');
+        // Success
+        document.getElementById('taskPopupTitle').textContent = 'הסוכן נוסף!';
+        document.getElementById('taskPopupBody').innerHTML =
+          '<div style="text-align:center;padding:20px 0">' +
+            '<div style="font-size:2.5rem;margin-bottom:12px">🎉</div>' +
+            '<div style="font-size:1rem;font-weight:600;color:#166534;margin-bottom:6px">' + (agentNames[agentType] || agentType) + ' מוכן!</div>' +
+            '<div style="font-size:0.85rem;color:#4B5563">הסוכן הותקן והוגדר על השרת בהצלחה.</div>' +
+          '</div>';
+        document.getElementById('taskPopupFooter').innerHTML =
+          '<button class="aq-btn approve" onclick="closeTaskPopup()">סגירה</button>';
         // Update local components
         if (d.data && d.data.components) {
           components = d.data.components;
@@ -4854,7 +4874,14 @@ function addAgentRequest(agentType) {
         renderAgentsTab();
       }
     } else {
-      showToast(d.message || 'שגיאה', 'error');
+      document.getElementById('taskPopupTitle').textContent = 'שגיאה';
+      document.getElementById('taskPopupBody').innerHTML =
+        '<div style="text-align:center;padding:20px 0">' +
+          '<div style="font-size:2rem;margin-bottom:12px">⚠️</div>' +
+          '<div style="font-size:0.9rem;color:#991B1B">' + (d.message || 'שגיאה בהוספת הסוכן') + '</div>' +
+        '</div>';
+      document.getElementById('taskPopupFooter').innerHTML =
+        '<button class="aq-btn edit" onclick="closeTaskPopup()">סגירה</button>';
     }
   }).catch(function() { showToast('שגיאת תקשורת', 'error'); });
 }
