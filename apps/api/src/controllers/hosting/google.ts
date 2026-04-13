@@ -7,7 +7,7 @@ import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import crypto from 'crypto'
 import { resolveUserId } from './authHelper'
-import { setAgentIntegration, removeAgentIntegration, getPrimaryAgent } from '@/services/agentIntegrations'
+import { setAgentIntegration, removeAgentIntegration, getAgentIntegration, getPrimaryAgent, type AgentType } from '@/services/agentIntegrations'
 
 /** Parse JWT from ?token= query param (for OAuth redirects) */
 function resolveUserIdFromQuery(c: Context): string | null {
@@ -92,8 +92,14 @@ export const googleAuth = async (c: Context) => {
             ...requestedScopes,
         ]
 
-        // State = instanceId + scopes + HMAC signature (prevents tampering)
-        const statePayload = JSON.stringify({ instanceId, scopes: scopeParam, uid: userId })
+        // Determine agent type from query param (default: primary agent for this instance)
+        const agentParam = c.req.query('agent') as AgentType | undefined
+        const agentType: AgentType = agentParam && ['oc', 'mt', 'bare'].includes(agentParam)
+            ? agentParam
+            : getPrimaryAgent((inst.selectedComponents as string[]) || [])
+
+        // State = instanceId + scopes + agent + HMAC signature (prevents tampering)
+        const statePayload = JSON.stringify({ instanceId, scopes: scopeParam, uid: userId, agent: agentType })
         const stateHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(statePayload).digest('base64url')
         const state = Buffer.from(JSON.stringify({ p: statePayload, s: stateHmac })).toString('base64url')
 
@@ -139,7 +145,10 @@ export const googleCallback = async (c: Context) => {
             console.error('Google OAuth state HMAC mismatch — possible tampering')
             return c.redirect(`${FRONTEND_URL}/dashboard.html?google_error=invalid_state`)
         }
-        const { instanceId, scopes } = JSON.parse(stateOuter.p)
+        const stateData = JSON.parse(stateOuter.p)
+        const { instanceId, scopes } = stateData
+        // Extract agent type from state (defaults to primary agent for backward compat)
+        const agentType: AgentType = stateData.agent || 'oc'
 
         // Exchange code for tokens
         const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
@@ -188,17 +197,15 @@ export const googleCallback = async (c: Context) => {
             connectedAt: new Date().toISOString(),
         }
 
+        // Write to per-agent integrations (single source of truth)
+        await setAgentIntegration(instanceId, agentType, 'google', googleTokens as any)
+
+        // Legacy dual-write (keep until all reads migrated)
         await db.update(instances)
             .set({ googleTokens: googleTokens as any })
             .where(eq(instances.id, instanceId))
 
-        // Write to per-agent integrations
-        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const agentType = getPrimaryAgent((inst?.selectedComponents as string[]) || [])
-        await setAgentIntegration(instanceId, agentType, 'google', googleTokens as any)
-            .catch(err => console.error('Failed to set agent google integration:', err))
-
-        console.log(`Google connected for instance ${instanceId}: ${email} (scopes: ${scopes})`)
+        console.log(`Google connected for instance ${instanceId}, agent ${agentType}: ${email} (scopes: ${scopes})`)
 
         // Deploy credentials to VPS so agent can use Google APIs
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
@@ -209,7 +216,7 @@ export const googleCallback = async (c: Context) => {
                     clientSecret: GOOGLE_CLIENT_SECRET,
                     accessToken: tokenData.access_token!,
                     refreshToken: tokenData.refresh_token || '',
-                }, scopes)
+                }, scopes, agentType)
                 // Update SOUL.md to include calendar tool instructions
                 await updateSoulWithTools(instance.ip, instance.rootPassword || undefined)
             } catch (deployErr) {
@@ -237,8 +244,15 @@ export const googleDisconnect = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        // Revoke token at Google
-        const tokens = instance.googleTokens as any
+        // Determine which agent to disconnect
+        const agentParam = c.req.query('agent') as AgentType | undefined
+        const agentType: AgentType = agentParam && ['oc', 'mt', 'bare'].includes(agentParam)
+            ? agentParam
+            : getPrimaryAgent((instance.selectedComponents as string[]) || [])
+
+        // Get tokens from agent_integrations (primary source)
+        const agentInt = await getAgentIntegration(instanceId, agentType, 'google')
+        const tokens = agentInt?.config as any
         if (tokens?.accessToken) {
             try {
                 await fetch(`https://oauth2.googleapis.com/revoke?token=${tokens.accessToken}`, {
@@ -247,20 +261,16 @@ export const googleDisconnect = async (c: Context) => {
             } catch { /* best effort */ }
         }
 
-        // Clear from DB
+        // Remove from per-agent integrations
+        await removeAgentIntegration(instanceId, agentType, 'google')
+
+        // Legacy cleanup
         await db.update(instances)
             .set({ googleTokens: null })
             .where(eq(instances.id, instanceId))
 
-        // Remove from per-agent integrations (all agents)
-        const components = (instance.selectedComponents as string[]) || []
-        for (const at of ['oc', 'mt', 'bare'] as const) {
-            if (components.includes(at)) {
-                await removeAgentIntegration(instanceId, at, 'google').catch(() => {})
-            }
-        }
-
-        // Remove MCP server: stop → edit → start
+        // Remove MCP server: stop → edit → start (per-agent name)
+        const mcpServerName = `google-workspace-${agentType}`
         if (instance.ip) {
             try {
                 await sshExec(instance.ip, `
@@ -269,6 +279,8 @@ export const googleDisconnect = async (c: Context) => {
 import json
 p = '/home/openclaw/.openclaw/openclaw.json'
 with open(p) as f: d = json.load(f)
+d.get('mcp', {}).get('servers', {}).pop('${mcpServerName}', None)
+# Also remove legacy non-suffixed name
 d.get('mcp', {}).get('servers', {}).pop('google-workspace', None)
 with open(p, 'w') as f: json.dump(d, f, indent=2)
 " &&
@@ -297,13 +309,21 @@ export const googleStatus = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const tokens = instance.googleTokens as any
-        if (!tokens?.accessToken) {
-            return ok(c, { connected: false }, 'Not connected.')
+        // Read from agent_integrations (per-agent)
+        const agentParam = c.req.query('agent') as AgentType | undefined
+        const agentType: AgentType = agentParam && ['oc', 'mt', 'bare'].includes(agentParam)
+            ? agentParam
+            : getPrimaryAgent((instance.selectedComponents as string[]) || [])
+
+        const agentInt = await getAgentIntegration(instanceId, agentType, 'google')
+        if (!agentInt || !agentInt.config?.accessToken) {
+            return ok(c, { connected: false, agent: agentType }, 'Not connected.')
         }
 
+        const tokens = agentInt.config as any
         return ok(c, {
             connected: true,
+            agent: agentType,
             email: tokens.email || '',
             scopes: tokens.scopes || [],
             connectedAt: tokens.connectedAt || '',
@@ -316,13 +336,15 @@ export const googleStatus = async (c: Context) => {
 
 // ── Deploy lightweight Google MCP server to VPS ──
 // Uses google-lite-mcp.js (10 tools) instead of @presto-ai/google-workspace-mcp (25-30 tools)
+// Per-agent: MCP server name includes agent suffix (google-workspace-oc, google-workspace-mt)
 async function deployGoogleToVPS(ip: string, password: string | undefined, creds: {
     clientId: string
     clientSecret: string
     accessToken: string
     refreshToken: string
-}, scopes?: string): Promise<void> {
-    console.log(`Deploying google-lite MCP server to ${ip} (scopes: ${scopes || 'calendar,gmail,contacts'})...`)
+}, scopes?: string, agentType: AgentType = 'oc'): Promise<void> {
+    const mcpServerName = `google-workspace-${agentType}`
+    console.log(`Deploying google-lite MCP server '${mcpServerName}' to ${ip} (scopes: ${scopes || 'calendar,gmail,contacts'})...`)
 
     // Deploy our lite MCP script to the VPS
     const { resolve } = await import('path')
@@ -353,15 +375,15 @@ cfg = json.loads(base64.b64decode(sys.argv[1]))
 p = '/home/openclaw/.openclaw/openclaw.json'
 with open(p) as f: d = json.load(f)
 d.setdefault('mcp', {}).setdefault('servers', {})
-d['mcp']['servers']['google-workspace'] = cfg
+d['mcp']['servers']['${mcpServerName}'] = cfg
 with open(p, 'w') as f: json.dump(d, f, indent=2)
-print('google-workspace configured: ' + cfg['command'])
+print('${mcpServerName} configured: ' + cfg['command'])
 " '${mcpB64}' &&
         chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
         systemctl start openclaw-gateway
     `, password)
 
-    console.log(`google-lite MCP server deployed to ${ip}`)
+    console.log(`google-lite MCP server '${mcpServerName}' deployed to ${ip}`)
 }
 
 // ── Update SOUL.md with available tools after integration ──

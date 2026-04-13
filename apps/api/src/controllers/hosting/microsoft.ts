@@ -8,7 +8,7 @@ import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import crypto from 'crypto'
 import { resolveUserId } from './authHelper'
-import { setAgentIntegration, removeAgentIntegration, getPrimaryAgent } from '@/services/agentIntegrations'
+import { setAgentIntegration, removeAgentIntegration, getAgentIntegration, getPrimaryAgent, type AgentType } from '@/services/agentIntegrations'
 
 /** Parse JWT from ?token= query param (for OAuth redirects that can't send Authorization header) */
 function resolveUserIdFromQuery(c: Context): string | null {
@@ -93,8 +93,14 @@ export const microsoftAuth = async (c: Context) => {
             ...requestedScopes,
         ]
 
-        // State = instanceId + scopes + HMAC signature (prevents tampering)
-        const statePayload = JSON.stringify({ instanceId, scopes: scopeParam, uid: userId })
+        // Determine agent type from query param (default: primary agent for this instance)
+        const agentParam = c.req.query('agent') as AgentType | undefined
+        const agentType: AgentType = agentParam && ['oc', 'mt', 'bare'].includes(agentParam)
+            ? agentParam
+            : getPrimaryAgent((inst.selectedComponents as string[]) || [])
+
+        // State = instanceId + scopes + agent + HMAC signature (prevents tampering)
+        const statePayload = JSON.stringify({ instanceId, scopes: scopeParam, uid: userId, agent: agentType })
         const stateHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(statePayload).digest('base64url')
         const state = Buffer.from(JSON.stringify({ p: statePayload, s: stateHmac })).toString('base64url')
 
@@ -140,7 +146,10 @@ export const microsoftCallback = async (c: Context) => {
             console.error('Microsoft OAuth state HMAC mismatch — possible tampering')
             return c.redirect(`${FRONTEND_URL}/dashboard.html?ms_error=invalid_state`)
         }
-        const { instanceId, scopes } = JSON.parse(stateOuter.p)
+        const stateData = JSON.parse(stateOuter.p)
+        const { instanceId, scopes } = stateData
+        // Extract agent type from state (defaults to primary agent for backward compat)
+        const agentType: AgentType = stateData.agent || 'oc'
 
         // Exchange code for tokens
         const tokenRes = await fetch(`https://login.microsoftonline.com/${MS_TENANT}/oauth2/v2.0/token`, {
@@ -193,18 +202,15 @@ export const microsoftCallback = async (c: Context) => {
             connectedAt: new Date().toISOString(),
         }
 
+        // Write to per-agent integrations (single source of truth)
+        await setAgentIntegration(instanceId, agentType, 'microsoft', microsoftTokens as any)
+
+        // Legacy dual-write (keep until all reads migrated)
         await db.update(instances)
             .set({ microsoftTokens: microsoftTokens as any })
             .where(eq(instances.id, instanceId))
 
-        // Write to per-agent integrations
-        const [instForAgent] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const agentType = getPrimaryAgent((instForAgent?.selectedComponents as string[]) || [])
-        await setAgentIntegration(instanceId, agentType, 'microsoft', {
-            email, displayName, scopes, connectedAt: new Date().toISOString(),
-        }).catch(err => console.error('Failed to set agent microsoft integration:', err))
-
-        console.log(`Microsoft 365 connected for instance ${instanceId}: ${email} (scopes: ${scopes})`)
+        console.log(`Microsoft 365 connected for instance ${instanceId}, agent ${agentType}: ${email} (scopes: ${scopes})`)
 
         // Deploy credentials to VPS
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
@@ -216,7 +222,7 @@ export const microsoftCallback = async (c: Context) => {
                     clientId: MS_CLIENT_ID,
                     clientSecret: MS_CLIENT_SECRET,
                     email,
-                }, scopes)
+                }, scopes, agentType)
             } catch (err) {
                 console.error('Failed to deploy Microsoft creds to VPS:', err)
             }
@@ -241,19 +247,22 @@ export const microsoftDisconnect = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
         if (!instance) return fail(c, 'Instance not found', 404)
 
+        // Determine which agent to disconnect
+        const agentParam = c.req.query('agent') as AgentType | undefined
+        const agentType: AgentType = agentParam && ['oc', 'mt', 'bare'].includes(agentParam)
+            ? agentParam
+            : getPrimaryAgent((instance.selectedComponents as string[]) || [])
+
+        // Remove from per-agent integrations
+        await removeAgentIntegration(instanceId, agentType, 'microsoft')
+
+        // Legacy cleanup
         await db.update(instances)
             .set({ microsoftTokens: null })
             .where(eq(instances.id, instanceId))
 
-        // Remove from per-agent integrations (all agents)
-        const components = (instance.selectedComponents as string[]) || []
-        for (const at of ['oc', 'mt', 'bare'] as const) {
-            if (components.includes(at)) {
-                await removeAgentIntegration(instanceId, at, 'microsoft').catch(() => {})
-            }
-        }
-
-        // Remove MCP server: stop → edit → start
+        // Remove MCP server: stop → edit → start (per-agent name)
+        const mcpServerName = `ms-365-${agentType}`
         if (instance?.ip) {
             try {
                 await sshExec(instance.ip, `
@@ -262,6 +271,8 @@ export const microsoftDisconnect = async (c: Context) => {
 import json
 p = '/home/openclaw/.openclaw/openclaw.json'
 with open(p) as f: d = json.load(f)
+d.get('mcp', {}).get('servers', {}).pop('${mcpServerName}', None)
+# Also remove legacy non-suffixed name
 d.get('mcp', {}).get('servers', {}).pop('ms-365', None)
 with open(p, 'w') as f: json.dump(d, f, indent=2)
 " &&
@@ -290,13 +301,21 @@ export const microsoftStatus = async (c: Context) => {
         const [instance] = await db.select().from(instances).where(and(eq(instances.id, instanceId), eq(instances.userId, userId)))
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const tokens = instance.microsoftTokens as any
-        if (!tokens?.accessToken) {
-            return ok(c, { connected: false }, 'Not connected.')
+        // Read from agent_integrations (per-agent)
+        const agentParam = c.req.query('agent') as AgentType | undefined
+        const agentType: AgentType = agentParam && ['oc', 'mt', 'bare'].includes(agentParam)
+            ? agentParam
+            : getPrimaryAgent((instance.selectedComponents as string[]) || [])
+
+        const agentInt = await getAgentIntegration(instanceId, agentType, 'microsoft')
+        if (!agentInt || !agentInt.config?.accessToken) {
+            return ok(c, { connected: false, agent: agentType }, 'Not connected.')
         }
 
+        const tokens = agentInt.config as any
         return ok(c, {
             connected: true,
+            agent: agentType,
             email: tokens.email || '',
             displayName: tokens.displayName || '',
             scopes: tokens.scopes || [],
@@ -310,15 +329,16 @@ export const microsoftStatus = async (c: Context) => {
 
 // ── Deploy lightweight Microsoft 365 MCP server to VPS ──
 // Uses our ms365-lite-mcp.js (8 tools) instead of @softeria/ms-365-mcp-server (120+ tools)
-// This reduces token usage from ~135K to ~5K per session
+// Per-agent: MCP server name includes agent suffix (ms-365-oc, ms-365-mt)
 async function deployMicrosoftToVPS(ip: string, password: string | undefined, creds: {
     accessToken: string
     refreshToken: string
     clientId: string
     clientSecret: string
     email: string
-}, scopes?: string): Promise<void> {
-    console.log(`Deploying ms365-lite MCP server to ${ip} (scopes: ${scopes || 'calendar,mail'})...`)
+}, scopes?: string, agentType: AgentType = 'oc'): Promise<void> {
+    const mcpServerName = `ms-365-${agentType}`
+    console.log(`Deploying ms365-lite MCP server '${mcpServerName}' to ${ip} (scopes: ${scopes || 'calendar,mail'})...`)
 
     // First, deploy our lite MCP script to the VPS
     const mcpScript = readFileSync(
@@ -355,13 +375,13 @@ cfg = json.loads(base64.b64decode(sys.argv[1]))
 p = '/home/openclaw/.openclaw/openclaw.json'
 with open(p) as f: d = json.load(f)
 d.setdefault('mcp', {}).setdefault('servers', {})
-d['mcp']['servers']['ms-365'] = cfg
+d['mcp']['servers']['${mcpServerName}'] = cfg
 with open(p, 'w') as f: json.dump(d, f, indent=2)
-print('ms-365 configured: ' + cfg['command'])
+print('${mcpServerName} configured: ' + cfg['command'])
 " '${mcpB64}' &&
         chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json &&
         systemctl start openclaw-gateway
     `, password)
 
-    console.log(`ms365-lite MCP server deployed to ${ip}`)
+    console.log(`ms365-lite MCP server '${mcpServerName}' deployed to ${ip}`)
 }

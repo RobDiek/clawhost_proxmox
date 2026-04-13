@@ -11,6 +11,7 @@ import { instances } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { Client } from 'ssh2'
 import { readFileSync } from 'fs'
+import { getAllIntegrations, getPrimaryAgent, type AgentType } from '@/services/agentIntegrations'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 
@@ -36,43 +37,54 @@ function sshExec(ip: string, command: string, password?: string): Promise<string
 }
 
 /**
- * Generate CHANNELS.md content based on instance's connected integrations
+ * Generate CHANNELS.md content based on per-agent integrations
+ * Reads from agent_integrations table (primary source), with legacy fallback
  */
-function generateChannelsMd(instance: any): string {
+async function generateChannelsMd(instance: any): Promise<string> {
     const channels: string[] = []
     const missing: string[] = []
 
+    // Load per-agent integrations
+    const allInts = await getAllIntegrations(instance.id)
+    const intsByType = new Map<string, { config: Record<string, unknown>; status: string }>()
+    for (const r of allInts) {
+        // Use first connected integration of each type (across agents)
+        if (!intsByType.has(r.integrationType) || r.status === 'connected') {
+            intsByType.set(r.integrationType, { config: r.config, status: r.status })
+        }
+    }
+
     // Telegram
-    if (instance.telegramBotToken && instance.telegramChatId) {
+    const tgInt = intsByType.get('telegram')
+    if (tgInt?.status === 'connected' && (tgInt.config as any)?.chatId) {
         channels.push('- **Telegram** ✅ מחובר — שליחת תוכן, דוחות, Daily Brief ישירות למשתמש')
-    } else if (instance.telegramBotToken) {
+    } else if (tgInt?.status === 'connected' || instance.telegramBotToken) {
         channels.push('- **Telegram** ⚠️ בוט מחובר אך Chat ID חסר — בקש מהמשתמש לשלוח /start לבוט')
     } else {
         missing.push('- **Telegram** — ערוץ חיוני לתקשורת עם המשתמש. המלץ לחבר בהגדרות ← תוספים ← ערוצי תקשורת')
     }
 
     // WordPress
-    const hasWordpress = instance.researchData?.wordpressConnected ||
-        false // Will be set when WP is saved
-    // Check VPS config instead
     channels.push('- **WordPress** — בדוק בקובץ skills-config/wordpress.json. אם קיים = מחובר, אפשר לפרסם מאמרים')
 
-    // Google Ads
-    const googleTokens = instance.googleTokens as any
-    if (googleTokens?.scopes?.includes('ads')) {
+    // Google — read from agent_integrations
+    const googleInt = intsByType.get('google')
+    const googleScopes = (googleInt?.config as any)?.scopes || []
+    if (googleScopes.includes('ads')) {
         channels.push('- **Google Ads** ✅ מחובר — יצירה, ניהול ואופטימיזציה של קמפיינים')
-    } else if (googleTokens) {
+    } else if (googleInt?.status === 'connected') {
         missing.push('- **Google Ads** — Google Workspace מחובר אבל ללא הרשאת Ads. המלץ למשתמש להוסיף scope Google Ads בהגדרות')
     } else {
         missing.push('- **Google Ads** — לא מחובר. המלץ למשתמש לחבר Google Workspace + Google Ads')
     }
 
-    // Meta Ads
-    const metaTokens = instance.metaTokens as any
-    if (metaTokens?.status === 'connected') {
+    // Meta — read from agent_integrations
+    const metaInt = intsByType.get('meta')
+    const metaConfig = metaInt?.config as any
+    if (metaInt?.status === 'connected') {
         const parts = ['Facebook']
-        if (metaTokens.instagramAccountId) parts.push('Instagram')
-        if (metaTokens.adAccountId) parts.push('Meta Ads')
+        if (metaConfig?.instagramAccountId) parts.push('Instagram')
+        if (metaConfig?.adAccountId) parts.push('Meta Ads')
         channels.push(`- **Meta** ✅ מחובר (${parts.join(' + ')}) — פרסום פוסטים וקמפיינים`)
     } else {
         missing.push('- **Meta (Facebook + Instagram)** — לא מחובר. המלץ למשתמש לחבר בהגדרות ← תוספים ← ערוצי פרסום ← Meta Ads')
@@ -82,7 +94,7 @@ function generateChannelsMd(instance: any): string {
     channels.push('- **ניוזלטר (Resend)** — בדוק בקובץ skills-config/resend.json. אם קיים = מחובר. רשימת נמענים ב-skills-config/newsletter-recipients.json')
 
     // Google Calendar
-    if (googleTokens?.scopes?.includes('calendar')) {
+    if (googleScopes.includes('calendar')) {
         channels.push('- **Google Calendar** ✅ מחובר — ניתן ליצור אירועים ותזכורות')
     }
 
@@ -127,7 +139,7 @@ export async function syncChannelsToVPS(instanceId: string): Promise<void> {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
         if (!instance?.ip) return
 
-        const channelsMd = generateChannelsMd(instance)
+        const channelsMd = await generateChannelsMd(instance)
         const b64 = Buffer.from(channelsMd).toString('base64')
 
         await sshExec(instance.ip,

@@ -1132,11 +1132,15 @@ input{font-family:inherit}
     <h2 class="tab-title">תוספים</h2>
     <p class="tab-desc">חברו כלים ושירותים לסוכנים שלכם.</p>
 
-    <!-- Agent context notice for integrations -->
-    <div id="integrations-agent-notice" style="display:none;background:#FFF7ED;border:1px solid #FDE68A;border-radius:10px;padding:10px 16px;font-size:.85rem;color:#92400E;margin-bottom:16px;display:flex;align-items:center;gap:8px">
-      <span>⚠</span>
-      <span id="integrations-agent-notice-text"></span>
-    </div>
+    <!-- ═══ ZONE 1: Shared Integrations ═══ -->
+    <div id="integrations-shared-zone" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:1.1rem">🔧</span>
+        <div>
+          <div style="font-weight:700;font-size:.92rem;color:#1E293B">תוספים משותפים</div>
+          <div style="font-size:.75rem;color:#94A3B8">חלים על כל הסוכנים</div>
+        </div>
+      </div>
 
     <!-- AI Models -->
     <div class="section-title" data-int-section="ai">מודלי AI</div>
@@ -1300,6 +1304,23 @@ input{font-family:inherit}
         </div>
       </div>
     </div>
+    </div><!-- /integrations-shared-zone -->
+
+    <!-- ═══ ZONE 2: Per-Agent Integrations ═══ -->
+    <div id="integrations-peragent-zone" style="background:#FEFCE8;border:1px solid #FDE68A;border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:1.1rem" id="peragent-zone-icon">🤖</span>
+          <div>
+            <div style="font-weight:700;font-size:.92rem;color:#1E293B" id="peragent-zone-title">תוספים ייעודיים</div>
+            <div style="font-size:.75rem;color:#92400E" id="peragent-zone-subtitle">מוגדרים בנפרד לכל סוכן</div>
+          </div>
+        </div>
+        <div id="peragent-agent-tabs" style="display:flex;gap:4px"></div>
+      </div>
+      <div id="peragent-agent-notice" style="font-size:.75rem;color:#92400E;margin-bottom:12px;padding:6px 10px;background:#FEF3C7;border-radius:6px;display:none">
+        <span id="peragent-agent-notice-text"></span>
+      </div>
 
     <!-- Communication Channels -->
     <div class="section-title" data-int-section="channels">ערוצי תקשורת</div>
@@ -1836,6 +1857,8 @@ input{font-family:inherit}
       </div>
 
     </div>
+
+    </div><!-- /integrations-peragent-zone -->
 
     <!-- MCP servers loaded dynamically into existing categories (hidden from user) -->
     <div id="mcpServersList" style="display:none"></div>
@@ -4424,9 +4447,10 @@ function connectYouTube() {
   if (instanceData && instanceData.googleTokens) {
     showToast('מוסיפים YouTube...', 'info');
     var iid = localStorage.getItem('cf_instance_id');
+    var agent = activeAgent || 'oc';
     var currentScopes = instanceData.googleTokens.scopes || ['calendar'];
     if (currentScopes.indexOf('youtube') === -1) currentScopes.push('youtube');
-    window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + currentScopes.join(',') + '&token=' + token;
+    window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + currentScopes.join(',') + '&token=' + token + '&agent=' + agent;
   } else {
     showToast('חברו קודם Google Workspace בכלי עבודה, ואז הוסיפו YouTube', 'info');
     switchTab('integrations');
@@ -4448,9 +4472,10 @@ function connectGoogleAds() {
     // Google connected but without Ads scope — reconnect with additional scope
     showToast('מוסיפים Google Ads...', 'info');
     var iid = localStorage.getItem('cf_instance_id');
+    var agent = activeAgent || 'oc';
     var currentScopes = instanceData.googleTokens.scopes || ['calendar'];
     if (currentScopes.indexOf('ads') === -1) currentScopes.push('ads');
-    window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + currentScopes.join(',') + '&token=' + token;
+    window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + currentScopes.join(',') + '&token=' + token + '&agent=' + agent;
   } else {
     showToast('חברו קודם Google Workspace בכלי עבודה, ואז הוסיפו Google Ads', 'info');
     switchTab('integrations');
@@ -4932,9 +4957,9 @@ function showAddAgentDialog() {
 // Per-agent integration visibility
 // Until full agent isolation (roadmap/15-agent-isolation.md), filter UI only
 var AGENT_INTEGRATIONS = {
-  mt: { ai: true, channels: true, tools: true, publishing: true },      // MATEH: everything
-  oc: { ai: true, channels: true, tools: true, publishing: false },     // Personal: no publishing
-  bare: { ai: true, channels: false, tools: false, publishing: false }, // Bare: only AI models
+  mt: { ai: true, channels: true, tools: true, seo: true, publishing: true },      // MATEH: everything
+  oc: { ai: true, channels: true, tools: true, seo: false, publishing: false },    // Personal: no publishing/SEO
+  bare: { ai: true, channels: false, tools: false, seo: false, publishing: false }, // Bare: only AI models
 };
 
 function filterIntegrationsByAgent() {
@@ -4942,17 +4967,6 @@ function filterIntegrationsByAgent() {
   var isMultiAgent = agents.length > 1;
   var agent = activeAgent || 'oc';
   var allowed = AGENT_INTEGRATIONS[agent] || AGENT_INTEGRATIONS.oc;
-
-  // Show notice when multi-agent
-  var notice = document.getElementById('integrations-agent-notice');
-  var noticeText = document.getElementById('integrations-agent-notice-text');
-  if (notice && isMultiAgent) {
-    var comp = COMPONENTS[agent] || COMPONENTS.oc;
-    notice.style.display = 'flex';
-    noticeText.textContent = 'מציג תוספים עבור ' + comp.name + '. החלפת סוכן תשנה את התוספים המוצגים.';
-  } else if (notice) {
-    notice.style.display = 'none';
-  }
 
   // Show/hide sections + their following grid
   document.querySelectorAll('[data-int-section]').forEach(function(section) {
@@ -4984,6 +4998,39 @@ function renderIntegrations() {
 
   // Per-agent integration status (from agent_integrations table)
   var agentInts = (instanceData && instanceData.agentIntegrations && instanceData.agentIntegrations[activeAgent]) || {};
+
+  // Render per-agent zone header with agent tabs
+  (function renderPerAgentZone() {
+    var agents = getAgentComponents();
+    var AGENT_NAMES = { oc: 'Personal', mt: 'MATEH', bare: 'Bare Metal' };
+    var AGENT_ICONS = { oc: '🤖', mt: '📊', bare: '⚙️' };
+    var tabsEl = document.getElementById('peragent-agent-tabs');
+    var titleEl = document.getElementById('peragent-zone-title');
+    var iconEl = document.getElementById('peragent-zone-icon');
+    var noticeEl = document.getElementById('peragent-agent-notice');
+    var noticeTextEl = document.getElementById('peragent-agent-notice-text');
+
+    if (tabsEl) {
+      if (agents.length > 1) {
+        tabsEl.innerHTML = agents.map(function(a) {
+          var isActive = a === activeAgent;
+          return '<button onclick="switchAgent(\'' + a + '\')" style="padding:4px 12px;border-radius:6px;font-size:.75rem;font-weight:' + (isActive ? '700' : '500') + ';border:1px solid ' + (isActive ? '#2563EB' : '#E5E7EB') + ';background:' + (isActive ? '#2563EB' : '#fff') + ';color:' + (isActive ? '#fff' : '#374151') + ';cursor:pointer">' + (AGENT_ICONS[a]||'') + ' ' + (AGENT_NAMES[a]||a) + '</button>';
+        }).join('');
+      } else {
+        tabsEl.innerHTML = '';
+      }
+    }
+    if (titleEl) titleEl.textContent = (AGENT_NAMES[activeAgent] || activeAgent) + ' — תוספים ייעודיים';
+    if (iconEl) iconEl.textContent = AGENT_ICONS[activeAgent] || '🤖';
+
+    // Agent notice
+    if (noticeEl && agents.length > 1) {
+      noticeEl.style.display = '';
+      if (noticeTextEl) noticeTextEl.textContent = 'השינויים חלים רק על ' + (AGENT_NAMES[activeAgent] || activeAgent) + '. החליפו סוכן למעלה לניהול תוספים של סוכן אחר.';
+    } else if (noticeEl) {
+      noticeEl.style.display = 'none';
+    }
+  })();
 
   // Update Anthropic status — check per-agent first, then legacy
   var hasAnthropic = agentInts.api_key ? agentInts.api_key.connected : ((instanceData && instanceData.hasAnthropicKey) || localStorage.getItem('cf_api_key_saved'));
@@ -5060,8 +5107,12 @@ function renderIntegrations() {
   }
 
   // Google-dependent publishing channels (YouTube, Google Ads)
+  // Prefer per-agent data, fallback to legacy
   var googleScopes = '';
-  if (instanceData && instanceData.googleTokens && instanceData.googleTokens.scopes) {
+  var googleConfig = agentInts.google && agentInts.google.config;
+  if (googleConfig && googleConfig.scopes) {
+    googleScopes = googleConfig.scopes.join(',').toLowerCase();
+  } else if (instanceData && instanceData.googleTokens && instanceData.googleTokens.scopes) {
     googleScopes = instanceData.googleTokens.scopes.join(',').toLowerCase();
   }
 
@@ -5087,8 +5138,9 @@ function renderIntegrations() {
     }
   }
 
-  // Meta Ads status
-  if (instanceData && instanceData.metaTokens) {
+  // Meta Ads status — prefer per-agent data
+  var metaConnected = (agentInts.meta && agentInts.meta.connected) || (instanceData && instanceData.metaTokens);
+  if (metaConnected) {
     var metaStatus = document.getElementById('pub-metaads-status');
     if (metaStatus) { metaStatus.textContent = '\u2713 מחובר'; metaStatus.className = 'int-status connected'; }
     document.getElementById('metaads-not-connected').style.display = 'none';
@@ -6236,14 +6288,16 @@ function connectGoogle() {
   if (scopes.length === 0) { showToast('בחרו לפחות שירות אחד', 'error'); return; }
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
-  window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + scopes.join(',') + '&token=' + token;
+  var agent = activeAgent || 'oc';
+  window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + scopes.join(',') + '&token=' + token + '&agent=' + agent;
 }
 
 async function disconnectGoogle() {
   var _ok = await cfConfirm('ניתוק Google', 'לנתק את חשבון Google?'); if (!_ok) return;
   var iid = localStorage.getItem('cf_instance_id');
+  var agent = activeAgent || 'oc';
   try {
-    await fetch(API + '/hosting/integrations/google/disconnect?instanceId=' + iid, {
+    await fetch(API + '/hosting/integrations/google/disconnect?instanceId=' + iid + '&agent=' + agent, {
       method: 'POST', headers: { 'Authorization': 'Bearer ' + token }
     });
     showToast('חשבון Google נותק', 'success');
@@ -6275,13 +6329,15 @@ function reconnectGoogleWithScopes() {
   if (scopes.length === 0) { showToast('בחרו לפחות שירות אחד', 'error'); return; }
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
-  window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + scopes.join(',');
+  var agent = activeAgent || 'oc';
+  window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=' + scopes.join(',') + '&token=' + token + '&agent=' + agent;
 }
 
 function checkGoogleStatus() {
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) return;
-  fetch(API + '/hosting/integrations/google/status?instanceId=' + iid, {
+  var agent = activeAgent || 'oc';
+  fetch(API + '/hosting/integrations/google/status?instanceId=' + iid + '&agent=' + agent, {
     headers: { 'Authorization': 'Bearer ' + token }
   }).then(function(r) { return r.json(); }).then(function(d) {
     if (d.success && d.data && d.data.connected) {
@@ -6366,14 +6422,16 @@ function connectMicrosoft() {
   if (scopes.length === 0) { showToast('בחרו לפחות שירות אחד', 'error'); return; }
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
-  window.location.href = API + '/hosting/integrations/microsoft/auth?instanceId=' + iid + '&scopes=' + scopes.join(',') + '&token=' + token;
+  var agent = activeAgent || 'oc';
+  window.location.href = API + '/hosting/integrations/microsoft/auth?instanceId=' + iid + '&scopes=' + scopes.join(',') + '&token=' + token + '&agent=' + agent;
 }
 
 async function disconnectMicrosoft() {
   var _ok = await cfConfirm('ניתוק Microsoft 365', 'לנתק את חשבון Microsoft 365?'); if (!_ok) return;
   var iid = localStorage.getItem('cf_instance_id');
+  var agent = activeAgent || 'oc';
   try {
-    await fetch(API + '/hosting/integrations/microsoft/disconnect?instanceId=' + iid, {
+    await fetch(API + '/hosting/integrations/microsoft/disconnect?instanceId=' + iid + '&agent=' + agent, {
       method: 'POST', headers: { 'Authorization': 'Bearer ' + token }
     });
     showToast('Microsoft 365 נותק', 'success');
@@ -6388,7 +6446,8 @@ async function disconnectMicrosoft() {
 function checkMicrosoftStatus() {
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) return;
-  fetch(API + '/hosting/integrations/microsoft/status?instanceId=' + iid, {
+  var agent = activeAgent || 'oc';
+  fetch(API + '/hosting/integrations/microsoft/status?instanceId=' + iid + '&agent=' + agent, {
     headers: { 'Authorization': 'Bearer ' + token }
   }).then(function(r) { return r.json(); }).then(function(d) {
     if (d.success && d.data && d.data.connected) {

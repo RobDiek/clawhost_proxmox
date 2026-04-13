@@ -5,20 +5,70 @@ import { db } from '@/db'
 import { otpCodes, users, instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import telegram from '@/services/telegram'
-import { getAllIntegrations as getAllIntegrationsRaw } from '@/services/agentIntegrations'
+import { getAllIntegrations as getAllIntegrationsRaw, getPrimaryAgent } from '@/services/agentIntegrations'
 
-// Helper to format agent integrations grouped by agent type
+// Helper to format agent integrations grouped by agent type, with display details
 async function getAllIntegrationsForInstance(instanceId: string) {
     const raw = await getAllIntegrationsRaw(instanceId)
-    const grouped: Record<string, Record<string, { connected: boolean; status: string }>> = {}
+    const grouped: Record<string, Record<string, { connected: boolean; status: string; config?: Record<string, unknown> }>> = {}
     for (const r of raw) {
         if (!grouped[r.agentType]) grouped[r.agentType] = {}
         grouped[r.agentType][r.integrationType] = {
             connected: r.status === 'connected',
             status: r.status,
+            config: r.config,
         }
     }
     return grouped
+}
+
+// Helper: derive legacy-shaped integration summary from agent_integrations data
+function deriveLegacyIntegrations(
+    agentInts: Record<string, Record<string, { connected: boolean; status: string; config?: Record<string, unknown> }>>,
+    primaryAgent: string,
+    fallback: { telegramBotToken: any; googleTokens: any; microsoftTokens: any; metaTokens: any }
+) {
+    const agentData = agentInts[primaryAgent] || {}
+
+    const googleInt = agentData.google
+    const msInt = agentData.microsoft
+    const metaInt = agentData.meta
+    const tgInt = agentData.telegram
+
+    return {
+        telegramBotToken: tgInt?.connected ? true : (fallback.telegramBotToken ? true : false),
+        googleTokens: googleInt?.connected ? {
+            connected: true,
+            email: (googleInt.config as any)?.email || '',
+            scopes: (googleInt.config as any)?.scopes || [],
+        } : (fallback.googleTokens ? {
+            connected: true,
+            email: (fallback.googleTokens as any)?.email || '',
+            scopes: (fallback.googleTokens as any)?.scopes || [],
+        } : null),
+        microsoftTokens: msInt?.connected ? {
+            connected: true,
+            email: (msInt.config as any)?.email || '',
+            displayName: (msInt.config as any)?.displayName || '',
+            scopes: (msInt.config as any)?.scopes || [],
+        } : (fallback.microsoftTokens ? {
+            connected: true,
+            email: (fallback.microsoftTokens as any)?.email || '',
+            displayName: (fallback.microsoftTokens as any)?.displayName || '',
+            scopes: (fallback.microsoftTokens as any)?.scopes || [],
+        } : null),
+        metaTokens: metaInt?.connected ? {
+            connected: true,
+            pageName: (metaInt.config as any)?.pageName || '',
+            hasInstagram: !!(metaInt.config as any)?.instagramAccountId,
+            hasAdAccount: !!(metaInt.config as any)?.adAccountId,
+        } : (fallback.metaTokens && (fallback.metaTokens as any).status === 'connected' ? {
+            connected: true,
+            pageName: (fallback.metaTokens as any)?.pageName || '',
+            hasInstagram: !!(fallback.metaTokens as any)?.instagramAccountId,
+            hasAdAccount: !!(fallback.metaTokens as any)?.adAccountId,
+        } : null),
+    }
 }
 
 // ── Simple JWT (no external deps) ──────────────────────────
@@ -329,52 +379,46 @@ export const getMyInstances = async (c: Context) => {
         const filtered = result.filter(i => i.status !== 'awaiting_payment')
 
         // Build response with per-agent integrations
-        const instancesWithIntegrations = await Promise.all(filtered.map(async (i) => ({
-            id: i.id,
-            planKey: i.planKey,
-            priceIls: i.priceIls,
-            status: i.status,
-            selectedComponents: i.selectedComponents,
-            automationTool: i.automationTool,
-            subdomainAgent: i.subdomainAgent,
-            subdomainFlows: i.subdomainFlows,
-            subdomainName: i.subdomainName,
-            openclawToken: i.openclawToken,
-            automationPassword: i.automationPassword,
-            ip: i.ip,
-            onboardingCompleted: i.onboardingCompleted,
-            onboardingStep: i.onboardingStep,
-            researchData: i.researchData,
-            hasProfile: !!(i.researchData as any)?.answers,
-            hasResearch: !!(i.researchData as any)?.report,
-            hasStrategy: !!(i.researchData as any)?.strategy,
-            aiProviderType: i.aiProviderType,
-            hasAnthropicKey: !!i.aiProviderKey,
-            hasOpenaiKey: !!i.openaiApiKey,
-            hasOllama: ((i.selectedComponents as string[]) || []).includes('ol'),
-            // Legacy integration fields (shared across agents — backwards compat)
-            telegramBotToken: i.telegramBotToken ? true : false,
-            googleTokens: i.googleTokens ? {
-                connected: true,
-                email: (i.googleTokens as any)?.email,
-                scopes: (i.googleTokens as any)?.scopes || [],
-            } : null,
-            metaTokens: i.metaTokens && (i.metaTokens as any).status === 'connected' ? {
-                connected: true,
-                pageName: (i.metaTokens as any)?.pageName,
-                hasInstagram: !!(i.metaTokens as any)?.instagramAccountId,
-                hasAdAccount: !!(i.metaTokens as any)?.adAccountId,
-            } : null,
-            microsoftTokens: i.microsoftTokens ? {
-                connected: true,
-                email: (i.microsoftTokens as any)?.email,
-                displayName: (i.microsoftTokens as any)?.displayName,
-                scopes: (i.microsoftTokens as any)?.scopes || [],
-            } : null,
-            // Per-agent integrations (new: loaded separately)
-            agentIntegrations: await getAllIntegrationsForInstance(i.id),
-            createdAt: i.createdAt,
-        })))
+        const instancesWithIntegrations = await Promise.all(filtered.map(async (i) => {
+            const agentInts = await getAllIntegrationsForInstance(i.id)
+            const primaryAgent = getPrimaryAgent((i.selectedComponents as string[]) || [])
+            const legacy = deriveLegacyIntegrations(agentInts, primaryAgent, {
+                telegramBotToken: i.telegramBotToken,
+                googleTokens: i.googleTokens,
+                microsoftTokens: i.microsoftTokens,
+                metaTokens: i.metaTokens,
+            })
+
+            return {
+                id: i.id,
+                planKey: i.planKey,
+                priceIls: i.priceIls,
+                status: i.status,
+                selectedComponents: i.selectedComponents,
+                automationTool: i.automationTool,
+                subdomainAgent: i.subdomainAgent,
+                subdomainFlows: i.subdomainFlows,
+                subdomainName: i.subdomainName,
+                openclawToken: i.openclawToken,
+                automationPassword: i.automationPassword,
+                ip: i.ip,
+                onboardingCompleted: i.onboardingCompleted,
+                onboardingStep: i.onboardingStep,
+                researchData: i.researchData,
+                hasProfile: !!(i.researchData as any)?.answers,
+                hasResearch: !!(i.researchData as any)?.report,
+                hasStrategy: !!(i.researchData as any)?.strategy,
+                aiProviderType: i.aiProviderType,
+                hasAnthropicKey: !!i.aiProviderKey,
+                hasOpenaiKey: !!i.openaiApiKey,
+                hasOllama: ((i.selectedComponents as string[]) || []).includes('ol'),
+                // Legacy integration fields (derived from agent_integrations, fallback to instances)
+                ...legacy,
+                // Per-agent integrations (grouped by agent type)
+                agentIntegrations: agentInts,
+                createdAt: i.createdAt,
+            }
+        }))
 
         return ok(c, instancesWithIntegrations, 'Instances found.')
     } catch (err) {
