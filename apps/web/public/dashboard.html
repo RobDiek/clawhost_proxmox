@@ -2421,8 +2421,52 @@ function switchAgent(agentType) {
     var tabId = currentTab.getAttribute('data-tab');
     if (tabId === 'home') renderHome();
     if (tabId === 'agents') { renderAgentsTab(); openAgentDetail(agentType); }
-    if (tabId === 'integrations') filterIntegrationsByAgent();
+    if (tabId === 'integrations') {
+      resetGoogleUI();
+      resetMicrosoftUI();
+      renderIntegrations();
+    }
   }
+}
+
+// Switch agent from per-agent integrations zone (no header dropdown toggle)
+function switchAgentIntegrations(agentType) {
+  if (agentType === activeAgent) return;
+  activeAgent = agentType;
+  localStorage.setItem('cf_active_agent', agentType);
+  // Update header switcher display (without toggling dropdown)
+  renderAgentSwitcherBtn();
+  renderAgentSwitcherDropdown();
+  applyAgentContext();
+  // Reset Google/Microsoft UI first (shows "disconnected" while status loads)
+  resetGoogleUI();
+  resetMicrosoftUI();
+  // Full re-render of integrations (zone tabs, sections, status checks)
+  renderIntegrations();
+}
+
+// Reset Google integration UI to disconnected state
+function resetGoogleUI() {
+  var el1 = document.getElementById('google-not-connected');
+  var el2 = document.getElementById('google-connected');
+  var el3 = document.getElementById('google-status');
+  var el4 = document.getElementById('google-card');
+  if (el1) el1.style.display = '';
+  if (el2) el2.style.display = 'none';
+  if (el3) { el3.textContent = 'לא מחובר'; el3.className = 'int-status'; }
+  if (el4) el4.classList.remove('connected-card');
+}
+
+// Reset Microsoft integration UI to disconnected state
+function resetMicrosoftUI() {
+  var el1 = document.getElementById('ms-scopes-section');
+  var el2 = document.getElementById('ms-connected-section');
+  var el3 = document.getElementById('microsoft-status');
+  var el4 = document.getElementById('microsoft-card');
+  if (el1) el1.style.display = '';
+  if (el2) el2.style.display = 'none';
+  if (el3) { el3.textContent = 'לא מחובר'; el3.className = 'int-status'; }
+  if (el4) el4.classList.remove('connected-card');
 }
 
 function applyAgentContext() {
@@ -5014,7 +5058,7 @@ function renderIntegrations() {
       if (agents.length > 1) {
         tabsEl.innerHTML = agents.map(function(a) {
           var isActive = a === activeAgent;
-          return '<button onclick="switchAgent(\'' + a + '\')" style="padding:4px 12px;border-radius:6px;font-size:.75rem;font-weight:' + (isActive ? '700' : '500') + ';border:1px solid ' + (isActive ? '#2563EB' : '#E5E7EB') + ';background:' + (isActive ? '#2563EB' : '#fff') + ';color:' + (isActive ? '#fff' : '#374151') + ';cursor:pointer">' + (AGENT_ICONS[a]||'') + ' ' + (AGENT_NAMES[a]||a) + '</button>';
+          return '<button onclick="switchAgentIntegrations(\'' + a + '\')" style="padding:4px 12px;border-radius:6px;font-size:.75rem;font-weight:' + (isActive ? '700' : '500') + ';border:1px solid ' + (isActive ? '#2563EB' : '#E5E7EB') + ';background:' + (isActive ? '#2563EB' : '#fff') + ';color:' + (isActive ? '#fff' : '#374151') + ';cursor:pointer">' + (AGENT_ICONS[a]||'') + ' ' + (AGENT_NAMES[a]||a) + '</button>';
         }).join('');
       } else {
         tabsEl.innerHTML = '';
