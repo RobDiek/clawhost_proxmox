@@ -1713,20 +1713,28 @@ export const addAgentToInstance = async (c: Context) => {
             await sshExec(instance.ip, 'chown -R openclaw:openclaw /home/openclaw/.openclaw', instance.rootPassword || undefined)
 
             // Register all 8 MATEH sub-agents
+            // Register sub-agents with tiered model routing:
+            // Tier 1 (haiku): sayer, meater, maazin, yotzer, shaliach — internal agents
+            // Tier 2 (sonnet): et, migdalor — client-facing content
+            // Tier 3 (opus): menateach — strategy & complex analysis
             await sshExec(instance.ip, `
                 su - openclaw -c '
                 HAS_ANTHROPIC=$(grep -c ANTHROPIC_API_KEY /etc/systemd/system/openclaw-gateway.service 2>/dev/null || echo 0)
                 if [ "$HAS_ANTHROPIC" -gt 0 ]; then
-                  PRIMARY_MODEL="anthropic/claude-opus-4-6"; SECONDARY_MODEL="anthropic/claude-sonnet-4-6"
+                  OPUS="anthropic/claude-opus-4-6"
+                  SONNET="anthropic/claude-sonnet-4-6"
+                  HAIKU="anthropic/claude-haiku-4-5-20251001"
                 else
-                  PRIMARY_MODEL="openai/gpt-4o"; SECONDARY_MODEL="openai/gpt-4o"
+                  OPUS="openai/gpt-4o"
+                  SONNET="openai/gpt-4o"
+                  HAIKU="openai/gpt-4o-mini"
                 fi
                 for AGENT_NAME in sayer menateach meater maazin et yotzer shaliach migdalor; do
-                  if [ "$AGENT_NAME" = "sayer" ] || [ "$AGENT_NAME" = "menateach" ]; then
-                    MODEL="$PRIMARY_MODEL"
-                  else
-                    MODEL="$SECONDARY_MODEL"
-                  fi
+                  case "$AGENT_NAME" in
+                    menateach) MODEL="$OPUS" ;;
+                    et|migdalor) MODEL="$SONNET" ;;
+                    *) MODEL="$HAIKU" ;;
+                  esac
                   openclaw agents add "$AGENT_NAME" --model "$MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/"$AGENT_NAME" --non-interactive 2>/dev/null
                 done
                 '
