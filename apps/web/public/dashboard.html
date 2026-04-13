@@ -6806,32 +6806,61 @@ var currentAgentType = null; // Track which agent detail is open
 
 function deleteCurrentAgent() {
   if (!currentAgentType) { showToast('שגיאה', 'error'); return; }
-  var agentNames = { mt: 'MATEH — משווק', oc: 'OpenClaw Personal' };
+  var agentNames = { mt: 'MATEH — משווק', oc: 'OpenClaw Personal', bare: 'Bare Metal' };
   var name = agentNames[currentAgentType] || currentAgentType;
+  var removedType = currentAgentType;
 
   cfConfirm('הסרת סוכן', 'להסיר את ' + name + '?\nכל הנתונים של הסוכן הזה יימחקו מהשרת.').then(function(ok) {
     if (!ok) return;
-    showToast('מסיר סוכן...', 'info');
+
+    // Disable button + show progress
+    var btn = document.getElementById('btn-delete-agent');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ מסיר...'; }
+    showToast('מסיר את ' + name + ' מהשרת... זה יכול לקחת כמה שניות', 'info');
+
     fetch(API + '/hosting/instances/' + instanceId + '/agents/remove', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ agentType: currentAgentType })
+      body: JSON.stringify({ agentType: removedType })
     }).then(function(r) { return r.json(); })
     .then(function(d) {
       if (d.success) {
-        showToast('הסוכן הוסר', 'success');
+        showToast(name + ' הוסר בהצלחה!', 'success');
+
+        // Update local components
         if (d.data && d.data.components) {
           components = d.data.components;
           localStorage.setItem('cf_instance_components', JSON.stringify(components));
+          if (instanceData) instanceData.selectedComponents = components;
         }
+
+        // Switch active agent to remaining agent (don't stay on deleted one)
+        var remaining = getAgentComponents();
+        if (remaining.length > 0 && remaining.indexOf(removedType) === -1) {
+          activeAgent = remaining[0];
+          localStorage.setItem('cf_active_agent', activeAgent);
+          renderAgentSwitcherBtn();
+          renderAgentSwitcherDropdown();
+        }
+
+        // Refresh instance data from server
+        refreshInstanceData();
+
         // Go back to agents list
         document.getElementById('agent-detail-view').classList.add('hidden');
         document.getElementById('agents-list-view').classList.remove('hidden');
         renderAgentsTab();
+
+        // Switch to home tab for clean view
+        switchTab('home');
       } else {
-        showToast(d.message || 'שגיאה', 'error');
+        showToast(d.message || 'שגיאה בהסרה', 'error');
+        if (btn) { btn.disabled = false; btn.textContent = '🗑️ הסירו סוכן'; }
       }
-    }).catch(function() { showToast('שגיאת תקשורת', 'error'); });
+    }).catch(function(err) {
+      showToast('שגיאת תקשורת — נסו שוב', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '🗑️ הסירו סוכן'; }
+    });
   });
 }
 
