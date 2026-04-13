@@ -3139,7 +3139,8 @@ function renderApprovalQueue() {
 
   // Fetch real outputs from API
   var filterParam = aqFilterStatus ? '&status=' + aqFilterStatus : '&exclude_archived=1';
-  fetch(API + '/hosting/instances/' + instanceId + '/outputs?limit=20' + filterParam, {
+  var agentParam = activeAgent ? '&agent=' + activeAgent : '';
+  fetch(API + '/hosting/instances/' + instanceId + '/outputs?limit=20' + filterParam + agentParam, {
     headers: { 'Authorization': 'Bearer ' + token }
   }).then(function(r) { return r.ok ? r.json() : null; })
   .then(function(d) {

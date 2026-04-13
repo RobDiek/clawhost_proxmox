@@ -81,11 +81,23 @@ export const getOutputs = async (c: Context<HonoEnv>) => {
 
         const excludeArchived = c.req.query('exclude_archived') === '1'
 
+        const agentFilter = c.req.query('agent') // 'oc', 'mt', 'bare'
+        const MATEH_ROLES = ['mateh', 'sayer', 'meater', 'maazin', 'menateach', 'et', 'yotzer', 'shaliach', 'migdalor']
+
         const conditions = [eq(agentOutputs.instanceId, instanceId)]
         if (status) {
             conditions.push(eq(agentOutputs.status, status))
         } else if (excludeArchived) {
             conditions.push(ne(agentOutputs.status, 'archived'))
+        }
+        // Filter by agent type
+        if (agentFilter === 'mt') {
+            conditions.push(inArray(agentOutputs.agentRole, MATEH_ROLES))
+        } else if (agentFilter === 'oc' || agentFilter === 'bare') {
+            // Personal/Bare: exclude MATEH roles
+            for (const role of MATEH_ROLES) {
+                conditions.push(ne(agentOutputs.agentRole, role))
+            }
         }
 
         const results = await db.select()
