@@ -8,7 +8,7 @@ import { ok, fail } from '@/lib/response'
 import { Client } from 'ssh2'
 import crypto from 'crypto'
 import { resolveUserId } from './authHelper'
-import { setAgentIntegration, removeAgentIntegration, getAgentIntegration, getPrimaryAgent, type AgentType } from '@/services/agentIntegrations'
+import { setAgentIntegration, removeAgentIntegration, getAgentIntegration, getAllIntegrations, getPrimaryAgent, type AgentType } from '@/services/agentIntegrations'
 
 /** Parse JWT from ?token= query param (for OAuth redirects that can't send Authorization header) */
 function resolveUserIdFromQuery(c: Context): string | null {
@@ -256,10 +256,14 @@ export const microsoftDisconnect = async (c: Context) => {
         // Remove from per-agent integrations
         await removeAgentIntegration(instanceId, agentType, 'microsoft')
 
-        // Legacy cleanup
-        await db.update(instances)
-            .set({ microsoftTokens: null })
-            .where(eq(instances.id, instanceId))
+        // Legacy cleanup: only null out if no other agent has Microsoft connected
+        const remaining = await getAllIntegrations(instanceId)
+        const anyMicrosoftLeft = remaining.some(r => r.integrationType === 'microsoft' && r.status === 'connected')
+        if (!anyMicrosoftLeft) {
+            await db.update(instances)
+                .set({ microsoftTokens: null })
+                .where(eq(instances.id, instanceId))
+        }
 
         // Remove MCP server: stop → edit → start (per-agent name)
         const mcpServerName = `ms-365-${agentType}`
