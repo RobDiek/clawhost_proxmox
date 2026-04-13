@@ -4243,7 +4243,8 @@ async function loadMcpServers() {
     }
     var servers = (data.data.servers || []).filter(function(s) {
       // Hide OAuth-managed servers (already shown in Google/Microsoft sections above)
-      return s.id !== 'google-workspace' && s.id !== 'ms-365';
+      // Includes both legacy names and new per-agent suffixed names
+      return !s.id.startsWith('google-workspace') && !s.id.startsWith('ms-365');
     });
     if (servers.length === 0) {
       container.innerHTML = '<div style="text-align:center;padding:16px;color:#9CA3AF">אין שרתי MCP נוספים זמינים</div>';
@@ -7682,29 +7683,30 @@ function restoreIntegrationStates() {
 
 async function restoreSeoIntegrationStates() {
   var iid = localStorage.getItem('cf_instance_id');
-  if (!iid) return;
+  if (!iid || !token) return;
+  var headers = { 'Authorization': 'Bearer ' + token };
   // GSC
   try {
-    var res = await fetch(API + '/hosting/integrations/gsc/status?instanceId=' + iid);
-    var data = await res.json();
-    if (data.success && data.data.connected) {
-      showGscConnected(data.data);
+    var res = await fetch(API + '/hosting/integrations/gsc/status?instanceId=' + iid, { headers: headers });
+    if (res.ok) {
+      var data = await res.json();
+      if (data.success && data.data && data.data.connected) {
+        showGscConnected(data.data);
+      }
     }
   } catch {}
-  // DataForSEO
+  // DataForSEO — read from agent_integrations (no separate endpoint needed)
   try {
-    var res2 = await fetch(API + '/hosting/integrations/dataforseo/status?instanceId=' + iid);
-    var data2 = await res2.json();
-    if (data2.success && data2.data.connected) {
-      showDataforseoConnected(data2.data.login);
+    var agentInts = (instanceData && instanceData.agentIntegrations && instanceData.agentIntegrations[activeAgent]) || {};
+    if (agentInts.dataforseo && agentInts.dataforseo.connected) {
+      showDataforseoConnected((agentInts.dataforseo.config || {}).login || '');
     }
   } catch {}
-  // Firecrawl
+  // Firecrawl — read from agent_integrations
   try {
-    var res3 = await fetch(API + '/hosting/integrations/firecrawl/status?instanceId=' + iid);
-    var data3 = await res3.json();
-    if (data3.success && data3.data.connected) {
-      showFirecrawlConnected(data3.data.masked);
+    if (agentInts.firecrawl && agentInts.firecrawl.connected) {
+      var key = (agentInts.firecrawl.config || {}).key || '';
+      showFirecrawlConnected(key ? key.substring(0, 6) + '...' : '');
     }
   } catch {}
 }
