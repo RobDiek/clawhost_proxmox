@@ -7788,7 +7788,7 @@ async function changeGscSite() {
   if (!iid || !siteUrl) return;
   try {
     var res = await fetch(API + '/hosting/integrations/gsc/set-site?instanceId=' + iid, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') },
       body: JSON.stringify({ siteUrl: siteUrl })
     });
     var data = await res.json();
@@ -7804,7 +7804,7 @@ async function disconnectGsc() {
   if (!confirm('לנתק Google Search Console?')) return;
   var iid = localStorage.getItem('cf_instance_id');
   try {
-    await fetch(API + '/hosting/integrations/gsc/disconnect?instanceId=' + iid, { method: 'POST' });
+    await fetch(API + '/hosting/integrations/gsc/disconnect?instanceId=' + iid, { method: 'POST', headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') } });
     showToast('GSC נותק', 'success');
     document.getElementById('gsc-not-connected').style.display = '';
     document.getElementById('gsc-connected').style.display = 'none';
@@ -7825,7 +7825,7 @@ async function saveDataforseo() {
   if (!login || !password) { showToast('הכניסו Login ו-Password', 'error'); return; }
   try {
     var res = await fetch(API + '/hosting/integrations/dataforseo/save', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') },
       body: JSON.stringify({ instanceId: iid, login: login, password: password })
     });
     var data = await res.json();
@@ -7851,7 +7851,7 @@ async function disconnectDataforseo() {
   if (!confirm('להסיר DataForSEO?')) return;
   var iid = localStorage.getItem('cf_instance_id');
   try {
-    await fetch(API + '/hosting/integrations/dataforseo/disconnect?instanceId=' + iid, { method: 'POST' });
+    await fetch(API + '/hosting/integrations/dataforseo/disconnect?instanceId=' + iid, { method: 'POST', headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') } });
     showToast('DataForSEO הוסר', 'success');
     document.getElementById('dataforseo-not-connected').style.display = '';
     document.getElementById('dataforseo-connected').style.display = 'none';
@@ -7871,7 +7871,7 @@ async function saveFirecrawl() {
   if (!key) { showToast('הכניסו API Key', 'error'); return; }
   try {
     var res = await fetch(API + '/hosting/integrations/firecrawl/save', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') },
       body: JSON.stringify({ instanceId: iid, key: key })
     });
     var data = await res.json();
@@ -7898,7 +7898,7 @@ async function disconnectFirecrawl() {
   if (!confirm('להסיר Firecrawl?')) return;
   var iid = localStorage.getItem('cf_instance_id');
   try {
-    await fetch(API + '/hosting/integrations/firecrawl/disconnect?instanceId=' + iid, { method: 'POST' });
+    await fetch(API + '/hosting/integrations/firecrawl/disconnect?instanceId=' + iid, { method: 'POST', headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') } });
     showToast('Firecrawl הוסר', 'success');
     document.getElementById('firecrawl-not-connected').style.display = '';
     document.getElementById('firecrawl-connected').style.display = 'none';
@@ -8118,8 +8118,9 @@ async function saveBundleSchedule(bundleId, capId) {
   });
 
   try {
+    var tk = localStorage.getItem('cf_token');
     var res = await fetch(API + '/hosting/instances/' + iid + '/schedules', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (tk || '') },
       body: JSON.stringify({ bundleId: bundleId, schedules: schedules })
     });
     var data = await res.json();
@@ -8132,9 +8133,10 @@ async function saveBundleSchedule(bundleId, capId) {
 
 async function loadBundleSchedules() {
   var iid = localStorage.getItem('cf_instance_id');
-  if (!iid) return;
+  var tk = localStorage.getItem('cf_token');
+  if (!iid || !tk) return;
   try {
-    var res = await fetch(API + '/hosting/instances/' + iid + '/schedules');
+    var res = await fetch(API + '/hosting/instances/' + iid + '/schedules', { headers: { 'Authorization': 'Bearer ' + tk } });
     var data = await res.json();
     if (data.success && data.data) { _bundleScheduleData = data.data; }
   } catch {}
