@@ -145,6 +145,15 @@ export const googleCallback = async (c: Context) => {
             console.error('Google OAuth state HMAC mismatch — possible tampering')
             return c.redirect(`${FRONTEND_URL}/dashboard.html?google_error=invalid_state`)
         }
+
+        // Route to GSC callback if state indicates GSC auth
+        try {
+            const statePayload = JSON.parse(stateOuter.p)
+            if (statePayload.type === 'gsc') {
+                const { gscCallbackHandler } = await import('./gsc')
+                return gscCallbackHandler(c, code!, stateOuter)
+            }
+        } catch { /* not GSC — continue with normal Google flow */ }
         const stateData = JSON.parse(stateOuter.p)
         const { instanceId, scopes } = stateData
         // Extract agent type from state (defaults to primary agent for backward compat)

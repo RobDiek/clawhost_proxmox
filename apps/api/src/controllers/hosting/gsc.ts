@@ -21,7 +21,8 @@ import { setAgentIntegration, removeAgentIntegration, getPrimaryAgent } from '@/
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || ''
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
-const GOOGLE_REDIRECT_URI = process.env.GSC_REDIRECT_URI || process.env.GOOGLE_REDIRECT_URI?.replace('/google/', '/gsc/') || 'https://api.clawflow.flowmatic.co.il/hosting/integrations/gsc/callback'
+// Reuse the same Google OAuth redirect URI — differentiate by state.type='gsc'
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'https://api.clawflow.flowmatic.co.il/hosting/integrations/google/callback'
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://clawflow.flowmatic.co.il'
 
 const GSC_SCOPES = [
@@ -109,118 +110,125 @@ export const gscAuth = async (c: Context) => {
     }
 }
 
-// ── GET /integrations/gsc/callback ──
+// ── Core GSC token exchange + save logic ──
+// Used by both gscCallback (direct) and gscCallbackHandler (routed from google.ts)
+async function processGscCallback(c: Context, code: string, instanceId: string, siteUrl: string): Promise<Response> {
+    // Exchange code for tokens
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            code,
+            client_id: GOOGLE_CLIENT_ID,
+            client_secret: GOOGLE_CLIENT_SECRET,
+            redirect_uri: GOOGLE_REDIRECT_URI,
+            grant_type: 'authorization_code',
+        }),
+    })
+
+    const tokenData = await tokenRes.json() as {
+        access_token?: string
+        refresh_token?: string
+        expires_in?: number
+        error?: string
+        error_description?: string
+    }
+
+    if (tokenData.error || !tokenData.access_token) {
+        console.error('GSC token exchange failed:', tokenData.error_description || tokenData.error)
+        return c.redirect(`${FRONTEND_URL}/dashboard?gsc_error=token_failed`)
+    }
+
+    // Get user email
+    let email = ''
+    try {
+        const userRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: { Authorization: `Bearer ${tokenData.access_token}` },
+        })
+        const userData = await userRes.json() as { email?: string }
+        email = userData.email || ''
+    } catch { /* non-critical */ }
+
+    // Fetch available sites from GSC
+    let sites: string[] = []
+    try {
+        const sitesRes = await fetch('https://www.googleapis.com/webmasters/v3/sites', {
+            headers: { Authorization: `Bearer ${tokenData.access_token}` },
+        })
+        const sitesData = await sitesRes.json() as { siteEntry?: Array<{ siteUrl: string; permissionLevel: string }> }
+        sites = (sitesData.siteEntry || []).map(s => s.siteUrl)
+    } catch (err) {
+        console.error('Failed to fetch GSC sites:', err)
+    }
+
+    // Save GSC tokens to DB
+    const gscTokens = {
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token || '',
+        expiresAt: Date.now() + (tokenData.expires_in || 3600) * 1000,
+        email,
+        siteUrl: siteUrl || sites[0] || '',
+        sites,
+        connectedAt: new Date().toISOString(),
+    }
+
+    await db.update(instances)
+        .set({ gscTokens: gscTokens as any })
+        .where(eq(instances.id, instanceId))
+
+    // Write to per-agent integrations
+    const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+    const agentType = getPrimaryAgent((inst?.selectedComponents as string[]) || [])
+    await setAgentIntegration(instanceId, agentType, 'gsc', gscTokens as any)
+        .catch(err => console.error('Failed to set agent GSC integration:', err))
+
+    console.log(`GSC connected for instance ${instanceId}: ${email} (sites: ${sites.length})`)
+
+    // Deploy GSC MCP to VPS
+    if (inst?.ip) {
+        try {
+            await deployGscMcpToVPS(inst.ip, inst.rootPassword || undefined, {
+                clientId: GOOGLE_CLIENT_ID,
+                clientSecret: GOOGLE_CLIENT_SECRET,
+                refreshToken: tokenData.refresh_token || '',
+                siteUrl: gscTokens.siteUrl,
+            })
+            await updateSoulWithGscTools(inst.ip, inst.rootPassword || undefined)
+        } catch (deployErr) {
+            console.error('Failed to deploy GSC MCP to VPS:', deployErr)
+        }
+    }
+
+    return c.redirect(`${FRONTEND_URL}/dashboard?gsc_connected=true&sites=${sites.length}`)
+}
+
+// ── Called from google.ts callback when state.type === 'gsc' ──
+export const gscCallbackHandler = async (c: Context, code: string, stateOuter: { p: string; s: string }) => {
+    try {
+        const { instanceId, siteUrl } = JSON.parse(stateOuter.p)
+        return processGscCallback(c, code, instanceId, siteUrl || '')
+    } catch (err) {
+        console.error('gscCallbackHandler error:', err)
+        return c.redirect(`${FRONTEND_URL}/dashboard?gsc_error=server_error`)
+    }
+}
+
+// ── GET /integrations/gsc/callback (direct — fallback) ──
 export const gscCallback = async (c: Context) => {
     try {
         const code = c.req.query('code')
         const stateParam = c.req.query('state')
         const error = c.req.query('error')
 
-        if (error) {
-            console.error('GSC OAuth error:', error)
-            return c.redirect(`${FRONTEND_URL}/dashboard?gsc_error=${error}`)
-        }
+        if (error) return c.redirect(`${FRONTEND_URL}/dashboard?gsc_error=${error}`)
+        if (!code || !stateParam) return c.redirect(`${FRONTEND_URL}/dashboard?gsc_error=missing_params`)
 
-        if (!code || !stateParam) {
-            return c.redirect(`${FRONTEND_URL}/dashboard?gsc_error=missing_params`)
-        }
-
-        // Decode and verify state
         const stateOuter = JSON.parse(Buffer.from(stateParam, 'base64url').toString())
         const expectedHmac = crypto.createHmac('sha256', process.env.JWT_SECRET || '').update(stateOuter.p).digest('base64url')
-        if (stateOuter.s !== expectedHmac) {
-            console.error('GSC OAuth state HMAC mismatch')
-            return c.redirect(`${FRONTEND_URL}/dashboard?gsc_error=invalid_state`)
-        }
+        if (stateOuter.s !== expectedHmac) return c.redirect(`${FRONTEND_URL}/dashboard?gsc_error=invalid_state`)
+
         const { instanceId, siteUrl } = JSON.parse(stateOuter.p)
-
-        // Exchange code for tokens
-        const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                code,
-                client_id: GOOGLE_CLIENT_ID,
-                client_secret: GOOGLE_CLIENT_SECRET,
-                redirect_uri: GOOGLE_REDIRECT_URI,
-                grant_type: 'authorization_code',
-            }),
-        })
-
-        const tokenData = await tokenRes.json() as {
-            access_token?: string
-            refresh_token?: string
-            expires_in?: number
-            error?: string
-            error_description?: string
-        }
-
-        if (tokenData.error || !tokenData.access_token) {
-            console.error('GSC token exchange failed:', tokenData.error_description || tokenData.error)
-            return c.redirect(`${FRONTEND_URL}/dashboard?gsc_error=token_failed`)
-        }
-
-        // Get user email
-        let email = ''
-        try {
-            const userRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-                headers: { Authorization: `Bearer ${tokenData.access_token}` },
-            })
-            const userData = await userRes.json() as { email?: string }
-            email = userData.email || ''
-        } catch { /* non-critical */ }
-
-        // Fetch available sites from GSC to validate
-        let sites: string[] = []
-        try {
-            const sitesRes = await fetch('https://www.googleapis.com/webmasters/v3/sites', {
-                headers: { Authorization: `Bearer ${tokenData.access_token}` },
-            })
-            const sitesData = await sitesRes.json() as { siteEntry?: Array<{ siteUrl: string; permissionLevel: string }> }
-            sites = (sitesData.siteEntry || []).map(s => s.siteUrl)
-        } catch (err) {
-            console.error('Failed to fetch GSC sites:', err)
-        }
-
-        // Save GSC tokens to DB
-        const gscTokens = {
-            accessToken: tokenData.access_token,
-            refreshToken: tokenData.refresh_token || '',
-            expiresAt: Date.now() + (tokenData.expires_in || 3600) * 1000,
-            email,
-            siteUrl: siteUrl || sites[0] || '',
-            sites,
-            connectedAt: new Date().toISOString(),
-        }
-
-        await db.update(instances)
-            .set({ gscTokens: gscTokens as any })
-            .where(eq(instances.id, instanceId))
-
-        // Write to per-agent integrations
-        const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        const agentType = getPrimaryAgent((inst?.selectedComponents as string[]) || [])
-        await setAgentIntegration(instanceId, agentType, 'gsc', gscTokens as any)
-            .catch(err => console.error('Failed to set agent GSC integration:', err))
-
-        console.log(`GSC connected for instance ${instanceId}: ${email} (sites: ${sites.length})`)
-
-        // Deploy GSC MCP to VPS
-        if (inst?.ip) {
-            try {
-                await deployGscMcpToVPS(inst.ip, inst.rootPassword || undefined, {
-                    clientId: GOOGLE_CLIENT_ID,
-                    clientSecret: GOOGLE_CLIENT_SECRET,
-                    refreshToken: tokenData.refresh_token || '',
-                    siteUrl: gscTokens.siteUrl,
-                })
-                await updateSoulWithGscTools(inst.ip, inst.rootPassword || undefined)
-            } catch (deployErr) {
-                console.error('Failed to deploy GSC MCP to VPS:', deployErr)
-            }
-        }
-
-        return c.redirect(`${FRONTEND_URL}/dashboard?gsc_connected=true&sites=${sites.length}`)
+        return processGscCallback(c, code, instanceId, siteUrl || '')
     } catch (err) {
         console.error('gscCallback error:', err)
         return c.redirect(`${FRONTEND_URL}/dashboard?gsc_error=server_error`)
