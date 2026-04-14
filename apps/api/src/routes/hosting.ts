@@ -142,7 +142,9 @@ import {
     removeDataforseoKey,
     saveFirecrawlKey,
     getFirecrawlStatus,
-    removeFirecrawlKey
+    removeFirecrawlKey,
+    getSchedules,
+    saveSchedules
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -234,6 +236,10 @@ app.post('/integrations/dataforseo/disconnect', removeDataforseoKey)
 app.post('/integrations/firecrawl/save', saveFirecrawlKey)
 app.get('/integrations/firecrawl/status', getFirecrawlStatus)
 app.post('/integrations/firecrawl/disconnect', removeFirecrawlKey)
+
+// ── Schedules (bundle-managed) ──
+app.get('/instances/:id/schedules', getSchedules)
+app.post('/instances/:id/schedules', saveSchedules)
 
 // ── Agent Outputs (approval queue) ──
 app.get('/instances/:id/outputs', getOutputs)

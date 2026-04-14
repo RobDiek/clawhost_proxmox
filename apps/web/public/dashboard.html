@@ -574,6 +574,28 @@ input{font-family:inherit}
 .int-help-steps { font-size:0.78rem;color:#6B7280;margin-top:8px;line-height:1.6 }
 .int-help-steps a { color:#2563EB }
 .btn-sm { padding:6px 14px;font-size:0.82rem }
+/* Bundle progress system */
+.bundle-section{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px;margin-bottom:12px}
+.bundle-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.bundle-title{font-weight:600;font-size:0.88rem;color:#374151}
+.bundle-level-badge{font-size:0.72rem;background:#EFF6FF;color:#2563EB;padding:2px 8px;border-radius:10px;font-weight:600}
+.bundle-level-badge.full{background:#ECFDF5;color:#059669}
+.bundle-progress-bar{display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.bp-step{text-align:center;flex:0 0 auto;min-width:70px}
+.bp-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:600;margin:0 auto 4px}
+.bp-step.completed .bp-dot{background:#10B981;color:#fff}
+.bp-step.active .bp-dot{background:#2563EB;color:#fff;box-shadow:0 0 0 3px rgba(37,99,235,0.2)}
+.bp-step.locked .bp-dot{background:#E5E7EB;color:#9CA3AF}
+.bp-label{font-size:0.68rem;color:#6B7280;white-space:nowrap}
+.bp-connector{flex:1;height:2px;background:#E5E7EB;min-width:16px;margin:0 4px;margin-bottom:20px}
+.bp-connector.done{background:#10B981}
+.bundle-unlock-hint{background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:0.82rem;color:#92400E;margin-bottom:12px}
+.bundle-unlock-hint .btn{white-space:nowrap}
+.locked-schedule{opacity:0.45;pointer-events:none}
+.locked-schedule .schedule-name{font-style:italic}
+.sched-unlock-btn{pointer-events:all;opacity:1}
+.bundle-int-badge{font-size:0.72rem;background:#EFF6FF;color:#2563EB;padding:2px 8px;border-radius:10px;font-weight:600;margin-right:8px}
+.bundle-int-badge.full{background:#ECFDF5;color:#059669}
 .tab-title { font-size:1.3rem;font-weight:700;margin-bottom:4px }
 .tab-desc { font-size:0.9rem;color:#6B7280;margin-bottom:20px }
 
@@ -1016,6 +1038,9 @@ input{font-family:inherit}
         </div>
         </div>
       </div>
+
+      <!-- Bundle-driven scheduled tasks (SEO, CRM, etc) -->
+      <div id="bundle-schedules-container" style="margin-top:12px"></div>
 
       <!-- 4a. Model preferences (Personal/Bare agents) -->
       <div id="model-prefs-section" style="display:none">
@@ -1585,7 +1610,10 @@ input{font-family:inherit}
     </div>
 
     <!-- SEO & AI Visibility -->
-    <div class="section-title" data-int-section="seo">SEO & AI Visibility</div>
+    <div class="section-title" data-int-section="seo" style="display:flex;align-items:center;justify-content:space-between">
+      <span>SEO & AI Visibility</span>
+      <span class="bundle-int-badge" id="seo-bundle-badge">0/3 מחובר</span>
+    </div>
     <div class="integrations-grid">
 
       <!-- Google Search Console (OAuth) -->
@@ -7007,6 +7035,9 @@ function openAgentDetail(agentType) {
   var matehSchedules = document.getElementById('mateh-schedules-section');
   if (matehSchedules) matehSchedules.style.display = isMatehAgent ? '' : 'none';
 
+  // Render bundle schedules (SEO, etc)
+  renderBundleSchedules();
+
   // Populate saved profile if exists
   if (isMatehAgent) {
     renderAgentProfile();
@@ -7709,6 +7740,9 @@ async function restoreSeoIntegrationStates() {
       showFirecrawlConnected(key ? key.substring(0, 6) + '...' : '');
     }
   } catch {}
+  // Load bundle schedules and refresh UI
+  await loadBundleSchedules();
+  refreshBundleUI();
 }
 
 // ── GSC ──
@@ -7745,6 +7779,7 @@ function showGscConnected(data) {
   if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
   var card = document.getElementById('gsc-card');
   if (card) card.classList.add('connected-card');
+  refreshBundleUI();
 }
 
 async function changeGscSite() {
@@ -7777,6 +7812,7 @@ async function disconnectGsc() {
     if (statusEl) { statusEl.textContent = 'לא מחובר'; statusEl.className = 'int-status'; }
     var card = document.getElementById('gsc-card');
     if (card) card.classList.remove('connected-card');
+    refreshBundleUI();
   } catch { showToast('שגיאה', 'error'); }
 }
 
@@ -7808,6 +7844,7 @@ function showDataforseoConnected(login) {
   if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
   var card = document.getElementById('dataforseo-card');
   if (card) card.classList.add('connected-card');
+  refreshBundleUI();
 }
 
 async function disconnectDataforseo() {
@@ -7822,6 +7859,7 @@ async function disconnectDataforseo() {
     if (statusEl) { statusEl.textContent = 'לא מחובר'; statusEl.className = 'int-status'; }
     var card = document.getElementById('dataforseo-card');
     if (card) card.classList.remove('connected-card');
+    refreshBundleUI();
   } catch { showToast('שגיאה', 'error'); }
 }
 
@@ -7853,6 +7891,7 @@ function showFirecrawlConnected(masked) {
   if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
   var card = document.getElementById('firecrawl-card');
   if (card) card.classList.add('connected-card');
+  refreshBundleUI();
 }
 
 async function disconnectFirecrawl() {
@@ -7867,6 +7906,7 @@ async function disconnectFirecrawl() {
     if (statusEl) { statusEl.textContent = 'לא מחובר'; statusEl.className = 'int-status'; }
     var card = document.getElementById('firecrawl-card');
     if (card) card.classList.remove('connected-card');
+    refreshBundleUI();
   } catch { showToast('שגיאה', 'error'); }
 }
 
@@ -7882,6 +7922,237 @@ async function disconnectFirecrawl() {
     history.replaceState(null, '', window.location.pathname);
   }
 })();
+
+/* ===== Integration Bundles System ===== */
+
+var BUNDLE_REGISTRY = {
+  seo: {
+    id: 'seo',
+    nameHe: 'SEO ונראות AI',
+    icon: '📊',
+    integrations: ['gsc', 'dataforseo', 'firecrawl'],
+    integrationNames: { gsc: 'GSC', dataforseo: 'DataForSEO', firecrawl: 'Firecrawl' },
+    tiers: [
+      {
+        level: 1, requires: ['gsc'], label: 'ניטור בסיסי',
+        capabilities: [
+          { id: 'gsc_daily_check', name: 'בדיקת GSC יומית', desc: 'ירידות מיקום, שגיאות אינדוקס', scheduleType: 'daily', model: 'haiku' },
+          { id: 'gsc_weekly_digest', name: 'סיכום SEO שבועי', desc: 'טופ 10 שאילתות, טרנדים, הזדמנויות', scheduleType: 'weekly', model: 'sonnet' }
+        ],
+        unlockMessage: 'חברו GSC (חינם) כדי להפעיל ניטור יומי ושבועי'
+      },
+      {
+        level: 2, requires: ['gsc', 'dataforseo'], label: 'מחקר + AEO',
+        capabilities: [
+          { id: 'competitor_keywords', name: 'ניתוח מילות מפתח מתחרים', desc: 'gaps, volume, difficulty', scheduleType: null, model: 'haiku' },
+          { id: 'aeo_deep_audit', name: 'ביקורת AEO חודשית', desc: 'ציטוטים ב-ChatGPT, Perplexity, Claude', scheduleType: 'monthly', model: 'sonnet' }
+        ],
+        unlockMessage: 'הוסיפו DataForSEO (~$5/חודש) למחקר מתחרים ומעקב AI'
+      },
+      {
+        level: 3, requires: ['gsc', 'dataforseo', 'firecrawl'], label: 'Pipeline מלא',
+        capabilities: [
+          { id: 'tech_audit', name: 'ביקורת טכנית חודשית', desc: 'קישורים שבורים, CWV, Schema, llms.txt', scheduleType: 'monthly', model: 'haiku' },
+          { id: 'competitor_crawl', name: 'סריקת מתחרים', desc: 'מיפוי מבנה תוכן, internal linking', scheduleType: null, model: 'haiku' },
+          { id: 'auto_fix_pipeline', name: 'תיקון דירוג אוטומטי', desc: 'זיהוי ירידה → אבחון → תיקון → אימות', scheduleType: null, model: 'sonnet' }
+        ],
+        unlockMessage: 'הוסיפו Firecrawl (500 דפים/חודש חינם) לביקורת טכנית וסריקת מתחרים'
+      }
+    ],
+    defaultSchedules: {
+      gsc_daily_check: { enabled: true, time: '07:30', days: [0,1,2,3,4] },
+      gsc_weekly_digest: { enabled: true, time: '09:00', weekday: 3 },
+      aeo_deep_audit: { enabled: true, time: '10:00', monthday: 15 },
+      tech_audit: { enabled: true, time: '10:00', monthday: 1 }
+    }
+  }
+};
+
+var _bundleScheduleData = {};
+
+function isIntConnected(type) {
+  if (type === 'gsc') {
+    var el = document.getElementById('gsc-status');
+    return el && el.classList.contains('connected');
+  }
+  if (type === 'dataforseo') {
+    var el = document.getElementById('dataforseo-connected');
+    return el && el.style.display !== 'none';
+  }
+  if (type === 'firecrawl') {
+    var el = document.getElementById('firecrawl-connected');
+    return el && el.style.display !== 'none';
+  }
+  return false;
+}
+
+function getBundleState(bundleId) {
+  var bundle = BUNDLE_REGISTRY[bundleId];
+  if (!bundle) return null;
+  var connected = {};
+  var connCount = 0;
+  bundle.integrations.forEach(function(id) { connected[id] = isIntConnected(id); if (connected[id]) connCount++; });
+  var currentLevel = 0;
+  bundle.tiers.forEach(function(tier) {
+    if (tier.requires.every(function(r) { return connected[r]; })) currentLevel = tier.level;
+  });
+  var nextTier = null;
+  for (var i = 0; i < bundle.tiers.length; i++) {
+    if (bundle.tiers[i].level === currentLevel + 1) { nextTier = bundle.tiers[i]; break; }
+  }
+  var missing = nextTier ? nextTier.requires.filter(function(r) { return !connected[r]; }) : [];
+  return { bundleId: bundleId, connected: connected, connCount: connCount, total: bundle.integrations.length, currentLevel: currentLevel, maxLevel: bundle.tiers.length, nextTier: nextTier, missing: missing };
+}
+
+function renderBundleSchedules() {
+  var container = document.getElementById('bundle-schedules-container');
+  if (!container) return;
+  var html = '';
+  var DAYS_HE = ['א','ב','ג','ד','ה','ו','ש'];
+  Object.keys(BUNDLE_REGISTRY).forEach(function(bid) {
+    var bundle = BUNDLE_REGISTRY[bid];
+    var state = getBundleState(bid);
+    if (!state || state.connCount === 0) return; // skip bundles with no connections
+
+    var schedData = _bundleScheduleData[bid] || {};
+
+    // Progress bar
+    html += '<div class="bundle-section" data-bundle="' + bid + '">';
+    html += '<div class="bundle-header-row"><span class="bundle-title">' + bundle.icon + ' ' + bundle.nameHe + '</span>';
+    html += '<span class="bundle-level-badge' + (state.currentLevel === state.maxLevel ? ' full' : '') + '">' + state.connCount + '/' + state.total + ' מחובר</span></div>';
+
+    // Stepper
+    html += '<div class="bundle-progress-bar">';
+    bundle.tiers.forEach(function(tier, idx) {
+      var cls = tier.level <= state.currentLevel ? 'completed' : (tier.level === state.currentLevel + 1 ? 'active' : 'locked');
+      var dot = cls === 'completed' ? '✓' : (cls === 'locked' ? '🔒' : tier.level);
+      html += '<div class="bp-step ' + cls + '"><div class="bp-dot">' + dot + '</div><div class="bp-label">' + tier.label + '</div></div>';
+      if (idx < bundle.tiers.length - 1) {
+        html += '<div class="bp-connector' + (tier.level < state.currentLevel ? ' done' : '') + '"></div>';
+      }
+    });
+    html += '</div>';
+
+    // Next unlock hint
+    if (state.nextTier) {
+      var missingNames = state.missing.map(function(m) { return bundle.integrationNames[m] || m; }).join(' + ');
+      html += '<div class="bundle-unlock-hint"><span>🔓</span><span>' + state.nextTier.unlockMessage + '</span>';
+      html += '<button class="btn btn-primary btn-sm" onclick="switchTab(\'integrations\');setTimeout(function(){var e=document.getElementById(\'' + state.missing[0] + '-card\');if(e)e.scrollIntoView({behavior:\'smooth\',block:\'center\'})},300)">חברו ←</button></div>';
+    }
+
+    // Capabilities / schedule rows
+    bundle.tiers.forEach(function(tier) {
+      var unlocked = tier.level <= state.currentLevel;
+      tier.capabilities.forEach(function(cap) {
+        var sched = schedData[cap.id] || bundle.defaultSchedules[cap.id] || {};
+        var locked = !unlocked;
+        html += '<div class="schedule-row' + (locked ? ' locked-schedule' : '') + '" data-cap="' + cap.id + '">';
+        html += '<div class="schedule-info"><div class="schedule-name">' + (locked ? '🔒 ' : '✅ ') + cap.name + '</div>';
+        html += '<div class="schedule-desc">' + cap.desc + ' · ' + cap.model + '</div></div>';
+        if (!locked && cap.scheduleType) {
+          html += '<div class="schedule-actions" style="display:flex;align-items:center;gap:8px">';
+          if (cap.scheduleType === 'daily') {
+            html += '<input type="time" id="sched-' + cap.id + '-time" value="' + (sched.time || '07:30') + '" style="border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;font-size:0.82rem;direction:ltr;width:90px"/>';
+            html += '<div style="display:flex;gap:3px;font-size:0.68rem">';
+            for (var d = 0; d < 7; d++) {
+              var checked = (sched.days || [0,1,2,3,4]).indexOf(d) >= 0;
+              html += '<label title="' + DAYS_HE[d] + '" style="cursor:pointer"><input type="checkbox" name="sched-' + cap.id + '-day" value="' + d + '"' + (checked ? ' checked' : '') + ' style="display:none"/><span class="day-chip' + (checked ? ' active' : '') + '">' + DAYS_HE[d] + '</span></label>';
+            }
+            html += '</div>';
+          } else if (cap.scheduleType === 'weekly') {
+            html += '<input type="time" id="sched-' + cap.id + '-time" value="' + (sched.time || '09:00') + '" style="border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;font-size:0.82rem;direction:ltr;width:90px"/>';
+            html += '<select id="sched-' + cap.id + '-weekday" style="border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;font-size:0.82rem">';
+            for (var d = 0; d < 5; d++) { html += '<option value="' + d + '"' + ((sched.weekday || 3) === d ? ' selected' : '') + '>' + DAYS_HE[d] + '</option>'; }
+            html += '</select>';
+          } else if (cap.scheduleType === 'monthly') {
+            html += '<select id="sched-' + cap.id + '-monthday" style="border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;font-size:0.82rem">';
+            html += '<option value="1"' + ((sched.monthday || 1) === 1 ? ' selected' : '') + '>1 לחודש</option>';
+            html += '<option value="15"' + ((sched.monthday || 15) === 15 ? ' selected' : '') + '>15 לחודש</option>';
+            html += '</select>';
+            html += '<input type="time" id="sched-' + cap.id + '-time" value="' + (sched.time || '10:00') + '" style="border:1px solid #E5E7EB;border-radius:6px;padding:4px 8px;font-size:0.82rem;direction:ltr;width:90px"/>';
+          }
+          html += '<button class="btn btn-outline" onclick="saveBundleSchedule(\'' + bid + '\',\'' + cap.id + '\')" style="font-size:0.78rem;padding:4px 10px">שמרו</button>';
+          html += '</div>';
+        } else if (locked) {
+          var neededInt = tier.requires.filter(function(r) { return !state.connected[r]; })[0];
+          html += '<div class="schedule-actions sched-unlock-btn"><button class="btn btn-outline btn-sm" onclick="switchTab(\'integrations\');setTimeout(function(){var e=document.getElementById(\'' + (neededInt||'') + '-card\');if(e)e.scrollIntoView({behavior:\'smooth\',block:\'center\'})},300)" style="font-size:0.72rem;opacity:1">חברו ' + (bundle.integrationNames[neededInt]||'') + ' ←</button></div>';
+        }
+        html += '</div>';
+      });
+    });
+    html += '</div>';
+  });
+  container.innerHTML = html;
+  // Wire day chip toggles
+  container.querySelectorAll('.day-chip').forEach(function(chip) {
+    chip.addEventListener('click', function() { chip.classList.toggle('active'); });
+  });
+}
+
+async function saveBundleSchedule(bundleId, capId) {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) return;
+  var bundle = BUNDLE_REGISTRY[bundleId];
+  if (!bundle) return;
+
+  // Collect all schedule data for this bundle
+  var schedules = _bundleScheduleData[bundleId] || {};
+  bundle.tiers.forEach(function(tier) {
+    tier.capabilities.forEach(function(cap) {
+      if (!cap.scheduleType) return;
+      var timeEl = document.getElementById('sched-' + cap.id + '-time');
+      if (!timeEl) return;
+      var s = { enabled: true, time: timeEl.value };
+      if (cap.scheduleType === 'daily') {
+        s.days = [];
+        document.querySelectorAll('input[name="sched-' + cap.id + '-day"]:checked').forEach(function(cb) { s.days.push(parseInt(cb.value)); });
+      } else if (cap.scheduleType === 'weekly') {
+        var wd = document.getElementById('sched-' + cap.id + '-weekday');
+        s.weekday = wd ? parseInt(wd.value) : 3;
+      } else if (cap.scheduleType === 'monthly') {
+        var md = document.getElementById('sched-' + cap.id + '-monthday');
+        s.monthday = md ? parseInt(md.value) : 1;
+      }
+      schedules[cap.id] = s;
+    });
+  });
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/schedules', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bundleId: bundleId, schedules: schedules })
+    });
+    var data = await res.json();
+    if (data.success) {
+      _bundleScheduleData[bundleId] = schedules;
+      showToast('שגרות עודכנו!', 'success');
+    } else { showToast(data.message || 'שגיאה', 'error'); }
+  } catch { showToast('שגיאת תקשורת', 'error'); }
+}
+
+async function loadBundleSchedules() {
+  var iid = localStorage.getItem('cf_instance_id');
+  if (!iid) return;
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/schedules');
+    var data = await res.json();
+    if (data.success && data.data) { _bundleScheduleData = data.data; }
+  } catch {}
+}
+
+function refreshBundleUI() {
+  renderBundleSchedules();
+  // Update integration section badges
+  Object.keys(BUNDLE_REGISTRY).forEach(function(bid) {
+    var state = getBundleState(bid);
+    if (!state) return;
+    var badge = document.getElementById(bid + '-bundle-badge');
+    if (badge) {
+      badge.textContent = state.connCount + '/' + state.total + ' מחובר';
+      badge.className = 'bundle-int-badge' + (state.currentLevel === state.maxLevel ? ' full' : '');
+    }
+  });
+}
 
 async function saveIntegration(type) {
   var keyMap = {
