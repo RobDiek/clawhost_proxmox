@@ -7923,6 +7923,7 @@ function connectGsc() {
 }
 
 function showGscConnected(data) {
+  setSeoIntConnected('gsc', true);
   var el = document.getElementById('gsc-not-connected');
   var elC = document.getElementById('gsc-connected');
   if (el) el.style.display = 'none';
@@ -7968,6 +7969,7 @@ async function changeGscSite() {
 
 async function disconnectGsc() {
   if (!confirm('לנתק Google Search Console?')) return;
+  setSeoIntConnected('gsc', false);
   var iid = localStorage.getItem('cf_instance_id');
   try {
     await fetch(API + '/hosting/integrations/gsc/disconnect?instanceId=' + iid, { method: 'POST', headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') } });
@@ -8003,6 +8005,7 @@ async function saveDataforseo() {
 }
 
 function showDataforseoConnected(login) {
+  setSeoIntConnected('dataforseo', true);
   document.getElementById('dataforseo-not-connected').style.display = 'none';
   document.getElementById('dataforseo-connected').style.display = '';
   document.getElementById('dataforseo-login-display').textContent = login || '';
@@ -8015,6 +8018,7 @@ function showDataforseoConnected(login) {
 
 async function disconnectDataforseo() {
   if (!confirm('להסיר DataForSEO?')) return;
+  setSeoIntConnected('dataforseo', false);
   var iid = localStorage.getItem('cf_instance_id');
   try {
     await fetch(API + '/hosting/integrations/dataforseo/disconnect?instanceId=' + iid, { method: 'POST', headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') } });
@@ -8050,6 +8054,7 @@ async function saveFirecrawl() {
 }
 
 function showFirecrawlConnected(masked) {
+  setSeoIntConnected('firecrawl', true);
   document.getElementById('firecrawl-not-connected').style.display = 'none';
   document.getElementById('firecrawl-connected').style.display = '';
   document.getElementById('firecrawl-masked').textContent = masked || '';
@@ -8062,6 +8067,7 @@ function showFirecrawlConnected(masked) {
 
 async function disconnectFirecrawl() {
   if (!confirm('להסיר Firecrawl?')) return;
+  setSeoIntConnected('firecrawl', false);
   var iid = localStorage.getItem('cf_instance_id');
   try {
     await fetch(API + '/hosting/integrations/firecrawl/disconnect?instanceId=' + iid, { method: 'POST', headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') } });
@@ -8135,21 +8141,14 @@ var BUNDLE_REGISTRY = {
 };
 
 var _bundleScheduleData = {};
+var _seoIntState = { gsc: false, dataforseo: false, firecrawl: false };
 
 function isIntConnected(type) {
-  if (type === 'gsc') {
-    var el = document.getElementById('gsc-status');
-    return el && el.classList.contains('connected');
-  }
-  if (type === 'dataforseo') {
-    var el = document.getElementById('dataforseo-connected');
-    return el && el.style.display !== 'none';
-  }
-  if (type === 'firecrawl') {
-    var el = document.getElementById('firecrawl-connected');
-    return el && el.style.display !== 'none';
-  }
-  return false;
+  return _seoIntState[type] || false;
+}
+
+function setSeoIntConnected(type, connected) {
+  _seoIntState[type] = connected;
 }
 
 function getBundleState(bundleId) {
