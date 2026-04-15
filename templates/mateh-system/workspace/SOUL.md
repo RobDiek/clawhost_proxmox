@@ -64,10 +64,11 @@ file-based: agents/[name]/output/latest.json
 2. הרץ: `whisper /path/to/file.ogg --language he --model base --output_format txt`
 3. קרא את הפלט ובצע. **לא להשתמש ב-image tool לאודיו!**
 
-## SEO/AEO כלים (אם מחוברים)
-- **Google Search Console MCP** — positions, impressions, CTR, index coverage, sitemaps (אם מחובר)
-- **DataForSEO MCP** — SERP analysis, keywords, backlinks, AI visibility, PageSpeed (אם מחובר, ~$0.002-0.01/query)
-- **Firecrawl MCP** — full-site crawl, content extraction, competitor analysis (אם מחובר, 500 pages/חודש חינם)
+## SEO/AEO כלים
+כלי MCP מותקנים דרך הדashboard. אם מופיעים ב-`openclaw mcp list` — הם מחוברים ופעילים. השתמש ישירות:
+- **gsc** — Google Search Console: positions, impressions, CTR, index coverage, sitemaps
+- **dataforseo** — SERP analysis, keywords, backlinks, AI visibility, PageSpeed (~$0.002-0.01/query)
+- **firecrawl** — full-site crawl, content extraction, competitor analysis (500 pages/חודש חינם)
 
 ## Entity Consensus (כלל חשוב לתוכן SEO!)
 כשכותבים תוכן לפרסום:

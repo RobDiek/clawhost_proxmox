@@ -120,23 +120,34 @@ ${competitors ? `מתחרים: ${competitors}` : ''}
 ${targetAudience ? `קהל יעד: ${targetAudience}` : ''}
 מטרה עיקרית: ${goalDesc}
 
-השתמש בכלי MCP הזמינים (DataForSEO, Firecrawl, Brave Search, GSC):
+## חשוב — כלי MCP מותקנים ומוכנים לשימוש:
+הכלים הבאים מותקנים, מחוברים, ופעילים. השתמש בהם ישירות — הם עובדים:
+1. **dataforseo** — MCP server מחובר. השתמש בו למחקר keywords, SERP analysis, competitor analysis, backlinks.
+2. **firecrawl** — MCP server מחובר. השתמש בו לסריקת אתרים (scrape, crawl, map).
+3. **brave-search** — MCP server מחובר. השתמש בו לחיפוש באינטרנט.
+${gsc?.refreshToken ? '4. **gsc** — MCP server מחובר. השתמש בו לנתוני Google Search Console.' : ''}
 
-## שלב 1: מחקר מילות מפתח (DataForSEO)
-- חפש 20-30 מילות מפתח רלוונטיות
+אל תדלג על כלים. אל תגיד "לא מחובר". הם מותקנים — נסה להשתמש.
+
+## שלב 1: מחקר מילות מפתח
+השתמש ב-dataforseo MCP: keywords_for_site, keyword_suggestions, serp_analysis.
+- חפש 20-30 מילות מפתח רלוונטיות לתחום
 - לכל אחת: volume, difficulty, CPC, intent
 - זהה gaps לעומת מתחרים
 
-## שלב 2: ניתוח מתחרים (Firecrawl + DataForSEO)
+## שלב 2: ניתוח מתחרים
+השתמש ב-firecrawl MCP: scrape + crawl על אתרי מתחרים.
+השתמש ב-dataforseo MCP: competitor_analysis.
 - סרוק 3-5 אתרי מתחרים
 - מה התוכן שלהם? כמה דפים? מבנה?
 - על מה הם מדורגים ואנחנו לא?
 
-## שלב 3: ביקורת טכנית (Firecrawl)
-- סרוק את ${siteUrl || 'האתר שלנו'}
+## שלב 3: ביקורת טכנית
+השתמש ב-firecrawl MCP: crawl + map על ${siteUrl || 'האתר שלנו'}.
 - קישורים שבורים? Schema חסר? בעיות מהירות?
 
-## שלב 4: שאלות הקהל (Brave Search)
+## שלב 4: שאלות הקהל
+השתמש ב-brave-search MCP: חפש שאלות בפורומים.
 - מה אנשים שואלים על התחום שלנו?
 - Reddit, פורומים, שאלות נפוצות
 
@@ -165,6 +176,11 @@ ${targetAudience ? `קהל יעד: ${targetAudience}` : ''}
 מטרה: ${goalDesc}
 עסק: ${businessName}
 אתר: ${siteUrl}
+
+## כלים זמינים (מותקנים ופעילים):
+- dataforseo MCP — לאימות נתוני keywords אם צריך
+- firecrawl MCP — לסריקת אתרים אם צריך
+- brave-search MCP — לחיפוש מידע נוסף
 
 ## תוצאות המחקר:
 ${researchResult.slice(0, 4000)}

@@ -5,12 +5,13 @@
 יוצא לשטח, אוסף מידע גולמי על מתחרים, טרנדים ושווקים.
 
 ## כלים
-- **DataForSEO MCP** (אם מחובר) — keyword gaps vs מתחרים, SERP analysis, AI visibility
-- **Firecrawl MCP** (אם מחובר) — crawl אתרי מתחרים, חילוץ מבנה תוכן
-- **Brave Search MCP** (אם מחובר) — Reddit/HN מנייות, שאלות אמיתיות של קהל
-- **GSC MCP** (אם מחובר) — impressions ללא קליקים = הזדמנויות
-- Bright Data Web Unlocker — גישה לכל אתר ללא חסימה
-- Browser skill — גלישה ישירה
+כלי MCP מותקנים דרך הדashboard. בדוק אם זמינים עם `openclaw mcp list`. אם מופיעים ברשימה — השתמש בהם ישירות:
+- **dataforseo** — keyword gaps vs מתחרים, SERP analysis, AI visibility, backlinks
+- **firecrawl** — crawl/scrape אתרי מתחרים, חילוץ מבנה תוכן
+- **brave-search** — חיפוש באינטרנט, Reddit/HN, שאלות אמיתיות של קהל
+- **gsc** — Google Search Console: impressions, positions, index coverage
+- web_fetch — אחזור דפי אינטרנט (מובנה)
+- browser — גלישה ישירה (מובנה)
 
 ## איך אני עובד
 
