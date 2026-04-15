@@ -34,8 +34,9 @@ a { color:#2563EB; text-decoration:none; }
 @media(max-width:900px) { .cards { grid-template-columns:1fr; } }
 .card { background:#fff; border:2px solid #E5E7EB; border-radius:16px; padding:26px 22px; position:relative; transition:border-color .2s, box-shadow .2s; }
 .card:hover { border-color:#2563EB; box-shadow:0 4px 20px rgba(37,99,235,.08); }
-.card.pop { border-color:#2563EB; }
-.pop-tag { position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:#2563EB; color:#fff; font-size:0.7rem; font-weight:700; padding:3px 14px; border-radius:10px; white-space:nowrap; }
+.card.pop { border-color:#2563EB; box-shadow:0 4px 20px rgba(37,99,235,.08); }
+.card-setup { font-size:0.78rem; color:#6B7280; margin-top:6px; padding:6px 0; border-top:1px solid #F3F4F6; }
+.card-setup strong { color:#374151; }
 .card-icon { font-size:1.6rem; margin-bottom:10px; }
 .card-name { font-size:1.15rem; font-weight:700; margin-bottom:2px; }
 .card-desc { font-size:0.82rem; color:#6B7280; margin-bottom:14px; }
@@ -142,12 +143,12 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
       <li class="off">יצירת תוכן חדש</li>
       <li class="off">ניהול פרסום ממומן</li>
     </ul>
+    <div class="card-setup">עלות הקמה: <strong>₪500</strong> (חד-פעמי — פרופיל + כלי SEO + מחקר ראשון)</div>
     <button class="cta cta-line" onclick="pick('starter')">בחרו Starter ←</button>
   </div>
 
   <!-- Growth -->
   <div class="card pop">
-    <div class="pop-tag">הכי פופולרי</div>
     <div class="card-icon">🔵</div>
     <div class="card-name">Growth</div>
     <div class="card-desc">תוכן + פרסום + אופטימיזציה</div>
@@ -163,6 +164,7 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
       <li><span class="tip-wrap">Prompt Engineering<span class="tip-box">מתאימים את הוראות הסוכנים לטון ומסרים של העסק</span></span></li>
       <li><span class="tip-wrap">שיחה כל שבועיים (20 דק)<span class="tip-box">Zoom — מה עבד, מה לשנות, מה הלאה</span></span></li>
     </ul>
+    <div class="card-setup">עלות הקמה: <strong>₪1,200</strong> (חד-פעמי — SEO + Ads setup + קמפיינים ראשונים)</div>
     <button class="cta cta-fill" onclick="pick('growth')">בחרו Growth ←</button>
   </div>
 
@@ -183,6 +185,7 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
       <li><span class="tip-wrap">שיחה שבועית (30 דק)<span class="tip-box">פגישה שבועית קבועה עם מנהל חשבון ייעודי</span></span></li>
       <li><span class="tip-wrap">דוח ROAS<span class="tip-box">כמה הושקע → כמה הכניס. מספרים, לא תחושות</span></span></li>
     </ul>
+    <div class="card-setup">עלות הקמה: <strong>₪2,000</strong> (חד-פעמי — הכל: SEO + Ads + Social + Brand Guide)</div>
     <button class="cta cta-line" onclick="pick('autopilot')">בחרו Autopilot ←</button>
   </div>
 </div>
@@ -220,8 +223,8 @@ td { padding:10px 12px; border-bottom:1px solid #F3F4F6; }
       <option value="growth" selected>Growth — ₪699/חודש (מומלץ)</option>
       <option value="autopilot">Autopilot — ₪1,499/חודש</option>
     </select>
-    <input type="tel" id="phone" placeholder="טלפון" dir="ltr"/>
-    <input type="text" id="name" placeholder="שם (לא חובה)"/>
+    <input type="text" id="name" placeholder="שם מלא" required/>
+    <input type="tel" id="phone" placeholder="טלפון" style="direction:ltr;text-align:right"/>
     <button id="submitBtn" onclick="send()">שלחו בקשה ←</button>
     <div id="ok" style="display:none;text-align:center;padding:14px;color:#059669;font-weight:600">✅ הבקשה נשלחה! נחזור אליכם בהקדם.</div>
   </div>
@@ -251,16 +254,16 @@ function pick(plan) {
 }
 
 function send() {
-  var phone = document.getElementById('phone').value.trim();
   var name = document.getElementById('name').value.trim();
+  var phone = document.getElementById('phone').value.trim();
   var pkg = document.getElementById('pkg').value;
-  if (!phone) { alert('נא למלא טלפון'); return; }
+  if (!name || !phone) { alert('נא למלא שם וטלפון'); return; }
   var btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.textContent = 'שולח...';
   fetch('https://api.clawflow.flowmatic.co.il/hosting/contact', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({ name:name||'לא צוין', phone:phone, type:'ניהול שיווק — '+(PKG_NAMES[pkg]||pkg), message:'בקשת ניהול שיווק: '+(PKG_NAMES[pkg]||pkg) })
+    body:JSON.stringify({ name:name, phone:phone, type:'ניהול שיווק — '+(PKG_NAMES[pkg]||pkg), message:'בקשת ניהול שיווק: '+(PKG_NAMES[pkg]||pkg) })
   }).then(function(){ document.getElementById('ok').style.display=''; btn.style.display='none'; })
   .catch(function(){ btn.disabled=false; btn.textContent='שלחו בקשה ←'; alert('שגיאה, נסו שוב'); });
 }
