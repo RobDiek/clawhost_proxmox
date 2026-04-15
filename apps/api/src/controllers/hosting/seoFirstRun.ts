@@ -25,6 +25,47 @@ import crypto from 'crypto'
 
 function generateId(): string { return crypto.randomBytes(6).toString('hex') }
 
+/**
+ * Extract visible text from openclaw agent --json output.
+ * The JSON has structure: { result: { finalAssistantVisibleText: "..." } }
+ * Falls back to raw output if JSON parsing fails.
+ */
+function extractAgentText(raw: string): string {
+    // Try JSON parse first (--json flag output)
+    try {
+        // Find the JSON object in the output (may have leading text)
+        const jsonStart = raw.indexOf('{"version"')
+        if (jsonStart >= 0) {
+            const parsed = JSON.parse(raw.slice(jsonStart))
+            const text = parsed?.result?.finalAssistantVisibleText
+            if (text && text.length > 50) return text
+        }
+    } catch { /* not JSON or parse error */ }
+
+    // Try alternate JSON structure
+    try {
+        const jsonStart = raw.indexOf('{"result"')
+        if (jsonStart >= 0) {
+            const parsed = JSON.parse(raw.slice(jsonStart))
+            const text = parsed?.result?.finalAssistantVisibleText
+            if (text && text.length > 50) return text
+        }
+    } catch { /* not JSON */ }
+
+    // Fallback: strip common SSH noise and return raw text
+    let cleaned = raw
+        .replace(/^.*?(?=#{1,3}\s)/s, '') // strip everything before first markdown heading
+        .replace(/\n\s*\+$/gm, '')         // strip trailing + from psql-style output
+        .trim()
+
+    // If still nothing useful, return raw (last 5000 chars)
+    if (cleaned.length < 50) {
+        cleaned = raw.slice(-5000).trim()
+    }
+
+    return cleaned
+}
+
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 
 let sshKeyCache: Buffer | null = null
@@ -160,18 +201,22 @@ ${gsc?.refreshToken ? '4. **gsc** — MCP server מחובר. השתמש בו ל�
 
         try {
             const sessionId = `seo-research-${Date.now()}`
-            researchResult = await sshExec(instance.ip,
-                `su - openclaw -c 'timeout 180 openclaw agent --agent sayer --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" 2>&1 | tail -200'`,
+            const rawOutput = await sshExec(instance.ip,
+                `su - openclaw -c 'timeout 300 openclaw agent --agent sayer --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
                 instance.rootPassword || undefined,
-                200000
+                320000
             )
-            console.log(`SEO research completed: ${researchResult.length} chars`)
+            researchResult = extractAgentText(rawOutput)
+            console.log(`SEO research completed: ${researchResult.length} chars (raw: ${rawOutput.length})`)
         } catch (err) {
             console.error('SEO research failed:', err)
             researchResult = 'מחקר SEO נכשל — נסו שוב מאוחר יותר'
         }
 
         // Stage 2: Strategy (מנתח) — analyze research and build content plan
+        // Pass the FULL research (up to 8000 chars), not just 4000
+        const researchForStrategy = researchResult.slice(0, 8000)
+
         const strategyPrompt = `בנה אסטרטגיית תוכן SEO על בסיס המחקר הבא.
 מטרה: ${goalDesc}
 עסק: ${businessName}
@@ -183,7 +228,7 @@ ${gsc?.refreshToken ? '4. **gsc** — MCP server מחובר. השתמש בו ל�
 - brave-search MCP — לחיפוש מידע נוסף
 
 ## תוצאות המחקר:
-${researchResult.slice(0, 4000)}
+${researchForStrategy}
 
 ## בנה תוכנית:
 1. רשימת 10 מאמרים/דפים מומלצים — מדורגים לפי ROI (traffic potential × feasibility)
@@ -192,22 +237,39 @@ ${researchResult.slice(0, 4000)}
 4. ציון AEO ראשוני: 1-100
 5. 3 פעולות ראשונות שצריך לעשות השבוע
 
-כתוב בעברית. תמציתי ואקשנאבילי.`
+חשוב: כתוב את כל התוכן בתשובה. לא בקובץ. לא בלינק. הכל כאן.
+כתוב בעברית. תמציתי ואקשנאבילי. מינימום 2000 תווים.`
 
         const b64Strategy = Buffer.from(strategyPrompt).toString('base64')
         let strategyResult = ''
 
         try {
             const sessionId = `seo-strategy-${Date.now()}`
-            strategyResult = await sshExec(instance.ip,
-                `su - openclaw -c 'timeout 120 openclaw agent --agent menateach --session-id ${sessionId} -m "$(echo ${b64Strategy} | base64 -d)" 2>&1 | tail -150'`,
+            const rawOutput = await sshExec(instance.ip,
+                `su - openclaw -c 'timeout 300 openclaw agent --agent menateach --session-id ${sessionId} -m "$(echo ${b64Strategy} | base64 -d)" --json 2>&1'`,
                 instance.rootPassword || undefined,
-                150000
+                320000
             )
-            console.log(`SEO strategy completed: ${strategyResult.length} chars`)
+            strategyResult = extractAgentText(rawOutput)
+            console.log(`SEO strategy completed: ${strategyResult.length} chars (raw: ${rawOutput.length})`)
         } catch (err) {
             console.error('SEO strategy failed:', err)
             strategyResult = 'בניית אסטרטגיה נכשלה — נסו שוב'
+        }
+
+        // Fallback: if strategy is empty, use a summary request
+        if (!strategyResult || strategyResult.length < 100) {
+            console.log('Strategy was empty, trying fallback...')
+            try {
+                const fallbackPrompt = `סכם את המחקר הבא ובנה תוכנית תוכן SEO קצרה עם 5 מאמרים מומלצים:\n\n${researchForStrategy.slice(0, 3000)}\n\nכתוב בעברית. מינימום 1500 תווים.`
+                const b64Fallback = Buffer.from(fallbackPrompt).toString('base64')
+                const fbOutput = await sshExec(instance.ip,
+                    `su - openclaw -c 'timeout 180 openclaw agent --session-id seo-fb-${Date.now()} -m "$(echo ${b64Fallback} | base64 -d)" --json 2>&1'`,
+                    instance.rootPassword || undefined, 200000
+                )
+                strategyResult = extractAgentText(fbOutput)
+                console.log(`Strategy fallback: ${strategyResult.length} chars`)
+            } catch { /* give up */ }
         }
 
         // Save results as outputs (approval queue)
