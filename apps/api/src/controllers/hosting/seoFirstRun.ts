@@ -46,35 +46,37 @@ function extractAgentText(raw: string): string {
     let text = ''
 
     // Try to find and parse the JSON object
-    const jsonPatterns = ['{"version"', '{"result"']
-    for (const pattern of jsonPatterns) {
+    // OpenClaw agent --json outputs: {"runId":...,"result":{"payloads":[...],"finalAssistantVisibleText":"..."}}
+    const jsonStart = raw.indexOf('{')
+    if (jsonStart >= 0) {
         try {
-            const idx = raw.indexOf(pattern)
-            if (idx < 0) continue
-            const parsed = JSON.parse(raw.slice(idx))
+            const jsonStr = raw.slice(jsonStart).trim()
+            const parsed = JSON.parse(jsonStr)
 
             // Best: finalAssistantVisibleText
             const visible = parsed?.result?.finalAssistantVisibleText
-            if (visible && visible.length > 100) {
+            if (visible && typeof visible === 'string' && visible.length > 50) {
+                console.log(`extractAgentText: found finalAssistantVisibleText (${visible.length} chars)`)
                 text = visible
-                break
             }
 
-            // Fallback: find the longest payload text (= the final report)
-            const payloads = parsed?.result?.payloads as Array<{ text?: string }> | undefined
-            if (payloads && payloads.length > 0) {
-                let longest = ''
-                for (const p of payloads) {
-                    if (p.text && p.text.length > longest.length) {
-                        longest = p.text
+            // Fallback: longest payload text
+            if (!text || text.length < 50) {
+                const payloads = parsed?.result?.payloads as Array<{ text?: string }> | undefined
+                if (payloads && payloads.length > 0) {
+                    let longest = ''
+                    for (const p of payloads) {
+                        if (p.text && p.text.length > longest.length) longest = p.text
+                    }
+                    if (longest.length > 50) {
+                        console.log(`extractAgentText: using longest payload (${longest.length} chars)`)
+                        text = longest
                     }
                 }
-                if (longest.length > 100) {
-                    text = longest
-                    break
-                }
             }
-        } catch { /* parse error — try next pattern */ }
+        } catch (err) {
+            console.error(`extractAgentText: JSON parse failed:`, (err as Error).message?.slice(0, 100))
+        }
     }
 
     // If JSON parsing failed, try to extract markdown from raw text
