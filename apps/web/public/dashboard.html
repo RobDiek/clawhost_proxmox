@@ -620,6 +620,19 @@ input{font-family:inherit}
 .export-btn-group{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .export-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.75rem;color:#374151;background:#fff;cursor:pointer;transition:all .15s}
 .export-btn:hover{background:#F9FAFB;border-color:#2563EB;color:#2563EB}
+/* Content Calendar */
+.cal-cell{min-height:32px;padding:2px 4px;border-bottom:1px solid #F3F4F6;border-left:1px solid #F3F4F6;font-size:0.68rem;position:relative}
+.cal-cell.today{background:#EFF6FF}
+.cal-cell.other-month{opacity:0.3}
+.cal-day-num{font-weight:600;font-size:0.72rem;color:#374151}
+.cal-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin:1px}
+.cal-dot.scheduled{background:#2563EB}
+.cal-dot.pending{background:#F59E0B}
+.cal-dot.published{background:#10B981}
+.cal-dot.auto{background:#8B5CF6}
+/* ROI Cards */
+.roi-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F3F4F6;font-size:0.8rem}
+.roi-row:last-child{border-bottom:none}
 .tab-title { font-size:1.3rem;font-weight:700;margin-bottom:4px }
 .tab-desc { font-size:0.9rem;color:#6B7280;margin-bottom:20px }
 
@@ -1200,7 +1213,56 @@ input{font-family:inherit}
         </div>
       </div>
 
-      <!-- 8. CMS-agnostic Publish (inside approval queue items) -->
+      <!-- 8. Content Calendar -->
+      <div id="seo-calendar-section" style="display:none;margin-top:24px">
+        <div class="section-title">לוח תוכן</div>
+        <div id="seo-calendar" style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden">
+          <div id="seo-cal-header" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#F9FAFB;border-bottom:1px solid #E5E7EB">
+            <button class="btn btn-outline btn-sm" onclick="seoCalNav(-1)" style="font-size:0.78rem">← הקודם</button>
+            <span id="seo-cal-month" style="font-weight:600;font-size:0.88rem"></span>
+            <button class="btn btn-outline btn-sm" onclick="seoCalNav(1)" style="font-size:0.78rem">הבא →</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:0.68rem;font-weight:600;color:#6B7280;padding:8px 0;border-bottom:1px solid #F3F4F6">
+            <div>א</div><div>ב</div><div>ג</div><div>ד</div><div>ה</div><div>ו</div><div>ש</div>
+          </div>
+          <div id="seo-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);min-height:180px"></div>
+        </div>
+        <div id="seo-cal-legend" style="display:flex;gap:12px;margin-top:8px;font-size:0.72rem;color:#6B7280;flex-wrap:wrap">
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2563EB;margin-left:4px"></span> מתוכנן</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F59E0B;margin-left:4px"></span> ממתין לאישור</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10B981;margin-left:4px"></span> פורסם</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#8B5CF6;margin-left:4px"></span> דוח אוטומטי</span>
+        </div>
+      </div>
+
+      <!-- 9. ROI Tracking -->
+      <div id="seo-roi-section" style="display:none;margin-top:24px">
+        <div class="section-title">תוצאות (30 יום אחרונים)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:10px;padding:14px">
+            <div style="font-size:1.2rem;font-weight:700;color:#065F46" id="roi-content-published">0</div>
+            <div style="font-size:0.72rem;color:#6B7280">תוכן שפורסם</div>
+          </div>
+          <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:14px">
+            <div style="font-size:1.2rem;font-weight:700;color:#1E40AF" id="roi-keywords-p1">0</div>
+            <div style="font-size:0.72rem;color:#6B7280">מילות מפתח בעמוד 1</div>
+          </div>
+          <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:14px">
+            <div style="font-size:1.2rem;font-weight:700;color:#92400E" id="roi-citations">0</div>
+            <div style="font-size:0.72rem;color:#6B7280">ציטוטים ב-AI</div>
+          </div>
+          <div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;padding:14px">
+            <div style="font-size:1.2rem;font-weight:700;color:#5B21B6" id="roi-audits">0</div>
+            <div style="font-size:0.72rem;color:#6B7280">ביקורות שהורצו</div>
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px">
+          <div style="font-weight:600;font-size:0.85rem;color:#374151;margin-bottom:8px">📈 היסטוריית פעולות</div>
+          <div id="roi-history" style="max-height:200px;overflow-y:auto">
+            <div style="text-align:center;color:#9CA3AF;padding:12px;font-size:0.85rem">נתונים יופיעו לאחר הפעלת ה-pipeline</div>
+          </div>
+        </div>
+      </div>
 
       </div><!-- /agent-panel-research -->
 
@@ -8445,6 +8507,188 @@ function downloadContentHtml(outputId) {
       }
     }).catch(function() { showToast('שגיאה בהורדה', 'error'); });
 }
+
+/* ===== Content Calendar ===== */
+
+var _calMonth = new Date().getMonth();
+var _calYear = new Date().getFullYear();
+var _calEvents = [];
+
+function seoCalNav(dir) {
+  _calMonth += dir;
+  if (_calMonth > 11) { _calMonth = 0; _calYear++; }
+  if (_calMonth < 0) { _calMonth = 11; _calYear--; }
+  renderSeoCalendar();
+}
+
+async function loadSeoCalendar() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  if (!iid || !tk) return;
+  _calEvents = [];
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/outputs?limit=50&exclude_archived=1', { headers: { 'Authorization': 'Bearer ' + tk } });
+    var data = await res.json();
+    if (data.success && data.data) {
+      data.data.forEach(function(o) {
+        var seoAgents = ['meater', 'migdalor', 'sayer', 'menateach', 'et', 'shaliach'];
+        if (seoAgents.indexOf(o.agentRole) < 0) return;
+        var date = o.scheduledFor || o.publishedAt || o.createdAt;
+        if (!date) return;
+        var type = 'auto';
+        if (o.outputType === 'content_post') type = o.status === 'published' ? 'published' : (o.status === 'pending_review' ? 'pending' : 'scheduled');
+        _calEvents.push({ date: new Date(date), title: o.title || o.outputType, type: type, id: o.id });
+      });
+    }
+  } catch {}
+
+  // Add scheduled tasks from bundle schedules
+  var sched = _bundleScheduleData.seo || {};
+  var SCHED_NAMES = { gsc_daily_check: 'בדיקת GSC', gsc_weekly_digest: 'סיכום שבועי', aeo_deep_audit: 'ביקורת AEO', tech_audit: 'ביקורת טכנית' };
+  Object.keys(sched).forEach(function(k) {
+    var s = sched[k];
+    if (!s || !s.enabled) return;
+    // Generate next occurrences for the visible month
+    var start = new Date(_calYear, _calMonth, 1);
+    var end = new Date(_calYear, _calMonth + 1, 0);
+    for (var d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      var dow = d.getDay();
+      var dom = d.getDate();
+      var match = false;
+      if (s.days && s.days.indexOf(dow) >= 0) match = true;
+      if (s.weekday !== undefined && dow === s.weekday) match = true;
+      if (s.monthday !== undefined && dom === s.monthday) match = true;
+      if (match) {
+        _calEvents.push({ date: new Date(d), title: SCHED_NAMES[k] || k, type: 'auto', id: null });
+      }
+    }
+  });
+
+  renderSeoCalendar();
+}
+
+function renderSeoCalendar() {
+  var MONTHS_HE = ['ינואר','פברואר','מרס','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  var monthEl = document.getElementById('seo-cal-month');
+  if (monthEl) monthEl.textContent = MONTHS_HE[_calMonth] + ' ' + _calYear;
+
+  var grid = document.getElementById('seo-cal-grid');
+  if (!grid) return;
+
+  var firstDay = new Date(_calYear, _calMonth, 1);
+  var lastDay = new Date(_calYear, _calMonth + 1, 0);
+  var startDow = firstDay.getDay(); // 0=Sun
+  var today = new Date();
+  today.setHours(0,0,0,0);
+
+  var html = '';
+  // Fill leading empty cells
+  for (var i = 0; i < startDow; i++) {
+    var prevDate = new Date(_calYear, _calMonth, -(startDow - i - 1));
+    html += '<div class="cal-cell other-month"><span class="cal-day-num">' + prevDate.getDate() + '</span></div>';
+  }
+  // Fill month days
+  for (var d = 1; d <= lastDay.getDate(); d++) {
+    var cellDate = new Date(_calYear, _calMonth, d);
+    cellDate.setHours(0,0,0,0);
+    var isToday = cellDate.getTime() === today.getTime();
+    html += '<div class="cal-cell' + (isToday ? ' today' : '') + '">';
+    html += '<span class="cal-day-num">' + d + '</span>';
+    // Find events for this day
+    var dayEvents = _calEvents.filter(function(e) {
+      var ed = new Date(e.date); ed.setHours(0,0,0,0);
+      return ed.getTime() === cellDate.getTime();
+    });
+    if (dayEvents.length > 0) {
+      html += '<div style="margin-top:1px">';
+      dayEvents.slice(0, 3).forEach(function(e) {
+        html += '<span class="cal-dot ' + e.type + '" title="' + e.title + '"></span>';
+      });
+      if (dayEvents.length > 3) html += '<span style="font-size:0.6rem;color:#9CA3AF">+' + (dayEvents.length - 3) + '</span>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  // Fill trailing cells
+  var totalCells = startDow + lastDay.getDate();
+  var remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (var i = 1; i <= remaining; i++) {
+    html += '<div class="cal-cell other-month"><span class="cal-day-num">' + i + '</span></div>';
+  }
+  grid.innerHTML = html;
+}
+
+/* ===== ROI Tracking ===== */
+
+async function loadSeoRoi() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  if (!iid || !tk) return;
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/outputs?limit=50&exclude_archived=1', { headers: { 'Authorization': 'Bearer ' + tk } });
+    var data = await res.json();
+    if (!data.success || !data.data) return;
+
+    var now = new Date();
+    var thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    var seoAgents = ['meater', 'migdalor', 'sayer', 'menateach', 'et', 'shaliach'];
+
+    var recent = data.data.filter(function(o) {
+      return seoAgents.indexOf(o.agentRole) >= 0 && new Date(o.createdAt) >= thirtyDaysAgo;
+    });
+
+    var published = recent.filter(function(o) { return o.status === 'published' && o.outputType === 'content_post'; });
+    var audits = recent.filter(function(o) { return o.outputType === 'aeo_audit' || o.outputType === 'tech_audit'; });
+
+    var el;
+    el = document.getElementById('roi-content-published');
+    if (el) el.textContent = published.length;
+
+    el = document.getElementById('roi-audits');
+    if (el) el.textContent = audits.length;
+
+    // Keywords and citations from latest AEO audit
+    var latestAeo = recent.find(function(o) { return o.outputType === 'aeo_audit' && o.metadata; });
+    if (latestAeo && latestAeo.metadata) {
+      el = document.getElementById('roi-keywords-p1');
+      if (el && latestAeo.metadata.keywordsPage1) el.textContent = latestAeo.metadata.keywordsPage1;
+      el = document.getElementById('roi-citations');
+      if (el && latestAeo.metadata.citationCount) el.textContent = latestAeo.metadata.citationCount;
+    }
+
+    // History
+    var histEl = document.getElementById('roi-history');
+    if (histEl && recent.length > 0) {
+      var AGENT_ICONS = { meater: '🔍', migdalor: '🏗️', sayer: '🌐', menateach: '📊', et: '✍️', shaliach: '📤' };
+      var html = '';
+      recent.slice(0, 15).forEach(function(o) {
+        var d = new Date(o.createdAt);
+        var dateStr = d.toLocaleDateString('he-IL', { day: 'numeric', month: 'short' });
+        var statusColor = o.status === 'published' ? '#10B981' : (o.status === 'approved' ? '#2563EB' : (o.status === 'pending_review' ? '#F59E0B' : '#9CA3AF'));
+        html += '<div class="roi-row">';
+        html += '<span style="color:#9CA3AF;font-size:0.72rem;min-width:50px">' + dateStr + '</span>';
+        html += '<span>' + (AGENT_ICONS[o.agentRole] || '📋') + ' ' + (o.title || o.outputType) + '</span>';
+        html += '<span style="width:8px;height:8px;border-radius:50%;background:' + statusColor + ';flex-shrink:0"></span>';
+        html += '</div>';
+      });
+      histEl.innerHTML = html;
+    }
+  } catch {}
+}
+
+// Update showSeoSections to also show calendar + ROI
+var _origShowSeoSections = showSeoSections;
+showSeoSections = function() {
+  _origShowSeoSections();
+  var state = getBundleState('seo');
+  var show = state && state.connCount > 0;
+  var calEl = document.getElementById('seo-calendar-section');
+  var roiEl = document.getElementById('seo-roi-section');
+  if (calEl) calEl.style.display = show ? '' : 'none';
+  if (roiEl) roiEl.style.display = show ? '' : 'none';
+  if (show) { loadSeoCalendar(); loadSeoRoi(); }
+};
 
 async function saveIntegration(type) {
   var keyMap = {
