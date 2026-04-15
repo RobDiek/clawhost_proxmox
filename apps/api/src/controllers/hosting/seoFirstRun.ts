@@ -48,9 +48,11 @@ function extractAgentText(raw: string): string {
     // Try to find and parse the JSON object
     // OpenClaw agent --json outputs: {"runId":...,"result":{"payloads":[...],"finalAssistantVisibleText":"..."}}
     const jsonStart = raw.indexOf('{')
-    if (jsonStart >= 0) {
+    const jsonEnd = raw.lastIndexOf('}')
+    if (jsonStart >= 0 && jsonEnd > jsonStart) {
         try {
-            const jsonStr = raw.slice(jsonStart).trim()
+            const jsonStr = raw.slice(jsonStart, jsonEnd + 1)
+            console.log(`extractAgentText: JSON slice ${jsonStr.length} chars`)
             const parsed = JSON.parse(jsonStr)
 
             // Best: finalAssistantVisibleText
@@ -257,7 +259,7 @@ ${gsc?.refreshToken ? '4. **gsc** — MCP server מחובר. השתמש בו ל�
         try {
             const sessionId = `seo-research-${Date.now()}`
             const rawOutput = await sshExec(instance.ip,
-                `su - openclaw -c 'timeout 300 openclaw agent --agent sayer --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
+                `su - openclaw -c 'timeout 300 openclaw agent --session-id ${sessionId} --thinking medium -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
                 instance.rootPassword || undefined,
                 320000
             )
@@ -305,7 +307,7 @@ ${researchForStrategy}
         try {
             const sessionId = `seo-strategy-${Date.now()}`
             const rawOutput = await sshExec(instance.ip,
-                `su - openclaw -c 'timeout 300 openclaw agent --agent menateach --session-id ${sessionId} -m "$(echo ${b64Strategy} | base64 -d)" --json 2>&1'`,
+                `su - openclaw -c 'timeout 300 openclaw agent --session-id ${sessionId} --thinking medium -m "$(echo ${b64Strategy} | base64 -d)" --json 2>&1'`,
                 instance.rootPassword || undefined,
                 320000
             )
