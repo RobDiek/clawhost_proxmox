@@ -287,6 +287,9 @@ export const instances = pgTable(
         dataforseoKey: text('dataforseo_key'),         // DataForSEO API login:password (encrypted at rest)
         firecrawlKey: text('firecrawl_key'),           // Firecrawl API key
 
+        // GitHub (content publishing)
+        githubConfig: jsonb('github_config'),           // { token, repo, branch, contentPath }
+
         // Schedules (managed by dashboard, synced to HEARTBEAT.md on VPS)
         schedules: jsonb('schedules'),                 // { core: {...}, seo: {...}, ... }
 

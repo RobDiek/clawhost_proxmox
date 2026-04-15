@@ -146,6 +146,15 @@ const MCP_SERVERS: Record<string, {
         envKeys: ['FIRECRAWL_API_KEY'],
         category: 'seo',
     },
+    'github': {
+        name: 'GitHub',
+        nameHe: 'GitHub',
+        package: '@modelcontextprotocol/server-github',
+        command: 'npx',
+        args: ['-y', '@modelcontextprotocol/server-github'],
+        envKeys: ['GITHUB_PERSONAL_ACCESS_TOKEN'],
+        category: 'publishing',
+    },
 }
 
 // Validate env vars don't contain shell metacharacters

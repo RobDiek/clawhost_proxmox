@@ -1859,6 +1859,32 @@ input{font-family:inherit}
     <div class="section-title" data-int-section="publishing">ערוצי פרסום</div>
     <div class="integrations-grid" id="publishingChannels">
 
+      <!-- 0. GitHub (Content Publishing) -->
+      <div class="int-card" id="github-card" data-tooltip="GitHub — פרסום תוכן ישירות ל-repo. הסוכן יוצר קובץ MDX, עושה commit, ו-Cloudflare Pages בונה אוטומטית.">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#F3F4F6"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z" fill="#24292F"/></svg></div>
+          <div><strong>GitHub</strong><div class="int-status" id="github-status">לא מחובר</div></div>
+        </div>
+        <div class="int-card-body hidden" id="int-github-body">
+          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">פרסום תוכן ישירות ל-repo — הסוכן יוצר MDX, עושה commit, האתר נבנה אוטומטית</div>
+          <div id="github-not-connected">
+            <input type="text" id="github-repo" placeholder="owner/repo (למשל synex-os/flowmatic)" dir="ltr" class="int-input" style="margin-bottom:4px"/>
+            <input type="password" id="github-token" placeholder="ghp_... (Personal Access Token)" dir="ltr" class="int-input" style="margin-bottom:4px"/>
+            <input type="text" id="github-content-path" placeholder="content/guides (נתיב לתיקיית תוכן)" dir="ltr" class="int-input" style="margin-bottom:6px" value="content/guides"/>
+            <button class="btn btn-primary btn-sm" onclick="saveGithubIntegration()">&#8594; חברו</button>
+            <div style="font-size:0.72rem;color:#9CA3AF;margin-top:4px">צרו <a href="https://github.com/settings/tokens?type=beta" target="_blank" style="color:#2563EB">Fine-grained token</a> עם הרשאות Contents: Read+Write</div>
+          </div>
+          <div id="github-connected" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <span style="color:#10B981;font-size:0.85rem">&#10003;</span>
+              <span style="font-size:0.82rem;color:#374151;direction:ltr" id="github-repo-display"></span>
+            </div>
+            <div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">נתיב: <span id="github-path-display" dir="ltr"></span></div>
+            <button class="btn btn-outline btn-sm" onclick="disconnectGithubIntegration()" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">נתקו</button>
+          </div>
+        </div>
+      </div>
+
       <!-- 1. WordPress Blog -->
       <div class="int-card" id="pub-blog-card">
         <div class="int-card-header">
@@ -7875,6 +7901,7 @@ function restoreIntegrationStates() {
   });
   // Restore SEO integration states
   restoreSeoIntegrationStates();
+  restoreGithubStatus();
 }
 
 /* ===== SEO & AI Visibility Integrations ===== */
@@ -8095,6 +8122,73 @@ async function disconnectFirecrawl() {
     history.replaceState(null, '', window.location.pathname);
   }
 })();
+
+/* ===== GitHub Integration ===== */
+
+async function saveGithubIntegration() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+  var repo = document.getElementById('github-repo').value.trim();
+  var token = document.getElementById('github-token').value.trim();
+  var contentPath = document.getElementById('github-content-path').value.trim() || 'content/guides';
+  if (!repo || !token) { showToast('הכניסו repo ו-token', 'error'); return; }
+  try {
+    var res = await fetch(API + '/hosting/integrations/github/save', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (tk || '') },
+      body: JSON.stringify({ instanceId: iid, token: token, repo: repo, contentPath: contentPath })
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('GitHub חובר!', 'success');
+      showGithubConnected(data.data);
+      document.getElementById('github-token').value = '';
+    } else { showToast(data.message || 'שגיאה', 'error'); }
+  } catch { showToast('שגיאת תקשורת', 'error'); }
+}
+
+function showGithubConnected(data) {
+  document.getElementById('github-not-connected').style.display = 'none';
+  document.getElementById('github-connected').style.display = '';
+  document.getElementById('github-repo-display').textContent = data.repo || '';
+  document.getElementById('github-path-display').textContent = data.contentPath || 'content/guides';
+  var statusEl = document.getElementById('github-status');
+  if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
+  var card = document.getElementById('github-card');
+  if (card) card.classList.add('connected-card');
+}
+
+async function disconnectGithubIntegration() {
+  if (!confirm('לנתק GitHub?')) return;
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  try {
+    await fetch(API + '/hosting/integrations/github/disconnect', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (tk || '') },
+      body: JSON.stringify({ instanceId: iid })
+    });
+    showToast('GitHub נותק', 'success');
+    document.getElementById('github-not-connected').style.display = '';
+    document.getElementById('github-connected').style.display = 'none';
+    var statusEl = document.getElementById('github-status');
+    if (statusEl) { statusEl.textContent = 'לא מחובר'; statusEl.className = 'int-status'; }
+    var card = document.getElementById('github-card');
+    if (card) card.classList.remove('connected-card');
+  } catch { showToast('שגיאה', 'error'); }
+}
+
+async function restoreGithubStatus() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  if (!iid || !tk) return;
+  try {
+    var res = await fetch(API + '/hosting/integrations/github/status?instanceId=' + iid, { headers: { 'Authorization': 'Bearer ' + tk } });
+    var data = await res.json();
+    if (data.success && data.data && data.data.connected) {
+      showGithubConnected(data.data);
+    }
+  } catch {}
+}
 
 /* ===== Integration Bundles System ===== */
 
