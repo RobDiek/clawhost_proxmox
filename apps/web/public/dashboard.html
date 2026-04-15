@@ -596,6 +596,30 @@ input{font-family:inherit}
 .sched-unlock-btn{pointer-events:all;opacity:1}
 .bundle-int-badge{font-size:0.72rem;background:#EFF6FF;color:#2563EB;padding:2px 8px;border-radius:10px;font-weight:600;margin-right:8px}
 .bundle-int-badge.full{background:#ECFDF5;color:#059669}
+/* SEO Strategy + Activity Log */
+.seo-plan-item{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:12px;margin-bottom:8px}
+.seo-plan-item:hover{border-color:#2563EB}
+.seo-plan-title{font-weight:600;font-size:0.85rem;color:#1F2937}
+.seo-plan-meta{font-size:0.72rem;color:#6B7280;margin-top:4px;display:flex;gap:8px;flex-wrap:wrap}
+.seo-plan-actions{display:flex;gap:6px;margin-top:8px}
+.seo-roi-badge{background:#DBEAFE;color:#1E40AF;font-size:0.68rem;padding:1px 6px;border-radius:8px;font-weight:600}
+.seo-intent-badge{font-size:0.68rem;padding:1px 6px;border-radius:8px;font-weight:500}
+.seo-intent-badge.info{background:#FEF3C7;color:#92400E}
+.seo-intent-badge.trans{background:#D1FAE5;color:#065F46}
+.seo-intent-badge.nav{background:#EDE9FE;color:#5B21B6}
+.activity-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #F3F4F6;font-size:0.82rem}
+.activity-item:last-child{border-bottom:none}
+.activity-time{color:#9CA3AF;font-size:0.72rem;white-space:nowrap;min-width:70px}
+.activity-icon{font-size:0.9rem;flex-shrink:0}
+.activity-text{color:#374151;flex:1}
+.activity-status{font-size:0.68rem;padding:1px 6px;border-radius:8px;font-weight:500}
+.activity-status.ok{background:#D1FAE5;color:#065F46}
+.activity-status.alert{background:#FEE2E2;color:#991B1B}
+.activity-status.pending{background:#FEF3C7;color:#92400E}
+/* CMS-agnostic export buttons */
+.export-btn-group{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.export-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.75rem;color:#374151;background:#fff;cursor:pointer;transition:all .15s}
+.export-btn:hover{background:#F9FAFB;border-color:#2563EB;color:#2563EB}
 .tab-title { font-size:1.3rem;font-weight:700;margin-bottom:4px }
 .tab-desc { font-size:0.9rem;color:#6B7280;margin-bottom:20px }
 
@@ -1124,7 +1148,60 @@ input{font-family:inherit}
         </div>
       </div>
 
-      <!-- 6. Activity Log -->
+      <!-- 6. SEO Strategy Dashboard (visible when SEO bundle has ≥1 connection) -->
+      <div id="seo-strategy-section" style="display:none;margin-top:24px">
+        <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>אסטרטגיית SEO</span>
+          <span id="seo-strategy-updated" style="font-size:0.72rem;color:#9CA3AF"></span>
+        </div>
+
+        <!-- Scores row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:1.4rem;font-weight:700;color:#2563EB" id="seo-score-aeo">—</div>
+            <div style="font-size:0.72rem;color:#6B7280">ציון AEO</div>
+          </div>
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:1.4rem;font-weight:700;color:#10B981" id="seo-score-citations">—</div>
+            <div style="font-size:0.72rem;color:#6B7280">ציטוטים ב-AI</div>
+          </div>
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:1.4rem;font-weight:700;color:#F59E0B" id="seo-score-pending">—</div>
+            <div style="font-size:0.72rem;color:#6B7280">ממתינים לאישור</div>
+          </div>
+        </div>
+
+        <!-- Content Plan -->
+        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px;margin-bottom:16px">
+          <div style="font-weight:600;font-size:0.88rem;color:#374151;margin-bottom:10px">🎯 תוכנית תוכן</div>
+          <div id="seo-content-plan">
+            <div style="text-align:center;color:#9CA3AF;padding:16px;font-size:0.85rem">הריצו מחקר SEO כדי ליצור תוכנית תוכן</div>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm" onclick="triggerSeoResearch()">🔍 מחקר SEO חדש</button>
+            <button class="btn btn-outline btn-sm" onclick="refreshSeoStrategy()">🔄 רעננו</button>
+          </div>
+        </div>
+
+        <!-- Positions that need attention -->
+        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px;margin-bottom:16px">
+          <div style="font-weight:600;font-size:0.88rem;color:#374151;margin-bottom:10px">📉 מיקומים שדורשים תשומת לב</div>
+          <div id="seo-positions-alert">
+            <div style="text-align:center;color:#9CA3AF;padding:12px;font-size:0.85rem">אין ירידות משמעותיות</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. SEO Activity Log -->
+      <div id="seo-activity-section" style="display:none;margin-top:24px">
+        <div class="section-title">יומן פעילות SEO</div>
+        <div id="seo-activity-log" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:12px;max-height:300px;overflow-y:auto">
+          <div style="text-align:center;color:#9CA3AF;padding:12px;font-size:0.85rem">אין פעילות SEO עדיין</div>
+        </div>
+      </div>
+
+      <!-- 8. CMS-agnostic Publish (inside approval queue items) -->
+
       </div><!-- /agent-panel-research -->
 
       <!-- Panel: Memory (Mem0) -->
@@ -6972,6 +7049,7 @@ function switchAgentDetailTab(tab) {
     if (btn) btn.classList.toggle('active', t === tab);
   });
   if (tab === 'memory') loadMemories();
+  if (tab === 'research') showSeoSections();
 }
 
 function openAgentDetail(agentType) {
@@ -8154,6 +8232,218 @@ function refreshBundleUI() {
       badge.className = 'bundle-int-badge' + (state.currentLevel === state.maxLevel ? ' full' : '');
     }
   });
+}
+
+/* ===== SEO Strategy Dashboard + Activity Log ===== */
+
+function showSeoSections() {
+  var state = getBundleState('seo');
+  var show = state && state.connCount > 0;
+  var stratEl = document.getElementById('seo-strategy-section');
+  var actEl = document.getElementById('seo-activity-section');
+  if (stratEl) stratEl.style.display = show ? '' : 'none';
+  if (actEl) actEl.style.display = show ? '' : 'none';
+  if (show) { loadSeoStrategy(); loadSeoActivityLog(); }
+}
+
+async function loadSeoStrategy() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  if (!iid || !tk) return;
+  var headers = { 'Authorization': 'Bearer ' + tk };
+
+  // Load pending outputs count
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/outputs?status=pending_review&limit=50', { headers: headers });
+    var data = await res.json();
+    if (data.success) {
+      var seoOutputs = (data.data || []).filter(function(o) {
+        return ['meater','migdalor','sayer','menateach','et'].indexOf(o.agentRole) >= 0;
+      });
+      var pendingEl = document.getElementById('seo-score-pending');
+      if (pendingEl) pendingEl.textContent = seoOutputs.length;
+    }
+  } catch {}
+
+  // Load content plan from approved/published outputs
+  try {
+    var res2 = await fetch(API + '/hosting/instances/' + iid + '/outputs?limit=20&exclude_archived=1', { headers: headers });
+    var data2 = await res2.json();
+    if (data2.success && data2.data && data2.data.length > 0) {
+      var planItems = data2.data.filter(function(o) {
+        return o.outputType === 'content_post' || o.outputType === 'weekly_report' || o.outputType === 'aeo_audit';
+      });
+      renderContentPlan(planItems);
+      renderPositionAlerts(data2.data);
+
+      // Find AEO audit for scores
+      var aeo = data2.data.find(function(o) { return o.outputType === 'aeo_audit'; });
+      if (aeo && aeo.metadata) {
+        var scoreEl = document.getElementById('seo-score-aeo');
+        var citEl = document.getElementById('seo-score-citations');
+        if (scoreEl && aeo.metadata.aeoScore) scoreEl.textContent = aeo.metadata.aeoScore + '/100';
+        if (citEl && aeo.metadata.citationCount) citEl.textContent = aeo.metadata.citationCount;
+      }
+
+      var updEl = document.getElementById('seo-strategy-updated');
+      if (updEl && data2.data[0]) {
+        var d = new Date(data2.data[0].createdAt);
+        updEl.textContent = 'עדכון אחרון: ' + d.toLocaleDateString('he-IL') + ' ' + d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+      }
+    }
+  } catch {}
+}
+
+function renderContentPlan(items) {
+  var el = document.getElementById('seo-content-plan');
+  if (!el) return;
+  if (!items || items.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:16px;font-size:0.85rem">הריצו מחקר SEO כדי ליצור תוכנית תוכן</div>';
+    return;
+  }
+  var AGENT_NAMES = { et: 'עט', menateach: 'מנתח', migdalor: 'מגדלור', sayer: 'סייר', meater: 'מאתר' };
+  var STATUS_HE = { pending_review: 'ממתין', approved: 'אושר', published: 'פורסם', rejected: 'נדחה' };
+  var html = '';
+  items.slice(0, 5).forEach(function(item) {
+    var roi = item.metadata && item.metadata.roiScore ? item.metadata.roiScore : '';
+    var intent = item.metadata && item.metadata.intent ? item.metadata.intent : '';
+    var intentCls = intent === 'transactional' ? 'trans' : (intent === 'navigational' ? 'nav' : 'info');
+    html += '<div class="seo-plan-item">';
+    html += '<div class="seo-plan-title">' + (item.title || 'ללא כותרת') + '</div>';
+    html += '<div class="seo-plan-meta">';
+    if (roi) html += '<span class="seo-roi-badge">ROI: ' + roi + '</span>';
+    if (intent) html += '<span class="seo-intent-badge ' + intentCls + '">' + intent + '</span>';
+    html += '<span>' + (AGENT_NAMES[item.agentRole] || item.agentRole) + '</span>';
+    html += '<span>' + (STATUS_HE[item.status] || item.status) + '</span>';
+    html += '</div>';
+    html += '<div class="seo-plan-actions">';
+    if (item.status === 'pending_review') {
+      html += '<button class="btn btn-primary btn-sm" onclick="openTaskPopup(\'' + item.id + '\')" style="font-size:0.75rem">צפו ואשרו ←</button>';
+    } else if (item.status === 'approved') {
+      html += '<button class="btn btn-outline btn-sm" onclick="openTaskPopup(\'' + item.id + '\')" style="font-size:0.75rem">צפו ←</button>';
+      html += '<div class="export-btn-group">';
+      html += '<button class="export-btn" onclick="copyContentMd(\'' + item.id + '\')">📋 העתיקו MD</button>';
+      html += '<button class="export-btn" onclick="downloadContentHtml(\'' + item.id + '\')">📄 הורידו HTML</button>';
+      html += '</div>';
+    }
+    html += '</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+function renderPositionAlerts(allOutputs) {
+  var el = document.getElementById('seo-positions-alert');
+  if (!el) return;
+  var alerts = allOutputs.filter(function(o) {
+    return o.outputType === 'weekly_report' && o.metadata && o.metadata.positionDrops;
+  });
+  if (!alerts.length) {
+    el.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:12px;font-size:0.85rem">✅ אין ירידות משמעותיות</div>';
+    return;
+  }
+  var html = '';
+  var drops = alerts[0].metadata.positionDrops || [];
+  drops.slice(0, 5).forEach(function(d) {
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F3F4F6;font-size:0.82rem">';
+    html += '<span style="font-weight:500">"' + d.query + '"</span>';
+    html += '<span style="color:#EF4444">#' + d.from + ' → #' + d.to + '</span>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+async function loadSeoActivityLog() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  if (!iid || !tk) return;
+  var el = document.getElementById('seo-activity-log');
+  if (!el) return;
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/outputs?limit=15&exclude_archived=1', { headers: { 'Authorization': 'Bearer ' + tk } });
+    var data = await res.json();
+    if (!data.success || !data.data || data.data.length === 0) return;
+
+    var seoAgents = ['meater', 'migdalor', 'sayer', 'menateach', 'et', 'shaliach'];
+    var seoOutputs = data.data.filter(function(o) { return seoAgents.indexOf(o.agentRole) >= 0; });
+    if (seoOutputs.length === 0) return;
+
+    var AGENT_ICONS = { meater: '🔍', migdalor: '🏗️', sayer: '🌐', menateach: '📊', et: '✍️', shaliach: '📤' };
+    var STATUS_MAP = { pending_review: { label: 'ממתין', cls: 'pending' }, approved: { label: '✓ אושר', cls: 'ok' }, published: { label: '✓ פורסם', cls: 'ok' }, rejected: { label: 'נדחה', cls: 'alert' } };
+
+    var html = '';
+    seoOutputs.forEach(function(o) {
+      var d = new Date(o.createdAt);
+      var time = d.toLocaleDateString('he-IL', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+      var st = STATUS_MAP[o.status] || { label: o.status, cls: '' };
+      html += '<div class="activity-item">';
+      html += '<div class="activity-time">' + time + '</div>';
+      html += '<div class="activity-icon">' + (AGENT_ICONS[o.agentRole] || '📋') + '</div>';
+      html += '<div class="activity-text">' + (o.title || o.outputType) + '</div>';
+      html += '<span class="activity-status ' + st.cls + '">' + st.label + '</span>';
+      html += '</div>';
+    });
+    el.innerHTML = html;
+  } catch {}
+}
+
+function triggerSeoResearch() {
+  showToast('שולח בקשת מחקר SEO לסוכן...', 'info');
+  // This will be picked up by the agent in the next heartbeat
+  // or user can trigger manually via Telegram
+  var msg = 'כדי להריץ מחקר SEO מלא, שלחו לסוכן בטלגרם:\n"תעשה מחקר SEO על המתחרים שלי"';
+  showToast(msg, 'info');
+}
+
+function refreshSeoStrategy() {
+  loadSeoStrategy();
+  loadSeoActivityLog();
+  showToast('מרענן...', 'info');
+}
+
+// CMS-agnostic content export
+function copyContentMd(outputId) {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  fetch(API + '/hosting/instances/' + iid + '/outputs/' + outputId, { headers: { 'Authorization': 'Bearer ' + tk } })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success && data.data) {
+        var content = data.data.editedContent || data.data.content || '';
+        navigator.clipboard.writeText(content).then(function() {
+          showToast('תוכן הועתק ללוח!', 'success');
+        });
+      }
+    }).catch(function() { showToast('שגיאה בהעתקה', 'error'); });
+}
+
+function downloadContentHtml(outputId) {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  fetch(API + '/hosting/instances/' + iid + '/outputs/' + outputId, { headers: { 'Authorization': 'Bearer ' + tk } })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success && data.data) {
+        var content = data.data.editedContent || data.data.content || '';
+        var title = data.data.title || 'content';
+        // Simple markdown to HTML
+        var html = '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>' + title + '</title>';
+        html += '<style>body{font-family:Arial,sans-serif;max-width:800px;margin:0 auto;padding:20px;line-height:1.8}h1,h2,h3{color:#1F2937}</style></head><body>';
+        html += '<h1>' + title + '</h1>';
+        html += content.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</h2>').replace(/^# (.*$)/gm, '<h1>$1</h1>').replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
+        // Add Schema.org if metadata has it
+        if (data.data.metadata && data.data.metadata.schemaOrg) {
+          html += '<script type="application/ld+json">' + JSON.stringify(data.data.metadata.schemaOrg) + '<\/script>';
+        }
+        html += '</body></html>';
+        var blob = new Blob([html], { type: 'text/html' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = title.replace(/[^a-zA-Zא-ת0-9]/g, '-') + '.html';
+        a.click();
+        showToast('HTML הורד!', 'success');
+      }
+    }).catch(function() { showToast('שגיאה בהורדה', 'error'); });
 }
 
 async function saveIntegration(type) {
