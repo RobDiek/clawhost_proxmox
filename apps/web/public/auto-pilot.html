@@ -21,6 +21,12 @@ a { color:#2563EB; text-decoration:none; }
 .hdr-nav a:hover { color:#2563EB; }
 .hdr-btn { background:#2563EB; color:#fff; padding:6px 16px; border-radius:8px; font-size:0.85rem; font-weight:600; }
 .hdr-btn:hover { background:#1D4ED8; color:#fff; }
+@media(max-width:600px) {
+  .hdr-inner { flex-wrap:wrap; gap:8px; justify-content:center; }
+  .hdr-nav { gap:12px; font-size:0.8rem; order:3; width:100%; justify-content:center; padding-top:6px; border-top:1px solid #F3F4F6; }
+  .hdr-logo { height:22px; }
+  .hdr-btn { font-size:0.78rem; padding:5px 12px; }
+}
 
 /* Hero */
 .hero { padding:60px 0 40px; text-align:center; }
