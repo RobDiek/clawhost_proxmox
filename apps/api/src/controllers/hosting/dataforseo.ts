@@ -182,7 +182,7 @@ async function deployDataforseoMcpToVPS(ip: string, password: string | undefined
         command: 'npx',
         args: ['-y', 'dataforseo-mcp-server'],
         env: {
-            DATAFORSEO_LOGIN: login,
+            DATAFORSEO_USERNAME: login,
             DATAFORSEO_PASSWORD: apiPassword,
         },
     }

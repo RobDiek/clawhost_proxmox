@@ -134,7 +134,7 @@ const MCP_SERVERS: Record<string, {
         package: 'dataforseo-mcp-server',
         command: 'npx',
         args: ['-y', 'dataforseo-mcp-server'],
-        envKeys: ['DATAFORSEO_LOGIN', 'DATAFORSEO_PASSWORD'],
+        envKeys: ['DATAFORSEO_USERNAME', 'DATAFORSEO_PASSWORD'],
         category: 'seo',
     },
     'firecrawl': {
