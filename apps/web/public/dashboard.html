@@ -900,8 +900,8 @@ input{font-family:inherit}
       </div>
     </div>
 
-    <!-- Row 2: לוח תוכן (Content Calendar) -->
-    <div style="margin-top:16px">
+    <!-- Row 2: לוח תוכן — hidden until basic onboarding done -->
+    <div style="margin-top:16px" id="home-calendar-section">
       <div class="section-title" style="display:flex;align-items:center;gap:6px;margin-top:0;margin-bottom:8px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         לוח תוכן
@@ -3196,23 +3196,16 @@ function getNotifications() {
   var isBare = components.indexOf('bare') !== -1 && components.indexOf('oc') === -1 && components.indexOf('mt') === -1;
   var hasMATEH = components.indexOf('mt') !== -1;
 
-  // Skip integration recommendations for Bare (developer mode)
-  if (!isBare) {
+  // Integration recommendations — only show AFTER basic onboarding is done
+  // (profile filled + research run). Before that, homeTasks checklist guides the user.
+  var basicDone = hasAgents && hasResearch;
+  if (!isBare && basicDone) {
     if (!hasGoogle && dismissed.indexOf('rec-google') === -1) {
       notifs.push({ id: 'rec-google', type: 'info', icon: '💡', title: 'חברו Google Calendar', desc: 'הסוכן יוכל לנהל את היומן שלכם — פגישות, תזכורות, אירועים', action: "switchTab('integrations')", actionLabel: 'חברו עכשיו' });
     }
     if (!hasTelegram && dismissed.indexOf('rec-telegram') === -1) {
       notifs.push({ id: 'rec-telegram', type: 'info', icon: '📱', title: 'חברו Telegram', desc: 'קבלו Daily Brief והתראות גם בטלגרם — בנוסף לצ\'אט המובנה', action: "switchTab('integrations')", actionLabel: 'חברו' });
     }
-  }
-  // MATEH-only recommendations
-  if (hasMATEH && hasAgents && !hasResearch && dismissed.indexOf('rec-research') === -1) {
-    notifs.push({ id: 'rec-research', type: 'info', icon: '🔍', title: 'הריצו מחקר שוק', desc: 'הסוכן יחפש מתחרים, מילות מפתח והזדמנויות', action: "runResearchFromDashboard()", actionLabel: 'הריצו מחקר' });
-  }
-  var braveKeyEl = document.getElementById('int-brave-key');
-  var hasBraveKey = braveKeyEl && braveKeyEl.value && braveKeyEl.value.length > 5;
-  if (hasMATEH && !hasBraveKey && dismissed.indexOf('rec-brave') === -1) {
-    notifs.push({ id: 'rec-brave', type: 'info', icon: '🔍', title: 'חברו Brave Search API', desc: 'הסוכנים שלכם חוקרים מתחרים ומילות מפתח. בלי Brave הם מוגבלים ל-scraping בסיסי שעלול להיחסם. Brave נותן 2,000 חיפושים/חודש חינם עם תוצאות מובנות ומהירות.', action: "switchTab('integrations')", actionLabel: 'חברו חינם' });
   }
 
   // System notifications from localStorage
@@ -4904,6 +4897,12 @@ var calendarOffset = 0; // weeks from current
 function renderContentCalendar() {
   var el = document.getElementById('contentCalendar');
   if (!el) return;
+  // Hide calendar until basic onboarding is done (profile + research)
+  var section = document.getElementById('home-calendar-section');
+  var hasProfile = !!(instanceData && instanceData.researchData && instanceData.researchData.answers && instanceData.researchData.answers.businessName);
+  var hasResearch = !!(instanceData && instanceData.researchData && instanceData.researchData.report);
+  if (section) section.style.display = (hasProfile && hasResearch) ? '' : 'none';
+  if (!hasProfile || !hasResearch) return;
 
   var now = new Date();
   // Get start of week (Sunday in Israel)
