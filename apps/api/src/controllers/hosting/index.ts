@@ -23,6 +23,7 @@ export { gscAuth, gscCallback, gscCallbackHandler, gscDisconnect, gscStatus, gsc
 export { saveDataforseoKey, getDataforseoStatus, removeDataforseoKey } from './dataforseo'
 export { saveFirecrawlKey, getFirecrawlStatus, removeFirecrawlKey } from './firecrawl'
 export { getSchedules, saveSchedules } from './schedules'
+export { seoValidate, seoFirstRun, seoStatus } from './seoFirstRun'
 export { getMyReferralCode, getMyReferrals, validateReferralCode, activateReferralTrial } from './referrals'
 export { saveGbpConfig, getGbpConfig, createGbpPost, getGbpReviews, replyToGbpReview } from './gbp'
 export { saveWaConfig, getWaConfigEndpoint, getWaContacts, addWaContact, importWaContacts, optOutWaContact, getWaTemplates, createWaTemplate, submitWaTemplate, refreshWaTemplateStatus, sendWaBroadcast, getWaSends } from './whatsapp'
