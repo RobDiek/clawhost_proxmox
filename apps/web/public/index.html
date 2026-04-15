@@ -1276,6 +1276,7 @@ const ITEMS = [
       tech: 'RAM: 1GB · OpenClaw Gateway', price: null,
     },
   },
+  /* n8n removed — Sustainable Use License
   {
     id: 'n8', cat: 'auto', ram: 0.5, radio: true,
     he: 'n8n', en: 'n8n',
@@ -1290,6 +1291,7 @@ const ITEMS = [
       tech: 'RAM: 0.5GB', price: null,
     },
   },
+  */
   {
     id: 'ap', cat: 'auto', ram: 0.5, radio: true, default: true,
     he: 'Activepieces', en: 'Activepieces',
@@ -1332,20 +1334,7 @@ const ITEMS = [
       tech: '+\u20AA19/\u05D7\u05D5\u05D3\u05E9', price: 19,
     },
   },
-  {
-    id: 'tw', cat: 'extras', ram: 2,
-    he: 'Twenty CRM', en: 'Twenty CRM',
-    descHe: 'מערכת CRM מובנית — ניהול לידים, לקוחות, משימות, תוכן ופרויקטים. הסוכנים עובדים ישירות עם ה-CRM.',
-    descEn: 'Built-in CRM — manage leads, clients, tasks, content & projects. Agents work directly with CRM data.',
-    detail: {
-      tagHe: 'CRM עסקי', tagEn: 'Business CRM', tagBg: '#1a1a2e', tagColor: '#5B5BD6',
-      descHe: 'Twenty CRM — מערכת ניהול לקוחות ופרויקטים Open Source. הסוכנים יוצרים לידים, מעדכנים סטטוסים, מנהלים משימות ומאחסנים מחקרי שוק — הכל אוטומטי. ממשק ויזואלי עם Kanban, טבלאות, לוח שנה ודוחות.',
-      descEn: 'Twenty CRM — Open Source customer & project management. Agents create leads, update statuses, manage tasks and store market research — all automated. Visual interface with Kanban, tables, calendar and reports.',
-      featHe: ['ניהול לידים ולקוחות — אנשי קשר, חברות, הזדמנויות', 'Kanban Board — צפייה ויזואלית בסטטוס כל משימה', 'לוח שנה — סנכרון עם Google Calendar', 'Custom Objects — יצירת שדות וטבלאות מותאמים', 'אינטגרציה עם סוכני AI — MCP Server מובנה (29 כלים)', 'אימייל מובנה — סנכרון תיבת דואר', 'Workflows — אוטומציות פנימיות', 'API מלא — GraphQL + REST'],
-      featEn: ['Contact & Company management — leads, clients, opportunities', 'Kanban Board — visual task status tracking', 'Calendar — Google Calendar sync', 'Custom Objects — create custom fields and tables', 'AI Agent integration — built-in MCP Server (29 tools)', 'Built-in email — mailbox sync', 'Workflows — internal automations', 'Full API — GraphQL + REST'],
-      tech: 'RAM: 2GB · PostgreSQL (shared) · Disk: ~1GB',
-    },
-  },
+  /* Twenty CRM removed — AGPLv3 license risk */
   {
     id: 'xs', cat: 'extras', ram: 0, storage: true,
     he: '\u05D0\u05D7\u05E1\u05D5\u05DF \u05E0\u05D5\u05E1\u05E3', en: 'Additional Storage',
@@ -2021,7 +2010,7 @@ var MASCOT_MSGS = {
   },
   2: {
     idle: { he: 'בגדול אין הבדל — זה רק המנוע מאחורי הקלעים. לסוכן שלכם זה לא משנה. שניהם מצוינים, בחרו מה שנוח.', en: 'Basically no difference — it\'s just the engine behind the scenes. Your agent doesn\'t care. Both are great, pick what feels right.' },
-    n8:   { he: 'n8n — בחירה של מפתחים. בחרו רק אם אתם משתמשים מתקדמים, אחרת Activepieces מספיק.', en: 'n8n — a developer\'s choice. Pick only if you\'re an advanced user, otherwise Activepieces is enough.' },
+    /* n8n removed */
     ap:   { he: 'Activepieces — רישיון MIT, מותר לשימוש מסחרי ללא מגבלות. מושלם לרוב המשתמשים!', en: 'Activepieces — MIT license, fully open for commercial use. Perfect for most users!' },
   },
   3: {

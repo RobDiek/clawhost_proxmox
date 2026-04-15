@@ -1362,9 +1362,8 @@ function goToStep(n) { window._goToStep && window._goToStep(n); }
     document.getElementById('credFlowsUrl').textContent = flowsUrl.replace('https://', '');
     document.getElementById('credFlowsLink').href = flowsUrl;
 
-    // Set automation tool label (n8n or Activepieces)
-    var autoLabel = (instanceData && instanceData.automationTool === 'n8n') ? 'n8n' : 'Activepieces';
-    document.getElementById('credFlowsLabel').textContent = autoLabel;
+    // Automation tool: Activepieces only
+    document.getElementById('credFlowsLabel').textContent = 'Activepieces';
 
     // Fetch token from full instance data if not already available
     if (!storedToken) {
@@ -1373,9 +1372,6 @@ function goToStep(n) { window._goToStep && window._goToStep(n); }
         var data = await res.json();
         if (data.success && data.data) {
           storedToken = data.data.openclawToken || data.data.gatewayToken || '';
-          if (data.data.automationTool) {
-            document.getElementById('credFlowsLabel').textContent = data.data.automationTool === 'n8n' ? 'n8n' : 'Activepieces';
-          }
         }
       } catch (e) { /* non-critical */ }
     }

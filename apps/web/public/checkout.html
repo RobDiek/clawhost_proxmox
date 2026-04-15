@@ -304,7 +304,6 @@ const PLANS = {
 const COMPONENT_NAMES = {
   oc: 'OpenClaw Personal',
   mt: 'MATEH — סוכן שיווק',
-  n8: 'n8n',
   ap: 'Activepieces',
   ok: 'מפתחות API',
   ol: 'Ollama',
@@ -405,7 +404,7 @@ async function handleCheckout() {
   showMsg('', false);
 
   // Determine automation tool from components
-  var automationTool = components.includes('n8') ? 'n8n' : 'activepieces';
+  var automationTool = 'activepieces';
 
   // Build addons list
   var addons = [];
