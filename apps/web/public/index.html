@@ -998,18 +998,66 @@ html[dir="rtl"] .mascot-bubble::before {
     max-width: 100%;
     min-width: unset;
     height: auto;
-    max-height: 240px;
+    max-height: none;
+    position: relative;
+    top: auto;
   }
   .cfg-list {
     flex: 1;
     min-height: 200px;
   }
-  .header-nav { display: none; }
+  /* Mobile header — show nav as compact row */
+  .header {
+    height: auto;
+    padding: 8px 0;
+  }
+  .header-inner {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 12px;
+  }
+  .header-nav {
+    display: flex;
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    gap: 10px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+  .header-nav a {
+    font-size: 0.75rem;
+  }
+  .header-actions {
+    gap: 4px;
+  }
+  .header-login {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+  .logo img { height: 22px; }
+
+  /* Wizard steps */
+  .wizard-steps-bar { padding: 6px 8px; }
+  .wiz-step { padding: 6px 8px; }
+  .wiz-label { display: none; }
+
+  /* Summary on mobile — below configurator, full width */
+  .sum-footer { padding: 12px; }
+  .sum-total { font-size: 1.4rem; }
+
+  /* Title bar */
   .title-bar h2 { font-size: 1.2rem; }
   .title-bar p { display: none; }
+
+  /* Mascot */
   .mascot-wrap { gap: 6px; padding: 10px 4px 6px; }
   .mascot-bot { width: 44px; height: 44px; }
   .mascot-bubble { font-size: 12px; padding: 8px 10px; max-width: 220px; }
+
+  /* Partners modal */
+  .partners-modal-content { width: 95%; padding: 16px; }
 }
 </style>
 </head>
