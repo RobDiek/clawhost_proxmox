@@ -200,10 +200,101 @@ export const approveOutput = async (c: Context<HonoEnv>) => {
         if (!updated) return fail(c, 'Output not found or already processed', 404)
 
         console.log(`Output ${outputId} approved by ${userId}`)
+
+        // Post-approve triggers — run async, don't block response
+        triggerPostApprove(updated).catch(err => console.error('Post-approve trigger error:', err))
+
         return ok(c, updated, 'Output approved')
     } catch (err) {
         console.error('approveOutput error:', err)
         return fail(c, 'Failed to approve', 500)
+    }
+}
+
+/**
+ * Post-approve triggers — automatically advance the pipeline:
+ * - SEO strategy approved → עט writes first article
+ * - SEO article approved → ready for publish (manual or WordPress)
+ * - Ranking fix approved → שליח publishes update
+ */
+async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
+    const meta = output.metadata as Record<string, unknown> | null
+
+    // SEO Strategy approved → trigger עט to write the #1 priority article
+    if (meta?.type === 'seo_strategy' && output.agentRole === 'menateach') {
+        console.log(`SEO strategy approved — triggering content writing for instance ${output.instanceId}`)
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, output.instanceId))
+        if (!instance?.ip) return
+
+        // Extract first recommended article from strategy content
+        const content = output.content || ''
+        const titleMatch = content.match(/(?:כותרת|#1|⭐⭐⭐⭐⭐)[^\n]*?[—:]\s*(.+?)(?:\n|\|)/i)
+        const firstTitle = titleMatch?.[1]?.trim() || 'מאמר SEO ראשון'
+
+        const writePrompt = `כתוב את המאמר הראשון מתוכנית ה-SEO שאושרה.
+
+## מה לכתוב:
+כותרת: "${firstTitle}"
+בסס את המאמר על האסטרטגיה שאושרה.
+
+## כללי כתיבה חובה:
+1. AI Summary Nugget (200 תווים) בראש — לציטוט ב-AI
+2. כל פסקה ≤500 טוקנים (Google AI retrieval window)
+3. Schema.org JSON-LD בסוף (Article + FAQ)
+4. Internal links (3-5)
+5. CTA ברור
+6. De-AI-ify — כתוב כבן אדם, לא כ-AI
+7. עברית טבעית, משפטים קצרים
+
+## פורמט:
+כתוב את המאמר המלא כאן. Markdown format. מינימום 1500 מילים.
+בסוף: JSON-LD schema block.`
+
+        const b64 = Buffer.from(writePrompt).toString('base64')
+        try {
+            const sessionId = `seo-write-${Date.now()}`
+            const rawOutput = await sshExecForPublish(instance.ip,
+                `su - openclaw -c 'timeout 300 openclaw agent --session-id ${sessionId} --thinking medium -m "$(echo ${b64} | base64 -d)" --json 2>&1'`,
+                instance.rootPassword || undefined
+            )
+
+            // Extract clean text
+            let articleText = ''
+            const jsonStart = rawOutput.indexOf('{')
+            const jsonEnd = rawOutput.lastIndexOf('}')
+            if (jsonStart >= 0 && jsonEnd > jsonStart) {
+                try {
+                    const parsed = JSON.parse(rawOutput.slice(jsonStart, jsonEnd + 1))
+                    articleText = parsed?.result?.finalAssistantVisibleText || ''
+                    if (!articleText) {
+                        const payloads = parsed?.result?.payloads as Array<{ text?: string }> | undefined
+                        if (payloads) {
+                            for (const p of payloads) {
+                                if (p.text && p.text.length > articleText.length) articleText = p.text
+                            }
+                        }
+                    }
+                } catch { articleText = rawOutput.slice(-5000) }
+            }
+
+            if (articleText.length > 100) {
+                const articleId = randomBytes(6).toString('hex')
+                await db.insert(agentOutputs).values({
+                    id: articleId,
+                    instanceId: output.instanceId,
+                    agentRole: 'et',
+                    outputType: 'content_post',
+                    title: firstTitle,
+                    content: articleText,
+                    status: 'pending_review',
+                    metadata: { type: 'seo_article', strategyRef: output.id, autoTriggered: true },
+                })
+                console.log(`SEO article written: ${articleId} (${articleText.length} chars) — pending review`)
+            }
+        } catch (err) {
+            console.error('Failed to trigger article writing:', err)
+        }
     }
 }
 
