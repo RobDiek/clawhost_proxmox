@@ -8389,9 +8389,45 @@ function renderContentPlan(items) {
     return;
   }
   var AGENT_NAMES = { et: 'עט', menateach: 'מנתח', migdalor: 'מגדלור', sayer: 'סייר', meater: 'מאתר' };
-  var STATUS_HE = { pending_review: 'ממתין', approved: 'אושר', published: 'פורסם', rejected: 'נדחה' };
+  var STATUS_HE = { pending_review: 'ממתין לאישור', approved: 'אושר', published: 'פורסם', rejected: 'נדחה' };
   var html = '';
-  items.slice(0, 5).forEach(function(item) {
+
+  // Check for strategy report — show summary + expand
+  var strategy = items.find(function(o) { return o.metadata && o.metadata.type === 'seo_strategy'; });
+  if (strategy && strategy.content && strategy.content.length > 500) {
+    var content = strategy.content;
+    // Extract "סיכום — 3 פעולות ראשונות" section if exists
+    var summaryMatch = content.match(/##\s*סיכום[^\n]*\n([\s\S]*?)(?=\n##\s|$)/);
+    var summaryText = summaryMatch ? summaryMatch[1].trim() : '';
+    // Also extract AEO score
+    var aeoMatch = content.match(/ציון AEO[^\d]*(\d+)/);
+    var aeoScore = aeoMatch ? aeoMatch[1] : '';
+
+    html += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:16px;margin-bottom:12px">';
+    html += '<div style="font-weight:700;font-size:0.92rem;color:#1E40AF;margin-bottom:8px">📋 ' + (strategy.title || 'אסטרטגיית SEO') + '</div>';
+    if (aeoScore) html += '<div style="font-size:0.82rem;margin-bottom:6px">ציון AEO: <strong>' + aeoScore + '/100</strong></div>';
+    if (summaryText) {
+      html += '<div style="font-size:0.85rem;color:#374151;line-height:1.7;margin-bottom:10px;white-space:pre-line">' + summaryText.slice(0, 500) + '</div>';
+    } else {
+      // Show first 300 chars as preview
+      var preview = content.replace(/[#*|]/g, '').slice(0, 300);
+      html += '<div style="font-size:0.85rem;color:#374151;line-height:1.7;margin-bottom:10px">' + preview + '...</div>';
+    }
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+    html += '<button class="btn btn-primary btn-sm" onclick="openTaskPopup(\'' + strategy.id + '\')" style="font-size:0.78rem">צפו בדוח המלא ←</button>';
+    if (strategy.status === 'pending_review') {
+      html += '<span style="font-size:0.75rem;color:#F59E0B;display:flex;align-items:center;gap:4px">⏳ ' + STATUS_HE[strategy.status] + '</span>';
+    }
+    html += '<div class="export-btn-group">';
+    html += '<button class="export-btn" onclick="copyContentMd(\'' + strategy.id + '\')">📋 העתיקו</button>';
+    html += '<button class="export-btn" onclick="downloadContentHtml(\'' + strategy.id + '\')">📄 HTML</button>';
+    html += '</div>';
+    html += '</div></div>';
+  }
+
+  // Show other items (research, audits, content posts)
+  var others = items.filter(function(o) { return !o.metadata || o.metadata.type !== 'seo_strategy'; });
+  others.slice(0, 5).forEach(function(item) {
     var roi = item.metadata && item.metadata.roiScore ? item.metadata.roiScore : '';
     var intent = item.metadata && item.metadata.intent ? item.metadata.intent : '';
     var intentCls = intent === 'transactional' ? 'trans' : (intent === 'navigational' ? 'nav' : 'info');
@@ -8406,11 +8442,11 @@ function renderContentPlan(items) {
     html += '<div class="seo-plan-actions">';
     if (item.status === 'pending_review') {
       html += '<button class="btn btn-primary btn-sm" onclick="openTaskPopup(\'' + item.id + '\')" style="font-size:0.75rem">צפו ואשרו ←</button>';
-    } else if (item.status === 'approved') {
+    } else if (item.status === 'approved' || item.status === 'published') {
       html += '<button class="btn btn-outline btn-sm" onclick="openTaskPopup(\'' + item.id + '\')" style="font-size:0.75rem">צפו ←</button>';
       html += '<div class="export-btn-group">';
-      html += '<button class="export-btn" onclick="copyContentMd(\'' + item.id + '\')">📋 העתיקו MD</button>';
-      html += '<button class="export-btn" onclick="downloadContentHtml(\'' + item.id + '\')">📄 הורידו HTML</button>';
+      html += '<button class="export-btn" onclick="copyContentMd(\'' + item.id + '\')">📋 העתיקו</button>';
+      html += '<button class="export-btn" onclick="downloadContentHtml(\'' + item.id + '\')">📄 HTML</button>';
       html += '</div>';
     }
     html += '</div></div>';

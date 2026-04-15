@@ -26,44 +26,94 @@ import crypto from 'crypto'
 function generateId(): string { return crypto.randomBytes(6).toString('hex') }
 
 /**
- * Extract visible text from openclaw agent --json output.
- * The JSON has structure: { result: { finalAssistantVisibleText: "..." } }
- * Falls back to raw output if JSON parsing fails.
+ * Extract clean text from openclaw agent --json output.
+ *
+ * OpenClaw agent --json returns:
+ * {
+ *   "result": {
+ *     "payloads": [{"text": "step...", "mediaUrl": null}, ...],
+ *     "finalAssistantVisibleText": "clean full report"
+ *   }
+ * }
+ *
+ * Strategy:
+ * 1. Parse JSON → use finalAssistantVisibleText (best)
+ * 2. If missing → concatenate payloads[].text, take the longest one (final report)
+ * 3. Fallback → extract markdown from raw text
+ * 4. Always: remove agent internal monologue
  */
 function extractAgentText(raw: string): string {
-    // Try JSON parse first (--json flag output)
-    try {
-        // Find the JSON object in the output (may have leading text)
-        const jsonStart = raw.indexOf('{"version"')
-        if (jsonStart >= 0) {
-            const parsed = JSON.parse(raw.slice(jsonStart))
-            const text = parsed?.result?.finalAssistantVisibleText
-            if (text && text.length > 50) return text
-        }
-    } catch { /* not JSON or parse error */ }
+    let text = ''
 
-    // Try alternate JSON structure
-    try {
-        const jsonStart = raw.indexOf('{"result"')
-        if (jsonStart >= 0) {
-            const parsed = JSON.parse(raw.slice(jsonStart))
-            const text = parsed?.result?.finalAssistantVisibleText
-            if (text && text.length > 50) return text
-        }
-    } catch { /* not JSON */ }
+    // Try to find and parse the JSON object
+    const jsonPatterns = ['{"version"', '{"result"']
+    for (const pattern of jsonPatterns) {
+        try {
+            const idx = raw.indexOf(pattern)
+            if (idx < 0) continue
+            const parsed = JSON.parse(raw.slice(idx))
 
-    // Fallback: strip common SSH noise and return raw text
-    let cleaned = raw
-        .replace(/^.*?(?=#{1,3}\s)/s, '') // strip everything before first markdown heading
-        .replace(/\n\s*\+$/gm, '')         // strip trailing + from psql-style output
-        .trim()
+            // Best: finalAssistantVisibleText
+            const visible = parsed?.result?.finalAssistantVisibleText
+            if (visible && visible.length > 100) {
+                text = visible
+                break
+            }
 
-    // If still nothing useful, return raw (last 5000 chars)
-    if (cleaned.length < 50) {
-        cleaned = raw.slice(-5000).trim()
+            // Fallback: find the longest payload text (= the final report)
+            const payloads = parsed?.result?.payloads as Array<{ text?: string }> | undefined
+            if (payloads && payloads.length > 0) {
+                let longest = ''
+                for (const p of payloads) {
+                    if (p.text && p.text.length > longest.length) {
+                        longest = p.text
+                    }
+                }
+                if (longest.length > 100) {
+                    text = longest
+                    break
+                }
+            }
+        } catch { /* parse error — try next pattern */ }
     }
 
-    return cleaned
+    // If JSON parsing failed, try to extract markdown from raw text
+    if (!text || text.length < 100) {
+        // Find the start of the actual report (first markdown heading)
+        const headingMatch = raw.match(/^(#{1,3}\s.+)/m)
+        if (headingMatch && headingMatch.index !== undefined) {
+            text = raw.slice(headingMatch.index)
+        } else {
+            text = raw
+        }
+    }
+
+    // Clean up
+    text = cleanAgentOutput(text)
+    return text
+}
+
+/**
+ * Remove agent internal monologue, JSON fragments, and noise from output.
+ */
+function cleanAgentOutput(text: string): string {
+    return text
+        // Remove JSON fragment lines
+        .replace(/^\s*"mediaUrl":\s*null\s*$/gm, '')
+        .replace(/^\s*"text":\s*"/gm, '')
+        .replace(/^\s*\},?\s*$/gm, '')
+        .replace(/^\s*\{\s*$/gm, '')
+        .replace(/^\s*\[\s*$/gm, '')
+        .replace(/^\s*\]\s*$/gm, '')
+        // Remove agent internal thoughts (Hebrew patterns)
+        .replace(/^.*?(טוב!|בואי נמשיך|עכשיו יש לי|בואי אני|נתחיל עם|אתחיל ב|מצוין!|יופי!|אוקיי|בסדר).*$/gm, '')
+        // Remove "I'll use tool X" lines
+        .replace(/^.*?(אשתמש ב|נשתמש ב|אריץ את|בודק את|מחפש ב|סורק את).*MCP.*$/gm, '')
+        // Remove trailing + from psql-style output
+        .replace(/\s*\+\s*$/gm, '')
+        // Collapse multiple blank lines
+        .replace(/\n{4,}/g, '\n\n\n')
+        .trim()
 }
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
@@ -192,9 +242,12 @@ ${gsc?.refreshToken ? '4. **gsc** — MCP server מחובר. השתמש בו ל�
 - מה אנשים שואלים על התחום שלנו?
 - Reddit, פורומים, שאלות נפוצות
 
-## פורמט תשובה
-כתוב דוח מסודר עם כל הסעיפים. סמן עובדות כ-[VERIFIED] אם מקור 2+ או [SINGLE] אם מקור אחד.
-אורך מינימלי: 3000 תווים. כתוב בעברית.`
+## פורמט תשובה — חשוב מאוד!
+- כתוב דוח **נקי ומקצועי** — ללא תהליך חשיבה, ללא "בואי נמשיך", ללא "אשתמש בכלי X"
+- הדוח הסופי בלבד. לא תיאור של מה עשית — רק התוצאות
+- סמן עובדות כ-[VERIFIED] אם 2+ מקורות או [SINGLE] אם מקור אחד
+- טבלאות עם נתונים אמיתיים מהכלים (volumes, difficulty, מחירים)
+- אורך מינימלי: 3000 תווים. כתוב בעברית. Markdown format.`
 
         const b64Prompt = Buffer.from(researchPrompt).toString('base64')
         let researchResult = ''
@@ -237,8 +290,12 @@ ${researchForStrategy}
 4. ציון AEO ראשוני: 1-100
 5. 3 פעולות ראשונות שצריך לעשות השבוע
 
-חשוב: כתוב את כל התוכן בתשובה. לא בקובץ. לא בלינק. הכל כאן.
-כתוב בעברית. תמציתי ואקשנאבילי. מינימום 2000 תווים.`
+## פורמט — חשוב מאוד!
+- כתוב דוח **נקי ומקצועי** — ללא תהליך חשיבה, ללא "בואי", ללא "אשתמש ב"
+- רק תוצאות ותוכנית. לא תיאור של מה עשית
+- כל התוכן בתשובה. לא בקובץ. לא בלינק
+- כתוב בעברית. Markdown format. מינימום 2000 תווים
+- בסוף: "## סיכום — 3 פעולות ראשונות" עם 3 משפטים קצרים`
 
         const b64Strategy = Buffer.from(strategyPrompt).toString('base64')
         let strategyResult = ''
