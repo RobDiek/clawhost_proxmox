@@ -1733,24 +1733,7 @@ input{font-family:inherit}
           </div>
         </div>
       </div>
-      <div class="int-card">
-        <div class="int-card-header">
-          <div class="int-icon" style="background:#E8EAF6"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#3F51B5" fill-opacity=".1"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" fill="#3F51B5"/></svg></div>
-          <div><strong>Bright Data</strong><div class="int-status">לא מחובר</div></div>
-        </div>
-        <div class="int-card-body hidden" id="int-brightdata-body">
-          <div id="int-brightdata-input">
-            <input type="password" id="int-brightdata-key" placeholder="API Key..." dir="ltr" class="int-input"/>
-            <button class="btn btn-primary btn-sm" onclick="saveIntegration('brightdata')">שמרו</button>
-          </div>
-          <div id="int-brightdata-saved" style="display:none">
-            <div style="display:flex;align-items:center;gap:8px">
-              <code id="int-brightdata-masked" style="font-size:0.78rem;color:#374151;background:#F3F4F6;padding:3px 8px;border-radius:4px"></code>
-              <button class="btn btn-outline btn-sm" onclick="disconnectIntegration('brightdata')" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">הסירו</button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Bright Data removed — replaced by Firecrawl (MIT, free tier) -->
 
       <!-- Replicate (Image Generation) -->
       <div class="int-card">
@@ -6068,31 +6051,44 @@ function openResearchPipeline() {
 }
 
 function showIntegrationSuggestion() {
-  var hasBrave = false; // TODO: check from instanceData
-  var hasAhrefs = false;
+  // Check actual connection state from our integration system
+  var hasBrave = isIntConnected('brave') || !!(instanceData && instanceData.agentIntegrations && instanceData.agentIntegrations.brave);
+  var hasGsc = isIntConnected('gsc');
+  var hasDfs = isIntConnected('dataforseo');
+  var hasFc = isIntConnected('firecrawl');
+
+  var tools = [
+    { id: 'brave', name: 'Brave Search', price: 'חינם — 2,000 חיפושים/חודש', priceColor: '#10B981',
+      desc: 'תוצאות חיפוש אמיתיות, מתחרים, שאלות קהל', connected: hasBrave },
+    { id: 'gsc', name: 'Google Search Console', price: 'חינם', priceColor: '#10B981',
+      desc: 'מיקומים בגוגל, תנועה אורגנית, שגיאות אינדוקס', connected: hasGsc },
+    { id: 'dataforseo', name: 'DataForSEO', price: '~$5/חודש (תשלום לפי שימוש)', priceColor: '#F59E0B',
+      desc: 'נפחי חיפוש אמיתיים, דירוג מתחרים, backlinks, נראות AI', connected: hasDfs },
+    { id: 'firecrawl', name: 'Firecrawl', price: 'חינם — 3,000 דפים/חודש', priceColor: '#10B981',
+      desc: 'סריקת אתרים, ביקורת טכנית, מיפוי מתחרים', connected: hasFc },
+  ];
+
+  var connectedCount = tools.filter(function(t) { return t.connected; }).length;
 
   var html = '<div style="padding:20px">' +
     '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">' +
     '<span style="color:#2563EB"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg></span>' +
     '<div><div style="font-weight:700;font-size:1rem">לפני שמתחילים — שפרו את המחקר</div>' +
-    '<div style="font-size:0.85rem;color:#6B7280">חברו כלי מחקר לתוצאות מדויקות יותר עם נתונים אמיתיים:</div></div></div>';
+    '<div style="font-size:0.85rem;color:#6B7280">חברו כלי מחקר לתוצאות מדויקות יותר (' + connectedCount + '/4 מחוברים):</div></div></div>';
 
   html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">';
-  html += '<div style="display:flex;align-items:center;gap:10px;padding:12px;border:1.5px solid ' + (hasBrave ? '#BBF7D0' : '#E5E7EB') + ';border-radius:10px;background:' + (hasBrave ? '#F0FDF4' : '#fff') + '">' +
-    '<div style="flex:1"><strong>Brave Search API</strong> <span style="color:#10B981;font-size:0.78rem">' + (hasBrave ? '✓ מחובר' : 'חינם — 2,000 חיפושים/חודש') + '</span>' +
-    '<div style="font-size:0.78rem;color:#6B7280">תוצאות חיפוש אמיתיות, לא מידע מהזיכרון של AI</div></div>' +
-    (hasBrave ? '' : '<button class="btn btn-outline btn-sm" onclick="switchTab(\'integrations\');closePipeline()" style="font-size:0.78rem">חברו</button>') + '</div>';
-
-  html += '<div style="display:flex;align-items:center;gap:10px;padding:12px;border:1.5px solid #E5E7EB;border-radius:10px">' +
-    '<div style="flex:1"><strong>Ahrefs</strong> <span style="color:#F59E0B;font-size:0.78rem">Premium — $99/חודש</span>' +
-    '<div style="font-size:0.78rem;color:#6B7280">נפחי חיפוש אמיתיים, דירוג מתחרים, backlinks</div></div>' +
-    '<button class="btn btn-outline btn-sm" onclick="switchTab(\'integrations\');closePipeline()" style="font-size:0.78rem">חברו</button></div>';
-
-  html += '<div style="display:flex;align-items:center;gap:10px;padding:12px;border:1.5px solid #E5E7EB;border-radius:10px">' +
-    '<div style="flex:1"><strong>Bright Data</strong> <span style="color:#F59E0B;font-size:0.78rem">Premium — $200+/חודש</span>' +
-    '<div style="font-size:0.78rem;color:#6B7280">סריקת אתרי מתחרים, מחירים, ביקורות</div></div>' +
-    '<button class="btn btn-outline btn-sm" onclick="switchTab(\'integrations\');closePipeline()" style="font-size:0.78rem">חברו</button></div>';
-
+  tools.forEach(function(t) {
+    var border = t.connected ? '#BBF7D0' : '#E5E7EB';
+    var bg = t.connected ? '#F0FDF4' : '#fff';
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:12px;border:1.5px solid ' + border + ';border-radius:10px;background:' + bg + '">' +
+      '<div style="flex:1"><strong>' + t.name + '</strong> <span style="color:' + t.priceColor + ';font-size:0.78rem">' + (t.connected ? '✓ מחובר' : t.price) + '</span>' +
+      '<div style="font-size:0.78rem;color:#6B7280">' + t.desc + '</div></div>';
+    if (!t.connected) {
+      var target = t.id === 'gsc' || t.id === 'dataforseo' || t.id === 'firecrawl' ? 'integrations' : 'integrations';
+      html += '<button class="btn btn-outline btn-sm" onclick="switchTab(\'' + target + '\');closePipeline();setTimeout(function(){var e=document.getElementById(\'' + t.id + '-card\');if(e)e.scrollIntoView({behavior:\'smooth\',block:\'center\'})},300)" style="font-size:0.78rem">חברו</button>';
+    }
+    html += '</div>';
+  });
   html += '</div>';
 
   html += '<div style="display:flex;gap:8px;justify-content:center">' +
@@ -6103,7 +6099,6 @@ function showIntegrationSuggestion() {
   html += '</div>';
   document.getElementById('pipelineBody').innerHTML = html;
   document.getElementById('pipelineNextBtn').style.display = 'none';
-  // skip button removed
   document.getElementById('pipelineTitle').textContent = 'מחקר שוק — הכנה';
 }
 
@@ -7893,7 +7888,7 @@ async function disconnectIntegration(type) {
 
 // On page load — restore saved integration states
 function restoreIntegrationStates() {
-  var types = ['brave', 'brightdata', 'replicate', 'gemini', 'resend'];
+  var types = ['brave', 'replicate', 'gemini', 'resend'];
   types.forEach(function(type) {
     if (localStorage.getItem('cf_' + type + '_saved')) {
       showIntegrationSavedState(type);
