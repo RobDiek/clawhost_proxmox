@@ -131,7 +131,7 @@ import {
     setAgentIntegrationEndpoint,
     deleteAgentIntegrationEndpoint,
     deleteOllamaModel,
-    installTwenty,
+    // installTwenty, // removed — AGPLv3
     gscAuth,
     gscCallback,
     gscDisconnect,
@@ -302,8 +302,7 @@ app.post('/instances/:id/ollama/install', installOllama)
 app.post('/instances/:id/ollama/pull', pullOllamaModel)
 app.delete('/instances/:id/ollama/model', deleteOllamaModel)
 
-// ── Twenty CRM ──
-app.post('/instances/:id/integrations/twenty/install', installTwenty)
+// Twenty CRM removed — AGPLv3 license risk
 
 // ── Referral Program ──
 app.get('/referral/my-code', getMyReferralCode)

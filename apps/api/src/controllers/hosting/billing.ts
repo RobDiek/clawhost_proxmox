@@ -54,7 +54,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
             billingPeriod
         } = body as {
             components: string[]
-            automationTool: 'n8n' | 'activepieces' | 'dify'
+            automationTool: 'activepieces'
             addons: string[]
             customerEmail: string
             customerName: string
@@ -193,16 +193,15 @@ export const checkout = async (c: Context<HonoEnv>) => {
 
                 // Start real provisioning in background
                 const hasOllama = components.includes('ol')
-                const hasTwenty = components.includes('tw')
+                // Twenty CRM removed (AGPLv3)
                 const hasBackup = (addons || []).includes('backup')
-                const autoTool = (automationTool || 'activepieces') as 'n8n' | 'activepieces' | 'dify'
+                const autoTool = (automationTool || 'activepieces') as 'activepieces'
 
                 provisioner.provision({
                     instanceId,
                     planKey: pricing.planKey,
                     automationTool: autoTool,
                     hasOllama,
-                    hasTwenty,
                     hasBackup,
                     subdomainName: subdomainName || undefined,
                 }).then(async (result) => {
@@ -221,7 +220,7 @@ export const checkout = async (c: Context<HonoEnv>) => {
                         // Auto-create automation owner account
                         if (isReady) {
                             try {
-                                const port = autoTool === 'n8n' ? 5678 : autoTool === 'dify' ? 3101 : 8080
+                                const port = 8080
                                 await fetch(`http://${result.ip}:${port}/rest/owner/setup`, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
@@ -353,16 +352,15 @@ export const handleAllpayWebhook = async (c: Context) => {
 
             const components = (instance.selectedComponents as string[]) || []
             const hasOllama = components.includes('ol')
-            const hasTwenty = components.includes('tw')
+            // Twenty CRM removed (AGPLv3)
             const hasBackup = components.includes('bk')
-            const automationTool = (instance.automationTool as 'n8n' | 'activepieces' | 'dify') || 'activepieces'
+            const automationTool = (instance.automationTool as 'activepieces') || 'activepieces'
 
             const result = await provisioner.provision({
                 instanceId,
                 planKey: instance.planKey,
                 automationTool,
                 hasOllama,
-                hasTwenty,
                 hasBackup,
                 subdomainName: instance.subdomainName || undefined,
                 telegramChatId: instance.telegramChatId || undefined
@@ -388,7 +386,7 @@ export const handleAllpayWebhook = async (c: Context) => {
 
                     // Auto-create n8n/Activepieces owner account
                     try {
-                        const flowsPort = automationTool === 'n8n' ? 5678 : automationTool === 'dify' ? 3101 : 8080
+                        const flowsPort = 8080
                         await fetch(`http://${result.ip}:${flowsPort}/rest/owner/setup`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },

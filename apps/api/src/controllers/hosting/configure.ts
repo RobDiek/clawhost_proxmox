@@ -7,7 +7,7 @@ export const configureInstance = async (c: Context) => {
         const body = await c.req.json()
         const { components, automationTool, addons } = body as {
             components: string[]
-            automationTool: 'n8n' | 'activepieces'
+            automationTool: 'activepieces'
             addons: string[]
         }
 

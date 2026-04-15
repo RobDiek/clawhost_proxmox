@@ -8,9 +8,8 @@ import { renderCloudInit } from '@/services/cloudInit'
 interface ProvisionParams {
     instanceId: string
     planKey: string
-    automationTool: 'n8n' | 'activepieces' | 'dify'
+    automationTool: 'activepieces'
     hasOllama: boolean
-    hasTwenty: boolean
     hasBackup: boolean
     telegramChatId?: string
     subdomainName?: string
@@ -50,7 +49,6 @@ const provisioner = {
             AUTOMATION_PASSWORD: automationPassword,
             ROOT_PASSWORD: rootPassword,
             HAS_OLLAMA: params.hasOllama,
-            HAS_TWENTY: params.hasTwenty,
             HAS_BACKUP: params.hasBackup,
         })
 
@@ -78,11 +76,6 @@ const provisioner = {
             cloudflare.createDNSRecord(subdomainFlows, server.ip),
             cloudflare.createDNSRecord(subdomainObs, server.ip),
         ]
-        // Twenty CRM subdomain
-        if (params.hasTwenty) {
-            const subdomainCrm = `crm.${name}.clawflow`
-            dnsRecords.push(cloudflare.createDNSRecord(subdomainCrm, server.ip))
-        }
         await Promise.all(dnsRecords)
 
         return {

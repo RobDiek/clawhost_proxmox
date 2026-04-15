@@ -342,29 +342,7 @@ runcmd:
     - systemctl restart openclaw-gateway
     - sleep 2
 
-    # ── Automation Tool (Docker) ──
-    {{#IS_N8N}}
-    - mkdir -p /opt/openclaw/data/n8n
-    - |
-        cat > /opt/openclaw/docker-compose.yml << 'DCEOF'
-        services:
-          n8n:
-            image: n8nio/n8n:latest
-            restart: unless-stopped
-            ports: ["127.0.0.1:5678:5678"]
-            volumes: ["/opt/openclaw/data/n8n:/home/node/.n8n"]
-            environment:
-              - N8N_HOST={{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il
-              - N8N_PROTOCOL=https
-              - N8N_PORT=5678
-              - WEBHOOK_URL=https://{{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il
-              - N8N_ENCRYPTION_KEY={{AUTOMATION_PASSWORD}}
-              - N8N_USER_MANAGEMENT_DISABLED=true
-              - N8N_DIAGNOSTICS_ENABLED=false
-              - N8N_PERSONALIZATION_ENABLED=false
-              - N8N_TEMPLATES_ENABLED=true
-        DCEOF
-    {{/IS_N8N}}
+    # ── Automation Tool (Docker) — Activepieces (MIT license) ──
     {{#IS_ACTIVEPIECES}}
     - mkdir -p /opt/openclaw/data/{ap-db,ap-redis}
     - |
@@ -399,80 +377,14 @@ runcmd:
               POSTGRES_PASSWORD: {{AUTOMATION_PASSWORD}}
             volumes: ["/opt/openclaw/data/ap-db:/var/lib/postgresql/data"]
           ap-redis:
-            image: redis:7-alpine
+            image: redis:7.2-alpine
             restart: unless-stopped
             volumes: ["/opt/openclaw/data/ap-redis:/data"]
         DCEOF
     {{/IS_ACTIVEPIECES}}
 
-    {{#IS_DIFY}}
-    - mkdir -p /opt/openclaw/data/{dify-db,dify-redis,dify-storage}
-    - |
-        cat > /opt/openclaw/docker-compose.yml << 'DCEOF'
-        services:
-          dify-api:
-            image: langgenius/dify-api:latest
-            restart: unless-stopped
-            ports: ["127.0.0.1:3100:5001"]
-            depends_on: [dify-postgres, dify-redis]
-            environment:
-              - MODE=api
-              - SECRET_KEY={{OPENCLAW_TOKEN}}
-              - DB_USERNAME=dify
-              - DB_PASSWORD={{AUTOMATION_PASSWORD}}
-              - DB_HOST=dify-postgres
-              - DB_PORT=5432
-              - DB_DATABASE=dify
-              - REDIS_HOST=dify-redis
-              - REDIS_PORT=6379
-              - STORAGE_TYPE=local
-              - STORAGE_LOCAL_PATH=/app/storage
-              - CONSOLE_WEB_URL=https://{{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il
-              - APP_WEB_URL=https://{{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il
-              - INIT_PASSWORD={{AUTOMATION_PASSWORD}}
-            volumes:
-              - /opt/openclaw/data/dify-storage:/app/storage
-          dify-web:
-            image: langgenius/dify-web:latest
-            restart: unless-stopped
-            ports: ["127.0.0.1:3101:3000"]
-            environment:
-              - CONSOLE_API_URL=https://{{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il
-              - APP_API_URL=https://{{SUBDOMAIN_NAME}}-flows.clawflow.flowmatic.co.il
-          dify-worker:
-            image: langgenius/dify-api:latest
-            restart: unless-stopped
-            depends_on: [dify-postgres, dify-redis]
-            environment:
-              - MODE=worker
-              - SECRET_KEY={{OPENCLAW_TOKEN}}
-              - DB_USERNAME=dify
-              - DB_PASSWORD={{AUTOMATION_PASSWORD}}
-              - DB_HOST=dify-postgres
-              - DB_PORT=5432
-              - DB_DATABASE=dify
-              - REDIS_HOST=dify-redis
-              - REDIS_PORT=6379
-              - STORAGE_TYPE=local
-              - STORAGE_LOCAL_PATH=/app/storage
-            volumes:
-              - /opt/openclaw/data/dify-storage:/app/storage
-          dify-postgres:
-            image: postgres:16-alpine
-            restart: unless-stopped
-            environment:
-              POSTGRES_DB: dify
-              POSTGRES_USER: dify
-              POSTGRES_PASSWORD: {{AUTOMATION_PASSWORD}}
-            volumes: ["/opt/openclaw/data/dify-db:/var/lib/postgresql/data"]
-          dify-redis:
-            image: redis:7-alpine
-            restart: unless-stopped
-            volumes: ["/opt/openclaw/data/dify-redis:/data"]
-        DCEOF
-    {{/IS_DIFY}}
-
-    - chown -R 1000:1000 /opt/openclaw/data/n8n 2>/dev/null || true
+    # Dify removed — Modified Apache 2.0 license prohibits multi-tenant SaaS
+    # n8n removed — Sustainable Use License prohibits managed hosting
     - cd /opt/openclaw && docker compose up -d
 
     # ── Mem0 Memory Layer (Qdrant vector store + OpenClaw plugin) ──
@@ -489,96 +401,7 @@ runcmd:
         QDEOF
     - cd /opt/openclaw && docker compose -f docker-compose.yml -f docker-compose.qdrant.yml up -d qdrant
 
-    {{#HAS_TWENTY}}
-    # ── Twenty CRM ──
-    - |
-        cat > /opt/openclaw/docker-compose.twenty.yml << 'TWEOF'
-        services:
-          twenty:
-            image: twentycrm/twenty:latest
-            restart: unless-stopped
-            ports: ["127.0.0.1:3080:3000"]
-            depends_on:
-              twenty-db:
-                condition: service_healthy
-              twenty-redis:
-                condition: service_started
-            environment:
-              - SERVER_URL=https://crm.{{SUBDOMAIN_NAME}}.clawflow.flowmatic.co.il
-              - FRONT_BASE_URL=https://crm.{{SUBDOMAIN_NAME}}.clawflow.flowmatic.co.il
-              - PG_DATABASE_URL=postgresql://twenty:twenty@twenty-db:5432/twenty
-              - REDIS_URL=redis://twenty-redis:6379
-              - STORAGE_TYPE=local
-              - STORAGE_LOCAL_PATH=/app/.local-storage
-              - ACCESS_TOKEN_SECRET={{OPENCLAW_TOKEN}}
-              - LOGIN_TOKEN_SECRET={{AUTOMATION_PASSWORD}}
-              - APP_SECRET={{OPENCLAW_TOKEN}}
-              - IS_BILLING_ENABLED=false
-              - DEFAULT_SUBDOMAIN=twenty
-            volumes:
-              - /opt/openclaw/data/twenty:/app/.local-storage
-
-          twenty-db:
-            image: twentycrm/twenty-postgres:latest
-            restart: unless-stopped
-            volumes:
-              - /opt/openclaw/data/twenty-db:/bitnami/postgresql
-            environment:
-              - POSTGRESQL_USERNAME=twenty
-              - POSTGRESQL_PASSWORD=twenty
-              - POSTGRESQL_DATABASE=twenty
-            healthcheck:
-              test: ["CMD-SHELL", "pg_isready -U twenty -d twenty"]
-              interval: 5s
-              timeout: 5s
-              retries: 10
-
-          twenty-redis:
-            image: redis:7-alpine
-            restart: unless-stopped
-            volumes:
-              - /opt/openclaw/data/twenty-redis:/data
-        TWEOF
-    - mkdir -p /opt/openclaw/data/twenty /opt/openclaw/data/twenty-db /opt/openclaw/data/twenty-redis
-    - chown -R 1001:1001 /opt/openclaw/data/twenty-db
-    - chmod 777 /opt/openclaw/data/twenty
-    - cd /opt/openclaw && docker compose -f docker-compose.twenty.yml up -d
-
-    # Add Twenty CRM nginx config
-    - |
-        cat >> /etc/nginx/sites-available/openclaw << 'TWNGX'
-
-        server {
-            listen 80;
-            server_name crm.{{SUBDOMAIN_NAME}}.clawflow.flowmatic.co.il;
-            location / {
-                proxy_pass http://127.0.0.1:3080;
-                proxy_http_version 1.1;
-                proxy_set_header Upgrade $http_upgrade;
-                proxy_set_header Connection 'upgrade';
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-                proxy_read_timeout 300s;
-            }
-        }
-        TWNGX
-    - nginx -t && systemctl reload nginx
-
-    # SSL for Twenty CRM subdomain
-    - |
-        for i in $(seq 1 20); do
-          certbot --nginx \
-            -d crm.{{SUBDOMAIN_NAME}}.clawflow.flowmatic.co.il \
-            --non-interactive --agree-tos \
-            -m devops@flowmatic.co.il && break
-          sleep 15
-        done
-
-    # Install Twenty CRM MCP server for OpenClaw agents
-    - npm install -g @iflow-mcp/oumnya-twenty-mcp-server 2>/dev/null || true
-    {{/HAS_TWENTY}}
+    # Twenty CRM removed — AGPLv3 copyleft license risk for managed hosting
 
     {{#HAS_OLLAMA}}
     # ── Ollama ──

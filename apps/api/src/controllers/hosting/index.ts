@@ -34,4 +34,5 @@ export { guardScan, guardStatus } from './llmGuard'
 export { deployCrewEndpoint, runCrewEndpoint, listCrewsEndpoint } from './crewai'
 export { getLangfuseStatus } from './langfuse'
 export { listAgentIntegrations, getAgentIntegrationEndpoint, setAgentIntegrationEndpoint, deleteAgentIntegrationEndpoint } from './agentIntegrationRoutes'
-export { installTwenty } from './twenty'
+// Twenty CRM removed — AGPLv3 license risk
+// export { installTwenty } from './twenty'
