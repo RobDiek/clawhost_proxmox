@@ -623,6 +623,8 @@ input{font-family:inherit}
 /* Content Calendar */
 .cal-cell{min-height:32px;padding:2px 4px;border-bottom:1px solid #F3F4F6;border-left:1px solid #F3F4F6;font-size:0.68rem;position:relative}
 .cal-cell.today{background:#EFF6FF}
+.cal-cell.cal-has-events:hover{background:#F0F4FF;border-color:#BFDBFE}
+.cal-cell.cal-has-events{transition:background .15s}
 .cal-cell.other-month{opacity:0.3}
 .cal-day-num{font-weight:600;font-size:0.72rem;color:#374151}
 .cal-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin:1px}
@@ -858,22 +860,8 @@ input{font-family:inherit}
       <div>
         <div id="homeTasks"></div>
 
-        <!-- SEO First Run Wizard -->
-        <div id="seo-wizard-banner" style="display:none;margin-bottom:16px">
-          <div style="background:linear-gradient(135deg,#1E3A5F 0%,#2563EB 100%);border-radius:12px;padding:20px 24px;color:#fff">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-              <span style="font-size:1.5rem">🚀</span>
-              <div>
-                <div style="font-weight:700;font-size:1.05rem">מערכת SEO מוכנה — בואו נתחיל!</div>
-                <div style="font-size:0.82rem;opacity:0.85">3 כלים מחוברים. נריץ מחקר ראשון ונבנה אסטרטגיה מותאמת לעסק שלכם.</div>
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px">
-              <span style="font-size:0.78rem;opacity:0.7">⏱️ ~3 דקות · עלות: ~$0.15</span>
-              <button class="btn" onclick="openSeoWizard()" style="background:#fff;color:#2563EB;font-weight:600;font-size:0.88rem;padding:8px 20px;border-radius:8px;border:none;cursor:pointer;margin-right:auto">בואו נתחיל ←</button>
-            </div>
-          </div>
-        </div>
+        <!-- Progressive Journey Banner — shows the right next step based on user stage -->
+        <div id="journey-banner" style="display:none;margin-bottom:16px"></div>
 
         <!-- SEO Wizard Modal -->
         <div id="seo-wizard-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;display:none;align-items:center;justify-content:center">
@@ -8663,24 +8651,111 @@ function downloadContentHtml(outputId) {
 
 var _seoWizardStep = 0;
 
-async function checkSeoWizardBanner() {
+/**
+ * Progressive Journey Banner — shows the right next step.
+ *
+ * Stages:
+ * 1. No profile → "מלאו פרופיל עסקי"
+ * 2. Profile done, no research → "הריצו מחקר שוק (חינם)"
+ * 3. Research done, strategy pending → "אשרו את האסטרטגיה"
+ * 4. Strategy approved, no GSC → "שפרו את התוצאות — חברו GSC (חינם)"
+ * 5. GSC connected, no DataForSEO → "רוצים keyword volumes אמיתיים? DataForSEO (~$5)"
+ * 6. DataForSEO connected, no Firecrawl → "ביקורת טכנית? Firecrawl (חינם)"
+ * 7. All SEO connected, first run not done → "הריצו מחקר SEO מקיף"
+ * 8. SEO done, article pending → "יש מאמר ממתין לאישור"
+ * 9. Article approved, no GitHub → "רוצים לפרסם אוטומטית? חברו GitHub"
+ * 10. Everything done → "🎉 הכל עובד — הסוכן מנטר ומייצר תוכן"
+ */
+async function renderJourneyBanner() {
+  var el = document.getElementById('journey-banner');
+  if (!el) return;
   var iid = localStorage.getItem('cf_instance_id');
   var tk = localStorage.getItem('cf_token');
-  if (!iid || !tk) return;
-  var banner = document.getElementById('seo-wizard-banner');
-  if (!banner) return;
+  if (!iid || !tk) { el.style.display = 'none'; return; }
 
+  // Gather state
+  var hasProfile = !!(instanceData && instanceData.researchData && instanceData.researchData.answers && instanceData.researchData.answers.businessName);
+  var hasResearch = !!(instanceData && instanceData.researchData && instanceData.researchData.report);
+  var hasGsc = isIntConnected('gsc');
+  var hasDfs = isIntConnected('dataforseo');
+  var hasFc = isIntConnected('firecrawl');
+  var hasGithub = false;
+  try { var ghEl = document.getElementById('github-status'); hasGithub = ghEl && ghEl.classList.contains('connected'); } catch {}
+
+  // Check SEO first run + pending outputs
+  var seoFirstRunDone = false;
+  var hasPendingStrategy = false;
+  var hasPendingArticle = false;
   try {
-    var res = await fetch(API + '/hosting/instances/' + iid + '/seo/status', { headers: { 'Authorization': 'Bearer ' + tk } });
-    var data = await res.json();
-    if (data.success && data.data) {
-      if (data.data.allConnected && !data.data.firstRunCompleted) {
-        banner.style.display = '';
-      } else {
-        banner.style.display = 'none';
-      }
+    var seoRes = await fetch(API + '/hosting/instances/' + iid + '/seo/status', { headers: { 'Authorization': 'Bearer ' + tk } });
+    var seoData = await seoRes.json();
+    if (seoData.success && seoData.data) seoFirstRunDone = seoData.data.firstRunCompleted;
+  } catch {}
+  try {
+    var outRes = await fetch(API + '/hosting/instances/' + iid + '/outputs?status=pending_review&limit=10', { headers: { 'Authorization': 'Bearer ' + tk } });
+    var outData = await outRes.json();
+    if (outData.success && outData.data) {
+      outData.data.forEach(function(o) {
+        if (o.metadata && o.metadata.type === 'seo_strategy') hasPendingStrategy = true;
+        if (o.metadata && o.metadata.type === 'seo_article') hasPendingArticle = true;
+      });
     }
-  } catch { banner.style.display = 'none'; }
+  } catch {}
+
+  // Determine stage
+  var banner = null;
+
+  if (!hasProfile) {
+    banner = { icon: '📋', color: '#2563EB', title: 'מלאו פרופיל עסקי', desc: 'כדי שהסוכן יכיר את העסק שלכם ויתחיל לעבוד', btn: 'מלאו פרופיל ←', action: "switchTab('agents')" };
+  } else if (!hasResearch) {
+    banner = { icon: '🔍', color: '#2563EB', title: 'הריצו מחקר שוק ראשון', desc: 'הסוכן ינתח מתחרים, קהל יעד והזדמנויות — חינם עם Brave Search', btn: 'התחילו מחקר ←', action: "switchTab('agents');setTimeout(function(){var b=document.getElementById('btn-run-research');if(b)b.click()},500)", meta: '⏱️ ~2 דקות · חינם' };
+  } else if (hasPendingStrategy) {
+    banner = { icon: '✅', color: '#F59E0B', title: 'אסטרטגיה ממתינה לאישור', desc: 'הסוכן בנה תוכנית — בדקו ואשרו כדי להמשיך', btn: 'צפו ואשרו ←', action: "document.querySelector('.aq-filter[data-filter=\"pending_review\"]')?.click()" };
+  } else if (!hasGsc && (hasResearch || seoFirstRunDone)) {
+    banner = { icon: '📊', color: '#10B981', title: 'שפרו את התוצאות — חברו GSC', desc: 'Google Search Console חינם — ניטור מיקומים, תנועה ושגיאות אינדוקס', btn: 'חברו GSC ←', action: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('gsc-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)", meta: '💡 חינם לגמרי' };
+  } else if (hasGsc && !hasDfs) {
+    banner = { icon: '🔬', color: '#2563EB', title: 'רוצים נתוני keywords אמיתיים?', desc: 'DataForSEO נותן search volumes, difficulty, ו-AI visibility — במקום הערכות', btn: 'חברו DataForSEO ←', action: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('dataforseo-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)", meta: '💡 ~$5/חודש · חלופה ל-Ahrefs ($99)' };
+  } else if (hasGsc && hasDfs && !hasFc) {
+    banner = { icon: '🕷️', color: '#F97316', title: 'ביקורת טכנית? חברו Firecrawl', desc: 'סריקת אתרים, קישורים שבורים, Schema, מיפוי מתחרים — 3,000 דפים/חודש חינם', btn: 'חברו Firecrawl ←', action: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('firecrawl-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)", meta: '💡 חינם' };
+  } else if (hasGsc && hasDfs && hasFc && !seoFirstRunDone) {
+    banner = { icon: '🚀', color: '#1E3A5F', gradient: true, title: 'כל הכלים מחוברים — הריצו מחקר SEO מקיף!', desc: 'DataForSEO + Firecrawl + GSC יתנו תוצאות מדויקות עם נתונים אמיתיים', btn: 'בואו נתחיל ←', action: 'openSeoWizard()', meta: '⏱️ ~3 דקות · ~$0.15' };
+  } else if (hasPendingArticle) {
+    banner = { icon: '✍️', color: '#8B5CF6', title: 'מאמר SEO ממתין לאישור', desc: 'הסוכן כתב מאמר על בסיס האסטרטגיה — בדקו ואשרו', btn: 'צפו במאמר ←', action: "document.querySelector('.aq-filter[data-filter=\"pending_review\"]')?.click()" };
+  } else if (!hasGithub && seoFirstRunDone) {
+    banner = { icon: '📤', color: '#24292F', title: 'רוצים לפרסם אוטומטית?', desc: 'חברו GitHub — הסוכן יפרסם מאמרים ישירות לאתר שלכם (Cloudflare Pages auto-build)', btn: 'חברו GitHub ←', action: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('github-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)", meta: '💡 חינם' };
+  } else if (seoFirstRunDone) {
+    // Everything done — show success state (dismissible)
+    banner = { icon: '🎉', color: '#059669', title: 'הכל מוגדר — הסוכן עובד!', desc: 'ניטור SEO יומי, דוחות שבועיים, ביקורת AEO חודשית — הכל אוטומטי', btn: null, dismissible: true };
+  }
+
+  if (!banner) { el.style.display = 'none'; return; }
+  if (banner.dismissible && localStorage.getItem('cf_journey_dismissed')) { el.style.display = 'none'; return; }
+
+  var bgStyle = banner.gradient
+    ? 'background:linear-gradient(135deg,#1E3A5F 0%,#2563EB 100%);color:#fff'
+    : 'background:' + banner.color + '10;border:1.5px solid ' + banner.color + '30;color:#1F2937';
+  var btnStyle = banner.gradient
+    ? 'background:#fff;color:#2563EB'
+    : 'background:' + banner.color + ';color:#fff';
+
+  var html = '<div style="' + bgStyle + ';border-radius:12px;padding:16px 20px">';
+  html += '<div style="display:flex;align-items:center;gap:10px">';
+  html += '<span style="font-size:1.3rem">' + banner.icon + '</span>';
+  html += '<div style="flex:1"><div style="font-weight:700;font-size:0.95rem">' + banner.title + '</div>';
+  html += '<div style="font-size:0.82rem;opacity:0.85">' + banner.desc + '</div></div>';
+  if (banner.btn) {
+    html += '<div style="display:flex;flex-direction:column;align-items:end;gap:4px">';
+    html += '<button class="btn" onclick="' + banner.action + '" style="' + btnStyle + ';font-weight:600;font-size:0.85rem;padding:8px 18px;border-radius:8px;border:none;cursor:pointer;white-space:nowrap">' + banner.btn + '</button>';
+    if (banner.meta) html += '<span style="font-size:0.72rem;opacity:0.6">' + banner.meta + '</span>';
+    html += '</div>';
+  }
+  if (banner.dismissible) {
+    html += '<button onclick="localStorage.setItem(\'cf_journey_dismissed\',\'1\');document.getElementById(\'journey-banner\').style.display=\'none\'" style="background:none;border:none;cursor:pointer;font-size:1rem;opacity:0.5;padding:4px">✕</button>';
+  }
+  html += '</div></div>';
+
+  el.innerHTML = html;
+  el.style.display = '';
 }
 
 function openSeoWizard() {
@@ -8877,7 +8952,7 @@ async function launchSeoFirstRun() {
 var _origRestoreSeo = restoreSeoIntegrationStates;
 restoreSeoIntegrationStates = async function() {
   await _origRestoreSeo();
-  checkSeoWizardBanner();
+  renderJourneyBanner();
 };
 
 /* ===== Content Calendar ===== */
@@ -8949,45 +9024,93 @@ function renderSeoCalendar() {
 
   var firstDay = new Date(_calYear, _calMonth, 1);
   var lastDay = new Date(_calYear, _calMonth + 1, 0);
-  var startDow = firstDay.getDay(); // 0=Sun
-  var today = new Date();
-  today.setHours(0,0,0,0);
+  var startDow = firstDay.getDay();
+  var today = new Date(); today.setHours(0,0,0,0);
+
+  var TYPE_ICONS = { scheduled: '📅', pending: '⏳', published: '✅', auto: '🔄' };
+  var TYPE_COLORS = { scheduled: '#2563EB', pending: '#F59E0B', published: '#10B981', auto: '#8B5CF6' };
 
   var html = '';
-  // Fill leading empty cells
+  // Leading empty
   for (var i = 0; i < startDow; i++) {
     var prevDate = new Date(_calYear, _calMonth, -(startDow - i - 1));
     html += '<div class="cal-cell other-month"><span class="cal-day-num">' + prevDate.getDate() + '</span></div>';
   }
-  // Fill month days
+  // Month days
   for (var d = 1; d <= lastDay.getDate(); d++) {
-    var cellDate = new Date(_calYear, _calMonth, d);
-    cellDate.setHours(0,0,0,0);
+    var cellDate = new Date(_calYear, _calMonth, d); cellDate.setHours(0,0,0,0);
     var isToday = cellDate.getTime() === today.getTime();
-    html += '<div class="cal-cell' + (isToday ? ' today' : '') + '">';
+    var dayEvents = _calEvents.filter(function(e) { var ed = new Date(e.date); ed.setHours(0,0,0,0); return ed.getTime() === cellDate.getTime(); });
+    var hasEvents = dayEvents.length > 0;
+    var cellCls = 'cal-cell' + (isToday ? ' today' : '') + (hasEvents ? ' cal-has-events' : '');
+
+    html += '<div class="' + cellCls + '"' + (hasEvents ? ' onclick="showCalDay(' + d + ',' + _calMonth + ',' + _calYear + ')" style="cursor:pointer"' : '') + '>';
     html += '<span class="cal-day-num">' + d + '</span>';
-    // Find events for this day
-    var dayEvents = _calEvents.filter(function(e) {
-      var ed = new Date(e.date); ed.setHours(0,0,0,0);
-      return ed.getTime() === cellDate.getTime();
-    });
-    if (dayEvents.length > 0) {
-      html += '<div style="margin-top:1px">';
-      dayEvents.slice(0, 3).forEach(function(e) {
+    if (hasEvents) {
+      html += '<div style="margin-top:1px;display:flex;flex-wrap:wrap;gap:1px">';
+      dayEvents.slice(0, 4).forEach(function(e) {
         html += '<span class="cal-dot ' + e.type + '" title="' + e.title + '"></span>';
       });
-      if (dayEvents.length > 3) html += '<span style="font-size:0.6rem;color:#9CA3AF">+' + (dayEvents.length - 3) + '</span>';
+      if (dayEvents.length > 4) html += '<span style="font-size:0.55rem;color:#9CA3AF">+' + (dayEvents.length - 4) + '</span>';
       html += '</div>';
     }
     html += '</div>';
   }
-  // Fill trailing cells
+  // Trailing
   var totalCells = startDow + lastDay.getDate();
   var remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
   for (var i = 1; i <= remaining; i++) {
     html += '<div class="cal-cell other-month"><span class="cal-day-num">' + i + '</span></div>';
   }
   grid.innerHTML = html;
+}
+
+// Show day detail panel when clicking a calendar cell
+function showCalDay(day, month, year) {
+  var targetDate = new Date(year, month, day); targetDate.setHours(0,0,0,0);
+  var dayEvents = _calEvents.filter(function(e) { var ed = new Date(e.date); ed.setHours(0,0,0,0); return ed.getTime() === targetDate.getTime(); });
+
+  var DAYS_HE = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  var MONTHS_HE = ['ינואר','פברואר','מרס','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  var TYPE_LABELS = { scheduled: 'מתוכנן', pending: 'ממתין לאישור', published: 'פורסם', auto: 'אוטומטי' };
+  var TYPE_COLORS = { scheduled: '#2563EB', pending: '#F59E0B', published: '#10B981', auto: '#8B5CF6' };
+
+  var detailEl = document.getElementById('seo-cal-detail');
+  if (!detailEl) {
+    // Create detail panel if doesn't exist
+    var calSection = document.getElementById('seo-calendar-section');
+    if (!calSection) return;
+    detailEl = document.createElement('div');
+    detailEl.id = 'seo-cal-detail';
+    detailEl.style.cssText = 'margin-top:10px;background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px;transition:all .2s';
+    calSection.appendChild(detailEl);
+  }
+
+  var dateStr = 'יום ' + DAYS_HE[targetDate.getDay()] + ', ' + day + ' ' + MONTHS_HE[month] + ' ' + year;
+  var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+  html += '<div style="font-weight:600;font-size:0.88rem;color:#374151">' + dateStr + '</div>';
+  html += '<button onclick="document.getElementById(\'seo-cal-detail\').style.display=\'none\'" style="background:none;border:none;cursor:pointer;color:#9CA3AF;font-size:1rem">✕</button>';
+  html += '</div>';
+
+  if (dayEvents.length === 0) {
+    html += '<div style="color:#9CA3AF;font-size:0.85rem;text-align:center;padding:8px">אין אירועים ביום זה</div>';
+  } else {
+    dayEvents.forEach(function(e) {
+      var color = TYPE_COLORS[e.type] || '#6B7280';
+      var label = TYPE_LABELS[e.type] || e.type;
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F3F4F6">';
+      html += '<span style="width:8px;height:8px;border-radius:50%;background:' + color + ';flex-shrink:0"></span>';
+      html += '<div style="flex:1"><div style="font-size:0.85rem;font-weight:500;color:#374151">' + e.title + '</div>';
+      html += '<div style="font-size:0.72rem;color:#9CA3AF">' + label + '</div></div>';
+      if (e.id) {
+        html += '<button class="btn btn-outline btn-sm" onclick="openTaskPopup(\'' + e.id + '\')" style="font-size:0.72rem">צפו ←</button>';
+      }
+      html += '</div>';
+    });
+  }
+
+  detailEl.innerHTML = html;
+  detailEl.style.display = '';
 }
 
 /* ===== ROI Tracking ===== */
