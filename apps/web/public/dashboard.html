@@ -8703,15 +8703,17 @@ async function renderJourneyBanner() {
   } catch {}
 
   // Determine stage
+  // NOTE: Basic onboarding (profile, research, strategy) is handled by homeTasks checklist.
+  // Journey banner only covers SEO-specific steps that come AFTER basic onboarding.
   var banner = null;
+  var basicOnboardingDone = hasProfile && hasResearch;
 
-  if (!hasProfile) {
-    banner = { icon: '📋', color: '#2563EB', title: 'מלאו פרופיל עסקי', desc: 'כדי שהסוכן יכיר את העסק שלכם ויתחיל לעבוד', btn: 'מלאו פרופיל ←', action: "switchTab('agents')" };
-  } else if (!hasResearch) {
-    banner = { icon: '🔍', color: '#2563EB', title: 'הריצו מחקר שוק ראשון', desc: 'הסוכן ינתח מתחרים, קהל יעד והזדמנויות — חינם עם Brave Search', btn: 'התחילו מחקר ←', action: "switchTab('agents');setTimeout(function(){var b=document.getElementById('btn-run-research');if(b)b.click()},500)", meta: '⏱️ ~2 דקות · חינם' };
+  if (!basicOnboardingDone) {
+    // Don't show journey banner — homeTasks handles this
+    banner = null;
   } else if (hasPendingStrategy) {
     banner = { icon: '✅', color: '#F59E0B', title: 'אסטרטגיה ממתינה לאישור', desc: 'הסוכן בנה תוכנית — בדקו ואשרו כדי להמשיך', btn: 'צפו ואשרו ←', action: "document.querySelector('.aq-filter[data-filter=\"pending_review\"]')?.click()" };
-  } else if (!hasGsc && (hasResearch || seoFirstRunDone)) {
+  } else if (!hasGsc) {
     banner = { icon: '📊', color: '#10B981', title: 'שפרו את התוצאות — חברו GSC', desc: 'Google Search Console חינם — ניטור מיקומים, תנועה ושגיאות אינדוקס', btn: 'חברו GSC ←', action: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('gsc-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)", meta: '💡 חינם לגמרי' };
   } else if (hasGsc && !hasDfs) {
     banner = { icon: '🔬', color: '#2563EB', title: 'רוצים נתוני keywords אמיתיים?', desc: 'DataForSEO נותן search volumes, difficulty, ו-AI visibility — במקום הערכות', btn: 'חברו DataForSEO ←', action: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('dataforseo-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)", meta: '💡 ~$5/חודש · חלופה ל-Ahrefs ($99)' };
