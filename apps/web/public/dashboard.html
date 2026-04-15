@@ -6038,11 +6038,16 @@ function openResearchPipeline() {
 }
 
 function showIntegrationSuggestion() {
-  // Check actual connection state from our integration system
-  var hasBrave = isIntConnected('brave') || !!(instanceData && instanceData.agentIntegrations && instanceData.agentIntegrations.brave);
-  var hasGsc = isIntConnected('gsc');
-  var hasDfs = isIntConnected('dataforseo');
-  var hasFc = isIntConnected('firecrawl');
+  // Check ALL sources of truth: _seoIntState, localStorage, instanceData, DOM
+  var hasBrave = isIntConnected('brave')
+    || !!localStorage.getItem('cf_brave_saved')
+    || !!(instanceData && instanceData.agentIntegrations && Object.values(instanceData.agentIntegrations || {}).some(function(a) { return a && a.brave && a.brave.connected; }));
+  var hasGsc = isIntConnected('gsc')
+    || !!(instanceData && instanceData.gscTokens);
+  var hasDfs = isIntConnected('dataforseo')
+    || !!(instanceData && instanceData.dataforseoKey);
+  var hasFc = isIntConnected('firecrawl')
+    || !!(instanceData && instanceData.firecrawlKey);
 
   var tools = [
     { id: 'brave', name: 'Brave Search', price: 'חינם — 2,000 חיפושים/חודש', priceColor: '#10B981',
@@ -7861,6 +7866,7 @@ async function disconnectIntegration(type) {
   var ok = confirm('להסיר את ' + type + '?');
   if (!ok) return;
   localStorage.removeItem('cf_' + type + '_saved');
+  if (typeof setSeoIntConnected === 'function') setSeoIntConnected(type, false);
   var inputDiv = document.getElementById('int-' + type + '-input');
   var savedDiv = document.getElementById('int-' + type + '-saved');
   if (inputDiv) inputDiv.style.display = '';
@@ -8218,7 +8224,12 @@ var BUNDLE_REGISTRY = {
 };
 
 var _bundleScheduleData = {};
-var _seoIntState = { gsc: false, dataforseo: false, firecrawl: false };
+var _seoIntState = {
+  brave: !!localStorage.getItem('cf_brave_saved'),
+  gsc: false,
+  dataforseo: false,
+  firecrawl: false
+};
 
 function isIntConnected(type) {
   return _seoIntState[type] || false;
@@ -9221,6 +9232,10 @@ async function saveIntegration(type) {
       showToast(type + ' חובר בהצלחה!', 'success');
       // Persist connected state
       localStorage.setItem('cf_' + type + '_saved', '1');
+      // Update SEO int state if applicable
+      if (typeof setSeoIntConnected === 'function' && ['brave', 'gsc', 'dataforseo', 'firecrawl'].indexOf(type) >= 0) {
+        setSeoIntConnected(type, true);
+      }
       // Show masked key
       showIntegrationSavedState(type, key);
       el.value = '';
