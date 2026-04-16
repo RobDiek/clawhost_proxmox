@@ -767,12 +767,11 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
                     330000  // 5.5 min — must exceed the 300s command timeout
                 )
 
-                // Parse response — extract text from JSON (output may have log lines before JSON)
-                const rJsonStart = output.indexOf('{')
-                const rJsonEnd = output.lastIndexOf('}')
-                if (rJsonStart >= 0 && rJsonEnd > rJsonStart) {
+                // Parse response — extract text from JSON (output has log lines before JSON)
+                const rJsonMatch = output.match(/\{"runId"[\s\S]*\}$/) || output.match(/\{"result"[\s\S]*\}$/)
+                if (rJsonMatch) {
                     try {
-                        const agentResult = JSON.parse(output.slice(rJsonStart, rJsonEnd + 1))
+                        const agentResult = JSON.parse(rJsonMatch[0])
                         report = agentResult?.result?.finalAssistantVisibleText
                             || agentResult?.result?.payloads?.[0]?.text
                             || ''
@@ -791,7 +790,8 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
                         report = output
                     }
                 } else {
-                    report = output
+                    const mdMatch = output.match(/^(#{1,3}\s.+)/m)
+                    report = mdMatch?.index !== undefined ? output.slice(mdMatch.index) : output
                 }
 
                 // Clean up: remove file listings, technical output, plugin logs
@@ -1757,27 +1757,30 @@ ${(rd.stage3 || '').substring(0, 8000)}
             isRateLimit = true
         }
         // Extract JSON from output (may have log lines before/after the JSON)
-        const jsonStart = output.indexOf('{')
-        const jsonEnd = output.lastIndexOf('}')
-        if (jsonStart >= 0 && jsonEnd > jsonStart) {
+        // Look for the OpenClaw result JSON specifically: {"runId" or {"result"
+        const jsonMatch = output.match(/\{"runId"[\s\S]*\}$/) || output.match(/\{"result"[\s\S]*\}$/)
+        if (jsonMatch) {
             try {
-                const agentResult = JSON.parse(output.slice(jsonStart, jsonEnd + 1))
-                // Try finalAssistantVisibleText first (most complete), then payloads
+                const agentResult = JSON.parse(jsonMatch[0])
                 result = agentResult?.result?.finalAssistantVisibleText
                     || agentResult?.result?.payloads?.[0]?.text
                     || ''
-                // If still empty, check all payloads for longest text
                 if (!result && agentResult?.result?.payloads) {
                     for (const p of agentResult.result.payloads) {
                         if (p.text && p.text.length > result.length) result = p.text
                     }
                 }
             } catch {
-                // JSON parse failed even with slice — use raw output
                 result = output
             }
         } else {
-            result = output
+            // No JSON found — try to extract markdown directly
+            const mdMatch = output.match(/^(#{1,3}\s.+)/m)
+            if (mdMatch && mdMatch.index !== undefined) {
+                result = output.slice(mdMatch.index)
+            } else {
+                result = output
+            }
         }
 
         // Clean up: remove file listings, technical output, plugin logs
