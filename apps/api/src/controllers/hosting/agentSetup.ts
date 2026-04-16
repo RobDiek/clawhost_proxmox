@@ -1996,16 +1996,30 @@ ${RULES}`
     }
 }
 
+// Per-instance mutex for research stages — prevents parallel runs on same agent
+const activeResearchRuns = new Map<string, number>()
+const RESEARCH_LOCK_TTL = 360_000 // 6 min (longest expected stage)
+
 // ── POST /hosting/instances/:id/setup/agents/research/stage ──
 // Multi-stage research pipeline with user checkpoints
 export const researchStage = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        // Check lock: prevent parallel research runs on the same instance
+        const lockedAt = activeResearchRuns.get(instanceId)
+        if (lockedAt && Date.now() - lockedAt < RESEARCH_LOCK_TTL) {
+            const secondsLeft = Math.ceil((RESEARCH_LOCK_TTL - (Date.now() - lockedAt)) / 1000)
+            console.log(`Research LOCKED for ${instanceId} — ${secondsLeft}s remaining`)
+            return fail(c, `שלב מחקר כבר רץ כרגע. נסו שוב בעוד ${secondsLeft} שניות, או המתינו לסיום.`, 429)
+        }
+        activeResearchRuns.set(instanceId, Date.now())
+
         const { stage, feedback, validationMode } = await c.req.json<{ stage: number; feedback?: string; validationMode?: 'ai_sim' | 'real_interviews' }>()
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
 
-        if (!instance?.ip) return fail(c, 'Instance not found.', 404)
+        if (!instance?.ip) { activeResearchRuns.delete(instanceId); return fail(c, 'Instance not found.', 404) }
 
         const rd = (instance.researchData as any) || {}
         const answers = { ...(rd.answers || {}), validationMode }
@@ -2056,7 +2070,7 @@ export const researchStage = async (c: Context) => {
             businessName, businessDesc, answers, feedback,
             tools, summaries,
         })
-        if (!promptData) return fail(c, 'Invalid stage (1-5)', 400)
+        if (!promptData) { activeResearchRuns.delete(instanceId); return fail(c, 'Invalid stage (1-5)', 400) }
 
         const { agentId, prompt, minLength } = promptData
 
@@ -2144,6 +2158,7 @@ export const researchStage = async (c: Context) => {
                 ? `rate limit — המודל הגיע לגבול השימוש (30K tokens). נסו: המתינו דקה / שנו מודל / שדרגו תוכנית API`
                 : `שלב ${stage} נכשל — נסו שוב`
             console.error(`Stage ${stage} failed: ${msg}`)
+            activeResearchRuns.delete(instanceId) // Release lock on early fail
             return fail(c, msg, 500)
         }
 
@@ -2161,14 +2176,17 @@ export const researchStage = async (c: Context) => {
         }).where(eq(instances.id, instanceId))
 
         console.log(`Research stage ${stage} complete: ${result.length} chars`)
+        activeResearchRuns.delete(instanceId) // Release lock on success
         return ok(c, {
             stage,
             result,
-            nextStage: stage < 4 ? stage + 1 : null,
+            nextStage: stage < 5 ? stage + 1 : null,
             model,
         }, `Stage ${stage} complete.`)
     } catch (err) {
         console.error('researchStage error:', err)
+        // Release lock on error
+        try { activeResearchRuns.delete(c.req.param('id')) } catch {}
         return fail(c, `שלב המחקר נכשל`, 500)
     }
 }
