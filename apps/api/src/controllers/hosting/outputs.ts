@@ -15,7 +15,7 @@ function sshExecForPublish(ip: string, command: string, password?: string): Prom
     return new Promise((resolve) => {
         const conn = new Client()
         let output = ''
-        const timeout = setTimeout(() => { conn.end(); resolve('') }, 15000)
+        const timeout = setTimeout(() => { conn.end(); resolve('') }, 330000)  // 5.5 min for agent commands
         conn.on('ready', () => {
             conn.exec(command, (err, stream) => {
                 if (err) { clearTimeout(timeout); conn.end(); return resolve('') }
