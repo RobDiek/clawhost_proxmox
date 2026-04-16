@@ -2831,11 +2831,25 @@ function dashMascotOnTaskDone() {
       localStorage.setItem('cf_instance_components', JSON.stringify(components));
       localStorage.setItem('cf_instance_subdomain', subdomain);
       localStorage.setItem('cf_openclaw_token', openclawToken);
-      // Sync onboarding state from DB — only set if actually configured
+      // Sync onboarding state from DB — set OR clear based on server truth
       if (inst.hasAnthropicKey) localStorage.setItem('cf_api_key_saved', 'anthropic');
+      else if (inst.aiProviderType) localStorage.setItem('cf_api_key_saved', inst.aiProviderType);
+      else localStorage.removeItem('cf_api_key_saved');
       if (inst.hasOpenaiKey) localStorage.setItem('cf_openai_saved', '1');
-      if (inst.aiProviderType) localStorage.setItem('cf_api_key_saved', inst.aiProviderType);
+      else localStorage.removeItem('cf_openai_saved');
       if (inst.telegramBotToken) localStorage.setItem('cf_telegram_saved', '1');
+      else localStorage.removeItem('cf_telegram_saved');
+      // Clear stale integration flags if server has no keys
+      if (!inst.hasAnthropicKey && !inst.hasOpenaiKey && !inst.aiProviderType) {
+        localStorage.removeItem('cf_groq_saved');
+        localStorage.removeItem('cf_cerebras_saved');
+        localStorage.removeItem('cf_api_key_provider');
+        localStorage.removeItem('cf_ollama_backend');
+      }
+      if (!inst.telegramBotToken) localStorage.removeItem('cf_telegram_saved');
+      if (!inst.hasWordpress) localStorage.removeItem('cf_wordpress_saved');
+      if (!inst.hasResend) localStorage.removeItem('cf_resend_saved');
+      if (!inst.hasBrave) localStorage.removeItem('cf_brave_saved');
       dataLoaded = true;
       // Init agent switcher + mascot
       initAgentSwitcher();
@@ -2876,10 +2890,19 @@ async function refreshInstanceData() {
       instanceData = inst;
       dataLoaded = true;
       components = inst.selectedComponents || [];
-      // Sync localStorage
+      // Sync localStorage — set OR clear based on server truth
       if (inst.hasAnthropicKey) localStorage.setItem('cf_api_key_saved', 'anthropic');
+      else if (inst.aiProviderType) localStorage.setItem('cf_api_key_saved', inst.aiProviderType);
+      else localStorage.removeItem('cf_api_key_saved');
       if (inst.hasOpenaiKey) localStorage.setItem('cf_openai_saved', '1');
+      else localStorage.removeItem('cf_openai_saved');
       if (inst.telegramBotToken) localStorage.setItem('cf_telegram_saved', '1');
+      else localStorage.removeItem('cf_telegram_saved');
+      if (!inst.hasAnthropicKey && !inst.hasOpenaiKey && !inst.aiProviderType) {
+        localStorage.removeItem('cf_groq_saved');
+        localStorage.removeItem('cf_cerebras_saved');
+        localStorage.removeItem('cf_api_key_provider');
+      }
       // Re-render
       initAgentSwitcher();
       renderHome();
@@ -3059,10 +3082,10 @@ function renderHome() {
   var tasksHtml = '<div class="section-title">משימות הגדרה</div><div class="tasks">';
   var step = (instanceData && instanceData.onboardingStep) || 0;
   // Only check actual server data — not onboarding step (step can advance via skip)
-  var hasApiKey = !!(instanceData && (instanceData.aiProviderType || instanceData.hasAnthropicKey || instanceData.hasOpenaiKey));
+  var hasApiKey = !!(instanceData && (instanceData.hasAnthropicKey || instanceData.hasOpenaiKey));
   var hasOllama = !!(instanceData && instanceData.hasOllama);
-  var hasGroqKey = !!localStorage.getItem('cf_groq_saved');
-  var hasCerebrasKey = !!localStorage.getItem('cf_cerebras_saved');
+  var hasGroqKey = !!(localStorage.getItem('cf_groq_saved') && instanceData && instanceData.aiProviderKey);
+  var hasCerebrasKey = !!(localStorage.getItem('cf_cerebras_saved') && instanceData && instanceData.aiProviderKey);
   var hasAiProvider = hasApiKey || hasOllama || hasGroqKey || hasCerebrasKey;
   var hasTelegram = !!(instanceData && instanceData.telegramBotToken);
   var isMATEH = components.indexOf('mt') !== -1;
