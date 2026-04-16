@@ -767,20 +767,30 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
                     330000  // 5.5 min — must exceed the 300s command timeout
                 )
 
-                // Parse response
-                try {
-                    const agentResult = JSON.parse(output)
-                    report = agentResult?.result?.payloads?.[0]?.text || ''
-                    const usedModel = agentResult?.result?.meta?.agentMeta?.model || ''
-                    console.log(`Research agent used model: ${usedModel}`)
-
-                    // Check for rate limit error
-                    if (agentResult?.result?.meta?.agentMeta?.error || output.includes('rate_limit')) {
-                        lastError = `rate_limit:${usedModel || researchModel}`
-                        console.log(`Research rate limited on ${usedModel}, attempt ${attempt}`)
-                        report = '' // force retry or fail
+                // Parse response — extract text from JSON (output may have log lines before JSON)
+                const rJsonStart = output.indexOf('{')
+                const rJsonEnd = output.lastIndexOf('}')
+                if (rJsonStart >= 0 && rJsonEnd > rJsonStart) {
+                    try {
+                        const agentResult = JSON.parse(output.slice(rJsonStart, rJsonEnd + 1))
+                        report = agentResult?.result?.finalAssistantVisibleText
+                            || agentResult?.result?.payloads?.[0]?.text
+                            || ''
+                        if (!report && agentResult?.result?.payloads) {
+                            for (const p of agentResult.result.payloads) {
+                                if (p.text && p.text.length > report.length) report = p.text
+                            }
+                        }
+                        const usedModel = agentResult?.result?.meta?.agentMeta?.model || ''
+                        console.log(`Research agent used model: ${usedModel}`)
+                        if (agentResult?.result?.meta?.agentMeta?.error || output.includes('rate_limit')) {
+                            lastError = `rate_limit:${usedModel || researchModel}`
+                            report = ''
+                        }
+                    } catch {
+                        report = output
                     }
-                } catch {
+                } else {
                     report = output
                 }
 
@@ -1444,16 +1454,20 @@ async function getAvailableTools(ip: string, password?: string): Promise<{
 }> {
     try {
         const output = await sshExec(ip,
-            `su - openclaw -c 'openclaw mcp list --json 2>/dev/null || echo "[]"'`,
-            password, 10000
+            `su - openclaw -c 'openclaw mcp list --json 2>/dev/null || echo "{}"'`,
+            password, 15000
         )
-        const servers = JSON.parse(output.trim() || '[]')
-        const names = Array.isArray(servers) ? servers.map((s: any) => s.name || s.id || '').join(',').toLowerCase() : ''
+        const parsed = JSON.parse(output.trim() || '{}')
+        // openclaw mcp list returns object with server names as keys: { "brave-search": {...}, "gsc": {...} }
+        // OR array format: [{ name: "brave-search" }]
+        const names = Array.isArray(parsed)
+            ? parsed.map((s: any) => (s.name || s.id || '')).join(',').toLowerCase()
+            : Object.keys(parsed).join(',').toLowerCase()
         return {
             hasBrave: names.includes('brave'),
             hasDataforseo: names.includes('dataforseo'),
             hasFirecrawl: names.includes('firecrawl'),
-            hasGsc: names.includes('gsc') || names.includes('google-search-console'),
+            hasGsc: names.includes('gsc'),
         }
     } catch {
         return { hasBrave: false, hasDataforseo: false, hasFirecrawl: false, hasGsc: false }
@@ -1739,17 +1753,31 @@ ${(rd.stage3 || '').substring(0, 8000)}
 
         let result = ''
         let isRateLimit = false
-        try {
-            const agentResult = JSON.parse(output)
-            result = agentResult?.result?.payloads?.[0]?.text || ''
-            if (output.includes('rate_limit') || output.includes('Rate limit')) {
-                isRateLimit = true
+        if (output.includes('rate_limit') || output.includes('Rate limit')) {
+            isRateLimit = true
+        }
+        // Extract JSON from output (may have log lines before/after the JSON)
+        const jsonStart = output.indexOf('{')
+        const jsonEnd = output.lastIndexOf('}')
+        if (jsonStart >= 0 && jsonEnd > jsonStart) {
+            try {
+                const agentResult = JSON.parse(output.slice(jsonStart, jsonEnd + 1))
+                // Try finalAssistantVisibleText first (most complete), then payloads
+                result = agentResult?.result?.finalAssistantVisibleText
+                    || agentResult?.result?.payloads?.[0]?.text
+                    || ''
+                // If still empty, check all payloads for longest text
+                if (!result && agentResult?.result?.payloads) {
+                    for (const p of agentResult.result.payloads) {
+                        if (p.text && p.text.length > result.length) result = p.text
+                    }
+                }
+            } catch {
+                // JSON parse failed even with slice — use raw output
+                result = output
             }
-        } catch {
+        } else {
             result = output
-            if (output.includes('rate_limit') || output.includes('Rate limit')) {
-                isRateLimit = true
-            }
         }
 
         // Clean up: remove file listings, technical output, plugin logs
