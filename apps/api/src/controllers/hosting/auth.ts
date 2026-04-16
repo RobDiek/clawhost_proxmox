@@ -412,6 +412,7 @@ export const getMyInstances = async (c: Context) => {
                 hasAnthropicKey: !!i.aiProviderKey,
                 hasOpenaiKey: !!i.openaiApiKey,
                 hasOllama: ((i.selectedComponents as string[]) || []).includes('ol'),
+                subAgentModels: i.subAgentModels || {},
                 // Legacy integration fields (derived from agent_integrations, fallback to instances)
                 ...legacy,
                 // Per-agent integrations (grouped by agent type)

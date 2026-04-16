@@ -3232,6 +3232,37 @@ function getNotifications() {
     }
   }
 
+  // Model optimization recommendations — check if a newly connected provider
+  // offers better models for some agents than what they currently use
+  if (hasMATEH && instanceData && dismissed.indexOf('rec-model-optimize') === -1) {
+    var savedModels = instanceData.subAgentModels || {};
+    var provStatus = getProviderStatus();
+    var improvable = [];
+    SUB_AGENTS.forEach(function(a) {
+      var current = savedModels[a.id];
+      if (!current) return; // no model set yet — will auto-assign
+      var best = getBestAvailableModel(a.id);
+      if (best !== current) {
+        // Check if best is actually better (higher in priority chain)
+        var currentIdx = a.priority.indexOf(current);
+        var bestIdx = a.priority.indexOf(best);
+        if (bestIdx !== -1 && (currentIdx === -1 || bestIdx < currentIdx)) {
+          var bestLabel = ALL_MODELS.find(function(m) { return m.value === best; });
+          improvable.push(a.name + ' → ' + (bestLabel ? bestLabel.label : best));
+        }
+      }
+    });
+    if (improvable.length > 0) {
+      notifs.push({
+        id: 'rec-model-optimize', type: 'info', icon: '🧠',
+        title: 'שדרגו מודלים לסוכנים',
+        desc: 'זיהינו מודלים טובים יותר ל: ' + improvable.join(', '),
+        action: "switchTab('agents');setTimeout(function(){document.getElementById('sub-agents-grid')?.scrollIntoView({behavior:'smooth'})},300)",
+        actionLabel: 'עדכנו מודלים'
+      });
+    }
+  }
+
   // System notifications from localStorage
   var sysNotifs = JSON.parse(localStorage.getItem('cf_notifications') || '[]');
   sysNotifs.forEach(function(n) {
@@ -7383,16 +7414,27 @@ function openAgentQuestionnaire() {
 
 // Sub-agents data — defaults match AGENTS.md routing
 // Sub-agents with recommended models per role (multiple recommendations allowed)
+// Priority chain per agent: system picks the first CONNECTED model from the list
+// This serves as both the default assignment and the fallback chain
 var SUB_AGENTS = [
-  { id: 'mateh', name: 'מטה', role: 'מתאם ומנהל', defaultModel: 'anthropic/claude-haiku-4-5-20251001', recommended: ['anthropic/claude-haiku-4-5-20251001', 'anthropic/claude-sonnet-4-6'] },
-  { id: 'sayer', name: 'סייר', role: 'מחקר אינטרנט', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6', 'groq/openai/gpt-oss-120b'] },
-  { id: 'meater', name: 'מאתר', role: 'מחקר SERP', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6', 'groq/openai/gpt-oss-120b'] },
-  { id: 'maazin', name: 'מאזין', role: 'האזנה חברתית', defaultModel: 'anthropic/claude-haiku-4-5-20251001', recommended: ['anthropic/claude-haiku-4-5-20251001', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-20b'] },
-  { id: 'menateach', name: 'מנתח', role: 'ניתוח הזדמנויות', defaultModel: 'anthropic/claude-opus-4-6', recommended: ['anthropic/claude-opus-4-6', 'anthropic/claude-sonnet-4-6'] },
-  { id: 'et', name: 'עט', role: 'כתיבת תוכן', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6'] },
-  { id: 'yotzer', name: 'יוצר', role: 'קריאייטיב', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6'] },
-  { id: 'shaliach', name: 'שליח', role: 'הפצה', defaultModel: 'anthropic/claude-haiku-4-5-20251001', recommended: ['anthropic/claude-haiku-4-5-20251001', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-20b'] },
-  { id: 'migdalor', name: 'מגדלור', role: 'ביקורת AEO', defaultModel: 'anthropic/claude-opus-4-6', recommended: ['anthropic/claude-opus-4-6', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-120b'] },
+  { id: 'mateh', name: 'מטה', role: 'מתאם ומנהל',
+    priority: ['anthropic/claude-haiku-4-5-20251001', 'groq/openai/gpt-oss-20b', 'openai/gpt-4o-mini', 'cerebras/llama3.1-8b'] },
+  { id: 'sayer', name: 'סייר', role: 'מחקר אינטרנט',
+    priority: ['anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-120b', 'openai/gpt-4o', 'cerebras/gpt-oss-120b'] },
+  { id: 'meater', name: 'מאתר', role: 'מחקר SERP',
+    priority: ['anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-120b', 'openai/gpt-4o', 'cerebras/gpt-oss-120b'] },
+  { id: 'maazin', name: 'מאזין', role: 'האזנה חברתית',
+    priority: ['anthropic/claude-haiku-4-5-20251001', 'groq/openai/gpt-oss-20b', 'openai/gpt-4o-mini', 'cerebras/llama3.1-8b'] },
+  { id: 'menateach', name: 'מנתח', role: 'ניתוח הזדמנויות',
+    priority: ['anthropic/claude-opus-4-6', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-120b', 'openai/gpt-4o', 'cerebras/gpt-oss-120b'] },
+  { id: 'et', name: 'עט', role: 'כתיבת תוכן',
+    priority: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6', 'groq/qwen/qwen3-32b', 'openai/gpt-4o', 'cerebras/qwen-3-235b-a22b-instruct-2507'] },
+  { id: 'yotzer', name: 'יוצר', role: 'קריאייטיב',
+    priority: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6', 'groq/qwen/qwen3-32b', 'openai/gpt-4o', 'cerebras/qwen-3-235b-a22b-instruct-2507'] },
+  { id: 'shaliach', name: 'שליח', role: 'הפצה',
+    priority: ['anthropic/claude-haiku-4-5-20251001', 'groq/openai/gpt-oss-20b', 'openai/gpt-4o-mini', 'cerebras/llama3.1-8b'] },
+  { id: 'migdalor', name: 'מגדלור', role: 'ביקורת AEO',
+    priority: ['anthropic/claude-opus-4-6', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-120b', 'openai/gpt-4o', 'cerebras/gpt-oss-120b'] },
 ];
 
 // All possible models — always show all, dim unavailable
@@ -7416,45 +7458,61 @@ var ALL_MODELS = [
   { value: 'openai/gpt-4o-mini', label: 'GPT-4o mini', provider: 'openai', tag: 'חסכוני' },
 ];
 
-function getAvailableModels(subAgentId) {
-  var hasAnthropic = (instanceData && instanceData.hasAnthropicKey) || localStorage.getItem('cf_api_key_saved') === 'anthropic';
-  var hasOpenai = (instanceData && instanceData.hasOpenaiKey) || localStorage.getItem('cf_openai_saved');
-  var hasGroq = !!localStorage.getItem('cf_groq_saved');
-  var hasCerebras = !!localStorage.getItem('cf_cerebras_saved');
-  var providerStatus = { anthropic: hasAnthropic, groq: hasGroq, openai: hasOpenai, cerebras: hasCerebras };
+function getProviderStatus() {
+  var hasAnthropic = !!(instanceData && instanceData.hasAnthropicKey);
+  var hasOpenai = !!(instanceData && instanceData.hasOpenaiKey);
+  var hasGroq = !!(instanceData && instanceData.hasGroqKey) || !!localStorage.getItem('cf_groq_saved');
+  var hasCerebras = !!(instanceData && instanceData.hasCerebrasKey) || !!localStorage.getItem('cf_cerebras_saved');
+  return { anthropic: hasAnthropic, groq: hasGroq, openai: hasOpenai, cerebras: hasCerebras };
+}
 
-  // Find recommended models for this sub-agent (array)
+// Get the best available model for an agent from its priority chain
+function getBestAvailableModel(subAgentId) {
+  var providerStatus = getProviderStatus();
   var subAgent = SUB_AGENTS.find(function(a) { return a.id === subAgentId; });
-  var recommendedList = subAgent ? subAgent.recommended : [];
+  if (!subAgent) return ALL_MODELS[0].value;
+  for (var i = 0; i < subAgent.priority.length; i++) {
+    var model = ALL_MODELS.find(function(m) { return m.value === subAgent.priority[i]; });
+    if (model && providerStatus[model.provider]) return subAgent.priority[i];
+  }
+  // Nothing connected — return first in priority (will show as disconnected)
+  return subAgent.priority[0];
+}
+
+function getAvailableModels(subAgentId) {
+  var providerStatus = getProviderStatus();
+  var subAgent = SUB_AGENTS.find(function(a) { return a.id === subAgentId; });
+  var priorityList = subAgent ? subAgent.priority : [];
 
   return ALL_MODELS.map(function(m) {
     var enabled = !!providerStatus[m.provider];
-    var isRecommended = recommendedList.indexOf(m.value) !== -1;
+    var priorityIndex = priorityList.indexOf(m.value);
+    var isRecommended = priorityIndex !== -1;
     var labelParts = m.label;
-    if (isRecommended) labelParts += ' ⭐ מומלץ';
+    if (priorityIndex === 0) labelParts += ' ⭐ מומלץ';
+    else if (isRecommended) labelParts += ' ⭐';
     if (m.tag) labelParts += ' (' + m.tag + ')';
     if (!enabled) labelParts += ' — לא מחובר';
-    return { value: m.value, label: labelParts, enabled: enabled, recommended: isRecommended };
+    return { value: m.value, label: labelParts, enabled: enabled, recommended: isRecommended, priorityIndex: priorityIndex === -1 ? 999 : priorityIndex };
   });
 }
 
 function renderSubAgents() {
   var grid = document.getElementById('sub-agents-grid');
-  var savedModels = JSON.parse(localStorage.getItem('cf_sub_agent_models') || '{}');
+  // Primary source: DB (via instanceData), fallback: localStorage for backwards compat
+  var savedModels = (instanceData && instanceData.subAgentModels) || JSON.parse(localStorage.getItem('cf_sub_agent_models') || '{}');
   grid.innerHTML = '<div class="sub-agent-row" style="font-weight:600;background:#F3F4F6"><span>שם</span><span>תפקיד</span><span>מודל</span><span>סטטוס</span></div>' +
     SUB_AGENTS.map(function(a) {
-      var model = savedModels[a.id] || a.defaultModel;
+      var model = savedModels[a.id] || getBestAvailableModel(a.id);
       var availableModels = getAvailableModels(a.id);
-      // If saved model's provider is not connected, fall back to default
+      // If saved model's provider is not connected, fallback to best available
       var selectedModelInfo = availableModels.find(function(m) { return m.value === model; });
-      if (selectedModelInfo && !selectedModelInfo.enabled) model = a.defaultModel;
-      // Sort: recommended first, then enabled, then disabled
+      if (selectedModelInfo && !selectedModelInfo.enabled) model = getBestAvailableModel(a.id);
+      // Sort: priority order first (recommended), then enabled, then disabled
       availableModels.sort(function(x, y) {
-        if (x.recommended && !y.recommended) return -1;
-        if (!x.recommended && y.recommended) return 1;
         if (x.enabled && !y.enabled) return -1;
         if (!x.enabled && y.enabled) return 1;
-        return 0;
+        return x.priorityIndex - y.priorityIndex;
       });
       var opts = availableModels.map(function(m) {
         return '<option value="' + m.value + '"' +

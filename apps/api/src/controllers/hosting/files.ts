@@ -349,6 +349,41 @@ export const deployCustomAgent = async (c: Context) => {
     }
 }
 
+// Optimal default models per provider, tuned per agent role
+function getDefaultModelsForProvider(provider: string): Record<string, string> {
+    const AGENTS = ['mateh', 'sayer', 'meater', 'maazin', 'menateach', 'et', 'yotzer', 'shaliach', 'migdalor']
+    // Per-agent role priorities: coordinator, researcher, researcher, listener, analyst, writer, creative, distributor, auditor
+    const providerDefaults: Record<string, Record<string, string>> = {
+        anthropic: {
+            mateh: 'anthropic/claude-haiku-4-5-20251001',       // fast coordination
+            sayer: 'anthropic/claude-sonnet-4-6',               // quality research
+            meater: 'anthropic/claude-sonnet-4-6',              // quality SERP analysis
+            maazin: 'anthropic/claude-haiku-4-5-20251001',      // fast stream processing
+            menateach: 'anthropic/claude-opus-4-6',             // deep analysis
+            et: 'anthropic/claude-sonnet-4-6',                  // quality writing
+            yotzer: 'anthropic/claude-sonnet-4-6',              // creative content
+            shaliach: 'anthropic/claude-haiku-4-5-20251001',    // simple distribution
+            migdalor: 'anthropic/claude-opus-4-6',              // precise audit
+        },
+        openai: {
+            mateh: 'openai/gpt-4o-mini', sayer: 'openai/gpt-4o', meater: 'openai/gpt-4o',
+            maazin: 'openai/gpt-4o-mini', menateach: 'openai/gpt-4o', et: 'openai/gpt-4o',
+            yotzer: 'openai/gpt-4o', shaliach: 'openai/gpt-4o-mini', migdalor: 'openai/gpt-4o',
+        },
+        groq: {
+            mateh: 'groq/openai/gpt-oss-20b', sayer: 'groq/openai/gpt-oss-120b', meater: 'groq/openai/gpt-oss-120b',
+            maazin: 'groq/openai/gpt-oss-20b', menateach: 'groq/openai/gpt-oss-120b', et: 'groq/qwen/qwen3-32b',
+            yotzer: 'groq/qwen/qwen3-32b', shaliach: 'groq/openai/gpt-oss-20b', migdalor: 'groq/openai/gpt-oss-120b',
+        },
+        cerebras: {
+            mateh: 'cerebras/llama3.1-8b', sayer: 'cerebras/gpt-oss-120b', meater: 'cerebras/gpt-oss-120b',
+            maazin: 'cerebras/llama3.1-8b', menateach: 'cerebras/gpt-oss-120b', et: 'cerebras/qwen-3-235b-a22b-instruct-2507',
+            yotzer: 'cerebras/qwen-3-235b-a22b-instruct-2507', shaliach: 'cerebras/llama3.1-8b', migdalor: 'cerebras/gpt-oss-120b',
+        },
+    }
+    return providerDefaults[provider] || providerDefaults.anthropic
+}
+
 export const saveIntegration = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
@@ -572,6 +607,19 @@ print('${serverId} configured')
             const step = instance.onboardingStep ?? 0
             if (step < 2) updateData.onboardingStep = 2
             await db.update(instances).set(updateData).where(eq(instances.id, instanceId))
+        }
+
+        // Auto-assign sub-agent models on first API key connection
+        // Only when no models are configured yet (clean slate)
+        if (['anthropic', 'openai', 'groq', 'cerebras'].includes(type)) {
+            const currentModels = (instance.subAgentModels as Record<string, string>) || {}
+            if (!currentModels || Object.keys(currentModels).length === 0) {
+                const defaults = getDefaultModelsForProvider(type)
+                await db.update(instances).set({
+                    subAgentModels: defaults as any,
+                }).where(eq(instances.id, instanceId))
+                console.log(`Auto-assigned ${type} models for instance ${instanceId}`)
+            }
         }
         if (type === 'telegram') {
             await db.update(instances).set({
