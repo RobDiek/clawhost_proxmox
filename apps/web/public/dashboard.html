@@ -2843,9 +2843,8 @@ function dashMascotOnTaskDone() {
         localStorage.removeItem('cf_ollama_backend');
       }
       if (!inst.telegramBotToken) localStorage.removeItem('cf_telegram_saved');
-      if (!inst.hasWordpress) localStorage.removeItem('cf_wordpress_saved');
-      if (!inst.hasResend) localStorage.removeItem('cf_resend_saved');
-      if (!inst.hasBrave) localStorage.removeItem('cf_brave_saved');
+      // Note: WordPress, Resend, Brave are stored locally only (no DB field)
+      // so we don't clear them here — they persist until user disconnects
       dataLoaded = true;
       // Init agent switcher + mascot
       initAgentSwitcher();
@@ -7543,7 +7542,7 @@ async function saveSubAgentModels() {
     // Build AGENTS.md content with updated model routing
     var agentsmd = '# AGENTS — הגדרות מודלים\n\n## ניתוב מודלים\n| סוכן | מודל |\n|-------|-------|\n';
     SUB_AGENTS.forEach(function(a) {
-      var m = models[a.id] || a.defaultModel;
+      var m = models[a.id] || a.priority[0];
       agentsmd += '| ' + a.name + ' (' + a.role + ') | ' + m + ' |\n';
     });
     agentsmd += '\n## כללי עבודה\n1. לפני שליחת הודעה — הצגת טיוטה ואישור\n2. לפני מחיקת קבצים — אישור מפורש\n3. משימה שנכשלת 3 פעמים — עצירה ודיווח\n4. אין להריץ תהליך מעל 10 דקות ללא אישור\n5. כל תוכן עובר de-ai-ify לפני פרסום\n6. תמיד לציין איזה מודל משמש\n\n## העברת נתונים\nשיטה: file-based handoffs\nכל סוכן כותב ל-agents/[name]/output/latest.json\n';

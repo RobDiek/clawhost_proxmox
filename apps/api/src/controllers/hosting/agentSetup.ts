@@ -1903,6 +1903,7 @@ export const setupPersonalAgent = async (c: Context) => {
 
         await db.update(instances).set({
             onboardingStep: 4,
+            onboardingCompleted: true,
             researchData: {
                 userName: body.userName,
                 occupation: body.occupation,
@@ -1912,6 +1913,13 @@ export const setupPersonalAgent = async (c: Context) => {
                 generatedAt: new Date().toISOString(),
             } as any,
         }).where(eq(instances.id, instanceId))
+
+        // Activate cron jobs now that onboarding is complete
+        try {
+            await activateAgentCrons(instance.ip, 'oc', instance.rootPassword || undefined)
+        } catch (cronErr) {
+            console.error('Personal agent cron activation failed (non-critical):', cronErr)
+        }
 
         return ok(c, { configured: true }, 'Personal agent configured.')
     } catch (err) {
