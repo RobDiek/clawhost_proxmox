@@ -1803,6 +1803,8 @@ ${(rd.stage3 || '').substring(0, 8000)}
         }
 
         if (!result || result.length < 500) {
+            console.error(`Stage ${stage} result too short (${result?.length || 0} chars). First 300: ${result?.substring(0, 300)}`)
+            console.error(`Stage ${stage} raw output length: ${output?.length || 0}. First 300: ${output?.substring(0, 300)}`)
             const msg = isRateLimit
                 ? `rate limit — המודל הגיע לגבול השימוש (30K tokens). נסו: המתינו דקה / שנו מודל / שדרגו תוכנית API`
                 : `שלב ${stage} נכשל — נסו שוב`
