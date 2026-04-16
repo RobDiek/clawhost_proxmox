@@ -1749,29 +1749,20 @@ export const researchStage = async (c: Context) => {
         // Find JSON object in cleaned output (may be pretty-printed: {\n  "runId")
         const jsonMatch2 = cleanOutput.match(/\{\s*"runId"/)
         const jsonStart2 = jsonMatch2?.index ?? -1
-        console.log(`[extract] cleanOutput: ${cleanOutput.length} chars, jsonStart2=${jsonStart2}`)
         if (jsonStart2 === -1) {
             const mdMatch = cleanOutput.match(/^(#{1,3}\s.+)/m)
             result = mdMatch?.index !== undefined ? cleanOutput.slice(mdMatch.index) : cleanOutput
-            console.log(`[extract] no JSON found, using markdown/raw: ${result.length} chars`)
         } else {
             try {
-                const jsonSlice = cleanOutput.slice(jsonStart2)
-                console.log(`[extract] JSON slice: ${jsonSlice.length} chars, first 80: ${jsonSlice.substring(0, 80)}`)
-                const agentResult = JSON.parse(jsonSlice)
-                const visible = agentResult?.result?.finalAssistantVisibleText
-                const payload0 = agentResult?.result?.payloads?.[0]?.text
-                console.log(`[extract] visible=${visible?.length || 0}, payload0=${payload0?.length || 0}, payloads=${agentResult?.result?.payloads?.length || 0}`)
-                result = visible || ''
+                const agentResult = JSON.parse(cleanOutput.slice(jsonStart2))
+                result = agentResult?.result?.finalAssistantVisibleText || ''
                 if (!result && agentResult?.result?.payloads) {
                     for (const p of agentResult.result.payloads) {
                         if (p.text && p.text.length > result.length) result = p.text
                     }
                 }
-                console.log(`[extract] final result: ${result.length} chars, first 50: ${result.substring(0, 50)}`)
                 if (!result) result = cleanOutput
-            } catch (parseErr) {
-                console.error(`[extract] JSON.parse failed:`, (parseErr as Error).message?.substring(0, 200))
+            } catch {
                 result = cleanOutput
             }
         }
