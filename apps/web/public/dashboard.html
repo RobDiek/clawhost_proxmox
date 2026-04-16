@@ -1330,9 +1330,18 @@ input{font-family:inherit}
           <div><strong>Anthropic Claude</strong><div class="int-status" id="anthropic-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-anthropic-body">
-          <input type="password" id="anthropic-key" placeholder="sk-ant-api..." dir="ltr" class="int-input"/>
-          <button class="btn btn-primary btn-sm" onclick="saveApiKey('anthropic')">שמרו</button>
-          <a href="https://console.anthropic.com" target="_blank" class="int-help-link">פתחו חשבון ב-Anthropic &#8599;</a>
+          <div id="anthropic-key-input">
+            <input type="password" id="anthropic-key" placeholder="sk-ant-api..." dir="ltr" class="int-input"/>
+            <button class="btn btn-primary btn-sm" onclick="saveApiKey('anthropic')">שמרו</button>
+            <a href="https://console.anthropic.com" target="_blank" class="int-help-link">פתחו חשבון ב-Anthropic &#8599;</a>
+          </div>
+          <div id="anthropic-key-saved" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px;background:#FDF2F0;border:1px solid #FECACA;border-radius:8px;padding:8px 12px">
+              <span style="color:#10B981;font-size:.9rem">✓</span>
+              <span style="flex:1;font-family:monospace;font-size:.82rem;color:#92400E;direction:ltr" id="anthropic-key-masked">sk-ant-****</span>
+              <button class="btn btn-danger-outline btn-sm" onclick="disconnectApiKey('anthropic')" style="font-size:.72rem;padding:2px 10px">נתקו</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="int-card" id="openai-card" data-tooltip="OpenAI GPT-4o — מודל חלופי ומהיר. משמש כ-fallback כשAnthropicבlimit, וגם לתמלול הודעות קוליות (Whisper). מומלץ לחבר לצד Anthropic.">
@@ -1341,9 +1350,18 @@ input{font-family:inherit}
           <div><strong>OpenAI</strong><div class="int-status" id="openai-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-openai-body">
-          <input type="password" id="openai-key" placeholder="sk-..." dir="ltr" class="int-input"/>
-          <button class="btn btn-primary btn-sm" onclick="saveApiKey('openai')">שמרו</button>
-          <a href="https://platform.openai.com" target="_blank" class="int-help-link">פתחו חשבון ב-OpenAI &#8599;</a>
+          <div id="openai-key-input">
+            <input type="password" id="openai-key" placeholder="sk-..." dir="ltr" class="int-input"/>
+            <button class="btn btn-primary btn-sm" onclick="saveApiKey('openai')">שמרו</button>
+            <a href="https://platform.openai.com" target="_blank" class="int-help-link">פתחו חשבון ב-OpenAI &#8599;</a>
+          </div>
+          <div id="openai-key-saved" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px;background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:8px 12px">
+              <span style="color:#10B981;font-size:.9rem">✓</span>
+              <span style="flex:1;font-family:monospace;font-size:.82rem;color:#1B5E20;direction:ltr" id="openai-key-masked">sk-****</span>
+              <button class="btn btn-danger-outline btn-sm" onclick="disconnectApiKey('openai')" style="font-size:.72rem;padding:2px 10px">נתקו</button>
+            </div>
+          </div>
         </div>
       </div>
       <!-- Groq integrated into Open Source Models card below -->
@@ -1510,11 +1528,20 @@ input{font-family:inherit}
           <div><strong>Telegram</strong><div class="int-status" id="telegram-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-telegram-body">
-          <input type="text" id="telegram-token" placeholder="Bot Token מ-@BotFather" dir="ltr" class="int-input"/>
-          <button class="btn btn-primary btn-sm" onclick="saveTelegram()">חברו</button>
-          <div class="int-help-steps">
-            <p>1. פתחו שיחה עם <a href="https://t.me/BotFather" target="_blank">@BotFather</a></p>
-            <p>2. שלחו /newbot &rarr; תנו שם &rarr; קבלו Token</p>
+          <div id="telegram-key-input">
+            <input type="text" id="telegram-token" placeholder="Bot Token מ-@BotFather" dir="ltr" class="int-input"/>
+            <button class="btn btn-primary btn-sm" onclick="saveTelegram()">חברו</button>
+            <div class="int-help-steps">
+              <p>1. פתחו שיחה עם <a href="https://t.me/BotFather" target="_blank">@BotFather</a></p>
+              <p>2. שלחו /newbot &rarr; תנו שם &rarr; קבלו Token</p>
+            </div>
+          </div>
+          <div id="telegram-key-saved" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px;background:#E3F2FD;border:1px solid #90CAF9;border-radius:8px;padding:8px 12px">
+              <span style="color:#10B981;font-size:.9rem">✓</span>
+              <span style="flex:1;font-family:monospace;font-size:.82rem;color:#0D47A1;direction:ltr" id="telegram-key-masked">bot****</span>
+              <button class="btn btn-danger-outline btn-sm" onclick="disconnectTelegram()" style="font-size:.72rem;padding:2px 10px">נתקו</button>
+            </div>
           </div>
         </div>
       </div>
@@ -5328,6 +5355,7 @@ function renderIntegrations() {
     if (antEl) { antEl.textContent = '\u2713 מחובר'; antEl.className = 'int-status connected'; }
     var antCard = document.getElementById('anthropic-card');
     if (antCard) antCard.classList.add('connected');
+    showApiKeySavedState('anthropic', null, 'sk-ant-');
   }
 
   // Update OpenAI status
@@ -5337,6 +5365,7 @@ function renderIntegrations() {
     if (oaiEl) { oaiEl.textContent = '\u2713 מחובר'; oaiEl.className = 'int-status connected'; }
     var oaiCard = document.getElementById('openai-card');
     if (oaiCard) oaiCard.classList.add('connected');
+    showApiKeySavedState('openai', null, 'sk-');
   }
 
   // Update Groq/Ollama status — per-agent
@@ -5357,6 +5386,7 @@ function renderIntegrations() {
     if (tgStatus) { tgStatus.textContent = '\u2713 מחובר'; tgStatus.className = 'int-status connected'; }
     var tgCard = document.getElementById('telegram-card');
     if (tgCard) tgCard.classList.add('connected');
+    showTelegramSavedState(instanceData && instanceData.telegramBotToken ? instanceData.telegramBotToken : null);
   } else {
     // Reset to disconnected if agent doesn't have telegram
     var tgStatus = document.getElementById('telegram-status');
@@ -5818,9 +5848,11 @@ async function saveApiKey(provider) {
     if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
     var card = document.getElementById(provider + '-card');
     if (card) card.classList.add('connected-card');
-    // Show masked key
+    // Show masked key for all providers
     if (provider === 'groq') showGroqSavedState(val);
-    if (provider === 'cerebras') showCerebrasSavedState(val);
+    else if (provider === 'cerebras') showCerebrasSavedState(val);
+    else if (provider === 'anthropic') showApiKeySavedState('anthropic', val, 'sk-ant-');
+    else if (provider === 'openai') showApiKeySavedState('openai', val, 'sk-');
     showToast('מפתח ' + provider + ' נשמר בהצלחה', 'success');
     refreshInstanceData();
   } catch (e) {
@@ -5889,6 +5921,73 @@ async function disconnectGroq() {
   renderSubAgents();
 }
 
+// Generic show/disconnect for Anthropic and OpenAI
+function showApiKeySavedState(provider, fullKey, prefix) {
+  var masked = fullKey ? fullKey.substring(0, prefix.length + 3) + '••••••' + fullKey.substring(fullKey.length - 4) : prefix + '••••••';
+  var inputDiv = document.getElementById(provider + '-key-input');
+  var savedDiv = document.getElementById(provider + '-key-saved');
+  var maskedEl = document.getElementById(provider + '-key-masked');
+  if (inputDiv) inputDiv.style.display = 'none';
+  if (savedDiv) savedDiv.style.display = '';
+  if (maskedEl) maskedEl.textContent = masked;
+}
+
+async function disconnectApiKey(provider) {
+  var labels = { anthropic: 'Anthropic Claude', openai: 'OpenAI' };
+  var confirmed = await showConfirm({ icon: '🔌', title: 'נתק את ' + (labels[provider] || provider) + '?', desc: 'המפתח יימחק מהשרת. תוכלו לחבר מחדש בכל עת.', okText: 'נתקו', okClass: 'btn-danger-outline' });
+  if (!confirmed) return;
+  if (provider === 'anthropic') localStorage.removeItem('cf_api_key_saved');
+  if (provider === 'openai') localStorage.removeItem('cf_openai_saved');
+  var inputDiv = document.getElementById(provider + '-key-input');
+  var savedDiv = document.getElementById(provider + '-key-saved');
+  if (inputDiv) { inputDiv.style.display = ''; document.getElementById(provider + '-key').value = ''; }
+  if (savedDiv) savedDiv.style.display = 'none';
+  var statusEl = document.getElementById(provider + '-status');
+  if (statusEl) { statusEl.textContent = 'לא מחובר'; statusEl.className = 'int-status'; }
+  var card = document.getElementById(provider + '-card');
+  if (card) card.classList.remove('connected-card');
+  showToast((labels[provider] || provider) + ' נותק', 'success');
+  var iid = localStorage.getItem('cf_instance_id');
+  if (iid) {
+    fetch(API + '/hosting/instances/' + iid + '/integrations/save', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ type: provider, key: '' })
+    }).catch(function(){});
+  }
+  refreshInstanceData();
+}
+
+function showTelegramSavedState(botToken) {
+  var masked = botToken ? botToken.substring(0, 6) + '••••••' + botToken.substring(botToken.length - 4) : 'bot••••••';
+  var inputDiv = document.getElementById('telegram-key-input');
+  var savedDiv = document.getElementById('telegram-key-saved');
+  var maskedEl = document.getElementById('telegram-key-masked');
+  if (inputDiv) inputDiv.style.display = 'none';
+  if (savedDiv) savedDiv.style.display = '';
+  if (maskedEl) maskedEl.textContent = masked;
+}
+
+async function disconnectTelegram() {
+  var confirmed = await showConfirm({ icon: '🔌', title: 'נתק את Telegram?', desc: 'הבוט יינתק מהמערכת.', okText: 'נתקו', okClass: 'btn-danger-outline' });
+  if (!confirmed) return;
+  localStorage.removeItem('cf_telegram_saved');
+  var inputDiv = document.getElementById('telegram-key-input');
+  var savedDiv = document.getElementById('telegram-key-saved');
+  if (inputDiv) { inputDiv.style.display = ''; document.getElementById('telegram-token').value = ''; }
+  if (savedDiv) savedDiv.style.display = 'none';
+  var statusEl = document.getElementById('telegram-status');
+  if (statusEl) { statusEl.textContent = 'לא מחובר'; statusEl.className = 'int-status'; }
+  showToast('Telegram נותק', 'success');
+  var iid = localStorage.getItem('cf_instance_id');
+  if (iid) {
+    fetch(API + '/hosting/instances/' + iid + '/integrations/save', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ type: 'telegram', key: '' })
+    }).catch(function(){});
+  }
+  refreshInstanceData();
+}
+
 async function saveTelegram() {
   var val = document.getElementById('telegram-token').value.trim();
   if (!val) { showToast('נא להזין Token של הבוט', 'error'); return; }
@@ -5909,6 +6008,7 @@ async function saveTelegram() {
     document.getElementById('telegram-status').innerHTML = '<span class="int-status-dot"></span>מחובר';
     document.getElementById('telegram-status').className = 'int-status connected';
     document.getElementById('telegram-card').classList.add('connected-card');
+    showTelegramSavedState(val);
     showToast('בוט Telegram חובר בהצלחה', 'success');
     refreshInstanceData();
   } catch (e) {

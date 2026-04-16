@@ -218,6 +218,15 @@ runcmd:
                 "reserveTokensFloor": 25000
               }
             }
+          },
+          "plugins": {
+            "allow": ["anthropic", "openai", "telegram", "browser"],
+            "entries": {
+              "anthropic": { "enabled": true },
+              "openai": { "enabled": true },
+              "telegram": { "enabled": true },
+              "browser": { "enabled": true }
+            }
           }
         }
         OCEOF
