@@ -763,7 +763,8 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
                 // Use סייר agent (registered with Opus model) for research
                 const output = await sshExec(instance.ip,
                     `su - openclaw -c 'timeout 300 openclaw agent --agent sayer --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
-                    instance.rootPassword || undefined
+                    instance.rootPassword || undefined,
+                    330000  // 5.5 min — must exceed the 300s command timeout
                 )
 
                 // Parse response
@@ -1535,7 +1536,8 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
 
         const output = await sshExec(instance.ip,
             `su - openclaw -c 'timeout 300 openclaw agent --agent ${agentId} --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
-            instance.rootPassword || undefined
+            instance.rootPassword || undefined,
+            330000  // 5.5 min — must exceed the 300s command timeout
         )
 
         let result = ''

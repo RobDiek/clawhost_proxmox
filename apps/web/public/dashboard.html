@@ -5958,7 +5958,8 @@ async function disconnectApiKey(provider) {
 }
 
 function showTelegramSavedState(botToken) {
-  var masked = botToken ? botToken.substring(0, 6) + '••••••' + botToken.substring(botToken.length - 4) : 'bot••••••';
+  var tk = (typeof botToken === 'string') ? botToken : '';
+  var masked = tk.length > 10 ? tk.substring(0, 6) + '••••••' + tk.substring(tk.length - 4) : (tk ? 'bot••••••' : 'bot••••••');
   var inputDiv = document.getElementById('telegram-key-input');
   var savedDiv = document.getElementById('telegram-key-saved');
   var maskedEl = document.getElementById('telegram-key-masked');
