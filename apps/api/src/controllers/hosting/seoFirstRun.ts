@@ -109,6 +109,13 @@ function cleanAgentOutput(text: string): string {
         .replace(/^\s*\{\s*$/gm, '')
         .replace(/^\s*\[\s*$/gm, '')
         .replace(/^\s*\]\s*$/gm, '')
+        // Remove file listing / blockChars JSON fragments
+        .replace(/\{"name":"[^"]+","blockChars":\d+\},?\n?/g, '')
+        // Remove plugin/diagnostic log lines
+        .replace(/\[plugins\].*\n?/g, '')
+        .replace(/\[diagnostic\].*\n?/g, '')
+        .replace(/\[model-fallback.*\n?/g, '')
+        .replace(/Config warnings:.*\n?/g, '')
         // Remove agent internal thoughts (Hebrew patterns)
         .replace(/^.*?(טוב!|בואי נמשיך|עכשיו יש לי|בואי אני|נתחיל עם|אתחיל ב|מצוין!|יופי!|אוקיי|בסדר).*$/gm, '')
         // Remove "I'll use tool X" lines

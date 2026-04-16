@@ -784,6 +784,15 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
                     report = output
                 }
 
+                // Clean up: remove file listings, technical output, plugin logs
+                report = report
+                    .replace(/\[plugins\].*\n?/g, '')
+                    .replace(/\[diagnostic\].*\n?/g, '')
+                    .replace(/\[model-fallback.*\n?/g, '')
+                    .replace(/\{"name":"[^"]+","blockChars":\d+\},?\n?/g, '')
+                    .replace(/Config warnings:.*\n?/g, '')
+                    .trim()
+
                 // If agent saved to file instead of returning inline, read it
                 if (report && report.length < 2000 && (report.includes('.md') || report.includes('שמורה') || report.includes('מוכן'))) {
                     try {
@@ -1455,21 +1464,25 @@ export const researchStage = async (c: Context) => {
             agentId = 'sayer'
             prompt = `משימת גילוי מתחרים עבור "${businessName}" (${businessDesc}).
 
-חפש באינטרנט (השתמש ב-web search ובדפדפן):
+חשוב: השתמש רק ב-web_search וב-browser לחיפוש באינטרנט. אל תקרא קבצים מהמערכת ואל תסרוק את ה-workspace.
+
+חפש באינטרנט:
 1. מצא 5 מתחרים ישירים. לכל אחד: שם, URL, מה עושים, מחיר אם נראה, חוזקות, חולשות
 2. חפש את "${businessName}" עצמו — מה קיים עליו באינטרנט?
 3. מהם הטרנדים העיקריים בתחום?
 ${answers.competitors ? `המשתמש ציין מתחרים: ${answers.competitors}` : ''}
 ${feedback ? `הערות המשתמש: ${feedback}` : ''}
 
-כתוב הכל כאן בתשובה — לא בקובץ. בעברית.`
+כתוב הכל כאן בתשובה — לא בקובץ. בעברית. אל תכלול רשימות קבצים או מידע טכני.`
             minLength = 1500
         } else if (stage === 2) {
             // KEYWORD RESEARCH
             agentId = 'sayer'
             prompt = `משימת מחקר מילות מפתח עבור "${businessName}".
 
-קרא את תוצאות שלב 1 (מתחרים) מ-RESEARCH_STAGE1.md.
+חשוב: השתמש רק ב-web_search. אל תקרא קבצים מהמערכת ואל תסרוק את ה-workspace.
+
+קרא רק את research-data/RESEARCH_STAGE1.md (תוצאות שלב 1).
 
 חפש באינטרנט:
 1. 15 מילות מפתח רלוונטיות (עברית + אנגלית)
@@ -1479,14 +1492,14 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
 ${answers.platforms ? `פלטפורמות: ${answers.platforms}` : ''}
 ${feedback ? `הערות המשתמש: ${feedback}` : ''}
 
-כתוב הכל כאן. בעברית.`
+כתוב הכל כאן. בעברית. אל תכלול רשימות קבצים או מידע טכני.`
             minLength = 1000
         } else if (stage === 3) {
             // AUDIENCE RESEARCH
             agentId = 'sayer'
             prompt = `משימת מחקר קהל יעד עבור "${businessName}".
 
-קרא RESEARCH_STAGE1.md ו-RESEARCH_STAGE2.md.
+חשוב: השתמש רק ב-web_search. אל תקרא קבצים מהמערכת ואל תסרוק את ה-workspace. קרא רק research-data/RESEARCH_STAGE1.md ו-research-data/RESEARCH_STAGE2.md.
 
 חפש באינטרנט (Reddit, פורומים, רשתות חברתיות):
 1. איפה קהל היעד מדבר על ${businessDesc}?
@@ -1496,7 +1509,7 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
 ${answers.targetAudience ? `קהל יעד שצוין: ${answers.targetAudience}` : ''}
 ${feedback ? `הערות המשתמש: ${feedback}` : ''}
 
-כתוב הכל כאן. בעברית.`
+כתוב הכל כאן. בעברית. אל תכלול רשימות קבצים או מידע טכני.`
             minLength = 1000
         } else if (stage === 4) {
             // CHANNEL ANALYSIS — reduce context by moving stage files out of workspace
@@ -1507,7 +1520,11 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
             const s2 = rd.stage2 ? rd.stage2.substring(0, 500) : ''
             const s3 = rd.stage3 ? rd.stage3.substring(0, 500) : ''
 
-            prompt = `ניתוח ערוצים עבור "${businessName}". תמצית:
+            prompt = `ניתוח ערוצים עבור "${businessName}".
+
+חשוב: אל תקרא קבצים מהמערכת ואל תסרוק את ה-workspace. השתמש רק בנתונים שמסופקים כאן.
+
+תמצית מחקר קודם:
 מתחרים: ${s1}
 מילות מפתח: ${s2}
 קהל: ${s3}
@@ -1515,14 +1532,13 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
 המלץ:
 1. 3-5 ערוצים מומלצים + עדיפות
 2. עלות ותדירות לכל ערוץ
-3. פאנל: awareness→conversion
 3. פאנל שיווק: awareness → consideration → conversion → retention
 4. מה עושים ראשון? סדר עדיפויות
 ${answers.budget ? `תקציב: ${answers.budget}` : ''}
 ${answers.marketingGoals ? `מטרות: ${answers.marketingGoals}` : ''}
 ${feedback ? `הערות המשתמש: ${feedback}` : ''}
 
-כתוב הכל כאן. בעברית.`
+כתוב הכל כאן. בעברית. אל תכלול רשימות קבצים או מידע טכני.`
             minLength = 1000
         } else {
             return fail(c, 'Invalid stage (1-4)', 400)
@@ -1554,6 +1570,17 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
                 isRateLimit = true
             }
         }
+
+        // Clean up: remove file listings, technical output, plugin logs
+        result = result
+            .replace(/\[plugins\].*\n?/g, '')
+            .replace(/\[diagnostic\].*\n?/g, '')
+            .replace(/\[model-fallback.*\n?/g, '')
+            .replace(/\{"name":"[^"]+","blockChars":\d+\},?\n?/g, '')
+            .replace(/Config warnings:.*\n?/g, '')
+            .replace(/Config invalid.*\n?/g, '')
+            .replace(/^\s*\[\s*\{[\s\S]*?"blockChars"[\s\S]*?\}\s*\]\s*$/gm, '')
+            .trim()
 
         // Fallback: check if agent saved to file
         if (result.length < minLength && (result.includes('.md') || result.includes('שמורה'))) {
