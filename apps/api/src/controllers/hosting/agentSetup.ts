@@ -375,50 +375,8 @@ EOFPAIR
     await sshExec(ip, 'systemctl restart openclaw-gateway', password)
     await new Promise(r => setTimeout(r, 4000))
 
-    // Register sub-agents with correct models per role (MATEH only)
-    if (agentType !== 'mt') {
-        console.log(`Skipping sub-agent registration for ${agentType} agent`)
-    } else {
-    // MATEH sub-agents
-    // Uses model registry: sayer=opus, et=sonnet, menateach=opus
-    // Falls back to OpenAI models if Anthropic not available
-    await sshExec(ip, `
-        su - openclaw -c '
-        # Detect which AI provider is available
-        HAS_ANTHROPIC=$(grep -c ANTHROPIC_API_KEY /etc/systemd/system/openclaw-gateway.service 2>/dev/null || echo 0)
-
-        if [ "$HAS_ANTHROPIC" -gt 0 ]; then
-          OPUS="anthropic/claude-opus-4-6"
-          SONNET="anthropic/claude-sonnet-4-6"
-          HAIKU="anthropic/claude-haiku-4-5-20251001"
-        else
-          OPUS="openai/gpt-4o"
-          SONNET="openai/gpt-4o"
-          HAIKU="openai/gpt-4o-mini"
-        fi
-
-        AGENTS=$(openclaw agents list --json 2>/dev/null | node -e "try{const d=JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf-8\"));console.log(d.map(a=>a.name).join(\",\"))}catch(e){}" 2>/dev/null)
-
-        # Register 8 MATEH sub-agents with tiered model routing
-        # Tier 3 (opus): menateach (strategy) — complex thinking
-        # Tier 2 (sonnet): et-final (content), migdalor (AEO) — client-facing
-        # Tier 1 (haiku): sayer, meater, maazin, yotzer, shaliach — internal
-        for AGENT_NAME in sayer menateach meater maazin et yotzer shaliach migdalor; do
-          if ! echo "$AGENTS" | grep -q "$AGENT_NAME"; then
-            case "$AGENT_NAME" in
-              menateach) MODEL="$OPUS" ;;
-              et|migdalor) MODEL="$SONNET" ;;
-              *) MODEL="$HAIKU" ;;
-            esac
-            openclaw agents add "$AGENT_NAME" --model "$MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/"$AGENT_NAME" --non-interactive 2>/dev/null
-          fi
-        done
-        '
-    `, password)
-
-    } // end MATEH sub-agents block
-
-    // Restart to pick up new agents
+    // Sub-agent registration is handled by ensureAgentsRegistered() called from the caller
+    // Restart gateway to pick up new workspace files
     await sshExec(ip, 'systemctl restart openclaw-gateway', password)
     await new Promise(r => setTimeout(r, 3000))
 
@@ -619,6 +577,87 @@ async function getSubAgentModel(instanceId: string, role: string): Promise<strin
         if (customModels[role]) return customModels[role]
     } catch { /* fallback */ }
     return DEFAULT_ROLE_MODELS[role] || 'openai/gpt-4o'
+}
+
+// ── SINGLE SOURCE OF TRUTH: ensure all expected agents are registered on VPS ──
+// Called from: deployAgentSystem, saveIntegration (first API key), addAgentToInstance, reset
+const MATEH_AGENTS = ['sayer', 'menateach', 'meater', 'maazin', 'et', 'yotzer', 'shaliach', 'migdalor'] as const
+
+export async function ensureAgentsRegistered(instance: {
+    id: string; ip: string | null; rootPassword?: string | null;
+    selectedComponents?: unknown; subAgentModels?: unknown;
+}): Promise<{ registered: string[]; updated: string[]; skipped: string[] }> {
+    if (!instance.ip) throw new Error('No IP for instance ' + instance.id)
+
+    const components = (instance.selectedComponents as string[]) || []
+    const isMATEH = components.includes('mt')
+    const result = { registered: [] as string[], updated: [] as string[], skipped: [] as string[] }
+
+    if (!isMATEH) {
+        console.log(`[ensureAgents] ${instance.id}: not MATEH (${components.join(',')}), skipping sub-agents`)
+        return result
+    }
+
+    // Get current model assignments from DB or defaults
+    const customModels = (instance.subAgentModels as Record<string, string>) || {}
+
+    // Get currently registered agents from VPS
+    let registeredAgents: Record<string, string> = {}
+    try {
+        const listOutput = await sshExec(instance.ip,
+            `su - openclaw -c 'openclaw agents list --json 2>/dev/null'`,
+            instance.rootPassword || undefined
+        )
+        const parsed = JSON.parse(listOutput)
+        if (Array.isArray(parsed)) {
+            for (const a of parsed) {
+                if (a.name && a.name !== 'main') {
+                    registeredAgents[a.name] = a.model || ''
+                }
+            }
+        }
+    } catch {
+        console.log(`[ensureAgents] ${instance.id}: could not list agents, will register all`)
+    }
+
+    // Ensure agent directories exist
+    const agentDirs = MATEH_AGENTS.map(a => `~/.openclaw/agents/${a}/output`).join(' ')
+    await sshExec(instance.ip,
+        `su - openclaw -c 'mkdir -p ${agentDirs}'`,
+        instance.rootPassword || undefined
+    )
+
+    // Register or update each agent
+    for (const agentName of MATEH_AGENTS) {
+        const expectedModel = customModels[agentName] || DEFAULT_ROLE_MODELS[agentName] || 'anthropic/claude-haiku-4-5-20251001'
+        const currentModel = registeredAgents[agentName]
+
+        if (!currentModel) {
+            // Not registered → register
+            await sshExec(instance.ip,
+                `su - openclaw -c 'openclaw agents add ${agentName} --model "${expectedModel}" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/${agentName} --non-interactive 2>/dev/null'`,
+                instance.rootPassword || undefined
+            )
+            result.registered.push(agentName)
+        } else if (currentModel !== expectedModel) {
+            // Wrong model → delete + re-register
+            await sshExec(instance.ip,
+                `su - openclaw -c 'openclaw agents delete ${agentName} --force 2>/dev/null; openclaw agents add ${agentName} --model "${expectedModel}" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/${agentName} --non-interactive 2>/dev/null'`,
+                instance.rootPassword || undefined
+            )
+            result.updated.push(agentName)
+        } else {
+            result.skipped.push(agentName)
+        }
+    }
+
+    // Restart gateway if we changed anything
+    if (result.registered.length > 0 || result.updated.length > 0) {
+        await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
+    }
+
+    console.log(`[ensureAgents] ${instance.id}: registered=${result.registered.join(',')}, updated=${result.updated.join(',')}, skipped=${result.skipped.join(',')}`)
+    return result
 }
 
 // ── Helper: validate research report quality ──
@@ -1615,6 +1654,13 @@ export const setupAgents = async (c: Context) => {
         console.log(`Deploying ${agentType} agent system to ${instance.ip}...`)
         await deployAgentSystem(instance.ip, userMd, brandMd, brandSlug, gatewayToken, subdomain, instance.rootPassword || undefined, agentType)
 
+        // Register sub-agents (MATEH) via unified function
+        try {
+            await ensureAgentsRegistered(instance)
+        } catch (regErr) {
+            console.error('Agent registration during deploy (non-critical):', regErr)
+        }
+
         // Update DB
         await db.update(instances).set({
             onboardingStep: 3,
@@ -1727,37 +1773,12 @@ export const addAgentToInstance = async (c: Context) => {
             // Fix permissions
             await sshExec(instance.ip, 'chown -R openclaw:openclaw /home/openclaw/.openclaw', instance.rootPassword || undefined)
 
-            // Register all 8 MATEH sub-agents
-            // Register sub-agents with tiered model routing:
-            // Tier 1 (haiku): sayer, meater, maazin, yotzer, shaliach — internal agents
-            // Tier 2 (sonnet): et, migdalor — client-facing content
-            // Tier 3 (opus): menateach — strategy & complex analysis
-            await sshExec(instance.ip, `
-                su - openclaw -c '
-                HAS_ANTHROPIC=$(grep -c ANTHROPIC_API_KEY /etc/systemd/system/openclaw-gateway.service 2>/dev/null || echo 0)
-                if [ "$HAS_ANTHROPIC" -gt 0 ]; then
-                  OPUS="anthropic/claude-opus-4-6"
-                  SONNET="anthropic/claude-sonnet-4-6"
-                  HAIKU="anthropic/claude-haiku-4-5-20251001"
-                else
-                  OPUS="openai/gpt-4o"
-                  SONNET="openai/gpt-4o"
-                  HAIKU="openai/gpt-4o-mini"
-                fi
-                for AGENT_NAME in sayer menateach meater maazin et yotzer shaliach migdalor; do
-                  case "$AGENT_NAME" in
-                    menateach) MODEL="$OPUS" ;;
-                    et|migdalor) MODEL="$SONNET" ;;
-                    *) MODEL="$HAIKU" ;;
-                  esac
-                  openclaw agents add "$AGENT_NAME" --model "$MODEL" --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/"$AGENT_NAME" --non-interactive 2>/dev/null
-                done
-                '
-            `, instance.rootPassword || undefined)
-
-            // Restart gateway
-            await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
-            await new Promise(r => setTimeout(r, 3000))
+            // Register sub-agents via unified function
+            // Re-read instance to get latest components after update
+            const [freshInst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+            if (freshInst) {
+                await ensureAgentsRegistered({ ...freshInst, selectedComponents: [...currentComponents, agentType] as any })
+            }
 
             // Only activate cron jobs if onboarding is already complete
             if (instance.onboardingCompleted) {
