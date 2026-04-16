@@ -1438,6 +1438,209 @@ export const buildStrategy = async (c: Context) => {
     }
 }
 
+// ── Helper: detect available MCP tools on VPS ──
+async function getAvailableTools(ip: string, password?: string): Promise<{
+    hasBrave: boolean; hasDataforseo: boolean; hasFirecrawl: boolean; hasGsc: boolean
+}> {
+    try {
+        const output = await sshExec(ip,
+            `su - openclaw -c 'openclaw mcp list --json 2>/dev/null || echo "[]"'`,
+            password, 10000
+        )
+        const servers = JSON.parse(output.trim() || '[]')
+        const names = Array.isArray(servers) ? servers.map((s: any) => s.name || s.id || '').join(',').toLowerCase() : ''
+        return {
+            hasBrave: names.includes('brave'),
+            hasDataforseo: names.includes('dataforseo'),
+            hasFirecrawl: names.includes('firecrawl'),
+            hasGsc: names.includes('gsc') || names.includes('google-search-console'),
+        }
+    } catch {
+        return { hasBrave: false, hasDataforseo: false, hasFirecrawl: false, hasGsc: false }
+    }
+}
+
+// ── Helper: build adaptive research prompts based on available tools ──
+function buildResearchPrompt(stage: number, opts: {
+    businessName: string; businessDesc: string; answers: any; feedback?: string;
+    tools: { hasBrave: boolean; hasDataforseo: boolean; hasFirecrawl: boolean };
+    summaries?: { s1: string; s2: string; s3: string };
+}): { agentId: string; prompt: string; minLength: number } {
+    const { businessName, businessDesc, answers, feedback, tools } = opts
+    const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
+
+    const searchInstructions = tools.hasBrave
+        ? `השתמש ב-brave_search MCP tool לחיפוש מדויק. בצע לפחות 3 חיפושים נפרדים בעברית ובאנגלית.`
+        : `השתמש ב-web_search לחיפוש באינטרנט.`
+
+    const NO_FILES = `\nחשוב: אל תקרא קבצים מהמערכת ואל תסרוק את ה-workspace. כתוב הכל כאן בתשובה — לא בקובץ. בעברית בלבד. אל תכלול רשימות קבצים, מידע טכני, או הערות פנימיות.`
+
+    if (stage === 1) {
+        const crawlInstructions = tools.hasFirecrawl
+            ? `\nהשתמש ב-firecrawl MCP tool לסריקת אתרי המתחרים ולקבלת מידע מפורט על התוכן והמבנה שלהם.`
+            : ''
+        return {
+            agentId: 'sayer',
+            minLength: 1500,
+            prompt: `# משימה: גילוי מתחרים עבור "${businessName}"
+## תיאור העסק
+${businessDesc}
+${answers.competitors ? `\n## מתחרים שציין המשתמש\n${answers.competitors}` : ''}
+
+## הוראות
+${searchInstructions}${crawlInstructions}
+
+חפש ומצא:
+1. **5 מתחרים ישירים** — לכל אחד URL, מה עושים, טווח מחירים, חוזקות, חולשות
+2. **נוכחות דיגיטלית של "${businessName}"** — מה קיים עליו באינטרנט כרגע?
+3. **3 טרנדים מרכזיים** בתחום
+
+## פורמט תשובה
+### מתחרים ישירים
+#### 1. [שם המתחרה]
+- **URL:** ...
+- **מה עושים:** ...
+- **טווח מחירים:** ...
+- **חוזקות:** ...
+- **חולשות:** ...
+(חזור על כך ל-5 מתחרים)
+
+### נוכחות דיגיטלית — ${businessName}
+...
+
+### טרנדים בתחום
+1. ...
+2. ...
+3. ...
+${feedbackLine}${NO_FILES}`
+        }
+    }
+
+    if (stage === 2) {
+        const keywordTool = tools.hasDataforseo
+            ? `השתמש ב-dataforseo MCP tool לקבלת נפחי חיפוש אמיתיים, ציון difficulty, ו-CPC. בצע חיפוש ל-15 מילות מפתח לפחות.`
+            : `${searchInstructions}\nהערך difficulty ו-volume על סמך ניתוח תוצאות החיפוש (אין לך כלי עם נתונים אמיתיים — הערך מ-low/medium/high).`
+        return {
+            agentId: 'sayer',
+            minLength: 1000,
+            prompt: `# משימה: מחקר מילות מפתח עבור "${businessName}"
+
+## הוראות
+קרא את research-data/RESEARCH_STAGE1.md (תוצאות שלב 1 — מתחרים).
+${keywordTool}
+
+מצא:
+1. **15 מילות מפתח** (עברית + אנגלית) — לכל אחת: כוונת חיפוש, ${tools.hasDataforseo ? 'volume, difficulty, CPC' : 'difficulty משוערת (low/med/high)'}, עדיפות
+2. **שאלות נפוצות** שאנשים שואלים בתחום (7-10)
+3. **Long-tail keywords** (7-10) — ספציפיות, פחות תחרות
+${answers.platforms ? `\nפלטפורמות: ${answers.platforms}` : ''}
+
+## פורמט תשובה
+### מילות מפתח ראשיות
+| # | מילה (עברית) | מילה (אנגלית) | כוונה | ${tools.hasDataforseo ? 'Volume | Difficulty | CPC' : 'Difficulty'} | עדיפות |
+|---|---|---|---|${tools.hasDataforseo ? '---|---|---' : '---'}|---|
+| 1 | ... | ... | ... | ... | ... |
+
+### שאלות נפוצות
+1. ...
+
+### Long-Tail Keywords
+1. ...
+${feedbackLine}${NO_FILES}`
+        }
+    }
+
+    if (stage === 3) {
+        const crawlNote = tools.hasFirecrawl
+            ? `\nהשתמש ב-firecrawl לסריקת פורומים ואתרי ביקורות רלוונטיים.`
+            : ''
+        return {
+            agentId: 'sayer',
+            minLength: 1000,
+            prompt: `# משימה: מחקר קהל יעד עבור "${businessName}"
+
+## הוראות
+קרא את research-data/RESEARCH_STAGE1.md ו-research-data/RESEARCH_STAGE2.md.
+${searchInstructions}${crawlNote}
+
+חפש ב-Reddit, פורומים, רשתות חברתיות:
+1. **איפה קהל היעד מדבר** על ${businessDesc}?
+2. **5+ כאבים מרכזיים** — ציטוטים אמיתיים אם אפשר
+3. **מה אנשים משבחים/מתלוננים** בתחום?
+4. **2-3 פרסונות מפורטות**
+${answers.targetAudience ? `\nקהל יעד שצוין: ${answers.targetAudience}` : ''}
+
+## פורמט תשובה
+### איפה הקהל נמצא
+- ...
+
+### כאבים מרכזיים
+1. **[כאב]** — "[ציטוט]" (מקור: ...)
+...
+
+### פרסונה 1: [שם]
+- **גיל:** ...
+- **תפקיד:** ...
+- **כאבים:** ...
+- **מוטיבציות:** ...
+- **איפה אונליין:** ...
+(חזור ל-2-3 פרסונות)
+${feedbackLine}${NO_FILES}`
+        }
+    }
+
+    // stage === 4 — uses summaries, not search
+    const { summaries } = opts
+    return {
+        agentId: 'menateach',
+        minLength: 1000,
+        prompt: `# משימה: ניתוח ערוצים והמלצות עבור "${businessName}"
+
+חשוב: אל תקרא קבצים. השתמש רק בנתונים שמסופקים כאן.
+
+## תמצית מחקר קודם
+
+### מתחרים (שלב 1)
+${summaries?.s1 || 'לא זמין'}
+
+### מילות מפתח (שלב 2)
+${summaries?.s2 || 'לא זמין'}
+
+### קהל יעד (שלב 3)
+${summaries?.s3 || 'לא זמין'}
+
+${answers.budget ? `\n## תקציב\n${answers.budget}` : ''}
+${answers.marketingGoals ? `\n## מטרות שיווק\n${answers.marketingGoals}` : ''}
+
+## הוראות
+על סמך המחקר — המלץ על אסטרטגיית ערוצים:
+
+## פורמט תשובה
+### ערוצים מומלצים (לפי עדיפות)
+#### 1. [שם הערוץ] ⭐ עדיפות גבוהה
+- **למה:** ...
+- **תדירות:** ...
+- **עלות משוערת:** ...
+- **ROI צפוי:** ...
+
+### פאנל שיווק
+| שלב | ערוץ | פעולה | מדד הצלחה |
+|---|---|---|---|
+| Awareness | ... | ... | ... |
+| Consideration | ... | ... | ... |
+| Conversion | ... | ... | ... |
+| Retention | ... | ... | ... |
+
+### תוכנית פעולה — 30 ימים ראשונים
+1. שבוע 1: ...
+2. שבוע 2: ...
+3. שבוע 3: ...
+4. שבוע 4: ...
+${feedbackLine}
+כתוב הכל בעברית. אל תכלול מידע טכני.`
+    }
+}
+
 // ── POST /hosting/instances/:id/setup/agents/research/stage ──
 // Multi-stage research pipeline with user checkpoints
 export const researchStage = async (c: Context) => {
@@ -1454,95 +1657,73 @@ export const researchStage = async (c: Context) => {
         const businessName = answers.businessName || 'העסק'
         const businessDesc = answers.businessDescription || ''
 
-        // Determine which agent and prompt based on stage
-        let agentId = 'sayer'
-        let prompt = ''
-        let minLength = 1000
+        // Detect available MCP tools on VPS
+        const tools = await getAvailableTools(instance.ip, instance.rootPassword || undefined)
+        console.log(`Research tools available: brave=${tools.hasBrave}, dfs=${tools.hasDataforseo}, fc=${tools.hasFirecrawl}`)
 
-        if (stage === 1) {
-            // DISCOVERY — find competitors
-            agentId = 'sayer'
-            prompt = `משימת גילוי מתחרים עבור "${businessName}" (${businessDesc}).
+        // For stage 4: summarize previous stages instead of truncating
+        let summaries: { s1: string; s2: string; s3: string } | undefined
+        if (stage === 4 && (rd.stage1 || rd.stage2 || rd.stage3)) {
+            const summarizePrompt = `סכם את 3 שלבי המחקר הבאים. לכל שלב — כתוב את 5-7 הנקודות החשובות ביותר. מקסימום 2000 תווים לשלב.
 
-חשוב: השתמש רק ב-web_search וב-browser לחיפוש באינטרנט. אל תקרא קבצים מהמערכת ואל תסרוק את ה-workspace.
+שלב 1 — מתחרים:
+${(rd.stage1 || '').substring(0, 8000)}
 
-חפש באינטרנט:
-1. מצא 5 מתחרים ישירים. לכל אחד: שם, URL, מה עושים, מחיר אם נראה, חוזקות, חולשות
-2. חפש את "${businessName}" עצמו — מה קיים עליו באינטרנט?
-3. מהם הטרנדים העיקריים בתחום?
-${answers.competitors ? `המשתמש ציין מתחרים: ${answers.competitors}` : ''}
-${feedback ? `הערות המשתמש: ${feedback}` : ''}
+שלב 2 — מילות מפתח:
+${(rd.stage2 || '').substring(0, 8000)}
 
-כתוב הכל כאן בתשובה — לא בקובץ. בעברית. אל תכלול רשימות קבצים או מידע טכני.`
-            minLength = 1500
-        } else if (stage === 2) {
-            // KEYWORD RESEARCH
-            agentId = 'sayer'
-            prompt = `משימת מחקר מילות מפתח עבור "${businessName}".
+שלב 3 — קהל יעד:
+${(rd.stage3 || '').substring(0, 8000)}
 
-חשוב: השתמש רק ב-web_search. אל תקרא קבצים מהמערכת ואל תסרוק את ה-workspace.
+כתוב בפורמט:
+## שלב 1 — מתחרים
+(תמצית)
+## שלב 2 — מילות מפתח
+(תמצית)
+## שלב 3 — קהל יעד
+(תמצית)`
 
-קרא רק את research-data/RESEARCH_STAGE1.md (תוצאות שלב 1).
+            const sumB64 = Buffer.from(summarizePrompt).toString('base64')
+            const sumSessionId = `research-summarize-${Date.now()}`
+            try {
+                const sumOutput = await sshExec(instance.ip,
+                    `su - openclaw -c 'timeout 120 openclaw agent --agent sayer --session-id ${sumSessionId} -m "$(echo ${sumB64} | base64 -d)" --json 2>&1'`,
+                    instance.rootPassword || undefined, 150000
+                )
+                let sumText = ''
+                try {
+                    const parsed = JSON.parse(sumOutput)
+                    sumText = parsed?.result?.payloads?.[0]?.text || sumOutput
+                } catch { sumText = sumOutput }
 
-חפש באינטרנט:
-1. 15 מילות מפתח רלוונטיות (עברית + אנגלית)
-2. לכל מילה: כוונת חיפוש (מסחרית/מידעית), תחרות משוערת, עדיפות
-3. שאלות נפוצות שאנשים שואלים בתחום (5-10)
-4. long-tail keywords (5-10)
-${answers.platforms ? `פלטפורמות: ${answers.platforms}` : ''}
-${feedback ? `הערות המשתמש: ${feedback}` : ''}
-
-כתוב הכל כאן. בעברית. אל תכלול רשימות קבצים או מידע טכני.`
-            minLength = 1000
-        } else if (stage === 3) {
-            // AUDIENCE RESEARCH
-            agentId = 'sayer'
-            prompt = `משימת מחקר קהל יעד עבור "${businessName}".
-
-חשוב: השתמש רק ב-web_search. אל תקרא קבצים מהמערכת ואל תסרוק את ה-workspace. קרא רק research-data/RESEARCH_STAGE1.md ו-research-data/RESEARCH_STAGE2.md.
-
-חפש באינטרנט (Reddit, פורומים, רשתות חברתיות):
-1. איפה קהל היעד מדבר על ${businessDesc}?
-2. מהם הכאבים העיקריים? (5+)
-3. מה אנשים משבחים/מתלוננים?
-4. בנה 2-3 פרסונות מפורטות: שם, גיל, תפקיד, כאבים, מוטיבציות, איפה אונליין
-${answers.targetAudience ? `קהל יעד שצוין: ${answers.targetAudience}` : ''}
-${feedback ? `הערות המשתמש: ${feedback}` : ''}
-
-כתוב הכל כאן. בעברית. אל תכלול רשימות קבצים או מידע טכני.`
-            minLength = 1000
-        } else if (stage === 4) {
-            // CHANNEL ANALYSIS — reduce context by moving stage files out of workspace
-            agentId = 'menateach'
-
-            // Stage files saved outside workspace — compact summaries to fit 30K token limit
-            const s1 = rd.stage1 ? rd.stage1.substring(0, 500) : ''
-            const s2 = rd.stage2 ? rd.stage2.substring(0, 500) : ''
-            const s3 = rd.stage3 ? rd.stage3.substring(0, 500) : ''
-
-            prompt = `ניתוח ערוצים עבור "${businessName}".
-
-חשוב: אל תקרא קבצים מהמערכת ואל תסרוק את ה-workspace. השתמש רק בנתונים שמסופקים כאן.
-
-תמצית מחקר קודם:
-מתחרים: ${s1}
-מילות מפתח: ${s2}
-קהל: ${s3}
-
-המלץ:
-1. 3-5 ערוצים מומלצים + עדיפות
-2. עלות ותדירות לכל ערוץ
-3. פאנל שיווק: awareness → consideration → conversion → retention
-4. מה עושים ראשון? סדר עדיפויות
-${answers.budget ? `תקציב: ${answers.budget}` : ''}
-${answers.marketingGoals ? `מטרות: ${answers.marketingGoals}` : ''}
-${feedback ? `הערות המשתמש: ${feedback}` : ''}
-
-כתוב הכל כאן. בעברית. אל תכלול רשימות קבצים או מידע טכני.`
-            minLength = 1000
-        } else {
-            return fail(c, 'Invalid stage (1-4)', 400)
+                // Split into sections
+                const s1Match = sumText.match(/## שלב 1[^\n]*\n([\s\S]*?)(?=## שלב 2|$)/)
+                const s2Match = sumText.match(/## שלב 2[^\n]*\n([\s\S]*?)(?=## שלב 3|$)/)
+                const s3Match = sumText.match(/## שלב 3[^\n]*\n([\s\S]*)/)
+                summaries = {
+                    s1: s1Match?.[1]?.trim() || (rd.stage1 || '').substring(0, 2000),
+                    s2: s2Match?.[1]?.trim() || (rd.stage2 || '').substring(0, 2000),
+                    s3: s3Match?.[1]?.trim() || (rd.stage3 || '').substring(0, 2000),
+                }
+                console.log(`Summarized stages: s1=${summaries.s1.length}, s2=${summaries.s2.length}, s3=${summaries.s3.length}`)
+            } catch (sumErr) {
+                console.error('Summarization failed, using truncated fallback:', sumErr)
+                summaries = {
+                    s1: (rd.stage1 || '').substring(0, 2000),
+                    s2: (rd.stage2 || '').substring(0, 2000),
+                    s3: (rd.stage3 || '').substring(0, 2000),
+                }
+            }
         }
+
+        // Build adaptive prompt based on stage + available tools
+        const promptData = buildResearchPrompt(stage, {
+            businessName, businessDesc, answers, feedback,
+            tools, summaries,
+        })
+        if (!promptData) return fail(c, 'Invalid stage (1-4)', 400)
+
+        const { agentId, prompt, minLength } = promptData
 
         const model = await getSubAgentModel(instanceId, agentId === 'menateach' ? 'menateach' : 'sayer')
         console.log(`Research stage ${stage} for ${businessName}, agent: ${agentId}, model: ${model}`)
