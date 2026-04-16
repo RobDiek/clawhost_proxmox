@@ -359,11 +359,11 @@ function getDefaultModelsForProvider(provider: string): Record<string, string> {
             sayer: 'anthropic/claude-sonnet-4-6',               // quality research
             meater: 'anthropic/claude-sonnet-4-6',              // quality SERP analysis
             maazin: 'anthropic/claude-haiku-4-5-20251001',      // fast stream processing
-            menateach: 'anthropic/claude-opus-4-6',             // deep analysis
+            menateach: 'anthropic/claude-opus-4-7',             // deep analysis — Opus 4.7
             et: 'anthropic/claude-sonnet-4-6',                  // quality writing
             yotzer: 'anthropic/claude-sonnet-4-6',              // creative content
             shaliach: 'anthropic/claude-haiku-4-5-20251001',    // simple distribution
-            migdalor: 'anthropic/claude-opus-4-6',              // precise audit
+            migdalor: 'anthropic/claude-opus-4-7',              // precise AEO audit — Opus 4.7
         },
         openai: {
             mateh: 'openai/gpt-4o-mini', sayer: 'openai/gpt-4o', meater: 'openai/gpt-4o',

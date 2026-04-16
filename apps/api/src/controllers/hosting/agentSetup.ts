@@ -557,16 +557,20 @@ export const analyzeAnswers = async (c: Context) => {
 
 // ── Helper: get model for a specific sub-agent role ──
 // Reads from DB (sub_agent_models) first, falls back to defaults
+// Model tier strategy (April 2026):
+// - Opus 4.7: heavy analytical work (strategy, deep analysis, audit) — 1M context, best reasoning
+// - Sonnet 4.6: fast high-quality research, content writing
+// - Haiku 4.5: coordination, quick distribution, lightweight tasks
 const DEFAULT_ROLE_MODELS: Record<string, string> = {
-    'mateh': 'openai/gpt-4o',
-    'sayer': 'anthropic/claude-sonnet-4-6',
-    'meater': 'anthropic/claude-sonnet-4-6',
-    'maazin': 'anthropic/claude-sonnet-4-6',
-    'menateach': 'anthropic/claude-sonnet-4-6',
-    'et': 'anthropic/claude-sonnet-4-6',
-    'yotzer': 'anthropic/claude-sonnet-4-6',
-    'shaliach': 'openai/gpt-4o-mini',
-    'migdalor': 'anthropic/claude-sonnet-4-6',
+    'mateh': 'anthropic/claude-haiku-4-5-20251001',    // coordinator — fast routing
+    'sayer': 'anthropic/claude-sonnet-4-6',             // internet research — speed+quality
+    'meater': 'anthropic/claude-sonnet-4-6',            // SERP research — speed+quality
+    'maazin': 'anthropic/claude-haiku-4-5-20251001',   // social listening — high volume
+    'menateach': 'anthropic/claude-opus-4-7',           // strategic analysis — deep thinking
+    'et': 'anthropic/claude-sonnet-4-6',                // content writing — quality
+    'yotzer': 'anthropic/claude-sonnet-4-6',            // creative — quality
+    'shaliach': 'anthropic/claude-haiku-4-5-20251001', // distribution — fast
+    'migdalor': 'anthropic/claude-opus-4-7',            // AEO audit — precision reasoning
 }
 
 async function getSubAgentModel(instanceId: string, role: string): Promise<string> {
@@ -1281,11 +1285,11 @@ export const buildStrategy = async (c: Context) => {
             return fail(c, 'מפתח API לא מוגדר', 400)
         }
 
-        // Model selection: user can choose opus for higher quality strategy
-        const ALLOWED_MODELS = ['claude-sonnet-4-6', 'claude-opus-4-6']
+        // Model selection: default to Opus 4.7 for strategy (deepest reasoning)
+        const ALLOWED_MODELS = ['claude-sonnet-4-6', 'claude-opus-4-6', 'claude-opus-4-7']
         const strategyModel = requestedModel && ALLOWED_MODELS.includes(requestedModel)
             ? requestedModel
-            : 'claude-sonnet-4-6'
+            : 'claude-opus-4-7'
 
         console.log(`Strategy via direct API — model: ${strategyModel} (key: ${apiKey.substring(0, 12)}...)`)
 
@@ -1507,8 +1511,8 @@ function buildResearchPrompt(stage: number, opts: {
     if (stage === 1) {
         return {
             agentId: 'sayer',
-            minLength: 1500,
-            prompt: `# משימה: גילוי מתחרים עבור "${businessName}"
+            minLength: 2000,
+            prompt: `# משימה: גילוי מתחרים + SERP עבור "${businessName}"
 
 ## תיאור העסק
 ${businessDesc}
@@ -1517,10 +1521,12 @@ ${answers.competitors ? `\nמתחרים שציין המשתמש: ${answers.compe
 ## הוראות
 ${searchTool}${crawlTool}
 
-חפש ומצא:
+חפש ומצא (בסדר הזה):
 1. **5 מתחרים ישירים** — שמציעים פתרון דומה לאותו קהל. לא כלים כלליים (כמו HubSpot) אלא מתחרים שנלחמים על אותו לקוח.
-2. **נוכחות דיגיטלית של "${businessName}"** — חפש את השם בגוגל, ברשתות חברתיות, ב-G2/Capterra/ProductHunt. מה מוצאים?
-3. **3 טרנדים מרכזיים** בתחום — עם מקורות (שם מחקר, URL, תאריך)
+2. **SERP Deep-Dive** — לכל מתחרה: איזה URL שלו מופיע ב-Top 10 של גוגל? על איזו מילת מפתח? באיזה מיקום? איזה סוג דף (מאמר, landing, hub)?
+3. **Content Gaps** — מה המתחרים **לא** כוסו (נושאים, שאלות, זוויות)?
+4. **נוכחות דיגיטלית של "${businessName}"** — חפש את השם בגוגל, ברשתות חברתיות, ב-G2/Capterra/ProductHunt
+5. **Why Now** — 3 גורמי timing (מה השתנה ב-2026 שיוצר חלון הזדמנות?)
 
 ## פורמט תשובה (חובה)
 ### מתחרים ישירים
@@ -1530,19 +1536,37 @@ ${searchTool}${crawlTool}
 - **טווח מחירים:** [מספרים ומטבע]
 - **חוזקות:** [2-3 נקודות]
 - **חולשות:** [2-3 נקודות — במיוחד מול ${businessName}]
-- **נוכחות דיגיטלית:** [האם יש בלוג? כמה תוכן? פעילים ברשתות?]
-- **מקור:** [URL שממנו המידע]
-(חזור על כך ל-5 מתחרים)
+- **נוכחות דיגיטלית:** [בלוג? תכיפות? רשתות?]
+- **SERP — הדירוגים שלהם:**
+  | מילת מפתח | מיקום | URL ספציפי | סוג דף | איכות/עומק |
+  |---|---|---|---|---|
+  | ... | #X | ... | מאמר 2000 מילה | חזק/בינוני/חלש |
+  (לפחות 3 מילות מפתח שמתחרה זה מדורג עליהן)
+- **Content Gaps אצל המתחרה:** [מה הוא לא מכסה?]
+- **מקור:** [URL]
+(חזור ל-5 מתחרים)
 
 ### נוכחות דיגיטלית — ${businessName}
 - **אתר:** [מה מוצאים]
 - **G2/Capterra/ProductHunt:** [יש דף? ביקורות?]
-- **רשתות חברתיות:** [נוכחות?]
-- **SEO:** [האם מופיע בתוצאות חיפוש?]
+- **רשתות חברתיות:** [נוכחות? תדירות?]
+- **SEO:** [מופיע על אילו keywords? מיקום?]
 - **ציון כולל:** X/10
 
+### Content Gaps — הזדמנויות ייחודיות
+| נושא/זווית | למה חסר בשוק | רמת קושי להיכנס |
+|---|---|---|
+| ... | ... | נמוך/בינוני/גבוה |
+(לפחות 5 gaps)
+
+### Why Now? — ניתוח Timing
+1. **[גורם 1]** — [הסבר + מקור] — איך זה משפיע על ${businessName}
+2. **[גורם 2]** — ...
+3. **[גורם 3]** — ...
+(כל גורם עם תאריך/מחקר/מקור)
+
 ### טרנדים בתחום
-1. **[טרנד]** — [הסבר + מקור: שם מחקר/URL]
+1. **[טרנד]** — [הסבר + מקור: שם מחקר/URL + תאריך]
 2. ...
 3. ...
 ${feedbackLine}
@@ -1561,32 +1585,57 @@ ${RULES}`
 ${dfsTool}
 ${searchTool}
 
-מצא:
+מצא (בסדר הזה):
 1. **15 מילות מפתח** (עברית + אנגלית) — ממוקדות לתחום של ${businessName}
-2. **ניתוח תחרות לכל מילה** — מי מהמתחרים שמצאת בשלב 1 מדורג על המילה הזו?
-3. **שאלות נפוצות** שאנשים שואלים בתחום (7-10)
+2. **SERP Position Analysis** — לכל מילה: **מי מדורג בטופ 3**? באיזה URL ספציפי? מה **אורך המאמר** שם? איך ${businessName} יכול לעקוף?
+3. **שאלות נפוצות** (10) — שאנשים שואלים בגוגל
 4. **Long-tail keywords** (10) — ספציפיות עם כוונת רכישה גבוהה
+5. **Real Gap Analysis** — 3 מילות מפתח ש**אף אחד** מהמתחרים לא מכסה
 ${answers.platforms ? `\nפלטפורמות: ${answers.platforms}` : ''}
 
 ## פורמט תשובה (חובה)
-### מילות מפתח ראשיות
-| # | מילה (עברית) | מילה (אנגלית) | כוונה | ${tools.hasDataforseo ? 'Volume | Difficulty | CPC |' : 'Difficulty |'} מתחרה מדורג? | עדיפות |
-|---|---|---|---|${tools.hasDataforseo ? '---|---|---|' : '---|'}---|---|
-| 1 | ... | ... | מסחרית/מידעית | ... | [שם מתחרה או "אין"] | 🔴/🟡/🟢 |
+### מילות מפתח ראשיות — עם ניתוח SERP
+לכל מילה — טבלה עם 3 תוצאות טופ 3:
 
-### שאלות נפוצות (שאנשים שואלים בגוגל)
-1. [שאלה] — כוונה: [מידעית/מסחרית] — ${tools.hasDataforseo ? 'volume: [מספר]' : 'תחרות: [low/med/high]'}
+**מילה 1: [מילה עברית] / [מילה אנגלית]**
+- **כוונה:** מסחרית/מידעית/ניווטית
+${tools.hasDataforseo ? '- **Volume/Difficulty/CPC:** [מספרים מ-DataForSEO]' : '- **Difficulty משוערת:** low/medium/high'}
+- **טופ 3 ב-SERP:**
+  | # | URL | שם אתר | אורך מאמר | זווית/זוית תוכן |
+  |---|---|---|---|---|
+  | 1 | [URL] | [domain] | X מילה | [מה הזווית] |
+  | 2 | ... | ... | ... | ... |
+  | 3 | ... | ... | ... | ... |
+- **איך לעקוף:** [מה צריך לעשות כדי להיכנס לטופ 10 — אורך, זווית, עומק]
+- **עדיפות:** 🔴/🟡/🟢
+
+(חזור ל-15 מילות מפתח — לפחות 10 עם ניתוח SERP מלא)
+
+### שאלות נפוצות (People Also Ask / FAQ)
+לכל שאלה: כוונה + ${tools.hasDataforseo ? 'volume' : 'תחרות'} + **מי עונה עליה כיום בעברית** + גודל ה-gap
+
+1. **[שאלה]** — כוונה: [מידעית/מסחרית] — [volume/תחרות] — עונים: [שמות ספקים / "אין"] — Gap: [רמה]
 ...
 
-### Long-Tail Keywords
-| # | מילת מפתח | שפה | כוונה | למה חשובה (קשר לכאב/מתחרה) |
-|---|---|---|---|---|
-| 1 | ... | עברית/אנגלית | ... | [הסבר קצר — מה הכאב שמאחורי החיפוש] |
+### Long-Tail Keywords (BOFU — Bottom of Funnel)
+| # | מילת מפתח | שפה | כוונה | הכאב שמאחוריה | מתחרה מדורג? |
+|---|---|---|---|---|---|
+| 1 | ... | עברית/אנגלית | מסחרית | [הכאב] | [שם/"אין"] |
 
-### סיכום: 3 הזדמנויות מפתח
-1. **[מילה]** — [למה זו הזדמנות: difficulty נמוך / אין מתחרה / volume גבוה]
+### 3 הזדמנויות מפתח (Quick Wins)
+לכל הזדמנות:
+1. **[מילה]**
+   - למה quick win: [difficulty X, volume Y, תחרות חלשה]
+   - כמה זמן להגיע לטופ 10: [הערכה]
+   - נוסחת מאמר: [כותרת מוצעת + מבנה: X מילה, FAQ, טבלה השוואה]
 2. ...
 3. ...
+
+### Real Content Gaps (נושאים שאף אחד לא מכסה)
+| # | נושא / שאילתה | למה חסר | איך לנצל |
+|---|---|---|---|
+| 1 | ... | ... | ... |
+
 ${feedbackLine}
 ${RULES}`
         }
@@ -1595,18 +1644,20 @@ ${RULES}`
     if (stage === 3) {
         return {
             agentId: 'sayer',
-            minLength: 1000,
-            prompt: `# משימה: מחקר קהל יעד עבור "${businessName}"
+            minLength: 1500,
+            prompt: `# משימה: מחקר קהל יעד + Pricing Validation עבור "${businessName}"
 
 ## הוראות
 קרא את research-data/RESEARCH_STAGE1.md (מתחרים) ו-research-data/RESEARCH_STAGE2.md (מילות מפתח).
 ${searchTool}${crawlTool}
 
-חפש ב-Reddit, פורומים, רשתות חברתיות, ואתרים ישראליים:
-1. **איפה קהל היעד מדבר** על ${businessDesc}? (שמות קבוצות ספציפיות, subreddits, פורומים)
-2. **6+ כאבים מרכזיים** — ציטוטים אמיתיים עם מקור (URL, שם קבוצה, שם כתבה)
-3. **2-3 פרסונות מפורטות** — עם קשר ישיר למילות המפתח מהשלב הקודם
-4. **גודל שוק משוער** — כמה אנשים/עסקים בכל סגמנט (בישראל ובעולם)
+חפש בעומק:
+1. **איפה קהל היעד מדבר** — שמות ספציפיים של קבוצות/subreddits/פורומים עם מספר חברים
+2. **6+ כאבים מרכזיים** — ציטוטים אמיתיים עם מקור (URL)
+3. **3 פרסונות מפורטות** — עם קשר למילות המפתח
+4. **Pricing Validation** — חפש ראיות אמיתיות לכמה הקהל מוכן לשלם: דיונים על מחיר ב-Reddit/פורומים, מחירים של מתחרים, statistics על average SaaS spend
+5. **גודל שוק TAM/SAM/SOM** — עם מקורות
+6. **Why Now** — מה משתנה עכשיו שיוצר הזדמנות לפרסונות אלה?
 ${answers.targetAudience ? `\nקהל יעד שצוין: ${answers.targetAudience}` : ''}
 
 ## פורמט תשובה (חובה)
@@ -1614,31 +1665,220 @@ ${answers.targetAudience ? `\nקהל יעד שצוין: ${answers.targetAudience
 | פלטפורמה | קבוצות/ערוצים ספציפיים | גודל משוער | רלוונטיות |
 |---|---|---|---|
 | פייסבוק | [שמות קבוצות] | [מספר חברים] | 🔴/🟡/🟢 |
-| Reddit | [r/subreddits] | [subscribers] | ... |
-| ... | ... | ... | ... |
 
-### כאבים מרכזיים
-1. **[כאב]** — "[ציטוט מדויק]" (מקור: [URL או שם])
-2. ...
-(מינימום 6 כאבים)
+### כאבים מרכזיים (6+)
+1. **[כאב]** — "[ציטוט מדויק]" (מקור: [URL])
 
 ### פרסונה 1: [שם פיקטיבי]
 - **גיל:** ...
 - **תפקיד:** ...
-- **גודל סגמנט:** [כמה כאלה יש בישראל — הערכה]
-- **כאבים:** [3 כאבים ספציפיים]
+- **גודל סגמנט בישראל:** [מספר + מקור]
+- **כאבים הספציפיים:** [3 כאבים]
 - **מוטיבציות:** [מה יגרום להם לשלם]
-- **מילות מפתח שהם מחפשים:** [3 מילות מפתח מ-STAGE2 שרלוונטיות לפרסונה]
-- **איפה אונליין:** [פלטפורמות + שמות קבוצות]
-- **תקציב חודשי צפוי:** ₪[טווח]
-- **מה ישכנע אותם:** [משפט אחד]
+- **מילות מפתח שמחפשים:** [3 מילות מפתח מ-STAGE2]
+- **איפה אונליין:** [פלטפורמות ספציפיות]
 
-(חזור ל-3 פרסונות)
+**💰 Pricing Validation:**
+- **כמה משלמים היום** על פתרונות דומים: [טווח + מקור — דיון Reddit / pricing page של מתחרה]
+- **WTP (Willingness to Pay):** [טווח + ראיה — ציטוט או מחקר]
+- **Price sensitivity:** [גבוה/בינוני/נמוך — ראיה]
+- **המלצה על price point ל-${businessName}:** [₪X-Y/חודש]
+
+**מה ישכנע לקנות:** [משפט ממוקד]
+
+(חזור ל-3 פרסונות — עם pricing validation לכל אחת)
+
+### Why Now? — Timing Analysis
+למה הפרסונות האלה **בדיוק עכשיו** מוכנות לפתרון של ${businessName}?
+1. **[גורם timing 1]** — [הסבר + מקור + תאריך]
+2. **[גורם 2]** — ...
+3. **[גורם 3]** — ...
 
 ### סיכום: הזדמנות השוק
-- **גודל שוק כולל (TAM):** [הערכה + מקור]
-- **שוק נגיש (SAM):** [הערכה]
-- **סגמנט ראשון לתקוף:** [שם פרסונה + למה]
+- **TAM גלובלי:** [מספר + מקור — שם מחקר/חברה]
+- **TAM ישראל:** [מספר + מקור]
+- **SAM (נגיש):** [מספר + הסבר]
+- **SOM (ריאלי לשנה):** [מספר + הסבר]
+- **סגמנט #1 לתקוף:** [שם פרסונה + 3 סיבות]
+${feedbackLine}
+${RULES}`
+        }
+    }
+
+    // stage === 5 — Validation Layer (NEW)
+    if (stage === 5) {
+        const { summaries } = opts
+        // validationMode passed via opts.answers.validationMode: 'ai_sim' or 'real_interviews'
+        const mode = (opts.answers as any)?.validationMode || 'ai_sim'
+
+        if (mode === 'real_interviews') {
+            // Real interviews mode: generate a Mom-Test style script for the user to conduct
+            return {
+                agentId: 'menateach',
+                minLength: 1200,
+                prompt: `# משימה: סקריפט לראיונות אמת — Mom Test Style
+
+## חשוב
+- זו משימה חדשה. לא ראית אותה קודם.
+- אל תקרא קבצים. השתמש רק בנתונים המסופקים כאן.
+
+## תמצית המחקר
+### פרסונות (שלב 3)
+${summaries?.s3 || 'לא זמין'}
+
+### אסטרטגיה (שלב 4)
+${summaries?.s1 || ''}
+${summaries?.s2 || ''}
+
+## הוראות
+הכן סקריפט לראיון customer discovery של 20 דקות ל-5 לקוחות פוטנציאליים, לפי עקרונות "The Mom Test":
+- שאלות על **עבר** (מה כבר עשו), לא עתיד (מה יעשו)
+- שאלות על **התנהגות**, לא על דעות
+- אל תזכיר את המוצר של ${businessName} מוקדם מדי
+
+## פורמט תשובה
+### מי לראיין (קהל יעד)
+- **פרסונה #1:** [שם + איפה למצוא אותם + איך לפנות]
+
+### הסקריפט (20 דקות)
+#### פתיחה (2 דקות)
+"[טקסט מדויק בעברית]"
+
+#### חלק 1: הבנת ההקשר (5 דקות)
+1. **שאלה:** "[שאלה ממוקדת עבר]"
+   - למה השאלה: [מה אנחנו מוצאים]
+   - red flag: [מה לא לעשות]
+2. ...
+
+#### חלק 2: כאבים ופתרונות נוכחיים (7 דקות)
+3. ...
+
+#### חלק 3: אימות ההזדמנות (5 דקות)
+5. ...
+
+#### סגירה (1 דקה)
+"[טקסט]"
+
+### מה לחפש בתשובות
+| סיגנל חיובי | סיגנל שלילי | משמעות |
+|---|---|---|
+| [ציטוט לדוגמה] | [ציטוט לדוגמה] | [מה עושים] |
+
+### איך לנתח אחרי 5 ראיונות
+1. **אימות כאב:** X מתוך 5 הזכירו [הכאב] ← [אמת / להמשיך לבדוק]
+2. **WTP:** ממוצע X שילמו/משלמים ₪Y על פתרונות דומים
+3. **סגמנט:** איזה פרסונה הגיבה הכי חזק
+
+### Template לתיעוד (Google Sheet מבנה)
+| ראיון # | שם/תפקיד | כאב #1 | כאב #2 | משלם היום על | WTP עבור פתרון | סיגנלים חיוביים | תגובה למוצר |
+|---|---|---|---|---|---|---|---|
+
+### Confidence Threshold
+- **60%+ מהראיונות מאמתים את הכאב** → האסטרטגיה מאומתת, המשך
+- **30-60%** → לבדוק שוב את הפרסונה, ייתכן שהגדרת קהל שגויה
+- **<30%** → חזור לשלבים 1-3 עם pivot
+
+${feedbackLine}
+${RULES}`
+            }
+        }
+
+        // Default: AI-simulated validation
+        return {
+            agentId: 'menateach',
+            minLength: 1500,
+            prompt: `# משימה: AI-Simulated Customer Validation עבור "${businessName}"
+
+## חשוב
+- זו משימה חדשה. לא ראית אותה קודם.
+- אל תקרא קבצים. השתמש רק בנתונים המסופקים כאן.
+- אתה משחק תפקיד של **3 פרסונות שונות** ועונה בשם כל אחת.
+
+## תמצית המחקר
+### פרסונות (שלב 3)
+${summaries?.s3 || 'לא זמין'}
+
+### אסטרטגיה (שלב 4)
+${summaries?.s1 || ''}
+${summaries?.s2 || ''}
+
+## הוראות
+דמה 3 ראיונות customer discovery. לכל פרסונה (מהשלב 3):
+1. **היכנס לתפקיד** — חשוב כמו הפרסונה, לא כמו AI
+2. ענה על 10 שאלות validation — ביקורתית, אמיתית, לא "כן כן כן"
+3. **50% מהתשובות צריכות להיות קריטיות** — אחרת זה לא validation
+
+אחרי 3 ראיונות — Cross-Validation Matrix: מה **אומת**, מה **נפל**, מה **לא ברור**.
+
+## פורמט תשובה
+
+### ראיון 1: פרסונה [שם]
+
+**פרופיל:** [תמצית פרסונה — גיל, תפקיד, כאבים]
+
+**Q1: ספר לי על [הכאב הראשי] — איך זה נראה בפועל אצלך?**
+*[תשובה כפרסונה — ציטוט בגוף ראשון, 2-3 משפטים אמיתיים]*
+
+**Q2: מה ניסית לעשות כדי לפתור את זה עד היום?**
+*[תשובה]*
+
+**Q3: כמה שילמת על פתרונות קודמים? מה הרגיז אותך בהם?**
+*[תשובה עם מספרים]*
+
+**Q4: ${businessName} מציע [הצעת ערך]. מה התגובה הראשונית שלך? (כולל ביקורת!)**
+*[תשובה ביקורתית]*
+
+**Q5: מה לא ברור? מה מעורר חשד?**
+*[תשובה]*
+
+**Q6: איך תשווה בין ${businessName} ל-[מתחרה מהשלב 1]?**
+*[תשובה]*
+
+**Q7: במחיר של ₪X/חודש — התשובה שלך: (בחר: אקנה מיד / אשקול / יקר מדי)?**
+*[תשובה עם הסבר]*
+
+**Q8: מה יגרום לך לומר "לא" סופית?**
+*[תשובה]*
+
+**Q9: איפה חיפשת פתרון כזה — מה היו מילות המפתח?**
+*[תשובה — אמיתית לפרסונה]*
+
+**Q10: מי עוד היית מתייעץ לפני הרכישה?**
+*[תשובה]*
+
+**🔴 Red Flags שעלו:** [מה הפרסונה חשפה שמעורר דאגה]
+**🟢 Green Flags:** [מה חיזק את ההשערה]
+
+(חזור ל-ראיון 2 ו-3 עם 2 הפרסונות האחרות)
+
+### Cross-Validation Matrix
+| השערה (מהאסטרטגיה) | פרסונה 1 | פרסונה 2 | פרסונה 3 | Status |
+|---|---|---|---|---|
+| הכאב X הוא הכאב #1 | ✅/❌/🟡 | ... | ... | ✅ מאומת / ❌ נפל / 🟡 לא ברור |
+| WTP של ₪X/חודש ריאלי | ... | ... | ... | ... |
+| הערוץ Y הוא המתאים | ... | ... | ... | ... |
+| הצעת הערך "Z" משכנעת | ... | ... | ... | ... |
+| הפרסונה Φ היא הסגמנט #1 | ... | ... | ... | ... |
+(לפחות 7 השערות)
+
+### Confidence Score
+- **השערות מאומתות:** X מתוך Y = Z%
+- **Score כללי:** [0-100]
+- **המלצה:**
+  - 80+ → המשך לאסטרטגיה
+  - 60-80 → pivot קטן — עדכן [מה]
+  - <60 → חזור למחקר — [איזה שלב]
+
+### Top 3 Blindspots שהתגלו
+1. **[Blindspot]** — [איך התגלה + מה לעשות]
+2. ...
+3. ...
+
+### המלצות אקשן מידיות
+1. **[פעולה קונקרטית]** — על סמך [ממצא]
+2. ...
+3. ...
+
 ${feedbackLine}
 ${RULES}`
         }
@@ -1670,56 +1910,87 @@ ${answers.budget ? `## תקציב\n${answers.budget}` : ''}
 ${answers.marketingGoals ? `## מטרות שיווק\n${answers.marketingGoals}` : ''}
 
 ## הוראות
-נתח את הנתונים ובנה אסטרטגיית ערוצים:
-1. לכל ערוץ — בדוק: האם המתחרים מהשלב 1 כבר פעילים שם? כמה תחרות יש?
-2. קשר כל ערוץ לפרסונה ספציפית מהשלב 3
-3. קשר כל ערוץ למילות מפתח ספציפיות מהשלב 2
-4. התמקד ב-ROI — מה ייתן תוצאות הכי מהר עם הכי פחות משאבים
+אתה senior מרקטולוג עם 15 שנות ניסיון. נתח את הנתונים ובנה אסטרטגיית ערוצים:
+1. **FIRST WIN CHANNEL** (הכי חשוב) — בחר ערוץ אחד + פעולה אחת + פרסונה אחת שיביאו את 5 הלקוחות הראשונים. פוקוס מוחלט.
+2. **Competitive activity deep-dive לכל ערוץ** — מה המתחרים מפרסמים? מה ה-engagement שלהם? מה ה-hashtags/topics שעובדים?
+3. **Cross-references חובה** — כל ערוץ קשור לפרסונה ספציפית + מילות מפתח ספציפיות מהשלבים הקודמים.
+4. **תוכנית 30 ימים עם תאריכים ספציפיים** — לא "שבוע 1" אלא "יום 1-3"
 
 ## פורמט תשובה (חובה)
-### ערוצים מומלצים (לפי עדיפות)
-#### 1. [שם הערוץ] ⭐⭐⭐ קריטי
-- **למה (על סמך המחקר):** [קשר ישיר לנתוני שלבים 1-3]
-- **פרסונה מרכזית:** [שם מהשלב 3]
-- **מילות מפתח לערוץ:** [3 מילות מפתח מהשלב 2]
-- **תחרות בערוץ:** [מי מהמתחרים כבר פעיל כאן? מה הם עושים?]
-- **תדירות:** [ספציפית — כמה פעמים בשבוע/חודש]
+
+### 🎯 FIRST WIN CHANNEL — הערוץ #1 ל-5 הלקוחות הראשונים
+**זה הכי חשוב. עונה על: "איפה להתמקד עכשיו?"**
+
+- **ערוץ:** [שם]
+- **למה דווקא זה:** [3 סיבות מתוך הנתונים]
+- **פרסונה:** [שם + מאיפה מהשלב 3]
+- **מילות מפתח:** [2-3 מהשלב 2]
+- **פעולה אחת ספציפית:** [מה בדיוק לעשות היום, לא תיאוריה]
+- **Expected outcome:** [5 לקוחות תוך X ימים]
+- **למה לא ערוץ אחר עכשיו:** [פוקוס > splay]
+
+### ערוצים נוספים (לפי עדיפות — אחרי שה-First Win עובד)
+
+#### 2. [שם הערוץ] ⭐⭐⭐ קריטי
+- **למה (על סמך המחקר):** [קשר ישיר לשלבים 1-3 עם ציטוטים]
+- **פרסונה מרכזית:** [שם]
+- **מילות מפתח:** [3 מהשלב 2]
+- **🔍 Competitive Activity Deep-Dive:**
+  | מתחרה | מה הם מפרסמים | תכיפות | Engagement | הזווית שלהם | מה חסר |
+  |---|---|---|---|---|---|
+  | [שם] | [דוגמה + URL] | [3/שבוע] | [לייקים/תגובות] | [זווית] | [הזדמנות] |
+- **Content formula:** [אורך, תדירות, סוג פוסט]
+- **תדירות:** [X פוסטים/שבוע]
 - **עלות משוערת:** ₪[מספר] / חודש
-- **ROI צפוי:** [מספרים: כמה leads/ביקורים/מכירות תוך X ימים]
-(חזור ל-5 ערוצים)
+- **ROI צפוי:** [מספרים מוחשיים: X leads, Y visits, Z conversions תוך 30/60/90 ימים]
+(חזור ל-4 ערוצים נוספים)
 
 #### ❌ מה לא לעשות עכשיו
-| ערוץ | למה לא | מתי כן |
+| ערוץ | למה לא | מתי כן (חודש X) |
 |---|---|---|
-| ... | ... | חודש X |
 
-### פאנל שיווק
-| שלב | ערוץ | פעולה ספציפית | פרסונה | מדד הצלחה |
+### פאנל שיווק — פרסונה #1
+| שלב | ערוץ | פעולה ספציפית | Trigger/CTA | מדד |
 |---|---|---|---|---|
 | Awareness | ... | ... | ... | [מספר] |
 | Consideration | ... | ... | ... | [מספר] |
 | Conversion | ... | ... | ... | [מספר] |
 | Retention | ... | ... | ... | [מספר] |
 
-### תוכנית פעולה — 30 ימים ראשונים
-#### שבוע 1
-1. [פעולה ספציפית] — [מילת מפתח / ערוץ]
+### תוכנית פעולה — 30 ימים (עם ימים ספציפיים)
+#### ימים 1-3 — FIRST WIN SETUP
+1. [פעולה — קונקרטית, ניתנת לביצוע היום]
 2. ...
-#### שבוע 2
+#### ימים 4-10
 3. ...
+#### ימים 11-20
 4. ...
-#### שבוע 3
+#### ימים 21-30
 5. ...
-#### שבוע 4
-6. ...
 
-### KPIs ל-90 ימים
-| מדד | יעד חודש 1 | יעד חודש 2 | יעד חודש 3 |
+### KPIs ל-90 ימים (שמרניים / ריאליים / אופטימיים)
+| מדד | 30 יום — שמרני | 30 יום — ריאלי | 90 יום — ריאלי | 90 יום — אופטימי |
+|---|---|---|---|---|
+| ביקורים אורגניים | ... | ... | ... | ... |
+| לידים | ... | ... | ... | ... |
+| לקוחות משלמים | ... | ... | ... | ... |
+| MRR | ₪... | ₪... | ₪... | ₪... |
+| CAC | ₪... | ₪... | ₪... | ₪... |
+| LTV:CAC ratio | ... | ... | ... | ... |
+
+### Budget Allocation (לפי תקציב זמין)
+| תקציב זמין | ערוץ #1 | ערוץ #2 | ערוץ #3 | רזרבה |
+|---|---|---|---|---|
+| ₪1,000/חודש | ₪... | ₪... | ₪... | ₪... |
+| ₪3,000/חודש | ₪... | ₪... | ₪... | ₪... |
+| ₪5,000/חודש | ₪... | ₪... | ₪... | ₪... |
+
+### הסיכונים וההקלות (Risks & Mitigations)
+| סיכון | הסתברות | אימפקט | הקלה |
 |---|---|---|---|
-| ביקורים אורגניים | ... | ... | ... |
-| לידים | ... | ... | ... |
-| לקוחות משלמים | ... | ... | ... |
-| MRR | ₪... | ₪... | ₪... |
+| [סיכון] | נמוך/בינוני/גבוה | נמוך/בינוני/גבוה | [פעולה] |
+(לפחות 3 סיכונים מרכזיים)
+
 ${feedbackLine}
 ${RULES}`
     }
@@ -1731,13 +2002,13 @@ export const researchStage = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const { stage, feedback } = await c.req.json<{ stage: number; feedback?: string }>()
+        const { stage, feedback, validationMode } = await c.req.json<{ stage: number; feedback?: string; validationMode?: 'ai_sim' | 'real_interviews' }>()
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
 
         if (!instance?.ip) return fail(c, 'Instance not found.', 404)
 
         const rd = (instance.researchData as any) || {}
-        const answers = rd.answers || {}
+        const answers = { ...(rd.answers || {}), validationMode }
         const businessName = answers.businessName || 'העסק'
         const businessDesc = answers.businessDescription || ''
 
@@ -1745,32 +2016,39 @@ export const researchStage = async (c: Context) => {
         const tools = await getAvailableTools(instance.ip, instance.rootPassword || undefined)
         console.log(`Research tools available: brave=${tools.hasBrave}, dfs=${tools.hasDataforseo}, fc=${tools.hasFirecrawl}`)
 
-        // For stage 4: extract clean text from previous stages and truncate to fit context
+        // For stages 4 and 5: extract clean text from previous stages
         let summaries: { s1: string; s2: string; s3: string } | undefined
-        if (stage === 4) {
-            // Extract text from stage results (may be raw JSON or clean text)
-            function extractStageText(raw: string): string {
-                if (!raw) return ''
-                // Try to parse as OpenClaw JSON response
-                const jsonIdxMatch = raw.match(/\{\s*"runId"/)
-                const jsonIdx = jsonIdxMatch?.index ?? -1
-                if (jsonIdx >= 0) {
-                    try {
-                        const parsed = JSON.parse(raw.slice(jsonIdx))
-                        return parsed?.result?.finalAssistantVisibleText
-                            || parsed?.result?.payloads?.[0]?.text
-                            || raw.substring(0, 3000)
-                    } catch {}
-                }
-                return raw
+        function extractStageText(raw: string): string {
+            if (!raw) return ''
+            const jsonIdxMatch = raw.match(/\{\s*"runId"/)
+            const jsonIdx = jsonIdxMatch?.index ?? -1
+            if (jsonIdx >= 0) {
+                try {
+                    const parsed = JSON.parse(raw.slice(jsonIdx))
+                    return parsed?.result?.finalAssistantVisibleText
+                        || parsed?.result?.payloads?.[0]?.text
+                        || raw.substring(0, 3000)
+                } catch {}
             }
-
+            return raw
+        }
+        if (stage === 4) {
             const text1 = extractStageText(rd.stage1 || '').substring(0, 5000)
             const text2 = extractStageText(rd.stage2 || '').substring(0, 5000)
             const text3 = extractStageText(rd.stage3 || '').substring(0, 5000)
-
             summaries = { s1: text1, s2: text2, s3: text3 }
             console.log(`Stage 4 inputs: s1=${text1.length}, s2=${text2.length}, s3=${text3.length}`)
+        } else if (stage === 5) {
+            // Stage 5 validation uses stage 3 (personas) + stage 4 (strategy)
+            const text3 = extractStageText(rd.stage3 || '').substring(0, 5000)
+            const text4 = extractStageText(rd.stage4 || '').substring(0, 6000)
+            // s1 = first half of strategy, s2 = second half, s3 = personas (for prompt structure)
+            summaries = {
+                s1: text4.substring(0, 3000),
+                s2: text4.substring(3000),
+                s3: text3,
+            }
+            console.log(`Stage 5 inputs: strategy=${text4.length}, personas=${text3.length}`)
         }
 
         // Build adaptive prompt based on stage + available tools
@@ -1778,7 +2056,7 @@ export const researchStage = async (c: Context) => {
             businessName, businessDesc, answers, feedback,
             tools, summaries,
         })
-        if (!promptData) return fail(c, 'Invalid stage (1-4)', 400)
+        if (!promptData) return fail(c, 'Invalid stage (1-5)', 400)
 
         const { agentId, prompt, minLength } = promptData
 

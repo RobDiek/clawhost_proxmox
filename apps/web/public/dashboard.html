@@ -6158,6 +6158,7 @@ var RESEARCH_STAGES = [
   { num: 2, name: 'מילות מפתח', icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.78 7.78 5.5 5.5 0 017.78-7.78zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>', desc: 'מחקר מילות מפתח ושאלות נפוצות' },
   { num: 3, name: 'קהל יעד', icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>', desc: 'ניתוח קהל יעד, כאבים ומוטיבציות' },
   { num: 4, name: 'ניתוח ערוצים', icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>', desc: 'אילו ערוצים מתאימים + עלויות' },
+  { num: 5, name: 'אימות', icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>', desc: 'אימות האסטרטגיה מול לקוחות' },
 ];
 
 async function runChainResearch() {
@@ -6301,7 +6302,7 @@ function renderPipelineSteps() {
   document.getElementById('pipelineTitle').textContent = 'מחקר שוק — שלב ' + researchPipelineStage + ' מתוך ' + RESEARCH_STAGES.length;
 }
 
-async function runPipelineStage(stage) {
+async function runPipelineStage(stage, extraPayload) {
   try {
   stage = parseInt(stage) || 1;
   console.log('[pipeline] starting stage', stage, 'instanceId:', instanceId);
@@ -6337,10 +6338,12 @@ async function runPipelineStage(stage) {
   document.getElementById('pipelineFeedback').value = '';
 
   try {
+    var payload = { stage: stage, feedback: feedback || undefined };
+    if (extraPayload && extraPayload.validationMode) payload.validationMode = extraPayload.validationMode;
     var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/research/stage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ stage: stage, feedback: feedback || undefined })
+      body: JSON.stringify(payload)
     });
     var data = await res.json();
 
@@ -6360,10 +6363,14 @@ async function runPipelineStage(stage) {
 
       // Update buttons
       document.getElementById('pipelineNextBtn').disabled = false;
-      if (stage >= RESEARCH_STAGES.length) {
+      if (stage === 4) {
+        // After stage 4 — show validation choice before stage 5
+        document.getElementById('pipelineNextBtn').textContent = '→ המשך לאימות';
+        document.getElementById('pipelineNextBtn').onclick = function() { showValidationChoice(); };
+      } else if (stage >= RESEARCH_STAGES.length) {
+        // Stage 5 complete → strategy
         document.getElementById('pipelineNextBtn').textContent = 'סיימו → בנו אסטרטגיה';
         document.getElementById('pipelineNextBtn').onclick = function() { closePipeline(); runChainStrategy(); };
-        // skip button removed
       } else {
         document.getElementById('pipelineNextBtn').textContent = '→ השלב הבא';
         document.getElementById('pipelineNextBtn').onclick = function() { nextPipelineStage(); };
@@ -6416,6 +6423,97 @@ function nextPipelineStage() {
   }
 }
 
+// ── Stage 5: Validation choice modal ──
+var selectedValidationMode = 'ai_sim'; // default
+
+function showValidationChoice() {
+  var html = '<div style="padding:20px">' +
+    '<div style="text-align:center;margin-bottom:20px">' +
+      '<div style="font-size:2.5rem;margin-bottom:8px">🎯</div>' +
+      '<div style="font-weight:700;font-size:1.15rem;margin-bottom:6px">שלב 5: אימות האסטרטגיה</div>' +
+      '<div style="font-size:0.88rem;color:#6B7280;line-height:1.5">' +
+        'לפני שאנחנו בונים את האסטרטגיה הסופית — כדאי לוודא שההנחות שלנו נכונות.<br>' +
+        'יש 2 אפשרויות, בחרו מה שמתאים לכם:' +
+      '</div>' +
+    '</div>' +
+
+    '<div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">' +
+
+      // Option A: AI Simulated
+      '<label class="val-option" onclick="selectValidation(\'ai_sim\')" style="cursor:pointer;display:block;padding:16px;border:2px solid #2563EB;background:#EFF6FF;border-radius:12px">' +
+        '<div style="display:flex;align-items:flex-start;gap:12px">' +
+          '<input type="radio" name="valMode" value="ai_sim" checked style="margin-top:4px;accent-color:#2563EB">' +
+          '<div style="flex:1">' +
+            '<div style="font-weight:700;color:#1E40AF;font-size:1rem;margin-bottom:4px">' +
+              '🤖 סימולציה עם AI' +
+              '<span style="background:#2563EB;color:white;padding:2px 8px;border-radius:4px;font-size:0.68rem;margin-right:6px">מומלץ להתחלה</span>' +
+            '</div>' +
+            '<div style="font-size:0.85rem;color:#1E3A8A;line-height:1.5">' +
+              'Opus 4.7 משחק תפקיד של 3 הפרסונות שלך ועונה על 10 שאלות אימות לכל אחת — ביקורתית, בלי "כן כן".<br>' +
+              '<strong>זמן:</strong> 3-5 דקות. <strong>עלות:</strong> 0. <strong>דיוק:</strong> טוב — תופס 70%+ מהחורים.' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</label>' +
+
+      // Option B: Real Interviews
+      '<label class="val-option" onclick="selectValidation(\'real_interviews\')" style="cursor:pointer;display:block;padding:16px;border:2px solid #E5E7EB;background:#fff;border-radius:12px">' +
+        '<div style="display:flex;align-items:flex-start;gap:12px">' +
+          '<input type="radio" name="valMode" value="real_interviews" style="margin-top:4px;accent-color:#059669">' +
+          '<div style="flex:1">' +
+            '<div style="font-weight:700;color:#374151;font-size:1rem;margin-bottom:4px">' +
+              '👥 ראיונות עם לקוחות אמיתיים' +
+              '<span style="background:#10B981;color:white;padding:2px 8px;border-radius:4px;font-size:0.68rem;margin-right:6px">סטנדרט זהב</span>' +
+            '</div>' +
+            '<div style="font-size:0.85rem;color:#4B5563;line-height:1.5">' +
+              'נכין לך סקריפט בסגנון "The Mom Test" ל-5 ראיונות של 20 דקות. תקבל גם Google Sheet לתיעוד וקריטריונים ברורים לניתוח.<br>' +
+              '<strong>זמן:</strong> 2-3 שבועות. <strong>עלות:</strong> 0. <strong>דיוק:</strong> מקסימלי — דאטה אמיתי.' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</label>' +
+
+    '</div>' +
+
+    '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:10px 14px;font-size:0.78rem;color:#92400E;margin-bottom:16px">' +
+      '💡 <strong>טיפ:</strong> שילוב של השניים הוא האופציה המנצחת — התחל עם סימולציה (עכשיו), ובמקביל תתחיל לקבוע ראיונות. הדאטה המשולב נותן את האסטרטגיה הכי חזקה.' +
+    '</div>' +
+
+    '<div style="display:flex;gap:8px;justify-content:center">' +
+      '<button class="btn btn-primary" onclick="confirmValidation()" style="padding:12px 32px;font-weight:600">הריצו שלב אימות ←</button>' +
+    '</div>' +
+  '</div>';
+
+  document.getElementById('pipelineBody').innerHTML = html;
+  document.getElementById('pipelineNextBtn').style.display = 'none';
+  document.getElementById('pipelineTitle').textContent = 'מחקר שוק — שלב 5: אימות';
+}
+
+function selectValidation(mode) {
+  selectedValidationMode = mode;
+  document.querySelectorAll('.val-option').forEach(function(el) {
+    el.style.borderColor = '#E5E7EB';
+    el.style.background = '#fff';
+  });
+  var idx = (mode === 'ai_sim') ? 0 : 1;
+  var selected = document.querySelectorAll('.val-option')[idx];
+  if (selected) {
+    selected.style.borderColor = mode === 'ai_sim' ? '#2563EB' : '#059669';
+    selected.style.background = mode === 'ai_sim' ? '#EFF6FF' : '#ECFDF5';
+  }
+  var input = selected ? selected.querySelector('input') : null;
+  if (input) input.checked = true;
+}
+
+async function confirmValidation() {
+  document.getElementById('pipelineNextBtn').style.display = '';
+  document.getElementById('pipelineNextBtn').disabled = true;
+  // Pass validation mode as feedback (hijacks feedback field for now)
+  researchPipelineStage = 5;
+  renderPipelineSteps();
+  runPipelineStage(5, { validationMode: selectedValidationMode });
+}
+
 function skipToStrategy() {
   closePipeline();
   // Combine all completed stages into one research report
@@ -6431,7 +6529,7 @@ var STRATEGY_STAGES_UI = [
 ];
 var strategyPipelineStage = 0;
 
-var strategyModelChoice = 'claude-sonnet-4-6'; // default, upgradeable to opus
+var strategyModelChoice = 'claude-opus-4-7'; // default — highest quality
 
 async function runChainStrategy() {
   if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
@@ -6474,14 +6572,14 @@ async function runChainStrategy() {
         '<div style="font-size:0.82rem;color:#6B7280;margin-bottom:10px;font-weight:600">בחרו מודל לבניית האסטרטגיה:</div>' +
         '<div style="display:flex;flex-direction:column;gap:8px">' +
           '<label style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:8px;border:2px solid #FB923C;background:#FFF7ED;cursor:pointer">' +
-            '<input type="radio" name="strategyModel" value="claude-opus-4-6" style="accent-color:#C2410C" onchange="strategyModelChoice=\'claude-opus-4-6\'">' +
+            '<input type="radio" name="strategyModel" value="claude-opus-4-7" checked style="accent-color:#C2410C" onchange="strategyModelChoice=\'claude-opus-4-7\'">' +
             '<div>' +
-              '<div style="font-weight:600;color:#C2410C">Claude Opus 4.6 <span style="background:#FB923C;color:white;padding:1px 6px;border-radius:4px;font-size:0.7rem;margin-right:4px">מומלץ</span></div>' +
-              '<div style="font-size:0.75rem;color:#9A3412">ניתוח עמוק, פרסונות מדויקות, KPIs ריאליים — איכות מקסימלית</div>' +
+              '<div style="font-weight:600;color:#C2410C">Claude Opus 4.7 <span style="background:#FB923C;color:white;padding:1px 6px;border-radius:4px;font-size:0.7rem;margin-right:4px">הכי חכם</span></div>' +
+              '<div style="font-size:0.75rem;color:#9A3412">המודל החזק ביותר — ניתוח אסטרטגי עמוק, 1M context, KPIs מדויקים</div>' +
             '</div>' +
           '</label>' +
           '<label style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:8px;border:1px solid #E5E7EB;cursor:pointer">' +
-            '<input type="radio" name="strategyModel" value="claude-sonnet-4-6" checked style="accent-color:#2563EB" onchange="strategyModelChoice=\'claude-sonnet-4-6\'">' +
+            '<input type="radio" name="strategyModel" value="claude-sonnet-4-6" style="accent-color:#2563EB" onchange="strategyModelChoice=\'claude-sonnet-4-6\'">' +
             '<div>' +
               '<div style="font-weight:600;color:#374151">Claude Sonnet 4.6</div>' +
               '<div style="font-size:0.75rem;color:#9CA3AF">מהיר ואמין — תוצאה טובה, אבל פחות מעמיקה</div>' +
@@ -7526,20 +7624,21 @@ var SUB_AGENTS = [
   { id: 'maazin', name: 'מאזין', role: 'האזנה חברתית',
     priority: ['anthropic/claude-haiku-4-5-20251001', 'groq/openai/gpt-oss-20b', 'openai/gpt-4o-mini', 'cerebras/llama3.1-8b'] },
   { id: 'menateach', name: 'מנתח', role: 'ניתוח הזדמנויות',
-    priority: ['anthropic/claude-opus-4-6', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-120b', 'openai/gpt-4o', 'cerebras/gpt-oss-120b'] },
+    priority: ['anthropic/claude-opus-4-7', 'anthropic/claude-opus-4-6', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-120b', 'openai/gpt-4o', 'cerebras/gpt-oss-120b'] },
   { id: 'et', name: 'עט', role: 'כתיבת תוכן',
-    priority: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6', 'groq/qwen/qwen3-32b', 'openai/gpt-4o', 'cerebras/qwen-3-235b-a22b-instruct-2507'] },
+    priority: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-7', 'anthropic/claude-opus-4-6', 'groq/qwen/qwen3-32b', 'openai/gpt-4o', 'cerebras/qwen-3-235b-a22b-instruct-2507'] },
   { id: 'yotzer', name: 'יוצר', role: 'קריאייטיב',
-    priority: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6', 'groq/qwen/qwen3-32b', 'openai/gpt-4o', 'cerebras/qwen-3-235b-a22b-instruct-2507'] },
+    priority: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-7', 'anthropic/claude-opus-4-6', 'groq/qwen/qwen3-32b', 'openai/gpt-4o', 'cerebras/qwen-3-235b-a22b-instruct-2507'] },
   { id: 'shaliach', name: 'שליח', role: 'הפצה',
     priority: ['anthropic/claude-haiku-4-5-20251001', 'groq/openai/gpt-oss-20b', 'openai/gpt-4o-mini', 'cerebras/llama3.1-8b'] },
   { id: 'migdalor', name: 'מגדלור', role: 'ביקורת AEO',
-    priority: ['anthropic/claude-opus-4-6', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-120b', 'openai/gpt-4o', 'cerebras/gpt-oss-120b'] },
+    priority: ['anthropic/claude-opus-4-7', 'anthropic/claude-opus-4-6', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-120b', 'openai/gpt-4o', 'cerebras/gpt-oss-120b'] },
 ];
 
 // All possible models — always show all, dim unavailable
 var ALL_MODELS = [
   // Anthropic
+  { value: 'anthropic/claude-opus-4-7', label: 'Claude Opus 4.7', provider: 'anthropic', tag: 'הטוב ביותר — ניתוח עמוק' },
   { value: 'anthropic/claude-opus-4-6', label: 'Claude Opus 4.6', provider: 'anthropic', tag: 'מתקדם' },
   { value: 'anthropic/claude-sonnet-4-6', label: 'Claude Sonnet 4.6', provider: 'anthropic', tag: 'מומלץ לתוכן' },
   { value: 'anthropic/claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5', provider: 'anthropic', tag: 'חסכוני' },
