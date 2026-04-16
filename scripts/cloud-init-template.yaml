@@ -342,14 +342,8 @@ runcmd:
     - systemctl restart openclaw-gateway
     - sleep 3
 
-    # ── Install Mem0 plugin (after gateway is running + paired) ──
-    - |
-        su - openclaw -c '
-          openclaw plugins install @mem0/openclaw-mem0 2>/dev/null || true
-        '
-    # Restart gateway to load plugin
-    - systemctl restart openclaw-gateway
-    - sleep 2
+    # Note: Mem0 plugin NOT installed by default — requires user configuration
+    # (mode + API key). Install via integrations page when user enables it.
 
     # ── Automation Tool (Docker) — Activepieces (MIT license) ──
     {{#IS_ACTIVEPIECES}}

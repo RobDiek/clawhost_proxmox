@@ -619,6 +619,25 @@ print('${serverId} configured')
                     subAgentModels: defaults as any,
                 }).where(eq(instances.id, instanceId))
                 console.log(`Auto-assigned ${type} models for instance ${instanceId}`)
+
+                // Register sub-agents on VPS if MATEH and agents exist on disk
+                const components = (instance.selectedComponents as string[]) || []
+                if (components.includes('mt') && instance.ip) {
+                    const agentsToRegister = ['sayer', 'menateach', 'meater', 'maazin', 'et', 'yotzer', 'shaliach', 'migdalor']
+                    for (const agentName of agentsToRegister) {
+                        const model = defaults[agentName]
+                        if (!model) continue
+                        try {
+                            await sshExecInstance(instance, `
+                                su - openclaw -c '
+                                openclaw agents add ${agentName} --model "'"'"'${model.replace(/'/g, "")}"'"'"' --workspace ~/.openclaw/workspace --agent-dir ~/.openclaw/agents/${agentName} --non-interactive 2>/dev/null
+                                '
+                            `)
+                        } catch {}
+                    }
+                    await sshExecInstance(instance, 'systemctl restart openclaw-gateway')
+                    console.log(`Registered ${agentsToRegister.length} sub-agents on VPS for ${instanceId}`)
+                }
             }
         }
         if (type === 'telegram') {
