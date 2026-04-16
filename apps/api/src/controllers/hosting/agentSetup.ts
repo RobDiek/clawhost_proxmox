@@ -771,7 +771,8 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
                 const rClean = output.split('\n')
                     .filter(l => !l.startsWith('[plugins]') && !l.startsWith('[diagnostic]') && !l.startsWith('[model-fallback') && !l.startsWith('Config '))
                     .join('\n').trim()
-                const rJsonIdx = rClean.indexOf('{"runId"')
+                const rJsonMatch2 = rClean.match(/\{\s*"runId"/)
+                const rJsonIdx = rJsonMatch2?.index ?? -1
                 if (rJsonIdx >= 0) {
                     try {
                         const agentResult = JSON.parse(rClean.slice(rJsonIdx))
@@ -1681,7 +1682,8 @@ export const researchStage = async (c: Context) => {
             function extractStageText(raw: string): string {
                 if (!raw) return ''
                 // Try to parse as OpenClaw JSON response
-                const jsonIdx = raw.indexOf('{"runId"')
+                const jsonIdxMatch = raw.match(/\{\s*"runId"/)
+                const jsonIdx = jsonIdxMatch?.index ?? -1
                 if (jsonIdx >= 0) {
                     try {
                         const parsed = JSON.parse(raw.slice(jsonIdx))
@@ -1744,8 +1746,9 @@ export const researchStage = async (c: Context) => {
             .join('\n')
             .trim()
 
-        // Find JSON object in cleaned output
-        const jsonStart2 = cleanOutput.indexOf('{"runId"')
+        // Find JSON object in cleaned output (may be pretty-printed: {\n  "runId")
+        const jsonMatch2 = cleanOutput.match(/\{\s*"runId"/)
+        const jsonStart2 = jsonMatch2?.index ?? -1
         console.log(`[extract] cleanOutput: ${cleanOutput.length} chars, jsonStart2=${jsonStart2}`)
         if (jsonStart2 === -1) {
             const mdMatch = cleanOutput.match(/^(#{1,3}\s.+)/m)
