@@ -767,14 +767,15 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
                     330000  // 5.5 min — must exceed the 300s command timeout
                 )
 
-                // Parse response — extract text from JSON (output has log lines before JSON)
-                const rJsonMatch = output.match(/\{"runId"[\s\S]*\}$/) || output.match(/\{"result"[\s\S]*\}$/)
-                if (rJsonMatch) {
+                // Parse response — strip log lines, find JSON, extract text
+                const rClean = output.split('\n')
+                    .filter(l => !l.startsWith('[plugins]') && !l.startsWith('[diagnostic]') && !l.startsWith('[model-fallback') && !l.startsWith('Config '))
+                    .join('\n').trim()
+                const rJsonIdx = rClean.indexOf('{"runId"')
+                if (rJsonIdx >= 0) {
                     try {
-                        const agentResult = JSON.parse(rJsonMatch[0])
-                        report = agentResult?.result?.finalAssistantVisibleText
-                            || agentResult?.result?.payloads?.[0]?.text
-                            || ''
+                        const agentResult = JSON.parse(rClean.slice(rJsonIdx))
+                        report = agentResult?.result?.finalAssistantVisibleText || ''
                         if (!report && agentResult?.result?.payloads) {
                             for (const p of agentResult.result.payloads) {
                                 if (p.text && p.text.length > report.length) report = p.text
@@ -786,12 +787,10 @@ ${platforms ? `פלטפורמות: ${platforms}` : ''}
                             lastError = `rate_limit:${usedModel || researchModel}`
                             report = ''
                         }
-                    } catch {
-                        report = output
-                    }
+                    } catch { report = rClean }
                 } else {
-                    const mdMatch = output.match(/^(#{1,3}\s.+)/m)
-                    report = mdMatch?.index !== undefined ? output.slice(mdMatch.index) : output
+                    const mdMatch = rClean.match(/^(#{1,3}\s.+)/m)
+                    report = mdMatch?.index !== undefined ? rClean.slice(mdMatch.index) : rClean
                 }
 
                 // Clean up: remove file listings, technical output, plugin logs
@@ -1675,59 +1674,31 @@ export const researchStage = async (c: Context) => {
         const tools = await getAvailableTools(instance.ip, instance.rootPassword || undefined)
         console.log(`Research tools available: brave=${tools.hasBrave}, dfs=${tools.hasDataforseo}, fc=${tools.hasFirecrawl}`)
 
-        // For stage 4: summarize previous stages instead of truncating
+        // For stage 4: extract clean text from previous stages and truncate to fit context
         let summaries: { s1: string; s2: string; s3: string } | undefined
-        if (stage === 4 && (rd.stage1 || rd.stage2 || rd.stage3)) {
-            const summarizePrompt = `סכם את 3 שלבי המחקר הבאים. לכל שלב — כתוב את 5-7 הנקודות החשובות ביותר. מקסימום 2000 תווים לשלב.
-
-שלב 1 — מתחרים:
-${(rd.stage1 || '').substring(0, 8000)}
-
-שלב 2 — מילות מפתח:
-${(rd.stage2 || '').substring(0, 8000)}
-
-שלב 3 — קהל יעד:
-${(rd.stage3 || '').substring(0, 8000)}
-
-כתוב בפורמט:
-## שלב 1 — מתחרים
-(תמצית)
-## שלב 2 — מילות מפתח
-(תמצית)
-## שלב 3 — קהל יעד
-(תמצית)`
-
-            const sumB64 = Buffer.from(summarizePrompt).toString('base64')
-            const sumSessionId = `research-summarize-${Date.now()}`
-            try {
-                const sumOutput = await sshExec(instance.ip,
-                    `su - openclaw -c 'timeout 120 openclaw agent --agent sayer --session-id ${sumSessionId} -m "$(echo ${sumB64} | base64 -d)" --json 2>&1'`,
-                    instance.rootPassword || undefined, 150000
-                )
-                let sumText = ''
-                try {
-                    const parsed = JSON.parse(sumOutput)
-                    sumText = parsed?.result?.payloads?.[0]?.text || sumOutput
-                } catch { sumText = sumOutput }
-
-                // Split into sections
-                const s1Match = sumText.match(/## שלב 1[^\n]*\n([\s\S]*?)(?=## שלב 2|$)/)
-                const s2Match = sumText.match(/## שלב 2[^\n]*\n([\s\S]*?)(?=## שלב 3|$)/)
-                const s3Match = sumText.match(/## שלב 3[^\n]*\n([\s\S]*)/)
-                summaries = {
-                    s1: s1Match?.[1]?.trim() || (rd.stage1 || '').substring(0, 2000),
-                    s2: s2Match?.[1]?.trim() || (rd.stage2 || '').substring(0, 2000),
-                    s3: s3Match?.[1]?.trim() || (rd.stage3 || '').substring(0, 2000),
+        if (stage === 4) {
+            // Extract text from stage results (may be raw JSON or clean text)
+            function extractStageText(raw: string): string {
+                if (!raw) return ''
+                // Try to parse as OpenClaw JSON response
+                const jsonIdx = raw.indexOf('{"runId"')
+                if (jsonIdx >= 0) {
+                    try {
+                        const parsed = JSON.parse(raw.slice(jsonIdx))
+                        return parsed?.result?.finalAssistantVisibleText
+                            || parsed?.result?.payloads?.[0]?.text
+                            || raw.substring(0, 3000)
+                    } catch {}
                 }
-                console.log(`Summarized stages: s1=${summaries.s1.length}, s2=${summaries.s2.length}, s3=${summaries.s3.length}`)
-            } catch (sumErr) {
-                console.error('Summarization failed, using truncated fallback:', sumErr)
-                summaries = {
-                    s1: (rd.stage1 || '').substring(0, 2000),
-                    s2: (rd.stage2 || '').substring(0, 2000),
-                    s3: (rd.stage3 || '').substring(0, 2000),
-                }
+                return raw
             }
+
+            const text1 = extractStageText(rd.stage1 || '').substring(0, 3000)
+            const text2 = extractStageText(rd.stage2 || '').substring(0, 3000)
+            const text3 = extractStageText(rd.stage3 || '').substring(0, 3000)
+
+            summaries = { s1: text1, s2: text2, s3: text3 }
+            console.log(`Stage 4 inputs: s1=${text1.length}, s2=${text2.length}, s3=${text3.length}`)
         }
 
         // Build adaptive prompt based on stage + available tools
@@ -1744,9 +1715,16 @@ ${(rd.stage3 || '').substring(0, 8000)}
 
         const b64Prompt = Buffer.from(prompt).toString('base64')
         const sessionId = `research-s${stage}-${Date.now()}`
+        const promptFile = `/tmp/research-prompt-${sessionId}.txt`
+
+        // Write prompt to file first (avoids /bin/bash: Argument list too long for large prompts)
+        await sshExec(instance.ip,
+            `echo '${b64Prompt}' | base64 -d > ${promptFile} && chown openclaw:openclaw ${promptFile}`,
+            instance.rootPassword || undefined
+        )
 
         const output = await sshExec(instance.ip,
-            `su - openclaw -c 'timeout 300 openclaw agent --agent ${agentId} --session-id ${sessionId} -m "$(echo ${b64Prompt} | base64 -d)" --json 2>&1'`,
+            `su - openclaw -c 'timeout 300 openclaw agent --agent ${agentId} --session-id ${sessionId} -m "$(cat ${promptFile})" --json 2>&1'; rm -f ${promptFile}`,
             instance.rootPassword || undefined,
             330000  // 5.5 min — must exceed the 300s command timeout
         )
@@ -1756,30 +1734,38 @@ ${(rd.stage3 || '').substring(0, 8000)}
         if (output.includes('rate_limit') || output.includes('Rate limit')) {
             isRateLimit = true
         }
-        // Extract JSON from output (may have log lines before/after the JSON)
-        // Look for the OpenClaw result JSON specifically: {"runId" or {"result"
-        const jsonMatch = output.match(/\{"runId"[\s\S]*\}$/) || output.match(/\{"result"[\s\S]*\}$/)
-        if (jsonMatch) {
+        // Extract agent response from SSH output
+        // Output format: [log lines]\n{"runId":...JSON...}\n
+        // Strategy: strip known log prefixes, find clean JSON, extract text
+        const cleanOutput = output
+            .split('\n')
+            .filter(line => !line.startsWith('[plugins]') && !line.startsWith('[diagnostic]')
+                && !line.startsWith('[model-fallback') && !line.startsWith('Config '))
+            .join('\n')
+            .trim()
+
+        // Find JSON object in cleaned output
+        const jsonStart2 = cleanOutput.indexOf('{"runId"')
+        if (jsonStart2 === -1) {
+            // No JSON — try raw text extraction (markdown headings)
+            const mdMatch = cleanOutput.match(/^(#{1,3}\s.+)/m)
+            result = mdMatch?.index !== undefined ? cleanOutput.slice(mdMatch.index) : cleanOutput
+        } else {
             try {
-                const agentResult = JSON.parse(jsonMatch[0])
-                result = agentResult?.result?.finalAssistantVisibleText
-                    || agentResult?.result?.payloads?.[0]?.text
-                    || ''
-                if (!result && agentResult?.result?.payloads) {
-                    for (const p of agentResult.result.payloads) {
-                        if (p.text && p.text.length > result.length) result = p.text
+                const agentResult = JSON.parse(cleanOutput.slice(jsonStart2))
+                result = agentResult?.result?.finalAssistantVisibleText || ''
+                // Fallback: longest payload text
+                if (!result) {
+                    const payloads = agentResult?.result?.payloads as Array<{ text?: string }> | undefined
+                    if (payloads) {
+                        for (const p of payloads) {
+                            if (p.text && p.text.length > result.length) result = p.text
+                        }
                     }
                 }
+                if (!result) result = cleanOutput
             } catch {
-                result = output
-            }
-        } else {
-            // No JSON found — try to extract markdown directly
-            const mdMatch = output.match(/^(#{1,3}\s.+)/m)
-            if (mdMatch && mdMatch.index !== undefined) {
-                result = output.slice(mdMatch.index)
-            } else {
-                result = output
+                result = cleanOutput
             }
         }
 
