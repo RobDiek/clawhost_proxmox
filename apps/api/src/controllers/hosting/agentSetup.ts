@@ -580,7 +580,7 @@ async function getSubAgentModel(instanceId: string, role: string): Promise<strin
 }
 
 // ── SINGLE SOURCE OF TRUTH: ensure all expected agents are registered on VPS ──
-// Called from: deployAgentSystem, saveIntegration (first API key), addAgentToInstance, reset
+// Called from: setupAgents (deploy), saveIntegration (first API key), addAgentToInstance (upgrade)
 const MATEH_AGENTS = ['sayer', 'menateach', 'meater', 'maazin', 'et', 'yotzer', 'shaliach', 'migdalor'] as const
 
 export async function ensureAgentsRegistered(instance: {
@@ -633,6 +633,8 @@ export async function ensureAgentsRegistered(instance: {
         default: {
             anthropic: { apiKey: { source: 'env', provider: 'default', id: 'ANTHROPIC_API_KEY' } },
             openai: { apiKey: { source: 'env', provider: 'default', id: 'OPENAI_API_KEY' } },
+            groq: { apiKey: { source: 'env', provider: 'default', id: 'GROQ_API_KEY' } },
+            cerebras: { apiKey: { source: 'env', provider: 'default', id: 'CEREBRAS_API_KEY' } },
         }
     })
     const authB64 = Buffer.from(authProfile).toString('base64')
