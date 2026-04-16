@@ -1479,61 +1479,78 @@ function buildResearchPrompt(stage: number, opts: {
     businessName: string; businessDesc: string; answers: any; feedback?: string;
     tools: { hasBrave: boolean; hasDataforseo: boolean; hasFirecrawl: boolean };
     summaries?: { s1: string; s2: string; s3: string };
-}): { agentId: string; prompt: string; minLength: number } {
+}): { agentId: string; prompt: string; minLength: number } | null {
     const { businessName, businessDesc, answers, feedback, tools } = opts
     const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
 
-    const searchInstructions = tools.hasBrave
-        ? `השתמש ב-brave_search MCP tool לחיפוש מדויק. בצע לפחות 3 חיפושים נפרדים בעברית ובאנגלית.`
-        : `השתמש ב-web_search לחיפוש באינטרנט.`
+    const searchTool = tools.hasBrave
+        ? `השתמש ב-brave_search MCP tool. בצע לפחות 5 חיפושים נפרדים בעברית ובאנגלית.`
+        : `השתמש ב-web_search. בצע לפחות 5 חיפושים נפרדים.`
 
-    const NO_FILES = `\nחשוב: אל תקרא קבצים מהמערכת ואל תסרוק את ה-workspace. כתוב הכל כאן בתשובה — לא בקובץ. בעברית בלבד. אל תכלול רשימות קבצים, מידע טכני, או הערות פנימיות.`
+    const crawlTool = tools.hasFirecrawl
+        ? `\nהשתמש ב-firecrawl MCP לסריקת אתרי מתחרים — בדוק pricing pages, about pages, features.`
+        : ''
+
+    const dfsTool = tools.hasDataforseo
+        ? `השתמש ב-dataforseo MCP tool לנפחי חיפוש אמיתיים, difficulty, CPC.`
+        : `הערך difficulty (low/medium/high) על סמך כמות תוצאות ואיכות התחרות ב-SERP.`
+
+    const RULES = `
+חוקים קריטיים:
+- כתוב הכל כאן בתשובה — לא בקובץ
+- בעברית בלבד (מונחים מקצועיים באנגלית מותרים)
+- אל תקרא קבצים מהמערכת ואל תסרוק workspace
+- אל תכלול רשימות קבצים, מידע טכני, plugin logs
+- לכל עובדה — ציין מקור (URL, שם אתר, או שם מחקר)
+- זו משימה חדשה לגמרי — לא ראית אותה קודם. אל תאמר "כבר עניתי" — ענה מחדש.`
 
     if (stage === 1) {
-        const crawlInstructions = tools.hasFirecrawl
-            ? `\nהשתמש ב-firecrawl MCP tool לסריקת אתרי המתחרים ולקבלת מידע מפורט על התוכן והמבנה שלהם.`
-            : ''
         return {
             agentId: 'sayer',
             minLength: 1500,
             prompt: `# משימה: גילוי מתחרים עבור "${businessName}"
+
 ## תיאור העסק
 ${businessDesc}
-${answers.competitors ? `\n## מתחרים שציין המשתמש\n${answers.competitors}` : ''}
+${answers.competitors ? `\nמתחרים שציין המשתמש: ${answers.competitors}` : ''}
 
 ## הוראות
-${searchInstructions}${crawlInstructions}
+${searchTool}${crawlTool}
 
 חפש ומצא:
-1. **5 מתחרים ישירים** — לכל אחד URL, מה עושים, טווח מחירים, חוזקות, חולשות
-2. **נוכחות דיגיטלית של "${businessName}"** — מה קיים עליו באינטרנט כרגע?
-3. **3 טרנדים מרכזיים** בתחום
+1. **5 מתחרים ישירים** — שמציעים פתרון דומה לאותו קהל. לא כלים כלליים (כמו HubSpot) אלא מתחרים שנלחמים על אותו לקוח.
+2. **נוכחות דיגיטלית של "${businessName}"** — חפש את השם בגוגל, ברשתות חברתיות, ב-G2/Capterra/ProductHunt. מה מוצאים?
+3. **3 טרנדים מרכזיים** בתחום — עם מקורות (שם מחקר, URL, תאריך)
 
-## פורמט תשובה
+## פורמט תשובה (חובה)
 ### מתחרים ישירים
 #### 1. [שם המתחרה]
-- **URL:** ...
-- **מה עושים:** ...
-- **טווח מחירים:** ...
-- **חוזקות:** ...
-- **חולשות:** ...
+- **URL:** [קישור]
+- **מה עושים:** [תיאור קצר]
+- **טווח מחירים:** [מספרים ומטבע]
+- **חוזקות:** [2-3 נקודות]
+- **חולשות:** [2-3 נקודות — במיוחד מול ${businessName}]
+- **נוכחות דיגיטלית:** [האם יש בלוג? כמה תוכן? פעילים ברשתות?]
+- **מקור:** [URL שממנו המידע]
 (חזור על כך ל-5 מתחרים)
 
 ### נוכחות דיגיטלית — ${businessName}
-...
+- **אתר:** [מה מוצאים]
+- **G2/Capterra/ProductHunt:** [יש דף? ביקורות?]
+- **רשתות חברתיות:** [נוכחות?]
+- **SEO:** [האם מופיע בתוצאות חיפוש?]
+- **ציון כולל:** X/10
 
 ### טרנדים בתחום
-1. ...
+1. **[טרנד]** — [הסבר + מקור: שם מחקר/URL]
 2. ...
 3. ...
-${feedbackLine}${NO_FILES}`
+${feedbackLine}
+${RULES}`
         }
     }
 
     if (stage === 2) {
-        const keywordTool = tools.hasDataforseo
-            ? `השתמש ב-dataforseo MCP tool לקבלת נפחי חיפוש אמיתיים, ציון difficulty, ו-CPC. בצע חיפוש ל-15 מילות מפתח לפחות.`
-            : `${searchInstructions}\nהערך difficulty ו-volume על סמך ניתוח תוצאות החיפוש (אין לך כלי עם נתונים אמיתיים — הערך מ-low/medium/high).`
         return {
             agentId: 'sayer',
             minLength: 1000,
@@ -1541,117 +1558,170 @@ ${feedbackLine}${NO_FILES}`
 
 ## הוראות
 קרא את research-data/RESEARCH_STAGE1.md (תוצאות שלב 1 — מתחרים).
-${keywordTool}
+${dfsTool}
+${searchTool}
 
 מצא:
-1. **15 מילות מפתח** (עברית + אנגלית) — לכל אחת: כוונת חיפוש, ${tools.hasDataforseo ? 'volume, difficulty, CPC' : 'difficulty משוערת (low/med/high)'}, עדיפות
-2. **שאלות נפוצות** שאנשים שואלים בתחום (7-10)
-3. **Long-tail keywords** (7-10) — ספציפיות, פחות תחרות
+1. **15 מילות מפתח** (עברית + אנגלית) — ממוקדות לתחום של ${businessName}
+2. **ניתוח תחרות לכל מילה** — מי מהמתחרים שמצאת בשלב 1 מדורג על המילה הזו?
+3. **שאלות נפוצות** שאנשים שואלים בתחום (7-10)
+4. **Long-tail keywords** (10) — ספציפיות עם כוונת רכישה גבוהה
 ${answers.platforms ? `\nפלטפורמות: ${answers.platforms}` : ''}
 
-## פורמט תשובה
+## פורמט תשובה (חובה)
 ### מילות מפתח ראשיות
-| # | מילה (עברית) | מילה (אנגלית) | כוונה | ${tools.hasDataforseo ? 'Volume | Difficulty | CPC' : 'Difficulty'} | עדיפות |
-|---|---|---|---|${tools.hasDataforseo ? '---|---|---' : '---'}|---|
-| 1 | ... | ... | ... | ... | ... |
+| # | מילה (עברית) | מילה (אנגלית) | כוונה | ${tools.hasDataforseo ? 'Volume | Difficulty | CPC |' : 'Difficulty |'} מתחרה מדורג? | עדיפות |
+|---|---|---|---|${tools.hasDataforseo ? '---|---|---|' : '---|'}---|---|
+| 1 | ... | ... | מסחרית/מידעית | ... | [שם מתחרה או "אין"] | 🔴/🟡/🟢 |
 
-### שאלות נפוצות
-1. ...
+### שאלות נפוצות (שאנשים שואלים בגוגל)
+1. [שאלה] — כוונה: [מידעית/מסחרית] — ${tools.hasDataforseo ? 'volume: [מספר]' : 'תחרות: [low/med/high]'}
+...
 
 ### Long-Tail Keywords
-1. ...
-${feedbackLine}${NO_FILES}`
+| # | מילת מפתח | שפה | כוונה | למה חשובה (קשר לכאב/מתחרה) |
+|---|---|---|---|---|
+| 1 | ... | עברית/אנגלית | ... | [הסבר קצר — מה הכאב שמאחורי החיפוש] |
+
+### סיכום: 3 הזדמנויות מפתח
+1. **[מילה]** — [למה זו הזדמנות: difficulty נמוך / אין מתחרה / volume גבוה]
+2. ...
+3. ...
+${feedbackLine}
+${RULES}`
         }
     }
 
     if (stage === 3) {
-        const crawlNote = tools.hasFirecrawl
-            ? `\nהשתמש ב-firecrawl לסריקת פורומים ואתרי ביקורות רלוונטיים.`
-            : ''
         return {
             agentId: 'sayer',
             minLength: 1000,
             prompt: `# משימה: מחקר קהל יעד עבור "${businessName}"
 
 ## הוראות
-קרא את research-data/RESEARCH_STAGE1.md ו-research-data/RESEARCH_STAGE2.md.
-${searchInstructions}${crawlNote}
+קרא את research-data/RESEARCH_STAGE1.md (מתחרים) ו-research-data/RESEARCH_STAGE2.md (מילות מפתח).
+${searchTool}${crawlTool}
 
-חפש ב-Reddit, פורומים, רשתות חברתיות:
-1. **איפה קהל היעד מדבר** על ${businessDesc}?
-2. **5+ כאבים מרכזיים** — ציטוטים אמיתיים אם אפשר
-3. **מה אנשים משבחים/מתלוננים** בתחום?
-4. **2-3 פרסונות מפורטות**
+חפש ב-Reddit, פורומים, רשתות חברתיות, ואתרים ישראליים:
+1. **איפה קהל היעד מדבר** על ${businessDesc}? (שמות קבוצות ספציפיות, subreddits, פורומים)
+2. **6+ כאבים מרכזיים** — ציטוטים אמיתיים עם מקור (URL, שם קבוצה, שם כתבה)
+3. **2-3 פרסונות מפורטות** — עם קשר ישיר למילות המפתח מהשלב הקודם
+4. **גודל שוק משוער** — כמה אנשים/עסקים בכל סגמנט (בישראל ובעולם)
 ${answers.targetAudience ? `\nקהל יעד שצוין: ${answers.targetAudience}` : ''}
 
-## פורמט תשובה
+## פורמט תשובה (חובה)
 ### איפה הקהל נמצא
-- ...
+| פלטפורמה | קבוצות/ערוצים ספציפיים | גודל משוער | רלוונטיות |
+|---|---|---|---|
+| פייסבוק | [שמות קבוצות] | [מספר חברים] | 🔴/🟡/🟢 |
+| Reddit | [r/subreddits] | [subscribers] | ... |
+| ... | ... | ... | ... |
 
 ### כאבים מרכזיים
-1. **[כאב]** — "[ציטוט]" (מקור: ...)
-...
+1. **[כאב]** — "[ציטוט מדויק]" (מקור: [URL או שם])
+2. ...
+(מינימום 6 כאבים)
 
-### פרסונה 1: [שם]
+### פרסונה 1: [שם פיקטיבי]
 - **גיל:** ...
 - **תפקיד:** ...
-- **כאבים:** ...
-- **מוטיבציות:** ...
-- **איפה אונליין:** ...
-(חזור ל-2-3 פרסונות)
-${feedbackLine}${NO_FILES}`
+- **גודל סגמנט:** [כמה כאלה יש בישראל — הערכה]
+- **כאבים:** [3 כאבים ספציפיים]
+- **מוטיבציות:** [מה יגרום להם לשלם]
+- **מילות מפתח שהם מחפשים:** [3 מילות מפתח מ-STAGE2 שרלוונטיות לפרסונה]
+- **איפה אונליין:** [פלטפורמות + שמות קבוצות]
+- **תקציב חודשי צפוי:** ₪[טווח]
+- **מה ישכנע אותם:** [משפט אחד]
+
+(חזור ל-3 פרסונות)
+
+### סיכום: הזדמנות השוק
+- **גודל שוק כולל (TAM):** [הערכה + מקור]
+- **שוק נגיש (SAM):** [הערכה]
+- **סגמנט ראשון לתקוף:** [שם פרסונה + למה]
+${feedbackLine}
+${RULES}`
         }
     }
 
-    // stage === 4 — uses summaries, not search
+    // stage === 4 — strategic analysis using all previous data
+    if (stage !== 4) return null
     const { summaries } = opts
     return {
         agentId: 'menateach',
-        minLength: 1000,
-        prompt: `# משימה: ניתוח ערוצים והמלצות עבור "${businessName}"
+        minLength: 1500,
+        prompt: `# משימה: ניתוח ערוצים ואסטרטגיה עבור "${businessName}"
 
-חשוב: אל תקרא קבצים. השתמש רק בנתונים שמסופקים כאן.
+## חשוב
+- זו משימה חדשה. לא ראית אותה קודם.
+- אל תקרא קבצים. השתמש רק בנתונים המסופקים כאן.
+- אל תאמר "כבר עניתי" — ענה מחדש.
 
-## תמצית מחקר קודם
-
-### מתחרים (שלב 1)
+## תמצית מחקר — שלב 1 (מתחרים)
 ${summaries?.s1 || 'לא זמין'}
 
-### מילות מפתח (שלב 2)
+## תמצית מחקר — שלב 2 (מילות מפתח)
 ${summaries?.s2 || 'לא זמין'}
 
-### קהל יעד (שלב 3)
+## תמצית מחקר — שלב 3 (קהל יעד)
 ${summaries?.s3 || 'לא זמין'}
 
-${answers.budget ? `\n## תקציב\n${answers.budget}` : ''}
-${answers.marketingGoals ? `\n## מטרות שיווק\n${answers.marketingGoals}` : ''}
+${answers.budget ? `## תקציב\n${answers.budget}` : ''}
+${answers.marketingGoals ? `## מטרות שיווק\n${answers.marketingGoals}` : ''}
 
 ## הוראות
-על סמך המחקר — המלץ על אסטרטגיית ערוצים:
+נתח את הנתונים ובנה אסטרטגיית ערוצים:
+1. לכל ערוץ — בדוק: האם המתחרים מהשלב 1 כבר פעילים שם? כמה תחרות יש?
+2. קשר כל ערוץ לפרסונה ספציפית מהשלב 3
+3. קשר כל ערוץ למילות מפתח ספציפיות מהשלב 2
+4. התמקד ב-ROI — מה ייתן תוצאות הכי מהר עם הכי פחות משאבים
 
-## פורמט תשובה
+## פורמט תשובה (חובה)
 ### ערוצים מומלצים (לפי עדיפות)
-#### 1. [שם הערוץ] ⭐ עדיפות גבוהה
-- **למה:** ...
-- **תדירות:** ...
-- **עלות משוערת:** ...
-- **ROI צפוי:** ...
+#### 1. [שם הערוץ] ⭐⭐⭐ קריטי
+- **למה (על סמך המחקר):** [קשר ישיר לנתוני שלבים 1-3]
+- **פרסונה מרכזית:** [שם מהשלב 3]
+- **מילות מפתח לערוץ:** [3 מילות מפתח מהשלב 2]
+- **תחרות בערוץ:** [מי מהמתחרים כבר פעיל כאן? מה הם עושים?]
+- **תדירות:** [ספציפית — כמה פעמים בשבוע/חודש]
+- **עלות משוערת:** ₪[מספר] / חודש
+- **ROI צפוי:** [מספרים: כמה leads/ביקורים/מכירות תוך X ימים]
+(חזור ל-5 ערוצים)
+
+#### ❌ מה לא לעשות עכשיו
+| ערוץ | למה לא | מתי כן |
+|---|---|---|
+| ... | ... | חודש X |
 
 ### פאנל שיווק
-| שלב | ערוץ | פעולה | מדד הצלחה |
-|---|---|---|---|
-| Awareness | ... | ... | ... |
-| Consideration | ... | ... | ... |
-| Conversion | ... | ... | ... |
-| Retention | ... | ... | ... |
+| שלב | ערוץ | פעולה ספציפית | פרסונה | מדד הצלחה |
+|---|---|---|---|---|
+| Awareness | ... | ... | ... | [מספר] |
+| Consideration | ... | ... | ... | [מספר] |
+| Conversion | ... | ... | ... | [מספר] |
+| Retention | ... | ... | ... | [מספר] |
 
 ### תוכנית פעולה — 30 ימים ראשונים
-1. שבוע 1: ...
-2. שבוע 2: ...
-3. שבוע 3: ...
-4. שבוע 4: ...
+#### שבוע 1
+1. [פעולה ספציפית] — [מילת מפתח / ערוץ]
+2. ...
+#### שבוע 2
+3. ...
+4. ...
+#### שבוע 3
+5. ...
+#### שבוע 4
+6. ...
+
+### KPIs ל-90 ימים
+| מדד | יעד חודש 1 | יעד חודש 2 | יעד חודש 3 |
+|---|---|---|---|
+| ביקורים אורגניים | ... | ... | ... |
+| לידים | ... | ... | ... |
+| לקוחות משלמים | ... | ... | ... |
+| MRR | ₪... | ₪... | ₪... |
 ${feedbackLine}
-כתוב הכל בעברית. אל תכלול מידע טכני.`
+${RULES}`
     }
 }
 
@@ -1695,9 +1765,9 @@ export const researchStage = async (c: Context) => {
                 return raw
             }
 
-            const text1 = extractStageText(rd.stage1 || '').substring(0, 3000)
-            const text2 = extractStageText(rd.stage2 || '').substring(0, 3000)
-            const text3 = extractStageText(rd.stage3 || '').substring(0, 3000)
+            const text1 = extractStageText(rd.stage1 || '').substring(0, 5000)
+            const text2 = extractStageText(rd.stage2 || '').substring(0, 5000)
+            const text3 = extractStageText(rd.stage3 || '').substring(0, 5000)
 
             summaries = { s1: text1, s2: text2, s3: text3 }
             console.log(`Stage 4 inputs: s1=${text1.length}, s2=${text2.length}, s3=${text3.length}`)
@@ -1844,13 +1914,17 @@ export const resetResearch = async (c: Context) => {
             researchData: cleaned as any,
         }).where(eq(instances.id, instanceId))
 
-        // Also clear research files on VPS if accessible
+        // Clear research files + old sessions + Mem0 research memories on VPS
         if (instance.ip) {
             try {
-                await sshExec(instance.ip,
-                    'rm -f /home/openclaw/.openclaw/research-data/RESEARCH_STAGE*.md /home/openclaw/.openclaw/research-data/STRATEGY.md',
-                    instance.rootPassword || undefined
-                )
+                await sshExec(instance.ip, `
+                    rm -f /home/openclaw/.openclaw/research-data/RESEARCH_STAGE*.md /home/openclaw/.openclaw/research-data/STRATEGY.md
+                    # Clear old research sessions to prevent "already answered" memory
+                    rm -f /home/openclaw/.openclaw/agents/sayer/sessions/research-*.jsonl 2>/dev/null
+                    rm -f /home/openclaw/.openclaw/agents/menateach/sessions/research-*.jsonl 2>/dev/null
+                    rm -f /home/openclaw/.openclaw/agents/sayer/sessions/sessions.json 2>/dev/null
+                    rm -f /home/openclaw/.openclaw/agents/menateach/sessions/sessions.json 2>/dev/null
+                `, instance.rootPassword || undefined)
             } catch (_) { /* VPS may be unreachable, ignore */ }
         }
 
