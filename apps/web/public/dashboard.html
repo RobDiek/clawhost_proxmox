@@ -2422,7 +2422,8 @@ input{font-family:inherit}
       <div>
         <textarea id="pipelineFeedback" rows="2" placeholder="הערות או תיקונים לשלב הזה..." style="width:300px;padding:8px 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:0.85rem;font-family:inherit;direction:rtl;resize:none" onfocus="this.style.borderColor='#2563EB'" onblur="this.style.borderColor='#E5E7EB'"></textarea>
       </div>
-      <div style="display:flex;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-outline btn-sm" onclick="resetResearchPipeline()" id="pipelineResetBtn" style="font-size:0.78rem;color:#EF4444;border-color:#FECACA">&#x21bb; התחלו מחדש</button>
         <!-- skip removed: strategy without research is meaningless -->
         <button class="btn btn-primary btn-sm" onclick="nextPipelineStage()" id="pipelineNextBtn">→ השלב הבא</button>
       </div>
@@ -6101,6 +6102,37 @@ function showIntegrationSuggestion() {
 function closePipeline() {
   document.getElementById('pipelineOverlay').classList.add('hidden');
   refreshInstanceData();
+}
+
+async function resetResearchPipeline() {
+  if (!confirm('לאפס את כל שלבי המחקר ולהתחיל מחדש?')) return;
+  if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/research/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    });
+    var data = await res.json();
+    if (data.success) {
+      // Clear local state
+      if (instanceData && instanceData.researchData) {
+        delete instanceData.researchData.stage1;
+        delete instanceData.researchData.stage2;
+        delete instanceData.researchData.stage3;
+        delete instanceData.researchData.stage4;
+        delete instanceData.researchData.strategy;
+        delete instanceData.researchData.report;
+      }
+      researchPipelineStage = 1;
+      showToast('המחקר אופס — מתחילים מחדש', 'success');
+      // Restart from integration suggestion (stage 1 prep)
+      showIntegrationSuggestion();
+    } else {
+      showToast(data.message || 'שגיאה באיפוס', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאת תקשורת', 'error');
+  }
 }
 
 function renderPipelineSteps() {

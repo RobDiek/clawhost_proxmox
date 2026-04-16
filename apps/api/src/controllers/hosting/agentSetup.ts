@@ -1565,6 +1565,43 @@ ${feedback ? `הערות המשתמש: ${feedback}` : ''}
     }
 }
 
+// ── POST /hosting/instances/:id/setup/agents/research/reset ──
+export const resetResearch = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const existingData = (instance.researchData as any) || {}
+        // Keep answers (business profile) but clear all stage results, strategy, report
+        const cleaned: Record<string, any> = {}
+        if (existingData.answers) cleaned.answers = existingData.answers
+        if (existingData.generatedAt) cleaned.generatedAt = existingData.generatedAt
+
+        await db.update(instances).set({
+            researchData: cleaned as any,
+        }).where(eq(instances.id, instanceId))
+
+        // Also clear research files on VPS if accessible
+        if (instance.ip) {
+            try {
+                await sshExec(instance.ip,
+                    'rm -f /home/openclaw/.openclaw/research-data/RESEARCH_STAGE*.md /home/openclaw/.openclaw/research-data/STRATEGY.md',
+                    instance.rootPassword || undefined
+                )
+            } catch (_) { /* VPS may be unreachable, ignore */ }
+        }
+
+        console.log(`Research reset for instance ${instanceId}`)
+        return ok(c, { reset: true }, 'Research data reset.')
+    } catch (err) {
+        console.error('resetResearch error:', err)
+        return fail(c, 'Failed to reset research', 500)
+    }
+}
+
 // ── POST /hosting/instances/:id/setup/agents ──
 export const setupAgents = async (c: Context) => {
     try {
