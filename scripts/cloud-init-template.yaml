@@ -342,18 +342,12 @@ runcmd:
     - systemctl restart openclaw-gateway
     - sleep 3
 
-    # ── Install Ollama + embedding model for Mem0 memory ──
-    - curl -fsSL https://ollama.com/install.sh | sh 2>/dev/null || true
-    - sleep 2
-    - ollama pull nomic-embed-text 2>/dev/null || true
-
-    # ── Install & configure Mem0 plugin (OSS mode: Qdrant + Ollama embeddings) ──
+    # ── Install & configure Mem0 plugin (Platform mode — master API key) ──
     - |
         su - openclaw -c 'openclaw plugins install @mem0/openclaw-mem0 2>/dev/null || true'
         su - openclaw -c 'openclaw plugins enable openclaw-mem0 2>/dev/null || true'
-        # Configure Mem0 via python (gateway must be stopped)
+        # Configure Mem0 Platform mode (gateway must be stopped)
         systemctl stop openclaw-gateway 2>/dev/null
-        GW_TOKEN=$(python3 -c "import json; print(json.load(open('/home/openclaw/.openclaw/openclaw.json')).get('gateway',{}).get('auth',{}).get('token','default'))")
         python3 -c "
 import json
 p = '/home/openclaw/.openclaw/openclaw.json'
@@ -364,33 +358,43 @@ entries = plugins.setdefault('entries', {})
 entries['openclaw-mem0'] = {
     'enabled': True,
     'config': {
-        'mode': 'open-source',
-        'userId': 'default',
+        'mode': 'platform',
+        'apiKey': '{{MEM0_API_KEY}}',
+        'userId': '{{INSTANCE_ID}}',
         'autoCapture': True,
         'autoRecall': True,
         'searchThreshold': 0.4,
         'topK': 5,
-        'customInstructions': 'Store important facts about the user, business, preferences, decisions. Store in Hebrew when original is Hebrew.',
-        'oss': {
-            'embedder': {'provider': 'ollama', 'config': {'model': 'nomic-embed-text', 'ollama_base_url': 'http://localhost:11434'}},
-            'vectorStore': {'provider': 'qdrant', 'config': {'host': 'localhost', 'port': 6333, 'collection_name': 'openclaw_memories'}},
-            'llm': {'provider': 'litellm', 'config': {'model': 'haiku', 'api_base': 'http://localhost:4000', 'api_key': '$GW_TOKEN'}}
-        },
-        'skills': {
-            'triage': {'enabled': True, 'importanceThreshold': 0.6},
-            'recall': {'enabled': True, 'strategy': 'smart', 'tokenBudget': 2000, 'maxMemories': 10},
-            'dream': {'enabled': True, 'auto': True, 'minHours': 24, 'minSessions': 5, 'minMemories': 20}
-        }
+        'customInstructions': 'Store important facts about the user, business, preferences, decisions. Store in Hebrew when original is Hebrew. Never store API keys or passwords.'
     }
 }
 entries.setdefault('memory-core', {})['enabled'] = False
+plugins.setdefault('slots', {})['memory'] = 'openclaw-mem0'
 plugins['allow'] = list(entries.keys())
 cfg['plugins'] = plugins
 with open(p, 'w') as f:
     json.dump(cfg, f, indent=2)
-print('Mem0 OSS configured')
+print('Mem0 Platform configured')
 "
-        chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json
+        # Patch plugin to tolerate anonymousTelemetryId (OpenClaw framework adds it)
+        PLUGIN_JS=/home/openclaw/.openclaw/extensions/openclaw-mem0/dist/index.js
+        if [ -f "$PLUGIN_JS" ]; then
+          python3 -c "
+with open('$PLUGIN_JS') as f:
+    code = f.read()
+old = 'const unknown = Object.keys(value).filter((key) => !allowed.includes(key));'
+new = 'const unknown = Object.keys(value).filter((key) => !allowed.includes(key) && key !== \"anonymousTelemetryId\");'
+if old in code:
+    with open('$PLUGIN_JS', 'w') as f:
+        f.write(code.replace(old, new, 1))
+"
+        fi
+        # Add MEM0_API_KEY to gateway service env
+        if ! grep -q MEM0_API_KEY /etc/systemd/system/openclaw-gateway.service; then
+          sed -i '/\[Service\]/a Environment=MEM0_API_KEY={{MEM0_API_KEY}}' /etc/systemd/system/openclaw-gateway.service
+          systemctl daemon-reload
+        fi
+        chown -R openclaw:openclaw /home/openclaw/.openclaw
         systemctl start openclaw-gateway
 
     # ── Automation Tool (Docker) — Activepieces (MIT license) ──

@@ -28,6 +28,7 @@ export function renderCloudInit(vars: CloudInitVars): string {
     template = template.replace(/\{\{AUTOMATION_PORT\}\}/g, String(AUTOMATION_PORTS[vars.AUTOMATION_TOOL]))
     template = template.replace(/\{\{AUTOMATION_PASSWORD\}\}/g, vars.AUTOMATION_PASSWORD)
     template = template.replace(/\{\{ROOT_PASSWORD\}\}/g, vars.ROOT_PASSWORD)
+    template = template.replace(/\{\{MEM0_API_KEY\}\}/g, process.env.MEM0_API_KEY || '')
 
     // Automation: Activepieces only (n8n/Dify removed for license compliance)
     template = template.replace(/\{\{#IS_ACTIVEPIECES\}\}/g, '')

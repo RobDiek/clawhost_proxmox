@@ -627,6 +627,20 @@ export async function ensureAgentsRegistered(instance: {
         instance.rootPassword || undefined
     )
 
+    // Ensure auth-profiles.json exists for each sub-agent (inherits from env vars)
+    // Without this, sub-agents can't find API keys even when gateway has them
+    const authProfile = JSON.stringify({
+        default: {
+            anthropic: { apiKey: { source: 'env', provider: 'default', id: 'ANTHROPIC_API_KEY' } },
+            openai: { apiKey: { source: 'env', provider: 'default', id: 'OPENAI_API_KEY' } },
+        }
+    })
+    const authB64 = Buffer.from(authProfile).toString('base64')
+    await sshExec(instance.ip,
+        `for agent in ${MATEH_AGENTS.join(' ')}; do echo '${authB64}' | base64 -d > /home/openclaw/.openclaw/agents/$agent/auth-profiles.json; done && chown -R openclaw:openclaw /home/openclaw/.openclaw/agents/`,
+        instance.rootPassword || undefined
+    )
+
     // Register or update each agent
     for (const agentName of MATEH_AGENTS) {
         const expectedModel = customModels[agentName] || DEFAULT_ROLE_MODELS[agentName] || 'anthropic/claude-haiku-4-5-20251001'
