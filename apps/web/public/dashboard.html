@@ -764,10 +764,6 @@ input{font-family:inherit}
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h8M12 8v8"/></svg></span>
       <span class="sidebar-label">Twenty CRM</span>
     </div>
-    <div class="sidebar-item" onclick="window.open('/auto-pilot','_blank')" style="cursor:pointer">
-      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v-2"/><path d="M22 11l-5-5-5 5"/><circle cx="9" cy="7" r="4"/></svg></span>
-      <span class="sidebar-label">ניהול שיווק</span>
-    </div>
     <div class="sidebar-separator"></div>
     <div class="sidebar-item sidebar-dev-link" data-tab="developer" onclick="openDeveloperZone()">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
@@ -5491,6 +5487,10 @@ function renderAdvanced() {
 function renderSidebarFooter() {
   var displayPlan = plan.name || '—';
   document.getElementById('sidebarFooter').innerHTML =
+    '<div onclick="window.open(\'/auto-pilot\',\'_blank\')" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 16px;margin:8px 12px;border-radius:10px;background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1px solid #C7D2FE;font-size:0.82rem;color:#4338CA;font-weight:600;transition:all .2s" onmouseover="this.style.background=\'linear-gradient(135deg,#E0E7FF,#C7D2FE)\'" onmouseout="this.style.background=\'linear-gradient(135deg,#EEF2FF,#E0E7FF)\'">' +
+    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#4338CA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>' +
+    '<span>ניהול שיווק</span>' +
+    '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:auto"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>' +
     '<span class="sidebar-plan-pill">תוכנית ' + displayPlan + '</span>';
 }
 
@@ -7384,15 +7384,15 @@ function openAgentQuestionnaire() {
 // Sub-agents data — defaults match AGENTS.md routing
 // Sub-agents with recommended models per role (multiple recommendations allowed)
 var SUB_AGENTS = [
-  { id: 'mateh', name: 'מטה', role: 'מתאם ומנהל', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'cerebras/gpt-oss-120b', 'groq/openai/gpt-oss-120b'] },
-  { id: 'sayer', name: 'סייר', role: 'מחקר אינטרנט', defaultModel: 'groq/openai/gpt-oss-120b', recommended: ['groq/openai/gpt-oss-120b', 'cerebras/gpt-oss-120b', 'cerebras/qwen-3-235b-a22b-instruct-2507'] },
-  { id: 'meater', name: 'מאתר', role: 'מחקר SERP', defaultModel: 'groq/openai/gpt-oss-120b', recommended: ['groq/openai/gpt-oss-120b', 'cerebras/gpt-oss-120b'] },
-  { id: 'maazin', name: 'מאזין', role: 'האזנה חברתית', defaultModel: 'groq/openai/gpt-oss-20b', recommended: ['groq/openai/gpt-oss-20b', 'cerebras/llama3.1-8b'] },
-  { id: 'menateach', name: 'מנתח', role: 'ניתוח הזדמנויות', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'cerebras/qwen-3-235b-a22b-instruct-2507', 'groq/qwen/qwen3-32b'] },
+  { id: 'mateh', name: 'מטה', role: 'מתאם ומנהל', defaultModel: 'anthropic/claude-haiku-4-5-20251001', recommended: ['anthropic/claude-haiku-4-5-20251001', 'anthropic/claude-sonnet-4-6'] },
+  { id: 'sayer', name: 'סייר', role: 'מחקר אינטרנט', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6', 'groq/openai/gpt-oss-120b'] },
+  { id: 'meater', name: 'מאתר', role: 'מחקר SERP', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6', 'groq/openai/gpt-oss-120b'] },
+  { id: 'maazin', name: 'מאזין', role: 'האזנה חברתית', defaultModel: 'anthropic/claude-haiku-4-5-20251001', recommended: ['anthropic/claude-haiku-4-5-20251001', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-20b'] },
+  { id: 'menateach', name: 'מנתח', role: 'ניתוח הזדמנויות', defaultModel: 'anthropic/claude-opus-4-6', recommended: ['anthropic/claude-opus-4-6', 'anthropic/claude-sonnet-4-6'] },
   { id: 'et', name: 'עט', role: 'כתיבת תוכן', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6'] },
   { id: 'yotzer', name: 'יוצר', role: 'קריאייטיב', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-opus-4-6'] },
-  { id: 'shaliach', name: 'שליח', role: 'הפצה', defaultModel: 'groq/openai/gpt-oss-20b', recommended: ['groq/openai/gpt-oss-20b', 'cerebras/llama3.1-8b', 'anthropic/claude-haiku-4-5-20251001'] },
-  { id: 'migdalor', name: 'מגדלור', role: 'ביקורת AEO', defaultModel: 'anthropic/claude-sonnet-4-6', recommended: ['anthropic/claude-sonnet-4-6', 'cerebras/gpt-oss-120b', 'groq/openai/gpt-oss-120b'] },
+  { id: 'shaliach', name: 'שליח', role: 'הפצה', defaultModel: 'anthropic/claude-haiku-4-5-20251001', recommended: ['anthropic/claude-haiku-4-5-20251001', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-20b'] },
+  { id: 'migdalor', name: 'מגדלור', role: 'ביקורת AEO', defaultModel: 'anthropic/claude-opus-4-6', recommended: ['anthropic/claude-opus-4-6', 'anthropic/claude-sonnet-4-6', 'groq/openai/gpt-oss-120b'] },
 ];
 
 // All possible models — always show all, dim unavailable
@@ -7445,6 +7445,9 @@ function renderSubAgents() {
     SUB_AGENTS.map(function(a) {
       var model = savedModels[a.id] || a.defaultModel;
       var availableModels = getAvailableModels(a.id);
+      // If saved model's provider is not connected, fall back to default
+      var selectedModelInfo = availableModels.find(function(m) { return m.value === model; });
+      if (selectedModelInfo && !selectedModelInfo.enabled) model = a.defaultModel;
       // Sort: recommended first, then enabled, then disabled
       availableModels.sort(function(x, y) {
         if (x.recommended && !y.recommended) return -1;
