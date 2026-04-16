@@ -319,6 +319,7 @@ async function syncAllInstances(): Promise<void> {
         .from(instances)
         .where(and(
             eq(instances.status, 'running'),
+            eq(instances.onboardingCompleted, true),
         ))
 
         const withIp = runningInstances.filter(i => i.ip)

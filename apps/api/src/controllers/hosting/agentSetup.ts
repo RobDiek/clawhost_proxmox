@@ -452,67 +452,29 @@ print('tools profile: messaging')
         console.error('Failed to set tool profile:', err)
     }
 
-    // Set up cron jobs — different for Personal vs MATEH
+    // CRON JOBS: deferred until onboarding is complete (research + strategy done)
+    // Activated via activateAgentCrons() after final onboarding step
+    console.log(`Cron jobs deferred for ${agentType} — will activate after onboarding complete`)
+}
+
+// ── Activate cron jobs on VPS after onboarding is complete ──
+async function activateAgentCrons(ip: string, agentType: string, password?: string): Promise<void> {
     if (agentType === 'oc') {
-        // Personal: only morning summary
         await sshExec(ip, `
             su - openclaw -c '
-            EXISTING=$(openclaw cron list --json 2>/dev/null | node -e "try{const d=JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf-8\"));console.log(d.jobs.map(j=>j.name).join(\",\"))}catch(e){}" 2>/dev/null)
-
-            if ! echo "$EXISTING" | grep -q "morning-summary"; then
-              openclaw cron add \
-                --name "morning-summary" \
-                --description "Morning Summary - daily agenda" \
-                --cron "0 7 * * 0-4" \
-                --tz "Asia/Jerusalem" \
-                --model "haiku" \
-                --message "סכם את סדר היום: פגישות ביומן, מיילים שמחכים למענה, תזכורות ומשימות פתוחות. הודעה קצרה וידידותית." \
-                --session isolated 2>/dev/null
-            fi
+            openclaw cron add --name "morning-summary" --description "סיכום בוקר" --cron "0 7 * * 0-4" --tz "Asia/Jerusalem" --model "haiku" --message "סכם את סדר היום: פגישות ביומן, מיילים שמחכים למענה, תזכורות ומשימות פתוחות. הודעה קצרה וידידותית בעברית." --session isolated 2>/dev/null
             '
         `, password)
     } else if (agentType === 'mt') {
-        // MATEH: full marketing cron suite
         await sshExec(ip, `
             su - openclaw -c '
-            EXISTING=$(openclaw cron list --json 2>/dev/null | node -e "try{const d=JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\",\"utf-8\"));console.log(d.jobs.map(j=>j.name).join(\",\"))}catch(e){}" 2>/dev/null)
-
-            if ! echo "$EXISTING" | grep -q "daily-brief"; then
-              openclaw cron add \
-                --name "daily-brief" \
-                --description "Daily Brief - marketing summary" \
-                --cron "0 7 * * 0-4" \
-                --tz "Asia/Jerusalem" \
-                --model "haiku" \
-                --message "הכן Daily Brief: סכם פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות. הודעה קצרה ותכליתית." \
-                --session isolated 2>/dev/null
-            fi
-
-            if ! echo "$EXISTING" | grep -q "weekly-competitive"; then
-              openclaw cron add \
-                --name "weekly-competitive" \
-                --description "Weekly Competitive Report" \
-                --cron "0 8 * * 1" \
-                --tz "Asia/Jerusalem" \
-                --model "sonnet" \
-                --message "דוח תחרותי שבועי: סייר חפש מתחרים, מאזין בדוק שיחות, מנתח דרג הזדמנויות, עט כתוב 2-3 הצעות פוסטים." \
-                --session isolated 2>/dev/null
-            fi
-
-            if ! echo "$EXISTING" | grep -q "monthly-aeo"; then
-              openclaw cron add \
-                --name "monthly-aeo" \
-                --description "Monthly AEO Audit" \
-                --cron "0 10 1 * *" \
-                --tz "Asia/Jerusalem" \
-                --model "sonnet" \
-                --message "ביקורת AEO חודשית: בדוק ציטוטים ב-Claude/ChatGPT/Perplexity, Schema tags, המלצות לשיפור." \
-                --session isolated 2>/dev/null
-            fi
+            openclaw cron add --name "daily-brief" --description "סיכום יומי" --cron "0 7 * * 0-4" --tz "Asia/Jerusalem" --model "haiku" --message "הכן Daily Brief בעברית: סכם פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות. הודעה קצרה ותכליתית." --session isolated 2>/dev/null
+            openclaw cron add --name "weekly-competitive" --description "דוח תחרותי שבועי" --cron "0 8 * * 1" --tz "Asia/Jerusalem" --model "sonnet" --message "דוח תחרותי שבועי בעברית: סייר חפש מתחרים, מאזין בדוק שיחות, מנתח דרג הזדמנויות, עט כתוב 2-3 הצעות פוסטים." --session isolated 2>/dev/null
+            openclaw cron add --name "monthly-aeo" --description "ביקורת AEO חודשית" --cron "0 10 1 * *" --tz "Asia/Jerusalem" --model "sonnet" --message "ביקורת AEO חודשית בעברית: בדוק ציטוטים ב-Claude/ChatGPT/Perplexity, Schema tags, המלצות לשיפור." --session isolated 2>/dev/null
             '
         `, password)
     }
-    // bare: no cron jobs
+    console.log(`Cron jobs activated for ${agentType} at ${ip}`)
 }
 
 // ── POST /hosting/instances/:id/setup/agents/analyze ──
@@ -1381,6 +1343,22 @@ export const buildStrategy = async (c: Context) => {
             researchData: updateData as any,
         }).where(eq(instances.id, instanceId))
 
+        // Strategy complete (stage 4) → activate cron jobs + mark onboarding done
+        if (stage === 4 && instance.ip) {
+            await db.update(instances).set({
+                onboardingCompleted: true,
+            }).where(eq(instances.id, instanceId))
+
+            const components = (instance.selectedComponents as string[]) || []
+            const agentType = components.includes('mt') ? 'mt' : 'oc'
+            try {
+                await activateAgentCrons(instance.ip, agentType, instance.rootPassword || undefined)
+            } catch (cronErr) {
+                console.error('Cron activation failed (non-critical):', cronErr)
+            }
+            console.log(`Onboarding complete for ${instanceId} — cron jobs activated`)
+        }
+
         console.log(`Strategy stage ${stage}/4 complete: ${strategy.length} chars`)
         return ok(c, {
             stage,
@@ -1777,18 +1755,14 @@ export const addAgentToInstance = async (c: Context) => {
                 '
             `, instance.rootPassword || undefined)
 
-            // Restart + add cron jobs
+            // Restart gateway
             await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
             await new Promise(r => setTimeout(r, 3000))
 
-            // Add MATEH cron jobs
-            await sshExec(instance.ip, `
-                su - openclaw -c '
-                openclaw cron add --name "daily-brief" --description "Daily Brief" --cron "0 7 * * 0-4" --tz "Asia/Jerusalem" --message "הכן Daily Brief: סכם פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות." --session isolated 2>/dev/null
-                openclaw cron add --name "weekly-competitive" --description "Weekly Report" --cron "0 8 * * 1" --tz "Asia/Jerusalem" --message "דוח תחרותי שבועי: סייר חפש מתחרים, מאזין בדוק שיחות, מנתח דרג הזדמנויות, עט כתוב 2-3 הצעות פוסטים." --session isolated 2>/dev/null
-                openclaw cron add --name "monthly-aeo" --description "AEO Audit" --cron "0 10 1 * *" --tz "Asia/Jerusalem" --message "ביקורת AEO חודשית." --session isolated 2>/dev/null
-                '
-            `, instance.rootPassword || undefined)
+            // Only activate cron jobs if onboarding is already complete
+            if (instance.onboardingCompleted) {
+                await activateAgentCrons(instance.ip, 'mt', instance.rootPassword || undefined)
+            }
         }
 
         if (agentType === 'bare') {
