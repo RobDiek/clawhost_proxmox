@@ -2011,8 +2011,8 @@ ${validation.substring(0, 5000)}
     },
     {
       "key": "recommended",
-      "name": "מומלץ",
-      "emoji": "⭐",
+      "name": "מאוזן",
+      "emoji": "⚖️",
       ...
     },
     {
@@ -2025,6 +2025,7 @@ ${validation.substring(0, 5000)}
 }
 
 **חשוב:**
+- **שמות בדיוק כך** (אל תשנה!): שם של "conservative" = "שמרני" (emoji 🛡️), "recommended" = "מאוזן" (emoji ⚖️), "aggressive" = "אגרסיבי" (emoji 🚀). **אסור** לקרוא ל-middle scenario "מומלץ" — זה שם badge ולא שם מסלול.
 - monthlyBudgetNumeric.min/max במספרים, לא מחרוזות
 - monthlyTokenBudgetUsd במספר (USD בחודש — כמה API tokens ~$) — conservative 10-30, recommended 40-80, aggressive 100-250
 - השתמש במספרים אמיתיים מהאסטרטגיה (MRR, CAC, לקוחות) — אל תמציא

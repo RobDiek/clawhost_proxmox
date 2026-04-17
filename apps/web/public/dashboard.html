@@ -3156,7 +3156,7 @@ function renderHome() {
         done: !!hasChosenScenario,
         action: "openScenarioPicker()",
         actionLabel: hasScenarios ? 'בחרו מסלול' : 'התאימו מסלול',
-        desc: 'שמרני · מומלץ · אגרסיבי — בדיקת תקציב מול המציאות + התאמת ערוצים'
+        desc: 'שמרני · מאוזן · אגרסיבי — בדיקת תקציב מול המציאות + התאמת ערוצים'
       });
     }
     if (hasChosenScenario) {
@@ -6973,7 +6973,7 @@ async function runBuildScenarios() {
       '<div style="text-align:center;padding:40px">' +
       '<div style="font-size:2rem;animation:spin 2s linear infinite;display:inline-block;margin-bottom:12px">🧭</div>' +
       '<div style="font-weight:600;font-size:1rem;margin-bottom:4px">Claude Opus 4.7 גוזר 3 מסלולים מהאסטרטגיה</div>' +
-      '<div style="color:#9CA3AF;font-size:0.78rem">שמרני · מומלץ · אגרסיבי — ייקח 30-90 שניות</div>' +
+      '<div style="color:#9CA3AF;font-size:0.78rem">שמרני · מאוזן · אגרסיבי — ייקח 30-90 שניות</div>' +
       '<div id="pipelineTimer" style="color:#9CA3AF;font-size:0.75rem;margin-top:12px;font-family:monospace">00:00</div></div>';
     document.getElementById('pipelineNextBtn').style.display = 'none';
 
@@ -7074,7 +7074,7 @@ function renderScenarioPicker() {
     var kpi3 = (s.kpis && s.kpis.month3) || {};
 
     return '<div onclick="selectScenario(\'' + s.key + '\')" style="cursor:pointer;border:' + borderWidth + ' solid ' + borderColor + ';border-radius:12px;padding:18px;background:' + bg + ';position:relative;transition:all 0.2s">' +
-      (isRecommended ? '<div style="position:absolute;top:-12px;right:12px;background:#10B981;color:#FFF;padding:4px 10px;border-radius:12px;font-size:0.72rem;font-weight:700">⭐ מומלץ</div>' : '') +
+      (isRecommended ? '<div style="position:absolute;top:-12px;right:12px;background:#10B981;color:#FFF;padding:4px 10px;border-radius:12px;font-size:0.72rem;font-weight:700">⭐ מומלץ לך</div>' : '') +
       '<div style="font-size:2rem;margin-bottom:4px">' + escapeHtml(s.emoji || '') + '</div>' +
       '<div style="font-weight:800;font-size:1.2rem;color:#111827;margin-bottom:4px">' + escapeHtml(s.name) + '</div>' +
       '<div style="font-size:0.82rem;color:#6B7280;margin-bottom:14px;line-height:1.4">' + escapeHtml(s.tagline || '') + '</div>' +
