@@ -40,6 +40,7 @@ import {
     getOpsBrief,
     getApiUsage,
     seedFacts,
+    benchmarkFacts,
     researchStage,
     resetResearch,
     addAgentToInstance,
@@ -208,6 +209,7 @@ app.post('/instances/:id/setup/agents/ops-brief', generateOpsBrief)
 app.get('/instances/:id/setup/agents/ops-brief', getOpsBrief)
 app.get('/instances/:id/api-usage', getApiUsage)
 app.post('/instances/:id/facts/seed', seedFacts)
+app.post('/instances/:id/facts/benchmark', benchmarkFacts)
 app.post('/instances/:id/setup/agents/research/stage', researchStage)
 app.post('/instances/:id/setup/agents/research/reset', resetResearch)
 app.post('/instances/:id/agents/add', addAgentToInstance)

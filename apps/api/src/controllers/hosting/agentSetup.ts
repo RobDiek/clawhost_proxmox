@@ -2897,6 +2897,150 @@ const ctx = { config: { uri: 'bolt://localhost:7687', user: 'neo4j', password: p
     }
 }
 
+// ── POST /hosting/instances/:id/facts/benchmark ──
+// A/B test: run an identical task twice, measure token delta.
+// (A) Baseline: feed full STRATEGY.md + research stages into context
+// (B) Graph-enabled: feed only fact_query results (selected predicates)
+// Both produce the same output type (weekly competitive brief) — delta = savings.
+export const benchmarkFacts = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance?.ip) return fail(c, 'Instance not ready', 404)
+
+        const rd = (instance.researchData as any) || {}
+        if (!rd.factsSeededAt) return fail(c, 'יש להטעין תחילה את גרף הידע', 400)
+
+        const apiKey = await getApiKeyForInstance(instanceId)
+        if (!apiKey) return fail(c, 'מפתח API לא מוגדר', 400)
+
+        const businessName = rd.answers?.businessName || 'העסק'
+
+        // Common task both sides must do
+        const taskPrompt = `אתה סוכן "סייר" (competitive research). הכן בריף תחרותי שבועי מקוצר בעברית: עבור **3 המתחרים המובילים**, ציין: (1) שם, (2) מחיר נוכחי, (3) חוזקה אחת מרכזית, (4) חולשה אחת ברת-ניצול. פורמט: markdown table. מקסימום 300 מילים.`
+
+        // ===== (A) Baseline: full context =====
+        const baselineContext = [
+            rd.stage1, rd.stage2, rd.stage3,
+            rd.strategyStage1, rd.strategyStage2,
+        ].filter(Boolean).join('\n\n---\n\n').substring(0, 60000)
+
+        const baselinePrompt = `## נתוני מחקר ואסטרטגיה:\n${baselineContext}\n\n---\n\n${taskPrompt}`
+
+        console.log(`Benchmark baseline: ${baselinePrompt.length} chars prompt`)
+        const tA = Date.now()
+        const resA = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+            body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 800, messages: [{ role: 'user', content: baselinePrompt }] }),
+            signal: AbortSignal.timeout(90000),
+        })
+        if (!resA.ok) {
+            return fail(c, `Baseline call failed: ${resA.status}`, 500)
+        }
+        const dA = await resA.json() as { content?: Array<{ text: string }>; usage?: { input_tokens?: number; output_tokens?: number } }
+        const baseline = {
+            text: dA.content?.[0]?.text || '',
+            inputTokens: dA.usage?.input_tokens || 0,
+            outputTokens: dA.usage?.output_tokens || 0,
+            durationMs: Date.now() - tA,
+        }
+        const baselineCost = computeCost('claude-sonnet-4-6', baseline.inputTokens, baseline.outputTokens)
+        await logApiUsage({ instanceId, purpose: 'benchmark-baseline', model: 'claude-sonnet-4-6', inputTokens: baseline.inputTokens, outputTokens: baseline.outputTokens })
+
+        // ===== (B) Graph-enabled: only fact_query results =====
+        // Simulate what agent would do: list competitors + get their facts
+        const pwCmd = `docker inspect openclaw-ap-postgres-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep POSTGRES_PASSWORD | cut -d= -f2`
+        const neo4jPw = (await sshExec(instance.ip, pwCmd, instance.rootPassword || undefined, 15000)).trim()
+
+        const graphQueryScript = `
+const p = require('/home/openclaw/.openclaw/extensions/openclaw-facts/dist/index.js');
+const ctx = { config: { uri: 'bolt://localhost:7687', user: 'neo4j', password: process.env.NEO4J_PW } };
+(async () => {
+  const comps = await p.tools.entity_list.handler({ type: 'competitor' }, ctx);
+  const facts = await p.tools.fact_query.handler({ subjectType: 'competitor', limit: 30 }, ctx);
+  await p.onUnload();
+  console.log('GRAPH_RESULT:' + JSON.stringify({ competitors: comps.entities, facts: facts.facts }));
+})().catch(e => { console.error('FAIL:', e.message); process.exit(1); });
+`
+        const b64 = Buffer.from(graphQueryScript).toString('base64')
+        const graphOut = await sshExec(instance.ip,
+            `echo '${b64}' | base64 -d > /tmp/_bench.js && chown openclaw:openclaw /tmp/_bench.js && su - openclaw -c "NEO4J_PW='${neo4jPw}' node /tmp/_bench.js" ; rm -f /tmp/_bench.js`,
+            instance.rootPassword || undefined, 30000
+        )
+        const graphMatch = graphOut.match(/GRAPH_RESULT:(.+)/)
+        if (!graphMatch) {
+            console.error('Benchmark graph query failed:', graphOut.substring(0, 500))
+            return fail(c, 'Graph query failed', 500)
+        }
+        const graphData = JSON.parse(graphMatch[1])
+
+        const graphContext = `## עובדות מגרף הידע (${graphData.competitors.length} מתחרים, ${graphData.facts.length} עובדות):\n${JSON.stringify(graphData, null, 2)}`
+        const graphPrompt = `${graphContext}\n\n---\n\n${taskPrompt}`
+
+        console.log(`Benchmark graph: ${graphPrompt.length} chars prompt`)
+        const tB = Date.now()
+        const resB = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+            body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 800, messages: [{ role: 'user', content: graphPrompt }] }),
+            signal: AbortSignal.timeout(90000),
+        })
+        if (!resB.ok) {
+            return fail(c, `Graph call failed: ${resB.status}`, 500)
+        }
+        const dB = await resB.json() as { content?: Array<{ text: string }>; usage?: { input_tokens?: number; output_tokens?: number } }
+        const graph = {
+            text: dB.content?.[0]?.text || '',
+            inputTokens: dB.usage?.input_tokens || 0,
+            outputTokens: dB.usage?.output_tokens || 0,
+            durationMs: Date.now() - tB,
+        }
+        const graphCost = computeCost('claude-sonnet-4-6', graph.inputTokens, graph.outputTokens)
+        await logApiUsage({ instanceId, purpose: 'benchmark-graph', model: 'claude-sonnet-4-6', inputTokens: graph.inputTokens, outputTokens: graph.outputTokens })
+
+        const inputSavingPct = baseline.inputTokens > 0 ? Math.round((1 - graph.inputTokens / baseline.inputTokens) * 100) : 0
+        const costSavingPct = baselineCost > 0 ? Math.round((1 - graphCost / baselineCost) * 100) : 0
+
+        const result = {
+            task: 'weekly-competitive-brief-3-competitors',
+            baseline: {
+                promptChars: baselinePrompt.length,
+                inputTokens: baseline.inputTokens,
+                outputTokens: baseline.outputTokens,
+                costUsd: Number(baselineCost.toFixed(4)),
+                durationMs: baseline.durationMs,
+                outputPreview: baseline.text.substring(0, 300),
+            },
+            graph: {
+                promptChars: graphPrompt.length,
+                inputTokens: graph.inputTokens,
+                outputTokens: graph.outputTokens,
+                costUsd: Number(graphCost.toFixed(4)),
+                durationMs: graph.durationMs,
+                outputPreview: graph.text.substring(0, 300),
+            },
+            savings: {
+                inputTokensPct: inputSavingPct,
+                costPct: costSavingPct,
+                costDeltaUsd: Number((baselineCost - graphCost).toFixed(4)),
+            },
+        }
+
+        // Persist latest benchmark
+        await db.update(instances).set({
+            researchData: { ...rd, factsBenchmark: { ...result, ranAt: new Date().toISOString() } } as any,
+        }).where(eq(instances.id, instanceId))
+
+        console.log(`Benchmark: baseline ${baseline.inputTokens}in → graph ${graph.inputTokens}in (savings ${inputSavingPct}%)`)
+        return ok(c, result, 'Benchmark complete.')
+    } catch (err) {
+        console.error('benchmarkFacts error:', err)
+        return fail(c, 'Benchmark failed.', 500)
+    }
+}
+
 // ── GET /hosting/instances/:id/api-usage ──
 // Returns monthly API token spend: direct (from researchData.apiUsageLog)
 // + VPS-originated (from agent_outputs.metadata.cost). Includes per-agent breakdown
