@@ -1805,20 +1805,86 @@ input{font-family:inherit}
           <div><strong>GitHub</strong><div class="int-status" id="github-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-github-body">
-          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">פרסום תוכן ישירות ל-repo — הסוכן יוצר MDX, עושה commit, האתר נבנה אוטומטית</div>
+          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:10px">הסוכן יוצר MDX, עושה commit ל-branch נפרד, פותח Pull Request לאישור. אין push ישיר ל-main.</div>
+
           <div id="github-not-connected">
-            <input type="text" id="github-repo" placeholder="owner/repo (למשל synex-os/flowmatic)" dir="ltr" class="int-input" style="margin-bottom:4px"/>
-            <input type="password" id="github-token" placeholder="ghp_... (Personal Access Token)" dir="ltr" class="int-input" style="margin-bottom:4px"/>
-            <input type="text" id="github-content-path" placeholder="content/guides (נתיב לתיקיית תוכן)" dir="ltr" class="int-input" style="margin-bottom:6px" value="content/guides"/>
-            <button class="btn btn-primary btn-sm" onclick="saveGithubIntegration()">&#8594; חברו</button>
-            <div style="font-size:0.72rem;color:#9CA3AF;margin-top:4px">צרו <a href="https://github.com/settings/tokens?type=beta" target="_blank" style="color:#2563EB">Fine-grained token</a> עם הרשאות Contents: Read+Write</div>
-          </div>
-          <div id="github-connected" style="display:none">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <span style="color:#10B981;font-size:0.85rem">&#10003;</span>
-              <span style="font-size:0.82rem;color:#374151;direction:ltr" id="github-repo-display"></span>
+            <!-- Progress bar -->
+            <div style="display:flex;gap:6px;margin-bottom:14px">
+              <div id="gh-step-pill-1" style="flex:1;height:4px;border-radius:2px;background:#2563EB"></div>
+              <div id="gh-step-pill-2" style="flex:1;height:4px;border-radius:2px;background:#E5E7EB"></div>
+              <div id="gh-step-pill-3" style="flex:1;height:4px;border-radius:2px;background:#E5E7EB"></div>
             </div>
-            <div style="font-size:0.75rem;color:#6B7280;margin-bottom:8px">נתיב: <span id="github-path-display" dir="ltr"></span></div>
+
+            <!-- Step 1: Create PAT -->
+            <div id="gh-step-1" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px;margin-bottom:8px">
+              <div style="display:flex;align-items:start;gap:8px">
+                <div style="background:#2563EB;color:#FFF;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0">1</div>
+                <div style="flex:1">
+                  <div style="font-weight:600;font-size:0.88rem;margin-bottom:4px">יצירת Fine-Grained Personal Access Token</div>
+                  <div style="font-size:0.76rem;color:#6B7280;margin-bottom:8px">token ייעודי עם הרשאות מינימליות ל-repo ספציפי — לא full-access.</div>
+                  <ol style="margin:0 16px 8px;padding:0;font-size:0.75rem;line-height:1.7;color:#374151">
+                    <li>היכנסו ל-<a href="https://github.com/settings/personal-access-tokens/new" target="_blank" style="color:#2563EB;text-decoration:underline">github.com/settings/personal-access-tokens/new</a></li>
+                    <li><strong>Token name:</strong> "ClawFlow — &lt;שם העסק&gt;"</li>
+                    <li><strong>Expiration:</strong> 90 days (או Custom)</li>
+                    <li><strong>Resource owner:</strong> חשבון או organization של ה-repo</li>
+                    <li><strong>Repository access:</strong> "Only select repositories" → בחרו את ה-repo שלכם</li>
+                    <li><strong>Repository permissions</strong> (סמנו במדויק):
+                      <ul style="margin:3px 16px;padding:0">
+                        <li><strong>Contents</strong> → Read and write ✓</li>
+                        <li><strong>Metadata</strong> → Read (חובה)</li>
+                        <li><strong>Pull requests</strong> → Read and write ✓</li>
+                      </ul>
+                    </li>
+                    <li>Generate token → העתיקו (יוצג פעם אחת בלבד!)</li>
+                  </ol>
+                  <button class="btn btn-primary btn-sm" onclick="ghStepTo(2)" style="font-size:0.78rem">יצרתי token ← המשך</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2: Paste details -->
+            <div id="gh-step-2" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px;margin-bottom:8px;display:none">
+              <div style="display:flex;align-items:start;gap:8px">
+                <div style="background:#2563EB;color:#FFF;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0">2</div>
+                <div style="flex:1">
+                  <div style="font-weight:600;font-size:0.88rem;margin-bottom:4px">הזנת פרטים</div>
+                  <div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">
+                    <strong>Repository</strong> — בפורמט <code style="background:#F3F4F6;padding:1px 4px;border-radius:3px">owner/repo</code> (לדוגמה <code style="background:#F3F4F6;padding:1px 4px;border-radius:3px">synex-os/flowmatic</code>)
+                  </div>
+                  <input type="text" id="github-repo" placeholder="owner/repo" dir="ltr" class="int-input" style="margin-bottom:4px"/>
+                  <input type="password" id="github-token" placeholder="github_pat_... (token שיצרתם)" dir="ltr" class="int-input" style="margin-bottom:4px"/>
+                  <div style="font-size:0.72rem;color:#6B7280;margin-bottom:2px">נתיב תוכן (אופציונלי — ברירת מחדל <code>content/guides</code>)</div>
+                  <input type="text" id="github-content-path" placeholder="content/guides" dir="ltr" class="int-input" style="margin-bottom:8px" value="content/guides"/>
+                  <div style="display:flex;gap:6px">
+                    <button class="btn btn-outline btn-sm" onclick="ghStepTo(1)" style="font-size:0.78rem">→ חזרה</button>
+                    <button class="btn btn-primary btn-sm" onclick="saveGithubIntegration()" style="font-size:0.78rem">שמרו ובדקו ←</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3: Verify (E2E test runs automatically) -->
+            <div id="gh-step-3" style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:10px;margin-bottom:8px;display:none">
+              <div style="display:flex;align-items:start;gap:8px">
+                <div id="gh-step-3-icon" style="background:#10B981;color:#FFF;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0">3</div>
+                <div style="flex:1">
+                  <div style="font-weight:600;font-size:0.88rem;margin-bottom:6px" id="gh-step-3-title">אימות End-to-End</div>
+                  <div id="gh-test-progress" style="font-size:0.78rem;color:#4B5563"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Connected state -->
+          <div id="github-connected" style="display:none">
+            <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:10px;margin-bottom:8px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                <span style="color:#10B981;font-size:1rem">✓</span>
+                <span style="font-weight:600;font-size:0.88rem;color:#065F46">GitHub מחובר</span>
+              </div>
+              <div style="font-size:0.78rem;color:#047857;direction:ltr" id="github-repo-display"></div>
+              <div style="font-size:0.72rem;color:#6B7280">נתיב: <span id="github-path-display" dir="ltr"></span></div>
+            </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap">
               <button class="btn btn-primary btn-sm" onclick="testGithubIntegration()" style="font-size:0.75rem">🧪 בדיקת E2E</button>
               <button class="btn btn-outline btn-sm" onclick="disconnectGithubIntegration()" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">נתקו</button>
@@ -10126,7 +10192,17 @@ function updateGoogleAdsOAuthState() {
   if (oauthOk) oauthOk.style.display = '';
 }
 
-/* ===== GitHub Integration ===== */
+/* ===== GitHub Integration — 3-step wizard ===== */
+
+// Step navigation — 1 (create PAT) → 2 (paste) → 3 (verify E2E auto-run)
+function ghStepTo(n) {
+  [1, 2, 3].forEach(function(i) {
+    var el = document.getElementById('gh-step-' + i);
+    if (el) el.style.display = (i === n) ? '' : 'none';
+    var pill = document.getElementById('gh-step-pill-' + i);
+    if (pill) pill.style.background = i <= n ? '#2563EB' : '#E5E7EB';
+  });
+}
 
 async function saveGithubIntegration() {
   var iid = localStorage.getItem('cf_instance_id');
@@ -10135,19 +10211,93 @@ async function saveGithubIntegration() {
   var repo = document.getElementById('github-repo').value.trim();
   var token = document.getElementById('github-token').value.trim();
   var contentPath = document.getElementById('github-content-path').value.trim() || 'content/guides';
-  if (!repo || !token) { showToast('הכניסו repo ו-token', 'error'); return; }
+
+  // Client-side validation with specific feedback
+  if (!repo || !repo.includes('/')) {
+    showToast('Repository חייב להיות בפורמט owner/repo', 'error'); return;
+  }
+  if (!token) { showToast('token חסר', 'error'); return; }
+  if (!/^(github_pat_|ghp_)/.test(token)) {
+    showToast('הtoken נראה לא תקין (חייב להתחיל ב-github_pat_ או ghp_)', 'error'); return;
+  }
+
+  // Jump to Step 3 — show progress live
+  ghStepTo(3);
+  var progEl = document.getElementById('gh-test-progress');
+  var titleEl = document.getElementById('gh-step-3-title');
+  var iconEl  = document.getElementById('gh-step-3-icon');
+  var step3Card = document.getElementById('gh-step-3');
+
+  if (titleEl) titleEl.textContent = 'שומר + בודק את החיבור...';
+  if (iconEl) iconEl.style.background = '#F59E0B';
+  if (step3Card) { step3Card.style.background = '#FEF3C7'; step3Card.style.borderColor = '#F59E0B'; }
+  if (progEl) progEl.innerHTML = '<div style="display:flex;gap:6px;align-items:center"><span style="display:inline-block;animation:spin 1s linear infinite">⚙</span><span>שמירת פרטים + אימות Token...</span></div>';
+
   try {
     var res = await fetch(API + '/hosting/integrations/github/save', {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (tk || '') },
       body: JSON.stringify({ instanceId: iid, token: token, repo: repo, contentPath: contentPath })
     });
     var data = await res.json();
-    if (data.success) {
-      showToast('GitHub חובר!', 'success');
-      showGithubConnected(data.data);
-      document.getElementById('github-token').value = '';
-    } else { showToast(data.message || 'שגיאה', 'error'); }
-  } catch { showToast('שגיאת תקשורת', 'error'); }
+    if (!data.success) {
+      if (iconEl) iconEl.style.background = '#EF4444';
+      if (step3Card) { step3Card.style.background = '#FEF2F2'; step3Card.style.borderColor = '#FECACA'; }
+      if (titleEl) titleEl.textContent = 'שגיאה';
+      if (progEl) {
+        progEl.innerHTML = '<div style="color:#991B1B;margin-bottom:6px">' + (data.message || 'שמירה נכשלה') + '</div>' +
+          '<button class="btn btn-outline btn-sm" onclick="ghStepTo(2)" style="font-size:0.78rem">→ חזרה לתיקון</button>';
+      }
+      return;
+    }
+    document.getElementById('github-token').value = '';
+
+    // Auto-run E2E test — shows live progress
+    if (progEl) progEl.innerHTML = '<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><span style="color:#10B981">✓</span>הפרטים נשמרו</div>' +
+      '<div style="display:flex;gap:6px;align-items:center"><span style="display:inline-block;animation:spin 1s linear infinite">⚙</span>יוצר branch + קובץ בדיקה + PR...</div>';
+
+    var testRes = await fetch(API + '/hosting/instances/' + iid + '/integrations/github/test', {
+      method: 'POST', headers: { 'Authorization': 'Bearer ' + (tk || '') }
+    });
+    var testData = await testRes.json();
+    var ok = testData.success && testData.data && testData.data.passed;
+    var result = testData.data || {};
+
+    if (ok) {
+      if (iconEl) { iconEl.textContent = '✓'; iconEl.style.background = '#10B981'; }
+      if (step3Card) { step3Card.style.background = '#F0FDF4'; step3Card.style.borderColor = '#A7F3D0'; }
+      if (titleEl) titleEl.textContent = 'הכל עבד — GitHub מחובר ופעיל';
+      var stepsHtml = (result.steps || []).map(function(s) {
+        return '<div style="display:flex;gap:6px;align-items:center;font-size:0.75rem;padding:2px 0">' +
+          '<span style="color:#10B981">✓</span><span style="font-family:monospace">' + escapeHtml(s.step) + '</span>' +
+          (s.detail ? ' <span style="color:#6B7280;font-size:0.7rem">· ' + escapeHtml(s.detail) + '</span>' : '') +
+          '</div>';
+      }).join('');
+      if (progEl) progEl.innerHTML = stepsHtml +
+        (result.prUrl ? '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #A7F3D0">' +
+          '<a href="' + result.prUrl + '" target="_blank" style="color:#2563EB;font-size:0.8rem">🔗 ראו את ה-PR שנוצר (smoke test) ←</a>' +
+          '<div style="font-size:0.72rem;color:#6B7280;margin-top:4px">💡 הPR הוא רק בדיקה — סגרו אותו + מחקו את הענף ב-GitHub</div></div>' : '') +
+        '<div style="margin-top:10px"><button class="btn btn-primary btn-sm" onclick="showGithubConnected(' + JSON.stringify({ repo: repo, contentPath: contentPath }).replace(/"/g, '&quot;') + ')" style="font-size:0.78rem">סיום ←</button></div>';
+      showToast('GitHub מחובר ופעיל!', 'success');
+    } else {
+      if (iconEl) { iconEl.textContent = '!'; iconEl.style.background = '#F59E0B'; }
+      if (step3Card) { step3Card.style.background = '#FEF3C7'; step3Card.style.borderColor = '#F59E0B'; }
+      if (titleEl) titleEl.textContent = 'חיבור נשמר אך בדיקה נכשלה';
+      var failHtml = (result.steps || []).map(function(s) {
+        var ic = s.ok ? '<span style="color:#10B981">✓</span>' : '<span style="color:#EF4444">✗</span>';
+        return '<div style="display:flex;gap:6px;align-items:center;font-size:0.75rem;padding:2px 0">' + ic +
+          '<span style="font-family:monospace">' + escapeHtml(s.step) + '</span>' +
+          (s.detail ? ' <span style="color:#6B7280;font-size:0.7rem">· ' + escapeHtml(s.detail) + '</span>' : '') +
+          '</div>';
+      }).join('');
+      if (progEl) progEl.innerHTML = failHtml +
+        '<div style="margin-top:10px;font-size:0.75rem;color:#92400E">בדקו הרשאות ה-token: Contents (R+W), Pull requests (R+W)</div>' +
+        '<div style="margin-top:6px;display:flex;gap:6px"><button class="btn btn-outline btn-sm" onclick="ghStepTo(2)" style="font-size:0.78rem">→ חזרה לתיקון</button><button class="btn btn-primary btn-sm" onclick="showGithubConnected(' + JSON.stringify({ repo: repo, contentPath: contentPath }).replace(/"/g, '&quot;') + ')" style="font-size:0.78rem">המשיכו בכל זאת</button></div>';
+    }
+  } catch (e) {
+    if (iconEl) iconEl.style.background = '#EF4444';
+    if (titleEl) titleEl.textContent = 'שגיאת תקשורת';
+    if (progEl) progEl.innerHTML = '<div style="color:#991B1B">' + escapeHtml(e.message || '') + '</div><button class="btn btn-outline btn-sm" onclick="ghStepTo(2)" style="margin-top:6px;font-size:0.78rem">→ חזרה</button>';
+  }
 }
 
 function showGithubConnected(data) {
