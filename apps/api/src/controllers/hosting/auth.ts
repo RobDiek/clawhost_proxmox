@@ -406,7 +406,7 @@ export const getMyInstances = async (c: Context) => {
                 onboardingStep: i.onboardingStep,
                 researchData: i.researchData,
                 hasProfile: !!(i.researchData as any)?.answers,
-                hasResearch: !!(i.researchData as any)?.report,
+                hasResearch: !!((i.researchData as any)?.report || (i.researchData as any)?.stage1),
                 hasStrategy: !!(i.researchData as any)?.strategy,
                 aiProviderType: i.aiProviderType,
                 hasAnthropicKey: !!i.aiProviderKey,

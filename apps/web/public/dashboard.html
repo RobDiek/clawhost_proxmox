@@ -3089,7 +3089,7 @@ function renderHome() {
   if (!instanceData.hasProfile && instanceData.researchData && instanceData.researchData.answers) {
     instanceData.hasProfile = true;
   }
-  if (!instanceData.hasResearch && instanceData.researchData && instanceData.researchData.report) {
+  if (!instanceData.hasResearch && instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1)) {
     instanceData.hasResearch = true;
   }
   if (!instanceData.hasStrategy && instanceData.researchData && instanceData.researchData.strategy) {
@@ -3112,8 +3112,8 @@ function renderHome() {
   var hasTelegram = !!(instanceData && instanceData.telegramBotToken);
   var isMATEH = components.indexOf('mt') !== -1;
   var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
-  var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && instanceData.researchData.report)));
-  var hasStrategy = !!(instanceData && instanceData.hasStrategy);
+  var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1))));
+  var hasStrategy = !!(instanceData && (instanceData.hasStrategy || (instanceData.researchData && instanceData.researchData.strategy)));
   var hasScenarios = !!(instanceData && instanceData.researchData && instanceData.researchData.scenarios);
   var hasChosenScenario = !!(instanceData && instanceData.researchData && instanceData.researchData.chosenScenario);
   var onboardingDone = !!(instanceData && instanceData.onboardingCompleted);
@@ -3248,7 +3248,7 @@ function getNotifications() {
   var hasAnyAi = hasApiKey || hasOllamaProvider;
   var hasTelegram = !!(instanceData && instanceData.telegramBotToken);
   var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
-  var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && instanceData.researchData.report)));
+  var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1))));
   var hasGoogle = !!(instanceData && instanceData.googleTokens);
   var dismissed = JSON.parse(localStorage.getItem('cf_dismissed_notifs') || '[]');
 
