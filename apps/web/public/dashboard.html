@@ -3163,6 +3163,23 @@ function renderHome() {
       });
     }
     if (hasChosenScenario) {
+      // Connections Wizard — required connections for the chosen scenario
+      var connReqs = computeConnectionsRequirements(instanceData.researchData.chosenScenario, instanceData);
+      var mustReqs = connReqs.filter(function(r) { return r.must && !r.info; });
+      var mustDone = mustReqs.filter(function(r) { return r.status === 'connected'; }).length;
+      var mustTotal = mustReqs.length;
+      var allMustConnected = mustTotal > 0 && mustDone === mustTotal;
+      tasks.push({
+        id: 'connections',
+        label: allMustConnected
+          ? '✓ חיבור ערוצים — ' + mustDone + '/' + mustTotal + ' מחוברים'
+          : 'חיבור ערוצים ופלטפורמות — ' + mustDone + '/' + mustTotal,
+        done: allMustConnected,
+        action: "openConnectionsWizard()",
+        actionLabel: mustDone === 0 ? 'התחילו לחבר' : 'המשיכו',
+        desc: 'חיבור פלטפורמות הפרסום, כלי ניתוח וחשבונות פרסום עבור המסלול שבחרתם'
+      });
+
       var latestBrief = instanceData.researchData && instanceData.researchData.latestOpsBrief;
       var briefWeek = latestBrief && latestBrief.weekNum;
       tasks.push({
@@ -6833,6 +6850,242 @@ var currentScenarios = null;
 var selectedScenarioKey = null;
 var channelOverrides = null; // array of channel names user kept
 var paidTrafficChoice = null; // 'immediate' | 'gatekeeper' | null (conservative = null)
+
+// ── Connections Wizard — computes required connections per scenario ──
+function computeConnectionsRequirements(scenario, inst) {
+  if (!scenario) return [];
+  var key = scenario.key;                                        // 'conservative'|'recommended'|'aggressive'
+  var paidAct = scenario.paidTrafficActivation;                  // 'immediate'|'gatekeeper'|null
+  var channels = (scenario.primaryChannels || []).join(' ').toLowerCase();
+  var answers = (inst.researchData && inst.researchData.answers) || {};
+  var reqs = [];
+
+  function st(connected) { return connected ? 'connected' : 'missing'; }
+
+  // === Core (always required) ===
+  reqs.push({
+    id: 'website', icon: '🌐', label: 'כתובת אתר עסקי',
+    must: true, group: 'core',
+    desc: 'לצורך AEO, GSC, מעקב ביקורים וטראפיק — חובה לפני הפעלת הסוכנים',
+    status: st(!!(answers.websiteUrl || answers.website)),
+    connectAction: "switchTab('agents');setTimeout(function(){openAgentDetail('mt')},100)",
+    connectLabel: 'עדכנו בפרופיל'
+  });
+
+  reqs.push({
+    id: 'telegram', icon: '💬', label: 'בוט Telegram',
+    must: true, group: 'core',
+    desc: 'ערוץ התקשורת הראשי — דו״ח יומי, אישורי פרסום, התראות',
+    status: st(!!inst.telegramBotToken),
+    connectAction: "switchTab('integrations')"
+  });
+
+  reqs.push({
+    id: 'ai-key', icon: '🤖', label: 'מפתח AI (Anthropic/OpenAI)',
+    must: true, group: 'core',
+    desc: 'הסוכנים משתמשים ב-Claude / GPT-4o דרך המפתח שלכם — משולם ישירות לספק',
+    status: st(!!(inst.aiProviderKey || inst.openaiApiKey)),
+    connectAction: "switchTab('integrations')"
+  });
+
+  if (key !== 'conservative') {
+    reqs.push({
+      id: 'openai-creative', icon: '🎨', label: 'OpenAI (DALL-E ליצירת ויזואלים)',
+      must: false, group: 'creative',
+      desc: 'הסוכן "יוצר" ייצר תמונות לפוסטים דרך DALL-E 3',
+      status: st(!!inst.openaiApiKey),
+      connectAction: "switchTab('integrations')"
+    });
+  }
+
+  // === Organic distribution (based on primaryChannels) ===
+  if (/linkedin/.test(channels)) {
+    reqs.push({
+      id: 'linkedin', icon: '💼', label: 'LinkedIn (פרסום ידני — אישור לפני)',
+      must: true, group: 'organic',
+      desc: 'LinkedIn לא מאפשר פרסום אוטומטי דרך API לחשבונות אישיים. הסוכן יכין טיוטות + תאשרו ותפרסמו דרך הדשבורד',
+      status: 'info',
+      info: true
+    });
+  }
+  if (/facebook|instagram|\bmeta\b/.test(channels)) {
+    reqs.push({
+      id: 'meta', icon: '📘', label: 'Facebook Page + Instagram',
+      must: true, group: 'organic',
+      desc: 'פרסום אוטומטי של פוסטים בדף עסקי + אינסטגרם + ניטור אזכורים',
+      status: st(!!(inst.metaTokens || inst.metaPageId)),
+      connectAction: "switchTab('integrations')"
+    });
+  }
+  if (/fb group|קבוצת פייסבוק|group/.test(channels)) {
+    reqs.push({
+      id: 'fb-group', icon: '👥', label: 'קבוצת Facebook (פרסום ידני)',
+      must: true, group: 'organic',
+      desc: 'קבוצות פייסבוק דורשות admin או חבר פעיל — הסוכן יכין, אתם תפרסמו (אסור ספאם)',
+      status: 'info',
+      info: true
+    });
+  }
+  if (/reddit|r\//.test(channels)) {
+    reqs.push({
+      id: 'reddit', icon: '🟠', label: 'Reddit (פרסום ידני)',
+      must: false, group: 'organic',
+      desc: 'ודאו שיש לכם karma מינימלי (>50) בקהילות רלוונטיות. הסוכן יכין טיוטות',
+      status: 'info',
+      info: true
+    });
+  }
+
+  // === Paid channels ===
+  var wantsImmediate = paidAct === 'immediate';
+  var wantsGatekeeper = paidAct === 'gatekeeper';
+  if (/google ads|paid search|adwords/.test(channels)) {
+    reqs.push({
+      id: 'google-ads', icon: '🎯', label: 'Google Ads',
+      must: wantsImmediate, group: 'paid',
+      desc: 'הקמת חשבון Google Ads + conversion tracking + הרשאה לסוכן לניהול קמפיינים',
+      status: st(!!(inst.googleTokens || inst.googleAdsCustomerId)),
+      connectAction: "switchTab('integrations')"
+    });
+  }
+  if (/meta ads|facebook ads|instagram ads/.test(channels)) {
+    reqs.push({
+      id: 'meta-ads', icon: '💰', label: 'Meta Ads (Facebook + Instagram)',
+      must: wantsImmediate, group: 'paid',
+      desc: 'חשבון פרסום Meta + Pixel install + הרשאת Business Manager',
+      status: st(!!(inst.metaAdAccountId || inst.metaTokens)),
+      connectAction: "switchTab('integrations')"
+    });
+  }
+
+  // === Analytics + SEO ===
+  reqs.push({
+    id: 'gsc', icon: '🔎', label: 'Google Search Console',
+    must: key !== 'conservative' || /seo|blog|מאמר/.test(channels),
+    group: 'analytics',
+    desc: 'חובה לסוכן "מאתר" למעקב SERP + indexing + אינטגרציה עם מגדלור (AEO)',
+    status: st(!!(inst.gscSite || inst.gscTokens)),
+    connectAction: "switchTab('integrations')"
+  });
+
+  // === Research tools (paid — client's own subscription) ===
+  if (key === 'aggressive' || (key === 'recommended' && /seo|blog/.test(channels))) {
+    reqs.push({
+      id: 'dataforseo', icon: '📊', label: 'DataForSEO API',
+      must: key === 'aggressive', group: 'research',
+      desc: 'מעקב SERP + נפחי חיפוש + Keyword Difficulty (KD). ~$50-125/חודש לתשלום ישיר',
+      status: st(!!inst.dataforseoApiKey),
+      connectAction: "switchTab('integrations')"
+    });
+  }
+  if (key === 'aggressive') {
+    reqs.push({
+      id: 'firecrawl', icon: '🕷️', label: 'Firecrawl API',
+      must: false, group: 'research',
+      desc: 'Deep crawl של אתרי מתחרים — ~$20-80/חודש לתשלום ישיר',
+      status: st(!!inst.firecrawlApiKey),
+      connectAction: "switchTab('integrations')"
+    });
+  }
+
+  return reqs;
+}
+
+async function openConnectionsWizard() {
+  if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+  document.getElementById('pipelineOverlay').classList.remove('hidden');
+  document.getElementById('pipelineTitle').textContent = 'אשף חיבורים';
+  document.getElementById('pipelineSteps').innerHTML = '';
+  document.getElementById('pipelineProgress').style.width = '0%';
+  renderConnectionsWizard();
+}
+
+function renderConnectionsWizard() {
+  var chosen = instanceData.researchData && instanceData.researchData.chosenScenario;
+  if (!chosen) {
+    document.getElementById('pipelineBody').innerHTML =
+      '<div style="text-align:center;padding:40px;color:#6B7280">יש לבחור תחילה מסלול ביצוע</div>';
+    return;
+  }
+  var reqs = computeConnectionsRequirements(chosen, instanceData);
+  var mustReqs = reqs.filter(function(r) { return r.must && !r.info; });
+  var done = mustReqs.filter(function(r) { return r.status === 'connected'; }).length;
+  var total = mustReqs.length;
+  var pct = total > 0 ? Math.round(done / total * 100) : 0;
+  document.getElementById('pipelineProgress').style.width = pct + '%';
+
+  var groups = {
+    core: { label: 'ליבה', icon: '⚙️', color: '#111827' },
+    organic: { label: 'ערוצים אורגניים', icon: '🌱', color: '#059669' },
+    paid: { label: 'פרסום ממומן', icon: '💰', color: '#D97706' },
+    analytics: { label: 'ניתוח ו-SEO', icon: '📊', color: '#2563EB' },
+    creative: { label: 'יצירה', icon: '🎨', color: '#7C3AED' },
+    research: { label: 'מחקר (בתשלום ישיר)', icon: '🔬', color: '#DB2777' }
+  };
+
+  var byGroup = {};
+  reqs.forEach(function(r) {
+    if (!byGroup[r.group]) byGroup[r.group] = [];
+    byGroup[r.group].push(r);
+  });
+
+  var html = '<div style="padding:4px">' +
+    '<div style="background:#F3F4F6;border-radius:10px;padding:12px;margin-bottom:20px;display:flex;gap:12px;align-items:center">' +
+    '<div style="font-size:1.8rem">' + (pct === 100 ? '✅' : '🔌') + '</div>' +
+    '<div style="flex:1"><div style="font-weight:800;color:#111827;font-size:1.05rem">' + done + ' מתוך ' + total + ' חיבורי חובה</div>' +
+    '<div style="font-size:0.78rem;color:#6B7280">מסלול: ' + escapeHtml(chosen.name) + ' ' + (chosen.emoji || '') +
+    (chosen.paidTrafficActivation ? ' · פרסום: ' + (chosen.paidTrafficActivation === 'immediate' ? 'מיידי' : 'Gatekeeper') : '') + '</div></div>' +
+    '</div>';
+
+  Object.keys(groups).forEach(function(gKey) {
+    var items = byGroup[gKey] || [];
+    if (items.length === 0) return;
+    var g = groups[gKey];
+    html += '<div style="margin-bottom:18px">' +
+      '<div style="font-weight:700;font-size:0.88rem;color:' + g.color + ';margin-bottom:8px;display:flex;align-items:center;gap:6px">' +
+      '<span>' + g.icon + '</span> ' + g.label + '</div>' +
+      items.map(function(r) {
+        var statusBadge = '';
+        var actionBtn = '';
+        if (r.info) {
+          statusBadge = '<span style="background:#DBEAFE;color:#1E40AF;padding:3px 8px;border-radius:10px;font-size:0.7rem;font-weight:600">ℹ️ ידני</span>';
+        } else if (r.status === 'connected') {
+          statusBadge = '<span style="background:#D1FAE5;color:#065F46;padding:3px 8px;border-radius:10px;font-size:0.7rem;font-weight:600">✓ מחובר</span>';
+        } else {
+          statusBadge = '<span style="background:#FEE2E2;color:#991B1B;padding:3px 8px;border-radius:10px;font-size:0.7rem;font-weight:600">' + (r.must ? 'חובה' : 'אופציונלי') + '</span>';
+          actionBtn = '<button onclick="closePipeline();' + r.connectAction + '" class="btn btn-primary btn-sm" style="margin-right:auto;white-space:nowrap">' + escapeHtml(r.connectLabel || 'חברו') + ' ←</button>';
+        }
+        var opacity = r.info ? '0.9' : '1';
+        var bgColor = r.status === 'connected' ? '#F0FDF4' : r.info ? '#EFF6FF' : '#FEF9F0';
+        var borderColor = r.status === 'connected' ? '#BBF7D0' : r.info ? '#BFDBFE' : '#FDE68A';
+        return '<div style="display:flex;gap:10px;align-items:start;padding:10px 12px;background:' + bgColor + ';border:1px solid ' + borderColor + ';border-radius:10px;margin-bottom:6px;opacity:' + opacity + '">' +
+          '<div style="font-size:1.3rem;flex-shrink:0">' + r.icon + '</div>' +
+          '<div style="flex:1;min-width:0">' +
+          '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:3px">' +
+          '<span style="font-weight:600;font-size:0.88rem">' + annotate(r.label) + '</span>' +
+          statusBadge + '</div>' +
+          '<div style="font-size:0.76rem;color:#6B7280;line-height:1.4">' + annotate(r.desc) + '</div>' +
+          '</div>' + actionBtn +
+          '</div>';
+      }).join('') +
+      '</div>';
+  });
+
+  html += '</div>';
+  document.getElementById('pipelineBody').innerHTML = html;
+  document.getElementById('pipelineNextBtn').style.display = '';
+  document.getElementById('pipelineNextBtn').textContent = pct === 100 ? '✓ סיימתי — המשך' : 'רענן סטטוס';
+  document.getElementById('pipelineNextBtn').disabled = false;
+  document.getElementById('pipelineNextBtn').onclick = async function() {
+    if (pct === 100) {
+      closePipeline();
+      showToast('כל החיבורים מוכנים — הסוכנים יכולים להתחיל!', 'success');
+    } else {
+      await refreshInstanceData();
+      renderConnectionsWizard();
+    }
+  };
+}
 
 // ── Weekly Ops Brief ──
 async function openOpsBrief() {
