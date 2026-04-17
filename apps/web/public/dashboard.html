@@ -3160,7 +3160,17 @@ function renderHome() {
       });
     }
     if (hasChosenScenario) {
-      tasks.push({ id: 'brief', label: 'הכל מוכן — הסוכנים פעילים', done: true, desc: 'Daily Brief, דוחות שבועיים, ביקורת AEO — אוטומטית' });
+      var latestBrief = instanceData.researchData && instanceData.researchData.latestOpsBrief;
+      var briefWeek = latestBrief && latestBrief.weekNum;
+      tasks.push({
+        id: 'ops-brief',
+        label: latestBrief ? ('דוח שבועי #' + briefWeek + ' — ' + (latestBrief.overallStatus === 'on_track' ? '✅ על המסלול' : latestBrief.overallStatus === 'behind' ? '🟡 מפגר' : latestBrief.overallStatus === 'at_risk' ? '🟠 בסיכון' : '🔴 קריטי')) : 'דוח ביצועים שבועי',
+        done: !!latestBrief,
+        action: "openOpsBrief()",
+        actionLabel: latestBrief ? 'צפו בדוח' : 'ייצרו דוח ראשון',
+        desc: latestBrief ? latestBrief.statusReason : 'השוואת ביצועים מול KPI של המסלול + 3 פעולות לשבוע הבא'
+      });
+      tasks.push({ id: 'brief', label: 'הסוכנים פעילים', done: true, desc: 'Daily Brief, דוחות שבועיים, ביקורת AEO — אוטומטית' });
     }
   }
 
@@ -6633,6 +6643,30 @@ async function runChainStrategy() {
   runStrategyStage(startStage);
 }
 
+// Bypass low-confidence gate (user explicitly opts in)
+function bypassConfidenceGate(stage) {
+  window._strategyBypassConfidence = true;
+  runStrategyStage(stage);
+}
+
+// Reset stage 5 and re-run in real-interviews mode
+function resetValidationAndRerun() {
+  closePipeline();
+  showToast('פותח מחקר — נתחיל מחדש את שלב 5 עם ראיונות אמיתיים', 'success');
+  setTimeout(function() {
+    // Open research pipeline at stage 5 with validation mode selector
+    if (typeof runPipelineStage === 'function') {
+      if (typeof showValidationChoice === 'function') {
+        showValidationChoice();
+      } else {
+        runPipelineStage(5, { validationMode: 'real_interviews' });
+      }
+    } else {
+      showToast('לא נמצאה פונקציית המחקר — רעננו את הדף', 'error');
+    }
+  }, 600);
+}
+
 async function runStrategyStage(stage) {
   try {
     strategyPipelineStage = stage;
@@ -6660,10 +6694,12 @@ async function runStrategyStage(stage) {
     document.getElementById('pipelineNextBtn').disabled = true;
     document.getElementById('pipelineNextBtn').textContent = 'ממתין...';
 
+    var body = { stage: stage, model: strategyModelChoice };
+    if (window._strategyBypassConfidence) body.confirmLowConfidence = true;
     var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/strategy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ stage: stage, model: strategyModelChoice })
+      body: JSON.stringify(body)
     });
 
     if (window._pipelineTimer) clearInterval(window._pipelineTimer);
@@ -6702,11 +6738,27 @@ async function runStrategyStage(stage) {
         document.getElementById('pipelineNextBtn').textContent = '→ השלב הבא';
         document.getElementById('pipelineNextBtn').onclick = function() { runStrategyStage(stage + 1); };
       }
+    } else if (data && data.data && data.data.requiresRealInterviews) {
+      // Confidence < 40 — hard gate. Force real interviews before strategy.
+      var cs = data.data.confidenceScore;
+      document.getElementById('pipelineBody').innerHTML =
+        '<div style="padding:30px">' +
+        '<div style="text-align:center;font-size:2rem;margin-bottom:12px">🛑</div>' +
+        '<div style="text-align:center;font-weight:700;font-size:1.1rem;color:#DC2626;margin-bottom:12px">ציון אמון נמוך מדי: ' + cs + '/100</div>' +
+        '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:14px;font-size:0.88rem;color:#7F1D1D;line-height:1.6;margin-bottom:16px">' +
+        'האסטרטגיה תיבנה על פרסונות לא מאומתות — זה יצריך אותך לשלם כ-$3-5 במודל Opus 4.7 על תוכן שיהיה ככל הנראה לא שמיש.<br><br>' +
+        '<strong>המלצתי:</strong> הריצו שלב 5 של המחקר במצב "ראיונות אמיתיים" (Mom-Test), עם 5 לקוחות פוטנציאליים אמיתיים. תוצאות חיות > פרסונות AI לא מאומתות.' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;flex-direction:column">' +
+        '<button class="btn btn-primary" onclick="resetValidationAndRerun()">🎯 הריצו שלב 5 מחדש (ראיונות אמיתיים)</button>' +
+        '<button class="btn btn-outline" onclick="bypassConfidenceGate(' + stage + ')" style="color:#DC2626;border-color:#FECACA">⚠️ המשיכו למרות האזהרה</button>' +
+        '</div></div>';
+      document.getElementById('pipelineNextBtn').style.display = 'none';
     } else {
       document.getElementById('pipelineBody').innerHTML =
         '<div style="text-align:center;padding:30px;color:#EF4444">' +
         '<div style="font-size:1.5rem;margin-bottom:8px">⚠️</div>' +
-        '<div>' + (data.message || 'שגיאה') + '</div></div>';
+        '<div>' + ((data && data.message) || 'שגיאה') + '</div></div>';
       document.getElementById('pipelineNextBtn').disabled = false;
       document.getElementById('pipelineNextBtn').textContent = '→ נסו שוב';
       document.getElementById('pipelineNextBtn').onclick = function() { runStrategyStage(stage); };
@@ -6728,6 +6780,160 @@ async function runStrategyStage(stage) {
 var currentScenarios = null;
 var selectedScenarioKey = null;
 var channelOverrides = null; // array of channel names user kept
+
+// ── Weekly Ops Brief ──
+async function openOpsBrief() {
+  if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+  document.getElementById('pipelineOverlay').classList.remove('hidden');
+  document.getElementById('pipelineTitle').textContent = 'דוח ביצועים שבועי';
+  document.getElementById('pipelineSteps').innerHTML = '';
+  document.getElementById('pipelineProgress').style.width = '100%';
+  document.getElementById('pipelineBody').innerHTML =
+    '<div style="text-align:center;padding:40px;color:#9CA3AF">טוען...</div>';
+  document.getElementById('pipelineNextBtn').style.display = 'none';
+
+  try {
+    var getRes = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/ops-brief', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await getRes.json();
+    var latest = data && data.data && data.data.latest;
+    if (latest) {
+      renderOpsBrief(latest, data.data.history, data.data.chosenScenario);
+    } else {
+      // No brief yet — offer to generate
+      document.getElementById('pipelineBody').innerHTML =
+        '<div style="padding:30px;text-align:center">' +
+        '<div style="font-size:2rem;margin-bottom:12px">📊</div>' +
+        '<div style="font-weight:600;margin-bottom:6px">אין עדיין דוח ביצועים</div>' +
+        '<div style="font-size:0.85rem;color:#6B7280;margin-bottom:20px">הדוח משווה את הביצועים שלכם מול ה-KPI של המסלול שבחרתם ונותן 3 פעולות ספציפיות לשבוע הבא.</div>' +
+        '<button class="btn btn-primary" onclick="generateOpsBrief()">ייצרו דוח ראשון 📊</button>' +
+        '</div>';
+    }
+  } catch (e) {
+    console.error('[ops-brief] get failed', e);
+    document.getElementById('pipelineBody').innerHTML =
+      '<div style="text-align:center;padding:30px;color:#EF4444">שגיאת תקשורת</div>';
+  }
+}
+
+async function generateOpsBrief() {
+  document.getElementById('pipelineBody').innerHTML =
+    '<div style="text-align:center;padding:40px">' +
+    '<div style="font-size:2rem;animation:spin 2s linear infinite;display:inline-block;margin-bottom:12px">📊</div>' +
+    '<div style="font-weight:600;margin-bottom:4px">Opus 4.7 מנתח ביצועים מול המסלול</div>' +
+    '<div style="color:#9CA3AF;font-size:0.78rem">~30-60 שניות</div></div>';
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/ops-brief', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({})
+    });
+    var data = await res.json();
+    if (!data.success || !data.data || !data.data.brief) {
+      document.getElementById('pipelineBody').innerHTML =
+        '<div style="text-align:center;padding:30px;color:#EF4444">' +
+        '<div style="font-size:1.5rem;margin-bottom:8px">⚠️</div>' +
+        '<div>' + ((data && data.message) || 'שגיאה') + '</div></div>';
+      return;
+    }
+    await refreshInstanceData();
+    renderOpsBrief(data.data.brief, [], null);
+    showToast('דוח ביצועים מוכן!', 'success');
+  } catch (e) {
+    console.error('[ops-brief] generate failed', e);
+    document.getElementById('pipelineBody').innerHTML =
+      '<div style="text-align:center;padding:30px;color:#EF4444">שגיאת תקשורת</div>';
+  }
+}
+
+function renderOpsBrief(brief, history, scenario) {
+  var statusColors = {
+    'on_track': { bg: '#D1FAE5', border: '#10B981', text: '#065F46', emoji: '✅', label: 'על המסלול' },
+    'behind':   { bg: '#FEF3C7', border: '#F59E0B', text: '#92400E', emoji: '🟡', label: 'מפגר' },
+    'at_risk':  { bg: '#FED7AA', border: '#EA580C', text: '#7C2D12', emoji: '🟠', label: 'בסיכון' },
+    'critical': { bg: '#FEE2E2', border: '#DC2626', text: '#7F1D1D', emoji: '🔴', label: 'קריטי' }
+  };
+  var sc = statusColors[brief.overallStatus] || statusColors.behind;
+
+  var devsHtml = '';
+  if (brief.deviations && brief.deviations.length) {
+    devsHtml =
+      '<div style="margin-bottom:20px">' +
+      '<div style="font-weight:700;font-size:0.92rem;margin-bottom:8px">📉 סטיות מה-KPI</div>' +
+      '<div style="display:grid;gap:6px">' +
+      brief.deviations.map(function(d) {
+        var sev = d.severity === 'high' ? '#DC2626' : d.severity === 'medium' ? '#F59E0B' : '#6B7280';
+        return '<div style="display:flex;gap:8px;align-items:center;padding:8px 10px;background:#F9FAFB;border-radius:8px;border-right:3px solid ' + sev + '">' +
+          '<div style="flex:1"><div style="font-size:0.85rem;font-weight:600">' + escapeHtml(d.metric) + '</div>' +
+          '<div style="font-size:0.75rem;color:#6B7280">יעד: ' + escapeHtml(d.target) + ' · בפועל: ' + escapeHtml(d.actual) + '</div></div>' +
+          '<div style="font-weight:700;color:' + sev + '">' + (d.deviationPct > 0 ? '+' : '') + d.deviationPct + '%</div></div>';
+      }).join('') +
+      '</div></div>';
+  }
+
+  var actionsHtml = '';
+  if (brief.topActions && brief.topActions.length) {
+    actionsHtml =
+      '<div style="margin-bottom:20px">' +
+      '<div style="font-weight:700;font-size:0.92rem;margin-bottom:8px">🎯 3 פעולות לשבוע הבא</div>' +
+      '<div style="display:grid;gap:8px">' +
+      brief.topActions.map(function(a, i) {
+        return '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px">' +
+          '<div style="display:flex;gap:8px;align-items:start">' +
+          '<div style="background:#2563EB;color:#FFF;width:22px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0">' + (i+1) + '</div>' +
+          '<div style="flex:1"><div style="font-weight:600;font-size:0.88rem;margin-bottom:2px">' + escapeHtml(a.action) + '</div>' +
+          '<div style="font-size:0.72rem;color:#6B7280">👤 ' + escapeHtml(a.owner || '—') + ' · 📅 ' + escapeHtml(a.deadline || '—') + '</div>' +
+          (a.expectedImpact ? '<div style="font-size:0.72rem;color:#10B981;margin-top:2px">💡 ' + escapeHtml(a.expectedImpact) + '</div>' : '') +
+          '</div></div></div>';
+      }).join('') +
+      '</div></div>';
+  }
+
+  var onTrackHtml = brief.onTrack && brief.onTrack.length ?
+    '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:0.88rem;color:#10B981;margin-bottom:6px">✅ על המסלול</div>' +
+    brief.onTrack.map(function(t) { return '<div style="font-size:0.82rem;color:#374151;margin-bottom:2px">• ' + escapeHtml(t) + '</div>'; }).join('') +
+    '</div>' : '';
+
+  var behindHtml = brief.behind && brief.behind.length ?
+    '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:0.88rem;color:#F59E0B;margin-bottom:6px">🟡 מפגר</div>' +
+    brief.behind.map(function(t) { return '<div style="font-size:0.82rem;color:#374151;margin-bottom:2px">• ' + escapeHtml(t) + '</div>'; }).join('') +
+    '</div>' : '';
+
+  var criticalHtml = brief.critical && brief.critical.length ?
+    '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:0.88rem;color:#DC2626;margin-bottom:6px">🔴 קריטי</div>' +
+    brief.critical.map(function(t) { return '<div style="font-size:0.82rem;color:#374151;margin-bottom:2px">• ' + escapeHtml(t) + '</div>'; }).join('') +
+    '</div>' : '';
+
+  var historyHtml = '';
+  if (history && history.length > 1) {
+    historyHtml =
+      '<div style="border-top:1px solid #E5E7EB;padding-top:12px;margin-top:16px">' +
+      '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:6px">היסטוריה</div>' +
+      '<div style="display:flex;gap:4px;flex-wrap:wrap">' +
+      history.slice(0, 8).map(function(h) {
+        var hc = statusColors[h.overallStatus] || statusColors.behind;
+        return '<div style="font-size:0.72rem;padding:3px 8px;background:' + hc.bg + ';color:' + hc.text + ';border-radius:6px">W' + h.weekNum + ' ' + hc.emoji + '</div>';
+      }).join('') + '</div></div>';
+  }
+
+  document.getElementById('pipelineBody').innerHTML =
+    '<div style="padding:4px">' +
+    '<div style="background:' + sc.bg + ';border:2px solid ' + sc.border + ';border-radius:10px;padding:14px;margin-bottom:20px">' +
+    '<div style="display:flex;align-items:center;gap:10px"><div style="font-size:1.8rem">' + sc.emoji + '</div>' +
+    '<div style="flex:1"><div style="font-weight:800;font-size:1.1rem;color:' + sc.text + '">שבוע ' + brief.weekNum + ' · ' + sc.label + '</div>' +
+    '<div style="font-size:0.82rem;color:' + sc.text + ';opacity:0.85">' + escapeHtml(brief.statusReason || '') + '</div></div></div>' +
+    '</div>' +
+    onTrackHtml + behindHtml + criticalHtml + devsHtml + actionsHtml +
+    (brief.tokenSpendNote ? '<div style="font-size:0.75rem;color:#6B7280;background:#F9FAFB;border-radius:6px;padding:8px 10px;margin-bottom:12px">💰 ' + escapeHtml(brief.tokenSpendNote) + '</div>' : '') +
+    (brief.nextReviewAt ? '<div style="font-size:0.75rem;color:#9CA3AF;text-align:center;margin-top:8px">סקירה הבאה: ' + escapeHtml(brief.nextReviewAt) + '</div>' : '') +
+    historyHtml +
+    '</div>';
+  document.getElementById('pipelineNextBtn').style.display = '';
+  document.getElementById('pipelineNextBtn').textContent = '🔄 ייצרו דוח מעודכן';
+  document.getElementById('pipelineNextBtn').disabled = false;
+  document.getElementById('pipelineNextBtn').onclick = generateOpsBrief;
+}
 
 // Open picker from home card — loads cached scenarios or generates fresh
 async function openScenarioPicker() {

@@ -415,24 +415,83 @@ print('tools profile: messaging')
     console.log(`Cron jobs deferred for ${agentType} — will activate after onboarding complete`)
 }
 
+// Map cadence keyword → cron expression (IL business hours)
+function cadenceToCron(cadence: string): string | null {
+    const map: Record<string, string> = {
+        'hourly':  '0 * * * *',
+        'daily':   '0 7 * * 0-4',   // 7am Sun-Thu
+        '2xday':   '0 7,16 * * 0-4',
+        '2xweek':  '0 7 * * 1,4',   // Mon, Thu
+        'weekly':  '0 8 * * 1',     // Monday 8am
+        'monthly': '0 10 1 * *',    // 1st of month, 10am
+        'off':     '',
+    }
+    const c = cadence?.toLowerCase().trim() || 'off'
+    if (c === 'off') return null
+    return map[c] || map['weekly']
+}
+
+// Canonical per-agent cron definitions for MATEH.
+// Each entry maps an agentId to the cron metadata. Cadence pulled from roster.
+interface AgentCronDef {
+    agentId: string
+    name: string
+    description: string
+    model: 'haiku' | 'sonnet' | 'opus'
+    message: string
+    defaultCadence: string
+}
+const MATEH_AGENT_CRONS: AgentCronDef[] = [
+    { agentId: 'menateach', name: 'daily-brief',       description: 'סיכום יומי',          model: 'haiku',  defaultCadence: 'daily',   message: 'הכן Daily Brief בעברית: סכם פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות. הודעה קצרה ותכליתית.' },
+    { agentId: 'sayer',     name: 'weekly-competitive', description: 'דוח תחרותי שבועי',   model: 'sonnet', defaultCadence: 'weekly',  message: 'דוח תחרותי שבועי בעברית: חפש חדשות של מתחרים, שינויי מחיר, פיצ\'רים חדשים. סכם ב-5 נקודות עם המלצות פעולה.' },
+    { agentId: 'meater',    name: 'serp-tracker',       description: 'מעקב SERP יומי',       model: 'haiku',  defaultCadence: 'daily',   message: 'בדוק מיקומים של מילות המפתח העיקריות ב-Google.co.il. דווח על שינויים > 3 מיקומים.' },
+    { agentId: 'mazin',     name: 'social-listening',   description: 'האזנה לרשתות',        model: 'haiku',  defaultCadence: 'daily',   message: 'סרוק אזכורים של המותג והמתחרים בקבוצות פייסבוק רלוונטיות. דווח על sentiment negative > 2 ב-24h.' },
+    { agentId: 'ayat',      name: 'content-draft',      description: 'טיוטת תוכן',          model: 'sonnet', defaultCadence: '2xweek',  message: 'כתוב טיוטת פוסט/מאמר לפי Content Calendar השבועי. שמור כ-draft לאישור.' },
+    { agentId: 'yotzer',    name: 'visual-gen',         description: 'ויזואלים',             model: 'haiku',  defaultCadence: 'weekly',  message: 'ייצר ויזואלים לפוסטים שאושרו השבוע. ממדים לפי פלטפורמה.' },
+    { agentId: 'shaliach',  name: 'publish-queue',      description: 'פרסום מתוזמן',         model: 'haiku',  defaultCadence: 'daily',   message: 'פרסם תוכן שאושר ב-peak times של כל פלטפורמה. דווח על CTR + engagement.' },
+    { agentId: 'migdalor',  name: 'aeo-audit',          description: 'ביקורת AEO חודשית',    model: 'sonnet', defaultCadence: 'monthly', message: 'בדוק mentions של העסק ב-ChatGPT, Claude, Perplexity, Gemini. דווח על שינויים + המלצות.' },
+]
+
 // ── Activate cron jobs on VPS after onboarding is complete ──
-async function activateAgentCrons(ip: string, agentType: string, password?: string): Promise<void> {
+// If chosenScenario.agentRoster exists, use its cadences. Otherwise fall back to defaults.
+async function activateAgentCrons(
+    ip: string,
+    agentType: string,
+    password?: string,
+    roster?: Record<string, { cadence: string; role?: string }>
+): Promise<void> {
     if (agentType === 'oc') {
         await sshExec(ip, `
             su - openclaw -c '
             openclaw cron add --name "morning-summary" --description "סיכום בוקר" --cron "0 7 * * 0-4" --tz "Asia/Jerusalem" --model "haiku" --message "סכם את סדר היום: פגישות ביומן, מיילים שמחכים למענה, תזכורות ומשימות פתוחות. הודעה קצרה וידידותית בעברית." --session isolated 2>/dev/null
             '
         `, password)
-    } else if (agentType === 'mt') {
-        await sshExec(ip, `
-            su - openclaw -c '
-            openclaw cron add --name "daily-brief" --description "סיכום יומי" --cron "0 7 * * 0-4" --tz "Asia/Jerusalem" --model "haiku" --message "הכן Daily Brief בעברית: סכם פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות. הודעה קצרה ותכליתית." --session isolated 2>/dev/null
-            openclaw cron add --name "weekly-competitive" --description "דוח תחרותי שבועי" --cron "0 8 * * 1" --tz "Asia/Jerusalem" --model "sonnet" --message "דוח תחרותי שבועי בעברית: סייר חפש מתחרים, מאזין בדוק שיחות, מנתח דרג הזדמנויות, עט כתוב 2-3 הצעות פוסטים." --session isolated 2>/dev/null
-            openclaw cron add --name "monthly-aeo" --description "ביקורת AEO חודשית" --cron "0 10 1 * *" --tz "Asia/Jerusalem" --model "sonnet" --message "ביקורת AEO חודשית בעברית: בדוק ציטוטים ב-Claude/ChatGPT/Perplexity, Schema tags, המלצות לשיפור." --session isolated 2>/dev/null
-            '
-        `, password)
+        console.log(`Cron jobs activated for oc at ${ip}`)
+        return
     }
-    console.log(`Cron jobs activated for ${agentType} at ${ip}`)
+
+    if (agentType !== 'mt') return
+
+    // Build cron commands from roster (or defaults)
+    const activated: string[] = []
+    const skipped: string[] = []
+    const cmds: string[] = []
+    for (const def of MATEH_AGENT_CRONS) {
+        const cadenceStr = (roster && roster[def.agentId]?.cadence) || def.defaultCadence
+        const cronExpr = cadenceToCron(cadenceStr)
+        if (!cronExpr) { skipped.push(def.agentId); continue }
+        // Escape single quotes in message
+        const msgEsc = def.message.replace(/'/g, `'"'"'`)
+        cmds.push(`openclaw cron add --name "${def.name}" --description "${def.description}" --cron "${cronExpr}" --tz "Asia/Jerusalem" --model "${def.model}" --message '${msgEsc}' --session isolated 2>/dev/null`)
+        activated.push(`${def.agentId}:${cadenceStr}`)
+    }
+    if (cmds.length === 0) {
+        console.log(`No agent crons to activate at ${ip} (all roster off)`)
+        return
+    }
+    const script = `su - openclaw -c '${cmds.join(' ; ')}'`
+    await sshExec(ip, script, password, 60000)
+    console.log(`Crons activated at ${ip}: [${activated.join(', ')}]${skipped.length ? ` skipped: [${skipped.join(', ')}]` : ''}`)
 }
 
 // ── POST /hosting/instances/:id/setup/agents/analyze ──
@@ -1509,7 +1568,7 @@ export const buildStrategy = async (c: Context) => {
             return fail(c, 'Instance not found or not ready.', 404)
         }
 
-        const { stage: requestedStage, model: requestedModel } = await c.req.json<{ stage?: number; model?: string }>().catch(() => ({ stage: undefined, model: undefined }))
+        const { stage: requestedStage, model: requestedModel, confirmLowConfidence } = await c.req.json<{ stage?: number; model?: string; confirmLowConfidence?: boolean }>().catch(() => ({ stage: undefined, model: undefined, confirmLowConfidence: false }))
         const rd = (instance.researchData as any) || {}
         if (!rd.stage1 && !rd.report) {
             return fail(c, 'יש להריץ מחקר שוק קודם', 400)
@@ -1517,6 +1576,23 @@ export const buildStrategy = async (c: Context) => {
 
         const answers = rd.answers || {}
         const businessName = answers.businessName || 'העסק'
+
+        // ── Confidence Gate (< 40 = hard stop) ──
+        // Strategy on broken personas is expensive garbage. Force real interviews first.
+        const confScore = parseConfidenceScore(rd.stage5 || '')
+        const confidenceGateBypass = !!rd.confidenceGateBypass || !!confirmLowConfidence
+        if (confScore !== null && confScore < 40 && !confidenceGateBypass) {
+            return c.json({
+                success: false,
+                data: {
+                    confidenceScore: confScore,
+                    requiresRealInterviews: true,
+                },
+                message: `ציון אמון אימות נמוך מדי (${confScore}/100). האסטרטגיה תיבנה על פרסונות לא מאומתות. הריצו שלב 5 במצב "ראיונות אמיתיים" (Mom-Test) עם 5 אנשים לפחות, או אשרו במפורש המשך למרות האזהרה.`,
+                code: 422,
+                version: '0.0.142',
+            }, 422 as 422)
+        }
 
         // Determine which strategy stage to run
         const stage = requestedStage || (rd.strategyStage1 ? (rd.strategyStage2 ? (rd.strategyStage3 ? 4 : 3) : 2) : 1)
@@ -1645,6 +1721,10 @@ export const buildStrategy = async (c: Context) => {
             }
         }
 
+        // Citation validator — flag unsourced claims
+        const citationWarnings = validateCitations(strategy)
+        validationWarnings.push(...citationWarnings)
+
         if (validationWarnings.length > 0) {
             console.warn(`Strategy stage ${stage} validation warnings:`, validationWarnings)
         }
@@ -1718,6 +1798,99 @@ export const buildStrategy = async (c: Context) => {
         console.error('buildStrategy error:', err)
         return fail(c, 'Strategy failed.', 500)
     }
+}
+
+// ── Helpers: research quality gates ──
+
+// Extract Confidence Score from stage 5 validation text.
+// Looks for patterns: "Confidence Score: 52/100", "ציון Confidence 52", "אמון 52/100"
+export function parseConfidenceScore(stage5: string): number | null {
+    if (!stage5) return null
+    const patterns = [
+        /confidence\s*score[:\s]*(\d{1,3})\s*\/\s*100/i,
+        /confidence[:\s]+(\d{1,3})\s*\/\s*100/i,
+        /ציון\s*אמון[:\s]*(\d{1,3})\s*\/\s*100/,
+        /אמון[:\s]*(\d{1,3})\s*\/\s*100/,
+    ]
+    for (const p of patterns) {
+        const m = stage5.match(p)
+        if (m) {
+            const n = parseInt(m[1], 10)
+            if (!isNaN(n) && n >= 0 && n <= 100) return n
+        }
+    }
+    return null
+}
+
+// Scan generated strategy text for unsourced claims.
+// Returns list of warnings (Hebrew) pointing to specific passages.
+export function validateCitations(text: string): string[] {
+    const warnings: string[] = []
+    if (!text) return warnings
+
+    const knownSources = /(gartner|idc|forrester|mckinsey|deloitte|mozmetrics|salesforce state|semrush|ahrefs|similarweb|statista|coface|calcalist|כלכליסט|globes|themarker|ynet|רשות.*פרטיות|blog|research|report|study|survey|https?:\/\/)/i
+
+    // Look for lines containing specific statistics that typically need sourcing
+    const lines = text.split('\n')
+    const flaggedClaims: Array<{ line: string; issue: string }> = []
+
+    for (const line of lines) {
+        const trimmed = line.trim()
+        if (trimmed.length < 20) continue
+        if (trimmed.startsWith('|')) continue // skip table rows — too noisy
+
+        // Pattern 1: Named statistical sources used but no year/link nearby
+        const sourceNameMatch = trimmed.match(/(Gartner|IDC|Forrester|McKinsey|Deloitte|Salesforce|Semrush|Ahrefs|Similarweb|Statista|Coface|Calcalist|כלכליסט|Globes)/i)
+        if (sourceNameMatch) {
+            const hasYear = /20\d{2}/.test(trimmed)
+            const hasUrl = /https?:\/\//.test(trimmed)
+            if (!hasYear && !hasUrl) {
+                flaggedClaims.push({ line: trimmed.substring(0, 120), issue: `מקור "${sourceNameMatch[0]}" ללא שנה/URL` })
+            }
+        }
+
+        // Pattern 2: Specific $ or ₪ amounts with claim-like context ("markup", "מרווח", "TCO", "CAC", "LTV")
+        const moneyClaimMatch = trimmed.match(/[₪$]\d{2,}[KMk,\d.]*\s*(markup|מרווח|TCO|CAC|LTV|ARPU|MRR|ARR)/i)
+        if (moneyClaimMatch) {
+            const hasContext = knownSources.test(trimmed)
+            if (!hasContext) {
+                // Context-heavy tables would have source; individual statements often don't
+                // Already handled by table skip above. Flag if prose.
+                // (No-op: money claims are common; only flag unreasonable ones below)
+            }
+        }
+
+        // Pattern 3: Percentage claim about market/industry (e.g., "96% of organizations")
+        const pctMatch = trimmed.match(/(\d{2,3})\s*%\s*(מ|of|הארגונים|organizations|companies|חברות|users|משתמשים|לקוחות|customers)/i)
+        if (pctMatch) {
+            const n = parseInt(pctMatch[1], 10)
+            if (n >= 20) { // realistic industry claims start at ~20%
+                const hasSource = knownSources.test(trimmed)
+                if (!hasSource) {
+                    flaggedClaims.push({ line: trimmed.substring(0, 120), issue: `נתון סטטיסטי "${pctMatch[0]}" ללא מקור` })
+                }
+            }
+        }
+
+        // Pattern 4: "studies show", "research indicates" style without source
+        if (/(מחקר|research|study|survey|סקר)\s+(מראה|מצא|shows|found|indicates|מצביע)/i.test(trimmed)) {
+            if (!knownSources.test(trimmed)) {
+                flaggedClaims.push({ line: trimmed.substring(0, 120), issue: 'הפניה למחקר ללא מקור' })
+            }
+        }
+    }
+
+    // Deduplicate and cap to top 5 warnings to avoid UI flood
+    const seen = new Set<string>()
+    for (const c of flaggedClaims) {
+        const key = c.issue + c.line.substring(0, 40)
+        if (seen.has(key)) continue
+        seen.add(key)
+        warnings.push(`${c.issue}: "${c.line}${c.line.length >= 120 ? '...' : ''}"`)
+        if (warnings.length >= 5) break
+    }
+
+    return warnings
 }
 
 // ── POST /hosting/instances/:id/setup/agents/strategy/scenarios ──
@@ -1808,6 +1981,17 @@ ${validation.substring(0, 5000)}
         "month1": { "customers": N, "mrr": "₪N", "leads": N },
         "month3": { "customers": N, "mrr": "₪N", "leads": N }
       },
+      "agentRoster": {
+        "sayer":     { "cadence": "weekly|daily|off", "role": "Internet Research — מנטר מתחרים" },
+        "meater":    { "cadence": "daily|weekly|off", "role": "SERP Tracker — מילות מפתח" },
+        "mazin":     { "cadence": "daily|hourly|off", "role": "Social Listening — מותג + מתחרים" },
+        "menateach": { "cadence": "weekly|monthly|off", "role": "Analyst — דוחות + תובנות" },
+        "ayat":      { "cadence": "daily|2xweek|weekly|off", "role": "Content Writer — טקסטים" },
+        "yotzer":    { "cadence": "daily|weekly|off", "role": "Creative — ויזואלים" },
+        "shaliach":  { "cadence": "daily|weekly|off", "role": "Distribution — פרסום בערוצים" },
+        "migdalor":  { "cadence": "monthly|weekly|off", "role": "AEO — בדיקה ב-LLMs" }
+      },
+      "monthlyTokenBudgetUsd": 20,
       "expectedResults": "2-3 משפטים קונקרטיים בעברית על מה יקרה בסוף 90 ימים",
       "tradeOffs": ["יתרון/חיסרון 1", "חיסרון 2", "חיסרון 3"],
       "idealFor": "למי מתאים — בגוף המשפט",
@@ -1830,8 +2014,11 @@ ${validation.substring(0, 5000)}
 
 **חשוב:**
 - monthlyBudgetNumeric.min/max במספרים, לא מחרוזות
+- monthlyTokenBudgetUsd במספר (USD בחודש — כמה API tokens ~$) — conservative 10-30, recommended 40-80, aggressive 100-250
 - השתמש במספרים אמיתיים מהאסטרטגיה (MRR, CAC, לקוחות) — אל תמציא
 - כל scenario חייב להיות קוהרנטי: תקציב שמרני ≠ יעדי MRR אגרסיביים
+- agentRoster — חובה להגדיר cadence לכל 8 הסוכנים. "off" = סוכן לא פעיל בסנריו הזה. שמרני = חלק off, אגרסיבי = כולם on.
+- primaryChannels במסלול שמרני = **ערוץ אחד עיקרי** + 1-2 משניים. באגרסיבי = 4-6 ערוצים מקבילים. זה קריטי — solo/early-stage לא יכול לעבוד 5 ערוצים בבת אחת.
 - tradeOffs חייב להיות כנה — מה מפסידים בבחירת המסלול הזה`
 
         console.log(`Strategy scenarios for ${businessName}: prompt ${prompt.length} chars`)
@@ -1943,11 +2130,204 @@ export const commitStrategyScenario = async (c: Context) => {
             } as any,
         }).where(eq(instances.id, instanceId))
 
+        // Re-apply cron schedule based on scenario's agentRoster (if present)
+        const components = (instance.selectedComponents as string[]) || []
+        const agentType = components.includes('mt') ? 'mt' : 'oc'
+        if (instance.ip && chosen.agentRoster) {
+            try {
+                // Wipe existing crons first so we don't duplicate, then activate per roster
+                await sshExec(instance.ip,
+                    `su - openclaw -c 'for c in $(openclaw cron list --json 2>/dev/null | grep -oE \"\\\"id\\\":\\s*\\\"[^\\\"]+\\\"\" | sed "s/.*\\\"id\\\":\\s*\\\"\\([^\\\"]*\\)\\\".*/\\1/"); do openclaw cron remove "$c" 2>/dev/null; done'`,
+                    instance.rootPassword || undefined, 30000
+                ).catch(e => console.warn('Cron wipe non-critical err:', e.message))
+                await activateAgentCrons(instance.ip, agentType, instance.rootPassword || undefined, chosen.agentRoster)
+            } catch (cronErr) {
+                console.error('Roster cron apply failed (non-critical):', cronErr)
+            }
+        }
+
         console.log(`Scenario '${body.chosenKey}' committed for ${instanceId}`)
         return ok(c, { chosenScenario }, 'Scenario saved.')
     } catch (err) {
         console.error('commitStrategyScenario error:', err)
         return fail(c, 'Commit failed.', 500)
+    }
+}
+
+// ── POST /hosting/instances/:id/setup/agents/ops-brief ──
+// Generate Weekly Ops Brief — compares current state vs chosenScenario KPIs,
+// surfaces deviations, recommends tactical adjustments. Uses recent agent outputs.
+export const generateOpsBrief = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const rd = (instance.researchData as any) || {}
+        const chosen = rd.chosenScenario
+        if (!chosen) return fail(c, 'יש לבחור תחילה מסלול ביצוע', 400)
+
+        // Calculate current week since commit
+        const committedAt = new Date(chosen.chosenAt || Date.now())
+        const now = new Date()
+        const daysSinceCommit = Math.floor((now.getTime() - committedAt.getTime()) / (1000 * 60 * 60 * 24))
+        const currentWeek = Math.max(1, Math.floor(daysSinceCommit / 7) + 1)
+
+        // Fetch recent agent outputs (last 7 days) from DB
+        const { agentOutputs } = await import('@/db/schema').catch(() => ({ agentOutputs: null as any }))
+        const recentOutputs: any[] = []
+        if (agentOutputs) {
+            const { and, gte, desc } = await import('drizzle-orm')
+            const cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+            const rows = await db.select().from(agentOutputs)
+                .where(and(eq(agentOutputs.instanceId, instanceId), gte(agentOutputs.createdAt, cutoff)))
+                .orderBy(desc(agentOutputs.createdAt))
+                .limit(50)
+            recentOutputs.push(...rows)
+        }
+
+        // Summarize outputs by agent
+        const byAgent: Record<string, number> = {}
+        for (const o of recentOutputs) {
+            byAgent[o.agentRole || 'unknown'] = (byAgent[o.agentRole || 'unknown'] || 0) + 1
+        }
+
+        // Build prompt
+        const apiKey = await getApiKeyForInstance(instanceId)
+        if (!apiKey) return fail(c, 'מפתח API לא מוגדר', 400)
+
+        const kpisTarget = chosen.kpis || {}
+        const baselineMonth1 = kpisTarget.month1 || {}
+        const baselineMonth3 = kpisTarget.month3 || {}
+
+        const prompt = `אתה VP Marketing בדירקג שמריץ Weekly Ops Brief. המטרה: לעדכן את המייסד איפה הוא עומד מול התוכנית, ולתת 3 פעולות ספציפיות לשבוע הבא.
+
+## קונטקסט
+- **עסק:** ${(rd.answers?.businessName || 'העסק')}
+- **שבוע:** ${currentWeek} מתוך 12
+- **מסלול נבחר:** ${chosen.name} (${chosen.key})
+- **תקציב חודשי:** ${chosen.monthlyBudget}
+- **ערוצים עיקריים:** ${(chosen.primaryChannels || []).join(', ')}
+
+## יעדי KPI מהמסלול
+### יעדי חודש 1:
+${JSON.stringify(baselineMonth1, null, 2)}
+
+### יעדי חודש 3:
+${JSON.stringify(baselineMonth3, null, 2)}
+
+## פעילות סוכנים (7 ימים אחרונים):
+${Object.entries(byAgent).map(([a, n]) => `- ${a}: ${n} outputs`).join('\n') || 'אין פעילות'}
+
+## outputs אחרונים (אחרי פילטור):
+${recentOutputs.slice(0, 15).map(o => `- [${o.agentRole}] ${o.title || o.outputType || 'untitled'} (${o.status})`).join('\n') || 'אין'}
+
+---
+
+## משימה
+הפק **Weekly Ops Brief** קצר וחד בעברית. החזר **JSON בלבד** (ללא prose ולא markdown), במבנה:
+
+{
+  "weekNum": ${currentWeek},
+  "overallStatus": "on_track" | "behind" | "at_risk" | "critical",
+  "statusReason": "משפט אחד למה הסטטוס הזה",
+  "onTrack": ["מה מצליח — נקודה 1 קצרה", "נקודה 2"],
+  "behind": ["מה מפגר — עם מספר ספציפי, לא 'כללי'"],
+  "critical": ["מה קריטי — אם יש. או [] ריק"],
+  "deviations": [
+    { "metric": "MRR", "target": "₪2,500", "actual": "₪0", "deviationPct": -100, "severity": "high" }
+  ],
+  "topActions": [
+    { "action": "פעולה ספציפית לשבוע הבא", "owner": "ayat|sayer|founder|...", "deadline": "יום ו׳", "expectedImpact": "צפוי להעלות X ב-Y" }
+  ],
+  "tokenSpendNote": "הערה קצרה על צריכת tokens — על תקציב? מעל? — אם יש נתונים",
+  "nextReviewAt": "${new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)}"
+}
+
+**חשוב:**
+- topActions = 3 בדיוק. לא פחות, לא יותר.
+- כל action חייב להיות ספציפי (לא "שפרו SEO" — אלא "סייר תגלו 3 מתחרים חדשים ב-r/n8n ותיצרו ניתוח בלוג").
+- אם אין מספיק data ל-week 1 (קורה) — כתוב onTrack = ["יישום התחיל"], behind = [], topActions = actions ספציפיות להפעלת המסלול.
+- severity: "high" אם deviationPct <= -50 או >= +200. "medium" אם |dev| >= 25. "low" אחרת.`
+
+        const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+            },
+            body: JSON.stringify({
+                model: 'claude-opus-4-7',
+                max_tokens: 4096,
+                messages: [{ role: 'user', content: prompt }],
+            }),
+            signal: AbortSignal.timeout(120000),
+        })
+
+        if (!apiRes.ok) {
+            const errBody = await apiRes.text().catch(() => '')
+            console.error(`Ops Brief Anthropic failed (${apiRes.status}):`, errBody.substring(0, 400))
+            return fail(c, 'ייצור Brief נכשל', 500)
+        }
+
+        const data = await apiRes.json() as { content?: Array<{ text: string }> }
+        const rawText = data.content?.[0]?.text || ''
+        let brief: any
+        try {
+            const jsonMatch = rawText.match(/\{[\s\S]*\}/)
+            brief = JSON.parse(jsonMatch ? jsonMatch[0] : rawText)
+        } catch (parseErr) {
+            console.error('Brief JSON parse failed:', parseErr, 'raw:', rawText.substring(0, 400))
+            return fail(c, 'Brief החזיר פורמט לא תקף', 500)
+        }
+
+        brief.generatedAt = new Date().toISOString()
+        brief.weekNum = currentWeek
+
+        // Append to history (keep last 12 briefs = 3 months)
+        const existing = Array.isArray(rd.opsBriefs) ? rd.opsBriefs : []
+        const history = [brief, ...existing].slice(0, 12)
+
+        await db.update(instances).set({
+            researchData: {
+                ...rd,
+                opsBriefs: history,
+                latestOpsBrief: brief,
+            } as any,
+        }).where(eq(instances.id, instanceId))
+
+        console.log(`Ops Brief generated for ${instanceId} week ${currentWeek}: ${brief.overallStatus}`)
+        return ok(c, { brief, history: history.length }, 'Brief generated.')
+    } catch (err) {
+        console.error('generateOpsBrief error:', err)
+        return fail(c, 'Brief failed.', 500)
+    }
+}
+
+// ── GET /hosting/instances/:id/setup/agents/ops-brief ──
+// Return latest brief + history summary
+export const getOpsBrief = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+        const rd = (instance.researchData as any) || {}
+        return ok(c, {
+            latest: rd.latestOpsBrief || null,
+            history: (rd.opsBriefs || []).map((b: any) => ({
+                weekNum: b.weekNum,
+                overallStatus: b.overallStatus,
+                generatedAt: b.generatedAt,
+                statusReason: b.statusReason,
+            })),
+            chosenScenario: rd.chosenScenario || null,
+        }, 'Brief status.')
+    } catch (err) {
+        console.error('getOpsBrief error:', err)
+        return fail(c, 'Get brief failed.', 500)
     }
 }
 
