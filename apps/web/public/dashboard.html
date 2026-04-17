@@ -6884,77 +6884,91 @@ function computeConnectionsRequirements(scenario, inst) {
     id: 'ai-key', icon: '🤖', label: 'מפתח AI (Anthropic/OpenAI)',
     must: true, group: 'core',
     desc: 'הסוכנים משתמשים ב-Claude / GPT-4o דרך המפתח שלכם — משולם ישירות לספק',
-    status: st(!!(inst.aiProviderKey || inst.openaiApiKey)),
+    status: st(!!(inst.hasAnthropicKey || inst.hasOpenaiKey)),
     connectAction: "switchTab('integrations')"
   });
 
+  // Creative stack — in research phase, separate implementation track
   if (key !== 'conservative') {
     reqs.push({
-      id: 'openai-creative', icon: '🎨', label: 'OpenAI (DALL-E ליצירת ויזואלים)',
+      id: 'creative-stack', icon: '🎨', label: 'סטאק יצירת מדיה',
       must: false, group: 'creative',
-      desc: 'הסוכן "יוצר" ייצר תמונות לפוסטים דרך DALL-E 3',
-      status: st(!!inst.openaiApiKey),
-      connectAction: "switchTab('integrations')"
+      desc: 'מחקר מתוכנן ומתמשך — נבחן שילוב של DALL-E 3, Midjourney API, Stable Diffusion, Canva API. יימסר למשתמש בעדכון נפרד.',
+      status: 'info',
+      info: true
     });
   }
 
   // === Organic distribution (based on primaryChannels) ===
   if (/linkedin/.test(channels)) {
     reqs.push({
-      id: 'linkedin', icon: '💼', label: 'LinkedIn (פרסום ידני — אישור לפני)',
+      id: 'linkedin', icon: '💼', label: 'LinkedIn — חיבור אוטומטי',
       must: true, group: 'organic',
-      desc: 'LinkedIn לא מאפשר פרסום אוטומטי דרך API לחשבונות אישיים. הסוכן יכין טיוטות + תאשרו ותפרסמו דרך הדשבורד',
-      status: 'info',
-      info: true
+      desc: 'כרגע LinkedIn רק במצב "הסוכן מכין → אתם מאשרים ומפרסמים" דרך הדשבורד. אינטגרציה מלאה (OAuth + UGC API) בפיתוח.',
+      status: 'info', info: true, devNote: 'בפיתוח'
     });
   }
   if (/facebook|instagram|\bmeta\b/.test(channels)) {
+    var metaConnected = inst.metaTokens && inst.metaTokens.connected;
     reqs.push({
       id: 'meta', icon: '📘', label: 'Facebook Page + Instagram',
       must: true, group: 'organic',
-      desc: 'פרסום אוטומטי של פוסטים בדף עסקי + אינסטגרם + ניטור אזכורים',
-      status: st(!!(inst.metaTokens || inst.metaPageId)),
+      desc: 'פרסום אוטומטי של פוסטים בדף עסקי + אינסטגרם + ניטור אזכורים' +
+            (metaConnected ? ' (מחובר: ' + (inst.metaTokens.pageName || '') + ')' : ''),
+      status: st(!!metaConnected),
       connectAction: "switchTab('integrations')"
     });
   }
-  if (/fb group|קבוצת פייסבוק|group/.test(channels)) {
+  if (/fb group|קבוצת פייסבוק|\bgroup\b/.test(channels)) {
     reqs.push({
-      id: 'fb-group', icon: '👥', label: 'קבוצת Facebook (פרסום ידני)',
-      must: true, group: 'organic',
-      desc: 'קבוצות פייסבוק דורשות admin או חבר פעיל — הסוכן יכין, אתם תפרסמו (אסור ספאם)',
-      status: 'info',
-      info: true
+      id: 'fb-group', icon: '👥', label: 'קבוצת Facebook — פרסום ידני',
+      must: false, group: 'organic',
+      desc: 'פייסבוק לא מאפשר פרסום אוטומטי בקבוצות דרך API. הסוכן יכין טיוטה — תפרסמו ידנית תוך שמירה על כללי הקבוצה.',
+      status: 'info', info: true
     });
   }
   if (/reddit|r\//.test(channels)) {
     reqs.push({
-      id: 'reddit', icon: '🟠', label: 'Reddit (פרסום ידני)',
+      id: 'reddit', icon: '🟠', label: 'Reddit — חיבור API',
       must: false, group: 'organic',
-      desc: 'ודאו שיש לכם karma מינימלי (>50) בקהילות רלוונטיות. הסוכן יכין טיוטות',
-      status: 'info',
-      info: true
+      desc: 'Reddit API (PRAW) מתוכנן — יתאפשר פרסום מבוקר בסאב-רדיטים רלוונטיים + ניטור mentions. בפיתוח.',
+      status: 'info', info: true, devNote: 'בפיתוח'
     });
   }
 
   // === Paid channels ===
   var wantsImmediate = paidAct === 'immediate';
-  var wantsGatekeeper = paidAct === 'gatekeeper';
-  if (/google ads|paid search|adwords/.test(channels)) {
+  var googleConnected = inst.googleTokens && inst.googleTokens.connected;
+  var metaAdsConnected = inst.metaTokens && inst.metaTokens.connected && inst.metaTokens.hasAdAccount;
+  var hasPaidInChannels = /google ads|paid search|adwords|meta ads|facebook ads|instagram ads|tiktok/.test(channels);
+
+  if (hasPaidInChannels || paidAct) {
+    // Google Ads — via Google OAuth with adwords scope
     reqs.push({
       id: 'google-ads', icon: '🎯', label: 'Google Ads',
-      must: wantsImmediate, group: 'paid',
-      desc: 'הקמת חשבון Google Ads + conversion tracking + הרשאה לסוכן לניהול קמפיינים',
-      status: st(!!(inst.googleTokens || inst.googleAdsCustomerId)),
+      must: wantsImmediate && /google|adwords|paid search/.test(channels),
+      group: 'paid',
+      desc: 'קמפיינים ממומנים ב-Google Search + YouTube. חיבור דרך Google OAuth עם הרשאת Ads. הקמה + ניהול אוטומטי של קמפיינים.',
+      status: st(!!googleConnected),
       connectAction: "switchTab('integrations')"
     });
-  }
-  if (/meta ads|facebook ads|instagram ads/.test(channels)) {
+
+    // Meta Ads
     reqs.push({
-      id: 'meta-ads', icon: '💰', label: 'Meta Ads (Facebook + Instagram)',
-      must: wantsImmediate, group: 'paid',
-      desc: 'חשבון פרסום Meta + Pixel install + הרשאת Business Manager',
-      status: st(!!(inst.metaAdAccountId || inst.metaTokens)),
+      id: 'meta-ads', icon: '💰', label: 'Meta Ads (Facebook + Instagram Ads)',
+      must: wantsImmediate && /meta|facebook ads|instagram ads/.test(channels),
+      group: 'paid',
+      desc: 'קמפיינים ב-Facebook + Instagram. דורש Business Manager + Ad Account + Pixel על האתר.',
+      status: st(!!metaAdsConnected),
       connectAction: "switchTab('integrations')"
+    });
+
+    // TikTok Ads — future
+    reqs.push({
+      id: 'tiktok-ads', icon: '🎵', label: 'TikTok Ads',
+      must: false, group: 'paid',
+      desc: 'TikTok Marketing API — אינטגרציה מלאה בפיתוח. יתאפשרו קמפיינים לקהל צעיר + creator partnerships.',
+      status: 'info', info: true, devNote: 'בפיתוח'
     });
   }
 
@@ -6964,7 +6978,7 @@ function computeConnectionsRequirements(scenario, inst) {
     must: key !== 'conservative' || /seo|blog|מאמר/.test(channels),
     group: 'analytics',
     desc: 'חובה לסוכן "מאתר" למעקב SERP + indexing + אינטגרציה עם מגדלור (AEO)',
-    status: st(!!(inst.gscSite || inst.gscTokens)),
+    status: st(!!inst.hasGsc),
     connectAction: "switchTab('integrations')"
   });
 
@@ -6974,7 +6988,7 @@ function computeConnectionsRequirements(scenario, inst) {
       id: 'dataforseo', icon: '📊', label: 'DataForSEO API',
       must: key === 'aggressive', group: 'research',
       desc: 'מעקב SERP + נפחי חיפוש + Keyword Difficulty (KD). ~$50-125/חודש לתשלום ישיר',
-      status: st(!!inst.dataforseoApiKey),
+      status: st(!!inst.hasDataforseo),
       connectAction: "switchTab('integrations')"
     });
   }
@@ -6983,7 +6997,7 @@ function computeConnectionsRequirements(scenario, inst) {
       id: 'firecrawl', icon: '🕷️', label: 'Firecrawl API',
       must: false, group: 'research',
       desc: 'Deep crawl של אתרי מתחרים — ~$20-80/חודש לתשלום ישיר',
-      status: st(!!inst.firecrawlApiKey),
+      status: st(!!inst.hasFirecrawl),
       connectAction: "switchTab('integrations')"
     });
   }
@@ -7048,7 +7062,10 @@ function renderConnectionsWizard() {
         var statusBadge = '';
         var actionBtn = '';
         if (r.info) {
-          statusBadge = '<span style="background:#DBEAFE;color:#1E40AF;padding:3px 8px;border-radius:10px;font-size:0.7rem;font-weight:600">ℹ️ ידני</span>';
+          var infoLabel = r.devNote ? '🛠 ' + r.devNote : 'ℹ️ ידני';
+          var infoBg = r.devNote ? '#E0E7FF' : '#DBEAFE';
+          var infoColor = r.devNote ? '#4338CA' : '#1E40AF';
+          statusBadge = '<span style="background:' + infoBg + ';color:' + infoColor + ';padding:3px 8px;border-radius:10px;font-size:0.7rem;font-weight:600">' + infoLabel + '</span>';
         } else if (r.status === 'connected') {
           statusBadge = '<span style="background:#D1FAE5;color:#065F46;padding:3px 8px;border-radius:10px;font-size:0.7rem;font-weight:600">✓ מחובר</span>';
         } else {
