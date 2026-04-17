@@ -297,7 +297,11 @@ export const instances = pgTable(
         googleAdsConfig: jsonb('google_ads_config'),    // { customerId, developerToken?, linkedAt?, mccSubAccountId? }
 
         // HaaS subscription tier (optional — drives ads mode + support level)
-        haasTier: text('haas_tier'),                    // null (free) | 'bronze' | 'silver' | 'gold'
+        // null = no HaaS, self-service only
+        // 'starter' = ₪299/mo + ₪500 setup (self-hosted ads, weekly review)
+        // 'growth' = ₪699/mo + ₪1,200 setup (1 channel managed, 4 articles, 8 creatives)
+        // 'autopilot' = ₪1,499/mo + ₪2,000 setup (all channels managed, 8 articles, 16 creatives, social)
+        haasTier: text('haas_tier'),
 
         // Schedules (managed by dashboard, synced to HEARTBEAT.md on VPS)
         schedules: jsonb('schedules'),                 // { core: {...}, seo: {...}, ... }

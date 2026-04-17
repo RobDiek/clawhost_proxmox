@@ -46,6 +46,83 @@ const ADDONS = [
     { id: 'storage_500', nameHe: 'אחסון +500GB', nameEn: 'Storage +500GB', priceIls: 199, ram: 0 },
 ]
 
+// HaaS (Human as a Service) — marketing management subscription tiers.
+// Canonical pricing lives here + rendered on /auto-pilot landing page.
+// null tier = self-service (no HaaS, user does everything themselves).
+export interface HaasTier {
+    id: 'starter' | 'growth' | 'autopilot'
+    nameHe: string
+    nameEn: string
+    priceIls: number         // monthly
+    setupIls: number         // one-time
+    badge: 'green' | 'blue' | 'purple'
+    featured?: boolean        // 'recommended' label
+    adsMode: 'self' | 'one_channel' | 'all_channels'   // managed-ads capability
+    features: string[]
+}
+
+const HAAS_TIERS: HaasTier[] = [
+    {
+        id: 'starter',
+        nameHe: 'סטארטר',
+        nameEn: 'Starter',
+        priceIls: 299,
+        setupIls: 500,
+        badge: 'green',
+        adsMode: 'self',
+        features: [
+            'סקירה שבועית של פלטי סוכנים',
+            'אישור ועריכת תוכן לפני פרסום',
+            'דוח SEO + ביצועים חודשי',
+            'תמיכה בטלגרם (24 שעות בימי עסקים)',
+            'תיקוני באגים',
+            'אינטגרציה עם כלי SEO (Google Search, DataForSEO, Firecrawl)',
+            'יצירת תוכן חדש',
+            'ניהול פרסום ממומן (self-hosted)',
+        ],
+    },
+    {
+        id: 'growth',
+        nameHe: 'גרוס',
+        nameEn: 'Growth',
+        priceIls: 699,
+        setupIls: 1200,
+        badge: 'blue',
+        featured: true,
+        adsMode: 'one_channel',
+        features: [
+            'כל מה שיש ב-Starter',
+            'מחקר SEO + אסטרטגיה חודשית',
+            'עד 4 מאמרים לחודש (עם Schema, AI Nuggets, Entity Consensus)',
+            'הקמת קמפיינים ממומנים (Meta / Google Ads — ערוץ אחד מנוהל)',
+            'עד 8 יצירות מדיה לחודש (AI — תמונות/וידאו)',
+            'אופטימיזציית מודעות שבועית',
+            'התאמת Prompt Engineering',
+            'שיחת Zoom של 20 דקות אחת לשבועיים',
+        ],
+    },
+    {
+        id: 'autopilot',
+        nameHe: 'אוטופילוט',
+        nameEn: 'Autopilot',
+        priceIls: 1499,
+        setupIls: 2000,
+        badge: 'purple',
+        adsMode: 'all_channels',
+        features: [
+            'כל מה שיש ב-Growth',
+            'עד 8 מאמרי SEO לחודש',
+            'עד 16 יצירות מדיה לחודש',
+            'ניהול רשתות חברתיות (LinkedIn, Facebook, Instagram) — 3-5 פוסטים/שבוע',
+            'ניטור תחרותי + תגובה תוך 24 שעות',
+            'עד 2 דפי נחיתה לחודש',
+            'שיחה שבועית של 30 דקות עם מנהל חשבון',
+            'דוח ROAS / ROI מפורט',
+            'ניהול כל ערוצי הפרסום הממומן (Meta + Google + LinkedIn + TikTok כשזמין)',
+        ],
+    },
+]
+
 const BASE_RAM = 0.5
 
 export function calcPlan(componentIds: string[]): {
@@ -101,4 +178,4 @@ export const INSTALLMENTS: Record<string, number> = {
     developer: 12,
 }
 
-export { PLANS, COMPONENTS, ADDONS }
+export { PLANS, COMPONENTS, ADDONS, HAAS_TIERS }

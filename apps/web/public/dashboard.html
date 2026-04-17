@@ -3257,6 +3257,29 @@ function renderHome() {
       });
 
       tasks.push({ id: 'brief', label: 'הסוכנים פעילים', done: true, desc: 'דו״ח יומי, דוחות שבועיים, ביקורת AEO — אוטומטית' });
+
+      // HaaS tier card — always visible after scenario committed
+      var currentTier = instanceData.haasTier;
+      var tierMeta = currentTier && HAAS_TIERS[currentTier];
+      if (tierMeta) {
+        tasks.push({
+          id: 'haas-tier',
+          label: tierMeta.badge + ' ליווי HaaS: ' + tierMeta.nameHe,
+          done: true,
+          action: "window.open('https://clawflow.flowmatic.co.il/auto-pilot','_blank')",
+          actionLabel: 'שדרגו',
+          desc: '₪' + tierMeta.priceIls + '/חודש · ' + tierMeta.tagline
+        });
+      } else {
+        tasks.push({
+          id: 'haas-tier',
+          label: '🤝 עברו לטייס אוטומטי — ליווי HaaS',
+          done: false,
+          action: "window.open('https://clawflow.flowmatic.co.il/auto-pilot','_blank')",
+          actionLabel: 'ראו מסלולים',
+          desc: 'ניהול שיווק מלא החל מ-₪299/חודש · מאמרים · יצירה · פרסום ממומן'
+        });
+      }
     }
   }
 
@@ -3647,6 +3670,38 @@ var AGENT_NAMES = {
 };
 
 // Output type → Hebrew label
+// HaaS tier metadata — sync with packages/shared/src/plans.ts HAAS_TIERS
+var HAAS_TIERS = {
+  starter: {
+    nameHe: 'סטארטר', nameEn: 'Starter',
+    priceIls: 299, setupIls: 500,
+    badge: '🟢', color: '#10B981',
+    adsMode: 'self',
+    tagline: 'ניהול שבועי + תמיכה · 24h SLA'
+  },
+  growth: {
+    nameHe: 'גרוס', nameEn: 'Growth',
+    priceIls: 699, setupIls: 1200,
+    badge: '🔵', color: '#2563EB', featured: true,
+    adsMode: 'one_channel',
+    tagline: '4 מאמרים + 8 יצירות + ערוץ פרסום מנוהל'
+  },
+  autopilot: {
+    nameHe: 'אוטופילוט', nameEn: 'Autopilot',
+    priceIls: 1499, setupIls: 2000,
+    badge: '🟣', color: '#7C3AED',
+    adsMode: 'all_channels',
+    tagline: '8 מאמרים · 16 יצירות · כל ערוצי פרסום · סושיאל מלא'
+  }
+};
+
+function haasTierHasManagedAds(tierId) {
+  return tierId && tierId !== 'starter';
+}
+function haasTierManagesAllChannels(tierId) {
+  return tierId === 'autopilot';
+}
+
 var OUTPUT_TYPE_LABELS = {
   daily_brief: 'דו״ח יומי', weekly_report: 'דוח תחרותי שבועי',
   content_post: 'פוסט תוכן', media_image: 'מדיה',
@@ -7201,25 +7256,48 @@ function computeConnectionsRequirements(scenario, inst) {
   var hasPaidInChannels = /google ads|paid search|adwords|meta ads|facebook ads|instagram ads|tiktok/.test(channels);
 
   if (hasPaidInChannels || paidAct) {
-    // Google Ads — via Google OAuth with adwords scope (properly checked now)
-    reqs.push({
-      id: 'google-ads', icon: '🎯', label: 'Google Ads',
-      must: wantsImmediate && /google|adwords|paid search/.test(channels),
-      group: 'paid',
-      desc: 'קמפיינים ב-Google Search + YouTube. חיבור דרך Google OAuth עם הרשאת adwords. הקמה + ניהול אוטומטי של קמפיינים.',
-      status: st(!!inst.hasGoogleAds),
-      connectAction: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('google-ads-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)"
-    });
+    var tierHandlesAds = haasTierHasManagedAds(inst.haasTier);
+    var tierAllChannels = haasTierManagesAllChannels(inst.haasTier);
 
-    // Meta Ads — scope already in default META_SCOPES, checked via hasMetaAds
-    reqs.push({
-      id: 'meta-ads', icon: '💰', label: 'Meta Ads (Facebook + Instagram)',
-      must: wantsImmediate && /meta|facebook ads|instagram ads/.test(channels),
-      group: 'paid',
-      desc: 'קמפיינים ב-Facebook + Instagram. דורש Business Manager + Ad Account + Pixel על האתר. המקשר של Facebook Page כולל כבר את ההרשאה.',
-      status: st(!!inst.hasMetaAds),
-      connectAction: "switchTab('integrations')"
-    });
+    // Google Ads
+    if (tierHandlesAds) {
+      // Growth tier: user picks 1 channel — default Google for Search-heavy scenarios.
+      // Autopilot: all channels managed.
+      reqs.push({
+        id: 'google-ads', icon: '🎯', label: 'Google Ads — מנוהל ע"י Flowmatic',
+        must: false, group: 'paid',
+        desc: 'מסלול ' + (inst.haasTier === 'autopilot' ? 'אוטופילוט' : 'גרוס') + ' — צוות Flowmatic מקים ומנהל את הקמפיינים בחשבון שלנו. אתם משלמים רק עלות פרסום דרך החשבונית החודשית.',
+        status: 'info', info: true, devNote: 'מנוהל'
+      });
+    } else {
+      reqs.push({
+        id: 'google-ads', icon: '🎯', label: 'Google Ads',
+        must: wantsImmediate && /google|adwords|paid search/.test(channels),
+        group: 'paid',
+        desc: 'קמפיינים ב-Google Search + YouTube. חיבור דרך Google OAuth עם הרשאת adwords. הקמה + ניהול אוטומטי של קמפיינים (דורש Developer Token — 1-3 ימים).',
+        status: st(!!inst.hasGoogleAds),
+        connectAction: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('google-ads-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)"
+      });
+    }
+
+    // Meta Ads
+    if (tierAllChannels) {
+      reqs.push({
+        id: 'meta-ads', icon: '💰', label: 'Meta Ads — מנוהל ע"י Flowmatic',
+        must: false, group: 'paid',
+        desc: 'מסלול אוטופילוט — Facebook + Instagram Ads מנוהלים דרך Business Manager של Flowmatic.',
+        status: 'info', info: true, devNote: 'מנוהל'
+      });
+    } else {
+      reqs.push({
+        id: 'meta-ads', icon: '💰', label: 'Meta Ads (Facebook + Instagram)',
+        must: wantsImmediate && /meta|facebook ads|instagram ads/.test(channels),
+        group: 'paid',
+        desc: 'קמפיינים ב-Facebook + Instagram. דורש Business Manager + Ad Account + Pixel על האתר. המקשר של Facebook Page כולל כבר את ההרשאה.',
+        status: st(!!inst.hasMetaAds),
+        connectAction: "switchTab('integrations')"
+      });
+    }
 
     // LinkedIn Ads — requires Partner Program
     if (/linkedin ads/.test(channels)) {

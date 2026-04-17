@@ -421,6 +421,8 @@ export const getMyInstances = async (c: Context) => {
                     const scopes = (gt.scopes || gt.scope || '').toString().toLowerCase()
                     return scopes.includes('adwords')
                 })(),
+                haasTier: i.haasTier,                // 'starter' | 'growth' | 'autopilot' | null
+                googleAdsMode: i.googleAdsMode || 'self',
                 hasMetaAds: (() => {
                     const mt = i.metaTokens as any
                     if (!mt) return false
