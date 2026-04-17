@@ -521,6 +521,55 @@ if old in code:
         LFEOF
     - cd /opt/openclaw && docker compose -f docker-compose.yml -f docker-compose.qdrant.yml -f docker-compose.langfuse.yml up -d langfuse langfuse-postgres
 
+    # ── Neo4j Community (temporal knowledge graph for marketing facts) ──
+    # Used by openclaw-facts MCP plugin to store/query entities (competitors,
+    # personas, keywords, channels, customers) + timestamped relationships.
+    # Reduces token usage — agents query structured facts instead of re-reading
+    # STRATEGY.md / BRAND.md every task.
+    # License: GPLv3 — OK when used as separate DB via Bolt protocol (not modifying/embedding).
+    - mkdir -p /opt/openclaw/data/neo4j/{data,logs,import,plugins}
+    - |
+        cat > /opt/openclaw/docker-compose.neo4j.yml << 'NEO4JEOF'
+        services:
+          neo4j:
+            image: neo4j:5-community
+            restart: unless-stopped
+            ports: ["127.0.0.1:7474:7474", "127.0.0.1:7687:7687"]
+            environment:
+              - NEO4J_AUTH=neo4j/{{AUTOMATION_PASSWORD}}
+              - NEO4J_server_memory_heap_initial__size=512m
+              - NEO4J_server_memory_heap_max__size=1g
+              - NEO4J_server_memory_pagecache_size=512m
+              - NEO4J_db_tx__log_rotation_retention__policy=100M size
+            volumes:
+              - /opt/openclaw/data/neo4j/data:/data
+              - /opt/openclaw/data/neo4j/logs:/logs
+              - /opt/openclaw/data/neo4j/import:/var/lib/neo4j/import
+              - /opt/openclaw/data/neo4j/plugins:/plugins
+            healthcheck:
+              test: ["CMD-SHELL", "cypher-shell -u neo4j -p '{{AUTOMATION_PASSWORD}}' 'RETURN 1' || exit 1"]
+              interval: 30s
+              timeout: 10s
+              retries: 5
+        NEO4JEOF
+    - cd /opt/openclaw && docker compose -f docker-compose.yml -f docker-compose.qdrant.yml -f docker-compose.langfuse.yml -f docker-compose.neo4j.yml up -d neo4j
+
+    # Wait for Neo4j + seed initial schema (constraints + indexes)
+    - |
+        for i in $(seq 1 24); do
+          if docker exec openclaw-neo4j-1 cypher-shell -u neo4j -p '{{AUTOMATION_PASSWORD}}' 'RETURN 1' 2>/dev/null; then
+            echo "Neo4j ready after $i attempts"; break
+          fi
+          sleep 5
+        done
+        docker exec openclaw-neo4j-1 cypher-shell -u neo4j -p '{{AUTOMATION_PASSWORD}}' "
+          CREATE CONSTRAINT entity_id IF NOT EXISTS FOR (e:Entity) REQUIRE e.id IS UNIQUE;
+          CREATE INDEX entity_type IF NOT EXISTS FOR (e:Entity) ON (e.type);
+          CREATE INDEX entity_name IF NOT EXISTS FOR (e:Entity) ON (e.name);
+          CREATE INDEX fact_subject IF NOT EXISTS FOR ()-[r:FACT]-() ON (r.subject);
+          CREATE INDEX fact_validFrom IF NOT EXISTS FOR ()-[r:FACT]-() ON (r.validFrom);
+        " || echo "Neo4j seed failed — retry via migration script"
+
     # ── LiteLLM AI Gateway ──
     - mkdir -p /opt/openclaw/data/litellm
     - |
