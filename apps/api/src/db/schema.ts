@@ -290,6 +290,15 @@ export const instances = pgTable(
         // GitHub (content publishing)
         githubConfig: jsonb('github_config'),           // { token, repo, branch, contentPath }
 
+        // Google Ads — self vs managed mode
+        // self: user's own OAuth + Developer Token + Customer ID
+        // managed: Flowmatic MCC + our env creds + auto-created sub-account (HaaS Silver/Gold)
+        googleAdsMode: text('google_ads_mode').default('self'),  // 'self' | 'managed'
+        googleAdsConfig: jsonb('google_ads_config'),    // { customerId, developerToken?, linkedAt?, mccSubAccountId? }
+
+        // HaaS subscription tier (optional — drives ads mode + support level)
+        haasTier: text('haas_tier'),                    // null (free) | 'bronze' | 'silver' | 'gold'
+
         // Schedules (managed by dashboard, synced to HEARTBEAT.md on VPS)
         schedules: jsonb('schedules'),                 // { core: {...}, seo: {...}, ... }
 

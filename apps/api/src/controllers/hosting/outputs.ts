@@ -220,25 +220,39 @@ export const approveOutput = async (c: Context<HonoEnv>) => {
 async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
     const meta = output.metadata as Record<string, unknown> | null
 
-    // Google Ads draft approved → Phase 4: execute via live API.
-    // For now (Phase 3): log intent + mark metadata.liveApiStatus so UI can
-    // reflect that actual API call is pending Developer Token + SDK wiring.
+    // Google Ads draft approved → execute via live API
     if (output.outputType && output.outputType.startsWith('gads_') && output.outputType.endsWith('_draft')) {
-        console.log(`Google Ads draft approved: ${output.outputType} (id ${output.id}) — live API call deferred to Phase 4`)
+        console.log(`Google Ads draft approved: ${output.outputType} (id ${output.id}) — invoking executor`)
         const [inst] = await db.select().from(instances).where(eq(instances.id, output.instanceId))
+        const cfg = (inst?.googleAdsConfig as any) || {}
         const gt = (inst?.googleTokens as any) || {}
-        const hasGoogleAds = !!gt.refreshToken || !!gt.refresh_token
+        const hasRefreshToken = !!(gt.refreshToken || gt.refresh_token)
+        const hasFullConfig = hasRefreshToken && !!cfg.customerId && !!cfg.developerToken
 
+        // Mark queued before execution for UI feedback
         await db.update(agentOutputs)
             .set({
                 metadata: {
                     ...(meta || {}),
-                    liveApiStatus: hasGoogleAds ? 'queued' : 'pending_config',
+                    liveApiStatus: hasFullConfig ? 'queued' : 'pending_config',
                     approvedForExecutionAt: new Date().toISOString(),
                 },
                 updatedAt: new Date(),
             })
             .where(eq(agentOutputs.id, output.id))
+
+        if (hasFullConfig) {
+            // Fire-and-forget execution (metadata updated by executor)
+            const { executeGadsDraft } = await import('@/services/googleAdsExecutor')
+            // Re-fetch output with queued status for executor to work with current state
+            const [fresh] = await db.select().from(agentOutputs).where(eq(agentOutputs.id, output.id))
+            if (fresh) {
+                executeGadsDraft(fresh)
+                    .catch(err => console.error(`Gads executor error for ${output.id}:`, err))
+            }
+        } else {
+            console.log(`Gads execution skipped — config incomplete (refreshToken=${hasRefreshToken}, cfg=${JSON.stringify(cfg).substring(0, 100)})`)
+        }
         return
     }
 
