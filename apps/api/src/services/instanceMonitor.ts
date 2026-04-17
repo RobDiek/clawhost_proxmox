@@ -70,17 +70,35 @@ async function checkInstance(instance: {
     }
 
     try {
+        // IMPORTANT: use `;` not `&&` — otherwise a non-zero exit from
+        // `systemctl is-active` (e.g. during 'activating' state) skips
+        // subsequent checks and produces false negatives.
         const output = await sshExec(
             instance.ip,
-            `echo "SSH_OK" && systemctl is-active openclaw-gateway 2>/dev/null && echo "DOCKER:$(docker ps -q 2>/dev/null | wc -l)"`,
+            `echo "SSH_OK" ; echo "GATEWAY:$(systemctl is-active openclaw-gateway 2>/dev/null || echo missing)" ; echo "DOCKER:$(docker ps -q 2>/dev/null | wc -l)"`,
             instance.rootPassword || undefined
         )
 
         result.sshReachable = output.includes('SSH_OK')
-        result.gatewayActive = output.includes('active')
+
+        // Accept 'active' OR 'activating' (transient post-restart state).
+        // 'reloading' also counts. Anything else = down.
+        const gwMatch = output.match(/GATEWAY:(\S+)/)
+        const gwState = gwMatch ? gwMatch[1].trim() : ''
+        result.gatewayActive = ['active', 'activating', 'reloading'].includes(gwState)
+
         const dockerMatch = output.match(/DOCKER:(\d+)/)
         result.dockerRunning = dockerMatch ? parseInt(dockerMatch[1]) > 0 : false
+
+        // Healthy = SSH + (gateway active OR activating). Docker status is
+        // informational (not required for healthy — openclaw-gateway is the
+        // primary signal; Docker can run but gateway is still primary).
         result.healthy = result.sshReachable && result.gatewayActive
+
+        // Debug context for alert messages
+        if (!result.healthy && gwState && gwState !== 'active') {
+            result.error = `gateway_state=${gwState}`
+        }
 
     } catch (err) {
         result.error = (err as Error).message

@@ -7078,6 +7078,24 @@ function renderConnectionsWizard() {
     (chosen.paidTrafficActivation ? ' · פרסום: ' + (chosen.paidTrafficActivation === 'immediate' ? 'מיידי' : 'Gatekeeper') : '') + '</div></div>' +
     '</div>';
 
+  // SEO first-run CTA — appears when GSC is connected (minimum requirement)
+  var hasGsc = !!(instanceData.hasGsc);
+  var hasDfs = !!(instanceData.hasDataforseo);
+  var hasFc  = !!(instanceData.hasFirecrawl);
+  if (hasGsc) {
+    var seoTools = [hasGsc && 'GSC', hasDfs && 'DataForSEO', hasFc && 'Firecrawl'].filter(Boolean).join(' + ');
+    var optionalNote = (!hasDfs || !hasFc) ? '<div style="font-size:0.72rem;color:#78350F;margin-top:4px">💡 חבר גם ' + [(!hasDfs && 'DataForSEO'), (!hasFc && 'Firecrawl')].filter(Boolean).join(' + ') + ' לנתונים מדויקים יותר</div>' : '';
+    html +=
+      '<div style="background:linear-gradient(135deg,#1E3A5F 0%,#2563EB 100%);color:#FFF;border-radius:10px;padding:14px;margin-bottom:20px">' +
+      '<div style="display:flex;gap:10px;align-items:start">' +
+      '<div style="font-size:1.6rem">🚀</div>' +
+      '<div style="flex:1"><div style="font-weight:800;font-size:0.95rem;margin-bottom:4px">הריצו ניתוח SEO ראשוני</div>' +
+      '<div style="font-size:0.78rem;opacity:0.9;margin-bottom:6px">כלים מחוברים: ' + escapeHtml(seoTools) + ' · הסוכן יכין baseline של מיקומים, keywords פוטנציאליים, פערי תוכן</div>' +
+      optionalNote +
+      '<button class="btn" onclick="closePipeline();openSeoWizard()" style="background:#FFF;color:#2563EB;margin-top:8px">בואו נתחיל ← (~3 דקות · ~$0.15)</button>' +
+      '</div></div></div>';
+  }
+
   Object.keys(groups).forEach(function(gKey) {
     var items = byGroup[gKey] || [];
     if (items.length === 0) return;
@@ -10205,33 +10223,20 @@ async function renderJourneyBanner() {
     }
   } catch {}
 
-  // Determine stage
-  // NOTE: Basic onboarding (profile, research, strategy) is handled by homeTasks checklist.
-  // Journey banner only covers SEO-specific steps that come AFTER basic onboarding.
+  // Journey banner — minimized to avoid duplication with home tasks checklist.
+  // Home tasks handle: profile, AI key, Telegram, research, strategy, scenarios,
+  // connections wizard (which includes GSC/DFS/FC), facts seed, ops brief.
+  // Banner now only surfaces: pending approval items (critical) OR a success
+  // state. Everything else is in tasks checklist — single source of truth.
   var banner = null;
-  var basicOnboardingDone = hasProfile && hasResearch;
-
-  if (!basicOnboardingDone) {
-    // Don't show journey banner — homeTasks handles this
-    banner = null;
-  } else if (hasPendingStrategy) {
+  if (hasPendingStrategy) {
     banner = { icon: '✅', color: '#F59E0B', title: 'אסטרטגיה ממתינה לאישור', desc: 'הסוכן בנה תוכנית — בדקו ואשרו כדי להמשיך', btn: 'צפו ואשרו ←', action: "document.querySelector('.aq-filter[data-filter=\"pending_review\"]')?.click()" };
-  } else if (!hasGsc) {
-    banner = { icon: '📊', color: '#10B981', title: 'שפרו את התוצאות — חברו GSC', desc: 'Google Search Console חינם — ניטור מיקומים, תנועה ושגיאות אינדוקס', btn: 'חברו GSC ←', action: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('gsc-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)", meta: '💡 חינם לגמרי' };
-  } else if (hasGsc && !hasDfs) {
-    banner = { icon: '🔬', color: '#2563EB', title: 'רוצים נתוני keywords אמיתיים?', desc: 'DataForSEO נותן search volumes, difficulty, ו-AI visibility — במקום הערכות', btn: 'חברו DataForSEO ←', action: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('dataforseo-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)", meta: '💡 ~$5/חודש · חלופה ל-Ahrefs ($99)' };
-  } else if (hasGsc && hasDfs && !hasFc) {
-    banner = { icon: '🕷️', color: '#F97316', title: 'ביקורת טכנית? חברו Firecrawl', desc: 'סריקת אתרים, קישורים שבורים, Schema, מיפוי מתחרים — 3,000 דפים/חודש חינם', btn: 'חברו Firecrawl ←', action: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('firecrawl-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)", meta: '💡 חינם' };
-  } else if (hasGsc && hasDfs && hasFc && !seoFirstRunDone) {
-    banner = { icon: '🚀', color: '#1E3A5F', gradient: true, title: 'כל הכלים מחוברים — הריצו מחקר SEO מקיף!', desc: 'DataForSEO + Firecrawl + GSC יתנו תוצאות מדויקות עם נתונים אמיתיים', btn: 'בואו נתחיל ←', action: 'openSeoWizard()', meta: '⏱️ ~3 דקות · ~$0.15' };
   } else if (hasPendingArticle) {
     banner = { icon: '✍️', color: '#8B5CF6', title: 'מאמר SEO ממתין לאישור', desc: 'הסוכן כתב מאמר על בסיס האסטרטגיה — בדקו ואשרו', btn: 'צפו במאמר ←', action: "document.querySelector('.aq-filter[data-filter=\"pending_review\"]')?.click()" };
-  } else if (!hasGithub && seoFirstRunDone) {
-    banner = { icon: '📤', color: '#24292F', title: 'רוצים לפרסם אוטומטית?', desc: 'חברו GitHub — הסוכן יפרסם מאמרים ישירות לאתר שלכם (Cloudflare Pages auto-build)', btn: 'חברו GitHub ←', action: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('github-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)", meta: '💡 חינם' };
-  } else if (seoFirstRunDone) {
-    // Everything done — show success state (dismissible)
-    banner = { icon: '🎉', color: '#059669', title: 'הכל מוגדר — הסוכן עובד!', desc: 'ניטור SEO יומי, דוחות שבועיים, ביקורת AEO חודשית — הכל אוטומטי', btn: null, dismissible: true };
+  } else if (seoFirstRunDone && !hasGithub) {
+    banner = { icon: '📤', color: '#24292F', title: 'רוצים לפרסם אוטומטית לאתר?', desc: 'חברו GitHub — הסוכן יפרסם מאמרים ישירות לאתר שלכם (Cloudflare Pages auto-build)', btn: 'חברו GitHub ←', action: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('github-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)", meta: '💡 חינם', dismissible: true };
   }
+  // Integrations connection + SEO first-run are handled inside Connections Wizard modal now.
 
   if (!banner) { el.style.display = 'none'; return; }
   if (banner.dismissible && localStorage.getItem('cf_journey_dismissed')) { el.style.display = 'none'; return; }
