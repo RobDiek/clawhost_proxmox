@@ -7344,16 +7344,21 @@ function renderApiUsage(u) {
     (u.budgetMaxUsd > 0 ? '<div style="font-size:0.72rem;color:' + sc.text + ';opacity:0.8;margin-top:6px">תקציב מסלול: $' + u.budgetMinUsd + '-' + u.budgetMaxUsd + '/חודש</div>' : '') +
     '</div>' +
 
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">' +
     '<div style="background:#F9FAFB;border-radius:8px;padding:10px">' +
-    '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:2px">קריאות ישירות (מהמערכת)</div>' +
+    '<div style="font-size:0.7rem;color:#6B7280;margin-bottom:2px">קריאות ישירות</div>' +
     '<div style="font-weight:700;font-size:1.05rem">$' + u.directCostUsd + '</div>' +
-    '<div style="font-size:0.7rem;color:#6B7280">strategy · scenarios · ops-brief</div>' +
+    '<div style="font-size:0.68rem;color:#6B7280">strategy · scenarios · ops-brief</div>' +
     '</div>' +
     '<div style="background:#F9FAFB;border-radius:8px;padding:10px">' +
-    '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:2px">סוכנים על ה-VPS</div>' +
+    '<div style="font-size:0.7rem;color:#6B7280;margin-bottom:2px">סוכנים (VPS)</div>' +
     '<div style="font-weight:700;font-size:1.05rem">$' + u.vpsCostUsd + '</div>' +
-    '<div style="font-size:0.7rem;color:#6B7280">cron tasks · מחקר · תוכן</div>' +
+    '<div style="font-size:0.68rem;color:#6B7280">cron · מחקר · תוכן</div>' +
+    '</div>' +
+    '<div style="background:' + ((u.cacheSavingsUsd || 0) > 0 ? '#F0FDF4' : '#F9FAFB') + ';border-radius:8px;padding:10px;' + ((u.cacheSavingsUsd || 0) > 0 ? 'border:1px solid #10B981' : '') + '">' +
+    '<div style="font-size:0.7rem;color:#6B7280;margin-bottom:2px">חיסכון מ-Cache ⚡</div>' +
+    '<div style="font-weight:700;font-size:1.05rem;color:' + ((u.cacheSavingsUsd || 0) > 0 ? '#10B981' : '#6B7280') + '">$' + (u.cacheSavingsUsd || 0) + '</div>' +
+    '<div style="font-size:0.68rem;color:#6B7280">' + ((u.cacheReadTokens || 0).toLocaleString()) + ' tokens מה-cache</div>' +
     '</div></div>' +
 
     '<div style="margin-bottom:16px"><div style="font-weight:700;font-size:0.88rem;color:#111827;margin-bottom:6px">💬 קריאות ישירות לפי ייעוד</div>' +

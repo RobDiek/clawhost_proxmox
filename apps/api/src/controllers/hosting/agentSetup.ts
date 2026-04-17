@@ -1632,8 +1632,42 @@ export const buildStrategy = async (c: Context) => {
             rd.strategyStage3 || '',
         ].filter(Boolean).join('\n\n---\n\n')
 
-        const strategyPrompt = stageConfig.prompt(businessName, researchContext, answers, prevStrategy, extracted)
-        console.log(`Strategy prompt: ${strategyPrompt.length} chars (research: ${researchContext.length}, prev: ${prevStrategy.length})`)
+        // Build STAGE-SPECIFIC prompt WITHOUT research (research moves to cached block).
+        // The stage template sees '<ראה בלוק הקבוע בראש ההודעה>' instead of research text —
+        // model locates it in the prior cached block automatically.
+        const RESEARCH_POINTER = '\n[⚡ ראה נתוני המחקר המלאים + נתונים ספציפיים בבלוק הקבוע בראש ההודעה. אל תחזור עליהם — השתמש בהם ישירות.]\n'
+        const emptyExtracted = {
+            competitors: RESEARCH_POINTER, keywords: RESEARCH_POINTER, audiences: RESEARCH_POINTER,
+            channels: RESEARCH_POINTER, painPoints: RESEARCH_POINTER, validation: RESEARCH_POINTER,
+        }
+        const stageSpecificPrompt = stageConfig.prompt(businessName, RESEARCH_POINTER, answers, prevStrategy, emptyExtracted)
+
+        // Stable cacheable block — research + extracted. Reused across all 4 stages within 5min TTL.
+        const cachedPreamble = `## נתוני מחקר מלאים (שלבים 1-5)
+
+${researchContext}
+
+## נתונים ספציפיים שחולצו מהמחקר
+
+### מתחרים
+${extracted.competitors}
+
+### מילות מפתח
+${extracted.keywords}
+
+### קהלי יעד
+${extracted.audiences}
+
+### ערוצים
+${extracted.channels}
+
+### כאבים
+${extracted.painPoints}
+
+### תובנות אימות (שלב 5)
+${extracted.validation}`
+
+        console.log(`Strategy prompt: stable ${cachedPreamble.length} chars + variable ${stageSpecificPrompt.length} chars (stage ${stage})`)
 
         // DIRECT API CALL — no OpenClaw agent overhead (saves ~22K tokens)
         const apiKey = await getApiKeyForInstance(instanceId)
@@ -1659,14 +1693,22 @@ export const buildStrategy = async (c: Context) => {
             body: JSON.stringify({
                 model: strategyModel,
                 max_tokens: 8192,
-                messages: [{ role: 'user', content: strategyPrompt }],
+                messages: [{
+                    role: 'user',
+                    content: [
+                        // Stable — cached after first stage within this 5-min window
+                        { type: 'text', text: cachedPreamble, cache_control: { type: 'ephemeral' } },
+                        // Variable per stage
+                        { type: 'text', text: stageSpecificPrompt },
+                    ],
+                }],
             }),
         })
 
         // Fallback to OpenAI if Anthropic fails
         let strategy = ''
         if (res.ok) {
-            const data = await res.json() as { content?: Array<{ text: string }>; usage?: { input_tokens?: number; output_tokens?: number } }
+            const data = await res.json() as { content?: Array<{ text: string }>; usage?: { input_tokens?: number; output_tokens?: number; cache_creation_input_tokens?: number; cache_read_input_tokens?: number } }
             strategy = data.content?.[0]?.text || ''
             console.log(`Strategy from Anthropic: ${strategy.length} chars`)
             if (data.usage) {
@@ -1674,6 +1716,8 @@ export const buildStrategy = async (c: Context) => {
                     instanceId, purpose: `strategy-stage-${stage}`, model: strategyModel,
                     inputTokens: data.usage.input_tokens || 0,
                     outputTokens: data.usage.output_tokens || 0,
+                    cacheCreationTokens: data.usage.cache_creation_input_tokens || 0,
+                    cacheReadTokens: data.usage.cache_read_input_tokens || 0,
                 })
             }
         } else {
@@ -1692,7 +1736,7 @@ export const buildStrategy = async (c: Context) => {
                     body: JSON.stringify({
                         model: 'gpt-4o',
                         max_tokens: 8192,
-                        messages: [{ role: 'user', content: strategyPrompt }],
+                        messages: [{ role: 'user', content: cachedPreamble + '\n\n---\n\n' + stageSpecificPrompt }],
                     }),
                 })
                 if (oaiRes.ok) {
@@ -1833,22 +1877,42 @@ const MODEL_PRICING: Record<string, { input: number; output: number }> = {
     'gpt-4o-mini':                 { input: 0.15, output: 0.60 },
 }
 
-function computeCost(model: string, inputTokens: number, outputTokens: number): number {
+function computeCost(
+    model: string,
+    inputTokens: number,
+    outputTokens: number,
+    cacheCreationTokens = 0,
+    cacheReadTokens = 0
+): number {
     const p = MODEL_PRICING[model] || MODEL_PRICING['claude-sonnet-4-6']
-    return ((inputTokens / 1_000_000) * p.input) + ((outputTokens / 1_000_000) * p.output)
+    const regular = (inputTokens / 1_000_000) * p.input
+    const output  = (outputTokens / 1_000_000) * p.output
+    // Anthropic prompt caching: write 1.25x input, read 0.1x input (ephemeral 5min TTL)
+    const cacheWrite = (cacheCreationTokens / 1_000_000) * p.input * 1.25
+    const cacheRead  = (cacheReadTokens / 1_000_000) * p.input * 0.1
+    return regular + output + cacheWrite + cacheRead
 }
 
 // Log direct-API call usage. Stored in researchData.apiUsageLog (last 500 entries).
 export async function logApiUsage(params: {
     instanceId: string;
-    purpose: string;         // 'strategy-stage-2', 'scenarios', 'ops-brief', 'research-stage-4', etc.
+    purpose: string;
     model: string;
     inputTokens: number;
     outputTokens: number;
+    cacheCreationTokens?: number;  // Anthropic prompt caching write
+    cacheReadTokens?: number;       // Anthropic prompt caching hit
 }): Promise<void> {
     try {
-        const cost = computeCost(params.model, params.inputTokens, params.outputTokens)
-        const entry = {
+        const cacheCreation = params.cacheCreationTokens || 0
+        const cacheRead = params.cacheReadTokens || 0
+        const cost = computeCost(params.model, params.inputTokens, params.outputTokens, cacheCreation, cacheRead)
+
+        // Baseline (no cache) cost for savings measurement
+        const baselineCost = computeCost(params.model, params.inputTokens + cacheCreation + cacheRead, params.outputTokens)
+        const savingsUsd = Number((baselineCost - cost).toFixed(4))
+
+        const entry: any = {
             ts: new Date().toISOString(),
             purpose: params.purpose,
             model: params.model,
@@ -1856,16 +1920,20 @@ export async function logApiUsage(params: {
             outputTokens: params.outputTokens,
             costUsd: Number(cost.toFixed(4)),
         }
+        if (cacheCreation > 0) entry.cacheCreationTokens = cacheCreation
+        if (cacheRead > 0)     entry.cacheReadTokens = cacheRead
+        if (savingsUsd > 0)    entry.cacheSavingsUsd = savingsUsd
+
         const [inst] = await db.select().from(instances).where(eq(instances.id, params.instanceId))
         const rd: any = inst?.researchData || {}
         const log = Array.isArray(rd.apiUsageLog) ? rd.apiUsageLog : []
         log.unshift(entry)
-        // Cap to 500 entries (~6 months for typical usage)
         const trimmed = log.slice(0, 500)
         await db.update(instances).set({
             researchData: { ...rd, apiUsageLog: trimmed } as any,
         }).where(eq(instances.id, params.instanceId))
-        console.log(`API usage: ${params.purpose} ${params.model} ${params.inputTokens}+${params.outputTokens} = $${cost.toFixed(4)}`)
+        const cacheNote = cacheRead > 0 ? ` (cache hit ${cacheRead} tok, saved $${savingsUsd})` : cacheCreation > 0 ? ` (cache write ${cacheCreation} tok)` : ''
+        console.log(`API usage: ${params.purpose} ${params.model} ${params.inputTokens}+${params.outputTokens} = $${cost.toFixed(4)}${cacheNote}`)
     } catch (err) {
         console.warn('logApiUsage failed (non-critical):', err)
     }
@@ -2312,11 +2380,12 @@ KPIs **חייבים לשקף בפועל** את ההשקעה והמאמץ. אם �
 
         console.log(`Strategy scenarios for ${businessName}: prompt ${prompt.length} chars`)
 
-        // Call Opus with auto-retry on coherence violations
+        // Call Opus with auto-retry on coherence violations.
+        // Prompt is CACHED — retries within 5min pay only for the feedback delta.
         let scenariosData: any = null
         let coherenceWarnings: string[] = []
         const maxAttempts = 3
-        let currentPrompt = prompt
+        let retryFeedback = ''  // appended on each retry
 
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -2329,7 +2398,15 @@ KPIs **חייבים לשקף בפועל** את ההשקעה והמאמץ. אם �
                 body: JSON.stringify({
                     model: 'claude-opus-4-7',
                     max_tokens: 8192,
-                    messages: [{ role: 'user', content: currentPrompt }],
+                    messages: [{
+                        role: 'user',
+                        content: [
+                            // Stable base prompt — cached across retries
+                            { type: 'text', text: prompt, cache_control: { type: 'ephemeral' } },
+                            // Variable: coherence feedback from previous failed attempt
+                            ...(retryFeedback ? [{ type: 'text', text: retryFeedback }] : []),
+                        ],
+                    }],
                 }),
                 signal: AbortSignal.timeout(300000),
             })
@@ -2341,7 +2418,7 @@ KPIs **חייבים לשקף בפועל** את ההשקעה והמאמץ. אם �
                 continue
             }
 
-            const data = await res.json() as { content?: Array<{ text: string }>; usage?: { input_tokens?: number; output_tokens?: number } }
+            const data = await res.json() as { content?: Array<{ text: string }>; usage?: { input_tokens?: number; output_tokens?: number; cache_creation_input_tokens?: number; cache_read_input_tokens?: number } }
             const rawText = data.content?.[0]?.text || ''
             console.log(`Scenarios attempt ${attempt}: ${rawText.length} chars`)
             if (data.usage) {
@@ -2349,6 +2426,8 @@ KPIs **חייבים לשקף בפועל** את ההשקעה והמאמץ. אם �
                     instanceId, purpose: `scenarios-attempt-${attempt}`, model: 'claude-opus-4-7',
                     inputTokens: data.usage.input_tokens || 0,
                     outputTokens: data.usage.output_tokens || 0,
+                    cacheCreationTokens: data.usage.cache_creation_input_tokens || 0,
+                    cacheReadTokens: data.usage.cache_read_input_tokens || 0,
                 })
             }
 
@@ -2386,8 +2465,8 @@ KPIs **חייבים לשקף בפועל** את ההשקעה והמאמץ. אם �
             coherenceWarnings = violations
 
             if (attempt < maxAttempts) {
-                // Retry with explicit feedback
-                currentPrompt = prompt + `\n\n---\n\n## ⚠️ הניסיון הקודם שלך נכשל בבדיקת קוהרנטיות:\n\n` +
+                // Retry — base prompt stays cached, only feedback delta is new tokens
+                retryFeedback = `\n\n---\n\n## ⚠️ הניסיון הקודם שלך נכשל בבדיקת קוהרנטיות:\n\n` +
                     violations.map((v, i) => `${i + 1}. ${v}`).join('\n') +
                     `\n\n**תקן את המספרים.** חשב מחדש את ה-KPIs לפי הנוסחאות שלמעלה. הפעם תחזיר JSON **קוהרנטי** שעובר את כל הבדיקות.`
             }
@@ -3059,6 +3138,8 @@ export const getApiUsage = async (c: Context) => {
         const log: any[] = Array.isArray(rd.apiUsageLog) ? rd.apiUsageLog : []
         const recent = log.filter((e: any) => new Date(e.ts) >= cutoff)
         const directCost = recent.reduce((sum, e) => sum + (e.costUsd || 0), 0)
+        const cacheSavings = recent.reduce((sum, e) => sum + (e.cacheSavingsUsd || 0), 0)
+        const cacheReadTokens = recent.reduce((sum, e) => sum + (e.cacheReadTokens || 0), 0)
         const directByPurpose: Record<string, { count: number; cost: number; tokens: number }> = {}
         for (const e of recent) {
             const k = e.purpose || 'other'
@@ -3103,6 +3184,8 @@ export const getApiUsage = async (c: Context) => {
             totalCostUsd: Number(totalCost.toFixed(2)),
             directCostUsd: Number(directCost.toFixed(2)),
             vpsCostUsd: Number(vpsCost.toFixed(2)),
+            cacheSavingsUsd: Number(cacheSavings.toFixed(2)),
+            cacheReadTokens,
             budgetMinUsd: budgetMin,
             budgetMaxUsd: budgetMax,
             percentOfMax: pct,
