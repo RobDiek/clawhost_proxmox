@@ -6557,29 +6557,38 @@ async function runChainStrategy() {
       return '<div style="flex:1;text-align:center;padding:6px;border-radius:6px;font-size:0.78rem;color:#9CA3AF">' + s.name + '</div>';
     }).join('');
 
+    var hasAnthropicKey = !!(instanceData && instanceData.hasAnthropicKey);
+    var keyWarning = !hasAnthropicKey
+      ? '<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:0.82rem;color:#92400E;line-height:1.5">' +
+          '⚠️ <strong>מפתח Anthropic לא מחובר.</strong> לאסטרטגיה איכותית — Opus 4.7 חיוני. ' +
+          '<a href="#" onclick="closePipeline();switchTab(\'integrations\');return false;" style="color:#B45309;font-weight:600;text-decoration:underline">חברו עכשיו ←</a>' +
+        '</div>'
+      : '';
+
     document.getElementById('pipelineBody').innerHTML =
       '<div style="padding:20px">' +
+        keyWarning +
         '<div style="background:#FFF7ED;border:1px solid #FB923C;border-radius:10px;padding:16px;margin-bottom:16px">' +
           '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
             '<span style="font-size:1.3rem">🏆</span>' +
-            '<strong style="color:#C2410C;font-size:0.95rem">המלצה: השתמשו ב-Claude Opus 4.6</strong>' +
+            '<strong style="color:#C2410C;font-size:0.95rem">ברירת מחדל: Claude Opus 4.7 — הטוב ביותר</strong>' +
           '</div>' +
           '<div style="color:#9A3412;font-size:0.82rem;line-height:1.5">' +
-            'Opus מייצר אסטרטגיה <strong>ברמה גבוהה משמעותית</strong> — פרסונות מפורטות יותר, KPIs ריאליים, ' +
-            'תוכנית תוכן עם כותרות אמיתיות, ותקציבים מדויקים. Sonnet טוב למשימות שוטפות, אבל לאסטרטגיה שמנהלת את כל העסק — Opus עושה את ההבדל.' +
+            'Opus 4.7 מייצר אסטרטגיה <strong>ברמה הגבוהה ביותר</strong> — 1M context window, ניתוח אסטרטגי עמוק, ' +
+            'פרסונות מדויקות, KPIs ריאליים, ותוכניות שמתוכננות לביצוע. זה המודל שמניב את האסטרטגיה שעליה בונים עסק.' +
           '</div>' +
         '</div>' +
         '<div style="font-size:0.82rem;color:#6B7280;margin-bottom:10px;font-weight:600">בחרו מודל לבניית האסטרטגיה:</div>' +
         '<div style="display:flex;flex-direction:column;gap:8px">' +
-          '<label style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:8px;border:2px solid #FB923C;background:#FFF7ED;cursor:pointer">' +
-            '<input type="radio" name="strategyModel" value="claude-opus-4-7" checked style="accent-color:#C2410C" onchange="strategyModelChoice=\'claude-opus-4-7\'">' +
+          '<label style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:8px;border:2px solid #FB923C;background:#FFF7ED;cursor:pointer' + (!hasAnthropicKey ? ';opacity:0.6' : '') + '">' +
+            '<input type="radio" name="strategyModel" value="claude-opus-4-7" ' + (hasAnthropicKey ? 'checked' : 'disabled') + ' style="accent-color:#C2410C" onchange="strategyModelChoice=\'claude-opus-4-7\'">' +
             '<div>' +
-              '<div style="font-weight:600;color:#C2410C">Claude Opus 4.7 <span style="background:#FB923C;color:white;padding:1px 6px;border-radius:4px;font-size:0.7rem;margin-right:4px">הכי חכם</span></div>' +
-              '<div style="font-size:0.75rem;color:#9A3412">המודל החזק ביותר — ניתוח אסטרטגי עמוק, 1M context, KPIs מדויקים</div>' +
+              '<div style="font-weight:600;color:#C2410C">Claude Opus 4.7 <span style="background:#FB923C;color:white;padding:1px 6px;border-radius:4px;font-size:0.7rem;margin-right:4px">מומלץ</span>' + (!hasAnthropicKey ? ' <span style="color:#B91C1C;font-size:0.7rem;margin-right:4px">(נדרש Anthropic)</span>' : '') + '</div>' +
+              '<div style="font-size:0.75rem;color:#9A3412">המודל החזק ביותר — 1M context, ניתוח עמוק, KPIs מדויקים</div>' +
             '</div>' +
           '</label>' +
-          '<label style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:8px;border:1px solid #E5E7EB;cursor:pointer">' +
-            '<input type="radio" name="strategyModel" value="claude-sonnet-4-6" style="accent-color:#2563EB" onchange="strategyModelChoice=\'claude-sonnet-4-6\'">' +
+          '<label style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:8px;border:1px solid #E5E7EB;cursor:pointer' + (!hasAnthropicKey ? ';opacity:0.6' : '') + '">' +
+            '<input type="radio" name="strategyModel" value="claude-sonnet-4-6" ' + (!hasAnthropicKey ? 'disabled' : '') + ' style="accent-color:#2563EB" onchange="strategyModelChoice=\'claude-sonnet-4-6\'">' +
             '<div>' +
               '<div style="font-weight:600;color:#374151">Claude Sonnet 4.6</div>' +
               '<div style="font-size:0.75rem;color:#9CA3AF">מהיר ואמין — תוצאה טובה, אבל פחות מעמיקה</div>' +
@@ -6589,9 +6598,10 @@ async function runChainStrategy() {
       '</div>';
 
     document.getElementById('pipelineNextBtn').style.display = '';
-    document.getElementById('pipelineNextBtn').disabled = false;
-    document.getElementById('pipelineNextBtn').textContent = 'התחילו לבנות אסטרטגיה ←';
+    document.getElementById('pipelineNextBtn').disabled = !hasAnthropicKey;
+    document.getElementById('pipelineNextBtn').textContent = hasAnthropicKey ? 'התחילו לבנות אסטרטגיה ←' : '🔒 חברו Anthropic להמשך';
     document.getElementById('pipelineNextBtn').onclick = function() {
+      if (!hasAnthropicKey) { closePipeline(); switchTab('integrations'); return; }
       runStrategyStage(1);
     };
     return;
