@@ -592,6 +592,51 @@ PYEOF
           systemctl start openclaw-gateway
         fi
 
+    # ── openclaw-googleads MCP plugin (draft-mode campaign/ad-group/ad/keywords) ──
+    # Safety-first: all write tools produce drafts for approval queue. Live API
+    # calls require user's Developer Token (added via dashboard post-install).
+    - mkdir -p /home/openclaw/.openclaw/extensions/openclaw-googleads/dist
+    - |
+        cat > /home/openclaw/.openclaw/extensions/openclaw-googleads/package.json << 'GADSPKGEOF'
+        {
+          "name": "openclaw-googleads",
+          "version": "0.1.0",
+          "description": "Google Ads draft + read tools for MATEH agents (approval-queue safety)",
+          "main": "dist/index.js",
+          "openclaw": { "displayName": "Google Ads", "category": "ads", "requires": [] }
+        }
+        GADSPKGEOF
+    - |
+        PLUGIN_URL="https://raw.githubusercontent.com/synex-os/openclaw-hosting/Production/scripts/openclaw-googleads-plugin.js"
+        if ! curl -fsSL "$PLUGIN_URL" -o /home/openclaw/.openclaw/extensions/openclaw-googleads/dist/index.js 2>/dev/null; then
+          echo "Failed to fetch googleads plugin from GitHub — skipping"
+        fi
+    - chown -R openclaw:openclaw /home/openclaw/.openclaw/extensions
+    # Register plugin in openclaw.json (draft-only — empty config is fine,
+    # user adds Developer Token later via dashboard Integrations tab)
+    - |
+        if [ -f /home/openclaw/.openclaw/extensions/openclaw-googleads/dist/index.js ]; then
+          systemctl stop openclaw-gateway 2>/dev/null
+          python3 <<PYEOF
+import json
+p = '/home/openclaw/.openclaw/openclaw.json'
+with open(p) as f: cfg = json.load(f)
+plugins = cfg.setdefault('plugins', {})
+entries = plugins.setdefault('entries', {})
+entries['openclaw-googleads'] = {
+    'enabled': True,
+    'source': { 'type': 'local', 'path': '/home/openclaw/.openclaw/extensions/openclaw-googleads' },
+    'config': {}
+}
+allow = plugins.setdefault('allow', [])
+if 'openclaw-googleads' not in allow: allow.append('openclaw-googleads')
+with open(p, 'w') as f: json.dump(cfg, f, indent=2)
+print('openclaw-googleads plugin registered (draft mode)')
+PYEOF
+          chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json
+          systemctl start openclaw-gateway
+        fi
+
     # ── LiteLLM AI Gateway ──
     - mkdir -p /opt/openclaw/data/litellm
     - |

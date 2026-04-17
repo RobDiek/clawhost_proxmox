@@ -136,6 +136,26 @@ function classifyOutput(content: string, userPrompt: string): {
 } {
     const lc = (content + ' ' + userPrompt).toLowerCase()
 
+    // Google Ads drafts — require approval before live API execution.
+    // Agent includes JSON in output with '_type' field from openclaw-googleads plugin.
+    if (content.includes('"_type":"gads_campaign_draft"') || lc.includes('gads_campaign_draft')) {
+        const nameMatch = content.match(/"name"\s*:\s*"([^"]+)"/)
+        return {
+            outputType: 'gads_campaign_draft',
+            title: 'קמפיין Google Ads (טיוטה) — ' + (nameMatch ? nameMatch[1] : new Date().toLocaleDateString('he-IL')),
+            platform: 'google_ads',
+        }
+    }
+    if (content.includes('"_type":"gads_adgroup_draft"') || lc.includes('gads_adgroup_draft')) {
+        return { outputType: 'gads_adgroup_draft', title: 'קבוצת מודעות Google Ads (טיוטה)', platform: 'google_ads' }
+    }
+    if (content.includes('"_type":"gads_ad_draft"') || lc.includes('gads_ad_draft')) {
+        return { outputType: 'gads_ad_draft', title: 'מודעת Google Ads (טיוטה)', platform: 'google_ads' }
+    }
+    if (content.includes('"_type":"gads_keywords_draft"') || lc.includes('gads_keywords_draft')) {
+        return { outputType: 'gads_keywords_draft', title: 'מילות מפתח Google Ads (טיוטה)', platform: 'google_ads' }
+    }
+
     if (lc.includes('daily brief') || lc.includes('סיכום יומי') || lc.includes('משימות עדיפות')) {
         return {
             outputType: 'daily_brief',
