@@ -2673,6 +2673,62 @@ ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי
     }
 }
 
+// ── Helper: append Marketing Facts Graph section to SOUL.md (idempotent) ──
+// Tells agents to prefer fact_query over re-reading STRATEGY.md/BRAND.md.
+async function updateSoulWithFactsTools(ip: string, password?: string): Promise<void> {
+    try {
+        const soul = await sshExec(ip, 'cat /home/openclaw/.openclaw/workspace/SOUL.md 2>/dev/null || echo ""', password)
+        if (soul.includes('openclaw-facts MCP')) {
+            console.log('SOUL already contains facts section — skip')
+            return
+        }
+
+        const section = `
+
+## openclaw-facts MCP — גרף ידע שיווקי (Neo4j)
+
+שרת openclaw-facts מותקן ומחובר. זהו **מקור האמת המובנה** לעובדות שיווק — השתמש בו **לפני** שאתה קורא STRATEGY.md או BRAND.md.
+
+**כלים זמינים:**
+- \`fact_query\` — שאילתת עובדות לפי subject / subjectType / predicate / object / objectType / activeAt
+- \`entity_timeline\` — היסטוריה של כל העובדות שמערבות ישות ספציפית (כרונולוגי)
+- \`entity_list\` — רשימת ישויות לפי type (competitor, persona, keyword, channel, pillar, ...)
+- \`fact_add\` — הוספת עובדה חדשה: (subject)-[predicate]->(object) עם source + confidence
+
+**סוגי ישויות:** competitor, persona, keyword, channel, customer, pillar, campaign, product, value
+
+**דוגמאות שימוש — חובה להעדיף על פני קריאת קבצים:**
+
+\`\`\`
+// לפני בריף תחרותי שבועי:
+entity_list({ type: 'competitor' })          // קבל את כל המתחרים הידועים (בניגוד ל-18KB STRATEGY.md)
+entity_timeline({ name: 'Automaziot.ai' })   // כל העובדות על מתחרה X — מחיר, חוזקות, חולשות
+
+// לפני יצירת תוכן:
+entity_list({ type: 'pillar' })              // 5 content pillars
+fact_query({ subjectType: 'persona' })       // פרסונות + כאבים + ערוצים מועדפים
+
+// לפני SERP tracking:
+entity_list({ type: 'keyword' })             // כל מילות המפתח עם KD + volume
+
+// אחרי שגילית משהו חדש:
+fact_add({ subject: 'Automaziot.ai', subjectType: 'competitor', predicate: 'PRICED_AT', object: '₪5,000/mo', source: 'agent:sayer', confidence: 0.9 })
+\`\`\`
+
+**כלל זהב:** אם שאלת עצמך "מי הם המתחרים?" / "מה הפרסונות?" / "אילו מילות מפתח?" — זה fact_query, לא קריאת STRATEGY.md. חוסך ~80% טוקנים במשימות חוזרות.
+`
+        const b64 = Buffer.from(section, 'utf8').toString('base64')
+        await sshExec(ip,
+            `echo '${b64}' | base64 -d >> /home/openclaw/.openclaw/workspace/SOUL.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/SOUL.md`,
+            password, 15000
+        )
+        await sshExec(ip, 'systemctl restart openclaw-gateway', password, 15000)
+        console.log('SOUL.md updated with openclaw-facts tools section')
+    } catch (err) {
+        console.error('updateSoulWithFactsTools error (non-fatal):', err)
+    }
+}
+
 // ── POST /hosting/instances/:id/facts/seed ──
 // One-shot seeding of Neo4j graph from existing research_data.
 // Extracts competitors, personas, keywords, channels, pillars from strategy
@@ -2824,6 +2880,9 @@ const ctx = { config: { uri: 'bolt://localhost:7687', user: 'neo4j', password: p
                 factsSeedSummary: { added: parseInt(okCount), failed: parseInt(failCount), totalExtracted: facts.length },
             } as any,
         }).where(eq(instances.id, instanceId))
+
+        // Update SOUL.md so agents know to use fact_query instead of reading MD files
+        await updateSoulWithFactsTools(instance.ip, instance.rootPassword || undefined)
 
         console.log(`Facts seeded for ${instanceId}: ${okCount} ok, ${failCount} failed (from ${facts.length} extracted)`)
         return ok(c, {
