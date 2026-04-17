@@ -1044,7 +1044,7 @@ input{font-family:inherit}
       <div id="agent-schedules">
         <div class="schedule-row">
           <div class="schedule-info">
-            <div class="schedule-name">Daily Brief</div>
+            <div class="schedule-name">דו״ח יומי</div>
             <div class="schedule-desc">סיכום יומי</div>
           </div>
           <div class="schedule-actions" style="display:flex;align-items:center;gap:8px">
@@ -2723,7 +2723,7 @@ var DASH_MASCOT_MSGS = {
   allSetup: 'הכל מוגדר! 🎉 הסוכנים שלכם פועלים אוטומטית.',
   tips: {
     oc: ['בדקו את הצ\'אט — העוזר שלכם מחכה לשאלות', 'חברו את Google Calendar כדי לסנכרן את היומן'],
-    mt: ['הריצו מחקר שוק כדי לקבל תובנות על המתחרים', 'הגדירו את ה-Daily Brief לשעה שנוחה לכם', 'בדקו את תור האישורים — ייתכן שיש תוכן ממתין'],
+    mt: ['הריצו מחקר שוק כדי לקבל תובנות על המתחרים', 'הגדירו את ה-דו״ח יומי לשעה שנוחה לכם', 'בדקו את תור האישורים — ייתכן שיש תוכן ממתין'],
     bare: ['גשו לקונסול להתקין חבילות נוספות', 'השתמשו בלשונית קבצים לניהול הפרויקט'],
   }
 };
@@ -3125,7 +3125,7 @@ function renderHome() {
   var tasks = [
     { id: 'vps', label: 'שרת VPS פעיל', done: true, desc: 'השרת שלכם פועל ומוכן' },
     { id: 'api', label: aiLabel, done: !!hasAiProvider, action: "switchTab('integrations')", actionLabel: 'חברו', desc: aiDesc },
-    { id: 'telegram', label: 'בוט Telegram מחובר', done: !!hasTelegram, action: "switchTab('integrations')", actionLabel: 'חברו', desc: 'לקבלת עדכונים, Daily Brief ואישורי פרסום' },
+    { id: 'telegram', label: 'בוט Telegram מחובר', done: !!hasTelegram, action: "switchTab('integrations')", actionLabel: 'חברו', desc: 'לקבלת עדכונים, דו״ח יומי ואישורי פרסום' },
   ];
 
   if (isMATEH) {
@@ -3170,7 +3170,7 @@ function renderHome() {
         actionLabel: latestBrief ? 'צפו בדוח' : 'ייצרו דוח ראשון',
         desc: latestBrief ? latestBrief.statusReason : 'השוואת ביצועים מול KPI של המסלול + 3 פעולות לשבוע הבא'
       });
-      tasks.push({ id: 'brief', label: 'הסוכנים פעילים', done: true, desc: 'Daily Brief, דוחות שבועיים, ביקורת AEO — אוטומטית' });
+      tasks.push({ id: 'brief', label: 'הסוכנים פעילים', done: true, desc: 'דו״ח יומי, דוחות שבועיים, ביקורת AEO — אוטומטית' });
     }
   }
 
@@ -3275,7 +3275,7 @@ function getNotifications() {
       notifs.push({ id: 'rec-google', type: 'info', icon: '💡', title: 'חברו Google Calendar', desc: 'הסוכן יוכל לנהל את היומן שלכם — פגישות, תזכורות, אירועים', action: "switchTab('integrations')", actionLabel: 'חברו עכשיו' });
     }
     if (!hasTelegram && dismissed.indexOf('rec-telegram') === -1) {
-      notifs.push({ id: 'rec-telegram', type: 'info', icon: '📱', title: 'חברו Telegram', desc: 'קבלו Daily Brief והתראות גם בטלגרם — בנוסף לצ\'אט המובנה', action: "switchTab('integrations')", actionLabel: 'חברו' });
+      notifs.push({ id: 'rec-telegram', type: 'info', icon: '📱', title: 'חברו Telegram', desc: 'קבלו דו״ח יומי והתראות גם בטלגרם — בנוסף לצ\'אט המובנה', action: "switchTab('integrations')", actionLabel: 'חברו' });
     }
   }
 
@@ -3461,7 +3461,7 @@ function classifyActivity(logLine) {
     return { type: 'telegram', icon: '💬', title: 'הודעה בטלגרם', desc: '', time: time };
   }
   if (logLine.includes('cron') && logLine.includes('daily')) {
-    return { type: 'report', icon: '📊', title: 'Daily Brief', desc: 'סיכום יומי נשלח', time: time };
+    return { type: 'report', icon: '📊', title: 'דו״ח יומי', desc: 'סיכום יומי נשלח', time: time };
   }
   if (logLine.includes('cron')) {
     return { type: 'system', icon: '⏰', title: 'משימה מתוזמנת', desc: '', time: time };
@@ -3513,7 +3513,7 @@ var AGENT_NAMES = {
 
 // Output type → Hebrew label
 var OUTPUT_TYPE_LABELS = {
-  daily_brief: 'Daily Brief', weekly_report: 'דוח תחרותי שבועי',
+  daily_brief: 'דו״ח יומי', weekly_report: 'דוח תחרותי שבועי',
   content_post: 'פוסט תוכן', media_image: 'מדיה',
   aeo_audit: 'ביקורת AEO', competitive_scan: 'סריקת מתחרים', content_idea: 'רעיון תוכן',
   email_draft: 'טיוטת מייל', calendar_event: 'אירוע ביומן', task_summary: 'סיכום משימות',
@@ -3825,7 +3825,7 @@ function renderTaskPopup(task) {
     '</div>';
 
     bodyHtml += '<div class="task-popup-field">' +
-      '<div class="task-popup-label">תוכן Daily Brief</div>' +
+      '<div class="task-popup-label">תוכן דו״ח יומי</div>' +
       '<div class="task-popup-value" style="background:#F9FAFB;padding:12px;border-radius:8px;border:1px solid #F3F4F6;line-height:1.6">' +
         (task.preview || 'סיכום פעילויות אתמול, 3 משימות עדיפות להיום, חדשות רלוונטיות') +
       '</div>' +
@@ -5084,7 +5084,7 @@ function getCalendarEvents(days) {
 
       // Daily brief (Sun-Thu = 0-4)
       if (dow >= 0 && dow <= 4) {
-        events.push({ date: dayStr, title: 'Daily Brief', type: 'brief' });
+        events.push({ date: dayStr, title: 'דו״ח יומי', type: 'brief' });
       }
 
       // Weekly competitive report (Monday = 1)
@@ -5652,7 +5652,7 @@ function addIntegrationTooltips() {
     'anthropic-card': 'Claude AI של Anthropic — המודלים המתקדמים ביותר לשיווק. Opus לניתוח עמוק ואסטרטגיה, Sonnet לכתיבת תוכן ומשימות שוטפות, Haiku לפעולות מהירות בעלות נמוכה. נדרש להפעלת מערכת MATEH.',
     'openai-card': 'GPT-4o של OpenAI — מודל חלופי מהיר. משמש כ-fallback אוטומטי כשAnthropicב-rate limit. נדרש גם לתמלול הודעות קוליות בטלגרם (Whisper). מומלץ לחבר לצד Anthropic.',
     'groq-card': 'Groq — inference הכי מהיר בשוק (~300 tokens/שנייה). מריץ Llama 4 Scout, Qwen, Gemma — כולם open source. חינם עד 30,000 tokens/דקה (500K/יום). מומלץ כברירת מחדל להתחלה — אפס עלויות.',
-    'telegram-card': 'Telegram Bot — הערוץ הראשי לתקשורת עם הסוכנים שלכם. דרכו תקבלו Daily Brief כל בוקר, אישורי פרסום, דוחות שבועיים, והתראות. צרו בוט דרך @BotFather והדביקו את הטוקן.',
+    'telegram-card': 'Telegram Bot — הערוץ הראשי לתקשורת עם הסוכנים שלכם. דרכו תקבלו דו״ח יומי כל בוקר, אישורי פרסום, דוחות שבועיים, והתראות. צרו בוט דרך @BotFather והדביקו את הטוקן.',
     'google-card': 'Google Workspace — חיבור OAuth אחד שנותן גישה ל-Calendar (ניהול אירועים ופגישות), Drive (מסמכים), Gmail (שליחת אימיילים), ו-Sheets (נתונים). הסוכנים יוכלו לנהל את היומן שלכם ולשלוח אימיילים בשמכם.',
   };
   var tipMap = {
@@ -8411,7 +8411,7 @@ function saveSchedule(type) {
   if (type === 'daily') {
     var time = document.getElementById('sched-daily-time').value;
     var days = Array.from(document.querySelectorAll('input[name="sched-daily-day"]:checked')).map(function(el) { return el.value; });
-    showToast('Daily Brief: ' + time + ' בימים ' + days.join(','), 'success');
+    showToast('דו״ח יומי: ' + time + ' בימים ' + days.join(','), 'success');
   } else if (type === 'weekly') {
     var time = document.getElementById('sched-weekly-time').value;
     var day = document.getElementById('sched-weekly-day').value;

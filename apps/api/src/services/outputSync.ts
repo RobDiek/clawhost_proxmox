@@ -139,7 +139,7 @@ function classifyOutput(content: string, userPrompt: string): {
     if (lc.includes('daily brief') || lc.includes('סיכום יומי') || lc.includes('משימות עדיפות')) {
         return {
             outputType: 'daily_brief',
-            title: 'Daily Brief — ' + new Date().toLocaleDateString('he-IL'),
+            title: 'דו״ח יומי — ' + new Date().toLocaleDateString('he-IL'),
             platform: 'telegram',
         }
     }
@@ -230,7 +230,14 @@ async function syncInstance(instance: {
             // Parse outputs
             const outputs = parseSessionOutputs(content, agentRole)
 
+            // Dedup within session by outputType — keep last only
+            const lastPerType2 = new Map<string, typeof outputs[number]>()
             for (const output of outputs) {
+                const cls = classifyOutput(output.content, '')
+                lastPerType2.set(cls.outputType, output)
+            }
+
+            for (const output of lastPerType2.values()) {
                 const classification = classifyOutput(output.content, '')
 
                 await db.insert(agentOutputs).values({
@@ -273,7 +280,15 @@ async function syncInstance(instance: {
 
                 const outputs = parseSessionOutputs(content, 'mateh')
 
+                // Dedup by outputType within a session — cron tasks often have multiple
+                // assistant turns (reasoning + final answer), only keep last of each type.
+                const lastPerType = new Map<string, typeof outputs[number]>()
                 for (const output of outputs) {
+                    const cls = classifyOutput(output.content, '')
+                    lastPerType.set(cls.outputType, output)
+                }
+
+                for (const output of lastPerType.values()) {
                     const classification = classifyOutput(output.content, '')
 
                     await db.insert(agentOutputs).values({
