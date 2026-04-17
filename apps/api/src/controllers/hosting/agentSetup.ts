@@ -892,8 +892,9 @@ function extractResearchData(rd: any): {
     audiences: string;
     channels: string;
     painPoints: string;
+    validation: string;
 } {
-    const allResearch = [rd.stage1, rd.stage2, rd.stage3, rd.stage4].filter(Boolean).join('\n')
+    const allResearch = [rd.stage1, rd.stage2, rd.stage3, rd.stage4, rd.stage5].filter(Boolean).join('\n')
 
     // Extract competitor mentions (lines with competitor-like patterns)
     const competitorLines = allResearch.split('\n')
@@ -935,7 +936,14 @@ function extractResearchData(rd: any): {
         ? painLines.join('\n')
         : 'לא נמצאו כאבים ספציפיים במחקר'
 
-    return { competitors, keywords, audiences, channels, painPoints }
+    // Extract validation insights from stage 5 (AI-sim customer interviews)
+    // Focus on: red flags, blindspots, pivot recommendations, confidence score
+    const validationText = rd.stage5 || ''
+    const validation = validationText
+        ? validationText.substring(0, 8000)
+        : 'אין אימות — עבוד על סמך פרסונות מהשלב 3'
+
+    return { competitors, keywords, audiences, channels, painPoints, validation }
 }
 
 // ── Anti-hallucination + self-reflection block (appended to every stage) ──
@@ -957,9 +965,9 @@ const STRATEGY_STAGES = [
     {
         id: 1,
         name: 'פוזיציונינג ומטרות',
-        prompt: (biz: string, research: string, answers: any, _prev: string, extracted: ReturnType<typeof extractResearchData>) => `אתה מומחה אסטרטגיית שיווק ישראלי ברמה הגבוהה ביותר. שלב 1 מתוך 4 — פוזיציונינג ומטרות.
+        prompt: (biz: string, research: string, answers: any, _prev: string, extracted: ReturnType<typeof extractResearchData>) => `אתה מומחה אסטרטגיית שיווק ישראלי ברמה הגבוהה ביותר (15+ שנות ניסיון). שלב 1 מתוך 4 — פוזיציונינג ומטרות.
 
-בוא נחשוב צעד אחר צעד לפני שנכתוב.
+בוא נחשוב צעד אחר צעד לפני שנכתוב. זו אסטרטגיה שיבנה עליה עסק — לא תרגיל תיאורטי.
 
 ## מידע על העסק
 - שם: ${biz}
@@ -968,10 +976,10 @@ const STRATEGY_STAGES = [
 - תקציב: ${answers.budget || 'לא צוין'}
 - מטרות: ${answers.marketingGoals || 'לא צוין'}
 
-## ממצאי המחקר המלאים
+## ממצאי המחקר המלאים (5 שלבים)
 ${research}
 
-## נתונים ספציפיים שנמצאו במחקר (חובה להשתמש בהם):
+## נתונים ספציפיים לשימוש ישיר (חובה):
 
 ### מתחרים שנמצאו:
 ${extracted.competitors}
@@ -982,46 +990,115 @@ ${extracted.audiences}
 ### כאבים ובעיות שנמצאו:
 ${extracted.painPoints}
 
+### ⚠️ תובנות אימות קריטיות (שלב 5):
+${extracted.validation}
+
+**חשוב:** אם ממצאי האימות מצביעים על pivot (ציון Confidence < 60, או פרסונות שזוהו כלא מתאימות, או pricing feedback) — **חובה לשלב זאת באסטרטגיה**, לא להתעלם.
+
 ---
 
-כתוב אסטרטגיה מפורטת ומבוססת נתונים:
+כתוב אסטרטגיה מפורטת, מדויקת, ומבוססת נתונים:
 
 ## 1. פוזיציונינג
-- **Positioning statement** (משפט אחד חד וברור — חייב להתייחס למתחרים הספציפיים שנמצאו)
-- **USP** — 3 נקודות בידול ספציפיות. לכל נקודה: מה אנחנו עושים → מה המתחרה עושה → למה אנחנו טובים יותר (ציין שמות מתחרים אמיתיים מהמחקר)
-- **Elevator pitch** (30 שניות, בעברית תקינה וזורמת — קרא בקול רם לפני שתשלח)
-- **מיפוי תחרותי**: טבלת 2x2 — ציר X: מחיר (נמוך↔גבוה), ציר Y: מורכבות (פשוט↔מתקדם). מקם את ${biz} ואת כל המתחרים שנמצאו
 
-## 2. מטרות (3 חודשים)
-חשוב: KPIs חייבים להיות ריאליים. עסק חדש/קטן בישראל:
-- חודש 1: בניית נוכחות (לא מכירות מאסיביות)
-- חודש 2: תנועה ראשונית + לידים ראשונים
-- חודש 3: המרות ראשונות + אופטימיזציה
+### 1.1 Positioning Statement
+משפט אחד חד וברור. חייב להתייחס למתחרים הספציפיים שנמצאו (שמות אמיתיים, לא "competitors").
 
-- 3 מטרות SMART עם KPIs מספריים ריאליים
-- טבלה: מטרה | KPI | יעד חודש 1 | יעד חודש 2 | יעד חודש 3
-- North Star Metric — המדד האחד שמוביל הכל (הסבר למה דווקא הוא)
+### 1.2 Anti-Positioning
+מה אנחנו **לא** עושים. מי **לא** הלקוח שלנו. זה מחדד את המיקוד. (לפחות 3 נקודות)
+
+### 1.3 USP (3 נקודות בידול)
+לכל נקודה — **טבלה** של 3 עמודות:
+| מה אנחנו עושים | מה המתחרה עושה (שם) | למה אנחנו טובים יותר |
+
+### 1.4 Elevator Pitch (30 שניות)
+בעברית זורמת. **קרא בקול רם** ווודא שנשמע טבעי, לא "נכתב על ידי AI". ציין זמן הקראה בפועל.
+
+### 1.5 מיפוי תחרותי — 2x2 Matrix
+**חשוב:** אל תשתמש ב-ASCII art. השתמש בטבלת markdown:
+
+| Quadrant | תיאור | מתחרים שם | ${biz} שם? |
+|---|---|---|---|
+| High Price + High Depth | פרימיום מתקדם | [שמות] | ... |
+| High Price + Low Depth | יקר-שטחי | [שמות] | ... |
+| Low Price + High Depth | ערך-למחיר | [שמות] | ... |
+| Low Price + Low Depth | זול-בסיסי | [שמות] | ... |
+
+ציין **בבירור** באיזה quadrant ממוקם ${biz} ולמה.
+
+## 2. מטרות (90 ימים)
+
+### 2.1 עקרון מנחה
+ריאליות > יומרה. עסק חדש צריך לבנות לפני שמוכר בכמויות.
+
+### 2.2 3 מטרות SMART
+לכל אחת:
+- **הגדרה** (Specific)
+- **מדד** (Measurable — מספר)
+- **ריאליות** (Achievable — למה זה בר-השגה)
+- **רלוונטיות** (Relevant — קשר ל-positioning)
+- **זמן** (Time-bound — תאריך יעד)
+
+### 2.3 טבלת KPIs (3 תרחישים)
+| מטרה | KPI | שמרני חודש 1 | ריאלי חודש 1 | אופטימי חודש 1 | שמרני חודש 2 | ריאלי חודש 2 | אופטימי חודש 2 | שמרני חודש 3 | ריאלי חודש 3 | אופטימי חודש 3 |
+
+### 2.4 North Star Metric
+**בחר מדד אחד שמניע הכל.** פסקה מלאה (5-7 משפטים):
+- מה המדד
+- למה דווקא הוא (ולא X או Y)
+- איך הוא קשור לצמיחת עסק (לא רק vanity)
+- יעד 90 ימים
+
+### 2.5 Unit Economics
+| מטריקה | חישוב | יעד 90 ימים |
+|---|---|---|
+| CAC (Customer Acquisition Cost) | tt tקציב שיווק / לקוחות חדשים | ₪[מספר] |
+| LTV (Lifetime Value) | ARPU × חודשים ממוצעים | ₪[מספר] |
+| LTV:CAC ratio | | [יעד 3:1+] |
+| Payback Period | חודשים עד CAC recovery | [יעד < 6 חודשים] |
+| Gross Margin | | [יעד 60%+] |
 
 ## 3. ICP (Ideal Customer Profile)
-בנה פרסונות על בסיס נתוני קהל היעד מהמחקר למעלה (לא להמציא!):
-- **פרסונה #1**: שם עברי אותנטי, גיל, תפקיד, כאב ספציפי (מהמחקר), מוטיבציה, ערוץ מועדף, trigger לרכישה, התנגדויות צפויות
-- **פרסונה #2**: שם עברי אותנטי, גיל, תפקיד, כאב ספציפי (מהמחקר), מוטיבציה, ערוץ מועדף, trigger לרכישה, התנגדויות צפויות
-- **Message-Market Fit**: לכל פרסונה — מה המסר המדויק שיגרום לה לפעול, ובאיזה ערוץ
+
+**חשוב:** אם שלב 5 (אימות) זיהה פרסונה שלא הופיעה בשלב 3 — **כלול אותה**. אם אימות הראה שפרסונה כלשהי לא הגיבה — **הוציא/החליש**.
+
+בנה **2-3 פרסונות מדויקות**:
+
+### פרסונה #1 (הראשית — "First Win"):
+- **שם עברי אותנטי, גיל, תפקיד** (מה שעושה בפועל, לא תואר גנרי)
+- **הכנסה/תקציב שיווק** (מספרים מהאימות)
+- **Segment Size** (כמה כאלה יש בישראל)
+- **הכאב הספציפי** — ציטוט מהמחקר אם יש
+- **מוטיבציה** (מה יגרום לה לפעול היום)
+- **ערוץ מועדף** (הכי ספציפי — שם קבוצה, שם ערוץ YouTube)
+- **Trigger לרכישה** (מה בדיוק גורם לה לקנות)
+- **4 התנגדויות צפויות** — לכל אחת תשובה של 1-2 משפטים
+- **Anti-signal** — אם זה קורה, זה לא הפרסונה, אל תבזבז זמן
+
+### פרסונה #2 + פרסונה #3
+אותו פורמט.
+
+## 4. Message-Market Fit
+לכל פרסונה — **3 עמודות**:
+| פרסונה | המסר המנצח (כותרת + גוף) | איפה לשים (ערוץ + תזמון) |
+
+המסר חייב להיות **מסר אחד, חד**, לא רשימה. מותר לצטט מהאימות — אם משהו ממש עבד.
+
 ${QUALITY_GUARDRAILS}`,
     },
     {
         id: 2,
         name: 'תוכן וערוצים',
-        prompt: (biz: string, research: string, answers: any, prev: string, extracted: ReturnType<typeof extractResearchData>) => `שלב 2 מתוך 4 — תוכן וערוצים. אתה מומחה אסטרטגיית תוכן ישראלי.
+        prompt: (biz: string, research: string, answers: any, prev: string, extracted: ReturnType<typeof extractResearchData>) => `שלב 2 מתוך 4 — תוכן וערוצים. אתה מומחה אסטרטגיית תוכן ישראלי (ניסיון עם SMBs ישראלים).
 
-בוא נחשוב צעד אחר צעד לפני שנכתוב.
+בוא נחשוב צעד אחר צעד. זה content plan לביצוע, לא ברוכור.
 
 ## העסק: ${biz}
 
-## שלב קודם (פוזיציונינג ומטרות):
+## שלב קודם (פוזיציונינג + פרסונות):
 ${prev}
 
-## ממצאי המחקר המלאים:
+## ממצאי המחקר המלאים (5 שלבים):
 ${research}
 
 ## נתונים ספציפיים מהמחקר:
@@ -1035,6 +1112,9 @@ ${extracted.channels}
 ### קהלי יעד:
 ${extracted.audiences}
 
+### ⚠️ תובנות אימות (שלב 5):
+${extracted.validation}
+
 ## מידע מהמשתמש:
 - פלטפורמות: ${answers.platforms || 'לא צוין'}
 - תוכן קיים: ${answers.currentContent || 'אין'}
@@ -1042,47 +1122,91 @@ ${extracted.audiences}
 
 ---
 
-כתוב:
+## 4. Content Pillars (עמודי תוכן)
 
-## 4. עמודי תוכן (Content Pillars)
-5 עמודי תוכן, לכל אחד:
-- **שם העמוד** (בעברית, ספציפי לתחום של ${biz})
-- **מטרה**: awareness / consideration / conversion
-- **5 נושאים ספציפיים** (כותרות מאמרים/פוסטים אמיתיים, לא "תוכן על X" אלא כותרת שתופיע בפועל)
-- **פורמט מומלץ** לכל נושא (בלוג / וידאו / carousel / reels / newsletter / podcast)
-- **תדירות**: כמה פעמים בשבוע/חודש
-- **קשר לפרסונה**: איזו פרסונה מהשלב הקודם זה פונה אליה
+**חובה:** 5 pillars. לכל אחד:
+- **שם הpillar** (ספציפי, לא "שיווק")
+- **Big Idea** — בכמה מילים מה החיבור הרגשי/המקצועי של הpillar
+- **Target Persona** (מאיזה ICP, משלב 1)
+- **Funnel Stage** — awareness / consideration / conversion / retention
+- **Proof sources** — מאיפה האוטוריטה שלנו על הנושא (דאטה, ניסיון, case)
+- **5 כותרות אמיתיות** (לא "תוכן על X" — כותרת שתצא היום)
 
-## 5. לוח שבועי מפורט
-טבלה מלאה:
-| יום | שעה | פלטפורמה | פורמט | נושא ספציפי | עמוד תוכן | פרסונה |
-(ימים א-ה, כולל שעות peak לכל פלטפורמה בישראל)
+לכל כותרת: **Hook** (3-5 מילים ראשונים) + **Hero claim** (העובדה המרכזית).
 
-## 6. ערוצים לפי עדיפות
-דרג כל ערוץ (1 = הכי חשוב). לכל ערוץ:
-- **למה?** — קשר ישיר לפרסונה + נתונים מהמחקר (ציין מקור)
-- **פורמט מתאים** עם דוגמה קונקרטית
-- **תדירות** מדויקת
-- **KPI ספציפי** עם יעד מספרי ריאלי
-- **עלות**: שעות עבודה בשבוע + תקציב כספי אם רלוונטי
+## 5. 12-Week Content Calendar
+
+טבלה מפורטת לכל שבוע (12 שבועות = רבעון):
+
+| שבוע | יום | שעה (IL) | פלטפורמה | פורמט | Pillar | כותרת ספציפית | Hook | פרסונה | CTA | יעד engagement |
+|---|---|---|---|---|---|---|---|---|---|---|
+
+**שעות peak לישראל חובה:**
+- LinkedIn: 09:00-11:00 ראשון-רביעי
+- Facebook: 19:00-22:00 כל יום
+- Instagram: 18:00-21:00 ראשון-חמישי
+- YouTube: פורסם ראשון 16:00, שידור עד שישי
+- Newsletter: שלישי 07:30
+
+## 6. Channel Strategy (ערוצים לפי עדיפות)
+
+דרג כל ערוץ (1 = הכי חשוב). **שלב first-win channel מהשלב 4 של המחקר.**
+
+לכל ערוץ — **טבלה מלאה**:
+
+| שדה | ערך |
+|---|---|
+| Rank | # |
+| ערוץ | שם |
+| Primary Persona | מהשלב 1 |
+| Why This Channel | 3 סיבות מהמחקר (עם ציטוטים) |
+| Content Formula | format + length + frequency |
+| Sample Post | דוגמת פוסט **קונקרטי** (50-100 מילה) שאפשר לפרסם היום |
+| Distribution | איפה בדיוק (שמות קבוצות, hashtags) |
+| Engagement Baseline | מה התחרות משיגה (מהמחקר) |
+| Our Target Month 1 | מספר |
+| Our Target Month 3 | מספר |
+| Weekly Time Investment | שעות |
+| Monthly Budget | ₪ |
+| KPI Primary | מה המדד |
+| Kill Criteria | מתי לסגור אם לא עובד (מספר + תאריך) |
+
+## 7. Content Production System
+
+**Team Structure:** מי יוצר, מי עורך, מי מפרסם (אם אין צוות — מי המכונה/הסוכן).
+
+**Workflow:**
+1. Research → (מי, כמה זמן)
+2. Draft → (מי, כמה זמן)
+3. Review → (מי, מה criteria)
+4. Publish → (מי, איזו פלטפורמה ראשונה)
+5. Distribute → (מי, איפה)
+6. Measure → (מי, מתי)
+
+**Reuse Matrix:** איך כל יחידת תוכן מתפצלת ל-6 פורמטים (blog → LinkedIn thread → Twitter → Reels → Newsletter → Podcast mention).
+
+## 8. Content Kill Criteria
+3 תנאים שגורמים להפסיק content type:
+- [תנאי 1 עם מספר]
+- [תנאי 2]
+- [תנאי 3]
+
 ${QUALITY_GUARDRAILS}`,
     },
     {
         id: 3,
         name: 'אורגני וממומן',
-        prompt: (biz: string, research: string, answers: any, prev: string, extracted: ReturnType<typeof extractResearchData>) => `שלב 3 מתוך 4 — אסטרטגיית אורגני + ממומן. אתה מומחה שיווק דיגיטלי ישראלי עם ניסיון בתקציבים קטנים-בינוניים.
-
-בוא נחשוב צעד אחר צעד לפני שנכתוב.
+        prompt: (biz: string, research: string, answers: any, prev: string, extracted: ReturnType<typeof extractResearchData>) => `שלב 3 מתוך 4 — אסטרטגיית אורגני + ממומן. אתה CMO ישראלי שניהל תקציבים של ₪10K-₪500K/חודש.
 
 ## העסק: ${biz}
 
-## שלבים קודמים (פוזיציונינג + תוכן):
+## שלבים קודמים:
 ${prev}
 
 ## ממצאי המחקר המלאים:
 ${research}
 
-## נתונים ספציפיים מהמחקר:
+## נתונים ספציפיים:
 
 ### מתחרים:
 ${extracted.competitors}
@@ -1093,54 +1217,132 @@ ${extracted.keywords}
 ### ערוצים:
 ${extracted.channels}
 
-## מידע מהמשתמש:
-- תקציב: ${answers.budget || 'לא צוין — התאם להמלצות לעסק חדש/קטן בישראל'}
+### ⚠️ אימות (שלב 5):
+${extracted.validation}
+
+## מידע:
+- תקציב: ${answers.budget || 'לא צוין — המלץ לעסק חדש/קטן בישראל'}
 - מטרות שיווק: ${answers.marketingGoals || 'לא צוין'}
 
 ---
 
-כתוב:
+## 9. Marketing Funnel (פירוט לפי פרסונה)
 
-## 7. Marketing Funnel מפורט
-לכל שלב, פעולות ספציפיות עם תקציבים ריאליים ל-${biz}:
-- **Awareness**: ערוצים + סוג תוכן + KPI + תקציב חודשי ב-₪
-- **Consideration**: ערוצים + lead magnets ספציפיים + KPI + תקציב ב-₪
-- **Conversion**: CTA מדויק + landing page structure + offer + תקציב ב-₪
-- **Retention**: onboarding flow (כמה מיילים, באיזו תדירות) + community
-- **Advocacy**: referral program ספציפי + reviews strategy
+לכל אחת מ-3 הפרסונות — **טבלה מלאה**:
 
-## 8. אסטרטגיית SEO
-- **10 מילות מפתח מתועדפות** — חייב להשתמש במילות מפתח מהמחקר למעלה. לכל מילה: נפח חיפוש משוער, קושי, עדיפות
-- **תוכנית תוכן SEO**: כמה מאמרים בחודש, אורך מומלץ, מבנה מאמר (H1/H2/H3)
-- **3 כותרות מאמרים ספציפיים** לחודש הראשון (כותרות אמיתיות, לא placeholders)
-- Internal linking strategy
-- Technical SEO checklist (5 פריטים קריטיים)
+| Stage | ערוץ עיקרי | Asset / Content | CTA | Success Metric | יעד חודש 1 | יעד חודש 3 | תקציב חודשי |
+|---|---|---|---|---|---|---|---|
+| TOFU — Awareness | | | | | | | |
+| MOFU — Consideration | | | | | | | |
+| BOFU — Conversion | | | | | | | |
+| Retention | | | | | | | |
+| Advocacy / Referral | | | | | | | |
 
-## 9. אסטרטגיית Paid
-**חשוב:** אם התקציב קטן או לא צוין — התחל אורגני. Paid רק אחרי validation אורגני.
-- **מתי להתחיל?** trigger מדויק (כמה conversions אורגניים, כמה traffic)
-- **Google Ads**: 5 keywords ספציפיים מהמחקר, תקציב יומי ב-₪, CPC צפוי בשוק הישראלי
-- **Meta Ads**: audiences מפורטים (גיל, מיקום, תחומי עניין), תקציב ב-₪, 2 סוגי creatives
-- **Retargeting**: audiences, budget, messaging
-- **A/B testing**: 3 ניסויים ספציפיים עם hypothesis ומדד הצלחה
+### Lead Magnets ספציפיים
+לכל פרסונה — **2 lead magnets** קונקרטיים:
+- **שם** (כותרת שגורמת להוריד)
+- **פורמט** (PDF / calculator / template / video)
+- **אורך/תוכן** (מה בתוך)
+- **Landing page URL suggestion**
+- **המרה צפויה** (visitor → email %)
 
-## 10. תקציב חודשי
-טבלה עם מספרים ריאליים ב-₪:
-| ערוץ | חודש 1-3 (₪) | חודש 4-6 (₪) | חודש 7-12 (₪) | ROI צפוי |
+## 10. SEO Strategy (משלב 2 של המחקר)
 
-סה"כ חודשי + הערות
+### 10.1 Keyword Tier מתועדף
+טבלה של **15 מילים**:
+
+| # | מילה (עברית) | מילה (אנגלית) | Intent | Volume | Difficulty | Competitor #1 | Content Gap | Priority | Expected Rank (90 days) |
+|---|---|---|---|---|---|---|---|---|---|
+
+### 10.2 Content Plan 90 ימים
+- **חודש 1:** [כמה] מאמרים × [אורך] מילים — כותרות אמיתיות:
+  1. [כותרת]
+  2. [כותרת]
+  (לפחות 8 כותרות מלאות)
+- **חודש 2-3:** cluster pages, pillar content
+
+### 10.3 Article Structure Template
+לכל מאמר SEO:
+- H1 + meta description (בעברית, 150 תווים)
+- 3 H2 sections חובה (מבנה)
+- Internal links: [מהיכן, לאן]
+- Schema markup: Article + FAQ
+- Images: כמה, עם alt text
+- Word count target
+- Publish frequency
+
+### 10.4 Technical SEO Checklist (5 פריטים בשבוע הראשון)
+קונקרטי, לא "improve site speed". למשל:
+1. [מה בדיוק] → [איך] → [מי מבצע] → [מתי]
+
+## 11. Paid Strategy
+
+### 11.1 Gatekeeper — מתי להתחיל paid?
+**Trigger מדויק** (3 תנאים):
+1. [תנאי מספרי]
+2. [תנאי]
+3. [תנאי]
+
+אם לא מתקיימים — **אל תתחיל paid**, גם אם יש תקציב.
+
+### 11.2 Google Ads (כשמוכנים)
+- **Campaign structure** (Search / Display / Performance Max)
+- **5 Ad Groups** ספציפיים עם keywords מהמחקר
+- **Ad Copy:** 3 variants (headline + description + URL)
+- **תקציב יומי**: ₪[X] → ₪[Y] בתוך חודש
+- **CPC צפוי** (מהמחקר, עברית)
+- **Conversion tracking** — event setup
+
+### 11.3 Meta Ads
+- **Audiences:**
+  - Lookalike 1% מבוסס על email list (אם יש)
+  - Interest-based: [רשימה ספציפית]
+  - Retargeting: [segments]
+- **Creative Formulas:** 2 סוגים (Reels + Carousel) עם hook templates
+- **Budget split:** prospecting/retargeting (%)
+
+### 11.4 A/B Testing Roadmap
+3 tests ספציפיים:
+| Test | Hypothesis | Metric | Sample Size | Duration | Decision Rule |
+|---|---|---|---|---|---|
+
+## 12. Budget Allocation
+
+### 12.1 3 Scenarios
+| ערוץ | תקציב שפוי (₪1,000/חודש) | תקציב גמיש (₪3,000) | תקציב אגרסיבי (₪5,000) | ROI Target |
+|---|---|---|---|---|
+| SEO/Content | | | | |
+| LinkedIn Organic | | | | |
+| Facebook Community | | | | |
+| Paid Search | | | | |
+| Paid Social | | | | |
+| Email/Newsletter | | | | |
+| Retargeting | | | | |
+| **Total** | | | | |
+
+### 12.2 Quarterly Progression
+| רבעון | תקציב חודשי | פוקוס | KPIs |
+|---|---|---|---|
+| Q1 (חודש 1-3) | ₪ | Validation — אורגני בלבד | |
+| Q2 (חודש 4-6) | ₪ | Scale what works + paid entry | |
+| Q3 (חודש 7-12) | ₪ | Optimize + expand | |
+
+### 12.3 Kill Criteria לערוצים
+מתי **לסגור** ערוץ (עם מספרים):
+- LinkedIn if: [X engagement < Y after Z weeks]
+- Google Ads if: [CAC > ₪N]
+- Facebook if: [...]
+
 ${QUALITY_GUARDRAILS}`,
     },
     {
         id: 4,
         name: 'הנחיות סוכנים',
-        prompt: (biz: string, research: string, answers: any, prev: string, extracted: ReturnType<typeof extractResearchData>) => `שלב 4 מתוך 4 — הנחיות ביצוע ל-9 סוכני AI. אתה מומחה בתפעול סוכני AI לשיווק.
-
-בוא נחשוב צעד אחר צעד: מה כל סוכן צריך לדעת כדי לפעול עצמאית עבור ${biz}.
+        prompt: (biz: string, research: string, answers: any, prev: string, extracted: ReturnType<typeof extractResearchData>) => `שלב 4 מתוך 4 — הנחיות ביצוע ל-9 סוכני AI + תוכנית 90 ימים. אתה VP Marketing עם ניסיון ב-agent operations.
 
 ## העסק: ${biz}
 
-## כל שלבי האסטרטגיה הקודמים:
+## כל שלבי האסטרטגיה הקודמים (פוזיציונינג + תוכן + פאנל):
 ${prev}
 
 ## ממצאי המחקר המלאים:
@@ -1157,75 +1359,140 @@ ${extracted.keywords}
 ### ערוצים פעילים:
 ${extracted.channels}
 
+### ⚠️ אימות (שלב 5):
+${extracted.validation}
+
 ---
 
-כתוב הנחיות מפורטות ואקשנאביליות. כל סוכן חייב לקבל הנחיות ספציפיות ל-${biz}, לא גנריות.
+## 13. Agent Operating Manual — 9 סוכנים
 
-## 11. הנחיות מפורטות ל-9 סוכנים
+**חשוב:** כל סוכן חייב לקבל הוראות **מבצעיות**, לא תיאוריות. לכל סוכן — טבלה:
 
-**מטה (מתאם):**
-- מה מתאם בין הסוכנים (ספציפי ל-${biz})
-- תדירות תיאום: יומי/שבועי
-- מה מדווח ולמי
-- triggers להתראה דחופה (ספציפי — לא "כשקורה משהו חשוב")
+| שדה | ערך |
+|---|---|
+| תדירות הפעלה | cron expression + שעה (IL timezone) |
+| קלט (inputs) | מאיפה קורא, אילו קבצים/APIs |
+| פלט (outputs) | לאן כותב (path), פורמט |
+| Primary KPI | מה מודד הצלחה |
+| Escalation Trigger | מתי מעלה אזעקה למשתמש |
+| Token Budget | משוער per run |
 
-**סייר (מחקר שוק):**
-- אילו אתרים ספציפיים לסרוק (URLs של מתחרים מהמחקר)
-- תדירות סריקה
-- מה מחפש (שינויי מחיר, פיצ'רים חדשים, תוכן חדש)
-- trigger לדיווח דחוף
+### מטה (Orchestrator / Coordinator)
+**Primary Job:** מתאם בין 8 הסוכנים + שולח Daily Brief.
+- Cron: יומי 07:00 (Sun-Thu)
+- Watches: כל output latest.json של שאר הסוכנים
+- Delivers to: Telegram (Daily Brief)
+- Escalation: אם 2+ סוכנים נכשלים ברצף → אזעקה
 
-**מאתר (SERP):**
-- אילו מילות מפתח ספציפיות לעקוב (מהמחקר למעלה!)
-- תדירות בדיקה
-- format דיווח: טבלת מיקום שבועית
+### סייר (Internet Research)
+- Cron: שבועי יום ב 06:00
+- Targets: [URLs של 5 מתחרים ספציפיים מהמחקר]
+- Searches: [3 שאילתות brave_search מה-stage 2 keywords]
+- Detects: [שינויי מחיר, פיצ'ר חדש, תוכן חדש]
+- Escalation Triggers:
+  - [מתחרה X] משיק פיצ'ר חדש → התראה מיידית
+  - מחיר [מתחרה Y] משתנה ב-±15% → התראה
 
-**מאזין (חברתי):**
-- אילו פלטפורמות ספציפיות
-- אילו hashtags, keywords, accounts לנטר (ספציפי ל-${biz})
-- תדירות סריקה
-- מה נחשב "אזכור חשוב"
+### מאתר (SERP Tracker)
+- Cron: יומי 05:00
+- Tracks: [15 keywords מה-stage 2 עם DataForSEO volumes]
+- Output: טבלה שבועית — מיקום + Δ מהשבוע הקודם
+- Escalation: ירידה של 3+ מיקומים על keyword עם volume > 200
 
-**מנתח (ניתוח):**
-- מה מנתח: engagement, reach, conversions, sentiment
-- מודל ניקוד ספציפי (1-10 על מה?)
-- threshold לפעולה (מתי מדווח / מתי פועל עצמאית)
+### מאזין (Social Listening)
+- Cron: כל 6 שעות
+- Platforms: [קבוצות פייסבוק הספציפיות מהמחקר + LinkedIn + Reddit]
+- Keywords to monitor: [שם העסק, שמות מתחרים, pain points]
+- Sentiment scoring: positive/neutral/negative
+- Escalation: 3+ mentions negative ב-24 שעות
 
-**עט (תוכן):**
-- סוגי תוכן ל-${biz} (רשימה ספציפית)
-- אורך לכל פלטפורמה (מספר מילים/תווים)
-- כללי סגנון: טון, מילים לשימוש, מילים להימנע
-- כללי de-ai-ify (איך התוכן נשמע אנושי)
+### מנתח (Analyst — Opus 4.7)
+- Cron: שבועי יום ג 07:00
+- Reads: outputs של סייר + מאתר + מאזין
+- Produces: Opportunity Matrix (1-10 scoring)
+- Outputs: weekly report + top 3 priorities
+- Escalation: opportunity score > 8 → התראה מיידית
 
-**יוצר (ויזואל):**
-- סוגי ויזואלים ל-${biz}
-- מידות per platform
-- סגנון: צבעים, פונטים, mood
-- branding guidelines
+### עט (Content Writer — Sonnet 4.6)
+- Cron: לפי content calendar (יומי/שבועי)
+- Input: topic + persona + channel + word count (מהשלב 2)
+- Style guide (ספציפי ל-${biz}):
+  - Tone: ${answers.tone || 'ידידותי ונגיש'}
+  - מילים לשימוש: [רשימה מהמחקר + brand]
+  - מילים להימנע: [list]
+  - De-AI-ify rules: אסור — "בהחלט", "חשוב לזכור", "לסיכום", "במילים אחרות"
+- Output: draft → למטה לאישור
 
-**שליח (הפצה):**
-- סדר הפצה (איזה ערוץ קודם)
-- שעות פרסום peak בישראל per platform
-- כלל אישור: מה דורש אישור אנושי ומה עובר אוטומטי
-- formatting per platform (hashtags, emojis, CTA)
+### יוצר (Creative / Visual)
+- Cron: לפי content calendar
+- Generates: 1 visual per post (Canva / DALL-E)
+- Dimensions per platform:
+  - LinkedIn feed: 1200×627
+  - Instagram feed: 1080×1080
+  - Story: 1080×1920
+- Brand: [primary color / secondary color / font / mood]
+- Approval: all visuals require human approval before publish
 
-**מגדלור (AEO):**
-- מה בודק: נוכחות ב-ChatGPT, Gemini, Perplexity
-- אילו שאילתות ספציפיות ל-${biz}
-- תדירות בדיקה
-- format דוח
+### שליח (Distribution)
+- Cron: לפי content calendar peak times
+- Platforms priority: [מהשלב 2]
+- Peak times (IL):
+  - LinkedIn: 09:00-11:00 ראשון-רביעי
+  - Facebook: 19:00-22:00
+  - Instagram: 18:00-21:00
+- Auto-approval rules: [מה עובר אוטומטית] vs [מה דורש אישור]
+- CTA template per platform
 
-## 12. תוכנית תגובה תחרותית
-בהתבסס על המתחרים שנמצאו במחקר:
-- **Trigger A**: מתחרה ספציפי (ציין שם) מפרסם בעברית → Response + Timeline
-- **Trigger B**: מתחרה מוריד מחיר / משנה הצעה → Response + Timeline
-- **Trigger C**: שחקן חדש נכנס לשוק → Response + Timeline
+### מגדלור (AEO — Answer Engine Optimization)
+- Cron: חודשי 1 לחודש 10:00
+- Checks: [5 שאילתות ספציפיות ל-${biz}] ב-ChatGPT, Claude, Perplexity, Gemini
+- Measures: mention rate + accuracy + citation quality
+- Output: monthly AEO report
 
-## 13. 3 דברים לעשות השבוע
-פעולות ספציפיות, אקשנאביליות, עם deadline:
-- פעולה 1: [מה] + [איך] + [עד מתי]
-- פעולה 2: [מה] + [איך] + [עד מתי]
-- פעולה 3: [מה] + [איך] + [עד מתי]
+## 14. Competitive Response Playbook
+
+בהתבסס על מתחרים שנמצאו + אימות:
+
+| Trigger | Response | Owner Agent | Timeline |
+|---|---|---|---|
+| [מתחרה X] מפרסם מאמר על [topic] | ...  | עט | 48h |
+| [מתחרה Y] מוריד מחיר ב-±15% | ... | מנתח → מטה | 24h |
+| שחקן חדש נכנס לשוק | ... | סייר → מנתח | 7 days |
+| סנטימנט negative × 3 ב-24h | ... | מאזין → מטה | 2h |
+
+## 15. 90-Day Execution Roadmap
+
+### Month 1 — Foundation (Validate)
+| שבוע | פעולה | Owner | Success Metric |
+|---|---|---|---|
+| 1 | ... | | |
+| 2 | ... | | |
+| 3 | ... | | |
+| 4 | ... | | |
+
+### Month 2 — Amplify
+...
+
+### Month 3 — Optimize
+...
+
+## 16. Top 3 Actions This Week
+לכל אחת: מה + איך + מי + עד מתי + מדד הצלחה:
+1. ...
+2. ...
+3. ...
+
+## 17. Risk Register
+5 סיכונים + הקלות:
+| Risk | Probability | Impact | Mitigation |
+|---|---|---|---|
+| ... | L/M/H | L/M/H | ... |
+
+## 18. Strategy Review Cadence
+- Weekly: מטה + משתמש (יום א, 30 דקות)
+- Monthly: מנתח report + strategy adjustment
+- Quarterly: full strategy rewrite (trigger: KPI deviation > 30%)
+
 ${QUALITY_GUARDRAILS}`,
     },
 ]
@@ -1258,12 +1525,13 @@ export const buildStrategy = async (c: Context) => {
 
         console.log(`Strategy stage ${stage}/4 for ${businessName} via direct API...`)
 
-        // Build FULL research context — no truncation! Sonnet 200K can handle ~27K chars easily
+        // Build FULL research context including validation insights from stage 5
         const researchContext = [
             rd.stage1 ? `## שלב 1 — סקירת שוק ומתחרים\n${rd.stage1}` : '',
             rd.stage2 ? `## שלב 2 — מילות מפתח וSEO\n${rd.stage2}` : '',
             rd.stage3 ? `## שלב 3 — קהל יעד ופרסונות\n${rd.stage3}` : '',
             rd.stage4 ? `## שלב 4 — ערוצים ואסטרטגיה\n${rd.stage4}` : '',
+            rd.stage5 ? `## שלב 5 — אימות AI עם פרסונות (CRITICAL — USE THESE INSIGHTS)\n${rd.stage5}` : '',
         ].filter(Boolean).join('\n\n---\n\n')
 
         // Extract specific data points for injection into prompts
