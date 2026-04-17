@@ -10292,6 +10292,69 @@ function renderGhStep3(state) {
   document.getElementById('pipelineBody').innerHTML = html;
 }
 
+// Build prominent hint card based on server diagnosis + context
+function ghBuildHintCard(result, repo) {
+  var repoOwner = (repo || '').split('/')[0] || '';
+  var ctx = result.context || {};
+  var amber = function(title, body) {
+    return '<div style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:10px;padding:14px;margin-bottom:14px">' +
+      '<div style="font-weight:700;color:#92400E;margin-bottom:6px;font-size:0.95rem">' + title + '</div>' +
+      '<div style="font-size:0.85rem;color:#78350F;line-height:1.7">' + body + '</div></div>';
+  };
+
+  if (result.diagnosis === 'org_pat_pending_approval') {
+    var url = 'https://github.com/organizations/' + encodeURIComponent(repoOwner) + '/settings/personal-access-tokens-requests';
+    return amber('🏢 ה-Token ממתין לאישור מ-Organization',
+      'ה-repo שייך ל-organization <strong>' + escapeHtml(repoOwner) + '</strong>. אם מופעלת פוליסת "Require approval for fine-grained PATs", admin חייב לאשר את ה-Token.<br><br>' +
+      '<strong>מה לעשות:</strong><ol style="margin:4px 16px 8px;padding:0">' +
+      '<li>פתחו <a href="' + url + '" target="_blank" style="color:#2563EB">Organization PAT Requests</a></li>' +
+      '<li>אשרו את ה-Token ב-"Pending"</li>' +
+      '<li>חזרו וחצו "נסו שוב"</li></ol>' +
+      '<a href="' + url + '" target="_blank" class="btn btn-primary btn-sm" style="font-size:0.82rem;margin-top:6px">פתחו דף Approvals ↗</a>'
+    );
+  }
+
+  if (result.diagnosis === 'wrong_resource_owner') {
+    return amber('⚠️ Resource Owner שגוי בעת יצירת ה-Token',
+      'ה-Token שיצרתם מזוהה עם <strong>' + escapeHtml(ctx.authedUser || '?') + '</strong>, אבל ה-repo שייך ל-<strong>' + escapeHtml(repoOwner) + '</strong> (organization).<br><br>' +
+      '<strong>הפתרון:</strong> צרו Token חדש ב-<a href="https://github.com/settings/personal-access-tokens/new" target="_blank" style="color:#2563EB">github.com/settings/personal-access-tokens/new</a> ובחרו:<br>' +
+      '<code style="background:#FFF;padding:2px 6px;border-radius:3px;display:inline-block;margin:4px 0">Resource owner: ' + escapeHtml(repoOwner) + '</code><br>' +
+      '(לא החשבון האישי שלכם)'
+    );
+  }
+
+  if (result.diagnosis === 'write_blocked') {
+    return amber('🔒 ה-Token חסר הרשאות כתיבה',
+      'קריאה עובדת אך כתיבה נכשלת. ייתכן שסימנתם <strong>Read only</strong> במקום <strong>Read and write</strong>.<br><br>' +
+      'צרו Token חדש עם:<br>' +
+      '<code style="background:#FFF;padding:2px 6px;border-radius:3px;display:inline-block;margin-top:4px">Contents: Read and write</code> + ' +
+      '<code style="background:#FFF;padding:2px 6px;border-radius:3px;display:inline-block">Pull requests: Read and write</code>'
+    );
+  }
+
+  if (result.diagnosis === 'refs_not_accessible') {
+    return amber('🔒 אין גישה ל-refs',
+      'ה-Token יכול לקרוא את ה-repo אבל לא לגעת ב-branches. צרו Token חדש ובחרו <strong>Contents: Read and write</strong>.'
+    );
+  }
+
+  if (result.diagnosis === 'forbidden' || result.diagnosis === 'branch_exists') {
+    return amber('⚠️ ' + (result.hint || 'שגיאה לא ידועה'),
+      '<strong>3 סיבות אפשריות:</strong><ol style="margin:4px 16px;padding:0">' +
+      '<li>Resource owner של ה-Token שגוי (בחרו ' + escapeHtml(repoOwner) + ' במקום חשבון אישי)</li>' +
+      '<li>הרשאות Contents / Pull requests לא Read+Write</li>' +
+      '<li>Organization דורשת approval — חפשו ב-<a href="https://github.com/organizations/' + encodeURIComponent(repoOwner) + '/settings/personal-access-tokens-requests" target="_blank" style="color:#2563EB">Pending requests</a></li>' +
+      '</ol>'
+    );
+  }
+
+  if (result.hint) {
+    return '<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:12px;margin-bottom:14px;font-size:0.82rem;color:#78350F;line-height:1.6">💡 ' + escapeHtml(result.hint) + '</div>';
+  }
+
+  return '';
+}
+
 // Retry just the E2E test (no re-save needed) — useful after user fixes org approval
 async function ghWizardRetryTest() {
   var iid = localStorage.getItem('cf_instance_id');
@@ -10330,14 +10393,12 @@ async function ghWizardRetryTest() {
       renderGhStep3({ status: 'success', message: 'כל הבדיקות עברו', steps: finalSteps, prUrl: result.prUrl });
       showToast('GitHub מחובר ופעיל!', 'success');
     } else {
-      var hintCard2 = '';
-      if (result.diagnosis === 'org_pat_pending_approval') {
-        var repoOwner = (repo.split('/')[0] || '');
-        hintCard2 = '<div style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:10px;padding:14px;margin-bottom:14px">' +
-          '<div style="font-weight:700;color:#92400E;margin-bottom:6px">⏳ עדיין ממתין לאישור</div>' +
-          '<div style="font-size:0.85rem;color:#78350F">הטוקן עדיין לא אושר ב-' + escapeHtml(repoOwner) + '. אשרו ב-<a href="https://github.com/organizations/' + encodeURIComponent(repoOwner) + '/settings/personal-access-tokens-requests" target="_blank" style="color:#2563EB">dashboard</a> ואז נסו שוב.</div></div>';
-      }
-      renderGhStep3({ status: 'warning', message: 'הבדיקה עדיין נכשלת', hintCard: hintCard2, steps: finalSteps });
+      renderGhStep3({
+        status: 'warning',
+        message: 'הבדיקה עדיין נכשלת',
+        hintCard: ghBuildHintCard(result, repo),
+        steps: finalSteps
+      });
     }
   } catch (e) {
     renderGhStep3({ status: 'failed', message: 'שגיאת תקשורת', steps: [] });
@@ -10432,37 +10493,7 @@ async function ghWizardSaveAndTest() {
       });
       showToast('GitHub מחובר ופעיל!', 'success');
     } else {
-      // Prominent actionable hint based on diagnosis
-      var hintCard = '';
-      if (result.diagnosis === 'org_pat_pending_approval') {
-        var repoOwner = (repo.split('/')[0] || '');
-        hintCard =
-          '<div style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:10px;padding:14px;margin-bottom:14px">' +
-          '<div style="font-weight:700;color:#92400E;margin-bottom:6px;font-size:0.95rem">🏢 ה-Token ממתין לאישור מ-Organization</div>' +
-          '<div style="font-size:0.85rem;color:#78350F;line-height:1.6;margin-bottom:10px">' +
-          'ה-repo שייך ל-organization <strong>' + escapeHtml(repoOwner) + '</strong>. אם מופעלת פוליסת "Require approval for fine-grained PATs", ה-token שיצרתם חייב אישור admin לפני שיעבוד לכתיבה.' +
-          '</div>' +
-          '<div style="background:#FFF;border-radius:6px;padding:10px;font-size:0.82rem;line-height:1.6;margin-bottom:8px">' +
-          '<div style="font-weight:600;margin-bottom:4px">מה לעשות:</div>' +
-          '<ol style="margin:0 16px;padding:0;color:#374151">' +
-          '<li>היכנסו ל-<a href="https://github.com/organizations/' + encodeURIComponent(repoOwner) + '/settings/personal-access-tokens-requests" target="_blank" style="color:#2563EB">Organization PAT Requests</a></li>' +
-          '<li>אשרו את ה-token שיצרתם (מופיע ב-"Pending")</li>' +
-          '<li>חזרו לכאן ולחצו "נסו שוב" למטה</li>' +
-          '</ol></div>' +
-          '<a href="https://github.com/organizations/' + encodeURIComponent(repoOwner) + '/settings/personal-access-tokens-requests" target="_blank" class="btn btn-primary btn-sm" style="font-size:0.82rem">פתחו דף Approvals ↗</a>' +
-          '</div>';
-      } else if (result.diagnosis === 'write_blocked') {
-        hintCard =
-          '<div style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:10px;padding:14px;margin-bottom:14px">' +
-          '<div style="font-weight:700;color:#92400E;margin-bottom:6px">🔒 ה-Token חסר הרשאות כתיבה</div>' +
-          '<div style="font-size:0.85rem;color:#78350F;line-height:1.6">' +
-          'קריאה עובדת אך כתיבה נכשלת. ייתכן שסימנתם <strong>Read only</strong> במקום <strong>Read and write</strong>.<br>' +
-          'צרו token חדש עם: <code style="background:#FFF;padding:2px 6px;border-radius:3px">Contents: Read and write</code> + <code style="background:#FFF;padding:2px 6px;border-radius:3px">Pull requests: Read and write</code>' +
-          '</div></div>';
-      } else if (result.hint) {
-        hintCard =
-          '<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:12px;margin-bottom:14px;font-size:0.82rem;color:#78350F;line-height:1.6">💡 ' + escapeHtml(result.hint) + '</div>';
-      }
+      var hintCard = ghBuildHintCard(result, repo);
 
       renderGhStep3({
         status: 'warning',

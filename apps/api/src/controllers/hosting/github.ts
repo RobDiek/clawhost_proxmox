@@ -437,29 +437,61 @@ export const testGithubIntegration = async (c: Context) => {
             body: JSON.stringify({ ref: `refs/heads/${testBranch}`, sha: baseSha }),
         })
         if (!createBranchRes.ok) {
-            // 403 on write after 200 on read → classic org PAT pending approval
             let hint = ''
             let diagnosis = ''
+            let repoOwnerType: string | null = null
+            let authedUser: string | null = null
+            let errorBody: any = null
+            try { errorBody = await createBranchRes.json() } catch {}
+
             if (createBranchRes.status === 403) {
-                // Check if org-owned
-                const repoDetails = await fetch(`https://api.github.com/repos/${owner}/${repoName}`, { headers }).then(r => r.json()).catch(() => null) as any
-                const isOrg = repoDetails?.owner?.type === 'Organization'
-                if (isOrg) {
+                // Gather diagnostic context
+                const [repoDetailsRes, userRes] = await Promise.all([
+                    fetch(`https://api.github.com/repos/${owner}/${repoName}`, { headers }).then(r => r.ok ? r.json() as Promise<any> : null).catch(() => null),
+                    fetch('https://api.github.com/user', { headers }).then(r => r.ok ? r.json() as Promise<any> : null).catch(() => null),
+                ])
+                repoOwnerType = repoDetailsRes?.owner?.type || null
+                authedUser = userRes?.login || null
+
+                const errMsg = (errorBody?.message || '').toLowerCase()
+
+                // Priority 1: org PAT approval pending
+                if (repoOwnerType === 'Organization' && (errMsg.includes('resource not accessible') || errMsg.includes('not accessible by personal access token'))) {
                     diagnosis = 'org_pat_pending_approval'
-                    hint = `ה-repo שייך ל-organization "${owner}". ה-token ממתין לאישור admin של ה-organization (אם מופעלת פוליסת "Require approval for fine-grained PATs"). הכנסו ל-github.com/organizations/${owner}/settings/personal-access-tokens → Pending requests ← Approve את ה-token שיצרתם.`
-                } else {
+                    hint = `ה-repo ב-organization "${owner}". נראה שה-Token ממתין לאישור admin. היכנסו ל-github.com/organizations/${owner}/settings/personal-access-tokens-requests → Approve.`
+                }
+                // Priority 2: not a member / wrong owner
+                else if (repoOwnerType === 'Organization' && authedUser) {
+                    diagnosis = 'wrong_resource_owner'
+                    hint = `ה-Token נוצר על ידי "${authedUser}" אבל ה-repo שייך ל-"${owner}" (organization). ודאו שבעת יצירת ה-Token בחרתם Resource owner="${owner}" (לא החשבון האישי).`
+                }
+                // Priority 3: write permissions missing
+                else if (errMsg.includes('write') || errMsg.includes('permission')) {
                     diagnosis = 'write_blocked'
-                    hint = 'ה-token לא מצליח לכתוב — בדקו שסימנתם Contents: Read and write (לא רק Read) וגם Pull requests: Read and write.'
+                    hint = 'ל-Token חסרה הרשאת כתיבה. צרו Token חדש ובחרו Contents: Read and write + Pull requests: Read and write.'
+                }
+                // Fallback — include raw error
+                else {
+                    diagnosis = 'forbidden'
+                    hint = `GitHub החזיר 403${errorBody?.message ? ' (' + errorBody.message + ')' : ''}. זה לרוב אחת משלוש בעיות: (1) Resource owner של ה-Token שגוי, (2) הרשאות Contents/Pull-requests לא Read+Write, (3) organization ממתין לאישור ה-Token.`
                 }
             } else if (createBranchRes.status === 422) {
                 diagnosis = 'branch_exists'
                 hint = 'ענף בדיקה עם השם הזה כבר קיים — תופעה נדירה. נסו שוב.'
+            } else if (createBranchRes.status === 404) {
+                diagnosis = 'refs_not_accessible'
+                hint = 'הטוקן יכול לקרוא את ה-repo אך אין לו גישה ל-refs. בדקו שה-Token סומן Contents: Read and write.'
+            } else {
+                hint = `HTTP ${createBranchRes.status}${errorBody?.message ? ': ' + errorBody.message : ''}`
             }
             steps.push({
                 step: 'create-test-branch', ok: false,
-                detail: `HTTP ${createBranchRes.status}${hint ? ' · ' + hint : ''}`
+                detail: `HTTP ${createBranchRes.status}` + (hint ? ' · ' + hint.substring(0, 120) : '')
             })
-            return ok(c, { steps, passed: false, diagnosis, hint }, 'Test incomplete')
+            return ok(c, {
+                steps, passed: false, diagnosis, hint,
+                context: { repoOwner: owner, repoOwnerType, authedUser }
+            }, 'Test incomplete')
         }
         steps.push({ step: 'create-test-branch', ok: true, detail: `${testBranch}` })
 
