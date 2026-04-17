@@ -1871,24 +1871,75 @@ input{font-family:inherit}
         </div>
       </div>
 
-      <!-- Google Ads (uses existing Google OAuth with adwords scope) -->
-      <div class="int-card" id="google-ads-card" data-tooltip="Google Ads — קמפיינים ב-Search + YouTube. חיבור דרך Google OAuth עם scope=adwords. הסוכן ינהל קמפיינים, bid strategies ו-conversion tracking.">
+      <!-- Google Ads (3 steps: OAuth + Customer ID + Developer Token) -->
+      <div class="int-card" id="google-ads-card" data-tooltip="Google Ads — קמפיינים ב-Search + YouTube. הסוכן יכין טיוטות לאישור לפני יצירה בפועל. דרוש חשבון Google Ads + Developer Token.">
         <div class="int-card-header">
           <div class="int-icon" style="background:#E8F0FE"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 12l10 10 10-10L12 2z" fill="#4285F4"/><path d="M12 7l-5 5 5 5 5-5-5-5z" fill="#FFF"/></svg></div>
           <div><strong>Google Ads</strong><div class="int-status" id="google-ads-status">לא מחובר</div></div>
         </div>
         <div class="int-card-body hidden" id="int-google-ads-body">
-          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">קמפיינים ב-Google Search + YouTube + Display. חיבור מאובטח דרך OAuth — הסוכן מנהל קמפיינים לפי האסטרטגיה.</div>
+          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:10px">הסוכן מכין טיוטות קמפיינים לאישור שלכם. פעולות כתיבה ל-Google Ads מתבצעות <strong>רק אחרי אישור בתור האישורים</strong>.</div>
+
           <div id="google-ads-not-connected">
-            <button class="btn btn-primary btn-sm" onclick="connectGoogleAds()">&#8594; חברו Google Ads</button>
-            <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px">דרוש חשבון Google Ads פעיל + Developer Token (Google מאשר לוקח 1-3 ימים ראשונית)</div>
-          </div>
-          <div id="google-ads-connected" style="display:none">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-              <span style="color:#10B981;font-size:0.85rem">&#10003;</span>
-              <span style="font-size:0.82rem;color:#374151">מחובר דרך Google OAuth</span>
+            <!-- Step 1: OAuth -->
+            <div id="gads-step-1" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px;margin-bottom:8px">
+              <div style="display:flex;align-items:start;gap:8px">
+                <div style="background:#2563EB;color:#FFF;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0">1</div>
+                <div style="flex:1">
+                  <div style="font-weight:600;font-size:0.85rem">חיבור Google OAuth (scope=adwords)</div>
+                  <div style="font-size:0.72rem;color:#6B7280;margin:3px 0 6px">Google ישאל אישור להרשאת Ads. חינם, מיידי.</div>
+                  <button class="btn btn-primary btn-sm" onclick="connectGoogleAds()" id="gads-oauth-btn">→ חברו OAuth</button>
+                  <span id="gads-oauth-ok" style="display:none;color:#10B981;font-size:0.78rem;margin-right:6px">✓ OAuth מחובר</span>
+                </div>
+              </div>
             </div>
-            <div style="font-size:0.72rem;color:#6B7280">scope: adwords</div>
+
+            <!-- Step 2: Developer Token -->
+            <div id="gads-step-2" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px;margin-bottom:8px">
+              <div style="display:flex;align-items:start;gap:8px">
+                <div style="background:#F59E0B;color:#FFF;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0">2</div>
+                <div style="flex:1">
+                  <div style="font-weight:600;font-size:0.85rem">הגשת בקשה ל-Developer Token (1-3 ימים)</div>
+                  <div style="font-size:0.72rem;color:#6B7280;margin:3px 0 6px">
+                    Google דורש הרשאה נפרדת ל-API Access. <strong>כל לקוח מגיש בקשה משלו</strong> — אנחנו לא מתווכים.
+                    <ol style="margin:4px 16px 0;padding:0;font-size:0.7rem;line-height:1.5">
+                      <li>היכנסו ל-<a href="https://ads.google.com/home/tools/manager-accounts/" target="_blank" style="color:#2563EB">Google Ads Manager Account</a> (צריך Manager Account, לא רגיל)</li>
+                      <li>Tools & Settings → Setup → <strong>API Center</strong></li>
+                      <li>מלאו את הטופס: תיאור השימוש (marketing automation for small business) + קישור ל-ClawFlow</li>
+                      <li>Google מאשרים לרוב <strong>Basic Access</strong> תוך 1-3 ימים (15K ops/day — מספיק לכל לקוח)</li>
+                    </ol>
+                  </div>
+                  <a href="https://developers.google.com/google-ads/api/docs/first-call/dev-token" target="_blank" class="int-help-link">📖 מדריך רשמי ←</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3: Enter credentials -->
+            <div id="gads-step-3" style="background:#FFF7ED;border:1px solid #FDE68A;border-radius:8px;padding:10px">
+              <div style="display:flex;align-items:start;gap:8px">
+                <div style="background:#10B981;color:#FFF;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0">3</div>
+                <div style="flex:1">
+                  <div style="font-weight:600;font-size:0.85rem;margin-bottom:6px">הזנת פרטי חיבור (אחרי אישור)</div>
+                  <input type="text" id="gads-customer-id" placeholder="Customer ID (10 ספרות, ללא מקפים)" dir="ltr" class="int-input" style="margin-bottom:4px" maxlength="12"/>
+                  <input type="password" id="gads-developer-token" placeholder="Developer Token (מ-API Center)" dir="ltr" class="int-input" style="margin-bottom:4px"/>
+                  <input type="text" id="gads-login-customer-id" placeholder="Login Customer ID (אופציונלי — אם דרך MCC)" dir="ltr" class="int-input" style="margin-bottom:6px" maxlength="12"/>
+                  <button class="btn btn-primary btn-sm" onclick="saveGoogleAdsCredentials()">→ שמרו ובדקו</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="google-ads-connected" style="display:none">
+            <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:10px;margin-bottom:6px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                <span style="color:#10B981;font-size:1rem">✓</span>
+                <span style="font-weight:600;font-size:0.88rem;color:#065F46">Google Ads מחובר</span>
+              </div>
+              <div style="font-size:0.75rem;color:#047857" id="gads-connected-details">Customer ID: <span id="gads-masked-cid" dir="ltr"></span></div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-outline btn-sm" onclick="disconnectGoogleAdsConfig()" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">נתקו</button>
+            </div>
           </div>
         </div>
       </div>
@@ -9358,10 +9409,20 @@ async function restoreSeoIntegrationStates() {
       showRedditConnected(rCfg.username || '');
     }
   } catch {}
-  // Google Ads — check my-instances exposure
+  // Google Ads — OAuth + full config (Customer ID + Developer Token)
   try {
-    if (instanceData && instanceData.hasGoogleAds) {
-      showGoogleAdsConnected();
+    if (instanceData && instanceData.hasGoogleAds) updateGoogleAdsOAuthState();
+    // Fetch full status (reads plugin config from VPS)
+    var iid = localStorage.getItem('cf_instance_id');
+    var tk = localStorage.getItem('cf_token');
+    if (iid && tk) {
+      fetch(API + '/hosting/instances/' + iid + '/integrations/googleads/status', {
+        headers: { 'Authorization': 'Bearer ' + tk }
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d && d.success && d.data && d.data.connected) {
+          showGoogleAdsConnected({ customerId: d.data.customerId });
+        }
+      }).catch(function() {});
     }
   } catch {}
   // Load bundle schedules and refresh UI
@@ -9627,22 +9688,75 @@ async function disconnectRedditIntegration() {
   } catch { showToast('שגיאה', 'error'); }
 }
 
-// ── Google Ads (reuses Google OAuth with adwords scope) ──
+// ── Google Ads (3-step: OAuth + Customer ID + Developer Token) ──
 function connectGoogleAds() {
   var iid = localStorage.getItem('cf_instance_id');
   var tk = localStorage.getItem('cf_token');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
-  // Redirect through Google OAuth with 'ads' scope added
+  // Step 1: Google OAuth with 'ads' scope
   window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=ads&token=' + encodeURIComponent(tk || '');
 }
 
-function showGoogleAdsConnected() {
+async function saveGoogleAdsCredentials() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+
+  var customerId     = document.getElementById('gads-customer-id').value.trim();
+  var developerToken = document.getElementById('gads-developer-token').value.trim();
+  var loginCustomerId = document.getElementById('gads-login-customer-id').value.trim();
+
+  if (!customerId || !/^\d{10}$/.test(customerId.replace(/\D/g, ''))) {
+    showToast('Customer ID חייב להיות 10 ספרות', 'error'); return;
+  }
+  if (!developerToken) { showToast('Developer Token חסר', 'error'); return; }
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/integrations/googleads/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (tk || '') },
+      body: JSON.stringify({ customerId: customerId, developerToken: developerToken, loginCustomerId: loginCustomerId })
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('Google Ads מחובר!', 'success');
+      showGoogleAdsConnected(data.data);
+      ['gads-customer-id','gads-developer-token','gads-login-customer-id'].forEach(function(id) { document.getElementById(id).value = ''; });
+    } else {
+      showToast(data.message || 'שגיאה', 'error');
+    }
+  } catch { showToast('שגיאת תקשורת', 'error'); }
+}
+
+async function disconnectGoogleAdsConfig() {
+  if (!confirm('לנתק Google Ads?')) return;
+  // For now just clear UI state — backend keeps googleTokens but we clear plugin config
+  // A full disconnect endpoint can be added later
+  document.getElementById('google-ads-not-connected').style.display = '';
+  document.getElementById('google-ads-connected').style.display = 'none';
+  var statusEl = document.getElementById('google-ads-status');
+  if (statusEl) { statusEl.textContent = 'לא מחובר'; statusEl.className = 'int-status'; }
+  showToast('לניתוק מלא פנו לתמיכה — הקרדים ב-VPS נשארים עד ניתוק OAuth של Google', 'info');
+}
+
+function showGoogleAdsConnected(data) {
   document.getElementById('google-ads-not-connected').style.display = 'none';
   document.getElementById('google-ads-connected').style.display = '';
   var statusEl = document.getElementById('google-ads-status');
   if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
   var card = document.getElementById('google-ads-card');
   if (card) card.classList.add('connected-card');
+  var cidEl = document.getElementById('gads-masked-cid');
+  if (cidEl && data && data.customerId) cidEl.textContent = data.customerId;
+}
+
+// Update OAuth step UI after Google Ads scope granted
+function updateGoogleAdsOAuthState() {
+  if (!instanceData || !instanceData.hasGoogleAds) return;
+  var oauthBtn = document.getElementById('gads-oauth-btn');
+  var oauthOk = document.getElementById('gads-oauth-ok');
+  if (oauthBtn) oauthBtn.style.display = 'none';
+  if (oauthOk) oauthOk.style.display = '';
 }
 
 /* ===== GitHub Integration ===== */

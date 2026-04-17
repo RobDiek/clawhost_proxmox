@@ -2809,6 +2809,162 @@ fact_add({ subject: 'Automaziot.ai', subjectType: 'competitor', predicate: 'PRIC
     }
 }
 
+// ── Helper: append Google Ads playbook section to SOUL.md (idempotent) ──
+// Trains shaliach, menateach, ayat agents to use openclaw-googleads draft tools safely.
+async function updateSoulWithGoogleAdsTools(ip: string, password?: string): Promise<void> {
+    try {
+        const soul = await sshExec(ip, 'cat /home/openclaw/.openclaw/workspace/SOUL.md 2>/dev/null || echo ""', password)
+        if (soul.includes('openclaw-googleads MCP')) {
+            console.log('SOUL already contains googleads section — skip')
+            return
+        }
+
+        const section = `
+
+## openclaw-googleads MCP — ניהול קמפיינים ב-Google Ads (Draft Mode)
+
+שרת openclaw-googleads מותקן. **כל פעולת כתיבה עוברת דרך תור אישורים בדשבורד** — הסוכן לא יוצר קמפיינים ישירות ב-Google Ads, אלא מכין טיוטה שהמשתמש יאשר או יתקן.
+
+**אחריות לפי סוכן:**
+- **שליח (shaliach):** יוצר draft_campaign + draft_ad_group + draft_ad לפרסום ממומן. נתמך ע"י הקונטקסט של האסטרטגיה (fact_query על competitors, keywords, personas).
+- **מנתח (menateach):** אחרי שקמפיין פעיל — קורא get_campaign_metrics, מציע bid adjustments, pause-ים גרועים (גם דרך draft לאישור).
+- **עט (ayat):** כותב headlines + descriptions בעברית לפי brand voice. **מגבלות Google Ads:** עד 15 headlines של 30 תווים + עד 4 descriptions של 90 תווים + CTA ברור.
+
+**כלי Draft (בטוחים, ללא API):**
+- \`draft_campaign\` — שם, מטרה (leads/sales/traffic), סוג (search/pmax/display), תקציב יומי ₪, bidding strategy, targeting, rationale בעברית
+- \`draft_ad_group\` — קבוצה בתוך קמפיין, theme, max CPC, persona יעד
+- \`draft_keywords\` — מילות מפתח עם match types (exact/phrase/broad), negative keywords
+- \`draft_ad\` — headlines + descriptions + final URL + callouts. **אימות אוטומטי** של אורכים + URL format
+
+**כלי קריאה (דורשים Developer Token מהמשתמש):**
+- \`list_campaigns\`, \`get_campaign_metrics\` — זמינים רק אחרי שהמשתמש מחבר Customer ID + Developer Token בדשבורד
+
+**שגרת עבודה למשל:**
+\`\`\`
+// לפני יצירת קמפיין — שלוף מידע מהגרף
+entity_list({ type: 'persona' })                              // קהל יעד
+fact_query({ subjectType: 'keyword' })                        // מילות מפתח רלוונטיות
+fact_query({ subjectType: 'competitor', predicate: 'RANKS_FOR' })  // מילים שמתחרים מובילים
+
+// טיוטת קמפיין
+draft_campaign({
+  name: 'flowmatic-BOFU-q1', goal: 'leads', type: 'search',
+  dailyBudgetIls: 100, biddingStrategy: 'target_cpa', targetCpaIls: 80,
+  locations: ['Israel'], languages: ['he'],
+  rationale: 'קמפיין מכוון BOFU למילים עם intent גבוה ומתחרים זמינים ב-SERP ישראל'
+})
+// → מחזיר {ok: true, draft: {_type: 'gads_campaign_draft', ...}, approvalRequired: true}
+
+// כתוב את ה-draft בפלט שלך — המשתמש יראה אותו בתור האישורים
+\`\`\`
+
+**כלל זהב:**
+- **לעולם אל תכריז שקמפיין "נוצר"** — רק "טיוטה מוכנה לאישור".
+- **לעולם אל תמציא מספרים** — budget/bid חייבים להסתמך על האסטרטגיה (שלב 3 paid strategy).
+- **Gatekeeper** — אם המסלול הוא gatekeeper ויש <2 לקוחות אורגניים, אל תטייטת קמפיינים paid כלל.
+`
+        const b64 = Buffer.from(section, 'utf8').toString('base64')
+        await sshExec(ip,
+            `echo '${b64}' | base64 -d >> /home/openclaw/.openclaw/workspace/SOUL.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/SOUL.md`,
+            password, 15000
+        )
+        await sshExec(ip, 'systemctl restart openclaw-gateway', password, 15000)
+        console.log('SOUL.md updated with openclaw-googleads tools section')
+    } catch (err) {
+        console.error('updateSoulWithGoogleAdsTools error (non-fatal):', err)
+    }
+}
+
+// ── POST /hosting/instances/:id/integrations/googleads/save ──
+// Saves Customer ID + Developer Token to plugin config on VPS.
+// OAuth refresh_token already captured in googleTokens via existing flow.
+export const saveGoogleAdsConfig = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance?.ip) return fail(c, 'Instance not ready', 404)
+
+        const body = await c.req.json<{ customerId: string; developerToken: string; loginCustomerId?: string }>()
+        const customerId = (body.customerId || '').replace(/\D/g, '')  // strip non-digits
+        const developerToken = (body.developerToken || '').trim()
+        const loginCustomerId = (body.loginCustomerId || '').replace(/\D/g, '')
+
+        if (customerId.length !== 10) return fail(c, 'Customer ID חייב להיות 10 ספרות (ללא מקפים)', 400)
+        if (!developerToken) return fail(c, 'Developer Token חסר', 400)
+
+        // Pull refresh_token from googleTokens (set during OAuth flow with ads scope)
+        const gt = instance.googleTokens as any
+        if (!gt?.refreshToken && !gt?.refresh_token) {
+            return fail(c, 'יש לחבר Google OAuth עם scope=ads קודם', 400)
+        }
+        const refreshToken = gt.refreshToken || gt.refresh_token
+
+        // Update plugin config in openclaw.json on VPS
+        const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID || ''
+        const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || ''
+
+        const configUpdate = {
+            clientId:        GOOGLE_CLIENT_ID,
+            clientSecret:    GOOGLE_CLIENT_SECRET,
+            refreshToken,
+            developerToken,
+            customerId,
+            loginCustomerId: loginCustomerId || customerId,
+        }
+
+        const script = `
+import json
+p = '/home/openclaw/.openclaw/openclaw.json'
+with open(p) as f: cfg = json.load(f)
+cfg.setdefault('plugins', {}).setdefault('entries', {}).setdefault('openclaw-googleads', {})['config'] = ${JSON.stringify(configUpdate).replace(/\\/g, '\\\\')}
+with open(p, 'w') as f: json.dump(cfg, f, indent=2)
+print('Google Ads config updated')
+`
+        const b64 = Buffer.from(script).toString('base64')
+        await sshExec(instance.ip,
+            `echo '${b64}' | base64 -d > /tmp/_gads_cfg.py && chown openclaw:openclaw /tmp/_gads_cfg.py && su - openclaw -c 'python3 /tmp/_gads_cfg.py' && rm -f /tmp/_gads_cfg.py && systemctl restart openclaw-gateway`,
+            instance.rootPassword || undefined, 30000
+        )
+
+        // Update SOUL with playbook (idempotent)
+        await updateSoulWithGoogleAdsTools(instance.ip, instance.rootPassword || undefined)
+
+        console.log(`Google Ads config saved for ${instanceId}: customerId=${customerId}`)
+        return ok(c, { customerId, connected: true }, 'Google Ads מוגדר.')
+    } catch (err) {
+        console.error('saveGoogleAdsConfig error:', err)
+        return fail(c, 'Save failed', 500)
+    }
+}
+
+// ── GET /hosting/instances/:id/integrations/googleads/status ──
+export const getGoogleAdsConfigStatus = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance?.ip) return ok(c, { connected: false })
+
+        // Read plugin config from VPS openclaw.json
+        const out = await sshExec(instance.ip,
+            `su - openclaw -c "cat /home/openclaw/.openclaw/openclaw.json 2>/dev/null | python3 -c 'import sys, json; d=json.load(sys.stdin); cfg=d.get(\\"plugins\\",{}).get(\\"entries\\",{}).get(\\"openclaw-googleads\\",{}).get(\\"config\\",{}); print(\\"CID:\\"+cfg.get(\\"customerId\\",\\"\\")+\\";DT:\\"+(\\"yes\\" if cfg.get(\\"developerToken\\") else \\"no\\"))'"`,
+            instance.rootPassword || undefined, 15000
+        )
+        const m = out.match(/CID:(\d*);DT:(yes|no)/)
+        const cid = m?.[1] || ''
+        const hasDT = m?.[2] === 'yes'
+        return ok(c, {
+            connected: !!(cid && hasDT),
+            customerId: cid ? cid.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3') : '',
+            hasDeveloperToken: hasDT,
+        })
+    } catch (err) {
+        console.error('getGoogleAdsConfigStatus error:', err)
+        return ok(c, { connected: false })
+    }
+}
+
 // ── POST /hosting/instances/:id/facts/seed ──
 // One-shot seeding of Neo4j graph from existing research_data.
 // Extracts competitors, personas, keywords, channels, pillars from strategy

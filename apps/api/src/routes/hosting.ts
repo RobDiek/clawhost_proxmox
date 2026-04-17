@@ -41,6 +41,8 @@ import {
     getApiUsage,
     seedFacts,
     benchmarkFacts,
+    saveGoogleAdsConfig,
+    getGoogleAdsConfigStatus,
     researchStage,
     resetResearch,
     addAgentToInstance,
@@ -213,6 +215,10 @@ app.get('/instances/:id/setup/agents/ops-brief', getOpsBrief)
 app.get('/instances/:id/api-usage', getApiUsage)
 app.post('/instances/:id/facts/seed', seedFacts)
 app.post('/instances/:id/facts/benchmark', benchmarkFacts)
+
+// ── Google Ads configuration ──
+app.post('/instances/:id/integrations/googleads/save', saveGoogleAdsConfig)
+app.get('/instances/:id/integrations/googleads/status', getGoogleAdsConfigStatus)
 app.post('/instances/:id/setup/agents/research/stage', researchStage)
 app.post('/instances/:id/setup/agents/research/reset', resetResearch)
 app.post('/instances/:id/agents/add', addAgentToInstance)
