@@ -436,8 +436,32 @@ export const testGithubIntegration = async (c: Context) => {
             method: 'POST', headers,
             body: JSON.stringify({ ref: `refs/heads/${testBranch}`, sha: baseSha }),
         })
-        steps.push({ step: 'create-test-branch', ok: createBranchRes.ok, detail: `HTTP ${createBranchRes.status}` })
-        if (!createBranchRes.ok) return ok(c, { steps, passed: false })
+        if (!createBranchRes.ok) {
+            // 403 on write after 200 on read → classic org PAT pending approval
+            let hint = ''
+            let diagnosis = ''
+            if (createBranchRes.status === 403) {
+                // Check if org-owned
+                const repoDetails = await fetch(`https://api.github.com/repos/${owner}/${repoName}`, { headers }).then(r => r.json()).catch(() => null) as any
+                const isOrg = repoDetails?.owner?.type === 'Organization'
+                if (isOrg) {
+                    diagnosis = 'org_pat_pending_approval'
+                    hint = `ה-repo שייך ל-organization "${owner}". ה-token ממתין לאישור admin של ה-organization (אם מופעלת פוליסת "Require approval for fine-grained PATs"). הכנסו ל-github.com/organizations/${owner}/settings/personal-access-tokens → Pending requests ← Approve את ה-token שיצרתם.`
+                } else {
+                    diagnosis = 'write_blocked'
+                    hint = 'ה-token לא מצליח לכתוב — בדקו שסימנתם Contents: Read and write (לא רק Read) וגם Pull requests: Read and write.'
+                }
+            } else if (createBranchRes.status === 422) {
+                diagnosis = 'branch_exists'
+                hint = 'ענף בדיקה עם השם הזה כבר קיים — תופעה נדירה. נסו שוב.'
+            }
+            steps.push({
+                step: 'create-test-branch', ok: false,
+                detail: `HTTP ${createBranchRes.status}${hint ? ' · ' + hint : ''}`
+            })
+            return ok(c, { steps, passed: false, diagnosis, hint }, 'Test incomplete')
+        }
+        steps.push({ step: 'create-test-branch', ok: true, detail: `${testBranch}` })
 
         // 3. Create test file in that branch
         const testFilePath = `.flowmatic-agent-smoke-test.md`
