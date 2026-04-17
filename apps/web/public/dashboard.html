@@ -6780,6 +6780,7 @@ async function runStrategyStage(stage) {
 var currentScenarios = null;
 var selectedScenarioKey = null;
 var channelOverrides = null; // array of channel names user kept
+var paidTrafficChoice = null; // 'immediate' | 'gatekeeper' | null (conservative = null)
 
 // ── Weekly Ops Brief ──
 async function openOpsBrief() {
@@ -6924,8 +6925,18 @@ function renderOpsBrief(brief, history, scenario) {
     '<div style="flex:1"><div style="font-weight:800;font-size:1.1rem;color:' + sc.text + '">שבוע ' + brief.weekNum + ' · ' + sc.label + '</div>' +
     '<div style="font-size:0.82rem;color:' + sc.text + ';opacity:0.85">' + escapeHtml(brief.statusReason || '') + '</div></div></div>' +
     '</div>' +
-    onTrackHtml + behindHtml + criticalHtml + devsHtml + actionsHtml +
-    (brief.tokenSpendNote ? '<div style="font-size:0.75rem;color:#6B7280;background:#F9FAFB;border-radius:6px;padding:8px 10px;margin-bottom:12px">💰 ' + escapeHtml(brief.tokenSpendNote) + '</div>' : '') +
+    onTrackHtml + behindHtml + criticalHtml + devsHtml +
+    (brief.gatekeeperStatus && brief.gatekeeperStatus.active ? (function(gs){
+      var gsColor = gs.status === 'ready' ? '#10B981' : gs.status === 'activated' ? '#2563EB' : '#F59E0B';
+      var gsBg = gs.status === 'ready' ? '#D1FAE5' : gs.status === 'activated' ? '#DBEAFE' : '#FEF3C7';
+      var gsLabel = gs.status === 'ready' ? 'מוכן להפעלה — ניתן להתחיל פרסום' : gs.status === 'activated' ? 'פרסום ממומן פעיל' : 'חסום — ' + (gs.organicCustomersActual || 0) + '/' + (gs.organicCustomersTarget || 2) + ' לקוחות אורגניים';
+      return '<div style="background:' + gsBg + ';border:1px solid ' + gsColor + ';border-radius:8px;padding:10px 12px;margin-bottom:16px">' +
+        '<div style="font-weight:700;font-size:0.85rem;color:' + gsColor + ';margin-bottom:4px">🚪 Gatekeeper: ' + escapeHtml(gsLabel) + '</div>' +
+        (gs.recommendation ? '<div style="font-size:0.75rem;color:#4B5563">' + escapeHtml(gs.recommendation) + '</div>' : '') +
+        '</div>';
+    })(brief.gatekeeperStatus) : '') +
+    actionsHtml +
+    (brief.costSpendNote || brief.tokenSpendNote ? '<div style="font-size:0.75rem;color:#6B7280;background:#F9FAFB;border-radius:6px;padding:8px 10px;margin-bottom:12px">💰 ' + escapeHtml(brief.costSpendNote || brief.tokenSpendNote) + '</div>' : '') +
     (brief.nextReviewAt ? '<div style="font-size:0.75rem;color:#9CA3AF;text-align:center;margin-top:8px">סקירה הבאה: ' + escapeHtml(brief.nextReviewAt) + '</div>' : '') +
     historyHtml +
     '</div>';
@@ -7033,17 +7044,20 @@ function renderScenarioPicker() {
 
   document.getElementById('pipelineTitle').textContent = 'בחרו את מסלול הביצוע שלכם';
 
-  // Budget reality check banner (M2)
+  // Paid traffic budget reality check (only for paid ads, not tokens/tools)
   var bmHtml = '';
-  if (val.budgetMismatch) {
-    var bm = val.budgetMismatch;
+  var pbm = val.paidTrafficBudgetMismatch || val.budgetMismatch; // legacy fallback
+  if (pbm) {
+    var userPaid = pbm.userPaidBudgetIls != null ? ('₪' + pbm.userPaidBudgetIls) : (pbm.userBudget || '—');
+    var recPaid = pbm.recommendedPaidBudgetIls != null ? ('₪' + pbm.recommendedPaidBudgetIls) : (pbm.researchRealityBudget || '—');
     bmHtml =
       '<div style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:10px;padding:14px;margin-bottom:20px">' +
-      '<div style="font-weight:700;font-size:0.95rem;color:#92400E;margin-bottom:6px">⚠️ בדיקת תקציב מול המציאות</div>' +
+      '<div style="font-weight:700;font-size:0.95rem;color:#92400E;margin-bottom:6px">⚠️ בדיקת תקציב פרסום מול הצרכים</div>' +
       '<div style="font-size:0.85rem;color:#78350F;line-height:1.6">' +
-      '<div style="margin-bottom:4px"><strong>התקציב שציינת:</strong> ' + escapeHtml(bm.userBudget || '—') + '</div>' +
-      '<div style="margin-bottom:8px"><strong>המציאות מהמחקר:</strong> ' + escapeHtml(bm.researchRealityBudget || '—') + '</div>' +
-      '<div>' + escapeHtml(bm.explanation || '') + '</div>' +
+      '<div style="margin-bottom:4px"><strong>התקציב לפרסום שציינת:</strong> ' + escapeHtml(userPaid) + '</div>' +
+      '<div style="margin-bottom:8px"><strong>מה מומלץ לפי האסטרטגיה:</strong> ' + escapeHtml(recPaid) + '</div>' +
+      '<div>' + escapeHtml(pbm.explanation || '') + '</div>' +
+      '<div style="margin-top:8px;font-size:0.72rem;opacity:0.8">💡 הערה: Tokens ו-Tools משולמים ישירות לספקים (Anthropic/OpenAI + DataForSEO וכו\') ומופיעים בפירוט לכל מסלול למעלה.</div>' +
       '</div></div>';
   }
 
@@ -7079,10 +7093,24 @@ function renderScenarioPicker() {
       '<div style="font-weight:800;font-size:1.2rem;color:#111827;margin-bottom:4px">' + escapeHtml(s.name) + '</div>' +
       '<div style="font-size:0.82rem;color:#6B7280;margin-bottom:14px;line-height:1.4">' + escapeHtml(s.tagline || '') + '</div>' +
 
-      '<div style="border-top:1px solid #E5E7EB;padding-top:12px;margin-bottom:12px">' +
-      '<div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:2px">תקציב חודשי</div>' +
-      '<div style="font-weight:700;color:#111827">' + escapeHtml(s.monthlyBudget || '—') + '</div>' +
-      '</div>' +
+      // Cost breakdown — 3 buckets (tokens + tools + paid traffic)
+      (function(){
+        var c = s.costs || {};
+        var tMin = c.tokensUsd && c.tokensUsd.min != null ? c.tokensUsd.min : 0;
+        var tMax = c.tokensUsd && c.tokensUsd.max != null ? c.tokensUsd.max : 0;
+        var toolsTotal = c.toolsUsd && c.toolsUsd.total != null ? c.toolsUsd.total : 0;
+        var paidIls = c.paidTrafficIls != null ? c.paidTrafficIls : 0;
+        var totalIls = c.estimateTotalIls != null ? c.estimateTotalIls : Math.round(tMax * 3.8 + toolsTotal * 3.8 + paidIls);
+        var tokensStr = tMin === tMax ? ('$' + tMax) : ('$' + tMin + '-' + tMax);
+        return '<div style="border-top:1px solid #E5E7EB;padding-top:12px;margin-bottom:12px">' +
+          '<div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:4px">עלות חודשית משתנה (משולמת ישירות לספקים)</div>' +
+          '<div style="font-weight:800;color:#111827;font-size:1.05rem;margin-bottom:6px">~₪' + totalIls + '/חודש</div>' +
+          '<div style="font-size:0.72rem;color:#6B7280;display:grid;gap:2px">' +
+          '<div style="display:flex;justify-content:space-between"><span>💬 Tokens (API שלכם)</span><span>' + tokensStr + '</span></div>' +
+          '<div style="display:flex;justify-content:space-between"><span>🛠 כלים (חשבונות שלכם)</span><span>$' + toolsTotal + '</span></div>' +
+          '<div style="display:flex;justify-content:space-between"><span>📱 פרסום ממומן</span><span>' + (paidIls > 0 ? '₪' + paidIls : '—') + '</span></div>' +
+          '</div></div>';
+      })() +
 
       '<div style="margin-bottom:12px">' +
       '<div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:2px">לוח זמנים</div>' +
@@ -7116,8 +7144,38 @@ function renderScenarioPicker() {
       '</div>';
   }).join('');
 
-  // Channel customizer (M3) — only show for selected scenario
+  // Paid Traffic Activation picker (only if selected scenario has paid traffic)
   var selected = scenarios.find(function(s) { return s.key === selectedScenarioKey; });
+  var paidActHtml = '';
+  if (selected && selected.paidTrafficActivation && selected.paidTrafficActivation.hasPaidTraffic) {
+    var pta = selected.paidTrafficActivation;
+    var recKey = pta.recommended || 'gatekeeper';
+    var currentChoice = paidTrafficChoice || recKey;
+    paidActHtml =
+      '<div style="border:2px solid #FEF3C7;background:#FFFBEB;border-radius:10px;padding:14px;margin:20px 0">' +
+      '<div style="font-weight:700;font-size:0.95rem;color:#78350F;margin-bottom:4px">💰 הפעלת פרסום ממומן</div>' +
+      '<div style="font-size:0.78rem;color:#78350F;margin-bottom:12px">בחרו מתי להפעיל את תקציב הפרסום הממומן במסלול הזה</div>' +
+      '<div style="display:grid;gap:10px">' +
+      (pta.options || []).map(function(opt) {
+        var isRec = opt.key === recKey;
+        var isChosen = opt.key === currentChoice;
+        var border = isChosen ? '#F59E0B' : '#FDE68A';
+        var bw = isChosen ? '3px' : '1px';
+        var bg = isChosen ? '#FEF3C7' : '#FFF';
+        var prosHtml = (opt.pros || []).map(function(p) { return '<div style="font-size:0.72rem;color:#065F46">✓ ' + escapeHtml(p) + '</div>'; }).join('');
+        var consHtml = (opt.cons || []).map(function(c) { return '<div style="font-size:0.72rem;color:#7F1D1D">✗ ' + escapeHtml(c) + '</div>'; }).join('');
+        return '<div onclick="setPaidTrafficChoice(\'' + opt.key + '\')" style="cursor:pointer;border:' + bw + ' solid ' + border + ';background:' + bg + ';border-radius:8px;padding:12px;position:relative">' +
+          (isRec ? '<div style="position:absolute;top:-10px;right:10px;background:#10B981;color:#FFF;padding:3px 8px;border-radius:10px;font-size:0.68rem;font-weight:700">⭐ מומלץ</div>' : '') +
+          '<div style="font-weight:700;font-size:0.9rem;color:#111827;margin-bottom:4px">' + (isChosen ? '✓ ' : '') + escapeHtml(opt.label) + '</div>' +
+          (opt.timeToFirstPaidLead ? '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:6px">⏱ ' + escapeHtml(opt.timeToFirstPaidLead) + '</div>' : '') +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' + prosHtml + consHtml + '</div>' +
+          '</div>';
+      }).join('') +
+      '</div>' +
+      (pta.reasoning ? '<div style="font-size:0.72rem;color:#78350F;margin-top:10px;font-style:italic;border-top:1px dashed #FDE68A;padding-top:8px">💡 ' + escapeHtml(pta.reasoning) + '</div>' : '') +
+      '</div>';
+  }
+
   var customizerHtml = '';
   if (selected && selected.primaryChannels && selected.primaryChannels.length > 0) {
     var activeChannels = channelOverrides || selected.primaryChannels.slice();
@@ -7138,7 +7196,7 @@ function renderScenarioPicker() {
   var html =
     bmHtml + confHtml +
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:4px">' + cardsHtml + '</div>' +
-    customizerHtml;
+    paidActHtml + customizerHtml;
 
   document.getElementById('pipelineBody').innerHTML = html;
   document.getElementById('pipelineNextBtn').style.display = '';
@@ -7150,8 +7208,14 @@ function renderScenarioPicker() {
 
 function selectScenario(key) {
   selectedScenarioKey = key;
-  // Reset channel overrides when switching scenarios
+  // Reset channel overrides + paid traffic choice when switching scenarios
   channelOverrides = null;
+  paidTrafficChoice = null;
+  renderScenarioPicker();
+}
+
+function setPaidTrafficChoice(key) {
+  paidTrafficChoice = key;
   renderScenarioPicker();
 }
 
@@ -7173,6 +7237,13 @@ async function commitSelectedScenario() {
 
     var payload = { chosenKey: selectedScenarioKey };
     if (channelOverrides) payload.channelOverrides = channelOverrides;
+
+    // Paid traffic activation choice (only if scenario has paid traffic)
+    var selectedSc = currentScenarios && currentScenarios.scenarios.find(function(s) { return s.key === selectedScenarioKey; });
+    if (selectedSc && selectedSc.paidTrafficActivation && selectedSc.paidTrafficActivation.hasPaidTraffic) {
+      var ptaChoice = paidTrafficChoice || (selectedSc.paidTrafficActivation.recommended || 'gatekeeper');
+      payload.paidTrafficActivation = ptaChoice;
+    }
 
     var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/strategy/commit', {
       method: 'POST',

@@ -1941,10 +1941,27 @@ export const buildStrategyScenarios = async (c: Context) => {
 
         const validation = rd.stage5 || ''
 
+        const existingCustomers = answers.existingCustomers || answers.currentCustomers || ''
+        const businessStage = answers.businessStage || answers.businessAge || ''
+
         const prompt = `אתה יועץ אסטרטגיית שיווק בכיר ישראלי. בנית אסטרטגיה מלאה לעסק — עכשיו עליך לגזור ממנה **3 מסלולי ביצוע** ברורים שהלקוח יבחר ביניהם.
+
+## המודל הכלכלי של Flowmatic (חובה להבין!)
+
+Flowmatic = **hosting מקצועי לסוכני AI**. המודל העסקי שלנו:
+- **מנוי חודשי קבוע** (VPS + Mem0 pooled + תמיכה + HaaS אופציונלי) — זה לא חלק מהתקציב של המשתמש פה
+- **המשתמש משלם ישירות ל-providers** (pass-through, 0% markup מצידנו):
+  1. **Tokens** — API keys של המשתמש עצמו ל-Anthropic/OpenAI
+  2. **Tools** — המשתמש מחבר חשבונות משלו ל-DataForSEO, Firecrawl, Brave, Langfuse
+  3. **Paid Traffic** — חשבונות פרסום של המשתמש (Google Ads / Meta Ads / LinkedIn Ads)
+- הסוכנים = הצוות הווירטואלי. **אין כאן זמני founder, עלות כותב freelance, או ריטיינר סוכנות!**
+
+**המשמעות:** התקציבים שאתה מפיק חייבים לשקף את **3 הבאקטים בלבד**. לא "עלות זמן founder". לא "כותב תוכן". זה עושים הסוכנים.
 
 ## העסק: ${businessName}
 ## תקציב שציין המשתמש: ${userBudget || 'לא צוין'}
+## לקוחות קיימים: ${existingCustomers || 'לא צוין'}
+## שלב העסק: ${businessStage || 'לא צוין'}
 
 ## האסטרטגיה המלאה (4 שלבים):
 ${strategyFull}
@@ -1956,28 +1973,28 @@ ${validation.substring(0, 5000)}
 
 ## משימתך
 
-הפק **3 תרחישים** (conservative / recommended / aggressive) שהלקוח יבחר ביניהם, על בסיס הנתונים למעלה בלבד. המסלולים חייבים להיות **ריאליסטיים** ו-**קוהרנטיים** — כל אחד עם budget/timeline/channels/KPIs שמתואמים זה לזה, לא רשימות אקראיות.
+הפק **3 תרחישים** (conservative / recommended / aggressive) שהלקוח יבחר ביניהם, על בסיס הנתונים למעלה בלבד. המסלולים חייבים להיות **ריאליסטיים** ו-**קוהרנטיים**.
 
-### עקרונות:
-1. **שמרני (Conservative):** תקציב מינימלי, בעיקר אורגני, timeline איטי יותר, סיכון נמוך, תוצאות צנועות. מתאים למי שרוצה לוודא PMF לפני השקעה.
-2. **מומלץ (Recommended):** האיזון שההצעה למטה מאמתת. השתמש ב-confidence score מה-validation (שלב 5) כדי לקבוע איזה מסלול מומלץ — אם confidence < 60, המלץ על Conservative; אם > 75, המלץ על Recommended; אם > 85, המלץ על Aggressive.
-3. **אגרסיבי (Aggressive):** תקציב גבוה, paid + אורגני, timeline מואץ, יעדים שאפתניים. מתאים למי שיש לו runway ורוצה לתפוס נתח שוק מהר.
+### עקרונות קריטיים:
+1. **שמרני:** 0 paid traffic, tools בחינם (free tiers של Brave, Firecrawl), tokens מינימליים. מסלול לוולידציה של PMF לפני השקעה.
+2. **מאוזן:** token cost משמעותי, tools בסיסיים-מתקדמים, paid traffic אופציונלי (עם Gatekeeper לפי בחירת המשתמש).
+3. **אגרסיבי:** token cost גבוה, tools בתשלום מלא, paid traffic משמעותי מההתחלה.
 
-### הערה לגבי תקציב המשתמש:
-אם תקציב המשתמש (${userBudget || 'לא צוין'}) לא תואם את הריאליה מהמחקר (למשל, המשתמש ציין ₪500/חודש אבל האסטרטגיה מצביעה על CAC ₪900) — **ציין זאת במפורש ב-budgetMismatch** של המסלול המומלץ, והסבר איזה scope ישיג עם תקציבו, ואיזה scope יושג עם התקציב המותאם.
+### הערה על התקציב של המשתמש:
+אם התקציב שצוין (${userBudget || 'לא צוין'}) הוא **רק עבור פרסום ממומן** — בדוק אם הוא מספיק למסלול האגרסיבי/מאוזן. אם לא מספיק — ציין ב-**paidTrafficBudgetMismatch** (לא ב-budgetMismatch כללי). אין "budgetMismatch כללי" — הלקוח לא משלם על משכורות!
 
 ---
 
 ## פורמט פלט — JSON בלבד
 
-החזר **אך ורק** JSON תקף במבנה הזה (ללא markdown, ללא prose, ללא \`\`\`json):
+החזר **אך ורק** JSON תקף:
 
 {
   "validation": {
     "confidenceScore": 0-100,
     "recommendedKey": "conservative" | "recommended" | "aggressive",
-    "reasoning": "משפט בעברית — למה דווקא המסלול הזה מומלץ, על בסיס האימות.",
-    "budgetMismatch": null | { "userBudget": "₪X/חודש", "researchRealityBudget": "₪Y/חודש", "explanation": "..." }
+    "reasoning": "משפט בעברית — למה דווקא המסלול הזה מומלץ",
+    "paidTrafficBudgetMismatch": null | { "userPaidBudgetIls": N, "recommendedPaidBudgetIls": N, "explanation": "..." }
   },
   "scenarios": [
     {
@@ -1985,13 +2002,23 @@ ${validation.substring(0, 5000)}
       "name": "שמרני",
       "emoji": "🛡️",
       "tagline": "וולידציה לפני השקעה — אורגני בלבד",
-      "monthlyBudget": "₪X - ₪Y",
-      "monthlyBudgetNumeric": { "min": X, "max": Y },
       "timeline": "X-Y חודשים לתוצאות ראשונות",
-      "primaryChannels": ["SEO/Content", "LinkedIn Organic", "..."],
+      "primaryChannels": ["FB Group X", "LinkedIn Organic", "..."],
       "kpis": {
         "month1": { "customers": N, "mrr": "₪N", "leads": N },
         "month3": { "customers": N, "mrr": "₪N", "leads": N }
+      },
+      "costs": {
+        "tokensUsd":  { "min": 20, "max": 40 },
+        "toolsUsd":   {
+          "dataforseo": 0,
+          "firecrawl": 0,
+          "brave": 0,
+          "langfuse": 0,
+          "total": 0
+        },
+        "paidTrafficIls": 0,
+        "estimateTotalIls": 100
       },
       "agentRoster": {
         "sayer":     { "cadence": "weekly|daily|off", "role": "Internet Research — מנטר מתחרים" },
@@ -2003,10 +2030,10 @@ ${validation.substring(0, 5000)}
         "shaliach":  { "cadence": "daily|weekly|off", "role": "Distribution — פרסום בערוצים" },
         "migdalor":  { "cadence": "monthly|weekly|off", "role": "AEO — בדיקה ב-LLMs" }
       },
-      "monthlyTokenBudgetUsd": 20,
-      "expectedResults": "2-3 משפטים קונקרטיים בעברית על מה יקרה בסוף 90 ימים",
-      "tradeOffs": ["יתרון/חיסרון 1", "חיסרון 2", "חיסרון 3"],
-      "idealFor": "למי מתאים — בגוף המשפט",
+      "paidTrafficActivation": null,
+      "expectedResults": "2-3 משפטים קונקרטיים על מה יקרה בסוף 90 ימים",
+      "tradeOffs": ["חיסרון 1", "חיסרון 2", "חיסרון 3"],
+      "idealFor": "למי מתאים",
       "risks": ["סיכון 1", "סיכון 2"]
     },
     {
@@ -2014,25 +2041,57 @@ ${validation.substring(0, 5000)}
       "name": "מאוזן",
       "emoji": "⚖️",
       ...
+      "paidTrafficActivation": {
+        "hasPaidTraffic": true,
+        "options": [
+          {
+            "key": "immediate",
+            "label": "הפעלה מיידית של פרסום ממומן",
+            "pros": ["leads מהירים — שבועות 1-2", "סקיילים ידועים של CAC/ROAS"],
+            "cons": ["סיכון לבזבז תקציב על מסר לא מאומת", "צריך attribution מיום 1"],
+            "timeToFirstPaidLead": "7-14 ימים"
+          },
+          {
+            "key": "gatekeeper",
+            "label": "הפעלה רק אחרי 2 לקוחות אורגניים",
+            "pros": ["וולידציה של המסר לפני השקעה", "תקציב לא נשרף על פרסונה שגויה"],
+            "cons": ["האטה של חודש-חודשיים", "תוצאות paid מתחילות רק בחודש 2-3"],
+            "timeToFirstPaidLead": "30-45 ימים"
+          }
+        ],
+        "recommended": "immediate" | "gatekeeper",
+        "reasoning": "משפט בעברית — על סמך confidence score + existingCustomers + businessStage — למה דווקא הוא"
+      }
     },
     {
       "key": "aggressive",
       "name": "אגרסיבי",
       "emoji": "🚀",
       ...
+      "paidTrafficActivation": { "hasPaidTraffic": true, "options": [...], "recommended": "immediate|gatekeeper", "reasoning": "..." }
     }
   ]
 }
 
-**חשוב:**
-- **שמות בדיוק כך** (אל תשנה!): שם של "conservative" = "שמרני" (emoji 🛡️), "recommended" = "מאוזן" (emoji ⚖️), "aggressive" = "אגרסיבי" (emoji 🚀). **אסור** לקרוא ל-middle scenario "מומלץ" — זה שם badge ולא שם מסלול.
-- monthlyBudgetNumeric.min/max במספרים, לא מחרוזות
-- monthlyTokenBudgetUsd במספר (USD בחודש — כמה API tokens ~$) — conservative 10-30, recommended 40-80, aggressive 100-250
-- השתמש במספרים אמיתיים מהאסטרטגיה (MRR, CAC, לקוחות) — אל תמציא
-- כל scenario חייב להיות קוהרנטי: תקציב שמרני ≠ יעדי MRR אגרסיביים
-- agentRoster — חובה להגדיר cadence לכל 8 הסוכנים. "off" = סוכן לא פעיל בסנריו הזה. שמרני = חלק off, אגרסיבי = כולם on.
-- primaryChannels במסלול שמרני = **ערוץ אחד עיקרי** + 1-2 משניים. באגרסיבי = 4-6 ערוצים מקבילים. זה קריטי — solo/early-stage לא יכול לעבוד 5 ערוצים בבת אחת.
-- tradeOffs חייב להיות כנה — מה מפסידים בבחירת המסלול הזה`
+### כללי costs — חובה:
+- **tokensUsd.min/max** — מספרים. שמרני 10-30, מאוזן 40-80, אגרסיבי 100-250.
+- **toolsUsd** — לכל tool בנפרד. free tiers = 0. DataForSEO sandbox = 0, standard ~$50, professional ~$125. Firecrawl hobby $0, standard $20, growth $83. Brave free = 0, Pro $3-20. Langfuse self-hosted = 0.
+- **paidTrafficIls** — עלות חודשית בש"ח לפרסום ממומן. 0 ב-conservative. 0-2500 ב-מאוזן (אופציונלי). 2500-10000 באגרסיבי.
+- **estimateTotalIls** = tokensUsd.max × 3.8 + toolsUsd.total × 3.8 + paidTrafficIls (המרת USD→ILS ≈ 3.8).
+
+### כללי paidTrafficActivation:
+- **conservative:** null (אין פרסום ממומן)
+- **recommended + aggressive:** חובה hasPaidTraffic=true + 2 options (immediate, gatekeeper) + recommendation דינמית:
+  - אם confidence < 55 → gatekeeper
+  - אם אין existingCustomers (או "0", "אפס", "new business") → gatekeeper
+  - אם confidence > 70 ו-existingCustomers > 0 → immediate
+  - אם פגיעה בין — תכריע לפי ההקשר העסקי ותסביר
+
+### שאר הכללים:
+- **שמות בדיוק:** conservative="שמרני" 🛡️, recommended="מאוזן" ⚖️, aggressive="אגרסיבי" 🚀
+- primaryChannels: שמרני=1-2 ערוצים, מאוזן=3-4, אגרסיבי=4-6
+- agentRoster: חובה לכל 8 הסוכנים, "off" מותר
+- KPIs עם מספרים אמיתיים מהאסטרטגיה, לא להמציא`
 
         console.log(`Strategy scenarios for ${businessName}: prompt ${prompt.length} chars`)
 
@@ -2114,6 +2173,7 @@ export const commitStrategyScenario = async (c: Context) => {
             chosenKey: 'conservative' | 'recommended' | 'aggressive'
             channelOverrides?: string[]
             budgetOverride?: { min: number; max: number }
+            paidTrafficActivation?: 'immediate' | 'gatekeeper'
             notes?: string
         }>()
 
@@ -2128,10 +2188,22 @@ export const commitStrategyScenario = async (c: Context) => {
         const chosen = rd.scenarios.scenarios.find((s: any) => s.key === body.chosenKey)
         if (!chosen) return fail(c, 'Scenario not found', 400)
 
+        // Validate paidTrafficActivation matches scenario requirements
+        let paidActivation: 'immediate' | 'gatekeeper' | null = null
+        if (chosen.paidTrafficActivation?.hasPaidTraffic) {
+            paidActivation = body.paidTrafficActivation
+                || (chosen.paidTrafficActivation.recommended as 'immediate' | 'gatekeeper')
+                || 'gatekeeper'
+            if (!['immediate', 'gatekeeper'].includes(paidActivation)) {
+                return fail(c, 'Invalid paidTrafficActivation value', 400)
+            }
+        }
+
         const chosenScenario = {
             ...chosen,
             channelOverrides: body.channelOverrides || null,
             budgetOverride: body.budgetOverride || null,
+            paidTrafficActivation: paidActivation, // overwrites the options array with user's choice
             notes: body.notes || null,
             chosenAt: new Date().toISOString(),
         }
@@ -2221,14 +2293,20 @@ export const generateOpsBrief = async (c: Context) => {
         const baselineMonth1 = kpisTarget.month1 || {}
         const baselineMonth3 = kpisTarget.month3 || {}
 
+        const paidActivation = chosen.paidTrafficActivation  // 'immediate' | 'gatekeeper' | null
+        const hasPaidGate = paidActivation === 'gatekeeper'
+        const currentCustomers = chosen.kpis?.month1?.customers || 0 // target, not actual — placeholder
+        const costs = chosen.costs || {}
+
         const prompt = `אתה VP Marketing בדירקג שמריץ Weekly Ops Brief. המטרה: לעדכן את המייסד איפה הוא עומד מול התוכנית, ולתת 3 פעולות ספציפיות לשבוע הבא.
 
 ## קונטקסט
 - **עסק:** ${(rd.answers?.businessName || 'העסק')}
 - **שבוע:** ${currentWeek} מתוך 12
 - **מסלול נבחר:** ${chosen.name} (${chosen.key})
-- **תקציב חודשי:** ${chosen.monthlyBudget}
+- **עלויות צפויות חודשיות:** Tokens $${costs.tokensUsd?.max || '?'} + Tools $${costs.toolsUsd?.total || 0} + Paid ₪${costs.paidTrafficIls || 0} ≈ ₪${costs.estimateTotalIls || '?'}
 - **ערוצים עיקריים:** ${(chosen.primaryChannels || []).join(', ')}
+- **הפעלת פרסום ממומן:** ${paidActivation === 'immediate' ? 'מיידית מחודש 1' : paidActivation === 'gatekeeper' ? 'GATEKEEPER — מופעל רק אחרי 2 לקוחות אורגניים' : 'אין (שמרני)'}
 
 ## יעדי KPI מהמסלול
 ### יעדי חודש 1:
@@ -2240,36 +2318,45 @@ ${JSON.stringify(baselineMonth3, null, 2)}
 ## פעילות סוכנים (7 ימים אחרונים):
 ${Object.entries(byAgent).map(([a, n]) => `- ${a}: ${n} outputs`).join('\n') || 'אין פעילות'}
 
-## outputs אחרונים (אחרי פילטור):
+## outputs אחרונים:
 ${recentOutputs.slice(0, 15).map(o => `- [${o.agentRole}] ${o.title || o.outputType || 'untitled'} (${o.status})`).join('\n') || 'אין'}
 
 ---
 
 ## משימה
-הפק **Weekly Ops Brief** קצר וחד בעברית. החזר **JSON בלבד** (ללא prose ולא markdown), במבנה:
+הפק **Weekly Ops Brief** קצר וחד בעברית. החזר **JSON בלבד**, במבנה:
 
 {
   "weekNum": ${currentWeek},
   "overallStatus": "on_track" | "behind" | "at_risk" | "critical",
   "statusReason": "משפט אחד למה הסטטוס הזה",
-  "onTrack": ["מה מצליח — נקודה 1 קצרה", "נקודה 2"],
-  "behind": ["מה מפגר — עם מספר ספציפי, לא 'כללי'"],
-  "critical": ["מה קריטי — אם יש. או [] ריק"],
+  "onTrack": ["מה מצליח — נקודה ספציפית"],
+  "behind": ["מה מפגר — עם מספר ספציפי"],
+  "critical": ["מה קריטי — או [] ריק"],
   "deviations": [
     { "metric": "MRR", "target": "₪2,500", "actual": "₪0", "deviationPct": -100, "severity": "high" }
   ],
   "topActions": [
-    { "action": "פעולה ספציפית לשבוע הבא", "owner": "ayat|sayer|founder|...", "deadline": "יום ו׳", "expectedImpact": "צפוי להעלות X ב-Y" }
+    { "action": "פעולה ספציפית", "owner": "ayat|sayer|founder|...", "deadline": "יום ו׳", "expectedImpact": "..." }
   ],
-  "tokenSpendNote": "הערה קצרה על צריכת tokens — על תקציב? מעל? — אם יש נתונים",
+  "gatekeeperStatus": ${hasPaidGate ? `{
+    "active": true,
+    "organicCustomersTarget": 2,
+    "organicCustomersActual": N,
+    "status": "blocked" | "ready" | "activated",
+    "recommendation": "אם >= 2 → 'התחילו paid', אחרת המשך אורגני"
+  }` : 'null'},
+  "costSpendNote": "נתח צריכת tokens (לפי outputs שהפיקו סוכנים) מול תקציב. אם יש outputs רבים ו-tokens יקרים — סמן קרוב לתקרה",
   "nextReviewAt": "${new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)}"
 }
 
 **חשוב:**
-- topActions = 3 בדיוק. לא פחות, לא יותר.
-- כל action חייב להיות ספציפי (לא "שפרו SEO" — אלא "סייר תגלו 3 מתחרים חדשים ב-r/n8n ותיצרו ניתוח בלוג").
-- אם אין מספיק data ל-week 1 (קורה) — כתוב onTrack = ["יישום התחיל"], behind = [], topActions = actions ספציפיות להפעלת המסלול.
-- severity: "high" אם deviationPct <= -50 או >= +200. "medium" אם |dev| >= 25. "low" אחרת.`
+- topActions = 3 בדיוק
+- כל action ספציפי — לא "שפרו SEO" אלא "סייר יגלה 3 מתחרים ב-r/n8n ויכתוב ניתוח"
+- אם אין data ל-week 1: onTrack=["יישום התחיל"], behind=[], actions ספציפיות להפעלה
+- severity: "high" אם |dev| >= 50, "medium" אם >= 25, "low" אחרת
+${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי outputs שמעידים על לקוחות חדשים (proposal accepted, contract signed etc.). אם 0 → status=blocked + action להעצמת אורגני. אם >=2 → status=ready + action להפעלת paid.' : ''}
+- הפרד Tokens/Tools מ-Paid Ads בניתוח העלויות — הלקוח משלם נפרד לכל ספק`
 
         const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
