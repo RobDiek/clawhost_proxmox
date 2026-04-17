@@ -2673,6 +2673,171 @@ ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי
     }
 }
 
+// ── POST /hosting/instances/:id/facts/seed ──
+// One-shot seeding of Neo4j graph from existing research_data.
+// Extracts competitors, personas, keywords, channels, pillars from strategy
+// stages 1-4 and chosenScenario. Idempotent — re-running updates facts in place.
+export const seedFacts = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance?.ip) return fail(c, 'Instance not ready', 404)
+
+        const rd = (instance.researchData as any) || {}
+        const chosen = rd.chosenScenario
+        const answers = rd.answers || {}
+        const businessName = answers.businessName || 'העסק'
+
+        // Use Opus to extract structured facts from research + strategy
+        // (lightweight — only one Opus call, not 5-10K each agent run later)
+        const apiKey = await getApiKeyForInstance(instanceId)
+        if (!apiKey) return fail(c, 'מפתח API לא מוגדר', 400)
+
+        const researchBlob = [
+            rd.stage1, rd.stage2, rd.stage3, rd.stage4, rd.stage5,
+            rd.strategyStage1, rd.strategyStage2, rd.strategyStage3, rd.strategyStage4,
+            chosen ? JSON.stringify({ name: chosen.name, primaryChannels: chosen.primaryChannels, kpis: chosen.kpis, costs: chosen.costs }) : '',
+        ].filter(Boolean).join('\n\n---\n\n')
+
+        if (!researchBlob || researchBlob.length < 500) {
+            return fail(c, 'אין מספיק נתוני מחקר ל-seed', 400)
+        }
+
+        const extractPrompt = `אתה מחלץ עובדות מובנות מדוח שיווק עבור גרף ידע.
+
+## דוח:
+${researchBlob.substring(0, 80000)}
+
+## משימה
+החזר **JSON בלבד** עם עד 60 עובדות בסה"כ. כל עובדה היא triple של (subject, predicate, object) עם typing.
+
+פורמט:
+{
+  "facts": [
+    {
+      "subject": "שם ישות",
+      "subjectType": "competitor|persona|keyword|channel|customer|pillar|product",
+      "predicate": "פועל קצר באנגלית (verb) — PRICED_AT | COMPETES_WITH | TARGETS | PREFERS | KD | VOLUME | CAC | STAGE | FORMAT | CTA | OBJECTION | USES | HAS_PAIN | ...",
+      "object": "ערך או ישות אחרת",
+      "objectType": "competitor|persona|keyword|channel|customer|pillar|product|value",
+      "source": "research-stage-1|research-stage-2|...|strategy-stage-1|chosen-scenario",
+      "confidence": 0.0-1.0
+    }
+  ]
+}
+
+**סוגי עובדות לחלץ:**
+- **מתחרים:** שם, תמחור, קהל יעד, חוזקות, חולשות
+- **פרסונות (ICP):** שם, כאבים, ערוץ מועדף, מחיר, התנגדויות
+- **מילות מפתח:** keyword, KD, volume, intent
+- **ערוצים:** שם ערוץ, סוג (organic/paid), peak times, cost estimate
+- **עמודי תוכן (pillars):** שם, big idea, target persona
+- **המוצר שלי:** ${businessName}, USP, מחיר, positioning
+
+**כללי איכות:**
+- אל תפריח — חלץ רק מה שיש בדוח
+- Hebrew subject/object כפי שמופיע; predicate באנגלית
+- קצר וממוקד. עובדה אחת = פסוק אחד קטן
+- confidence: 0.9+ אם מצוטט ישירות, 0.7 אם משתמע, 0.5 אם השערה`
+
+        const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+            body: JSON.stringify({ model: 'claude-opus-4-7', max_tokens: 8192, messages: [{ role: 'user', content: extractPrompt }] }),
+            signal: AbortSignal.timeout(180000),
+        })
+
+        if (!apiRes.ok) {
+            const err = await apiRes.text().catch(() => '')
+            console.error(`seedFacts Opus failed (${apiRes.status}):`, err.substring(0, 400))
+            return fail(c, 'חילוץ עובדות נכשל', 500)
+        }
+
+        const data = await apiRes.json() as { content?: Array<{ text: string }>; usage?: { input_tokens?: number; output_tokens?: number } }
+        const rawText = data.content?.[0]?.text || ''
+        if (data.usage) {
+            await logApiUsage({
+                instanceId, purpose: 'facts-seed', model: 'claude-opus-4-7',
+                inputTokens: data.usage.input_tokens || 0, outputTokens: data.usage.output_tokens || 0,
+            })
+        }
+
+        let factsJson: any
+        try {
+            const match = rawText.match(/\{[\s\S]*\}/)
+            factsJson = JSON.parse(match ? match[0] : rawText)
+        } catch (e) {
+            console.error('seedFacts parse failed:', e, rawText.substring(0, 300))
+            return fail(c, 'Opus החזיר פורמט לא תקין', 500)
+        }
+
+        const facts: any[] = Array.isArray(factsJson.facts) ? factsJson.facts : []
+        if (facts.length === 0) return fail(c, 'לא חולצו עובדות', 400)
+
+        // Write facts to Neo4j via plugin's fact_add (through SSH on tenant VPS).
+        // We build a single Node.js script with all fact_add calls.
+        const pluginDir = '/home/openclaw/.openclaw/extensions/openclaw-facts'
+        const factsJs = JSON.stringify(facts)
+        const seedScript = `
+const p = require('${pluginDir}/dist/index.js');
+const facts = ${factsJs};
+const ctx = { config: { uri: 'bolt://localhost:7687', user: 'neo4j', password: process.env.NEO4J_PW } };
+(async () => {
+  let ok = 0, fail = 0;
+  for (const f of facts) {
+    try {
+      const res = await p.tools.fact_add.handler({
+        subject: f.subject, subjectType: f.subjectType,
+        predicate: f.predicate,
+        object: f.object, objectType: f.objectType || 'value',
+        source: f.source || 'seed', confidence: f.confidence != null ? f.confidence : 0.8,
+      }, ctx);
+      if (res.ok) ok++; else fail++;
+    } catch (e) { fail++; console.error('fact add err:', e.message); }
+  }
+  await p.onUnload();
+  console.log('SEED_DONE:' + ok + ':' + fail);
+})().catch(e => { console.error('FATAL:', e.message); process.exit(1); });
+`
+
+        // Derive Neo4j password from Activepieces postgres env (same AUTOMATION_PASSWORD)
+        const pwCmd = `docker inspect openclaw-ap-postgres-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep POSTGRES_PASSWORD | cut -d= -f2`
+        const neo4jPw = (await sshExec(instance.ip, pwCmd, instance.rootPassword || undefined, 15000)).trim()
+
+        // Write script to temp file + run (avoids inline-quote hell)
+        const b64 = Buffer.from(seedScript).toString('base64')
+        const runCmd = `echo '${b64}' | base64 -d > /tmp/_seed.js && chown openclaw:openclaw /tmp/_seed.js && su - openclaw -c "NEO4J_PW='${neo4jPw}' node /tmp/_seed.js" ; rm -f /tmp/_seed.js`
+        const out = await sshExec(instance.ip, runCmd, instance.rootPassword || undefined, 120000)
+
+        const match = out.match(/SEED_DONE:(\d+):(\d+)/)
+        if (!match) {
+            console.error('Seed output:', out.substring(0, 1000))
+            return fail(c, 'Seed לא הסתיים תקין', 500)
+        }
+        const [, okCount, failCount] = match
+
+        await db.update(instances).set({
+            researchData: {
+                ...rd,
+                factsSeededAt: new Date().toISOString(),
+                factsSeedSummary: { added: parseInt(okCount), failed: parseInt(failCount), totalExtracted: facts.length },
+            } as any,
+        }).where(eq(instances.id, instanceId))
+
+        console.log(`Facts seeded for ${instanceId}: ${okCount} ok, ${failCount} failed (from ${facts.length} extracted)`)
+        return ok(c, {
+            extracted: facts.length,
+            added: parseInt(okCount),
+            failed: parseInt(failCount),
+            sample: facts.slice(0, 5),
+        }, 'Facts seeded.')
+    } catch (err) {
+        console.error('seedFacts error:', err)
+        return fail(c, 'Seed failed.', 500)
+    }
+}
+
 // ── GET /hosting/instances/:id/api-usage ──
 // Returns monthly API token spend: direct (from researchData.apiUsageLog)
 // + VPS-originated (from agent_outputs.metadata.cost). Includes per-agent breakdown
