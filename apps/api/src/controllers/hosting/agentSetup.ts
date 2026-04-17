@@ -2077,7 +2077,8 @@ export const researchStage = async (c: Context) => {
         const model = await getSubAgentModel(instanceId, agentId === 'menateach' ? 'menateach' : 'sayer')
         console.log(`Research stage ${stage} for ${businessName}, agent: ${agentId}, model: ${model}`)
 
-        // Clear Mem0 memories before each stage to prevent "I already answered" cache
+        // Clear Mem0 memories + agent session history before each stage
+        // Both are sources of "I already answered" cache
         const mem0Key = process.env.MEM0_API_KEY
         if (mem0Key) {
             try {
@@ -2088,6 +2089,15 @@ export const researchStage = async (c: Context) => {
                 console.log(`Mem0 pre-stage cleanup for ${instanceId}`)
             } catch {}
         }
+        // Clear agent's local session history (sessions.json + research-*.jsonl)
+        try {
+            await sshExec(instance.ip, `
+                rm -f /home/openclaw/.openclaw/agents/${agentId}/sessions/sessions.json 2>/dev/null
+                rm -f /home/openclaw/.openclaw/agents/${agentId}/sessions/research-*.jsonl 2>/dev/null
+                chown -R openclaw:openclaw /home/openclaw/.openclaw/agents/${agentId}/sessions 2>/dev/null
+            `, instance.rootPassword || undefined, 15000)
+            console.log(`Agent ${agentId} session history cleared`)
+        } catch {}
 
         const b64Prompt = Buffer.from(prompt).toString('base64')
         const sessionId = `research-s${stage}-${Date.now()}`
