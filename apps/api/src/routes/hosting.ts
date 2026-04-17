@@ -34,6 +34,8 @@ import {
     analyzeAnswers,
     runResearch,
     buildStrategy,
+    buildStrategyScenarios,
+    commitStrategyScenario,
     researchStage,
     resetResearch,
     addAgentToInstance,
@@ -196,6 +198,8 @@ app.post('/instances/:id/setup/agents', setupAgents)
 app.post('/instances/:id/setup/agents/analyze', analyzeAnswers)
 app.post('/instances/:id/setup/agents/research', runResearch)
 app.post('/instances/:id/setup/agents/strategy', buildStrategy)
+app.post('/instances/:id/setup/agents/strategy/scenarios', buildStrategyScenarios)
+app.post('/instances/:id/setup/agents/strategy/commit', commitStrategyScenario)
 app.post('/instances/:id/setup/agents/research/stage', researchStage)
 app.post('/instances/:id/setup/agents/research/reset', resetResearch)
 app.post('/instances/:id/agents/add', addAgentToInstance)

@@ -1720,6 +1720,237 @@ export const buildStrategy = async (c: Context) => {
     }
 }
 
+// ── POST /hosting/instances/:id/setup/agents/strategy/scenarios ──
+// After all 4 strategy stages complete → derive 3 coherent scenarios
+// (conservative / recommended / aggressive) with budgets, timelines, channels, KPIs,
+// trade-offs. Uses Opus 4.7 for structured synthesis. Persists to researchData.scenarios.
+export const buildStrategyScenarios = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance?.ip) return fail(c, 'Instance not ready', 404)
+
+        const rd = (instance.researchData as any) || {}
+
+        // Precondition: all 4 strategy stages must exist
+        const missing = [1, 2, 3, 4].filter(s => !rd[`strategyStage${s}`])
+        if (missing.length > 0) {
+            return fail(c, `חסרים שלבי אסטרטגיה: ${missing.join(', ')}. הריצו תחילה את כל 4 השלבים.`, 400)
+        }
+
+        const answers = rd.answers || {}
+        const businessName = answers.businessName || 'העסק'
+        const userBudget = answers.budget || ''
+
+        const apiKey = await getApiKeyForInstance(instanceId)
+        if (!apiKey) return fail(c, 'מפתח API לא מוגדר', 400)
+
+        // Full strategy + stage 5 validation as single context
+        const strategyFull = [
+            rd.strategyStage1,
+            rd.strategyStage2,
+            rd.strategyStage3,
+            rd.strategyStage4,
+        ].join('\n\n---\n\n')
+
+        const validation = rd.stage5 || ''
+
+        const prompt = `אתה יועץ אסטרטגיית שיווק בכיר ישראלי. בנית אסטרטגיה מלאה לעסק — עכשיו עליך לגזור ממנה **3 מסלולי ביצוע** ברורים שהלקוח יבחר ביניהם.
+
+## העסק: ${businessName}
+## תקציב שציין המשתמש: ${userBudget || 'לא צוין'}
+
+## האסטרטגיה המלאה (4 שלבים):
+${strategyFull}
+
+## תובנות אימות (שלב 5):
+${validation.substring(0, 5000)}
+
+---
+
+## משימתך
+
+הפק **3 תרחישים** (conservative / recommended / aggressive) שהלקוח יבחר ביניהם, על בסיס הנתונים למעלה בלבד. המסלולים חייבים להיות **ריאליסטיים** ו-**קוהרנטיים** — כל אחד עם budget/timeline/channels/KPIs שמתואמים זה לזה, לא רשימות אקראיות.
+
+### עקרונות:
+1. **שמרני (Conservative):** תקציב מינימלי, בעיקר אורגני, timeline איטי יותר, סיכון נמוך, תוצאות צנועות. מתאים למי שרוצה לוודא PMF לפני השקעה.
+2. **מומלץ (Recommended):** האיזון שההצעה למטה מאמתת. השתמש ב-confidence score מה-validation (שלב 5) כדי לקבוע איזה מסלול מומלץ — אם confidence < 60, המלץ על Conservative; אם > 75, המלץ על Recommended; אם > 85, המלץ על Aggressive.
+3. **אגרסיבי (Aggressive):** תקציב גבוה, paid + אורגני, timeline מואץ, יעדים שאפתניים. מתאים למי שיש לו runway ורוצה לתפוס נתח שוק מהר.
+
+### הערה לגבי תקציב המשתמש:
+אם תקציב המשתמש (${userBudget || 'לא צוין'}) לא תואם את הריאליה מהמחקר (למשל, המשתמש ציין ₪500/חודש אבל האסטרטגיה מצביעה על CAC ₪900) — **ציין זאת במפורש ב-budgetMismatch** של המסלול המומלץ, והסבר איזה scope ישיג עם תקציבו, ואיזה scope יושג עם התקציב המותאם.
+
+---
+
+## פורמט פלט — JSON בלבד
+
+החזר **אך ורק** JSON תקף במבנה הזה (ללא markdown, ללא prose, ללא \`\`\`json):
+
+{
+  "validation": {
+    "confidenceScore": 0-100,
+    "recommendedKey": "conservative" | "recommended" | "aggressive",
+    "reasoning": "משפט בעברית — למה דווקא המסלול הזה מומלץ, על בסיס האימות.",
+    "budgetMismatch": null | { "userBudget": "₪X/חודש", "researchRealityBudget": "₪Y/חודש", "explanation": "..." }
+  },
+  "scenarios": [
+    {
+      "key": "conservative",
+      "name": "שמרני",
+      "emoji": "🛡️",
+      "tagline": "וולידציה לפני השקעה — אורגני בלבד",
+      "monthlyBudget": "₪X - ₪Y",
+      "monthlyBudgetNumeric": { "min": X, "max": Y },
+      "timeline": "X-Y חודשים לתוצאות ראשונות",
+      "primaryChannels": ["SEO/Content", "LinkedIn Organic", "..."],
+      "kpis": {
+        "month1": { "customers": N, "mrr": "₪N", "leads": N },
+        "month3": { "customers": N, "mrr": "₪N", "leads": N }
+      },
+      "expectedResults": "2-3 משפטים קונקרטיים בעברית על מה יקרה בסוף 90 ימים",
+      "tradeOffs": ["יתרון/חיסרון 1", "חיסרון 2", "חיסרון 3"],
+      "idealFor": "למי מתאים — בגוף המשפט",
+      "risks": ["סיכון 1", "סיכון 2"]
+    },
+    {
+      "key": "recommended",
+      "name": "מומלץ",
+      "emoji": "⭐",
+      ...
+    },
+    {
+      "key": "aggressive",
+      "name": "אגרסיבי",
+      "emoji": "🚀",
+      ...
+    }
+  ]
+}
+
+**חשוב:**
+- monthlyBudgetNumeric.min/max במספרים, לא מחרוזות
+- השתמש במספרים אמיתיים מהאסטרטגיה (MRR, CAC, לקוחות) — אל תמציא
+- כל scenario חייב להיות קוהרנטי: תקציב שמרני ≠ יעדי MRR אגרסיביים
+- tradeOffs חייב להיות כנה — מה מפסידים בבחירת המסלול הזה`
+
+        console.log(`Strategy scenarios for ${businessName}: prompt ${prompt.length} chars`)
+
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+            },
+            body: JSON.stringify({
+                model: 'claude-opus-4-7',
+                max_tokens: 8192,
+                messages: [{ role: 'user', content: prompt }],
+            }),
+            signal: AbortSignal.timeout(300000),
+        })
+
+        if (!res.ok) {
+            const errBody = await res.text().catch(() => '')
+            console.error(`Scenarios Anthropic failed (${res.status}):`, errBody.substring(0, 500))
+            return fail(c, 'ייצור מסלולים נכשל — נסו שוב', 500)
+        }
+
+        const data = await res.json() as { content?: Array<{ text: string }> }
+        const rawText = data.content?.[0]?.text || ''
+        console.log(`Scenarios raw: ${rawText.length} chars`)
+
+        // Extract JSON from response (Opus sometimes adds prose despite instruction)
+        let scenariosData: any
+        try {
+            const jsonMatch = rawText.match(/\{[\s\S]*\}/)
+            const jsonStr = jsonMatch ? jsonMatch[0] : rawText
+            scenariosData = JSON.parse(jsonStr)
+        } catch (parseErr) {
+            console.error('Scenarios JSON parse failed:', parseErr, 'raw first 500:', rawText.substring(0, 500))
+            return fail(c, 'ייצור מסלולים החזיר פורמט לא תקף — נסו שוב', 500)
+        }
+
+        // Validate shape
+        if (!scenariosData?.scenarios || !Array.isArray(scenariosData.scenarios) || scenariosData.scenarios.length !== 3) {
+            return fail(c, 'פורמט מסלולים לא תקין', 500)
+        }
+        const expectedKeys = ['conservative', 'recommended', 'aggressive']
+        const gotKeys = scenariosData.scenarios.map((s: any) => s.key)
+        if (!expectedKeys.every(k => gotKeys.includes(k))) {
+            return fail(c, `חסרים מסלולים: ${expectedKeys.filter(k => !gotKeys.includes(k)).join(', ')}`, 500)
+        }
+
+        // Persist
+        await db.update(instances).set({
+            researchData: {
+                ...rd,
+                scenarios: scenariosData,
+                scenariosGeneratedAt: new Date().toISOString(),
+            } as any,
+        }).where(eq(instances.id, instanceId))
+
+        console.log(`Strategy scenarios saved for ${businessName}`)
+        return ok(c, scenariosData, 'Scenarios ready.')
+    } catch (err) {
+        console.error('buildStrategyScenarios error:', err)
+        return fail(c, 'Scenarios failed.', 500)
+    }
+}
+
+// ── POST /hosting/instances/:id/setup/agents/strategy/commit ──
+// User picks a scenario (optionally with channel overrides + budget override).
+// Persists to researchData.chosenScenario. The final plan file on VPS can be
+// regenerated from this with personalized content/channel/budget shape.
+export const commitStrategyScenario = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const body = await c.req.json<{
+            chosenKey: 'conservative' | 'recommended' | 'aggressive'
+            channelOverrides?: string[]
+            budgetOverride?: { min: number; max: number }
+            notes?: string
+        }>()
+
+        if (!['conservative', 'recommended', 'aggressive'].includes(body.chosenKey)) {
+            return fail(c, 'Invalid scenario key', 400)
+        }
+
+        const rd = (instance.researchData as any) || {}
+        if (!rd.scenarios?.scenarios) {
+            return fail(c, 'יש לייצר תחילה את המסלולים', 400)
+        }
+        const chosen = rd.scenarios.scenarios.find((s: any) => s.key === body.chosenKey)
+        if (!chosen) return fail(c, 'Scenario not found', 400)
+
+        const chosenScenario = {
+            ...chosen,
+            channelOverrides: body.channelOverrides || null,
+            budgetOverride: body.budgetOverride || null,
+            notes: body.notes || null,
+            chosenAt: new Date().toISOString(),
+        }
+
+        await db.update(instances).set({
+            researchData: {
+                ...rd,
+                chosenScenario,
+            } as any,
+        }).where(eq(instances.id, instanceId))
+
+        console.log(`Scenario '${body.chosenKey}' committed for ${instanceId}`)
+        return ok(c, { chosenScenario }, 'Scenario saved.')
+    } catch (err) {
+        console.error('commitStrategyScenario error:', err)
+        return fail(c, 'Commit failed.', 500)
+    }
+}
+
 // ── Helper: detect available MCP tools on VPS ──
 async function getAvailableTools(ip: string, password?: string): Promise<{
     hasBrave: boolean; hasDataforseo: boolean; hasFirecrawl: boolean; hasGsc: boolean
