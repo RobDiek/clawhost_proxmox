@@ -76,8 +76,19 @@ export const saveGithubConfig = async (c: Context) => {
                 'User-Agent': 'ClawFlow-SEO',
             },
         })
-        if (testRes.status === 401) return fail(c, 'Invalid GitHub token', 401)
-        if (testRes.status === 404) return fail(c, 'Repository not found or no access', 404)
+        if (testRes.status === 401) {
+            return fail(c, 'Token לא תקף — ייתכן שפג תוקף או נמחק. צרו token חדש.', 400)
+        }
+        if (testRes.status === 403) {
+            return fail(c, 'Token אין לו הרשאה מספקת. בדקו שסימנתם Contents: Read+Write + Pull requests: Read+Write בזמן יצירת ה-token.', 400)
+        }
+        if (testRes.status === 404) {
+            return fail(c, `Repository "${body.repo}" לא נמצא, או שה-token לא נבחר לגשת אליו. בדקו: (1) האיות נכון (owner/repo), (2) בעת יצירת ה-token בחרתם "Only select repositories" ← ה-repo הזה בדיוק.`, 400)
+        }
+        if (testRes.status >= 400) {
+            const errText = await testRes.text().catch(() => '')
+            return fail(c, `GitHub API החזיר שגיאה ${testRes.status}: ${errText.substring(0, 200)}`, 400)
+        }
 
         const repoData = await testRes.json() as { default_branch?: string; full_name?: string }
 
