@@ -472,26 +472,38 @@ async function activateAgentCrons(
 
     if (agentType !== 'mt') return
 
-    // Build cron commands from roster (or defaults)
+    // Build cron commands from roster (or defaults).
+    // To handle Hebrew text + special chars in --message, we write commands
+    // to a temp script file via base64 and execute as openclaw user.
     const activated: string[] = []
     const skipped: string[] = []
-    const cmds: string[] = []
+    const cmdLines: string[] = ['#!/bin/bash', 'set +e']
     for (const def of MATEH_AGENT_CRONS) {
         const cadenceStr = (roster && roster[def.agentId]?.cadence) || def.defaultCadence
         const cronExpr = cadenceToCron(cadenceStr)
         if (!cronExpr) { skipped.push(def.agentId); continue }
-        // Escape single quotes in message
-        const msgEsc = def.message.replace(/'/g, `'"'"'`)
-        cmds.push(`openclaw cron add --name "${def.name}" --description "${def.description}" --cron "${cronExpr}" --tz "Asia/Jerusalem" --model "${def.model}" --message '${msgEsc}' --session isolated 2>/dev/null`)
+        // Write message to stdin via here-doc-free approach: use env var
+        cmdLines.push(
+            `MSG_${def.agentId.toUpperCase()}=$(cat <<'CLAWMSG_${def.agentId}'`,
+            def.message,
+            `CLAWMSG_${def.agentId}`,
+            `)`,
+            `openclaw cron add --name "${def.name}" --description "${def.description}" --cron "${cronExpr}" --tz "Asia/Jerusalem" --model "${def.model}" --message "$MSG_${def.agentId.toUpperCase()}" --session isolated 2>&1 | head -3`
+        )
         activated.push(`${def.agentId}:${cadenceStr}`)
     }
-    if (cmds.length === 0) {
+    if (activated.length === 0) {
         console.log(`No agent crons to activate at ${ip} (all roster off)`)
         return
     }
-    const script = `su - openclaw -c '${cmds.join(' ; ')}'`
-    await sshExec(ip, script, password, 60000)
+    const script = cmdLines.join('\n')
+    const b64 = Buffer.from(script).toString('base64')
+    const runCmd = `echo '${b64}' | base64 -d > /tmp/_cron_setup.sh && chmod +x /tmp/_cron_setup.sh && chown openclaw:openclaw /tmp/_cron_setup.sh && su - openclaw -c 'bash /tmp/_cron_setup.sh' && rm -f /tmp/_cron_setup.sh`
+    const output = await sshExec(ip, runCmd, password, 60000)
     console.log(`Crons activated at ${ip}: [${activated.join(', ')}]${skipped.length ? ` skipped: [${skipped.join(', ')}]` : ''}`)
+    if (output && /error|fail/i.test(output)) {
+        console.warn(`Cron setup output had warnings: ${output.substring(0, 500)}`)
+    }
 }
 
 // ── POST /hosting/instances/:id/setup/agents/analyze ──
@@ -2135,9 +2147,16 @@ export const commitStrategyScenario = async (c: Context) => {
         const agentType = components.includes('mt') ? 'mt' : 'oc'
         if (instance.ip && chosen.agentRoster) {
             try {
-                // Wipe existing crons first so we don't duplicate, then activate per roster
+                // Wipe existing crons first so we don't duplicate, then activate per roster.
+                // Use Python to parse JSON — more robust than grep/sed on Windows-typed JSON.
+                const wipeScript = Buffer.from(
+                    `#!/bin/bash\n` +
+                    `IDS=$(openclaw cron list --json 2>/dev/null | python3 -c "import sys, json; d=json.load(sys.stdin); print(' '.join(x.get('id','') for x in (d if isinstance(d,list) else d.get('crons',d.get('items',[])))))" 2>/dev/null)\n` +
+                    `for id in $IDS; do openclaw cron remove "$id" 2>/dev/null; done\n` +
+                    `echo "Wiped: $IDS"\n`
+                ).toString('base64')
                 await sshExec(instance.ip,
-                    `su - openclaw -c 'for c in $(openclaw cron list --json 2>/dev/null | grep -oE \"\\\"id\\\":\\s*\\\"[^\\\"]+\\\"\" | sed "s/.*\\\"id\\\":\\s*\\\"\\([^\\\"]*\\)\\\".*/\\1/"); do openclaw cron remove "$c" 2>/dev/null; done'`,
+                    `echo '${wipeScript}' | base64 -d > /tmp/_cron_wipe.sh && chmod +x /tmp/_cron_wipe.sh && chown openclaw:openclaw /tmp/_cron_wipe.sh && su - openclaw -c 'bash /tmp/_cron_wipe.sh' && rm -f /tmp/_cron_wipe.sh`,
                     instance.rootPassword || undefined, 30000
                 ).catch(e => console.warn('Cron wipe non-critical err:', e.message))
                 await activateAgentCrons(instance.ip, agentType, instance.rootPassword || undefined, chosen.agentRoster)
