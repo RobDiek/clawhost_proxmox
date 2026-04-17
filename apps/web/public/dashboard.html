@@ -3114,6 +3114,8 @@ function renderHome() {
   var hasAgents = !!(instanceData && (instanceData.hasProfile || (instanceData.researchData && instanceData.researchData.answers)));
   var hasResearch = !!(instanceData && (instanceData.hasResearch || (instanceData.researchData && instanceData.researchData.report)));
   var hasStrategy = !!(instanceData && instanceData.hasStrategy);
+  var hasScenarios = !!(instanceData && instanceData.researchData && instanceData.researchData.scenarios);
+  var hasChosenScenario = !!(instanceData && instanceData.researchData && instanceData.researchData.chosenScenario);
   var onboardingDone = !!(instanceData && instanceData.onboardingCompleted);
   var hiddenTasks = JSON.parse(localStorage.getItem('cf_hidden_tasks') || '[]');
 
@@ -3149,6 +3151,15 @@ function renderHome() {
       });
     }
     if (hasStrategy) {
+      tasks.push({
+        id: 'scenario', label: 'בחרו מסלול ביצוע',
+        done: !!hasChosenScenario,
+        action: "openScenarioPicker()",
+        actionLabel: hasScenarios ? 'בחרו מסלול' : 'התאימו מסלול',
+        desc: 'שמרני · מומלץ · אגרסיבי — בדיקת תקציב מול המציאות + התאמת ערוצים'
+      });
+    }
+    if (hasChosenScenario) {
       tasks.push({ id: 'brief', label: 'הכל מוכן — הסוכנים פעילים', done: true, desc: 'Daily Brief, דוחות שבועיים, ביקורת AEO — אוטומטית' });
     }
   }
@@ -6718,15 +6729,45 @@ var currentScenarios = null;
 var selectedScenarioKey = null;
 var channelOverrides = null; // array of channel names user kept
 
+// Open picker from home card — loads cached scenarios or generates fresh
+async function openScenarioPicker() {
+  if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+  document.getElementById('pipelineOverlay').classList.remove('hidden');
+  document.getElementById('pipelineTitle').textContent = 'מסלולי ביצוע';
+  document.getElementById('pipelineSteps').innerHTML = '';
+  document.getElementById('pipelineProgress').style.width = '100%';
+  document.getElementById('pipelineBody').innerHTML =
+    '<div style="text-align:center;padding:40px;color:#9CA3AF">טוען...</div>';
+
+  var cached = instanceData && instanceData.researchData && instanceData.researchData.scenarios;
+  if (cached && cached.scenarios && cached.scenarios.length === 3) {
+    currentScenarios = cached;
+    selectedScenarioKey = (cached.validation && cached.validation.recommendedKey) || 'recommended';
+    channelOverrides = null;
+    // Restore from chosenScenario if already committed
+    var chosen = instanceData.researchData.chosenScenario;
+    if (chosen && chosen.key) {
+      selectedScenarioKey = chosen.key;
+      if (chosen.channelOverrides) channelOverrides = chosen.channelOverrides;
+    }
+    renderScenarioPicker();
+    return;
+  }
+  // No cache — generate fresh
+  runBuildScenarios();
+}
+
 async function runBuildScenarios() {
   try {
+    console.log('[scenarios] runBuildScenarios start');
+    document.getElementById('pipelineOverlay').classList.remove('hidden');
     document.getElementById('pipelineTitle').textContent = 'בונים את מסלולי הביצוע...';
     document.getElementById('pipelineProgress').style.width = '100%';
     document.getElementById('pipelineBody').innerHTML =
       '<div style="text-align:center;padding:40px">' +
       '<div style="font-size:2rem;animation:spin 2s linear infinite;display:inline-block;margin-bottom:12px">🧭</div>' +
       '<div style="font-weight:600;font-size:1rem;margin-bottom:4px">Claude Opus 4.7 גוזר 3 מסלולים מהאסטרטגיה</div>' +
-      '<div style="color:#9CA3AF;font-size:0.78rem">שמרני · מומלץ · אגרסיבי — כולל בדיקת תקציב מול המציאות</div>' +
+      '<div style="color:#9CA3AF;font-size:0.78rem">שמרני · מומלץ · אגרסיבי — ייקח 30-90 שניות</div>' +
       '<div id="pipelineTimer" style="color:#9CA3AF;font-size:0.75rem;margin-top:12px;font-family:monospace">00:00</div></div>';
     document.getElementById('pipelineNextBtn').style.display = 'none';
 
@@ -6743,14 +6784,15 @@ async function runBuildScenarios() {
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({})
     });
-    var data = await res.json();
+    var data = await res.json().catch(function(e) { console.error('[scenarios] json parse failed', e); return null; });
     if (window._pipelineTimer) clearInterval(window._pipelineTimer);
+    console.log('[scenarios] response', res.status, data && data.success);
 
-    if (!data.success || !data.data || !data.data.scenarios) {
+    if (!data || !data.success || !data.data || !data.data.scenarios) {
       document.getElementById('pipelineBody').innerHTML =
         '<div style="text-align:center;padding:30px;color:#EF4444">' +
         '<div style="font-size:1.5rem;margin-bottom:8px">⚠️</div>' +
-        '<div>' + (data.message || 'שגיאה בייצור מסלולים') + '</div></div>';
+        '<div>' + ((data && data.message) || 'שגיאה בייצור מסלולים') + '</div></div>';
       document.getElementById('pipelineNextBtn').style.display = '';
       document.getElementById('pipelineNextBtn').disabled = false;
       document.getElementById('pipelineNextBtn').textContent = '→ נסו שוב';
@@ -6763,9 +6805,13 @@ async function runBuildScenarios() {
     channelOverrides = null;
     renderScenarioPicker();
   } catch (e) {
+    console.error('[scenarios] exception', e);
     if (window._pipelineTimer) clearInterval(window._pipelineTimer);
     document.getElementById('pipelineBody').innerHTML =
-      '<div style="text-align:center;padding:30px;color:#EF4444">שגיאת תקשורת</div>';
+      '<div style="text-align:center;padding:30px;color:#EF4444">' +
+      '<div style="font-size:1.5rem;margin-bottom:8px">⚠️</div>' +
+      '<div>שגיאת תקשורת</div>' +
+      '<div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px">' + escapeHtml(e && e.message || '') + '</div></div>';
     document.getElementById('pipelineNextBtn').style.display = '';
     document.getElementById('pipelineNextBtn').disabled = false;
     document.getElementById('pipelineNextBtn').textContent = '→ נסו שוב';
