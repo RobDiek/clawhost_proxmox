@@ -445,7 +445,7 @@ export const testGithubIntegration = async (c: Context) => {
             try { errorBody = await createBranchRes.json() } catch {}
 
             if (createBranchRes.status === 403) {
-                // Gather diagnostic context
+                // Gather diagnostic context (best-effort — may fail if org blocks all writes AND some reads)
                 const [repoDetailsRes, userRes] = await Promise.all([
                     fetch(`https://api.github.com/repos/${owner}/${repoName}`, { headers }).then(r => r.ok ? r.json() as Promise<any> : null).catch(() => null),
                     fetch('https://api.github.com/user', { headers }).then(r => r.ok ? r.json() as Promise<any> : null).catch(() => null),
@@ -455,17 +455,19 @@ export const testGithubIntegration = async (c: Context) => {
 
                 const errMsg = (errorBody?.message || '').toLowerCase()
 
-                // Priority 1: org PAT approval pending
-                if (repoOwnerType === 'Organization' && (errMsg.includes('resource not accessible') || errMsg.includes('not accessible by personal access token'))) {
+                // Priority 1: GitHub's exact phrase for org-policy-blocked PAT.
+                // This string is deterministic — always means the PAT needs org approval.
+                // Doesn't require repoOwnerType check (which can fail with the same 403).
+                if (errMsg.includes('resource not accessible by personal access token') || errMsg.includes('resource not accessible by integration')) {
                     diagnosis = 'org_pat_pending_approval'
-                    hint = `ה-repo ב-organization "${owner}". נראה שה-Token ממתין לאישור admin. היכנסו ל-github.com/organizations/${owner}/settings/personal-access-tokens-requests → Approve.`
+                    hint = `ה-Token חסום מכתיבה — ההודעה הרשמית של GitHub: "Resource not accessible by personal access token". בדרך כלל זה אומר שהorganization "${owner}" דורשת אישור ה-Token לפני שהוא יכול לכתוב. אשרו ב-github.com/organizations/${owner}/settings/personal-access-tokens-requests.`
                 }
-                // Priority 2: not a member / wrong owner
+                // Priority 2: explicit owner mismatch (authed user ≠ repo owner for org repo)
                 else if (repoOwnerType === 'Organization' && authedUser) {
                     diagnosis = 'wrong_resource_owner'
                     hint = `ה-Token נוצר על ידי "${authedUser}" אבל ה-repo שייך ל-"${owner}" (organization). ודאו שבעת יצירת ה-Token בחרתם Resource owner="${owner}" (לא החשבון האישי).`
                 }
-                // Priority 3: write permissions missing
+                // Priority 3: explicit write permission error
                 else if (errMsg.includes('write') || errMsg.includes('permission')) {
                     diagnosis = 'write_blocked'
                     hint = 'ל-Token חסרה הרשאת כתיבה. צרו Token חדש ובחרו Contents: Read and write + Pull requests: Read and write.'
