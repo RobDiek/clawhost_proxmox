@@ -7791,8 +7791,9 @@ async function commitSelectedScenario() {
     }
     closePipeline();
     await refreshInstanceData();
-    showToast('מסלול נבחר — האסטרטגיה מוכנה!', 'success');
-    setTimeout(viewStrategy, 800);
+    showToast('מסלול נבחר — נעבור לחיבור ערוצים', 'success');
+    // Next step: guide user to connections wizard (keeps the flow coherent)
+    setTimeout(function() { openConnectionsWizard(); }, 900);
   } catch (e) {
     showToast('שגיאת תקשורת', 'error');
     document.getElementById('pipelineNextBtn').disabled = false;
