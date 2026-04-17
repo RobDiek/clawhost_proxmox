@@ -2690,6 +2690,8 @@ ${recentOutputs.slice(0, 15).map(o => `- [${o.agentRole}] ${o.title || o.outputT
 ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי outputs שמעידים על לקוחות חדשים (proposal accepted, contract signed etc.). אם 0 → status=blocked + action להעצמת אורגני. אם >=2 → status=ready + action להפעלת paid.' : ''}
 - הפרד Tokens/Tools מ-Paid Ads בניתוח העלויות — הלקוח משלם נפרד לכל ספק`
 
+        // Ops Brief: structured JSON output with clear rules → Sonnet 4.6 sufficient (5x cheaper than Opus)
+        const briefModel = 'claude-sonnet-4-6'
         const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
@@ -2698,7 +2700,7 @@ ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי
                 'anthropic-version': '2023-06-01',
             },
             body: JSON.stringify({
-                model: 'claude-opus-4-7',
+                model: briefModel,
                 max_tokens: 4096,
                 messages: [{ role: 'user', content: prompt }],
             }),
@@ -2715,7 +2717,7 @@ ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי
         const rawText = data.content?.[0]?.text || ''
         if (data.usage) {
             await logApiUsage({
-                instanceId, purpose: 'ops-brief', model: 'claude-opus-4-7',
+                instanceId, purpose: 'ops-brief', model: briefModel,
                 inputTokens: data.usage.input_tokens || 0,
                 outputTokens: data.usage.output_tokens || 0,
             })
@@ -2876,16 +2878,18 @@ ${researchBlob.substring(0, 80000)}
 - קצר וממוקד. עובדה אחת = פסוק אחד קטן
 - confidence: 0.9+ אם מצוטט ישירות, 0.7 אם משתמע, 0.5 אם השערה`
 
+        // Seed facts: structured extraction task with specific prompt → Sonnet 4.6 (5x cheaper)
+        const seedModel = 'claude-sonnet-4-6'
         const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-            body: JSON.stringify({ model: 'claude-opus-4-7', max_tokens: 8192, messages: [{ role: 'user', content: extractPrompt }] }),
+            body: JSON.stringify({ model: seedModel, max_tokens: 8192, messages: [{ role: 'user', content: extractPrompt }] }),
             signal: AbortSignal.timeout(180000),
         })
 
         if (!apiRes.ok) {
             const err = await apiRes.text().catch(() => '')
-            console.error(`seedFacts Opus failed (${apiRes.status}):`, err.substring(0, 400))
+            console.error(`seedFacts failed (${apiRes.status}):`, err.substring(0, 400))
             return fail(c, 'חילוץ עובדות נכשל', 500)
         }
 
@@ -2893,7 +2897,7 @@ ${researchBlob.substring(0, 80000)}
         const rawText = data.content?.[0]?.text || ''
         if (data.usage) {
             await logApiUsage({
-                instanceId, purpose: 'facts-seed', model: 'claude-opus-4-7',
+                instanceId, purpose: 'facts-seed', model: seedModel,
                 inputTokens: data.usage.input_tokens || 0, outputTokens: data.usage.output_tokens || 0,
             })
         }
