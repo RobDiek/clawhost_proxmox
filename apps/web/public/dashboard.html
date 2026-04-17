@@ -154,6 +154,9 @@ input{font-family:inherit}
 .task-item .task-hide{color:#D1D5DB;font-size:.75rem;cursor:pointer;border:none;background:none;padding:2px 6px;margin-right:6px}
 .task-item .task-hide:hover{color:#9CA3AF}
 
+/* Glossary tooltips for marketing abbreviations */
+.glossary-term{cursor:help;border-bottom:1px dotted #2563EB;color:#2563EB;font-weight:500;direction:ltr;display:inline-block}
+
 /* ===== Info rows ===== */
 .info-row{display:flex;align-items:center;justify-content:space-between;padding:0 12px;height:44px;font-size:.9rem;gap:8px;flex-wrap:wrap}
 .info-row:nth-child(odd){background:#FAFAFA;border-radius:6px}
@@ -3502,6 +3505,55 @@ function renderApprovalQueue() {
   }).catch(function() {
     renderApprovalQueueData(el, counterEl, []);
   });
+}
+
+// ── Marketing glossary — abbreviations with Hebrew explanations ──
+var GLOSSARY = {
+  'CAC':  'Customer Acquisition Cost — עלות רכישת לקוח (תקציב ÷ לקוחות חדשים)',
+  'LTV':  'Lifetime Value — ערך חיים של לקוח (סה"כ הכנסה לאורך התקופה)',
+  'MRR':  'Monthly Recurring Revenue — הכנסה חודשית חוזרת',
+  'ARR':  'Annual Recurring Revenue — הכנסה שנתית חוזרת',
+  'ARPU': 'Average Revenue Per User — הכנסה ממוצעת ללקוח',
+  'ROAS': 'Return On Ad Spend — החזר על תקציב פרסום',
+  'CPL':  'Cost Per Lead — עלות ליד',
+  'CPC':  'Cost Per Click — עלות לחיצה',
+  'CTR':  'Click-Through Rate — אחוז לחיצה מתוך חשיפות',
+  'ROI':  'Return On Investment — החזר על השקעה',
+  'NSM':  'North Star Metric — המדד המוביל',
+  'TOFU': 'Top Of Funnel — ראש המשפך (שלב המודעות)',
+  'MOFU': 'Middle Of Funnel — אמצע המשפך (שלב השיקול)',
+  'BOFU': 'Bottom Of Funnel — תחתית המשפך (שלב ההמרה)',
+  'KPI':  'Key Performance Indicator — מדד ביצוע מרכזי',
+  'SERP': 'Search Engine Results Page — דף תוצאות חיפוש',
+  'SEO':  'Search Engine Optimization — קידום אורגני',
+  'AEO':  'Answer Engine Optimization — קידום בתשובות AI (ChatGPT/Claude וכו\')',
+  'KD':   'Keyword Difficulty — קושי מילת מפתח (Ahrefs/Moz)',
+  'ICP':  'Ideal Customer Profile — פרופיל לקוח אידיאלי',
+  'PMF':  'Product-Market Fit — התאמה מוצר-שוק',
+  'SaaS': 'Software as a Service — תוכנה כשירות',
+  'TCO':  'Total Cost of Ownership — עלות בעלות כוללת',
+  'DP':   'Design Partner — שותף פיתוח (לקוח ראשוני עם פידבק צמוד)',
+  'DPs':  'Design Partners — שותפי פיתוח',
+  'MVP':  'Minimum Viable Product — מוצר מינימלי ישים',
+  'UGC':  'User Generated Content — תוכן ממשתמשים',
+  'CMS':  'Content Management System — מערכת ניהול תוכן'
+};
+
+// Wrap known marketing abbreviations with tooltip span.
+// Returns HTML-safe string. Use instead of escapeHtml for fields with pro-jargon.
+function annotate(text) {
+  if (!text) return '';
+  var safe = String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  // Longer abbreviations first to avoid partial-match (LTV:CAC > LTV)
+  var keys = Object.keys(GLOSSARY).sort(function(a, b) { return b.length - a.length; });
+  keys.forEach(function(abbr) {
+    // Word-boundary match that also handles colons (LTV:CAC) and Hebrew punctuation
+    var re = new RegExp('(^|[^\\w])' + abbr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?=$|[^\\w])', 'g');
+    safe = safe.replace(re, function(match, pre) {
+      return pre + '<span class="glossary-term" title="' + GLOSSARY[abbr].replace(/"/g, '&quot;') + '">' + abbr + '</span>';
+    });
+  });
+  return safe;
 }
 
 // Agent role → Hebrew display name
@@ -7073,7 +7125,7 @@ function renderScenarioPicker() {
       '<div style="flex:1">' +
       '<div style="font-weight:700;font-size:0.88rem;color:' + confColor + '">ציון אמון אימות: ' + conf + '/100</div>' +
       '<div style="font-size:0.78rem;color:#6B7280">' + escapeHtml(confLabel) + '</div>' +
-      (val.reasoning ? '<div style="font-size:0.78rem;color:#4B5563;margin-top:4px">' + escapeHtml(val.reasoning) + '</div>' : '') +
+      (val.reasoning ? '<div style="font-size:0.78rem;color:#4B5563;margin-top:4px">' + annotate(val.reasoning) + '</div>' : '') +
       '</div></div>';
   }
 
@@ -7091,7 +7143,7 @@ function renderScenarioPicker() {
       (isRecommended ? '<div style="position:absolute;top:-12px;right:12px;background:#10B981;color:#FFF;padding:4px 10px;border-radius:12px;font-size:0.72rem;font-weight:700">⭐ מומלץ לך</div>' : '') +
       '<div style="font-size:2rem;margin-bottom:4px">' + escapeHtml(s.emoji || '') + '</div>' +
       '<div style="font-weight:800;font-size:1.2rem;color:#111827;margin-bottom:4px">' + escapeHtml(s.name) + '</div>' +
-      '<div style="font-size:0.82rem;color:#6B7280;margin-bottom:14px;line-height:1.4">' + escapeHtml(s.tagline || '') + '</div>' +
+      '<div style="font-size:0.82rem;color:#6B7280;margin-bottom:14px;line-height:1.4">' + annotate(s.tagline || '') + '</div>' +
 
       // Cost breakdown — 3 buckets (tokens + tools + paid traffic)
       (function(){
@@ -7132,15 +7184,15 @@ function renderScenarioPicker() {
       '<div><div style="color:#6B7280">חודש 3</div><div style="font-weight:700;color:#111827">' + escapeHtml((kpi3.customers != null ? kpi3.customers + ' לקוחות · ' : '') + (kpi3.mrr || '')) + '</div></div>' +
       '</div></div>' +
 
-      '<div style="font-size:0.8rem;color:#374151;line-height:1.5;margin-bottom:12px">' + escapeHtml(s.expectedResults || '') + '</div>' +
+      '<div style="font-size:0.8rem;color:#374151;line-height:1.5;margin-bottom:12px">' + annotate(s.expectedResults || '') + '</div>' +
 
       (s.tradeOffs && s.tradeOffs.length ?
-        '<div style="margin-bottom:8px"><div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:4px">Trade-offs</div>' +
-        s.tradeOffs.map(function(t) { return '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:2px">• ' + escapeHtml(t) + '</div>'; }).join('') +
+        '<div style="margin-bottom:8px"><div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:4px">יתרונות וחסרונות</div>' +
+        s.tradeOffs.map(function(t) { return '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:2px">• ' + annotate(t) + '</div>'; }).join('') +
         '</div>' : '') +
 
       (s.idealFor ?
-        '<div style="font-size:0.75rem;color:#4B5563;font-style:italic;border-top:1px dashed #E5E7EB;padding-top:8px;margin-top:8px">מתאים ל: ' + escapeHtml(s.idealFor) + '</div>' : '') +
+        '<div style="font-size:0.75rem;color:#4B5563;font-style:italic;border-top:1px dashed #E5E7EB;padding-top:8px;margin-top:8px">מתאים ל: ' + annotate(s.idealFor) + '</div>' : '') +
       '</div>';
   }).join('');
 
@@ -7162,17 +7214,17 @@ function renderScenarioPicker() {
         var border = isChosen ? '#F59E0B' : '#FDE68A';
         var bw = isChosen ? '3px' : '1px';
         var bg = isChosen ? '#FEF3C7' : '#FFF';
-        var prosHtml = (opt.pros || []).map(function(p) { return '<div style="font-size:0.72rem;color:#065F46">✓ ' + escapeHtml(p) + '</div>'; }).join('');
-        var consHtml = (opt.cons || []).map(function(c) { return '<div style="font-size:0.72rem;color:#7F1D1D">✗ ' + escapeHtml(c) + '</div>'; }).join('');
+        var prosHtml = (opt.pros || []).map(function(p) { return '<div style="font-size:0.72rem;color:#065F46">✓ ' + annotate(p) + '</div>'; }).join('');
+        var consHtml = (opt.cons || []).map(function(c) { return '<div style="font-size:0.72rem;color:#7F1D1D">✗ ' + annotate(c) + '</div>'; }).join('');
         return '<div onclick="setPaidTrafficChoice(\'' + opt.key + '\')" style="cursor:pointer;border:' + bw + ' solid ' + border + ';background:' + bg + ';border-radius:8px;padding:12px;position:relative">' +
           (isRec ? '<div style="position:absolute;top:-10px;right:10px;background:#10B981;color:#FFF;padding:3px 8px;border-radius:10px;font-size:0.68rem;font-weight:700">⭐ מומלץ</div>' : '') +
-          '<div style="font-weight:700;font-size:0.9rem;color:#111827;margin-bottom:4px">' + (isChosen ? '✓ ' : '') + escapeHtml(opt.label) + '</div>' +
+          '<div style="font-weight:700;font-size:0.9rem;color:#111827;margin-bottom:4px">' + (isChosen ? '✓ ' : '') + annotate(opt.label) + '</div>' +
           (opt.timeToFirstPaidLead ? '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:6px">⏱ ' + escapeHtml(opt.timeToFirstPaidLead) + '</div>' : '') +
           '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' + prosHtml + consHtml + '</div>' +
           '</div>';
       }).join('') +
       '</div>' +
-      (pta.reasoning ? '<div style="font-size:0.72rem;color:#78350F;margin-top:10px;font-style:italic;border-top:1px dashed #FDE68A;padding-top:8px">💡 ' + escapeHtml(pta.reasoning) + '</div>' : '') +
+      (pta.reasoning ? '<div style="font-size:0.72rem;color:#78350F;margin-top:10px;font-style:italic;border-top:1px dashed #FDE68A;padding-top:8px">💡 ' + annotate(pta.reasoning) + '</div>' : '') +
       '</div>';
   }
 

@@ -2188,6 +2188,17 @@ ${validation.substring(0, 5000)}
 - primaryChannels: שמרני=1-2 ערוצים, מאוזן=3-4, אגרסיבי=4-6
 - agentRoster: חובה לכל 8 הסוכנים, "off" מותר
 
+### ⚠️ כללי שפה — חובה!
+
+- **כל ה-prose בעברית בלבד.** tagline, expectedResults, tradeOffs, idealFor, risks, reasoning, explanation, pros, cons — **רק עברית זורמת**.
+- **מותר באנגלית** רק:
+  - שמות פלטפורמות/מוצרים: LinkedIn, Facebook, Instagram, Google Ads, Activepieces, GitHub, Reddit וכו'
+  - ראשי תיבות שיווקיים מקצועיים: CAC, LTV, MRR, ARR, ARPU, ROAS, CPL, CPC, CTR, ROI, NSM, TOFU, MOFU, BOFU, KPI, SERP, SEO, AEO, KD, ICP, PMF, SaaS, TCO, DP/DPs
+  - שמות מתחרים ספציפיים כפי שמופיעים בשוק
+- **אסור** להשאיר באנגלית: "Building in Public" → "בניה בפומבי"; "Marketing Ops Freelancer" → "פרילנסר/ית שיווק טכני"; "Data Ownership" → "בעלות על נתונים"; "Zero-Markup" → "ללא מרווח"; "Design Partner" → "שותף/ת פיתוח" (DP מותר כאברביציה)
+- **אסור n8n** — אנו משתמשים אך ורק ב-Activepieces (MIT). אם מופיע n8n במחקר, החלף ב-Activepieces.
+- אם נתקלת במושג טכני שאין לו מקבילה עברית טבעית, השאר באנגלית אבל **בסוגריים ציין תרגום או משמעות** בפעם הראשונה.
+
 ### ⚠️ חוקי קוהרנטיות — חובה מתמטית (לא להמציא, לחשב!)
 
 KPIs **חייבים לשקף בפועל** את ההשקעה והמאמץ. אם בתרחיש אגרסיבי אתה משקיע פי 15 מהשמרני אבל יעד לקוחות גדל רק ב-40% — **זו טעות קריטית שפוגעת באמינות שלנו**.
@@ -2528,7 +2539,7 @@ ${recentOutputs.slice(0, 15).map(o => `- [${o.agentRole}] ${o.title || o.outputT
 
 **חשוב:**
 - topActions = 3 בדיוק
-- כל action ספציפי — לא "שפרו SEO" אלא "סייר יגלה 3 מתחרים ב-r/n8n ויכתוב ניתוח"
+- כל action ספציפי — לא "שפרו SEO" אלא "סייר יגלה 3 מתחרים בקהילת Activepieces ויכתוב ניתוח"
 - אם אין data ל-week 1: onTrack=["יישום התחיל"], behind=[], actions ספציפיות להפעלה
 - severity: "high" אם |dev| >= 50, "medium" אם >= 25, "low" אחרת
 ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי outputs שמעידים על לקוחות חדשים (proposal accepted, contract signed etc.). אם 0 → status=blocked + action להעצמת אורגני. אם >=2 → status=ready + action להפעלת paid.' : ''}
