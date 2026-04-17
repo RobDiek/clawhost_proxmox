@@ -1666,9 +1666,16 @@ export const buildStrategy = async (c: Context) => {
         // Fallback to OpenAI if Anthropic fails
         let strategy = ''
         if (res.ok) {
-            const data = await res.json() as { content?: Array<{ text: string }> }
+            const data = await res.json() as { content?: Array<{ text: string }>; usage?: { input_tokens?: number; output_tokens?: number } }
             strategy = data.content?.[0]?.text || ''
             console.log(`Strategy from Anthropic: ${strategy.length} chars`)
+            if (data.usage) {
+                await logApiUsage({
+                    instanceId, purpose: `strategy-stage-${stage}`, model: strategyModel,
+                    inputTokens: data.usage.input_tokens || 0,
+                    outputTokens: data.usage.output_tokens || 0,
+                })
+            }
         } else {
             const errBody = await res.text().catch(() => 'no body')
             console.error(`Anthropic failed (${res.status}): ${errBody.substring(0, 500)}`)
@@ -1809,6 +1816,58 @@ export const buildStrategy = async (c: Context) => {
     } catch (err) {
         console.error('buildStrategy error:', err)
         return fail(c, 'Strategy failed.', 500)
+    }
+}
+
+// ── API Usage Tracking — lightweight cost tracker (Langfuse replacement) ──
+
+// Pricing per 1M tokens (USD). Input / Output.
+const MODEL_PRICING: Record<string, { input: number; output: number }> = {
+    'claude-opus-4-7':             { input: 15,   output: 75 },
+    'claude-opus-4-7[1m]':         { input: 30,   output: 150 },
+    'claude-opus-4-6':             { input: 15,   output: 75 },
+    'claude-sonnet-4-6':           { input: 3,    output: 15 },
+    'claude-haiku-4-5-20251001':   { input: 0.8,  output: 4 },
+    'claude-haiku-4-5':            { input: 0.8,  output: 4 },
+    'gpt-4o':                      { input: 2.5,  output: 10 },
+    'gpt-4o-mini':                 { input: 0.15, output: 0.60 },
+}
+
+function computeCost(model: string, inputTokens: number, outputTokens: number): number {
+    const p = MODEL_PRICING[model] || MODEL_PRICING['claude-sonnet-4-6']
+    return ((inputTokens / 1_000_000) * p.input) + ((outputTokens / 1_000_000) * p.output)
+}
+
+// Log direct-API call usage. Stored in researchData.apiUsageLog (last 500 entries).
+export async function logApiUsage(params: {
+    instanceId: string;
+    purpose: string;         // 'strategy-stage-2', 'scenarios', 'ops-brief', 'research-stage-4', etc.
+    model: string;
+    inputTokens: number;
+    outputTokens: number;
+}): Promise<void> {
+    try {
+        const cost = computeCost(params.model, params.inputTokens, params.outputTokens)
+        const entry = {
+            ts: new Date().toISOString(),
+            purpose: params.purpose,
+            model: params.model,
+            inputTokens: params.inputTokens,
+            outputTokens: params.outputTokens,
+            costUsd: Number(cost.toFixed(4)),
+        }
+        const [inst] = await db.select().from(instances).where(eq(instances.id, params.instanceId))
+        const rd: any = inst?.researchData || {}
+        const log = Array.isArray(rd.apiUsageLog) ? rd.apiUsageLog : []
+        log.unshift(entry)
+        // Cap to 500 entries (~6 months for typical usage)
+        const trimmed = log.slice(0, 500)
+        await db.update(instances).set({
+            researchData: { ...rd, apiUsageLog: trimmed } as any,
+        }).where(eq(instances.id, params.instanceId))
+        console.log(`API usage: ${params.purpose} ${params.model} ${params.inputTokens}+${params.outputTokens} = $${cost.toFixed(4)}`)
+    } catch (err) {
+        console.warn('logApiUsage failed (non-critical):', err)
     }
 }
 
@@ -2282,9 +2341,16 @@ KPIs **חייבים לשקף בפועל** את ההשקעה והמאמץ. אם �
                 continue
             }
 
-            const data = await res.json() as { content?: Array<{ text: string }> }
+            const data = await res.json() as { content?: Array<{ text: string }>; usage?: { input_tokens?: number; output_tokens?: number } }
             const rawText = data.content?.[0]?.text || ''
             console.log(`Scenarios attempt ${attempt}: ${rawText.length} chars`)
+            if (data.usage) {
+                await logApiUsage({
+                    instanceId, purpose: `scenarios-attempt-${attempt}`, model: 'claude-opus-4-7',
+                    inputTokens: data.usage.input_tokens || 0,
+                    outputTokens: data.usage.output_tokens || 0,
+                })
+            }
 
             try {
                 const jsonMatch = rawText.match(/\{[\s\S]*\}/)
@@ -2566,8 +2632,15 @@ ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי
             return fail(c, 'ייצור Brief נכשל', 500)
         }
 
-        const data = await apiRes.json() as { content?: Array<{ text: string }> }
+        const data = await apiRes.json() as { content?: Array<{ text: string }>; usage?: { input_tokens?: number; output_tokens?: number } }
         const rawText = data.content?.[0]?.text || ''
+        if (data.usage) {
+            await logApiUsage({
+                instanceId, purpose: 'ops-brief', model: 'claude-opus-4-7',
+                inputTokens: data.usage.input_tokens || 0,
+                outputTokens: data.usage.output_tokens || 0,
+            })
+        }
         let brief: any
         try {
             const jsonMatch = rawText.match(/\{[\s\S]*\}/)
@@ -2597,6 +2670,82 @@ ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי
     } catch (err) {
         console.error('generateOpsBrief error:', err)
         return fail(c, 'Brief failed.', 500)
+    }
+}
+
+// ── GET /hosting/instances/:id/api-usage ──
+// Returns monthly API token spend: direct (from researchData.apiUsageLog)
+// + VPS-originated (from agent_outputs.metadata.cost). Includes per-agent breakdown
+// and comparison vs chosen scenario's tokens budget.
+export const getApiUsage = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const rd = (instance.researchData as any) || {}
+        const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+
+        // 1. Direct-API usage (strategy/scenarios/ops-brief from mgmt)
+        const log: any[] = Array.isArray(rd.apiUsageLog) ? rd.apiUsageLog : []
+        const recent = log.filter((e: any) => new Date(e.ts) >= cutoff)
+        const directCost = recent.reduce((sum, e) => sum + (e.costUsd || 0), 0)
+        const directByPurpose: Record<string, { count: number; cost: number; tokens: number }> = {}
+        for (const e of recent) {
+            const k = e.purpose || 'other'
+            if (!directByPurpose[k]) directByPurpose[k] = { count: 0, cost: 0, tokens: 0 }
+            directByPurpose[k].count += 1
+            directByPurpose[k].cost += (e.costUsd || 0)
+            directByPurpose[k].tokens += (e.inputTokens || 0) + (e.outputTokens || 0)
+        }
+
+        // 2. VPS-originated usage (agent_outputs.metadata.cost — agents running crons locally)
+        const { agentOutputs } = await import('@/db/schema').catch(() => ({ agentOutputs: null as any }))
+        let vpsCost = 0
+        const vpsByAgent: Record<string, { count: number; cost: number }> = {}
+        if (agentOutputs) {
+            const { and, gte } = await import('drizzle-orm')
+            const rows = await db.select().from(agentOutputs)
+                .where(and(eq(agentOutputs.instanceId, instanceId), gte(agentOutputs.createdAt, cutoff)))
+                .limit(500)
+            for (const r of rows) {
+                const cost = (r.metadata as any)?.cost || 0
+                vpsCost += cost
+                const agent = r.agentRole || 'unknown'
+                if (!vpsByAgent[agent]) vpsByAgent[agent] = { count: 0, cost: 0 }
+                vpsByAgent[agent].count += 1
+                vpsByAgent[agent].cost += cost
+            }
+        }
+
+        const totalCost = directCost + vpsCost
+
+        // 3. Budget from chosen scenario
+        const chosen = rd.chosenScenario
+        const budgetMin = chosen?.costs?.tokensUsd?.min ?? 0
+        const budgetMax = chosen?.costs?.tokensUsd?.max ?? 0
+        const pct = budgetMax > 0 ? Math.round((totalCost / budgetMax) * 100) : 0
+        const status = pct >= 110 ? 'hard_cap' :
+                       pct >= 80  ? 'warning'  :
+                       pct >= 50  ? 'normal'   : 'low'
+
+        return ok(c, {
+            period: '30 days',
+            totalCostUsd: Number(totalCost.toFixed(2)),
+            directCostUsd: Number(directCost.toFixed(2)),
+            vpsCostUsd: Number(vpsCost.toFixed(2)),
+            budgetMinUsd: budgetMin,
+            budgetMaxUsd: budgetMax,
+            percentOfMax: pct,
+            status,
+            directByPurpose,
+            vpsByAgent,
+            recentEntries: recent.slice(0, 20),
+        }, 'API usage.')
+    } catch (err) {
+        console.error('getApiUsage error:', err)
+        return fail(c, 'Usage query failed.', 500)
     }
 }
 

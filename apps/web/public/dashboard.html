@@ -3194,6 +3194,16 @@ function renderHome() {
         actionLabel: latestBrief ? 'צפו בדוח' : 'ייצרו דוח ראשון',
         desc: latestBrief ? latestBrief.statusReason : 'השוואת ביצועים מול KPI של המסלול + 3 פעולות לשבוע הבא'
       });
+      // API Usage tracker — always visible card
+      tasks.push({
+        id: 'api-usage',
+        label: '🪙 צריכת API',
+        done: false,
+        action: "openApiUsage()",
+        actionLabel: 'ראו צריכה',
+        desc: 'צריכת tokens חודשית של Anthropic/OpenAI — השוואה מול תקציב המסלול'
+      });
+
       tasks.push({ id: 'brief', label: 'הסוכנים פעילים', done: true, desc: 'דו״ח יומי, דוחות שבועיים, ביקורת AEO — אוטומטית' });
     }
   }
@@ -7106,6 +7116,109 @@ function renderConnectionsWizard() {
       renderConnectionsWizard();
     }
   };
+}
+
+// ── API Usage Tracker ──
+async function openApiUsage() {
+  if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+  document.getElementById('pipelineOverlay').classList.remove('hidden');
+  document.getElementById('pipelineTitle').textContent = 'צריכת API — 30 יום אחרונים';
+  document.getElementById('pipelineSteps').innerHTML = '';
+  document.getElementById('pipelineProgress').style.width = '100%';
+  document.getElementById('pipelineBody').innerHTML = '<div style="text-align:center;padding:40px;color:#9CA3AF">טוען...</div>';
+  document.getElementById('pipelineNextBtn').style.display = 'none';
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/api-usage', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var data = await res.json();
+    if (!data.success || !data.data) {
+      document.getElementById('pipelineBody').innerHTML = '<div style="text-align:center;padding:30px;color:#EF4444">שגיאה: ' + ((data && data.message) || '') + '</div>';
+      return;
+    }
+    renderApiUsage(data.data);
+  } catch (e) {
+    console.error('[api-usage] failed', e);
+    document.getElementById('pipelineBody').innerHTML = '<div style="text-align:center;padding:30px;color:#EF4444">שגיאת תקשורת</div>';
+  }
+}
+
+function renderApiUsage(u) {
+  var statusColors = {
+    low:      { bg: '#F0FDF4', border: '#10B981', text: '#065F46', emoji: '🟢', label: 'בהתחלה' },
+    normal:   { bg: '#EFF6FF', border: '#2563EB', text: '#1E3A8A', emoji: '🔵', label: 'במסגרת התקציב' },
+    warning:  { bg: '#FEF3C7', border: '#F59E0B', text: '#92400E', emoji: '🟡', label: 'אזהרה — 80%+' },
+    hard_cap: { bg: '#FEE2E2', border: '#DC2626', text: '#7F1D1D', emoji: '🔴', label: 'מעל תקציב — הגבלה פעילה' }
+  };
+  var sc = statusColors[u.status] || statusColors.normal;
+
+  var budgetStr = u.budgetMaxUsd > 0
+    ? '$' + u.totalCostUsd + ' / $' + u.budgetMaxUsd + ' (' + u.percentOfMax + '%)'
+    : '$' + u.totalCostUsd;
+
+  var progPct = Math.min(100, u.percentOfMax || 0);
+  var progColor = u.status === 'hard_cap' ? '#DC2626' : u.status === 'warning' ? '#F59E0B' : '#2563EB';
+
+  var directRows = Object.keys(u.directByPurpose || {}).map(function(k) {
+    var d = u.directByPurpose[k];
+    return '<div style="display:flex;justify-content:space-between;font-size:0.82rem;padding:4px 0;border-bottom:1px dashed #E5E7EB">' +
+      '<span>' + escapeHtml(k) + ' × ' + d.count + '</span>' +
+      '<span style="font-weight:600">$' + d.cost.toFixed(3) + ' · ' + (d.tokens/1000).toFixed(1) + 'K tok</span>' +
+      '</div>';
+  }).join('') || '<div style="color:#9CA3AF;font-size:0.82rem;padding:4px">אין קריאות ישירות החודש</div>';
+
+  var vpsRows = Object.keys(u.vpsByAgent || {}).map(function(k) {
+    var v = u.vpsByAgent[k];
+    var agentName = (window.AGENT_NAMES && window.AGENT_NAMES[k]) || k;
+    return '<div style="display:flex;justify-content:space-between;font-size:0.82rem;padding:4px 0;border-bottom:1px dashed #E5E7EB">' +
+      '<span>' + escapeHtml(agentName) + ' × ' + v.count + ' outputs</span>' +
+      '<span style="font-weight:600">$' + v.cost.toFixed(3) + '</span>' +
+      '</div>';
+  }).join('') || '<div style="color:#9CA3AF;font-size:0.82rem;padding:4px">אין outputs של סוכנים בתקופה</div>';
+
+  var html =
+    '<div style="padding:4px">' +
+    '<div style="background:' + sc.bg + ';border:2px solid ' + sc.border + ';border-radius:10px;padding:16px;margin-bottom:20px">' +
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">' +
+    '<div style="font-size:2rem">' + sc.emoji + '</div>' +
+    '<div style="flex:1"><div style="font-weight:800;font-size:1.15rem;color:' + sc.text + '">' + budgetStr + '</div>' +
+    '<div style="font-size:0.8rem;color:' + sc.text + ';opacity:0.85">' + escapeHtml(sc.label) + '</div></div></div>' +
+    '<div style="height:8px;background:#FFF;border-radius:4px;overflow:hidden">' +
+    '<div style="height:100%;background:' + progColor + ';width:' + progPct + '%;transition:width .3s"></div>' +
+    '</div>' +
+    (u.budgetMaxUsd > 0 ? '<div style="font-size:0.72rem;color:' + sc.text + ';opacity:0.8;margin-top:6px">תקציב מסלול: $' + u.budgetMinUsd + '-' + u.budgetMaxUsd + '/חודש</div>' : '') +
+    '</div>' +
+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">' +
+    '<div style="background:#F9FAFB;border-radius:8px;padding:10px">' +
+    '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:2px">קריאות ישירות (מהמערכת)</div>' +
+    '<div style="font-weight:700;font-size:1.05rem">$' + u.directCostUsd + '</div>' +
+    '<div style="font-size:0.7rem;color:#6B7280">strategy · scenarios · ops-brief</div>' +
+    '</div>' +
+    '<div style="background:#F9FAFB;border-radius:8px;padding:10px">' +
+    '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:2px">סוכנים על ה-VPS</div>' +
+    '<div style="font-weight:700;font-size:1.05rem">$' + u.vpsCostUsd + '</div>' +
+    '<div style="font-size:0.7rem;color:#6B7280">cron tasks · מחקר · תוכן</div>' +
+    '</div></div>' +
+
+    '<div style="margin-bottom:16px"><div style="font-weight:700;font-size:0.88rem;color:#111827;margin-bottom:6px">💬 קריאות ישירות לפי ייעוד</div>' +
+    directRows + '</div>' +
+
+    '<div style="margin-bottom:16px"><div style="font-weight:700;font-size:0.88rem;color:#111827;margin-bottom:6px">🤖 פעילות סוכנים</div>' +
+    vpsRows + '</div>' +
+
+    '<div style="font-size:0.72rem;color:#6B7280;background:#F9FAFB;border-radius:6px;padding:8px 10px;line-height:1.5">' +
+    '💡 כל הצריכה משולמת ישירות על ידך לספק (Anthropic / OpenAI) דרך ה-API Key שלך. אנחנו לא מתווכים ולא גובים מרווח.' +
+    '</div>' +
+
+    '</div>';
+
+  document.getElementById('pipelineBody').innerHTML = html;
+  document.getElementById('pipelineNextBtn').style.display = '';
+  document.getElementById('pipelineNextBtn').textContent = 'סגירה';
+  document.getElementById('pipelineNextBtn').disabled = false;
+  document.getElementById('pipelineNextBtn').onclick = closePipeline;
 }
 
 // ── Weekly Ops Brief ──
