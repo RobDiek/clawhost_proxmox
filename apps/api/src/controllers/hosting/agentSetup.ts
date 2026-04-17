@@ -2089,14 +2089,16 @@ export const researchStage = async (c: Context) => {
                 console.log(`Mem0 pre-stage cleanup for ${instanceId}`)
             } catch {}
         }
-        // Clear agent's local session history (sessions.json + research-*.jsonl)
+        // Clear ALL agent session history (sessions.json + ALL jsonl)
+        // OpenClaw CLI reuses agent:X:main session regardless of --session-id,
+        // so we must wipe all past sessions to prevent "already answered" cache
         try {
             await sshExec(instance.ip, `
-                rm -f /home/openclaw/.openclaw/agents/${agentId}/sessions/sessions.json 2>/dev/null
-                rm -f /home/openclaw/.openclaw/agents/${agentId}/sessions/research-*.jsonl 2>/dev/null
-                chown -R openclaw:openclaw /home/openclaw/.openclaw/agents/${agentId}/sessions 2>/dev/null
+                rm -rf /home/openclaw/.openclaw/agents/${agentId}/sessions/* 2>/dev/null
+                mkdir -p /home/openclaw/.openclaw/agents/${agentId}/sessions
+                chown -R openclaw:openclaw /home/openclaw/.openclaw/agents/${agentId}/sessions
             `, instance.rootPassword || undefined, 15000)
-            console.log(`Agent ${agentId} session history cleared`)
+            console.log(`Agent ${agentId}: ALL sessions wiped for fresh start`)
         } catch {}
 
         const b64Prompt = Buffer.from(prompt).toString('base64')
