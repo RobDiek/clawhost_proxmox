@@ -2077,6 +2077,18 @@ export const researchStage = async (c: Context) => {
         const model = await getSubAgentModel(instanceId, agentId === 'menateach' ? 'menateach' : 'sayer')
         console.log(`Research stage ${stage} for ${businessName}, agent: ${agentId}, model: ${model}`)
 
+        // Clear Mem0 memories before each stage to prevent "I already answered" cache
+        const mem0Key = process.env.MEM0_API_KEY
+        if (mem0Key) {
+            try {
+                await fetch(`https://api.mem0.ai/v1/memories/?user_id=${instanceId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Token ${mem0Key}` }
+                })
+                console.log(`Mem0 pre-stage cleanup for ${instanceId}`)
+            } catch {}
+        }
+
         const b64Prompt = Buffer.from(prompt).toString('base64')
         const sessionId = `research-s${stage}-${Date.now()}`
         const promptFile = `/tmp/research-prompt-${sessionId}.txt`
@@ -2222,6 +2234,20 @@ export const resetResearch = async (c: Context) => {
                     rm -f /home/openclaw/.openclaw/agents/menateach/sessions/sessions.json 2>/dev/null
                 `, instance.rootPassword || undefined)
             } catch (_) { /* VPS may be unreachable, ignore */ }
+        }
+
+        // Clear Mem0 Platform memories for this instance to prevent "already answered" caching
+        const mem0Key = process.env.MEM0_API_KEY
+        if (mem0Key) {
+            try {
+                const delRes = await fetch(`https://api.mem0.ai/v1/memories/?user_id=${instanceId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Token ${mem0Key}` }
+                })
+                console.log(`Mem0 cleanup for ${instanceId}: HTTP ${delRes.status}`)
+            } catch (memErr) {
+                console.error('Mem0 cleanup failed (non-critical):', memErr)
+            }
         }
 
         console.log(`Research reset for instance ${instanceId}`)
