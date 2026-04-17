@@ -94,6 +94,27 @@ async function getCustomer(instanceId: string): Promise<ExecutorContext | { erro
     return { customer, customerId: cfg.mccSubAccountId, mode }
 }
 
+// Find parent entity resourceName from previously-executed drafts.
+// E.g. for adgroup draft with campaignName='x', find executed campaign draft with name='x'.
+async function findParentResource(
+    instanceId: string,
+    parentType: DraftType,
+    matchFn: (draft: any) => boolean
+): Promise<string | null> {
+    const rows = await db.select().from(agentOutputs)
+        .where(eq(agentOutputs.instanceId, instanceId))
+    for (const row of rows) {
+        if (row.outputType !== parentType) continue
+        if (row.status !== 'approved') continue
+        const meta = (row.metadata as any) || {}
+        if (meta.liveApiStatus !== 'executed' || !meta.googleAdsResourceName) continue
+        const parsed = parseDraft(row.content)
+        if (!parsed) continue
+        if (matchFn(parsed.draft)) return meta.googleAdsResourceName
+    }
+    return null
+}
+
 // Campaign creation: budget + campaign objects
 async function executeCampaign(ctx: ExecutorContext, draft: any): Promise<{ resourceName: string; id: string }> {
     // 1. Create budget
@@ -138,6 +159,118 @@ async function executeCampaign(ctx: ExecutorContext, draft: any): Promise<{ reso
     }
 }
 
+// Ad Group creation — requires parent campaign resource.
+async function executeAdGroup(
+    ctx: ExecutorContext,
+    draft: any,
+    instanceId: string
+): Promise<{ resourceName: string; id: string }> {
+    const campaignResource = await findParentResource(
+        instanceId, 'gads_campaign_draft',
+        (d) => d.name === draft.campaignName
+    )
+    if (!campaignResource) {
+        throw new Error(`Parent campaign "${draft.campaignName}" not found or not executed — approve campaign draft first`)
+    }
+
+    const [resp] = await ctx.customer.adGroups.create([{
+        name: draft.name,
+        campaign: campaignResource,
+        status: enums.AdGroupStatus.ENABLED,
+        type: enums.AdGroupType.SEARCH_STANDARD,
+        cpc_bid_micros: draft.maxCpcIls ? Math.round(draft.maxCpcIls * 1_000_000) : undefined,
+    }])
+    return {
+        resourceName: resp.resource_name,
+        id: String(resp.resource_name).split('/').pop() || '',
+    }
+}
+
+// Responsive Search Ad — requires parent ad group resource.
+async function executeAd(
+    ctx: ExecutorContext,
+    draft: any,
+    instanceId: string
+): Promise<{ resourceName: string; id: string }> {
+    const adGroupResource = await findParentResource(
+        instanceId, 'gads_adgroup_draft',
+        (d) => d.campaignName === draft.campaignName && d.name === draft.adGroupName
+    )
+    if (!adGroupResource) {
+        throw new Error(`Parent ad group "${draft.adGroupName}" in campaign "${draft.campaignName}" not found — approve ad group draft first`)
+    }
+
+    const [resp] = await ctx.customer.adGroupAds.create([{
+        ad_group: adGroupResource,
+        status: enums.AdGroupAdStatus.ENABLED,
+        ad: {
+            final_urls: [draft.finalUrl],
+            responsive_search_ad: {
+                headlines: (draft.headlines || []).map((h: string) => ({ text: h })),
+                descriptions: (draft.descriptions || []).map((d: string) => ({ text: d })),
+                path1: draft.displayPath1 || undefined,
+                path2: draft.displayPath2 || undefined,
+            },
+        },
+    }])
+    return {
+        resourceName: resp.resource_name,
+        id: String(resp.resource_name).split('/').pop() || '',
+    }
+}
+
+// Keywords creation — requires parent ad group resource.
+async function executeKeywords(
+    ctx: ExecutorContext,
+    draft: any,
+    instanceId: string
+): Promise<{ resourceName: string; id: string; count: number }> {
+    const adGroupResource = await findParentResource(
+        instanceId, 'gads_adgroup_draft',
+        (d) => d.campaignName === draft.campaignName && d.name === draft.adGroupName
+    )
+    if (!adGroupResource) {
+        throw new Error(`Parent ad group "${draft.adGroupName}" in campaign "${draft.campaignName}" not found — approve ad group draft first`)
+    }
+
+    const matchTypeMap: Record<string, any> = {
+        exact:  enums.KeywordMatchType.EXACT,
+        phrase: enums.KeywordMatchType.PHRASE,
+        broad:  enums.KeywordMatchType.BROAD,
+    }
+
+    const criteria = (draft.keywords || []).map((kw: any) => ({
+        ad_group: adGroupResource,
+        status: enums.AdGroupCriterionStatus.ENABLED,
+        cpc_bid_micros: kw.maxCpcIls ? Math.round(kw.maxCpcIls * 1_000_000) : undefined,
+        keyword: {
+            text: kw.text,
+            match_type: matchTypeMap[kw.matchType] || enums.KeywordMatchType.PHRASE,
+        },
+    }))
+
+    // Negative keywords (exclusions) — same API, different flag
+    const negatives = (draft.negativeKeywords || []).map((kw: string) => ({
+        ad_group: adGroupResource,
+        status: enums.AdGroupCriterionStatus.ENABLED,
+        negative: true,
+        keyword: {
+            text: kw,
+            match_type: enums.KeywordMatchType.PHRASE,
+        },
+    }))
+
+    const all = [...criteria, ...negatives]
+    if (all.length === 0) throw new Error('No keywords in draft')
+
+    const resp = await ctx.customer.adGroupCriteria.create(all)
+    return {
+        resourceName: String(resp[0]?.resource_name || ''),
+        id: String(resp[0]?.resource_name || '').split('/').pop() || '',
+        count: all.length,
+    }
+}
+
 // Main entry — called from outputs.ts triggerPostApprove
 export async function executeGadsDraft(output: typeof agentOutputs.$inferSelect): Promise<{ ok: boolean; result?: any; error?: string }> {
     const parsed = parseDraft(output.content)
@@ -151,12 +284,14 @@ export async function executeGadsDraft(output: typeof agentOutputs.$inferSelect)
         let result: any
         if (parsed.type === 'gads_campaign_draft') {
             result = await executeCampaign(ctx, parsed.draft)
+        } else if (parsed.type === 'gads_adgroup_draft') {
+            result = await executeAdGroup(ctx, parsed.draft, output.instanceId)
+        } else if (parsed.type === 'gads_ad_draft') {
+            result = await executeAd(ctx, parsed.draft, output.instanceId)
+        } else if (parsed.type === 'gads_keywords_draft') {
+            result = await executeKeywords(ctx, parsed.draft, output.instanceId)
         } else {
-            // Ad groups, ads, keywords — require parent campaign IDs
-            // These come from previously-approved campaign drafts.
-            // Implementation: look up by draft.campaignName → find executed output with metadata.googleAdsResourceName
-            // For MVP: only campaign creation. Sub-entities require orchestration.
-            return { ok: false, error: `Draft type ${parsed.type} not yet executable — approve campaign first, then wire sub-entities via a dedicated endpoint` }
+            return { ok: false, error: `Unknown draft type: ${parsed.type}` }
         }
 
         // Update output metadata
