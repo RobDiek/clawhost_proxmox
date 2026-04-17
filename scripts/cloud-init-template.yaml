@@ -566,9 +566,62 @@ if old in code:
           CREATE CONSTRAINT entity_id IF NOT EXISTS FOR (e:Entity) REQUIRE e.id IS UNIQUE;
           CREATE INDEX entity_type IF NOT EXISTS FOR (e:Entity) ON (e.type);
           CREATE INDEX entity_name IF NOT EXISTS FOR (e:Entity) ON (e.name);
-          CREATE INDEX fact_subject IF NOT EXISTS FOR ()-[r:FACT]-() ON (r.subject);
-          CREATE INDEX fact_validFrom IF NOT EXISTS FOR ()-[r:FACT]-() ON (r.validFrom);
-        " || echo "Neo4j seed failed — retry via migration script"
+        " || echo "Neo4j seed failed — will retry via migration script"
+
+    # ── openclaw-facts MCP plugin (Neo4j wrapper) ──
+    # Exposes fact_add / fact_query / entity_timeline / entity_list tools.
+    # Agents use these instead of re-reading STRATEGY.md on every task.
+    - mkdir -p /home/openclaw/.openclaw/extensions/openclaw-facts/dist
+    - |
+        cat > /home/openclaw/.openclaw/extensions/openclaw-facts/package.json << 'PKGEOF'
+        {
+          "name": "openclaw-facts",
+          "version": "0.1.0",
+          "description": "Temporal knowledge graph for marketing facts (Neo4j)",
+          "main": "dist/index.js",
+          "dependencies": { "neo4j-driver": "^5.28.0" },
+          "openclaw": { "displayName": "Marketing Facts Graph", "category": "memory", "requires": ["neo4j"] }
+        }
+        PKGEOF
+    - |
+        # Fetch plugin source from Production branch (single source of truth).
+        # Falls back to embedded minimal version if fetch fails.
+        PLUGIN_URL="https://raw.githubusercontent.com/synex-os/openclaw-hosting/Production/scripts/openclaw-facts-plugin.js"
+        if ! curl -fsSL "$PLUGIN_URL" -o /home/openclaw/.openclaw/extensions/openclaw-facts/dist/index.js 2>/dev/null; then
+          echo "Failed to fetch facts plugin from GitHub — skipping (migration script can install later)"
+        fi
+    - chown -R openclaw:openclaw /home/openclaw/.openclaw/extensions
+    - |
+        if [ -f /home/openclaw/.openclaw/extensions/openclaw-facts/dist/index.js ]; then
+          su - openclaw -c 'cd /home/openclaw/.openclaw/extensions/openclaw-facts && npm install --omit=dev --silent 2>&1 | tail -5'
+        fi
+    # Register plugin in openclaw.json
+    - |
+        if [ -f /home/openclaw/.openclaw/extensions/openclaw-facts/dist/index.js ]; then
+          systemctl stop openclaw-gateway 2>/dev/null
+          python3 <<PYEOF
+import json
+p = '/home/openclaw/.openclaw/openclaw.json'
+with open(p) as f: cfg = json.load(f)
+plugins = cfg.setdefault('plugins', {})
+entries = plugins.setdefault('entries', {})
+entries['openclaw-facts'] = {
+    'enabled': True,
+    'source': { 'type': 'local', 'path': '/home/openclaw/.openclaw/extensions/openclaw-facts' },
+    'config': {
+        'uri':      'bolt://localhost:7687',
+        'user':     'neo4j',
+        'password': '{{AUTOMATION_PASSWORD}}'
+    }
+}
+allow = plugins.setdefault('allow', [])
+if 'openclaw-facts' not in allow: allow.append('openclaw-facts')
+with open(p, 'w') as f: json.dump(cfg, f, indent=2)
+print('openclaw-facts plugin registered')
+PYEOF
+          chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json
+          systemctl start openclaw-gateway
+        fi
 
     # ── LiteLLM AI Gateway ──
     - mkdir -p /opt/openclaw/data/litellm
