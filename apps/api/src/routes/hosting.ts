@@ -133,7 +133,6 @@ import {
     deployCrewEndpoint,
     runCrewEndpoint,
     listCrewsEndpoint,
-    getLangfuseStatus,
     listAgentIntegrations,
     getAgentIntegrationEndpoint,
     setAgentIntegrationEndpoint,
@@ -304,9 +303,6 @@ app.get('/instances/:id/mcp/servers', listMcpServers)
 app.post('/instances/:id/mcp/add', addMcpServer)
 app.delete('/instances/:id/mcp/:serverId', removeMcpServer)
 app.get('/mcp/catalog', getMcpCatalog)
-
-// ── Langfuse (Observability) ──
-app.get('/instances/:id/langfuse/status', getLangfuseStatus)
 
 // ── CrewAI (Multi-agent) ──
 app.post('/instances/:id/crews/deploy', deployCrewEndpoint)

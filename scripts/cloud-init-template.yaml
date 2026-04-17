@@ -483,43 +483,12 @@ if old in code:
         " 2>/dev/null || true
     {{/HAS_OLLAMA}}
 
-    # ── Langfuse LLM Observability ──
-    - mkdir -p /opt/openclaw/data/{langfuse-db,langfuse-clickhouse}
-    - |
-        cat > /opt/openclaw/docker-compose.langfuse.yml << 'LFEOF'
-        services:
-          langfuse:
-            image: langfuse/langfuse:latest
-            restart: unless-stopped
-            ports: ["127.0.0.1:3200:3000"]
-            depends_on: [langfuse-postgres]
-            environment:
-              - DATABASE_URL=postgresql://langfuse:{{AUTOMATION_PASSWORD}}@langfuse-postgres:5432/langfuse
-              - NEXTAUTH_URL=https://{{SUBDOMAIN_NAME}}-obs.clawflow.flowmatic.co.il
-              - NEXTAUTH_SECRET={{OPENCLAW_TOKEN}}
-              - SALT={{AUTOMATION_PASSWORD}}
-              - TELEMETRY_ENABLED=false
-              - LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES=false
-              - LANGFUSE_DEFAULT_PROJECT_ID={{INSTANCE_ID}}
-              - LANGFUSE_INIT_ORG_ID={{INSTANCE_ID}}
-              - LANGFUSE_INIT_ORG_NAME=OpenClaw
-              - LANGFUSE_INIT_PROJECT_ID={{INSTANCE_ID}}
-              - LANGFUSE_INIT_PROJECT_NAME=AI Agents
-              - LANGFUSE_INIT_PROJECT_PUBLIC_KEY=pk-{{INSTANCE_ID}}
-              - LANGFUSE_INIT_PROJECT_SECRET_KEY={{OPENCLAW_TOKEN}}
-              - LANGFUSE_INIT_USER_EMAIL=admin@openclaw.local
-              - LANGFUSE_INIT_USER_PASSWORD={{AUTOMATION_PASSWORD}}
-              - LANGFUSE_INIT_USER_NAME=Admin
-          langfuse-postgres:
-            image: postgres:16-alpine
-            restart: unless-stopped
-            environment:
-              POSTGRES_DB: langfuse
-              POSTGRES_USER: langfuse
-              POSTGRES_PASSWORD: {{AUTOMATION_PASSWORD}}
-            volumes: ["/opt/openclaw/data/langfuse-db:/var/lib/postgresql/data"]
-        LFEOF
-    - cd /opt/openclaw && docker compose -f docker-compose.yml -f docker-compose.qdrant.yml -f docker-compose.langfuse.yml up -d langfuse langfuse-postgres
+    # ── Observability note ──
+    # Langfuse removed (v3 requires ClickHouse + Redis + MinIO ~2GB RAM overhead
+    # for marginal value over our custom tracker). We use:
+    # 1. API Usage Tracker (mgmt-side, tracks direct calls + cache savings)
+    # 2. agent_outputs.metadata.cost for VPS-originated cron runs
+    # 3. Cost computation uses Anthropic pricing + cache multipliers (1.25x write, 0.1x read)
 
     # ── Neo4j Community (temporal knowledge graph for marketing facts) ──
     # Used by openclaw-facts MCP plugin to store/query entities (competitors,
@@ -552,7 +521,7 @@ if old in code:
               timeout: 10s
               retries: 5
         NEO4JEOF
-    - cd /opt/openclaw && docker compose -f docker-compose.yml -f docker-compose.qdrant.yml -f docker-compose.langfuse.yml -f docker-compose.neo4j.yml up -d neo4j
+    - cd /opt/openclaw && docker compose -f docker-compose.yml -f docker-compose.qdrant.yml -f docker-compose.neo4j.yml up -d neo4j
 
     # Wait for Neo4j + seed initial schema (constraints + indexes)
     - |

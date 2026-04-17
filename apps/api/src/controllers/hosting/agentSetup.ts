@@ -2175,7 +2175,7 @@ Flowmatic = **hosting מקצועי לסוכני AI**. המודל העסקי של
 - **מנוי חודשי קבוע** (VPS + Mem0 pooled + תמיכה + HaaS אופציונלי) — זה לא חלק מהתקציב של המשתמש פה
 - **המשתמש משלם ישירות ל-providers** (pass-through, 0% markup מצידנו):
   1. **Tokens** — API keys של המשתמש עצמו ל-Anthropic/OpenAI
-  2. **Tools** — המשתמש מחבר חשבונות משלו ל-DataForSEO, Firecrawl, Brave, Langfuse
+  2. **Tools** — המשתמש מחבר חשבונות משלו ל-DataForSEO, Firecrawl, Brave
   3. **Paid Traffic** — חשבונות פרסום של המשתמש (Google Ads / Meta Ads / LinkedIn Ads)
 - הסוכנים = הצוות הווירטואלי. **אין כאן זמני founder, עלות כותב freelance, או ריטיינר סוכנות!**
 
@@ -2237,7 +2237,6 @@ ${validation.substring(0, 5000)}
           "dataforseo": 0,
           "firecrawl": 0,
           "brave": 0,
-          "langfuse": 0,
           "total": 0
         },
         "paidTrafficIls": 0,
@@ -2298,7 +2297,7 @@ ${validation.substring(0, 5000)}
 
 ### כללי costs — חובה:
 - **tokensUsd.min/max** — מספרים. שמרני 10-30, מאוזן 40-80, אגרסיבי 100-250.
-- **toolsUsd** — לכל tool בנפרד. free tiers = 0. DataForSEO sandbox = 0, standard ~$50, professional ~$125. Firecrawl hobby $0, standard $20, growth $83. Brave free = 0, Pro $3-20. Langfuse self-hosted = 0.
+- **toolsUsd** — לכל tool בנפרד. free tiers = 0. DataForSEO sandbox = 0, standard ~$50, professional ~$125. Firecrawl hobby $0, standard $20, growth $83. Brave free = 0, Pro $3-20.
 - **paidTrafficIls** — עלות חודשית בש"ח לפרסום ממומן. 0 ב-conservative. 0-2500 ב-מאוזן (אופציונלי). 2500-10000 באגרסיבי.
 - **estimateTotalIls** = tokensUsd.max × 3.8 + toolsUsd.total × 3.8 + paidTrafficIls (המרת USD→ILS ≈ 3.8).
 

@@ -34,7 +34,7 @@ export { deepCrawlCompetitors, getCrawlStatus } from './crawl4ai'
 export { uploadKnowledgeDoc, searchKnowledgeEndpoint, listKnowledgeDocs, deleteKnowledgeDoc } from './knowledge'
 export { guardScan, guardStatus } from './llmGuard'
 export { deployCrewEndpoint, runCrewEndpoint, listCrewsEndpoint } from './crewai'
-export { getLangfuseStatus } from './langfuse'
+// Langfuse removed — custom API Usage Tracker covers observability needs
 export { listAgentIntegrations, getAgentIntegrationEndpoint, setAgentIntegrationEndpoint, deleteAgentIntegrationEndpoint } from './agentIntegrationRoutes'
 // Twenty CRM removed — AGPLv3 license risk
 // export { installTwenty } from './twenty'
