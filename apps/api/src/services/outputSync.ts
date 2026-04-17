@@ -156,6 +156,18 @@ function classifyOutput(content: string, userPrompt: string): {
         return { outputType: 'gads_keywords_draft', title: 'מילות מפתח Google Ads (טיוטה)', platform: 'google_ads' }
     }
 
+    // Meta Ads drafts — same approval flow as Google Ads
+    if (content.includes('"_type":"mads_campaign_draft"')) {
+        const nameMatch = content.match(/"name"\s*:\s*"([^"]+)"/)
+        return { outputType: 'mads_campaign_draft', title: 'קמפיין Meta Ads (טיוטה) — ' + (nameMatch ? nameMatch[1] : new Date().toLocaleDateString('he-IL')), platform: 'meta_ads' }
+    }
+    if (content.includes('"_type":"mads_adset_draft"')) {
+        return { outputType: 'mads_adset_draft', title: 'Ad Set — Meta Ads (טיוטה)', platform: 'meta_ads' }
+    }
+    if (content.includes('"_type":"mads_ad_draft"')) {
+        return { outputType: 'mads_ad_draft', title: 'מודעת Meta (טיוטה)', platform: 'meta_ads' }
+    }
+
     if (lc.includes('daily brief') || lc.includes('סיכום יומי') || lc.includes('משימות עדיפות')) {
         return {
             outputType: 'daily_brief',

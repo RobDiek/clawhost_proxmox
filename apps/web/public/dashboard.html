@@ -3656,7 +3656,10 @@ var OUTPUT_TYPE_LABELS = {
   gads_campaign_draft: '💰 קמפיין Google Ads (טיוטה)',
   gads_adgroup_draft:  '💰 קבוצת מודעות Google Ads (טיוטה)',
   gads_ad_draft:       '💰 מודעה Google Ads (טיוטה)',
-  gads_keywords_draft: '💰 מילות מפתח Google Ads (טיוטה)'
+  gads_keywords_draft: '💰 מילות מפתח Google Ads (טיוטה)',
+  mads_campaign_draft: '📘 קמפיין Meta Ads (טיוטה)',
+  mads_adset_draft:    '📘 Ad Set Meta (טיוטה)',
+  mads_ad_draft:       '📘 מודעה Meta (טיוטה)'
 };
 
 // Platform icons (SVG, sidebar style)
@@ -3870,6 +3873,15 @@ function renderTaskPopup(task) {
     bodyHtml += renderGadsDraftPreview(task);
     document.getElementById('taskPopupBody').innerHTML = bodyHtml;
     document.getElementById('taskPopupFooter').innerHTML = renderGadsApprovalFooter(task);
+    document.getElementById('taskPopupOverlay').classList.remove('hidden');
+    return;
+  }
+
+  // ── Special renderer for Meta Ads drafts ──
+  if (task.type && typeof task.type === 'string' && task.type.indexOf('mads_') === 0 && task.type.indexOf('_draft') !== -1) {
+    bodyHtml += renderMadsDraftPreview(task);
+    document.getElementById('taskPopupBody').innerHTML = bodyHtml;
+    document.getElementById('taskPopupFooter').innerHTML = renderMadsApprovalFooter(task);
     document.getElementById('taskPopupOverlay').classList.remove('hidden');
     return;
   }
@@ -4248,6 +4260,124 @@ function renderKeywordsDraft(d) {
   }
   h += '</div>';
   return h;
+}
+
+// ── Meta Ads draft preview renderer ──
+function extractMadsDraft(task) {
+  var content = task.editedContent || task.content || '';
+  try { return JSON.parse(content); } catch {}
+  var m = content.match(/\{[\s\S]*"_type"[\s\S]*\}/);
+  if (m) { try { return JSON.parse(m[0]); } catch {} }
+  return null;
+}
+
+function renderMadsDraftPreview(task) {
+  var draft = extractMadsDraft(task);
+  if (!draft) {
+    return '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:12px">' +
+      '<strong style="color:#991B1B">⚠️ לא ניתן לפרסר את הטיוטה</strong>' +
+      '</div>';
+  }
+  var type = draft._type || task.type;
+  var html = '<div style="background:linear-gradient(135deg,#1877F210 0%,#E4405F10 100%);border:2px solid #1877F2;border-radius:10px;padding:14px;margin-bottom:16px">' +
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">' +
+    '<span style="font-size:1.4rem">📘</span>' +
+    '<div><strong style="font-size:1rem;color:#1E3A5F">Meta Ads — טיוטה</strong>' +
+    '<div style="font-size:0.72rem;color:#6B7280">' + escapeHtml(type) + '</div></div></div>';
+  if (type === 'mads_campaign_draft') html += renderMadsCampaign(draft);
+  else if (type === 'mads_adset_draft') html += renderMadsAdSet(draft);
+  else if (type === 'mads_ad_draft') html += renderMadsAd(draft);
+  else html += '<pre style="font-size:0.75rem;background:#FFF;padding:10px;border-radius:6px;overflow-x:auto">' + escapeHtml(JSON.stringify(draft, null, 2)) + '</pre>';
+  html += '</div>';
+  if (task.metadata && task.metadata.liveApiStatus) {
+    var status = task.metadata.liveApiStatus;
+    var statusLabel = status === 'queued' ? '⏳ בתור לביצוע ב-Meta Marketing API' :
+                      status === 'pending_config' ? '⚠️ חיבור Meta Ads לא מלא — יתבצע לאחר הגדרה' :
+                      status === 'executed' ? '✅ בוצע ב-Meta Ads' :
+                      status === 'failed' ? '❌ נכשל ב-API' : status;
+    html += '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:8px 10px;font-size:0.78rem;color:#4B5563;margin-bottom:8px">' + statusLabel + '</div>';
+  }
+  return html;
+}
+
+function renderMadsCampaign(d) {
+  var h = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">';
+  h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px"><div style="font-size:0.68rem;color:#6B7280">שם</div><strong>' + escapeHtml(d.name || '') + '</strong></div>';
+  h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px"><div style="font-size:0.68rem;color:#6B7280">מטרה</div><strong>' + escapeHtml((d.objective || '').replace('OUTCOME_', '')) + '</strong></div>';
+  h += '</div>';
+  h += '<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:6px;padding:10px;margin-bottom:10px">';
+  h += '<div style="font-size:0.72rem;color:#92400E;margin-bottom:2px">תקציב ' + (d.budgetMode === 'daily' ? 'יומי' : 'כולל') + '</div>';
+  h += '<strong style="font-size:1.05rem;color:#78350F">₪' + (d.budgetIls || 0) + (d.budgetMode === 'daily' ? '/יום ≈ ₪' + Math.round((d.budgetIls || 0) * 30.4) + '/חודש' : ' (כל התקופה)') + '</strong>';
+  h += '</div>';
+  h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px;margin-bottom:6px;font-size:0.82rem">';
+  h += '<strong>Bid Strategy:</strong> ' + escapeHtml(d.bidStrategy || '');
+  if (d.specialAdCategories && d.specialAdCategories.length) h += '<br><strong>Special Ad Categories:</strong> ' + d.specialAdCategories.join(', ');
+  h += '</div>';
+  if (d.rationale) h += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px;font-size:0.82rem;color:#1E40AF;line-height:1.5"><strong>💡 הנמקה:</strong><br>' + escapeHtml(d.rationale) + '</div>';
+  return h;
+}
+
+function renderMadsAdSet(d) {
+  var t = d.targeting || {};
+  var h = '<div style="background:#FFF;padding:10px;border-radius:6px;margin-bottom:8px">';
+  h += '<div><strong>שם:</strong> ' + escapeHtml(d.name || '') + '</div>';
+  h += '<div><strong>בקמפיין:</strong> ' + escapeHtml(d.campaignName || '') + '</div>';
+  if (d.targetPersona) h += '<div style="color:#7C3AED"><strong>פרסונה:</strong> ' + escapeHtml(d.targetPersona) + '</div>';
+  h += '</div>';
+  h += '<div style="background:#F9FAFB;padding:10px;border-radius:6px;margin-bottom:8px">';
+  h += '<div style="font-weight:600;margin-bottom:6px;font-size:0.88rem">🎯 Targeting</div>';
+  h += '<div style="font-size:0.82rem;display:grid;gap:4px">';
+  if (t.ageMin || t.ageMax) h += '<div><strong>גיל:</strong> ' + (t.ageMin || 18) + '-' + (t.ageMax || 65) + '</div>';
+  if (t.genders && t.genders.length) h += '<div><strong>מגדר:</strong> ' + t.genders.join(', ') + '</div>';
+  if (t.locations && t.locations.length) h += '<div><strong>מיקומים:</strong> ' + t.locations.map(escapeHtml).join(', ') + '</div>';
+  if (t.interests && t.interests.length) h += '<div><strong>תחומי עניין:</strong> ' + t.interests.map(escapeHtml).join(', ') + '</div>';
+  if (t.lookalike) h += '<div><strong>Lookalike:</strong> ' + escapeHtml(t.lookalike) + '</div>';
+  h += '</div></div>';
+  h += '<div style="background:#FFF;padding:10px;border-radius:6px;font-size:0.82rem">';
+  h += '<div><strong>Optimization Goal:</strong> ' + escapeHtml(d.optimizationGoal || '') + '</div>';
+  h += '<div><strong>Billing Event:</strong> ' + escapeHtml(d.billingEvent || '') + '</div>';
+  if (d.budgetIls) h += '<div><strong>תקציב Ad Set:</strong> ₪' + d.budgetIls + '/יום</div>';
+  if (d.placements) h += '<div><strong>Placements:</strong> ' + d.placements.map(escapeHtml).join(', ') + '</div>';
+  h += '</div>';
+  return h;
+}
+
+function renderMadsAd(d) {
+  var h = '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:8px">' + escapeHtml(d.campaignName || '') + ' · ' + escapeHtml(d.adSetName || '') + '</div>';
+  // Facebook feed mockup
+  h += '<div style="background:#FFF;border:1px solid #DADDE1;border-radius:8px;max-width:400px;margin-bottom:10px;box-shadow:0 1px 2px rgba(0,0,0,0.1)">';
+  h += '<div style="padding:10px 12px 4px">';
+  h += '<div style="display:flex;align-items:center;gap:8px"><div style="width:36px;height:36px;border-radius:50%;background:#1877F2;display:flex;align-items:center;justify-content:center;color:#FFF;font-weight:700">F</div>';
+  h += '<div><div style="font-weight:600;font-size:0.88rem">' + escapeHtml(d.displayLink || 'העסק שלך') + '</div><div style="font-size:0.72rem;color:#65676B">Sponsored · 🌐</div></div></div>';
+  h += '<div style="margin:8px 0;font-size:0.88rem;color:#050505">' + escapeHtml(d.body || '') + '</div>';
+  h += '</div>';
+  if (d.imageUrl) h += '<img src="' + escapeHtml(d.imageUrl) + '" style="width:100%;display:block;max-height:280px;object-fit:cover" onerror="this.style.display=\'none\'">';
+  h += '<div style="padding:8px 12px;background:#F0F2F5">';
+  h += '<div style="font-size:0.72rem;color:#65676B;text-transform:uppercase">' + escapeHtml(d.displayLink || '') + '</div>';
+  h += '<div style="display:flex;justify-content:space-between;align-items:center">';
+  h += '<div style="font-weight:600;font-size:0.95rem">' + escapeHtml(d.headline || '') + '</div>';
+  h += '<button style="background:#E4E6EB;border:none;padding:6px 14px;border-radius:6px;font-weight:600;font-size:0.82rem;cursor:default">' + (d.cta || 'LEARN_MORE').replace(/_/g, ' ') + '</button>';
+  h += '</div>';
+  if (d.description) h += '<div style="font-size:0.78rem;color:#65676B;margin-top:2px">' + escapeHtml(d.description) + '</div>';
+  h += '</div></div>';
+  if (d.validationIssues && d.validationIssues.length) {
+    h += '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:8px;font-size:0.78rem;color:#991B1B"><strong>⚠️ בעיות:</strong><br>' + d.validationIssues.map(escapeHtml).join('<br>') + '</div>';
+  }
+  // Char counts
+  h += '<div style="font-size:0.72rem;color:#6B7280;margin-top:6px">כותרת: ' + (d.headline || '').length + '/40 · טקסט: ' + (d.body || '').length + '/125' + (d.description ? ' · תיאור: ' + d.description.length + '/30' : '') + '</div>';
+  return h;
+}
+
+function renderMadsApprovalFooter(task) {
+  if (task.status === 'approved') {
+    var status = task.metadata && task.metadata.liveApiStatus;
+    if (status === 'executed') return '<span style="color:#10B981;font-weight:600;padding:8px">✅ בוצע ב-Meta Ads</span>';
+    return '<span style="color:#F59E0B;font-weight:600;padding:8px">⏳ אושר — ממתין לביצוע ב-API</span>';
+  }
+  if (task.status === 'rejected') return '<span style="color:#EF4444;font-weight:600;padding:8px">✗ נדחה</span>';
+  return '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()">✗ דחו</button>' +
+         '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\')">✎ תיקון</button>' +
+         '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()">✓ אשרו לביצוע ב-Meta Ads</button>';
 }
 
 function renderGadsApprovalFooter(task) {

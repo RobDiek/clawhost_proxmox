@@ -220,6 +220,34 @@ export const approveOutput = async (c: Context<HonoEnv>) => {
 async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
     const meta = output.metadata as Record<string, unknown> | null
 
+    // Meta Ads draft approved → execute via live API
+    if (output.outputType && output.outputType.startsWith('mads_') && output.outputType.endsWith('_draft')) {
+        console.log(`Meta Ads draft approved: ${output.outputType} (id ${output.id})`)
+        const [inst] = await db.select().from(instances).where(eq(instances.id, output.instanceId))
+        const mt = (inst?.metaTokens as any) || {}
+        const hasToken = !!(mt.accessToken || mt.userAccessToken || mt.pageAccessToken)
+        const hasAdAccount = !!mt.adAccountId
+        const hasFullConfig = hasToken && hasAdAccount
+
+        await db.update(agentOutputs)
+            .set({
+                metadata: {
+                    ...(meta || {}),
+                    liveApiStatus: hasFullConfig ? 'queued' : 'pending_config',
+                    approvedForExecutionAt: new Date().toISOString(),
+                },
+                updatedAt: new Date(),
+            })
+            .where(eq(agentOutputs.id, output.id))
+
+        if (hasFullConfig) {
+            const { executeMadsDraft } = await import('@/services/metaAdsExecutor')
+            const [fresh] = await db.select().from(agentOutputs).where(eq(agentOutputs.id, output.id))
+            if (fresh) executeMadsDraft(fresh).catch(err => console.error(`Mads executor error for ${output.id}:`, err))
+        }
+        return
+    }
+
     // Google Ads draft approved → execute via live API
     if (output.outputType && output.outputType.startsWith('gads_') && output.outputType.endsWith('_draft')) {
         console.log(`Google Ads draft approved: ${output.outputType} (id ${output.id}) — invoking executor`)
