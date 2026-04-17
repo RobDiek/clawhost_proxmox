@@ -2089,16 +2089,22 @@ export const researchStage = async (c: Context) => {
                 console.log(`Mem0 pre-stage cleanup for ${instanceId}`)
             } catch {}
         }
-        // Clear ALL agent session history (sessions.json + ALL jsonl)
-        // OpenClaw CLI reuses agent:X:main session regardless of --session-id,
-        // so we must wipe all past sessions to prevent "already answered" cache
+        // Clear ALL context sources to force agent to start fresh:
+        // 1. Agent's session history (sessions.json + jsonl)
+        // 2. Workspace artifacts from previous runs (content/, memory/, state/)
+        // 3. Any leftover research files
         try {
             await sshExec(instance.ip, `
+                # Wipe agent session history
                 rm -rf /home/openclaw/.openclaw/agents/${agentId}/sessions/* 2>/dev/null
                 mkdir -p /home/openclaw/.openclaw/agents/${agentId}/sessions
-                chown -R openclaw:openclaw /home/openclaw/.openclaw/agents/${agentId}/sessions
+                # Wipe workspace content/memory/state that agent reads as context
+                rm -rf /home/openclaw/.openclaw/workspace/content/* 2>/dev/null
+                rm -rf /home/openclaw/.openclaw/workspace/memory/* 2>/dev/null
+                rm -rf /home/openclaw/.openclaw/workspace/state/* 2>/dev/null
+                chown -R openclaw:openclaw /home/openclaw/.openclaw/agents/${agentId}/sessions /home/openclaw/.openclaw/workspace 2>/dev/null
             `, instance.rootPassword || undefined, 15000)
-            console.log(`Agent ${agentId}: ALL sessions wiped for fresh start`)
+            console.log(`Agent ${agentId}: full context wipe (sessions + workspace artifacts)`)
         } catch {}
 
         const b64Prompt = Buffer.from(prompt).toString('base64')
