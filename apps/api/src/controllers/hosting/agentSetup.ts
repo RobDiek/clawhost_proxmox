@@ -1905,6 +1905,102 @@ export function validateCitations(text: string): string[] {
     return warnings
 }
 
+// ── Helper: Parse numeric value from KPI field ("₪800", "5 customers", etc.) ──
+function parseNumeric(v: unknown): number {
+    if (typeof v === 'number') return v
+    if (typeof v !== 'string') return 0
+    // Extract first number sequence (handles ₪1,200 / $800 / "5 customers")
+    const m = v.match(/[\d,]+/)
+    if (!m) return 0
+    return parseInt(m[0].replace(/,/g, ''), 10) || 0
+}
+
+// ── Coherence Validator — catches logical inconsistencies in scenarios ──
+// Returns array of violations; empty = scenarios pass muster.
+export function validateScenarioCoherence(scenariosData: any): string[] {
+    const violations: string[] = []
+    const scs = scenariosData?.scenarios
+    if (!Array.isArray(scs) || scs.length !== 3) return ['missing 3 scenarios']
+
+    const cons = scs.find((s: any) => s.key === 'conservative')
+    const mid  = scs.find((s: any) => s.key === 'recommended')
+    const agg  = scs.find((s: any) => s.key === 'aggressive')
+    if (!cons || !mid || !agg) return ['missing conservative/recommended/aggressive']
+
+    // Extract key numbers
+    const costC = cons.costs?.estimateTotalIls || 0
+    const costA = agg.costs?.estimateTotalIls || 0
+    const custC3 = parseNumeric(cons.kpis?.month3?.customers)
+    const custA3 = parseNumeric(agg.kpis?.month3?.customers)
+    const custM3 = parseNumeric(mid.kpis?.month3?.customers)
+    const mrrC3  = parseNumeric(cons.kpis?.month3?.mrr)
+    const mrrA3  = parseNumeric(agg.kpis?.month3?.mrr)
+    const mrrM3  = parseNumeric(mid.kpis?.month3?.mrr)
+
+    // Check 1: cost-to-customer scaling
+    if (costC > 0 && costA > 0 && custC3 > 0 && custA3 > 0) {
+        const costRatio = costA / costC
+        const custRatio = custA3 / custC3
+        const aggHasGatekeeper = agg.paidTrafficActivation?.hasPaidTraffic &&
+                                 (agg.paidTrafficActivation?.recommended === 'gatekeeper')
+        const threshold = aggHasGatekeeper ? 0.3 : 0.5
+        const requiredCustRatio = Math.sqrt(costRatio) * threshold
+        if (custRatio < requiredCustRatio) {
+            violations.push(
+                `Scaling violation: aggressive costs ${costRatio.toFixed(1)}× conservative (₪${costC}→₪${costA}), ` +
+                `but customers only ${custRatio.toFixed(2)}× (${custC3}→${custA3}). ` +
+                `Required: at least ${requiredCustRatio.toFixed(2)}× customer growth. ` +
+                `Expected aggressive customers month 3 >= ${Math.ceil(custC3 * requiredCustRatio)}.`
+            )
+        }
+    }
+
+    // Check 2: ARPU consistency (same product → similar ARPU across scenarios)
+    const arpuC = custC3 > 0 ? mrrC3 / custC3 : 0
+    const arpuM = custM3 > 0 ? mrrM3 / custM3 : 0
+    const arpuA = custA3 > 0 ? mrrA3 / custA3 : 0
+    const arpuValues = [arpuC, arpuM, arpuA].filter(v => v > 0)
+    if (arpuValues.length >= 2) {
+        const minA = Math.min(...arpuValues)
+        const maxA = Math.max(...arpuValues)
+        if (maxA > minA * 1.4) { // >40% spread = suspicious
+            violations.push(
+                `ARPU drift: conservative=₪${arpuC.toFixed(0)}, recommended=₪${arpuM.toFixed(0)}, aggressive=₪${arpuA.toFixed(0)}. ` +
+                `Same product should have similar ARPU across scenarios (±15%).`
+            )
+        }
+    }
+
+    // Check 3: Timeline ordering (conservative should be slowest)
+    const timelineMonths = (t: string): number => {
+        if (!t) return 0
+        const m = t.match(/(\d+)\s*[-–—]\s*(\d+)/) // "1-2 months"
+        if (m) return (parseInt(m[1]) + parseInt(m[2])) / 2
+        const s = t.match(/(\d+)/)
+        return s ? parseInt(s[1]) : 0
+    }
+    const tC = timelineMonths(cons.timeline || '')
+    const tA = timelineMonths(agg.timeline || '')
+    if (tC > 0 && tA > 0 && tA >= tC) {
+        violations.push(
+            `Timeline violation: conservative "${cons.timeline}" should be SLOWER than aggressive "${agg.timeline}". ` +
+            `Currently aggressive (${tA}mo) >= conservative (${tC}mo).`
+        )
+    }
+
+    // Check 4: Channel count ordering
+    const chC = (cons.primaryChannels || []).length
+    const chA = (agg.primaryChannels || []).length
+    if (chC >= chA && chA > 0) {
+        violations.push(
+            `Channel count violation: conservative has ${chC} channels, aggressive has ${chA}. ` +
+            `Aggressive should have more.`
+        )
+    }
+
+    return violations
+}
+
 // ── POST /hosting/instances/:id/setup/agents/strategy/scenarios ──
 // After all 4 strategy stages complete → derive 3 coherent scenarios
 // (conservative / recommended / aggressive) with budgets, timelines, channels, KPIs,
@@ -2091,67 +2187,147 @@ ${validation.substring(0, 5000)}
 - **שמות בדיוק:** conservative="שמרני" 🛡️, recommended="מאוזן" ⚖️, aggressive="אגרסיבי" 🚀
 - primaryChannels: שמרני=1-2 ערוצים, מאוזן=3-4, אגרסיבי=4-6
 - agentRoster: חובה לכל 8 הסוכנים, "off" מותר
-- KPIs עם מספרים אמיתיים מהאסטרטגיה, לא להמציא`
+
+### ⚠️ חוקי קוהרנטיות — חובה מתמטית (לא להמציא, לחשב!)
+
+KPIs **חייבים לשקף בפועל** את ההשקעה והמאמץ. אם בתרחיש אגרסיבי אתה משקיע פי 15 מהשמרני אבל יעד לקוחות גדל רק ב-40% — **זו טעות קריטית שפוגעת באמינות שלנו**.
+
+**נוסחאות חובה להסתמך עליהן:**
+
+1. **רכישת לקוחות = stream אורגני + stream ממומן**
+   - **Organic stream/month:** agent_output_volume × effective_channels × engagement_rate × conversion_rate
+     - שמרני: 2-3 pieces/week × 1-2 channels → ~1-3 leads/week → ~1-2 customers/month
+     - מאוזן: 6-8 pieces/week × 3-4 channels → ~4-8 leads/week → ~3-6 customers/month
+     - אגרסיבי: 12-15 pieces/week × 5-6 channels → ~10-15 leads/week → ~6-10 customers/month
+   - **Paid stream/month** (רק אם paidTrafficIls > 0): paidTrafficIls / CAC_ILS × 3.8 × conversion
+     - דוגמה: ₪3,000/חודש ÷ CAC ₪600 = 5 leads paid/month × 50% conversion = 2.5 לקוחות/חודש ממומן
+     - ₪5,000-10,000 אגרסיבי → 4-10 לקוחות/חודש ממומן נוסף
+
+2. **Scaling check (חובה!):**
+   - cost_ratio = costs_aggressive.estimateTotalIls / costs_conservative.estimateTotalIls
+   - customer_ratio = aggressive.kpis.month3.customers / conservative.kpis.month3.customers
+   - **חייב:** customer_ratio >= sqrt(cost_ratio) × 0.5
+     - דוגמה: אם costs גדלים פי 15 (√15 ≈ 3.9) → לקוחות חייבים לגדול לפחות פי 1.95
+     - אם 5 → לפחות 10, לא 7!
+   - אם paidTrafficActivation במסלול = "gatekeeper" → צפה שפרסום ייפעל רק מחודש 2-3, לכן customer_ratio יכול להיות נמוך יותר (סף 0.3 במקום 0.5)
+
+3. **Timeline ordering:**
+   - conservative.timeline = "3-4 חודשים" (ללא paid = איטי יותר)
+   - מאוזן.timeline = "2-3 חודשים"
+   - אגרסיבי.timeline = "1-2 חודשים" (עם paid immediate) או "2-3 חודשים" (עם gatekeeper)
+   - **לא ייתכן** שלכל המסלולים timeline זהה
+
+4. **ARPU/MRR consistency:**
+   - ARPU = MRR / customers — **חייב להיות דומה ב-3 המסלולים** (±15%). זה אותו מוצר.
+   - אם תרחיש שמרני = ₪800/customer ומאוזן = ₪1,400/customer — זה אות לבעיה. תקן.
+
+5. **CAC improvement:**
+   - אגרסיבי יש יותר data → CAC אמור להיות **טוב יותר** (נמוך יותר) ב-10-20% לעומת שמרני
+   - לא תרחיש שבו CAC בשמרני ₪400 ובאגרסיבי ₪900 — זה הפוך מהמציאות
+
+6. **Channel reach multiplier:**
+   - 1 channel = 1× reach
+   - 3-4 channels = 2.5-3× reach (לא 4× — overhead)
+   - 6 channels = 4-5× reach
+   - leads scaling חייב לשקף זאת
+
+**בדוק את עצמך לפני שאתה מחזיר JSON:**
+- [ ] customer_ratio אגרסיבי/שמרני >= sqrt(cost_ratio) × 0.5 (או 0.3 עם gatekeeper)
+- [ ] ARPU דומה ב-3 המסלולים
+- [ ] timeline שונה ב-3 המסלולים
+- [ ] CAC באגרסיבי נמוך או שווה לשמרני
+- [ ] paidTrafficIls משקף את השפעתו על KPI
+
+אם בדיקה אחת נכשלת — **חשב מחדש** לפני שתחזיר JSON.`
 
         console.log(`Strategy scenarios for ${businessName}: prompt ${prompt.length} chars`)
 
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01',
-            },
-            body: JSON.stringify({
-                model: 'claude-opus-4-7',
-                max_tokens: 8192,
-                messages: [{ role: 'user', content: prompt }],
-            }),
-            signal: AbortSignal.timeout(300000),
-        })
+        // Call Opus with auto-retry on coherence violations
+        let scenariosData: any = null
+        let coherenceWarnings: string[] = []
+        const maxAttempts = 3
+        let currentPrompt = prompt
 
-        if (!res.ok) {
-            const errBody = await res.text().catch(() => '')
-            console.error(`Scenarios Anthropic failed (${res.status}):`, errBody.substring(0, 500))
-            return fail(c, 'ייצור מסלולים נכשל — נסו שוב', 500)
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            const res = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01',
+                },
+                body: JSON.stringify({
+                    model: 'claude-opus-4-7',
+                    max_tokens: 8192,
+                    messages: [{ role: 'user', content: currentPrompt }],
+                }),
+                signal: AbortSignal.timeout(300000),
+            })
+
+            if (!res.ok) {
+                const errBody = await res.text().catch(() => '')
+                console.error(`Scenarios Anthropic failed attempt ${attempt} (${res.status}):`, errBody.substring(0, 400))
+                if (attempt === maxAttempts) return fail(c, 'ייצור מסלולים נכשל — נסו שוב', 500)
+                continue
+            }
+
+            const data = await res.json() as { content?: Array<{ text: string }> }
+            const rawText = data.content?.[0]?.text || ''
+            console.log(`Scenarios attempt ${attempt}: ${rawText.length} chars`)
+
+            try {
+                const jsonMatch = rawText.match(/\{[\s\S]*\}/)
+                const jsonStr = jsonMatch ? jsonMatch[0] : rawText
+                scenariosData = JSON.parse(jsonStr)
+            } catch (parseErr) {
+                console.error(`Scenarios JSON parse failed attempt ${attempt}:`, parseErr, rawText.substring(0, 300))
+                if (attempt === maxAttempts) return fail(c, 'ייצור מסלולים החזיר פורמט לא תקף', 500)
+                continue
+            }
+
+            // Validate shape
+            if (!scenariosData?.scenarios || !Array.isArray(scenariosData.scenarios) || scenariosData.scenarios.length !== 3) {
+                if (attempt === maxAttempts) return fail(c, 'פורמט מסלולים לא תקין', 500)
+                continue
+            }
+            const expectedKeys = ['conservative', 'recommended', 'aggressive']
+            const gotKeys = scenariosData.scenarios.map((s: any) => s.key)
+            if (!expectedKeys.every(k => gotKeys.includes(k))) {
+                if (attempt === maxAttempts) return fail(c, `חסרים מסלולים: ${expectedKeys.filter(k => !gotKeys.includes(k)).join(', ')}`, 500)
+                continue
+            }
+
+            // Coherence check
+            const violations = validateScenarioCoherence(scenariosData)
+            if (violations.length === 0) {
+                console.log(`Scenarios passed coherence check attempt ${attempt}`)
+                coherenceWarnings = []
+                break
+            }
+
+            console.warn(`Scenarios attempt ${attempt} failed coherence:`, violations)
+            coherenceWarnings = violations
+
+            if (attempt < maxAttempts) {
+                // Retry with explicit feedback
+                currentPrompt = prompt + `\n\n---\n\n## ⚠️ הניסיון הקודם שלך נכשל בבדיקת קוהרנטיות:\n\n` +
+                    violations.map((v, i) => `${i + 1}. ${v}`).join('\n') +
+                    `\n\n**תקן את המספרים.** חשב מחדש את ה-KPIs לפי הנוסחאות שלמעלה. הפעם תחזיר JSON **קוהרנטי** שעובר את כל הבדיקות.`
+            }
         }
 
-        const data = await res.json() as { content?: Array<{ text: string }> }
-        const rawText = data.content?.[0]?.text || ''
-        console.log(`Scenarios raw: ${rawText.length} chars`)
-
-        // Extract JSON from response (Opus sometimes adds prose despite instruction)
-        let scenariosData: any
-        try {
-            const jsonMatch = rawText.match(/\{[\s\S]*\}/)
-            const jsonStr = jsonMatch ? jsonMatch[0] : rawText
-            scenariosData = JSON.parse(jsonStr)
-        } catch (parseErr) {
-            console.error('Scenarios JSON parse failed:', parseErr, 'raw first 500:', rawText.substring(0, 500))
-            return fail(c, 'ייצור מסלולים החזיר פורמט לא תקף — נסו שוב', 500)
-        }
-
-        // Validate shape
-        if (!scenariosData?.scenarios || !Array.isArray(scenariosData.scenarios) || scenariosData.scenarios.length !== 3) {
-            return fail(c, 'פורמט מסלולים לא תקין', 500)
-        }
-        const expectedKeys = ['conservative', 'recommended', 'aggressive']
-        const gotKeys = scenariosData.scenarios.map((s: any) => s.key)
-        if (!expectedKeys.every(k => gotKeys.includes(k))) {
-            return fail(c, `חסרים מסלולים: ${expectedKeys.filter(k => !gotKeys.includes(k)).join(', ')}`, 500)
-        }
-
-        // Persist
+        // Persist with warnings if any
         await db.update(instances).set({
             researchData: {
                 ...rd,
                 scenarios: scenariosData,
                 scenariosGeneratedAt: new Date().toISOString(),
+                scenariosCoherenceWarnings: coherenceWarnings.length > 0 ? coherenceWarnings : undefined,
             } as any,
         }).where(eq(instances.id, instanceId))
 
-        console.log(`Strategy scenarios saved for ${businessName}`)
-        return ok(c, scenariosData, 'Scenarios ready.')
+        console.log(`Strategy scenarios saved for ${businessName}${coherenceWarnings.length > 0 ? ' (with warnings)' : ''}`)
+        return ok(c, { ...scenariosData, coherenceWarnings: coherenceWarnings.length > 0 ? coherenceWarnings : undefined }, 'Scenarios ready.')
     } catch (err) {
         console.error('buildStrategyScenarios error:', err)
         return fail(c, 'Scenarios failed.', 500)
