@@ -2107,21 +2107,63 @@ export const researchStage = async (c: Context) => {
             console.log(`Agent ${agentId}: full context wipe (sessions + workspace artifacts)`)
         } catch {}
 
-        const b64Prompt = Buffer.from(prompt).toString('base64')
-        const sessionId = `research-s${stage}-${Date.now()}`
-        const promptFile = `/tmp/research-prompt-${sessionId}.txt`
+        // For stages 4+5 (analytical, no web search needed): use direct Anthropic API
+        // This bypasses OpenClaw SOUL.md / workspace context that confuses menateach
+        // For stages 1-3 (need web_search via Brave/DataForSEO): use OpenClaw agent
+        let output = ''
+        if (stage === 4 || stage === 5) {
+            console.log(`Stage ${stage}: using direct Anthropic API (bypasses OpenClaw session/workspace context)`)
+            const apiKey = await getApiKeyForInstance(instanceId)
+            if (!apiKey) {
+                activeResearchRuns.delete(instanceId)
+                return fail(c, 'מפתח API Anthropic לא מוגדר', 400)
+            }
+            const anthropicModel = model.replace(/^anthropic\//, '')
+            try {
+                const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey,
+                        'anthropic-version': '2023-06-01',
+                    },
+                    body: JSON.stringify({
+                        model: anthropicModel,
+                        max_tokens: 16000,
+                        messages: [{ role: 'user', content: prompt }],
+                    }),
+                    signal: AbortSignal.timeout(300000),
+                })
+                if (apiRes.ok) {
+                    const data = await apiRes.json() as { content?: Array<{ text: string }> }
+                    output = data.content?.[0]?.text || ''
+                    console.log(`Stage ${stage} direct API: ${output.length} chars via ${anthropicModel}`)
+                } else {
+                    const errText = await apiRes.text()
+                    console.error(`Stage ${stage} Anthropic API failed (${apiRes.status}):`, errText.substring(0, 300))
+                    output = ''
+                }
+            } catch (apiErr) {
+                console.error(`Stage ${stage} API exception:`, apiErr)
+                output = ''
+            }
+        } else {
+            // Stages 1-3: use OpenClaw agent (needs web_search via Brave/DataForSEO/Firecrawl)
+            const b64Prompt = Buffer.from(prompt).toString('base64')
+            const sessionId = `research-s${stage}-${Date.now()}`
+            const promptFile = `/tmp/research-prompt-${sessionId}.txt`
 
-        // Write prompt to file first (avoids /bin/bash: Argument list too long for large prompts)
-        await sshExec(instance.ip,
-            `echo '${b64Prompt}' | base64 -d > ${promptFile} && chown openclaw:openclaw ${promptFile}`,
-            instance.rootPassword || undefined
-        )
+            await sshExec(instance.ip,
+                `echo '${b64Prompt}' | base64 -d > ${promptFile} && chown openclaw:openclaw ${promptFile}`,
+                instance.rootPassword || undefined
+            )
 
-        const output = await sshExec(instance.ip,
-            `su - openclaw -c 'timeout 300 openclaw agent --agent ${agentId} --session-id ${sessionId} -m "$(cat ${promptFile})" --json 2>&1'; rm -f ${promptFile}`,
-            instance.rootPassword || undefined,
-            330000  // 5.5 min — must exceed the 300s command timeout
-        )
+            output = await sshExec(instance.ip,
+                `su - openclaw -c 'timeout 300 openclaw agent --agent ${agentId} --session-id research-s${stage}-${Date.now()} -m "$(cat ${promptFile})" --json 2>&1'; rm -f ${promptFile}`,
+                instance.rootPassword || undefined,
+                330000
+            )
+        }
 
         let result = ''
         let isRateLimit = false
