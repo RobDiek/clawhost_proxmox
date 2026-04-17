@@ -3865,6 +3865,15 @@ function renderTaskPopup(task) {
     '<span style="font-size:0.78rem;color:#9CA3AF">' + (task.agent || '') + platformLabel + (dateLabel ? ' · ' + dateLabel : '') + '</span>' +
   '</div>';
 
+  // ── Special renderer for Google Ads drafts (structured preview) ──
+  if (task.type && typeof task.type === 'string' && task.type.indexOf('gads_') === 0 && task.type.indexOf('_draft') !== -1) {
+    bodyHtml += renderGadsDraftPreview(task);
+    document.getElementById('taskPopupBody').innerHTML = bodyHtml;
+    document.getElementById('taskPopupFooter').innerHTML = renderGadsApprovalFooter(task);
+    document.getElementById('taskPopupOverlay').classList.remove('hidden');
+    return;
+  }
+
   // ── Real content from agent (if available) ──
   var displayContent = task.editedContent || task.content;
   if (displayContent) {
@@ -4105,6 +4114,152 @@ function renderTaskPopup(task) {
 
 function closeTaskPopup() {
   document.getElementById('taskPopupOverlay').classList.add('hidden');
+}
+
+// ── Google Ads draft preview renderer ──
+function extractGadsDraft(task) {
+  // The agent output contains either pure JSON OR markdown with JSON embedded.
+  // Try to extract the draft object.
+  var content = task.editedContent || task.content || '';
+  try { return JSON.parse(content); } catch {}
+  // Try to find JSON object in the content
+  var m = content.match(/\{[\s\S]*"_type"[\s\S]*\}/);
+  if (m) { try { return JSON.parse(m[0]); } catch {} }
+  return null;
+}
+
+function renderGadsDraftPreview(task) {
+  var draft = extractGadsDraft(task);
+  if (!draft) {
+    return '<div class="task-popup-field" style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:12px">' +
+      '<strong style="color:#991B1B">⚠️ לא ניתן לפרסר את הטיוטה</strong><br>' +
+      '<div style="font-size:0.78rem;color:#6B7280;margin-top:4px;white-space:pre-wrap">' +
+      (task.content || '').replace(/</g, '&lt;').substring(0, 500) +
+      '</div></div>';
+  }
+
+  var type = draft._type || task.type;
+  var html = '<div style="background:linear-gradient(135deg,#4285F410 0%,#34A85310 100%);border:2px solid #4285F4;border-radius:10px;padding:14px;margin-bottom:16px">' +
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">' +
+    '<span style="font-size:1.4rem">💰</span>' +
+    '<div><strong style="font-size:1rem;color:#1E3A5F">Google Ads — טיוטה</strong>' +
+    '<div style="font-size:0.72rem;color:#6B7280">' + escapeHtml(type) + '</div></div></div>';
+
+  if (type === 'gads_campaign_draft') {
+    html += renderCampaignDraft(draft);
+  } else if (type === 'gads_adgroup_draft') {
+    html += renderAdGroupDraft(draft);
+  } else if (type === 'gads_ad_draft') {
+    html += renderAdDraft(draft);
+  } else if (type === 'gads_keywords_draft') {
+    html += renderKeywordsDraft(draft);
+  } else {
+    html += '<pre style="font-size:0.75rem;background:#FFF;padding:10px;border-radius:6px;overflow-x:auto">' + escapeHtml(JSON.stringify(draft, null, 2)) + '</pre>';
+  }
+
+  html += '</div>';
+
+  // Live API status
+  if (task.metadata && task.metadata.liveApiStatus) {
+    var status = task.metadata.liveApiStatus;
+    var statusLabel = status === 'queued' ? '⏳ בתור לביצוע ב-Google Ads API' :
+                      status === 'pending_config' ? '⚠️ חיבור Google Ads לא מלא — יתבצע לאחר הגדרה' :
+                      status === 'executed' ? '✅ בוצע ב-Google Ads' :
+                      status === 'failed' ? '❌ נכשל ב-API' : status;
+    html += '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:8px 10px;font-size:0.78rem;color:#4B5563;margin-bottom:8px">' +
+      statusLabel + '</div>';
+  }
+
+  return html;
+}
+
+function renderCampaignDraft(d) {
+  var h = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">';
+  h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px"><div style="font-size:0.68rem;color:#6B7280">שם קמפיין</div><strong>' + escapeHtml(d.name || '') + '</strong></div>';
+  h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px"><div style="font-size:0.68rem;color:#6B7280">סוג</div><strong>' + escapeHtml(d.type || '') + '</strong></div>';
+  h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px"><div style="font-size:0.68rem;color:#6B7280">מטרה</div><strong>' + escapeHtml(d.goal || '') + '</strong></div>';
+  h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px"><div style="font-size:0.68rem;color:#6B7280">Bidding</div><strong>' + escapeHtml(d.biddingStrategy || '') + (d.targetCpaIls ? ' · CPA ₪' + d.targetCpaIls : '') + (d.targetRoas ? ' · ROAS ' + d.targetRoas + '%' : '') + '</strong></div>';
+  h += '</div>';
+  h += '<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:6px;padding:10px;margin-bottom:10px">';
+  h += '<div style="font-size:0.72rem;color:#92400E;margin-bottom:2px">תקציב חודשי משוער</div>';
+  h += '<strong style="font-size:1.05rem;color:#78350F">₪' + (d.dailyBudgetIls || 0) + '/יום × 30.4 ≈ ₪' + Math.round((d.dailyBudgetIls || 0) * 30.4) + '/חודש</strong>';
+  h += '</div>';
+  h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px;margin-bottom:6px"><div style="font-size:0.68rem;color:#6B7280">Targeting</div>';
+  h += '<strong>אזורים:</strong> ' + (d.locations || ['Israel']).map(escapeHtml).join(', ') + '<br>';
+  h += '<strong>שפות:</strong> ' + (d.languages || ['he']).map(escapeHtml).join(', ');
+  if (d.startDate) h += '<br><strong>תאריך התחלה:</strong> ' + escapeHtml(d.startDate);
+  if (d.endDate) h += ' · <strong>סיום:</strong> ' + escapeHtml(d.endDate);
+  h += '</div>';
+  if (d.rationale) h += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px;font-size:0.82rem;color:#1E40AF;line-height:1.5"><strong>💡 הנמקה:</strong><br>' + escapeHtml(d.rationale) + '</div>';
+  return h;
+}
+
+function renderAdGroupDraft(d) {
+  return '<div style="background:#FFF;padding:10px;border-radius:6px">' +
+    '<div><strong>שם קבוצה:</strong> ' + escapeHtml(d.name || '') + '</div>' +
+    '<div><strong>בקמפיין:</strong> ' + escapeHtml(d.campaignName || '') + '</div>' +
+    '<div style="margin-top:6px"><strong>Theme:</strong> ' + escapeHtml(d.theme || '') + '</div>' +
+    (d.targetAudience ? '<div><strong>קהל יעד:</strong> ' + escapeHtml(d.targetAudience) + '</div>' : '') +
+    (d.maxCpcIls ? '<div style="margin-top:4px"><strong>Max CPC:</strong> ₪' + d.maxCpcIls + '</div>' : '') +
+    '</div>';
+}
+
+function renderAdDraft(d) {
+  var h = '<div style="background:#FFF;padding:10px;border-radius:6px;margin-bottom:8px">';
+  h += '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:2px">' + escapeHtml(d.campaignName || '') + ' · ' + escapeHtml(d.adGroupName || '') + '</div>';
+  // Live preview — simulate SERP listing
+  h += '<div style="background:#FAFAFA;border:1px solid #E5E7EB;border-radius:6px;padding:10px;margin:6px 0">';
+  h += '<div style="font-size:0.72rem;color:#006621;direction:ltr">' + escapeHtml(d.finalUrl || '') + (d.displayPath1 ? ' › ' + escapeHtml(d.displayPath1) : '') + (d.displayPath2 ? ' › ' + escapeHtml(d.displayPath2) : '') + '</div>';
+  h += '<div style="color:#1A0DAB;font-size:1.05rem;font-weight:500;margin:4px 0">' + (d.headlines || []).slice(0, 3).map(escapeHtml).join(' | ') + '</div>';
+  h += '<div style="color:#545454;font-size:0.85rem">' + (d.descriptions || []).slice(0, 2).map(escapeHtml).join(' ') + '</div>';
+  h += '</div>';
+  h += '<details style="margin-top:8px"><summary style="cursor:pointer;font-size:0.78rem;color:#2563EB">כל ה-' + (d.headlines || []).length + ' כותרות + ' + (d.descriptions || []).length + ' תיאורים</summary>';
+  h += '<div style="margin-top:6px;font-size:0.78rem">';
+  h += '<div style="margin-bottom:4px"><strong>כותרות:</strong></div>';
+  (d.headlines || []).forEach(function(hh, i) { h += '<div style="color:#6B7280">' + (i+1) + '. ' + escapeHtml(hh) + ' <span style="color:#9CA3AF">(' + hh.length + '/30)</span></div>'; });
+  h += '<div style="margin:8px 0 4px"><strong>תיאורים:</strong></div>';
+  (d.descriptions || []).forEach(function(dd, i) { h += '<div style="color:#6B7280">' + (i+1) + '. ' + escapeHtml(dd) + ' <span style="color:#9CA3AF">(' + dd.length + '/90)</span></div>'; });
+  h += '</div></details>';
+  h += '</div>';
+  if (d.validationIssues && d.validationIssues.length) {
+    h += '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:8px;font-size:0.78rem;color:#991B1B"><strong>⚠️ בעיות אימות:</strong><br>' + d.validationIssues.map(escapeHtml).join('<br>') + '</div>';
+  }
+  return h;
+}
+
+function renderKeywordsDraft(d) {
+  var h = '<div style="background:#FFF;padding:10px;border-radius:6px">';
+  h += '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:6px">' + escapeHtml(d.campaignName || '') + ' · ' + escapeHtml(d.adGroupName || '') + '</div>';
+  var matchColors = { exact: '#10B981', phrase: '#F59E0B', broad: '#EF4444' };
+  h += '<table style="width:100%;font-size:0.82rem;border-collapse:collapse"><thead><tr style="background:#F3F4F6"><th style="text-align:right;padding:6px">מילה</th><th style="padding:6px">סוג התאמה</th><th style="padding:6px">Max CPC</th></tr></thead><tbody>';
+  (d.keywords || []).forEach(function(k) {
+    h += '<tr style="border-bottom:1px solid #F3F4F6">';
+    h += '<td style="padding:6px">' + escapeHtml(k.text) + '</td>';
+    h += '<td style="padding:6px;text-align:center"><span style="background:' + (matchColors[k.matchType] || '#9CA3AF') + ';color:#FFF;padding:1px 6px;border-radius:8px;font-size:0.7rem">' + k.matchType + '</span></td>';
+    h += '<td style="padding:6px;text-align:center">' + (k.maxCpcIls ? '₪' + k.maxCpcIls : '—') + '</td>';
+    h += '</tr>';
+  });
+  h += '</tbody></table>';
+  if (d.negativeKeywords && d.negativeKeywords.length) {
+    h += '<div style="margin-top:10px;padding-top:8px;border-top:1px solid #E5E7EB">';
+    h += '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:4px">מילים שליליות (exclusions):</div>';
+    h += '<div>' + d.negativeKeywords.map(function(k) { return '<span style="background:#FEE2E2;color:#991B1B;padding:2px 6px;border-radius:4px;font-size:0.75rem;margin:2px;display:inline-block">-' + escapeHtml(k) + '</span>'; }).join(' ') + '</div>';
+    h += '</div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+function renderGadsApprovalFooter(task) {
+  if (task.status === 'approved') {
+    var status = task.metadata && task.metadata.liveApiStatus;
+    if (status === 'executed') return '<span style="color:#10B981;font-weight:600;padding:8px">✅ בוצע ב-Google Ads</span>';
+    return '<span style="color:#F59E0B;font-weight:600;padding:8px">⏳ אושר — ממתין לביצוע ב-API</span>';
+  }
+  if (task.status === 'rejected') return '<span style="color:#EF4444;font-weight:600;padding:8px">✗ נדחה</span>';
+  return '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()">✗ דחו</button>' +
+         '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\')">✎ תיקון</button>' +
+         '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()">✓ אשרו לביצוע ב-Google Ads</button>';
 }
 
 // ── API-based output actions ──

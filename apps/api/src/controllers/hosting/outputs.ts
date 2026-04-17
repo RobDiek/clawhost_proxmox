@@ -220,6 +220,28 @@ export const approveOutput = async (c: Context<HonoEnv>) => {
 async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
     const meta = output.metadata as Record<string, unknown> | null
 
+    // Google Ads draft approved → Phase 4: execute via live API.
+    // For now (Phase 3): log intent + mark metadata.liveApiStatus so UI can
+    // reflect that actual API call is pending Developer Token + SDK wiring.
+    if (output.outputType && output.outputType.startsWith('gads_') && output.outputType.endsWith('_draft')) {
+        console.log(`Google Ads draft approved: ${output.outputType} (id ${output.id}) — live API call deferred to Phase 4`)
+        const [inst] = await db.select().from(instances).where(eq(instances.id, output.instanceId))
+        const gt = (inst?.googleTokens as any) || {}
+        const hasGoogleAds = !!gt.refreshToken || !!gt.refresh_token
+
+        await db.update(agentOutputs)
+            .set({
+                metadata: {
+                    ...(meta || {}),
+                    liveApiStatus: hasGoogleAds ? 'queued' : 'pending_config',
+                    approvedForExecutionAt: new Date().toISOString(),
+                },
+                updatedAt: new Date(),
+            })
+            .where(eq(agentOutputs.id, output.id))
+        return
+    }
+
     // SEO Strategy approved → trigger עט to write the #1 priority article
     if (meta?.type === 'seo_strategy' && output.agentRole === 'menateach') {
         console.log(`SEO strategy approved — triggering content writing for instance ${output.instanceId}`)
