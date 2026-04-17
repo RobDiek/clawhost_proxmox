@@ -3163,21 +3163,25 @@ function renderHome() {
       });
     }
     if (hasChosenScenario) {
-      // Connections Wizard — required connections for the chosen scenario
+      // Connections Wizard — required connections for the chosen scenario.
+      // Stays always-active so user can return to add optional connections later.
       var connReqs = computeConnectionsRequirements(instanceData.researchData.chosenScenario, instanceData);
       var mustReqs = connReqs.filter(function(r) { return r.must && !r.info; });
+      var optReqs  = connReqs.filter(function(r) { return !r.must && !r.info; });
       var mustDone = mustReqs.filter(function(r) { return r.status === 'connected'; }).length;
+      var optDone  = optReqs.filter(function(r) { return r.status === 'connected'; }).length;
       var mustTotal = mustReqs.length;
       var allMustConnected = mustTotal > 0 && mustDone === mustTotal;
+      var progressLabel = allMustConnected
+        ? '✓ ' + mustDone + '/' + mustTotal + ' חובה מחוברים' + (optReqs.length ? ' · ' + optDone + '/' + optReqs.length + ' אופציונליים' : '')
+        : mustDone + '/' + mustTotal + ' חובה מחוברים';
       tasks.push({
         id: 'connections',
-        label: allMustConnected
-          ? '✓ חיבור ערוצים — ' + mustDone + '/' + mustTotal + ' מחוברים'
-          : 'חיבור ערוצים ופלטפורמות — ' + mustDone + '/' + mustTotal,
-        done: allMustConnected,
+        label: 'חיבור ערוצים ופלטפורמות',
+        done: false, // always active so user can return to tune optional connections
         action: "openConnectionsWizard()",
-        actionLabel: mustDone === 0 ? 'התחילו לחבר' : 'המשיכו',
-        desc: 'חיבור פלטפורמות הפרסום, כלי ניתוח וחשבונות פרסום עבור המסלול שבחרתם'
+        actionLabel: mustDone === 0 ? 'התחילו לחבר' : (allMustConnected ? 'ערכו חיבורים' : 'המשיכו'),
+        desc: progressLabel + ' · פלטפורמות פרסום, כלי ניתוח וחשבונות פרסום'
       });
 
       var latestBrief = instanceData.researchData && instanceData.researchData.latestOpsBrief;
