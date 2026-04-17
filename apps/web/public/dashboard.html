@@ -762,11 +762,7 @@ input{font-family:inherit}
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
       <span class="sidebar-label">הגדרות</span>
     </div>
-    <!-- Twenty CRM removed — AGPLv3 license -->
-    <div class="sidebar-item" id="sidebar-crm" style="display:none!important" onclick="">
-      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h8M12 8v8"/></svg></span>
-      <span class="sidebar-label">Twenty CRM</span>
-    </div>
+    <!-- Twenty CRM removed — AGPLv3 license risk for managed hosting -->
     <div class="sidebar-separator"></div>
     <div class="sidebar-item sidebar-dev-link" data-tab="developer" onclick="openDeveloperZone()">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
@@ -1666,66 +1662,8 @@ input{font-family:inherit}
         </div><!-- /int-card-body Microsoft -->
       </div>
 
-      <!-- Twenty CRM (moved here from כלי ניהול) -->
-      <div class="int-card" id="twenty-card" style="grid-column:span 2">
-        <div class="int-card-header">
-          <div class="int-icon" style="background:#EDEDFF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="#5B5BD6" stroke-width="1.5"/><path d="M8 12h8M12 8v8" stroke="#5B5BD6" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-          <div><strong>Twenty CRM</strong><div class="int-status" id="twenty-status">לא מותקן</div></div>
-        </div>
-        <div class="int-card-body hidden" id="twenty-body">
-          <div style="font-size:.82rem;color:#6B7280;margin-bottom:10px">מערכת CRM — ניהול לידים, לקוחות, משימות, תוכן ופרויקטים. הסוכנים עובדים ישירות עם ה-CRM דרך MCP (29 כלים).</div>
-          <div id="twenty-not-installed">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-              <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px">
-                <div style="font-size:.75rem;color:#9CA3AF;margin-bottom:2px">דרישות</div>
-                <div style="font-size:.82rem;font-weight:600">2GB RAM · 1GB Disk</div>
-                <div style="font-size:.72rem;color:#6B7280;margin-top:2px">PostgreSQL + Docker</div>
-              </div>
-              <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px">
-                <div style="font-size:.75rem;color:#9CA3AF;margin-bottom:2px">מה כלול</div>
-                <div style="font-size:.72rem;color:#6B7280;line-height:1.5">Kanban · לוח שנה · Custom Objects · Email sync · Workflows · API (GraphQL + REST)</div>
-              </div>
-            </div>
-            <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px;margin-bottom:10px;font-size:.78rem;color:#1E40AF">
-              <strong>📋 תהליך התקנה (~5 דקות):</strong>
-              <ol style="margin:6px 0 0 16px;padding:0;font-size:.75rem;line-height:1.6">
-                <li>בדיקת RAM פנוי (נדרש 2GB)</li>
-                <li>התקנת Twenty CRM + PostgreSQL (Docker)</li>
-                <li>הגדרת subdomain: <span style="direction:ltr;unicode-bidi:isolate">crm.{subdomain}.clawflow.flowmatic.co.il</span></li>
-                <li>הגדרת SSL + Nginx</li>
-                <li>התקנת MCP Server לחיבור סוכני AI</li>
-              </ol>
-            </div>
-            <button class="btn btn-primary" onclick="installTwentyCRM()" id="btn-install-twenty" style="font-size:.85rem;width:100%">🚀 התקינו Twenty CRM</button>
-          </div>
-          <div id="twenty-installed" style="display:none">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:#F0FDF4;border:1px solid #A7F3D0;border-radius:8px;padding:10px">
-              <span style="color:#10B981;font-size:1rem">✓</span>
-              <div style="flex:1">
-                <div style="font-weight:600;font-size:.88rem;color:#065F46">Twenty CRM פעיל</div>
-                <div style="font-size:.75rem;color:#6B7280;direction:ltr" id="twenty-url"></div>
-              </div>
-              <a id="twenty-open-link" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="font-size:.78rem">פתחו CRM ↗</a>
-            </div>
-            <div id="twenty-credentials" style="display:none;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px;margin-bottom:10px">
-              <div style="font-size:.78rem;font-weight:600;margin-bottom:6px;color:#374151">פרטי התחברות</div>
-              <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:.75rem">
-                <span style="color:#6B7280">Email:</span>
-                <span id="twenty-email" style="direction:ltr;font-family:monospace" dir="ltr"></span>
-                <span style="color:#6B7280">סיסמה:</span>
-                <span style="direction:ltr;font-family:monospace" dir="ltr">
-                  <span id="twenty-pass-masked">••••••••</span>
-                  <span id="twenty-pass-clear" style="display:none"></span>
-                  <button onclick="toggleTwentyPass()" style="background:none;border:none;cursor:pointer;font-size:.72rem;color:#2563EB;margin-right:6px" id="twenty-pass-toggle">הצגה</button>
-                </span>
-              </div>
-            </div>
-            <div style="font-size:.78rem;color:#6B7280">
-              <strong>MCP Server:</strong> מחובר · 29 כלים (Contacts, Companies, Tasks, Notes, Opportunities)
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Twenty CRM card removed — AGPLv3 copyleft risk for managed hosting.
+           If CRM needed: use Activepieces + your own CRM (HubSpot/Pipedrive/Notion). -->
 
     </div>
 
@@ -4535,109 +4473,8 @@ async function upgradeForModel(planKey, planName, planPrice) {
   doUpgradePlan(planKey);
 }
 
-/* ===== Twenty CRM ===== */
-async function installTwentyCRM() {
-  // Check RAM
-  var currentPlan = PLANS[planKey] || PLANS.personal;
-  var ramMap = { base: 0.5, oc: 1, mt: 4, bare: 1, n8: 0.5, ap: 0.5, ol: 8, tw: 2 };
-  var usedRam = ramMap.base;
-  components.forEach(function(c) { usedRam += (ramMap[c] || 0); });
-  var freeRam = currentPlan.ram - usedRam;
-
-  if (freeRam < 2) {
-    var confirmed = await showConfirm({
-      icon: '⚠️',
-      title: 'אין מספיק RAM',
-      desc: 'Twenty CRM דורש 2GB RAM. יש ' + freeRam.toFixed(1) + 'GB פנוי. נדרש שדרוג תוכנית.',
-      okText: 'שדרגו תוכנית',
-      okClass: 'btn-primary',
-    });
-    if (confirmed) upgradeForModel(planKey === 'personal' ? 'business' : 'pro', currentPlan.name, currentPlan.price + 100);
-    return;
-  }
-
-  var confirmed = await showConfirm({
-    icon: '🚀',
-    title: 'התקנת Twenty CRM',
-    desc: 'יותקן CRM על השרת שלכם (2GB RAM, ~1GB disk). התהליך ייקח ~5 דקות. השרת ימשיך לפעול.',
-    okText: 'התקינו',
-    okClass: 'btn-primary',
-  });
-  if (!confirmed) return;
-
-  var btn = document.getElementById('btn-install-twenty');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border:2px solid #D1D5DB;border-top-color:#2563EB;border-radius:50%;animation:spin .8s linear infinite"></span>מתקין...</span>'; }
-
-  showToast('מתקין Twenty CRM... ייקח ~5 דקות', 'info');
-  try {
-    var res = await fetch(API + '/hosting/instances/' + instanceId + '/integrations/twenty/install', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
-    });
-    var data = await res.json();
-    if (data.success) {
-      showToast('Twenty CRM הותקן בהצלחה!', 'success');
-      showTwentyInstalled(data.data);
-      // Update components in localStorage
-      if (components.indexOf('tw') === -1) {
-        components.push('tw');
-        localStorage.setItem('cf_instance_components', JSON.stringify(components));
-      }
-    } else {
-      showToast(data.message || 'שגיאה בהתקנה', 'error');
-      if (btn) { btn.disabled = false; btn.innerHTML = '🚀 התקינו Twenty CRM'; }
-    }
-  } catch (e) {
-    showToast('שגיאה בהתקנה', 'error');
-    if (btn) { btn.disabled = false; btn.innerHTML = '🚀 התקינו Twenty CRM'; }
-  }
-}
-
-function showTwentyInstalled(data) {
-  var notInstalled = document.getElementById('twenty-not-installed');
-  var installed = document.getElementById('twenty-installed');
-  var statusEl = document.getElementById('twenty-status');
-  if (notInstalled) notInstalled.style.display = 'none';
-  if (installed) installed.style.display = '';
-  if (statusEl) { statusEl.textContent = '✓ פעיל'; statusEl.className = 'int-status connected'; }
-  var urlEl = document.getElementById('twenty-url');
-  var linkEl = document.getElementById('twenty-open-link');
-  var crmUrl = data && data.url ? data.url : 'https://crm.' + (instanceData && instanceData.subdomainName || subdomain) + '.clawflow.flowmatic.co.il';
-  if (urlEl) urlEl.textContent = crmUrl;
-  if (linkEl) linkEl.href = crmUrl;
-
-  // Show credentials if available (from instance researchData)
-  var rd = instanceData && instanceData.researchData;
-  if (rd && rd.twentyEmail && rd.twentyPassword) {
-    var credsEl = document.getElementById('twenty-credentials');
-    var emailEl = document.getElementById('twenty-email');
-    var passEl = document.getElementById('twenty-pass-clear');
-    if (credsEl) credsEl.style.display = '';
-    if (emailEl) emailEl.textContent = rd.twentyEmail;
-    if (passEl) passEl.textContent = rd.twentyPassword;
-  }
-}
-
-function toggleTwentyPass() {
-  var masked = document.getElementById('twenty-pass-masked');
-  var clear = document.getElementById('twenty-pass-clear');
-  var btn = document.getElementById('twenty-pass-toggle');
-  if (!masked || !clear || !btn) return;
-  if (masked.style.display === 'none') {
-    masked.style.display = ''; clear.style.display = 'none'; btn.textContent = 'הצגה';
-  } else {
-    masked.style.display = 'none'; clear.style.display = ''; btn.textContent = 'הסתרה';
-  }
-}
-
-function checkTwentyStatus() {
-  if (components.indexOf('tw') !== -1) {
-    showTwentyInstalled({});
-    // Show sidebar CRM link
-    var sidebarCrm = document.getElementById('sidebar-crm');
-    if (sidebarCrm) sidebarCrm.style.display = '';
-  }
-}
+/* Twenty CRM removed — AGPLv3 copyleft license risk for managed hosting.
+   Users who need CRM: use Activepieces workflows + external CRM (HubSpot/Pipedrive/Notion). */
 
 async function doUpgradePlan(targetPlan) {
   showToast('משדרג תוכנית...', 'info');
@@ -5148,7 +4985,7 @@ function renderContentCalendar() {
   // Hide calendar until basic onboarding is done (profile + research)
   var section = document.getElementById('home-calendar-section');
   var hasProfile = !!(instanceData && instanceData.researchData && instanceData.researchData.answers && instanceData.researchData.answers.businessName);
-  var hasResearch = !!(instanceData && instanceData.researchData && instanceData.researchData.report);
+  var hasResearch = !!(instanceData && instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1));
   if (section) section.style.display = (hasProfile && hasResearch) ? '' : 'none';
   if (!hasProfile || !hasResearch) return;
 
@@ -5467,8 +5304,6 @@ function filterIntegrationsByAgent() {
 function renderIntegrations() {
   // Filter integration sections by active agent type
   filterIntegrationsByAgent();
-  // Check Twenty CRM status
-  checkTwentyStatus();
   // Init Ollama backend UI (Groq / GPU / CPU selector)
   initOllamaBackendUI();
   // Ollama CPU status no longer shown (removed CPU option)
@@ -7967,7 +7802,12 @@ async function commitSelectedScenario() {
 
 function viewReport() {
   if (!instanceData || !instanceData.researchData) return;
-  var report = instanceData.researchData.report || '';
+  var rd = instanceData.researchData;
+  // Prefer legacy combined report; fall back to concatenated stages 1-5.
+  var report = rd.report ||
+    ['stage1','stage2','stage3','stage4','stage5']
+      .map(function(k){ return rd[k] ? ('## ' + k.toUpperCase() + '\n\n' + rd[k]) : ''; })
+      .filter(Boolean).join('\n\n---\n\n');
   if (!report) { showToast('אין דוח — הריצו מחקר קודם', 'error'); return; }
   openReportModal('דוח מחקר שוק', report, 'research');
 }
@@ -10374,7 +10214,7 @@ async function renderJourneyBanner() {
 
   // Gather state
   var hasProfile = !!(instanceData && instanceData.researchData && instanceData.researchData.answers && instanceData.researchData.answers.businessName);
-  var hasResearch = !!(instanceData && instanceData.researchData && instanceData.researchData.report);
+  var hasResearch = !!(instanceData && instanceData.researchData && (instanceData.researchData.report || instanceData.researchData.stage1));
   var hasGsc = isIntConnected('gsc');
   var hasDfs = isIntConnected('dataforseo');
   var hasFc = isIntConnected('firecrawl');
