@@ -3194,6 +3194,19 @@ function renderHome() {
         actionLabel: latestBrief ? 'צפו בדוח' : 'ייצרו דוח ראשון',
         desc: latestBrief ? latestBrief.statusReason : 'השוואת ביצועים מול KPI של המסלול + 3 פעולות לשבוע הבא'
       });
+      // Facts Graph seed card — ensures knowledge graph is populated
+      var factsSeeded = !!(instanceData.researchData && instanceData.researchData.factsSeededAt);
+      tasks.push({
+        id: 'facts-seed',
+        label: factsSeeded ? '✓ גרף ידע שיווקי' : '🧠 הטעינו את גרף הידע',
+        done: factsSeeded,
+        action: factsSeeded ? "openFactsSeed()" : "runFactsSeed()",
+        actionLabel: factsSeeded ? 'סקירה' : 'הטען עובדות (~30ש\')',
+        desc: factsSeeded
+          ? 'עובדות שהתמצו מהמחקר נשמרות ב-Neo4j — הסוכנים שולפים אותן במקום לקרוא מחדש את STRATEGY.md'
+          : 'מיצוי חד-פעמי של עובדות מובנות מהמחקר (מתחרים, פרסונות, מילות מפתח, ערוצים) לשימוש חוזר על ידי הסוכנים'
+      });
+
       // API Usage tracker — always visible card
       tasks.push({
         id: 'api-usage',
@@ -7116,6 +7129,102 @@ function renderConnectionsWizard() {
       renderConnectionsWizard();
     }
   };
+}
+
+// ── Facts Graph (seed + review) ──
+async function runFactsSeed() {
+  if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+  document.getElementById('pipelineOverlay').classList.remove('hidden');
+  document.getElementById('pipelineTitle').textContent = 'טעינת גרף הידע';
+  document.getElementById('pipelineSteps').innerHTML = '';
+  document.getElementById('pipelineProgress').style.width = '100%';
+  document.getElementById('pipelineBody').innerHTML =
+    '<div style="text-align:center;padding:40px">' +
+    '<div style="font-size:2rem;animation:spin 2s linear infinite;display:inline-block;margin-bottom:12px">🧠</div>' +
+    '<div style="font-weight:600;font-size:1rem;margin-bottom:4px">Claude Opus 4.7 מחלץ עובדות מובנות מהמחקר</div>' +
+    '<div style="color:#9CA3AF;font-size:0.78rem">מתחרים · פרסונות · מילות מפתח · ערוצים — ~30-60 שניות</div></div>';
+  document.getElementById('pipelineNextBtn').style.display = 'none';
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/facts/seed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({})
+    });
+    var data = await res.json();
+    if (!data.success) {
+      document.getElementById('pipelineBody').innerHTML =
+        '<div style="text-align:center;padding:30px;color:#EF4444">' +
+        '<div style="font-size:1.5rem;margin-bottom:8px">⚠️</div>' +
+        '<div>' + ((data && data.message) || 'שגיאה') + '</div></div>';
+      document.getElementById('pipelineNextBtn').style.display = '';
+      document.getElementById('pipelineNextBtn').disabled = false;
+      document.getElementById('pipelineNextBtn').textContent = 'נסו שוב';
+      document.getElementById('pipelineNextBtn').onclick = runFactsSeed;
+      return;
+    }
+    await refreshInstanceData();
+    showToast('נוספו ' + data.data.added + ' עובדות לגרף', 'success');
+    renderFactsSummary(data.data);
+  } catch (e) {
+    console.error('[facts-seed] failed', e);
+    document.getElementById('pipelineBody').innerHTML =
+      '<div style="text-align:center;padding:30px;color:#EF4444">שגיאת תקשורת</div>';
+  }
+}
+
+async function openFactsSeed() {
+  if (!instanceId) return;
+  var summary = instanceData.researchData && instanceData.researchData.factsSeedSummary;
+  document.getElementById('pipelineOverlay').classList.remove('hidden');
+  document.getElementById('pipelineTitle').textContent = 'גרף ידע שיווקי';
+  document.getElementById('pipelineSteps').innerHTML = '';
+  document.getElementById('pipelineProgress').style.width = '100%';
+  if (summary) {
+    renderFactsSummary({
+      extracted: summary.totalExtracted || summary.added || 0,
+      added: summary.added || 0,
+      failed: summary.failed || 0,
+      sample: []
+    }, true);
+  } else {
+    document.getElementById('pipelineBody').innerHTML =
+      '<div style="text-align:center;padding:30px;color:#6B7280">אין עדיין עובדות בגרף</div>';
+  }
+}
+
+function renderFactsSummary(data, isReview) {
+  var seededAt = instanceData.researchData && instanceData.researchData.factsSeededAt;
+  var html =
+    '<div style="padding:4px">' +
+    '<div style="background:#F0FDF4;border:2px solid #10B981;border-radius:10px;padding:16px;margin-bottom:20px;display:flex;gap:12px;align-items:center">' +
+    '<div style="font-size:2rem">🧠</div>' +
+    '<div style="flex:1">' +
+    '<div style="font-weight:800;font-size:1.1rem;color:#065F46">' + (data.added || 0) + ' עובדות נשמרו בגרף' + (data.failed > 0 ? ' · ' + data.failed + ' נכשלו' : '') + '</div>' +
+    '<div style="font-size:0.78rem;color:#047857">נשמר ב-Neo4j על ה-VPS — ממתין לשאילתות מהסוכנים' + (seededAt ? ' · ' + new Date(seededAt).toLocaleString('he-IL') : '') + '</div>' +
+    '</div></div>';
+
+  if (data.sample && data.sample.length) {
+    html += '<div style="margin-bottom:20px">' +
+      '<div style="font-weight:700;font-size:0.9rem;color:#111827;margin-bottom:8px">דוגמת עובדות שחולצו</div>' +
+      data.sample.map(function(f) {
+        return '<div style="background:#F9FAFB;border-radius:8px;padding:10px 12px;margin-bottom:6px;font-size:0.82rem">' +
+          '<div style="color:#6B7280;font-size:0.72rem;margin-bottom:2px">' + escapeHtml(f.subjectType || '') + ' · confidence ' + (f.confidence || 0) + '</div>' +
+          '<div><strong>' + escapeHtml(f.subject) + '</strong> <span style="color:#2563EB;font-weight:600">' + escapeHtml(f.predicate) + '</span> <strong>' + escapeHtml(f.object) + '</strong></div>' +
+          '</div>';
+      }).join('') +
+      '</div>';
+  }
+
+  html += '<div style="background:#EFF6FF;border-radius:8px;padding:12px;font-size:0.78rem;color:#1E40AF;line-height:1.5">' +
+    '💡 הגרף נבנה כדי לחסוך טוקנים — במקום שהסוכנים יקראו 80KB של STRATEGY.md בכל משימה, הם מבצעים שאילתה ממוקדת. חיסכון צפוי: <strong>~80%</strong> על משימות חוזרות.' +
+    '</div></div>';
+
+  document.getElementById('pipelineBody').innerHTML = html;
+  document.getElementById('pipelineNextBtn').style.display = '';
+  document.getElementById('pipelineNextBtn').textContent = 'סגירה';
+  document.getElementById('pipelineNextBtn').disabled = false;
+  document.getElementById('pipelineNextBtn').onclick = closePipeline;
 }
 
 // ── API Usage Tracker ──
