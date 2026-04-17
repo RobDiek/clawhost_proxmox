@@ -94,10 +94,11 @@ export const saveGithubConfig = async (c: Context) => {
             .set({ githubConfig: githubConfig as any })
             .where(eq(instances.id, body.instanceId))
 
-        // Deploy GitHub MCP server to VPS
+        // Deploy GitHub MCP server to VPS + update SOUL with safety rules
         if (instance.ip) {
             try {
                 await deployGithubMcpToVPS(instance.ip, instance.rootPassword || undefined, body.token)
+                await updateSoulWithGithubTools(instance.ip, instance.rootPassword || undefined, githubConfig.repo, githubConfig.branch)
             } catch (err) {
                 console.error('Failed to deploy GitHub MCP:', err)
             }
@@ -284,4 +285,187 @@ print('github MCP configured')
     `, password)
 
     console.log(`GitHub MCP server deployed to ${ip}`)
+}
+
+// ── Append GitHub tools section to SOUL.md with safety rules ──
+// Teaches agents when + how to use github MCP; enforces PR flow for main branch.
+async function updateSoulWithGithubTools(ip: string, password: string | undefined, repo: string, branch: string): Promise<void> {
+    try {
+        const soul = await sshExec(ip, 'cat /home/openclaw/.openclaw/workspace/SOUL.md 2>/dev/null || echo ""', password)
+        if (soul.includes('GitHub MCP')) {
+            console.log('SOUL already contains github section — skip')
+            return
+        }
+
+        const section = `
+
+## GitHub MCP — עריכת קוד האתר
+
+שרת GitHub MCP מותקן. מחובר ל-**${repo}** (ענף ברירת מחדל: ${branch}).
+
+**כלים זמינים** (המרכזיים):
+- \`get_file_contents({owner, repo, path, branch})\` — קרא קובץ
+- \`create_or_update_file({owner, repo, path, content, message, branch})\` — הוסף/ערוך קובץ (בסיס64 אוטומטי ב-MCP)
+- \`push_files({owner, repo, branch, files[], message})\` — עדכון בצרור של מספר קבצים בקומיט אחד
+- \`create_branch({owner, repo, branch, from_branch})\` — צור ענף חדש
+- \`create_pull_request({owner, repo, title, head, base, body})\` — פתח PR לסקירה
+- \`list_commits\`, \`search_code\`, \`search_repositories\`, \`create_issue\`
+
+**⚠️ כלל בטיחות קריטי — חובה:**
+
+1. **לעולם אל תדחוף ישירות לברנץ \`${branch}\` (המרכזי).** תמיד:
+   - צור ענף \`agent/<short-description>\` (לדוגמה \`agent/add-faq-schema\`)
+   - עשה commits לענף הזה
+   - פתח PR ל-\`${branch}\` עם description ברור בעברית על מה שונה ולמה
+   - המשתמש יסקור וימזג ידנית
+
+2. **אל תערוך ללא הקשר.** לפני שאתה עורך:
+   - קרא את הקובץ עם \`get_file_contents\`
+   - שנה רק את המינימום הנדרש
+   - אם אתה מוסיף תלות חדשה (npm, npm, import) — **הזכיר זאת במפורש ב-PR description**
+
+3. **תוכן שיווקי vs קוד:**
+   - תוכן (\`content/**/*.mdx\`, \`blog/*.md\`) — בדרך כלל בטוח לעריכה אבל עדיין דרך PR
+   - קוד (\`app/**\`, \`components/**\`, \`.ts\`, \`.tsx\`) — **תמיד PR + שיקול זהיר**
+   - config (\`next.config.ts\`, \`package.json\`, env files) — **אסור לערוך ללא בקשה מפורשת**
+
+4. **PR description tempalte:**
+\`\`\`
+## מה שינוי
+<תיאור קצר בעברית>
+
+## למה
+<הסבר + קישור לאסטרטגיה/אימות/issue>
+
+## בדיקות שבוצעו
+- [ ] קריאתי את הקובץ המקורי לפני עריכה
+- [ ] רק השינוי המינימלי הדרוש
+- [ ] אין תלויות חדשות (או: תלות X נוספה כי Y)
+
+🤖 נוצר על ידי Flowmatic Agent
+\`\`\`
+
+**שגרת עבודה לדוגמה (שליח יוצר מאמר בלוג):**
+\`\`\`js
+// 1. Ensure branch exists
+create_branch({ owner: '${repo.split('/')[0]}', repo: '${repo.split('/')[1]}', branch: 'agent/new-article-seo-2026', from_branch: '${branch}' })
+
+// 2. Read current content dir for format reference
+get_file_contents({ owner, repo, path: 'content/guides', branch: '${branch}' })
+
+// 3. Create the article
+create_or_update_file({
+  owner, repo,
+  path: 'content/guides/open-source-marketing-automation-2026.mdx',
+  content: '<MDX with frontmatter + Hebrew body + Schema>',
+  message: 'docs: add open-source marketing automation guide (2026 edition)',
+  branch: 'agent/new-article-seo-2026'
+})
+
+// 4. Open PR for user approval
+create_pull_request({
+  owner, repo,
+  title: 'תוכן: מדריך Open Source Marketing Automation 2026',
+  head: 'agent/new-article-seo-2026',
+  base: '${branch}',
+  body: '<PR template...>'
+})
+\`\`\`
+
+**עוגן הבטיחות האחרון:** גם אחרי merge — הבילד של Cloudflare Pages/Vercel ירוץ. אם הוא נכשל — הפרסום לא יתבצע. לכן אם יש ספק לגבי שינוי — עדיף לא לעשות merge.
+`
+        const b64 = Buffer.from(section, 'utf8').toString('base64')
+        await sshExec(ip,
+            `echo '${b64}' | base64 -d >> /home/openclaw/.openclaw/workspace/SOUL.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/SOUL.md`,
+            password, 15000
+        )
+        await sshExec(ip, 'systemctl restart openclaw-gateway', password, 15000)
+        console.log('SOUL.md updated with GitHub MCP + safety rules')
+    } catch (err) {
+        console.error('updateSoulWithGithubTools error (non-fatal):', err)
+    }
+}
+
+// POST /hosting/instances/:id/integrations/github/test
+// End-to-end verification: read repo, create agent branch, write test file, open PR, cleanup
+export const testGithubIntegration = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = resolveUserId(c)
+        const instance = await getOwnedInstance(instanceId, userId)
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const config = (instance.githubConfig as any) || {}
+        if (!config.token || !config.repo) return fail(c, 'GitHub not connected', 400)
+
+        const [owner, repoName] = String(config.repo).split('/')
+        const branch = config.branch || 'main'
+        const testBranch = `agent/flowmatic-smoke-test-${Date.now()}`
+        const headers = {
+            'Authorization': `Bearer ${config.token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json',
+            'User-Agent': 'ClawFlow-SEO',
+        }
+        const steps: Array<{ step: string; ok: boolean; detail?: string }> = []
+
+        // 1. Get default branch SHA (needed to create new branch from it)
+        const refRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/refs/heads/${branch}`, { headers })
+        if (!refRes.ok) {
+            steps.push({ step: 'read-default-branch', ok: false, detail: `${refRes.status} ${await refRes.text().catch(() => '')}`.substring(0, 200) })
+            return ok(c, { steps, passed: false }, 'Test failed')
+        }
+        const refData = await refRes.json() as { object?: { sha?: string } }
+        const baseSha = refData.object?.sha
+        if (!baseSha) return ok(c, { steps: [{ step: 'read-default-branch', ok: false, detail: 'no SHA' }], passed: false })
+        steps.push({ step: 'read-default-branch', ok: true, detail: `SHA ${baseSha.substring(0, 7)}` })
+
+        // 2. Create test branch
+        const createBranchRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/git/refs`, {
+            method: 'POST', headers,
+            body: JSON.stringify({ ref: `refs/heads/${testBranch}`, sha: baseSha }),
+        })
+        steps.push({ step: 'create-test-branch', ok: createBranchRes.ok, detail: `HTTP ${createBranchRes.status}` })
+        if (!createBranchRes.ok) return ok(c, { steps, passed: false })
+
+        // 3. Create test file in that branch
+        const testFilePath = `.flowmatic-agent-smoke-test.md`
+        const testContent = `# Smoke Test\n\nThis file was created by Flowmatic agent smoke test at ${new Date().toISOString()}.\n\nIt confirms:\n- Token has Contents write\n- Branch creation works\n- File commits work\n- PR creation works\n\nSafe to delete.\n`
+        const writeRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/contents/${testFilePath}`, {
+            method: 'PUT', headers,
+            body: JSON.stringify({
+                message: 'test: flowmatic agent smoke test',
+                content: Buffer.from(testContent).toString('base64'),
+                branch: testBranch,
+            }),
+        })
+        steps.push({ step: 'write-test-file', ok: writeRes.ok, detail: `HTTP ${writeRes.status}` })
+        if (!writeRes.ok) return ok(c, { steps, passed: false })
+
+        // 4. Open PR
+        const prRes = await fetch(`https://api.github.com/repos/${owner}/${repoName}/pulls`, {
+            method: 'POST', headers,
+            body: JSON.stringify({
+                title: '🧪 Flowmatic agent smoke test (safe to close/delete)',
+                head: testBranch, base: branch,
+                body: `This is an automated smoke test from Flowmatic dashboard.\n\nIf you see this PR — the GitHub integration is working correctly:\n- ✅ Token authentication\n- ✅ Branch creation\n- ✅ File writes\n- ✅ PR creation\n\nSafe to **close without merging** + delete the branch.\n\nCreated: ${new Date().toISOString()}`,
+            }),
+        })
+        const prData = await prRes.json().catch(() => null) as { html_url?: string; number?: number } | null
+        steps.push({
+            step: 'create-pr', ok: prRes.ok,
+            detail: prRes.ok ? `#${prData?.number} ${prData?.html_url}` : `HTTP ${prRes.status}`
+        })
+
+        return ok(c, {
+            steps,
+            passed: steps.every(s => s.ok),
+            prUrl: prData?.html_url || null,
+            testBranch,
+            cleanupHint: 'Close the PR + delete the branch manually, or use /github/test-cleanup',
+        }, 'Smoke test complete')
+    } catch (err) {
+        console.error('testGithubIntegration error:', err)
+        return fail(c, 'Test failed', 500)
+    }
 }

@@ -164,7 +164,8 @@ import {
     saveGithubConfig,
     getGithubStatus,
     disconnectGithub,
-    publishToGithub
+    publishToGithub,
+    testGithubIntegration,
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -279,6 +280,7 @@ app.post('/integrations/reddit/test', testReddit)
 app.post('/integrations/github/save', saveGithubConfig)
 app.get('/integrations/github/status', getGithubStatus)
 app.post('/integrations/github/disconnect', disconnectGithub)
+app.post('/instances/:id/integrations/github/test', testGithubIntegration)
 app.post('/instances/:id/github/publish', publishToGithub)
 
 // ── Schedules (bundle-managed) ──

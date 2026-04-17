@@ -1818,8 +1818,12 @@ input{font-family:inherit}
               <span style="color:#10B981;font-size:0.85rem">&#10003;</span>
               <span style="font-size:0.82rem;color:#374151;direction:ltr" id="github-repo-display"></span>
             </div>
-            <div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">נתיב: <span id="github-path-display" dir="ltr"></span></div>
-            <button class="btn btn-outline btn-sm" onclick="disconnectGithubIntegration()" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">נתקו</button>
+            <div style="font-size:0.75rem;color:#6B7280;margin-bottom:8px">נתיב: <span id="github-path-display" dir="ltr"></span></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-primary btn-sm" onclick="testGithubIntegration()" style="font-size:0.75rem">🧪 בדיקת E2E</button>
+              <button class="btn btn-outline btn-sm" onclick="disconnectGithubIntegration()" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">נתקו</button>
+            </div>
+            <div id="github-test-result" style="margin-top:10px;display:none"></div>
           </div>
         </div>
       </div>
@@ -10155,6 +10159,49 @@ function showGithubConnected(data) {
   if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
   var card = document.getElementById('github-card');
   if (card) card.classList.add('connected-card');
+}
+
+async function testGithubIntegration() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+  var resultEl = document.getElementById('github-test-result');
+  if (resultEl) {
+    resultEl.style.display = '';
+    resultEl.innerHTML = '<div style="background:#F3F4F6;border-radius:6px;padding:10px;font-size:0.78rem;color:#4B5563"><span style="display:inline-block;animation:spin 1s linear infinite">⚙</span> בודק... (יוצר ענף + קובץ + PR)</div>';
+  }
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/integrations/github/test', {
+      method: 'POST', headers: { 'Authorization': 'Bearer ' + (tk || '') }
+    });
+    var data = await res.json();
+    if (!data.success) {
+      if (resultEl) resultEl.innerHTML = '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:10px;color:#991B1B;font-size:0.78rem">✗ ' + (data.message || 'שגיאה') + '</div>';
+      return;
+    }
+    var r = data.data;
+    var stepHtml = (r.steps || []).map(function(s) {
+      var icon = s.ok ? '<span style="color:#10B981">✓</span>' : '<span style="color:#EF4444">✗</span>';
+      return '<div style="display:flex;gap:6px;align-items:center;padding:3px 0;font-size:0.75rem">' + icon + ' <span style="font-family:monospace">' + escapeHtml(s.step) + '</span>' +
+        (s.detail ? ' <span style="color:#6B7280;font-size:0.7rem">· ' + escapeHtml(s.detail) + '</span>' : '') + '</div>';
+    }).join('');
+    var bannerColor = r.passed ? '#10B981' : '#F59E0B';
+    var bannerBg    = r.passed ? '#F0FDF4' : '#FEF3C7';
+    var html = '<div style="background:' + bannerBg + ';border:2px solid ' + bannerColor + ';border-radius:8px;padding:12px">';
+    html += '<div style="font-weight:700;color:' + bannerColor + ';margin-bottom:8px">' + (r.passed ? '✓ כל הבדיקות עברו — GitHub מחובר ועובד' : '⚠️ חלק מהבדיקות נכשלו') + '</div>';
+    html += stepHtml;
+    if (r.prUrl) {
+      html += '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #E5E7EB">';
+      html += '<a href="' + r.prUrl + '" target="_blank" style="color:#2563EB;font-size:0.82rem">🔗 ראו PR → ' + escapeHtml(r.prUrl) + '</a>';
+      html += '<div style="font-size:0.72rem;color:#6B7280;margin-top:4px">💡 ' + escapeHtml(r.cleanupHint || 'סגרו את ה-PR + מחקו את הענף ידנית') + '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+    if (resultEl) resultEl.innerHTML = html;
+    showToast(r.passed ? 'GitHub עובד!' : 'בדיקה חלקית — ראו פרטים', r.passed ? 'success' : 'error');
+  } catch (e) {
+    if (resultEl) resultEl.innerHTML = '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:10px;color:#991B1B;font-size:0.78rem">✗ שגיאת תקשורת: ' + escapeHtml(e.message || '') + '</div>';
+  }
 }
 
 async function disconnectGithubIntegration() {
