@@ -151,6 +151,10 @@ import {
     saveFirecrawlKey,
     getFirecrawlStatus,
     removeFirecrawlKey,
+    saveRedditCredentials,
+    getRedditStatus,
+    disconnectReddit,
+    testReddit,
     getSchedules,
     saveSchedules,
     seoValidate,
@@ -259,6 +263,12 @@ app.post('/integrations/dataforseo/disconnect', removeDataforseoKey)
 app.post('/integrations/firecrawl/save', saveFirecrawlKey)
 app.get('/integrations/firecrawl/status', getFirecrawlStatus)
 app.post('/integrations/firecrawl/disconnect', removeFirecrawlKey)
+
+// ── Reddit (script app / PRAW-style) ──
+app.post('/integrations/reddit/save', saveRedditCredentials)
+app.get('/integrations/reddit/status', getRedditStatus)
+app.post('/integrations/reddit/disconnect', disconnectReddit)
+app.post('/integrations/reddit/test', testReddit)
 
 // ── GitHub (Content Publishing) ──
 app.post('/integrations/github/save', saveGithubConfig)

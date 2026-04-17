@@ -22,6 +22,7 @@ export { listMcpServers, addMcpServer, removeMcpServer, getMcpCatalog } from './
 export { gscAuth, gscCallback, gscCallbackHandler, gscDisconnect, gscStatus, gscSetSite } from './gsc'
 export { saveDataforseoKey, getDataforseoStatus, removeDataforseoKey } from './dataforseo'
 export { saveFirecrawlKey, getFirecrawlStatus, removeFirecrawlKey } from './firecrawl'
+export { saveRedditCredentials, getRedditStatus, disconnectReddit, testReddit } from './reddit'
 export { getSchedules, saveSchedules } from './schedules'
 export { saveGithubConfig, getGithubStatus, disconnectGithub, publishToGithub } from './github'
 export { seoValidate, seoFirstRun, seoStatus } from './seoFirstRun'

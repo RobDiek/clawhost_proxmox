@@ -18,7 +18,7 @@ import { agentIntegrations, instances } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 export type AgentType = 'oc' | 'mt' | 'bare'
-export type IntegrationType = 'telegram' | 'google' | 'meta' | 'microsoft' | 'whatsapp' | 'gbp' | 'api_key' | 'brave' | 'smtp' | 'wordpress' | 'gsc' | 'dataforseo' | 'firecrawl'
+export type IntegrationType = 'telegram' | 'google' | 'meta' | 'microsoft' | 'whatsapp' | 'gbp' | 'api_key' | 'brave' | 'smtp' | 'wordpress' | 'gsc' | 'dataforseo' | 'firecrawl' | 'reddit'
 
 /**
  * Get a specific integration for an agent

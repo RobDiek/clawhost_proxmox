@@ -60,9 +60,13 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'https://clawflow.flowmatic.co.
 
 // Available Google scopes (limited to what google-lite-mcp.js supports)
 const SCOPE_MAP: Record<string, string> = {
-    calendar: 'https://www.googleapis.com/auth/calendar',
-    gmail: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send',
-    contacts: 'https://www.googleapis.com/auth/contacts',
+    calendar:  'https://www.googleapis.com/auth/calendar',
+    gmail:     'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send',
+    contacts:  'https://www.googleapis.com/auth/contacts',
+    ads:       'https://www.googleapis.com/auth/adwords',
+    drive:     'https://www.googleapis.com/auth/drive.file',
+    analytics: 'https://www.googleapis.com/auth/analytics.readonly',
+    youtube:   'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly',
 }
 
 // ── GET /integrations/google/auth ──

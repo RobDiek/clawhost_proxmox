@@ -415,6 +415,19 @@ export const getMyInstances = async (c: Context) => {
                 hasGsc: !!i.gscTokens,
                 hasDataforseo: !!i.dataforseoKey,
                 hasFirecrawl: !!i.firecrawlKey,
+                hasGoogleAds: (() => {
+                    const gt = i.googleTokens as any
+                    if (!gt) return false
+                    const scopes = (gt.scopes || gt.scope || '').toString().toLowerCase()
+                    return scopes.includes('adwords')
+                })(),
+                hasMetaAds: (() => {
+                    const mt = i.metaTokens as any
+                    if (!mt) return false
+                    // Either explicit adAccountId present or OAuth granted ads_management
+                    return !!(mt.adAccountId || mt.adAccounts?.length) ||
+                           (mt.grantedScopes || '').toString().toLowerCase().includes('ads_management')
+                })(),
                 subAgentModels: i.subAgentModels || {},
                 // Legacy integration fields (derived from agent_integrations, fallback to instances)
                 ...legacy,

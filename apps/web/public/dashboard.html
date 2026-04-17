@@ -1903,7 +1903,57 @@ input{font-family:inherit}
       </div>
 
       <!-- Telegram removed — already in ערוצי תקשורת -->
-      <!-- Google Ads removed — part of Google Workspace scope (כלי עבודה) -->
+
+      <!-- Reddit (Script App — PRAW-style) -->
+      <div class="int-card" id="reddit-card" data-tooltip="Reddit — חיבור דרך Script App לפרסום, תגובות ומעקב בסאב-רדיטים. נדרש: Client ID + Client Secret + שם משתמש + סיסמה.">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#FFF7ED"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#FF4500"/><path d="M17 11.5a2 2 0 00-3.4-1.4l-4.1-1-.2-.05.5-2.4 1.6.3a1.5 1.5 0 101.3-1.75L9 5l-.9 4.4a2 2 0 10-.4 3.9c1.5 2 5.6 2 7.1 0A2 2 0 0017 11.5zM8.5 12.5a.9.9 0 111.8 0 .9.9 0 01-1.8 0zm5.5 2.8c-1 .6-3 .6-4 0-.2-.1-.4-.1-.5.1-.1.2 0 .4.1.5 1.3.8 3.6.8 4.9 0 .2-.1.2-.3.1-.5-.1-.2-.3-.2-.5-.1zm.5-1.9a.9.9 0 110-1.8.9.9 0 010 1.8z" fill="#FFF"/></svg></div>
+          <div><strong>Reddit</strong><div class="int-status" id="reddit-status">לא מחובר</div></div>
+        </div>
+        <div class="int-card-body hidden" id="int-reddit-body">
+          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">פרסום ותגובות בסאב-רדיטים + ניטור mentions. הסוכן ישתמש ב-API Reddit עם חשבון Script App שלכם.</div>
+          <div id="reddit-not-connected">
+            <input type="text" id="reddit-client-id" placeholder="Client ID" dir="ltr" class="int-input" style="margin-bottom:4px"/>
+            <input type="password" id="reddit-client-secret" placeholder="Client Secret" dir="ltr" class="int-input" style="margin-bottom:4px"/>
+            <input type="text" id="reddit-username" placeholder="שם משתמש Reddit (בלי u/)" dir="ltr" class="int-input" style="margin-bottom:4px"/>
+            <input type="password" id="reddit-password" placeholder="סיסמה" dir="ltr" class="int-input" style="margin-bottom:6px"/>
+            <button class="btn btn-primary btn-sm" onclick="saveRedditIntegration()">&#8594; חברו</button>
+            <div style="font-size:0.72rem;color:#9CA3AF;margin-top:4px">צרו <a href="https://www.reddit.com/prefs/apps" target="_blank" style="color:#2563EB">Script App ב-Reddit</a> (type: script) — חינם</div>
+          </div>
+          <div id="reddit-connected" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span style="color:#10B981;font-size:0.85rem">&#10003;</span>
+              <span style="font-size:0.82rem;color:#374151" dir="ltr">u/<span id="reddit-username-display"></span></span>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-outline btn-sm" onclick="testRedditIntegration()" style="font-size:0.75rem">🧪 בדוק חיבור</button>
+              <button class="btn btn-outline btn-sm" onclick="disconnectRedditIntegration()" style="color:#EF4444;border-color:#FECACA;font-size:0.75rem">נתקו</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Google Ads (uses existing Google OAuth with adwords scope) -->
+      <div class="int-card" id="google-ads-card" data-tooltip="Google Ads — קמפיינים ב-Search + YouTube. חיבור דרך Google OAuth עם scope=adwords. הסוכן ינהל קמפיינים, bid strategies ו-conversion tracking.">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#E8F0FE"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 12l10 10 10-10L12 2z" fill="#4285F4"/><path d="M12 7l-5 5 5 5 5-5-5-5z" fill="#FFF"/></svg></div>
+          <div><strong>Google Ads</strong><div class="int-status" id="google-ads-status">לא מחובר</div></div>
+        </div>
+        <div class="int-card-body hidden" id="int-google-ads-body">
+          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">קמפיינים ב-Google Search + YouTube + Display. חיבור מאובטח דרך OAuth — הסוכן מנהל קמפיינים לפי האסטרטגיה.</div>
+          <div id="google-ads-not-connected">
+            <button class="btn btn-primary btn-sm" onclick="connectGoogleAds()">&#8594; חברו Google Ads</button>
+            <div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px">דרוש חשבון Google Ads פעיל + Developer Token (Google מאשר לוקח 1-3 ימים ראשונית)</div>
+          </div>
+          <div id="google-ads-connected" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span style="color:#10B981;font-size:0.85rem">&#10003;</span>
+              <span style="font-size:0.82rem;color:#374151">מחובר דרך Google OAuth</span>
+            </div>
+            <div style="font-size:0.72rem;color:#6B7280">scope: adwords</div>
+          </div>
+        </div>
+      </div>
 
       <!-- Meta Ads (Facebook + Instagram) -->
       <div class="int-card" id="pub-metaads-card">
@@ -6955,11 +7005,17 @@ function computeConnectionsRequirements(scenario, inst) {
     });
   }
   if (/reddit|r\//.test(channels)) {
+    var agentInts = inst.agentIntegrations || {};
+    var redditConnected = false;
+    Object.keys(agentInts).forEach(function(a) {
+      if (agentInts[a] && agentInts[a].reddit && agentInts[a].reddit.connected) redditConnected = true;
+    });
     reqs.push({
-      id: 'reddit', icon: '🟠', label: 'Reddit — חיבור API',
+      id: 'reddit', icon: '🟠', label: 'Reddit (Script App)',
       must: false, group: 'organic',
-      desc: 'Reddit API (PRAW) מתוכנן — יתאפשר פרסום מבוקר בסאב-רדיטים רלוונטיים + ניטור mentions. בפיתוח.',
-      status: 'info', info: true, devNote: 'בפיתוח'
+      desc: 'חיבור דרך Reddit Script App — הסוכן יכול לפרסם, להגיב, לנטר sub-reddits רלוונטיים. ודאו karma מינימלי (>50) לקהילות יעד.',
+      status: st(redditConnected),
+      connectAction: "switchTab('integrations')"
     });
   }
 
@@ -6970,33 +7026,45 @@ function computeConnectionsRequirements(scenario, inst) {
   var hasPaidInChannels = /google ads|paid search|adwords|meta ads|facebook ads|instagram ads|tiktok/.test(channels);
 
   if (hasPaidInChannels || paidAct) {
-    // Google Ads — via Google OAuth with adwords scope
+    // Google Ads — via Google OAuth with adwords scope (properly checked now)
     reqs.push({
       id: 'google-ads', icon: '🎯', label: 'Google Ads',
       must: wantsImmediate && /google|adwords|paid search/.test(channels),
       group: 'paid',
-      desc: 'קמפיינים ממומנים ב-Google Search + YouTube. חיבור דרך Google OAuth עם הרשאת Ads. הקמה + ניהול אוטומטי של קמפיינים.',
-      status: st(!!googleConnected),
-      connectAction: "switchTab('integrations')"
+      desc: 'קמפיינים ב-Google Search + YouTube. חיבור דרך Google OAuth עם הרשאת adwords. הקמה + ניהול אוטומטי של קמפיינים.',
+      status: st(!!inst.hasGoogleAds),
+      connectAction: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('google-ads-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)"
     });
 
-    // Meta Ads
+    // Meta Ads — scope already in default META_SCOPES, checked via hasMetaAds
     reqs.push({
-      id: 'meta-ads', icon: '💰', label: 'Meta Ads (Facebook + Instagram Ads)',
+      id: 'meta-ads', icon: '💰', label: 'Meta Ads (Facebook + Instagram)',
       must: wantsImmediate && /meta|facebook ads|instagram ads/.test(channels),
       group: 'paid',
-      desc: 'קמפיינים ב-Facebook + Instagram. דורש Business Manager + Ad Account + Pixel על האתר.',
-      status: st(!!metaAdsConnected),
+      desc: 'קמפיינים ב-Facebook + Instagram. דורש Business Manager + Ad Account + Pixel על האתר. המקשר של Facebook Page כולל כבר את ההרשאה.',
+      status: st(!!inst.hasMetaAds),
       connectAction: "switchTab('integrations')"
     });
 
+    // LinkedIn Ads — requires Partner Program
+    if (/linkedin ads/.test(channels)) {
+      reqs.push({
+        id: 'linkedin-ads', icon: '💼', label: 'LinkedIn Ads',
+        must: false, group: 'paid',
+        desc: 'LinkedIn Marketing API דורש LinkedIn Marketing Partner Program approval — תהליך של מספר שבועות. בפיתוח.',
+        status: 'info', info: true, devNote: 'בפיתוח'
+      });
+    }
+
     // TikTok Ads — future
-    reqs.push({
-      id: 'tiktok-ads', icon: '🎵', label: 'TikTok Ads',
-      must: false, group: 'paid',
-      desc: 'TikTok Marketing API — אינטגרציה מלאה בפיתוח. יתאפשרו קמפיינים לקהל צעיר + creator partnerships.',
-      status: 'info', info: true, devNote: 'בפיתוח'
-    });
+    if (/tiktok/.test(channels)) {
+      reqs.push({
+        id: 'tiktok-ads', icon: '🎵', label: 'TikTok Ads',
+        must: false, group: 'paid',
+        desc: 'TikTok Marketing API דורש Marketing Partner approval. בפיתוח — יתאפשרו קמפיינים לקהל צעיר + creator partnerships.',
+        status: 'info', info: true, devNote: 'בפיתוח'
+      });
+    }
   }
 
   // === Analytics + SEO ===
@@ -8086,7 +8154,12 @@ function checkGoogleStatus() {
   // Check URL params for OAuth redirect result
   var params = new URLSearchParams(window.location.search);
   if (params.get('google_connected')) {
-    showToast('Google Workspace חובר בהצלחה!', 'success');
+    var scopes = params.get('scopes') || '';
+    if (scopes.indexOf('ads') !== -1) {
+      showToast('Google Ads חובר בהצלחה!', 'success');
+    } else {
+      showToast('Google Workspace חובר בהצלחה!', 'success');
+    }
     window.history.replaceState({}, '', '/dashboard');
     setTimeout(refreshInstanceData, 500);
   }
@@ -9433,6 +9506,19 @@ async function restoreSeoIntegrationStates() {
       showFirecrawlConnected(key ? key.substring(0, 6) + '...' : '');
     }
   } catch {}
+  // Reddit — read from agent_integrations
+  try {
+    if (agentInts.reddit && agentInts.reddit.connected) {
+      var rCfg = agentInts.reddit.config || {};
+      showRedditConnected(rCfg.username || '');
+    }
+  } catch {}
+  // Google Ads — check my-instances exposure
+  try {
+    if (instanceData && instanceData.hasGoogleAds) {
+      showGoogleAdsConnected();
+    }
+  } catch {}
   // Load bundle schedules and refresh UI
   await loadBundleSchedules();
   refreshBundleUI();
@@ -9621,6 +9707,98 @@ async function disconnectFirecrawl() {
     history.replaceState(null, '', window.location.pathname);
   }
 })();
+
+// ── Reddit ──
+async function saveRedditIntegration() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+  var clientId     = document.getElementById('reddit-client-id').value.trim();
+  var clientSecret = document.getElementById('reddit-client-secret').value.trim();
+  var username     = document.getElementById('reddit-username').value.trim().replace(/^u\//, '');
+  var password     = document.getElementById('reddit-password').value;
+  if (!clientId || !clientSecret || !username || !password) {
+    showToast('יש למלא את כל השדות', 'error'); return;
+  }
+  try {
+    var res = await fetch(API + '/hosting/integrations/reddit/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (tk || '') },
+      body: JSON.stringify({ instanceId: iid, clientId: clientId, clientSecret: clientSecret, username: username, password: password })
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('Reddit חובר! u/' + username, 'success');
+      showRedditConnected(data.data.username || username);
+      ['reddit-client-id','reddit-client-secret','reddit-username','reddit-password'].forEach(function(id) { document.getElementById(id).value = ''; });
+    } else {
+      showToast(data.message || 'שגיאת אימות', 'error');
+    }
+  } catch { showToast('שגיאת תקשורת', 'error'); }
+}
+
+function showRedditConnected(username) {
+  document.getElementById('reddit-not-connected').style.display = 'none';
+  document.getElementById('reddit-connected').style.display = '';
+  document.getElementById('reddit-username-display').textContent = username || '';
+  var statusEl = document.getElementById('reddit-status');
+  if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
+  var card = document.getElementById('reddit-card');
+  if (card) card.classList.add('connected-card');
+}
+
+async function testRedditIntegration() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  showToast('בודק חיבור...', 'info');
+  try {
+    var res = await fetch(API + '/hosting/integrations/reddit/test?instanceId=' + iid, {
+      method: 'POST', headers: { 'Authorization': 'Bearer ' + (tk || '') }
+    });
+    var data = await res.json();
+    if (data.success) {
+      showToast('✓ מחובר כ-u/' + data.data.name + ' · karma: ' + data.data.totalKarma, 'success');
+    } else {
+      showToast(data.message || 'בדיקה נכשלה', 'error');
+    }
+  } catch { showToast('שגיאת תקשורת', 'error'); }
+}
+
+async function disconnectRedditIntegration() {
+  if (!confirm('להסיר את Reddit?')) return;
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  try {
+    await fetch(API + '/hosting/integrations/reddit/disconnect?instanceId=' + iid, {
+      method: 'POST', headers: { 'Authorization': 'Bearer ' + (tk || '') }
+    });
+    showToast('Reddit הוסר', 'success');
+    document.getElementById('reddit-not-connected').style.display = '';
+    document.getElementById('reddit-connected').style.display = 'none';
+    var statusEl = document.getElementById('reddit-status');
+    if (statusEl) { statusEl.textContent = 'לא מחובר'; statusEl.className = 'int-status'; }
+    var card = document.getElementById('reddit-card');
+    if (card) card.classList.remove('connected-card');
+  } catch { showToast('שגיאה', 'error'); }
+}
+
+// ── Google Ads (reuses Google OAuth with adwords scope) ──
+function connectGoogleAds() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+  // Redirect through Google OAuth with 'ads' scope added
+  window.location.href = API + '/hosting/integrations/google/auth?instanceId=' + iid + '&scopes=ads&token=' + encodeURIComponent(tk || '');
+}
+
+function showGoogleAdsConnected() {
+  document.getElementById('google-ads-not-connected').style.display = 'none';
+  document.getElementById('google-ads-connected').style.display = '';
+  var statusEl = document.getElementById('google-ads-status');
+  if (statusEl) { statusEl.innerHTML = '<span class="int-status-dot"></span>מחובר'; statusEl.className = 'int-status connected'; }
+  var card = document.getElementById('google-ads-card');
+  if (card) card.classList.add('connected-card');
+}
 
 /* ===== GitHub Integration ===== */
 
