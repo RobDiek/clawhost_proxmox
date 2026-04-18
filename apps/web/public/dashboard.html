@@ -1770,6 +1770,50 @@ input{font-family:inherit}
       </div>
 
       <!-- Firecrawl (API key) -->
+      <!-- Creative Generation (fal.ai + ElevenLabs BYOK) -->
+      <div class="int-card" id="creative-card" data-tooltip="fal.ai לתמונות ווידאו + ElevenLabs ל-TTS עברית. BYOK — שתי המפתחות של המשתמש. נדרש להרצת קריאייטיבים של Yotzer.">
+        <div class="int-card-header">
+          <div class="int-icon" style="background:#F3E8FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#8B5CF6" stroke-width="1.5" stroke-linejoin="round"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="#8B5CF6" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+          <div><strong>Creative (fal.ai + ElevenLabs)</strong><div class="int-status" id="creative-status">לא מחובר</div></div>
+        </div>
+        <div class="int-card-body hidden" id="int-creative-body">
+          <div style="font-size:0.78rem;color:#6B7280;margin-bottom:8px">מפתחות להרצת Yotzer — תמונות, וידאו ו-TTS עברית</div>
+
+          <div id="creative-fal-block" style="margin-bottom:10px">
+            <label style="display:block;font-size:0.75rem;color:#374151;margin-bottom:2px">fal.ai API key <span style="color:#EF4444">*</span></label>
+            <div id="creative-fal-notconnected">
+              <input type="password" id="creative-fal-key" placeholder="abcdef12-3456-..." dir="ltr" class="int-input" style="margin-bottom:4px"/>
+              <a href="https://fal.ai/dashboard/keys" target="_blank" class="int-help-link" style="display:block;margin-bottom:4px">קבלו מפתח ב-fal.ai &#8599;</a>
+            </div>
+            <div id="creative-fal-connected" style="display:none">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="color:#10B981;font-size:0.85rem">&#10003; fal.ai</span>
+                <code id="creative-fal-masked" style="font-size:0.78rem;color:#374151;background:#F3F4F6;padding:3px 8px;border-radius:4px"></code>
+                <button class="btn btn-outline btn-sm" onclick="disconnectCreative('fal')" style="color:#EF4444;border-color:#FECACA;font-size:0.72rem">הסירו</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="creative-el-block" style="margin-bottom:10px">
+            <label style="display:block;font-size:0.75rem;color:#374151;margin-bottom:2px">ElevenLabs key (אופציונלי — TTS עברית)</label>
+            <div id="creative-el-notconnected">
+              <input type="password" id="creative-el-key" placeholder="sk-..." dir="ltr" class="int-input" style="margin-bottom:4px"/>
+              <a href="https://elevenlabs.io/app/speech-synthesis" target="_blank" class="int-help-link" style="display:block;margin-bottom:4px">קבלו מפתח ב-ElevenLabs &#8599;</a>
+            </div>
+            <div id="creative-el-connected" style="display:none">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="color:#10B981;font-size:0.85rem">&#10003; ElevenLabs</span>
+                <code id="creative-el-masked" style="font-size:0.78rem;color:#374151;background:#F3F4F6;padding:3px 8px;border-radius:4px"></code>
+                <button class="btn btn-outline btn-sm" onclick="disconnectCreative('elevenlabs')" style="color:#EF4444;border-color:#FECACA;font-size:0.72rem">הסירו</button>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-sm" onclick="saveCreativeKeys()" style="margin-top:4px">&#8594; שמרו מפתחות</button>
+          <button class="btn btn-outline btn-sm" onclick="openRendersGallery()" style="margin-right:6px;font-size:0.78rem">🎬 היסטוריית רינדורים</button>
+        </div>
+      </div>
+
       <div class="int-card" id="firecrawl-card" data-tooltip="Firecrawl — סריקת אתרים מלאה, ניתוח טכני, מיפוי תוכן מתחרים, בדיקת קישורים. 500 דפים/חודש חינם.">
         <div class="int-card-header">
           <div class="int-icon" style="background:#FFF7ED"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C8 2 6 5 6 8c0 2 1 4 3 5.5V15a1 1 0 001 1h4a1 1 0 001-1v-1.5C17 12 18 10 18 8c0-3-2-6-6-6z" stroke="#F97316" stroke-width="1.5"/><path d="M10 18h4M11 20h2" stroke="#F97316" stroke-width="1.5" stroke-linecap="round"/></svg></div>
@@ -2476,6 +2520,19 @@ input{font-family:inherit}
 </div>
 
 <!-- Research Pipeline Modal -->
+<!-- ═══ Creative Renders Gallery (Phase B2) ═══ -->
+<div class="report-modal-overlay hidden" id="rendersOverlay" onclick="closeRendersGallery()">
+  <div class="report-modal" onclick="event.stopPropagation()" style="max-width:1100px">
+    <div class="report-modal-header">
+      <h3>🎬 היסטוריית רינדורים</h3>
+      <button onclick="closeRendersGallery()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#6B7280">&times;</button>
+    </div>
+    <div class="report-modal-body" id="rendersBody" style="min-height:300px;max-height:75vh;overflow-y:auto;padding:16px 24px">
+      <div style="text-align:center;padding:40px;color:#9CA3AF">טוען...</div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ Brand Foundation Wizard (Phase B1) ═══ -->
 <div class="report-modal-overlay hidden" id="brandOverlay" onclick="closeBrandWizard()">
   <div class="report-modal" onclick="event.stopPropagation()" style="max-width:900px">
@@ -10910,6 +10967,334 @@ async function disconnectFirecrawl() {
     if (card) card.classList.remove('connected-card');
     refreshBundleUI();
   } catch { showToast('שגיאה', 'error'); }
+}
+
+// ─── Creative (fal.ai + ElevenLabs) integration ───────────────────────────
+async function loadCreativeStatus() {
+  if (!instanceId) return;
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/integrations/creative/status', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    if (!j.success) return;
+    var d = j.data || {};
+    updateCreativeCardUI(d);
+  } catch (err) {
+    console.warn('loadCreativeStatus failed:', err);
+  }
+}
+
+function updateCreativeCardUI(status) {
+  var falConnected = !!status.falConnected;
+  var elConnected = !!status.elevenlabsConnected;
+
+  var falNc = document.getElementById('creative-fal-notconnected');
+  var falC  = document.getElementById('creative-fal-connected');
+  var elNc  = document.getElementById('creative-el-notconnected');
+  var elC   = document.getElementById('creative-el-connected');
+  var maskedFal = document.getElementById('creative-fal-masked');
+  var maskedEl  = document.getElementById('creative-el-masked');
+  var statusEl  = document.getElementById('creative-status');
+  var card      = document.getElementById('creative-card');
+
+  if (falNc) falNc.style.display = falConnected ? 'none' : '';
+  if (falC)  falC.style.display  = falConnected ? '' : 'none';
+  if (maskedFal) maskedFal.textContent = status.falMasked || '';
+
+  if (elNc) elNc.style.display = elConnected ? 'none' : '';
+  if (elC)  elC.style.display  = elConnected ? '' : 'none';
+  if (maskedEl) maskedEl.textContent = status.elMasked || '';
+
+  if (statusEl) {
+    if (falConnected && elConnected) { statusEl.textContent = 'מחובר (fal + EL)'; statusEl.className = 'int-status connected'; }
+    else if (falConnected) { statusEl.textContent = 'מחובר (fal בלבד)'; statusEl.className = 'int-status connected'; }
+    else if (elConnected) { statusEl.textContent = 'מחובר (EL בלבד)'; statusEl.className = 'int-status connected'; }
+    else { statusEl.textContent = 'לא מחובר'; statusEl.className = 'int-status'; }
+  }
+  if (card) {
+    if (falConnected || elConnected) card.classList.add('connected-card');
+    else card.classList.remove('connected-card');
+  }
+}
+
+async function saveCreativeKeys() {
+  if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+  var falInput = document.getElementById('creative-fal-key');
+  var elInput = document.getElementById('creative-el-key');
+  var falKey = (falInput && falInput.value || '').trim();
+  var elKey  = (elInput && elInput.value || '').trim();
+  if (!falKey && !elKey) { showToast('הזן לפחות מפתח אחד', 'warn'); return; }
+
+  var btn = event && event.target;
+  if (btn) { btn.disabled = true; btn.textContent = 'שומר...'; }
+
+  try {
+    var body = {};
+    if (falKey) body.falApiKey = falKey;
+    if (elKey)  body.elevenlabsApiKey = elKey;
+
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/integrations/creative/save', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    var j = await res.json();
+    if (!j.success) {
+      showToast(j.message || 'שמירה נכשלה', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '→ שמרו מפתחות'; }
+      return;
+    }
+    showToast('מפתחות נשמרו ✓', 'success');
+    if (falInput) falInput.value = '';
+    if (elInput) elInput.value = '';
+    updateCreativeCardUI(j.data);
+  } catch (err) {
+    showToast('שגיאה: ' + err.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '→ שמרו מפתחות'; }
+  }
+}
+
+async function disconnectCreative(provider) {
+  var label = provider === 'fal' ? 'fal.ai' : 'ElevenLabs';
+  if (!confirm('להסיר ' + label + '?')) return;
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/integrations/creative/disconnect', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: provider }),
+    });
+    var j = await res.json();
+    if (!j.success) { showToast(j.message || 'שגיאה', 'error'); return; }
+    showToast(label + ' הוסר', 'success');
+    // Refresh status
+    loadCreativeStatus();
+  } catch (err) {
+    showToast('שגיאה', 'error');
+  }
+}
+
+// Load on first open of integrations tab (initial load).
+document.addEventListener('DOMContentLoaded', function() {
+  // Defer until instanceId is known; retry after 2s if not ready yet.
+  setTimeout(loadCreativeStatus, 2500);
+});
+
+// ─── Renders Gallery (Phase B2) ───────────────────────────────────────────
+var rendersPollTimer = null;
+
+async function openRendersGallery() {
+  if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+  document.getElementById('rendersOverlay').classList.remove('hidden');
+  await refreshRendersGallery();
+  // Auto-refresh every 5s while open (catch in-progress renders finishing)
+  if (rendersPollTimer) clearInterval(rendersPollTimer);
+  rendersPollTimer = setInterval(refreshRendersGallery, 5000);
+}
+
+function closeRendersGallery() {
+  document.getElementById('rendersOverlay').classList.add('hidden');
+  if (rendersPollTimer) { clearInterval(rendersPollTimer); rendersPollTimer = null; }
+}
+
+async function refreshRendersGallery() {
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/renders?limit=50', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    if (!j.success) {
+      document.getElementById('rendersBody').innerHTML = '<div style="text-align:center;padding:40px;color:#EF4444">' + escapeHtml(j.message || 'שגיאה') + '</div>';
+      return;
+    }
+    var renders = (j.data && j.data.renders) || [];
+    renderRendersGallery(renders);
+  } catch (err) {
+    document.getElementById('rendersBody').innerHTML = '<div style="text-align:center;padding:40px;color:#EF4444">שגיאה: ' + escapeHtml(err.message) + '</div>';
+  }
+}
+
+function renderRendersGallery(renders) {
+  if (!renders || renders.length === 0) {
+    document.getElementById('rendersBody').innerHTML =
+      '<div style="text-align:center;padding:60px 20px;color:#6B7280">' +
+      '<div style="font-size:3rem;margin-bottom:12px">🎬</div>' +
+      '<strong style="font-size:1rem;color:#374151">אין רינדורים עדיין</strong>' +
+      '<div style="font-size:0.85rem;margin-top:8px;line-height:1.5">' +
+      'Yotzer יוצר טיוטות → מאשרים בתור האישורים → הרינדור מתחיל אוטומטית.<br>' +
+      'וודאו ש-fal.ai key מוגדר ו-brand book אושר.' +
+      '</div></div>';
+    return;
+  }
+
+  // Summary row
+  var statusCounts = {};
+  renders.forEach(function(r) { statusCounts[r.renderStatus] = (statusCounts[r.renderStatus] || 0) + 1; });
+  var totalCost = renders.reduce(function(sum, r) { return sum + (parseFloat(r.actualCostUsd || r.estimatedCostUsd) || 0); }, 0);
+
+  var html = '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;font-size:0.85rem">';
+  html += '<div><strong>' + renders.length + '</strong> רינדורים · ';
+  Object.keys(statusCounts).forEach(function(s) { html += renderStatusBadge(s) + ' ' + statusCounts[s] + ' '; });
+  html += '</div>';
+  html += '<div>עלות מצטברת: <strong>$' + totalCost.toFixed(2) + '</strong></div>';
+  html += '</div>';
+
+  // Gallery grid
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">';
+  renders.forEach(function(r) {
+    html += renderRenderCard(r);
+  });
+  html += '</div>';
+
+  document.getElementById('rendersBody').innerHTML = html;
+}
+
+function renderStatusBadge(status) {
+  var colors = {
+    queued:       { bg: '#FEF3C7', fg: '#92400E', label: '⏳ בתור' },
+    rendering:    { bg: '#DBEAFE', fg: '#1E40AF', label: '🎨 מרנדר' },
+    uploading:    { bg: '#DBEAFE', fg: '#1E40AF', label: '📤 מעלה' },
+    compositing:  { bg: '#EDE9FE', fg: '#5B21B6', label: '✨ מרכיב' },
+    done:         { bg: '#DCFCE7', fg: '#166534', label: '✓ הושלם' },
+    failed:       { bg: '#FEE2E2', fg: '#991B1B', label: '✗ נכשל' },
+  };
+  var c = colors[status] || { bg: '#F3F4F6', fg: '#374151', label: status };
+  return '<span style="display:inline-block;padding:2px 8px;background:' + c.bg + ';color:' + c.fg + ';border-radius:4px;font-size:0.72rem;font-weight:600">' + c.label + '</span>';
+}
+
+function renderRenderCard(r) {
+  var created = r.createdAt ? new Date(r.createdAt).toLocaleString('he-IL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+  var duration = r.durationSec ? r.durationSec + 's' : '';
+  var cost = parseFloat(r.actualCostUsd || r.estimatedCostUsd) || 0;
+
+  var html = '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden">';
+
+  // Preview area (media or status placeholder)
+  html += '<div style="background:#F3F4F6;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative">';
+  if (r.renderStatus === 'done' && r.finalUrl) {
+    // For ssh:// URLs we can't preview directly — show placeholder + link
+    if (r.finalUrl.startsWith('ssh://')) {
+      html += '<div style="text-align:center;color:#6B7280;font-size:0.8rem;padding:20px">';
+      html += '<div style="font-size:2.5rem;margin-bottom:6px">' + (r.formatType === 'video' ? '🎬' : '🖼️') + '</div>';
+      html += '<div style="font-size:0.72rem;color:#9CA3AF">VPS לקוח · ' + escapeHtml(r.formatType) + '</div>';
+      var parts = r.finalUrl.replace('ssh://', '').split(':');
+      if (parts[1]) html += '<div style="font-size:0.68rem;color:#9CA3AF;margin-top:4px;word-break:break-all;direction:ltr">' + escapeHtml(parts[1]) + '</div>';
+      html += '</div>';
+    } else {
+      if (r.formatType === 'video') {
+        html += '<video src="' + escapeHtml(r.finalUrl) + '" controls style="width:100%;height:100%;object-fit:cover"></video>';
+      } else {
+        html += '<img src="' + escapeHtml(r.finalUrl) + '" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML=\'<div style=text-align:center;color:#EF4444;padding:20px>תמונה לא זמינה</div>\'">';
+      }
+    }
+  } else if (r.renderStatus === 'failed') {
+    html += '<div style="text-align:center;color:#991B1B;padding:20px;font-size:0.85rem">';
+    html += '<div style="font-size:2rem;margin-bottom:6px">✗</div>';
+    html += escapeHtml((r.errorMessage || 'Unknown error').substring(0, 120));
+    html += '</div>';
+  } else {
+    // In progress
+    html += '<div style="text-align:center;color:#6B7280;padding:20px">';
+    html += '<div style="display:inline-block;width:36px;height:36px;border:3px solid #E5E7EB;border-top-color:#8B5CF6;border-radius:50%;animation:spin 1s linear infinite"></div>';
+    html += '<div style="margin-top:8px;font-size:0.82rem">' + renderStatusBadge(r.renderStatus) + '</div>';
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // Info strip
+  html += '<div style="padding:10px 12px">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+  html += '<div style="font-size:0.82rem;font-weight:600;color:#1E3A5F">' + escapeHtml(r.tier) + ' · ' + escapeHtml(r.formatType) + '</div>';
+  html += renderStatusBadge(r.renderStatus);
+  html += '</div>';
+  html += '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:2px;font-family:monospace">' + escapeHtml((r.selectedModel || '').replace('fal-ai/', '')) + '</div>';
+  html += '<div style="display:flex;justify-content:space-between;font-size:0.72rem;color:#9CA3AF">';
+  html += '<span>' + created + '</span>';
+  html += '<span>' + (duration ? '⏱ ' + duration : '') + (cost ? ' · $' + cost.toFixed(3) : '') + '</span>';
+  html += '</div>';
+
+  // Composition flags
+  if (r.overlayApplied || r.logoApplied || r.upscaleApplied || r.subtitlesApplied) {
+    html += '<div style="margin-top:6px;font-size:0.7rem;color:#4B5563">';
+    if (r.overlayApplied)   html += '<span style="background:#EFF6FF;color:#1E40AF;padding:1px 6px;border-radius:4px;margin-left:4px">📝 טקסט</span>';
+    if (r.logoApplied)      html += '<span style="background:#FEF3C7;color:#92400E;padding:1px 6px;border-radius:4px;margin-left:4px">🏷 לוגו</span>';
+    if (r.upscaleApplied)   html += '<span style="background:#DBEAFE;color:#1E40AF;padding:1px 6px;border-radius:4px;margin-left:4px">✨ שדרוג</span>';
+    if (r.subtitlesApplied) html += '<span style="background:#DCFCE7;color:#166534;padding:1px 6px;border-radius:4px;margin-left:4px">📄 כתוביות</span>';
+    html += '</div>';
+  }
+
+  html += '</div>';
+
+  // Footer actions
+  if (r.renderStatus === 'done') {
+    html += '<div style="padding:8px 12px;background:#F9FAFB;border-top:1px solid #E5E7EB;display:flex;gap:6px;font-size:0.75rem">';
+    if (r.outputId) html += '<button class="btn btn-outline btn-sm" onclick="viewRenderLineage(\'' + r.id + '\')" style="font-size:0.72rem;padding:3px 8px">📋 שושלת</button>';
+    html += '<button class="btn btn-outline btn-sm" onclick="rateRender(\'' + r.id + '\', ' + (r.userRating || 0) + ')" style="font-size:0.72rem;padding:3px 8px">' + (r.userRating ? '⭐'.repeat(r.userRating) : '⭐ דרג') + '</button>';
+    html += '</div>';
+  } else if (r.renderStatus === 'failed' && r.outputId) {
+    html += '<div style="padding:8px 12px;background:#FEF2F2;border-top:1px solid #FECACA;display:flex;gap:6px">';
+    html += '<button class="btn btn-outline btn-sm" onclick="retryRender(\'' + r.outputId + '\')" style="font-size:0.72rem;padding:3px 8px;color:#2563EB;border-color:#BFDBFE">↻ נסה שוב</button>';
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+async function viewRenderLineage(renderId) {
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/renders/' + renderId, {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    if (!j.success || !j.data || !j.data.render) { showToast('נתונים לא זמינים', 'error'); return; }
+    var r = j.data.render;
+    var text = 'Render ID: ' + r.id + '\n';
+    text += 'Output ID: ' + (r.outputId || '—') + '\n';
+    text += 'Concept ID: ' + (r.conceptId || '—') + '\n';
+    text += 'Character ref: ' + (r.characterRefId || '—') + '\n';
+    text += 'Scenes ID: ' + (r.scenesId || '—') + '\n';
+    text += 'Brand version: ' + (r.brandBookVersion || '—') + '\n';
+    text += 'Model: ' + r.selectedModel + '\n';
+    text += 'Status: ' + r.renderStatus + '\n';
+    if (r.errorMessage) text += 'Error: ' + r.errorMessage + '\n';
+    if (r.prompts && r.prompts.scenes) {
+      text += '\nScene prompts:\n';
+      r.prompts.scenes.forEach(function(s, i) {
+        text += (i + 1) + '. ' + (s.prompt || '').substring(0, 200) + '\n';
+      });
+    }
+    alert(text);
+  } catch (err) {
+    showToast('שגיאה: ' + err.message, 'error');
+  }
+}
+
+async function rateRender(renderId, currentRating) {
+  var rating = prompt('דרג את הקריאייטיב (1-5):', currentRating || '');
+  if (!rating) return;
+  var n = parseInt(rating, 10);
+  if (isNaN(n) || n < 1 || n > 5) { showToast('ערך לא תקף', 'warn'); return; }
+  // TODO: add rateRender endpoint (currently read-only)
+  showToast('דירוג יתווסף ב-sprint הבא', 'info');
+}
+
+async function retryRender(outputId) {
+  if (!confirm('לנסות רנדור מחדש לטיוטה הזו?')) return;
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/render', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ outputId: outputId }),
+    });
+    var j = await res.json();
+    if (!j.success) { showToast(j.message || 'שגיאה', 'error'); return; }
+    showToast('נוסה שוב — מתחיל רנדור', 'success');
+    setTimeout(refreshRendersGallery, 1500);
+  } catch (err) {
+    showToast('שגיאה: ' + err.message, 'error');
+  }
 }
 
 // Handle OAuth redirects (GSC)
