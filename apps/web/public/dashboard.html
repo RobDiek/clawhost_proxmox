@@ -6887,7 +6887,7 @@ async function openBrandFoundation() {
       headers: { 'Authorization': 'Bearer ' + token },
     });
     var j = await res.json();
-    if (j.ok && j.data && j.data.brandBook) {
+    if (j.success && j.data && j.data.brandBook) {
       brandWizardState.existing = j.data.brandBook;
       if (j.data.isApproved) {
         // Show viewer
@@ -7039,7 +7039,7 @@ async function startBrandProcessing() {
         body: JSON.stringify({ url: brandWizardState.url }),
       });
       var extractJson = await extractRes.json();
-      if (!extractJson.ok) {
+      if (!extractJson.success) {
         renderBrandBody('<div style="padding:40px;text-align:center;color:#991B1B"><div style="font-size:1rem;margin-bottom:8px">❌ ' + (extractJson.message || 'חילוץ נכשל') + '</div><div style="font-size:0.85rem;color:#6B7280">תוכלו להמשיך בלי אתר — נבנה מאפס</div></div>');
         renderBrandFooter(
           '<button class="btn btn-outline" onclick="brandWizardState.step=\'inputs\';renderBrandInputs()">חזרה</button>' +
@@ -7060,7 +7060,7 @@ async function startBrandProcessing() {
             body: JSON.stringify({ logoUrl: topLogo.url }),
           });
           var logoJson = await logoRes.json();
-          if (logoJson.ok && logoJson.data.analysis && logoJson.data.analysis.ok) {
+          if (logoJson.success && logoJson.data.analysis && logoJson.data.analysis.ok) {
             brandWizardState.logoAnalysis = logoJson.data.analysis;
           }
         } catch (logoErr) {
@@ -7081,7 +7081,7 @@ async function startBrandProcessing() {
       }),
     });
     var draftJson = await draftRes.json();
-    if (!draftJson.ok) {
+    if (!draftJson.success) {
       renderBrandBody('<div style="padding:40px;text-align:center;color:#991B1B">❌ ' + (draftJson.message || 'compose נכשל') + '</div>');
       renderBrandFooter('<button class="btn btn-outline" onclick="brandWizardState.step=\'inputs\';renderBrandInputs()">חזרה</button>');
       return;
@@ -7271,7 +7271,7 @@ async function approveBrandBook() {
       body: JSON.stringify({ brandBookId: brandWizardState.brandBookId }),
     });
     var j = await res.json();
-    if (!j.ok) {
+    if (!j.success) {
       showToast(j.message || 'אישור נכשל', 'error');
       if (btn) { btn.disabled = false; btn.textContent = '✓ אשרו והפיצו לסוכנים'; }
       return;
