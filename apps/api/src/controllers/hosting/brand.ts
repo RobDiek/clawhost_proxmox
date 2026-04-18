@@ -104,7 +104,7 @@ export const analyzeLogoEndpoint = async (c: Context) => {
         const instance = await getOwnedInstance(instanceId, userId)
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const key = (instance as any).anthropicKey || process.env.ANTHROPIC_API_KEY
+        const key = (instance as any).aiProviderKey || process.env.ANTHROPIC_API_KEY
         if (!key) return fail(c, 'Anthropic API key not configured (needed for logo Vision analysis)', 400)
 
         const body = await c.req.json<{ logoUrl: string }>()
@@ -136,7 +136,7 @@ export const draftBrandBook = async (c: Context) => {
         const instance = await getOwnedInstance(instanceId, userId)
         if (!instance) return fail(c, 'Instance not found', 404)
 
-        const key = (instance as any).anthropicKey || process.env.ANTHROPIC_API_KEY
+        const key = (instance as any).aiProviderKey || process.env.ANTHROPIC_API_KEY
         if (!key) return fail(c, 'Anthropic API key not configured', 400)
 
         const body = await c.req.json<{
