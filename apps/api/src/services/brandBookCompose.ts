@@ -378,14 +378,45 @@ function buildComposerPrompt(params: {
 
 **כללי זהב:**
 1. **עברית קודם** — כל שדה "*He" חייב להיות בעברית נכונה. שדות "*En" באנגלית טבעית.
-2. **Hebrew fonts חובה** — typography.hebrewSupport חייב להיות מלא. Rubik/Heebo/Assistant קבילים.
-3. **Research trumps scraping** — אם scraped signals סותרים research positioning, תן עדיפות ל-research. הסבר ב-rationale.
-4. **Gaps honest** — סמן critical gap אם logo.primary חסר, או primary color חסר, או heading font חסר.
-5. **Mood keywords באיות עברית** — למשל "חם", "מקצועי", לא "warm" או "professional".
-6. **Principles ספציפיים** — לא generic ("להיות טוב"). נובעים מ-research + personas.
-7. **Colors accessibility** — אם primary color כהה מאוד, semantic colors צריכים להיות readable עליו.
-8. **Vibe consistency** — אם vibePreset=playful, tone לא יהיה authoritative. עקביות מלאה.
-9. **JSON תקף** — ללא comments, ללא trailing commas, ללא markdown.`
+
+2. **Hebrew grammar strict** — אל תמציא מילים. אם אתה לא בטוח במילה עברית (נטייה, שורש, הטיה) — השתמש במילה פשוטה יותר שאתה מכיר. מילה שאינה קיימת יותר גרועה ממילה פשוטה.
+
+3. **Hebrew fonts חובה** — typography.hebrewSupport חייב להיות מלא. Rubik/Heebo/Assistant קבילים.
+
+4. **Respect user font preference** — אם userInputs.hebrewFontPreference מוגדר:
+   - השתמש בו גם ל-heading וגם ל-body (לא תציע גופן אחר ב-gaps).
+   - להבדל בין heading ל-body: weight + size, לא family.
+   - heading: weights [700, 800, 900] · body: weights [400, 500].
+   - בונוס: אם user בחר Heebo — הוסף גופן fallback ל-accent (Rubik למספרים/quotes) ב-typography.accent.
+
+5. **Semantic colors ≠ brand colors (CRITICAL)** — semantic (success/warning/danger/info) חייב להיות שונה מ-primary/secondary/accent של המותג.
+   - ברירת מחדל בטוחה: success=#10B981, warning=#F59E0B, danger=#EF4444, info=#3B82F6
+   - החלף רק אם יש קונפליקט נגישות עם primary (contrast < 3.0)
+   - **אל תשתמש באותו hex ל-semantic.success וגם ל-primary** — זה גורם לבלבול UX (כפתור "אישור" זהה חזותית ל-CTA).
+
+6. **Neutrals = grayscale בלבד** — neutrals[] חייב להיות בטווח אפור (R≈G≈B ± 10). גוונים בעלי גוון (כמו #BBF7D0 ירקרק או #FEF3C7 צהבהב) הם brand tints ↓
+   - → מקומם: palette.extended (רשימה נוספת לגוונים מלוכלכים) או accent[]. לא neutrals.
+
+7. **Research trumps scraping** — אם scraped signals סותרים research positioning, תן עדיפות ל-research. הסבר ב-rationale.
+
+8. **Gaps honest + consistent** — סמן critical gap אם logo.primary חסר, או primary color חסר, או heading font חסר.
+   - **ALIGNMENT:** אל תסמן gap על בחירה שהמשתמש ביקש (למשל אם user בחר Heebo, אל תסמן "consider Rubik").
+
+9. **Positioning ≠ Tagline** — שני דברים שונים:
+   - Tagline: 3-7 מילים, מסר רגשי, מכירתי (למשל "AI לעסקים — פשוט, בעברית").
+   - Positioning: מגדיר טריטוריה תחרותית — "לא X, לא Y — אלא Z". חייב לנקוב בקטגוריה שמוחלפת (לא "עוד blog", לא "עוד כלי", וכו').
+
+10. **Signature phrases ≠ CTA copy** — signaturePhrases הן הצהרות מותג (שברי manifesto), לא טקסט כפתור. **לעולם אל תעתיק משפטים מ-scraped.copy.ctas.**
+
+11. **Mood keywords באיות עברית** — למשל "חם", "מקצועי", לא "warm" או "professional". **אל תכלול מילים שהן cultural identifiers** (כמו "ישראלי") — אלו שייכים לקונטקסט, לא למצב-רוח.
+
+12. **Principles ספציפיים** — לא generic ("להיות טוב"). נובעים מ-research + personas. **כל principle חייב להיות אכיף ברמת תוכן** (אפשר לומר "נכשל" או "עובר" לדוגמה קונקרטית).
+
+13. **Colors accessibility** — primary מול semantic.info חייב contrast ≥ 3.0. אם קונפליקט — העדף שמירת primary ושינוי semantic.info.
+
+14. **Vibe consistency** — אם vibePreset=playful, tone לא יהיה authoritative. עקביות מלאה.
+
+15. **JSON תקף** — ללא comments, ללא trailing commas, ללא markdown.`
 
     return prompt
 }

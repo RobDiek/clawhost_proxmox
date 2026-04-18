@@ -6898,6 +6898,9 @@ async function openBrandFoundation() {
       brandWizardState.draft = coerceDraftFromRow(j.data.brandBook);
       brandWizardState.gaps = j.data.brandBook.gaps || [];
       brandWizardState.brandBookId = j.data.brandBook.id;
+      brandWizardState.rationale = j.data.brandBook.rationaleHe || j.data.brandBook.rationale_he || '';
+      brandWizardState.confidence = j.data.brandBook.confidence || 'medium';
+      brandWizardState.hebrewCorrections = j.data.brandBook.hebrewCorrections || j.data.brandBook.hebrew_corrections || [];
       brandWizardState.step = 'review';
       renderBrandReview();
       return;
@@ -7090,6 +7093,7 @@ async function startBrandProcessing() {
     brandWizardState.gaps = draftJson.data.gaps || [];
     brandWizardState.rationale = draftJson.data.rationale || '';
     brandWizardState.confidence = draftJson.data.confidence;
+    brandWizardState.hebrewCorrections = draftJson.data.hebrewCorrections || [];
     brandWizardState.brandBookId = draftJson.data.brandBookId;
     brandWizardState.step = 'review';
     renderBrandReview();
@@ -7116,6 +7120,18 @@ function renderBrandReview() {
   html += '</div>';
   html += '<div style="font-size:0.82rem;color:#1E40AF;line-height:1.5">' + escapeHtml(brandWizardState.rationale || '') + '</div>';
   html += '</div>';
+
+  // Hebrew corrections notice (if validator fixed anything)
+  var corr = brandWizardState.hebrewCorrections || [];
+  if (corr.length > 0) {
+    html += '<details style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:10px;margin-bottom:14px">';
+    html += '<summary style="cursor:pointer;font-size:0.85rem;color:#92400E;font-weight:600">🔍 תוקנו אוטומטית ' + corr.length + ' ביטויים בעברית</summary>';
+    html += '<ul style="margin:6px 0 0;padding-right:20px;font-size:0.78rem;color:#78350F">';
+    corr.slice(0, 10).forEach(function(c) {
+      html += '<li style="margin-bottom:4px"><code style="font-size:0.72rem;background:#FFF;padding:1px 4px;border-radius:3px">' + escapeHtml(c.path) + '</code>: "' + escapeHtml(c.original) + '" → "' + escapeHtml(c.fixed || '(הוסר)') + '" <span style="color:#92400E">· ' + escapeHtml(c.issue) + '</span></li>';
+    });
+    html += '</ul></details>';
+  }
 
   // Critical gaps warning
   var criticalGaps = g.filter(function(gap) { return gap.priority === 'critical'; });
@@ -7292,6 +7308,20 @@ function renderBrandViewer(bookRow) {
   html += '<div><strong style="color:#10B981">✓ מאושר</strong> <span style="color:#6B7280;font-size:0.82rem">· גרסה ' + (bookRow.version || 1) + '</span></div>';
   html += '<div style="font-size:0.78rem;color:#9CA3AF">מקור: ' + escapeHtml(bookRow.source || 'mixed') + '</div>';
   html += '</div>';
+
+  // Rationale + confidence (if persisted)
+  var rat = bookRow.rationaleHe || bookRow.rationale_he;
+  if (rat) {
+    var confColor = { high: '#10B981', medium: '#F59E0B', low: '#EF4444' }[bookRow.confidence] || '#9CA3AF';
+    html += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px;margin-bottom:14px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+    html += '<strong style="color:#1E40AF">💡 הסבר של mekhayev</strong>';
+    if (bookRow.confidence) html += '<span style="font-size:0.72rem;color:#FFF;background:' + confColor + ';padding:2px 8px;border-radius:4px">ביטחון: ' + escapeHtml(bookRow.confidence) + '</span>';
+    html += '</div>';
+    html += '<div style="font-size:0.82rem;color:#1E40AF;line-height:1.5">' + escapeHtml(rat) + '</div>';
+    html += '</div>';
+  }
+
   html += renderBrandPreview(d);
   html += '</div>';
   renderBrandBody(html);

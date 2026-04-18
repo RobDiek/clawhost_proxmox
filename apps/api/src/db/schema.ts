@@ -477,6 +477,11 @@ export const brandBooks = pgTable(
         compliance: jsonb('compliance'),
         principles: jsonb('principles'),  // brand constitution rules
 
+        // Composer output — reasoning + confidence (Tier 1-D)
+        rationaleHe: text('rationale_he'),
+        confidence: text('confidence'),              // 'high' | 'medium' | 'low'
+        hebrewCorrections: jsonb('hebrew_corrections'),  // validator audit trail
+
         // PDF export
         pdfUrl: text('pdf_url'),
         pdfGeneratedAt: timestamp('pdf_generated_at', { withTimezone: true }),

@@ -32,6 +32,7 @@ import {
     type UserBrandInputs,
     type ResearchSummary,
 } from '@/services/brandBookCompose'
+import { validateHebrew } from '@/services/hebrewValidate'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 let sshKeyCache: Buffer | null = null
@@ -157,6 +158,21 @@ export const draftBrandBook = async (c: Context) => {
             anthropicKey: key,
         })
 
+        // Tier 1-B: Hebrew grammar validation — catches LLM hallucinations
+        // (e.g. "לבריח" type non-existent words). Mutates composed.gaps in place.
+        let hebrewCorrections: unknown[] = []
+        try {
+            console.log(`[brand/draft] ${instanceId} validating Hebrew (${(Object.keys(composed.draft).length)} top-level fields)`)
+            const validated = await validateHebrew(composed.draft, composed.gaps, key)
+            if (validated.ok && validated.corrections.length > 0) {
+                console.log(`[brand/draft] ${instanceId} applied ${validated.corrections.length} Hebrew corrections`)
+                composed.draft = validated.draft
+                hebrewCorrections = validated.corrections
+            }
+        } catch (valErr) {
+            console.error('Hebrew validation failed (non-fatal):', valErr)
+        }
+
         // Determine next version number
         const existing = await db.select({ version: brandBooks.version })
             .from(brandBooks)
@@ -191,6 +207,9 @@ export const draftBrandBook = async (c: Context) => {
             compliance: draft.compliance,
             principles: draft.principles,
             gaps: composed.gaps,
+            rationaleHe: composed.rationale,
+            confidence: composed.confidence,
+            hebrewCorrections: hebrewCorrections.length > 0 ? hebrewCorrections : null,
             sourceUrl: body.scraped?.url || null,
             sourceScrapedAt: body.scraped?.fetchedAt ? new Date(body.scraped.fetchedAt) : null,
             sourceRaw: body.scraped || null,
@@ -203,6 +222,7 @@ export const draftBrandBook = async (c: Context) => {
             gaps: composed.gaps,
             rationale: composed.rationale,
             confidence: composed.confidence,
+            hebrewCorrections,
             sources: composed.sources,
         }, 'Brand book drafted.')
     } catch (err) {
