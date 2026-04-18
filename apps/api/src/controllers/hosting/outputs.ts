@@ -284,6 +284,49 @@ async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
         return
     }
 
+    // Yotzer creative_final_draft approved → trigger fal.ai render (Phase B2)
+    if (output.outputType === 'creative_final_draft') {
+        console.log(`Creative final draft approved: ${output.id} — invoking executor`)
+        const [inst] = await db.select().from(instances).where(eq(instances.id, output.instanceId))
+        const hasFalKey = !!(inst as any)?.falApiKey
+
+        await db.update(agentOutputs)
+            .set({
+                metadata: {
+                    ...(meta || {}),
+                    renderStatus: hasFalKey ? 'queued' : 'pending_config',
+                    approvedForExecutionAt: new Date().toISOString(),
+                },
+                updatedAt: new Date(),
+            })
+            .where(eq(agentOutputs.id, output.id))
+
+        if (hasFalKey && inst) {
+            const { executeCreativeRender } = await import('@/services/creativeExecutor')
+            executeCreativeRender({
+                instanceId: output.instanceId,
+                outputId: output.id,
+                instance: {
+                    id: inst.id,
+                    ip: inst.ip,
+                    rootPassword: inst.rootPassword,
+                    falApiKey: (inst as any).falApiKey,
+                    elevenlabsApiKey: (inst as any).elevenlabsApiKey,
+                },
+            }).catch(err => console.error(`Creative executor error for ${output.id}:`, err))
+        } else {
+            console.log(`Creative render skipped — fal.ai key missing for ${output.instanceId}`)
+        }
+        return
+    }
+
+    // Earlier creative gates (concept/character/scenes) — no live action, just mark approved
+    // (yotzer agent reads agent_outputs.status and advances to next gate based on session state)
+    if (output.outputType && output.outputType.startsWith('creative_') && output.outputType !== 'creative_final_draft') {
+        console.log(`Creative gate approved: ${output.outputType} (id ${output.id}) — agent can advance to next gate`)
+        return
+    }
+
     // SEO Strategy approved → trigger עט to write the #1 priority article
     if (meta?.type === 'seo_strategy' && output.agentRole === 'menateach') {
         console.log(`SEO strategy approved — triggering content writing for instance ${output.instanceId}`)

@@ -37,5 +37,6 @@ export { deployCrewEndpoint, runCrewEndpoint, listCrewsEndpoint } from './crewai
 // Langfuse removed — custom API Usage Tracker covers observability needs
 export { listAgentIntegrations, getAgentIntegrationEndpoint, setAgentIntegrationEndpoint, deleteAgentIntegrationEndpoint } from './agentIntegrationRoutes'
 export { extractBrand, analyzeLogoEndpoint, draftBrandBook, approveBrandBook, getBrandBook, getBrandBookVersions } from './brand'
+export { saveCreativeKeys, getCreativeStatus, disconnectCreativeKey, listCreativeRenders, getCreativeRender, triggerCreativeRender } from './creative'
 // Twenty CRM removed — AGPLv3 license risk
 // export { installTwenty } from './twenty'

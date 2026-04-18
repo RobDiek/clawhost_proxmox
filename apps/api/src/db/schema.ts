@@ -274,6 +274,10 @@ export const instances = pgTable(
         aiProviderType: text('ai_provider_type'),   // 'anthropic' | 'openai'
         openaiApiKey: text('openai_api_key'),       // OpenAI key (separate, both can coexist)
 
+        // Creative generation BYOK (Phase B2)
+        falApiKey: text('fal_api_key'),              // fal.ai key for image/video generation
+        elevenlabsApiKey: text('elevenlabs_api_key'),// ElevenLabs key for Hebrew TTS
+
         // Sub-agent model configuration (from dashboard selector)
         subAgentModels: jsonb('sub_agent_models'),  // { sayer: "anthropic/claude-opus-4-6", ... }
 
@@ -508,6 +512,69 @@ export const brandBooks = pgTable(
         index('brand_books_instance_idx').on(table.instanceId),
         index('brand_books_status_idx').on(table.instanceId, table.status),
         unique('brand_books_instance_version_uniq').on(table.instanceId, table.version),
+    ]
+)
+
+// ── Creative Renders (Phase B2) — every approved creative spawns a render attempt ──
+export const creativeRenders = pgTable(
+    'creative_renders',
+    {
+        id: text('id').primaryKey(),
+        instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+        outputId: text('output_id').references(() => agentOutputs.id, { onDelete: 'set null' }),
+
+        // Lifecycle
+        renderStatus: text('render_status').notNull().default('queued'),
+        // queued → rendering → uploading → compositing → done | failed
+        queuedAt: timestamp('queued_at', { withTimezone: true }).defaultNow().notNull(),
+        startedAt: timestamp('started_at', { withTimezone: true }),
+        completedAt: timestamp('completed_at', { withTimezone: true }),
+        durationSec: integer('duration_sec'),
+        errorMessage: text('error_message'),
+
+        // Request
+        tier: text('tier').notNull(),
+        formatType: text('format_type').notNull(),
+        selectedModel: text('selected_model').notNull(),
+        falRequestId: text('fal_request_id'),
+
+        // Lineage
+        conceptId: text('concept_id'),
+        characterRefId: text('character_ref_id'),
+        scenesId: text('scenes_id'),
+        brandBookVersion: integer('brand_book_version'),
+
+        // Prompts (exact strings — reproducibility + learning)
+        prompts: jsonb('prompts'),
+
+        // Output
+        resultUrls: jsonb('result_urls'),
+        finalUrl: text('final_url'),
+        thumbnailUrl: text('thumbnail_url'),
+        fileSizeBytes: integer('file_size_bytes'),
+        dimensions: jsonb('dimensions'),
+
+        // Composition metadata
+        overlayApplied: boolean('overlay_applied').default(false),
+        logoApplied: boolean('logo_applied').default(false),
+        audioApplied: boolean('audio_applied').default(false),
+        upscaleApplied: boolean('upscale_applied').default(false),
+        subtitlesApplied: boolean('subtitles_applied').default(false),
+
+        // Cost
+        estimatedCostUsd: decimal('estimated_cost_usd', { precision: 10, scale: 4 }),
+        actualCostUsd: decimal('actual_cost_usd', { precision: 10, scale: 4 }),
+
+        // Learning signals
+        userRating: integer('user_rating'),   // 1-5
+        userFeedback: text('user_feedback'),
+
+        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => [
+        index('creative_renders_instance_idx').on(table.instanceId),
+        index('creative_renders_status_idx').on(table.instanceId, table.renderStatus),
+        index('creative_renders_output_idx').on(table.outputId),
     ]
 )
 

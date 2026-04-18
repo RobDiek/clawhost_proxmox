@@ -172,6 +172,12 @@ import {
     approveBrandBook,
     getBrandBook,
     getBrandBookVersions,
+    saveCreativeKeys,
+    getCreativeStatus,
+    disconnectCreativeKey,
+    listCreativeRenders,
+    getCreativeRender,
+    triggerCreativeRender,
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -300,6 +306,14 @@ app.post('/instances/:id/brand/draft',        draftBrandBook)
 app.post('/instances/:id/brand/approve',      approveBrandBook)
 app.get('/instances/:id/brand',               getBrandBook)
 app.get('/instances/:id/brand/versions',      getBrandBookVersions)
+
+// ── Creative Generation (Phase B2) — BYOK fal.ai/ElevenLabs + render lifecycle ──
+app.post('/instances/:id/integrations/creative/save',       saveCreativeKeys)
+app.get('/instances/:id/integrations/creative/status',      getCreativeStatus)
+app.post('/instances/:id/integrations/creative/disconnect', disconnectCreativeKey)
+app.get('/instances/:id/creative/renders',                  listCreativeRenders)
+app.get('/instances/:id/creative/renders/:renderId',        getCreativeRender)
+app.post('/instances/:id/creative/render',                  triggerCreativeRender)
 
 // ── SEO First Run ──
 app.post('/instances/:id/seo/validate', seoValidate)
