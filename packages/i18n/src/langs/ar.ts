@@ -236,7 +236,6 @@ const ar: Translations = {
         features: 'الميزات',
         pricing: 'الأسعار',
         faq: 'أسئلة',
-        blog: 'المدونة',
         changelog: 'سجل التغييرات',
         compare: 'مقارنة كاملة',
         legalAndMore: 'أخرى',
@@ -735,8 +734,6 @@ const ar: Translations = {
         featureSupport: 'دعم ذو أولوية',
         featureCloud: 'جميع ميزات السحابة محلياً',
         whatsIncluded: 'ما يتضمنه',
-        permanentNote:
-            'التراخيص دائمة وغير قابلة للإلغاء. بمجرد الشراء، تمتلكه للأبد.',
         gateTitle: 'مطلوب ترخيص',
         gateDescription:
             'تحتاج ترخيص ClawHost Go لنشر وإدارة نسخ OpenClaw محلياً.'
@@ -1255,15 +1252,7 @@ const ar: Translations = {
         demoStatus: '{{running}} يعمل، {{total}} إجمالي'
     },
     blog: {
-        title: 'المدونة',
-        description:
-            'أدلة ودروس وأخبار حول OpenClaw والبنية التحتية ذاتية الاستضافة.',
         readingTime: '{{minutes}} دقائق قراءة',
-        publishedOn: 'نُشر في {{date}}',
-        writtenBy: 'بواسطة {{author}}',
-        backToBlog: 'العودة إلى المدونة',
-        noPosts: 'لا توجد مقالات بعد',
-        noPostsDescription: 'المقالات قادمة قريباً. تحقق لاحقاً.',
         ctaTitle: 'انشر OpenClaw بنقرة واحدة',
         ctaDescription:
             'احصل على خادم مخصص مع OpenClaw مثبت مسبقاً. وصول كامل للجذر ومواقع عالمية وجاهز في دقائق. تملكه في جميع الأوقات. بدءاً من $25.',

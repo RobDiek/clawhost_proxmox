@@ -16,12 +16,11 @@ describe('ROUTES', () => {
     it('routes are derived from PATHS', () => {
         expect(ROUTES.LOGIN).toBe(`/${PATHS.LOGIN}`)
         expect(ROUTES.CLAWS).toBe(`/${PATHS.CLAWS}`)
-        expect(ROUTES.BLOG).toBe(`/${PATHS.BLOG}`)
         expect(ROUTES.TERMS).toBe(`/${PATHS.TERMS}`)
         expect(ROUTES.PRIVACY).toBe(`/${PATHS.PRIVACY}`)
     })
 
     it('BLOG_POST has slug parameter', () => {
-        expect(ROUTES.BLOG_POST).toBe(`/${PATHS.BLOG}/:slug`)
+        expect(ROUTES.BLOG_POST).toBe('/:slug')
     })
 })

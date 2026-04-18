@@ -1,15 +1,11 @@
 import type { FC, ReactNode } from 'react'
 
 import { Suspense } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { externalUrls } from '@openclaw/shared'
-import {
-    ArrowLeftIcon,
-    CalendarBlankIcon,
-    ClockIcon
-} from '@phosphor-icons/react'
+import { CalendarBlankIcon, ClockIcon } from '@phosphor-icons/react'
 import {
     BlogCTA,
     Header,
@@ -19,7 +15,7 @@ import {
     JsonLd
 } from '@/components'
 import { getPostComponent, getPostMeta } from '@/lib/blog'
-import { PATHS, ROUTES, getBaseDomain, getLocale } from '@/lib'
+import { getBaseDomain, getLocale } from '@/lib'
 import NotFound from '@/pages/NotFound'
 
 const SITE_URL = `https://${getBaseDomain()}`
@@ -41,7 +37,7 @@ const BlogPost: FC = (): ReactNode => {
         }
     )
 
-    const postUrl = `${SITE_URL}/${PATHS.BLOG}/${meta.slug}`
+    const postUrl = `${SITE_URL}/${meta.slug}`
     const imageUrl = `${SITE_URL}/og/${meta.slug}.png`
 
     return (
@@ -65,8 +61,8 @@ const BlogPost: FC = (): ReactNode => {
                         {
                             '@type': 'ListItem',
                             position: 1,
-                            name: t('blog.title'),
-                            item: `${SITE_URL}/${PATHS.BLOG}`
+                            name: 'ClawHost',
+                            item: SITE_URL
                         },
                         {
                             '@type': 'ListItem',
@@ -112,14 +108,6 @@ const BlogPost: FC = (): ReactNode => {
                 transition={{ duration: 0.4 }}
                 className='relative mx-auto w-full max-w-6xl flex-1 px-6 py-12'
             >
-                <Link
-                    to={ROUTES.BLOG}
-                    className='text-muted-foreground hover:text-foreground mb-8 inline-flex items-center gap-1.5 text-sm transition'
-                >
-                    <ArrowLeftIcon className='h-4 w-4' />
-                    {t('blog.backToBlog')}
-                </Link>
-
                 <article>
                     <h1 className='font-clash mb-4 text-4xl font-bold'>
                         {meta.title}

@@ -1,17 +1,17 @@
 import type { FC, ReactNode } from 'react'
 
-import { Fragment, useState, useEffect } from 'react'
-import { useSearchParams, Link, Navigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useSearchParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
-import { goLicense, userRole } from '@openclaw/shared'
+import { goLicense } from '@openclaw/shared'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/lib/auth'
 import { useUIStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
 import { api, ROUTES, isSafeRedirectUrl } from '@/lib'
 import { useProfile, PROFILE_QUERY_KEY } from '@/hooks'
-import { Button, Badge } from '@/components/ui'
+import { Button, Badge, Checkbox } from '@/components/ui'
 import {
     Header,
     LandingFooter,
@@ -28,13 +28,13 @@ import {
 
 const License: FC = (): ReactNode => {
     const { loading: authLoading } = useAuth()
-    const { data: profile, isLoading: isProfileLoading } = useProfile()
+    const { data: profile } = useProfile()
     const { showToast } = useUIStore()
     const queryClient = useQueryClient()
     const [searchParams, setSearchParams] = useSearchParams()
     const [isPurchasing, setIsPurchasing] = useState(false)
+    const [agreedToTerms, setAgreedToTerms] = useState(false)
 
-    const isAdmin = profile?.role === userRole.admin
     const hasLicense = profile?.hasLicense ?? false
 
     useEffect(() => {
@@ -43,9 +43,6 @@ const License: FC = (): ReactNode => {
         queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY })
         setSearchParams({}, { replace: true })
     }, [])
-
-    if (!authLoading && !isProfileLoading && !isAdmin)
-        return <Navigate to={ROUTES.CLAWS} replace />
 
     const handlePurchase = async () => {
         setIsPurchasing(true)
@@ -88,7 +85,7 @@ const License: FC = (): ReactNode => {
                         <CircleNotchIcon className='text-foreground/50 h-7 w-7 animate-spin' />
                     </div>
                 ) : (
-                    <Fragment>
+                    <div>
                         <PageHeader
                             title={t('license.pageTitle')}
                             description={t('license.pageDescription')}
@@ -139,24 +136,53 @@ const License: FC = (): ReactNode => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <Button
-                                        size='lg'
-                                        disabled={isPurchasing}
-                                        onClick={handlePurchase}
-                                        className='h-10 gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-sm text-white hover:opacity-90'
-                                    >
-                                        {isPurchasing ? (
-                                            <CircleNotchIcon className='h-5 w-5 animate-spin' />
-                                        ) : (
-                                            <LightningIcon
-                                                className='h-5 w-5'
-                                                weight='fill'
+                                    <div className='flex flex-col gap-4'>
+                                        <label className='flex cursor-pointer items-start gap-2'>
+                                            <Checkbox
+                                                checked={agreedToTerms}
+                                                onCheckedChange={(checked) =>
+                                                    setAgreedToTerms(!!checked)
+                                                }
+                                                className='mt-0.5'
                                             />
-                                        )}
-                                        {isPurchasing
-                                            ? t('license.purchasing')
-                                            : t('license.purchaseLicense')}
-                                    </Button>
+                                            <span className='text-muted-foreground text-xs'>
+                                                {t('auth.agreementNotice')}{' '}
+                                                <Link
+                                                    to={ROUTES.TERMS}
+                                                    className='text-muted-foreground hover:text-foreground underline'
+                                                    target='_blank'
+                                                >
+                                                    {t('auth.termsOfService')}
+                                                </Link>{' '}
+                                                {t('auth.andWord')}{' '}
+                                                <Link
+                                                    to={ROUTES.PRIVACY}
+                                                    className='text-muted-foreground hover:text-foreground underline'
+                                                    target='_blank'
+                                                >
+                                                    {t('auth.privacyPolicy')}
+                                                </Link>
+                                            </span>
+                                        </label>
+                                        <Button
+                                            size='lg'
+                                            disabled={isPurchasing || !agreedToTerms}
+                                            onClick={handlePurchase}
+                                            className='h-10 gap-2 border-0 bg-gradient-to-r from-[#ef5350] to-[#c62828] text-sm text-white hover:opacity-90'
+                                        >
+                                            {isPurchasing ? (
+                                                <CircleNotchIcon className='h-5 w-5 animate-spin' />
+                                            ) : (
+                                                <LightningIcon
+                                                    className='h-5 w-5'
+                                                    weight='fill'
+                                                />
+                                            )}
+                                            {isPurchasing
+                                                ? t('license.purchasing')
+                                                : t('license.purchaseLicense')}
+                                        </Button>
+                                    </div>
                                 )}
                             </div>
 
@@ -183,25 +209,7 @@ const License: FC = (): ReactNode => {
                             </div>
                         </div>
 
-                        <div className='text-muted-foreground mt-4 flex flex-col items-center gap-1 text-center text-xs'>
-                            <p>{t('license.permanentNote')}</p>
-                            <p>
-                                <Link
-                                    to={ROUTES.TERMS}
-                                    className='hover:text-foreground underline'
-                                >
-                                    {t('footer.termsOfService')}
-                                </Link>
-                                {' · '}
-                                <Link
-                                    to={ROUTES.PRIVACY}
-                                    className='hover:text-foreground underline'
-                                >
-                                    {t('footer.privacyPolicy')}
-                                </Link>
-                            </p>
-                        </div>
-                    </Fragment>
+                    </div>
                 )}
             </motion.main>
 

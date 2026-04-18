@@ -241,7 +241,6 @@ const ja: Translations = {
         features: '機能',
         pricing: '料金',
         faq: '質問',
-        blog: 'ブログ',
         changelog: '変更履歴',
         compare: '完全比較',
         legalAndMore: 'その他',
@@ -756,8 +755,6 @@ const ja: Translations = {
         featureSupport: '優先サポート',
         featureCloud: 'すべてのクラウド機能をローカルで',
         whatsIncluded: '含まれるもの',
-        permanentNote:
-            'ライセンスは永久で取消不可です。購入すれば永久に所有できます。',
         gateTitle: 'ライセンスが必要',
         gateDescription:
             'ローカルでOpenClawインスタンスをデプロイ・管理するにはClawHost Goライセンスが必要です。'
@@ -1281,16 +1278,7 @@ const ja: Translations = {
         demoStatus: '{{running}}実行中、合計{{total}}'
     },
     blog: {
-        title: 'ブログ',
-        description:
-            'OpenClawとセルフホストインフラに関するガイド、チュートリアル、ニュース.',
         readingTime: '{{minutes}}分で読める',
-        publishedOn: '{{date}}に公開',
-        writtenBy: '{{author}}による',
-        backToBlog: 'ブログに戻る',
-        noPosts: '投稿はまだありません',
-        noPostsDescription:
-            'ブログ記事は近日公開予定です。後でまた確認してください.',
         ctaTitle: 'ワンクリックでOpenClawをデプロイ',
         ctaDescription:
             'OpenClawプリインストール済みの専用サーバーを取得。フルルートアクセス、グローバルロケーション、数分で準備完了。常にあなたのもの。$25から.',

@@ -245,7 +245,6 @@ const it: Translations = {
         features: 'Funzionalit\u00e0',
         pricing: 'Prezzi',
         faq: 'Domande',
-        blog: 'Blog',
         changelog: 'Changelog',
         compare: 'Confronto completo',
         legalAndMore: 'Altro',
@@ -781,8 +780,6 @@ const it: Translations = {
         featureSupport: 'Supporto Prioritario',
         featureCloud: 'Tutte le Funzionalità Cloud, in Locale',
         whatsIncluded: 'Cosa include',
-        permanentNote:
-            'Le licenze sono permanenti e non revocabili. Una volta acquistata, è tua per sempre.',
         gateTitle: 'Licenza Necessaria',
         gateDescription:
             'Hai bisogno di una Licenza ClawHost Go per distribuire e gestire istanze OpenClaw in locale.'
@@ -1319,16 +1316,7 @@ const it: Translations = {
         demoStatus: '{{running}} in esecuzione, {{total}} totali'
     },
     blog: {
-        title: 'Blog',
-        description:
-            'Guide, tutorial e notizie su OpenClaw e infrastruttura self-hosted.',
         readingTime: '{{minutes}} min di lettura',
-        publishedOn: 'Pubblicato il {{date}}',
-        writtenBy: 'Di {{author}}',
-        backToBlog: 'Torna al Blog',
-        noPosts: 'Nessun Articolo',
-        noPostsDescription:
-            'Gli articoli del blog arriveranno presto. Torna più tardi.',
         ctaTitle: 'Distribuisci OpenClaw con Un Clic',
         ctaDescription:
             'Ottieni un server dedicato con OpenClaw preinstallato. Accesso root completo, posizioni globali e pronto in pochi minuti. Lo possiedi in ogni momento. A partire da $25.',

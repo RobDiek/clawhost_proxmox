@@ -35,7 +35,7 @@ import {
     ConnectedAccountsSection
 } from '@/components/account'
 
-import { BlogCard, BlogCTA } from '@/components/blog'
+import { BlogCTA } from '@/components/blog'
 
 import {
     LegalContactSection,
@@ -69,7 +69,6 @@ export {
     AnnouncementBanner,
     ActionButton,
     BetaBadge,
-    BlogCard,
     BlogCTA,
     ClawMascot,
     ComparisonTable,

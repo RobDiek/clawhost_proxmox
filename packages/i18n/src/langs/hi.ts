@@ -241,7 +241,6 @@ const hi: Translations = {
         features: 'विशेषताएँ',
         pricing: 'मूल्य निर्धारण',
         faq: 'प्रश्न',
-        blog: 'ब्लॉग',
         changelog: 'परिवर्तन लॉग',
         compare: 'पूर्ण तुलना',
         legalAndMore: 'अन्य',
@@ -761,8 +760,6 @@ const hi: Translations = {
         featureSupport: 'प्राथमिकता सहायता',
         featureCloud: 'सभी क्लाउड सुविधाएँ, स्थानीय रूप से',
         whatsIncluded: 'क्या शामिल है',
-        permanentNote:
-            'लाइसेंस स्थायी और अप्रतिसंहरणीय हैं. एक बार खरीदने के बाद, आप इसे हमेशा के लिए रखते हैं.',
         gateTitle: 'लाइसेंस आवश्यक',
         gateDescription:
             'स्थानीय रूप से OpenClaw इंस्टेंस डिप्लॉय और प्रबंधित करने के लिए आपको ClawHost Go लाइसेंस की आवश्यकता है.'
@@ -1290,15 +1287,7 @@ const hi: Translations = {
         demoStatus: '{{running}} चल रहे हैं, {{total}} कुल'
     },
     blog: {
-        title: 'ब्लॉग',
-        description:
-            'OpenClaw और सेल्फ-होस्टेड बुनियादी ढाँचे के बारे में गाइड, ट्यूटोरियल और समाचार.',
         readingTime: '{{minutes}} मिनट पढ़ने का समय',
-        publishedOn: '{{date}} को प्रकाशित',
-        writtenBy: '{{author}} द्वारा',
-        backToBlog: 'ब्लॉग पर वापस',
-        noPosts: 'अभी तक कोई पोस्ट नहीं',
-        noPostsDescription: 'ब्लॉग पोस्ट जल्द आ रही हैं. बाद में वापस आएँ.',
         ctaTitle: 'एक क्लिक में OpenClaw डिप्लॉय करें',
         ctaDescription:
             'OpenClaw पूर्व-इंस्टॉल के साथ एक समर्पित सर्वर प्राप्त करें. पूर्ण रूट एक्सेस, वैश्विक स्थान और मिनटों में तैयार. आप हर समय इसके मालिक हैं. $25 से शुरू.',

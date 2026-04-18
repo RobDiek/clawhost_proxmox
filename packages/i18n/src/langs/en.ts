@@ -236,7 +236,6 @@ const en = {
         features: 'Features',
         pricing: 'Pricing',
         faq: 'Questions',
-        blog: 'Blog',
         changelog: 'Changelog',
         compare: 'Full Comparison',
         legalAndMore: 'Others',
@@ -745,8 +744,6 @@ const en = {
         featureSupport: 'Priority Support',
         featureCloud: 'All Cloud Features, Locally',
         whatsIncluded: "What\'s included",
-        permanentNote:
-            'Licenses are permanent and non-revocable. Once purchased, you own it forever.',
         gateTitle: 'License Required',
         gateDescription:
             'You need a ClawHost Go License to deploy and manage OpenClaw instances locally.'
@@ -1271,15 +1268,7 @@ const en = {
         demoStatus: '{{running}} running, {{total}} total'
     },
     blog: {
-        title: 'Blog',
-        description:
-            'Guides, tutorials, and news about OpenClaw and self-hosted infrastructure.',
         readingTime: '{{minutes}} min read',
-        publishedOn: 'Published on {{date}}',
-        writtenBy: 'By {{author}}',
-        backToBlog: 'Back to Blog',
-        noPosts: 'No Posts Yet',
-        noPostsDescription: 'Blog posts are coming soon. Check back later.',
         ctaTitle: 'Deploy OpenClaw with One Click',
         ctaDescription:
             'Get a dedicated server with OpenClaw pre-installed. Full root access, global locations, and ready in minutes. You own it at all times. Starting from $25.',

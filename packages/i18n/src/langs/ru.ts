@@ -239,7 +239,6 @@ const ru: Translations = {
         features: 'Возможности',
         pricing: 'Цены',
         faq: 'Вопросы',
-        blog: 'Блог',
         changelog: 'Список изменений',
         compare: 'Полное сравнение',
         legalAndMore: 'Прочее',
@@ -755,8 +754,6 @@ const ru: Translations = {
         featureSupport: 'Приоритетная поддержка',
         featureCloud: 'Все облачные функции — локально',
         whatsIncluded: 'Что включено',
-        permanentNote:
-            'Лицензии постоянные и безотзывные. После покупки она ваша навсегда.',
         gateTitle: 'Требуется лицензия',
         gateDescription:
             'Вам нужна лицензия ClawHost Go для развёртывания и управления экземплярами OpenClaw локально.'
@@ -1288,15 +1285,7 @@ const ru: Translations = {
         demoStatus: '{{running}} работает, {{total}} всего'
     },
     blog: {
-        title: 'Блог',
-        description:
-            'Руководства, обучающие материалы и новости об OpenClaw и самостоятельно размещаемой инфраструктуре.',
         readingTime: '{{minutes}} мин чтения',
-        publishedOn: 'Опубликовано {{date}}',
-        writtenBy: 'Автор: {{author}}',
-        backToBlog: 'Назад в блог',
-        noPosts: 'Записей пока нет',
-        noPostsDescription: 'Записи в блоге скоро появятся. Заходите позже.',
         ctaTitle: 'Разверните OpenClaw в один клик',
         ctaDescription:
             'Получите выделенный сервер с предустановленным OpenClaw. Полный root-доступ, глобальные локации и готовность за минуты. Вы владеете им в любое время. От $25.',

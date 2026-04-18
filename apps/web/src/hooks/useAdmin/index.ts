@@ -1,4 +1,3 @@
-import ADMIN_USERS_QUERY_KEY from '@/hooks/useAdmin/ADMIN_USERS_QUERY_KEY'
 import useAdminAnalytics from '@/hooks/useAdmin/useAdminAnalytics'
 import useAdminBillingList from '@/hooks/useAdmin/useAdminBillingList'
 import useAdminClawsList from '@/hooks/useAdmin/useAdminClawsList'
@@ -14,7 +13,6 @@ import useAdminWaitlistList from '@/hooks/useAdmin/useAdminWaitlistList'
 import useUpdateAdminUser from '@/hooks/useAdmin/useUpdateAdminUser'
 
 export {
-    ADMIN_USERS_QUERY_KEY,
     useAdminAnalytics,
     useAdminBillingList,
     useAdminClawsList,

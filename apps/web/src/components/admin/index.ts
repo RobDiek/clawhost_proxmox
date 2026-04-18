@@ -1,59 +1,29 @@
 import AdminAnalyticsTab from '@/components/admin/AdminAnalyticsTab'
-import AdminBillingDetailView from '@/components/admin/AdminBillingDetailView'
 import AdminBillingTab from '@/components/admin/AdminBillingTab'
-import AdminClawDetailView from '@/components/admin/AdminClawDetailView'
 import AdminClawsTab from '@/components/admin/AdminClawsTab'
-import AdminDetailField from '@/components/admin/AdminDetailField'
 import AdminDetailModal from '@/components/admin/AdminDetailModal'
-import AdminEmailDetailView from '@/components/admin/AdminEmailDetailView'
 import AdminEmailsTab from '@/components/admin/AdminEmailsTab'
-import AdminOwnerLink from '@/components/admin/AdminOwnerLink'
-import AdminPendingClawDetailView from '@/components/admin/AdminPendingClawDetailView'
 import AdminPendingClawsTab from '@/components/admin/AdminPendingClawsTab'
-import AdminReferralDetailView from '@/components/admin/AdminReferralDetailView'
 import AdminReferralsTab from '@/components/admin/AdminReferralsTab'
 import AdminSettingsTab from '@/components/admin/AdminSettingsTab'
-import AdminSSHKeyDetailView from '@/components/admin/AdminSSHKeyDetailView'
 import AdminSSHKeysTab from '@/components/admin/AdminSSHKeysTab'
-import AdminStatusBadge from '@/components/admin/AdminStatusBadge'
-import AdminUserDetailView from '@/components/admin/AdminUserDetailView'
 import AdminUserFilters from '@/components/admin/AdminUserFilters'
 import AdminUserRow from '@/components/admin/AdminUserRow'
-import AdminVolumeDetailView from '@/components/admin/AdminVolumeDetailView'
 import AdminVolumesTab from '@/components/admin/AdminVolumesTab'
 import AdminWaitlistTab from '@/components/admin/AdminWaitlistTab'
-import AdminUserClawsSection from '@/components/admin/AdminUserClawsSection'
-import AdminUserSSHKeysSection from '@/components/admin/AdminUserSSHKeysSection'
-import AdminUserVolumesSection from '@/components/admin/AdminUserVolumesSection'
-import AdminUserBillingSection from '@/components/admin/AdminUserBillingSection'
 
 export {
     AdminAnalyticsTab,
-    AdminBillingDetailView,
     AdminBillingTab,
-    AdminClawDetailView,
     AdminClawsTab,
-    AdminDetailField,
     AdminDetailModal,
-    AdminEmailDetailView,
     AdminEmailsTab,
-    AdminOwnerLink,
-    AdminPendingClawDetailView,
     AdminPendingClawsTab,
-    AdminReferralDetailView,
     AdminReferralsTab,
     AdminSettingsTab,
-    AdminSSHKeyDetailView,
     AdminSSHKeysTab,
-    AdminStatusBadge,
-    AdminUserDetailView,
     AdminUserFilters,
     AdminUserRow,
-    AdminVolumeDetailView,
     AdminVolumesTab,
-    AdminWaitlistTab,
-    AdminUserClawsSection,
-    AdminUserSSHKeysSection,
-    AdminUserVolumesSection,
-    AdminUserBillingSection
+    AdminWaitlistTab
 }

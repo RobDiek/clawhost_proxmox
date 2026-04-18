@@ -231,7 +231,6 @@ const zh: Translations = {
         features: '功能',
         pricing: '定价',
         faq: '问题',
-        blog: '博客',
         changelog: '更新日志',
         compare: '完整对比',
         legalAndMore: '其他',
@@ -717,7 +716,6 @@ const zh: Translations = {
         featureSupport: '优先支持',
         featureCloud: '所有云功能，本地运行',
         whatsIncluded: '包含内容',
-        permanentNote: '许可证是永久且不可撤销的。一旦购买，您将永远拥有它。',
         gateTitle: '需要许可证',
         gateDescription:
             '您需要 ClawHost Go 许可证才能在本地部署和管理 OpenClaw 实例。'
@@ -1224,14 +1222,7 @@ const zh: Translations = {
         demoStatus: '{{running}} 运行中，共 {{total}} 个'
     },
     blog: {
-        title: '博客',
-        description: '关于 OpenClaw 和自托管基础设施的指南、教程和新闻。',
         readingTime: '{{minutes}} 分钟阅读',
-        publishedOn: '发布于 {{date}}',
-        writtenBy: '作者 {{author}}',
-        backToBlog: '返回博客',
-        noPosts: '暂无文章',
-        noPostsDescription: '博客文章即将推出。请稍后再来。',
         ctaTitle: '一键部署 OpenClaw',
         ctaDescription:
             '获取预装 OpenClaw 的专用服务器。完整 root 访问权限、全球位置，几分钟内就绪。您始终拥有它。起价 $25。',

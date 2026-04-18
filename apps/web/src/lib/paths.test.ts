@@ -10,7 +10,6 @@ describe('PATHS', () => {
         expect(PATHS.CLAWS).toBe('agents')
         expect(PATHS.SSH_KEYS).toBe('ssh-keys')
         expect(PATHS.ACCOUNT).toBe('account')
-        expect(PATHS.BLOG).toBe('blog')
         expect(PATHS.TERMS).toBe('terms')
         expect(PATHS.PRIVACY).toBe('privacy')
         expect(PATHS.CHANGELOG).toBe('changelog')

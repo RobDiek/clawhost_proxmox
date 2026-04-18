@@ -181,31 +181,6 @@ for (const page of staticPages) {
     writePrerenderedPage(page.path, html)
 }
 
-const listingHtml = injectMeta(template, {
-    title: 'Blog',
-    description:
-        'Guides, tutorials, and news about OpenClaw and self-hosted infrastructure.',
-    url: `${SITE_URL}/${PATHS.BLOG}`,
-    type: 'website',
-    image: `${SITE_URL}/og-image.webp`,
-    jsonLd: {
-        '@context': 'https://schema.org',
-        '@type': 'Blog',
-        name: 'ClawHost Blog',
-        description:
-            'Guides, tutorials, and news about OpenClaw and self-hosted infrastructure.',
-        url: `${SITE_URL}/${PATHS.BLOG}`,
-        publisher: {
-            '@type': 'Organization',
-            name: 'ClawHost',
-            logo: { '@type': 'ImageObject', url: `${SITE_URL}/favicon.ico` }
-        }
-    }
-})
-
-fs.mkdirSync(path.join(DIST, PATHS.BLOG), { recursive: true })
-fs.writeFileSync(path.join(DIST, PATHS.BLOG, 'index.html'), listingHtml)
-
 for (const post of posts) {
     const imageUrl = post.coverImage
         ? `${SITE_URL}${post.coverImage}`
@@ -214,7 +189,7 @@ for (const post of posts) {
     const postHtml = injectMeta(template, {
         title: post.title,
         description: post.description,
-        url: `${SITE_URL}/${PATHS.BLOG}/${post.slug}`,
+        url: `${SITE_URL}/${post.slug}`,
         type: 'article',
         image: imageUrl,
         articleMeta: {
@@ -232,7 +207,7 @@ for (const post of posts) {
             author: { '@type': 'Organization', name: post.author },
             datePublished: post.publishedAt,
             ...(post.updatedAt && { dateModified: post.updatedAt }),
-            url: `${SITE_URL}/${PATHS.BLOG}/${post.slug}`,
+            url: `${SITE_URL}/${post.slug}`,
             publisher: {
                 '@type': 'Organization',
                 name: 'ClawHost',
@@ -240,17 +215,17 @@ for (const post of posts) {
             },
             mainEntityOfPage: {
                 '@type': 'WebPage',
-                '@id': `${SITE_URL}/${PATHS.BLOG}/${post.slug}`
+                '@id': `${SITE_URL}/${post.slug}`
             },
             keywords: post.tags.join(', ')
         }
     })
 
-    const dir = path.join(DIST, PATHS.BLOG, post.slug)
+    const dir = path.join(DIST, post.slug)
     fs.mkdirSync(dir, { recursive: true })
     fs.writeFileSync(path.join(dir, 'index.html'), postHtml)
 }
 
 console.log(
-    `Pre-rendered ${staticPages.length} static pages, blog listing, and ${posts.length} blog posts.`
+    `Pre-rendered ${staticPages.length} static pages and ${posts.length} blog posts.`
 )

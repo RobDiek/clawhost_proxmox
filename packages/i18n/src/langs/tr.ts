@@ -238,7 +238,6 @@ const tr: Translations = {
         features: 'Özellikler',
         pricing: 'Fiyatlandırma',
         faq: 'Sorular',
-        blog: 'Blog',
         changelog: 'Değişiklik Günlüğü',
         compare: 'Tam Karşılaştırma',
         legalAndMore: 'Diğer',
@@ -754,8 +753,6 @@ const tr: Translations = {
         featureSupport: 'Öncelikli Destek',
         featureCloud: 'Tüm Bulut Özellikleri, Yerel Olarak',
         whatsIncluded: 'Neler dahil',
-        permanentNote:
-            'Lisanslar kalıcıdır ve geri alınamaz. Satın aldıktan sonra sonsuza kadar sizindir.',
         gateTitle: 'Lisans Gerekli',
         gateDescription:
             'OpenClaw örneklerini yerel olarak dağıtmak ve yönetmek için ClawHost Go Lisansına ihtiyacınız var.'
@@ -1285,16 +1282,7 @@ const tr: Translations = {
         demoStatus: '{{running}} çalışıyor, {{total}} toplam'
     },
     blog: {
-        title: 'Blog',
-        description:
-            'OpenClaw ve kendi kendine barındırılan altyapı hakkında rehberler, eğitimler ve haberler.',
         readingTime: '{{minutes}} dk okuma',
-        publishedOn: '{{date}} tarihinde yayınlandı',
-        writtenBy: '{{author}} tarafından',
-        backToBlog: "Blog'a Dön",
-        noPosts: 'Henüz Yazı Yok',
-        noPostsDescription:
-            'Blog yazıları yakında gelecek. Daha sonra tekrar kontrol edin.',
         ctaTitle: "OpenClaw'u Tek Tıkla Dağıtın",
         ctaDescription:
             "OpenClaw önceden yüklü özel bir sunucu edinin. Tam root erişimi, küresel konumlar ve dakikalar içinde hazır. Her zaman sahibi sizsiniz. $25'tan başlayan fiyatlar.",

@@ -780,10 +780,6 @@ export interface BlogPostMeta extends BlogPostFrontmatter {
     readingTime: number
 }
 
-export interface BlogCardProps {
-    post: BlogPostMeta
-}
-
 export interface JsonLdProps {
     data: Record<string, unknown>
 }
@@ -1106,12 +1102,6 @@ export interface ClawDiagnosticsContentProps {
     mockData?: DiagnosticsStatusResponse
 }
 
-export interface ClawFileExplorerDialogProps {
-    clawId: string
-    open: boolean
-    onOpenChange: (open: boolean) => void
-}
-
 export interface ClawFileExplorerContentProps {
     clawId: string
     readOnly?: boolean
@@ -1320,16 +1310,6 @@ export interface LanguageOption {
     value: Language
     label: string
     flag: string
-}
-
-export interface SecretInputFieldProps {
-    label: string
-    value: string
-    onChange: (value: string) => void
-    placeholder?: string
-    existingValue?: string
-    configuredLabel?: string
-    helperText?: string
 }
 
 export interface HeroButtonsProps {
@@ -1579,12 +1559,6 @@ export interface SelectItemProps {
     value: string
     children: ReactNode
     className?: string
-}
-
-export interface SelectGroupProps {
-    label: string
-    children: ReactNode
-    isLast?: boolean
 }
 
 export interface FirebaseErrorLike {

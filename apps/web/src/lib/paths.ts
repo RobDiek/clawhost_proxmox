@@ -10,7 +10,6 @@ const PATHS = {
     TERMS: 'terms',
     PRIVACY: 'privacy',
     CHANGELOG: 'changelog',
-    BLOG: 'blog',
     AFFILIATE: 'affiliate',
     AFFILIATE_PROGRAM: 'affiliate-program',
     COMPARE: 'full-comparison'

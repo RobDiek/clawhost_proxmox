@@ -1,6 +1,5 @@
 import CLAWS_QUERY_KEY from '@/hooks/useClaws/CLAWS_QUERY_KEY'
 import CLAW_VERSION_QUERY_KEY from '@/hooks/useClaws/CLAW_VERSION_QUERY_KEY'
-import CLAW_FILES_QUERY_KEY from '@/hooks/useClaws/CLAW_FILES_QUERY_KEY'
 import CLAW_FILE_QUERY_KEY from '@/hooks/useClaws/CLAW_FILE_QUERY_KEY'
 import CLAW_VERSIONS_QUERY_KEY from '@/hooks/useClaws/CLAW_VERSIONS_QUERY_KEY'
 import useClaws from '@/hooks/useClaws/useClaws'
@@ -34,7 +33,6 @@ import useUpdateClawSubdomain from '@/hooks/useClaws/useUpdateClawSubdomain'
 export {
     CLAWS_QUERY_KEY,
     CLAW_VERSION_QUERY_KEY,
-    CLAW_FILES_QUERY_KEY,
     CLAW_FILE_QUERY_KEY,
     CLAW_VERSIONS_QUERY_KEY,
     useClaws,

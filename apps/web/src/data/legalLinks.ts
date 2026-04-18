@@ -5,7 +5,6 @@ import { ROUTES } from '@/lib'
 import { SUPPORT_EMAIL } from '@/lib/links'
 
 const getLegalLinks = (): FooterLink[] => [
-    { label: t('footer.blog'), href: ROUTES.BLOG },
     { label: t('footer.privacyPolicy'), href: ROUTES.PRIVACY },
     { label: t('footer.termsOfService'), href: ROUTES.TERMS },
     { label: t('footer.compare'), href: ROUTES.COMPARE },

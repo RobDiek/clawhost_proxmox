@@ -242,7 +242,6 @@ const nl: Translations = {
         features: 'Functies',
         pricing: 'Prijzen',
         faq: 'Vragen',
-        blog: 'Blog',
         changelog: 'Changelog',
         compare: 'Volledige vergelijking',
         legalAndMore: 'Overig',
@@ -763,8 +762,6 @@ const nl: Translations = {
         featureSupport: 'Prioriteitsondersteuning',
         featureCloud: 'Alle cloudfuncties, lokaal',
         whatsIncluded: 'Wat is inbegrepen',
-        permanentNote:
-            'Licenties zijn permanent en niet-herroepbaar. Eenmaal gekocht, bezit je het voor altijd.',
         gateTitle: 'Licentie vereist',
         gateDescription:
             'Je hebt een ClawHost Go Licentie nodig om OpenClaw-instanties lokaal te deployen en te beheren.'
@@ -1302,15 +1299,7 @@ const nl: Translations = {
         demoStatus: '{{running}} actief, {{total}} totaal'
     },
     blog: {
-        title: 'Blog',
-        description:
-            'Handleidingen, tutorials en nieuws over OpenClaw en zelfgehoste infrastructuur.',
         readingTime: '{{minutes}} min leestijd',
-        publishedOn: 'Gepubliceerd op {{date}}',
-        writtenBy: 'Door {{author}}',
-        backToBlog: 'Terug naar blog',
-        noPosts: 'Nog geen berichten',
-        noPostsDescription: 'Blogberichten komen binnenkort. Kom later terug.',
         ctaTitle: 'Deploy OpenClaw met \u00e9\u00e9n klik',
         ctaDescription:
             'Krijg een dedicated server met OpenClaw voorge\u00efnstalleerd. Volledige root-toegang, wereldwijde locaties en klaar in minuten. Het is altijd van jou. Vanaf $25.',

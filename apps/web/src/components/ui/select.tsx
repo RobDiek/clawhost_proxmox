@@ -3,19 +3,15 @@ import type {
     SelectProps,
     SelectTriggerProps,
     SelectContentProps,
-    SelectItemProps,
-    SelectGroupProps
+    SelectItemProps
 } from '@/ts/Interfaces'
 
 import * as React from 'react'
-import { Fragment } from 'react'
 import { CaretDownIcon, CheckIcon } from '@phosphor-icons/react'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib'
@@ -145,16 +141,4 @@ const SelectItem = ({ value, children, className }: SelectItemProps) => {
     )
 }
 
-const SelectGroup = ({ label, children, isLast }: SelectGroupProps) => {
-    return (
-        <Fragment>
-            <DropdownMenuLabel className='text-muted-foreground text-xs font-medium'>
-                {label}
-            </DropdownMenuLabel>
-            {children}
-            {!isLast && <DropdownMenuSeparator />}
-        </Fragment>
-    )
-}
-
-export { Select, SelectTrigger, SelectContent, SelectItem, SelectGroup }
+export { Select, SelectTrigger, SelectContent, SelectItem }
