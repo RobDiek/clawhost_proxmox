@@ -2476,6 +2476,21 @@ input{font-family:inherit}
 </div>
 
 <!-- Research Pipeline Modal -->
+<!-- ═══ Brand Foundation Wizard (Phase B1) ═══ -->
+<div class="report-modal-overlay hidden" id="brandOverlay" onclick="closeBrandWizard()">
+  <div class="report-modal" onclick="event.stopPropagation()" style="max-width:900px">
+    <div class="report-modal-header">
+      <h3 id="brandTitle">🎨 מערכת מותג</h3>
+      <button onclick="closeBrandWizard()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#6B7280">&times;</button>
+    </div>
+    <div id="brandStepsHeader" style="padding:12px 24px;border-bottom:1px solid #E5E7EB;display:flex;gap:4px;align-items:center;font-size:0.82rem;color:#6B7280"></div>
+    <div class="report-modal-body" id="brandBody" style="min-height:280px;max-height:70vh;overflow-y:auto">
+      <div style="text-align:center;padding:40px;color:#9CA3AF">טוען...</div>
+    </div>
+    <div id="brandFooter" style="padding:16px 24px;border-top:1px solid #E5E7EB;display:flex;gap:8px;justify-content:flex-end;align-items:center"></div>
+  </div>
+</div>
+
 <div class="report-modal-overlay hidden" id="pipelineOverlay" onclick="closePipeline()">
   <div class="report-modal" onclick="event.stopPropagation()" style="max-width:700px">
     <div class="report-modal-header">
@@ -3206,6 +3221,19 @@ function renderHome() {
         actionLabel: hasScenarios ? 'בחרו מסלול' : 'התאימו מסלול',
         desc: 'שמרני · מאוזן · אגרסיבי — בדיקת תקציב מול המציאות + התאמת ערוצים'
       });
+
+      // Brand Foundation — unlocks after strategy (so positioning feeds brand decisions)
+      var hasBrandBook = !!(instanceData && instanceData.hasBrandBook);
+      tasks.push({
+        id: 'brand-foundation',
+        label: hasBrandBook ? '✓ מערכת מותג (Brand Book)' : '🎨 הגדירו את המותג',
+        done: hasBrandBook,
+        action: "openBrandFoundation()",
+        actionLabel: hasBrandBook ? 'ערכו' : 'התחילו',
+        desc: hasBrandBook
+          ? 'לוגו, צבעים, טיפוגרפיה, voice — יוזנים אוטומטית לכל קריאייטיב ותוכן'
+          : 'חילוץ מותג אוטומטי מאתר (2 דק\') או מאפס — מזין את כל הסוכנים היוצרים'
+      });
     }
     if (hasChosenScenario) {
       // Connections Wizard — required connections for the chosen scenario.
@@ -3720,7 +3748,11 @@ var OUTPUT_TYPE_LABELS = {
   gads_keywords_draft: '💰 מילות מפתח Google Ads (טיוטה)',
   mads_campaign_draft: '📘 קמפיין Meta Ads (טיוטה)',
   mads_adset_draft:    '📘 Ad Set Meta (טיוטה)',
-  mads_ad_draft:       '📘 מודעה Meta (טיוטה)'
+  mads_ad_draft:       '📘 מודעה Meta (טיוטה)',
+  creative_concept_draft:   '🎨 קונספט קריאייטיב (Gate 1)',
+  creative_character_draft: '🎨 דמות/רפרנס — 4 וריאציות (Gate 2)',
+  creative_scenes_draft:    '🎨 סצנות קריאייטיב (Gate 3)',
+  creative_final_draft:     '🎬 קריאייטיב סופי לרנדור (Gate 4)'
 };
 
 // Platform icons (SVG, sidebar style)
@@ -3943,6 +3975,15 @@ function renderTaskPopup(task) {
     bodyHtml += renderMadsDraftPreview(task);
     document.getElementById('taskPopupBody').innerHTML = bodyHtml;
     document.getElementById('taskPopupFooter').innerHTML = renderMadsApprovalFooter(task);
+    document.getElementById('taskPopupOverlay').classList.remove('hidden');
+    return;
+  }
+
+  // ── Special renderer for Yotzer creative drafts (4-gate lifecycle) ──
+  if (task.type && typeof task.type === 'string' && task.type.indexOf('creative_') === 0 && task.type.indexOf('_draft') !== -1) {
+    bodyHtml += renderCreativeDraftPreview(task);
+    document.getElementById('taskPopupBody').innerHTML = bodyHtml;
+    document.getElementById('taskPopupFooter').innerHTML = renderCreativeApprovalFooter(task);
     document.getElementById('taskPopupOverlay').classList.remove('hidden');
     return;
   }
@@ -4451,6 +4492,157 @@ function renderGadsApprovalFooter(task) {
   return '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()">✗ דחו</button>' +
          '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\')">✎ תיקון</button>' +
          '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()">✓ אשרו לביצוע ב-Google Ads</button>';
+}
+
+// ── Yotzer Creative draft renderers (4-gate lifecycle) ──
+function extractCreativeDraft(task) {
+  var content = task.editedContent || task.content || '';
+  try { return JSON.parse(content); } catch {}
+  var m = content.match(/\{[\s\S]*"_type"[\s\S]*\}/);
+  if (m) { try { return JSON.parse(m[0]); } catch {} }
+  return null;
+}
+
+function renderCreativeDraftPreview(task) {
+  var draft = extractCreativeDraft(task);
+  if (!draft) {
+    return '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:12px">' +
+      '<strong style="color:#991B1B">⚠️ לא ניתן לפרסר את הטיוטה</strong></div>';
+  }
+  var type = draft._type || task.type;
+  var gateNum = type === 'creative_concept_draft' ? 1 :
+                type === 'creative_character_draft' ? 2 :
+                type === 'creative_scenes_draft' ? 3 :
+                type === 'creative_final_draft' ? 4 : 0;
+  var html = '<div style="background:linear-gradient(135deg,#8B5CF610 0%,#EC489910 100%);border:2px solid #8B5CF6;border-radius:10px;padding:14px;margin-bottom:16px">' +
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">' +
+    '<span style="font-size:1.4rem">' + (type === 'creative_final_draft' ? '🎬' : '🎨') + '</span>' +
+    '<div><strong style="font-size:1rem;color:#1E3A5F">Yotzer — Gate ' + gateNum + '/4</strong>' +
+    '<div style="font-size:0.72rem;color:#6B7280">' + escapeHtml(type) + '</div></div></div>';
+  if (type === 'creative_concept_draft') html += renderCreativeConcept(draft);
+  else if (type === 'creative_character_draft') html += renderCreativeCharacter(draft);
+  else if (type === 'creative_scenes_draft') html += renderCreativeScenes(draft);
+  else if (type === 'creative_final_draft') html += renderCreativeFinal(draft);
+  else html += '<pre style="font-size:0.75rem;background:#FFF;padding:10px;border-radius:6px;overflow-x:auto">' + escapeHtml(JSON.stringify(draft, null, 2)) + '</pre>';
+  html += '</div>';
+  if (task.metadata && task.metadata.renderStatus) {
+    var status = task.metadata.renderStatus;
+    var statusLabel = status === 'queued' ? '⏳ בתור לרנדור (fal.ai)' :
+                      status === 'rendering' ? '🎬 מרנדר...' :
+                      status === 'uploading' ? '📤 מעלה לאחסון' :
+                      status === 'done' ? '✅ רנדור הושלם' :
+                      status === 'failed' ? '❌ רנדור נכשל' : status;
+    html += '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:8px 10px;font-size:0.78rem;color:#4B5563;margin-bottom:8px">' + statusLabel + '</div>';
+  }
+  return html;
+}
+
+function renderCreativeConcept(d) {
+  var h = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">';
+  h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px"><div style="font-size:0.68rem;color:#6B7280">פלטפורמה</div><strong>' + escapeHtml(d.platform || '') + '</strong></div>';
+  h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px"><div style="font-size:0.68rem;color:#6B7280">פורמט</div><strong>' + escapeHtml(d.formatType || '') + '</strong></div>';
+  h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px"><div style="font-size:0.68rem;color:#6B7280">מטרה</div><strong>' + escapeHtml(d.goal || '') + '</strong></div>';
+  h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px"><div style="font-size:0.68rem;color:#6B7280">Tier</div><strong>' + escapeHtml(d.tier || '') + '</strong></div>';
+  h += '</div>';
+  h += '<div style="background:#EDE9FE;border:1px solid #8B5CF6;border-radius:6px;padding:10px;margin-bottom:10px">';
+  h += '<div style="font-size:0.72rem;color:#5B21B6;margin-bottom:2px">מפרט טכני</div>';
+  h += '<strong>' + escapeHtml(d.aspectRatio || '1:1') + '</strong> · <strong>' + escapeHtml(d.resolution || '') + '</strong>';
+  if (d.maxDurationSec) h += ' · עד <strong>' + d.maxDurationSec + ' שניות</strong>';
+  h += '</div>';
+  if (d.brief) h += '<div style="background:#FFF;padding:10px;border-radius:6px;margin-bottom:8px"><div style="font-size:0.68rem;color:#6B7280">Brief</div>' + escapeHtml(d.brief) + '</div>';
+  if (d.targetAudience) h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px;margin-bottom:8px"><div style="font-size:0.68rem;color:#6B7280">קהל יעד</div>' + escapeHtml(d.targetAudience) + '</div>';
+  if (d.hook) h += '<div style="background:#FEF3C7;padding:10px;border-radius:6px;margin-bottom:8px"><div style="font-size:0.68rem;color:#92400E">Hook</div><strong>' + escapeHtml(d.hook) + '</strong></div>';
+  if (d.visualDirection) h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px;margin-bottom:8px"><div style="font-size:0.68rem;color:#6B7280">כיוון ויזואלי</div>' + escapeHtml(d.visualDirection) + '</div>';
+  if (d.callToAction) h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px;margin-bottom:8px"><div style="font-size:0.68rem;color:#6B7280">CTA</div><strong>' + escapeHtml(d.callToAction) + '</strong></div>';
+  if (d.rationale) h += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px;font-size:0.82rem;color:#1E40AF;line-height:1.5"><strong>💡 הנמקה:</strong><br>' + escapeHtml(d.rationale) + '</div>';
+  return h;
+}
+
+function renderCreativeCharacter(d) {
+  var h = '<div style="background:#FFF;padding:10px;border-radius:6px;margin-bottom:10px">';
+  h += '<div><strong>נושא:</strong> ' + escapeHtml(d.subjectType || '') + ' — ' + escapeHtml(d.subjectDescription || '') + '</div>';
+  if (d.styleDirection) h += '<div style="margin-top:4px"><strong>סגנון:</strong> ' + escapeHtml(d.styleDirection) + '</div>';
+  h += '</div>';
+  h += '<div style="font-size:0.82rem;color:#4B5563;margin-bottom:6px"><strong>בחרו וריאציה 1/4:</strong></div>';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  (d.variations || []).forEach(function(v) {
+    h += '<div style="background:#FFF;border:2px solid #E5E7EB;border-radius:8px;padding:10px">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><strong>' + escapeHtml(v.variant || v.id) + '</strong><span style="font-size:0.7rem;color:#9CA3AF">' + escapeHtml(v.id) + '</span></div>';
+    h += '<div style="font-size:0.78rem;color:#4B5563;line-height:1.4">' + escapeHtml((v.fullPrompt || '').substring(0, 180)) + (v.fullPrompt && v.fullPrompt.length > 180 ? '...' : '') + '</div>';
+    h += '</div>';
+  });
+  h += '</div>';
+  h += '<div style="margin-top:10px;background:#FEF3C7;border:1px solid #F59E0B;border-radius:6px;padding:8px;font-size:0.78rem;color:#92400E">💡 אישור = המשתמש חייב לציין איזו וריאציה נבחרה בעת מתן האישור (למשל בעריכה).</div>';
+  return h;
+}
+
+function renderCreativeScenes(d) {
+  var h = '<div style="background:#FFF;padding:8px 10px;border-radius:6px;margin-bottom:10px;font-size:0.82rem">';
+  h += '<strong>Concept:</strong> ' + escapeHtml(d.conceptId || '') + ' · <strong>Character:</strong> ' + escapeHtml(d.characterRefId || '') + ' (' + escapeHtml(d.selectedVariation || '') + ') · <strong>' + (d.sceneCount || 0) + ' סצנות</strong>';
+  h += '</div>';
+  (d.scenes || []).forEach(function(s, i) {
+    h += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:10px;margin-bottom:6px">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+    h += '<strong>סצנה ' + (s.order + 1 || i + 1) + '</strong>';
+    if (s.durationSec) h += '<span style="font-size:0.78rem;color:#6B7280">' + s.durationSec + ' שניות</span>';
+    h += '</div>';
+    if (s.action) h += '<div style="font-size:0.82rem;margin-bottom:4px"><strong>פעולה:</strong> ' + escapeHtml(s.action) + '</div>';
+    if (s.camera) h += '<div style="font-size:0.78rem;color:#6B7280;margin-bottom:4px"><strong>מצלמה:</strong> ' + escapeHtml(s.camera) + '</div>';
+    if (s.onScreenTextHe) h += '<div style="font-size:0.82rem;background:#FEF3C7;padding:4px 8px;border-radius:4px;margin-top:4px"><strong>טקסט על המסך:</strong> ' + escapeHtml(s.onScreenTextHe) + '</div>';
+    if (s.voiceoverHe) h += '<div style="font-size:0.82rem;background:#EDE9FE;padding:4px 8px;border-radius:4px;margin-top:4px"><strong>קריינות:</strong> ' + escapeHtml(s.voiceoverHe) + '</div>';
+    h += '<details style="margin-top:6px"><summary style="cursor:pointer;font-size:0.74rem;color:#8B5CF6">Prompt מלא</summary><div style="font-size:0.78rem;color:#4B5563;margin-top:4px;padding:6px;background:#F9FAFB;border-radius:4px">' + escapeHtml(s.prompt || '') + '</div></details>';
+    h += '</div>';
+  });
+  return h;
+}
+
+function renderCreativeFinal(d) {
+  var h = '<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:6px;padding:12px;margin-bottom:10px">';
+  h += '<div style="font-size:0.72rem;color:#92400E;margin-bottom:2px">עלות משוערת (בערך)</div>';
+  h += '<strong style="font-size:1.1rem;color:#78350F">≈ $' + (d.estimatedCostUsd || 0).toFixed(2) + ' (tier: ' + escapeHtml(d.tier || '') + ')</strong>';
+  h += '</div>';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">';
+  h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px"><div style="font-size:0.68rem;color:#6B7280">מודל</div><strong style="font-size:0.8rem">' + escapeHtml(d.selectedModel || '') + '</strong></div>';
+  h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px"><div style="font-size:0.68rem;color:#6B7280">פורמט</div><strong>' + escapeHtml(d.formatType || '') + '</strong></div>';
+  h += '</div>';
+  if (d.hebrewOverlay && d.overlayConfig) {
+    h += '<div style="background:#FFF;padding:10px;border-radius:6px;margin-bottom:8px">';
+    h += '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:4px">Hebrew Overlay</div>';
+    h += '<div style="font-size:0.82rem">' + escapeHtml(d.overlayConfig.font || 'Rubik') + ' · ' + (d.overlayConfig.fontSize || 48) + 'px · ' + escapeHtml(d.overlayConfig.position || 'bottom') + ' · <span style="display:inline-block;width:14px;height:14px;background:' + escapeHtml(d.overlayConfig.color || '#FFF') + ';border:1px solid #E5E7EB;border-radius:3px;vertical-align:middle"></span></div>';
+    h += '</div>';
+  }
+  if (d.audio) {
+    h += '<div style="background:#FFF;padding:10px;border-radius:6px;margin-bottom:8px">';
+    h += '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:4px">Audio</div>';
+    if (d.audio.voiceoverProvider && d.audio.voiceoverProvider !== 'none') h += '<div style="font-size:0.82rem">🎙️ קריינות: ' + escapeHtml(d.audio.voiceoverProvider) + (d.audio.voiceId ? ' (' + escapeHtml(d.audio.voiceId) + ')' : '') + '</div>';
+    if (d.audio.musicProvider && d.audio.musicProvider !== 'none') h += '<div style="font-size:0.82rem">🎵 מוזיקה: ' + escapeHtml(d.audio.musicProvider) + (d.audio.musicPrompt ? ' — ' + escapeHtml(d.audio.musicPrompt) : '') + '</div>';
+    h += '</div>';
+  }
+  if (d.upscale || d.addSubtitles) {
+    h += '<div style="background:#FFF;padding:8px 10px;border-radius:6px;margin-bottom:8px;font-size:0.82rem">';
+    if (d.upscale) h += '<span style="background:#DBEAFE;color:#1E40AF;padding:2px 8px;border-radius:4px;margin-left:6px">✨ Upscale</span>';
+    if (d.addSubtitles) h += '<span style="background:#DCFCE7;color:#166534;padding:2px 8px;border-radius:4px">📝 כתוביות אוטומטיות</span>';
+    h += '</div>';
+  }
+  h += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px;font-size:0.82rem;color:#1E40AF;line-height:1.5">';
+  h += '<strong>💡 אחרי אישור:</strong><br>1. fal.ai מרנדר → 2. הורדה ל-' + escapeHtml(d.outputPath || '') + '<br>3. Hebrew overlay על ה-VPS שלכם → 4. audio merge (אם יש) → 5. upscale (אם premium)';
+  h += '</div>';
+  return h;
+}
+
+function renderCreativeApprovalFooter(task) {
+  if (task.status === 'approved') {
+    var status = task.metadata && task.metadata.renderStatus;
+    if (status === 'done') return '<span style="color:#10B981;font-weight:600;padding:8px">✅ רנדור הושלם</span>';
+    if (status === 'rendering' || status === 'queued' || status === 'uploading') return '<span style="color:#F59E0B;font-weight:600;padding:8px">⏳ ' + status + '...</span>';
+    return '<span style="color:#F59E0B;font-weight:600;padding:8px">⏳ אושר — ממתין לרנדור</span>';
+  }
+  if (task.status === 'rejected') return '<span style="color:#EF4444;font-weight:600;padding:8px">✗ נדחה</span>';
+  var isFinalGate = task.type === 'creative_final_draft';
+  var approveLabel = isFinalGate ? '✓ אשרו רנדור (' + '$' + (extractCreativeDraft(task) || {}).estimatedCostUsd + ')' : '✓ אשרו והמשיכו';
+  return '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()">✗ דחו</button>' +
+         '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\')">✎ תיקון</button>' +
+         '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()">' + approveLabel + '</button>';
 }
 
 // ── API-based output actions ──
@@ -6660,6 +6852,486 @@ function showIntegrationSuggestion() {
 function closePipeline() {
   document.getElementById('pipelineOverlay').classList.add('hidden');
   refreshInstanceData();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Brand Foundation Wizard (Phase B1)
+// URL → extract → analyze logo → user inputs → compose draft → approve
+// Also doubles as viewer when brand book is already approved.
+// ═══════════════════════════════════════════════════════════════════════════
+var brandWizardState = null;
+
+async function openBrandFoundation() {
+  if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+  brandWizardState = {
+    step: 'loading',
+    url: null,
+    scraped: null,
+    logoAnalysis: null,
+    userInputs: {},
+    draft: null,
+    gaps: [],
+    rationale: '',
+    confidence: null,
+    brandBookId: null,
+    existing: null,
+  };
+  document.getElementById('brandOverlay').classList.remove('hidden');
+  renderBrandBody('<div style="text-align:center;padding:40px;color:#9CA3AF">בודק אם יש brand book קיים...</div>');
+  renderBrandFooter('');
+  renderBrandStepsHeader(0);
+
+  // Check for existing brand book
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/brand', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    if (j.ok && j.data && j.data.brandBook) {
+      brandWizardState.existing = j.data.brandBook;
+      if (j.data.isApproved) {
+        // Show viewer
+        renderBrandViewer(j.data.brandBook);
+        return;
+      }
+      // Show draft continuation
+      brandWizardState.draft = coerceDraftFromRow(j.data.brandBook);
+      brandWizardState.gaps = j.data.brandBook.gaps || [];
+      brandWizardState.brandBookId = j.data.brandBook.id;
+      brandWizardState.step = 'review';
+      renderBrandReview();
+      return;
+    }
+  } catch (err) {
+    console.error('brand status check error:', err);
+  }
+
+  // No brand book yet — start wizard
+  brandWizardState.step = 'inputs';
+  renderBrandInputs();
+}
+
+function closeBrandWizard() {
+  document.getElementById('brandOverlay').classList.add('hidden');
+  brandWizardState = null;
+  refreshInstanceData();
+}
+
+function renderBrandStepsHeader(activeStep) {
+  // 3 steps: inputs → processing → review
+  var steps = ['1. קלט', '2. חילוץ וניתוח', '3. בדיקה ואישור'];
+  var html = '';
+  steps.forEach(function(s, i) {
+    var isActive = i === activeStep;
+    var isDone = i < activeStep;
+    var color = isActive ? '#2563EB' : isDone ? '#10B981' : '#9CA3AF';
+    var weight = isActive ? '700' : '400';
+    html += '<span style="color:' + color + ';font-weight:' + weight + '">' + (isDone ? '✓ ' : '') + s + '</span>';
+    if (i < steps.length - 1) html += '<span style="color:#D1D5DB;margin:0 8px">›</span>';
+  });
+  document.getElementById('brandStepsHeader').innerHTML = html;
+}
+
+function renderBrandBody(html) {
+  document.getElementById('brandBody').innerHTML = html;
+}
+
+function renderBrandFooter(html) {
+  document.getElementById('brandFooter').innerHTML = html;
+}
+
+// ─── Step 1: inputs ───────────────────────────────────────────────────────
+function renderBrandInputs() {
+  renderBrandStepsHeader(0);
+  var html = '<div style="padding:20px 24px">';
+  html += '<div style="margin-bottom:16px">';
+  html += '<div style="font-size:1rem;font-weight:600;color:#1E3A5F;margin-bottom:4px">בואו נבנה את מערכת המותג שלכם</div>';
+  html += '<div style="font-size:0.82rem;color:#6B7280;line-height:1.5">אם יש לכם כבר אתר — נחלץ ממנו לוגו, צבעים, טיפוגרפיה ו-voice אוטומטית. אם לא — נבנה מאפס מתוך המחקר והעדפותיכם.</div>';
+  html += '</div>';
+
+  html += '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:16px;margin-bottom:12px">';
+  html += '<label style="display:block;font-size:0.85rem;font-weight:600;color:#1E3A5F;margin-bottom:6px">URL של האתר שלכם (אופציונלי)</label>';
+  html += '<input type="url" id="brandUrl" placeholder="https://yourbusiness.co.il" style="width:100%;padding:10px 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:0.9rem;direction:ltr">';
+  html += '<div style="font-size:0.75rem;color:#9CA3AF;margin-top:4px">נפיק חילוץ אוטומטי של לוגו, פלטת צבעים, פונטים, tone</div>';
+  html += '</div>';
+
+  html += '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:16px;margin-bottom:12px">';
+  html += '<label style="display:block;font-size:0.85rem;font-weight:600;color:#1E3A5F;margin-bottom:8px">Vibe / אופי המותג</label>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  var vibes = [
+    { id: 'premium',       label: 'יוקרתי',  desc: 'עושר, מומחיות, איכות' },
+    { id: 'approachable',  label: 'ידידותי', desc: 'חם, נגיש, אנושי' },
+    { id: 'technical',     label: 'טכני',    desc: 'מדויק, דאטה, מודרני' },
+    { id: 'playful',       label: 'שובב',    desc: 'חדשני, צבעוני, קליל' },
+    { id: 'trustworthy',   label: 'אמין',    desc: 'סולידי, מקצועי' },
+  ];
+  vibes.forEach(function(v) {
+    html += '<label style="cursor:pointer;padding:10px;border:1.5px solid #E5E7EB;border-radius:8px;background:#FFF;display:block" onclick="selectVibe(\'' + v.id + '\')" id="vibe-' + v.id + '">';
+    html += '<input type="radio" name="vibe" value="' + v.id + '" style="margin-left:6px">';
+    html += '<strong>' + v.label + '</strong>';
+    html += '<div style="font-size:0.72rem;color:#6B7280;margin-top:2px">' + v.desc + '</div>';
+    html += '</label>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  html += '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:16px;margin-bottom:12px">';
+  html += '<label style="display:block;font-size:0.85rem;font-weight:600;color:#1E3A5F;margin-bottom:8px">גופן עברי מועדף</label>';
+  html += '<div style="display:flex;gap:8px">';
+  ['Rubik', 'Heebo', 'Assistant'].forEach(function(f) {
+    html += '<label style="cursor:pointer;padding:8px 14px;border:1.5px solid #E5E7EB;border-radius:8px;background:#FFF;font-family:\'' + f + '\',sans-serif" id="font-' + f + '">';
+    html += '<input type="radio" name="hebrewFont" value="' + f + '" onchange="brandWizardState.userInputs.hebrewFontPreference=this.value" style="margin-left:4px">';
+    html += f;
+    html += '</label>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  html += '</div>';
+  renderBrandBody(html);
+  renderBrandFooter(
+    '<button class="btn btn-outline" onclick="closeBrandWizard()">ביטול</button>' +
+    '<button class="btn btn-primary" onclick="startBrandProcessing()">המשך ←</button>'
+  );
+}
+
+function selectVibe(id) {
+  brandWizardState.userInputs.vibePreset = id;
+  ['premium','approachable','technical','playful','trustworthy'].forEach(function(v) {
+    var el = document.getElementById('vibe-' + v);
+    if (el) el.style.borderColor = v === id ? '#2563EB' : '#E5E7EB';
+    if (el) el.style.background = v === id ? '#EFF6FF' : '#FFF';
+  });
+  var radio = document.querySelector('input[name="vibe"][value="' + id + '"]');
+  if (radio) radio.checked = true;
+}
+
+// ─── Step 2: processing ───────────────────────────────────────────────────
+async function startBrandProcessing() {
+  var urlInput = document.getElementById('brandUrl');
+  brandWizardState.url = urlInput ? urlInput.value.trim() : '';
+
+  if (!brandWizardState.userInputs.vibePreset) {
+    showToast('בחרו vibe', 'warn');
+    return;
+  }
+
+  brandWizardState.step = 'processing';
+  renderBrandStepsHeader(1);
+  renderBrandFooter('');
+  renderBrandBody(
+    '<div style="padding:40px;text-align:center">' +
+    '<div style="display:inline-block;width:40px;height:40px;border:3px solid #E5E7EB;border-top-color:#2563EB;border-radius:50%;animation:spin 1s linear infinite"></div>' +
+    '<div id="brandProcessStatus" style="margin-top:16px;color:#6B7280;font-size:0.9rem">מתחיל...</div>' +
+    '</div>'
+  );
+
+  var statusEl = document.getElementById('brandProcessStatus');
+  var setStatus = function(s) { if (statusEl) statusEl.textContent = s; };
+
+  try {
+    // Step A: extract (if URL provided)
+    if (brandWizardState.url) {
+      setStatus('סורק את האתר ' + brandWizardState.url + '...');
+      var extractRes = await fetch(API + '/hosting/instances/' + instanceId + '/brand/extract', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: brandWizardState.url }),
+      });
+      var extractJson = await extractRes.json();
+      if (!extractJson.ok) {
+        renderBrandBody('<div style="padding:40px;text-align:center;color:#991B1B"><div style="font-size:1rem;margin-bottom:8px">❌ ' + (extractJson.message || 'חילוץ נכשל') + '</div><div style="font-size:0.85rem;color:#6B7280">תוכלו להמשיך בלי אתר — נבנה מאפס</div></div>');
+        renderBrandFooter(
+          '<button class="btn btn-outline" onclick="brandWizardState.step=\'inputs\';renderBrandInputs()">חזרה</button>' +
+          '<button class="btn btn-primary" onclick="brandWizardState.url=null;startBrandProcessing()">המשך בלי אתר ←</button>'
+        );
+        return;
+      }
+      brandWizardState.scraped = extractJson.data.signals;
+
+      // Step B: analyze top logo candidate (if any)
+      var topLogo = brandWizardState.scraped.logo && brandWizardState.scraped.logo.candidates[0];
+      if (topLogo && !topLogo.url.endsWith('#inline-svg-logo')) {
+        setStatus('מנתח את הלוגו...');
+        try {
+          var logoRes = await fetch(API + '/hosting/instances/' + instanceId + '/brand/analyze-logo', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ logoUrl: topLogo.url }),
+          });
+          var logoJson = await logoRes.json();
+          if (logoJson.ok && logoJson.data.analysis && logoJson.data.analysis.ok) {
+            brandWizardState.logoAnalysis = logoJson.data.analysis;
+          }
+        } catch (logoErr) {
+          console.warn('Logo analyze failed (non-fatal):', logoErr);
+        }
+      }
+    }
+
+    // Step C: compose draft
+    setStatus('מרכיב brand book עם AI...');
+    var draftRes = await fetch(API + '/hosting/instances/' + instanceId + '/brand/draft', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scraped: brandWizardState.scraped,
+        logoAnalysis: brandWizardState.logoAnalysis,
+        userInputs: brandWizardState.userInputs,
+      }),
+    });
+    var draftJson = await draftRes.json();
+    if (!draftJson.ok) {
+      renderBrandBody('<div style="padding:40px;text-align:center;color:#991B1B">❌ ' + (draftJson.message || 'compose נכשל') + '</div>');
+      renderBrandFooter('<button class="btn btn-outline" onclick="brandWizardState.step=\'inputs\';renderBrandInputs()">חזרה</button>');
+      return;
+    }
+    brandWizardState.draft = draftJson.data.draft;
+    brandWizardState.gaps = draftJson.data.gaps || [];
+    brandWizardState.rationale = draftJson.data.rationale || '';
+    brandWizardState.confidence = draftJson.data.confidence;
+    brandWizardState.brandBookId = draftJson.data.brandBookId;
+    brandWizardState.step = 'review';
+    renderBrandReview();
+  } catch (err) {
+    console.error('brand processing error:', err);
+    renderBrandBody('<div style="padding:40px;text-align:center;color:#991B1B">❌ שגיאה: ' + (err.message || err) + '</div>');
+    renderBrandFooter('<button class="btn btn-outline" onclick="brandWizardState.step=\'inputs\';renderBrandInputs()">חזרה</button>');
+  }
+}
+
+// ─── Step 3: review + approve ─────────────────────────────────────────────
+function renderBrandReview() {
+  renderBrandStepsHeader(2);
+  var d = brandWizardState.draft;
+  var g = brandWizardState.gaps || [];
+  var html = '<div style="padding:20px 24px">';
+
+  // Confidence + rationale
+  var confColor = { high: '#10B981', medium: '#F59E0B', low: '#EF4444' }[brandWizardState.confidence] || '#9CA3AF';
+  html += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px;margin-bottom:14px">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+  html += '<strong style="color:#1E40AF">💡 הסבר של mekhayev</strong>';
+  html += '<span style="font-size:0.72rem;color:#FFF;background:' + confColor + ';padding:2px 8px;border-radius:4px">ביטחון: ' + (brandWizardState.confidence || 'medium') + '</span>';
+  html += '</div>';
+  html += '<div style="font-size:0.82rem;color:#1E40AF;line-height:1.5">' + escapeHtml(brandWizardState.rationale || '') + '</div>';
+  html += '</div>';
+
+  // Critical gaps warning
+  var criticalGaps = g.filter(function(gap) { return gap.priority === 'critical'; });
+  if (criticalGaps.length > 0) {
+    html += '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:10px;margin-bottom:14px">';
+    html += '<strong style="color:#991B1B">⚠️ חסרים קריטיים (' + criticalGaps.length + '):</strong>';
+    html += '<ul style="margin:6px 0 0;padding-right:20px;font-size:0.82rem;color:#991B1B">';
+    criticalGaps.forEach(function(gap) {
+      html += '<li style="margin-bottom:2px">' + escapeHtml(gap.suggestion) + '</li>';
+    });
+    html += '</ul></div>';
+  }
+
+  // Preview sections
+  html += renderBrandPreview(d);
+
+  // Other gaps (important + nice)
+  var otherGaps = g.filter(function(gap) { return gap.priority !== 'critical'; });
+  if (otherGaps.length > 0) {
+    html += '<details style="margin-top:12px"><summary style="cursor:pointer;font-size:0.85rem;color:#6B7280;font-weight:600">השלמות מומלצות (' + otherGaps.length + ')</summary>';
+    html += '<ul style="margin:6px 0 0;padding-right:20px;font-size:0.82rem;color:#6B7280">';
+    otherGaps.forEach(function(gap) {
+      var icon = gap.priority === 'important' ? '🟡' : '🟢';
+      html += '<li style="margin-bottom:2px">' + icon + ' ' + escapeHtml(gap.suggestion) + '</li>';
+    });
+    html += '</ul></details>';
+  }
+
+  html += '</div>';
+  renderBrandBody(html);
+
+  renderBrandFooter(
+    '<button class="btn btn-outline" onclick="brandWizardState.step=\'inputs\';renderBrandInputs()">← חזרה ועריכה</button>' +
+    '<button class="btn btn-primary" onclick="approveBrandBook()">✓ אשרו והפיצו לסוכנים</button>'
+  );
+}
+
+function renderBrandPreview(d) {
+  if (!d) return '<div style="color:#9CA3AF">אין טיוטה</div>';
+  var html = '';
+
+  // Identity
+  html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
+  html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">זהות</div>';
+  if (d.identity && d.identity.businessName) html += '<div style="font-size:1.1rem;font-weight:700;color:#1E3A5F">' + escapeHtml(d.identity.businessName) + '</div>';
+  if (d.identity && d.identity.taglineHe) html += '<div style="font-size:0.92rem;color:#374151;margin-top:4px">' + escapeHtml(d.identity.taglineHe) + '</div>';
+  if (d.identity && d.identity.positioningLine) html += '<div style="font-size:0.78rem;color:#6B7280;margin-top:6px;font-style:italic">' + escapeHtml(d.identity.positioningLine) + '</div>';
+  if (d.identity && d.identity.manifestoHe) html += '<details style="margin-top:8px"><summary style="cursor:pointer;font-size:0.78rem;color:#2563EB">מניפסט</summary><div style="font-size:0.82rem;color:#4B5563;margin-top:4px;line-height:1.5">' + escapeHtml(d.identity.manifestoHe) + '</div></details>';
+  html += '</div>';
+
+  // Logo
+  if (d.logo && d.logo.primary && d.logo.primary.url) {
+    html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
+    html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">לוגו</div>';
+    html += '<div style="display:flex;gap:12px;align-items:center">';
+    html += '<div style="width:80px;height:80px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden">';
+    html += '<img src="' + escapeHtml(d.logo.primary.url) + '" style="max-width:70px;max-height:70px;object-fit:contain" onerror="this.style.display=\'none\'">';
+    html += '</div>';
+    html += '<div style="flex:1;font-size:0.8rem">';
+    if (d.logo.style) html += '<div><strong>סגנון:</strong> ' + escapeHtml(d.logo.style) + '</div>';
+    if (d.logo.primary.format) html += '<div><strong>פורמט:</strong> ' + escapeHtml(d.logo.primary.format) + '</div>';
+    if (d.logo.primary.transparentBg) html += '<div style="color:#10B981">✓ רקע שקוף</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+  }
+
+  // Colors
+  if (d.colors) {
+    html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
+    html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">פלטת צבעים</div>';
+    html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+    var swatches = [];
+    if (d.colors.primary) swatches.push({ c: d.colors.primary, label: 'ראשי' });
+    if (d.colors.secondary) swatches.push({ c: d.colors.secondary, label: 'משני' });
+    (d.colors.accent || []).forEach(function(c, i) { swatches.push({ c: c, label: 'accent ' + (i + 1) }); });
+    (d.colors.neutrals || []).slice(0, 3).forEach(function(c, i) { swatches.push({ c: c, label: 'ניטרלי ' + (i + 1) }); });
+    swatches.forEach(function(s) {
+      if (!s.c || !s.c.hex) return;
+      html += '<div style="text-align:center">';
+      html += '<div style="width:56px;height:56px;background:' + escapeHtml(s.c.hex) + ';border:1px solid #E5E7EB;border-radius:8px;margin-bottom:2px"></div>';
+      html += '<div style="font-size:0.7rem;font-family:monospace">' + escapeHtml(s.c.hex) + '</div>';
+      html += '<div style="font-size:0.68rem;color:#6B7280">' + escapeHtml(s.label) + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    html += '</div>';
+  }
+
+  // Typography
+  if (d.typography) {
+    html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
+    html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">טיפוגרפיה</div>';
+    if (d.typography.heading) {
+      html += '<div style="font-family:\'' + escapeHtml(d.typography.heading.family) + '\',sans-serif;font-size:1.3rem;font-weight:700;margin-bottom:2px">כותרת (' + escapeHtml(d.typography.heading.family) + ')</div>';
+    }
+    if (d.typography.body) {
+      html += '<div style="font-family:\'' + escapeHtml(d.typography.body.family) + '\',sans-serif;font-size:0.9rem">טקסט בסיסי — Lorem ipsum נוסח עברי. זה דוגמה של גוף טקסט בעברית. (' + escapeHtml(d.typography.body.family) + ')</div>';
+    }
+    html += '</div>';
+  }
+
+  // Voice
+  if (d.voice) {
+    html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
+    html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">Voice & Tone</div>';
+    if (d.voice.tone) html += '<div style="font-size:0.85rem"><strong>טון:</strong> ' + escapeHtml(d.voice.tone) + '</div>';
+    if (d.voice.personalityAdjectives && d.voice.personalityAdjectives.length) {
+      html += '<div style="font-size:0.82rem;margin-top:4px"><strong>אישיות:</strong> ' + d.voice.personalityAdjectives.map(escapeHtml).join(' · ') + '</div>';
+    }
+    if (d.voice.hebrewRegister) html += '<div style="font-size:0.82rem;margin-top:4px"><strong>רגיסטר:</strong> ' + escapeHtml(d.voice.hebrewRegister) + '</div>';
+    html += '</div>';
+  }
+
+  // Principles
+  if (d.principles && d.principles.length) {
+    html += '<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:14px;margin-bottom:10px">';
+    html += '<div style="font-size:0.75rem;color:#92400E;margin-bottom:6px">📜 עקרונות מותג (Brand Constitution)</div>';
+    html += '<ul style="margin:0;padding-right:20px;font-size:0.85rem;color:#78350F">';
+    d.principles.forEach(function(p) { html += '<li style="margin-bottom:2px">' + escapeHtml(p) + '</li>'; });
+    html += '</ul>';
+    html += '</div>';
+  }
+
+  // Imagery
+  if (d.imagery) {
+    html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
+    html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">סגנון ויזואלי</div>';
+    if (d.imagery.photographyStyle) {
+      html += '<div style="font-size:0.82rem"><strong>צילום:</strong> ' + escapeHtml(d.imagery.photographyStyle.primary || '') + (d.imagery.photographyStyle.lightingPreference ? ' · תאורה: ' + escapeHtml(d.imagery.photographyStyle.lightingPreference) : '') + '</div>';
+    }
+    if (d.imagery.moodKeywords && d.imagery.moodKeywords.length) {
+      html += '<div style="margin-top:6px">';
+      d.imagery.moodKeywords.forEach(function(kw) {
+        html += '<span style="display:inline-block;background:#EFF6FF;color:#1E40AF;padding:2px 8px;border-radius:4px;font-size:0.75rem;margin:2px 4px 2px 0">' + escapeHtml(kw) + '</span>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  return html;
+}
+
+async function approveBrandBook() {
+  if (!brandWizardState || !brandWizardState.brandBookId) { showToast('לא נמצאה טיוטה', 'error'); return; }
+  var btn = event && event.target;
+  if (btn) { btn.disabled = true; btn.textContent = 'מאשר...'; }
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/brand/approve', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brandBookId: brandWizardState.brandBookId }),
+    });
+    var j = await res.json();
+    if (!j.ok) {
+      showToast(j.message || 'אישור נכשל', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '✓ אשרו והפיצו לסוכנים'; }
+      return;
+    }
+    showToast('Brand book אושר והופץ לסוכנים ✓', 'success');
+    closeBrandWizard();
+  } catch (err) {
+    showToast('שגיאה: ' + err.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '✓ אשרו והפיצו לסוכנים'; }
+  }
+}
+
+// ─── Viewer (approved brand book) ─────────────────────────────────────────
+function renderBrandViewer(bookRow) {
+  var d = coerceDraftFromRow(bookRow);
+  var html = '<div style="padding:20px 24px">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
+  html += '<div><strong style="color:#10B981">✓ מאושר</strong> <span style="color:#6B7280;font-size:0.82rem">· גרסה ' + (bookRow.version || 1) + '</span></div>';
+  html += '<div style="font-size:0.78rem;color:#9CA3AF">מקור: ' + escapeHtml(bookRow.source || 'mixed') + '</div>';
+  html += '</div>';
+  html += renderBrandPreview(d);
+  html += '</div>';
+  renderBrandBody(html);
+  renderBrandFooter(
+    '<button class="btn btn-outline" onclick="if(confirm(\'ליצור גרסה חדשה? הגרסה הנוכחית תארכב.\'))startNewBrandVersion()">✎ גרסה חדשה</button>' +
+    '<button class="btn btn-primary" onclick="closeBrandWizard()">סגור</button>'
+  );
+}
+
+function startNewBrandVersion() {
+  brandWizardState = {
+    step: 'inputs', url: null, scraped: null, logoAnalysis: null,
+    userInputs: {}, draft: null, gaps: [], rationale: '', confidence: null,
+    brandBookId: null, existing: null,
+  };
+  renderBrandInputs();
+}
+
+function coerceDraftFromRow(row) {
+  // Convert DB row to draft shape expected by renderBrandPreview
+  return {
+    identity: {
+      businessName: row.businessName,
+      legalName: row.legalName,
+      taglineHe: row.taglineHe,
+      taglineEn: row.taglineEn,
+      missionHe: row.missionHe,
+      missionEn: row.missionEn,
+      manifestoHe: row.manifestoHe,
+      positioningLine: row.positioningLine,
+    },
+    logo: row.logo,
+    colors: row.colors,
+    typography: row.typography,
+    imagery: row.imagery,
+    voice: row.voice,
+    components: row.components,
+    compliance: row.compliance,
+    principles: row.principles,
+  };
 }
 
 async function resetResearchPipeline() {

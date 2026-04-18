@@ -168,6 +168,22 @@ function classifyOutput(content: string, userPrompt: string): {
         return { outputType: 'mads_ad_draft', title: 'מודעת Meta (טיוטה)', platform: 'meta_ads' }
     }
 
+    // Yotzer Creative drafts — 4-gate approval lifecycle (concept → character → scenes → final)
+    if (content.includes('"_type":"creative_concept_draft"')) {
+        const briefMatch = content.match(/"brief"\s*:\s*"([^"]{1,60})/)
+        return { outputType: 'creative_concept_draft', title: 'קונספט קריאייטיב — ' + (briefMatch ? briefMatch[1] : 'טיוטה'), platform: 'creative' }
+    }
+    if (content.includes('"_type":"creative_character_draft"')) {
+        return { outputType: 'creative_character_draft', title: 'דמות / רפרנס מותג (4 וריאציות)', platform: 'creative' }
+    }
+    if (content.includes('"_type":"creative_scenes_draft"')) {
+        return { outputType: 'creative_scenes_draft', title: 'סצנות קריאייטיב (טיוטה)', platform: 'creative' }
+    }
+    if (content.includes('"_type":"creative_final_draft"')) {
+        const tierMatch = content.match(/"tier"\s*:\s*"([^"]+)"/)
+        return { outputType: 'creative_final_draft', title: 'קריאייטיב סופי לרנדור — ' + (tierMatch ? tierMatch[1] : 'טיוטה'), platform: 'creative' }
+    }
+
     if (lc.includes('daily brief') || lc.includes('סיכום יומי') || lc.includes('משימות עדיפות')) {
         return {
             outputType: 'daily_brief',

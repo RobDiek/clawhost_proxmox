@@ -443,6 +443,67 @@ export const agentOutputs = pgTable(
     ]
 )
 
+// ── Brand Books (per-instance visual + voice identity) ──
+// Fed into Yotzer creative pipeline (Gates 1-4) + ayat copy agent.
+// Versioned: one row per major update. Only one 'approved' row per instance at a time.
+export const brandBooks = pgTable(
+    'brand_books',
+    {
+        id: text('id').primaryKey(),
+        instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+        version: integer('version').notNull().default(1),
+        status: text('status').notNull().default('draft'),
+        // draft | pending_approval | approved | archived | locked
+        source: text('source').notNull().default('extracted'),
+        // extracted | generated | uploaded | mixed
+
+        // Identity
+        businessName: text('business_name'),
+        legalName: text('legal_name'),
+        taglineHe: text('tagline_he'),
+        taglineEn: text('tagline_en'),
+        missionHe: text('mission_he'),
+        missionEn: text('mission_en'),
+        manifestoHe: text('manifesto_he'),
+        positioningLine: text('positioning_line'),
+
+        // Visual identity (jsonb for schema evolution)
+        logo: jsonb('logo'),
+        colors: jsonb('colors'),
+        typography: jsonb('typography'),
+        imagery: jsonb('imagery'),
+        voice: jsonb('voice'),
+        components: jsonb('components'),
+        compliance: jsonb('compliance'),
+        principles: jsonb('principles'),  // brand constitution rules
+
+        // PDF export
+        pdfUrl: text('pdf_url'),
+        pdfGeneratedAt: timestamp('pdf_generated_at', { withTimezone: true }),
+
+        // Gaps (drives UI prompts for missing fields)
+        gaps: jsonb('gaps'),
+
+        // Scraping source metadata
+        sourceUrl: text('source_url'),
+        sourceScrapedAt: timestamp('source_scraped_at', { withTimezone: true }),
+        sourceRaw: jsonb('source_raw'),
+
+        // Workflow
+        approvedAt: timestamp('approved_at', { withTimezone: true }),
+        approvedBy: text('approved_by'),
+        lockedUntil: timestamp('locked_until', { withTimezone: true }),
+
+        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => [
+        index('brand_books_instance_idx').on(table.instanceId),
+        index('brand_books_status_idx').on(table.instanceId, table.status),
+        unique('brand_books_instance_version_uniq').on(table.instanceId, table.version),
+    ]
+)
+
 // ── WhatsApp Business ──
 export const waConfig = pgTable('wa_config', {
     instanceId: text('instance_id').primaryKey().references(() => instances.id),

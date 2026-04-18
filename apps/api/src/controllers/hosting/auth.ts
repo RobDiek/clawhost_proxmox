@@ -2,7 +2,7 @@ import type { Context } from 'hono'
 import crypto from 'crypto'
 import { eq, and, gt, lt, sql } from 'drizzle-orm'
 import { db } from '@/db'
-import { otpCodes, users, instances } from '@/db/schema'
+import { otpCodes, users, instances, brandBooks } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import telegram from '@/services/telegram'
 import { getAllIntegrations as getAllIntegrationsRaw, getPrimaryAgent } from '@/services/agentIntegrations'
@@ -378,6 +378,14 @@ export const getMyInstances = async (c: Context) => {
         // Filter out awaiting_payment
         const filtered = result.filter(i => i.status !== 'awaiting_payment')
 
+        // Batch-fetch approved brand books for all filtered instances
+        const approvedBrandBooks = filtered.length > 0
+            ? await db.select({ instanceId: brandBooks.instanceId })
+                .from(brandBooks)
+                .where(eq(brandBooks.status, 'approved'))
+            : []
+        const hasBrandBookSet = new Set(approvedBrandBooks.map(b => b.instanceId))
+
         // Build response with per-agent integrations
         const instancesWithIntegrations = await Promise.all(filtered.map(async (i) => {
             const agentInts = await getAllIntegrationsForInstance(i.id)
@@ -408,6 +416,7 @@ export const getMyInstances = async (c: Context) => {
                 hasProfile: !!(i.researchData as any)?.answers,
                 hasResearch: !!((i.researchData as any)?.report || (i.researchData as any)?.stage1),
                 hasStrategy: !!(i.researchData as any)?.strategy,
+                hasBrandBook: hasBrandBookSet.has(i.id),
                 aiProviderType: i.aiProviderType,
                 hasAnthropicKey: !!i.aiProviderKey,
                 hasOpenaiKey: !!i.openaiApiKey,

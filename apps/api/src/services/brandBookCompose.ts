@@ -1,0 +1,485 @@
+/**
+ * Brand Book Composer Service
+ *
+ * Combines all available signals into a full brand_book draft:
+ *   1. Research data (positioning, personas, competitors from Stage 1-5)
+ *   2. Scraped website signals (brandExtract output)
+ *   3. Logo analysis (logoAnalyze output)
+ *   4. User-provided fields (name, tagline)
+ *
+ * Uses Claude Sonnet for synthesis — this is the reasoning job where
+ * multiple signals must be reconciled (e.g. scraped #FFFFFF dominance
+ * vs research-positioning "premium brand" → mekhayev should recommend
+ * darker primary despite white dominance).
+ *
+ * Returns: { draft: BrandBookDraft, gaps: Array<{ priority, field, suggestion }> }
+ *
+ * Gaps power the onboarding UI — critical gaps block, important gaps prompt.
+ */
+
+import type { ExtractedBrandSignals } from './brandExtract'
+
+// Lightweight shape-only import (we use it as "any" to avoid circular coupling)
+type LogoAnalysis = {
+    ok: boolean
+    source: { url: string; format: string; sizeBytes: number; isDataUri: boolean }
+    visual: {
+        style: string
+        description: string
+        descriptionHe: string
+        hasText: boolean
+        dominantColors: string[]
+        hasTransparentBackground: boolean
+        inferredDimensions: { width: number; height: number } | null
+        aspectRatio: string | null
+    }
+    usageRules: {
+        minSizePx: number
+        safeZonePx: number
+        allowedBackgrounds: string[]
+        forbiddenContexts: string[]
+        recommendedVariants: string[]
+    }
+    composition: {
+        defaultPosition: string
+        opacity: number
+        requiresLightBackground: boolean
+        requiresDarkBackground: boolean
+    }
+}
+
+// Research data shape — subset from stages 1-5
+export interface ResearchSummary {
+    businessName?: string
+    positioning?: string              // stage 3
+    personas?: Array<{ name: string; description?: string; jtbd?: string }>  // stage 4
+    competitors?: Array<{ name: string; url?: string }>  // stage 2
+    industry?: string
+    targetMarket?: string              // "IL SMB", "Global B2B", etc.
+}
+
+// User-provided direct inputs (from onboarding form)
+export interface UserBrandInputs {
+    businessName?: string
+    taglineHe?: string
+    taglineEn?: string
+    vibePreset?: 'premium' | 'approachable' | 'technical' | 'playful' | 'trustworthy'
+    primaryColorOverride?: string     // user explicitly picked a color
+    hebrewFontPreference?: 'Rubik' | 'Heebo' | 'Assistant'
+}
+
+export interface BrandBookDraft {
+    identity: {
+        businessName: string | null
+        legalName: string | null
+        taglineHe: string | null
+        taglineEn: string | null
+        missionHe: string | null
+        missionEn: string | null
+        manifestoHe: string | null
+        positioningLine: string | null
+    }
+    logo: {
+        primary: { url: string | null; format: string | null; transparentBg: boolean } | null
+        usageRules: LogoAnalysis['usageRules'] | null
+        style: string | null
+        aiGenerated: boolean
+        sourceFiles: Array<{ type: string; url: string }>
+    }
+    colors: {
+        primary: { hex: string; name: string; usage: string } | null
+        secondary: { hex: string; name: string; usage: string } | null
+        accent: Array<{ hex: string; name: string }>
+        neutrals: Array<{ hex: string; name: string }>
+        semantic: { success: string; warning: string; danger: string; info: string }
+        palette: string[]
+    }
+    typography: {
+        heading: { family: string; weights: number[]; license: string } | null
+        body: { family: string; weights: number[]; license: string } | null
+        hebrewSupport: { headingFamily: string; bodyFamily: string } | null
+        rules: { lineHeight: number; letterSpacing: number }
+    }
+    imagery: {
+        photographyStyle: { primary: string; lightingPreference: string }
+        illustrationStyle: { present: boolean; style: string | null }
+        moodKeywords: string[]
+        doNotUse: string[]
+    }
+    voice: {
+        tone: string
+        personalityAdjectives: string[]
+        vocabularyDo: string[]
+        vocabularyDont: string[]
+        signaturePhrases: string[]
+        hebrewRegister: string
+        humor: string
+    }
+    components: {
+        iconSet: string
+        shapes: { cornerRadius: string; borderStyle: string }
+    }
+    principles: string[]                 // brand constitution rules
+    compliance: { aiGeneratedDisclosure: boolean; trademarkRegistered: boolean }
+}
+
+export interface Gap {
+    priority: 'critical' | 'important' | 'nice_to_have'
+    field: string
+    suggestion: string        // Hebrew
+    canAutoGenerate: boolean  // will M2 logo-gen help?
+}
+
+export interface ComposedBrandBook {
+    draft: BrandBookDraft
+    gaps: Gap[]
+    rationale: string           // Hebrew explanation of key decisions
+    confidence: 'high' | 'medium' | 'low'
+    sources: {
+        scrapedFrom?: string
+        logoAnalyzedFrom?: string
+        researchStagesUsed: number[]
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Main compose function
+// ═══════════════════════════════════════════════════════════════════════════
+
+export async function composeBrandBook(params: {
+    scraped?: ExtractedBrandSignals | null
+    logoAnalysis?: LogoAnalysis | null
+    research?: ResearchSummary | null
+    userInputs?: UserBrandInputs | null
+    anthropicKey: string
+}): Promise<ComposedBrandBook> {
+    const { scraped, logoAnalysis, research, userInputs, anthropicKey } = params
+
+    const prompt = buildComposerPrompt({ scraped, logoAnalysis, research, userInputs })
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': anthropicKey,
+            'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 6000,
+            messages: [{ role: 'user', content: prompt }],
+        }),
+    })
+
+    if (!res.ok) {
+        const errText = await res.text()
+        throw new Error(`Composer Claude HTTP ${res.status}: ${errText.substring(0, 300)}`)
+    }
+
+    const data = await res.json() as { content?: Array<{ text: string }> }
+    const text = data.content?.[0]?.text || ''
+
+    // Extract JSON
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) throw new Error('Composer returned no JSON')
+
+    let parsed: { draft: BrandBookDraft; gaps: Gap[]; rationale: string; confidence: 'high' | 'medium' | 'low' }
+    try {
+        parsed = JSON.parse(jsonMatch[0])
+    } catch (err) {
+        throw new Error('Composer JSON parse failed: ' + text.substring(0, 300))
+    }
+
+    // Wire up post-LLM enrichment: inject logoAnalysis into draft.logo
+    if (logoAnalysis?.ok && parsed.draft.logo) {
+        parsed.draft.logo.primary = {
+            url: logoAnalysis.source.url,
+            format: logoAnalysis.source.format,
+            transparentBg: logoAnalysis.visual.hasTransparentBackground,
+        }
+        parsed.draft.logo.usageRules = logoAnalysis.usageRules
+        parsed.draft.logo.style = logoAnalysis.visual.style
+    }
+
+    // Validate + auto-detect missing gaps (safety net if LLM didn't flag)
+    const computedGaps = detectGaps(parsed.draft, logoAnalysis)
+    const mergedGaps = mergeGaps(parsed.gaps || [], computedGaps)
+
+    return {
+        draft: parsed.draft,
+        gaps: mergedGaps,
+        rationale: parsed.rationale || '',
+        confidence: parsed.confidence || 'medium',
+        sources: {
+            scrapedFrom: scraped?.url,
+            logoAnalyzedFrom: logoAnalysis?.source.url,
+            researchStagesUsed: research ? [1, 2, 3, 4, 5] : [],
+        },
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Prompt builder
+// ═══════════════════════════════════════════════════════════════════════════
+
+function buildComposerPrompt(params: {
+    scraped?: ExtractedBrandSignals | null
+    logoAnalysis?: LogoAnalysis | null
+    research?: ResearchSummary | null
+    userInputs?: UserBrandInputs | null
+}): string {
+    const { scraped, logoAnalysis, research, userInputs } = params
+
+    let prompt = `אתה מעצב מותג בכיר ("mekhayev") בפלטפורמת ClawFlow. תפקידך — ליצור brand book מלא ועקבי לעסק.
+
+**קלט זמין:**
+`
+
+    // Research context
+    if (research) {
+        prompt += '\n\n## מחקר שוק (שלבים 1-5)\n'
+        if (research.businessName) prompt += `- שם עסק: ${research.businessName}\n`
+        if (research.industry) prompt += `- ענף: ${research.industry}\n`
+        if (research.targetMarket) prompt += `- שוק יעד: ${research.targetMarket}\n`
+        if (research.positioning) prompt += `- מיצוב: ${research.positioning}\n`
+        if (research.personas?.length) {
+            prompt += '- פרסונות:\n'
+            research.personas.slice(0, 3).forEach(p => {
+                prompt += `  • ${p.name}${p.jtbd ? ` — JTBD: ${p.jtbd}` : ''}\n`
+            })
+        }
+        if (research.competitors?.length) {
+            prompt += `- מתחרים: ${research.competitors.slice(0, 5).map(c => c.name).join(', ')}\n`
+        }
+    }
+
+    // Scraped signals
+    if (scraped) {
+        prompt += '\n\n## סיגנלים מהאתר (scraped)\n'
+        if (scraped.identity.businessName) prompt += `- שם (og:site_name): ${scraped.identity.businessName}\n`
+        if (scraped.identity.description) prompt += `- תיאור: ${scraped.identity.description}\n`
+        if (scraped.identity.language) prompt += `- שפה: ${scraped.identity.language} (${scraped.identity.direction})\n`
+        if (scraped.colors.top.length) prompt += `- צבעים מובילים (by frequency): ${scraped.colors.top.join(', ')}\n`
+        if (scraped.typography.googleFonts.length) prompt += `- Google Fonts: ${scraped.typography.googleFonts.join(', ')}\n`
+        if (scraped.typography.fontFamilies.length) prompt += `- Font families: ${scraped.typography.fontFamilies.slice(0, 5).map(f => f.family).join(', ')}\n`
+        if (scraped.typography.hebrewFonts.length) prompt += `- Hebrew fonts: ${scraped.typography.hebrewFonts.join(', ')}\n`
+        if (scraped.copy.headings.length) prompt += `- Headings דוגמאות: ${scraped.copy.headings.slice(0, 3).map(h => `"${h}"`).join(' | ')}\n`
+        if (scraped.copy.ctas.length) prompt += `- CTAs דוגמאות: ${scraped.copy.ctas.slice(0, 5).join(' | ')}\n`
+        if (scraped.copy.heroParagraphs[0]) prompt += `- Hero paragraph: "${scraped.copy.heroParagraphs[0].substring(0, 200)}"\n`
+        if (scraped.media.themeColor) prompt += `- theme-color: ${scraped.media.themeColor}\n`
+    }
+
+    // Logo analysis
+    if (logoAnalysis?.ok) {
+        prompt += '\n\n## ניתוח לוגו\n'
+        prompt += `- URL: ${logoAnalysis.source.url.substring(0, 100)}${logoAnalysis.source.url.length > 100 ? '...' : ''}\n`
+        prompt += `- Format: ${logoAnalysis.source.format}\n`
+        prompt += `- Style: ${logoAnalysis.visual.style}\n`
+        prompt += `- Description: ${logoAnalysis.visual.descriptionHe}\n`
+        if (logoAnalysis.visual.dominantColors.length) {
+            prompt += `- Logo colors: ${logoAnalysis.visual.dominantColors.join(', ')}\n`
+        }
+        prompt += `- Transparent bg: ${logoAnalysis.visual.hasTransparentBackground}\n`
+        if (logoAnalysis.visual.aspectRatio) prompt += `- Aspect: ${logoAnalysis.visual.aspectRatio}\n`
+    }
+
+    // User inputs
+    if (userInputs) {
+        prompt += '\n\n## קלט ממשתמש\n'
+        if (userInputs.businessName) prompt += `- שם עסק: ${userInputs.businessName}\n`
+        if (userInputs.taglineHe) prompt += `- Tagline (HE): ${userInputs.taglineHe}\n`
+        if (userInputs.taglineEn) prompt += `- Tagline (EN): ${userInputs.taglineEn}\n`
+        if (userInputs.vibePreset) {
+            const vibeMeaning = {
+                premium: 'יוקרתי — עושר, מומחיות, אמינות גבוהה',
+                approachable: 'ידידותי — חם, נגיש, אנושי',
+                technical: 'טכני — מדויק, דאטה-דריבן, מודרני',
+                playful: 'שובב — חדשני, צבעוני, משוחרר',
+                trustworthy: 'אמין — סולידי, שמרני, מקצועי',
+            }[userInputs.vibePreset]
+            prompt += `- Vibe: ${userInputs.vibePreset} (${vibeMeaning})\n`
+        }
+        if (userInputs.primaryColorOverride) prompt += `- Primary color (user picked): ${userInputs.primaryColorOverride}\n`
+        if (userInputs.hebrewFontPreference) prompt += `- Hebrew font: ${userInputs.hebrewFontPreference}\n`
+    }
+
+    prompt += `
+
+**משימה:**
+החזר JSON יחיד בלי markdown fence, בלי טקסט נוסף, עם המבנה הבא:
+
+\`\`\`
+{
+  "draft": {
+    "identity": {
+      "businessName": "...",
+      "legalName": null,
+      "taglineHe": "עד 60 תווים, בעברית",
+      "taglineEn": "up to 60 chars English",
+      "missionHe": "2-3 משפטים על המטרה של העסק",
+      "missionEn": "English mission",
+      "manifestoHe": "3-4 משפטים של brand manifesto — קצת יותר עמוק ממטרה",
+      "positioningLine": "משפט מיצוב אחד — מי אתם לעומת מי"
+    },
+    "logo": {
+      "primary": null,  // נמלא אוטומטית מ-logoAnalysis
+      "usageRules": null,
+      "style": null,
+      "aiGenerated": false,
+      "sourceFiles": []
+    },
+    "colors": {
+      "primary":   { "hex": "#RRGGBB", "name": "שם הצבע בעברית", "usage": "מתי להשתמש" },
+      "secondary": { "hex": "#RRGGBB", "name": "...", "usage": "..." },
+      "accent":    [{ "hex": "#RRGGBB", "name": "..." }],
+      "neutrals":  [{ "hex": "#F3F4F6", "name": "אפור בהיר" }, ...],
+      "semantic":  { "success": "#10B981", "warning": "#F59E0B", "danger": "#EF4444", "info": "#3B82F6" },
+      "palette":   ["#RRGGBB", ...]   // כל הצבעים בסדר חשיבות, עד 8
+    },
+    "typography": {
+      "heading": { "family": "Rubik", "weights": [500, 700, 900], "license": "Google Fonts (OFL)" },
+      "body":    { "family": "Heebo", "weights": [400, 500], "license": "Google Fonts (OFL)" },
+      "hebrewSupport": { "headingFamily": "Rubik", "bodyFamily": "Heebo" },
+      "rules": { "lineHeight": 1.5, "letterSpacing": 0 }
+    },
+    "imagery": {
+      "photographyStyle": { "primary": "lifestyle|editorial|product|minimal|dramatic", "lightingPreference": "natural|studio|moody" },
+      "illustrationStyle": { "present": true, "style": "flat|3d|hand-drawn|geometric|null" },
+      "moodKeywords": ["5-8 מילים — bright, warm, מקצועי, צעיר, ..."],
+      "doNotUse": ["stock photos גנריים", "אנשים בחליפות", "..."]
+    },
+    "voice": {
+      "tone": "professional|casual|authoritative|intimate|mixed",
+      "personalityAdjectives": ["5 מילים — ישיר, חם, מקצועי, ..."],
+      "vocabularyDo": ["מילים שמייצגות את הבראנד — עד 8"],
+      "vocabularyDont": ["מילים שהבראנד לא משתמש בהן — עד 5"],
+      "signaturePhrases": ["2-4 catchphrases אם יש"],
+      "hebrewRegister": "formal|casual|mixed",
+      "humor": "none|subtle|moderate|core"
+    },
+    "components": {
+      "iconSet": "lucide|heroicons|phosphor",
+      "shapes": { "cornerRadius": "none|small|medium|large|full", "borderStyle": "solid|soft|none" }
+    },
+    "principles": [
+      "עקרונות brand constitution — 3-5 חוקים שאי אפשר לשבור",
+      "דוגמה: לעולם לא fear-based marketing",
+      "דוגמה: תמיד להתחיל בעברית"
+    ],
+    "compliance": { "aiGeneratedDisclosure": false, "trademarkRegistered": false }
+  },
+  "gaps": [
+    { "priority": "critical|important|nice_to_have", "field": "logo.primary", "suggestion": "בעברית — מה חסר ומה הפתרון", "canAutoGenerate": true|false }
+  ],
+  "rationale": "פסקה קצרה בעברית — איך החלטת על כל זה. אם היו סתירות בסיגנלים (למשל website #FFFFFF אבל מיצוב premium) — הסבר איך פתרת.",
+  "confidence": "high|medium|low"
+}
+\`\`\`
+
+**כללי זהב:**
+1. **עברית קודם** — כל שדה "*He" חייב להיות בעברית נכונה. שדות "*En" באנגלית טבעית.
+2. **Hebrew fonts חובה** — typography.hebrewSupport חייב להיות מלא. Rubik/Heebo/Assistant קבילים.
+3. **Research trumps scraping** — אם scraped signals סותרים research positioning, תן עדיפות ל-research. הסבר ב-rationale.
+4. **Gaps honest** — סמן critical gap אם logo.primary חסר, או primary color חסר, או heading font חסר.
+5. **Mood keywords באיות עברית** — למשל "חם", "מקצועי", לא "warm" או "professional".
+6. **Principles ספציפיים** — לא generic ("להיות טוב"). נובעים מ-research + personas.
+7. **Colors accessibility** — אם primary color כהה מאוד, semantic colors צריכים להיות readable עליו.
+8. **Vibe consistency** — אם vibePreset=playful, tone לא יהיה authoritative. עקביות מלאה.
+9. **JSON תקף** — ללא comments, ללא trailing commas, ללא markdown.`
+
+    return prompt
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Gap detection (safety net if LLM didn't flag)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function detectGaps(draft: BrandBookDraft, logoAnalysis?: LogoAnalysis | null): Gap[] {
+    const gaps: Gap[] = []
+
+    if (!draft.identity.businessName) {
+        gaps.push({
+            priority: 'critical',
+            field: 'identity.businessName',
+            suggestion: 'שם עסק חסר — הזן שם באונבורדינג',
+            canAutoGenerate: false,
+        })
+    }
+
+    if (!draft.logo.primary?.url || !logoAnalysis?.ok) {
+        gaps.push({
+            priority: 'critical',
+            field: 'logo.primary',
+            suggestion: 'לוגו חסר או לא מנותח — העלה קובץ לוגו או צרנו קונספט',
+            canAutoGenerate: true,   // Phase B3 will offer AI logo generation
+        })
+    }
+
+    if (!draft.colors.primary?.hex) {
+        gaps.push({
+            priority: 'critical',
+            field: 'colors.primary',
+            suggestion: 'צבע ראשי חסר — בחר צבע באונבורדינג',
+            canAutoGenerate: false,
+        })
+    }
+
+    if (!draft.typography.heading?.family) {
+        gaps.push({
+            priority: 'important',
+            field: 'typography.heading',
+            suggestion: 'גופן כותרות חסר — ברירת מחדל Rubik',
+            canAutoGenerate: true,
+        })
+    }
+
+    if (!draft.typography.hebrewSupport?.headingFamily) {
+        gaps.push({
+            priority: 'important',
+            field: 'typography.hebrewSupport',
+            suggestion: 'תמיכה בעברית חסרה — Rubik + Heebo מומלצים',
+            canAutoGenerate: true,
+        })
+    }
+
+    if (!draft.voice.tone) {
+        gaps.push({
+            priority: 'important',
+            field: 'voice.tone',
+            suggestion: 'טון דיבור חסר — נדרש להכוונת סוכני תוכן',
+            canAutoGenerate: true,
+        })
+    }
+
+    if (!draft.imagery.moodKeywords || draft.imagery.moodKeywords.length === 0) {
+        gaps.push({
+            priority: 'nice_to_have',
+            field: 'imagery.moodKeywords',
+            suggestion: 'מילות מצב-רוח חסרות — עוזרות לקריאייטיב',
+            canAutoGenerate: true,
+        })
+    }
+
+    if (!draft.principles || draft.principles.length === 0) {
+        gaps.push({
+            priority: 'nice_to_have',
+            field: 'principles',
+            suggestion: 'עקרונות brand constitution חסרים — 3-5 חוקים מנחים',
+            canAutoGenerate: true,
+        })
+    }
+
+    return gaps
+}
+
+function mergeGaps(fromLlm: Gap[], computed: Gap[]): Gap[] {
+    const seen = new Set(fromLlm.map(g => g.field))
+    const merged = [...fromLlm]
+    for (const g of computed) {
+        if (!seen.has(g.field)) merged.push(g)
+    }
+    // Sort: critical → important → nice_to_have
+    const order: Record<Gap['priority'], number> = { critical: 0, important: 1, nice_to_have: 2 }
+    merged.sort((a, b) => order[a.priority] - order[b.priority])
+    return merged
+}

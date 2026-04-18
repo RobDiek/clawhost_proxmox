@@ -678,6 +678,53 @@ PYEOF
           systemctl start openclaw-gateway
         fi
 
+    # ── openclaw-creative MCP plugin (Yotzer creative lifecycle, draft-mode) ──
+    - mkdir -p /home/openclaw/.openclaw/extensions/openclaw-creative/dist
+    - mkdir -p /opt/openclaw/creatives  # tenant storage root for rendered assets
+    - chown -R openclaw:openclaw /opt/openclaw/creatives
+    - |
+        cat > /home/openclaw/.openclaw/extensions/openclaw-creative/package.json << 'CREATIVEPKGEOF'
+        {
+          "name": "openclaw-creative",
+          "version": "0.1.0",
+          "description": "Yotzer creative lifecycle (concept → character → scenes → final) with BYOK fal.ai/ElevenLabs",
+          "main": "dist/index.js",
+          "openclaw": { "displayName": "Yotzer Creative", "category": "creative", "requires": [] }
+        }
+        CREATIVEPKGEOF
+    - |
+        PLUGIN_URL="https://raw.githubusercontent.com/synex-os/openclaw-hosting/Production/scripts/openclaw-creative-plugin.js"
+        if ! curl -fsSL "$PLUGIN_URL" -o /home/openclaw/.openclaw/extensions/openclaw-creative/dist/index.js 2>/dev/null; then
+          echo "Failed to fetch creative plugin from GitHub — skipping"
+        fi
+    - chown -R openclaw:openclaw /home/openclaw/.openclaw/extensions
+    - |
+        if [ -f /home/openclaw/.openclaw/extensions/openclaw-creative/dist/index.js ]; then
+          systemctl stop openclaw-gateway 2>/dev/null
+          python3 <<PYEOF
+import json
+p = '/home/openclaw/.openclaw/openclaw.json'
+with open(p) as f: cfg = json.load(f)
+plugins = cfg.setdefault('plugins', {})
+entries = plugins.setdefault('entries', {})
+entries['openclaw-creative'] = {
+    'enabled': True,
+    'source': { 'type': 'local', 'path': '/home/openclaw/.openclaw/extensions/openclaw-creative' },
+    'config': { 'tenantStoragePath': '/opt/openclaw/creatives' }
+}
+allow = plugins.setdefault('allow', [])
+if 'openclaw-creative' not in allow: allow.append('openclaw-creative')
+with open(p, 'w') as f: json.dump(cfg, f, indent=2)
+print('openclaw-creative plugin registered (draft mode)')
+PYEOF
+          chown openclaw:openclaw /home/openclaw/.openclaw/openclaw.json
+          systemctl start openclaw-gateway
+        fi
+
+    # ── Hebrew overlay deps (Sharp for image + ffmpeg/libass for video) ──
+    # ffmpeg is typically pre-installed; ensure libass + Hebrew fonts are available.
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ffmpeg libass9 fonts-noto-core fonts-noto-cjk fonts-noto-hinted 2>&1 | tail -3 || true
+
     # ── LiteLLM AI Gateway ──
     - mkdir -p /opt/openclaw/data/litellm
     - |

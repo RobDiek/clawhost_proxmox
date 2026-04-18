@@ -246,7 +246,7 @@ async function deployAgentSystem(ip: string, userMd: string, brandMd: string, br
 
     // Create directory structure
     if (agentType === 'mt') {
-        await sshExec(ip, `mkdir -p ${baseDir}/{workspace/brands/${brandName},workspace/memory,agents/{sayer,meater,maazin,menateach,et,yotzer,shaliach,migdalor}/output}`, password)
+        await sshExec(ip, `mkdir -p ${baseDir}/{workspace/brands/${brandName},workspace/memory,agents/{sayer,meater,maazin,menateach,et,yotzer,shaliach,migdalor,mekhayev}/output}`, password)
     } else {
         await sshExec(ip, `mkdir -p ${baseDir}/{workspace/memory}`, password)
     }
@@ -276,14 +276,21 @@ async function deployAgentSystem(ip: string, userMd: string, brandMd: string, br
 
     // Deploy agent SOUL.md files (only for MATEH — Personal has no sub-agents)
     if (agentType === 'mt') {
-        const agents = ['sayer', 'meater', 'maazin', 'menateach', 'et', 'yotzer', 'shaliach', 'migdalor']
+        const agents = ['sayer', 'meater', 'maazin', 'menateach', 'et', 'yotzer', 'shaliach', 'migdalor', 'mekhayev']
         for (const agent of agents) {
             const soulPath = join(TEMPLATES_DIR, 'agents', agent, 'SOUL.md')
             try {
                 const content = readFileSync(soulPath, 'utf-8')
                 await sshWriteFile(ip, `${baseDir}/agents/${agent}/SOUL.md`, content, password)
             } catch {
-                console.error(`Missing template: ${soulPath}`)
+                // For new agents without template file yet — write a minimal stub.
+                // Full playbook is appended later via updateSoulWith*Tools() helpers.
+                if (agent === 'mekhayev') {
+                    const stub = `# מעצב (mekhayev) — Brand Designer\n\nתפקיד: בניית ותחזוקת brand book מלא לעסק — לוגו, פלטת צבעים, טיפוגרפיה, סגנון ויזואלי, voice & tone.\nמגיב ל-on-demand בקשות: "עדכן brand book", "נתח אתר של לקוח חדש", "צור מערכת מותג מאפס".\n`
+                    await sshWriteFile(ip, `${baseDir}/agents/${agent}/SOUL.md`, stub, password).catch(() => {})
+                } else {
+                    console.error(`Missing template: ${soulPath}`)
+                }
             }
         }
     }
@@ -450,6 +457,7 @@ const MATEH_AGENT_CRONS: AgentCronDef[] = [
     { agentId: 'yotzer',    name: 'visual-gen',         description: 'ויזואלים',             model: 'haiku',  defaultCadence: 'weekly',  message: 'ייצר ויזואלים לפוסטים שאושרו השבוע. ממדים לפי פלטפורמה.' },
     { agentId: 'shaliach',  name: 'publish-queue',      description: 'פרסום מתוזמן',         model: 'haiku',  defaultCadence: 'daily',   message: 'פרסם תוכן שאושר ב-peak times של כל פלטפורמה. דווח על CTR + engagement.' },
     { agentId: 'migdalor',  name: 'aeo-audit',          description: 'ביקורת AEO חודשית',    model: 'sonnet', defaultCadence: 'monthly', message: 'בדוק mentions של העסק ב-ChatGPT, Claude, Perplexity, Gemini. דווח על שינויים + המלצות.' },
+    { agentId: 'mekhayev',  name: 'brand-design',        description: 'מעצב מערכת מותג',      model: 'sonnet', defaultCadence: 'on_demand', message: 'on-demand — מזוהה ונפעל ע"י brand onboarding flow או בקשת רענון brand book.' },
 ]
 
 // ── Activate cron jobs on VPS after onboarding is complete ──
@@ -642,6 +650,7 @@ const DEFAULT_ROLE_MODELS: Record<string, string> = {
     'yotzer': 'anthropic/claude-sonnet-4-6',            // creative — quality
     'shaliach': 'anthropic/claude-haiku-4-5-20251001', // distribution — fast
     'migdalor': 'anthropic/claude-opus-4-7',            // AEO audit — precision reasoning
+    'mekhayev': 'anthropic/claude-sonnet-4-6',          // brand design — reasoning + visual judgment
 }
 
 async function getSubAgentModel(instanceId: string, role: string): Promise<string> {
@@ -656,7 +665,7 @@ async function getSubAgentModel(instanceId: string, role: string): Promise<strin
 
 // ── SINGLE SOURCE OF TRUTH: ensure all expected agents are registered on VPS ──
 // Called from: setupAgents (deploy), saveIntegration (first API key), addAgentToInstance (upgrade)
-const MATEH_AGENTS = ['sayer', 'menateach', 'meater', 'maazin', 'et', 'yotzer', 'shaliach', 'migdalor'] as const
+const MATEH_AGENTS = ['sayer', 'menateach', 'meater', 'maazin', 'et', 'yotzer', 'shaliach', 'migdalor', 'mekhayev'] as const
 
 export async function ensureAgentsRegistered(instance: {
     id: string; ip: string | null; rootPassword?: string | null;
@@ -745,6 +754,17 @@ export async function ensureAgentsRegistered(instance: {
     // Restart gateway if we changed anything
     if (result.registered.length > 0 || result.updated.length > 0) {
         await sshExec(instance.ip, 'systemctl restart openclaw-gateway', instance.rootPassword || undefined)
+    }
+
+    // Append creative playbook so yotzer knows the 4-gate lifecycle from day 1
+    // (drafts work with zero API config — live rendering requires fal.ai key via later endpoint)
+    if (result.registered.includes('yotzer') || result.updated.includes('yotzer')) {
+        await updateSoulWithCreativeTools(instance.ip, instance.rootPassword || undefined)
+    }
+
+    // Append brand-design playbook so mekhayev knows the brand onboarding flow
+    if (result.registered.includes('mekhayev') || result.updated.includes('mekhayev')) {
+        await updateSoulWithBrandTools(instance.ip, instance.rootPassword || undefined)
     }
 
     console.log(`[ensureAgents] ${instance.id}: registered=${result.registered.join(',')}, updated=${result.updated.join(',')}, skipped=${result.skipped.join(',')}`)
@@ -2872,6 +2892,186 @@ draft_campaign({
         console.log('SOUL.md updated with openclaw-googleads tools section')
     } catch (err) {
         console.error('updateSoulWithGoogleAdsTools error (non-fatal):', err)
+    }
+}
+
+// ── SOUL.md playbook for Yotzer creative agent (idempotent append) ──
+export async function updateSoulWithCreativeTools(ip: string, password?: string): Promise<void> {
+    try {
+        const soul = await sshExec(ip, 'cat /home/openclaw/.openclaw/workspace/SOUL.md 2>/dev/null || echo ""', password)
+        if (soul.includes('openclaw-creative MCP')) {
+            console.log('SOUL already contains creative section — skip')
+            return
+        }
+
+        const section = `
+
+## openclaw-creative MCP — Yotzer Creative Agent (Draft Mode, 4 HITL Gates)
+
+שרת openclaw-creative מותקן. **כל שלב בייצור קריאייטיב עובר דרך תור אישורים בדשבורד.** הסוכן לא מייצר תמונה/וידאו באופן ישיר — הוא מפיק טיוטות מובנות, המשתמש מאשר, ואז Executor פועל ב-fal.ai / ElevenLabs.
+
+**אחריות לפי סוכן:**
+- **יוצר (yotzer):** סוכן ראשי בשרשרת הקריאייטיב. עובר את כל 4 ה-Gates לפי הסדר.
+- **עט (ayat):** מזין hook, voiceover text, on-screen text בעברית (brand voice מ-SOUL/BRAND).
+- **שליח (shaliach):** מזין brief + goal לפי האסטרטגיה (מי הקהל, מה המטרה, איזה פלטפורמה).
+- **מנתח (menateach):** אחרי שהקריאייטיב רץ — מנתח ביצועים, מציע וריאציות.
+
+**4 ה-Gates (חובה לעבור לפי הסדר):**
+
+### Gate 1 — \`draft_concept\`
+קלט: brief, goal (awareness/leads/sales/...), platform (meta_feed/meta_story/reel/youtube_short/...), tier (draft/standard/premium), formatType (image/video/carousel/audio), rationale בעברית.
+פלט: conceptId + aspectRatio + duration + resolution (מחושב אוטומטית לפי הפלטפורמה).
+**המשתמש מאשר או מתקן לפני Gate 2.**
+
+### Gate 2 — \`draft_character_reference\`
+קלט: conceptId (מה-Gate הקודם), subjectType (product/person/mascot/abstract), subjectDescription, styleDirection, colorPalette.
+פלט: 4 וריאציות פרומפט (hero-shot / lifestyle / dramatic / minimalist).
+**המשתמש בוחר 1 מתוך 4.**
+
+### Gate 3 — \`draft_scene_variations\`
+קלט: conceptId + characterRefId + selectedVariation + sceneCount + scenes[].
+- לתמונה: sceneCount=1, scene אחד עם prompt מפורט.
+- לווידאו: sceneCount=3-6, כל scene עם action/camera/prompt/voiceoverHe/onScreenTextHe.
+**המשתמש מאשר את הסטורי-בורד או מבקש תיקון.**
+
+### Gate 4 — \`draft_final_creative\`
+קלט: scenesId + conceptId + tier + formatType + hebrewOverlay + overlayConfig + audio + upscale.
+פלט: render spec עם בחירת מודל אוטומטית לפי tier:
+- **draft tier** → Nano Banana Pro (~$0.04 לתמונה, ללא וידאו)
+- **standard tier** → FLUX.2 Pro (תמונה) + Kling 2.5 Turbo Pro (וידאו ~$2.80)
+- **premium tier** → FLUX.2 Pro + Veo 3.1 (~$6.00 לסצנה וידאו) + upscale Real-ESRGAN
+
+**לאחר אישור Gate 4 → Executor פועל:**
+1. fal.ai עם selectedModel + prompts של כל סצנה
+2. הורדה ל-\`/opt/openclaw/creatives/{creativeId}/\` על ה-VPS של הלקוח
+3. Hebrew overlay: Sharp (תמונה) או ffmpeg+libass (וידאו) — רץ על ה-VPS של הלקוח
+4. Audio: ElevenLabs Flash v2.5 voiceover + opt Suno music → ffmpeg merge
+5. Upscale (premium): Real-ESRGAN
+
+**כללי זהב:**
+- **לעולם אל תדלג על Gate** — המשתמש חייב לאשר קונספט לפני דמות, דמות לפני סצנות, סצנות לפני רנדור.
+- **לעולם אל תכריז שקריאייטיב "נוצר"** — רק "טיוטה מוכנה לאישור" או "רנדור בתהליך" (אחרי Gate 4).
+- **Tier coherence** — אל תציע premium tier אם התוכנית של הלקוח היא Starter. קרא את ה-tier מהקונטקסט.
+- **BYOK** — לפני Gate 4 בדוק ש-fal.ai key מוגדר. אם חסר: החזר warning "חסר fal.ai API key — הוסף בהגדרות".
+- **שמירת עקביות דמות** — השתמש תמיד באותו characterRefId + selectedVariation בכל scenes של אותו קמפיין.
+
+**שגרת עבודה למשל (וידאו Reel 15 שניות לעסק מקומי, standard tier):**
+\`\`\`
+// שלב 1 — הבן את הקונטקסט
+entity_list({ type: 'persona' })          // קהל יעד
+fact_query({ subjectType: 'brand' })      // brand voice + colors
+
+// שלב 2 — Gate 1
+draft_concept({
+  brief: 'הכרזה על מבצע 20% הנחה על קפה בוקר',
+  goal: 'awareness', platform: 'meta_reel', tier: 'standard',
+  formatType: 'video',
+  callToAction: 'בואו לבקר',
+  rationale: 'Reel 15 שניות מתאים לפילה של המודעות במסלול awareness, פורמט אנכי 9:16 עם הצעה ברורה',
+})
+// → מחזיר {ok: true, draft: {_type: 'creative_concept_draft', conceptId: '...', ...}, approvalRequired: true}
+
+// כתוב את ה-draft בפלט שלך. עצור. חכה לאישור המשתמש.
+\`\`\`
+`
+        const b64 = Buffer.from(section, 'utf8').toString('base64')
+        await sshExec(ip,
+            `echo '${b64}' | base64 -d >> /home/openclaw/.openclaw/workspace/SOUL.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/SOUL.md`,
+            password, 15000
+        )
+        await sshExec(ip, 'systemctl restart openclaw-gateway', password, 15000)
+        console.log('SOUL.md updated with openclaw-creative tools section')
+    } catch (err) {
+        console.error('updateSoulWithCreativeTools error (non-fatal):', err)
+    }
+}
+
+// ── SOUL.md playbook for mekhayev (brand designer) ──
+export async function updateSoulWithBrandTools(ip: string, password?: string): Promise<void> {
+    try {
+        const soul = await sshExec(ip, 'cat /home/openclaw/.openclaw/workspace/SOUL.md 2>/dev/null || echo ""', password)
+        if (soul.includes('openclaw-brand MCP')) {
+            console.log('SOUL already contains brand section — skip')
+            return
+        }
+
+        const section = `
+
+## openclaw-brand MCP — מעצב (mekhayev) — Brand System Builder
+
+שרת openclaw-brand מותקן. **תפקיד mekhayev:** לבנות ולתחזק brand book מלא לעסק. כל עדכון עובר HITL approval בדשבורד.
+
+**שימוש:**
+- **On-demand only** — mekhayev לא רץ בcron. הוא מופעל:
+  1. אוטומטית בסוף שלב 5 של research (brand foundation)
+  2. בבקשה ידנית: "עדכן brand book", "נתח אתר חדש של לקוח", "צור מערכת מותג מאפס"
+
+**Tools (3):**
+
+### \`extract_brand_signals({ url })\`
+סורק אתר, מחזיר signals: logo candidates, color palette, typography, copy samples, meta.
+זה **לא** brand book — רק raw extraction.
+
+### \`analyze_logo({ logoUrl })\`
+מנתח לוגו ספציפי (בדרך כלל הבחירה המובילה מ-extract_brand_signals):
+- Style (wordmark/lettermark/pictorial/abstract/combination/emblem)
+- Dominant colors, transparent background, aspect ratio
+- Usage rules: minSizePx, safeZonePx, allowedBackgrounds, forbiddenContexts
+- Composition: default overlay position, dark/light bg requirements
+
+### \`draft_brand_book({ scraped, logoAnalysis, research, userInputs })\`
+מקבל את כל הsignals + research context + user preferences, מחזיר brand_book draft מלא עם:
+- Identity (name, tagline, mission, manifesto, positioning)
+- Colors (primary, secondary, accent, neutrals, semantic + palette)
+- Typography (heading, body, hebrewSupport, rules)
+- Imagery (photography style, mood keywords, doNotUse)
+- Voice (tone, personality, vocabularyDo/Dont, signaturePhrases, hebrewRegister)
+- Principles (brand constitution — 3-5 hard rules)
+- Gaps (critical/important/nice_to_have — מה חסר עדיין)
+
+**הטיוטה נשמרת בתור HITL approval בדשבורד — המשתמש מאשר / מתקן / מבקש iteration.**
+
+**שגרת עבודה למשל:**
+\`\`\`
+// אחרי שלב 5 של research — הפעל אוטומטית:
+entity_list({ type: 'persona' })             // שלוף פרסונות
+entity_list({ type: 'competitor' })          // שלוף מתחרים
+fact_query({ subjectType: 'brand' })         // שלוף brand signals אם קיימים
+
+// אם יש URL של האתר:
+signals = extract_brand_signals({ url: clientWebsiteUrl })
+logoInfo = analyze_logo({ logoUrl: signals.logo.candidates[0].url })
+
+// בנה draft
+draft_brand_book({
+  scraped: signals,
+  logoAnalysis: logoInfo,
+  research: { personas, competitors, positioning },
+  userInputs: { businessName, vibePreset, hebrewFontPreference }
+})
+// → מחזיר { draft, gaps, rationale, confidence, approvalRequired: true }
+
+// כתוב את ה-draft בפלט שלך. המשתמש יראה אותו בתור האישורים.
+\`\`\`
+
+**כללי זהב:**
+1. **עברית קודם.** כל שדה \`*He\` חייב להיות בעברית נכונה.
+2. **Hebrew fonts חובה.** אל תמצא English-only font ל-heading ללא hebrewSupport fallback.
+3. **Research trumps scraping.** אם scraped signals סותרים research positioning (למשל אתר מינימליסטי אבל positioning=playful), תן עדיפות ל-research ותסביר ב-rationale.
+4. **Gaps honest.** סמן critical gap אם logo/primary color/heading חסרים — אל תמציא.
+5. **Principles ספציפיים.** לא generic. נובעים מ-research + personas.
+6. **אחרי אישור המשתמש** — brand_book זה יוזן אוטומטית לכל יצירת תוכן (ayat, yotzer, shaliach). מכאן החשיבות של consistency.
+7. **Versioning** — אם brand book כבר קיים ו-approved, draft_brand_book מחזיר version+1 כ-draft. גרסה ישנה נארכבת.
+`
+        const b64 = Buffer.from(section, 'utf8').toString('base64')
+        await sshExec(ip,
+            `echo '${b64}' | base64 -d >> /home/openclaw/.openclaw/workspace/SOUL.md && chown openclaw:openclaw /home/openclaw/.openclaw/workspace/SOUL.md`,
+            password, 15000
+        )
+        await sshExec(ip, 'systemctl restart openclaw-gateway', password, 15000)
+        console.log('SOUL.md updated with openclaw-brand tools section')
+    } catch (err) {
+        console.error('updateSoulWithBrandTools error (non-fatal):', err)
     }
 }
 

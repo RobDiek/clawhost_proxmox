@@ -166,6 +166,12 @@ import {
     disconnectGithub,
     publishToGithub,
     testGithubIntegration,
+    extractBrand,
+    analyzeLogoEndpoint,
+    draftBrandBook,
+    approveBrandBook,
+    getBrandBook,
+    getBrandBookVersions,
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -286,6 +292,14 @@ app.post('/instances/:id/github/publish', publishToGithub)
 // ── Schedules (bundle-managed) ──
 app.get('/instances/:id/schedules', getSchedules)
 app.post('/instances/:id/schedules', saveSchedules)
+
+// ── Brand Foundation (Phase B1) — extract → analyze logo → compose → approve → distribute ──
+app.post('/instances/:id/brand/extract',      extractBrand)
+app.post('/instances/:id/brand/analyze-logo', analyzeLogoEndpoint)
+app.post('/instances/:id/brand/draft',        draftBrandBook)
+app.post('/instances/:id/brand/approve',      approveBrandBook)
+app.get('/instances/:id/brand',               getBrandBook)
+app.get('/instances/:id/brand/versions',      getBrandBookVersions)
 
 // ── SEO First Run ──
 app.post('/instances/:id/seo/validate', seoValidate)

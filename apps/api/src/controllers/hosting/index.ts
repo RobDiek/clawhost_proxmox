@@ -36,5 +36,6 @@ export { guardScan, guardStatus } from './llmGuard'
 export { deployCrewEndpoint, runCrewEndpoint, listCrewsEndpoint } from './crewai'
 // Langfuse removed — custom API Usage Tracker covers observability needs
 export { listAgentIntegrations, getAgentIntegrationEndpoint, setAgentIntegrationEndpoint, deleteAgentIntegrationEndpoint } from './agentIntegrationRoutes'
+export { extractBrand, analyzeLogoEndpoint, draftBrandBook, approveBrandBook, getBrandBook, getBrandBookVersions } from './brand'
 // Twenty CRM removed — AGPLv3 license risk
 // export { installTwenty } from './twenty'
