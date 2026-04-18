@@ -66,6 +66,8 @@ export interface UserBrandInputs {
     vibePreset?: 'premium' | 'approachable' | 'technical' | 'playful' | 'trustworthy'
     primaryColorOverride?: string     // user explicitly picked a color
     hebrewFontPreference?: 'Rubik' | 'Heebo' | 'Assistant'
+    feedback?: string                 // Tier 2-S: user-provided feedback for regenerate pass
+    skipEnglish?: boolean             // Tier 2-M: opt out of bilingual output
 }
 
 export interface BrandBookDraft {
@@ -130,11 +132,20 @@ export interface Gap {
     canAutoGenerate: boolean  // will M2 logo-gen help?
 }
 
+export interface RationaleSections {
+    overall?: string
+    colors?: string
+    typography?: string
+    voice?: string
+    identity?: string
+}
+
 export interface ComposedBrandBook {
     draft: BrandBookDraft
     gaps: Gap[]
-    rationale: string           // Hebrew explanation of key decisions
+    rationale: RationaleSections | string   // structured sections (Tier 2-O), string kept for backcompat
     confidence: 'high' | 'medium' | 'low'
+    confidenceReasons: string[]              // Tier 2-T: explain the confidence score
     sources: {
         scrapedFrom?: string
         logoAnalyzedFrom?: string
@@ -183,7 +194,13 @@ export async function composeBrandBook(params: {
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) throw new Error('Composer returned no JSON')
 
-    let parsed: { draft: BrandBookDraft; gaps: Gap[]; rationale: string; confidence: 'high' | 'medium' | 'low' }
+    let parsed: {
+        draft: BrandBookDraft
+        gaps: Gap[]
+        rationale: RationaleSections | string
+        confidence: 'high' | 'medium' | 'low'
+        confidenceReasons?: string[]
+    }
     try {
         parsed = JSON.parse(jsonMatch[0])
     } catch (err) {
@@ -210,6 +227,7 @@ export async function composeBrandBook(params: {
         gaps: mergedGaps,
         rationale: parsed.rationale || '',
         confidence: parsed.confidence || 'medium',
+        confidenceReasons: parsed.confidenceReasons || [],
         sources: {
             scrapedFrom: scraped?.url,
             logoAnalyzedFrom: logoAnalysis?.source.url,
@@ -301,6 +319,10 @@ function buildComposerPrompt(params: {
         }
         if (userInputs.primaryColorOverride) prompt += `- Primary color (user picked): ${userInputs.primaryColorOverride}\n`
         if (userInputs.hebrewFontPreference) prompt += `- Hebrew font: ${userInputs.hebrewFontPreference}\n`
+        if (userInputs.skipEnglish) prompt += `- skipEnglish: true (do NOT generate *En fields)\n`
+        if (userInputs.feedback && userInputs.feedback.trim()) {
+            prompt += `\n## 🔁 משוב מהמשתמש — גרסה חדשה\nהמשתמש ראה טיוטה קודמת וביקש את השינויים הבאים:\n\n> ${userInputs.feedback.trim()}\n\n**חובה לפעול לפי המשוב.** אם המשוב נוגד עקרון אחר — תן עדיפות למשוב ותיעד ב-rationale.overall.\n`
+        }
     }
 
     prompt += `
@@ -314,12 +336,12 @@ function buildComposerPrompt(params: {
     "identity": {
       "businessName": "...",
       "legalName": null,
-      "taglineHe": "עד 60 תווים, בעברית",
-      "taglineEn": "up to 60 chars English",
-      "missionHe": "2-3 משפטים על המטרה של העסק",
-      "missionEn": "English mission",
-      "manifestoHe": "3-4 משפטים של brand manifesto — קצת יותר עמוק ממטרה",
-      "positioningLine": "משפט מיצוב אחד — מי אתם לעומת מי"
+      "taglineHe":       "עד 60 תווים, בעברית — מסר רגשי/מכירתי",
+      "taglineEn":       "English up to 60 chars — natural, not literal translation",
+      "missionHe":       "2-3 משפטים על המטרה של העסק",
+      "missionEn":       "2-3 English sentences — mission",
+      "manifestoHe":     "3-4 משפטים של brand manifesto — קצת יותר עמוק ממטרה",
+      "positioningLine": "משפט מיצוב אחד בעברית — 'לא X, לא Y — אלא Z' (חייב לנקוב בקטגוריה שמוחלפת)"
     },
     "logo": {
       "primary": null,  // נמלא אוטומטית מ-logoAnalysis
@@ -329,12 +351,13 @@ function buildComposerPrompt(params: {
       "sourceFiles": []
     },
     "colors": {
-      "primary":   { "hex": "#RRGGBB", "name": "שם הצבע בעברית", "usage": "מתי להשתמש" },
-      "secondary": { "hex": "#RRGGBB", "name": "...", "usage": "..." },
-      "accent":    [{ "hex": "#RRGGBB", "name": "..." }],
-      "neutrals":  [{ "hex": "#F3F4F6", "name": "אפור בהיר" }, ...],
-      "semantic":  { "success": "#10B981", "warning": "#F59E0B", "danger": "#EF4444", "info": "#3B82F6" },
-      "palette":   ["#RRGGBB", ...]   // כל הצבעים בסדר חשיבות, עד 8
+      "primary":         { "hex": "#RRGGBB", "name": "שם הצבע בעברית", "usage": "מתי להשתמש" },
+      "secondary":       { "hex": "#RRGGBB", "name": "...", "usage": "..." },
+      "accent":          [{ "hex": "#RRGGBB", "name": "..." }],
+      "neutrals":        [{ "hex": "#F3F4F6", "name": "אפור בהיר" }, ...],  // grayscale only R≈G≈B
+      "semantic":        { "success": "#10B981", "warning": "#F59E0B", "danger": "#EF4444", "info": "#3B82F6" },
+      "palette":         ["#RRGGBB", ...],         // brand colors only (primary/secondary/accent hex), up to 5, priority order
+      "paletteExtended": ["#F0FDF4", "#BBF7D0"]    // brand tints — tinted variations, up to 6
     },
     "typography": {
       "heading": { "family": "Rubik", "weights": [500, 700, 900], "license": "Google Fonts (OFL)" },
@@ -371,8 +394,19 @@ function buildComposerPrompt(params: {
   "gaps": [
     { "priority": "critical|important|nice_to_have", "field": "logo.primary", "suggestion": "בעברית — מה חסר ומה הפתרון", "canAutoGenerate": true|false }
   ],
-  "rationale": "פסקה קצרה בעברית — איך החלטת על כל זה. אם היו סתירות בסיגנלים (למשל website #FFFFFF אבל מיצוב premium) — הסבר איך פתרת.",
-  "confidence": "high|medium|low"
+  "rationale": {
+    "overall":    "סיכום של 2-3 משפטים בעברית — החלטות מרכזיות + סתירות שנפתרו",
+    "colors":     "הסבר ספציפי לבחירת primary/secondary — מדוע הצבעים הנוכחיים ולא אחרים",
+    "typography": "הסבר לבחירת הגופן וה-weights — תוך שמירת העדפת המשתמש אם יש",
+    "voice":      "הסבר לטון ולרגיסטר — קישור ל-persona + positioning",
+    "identity":   "הסבר ל-tagline + positioning — מה נאמר במפורש ומה נרמז"
+  },
+  "confidence":        "high | medium | low",
+  "confidenceReasons": [
+    "פירוט למה ביטחון הוא הרמה הזו — 2-4 נקודות קונקרטיות",
+    "למשל: 'logo file contains text POWER — mismatch with businessName suggests outdated/placeholder'",
+    "למשל: 'scraped palette had 7 strong colors — consistency high'"
+  ]
 }
 \`\`\`
 
@@ -416,7 +450,23 @@ function buildComposerPrompt(params: {
 
 14. **Vibe consistency** — אם vibePreset=playful, tone לא יהיה authoritative. עקביות מלאה.
 
-15. **JSON תקף** — ללא comments, ללא trailing commas, ללא markdown.`
+15. **Bilingual output חובה (אלא אם כן skipEnglish)** — לכל שדה *He מלא ממולא, גם *En חייב להיות ממולא באנגלית טבעית (לא תרגום מילולי — נוסח שיעבוד ב-LinkedIn outreach באנגלית, ב-Google Ads EN, וכו').
+    שדות שחייבים תרגום: taglineHe↔taglineEn, missionHe↔missionEn.
+    manifestoHe רשאי להישאר רק בעברית (אורך גדול, פחות שימושי באנגלית — אבל אם יש placeholder אנגלי טוב, תן).
+
+16. **Vibe-driven components + shapes (קביעה אוטומטית):**
+    - vibePreset=premium      → iconSet=heroicons,  cornerRadius=small (4px),  borderStyle=solid
+    - vibePreset=approachable → iconSet=lucide,     cornerRadius=medium (8px), borderStyle=soft
+    - vibePreset=technical    → iconSet=phosphor,   cornerRadius=small (4px),  borderStyle=solid
+    - vibePreset=playful      → iconSet=lucide,     cornerRadius=full (24px),  borderStyle=soft
+    - vibePreset=trustworthy  → iconSet=heroicons,  cornerRadius=small (4px),  borderStyle=solid
+
+17. **Palette structure (שמירה על סדר):**
+    - "palette" = רשימת צבעי המותג בסדר חשיבות (primary/secondary/accent hex בלבד, עד 5)
+    - "paletteExtended" = brand tints (וריאציות בהירות/כהות של primary, כמו #F0FDF4 שהוא tint בהיר של ירוק #166534)
+      אל תערבב אותם ב-palette ואל תשים אותם ב-neutrals.
+
+18. **JSON תקף** — ללא comments, ללא trailing commas, ללא markdown.`
 
     return prompt
 }
@@ -444,6 +494,42 @@ function detectGaps(draft: BrandBookDraft, logoAnalysis?: LogoAnalysis | null): 
             suggestion: 'לוגו חסר או לא מנותח — העלה קובץ לוגו או צרנו קונספט',
             canAutoGenerate: true,   // Phase B3 will offer AI logo generation
         })
+    }
+
+    // Logo text mismatch: if logoAnalysis detected text that doesn't match businessName,
+    // the file might be a placeholder or outdated. Surface as critical, not buried in rationale.
+    // Fires when Claude Vision's description/OCR mentions a different brand name in the logo.
+    if (logoAnalysis?.ok && logoAnalysis.visual.hasText && draft.identity.businessName) {
+        const businessLower = draft.identity.businessName.toLowerCase().split(/[\s—|·:•]/)[0]
+        const desc = (logoAnalysis.visual.description || '').toLowerCase()
+        const descHe = (logoAnalysis.visual.descriptionHe || '').toLowerCase()
+
+        // Extract quoted strings from description (e.g. "logo shows 'POWER'" → "POWER")
+        const quotedMatches = [...`${desc} ${descHe}`.matchAll(/["'"״״]([A-Za-zא-ת][\w\s-]{1,40}?)["'"״״]/g)]
+        const quotedTexts = quotedMatches.map(m => m[1].trim().toLowerCase()).filter(Boolean)
+
+        // Also check unquoted capitalized words — less reliable but catches "the logo reads POWER"
+        const capitalWords = [...desc.matchAll(/\b([A-Z]{3,}[A-Z0-9]*)\b/g)].map(m => m[1].toLowerCase())
+
+        const allDetectedText = [...quotedTexts, ...capitalWords]
+
+        // If any detected text is a valid brand-like word (not generic) AND doesn't match business
+        for (const detected of allDetectedText) {
+            // Skip common style descriptors
+            if (['svg', 'png', 'jpg', 'brand', 'logo', 'icon', 'text'].includes(detected)) continue
+            // Skip if it contains business name
+            if (detected.includes(businessLower) || businessLower.includes(detected)) continue
+            // Skip if very short
+            if (detected.length < 3) continue
+            // We have a mismatch
+            gaps.push({
+                priority: 'critical',
+                field: 'logo.primary',
+                suggestion: `⚠️ הלוגו המנותח מזהה טקסט "${detected.toUpperCase()}" אך שם העסק הוא "${draft.identity.businessName}". ייתכן שהקובץ placeholder או גרסה ישנה — בדקו.`,
+                canAutoGenerate: false,
+            })
+            break   // only flag once
+        }
     }
 
     if (!draft.colors.primary?.hex) {

@@ -207,8 +207,12 @@ export const draftBrandBook = async (c: Context) => {
             compliance: draft.compliance,
             principles: draft.principles,
             gaps: composed.gaps,
-            rationaleHe: composed.rationale,
+            rationaleHe: typeof composed.rationale === 'string'
+                ? composed.rationale
+                : (composed.rationale?.overall || ''),
+            rationaleJson: typeof composed.rationale === 'object' ? composed.rationale : null,
             confidence: composed.confidence,
+            confidenceReasons: composed.confidenceReasons.length > 0 ? composed.confidenceReasons : null,
             hebrewCorrections: hebrewCorrections.length > 0 ? hebrewCorrections : null,
             sourceUrl: body.scraped?.url || null,
             sourceScrapedAt: body.scraped?.fetchedAt ? new Date(body.scraped.fetchedAt) : null,
@@ -222,6 +226,7 @@ export const draftBrandBook = async (c: Context) => {
             gaps: composed.gaps,
             rationale: composed.rationale,
             confidence: composed.confidence,
+            confidenceReasons: composed.confidenceReasons,
             hebrewCorrections,
             sources: composed.sources,
         }, 'Brand book drafted.')

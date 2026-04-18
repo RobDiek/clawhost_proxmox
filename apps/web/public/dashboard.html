@@ -6898,8 +6898,11 @@ async function openBrandFoundation() {
       brandWizardState.draft = coerceDraftFromRow(j.data.brandBook);
       brandWizardState.gaps = j.data.brandBook.gaps || [];
       brandWizardState.brandBookId = j.data.brandBook.id;
-      brandWizardState.rationale = j.data.brandBook.rationaleHe || j.data.brandBook.rationale_he || '';
+      // Prefer structured rationale if available; fall back to flat text
+      brandWizardState.rationale = j.data.brandBook.rationaleJson || j.data.brandBook.rationale_json
+                                    || j.data.brandBook.rationaleHe || j.data.brandBook.rationale_he || '';
       brandWizardState.confidence = j.data.brandBook.confidence || 'medium';
+      brandWizardState.confidenceReasons = j.data.brandBook.confidenceReasons || j.data.brandBook.confidence_reasons || [];
       brandWizardState.hebrewCorrections = j.data.brandBook.hebrewCorrections || j.data.brandBook.hebrew_corrections || [];
       brandWizardState.step = 'review';
       renderBrandReview();
@@ -7091,8 +7094,9 @@ async function startBrandProcessing() {
     }
     brandWizardState.draft = draftJson.data.draft;
     brandWizardState.gaps = draftJson.data.gaps || [];
-    brandWizardState.rationale = draftJson.data.rationale || '';
+    brandWizardState.rationale = draftJson.data.rationale || '';   // string or {overall, colors, ...}
     brandWizardState.confidence = draftJson.data.confidence;
+    brandWizardState.confidenceReasons = draftJson.data.confidenceReasons || [];
     brandWizardState.hebrewCorrections = draftJson.data.hebrewCorrections || [];
     brandWizardState.brandBookId = draftJson.data.brandBookId;
     brandWizardState.step = 'review';
@@ -7111,15 +7115,8 @@ function renderBrandReview() {
   var g = brandWizardState.gaps || [];
   var html = '<div style="padding:20px 24px">';
 
-  // Confidence + rationale
-  var confColor = { high: '#10B981', medium: '#F59E0B', low: '#EF4444' }[brandWizardState.confidence] || '#9CA3AF';
-  html += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px;margin-bottom:14px">';
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
-  html += '<strong style="color:#1E40AF">💡 הסבר של mekhayev</strong>';
-  html += '<span style="font-size:0.72rem;color:#FFF;background:' + confColor + ';padding:2px 8px;border-radius:4px">ביטחון: ' + (brandWizardState.confidence || 'medium') + '</span>';
-  html += '</div>';
-  html += '<div style="font-size:0.82rem;color:#1E40AF;line-height:1.5">' + escapeHtml(brandWizardState.rationale || '') + '</div>';
-  html += '</div>';
+  // Confidence + rationale + reasons
+  html += renderBrandRationale(brandWizardState.rationale, brandWizardState.confidence, brandWizardState.confidenceReasons || []);
 
   // Hebrew corrections notice (if validator fixed anything)
   var corr = brandWizardState.hebrewCorrections || [];
@@ -7128,7 +7125,8 @@ function renderBrandReview() {
     html += '<summary style="cursor:pointer;font-size:0.85rem;color:#92400E;font-weight:600">🔍 תוקנו אוטומטית ' + corr.length + ' ביטויים בעברית</summary>';
     html += '<ul style="margin:6px 0 0;padding-right:20px;font-size:0.78rem;color:#78350F">';
     corr.slice(0, 10).forEach(function(c) {
-      html += '<li style="margin-bottom:4px"><code style="font-size:0.72rem;background:#FFF;padding:1px 4px;border-radius:3px">' + escapeHtml(c.path) + '</code>: "' + escapeHtml(c.original) + '" → "' + escapeHtml(c.fixed || '(הוסר)') + '" <span style="color:#92400E">· ' + escapeHtml(c.issue) + '</span></li>';
+      var cleanPath = (c.path || '').replace(/^\[|\]$/g, '');   // Tier 2-N: strip outer brackets
+      html += '<li style="margin-bottom:4px"><code style="font-size:0.72rem;background:#FFF;padding:1px 4px;border-radius:3px">' + escapeHtml(cleanPath) + '</code>: "' + escapeHtml(c.original) + '" → "' + escapeHtml(c.fixed || '(הוסר)') + '" <span style="color:#92400E">· ' + escapeHtml(c.issue) + '</span></li>';
     });
     html += '</ul></details>';
   }
@@ -7145,6 +7143,9 @@ function renderBrandReview() {
     html += '</ul></div>';
   }
 
+  // Quick-edit fields (Tier 2-R)
+  html += renderBrandQuickEdits(d);
+
   // Preview sections
   html += renderBrandPreview(d);
 
@@ -7160,13 +7161,186 @@ function renderBrandReview() {
     html += '</ul></details>';
   }
 
+  // Regenerate-with-feedback section (Tier 2-S)
+  html += '<div style="margin-top:14px;padding:12px;background:#FAFAFA;border:1px solid #E5E7EB;border-radius:8px">';
+  html += '<label style="display:block;font-size:0.82rem;font-weight:600;color:#1E3A5F;margin-bottom:4px">💬 הערות לריענון (אופציונלי)</label>';
+  html += '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:6px">תכתבו פה משוב בעברית — למשל "ירוק לא מתאים, צריך כחול יותר דומיננטי", או "tone מקצועי יותר, פחות casual". נריץ compose מחדש עם המשוב.</div>';
+  html += '<textarea id="brandFeedback" rows="2" placeholder="לדוגמה: ה-positioning דומה מדי ל-tagline, רוצה ניסוח שחד יותר..." style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px;font-size:0.82rem;direction:rtl;resize:vertical;font-family:inherit"></textarea>';
+  html += '<button class="btn btn-outline btn-sm" onclick="regenerateBrandBook()" style="margin-top:6px">↻ חדש עם משוב</button>';
+  html += '</div>';
+
   html += '</div>';
   renderBrandBody(html);
 
   renderBrandFooter(
-    '<button class="btn btn-outline" onclick="brandWizardState.step=\'inputs\';renderBrandInputs()">← חזרה ועריכה</button>' +
-    '<button class="btn btn-primary" onclick="approveBrandBook()">✓ אשרו והפיצו לסוכנים</button>'
+    '<button class="btn btn-outline" onclick="brandWizardState.step=\'inputs\';renderBrandInputs()">← התחל מחדש</button>' +
+    '<button class="btn btn-primary" onclick="approveBrandBookWithEdits()">✓ אשרו והפיצו לסוכנים</button>'
   );
+}
+
+// ─── Tier 2-R: Inline quick-edits for key fields ──────────────────────────
+function renderBrandQuickEdits(d) {
+  var html = '<div style="background:#FFFBEB;border:1px dashed #F59E0B;border-radius:8px;padding:12px;margin-bottom:14px">';
+  html += '<div style="font-size:0.82rem;font-weight:600;color:#92400E;margin-bottom:8px">✎ ערכו לפני אישור (ישפיע על הגרסה המאושרת)</div>';
+
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+
+  // Tagline HE
+  html += '<div>';
+  html += '<label style="font-size:0.72rem;color:#78350F;display:block;margin-bottom:2px">Tagline (עברית)</label>';
+  html += '<input type="text" id="qe-taglineHe" value="' + escapeHtml(d.identity?.taglineHe || '') + '" style="width:100%;padding:6px 10px;border:1px solid #FDE68A;border-radius:6px;font-size:0.82rem;background:#FFF" maxlength="80">';
+  html += '</div>';
+
+  // Tagline EN
+  html += '<div>';
+  html += '<label style="font-size:0.72rem;color:#78350F;display:block;margin-bottom:2px">Tagline (English)</label>';
+  html += '<input type="text" id="qe-taglineEn" value="' + escapeHtml(d.identity?.taglineEn || '') + '" style="width:100%;padding:6px 10px;border:1px solid #FDE68A;border-radius:6px;font-size:0.82rem;background:#FFF;direction:ltr" maxlength="80">';
+  html += '</div>';
+
+  // Positioning line
+  html += '<div style="grid-column:1/-1">';
+  html += '<label style="font-size:0.72rem;color:#78350F;display:block;margin-bottom:2px">Positioning (לא X, לא Y — אלא Z)</label>';
+  html += '<input type="text" id="qe-positioning" value="' + escapeHtml(d.identity?.positioningLine || '') + '" style="width:100%;padding:6px 10px;border:1px solid #FDE68A;border-radius:6px;font-size:0.82rem;background:#FFF" maxlength="200">';
+  html += '</div>';
+
+  // Primary color
+  var primaryHex = (d.colors && d.colors.primary && d.colors.primary.hex) || '#2563EB';
+  html += '<div>';
+  html += '<label style="font-size:0.72rem;color:#78350F;display:block;margin-bottom:2px">Primary color</label>';
+  html += '<div style="display:flex;gap:6px;align-items:center">';
+  html += '<input type="color" id="qe-primaryColor" value="' + escapeHtml(primaryHex) + '" style="width:40px;height:32px;border:1px solid #FDE68A;border-radius:6px;cursor:pointer;padding:2px;background:#FFF" oninput="document.getElementById(\'qe-primaryHex\').value=this.value.toUpperCase()">';
+  html += '<input type="text" id="qe-primaryHex" value="' + escapeHtml(primaryHex.toUpperCase()) + '" style="flex:1;padding:6px 10px;border:1px solid #FDE68A;border-radius:6px;font-size:0.82rem;background:#FFF;direction:ltr;font-family:monospace" maxlength="7" oninput="document.getElementById(\'qe-primaryColor\').value=this.value">';
+  html += '</div>';
+  html += '</div>';
+
+  // Tone
+  var currentTone = (d.voice && d.voice.tone) || 'casual';
+  html += '<div>';
+  html += '<label style="font-size:0.72rem;color:#78350F;display:block;margin-bottom:2px">Tone</label>';
+  html += '<select id="qe-tone" style="width:100%;padding:6px 10px;border:1px solid #FDE68A;border-radius:6px;font-size:0.82rem;background:#FFF">';
+  ['professional', 'casual', 'authoritative', 'intimate', 'mixed'].forEach(function(t) {
+    var sel = t === currentTone ? ' selected' : '';
+    html += '<option value="' + t + '"' + sel + '>' + t + '</option>';
+  });
+  html += '</select>';
+  html += '</div>';
+
+  html += '</div>';  // end grid
+
+  html += '<div style="font-size:0.7rem;color:#78350F;margin-top:6px">💡 שדות נוספים נערכים דרך "חדש עם משוב" למטה.</div>';
+  html += '</div>';
+  return html;
+}
+
+async function approveBrandBookWithEdits() {
+  // Gather inline edits
+  var edits = {};
+  var identity = {};
+  var taglineHe = (document.getElementById('qe-taglineHe') || {}).value;
+  var taglineEn = (document.getElementById('qe-taglineEn') || {}).value;
+  var positioning = (document.getElementById('qe-positioning') || {}).value;
+  var origId = brandWizardState.draft && brandWizardState.draft.identity || {};
+  if (taglineHe !== undefined && taglineHe !== origId.taglineHe) identity.taglineHe = taglineHe;
+  if (taglineEn !== undefined && taglineEn !== origId.taglineEn) identity.taglineEn = taglineEn;
+  if (positioning !== undefined && positioning !== origId.positioningLine) identity.positioningLine = positioning;
+  if (Object.keys(identity).length) edits.identity = identity;
+
+  // Primary color
+  var primaryHex = (document.getElementById('qe-primaryHex') || {}).value;
+  var origPrimaryHex = brandWizardState.draft && brandWizardState.draft.colors && brandWizardState.draft.colors.primary && brandWizardState.draft.colors.primary.hex;
+  if (primaryHex && /^#[0-9A-F]{6}$/i.test(primaryHex) && primaryHex.toUpperCase() !== (origPrimaryHex || '').toUpperCase()) {
+    var newColors = JSON.parse(JSON.stringify(brandWizardState.draft.colors || {}));
+    newColors.primary = newColors.primary || { hex: primaryHex, name: '', usage: '' };
+    newColors.primary.hex = primaryHex.toUpperCase();
+    edits.colors = newColors;
+  }
+
+  // Tone
+  var tone = (document.getElementById('qe-tone') || {}).value;
+  var origTone = brandWizardState.draft && brandWizardState.draft.voice && brandWizardState.draft.voice.tone;
+  if (tone && tone !== origTone) {
+    var newVoice = JSON.parse(JSON.stringify(brandWizardState.draft.voice || {}));
+    newVoice.tone = tone;
+    edits.voice = newVoice;
+  }
+
+  await approveBrandBookCall(edits);
+}
+
+async function approveBrandBookCall(edits) {
+  if (!brandWizardState || !brandWizardState.brandBookId) { showToast('לא נמצאה טיוטה', 'error'); return; }
+  var btn = event && event.target;
+  if (btn) { btn.disabled = true; btn.textContent = 'מאשר...'; }
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/brand/approve', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brandBookId: brandWizardState.brandBookId, edits: edits || {} }),
+    });
+    var j = await res.json();
+    if (!j.success) {
+      showToast(j.message || 'אישור נכשל', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '✓ אשרו והפיצו לסוכנים'; }
+      return;
+    }
+    var editCount = edits ? Object.keys(edits).length : 0;
+    showToast('Brand book אושר והופץ לסוכנים' + (editCount > 0 ? ' (עם ' + editCount + ' עריכות)' : '') + ' ✓', 'success');
+    closeBrandWizard();
+  } catch (err) {
+    showToast('שגיאה: ' + err.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '✓ אשרו והפיצו לסוכנים'; }
+  }
+}
+
+// Shared rationale renderer — handles both string (legacy) and structured {overall,colors,...} form
+function renderBrandRationale(rationale, confidence, reasons) {
+  var confColor = { high: '#10B981', medium: '#F59E0B', low: '#EF4444' }[confidence] || '#9CA3AF';
+  var html = '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px;margin-bottom:14px">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+  html += '<strong style="color:#1E40AF">💡 הסבר של mekhayev</strong>';
+  if (confidence) html += '<span style="font-size:0.72rem;color:#FFF;background:' + confColor + ';padding:2px 8px;border-radius:4px">ביטחון: ' + escapeHtml(confidence) + '</span>';
+  html += '</div>';
+
+  if (rationale && typeof rationale === 'object') {
+    // Structured — render sections
+    if (rationale.overall) {
+      html += '<div style="font-size:0.85rem;color:#1E40AF;line-height:1.5;margin-bottom:8px">' + escapeHtml(rationale.overall) + '</div>';
+    }
+    var sections = [
+      { key: 'colors',     label: '🎨 צבעים' },
+      { key: 'typography', label: '✍️ טיפוגרפיה' },
+      { key: 'voice',      label: '🗣 Voice' },
+      { key: 'identity',   label: '🎯 זהות + Positioning' },
+    ];
+    var anySec = false;
+    var secHtml = '';
+    sections.forEach(function(s) {
+      if (rationale[s.key]) {
+        anySec = true;
+        secHtml += '<div style="background:#FFF;border:1px solid #DBEAFE;border-radius:6px;padding:8px 10px;margin-bottom:4px;font-size:0.8rem;color:#1E3A5F;line-height:1.5">';
+        secHtml += '<strong>' + s.label + ':</strong> ' + escapeHtml(rationale[s.key]);
+        secHtml += '</div>';
+      }
+    });
+    if (anySec) {
+      html += '<details style="margin-top:6px"><summary style="cursor:pointer;font-size:0.78rem;color:#1E40AF">הסבר מפורט לפי תחום</summary>';
+      html += '<div style="margin-top:6px">' + secHtml + '</div></details>';
+    }
+  } else if (rationale) {
+    // Legacy flat string
+    html += '<div style="font-size:0.82rem;color:#1E40AF;line-height:1.5">' + escapeHtml(rationale) + '</div>';
+  }
+
+  // Confidence reasons (Tier 2-T)
+  if (reasons && reasons.length) {
+    html += '<details style="margin-top:8px"><summary style="cursor:pointer;font-size:0.75rem;color:#1E40AF">למה ביטחון ' + escapeHtml(confidence || '') + '? (' + reasons.length + ' סיבות)</summary>';
+    html += '<ul style="margin:4px 0 0;padding-right:18px;font-size:0.78rem;color:#1E3A5F;line-height:1.5">';
+    reasons.forEach(function(r) { html += '<li style="margin-bottom:2px">' + escapeHtml(r) + '</li>'; });
+    html += '</ul></details>';
+  }
+
+  html += '</div>';
+  return html;
 }
 
 function renderBrandPreview(d) {
@@ -7178,8 +7352,15 @@ function renderBrandPreview(d) {
   html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">זהות</div>';
   if (d.identity && d.identity.businessName) html += '<div style="font-size:1.1rem;font-weight:700;color:#1E3A5F">' + escapeHtml(d.identity.businessName) + '</div>';
   if (d.identity && d.identity.taglineHe) html += '<div style="font-size:0.92rem;color:#374151;margin-top:4px">' + escapeHtml(d.identity.taglineHe) + '</div>';
+  if (d.identity && d.identity.taglineEn) html += '<div style="font-size:0.82rem;color:#6B7280;direction:ltr;text-align:left;margin-top:2px">EN: ' + escapeHtml(d.identity.taglineEn) + '</div>';
   if (d.identity && d.identity.positioningLine) html += '<div style="font-size:0.78rem;color:#6B7280;margin-top:6px;font-style:italic">' + escapeHtml(d.identity.positioningLine) + '</div>';
-  if (d.identity && d.identity.manifestoHe) html += '<details style="margin-top:8px"><summary style="cursor:pointer;font-size:0.78rem;color:#2563EB">מניפסט</summary><div style="font-size:0.82rem;color:#4B5563;margin-top:4px;line-height:1.5">' + escapeHtml(d.identity.manifestoHe) + '</div></details>';
+  if (d.identity && (d.identity.missionHe || d.identity.missionEn)) {
+    html += '<details style="margin-top:6px"><summary style="cursor:pointer;font-size:0.78rem;color:#2563EB">משימה (mission)</summary>';
+    if (d.identity.missionHe) html += '<div style="font-size:0.82rem;color:#4B5563;margin-top:4px;line-height:1.5">' + escapeHtml(d.identity.missionHe) + '</div>';
+    if (d.identity.missionEn) html += '<div style="font-size:0.78rem;color:#6B7280;direction:ltr;text-align:left;margin-top:4px;line-height:1.5">EN: ' + escapeHtml(d.identity.missionEn) + '</div>';
+    html += '</details>';
+  }
+  if (d.identity && d.identity.manifestoHe) html += '<details style="margin-top:6px"><summary style="cursor:pointer;font-size:0.78rem;color:#2563EB">מניפסט</summary><div style="font-size:0.82rem;color:#4B5563;margin-top:4px;line-height:1.5">' + escapeHtml(d.identity.manifestoHe) + '</div></details>';
   html += '</div>';
 
   // Logo
@@ -7218,6 +7399,36 @@ function renderBrandPreview(d) {
       html += '</div>';
     });
     html += '</div>';
+
+    // Extended palette — brand tints
+    var ext = d.colors.paletteExtended || d.colors.palette_extended;
+    if (ext && ext.length) {
+      html += '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed #E5E7EB">';
+      html += '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:4px">Tints (וריאציות בהירות/כהות של המותג)</div>';
+      html += '<div style="display:flex;gap:4px;flex-wrap:wrap">';
+      ext.forEach(function(hex) {
+        html += '<div style="width:36px;height:36px;background:' + escapeHtml(hex) + ';border:1px solid #E5E7EB;border-radius:6px" title="' + escapeHtml(hex) + '"></div>';
+      });
+      html += '</div></div>';
+    }
+
+    // Semantic colors (prominent — users should see them differ from brand)
+    if (d.colors.semantic) {
+      html += '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed #E5E7EB">';
+      html += '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:4px">Semantic (UI state colors)</div>';
+      html += '<div style="display:flex;gap:6px">';
+      var semLabels = { success: '✓', warning: '⚠', danger: '✗', info: 'ℹ' };
+      ['success', 'warning', 'danger', 'info'].forEach(function(key) {
+        var h = d.colors.semantic[key];
+        if (!h) return;
+        html += '<div style="text-align:center">';
+        html += '<div style="width:40px;height:40px;background:' + escapeHtml(h) + ';border:1px solid #E5E7EB;border-radius:6px;color:#FFF;font-weight:700;font-size:0.85rem;display:flex;align-items:center;justify-content:center">' + semLabels[key] + '</div>';
+        html += '<div style="font-size:0.65rem;font-family:monospace;margin-top:1px">' + escapeHtml(h) + '</div>';
+        html += '</div>';
+      });
+      html += '</div></div>';
+    }
+
     html += '</div>';
   }
 
@@ -7276,27 +7487,61 @@ function renderBrandPreview(d) {
   return html;
 }
 
-async function approveBrandBook() {
-  if (!brandWizardState || !brandWizardState.brandBookId) { showToast('לא נמצאה טיוטה', 'error'); return; }
+// ─── Tier 2-S: regenerate composer pass with user feedback ────────────────
+async function regenerateBrandBook() {
+  var fbEl = document.getElementById('brandFeedback');
+  var feedback = (fbEl ? fbEl.value : '').trim();
+  if (!feedback) { showToast('כתבו משוב לפני ריענון', 'warn'); return; }
+
   var btn = event && event.target;
-  if (btn) { btn.disabled = true; btn.textContent = 'מאשר...'; }
+  if (btn) { btn.disabled = true; btn.textContent = 'מרענן...'; }
+
+  // Stash feedback into userInputs, re-run processing
+  brandWizardState.userInputs = brandWizardState.userInputs || {};
+  brandWizardState.userInputs.feedback = feedback;
+  brandWizardState.step = 'processing';
+  renderBrandStepsHeader(1);
+  renderBrandFooter('');
+  renderBrandBody(
+    '<div style="padding:40px;text-align:center">' +
+    '<div style="display:inline-block;width:40px;height:40px;border:3px solid #E5E7EB;border-top-color:#2563EB;border-radius:50%;animation:spin 1s linear infinite"></div>' +
+    '<div style="margin-top:16px;color:#6B7280;font-size:0.9rem">מרענן עם המשוב: "' + escapeHtml(feedback.substring(0, 60)) + (feedback.length > 60 ? '...' : '') + '"</div>' +
+    '</div>'
+  );
+
   try {
-    var res = await fetch(API + '/hosting/instances/' + instanceId + '/brand/approve', {
+    var draftRes = await fetch(API + '/hosting/instances/' + instanceId + '/brand/draft', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ brandBookId: brandWizardState.brandBookId }),
+      body: JSON.stringify({
+        scraped: brandWizardState.scraped,
+        logoAnalysis: brandWizardState.logoAnalysis,
+        userInputs: brandWizardState.userInputs,
+      }),
     });
-    var j = await res.json();
-    if (!j.success) {
-      showToast(j.message || 'אישור נכשל', 'error');
-      if (btn) { btn.disabled = false; btn.textContent = '✓ אשרו והפיצו לסוכנים'; }
+    var draftJson = await draftRes.json();
+    if (!draftJson.success) {
+      showToast(draftJson.message || 'ריענון נכשל', 'error');
+      brandWizardState.step = 'review';
+      renderBrandReview();
       return;
     }
-    showToast('Brand book אושר והופץ לסוכנים ✓', 'success');
-    closeBrandWizard();
+    brandWizardState.draft = draftJson.data.draft;
+    brandWizardState.gaps = draftJson.data.gaps || [];
+    brandWizardState.rationale = draftJson.data.rationale || '';
+    brandWizardState.confidence = draftJson.data.confidence;
+    brandWizardState.confidenceReasons = draftJson.data.confidenceReasons || [];
+    brandWizardState.hebrewCorrections = draftJson.data.hebrewCorrections || [];
+    brandWizardState.brandBookId = draftJson.data.brandBookId;
+    brandWizardState.step = 'review';
+    // Clear the feedback field for next iteration
+    brandWizardState.userInputs.feedback = '';
+    renderBrandReview();
+    showToast('גרסה חדשה מוכנה ✓', 'success');
   } catch (err) {
     showToast('שגיאה: ' + err.message, 'error');
-    if (btn) { btn.disabled = false; btn.textContent = '✓ אשרו והפיצו לסוכנים'; }
+    brandWizardState.step = 'review';
+    renderBrandReview();
   }
 }
 
@@ -7309,17 +7554,12 @@ function renderBrandViewer(bookRow) {
   html += '<div style="font-size:0.78rem;color:#9CA3AF">מקור: ' + escapeHtml(bookRow.source || 'mixed') + '</div>';
   html += '</div>';
 
-  // Rationale + confidence (if persisted)
-  var rat = bookRow.rationaleHe || bookRow.rationale_he;
-  if (rat) {
-    var confColor = { high: '#10B981', medium: '#F59E0B', low: '#EF4444' }[bookRow.confidence] || '#9CA3AF';
-    html += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px;margin-bottom:14px">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
-    html += '<strong style="color:#1E40AF">💡 הסבר של mekhayev</strong>';
-    if (bookRow.confidence) html += '<span style="font-size:0.72rem;color:#FFF;background:' + confColor + ';padding:2px 8px;border-radius:4px">ביטחון: ' + escapeHtml(bookRow.confidence) + '</span>';
-    html += '</div>';
-    html += '<div style="font-size:0.82rem;color:#1E40AF;line-height:1.5">' + escapeHtml(rat) + '</div>';
-    html += '</div>';
+  // Rationale + confidence + reasons (if persisted)
+  var ratStructured = bookRow.rationaleJson || bookRow.rationale_json;
+  var ratFlat = bookRow.rationaleHe || bookRow.rationale_he;
+  var reasons = bookRow.confidenceReasons || bookRow.confidence_reasons || [];
+  if (ratStructured || ratFlat) {
+    html += renderBrandRationale(ratStructured || ratFlat, bookRow.confidence, reasons);
   }
 
   html += renderBrandPreview(d);

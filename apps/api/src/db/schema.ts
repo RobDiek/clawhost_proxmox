@@ -477,10 +477,12 @@ export const brandBooks = pgTable(
         compliance: jsonb('compliance'),
         principles: jsonb('principles'),  // brand constitution rules
 
-        // Composer output — reasoning + confidence (Tier 1-D)
-        rationaleHe: text('rationale_he'),
-        confidence: text('confidence'),              // 'high' | 'medium' | 'low'
-        hebrewCorrections: jsonb('hebrew_corrections'),  // validator audit trail
+        // Composer output — reasoning + confidence (Tier 1-D + Tier 2-O/T)
+        rationaleHe: text('rationale_he'),             // legacy flat text (backcompat)
+        rationaleJson: jsonb('rationale_json'),         // { overall, colors, typography, voice, identity }
+        confidence: text('confidence'),                 // 'high' | 'medium' | 'low'
+        confidenceReasons: jsonb('confidence_reasons'), // string[] — why this confidence level
+        hebrewCorrections: jsonb('hebrew_corrections'), // validator audit trail
 
         // PDF export
         pdfUrl: text('pdf_url'),
