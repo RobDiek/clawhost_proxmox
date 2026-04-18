@@ -305,6 +305,7 @@ export const approveBrandBook = async (c: Context) => {
         const [approved] = await db.select().from(brandBooks).where(eq(brandBooks.id, body.brandBookId))
 
         // Distribute to tenant VPS: write BRAND_BOOK.json to workspace
+        let distribution: { status: 'ok' | 'failed' | 'skipped'; reason?: string; verifiedVersion?: number } = { status: 'skipped' }
         if (instance.ip && approved) {
             try {
                 const brandBookForTenant = {
@@ -339,14 +340,35 @@ export const approveBrandBook = async (c: Context) => {
                     instance.rootPassword || undefined,
                     30000,
                 )
-                console.log(`[brand/approve] BRAND_BOOK.json distributed to ${instance.ip} (v${approved.version})`)
+
+                // Tier 3-BB: roundtrip verification — read file back, confirm version matches
+                const verify = await sshExec(
+                    instance.ip,
+                    `cat /home/openclaw/.openclaw/workspace/BRAND_BOOK.json 2>/dev/null | head -5`,
+                    instance.rootPassword || undefined,
+                    15000,
+                )
+                const versionMatch = verify.match(/"version"\s*:\s*(\d+)/)
+                const verifiedVersion = versionMatch ? parseInt(versionMatch[1], 10) : 0
+                if (verifiedVersion === approved.version) {
+                    distribution = { status: 'ok', verifiedVersion }
+                    console.log(`[brand/approve] BRAND_BOOK.json distributed+verified to ${instance.ip} (v${verifiedVersion})`)
+                } else {
+                    distribution = { status: 'failed', reason: `version mismatch: wrote v${approved.version}, read v${verifiedVersion}` }
+                    console.warn(`[brand/approve] distribution verify failed for ${instance.id}: ${distribution.reason}`)
+                }
             } catch (distErr) {
+                distribution = { status: 'failed', reason: distErr instanceof Error ? distErr.message : String(distErr) }
                 console.error('Failed to distribute BRAND_BOOK.json (non-fatal):', distErr)
                 // Don't fail the approve — DB is source of truth
             }
         }
 
-        return ok(c, { brandBookId: body.brandBookId, version: approved?.version }, 'Approved.')
+        return ok(c, {
+            brandBookId: body.brandBookId,
+            version: approved?.version,
+            distribution,
+        }, 'Approved.')
     } catch (err) {
         console.error('approveBrandBook error:', err)
         return fail(c, 'Approve failed', 500)

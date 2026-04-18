@@ -247,5 +247,33 @@ ${payload}
         throw new Error('Validator JSON parse failed: ' + text.substring(0, 200))
     }
 
-    return parsed.corrections || []
+    const raw = parsed.corrections || []
+
+    // Tier 3-W: normalize paths — Claude sometimes wraps with outer brackets
+    // like "[voice.vocabularyDont[3]]". Strip before returning so downstream
+    // code + DB + UI see clean paths.
+    return raw.map(c => ({
+        ...c,
+        path: cleanPath(c.path),
+    }))
+}
+
+function cleanPath(path: string): string {
+    if (!path) return path
+    let p = path.trim()
+    // Strip matching outer brackets: "[voice.vocabularyDont[3]]" -> "voice.vocabularyDont[3]"
+    while (p.startsWith('[') && p.endsWith(']') && isBalancedInside(p.slice(1, -1))) {
+        p = p.slice(1, -1).trim()
+    }
+    return p
+}
+
+function isBalancedInside(s: string): boolean {
+    // Check if brackets inside are balanced (so stripping outer won't break inner paths)
+    let depth = 0
+    for (const ch of s) {
+        if (ch === '[') depth++
+        else if (ch === ']') { depth--; if (depth < 0) return false }
+    }
+    return depth === 0
 }

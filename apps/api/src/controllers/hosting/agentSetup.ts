@@ -2948,28 +2948,43 @@ export async function updateSoulWithCreativeTools(ip: string, password?: string)
 4. Audio: ElevenLabs Flash v2.5 voiceover + opt Suno music → ffmpeg merge
 5. Upscale (premium): Real-ESRGAN
 
+**Brand Book auto-injection (v0.2.0 — Tier 3-CC):**
+כל שלב קורא אוטומטית את \`/home/openclaw/.openclaw/workspace/BRAND_BOOK.json\` ומוסיף brand context לתוך ה-draft:
+- Gate 1: \`brandContext\` + \`brandBookVersion\` (snapshot frozen at concept time)
+- Gate 2: brand palette, photography style, imageryDoNotUse automatically merged into negativePrompt
+- Gate 4: overlayConfig.font = brand hebrew font, overlayConfig.color = brand primary, logo overlay auto-composed
+
+אם BRAND_BOOK.json חסר → \`brandWarnings\` מופיעים בכל draft עם הוראה לאשר brand book בדשבורד.
+
+**ניתן לבדוק ידנית:** \`get_brand_book()\` — כלי קריאה בלבד, מחזיר את ה-brand book הנוכחי או \`{ok:false}\` אם חסר.
+
 **כללי זהב:**
 - **לעולם אל תדלג על Gate** — המשתמש חייב לאשר קונספט לפני דמות, דמות לפני סצנות, סצנות לפני רנדור.
 - **לעולם אל תכריז שקריאייטיב "נוצר"** — רק "טיוטה מוכנה לאישור" או "רנדור בתהליך" (אחרי Gate 4).
 - **Tier coherence** — אל תציע premium tier אם התוכנית של הלקוח היא Starter. קרא את ה-tier מהקונטקסט.
 - **BYOK** — לפני Gate 4 בדוק ש-fal.ai key מוגדר. אם חסר: החזר warning "חסר fal.ai API key — הוסף בהגדרות".
 - **שמירת עקביות דמות** — השתמש תמיד באותו characterRefId + selectedVariation בכל scenes של אותו קמפיין.
+- **Brand consistency** — אם brandWarnings לא ריק (BRAND_BOOK.json חסר), עצור אחרי Gate 1 והנחה את המשתמש לאשר brand book לפני המשך. ללא brand book = לא on-brand.
 
 **שגרת עבודה למשל (וידאו Reel 15 שניות לעסק מקומי, standard tier):**
 \`\`\`
-// שלב 1 — הבן את הקונטקסט
-entity_list({ type: 'persona' })          // קהל יעד
-fact_query({ subjectType: 'brand' })      // brand voice + colors
+// שלב 0 (אופציונלי — לווידוא) — בדוק שיש brand book
+get_brand_book()
+// → { ok: true, brandBook: {...} }   או   { ok: false, error: 'BRAND_BOOK.json לא קיים...' }
 
-// שלב 2 — Gate 1
+// שלב 1 — הבן את הקונטקסט מהגרף
+entity_list({ type: 'persona' })          // קהל יעד
+// brand colors + voice + typography יטענו אוטומטית מ-BRAND_BOOK.json ב-Gate 1
+
+// שלב 2 — Gate 1 (brand context מוזרק אוטומטית)
 draft_concept({
   brief: 'הכרזה על מבצע 20% הנחה על קפה בוקר',
   goal: 'awareness', platform: 'meta_reel', tier: 'standard',
   formatType: 'video',
   callToAction: 'בואו לבקר',
-  rationale: 'Reel 15 שניות מתאים לפילה של המודעות במסלול awareness, פורמט אנכי 9:16 עם הצעה ברורה',
+  rationale: 'Reel 15 שניות מתאים לפילה של המודעות במסלול awareness',
 })
-// → מחזיר {ok: true, draft: {_type: 'creative_concept_draft', conceptId: '...', ...}, approvalRequired: true}
+// → draft.brandContext = {primaryColor, tone, moodKeywords, ...} + brandWarnings (if missing)
 
 // כתוב את ה-draft בפלט שלך. עצור. חכה לאישור המשתמש.
 \`\`\`

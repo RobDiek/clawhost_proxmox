@@ -26,9 +26,53 @@
  * License: MIT for plugin. External APIs follow their own TOS (BYOK model).
  */
 
+// ── Brand book loader (Tier 3-CC) ──────────────────────────────────────────
+// BRAND_BOOK.json is written to this path by mgmt API after user approves brand
+// book in dashboard. Every Gate auto-reads it and injects brand context so
+// creatives stay on-brand without agent having to remember constraints.
+const fs = require('fs')
+const BRAND_BOOK_PATH = '/home/openclaw/.openclaw/workspace/BRAND_BOOK.json'
+
+function readBrandBook() {
+  try {
+    if (!fs.existsSync(BRAND_BOOK_PATH)) return null
+    const raw = fs.readFileSync(BRAND_BOOK_PATH, 'utf8')
+    return JSON.parse(raw)
+  } catch (err) {
+    return null  // graceful — drafts still work without brand book (with a warning)
+  }
+}
+
+/** Extract compact brand-context block for injection into draft outputs */
+function brandContext(book) {
+  if (!book) return null
+  return {
+    version: book.version,
+    businessName: book.identity?.businessName || null,
+    taglineHe: book.identity?.taglineHe || null,
+    positioning: book.identity?.positioningLine || null,
+    primaryColor: book.colors?.primary?.hex || null,
+    secondaryColor: book.colors?.secondary?.hex || null,
+    accentColors: (book.colors?.accent || []).map(c => c.hex),
+    semanticColors: book.colors?.semantic || null,
+    hebrewFontHeading: book.typography?.hebrewSupport?.headingFamily || book.typography?.heading?.family || null,
+    hebrewFontBody: book.typography?.hebrewSupport?.bodyFamily || book.typography?.body?.family || null,
+    tone: book.voice?.tone || null,
+    personalityAdjectives: book.voice?.personalityAdjectives || [],
+    vocabularyDo: book.voice?.vocabularyDo || [],
+    vocabularyDont: book.voice?.vocabularyDont || [],
+    photographyStyle: book.imagery?.photographyStyle?.primary || null,
+    moodKeywords: book.imagery?.moodKeywords || [],
+    imageryDoNotUse: book.imagery?.doNotUse || [],
+    principles: book.principles || [],
+    logoUrl: book.logo?.primary?.url || null,
+    logoAllowedBackgrounds: book.logo?.usageRules?.allowedBackgrounds || [],
+  }
+}
+
 module.exports = {
   name: 'openclaw-creative',
-  version: '0.1.0',
+  version: '0.2.0',
   config: {
     falApiKey:        { type: 'string', secret: true, description: 'fal.ai API key (primary aggregator)' },
     elevenLabsApiKey: { type: 'string', secret: true, description: 'ElevenLabs API key (voice generation)' },
@@ -38,6 +82,24 @@ module.exports = {
   },
 
   tools: {
+    // ── BRAND BOOK ACCESS ────────────────────────────────────────────────
+
+    get_brand_book: {
+      description: 'Read the approved brand book for this instance. Returns null if no brand book approved yet — in that case, direct user to complete Brand Foundation step in dashboard before generating creatives.',
+      parameters: { type: 'object', properties: {} },
+      handler: async () => {
+        const book = readBrandBook()
+        if (!book) {
+          return {
+            ok: false,
+            error: 'BRAND_BOOK.json לא קיים — יש לאשר brand book דרך הדשבורד לפני יצירת קריאייטיבים',
+            howTo: 'Dashboard → Home → "🎨 הגדירו את המותג" → complete wizard → approve',
+          }
+        }
+        return { ok: true, brandBook: book }
+      },
+    },
+
     // ── GATE 1: CONCEPT ──────────────────────────────────────────────────
 
     draft_concept: {
@@ -72,6 +134,19 @@ module.exports = {
         }
         const spec = platformSpecs[args.platform] || platformSpecs.meta_feed
 
+        // Tier 3-CC: auto-inject brand context from BRAND_BOOK.json.
+        // If missing — warn agent that creative won't be on-brand.
+        const book = readBrandBook()
+        const brand = brandContext(book)
+        const brandWarnings = []
+        if (!brand) {
+          brandWarnings.push('⚠️ BRAND_BOOK.json חסר — הקריאייטיב לא יהיה on-brand עד שתאושר brand book בדשבורד')
+        } else {
+          if (!brand.primaryColor)       brandWarnings.push('⚠️ brand primary color missing — overlay/CTA יהיה ברירת-מחדל')
+          if (!brand.hebrewFontHeading)  brandWarnings.push('⚠️ brand hebrew font missing — overlay יהיה Rubik default')
+          if (!brand.tone)               brandWarnings.push('⚠️ brand tone missing — copy יכול להיות off-voice')
+        }
+
         const draft = {
           _type: 'creative_concept_draft',
           conceptId: 'concept_' + Date.now().toString(36),
@@ -84,20 +159,29 @@ module.exports = {
           aspectRatio: spec.aspectRatio,
           maxDurationSec: spec.maxDurationSec,
           resolution: spec.resolution,
-          brandVoice: args.brandVoice || null,
+          brandVoice: args.brandVoice || (brand ? brand.tone : null),
           callToAction: args.callToAction || null,
           rationale: args.rationale,
           // Agent should fill these with concrete creative direction after thinking:
           hook: null,              // first 3 seconds or headline
           visualDirection: null,   // mood, palette, composition
           sceneCount: args.formatType === 'video' ? 3 : 1,
+          // ── Brand context snapshot (Tier 3-CC) ──
+          // Frozen at Gate 1 so downstream Gates 2-4 use same version even
+          // if user re-approves brand book mid-flow.
+          brandContext: brand,
+          brandBookVersion: brand ? brand.version : null,
+          brandWarnings: brandWarnings.length ? brandWarnings : undefined,
           createdAt: new Date().toISOString(),
         }
         return {
           ok: true,
           draft,
           approvalRequired: true,
-          note: 'כתוב את הטיוטה בפלט שלך. אחרי אישור המשתמש — המשך ל-draft_character_reference עם conceptId',
+          warnings: brandWarnings.length ? brandWarnings : undefined,
+          note: brand
+            ? `brand book v${brand.version} נטען אוטומטית. כתוב את הטיוטה בפלט שלך. אחרי אישור — draft_character_reference עם conceptId`
+            : 'BRAND_BOOK.json חסר — יש לאשר brand book בדשבורד. ניתן לטייט אבל ה-render הסופי לא יהיה on-brand.',
         }
       }
     },
@@ -119,7 +203,37 @@ module.exports = {
         required: ['conceptId', 'subjectType', 'subjectDescription']
       },
       handler: async (args) => {
+        // Tier 3-CC: auto-inject brand palette + preferred photography style + imageryDoNotUse
+        const book = readBrandBook()
+        const brand = brandContext(book)
+
+        // Build effective color palette: user-provided > brand palette
+        const brandPalette = brand
+          ? [brand.primaryColor, brand.secondaryColor, ...brand.accentColors].filter(Boolean)
+          : []
+        const effectivePalette = (args.colorPalette && args.colorPalette.length)
+          ? args.colorPalette
+          : brandPalette
+
+        // Build effective negative prompt: user-provided + brand imageryDoNotUse
+        const brandNegatives = brand && brand.imageryDoNotUse.length
+          ? brand.imageryDoNotUse.join(', ')
+          : ''
+        const effectiveNegative = [
+          args.negativePrompt || 'no text, no watermarks, no logos, no extra limbs',
+          brandNegatives,
+        ].filter(Boolean).join(', ')
+
+        // Prefer brand photography style if user didn't specify
+        const effectiveStyle = args.styleDirection
+          || (brand && brand.photographyStyle ? brand.photographyStyle : 'photorealistic')
+
         // Produce 4 variation prompts — lighting, angle, mood variations
+        // Incorporate brand mood keywords into fullPrompt for on-brand aesthetic
+        const moodStr = brand && brand.moodKeywords.length
+          ? `mood: ${brand.moodKeywords.slice(0, 4).join(', ')}.`
+          : ''
+
         const variations = [
           { id: 'v1', variant: 'hero-shot',     promptSuffix: 'studio lighting, front-facing, neutral background, professional product photography' },
           { id: 'v2', variant: 'lifestyle',     promptSuffix: 'natural lighting, contextual environment, lifestyle photography, candid' },
@@ -127,9 +241,9 @@ module.exports = {
           { id: 'v4', variant: 'minimalist',    promptSuffix: 'clean minimalist composition, soft even lighting, lots of negative space' },
         ].map(v => ({
           ...v,
-          fullPrompt: `${args.subjectDescription}. ${args.styleDirection || 'photorealistic'}. ${v.promptSuffix}`,
-          colorPalette: args.colorPalette || [],
-          negativePrompt: args.negativePrompt || 'no text, no watermarks, no logos, no extra limbs',
+          fullPrompt: `${args.subjectDescription}. ${effectiveStyle}. ${v.promptSuffix}. ${moodStr}`.trim(),
+          colorPalette: effectivePalette,
+          negativePrompt: effectiveNegative,
           // Model will be resolved at render time based on tier
           suggestedModel: null,
         }))
@@ -140,15 +254,18 @@ module.exports = {
           conceptId: args.conceptId,
           subjectType: args.subjectType,
           subjectDescription: args.subjectDescription,
-          styleDirection: args.styleDirection || 'photorealistic',
+          styleDirection: effectiveStyle,
           variations,
+          brandBookVersion: brand ? brand.version : null,
           createdAt: new Date().toISOString(),
         }
         return {
           ok: true,
           draft,
           approvalRequired: true,
-          note: 'המשתמש יבחר 1 מתוך 4 הוריאציות. אחרי אישור → draft_scene_variations עם characterRefId והוריאציה שנבחרה',
+          note: brand
+            ? `brand palette + mood נטענו מ-brand book v${brand.version}. המשתמש יבחר 1 מ-4 → draft_scene_variations.`
+            : 'ללא brand book — פלטה ריקה, mood גנרי. המשתמש יבחר 1 מ-4 → draft_scene_variations.',
         }
       }
     },
@@ -294,6 +411,20 @@ module.exports = {
         const storageBase = (ctx?.config?.tenantStoragePath || '/opt/openclaw/creatives').replace(/\/$/, '')
         const creativeId = 'creative_' + Date.now().toString(36)
 
+        // Tier 3-CC: auto-inject brand-book defaults into overlayConfig
+        const book = readBrandBook()
+        const brand = brandContext(book)
+        const brandFont = brand?.hebrewFontHeading || 'Rubik'
+        const brandColor = brand?.primaryColor || '#2563EB'
+        // Logo injection — if brand has a logo URL, executor will composite it
+        const logoOverlay = brand?.logoUrl ? {
+          url: brand.logoUrl,
+          position: 'bottom_right',
+          sizePercent: 12,
+          opacity: 0.95,
+          safeZonePx: book?.logo?.usageRules?.safeZonePx || 16,
+        } : null
+
         const draft = {
           _type: 'creative_final_draft',
           creativeId,
@@ -305,24 +436,29 @@ module.exports = {
           estimatedCostUsd: tierConfig.costEstimateUsd[args.formatType] || 0,
           hebrewOverlay: !!args.hebrewOverlay,
           overlayConfig: args.hebrewOverlay ? {
-            font: args.overlayConfig?.font || 'Rubik',
-            fontSize: args.overlayConfig?.fontSize || 48,
-            color: args.overlayConfig?.color || '#FFFFFF',
-            position: args.overlayConfig?.position || 'bottom',
+            font:       args.overlayConfig?.font       || brandFont,
+            fontSize:   args.overlayConfig?.fontSize   || 48,
+            color:      args.overlayConfig?.color      || brandColor,
+            position:   args.overlayConfig?.position   || 'bottom',
             background: args.overlayConfig?.background || 'rgba(0,0,0,0.5)',
-            padding: args.overlayConfig?.padding || 24,
+            padding:    args.overlayConfig?.padding    || 24,
           } : null,
+          // Logo composition (if brand book has a logo URL)
+          logoOverlay,
           audio: args.audio && args.audio.voiceoverProvider !== 'none' ? args.audio : null,
           upscale: !!args.upscale && tierConfig.upscale,
           addSubtitles: !!args.addSubtitles,
           outputPath: `${storageBase}/${creativeId}/`,
+          brandBookVersion: brand ? brand.version : null,
           // After approval, executor will:
           //   1. Call fal.ai with selectedModel + scene prompts
           //   2. Download assets to outputPath on tenant VPS
           //   3. If hebrewOverlay: Sharp (image) or ffmpeg+libass (video) on tenant VPS
-          //   4. If audio: ElevenLabs voiceover + optional Suno music → ffmpeg merge
-          //   5. If upscale: Real-ESRGAN via fal.ai
-          //   6. Final asset URL returned to user
+          //      Using brand font + brand color from brand_book
+          //   4. If logoOverlay: composite brand logo bottom-right (image) or watermark (video)
+          //   5. If audio: ElevenLabs voiceover + optional Suno music → ffmpeg merge
+          //   6. If upscale: Real-ESRGAN via fal.ai
+          //   7. Final asset URL returned to user
           status: 'pending_approval',
           createdAt: new Date().toISOString(),
         }

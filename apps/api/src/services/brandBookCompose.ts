@@ -415,6 +415,13 @@ function buildComposerPrompt(params: {
 
 2. **Hebrew grammar strict** — אל תמציא מילים. אם אתה לא בטוח במילה עברית (נטייה, שורש, הטיה) — השתמש במילה פשוטה יותר שאתה מכיר. מילה שאינה קיימת יותר גרועה ממילה פשוטה.
 
+    **🚫 רשימת hallucinations נצפו בגרסאות קודמות — לעולם אל תשתמש:**
+    - **"לבריח"** — לא קיים. השתמש ב-"לברוח" (לברוח מדבר מה) או "להבריח" (contraband, נדיר).
+    - **"מתסכן"** — לא תקין. "מסתכן" (מסכן את עצמו) או "מסוכן".
+    - **"מתקדם"** — תקין רק אם פועל (advances), לא כשם תואר לטכנולוגיה. ל-"advanced tech" עדיף "מתקדמת" (נקבה) או "חדשנית".
+
+    **לפני כל מילה עברית לא-טריוויאלית שאל את עצמך:** "האם המילה הזו קיימת באיות הזה בעברית מודרנית?" אם יש ספק ולו הקטן ביותר — בחר מילה פשוטה יותר.
+
 3. **Hebrew fonts חובה** — typography.hebrewSupport חייב להיות מלא. Rubik/Heebo/Assistant קבילים.
 
 4. **Respect user font preference** — אם userInputs.hebrewFontPreference מוגדר:
@@ -590,13 +597,44 @@ function detectGaps(draft: BrandBookDraft, logoAnalysis?: LogoAnalysis | null): 
 }
 
 function mergeGaps(fromLlm: Gap[], computed: Gap[]): Gap[] {
-    const seen = new Set(fromLlm.map(g => g.field))
     const merged = [...fromLlm]
     for (const g of computed) {
-        if (!seen.has(g.field)) merged.push(g)
+        // Exact field match dedup (original behavior)
+        if (!merged.some(m => m.field === g.field)) merged.push(g)
     }
-    // Sort: critical → important → nice_to_have
-    const order: Record<Gap['priority'], number> = { critical: 0, important: 1, nice_to_have: 2 }
-    merged.sort((a, b) => order[a.priority] - order[b.priority])
-    return merged
+
+    // Tier 3-U: dedup gaps that describe the SAME underlying issue.
+    // Example observed: gap[0] field="logo.primary" critical + gap[1] field="logo.style" important —
+    // both mention detected text "TOWNE" in a logo file. Keep the higher-priority one.
+    //
+    // Dedup strategy: group by (rootField, signatureToken). If >1 gap in group,
+    // keep only the highest-priority one.
+    const priorityRank: Record<Gap['priority'], number> = { critical: 0, important: 1, nice_to_have: 2 }
+    const deduped: Gap[] = []
+    const seenKeys = new Set<string>()
+    for (const g of merged.sort((a, b) => priorityRank[a.priority] - priorityRank[b.priority])) {
+        const rootField = g.field.split('.')[0]   // "logo.primary" → "logo"
+        // Extract signature token from suggestion — quoted strings (often the detected mismatch text)
+        const quotedMatches = (g.suggestion || '').match(/["'"״]([A-Za-zא-ת][\w\s-]{1,30}?)["'"״]/g) || []
+        const signatureToken = quotedMatches
+            .map(s => s.replace(/["'"״]/g, '').trim().toUpperCase())
+            .filter(s => s.length >= 3 && s.length <= 30)
+            .sort()
+            .join('|')
+
+        const key = `${rootField}::${signatureToken}`
+        // If no signature token, use field alone (original dedup path)
+        if (!signatureToken) {
+            // Already deduped above by field, keep
+            deduped.push(g)
+            continue
+        }
+        if (!seenKeys.has(key)) {
+            seenKeys.add(key)
+            deduped.push(g)
+        }
+        // else: same root+signature, keep only first (highest priority due to sort)
+    }
+
+    return deduped
 }
