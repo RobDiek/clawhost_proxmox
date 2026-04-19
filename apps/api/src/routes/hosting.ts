@@ -182,6 +182,14 @@ import {
     listReferences,
     decomposeReferences,
     deleteReference,
+    attachMapping,
+    listMappings,
+    deleteMapping,
+    listPerformance,
+    getRenderPerformance,
+    triggerPerformanceSync,
+    listFatigueAlerts,
+    updateFatigueAlert,
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -324,6 +332,16 @@ app.post('/instances/:id/creative/references/mine',         mineReferences)
 app.get('/instances/:id/creative/references',               listReferences)
 app.post('/instances/:id/creative/references/decompose',    decomposeReferences)
 app.delete('/instances/:id/creative/references/:refId',     deleteReference)
+
+// ── Creative Performance (Phase B5) — platform mappings + daily metrics + fatigue ──
+app.post('/instances/:id/creative/mappings',                        attachMapping)
+app.get('/instances/:id/creative/mappings',                         listMappings)
+app.delete('/instances/:id/creative/mappings/:mappingId',           deleteMapping)
+app.get('/instances/:id/creative/performance',                      listPerformance)
+app.get('/instances/:id/creative/performance/:renderId',            getRenderPerformance)
+app.post('/instances/:id/creative/performance/sync',                triggerPerformanceSync)
+app.get('/instances/:id/creative/fatigue-alerts',                   listFatigueAlerts)
+app.patch('/instances/:id/creative/fatigue-alerts/:alertId',        updateFatigueAlert)
 
 // ── SEO First Run ──
 app.post('/instances/:id/seo/validate', seoValidate)

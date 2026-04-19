@@ -636,6 +636,109 @@ export const creativeReferences = pgTable(
     ]
 )
 
+// ── Phase B5 — Creative Performance (time-series) ──
+export const creativePerformance = pgTable(
+    'creative_performance',
+    {
+        id: text('id').primaryKey(),
+        instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+        renderId: text('render_id').notNull().references(() => creativeRenders.id, { onDelete: 'cascade' }),
+
+        platform: text('platform').notNull(),           // 'meta' | 'google_ads' | 'tiktok' | 'linkedin'
+        platformCreativeId: text('platform_creative_id').notNull(),
+        measurementDate: text('measurement_date').notNull(),   // ISO date string YYYY-MM-DD
+        measurementWindow: text('measurement_window').notNull().default('daily'),
+
+        spend: decimal('spend', { precision: 12, scale: 4 }).default('0'),
+        impressions: integer('impressions').default(0),   // bigint in SQL; int fits <2B ok
+        clicks: integer('clicks').default(0),
+        reach: integer('reach').default(0),
+        frequency: decimal('frequency', { precision: 6, scale: 3 }),
+        ctr: decimal('ctr', { precision: 8, scale: 5 }),
+        cpc: decimal('cpc', { precision: 12, scale: 4 }),
+        cpm: decimal('cpm', { precision: 12, scale: 4 }),
+        currency: text('currency').default('ILS'),
+
+        videoPlays: integer('video_plays').default(0),
+        videoP25: integer('video_p25').default(0),
+        videoP50: integer('video_p50').default(0),
+        videoP75: integer('video_p75').default(0),
+        videoP100: integer('video_p100').default(0),
+        hookRate: decimal('hook_rate', { precision: 8, scale: 5 }),
+        holdRate: decimal('hold_rate', { precision: 8, scale: 5 }),
+
+        conversions: decimal('conversions', { precision: 12, scale: 2 }).default('0'),
+        conversionValue: decimal('conversion_value', { precision: 12, scale: 4 }).default('0'),
+        roas: decimal('roas', { precision: 10, scale: 4 }),
+
+        raw: jsonb('raw'),
+
+        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => [
+        unique('creative_performance_day_uniq').on(
+            table.renderId, table.platform, table.platformCreativeId,
+            table.measurementDate, table.measurementWindow,
+        ),
+        index('creative_performance_instance_idx').on(table.instanceId, table.measurementDate),
+        index('creative_performance_render_idx').on(table.renderId, table.measurementDate),
+    ]
+)
+
+export const platformCreativeMappings = pgTable(
+    'platform_creative_mappings',
+    {
+        id: text('id').primaryKey(),
+        instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+        renderId: text('render_id').notNull().references(() => creativeRenders.id, { onDelete: 'cascade' }),
+
+        platform: text('platform').notNull(),
+        platformCreativeId: text('platform_creative_id').notNull(),
+        platformCampaignId: text('platform_campaign_id'),
+        platformAccountId: text('platform_account_id').notNull(),
+
+        publishedAt: timestamp('published_at', { withTimezone: true }),
+        publishedBy: text('published_by'),
+        notes: text('notes'),
+
+        isActive: boolean('is_active').default(true),
+        lastSyncedAt: timestamp('last_synced_at', { withTimezone: true }),
+        lastSyncError: text('last_sync_error'),
+
+        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => [
+        unique('platform_creative_mappings_uniq').on(table.instanceId, table.platform, table.platformCreativeId),
+        index('platform_creative_mappings_render_idx').on(table.renderId),
+    ]
+)
+
+export const creativeFatigueAlerts = pgTable(
+    'creative_fatigue_alerts',
+    {
+        id: text('id').primaryKey(),
+        instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+        renderId: text('render_id').notNull().references(() => creativeRenders.id, { onDelete: 'cascade' }),
+
+        triggerReason: text('trigger_reason').notNull(),
+        triggerValue: decimal('trigger_value', { precision: 10, scale: 3 }),
+        triggerThreshold: decimal('trigger_threshold', { precision: 10, scale: 3 }),
+        baselineValue: decimal('baseline_value', { precision: 10, scale: 3 }),
+
+        detectedAt: timestamp('detected_at', { withTimezone: true }).defaultNow().notNull(),
+        status: text('status').notNull().default('open'),
+        refreshRenderId: text('refresh_render_id'),
+        dismissedReason: text('dismissed_reason'),
+
+        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => [
+        index('creative_fatigue_alerts_instance_idx').on(table.instanceId, table.status),
+    ]
+)
+
 // ── WhatsApp Business ──
 export const waConfig = pgTable('wa_config', {
     instanceId: text('instance_id').primaryKey().references(() => instances.id),

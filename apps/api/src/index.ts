@@ -80,6 +80,10 @@ startRamMonitor()
 import { startInstanceMonitor } from '@/services/instanceMonitor'
 startInstanceMonitor()
 
+// Phase B5 — daily creative performance sync (Meta Insights + Google Ads)
+import { startCreativePerformanceSync } from '@/services/creativePerformanceSync'
+startCreativePerformanceSync()
+
 // Trial manager — check trial expiry every hour
 import { runTrialManager } from '@/jobs/trialManager'
 setInterval(runTrialManager, 3600000) // every hour

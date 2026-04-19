@@ -39,5 +39,10 @@ export { listAgentIntegrations, getAgentIntegrationEndpoint, setAgentIntegration
 export { extractBrand, analyzeLogoEndpoint, draftBrandBook, approveBrandBook, getBrandBook, getBrandBookVersions } from './brand'
 export { saveCreativeKeys, getCreativeStatus, disconnectCreativeKey, listCreativeRenders, getCreativeRender, triggerCreativeRender } from './creative'
 export { mineReferences, listReferences, decomposeReferences, deleteReference } from './references'
+export {
+    attachMapping, listMappings, deleteMapping,
+    listPerformance, getRenderPerformance, triggerPerformanceSync,
+    listFatigueAlerts, updateFatigueAlert,
+} from './performance'
 // Twenty CRM removed — AGPLv3 license risk
 // export { installTwenty } from './twenty'
