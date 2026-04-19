@@ -549,7 +549,7 @@ if old in code:
           "description": "Temporal knowledge graph for marketing facts (Neo4j)",
           "main": "dist/index.js",
           "dependencies": { "neo4j-driver": "^5.28.0" },
-          "openclaw": { "displayName": "Marketing Facts Graph", "category": "memory", "requires": ["neo4j"] }
+          "openclaw": { "displayName": "Marketing Facts Graph", "category": "memory", "requires": ["neo4j"], "extensions": ["./dist/index.js"] }
         }
         PKGEOF
     - |
@@ -576,7 +576,6 @@ plugins = cfg.setdefault('plugins', {})
 entries = plugins.setdefault('entries', {})
 entries['openclaw-facts'] = {
     'enabled': True,
-    'source': { 'type': 'local', 'path': '/home/openclaw/.openclaw/extensions/openclaw-facts' },
     'config': {
         'uri':      'bolt://localhost:7687',
         'user':     'neo4j',
@@ -647,7 +646,7 @@ PYEOF
           "version": "0.1.0",
           "description": "Google Ads draft + read tools for MATEH agents (approval-queue safety)",
           "main": "dist/index.js",
-          "openclaw": { "displayName": "Google Ads", "category": "ads", "requires": [] }
+          "openclaw": { "displayName": "Google Ads", "category": "ads", "requires": [], "extensions": ["./dist/index.js"] }
         }
         GADSPKGEOF
     - |
@@ -669,7 +668,6 @@ plugins = cfg.setdefault('plugins', {})
 entries = plugins.setdefault('entries', {})
 entries['openclaw-googleads'] = {
     'enabled': True,
-    'source': { 'type': 'local', 'path': '/home/openclaw/.openclaw/extensions/openclaw-googleads' },
     'config': {}
 }
 allow = plugins.setdefault('allow', [])
@@ -690,7 +688,7 @@ PYEOF
           "version": "0.1.0",
           "description": "Meta Ads draft tools for MATEH agents (approval-queue safety)",
           "main": "dist/index.js",
-          "openclaw": { "displayName": "Meta Ads", "category": "ads", "requires": [] }
+          "openclaw": { "displayName": "Meta Ads", "category": "ads", "requires": [], "extensions": ["./dist/index.js"] }
         }
         MADSPKGEOF
     - |
@@ -710,7 +708,6 @@ plugins = cfg.setdefault('plugins', {})
 entries = plugins.setdefault('entries', {})
 entries['openclaw-metaads'] = {
     'enabled': True,
-    'source': { 'type': 'local', 'path': '/home/openclaw/.openclaw/extensions/openclaw-metaads' },
     'config': {}
 }
 allow = plugins.setdefault('allow', [])
@@ -733,7 +730,7 @@ PYEOF
           "version": "0.1.0",
           "description": "Yotzer creative lifecycle (concept → character → scenes → final) with BYOK fal.ai/ElevenLabs",
           "main": "dist/index.js",
-          "openclaw": { "displayName": "Yotzer Creative", "category": "creative", "requires": [] }
+          "openclaw": { "displayName": "Yotzer Creative", "category": "creative", "requires": [], "extensions": ["./dist/index.js"] }
         }
         CREATIVEPKGEOF
     - |
@@ -753,7 +750,6 @@ plugins = cfg.setdefault('plugins', {})
 entries = plugins.setdefault('entries', {})
 entries['openclaw-creative'] = {
     'enabled': True,
-    'source': { 'type': 'local', 'path': '/home/openclaw/.openclaw/extensions/openclaw-creative' },
     'config': { 'tenantStoragePath': '/opt/openclaw/creatives' }
 }
 allow = plugins.setdefault('allow', [])

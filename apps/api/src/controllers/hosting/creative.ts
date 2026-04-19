@@ -300,7 +300,6 @@ with open(p) as f: d = json.load(f)
 entries = d.setdefault('plugins', {}).setdefault('entries', {})
 entry = entries.setdefault('openclaw-creative', {
     'enabled': True,
-    'source': { 'type': 'local', 'path': '/home/openclaw/.openclaw/extensions/openclaw-creative' },
     'config': { 'tenantStoragePath': '/opt/openclaw/creatives' }
 })
 cfg = entry.setdefault('config', {})
