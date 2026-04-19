@@ -531,4 +531,4 @@ export async function applyRecommendation(
     }, loginCustomerId)
 }
 
-export { CampaignPlan, CampaignResult, GoogleTokens }
+export type { CampaignPlan, CampaignResult, GoogleTokens }

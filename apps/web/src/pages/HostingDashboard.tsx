@@ -14,7 +14,7 @@ const HostingDashboard: FC = (): ReactNode => {
 
     const handleDeploy = async (config: {
         components: string[]
-        automationTool: 'n8n' | 'activepieces'
+        automationTool: 'n8n' | 'activepieces' | 'dify'
         addons: string[]
     }) => {
         // In production: collect user details first, then checkout

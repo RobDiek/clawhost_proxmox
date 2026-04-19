@@ -524,6 +524,7 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
             .where(eq(instances.id, instanceId))
 
         if (!instance) return fail(c, 'Instance not found', 404)
+        if (!instance.ip) return fail(c, 'Instance has no IP', 400)
 
         const content = output.editedContent || output.content || ''
         const platform = output.platform || 'telegram'

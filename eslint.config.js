@@ -22,6 +22,7 @@ export default tseslint.config(
             '**/*.config.cjs',
             '**/out/**',
             '**/.vite/**',
+            '**/public/**',
             'apps/clawhostgo/resources/**',
             'apps/clawhostgo/scripts/*.js'
         ]

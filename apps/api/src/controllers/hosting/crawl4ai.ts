@@ -38,7 +38,7 @@ export const deepCrawlCompetitors = async (c: Context) => {
             const report = researchData?.report || ''
 
             // Extract URLs from markdown — look for http(s):// patterns
-            const urlRegex = /https?:\/\/[^\s\)>"',]+/gi
+            const urlRegex = /https?:\/\/[^\s)>"',]+/gi
             const found: string[] = report.match(urlRegex) || []
 
             // Filter: only competitor/business sites, not social media or search engines

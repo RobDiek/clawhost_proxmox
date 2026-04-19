@@ -139,7 +139,7 @@ function harvest(obj: unknown, path: string, out: Array<{ path: string; text: st
 function applyPatch(obj: unknown, path: string, fixed: string | null): void {
     // Parse path like "voice.vocabularyDont[3]" or "identity.taglineHe"
     const parts: Array<string | number> = []
-    const re = /[^.\[\]]+|\[(\d+)\]/g
+    const re = /[^.[\]]+|\[(\d+)\]/g
     let m: RegExpExecArray | null
     while ((m = re.exec(path)) !== null) {
         if (m[1] !== undefined) parts.push(parseInt(m[1], 10))

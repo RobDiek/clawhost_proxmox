@@ -246,7 +246,7 @@ export const verifyOtpHosting = async (c: Context) => {
         await db.delete(otpCodes).where(eq(otpCodes.id, record.id))
 
         // Find or create user
-        let existingUser = await db
+        const existingUser = await db
             .select()
             .from(users)
             .where(eq(users.email, normalizedEmail))

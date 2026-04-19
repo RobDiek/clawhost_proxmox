@@ -22,7 +22,8 @@ import { Client } from 'ssh2'
 import { eq } from 'drizzle-orm'
 
 import { db } from '@/db'
-import { instances, agentOutputs } from '@/db/schema'
+import type { agentOutputs } from '@/db/schema';
+import { instances } from '@/db/schema'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 let sshKeyCache: Buffer | null = null
@@ -127,7 +128,7 @@ function buildGate3Prompt(characterDraft: any, output: typeof agentOutputs.$infe
     // Try to figure out which variant user picked.
     // User can indicate via editedContent hint: "selectedVariation: v2" or similar.
     const editedContent = output.editedContent || ''
-    const selectedMatch = editedContent.match(/selectedVariation\s*[:\-]\s*(v\d)/i)
+    const selectedMatch = editedContent.match(/selectedVariation\s*[:-]\s*(v\d)/i)
     const selected = selectedMatch?.[1] || 'v1'   // default to hero-shot if unspecified
 
     return [

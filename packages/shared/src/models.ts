@@ -124,7 +124,7 @@ export function getFallbackModel(id: string): ModelDef | undefined {
 
 export function getFallbackChain(id: string): ModelDef[] {
     const chain: ModelDef[] = []
-    let current = MODEL_REGISTRY[id]
+    let current: ModelDef | undefined = MODEL_REGISTRY[id]
     while (current) {
         chain.push(current)
         current = current.fallbackTo ? MODEL_REGISTRY[current.fallbackTo] : undefined

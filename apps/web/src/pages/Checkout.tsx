@@ -8,7 +8,7 @@ const Checkout: FC = (): ReactNode => {
     const location = useLocation()
     const config = location.state as {
         components: string[]
-        automationTool: 'n8n' | 'activepieces'
+        automationTool: 'n8n' | 'activepieces' | 'dify'
         addons: string[]
     } | null
 

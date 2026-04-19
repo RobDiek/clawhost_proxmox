@@ -63,9 +63,9 @@ export const getUsage = async (c: Context) => {
             su - openclaw -c '
                 # Parse JSONL session files modified in last 30 days
                 find ~/.openclaw -name "*.jsonl" -mtime -30 -type f 2>/dev/null | while read f; do
-                    grep -h "\"model\"" "$f" 2>/dev/null
+                    grep -h '"model"' "$f" 2>/dev/null
                 done | node -e "
-                    const lines = require(\"fs\").readFileSync(\"/dev/stdin\",\"utf-8\").split(\"\\n\").filter(Boolean);
+                    const lines = require('fs').readFileSync('/dev/stdin','utf-8').split('\\n').filter(Boolean);
                     const usage = {};
                     for (const line of lines) {
                         try {

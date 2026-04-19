@@ -72,6 +72,85 @@ export function useDeleteInstance() {
     })
 }
 
+// ── LiteLLM AI Gateway ──
+
+export function useLitellmStatus(instanceId: string) {
+    return useQuery({
+        queryKey: ['litellm-status', instanceId],
+        queryFn: () => client.get<{ data: { running: boolean; models: string[] } }>(`/hosting/instances/${instanceId}/litellm/status`).then(r => r.data),
+        refetchInterval: 30_000,
+        enabled: !!instanceId
+    })
+}
+
+export function useSetLitellmApiKey() {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: ({ instanceId, provider, apiKey }: { instanceId: string; provider: 'anthropic' | 'openai'; apiKey: string }) =>
+            client.post(`/hosting/instances/${instanceId}/litellm/api-key`, { provider, apiKey }),
+        onSuccess: (_, vars) => {
+            qc.invalidateQueries({ queryKey: ['litellm-status', vars.instanceId] })
+        }
+    })
+}
+
+export function useLitellmUsage(instanceId: string) {
+    return useQuery({
+        queryKey: ['litellm-usage', instanceId],
+        queryFn: () => client.get<{ data: unknown[] }>(`/hosting/instances/${instanceId}/litellm/usage`).then(r => r.data),
+        enabled: !!instanceId
+    })
+}
+
+// ── Langfuse Observability ──
+
+export function useLangfuseStatus(instanceId: string) {
+    return useQuery({
+        queryKey: ['langfuse-status', instanceId],
+        queryFn: () => client.get<{ data: { running: boolean; url: string; publicKey: string; loginEmail: string } }>(`/hosting/instances/${instanceId}/langfuse/status`).then(r => r.data),
+        refetchInterval: 60_000,
+        enabled: !!instanceId
+    })
+}
+
+// ── Knowledge Base (RAG) ──
+
+export function useKnowledgeDocs(instanceId: string) {
+    return useQuery({
+        queryKey: ['knowledge-docs', instanceId],
+        queryFn: () => client.get<{ data: Array<{ id: string; filename: string; contentType: string; chunkCount: number; status: string; createdAt: string }> }>(`/hosting/instances/${instanceId}/knowledge/documents`).then(r => r.data),
+        enabled: !!instanceId
+    })
+}
+
+export function useUploadKnowledgeDoc() {
+    const qc = useQueryClient()
+    return useMutation({
+        mutationFn: ({ instanceId, filename, content, contentType }: { instanceId: string; filename: string; content: string; contentType?: string }) =>
+            client.post(`/hosting/instances/${instanceId}/knowledge/upload`, { filename, content, contentType }),
+        onSuccess: (_, vars) => {
+            qc.invalidateQueries({ queryKey: ['knowledge-docs', vars.instanceId] })
+        }
+    })
+}
+
+export function useSearchKnowledge() {
+    return useMutation({
+        mutationFn: ({ instanceId, query, limit }: { instanceId: string; query: string; limit?: number }) =>
+            client.post<{ data: Array<{ content: string; score: number; filename: string }> }>(`/hosting/instances/${instanceId}/knowledge/search`, { query, limit })
+    })
+}
+
+// ── LLM Guard ──
+
+export function useGuardStatus(instanceId: string) {
+    return useQuery({
+        queryKey: ['guard-status', instanceId],
+        queryFn: () => client.get<{ data: { installed: boolean; enabled: boolean } }>(`/hosting/instances/${instanceId}/guard/status`).then(r => r.data),
+        enabled: !!instanceId
+    })
+}
+
 export function useCheckout() {
     return useMutation({
         mutationFn: (params: {

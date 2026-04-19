@@ -139,7 +139,7 @@ const allpay = {
         const status = body.status as number
         const orderId = body.order_id as string
         let instanceId = (body.add_field_1 as string) || ''
-        let planKey = (body.add_field_2 as string) || ''
+        const planKey = (body.add_field_2 as string) || ''
 
         // Fallback: extract instanceId from orderId format "oc-{instanceId}-{timestamp}"
         if (!instanceId && orderId?.startsWith('oc-')) {

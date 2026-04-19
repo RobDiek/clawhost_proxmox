@@ -73,8 +73,8 @@ async function ensureDevicePaired(ip: string, password?: string): Promise<void> 
     // Read pending request and approve it
     await sshExec(ip, `
         su - openclaw -c '
-        DEVICE_ID=$(node -e "try{const d=require(process.env.HOME+\\\"/.openclaw/identity/device.json\\\");console.log(d.deviceId)}catch(e){}" 2>/dev/null)
-        PUB_KEY=$(node -e "try{const p=require(process.env.HOME+\\\"/.openclaw/devices/pending.json\\\");const k=Object.values(p)[0];if(k)console.log(k.publicKey)}catch(e){}" 2>/dev/null)
+        DEVICE_ID=$(node -e "try{const d=require(process.env.HOME+\\"/.openclaw/identity/device.json\\");console.log(d.deviceId)}catch(e){}" 2>/dev/null)
+        PUB_KEY=$(node -e "try{const p=require(process.env.HOME+\\"/.openclaw/devices/pending.json\\");const k=Object.values(p)[0];if(k)console.log(k.publicKey)}catch(e){}" 2>/dev/null)
 
         if [ -n "$DEVICE_ID" ] && [ -n "$PUB_KEY" ]; then
             mkdir -p ~/.openclaw/devices

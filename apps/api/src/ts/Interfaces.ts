@@ -52,6 +52,8 @@ export interface CloudProvider {
     detachVolume(volumeId: number): Promise<void>
     deleteVolume(volumeId: number): Promise<void>
     getVolume(volumeId: number): Promise<VolumeDetails>
+    getVolumes?(serverId?: number): Promise<Array<{ id: number; name: string; size: number }>>
+    changeServerType?(serverId: string, newType: string): Promise<void>
 }
 
 export interface RawServerType {

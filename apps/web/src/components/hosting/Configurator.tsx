@@ -5,7 +5,7 @@ import type { ComponentInfo } from '@openclaw/shared'
 interface ConfiguratorProps {
     onDeploy: (config: {
         components: string[]
-        automationTool: 'n8n' | 'activepieces'
+        automationTool: 'n8n' | 'activepieces' | 'dify'
         addons: string[]
     }) => void
 }
@@ -18,7 +18,7 @@ const CATEGORY_LABELS: Record<string, { he: string; icon: string }> = {
 
 const Configurator: React.FC<ConfiguratorProps> = ({ onDeploy }) => {
     const [selected, setSelected] = useState<string[]>(['oc'])
-    const [automationTool, setAutomationTool] = useState<'n8n' | 'activepieces'>('activepieces')
+    const [automationTool, setAutomationTool] = useState<'n8n' | 'activepieces' | 'dify'>('activepieces')
     const [selectedAddons, setSelectedAddons] = useState<string[]>([])
 
     const toggleComponent = (id: string) => {
@@ -35,7 +35,7 @@ const Configurator: React.FC<ConfiguratorProps> = ({ onDeploy }) => {
 
     const pricing = useMemo(() => calcTotal(selected, selectedAddons), [selected, selectedAddons])
 
-    const hasAutomation = selected.includes('n8') || selected.includes('ap')
+    const hasAutomation = selected.includes('n8') || selected.includes('ap') || selected.includes('df')
 
     const groupedComponents = useMemo(() => {
         const groups: Record<string, ComponentInfo[]> = {}
@@ -101,19 +101,23 @@ const Configurator: React.FC<ConfiguratorProps> = ({ onDeploy }) => {
             {hasAutomation && (
                 <div className="mt-6">
                     <h3 className="text-sm font-semibold text-muted-foreground mb-3">⚙️ כלי אוטומציה</h3>
-                    <div className="grid grid-cols-2 gap-2">
-                        {(['activepieces', 'n8n'] as const).map(tool => (
+                    <div className="grid grid-cols-3 gap-2">
+                        {([
+                            { key: 'activepieces' as const, label: 'Activepieces', desc: 'אוטומציה פשוטה' },
+                            { key: 'n8n' as const, label: 'n8n', desc: 'אוטומציה מתקדמת' },
+                            { key: 'dify' as const, label: 'Dify AI Studio', desc: 'AI workflows + RAG' },
+                        ]).map(tool => (
                             <button
-                                key={tool}
-                                onClick={() => setAutomationTool(tool)}
+                                key={tool.key}
+                                onClick={() => setAutomationTool(tool.key)}
                                 className={`p-3 rounded-xl border text-center transition-all ${
-                                    automationTool === tool
+                                    automationTool === tool.key
                                         ? 'border-primary bg-primary/5'
                                         : 'border-border hover:border-primary/50'
                                 }`}
                             >
-                                <div className="font-medium text-sm">{tool === 'n8n' ? 'n8n' : 'Activepieces'}</div>
-                                <div className="text-xs text-muted-foreground">{tool === 'n8n' ? 'מתקדם' : 'פשוט יותר'}</div>
+                                <div className="font-medium text-sm">{tool.label}</div>
+                                <div className="text-xs text-muted-foreground">{tool.desc}</div>
                             </button>
                         ))}
                     </div>

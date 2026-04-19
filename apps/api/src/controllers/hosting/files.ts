@@ -80,7 +80,7 @@ function sanitizePath(path: string): string | null {
     const decoded = decodeURIComponent(path)
     if (decoded.includes('..') || decoded.startsWith('/') || decoded.includes('\0')) return null
     // Whitelist: only allow safe path characters
-    if (!/^[a-zA-Z0-9._\-\/\s\u0590-\u05FF\u0600-\u06FF]+$/.test(decoded)) return null
+    if (!/^[a-zA-Z0-9._\-/\s\u0590-\u05FF\u0600-\u06FF]+$/.test(decoded)) return null
     return decoded
 }
 
@@ -442,8 +442,8 @@ export const saveIntegration = async (c: Context) => {
                 await new Promise(r => setTimeout(r, 2000))
                 await sshExecInstance(instance, `
                     su - openclaw -c '
-                    DEVICE_ID=$(node -e "try{const d=require(process.env.HOME+\\\"/.openclaw/identity/device.json\\\");console.log(d.deviceId)}catch(e){}" 2>/dev/null)
-                    PUB_KEY=$(node -e "try{const p=require(process.env.HOME+\\\"/.openclaw/devices/pending.json\\\");const k=Object.values(p)[0];if(k)console.log(k.publicKey)}catch(e){}" 2>/dev/null)
+                    DEVICE_ID=$(node -e "try{const d=require(process.env.HOME+\\"/.openclaw/identity/device.json\\");console.log(d.deviceId)}catch(e){}" 2>/dev/null)
+                    PUB_KEY=$(node -e "try{const p=require(process.env.HOME+\\"/.openclaw/devices/pending.json\\");const k=Object.values(p)[0];if(k)console.log(k.publicKey)}catch(e){}" 2>/dev/null)
                     if [ -n "$DEVICE_ID" ] && [ -n "$PUB_KEY" ]; then
                         mkdir -p ~/.openclaw/devices
                         printf "{\\n  \\"$DEVICE_ID\\": {\\n    \\"deviceId\\": \\"$DEVICE_ID\\",\\n    \\"publicKey\\": \\"$PUB_KEY\\",\\n    \\"platform\\": \\"linux\\",\\n    \\"clientId\\": \\"cli\\",\\n    \\"clientMode\\": \\"cli\\",\\n    \\"role\\": \\"operator\\",\\n    \\"roles\\": [\\"operator\\"],\\n    \\"scopes\\": [\\"operator.admin\\",\\"operator.read\\",\\"operator.write\\",\\"operator.approvals\\",\\"operator.pairing\\"],\\n    \\"pairedAtMs\\": '$(date +%%s000)',\\n    \\"label\\": \\"local-cli\\"\\n  }\\n}" > ~/.openclaw/devices/paired.json
@@ -705,9 +705,9 @@ print('tools profile set: ' + tools_cfg['profile'])
                 const CONFIG = '/home/openclaw/.openclaw/openclaw.json'
 
                 // Validate model format
-                if (prefs.simple && !/^[a-zA-Z0-9\/_.-]+$/.test(prefs.simple)) throw new Error('Invalid simple model')
-                if (prefs.complex && !/^[a-zA-Z0-9\/_.-]+$/.test(prefs.complex)) throw new Error('Invalid complex model')
-                if (prefs.heartbeat && !/^[a-zA-Z0-9\/_.-]+$/.test(prefs.heartbeat)) throw new Error('Invalid heartbeat model')
+                if (prefs.simple && !/^[a-zA-Z0-9/_.-]+$/.test(prefs.simple)) throw new Error('Invalid simple model')
+                if (prefs.complex && !/^[a-zA-Z0-9/_.-]+$/.test(prefs.complex)) throw new Error('Invalid complex model')
+                if (prefs.heartbeat && !/^[a-zA-Z0-9/_.-]+$/.test(prefs.heartbeat)) throw new Error('Invalid heartbeat model')
 
                 // CRITICAL: stop → edit → start
                 const hbModel = prefs.heartbeat || prefs.simple

@@ -42,6 +42,7 @@ function sshExec(ip: string, command: string, password?: string): Promise<string
 export const listBackups = async (c: Context<HonoEnv>) => {
     try {
         const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Unauthorized.', 401)
         const instanceId = c.req.param('id')
 
         const [instance] = await db.select()
@@ -81,6 +82,7 @@ export const listBackups = async (c: Context<HonoEnv>) => {
 export const createBackup = async (c: Context<HonoEnv>) => {
     try {
         const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Unauthorized.', 401)
         const instanceId = c.req.param('id')
 
         const [instance] = await db.select()
@@ -109,6 +111,7 @@ export const createBackup = async (c: Context<HonoEnv>) => {
 export const restoreBackup = async (c: Context<HonoEnv>) => {
     try {
         const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Unauthorized.', 401)
         const instanceId = c.req.param('id')
         const { backupName } = await c.req.json<{ backupName: string }>()
 

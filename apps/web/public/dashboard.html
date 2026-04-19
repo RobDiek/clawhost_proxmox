@@ -325,6 +325,15 @@ input{font-family:inherit}
 
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+/* Button loading state — used across all save* integration handlers */
+.btn-loading { opacity: 0.75; cursor: wait !important; pointer-events: none; }
+.btn-spinner {
+  display: inline-block; width: 11px; height: 11px;
+  border: 2px solid currentColor; border-top-color: transparent;
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+  vertical-align: -1px; margin-left: 6px;
+}
+
 /* Home top grid (tasks + notifications side by side) */
 .home-top-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start; }
 @media(max-width:900px) { .home-top-grid { grid-template-columns:1fr; } }
@@ -973,11 +982,18 @@ input{font-family:inherit}
       </div>
 
       <!-- 2. Business Profile (questionnaire) -->
+      <div id="agent-questionnaire-section">
       <div class="section-title">פרופיל עסקי</div>
       <div id="agent-saved-profile" style="margin-bottom:16px"></div>
-      <details id="agent-questionnaire-details">
-        <summary style="cursor:pointer;color:#2563EB;font-size:0.9rem;font-weight:500" id="agent-questionnaire-summary">ערכו פרופיל &rarr;</summary>
-        <div style="margin-top:16px">
+      </div>
+      <!-- Modal: business profile questionnaire -->
+      <div id="agentSetupOverlay" class="report-modal-overlay hidden" onclick="closeAgentQuestionnaire()">
+        <div class="report-modal" onclick="event.stopPropagation()" style="max-width:720px">
+          <div class="report-modal-header">
+            <h3>פרופיל עסקי</h3>
+            <button onclick="closeAgentQuestionnaire()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#6B7280">&times;</button>
+          </div>
+          <div class="report-modal-body" style="max-height:70vh;overflow-y:auto;padding:20px 24px">
           <div class="setup-form" id="agent-setup-form">
             <div class="form-group"><label>1. שם העסק</label><input type="text" id="q-business-name" placeholder="לדוגמה: Flowmatic"/></div>
             <div class="form-group"><label>2. במה עוסק העסק?</label><textarea id="q-business-desc" placeholder="תארו בקצרה את המוצר או השירות" rows="2"></textarea></div>
@@ -1029,9 +1045,9 @@ input{font-family:inherit}
             <button class="btn btn-primary" onclick="submitAgentSetup()" id="btn-setup-submit">עדכנו את הסוכנים &rarr;</button>
           </div>
           <div class="hidden" id="setup-step2"><div style="text-align:center;margin:20px 0"><div class="gear-spinner" style="display:inline-block;font-size:2rem;animation:spin 2s linear infinite">&#9881;&#65039;</div></div><h3 style="text-align:center;margin:8px 0">מגדירים את הסוכנים...</h3><p style="text-align:center;color:#6B7280;font-size:0.85rem">זה ייקח כ-30 שניות</p></div>
-          <div class="hidden" id="setup-step3"><h3 style="text-align:center;margin:20px 0;color:#10B981">&#10003; הסוכנים עודכנו בהצלחה!</h3><div style="display:flex;gap:10px;justify-content:center;margin-top:16px"><button class="btn btn-primary" onclick="closeAgentDetail();switchTab('agents')">חזרו לסוכנים &rarr;</button><button class="btn btn-outline" onclick="reopenQuestionnaire()">&#9998; ערכו שוב</button></div></div>
+          </div>
         </div>
-      </details>
+      </div>
 
       </div><!-- /agent-panel-overview -->
 
@@ -3268,7 +3284,7 @@ function renderHome() {
   ];
 
   if (isMATEH) {
-    tasks.push({ id: 'profile', label: 'פרופיל עסקי הוגדר', done: !!hasAgents, action: "switchTab('agents');setTimeout(function(){openAgentDetail('mt')},100)", actionLabel: 'הגדירו', desc: 'מילוי שאלון 11 שאלות ← פרופיל מותאם אישית' });
+    tasks.push({ id: 'profile', label: 'פרופיל עסקי הוגדר', done: !!hasAgents, action: "switchTab('agents');setTimeout(function(){openAgentDetail('mt');setTimeout(openAgentQuestionnaire,300)},100)", actionLabel: 'הגדירו', desc: 'מילוי שאלון 11 שאלות ← פרופיל מותאם אישית' });
 
     // Research + Strategy chain — each unlocks the next
     if (hasAgents) {
@@ -5471,7 +5487,7 @@ function saveBlogIntegration() {
   var pass = document.getElementById('pub-blog-apppass').value.trim();
   if (!url || !user || !pass) { showToast('מלאו את כל השדות', 'error'); return; }
 
-  showToast('בודק חיבור ל-WordPress...', 'info');
+  var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'מחבר WordPress');
 
   // First verify connection works
   var auth = btoa(user + ':' + pass);
@@ -5498,7 +5514,7 @@ function saveBlogIntegration() {
     } else showToast(d.message || 'שגיאה', 'error');
   }).catch(function(e) {
     showToast('חיבור WordPress נכשל — בדקו URL, שם משתמש וסיסמה. ' + (e.message || ''), 'error');
-  });
+  }).finally(function() { _unlock(); });
 }
 
 // Publishing guides popup
@@ -6218,11 +6234,11 @@ function renderAdvanced() {
 function renderSidebarFooter() {
   var displayPlan = plan.name || '—';
   document.getElementById('sidebarFooter').innerHTML =
-    '<div onclick="window.open(\'/auto-pilot\',\'_blank\')" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 16px;margin:8px 12px;border-radius:10px;background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1px solid #C7D2FE;font-size:0.82rem;color:#4338CA;font-weight:600;transition:all .2s" onmouseover="this.style.background=\'linear-gradient(135deg,#E0E7FF,#C7D2FE)\'" onmouseout="this.style.background=\'linear-gradient(135deg,#EEF2FF,#E0E7FF)\'">' +
-    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#4338CA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>' +
-    '<span>ניהול שיווק</span>' +
-    '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:auto"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>' +
-    '<span class="sidebar-plan-pill">תוכנית ' + displayPlan + '</span>';
+    '<div onclick="window.open(\'/auto-pilot\',\'_blank\')" title="ניהול שיווק" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 13px;margin:8px 6px;border-radius:10px;background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1px solid #C7D2FE;font-size:0.82rem;color:#4338CA;font-weight:600;transition:all .2s;white-space:nowrap;overflow:hidden" onmouseover="this.style.background=\'linear-gradient(135deg,#E0E7FF,#C7D2FE)\'" onmouseout="this.style.background=\'linear-gradient(135deg,#EEF2FF,#E0E7FF)\'">' +
+    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#4338CA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>' +
+    '<span class="sidebar-label">ניהול שיווק</span>' +
+    '<svg class="sidebar-label" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:auto"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>' +
+    '<span class="sidebar-plan-pill sidebar-label">תוכנית ' + displayPlan + '</span>';
 }
 
 /* ===== Tab switching ===== */
@@ -6493,6 +6509,7 @@ async function saveApiKey(provider) {
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
 
+  var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'שומר מפתח');
   showToast('שומר...', 'success');
   try {
     var res = await fetch(API + '/hosting/instances/' + iid + '/integrations/save', {
@@ -6528,6 +6545,8 @@ async function saveApiKey(provider) {
     refreshInstanceData();
   } catch (e) {
     showToast('שגיאה בשמירת המפתח', 'error');
+  } finally {
+    _unlock();
   }
 }
 
@@ -6667,6 +6686,7 @@ async function saveTelegram() {
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
 
+  var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'מחבר בוט');
   showToast('מחבר בוט...', 'success');
   try {
     var res = await fetch(API + '/hosting/instances/' + iid + '/setup/telegram', {
@@ -6685,6 +6705,8 @@ async function saveTelegram() {
     refreshInstanceData();
   } catch (e) {
     showToast('שגיאה בחיבור הבוט', 'error');
+  } finally {
+    _unlock();
   }
 }
 
@@ -9472,7 +9494,7 @@ async function saveSmtp() {
     from: document.getElementById('smtp-from').value.trim() || 'ClawFlow',
   };
   if (!config.host || !config.user || !config.pass) { showToast('מלאו את כל השדות', 'error'); return; }
-  showToast('שומר...', 'info');
+  var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'שומר SMTP');
   try {
     var res = await fetch(API + '/hosting/instances/' + instanceId + '/integrations/save', {
       method: 'POST',
@@ -9486,6 +9508,7 @@ async function saveSmtp() {
       document.getElementById('smtp-status').className = 'int-status connected';
     } else { showToast(d.message || 'שגיאה', 'error'); }
   } catch (e) { showToast('שגיאת תקשורת', 'error'); }
+  finally { _unlock(); }
 }
 
 async function testSmtp() {
@@ -10031,7 +10054,7 @@ function openAgentDetail(agentType) {
   if (memoryTab) memoryTab.style.display = isBareAgent ? 'none' : '';
 
   // Show/hide MATEH-specific sections in overview
-  var questionnaireSection = document.getElementById('agent-questionnaire-details');
+  var questionnaireSection = document.getElementById('agent-questionnaire-section');
   if (questionnaireSection) questionnaireSection.style.display = isMatehAgent ? '' : 'none';
 
   // Show/hide sub-agents section in config (MATEH only)
@@ -10114,8 +10137,10 @@ function closeAgentDetail() {
 function renderAgentProfile() {
   var container = document.getElementById('agent-saved-profile');
   if (!instanceData || !instanceData.researchData || !instanceData.researchData.answers) {
-    container.innerHTML = '<p style="color:#6B7280;font-size:0.85rem">הסוכנים טרם הוגדרו. מלאו את השאלון להפעלה.</p>';
-    document.getElementById('agent-questionnaire-summary').textContent = 'מלאו שאלון \u2192';
+    container.innerHTML = '<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:16px;font-size:0.85rem;line-height:1.6;color:#92400E">' +
+      '<div style="margin-bottom:10px">הסוכנים טרם הוגדרו. מלאו את השאלון להפעלה.</div>' +
+      '<button class="btn btn-primary" onclick="openAgentQuestionnaire()" style="font-size:0.85rem">&#9998; מלאו שאלון &rarr;</button>' +
+      '</div>';
     return;
   }
 
@@ -10130,32 +10155,26 @@ function renderAgentProfile() {
     (a.budget ? '<div><strong>תקציב:</strong> ' + a.budget + '</div>' : '') +
     '</div>' +
     '<button class="btn btn-outline" onclick="openAgentQuestionnaire()" style="margin-top:12px;font-size:0.82rem">&#9998; ערכו פרופיל</button>';
-  document.getElementById('agent-questionnaire-summary').textContent = 'שנו תשובות ושלחו מחדש \u2192';
-}
-
-function reopenQuestionnaire() {
-  document.getElementById('setup-step3').classList.add('hidden');
-  var form = document.getElementById('agent-setup-form');
-  if (form) form.classList.remove('hidden');
-  var btn = document.getElementById('btn-setup-submit');
-  if (btn) { btn.disabled = false; btn.textContent = 'עדכנו את הסוכנים \u2192'; }
-  // Remove any leftover clarify UI
-  var clarify = document.getElementById('dashboard-clarify');
-  if (clarify) clarify.remove();
-  // Pre-fill from saved data
-  renderSavedAnswers();
 }
 
 function openAgentQuestionnaire() {
-  var details = document.getElementById('agent-questionnaire-details');
-  details.open = true;
+  var overlay = document.getElementById('agentSetupOverlay');
+  if (!overlay) return;
   var form = document.getElementById('agent-setup-form');
   if (form) form.classList.remove('hidden');
-  document.getElementById('setup-step2').classList.add('hidden');
-  document.getElementById('setup-step3').classList.add('hidden');
+  var step2 = document.getElementById('setup-step2');
+  if (step2) step2.classList.add('hidden');
   var btn = document.getElementById('btn-setup-submit');
   if (btn) { btn.disabled = false; btn.textContent = 'עדכנו את הסוכנים \u2192'; }
-  details.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  var clarify = document.getElementById('dashboard-clarify');
+  if (clarify) clarify.remove();
+  renderSavedAnswers();
+  overlay.classList.remove('hidden');
+}
+
+function closeAgentQuestionnaire() {
+  var overlay = document.getElementById('agentSetupOverlay');
+  if (overlay) overlay.classList.add('hidden');
 }
 
 // Sub-agents data — defaults match AGENTS.md routing
@@ -10648,7 +10667,10 @@ async function deployAgentsDashboard(answers) {
     var data = await res.json();
     if (data.success) {
       document.getElementById('setup-step2').classList.add('hidden');
-      document.getElementById('setup-step3').classList.remove('hidden');
+      if (formEl) formEl.classList.remove('hidden');
+      var btnOk = document.getElementById('btn-setup-submit');
+      if (btnOk) { btnOk.disabled = false; btnOk.textContent = 'עדכנו את הסוכנים \u2192'; }
+      closeAgentQuestionnaire();
       showToast('הסוכנים הוגדרו בהצלחה!', 'success');
       refreshInstanceData();
     } else {
@@ -10897,6 +10919,7 @@ async function saveDataforseo() {
   var login = document.getElementById('dataforseo-login').value.trim();
   var password = document.getElementById('dataforseo-password').value.trim();
   if (!login || !password) { showToast('הכניסו Login ו-Password', 'error'); return; }
+  var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'מחבר');
   try {
     var res = await fetch(API + '/hosting/integrations/dataforseo/save', {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') },
@@ -10908,6 +10931,7 @@ async function saveDataforseo() {
       showDataforseoConnected(login);
     } else { showToast(data.message || 'שגיאה', 'error'); }
   } catch { showToast('שגיאת תקשורת', 'error'); }
+  finally { _unlock(); }
 }
 
 function showDataforseoConnected(login) {
@@ -10945,6 +10969,7 @@ async function saveFirecrawl() {
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
   var key = document.getElementById('firecrawl-key').value.trim();
   if (!key) { showToast('הכניסו API Key', 'error'); return; }
+  var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'מחבר');
   try {
     var res = await fetch(API + '/hosting/integrations/firecrawl/save', {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('cf_token') || '') },
@@ -10957,6 +10982,7 @@ async function saveFirecrawl() {
       document.getElementById('firecrawl-key').value = '';
     } else { showToast(data.message || 'שגיאה', 'error'); }
   } catch { showToast('שגיאת תקשורת', 'error'); }
+  finally { _unlock(); }
 }
 
 function showFirecrawlConnected(masked) {
@@ -11045,8 +11071,7 @@ async function saveCreativeKeys() {
   var elKey  = (elInput && elInput.value || '').trim();
   if (!falKey && !elKey) { showToast('הזן לפחות מפתח אחד', 'warn'); return; }
 
-  var btn = event && event.target;
-  if (btn) { btn.disabled = true; btn.textContent = 'שומר...'; }
+  var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'שומר מפתחות');
 
   try {
     var body = {};
@@ -11061,7 +11086,6 @@ async function saveCreativeKeys() {
     var j = await res.json();
     if (!j.success) {
       showToast(j.message || 'שמירה נכשלה', 'error');
-      if (btn) { btn.disabled = false; btn.textContent = '→ שמרו מפתחות'; }
       return;
     }
     showToast('מפתחות נשמרו ✓', 'success');
@@ -11071,7 +11095,7 @@ async function saveCreativeKeys() {
   } catch (err) {
     showToast('שגיאה: ' + err.message, 'error');
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '→ שמרו מפתחות'; }
+    _unlock();
   }
 }
 
@@ -12252,6 +12276,7 @@ async function saveRedditIntegration() {
   if (!clientId || !clientSecret || !username || !password) {
     showToast('יש למלא את כל השדות', 'error'); return;
   }
+  var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'מחבר ל-Reddit');
   try {
     var res = await fetch(API + '/hosting/integrations/reddit/save', {
       method: 'POST',
@@ -12267,6 +12292,7 @@ async function saveRedditIntegration() {
       showToast(data.message || 'שגיאת אימות', 'error');
     }
   } catch { showToast('שגיאת תקשורת', 'error'); }
+  finally { _unlock(); }
 }
 
 function showRedditConnected(username) {
@@ -12337,6 +12363,7 @@ async function saveGoogleAdsCredentials() {
   }
   if (!developerToken) { showToast('Developer Token חסר', 'error'); return; }
 
+  var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'מחבר Google Ads');
   try {
     var res = await fetch(API + '/hosting/instances/' + iid + '/integrations/googleads/save', {
       method: 'POST',
@@ -12352,6 +12379,7 @@ async function saveGoogleAdsCredentials() {
       showToast(data.message || 'שגיאה', 'error');
     }
   } catch { showToast('שגיאת תקשורת', 'error'); }
+  finally { _unlock(); }
 }
 
 async function disconnectGoogleAdsConfig() {
@@ -13898,6 +13926,7 @@ async function saveIntegration(type) {
   var iid = localStorage.getItem('cf_instance_id');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
 
+  var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'מחבר');
   try {
     var res = await fetch(API + '/hosting/instances/' + iid + '/integrations/save', {
       method: 'POST',
@@ -13921,6 +13950,8 @@ async function saveIntegration(type) {
     }
   } catch (e) {
     showToast('שגיאת תקשורת', 'error');
+  } finally {
+    _unlock();
   }
 }
 
@@ -14487,6 +14518,34 @@ function showToast(msg, type) {
   el._t = setTimeout(function() { el.classList.remove('show'); }, 3000);
 }
 
+/**
+ * Lock a button in "loading" state while an async action runs.
+ * Returns an unlock function that restores the original content.
+ * Usage inside save* handlers:
+ *   var unlock = lockButton(event?.target, 'שומר');
+ *   try { await fetch(...) } finally { unlock(); }
+ * Gracefully no-ops if btn is null/undefined (e.g. programmatic call).
+ */
+function lockButton(btn, loadingText) {
+  if (!btn || typeof btn.disabled === 'undefined') return function noop() {};
+  // If a parent was targeted (e.g. span/svg inside button), walk up to the button.
+  while (btn && btn.tagName !== 'BUTTON') btn = btn.parentElement;
+  if (!btn) return function noop() {};
+  var origHtml = btn.innerHTML;
+  var origDisabled = btn.disabled;
+  btn.disabled = true;
+  btn.classList.add('btn-loading');
+  btn.innerHTML = (loadingText || 'שומר') + '<span class="btn-spinner"></span>';
+  var unlocked = false;
+  return function unlock() {
+    if (unlocked) return;
+    unlocked = true;
+    btn.disabled = origDisabled;
+    btn.classList.remove('btn-loading');
+    btn.innerHTML = origHtml;
+  };
+}
+
 // ── Referral Program ──
 async function loadReferralData() {
   try {
@@ -14546,6 +14605,7 @@ async function saveGbpConfig() {
   var autoRepost = document.getElementById('gbp-auto-repost').checked;
   var reviewFreq = document.getElementById('gbp-review-freq').value;
   if (!accountId || !locationId) { showToast('Account ID ו-Location ID חובה', 'error'); return; }
+  var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'מחבר GBP');
   try {
     var res = await fetch(API + '/hosting/instances/' + instanceId + '/gbp/config', {
       method: 'POST',
@@ -14556,6 +14616,7 @@ async function saveGbpConfig() {
     if (data.success) { showToast('GBP מוגדר', 'success'); loadGbpStatus(); }
     else showToast(data.message || 'שגיאה', 'error');
   } catch (e) { showToast('שגיאה', 'error'); }
+  finally { _unlock(); }
 }
 
 // Load GBP when integrations tab opens
@@ -14587,6 +14648,7 @@ async function saveWaConfig() {
   var token2 = document.getElementById('wa-api-token').value.trim();
   var phone = document.getElementById('wa-phone').value.trim();
   if (!instanceId2 || !token2) { showToast('הכניסו Instance ID ו-Token', 'error'); return; }
+  var _unlock = lockButton(typeof event !== 'undefined' ? event.target : null, 'מחבר WhatsApp');
   try {
     var res = await fetch(API + '/hosting/instances/' + instanceId + '/whatsapp/config', {
       method: 'POST',
@@ -14597,6 +14659,7 @@ async function saveWaConfig() {
     if (data.success) { showToast('WhatsApp מחובר', 'success'); loadWaStatus(); }
     else showToast(data.message || 'שגיאה', 'error');
   } catch (e) { showToast('שגיאת תקשורת', 'error'); }
+  finally { _unlock(); }
 }
 
 async function loadWaContacts() {

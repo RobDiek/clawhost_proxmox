@@ -244,11 +244,12 @@ export const pullOllamaModel = async (c: Context) => {
         // Pull model in background (can take minutes for large models)
         // Model ID is from our hardcoded whitelist — safe from injection
         const safeModelId = modelInfo.id.replace(/[^a-zA-Z0-9.:_-]/g, '')
-        sshExec(instance.ip, `ollama pull "${safeModelId}" 2>&1`, instance.rootPassword || undefined, 1800000)
+        const ip = instance.ip as string
+        sshExec(ip, `ollama pull "${safeModelId}" 2>&1`, instance.rootPassword || undefined, 1800000)
             .then(async () => {
                 console.log(`Ollama model ${modelInfo.id} pulled on instance ${instanceId}`)
                 // Register model in openclaw.json so agents can use it
-                await registerOllamaModel(instance.ip, modelInfo.id, modelInfo.name, instance.rootPassword || undefined)
+                await registerOllamaModel(ip, modelInfo.id, modelInfo.name, instance.rootPassword || undefined)
             })
             .catch((err) => {
                 console.error(`Ollama pull failed on ${instanceId}:`, err)

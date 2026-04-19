@@ -96,12 +96,7 @@ export async function generateInstanceReport(instanceId: string): Promise<{
     }
 
     // Call Claude Sonnet to compose the Hebrew report
-    let content: string
-    try {
-        content = await composeReport(anthropicKey, data)
-    } catch (err) {
-        throw err
-    }
+    const content: string = await composeReport(anthropicKey, data)
 
     // Insert into agent_outputs
     const outputId = genId()

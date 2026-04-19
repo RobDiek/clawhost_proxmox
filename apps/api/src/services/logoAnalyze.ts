@@ -197,7 +197,7 @@ function analyzeSvgLocally(
     base: LogoAnalysisResult,
 ): LogoAnalysisResult {
     // Extract viewBox / width / height
-    const viewBoxMatch = svgText.match(/viewBox\s*=\s*["']([\d\.\s\-]+)["']/i)
+    const viewBoxMatch = svgText.match(/viewBox\s*=\s*["']([\d.\s-]+)["']/i)
     const widthMatch = svgText.match(/\bwidth\s*=\s*["'](\d+(?:\.\d+)?)[^"']*["']/i)
     const heightMatch = svgText.match(/\bheight\s*=\s*["'](\d+(?:\.\d+)?)[^"']*["']/i)
 

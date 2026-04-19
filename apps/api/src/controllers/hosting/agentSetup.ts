@@ -240,7 +240,7 @@ function generateFallback(answers: OnboardingAnswers): { userMd: string; brandMd
 }
 
 // ── Deploy all files to VPS ──
-async function deployAgentSystem(ip: string, userMd: string, brandMd: string, brandName: string, gatewayToken: string, subdomain: string, password?: string, agentType: 'mt' | 'oc' = 'mt'): Promise<void> {
+async function deployAgentSystem(ip: string, userMd: string, brandMd: string, brandName: string, gatewayToken: string, subdomain: string, password?: string, agentType: 'mt' | 'oc' | 'bare' = 'mt'): Promise<void> {
     const baseDir = '/home/openclaw/.openclaw'
     const templatesDir = agentType === 'oc' ? PERSONAL_TEMPLATES_DIR : TEMPLATES_DIR
 
@@ -352,8 +352,8 @@ with open('openclaw.json', 'w') as f:
     // Read the pending request and approve it as paired
     await sshExec(ip, `
         su - openclaw -c '
-        DEVICE_ID=$(node -e "try{const d=require(process.env.HOME+\\\"/.openclaw/identity/device.json\\\");console.log(d.deviceId)}catch(e){}" 2>/dev/null)
-        PUB_KEY=$(node -e "try{const p=require(process.env.HOME+\\\"/.openclaw/devices/pending.json\\\");const k=Object.values(p)[0];if(k)console.log(k.publicKey)}catch(e){}" 2>/dev/null)
+        DEVICE_ID=$(node -e "try{const d=require(process.env.HOME+\\"/.openclaw/identity/device.json\\");console.log(d.deviceId)}catch(e){}" 2>/dev/null)
+        PUB_KEY=$(node -e "try{const p=require(process.env.HOME+\\"/.openclaw/devices/pending.json\\");const k=Object.values(p)[0];if(k)console.log(k.publicKey)}catch(e){}" 2>/dev/null)
 
         if [ -n "$DEVICE_ID" ] && [ -n "$PUB_KEY" ]; then
             mkdir -p ~/.openclaw/devices
@@ -686,7 +686,7 @@ export async function ensureAgentsRegistered(instance: {
     const customModels = (instance.subAgentModels as Record<string, string>) || {}
 
     // Get currently registered agents from VPS
-    let registeredAgents: Record<string, string> = {}
+    const registeredAgents: Record<string, string> = {}
     try {
         const listOutput = await sshExec(instance.ip,
             `su - openclaw -c 'openclaw agents list --json 2>/dev/null'`,
@@ -1623,7 +1623,7 @@ export const buildStrategy = async (c: Context) => {
                 message: `ציון אמון אימות נמוך מדי (${confScore}/100). האסטרטגיה תיבנה על פרסונות לא מאומתות. הריצו שלב 5 במצב "ראיונות אמיתיים" (Mom-Test) עם 5 אנשים לפחות, או אשרו במפורש המשך למרות האזהרה.`,
                 code: 422,
                 version: '0.0.142',
-            }, 422 as 422)
+            }, 422 as const)
         }
 
         // Determine which strategy stage to run
@@ -4542,7 +4542,7 @@ export const addAgentToInstance = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const { agentType } = await c.req.json<{ agentType: 'mt' | 'oc' }>()
+        const { agentType } = await c.req.json<{ agentType: 'mt' | 'oc' | 'bare' }>()
 
         if (!agentType || !['mt', 'oc', 'bare'].includes(agentType)) {
             return fail(c, 'Invalid agent type', 400)
@@ -4674,7 +4674,7 @@ export const removeAgentFromInstance = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const { agentType } = await c.req.json<{ agentType: 'mt' | 'oc' }>()
+        const { agentType } = await c.req.json<{ agentType: 'mt' | 'oc' | 'bare' }>()
 
         if (!agentType || !['mt', 'oc', 'bare'].includes(agentType)) {
             return fail(c, 'Invalid agent type', 400)

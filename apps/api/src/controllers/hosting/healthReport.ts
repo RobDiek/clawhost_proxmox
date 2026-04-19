@@ -86,7 +86,7 @@ export const healthReport = async (c: Context) => {
                 // Alert instance owner via Telegram
                 if (instance.telegramChatId) {
                     try {
-                        await telegram.sendMessage(instance.telegramChatId, msg, { parse_mode: 'Markdown' })
+                        await telegram.sendMessage(instance.telegramChatId, msg, 'Markdown')
                     } catch { /* non-critical */ }
                 }
 

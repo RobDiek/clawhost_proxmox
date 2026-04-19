@@ -233,9 +233,9 @@ export const checkout = async (c: Context<HonoEnv>) => {
                                 })
                             } catch { /* non-critical */ }
                         }
-                        return isReady
+                        return { ready: isReady, result }
                     })
-                }).then(async (ready) => {
+                }).then(async ({ ready, result }) => {
                     // Check if this is a trial instance
                     const [freshInst] = await db.select({ trialEndsAt: instances.trialEndsAt }).from(instances).where(eq(instances.id, instanceId))
                     const finalStatus = ready ? (freshInst?.trialEndsAt ? 'trial' : 'running') : 'failed'

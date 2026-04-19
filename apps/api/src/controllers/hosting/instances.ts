@@ -34,6 +34,7 @@ function resolveUserId(c: Context<HonoEnv>): string | null {
 export const getInstances = async (c: Context<HonoEnv>) => {
     try {
         const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Unauthorized.', 401)
         const result = await db.select()
             .from(instances)
             .where(eq(instances.userId, userId))
@@ -64,6 +65,7 @@ export const getInstances = async (c: Context<HonoEnv>) => {
 export const getInstance = async (c: Context<HonoEnv>) => {
     try {
         const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Unauthorized.', 401)
         const instanceId = c.req.param('id')
 
         const [instance] = await db.select()
@@ -87,6 +89,7 @@ export const getInstance = async (c: Context<HonoEnv>) => {
 export const getInstanceStatus = async (c: Context<HonoEnv>) => {
     try {
         const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Unauthorized.', 401)
         const instanceId = c.req.param('id')
 
         const [instance] = await db.select()
@@ -128,6 +131,7 @@ export const getInstanceStatus = async (c: Context<HonoEnv>) => {
 export const restartInstance = async (c: Context<HonoEnv>) => {
     try {
         const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Unauthorized.', 401)
         const instanceId = c.req.param('id')
 
         const [instance] = await db.select()
@@ -152,6 +156,7 @@ export const restartInstance = async (c: Context<HonoEnv>) => {
 export const upgradePlan = async (c: Context<HonoEnv>) => {
     try {
         const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Unauthorized.', 401)
         const instanceId = c.req.param('id')
         const { targetPlan } = await c.req.json<{ targetPlan: string }>()
 
@@ -215,7 +220,10 @@ export const upgradePlan = async (c: Context<HonoEnv>) => {
         }
 
         // Perform Hetzner server type change (background)
-        const provider = getProvider('hetzner') as typeof import('@/services/hetzner').default
+        const provider = getProvider('hetzner')
+        if (!provider.changeServerType) {
+            return fail(c, 'Provider does not support server type change.', 400)
+        }
         provider.changeServerType(instance.hetznerServerId, targetPlanInfo.hetznerType)
             .then(async () => {
                 await db.update(instances).set({
@@ -255,6 +263,7 @@ export const upgradePlan = async (c: Context<HonoEnv>) => {
 export const addStorage = async (c: Context<HonoEnv>) => {
     try {
         const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Unauthorized.', 401)
         const instanceId = c.req.param('id')
         const { addonId } = await c.req.json<{ addonId: string }>()
 
@@ -310,7 +319,7 @@ export const addStorage = async (c: Context<HonoEnv>) => {
                             `  ln -sf "$MOUNT" /home/openclaw/.openclaw/extra-storage/vol-${volume.id} && ` +
                             `  chown -R openclaw:openclaw /home/openclaw/.openclaw/extra-storage; ` +
                             `fi`,
-                            (err) => { conn.end(); err ? reject(err) : resolve() }
+                            (err) => { conn.end(); if (err) reject(err); else resolve() }
                         )
                     }).on('error', reject)
                     const opts: Record<string, unknown> = { host: instance.ip, port: 22, username: 'root', privateKey: sshKey }
@@ -345,6 +354,7 @@ export const addStorage = async (c: Context<HonoEnv>) => {
 export const deleteInstance = async (c: Context<HonoEnv>) => {
     try {
         const userId = resolveUserId(c)
+        if (!userId) return fail(c, 'Unauthorized.', 401)
         const instanceId = c.req.param('id')
 
         const [instance] = await db.select()
