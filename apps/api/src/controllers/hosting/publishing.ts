@@ -16,6 +16,13 @@ import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { resolveUserId, getOwnedInstance } from './authHelper'
 import { publishRenderToMeta, listAdAccounts, listCampaigns, listAdSets, type PublishParams } from '@/services/metaPublisher'
+import {
+    publishRenderToGoogleAds,
+    listGoogleAdsAccounts,
+    listGoogleAdsCampaigns,
+    listGoogleAdsAdGroups,
+    type GoogleAdsPublishParams,
+} from '@/services/googleAdsPublisher'
 
 // ═══════════════════════════════════════════════════════════════════════════
 // POST .../creative/publish
@@ -117,6 +124,75 @@ export const metaListAdSets = async (c: Context) => {
         return ok(c, { adsets, count: adsets.length })
     } catch (err) {
         console.error('metaListAdSets error:', err)
+        return fail(c, err instanceof Error ? err.message : 'Fetch failed', 500)
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Google Ads publishing
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const publishToGoogleAds = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = resolveUserId(c)
+        if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
+
+        const body = await c.req.json<Omit<GoogleAdsPublishParams, 'instanceId'>>()
+        if (!body.renderId || !body.customerId || !body.adGroupId || !body.adName || !body.finalUrls || !body.headlines || !body.descriptions || !body.businessName) {
+            return fail(c, 'renderId, customerId, adGroupId, adName, finalUrls, headlines, descriptions, businessName — all required', 400)
+        }
+
+        const result = await publishRenderToGoogleAds({ ...body, instanceId })
+        if (!result.ok) return fail(c, result.error || 'Publish failed', 500)
+
+        return ok(c, result, 'Published.')
+    } catch (err) {
+        console.error('publishToGoogleAds error:', err)
+        return fail(c, err instanceof Error ? err.message : 'Publish failed', 500)
+    }
+}
+
+export const googleAdsListAccounts = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = resolveUserId(c)
+        if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
+        const accounts = await listGoogleAdsAccounts(instanceId)
+        return ok(c, { accounts, count: accounts.length })
+    } catch (err) {
+        console.error('googleAdsListAccounts error:', err)
+        return fail(c, err instanceof Error ? err.message : 'Fetch failed', 500)
+    }
+}
+
+export const googleAdsListCampaigns = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = resolveUserId(c)
+        if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
+        const customerId = c.req.query('customerId')
+        if (!customerId) return fail(c, 'customerId required', 400)
+        const campaigns = await listGoogleAdsCampaigns(instanceId, customerId)
+        return ok(c, { campaigns, count: campaigns.length })
+    } catch (err) {
+        console.error('googleAdsListCampaigns error:', err)
+        return fail(c, err instanceof Error ? err.message : 'Fetch failed', 500)
+    }
+}
+
+export const googleAdsListAdGroups = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = resolveUserId(c)
+        if (!await getOwnedInstance(instanceId, userId)) return fail(c, 'Instance not found', 404)
+        const customerId = c.req.query('customerId')
+        const campaignId = c.req.query('campaignId')
+        if (!customerId) return fail(c, 'customerId required', 400)
+        const adGroups = await listGoogleAdsAdGroups(instanceId, customerId, campaignId || undefined)
+        return ok(c, { adGroups, count: adGroups.length })
+    } catch (err) {
+        console.error('googleAdsListAdGroups error:', err)
         return fail(c, err instanceof Error ? err.message : 'Fetch failed', 500)
     }
 }

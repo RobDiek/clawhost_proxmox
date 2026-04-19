@@ -320,10 +320,17 @@ async function triggerPostApprove(output: typeof agentOutputs.$inferSelect) {
         return
     }
 
-    // Earlier creative gates (concept/character/scenes) — no live action, just mark approved
-    // (yotzer agent reads agent_outputs.status and advances to next gate based on session state)
+    // Earlier creative gates (concept/character/scenes) — auto-invoke yotzer cascade
+    // to generate the next gate's draft. This closes the HITL loop without manual CLI.
     if (output.outputType && output.outputType.startsWith('creative_') && output.outputType !== 'creative_final_draft') {
-        console.log(`Creative gate approved: ${output.outputType} (id ${output.id}) — agent can advance to next gate`)
+        console.log(`Creative gate approved: ${output.outputType} (id ${output.id}) — triggering yotzer cascade`)
+        try {
+            const { cascadeCreativeGate } = await import('@/services/yotzerCascade')
+            // Fire-and-forget (non-blocking — agent takes 30-120s)
+            cascadeCreativeGate(output).catch(err => console.error(`Cascade error for ${output.id}:`, err))
+        } catch (err) {
+            console.error(`Failed to import cascade for ${output.id}:`, err)
+        }
         return
     }
 

@@ -201,6 +201,10 @@ import {
     metaListAdAccounts,
     metaListCampaigns,
     metaListAdSets,
+    publishToGoogleAds,
+    googleAdsListAccounts,
+    googleAdsListCampaigns,
+    googleAdsListAdGroups,
     triggerWeeklyReport,
     getLatestWeeklyReport,
     triggerYotzer,
@@ -371,6 +375,12 @@ app.post('/instances/:id/creative/publish',                         publishToMet
 app.get('/instances/:id/creative/meta/ad-accounts',                 metaListAdAccounts)
 app.get('/instances/:id/creative/meta/campaigns',                   metaListCampaigns)
 app.get('/instances/:id/creative/meta/adsets',                      metaListAdSets)
+
+// ── Google Ads Publishing (Phase C mirror) ──
+app.post('/instances/:id/creative/publish-google',                  publishToGoogleAds)
+app.get('/instances/:id/creative/google/accounts',                  googleAdsListAccounts)
+app.get('/instances/:id/creative/google/campaigns',                 googleAdsListCampaigns)
+app.get('/instances/:id/creative/google/ad-groups',                 googleAdsListAdGroups)
 
 // ── Weekly Creative Report (Phase D) ──
 app.post('/instances/:id/creative/weekly-report/generate',          triggerWeeklyReport)

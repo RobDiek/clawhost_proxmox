@@ -120,6 +120,12 @@ export async function pushInstanceFacts(instanceId: string): Promise<number> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!inst?.ip) return 0
 
+    // Ensure tenant-side ingest cron is installed. Idempotent: checks for
+    // existing systemd timer before installing. This covers instances provisioned
+    // before Phase F cloud-init changes.
+    await ensureIngestCronInstalled(inst.ip, inst.rootPassword || undefined)
+        .catch(err => console.warn(`[factsPusher] ingest cron install skipped: ${err instanceof Error ? err.message : err}`))
+
     const facts: FactEntry[] = []
 
     // ── Concluded hypotheses ──
@@ -252,6 +258,67 @@ export async function pushInstanceFacts(instanceId: string): Promise<number> {
 
     console.log(`[factsPusher] ${instanceId}: appended ${facts.length} facts to PENDING_FACTS.jsonl`)
     return facts.length
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Ensure tenant-side ingest cron is installed (idempotent)
+// Uses systemd timer if available; falls back to crontab on older systems.
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function ensureIngestCronInstalled(ip: string, password: string | undefined): Promise<void> {
+    // Check if already installed — if systemd timer is active, skip
+    const check = await sshExec(
+        ip,
+        `systemctl is-active openclaw-facts-ingest.timer 2>/dev/null || echo NEEDS_INSTALL`,
+        password, 10000,
+    )
+    if (check.trim() === 'active') return
+
+    const ingestUrl = 'https://raw.githubusercontent.com/synex-os/openclaw-hosting/Production/scripts/ingest-facts-cron.js'
+    // Install in one SSH command — includes fetch + systemd units + enable
+    const installCmd = `
+mkdir -p /opt/openclaw
+curl -fsSL "${ingestUrl}" -o /opt/openclaw/ingest-facts-cron.js
+chmod +x /opt/openclaw/ingest-facts-cron.js
+cat > /etc/systemd/system/openclaw-facts-ingest.service <<'SVCEOF'
+[Unit]
+Description=OpenClaw facts ingest — drains PENDING_FACTS.jsonl into Neo4j
+After=network.target
+
+[Service]
+Type=oneshot
+User=openclaw
+Group=openclaw
+WorkingDirectory=/home/openclaw/.openclaw
+ExecStart=/usr/bin/node /opt/openclaw/ingest-facts-cron.js
+StandardOutput=append:/var/log/openclaw-facts-ingest.log
+StandardError=append:/var/log/openclaw-facts-ingest.log
+SVCEOF
+cat > /etc/systemd/system/openclaw-facts-ingest.timer <<'TIMEREOF'
+[Unit]
+Description=Run openclaw-facts-ingest every 30 minutes
+Requires=openclaw-facts-ingest.service
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=30min
+Unit=openclaw-facts-ingest.service
+
+[Install]
+WantedBy=timers.target
+TIMEREOF
+touch /var/log/openclaw-facts-ingest.log
+chown openclaw:openclaw /var/log/openclaw-facts-ingest.log
+systemctl daemon-reload
+systemctl enable openclaw-facts-ingest.timer
+systemctl start openclaw-facts-ingest.timer
+echo INGEST_CRON_INSTALLED
+`
+    const result = await sshExec(ip, installCmd, password, 60000)
+    if (!result.includes('INGEST_CRON_INSTALLED')) {
+        throw new Error(`Ingest cron install failed: ${result.substring(0, 300)}`)
+    }
+    console.log(`[factsPusher] ingest cron installed on ${ip}`)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
