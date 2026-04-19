@@ -197,6 +197,13 @@ import {
     addHypothesisVariant,
     analyzeHypothesisEndpoint,
     abandonHypothesis,
+    publishToMeta,
+    metaListAdAccounts,
+    metaListCampaigns,
+    metaListAdSets,
+    triggerWeeklyReport,
+    getLatestWeeklyReport,
+    triggerYotzer,
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -358,6 +365,19 @@ app.patch('/instances/:id/creative/hypotheses/:hypId/pre-register', preRegisterH
 app.patch('/instances/:id/creative/hypotheses/:hypId/add-variant',  addHypothesisVariant)
 app.post('/instances/:id/creative/hypotheses/:hypId/analyze',       analyzeHypothesisEndpoint)
 app.patch('/instances/:id/creative/hypotheses/:hypId/abandon',      abandonHypothesis)
+
+// ── Creative Publishing (Phase C) — auto-publish to Meta/Google + auto-mapping ──
+app.post('/instances/:id/creative/publish',                         publishToMeta)
+app.get('/instances/:id/creative/meta/ad-accounts',                 metaListAdAccounts)
+app.get('/instances/:id/creative/meta/campaigns',                   metaListCampaigns)
+app.get('/instances/:id/creative/meta/adsets',                      metaListAdSets)
+
+// ── Weekly Creative Report (Phase D) ──
+app.post('/instances/:id/creative/weekly-report/generate',          triggerWeeklyReport)
+app.get('/instances/:id/creative/weekly-report/latest',             getLatestWeeklyReport)
+
+// ── Yotzer Trigger (Phase E) — user-invoked brief from dashboard ──
+app.post('/instances/:id/creative/yotzer/trigger',                  triggerYotzer)
 
 // ── SEO First Run ──
 app.post('/instances/:id/seo/validate', seoValidate)

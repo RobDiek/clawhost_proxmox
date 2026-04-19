@@ -48,5 +48,8 @@ export {
     createHypothesis, listHypotheses, getHypothesis,
     preRegisterHypothesis, addHypothesisVariant, analyzeHypothesisEndpoint, abandonHypothesis,
 } from './hypotheses'
+export { publishToMeta, metaListAdAccounts, metaListCampaigns, metaListAdSets } from './publishing'
+export { triggerWeeklyReport, getLatestWeeklyReport } from './weeklyReport'
+export { triggerYotzer } from './yotzerTrigger'
 // Twenty CRM removed — AGPLv3 license risk
 // export { installTwenty } from './twenty'

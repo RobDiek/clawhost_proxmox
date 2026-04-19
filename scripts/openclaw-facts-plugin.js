@@ -21,6 +21,11 @@
  */
 
 const neo4j = require('neo4j-driver')
+const fs = require('fs')
+const path = require('path')
+
+const PENDING_FACTS_PATH = '/home/openclaw/.openclaw/workspace/PENDING_FACTS.jsonl'
+const PENDING_FACTS_PROCESSED = '/home/openclaw/.openclaw/workspace/PENDING_FACTS.processed.log'
 
 let driver = null
 
@@ -210,5 +215,97 @@ module.exports = {
 
   async onUnload() {
     if (driver) { await driver.close(); driver = null }
+  },
+
+  // Phase F — ingest pending facts from mgmt-pushed staging file
+  // ═══════════════════════════════════════════════════════════════════════
+  // PENDING_FACTS.jsonl is appended by mgmt-side factsPusher.ts (Phase F).
+  // This tool processes it + marks done via sidecar file PENDING_FACTS.processed.log.
+  // Idempotent: only processes facts whose _key isn't in the processed log.
+  tools_phaseF: {  // placeholder — actual tool registration done via tools block above
+  },
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Register ingest_pending_facts tool via monkey-patch (run after module.exports).
+// Rationale: keeping edit diff minimal — we append the tool to tools{} below.
+// ═══════════════════════════════════════════════════════════════════════════
+module.exports.tools.ingest_pending_facts = {
+  description: 'Phase F — read PENDING_FACTS.jsonl (appended by mgmt server when hypotheses conclude + references gain high signal) and write them to Neo4j. Idempotent: tracks processed keys in PENDING_FACTS.processed.log. Call on demand or from a cron.',
+  parameters: {
+    type: 'object',
+    properties: {
+      maxBatch: { type: 'integer', description: 'Max entries to process this call (default 200)' },
+    },
+  },
+  handler: async (args, ctx) => {
+    if (!fs.existsSync(PENDING_FACTS_PATH)) {
+      return { ok: true, processed: 0, reason: 'no pending facts file' }
+    }
+    const processedKeys = new Set()
+    if (fs.existsSync(PENDING_FACTS_PROCESSED)) {
+      try {
+        const existing = fs.readFileSync(PENDING_FACTS_PROCESSED, 'utf8').split('\n').filter(Boolean)
+        for (const k of existing) processedKeys.add(k.trim())
+      } catch {}
+    }
+
+    const raw = fs.readFileSync(PENDING_FACTS_PATH, 'utf8')
+    const lines = raw.split('\n').filter(l => l.trim())
+    const maxBatch = Math.min(args?.maxBatch || 200, 500)
+
+    const d = getDriver(ctx.config.uri, ctx.config.user, ctx.config.password)
+    const session = d.session()
+    let processed = 0
+    let skipped = 0
+    let errors = 0
+    const newProcessed = []
+
+    try {
+      for (const line of lines) {
+        if (processed >= maxBatch) break
+        let fact
+        try { fact = JSON.parse(line) } catch { errors++; continue }
+        const key = fact._key || `${fact.subject}|${fact.predicate}|${fact.object}`
+        if (processedKeys.has(key)) { skipped++; continue }
+
+        try {
+          await session.run(`
+            MERGE (s:Entity { id: $subjectId })
+            ON CREATE SET s.name = $subjectName, s.type = $subjectType, s.createdAt = $now
+            MERGE (o:Entity { id: $objectId })
+            ON CREATE SET o.name = $objectName, o.type = $objectType, o.createdAt = $now
+            MERGE (s)-[r:FACT { predicate: $predicate }]->(o)
+            ON CREATE SET r.source = $source, r.validFrom = $validFrom, r.metadata = $metadata, r.createdAt = $now
+            ON MATCH  SET r.metadata = $metadata, r.updatedAt = $now
+          `, {
+            subjectId: slug(fact.subject),
+            subjectName: fact.subject,
+            subjectType: fact.subjectType || 'unknown',
+            objectId: slug(fact.object),
+            objectName: fact.object,
+            objectType: fact.objectType || 'unknown',
+            predicate: fact.predicate,
+            source: fact.source || 'mgmt_push',
+            validFrom: fact.validFrom || nowIso(),
+            metadata: JSON.stringify(fact.metadata || {}),
+            now: nowIso(),
+          })
+          processed++
+          newProcessed.push(key)
+        } catch (err) {
+          errors++
+        }
+      }
+    } finally {
+      await session.close()
+    }
+
+    // Append processed keys to sidecar
+    if (newProcessed.length > 0) {
+      fs.appendFileSync(PENDING_FACTS_PROCESSED, newProcessed.join('\n') + '\n')
+    }
+
+    return { ok: true, processed, skipped, errors, totalLinesInFile: lines.length }
   }
 }

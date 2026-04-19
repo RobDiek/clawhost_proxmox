@@ -2533,6 +2533,9 @@ input{font-family:inherit}
       <button class="cc-tab"               data-tab="hypotheses"  onclick="switchCreativeTab('hypotheses')">🧪 A/B</button>
       <button class="cc-tab"               data-tab="fatigue"     onclick="switchCreativeTab('fatigue')">⚠️ עייפות</button>
       <button class="cc-tab"               data-tab="mappings"    onclick="switchCreativeTab('mappings')">🔗 פרסום</button>
+      <button class="cc-tab"               data-tab="weekly"      onclick="switchCreativeTab('weekly')">📰 דוח שבועי</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-primary btn-sm" onclick="openYotzerTriggerDialog()" style="margin:4px 0">➕ Yotzer</button>
     </div>
     <style>
       .cc-tab {
@@ -11128,6 +11131,7 @@ function switchCreativeTab(tab) {
     case 'hypotheses':  renderHypothesesTab(); break;
     case 'fatigue':     renderFatigueTab(); break;
     case 'mappings':    renderMappingsTab(); break;
+    case 'weekly':      renderWeeklyReportTab(); break;
   }
 }
 
@@ -11274,9 +11278,10 @@ function renderRenderCard(r) {
 
   // Footer actions
   if (r.renderStatus === 'done') {
-    html += '<div style="padding:8px 12px;background:#F9FAFB;border-top:1px solid #E5E7EB;display:flex;gap:6px;font-size:0.75rem">';
+    html += '<div style="padding:8px 12px;background:#F9FAFB;border-top:1px solid #E5E7EB;display:flex;gap:6px;flex-wrap:wrap;font-size:0.75rem">';
     if (r.outputId) html += '<button class="btn btn-outline btn-sm" onclick="viewRenderLineage(\'' + r.id + '\')" style="font-size:0.72rem;padding:3px 8px">📋 שושלת</button>';
     html += '<button class="btn btn-outline btn-sm" onclick="rateRender(\'' + r.id + '\', ' + (r.userRating || 0) + ')" style="font-size:0.72rem;padding:3px 8px">' + (r.userRating ? '⭐'.repeat(r.userRating) : '⭐ דרג') + '</button>';
+    html += '<button class="btn btn-primary btn-sm" onclick="openPublishDialog(\'' + r.id + '\', \'' + escapeHtml(r.tier) + '\', \'' + escapeHtml(r.formatType) + '\')" style="font-size:0.72rem;padding:3px 8px">🚀 פרסם ב-Meta</button>';
     html += '</div>';
   } else if (r.renderStatus === 'failed' && r.outputId) {
     html += '<div style="padding:8px 12px;background:#FEF2F2;border-top:1px solid #FECACA;display:flex;gap:6px">';
@@ -11928,6 +11933,298 @@ async function deleteMappingBtn(mappingId) {
     showToast('נמחק', 'success');
     renderMappingsTab();
   } catch (err) { showToast('שגיאה: ' + err.message, 'error'); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Tab: Weekly Creative Report (Phase D)
+// ═══════════════════════════════════════════════════════════════════════════
+async function renderWeeklyReportTab() {
+  document.getElementById('rendersBody').innerHTML = '<div style="text-align:center;padding:40px;color:#9CA3AF">טוען...</div>';
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/weekly-report/latest', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    if (!j.success) { document.getElementById('rendersBody').innerHTML = '<div style="color:#EF4444;padding:20px">' + escapeHtml(j.message) + '</div>'; return; }
+    var report = j.data && j.data.report;
+
+    var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">';
+    html += '<div style="font-size:0.85rem;color:#6B7280">דוח שבועי אוטומטי · menateach compose · Sonnet Hebrew</div>';
+    html += '<button class="btn btn-primary btn-sm" onclick="triggerManualWeeklyReport()">↻ ייצר עכשיו</button>';
+    html += '</div>';
+
+    if (!report) {
+      html += renderEmptyState(
+        '📰',
+        'אין דוח שבועי עדיין',
+        'דוחות נוצרים אוטומטית כל יום שני 08:00 UTC (11:00 ישראל).<br>דורש לפחות 3 renders עם perf data ב-14 ימים האחרונים.<br>אפשר לחץ "ייצר עכשיו" כדי ליצור ידנית אם יש מספיק נתונים.',
+        null, null,
+      );
+    } else {
+      var md = report.content || '';
+      var stats = (report.metadata && report.metadata.stats) || {};
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;margin-bottom:14px">';
+      html += perfSummaryCard('💰 הוצאה', '₪' + (stats.totalSpend || 0).toFixed(0), '14 ימים');
+      html += perfSummaryCard('🎯 ROAS', stats.avgRoas ? stats.avgRoas.toFixed(2) + 'x' : '—', '');
+      html += perfSummaryCard('🏆 Winners', String(stats.winnersCount || 0), '');
+      html += perfSummaryCard('🧪 Hypotheses', String(stats.concludedHypotheses || 0), 'הושלמו');
+      html += perfSummaryCard('⚠️ Fatigue', String(stats.openFatigueAlerts || 0), 'פתוחות');
+      html += '</div>';
+
+      html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:16px;line-height:1.6;white-space:pre-wrap;font-family:inherit">';
+      // Simple markdown render (headers only)
+      var rendered = escapeHtml(md)
+        .replace(/^## (.+)$/gm, '<h3 style="margin:16px 0 8px;color:#1E3A5F;font-size:1.05rem">$1</h3>')
+        .replace(/^### (.+)$/gm, '<h4 style="margin:10px 0 4px;color:#374151;font-size:0.95rem">$1</h4>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      html += rendered;
+      html += '</div>';
+
+      html += '<div style="text-align:center;margin-top:10px;font-size:0.72rem;color:#9CA3AF">נוצר ' + new Date(report.createdAt).toLocaleString('he-IL') + '</div>';
+    }
+
+    document.getElementById('rendersBody').innerHTML = html;
+  } catch (err) {
+    document.getElementById('rendersBody').innerHTML = '<div style="color:#EF4444;padding:20px">שגיאה: ' + escapeHtml(err.message) + '</div>';
+  }
+}
+
+async function triggerManualWeeklyReport() {
+  var btn = event && event.target;
+  if (btn) { btn.disabled = true; btn.textContent = 'מייצר...'; }
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/weekly-report/generate', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    if (!j.success) { showToast(j.message || 'שגיאה', 'error'); return; }
+    showToast('דוח נוצר', 'success');
+    renderWeeklyReportTab();
+  } catch (err) { showToast('שגיאה: ' + err.message, 'error'); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = '↻ ייצר עכשיו'; } }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Yotzer Trigger Dialog (Phase E)
+// ═══════════════════════════════════════════════════════════════════════════
+function openYotzerTriggerDialog() {
+  var html = '<div style="padding:20px 24px;max-width:700px;margin:0 auto">';
+  html += '<h4 style="margin-bottom:14px">➕ Yotzer — creative חדש</h4>';
+  html += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px;margin-bottom:14px;font-size:0.78rem;color:#1E40AF">💡 Yotzer יקרא brand book + references אוטומטית, ישלוף persona מה-facts graph, וייצור draft_concept (Gate 1) לתור האישורים תוך 30-120 שניות.</div>';
+
+  html += '<div style="margin-bottom:10px">';
+  html += '<label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Brief (10 תווים מינימום)</label>';
+  html += '<textarea id="yot-brief" rows="3" placeholder="למשל: הכרזה על מבצע 20% הנחה על קפה בוקר בסניף שלנו בתל אביב" style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px;font-size:0.88rem;font-family:inherit"></textarea>';
+  html += '</div>';
+
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:10px">';
+  html += '<div><label style="display:block;font-size:0.78rem;font-weight:600;margin-bottom:4px">Goal</label><select id="yot-goal" style="width:100%;padding:8px;border:1.5px solid #E5E7EB;border-radius:6px">';
+  html += '<option value="awareness">awareness</option><option value="leads">leads</option><option value="sales">sales</option><option value="engagement">engagement</option><option value="app_install">app_install</option><option value="retention">retention</option>';
+  html += '</select></div>';
+
+  html += '<div><label style="display:block;font-size:0.78rem;font-weight:600;margin-bottom:4px">Platform</label><select id="yot-platform" style="width:100%;padding:8px;border:1.5px solid #E5E7EB;border-radius:6px">';
+  ['meta_feed', 'meta_story', 'meta_reel', 'youtube_short', 'youtube_in_stream', 'google_display', 'tiktok', 'linkedin', 'static_ad'].forEach(function(p) {
+    html += '<option value="' + p + '">' + p + '</option>';
+  });
+  html += '</select></div>';
+
+  html += '<div><label style="display:block;font-size:0.78rem;font-weight:600;margin-bottom:4px">Tier</label><select id="yot-tier" style="width:100%;padding:8px;border:1.5px solid #E5E7EB;border-radius:6px">';
+  html += '<option value="draft">draft (~$0.04)</option><option value="standard" selected>standard (~$0.12-$2.80)</option><option value="premium">premium (~$6-$12)</option>';
+  html += '</select></div>';
+
+  html += '<div><label style="display:block;font-size:0.78rem;font-weight:600;margin-bottom:4px">Format</label><select id="yot-format" style="width:100%;padding:8px;border:1.5px solid #E5E7EB;border-radius:6px">';
+  html += '<option value="image">image</option><option value="video">video</option><option value="carousel">carousel</option>';
+  html += '</select></div>';
+  html += '</div>';
+
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">';
+  html += '<div><label style="display:block;font-size:0.78rem;font-weight:600;margin-bottom:4px">CTA (עברית)</label><input type="text" id="yot-cta" placeholder="הזמן עכשיו / לפרטים נוספים / בואו לבקר" style="width:100%;padding:8px;border:1.5px solid #E5E7EB;border-radius:6px"></div>';
+  html += '<div><label style="display:block;font-size:0.78rem;font-weight:600;margin-bottom:4px">Target audience (persona)</label><input type="text" id="yot-target" placeholder="בעלי עסקים קטנים בישראל" style="width:100%;padding:8px;border:1.5px solid #E5E7EB;border-radius:6px"></div>';
+  html += '</div>';
+
+  html += '<div style="margin-bottom:14px"><label style="display:block;font-size:0.78rem;font-weight:600;margin-bottom:4px">Rationale (למה הקריאייטיב הזה? עברית)</label>';
+  html += '<textarea id="yot-rationale" rows="2" placeholder="persona X מתאים ל-platform Y, קודם נסו hookType testimony כי 3 מתחרים מצליחים עם זה" style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px;font-size:0.85rem;font-family:inherit"></textarea></div>';
+
+  html += '<div style="display:flex;gap:8px;justify-content:flex-end">';
+  html += '<button class="btn btn-outline" onclick="switchCreativeTab(\'gallery\')">ביטול</button>';
+  html += '<button class="btn btn-primary" onclick="submitYotzerTrigger()">🚀 הפעל Yotzer</button>';
+  html += '</div>';
+  html += '</div>';
+
+  document.getElementById('rendersBody').innerHTML = html;
+}
+
+async function submitYotzerTrigger() {
+  var brief = (document.getElementById('yot-brief') || {}).value || '';
+  if (brief.trim().length < 10) { showToast('Brief לפחות 10 תווים', 'warn'); return; }
+  var body = {
+    brief: brief.trim(),
+    goal: (document.getElementById('yot-goal') || {}).value,
+    platform: (document.getElementById('yot-platform') || {}).value,
+    tier: (document.getElementById('yot-tier') || {}).value,
+    formatType: (document.getElementById('yot-format') || {}).value,
+    callToAction: (document.getElementById('yot-cta') || {}).value || undefined,
+    targetAudience: (document.getElementById('yot-target') || {}).value || undefined,
+    rationale: (document.getElementById('yot-rationale') || {}).value || undefined,
+  };
+
+  var btn = event && event.target;
+  if (btn) { btn.disabled = true; btn.textContent = 'מפעיל...'; }
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/yotzer/trigger', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    var j = await res.json();
+    if (!j.success) { showToast(j.message || 'שגיאה', 'error'); if (btn) { btn.disabled = false; btn.textContent = '🚀 הפעל Yotzer'; } return; }
+    showToast('Yotzer הופעל · ETA ' + (j.data.expectedLatencySec || 60) + 's · בדקו תור האישורים', 'success');
+    switchCreativeTab('gallery');
+  } catch (err) { showToast('שגיאה: ' + err.message, 'error'); if (btn) { btn.disabled = false; btn.textContent = '🚀 הפעל Yotzer'; } }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Publish to Meta Dialog (Phase C)
+// ═══════════════════════════════════════════════════════════════════════════
+var publishState = null;
+
+async function openPublishDialog(renderId, tier, formatType) {
+  publishState = { renderId: renderId, tier: tier, formatType: formatType, adAccountId: '', adSetId: '' };
+  var html = '<div style="padding:20px 24px;max-width:700px;margin:0 auto">';
+  html += '<h4 style="margin-bottom:14px">🚀 פרסם ב-Meta</h4>';
+  html += '<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:6px;padding:10px;margin-bottom:14px;font-size:0.78rem;color:#78350F">💡 <strong>מומלץ להתחיל ב-PAUSED.</strong> המודעה תיווצר עם הסטטוס "paused" ב-Meta — תוכלו להפעיל ידנית אחרי בדיקה ב-Ads Manager. אוטומטית ייווצר mapping כדי שתוכלו לעקוב אחרי ביצועים.</div>';
+
+  html += '<div style="color:#6B7280;font-size:0.82rem;margin-bottom:10px">Render: <code>' + escapeHtml(renderId) + '</code> · ' + escapeHtml(tier) + '·' + escapeHtml(formatType) + '</div>';
+
+  html += '<div style="margin-bottom:10px" id="pub-account-block"><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Ad Account</label>';
+  html += '<select id="pub-account" onchange="onPublishAccountChange()" style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px"><option value="">טוען...</option></select></div>';
+
+  html += '<div style="margin-bottom:10px" id="pub-campaign-block" style="display:none"><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Campaign</label>';
+  html += '<select id="pub-campaign" onchange="onPublishCampaignChange()" style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px"><option value="">בחר account קודם</option></select></div>';
+
+  html += '<div style="margin-bottom:10px"><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Ad Set <span style="color:#EF4444">*</span></label>';
+  html += '<select id="pub-adset" style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px"><option value="">בחר campaign קודם</option></select></div>';
+
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">';
+  html += '<div><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Ad Name</label><input type="text" id="pub-name" placeholder="שם פנימי ב-Meta" style="width:100%;padding:8px;border:1.5px solid #E5E7EB;border-radius:6px"></div>';
+  html += '<div><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Landing URL <span style="color:#EF4444">*</span></label><input type="url" id="pub-link" placeholder="https://..." style="width:100%;padding:8px;border:1.5px solid #E5E7EB;border-radius:6px;direction:ltr"></div>';
+  html += '</div>';
+
+  html += '<div style="margin-bottom:10px"><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Headline</label><input type="text" id="pub-headline" placeholder="עד 40 תווים" maxlength="40" style="width:100%;padding:8px;border:1.5px solid #E5E7EB;border-radius:6px"></div>';
+  html += '<div style="margin-bottom:10px"><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Primary text</label><textarea id="pub-body" rows="2" placeholder="טקסט ראשי של המודעה" style="width:100%;padding:8px;border:1.5px solid #E5E7EB;border-radius:6px;font-family:inherit"></textarea></div>';
+
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">';
+  html += '<div><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">CTA</label><select id="pub-cta" style="width:100%;padding:8px;border:1.5px solid #E5E7EB;border-radius:6px">';
+  ['LEARN_MORE', 'SHOP_NOW', 'SIGN_UP', 'CONTACT_US', 'BOOK_TRAVEL', 'WATCH_MORE', 'DOWNLOAD'].forEach(function(c) { html += '<option value="' + c + '">' + c + '</option>'; });
+  html += '</select></div>';
+  html += '<div><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Status initial</label><select id="pub-status" style="width:100%;padding:8px;border:1.5px solid #E5E7EB;border-radius:6px"><option value="PAUSED" selected>PAUSED (בטוח)</option><option value="ACTIVE">ACTIVE (מייד!)</option></select></div>';
+  html += '</div>';
+
+  html += '<div style="display:flex;gap:8px;justify-content:flex-end">';
+  html += '<button class="btn btn-outline" onclick="switchCreativeTab(\'gallery\')">ביטול</button>';
+  html += '<button class="btn btn-primary" onclick="submitPublish()">🚀 פרסם</button>';
+  html += '</div>';
+  html += '</div>';
+
+  document.getElementById('rendersBody').innerHTML = html;
+
+  // Load ad accounts
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/meta/ad-accounts', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    var sel = document.getElementById('pub-account');
+    if (!sel) return;
+    if (!j.success) { sel.innerHTML = '<option value="">שגיאה: ' + escapeHtml(j.message) + '</option>'; return; }
+    var accounts = (j.data && j.data.accounts) || [];
+    if (accounts.length === 0) { sel.innerHTML = '<option value="">אין ad accounts — חבר Meta</option>'; return; }
+    sel.innerHTML = '<option value="">-- בחר --</option>' + accounts.map(function(a) {
+      return '<option value="' + escapeHtml(a.id) + '">' + escapeHtml(a.name) + ' (' + escapeHtml(a.id) + ')</option>';
+    }).join('');
+  } catch (err) { showToast('Meta ad accounts לא נטענים: ' + err.message, 'error'); }
+}
+
+async function onPublishAccountChange() {
+  var accId = (document.getElementById('pub-account') || {}).value;
+  if (!accId) return;
+  publishState.adAccountId = accId;
+  document.getElementById('pub-campaign-block').style.display = '';
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/meta/campaigns?adAccountId=' + encodeURIComponent(accId), {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    var sel = document.getElementById('pub-campaign');
+    if (!j.success || !j.data.campaigns) { sel.innerHTML = '<option value="">שגיאה</option>'; return; }
+    var campaigns = j.data.campaigns;
+    if (campaigns.length === 0) { sel.innerHTML = '<option value="">אין campaigns</option>'; return; }
+    sel.innerHTML = '<option value="">-- בחר --</option>' + campaigns.map(function(c) {
+      return '<option value="' + escapeHtml(c.id) + '">[' + escapeHtml(c.status) + '] ' + escapeHtml(c.name) + '</option>';
+    }).join('');
+  } catch (err) { showToast('Campaigns לא נטענים', 'error'); }
+}
+
+async function onPublishCampaignChange() {
+  var campId = (document.getElementById('pub-campaign') || {}).value;
+  if (!campId) return;
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/meta/adsets?campaignId=' + encodeURIComponent(campId), {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    var sel = document.getElementById('pub-adset');
+    if (!j.success || !j.data.adsets) { sel.innerHTML = '<option value="">שגיאה</option>'; return; }
+    var adsets = j.data.adsets;
+    if (adsets.length === 0) { sel.innerHTML = '<option value="">אין ad sets</option>'; return; }
+    sel.innerHTML = '<option value="">-- בחר --</option>' + adsets.map(function(a) {
+      return '<option value="' + escapeHtml(a.id) + '">[' + escapeHtml(a.status) + '] ' + escapeHtml(a.name) + '</option>';
+    }).join('');
+  } catch (err) { showToast('Ad sets לא נטענים', 'error'); }
+}
+
+async function submitPublish() {
+  var adAccount = (document.getElementById('pub-account') || {}).value;
+  var campaignId = (document.getElementById('pub-campaign') || {}).value;
+  var adSetId = (document.getElementById('pub-adset') || {}).value;
+  var name = (document.getElementById('pub-name') || {}).value.trim();
+  var linkUrl = (document.getElementById('pub-link') || {}).value.trim();
+  var headline = (document.getElementById('pub-headline') || {}).value.trim();
+  var primaryText = (document.getElementById('pub-body') || {}).value.trim();
+  var cta = (document.getElementById('pub-cta') || {}).value;
+  var status = (document.getElementById('pub-status') || {}).value;
+
+  if (!adAccount || !adSetId || !linkUrl) { showToast('Ad Account + Ad Set + Landing URL חובה', 'warn'); return; }
+  if (!name) { name = 'clawflow_' + publishState.renderId.substring(0, 10); }
+  if (!/^https?:\/\//i.test(linkUrl)) { showToast('Landing URL חייב להיות http(s)', 'warn'); return; }
+
+  var btn = event && event.target;
+  if (btn) { btn.disabled = true; btn.textContent = 'מפרסם...'; }
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/publish', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        renderId: publishState.renderId,
+        adAccountId: adAccount,
+        adSetId: adSetId,
+        campaignId: campaignId || undefined,
+        name: name,
+        headline: headline || undefined,
+        primaryText: primaryText || undefined,
+        linkUrl: linkUrl,
+        callToAction: cta,
+        status: status,
+      }),
+    });
+    var j = await res.json();
+    if (!j.success) { showToast(j.message || 'פרסום נכשל', 'error'); if (btn) { btn.disabled = false; btn.textContent = '🚀 פרסם'; } return; }
+    showToast('✓ פורסם ב-Meta! ad_id: ' + j.data.platformCreativeId + ' (סטטוס: ' + status + ')', 'success');
+    switchCreativeTab('mappings');
+  } catch (err) { showToast('שגיאה: ' + err.message, 'error'); if (btn) { btn.disabled = false; btn.textContent = '🚀 פרסם'; } }
 }
 
 // Handle OAuth redirects (GSC)

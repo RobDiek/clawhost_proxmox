@@ -88,6 +88,14 @@ startCreativePerformanceSync()
 import { startHypothesisAnalyzer } from '@/services/hypothesisAnalyzer'
 startHypothesisAnalyzer()
 
+// Phase D — weekly creative report (Monday 08:00 UTC)
+import { startWeeklyCreativeReport } from '@/services/weeklyCreativeReport'
+startWeeklyCreativeReport()
+
+// Phase F — facts pusher (every 6h)
+import { startFactsPusher } from '@/services/factsPusher'
+startFactsPusher()
+
 // Trial manager — check trial expiry every hour
 import { runTrialManager } from '@/jobs/trialManager'
 setInterval(runTrialManager, 3600000) // every hour
