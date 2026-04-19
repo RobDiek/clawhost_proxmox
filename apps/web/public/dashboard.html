@@ -2520,14 +2520,30 @@ input{font-family:inherit}
 </div>
 
 <!-- Research Pipeline Modal -->
-<!-- ═══ Creative Renders Gallery (Phase B2) ═══ -->
+<!-- ═══ Creative Command Center (Phase B2-B6) ═══ -->
 <div class="report-modal-overlay hidden" id="rendersOverlay" onclick="closeRendersGallery()">
-  <div class="report-modal" onclick="event.stopPropagation()" style="max-width:1100px">
+  <div class="report-modal" onclick="event.stopPropagation()" style="max-width:1200px">
     <div class="report-modal-header">
-      <h3>🎬 היסטוריית רינדורים</h3>
+      <h3>🎬 מרכז קריאייטיב</h3>
       <button onclick="closeRendersGallery()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#6B7280">&times;</button>
     </div>
-    <div class="report-modal-body" id="rendersBody" style="min-height:300px;max-height:75vh;overflow-y:auto;padding:16px 24px">
+    <div id="creativeCenterTabs" style="padding:0 24px;border-bottom:1px solid #E5E7EB;background:#F9FAFB;display:flex;gap:4px;overflow-x:auto">
+      <button class="cc-tab cc-tab-active" data-tab="gallery"     onclick="switchCreativeTab('gallery')">🖼 גלריה</button>
+      <button class="cc-tab"               data-tab="performance" onclick="switchCreativeTab('performance')">📊 ביצועים</button>
+      <button class="cc-tab"               data-tab="hypotheses"  onclick="switchCreativeTab('hypotheses')">🧪 A/B</button>
+      <button class="cc-tab"               data-tab="fatigue"     onclick="switchCreativeTab('fatigue')">⚠️ עייפות</button>
+      <button class="cc-tab"               data-tab="mappings"    onclick="switchCreativeTab('mappings')">🔗 פרסום</button>
+    </div>
+    <style>
+      .cc-tab {
+        background: none; border: none; padding: 10px 14px; font-size: 0.88rem;
+        color: #6B7280; border-bottom: 3px solid transparent; cursor: pointer;
+        font-family: inherit; white-space: nowrap; transition: all 0.15s;
+      }
+      .cc-tab:hover { color: #1E40AF; background: #EFF6FF; }
+      .cc-tab-active { color: #2563EB; border-bottom-color: #2563EB; font-weight: 600; }
+    </style>
+    <div class="report-modal-body" id="rendersBody" style="min-height:300px;max-height:70vh;overflow-y:auto;padding:16px 24px">
       <div style="text-align:center;padding:40px;color:#9CA3AF">טוען...</div>
     </div>
   </div>
@@ -11081,21 +11097,51 @@ document.addEventListener('DOMContentLoaded', function() {
   setTimeout(loadCreativeStatus, 2500);
 });
 
-// ─── Renders Gallery (Phase B2) ───────────────────────────────────────────
+// ─── Creative Command Center (Phase B2-B6) ────────────────────────────────
 var rendersPollTimer = null;
+var currentCreativeTab = 'gallery';
 
-async function openRendersGallery() {
+async function openRendersGallery(initialTab) {
   if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
   document.getElementById('rendersOverlay').classList.remove('hidden');
-  await refreshRendersGallery();
-  // Auto-refresh every 5s while open (catch in-progress renders finishing)
-  if (rendersPollTimer) clearInterval(rendersPollTimer);
-  rendersPollTimer = setInterval(refreshRendersGallery, 5000);
+  switchCreativeTab(initialTab || 'gallery');
 }
 
 function closeRendersGallery() {
   document.getElementById('rendersOverlay').classList.add('hidden');
   if (rendersPollTimer) { clearInterval(rendersPollTimer); rendersPollTimer = null; }
+}
+
+function switchCreativeTab(tab) {
+  currentCreativeTab = tab;
+  // Update tab button styles
+  document.querySelectorAll('.cc-tab').forEach(function(b) {
+    if (b.dataset.tab === tab) b.classList.add('cc-tab-active');
+    else b.classList.remove('cc-tab-active');
+  });
+  // Clear any existing poll timer — each tab sets its own as needed
+  if (rendersPollTimer) { clearInterval(rendersPollTimer); rendersPollTimer = null; }
+  // Dispatch to tab renderer
+  switch (tab) {
+    case 'gallery':     refreshRendersGallery(); rendersPollTimer = setInterval(refreshRendersGallery, 5000); break;
+    case 'performance': renderPerformanceTab(); break;
+    case 'hypotheses':  renderHypothesesTab(); break;
+    case 'fatigue':     renderFatigueTab(); break;
+    case 'mappings':    renderMappingsTab(); break;
+  }
+}
+
+// Empty state helper — shown when tab has no data
+function renderEmptyState(icon, title, description, actionLabel, actionHandler) {
+  var html = '<div style="text-align:center;padding:60px 20px;color:#6B7280">';
+  html += '<div style="font-size:3rem;margin-bottom:12px">' + icon + '</div>';
+  html += '<strong style="font-size:1rem;color:#374151;display:block;margin-bottom:8px">' + escapeHtml(title) + '</strong>';
+  html += '<div style="font-size:0.85rem;line-height:1.5;max-width:500px;margin:0 auto">' + description + '</div>';
+  if (actionLabel && actionHandler) {
+    html += '<button class="btn btn-primary" onclick="' + actionHandler + '" style="margin-top:16px">' + escapeHtml(actionLabel) + '</button>';
+  }
+  html += '</div>';
+  return html;
 }
 
 async function refreshRendersGallery() {
@@ -11295,6 +11341,593 @@ async function retryRender(outputId) {
   } catch (err) {
     showToast('שגיאה: ' + err.message, 'error');
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Tab: Performance (Phase B5)
+// ═══════════════════════════════════════════════════════════════════════════
+async function renderPerformanceTab() {
+  document.getElementById('rendersBody').innerHTML = '<div style="text-align:center;padding:40px;color:#9CA3AF">טוען...</div>';
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/performance?days=30', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    if (!j.success) {
+      document.getElementById('rendersBody').innerHTML = '<div style="color:#EF4444;padding:20px">' + escapeHtml(j.message || 'שגיאה') + '</div>';
+      return;
+    }
+    var data = j.data || {};
+    var perf = data.performance || [];
+
+    if (perf.length === 0) {
+      document.getElementById('rendersBody').innerHTML = renderEmptyState(
+        '📊',
+        'אין נתוני ביצועים עדיין',
+        'כדי לעקוב אחרי ביצועים של קריאייטיב:<br>1. פרסמו קריאייטיב ב-Meta/Google<br>2. הוסיפו mapping דרך טאב "🔗 פרסום"<br>3. נתוני ביצועים ייסנכרנו אוטומטית כל 24 שעות',
+        '🔗 פתח פרסום',
+        "switchCreativeTab('mappings')",
+      );
+      return;
+    }
+
+    // Summary row
+    var totalSpend = perf.reduce(function(s, r) { return s + r.totalSpend; }, 0);
+    var totalImpressions = perf.reduce(function(s, r) { return s + r.totalImpressions; }, 0);
+    var totalClicks = perf.reduce(function(s, r) { return s + r.totalClicks; }, 0);
+    var totalConv = perf.reduce(function(s, r) { return s + r.totalConversions; }, 0);
+    var totalRev = perf.reduce(function(s, r) { return s + r.totalConversionValue; }, 0);
+    var avgCtr = totalImpressions > 0 ? totalClicks / totalImpressions : 0;
+    var avgRoas = totalSpend > 0 ? totalRev / totalSpend : null;
+
+    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:10px;margin-bottom:14px">';
+    html += perfSummaryCard('💰 הוצאה', '₪' + totalSpend.toFixed(0), 'ב-' + (data.days || 30) + ' ימים');
+    html += perfSummaryCard('👁 חשיפות', formatK(totalImpressions), 'שווים ל-' + formatK(perf.reduce(function(s, r) { return s + r.totalClicks; }, 0)) + ' קליקים');
+    html += perfSummaryCard('📈 CTR', (avgCtr * 100).toFixed(2) + '%', 'ממוצע משוקלל');
+    html += perfSummaryCard('🎯 ROAS', avgRoas ? avgRoas.toFixed(2) + 'x' : '—', '₪' + totalRev.toFixed(0) + ' הכנסות');
+    html += perfSummaryCard('✓ המרות', totalConv.toFixed(0), '');
+    html += '</div>';
+
+    // Per-render table
+    html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden">';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:0.85rem">';
+    html += '<thead><tr style="background:#F9FAFB;text-align:right">';
+    html += '<th style="padding:10px">קריאייטיב</th>';
+    html += '<th style="padding:10px">ימים</th>';
+    html += '<th style="padding:10px">הוצאה</th>';
+    html += '<th style="padding:10px">חשיפות</th>';
+    html += '<th style="padding:10px">CTR</th>';
+    html += '<th style="padding:10px">המרות</th>';
+    html += '<th style="padding:10px">ROAS</th>';
+    html += '<th style="padding:10px"></th>';
+    html += '</tr></thead><tbody>';
+
+    perf.forEach(function(p) {
+      var roasColor = p.avgRoas >= 2 ? '#10B981' : p.avgRoas >= 1 ? '#F59E0B' : '#EF4444';
+      html += '<tr style="border-top:1px solid #F3F4F6">';
+      html += '<td style="padding:10px"><code style="font-size:0.72rem;color:#6B7280">' + escapeHtml(p.renderId) + '</code></td>';
+      html += '<td style="padding:10px">' + p.daysActive + '</td>';
+      html += '<td style="padding:10px;font-weight:600">₪' + p.totalSpend.toFixed(0) + '</td>';
+      html += '<td style="padding:10px">' + formatK(p.totalImpressions) + '</td>';
+      html += '<td style="padding:10px">' + (p.avgCtr ? (p.avgCtr * 100).toFixed(2) + '%' : '—') + '</td>';
+      html += '<td style="padding:10px">' + p.totalConversions.toFixed(0) + '</td>';
+      html += '<td style="padding:10px;font-weight:600;color:' + roasColor + '">' + (p.avgRoas ? p.avgRoas.toFixed(2) + 'x' : '—') + '</td>';
+      html += '<td style="padding:10px"><button class="btn btn-outline btn-sm" onclick="viewRenderTimeSeries(\'' + p.renderId + '\')" style="font-size:0.72rem;padding:3px 8px">גרף</button></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+
+    // Sync button
+    html += '<div style="margin-top:14px;text-align:center">';
+    html += '<button class="btn btn-outline btn-sm" onclick="triggerPerfSyncManual()" style="font-size:0.78rem">↻ סנכרן נתונים עכשיו</button>';
+    html += '</div>';
+
+    document.getElementById('rendersBody').innerHTML = html;
+  } catch (err) {
+    document.getElementById('rendersBody').innerHTML = '<div style="color:#EF4444;padding:20px">שגיאה: ' + escapeHtml(err.message) + '</div>';
+  }
+}
+
+function perfSummaryCard(label, value, sub) {
+  var html = '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:12px">';
+  html += '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:4px">' + label + '</div>';
+  html += '<div style="font-size:1.3rem;font-weight:700;color:#1E3A5F">' + escapeHtml(value) + '</div>';
+  if (sub) html += '<div style="font-size:0.7rem;color:#9CA3AF;margin-top:2px">' + escapeHtml(sub) + '</div>';
+  html += '</div>';
+  return html;
+}
+
+function formatK(n) {
+  if (!n) return '0';
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return String(n);
+}
+
+async function viewRenderTimeSeries(renderId) {
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/performance/' + renderId, {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    if (!j.success) { showToast('שגיאה', 'error'); return; }
+    var daily = j.data.daily || [];
+    var text = 'Render: ' + renderId + '\n' + daily.length + ' ימים של נתונים:\n\n';
+    daily.slice(0, 10).forEach(function(d) {
+      text += d.measurementDate + ': ₪' + parseFloat(d.spend).toFixed(0) +
+              ', imp=' + d.impressions + ', clicks=' + d.clicks +
+              ', CTR=' + (d.ctr ? (parseFloat(d.ctr) * 100).toFixed(2) + '%' : '—') +
+              ', ROAS=' + (d.roas ? parseFloat(d.roas).toFixed(2) + 'x' : '—') + '\n';
+    });
+    alert(text);
+  } catch (err) { showToast('שגיאה: ' + err.message, 'error'); }
+}
+
+async function triggerPerfSyncManual() {
+  var btn = event && event.target;
+  if (btn) { btn.disabled = true; btn.textContent = 'מסנכרן...'; }
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/performance/sync', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    if (!j.success) { showToast(j.message || 'שגיאה', 'error'); return; }
+    var d = j.data;
+    showToast('סנכרון הושלם: ' + d.newRows + ' רשומות חדשות, ' + d.fatigueAlerts + ' התראות', 'success');
+    setTimeout(renderPerformanceTab, 500);
+  } catch (err) {
+    showToast('שגיאה: ' + err.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '↻ סנכרן נתונים עכשיו'; }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Tab: Hypotheses (Phase B6)
+// ═══════════════════════════════════════════════════════════════════════════
+async function renderHypothesesTab() {
+  document.getElementById('rendersBody').innerHTML = '<div style="text-align:center;padding:40px;color:#9CA3AF">טוען...</div>';
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/hypotheses', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    if (!j.success) {
+      document.getElementById('rendersBody').innerHTML = '<div style="color:#EF4444;padding:20px">' + escapeHtml(j.message) + '</div>';
+      return;
+    }
+    var hyps = (j.data && j.data.hypotheses) || [];
+
+    var html = '';
+    // Header with create button
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">';
+    html += '<div style="font-size:0.85rem;color:#6B7280">' + hyps.length + ' היפותזות · Bayesian A/B (posterior ≥ 95%)</div>';
+    html += '<button class="btn btn-primary btn-sm" onclick="openCreateHypothesis()">➕ היפותזה חדשה</button>';
+    html += '</div>';
+
+    if (hyps.length === 0) {
+      html += renderEmptyState(
+        '🧪',
+        'אין היפותזות עדיין',
+        'הגדירו היפותזה לפני שאתם מריצים variants:<br>• "hookType=testimony ינצח ב-CTR מול hookType=direct"<br>• בחרו 2-4 renders שכבר נוצרו<br>• קובעים primary metric (CTR/ROAS/hook_rate)<br>• Pre-register → מנעל את הרשימה<br>• אחרי 7 ימים + הוצאה מינימלית → analyzer מסיק מסקנה אוטומטית',
+        '➕ צור היפותזה ראשונה',
+        'openCreateHypothesis()',
+      );
+    } else {
+      // Kanban: draft | pre_registered/running | concluded/inconclusive/abandoned
+      var drafts = hyps.filter(function(h) { return h.status === 'draft'; });
+      var running = hyps.filter(function(h) { return ['pre_registered', 'running'].includes(h.status); });
+      var done = hyps.filter(function(h) { return ['concluded', 'inconclusive', 'abandoned'].includes(h.status); });
+
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">';
+      html += hypKanbanColumn('📝 טיוטה', drafts, '#F3F4F6', '#374151');
+      html += hypKanbanColumn('🏃 רץ', running, '#DBEAFE', '#1E40AF');
+      html += hypKanbanColumn('✅ הושלם', done, '#DCFCE7', '#166534');
+      html += '</div>';
+    }
+
+    document.getElementById('rendersBody').innerHTML = html;
+  } catch (err) {
+    document.getElementById('rendersBody').innerHTML = '<div style="color:#EF4444;padding:20px">שגיאה: ' + escapeHtml(err.message) + '</div>';
+  }
+}
+
+function hypKanbanColumn(title, items, bgColor, fgColor) {
+  var html = '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px;min-height:200px">';
+  html += '<div style="font-size:0.82rem;font-weight:600;color:' + fgColor + ';background:' + bgColor + ';padding:4px 10px;border-radius:4px;margin-bottom:10px;display:inline-block">' + title + ' · ' + items.length + '</div>';
+  if (items.length === 0) {
+    html += '<div style="color:#9CA3AF;font-size:0.78rem;text-align:center;padding:20px">ריק</div>';
+  } else {
+    items.forEach(function(h) {
+      var variants = h.variants || [];
+      html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:6px;padding:10px;margin-bottom:8px;cursor:pointer" onclick="viewHypothesis(\'' + h.id + '\')">';
+      html += '<div style="font-size:0.82rem;font-weight:600;color:#1E3A5F;margin-bottom:4px;line-height:1.3">' + escapeHtml((h.statement || '').substring(0, 90)) + (h.statement && h.statement.length > 90 ? '...' : '') + '</div>';
+      html += '<div style="font-size:0.7rem;color:#6B7280">metric: ' + escapeHtml(h.primaryMetric) + ' · ' + variants.length + ' variants</div>';
+      if (h.status === 'concluded' && h.winnerRenderId) {
+        var winner = variants.find(function(v) { return v.renderId === h.winnerRenderId; });
+        var pct = h.posteriorProbability ? Math.round(parseFloat(h.posteriorProbability) * 100) : 0;
+        html += '<div style="font-size:0.72rem;color:#166534;margin-top:4px">🏆 Winner: ' + escapeHtml(winner ? winner.label : h.winnerRenderId) + ' (' + pct + '%)</div>';
+      } else if (h.status === 'inconclusive') {
+        html += '<div style="font-size:0.72rem;color:#78350F;margin-top:4px">לא הגיע לרף סטטיסטי</div>';
+      } else if (h.status === 'abandoned') {
+        html += '<div style="font-size:0.72rem;color:#9CA3AF;margin-top:4px">ננטש</div>';
+      }
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  return html;
+}
+
+async function openCreateHypothesis() {
+  // Fetch existing renders to let user pick variants
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/renders?limit=50', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    var renders = ((j.data && j.data.renders) || []).filter(function(r) { return r.renderStatus === 'done'; });
+    if (renders.length < 2) {
+      showToast('צריך לפחות 2 renders שהושלמו', 'warn');
+      return;
+    }
+
+    var html = '<div style="padding:20px 24px;max-width:700px">';
+    html += '<h4 style="margin-bottom:14px">🧪 היפותזה חדשה</h4>';
+    html += '<div style="margin-bottom:10px">';
+    html += '<label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Statement (עברית, מינ. 10 תווים)</label>';
+    html += '<input type="text" id="hyp-statement" placeholder="הוק testimony ינצח ב-CTR מול הוק direct" style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px;font-size:0.88rem">';
+    html += '</div>';
+    html += '<div style="margin-bottom:10px">';
+    html += '<label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Reasoning (אופציונלי)</label>';
+    html += '<textarea id="hyp-reasoning" rows="2" placeholder="מה בונה את האמונה הזו? (עברנו על 5 winning ads שמשתמשים ב-testimony)" style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px;font-size:0.85rem;font-family:inherit"></textarea>';
+    html += '</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">';
+    html += '<div><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Primary metric</label>';
+    html += '<select id="hyp-metric" style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px">';
+    html += '<option value="ctr">CTR</option>';
+    html += '<option value="hook_rate">Hook Rate</option>';
+    html += '<option value="conversion_rate">Conversion Rate</option>';
+    html += '<option value="roas">ROAS</option>';
+    html += '</select></div>';
+    html += '<div><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Min spend (₪)</label>';
+    html += '<input type="number" id="hyp-minspend" value="200" style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px"></div>';
+    html += '<div><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Min days</label>';
+    html += '<input type="number" id="hyp-mindays" value="7" style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px"></div>';
+    html += '</div>';
+
+    html += '<div style="margin-bottom:14px">';
+    html += '<label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Variants (2-4 renders, отметь control)</label>';
+    html += '<div id="hyp-variants" style="max-height:240px;overflow-y:auto;border:1px solid #E5E7EB;border-radius:6px;padding:8px">';
+    renders.slice(0, 20).forEach(function(r, i) {
+      html += '<label style="display:flex;align-items:center;gap:8px;padding:6px;border-bottom:1px solid #F3F4F6;cursor:pointer">';
+      html += '<input type="checkbox" name="hyp-var" value="' + r.id + '" onchange="updateHypVariantCount()">';
+      html += '<div style="flex:1;font-size:0.82rem">';
+      html += '<strong>' + escapeHtml(r.tier) + '·' + escapeHtml(r.formatType) + '</strong> · <code style="font-size:0.72rem">' + escapeHtml(r.id) + '</code>';
+      if (r.qualityScore) html += ' · q=' + parseFloat(r.qualityScore).toFixed(1);
+      html += '</div>';
+      html += '<label style="display:flex;align-items:center;gap:4px;font-size:0.7rem;color:#6B7280">';
+      html += '<input type="radio" name="hyp-control" value="' + r.id + '">';
+      html += 'control</label>';
+      html += '</label>';
+    });
+    html += '</div>';
+    html += '<div style="font-size:0.72rem;color:#6B7280;margin-top:4px" id="hyp-variant-count">0 נבחרו · max 4</div>';
+    html += '</div>';
+
+    html += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px;margin-bottom:14px;font-size:0.78rem;color:#1E40AF">💡 <strong>Pre-register</strong> = נעילת הרשימה לפני הפרסום. חובה לקיום סטטיסטי — אחרת אפשר לטיים משתנים מראש. אישור מיידי של Pre-register מומלץ.</div>';
+
+    html += '<div style="display:flex;gap:8px;justify-content:flex-end">';
+    html += '<button class="btn btn-outline" onclick="closeHypDialog()">ביטול</button>';
+    html += '<button class="btn btn-outline" onclick="submitHypothesis(false)">שמור כ-draft</button>';
+    html += '<button class="btn btn-primary" onclick="submitHypothesis(true)">Pre-register עכשיו</button>';
+    html += '</div>';
+    html += '</div>';
+
+    // Inline dialog — replace body temporarily
+    document.getElementById('rendersBody').setAttribute('data-prev-tab', currentCreativeTab);
+    document.getElementById('rendersBody').innerHTML = html;
+  } catch (err) {
+    showToast('שגיאה: ' + err.message, 'error');
+  }
+}
+
+function updateHypVariantCount() {
+  var checked = document.querySelectorAll('input[name="hyp-var"]:checked').length;
+  var el = document.getElementById('hyp-variant-count');
+  if (el) {
+    el.textContent = checked + ' נבחרו · max 4';
+    el.style.color = checked < 2 ? '#EF4444' : checked > 4 ? '#EF4444' : '#10B981';
+  }
+}
+
+function closeHypDialog() {
+  switchCreativeTab('hypotheses');
+}
+
+async function submitHypothesis(preRegister) {
+  var statement = (document.getElementById('hyp-statement') || {}).value || '';
+  var reasoning = (document.getElementById('hyp-reasoning') || {}).value || '';
+  var metric = (document.getElementById('hyp-metric') || {}).value || 'ctr';
+  var minSpend = parseFloat((document.getElementById('hyp-minspend') || {}).value || '200');
+  var minDays = parseInt((document.getElementById('hyp-mindays') || {}).value || '7', 10);
+  if (statement.trim().length < 10) { showToast('Statement לפחות 10 תווים', 'warn'); return; }
+
+  var vars = Array.from(document.querySelectorAll('input[name="hyp-var"]:checked')).map(function(el, i) {
+    return { renderId: el.value, label: String.fromCharCode(65 + i) };   // A, B, C, D
+  });
+  if (vars.length < 2 || vars.length > 4) { showToast('בחרו 2-4 variants', 'warn'); return; }
+
+  var control = document.querySelector('input[name="hyp-control"]:checked');
+  var controlId = control ? control.value : null;
+  if (controlId && !vars.some(function(v) { return v.renderId === controlId; })) {
+    showToast('control חייב להיות אחד מה-variants', 'warn');
+    return;
+  }
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/hypotheses', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        statement: statement.trim(),
+        reasoning: reasoning.trim() || undefined,
+        primaryMetric: metric,
+        variants: vars,
+        controlRenderId: controlId,
+        minSpendIls: minSpend,
+        minDaysRunning: minDays,
+        preRegister: preRegister,
+      }),
+    });
+    var j = await res.json();
+    if (!j.success) { showToast(j.message || 'שגיאה', 'error'); return; }
+    showToast('היפותזה ' + (preRegister ? 'נרשמה מראש' : 'נשמרה כטיוטה'), 'success');
+    switchCreativeTab('hypotheses');
+  } catch (err) { showToast('שגיאה: ' + err.message, 'error'); }
+}
+
+async function viewHypothesis(hypId) {
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/hypotheses/' + hypId, {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    if (!j.success) { showToast('שגיאה', 'error'); return; }
+    var h = j.data.hypothesis;
+    var text = 'HYPOTHESIS: ' + hypId + '\n';
+    text += 'Statement: ' + h.statement + '\n';
+    text += 'Status: ' + h.status + '\n';
+    text += 'Metric: ' + h.primaryMetric + '\n';
+    text += 'Variants (' + h.variants.length + '):\n';
+    h.variants.forEach(function(v) { text += '  ' + v.label + ': ' + v.renderId + (v.predictedLift != null ? ' (pred ' + v.predictedLift + '%)' : '') + '\n'; });
+    if (h.controlRenderId) text += 'Control: ' + h.controlRenderId + '\n';
+    if (h.winnerRenderId) {
+      text += '\n🏆 WINNER: ' + h.winnerRenderId + '\n';
+      text += 'Posterior: ' + Math.round(parseFloat(h.posteriorProbability) * 100) + '%\n';
+      if (h.metricLiftPct) text += 'Lift: ' + parseFloat(h.metricLiftPct).toFixed(2) + '%\n';
+      text += '\n' + (h.insightHe || '');
+    }
+    alert(text);
+  } catch (err) { showToast('שגיאה: ' + err.message, 'error'); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Tab: Fatigue Alerts (Phase B5)
+// ═══════════════════════════════════════════════════════════════════════════
+async function renderFatigueTab() {
+  document.getElementById('rendersBody').innerHTML = '<div style="text-align:center;padding:40px;color:#9CA3AF">טוען...</div>';
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/fatigue-alerts', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    if (!j.success) { document.getElementById('rendersBody').innerHTML = '<div style="color:#EF4444;padding:20px">' + escapeHtml(j.message) + '</div>'; return; }
+    var alerts = (j.data && j.data.alerts) || [];
+
+    if (alerts.length === 0) {
+      document.getElementById('rendersBody').innerHTML = renderEmptyState(
+        '✨',
+        'אין התראות עייפות',
+        'התראות נוצרות אוטומטית כאשר:<br>• frequency > 3.5<br>• CTR ירד יותר מ-20% מבסיס 7 ימים<br>• CPM קפץ יותר מ-30% מבסיס 7 ימים<br>מינימום 1000 חשיפות להתראה.',
+        null, null,
+      );
+      return;
+    }
+
+    var openAlerts = alerts.filter(function(a) { return a.status === 'open'; });
+    var resolved = alerts.filter(function(a) { return a.status !== 'open'; });
+
+    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:10px;margin-bottom:14px">';
+    html += perfSummaryCard('🔴 פתוחות', String(openAlerts.length), 'דורשות טיפול');
+    html += perfSummaryCard('✓ טופלו', String(resolved.length), 'היסטוריה');
+    html += '</div>';
+
+    if (openAlerts.length > 0) {
+      html += '<h4 style="margin:10px 0;color:#991B1B">התראות פתוחות</h4>';
+      openAlerts.forEach(function(a) { html += fatigueCard(a); });
+    }
+    if (resolved.length > 0) {
+      html += '<details style="margin-top:20px"><summary style="cursor:pointer;color:#6B7280;font-size:0.85rem">היסטוריה (' + resolved.length + ')</summary>';
+      resolved.forEach(function(a) { html += fatigueCard(a); });
+      html += '</details>';
+    }
+
+    document.getElementById('rendersBody').innerHTML = html;
+  } catch (err) {
+    document.getElementById('rendersBody').innerHTML = '<div style="color:#EF4444;padding:20px">שגיאה: ' + escapeHtml(err.message) + '</div>';
+  }
+}
+
+function fatigueCard(a) {
+  var reasonLabels = {
+    frequency_high: '📊 תדירות גבוהה',
+    ctr_drop: '📉 ירידה ב-CTR',
+    cpm_spike: '📈 עלייה ב-CPM',
+  };
+  var statusBadge = a.status === 'open' ? '<span style="background:#FEE2E2;color:#991B1B;padding:2px 8px;border-radius:4px;font-size:0.72rem">🔴 פתוח</span>'
+                  : a.status === 'refresh_drafted' ? '<span style="background:#DBEAFE;color:#1E40AF;padding:2px 8px;border-radius:4px;font-size:0.72rem">📝 נוצרה טיוטה</span>'
+                  : '<span style="background:#F3F4F6;color:#6B7280;padding:2px 8px;border-radius:4px;font-size:0.72rem">✓ נדחה</span>';
+  var html = '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:12px;margin-bottom:8px">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+  html += '<strong>' + (reasonLabels[a.triggerReason] || a.triggerReason) + '</strong>';
+  html += statusBadge;
+  html += '</div>';
+  html += '<div style="font-size:0.82rem;color:#6B7280;margin-bottom:4px">Render: <code>' + escapeHtml(a.renderId) + '</code></div>';
+  html += '<div style="font-size:0.82rem">ערך: <strong>' + parseFloat(a.triggerValue).toFixed(3) + '</strong> · סף: ' + parseFloat(a.triggerThreshold).toFixed(3) + ' · בסיס 7 ימים: ' + parseFloat(a.baselineValue).toFixed(3) + '</div>';
+  html += '<div style="font-size:0.72rem;color:#9CA3AF;margin-top:4px">' + new Date(a.detectedAt).toLocaleString('he-IL') + '</div>';
+  if (a.status === 'open') {
+    html += '<div style="margin-top:8px;display:flex;gap:6px">';
+    html += '<button class="btn btn-outline btn-sm" onclick="dismissFatigue(\'' + a.id + '\')" style="font-size:0.72rem;padding:3px 8px">✗ דחה</button>';
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+async function dismissFatigue(alertId) {
+  var reason = prompt('סיבת דחייה (אופציונלי):');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/fatigue-alerts/' + alertId, {
+      method: 'PATCH',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'dismiss', reason: reason }),
+    });
+    var j = await res.json();
+    if (!j.success) { showToast('שגיאה', 'error'); return; }
+    showToast('התראה נדחתה', 'success');
+    renderFatigueTab();
+  } catch (err) { showToast('שגיאה: ' + err.message, 'error'); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Tab: Platform Mappings (Phase B5)
+// ═══════════════════════════════════════════════════════════════════════════
+async function renderMappingsTab() {
+  document.getElementById('rendersBody').innerHTML = '<div style="text-align:center;padding:40px;color:#9CA3AF">טוען...</div>';
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/mappings', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    if (!j.success) { document.getElementById('rendersBody').innerHTML = '<div style="color:#EF4444;padding:20px">' + escapeHtml(j.message) + '</div>'; return; }
+    var mappings = (j.data && j.data.mappings) || [];
+
+    var html = '';
+    html += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px;margin-bottom:14px;font-size:0.82rem;color:#1E40AF">';
+    html += '💡 <strong>פרסום ידני לעכשיו:</strong> אחרי שפרסמתם קריאייטיב ב-Meta/Google, העתיקו את ה-<code>ad_id</code> שלו מהפלטפורמה ושייכו אותו ל-render אצלנו. זה מאפשר ל-perfSync cron למשוך מטריקות יומיות.';
+    html += '</div>';
+
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+    html += '<div style="font-size:0.85rem;color:#6B7280">' + mappings.length + ' קישורים פעילים</div>';
+    html += '<button class="btn btn-primary btn-sm" onclick="openAddMapping()">➕ הוסף קישור</button>';
+    html += '</div>';
+
+    if (mappings.length === 0) {
+      html += renderEmptyState(
+        '🔗',
+        'אין קישורים עדיין',
+        'הוסיפו קישור ידני לכל קריאייטיב מפורסם. דוגמה:<br>• Meta: ad_id מה-URL של המודעה<br>• Google Ads: ad_group_ad_id מ-Google Ads UI',
+        '➕ הוסף קישור',
+        'openAddMapping()',
+      );
+    } else {
+      html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden">';
+      html += '<table style="width:100%;border-collapse:collapse;font-size:0.85rem">';
+      html += '<thead><tr style="background:#F9FAFB;text-align:right"><th style="padding:10px">Render</th><th style="padding:10px">פלטפורמה</th><th style="padding:10px">Creative ID</th><th style="padding:10px">פורסם</th><th style="padding:10px">סטטוס</th><th style="padding:10px"></th></tr></thead><tbody>';
+      mappings.forEach(function(m) {
+        html += '<tr style="border-top:1px solid #F3F4F6">';
+        html += '<td style="padding:10px"><code style="font-size:0.72rem">' + escapeHtml(m.renderId) + '</code></td>';
+        html += '<td style="padding:10px">' + escapeHtml(m.platform) + '</td>';
+        html += '<td style="padding:10px;font-family:monospace;font-size:0.78rem">' + escapeHtml(m.platformCreativeId) + '</td>';
+        html += '<td style="padding:10px;font-size:0.78rem;color:#6B7280">' + (m.publishedAt ? new Date(m.publishedAt).toLocaleDateString('he-IL') : '—') + '</td>';
+        html += '<td style="padding:10px">' + (m.isActive ? '🟢 פעיל' : '🔴 לא פעיל') + (m.lastSyncError ? '<div style="font-size:0.7rem;color:#EF4444">⚠️ ' + escapeHtml(m.lastSyncError.substring(0, 40)) + '</div>' : '') + '</td>';
+        html += '<td style="padding:10px"><button class="btn btn-outline btn-sm" onclick="deleteMappingBtn(\'' + m.id + '\')" style="font-size:0.72rem;color:#EF4444;border-color:#FECACA;padding:3px 8px">הסר</button></td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+
+    document.getElementById('rendersBody').innerHTML = html;
+  } catch (err) {
+    document.getElementById('rendersBody').innerHTML = '<div style="color:#EF4444;padding:20px">שגיאה: ' + escapeHtml(err.message) + '</div>';
+  }
+}
+
+async function openAddMapping() {
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/renders?limit=50', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    var renders = ((j.data && j.data.renders) || []).filter(function(r) { return r.renderStatus === 'done'; });
+
+    var html = '<div style="padding:20px 24px;max-width:600px">';
+    html += '<h4 style="margin-bottom:14px">🔗 הוסף קישור</h4>';
+    html += '<div style="margin-bottom:10px"><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Render</label>';
+    html += '<select id="map-render" style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px"><option value="">-- בחר --</option>';
+    renders.forEach(function(r) {
+      html += '<option value="' + r.id + '">' + escapeHtml(r.tier) + '·' + escapeHtml(r.formatType) + ' — ' + escapeHtml(r.id) + '</option>';
+    });
+    html += '</select></div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">';
+    html += '<div><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">פלטפורמה</label>';
+    html += '<select id="map-platform" style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px"><option value="meta">Meta</option><option value="google_ads">Google Ads</option><option value="tiktok">TikTok</option><option value="linkedin">LinkedIn</option></select></div>';
+    html += '<div><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Account ID</label>';
+    html += '<input type="text" id="map-account" placeholder="123456789 / act_..." style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px"></div>';
+    html += '</div>';
+    html += '<div style="margin-bottom:10px"><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Creative ID (ad_id / ad_group_ad_id)</label>';
+    html += '<input type="text" id="map-creativeid" placeholder="6234567890 / 987654321" style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px"></div>';
+    html += '<div style="margin-bottom:14px"><label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:4px">Campaign ID (אופציונלי)</label>';
+    html += '<input type="text" id="map-campaign" style="width:100%;padding:8px 10px;border:1.5px solid #E5E7EB;border-radius:6px"></div>';
+    html += '<div style="display:flex;gap:8px;justify-content:flex-end">';
+    html += '<button class="btn btn-outline" onclick="switchCreativeTab(\'mappings\')">ביטול</button>';
+    html += '<button class="btn btn-primary" onclick="submitMapping()">שמור</button>';
+    html += '</div></div>';
+    document.getElementById('rendersBody').innerHTML = html;
+  } catch (err) { showToast('שגיאה: ' + err.message, 'error'); }
+}
+
+async function submitMapping() {
+  var renderId = (document.getElementById('map-render') || {}).value;
+  var platform = (document.getElementById('map-platform') || {}).value;
+  var accountId = (document.getElementById('map-account') || {}).value.trim();
+  var creativeId = (document.getElementById('map-creativeid') || {}).value.trim();
+  var campaignId = (document.getElementById('map-campaign') || {}).value.trim();
+  if (!renderId || !platform || !accountId || !creativeId) { showToast('כל השדות חובה', 'warn'); return; }
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/mappings', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        renderId: renderId,
+        platform: platform,
+        platformCreativeId: creativeId,
+        platformAccountId: accountId,
+        platformCampaignId: campaignId || undefined,
+      }),
+    });
+    var j = await res.json();
+    if (!j.success) { showToast(j.message || 'שגיאה', 'error'); return; }
+    showToast('קישור נוסף', 'success');
+    switchCreativeTab('mappings');
+  } catch (err) { showToast('שגיאה: ' + err.message, 'error'); }
+}
+
+async function deleteMappingBtn(mappingId) {
+  if (!confirm('להסיר את הקישור?')) return;
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/mappings/' + mappingId, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    if (!j.success) { showToast('שגיאה', 'error'); return; }
+    showToast('נמחק', 'success');
+    renderMappingsTab();
+  } catch (err) { showToast('שגיאה: ' + err.message, 'error'); }
 }
 
 // Handle OAuth redirects (GSC)
