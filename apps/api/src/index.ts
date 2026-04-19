@@ -84,6 +84,10 @@ startInstanceMonitor()
 import { startCreativePerformanceSync } from '@/services/creativePerformanceSync'
 startCreativePerformanceSync()
 
+// Phase B6 — daily A/B hypothesis analyzer (runs 15min after perfSync)
+import { startHypothesisAnalyzer } from '@/services/hypothesisAnalyzer'
+startHypothesisAnalyzer()
+
 // Trial manager — check trial expiry every hour
 import { runTrialManager } from '@/jobs/trialManager'
 setInterval(runTrialManager, 3600000) // every hour

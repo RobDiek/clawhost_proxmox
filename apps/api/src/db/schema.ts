@@ -579,6 +579,10 @@ export const creativeRenders = pgTable(
         regenCount: integer('regen_count').default(0),
         parentRenderId: text('parent_render_id'),
 
+        // Phase B6 — A/B hypothesis link
+        hypothesisId: text('hypothesis_id'),
+        variantLabel: text('variant_label'),
+
         createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [
@@ -712,6 +716,51 @@ export const platformCreativeMappings = pgTable(
     (table) => [
         unique('platform_creative_mappings_uniq').on(table.instanceId, table.platform, table.platformCreativeId),
         index('platform_creative_mappings_render_idx').on(table.renderId),
+    ]
+)
+
+// ── Phase B6 — Creative A/B Hypotheses ──
+export const creativeHypotheses = pgTable(
+    'creative_hypotheses',
+    {
+        id: text('id').primaryKey(),
+        instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+
+        statement: text('statement').notNull(),
+        reasoning: text('reasoning'),
+        primaryMetric: text('primary_metric').notNull(),         // ctr | roas | hook_rate | conversion_rate
+        successDirection: text('success_direction').notNull().default('higher'),
+
+        variants: jsonb('variants').notNull().default([]),        // [{renderId, label, predictedLift, launchedAt}]
+        controlRenderId: text('control_render_id'),
+
+        minSpendIls: decimal('min_spend_ils', { precision: 10, scale: 2 }).default('200'),
+        minDaysRunning: integer('min_days_running').default(7),
+        maxVariants: integer('max_variants').default(4),
+
+        preRegisteredAt: timestamp('pre_registered_at', { withTimezone: true }),
+        registeredBy: text('registered_by'),
+
+        status: text('status').notNull().default('draft'),
+        // draft | pre_registered | running | concluded | inconclusive | abandoned
+
+        concludedAt: timestamp('concluded_at', { withTimezone: true }),
+        winnerRenderId: text('winner_render_id'),
+        loserRenderIds: text('loser_render_ids').array().default([]),
+        posteriorProbability: decimal('posterior_probability', { precision: 5, scale: 4 }),
+        metricLiftPct: decimal('metric_lift_pct', { precision: 8, scale: 3 }),
+        analysis: jsonb('analysis'),
+        insightHe: text('insight_he'),
+        insightEn: text('insight_en'),
+        savedAsFact: jsonb('saved_as_fact'),
+
+        abandonedReason: text('abandoned_reason'),
+
+        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => [
+        index('creative_hypotheses_instance_idx').on(table.instanceId, table.status),
     ]
 )
 

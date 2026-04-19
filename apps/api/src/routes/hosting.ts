@@ -190,6 +190,13 @@ import {
     triggerPerformanceSync,
     listFatigueAlerts,
     updateFatigueAlert,
+    createHypothesis,
+    listHypotheses,
+    getHypothesis,
+    preRegisterHypothesis,
+    addHypothesisVariant,
+    analyzeHypothesisEndpoint,
+    abandonHypothesis,
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -342,6 +349,15 @@ app.get('/instances/:id/creative/performance/:renderId',            getRenderPer
 app.post('/instances/:id/creative/performance/sync',                triggerPerformanceSync)
 app.get('/instances/:id/creative/fatigue-alerts',                   listFatigueAlerts)
 app.patch('/instances/:id/creative/fatigue-alerts/:alertId',        updateFatigueAlert)
+
+// ── Creative Hypotheses (Phase B6) — A/B testing framework ──
+app.post('/instances/:id/creative/hypotheses',                      createHypothesis)
+app.get('/instances/:id/creative/hypotheses',                       listHypotheses)
+app.get('/instances/:id/creative/hypotheses/:hypId',                getHypothesis)
+app.patch('/instances/:id/creative/hypotheses/:hypId/pre-register', preRegisterHypothesis)
+app.patch('/instances/:id/creative/hypotheses/:hypId/add-variant',  addHypothesisVariant)
+app.post('/instances/:id/creative/hypotheses/:hypId/analyze',       analyzeHypothesisEndpoint)
+app.patch('/instances/:id/creative/hypotheses/:hypId/abandon',      abandonHypothesis)
 
 // ── SEO First Run ──
 app.post('/instances/:id/seo/validate', seoValidate)

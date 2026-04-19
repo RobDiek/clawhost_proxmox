@@ -44,5 +44,9 @@ export {
     listPerformance, getRenderPerformance, triggerPerformanceSync,
     listFatigueAlerts, updateFatigueAlert,
 } from './performance'
+export {
+    createHypothesis, listHypotheses, getHypothesis,
+    preRegisterHypothesis, addHypothesisVariant, analyzeHypothesisEndpoint, abandonHypothesis,
+} from './hypotheses'
 // Twenty CRM removed — AGPLv3 license risk
 // export { installTwenty } from './twenty'
