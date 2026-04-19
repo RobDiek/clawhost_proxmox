@@ -286,6 +286,40 @@ async function processRender(
     // Phase B5 will add proper CDN distribution.
     const finalUrl = `ssh://openclaw@${instance.ip}:${outputDir}/${finalFile}`
 
+    // Phase B4 — run auto-quality pipeline BEFORE marking done.
+    // 7 parallel checks: aesthetic / brand compliance / OCR / policy / consistency / technical / reviewer.
+    let quality: Awaited<ReturnType<typeof import('./creativeQuality').runQualityPipeline>> | null = null
+    try {
+        const { runQualityPipeline } = await import('./creativeQuality')
+        const requiredTexts: string[] = []
+        if (draft.overlayConfig && typeof (draft.overlayConfig as any).text === 'string') {
+            requiredTexts.push((draft.overlayConfig as any).text)
+        }
+        for (const s of scenePrompts) {
+            if (s.onScreenTextHe) requiredTexts.push(s.onScreenTextHe)
+        }
+
+        quality = await runQualityPipeline({
+            renderId,
+            instanceId: instance.id,
+            instance: {
+                id: instance.id,
+                ip: instance.ip,
+                rootPassword: instance.rootPassword,
+                aiProviderKey: await loadAiProviderKey(instance.id),
+                falApiKey: instance.falApiKey,
+            },
+            formatType: draft.formatType,
+            finalPath: `${outputDir}/${finalFile}`,
+            scenes: scenePrompts,
+            conceptBrief: `${draft.conceptId || ''}`,
+            requiredHebrewText: requiredTexts,
+        })
+        console.log(`[creativeExecutor] ${renderId} quality: score=${quality.overallScore} decision=${quality.decision} checks=${quality.checks.length} cost=$${quality.totalCheckCostUsd.toFixed(3)}`)
+    } catch (qErr) {
+        console.error(`[creativeExecutor] ${renderId} quality pipeline error (non-fatal):`, qErr)
+    }
+
     const completedAt = new Date()
     const durationSec = Math.round((completedAt.getTime() - startedAt.getTime()) / 1000)
 
@@ -299,22 +333,40 @@ async function processRender(
         overlayApplied: overlayApplied.overlay,
         logoApplied: overlayApplied.logo,
         subtitlesApplied: !!overlayApplied.subtitles,
+        // Phase B4 fields
+        qualityScore: quality ? String(quality.overallScore) : null,
+        qualityDecision: quality?.decision || null,
+        qualityChecks: quality?.checks || null,
+        qualityCriticalFails: quality?.criticalFailures || null,
+        qualityRegenCritique: quality?.regenCritique || null,
+        qualityCheckCostUsd: quality ? String(quality.totalCheckCostUsd) : null,
     }).where(eq(creativeRenders.id, renderId))
 
-    // Update the agent_output with finalUrl + renderStatus for UI
+    // Update the agent_output with finalUrl + renderStatus + quality signal for UI
+    const outputMeta = {
+        ...(await getOutputMetadata(draft)),
+        renderStatus: 'done',
+        renderId,
+        renderCompletedAt: completedAt.toISOString(),
+        durationSec,
+        qualityScore: quality?.overallScore,
+        qualityDecision: quality?.decision,
+        qualitySummary: quality?.checks.find(c => c.check === 'reviewerLLM')?.metadata?.summaryHe,
+    }
     await db.update(agentOutputs).set({
         mediaUrl: finalUrl,
         mediaType: draft.formatType === 'video' ? 'video/mp4' : 'image/png',
-        metadata: {
-            ...(await getOutputMetadata(draft)),
-            renderStatus: 'done',
-            renderId,
-            renderCompletedAt: completedAt.toISOString(),
-            durationSec,
-        },
+        metadata: outputMeta,
     }).where(eq(agentOutputs.id, draft._outputId))
 
     console.log(`[creativeExecutor] ${renderId} done in ${durationSec}s — ${finalUrl}`)
+
+    // Auto-regen if quality pipeline ruled auto_reject (max 2 retries to cap cost).
+    // Regen uses parent_render_id to track lineage; on 3rd attempt leaves as-is
+    // for manual review.
+    if (quality?.decision === 'auto_reject') {
+        await maybeAutoRegen(renderId, draft, instance, quality.regenCritique || '')
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -696,6 +748,70 @@ async function loadScenePrompts(
 async function getOutputMetadata(draft: ParsedFinalDraft): Promise<Record<string, unknown>> {
     const [output] = await db.select().from(agentOutputs).where(eq(agentOutputs.id, draft._outputId))
     return (output?.metadata as Record<string, unknown>) || {}
+}
+
+async function loadAiProviderKey(instanceId: string): Promise<string | null> {
+    const [row] = await db.select().from(instances).where(eq(instances.id, instanceId))
+    return (row as any)?.aiProviderKey || null
+}
+
+// Auto-regen when quality pipeline rules auto_reject.
+// Creates a new render linked via parent_render_id + regen_count.
+// Stops after regen_count >= 2 (total 3 attempts) to cap cost.
+async function maybeAutoRegen(
+    parentRenderId: string,
+    draft: ParsedFinalDraft,
+    instance: InstanceRef,
+    critique: string,
+): Promise<void> {
+    try {
+        const [parent] = await db.select().from(creativeRenders).where(eq(creativeRenders.id, parentRenderId))
+        if (!parent) return
+        const currentRegenCount = parent.regenCount || 0
+        if (currentRegenCount >= 2) {
+            console.log(`[creativeExecutor] ${parentRenderId} hit regen limit (${currentRegenCount}+1 attempts), leaving for manual review`)
+            return
+        }
+
+        const newRenderId = genId()
+        console.log(`[creativeExecutor] auto-regen #${currentRegenCount + 1}: ${parentRenderId} → ${newRenderId}`)
+
+        // Stash critique in metadata of parent for lineage viewing
+        await db.update(creativeRenders).set({
+            regenCount: currentRegenCount + 1,
+        }).where(eq(creativeRenders.id, parentRenderId))
+
+        // Spawn new render row — same draft, critique injected via prompts
+        await db.insert(creativeRenders).values({
+            id: newRenderId,
+            instanceId: instance.id,
+            outputId: parent.outputId,
+            renderStatus: 'queued',
+            tier: parent.tier,
+            formatType: parent.formatType,
+            selectedModel: parent.selectedModel,
+            conceptId: parent.conceptId,
+            characterRefId: parent.characterRefId,
+            scenesId: parent.scenesId,
+            brandBookVersion: parent.brandBookVersion,
+            estimatedCostUsd: parent.estimatedCostUsd,
+            parentRenderId: parentRenderId,
+            regenCount: currentRegenCount + 1,
+            prompts: { scenes: [], regenCritique: critique },
+        })
+
+        // Fire async (no await — don't block the parent completion)
+        processRender(newRenderId, draft, instance).catch(err => {
+            console.error(`[creativeExecutor] regen ${newRenderId} error:`, err)
+            db.update(creativeRenders).set({
+                renderStatus: 'failed',
+                errorMessage: err instanceof Error ? err.message : String(err),
+                completedAt: new Date(),
+            }).where(eq(creativeRenders.id, newRenderId)).catch(() => { /* noop */ })
+        })
+    } catch (err) {
+        console.error(`[creativeExecutor] maybeAutoRegen ${parentRenderId} error:`, err)
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

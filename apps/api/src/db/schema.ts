@@ -569,6 +569,16 @@ export const creativeRenders = pgTable(
         userRating: integer('user_rating'),   // 1-5
         userFeedback: text('user_feedback'),
 
+        // Phase B4 — Auto-Quality Pipeline
+        qualityScore: decimal('quality_score', { precision: 4, scale: 2 }),        // 0-10
+        qualityDecision: text('quality_decision'),                                   // auto_reject | low_confidence | high_confidence
+        qualityChecks: jsonb('quality_checks'),                                      // CheckResult[]
+        qualityCriticalFails: jsonb('quality_critical_fails'),                       // string[]
+        qualityRegenCritique: text('quality_regen_critique'),
+        qualityCheckCostUsd: decimal('quality_check_cost_usd', { precision: 10, scale: 4 }),
+        regenCount: integer('regen_count').default(0),
+        parentRenderId: text('parent_render_id'),
+
         createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [
