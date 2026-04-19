@@ -578,6 +578,54 @@ export const creativeRenders = pgTable(
     ]
 )
 
+// ── Creative References (Phase B3) — mined competitor ads + DNA tags ──
+export const creativeReferences = pgTable(
+    'creative_references',
+    {
+        id: text('id').primaryKey(),
+        instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+
+        source: text('source').notNull(),       // 'meta_ad_library' | 'user_upload' | 'our_winner' | ...
+        sourceId: text('source_id'),
+        sourceUrl: text('source_url'),
+
+        competitorName: text('competitor_name'),
+        country: text('country').default('IL'),
+        firstSeenAt: timestamp('first_seen_at', { withTimezone: true }),
+        lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
+        daysActive: integer('days_active'),
+        variationCount: integer('variation_count'),
+        spendRangeMin: integer('spend_range_min'),
+        spendRangeMax: integer('spend_range_max'),
+        impressionsMin: integer('impressions_min'),
+        impressionsMax: integer('impressions_max'),
+
+        headline: text('headline'),
+        bodyText: text('body_text'),
+        ctaText: text('cta_text'),
+        imageUrl: text('image_url'),
+        videoThumbUrl: text('video_thumb_url'),
+        platforms: text('platforms').array().default([]),
+
+        dna: jsonb('dna'),
+        dnaComputedAt: timestamp('dna_computed_at', { withTimezone: true }),
+
+        signalScore: decimal('signal_score', { precision: 10, scale: 2 }),
+
+        usedInDrafts: jsonb('used_in_drafts').default([]),
+
+        isActive: boolean('is_active').default(true),
+        lastCheckedAt: timestamp('last_checked_at', { withTimezone: true }),
+
+        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => [
+        index('creative_refs_instance_idx').on(table.instanceId),
+        index('creative_refs_signal_idx').on(table.instanceId, table.signalScore),
+    ]
+)
+
 // ── WhatsApp Business ──
 export const waConfig = pgTable('wa_config', {
     instanceId: text('instance_id').primaryKey().references(() => instances.id),

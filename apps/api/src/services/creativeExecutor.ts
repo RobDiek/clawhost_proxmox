@@ -227,25 +227,56 @@ async function processRender(
 
     const creativeId = draft.creativeId || `creative_${Date.now().toString(36)}`
     const outputDir = `/opt/openclaw/creatives/${creativeId}`
-    const sourceFile = draft.formatType === 'video' ? 'source.mp4' : 'source.png'
-    const finalFile = draft.formatType === 'video' ? 'final.mp4' : 'final.png'
 
-    // Download first result (MVP: single-frame image, or single-scene video)
-    await sshExec(
-        instance.ip,
-        `mkdir -p ${outputDir} && ` +
-        `curl -fsSL -o ${outputDir}/${sourceFile} "${resultUrls[0]}" && ` +
-        `chown -R openclaw:openclaw ${outputDir}`,
-        instance.rootPassword || undefined,
-        180000,  // 3 min for large videos
-    )
+    // File naming:
+    //   image: single source → source.png, final.png
+    //   video: multiple scene clips → scene_0.mp4, scene_1.mp4, ... → concat.mp4 → final.mp4
+    const ext = draft.formatType === 'video' ? 'mp4' : 'png'
+    const isMultiScene = resultUrls.length > 1
+    const sourceFile = isMultiScene ? 'concat.' + ext : 'source.' + ext
+    const finalFile = 'final.' + ext
+
+    if (isMultiScene && draft.formatType === 'video') {
+        // Download each scene, then concat via ffmpeg
+        let downloadCmd = `mkdir -p ${outputDir}`
+        const sceneFiles: string[] = []
+        resultUrls.forEach((url, i) => {
+            const name = `scene_${i}.${ext}`
+            downloadCmd += ` && curl -fsSL -o ${outputDir}/${name} "${url}"`
+            sceneFiles.push(name)
+        })
+        downloadCmd += ` && chown -R openclaw:openclaw ${outputDir}`
+        await sshExec(instance.ip, downloadCmd, instance.rootPassword || undefined, 240000)
+
+        // Build ffmpeg concat list + run concat
+        const concatList = sceneFiles.map(f => `file '${outputDir}/${f}'`).join('\n')
+        const listB64 = Buffer.from(concatList).toString('base64')
+        await sshExec(
+            instance.ip,
+            `echo '${listB64}' | base64 -d > ${outputDir}/_concat.txt && ` +
+            `ffmpeg -y -f concat -safe 0 -i ${outputDir}/_concat.txt -c copy ${outputDir}/${sourceFile} 2>&1 | tail -5 && ` +
+            `rm -f ${outputDir}/_concat.txt && ` +
+            `chown openclaw:openclaw ${outputDir}/${sourceFile}`,
+            instance.rootPassword || undefined, 120000,
+        )
+    } else {
+        // Single-scene path — just download
+        await sshExec(
+            instance.ip,
+            `mkdir -p ${outputDir} && ` +
+            `curl -fsSL -o ${outputDir}/${sourceFile} "${resultUrls[0]}" && ` +
+            `chown -R openclaw:openclaw ${outputDir}`,
+            instance.rootPassword || undefined,
+            180000,  // 3 min for large videos
+        )
+    }
 
     // Composition phase (overlay + logo) — delegated to tenant-side script
     await db.update(creativeRenders).set({
         renderStatus: 'compositing',
     }).where(eq(creativeRenders.id, renderId))
 
-    const overlayApplied = await applyComposition(instance, outputDir, sourceFile, finalFile, draft)
+    const overlayApplied = await applyComposition(instance, outputDir, sourceFile, finalFile, draft, scenePrompts)
 
     // Measure final file
     const { sizeBytes, dimensions } = await measureOutputFile(instance, `${outputDir}/${finalFile}`)
@@ -267,6 +298,7 @@ async function processRender(
         dimensions,
         overlayApplied: overlayApplied.overlay,
         logoApplied: overlayApplied.logo,
+        subtitlesApplied: !!overlayApplied.subtitles,
     }).where(eq(creativeRenders.id, renderId))
 
     // Update the agent_output with finalUrl + renderStatus for UI
@@ -433,6 +465,7 @@ function extractResultUrl(data: any, modelId: string): string {
 interface CompositionFlags {
     overlay: boolean
     logo: boolean
+    subtitles?: boolean
 }
 
 async function applyComposition(
@@ -441,8 +474,25 @@ async function applyComposition(
     sourceFile: string,
     finalFile: string,
     draft: ParsedFinalDraft,
+    scenePrompts: Array<{ order: number; prompt: string; durationSec?: number; voiceoverHe?: string; onScreenTextHe?: string }>,
 ): Promise<CompositionFlags> {
     if (!instance.ip) return { overlay: false, logo: false }
+
+    // Build scene timeline for subtitle generation (video only)
+    // Each scene gets a time slot based on duration; Hebrew text from
+    // voiceoverHe (preferred for speech → subtitle) or onScreenTextHe
+    let sceneTimeline: Array<{ startSec: number; endSec: number; textHe: string }> | null = null
+    const hasAnySubtitleText = scenePrompts.some(s => (s.voiceoverHe || s.onScreenTextHe))
+    if (draft.formatType === 'video' && draft.addSubtitles && hasAnySubtitleText) {
+        let t = 0
+        sceneTimeline = []
+        for (const s of scenePrompts) {
+            const dur = s.durationSec || 5   // Kling default 5s
+            const text = (s.voiceoverHe || s.onScreenTextHe || '').trim()
+            if (text) sceneTimeline.push({ startSec: t, endSec: t + dur, textHe: text })
+            t += dur
+        }
+    }
 
     // Write a compact job manifest to tenant VPS, then invoke the overlay script.
     const job = {
@@ -451,6 +501,8 @@ async function applyComposition(
         outputPath: `${outputDir}/${finalFile}`,
         overlay: draft.hebrewOverlay ? draft.overlayConfig : null,
         logo: draft.logoOverlay || null,
+        subtitles: sceneTimeline,       // null = no subtitles
+        hebrewFont: (draft.overlayConfig as Record<string, unknown>)?.font || 'Rubik',
     }
     const jobB64 = Buffer.from(JSON.stringify(job)).toString('base64')
 
@@ -472,6 +524,7 @@ async function applyComposition(
         return {
             overlay: !!draft.hebrewOverlay,
             logo: !!draft.logoOverlay,
+            subtitles: !!(sceneTimeline && sceneTimeline.length > 0),
         }
     } catch (err) {
         console.error('[creativeExecutor] composition failed, falling back to source file:', err)
@@ -601,7 +654,7 @@ async function loadInstance(instanceId: string): Promise<InstanceRef | null> {
 async function loadScenePrompts(
     scenesId: string | undefined,
     instanceId: string,
-): Promise<Array<{ order: number; prompt: string; negativePrompt?: string }>> {
+): Promise<Array<{ order: number; prompt: string; negativePrompt?: string; durationSec?: number; voiceoverHe?: string; onScreenTextHe?: string }>> {
     if (!scenesId) {
         // If no scenesId linked, try to use a concept-level prompt as fallback.
         // This shouldn't happen for normal flow (scenes always approved before final).
@@ -627,6 +680,9 @@ async function loadScenePrompts(
                         order: s.order ?? i,
                         prompt: s.prompt || '',
                         negativePrompt: s.negativePrompt,
+                        durationSec: s.durationSec,
+                        voiceoverHe: s.voiceoverHe,
+                        onScreenTextHe: s.onScreenTextHe,
                     }))
                 }
             }
@@ -781,33 +837,138 @@ function fetchUrl(url) {
 }
 
 async function compositeVideo(job) {
-  // Video composition via ffmpeg — for MVP, just copy + add logo watermark.
-  // Hebrew text overlay via libass will be added in M2.8.
-  return new Promise((resolve, reject) => {
-    const args = [
-      '-y', '-i', job.sourcePath,
-    ]
-    let complexFilter = null
-    if (job.logo && job.logo.url) {
-      // For MVP — need local logo path. Skip remote for now.
-      // TODO: download logo first, then use -i <logo> + overlay filter
+  // Video composition via ffmpeg:
+  //   1. Input source (already concatenated if multi-scene — happens in executor before this)
+  //   2. Optional logo watermark (downloaded to temp, then overlay filter)
+  //   3. Optional Hebrew subtitles via libass (.ass file generated from sceneTimeline)
+  //   4. Optional on-screen Hebrew text overlay (drawtext — rarely needed if subtitles present)
+
+  const workDir = path.dirname(job.outputPath)
+  const inputs = ['-i', job.sourcePath]
+  const filters = []
+
+  // ─ Subtitles via .ass (libass) ─
+  let subsPath = null
+  if (job.subtitles && job.subtitles.length > 0) {
+    subsPath = path.join(workDir, '_subs.ass')
+    fs.writeFileSync(subsPath, buildAssFile(job.subtitles, job.hebrewFont || 'Rubik'))
+    // libass subtitles burned in via filter
+    filters.push(\`subtitles=\${subsPath.replace(/:/g, '\\\\:').replace(/,/g, '\\\\,')}:fontsdir=/usr/share/fonts\`)
+  }
+
+  // ─ Logo watermark ─
+  let logoPath = null
+  if (job.logo && job.logo.url) {
+    logoPath = path.join(workDir, '_logo_tmp')
+    try {
+      const logoBuf = await fetchUrl(job.logo.url)
+      fs.writeFileSync(logoPath, logoBuf)
+      inputs.push('-i', logoPath)
+      // Compute position: bottom_right default, sizePercent of video width
+      const sizePct = job.logo.sizePercent || 12
+      const safe = job.logo.safeZonePx || 16
+      const pos = (() => {
+        switch (job.logo.position) {
+          case 'top_left':     return { x: safe,                 y: safe }
+          case 'top_right':    return { x: 'W-w-' + safe,        y: safe }
+          case 'bottom_left':  return { x: safe,                 y: 'H-h-' + safe }
+          case 'bottom_right':
+          default:             return { x: 'W-w-' + safe,        y: 'H-h-' + safe }
+        }
+      })()
+      // Scale logo to sizePct% of main video width, then overlay
+      const logoFilter = \`[1:v]scale=iw*\${sizePct / 100}:-1[logo];[0:v][logo]overlay=\${pos.x}:\${pos.y}\`
+      // Logo + subtitles both on same video chain — combine
+      if (filters.length > 0) {
+        // Subtitles applied first (on source), then logo on top
+        filters.unshift(logoFilter.replace('[0:v]', '[vid]') + ',subtitles=' + subsPath.replace(/:/g, '\\\\:'))
+        // Restructure: source → subtitles → [vid] → overlay logo
+        // Simpler: apply subtitles first via chain, then logo via complex filter
+        const newFilters = [
+          \`[0:v]subtitles=\${subsPath.replace(/:/g, '\\\\:').replace(/,/g, '\\\\,')}[vid]\`,
+          \`[1:v]scale=iw*\${sizePct / 100}:-1[logo]\`,
+          \`[vid][logo]overlay=\${pos.x}:\${pos.y}[out]\`,
+        ]
+        return runFfmpeg(inputs, newFilters.join(';'), '[out]', job.outputPath)
+      } else {
+        // Logo only
+        return runFfmpeg(inputs, logoFilter, null, job.outputPath)
+      }
+    } catch (err) {
+      console.error('logo fetch/overlay skipped:', err.message)
     }
+  }
+
+  // ─ Subtitles only (no logo) ─
+  if (filters.length > 0) {
+    return runFfmpeg(inputs, null, null, job.outputPath, filters)
+  }
+
+  // ─ No overlays — just copy source to output (already muxed) ─
+  fs.copyFileSync(job.sourcePath, job.outputPath)
+}
+
+function runFfmpeg(inputs, complexFilter, mapOut, outputPath, videoFilters) {
+  return new Promise((resolve, reject) => {
+    const args = ['-y', ...inputs]
     if (complexFilter) args.push('-filter_complex', complexFilter)
-    args.push('-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-c:a', 'copy', job.outputPath)
+    if (videoFilters && videoFilters.length) args.push('-vf', videoFilters.join(','))
+    if (mapOut) args.push('-map', mapOut, '-map', '0:a?')  // include audio from source if present
+    args.push('-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-c:a', 'aac', '-b:a', '128k', outputPath)
 
     const ff = spawn('ffmpeg', args)
     let err = ''
     ff.stderr.on('data', d => { err += d.toString() })
     ff.on('close', (code) => {
-      if (code === 0) resolve()
-      else {
-        console.error('ffmpeg failed:', err.substring(err.length - 500))
-        // Fallback: copy source to output
-        fs.copyFileSync(job.sourcePath, job.outputPath)
+      if (code === 0) {
+        resolve()
+      } else {
+        console.error('ffmpeg failed (exit ' + code + '):', err.substring(err.length - 800))
+        // Fallback: copy source to output so we still have something
+        try { fs.copyFileSync(inputs[1], outputPath) } catch {}
         resolve()
       }
     })
   })
+}
+
+function buildAssFile(sceneTimeline, fontName) {
+  // libass .ass file — supports RTL text natively when font supports Hebrew.
+  // We use [Script Info] → [V4+ Styles] → [Events] structure.
+  // Each scene becomes one Dialogue event with start/end times.
+  const styleName = 'Default'
+  const header =
+    '[Script Info]\\n' +
+    'Title: Generated subtitles\\n' +
+    'ScriptType: v4.00+\\n' +
+    'WrapStyle: 0\\n' +
+    'PlayResX: 1080\\n' +
+    'PlayResY: 1920\\n' +
+    'YCbCr Matrix: TV.709\\n' +
+    '\\n' +
+    '[V4+ Styles]\\n' +
+    'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\\n' +
+    'Style: ' + styleName + ',' + fontName + ',54,&H00FFFFFF,&H000000FF,&H00000000,&H99000000,1,0,0,0,100,100,0,0,3,2,1,2,40,40,100,1\\n' +
+    '\\n' +
+    '[Events]\\n' +
+    'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\\n'
+
+  const events = sceneTimeline.map(s => {
+    const start = formatAssTime(s.startSec)
+    const end = formatAssTime(s.endSec)
+    // Escape newlines + commas in text
+    const text = (s.textHe || '').replace(/\\n/g, '\\\\N').replace(/,/g, '\\\\,')
+    return 'Dialogue: 0,' + start + ',' + end + ',' + styleName + ',,0,0,0,,' + text
+  }).join('\\n')
+
+  return header + events + '\\n'
+}
+
+function formatAssTime(sec) {
+  const h = Math.floor(sec / 3600)
+  const m = Math.floor((sec % 3600) / 60)
+  const s = (sec % 60).toFixed(2)
+  return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(5, '0')
 }
 
 main().catch(err => { console.error('overlay.js error:', err); process.exit(1) })

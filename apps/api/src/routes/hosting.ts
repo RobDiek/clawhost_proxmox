@@ -178,6 +178,10 @@ import {
     listCreativeRenders,
     getCreativeRender,
     triggerCreativeRender,
+    mineReferences,
+    listReferences,
+    decomposeReferences,
+    deleteReference,
 } from '@/controllers/hosting'
 
 const app = new Hono()
@@ -314,6 +318,12 @@ app.post('/instances/:id/integrations/creative/disconnect', disconnectCreativeKe
 app.get('/instances/:id/creative/renders',                  listCreativeRenders)
 app.get('/instances/:id/creative/renders/:renderId',        getCreativeRender)
 app.post('/instances/:id/creative/render',                  triggerCreativeRender)
+
+// ── Creative References (Phase B3) — competitor ad mining + DNA decomposer ──
+app.post('/instances/:id/creative/references/mine',         mineReferences)
+app.get('/instances/:id/creative/references',               listReferences)
+app.post('/instances/:id/creative/references/decompose',    decomposeReferences)
+app.delete('/instances/:id/creative/references/:refId',     deleteReference)
 
 // ── SEO First Run ──
 app.post('/instances/:id/seo/validate', seoValidate)

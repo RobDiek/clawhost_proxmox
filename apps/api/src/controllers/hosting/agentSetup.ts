@@ -2958,6 +2958,18 @@ export async function updateSoulWithCreativeTools(ip: string, password?: string)
 
 **ניתן לבדוק ידנית:** \`get_brand_book()\` — כלי קריאה בלבד, מחזיר את ה-brand book הנוכחי או \`{ok:false}\` אם חסר.
 
+**Reference Mining auto-injection (v0.3.0 — Phase B3):**
+כשמוזנים מפתחות competitor references (דרך \`mine-references\` בדשבורד), הקובץ \`/home/openclaw/.openclaw/workspace/CREATIVE_REFERENCES.json\` מכיל עד 15 מודעות מתחרים פעילות עם DNA tags (hookType, hookFormat, claimStyle, pacingType, summary).
+
+Gate 1 (\`draft_concept\`) קורא אוטומטית את הקובץ ומחזיר בדרפט שדה \`referenceContext\` — 5 references ראשיים מדורגים לפי signalScore (daysActive × variationCount = spend proxy).
+
+**איך להשתמש:**
+1. **חקור hack patterns** — אם 4 מתוך 5 winner refs משתמשים ב-hookType="testimony", זה סיגנל חזק שהקהל בישראל מגיב לעדויות. ציין ב-rationale שבחרת hookType דומה לא מקרית.
+2. **אל תעתיק תוכן** — לעולם אל תעתיק headline/body של מתחרה. העתק STRUCTURE, לא SUBSTANCE.
+3. **הכנס שונות** — אם כולם עושים direct_address → נסה לפעמים POV או pattern_interrupt לצורך A/B.
+
+**כלי:** \`get_references({limit: 5})\` — מחזיר את ה-refs עם DNA. \`{ok:false}\` אם לא בוצע mining.
+
 **כללי זהב:**
 - **לעולם אל תדלג על Gate** — המשתמש חייב לאשר קונספט לפני דמות, דמות לפני סצנות, סצנות לפני רנדור.
 - **לעולם אל תכריז שקריאייטיב "נוצר"** — רק "טיוטה מוכנה לאישור" או "רנדור בתהליך" (אחרי Gate 4).

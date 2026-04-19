@@ -70,9 +70,49 @@ function brandContext(book) {
   }
 }
 
+// ── References loader (Phase B3) ────────────────────────────────────────────
+// Mgmt API writes top competitor-ad references (with DNA) to this file on
+// approval-queue-sync, so yotzer can read patterns that empirically win.
+const REFERENCES_PATH = '/home/openclaw/.openclaw/workspace/CREATIVE_REFERENCES.json'
+
+function readReferences() {
+  try {
+    if (!fs.existsSync(REFERENCES_PATH)) return null
+    const raw = fs.readFileSync(REFERENCES_PATH, 'utf8')
+    const data = JSON.parse(raw)
+    return Array.isArray(data?.references) ? data : null
+  } catch (err) {
+    return null
+  }
+}
+
+/** Compact reference summary — what to inject into Gate 1 as few-shot */
+function referenceFewShots(refs, topN = 5) {
+  if (!refs || !refs.references) return []
+  return refs.references.slice(0, topN).map(r => ({
+    competitorName: r.competitorName,
+    headline: r.headline || null,
+    bodyText: (r.bodyText || '').substring(0, 200),
+    ctaText: r.ctaText || null,
+    daysActive: r.daysActive,
+    variationCount: r.variationCount,
+    signalScore: r.signalScore,
+    dna: r.dna ? {
+      hookType: r.dna.hookType,
+      hookFormat: r.dna.hookFormat,
+      hookEmotion: r.dna.hookEmotion,
+      pacingType: r.dna.pacingType,
+      claimStyle: r.dna.claimStyle,
+      summary: r.dna.summary,
+      summaryHe: r.dna.summaryHe,
+    } : null,
+    whyWinning: `Active ${r.daysActive}d with ${r.variationCount} variations (signal ${r.signalScore})`,
+  }))
+}
+
 module.exports = {
   name: 'openclaw-creative',
-  version: '0.2.0',
+  version: '0.3.0',
   config: {
     falApiKey:        { type: 'string', secret: true, description: 'fal.ai API key (primary aggregator)' },
     elevenLabsApiKey: { type: 'string', secret: true, description: 'ElevenLabs API key (voice generation)' },
@@ -97,6 +137,33 @@ module.exports = {
           }
         }
         return { ok: true, brandBook: book }
+      },
+    },
+
+    get_references: {
+      description: 'Read mined competitor ad references (with DNA tags) for this instance. Use these as few-shot patterns when drafting concepts — match winning structures without copying content. Returns top-scored references first.',
+      parameters: {
+        type: 'object',
+        properties: {
+          limit: { type: 'integer', description: 'Max refs to return (default 5)' },
+        },
+      },
+      handler: async (args) => {
+        const refs = readReferences()
+        if (!refs || !refs.references || refs.references.length === 0) {
+          return {
+            ok: false,
+            error: 'אין references מוזנים. יש להריץ mine-references מהדשבורד, או להמשיך בלעדיהם (איכות הקונספט תיפול)',
+            howTo: 'Dashboard → Integrations → Creative → "החל mining מתחרים"',
+          }
+        }
+        const top = referenceFewShots(refs, args?.limit || 5)
+        return {
+          ok: true,
+          count: top.length,
+          references: top,
+          generatedAt: refs.generatedAt || null,
+        }
       },
     },
 
@@ -147,6 +214,11 @@ module.exports = {
           if (!brand.tone)               brandWarnings.push('⚠️ brand tone missing — copy יכול להיות off-voice')
         }
 
+        // Phase B3: auto-inject top competitor references as few-shot context.
+        // Agent should imitate WINNING patterns (hookType, claimStyle) not content.
+        const refs = readReferences()
+        const topRefs = referenceFewShots(refs, 5)
+
         const draft = {
           _type: 'creative_concept_draft',
           conceptId: 'concept_' + Date.now().toString(36),
@@ -172,6 +244,11 @@ module.exports = {
           brandContext: brand,
           brandBookVersion: brand ? brand.version : null,
           brandWarnings: brandWarnings.length ? brandWarnings : undefined,
+          // ── Reference mining context (Phase B3) ──
+          // Top competitor winners with DNA tags. Agent should match patterns
+          // (hookType, claimStyle) from these refs, but NEVER copy content.
+          referenceContext: topRefs.length ? topRefs : null,
+          referenceCount: topRefs.length,
           createdAt: new Date().toISOString(),
         }
         return {
