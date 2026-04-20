@@ -3660,6 +3660,9 @@ function buildResearchPrompt(stage: number, opts: {
 
     const RULES = `
 חוקים קריטיים:
+- **מקסימום 6 חיפושים בסך הכל** — לאחר מכן עצור וכתוב את הדוח הסופי המלא.
+- אל תדקלם מה אתה מתכנן לחפש — פשוט בצע את החיפוש או כתוב את הדוח.
+- אחרי שאספת מספיק מידע, התשובה הבאה שלך חייבת להיות **הדוח המלא בפורמט שבוקש**, לא עוד חיפוש ולא עוד הערה.
 - כתוב הכל כאן בתשובה — לא בקובץ
 - בעברית בלבד (מונחים מקצועיים באנגלית מותרים)
 - אל תקרא קבצים מהמערכת ואל תסרוק workspace
@@ -4318,9 +4321,9 @@ export const researchStage = async (c: Context) => {
             )
 
             output = await sshExec(instance.ip,
-                `su - openclaw -c 'timeout 300 openclaw agent --agent ${agentId} --session-id research-s${stage}-${Date.now()} -m "$(cat ${promptFile})" --json 2>&1'; rm -f ${promptFile}`,
+                `su - openclaw -c 'timeout 540 openclaw agent --agent ${agentId} --session-id research-s${stage}-${Date.now()} -m "$(cat ${promptFile})" --json 2>&1'; rm -f ${promptFile}`,
                 instance.rootPassword || undefined,
-                330000
+                570000
             )
         }
 
@@ -4380,6 +4383,38 @@ export const researchStage = async (c: Context) => {
                 )
                 if (fileContent.length > minLength) result = fileContent
             } catch {}
+        }
+
+        // Fallback: agent got stuck in tool-use loop without final write-up.
+        // Aggregate all assistant text blocks from the most recent session jsonl.
+        // Better to surface a partial draft than lose the work to timeout.
+        if (!result || result.length < minLength) {
+            try {
+                const draft = await sshExec(instance.ip,
+                    `ls -t /home/openclaw/.openclaw/agents/${agentId}/sessions/*.jsonl 2>/dev/null | head -1 | xargs -r cat 2>/dev/null | python3 -c "
+import json,sys
+out=[]
+for line in sys.stdin:
+    try:
+        j=json.loads(line)
+        if j.get('type')=='message' and j.get('message',{}).get('role')=='assistant':
+            for c in j['message'].get('content',[]):
+                if isinstance(c,dict) and c.get('type')=='text':
+                    t=c.get('text','').strip()
+                    if len(t)>50: out.append(t)
+    except: pass
+print('\n\n'.join(out))
+" 2>/dev/null || echo ""`,
+                    instance.rootPassword || undefined,
+                    20000
+                )
+                if (draft && draft.trim().length > minLength) {
+                    console.log(`Stage ${stage}: using session-draft fallback (${draft.length} chars from assistant blocks)`)
+                    result = draft.trim()
+                }
+            } catch (e) {
+                console.log(`Stage ${stage}: session-draft fallback failed:`, e)
+            }
         }
 
         if (!result || result.length < 500) {
