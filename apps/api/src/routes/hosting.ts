@@ -50,6 +50,8 @@ import {
     resetStrategy,
     regenerateContentPlan,
     getContentPlan,
+    generateOptimizationReport,
+    getLatestOptimizationReport,
     addAgentToInstance,
     removeAgentFromInstance,
     setupPersonalAgent,
@@ -274,6 +276,8 @@ app.post('/instances/:id/setup/agents/research/reset', resetResearch)
 app.post('/instances/:id/setup/agents/strategy/reset', resetStrategy)
 app.post('/instances/:id/setup/agents/content-plan/regenerate', regenerateContentPlan)
 app.get('/instances/:id/setup/agents/content-plan', getContentPlan)
+app.post('/instances/:id/optimization/weekly', generateOptimizationReport)
+app.get('/instances/:id/optimization/latest', getLatestOptimizationReport)
 app.post('/instances/:id/agents/add', addAgentToInstance)
 app.post('/instances/:id/agents/remove', removeAgentFromInstance)
 

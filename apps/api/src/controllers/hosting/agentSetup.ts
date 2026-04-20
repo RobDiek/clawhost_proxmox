@@ -4982,6 +4982,57 @@ interface ContentPlanItem {
         proposedAt: string
     }
     agentRole: string                 // who owns this (ayat/yotzer/shaliach/...)
+    // ── v4 performance tracking (populated after publish)
+    publishedAt?: string              // ISO timestamp when published to channel
+    channelPostId?: string            // platform-native post id (fb post id, blog slug, etc.)
+    results?: {                       // metrics pulled by daily collector
+        reach?: number
+        impressions?: number
+        clicks?: number
+        ctr?: number                  // 0-1
+        engagement?: number           // likes+comments+shares
+        engagementRate?: number       // 0-1
+        conversions?: number
+        revenueIls?: number
+        fetchedAt?: string
+    }
+    performanceScore?: number         // 0-100 composite, computed weekly
+}
+
+// ── Content Plan v4 pipeline types (Skeleton → Drafts → QA Repair → Self-Critique) ──
+interface ContentSlot {
+    date: string
+    time: string
+    channel: ContentPlanItem['channel']
+    type: ContentPlanItem['type']
+    pillar: string
+    persona: string
+    productRef?: string
+    flexibility: 'fixed' | 'suggested'
+    agentRole: string
+}
+
+interface DraftOutput {
+    hook: string
+    brief: string
+    ctaType: string
+}
+
+interface GenContext {
+    apiKey: string
+    businessName: string
+    startIso: string
+    endIso: string
+    startDate: Date
+    weeksAhead: number
+    scenario: any
+    products: any[]
+    productsFunnel: string
+    pillarWhitelist: string[]
+    personaTitles: string[]
+    strategy: string
+    brandVoice: string
+    performanceContext?: string
 }
 
 function nanoid(n = 10): string {
@@ -4991,9 +5042,392 @@ function nanoid(n = 10): string {
     return out
 }
 
-// Generate 4-week content plan via Anthropic based on strategy + products + scenario roster.
+// ═══════════════════════════════════════════════════════════════════════════
+// Content Plan v4 — Multi-pass generation pipeline
+//
+// Pass 1: Skeleton (Opus thinking, structure only, ~10s)
+// Pass 2: Per-item drafting (Sonnet parallel, ~6s for 28 items)
+// Pass 3: QA auto-repair (Opus thinking, fixes quota violations, ~15s)
+// Pass 4: Self-critique (Opus thinking, replaces 3 weakest items, ~10s)
+//
+// Total: ~45s, ~$1.00 per regeneration. Runs 1×/month per user.
+// Each pass gracefully degrades on failure — fallback to previous pass output.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Helper: extract JSON array from model output, handling fences/thinking blocks/truncation
+function extractJsonArray(text: string): any[] | null {
+    // eslint-disable-line @typescript-eslint/no-explicit-any
+    let t = text.replace(/```(?:json)?\s*/gi, '').replace(/```\s*$/g, '').trim()
+    const firstBracket = t.indexOf('[')
+    let lastBracket = t.lastIndexOf(']')
+    if (firstBracket < 0) return null
+    if (lastBracket < 0) {
+        // Truncated — close at last complete object
+        const lastBrace = t.lastIndexOf('}')
+        if (lastBrace > firstBracket) {
+            t = t.substring(firstBracket, lastBrace + 1) + ']'
+            lastBracket = t.length - 1
+        } else return null
+    } else {
+        t = t.substring(firstBracket, lastBracket + 1)
+    }
+    t = t.replace(/,\s*([}\]])/g, '$1')
+    t = sanitizeJsonControlChars(t)
+    try {
+        const parsed = JSON.parse(t)
+        return Array.isArray(parsed) ? parsed : null
+    } catch {
+        // Per-object fallback
+        const objs = t.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g) || []
+        const out = objs.map(s => { try { return JSON.parse(s) } catch { return null } }).filter(Boolean)
+        return out.length ? out : null
+    }
+}
+
+// Helper: get text from Anthropic response (handles thinking-mode multi-block)
+function getAnthropicText(data: any): string {
+    // eslint-disable-line @typescript-eslint/no-explicit-any
+    const blocks = (data?.content || []).filter((c: any) => c.type === 'text' && c.text)
+    return (blocks[blocks.length - 1]?.text || data?.content?.[0]?.text || '')
+}
+
+// ─── PASS 1: Skeleton ──────────────────────────────────────────────────────
+// Opus thinking outputs ONLY structure (date/channel/pillar/persona) — no copy.
+// This isolates structural constraints (weekly buckets, persona quota, pillar
+// distribution, IG reel ratio, course_1499 share) from copywriting concerns.
+async function generateSkeleton(ctx: GenContext): Promise<ContentSlot[]> {
+    const prompt = `You are a marketing ops planner for ${ctx.businessName}.
+
+TASK: Build ONLY the structure (no copy, no hooks, no briefs) for a ${ctx.weeksAhead}-week POC content plan.
+
+## Period
+From ${ctx.startIso} to ${ctx.endIso} — Asia/Jerusalem timezone.
+SKIP all Saturdays. Friday only until 13:00.
+
+## Products
+${productsBlock({ products: ctx.products, productsFunnel: ctx.productsFunnel })}
+
+## Pillars — use ONLY these verbatim (no inventing!)
+${ctx.pillarWhitelist.map((p, i) => `${i + 1}. "${p}"`).join('\n')}
+
+## Personas — each MUST get ≥15% of items
+${ctx.personaTitles.length >= 2 ? ctx.personaTitles.map((p, i) => `${i + 1}. ${p}`).join('\n') : 'דורון, אסף, מיכל'}
+
+${ctx.performanceContext ? `\n## Previous period performance (adapt structure accordingly!)\n${ctx.performanceContext}\n` : ''}
+
+## Hard constraints (auto-validator will reject plan on violation)
+- Total: **24-28 items**
+- Weekly buckets: Week 1: 6-7 items · Week 2: 6-7 · Week 3: 6-7 · Week 4: 6-7
+- Each pillar appears ≥3 times
+- Each persona ≥15% (if 3 personas → ≥4 items each)
+- Instagram: reels ≥60% of all IG items
+- productRef "course_1499" ≥15% of items (≥4 of 28)
+- No Saturday items. Friday only until 13:00.
+
+## IL timing (April 2026 benchmarks)
+- Newsletter (email): **Thursday 07:30**
+- Blog SEO: **Monday 09:00**
+- Facebook peak: **Tue + Thu 19:00-21:00**
+- LinkedIn: **Mon/Tue 08:00-10:00**
+- Paid campaigns launch: **Monday 09:00**
+- YouTube/IG Reels: evening 19:00-21:00
+
+## flexibility rule
+Default "suggested" (agents can swap on hot events). Use "fixed" ONLY for: campaign_launch, campaign_optimize, report, scheduled newsletter. Target ~75% suggested / ~25% fixed.
+
+## OUTPUT — JSON array ONLY (no prose, no markdown)
+Each slot:
+{
+  "date": "YYYY-MM-DD",
+  "time": "HH:mm",
+  "channel": "facebook|instagram|blog|email|youtube|linkedin|tiktok|google_ads|meta_ads|reddit",
+  "type": "post|reel|story|carousel|article|email|video|campaign_launch|campaign_optimize|report",
+  "pillar": "<exact from whitelist>",
+  "persona": "<one from personas list>",
+  "productRef": "course_199|course_1499|clawflow|mixed|none",
+  "flexibility": "fixed|suggested",
+  "agentRole": "ayat|yotzer|shaliach|mateh|menateach|sayer|migdalor"
+}
+
+NO "hook", NO "brief", NO "ctaType" — those come later. Structure only. Sort ASC by date+time.`
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': ctx.apiKey,
+            'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+            model: 'claude-opus-4-7',
+            max_tokens: 6000,
+            thinking: { type: 'enabled', budget_tokens: 8000 },
+            messages: [{ role: 'user', content: prompt }],
+        }),
+        signal: AbortSignal.timeout(240000),
+    })
+    if (!res.ok) throw new Error(`Skeleton API ${res.status}: ${(await res.text()).substring(0, 200)}`)
+    const data = await res.json()
+    const text = getAnthropicText(data)
+    const raw = extractJsonArray(text)
+    if (!raw || raw.length === 0) throw new Error('Skeleton returned no slots')
+    const slots: ContentSlot[] = raw.map((r: any): ContentSlot => ({
+        date: String(r.date || ''),
+        time: String(r.time || '09:00'),
+        channel: String(r.channel || 'blog') as ContentSlot['channel'],
+        type: String(r.type || 'post') as ContentSlot['type'],
+        pillar: String(r.pillar || ''),
+        persona: String(r.persona || 'mix'),
+        productRef: r.productRef ? String(r.productRef) : undefined,
+        flexibility: (r.flexibility === 'fixed' ? 'fixed' : 'suggested') as 'fixed' | 'suggested',
+        agentRole: String(r.agentRole || 'ayat'),
+    })).filter(s => s.date && s.time)
+    slots.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+    return slots
+}
+
+// ─── PASS 2: Per-item drafting (parallel Sonnet) ────────────────────────────
+// For each slot, Sonnet generates hook/brief/ctaType with full context.
+// 7 concurrent calls to avoid rate limits. Failures fall back to placeholders.
+async function draftSingleItem(slot: ContentSlot, ctx: GenContext): Promise<DraftOutput> {
+    const prompt = `Write a content spec for one marketing item.
+
+## Business: ${ctx.businessName}
+## Brand voice / strategy (condensed)
+${ctx.brandVoice.substring(0, 2500)}
+
+## Products available
+${productsBlock({ products: ctx.products, productsFunnel: ctx.productsFunnel })}
+
+## This item's context
+- Date/time: ${slot.date} ${slot.time} (Asia/Jerusalem)
+- Channel: ${slot.channel}
+- Type: ${slot.type}
+- Pillar: "${slot.pillar}"
+- Persona: ${slot.persona}
+- Product focus: ${slot.productRef || 'mixed'}
+
+## Your task
+Return JSON (no markdown, no prose) with:
+{
+  "hook": "3-5 word Hebrew teaser that stops the scroll",
+  "brief": "2-3 sentences in Hebrew specifying exactly what to write/create, angle, format notes, and CTA direction. Write the brief AS INSTRUCTIONS to a copywriter, not as the post itself.",
+  "ctaType": "signup_course_199|signup_course_1499|trial_saas|read_more|contact|none"
+}
+
+Hook must be catchy and specific to this pillar+persona combo. Brief must be actionable (copywriter reads it and knows what to produce).`
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': ctx.apiKey,
+            'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 600,
+            messages: [{ role: 'user', content: prompt }],
+        }),
+        signal: AbortSignal.timeout(60000),
+    })
+    if (!res.ok) throw new Error(`Draft API ${res.status}`)
+    const data = await res.json()
+    let text = getAnthropicText(data).replace(/```(?:json)?/gi, '').replace(/```\s*$/g, '').trim()
+    const firstBrace = text.indexOf('{')
+    const lastBrace = text.lastIndexOf('}')
+    if (firstBrace < 0 || lastBrace < 0) throw new Error('No JSON in draft')
+    text = sanitizeJsonControlChars(text.substring(firstBrace, lastBrace + 1))
+    const parsed = JSON.parse(text)
+    return {
+        hook: String(parsed.hook || '').substring(0, 80),
+        brief: String(parsed.brief || ''),
+        ctaType: String(parsed.ctaType || 'none'),
+    }
+}
+
+async function draftItemsParallel(slots: ContentSlot[], ctx: GenContext): Promise<(DraftOutput | null)[]> {
+    const CONCURRENCY = 7
+    const results: (DraftOutput | null)[] = new Array(slots.length).fill(null)
+    for (let i = 0; i < slots.length; i += CONCURRENCY) {
+        const batch = slots.slice(i, i + CONCURRENCY)
+        const batchResults = await Promise.all(batch.map((slot, j) =>
+            draftSingleItem(slot, ctx).catch(err => {
+                console.warn(`Draft ${i + j} failed: ${(err as Error).message}`)
+                return null
+            })
+        ))
+        batchResults.forEach((r, j) => { results[i + j] = r })
+    }
+    return results
+}
+
+// ─── PASS 3: QA auto-repair ─────────────────────────────────────────────────
+// Detects violations (via qaContentPlan) and asks Opus to return patches.
+// Applies patches in-place. No-op if plan is already clean.
+async function qaRepair(items: ContentPlanItem[], ctx: GenContext): Promise<ContentPlanItem[]> {
+    const qa = qaContentPlan(items, ctx.pillarWhitelist, ctx.startDate, ctx.weeksAhead, ctx.personaTitles)
+    if (qa.ok) { console.log('qaRepair: no violations, skipping'); return items }
+
+    const summary = items.map((it, i) => ({
+        i, date: it.date, time: it.time, channel: it.channel, type: it.type,
+        pillar: it.pillar, persona: it.persona, productRef: it.productRef, hook: it.hook,
+    }))
+    const prompt = `You are a marketing QA engineer. Apply minimum patches to fix violations.
+
+## Current plan (${items.length} items)
+${JSON.stringify(summary, null, 1).substring(0, 10000)}
+
+## Violations detected by validator
+${qa.issues.map((iss, n) => `${n + 1}. ${iss}`).join('\n')}
+
+## Allowed pillar names (verbatim — any other is invalid)
+${ctx.pillarWhitelist.map(p => `- "${p}"`).join('\n')}
+
+## Allowed personas
+${ctx.personaTitles.join(', ') || 'דורון, אסף, מיכל'}
+
+## Your task
+Return a JSON array of patches. Each patch modifies ONE field of ONE item:
+[
+  {
+    "i": <item index 0-${items.length - 1}>,
+    "change": {
+      "pillar"?: "<new pillar from whitelist>",
+      "persona"?: "<new persona>",
+      "channel"?: "<new channel>",
+      "type"?: "<new type, e.g. reel instead of post for IG>",
+      "productRef"?: "course_199|course_1499|clawflow|mixed|none"
+    }
+  }
+]
+
+Apply **minimum** patches to satisfy all violations. Don't change things that aren't broken. JSON array only, no prose.`
+
+    try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': ctx.apiKey,
+                'anthropic-version': '2023-06-01',
+            },
+            body: JSON.stringify({
+                model: 'claude-opus-4-7',
+                max_tokens: 4000,
+                thinking: { type: 'enabled', budget_tokens: 4000 },
+                messages: [{ role: 'user', content: prompt }],
+            }),
+            signal: AbortSignal.timeout(180000),
+        })
+        if (!res.ok) throw new Error(`QA API ${res.status}`)
+        const data = await res.json()
+        const text = getAnthropicText(data)
+        const patches = extractJsonArray(text)
+        if (!patches) throw new Error('No patches returned')
+
+        const fixed = items.map(it => ({ ...it }))
+        let applied = 0
+        patches.forEach((p: any) => {
+            if (typeof p.i !== 'number' || !p.change || p.i < 0 || p.i >= fixed.length) return
+            const allowed = ['pillar', 'persona', 'channel', 'type', 'productRef']
+            allowed.forEach(k => {
+                if (k in p.change && typeof p.change[k] === 'string') {
+                    (fixed[p.i] as any)[k] = p.change[k]
+                    applied++
+                }
+            })
+        })
+        console.log(`qaRepair: applied ${applied} field patches across ${patches.length} items`)
+        return fixed
+    } catch (err) {
+        console.warn('qaRepair failed, returning unrepaired plan:', (err as Error).message)
+        return items
+    }
+}
+
+// ─── PASS 4: Self-critique ──────────────────────────────────────────────────
+// Opus as senior marketing director replaces the 3 weakest items' hook+brief+cta.
+// Structural fields (date/channel/pillar/persona) are preserved.
+async function selfCritique(items: ContentPlanItem[], ctx: GenContext): Promise<ContentPlanItem[]> {
+    const summary = items.map((it, i) => ({
+        i, date: it.date, channel: it.channel, type: it.type,
+        pillar: it.pillar, persona: it.persona,
+        hook: it.hook, brief: it.brief.substring(0, 150),
+    }))
+    const prompt = `You are a senior marketing director for ${ctx.businessName}. Review this content plan and strengthen its weakest parts.
+
+## Brand voice / strategy
+${ctx.brandVoice.substring(0, 2000)}
+
+## Products
+${productsBlock({ products: ctx.products, productsFunnel: ctx.productsFunnel })}
+
+## Plan (${items.length} items)
+${JSON.stringify(summary, null, 1).substring(0, 9000)}
+
+## Your task
+Identify the **3 weakest items** by:
+- Weak/generic hook (could apply to any business)
+- Unclear CTA direction
+- Poor persona-message fit
+- Poor channel-format fit (e.g., long-form on IG)
+
+Replace them with stronger versions. Keep date/channel/type/pillar/persona the same — swap ONLY hook + brief + ctaType.
+
+## Output — JSON array of exactly 3 replacements
+[
+  {
+    "i": <index>,
+    "hook": "<stronger Hebrew hook 3-5 words>",
+    "brief": "<sharper Hebrew brief 2-3 sentences>",
+    "ctaType": "<improved CTA type>"
+  }
+]
+
+JSON only.`
+
+    try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': ctx.apiKey,
+                'anthropic-version': '2023-06-01',
+            },
+            body: JSON.stringify({
+                model: 'claude-opus-4-7',
+                max_tokens: 3000,
+                thinking: { type: 'enabled', budget_tokens: 4000 },
+                messages: [{ role: 'user', content: prompt }],
+            }),
+            signal: AbortSignal.timeout(150000),
+        })
+        if (!res.ok) throw new Error(`Critique API ${res.status}`)
+        const data = await res.json()
+        const text = getAnthropicText(data)
+        const replacements = extractJsonArray(text)
+        if (!replacements) throw new Error('No replacements returned')
+
+        const improved = items.map(it => ({ ...it }))
+        let applied = 0
+        replacements.forEach((r: any) => {
+            if (typeof r.i !== 'number' || r.i < 0 || r.i >= improved.length) return
+            if (r.hook) { improved[r.i].hook = String(r.hook).substring(0, 80); applied++ }
+            if (r.brief) improved[r.i].brief = String(r.brief)
+            if (r.ctaType) improved[r.i].ctaType = String(r.ctaType)
+        })
+        console.log(`selfCritique: improved ${applied} items`)
+        return improved
+    } catch (err) {
+        console.warn('selfCritique failed, returning pre-critique plan:', (err as Error).message)
+        return items
+    }
+}
+
+// Generate 4-week content plan via v4 pipeline (Skeleton → Drafts → QA Repair → Self-Critique).
 // Smart mode: each item has flexibility level so agents can propose pivots later.
-// Monthly revision: re-call this function with performanceData to adjust next 4 weeks.
+// Monthly revision: re-call with performanceContext to adjust next 4 weeks.
 async function generateContentPlan(
     instanceId: string,
     opts: { weeksAhead?: number; startDate?: Date; performanceContext?: string } = {}
@@ -5053,254 +5487,57 @@ async function generateContentPlan(
         if (n.length > 1 && !personaTitles.includes(n)) personaTitles.push(n)
     }
 
-    const prompt = `אתה מנהל שיווק בכיר (menateach) עבור ${answers.businessName || 'העסק'}. המשימה: לייצר Content Plan של ${weeksAhead} שבועות מלאים (${weeksAhead * 7} ימים) על בסיס האסטרטגיה, התסריט שנבחר, ומוצרי העסק.
+    const ctx: GenContext = {
+        apiKey,
+        businessName: answers.businessName || 'העסק',
+        startIso,
+        endIso,
+        startDate,
+        weeksAhead,
+        scenario,
+        products,
+        productsFunnel: String(answers.productsFunnel || ''),
+        pillarWhitelist,
+        personaTitles,
+        strategy,
+        brandVoice: strategy, // same source for now; could be refined later
+        performanceContext: opts.performanceContext,
+    }
 
-## תקופת התוכנית (חובה לכסות את כולה!)
-מ: ${startIso} (יום ${todayDayName})
-עד: ${endIso}
-Timezone: Asia/Jerusalem
+    // ─── Pass 1: Skeleton (Opus thinking) ───
+    const t1 = Date.now()
+    const slots = await generateSkeleton(ctx)
+    console.log(`Content Plan v4 — Pass 1 (Skeleton): ${slots.length} slots in ${((Date.now() - t1) / 1000).toFixed(1)}s`)
 
-## תסריט שנבחר: ${scenario.name || scenario.key || 'recommended'}
-${scenario.tagline || ''}
+    // ─── Pass 2: Per-item drafting (Sonnet parallel) ───
+    const t2 = Date.now()
+    const drafts = await draftItemsParallel(slots, ctx)
+    const draftedCount = drafts.filter(d => d !== null).length
+    console.log(`Content Plan v4 — Pass 2 (Drafting): ${draftedCount}/${slots.length} items drafted in ${((Date.now() - t2) / 1000).toFixed(1)}s`)
 
-## מוצרים פעילים
-${products.length > 0
-        ? products.map((p: any, i: number) => {
-            const price = p.priceIls != null ? `₪${p.priceIls}` : ''
-            const model = p.priceModel || 'unknown'
-            const entry = p.isPrimary ? ' 🎯[כניסה]' : ''
-            return `${i + 1}. ${p.name}${entry} — ${price} · ${model} · ${p.description || ''}`
-        }).join('\n')
-        : '(לא צוין)'}
-${answers.productsFunnel ? `\nFunnel: ${answers.productsFunnel}` : ''}
-
-## הנחיה קריטית לגבי המוצרים
-${answers.productsFunnel && answers.productsFunnel.match(/קורס|course/i)
-    ? 'הערה חשובה: מי שקנה את הקורס הוא משתמש של הפלטפורמה (הקורס מבוסס על שימוש בפלטפורמה עצמה). לכן כל content שמוכר קורס = בעקבות מוכר את הפלטפורמה. אין צורך ב-upsell content נפרד ל-SaaS trial.'
-    : 'הערה: התוכן צריך לפעול ב-funnel כולו — entry product → upsell → retention.'}
-
-## Pillars מאושרים (השתמש **רק** בשמות האלו מילה-במילה — אסור להמציא pillar חדש!)
-${pillarWhitelist.map((p, i) => `${i + 1}. "${p}"`).join('\n')}
-
-## פרסונות מאושרות (חובה לכסות את כולן)
-${personaTitles.length >= 2
-    ? personaTitles.map((p, i) => `${i + 1}. ${p}`).join('\n') +
-      `\n\n**כל פרסונה חייבת לקבל לפחות 15% מה-items.** אם יש 3 פרסונות — כל אחת ≥ 4 items מתוך 28. אסור להשאיר persona ב-0 items.`
-    : '(לא זוהו — השתמש ב-mix / דורון / אסף / מיכל לפי ההקשר)'}
-
-## האסטרטגיה המלאה
-${strategy}
-
-${opts.performanceContext ? `\n## נתוני ביצועים מהחודש הקודם (השתמש לתיקון טקטי!)\n${opts.performanceContext}\n` : ''}
-
----
-
-## פילוסופיית POC — חובה!
-
-זהו **חודש ראשון = Proof of Concept**. המטרה היא לא volume — אלא **איסוף נתונים שיאפשרו אופטימיזציה בחודש הבא**. לכן:
-
-### חלוקה ל-4 שבועות מלאים (חובה לעשות בדיוק כך!)
-
-**בחוקי ברזל:**
-- **סה"כ 24-28 items, לא יותר ולא פחות** (ממוצע 6-7 לשבוע × 4 שבועות)
-- כל שבוע חייב לקבל **לפחות 5 items ולא יותר מ-7** — אחרת הדוח נזרק
-
-**מבנה חייב להיראות כך (לא לזוז!):**
-- **Week 1 (${startIso} + 0-6 days):** 6-7 items · דגש: אחיזת קהל (pillar 1) + התחלת השוואות (pillar 3 או 4)
-- **Week 2 (startIso + 7-13 days):** 6-7 items · דגש: ערך מעשי (pillar 2) + case study ראשון
-- **Week 3 (startIso + 14-20 days):** 6-7 items · דגש: שליטה ובטיחות (pillar 5) + המשך BOFU
-- **Week 4 (startIso + 21-27 days):** 6-7 items · דגש: סינתזה — mix של כל ה-5 pillars + הכנה לחודש 2
-
-**בודק אוטומטי ידחה**: אם Week 4 יקבל פחות מ-5 items, או אם סה"כ > 28 או < 24.
-
-- **כל pillar ייצג מינימום 3 פעמים בחודש** (פיזור של 5 pillars × 3 = 15 מינימום)
-- **כל persona מקבלת מינימום 15% מה-items** — אם יש 3 פרסונות → כל אחת ≥ 4 items
-- **כל ערוץ שמופיע ב-Scenario ייבדק לפחות פעם בשבוע**
-- **productRef "course_1499" מינימום 15% (4+ items)** — פרסונה מקצועית לא יכולה להיות מוזנחת
-
-## סטנדרטים ישראליים ובינלאומיים (אפריל 2026)
-
-### Instagram — הכרחי לקחת בחשבון!
-- **Reels = 60-70% מה-reach של IG בישראל ב-2026** (Meta Creators Report 2025)
-- לכן: **מינימום 60% מ-IG items חייבים להיות \`type: reel\`** (לא post/carousel)
-- פוסטים רגילים ב-IG הם read-only כמעט — reach נמוך
-
-### Facebook (SMB IL)
-- Organic reach לעמוד SMB ישראלי: 5-10% מ-followers (Meta IL SMB 2025)
-- Peak engagement SMB: **יום-ג + יום-ה 19:00-21:00** (לא בוקר!)
-- יום-ו עד 13:00 — engagement גבוה בקהילות עצמאיים
-- **קבוצות > עמוד** ב-SMB: 3x engagement
-
-### Blog/SEO
-- יום-ב 09:00 = peak תנועה אורגנית (אחרי weekend-recovery queries)
-- אורך מנצח למאמר SEO בישראל: 1,500-2,500 מילים (פחות מ-1000 לא מדורג)
-
-### Newsletter (Email)
-- Israeli SMB open rate: 25-32% · CTR: 3-5%
-- Peak send: יום-ה 07:30 (וודאי לפני תחילת יום עבודה)
-
-### YouTube
-- YouTube Shorts = 50B views/יום עולמית; בישראל עולה ב-30% yoy
-- **YouTube Shorts = מנוע חדש לגילוי** — עדיף על long-form לעסק חדש
-- Peak: יום-ו 10:00 או יום-ש ערב
-
-### LinkedIn (IL B2B)
-- Best times: יום-ב/ג 08:00-10:00
-- Engagement rate ישראל: 0.5-0.8% (תואם global)
-- עדיף פוסט טקסט 150-300 מילים + hook חזק מאשר קישור חיצוני
-
-### Paid Ads
-- Campaign launch ב-יום-ב 09:00 — שבוע מלא לאיסוף data לפני אופטימיזציה
-- Optimization cadence: פעם בשבוע לא יום-יומית (Meta learning phase צריך 7 ימים)
-
-## שבת — אסורה לפרסום אורגני
-דלג לחלוטין על יום שבת. יום ו' — פרסום רק עד 13:00.
-
-## Mixing באמת (לא קלישאה)
-
-עבור 4 שבועות, אל תדחוף אותו pillar רצוף. דוגמה טובה:
-- שבוע 1: ערוב של pillar 1 + 3 (כאב + השוואה) + Case Study אחד
-- שבוע 2: ערוב של pillar 2 + 5 (ערך + שליטה) + reel סיפור
-- שבוע 3: ערוב של pillar 4 + 1 (תוצאות + תגובה לטענה) + email
-- שבוע 4: mix כל 5 pillars — כולל synthesis post/video
-
-## Flexibility (חשוב!)
-- **Default = \`suggested\`** (הסוכן יכול להחליף באירוע חם)
-- \`fixed\` רק ל: campaign_launch, campaign_optimize, report, email_newsletter (שבועי מתוזמן)
-- תן 70-85% suggested, 15-30% fixed.
-
-## פורמט פלט — JSON בלבד
-
-החזר מערך JSON של items. כבר מצוידים ב-"[" פתוח — **המשך מהאובייקט הראשון**. סדר ASC לפי date+time.
-
-מבנה כל item:
-{
-  "date": "YYYY-MM-DD",
-  "time": "HH:mm",
-  "channel": "facebook|instagram|blog|email|youtube|linkedin|google_ads|meta_ads|reddit",
-  "type": "post|reel|story|carousel|article|email|video|campaign_launch|campaign_optimize|report",
-  "pillar": "<אחד מה-Pillars המאושרים למעלה — מילה-במילה!>",
-  "hook": "3-5 מילים בעברית",
-  "brief": "2-3 משפטים ספציפיים למה בדיוק לכתוב/ליצור, איזה angle, איזה CTA",
-  "persona": "<שם persona מ-strategy stage 3 — למשל דורון/אסף/מיכל/רחל/דנה/mix>",
-  "ctaType": "signup_course_199|signup_course_1499|trial_saas|read_more|contact|none",
-  "productRef": "course_199|course_1499|clawflow|mixed|none",
-  "flexibility": "fixed|suggested",
-  "agentRole": "ayat|yotzer|shaliach|mateh|menateach|sayer|migdalor"
-}
-
-**חובה**:
-1. ${weeksAhead * 5}-${weeksAhead * 7} items בסך הכל
-2. כיסוי מלא של ${weeksAhead * 7} הימים מ-${startIso} ל-${endIso}
-3. כל pillar מה-whitelist מופיע ≥ 2 פעמים
-4. כל persona ≥ 20% share
-5. Instagram reels ≥ 60% מ-IG items
-6. Pillar name = מילה-במילה מ-whitelist, לא "Pillar 1" ולא המצאה`
-
-    // Opus 4.7 with extended thinking — content plan is a multi-constraint
-    // strategic synthesis task (15KB context, 3 products × 3 personas × 5
-    // pillars × 7 channels × POC-mindset × weekly bucket quota × IL peak
-    // times). Haiku was wrong here; it can't hold all constraints at once.
-    // Runs ~1×/month per user → ~$0.45/run is trivial vs value of correct plan.
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-            model: 'claude-opus-4-7',
-            max_tokens: 16000,
-            thinking: { type: 'enabled', budget_tokens: 8000 },
-            messages: [
-                { role: 'user', content: prompt },
-                // NOTE: with thinking enabled, assistant prefill isn't supported —
-                // Opus may wrap output in ```json or add preamble. Our robust
-                // parser handles both.
-            ],
-        }),
-        signal: AbortSignal.timeout(300000),
+    // Merge slots + drafts into full items (failed drafts get placeholder copy)
+    let plan: ContentPlanItem[] = slots.map((slot, i): ContentPlanItem => {
+        const d = drafts[i]
+        return {
+            id: 'cp_' + nanoid(10),
+            date: slot.date,
+            time: slot.time,
+            channel: slot.channel,
+            type: slot.type,
+            pillar: slot.pillar,
+            persona: slot.persona,
+            productRef: slot.productRef,
+            flexibility: slot.flexibility,
+            agentRole: slot.agentRole,
+            hook: d?.hook || `${slot.pillar.substring(0, 25)}`,
+            brief: d?.brief || `צור ${slot.type} ל-${slot.channel} סביב "${slot.pillar}" עבור ${slot.persona}.`,
+            ctaType: d?.ctaType || 'none',
+            status: 'planned' as const,
+        }
     })
-
-    if (!res.ok) {
-        const errText = await res.text()
-        throw new Error(`Anthropic API failed (${res.status}): ${errText.substring(0, 300)}`)
-    }
-
-    const data = await res.json() as { content?: Array<{ type?: string; text?: string }> }
-    // With thinking enabled, content[] has multiple blocks: first is thinking,
-    // subsequent is text. Take the last text block.
-    const textBlocks = (data.content || []).filter(c => c.type === 'text' && c.text)
-    let text = (textBlocks[textBlocks.length - 1]?.text || data.content?.[0]?.text || '')
-    // Strip markdown fences if Opus wrapped the JSON
-    text = text.replace(/```(?:json)?\s*/gi, '').replace(/```\s*$/g, '').trim()
-
-    // Find outermost JSON array — greedy match for the LAST closing ] to handle
-    // nested objects. Prefer [...] but fall back to {"items":[...]} if model
-    // wrapped in an object.
-    let jsonStr: string | null = null
-    const firstBracket = text.indexOf('[')
-    const lastBracket = text.lastIndexOf(']')
-    if (firstBracket >= 0 && lastBracket > firstBracket) {
-        jsonStr = text.substring(firstBracket, lastBracket + 1)
-    } else if (firstBracket >= 0 && lastBracket < 0) {
-        // Truncated — no closing bracket. Try to close the array ourselves by
-        // trimming to the last complete object.
-        const lastBrace = text.lastIndexOf('}')
-        if (lastBrace > firstBracket) {
-            jsonStr = text.substring(firstBracket, lastBrace + 1) + ']'
-            console.warn('generateContentPlan: Haiku output was truncated, closing array at last complete object')
-        }
-    }
-    if (!jsonStr) {
-        console.error('generateContentPlan: no JSON array in Haiku output. First 1000 chars:', text.substring(0, 1000))
-        throw new Error('LLM did not return a JSON array')
-    }
-
-    jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1')
-    jsonStr = sanitizeJsonControlChars(jsonStr)
-
-    let rawItems: any[]
-    try {
-        rawItems = JSON.parse(jsonStr)
-    } catch (parseErr) {
-        console.error('generateContentPlan: JSON.parse failed. Error:', (parseErr as Error).message)
-        console.error('First 1500 chars of jsonStr:', jsonStr.substring(0, 1500))
-        // Last-resort: try extracting only the first N complete objects
-        const objectMatches = jsonStr.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g) || []
-        if (objectMatches.length > 0) {
-            rawItems = objectMatches.map(s => { try { return JSON.parse(s) } catch { return null } }).filter(Boolean)
-            console.log(`generateContentPlan: recovered ${rawItems.length} objects via per-object parse`)
-        } else {
-            throw new Error('LLM output JSON malformed — ' + (parseErr as Error).message.substring(0, 100))
-        }
-    }
-    if (!Array.isArray(rawItems)) throw new Error('Not an array')
-    if (rawItems.length === 0) throw new Error('LLM returned empty plan')
-
-    const plan: ContentPlanItem[] = rawItems.map((r): ContentPlanItem => ({
-        id: 'cp_' + nanoid(10),
-        date: String(r.date || ''),
-        time: String(r.time || '09:00'),
-        channel: String(r.channel || 'blog') as ContentPlanItem['channel'],
-        type: String(r.type || 'post') as ContentPlanItem['type'],
-        pillar: String(r.pillar || ''),
-        hook: String(r.hook || '').substring(0, 60),
-        brief: String(r.brief || ''),
-        persona: String(r.persona || 'mix'),
-        ctaType: String(r.ctaType || 'none'),
-        productRef: r.productRef ? String(r.productRef) : undefined,
-        flexibility: r.flexibility === 'fixed' ? 'fixed' : 'suggested',
-        status: 'planned' as const,
-        agentRole: String(r.agentRole || 'ayat'),
-    })).filter(it => it.date && it.time) // drop malformed
-
-    // Sort by date+time
     plan.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
 
-    // Hard volume cap: if Opus overshoots 28 items, keep a balanced subset —
-    // remove excess from the most-crowded weeks first so week 4 stays covered.
+    // Hard volume cap — if skeleton overshot 28, trim balanced across weeks
     const maxItems = weeksAhead * 7
     if (plan.length > maxItems) {
         const byWeek: Record<number, ContentPlanItem[]> = {}
@@ -5310,18 +5547,15 @@ ${opts.performanceContext ? `\n## נתוני ביצועים מהחודש הקו�
             ;(byWeek[wk] = byWeek[wk] || []).push(it)
         })
         const trimmed: ContentPlanItem[] = []
-        // Take up to 7 from each week, preserving chronological order
         Object.keys(byWeek).sort((a, b) => Number(a) - Number(b)).forEach(wkStr => {
             byWeek[Number(wkStr)].slice(0, 7).forEach(it => trimmed.push(it))
         })
-        // Further trim if still over cap
         while (trimmed.length > maxItems) trimmed.pop()
-        console.log(`generateContentPlan: trimmed ${plan.length} → ${trimmed.length} items (max ${maxItems})`)
-        plan.length = 0
-        plan.push(...trimmed)
+        console.log(`Content Plan v4 — volume cap: trimmed ${plan.length} → ${trimmed.length}`)
+        plan = trimmed
     }
 
-    // Soft-enforce pillar whitelist on items that invented pillars
+    // Soft-enforce pillar whitelist (fuzzy remap any invented pillars)
     plan.forEach(it => {
         if (!pillarWhitelist.includes(it.pillar)) {
             const itLower = it.pillar.toLowerCase()
@@ -5333,14 +5567,24 @@ ${opts.performanceContext ? `\n## נתוני ביצועים מהחודש הקו�
         }
     })
 
-    // Post-generation QA: log issues (soft warnings, not throw)
-    const qa = qaContentPlan(plan, pillarWhitelist, startDate, weeksAhead, personaTitles)
-    if (!qa.ok) {
-        console.warn(`generateContentPlan QA warnings for ${instanceId}: ${qa.issues.join(' | ')}`)
-    } else {
-        console.log(`generateContentPlan QA PASS for ${instanceId}: ${plan.length} items, all quotas met`)
-    }
+    // ─── Pass 3: QA auto-repair (Opus thinking) ───
+    const t3 = Date.now()
+    plan = await qaRepair(plan, ctx)
+    console.log(`Content Plan v4 — Pass 3 (QA Repair): ${((Date.now() - t3) / 1000).toFixed(1)}s`)
 
+    // ─── Pass 4: Self-critique (Opus thinking) ───
+    const t4 = Date.now()
+    plan = await selfCritique(plan, ctx)
+    console.log(`Content Plan v4 — Pass 4 (Self-critique): ${((Date.now() - t4) / 1000).toFixed(1)}s`)
+
+    // Final QA log (soft warnings only — all 4 passes should have fixed issues)
+    const qaFinal = qaContentPlan(plan, pillarWhitelist, startDate, weeksAhead, personaTitles)
+    if (!qaFinal.ok) {
+        console.warn(`Content Plan v4 final QA warnings for ${instanceId}: ${qaFinal.issues.join(' | ')}`)
+    } else {
+        console.log(`Content Plan v4 final QA PASS for ${instanceId}: ${plan.length} items, all quotas met`)
+    }
+    console.log(`Content Plan v4 TOTAL: ${((Date.now() - t1) / 1000).toFixed(1)}s for ${plan.length} items`)
     return plan
 }
 
@@ -5419,6 +5663,188 @@ function qaContentPlan(
 //  - Automatically once after commitStrategyScenario (initial seeding)
 //  - Monthly by mateh agent with performance data (tactical revision)
 //  - Manually by user clicking "Regenerate plan"
+// ─── Performance context builder ────────────────────────────────────────────
+// Reads past plan items with results, computes a compact summary Opus can use
+// in Pass 1 (Skeleton). Returns empty string on first-ever generation.
+function buildPerformanceContext(rd: any): string {
+    // eslint-disable-line @typescript-eslint/no-explicit-any
+    const past: ContentPlanItem[] = Array.isArray(rd?.contentPlan) ? rd.contentPlan : []
+    const withResults = past.filter(it => it.results && typeof it.results.engagement === 'number')
+    if (withResults.length < 5) return '' // need at least 5 measured items to infer patterns
+
+    // Aggregate by pillar
+    const byPillar: Record<string, { count: number; totalEngagement: number; totalReach: number }> = {}
+    withResults.forEach(it => {
+        const p = it.pillar || 'unknown'
+        const b = byPillar[p] || { count: 0, totalEngagement: 0, totalReach: 0 }
+        b.count += 1
+        b.totalEngagement += it.results?.engagement || 0
+        b.totalReach += it.results?.reach || 0
+        byPillar[p] = b
+    })
+    const pillarRanking = Object.entries(byPillar)
+        .map(([p, s]) => ({ pillar: p, avgEng: s.totalEngagement / s.count, avgReach: s.totalReach / s.count, count: s.count }))
+        .sort((a, b) => b.avgEng - a.avgEng)
+
+    // Aggregate by channel
+    const byChannel: Record<string, { count: number; totalEngagement: number }> = {}
+    withResults.forEach(it => {
+        const b = byChannel[it.channel] || { count: 0, totalEngagement: 0 }
+        b.count += 1
+        b.totalEngagement += it.results?.engagement || 0
+        byChannel[it.channel] = b
+    })
+    const channelRanking = Object.entries(byChannel)
+        .map(([ch, s]) => ({ channel: ch, avgEng: s.totalEngagement / s.count, count: s.count }))
+        .sort((a, b) => b.avgEng - a.avgEng)
+
+    // Aggregate by persona
+    const byPersona: Record<string, { count: number; totalEngagement: number }> = {}
+    withResults.forEach(it => {
+        const b = byPersona[it.persona || 'mix'] || { count: 0, totalEngagement: 0 }
+        b.count += 1
+        b.totalEngagement += it.results?.engagement || 0
+        byPersona[it.persona || 'mix'] = b
+    })
+    const personaRanking = Object.entries(byPersona)
+        .map(([pr, s]) => ({ persona: pr, avgEng: s.totalEngagement / s.count, count: s.count }))
+        .sort((a, b) => b.avgEng - a.avgEng)
+
+    // Best/worst items
+    const sortedByEng = [...withResults].sort((a, b) => (b.results?.engagement || 0) - (a.results?.engagement || 0))
+    const top3 = sortedByEng.slice(0, 3).map(it => `"${it.hook}" (${it.channel}, engagement ${it.results?.engagement})`)
+    const bottom3 = sortedByEng.slice(-3).reverse().map(it => `"${it.hook}" (${it.channel}, engagement ${it.results?.engagement})`)
+
+    return `### Pillar performance (avg engagement)
+${pillarRanking.map(p => `- "${p.pillar}": avg ${p.avgEng.toFixed(0)} engagement, ${p.avgReach.toFixed(0)} reach (${p.count} items)`).join('\n')}
+
+### Channel performance
+${channelRanking.map(c => `- ${c.channel}: avg ${c.avgEng.toFixed(0)} engagement (${c.count} items)`).join('\n')}
+
+### Persona resonance
+${personaRanking.map(p => `- ${p.persona}: avg ${p.avgEng.toFixed(0)} engagement (${p.count} items)`).join('\n')}
+
+### Top performers (keep doing more of this)
+${top3.map(t => `- ${t}`).join('\n')}
+
+### Bottom performers (avoid/rethink)
+${bottom3.map(t => `- ${t}`).join('\n')}
+
+### Tactical directive
+Shift weight toward top-performing pillar + channel + persona combos. Reduce or rework underperforming pillars.`
+}
+
+// ─── POST /hosting/instances/:id/optimization/weekly ─────────────────────────
+// Runs Opus 4.7 over the past 7-28 days of measured results + current strategy.
+// Produces a qualitative optimization report (wins, losses, tactical changes).
+// Stored in researchData.optimizationReports[] with timestamp.
+export const generateOptimizationReport = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const rd = (instance.researchData as any) || {}
+        const plan: ContentPlanItem[] = Array.isArray(rd.contentPlan) ? rd.contentPlan : []
+        const measured = plan.filter(it => it.results && typeof it.results.engagement === 'number')
+        if (measured.length < 5) {
+            return fail(c, `צריך לפחות 5 items עם נתונים כדי להפיק דוח (נמצאו ${measured.length})`, 400)
+        }
+
+        const apiKey = await getApiKeyForInstance(instanceId)
+        if (!apiKey) return fail(c, 'Anthropic API key missing', 400)
+
+        const businessName = rd.answers?.businessName || 'העסק'
+        const perfContext = buildPerformanceContext(rd)
+
+        const prompt = `אתה יועץ שיווק בכיר עבור ${businessName}. המשימה שלך: לנתח ביצועי החודש החולף ולייצר דוח אופטימיזציה טקטי לחודש הבא.
+
+## נתוני ביצועים
+${perfContext}
+
+## תוכנית תוכן פעילה
+${JSON.stringify(plan.slice(0, 40).map(it => ({
+    date: it.date, channel: it.channel, pillar: it.pillar, persona: it.persona,
+    status: it.status, hook: it.hook, engagement: it.results?.engagement, reach: it.results?.reach,
+})), null, 1).substring(0, 6000)}
+
+## המשימה שלך
+החזר JSON מובנה בפורמט:
+{
+  "summary": "2-3 משפטים — תמונה כללית של החודש",
+  "wins": ["הישג 1 — פירוט ספציפי עם מספרים", "הישג 2", "הישג 3"],
+  "losses": ["מה לא עבד — ספציפי", "בעיה 2", "בעיה 3"],
+  "tactical_changes": {
+    "pillar_rebalance": "המלצה — איזה pillar להגדיל/להקטין ולמה",
+    "persona_focus": "איזו פרסונה תועדף ולמה",
+    "channel_shifts": "איזה ערוצים להגביר/להוריד",
+    "timing_adjustments": "שינויי timing (יום/שעה) מוכחי data",
+    "hook_patterns": "patterns של hook שעבדו יותר — מה להעתיק"
+  },
+  "next_period_focus": "במשפט אחד — מה הפוקוס הברור של החודש הבא"
+}
+
+השתמש בנתונים ממש — לא generalities. ציין מספרים ספציפיים. JSON בלבד, בלי prose.`
+
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+            },
+            body: JSON.stringify({
+                model: 'claude-opus-4-7',
+                max_tokens: 4000,
+                thinking: { type: 'enabled', budget_tokens: 6000 },
+                messages: [{ role: 'user', content: prompt }],
+            }),
+            signal: AbortSignal.timeout(180000),
+        })
+        if (!res.ok) return fail(c, `Anthropic API failed (${res.status})`, 500)
+        const data = await res.json() as { content?: Array<{ type?: string; text?: string }> }
+        const text = getAnthropicText(data)
+        const firstBrace = text.indexOf('{')
+        const lastBrace = text.lastIndexOf('}')
+        if (firstBrace < 0 || lastBrace < 0) return fail(c, 'Model returned no JSON object', 500)
+        const cleaned = sanitizeJsonControlChars(text.substring(firstBrace, lastBrace + 1).replace(/,\s*([}\]])/g, '$1'))
+        let report: any
+        try { report = JSON.parse(cleaned) } catch (e) {
+            console.error('optimization report JSON parse failed:', (e as Error).message)
+            return fail(c, 'Model output JSON malformed', 500)
+        }
+
+        const stamped = { ...report, generatedAt: new Date().toISOString(), measuredItems: measured.length }
+        const prior: any[] = Array.isArray(rd.optimizationReports) ? rd.optimizationReports : []
+        const updated = [stamped, ...prior].slice(0, 12) // keep last year of monthly reports
+
+        await db.update(instances).set({
+            researchData: { ...rd, optimizationReports: updated } as any,
+        }).where(eq(instances.id, instanceId))
+
+        return ok(c, stamped, 'Optimization report generated')
+    } catch (err) {
+        console.error('generateOptimizationReport error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── GET /hosting/instances/:id/optimization/latest ──────────────────────────
+export const getLatestOptimizationReport = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+        const rd = (instance.researchData as any) || {}
+        const reports = Array.isArray(rd.optimizationReports) ? rd.optimizationReports : []
+        return ok(c, { report: reports[0] || null, history: reports.slice(1) }, 'Latest report')
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 export const regenerateContentPlan = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
@@ -5438,10 +5864,13 @@ export const regenerateContentPlan = async (c: Context) => {
         }
 
         const startDate = body.startDate ? new Date(body.startDate) : new Date()
+        // Auto-build performance context from prior results if caller didn't supply one.
+        // First regen has no results → empty string → Skeleton pass runs without it.
+        const autoPerfContext = body.performanceContext ?? buildPerformanceContext(rd)
         const plan = await generateContentPlan(instanceId, {
             weeksAhead: body.weeksAhead || 4,
             startDate,
-            performanceContext: body.performanceContext,
+            performanceContext: autoPerfContext || undefined,
         })
 
         // Preserve statuses of items already in progress (drafting/awaiting_review/approved/published/...)
