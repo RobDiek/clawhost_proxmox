@@ -119,6 +119,7 @@ interface ProductSku {
     priceIls: number | null
     priceModel: 'subscription_monthly' | 'one_time' | 'tiered' | 'free' | 'unknown'
     description: string
+    isPrimary?: boolean
 }
 
 interface OnboardingAnswers {
@@ -136,11 +137,12 @@ interface OnboardingAnswers {
     budget?: string
     clarifications?: string
     products?: ProductSku[]
+    productsFunnel?: string
 }
 
 // Format products list as a readable Hebrew block for prompts.
 // Returns empty string if no products — callers can use `productsBlock(answers) || 'fallback'`.
-function productsBlock(answers: { products?: ProductSku[] }): string {
+function productsBlock(answers: { products?: ProductSku[]; productsFunnel?: string }): string {
     const list = answers.products || []
     if (list.length === 0) return ''
     const modelLabels: Record<string, string> = {
@@ -153,9 +155,14 @@ function productsBlock(answers: { products?: ProductSku[] }): string {
     const lines = list.map((p, i) => {
         const price = p.priceIls != null ? `₪${p.priceIls}` : 'מחיר לא צוין'
         const model = modelLabels[p.priceModel] || p.priceModel
-        return `${i + 1}. **${p.name}** — ${price} (${model}) — ${p.description || 'ללא תיאור'}`
+        const mark = p.isPrimary ? ' 🎯 **[מוצר כניסה — דרכו נכנסים ל-funnel]**' : ''
+        return `${i + 1}. **${p.name}** — ${price} (${model})${mark} — ${p.description || 'ללא תיאור'}`
     })
-    return lines.join('\n')
+    const funnel = (answers.productsFunnel || '').trim()
+    const funnelLine = funnel
+        ? `\n\n**הקשר בין המוצרים (מהמשתמש ישירות — חייב לכבד!):** ${funnel}`
+        : ''
+    return lines.join('\n') + funnelLine
 }
 
 async function generateWithClaude(answers: OnboardingAnswers, apiKeyOverride?: string): Promise<{ userMd: string; brandMd: string }> {
@@ -674,9 +681,11 @@ ${landingContent}
       "name": "שם המוצר/שירות כפי שמופיע באתר או בתיאור",
       "priceIls": 3000,
       "priceModel": "subscription_monthly|one_time|tiered|free|unknown",
-      "description": "משפט קצר — מה זה ולמי"
+      "description": "משפט קצר — מה זה ולמי",
+      "isPrimary": false
     }
   ],
+  "suggestedFunnel": "משפט קצר איך המוצרים מחוברים (או ריק אם לא ברור) — המשתמש יוכל לתקן ב-UI",
   "questions": [
     { "id": "q1", "question": "השאלה בעברית", "placeholder": "דוגמה לתשובה מועילה", "type": "text", "why": "הסבר קצר למה זה חשוב" }
   ]
@@ -686,6 +695,8 @@ ${landingContent}
 - **זה הכי חשוב:** ${landingContent ? 'חלץ את כל המוצרים מתוכן הלנדינג — לפי סקשנים של תמחור, CTAs, "המוצרים שלנו", וכיוצ"ב. אם יש 2 מוצרים (כמו "פלטפורמה + קורס") — חובה לכלול את שניהם' : 'מהתיאור/תשובות זיהה כל SKU שמוזכר. אם משהו לא ברור — השאר ריק והתשאל בשאלה'}
 - priceIls: אם מצאת מחיר במטבע אחר, המר לשקל (USD × 3.8). אם לא מצאת מחיר — השתמש ב-null
 - priceModel: \`subscription_monthly\` (מנוי חודשי), \`one_time\` (חד-פעמי/קורס), \`tiered\` (כמה חבילות), \`free\` (ליד מגנט), \`unknown\` (לא ברור)
+- **isPrimary** (בוליאני): סמן true רק ליד המוצר שלפי הערכתך הוא "מוצר הכניסה" ל-funnel (המוצר שדרכו לקוחות נכנסים לעסק). אם לא ברור — השאר false בכל המוצרים, והמשתמש יבחר ב-UI. אל תמציא — המשתמש יתקן אם טעית.
+- **suggestedFunnel**: משפט קצר על הקשר בין המוצרים (e.g. "הקורס מוכר את הפלטפורמה"). רק אם ברור מהלנדינג; אחרת ריק.
 - מקסימום 6 מוצרים. מינימום 0 (אם באמת לא זיהית אף אחד)
 
 כללי questions:
@@ -729,12 +740,15 @@ ${landingContent}
                         priceIls: typeof p.priceIls === 'number' ? p.priceIls : null,
                         priceModel: ['subscription_monthly', 'one_time', 'tiered', 'free', 'unknown'].includes(p.priceModel) ? p.priceModel : 'unknown',
                         description: String(p.description || '').trim(),
+                        isPrimary: p.isPrimary === true,
                     })).filter((p: { name: string }) => p.name)
                     : []
+                const suggestedFunnel = typeof parsed.suggestedFunnel === 'string' ? parsed.suggestedFunnel.trim() : ''
                 return ok(c, {
                     assessment: parsed.assessment || '',
                     questions: parsed.questions || [],
                     detectedProducts,
+                    suggestedFunnel,
                     ready: (!parsed.questions || parsed.questions.length === 0) && detectedProducts.length > 0,
                 }, 'Analysis complete.')
             } catch (parseErr) {
