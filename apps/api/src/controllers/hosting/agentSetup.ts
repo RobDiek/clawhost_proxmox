@@ -5025,20 +5025,15 @@ async function generateContentPlan(
     const activeRoles = Object.keys(roster).filter(r => roster[r]?.cadence && roster[r].cadence !== 'off')
 
     // Extract named pillars from strategy stage 2 for whitelist enforcement.
-    // Strategy stage 2 has Pillar #1..5 blocks with Hebrew titles — we pull them.
+    // Match pattern: ### Pillar N: "full title with em-dashes ok"
+    // Use non-greedy match between Hebrew/ASCII double-quotes, no early termination on —
     const stage2 = String(rd.strategyStage2 || '')
-    const pillarMatches = stage2.match(/Pillar\s*#?\d+[:\s]*["״]?([^"״\n]+?)["״]?(?:\s*—|\n|$)/gi) || []
-    const pillarTitles = pillarMatches.slice(0, 6).map(m => {
-        const t = m.replace(/Pillar\s*#?\d+[:\s]*["״]?/, '').replace(/["״].*$/, '').trim()
-        return t.substring(0, 60)
-    }).filter(t => t.length > 5)
-    // Fallback pattern: ### Pillar #N: "title"
-    if (pillarTitles.length < 3) {
-        const alt = stage2.match(/###\s*Pillar\s*#\d+:\s*["״]([^"״\n]+)["״]/gi) || []
-        alt.forEach(m => {
-            const t = m.replace(/###\s*Pillar\s*#\d+:\s*["״]/, '').replace(/["״]/, '').trim()
-            if (t.length > 5 && !pillarTitles.includes(t)) pillarTitles.push(t)
-        })
+    const pillarTitles: string[] = []
+    const pillarRegex = /###\s*Pillar\s*#?\d+:\s*["״]([^\n"״]+?)["״]/g
+    let pm: RegExpExecArray | null
+    while ((pm = pillarRegex.exec(stage2)) !== null) {
+        const t = pm[1].trim()
+        if (t.length > 5 && !pillarTitles.includes(t)) pillarTitles.push(t)
     }
     const pillarWhitelist = pillarTitles.length >= 3 ? pillarTitles : [
         'סיפורי כוויה מפרילנסרים',
@@ -5047,6 +5042,16 @@ async function generateContentPlan(
         'תוצאות אמיתיות — Case Studies ישראליים',
         'שליטה בלי לפחד — AI בשליטתך',
     ]
+
+    // Extract persona names from strategy stage 3 for balance enforcement.
+    const stage3 = String(rd.strategyStage3 || '')
+    const personaTitles: string[] = []
+    const personaRegex = /##\s*פרסונה\s*#?\d*:?\s*([^\n—]+?)(?:\s*—|\s*\n|$)/g
+    let pr: RegExpExecArray | null
+    while ((pr = personaRegex.exec(stage3)) !== null) {
+        const n = pr[1].trim().split(/\s/)[0] // first word = persona name
+        if (n.length > 1 && !personaTitles.includes(n)) personaTitles.push(n)
+    }
 
     const prompt = `אתה מנהל שיווק בכיר (menateach) עבור ${answers.businessName || 'העסק'}. המשימה: לייצר Content Plan של ${weeksAhead} שבועות מלאים (${weeksAhead * 7} ימים) על בסיס האסטרטגיה, התסריט שנבחר, ומוצרי העסק.
 
@@ -5077,6 +5082,12 @@ ${answers.productsFunnel && answers.productsFunnel.match(/קורס|course/i)
 ## Pillars מאושרים (השתמש **רק** בשמות האלו מילה-במילה — אסור להמציא pillar חדש!)
 ${pillarWhitelist.map((p, i) => `${i + 1}. "${p}"`).join('\n')}
 
+## פרסונות מאושרות (חובה לכסות את כולן)
+${personaTitles.length >= 2
+    ? personaTitles.map((p, i) => `${i + 1}. ${p}`).join('\n') +
+      `\n\n**כל פרסונה חייבת לקבל לפחות 15% מה-items.** אם יש 3 פרסונות — כל אחת ≥ 4 items מתוך 28. אסור להשאיר persona ב-0 items.`
+    : '(לא זוהו — השתמש ב-mix / דורון / אסף / מיכל לפי ההקשר)'}
+
 ## האסטרטגיה המלאה
 ${strategy}
 
@@ -5088,11 +5099,24 @@ ${opts.performanceContext ? `\n## נתוני ביצועים מהחודש הקו�
 
 זהו **חודש ראשון = Proof of Concept**. המטרה היא לא volume — אלא **איסוף נתונים שיאפשרו אופטימיזציה בחודש הבא**. לכן:
 
-- **5-7 items בשבוע, לא יותר!** (ב-4 שבועות = 20-28 items סה"כ)
-- **פיזור אחיד** — לא 20 items בשבוע 1 ואז 10 בשבועות 2-4. בכל שבוע ~6-7 items.
-- **כל pillar ייצג מינימום 2 פעמים בחודש** — כדי שנדע מה תופס.
-- **כל persona מקבלת מינימום 20% מה-items**.
-- **כל ערוץ שמופיע ב-Scenario ייבדק לפחות פעם בשבוע** — אחרת לא נקבל data לערוץ הזה.
+### חלוקה ל-4 שבועות מלאים (חובה לעשות בדיוק כך!)
+
+**בחוקי ברזל:**
+- **סה"כ 24-28 items, לא יותר ולא פחות** (ממוצע 6-7 לשבוע × 4 שבועות)
+- כל שבוע חייב לקבל **לפחות 5 items ולא יותר מ-7** — אחרת הדוח נזרק
+
+**מבנה חייב להיראות כך (לא לזוז!):**
+- **Week 1 (${startIso} + 0-6 days):** 6-7 items · דגש: אחיזת קהל (pillar 1) + התחלת השוואות (pillar 3 או 4)
+- **Week 2 (startIso + 7-13 days):** 6-7 items · דגש: ערך מעשי (pillar 2) + case study ראשון
+- **Week 3 (startIso + 14-20 days):** 6-7 items · דגש: שליטה ובטיחות (pillar 5) + המשך BOFU
+- **Week 4 (startIso + 21-27 days):** 6-7 items · דגש: סינתזה — mix של כל ה-5 pillars + הכנה לחודש 2
+
+**בודק אוטומטי ידחה**: אם Week 4 יקבל פחות מ-5 items, או אם סה"כ > 28 או < 24.
+
+- **כל pillar ייצג מינימום 3 פעמים בחודש** (פיזור של 5 pillars × 3 = 15 מינימום)
+- **כל persona מקבלת מינימום 15% מה-items** — אם יש 3 פרסונות → כל אחת ≥ 4 items
+- **כל ערוץ שמופיע ב-Scenario ייבדק לפחות פעם בשבוע**
+- **productRef "course_1499" מינימום 15% (4+ items)** — פרסונה מקצועית לא יכולה להיות מוזנחת
 
 ## סטנדרטים ישראליים ובינלאומיים (אפריל 2026)
 
@@ -5173,10 +5197,11 @@ ${opts.performanceContext ? `\n## נתוני ביצועים מהחודש הקו�
 5. Instagram reels ≥ 60% מ-IG items
 6. Pillar name = מילה-במילה מ-whitelist, לא "Pillar 1" ולא המצאה`
 
-    // Haiku is ~3x faster than Sonnet for structured JSON extraction — and the
-    // task is pure plan-materialization from strategy text (no deep reasoning).
-    // If it ever fails quality-wise we can bump to Sonnet, but Haiku 4.5 reliably
-    // produces clean 25-35 item plans in <60s.
+    // Opus 4.7 with extended thinking — content plan is a multi-constraint
+    // strategic synthesis task (15KB context, 3 products × 3 personas × 5
+    // pillars × 7 channels × POC-mindset × weekly bucket quota × IL peak
+    // times). Haiku was wrong here; it can't hold all constraints at once.
+    // Runs ~1×/month per user → ~$0.45/run is trivial vs value of correct plan.
     const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -5185,15 +5210,17 @@ ${opts.performanceContext ? `\n## נתוני ביצועים מהחודש הקו�
             'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-            model: 'claude-haiku-4-5-20251001',
+            model: 'claude-opus-4-7',
             max_tokens: 16000,
+            thinking: { type: 'enabled', budget_tokens: 8000 },
             messages: [
                 { role: 'user', content: prompt },
-                // Prefill forces Haiku to continue from "[" — guaranteed JSON array start
-                { role: 'assistant', content: '[' },
+                // NOTE: with thinking enabled, assistant prefill isn't supported —
+                // Opus may wrap output in ```json or add preamble. Our robust
+                // parser handles both.
             ],
         }),
-        signal: AbortSignal.timeout(200000),
+        signal: AbortSignal.timeout(300000),
     })
 
     if (!res.ok) {
@@ -5201,13 +5228,12 @@ ${opts.performanceContext ? `\n## נתוני ביצועים מהחודש הקו�
         throw new Error(`Anthropic API failed (${res.status}): ${errText.substring(0, 300)}`)
     }
 
-    const data = await res.json() as { content?: Array<{ text: string }> }
-    let text = data.content?.[0]?.text || ''
-
-    // Since we prefilled "[" in the assistant turn, the model continues from
-    // the first element. We prepend "[" back to make it a valid array.
-    text = '[' + text
-    // Strip markdown fences if Haiku wrapped the JSON despite prefill
+    const data = await res.json() as { content?: Array<{ type?: string; text?: string }> }
+    // With thinking enabled, content[] has multiple blocks: first is thinking,
+    // subsequent is text. Take the last text block.
+    const textBlocks = (data.content || []).filter(c => c.type === 'text' && c.text)
+    let text = (textBlocks[textBlocks.length - 1]?.text || data.content?.[0]?.text || '')
+    // Strip markdown fences if Opus wrapped the JSON
     text = text.replace(/```(?:json)?\s*/gi, '').replace(/```\s*$/g, '').trim()
 
     // Find outermost JSON array — greedy match for the LAST closing ] to handle
@@ -5273,22 +5299,46 @@ ${opts.performanceContext ? `\n## נתוני ביצועים מהחודש הקו�
     // Sort by date+time
     plan.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
 
-    // Post-generation QA: check coverage + pillar whitelist + distribution
-    const qa = qaContentPlan(plan, pillarWhitelist, startDate, weeksAhead)
+    // Hard volume cap: if Opus overshoots 28 items, keep a balanced subset —
+    // remove excess from the most-crowded weeks first so week 4 stays covered.
+    const maxItems = weeksAhead * 7
+    if (plan.length > maxItems) {
+        const byWeek: Record<number, ContentPlanItem[]> = {}
+        plan.forEach(it => {
+            const d = new Date(it.date)
+            const wk = Math.floor((d.getTime() - startDate.getTime()) / (7 * 24 * 3600 * 1000))
+            ;(byWeek[wk] = byWeek[wk] || []).push(it)
+        })
+        const trimmed: ContentPlanItem[] = []
+        // Take up to 7 from each week, preserving chronological order
+        Object.keys(byWeek).sort((a, b) => Number(a) - Number(b)).forEach(wkStr => {
+            byWeek[Number(wkStr)].slice(0, 7).forEach(it => trimmed.push(it))
+        })
+        // Further trim if still over cap
+        while (trimmed.length > maxItems) trimmed.pop()
+        console.log(`generateContentPlan: trimmed ${plan.length} → ${trimmed.length} items (max ${maxItems})`)
+        plan.length = 0
+        plan.push(...trimmed)
+    }
+
+    // Soft-enforce pillar whitelist on items that invented pillars
+    plan.forEach(it => {
+        if (!pillarWhitelist.includes(it.pillar)) {
+            const itLower = it.pillar.toLowerCase()
+            const match = pillarWhitelist.find(p =>
+                itLower.includes(p.toLowerCase().substring(0, 10)) ||
+                p.toLowerCase().includes(itLower.substring(0, 10))
+            )
+            it.pillar = match || pillarWhitelist[0]
+        }
+    })
+
+    // Post-generation QA: log issues (soft warnings, not throw)
+    const qa = qaContentPlan(plan, pillarWhitelist, startDate, weeksAhead, personaTitles)
     if (!qa.ok) {
         console.warn(`generateContentPlan QA warnings for ${instanceId}: ${qa.issues.join(' | ')}`)
-        // Soft-enforce pillar whitelist on items that invented pillars — map to closest
-        plan.forEach(it => {
-            if (!pillarWhitelist.includes(it.pillar)) {
-                // Find closest by keyword overlap
-                const itLower = it.pillar.toLowerCase()
-                const match = pillarWhitelist.find(p =>
-                    itLower.includes(p.toLowerCase().substring(0, 10)) ||
-                    p.toLowerCase().includes(itLower.substring(0, 10))
-                )
-                it.pillar = match || pillarWhitelist[0]
-            }
-        })
+    } else {
+        console.log(`generateContentPlan QA PASS for ${instanceId}: ${plan.length} items, all quotas met`)
     }
 
     return plan
@@ -5300,12 +5350,13 @@ function qaContentPlan(
     plan: ContentPlanItem[],
     pillarWhitelist: string[],
     startDate: Date,
-    weeksAhead: number
+    weeksAhead: number,
+    personaTitles: string[] = []
 ): { ok: boolean; issues: string[] } {
     const issues: string[] = []
     const expectedDays = weeksAhead * 7
     const expectedMinItems = weeksAhead * 5
-    const expectedMaxItems = weeksAhead * 8
+    const expectedMaxItems = weeksAhead * 7
 
     if (plan.length < expectedMinItems) issues.push(`too few items (${plan.length} < ${expectedMinItems})`)
     if (plan.length > expectedMaxItems) issues.push(`too many items (${plan.length} > ${expectedMaxItems})`)
@@ -5314,37 +5365,51 @@ function qaContentPlan(
     const endDate = new Date(startDate)
     endDate.setDate(endDate.getDate() + expectedDays - 1)
     const maxDate = plan.reduce((m, it) => it.date > m ? it.date : m, '0000-00-00')
-    const minDate = plan.reduce((m, it) => m === '' || it.date < m ? it.date : m, '')
     const targetEndIso = endDate.toISOString().slice(0, 10)
     if (maxDate < targetEndIso) issues.push(`plan ends ${maxDate}, expected through ${targetEndIso}`)
 
-    // Pillar whitelist compliance
-    const invented = plan.filter(it => !pillarWhitelist.includes(it.pillar)).length
-    if (invented > 0) issues.push(`${invented} items use non-whitelisted pillars`)
-
-    // Each pillar represented at least 2x
-    pillarWhitelist.forEach(p => {
-        const count = plan.filter(it => it.pillar === p).length
-        if (count < 2) issues.push(`pillar "${p.substring(0, 20)}" underrepresented (${count})`)
+    // Per-week minimum coverage (5-7 items each)
+    const byWeek: Record<number, number> = {}
+    for (let w = 0; w < weeksAhead; w++) byWeek[w] = 0
+    plan.forEach(it => {
+        const d = new Date(it.date)
+        const wk = Math.floor((d.getTime() - startDate.getTime()) / (7 * 24 * 3600 * 1000))
+        if (wk >= 0 && wk < weeksAhead) byWeek[wk] = (byWeek[wk] || 0) + 1
+    })
+    Object.keys(byWeek).forEach(wkStr => {
+        const c = byWeek[Number(wkStr)]
+        if (c < 5) issues.push(`week ${Number(wkStr) + 1} has only ${c} items (expected 5-7)`)
+        if (c > 7) issues.push(`week ${Number(wkStr) + 1} has ${c} items (max 7)`)
     })
 
-    // Instagram reel ratio (IL 2026: IG Reels dominate reach → ≥60% of IG items)
+    // Pillar whitelist compliance + representation
+    const invented = plan.filter(it => !pillarWhitelist.includes(it.pillar)).length
+    if (invented > 0) issues.push(`${invented} items use non-whitelisted pillars`)
+    pillarWhitelist.forEach(p => {
+        const count = plan.filter(it => it.pillar === p).length
+        if (count < 3) issues.push(`pillar "${p.substring(0, 25)}" underrepresented (${count}<3)`)
+    })
+
+    // Persona coverage — each persona from strategy ≥ 15% share
+    if (personaTitles.length >= 2) {
+        const minPerPersona = Math.max(3, Math.floor(plan.length * 0.15))
+        personaTitles.forEach(persona => {
+            const count = plan.filter(it =>
+                it.persona === persona ||
+                it.persona?.includes(persona) ||
+                persona.includes(it.persona || '')
+            ).length
+            if (count < minPerPersona) issues.push(`persona "${persona}" underrepresented (${count}<${minPerPersona})`)
+        })
+    }
+
+    // Instagram reel ratio (IL 2026: ≥60%)
     const igItems = plan.filter(it => it.channel === 'instagram')
     if (igItems.length > 0) {
         const reelCount = igItems.filter(it => it.type === 'reel').length
         const reelRatio = reelCount / igItems.length
         if (reelRatio < 0.6) issues.push(`IG reel ratio ${(reelRatio * 100).toFixed(0)}% < 60%`)
     }
-
-    // Week distribution: no week should have > 50% of items
-    const byWeek: Record<number, number> = {}
-    plan.forEach(it => {
-        const d = new Date(it.date)
-        const wk = Math.floor((d.getTime() - startDate.getTime()) / (7 * 24 * 3600 * 1000))
-        byWeek[wk] = (byWeek[wk] || 0) + 1
-    })
-    const maxWeek = Math.max(...Object.values(byWeek))
-    if (maxWeek > plan.length * 0.5) issues.push(`week distribution skewed: ${maxWeek}/${plan.length} in single week`)
 
     return { ok: issues.length === 0, issues }
 }
