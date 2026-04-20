@@ -4938,10 +4938,14 @@ export const setupAgents = async (c: Context) => {
             console.error('Agent registration during deploy (non-critical):', regErr)
         }
 
-        // Update DB
+        // Update DB — merge with existing researchData so re-submitting the
+        // questionnaire (e.g. to add a product) does NOT wipe previously generated
+        // research stages / strategy / scenarios. Existing data is preserved;
+        // answers and generatedAt are refreshed.
+        const existingRd = (instance.researchData as any) || {}
         await db.update(instances).set({
             onboardingStep: 3,
-            researchData: { answers, generatedAt: new Date().toISOString() } as any,
+            researchData: { ...existingRd, answers, generatedAt: new Date().toISOString() } as any,
         }).where(eq(instances.id, instanceId))
 
         return ok(c, {
