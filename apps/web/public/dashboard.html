@@ -488,17 +488,24 @@ input{font-family:inherit}
 
 /* ===== Task Detail Popup ===== */
 .task-popup-overlay { position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:400; display:flex; align-items:center; justify-content:center; padding:20px; animation:fadeIn .15s ease; }
-.task-popup { background:#fff; border-radius:14px; width:100%; max-width:480px; max-height:85vh; overflow-y:auto; box-shadow:0 16px 48px rgba(0,0,0,.15); animation:slideUp .2s ease; word-break:break-word; }
-.task-popup-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #F3F4F6; }
-.task-popup-header h3 { font-size:1rem; font-weight:700; margin:0; }
-.task-popup-close { background:none; border:none; color:#9CA3AF; cursor:pointer; font-size:1.1rem; padding:4px; }
-.task-popup-close:hover { color:#374151; }
-.task-popup-body { padding:20px; }
+.task-popup { background:#fff; border-radius:14px; width:100%; max-width:720px; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 16px 48px rgba(0,0,0,.15); animation:slideUp .2s ease; word-break:break-word; transition:max-width .2s ease, max-height .2s ease, border-radius .2s ease; }
+.task-popup-overlay.fullscreen { padding:0; }
+.task-popup-overlay.fullscreen .task-popup { max-width:100vw; width:100vw; max-height:100vh; height:100vh; border-radius:0; }
+.task-popup-header { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:16px 20px; border-bottom:1px solid #F3F4F6; flex-shrink:0; }
+.task-popup-header h3 { font-size:1rem; font-weight:700; margin:0; flex:1 }
+.task-popup-header-actions { display:flex; align-items:center; gap:4px; }
+.task-popup-iconbtn { background:none; border:none; color:#9CA3AF; cursor:pointer; padding:6px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; transition:all .15s; }
+.task-popup-iconbtn:hover { color:#374151; background:#F3F4F6; }
+.task-popup-iconbtn svg { width:18px; height:18px; }
+.task-popup-close { background:none; border:none; color:#9CA3AF; cursor:pointer; font-size:1.1rem; padding:4px 8px; border-radius:6px; }
+.task-popup-close:hover { color:#374151; background:#F3F4F6; }
+.task-popup-body { padding:20px; overflow-y:auto; flex:1; }
 .task-popup-field { margin-bottom:14px; }
 .task-popup-label { font-size:0.75rem; font-weight:600; color:#9CA3AF; margin-bottom:4px; }
 .task-popup-value { font-size:0.88rem; color:#1F2937; line-height:1.5; }
 .task-popup-status-row { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
-.task-popup-footer { display:flex; gap:8px; justify-content:flex-end; padding:14px 20px; border-top:1px solid #F3F4F6; }
+.task-popup-footer { display:flex; gap:8px; justify-content:flex-end; padding:14px 20px; border-top:1px solid #F3F4F6; flex-shrink:0; flex-wrap:wrap; }
+.task-popup-overlay.fullscreen .task-popup-body .task-popup-value[style*="max-height"] { max-height:none !important; }
 @keyframes slideUp { from { transform:translateY(12px); opacity:0; } to { transform:translateY(0); opacity:1; } }
 
 /* Report/Strategy viewer modal */
@@ -2866,6 +2873,21 @@ function renderMarkdown(md) {
     return '<pre><code>' + b.code + '</code></pre>';
   });
 
+  // Wrap known marketing/SEO abbreviations with tooltip spans (CAC/LTV/MRR/ROI/SEO/AEO/…).
+  // We only decorate text outside tag attributes — simple approach: split by tag boundaries.
+  if (typeof GLOSSARY !== 'undefined') {
+    html = html.replace(/>([^<]+)</g, function(_, txt) {
+      var keys = Object.keys(GLOSSARY).sort(function(a, b) { return b.length - a.length; });
+      keys.forEach(function(abbr) {
+        var re = new RegExp('(^|[^\\w])' + abbr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?=$|[^\\w])', 'g');
+        txt = txt.replace(re, function(m, pre) {
+          return pre + '<span class="glossary-term" title="' + GLOSSARY[abbr].replace(/"/g, '&quot;') + '">' + abbr + '</span>';
+        });
+      });
+      return '>' + txt + '<';
+    });
+  }
+
   return html;
 }
 
@@ -4548,8 +4570,40 @@ function renderTaskPopup(task) {
 }
 
 function closeTaskPopup() {
-  document.getElementById('taskPopupOverlay').classList.add('hidden');
+  var overlay = document.getElementById('taskPopupOverlay');
+  overlay.classList.add('hidden');
+  overlay.classList.remove('fullscreen');
 }
+
+function toggleTaskPopupFullscreen() {
+  var overlay = document.getElementById('taskPopupOverlay');
+  overlay.classList.toggle('fullscreen');
+  var btn = document.getElementById('taskPopupFullscreenBtn');
+  var icon = document.getElementById('taskPopupFullscreenIcon');
+  var isFs = overlay.classList.contains('fullscreen');
+  if (btn) btn.title = isFs ? 'הקטן (F)' : 'מסך מלא (F)';
+  if (icon) {
+    // Swap expand/shrink icon
+    icon.innerHTML = isFs
+      ? '<path d="M8 3v3a2 2 0 01-2 2H3M21 8h-3a2 2 0 01-2-2V3M3 16h3a2 2 0 012 2v3M16 21v-3a2 2 0 012-2h3"/>'
+      : '<path d="M8 3H5a2 2 0 00-2 2v3M21 8V5a2 2 0 00-2-2h-3M3 16v3a2 2 0 002 2h3M16 21h3a2 2 0 002-2v-3"/>';
+  }
+}
+
+// Keyboard: F toggles fullscreen, Esc closes
+document.addEventListener('keydown', function(e) {
+  var overlay = document.getElementById('taskPopupOverlay');
+  if (!overlay || overlay.classList.contains('hidden')) return;
+  if (e.key === 'Escape') closeTaskPopup();
+  else if (e.key === 'f' || e.key === 'F') {
+    // Don't trigger when user is typing in an input
+    var tag = (e.target && e.target.tagName) || '';
+    if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') {
+      e.preventDefault();
+      toggleTaskPopupFullscreen();
+    }
+  }
+});
 
 // ── Google Ads draft preview renderer ──
 function extractGadsDraft(task) {
@@ -15670,7 +15724,12 @@ document.addEventListener('keydown', function(e) {
   <div class="task-popup">
     <div class="task-popup-header">
       <h3 id="taskPopupTitle"></h3>
-      <button class="task-popup-close" onclick="closeTaskPopup()">✕</button>
+      <div class="task-popup-header-actions">
+        <button class="task-popup-iconbtn" onclick="toggleTaskPopupFullscreen()" id="taskPopupFullscreenBtn" title="מסך מלא (F)">
+          <svg id="taskPopupFullscreenIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3M21 8V5a2 2 0 00-2-2h-3M3 16v3a2 2 0 002 2h3M16 21h3a2 2 0 002-2v-3"/></svg>
+        </button>
+        <button class="task-popup-close" onclick="closeTaskPopup()" title="סגור (Esc)">✕</button>
+      </div>
     </div>
     <div class="task-popup-body" id="taskPopupBody"></div>
     <div class="task-popup-footer" id="taskPopupFooter"></div>
