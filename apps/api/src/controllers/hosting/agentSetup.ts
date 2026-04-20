@@ -4588,6 +4588,119 @@ ${s5}
     }
 }
 
+// ── POST /hosting/instances/:id/setup/agents/strategy/summary ──
+// Plain-Hebrew, no-assessment summary of all 4 strategy stages for end-user UI card.
+export const strategySummary = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const rd = (instance.researchData as any) || {}
+        const { force } = (await c.req.json().catch(() => ({}))) as { force?: boolean }
+
+        if (!force && typeof rd.strategySummary === 'string' && rd.strategySummary.length > 100) {
+            return ok(c, { summary: rd.strategySummary, cached: true }, 'Strategy summary loaded')
+        }
+
+        const required = ['strategyStage1', 'strategyStage2', 'strategyStage3', 'strategyStage4']
+        for (const s of required) {
+            if (!rd[s] || typeof rd[s] !== 'string' || rd[s].length < 200) {
+                return fail(c, 'כל 4 שלבי האסטרטגיה חייבים להיות מוכנים לפני סיכום', 400)
+            }
+        }
+
+        const s1 = String(rd.strategyStage1).substring(0, 5000)
+        const s2 = String(rd.strategyStage2).substring(0, 5000)
+        const s3 = String(rd.strategyStage3).substring(0, 5000)
+        const s4 = String(rd.strategyStage4).substring(0, 5000)
+
+        const apiKey = await getApiKeyForInstance(instanceId)
+        if (!apiKey) return fail(c, 'מפתח API Anthropic לא מוגדר', 400)
+
+        const prompt = `אתה כותב סיכום קצר וברור של אסטרטגיה שיווקית שנבנתה ב-4 שלבים עבור עסק. הקהל: בעל העסק עצמו — הוא רוצה להבין בהצצה אחת מה האסטרטגיה ממליצה.
+
+## חוקים קריטיים
+- **עברית פשוטה וברורה** — לא ז'רגון שיווקי, לא מונחים באנגלית מיותרים
+- **בלי הערכות, ציונים או ביקורת** — רק תיאור מה האסטרטגיה קובעת
+- **150-220 מילים בסך הכל** — קצר ודחוס
+- **מבנה:** 4 כותרות בגודל H3, פסקה קצרה של 2-3 משפטים לכל שלב
+- **אל תאמר "השלב ממליץ..."** — תאמר ישירות את ההחלטה ("המיצוב הוא...", "המטרה ל-90 יום היא...")
+- **אל תוסיף "סיכום" או "מסקנה" בסוף** — רק 4 הסעיפים
+
+## פלט חובה
+\`\`\`
+### מיצוב ומטרות
+[2-3 משפטים — מי אנחנו, מה הבידול, 2-3 מטרות עיקריות ל-90 יום]
+
+### תוכן וערוצים
+[2-3 משפטים — עמודי התוכן העיקריים, הערוץ המרכזי, תדירות/קצב]
+
+### אורגני וממומן
+[2-3 משפטים — מילת המפתח הראשית, חלוקת תקציב אורגני/paid, יעד רנק/ROI]
+
+### הנחיות לסוכנים
+[2-3 משפטים — איך 9 הסוכנים חולקים עבודה, מה הם מייצרים, איפה אתה מאשר]
+\`\`\`
+
+## נתוני האסטרטגיה
+
+### שלב 1 (מיצוב ומטרות):
+${s1}
+
+### שלב 2 (תוכן וערוצים):
+${s2}
+
+### שלב 3 (אורגני וממומן):
+${s3}
+
+### שלב 4 (הנחיות סוכנים):
+${s4}
+
+עכשיו כתוב את הסיכום בפורמט המדויק שצוין:`
+
+        const model = await getSubAgentModel(instanceId, 'menateach')
+        const anthropicModel = model.replace(/^anthropic\//, '')
+
+        const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+            },
+            body: JSON.stringify({
+                model: anthropicModel,
+                max_tokens: 2000,
+                messages: [{ role: 'user', content: prompt }],
+            }),
+            signal: AbortSignal.timeout(60000),
+        })
+
+        if (!apiRes.ok) {
+            const errText = await apiRes.text()
+            console.error(`Strategy summary Anthropic failed (${apiRes.status}):`, errText.substring(0, 300))
+            return fail(c, 'לא הצלחנו לייצר סיכום — נסה שוב', 502)
+        }
+
+        const data = await apiRes.json() as { content?: Array<{ text: string }> }
+        const summary = (data.content?.[0]?.text || '').trim()
+        if (summary.length < 100) {
+            return fail(c, 'תוצאת הסיכום קצרה מדי — נסה שוב', 502)
+        }
+
+        const updated = { ...rd, strategySummary: summary, strategySummaryGeneratedAt: new Date().toISOString() }
+        await db.update(instances).set({ researchData: updated as any }).where(eq(instances.id, instanceId))
+
+        return ok(c, { summary, cached: false }, 'Strategy summary generated')
+    } catch (err) {
+        console.error('strategySummary error:', err)
+        return fail(c, 'שגיאה בייצור סיכום', 500)
+    }
+}
+
 // ── POST /hosting/instances/:id/setup/agents/research/reset ──
 export const resetResearch = async (c: Context) => {
     try {
