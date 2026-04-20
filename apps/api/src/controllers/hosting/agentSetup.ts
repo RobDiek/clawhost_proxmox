@@ -5213,32 +5213,92 @@ NO "hook", NO "brief", NO "ctaType" — those come later. Structure only. Sort A
 // For each slot, Sonnet generates hook/brief/ctaType with full context.
 // 7 concurrent calls to avoid rate limits. Failures fall back to placeholders.
 async function draftSingleItem(slot: ContentSlot, ctx: GenContext): Promise<DraftOutput> {
-    const prompt = `Write a content spec for one marketing item.
+    const channelHe: Record<string, string> = {
+        facebook: 'פייסבוק', instagram: 'אינסטגרם', blog: 'בלוג', email: 'ניוזלטר',
+        youtube: 'יוטיוב', linkedin: 'לינקדאין', tiktok: 'טיקטוק',
+        google_ads: 'גוגל אדס', meta_ads: 'מטא אדס', reddit: 'רדיט',
+    }
+    const typeHe: Record<string, string> = {
+        post: 'פוסט', reel: 'ריל', story: 'סטורי', carousel: 'קרוסלה', article: 'מאמר',
+        email: 'מייל', video: 'וידאו', campaign_launch: 'השקת קמפיין',
+        campaign_optimize: 'אופטימיזציית קמפיין', report: 'דוח',
+    }
 
-## Business: ${ctx.businessName}
-## Brand voice / strategy (condensed)
+    const prompt = `אתה כותב מפרט תוכן (בריף) לקופירייטר — בעברית בלבד.
+
+## העסק: ${ctx.businessName}
+
+## קול מותג / אסטרטגיה (תמצות)
 ${ctx.brandVoice.substring(0, 2500)}
 
-## Products available
+## מוצרים
 ${productsBlock({ products: ctx.products, productsFunnel: ctx.productsFunnel })}
 
-## This item's context
-- Date/time: ${slot.date} ${slot.time} (Asia/Jerusalem)
-- Channel: ${slot.channel}
-- Type: ${slot.type}
-- Pillar: "${slot.pillar}"
-- Persona: ${slot.persona}
-- Product focus: ${slot.productRef || 'mixed'}
+## הקשר הספציפי של פריט זה
+- תאריך/שעה: ${slot.date} ${slot.time} (Asia/Jerusalem)
+- פלטפורמה: ${channelHe[slot.channel] || slot.channel}
+- פורמט: ${typeHe[slot.type] || slot.type}
+- עמוד תוכן (pillar): "${slot.pillar}"
+- פרסונת יעד: ${slot.persona}
+- מוצר במוקד: ${slot.productRef || 'משולב'}
 
-## Your task
-Return JSON (no markdown, no prose) with:
+## חוקי שפה — חובה מוחלטת!
+- **100% עברית** ב-hook וב-brief. אפס מילים באנגלית.
+- אל תכתוב "workflow" → תכתוב "זרימת עבודה".
+- אל תכתוב "AI" → תכתוב "בינה מלאכותית".
+- אל תכתוב "ROI" → תכתוב "החזר השקעה".
+- אל תכתוב "CTA" → תכתוב "קריאה לפעולה".
+- אל תכתוב "course_1499" → תכתוב "הקורס ב-₪1,499".
+- אל תכתוב "ClawFlow" → תכתוב "הפלטפורמה" (או שם המוצר בעברית אם קיים).
+- אל תכתוב "brief" → תכתוב "מפרט" / "הנחיה".
+- מספרים ומונחי מותג רשמיים מותר להשאיר כפי שהם (₪, שמות מוצרים ישראליים).
+
+## מבנה הבריף — חובה להחזיר markdown מפורמט היטב!
+
+הבריף צריך להיות markdown מובנה, לא שורה אחת של פרוזה. השתמש במבנה הבא:
+
+### כותרות (### Header) ומקטעים:
+- **מטרה**: שורה-שתיים — מה המטרה של הפריט הזה ולמה הוא קיים בלוח התוכן
+- **זווית/הוק**: מה הרעיון המרכזי שיתפוס את הקורא
+- **מבנה התוכן**: רשימה (bullet list) — 3-5 פרטים עיקריים שחייבים להופיע בטקסט
+- **טון**: מילים מנחות לטון (חברותי? מקצועי? פרובוקטיבי? סימפתי?)
+- **קריאה לפעולה**: איזו פעולה הקורא אמור לבצע ואיך זה מנוסח
+- **הערות פורמט**: אורך מומלץ, האשטגים (אם רלוונטי), פורמט תמונה/וידאו (אם רלוונטי)
+
+דוגמה לקוד בריף טוב:
+
+\`\`\`markdown
+### מטרה
+לעורר הזדהות אצל פרילנסרים שנשרפו משיווק כושל ולהציג פתרון.
+
+### זווית/הוק
+"שילמתי ₪8,000 לסוכנות וקיבלתי 2 לידים" — סיפור אמיתי מהשטח.
+
+### מבנה התוכן
+- פתיחה עם המספר הכואב
+- הסבר למה זה קרה (פרסונליזציה חסרה + אין מעקב)
+- הצגת המוצר כחלופה מבוססת AI
+- Case study מספרי: לפני/אחרי
+
+### טון
+אמפתי, ישר, קצת מר-ישר. לא מתנשא.
+
+### קריאה לפעולה
+"מוכן לבדוק דרך שעובדת? לחץ להתחלת ניסיון"
+
+### הערות פורמט
+אורך 200-300 מילים. 2 האשטגים רלוונטיים בסוף.
+\`\`\`
+
+## תפוקה — JSON בלבד, בלי markdown fences סביב ה-JSON עצמו!
+
 {
-  "hook": "3-5 word Hebrew teaser that stops the scroll",
-  "brief": "2-3 sentences in Hebrew specifying exactly what to write/create, angle, format notes, and CTA direction. Write the brief AS INSTRUCTIONS to a copywriter, not as the post itself.",
+  "hook": "3-5 מילים בעברית שעוצרות גלילה",
+  "brief": "<markdown מלא של הבריף — שימוש ב-### לכותרות, רשימות עם -, bold עם **מילה** — הכל בעברית>",
   "ctaType": "signup_course_199|signup_course_1499|trial_saas|read_more|contact|none"
 }
 
-Hook must be catchy and specific to this pillar+persona combo. Brief must be actionable (copywriter reads it and knows what to produce).`
+החזר JSON בלבד. הבריף עצמו חייב להיות markdown מפורמט, בתוך ה-string של שדה brief.`
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -5249,10 +5309,12 @@ Hook must be catchy and specific to this pillar+persona combo. Brief must be act
         },
         body: JSON.stringify({
             model: 'claude-sonnet-4-6',
-            max_tokens: 600,
+            // 2500 = hook + full markdown-structured brief (~200-400 words) + ctaType.
+            // Previous 600 was tight for unstructured brief; inadequate for markdown.
+            max_tokens: 2500,
             messages: [{ role: 'user', content: prompt }],
         }),
-        signal: AbortSignal.timeout(60000),
+        signal: AbortSignal.timeout(90000),
     })
     if (!res.ok) throw new Error(`Draft API ${res.status}`)
     const data = await res.json()

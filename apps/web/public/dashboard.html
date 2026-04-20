@@ -4105,8 +4105,41 @@ function annotate(text) {
 var AGENT_NAMES = {
   mateh: 'מטה', sayer: 'סייר', meater: 'מאתר', maazin: 'מאזין',
   menateach: 'מנתח', et: 'עט', yotzer: 'יוצר', shaliach: 'שליח', migdalor: 'מגדלור',
-  personal: 'עוזר אישי', assistant: 'עוזר אישי', openclaw: 'OpenClaw'
+  ayat: 'עייט', personal: 'עוזר אישי', assistant: 'עוזר אישי', openclaw: 'OpenClaw'
 };
+
+// Channel → Hebrew display name
+var CHANNEL_NAMES_HE = {
+  facebook: 'פייסבוק', instagram: 'אינסטגרם', blog: 'בלוג', email: 'ניוזלטר',
+  youtube: 'יוטיוב', linkedin: 'לינקדאין', tiktok: 'טיקטוק',
+  google_ads: 'גוגל אדס', meta_ads: 'מטא אדס', reddit: 'רדיט', whatsapp: 'וואטסאפ'
+};
+
+// Format/type → Hebrew display name
+var FORMAT_NAMES_HE = {
+  post: 'פוסט', reel: 'ריל', story: 'סטורי', carousel: 'קרוסלה', article: 'מאמר',
+  email: 'מייל', video: 'וידאו', campaign_launch: 'השקת קמפיין',
+  campaign_optimize: 'אופטימיזציית קמפיין', report: 'דוח'
+};
+
+// Product SKU ref → Hebrew display name
+var PRODUCT_NAMES_HE = {
+  course_199: 'קורס ₪199', course_1499: 'קורס ₪1,499', clawflow: 'ClawFlow',
+  mixed: 'משולב', none: 'ללא'
+};
+
+// CTA type → Hebrew display name
+var CTA_NAMES_HE = {
+  signup_course_199: 'הרשמה לקורס ₪199', signup_course_1499: 'הרשמה לקורס ₪1,499',
+  signup_course: 'הרשמה לקורס', trial_saas: 'ניסיון חינם', read_more: 'קרא עוד',
+  contact: 'צור קשר', none: 'ללא'
+};
+
+function heChannel(c) { return CHANNEL_NAMES_HE[c] || c; }
+function heFormat(f)  { return FORMAT_NAMES_HE[f]  || f; }
+function heAgent(a)   { return AGENT_NAMES[a]      || a; }
+function heProduct(p) { return PRODUCT_NAMES_HE[p] || p; }
+function heCta(c)     { return CTA_NAMES_HE[c]     || c; }
 
 // Output type → Hebrew label
 // HaaS tier metadata — sync with packages/shared/src/plans.ts HAAS_TIERS
@@ -4412,14 +4445,18 @@ function renderTaskPopup(task) {
     '</div>';
   }
 
-  // ── Metadata grid (dynamic from actual data) ──
+  // ── Metadata grid (dynamic from actual data; labels & values in Hebrew) ──
   var metaItems = [];
-  if (task.platform) metaItems.push({ label: 'פלטפורמה', value: task.platform });
+  if (task.platform) metaItems.push({ label: 'פלטפורמה', value: heChannel(task.platform) });
+  if (task.metadata && task.metadata.format) metaItems.push({ label: 'פורמט', value: heFormat(task.metadata.format) });
+  if (task.agent) metaItems.push({ label: 'סוכן', value: heAgent(task.agent) });
   if (task.metadata && task.metadata.pillar) metaItems.push({ label: 'עמוד תוכן', value: task.metadata.pillar });
-  if (task.metadata && task.metadata.format) metaItems.push({ label: 'פורמט', value: task.metadata.format });
+  if (task.metadata && task.metadata.persona) metaItems.push({ label: 'פרסונה', value: task.metadata.persona });
+  if (task.metadata && task.metadata.productRef) metaItems.push({ label: 'מוצר', value: heProduct(task.metadata.productRef) });
+  if (task.metadata && task.metadata.ctaType && task.metadata.ctaType !== 'none') metaItems.push({ label: 'קריאה לפעולה', value: heCta(task.metadata.ctaType) });
   if (task.scheduledFor) metaItems.push({ label: 'מתוכנן ל', value: new Date(task.scheduledFor).toLocaleDateString('he-IL') });
   if (task.metadata && task.metadata.agents) {
-    var agentChain = task.metadata.agents.map(function(a) { return (typeof AGENT_NAMES !== 'undefined' && AGENT_NAMES[a]) || a; }).join(' → ');
+    var agentChain = task.metadata.agents.map(function(a) { return heAgent(a); }).join(' → ');
     metaItems.push({ label: 'שרשרת סוכנים', value: agentChain });
   }
   if (task.mediaMeta && task.mediaMeta.width) metaItems.push({ label: 'מידות', value: task.mediaMeta.width + '×' + task.mediaMeta.height });
@@ -4585,16 +4622,11 @@ function renderTaskPopup(task) {
     }
 
   } else {
-    // Generic fallback
-    bodyHtml += '<div class="task-popup-field">' +
-      '<div class="task-popup-label">סוכן</div>' +
-      '<div class="task-popup-value">' + task.agent + '</div>' +
-    '</div>';
-
+    // Generic fallback — brief rendered as markdown (headings, lists, tables all supported)
     if (task.preview) {
       bodyHtml += '<div class="task-popup-field">' +
-        '<div class="task-popup-label">פרטים</div>' +
-        '<div class="task-popup-value" style="background:#F9FAFB;padding:12px;border-radius:8px;border:1px solid #F3F4F6">' + task.preview + '</div>' +
+        '<div class="task-popup-label">בריף</div>' +
+        '<div class="md-content" style="background:#F9FAFB;padding:14px 16px;border-radius:8px;border:1px solid #F3F4F6;line-height:1.75">' + renderMarkdown(String(task.preview)) + '</div>' +
       '</div>';
     }
   }
@@ -6686,8 +6718,8 @@ function openContentPlanItem(itemId) {
 
   var task = {
     id: 'plan-' + item.id,
-    title: icon + ' ' + (item.hook || 'פריט תוכן') + ' · ' + (item.channel || ''),
-    agent: item.agentRole || 'עט',
+    title: icon + ' ' + (item.hook || 'פריט תוכן') + ' · ' + heChannel(item.channel || ''),
+    agent: item.agentRole || 'yotzer',
     status: effectiveStatus === 'blocked' ? 'planned' : (item.status === 'awaiting_review' ? 'awaiting' : item.status || 'planned'),
     preview: item.brief || '',
     platform: item.channel,
