@@ -250,7 +250,23 @@ function buildComposerPrompt(params: {
 
     let prompt = `אתה מעצב מותג בכיר ("mekhayev") בפלטפורמת ClawFlow. תפקידך — ליצור brand book מלא ועקבי לעסק.
 
-**קלט זמין:**
+## קהל היעד של הפלט שלך
+בעל העסק עצמו קורא את rationale + gaps + confidenceReasons — **הוא לא מעצב ולא איש שיווק**. כתוב בעברית פשוטה וברורה.
+
+## כללי שפה חובה בכל שדות הטקסט (rationale, gaps.suggestion, confidenceReasons)
+- **עברית קודם, אנגלית רק אם אין ברירה.** מונחים מקצועיים לטיניים חייבים לבוא עם הבהרה קצרה בסוגריים בפעם הראשונה:
+  - "כפתור קריאה לפעולה (CTA)" — לא סתם "CTA"
+  - "קובץ ווקטורי (SVG)" — לא סתם "SVG"
+  - "פורמט תמונה עם שקיפות (PNG)" — לא סתם "PNG"
+  - "הצבע הראשי (primary)" — לא סתם "primary color"
+  - "קוד צבע הקסדצימלי (HEX)" — לא סתם "HEX"
+  - "רקע כהה (dark background)" → "רקע כהה"
+  - "גודל מינימלי" → "גודל מינימלי", לא "minimum size"
+- **תיקונים בעברית**: כשאתה מתאר תיקון שנעשה, אל תכלול נתיב JSON (כמו \`voice.vocabularyDo[2]\` או \`gaps[0].suggestion\`) — אלו פריטים פנימיים של המערכת, לא של המשתמש. תאר במילים: "במילון הניב שלך" / "בהמלצה על השלמת פערים".
+- **אין anglicisms בלתי מוסברים** — "vibe", "dominance", "trustworthy vibe", "Hebrew-first", "placeholder" — כל אחד חייב גלוס עברי בסוגריים: "טון אמין (trustworthy vibe)", "דומיננטיות חזותית (dominance)", "עברית-ראשית (Hebrew-first)", "ממלא מקום זמני (placeholder)".
+- **אל תכתוב "אני נבנה"/"אשתמש ב"/"בואו נראה"** — רק תוצאה וסיבה.
+
+## קלט זמין:
 `
 
     // Research context
@@ -473,7 +489,9 @@ function buildComposerPrompt(params: {
     - "paletteExtended" = brand tints (וריאציות בהירות/כהות של primary, כמו #F0FDF4 שהוא tint בהיר של ירוק #166534)
       אל תערבב אותם ב-palette ואל תשים אותם ב-neutrals.
 
-18. **JSON תקף** — ללא comments, ללא trailing commas, ללא markdown.`
+18. **JSON תקף** — ללא comments, ללא trailing commas, ללא markdown.
+
+19. **User-facing text בעברית נגישה** — rationale.*, gaps[].suggestion, confidenceReasons[] קריאים ע"י בעל העסק (לא מעצב). כל מונח מקצועי באנגלית = הבהרה עברית בסוגריים בפעם הראשונה (CTA, SVG, PNG, primary, HEX, dark background, placeholder וכו'). **אסור** נתיבי JSON בטקסט (כמו "voice.vocabularyDo[2]"). אסור anglicisms לא-מוסברים ("vibe", "dominance", "trustworthy vibe", "Hebrew-first").`
 
     return prompt
 }

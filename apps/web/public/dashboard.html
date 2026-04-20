@@ -4015,6 +4015,7 @@ var GLOSSARY = {
   'SERP': 'Search Engine Results Page — דף תוצאות חיפוש',
   'SEO':  'Search Engine Optimization — קידום אורגני',
   'AEO':  'Answer Engine Optimization — קידום בתשובות AI (ChatGPT/Claude וכו\')',
+  'GEO':  'Generative Engine Optimization — קידום במנועי AI גנרטיביים',
   'KD':   'Keyword Difficulty — קושי מילת מפתח (Ahrefs/Moz)',
   'ICP':  'Ideal Customer Profile — פרופיל לקוח אידיאלי',
   'PMF':  'Product-Market Fit — התאמה מוצר-שוק',
@@ -4024,7 +4025,27 @@ var GLOSSARY = {
   'DPs':  'Design Partners — שותפי פיתוח',
   'MVP':  'Minimum Viable Product — מוצר מינימלי ישים',
   'UGC':  'User Generated Content — תוכן ממשתמשים',
-  'CMS':  'Content Management System — מערכת ניהול תוכן'
+  'CMS':  'Content Management System — מערכת ניהול תוכן',
+  // ── Brand / design ──
+  'CTA':  'Call To Action — כפתור או קישור שקורא לפעולה (למשל "הירשמו")',
+  'USP':  'Unique Selling Proposition — הצעת ערך ייחודית שמבדלת ממתחרים',
+  'JTBD': 'Jobs To Be Done — המטלה שהלקוח רוצה "לשכור" את המוצר לבצע',
+  // ── File formats ──
+  'SVG':  'Scalable Vector Graphics — פורמט ווקטורי לגרפיקה (מתאים ללוגו — מתרחב בלי איבוד איכות)',
+  'PNG':  'Portable Network Graphics — פורמט תמונה עם שקיפות (לא ווקטורי, יכול להתפקסל בהגדלה)',
+  'JPG':  'JPEG — פורמט תמונה דחוס (מתאים לצילומים, לא תומך בשקיפות)',
+  'WebP': 'פורמט תמונה מודרני של גוגל — קל יותר מ-PNG/JPG',
+  'AI':   'Adobe Illustrator — פורמט מקור ווקטורי (עריכה מלאה של לוגו)',
+  'EPS':  'Encapsulated PostScript — פורמט ווקטורי ישן (תואם לכל תוכנה)',
+  'PDF':  'Portable Document Format — פורמט מסמך רב-גוני',
+  'ICO':  'Icon format — פורמט אייקונים לאתרי אינטרנט (favicon)',
+  // ── Color ──
+  'HEX':  'Hexadecimal color — קוד צבע בן 6 ספרות (למשל #2563EB)',
+  'RGB':  'Red Green Blue — מודל צבע מסכי',
+  'HSL':  'Hue Saturation Lightness — מודל צבע לפי גוון, רוויה, בהירות',
+  // ── Other ──
+  'FAQ':  'Frequently Asked Questions — שאלות נפוצות',
+  'MCP':  'Model Context Protocol — פרוטוקול חיבור כלים ל-AI agents'
 };
 
 // Wrap known marketing abbreviations with tooltip span.
@@ -7496,15 +7517,15 @@ function renderBrandReview() {
   // Confidence + rationale + reasons
   html += renderBrandRationale(brandWizardState.rationale, brandWizardState.confidence, brandWizardState.confidenceReasons || []);
 
-  // Hebrew corrections notice (if validator fixed anything)
+  // Hebrew corrections notice (if validator fixed anything) — human-readable, no JSON paths
   var corr = brandWizardState.hebrewCorrections || [];
   if (corr.length > 0) {
     html += '<details style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:10px;margin-bottom:14px">';
     html += '<summary style="cursor:pointer;font-size:0.85rem;color:#92400E;font-weight:600">🔍 תוקנו אוטומטית ' + corr.length + ' ביטויים בעברית</summary>';
-    html += '<ul style="margin:6px 0 0;padding-right:20px;font-size:0.78rem;color:#78350F">';
+    html += '<ul style="margin:6px 0 0;padding-right:20px;font-size:0.82rem;color:#78350F;line-height:1.7">';
     corr.slice(0, 10).forEach(function(c) {
-      var cleanPath = (c.path || '').replace(/^\[|\]$/g, '');   // Tier 2-N: strip outer brackets
-      html += '<li style="margin-bottom:4px"><code style="font-size:0.72rem;background:#FFF;padding:1px 4px;border-radius:3px">' + escapeHtml(cleanPath) + '</code>: "' + escapeHtml(c.original) + '" → "' + escapeHtml(c.fixed || '(הוסר)') + '" <span style="color:#92400E">· ' + escapeHtml(c.issue) + '</span></li>';
+      var issueText = c.issue ? ' <span style="color:#92400E;font-size:0.78rem">(' + escapeHtml(c.issue) + ')</span>' : '';
+      html += '<li style="margin-bottom:6px"><span style="text-decoration:line-through;color:#9CA3AF">' + escapeHtml(c.original) + '</span> ← ' + escapeHtml(c.fixed || '(הוסר)') + issueText + '</li>';
     });
     html += '</ul></details>';
   }
@@ -7514,9 +7535,9 @@ function renderBrandReview() {
   if (criticalGaps.length > 0) {
     html += '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:10px;margin-bottom:14px">';
     html += '<strong style="color:#991B1B">⚠️ חסרים קריטיים (' + criticalGaps.length + '):</strong>';
-    html += '<ul style="margin:6px 0 0;padding-right:20px;font-size:0.82rem;color:#991B1B">';
+    html += '<ul style="margin:6px 0 0;padding-right:20px;font-size:0.82rem;color:#991B1B;line-height:1.7">';
     criticalGaps.forEach(function(gap) {
-      html += '<li style="margin-bottom:2px">' + escapeHtml(gap.suggestion) + '</li>';
+      html += '<li style="margin-bottom:4px">' + annotate(gap.suggestion || '') + '</li>';
     });
     html += '</ul></div>';
   }
@@ -7682,21 +7703,21 @@ function renderBrandRationale(rationale, confidence, reasons) {
   if (rationale && typeof rationale === 'object') {
     // Structured — render sections
     if (rationale.overall) {
-      html += '<div style="font-size:0.85rem;color:#1E40AF;line-height:1.5;margin-bottom:8px">' + escapeHtml(rationale.overall) + '</div>';
+      html += '<div style="font-size:0.85rem;color:#1E40AF;line-height:1.65;margin-bottom:8px">' + annotate(rationale.overall) + '</div>';
     }
     var sections = [
       { key: 'colors',     label: '🎨 צבעים' },
       { key: 'typography', label: '✍️ טיפוגרפיה' },
-      { key: 'voice',      label: '🗣 Voice' },
-      { key: 'identity',   label: '🎯 זהות + Positioning' },
+      { key: 'voice',      label: '🗣 טון ושפה' },
+      { key: 'identity',   label: '🎯 זהות ומיצוב' },
     ];
     var anySec = false;
     var secHtml = '';
     sections.forEach(function(s) {
       if (rationale[s.key]) {
         anySec = true;
-        secHtml += '<div style="background:#FFF;border:1px solid #DBEAFE;border-radius:6px;padding:8px 10px;margin-bottom:4px;font-size:0.8rem;color:#1E3A5F;line-height:1.5">';
-        secHtml += '<strong>' + s.label + ':</strong> ' + escapeHtml(rationale[s.key]);
+        secHtml += '<div style="background:#FFF;border:1px solid #DBEAFE;border-radius:6px;padding:8px 10px;margin-bottom:4px;font-size:0.82rem;color:#1E3A5F;line-height:1.6">';
+        secHtml += '<strong>' + s.label + ':</strong> ' + annotate(rationale[s.key]);
         secHtml += '</div>';
       }
     });
@@ -7706,14 +7727,14 @@ function renderBrandRationale(rationale, confidence, reasons) {
     }
   } else if (rationale) {
     // Legacy flat string
-    html += '<div style="font-size:0.82rem;color:#1E40AF;line-height:1.5">' + escapeHtml(rationale) + '</div>';
+    html += '<div style="font-size:0.82rem;color:#1E40AF;line-height:1.6">' + annotate(String(rationale)) + '</div>';
   }
 
   // Confidence reasons (Tier 2-T)
   if (reasons && reasons.length) {
     html += '<details style="margin-top:8px"><summary style="cursor:pointer;font-size:0.75rem;color:#1E40AF">למה ביטחון ' + escapeHtml(confidence || '') + '? (' + reasons.length + ' סיבות)</summary>';
-    html += '<ul style="margin:4px 0 0;padding-right:18px;font-size:0.78rem;color:#1E3A5F;line-height:1.5">';
-    reasons.forEach(function(r) { html += '<li style="margin-bottom:2px">' + escapeHtml(r) + '</li>'; });
+    html += '<ul style="margin:4px 0 0;padding-right:18px;font-size:0.8rem;color:#1E3A5F;line-height:1.7">';
+    reasons.forEach(function(r) { html += '<li style="margin-bottom:4px">' + annotate(r) + '</li>'; });
     html += '</ul></details>';
   }
 
