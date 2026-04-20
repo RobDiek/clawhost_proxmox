@@ -231,6 +231,34 @@ input{font-family:inherit}
 .badge-green{background:#D1FAE5;color:#065F46;padding:3px 12px;border-radius:20px;font-size:.82rem;font-weight:500;display:inline-flex;align-items:center;gap:4px}
 .badge-yellow{background:#FEF3C7;color:#92400E;padding:3px 12px;border-radius:20px;font-size:.82rem;font-weight:500}
 
+/* ===== Markdown content ===== */
+.md-content{line-height:1.75;color:#1F2937;font-size:0.92rem}
+.md-content h2{font-size:1.15rem;font-weight:700;margin:22px 0 10px;color:#111827;border-bottom:1px solid #E5E7EB;padding-bottom:6px}
+.md-content h3{font-size:1.02rem;font-weight:700;margin:20px 0 8px;color:#1F2937}
+.md-content h4{font-size:0.95rem;font-weight:600;margin:16px 0 6px;color:#374151}
+.md-content h5{font-size:0.9rem;font-weight:600;margin:12px 0 4px;color:#4B5563}
+.md-content h6{font-size:0.88rem;font-weight:600;margin:10px 0 4px;color:#6B7280}
+.md-content h2:first-child,.md-content h3:first-child,.md-content h4:first-child{margin-top:0}
+.md-content p{margin:0 0 10px}
+.md-content ul,.md-content ol{margin:0 0 12px;padding-right:24px;padding-left:0}
+.md-content li{margin:4px 0}
+.md-content li::marker{color:#6B7280}
+.md-content blockquote{border-right:3px solid #D1D5DB;padding:8px 14px;color:#4B5563;margin:12px 0;background:#F9FAFB;border-radius:6px}
+.md-content hr{border:none;border-top:1px solid #E5E7EB;margin:20px 0}
+.md-content code{background:#F3F4F6;padding:1px 6px;border-radius:4px;font-size:0.86em;color:#DC2626;font-family:'SF Mono','Courier New',monospace}
+.md-content pre{background:#1F2937;color:#E5E7EB;padding:12px 14px;border-radius:8px;overflow-x:auto;direction:ltr;margin:10px 0;font-size:0.82rem}
+.md-content pre code{background:transparent;color:inherit;padding:0;font-size:inherit}
+.md-content a{color:#2563EB;text-decoration:underline}
+.md-content a:hover{color:#1D4ED8}
+.md-content strong{color:#111827;font-weight:600}
+.md-table{border-collapse:collapse;margin:12px 0;width:100%;font-size:0.86rem;background:#fff}
+.md-table th,.md-table td{border:1px solid #E5E7EB;padding:8px 10px;text-align:right;vertical-align:top}
+.md-table th{background:#F9FAFB;font-weight:600;color:#111827}
+.md-table tr:nth-child(even) td{background:#FAFAFA}
+.md-table td{color:#374151}
+.md-content-research h2,.md-content-research h3,.md-content-research h4{color:#065F46}
+.md-content-strategy h2,.md-content-strategy h3,.md-content-strategy h4{color:#1E40AF}
+
 /* ===== Buttons ===== */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 18px;border-radius:8px;font-size:.88rem;font-weight:500;border:none;text-align:center;text-decoration:none;cursor:pointer;transition:all .15s}
 .btn-primary{background:#2563EB;color:#fff}.btn-primary:hover{background:#1D4ED8;text-decoration:none}
@@ -2645,6 +2673,168 @@ var SVG_ICONS = {
   code: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
 };
 
+/* ===== Markdown renderer =====
+   Handles: #/##/###/#### headings, **bold**, *italic*, `code`, ```code blocks```,
+   | tables |, - / * unordered lists, 1. ordered lists, > blockquotes, --- hr, [links](url),
+   paragraph breaks on blank lines. Output is intended to be wrapped in
+   <div class="md-content">…</div> for scoped styling. */
+function renderMarkdown(md) {
+  if (!md && md !== 0) return '';
+  var src = String(md).replace(/\r\n/g, '\n');
+
+  // Escape HTML
+  src = src.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  // Extract fenced code blocks first so other rules don't touch their contents
+  var codeBlocks = [];
+  src = src.replace(/```([\w+-]*)\n?([\s\S]*?)```/g, function(_, lang, code) {
+    codeBlocks.push({ lang: lang || '', code: code.replace(/\n$/, '') });
+    return '\u0000MDCODE' + (codeBlocks.length - 1) + '\u0000';
+  });
+
+  // Inline code (after block code extraction)
+  src = src.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+
+  var lines = src.split('\n');
+  var out = [];
+  var i = 0;
+
+  function parseInline(s) {
+    s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/(^|[\s([{])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    return s;
+  }
+
+  function splitRow(row) {
+    var trimmed = row.trim().replace(/^\||\|$/g, '');
+    return trimmed.split('|').map(function(s) { return s.trim(); });
+  }
+
+  while (i < lines.length) {
+    var line = lines[i];
+
+    // Table: current row starts with | AND next line is separator
+    if (/^\s*\|.*\|/.test(line) && i + 1 < lines.length && /^\s*\|?[\s\-:|]*---[\s\-:|]*\|?\s*$/.test(lines[i + 1])) {
+      var header = splitRow(line);
+      var sepCells = splitRow(lines[i + 1]);
+      var align = sepCells.map(function(c) {
+        if (/^:-+:$/.test(c)) return 'center';
+        if (/^-+:$/.test(c)) return 'left';  // RTL: reverse
+        if (/^:-+$/.test(c)) return 'right';
+        return '';
+      });
+      var rows = [];
+      i += 2;
+      while (i < lines.length && /^\s*\|.*\|/.test(lines[i])) {
+        rows.push(splitRow(lines[i]));
+        i++;
+      }
+      var t = '<table class="md-table"><thead><tr>';
+      header.forEach(function(h, idx) {
+        t += '<th' + (align[idx] ? ' style="text-align:' + align[idx] + '"' : '') + '>' + parseInline(h) + '</th>';
+      });
+      t += '</tr></thead><tbody>';
+      rows.forEach(function(r) {
+        t += '<tr>';
+        for (var j = 0; j < header.length; j++) {
+          var cell = r[j] != null ? r[j] : '';
+          t += '<td' + (align[j] ? ' style="text-align:' + align[j] + '"' : '') + '>' + parseInline(cell) + '</td>';
+        }
+        t += '</tr>';
+      });
+      t += '</tbody></table>';
+      out.push(t);
+      continue;
+    }
+
+    // Horizontal rule
+    if (/^\s*---+\s*$/.test(line) || /^\s*\*\*\*+\s*$/.test(line)) {
+      out.push('<hr>');
+      i++;
+      continue;
+    }
+
+    // Headings
+    var hMatch = /^(#{1,6})\s+(.+?)\s*#*\s*$/.exec(line);
+    if (hMatch) {
+      var level = Math.min(hMatch[1].length + 1, 6); // # → h2, ## → h3, ### → h4…
+      out.push('<h' + level + '>' + parseInline(hMatch[2]) + '</h' + level + '>');
+      i++;
+      continue;
+    }
+
+    // Blockquote
+    if (/^\s*>/.test(line)) {
+      var bq = [];
+      while (i < lines.length && /^\s*>/.test(lines[i])) {
+        bq.push(lines[i].replace(/^\s*>\s?/, ''));
+        i++;
+      }
+      out.push('<blockquote>' + parseInline(bq.join('<br>')) + '</blockquote>');
+      continue;
+    }
+
+    // Unordered list
+    if (/^\s*[-*+]\s+/.test(line)) {
+      var uItems = [];
+      while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) {
+        var item = lines[i].replace(/^\s*[-*+]\s+/, '');
+        i++;
+        // Continuation: non-blank, not a new list/heading, indented
+        while (i < lines.length && lines[i].trim() !== '' && !/^\s*[-*+]\s+/.test(lines[i]) && !/^\s*\d+\.\s+/.test(lines[i]) && !/^#{1,6}\s/.test(lines[i]) && !/^\s*\|/.test(lines[i])) {
+          item += '<br>' + lines[i].trim();
+          i++;
+        }
+        uItems.push('<li>' + parseInline(item) + '</li>');
+      }
+      out.push('<ul>' + uItems.join('') + '</ul>');
+      continue;
+    }
+
+    // Ordered list
+    if (/^\s*\d+\.\s+/.test(line)) {
+      var oItems = [];
+      while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
+        var oitem = lines[i].replace(/^\s*\d+\.\s+/, '');
+        i++;
+        while (i < lines.length && lines[i].trim() !== '' && !/^\s*[-*+]\s+/.test(lines[i]) && !/^\s*\d+\.\s+/.test(lines[i]) && !/^#{1,6}\s/.test(lines[i]) && !/^\s*\|/.test(lines[i])) {
+          oitem += '<br>' + lines[i].trim();
+          i++;
+        }
+        oItems.push('<li>' + parseInline(oitem) + '</li>');
+      }
+      out.push('<ol>' + oItems.join('') + '</ol>');
+      continue;
+    }
+
+    // Blank line → paragraph break
+    if (line.trim() === '') {
+      i++;
+      continue;
+    }
+
+    // Paragraph: accumulate consecutive non-special lines
+    var para = [line];
+    i++;
+    while (i < lines.length && lines[i].trim() !== '' && !/^#{1,6}\s/.test(lines[i]) && !/^\s*\|/.test(lines[i]) && !/^\s*>/.test(lines[i]) && !/^\s*[-*+]\s+/.test(lines[i]) && !/^\s*\d+\.\s+/.test(lines[i]) && !/^\s*---+\s*$/.test(lines[i])) {
+      para.push(lines[i]);
+      i++;
+    }
+    out.push('<p>' + parseInline(para.join('<br>')) + '</p>');
+  }
+
+  var html = out.join('\n');
+
+  // Restore code blocks
+  html = html.replace(/\u0000MDCODE(\d+)\u0000/g, function(_, idx) {
+    var b = codeBlocks[parseInt(idx, 10)];
+    return '<pre><code>' + b.code + '</code></pre>';
+  });
+
+  return html;
+}
+
 /* ===== Constants ===== */
 var COMPONENTS = {
   oc: { name: 'OpenClaw Personal', iconClass: 'oc', svgKey: 'robot', desc: 'עוזר אישי' },
@@ -4083,12 +4273,7 @@ function renderTaskPopup(task) {
   // ── Real content from agent (if available) ──
   var displayContent = task.editedContent || task.content;
   if (displayContent) {
-    var contentHtml = displayContent
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-      .replace(/^### (.+)$/gm, '<h4 style="margin:8px 0 4px;font-size:0.9rem">$1</h4>')
-      .replace(/^## (.+)$/gm, '<h3 style="margin:10px 0 4px;font-size:0.95rem">$1</h3>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br>');
+    var contentHtml = '<div class="md-content" style="font-size:0.88rem">' + renderMarkdown(displayContent) + '</div>';
 
     bodyHtml += '<div class="task-popup-field">' +
       '<div class="task-popup-label">תוכן</div>' +
@@ -6794,15 +6979,7 @@ function renderResearchReport() {
   if (!el) return;
   if (instanceData && instanceData.researchData && instanceData.researchData.report) {
     var report = instanceData.researchData.report;
-    // Simple markdown-like rendering
-    var html = report
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-      .replace(/^### (.+)$/gm, '<h4 style="margin:16px 0 8px;color:#1F2937">$1</h4>')
-      .replace(/^## (.+)$/gm, '<h3 style="margin:20px 0 10px;color:#111827">$1</h3>')
-      .replace(/^# (.+)$/gm, '<h2 style="margin:24px 0 12px;color:#111827">$1</h2>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br>');
-    el.innerHTML = html;
+    el.innerHTML = '<div class="md-content">' + renderMarkdown(report) + '</div>';
     var statusEl = document.getElementById('research-status');
     if (statusEl) {
       var date = instanceData.researchData.researchGeneratedAt || instanceData.researchData.generatedAt || '';
@@ -7794,14 +7971,7 @@ async function runPipelineStage(stage, extraPayload) {
 
     if (data.success && data.data && data.data.result) {
       // Show result
-      var resultHtml = data.data.result
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/^### (.+)$/gm, '<h4>$1</h4>')
-        .replace(/^## (.+)$/gm, '<h3>$1</h3>')
-        .replace(/^# (.+)$/gm, '<h2>$1</h2>')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n/g, '<br>');
-      document.getElementById('pipelineBody').innerHTML = resultHtml;
+      document.getElementById('pipelineBody').innerHTML = '<div class="md-content">' + renderMarkdown(data.data.result) + '</div>';
       document.getElementById('pipelineProgress').style.width = Math.round(stage / RESEARCH_STAGES.length * 100) + '%';
 
       // Update buttons
@@ -7905,13 +8075,7 @@ async function loadResearchSummaryCard(force) {
     var contentEl = document.getElementById('summaryContent');
     if (!contentEl) return;
     if (data.success && data.data && data.data.summary) {
-      var html = data.data.summary
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/^### (.+)$/gm, '<h4 style="margin:14px 0 4px;font-size:0.95rem;color:#065F46">$1</h4>')
-        .replace(/^## (.+)$/gm, '<h3 style="margin:14px 0 4px;font-size:1rem;color:#065F46">$1</h3>')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n/g, '<br>');
-      contentEl.innerHTML = html;
+      contentEl.innerHTML = '<div class="md-content md-content-research">' + renderMarkdown(data.data.summary) + '</div>';
     } else {
       contentEl.innerHTML = '<div style="color:#B91C1C;font-size:0.88rem">' +
         (data.message || 'לא הצלחנו להכין סיכום.') +
@@ -7962,13 +8126,7 @@ async function loadStrategySummaryCard(force) {
     var contentEl = document.getElementById('strategySummaryContent');
     if (!contentEl) return;
     if (data.success && data.data && data.data.summary) {
-      var html = data.data.summary
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/^### (.+)$/gm, '<h4 style="margin:14px 0 4px;font-size:0.95rem;color:#1E40AF">$1</h4>')
-        .replace(/^## (.+)$/gm, '<h3 style="margin:14px 0 4px;font-size:1rem;color:#1E40AF">$1</h3>')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n/g, '<br>');
-      contentEl.innerHTML = html;
+      contentEl.innerHTML = '<div class="md-content md-content-strategy">' + renderMarkdown(data.data.summary) + '</div>';
     } else {
       contentEl.innerHTML = '<div style="color:#B91C1C;font-size:0.88rem">' +
         (data.message || 'לא הצלחנו להכין סיכום.') +
@@ -8250,13 +8408,7 @@ async function runStrategyStage(stage) {
           data.data.warnings.map(function(w) { return '• ' + w; }).join('<br>') +
           '</div>';
       }
-      var html = data.data.strategy
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/^### (.+)$/gm, '<h4>$1</h4>')
-        .replace(/^## (.+)$/gm, '<h3>$1</h3>')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n/g, '<br>');
-      document.getElementById('pipelineBody').innerHTML = warningsHtml + html;
+      document.getElementById('pipelineBody').innerHTML = warningsHtml + '<div class="md-content">' + renderMarkdown(data.data.strategy) + '</div>';
       document.getElementById('pipelineProgress').style.width = Math.round(stage / 4 * 100) + '%';
 
       // Update steps indicator
@@ -9404,19 +9556,7 @@ var currentReportType = ''; // 'research' or 'strategy'
 function openReportModal(title, content, type) {
   currentReportType = type || '';
   document.getElementById('reportModalTitle').textContent = title;
-  var html = content
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/^### (.+)$/gm, '<h4>$1</h4>')
-    .replace(/^## (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\|(.+)\|/g, function(match) {
-      var cells = match.split('|').filter(function(c) { return c.trim(); });
-      return '<tr>' + cells.map(function(c) { return '<td>' + c.trim() + '</td>'; }).join('') + '</tr>';
-    })
-    .replace(/(<tr>.*<\/tr>\n?)+/g, '<table>$&</table>')
-    .replace(/\n/g, '<br>');
-  document.getElementById('reportModalBody').innerHTML = html;
+  document.getElementById('reportModalBody').innerHTML = '<div class="md-content">' + renderMarkdown(content) + '</div>';
   // Show edit footer for strategy
   var footer = document.getElementById('reportModalFooter');
   footer.style.display = (type === 'strategy' || type === 'research') ? '' : 'none';
@@ -12110,14 +12250,7 @@ async function renderWeeklyReportTab() {
       html += perfSummaryCard('⚠️ Fatigue', String(stats.openFatigueAlerts || 0), 'פתוחות');
       html += '</div>';
 
-      html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:16px;line-height:1.6;white-space:pre-wrap;font-family:inherit">';
-      // Simple markdown render (headers only)
-      var rendered = escapeHtml(md)
-        .replace(/^## (.+)$/gm, '<h3 style="margin:16px 0 8px;color:#1E3A5F;font-size:1.05rem">$1</h3>')
-        .replace(/^### (.+)$/gm, '<h4 style="margin:10px 0 4px;color:#374151;font-size:0.95rem">$1</h4>')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      html += rendered;
-      html += '</div>';
+      html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:16px"><div class="md-content">' + renderMarkdown(md) + '</div></div>';
 
       html += '<div style="text-align:center;margin-top:10px;font-size:0.72rem;color:#9CA3AF">נוצר ' + new Date(report.createdAt).toLocaleString('he-IL') + '</div>';
     }
