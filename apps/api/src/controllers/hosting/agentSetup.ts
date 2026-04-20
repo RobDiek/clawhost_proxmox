@@ -20,6 +20,34 @@ async function getApiKeyForInstance(instanceId: string): Promise<string> {
     return process.env.ANTHROPIC_API_KEY || ''
 }
 
+// ── Sanitize JSON control chars inside string literals ──
+// LLMs (especially Haiku) frequently emit raw \n / \r / \t inside JSON string
+// values. Strict JSON rejects these. Walk the string tracking quote state and
+// replace control chars inside strings with their escaped form.
+function sanitizeJsonControlChars(src: string): string {
+    let out = ''
+    let inStr = false
+    let esc = false
+    for (let i = 0; i < src.length; i++) {
+        const ch = src[i]
+        if (inStr) {
+            if (esc) { out += ch; esc = false; continue }
+            if (ch === '\\') { out += ch; esc = true; continue }
+            if (ch === '"') { out += ch; inStr = false; continue }
+            const code = ch.charCodeAt(0)
+            if (code === 0x0A) { out += '\\n'; continue }
+            if (code === 0x0D) { out += '\\r'; continue }
+            if (code === 0x09) { out += '\\t'; continue }
+            if (code < 0x20) { out += '\\u' + code.toString(16).padStart(4, '0'); continue }
+            out += ch
+        } else {
+            out += ch
+            if (ch === '"') { inStr = true; esc = false }
+        }
+    }
+    return out
+}
+
 // ── Fetch landing page content as markdown-ish text (~2-5KB) ──
 // Onboarding-time product/pricing detection. Tries Firecrawl (user key → master
 // env key), falls back to plain fetch + HTML strip. Returns empty string if all
@@ -728,9 +756,13 @@ ${landingContent}
         const jsonMatch = text.match(/\{[\s\S]*\}/)
         if (jsonMatch) {
             let jsonStr = jsonMatch[0]
-            // Fix common Claude JSON issues: trailing commas, comments
-            jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1')  // trailing commas
-            jsonStr = jsonStr.replace(/\/\/[^\n]*/g, '')       // line comments
+            // Fix common Claude JSON issues
+            jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1')      // trailing commas
+            jsonStr = jsonStr.replace(/\/\/[^\n]*/g, '')           // line comments
+            // Escape raw control chars inside string literals (Haiku's #1 JSON bug —
+            // writes literal newlines/tabs inside "assessment" / "description" fields).
+            // Walk the string, track quoted regions, replace control chars only inside them.
+            jsonStr = sanitizeJsonControlChars(jsonStr)
 
             try {
                 const parsed = JSON.parse(jsonStr)
