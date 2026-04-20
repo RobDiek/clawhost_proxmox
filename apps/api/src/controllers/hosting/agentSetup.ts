@@ -4982,6 +4982,9 @@ interface ContentPlanItem {
         proposedAt: string
     }
     agentRole: string                 // who owns this (ayat/yotzer/shaliach/...)
+    // ── reactive content marker (v4 fix #5)
+    isReactive?: boolean              // true = slot can be overridden by agent with trending content
+    amplifiesFrom?: string            // optional: id of another plan item this amplifies (cross-channel chain)
     // ── v4 performance tracking (populated after publish)
     publishedAt?: string              // ISO timestamp when published to channel
     channelPostId?: string            // platform-native post id (fb post id, blog slug, etc.)
@@ -5010,6 +5013,8 @@ interface ContentSlot {
     productRef?: string
     flexibility: 'fixed' | 'suggested'
     agentRole: string
+    isReactive?: boolean
+    amplifiesFrom?: string // refers to a prior slot's temporary index during planning
 }
 
 interface DraftOutput {
@@ -5091,6 +5096,47 @@ function getAnthropicText(data: any): string {
     return (blocks[blocks.length - 1]?.text || data?.content?.[0]?.text || '')
 }
 
+// ── ctaType normalization (v4 fix #3) ────────────────────────────────────
+// Maps model-invented values to nearest valid enum entry. Any unrecognized
+// value collapses to 'none'.
+const VALID_CTA_TYPES = [
+    'signup_course_199', 'signup_course_1499', 'trial_saas',
+    'read_more', 'contact', 'none',
+] as const
+function normalizeCtaType(raw: string | undefined | null): string {
+    if (!raw) return 'none'
+    const s = String(raw).toLowerCase().trim()
+    if ((VALID_CTA_TYPES as readonly string[]).includes(s)) return s
+    // Fuzzy remap common model inventions
+    if (/199|course_entry|course.*199/i.test(s)) return 'signup_course_199'
+    if (/1499|course_pro|course.*1499|full.*course/i.test(s)) return 'signup_course_1499'
+    if (/trial|saas|free_trial|start_trial|clawflow/i.test(s)) return 'trial_saas'
+    if (/read|article|blog|learn_more|more_info|case/i.test(s)) return 'read_more'
+    if (/contact|call|phone|consult|book/i.test(s)) return 'contact'
+    if (/signup|subscribe|register/i.test(s)) return 'signup_course_199' // default course entry
+    return 'none'
+}
+
+// ── Duplicate hook detection (v4 fix #1) ────────────────────────────────
+// Returns groups of items whose hooks share a near-identical prefix.
+// Threshold: first 8 Hebrew characters match (normalized — lowercase, strip punctuation).
+function detectDuplicateHooks(items: ContentPlanItem[]): Array<{ prefix: string; indices: number[] }> {
+    const normalize = (h: string) => h.toLowerCase()
+        .replace(/[.,!?—–\-"״'׳:;()]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .substring(0, 10)
+    const groups: Record<string, number[]> = {}
+    items.forEach((it, i) => {
+        const k = normalize(it.hook || '')
+        if (k.length < 4) return
+        ;(groups[k] = groups[k] || []).push(i)
+    })
+    return Object.entries(groups)
+        .filter(([, indices]) => indices.length > 1)
+        .map(([prefix, indices]) => ({ prefix, indices }))
+}
+
 // ─── PASS 1: Skeleton ──────────────────────────────────────────────────────
 // Opus thinking outputs ONLY structure (date/channel/pillar/persona) — no copy.
 // This isolates structural constraints (weekly buckets, persona quota, pillar
@@ -5115,9 +5161,14 @@ TASK: Build ONLY the structure (no copy, no hooks, no briefs) for a ${ctx.weeksA
 
 ## Period — you MUST cover ALL ${ctx.weeksAhead} weeks
 From ${ctx.startIso} to ${ctx.endIso} — Asia/Jerusalem timezone.
-SKIP all Saturdays. Friday only until 13:00.
 
-## Explicit week boundaries (each week MUST have 6-7 items)
+## 🇮🇱 Israeli work week (CRITICAL!)
+The Israeli work week is **Sunday → Thursday**. Sunday is a FULL workday, NOT a weekend.
+- **SKIP Saturday** (שבת) entirely — no organic posts
+- **Friday only until 13:00** — no afternoon/evening content
+- **Sunday (ראשון) is primary workday** — treat exactly like Monday in western plans
+
+## Explicit week boundaries (each week MUST have 6-7 items, spread across Sun-Thu)
 ${weekBoundaries.map(w => `- **Week ${w.num}: ${w.start} → ${w.end}** — 6-7 items REQUIRED`).join('\n')}
 
 If any week has 0 items, the plan is REJECTED. Do not cluster all items in weeks 1-2.
@@ -5134,24 +5185,43 @@ ${ctx.personaTitles.length >= 2 ? ctx.personaTitles.map((p, i) => `${i + 1}. ${p
 ${ctx.performanceContext ? `\n## Previous period performance (adapt structure accordingly!)\n${ctx.performanceContext}\n` : ''}
 
 ## Hard constraints (auto-validator will reject plan on violation)
-- Total: **${ctx.weeksAhead * 6}-${ctx.weeksAhead * 7} items** (for ${ctx.weeksAhead} weeks → ${ctx.weeksAhead * 6}-${ctx.weeksAhead * 7} items)
-- Each of ${ctx.weeksAhead} weeks gets 6-7 items (no empty weeks!)
-- Each pillar appears ≥3 times
+- **Total: ${ctx.weeksAhead * 6}-${ctx.weeksAhead * 7} items** for ${ctx.weeksAhead} weeks
+- Each week gets 6-7 items (no empty weeks!)
+- **Sunday coverage: ≥${Math.max(2, Math.floor(ctx.weeksAhead * 0.6))} Sunday items across the ${ctx.weeksAhead} weeks** (Sunday is a top IL engagement day for blog/email/LinkedIn)
+- Each pillar appears ≥3 times, none dominates (max ${Math.ceil((ctx.weeksAhead * 6.5) / ctx.pillarWhitelist.length) + 1} items)
 - Each persona ≥15%
 - Instagram: reels ≥60% of all IG items
 - productRef "course_1499" ≥15%
-- No Saturday. Friday only until 13:00.
+- **Balanced pillar load** — no single pillar > 25% of plan
 
-## IL timing benchmarks (April 2026)
-- Newsletter (email): **Thursday 07:30**
-- Blog SEO: **Monday 09:00**
-- Facebook peak: **Tue + Thu 19:00-21:00**
-- LinkedIn: **Mon/Tue 08:00-10:00**
-- Paid campaigns launch: **Monday 09:00**
-- YouTube/IG Reels: evening 19:00-21:00
+## Cross-channel amplification (wave pattern)
+Plan SHOULD include at least 3 amplification waves. A wave = same topic/pillar amplified across 2-3 channels within 72h:
+- Example: **Mon blog (anchor)** → **Tue IG story/reel (teaser)** → **Thu email roundup (digest)**
+- Use the "amplifiesFrom" field (0-based index of the anchor item) to mark amplifier slots
 
-## flexibility rule
-Default "suggested" (agents can swap on hot events). Use "fixed" ONLY for: campaign_launch, campaign_optimize, report, scheduled newsletter. Target ~75% suggested / ~25% fixed.
+This forces cross-channel flow, not isolated silo posts.
+
+## Reactive slots (~20% of suggested items)
+Mark ~20% of "suggested" items with "isReactive": true. These are slots designed for:
+- Trending topic reactions (news event, competitor launch, industry story)
+- Broad-enough hook that agent can pivot content to current events
+- Ideally distributed in weeks 2-4 (reactive_weeks: later periods benefit from real-world signal)
+
+DO NOT mark "fixed" items reactive. DO NOT mark anchor items (amplifiers are allowed reactive, anchors are not).
+
+## Timing benchmarks (IL April 2026)
+- Newsletter (email): **Thursday 07:30** OR **Sunday 07:30** (Sunday open rate rivals Thu)
+- Blog SEO: **Sunday 09:00** OR **Monday 09:00** (Sunday ≈ Mon for search traffic)
+- Facebook peak: **Tue + Thu 19:00-21:00** · secondary: **Sun 20:00**
+- LinkedIn B2B: **Sun/Mon/Tue 08:00-10:00**
+- Paid campaigns launch: **Sunday 09:00** (full week of learning before Thu decision)
+- YouTube/IG Reels evening: **19:00-21:00** any weekday
+- **Vary times** — don't put every LinkedIn at 08:30 exactly; mix 08:00 / 08:30 / 09:00 / 09:30
+
+## Flexibility rule
+- Default "suggested" (agent can swap on hot events)
+- "fixed" ONLY for: campaign_launch, campaign_optimize, report, scheduled weekly newsletter
+- Target ~75% suggested / ~25% fixed
 
 ## OUTPUT — JSON array ONLY (no prose, no markdown, no thinking-out-loud)
 Each slot:
@@ -5164,12 +5234,14 @@ Each slot:
   "persona": "<one from personas list>",
   "productRef": "course_199|course_1499|clawflow|mixed|none",
   "flexibility": "fixed|suggested",
-  "agentRole": "ayat|yotzer|shaliach|mateh|menateach|sayer|migdalor"
+  "agentRole": "ayat|yotzer|shaliach|mateh|menateach|sayer|migdalor",
+  "isReactive": true|false,
+  "amplifiesFrom": <index 0..N of anchor slot this amplifies, OR omit>
 }
 
 NO "hook", NO "brief", NO "ctaType" — those come later. Structure only. Sort ASC by date+time.
 
-**CRITICAL: Return ALL ~${Math.floor(ctx.weeksAhead * 6.5)} slots in one array. Don't stop early. Don't summarize. Full JSON array.**`
+**CRITICAL: Return ALL ~${Math.floor(ctx.weeksAhead * 6.5)} slots. Include Sundays. Vary channels and times. Mark ~20% reactive. Mark ≥3 amplification waves. Full JSON array.**`
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -5204,6 +5276,8 @@ NO "hook", NO "brief", NO "ctaType" — those come later. Structure only. Sort A
         productRef: r.productRef ? String(r.productRef) : undefined,
         flexibility: (r.flexibility === 'fixed' ? 'fixed' : 'suggested') as 'fixed' | 'suggested',
         agentRole: String(r.agentRole || 'ayat'),
+        isReactive: r.isReactive === true,
+        amplifiesFrom: typeof r.amplifiesFrom === 'number' ? `idx:${r.amplifiesFrom}` : undefined,
     })).filter(s => s.date && s.time)
     slots.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
     return slots
@@ -5290,6 +5364,17 @@ ${productsBlock({ products: ctx.products, productsFunnel: ctx.productsFunnel })}
 אורך 200-300 מילים. 2 האשטגים רלוונטיים בסוף.
 \`\`\`
 
+## חוק קריטי ל-ctaType — enum מחמיר!
+ctaType חייב להיות **בדיוק אחד** מהערכים הבאים — אסור להמציא:
+- "signup_course_199" — הרשמה לקורס ₪199 (entry)
+- "signup_course_1499" — הרשמה לקורס המורחב ₪1,499
+- "trial_saas" — ניסיון חינם לפלטפורמה
+- "read_more" — קרא עוד / פרטים נוספים
+- "contact" — צור קשר / פגישת היכרות
+- "none" — אין CTA ישיר (למשל פוסט אוטוריטה טהור)
+
+אסור להחזיר ערכים כמו "course_entry_199", "read_full_case_then_course", "subscribe" — רק אחד מהשישה שלמעלה!
+
 ## תפוקה — JSON בלבד, בלי markdown fences סביב ה-JSON עצמו!
 
 {
@@ -5352,28 +5437,41 @@ async function draftItemsParallel(slots: ContentSlot[], ctx: GenContext): Promis
 // Applies patches in-place. No-op if plan is already clean.
 async function qaRepair(items: ContentPlanItem[], ctx: GenContext): Promise<ContentPlanItem[]> {
     const qa = qaContentPlan(items, ctx.pillarWhitelist, ctx.startDate, ctx.weeksAhead, ctx.personaTitles)
-    if (qa.ok) { console.log('qaRepair: no violations, skipping'); return items }
+    const dupes = detectDuplicateHooks(items)
+    if (qa.ok && dupes.length === 0) { console.log('qaRepair: no violations, skipping'); return items }
 
     const summary = items.map((it, i) => ({
         i, date: it.date, time: it.time, channel: it.channel, type: it.type,
         pillar: it.pillar, persona: it.persona, productRef: it.productRef, hook: it.hook,
     }))
+
+    const dupeBlock = dupes.length > 0
+        ? `## Duplicate hooks (REWRITE these!)
+These hook groups share near-identical prefixes — rewrite each hook after the FIRST to use a distinct angle. Do NOT change pillar/persona/channel, only swap the hook wording:
+${dupes.map(g => `- [${g.indices.join(', ')}] share prefix "${g.prefix}" — items after first MUST get a fresh hook.`).join('\n')}
+`
+        : ''
+
     const prompt = `You are a marketing QA engineer. Apply minimum patches to fix violations.
 
 ## Current plan (${items.length} items)
 ${JSON.stringify(summary, null, 1).substring(0, 10000)}
 
 ## Violations detected by validator
-${qa.issues.map((iss, n) => `${n + 1}. ${iss}`).join('\n')}
+${qa.issues.length > 0 ? qa.issues.map((iss, n) => `${n + 1}. ${iss}`).join('\n') : '(none — only duplicate hooks to fix)'}
 
+${dupeBlock}
 ## Allowed pillar names (verbatim — any other is invalid)
 ${ctx.pillarWhitelist.map(p => `- "${p}"`).join('\n')}
 
 ## Allowed personas
 ${ctx.personaTitles.join(', ') || 'דורון, אסף, מיכל'}
 
+## Allowed ctaType (enum — ANY other value is invalid)
+signup_course_199 | signup_course_1499 | trial_saas | read_more | contact | none
+
 ## Your task
-Return a JSON array of patches. Each patch modifies ONE field of ONE item:
+Return a JSON array of patches. Each patch modifies ONE or more fields of ONE item:
 [
   {
     "i": <item index 0-${items.length - 1}>,
@@ -5382,12 +5480,19 @@ Return a JSON array of patches. Each patch modifies ONE field of ONE item:
       "persona"?: "<new persona>",
       "channel"?: "<new channel>",
       "type"?: "<new type, e.g. reel instead of post for IG>",
-      "productRef"?: "course_199|course_1499|clawflow|mixed|none"
+      "productRef"?: "course_199|course_1499|clawflow|mixed|none",
+      "ctaType"?: "<valid enum value>",
+      "hook"?: "<fresh 3-5 word Hebrew hook — only for duplicate-hook fixes>"
     }
   }
 ]
 
-Apply **minimum** patches to satisfy all violations. Don't change things that aren't broken. JSON array only, no prose.`
+Priority:
+1. Fix structural violations (pillar/persona/channel/type) first.
+2. Rewrite duplicate hooks (all but the first in each group get a fresh hook).
+3. Normalize invalid ctaType to one of the 6 enum values.
+
+Apply **minimum** patches. JSON array only, no prose.`
 
     try {
         const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -5416,15 +5521,19 @@ Apply **minimum** patches to satisfy all violations. Don't change things that ar
         let applied = 0
         patches.forEach((p: any) => {
             if (typeof p.i !== 'number' || !p.change || p.i < 0 || p.i >= fixed.length) return
-            const allowed = ['pillar', 'persona', 'channel', 'type', 'productRef']
+            const allowed = ['pillar', 'persona', 'channel', 'type', 'productRef', 'hook', 'brief']
             allowed.forEach(k => {
                 if (k in p.change && typeof p.change[k] === 'string') {
                     (fixed[p.i] as any)[k] = p.change[k]
                     applied++
                 }
             })
+            if ('ctaType' in p.change && typeof p.change.ctaType === 'string') {
+                fixed[p.i].ctaType = normalizeCtaType(p.change.ctaType)
+                applied++
+            }
         })
-        console.log(`qaRepair: applied ${applied} field patches across ${patches.length} items`)
+        console.log(`qaRepair: applied ${applied} field patches across ${patches.length} items (${dupes.length} duplicate hook groups flagged)`)
         return fixed
     } catch (err) {
         console.warn('qaRepair failed, returning unrepaired plan:', (err as Error).message)
@@ -5602,11 +5711,20 @@ async function generateContentPlan(
     const draftedCount = drafts.filter(d => d !== null).length
     console.log(`Content Plan v4 — Pass 2 (Drafting): ${draftedCount}/${slots.length} items drafted in ${((Date.now() - t2) / 1000).toFixed(1)}s`)
 
-    // Merge slots + drafts into full items (failed drafts get placeholder copy)
+    // Merge slots + drafts into full items. Generate ids first so amplifiesFrom
+    // (which may reference a numeric skeleton index) can be resolved to a real id.
+    const itemIds = slots.map(() => 'cp_' + nanoid(10))
     let plan: ContentPlanItem[] = slots.map((slot, i): ContentPlanItem => {
         const d = drafts[i]
+        let amplifies: string | undefined
+        if (slot.amplifiesFrom && slot.amplifiesFrom.startsWith('idx:')) {
+            const refIdx = Number(slot.amplifiesFrom.slice(4))
+            if (Number.isInteger(refIdx) && refIdx >= 0 && refIdx < itemIds.length && refIdx !== i) {
+                amplifies = itemIds[refIdx]
+            }
+        }
         return {
-            id: 'cp_' + nanoid(10),
+            id: itemIds[i],
             date: slot.date,
             time: slot.time,
             channel: slot.channel,
@@ -5616,9 +5734,12 @@ async function generateContentPlan(
             productRef: slot.productRef,
             flexibility: slot.flexibility,
             agentRole: slot.agentRole,
+            // isReactive only makes sense on suggested slots — enforce here
+            isReactive: slot.flexibility === 'suggested' && slot.isReactive === true ? true : undefined,
+            amplifiesFrom: amplifies,
             hook: d?.hook || `${slot.pillar.substring(0, 25)}`,
             brief: d?.brief || `צור ${slot.type} ל-${slot.channel} סביב "${slot.pillar}" עבור ${slot.persona}.`,
-            ctaType: d?.ctaType || 'none',
+            ctaType: normalizeCtaType(d?.ctaType),
             status: 'planned' as const,
         }
     })
@@ -5663,6 +5784,24 @@ async function generateContentPlan(
     const t4 = Date.now()
     plan = await selfCritique(plan, ctx)
     console.log(`Content Plan v4 — Pass 4 (Self-critique): ${((Date.now() - t4) / 1000).toFixed(1)}s`)
+
+    // ─── Final cleanup pass (v4 post-filters) ───
+    // 1. Hard-normalize any ctaType the model still got wrong
+    plan.forEach(it => { it.ctaType = normalizeCtaType(it.ctaType) })
+
+    // 2. Last-resort duplicate hook suffix — if 2+ items still share a hook prefix,
+    //    append a distinct persona/week suffix so calendar UI isn't confusing.
+    const remainingDupes = detectDuplicateHooks(plan)
+    if (remainingDupes.length > 0) {
+        remainingDupes.forEach(g => {
+            g.indices.slice(1).forEach((idx, n) => {
+                const item = plan[idx]
+                const weekNum = Math.floor((new Date(item.date).getTime() - startDate.getTime()) / (7 * 24 * 3600 * 1000)) + 1
+                item.hook = `${item.hook} · שבוע ${weekNum}`.substring(0, 80)
+            })
+        })
+        console.log(`Content Plan v4 post-filter: suffixed ${remainingDupes.reduce((s, g) => s + g.indices.length - 1, 0)} duplicate hooks`)
+    }
 
     // Final QA log (soft warnings only — all 4 passes should have fixed issues)
     const qaFinal = qaContentPlan(plan, pillarWhitelist, startDate, weeksAhead, personaTitles)
@@ -5741,6 +5880,35 @@ function qaContentPlan(
         const reelRatio = reelCount / igItems.length
         if (reelRatio < 0.6) issues.push(`IG reel ratio ${(reelRatio * 100).toFixed(0)}% < 60%`)
     }
+
+    // Israeli work week — Sunday coverage (≥60% of weeks should have Sunday items)
+    const minSundays = Math.max(2, Math.floor(weeksAhead * 0.6))
+    const sundayCount = plan.filter(it => new Date(it.date).getDay() === 0).length
+    if (sundayCount < minSundays) {
+        issues.push(`Sunday underused (${sundayCount}<${minSundays}) — Sunday is primary IL workday`)
+    }
+
+    // Saturday/late-Friday violations
+    const satCount = plan.filter(it => new Date(it.date).getDay() === 6).length
+    if (satCount > 0) issues.push(`${satCount} items on Saturday (forbidden)`)
+    const lateFriCount = plan.filter(it => new Date(it.date).getDay() === 5 && it.time > '13:00').length
+    if (lateFriCount > 0) issues.push(`${lateFriCount} items on Friday after 13:00 (forbidden)`)
+
+    // ctaType enum compliance
+    const badCtas = plan.filter(it => !(VALID_CTA_TYPES as readonly string[]).includes(it.ctaType))
+    if (badCtas.length > 0) {
+        const samples = badCtas.slice(0, 3).map(it => `"${it.ctaType}"`).join(', ')
+        issues.push(`${badCtas.length} items have invalid ctaType (e.g. ${samples})`)
+    }
+
+    // Pillar domination check — no single pillar should exceed ~25% of items
+    const maxPillarCount = Math.ceil(plan.length * 0.30)
+    pillarWhitelist.forEach(p => {
+        const count = plan.filter(it => it.pillar === p).length
+        if (count > maxPillarCount) {
+            issues.push(`pillar "${p.substring(0, 25)}" over-represented (${count}>${maxPillarCount})`)
+        }
+    })
 
     return { ok: issues.length === 0, issues }
 }

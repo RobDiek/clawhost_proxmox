@@ -4454,6 +4454,8 @@ function renderTaskPopup(task) {
   if (task.metadata && task.metadata.persona) metaItems.push({ label: 'פרסונה', value: task.metadata.persona });
   if (task.metadata && task.metadata.productRef) metaItems.push({ label: 'מוצר', value: heProduct(task.metadata.productRef) });
   if (task.metadata && task.metadata.ctaType && task.metadata.ctaType !== 'none') metaItems.push({ label: 'קריאה לפעולה', value: heCta(task.metadata.ctaType) });
+  if (task.metadata && task.metadata.isReactive) metaItems.push({ label: 'סוג משבצת', value: '⚡ תגובת זמן-אמת (ניתנת להחלפה לפי טרנד)' });
+  if (task.metadata && task.metadata.amplifiesFromLabel) metaItems.push({ label: 'מגביר את', value: '🔗 ' + task.metadata.amplifiesFromLabel });
   if (task.scheduledFor) metaItems.push({ label: 'מתוכנן ל', value: new Date(task.scheduledFor).toLocaleDateString('he-IL') });
   if (task.metadata && task.metadata.agents) {
     var agentChain = task.metadata.agents.map(function(a) { return heAgent(a); }).join(' → ');
@@ -6716,6 +6718,13 @@ function openContentPlanItem(itemId) {
   var statusMeta = CAL_STATUS_META[effectiveStatus] || CAL_STATUS_META.planned;
   var icon = CAL_CHANNEL_ICONS[item.channel] || '•';
 
+  // Find amplifies-from label (chain of cross-channel posts)
+  var amplifiesLabel = null;
+  if (item.amplifiesFrom) {
+    var anchor = plan.find(function(p) { return p.id === item.amplifiesFrom; });
+    if (anchor) amplifiesLabel = heChannel(anchor.channel) + ' · ' + (anchor.hook || '').substring(0, 30);
+  }
+
   var task = {
     id: 'plan-' + item.id,
     title: icon + ' ' + (item.hook || 'פריט תוכן') + ' · ' + heChannel(item.channel || ''),
@@ -6730,7 +6739,9 @@ function openContentPlanItem(itemId) {
       persona: item.persona,
       ctaType: item.ctaType,
       productRef: item.productRef,
-      flexibility: item.flexibility
+      flexibility: item.flexibility,
+      isReactive: item.isReactive,
+      amplifiesFromLabel: amplifiesLabel
     }
   };
   // If outputId exists, try to fetch the real output content from the queue
