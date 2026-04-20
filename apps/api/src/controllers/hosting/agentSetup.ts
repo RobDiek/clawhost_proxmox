@@ -5096,13 +5096,31 @@ function getAnthropicText(data: any): string {
 // This isolates structural constraints (weekly buckets, persona quota, pillar
 // distribution, IG reel ratio, course_1499 share) from copywriting concerns.
 async function generateSkeleton(ctx: GenContext): Promise<ContentSlot[]> {
+    // Compute exact week boundaries so the model can't collapse weeks 3-4
+    const weekBoundaries: { num: number; start: string; end: string }[] = []
+    for (let w = 0; w < ctx.weeksAhead; w++) {
+        const ws = new Date(ctx.startDate)
+        ws.setDate(ws.getDate() + w * 7)
+        const we = new Date(ctx.startDate)
+        we.setDate(we.getDate() + (w + 1) * 7 - 1)
+        weekBoundaries.push({
+            num: w + 1,
+            start: ws.toISOString().slice(0, 10),
+            end: we.toISOString().slice(0, 10),
+        })
+    }
     const prompt = `You are a marketing ops planner for ${ctx.businessName}.
 
 TASK: Build ONLY the structure (no copy, no hooks, no briefs) for a ${ctx.weeksAhead}-week POC content plan.
 
-## Period
+## Period — you MUST cover ALL ${ctx.weeksAhead} weeks
 From ${ctx.startIso} to ${ctx.endIso} — Asia/Jerusalem timezone.
 SKIP all Saturdays. Friday only until 13:00.
+
+## Explicit week boundaries (each week MUST have 6-7 items)
+${weekBoundaries.map(w => `- **Week ${w.num}: ${w.start} → ${w.end}** — 6-7 items REQUIRED`).join('\n')}
+
+If any week has 0 items, the plan is REJECTED. Do not cluster all items in weeks 1-2.
 
 ## Products
 ${productsBlock({ products: ctx.products, productsFunnel: ctx.productsFunnel })}
@@ -5116,15 +5134,15 @@ ${ctx.personaTitles.length >= 2 ? ctx.personaTitles.map((p, i) => `${i + 1}. ${p
 ${ctx.performanceContext ? `\n## Previous period performance (adapt structure accordingly!)\n${ctx.performanceContext}\n` : ''}
 
 ## Hard constraints (auto-validator will reject plan on violation)
-- Total: **24-28 items**
-- Weekly buckets: Week 1: 6-7 items · Week 2: 6-7 · Week 3: 6-7 · Week 4: 6-7
+- Total: **${ctx.weeksAhead * 6}-${ctx.weeksAhead * 7} items** (for ${ctx.weeksAhead} weeks → ${ctx.weeksAhead * 6}-${ctx.weeksAhead * 7} items)
+- Each of ${ctx.weeksAhead} weeks gets 6-7 items (no empty weeks!)
 - Each pillar appears ≥3 times
-- Each persona ≥15% (if 3 personas → ≥4 items each)
+- Each persona ≥15%
 - Instagram: reels ≥60% of all IG items
-- productRef "course_1499" ≥15% of items (≥4 of 28)
-- No Saturday items. Friday only until 13:00.
+- productRef "course_1499" ≥15%
+- No Saturday. Friday only until 13:00.
 
-## IL timing (April 2026 benchmarks)
+## IL timing benchmarks (April 2026)
 - Newsletter (email): **Thursday 07:30**
 - Blog SEO: **Monday 09:00**
 - Facebook peak: **Tue + Thu 19:00-21:00**
@@ -5135,7 +5153,7 @@ ${ctx.performanceContext ? `\n## Previous period performance (adapt structure ac
 ## flexibility rule
 Default "suggested" (agents can swap on hot events). Use "fixed" ONLY for: campaign_launch, campaign_optimize, report, scheduled newsletter. Target ~75% suggested / ~25% fixed.
 
-## OUTPUT — JSON array ONLY (no prose, no markdown)
+## OUTPUT — JSON array ONLY (no prose, no markdown, no thinking-out-loud)
 Each slot:
 {
   "date": "YYYY-MM-DD",
@@ -5149,7 +5167,9 @@ Each slot:
   "agentRole": "ayat|yotzer|shaliach|mateh|menateach|sayer|migdalor"
 }
 
-NO "hook", NO "brief", NO "ctaType" — those come later. Structure only. Sort ASC by date+time.`
+NO "hook", NO "brief", NO "ctaType" — those come later. Structure only. Sort ASC by date+time.
+
+**CRITICAL: Return ALL ~${Math.floor(ctx.weeksAhead * 6.5)} slots in one array. Don't stop early. Don't summarize. Full JSON array.**`
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -5160,12 +5180,14 @@ NO "hook", NO "brief", NO "ctaType" — those come later. Structure only. Sort A
         },
         body: JSON.stringify({
             model: 'claude-opus-4-7',
-            max_tokens: 6000,
+            // 20K needed: adaptive thinking consumes part of max_tokens; skeleton
+            // JSON for 28 slots is ~5K. Previous 6K caused truncation → only 14 slots.
+            max_tokens: 20000,
             thinking: { type: 'adaptive' },
             output_config: { effort: 'high' },
             messages: [{ role: 'user', content: prompt }],
         }),
-        signal: AbortSignal.timeout(240000),
+        signal: AbortSignal.timeout(300000),
     })
     if (!res.ok) throw new Error(`Skeleton API ${res.status}: ${(await res.text()).substring(0, 200)}`)
     const data = await res.json()
@@ -5315,12 +5337,12 @@ Apply **minimum** patches to satisfy all violations. Don't change things that ar
             },
             body: JSON.stringify({
                 model: 'claude-opus-4-7',
-                max_tokens: 4000,
+                max_tokens: 12000, // adaptive thinking eats part of this
                 thinking: { type: 'adaptive' },
                 output_config: { effort: 'medium' },
                 messages: [{ role: 'user', content: prompt }],
             }),
-            signal: AbortSignal.timeout(180000),
+            signal: AbortSignal.timeout(240000),
         })
         if (!res.ok) throw new Error(`QA API ${res.status}`)
         const data = await res.json()
@@ -5399,12 +5421,12 @@ JSON only.`
             },
             body: JSON.stringify({
                 model: 'claude-opus-4-7',
-                max_tokens: 3000,
+                max_tokens: 10000, // adaptive thinking eats part of this
                 thinking: { type: 'adaptive' },
                 output_config: { effort: 'medium' },
                 messages: [{ role: 'user', content: prompt }],
             }),
-            signal: AbortSignal.timeout(150000),
+            signal: AbortSignal.timeout(240000),
         })
         if (!res.ok) throw new Error(`Critique API ${res.status}`)
         const data = await res.json()
@@ -5799,7 +5821,7 @@ ${JSON.stringify(plan.slice(0, 40).map(it => ({
             },
             body: JSON.stringify({
                 model: 'claude-opus-4-7',
-                max_tokens: 4000,
+                max_tokens: 12000, // adaptive thinking eats part of this
                 thinking: { type: 'adaptive' },
                 output_config: { effort: 'high' },
                 messages: [{ role: 'user', content: prompt }],
