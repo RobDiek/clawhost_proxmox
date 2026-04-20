@@ -231,6 +231,17 @@ input{font-family:inherit}
 .badge-green{background:#D1FAE5;color:#065F46;padding:3px 12px;border-radius:20px;font-size:.82rem;font-weight:500;display:inline-flex;align-items:center;gap:4px}
 .badge-yellow{background:#FEF3C7;color:#92400E;padding:3px 12px;border-radius:20px;font-size:.82rem;font-weight:500}
 
+/* ===== Bidi: isolate Latin runs inside Hebrew so "AI"/"First-Mover"/"2026" render cleanly ===== */
+/* unicode-bidi:isolate forces browser to run the bidi algorithm independently per block,
+   preventing Latin words from visually "leaking" into adjacent Hebrew punctuation. */
+.md-content p, .md-content li, .md-content td, .md-content th,
+.md-content blockquote, .md-content h1, .md-content h2,
+.md-content h3, .md-content h4, .md-content h5, .md-content h6,
+.task-item, .notif-card, .agent-card, .task-popup-value,
+.report-modal-body, .int-help, .info-value, .chat-msg-text{
+  unicode-bidi:isolate;
+}
+
 /* ===== Markdown content ===== */
 .md-content{line-height:1.75;color:#1F2937;font-size:0.92rem}
 .md-content h2{font-size:1.15rem;font-weight:700;margin:22px 0 10px;color:#111827;border-bottom:1px solid #E5E7EB;padding-bottom:6px}
