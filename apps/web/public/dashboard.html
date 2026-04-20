@@ -460,31 +460,59 @@ input{font-family:inherit}
 .aq-archive-btn { background:none; border:none; color:#D1D5DB; cursor:pointer; font-size:0.75rem; padding:2px 4px; margin-right:4px; }
 .aq-archive-btn:hover { color:#9CA3AF; }
 
-/* ===== Content Calendar (לוח תוכן) ===== */
+/* ===== Content Calendar (לוח תוכן) — richer weekly planner ===== */
 .content-calendar { background:#fff; border:1px solid #E5E7EB; border-radius:12px; overflow:hidden; }
-.cal-header { display:flex; align-items:center; justify-content:space-between; padding:8px 16px; border-bottom:1px solid #F3F4F6; }
-.cal-nav { display:flex; align-items:center; gap:12px; }
-.cal-nav-btn { background:none; border:1px solid #E5E7EB; border-radius:6px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#6B7280; }
-.cal-nav-btn:hover { background:#F3F4F6; }
+.cal-header { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; border-bottom:1px solid #F3F4F6; gap:12px; flex-wrap:wrap; }
+.cal-nav { display:flex; align-items:center; gap:10px; }
+.cal-nav-btn { background:none; border:1px solid #E5E7EB; border-radius:6px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#6B7280; }
+.cal-nav-btn:hover { background:#F3F4F6; color:#374151; }
 .cal-nav-btn svg { width:14px; height:14px; }
-.cal-period { font-size:0.88rem; font-weight:600; color:#1F2937; }
-.cal-view-toggle { display:flex; gap:4px; }
-.cal-view-btn { font-size:0.75rem; padding:4px 10px; border-radius:6px; border:1px solid #E5E7EB; background:#fff; color:#6B7280; cursor:pointer; }
-.cal-view-btn.active { background:#2563EB; color:#fff; border-color:#2563EB; }
+.cal-period { font-size:0.92rem; font-weight:700; color:#111827; min-width:120px; text-align:center; }
+.cal-actions { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.cal-filter-pill { font-size:0.72rem; padding:3px 10px; border-radius:12px; border:1px solid #E5E7EB; background:#fff; color:#6B7280; cursor:pointer; font-weight:500; display:inline-flex; align-items:center; gap:4px; }
+.cal-filter-pill:hover { background:#F9FAFB; }
+.cal-filter-pill.active { background:#2563EB; color:#fff; border-color:#2563EB; }
 .cal-grid { display:grid; grid-template-columns:repeat(7, 1fr); }
-.cal-day-header { padding:4px; text-align:center; font-size:0.7rem; font-weight:600; color:#9CA3AF; border-bottom:1px solid #F3F4F6; }
-.cal-cell { min-height:44px; padding:2px; border-left:1px solid #F3F4F6; border-bottom:1px solid #F3F4F6; position:relative; }
+.cal-day-header { padding:6px 4px; text-align:center; font-size:0.72rem; font-weight:600; color:#9CA3AF; border-bottom:1px solid #F3F4F6; background:#FAFAFA; }
+.cal-cell { min-height:140px; padding:4px; border-left:1px solid #F3F4F6; border-bottom:1px solid #F3F4F6; position:relative; transition:background .15s; }
 .cal-cell:first-child { border-left:none; }
-.cal-cell-date { font-size:0.7rem; color:#9CA3AF; padding:1px 4px; }
-.cal-cell-date.today { background:#2563EB; color:#fff; border-radius:4px; font-weight:600; }
-.cal-cell-date.other-month { color:#D1D5DB; }
-.cal-event { font-size:0.68rem; padding:1px 5px; border-radius:4px; margin-top:1px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.cal-event:hover { opacity:0.85; }
-.cal-event.planned { background:#DBEAFE; color:#1E40AF; }
-.cal-event.ready { background:#FEF3C7; color:#92400E; }
-.cal-event.published { background:#D1FAE5; color:#065F46; }
-.cal-event.brief { background:#EDE9FE; color:#5B21B6; }
-@media(max-width:768px) { .cal-cell { min-height:44px; } .cal-event { font-size:0.6rem; } }
+.cal-cell:hover { background:#FAFAFA; }
+.cal-cell-date { font-size:0.78rem; color:#9CA3AF; padding:2px 6px; display:inline-block; font-weight:500; }
+.cal-cell-date.today { background:#2563EB; color:#fff; border-radius:5px; font-weight:700; }
+.cal-cell-date.past { color:#D1D5DB; }
+.cal-cell-date.weekend { color:#CBD5E1; }
+.cal-events { display:flex; flex-direction:column; gap:3px; margin-top:4px; }
+.cal-event { font-size:0.7rem; padding:4px 6px; border-radius:5px; cursor:pointer; display:flex; align-items:center; gap:4px; border:1px solid transparent; transition:all .15s; overflow:hidden; line-height:1.3; }
+.cal-event:hover { transform:translateX(-1px); box-shadow:0 2px 4px rgba(0,0,0,.08); }
+.cal-event-icon { flex-shrink:0; font-size:0.75rem; }
+.cal-event-time { font-size:0.65rem; color:#6B7280; font-weight:500; direction:ltr; }
+.cal-event-title { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500; }
+.cal-event-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+/* Channel colors */
+.cal-event.ch-facebook { background:#EFF6FF; color:#1E40AF; border-color:#BFDBFE; }
+.cal-event.ch-instagram { background:#FDF2F8; color:#9D174D; border-color:#FBCFE8; }
+.cal-event.ch-blog { background:#F0FDF4; color:#065F46; border-color:#BBF7D0; }
+.cal-event.ch-email { background:#FFFBEB; color:#92400E; border-color:#FDE68A; }
+.cal-event.ch-youtube { background:#FEF2F2; color:#991B1B; border-color:#FECACA; }
+.cal-event.ch-linkedin { background:#ECFEFF; color:#155E75; border-color:#A5F3FC; }
+.cal-event.ch-google_ads, .cal-event.ch-meta_ads { background:#FFF7ED; color:#7C2D12; border-color:#FED7AA; }
+.cal-event.ch-reddit { background:#FFF1F0; color:#9A3412; border-color:#FDBA74; }
+.cal-event.ch-tiktok { background:#F5F3FF; color:#5B21B6; border-color:#DDD6FE; }
+.cal-event.ch-report { background:#F3F4F6; color:#374151; border-color:#E5E7EB; }
+/* Status modifiers */
+.cal-event.st-planned { opacity:0.75; border-style:dashed; }
+.cal-event.st-awaiting_review { background:#FEF3C7 !important; color:#92400E !important; border-color:#FDE68A !important; }
+.cal-event.st-approved { background:#DBEAFE !important; color:#1E40AF !important; border-color:#93C5FD !important; }
+.cal-event.st-ready_for_manual { background:#CFFAFE !important; color:#155E75 !important; border-color:#67E8F9 !important; }
+.cal-event.st-scheduled { background:#D1FAE5 !important; color:#065F46 !important; border-color:#6EE7B7 !important; }
+.cal-event.st-published { background:#DCFCE7 !important; color:#14532D !important; border-color:#86EFAC !important; opacity:0.7; }
+.cal-event.st-blocked { background:#F3F4F6 !important; color:#6B7280 !important; border-color:#D1D5DB !important; opacity:0.6; }
+.cal-event.st-skipped { opacity:0.4; text-decoration:line-through; }
+.cal-legend { display:flex; flex-wrap:wrap; gap:10px; padding:8px 16px; border-top:1px solid #F3F4F6; font-size:0.7rem; color:#6B7280; background:#FAFAFA; }
+.cal-legend-item { display:inline-flex; align-items:center; gap:4px; }
+.cal-empty-day { font-size:0.7rem; color:#D1D5DB; padding:6px 4px; font-style:italic; }
+.cal-shabbat-cell { background:repeating-linear-gradient(135deg, transparent 0 8px, rgba(203,213,225,.15) 8px 16px); }
+@media(max-width:768px) { .cal-cell { min-height:110px; } .cal-event { font-size:0.65rem; padding:3px 5px; } }
 
 /* ===== Task Detail Popup ===== */
 .task-popup-overlay { position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:400; display:flex; align-items:center; justify-content:center; padding:20px; animation:fadeIn .15s ease; }
@@ -6439,8 +6467,65 @@ function rejectTask(taskId) {
   renderApprovalQueue();
 }
 
-/* ===== Content Calendar (לוח תוכן) ===== */
+/* ===== Content Calendar (לוח תוכן) — reads contentPlan[] from researchData ===== */
 var calendarOffset = 0; // weeks from current
+var calendarFilter = 'all'; // 'all' | 'facebook' | 'instagram' | 'blog' | 'ads' | 'reports'
+
+// Channel → icon/emoji for event cards
+var CAL_CHANNEL_ICONS = {
+  facebook: '📘', instagram: '📷', blog: '📝', email: '✉️',
+  youtube: '▶️', linkedin: '💼', tiktok: '🎵',
+  google_ads: '🎯', meta_ads: '💰', reddit: '🟠',
+  report: '📊'
+};
+var CAL_STATUS_META = {
+  planned:          { dot: '#94A3B8', label: 'מתוכנן' },
+  drafting:         { dot: '#8B5CF6', label: 'בהכנה' },
+  awaiting_review:  { dot: '#F59E0B', label: 'ממתין לאישור' },
+  approved:         { dot: '#3B82F6', label: 'אושר' },
+  scheduled:        { dot: '#10B981', label: 'מתוזמן' },
+  published:        { dot: '#065F46', label: 'פורסם' },
+  ready_for_manual: { dot: '#06B6D4', label: 'מוכן לפרסום ידני' },
+  skipped:          { dot: '#CBD5E1', label: 'דולג' },
+  failed:           { dot: '#EF4444', label: 'נכשל' },
+  blocked:          { dot: '#9CA3AF', label: 'חסום — חסרה אינטגרציה' }
+};
+
+function getContentPlan() {
+  var rd = (instanceData && instanceData.researchData) || {};
+  return Array.isArray(rd.contentPlan) ? rd.contentPlan : [];
+}
+
+// Given a plan item, decide if its publishing channel is integrated.
+// Returns { blocked: boolean, reason: string }
+function resolveItemAvailability(item) {
+  if (!item || !item.channel) return { blocked: false, reason: '' };
+  var ch = item.channel;
+  var inst = instanceData || {};
+  if (ch === 'facebook' || ch === 'instagram' || ch === 'meta_ads') {
+    var metaOk = !!(inst.metaTokens && inst.metaTokens.connected);
+    return metaOk ? { blocked: false, reason: '' } : { blocked: true, reason: 'חבר Meta' };
+  }
+  if (ch === 'google_ads') {
+    return inst.hasGoogleAds ? { blocked: false, reason: '' } : { blocked: true, reason: 'חבר Google Ads' };
+  }
+  if (ch === 'blog') {
+    var wpOk = !!(inst.hasWordpress || localStorage.getItem('cf_wordpress_saved'));
+    var ghOk = !!inst.hasGithub;
+    return (wpOk || ghOk) ? { blocked: false, reason: '' } : { blocked: false, reason: '📋 פרסום ידני' };
+  }
+  if (ch === 'email') {
+    // Uses SMTP or built-in — never blocked for now
+    return { blocked: false, reason: '' };
+  }
+  if (ch === 'reddit') {
+    return { blocked: !inst.hasReddit, reason: inst.hasReddit ? '' : '📋 פרסום ידני' };
+  }
+  if (ch === 'linkedin' || ch === 'tiktok' || ch === 'youtube') {
+    return { blocked: false, reason: '📋 פרסום ידני' };
+  }
+  return { blocked: false, reason: '' };
+}
 
 function renderContentCalendar() {
   var el = document.getElementById('contentCalendar');
@@ -6453,9 +6538,9 @@ function renderContentCalendar() {
   if (!hasProfile || !hasResearch) return;
 
   var now = new Date();
-  // Get start of week (Sunday in Israel)
   var startOfWeek = new Date(now);
   startOfWeek.setDate(now.getDate() - now.getDay() + (calendarOffset * 7));
+  startOfWeek.setHours(0, 0, 0, 0);
 
   var days = [];
   for (var i = 0; i < 7; i++) {
@@ -6464,109 +6549,191 @@ function renderContentCalendar() {
     days.push(d);
   }
 
-  var dayNames = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+  var dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+  var periodLabel = days[0].getDate() + '–' + days[6].getDate() + ' ב' + getHebrewMonth(days[0].getMonth());
 
-  // Format period label
-  var periodStart = days[0];
-  var periodEnd = days[6];
-  var periodLabel = periodStart.getDate() + '–' + periodEnd.getDate() + ' ב' + getHebrewMonth(periodStart.getMonth());
+  // Load plan + filter
+  var plan = getContentPlan();
+  var filtered = plan.filter(function(it) {
+    if (calendarFilter === 'all') return true;
+    if (calendarFilter === 'ads') return it.channel === 'google_ads' || it.channel === 'meta_ads';
+    if (calendarFilter === 'reports') return it.type === 'report' || it.agentRole === 'menateach' || it.agentRole === 'sayer';
+    return it.channel === calendarFilter;
+  });
 
-  // Build events from strategy
-  var events = getCalendarEvents(days);
+  // Group plan items by date
+  var byDate = {};
+  filtered.forEach(function(it) {
+    (byDate[it.date] = byDate[it.date] || []).push(it);
+  });
+  Object.keys(byDate).forEach(function(d) {
+    byDate[d].sort(function(a, b) { return (a.time || '').localeCompare(b.time || ''); });
+  });
+
+  // Header
+  var hasPlan = plan.length > 0;
+  var regenBtn = hasPlan
+    ? '<button class="cal-filter-pill" onclick="regenerateContentPlanFromUI()" title="ייצר מחדש לוח תוכן"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M21 12a9 9 0 1 1-3.17-6.86"/><polyline points="21 4 21 10 15 10"/></svg> רענן</button>'
+    : '<button class="cal-filter-pill" style="background:#2563EB;color:#fff;border-color:#2563EB" onclick="regenerateContentPlanFromUI()">✨ ייצר לוח תוכן</button>';
+
+  var filters = [
+    { k: 'all', label: 'הכל' },
+    { k: 'facebook', label: '📘 FB' },
+    { k: 'instagram', label: '📷 IG' },
+    { k: 'blog', label: '📝 בלוג' },
+    { k: 'email', label: '✉️ ניוזלטר' },
+    { k: 'ads', label: '🎯 Ads' },
+    { k: 'reports', label: '📊 דוחות' }
+  ];
 
   var html = '<div class="cal-header">' +
     '<div class="cal-nav">' +
       '<button class="cal-nav-btn" onclick="calendarOffset--;renderContentCalendar()" title="שבוע קודם"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>' +
       '<span class="cal-period">' + periodLabel + '</span>' +
       '<button class="cal-nav-btn" onclick="calendarOffset++;renderContentCalendar()" title="שבוע הבא"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>' +
+      '<button class="cal-nav-btn" onclick="calendarOffset=0;renderContentCalendar()" title="היום" style="width:auto;padding:0 10px;font-size:0.75rem">היום</button>' +
     '</div>' +
-    '<div>' +
-      '<button class="cal-nav-btn" onclick="calendarOffset=0;renderContentCalendar()" title="היום" style="width:auto;padding:0 8px;font-size:0.75rem">היום</button>' +
+    '<div class="cal-actions">' +
+      filters.map(function(f) {
+        var active = calendarFilter === f.k ? ' active' : '';
+        return '<button class="cal-filter-pill' + active + '" onclick="calendarFilter=\'' + f.k + '\';renderContentCalendar()">' + f.label + '</button>';
+      }).join('') +
+      regenBtn +
     '</div>' +
   '</div>';
 
+  // Empty state
+  if (!hasPlan) {
+    html += '<div style="padding:40px 20px;text-align:center;color:#9CA3AF">' +
+      '<div style="font-size:2rem;margin-bottom:8px">📅</div>' +
+      '<div style="font-weight:600;color:#374151;margin-bottom:4px">לוח תוכן עדיין לא נבנה</div>' +
+      '<div style="font-size:0.82rem;margin-bottom:14px">אחרי בחירת מסלול ביצוע, הסוכנים בונים לוח תוכן ל-4 שבועות על סמך האסטרטגיה שלך.</div>' +
+      '<button class="btn btn-primary btn-sm" onclick="regenerateContentPlanFromUI()">✨ ייצר לוח תוכן עכשיו</button>' +
+    '</div>';
+    el.innerHTML = html;
+    return;
+  }
+
   html += '<div class="cal-grid">';
+  dayNames.forEach(function(name) { html += '<div class="cal-day-header">' + name + '</div>'; });
 
-  // Day headers
-  dayNames.forEach(function(name) {
-    html += '<div class="cal-day-header">' + name + '</div>';
-  });
-
-  // Day cells
   var todayStr = now.toDateString();
-  days.forEach(function(day, idx) {
-    var isToday = day.toDateString() === todayStr;
+  days.forEach(function(day) {
     var dayStr = day.toISOString().split('T')[0];
-    var dayEvents = events.filter(function(e) { return e.date === dayStr; });
+    var isToday = day.toDateString() === todayStr;
+    var isPast = day < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var dow = day.getDay();
+    var isShabbat = dow === 6;
+    var dayEvents = byDate[dayStr] || [];
 
-    html += '<div class="cal-cell">';
-    html += '<div class="cal-cell-date' + (isToday ? ' today' : '') + '">' + day.getDate() + '</div>';
+    var dateCls = 'cal-cell-date' +
+      (isToday ? ' today' : '') +
+      (isPast && !isToday ? ' past' : '') +
+      (isShabbat ? ' weekend' : '');
+    var cellCls = 'cal-cell' + (isShabbat ? ' cal-shabbat-cell' : '');
+
+    html += '<div class="' + cellCls + '">';
+    html += '<div class="' + dateCls + '">' + day.getDate() + '</div>';
+    html += '<div class="cal-events">';
 
     dayEvents.forEach(function(ev) {
-      html += '<div class="cal-event ' + ev.type + '" title="' + ev.title + '" onclick="openCalendarEventPopup(\'' + ev.title.replace(/'/g, "\\'") + '\',\'' + ev.type + '\',\'' + dayStr + '\')">' + ev.title + '</div>';
+      var avail = resolveItemAvailability(ev);
+      var effectiveStatus = avail.blocked ? 'blocked' : (ev.status || 'planned');
+      var statusMeta = CAL_STATUS_META[effectiveStatus] || CAL_STATUS_META.planned;
+      var icon = CAL_CHANNEL_ICONS[ev.channel] || CAL_CHANNEL_ICONS[ev.type] || '•';
+      var titleAttr = (statusMeta.label + ' · ' + ev.hook + (avail.reason ? ' · ' + avail.reason : '')).replace(/"/g, '&quot;');
+
+      html += '<div class="cal-event ch-' + ev.channel + ' st-' + effectiveStatus + '"' +
+        ' title="' + titleAttr + '"' +
+        ' onclick="openContentPlanItem(\'' + ev.id + '\')">' +
+          '<span class="cal-event-icon">' + icon + '</span>' +
+          '<span class="cal-event-time">' + (ev.time || '') + '</span>' +
+          '<span class="cal-event-title">' + escapeHtml(ev.hook || ev.brief || '').substring(0, 32) + '</span>' +
+          '<span class="cal-event-dot" style="background:' + statusMeta.dot + '"></span>' +
+        '</div>';
     });
 
-    html += '</div>';
-  });
+    if (dayEvents.length === 0 && !isShabbat) {
+      html += '<div class="cal-empty-day">—</div>';
+    }
 
+    html += '</div></div>';
+  });
   html += '</div>';
+
+  // Legend
+  html += '<div class="cal-legend">' +
+    Object.keys(CAL_STATUS_META).filter(function(k) { return k !== 'skipped' && k !== 'failed' && k !== 'drafting'; }).map(function(k) {
+      return '<span class="cal-legend-item"><span class="cal-event-dot" style="background:' + CAL_STATUS_META[k].dot + '"></span>' + CAL_STATUS_META[k].label + '</span>';
+    }).join('') +
+  '</div>';
 
   el.innerHTML = html;
 }
 
-function getCalendarEvents(days) {
-  var events = [];
-  var rd = (instanceData && instanceData.researchData) || {};
-  var strategy = rd.strategy || '';
+// Open a content plan item in the task popup — bridges plan item → existing
+// task popup UI so user can approve/edit/copy-for-manual-publish from one place.
+function openContentPlanItem(itemId) {
+  var plan = getContentPlan();
+  var item = plan.find(function(p) { return p.id === itemId; });
+  if (!item) { showToast('הפריט לא נמצא', 'error'); return; }
+  var avail = resolveItemAvailability(item);
+  var effectiveStatus = avail.blocked ? 'blocked' : (item.status || 'planned');
+  var statusMeta = CAL_STATUS_META[effectiveStatus] || CAL_STATUS_META.planned;
+  var icon = CAL_CHANNEL_ICONS[item.channel] || '•';
 
-  // Only show recurring events if MATEH agent is installed AND onboarding complete
-  var hasMATEH = components.indexOf('mt') !== -1;
-  var isOnboarded = !!(instanceData && instanceData.onboardingCompleted);
-
-  if (hasMATEH && isOnboarded) {
-    days.forEach(function(day) {
-      var dayStr = day.toISOString().split('T')[0];
-      var dow = day.getDay(); // 0=Sun
-
-      // Daily brief (Sun-Thu = 0-4)
-      if (dow >= 0 && dow <= 4) {
-        events.push({ date: dayStr, title: 'דו״ח יומי', type: 'brief' });
-      }
-
-      // Weekly competitive report (Monday = 1)
-      if (dow === 1) {
-        events.push({ date: dayStr, title: 'דוח תחרותי', type: 'planned' });
-      }
-
-      // Monthly AEO (1st of month)
-      if (day.getDate() === 1) {
-        events.push({ date: dayStr, title: 'ביקורת AEO', type: 'planned' });
-      }
-    });
+  var task = {
+    id: 'plan-' + item.id,
+    title: icon + ' ' + (item.hook || 'פריט תוכן') + ' · ' + (item.channel || ''),
+    agent: item.agentRole || 'עט',
+    status: effectiveStatus === 'blocked' ? 'planned' : (item.status === 'awaiting_review' ? 'awaiting' : item.status || 'planned'),
+    preview: item.brief || '',
+    platform: item.channel,
+    dateLabel: item.date + ' · ' + (item.time || ''),
+    metadata: {
+      pillar: item.pillar,
+      format: item.type,
+      persona: item.persona,
+      ctaType: item.ctaType,
+      productRef: item.productRef,
+      flexibility: item.flexibility
+    }
+  };
+  // If outputId exists, try to fetch the real output content from the queue
+  if (item.outputId) {
+    task.outputId = item.outputId;
   }
+  renderTaskPopup(task);
+}
 
-  // Content from strategy — map to weekdays
-  if (strategy) {
-    var contentItems = [];
-    strategy.split('\n').forEach(function(line) {
-      var m = line.match(/^\s*\d+\.\s*"(.+?)"/);
-      if (m && m[1].length > 5) contentItems.push(m[1]);
-    });
-
-    // Distribute content across weekdays (Tue=2, Wed=3, Thu=4)
-    var contentDays = days.filter(function(d) { return d.getDay() >= 2 && d.getDay() <= 4; });
-    contentItems.slice(0, contentDays.length).forEach(function(title, i) {
-      if (contentDays[i]) {
-        events.push({
-          date: contentDays[i].toISOString().split('T')[0],
-          title: title.length > 20 ? title.substring(0, 20) + '...' : title,
-          type: 'planned'
-        });
-      }
-    });
+async function regenerateContentPlanFromUI() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+  if (!instanceData || !instanceData.researchData || !instanceData.researchData.chosenScenario) {
+    showToast('בחרו קודם מסלול ביצוע', 'error');
+    return;
   }
-
-  return events;
+  showToast('מייצר לוח תוכן... ייקח ~30 שניות', 'info');
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/setup/agents/content-plan/regenerate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tk },
+      body: JSON.stringify({ weeksAhead: 4 })
+    });
+    var data = await res.json();
+    if (data.success && data.data && Array.isArray(data.data.plan)) {
+      if (!instanceData.researchData) instanceData.researchData = {};
+      instanceData.researchData.contentPlan = data.data.plan;
+      instanceData.researchData.contentPlanGeneratedAt = new Date().toISOString();
+      showToast('לוח תוכן מוכן — ' + data.data.count + ' פריטים', 'success');
+      renderContentCalendar();
+    } else {
+      showToast(data.message || 'שגיאה בייצור לוח תוכן', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאת תקשורת', 'error');
+  }
 }
 
 function getHebrewMonth(month) {

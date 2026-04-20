@@ -2761,6 +2761,29 @@ export const commitStrategyScenario = async (c: Context) => {
             }
         }
 
+        // Generate initial 4-week Content Plan from strategy — foundation for
+        // calendar view + agent smart-binding. Runs in background so commit
+        // doesn't block on Anthropic call (30-60s).
+        ;(async () => {
+            try {
+                const plan = await generateContentPlan(instanceId, { weeksAhead: 4, startDate: new Date() })
+                const [inst2] = await db.select().from(instances).where(eq(instances.id, instanceId))
+                if (!inst2) return
+                const rd2 = (inst2.researchData as any) || {}
+                await db.update(instances).set({
+                    researchData: {
+                        ...rd2,
+                        contentPlan: plan,
+                        contentPlanGeneratedAt: new Date().toISOString(),
+                        contentPlanHorizonWeeks: 4,
+                    } as any,
+                }).where(eq(instances.id, instanceId))
+                console.log(`Initial content plan seeded for ${instanceId}: ${plan.length} items`)
+            } catch (e) {
+                console.error('Initial content plan generation failed (non-critical):', (e as Error).message)
+            }
+        })()
+
         console.log(`Scenario '${body.chosenKey}' committed for ${instanceId}`)
         return ok(c, { chosenScenario }, 'Scenario saved.')
     } catch (err) {
@@ -4931,6 +4954,295 @@ export const resetResearch = async (c: Context) => {
     } catch (err) {
         console.error('resetResearch error:', err)
         return fail(c, 'Failed to reset research', 500)
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Content Plan — 4-week rolling horizon, monthly tactical revision
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface ContentPlanItem {
+    id: string                        // unique (cp_<nanoid>)
+    date: string                      // ISO date "2026-04-22"
+    time: string                      // "HH:mm" in Asia/Jerusalem
+    channel: 'facebook' | 'instagram' | 'blog' | 'email' | 'youtube' | 'linkedin' | 'tiktok' | 'google_ads' | 'meta_ads' | 'reddit'
+    type: 'post' | 'reel' | 'story' | 'carousel' | 'article' | 'email' | 'video' | 'campaign_launch' | 'campaign_optimize' | 'report'
+    pillar: string                    // e.g. "סיפורי כוויה"
+    hook: string                      // 3-5 word teaser
+    brief: string                     // full agent brief
+    persona: string                   // "דורון" / "אסף" / "מיכל"
+    ctaType: string                   // "signup_course" / "trial_saas" / "read_more"
+    productRef?: string               // which SKU this drives (course_199 / course_1499 / clawflow)
+    flexibility: 'fixed' | 'suggested' // smart-binding: agents can swap "suggested"
+    status: 'planned' | 'drafting' | 'awaiting_review' | 'approved' | 'scheduled' | 'published' | 'ready_for_manual' | 'skipped' | 'failed'
+    outputId?: string                 // link to agent_outputs when drafted
+    pendingPivot?: {                  // agent-proposed swap, awaits user approval
+        reason: string
+        newBrief: string
+        proposedAt: string
+    }
+    agentRole: string                 // who owns this (ayat/yotzer/shaliach/...)
+}
+
+function nanoid(n = 10): string {
+    const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    let out = ''
+    for (let i = 0; i < n; i++) out += alphabet[Math.floor(Math.random() * alphabet.length)]
+    return out
+}
+
+// Generate 4-week content plan via Anthropic based on strategy + products + scenario roster.
+// Smart mode: each item has flexibility level so agents can propose pivots later.
+// Monthly revision: re-call this function with performanceData to adjust next 4 weeks.
+async function generateContentPlan(
+    instanceId: string,
+    opts: { weeksAhead?: number; startDate?: Date; performanceContext?: string } = {}
+): Promise<ContentPlanItem[]> {
+    const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+    if (!instance) throw new Error('Instance not found')
+
+    const rd = (instance.researchData as any) || {}
+    const answers = rd.answers || {}
+    const scenario = rd.chosenScenario || {}
+    const products = answers.products || []
+    const strategy = [rd.strategyStage1, rd.strategyStage2, rd.strategyStage3, rd.strategyStage4]
+        .filter(Boolean).join('\n\n---\n\n').substring(0, 15000)
+
+    const apiKey = await getApiKeyForInstance(instanceId)
+    if (!apiKey) throw new Error('Anthropic API key missing')
+
+    const weeksAhead = opts.weeksAhead || 4
+    const startDate = opts.startDate || new Date()
+    const startIso = startDate.toISOString().slice(0, 10)
+    const endDate = new Date(startDate)
+    endDate.setDate(endDate.getDate() + weeksAhead * 7)
+    const endIso = endDate.toISOString().slice(0, 10)
+
+    const dayNamesHe = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת']
+    const todayDayName = dayNamesHe[startDate.getDay()]
+
+    const roster = scenario.agentRoster || {}
+    const activeRoles = Object.keys(roster).filter(r => roster[r]?.cadence && roster[r].cadence !== 'off')
+
+    const prompt = `אתה מנהל שיווק (menateach) של Flowmatic. המשימה: לייצר Content Plan של ${weeksAhead} שבועות קדימה על בסיס האסטרטגיה והתסריט שנבחרו.
+
+## תקופת התוכנית
+מתאריך: ${startIso} (יום ${todayDayName})
+עד תאריך: ${endIso}
+Timezone: Asia/Jerusalem
+
+## תסריט שנבחר: ${scenario.name || scenario.key || 'recommended'}
+${scenario.tagline || ''}
+
+## מוצרים פעילים
+${products.length > 0
+        ? products.map((p: any, i: number) => {
+            const price = p.priceIls != null ? `₪${p.priceIls}` : ''
+            const model = p.priceModel || 'unknown'
+            const entry = p.isPrimary ? ' 🎯[כניסה]' : ''
+            return `${i + 1}. ${p.name}${entry} — ${price} · ${model} · ${p.description || ''}`
+        }).join('\n')
+        : '(לא צוין — שתמש ב-strategy)'}
+${answers.productsFunnel ? `\nFunnel: ${answers.productsFunnel}` : ''}
+
+## סוכנים פעילים ב-roster
+${activeRoles.length > 0 ? activeRoles.map(r => `- ${r}: ${roster[r].cadence} (${roster[r].role || ''})`).join('\n') : '(כל הסוכנים בברירת מחדל)'}
+
+## האסטרטגיה (4 שלבים):
+${strategy}
+
+${opts.performanceContext ? `\n## ביצועים מהחודש הקודם (לתיקון טקטי)\n${opts.performanceContext}\n` : ''}
+
+---
+
+## משימתך: Content Plan JSON
+
+הפק מערך JSON של items. **הנחיות קריטיות:**
+
+1. **פילוח פרסונות ו-SKUs:** כל מוצר מקבל נתח יחסי לפי האסטרטגיה. אם יש 3 מוצרים, אל תדחוף הכל רק למוצר הראשי.
+
+2. **peak times ישראל (חובה לשמור):**
+   - Facebook feed: 19:00-22:00 יום-א עד חמישי; קבוצות: 19:30-20:30 יום ג' + ה'
+   - Instagram: 18:00-21:00 יום א-ה
+   - Blog: יום-ב 09:00 (מירב תנועה אורגנית)
+   - Newsletter: יום-ה 07:30
+   - YouTube: יום-ו 10:00
+   - LinkedIn: יום א-ד 09:00-11:00
+   - Google/Meta Ads campaign launches: יום ב' 09:00 (שבוע מלא להצטברות data)
+
+3. **שבת אסורה לפרסום** (תרבות ישראלית) — דלג על יום 7 בשבוע. יום ו' פרסום עד 14:00.
+
+4. **Mixing**: לא כל יום אותו pillar. עבור במחזורים:
+   - שבוע 1: דגש על pillar 1 (אחיזת קהל) + 2 (ערך)
+   - שבוע 2: דגש על 3 (השוואות BOFU) + 4 (case studies)
+   - שבוע 3: דגש על 5 (שליטה ובטיחות) + 1
+   - שבוע 4: mix + הכנה לחודש הבא
+
+5. **flexibility**:
+   - \`fixed\` — items שלא יוזזו (campaign launches, monthly reports, newsletter)
+   - \`suggested\` — items שהסוכן יכול להציע לפַברק (פוסטים יומיומיים, stories)
+
+6. **Total items**: ~25-35 items ל-4 שבועות. לא יותר — אחרת overwhelm.
+
+7. **agentRole** לכל item: \`ayat\` (כתיבה), \`yotzer\` (ויזואל), \`shaliach\` (פרסום), \`mateh\` (orchestration), \`menateach\` (report), \`sayer\` (competitive), \`migdalor\` (AEO).
+
+## פורמט פלט — JSON בלבד, ללא markdown fence
+
+\`\`\`
+[
+  {
+    "date": "YYYY-MM-DD",
+    "time": "HH:mm",
+    "channel": "facebook|instagram|blog|email|youtube|linkedin|google_ads|meta_ads|reddit",
+    "type": "post|reel|story|carousel|article|email|video|campaign_launch|campaign_optimize|report",
+    "pillar": "שם ה-pillar מהאסטרטגיה",
+    "hook": "3-5 מילים",
+    "brief": "משימה מלאה לסוכן — 1-3 משפטים בעברית, ספציפי: מה להדגיש, איזה CTA, איזה persona",
+    "persona": "דורון|אסף|מיכל|mix",
+    "ctaType": "signup_course_199|signup_course_1499|trial_saas|read_more|contact|none",
+    "productRef": "course_199|course_1499|clawflow|mixed|none",
+    "flexibility": "fixed|suggested",
+    "agentRole": "ayat|yotzer|shaliach|mateh|menateach|sayer|migdalor"
+  }
+]
+\`\`\`
+
+החזר רק את ה-JSON, מסודר לפי date+time ascending.`
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 16000,
+            messages: [{ role: 'user', content: prompt }],
+        }),
+        signal: AbortSignal.timeout(120000),
+    })
+
+    if (!res.ok) {
+        const errText = await res.text()
+        throw new Error(`Anthropic API failed (${res.status}): ${errText.substring(0, 300)}`)
+    }
+
+    const data = await res.json() as { content?: Array<{ text: string }> }
+    const text = data.content?.[0]?.text || ''
+
+    // Extract JSON array
+    const arrMatch = text.match(/\[[\s\S]*\]/)
+    if (!arrMatch) throw new Error('LLM did not return a JSON array')
+    let jsonStr = arrMatch[0]
+    jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1')
+    jsonStr = sanitizeJsonControlChars(jsonStr)
+
+    const rawItems = JSON.parse(jsonStr) as any[]
+    if (!Array.isArray(rawItems)) throw new Error('Not an array')
+
+    const plan: ContentPlanItem[] = rawItems.map((r): ContentPlanItem => ({
+        id: 'cp_' + nanoid(10),
+        date: String(r.date || ''),
+        time: String(r.time || '09:00'),
+        channel: String(r.channel || 'blog') as ContentPlanItem['channel'],
+        type: String(r.type || 'post') as ContentPlanItem['type'],
+        pillar: String(r.pillar || ''),
+        hook: String(r.hook || '').substring(0, 60),
+        brief: String(r.brief || ''),
+        persona: String(r.persona || 'mix'),
+        ctaType: String(r.ctaType || 'none'),
+        productRef: r.productRef ? String(r.productRef) : undefined,
+        flexibility: r.flexibility === 'fixed' ? 'fixed' : 'suggested',
+        status: 'planned' as const,
+        agentRole: String(r.agentRole || 'ayat'),
+    })).filter(it => it.date && it.time) // drop malformed
+
+    // Sort by date+time
+    plan.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+
+    return plan
+}
+
+// ── POST /hosting/instances/:id/setup/agents/content-plan/regenerate ──
+// Regenerates the content plan for the next 4 weeks. Called:
+//  - Automatically once after commitStrategyScenario (initial seeding)
+//  - Monthly by mateh agent with performance data (tactical revision)
+//  - Manually by user clicking "Regenerate plan"
+export const regenerateContentPlan = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const rd = (instance.researchData as any) || {}
+        if (!rd.chosenScenario) return fail(c, 'בחרו קודם מסלול ביצוע', 400)
+
+        const body = await c.req.json().catch(() => ({})) as {
+            weeksAhead?: number
+            startDate?: string
+            performanceContext?: string
+            keepExistingStatuses?: boolean
+        }
+
+        const startDate = body.startDate ? new Date(body.startDate) : new Date()
+        const plan = await generateContentPlan(instanceId, {
+            weeksAhead: body.weeksAhead || 4,
+            startDate,
+            performanceContext: body.performanceContext,
+        })
+
+        // Preserve statuses of items already in progress (drafting/awaiting_review/approved/published/...)
+        // Only `planned` items get replaced. This handles monthly revision without losing work.
+        const existingPlan: ContentPlanItem[] = Array.isArray(rd.contentPlan) ? rd.contentPlan : []
+        let finalPlan: ContentPlanItem[] = plan
+        if (body.keepExistingStatuses !== false) {
+            const inProgress = existingPlan.filter(it =>
+                ['drafting', 'awaiting_review', 'approved', 'scheduled', 'published', 'ready_for_manual'].includes(it.status)
+            )
+            // New plan overrides `planned` items, in-progress items are preserved and appended
+            finalPlan = [...plan, ...inProgress]
+            finalPlan.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+        }
+
+        await db.update(instances).set({
+            researchData: {
+                ...rd,
+                contentPlan: finalPlan,
+                contentPlanGeneratedAt: new Date().toISOString(),
+                contentPlanHorizonWeeks: body.weeksAhead || 4,
+            } as any,
+        }).where(eq(instances.id, instanceId))
+
+        console.log(`Content plan regenerated for ${instanceId}: ${finalPlan.length} items (${plan.length} new + ${finalPlan.length - plan.length} preserved)`)
+        return ok(c, { plan: finalPlan, count: finalPlan.length }, 'Content plan ready')
+    } catch (err) {
+        console.error('regenerateContentPlan error:', err)
+        return fail(c, 'שגיאה בייצור לוח תוכן: ' + ((err as Error).message || ''), 500)
+    }
+}
+
+// ── GET /hosting/instances/:id/setup/agents/content-plan ──
+export const getContentPlan = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const rd = (instance.researchData as any) || {}
+        return ok(c, {
+            plan: Array.isArray(rd.contentPlan) ? rd.contentPlan : [],
+            generatedAt: rd.contentPlanGeneratedAt || null,
+            horizonWeeks: rd.contentPlanHorizonWeeks || 4,
+        }, 'Plan loaded')
+    } catch (err) {
+        console.error('getContentPlan error:', err)
+        return fail(c, 'Failed to load plan', 500)
     }
 }
 
