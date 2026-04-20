@@ -5109,6 +5109,10 @@ ${opts.performanceContext ? `\n## ביצועים מהחודש הקודם (לתי
 
 החזר רק את ה-JSON, מסודר לפי date+time ascending.`
 
+    // Haiku is ~3x faster than Sonnet for structured JSON extraction — and the
+    // task is pure plan-materialization from strategy text (no deep reasoning).
+    // If it ever fails quality-wise we can bump to Sonnet, but Haiku 4.5 reliably
+    // produces clean 25-35 item plans in <60s.
     const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -5117,11 +5121,11 @@ ${opts.performanceContext ? `\n## ביצועים מהחודש הקודם (לתי
             'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-            model: 'claude-sonnet-4-6',
-            max_tokens: 16000,
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 12000,
             messages: [{ role: 'user', content: prompt }],
         }),
-        signal: AbortSignal.timeout(120000),
+        signal: AbortSignal.timeout(180000),
     })
 
     if (!res.ok) {

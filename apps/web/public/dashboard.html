@@ -6572,9 +6572,11 @@ function renderContentCalendar() {
 
   // Header
   var hasPlan = plan.length > 0;
+  // Only show the "↻ רענן" pill in the header when a plan already exists.
+  // When plan is empty, the centered empty-state CTA is the single entry point.
   var regenBtn = hasPlan
-    ? '<button class="cal-filter-pill" onclick="regenerateContentPlanFromUI()" title="ייצר מחדש לוח תוכן"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M21 12a9 9 0 1 1-3.17-6.86"/><polyline points="21 4 21 10 15 10"/></svg> רענן</button>'
-    : '<button class="cal-filter-pill" style="background:#2563EB;color:#fff;border-color:#2563EB" onclick="regenerateContentPlanFromUI()">✨ ייצר לוח תוכן</button>';
+    ? '<button id="calRegenBtn" class="cal-filter-pill" onclick="regenerateContentPlanFromUI()" title="ייצר מחדש לוח תוכן"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M21 12a9 9 0 1 1-3.17-6.86"/><polyline points="21 4 21 10 15 10"/></svg> רענן</button>'
+    : '';
 
   var filters = [
     { k: 'all', label: 'הכל' },
@@ -6706,7 +6708,64 @@ function openContentPlanItem(itemId) {
   renderTaskPopup(task);
 }
 
+// Simulated progress stages — gives user constant feedback during the 60-90s
+// Anthropic call. Real backend work is one Haiku call; we fake the phases
+// purely for UX clarity.
+var _calPlanInFlight = false;
+var _calPlanTimer = null;
+
+function _showCalPlanLoading() {
+  var el = document.getElementById('contentCalendar');
+  if (!el) return;
+  var phases = [
+    { pct: 10,  label: 'קורא את האסטרטגיה של 4 השלבים…' },
+    { pct: 25,  label: 'משלב את המוצרים שלך ב-funnel…' },
+    { pct: 45,  label: 'בוחר peak times לכל ערוץ בישראל…' },
+    { pct: 65,  label: 'מחלק pillars על 4 שבועות…' },
+    { pct: 82,  label: 'מייצר briefs לכל פריט תוכן…' },
+    { pct: 95,  label: 'מסדר לפי תאריכים + בודק validity…' }
+  ];
+  var startedAt = Date.now();
+  function render(phase) {
+    var elapsed = Math.floor((Date.now() - startedAt) / 1000);
+    var timeStr = Math.floor(elapsed / 60) + ':' + String(elapsed % 60).padStart(2, '0');
+    el.innerHTML =
+      '<div style="padding:40px 20px;text-align:center">' +
+        '<div style="font-size:2.2rem;margin-bottom:10px;animation:spin 2s linear infinite;display:inline-block">⚙️</div>' +
+        '<div style="font-weight:700;font-size:1rem;color:#1F2937;margin-bottom:6px">מייצר לוח תוכן מותאם אישית</div>' +
+        '<div id="cal-plan-phase" style="font-size:0.85rem;color:#6B7280;line-height:1.5;margin-bottom:14px;min-height:24px">' + phase.label + '</div>' +
+        '<div style="max-width:400px;margin:0 auto;background:#F3F4F6;border-radius:999px;height:8px;overflow:hidden">' +
+          '<div id="cal-plan-bar" style="background:linear-gradient(90deg,#2563EB,#10B981);height:100%;width:' + phase.pct + '%;transition:width .4s ease"></div>' +
+        '</div>' +
+        '<div style="margin-top:8px;font-size:0.75rem;color:#9CA3AF;font-family:monospace">' + timeStr + '</div>' +
+        '<div style="margin-top:18px;font-size:0.78rem;color:#9CA3AF">זה ייקח ~60–90 שניות</div>' +
+      '</div>';
+  }
+  render(phases[0]);
+  var idx = 0;
+  if (_calPlanTimer) clearInterval(_calPlanTimer);
+  _calPlanTimer = setInterval(function() {
+    idx = Math.min(idx + 1, phases.length - 1);
+    var phaseEl = document.getElementById('cal-plan-phase');
+    var barEl = document.getElementById('cal-plan-bar');
+    if (phaseEl) phaseEl.textContent = phases[idx].label;
+    if (barEl) barEl.style.width = phases[idx].pct + '%';
+    // Update timer
+    var timerEls = document.querySelectorAll('#contentCalendar div[style*="monospace"]');
+    if (timerEls.length) {
+      var elapsed = Math.floor((Date.now() - startedAt) / 1000);
+      timerEls[0].textContent = Math.floor(elapsed / 60) + ':' + String(elapsed % 60).padStart(2, '0');
+    }
+  }, 11000);
+}
+
+function _stopCalPlanLoading() {
+  if (_calPlanTimer) { clearInterval(_calPlanTimer); _calPlanTimer = null; }
+  _calPlanInFlight = false;
+}
+
 async function regenerateContentPlanFromUI() {
+  if (_calPlanInFlight) { showToast('כבר מייצר — רגע סבלנות', 'info'); return; }
   var iid = localStorage.getItem('cf_instance_id');
   var tk = localStorage.getItem('cf_token');
   if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
@@ -6714,7 +6773,8 @@ async function regenerateContentPlanFromUI() {
     showToast('בחרו קודם מסלול ביצוע', 'error');
     return;
   }
-  showToast('מייצר לוח תוכן... ייקח ~30 שניות', 'info');
+  _calPlanInFlight = true;
+  _showCalPlanLoading();
   try {
     var res = await fetch(API + '/hosting/instances/' + iid + '/setup/agents/content-plan/regenerate', {
       method: 'POST',
@@ -6722,6 +6782,7 @@ async function regenerateContentPlanFromUI() {
       body: JSON.stringify({ weeksAhead: 4 })
     });
     var data = await res.json();
+    _stopCalPlanLoading();
     if (data.success && data.data && Array.isArray(data.data.plan)) {
       if (!instanceData.researchData) instanceData.researchData = {};
       instanceData.researchData.contentPlan = data.data.plan;
@@ -6729,10 +6790,13 @@ async function regenerateContentPlanFromUI() {
       showToast('לוח תוכן מוכן — ' + data.data.count + ' פריטים', 'success');
       renderContentCalendar();
     } else {
+      renderContentCalendar();
       showToast(data.message || 'שגיאה בייצור לוח תוכן', 'error');
     }
   } catch (e) {
-    showToast('שגיאת תקשורת', 'error');
+    _stopCalPlanLoading();
+    renderContentCalendar();
+    showToast('שגיאת תקשורת — נסה שוב', 'error');
   }
 }
 
