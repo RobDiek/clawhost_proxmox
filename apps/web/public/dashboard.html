@@ -6740,9 +6740,9 @@ function openContentPlanItem(itemId) {
   renderTaskPopup(task);
 }
 
-// Simulated progress stages — gives user constant feedback during the 60-90s
-// Anthropic call. Real backend work is one Haiku call; we fake the phases
-// purely for UX clarity.
+// Progress stages for the content plan v4 pipeline (Skeleton → Drafts → QA →
+// Self-critique). Runs in background on server — if user closes the browser
+// the job continues; results appear on next page load.
 var _calPlanInFlight = false;
 var _calPlanTimer = null;
 
@@ -6750,12 +6750,14 @@ function _showCalPlanLoading() {
   var el = document.getElementById('contentCalendar');
   if (!el) return;
   var phases = [
-    { pct: 10,  label: 'קורא את האסטרטגיה של 4 השלבים…' },
+    { pct: 12,  label: 'קורא את האסטרטגיה של 4 השלבים…' },
     { pct: 25,  label: 'משלב את המוצרים שלך ב-funnel…' },
-    { pct: 45,  label: 'בוחר peak times לכל ערוץ בישראל…' },
-    { pct: 65,  label: 'מחלק pillars על 4 שבועות…' },
-    { pct: 82,  label: 'מייצר briefs לכל פריט תוכן…' },
-    { pct: 95,  label: 'מסדר לפי תאריכים + בודק validity…' }
+    { pct: 38,  label: 'בוחר peak times לכל ערוץ בישראל…' },
+    { pct: 52,  label: 'בונה את שלד התכנית (Skeleton)…' },
+    { pct: 66,  label: 'מייצר briefs מפורטים במקביל…' },
+    { pct: 80,  label: 'מתקן חריגות במכסות (QA)…' },
+    { pct: 92,  label: 'ביקורת עצמית — משדרג פריטים חלשים…' },
+    { pct: 97,  label: 'מסדר לפי תאריכים + שומר…' }
   ];
   var startedAt = Date.now();
   function render(phase) {
@@ -6770,7 +6772,10 @@ function _showCalPlanLoading() {
           '<div id="cal-plan-bar" style="background:linear-gradient(90deg,#2563EB,#10B981);height:100%;width:' + phase.pct + '%;transition:width .4s ease"></div>' +
         '</div>' +
         '<div style="margin-top:8px;font-size:0.75rem;color:#9CA3AF;font-family:monospace">' + timeStr + '</div>' +
-        '<div style="margin-top:18px;font-size:0.78rem;color:#9CA3AF">זה ייקח ~60–90 שניות</div>' +
+        '<div style="margin-top:18px;font-size:0.78rem;color:#9CA3AF;line-height:1.7">' +
+          'התהליך רץ בשרת — אפשר לסגור את הדפדפן, זה ימשיך ברקע.<br>' +
+          'כשתחזור, התכנית תהיה מוכנה בדשבורד.' +
+        '</div>' +
       '</div>';
   }
   render(phases[0]);
