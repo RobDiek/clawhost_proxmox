@@ -1016,12 +1016,12 @@ input{font-family:inherit}
       </div>
       <!-- Modal: business profile questionnaire -->
       <div id="agentSetupOverlay" class="report-modal-overlay hidden" onclick="closeAgentQuestionnaire()">
-        <div class="report-modal" onclick="event.stopPropagation()" style="max-width:720px">
+        <div class="report-modal" onclick="event.stopPropagation()" style="max-width:860px;width:95vw">
           <div class="report-modal-header">
             <h3>פרופיל עסקי</h3>
             <button onclick="closeAgentQuestionnaire()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#6B7280">&times;</button>
           </div>
-          <div class="report-modal-body" style="max-height:70vh;overflow-y:auto;padding:20px 24px">
+          <div class="report-modal-body" style="max-height:78vh;overflow-y:auto;overflow-x:hidden;padding:20px 24px">
           <div class="setup-form" id="agent-setup-form">
             <div class="form-group"><label>1. שם העסק</label><input type="text" id="q-business-name" placeholder="לדוגמה: Flowmatic"/></div>
             <div class="form-group"><label>2. במה עוסק העסק?</label><textarea id="q-business-desc" placeholder="תארו בקצרה את המוצר או השירות" rows="2"></textarea></div>
@@ -10956,7 +10956,7 @@ function addProductRow(prefill) {
     { v: 'free', l: 'חינם / ליד-מגנט' },
     { v: 'unknown', l: 'לא ברור עדיין' }
   ];
-  var selectHtml = '<select id="' + id + '-model" style="padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.85rem;background:#fff;font-family:inherit">';
+  var selectHtml = '<select id="' + id + '-model" style="width:150px;padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.85rem;background:#fff;font-family:inherit">';
   modelOpts.forEach(function(o) {
     selectHtml += '<option value="' + o.v + '"' + (o.v === p.priceModel ? ' selected' : '') + '>' + o.l + '</option>';
   });
@@ -10964,17 +10964,21 @@ function addProductRow(prefill) {
   var row = document.createElement('div');
   row.id = id;
   row.className = 'product-row';
-  row.style.cssText = 'background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:12px;margin-bottom:8px;display:grid;grid-template-columns:auto 1.5fr 1fr 1.2fr 2fr auto;gap:8px;align-items:center';
+  row.style.cssText = 'background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:12px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px';
   row.innerHTML =
-    '<label title="המוצר דרכו הלקוח נכנס ל-funnel" style="display:flex;align-items:center;gap:4px;font-size:0.78rem;color:#6B7280;cursor:pointer;white-space:nowrap">' +
-      '<input type="radio" name="prod-primary" value="' + id + '"' + (p.isPrimary ? ' checked' : '') + ' style="cursor:pointer"/>' +
-      '<span>כניסה</span>' +
-    '</label>' +
-    '<input id="' + id + '-name" placeholder="שם המוצר" value="' + escapeAttr(p.name) + '" style="padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.9rem"/>' +
-    '<input id="' + id + '-price" type="number" min="0" placeholder="מחיר ₪" value="' + escapeAttr(price) + '" style="padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.9rem;direction:ltr;text-align:right"/>' +
-    selectHtml +
-    '<input id="' + id + '-desc" placeholder="למי ומה זה נותן" value="' + escapeAttr(p.description) + '" style="padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.85rem"/>' +
-    '<button type="button" onclick="removeProductRow(\'' + id + '\')" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:1.2rem;padding:4px 8px" title="הסר">✕</button>';
+    // Row 1: radio + name + price + model + delete (wraps on narrow screens)
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+      '<label title="המוצר דרכו הלקוח נכנס ל-funnel" style="display:flex;align-items:center;gap:4px;font-size:0.78rem;color:#6B7280;cursor:pointer;white-space:nowrap;background:#F3F4F6;padding:6px 10px;border-radius:6px">' +
+        '<input type="radio" name="prod-primary" value="' + id + '"' + (p.isPrimary ? ' checked' : '') + ' style="cursor:pointer;margin:0"/>' +
+        '<span>כניסה</span>' +
+      '</label>' +
+      '<input id="' + id + '-name" placeholder="שם המוצר" value="' + escapeAttr(p.name) + '" style="flex:1;min-width:160px;padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.9rem"/>' +
+      '<input id="' + id + '-price" type="number" min="0" placeholder="מחיר ₪" value="' + escapeAttr(price) + '" style="width:110px;padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.9rem;direction:ltr;text-align:right"/>' +
+      selectHtml +
+      '<button type="button" onclick="removeProductRow(\'' + id + '\')" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:1.1rem;padding:4px 8px;line-height:1" title="הסר">✕</button>' +
+    '</div>' +
+    // Row 2: description (full width)
+    '<input id="' + id + '-desc" placeholder="למי ומה זה נותן (תיאור קצר)" value="' + escapeAttr(p.description) + '" style="width:100%;padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.85rem;box-sizing:border-box"/>';
   list.appendChild(row);
 }
 function removeProductRow(id) {
