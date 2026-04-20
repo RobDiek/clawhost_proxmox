@@ -1102,6 +1102,14 @@ input{font-family:inherit}
       <!-- Panel: Config -->
       <div id="agent-panel-config" style="display:none">
 
+      <!-- Quick links — view research / strategy / scenarios / reset -->
+      <div id="agent-quicklinks" class="section-title" style="display:flex;justify-content:space-between;align-items:center;margin-top:0">
+        <span>קיצורי דרך</span>
+      </div>
+      <div id="agent-quicklinks-row" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+        <!-- populated by renderAgentQuickLinks() when agent-panel-config is shown -->
+      </div>
+
       <!-- 3. Scheduled Tasks (configurable) -->
       <div class="section-title">שגרות מתוזמנות</div>
       <div id="agent-schedules">
@@ -8947,11 +8955,12 @@ function renderConnectionsWizard() {
     (chosen.paidTrafficActivation ? ' · פרסום: ' + (chosen.paidTrafficActivation === 'immediate' ? 'מיידי' : 'Gatekeeper') : '') + '</div></div>' +
     '</div>';
 
-  // SEO first-run CTA — appears when GSC is connected (minimum requirement)
+  // SEO first-run CTA — appears when GSC is connected AND first-run not yet done
   var hasGsc = !!(instanceData.hasGsc);
   var hasDfs = !!(instanceData.hasDataforseo);
   var hasFc  = !!(instanceData.hasFirecrawl);
-  if (hasGsc) {
+  var seoAlreadyDone = !!(instanceData && instanceData.researchData && instanceData.researchData.seoFirstRun);
+  if (hasGsc && !seoAlreadyDone) {
     var seoTools = [hasGsc && 'GSC', hasDfs && 'DataForSEO', hasFc && 'Firecrawl'].filter(Boolean).join(' + ');
     var optionalNote = (!hasDfs || !hasFc) ? '<div style="font-size:0.72rem;color:#78350F;margin-top:4px">💡 חבר גם ' + [(!hasDfs && 'DataForSEO'), (!hasFc && 'Firecrawl')].filter(Boolean).join(' + ') + ' לנתונים מדויקים יותר</div>' : '';
     html +=
@@ -9786,6 +9795,57 @@ function viewStrategy() {
   openReportModal('אסטרטגיה ותוכנית פעולה', strategy, 'strategy');
 }
 
+// Fetch the pending-review strategy output and open it directly in the task popup
+// (where the user can approve/reject/edit). Called by the "אסטרטגיה ממתינה לאישור" banner.
+async function openPendingStrategyForReview() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/outputs?status=pending_review&limit=20', {
+      headers: { 'Authorization': 'Bearer ' + tk }
+    });
+    var data = await res.json();
+    if (!data.success || !Array.isArray(data.data)) throw new Error('bad response');
+    var strat = data.data.find(function(o) { return o.metadata && o.metadata.type === 'seo_strategy'; });
+    if (!strat) {
+      // Fallback: open the research-tab strategy text (non-SEO)
+      if (typeof viewStrategy === 'function') return viewStrategy();
+      showToast('לא נמצאה אסטרטגיה ממתינה', 'info'); return;
+    }
+    // Inject into tasks cache so openTaskPopup can find it
+    if (!currentTasksCache.some(function(t) { return t.id === strat.id; })) {
+      currentTasksCache.push(strat);
+    }
+    openTaskPopup(strat.id);
+  } catch (e) {
+    console.error('openPendingStrategyForReview failed:', e);
+    showToast('שגיאה בטעינת האסטרטגיה', 'error');
+  }
+}
+
+async function openPendingArticleForReview() {
+  var iid = localStorage.getItem('cf_instance_id');
+  var tk = localStorage.getItem('cf_token');
+  if (!iid) { showToast('לא נמצא Instance', 'error'); return; }
+  try {
+    var res = await fetch(API + '/hosting/instances/' + iid + '/outputs?status=pending_review&limit=20', {
+      headers: { 'Authorization': 'Bearer ' + tk }
+    });
+    var data = await res.json();
+    if (!data.success || !Array.isArray(data.data)) throw new Error('bad response');
+    var art = data.data.find(function(o) { return o.metadata && o.metadata.type === 'seo_article'; });
+    if (!art) { showToast('לא נמצא מאמר ממתין', 'info'); return; }
+    if (!currentTasksCache.some(function(t) { return t.id === art.id; })) {
+      currentTasksCache.push(art);
+    }
+    openTaskPopup(art.id);
+  } catch (e) {
+    console.error('openPendingArticleForReview failed:', e);
+    showToast('שגיאה בטעינת המאמר', 'error');
+  }
+}
+
 var currentReportType = ''; // 'research' or 'strategy'
 
 function openReportModal(title, content, type) {
@@ -10501,6 +10561,32 @@ function switchAgentDetailTab(tab) {
   });
   if (tab === 'memory') loadMemories();
   if (tab === 'research') showSeoSections();
+  if (tab === 'config') renderAgentQuickLinks();
+}
+
+// Populate the "קיצורי דרך" row inside agent-panel-config with shortcuts
+// to research/strategy reports that actually exist for this instance.
+function renderAgentQuickLinks() {
+  var row = document.getElementById('agent-quicklinks-row');
+  if (!row) return;
+  var rd = (instanceData && instanceData.researchData) || {};
+  var hasResearch = !!(rd.report || rd.stage1);
+  var hasStrategy = !!rd.strategy;
+  var hasScenarios = !!rd.scenarios;
+  var links = [];
+  if (hasResearch) links.push({ label: '📊 דוח מחקר השוק', onclick: "viewReport()" });
+  if (hasStrategy) links.push({ label: '🎯 האסטרטגיה המלאה', onclick: "viewStrategy()" });
+  if (hasScenarios) links.push({ label: '🛣 3 מסלולי הביצוע', onclick: "openScenarioPicker()" });
+  if (rd.seoFirstRun && rd.seoFirstRun.strategyOutputId) {
+    links.push({ label: '🔍 אסטרטגיית SEO', onclick: "openPendingStrategyForReview()" });
+  }
+  if (links.length === 0) {
+    row.innerHTML = '<div style="font-size:0.82rem;color:#9CA3AF">עדיין אין תוצאות. הריצו מחקר שוק בטאב "מחקר ואסטרטגיה".</div>';
+    return;
+  }
+  row.innerHTML = links.map(function(l) {
+    return '<button class="btn btn-outline btn-sm" onclick="' + l.onclick + '" style="font-size:0.82rem">' + l.label + '</button>';
+  }).join('');
 }
 
 function openAgentDetail(agentType) {
@@ -14124,9 +14210,9 @@ async function renderJourneyBanner() {
   // state. Everything else is in tasks checklist — single source of truth.
   var banner = null;
   if (hasPendingStrategy) {
-    banner = { icon: '✅', color: '#F59E0B', title: 'אסטרטגיה ממתינה לאישור', desc: 'הסוכן בנה תוכנית — בדקו ואשרו כדי להמשיך', btn: 'צפו ואשרו ←', action: "document.querySelector('.aq-filter[data-filter=\"pending_review\"]')?.click()" };
+    banner = { icon: '✅', color: '#F59E0B', title: 'אסטרטגיה ממתינה לאישור', desc: 'הסוכן בנה תוכנית — בדקו ואשרו כדי להמשיך', btn: 'צפו ואשרו ←', action: "openPendingStrategyForReview()" };
   } else if (hasPendingArticle) {
-    banner = { icon: '✍️', color: '#8B5CF6', title: 'מאמר SEO ממתין לאישור', desc: 'הסוכן כתב מאמר על בסיס האסטרטגיה — בדקו ואשרו', btn: 'צפו במאמר ←', action: "document.querySelector('.aq-filter[data-filter=\"pending_review\"]')?.click()" };
+    banner = { icon: '✍️', color: '#8B5CF6', title: 'מאמר SEO ממתין לאישור', desc: 'הסוכן כתב מאמר על בסיס האסטרטגיה — בדקו ואשרו', btn: 'צפו במאמר ←', action: "openPendingArticleForReview()" };
   } else if (seoFirstRunDone && !hasGithub) {
     banner = { icon: '📤', color: '#24292F', title: 'רוצים לפרסם אוטומטית לאתר?', desc: 'חברו GitHub — הסוכן יפרסם מאמרים ישירות לאתר שלכם (Cloudflare Pages auto-build)', btn: 'חברו GitHub ←', action: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('github-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)", meta: '💡 חינם', dismissible: true };
   }
