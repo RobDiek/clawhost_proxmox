@@ -7811,9 +7811,10 @@ async function runPipelineStage(stage, extraPayload) {
         document.getElementById('pipelineNextBtn').textContent = '→ המשך לאימות';
         document.getElementById('pipelineNextBtn').onclick = function() { showValidationChoice(); };
       } else if (stage >= RESEARCH_STAGES.length) {
-        // Stage 5 complete → strategy
+        // Stage 5 complete → generate + show general summary card above stage 5 detail
         document.getElementById('pipelineNextBtn').textContent = 'סיימו → בנו אסטרטגיה';
         document.getElementById('pipelineNextBtn').onclick = function() { closePipeline(); runChainStrategy(); };
+        try { loadResearchSummaryCard(false); } catch (e) { console.warn('summary card failed:', e); }
       } else {
         document.getElementById('pipelineNextBtn').textContent = '→ השלב הבא';
         document.getElementById('pipelineNextBtn').onclick = function() { nextPipelineStage(); };
@@ -7863,6 +7864,63 @@ async function runPipelineStage(stage, extraPayload) {
 function nextPipelineStage() {
   if (researchPipelineStage < RESEARCH_STAGES.length) {
     runPipelineStage(researchPipelineStage + 1);
+  }
+}
+
+// ── Research general summary card (shown after stage 5) ──
+async function loadResearchSummaryCard(force) {
+  var body = document.getElementById('pipelineBody');
+  if (!body) return;
+  var existing = document.getElementById('researchSummaryCard');
+  if (existing) existing.remove();
+
+  var card = document.createElement('div');
+  card.id = 'researchSummaryCard';
+  card.style.cssText = 'background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:18px 22px;margin-bottom:20px';
+  card.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
+      '<div style="font-weight:700;font-size:1rem;color:#065F46;display:flex;align-items:center;gap:8px">' +
+        '<span>\u2728</span><span>סיכום כללי</span>' +
+      '</div>' +
+      '<button id="summaryRefreshBtn" onclick="loadResearchSummaryCard(true)" ' +
+        'style="background:#fff;border:1px solid #BBF7D0;color:#065F46;border-radius:8px;padding:5px 12px;font-size:0.78rem;cursor:pointer">' +
+        '\u21BB רענן' +
+      '</button>' +
+    '</div>' +
+    '<div id="summaryContent" style="font-size:0.92rem;line-height:1.7;color:#1F2937">' +
+      '<div style="color:#6B7280;display:flex;align-items:center;gap:8px">' +
+        '<div class="gear-spinner" style="display:inline-block;animation:spin 1.2s linear infinite">\u2699\uFE0F</div>' +
+        '<span>מכין סיכום בעברית פשוטה…</span>' +
+      '</div>' +
+    '</div>';
+  body.insertBefore(card, body.firstChild);
+
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/research/summary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ force: !!force })
+    });
+    var data = await res.json();
+    var contentEl = document.getElementById('summaryContent');
+    if (!contentEl) return;
+    if (data.success && data.data && data.data.summary) {
+      var html = data.data.summary
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/^### (.+)$/gm, '<h4 style="margin:14px 0 4px;font-size:0.95rem;color:#065F46">$1</h4>')
+        .replace(/^## (.+)$/gm, '<h3 style="margin:14px 0 4px;font-size:1rem;color:#065F46">$1</h3>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+      contentEl.innerHTML = html;
+    } else {
+      contentEl.innerHTML = '<div style="color:#B91C1C;font-size:0.88rem">' +
+        (data.message || 'לא הצלחנו להכין סיכום.') +
+        ' <button onclick="loadResearchSummaryCard(true)" style="background:none;border:none;color:#2563EB;cursor:pointer;font-size:0.88rem;text-decoration:underline">נסו שוב</button></div>';
+    }
+  } catch (e) {
+    var contentEl2 = document.getElementById('summaryContent');
+    if (contentEl2) contentEl2.innerHTML = '<div style="color:#B91C1C;font-size:0.88rem">שגיאת תקשורת. ' +
+      '<button onclick="loadResearchSummaryCard(true)" style="background:none;border:none;color:#2563EB;cursor:pointer;font-size:0.88rem;text-decoration:underline">נסו שוב</button></div>';
   }
 }
 

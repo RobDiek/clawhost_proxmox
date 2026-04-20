@@ -4457,6 +4457,137 @@ print('\n\n'.join(out))
     }
 }
 
+// ── POST /hosting/instances/:id/setup/agents/research/summary ──
+// Generate a plain-Hebrew, no-assessment summary of all 5 stages for end-user UI card.
+export const researchSummary = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const rd = (instance.researchData as any) || {}
+        const { force } = (await c.req.json().catch(() => ({}))) as { force?: boolean }
+
+        if (!force && typeof rd.summary === 'string' && rd.summary.length > 100) {
+            return ok(c, { summary: rd.summary, cached: true }, 'Summary loaded')
+        }
+
+        const required = ['stage1', 'stage2', 'stage3', 'stage4', 'stage5']
+        for (const s of required) {
+            if (!rd[s] || typeof rd[s] !== 'string' || rd[s].length < 200) {
+                return fail(c, 'כל 5 השלבים חייבים להיות מוכנים לפני סיכום כללי', 400)
+            }
+        }
+
+        // Extract clean text from each stage (OpenClaw agents wrap output in JSON)
+        const extract = (raw: string): string => {
+            const m = raw.match(/\{\s*"runId"/)
+            if (m?.index != null) {
+                try {
+                    const parsed = JSON.parse(raw.slice(m.index))
+                    return parsed?.result?.finalAssistantVisibleText || parsed?.result?.payloads?.[0]?.text || raw
+                } catch { return raw }
+            }
+            return raw
+        }
+        const s1 = extract(rd.stage1).substring(0, 4000)
+        const s2 = extract(rd.stage2).substring(0, 4000)
+        const s3 = extract(rd.stage3).substring(0, 4000)
+        const s4 = extract(rd.stage4).substring(0, 4000)
+        const s5 = extract(rd.stage5).substring(0, 4000)
+
+        const apiKey = await getApiKeyForInstance(instanceId)
+        if (!apiKey) return fail(c, 'מפתח API Anthropic לא מוגדר', 400)
+
+        const prompt = `אתה כותב סיכום ברור וקצר של מחקר שוק שבוצע ב-5 שלבים עבור עסק. הקהל: בעל העסק עצמו. הוא רוצה להבין בהצצה אחת מה המחקר מצא.
+
+## חוקים קריטיים
+- **עברית פשוטה וברורה** — לא ז'רגון שיווקי, לא מונחים באנגלית מיותרים
+- **בלי הערכות, ציונים או ביקורת** — רק תיאור מה המחקר מצא
+- **150-220 מילים בסך הכל** — קצר ודחוס
+- **מבנה:** 5 כותרות בגודל H3, פסקה קצרה של 2-3 משפטים לכל שלב
+- **אל תאמר "השלב מצא..."** — תאמר ישירות את הממצא ("5 מתחרים עיקריים...", "הלקוח האידיאלי הוא...")
+- **אל תוסיף "סיכום" או "מסקנה" בסוף** — רק 5 הסעיפים
+
+## פלט חובה
+\`\`\`
+### מתחרים וזירה
+[2-3 משפטים — מי הם 5 המתחרים העיקריים, ומה הבידול שנמצא עבור העסק]
+
+### מילות מפתח מובילות
+[2-3 משפטים — 2-3 מילות מפתח הכי חשובות + מה הפער בשוק]
+
+### קהל יעד
+[2-3 משפטים — מי הלקוח העיקרי, כמה הוא מוכן לשלם, איפה הוא נמצא]
+
+### אסטרטגיית ערוצים
+[2-3 משפטים — הערוץ המרכזי להתחלה + KPI יעד ל-30 יום]
+
+### ממצאים מהולידציה
+[2-3 משפטים — 2-3 דברים מרכזיים שצריך לשים לב אליהם מתוך הראיונות]
+\`\`\`
+
+## נתוני המחקר
+
+### שלב 1 (מתחרים):
+${s1}
+
+### שלב 2 (מילות מפתח):
+${s2}
+
+### שלב 3 (קהל יעד + pricing):
+${s3}
+
+### שלב 4 (אסטרטגיית ערוצים):
+${s4}
+
+### שלב 5 (ולידציה):
+${s5}
+
+עכשיו כתוב את הסיכום בפורמט המדויק שצוין:`
+
+        const model = await getSubAgentModel(instanceId, 'menateach')
+        const anthropicModel = model.replace(/^anthropic\//, '')
+
+        const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+            },
+            body: JSON.stringify({
+                model: anthropicModel,
+                max_tokens: 2000,
+                messages: [{ role: 'user', content: prompt }],
+            }),
+            signal: AbortSignal.timeout(60000),
+        })
+
+        if (!apiRes.ok) {
+            const errText = await apiRes.text()
+            console.error(`Research summary Anthropic failed (${apiRes.status}):`, errText.substring(0, 300))
+            return fail(c, 'לא הצלחנו לייצר סיכום — נסה שוב', 502)
+        }
+
+        const data = await apiRes.json() as { content?: Array<{ text: string }> }
+        const summary = (data.content?.[0]?.text || '').trim()
+        if (summary.length < 100) {
+            return fail(c, 'תוצאת הסיכום קצרה מדי — נסה שוב', 502)
+        }
+
+        const updated = { ...rd, summary, summaryGeneratedAt: new Date().toISOString() }
+        await db.update(instances).set({ researchData: updated as any }).where(eq(instances.id, instanceId))
+
+        return ok(c, { summary, cached: false }, 'Summary generated')
+    } catch (err) {
+        console.error('researchSummary error:', err)
+        return fail(c, 'שגיאה בייצור סיכום', 500)
+    }
+}
+
 // ── POST /hosting/instances/:id/setup/agents/research/reset ──
 export const resetResearch = async (c: Context) => {
     try {

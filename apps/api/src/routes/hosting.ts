@@ -44,6 +44,7 @@ import {
     saveGoogleAdsConfig,
     getGoogleAdsConfigStatus,
     researchStage,
+    researchSummary,
     resetResearch,
     addAgentToInstance,
     removeAgentFromInstance,
@@ -263,6 +264,7 @@ app.post('/instances/:id/facts/benchmark', benchmarkFacts)
 app.post('/instances/:id/integrations/googleads/save', saveGoogleAdsConfig)
 app.get('/instances/:id/integrations/googleads/status', getGoogleAdsConfigStatus)
 app.post('/instances/:id/setup/agents/research/stage', researchStage)
+app.post('/instances/:id/setup/agents/research/summary', researchSummary)
 app.post('/instances/:id/setup/agents/research/reset', resetResearch)
 app.post('/instances/:id/agents/add', addAgentToInstance)
 app.post('/instances/:id/agents/remove', removeAgentFromInstance)
