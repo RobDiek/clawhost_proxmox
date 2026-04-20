@@ -5024,11 +5024,35 @@ async function generateContentPlan(
     const roster = scenario.agentRoster || {}
     const activeRoles = Object.keys(roster).filter(r => roster[r]?.cadence && roster[r].cadence !== 'off')
 
-    const prompt = `אתה מנהל שיווק (menateach) של Flowmatic. המשימה: לייצר Content Plan של ${weeksAhead} שבועות קדימה על בסיס האסטרטגיה והתסריט שנבחרו.
+    // Extract named pillars from strategy stage 2 for whitelist enforcement.
+    // Strategy stage 2 has Pillar #1..5 blocks with Hebrew titles — we pull them.
+    const stage2 = String(rd.strategyStage2 || '')
+    const pillarMatches = stage2.match(/Pillar\s*#?\d+[:\s]*["״]?([^"״\n]+?)["״]?(?:\s*—|\n|$)/gi) || []
+    const pillarTitles = pillarMatches.slice(0, 6).map(m => {
+        const t = m.replace(/Pillar\s*#?\d+[:\s]*["״]?/, '').replace(/["״].*$/, '').trim()
+        return t.substring(0, 60)
+    }).filter(t => t.length > 5)
+    // Fallback pattern: ### Pillar #N: "title"
+    if (pillarTitles.length < 3) {
+        const alt = stage2.match(/###\s*Pillar\s*#\d+:\s*["״]([^"״\n]+)["״]/gi) || []
+        alt.forEach(m => {
+            const t = m.replace(/###\s*Pillar\s*#\d+:\s*["״]/, '').replace(/["״]/, '').trim()
+            if (t.length > 5 && !pillarTitles.includes(t)) pillarTitles.push(t)
+        })
+    }
+    const pillarWhitelist = pillarTitles.length >= 3 ? pillarTitles : [
+        'סיפורי כוויה מפרילנסרים',
+        'שיווק בעצמי — 15 דקות ביום',
+        'השוואות כנות — פרילנסר/סוכנות/DIY/פלטפורמה',
+        'תוצאות אמיתיות — Case Studies ישראליים',
+        'שליטה בלי לפחד — AI בשליטתך',
+    ]
 
-## תקופת התוכנית
-מתאריך: ${startIso} (יום ${todayDayName})
-עד תאריך: ${endIso}
+    const prompt = `אתה מנהל שיווק בכיר (menateach) עבור ${answers.businessName || 'העסק'}. המשימה: לייצר Content Plan של ${weeksAhead} שבועות מלאים (${weeksAhead * 7} ימים) על בסיס האסטרטגיה, התסריט שנבחר, ומוצרי העסק.
+
+## תקופת התוכנית (חובה לכסות את כולה!)
+מ: ${startIso} (יום ${todayDayName})
+עד: ${endIso}
 Timezone: Asia/Jerusalem
 
 ## תסריט שנבחר: ${scenario.name || scenario.key || 'recommended'}
@@ -5042,72 +5066,112 @@ ${products.length > 0
             const entry = p.isPrimary ? ' 🎯[כניסה]' : ''
             return `${i + 1}. ${p.name}${entry} — ${price} · ${model} · ${p.description || ''}`
         }).join('\n')
-        : '(לא צוין — שתמש ב-strategy)'}
+        : '(לא צוין)'}
 ${answers.productsFunnel ? `\nFunnel: ${answers.productsFunnel}` : ''}
 
-## סוכנים פעילים ב-roster
-${activeRoles.length > 0 ? activeRoles.map(r => `- ${r}: ${roster[r].cadence} (${roster[r].role || ''})`).join('\n') : '(כל הסוכנים בברירת מחדל)'}
+## הנחיה קריטית לגבי המוצרים
+${answers.productsFunnel && answers.productsFunnel.match(/קורס|course/i)
+    ? 'הערה חשובה: מי שקנה את הקורס הוא משתמש של הפלטפורמה (הקורס מבוסס על שימוש בפלטפורמה עצמה). לכן כל content שמוכר קורס = בעקבות מוכר את הפלטפורמה. אין צורך ב-upsell content נפרד ל-SaaS trial.'
+    : 'הערה: התוכן צריך לפעול ב-funnel כולו — entry product → upsell → retention.'}
 
-## האסטרטגיה (4 שלבים):
+## Pillars מאושרים (השתמש **רק** בשמות האלו מילה-במילה — אסור להמציא pillar חדש!)
+${pillarWhitelist.map((p, i) => `${i + 1}. "${p}"`).join('\n')}
+
+## האסטרטגיה המלאה
 ${strategy}
 
-${opts.performanceContext ? `\n## ביצועים מהחודש הקודם (לתיקון טקטי)\n${opts.performanceContext}\n` : ''}
+${opts.performanceContext ? `\n## נתוני ביצועים מהחודש הקודם (השתמש לתיקון טקטי!)\n${opts.performanceContext}\n` : ''}
 
 ---
 
-## משימתך: Content Plan JSON
+## פילוסופיית POC — חובה!
 
-הפק מערך JSON של items. **הנחיות קריטיות:**
+זהו **חודש ראשון = Proof of Concept**. המטרה היא לא volume — אלא **איסוף נתונים שיאפשרו אופטימיזציה בחודש הבא**. לכן:
 
-1. **פילוח פרסונות ו-SKUs:** כל מוצר מקבל נתח יחסי לפי האסטרטגיה. אם יש 3 מוצרים, אל תדחוף הכל רק למוצר הראשי.
+- **5-7 items בשבוע, לא יותר!** (ב-4 שבועות = 20-28 items סה"כ)
+- **פיזור אחיד** — לא 20 items בשבוע 1 ואז 10 בשבועות 2-4. בכל שבוע ~6-7 items.
+- **כל pillar ייצג מינימום 2 פעמים בחודש** — כדי שנדע מה תופס.
+- **כל persona מקבלת מינימום 20% מה-items**.
+- **כל ערוץ שמופיע ב-Scenario ייבדק לפחות פעם בשבוע** — אחרת לא נקבל data לערוץ הזה.
 
-2. **peak times ישראל (חובה לשמור):**
-   - Facebook feed: 19:00-22:00 יום-א עד חמישי; קבוצות: 19:30-20:30 יום ג' + ה'
-   - Instagram: 18:00-21:00 יום א-ה
-   - Blog: יום-ב 09:00 (מירב תנועה אורגנית)
-   - Newsletter: יום-ה 07:30
-   - YouTube: יום-ו 10:00
-   - LinkedIn: יום א-ד 09:00-11:00
-   - Google/Meta Ads campaign launches: יום ב' 09:00 (שבוע מלא להצטברות data)
+## סטנדרטים ישראליים ובינלאומיים (אפריל 2026)
 
-3. **שבת אסורה לפרסום** (תרבות ישראלית) — דלג על יום 7 בשבוע. יום ו' פרסום עד 14:00.
+### Instagram — הכרחי לקחת בחשבון!
+- **Reels = 60-70% מה-reach של IG בישראל ב-2026** (Meta Creators Report 2025)
+- לכן: **מינימום 60% מ-IG items חייבים להיות \`type: reel\`** (לא post/carousel)
+- פוסטים רגילים ב-IG הם read-only כמעט — reach נמוך
 
-4. **Mixing**: לא כל יום אותו pillar. עבור במחזורים:
-   - שבוע 1: דגש על pillar 1 (אחיזת קהל) + 2 (ערך)
-   - שבוע 2: דגש על 3 (השוואות BOFU) + 4 (case studies)
-   - שבוע 3: דגש על 5 (שליטה ובטיחות) + 1
-   - שבוע 4: mix + הכנה לחודש הבא
+### Facebook (SMB IL)
+- Organic reach לעמוד SMB ישראלי: 5-10% מ-followers (Meta IL SMB 2025)
+- Peak engagement SMB: **יום-ג + יום-ה 19:00-21:00** (לא בוקר!)
+- יום-ו עד 13:00 — engagement גבוה בקהילות עצמאיים
+- **קבוצות > עמוד** ב-SMB: 3x engagement
 
-5. **flexibility**:
-   - \`fixed\` — items שלא יוזזו (campaign launches, monthly reports, newsletter)
-   - \`suggested\` — items שהסוכן יכול להציע לפַברק (פוסטים יומיומיים, stories)
+### Blog/SEO
+- יום-ב 09:00 = peak תנועה אורגנית (אחרי weekend-recovery queries)
+- אורך מנצח למאמר SEO בישראל: 1,500-2,500 מילים (פחות מ-1000 לא מדורג)
 
-6. **Total items**: ~25-35 items ל-4 שבועות. לא יותר — אחרת overwhelm.
+### Newsletter (Email)
+- Israeli SMB open rate: 25-32% · CTR: 3-5%
+- Peak send: יום-ה 07:30 (וודאי לפני תחילת יום עבודה)
 
-7. **agentRole** לכל item: \`ayat\` (כתיבה), \`yotzer\` (ויזואל), \`shaliach\` (פרסום), \`mateh\` (orchestration), \`menateach\` (report), \`sayer\` (competitive), \`migdalor\` (AEO).
+### YouTube
+- YouTube Shorts = 50B views/יום עולמית; בישראל עולה ב-30% yoy
+- **YouTube Shorts = מנוע חדש לגילוי** — עדיף על long-form לעסק חדש
+- Peak: יום-ו 10:00 או יום-ש ערב
 
-## פורמט פלט — JSON בלבד, ללא markdown fence
+### LinkedIn (IL B2B)
+- Best times: יום-ב/ג 08:00-10:00
+- Engagement rate ישראל: 0.5-0.8% (תואם global)
+- עדיף פוסט טקסט 150-300 מילים + hook חזק מאשר קישור חיצוני
 
-\`\`\`
-[
-  {
-    "date": "YYYY-MM-DD",
-    "time": "HH:mm",
-    "channel": "facebook|instagram|blog|email|youtube|linkedin|google_ads|meta_ads|reddit",
-    "type": "post|reel|story|carousel|article|email|video|campaign_launch|campaign_optimize|report",
-    "pillar": "שם ה-pillar מהאסטרטגיה",
-    "hook": "3-5 מילים",
-    "brief": "משימה מלאה לסוכן — 1-3 משפטים בעברית, ספציפי: מה להדגיש, איזה CTA, איזה persona",
-    "persona": "דורון|אסף|מיכל|mix",
-    "ctaType": "signup_course_199|signup_course_1499|trial_saas|read_more|contact|none",
-    "productRef": "course_199|course_1499|clawflow|mixed|none",
-    "flexibility": "fixed|suggested",
-    "agentRole": "ayat|yotzer|shaliach|mateh|menateach|sayer|migdalor"
-  }
-]
-\`\`\`
+### Paid Ads
+- Campaign launch ב-יום-ב 09:00 — שבוע מלא לאיסוף data לפני אופטימיזציה
+- Optimization cadence: פעם בשבוע לא יום-יומית (Meta learning phase צריך 7 ימים)
 
-החזר רק את ה-JSON, מסודר לפי date+time ascending.`
+## שבת — אסורה לפרסום אורגני
+דלג לחלוטין על יום שבת. יום ו' — פרסום רק עד 13:00.
+
+## Mixing באמת (לא קלישאה)
+
+עבור 4 שבועות, אל תדחוף אותו pillar רצוף. דוגמה טובה:
+- שבוע 1: ערוב של pillar 1 + 3 (כאב + השוואה) + Case Study אחד
+- שבוע 2: ערוב של pillar 2 + 5 (ערך + שליטה) + reel סיפור
+- שבוע 3: ערוב של pillar 4 + 1 (תוצאות + תגובה לטענה) + email
+- שבוע 4: mix כל 5 pillars — כולל synthesis post/video
+
+## Flexibility (חשוב!)
+- **Default = \`suggested\`** (הסוכן יכול להחליף באירוע חם)
+- \`fixed\` רק ל: campaign_launch, campaign_optimize, report, email_newsletter (שבועי מתוזמן)
+- תן 70-85% suggested, 15-30% fixed.
+
+## פורמט פלט — JSON בלבד
+
+החזר מערך JSON של items. כבר מצוידים ב-"[" פתוח — **המשך מהאובייקט הראשון**. סדר ASC לפי date+time.
+
+מבנה כל item:
+{
+  "date": "YYYY-MM-DD",
+  "time": "HH:mm",
+  "channel": "facebook|instagram|blog|email|youtube|linkedin|google_ads|meta_ads|reddit",
+  "type": "post|reel|story|carousel|article|email|video|campaign_launch|campaign_optimize|report",
+  "pillar": "<אחד מה-Pillars המאושרים למעלה — מילה-במילה!>",
+  "hook": "3-5 מילים בעברית",
+  "brief": "2-3 משפטים ספציפיים למה בדיוק לכתוב/ליצור, איזה angle, איזה CTA",
+  "persona": "<שם persona מ-strategy stage 3 — למשל דורון/אסף/מיכל/רחל/דנה/mix>",
+  "ctaType": "signup_course_199|signup_course_1499|trial_saas|read_more|contact|none",
+  "productRef": "course_199|course_1499|clawflow|mixed|none",
+  "flexibility": "fixed|suggested",
+  "agentRole": "ayat|yotzer|shaliach|mateh|menateach|sayer|migdalor"
+}
+
+**חובה**:
+1. ${weeksAhead * 5}-${weeksAhead * 7} items בסך הכל
+2. כיסוי מלא של ${weeksAhead * 7} הימים מ-${startIso} ל-${endIso}
+3. כל pillar מה-whitelist מופיע ≥ 2 פעמים
+4. כל persona ≥ 20% share
+5. Instagram reels ≥ 60% מ-IG items
+6. Pillar name = מילה-במילה מ-whitelist, לא "Pillar 1" ולא המצאה`
 
     // Haiku is ~3x faster than Sonnet for structured JSON extraction — and the
     // task is pure plan-materialization from strategy text (no deep reasoning).
@@ -5209,7 +5273,80 @@ ${opts.performanceContext ? `\n## ביצועים מהחודש הקודם (לתי
     // Sort by date+time
     plan.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
 
+    // Post-generation QA: check coverage + pillar whitelist + distribution
+    const qa = qaContentPlan(plan, pillarWhitelist, startDate, weeksAhead)
+    if (!qa.ok) {
+        console.warn(`generateContentPlan QA warnings for ${instanceId}: ${qa.issues.join(' | ')}`)
+        // Soft-enforce pillar whitelist on items that invented pillars — map to closest
+        plan.forEach(it => {
+            if (!pillarWhitelist.includes(it.pillar)) {
+                // Find closest by keyword overlap
+                const itLower = it.pillar.toLowerCase()
+                const match = pillarWhitelist.find(p =>
+                    itLower.includes(p.toLowerCase().substring(0, 10)) ||
+                    p.toLowerCase().includes(itLower.substring(0, 10))
+                )
+                it.pillar = match || pillarWhitelist[0]
+            }
+        })
+    }
+
     return plan
+}
+
+// Post-generation validator — returns issues list without throwing so caller
+// can decide: soft-remap, retry with feedback, or accept as-is.
+function qaContentPlan(
+    plan: ContentPlanItem[],
+    pillarWhitelist: string[],
+    startDate: Date,
+    weeksAhead: number
+): { ok: boolean; issues: string[] } {
+    const issues: string[] = []
+    const expectedDays = weeksAhead * 7
+    const expectedMinItems = weeksAhead * 5
+    const expectedMaxItems = weeksAhead * 8
+
+    if (plan.length < expectedMinItems) issues.push(`too few items (${plan.length} < ${expectedMinItems})`)
+    if (plan.length > expectedMaxItems) issues.push(`too many items (${plan.length} > ${expectedMaxItems})`)
+
+    // Date coverage
+    const endDate = new Date(startDate)
+    endDate.setDate(endDate.getDate() + expectedDays - 1)
+    const maxDate = plan.reduce((m, it) => it.date > m ? it.date : m, '0000-00-00')
+    const minDate = plan.reduce((m, it) => m === '' || it.date < m ? it.date : m, '')
+    const targetEndIso = endDate.toISOString().slice(0, 10)
+    if (maxDate < targetEndIso) issues.push(`plan ends ${maxDate}, expected through ${targetEndIso}`)
+
+    // Pillar whitelist compliance
+    const invented = plan.filter(it => !pillarWhitelist.includes(it.pillar)).length
+    if (invented > 0) issues.push(`${invented} items use non-whitelisted pillars`)
+
+    // Each pillar represented at least 2x
+    pillarWhitelist.forEach(p => {
+        const count = plan.filter(it => it.pillar === p).length
+        if (count < 2) issues.push(`pillar "${p.substring(0, 20)}" underrepresented (${count})`)
+    })
+
+    // Instagram reel ratio (IL 2026: IG Reels dominate reach → ≥60% of IG items)
+    const igItems = plan.filter(it => it.channel === 'instagram')
+    if (igItems.length > 0) {
+        const reelCount = igItems.filter(it => it.type === 'reel').length
+        const reelRatio = reelCount / igItems.length
+        if (reelRatio < 0.6) issues.push(`IG reel ratio ${(reelRatio * 100).toFixed(0)}% < 60%`)
+    }
+
+    // Week distribution: no week should have > 50% of items
+    const byWeek: Record<number, number> = {}
+    plan.forEach(it => {
+        const d = new Date(it.date)
+        const wk = Math.floor((d.getTime() - startDate.getTime()) / (7 * 24 * 3600 * 1000))
+        byWeek[wk] = (byWeek[wk] || 0) + 1
+    })
+    const maxWeek = Math.max(...Object.values(byWeek))
+    if (maxWeek > plan.length * 0.5) issues.push(`week distribution skewed: ${maxWeek}/${plan.length} in single week`)
+
+    return { ok: issues.length === 0, issues }
 }
 
 // ── POST /hosting/instances/:id/setup/agents/content-plan/regenerate ──
