@@ -47,6 +47,7 @@ import {
     researchSummary,
     strategySummary,
     resetResearch,
+    resetStrategy,
     addAgentToInstance,
     removeAgentFromInstance,
     setupPersonalAgent,
@@ -268,6 +269,7 @@ app.post('/instances/:id/setup/agents/research/stage', researchStage)
 app.post('/instances/:id/setup/agents/research/summary', researchSummary)
 app.post('/instances/:id/setup/agents/strategy/summary', strategySummary)
 app.post('/instances/:id/setup/agents/research/reset', resetResearch)
+app.post('/instances/:id/setup/agents/strategy/reset', resetStrategy)
 app.post('/instances/:id/agents/add', addAgentToInstance)
 app.post('/instances/:id/agents/remove', removeAgentFromInstance)
 

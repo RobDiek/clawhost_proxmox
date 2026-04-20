@@ -1207,6 +1207,27 @@ input{font-family:inherit}
       <!-- Panel: Research -->
       <div id="agent-panel-research" style="display:none">
 
+      <!-- Rebuild controls — shown when research or strategy exists -->
+      <div id="agent-rebuild-card" style="display:none;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:14px 18px;margin-bottom:18px">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:1.4rem;flex-shrink:0">🔁</span>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:0.95rem;color:#92400E;margin-bottom:4px">לבנות מחדש?</div>
+            <div style="font-size:0.82rem;color:#78350F;line-height:1.5;margin-bottom:10px" id="agent-rebuild-desc">
+              עדכנת את פרופיל העסק / המוצרים? בחר מה לבנות מחדש:
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-outline btn-sm" onclick="rebuildStrategyOnly()" id="btn-rebuild-strategy" style="font-size:0.82rem;color:#92400E;border-color:#FDE68A">
+                🎯 אסטרטגיה בלבד <span style="color:#B45309;font-size:0.72rem">(שומר את המחקר)</span>
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="rebuildEverything()" id="btn-rebuild-all" style="font-size:0.82rem;color:#991B1B;border-color:#FECACA">
+                🔥 הכל מחדש <span style="color:#B91C1C;font-size:0.72rem">(מחקר + אסטרטגיה)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 5. Research Report -->
       <div class="section-title">מחקר שוק</div>
       <div id="agent-research-section">
@@ -6985,7 +7006,12 @@ function renderResearchReport() {
       var date = instanceData.researchData.researchGeneratedAt || instanceData.researchData.generatedAt || '';
       statusEl.textContent = date ? 'עודכן: ' + new Date(date).toLocaleDateString('he-IL') : '';
     }
+  } else {
+    el.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:20px 0">טרם הורץ מחקר</div>';
+    var statusEl2 = document.getElementById('research-status');
+    if (statusEl2) statusEl2.textContent = '';
   }
+  if (typeof toggleRebuildCard === 'function') toggleRebuildCard();
 }
 
 async function runResearchFromAgent() {
@@ -7879,6 +7905,31 @@ function coerceDraftFromRow(row) {
   };
 }
 
+// Clear all research + strategy data locally (mirrors backend resetResearch)
+function clearResearchLocal() {
+  if (!instanceData || !instanceData.researchData) return;
+  var rd = instanceData.researchData;
+  var keep = { answers: rd.answers, generatedAt: rd.generatedAt };
+  instanceData.researchData = keep;
+  instanceData.hasResearch = false;
+  instanceData.hasStrategy = false;
+}
+
+// Clear only strategy data locally (mirrors backend resetStrategy)
+function clearStrategyLocal() {
+  if (!instanceData || !instanceData.researchData) return;
+  var rd = instanceData.researchData;
+  ['strategyStage1','strategyStage2','strategyStage3','strategyStage4',
+   'strategyStage1GeneratedAt','strategyStage2GeneratedAt','strategyStage3GeneratedAt','strategyStage4GeneratedAt',
+   'strategyStage3Warnings',
+   'strategy','strategyGeneratedAt',
+   'strategySummary','strategySummaryGeneratedAt',
+   'scenarios','scenariosGeneratedAt',
+   'chosenScenario','chosenScenarioAt'].forEach(function(k) { delete rd[k]; });
+  instanceData.hasStrategy = false;
+}
+
+// Legacy pipeline button (inside pipeline modal) — kept for back-compat.
 async function resetResearchPipeline() {
   if (!confirm('לאפס את כל שלבי המחקר ולהתחיל מחדש?')) return;
   if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
@@ -7889,24 +7940,94 @@ async function resetResearchPipeline() {
     });
     var data = await res.json();
     if (data.success) {
-      // Clear local state
-      if (instanceData && instanceData.researchData) {
-        delete instanceData.researchData.stage1;
-        delete instanceData.researchData.stage2;
-        delete instanceData.researchData.stage3;
-        delete instanceData.researchData.stage4;
-        delete instanceData.researchData.strategy;
-        delete instanceData.researchData.report;
-      }
+      clearResearchLocal();
       researchPipelineStage = 1;
       showToast('המחקר אופס — מתחילים מחדש', 'success');
-      // Restart from integration suggestion (stage 1 prep)
       showIntegrationSuggestion();
     } else {
       showToast(data.message || 'שגיאה באיפוס', 'error');
     }
   } catch (e) {
     showToast('שגיאת תקשורת', 'error');
+  }
+}
+
+// ── Rebuild controls on Research tab ──
+
+// Full reset: wipe research + strategy + scenarios. Keep answers (business profile).
+async function rebuildEverything() {
+  if (!confirm('בטוח לאפס הכל? המחקר (5 שלבים) + האסטרטגיה + התרחישים יימחקו. פרופיל העסק (השאלון + המוצרים) יישמר.')) return;
+  if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+  var btn = document.getElementById('btn-rebuild-all');
+  var _unlock = btn ? lockButton(btn, 'מאפס') : function(){};
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/research/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    });
+    var data = await res.json();
+    if (data.success) {
+      clearResearchLocal();
+      showToast('הכל אופס — כעת התחל מחקר חדש', 'success');
+      toggleRebuildCard();
+      renderResearchReport();
+      // Re-open agent detail to refresh state
+      if (typeof renderAgentProfile === 'function') renderAgentProfile();
+    } else {
+      showToast(data.message || 'שגיאה באיפוס', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאת תקשורת', 'error');
+  } finally { _unlock(); }
+}
+
+// Soft reset: keep research, wipe only strategy + scenarios.
+async function rebuildStrategyOnly() {
+  if (!confirm('בטוח לבנות את האסטרטגיה מחדש? 4 שלבי האסטרטגיה + התרחישים יימחקו. המחקר (5 שלבים) יישמר.')) return;
+  if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+  var btn = document.getElementById('btn-rebuild-strategy');
+  var _unlock = btn ? lockButton(btn, 'מאפס אסטרטגיה') : function(){};
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/setup/agents/strategy/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    });
+    var data = await res.json();
+    if (data.success) {
+      clearStrategyLocal();
+      showToast('האסטרטגיה אופסה — לחץ "בנו אסטרטגיה" כדי לבנות מחדש', 'success');
+      toggleRebuildCard();
+    } else {
+      showToast(data.message || 'שגיאה באיפוס אסטרטגיה', 'error');
+    }
+  } catch (e) {
+    showToast('שגיאת תקשורת', 'error');
+  } finally { _unlock(); }
+}
+
+// Show the rebuild card only when there's something to rebuild.
+function toggleRebuildCard() {
+  var card = document.getElementById('agent-rebuild-card');
+  if (!card) return;
+  var rd = (instanceData && instanceData.researchData) || {};
+  var hasResearch = !!(rd.report || rd.stage1 || rd.stage2 || rd.stage3 || rd.stage4 || rd.stage5);
+  var hasStrategy = !!(rd.strategy || rd.strategyStage1 || rd.scenarios);
+  card.style.display = (hasResearch || hasStrategy) ? '' : 'none';
+
+  // Disable strategy-only button if no strategy exists (nothing to rebuild).
+  var btnStrat = document.getElementById('btn-rebuild-strategy');
+  if (btnStrat) btnStrat.disabled = !hasStrategy;
+
+  // Update helper text
+  var desc = document.getElementById('agent-rebuild-desc');
+  if (desc) {
+    if (hasResearch && hasStrategy) {
+      desc.textContent = 'עדכנת את פרופיל העסק / המוצרים? בחר מה לבנות מחדש:';
+    } else if (hasResearch) {
+      desc.textContent = 'יש מחקר, אין אסטרטגיה. אפשר לאפס הכל ולהתחיל מחדש:';
+    } else if (hasStrategy) {
+      desc.textContent = 'יש אסטרטגיה בלי מחקר (מצב לא סביר) — מומלץ לאפס הכל:';
+    }
   }
 }
 

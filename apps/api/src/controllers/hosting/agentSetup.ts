@@ -4942,6 +4942,53 @@ export const resetResearch = async (c: Context) => {
     }
 }
 
+// ── POST /hosting/instances/:id/setup/agents/strategy/reset ──
+// Clears strategy stages + scenarios + chosen scenario + strategy summary.
+// Keeps research (stage1-5, answers, report). User will rebuild strategy
+// on top of existing research.
+export const resetStrategy = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const rd = (instance.researchData as any) || {}
+        const cleaned = { ...rd }
+        const wiped: string[] = []
+        const strategyKeys = [
+            'strategyStage1', 'strategyStage2', 'strategyStage3', 'strategyStage4',
+            'strategyStage1GeneratedAt', 'strategyStage2GeneratedAt', 'strategyStage3GeneratedAt', 'strategyStage4GeneratedAt',
+            'strategyStage3Warnings',
+            'strategy', 'strategyGeneratedAt',
+            'strategySummary', 'strategySummaryGeneratedAt',
+            'scenarios', 'scenariosGeneratedAt',
+            'chosenScenario', 'chosenScenarioAt',
+        ]
+        for (const k of strategyKeys) {
+            if (k in cleaned) { delete cleaned[k]; wiped.push(k) }
+        }
+
+        await db.update(instances).set({ researchData: cleaned as any }).where(eq(instances.id, instanceId))
+
+        // Clear strategy sessions on VPS so Menateach starts fresh
+        if (instance.ip) {
+            try {
+                await sshExec(instance.ip, `
+                    rm -f /home/openclaw/.openclaw/agents/menateach/sessions/strategy-*.jsonl 2>/dev/null
+                `, instance.rootPassword || undefined)
+            } catch (_) { /* non-critical */ }
+        }
+
+        console.log(`Strategy reset for instance ${instanceId} — wiped: ${wiped.join(', ')}`)
+        return ok(c, { reset: true, wiped }, 'Strategy wiped — research preserved.')
+    } catch (err) {
+        console.error('resetStrategy error:', err)
+        return fail(c, 'Failed to reset strategy', 500)
+    }
+}
+
 // ── POST /hosting/instances/:id/setup/agents ──
 export const setupAgents = async (c: Context) => {
     try {
