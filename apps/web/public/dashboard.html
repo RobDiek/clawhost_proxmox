@@ -6136,7 +6136,191 @@ var PUBLISH_GUIDES = {
     ]
   },
   googleads: {
-    title: 'מדריך חיבור Google Ads',
+    title: 'מדריך מלא — חיבור Google Ads לסוכני Flowmatic',
+    subtitle: 'עדכון: אפריל 2026 · זמן כולל ~1-3 שבועות · עלות $0 (מלבד תקציב מדיה)',
+    sections: [
+      {
+        icon: '🎯',
+        title: 'מה נקבל בסוף',
+        html:
+          '<p style="margin:0 0 10px;font-size:0.85rem;color:#4B5563">הסוכנים יוכלו, מעל חשבון Google Ads שלך, לבצע אוטונומית:</p>' +
+          '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;background:#F9FAFB;border-radius:6px;overflow:hidden">' +
+            '<tr style="background:#E5E7EB"><th style="padding:6px 10px;text-align:right">תחום</th><th style="padding:6px 10px;text-align:right">יכולת</th></tr>' +
+            '<tr><td style="padding:6px 10px;font-weight:600">יצירת קמפיינים</td><td style="padding:6px 10px">Search, Performance Max, Display, YouTube, Demand Gen</td></tr>' +
+            '<tr style="background:#FFF"><td style="padding:6px 10px;font-weight:600">ניהול Ad Groups</td><td style="padding:6px 10px">מילות מפתח, keyword match types, negative keywords, ad copy</td></tr>' +
+            '<tr><td style="padding:6px 10px;font-weight:600">אופטימיזציה אוטומטית</td><td style="padding:6px 10px">שינוי bidding strategy, budgets, pause/resume, A/B על קריאייטיב</td></tr>' +
+            '<tr style="background:#FFF"><td style="padding:6px 10px;font-weight:600">ניטור ביצועים</td><td style="padding:6px 10px">CPC, CPM, CTR, CPA, ROAS, conversion rate — עדכון כל 24 שעות</td></tr>' +
+            '<tr><td style="padding:6px 10px;font-weight:600">אשפוז מילות מפתח</td><td style="padding:6px 10px">הוספת negatives אוטומטית על queries לא רלוונטיות (מ-Search Terms Report)</td></tr>' +
+            '<tr style="background:#FFF"><td style="padding:6px 10px;font-weight:600">המלצות Google</td><td style="padding:6px 10px">קריאת Recommendations מ-API ויישום ידני (עם אישור שלך) / אוטומטי</td></tr>' +
+          '</table>'
+      },
+      {
+        icon: '⚠️',
+        title: 'לפני שמתחילים — חשוב להבין',
+        html:
+          '<ol style="margin:0;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
+            '<li><strong>Developer Token חובה.</strong> Google Ads API דורש <strong>Developer Token</strong> נפרד מה-API Key הרגיל. מקבלים אותו מ-Google ואורך 1-3 ימי עבודה לאישור Basic Access, עד 4 שבועות ל-Standard Access.</li>' +
+            '<li><strong>Basic vs Standard Access.</strong> Basic = 15,000 API calls/day, Standard = ללא הגבלה. לרוב SMBs Basic מספיק. נתחיל איתו ונעבור ל-Standard רק אם צריך.</li>' +
+            '<li><strong>MCC (Manager Account) אופציונלי.</strong> אם יש לך סוכנות שמנהלת כמה חשבונות — MCC נוח. אם רק חשבון אחד שלך — לא חובה.</li>' +
+            '<li><strong>OAuth 2.0 refresh token.</strong> Flowmatic מקבלת refresh token שתקף לצמיתות (כל עוד לא תבטל ב-Google Account). אין תפוגה של 60 יום כמו ב-Meta.</li>' +
+            '<li><strong>Token יחיד לכל הסוכנים.</strong> כל 9 הסוכנים של Flowmatic משתמשים באותו חיבור — לא צריך לחבר פעמיים.</li>' +
+          '</ol>'
+      },
+      {
+        icon: '0',
+        title: 'שלב 0: הכנות מקדימות (~20 דק)',
+        html:
+          '<p style="margin:0 0 8px;font-weight:600;font-size:0.86rem">וודא שיש לך:</p>' +
+          '<ul style="margin:0 0 14px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
+            '<li>חשבון <a href="https://ads.google.com" target="_blank" dir="ltr">Google Ads</a> פעיל (גם ריק — העיקר שהוא מוגדר עם billing)</li>' +
+            '<li><strong>Customer ID</strong> של החשבון (פינה ימנית עליונה ב-Google Ads, פורמט <code dir="ltr">XXX-XXX-XXXX</code>)</li>' +
+            '<li>Billing פעיל ב-Google Ads — גם ללא קמפיין פעיל, חייב <strong>payment method מאושר</strong></li>' +
+            '<li>Google Cloud Project — נצטרך ליצור אחד חדש ייעודי ל-Flowmatic</li>' +
+          '</ul>' +
+          '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:6px;padding:10px;font-size:0.82rem;color:#78350F">' +
+            '💡 <strong>טיפ</strong>: אם יש לך כבר Google Cloud Project אחר — עדיין צור <strong>חדש</strong> ייעודי לFlowmatic, כדי לשמור על separation ובטיחות.' +
+          '</div>'
+      },
+      {
+        icon: '1',
+        title: 'שלב 1: Google Cloud Project + OAuth Credentials (~15 דק)',
+        html:
+          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">1.1 צור Project חדש</p>' +
+          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
+            '<li>היכנס ל-<a href="https://console.cloud.google.com" target="_blank" dir="ltr">console.cloud.google.com</a></li>' +
+            '<li>ראש הדף → Select Project → <strong>New Project</strong></li>' +
+            '<li><strong>Project name</strong>: <code dir="ltr">flowmatic-ads</code></li>' +
+            '<li>Organization: "No organization" (או שלך אם יש)</li>' +
+            '<li>Create → המתן 30 שניות</li>' +
+          '</ol>' +
+          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">1.2 הפעל Google Ads API</p>' +
+          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
+            '<li>בתוך ה-project → <strong>APIs &amp; Services</strong> → <strong>Enabled APIs</strong></li>' +
+            '<li>Enable APIs and Services → חפש <strong>"Google Ads API"</strong> → Enable</li>' +
+          '</ol>' +
+          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">1.3 OAuth Consent Screen</p>' +
+          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
+            '<li>APIs &amp; Services → <strong>OAuth consent screen</strong></li>' +
+            '<li>User Type: <strong>External</strong> → Create</li>' +
+            '<li><strong>App name</strong>: <code dir="ltr">Flowmatic Ads Manager</code></li>' +
+            '<li><strong>User support email</strong>: האימייל שלך</li>' +
+            '<li><strong>Authorized domains</strong>: <code dir="ltr">flowmatic.co.il</code></li>' +
+            '<li><strong>Developer contact</strong>: האימייל שלך</li>' +
+            '<li>Save and Continue</li>' +
+            '<li><strong>Scopes</strong>: Add or Remove Scopes → חפש והוסף: <code dir="ltr">https://www.googleapis.com/auth/adwords</code> → Save</li>' +
+            '<li><strong>Test users</strong>: הוסף את האימייל שלך (זה הכרחי לפני Publishing)</li>' +
+          '</ol>' +
+          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">1.4 Credentials (Client ID + Secret)</p>' +
+          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
+            '<li>APIs &amp; Services → <strong>Credentials</strong></li>' +
+            '<li>Create Credentials → <strong>OAuth Client ID</strong></li>' +
+            '<li><strong>Application type</strong>: Web application</li>' +
+            '<li><strong>Name</strong>: <code dir="ltr">Flowmatic OAuth Client</code></li>' +
+            '<li><strong>Authorized redirect URIs</strong> → Add URI:<br><code dir="ltr" style="background:#F3F4F6;padding:2px 6px;border-radius:3px;font-size:0.78rem">https://api.clawflow.flowmatic.co.il/hosting/integrations/google/callback</code></li>' +
+            '<li>Create → תקבל popup עם <strong>Client ID</strong> + <strong>Client Secret</strong></li>' +
+            '<li>📋 <strong>שמור את שניהם</strong> — נצטרך אותם ב-Flowmatic</li>' +
+          '</ol>'
+      },
+      {
+        icon: '2',
+        title: 'שלב 2: Developer Token (1-3 ימי עבודה)',
+        html:
+          '<p style="margin:0 0 10px;font-size:0.85rem;color:#4B5563">Google Ads API דורש Developer Token נפרד. זה חינם אבל דורש אישור ידני מ-Google (בדרך כלל מהיר — 1-3 ימים).</p>' +
+          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">2.1 בקש Token</p>' +
+          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
+            '<li>היכנס ל-Google Ads → הגדרות (ימין למעלה) → <strong>API Center</strong><br>(URL: <code dir="ltr">ads.google.com/aw/apicenter</code>)</li>' +
+            '<li>אם זו הפעם הראשונה — מלא את הטופס <strong>"Apply for access"</strong>:' +
+              '<ul style="margin:4px 0;padding-right:18px">' +
+                '<li><strong>Company name</strong>: Flowmatic</li>' +
+                '<li><strong>Website</strong>: <code dir="ltr">https://flowmatic.co.il</code></li>' +
+                '<li><strong>Contact email</strong>: האימייל שלך</li>' +
+                '<li><strong>Intended use</strong>: בחר "Reporting and campaign management"</li>' +
+                '<li><strong>Describe usage</strong> (באנגלית): <em>"Building an autonomous AI agent platform that manages Google Ads campaigns for Israeli SMBs — creating campaigns, optimizing bids, pulling performance reports."</em></li>' +
+                '<li><strong>Integration type</strong>: Own company / own clients</li>' +
+              '</ul>' +
+            '</li>' +
+            '<li>Submit → המתן לאימייל מ-Google (1-3 ימי עבודה)</li>' +
+          '</ol>' +
+          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">2.2 אחרי שיאושר</p>' +
+          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
+            '<li>חזור ל-API Center</li>' +
+            '<li>תמצא שם <strong>Developer Token</strong> — מחרוזת ארוכה (22 תווים)</li>' +
+            '<li><strong>Access Level</strong> יהיה "Basic Access" — מספיק להתחלה (15K API calls/day)</li>' +
+            '<li>📋 <strong>שמור את ה-Developer Token</strong></li>' +
+          '</ol>' +
+          '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:6px;padding:10px;font-size:0.82rem;color:#78350F">' +
+            '💡 <strong>Standard Access (אופציונלי)</strong>: אם תגיע ל-15K/day אפשר לבקש Standard Access (ללא limit) — דורש הצגת דוגמאות שימוש ותהליך של 2-4 שבועות. לא נצטרך בהתחלה.' +
+          '</div>'
+      },
+      {
+        icon: '3',
+        title: 'שלב 3: חיבור ב-Flowmatic (~5 דק)',
+        html:
+          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
+            '<li>חזור ל-Flowmatic → הגדרות → Integrations → Google Ads</li>' +
+            '<li>לחץ <strong>"חברו Google Ads"</strong> — תתבצע הפניה ל-Google OAuth</li>' +
+            '<li>בחר את חשבון Google עם הרשאות Ads</li>' +
+            '<li>אשר הרשאה: <strong>"Manage your AdWords campaigns"</strong></li>' +
+            '<li>תחזור ל-Flowmatic עם form להשלים 3 שדות:' +
+              '<ul style="margin:4px 0;padding-right:18px">' +
+                '<li><strong>Customer ID</strong>: XXX-XXX-XXXX (מ-Google Ads פינה ימנית)</li>' +
+                '<li><strong>Developer Token</strong>: 22 תווים (מ-API Center)</li>' +
+                '<li><strong>Login Customer ID</strong> (אופציונלי): רק אם אתה משתמש ב-MCC, הזן את ה-Customer ID של ה-Manager</li>' +
+              '</ul>' +
+            '</li>' +
+            '<li>Save → "Google Ads מחובר ✓"</li>' +
+          '</ol>'
+      },
+      {
+        icon: '4',
+        title: 'שלב 4: הפעל סוכני פרסום',
+        html:
+          '<p style="margin:0 0 10px;font-size:0.85rem;color:#4B5563">Flowmatic → סוכן MATEH → הגדרות → הפעל:</p>' +
+          '<ul style="margin:0;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.7">' +
+            '<li><strong>Google Ads Executor</strong>: יצור קמפיינים חדשים לפי האסטרטגיה (דורש אישור שלך בכל קמפיין לפני launch)</li>' +
+            '<li><strong>Google Ads Performance Sync</strong>: סנכרון ביצועים כל 24 שעות (CPC, CTR, CPA, ROAS) → דוחות ב-Flowmatic</li>' +
+            '<li><strong>Google Ads Optimizer</strong>: ניתוח שבועי + המלצות אוטומטיות (הוספת negative keywords, שינוי bidding, pause של ad groups חלשים) — כולן עוברות אישור שלך לפני ביצוע</li>' +
+            '<li><strong>Keyword Hygiene</strong>: קריאת Search Terms Report יומית, זיהוי queries לא רלוונטיות → הצעה להוסיף negatives</li>' +
+          '</ul>'
+      },
+      {
+        icon: '🔧',
+        title: 'תחזוקה שוטפת',
+        html:
+          '<ul style="margin:0;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.7">' +
+            '<li><strong>Developer Token לא פג תוקף</strong> — רק אם לא תשתמש בו 90 יום Google יכולה לבטל</li>' +
+            '<li><strong>Refresh Token</strong> לא פג תוקף כל עוד אתה לא:' +
+              '<ul style="margin:4px 0;padding-right:18px">' +
+                '<li>מבטל ידנית ב-<a href="https://myaccount.google.com/permissions" target="_blank" dir="ltr">myaccount.google.com/permissions</a></li>' +
+                '<li>משנה סיסמת Google</li>' +
+                '<li>עובר 6 חודשים ללא שימוש</li>' +
+              '</ul>' +
+            '</li>' +
+            '<li><strong>API Quota</strong>: Basic Access = 15K calls/day. Flowmatic משתמש בד"כ ב-500-2,000 calls/day לחשבון פעיל.</li>' +
+            '<li><strong>Conversion Tracking</strong>: ודא שיש ב-Google Ads Conversion Actions מוגדרות (למשל "Form submit", "Purchase") — בלעדיהן אין ROAS אמיתי.</li>' +
+          '</ul>'
+      },
+      {
+        icon: '✅',
+        title: 'Checklist סופי',
+        html:
+          '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.8;list-style:none">' +
+            '<li>☐ Google Ads account פעיל עם billing מאושר</li>' +
+            '<li>☐ Google Cloud Project נוצר (flowmatic-ads)</li>' +
+            '<li>☐ Google Ads API הופעל ב-project</li>' +
+            '<li>☐ OAuth Consent Screen הוגדר עם scope adwords</li>' +
+            '<li>☐ Client ID + Client Secret הופקו ונשמרו</li>' +
+            '<li>☐ Authorized Redirect URI הוסף: <code dir="ltr">.../hosting/integrations/google/callback</code></li>' +
+            '<li>☐ Developer Token נתבקש ואושר (1-3 ימים)</li>' +
+            '<li>☐ Customer ID הועתק (XXX-XXX-XXXX)</li>' +
+            '<li>☐ חיבור ב-Flowmatic הצליח</li>' +
+            '<li>☐ סוכני Ads הופעלו בהגדרות MATEH</li>' +
+            '<li>☐ Conversion Actions מוגדרות ב-Google Ads</li>' +
+          '</ul>' +
+          '<p style="margin:12px 0 0;font-size:0.82rem;color:#6B7280;background:#F9FAFB;padding:8px 10px;border-radius:6px"><strong>זמן כולל</strong>: ~1-3 שבועות (רוב הזמן ממתינים לאישור Developer Token).<br><strong>עלות</strong>: $0 — Google Ads API חינם. העלות היחידה = media spend שתשים בקמפיינים.</p>'
+      }
+    ],
+    // Legacy flat steps kept for backward compat — will be ignored when sections[] present
     steps: [
       { title: 'צרו חשבון Google Ads', desc: 'אם אין לכם — <a href="https://ads.google.com" target="_blank" dir="ltr">ads.google.com</a> ← צרו חשבון חדש. ניתן לדלג על יצירת קמפיין ראשון (הסוכנים יעשו זאת בשבילכם).' },
       { title: 'שמרו את ה-Customer ID', desc: 'בפינה הימנית העליונה של Google Ads — מספר בפורמט <strong>XXX-XXX-XXXX</strong>. העתיקו אותו.' },
@@ -9045,23 +9229,40 @@ function computeConnectionsRequirements(scenario, inst) {
   }
 
   // === Organic distribution (based on primaryChannels) ===
-  if (/linkedin/.test(channels)) {
-    reqs.push({
-      id: 'linkedin', icon: '💼', label: 'LinkedIn — חיבור אוטומטי',
-      must: true, group: 'organic',
-      desc: 'כרגע LinkedIn רק במצב "הסוכן מכין → אתם מאשרים ומפרסמים" דרך הדשבורד. אינטגרציה מלאה (OAuth + UGC API) בפיתוח.',
-      status: 'info', info: true, devNote: 'בפיתוח'
-    });
-  }
-  if (/facebook|instagram|\bmeta\b/.test(channels)) {
+  // LinkedIn removed from required integrations — no OAuth in production yet.
+  // Users who picked LinkedIn in strategy can draft via dashboard and paste manually.
+  // Meta merged: ONE OAuth covers FB Page + Instagram + Ads. No separate cards.
+  // The "meta-ads" card below is removed — a single `meta` entry handles all Meta needs.
+  if (/facebook|instagram|\bmeta\b|meta ads|facebook ads|instagram ads/.test(channels)) {
     var metaConnected = inst.metaTokens && inst.metaTokens.connected;
+    var metaLabel = 'Meta (Facebook + Instagram + Ads)';
     reqs.push({
-      id: 'meta', icon: '📘', label: 'Facebook Page + Instagram',
+      id: 'meta', icon: '📘', label: metaLabel,
       must: true, group: 'organic',
-      desc: 'פרסום אוטומטי של פוסטים בדף עסקי + אינסטגרם + ניטור אזכורים' +
+      desc: 'OAuth אחד — פרסום אוטומטי בדף Facebook + Instagram, ניטור תגובות + DMs, וניהול פרסום ממומן (יצירת קמפיינים + insights).' +
             (metaConnected ? ' (מחובר: ' + (inst.metaTokens.pageName || '') + ')' : ''),
       status: st(!!metaConnected),
       connectAction: "switchTab('integrations')"
+    });
+  }
+  // WordPress — primary blog publishing destination
+  if (/wordpress|בלוג|blog|article|מאמר/.test(channels)) {
+    reqs.push({
+      id: 'wordpress', icon: '📝', label: 'WordPress',
+      must: false, group: 'organic',
+      desc: 'יעד הפרסום העיקרי למאמרי בלוג. חיבור דרך Application Password — הסוכן יפרסם אוטומטית מאמרים מאושרים.',
+      status: st(!!(inst.hasWordpress || localStorage.getItem('cf_wordpress_saved'))),
+      connectAction: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('pub-blog-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)"
+    });
+  }
+  // GitHub — auto-publish to Cloudflare Pages / static sites
+  if (/github|cloudflare pages|static/.test(channels) || inst.hasGithub) {
+    reqs.push({
+      id: 'github', icon: '🐙', label: 'GitHub',
+      must: false, group: 'organic',
+      desc: 'פרסום אוטומטי לאתר הסטטי שלך (Cloudflare Pages / GitHub Pages). הסוכן פותח PR עם המאמר — אתה מאשר, CI מפרסם.',
+      status: st(!!inst.hasGithub),
+      connectAction: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('github-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)"
     });
   }
   if (/fb group|קבוצת פייסבוק|\bgroup\b/.test(channels)) {
@@ -9118,22 +9319,15 @@ function computeConnectionsRequirements(scenario, inst) {
       });
     }
 
-    // Meta Ads
+    // Meta Ads: if autopilot tier, show a managed-by-Flowmatic info card.
+    // For all other tiers, the Meta card in the organic section already covers
+    // Ads (same OAuth) — no separate entry needed here.
     if (tierAllChannels) {
       reqs.push({
         id: 'meta-ads', icon: '💰', label: 'Meta Ads — מנוהל ע"י Flowmatic',
         must: false, group: 'paid',
         desc: 'מסלול אוטופילוט — Facebook + Instagram Ads מנוהלים דרך Business Manager של Flowmatic.',
         status: 'info', info: true, devNote: 'מנוהל'
-      });
-    } else {
-      reqs.push({
-        id: 'meta-ads', icon: '💰', label: 'Meta Ads (Facebook + Instagram)',
-        must: wantsImmediate && /meta|facebook ads|instagram ads/.test(channels),
-        group: 'paid',
-        desc: 'קמפיינים ב-Facebook + Instagram. דורש Business Manager + Ad Account + Pixel על האתר. המקשר של Facebook Page כולל כבר את ההרשאה.',
-        status: st(!!inst.hasMetaAds),
-        connectAction: "switchTab('integrations')"
       });
     }
 

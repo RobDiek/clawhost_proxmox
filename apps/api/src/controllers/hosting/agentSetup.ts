@@ -2032,21 +2032,12 @@ ${extracted.validation}`
             researchData: updateData as any,
         }).where(eq(instances.id, instanceId))
 
-        // Strategy complete (stage 4) → activate cron jobs + mark onboarding done
-        if (stage === 4 && instance.ip) {
-            await db.update(instances).set({
-                onboardingCompleted: true,
-            }).where(eq(instances.id, instanceId))
-
-            const components = (instance.selectedComponents as string[]) || []
-            const agentType = components.includes('mt') ? 'mt' : 'oc'
-            try {
-                await activateAgentCrons(instance.ip, agentType, instance.rootPassword || undefined)
-            } catch (cronErr) {
-                console.error('Cron activation failed (non-critical):', cronErr)
-            }
-            console.log(`Onboarding complete for ${instanceId} — cron jobs activated`)
-        }
+        // Strategy complete (stage 4) — do NOT auto-activate cron jobs.
+        // Crons are activated only after the user explicitly commits a scenario
+        // (commitStrategyScenario), because the scenario roster defines which
+        // cadences are on/off. Auto-firing before scenario pick = phantom posts
+        // in the Active Tasks queue that the user never scheduled.
+        // onboardingCompleted is also set by commitStrategyScenario.
 
         console.log(`Strategy stage ${stage}/4 complete: ${strategy.length} chars`)
         return ok(c, {
@@ -2744,6 +2735,7 @@ export const commitStrategyScenario = async (c: Context) => {
                 ...rd,
                 chosenScenario,
             } as any,
+            onboardingCompleted: true,
         }).where(eq(instances.id, instanceId))
 
         // Re-apply cron schedule based on scenario's agentRoster (if present)
