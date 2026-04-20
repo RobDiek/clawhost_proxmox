@@ -5832,15 +5832,276 @@ function saveBlogIntegration() {
 // Publishing guides popup
 var PUBLISH_GUIDES = {
   meta: {
-    title: 'מדריך חיבור Meta Ads',
-    steps: [
-      { title: 'צרו Meta Developer Account', desc: 'היכנסו ל-<a href="https://developers.facebook.com" target="_blank" dir="ltr">developers.facebook.com</a> והירשמו עם חשבון Facebook שלכם.' },
-      { title: 'צרו אפליקציה חדשה', desc: 'לחצו <strong>"Create App"</strong> ← בחרו <strong>"Business"</strong> ← שם: "ClawFlow Publisher" ← לחצו "Create".' },
-      { title: 'הוסיפו Facebook Login', desc: 'ב-Dashboard ← <strong>"Add Products"</strong> ← בחרו <strong>"Facebook Login"</strong> ← לחצו "Set Up" ← בחרו "Web".' },
-      { title: 'הגדירו Redirect URI', desc: 'Settings ← Valid OAuth Redirect URIs ← הוסיפו:<br><code dir="ltr" style="background:#F3F4F6;padding:2px 6px;border-radius:4px;font-size:0.78rem">https://api.clawflow.flowmatic.co.il/hosting/integrations/meta/callback</code>' },
-      { title: 'העתיקו App ID ו-App Secret', desc: 'Settings ← Basic ← העתיקו <strong>App ID</strong> ו-<strong>App Secret</strong>.' },
-      { title: 'חזרו ל-ClawFlow', desc: 'הדביקו את App ID ו-App Secret בשדות למעלה ← לחצו <strong>"→ חברו Meta Ads"</strong>. תועברו ל-Facebook לאישור הרשאות.' },
-      { title: 'אשרו הרשאות', desc: 'בחרו את <strong>דף הפייסבוק העסקי</strong> + חשבון <strong>Instagram</strong> שלכם ← אשרו. חשוב: דף הפייסבוק חייב להיות מקושר לאינסטגרם.' }
+    title: 'מדריך מלא — חיבור Meta (Facebook + Instagram) לסוכני Flowmatic',
+    subtitle: 'עדכון: אפריל 2026 · זמן כולל ~3-6 שבועות · עלות $0',
+    sections: [
+      {
+        icon: '🎯',
+        title: 'מה נקבל בסוף',
+        html:
+          '<p style="margin:0 0 10px;font-size:0.85rem;color:#4B5563">הסוכנים יוכלו, מעל חשבונך (או מעל חשבונות לקוחות אם תרצה), לבצע את הבא <strong>אוטונומית</strong>, בלי כניסה ידנית שלך בכל פעם:</p>' +
+          '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;background:#F9FAFB;border-radius:6px;overflow:hidden">' +
+            '<tr style="background:#E5E7EB"><th style="padding:6px 10px;text-align:right">תחום</th><th style="padding:6px 10px;text-align:right">יכולת</th></tr>' +
+            '<tr><td style="padding:6px 10px;font-weight:600">פרסום בעמוד Facebook</td><td style="padding:6px 10px">פוסטים, תמונות, ריילס, אירועים, סטוריות</td></tr>' +
+            '<tr style="background:#FFF"><td style="padding:6px 10px;font-weight:600">פרסום באינסטגרם</td><td style="padding:6px 10px">פוסטים רגילים, קרוסלות, ריילס, סטוריות</td></tr>' +
+            '<tr><td style="padding:6px 10px;font-weight:600">תגובות ב-FB</td><td style="padding:6px 10px">קריאת תגובות, מענה אוטומטי, סימון כספאם</td></tr>' +
+            '<tr style="background:#FFF"><td style="padding:6px 10px;font-weight:600">תגובות באינסטגרם</td><td style="padding:6px 10px">קריאה + מענה על פוסטים וסטוריות</td></tr>' +
+            '<tr><td style="padding:6px 10px;font-weight:600">DMs ב-Messenger + IG</td><td style="padding:6px 10px">קריאת הודעות, שליחת תשובות (תוך 24ש בלי template)</td></tr>' +
+            '<tr style="background:#FFF"><td style="padding:6px 10px;font-weight:600">ניהול פרסום ממומן</td><td style="padding:6px 10px">יצירת קמפיינים, מודעות, adsets, שינוי תקציב, pause/resume</td></tr>' +
+            '<tr><td style="padding:6px 10px;font-weight:600">אופטימיזציית פרסום</td><td style="padding:6px 10px">קריאת insights (CPM, CPC, CTR, ROAS), שינוי bidding, A/B</td></tr>' +
+            '<tr style="background:#FFF"><td style="padding:6px 10px;font-weight:600">שליפת לידים</td><td style="padding:6px 10px">לידים מקמפיינים Lead Ads</td></tr>' +
+          '</table>'
+      },
+      {
+        icon: '⚠️',
+        title: 'לפני שמתחילים — 5 דברים שחייבים להבין',
+        html:
+          '<ol style="margin:0;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
+            '<li><strong>Development Mode לעומת Live Mode.</strong> ב-Development, אפליקציה יכולה להתחבר רק ל-Admins/Developers/Testers. כדי שלקוח אחר יוכל להתחבר → צריך <strong>App Review</strong> של Meta (2-4 שבועות).</li>' +
+            '<li><strong>App Review = דרישה חובה.</strong> רוב ה-permissions הם "Advanced Access" → דורשים Review. יוצא מהכלל: public_profile, email, ads_read שהם "Standard Access".</li>' +
+            '<li><strong>Business Verification חובה.</strong> לפני App Review, Meta דורש <strong>אימות עסק</strong> (העלאת ח.פ., כתובת, נציג משפטי). תהליך 1-7 ימים.</li>' +
+            '<li><strong>Data Use Checkup שנתי.</strong> Meta יחייב מילוי שאלון "כיצד אתה משתמש בנתונים" אחת לשנה. אי-מילוי = אובדן גישה אוטומטי.</li>' +
+            '<li><strong>Instagram חייב להיות Business/Creator + מקושר לדף פייסבוק</strong> דרך Meta Business Suite. חשבון Personal לא יעבוד.</li>' +
+          '</ol>'
+      },
+      {
+        icon: '0',
+        title: 'שלב 0: הכנות מקדימות (~30 דק)',
+        html:
+          '<p style="margin:0 0 8px;font-weight:600;font-size:0.86rem">וודא שיש לך:</p>' +
+          '<ul style="margin:0 0 14px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
+            '<li>חשבון Facebook אישי (לא של העסק — אישי שלך כמנהל)</li>' +
+            '<li><strong>דף פייסבוק עסקי</strong> של Flowmatic (Page, לא פרופיל)</li>' +
+            '<li><strong>חשבון Instagram Business</strong> מקושר לדף הפייסבוק הזה</li>' +
+            '<li><a href="https://business.facebook.com" target="_blank" dir="ltr">Meta Business Manager</a> עם העסק מוגדר</li>' +
+            '<li><strong>Ad Account</strong> פעיל ב-Business Manager (יכול להיות ריק, לא חייב חיוב)</li>' +
+          '</ul>' +
+          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">אם חסר משהו:</p>' +
+          '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#6B7280;line-height:1.6">' +
+            '<li><strong>דף פייסבוק עסקי:</strong> facebook.com → Pages → Create New Page</li>' +
+            '<li><strong>IG Business:</strong> אפליקציית אינסטגרם → Settings → Account Type → Switch to Business → קשר לדף הפייסבוק</li>' +
+            '<li><strong>Business Manager:</strong> <a href="https://business.facebook.com" target="_blank" dir="ltr">business.facebook.com</a> → Create Account → הזן שם עסק + כתובת + אימייל</li>' +
+            '<li><strong>Ad Account:</strong> Business Manager → Business Settings → Accounts → Ad Accounts → Add → Create New</li>' +
+          '</ul>'
+      },
+      {
+        icon: '1',
+        title: 'שלב 1: יצירת האפליקציה (~10 דק)',
+        html:
+          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">1.1 צור App חדש:</p>' +
+          '<ol style="margin:0 0 14px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
+            '<li>היכנס ל-<a href="https://developers.facebook.com/apps" target="_blank" dir="ltr">developers.facebook.com/apps</a></li>' +
+            '<li><strong>Create App</strong> (ימין למעלה)</li>' +
+            '<li><strong>Use Case</strong>: <strong>Other</strong> (הכי גמיש למערכת מולטי-תכליתית)</li>' +
+            '<li><strong>App Type</strong>: <strong>Business</strong></li>' +
+            '<li><strong>App Name</strong>: <code dir="ltr" style="background:#F3F4F6;padding:1px 5px;border-radius:3px">Flowmatic — Autonomous Marketing</code></li>' +
+            '<li><strong>Contact Email</strong>: האימייל שלך</li>' +
+            '<li><strong>Business Account</strong>: קשר ל-Business Manager שיצרת</li>' +
+            '<li>לחץ <strong>Create App</strong></li>' +
+          '</ol>' +
+          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">1.2 Settings → Basic:</p>' +
+          '<ul style="margin:0 0 14px;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
+            '<li><strong>App Domains</strong>: <code dir="ltr">clawflow.flowmatic.co.il</code> + <code dir="ltr">flowmatic.co.il</code></li>' +
+            '<li><strong>Privacy Policy URL</strong>: <code dir="ltr">https://flowmatic.co.il/privacy</code> (חובה!)</li>' +
+            '<li><strong>Terms of Service URL</strong>: <code dir="ltr">https://flowmatic.co.il/terms</code></li>' +
+            '<li><strong>User Data Deletion</strong>: <code dir="ltr">https://flowmatic.co.il/data-deletion</code></li>' +
+            '<li><strong>Category</strong>: Business and Pages</li>' +
+            '<li><strong>Icon</strong>: העלה לוגו 1024×1024 PNG</li>' +
+            '<li>לחץ <strong>Save Changes</strong></li>' +
+          '</ul>' +
+          '<p style="margin:0;font-size:0.82rem;color:#6B7280">📋 <strong>שמור:</strong> App ID + App Secret (Show → העתק).</p>'
+      },
+      {
+        icon: '2',
+        title: 'שלב 2: הוספת Products (~15 דק)',
+        html:
+          '<p style="margin:0 0 10px;font-size:0.85rem;color:#4B5563">ב-Dashboard → <strong>Add Products</strong> → הוסף בזה אחר זה:</p>' +
+          '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px 12px;margin-bottom:10px">' +
+            '<div style="font-weight:700;font-size:0.85rem;margin-bottom:4px">2.1 Facebook Login for Business</div>' +
+            '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
+              '<li>Add Product → Facebook Login for Business → Set Up</li>' +
+              '<li>בחר <strong>"Build Your Own"</strong> (לא "Authenticate via FB")</li>' +
+              '<li>Settings של המוצר:<br><strong>Client OAuth Login</strong>: ON · <strong>Web OAuth Login</strong>: ON · <strong>Enforce HTTPS</strong>: ON</li>' +
+              '<li><strong>Valid OAuth Redirect URIs</strong>:<br><code dir="ltr" style="background:#FFF;padding:2px 6px;border-radius:3px;font-size:0.78rem;display:inline-block;margin-top:2px">https://api.clawflow.flowmatic.co.il/hosting/integrations/meta/callback</code></li>' +
+              '<li>Save Changes</li>' +
+            '</ul>' +
+          '</div>' +
+          '<div style="background:#FDF2F8;border:1px solid #FBCFE8;border-radius:6px;padding:10px 12px;margin-bottom:10px">' +
+            '<div style="font-weight:700;font-size:0.85rem;margin-bottom:4px">2.2 Instagram Graph API</div>' +
+            '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
+              '<li>Add Product → חפש <strong>"Instagram"</strong> → Set Up (זו הגרסה של Instagram Graph API)</li>' +
+              '<li><strong>Instagram Basic Display</strong>: OFF (מופסק מאפריל 2025)</li>' +
+              '<li><strong>Instagram Graph API</strong>: ON</li>' +
+              '<li>חבר את Instagram Business Account דרך הכפתור</li>' +
+            '</ul>' +
+          '</div>' +
+          '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:6px;padding:10px 12px;margin-bottom:10px">' +
+            '<div style="font-weight:700;font-size:0.85rem;margin-bottom:4px">2.3 Marketing API</div>' +
+            '<p style="margin:0;font-size:0.82rem;color:#4B5563">Add Product → Marketing API → Set Up. נדרש לפרסום ממומן — יפעיל ads_management + ads_read.</p>' +
+          '</div>' +
+          '<div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:10px 12px;margin-bottom:10px">' +
+            '<div style="font-weight:700;font-size:0.85rem;margin-bottom:4px">2.4 Messenger Platform (לDMs)</div>' +
+            '<p style="margin:0;font-size:0.82rem;color:#4B5563">Add Product → Messenger → Set Up. זה הכרחי ל-pages_messaging + instagram_manage_messages.</p>' +
+          '</div>' +
+          '<div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:6px;padding:10px 12px">' +
+            '<div style="font-weight:700;font-size:0.85rem;margin-bottom:4px">2.5 Webhooks (אופציונלי, מומלץ)</div>' +
+            '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
+              '<li>Add Product → Webhooks → Set Up</li>' +
+              '<li><strong>Object</strong>: Page → Subscribe</li>' +
+              '<li><strong>Callback URL</strong>: <code dir="ltr">https://api.clawflow.flowmatic.co.il/hosting/integrations/meta/webhook</code></li>' +
+              '<li><strong>Fields</strong>: messages, messaging_postbacks, feed, comments, ratings, messaging_reactions</li>' +
+            '</ul>' +
+          '</div>'
+      },
+      {
+        icon: '3',
+        title: 'שלב 3: Permissions (Scopes) — החשוב ביותר',
+        html:
+          '<p style="margin:0 0 10px;font-size:0.85rem;color:#4B5563">ב-<strong>App Review → Permissions and Features</strong> הוסף את כל ה-scopes הבאים ל-<strong>Advanced Access</strong>:</p>' +
+          '<div style="font-weight:700;font-size:0.85rem;color:#1F2937;margin-bottom:4px">3.1 Pages (Facebook)</div>' +
+          '<table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin-bottom:14px">' +
+            '<tr style="background:#F9FAFB"><th style="padding:5px 8px;text-align:right;border:1px solid #E5E7EB">Scope</th><th style="padding:5px 8px;text-align:right;border:1px solid #E5E7EB">למה</th><th style="padding:5px 8px;text-align:right;border:1px solid #E5E7EB">גישה</th></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_show_list</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">רשימת דפים</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Standard</td></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_read_engagement</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">קריאת תגובות, reach</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Advanced</td></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_read_user_content</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">תגובות ובקורות משתמשים</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Advanced</td></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_manage_posts</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">פרסום/עריכה/מחיקה של פוסטים</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Advanced</td></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_manage_engagement</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">מענה לתגובות, סימון</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Advanced</td></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_manage_metadata</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">שעות, about, metadata</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Advanced</td></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_messaging</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">DMs ב-Messenger</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Advanced</td></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_manage_ads</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">פרסום ממומן מהעמוד</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Advanced</td></tr>' +
+          '</table>' +
+          '<div style="font-weight:700;font-size:0.85rem;color:#1F2937;margin-bottom:4px">3.2 Instagram Business</div>' +
+          '<table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin-bottom:14px">' +
+            '<tr style="background:#F9FAFB"><th style="padding:5px 8px;text-align:right;border:1px solid #E5E7EB">Scope</th><th style="padding:5px 8px;text-align:right;border:1px solid #E5E7EB">למה</th></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">instagram_basic</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">זיהוי + metadata של IG account</td></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">instagram_content_publish</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">פרסום פוסטים + ריילס + סטוריות</td></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">instagram_manage_comments</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">מענה לתגובות + סימון</td></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">instagram_manage_messages</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">DMs ב-Instagram Direct</td></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">instagram_manage_insights</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">metrics (reach, saves, impressions)</td></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">instagram_shopping_tag_products</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">תיוג מוצרים (אם יש Shop)</td></tr>' +
+          '</table>' +
+          '<div style="font-weight:700;font-size:0.85rem;color:#1F2937;margin-bottom:4px">3.3 Ads &amp; Business</div>' +
+          '<table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin-bottom:10px">' +
+            '<tr style="background:#F9FAFB"><th style="padding:5px 8px;text-align:right;border:1px solid #E5E7EB">Scope</th><th style="padding:5px 8px;text-align:right;border:1px solid #E5E7EB">למה</th></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">ads_management</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">יצירה + עריכה + pause של קמפיינים</td></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">ads_read</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">קריאת insights</td></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">business_management</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">גישה ל-Business Manager assets</td></tr>' +
+            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">leads_retrieval</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">שליפת לידים מ-Lead Ads</td></tr>' +
+          '</table>' +
+          '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:6px;padding:8px 10px;font-size:0.8rem;color:#78350F">' +
+            '💡 <strong>טיפ</strong>: הגש את כל ה-scopes ב-<strong>batch אחד</strong> — Meta בודק יחד, זה מהיר יותר.' +
+          '</div>' +
+          '<p style="margin:10px 0 6px;font-weight:600;font-size:0.85rem">איך מבקשים כל scope:</p>' +
+          '<ol style="margin:0;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
+            '<li>App Review → Permissions and Features</li>' +
+            '<li>ליד כל scope → <strong>Request Advanced Access</strong></li>' +
+            '<li>Meta ידרוש: <strong>Screencast</strong> (וידאו 2-5 דקות של הפיצ\'ר בתוך Flowmatic), Platform=Web, הסבר ב-2-3 משפטים, שלבי בדיקה</li>' +
+          '</ol>'
+      },
+      {
+        icon: '4',
+        title: 'שלב 4: Business Verification (5 ימי עבודה)',
+        html:
+          '<p style="margin:0 0 10px;font-size:0.85rem;color:#4B5563">חובה <strong>לפני</strong> שתקבל Advanced Access על רוב ה-scopes.</p>' +
+          '<ol style="margin:0;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
+            '<li><a href="https://business.facebook.com" target="_blank" dir="ltr">Business Manager</a> → <strong>Security Center</strong> → Start Verification</li>' +
+            '<li><strong>Legal Business Name</strong>: בדיוק כמו ב-ח.פ.</li>' +
+            '<li><strong>Business Address</strong>: כתובת רשמית (תואמת ל-ח.פ.)</li>' +
+            '<li><strong>Phone Number</strong>: מספר העסק (לא אישי)</li>' +
+            '<li>העלאת מסמכים:' +
+              '<ul style="margin:4px 0;padding-right:18px">' +
+                '<li><strong>Proof of Business</strong>: תעודת רישום ח.פ. מרשם החברות / עוסק מורשה ממע"מ</li>' +
+                '<li><strong>Proof of Address</strong>: חשבון חשמל/מים (&lt; 6 חודשים)</li>' +
+                '<li><strong>Legal Representative</strong>: צילום ת"ז + מסמך שמאשר שאתה מורשה חתימה</li>' +
+              '</ul>' +
+            '</li>' +
+            '<li>Meta תשלח code verification לטלפון/כתובת — הזן</li>' +
+            '<li>המתן 1-7 ימים לבדיקה</li>' +
+          '</ol>'
+      },
+      {
+        icon: '5',
+        title: 'שלב 5: App Review Submission (3-10 ימי עבודה)',
+        html:
+          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">5.1 הכנה</p>' +
+          '<ul style="margin:0 0 12px;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
+            '<li>App Review → My Permissions and Features → וודא שכל 18 ה-scopes בסטטוס "Requested"</li>' +
+            '<li>App Review → Verification → וודא ש-Business Verified ✓</li>' +
+            '<li>Settings → Basic → Privacy + Terms URLs פעילים (לחץ עליהם, חייבים להחזיר 200)</li>' +
+          '</ul>' +
+          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">5.2 לכל scope הכן screencast (2-4 דקות)</p>' +
+          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
+            '<li>הרץ screen recording (OBS / Loom / QuickTime)</li>' +
+            '<li>הצג: Login ל-Flowmatic עם חשבון Facebook → אישור ה-permission → שימוש בפיצ\'ר (למשל פרסום פוסט דרך הסוכן) → תוצאה (הפוסט מופיע בדף)</li>' +
+            '<li>העלה ל-YouTube <strong>Unlisted</strong> (לא Private — Meta לא יוכל לראות)</li>' +
+            '<li>הדבק לינק לכל scope ב-Review form</li>' +
+          '</ol>' +
+          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">5.3 Test Users</p>' +
+          '<p style="margin:0 0 6px;font-size:0.82rem;color:#4B5563">צור 2-3 Test Users ב-App Roles → Test Users:</p>' +
+          '<ul style="margin:0 0 12px;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
+            '<li>אחד עם גישה לעמוד פייסבוק</li>' +
+            '<li>אחד עם גישה לחשבון Instagram</li>' +
+            '<li>אחד עם גישה ל-Ad Account</li>' +
+          '</ul>' +
+          '<p style="margin:0 0 10px;font-size:0.82rem;color:#4B5563">ציין את ה-credentials של ה-test users ב-Review form כדי ש-reviewer של Meta יוכל להתחבר.</p>' +
+          '<p style="margin:0;font-size:0.82rem;color:#4B5563"><strong>5.4 Submit for Review</strong> → המתן 3-10 ימי עבודה.</p>'
+      },
+      {
+        icon: '6',
+        title: 'שלב 6: לאחר Review אושרה',
+        html:
+          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">6.1 העבר ל-Live Mode</p>' +
+          '<p style="margin:0 0 12px;font-size:0.82rem;color:#4B5563">App Settings → Basic → <strong>App Mode</strong>: Development → <strong>Live</strong></p>' +
+          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">6.2 בדוק שהכל עובד</p>' +
+          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
+            '<li>חזור ל-Flowmatic → הגדרות → Integrations → Meta</li>' +
+            '<li>הזן App ID + App Secret</li>' +
+            '<li>לחץ <strong>"→ חברו Meta Ads"</strong></li>' +
+            '<li>תועבר ל-Facebook OAuth → <strong>אשר את כל ה-permissions</strong></li>' +
+            '<li>בחר את דף הפייסבוק + חשבון Instagram + Ad Account</li>' +
+            '<li>תועבר חזרה ל-Flowmatic עם "מחובר ✓"</li>' +
+          '</ol>' +
+          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">6.3 הפעל סוכנים</p>' +
+          '<p style="margin:0 0 6px;font-size:0.82rem;color:#4B5563">Flowmatic → סוכן MATEH → הגדרות → הפעל:</p>' +
+          '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
+            '<li><strong>שליח (Distribution)</strong>: יפרסם ל-Facebook + Instagram לפי ה-Content Calendar</li>' +
+            '<li><strong>מאזין (Social Listening)</strong>: יעקוב תגובות + DMs ויחזיר אותם ל-Activity Queue לאישורך</li>' +
+            '<li><strong>Meta Ads Executor</strong>: יצור + יעדכן קמפיינים לפי האסטרטגיה</li>' +
+            '<li><strong>Meta Performance Sync</strong>: יסנכרן insights כל 24 שעות</li>' +
+          '</ul>'
+      },
+      {
+        icon: '🔧',
+        title: 'תחזוקה שוטפת',
+        html:
+          '<ul style="margin:0;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.7">' +
+            '<li><strong>Data Use Checkup</strong>: כל שנה Meta ישלח מייל — מלא תוך 60 יום</li>' +
+            '<li><strong>App Events</strong>: הוסף Meta Pixel לאתר flowmatic.co.il (Events Manager → Pixels) — חובה לרוב ה-advanced targeting</li>' +
+            '<li><strong>Token Refresh</strong>: tokens תקפים 60 ימים — הקוד שלנו מרענן אוטומטית. אם אתה רואה "Token Expired" → בצע OAuth flow מחדש</li>' +
+            '<li>אם תשנה Privacy Policy או Terms → עדכן URLs ב-App Settings</li>' +
+          '</ul>'
+      },
+      {
+        icon: '✅',
+        title: 'Checklist סופי',
+        html:
+          '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.8;list-style:none">' +
+            '<li>☐ דף Facebook + IG Business + Business Manager + Ad Account קיימים</li>' +
+            '<li>☐ App נוצר ב-developers.facebook.com (Type=Business)</li>' +
+            '<li>☐ Products הוספת: FB Login for Business, Instagram Graph API, Marketing API, Messenger, Webhooks</li>' +
+            '<li>☐ Valid OAuth Redirect URI הוסף</li>' +
+            '<li>☐ Privacy Policy + Terms + Data Deletion URLs פעילים</li>' +
+            '<li>☐ Business Verification אושר</li>' +
+            '<li>☐ 18 scopes ב-Advanced Access (Requested / Approved)</li>' +
+            '<li>☐ Screencasts לכל scope הועלו (YouTube Unlisted)</li>' +
+            '<li>☐ Test Users נוצרו עם credentials</li>' +
+            '<li>☐ App Review הוגש והתקבל</li>' +
+            '<li>☐ App Mode=Live</li>' +
+            '<li>☐ חיבור ב-Flowmatic הצליח</li>' +
+            '<li>☐ Meta Pixel הוטמע באתר</li>' +
+          '</ul>' +
+          '<p style="margin:12px 0 0;font-size:0.82rem;color:#6B7280;background:#F9FAFB;padding:8px 10px;border-radius:6px"><strong>זמן כולל</strong>: ~3-6 שבועות (רוב הזמן Business Verification + App Review).<br><strong>עלות</strong>: $0 — Meta APIs חינם. היחיד שעולה: media spend שתכניס ל-Ad Account.</p>'
+      }
     ]
   },
   linkedin: {
@@ -5892,15 +6153,36 @@ function showPublishGuide(platform) {
 
   document.getElementById('taskPopupTitle').textContent = guide.title;
 
-  var bodyHtml = guide.steps.map(function(step, i) {
-    return '<div style="display:flex;gap:12px;margin-bottom:16px">' +
-      '<div style="width:28px;height:28px;border-radius:50%;background:#DBEAFE;color:#2563EB;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.82rem;flex-shrink:0">' + (i + 1) + '</div>' +
-      '<div>' +
-        '<div style="font-weight:600;font-size:0.88rem;margin-bottom:2px">' + step.title + '</div>' +
-        '<div style="font-size:0.82rem;color:#4B5563;line-height:1.5">' + step.desc + '</div>' +
-      '</div>' +
-    '</div>';
-  }).join('');
+  var bodyHtml = '';
+  if (guide.subtitle) {
+    bodyHtml += '<div style="font-size:0.8rem;color:#6B7280;background:#F9FAFB;padding:8px 12px;border-radius:6px;margin-bottom:14px">' + guide.subtitle + '</div>';
+  }
+
+  // New structure — rich sections with HTML content
+  if (Array.isArray(guide.sections)) {
+    bodyHtml += guide.sections.map(function(sec) {
+      var iconHtml = '<div style="width:32px;height:32px;border-radius:50%;background:#DBEAFE;color:#2563EB;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0">' + (sec.icon || '•') + '</div>';
+      return '<div style="margin-bottom:22px">' +
+        '<div style="display:flex;gap:12px;align-items:center;margin-bottom:10px">' +
+          iconHtml +
+          '<div style="font-weight:700;font-size:1rem;color:#1F2937">' + sec.title + '</div>' +
+        '</div>' +
+        '<div style="padding-right:44px;font-size:0.85rem;color:#1F2937;line-height:1.6">' + (sec.html || '') + '</div>' +
+      '</div>';
+    }).join('');
+  }
+  // Legacy structure — flat numbered steps (linkedin, twitter, wordpress, googleads)
+  else if (Array.isArray(guide.steps)) {
+    bodyHtml += guide.steps.map(function(step, i) {
+      return '<div style="display:flex;gap:12px;margin-bottom:16px">' +
+        '<div style="width:28px;height:28px;border-radius:50%;background:#DBEAFE;color:#2563EB;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.82rem;flex-shrink:0">' + (i + 1) + '</div>' +
+        '<div>' +
+          '<div style="font-weight:600;font-size:0.88rem;margin-bottom:2px">' + step.title + '</div>' +
+          '<div style="font-size:0.82rem;color:#4B5563;line-height:1.5">' + step.desc + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
 
   document.getElementById('taskPopupBody').innerHTML = bodyHtml;
   document.getElementById('taskPopupFooter').innerHTML = '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
