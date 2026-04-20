@@ -5117,6 +5117,52 @@ function normalizeCtaType(raw: string | undefined | null): string {
     return 'none'
 }
 
+// ── Israeli week boundaries (Sun-Sat aligned) ───────────────────────────
+// The Israeli work week is Sunday → Thursday. Week 1 starts at startDate;
+// subsequent weeks always start on Sunday and run through Saturday.
+// Using unified boundaries across Skeleton prompt, validator, volume cap
+// and buildPerformanceContext avoids the off-by-one drift between "Mon-started"
+// counting and the model's implicit Sun-Sat mental model.
+function computeIsraeliWeekBoundaries(startDate: Date, weeksAhead: number): Array<{ num: number; start: string; end: string; startDate: Date; endDate: Date }> {
+    const boundaries: Array<{ num: number; start: string; end: string; startDate: Date; endDate: Date }> = []
+    let wkStart = new Date(startDate)
+    wkStart.setHours(0, 0, 0, 0)
+    for (let w = 0; w < weeksAhead; w++) {
+        let wkEnd: Date
+        if (w === 0) {
+            // Week 1: from startDate through the next Saturday (may be < 7 days)
+            const daysToSat = (6 - wkStart.getDay() + 7) % 7
+            wkEnd = new Date(wkStart)
+            wkEnd.setDate(wkStart.getDate() + daysToSat)
+        } else {
+            // Weeks 2+: always Sun-Sat (7 days)
+            wkEnd = new Date(wkStart)
+            wkEnd.setDate(wkStart.getDate() + 6)
+        }
+        boundaries.push({
+            num: w + 1,
+            start: wkStart.toISOString().slice(0, 10),
+            end: wkEnd.toISOString().slice(0, 10),
+            startDate: new Date(wkStart),
+            endDate: new Date(wkEnd),
+        })
+        wkStart = new Date(wkEnd)
+        wkStart.setDate(wkEnd.getDate() + 1)
+    }
+    return boundaries
+}
+
+function weekIndexForDate(dateStr: string, boundaries: ReturnType<typeof computeIsraeliWeekBoundaries>): number {
+    const d = new Date(dateStr)
+    d.setHours(0, 0, 0, 0)
+    for (const b of boundaries) {
+        if (d.getTime() >= b.startDate.getTime() && d.getTime() <= b.endDate.getTime()) {
+            return b.num - 1
+        }
+    }
+    return -1
+}
+
 // ── Duplicate hook detection (v4 fix #1) ────────────────────────────────
 // Returns groups of items whose hooks share a near-identical prefix.
 // Threshold: first 8 Hebrew characters match (normalized — lowercase, strip punctuation).
@@ -5142,36 +5188,31 @@ function detectDuplicateHooks(items: ContentPlanItem[]): Array<{ prefix: string;
 // This isolates structural constraints (weekly buckets, persona quota, pillar
 // distribution, IG reel ratio, course_1499 share) from copywriting concerns.
 async function generateSkeleton(ctx: GenContext): Promise<ContentSlot[]> {
-    // Compute exact week boundaries so the model can't collapse weeks 3-4
-    const weekBoundaries: { num: number; start: string; end: string }[] = []
-    for (let w = 0; w < ctx.weeksAhead; w++) {
-        const ws = new Date(ctx.startDate)
-        ws.setDate(ws.getDate() + w * 7)
-        const we = new Date(ctx.startDate)
-        we.setDate(we.getDate() + (w + 1) * 7 - 1)
-        weekBoundaries.push({
-            num: w + 1,
-            start: ws.toISOString().slice(0, 10),
-            end: we.toISOString().slice(0, 10),
-        })
-    }
+    // Sun-Sat aligned week boundaries (Israeli work week convention)
+    const weekBoundaries = computeIsraeliWeekBoundaries(ctx.startDate, ctx.weeksAhead)
+    const planEndIso = weekBoundaries[weekBoundaries.length - 1].end
     const prompt = `You are a marketing ops planner for ${ctx.businessName}.
 
 TASK: Build ONLY the structure (no copy, no hooks, no briefs) for a ${ctx.weeksAhead}-week POC content plan.
 
 ## Period — you MUST cover ALL ${ctx.weeksAhead} weeks
-From ${ctx.startIso} to ${ctx.endIso} — Asia/Jerusalem timezone.
+From ${ctx.startIso} to ${planEndIso} — Asia/Jerusalem timezone.
 
 ## 🇮🇱 Israeli work week (CRITICAL!)
-The Israeli work week is **Sunday → Thursday**. Sunday is a FULL workday, NOT a weekend.
+The Israeli work week is **Sunday → Thursday**. Sunday is day 1 of the week, NOT a weekend.
 - **SKIP Saturday** (שבת) entirely — no organic posts
 - **Friday only until 13:00** — no afternoon/evening content
-- **Sunday (ראשון) is primary workday** — treat exactly like Monday in western plans
+- **Sunday is the first workday** — it's often the best day for blog/email/LinkedIn in IL
 
-## Explicit week boundaries (each week MUST have 6-7 items, spread across Sun-Thu)
-${weekBoundaries.map(w => `- **Week ${w.num}: ${w.start} → ${w.end}** — 6-7 items REQUIRED`).join('\n')}
+## Explicit week boundaries — Sun-Sat aligned (each week MUST have 6-7 items)
+${weekBoundaries.map(w => {
+    const days = Math.round((w.endDate.getTime() - w.startDate.getTime()) / (24 * 3600 * 1000)) + 1
+    return `- **Week ${w.num}: ${w.start} → ${w.end}** (${days} days) — 6-7 items REQUIRED${w.num === 1 && days < 7 ? ' — partial first week is OK, still deliver 6-7 items' : ''}`
+}).join('\n')}
 
-If any week has 0 items, the plan is REJECTED. Do not cluster all items in weeks 1-2.
+If any week has <5 items OR >7 items, the plan is REJECTED. Do not cluster all items in one week.
+
+**Week ${weekBoundaries.length} MUST include items on its Sunday (${weekBoundaries[weekBoundaries.length - 1].start}) — don't cut the plan short after Thursday!**
 
 ## Products
 ${productsBlock({ products: ctx.products, productsFunnel: ctx.productsFunnel })}
@@ -5644,9 +5685,9 @@ async function generateContentPlan(
     const weeksAhead = opts.weeksAhead || 4
     const startDate = opts.startDate || new Date()
     const startIso = startDate.toISOString().slice(0, 10)
-    const endDate = new Date(startDate)
-    endDate.setDate(endDate.getDate() + weeksAhead * 7)
-    const endIso = endDate.toISOString().slice(0, 10)
+    // endIso = last day of the last Israeli Sun-Sat week (aligned with planner)
+    const _wkBounds = computeIsraeliWeekBoundaries(startDate, weeksAhead)
+    const endIso = _wkBounds[_wkBounds.length - 1].end
 
     const dayNamesHe = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת']
     const todayDayName = dayNamesHe[startDate.getDay()]
@@ -5745,14 +5786,14 @@ async function generateContentPlan(
     })
     plan.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
 
-    // Hard volume cap — if skeleton overshot 28, trim balanced across weeks
+    // Hard volume cap — if skeleton overshot, trim balanced across Israeli Sun-Sat weeks
+    const israeliWeeks = computeIsraeliWeekBoundaries(startDate, weeksAhead)
     const maxItems = weeksAhead * 7
     if (plan.length > maxItems) {
         const byWeek: Record<number, ContentPlanItem[]> = {}
         plan.forEach(it => {
-            const d = new Date(it.date)
-            const wk = Math.floor((d.getTime() - startDate.getTime()) / (7 * 24 * 3600 * 1000))
-            ;(byWeek[wk] = byWeek[wk] || []).push(it)
+            const wk = weekIndexForDate(it.date, israeliWeeks)
+            if (wk >= 0) (byWeek[wk] = byWeek[wk] || []).push(it)
         })
         const trimmed: ContentPlanItem[] = []
         Object.keys(byWeek).sort((a, b) => Number(a) - Number(b)).forEach(wkStr => {
@@ -5824,32 +5865,32 @@ function qaContentPlan(
     personaTitles: string[] = []
 ): { ok: boolean; issues: string[] } {
     const issues: string[] = []
-    const expectedDays = weeksAhead * 7
     const expectedMinItems = weeksAhead * 5
     const expectedMaxItems = weeksAhead * 7
 
     if (plan.length < expectedMinItems) issues.push(`too few items (${plan.length} < ${expectedMinItems})`)
     if (plan.length > expectedMaxItems) issues.push(`too many items (${plan.length} > ${expectedMaxItems})`)
 
-    // Date coverage
-    const endDate = new Date(startDate)
-    endDate.setDate(endDate.getDate() + expectedDays - 1)
+    // Date coverage — using Israeli Sun-Sat week boundaries
+    const boundaries = computeIsraeliWeekBoundaries(startDate, weeksAhead)
+    const lastWeekSun = boundaries[boundaries.length - 1].start
     const maxDate = plan.reduce((m, it) => it.date > m ? it.date : m, '0000-00-00')
-    const targetEndIso = endDate.toISOString().slice(0, 10)
-    if (maxDate < targetEndIso) issues.push(`plan ends ${maxDate}, expected through ${targetEndIso}`)
+    if (maxDate < lastWeekSun) {
+        issues.push(`plan ends ${maxDate}, must cover Sunday of last week (${lastWeekSun})`)
+    }
 
-    // Per-week minimum coverage (5-7 items each)
+    // Per-week minimum coverage using Sun-Sat boundaries
     const byWeek: Record<number, number> = {}
     for (let w = 0; w < weeksAhead; w++) byWeek[w] = 0
     plan.forEach(it => {
-        const d = new Date(it.date)
-        const wk = Math.floor((d.getTime() - startDate.getTime()) / (7 * 24 * 3600 * 1000))
-        if (wk >= 0 && wk < weeksAhead) byWeek[wk] = (byWeek[wk] || 0) + 1
+        const wk = weekIndexForDate(it.date, boundaries)
+        if (wk >= 0) byWeek[wk] = (byWeek[wk] || 0) + 1
     })
     Object.keys(byWeek).forEach(wkStr => {
-        const c = byWeek[Number(wkStr)]
-        if (c < 5) issues.push(`week ${Number(wkStr) + 1} has only ${c} items (expected 5-7)`)
-        if (c > 7) issues.push(`week ${Number(wkStr) + 1} has ${c} items (max 7)`)
+        const w = Number(wkStr)
+        const c = byWeek[w]
+        if (c < 5) issues.push(`week ${w + 1} (${boundaries[w].start}→${boundaries[w].end}) has only ${c} items (expected 5-7)`)
+        if (c > 7) issues.push(`week ${w + 1} (${boundaries[w].start}→${boundaries[w].end}) has ${c} items (max 7)`)
     })
 
     // Pillar whitelist compliance + representation
