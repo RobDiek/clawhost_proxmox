@@ -5161,7 +5161,8 @@ NO "hook", NO "brief", NO "ctaType" — those come later. Structure only. Sort A
         body: JSON.stringify({
             model: 'claude-opus-4-7',
             max_tokens: 6000,
-            thinking: { type: 'enabled', budget_tokens: 8000 },
+            thinking: { type: 'adaptive' },
+            output_config: { effort: 'high' },
             messages: [{ role: 'user', content: prompt }],
         }),
         signal: AbortSignal.timeout(240000),
@@ -5315,7 +5316,8 @@ Apply **minimum** patches to satisfy all violations. Don't change things that ar
             body: JSON.stringify({
                 model: 'claude-opus-4-7',
                 max_tokens: 4000,
-                thinking: { type: 'enabled', budget_tokens: 4000 },
+                thinking: { type: 'adaptive' },
+                output_config: { effort: 'medium' },
                 messages: [{ role: 'user', content: prompt }],
             }),
             signal: AbortSignal.timeout(180000),
@@ -5398,7 +5400,8 @@ JSON only.`
             body: JSON.stringify({
                 model: 'claude-opus-4-7',
                 max_tokens: 3000,
-                thinking: { type: 'enabled', budget_tokens: 4000 },
+                thinking: { type: 'adaptive' },
+                output_config: { effort: 'medium' },
                 messages: [{ role: 'user', content: prompt }],
             }),
             signal: AbortSignal.timeout(150000),
@@ -5797,7 +5800,8 @@ ${JSON.stringify(plan.slice(0, 40).map(it => ({
             body: JSON.stringify({
                 model: 'claude-opus-4-7',
                 max_tokens: 4000,
-                thinking: { type: 'enabled', budget_tokens: 6000 },
+                thinking: { type: 'adaptive' },
+                output_config: { effort: 'high' },
                 messages: [{ role: 'user', content: prompt }],
             }),
             signal: AbortSignal.timeout(180000),
