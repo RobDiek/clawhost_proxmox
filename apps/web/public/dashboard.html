@@ -10845,32 +10845,54 @@ async function submitAgentSetup() {
     });
     var analyzeData = await analyzeRes.json();
 
-    if (analyzeData.success && analyzeData.data && analyzeData.data.questions && analyzeData.data.questions.length > 0) {
-      // Show clarifying questions inline
+    var detected = (analyzeData.data && Array.isArray(analyzeData.data.detectedProducts)) ? analyzeData.data.detectedProducts : [];
+    var questions = (analyzeData.data && Array.isArray(analyzeData.data.questions)) ? analyzeData.data.questions : [];
+
+    if (analyzeData.success && (detected.length > 0 || questions.length > 0)) {
       var formEl = document.getElementById('agent-setup-form');
       formEl.classList.add('hidden');
 
       var clarifyHtml = '<div id="dashboard-clarify" style="background:#F8FAFC;border:2px solid #DBEAFE;border-radius:14px;padding:24px;margin-bottom:20px">' +
         '<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:20px">' +
         '<div style="width:40px;height:40px;border-radius:50%;background:#2563EB;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;color:#fff">&#129302;</div>' +
-        '<div><div style="font-weight:700;font-size:1.05rem;color:#111827;margin-bottom:4px">שאלות לפני שמתחילים</div>' +
+        '<div><div style="font-weight:700;font-size:1.05rem;color:#111827;margin-bottom:4px">לפני שמתחילים — רגע של דיוק</div>' +
         '<div style="font-size:0.88rem;color:#4B5563;line-height:1.5">' + (analyzeData.data.assessment || '') + '</div></div></div>';
 
-      analyzeData.data.questions.forEach(function(q) {
-        var whyText = q.why ? '<div style="font-size:0.78rem;color:#6B7280;margin-top:2px;font-style:italic">' + q.why + '</div>' : '';
-        clarifyHtml += '<div style="margin-bottom:16px">' +
-          '<label style="display:block;font-weight:600;font-size:0.95rem;margin-bottom:6px;color:#1F2937">' + q.question + '</label>' +
-          whyText +
-          '<textarea id="dc-' + q.id + '" placeholder="' + (q.placeholder || '') + '" rows="3" style="width:100%;padding:12px 14px;border:2px solid #E5E7EB;border-radius:10px;font-size:0.95rem;font-family:inherit;resize:vertical;transition:border-color .2s;background:#fff" onfocus="this.style.borderColor=\'#2563EB\'" onblur="this.style.borderColor=\'#E5E7EB\'"></textarea></div>';
-      });
+      // ── Products section ──
+      clarifyHtml += '<div style="margin-bottom:22px">' +
+        '<div style="font-weight:700;font-size:0.98rem;color:#1F2937;margin-bottom:4px">🛒 המוצרים והשירותים שלך</div>' +
+        '<div style="font-size:0.8rem;color:#6B7280;margin-bottom:10px">כל SKU בנפרד — שם, מחיר, מודל. זה מאפשר לסוכנים לבנות funnel נפרד לכל מוצר.' +
+        (detected.length > 0 ? ' זיהינו ' + detected.length + ' מוצר' + (detected.length > 1 ? 'ים' : '') + ' באתר שלך — אשר או ערוך.' : '') +
+        '</div>' +
+        '<div id="products-list"></div>' +
+        '<button type="button" onclick="addProductRow()" style="background:#fff;border:1px dashed #BFDBFE;color:#2563EB;padding:8px 14px;border-radius:8px;font-size:0.85rem;cursor:pointer;margin-top:6px">+ הוסף מוצר</button>' +
+        '</div>';
 
-      clarifyHtml += '<div style="background:#EFF6FF;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:0.82rem;color:#3B82F6;display:flex;align-items:center;gap:6px">' +
-        '<span style="font-size:1rem">&#128161;</span> אם אין לכם תשובה — השאירו ריק. המערכת תבצע מחקר עצמאי ותמלא את החסר.</div>' +
+      // ── Clarifying questions ──
+      if (questions.length > 0) {
+        clarifyHtml += '<div style="font-weight:700;font-size:0.98rem;color:#1F2937;margin-bottom:10px;margin-top:18px">💬 שאלות משלימות</div>';
+        questions.forEach(function(q) {
+          var whyText = q.why ? '<div style="font-size:0.78rem;color:#6B7280;margin-top:2px;font-style:italic">' + q.why + '</div>' : '';
+          clarifyHtml += '<div style="margin-bottom:16px">' +
+            '<label style="display:block;font-weight:600;font-size:0.92rem;margin-bottom:6px;color:#1F2937">' + q.question + '</label>' +
+            whyText +
+            '<textarea id="dc-' + q.id + '" placeholder="' + (q.placeholder || '') + '" rows="3" style="width:100%;padding:12px 14px;border:2px solid #E5E7EB;border-radius:10px;font-size:0.95rem;font-family:inherit;resize:vertical;transition:border-color .2s;background:#fff" onfocus="this.style.borderColor=\'#2563EB\'" onblur="this.style.borderColor=\'#E5E7EB\'"></textarea></div>';
+        });
+      }
+
+      clarifyHtml += '<div style="background:#EFF6FF;border-radius:8px;padding:10px 14px;margin:16px 0;font-size:0.82rem;color:#3B82F6;display:flex;align-items:center;gap:6px">' +
+        '<span style="font-size:1rem">&#128161;</span> אם לא ברור — השאר ריק, המערכת תשלים במחקר.</div>' +
         '<button class="btn btn-primary" onclick="submitClarifiedDashboard()" style="width:100%;padding:14px;font-size:1rem">המשיכו להגדרה &rarr;</button></div>';
 
-      // Insert before setup-step2
       var step2 = document.getElementById('setup-step2');
       step2.insertAdjacentHTML('beforebegin', clarifyHtml);
+
+      // Pre-fill product rows
+      if (detected.length > 0) {
+        detected.forEach(function(p) { addProductRow(p); });
+      } else {
+        addProductRow();
+      }
 
       btn.disabled = false;
       btn.textContent = 'עדכנו את הסוכנים \u2192';
@@ -10880,8 +10902,88 @@ async function submitAgentSetup() {
     console.log('Analyze skipped:', e);
   }
 
-  // No questions — proceed to deploy
-  await deployAgentsDashboard(answers);
+  // Fallback: even if analyze failed or returned nothing, we still need the products step.
+  // Show minimal clarify UI with just the products section — user must define ≥1 SKU.
+  var formEl = document.getElementById('agent-setup-form');
+  formEl.classList.add('hidden');
+  var fallbackHtml = '<div id="dashboard-clarify" style="background:#F8FAFC;border:2px solid #DBEAFE;border-radius:14px;padding:24px;margin-bottom:20px">' +
+    '<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:20px">' +
+    '<div style="width:40px;height:40px;border-radius:50%;background:#2563EB;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;color:#fff">&#129302;</div>' +
+    '<div><div style="font-weight:700;font-size:1.05rem;color:#111827;margin-bottom:4px">לפני שמתחילים — רגע של דיוק</div>' +
+    '<div style="font-size:0.88rem;color:#4B5563;line-height:1.5">כדי לבנות funnel נכון לכל מוצר — פרטו את המוצרים/שירותים שלכם.</div></div></div>' +
+    '<div style="margin-bottom:22px">' +
+      '<div style="font-weight:700;font-size:0.98rem;color:#1F2937;margin-bottom:4px">🛒 המוצרים והשירותים שלך</div>' +
+      '<div style="font-size:0.8rem;color:#6B7280;margin-bottom:10px">כל SKU בנפרד — שם, מחיר, מודל.</div>' +
+      '<div id="products-list"></div>' +
+      '<button type="button" onclick="addProductRow()" style="background:#fff;border:1px dashed #BFDBFE;color:#2563EB;padding:8px 14px;border-radius:8px;font-size:0.85rem;cursor:pointer;margin-top:6px">+ הוסף מוצר</button>' +
+    '</div>' +
+    '<button class="btn btn-primary" onclick="submitClarifiedDashboard()" style="width:100%;padding:14px;font-size:1rem">המשיכו להגדרה &rarr;</button></div>';
+  var step2Fb = document.getElementById('setup-step2');
+  step2Fb.insertAdjacentHTML('beforebegin', fallbackHtml);
+  addProductRow();
+  btn.disabled = false;
+  btn.textContent = 'עדכנו את הסוכנים \u2192';
+}
+
+// ── Product row helpers for clarify UI ──
+var _productRowSeq = 0;
+function addProductRow(prefill) {
+  var list = document.getElementById('products-list');
+  if (!list) return;
+  if (list.children.length >= 6) { showToast('מקסימום 6 מוצרים', 'error'); return; }
+  var id = 'prod-' + (_productRowSeq++);
+  var p = prefill || { name: '', priceIls: '', priceModel: 'unknown', description: '' };
+  var price = (p.priceIls != null && p.priceIls !== '') ? p.priceIls : '';
+  var modelOpts = [
+    { v: 'subscription_monthly', l: 'מנוי חודשי' },
+    { v: 'one_time', l: 'חד-פעמי' },
+    { v: 'tiered', l: 'מדורג' },
+    { v: 'free', l: 'חינם / ליד-מגנט' },
+    { v: 'unknown', l: 'לא ברור עדיין' }
+  ];
+  var selectHtml = '<select id="' + id + '-model" style="padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.85rem;background:#fff;font-family:inherit">';
+  modelOpts.forEach(function(o) {
+    selectHtml += '<option value="' + o.v + '"' + (o.v === p.priceModel ? ' selected' : '') + '>' + o.l + '</option>';
+  });
+  selectHtml += '</select>';
+  var row = document.createElement('div');
+  row.id = id;
+  row.className = 'product-row';
+  row.style.cssText = 'background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:12px;margin-bottom:8px;display:grid;grid-template-columns:1.5fr 1fr 1.2fr 2fr auto;gap:8px;align-items:start';
+  row.innerHTML =
+    '<input id="' + id + '-name" placeholder="שם המוצר" value="' + escapeAttr(p.name) + '" style="padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.9rem"/>' +
+    '<input id="' + id + '-price" type="number" min="0" placeholder="מחיר ₪" value="' + escapeAttr(price) + '" style="padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.9rem;direction:ltr;text-align:right"/>' +
+    selectHtml +
+    '<input id="' + id + '-desc" placeholder="למי ומה זה נותן" value="' + escapeAttr(p.description) + '" style="padding:8px 10px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.85rem"/>' +
+    '<button type="button" onclick="removeProductRow(\'' + id + '\')" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:1.2rem;padding:4px 8px" title="הסר">✕</button>';
+  list.appendChild(row);
+}
+function removeProductRow(id) {
+  var list = document.getElementById('products-list');
+  if (!list) return;
+  if (list.children.length <= 1) { showToast('חובה לפחות מוצר אחד', 'error'); return; }
+  var row = document.getElementById(id);
+  if (row) row.remove();
+}
+function collectProducts() {
+  var list = document.getElementById('products-list');
+  if (!list) return [];
+  var out = [];
+  Array.prototype.forEach.call(list.children, function(row) {
+    var id = row.id;
+    var name = (document.getElementById(id + '-name') || {}).value || '';
+    var price = (document.getElementById(id + '-price') || {}).value || '';
+    var model = (document.getElementById(id + '-model') || {}).value || 'unknown';
+    var desc = (document.getElementById(id + '-desc') || {}).value || '';
+    name = name.trim(); desc = desc.trim();
+    if (!name) return;
+    var priceIls = price === '' ? null : parseFloat(price);
+    out.push({ name: name, priceIls: (isNaN(priceIls) ? null : priceIls), priceModel: model, description: desc });
+  });
+  return out;
+}
+function escapeAttr(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 }
 
 async function submitClarifiedDashboard() {
@@ -10898,6 +11000,14 @@ async function submitClarifiedDashboard() {
   if (clarifications.length > 0) {
     answers.clarifications = clarifications.join('\n');
   }
+
+  // Collect products (critical for multi-SKU funnel planning)
+  var products = collectProducts();
+  if (products.length === 0) {
+    showToast('הוסיפו לפחות מוצר/שירות אחד', 'error');
+    return;
+  }
+  answers.products = products;
 
   // Remove clarify UI
   var clarifyEl = document.getElementById('dashboard-clarify');

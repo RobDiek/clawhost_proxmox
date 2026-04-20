@@ -20,6 +20,68 @@ async function getApiKeyForInstance(instanceId: string): Promise<string> {
     return process.env.ANTHROPIC_API_KEY || ''
 }
 
+// ── Fetch landing page content as markdown-ish text (~2-5KB) ──
+// Onboarding-time product/pricing detection. Tries Firecrawl (user key → master
+// env key), falls back to plain fetch + HTML strip. Returns empty string if all
+// fail — caller gracefully degrades to questionnaire text only.
+async function fetchLandingContent(url: string, userFirecrawlKey?: string): Promise<string> {
+    if (!url || !/^https?:\/\//i.test(url)) return ''
+    const fcKey = userFirecrawlKey || process.env.FIRECRAWL_MASTER_KEY || ''
+
+    if (fcKey) {
+        try {
+            const res = await fetch('https://api.firecrawl.dev/v1/scrape', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${fcKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url, formats: ['markdown'], onlyMainContent: true, timeout: 15000 }),
+                signal: AbortSignal.timeout(20000),
+            })
+            if (res.ok) {
+                const data = await res.json() as { success?: boolean; data?: { markdown?: string } }
+                const md = data?.data?.markdown || ''
+                if (md.length > 200) return md.substring(0, 8000)
+            }
+        } catch (e) {
+            console.warn('Firecrawl landing fetch failed, falling back:', (e as Error).message)
+        }
+    }
+
+    // Fallback: plain fetch + strip HTML
+    try {
+        const res = await fetch(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ClawFlow/1.0)' },
+            signal: AbortSignal.timeout(15000),
+            redirect: 'follow',
+        })
+        if (!res.ok) return ''
+        const html = await res.text()
+        // Strip scripts/styles/nav/footer chrome, decode entities, collapse whitespace
+        const text = html
+            .replace(/<script\b[\s\S]*?<\/script>/gi, '')
+            .replace(/<style\b[\s\S]*?<\/style>/gi, '')
+            .replace(/<noscript\b[\s\S]*?<\/noscript>/gi, '')
+            .replace(/<nav\b[\s\S]*?<\/nav>/gi, '')
+            .replace(/<footer\b[\s\S]*?<\/footer>/gi, '')
+            .replace(/<svg\b[\s\S]*?<\/svg>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, '\'')
+            .replace(/\s+/g, ' ')
+            .trim()
+        return text.substring(0, 6000)
+    } catch (e) {
+        console.warn('Plain fetch landing failed:', (e as Error).message)
+        return ''
+    }
+}
+
 // ── SSH helper (with timeout) ──
 function sshExec(ip: string, command: string, password?: string, timeoutMs = 120000): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -52,6 +114,13 @@ function sshWriteFile(ip: string, remotePath: string, content: string, password?
 }
 
 // ── Generate USER.md + BRAND.md via Claude ──
+interface ProductSku {
+    name: string
+    priceIls: number | null
+    priceModel: 'subscription_monthly' | 'one_time' | 'tiered' | 'free' | 'unknown'
+    description: string
+}
+
 interface OnboardingAnswers {
     businessName: string
     businessDescription: string
@@ -66,6 +135,27 @@ interface OnboardingAnswers {
     tone?: string
     budget?: string
     clarifications?: string
+    products?: ProductSku[]
+}
+
+// Format products list as a readable Hebrew block for prompts.
+// Returns empty string if no products — callers can use `productsBlock(answers) || 'fallback'`.
+function productsBlock(answers: { products?: ProductSku[] }): string {
+    const list = answers.products || []
+    if (list.length === 0) return ''
+    const modelLabels: Record<string, string> = {
+        subscription_monthly: 'מנוי חודשי',
+        one_time: 'חד-פעמי',
+        tiered: 'מדורג',
+        free: 'חינם (ליד-מגנט)',
+        unknown: 'לא ברור',
+    }
+    const lines = list.map((p, i) => {
+        const price = p.priceIls != null ? `₪${p.priceIls}` : 'מחיר לא צוין'
+        const model = modelLabels[p.priceModel] || p.priceModel
+        return `${i + 1}. **${p.name}** — ${price} (${model}) — ${p.description || 'ללא תיאור'}`
+    })
+    return lines.join('\n')
 }
 
 async function generateWithClaude(answers: OnboardingAnswers, apiKeyOverride?: string): Promise<{ userMd: string; brandMd: string }> {
@@ -533,7 +623,18 @@ export const analyzeAnswers = async (c: Context) => {
 
         if (!apiKey) {
             // No API key — skip clarifying questions
-            return ok(c, { questions: [], ready: true }, 'No clarifying questions needed.')
+            return ok(c, { questions: [], detectedProducts: [], ready: true }, 'No clarifying questions needed.')
+        }
+
+        // ── Crawl landing page if URL provided ──
+        // This is how we detect actual products/pricing/USP instead of guessing from free-text.
+        let landingContent = ''
+        if (answers.websiteUrl) {
+            const [instRow] = await db.select({ firecrawlKey: instances.firecrawlKey }).from(instances).where(eq(instances.id, instanceId))
+            landingContent = await fetchLandingContent(answers.websiteUrl, instRow?.firecrawlKey || undefined)
+            if (landingContent) {
+                console.log(`Landing crawl: ${answers.websiteUrl} → ${landingContent.length} chars`)
+            }
         }
 
         const prompt = `אתה ראש צוות שיווק דיגיטלי ישראלי מנוסה. אתה מכין תשתית למערכת של 9 סוכני AI שיווקיים שיעבדו אוטונומית עבור העסק.
@@ -542,7 +643,7 @@ export const analyzeAnswers = async (c: Context) => {
 - סייר: מחקר מתחרים באינטרנט (צריך URLs ו-USP ברור)
 - מאתר: מחקר SERP ומילות מפתח (צריך לדעת מה הלקוח מחפש)
 - מאזין: ניטור שיחות ברשתות (צריך לדעת איפה הקהל "תקוע")
-- מנתח: ניתוח הזדמנויות (צריך להבין מחזור מכירה ו-unit economics)
+- מנתח: ניתוח הזדמנויות (צריך להבין מחזור מכירה ו-unit economics לכל SKU)
 - עט: כתיבה (צריך voice & tone + דוגמאות)
 - שליח: הפצה (צריך לדעת לאילו פלטפורמות ובאיזו תדירות)
 
@@ -558,22 +659,41 @@ export const analyzeAnswers = async (c: Context) => {
 - טון: ${answers.tone || 'לא צוין'}
 - תקציב: ${answers.budget || 'לא צוין'}
 - אתגרים: ${answers.challenges || 'לא צוין'}
+${landingContent ? `
+## תוכן הלנדינג של העסק (נקרא אוטומטית מ-${answers.websiteUrl})
+${landingContent}
+` : ''}
 
-המשימה: נתח את הנתונים מנקודת המבט של הסוכנים. זהה מה חסר להם כדי להתחיל לעבוד אוטונומית. שאל 2-3 שאלות שימלאו את הפערים הקריטיים ביותר.
+המשימה: נתח את הנתונים מנקודת המבט של הסוכנים. זהה **כל מוצר/שירות** שהעסק מוכר, וכל מה שחסר לסוכנים כדי לבצע funnel נפרד לכל SKU.
 
-החזר JSON בלבד:
+החזר JSON בלבד בפורמט המדויק הזה:
 {
-  "assessment": "הערכה קצרה — מה ברור ומה חסר",
+  "assessment": "הערכה קצרה — מה ברור על המוצרים, קהלים, מודל מכירה; מה חסר",
+  "detectedProducts": [
+    {
+      "name": "שם המוצר/שירות כפי שמופיע באתר או בתיאור",
+      "priceIls": 3000,
+      "priceModel": "subscription_monthly|one_time|tiered|free|unknown",
+      "description": "משפט קצר — מה זה ולמי"
+    }
+  ],
   "questions": [
     { "id": "q1", "question": "השאלה בעברית", "placeholder": "דוגמה לתשובה מועילה", "type": "text", "why": "הסבר קצר למה זה חשוב" }
   ]
 }
 
-כללים:
+כללי detectedProducts:
+- **זה הכי חשוב:** ${landingContent ? 'חלץ את כל המוצרים מתוכן הלנדינג — לפי סקשנים של תמחור, CTAs, "המוצרים שלנו", וכיוצ"ב. אם יש 2 מוצרים (כמו "פלטפורמה + קורס") — חובה לכלול את שניהם' : 'מהתיאור/תשובות זיהה כל SKU שמוזכר. אם משהו לא ברור — השאר ריק והתשאל בשאלה'}
+- priceIls: אם מצאת מחיר במטבע אחר, המר לשקל (USD × 3.8). אם לא מצאת מחיר — השתמש ב-null
+- priceModel: \`subscription_monthly\` (מנוי חודשי), \`one_time\` (חד-פעמי/קורס), \`tiered\` (כמה חבילות), \`free\` (ליד מגנט), \`unknown\` (לא ברור)
+- מקסימום 6 מוצרים. מינימום 0 (אם באמת לא זיהית אף אחד)
+
+כללי questions:
 - מקסימום 3 שאלות — רק מה שבאמת קריטי לסוכנים
-- אם המידע מספיק — החזר questions ריק
-- תעדוף: (1) URLs של מתחרים (2) USP/יתרון תחרותי (3) מחזור מכירה ומחיר (4) איפה הלקוחות "תקועים" אונליין (5) האם הבעלים personal brand
-- אל תשאל על מה שכבר ברור מהתשובות
+- אם detectedProducts **ריק או חלקי** — שאלה #1 חייבת להיות "מה המוצרים שאתה מוכר ובאיזה מחיר?"
+- אם יש 2+ מוצרים — שאל "איך הם מחוברים ב-funnel? איזה מביא את השני?"
+- תעדוף נוסף: USP/יתרון, מחזור מכירה, איפה הלקוחות "תקועים" אונליין
+- אל תשאל על מה שכבר ברור מהתשובות/לנדינג
 - כל שאלה חייבת why שמסביר למה הסוכנים צריכים את זה`
 
         const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -603,10 +723,19 @@ export const analyzeAnswers = async (c: Context) => {
 
             try {
                 const parsed = JSON.parse(jsonStr)
+                const detectedProducts = Array.isArray(parsed.detectedProducts)
+                    ? parsed.detectedProducts.slice(0, 6).map((p: any) => ({
+                        name: String(p.name || '').trim(),
+                        priceIls: typeof p.priceIls === 'number' ? p.priceIls : null,
+                        priceModel: ['subscription_monthly', 'one_time', 'tiered', 'free', 'unknown'].includes(p.priceModel) ? p.priceModel : 'unknown',
+                        description: String(p.description || '').trim(),
+                    })).filter((p: { name: string }) => p.name)
+                    : []
                 return ok(c, {
                     assessment: parsed.assessment || '',
                     questions: parsed.questions || [],
-                    ready: !parsed.questions || parsed.questions.length === 0,
+                    detectedProducts,
+                    ready: (!parsed.questions || parsed.questions.length === 0) && detectedProducts.length > 0,
                 }, 'Analysis complete.')
             } catch (parseErr) {
                 // JSON still invalid — try to extract questions manually
@@ -621,12 +750,12 @@ export const analyzeAnswers = async (c: Context) => {
                 })).filter(q => q.question)
 
                 if (questions.length > 0) {
-                    return ok(c, { assessment, questions, ready: false }, 'Analysis complete (recovered).')
+                    return ok(c, { assessment, questions, detectedProducts: [], ready: false }, 'Analysis complete (recovered).')
                 }
             }
         }
 
-        return ok(c, { questions: [], ready: true }, 'No clarifying questions needed.')
+        return ok(c, { questions: [], detectedProducts: [], ready: true }, 'No clarifying questions needed.')
     } catch (err) {
         console.error('analyzeAnswers error:', err)
         // On error, skip clarifying questions and proceed
@@ -1066,6 +1195,7 @@ const STRATEGY_STAGES = [
 - טון מותג: ${answers.tone || 'ידידותי ונגיש'}
 - תקציב: ${answers.budget || 'לא צוין'}
 - מטרות: ${answers.marketingGoals || 'לא צוין'}
+${productsBlock(answers) ? `\n## מוצרים ושירותים (SKUs — חייבים להיות מכוסים כולם!)\n${productsBlock(answers)}\n\n**קריטי:** פוזיציונינג מתייחס לכל המוצרים יחד ו-anti-positioning קובע מי לא הלקוח שלנו לכל SKU בנפרד.\n` : ''}
 
 ## ממצאי המחקר המלאים (5 שלבים)
 ${research}
@@ -1314,12 +1444,13 @@ ${extracted.validation}
 ## מידע:
 - תקציב: ${answers.budget || 'לא צוין — המלץ לעסק חדש/קטן בישראל'}
 - מטרות שיווק: ${answers.marketingGoals || 'לא צוין'}
+${productsBlock(answers) ? `\n## מוצרים (funnel נפרד לכל אחד!)\n${productsBlock(answers)}\n\n**חובה:** funnel שונה לכל מוצר — כי CPC, CAC, AOV, LTV שונים. קורס ₪3,000 one-time ≠ SaaS ₪399/חודש. אם יש feeder path (e.g. קורס → SaaS) — ציין.\n` : ''}
 
 ---
 
-## 9. Marketing Funnel (פירוט לפי פרסונה)
+## 9. Marketing Funnel (פירוט לפי פרסונה **ולכל מוצר/SKU בנפרד**)
 
-לכל אחת מ-3 הפרסונות — **טבלה מלאה**:
+${productsBlock(answers) ? '**לכל מוצר** בנפרד — **טבלה נפרדת**, כי ה-CAC, AOV, LTV ו-conversion rate שונים:' : 'לכל אחת מ-3 הפרסונות — **טבלה מלאה**:'}
 
 | Stage | ערוץ עיקרי | Asset / Content | CTA | Success Metric | יעד חודש 1 | יעד חודש 3 | תקציב חודשי |
 |---|---|---|---|---|---|---|---|
@@ -1328,6 +1459,8 @@ ${extracted.validation}
 | BOFU — Conversion | | | | | | | |
 | Retention | | | | | | | |
 | Advocacy / Referral | | | | | | | |
+
+${productsBlock(answers) ? '### Cross-SKU Journey\nאם יש 2+ מוצרים: איך לקוח מ-SKU A מומר ל-SKU B? מה ה-trigger? (e.g. "בוגר קורס → מוזמן ל-trial SaaS עם 30% הנחה חודש ראשון")\n' : ''}
 
 ### Lead Magnets ספציפיים
 לכל פרסונה — **2 lead magnets** קונקרטיים:
@@ -2205,6 +2338,7 @@ Flowmatic = **hosting מקצועי לסוכני AI**. המודל העסקי של
 ## תקציב שציין המשתמש: ${userBudget || 'לא צוין'}
 ## לקוחות קיימים: ${existingCustomers || 'לא צוין'}
 ## שלב העסק: ${businessStage || 'לא צוין'}
+${productsBlock(answers) ? `\n## מוצרים (כל אחד funnel נפרד!)\n${productsBlock(answers)}\n\n**קריטי ל-KPIs:**\n- אל תציג רק \`customers\` כמספר כללי. חובה \`customersPerSku\` עם breakdown לכל מוצר.\n- AOV שונה בתכלית: one_time (e.g. קורס ₪3,000) ≠ subscription_monthly (e.g. SaaS ₪399). MRR מחושב רק ממוצרי subscription; מוצרי one_time נכנסים ל-\`oneTimeRevenueIls\` בנפרד.\n- CAC sustainability שונה: מוצר one_time ₪3,000 יכול לסבול CAC של ₪800-1200. מוצר SaaS ₪399/mo דורש CAC ≤ ₪600 (LTV ~₪4K).\n- אם יש feeder path (free course → paid SaaS, או one-time → subscription) — פרסם conversion rate משוער (e.g. "15% מבוגרי קורס הופכים מנויי SaaS תוך 30 יום").\n- **תקציב paid traffic** — מותר/רצוי יותר עבור מוצרי one_time/tiered עם AOV גבוה. אל תגביל עצמך לטווחים של SaaS only!\n` : ''}
 
 ## האסטרטגיה המלאה (4 שלבים):
 ${strategyFull}
@@ -2248,8 +2382,8 @@ ${validation.substring(0, 5000)}
       "timeline": "X-Y חודשים לתוצאות ראשונות",
       "primaryChannels": ["FB Group X", "LinkedIn Organic", "..."],
       "kpis": {
-        "month1": { "customers": N, "mrr": "₪N", "leads": N },
-        "month3": { "customers": N, "mrr": "₪N", "leads": N }
+        "month1": { "customers": N, "mrr": "₪N", "leads": N, "oneTimeRevenueIls": N, "customersPerSku": { "<sku-name>": N } },
+        "month3": { "customers": N, "mrr": "₪N", "leads": N, "oneTimeRevenueIls": N, "customersPerSku": { "<sku-name>": N } }
       },
       "costs": {
         "tokensUsd":  { "min": 20, "max": 40 },
@@ -3671,6 +3805,7 @@ function buildResearchPrompt(stage: number, opts: {
 - זו משימה חדשה לגמרי — לא ראית אותה קודם. אל תאמר "כבר עניתי" — ענה מחדש.`
 
     if (stage === 1) {
+        const prodBlk = productsBlock(answers)
         return {
             agentId: 'sayer',
             minLength: 2000,
@@ -3679,6 +3814,7 @@ function buildResearchPrompt(stage: number, opts: {
 ## תיאור העסק
 ${businessDesc}
 ${answers.competitors ? `\nמתחרים שציין המשתמש: ${answers.competitors}` : ''}
+${prodBlk ? `\n## המוצרים/שירותים של ${businessName} (כל אחד בנפרד — חשוב לניתוח תחרותי!)\n${prodBlk}\n` : ''}
 
 ## הוראות
 ${searchTool}${crawlTool}
@@ -3699,6 +3835,7 @@ ${searchTool}${crawlTool}
 - **חוזקות:** [2-3 נקודות]
 - **חולשות:** [2-3 נקודות — במיוחד מול ${businessName}]
 - **נוכחות דיגיטלית:** [בלוג? תכיפות? רשתות?]
+- **השוואה per SKU:** ${prodBlk ? 'לכל מוצר של ' + businessName + ' — מה האלטרנטיבה אצל המתחרה? מי זול יותר/יקר יותר/חסר בכלל?' : 'השוואה כללית'}
 - **SERP — הדירוגים שלהם:**
   | מילת מפתח | מיקום | URL ספציפי | סוג דף | איכות/עומק |
   |---|---|---|---|---|
@@ -3804,6 +3941,7 @@ ${RULES}`
     }
 
     if (stage === 3) {
+        const prodBlk3 = productsBlock(answers)
         return {
             agentId: 'sayer',
             minLength: 1500,
@@ -3812,14 +3950,16 @@ ${RULES}`
 ## הוראות
 קרא את research-data/RESEARCH_STAGE1.md (מתחרים) ו-research-data/RESEARCH_STAGE2.md (מילות מפתח).
 ${searchTool}${crawlTool}
+${prodBlk3 ? `\n## המוצרים של ${businessName} (עובד עם כל אחד בנפרד!)\n${prodBlk3}\n\n**חשוב:** לכל פרסונה — ציין איזה מוצר/ים מתאימים לה, ואם יש הבדלי WTP בין המוצרים.\n` : ''}
 
 חפש בעומק:
 1. **איפה קהל היעד מדבר** — שמות ספציפיים של קבוצות/subreddits/פורומים עם מספר חברים
 2. **6+ כאבים מרכזיים** — ציטוטים אמיתיים עם מקור (URL)
-3. **3 פרסונות מפורטות** — עם קשר למילות המפתח
-4. **Pricing Validation** — חפש ראיות אמיתיות לכמה הקהל מוכן לשלם: דיונים על מחיר ב-Reddit/פורומים, מחירים של מתחרים, statistics על average SaaS spend
-5. **גודל שוק TAM/SAM/SOM** — עם מקורות
+3. **3 פרסונות מפורטות** — עם קשר למילות המפתח ${prodBlk3 ? 'ו**לכל פרסונה — איזה מוצר/ים היא קונה, ובאיזה סדר**' : ''}
+4. **Pricing Validation ${prodBlk3 ? 'per SKU' : ''}** — חפש ראיות אמיתיות לכמה הקהל מוכן לשלם: דיונים על מחיר ב-Reddit/פורומים, מחירים של מתחרים, statistics על average SaaS spend${prodBlk3 ? '. **לכל מוצר בנפרד:** האם המחיר הנוכחי הגיוני? צריך לעלות/לרדת?' : ''}
+5. **גודל שוק TAM/SAM/SOM** — עם מקורות${prodBlk3 ? ' (נפרד לכל מוצר אם הקהל שונה)' : ''}
 6. **Why Now** — מה משתנה עכשיו שיוצר הזדמנות לפרסונות אלה?
+${prodBlk3 ? '7. **Cross-sell / Upsell path** — איך המוצרים מחוברים? מי feeder של מי? (e.g. קורס → SaaS, או חבילה משותפת)' : ''}
 ${answers.targetAudience ? `\nקהל יעד שצוין: ${answers.targetAudience}` : ''}
 
 ## פורמט תשובה (חובה)
