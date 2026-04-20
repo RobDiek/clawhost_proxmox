@@ -5122,10 +5122,14 @@ ${opts.performanceContext ? `\n## ביצועים מהחודש הקודם (לתי
         },
         body: JSON.stringify({
             model: 'claude-haiku-4-5-20251001',
-            max_tokens: 12000,
-            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 16000,
+            messages: [
+                { role: 'user', content: prompt },
+                // Prefill forces Haiku to continue from "[" — guaranteed JSON array start
+                { role: 'assistant', content: '[' },
+            ],
         }),
-        signal: AbortSignal.timeout(180000),
+        signal: AbortSignal.timeout(200000),
     })
 
     if (!res.ok) {
@@ -5134,17 +5138,56 @@ ${opts.performanceContext ? `\n## ביצועים מהחודש הקודם (לתי
     }
 
     const data = await res.json() as { content?: Array<{ text: string }> }
-    const text = data.content?.[0]?.text || ''
+    let text = data.content?.[0]?.text || ''
 
-    // Extract JSON array
-    const arrMatch = text.match(/\[[\s\S]*\]/)
-    if (!arrMatch) throw new Error('LLM did not return a JSON array')
-    let jsonStr = arrMatch[0]
+    // Since we prefilled "[" in the assistant turn, the model continues from
+    // the first element. We prepend "[" back to make it a valid array.
+    text = '[' + text
+    // Strip markdown fences if Haiku wrapped the JSON despite prefill
+    text = text.replace(/```(?:json)?\s*/gi, '').replace(/```\s*$/g, '').trim()
+
+    // Find outermost JSON array — greedy match for the LAST closing ] to handle
+    // nested objects. Prefer [...] but fall back to {"items":[...]} if model
+    // wrapped in an object.
+    let jsonStr: string | null = null
+    const firstBracket = text.indexOf('[')
+    const lastBracket = text.lastIndexOf(']')
+    if (firstBracket >= 0 && lastBracket > firstBracket) {
+        jsonStr = text.substring(firstBracket, lastBracket + 1)
+    } else if (firstBracket >= 0 && lastBracket < 0) {
+        // Truncated — no closing bracket. Try to close the array ourselves by
+        // trimming to the last complete object.
+        const lastBrace = text.lastIndexOf('}')
+        if (lastBrace > firstBracket) {
+            jsonStr = text.substring(firstBracket, lastBrace + 1) + ']'
+            console.warn('generateContentPlan: Haiku output was truncated, closing array at last complete object')
+        }
+    }
+    if (!jsonStr) {
+        console.error('generateContentPlan: no JSON array in Haiku output. First 1000 chars:', text.substring(0, 1000))
+        throw new Error('LLM did not return a JSON array')
+    }
+
     jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1')
     jsonStr = sanitizeJsonControlChars(jsonStr)
 
-    const rawItems = JSON.parse(jsonStr) as any[]
+    let rawItems: any[]
+    try {
+        rawItems = JSON.parse(jsonStr)
+    } catch (parseErr) {
+        console.error('generateContentPlan: JSON.parse failed. Error:', (parseErr as Error).message)
+        console.error('First 1500 chars of jsonStr:', jsonStr.substring(0, 1500))
+        // Last-resort: try extracting only the first N complete objects
+        const objectMatches = jsonStr.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g) || []
+        if (objectMatches.length > 0) {
+            rawItems = objectMatches.map(s => { try { return JSON.parse(s) } catch { return null } }).filter(Boolean)
+            console.log(`generateContentPlan: recovered ${rawItems.length} objects via per-object parse`)
+        } else {
+            throw new Error('LLM output JSON malformed — ' + (parseErr as Error).message.substring(0, 100))
+        }
+    }
     if (!Array.isArray(rawItems)) throw new Error('Not an array')
+    if (rawItems.length === 0) throw new Error('LLM returned empty plan')
 
     const plan: ContentPlanItem[] = rawItems.map((r): ContentPlanItem => ({
         id: 'cp_' + nanoid(10),
