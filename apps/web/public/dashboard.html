@@ -3638,11 +3638,18 @@ function renderHome() {
     var hideBtn = '<button class="task-hide" onclick="hideTask(\'' + t.id + '\')" title="הסתירו">&times;</button>';
     if (t.done) {
       var viewLink = '';
-      if (t.id === 'research') viewLink = '<button class="notif-action" onclick="viewReport()">צפו בדוח →</button>';
-      if (t.id === 'strategy') viewLink = '<button class="notif-action" onclick="viewStrategy()">צפו באסטרטגיה →</button>';
+      var rebuildLink = '';
+      if (t.id === 'research') {
+        viewLink = '<button class="notif-action" onclick="viewReport()">צפו בדוח →</button>';
+        rebuildLink = '<button class="notif-action" onclick="rebuildEverything()" title="לאפס מחקר + אסטרטגיה ולהתחיל מחדש" style="color:#B91C1C">🔁 לבנות מחדש</button>';
+      }
+      if (t.id === 'strategy') {
+        viewLink = '<button class="notif-action" onclick="viewStrategy()">צפו באסטרטגיה →</button>';
+        rebuildLink = '<button class="notif-action" onclick="rebuildStrategyOnly()" title="לאפס רק את האסטרטגיה, לשמור את המחקר" style="color:#B45309">🔁 לבנות מחדש</button>';
+      }
       tasksHtml += '<div class="task-item done-task">' +
         '<span style="display:flex;align-items:center;gap:8px;flex:1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' + t.label + '</span>' +
-        viewLink + hideBtn + '</div>';
+        viewLink + rebuildLink + hideBtn + '</div>';
     } else {
       pendingCount++;
       if (pendingCount === 1) {
@@ -3716,8 +3723,10 @@ function getNotifications() {
   // Integration recommendations — only show AFTER basic onboarding is done
   // (profile filled + research run). Before that, homeTasks checklist guides the user.
   var basicDone = hasAgents && hasResearch;
+  var hasPersonalOrBare = !isBare && components.indexOf('oc') !== -1;
   if (!isBare && basicDone) {
-    if (!hasGoogle && dismissed.indexOf('rec-google') === -1) {
+    // Google Calendar is only useful for Personal agent (scheduling) — not MATEH marketing
+    if (hasPersonalOrBare && !hasGoogle && dismissed.indexOf('rec-google') === -1) {
       notifs.push({ id: 'rec-google', type: 'info', icon: '💡', title: 'חברו Google Calendar', desc: 'הסוכן יוכל לנהל את היומן שלכם — פגישות, תזכורות, אירועים', action: "switchTab('integrations')", actionLabel: 'חברו עכשיו' });
     }
     if (!hasTelegram && dismissed.indexOf('rec-telegram') === -1) {
