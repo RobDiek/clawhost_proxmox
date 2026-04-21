@@ -40,14 +40,12 @@ export interface CreativeBriefOutput {
     // Main English prompt for Flux Pro 1.1 — channel/format-agnostic
     // (orchestrator will pass specific dimensions).
     imagePrompt: string
-    // Negative prompt (things to avoid). Always includes brand red-flags.
+    // Negative prompt (things to avoid). Always includes brand red-flags +
+    // the aggressive anti-cliche + no-text bans.
     negativePrompt: string
     // Compact style anchor string — few brand-defining adjectives. Reused
     // across iterations so re-generations keep visual identity.
     styleAnchor: string
-    // Optional Hebrew text overlays to bake INTO the image (hook fragment).
-    // Flux 1.1 renders Hebrew; keep short (≤6 words) for legibility.
-    textOverlayHe?: string
     // Why this creative direction (for dashboard + debugging; not sent to fal).
     rationale: string
     // Cost estimate for logging
@@ -122,27 +120,68 @@ ${brandBlock}
 ${optBlock}
 ${statsBlock}
 
-## How Flux Pro 1.1 works best
-- English prompts give much stronger subject + composition accuracy (even when the in-image text is Hebrew).
-- It renders Hebrew typography well in the \`textOverlayHe\` field — keep it ≤6 words and visually dominant.
-- Describe the scene concretely (subject, setting, lighting, mood, camera angle, depth). Avoid vague adjectives.
-- Prefer photographic realism unless the brand's imagery style is explicitly illustrative.
-- Always include a style anchor so iterations stay consistent.
-- Never include people's faces unless the brand explicitly allows portraits.
+## 🚫 HARD BANS — do not request any of these
+Flux Pro (and every text-to-image model in 2026) fails hard on these. If your
+prompt produces any of these, the generation is rejected:
 
-## Critical rules
-- Respect brand imagery DO/DON'T from the brand book verbatim.
-- Hebrew overlay text must pass a simple test: would a native Hebrew reader recognize the phrase in 1 second?
-- If channel is ${item.channel}, optimize for that aspect ratio's typical framing (feed square/portrait, reel vertical, blog horizontal).
-- Do not request text in English on the image — if there's overlay, use the Hebrew field.
+1. **NO TEXT IN THE IMAGE.** No letters, no numbers, no words, no typography
+   overlays, no logos with readable text, no UI screenshots with captions,
+   no billboards, no signs, no book covers. Hebrew in particular renders
+   as garbage. Even English text like "APPROVE" comes out as "APPRO/XW".
+   Our system embeds actual Hebrew typography via a post-processing layer —
+   the IMAGE must be clean visual content only.
+2. **NO AI-STOCK CLICHÉS.** Specifically BANNED:
+   - Dashboards / UI mockups / app screenshots on a monitor
+   - Desk scenes with lamp + clock + monitor + plant
+   - Person in silhouette at sunset looking at horizon
+   - Glowing hologram / futuristic neural network / brain with circuits
+   - "Data flowing" abstract light streams
+   - Diverse team of stock models smiling at laptop
+   - Analog clock emphasizing "time saved"
+   - Split-screen "before/after" literal comparisons
+3. **NO LITERAL DATA VISUALIZATION.** The hook mentions numbers or concepts
+   ("45 min vs 2 min") — your image should NOT literally render those
+   numbers or show a stopwatch. Communicate the FEELING instead.
 
-## Output — single JSON object, no markdown fences
+## ✅ What makes a strong visual — aim for this
+Real marketing imagery works on emotion, metaphor, and aesthetic, not on
+literal depiction. Think like a creative director at a top agency:
+
+- **70% mood / emotion / aesthetic** — what feeling does the reader get
+  in the first 0.3 seconds of scroll? Freedom, tension, warmth, craft,
+  pride, quiet confidence?
+- **25% concrete human / object anchor** — one real element that grounds
+  the metaphor. A hand, a plant, a coffee cup, a street corner, morning
+  light on a wall, a founder's workspace (real, not stock-desk).
+- **5% composition / cinematography** — specific camera angle, depth of
+  field, lighting direction, film grain aesthetic.
+
+### Good example (for a "45 min saved on automation" story)
+- ❌ Bad: "dashboard on monitor showing 45 min counter on wooden desk"
+- ✅ Good: "close-up of a woman's hands holding a warm ceramic coffee cup,
+  morning sunlight streaming through a kitchen window, soft bokeh of
+  green plants behind, 35mm film aesthetic, cinematic color grading,
+  warm honey and sage palette, deep calm, unrushed — she has time"
+
+### Good example (for "ClawFlow completes your stack" story)
+- ❌ Bad: "modern workspace with multiple monitors showing integration icons"
+- ✅ Good: "overhead flat-lay of an artisan's workbench with well-loved
+  hand tools arranged around a single new precision tool, natural wood
+  grain, dust motes in side-light, cinematic shadow, muted sage and
+  terracotta palette — craft, integration, belonging"
+
+## Channel-specific framing hints
+- Feed (FB/LinkedIn): horizontal or square, focal point slightly off-center
+- IG portrait: vertical composition, subject in upper third
+- Reel cover: high-contrast, face or object dominates frame
+- Blog hero: wide cinematic, negative space for headline overlay (we add it)
+
+## Output — single JSON object, no markdown fences, no textOverlayHe field
 {
-  "imagePrompt": "<English Flux Pro prompt — subject, setting, lighting, mood, composition, camera, depth, ~60-120 words>",
-  "negativePrompt": "<things to avoid — brand-violating elements, common Flux artifacts, anything from imagery DON'Ts, 30-60 words>",
-  "styleAnchor": "<6-12 word visual style summary — reused across iterations>",
-  "textOverlayHe": "<≤6 Hebrew words for in-image text, OR empty string if the image should have no text overlay>",
-  "rationale": "<1-2 sentence Hebrew explanation of why this visual direction>"
+  "imagePrompt": "<English Flux Pro prompt — 60-120 words. Follow the 70/25/5 ratio. NO text requests. NO UI mockups. NO clichés above.>",
+  "negativePrompt": "<60-90 words. ALWAYS include: text, letters, numbers, writing, typography, UI screenshot, dashboard, app interface, monitor display, generic office desk, stock photography, clock, watch, stopwatch, blurry, low quality, watermark, deformed, amateur. Add brand DON'Ts on top.>",
+  "styleAnchor": "<6-12 word visual style summary — reused across iterations for consistency>",
+  "rationale": "<1-2 sentences in Hebrew — WHY this metaphor/mood fits the hook and persona>"
 }
 
 Return JSON only, nothing else.`
@@ -198,11 +237,17 @@ Return JSON only, nothing else.`
         console.log(`[creativeBrief] ${item.id}: brief ready in ${((Date.now() - t0) / 1000).toFixed(1)}s (model=${model})`)
         // Rough per-model cost estimate for budget tracking
         const cost = isOpus ? 0.30 : model.startsWith('claude-sonnet') ? 0.04 : 0.01
+        // Backstop: always append our hard-ban list to the negative prompt, even
+        // if Opus forgot. Flux 1.1 reliably respects these when listed explicitly.
+        const HARD_NEG = 'text, letters, numbers, writing, typography, lettering, caption, watermark, UI screenshot, dashboard, app interface, monitor display, phone mockup, generic office desk, stock photography look, clock, watch, stopwatch, neural network visualization, glowing hologram, deformed hands, extra fingers, low quality, blurry, amateur'
+        const mergedNeg = parsed.negativePrompt
+            ? `${parsed.negativePrompt}, ${HARD_NEG}`
+            : HARD_NEG
+
         return {
             imagePrompt: String(parsed.imagePrompt),
-            negativePrompt: String(parsed.negativePrompt || 'blurry, low quality, watermark, text artifacts, distorted text, extra fingers, deformed, amateur'),
-            styleAnchor: String(parsed.styleAnchor || 'clean professional commercial photography'),
-            textOverlayHe: parsed.textOverlayHe ? String(parsed.textOverlayHe) : undefined,
+            negativePrompt: mergedNeg,
+            styleAnchor: String(parsed.styleAnchor || 'cinematic lifestyle photography, natural light, warm muted palette, subtle film grain'),
             rationale: String(parsed.rationale || ''),
             costUsd: cost,
         }

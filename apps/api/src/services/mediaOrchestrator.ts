@@ -228,11 +228,11 @@ export async function generateMediaForPlanItem(
         return null
     }
 
-    // Pass 2: Compose final prompt (brief + styleAnchor + optional overlay instruction)
-    const overlayFragment = brief.textOverlayHe
-        ? ` In-image Hebrew typography overlay: "${brief.textOverlayHe}" — large, bold, legible, brand-colored, top or bottom third depending on composition.`
-        : ''
-    const finalPrompt = `${brief.imagePrompt} Style anchor: ${brief.styleAnchor}.${overlayFragment}`
+    // Pass 2: Compose final prompt. We NEVER ask Flux to render in-image text
+    // anymore — even English comes out as "APPRO/XW" and Hebrew is garbage.
+    // Text overlays are the caption's job; if we ever need baked-in typography
+    // we'll add a post-processing compositing layer (sharp/FFmpeg) — not here.
+    const finalPrompt = `${brief.imagePrompt} Style anchor: ${brief.styleAnchor}. Clean visual content only, no text, no writing of any kind.`
 
     const genResult = await generateImagesForContentPlanItem(instanceId, {
         contentPlanItemId: item.id,
