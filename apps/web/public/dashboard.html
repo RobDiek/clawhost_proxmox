@@ -366,6 +366,17 @@ input{font-family:inherit}
 .day-chip { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-size: 0.72rem; border: 1px solid #E5E7EB; background: #fff; color: #6B7280; cursor: pointer; user-select: none; transition: all .15s; }
 .day-chip.active, input:checked + .day-chip { background: #2563EB; color: #fff; border-color: #2563EB; }
 
+/* Agent overview status chips (research/strategy/brand) */
+.agent-chip-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; background: #FFF; border: 1px solid #E5E7EB; border-radius: 10px; transition: border-color .15s; }
+.agent-chip-row:hover { border-color: #BFDBFE; }
+.agent-chip-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.agent-chip-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.agent-chip-dot.ok { background: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
+.agent-chip-dot.warn { background: #F59E0B; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+.agent-chip-title { font-weight: 600; font-size: 0.88rem; color: #111827; }
+.agent-chip-sub { font-size: 0.76rem; color: #6B7280; margin-top: 2px; }
+.agent-chip-right { display: flex; gap: 6px; flex-shrink: 0; }
+
 /* Model select in sub-agents */
 .sub-agent-model-select { border: 1px solid #E5E7EB; border-radius: 6px; padding: 3px 6px; font-size: 0.78rem; font-family: inherit; background: #fff; cursor: pointer; }
 
@@ -1049,38 +1060,59 @@ input{font-family:inherit}
     <div id="agent-detail-view" class="hidden">
       <button class="btn btn-outline" onclick="closeAgentDetail()" style="margin-bottom:16px;font-size:0.85rem">← חזרה לסוכנים</button>
 
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-        <div class="agent-icon-circle mt" style="width:44px;height:44px" id="agent-detail-icon"></div>
-        <div>
-          <h2 style="margin:0;font-size:1.3rem" id="agent-detail-name">MATEH</h2>
-          <div style="font-size:0.85rem;color:#6B7280" id="agent-detail-desc">9 סוכני שיווק</div>
+      <!-- Status header — single compact row -->
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #F3F4F6;flex-wrap:wrap">
+        <div class="agent-icon-circle mt" style="width:48px;height:48px;flex-shrink:0" id="agent-detail-icon"></div>
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <h2 style="margin:0;font-size:1.25rem" id="agent-detail-name">MATEH</h2>
+            <div class="status-badge running"><span class="status-dot"></span>פעיל</div>
+          </div>
+          <div style="font-size:0.82rem;color:#6B7280;margin-top:4px;display:flex;gap:14px;flex-wrap:wrap">
+            <span id="agent-detail-desc">9 סוכני שיווק</span>
+            <span style="color:#E5E7EB">·</span>
+            <span>AI: <strong style="color:#111827" id="agent-model">Claude Sonnet</strong></span>
+            <span id="stat-subagents" style="display:none"><span style="color:#E5E7EB">·</span>
+              <strong style="color:#111827" id="stat-subagents-val">—</strong> תת-סוכנים</span>
+            <span><span style="color:#E5E7EB">·</span> פעילות אחרונה: <strong style="color:#111827" id="agent-last-activity">—</strong></span>
+          </div>
         </div>
-        <div class="status-badge running" style="margin-right:auto"><span class="status-dot"></span>פעיל</div>
       </div>
 
       <!-- Agent detail sub-tabs -->
-      <div style="display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid #F3F4F6;padding-bottom:12px">
+      <div style="display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid #F3F4F6;padding-bottom:12px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm agent-detail-tab active" onclick="switchAgentDetailTab('overview')" id="agent-dtab-overview">סקירה</button>
-        <button class="btn btn-outline btn-sm agent-detail-tab" onclick="switchAgentDetailTab('config')" id="agent-dtab-config">הגדרות</button>
-        <button class="btn btn-outline btn-sm agent-detail-tab" onclick="switchAgentDetailTab('research')" id="agent-dtab-research">מחקר ואסטרטגיה</button>
-        <button class="btn btn-outline btn-sm agent-detail-tab" onclick="switchAgentDetailTab('memory')" id="agent-dtab-memory">זיכרון</button>
+        <button class="btn btn-outline btn-sm agent-detail-tab" onclick="switchAgentDetailTab('agents')" id="agent-dtab-agents">תת-סוכנים</button>
+        <button class="btn btn-outline btn-sm agent-detail-tab" onclick="switchAgentDetailTab('schedule')" id="agent-dtab-schedule">תזמון ונתונים</button>
+        <button class="btn btn-outline btn-sm agent-detail-tab" onclick="switchAgentDetailTab('controls')" id="agent-dtab-controls">בקרה וזיכרון</button>
       </div>
 
       <!-- Panel: Overview -->
       <div id="agent-panel-overview">
 
-      <!-- 1. Overview -->
-      <div class="section-title">סקירה כללית</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px" id="agent-overview-grid">
-        <div class="stat-card"><div class="stat-label">מודל AI</div><div class="stat-value" id="agent-model">Claude Sonnet</div></div>
-        <div class="stat-card"><div class="stat-label">פעילות אחרונה</div><div class="stat-value" id="agent-last-activity">—</div></div>
-        <div class="stat-card" id="stat-subagents"><div class="stat-label">סוכני משנה</div><div class="stat-value" id="stat-subagents-val">—</div></div>
+      <!-- Business Profile -->
+      <div id="agent-questionnaire-section">
+        <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;margin-top:0">
+          <span>פרופיל עסקי</span>
+          <button class="btn btn-outline btn-sm" onclick="openAgentQuestionnaire()" style="font-size:0.78rem">✏️ ערכו</button>
+        </div>
+        <div id="agent-saved-profile" style="margin-bottom:24px"></div>
       </div>
 
-      <!-- 2. Business Profile (questionnaire) -->
-      <div id="agent-questionnaire-section">
-      <div class="section-title">פרופיל עסקי</div>
-      <div id="agent-saved-profile" style="margin-bottom:16px"></div>
+      <!-- Research + Strategy quick status (MATEH only) -->
+      <div id="agent-research-chips" style="display:none;margin-bottom:24px">
+        <div class="section-title" style="margin-top:0">מחקר ואסטרטגיה</div>
+        <div id="agent-research-chips-content" style="display:flex;flex-direction:column;gap:10px">
+          <!-- populated by renderAgentResearchChips() -->
+        </div>
+      </div>
+
+      <!-- Brand Book mini-card (MATEH only) -->
+      <div id="agent-brand-card" style="display:none;margin-bottom:12px">
+        <div class="section-title" style="margin-top:0">זהות המותג</div>
+        <div id="agent-brand-card-content">
+          <!-- populated by renderAgentBrandCard() -->
+        </div>
       </div>
       <!-- Modal: business profile questionnaire -->
       <div id="agentSetupOverlay" class="report-modal-overlay hidden" onclick="closeAgentQuestionnaire()">
@@ -1147,19 +1179,80 @@ input{font-family:inherit}
 
       </div><!-- /agent-panel-overview -->
 
-      <!-- Panel: Config -->
-      <div id="agent-panel-config" style="display:none">
+      <!-- Panel: Sub-agents (model routing per role) -->
+      <div id="agent-panel-agents" style="display:none">
+        <div id="agents-panel-info" style="display:none;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:0.82rem;color:#1E40AF;line-height:1.6">
+          💡 כל תת-סוכן מריץ מודל AI משלו. אופטימיזציית עלות/איכות נעשית ע״י בחירת מודל מתאים לתפקיד.
+          למודלים של יצירת תמונות/וידאו — <a href="javascript:openRendersGallery('scenarios')" style="color:#1E40AF;font-weight:600">מרכז קריאייטיב → תרחישים ⚙️</a>
+        </div>
 
-      <!-- Quick links — view research / strategy / scenarios / reset -->
-      <div id="agent-quicklinks" class="section-title" style="display:flex;justify-content:space-between;align-items:center;margin-top:0">
-        <span>קיצורי דרך</span>
-      </div>
-      <div id="agent-quicklinks-row" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
-        <!-- populated by renderAgentQuickLinks() when agent-panel-config is shown -->
-      </div>
+        <!-- Sub-agents grid (MATEH) -->
+        <div id="subagents-section">
+          <div class="section-title" style="margin-top:0;display:flex;justify-content:space-between;align-items:center">
+            <span>סוכני משנה</span>
+            <button class="btn btn-primary btn-sm" onclick="saveSubAgentModels()" style="font-size:0.78rem">💾 שמרו שינויים</button>
+          </div>
+          <div class="sub-agents-grid" id="sub-agents-grid"></div>
+        </div>
 
-      <!-- 3. Scheduled Tasks (configurable) -->
-      <div class="section-title">שגרות מתוזמנות</div>
+        <!-- Model preferences (Personal/Bare agents — MATEH hides this) -->
+        <div id="model-prefs-section" style="display:none">
+          <div class="section-title" style="margin-top:24px">העדפות מודל</div>
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div>
+                <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">משימות פשוטות</div>
+                <div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:6px">יומן, מיילים, שיחה קצרה</div>
+                <select id="model-simple" class="sub-agent-model-select" style="width:100%"></select>
+              </div>
+              <div>
+                <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">משימות מורכבות</div>
+                <div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:6px">ניתוח, כתיבה ארוכה, החלטות</div>
+                <select id="model-complex" class="sub-agent-model-select" style="width:100%"></select>
+              </div>
+            </div>
+            <div style="margin-top:14px">
+              <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">Heartbeat</div>
+              <div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:6px">בדיקות רקע כל 4 שעות</div>
+              <select id="model-heartbeat" class="sub-agent-model-select" style="width:50%"></select>
+            </div>
+            <div style="margin-top:14px;text-align:left">
+              <button class="btn btn-primary btn-sm" onclick="saveModelPrefs()" style="font-size:0.78rem">💾 שמרו</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tool profile (Personal/Bare agents) -->
+        <div id="tool-profile-section" style="display:none">
+          <div class="section-title" style="margin-top:24px">כלים זמינים</div>
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px">
+            <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:8px">פרופיל כלים</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+              <label class="chip-label"><input type="radio" name="tool-profile" value="messaging" checked/><span class="chip">💬 שיחה (מומלץ — חסכוני)</span></label>
+              <label class="chip-label"><input type="radio" name="tool-profile" value="full"/><span class="chip">🔧 מלא (כל הכלים)</span></label>
+              <label class="chip-label"><input type="radio" name="tool-profile" value="minimal"/><span class="chip">⚡ מינימלי</span></label>
+            </div>
+            <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:6px">כלים נוספים</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+              <label class="chip-label"><input type="checkbox" name="extra-tool" value="pdf" checked/><span class="chip">📄 PDF</span></label>
+              <label class="chip-label"><input type="checkbox" name="extra-tool" value="browser" checked/><span class="chip">🌐 דפדפן</span></label>
+              <label class="chip-label"><input type="checkbox" name="extra-tool" value="web_fetch" checked/><span class="chip">🔗 אחזור אתרים</span></label>
+              <label class="chip-label"><input type="checkbox" name="extra-tool" value="image" checked/><span class="chip">🖼️ תמונות</span></label>
+              <label class="chip-label"><input type="checkbox" name="extra-tool" value="canvas"/><span class="chip">🎨 ציור</span></label>
+            </div>
+            <div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:10px">💡 פרופיל "שיחה" חוסך ~50% מהטוקנים. הוסיפו כלים ספציפיים לפי הצורך.</div>
+            <div style="text-align:left">
+              <button class="btn btn-primary btn-sm" onclick="saveToolProfile()" style="font-size:0.78rem">💾 שמרו</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /agent-panel-agents -->
+
+      <!-- Panel: Schedule & Data -->
+      <div id="agent-panel-schedule" style="display:none">
+
+      <!-- Scheduled Tasks -->
+      <div class="section-title" style="margin-top:0">שגרות מתוזמנות</div>
       <div id="agent-schedules">
         <div class="schedule-row">
           <div class="schedule-info">
@@ -1213,289 +1306,231 @@ input{font-family:inherit}
       <!-- Bundle-driven scheduled tasks (SEO, CRM, etc) -->
       <div id="bundle-schedules-container" style="margin-top:12px"></div>
 
-      <!-- 4a. Model preferences (Personal/Bare agents) -->
-      <div id="model-prefs-section" style="display:none">
-        <div class="section-title" style="margin-top:28px">העדפות מודל</div>
-        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-            <div>
-              <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">משימות פשוטות (יומן, מיילים, שיחה)</div>
-              <select id="model-simple" class="sub-agent-model-select" style="width:100%"></select>
-            </div>
-            <div>
-              <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">משימות מורכבות (ניתוח, כתיבה ארוכה)</div>
-              <select id="model-complex" class="sub-agent-model-select" style="width:100%"></select>
-            </div>
-          </div>
-          <div style="margin-top:12px">
-            <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">Heartbeat (בדיקות רקע כל 4 שעות)</div>
-            <select id="model-heartbeat" class="sub-agent-model-select" style="width:50%"></select>
-          </div>
-          <div style="margin-top:10px;font-size:0.75rem;color:#9CA3AF">הסוכן בוחר אוטומטית את המודל המתאים לפי סוג המשימה. פשוט = מהיר וחסכוני, מורכב = חזק ומדויק. Heartbeat = בדיקות רקע (יומן, מיילים).</div>
-          <div style="margin-top:10px;text-align:left">
-            <button class="btn btn-outline" onclick="saveModelPrefs()" style="font-size:0.82rem">&#128190; שמרו שינויים</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 4a2. Tool profile (Personal/Bare agents) -->
-      <div id="tool-profile-section" style="display:none">
-        <div class="section-title" style="margin-top:28px">כלים זמינים</div>
-        <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px">
-          <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:6px">פרופיל כלים:</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">
-            <label class="chip-label"><input type="radio" name="tool-profile" value="messaging" checked/><span class="chip">💬 שיחה (מומלץ — חסכוני)</span></label>
-            <label class="chip-label"><input type="radio" name="tool-profile" value="full"/><span class="chip">🔧 מלא (כל הכלים)</span></label>
-            <label class="chip-label"><input type="radio" name="tool-profile" value="minimal"/><span class="chip">⚡ מינימלי (הכי חסכוני)</span></label>
-          </div>
-          <div style="font-size:0.78rem;font-weight:600;color:#374151;margin-bottom:4px">כלים נוספים (גם בפרופיל שיחה):</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
-            <label class="chip-label"><input type="checkbox" name="extra-tool" value="pdf" checked/><span class="chip">📄 PDF</span></label>
-            <label class="chip-label"><input type="checkbox" name="extra-tool" value="browser" checked/><span class="chip">🌐 דפדפן</span></label>
-            <label class="chip-label"><input type="checkbox" name="extra-tool" value="web_fetch" checked/><span class="chip">🔗 אחזור אתרים</span></label>
-            <label class="chip-label"><input type="checkbox" name="extra-tool" value="image" checked/><span class="chip">🖼️ תמונות</span></label>
-            <label class="chip-label"><input type="checkbox" name="extra-tool" value="canvas"/><span class="chip">🎨 ציור</span></label>
-          </div>
-          <div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:8px">💡 פרופיל "שיחה" חוסך ~50% מהטוקנים. הוסיפו כלים ספציפיים לפי הצורך.</div>
-          <div style="text-align:left">
-            <button class="btn btn-outline" onclick="saveToolProfile()" style="font-size:0.82rem">&#128190; שמרו</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 4b. Sub-agents with model selector (MATEH only) -->
-      <div id="subagents-section">
-        <div class="section-title" style="margin-top:28px">סוכני משנה</div>
-        <div class="sub-agents-grid" id="sub-agents-grid"></div>
-        <div style="margin-top:8px;text-align:left"><button class="btn btn-outline" onclick="saveSubAgentModels()" style="font-size:0.82rem">&#128190; שמרו שינויים</button></div>
-      </div>
-
-      <!-- Danger Zone (inside config) -->
-      <div class="section-title" style="margin-top:28px;color:#EF4444">אזור מסוכן</div>
-      <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:16px;display:flex;flex-wrap:wrap;gap:8px">
-        <button class="btn btn-outline" onclick="restartAgent()" style="font-size:0.82rem">&#8635; הפעלה מחדש</button>
-        <button class="btn btn-outline" onclick="resetAgentConfig()" style="font-size:0.82rem;color:#EF4444;border-color:#FECACA">איפוס הגדרות</button>
-        <button class="btn btn-outline" id="btn-delete-agent" onclick="deleteCurrentAgent()" style="font-size:0.82rem;color:#EF4444;border-color:#FECACA">🗑️ הסירו סוכן</button>
-      </div>
-
-      </div><!-- /agent-panel-config -->
-
-      <!-- Panel: Research -->
-      <div id="agent-panel-research" style="display:none">
-
-      <!-- Rebuild controls — shown when research or strategy exists -->
-      <div id="agent-rebuild-card" style="display:none;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:14px 18px;margin-bottom:18px">
-        <div style="display:flex;align-items:flex-start;gap:10px">
-          <span style="font-size:1.4rem;flex-shrink:0">🔁</span>
-          <div style="flex:1">
-            <div style="font-weight:700;font-size:0.95rem;color:#92400E;margin-bottom:4px">לבנות מחדש?</div>
-            <div style="font-size:0.82rem;color:#78350F;line-height:1.5;margin-bottom:10px" id="agent-rebuild-desc">
-              עדכנת את פרופיל העסק / המוצרים? בחר מה לבנות מחדש:
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn btn-outline btn-sm" onclick="rebuildStrategyOnly()" id="btn-rebuild-strategy" style="font-size:0.82rem;color:#92400E;border-color:#FDE68A">
-                🎯 אסטרטגיה בלבד <span style="color:#B45309;font-size:0.72rem">(שומר את המחקר)</span>
-              </button>
-              <button class="btn btn-outline btn-sm" onclick="rebuildEverything()" id="btn-rebuild-all" style="font-size:0.82rem;color:#991B1B;border-color:#FECACA">
-                🔥 הכל מחדש <span style="color:#B91C1C;font-size:0.72rem">(מחקר + אסטרטגיה)</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 4.5 Historical Assets (shown BEFORE research so user supplies baseline data) -->
-      <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
-        <span>הנכסים שלכם — נתונים קיימים</span>
+      <!-- Historical Assets — existing platform data -->
+      <div class="section-title" style="margin-top:28px;display:flex;align-items:center;justify-content:space-between">
+        <span>נתונים היסטוריים מהפלטפורמות</span>
         <span id="assets-saved-badge" style="display:none;font-size:0.72rem;color:#10B981;background:#D1FAE5;padding:3px 8px;border-radius:999px">&#10003; נשמר</span>
       </div>
-      <div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:0.82rem;color:#92400E;line-height:1.6">
-        &#128161; <strong>לפני בניית האסטרטגיה</strong> — אם יש לכם כבר נתונים קיימים (פרסום בפייסבוק/גוגל, תנועה אורגנית, אנליטיקס) שתפו אותם כאן. האסטרטגיה תיבנה על בסיס המציאות שלכם, לא על בנצ'מרקים גנריים. זה אופציונלי — אפשר גם לדלג.
+      <div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:0.78rem;color:#92400E;line-height:1.5">
+        💡 יש לכם נתונים קיימים? שתפו כאן — האסטרטגיה תיבנה על המציאות שלכם, לא על בנצ'מרקים גנריים. אופציונלי.
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <!-- Meta Ads -->
         <div style="border:1px solid #E5E7EB;border-radius:10px;padding:12px;background:#FFF">
-          <div style="font-weight:600;margin-bottom:6px">&#128200; Meta Ads (פייסבוק + אינסטגרם)</div>
-          <div style="font-size:0.76rem;color:#6B7280;margin-bottom:8px">ייצאו דוח Ads Manager של 30-90 ימים (CSV), או כתבו סיכום קצר: הוצאה, CPA, ROAS, קמפיינים מובילים.</div>
-          <textarea id="asset-meta-text" rows="3" placeholder="לדוגמה: ₪5,000 לחודש ב-Meta, CPA ₪35, ROAS 2.1×, הקמפיין הכי טוב: Lookalike 1% של לקוחות קיימים..." style="width:100%;padding:8px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;resize:vertical;font-family:inherit"></textarea>
-          <div style="margin-top:6px">
-            <label style="font-size:0.76rem;color:#6B7280;cursor:pointer">
-              <input type="file" accept=".csv,.txt" style="display:none" onchange="handleAssetFile(event, 'meta')">
-              <span style="text-decoration:underline">📎 העלו CSV (אופציונלי)</span>
-              <span id="asset-meta-filename" style="margin-right:6px;color:#10B981"></span>
-            </label>
-          </div>
+          <div style="font-weight:600;margin-bottom:6px;font-size:0.85rem">📈 Meta Ads</div>
+          <textarea id="asset-meta-text" rows="3" placeholder="₪5,000/חודש · CPA ₪35 · ROAS 2.1×..." style="width:100%;padding:8px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;resize:vertical;font-family:inherit"></textarea>
+          <label style="display:block;margin-top:6px;font-size:0.75rem;color:#6B7280;cursor:pointer">
+            <input type="file" accept=".csv,.txt" style="display:none" onchange="handleAssetFile(event, 'meta')">
+            <span style="text-decoration:underline">📎 CSV</span>
+            <span id="asset-meta-filename" style="margin-right:6px;color:#10B981"></span>
+          </label>
         </div>
-        <!-- Google Ads -->
         <div style="border:1px solid #E5E7EB;border-radius:10px;padding:12px;background:#FFF">
-          <div style="font-weight:600;margin-bottom:6px">&#127919; Google Ads</div>
-          <div style="font-size:0.76rem;color:#6B7280;margin-bottom:8px">ייצוא דוח ביצועים, או תיאור: מילות מפתח פעילות, CPC ממוצע, conversion rate.</div>
-          <textarea id="asset-gads-text" rows="3" placeholder="לדוגמה: 15 מילות מפתח פעילות, CPC ממוצע ₪4.2, 3.1% conversion, כולל brand terms..." style="width:100%;padding:8px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;resize:vertical;font-family:inherit"></textarea>
-          <div style="margin-top:6px">
-            <label style="font-size:0.76rem;color:#6B7280;cursor:pointer">
-              <input type="file" accept=".csv,.txt" style="display:none" onchange="handleAssetFile(event, 'gads')">
-              <span style="text-decoration:underline">📎 העלו CSV (אופציונלי)</span>
-              <span id="asset-gads-filename" style="margin-right:6px;color:#10B981"></span>
-            </label>
-          </div>
+          <div style="font-weight:600;margin-bottom:6px;font-size:0.85rem">🎯 Google Ads</div>
+          <textarea id="asset-gads-text" rows="3" placeholder="15 מילות מפתח · CPC ₪4.2 · 3.1% conv..." style="width:100%;padding:8px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;resize:vertical;font-family:inherit"></textarea>
+          <label style="display:block;margin-top:6px;font-size:0.75rem;color:#6B7280;cursor:pointer">
+            <input type="file" accept=".csv,.txt" style="display:none" onchange="handleAssetFile(event, 'gads')">
+            <span style="text-decoration:underline">📎 CSV</span>
+            <span id="asset-gads-filename" style="margin-right:6px;color:#10B981"></span>
+          </label>
         </div>
-        <!-- GA -->
         <div style="border:1px solid #E5E7EB;border-radius:10px;padding:12px;background:#FFF">
-          <div style="font-weight:600;margin-bottom:6px">&#128202; Google Analytics / תעבורה אורגנית</div>
-          <div style="font-size:0.76rem;color:#6B7280;margin-bottom:8px">סשנים חודשיים, bounce rate, דפים מובילים, קונברסיות.</div>
-          <textarea id="asset-ga-text" rows="3" placeholder="לדוגמה: 3,200 סשנים/חודש, 58% bounce, הדף הכי נצפה: /pricing, 1.8% conversion..." style="width:100%;padding:8px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;resize:vertical;font-family:inherit"></textarea>
+          <div style="font-weight:600;margin-bottom:6px;font-size:0.85rem">📊 Google Analytics</div>
+          <textarea id="asset-ga-text" rows="3" placeholder="3,200 סשנים/חודש · 58% bounce · 1.8% conv..." style="width:100%;padding:8px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;resize:vertical;font-family:inherit"></textarea>
         </div>
-        <!-- GSC / other -->
         <div style="border:1px solid #E5E7EB;border-radius:10px;padding:12px;background:#FFF">
-          <div style="font-weight:600;margin-bottom:6px">&#128270; Search Console / מידע נוסף</div>
-          <div style="font-size:0.76rem;color:#6B7280;margin-bottom:8px">מילות מפתח אורגניות, פוזיציות, כל מידע שיווקי חשוב שלא נכנס למעלה.</div>
-          <textarea id="asset-gsc-text" rows="3" placeholder="לדוגמה: אנחנו מדורגים 4-7 על 'מנהל שיווק דיגיטלי', 12 על 'אוטומציה שיווק'. הטונליות שלנו אמורה להיות חברותית אבל מקצועית..." style="width:100%;padding:8px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;resize:vertical;font-family:inherit"></textarea>
+          <div style="font-weight:600;margin-bottom:6px;font-size:0.85rem">🔎 Search Console / נוסף</div>
+          <textarea id="asset-gsc-text" rows="3" placeholder="מדורגים 4-7 על 'מנהל שיווק דיגיטלי'..." style="width:100%;padding:8px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;resize:vertical;font-family:inherit"></textarea>
         </div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:20px">
-        <button class="btn btn-primary" onclick="saveHistoricalAssets(false)" style="font-size:0.85rem">💾 שמרו את הנתונים</button>
-        <button class="btn" onclick="saveHistoricalAssets(true)" style="font-size:0.85rem;background:#F3F4F6;color:#6B7280">דלגו — אין לי נתונים קודמים</button>
+        <button class="btn btn-primary btn-sm" onclick="saveHistoricalAssets(false)" style="font-size:0.82rem">💾 שמרו נתונים</button>
+        <button class="btn btn-outline btn-sm" onclick="saveHistoricalAssets(true)" style="font-size:0.82rem;color:#6B7280">דלגו</button>
         <span id="assets-status" style="font-size:0.78rem;color:#6B7280;flex:1"></span>
       </div>
 
-      <!-- 5. Research Report -->
-      <div class="section-title">מחקר שוק</div>
-      <div id="agent-research-section">
-        <div id="agent-research-content" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px;max-height:400px;overflow-y:auto;font-size:0.88rem;line-height:1.7">
-          <div style="text-align:center;color:#9CA3AF;padding:20px 0">טרם הורץ מחקר</div>
-        </div>
+      <!-- Research report — kept in DOM for viewReport() overlay. Hidden here; shown from Overview chip -->
+      <div id="agent-research-section" style="display:none">
+        <div id="agent-research-content" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px;max-height:400px;overflow-y:auto;font-size:0.88rem;line-height:1.7"></div>
         <div style="margin-top:10px;display:flex;gap:8px">
-          <button class="btn btn-primary" onclick="runResearchFromAgent()" id="btn-run-research" style="font-size:0.85rem">&#128269; הריצו מחקר שוק</button>
+          <button class="btn btn-primary" onclick="runResearchFromAgent()" id="btn-run-research" style="font-size:0.85rem">🔍 הריצו מחקר שוק</button>
           <span id="research-status" style="font-size:0.82rem;color:#6B7280;display:flex;align-items:center"></span>
         </div>
       </div>
 
-      <!-- 6. SEO Strategy Dashboard (visible when SEO bundle has ≥1 connection) -->
-      <div id="seo-strategy-section" style="display:none;margin-top:24px">
-        <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
-          <span>אסטרטגיית SEO</span>
-          <span id="seo-strategy-updated" style="font-size:0.72rem;color:#9CA3AF"></span>
-        </div>
+      <!-- SEO Center — collapsed accordion (visible only when SEO bundle connected) -->
+      <div id="seo-accordion-wrapper" style="display:none;margin-top:24px">
+        <button onclick="toggleSeoAccordion()" id="seo-accordion-toggle" style="width:100%;background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border:1px solid #DDD6FE;border-radius:10px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-family:inherit;font-size:0.92rem;font-weight:600;color:#5B21B6">
+          <span>🔎 מרכז SEO — אסטרטגיה, ציונים, לוח תוכן ו-ROI</span>
+          <span id="seo-accordion-chevron" style="transition:transform .2s">▼</span>
+        </button>
+        <div id="seo-accordion-body" style="display:none;padding:16px 0 4px">
+          <!-- 6. SEO Strategy Dashboard -->
+          <div id="seo-strategy-section" style="margin-top:0">
+            <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;margin-top:0">
+              <span>אסטרטגיית SEO</span>
+              <span id="seo-strategy-updated" style="font-size:0.72rem;color:#9CA3AF"></span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+              <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:14px;text-align:center">
+                <div style="font-size:1.4rem;font-weight:700;color:#2563EB" id="seo-score-aeo">—</div>
+                <div style="font-size:0.72rem;color:#6B7280">ציון AEO</div>
+              </div>
+              <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:14px;text-align:center">
+                <div style="font-size:1.4rem;font-weight:700;color:#10B981" id="seo-score-citations">—</div>
+                <div style="font-size:0.72rem;color:#6B7280">ציטוטים ב-AI</div>
+              </div>
+              <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:14px;text-align:center">
+                <div style="font-size:1.4rem;font-weight:700;color:#F59E0B" id="seo-score-pending">—</div>
+                <div style="font-size:0.72rem;color:#6B7280">ממתינים לאישור</div>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px;margin-bottom:16px">
+              <div style="font-weight:600;font-size:0.88rem;color:#374151;margin-bottom:10px">🎯 תוכנית תוכן</div>
+              <div id="seo-content-plan"></div>
+              <div style="margin-top:10px;display:flex;gap:8px">
+                <button class="btn btn-primary btn-sm" onclick="triggerSeoResearch()">🔍 מחקר SEO חדש</button>
+                <button class="btn btn-outline btn-sm" onclick="refreshSeoStrategy()">🔄 רעננו</button>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px;margin-bottom:16px">
+              <div style="font-weight:600;font-size:0.88rem;color:#374151;margin-bottom:10px">📉 מיקומים שדורשים תשומת לב</div>
+              <div id="seo-positions-alert"></div>
+            </div>
+          </div>
 
-        <!-- Scores row -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
-          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:14px;text-align:center">
-            <div style="font-size:1.4rem;font-weight:700;color:#2563EB" id="seo-score-aeo">—</div>
-            <div style="font-size:0.72rem;color:#6B7280">ציון AEO</div>
+          <!-- 7. SEO Activity Log -->
+          <div id="seo-activity-section" style="margin-top:16px">
+            <div class="section-title">יומן פעילות SEO</div>
+            <div id="seo-activity-log" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:12px;max-height:300px;overflow-y:auto"></div>
           </div>
-          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:14px;text-align:center">
-            <div style="font-size:1.4rem;font-weight:700;color:#10B981" id="seo-score-citations">—</div>
-            <div style="font-size:0.72rem;color:#6B7280">ציטוטים ב-AI</div>
-          </div>
-          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:14px;text-align:center">
-            <div style="font-size:1.4rem;font-weight:700;color:#F59E0B" id="seo-score-pending">—</div>
-            <div style="font-size:0.72rem;color:#6B7280">ממתינים לאישור</div>
-          </div>
-        </div>
 
-        <!-- Content Plan -->
-        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px;margin-bottom:16px">
-          <div style="font-weight:600;font-size:0.88rem;color:#374151;margin-bottom:10px">🎯 תוכנית תוכן</div>
-          <div id="seo-content-plan">
-            <div style="text-align:center;color:#9CA3AF;padding:16px;font-size:0.85rem">הריצו מחקר SEO כדי ליצור תוכנית תוכן</div>
+          <!-- 8. Content Calendar -->
+          <div id="seo-calendar-section" style="margin-top:16px">
+            <div class="section-title">לוח תוכן</div>
+            <div id="seo-calendar" style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden">
+              <div id="seo-cal-header" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#F9FAFB;border-bottom:1px solid #E5E7EB">
+                <button class="btn btn-outline btn-sm" onclick="seoCalNav(-1)" style="font-size:0.78rem">← הקודם</button>
+                <span id="seo-cal-month" style="font-weight:600;font-size:0.88rem"></span>
+                <button class="btn btn-outline btn-sm" onclick="seoCalNav(1)" style="font-size:0.78rem">הבא →</button>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:0.68rem;font-weight:600;color:#6B7280;padding:8px 0;border-bottom:1px solid #F3F4F6">
+                <div>א</div><div>ב</div><div>ג</div><div>ד</div><div>ה</div><div>ו</div><div>ש</div>
+              </div>
+              <div id="seo-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);min-height:180px"></div>
+            </div>
+            <div id="seo-cal-legend" style="display:flex;gap:12px;margin-top:8px;font-size:0.72rem;color:#6B7280;flex-wrap:wrap">
+              <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2563EB;margin-left:4px"></span> מתוכנן</span>
+              <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F59E0B;margin-left:4px"></span> ממתין לאישור</span>
+              <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10B981;margin-left:4px"></span> פורסם</span>
+              <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#8B5CF6;margin-left:4px"></span> דוח אוטומטי</span>
+            </div>
           </div>
-          <div style="margin-top:10px;display:flex;gap:8px">
-            <button class="btn btn-primary btn-sm" onclick="triggerSeoResearch()">🔍 מחקר SEO חדש</button>
-            <button class="btn btn-outline btn-sm" onclick="refreshSeoStrategy()">🔄 רעננו</button>
-          </div>
-        </div>
 
-        <!-- Positions that need attention -->
-        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px;margin-bottom:16px">
-          <div style="font-weight:600;font-size:0.88rem;color:#374151;margin-bottom:10px">📉 מיקומים שדורשים תשומת לב</div>
-          <div id="seo-positions-alert">
-            <div style="text-align:center;color:#9CA3AF;padding:12px;font-size:0.85rem">אין ירידות משמעותיות</div>
+          <!-- 9. ROI Tracking -->
+          <div id="seo-roi-section" style="margin-top:16px">
+            <div class="section-title">תוצאות (30 יום אחרונים)</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px">
+              <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:10px;padding:14px">
+                <div style="font-size:1.2rem;font-weight:700;color:#065F46" id="roi-content-published">0</div>
+                <div style="font-size:0.72rem;color:#6B7280">תוכן שפורסם</div>
+              </div>
+              <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:14px">
+                <div style="font-size:1.2rem;font-weight:700;color:#1E40AF" id="roi-keywords-p1">0</div>
+                <div style="font-size:0.72rem;color:#6B7280">מילות מפתח בעמ' 1</div>
+              </div>
+              <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:14px">
+                <div style="font-size:1.2rem;font-weight:700;color:#92400E" id="roi-citations">0</div>
+                <div style="font-size:0.72rem;color:#6B7280">ציטוטים ב-AI</div>
+              </div>
+              <div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;padding:14px">
+                <div style="font-size:1.2rem;font-weight:700;color:#5B21B6" id="roi-audits">0</div>
+                <div style="font-size:0.72rem;color:#6B7280">ביקורות</div>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px">
+              <div style="font-weight:600;font-size:0.85rem;color:#374151;margin-bottom:8px">📈 היסטוריית פעולות</div>
+              <div id="roi-history" style="max-height:200px;overflow-y:auto"></div>
+            </div>
           </div>
-        </div>
+        </div><!-- /seo-accordion-body -->
       </div>
 
-      <!-- 7. SEO Activity Log -->
-      <div id="seo-activity-section" style="display:none;margin-top:24px">
-        <div class="section-title">יומן פעילות SEO</div>
-        <div id="seo-activity-log" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:12px;max-height:300px;overflow-y:auto">
-          <div style="text-align:center;color:#9CA3AF;padding:12px;font-size:0.85rem">אין פעילות SEO עדיין</div>
-        </div>
-      </div>
+      </div><!-- /agent-panel-schedule -->
 
-      <!-- 8. Content Calendar -->
-      <div id="seo-calendar-section" style="display:none;margin-top:24px">
-        <div class="section-title">לוח תוכן</div>
-        <div id="seo-calendar" style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden">
-          <div id="seo-cal-header" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#F9FAFB;border-bottom:1px solid #E5E7EB">
-            <button class="btn btn-outline btn-sm" onclick="seoCalNav(-1)" style="font-size:0.78rem">← הקודם</button>
-            <span id="seo-cal-month" style="font-weight:600;font-size:0.88rem"></span>
-            <button class="btn btn-outline btn-sm" onclick="seoCalNav(1)" style="font-size:0.78rem">הבא →</button>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:0.68rem;font-weight:600;color:#6B7280;padding:8px 0;border-bottom:1px solid #F3F4F6">
-            <div>א</div><div>ב</div><div>ג</div><div>ד</div><div>ה</div><div>ו</div><div>ש</div>
-          </div>
-          <div id="seo-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);min-height:180px"></div>
-        </div>
-        <div id="seo-cal-legend" style="display:flex;gap:12px;margin-top:8px;font-size:0.72rem;color:#6B7280;flex-wrap:wrap">
-          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2563EB;margin-left:4px"></span> מתוכנן</span>
-          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F59E0B;margin-left:4px"></span> ממתין לאישור</span>
-          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10B981;margin-left:4px"></span> פורסם</span>
-          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#8B5CF6;margin-left:4px"></span> דוח אוטומטי</span>
-        </div>
-      </div>
+      <!-- Panel: Controls & Memory -->
+      <div id="agent-panel-controls" style="display:none">
 
-      <!-- 9. ROI Tracking -->
-      <div id="seo-roi-section" style="display:none;margin-top:24px">
-        <div class="section-title">תוצאות (30 יום אחרונים)</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-          <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:10px;padding:14px">
-            <div style="font-size:1.2rem;font-weight:700;color:#065F46" id="roi-content-published">0</div>
-            <div style="font-size:0.72rem;color:#6B7280">תוכן שפורסם</div>
+        <!-- Memory (Mem0) -->
+        <div id="agent-memory-block" style="margin-bottom:24px">
+          <div class="section-title" style="margin-top:0;display:flex;justify-content:space-between;align-items:center">
+            <span>זיכרון ארוך טווח</span>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-outline btn-sm" onclick="loadMemories()" id="btn-refresh-memories" style="font-size:0.78rem">🔄 רענון</button>
+              <button class="btn btn-outline btn-sm" onclick="clearAllMemories()" style="font-size:0.78rem;color:#EF4444;border-color:#FECACA">מחקו הכל</button>
+            </div>
           </div>
-          <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:14px">
-            <div style="font-size:1.2rem;font-weight:700;color:#1E40AF" id="roi-keywords-p1">0</div>
-            <div style="font-size:0.72rem;color:#6B7280">מילות מפתח בעמוד 1</div>
+          <div style="font-size:0.78rem;color:#9CA3AF;margin-bottom:10px">עובדות שהסוכן שמר מהשיחות שלכם (Mem0)</div>
+          <div id="memories-list" style="display:flex;flex-direction:column;gap:8px">
+            <div style="text-align:center;color:#9CA3AF;padding:24px 0;font-size:0.85rem">טוען זיכרונות...</div>
           </div>
-          <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:14px">
-            <div style="font-size:1.2rem;font-weight:700;color:#92400E" id="roi-citations">0</div>
-            <div style="font-size:0.72rem;color:#6B7280">ציטוטים ב-AI</div>
-          </div>
-          <div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;padding:14px">
-            <div style="font-size:1.2rem;font-weight:700;color:#5B21B6" id="roi-audits">0</div>
-            <div style="font-size:0.72rem;color:#6B7280">ביקורות שהורצו</div>
+          <div id="memories-empty" style="display:none;background:#F9FAFB;border:1px dashed #E5E7EB;border-radius:10px;text-align:center;color:#9CA3AF;padding:24px">
+            <div style="font-size:1.4rem;margin-bottom:6px">🧠</div>
+            <div style="font-size:0.88rem">הסוכן ילמד אוטומטית משיחות ופעולות</div>
           </div>
         </div>
-        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:16px">
-          <div style="font-weight:600;font-size:0.85rem;color:#374151;margin-bottom:8px">📈 היסטוריית פעולות</div>
-          <div id="roi-history" style="max-height:200px;overflow-y:auto">
-            <div style="text-align:center;color:#9CA3AF;padding:12px;font-size:0.85rem">נתונים יופיעו לאחר הפעלת ה-pipeline</div>
-          </div>
-        </div>
-      </div>
 
-      </div><!-- /agent-panel-research -->
+        <!-- Rebuild research/strategy -->
+        <div id="agent-rebuild-card" style="display:none;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:14px 18px;margin-bottom:24px">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <span style="font-size:1.3rem;flex-shrink:0">🔁</span>
+            <div style="flex:1">
+              <div style="font-weight:700;font-size:0.92rem;color:#92400E;margin-bottom:4px">לבנות מחדש?</div>
+              <div style="font-size:0.8rem;color:#78350F;line-height:1.5;margin-bottom:10px" id="agent-rebuild-desc">
+                עדכנתם את פרופיל העסק / המוצרים? בחרו מה לבנות מחדש:
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-outline btn-sm" onclick="rebuildStrategyOnly()" id="btn-rebuild-strategy" style="font-size:0.8rem;color:#92400E;border-color:#FDE68A">
+                  🎯 אסטרטגיה בלבד <span style="color:#B45309;font-size:0.7rem">(שומר מחקר)</span>
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="rebuildEverything()" id="btn-rebuild-all" style="font-size:0.8rem;color:#991B1B;border-color:#FECACA">
+                  🔥 הכל מחדש
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <!-- Panel: Memory (Mem0) -->
-      <div id="agent-panel-memory" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <div>
-            <div class="section-title" style="margin-bottom:2px">זיכרון ארוך טווח (Mem0)</div>
-            <div style="font-size:0.82rem;color:#9CA3AF">עובדות שהסוכן שמר מהשיחות שלכם</div>
+        <!-- Danger Zone -->
+        <div class="section-title" style="color:#EF4444;margin-top:0">אזור מסוכן</div>
+        <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:16px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <div>
+                <div style="font-weight:600;font-size:0.85rem;color:#111827">הפעלה מחדש</div>
+                <div style="font-size:0.75rem;color:#6B7280">מפעיל מחדש את ה-gateway. אין איבוד נתונים.</div>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="restartAgent()" style="font-size:0.78rem">⟳ הפעילו</button>
+            </div>
+            <div style="height:1px;background:#FECACA"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <div>
+                <div style="font-weight:600;font-size:0.85rem;color:#111827">איפוס הגדרות</div>
+                <div style="font-size:0.75rem;color:#6B7280">חוזר להגדרות ברירת-מחדל. פרופיל ומחקר נשמרים.</div>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="resetAgentConfig()" style="font-size:0.78rem;color:#EF4444;border-color:#FECACA">איפוס</button>
+            </div>
+            <div style="height:1px;background:#FECACA"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <div>
+                <div style="font-weight:600;font-size:0.85rem;color:#991B1B">הסירו סוכן</div>
+                <div style="font-size:0.75rem;color:#6B7280">מוחק את הסוכן וכל הנתונים. לא ניתן לשחזור.</div>
+              </div>
+              <button class="btn btn-outline btn-sm" id="btn-delete-agent" onclick="deleteCurrentAgent()" style="font-size:0.78rem;color:#EF4444;border-color:#FECACA">🗑️ הסירו</button>
+            </div>
           </div>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-outline btn-sm" onclick="loadMemories()" id="btn-refresh-memories">רענון</button>
-            <button class="btn btn-outline btn-sm" onclick="clearAllMemories()" style="color:#EF4444;border-color:#FECACA">מחקו הכל</button>
-          </div>
         </div>
-        <div id="memories-list" style="display:flex;flex-direction:column;gap:8px">
-          <div style="text-align:center;color:#9CA3AF;padding:32px 0;font-size:0.88rem">טוען זיכרונות...</div>
-        </div>
-        <div id="memories-empty" style="display:none;text-align:center;color:#9CA3AF;padding:32px 0">
-          <div style="font-size:1.5rem;margin-bottom:8px">🧠</div>
-          <div style="font-size:0.9rem">אין זיכרונות עדיין</div>
-          <div style="font-size:0.82rem;margin-top:4px">הסוכן ישמור עובדות חשובות באופן אוטומטי מהשיחות שלכם</div>
-        </div>
-      </div><!-- /agent-panel-memory -->
+
+      </div><!-- /agent-panel-controls -->
 
     </div><!-- /agent-detail-view -->
   </div>
@@ -12178,40 +12213,90 @@ function renderSavedAnswers() {
 
 /* ===== Agent Detail View ===== */
 function switchAgentDetailTab(tab) {
-  ['overview', 'config', 'research', 'memory'].forEach(function(t) {
+  ['overview', 'agents', 'schedule', 'controls'].forEach(function(t) {
     var panel = document.getElementById('agent-panel-' + t);
     var btn = document.getElementById('agent-dtab-' + t);
     if (panel) panel.style.display = t === tab ? '' : 'none';
     if (btn) btn.classList.toggle('active', t === tab);
   });
-  if (tab === 'memory') loadMemories();
-  if (tab === 'research') showSeoSections();
-  if (tab === 'config') renderAgentQuickLinks();
+  if (tab === 'controls') loadMemories();
+  if (tab === 'schedule') showSeoSections();
+  if (tab === 'overview') {
+    renderAgentResearchChips();
+    renderAgentBrandCard();
+  }
 }
 
-// Populate the "קיצורי דרך" row inside agent-panel-config with shortcuts
-// to research/strategy reports that actually exist for this instance.
-function renderAgentQuickLinks() {
-  var row = document.getElementById('agent-quicklinks-row');
-  if (!row) return;
+function toggleSeoAccordion() {
+  var body = document.getElementById('seo-accordion-body');
+  var chev = document.getElementById('seo-accordion-chevron');
+  if (!body) return;
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  if (chev) chev.style.transform = open ? '' : 'rotate(180deg)';
+}
+
+// Overview → research + strategy status chips
+function renderAgentResearchChips() {
+  var host = document.getElementById('agent-research-chips');
+  var content = document.getElementById('agent-research-chips-content');
+  if (!host || !content) return;
+  if (currentAgentType !== 'mt') { host.style.display = 'none'; return; }
+  host.style.display = '';
   var rd = (instanceData && instanceData.researchData) || {};
   var hasResearch = !!(rd.report || rd.stage1);
   var hasStrategy = !!rd.strategy;
   var hasScenarios = !!rd.scenarios;
-  var links = [];
-  if (hasResearch) links.push({ label: '📊 דוח מחקר השוק', onclick: "viewReport()" });
-  if (hasStrategy) links.push({ label: '🎯 האסטרטגיה המלאה', onclick: "viewStrategy()" });
-  if (hasScenarios) links.push({ label: '🛣 3 מסלולי הביצוע', onclick: "openScenarioPicker()" });
-  if (rd.seoFirstRun && rd.seoFirstRun.strategyOutputId) {
-    links.push({ label: '🔍 אסטרטגיית SEO', onclick: "openPendingStrategyForReview()" });
+
+  var rows = [];
+  // Research chip
+  if (hasResearch) {
+    rows.push('<div class="agent-chip-row">' +
+      '<div class="agent-chip-left"><span class="agent-chip-dot ok"></span><div><div class="agent-chip-title">מחקר שוק</div><div class="agent-chip-sub">מתחרים · קהל יעד · מילות מפתח</div></div></div>' +
+      '<div class="agent-chip-right"><button class="btn btn-outline btn-sm" onclick="viewReport()" style="font-size:0.76rem">צפו →</button></div>' +
+      '</div>');
+  } else {
+    rows.push('<div class="agent-chip-row">' +
+      '<div class="agent-chip-left"><span class="agent-chip-dot warn"></span><div><div class="agent-chip-title">מחקר שוק</div><div class="agent-chip-sub">עוד לא בוצע — נדרש לאסטרטגיה</div></div></div>' +
+      '<div class="agent-chip-right"><button class="btn btn-primary btn-sm" onclick="runChainResearch()" style="font-size:0.76rem">התחילו →</button></div>' +
+      '</div>');
   }
-  if (links.length === 0) {
-    row.innerHTML = '<div style="font-size:0.82rem;color:#9CA3AF">עדיין אין תוצאות. הריצו מחקר שוק בטאב "מחקר ואסטרטגיה".</div>';
-    return;
+  // Strategy chip
+  if (hasStrategy) {
+    var scenName = (rd.chosenScenario && rd.chosenScenario.name) || (hasScenarios ? 'לא נבחר עדיין' : 'מוכנה');
+    rows.push('<div class="agent-chip-row">' +
+      '<div class="agent-chip-left"><span class="agent-chip-dot ok"></span><div><div class="agent-chip-title">אסטרטגיה ' + (rd.chosenScenario ? '· ' + escapeHtml(scenName) : '') + '</div><div class="agent-chip-sub">ערוצים · KPI · לוח תוכן</div></div></div>' +
+      '<div class="agent-chip-right"><button class="btn btn-outline btn-sm" onclick="viewStrategy()" style="font-size:0.76rem">צפו →</button>' +
+      (hasScenarios ? '<button class="btn btn-outline btn-sm" onclick="openScenarioPicker()" style="font-size:0.76rem;margin-right:6px">שנו מסלול</button>' : '') +
+      '</div></div>');
+  } else if (hasResearch) {
+    rows.push('<div class="agent-chip-row">' +
+      '<div class="agent-chip-left"><span class="agent-chip-dot warn"></span><div><div class="agent-chip-title">אסטרטגיה</div><div class="agent-chip-sub">מוכנה להרצה על בסיס המחקר</div></div></div>' +
+      '<div class="agent-chip-right"><button class="btn btn-primary btn-sm" onclick="runChainStrategy()" style="font-size:0.76rem">בנו →</button></div>' +
+      '</div>');
   }
-  row.innerHTML = links.map(function(l) {
-    return '<button class="btn btn-outline btn-sm" onclick="' + l.onclick + '" style="font-size:0.82rem">' + l.label + '</button>';
-  }).join('');
+  content.innerHTML = rows.join('');
+}
+
+// Overview → brand book mini-card
+function renderAgentBrandCard() {
+  var host = document.getElementById('agent-brand-card');
+  var content = document.getElementById('agent-brand-card-content');
+  if (!host || !content) return;
+  if (currentAgentType !== 'mt') { host.style.display = 'none'; return; }
+  host.style.display = '';
+  var hasBrandBook = !!(instanceData && instanceData.hasBrandBook);
+  if (hasBrandBook) {
+    content.innerHTML = '<div class="agent-chip-row">' +
+      '<div class="agent-chip-left"><span class="agent-chip-dot ok"></span><div><div class="agent-chip-title">ספר מותג מוגדר</div><div class="agent-chip-sub">לוגו · צבעים · טיפוגרפיה · voice</div></div></div>' +
+      '<div class="agent-chip-right"><button class="btn btn-outline btn-sm" onclick="openBrandFoundation()" style="font-size:0.76rem">ערכו →</button></div>' +
+      '</div>';
+  } else {
+    content.innerHTML = '<div class="agent-chip-row">' +
+      '<div class="agent-chip-left"><span class="agent-chip-dot warn"></span><div><div class="agent-chip-title">ספר מותג לא הוגדר</div><div class="agent-chip-sub">צבעים · לוגו · טון — מזינים את כל הסוכנים היוצרים</div></div></div>' +
+      '<div class="agent-chip-right"><button class="btn btn-primary btn-sm" onclick="openBrandFoundation()" style="font-size:0.76rem">הגדירו →</button></div>' +
+      '</div>';
+  }
 }
 
 function openAgentDetail(agentType) {
@@ -12232,46 +12317,43 @@ function openAgentDetail(agentType) {
   var isMatehAgent = (agentType === 'mt');
   var isBareAgent = (agentType === 'bare');
 
-  // Sub-agents stat
+  // Sub-agents stat (in header status row)
   var subStat = document.getElementById('stat-subagents');
   var subStatVal = document.getElementById('stat-subagents-val');
   if (isMatehAgent) {
     if (subStat) subStat.style.display = '';
-    if (subStatVal) subStatVal.textContent = '8 פעילים';
+    if (subStatVal) subStatVal.textContent = '8';
   } else {
     if (subStat) subStat.style.display = 'none';
   }
 
-  // Show/hide MATEH-specific tabs
-  var researchTab = document.getElementById('agent-dtab-research');
-  if (researchTab) researchTab.style.display = isMatehAgent ? '' : 'none';
+  // Tab visibility per agent type:
+  //   MATEH: all 4 tabs (overview + agents + schedule + controls)
+  //   Personal/Bare: overview + agents (model prefs + tool profile) + controls (no schedule tab — schedules are MATEH-specific)
+  //   Bare: overview only (no other tabs — it's a blank server)
+  var agentsTab = document.getElementById('agent-dtab-agents');
+  var scheduleTab = document.getElementById('agent-dtab-schedule');
+  var controlsTab = document.getElementById('agent-dtab-controls');
+  if (agentsTab) agentsTab.style.display = isBareAgent ? 'none' : '';
+  if (scheduleTab) scheduleTab.style.display = isMatehAgent ? '' : 'none';
+  if (controlsTab) controlsTab.style.display = isBareAgent ? 'none' : '';
 
-  // Show/hide config tab for bare (show) vs others
-  var configTab = document.getElementById('agent-dtab-config');
-  if (configTab) configTab.style.display = isBareAgent ? 'none' : '';
-
-  // Show/hide memory tab for bare
-  var memoryTab = document.getElementById('agent-dtab-memory');
-  if (memoryTab) memoryTab.style.display = isBareAgent ? 'none' : '';
-
-  // Show/hide MATEH-specific sections in overview
+  // Overview sections — MATEH-only pieces (profile, research chips, brand card)
   var questionnaireSection = document.getElementById('agent-questionnaire-section');
   if (questionnaireSection) questionnaireSection.style.display = isMatehAgent ? '' : 'none';
 
-  // Show/hide sub-agents section in config (MATEH only)
+  // Sub-agents tab contents
   var subagentsSection = document.getElementById('subagents-section');
-  if (subagentsSection) subagentsSection.style.display = isMatehAgent ? '' : 'none';
-
-  // Show/hide model preferences section (Personal/Bare — not MATEH which has its own sub-agent grid)
+  var agentsPanelInfo = document.getElementById('agents-panel-info');
   var modelPrefsSection = document.getElementById('model-prefs-section');
-  if (modelPrefsSection) modelPrefsSection.style.display = (!isMatehAgent) ? '' : 'none';
-  if (!isMatehAgent) loadModelPrefs();
-
-  // Show/hide tool profile section (Personal/Bare only)
   var toolProfileSection = document.getElementById('tool-profile-section');
-  if (toolProfileSection) toolProfileSection.style.display = (!isMatehAgent) ? '' : 'none';
+  if (subagentsSection) subagentsSection.style.display = isMatehAgent ? '' : 'none';
+  if (agentsPanelInfo) agentsPanelInfo.style.display = isMatehAgent ? '' : 'none';
+  if (modelPrefsSection) modelPrefsSection.style.display = (!isMatehAgent && !isBareAgent) ? '' : 'none';
+  if (toolProfileSection) toolProfileSection.style.display = (!isMatehAgent && !isBareAgent) ? '' : 'none';
+  if (!isMatehAgent && !isBareAgent) loadModelPrefs();
 
-  // Show/hide MATEH-only schedules (weekly competitive + monthly AEO)
+  // MATEH-specific schedules (weekly competitive + monthly AEO)
   var matehSchedules = document.getElementById('mateh-schedules-section');
   if (matehSchedules) matehSchedules.style.display = isMatehAgent ? '' : 'none';
 
@@ -12283,6 +12365,8 @@ function openAgentDetail(agentType) {
     renderAgentProfile();
     renderSubAgents();
     renderResearchReport();
+    renderAgentResearchChips();
+    renderAgentBrandCard();
     if (typeof loadHistoricalAssetsIntoUI === 'function') loadHistoricalAssetsIntoUI();
   } else if (isBareAgent) {
     // Bare agent — show quick access links
@@ -16234,7 +16318,7 @@ async function launchSeoFirstRun() {
           'מחקר SEO + אסטרטגיה נוצרו בהצלחה.<br>האסטרטגיה ממתינה לאישור שלכם.' +
           '</div>' +
           '<div style="display:flex;gap:8px;justify-content:center">' +
-          '<button class="btn btn-primary" onclick="closeSeoWizard();switchTab(\'agents\');setTimeout(function(){switchAgentDetailTab(\'research\')},300)">צפו באסטרטגיה ←</button>' +
+          '<button class="btn btn-primary" onclick="closeSeoWizard();switchTab(\'agents\');setTimeout(function(){switchAgentDetailTab(\'schedule\');toggleSeoAccordion()},300)">צפו באסטרטגיה ←</button>' +
           '<button class="btn btn-outline" onclick="closeSeoWizard()">סגרו</button>' +
           '</div>';
       }
