@@ -3005,6 +3005,31 @@ var PLANS = {
 
 var API = 'https://api.clawflow.flowmatic.co.il';
 
+/* ===== Unified fetch helper =====
+ * Thin wrapper around fetch() that:
+ *   - prepends API base
+ *   - injects Authorization: Bearer <token> + Content-Type JSON
+ *   - returns parsed JSON body (always an object with success/data/message)
+ *   - catches network errors and returns a fake { success: false } so
+ *     callers can branch without try/catch around every request
+ */
+async function apiFetch(path, init) {
+  init = init || {};
+  var headers = init.headers || {};
+  var tok = localStorage.getItem('cf_token');
+  if (tok && !headers['Authorization']) headers['Authorization'] = 'Bearer ' + tok;
+  if (init.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+  try {
+    var res = await fetch(API + path, { ...init, headers: headers });
+    var json = null;
+    try { json = await res.json(); } catch (_) { json = null; }
+    if (!json) return { success: res.ok, data: null, message: res.statusText };
+    return json;
+  } catch (err) {
+    return { success: false, data: null, message: (err && err.message) || 'Network error' };
+  }
+}
+
 /* ===== Auth ===== */
 var token = localStorage.getItem('cf_token');
 var email = localStorage.getItem('cf_email') || '';
