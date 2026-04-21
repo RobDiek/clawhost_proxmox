@@ -4799,37 +4799,110 @@ async function loadTaskMedia(itemId) {
   }
 }
 
+// Tracks which renders the user checked as references for the next regen.
+// Cleared every time the popup re-renders its media grid.
+var _popupRefSelection = {};
+
 function renderTaskMedia(itemId, renders) {
   var body = document.getElementById('task-media-body');
   if (!body) return;
+  _popupRefSelection = {}; // reset per render
+
   if (!renders || renders.length === 0) {
     body.innerHTML =
       '<div style="color:#9CA3AF;font-size:0.82rem;text-align:center;padding:10px 0">עדיין אין ווריאנטים. ניתן ליצור:</div>' +
       '<div style="text-align:center;padding-bottom:6px"><button onclick="regenerateItemMediaFromUI(\'' + itemId + '\')" class="aq-btn edit" style="font-size:0.82rem">🎨 צרו מדיה</button></div>';
     return;
   }
-  // Show up to 6 thumbs grid
+
+  // Inject hover CSS once per session
+  if (!document.getElementById('media-thumb-css')) {
+    var st = document.createElement('style');
+    st.id = 'media-thumb-css';
+    st.textContent = '.media-thumb{position:relative;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;background:#F9FAFB;transition:border-color .15s}' +
+      '.media-thumb.is-selected{border:3px solid #10B981}' +
+      '.media-thumb.is-refchecked{border:2px solid #2563EB}' +
+      '.media-thumb .hover-actions{position:absolute;top:6px;left:6px;display:flex;gap:4px;opacity:0;transition:opacity .15s;z-index:2}' +
+      '.media-thumb:hover .hover-actions{opacity:1}' +
+      '.media-thumb .hover-btn{background:rgba(15,23,42,0.75);color:#FFF;border:none;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;text-decoration:none}' +
+      '.media-thumb .hover-btn:hover{background:rgba(15,23,42,0.95)}' +
+      '.media-thumb .ref-toggle{position:absolute;top:6px;right:6px;background:rgba(255,255,255,0.9);border:1px solid #D1D5DB;border-radius:4px;padding:2px 6px;font-size:0.66rem;cursor:pointer;display:flex;align-items:center;gap:3px;z-index:2;color:#374151}' +
+      '.media-thumb .ref-toggle.on{background:#2563EB;color:#FFF;border-color:#2563EB}' +
+      '.media-thumb .sel-badge{position:absolute;bottom:28px;right:6px;background:#10B981;color:#FFF;padding:2px 7px;border-radius:6px;font-size:0.66rem;font-weight:600;z-index:2}';
+    document.head.appendChild(st);
+  }
+
   var cols = renders.length >= 3 ? 3 : renders.length;
   var html = '<div style="display:grid;grid-template-columns:repeat(' + cols + ',1fr);gap:8px;margin-bottom:10px">';
   renders.slice(0, 6).forEach(function(rd) {
     var isVideo = rd.renderType === 'video';
-    var badge = rd.status === 'approved' ? '<span style="position:absolute;top:6px;left:6px;background:#10B981;color:#FFF;padding:2px 6px;border-radius:6px;font-size:0.68rem;font-weight:600">✓</span>' : '';
+    var isSelected = rd.status === 'selected';
+    var classes = 'media-thumb' + (isSelected ? ' is-selected' : '');
+
     var media = isVideo
       ? '<video src="' + rd.publicUrl + '" controls style="width:100%;display:block;background:#000" preload="metadata"></video>'
-      : '<img src="' + rd.publicUrl + '" alt="" style="width:100%;display:block;cursor:pointer" onclick="window.open(\'' + rd.publicUrl + '\')" loading="lazy">';
-    html += '<div style="position:relative;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;background:#F9FAFB">' +
-      media + badge +
-      '<div style="padding:4px 6px;font-size:0.68rem;color:#6B7280;text-align:center">' +
-        (rd.channel || '') + ' · ' + (rd.formatSpec && rd.formatSpec.aspectRatio || '') +
+      : '<img src="' + rd.publicUrl + '" alt="" style="width:100%;display:block;cursor:zoom-in" onclick="openMediaLightbox(\'' + rd.id + '\')" loading="lazy">';
+
+    // Hover actions — top-right (which is visually top-left in RTL: we use left:6px on purpose)
+    var hoverActions = '';
+    if (!isVideo) {
+      hoverActions =
+        '<div class="hover-actions">' +
+          '<a class="hover-btn" href="' + rd.publicUrl + '" download title="הורידו" onclick="event.stopPropagation()">⬇</a>' +
+          '<button class="hover-btn" onclick="event.stopPropagation();openInCanva(\'' + rd.publicUrl + '\')" title="פתחו ב-Canva">🎨</button>' +
+        '</div>';
+    }
+
+    // Reference checkbox (top-right)
+    var refToggle = '<button class="ref-toggle" data-ref="' + rd.id + '" onclick="event.stopPropagation();togglePopupRef(\'' + rd.id + '\')" title="סמנו כרפרנס ליצירה מחדש">☐ רפרנס</button>';
+
+    // Select-for-publish control (below image)
+    var selectBtn = isSelected
+      ? '<button onclick="updateRenderStatusUI(\'' + rd.id + '\',\'ready\',\'' + itemId + '\')" style="flex:1;font-size:0.68rem;background:#F3F4F6;color:#6B7280;border:1px solid #E5E7EB;padding:4px;border-radius:5px;cursor:pointer">בטל בחירה</button>'
+      : '<button onclick="updateRenderStatusUI(\'' + rd.id + '\',\'selected\',\'' + itemId + '\')" style="flex:1;font-size:0.68rem;background:#10B981;color:#FFF;border:none;padding:4px;border-radius:5px;cursor:pointer;font-weight:600">★ בחרו לפרסום</button>'
+
+    var selBadge = isSelected ? '<div class="sel-badge">★ נבחרה</div>' : '';
+
+    html += '<div class="' + classes + '" data-render-id="' + rd.id + '">' +
+      hoverActions +
+      refToggle +
+      selBadge +
+      media +
+      '<div style="padding:6px 6px 8px 6px">' +
+        '<div style="font-size:0.66rem;color:#6B7280;text-align:center;margin-bottom:4px">' + (rd.channel ? heChannel(rd.channel) : '') + ' · ' + (rd.formatSpec && rd.formatSpec.aspectRatio || '') + '</div>' +
+        '<div style="display:flex;gap:4px">' + selectBtn + '</div>' +
       '</div>' +
     '</div>';
   });
   html += '</div>';
-  html += '<div style="display:flex;gap:6px;margin-top:8px">' +
-    '<input id="media-prompt-edit" type="text" placeholder="שינוי (אופציונלי): לדוגמה — יותר מינימליסטי, פחות טקסט" style="flex:1;padding:7px 9px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.8rem;font-family:inherit">' +
-    '<button onclick="regenerateItemMediaFromUI(\'' + itemId + '\')" class="aq-btn edit" style="font-size:0.78rem;white-space:nowrap">🔄 צרו מחדש</button>' +
-  '</div>';
+  html +=
+    '<div style="display:flex;gap:6px;margin-top:8px">' +
+      '<input id="media-prompt-edit" type="text" placeholder="שינוי (אופציונלי): לדוגמה — יותר מינימליסטי, פחות טקסט" style="flex:1;padding:7px 9px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.8rem;font-family:inherit">' +
+      '<button onclick="regenerateItemMediaFromUI(\'' + itemId + '\')" class="aq-btn edit" style="font-size:0.78rem;white-space:nowrap">🔄 צרו מחדש</button>' +
+    '</div>' +
+    '<div id="popup-ref-hint" style="margin-top:4px;font-size:0.7rem;color:#9CA3AF;min-height:14px"></div>';
   body.innerHTML = html;
+}
+
+function togglePopupRef(renderId) {
+  _popupRefSelection[renderId] = !_popupRefSelection[renderId];
+  var btn = document.querySelector('.ref-toggle[data-ref="' + renderId + '"]');
+  if (btn) {
+    if (_popupRefSelection[renderId]) {
+      btn.classList.add('on');
+      btn.innerHTML = '☑ רפרנס';
+    } else {
+      btn.classList.remove('on');
+      btn.innerHTML = '☐ רפרנס';
+    }
+  }
+  var checked = Object.keys(_popupRefSelection).filter(function(k) { return _popupRefSelection[k]; });
+  var hint = document.getElementById('popup-ref-hint');
+  if (hint) {
+    hint.textContent = checked.length > 0
+      ? '💡 לחיצה על "צרו מחדש" תשתמש ב-' + checked.length + ' רפרנסים שסימנת + ההוראה שלמטה.'
+      : '';
+  }
 }
 
 // ── Media Library modal — ALL versions (active + archived) for one plan item
@@ -5022,18 +5095,78 @@ async function updateRenderStatusUI(renderId, newStatus, itemId) {
   }
 }
 
-// ── Canva export (MVP: copy URL + open Canva; full OAuth integration = Phase M.3)
+// ── Canva integration (Connect API — canva.dev/docs/connect)
+// Checks instanceData.hasCanva; if false, opens an integrate modal explaining
+// the OAuth step. If true (once implemented), uses the Canva Connect API to
+// upload the asset and open a pre-filled design.
+// Until full OAuth lands in M.3, the connected path falls back to the
+// copy-URL-and-open-Canva shortcut so users aren't blocked.
 function openInCanva(imageUrl) {
+  var hasCanva = !!(instanceData && instanceData.hasCanva);
+  if (!hasCanva) {
+    openCanvaConnectModal(imageUrl);
+    return;
+  }
+  // Connected path — until we wire the full OAuth asset-upload call, do the
+  // clipboard+open-Canva fallback so the user can still act.
   var copy = navigator.clipboard && navigator.clipboard.writeText
     ? navigator.clipboard.writeText(imageUrl)
     : Promise.reject(new Error('clipboard unavailable'));
   copy.then(function() {
-    showToast('כתובת התמונה הועתקה ללוח ✓ — ב-Canva: Uploads → הדביקו את הכתובת', 'success');
+    showToast('כתובת הועתקה ל-Canva · Uploads → הדביקו', 'success');
     window.open('https://www.canva.com/design/new?create=1', '_blank', 'noopener');
   }).catch(function() {
-    window.prompt('העתיקו את הכתובת הזו ידנית ל-Canva → Uploads:', imageUrl);
+    window.prompt('העתיקו ידנית ל-Canva → Uploads:', imageUrl);
     window.open('https://www.canva.com/design/new?create=1', '_blank', 'noopener');
   });
+}
+
+function openCanvaConnectModal(imageUrl) {
+  var existing = document.getElementById('canva-connect-modal');
+  if (existing) existing.remove();
+  var el = document.createElement('div');
+  el.id = 'canva-connect-modal';
+  el.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.7);z-index:10003;display:flex;align-items:center;justify-content:center;padding:20px';
+  el.innerHTML =
+    '<div style="background:#FFF;border-radius:12px;max-width:480px;width:100%;padding:22px 24px;box-shadow:0 25px 60px rgba(0,0,0,0.4)">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
+        '<div style="width:40px;height:40px;background:linear-gradient(135deg,#8B5CF6,#EC4899);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">🎨</div>' +
+        '<div style="font-weight:700;font-size:1.05rem;color:#1F2937">חיבור Canva</div>' +
+      '</div>' +
+      '<div style="color:#4B5563;font-size:0.88rem;line-height:1.6;margin-bottom:14px">' +
+        'חברו את חשבון Canva שלכם ואנחנו נעלה את התמונה ישירות ל-Uploads + נפתח עיצוב חדש מוכן לעריכה. זה חיבור OAuth חד-פעמי.' +
+      '</div>' +
+      '<div style="background:#F9FAFB;border:1px solid #F3F4F6;border-radius:8px;padding:12px;font-size:0.78rem;color:#6B7280;line-height:1.55;margin-bottom:16px">' +
+        '<strong style="color:#374151">מה יהיה זמין אחרי החיבור:</strong><br>' +
+        '• העלאה אוטומטית של תמונות ל-Canva Uploads<br>' +
+        '• פתיחה של עיצוב חדש עם התמונה מוכנה<br>' +
+        '• שמירה של גרסאות ערוכות חזרה לספריית המדיה<br><br>' +
+        '<em style="color:#9CA3AF">שילוב OAuth המלא יושק בגרסה הבאה. בינתיים — לחצו "פתחו זמנית" להעתיק את הכתובת ולהשתמש ב-Canva רגיל.</em>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+        '<button onclick="document.getElementById(\'canva-connect-modal\').remove()" style="padding:8px 14px;background:#F3F4F6;border:none;border-radius:6px;cursor:pointer;font-family:inherit">סגרו</button>' +
+        '<button onclick="canvaFallbackOpen(\'' + imageUrl + '\');document.getElementById(\'canva-connect-modal\').remove()" style="padding:8px 14px;background:#F3F4F6;color:#374151;border:1px solid #E5E7EB;border-radius:6px;cursor:pointer;font-family:inherit">פתחו זמנית</button>' +
+        '<button onclick="startCanvaConnect()" style="padding:8px 18px;background:linear-gradient(135deg,#8B5CF6,#EC4899);color:#FFF;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-family:inherit">חברו את Canva</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(el);
+}
+
+function canvaFallbackOpen(imageUrl) {
+  var copy = navigator.clipboard && navigator.clipboard.writeText
+    ? navigator.clipboard.writeText(imageUrl)
+    : Promise.reject();
+  copy.then(function() { showToast('כתובת הועתקה · ב-Canva: Uploads → הדביקו', 'success'); })
+    .catch(function() { window.prompt('העתיקו ל-Canva → Uploads:', imageUrl); });
+  window.open('https://www.canva.com/design/new?create=1', '_blank', 'noopener');
+}
+
+function startCanvaConnect() {
+  // Placeholder until Canva Connect OAuth is implemented on the backend.
+  // Will: (1) redirect to /integrations/canva/start which kicks off OAuth,
+  // (2) callback stores canvaTokens on the instance, (3) hasCanva flag
+  // flips in /me — library buttons then use Canva Connect API directly.
+  showToast('אינטגרציית Canva המלאה תושק בגרסה הבאה. בינתיים — השתמשו ב"פתחו זמנית".', 'info');
 }
 
 // ── Upload user's own image
@@ -5064,13 +5197,25 @@ async function handleMediaUpload(event, itemId) {
   event.target.value = ''; // reset so same file can be re-picked
 }
 
-// Regenerate flow — when user clicks "צרו מחדש" we first show a picker
-// letting them pick an existing variant as reference (optional) + write a
-// text instruction. The reference's prompt guides Opus to stay close in
-// mood/composition; text instruction specifies what to change.
+// Regenerate flow. Two paths:
+//   Fast path — user checked reference thumbs in the popup and/or typed into
+//     the inline #media-prompt-edit box. We submit directly without opening
+//     the picker modal.
+//   Picker path — nothing checked → open the full picker modal so user can
+//     still browse archived variants etc.
 async function regenerateItemMediaFromUI(itemId) {
   if (!instanceId) return;
-  // Pull existing renders so user can pick a reference
+
+  var checkedRefs = Object.keys(_popupRefSelection).filter(function(k) { return _popupRefSelection[k]; });
+  var textEl = document.getElementById('media-prompt-edit');
+  var text = textEl ? textEl.value.trim() : '';
+
+  // If user made any inline selection, skip the modal and submit immediately
+  if (checkedRefs.length > 0 || text) {
+    return submitRegenDirect(itemId, checkedRefs, text);
+  }
+
+  // No inline choices — open the picker modal for full library browsing
   var renders = _mediaLibCache.itemId === itemId ? _mediaLibCache.renders : [];
   if (renders.length === 0) {
     try {
@@ -5080,6 +5225,35 @@ async function regenerateItemMediaFromUI(itemId) {
     } catch (_) {}
   }
   openRegenPicker(itemId, renders);
+}
+
+async function submitRegenDirect(itemId, refIds, text) {
+  var body = document.getElementById('task-media-body');
+  if (body) body.innerHTML = '<div style="text-align:center;padding:28px 0"><span style="animation:spin 1s linear infinite;display:inline-block;font-size:1.3rem">⚙️</span><div style="margin-top:6px;font-size:0.82rem;color:#6B7280">Opus מפיק בריף → fal.ai מייצר... (~40 שניות)</div></div>';
+  try {
+    var payload = {};
+    if (text) payload.promptEdit = text;
+    // Backend accepts one referenceRenderId — if user picked multiple, use
+    // the first and include the others as text hints. (Full multi-ref is
+    // Phase M.3 with fal.ai IP-Adapter chain.)
+    if (refIds.length > 0) {
+      payload.referenceRenderId = refIds[0]
+      if (refIds.length > 1) {
+        payload.promptEdit = (payload.promptEdit || '') + ' (Keep mood consistent with ' + refIds.length + ' reference variants user picked.)'
+      }
+    }
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/content-plan/items/' + itemId + '/media/regenerate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (!r.success) throw new Error(r.message || 'regen failed');
+    showToast('נוצרו ' + (r.data.renders.length || 0) + ' ווריאנטים · $' + (r.data.totalCostUsd || 0).toFixed(3), 'success');
+    _popupRefSelection = {};
+    loadTaskMedia(itemId);
+  } catch (err) {
+    showToast('שגיאה: ' + err.message, 'error');
+    loadTaskMedia(itemId);
+  }
 }
 
 function openRegenPicker(itemId, renders) {
