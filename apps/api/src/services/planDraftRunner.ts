@@ -121,16 +121,44 @@ ${ctx.brandVoice.substring(0, 3500)}
 ${ctx.optimizationBlock}
 ${ctx.statsBlock}
 
-## חוקים קריטיים
-- **100% עברית** — אפס מילים באנגלית (AI → בינה מלאכותית, CTA → קריאה לפעולה, ROI → החזר השקעה, וכו')
+## חוקים קריטיים — שפה
+
+**100% עברית. אפס מילים באנגלית בגוף הטקסט.** זה חוק מוחלט — אם תכתבו אפילו מילה אחת באנגלית, הטיוטה נדחית אוטומטית.
+
+### טרמינולוגיה — תרגום חובה
+| במקום (אסור) | כתבו בעברית (חובה) |
+|---|---|
+| stack, tech stack | ערימת כלים / מערכת טכנולוגית |
+| workflow | זרימת עבודה |
+| AI | בינה מלאכותית |
+| CTA | קריאה לפעולה |
+| ROI | החזר השקעה |
+| dashboard | לוח בקרה |
+| automation | אוטומציה |
+| feed | פיד (מותר) |
+| performance | ביצועים |
+| engagement | מעורבות |
+| conversion | המרה |
+| campaign | קמפיין (מותר) |
+| audience | קהל |
+| funnel | משפך |
+| brief | מפרט / הנחיה |
+
+### מה מותר להשאיר באנגלית (exceptions)
+- שמות מוצרים רשמיים: ClawFlow, HubSpot, Facebook, Instagram (כשזה השם הרשמי)
+- כתובות אתר ושמות חשבונות (example.com, @handle)
+- מספרים ומטבעות: ₪, $, %
+- כל השאר — חובה תרגום
+
+## חוקים כלליים
 - כתבו את **התוכן הסופי** — לא בריף, לא הסבר, לא מטא. זה מה שהולך ללוח הפלטפורמה.
 - הקפידו על אורך מתאים לפלטפורמה (FB: 150-250 מילים, IG: 100-200, Blog: 800-1500, LinkedIn: 150-300, Email: 200-400)
 - אם הפלטפורמה היא email או blog — החזירו גם כותרת בפורמט "title:" בשורה ראשונה
 
 ## תפוקה — JSON בלבד
 {
-  "title": "<כותרת הפריט — קצרה, 3-8 מילים>",
-  "content": "<התוכן המלא בעברית — מוכן לפרסום, כולל hook פתיחה, גוף, CTA וHashtagים אם רלוונטי>"
+  "title": "<כותרת הפריט — קצרה, 3-8 מילים, 100% עברית>",
+  "content": "<התוכן המלא בעברית טהורה — מוכן לפרסום, כולל הוק פתיחה, גוף, קריאה לפעולה והאשטגים אם רלוונטי>"
 }`
 
     try {
@@ -228,11 +256,14 @@ export async function draftDuePlanItemsForInstance(
         return { drafted, skipped, failed }
     }
 
-    // Which items are due? plan item date+time within the draft window
+    // Which items are due? plan item date+time within the draft window.
+    // Manual single-item trigger (opts.onlyItemId) bypasses the status /
+    // due-window checks — user explicitly asked for this item to be drafted
+    // RIGHT NOW, possibly replacing an earlier unsatisfactory draft.
     const dueItems: PlanItem[] = []
     for (const item of plan) {
         if (opts.onlyItemId && item.id !== opts.onlyItemId) continue
-        if (item.status !== 'planned') { skipped++; continue }
+        if (!opts.onlyItemId && item.status !== 'planned') { skipped++; continue }
         const schedMs = new Date(`${item.date}T${item.time || '09:00'}:00+03:00`).getTime()
         const diff = schedMs - now.getTime()
         if (opts.onlyItemId || diff <= DUE_WINDOW_MS) {
@@ -241,19 +272,42 @@ export async function draftDuePlanItemsForInstance(
     }
     if (dueItems.length === 0) return { drafted, skipped, failed }
 
-    // Idempotency: skip items that already have an output with their id in metadata
+    // Idempotency: skip items that already have an output with their id in
+    // metadata. Skipped when onlyItemId is set — user explicitly asked to
+    // re-draft, so we archive old outputs (see below) and regenerate.
     const existing = await db.select({ id: agentOutputs.id, metadata: agentOutputs.metadata })
         .from(agentOutputs)
         .where(eq(agentOutputs.instanceId, instanceId))
-    const linkedIds = new Set<string>()
+    const linkedMap = new Map<string, string[]>() // itemId → outputIds[]
     for (const o of existing) {
         const md = (o.metadata as Record<string, unknown> | null) || {}
-        if (md.contentPlanItemId) linkedIds.add(String(md.contentPlanItemId))
+        const itemId = md.contentPlanItemId ? String(md.contentPlanItemId) : null
+        if (itemId) {
+            const arr = linkedMap.get(itemId) || []
+            arr.push(o.id)
+            linkedMap.set(itemId, arr)
+        }
     }
 
-    const toProcess = dueItems
-        .filter(it => !linkedIds.has(it.id))
-        .slice(0, opts.onlyItemId ? 1 : MAX_DRAFTS_PER_SWEEP)
+    const toProcess = opts.onlyItemId
+        ? dueItems
+        : dueItems.filter(it => !linkedMap.has(it.id)).slice(0, MAX_DRAFTS_PER_SWEEP)
+
+    // On manual re-draft: archive any existing outputs linked to these items
+    // so the user's approval queue shows the fresh draft, not both.
+    if (opts.onlyItemId) {
+        for (const item of toProcess) {
+            const oldOutputs = linkedMap.get(item.id) || []
+            for (const oid of oldOutputs) {
+                try {
+                    await db.update(agentOutputs)
+                        .set({ status: 'archived', updatedAt: new Date() })
+                        .where(eq(agentOutputs.id, oid))
+                    console.log(`[planDraftRunner] archived old output ${oid} for item ${item.id}`)
+                } catch { /* best effort */ }
+            }
+        }
+    }
 
     for (const item of toProcess) {
         // Transition to drafting (immediate save to prevent race if cron fires again)

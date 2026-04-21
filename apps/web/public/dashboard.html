@@ -4711,8 +4711,10 @@ function renderTaskPopup(task) {
         '<div class="md-content" style="background:#F9FAFB;padding:14px 16px;border-radius:8px;border:1px solid #F3F4F6;line-height:1.75">' + renderMarkdown(String(task.preview)) + '</div>' +
       '</div>';
     }
-    // Media variants — surface image/video renders tied to this plan item
-    if (isPlanItem && planItemId) {
+    // Media variants — surface image/video renders tied to this plan item.
+    // Triggered when either: this is a plan-item popup OR the agent_output's
+    // metadata links back to a plan item (drafts from planDraftRunner).
+    if (planItemId) {
       bodyHtml += '<div class="task-popup-field" id="task-media-field">' +
         '<div class="task-popup-label">מדיה שנוצרה</div>' +
         '<div id="task-media-body" style="color:#9CA3AF;font-size:0.82rem;text-align:center;padding:12px 0">טוענים ווריאנטים...</div>' +
@@ -4726,7 +4728,10 @@ function renderTaskPopup(task) {
   var footerHtml = '';
   // Detect content plan item (id prefix "plan-")
   var isPlanItem = task.id && task.id.indexOf('plan-') === 0;
-  var planItemId = isPlanItem ? task.id.substring(5) : '';
+  // Media also shows for agent_output popups whose metadata ties back to a
+  // content plan item (drafts created by planDraftRunner).
+  var linkedItemId = (task.metadata && task.metadata.contentPlanItemId) || '';
+  var planItemId = isPlanItem ? task.id.substring(5) : linkedItemId;
   var manualPublishBtns = '';
   if (isPlanItem) {
     // "Draft now" for planned items (Phase 3 agent-to-plan binding)
@@ -4769,8 +4774,9 @@ function renderTaskPopup(task) {
   }
   document.getElementById('taskPopupFooter').innerHTML = footerHtml;
   document.getElementById('taskPopupOverlay').classList.remove('hidden');
-  // Fetch media renders async (Phase M.1.6) when this is a plan item popup
-  if (isPlanItem && planItemId) loadTaskMedia(planItemId);
+  // Fetch media renders async (Phase M.1.6) — works for both plan-item
+  // popups AND agent_output popups linked via metadata.contentPlanItemId.
+  if (planItemId) loadTaskMedia(planItemId);
 }
 
 // Load media variants for a plan item into the popup
