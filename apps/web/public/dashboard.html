@@ -9776,13 +9776,16 @@ function computeConnectionsRequirements(scenario, inst) {
 
   // Creative stack — fal.ai (image/video) + ElevenLabs (hebrew voice) + external composer
   if (key !== 'conservative') {
+    var hasFal = !!inst.hasFalKey;
+    var hasEl  = !!inst.hasElevenlabsKey;
+    var creativeConnected = hasFal || hasEl;
     reqs.push({
       id: 'creative-stack', icon: '🎨', label: 'יצירת מדיה',
       must: true, group: 'creative',
-      desc: 'הסוכן מייצר באופן אוטומטי תמונות, וידאו וקריינות בעברית לכל פריט בתוכנית. ניתן לאשר, לערוך דרך prompt או ליצור מחדש. יסוד הטכנולוגיה: fal.ai Flux Pro + ElevenLabs + מרכיב וידאו חיצוני.',
-      status: 'soon',
-      soon: true,
-      soonLabel: 'בקרוב'
+      desc: 'הסוכן מייצר באופן אוטומטי תמונות, וידאו וקריינות בעברית לכל פריט בתוכנית. ניתן לאשר, לערוך דרך prompt או ליצור מחדש. יסוד הטכנולוגיה: fal.ai Flux Pro + ElevenLabs.' +
+            (creativeConnected ? ' (מחובר: ' + (hasFal ? 'fal.ai' : '') + (hasFal && hasEl ? ' + ' : '') + (hasEl ? 'ElevenLabs' : '') + ')' : ''),
+      status: st(creativeConnected),
+      connectAction: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('creative-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)"
     });
   }
 

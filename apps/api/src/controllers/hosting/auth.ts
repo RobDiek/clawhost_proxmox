@@ -424,6 +424,8 @@ export const getMyInstances = async (c: Context) => {
                 hasGsc: !!i.gscTokens,
                 hasDataforseo: !!i.dataforseoKey,
                 hasFirecrawl: !!i.firecrawlKey,
+                hasFalKey: !!i.falApiKey,
+                hasElevenlabsKey: !!i.elevenlabsApiKey,
                 hasGoogleAds: (() => {
                     const gt = i.googleTokens as any
                     if (!gt) return false
