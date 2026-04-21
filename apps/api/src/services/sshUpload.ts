@@ -36,11 +36,18 @@ function connect(target: SshTarget): Promise<Client> {
             username: target.username || 'root',
             readyTimeout: 20000,
         }
-        if (target.password) opts.password = target.password
-        const key = target.privateKeyPath
-            ? (() => { try { return readFileSync(target.privateKeyPath!) } catch { return null } })()
-            : resolveKey()
-        if (key) opts.privateKey = key
+        // Prefer password auth when given — VPSes from early cloud-init revisions
+        // don't have our master key in authorized_keys, and passing BOTH causes
+        // ssh2 to stall on the first failed publickey attempt.
+        if (target.password) {
+            opts.password = target.password
+            opts.tryKeyboard = true
+        } else {
+            const key = target.privateKeyPath
+                ? (() => { try { return readFileSync(target.privateKeyPath!) } catch { return null } })()
+                : resolveKey()
+            if (key) opts.privateKey = key
+        }
         conn.on('ready', () => resolve(conn))
         conn.on('error', reject)
         conn.connect(opts)
