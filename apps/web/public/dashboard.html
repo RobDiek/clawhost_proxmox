@@ -4711,15 +4711,18 @@ function renderTaskPopup(task) {
         '<div class="md-content" style="background:#F9FAFB;padding:14px 16px;border-radius:8px;border:1px solid #F3F4F6;line-height:1.75">' + renderMarkdown(String(task.preview)) + '</div>' +
       '</div>';
     }
-    // Media variants — surface image/video renders tied to this plan item.
-    // Triggered when either: this is a plan-item popup OR the agent_output's
-    // metadata links back to a plan item (drafts from planDraftRunner).
-    if (planItemId) {
-      bodyHtml += '<div class="task-popup-field" id="task-media-field">' +
-        '<div class="task-popup-label">מדיה שנוצרה</div>' +
-        '<div id="task-media-body" style="color:#9CA3AF;font-size:0.82rem;text-align:center;padding:12px 0">טוענים ווריאנטים...</div>' +
-      '</div>';
-    }
+  }
+
+  // ── Media variants (ALWAYS shown when popup links to a content plan item) ──
+  // Lives outside the fallback branch so it renders for all three popup flows:
+  //   (1) agent_output popups from the approval queue with full content
+  //   (2) plan-item popups from the calendar (preview-only)
+  //   (3) type='content' fallback with only agent info
+  if (planItemId) {
+    bodyHtml += '<div class="task-popup-field" id="task-media-field">' +
+      '<div class="task-popup-label">מדיה שנוצרה</div>' +
+      '<div id="task-media-body" style="color:#9CA3AF;font-size:0.82rem;text-align:center;padding:12px 0">טוענים ווריאנטים...</div>' +
+    '</div>';
   }
 
   document.getElementById('taskPopupBody').innerHTML = bodyHtml;
