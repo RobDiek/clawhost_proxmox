@@ -5066,33 +5066,143 @@ export const getContentPlanItemMedia = async (c: Context) => {
 }
 
 // POST /instances/:id/content-plan/media/:renderId/status
-// Toggle an individual render between 'ready' and 'archived'. Used by the
-// Media Library UI to restore old variants or archive new ones without
-// triggering a full regeneration.
+// Set render status to 'ready' | 'archived' | 'selected'. Used by the
+// Media Library UI to mark a variant as the preferred one for publishing,
+// archive stale versions, or restore older ones.
+//
+// 'selected' semantics: max one selected per content plan item. Setting a
+// new selected auto-demotes the previous to 'ready'. On select, we also
+// propagate the publicUrl to the linked agent_output.mediaUrl so the
+// existing publisher picks it up at approve-time.
 export const updateRenderStatus = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         const renderId = c.req.param('renderId')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
 
-        type StatusBody = { status?: 'ready' | 'archived' }
+        type StatusBody = { status?: 'ready' | 'archived' | 'selected' }
         const body: StatusBody = await c.req.json<StatusBody>().catch(() => ({} as StatusBody))
-        if (body.status !== 'ready' && body.status !== 'archived') {
-            return fail(c, "status must be 'ready' or 'archived'", 400)
+        if (body.status !== 'ready' && body.status !== 'archived' && body.status !== 'selected') {
+            return fail(c, "status must be 'ready', 'archived', or 'selected'", 400)
         }
 
         const { contentPlanMedia } = await import('@/db/schema')
+
+        // Fetch target render to validate + grab item link
+        const [target] = await db.select().from(contentPlanMedia)
+            .where(and(eq(contentPlanMedia.id, renderId), eq(contentPlanMedia.instanceId, instanceId)))
+        if (!target) return fail(c, 'Render not found', 404)
+
+        // If selecting: demote any other selected render for this item first
+        if (body.status === 'selected') {
+            await db.update(contentPlanMedia)
+                .set({ status: 'ready' })
+                .where(and(
+                    eq(contentPlanMedia.instanceId, instanceId),
+                    eq(contentPlanMedia.contentPlanItemId, target.contentPlanItemId),
+                    eq(contentPlanMedia.status, 'selected'),
+                ))
+        }
+
         const [updated] = await db.update(contentPlanMedia)
             .set({ status: body.status })
-            .where(and(
-                eq(contentPlanMedia.id, renderId),
-                eq(contentPlanMedia.instanceId, instanceId),
-            ))
+            .where(and(eq(contentPlanMedia.id, renderId), eq(contentPlanMedia.instanceId, instanceId)))
             .returning()
         if (!updated) return fail(c, 'Render not found', 404)
+
+        // Propagate selected URL to linked agent_output so publisher uses it.
+        if (body.status === 'selected' && updated.publicUrl) {
+            try {
+                const { agentOutputs } = await import('@/db/schema')
+                const rows = await db.select().from(agentOutputs)
+                    .where(eq(agentOutputs.instanceId, instanceId))
+                const linked = rows.find(r => {
+                    const md = (r.metadata as Record<string, unknown> | null) || {}
+                    return md.contentPlanItemId === target.contentPlanItemId
+                })
+                if (linked) {
+                    await db.update(agentOutputs).set({
+                        mediaUrl: updated.publicUrl,
+                        mediaType: updated.renderType === 'video' ? 'video/mp4' : 'image/jpeg',
+                        metadata: { ...((linked.metadata as any) || {}), selectedRenderId: updated.id },
+                    }).where(eq(agentOutputs.id, linked.id))
+                }
+            } catch (syncErr) {
+                console.warn('[updateRenderStatus] output sync failed:', (syncErr as Error).message)
+            }
+        }
+
         return ok(c, { id: updated.id, status: updated.status }, 'Status updated')
     } catch (err) {
         console.error('updateRenderStatus error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// POST /instances/:id/content-plan/items/:itemId/media/upload
+// User uploads their own image (to use instead of generated variants).
+// Body: multipart/form-data with file field + optional channel.
+// Pushes to the same VPS path as AI-generated renders, creates a row in
+// content_plan_media with source='user_upload'.
+export const uploadUserMedia = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const itemId = c.req.param('itemId')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const form = await c.req.formData()
+        const file = form.get('file')
+        if (!(file instanceof File)) return fail(c, 'file field required (multipart)', 400)
+        const MAX_BYTES = 15 * 1024 * 1024
+        if (file.size > MAX_BYTES) return fail(c, `file too large (${file.size} > ${MAX_BYTES})`, 400)
+
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+        if (!validTypes.includes(file.type)) return fail(c, `unsupported type: ${file.type}`, 400)
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance?.ip || !instance.subdomainAgent) return fail(c, 'Instance not ready', 400)
+
+        const { randomBytes } = await import('crypto')
+        const { sshUploadBuffer } = await import('@/services/sshUpload')
+        const { contentPlanMedia } = await import('@/db/schema')
+
+        const ext = file.type.split('/')[1].replace('jpeg', 'jpg')
+        const short = randomBytes(3).toString('hex')
+        const yearMonth = new Date().toISOString().slice(0, 7)
+        const channel = (form.get('channel') as string) || 'upload'
+        const filename = `upload-${channel}-${short}.${ext}`
+        const vpsPath = `/home/openclaw/.openclaw/media/${yearMonth}/${itemId}/${filename}`
+        const publicUrl = `https://${instance.subdomainAgent}/media/${yearMonth}/${itemId}/${filename}`
+
+        const bytes = Buffer.from(await file.arrayBuffer())
+        await sshUploadBuffer(
+            { host: instance.ip, password: instance.rootPassword || undefined },
+            vpsPath,
+            bytes,
+        )
+
+        const renderId = 'cpm_' + randomBytes(6).toString('hex')
+        await db.insert(contentPlanMedia).values({
+            id: renderId,
+            instanceId,
+            contentPlanItemId: itemId,
+            renderType: file.type.startsWith('video') ? 'video' : 'image',
+            channel,
+            formatSpec: {},
+            model: 'user-upload',
+            prompt: '(user uploaded file)',
+            vpsPath,
+            publicUrl,
+            fileSizeBytes: bytes.length,
+            version: 1,
+            status: 'ready',
+            costUsd: '0',
+            generatedAt: new Date(),
+        })
+
+        return ok(c, { id: renderId, publicUrl, fileSizeBytes: bytes.length }, 'Uploaded')
+    } catch (err) {
+        console.error('uploadUserMedia error:', err)
         return fail(c, (err as Error).message, 500)
     }
 }
@@ -5107,7 +5217,7 @@ export const regenerateItemMedia = async (c: Context) => {
         const itemId = c.req.param('itemId')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
 
-        type RegenBody = { promptEdit?: string; channels?: string[]; numVariants?: number }
+        type RegenBody = { promptEdit?: string; channels?: string[]; numVariants?: number; referenceRenderId?: string }
         const body: RegenBody = await c.req.json<RegenBody>().catch(() => ({} as RegenBody))
 
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
@@ -5118,10 +5228,27 @@ export const regenerateItemMedia = async (c: Context) => {
         const item = plan.find(p => p.id === itemId)
         if (!item) return fail(c, 'Plan item not found', 404)
 
+        // Optional: reference variant — Opus keeps the mood/composition close
+        // to a specific past render. We pull its prompt from DB and append it.
+        let referenceBlock = ''
+        if (body.referenceRenderId) {
+            try {
+                const { contentPlanMedia } = await import('@/db/schema')
+                const [ref] = await db.select().from(contentPlanMedia)
+                    .where(and(
+                        eq(contentPlanMedia.id, body.referenceRenderId),
+                        eq(contentPlanMedia.instanceId, instanceId),
+                    ))
+                if (ref) {
+                    referenceBlock = `\n\n## גרסת בסיס (שמרו על התחושה והקומפוזיציה)\nהפרומפט של הגרסה שהמשתמש בחר כבסיס:\n${ref.prompt}\n\nשמרו על אותה אווירה, פלטה, סגנון צילום, והיחס אובייקט-רקע. שנו רק מה שהמשתמש ביקש מפורשות.`
+                }
+            } catch { /* non-fatal */ }
+        }
+
         // Apply user's natural-language edit to the brief so Opus sees it
-        const briefWithEdit = body.promptEdit
-            ? `${item.brief}\n\n## שינוי שביקש המשתמש\n${body.promptEdit}`
-            : item.brief
+        const briefWithEdit = `${item.brief}${referenceBlock}${
+            body.promptEdit ? `\n\n## שינוי שביקש המשתמש\n${body.promptEdit}` : ''
+        }`
 
         // Archive all current 'ready' renders for this item so the UI shows
         // only the fresh batch. Rows stay in DB with status='archived' for
