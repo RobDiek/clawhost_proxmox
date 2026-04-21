@@ -168,6 +168,9 @@ runcmd:
     # Phase M — content plan media directory (served by nginx, backed up via
     # the backup add-on, counted toward user's plan storage quota).
     - mkdir -p /home/openclaw/.openclaw/media
+    # nginx (www-data) must be able to traverse into the openclaw home to
+    # serve /media/ — grant execute bit on the path chain.
+    - chmod o+x /home/openclaw /home/openclaw/.openclaw
     - |
         cat > /home/openclaw/.openclaw/openclaw.json << 'OCEOF'
         {
@@ -849,12 +852,12 @@ PYEOF
                 alias /home/openclaw/.openclaw/media/;
                 expires 30d;
                 add_header Cache-Control "public, immutable";
-                # Basic security: only serve known image/video extensions
-                location ~* \.(jpg|jpeg|png|webp|gif|mp4|mov|webm|mp3|wav|m4a)$ {
-                    try_files $uri =404;
+                # Whitelist image/video/audio extensions — anything else → 404
+                location ~* ^/media/.+\.(jpg|jpeg|png|webp|gif|mp4|mov|webm|mp3|wav|m4a)$ {
+                    alias /home/openclaw/.openclaw/media/;
+                    expires 30d;
+                    add_header Cache-Control "public, immutable";
                 }
-                # Anything else under /media/ → 404
-                try_files $uri =404;
             }
 
             location / {
