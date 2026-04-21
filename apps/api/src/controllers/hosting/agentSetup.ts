@@ -1,7 +1,7 @@
 import type { Context } from 'hono'
 import { readFileSync, readdirSync, statSync } from 'fs'
 import { resolve, join, relative } from 'path'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
@@ -5019,6 +5019,75 @@ export const updateMediaSettings = async (c: Context) => {
         return ok(c, { settings: resolveMediaSettings({ mediaSettings: merged }) }, 'Settings saved')
     } catch (err) {
         console.error('updateMediaSettings error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// GET /instances/:id/content-plan/items/:itemId/media
+// Returns all media_renders rows for a given plan item, sorted by version.
+// Used by the Review UI to display variants the user can approve / edit.
+export const getContentPlanItemMedia = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const itemId = c.req.param('itemId')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { contentPlanMedia } = await import('@/db/schema')
+        const rows = await db.select().from(contentPlanMedia)
+            .where(and(eq(contentPlanMedia.instanceId, instanceId), eq(contentPlanMedia.contentPlanItemId, itemId)))
+        rows.sort((a, b) => (b.version || 0) - (a.version || 0))
+        return ok(c, { renders: rows, count: rows.length }, 'Media renders')
+    } catch (err) {
+        console.error('getContentPlanItemMedia error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// POST /instances/:id/content-plan/items/:itemId/media/regenerate
+// Body: { promptEdit?: string, channels?: string[], numVariants?: number }
+// Regenerate media for an item. If promptEdit supplied, it's merged into
+// the brief as user feedback before re-running Opus.
+export const regenerateItemMedia = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const itemId = c.req.param('itemId')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        type RegenBody = { promptEdit?: string; channels?: string[]; numVariants?: number }
+        const body: RegenBody = await c.req.json<RegenBody>().catch(() => ({} as RegenBody))
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const rd = (instance.researchData as any) || {}
+        const plan: ContentPlanItem[] = Array.isArray(rd.contentPlan) ? rd.contentPlan : []
+        const item = plan.find(p => p.id === itemId)
+        if (!item) return fail(c, 'Plan item not found', 404)
+
+        // Apply user's natural-language edit to the brief so Opus sees it
+        const briefWithEdit = body.promptEdit
+            ? `${item.brief}\n\n## שינוי שביקש המשתמש\n${body.promptEdit}`
+            : item.brief
+
+        const { generateMediaForPlanItem } = await import('@/services/mediaOrchestrator')
+        const res = await generateMediaForPlanItem(instanceId, {
+            id: item.id,
+            hook: item.hook,
+            brief: briefWithEdit,
+            pillar: item.pillar,
+            persona: item.persona,
+            channel: item.channel,
+            type: item.type,
+            productRef: item.productRef,
+            ctaType: item.ctaType,
+        }, {
+            channels: body.channels,
+            numVariantsPerChannel: body.numVariants || 3,
+        })
+
+        if (!res) return fail(c, 'Brief generation failed', 500)
+        return ok(c, res, `${res.renders.length} variants generated`)
+    } catch (err) {
+        console.error('regenerateItemMedia error:', err)
         return fail(c, (err as Error).message, 500)
     }
 }

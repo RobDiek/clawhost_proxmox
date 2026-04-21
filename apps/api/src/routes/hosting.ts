@@ -61,6 +61,8 @@ import {
     getMediaSettings,
     updateMediaSettings,
     testGenerateMedia,
+    getContentPlanItemMedia,
+    regenerateItemMedia,
     addAgentToInstance,
     removeAgentFromInstance,
     setupPersonalAgent,
@@ -296,6 +298,8 @@ app.get('/instances/:id/stats', getAgentStats)
 app.get('/instances/:id/media/settings', getMediaSettings)
 app.post('/instances/:id/media/settings', updateMediaSettings)
 app.post('/instances/:id/media/test-generate', testGenerateMedia)
+app.get('/instances/:id/content-plan/items/:itemId/media', getContentPlanItemMedia)
+app.post('/instances/:id/content-plan/items/:itemId/media/regenerate', regenerateItemMedia)
 app.post('/instances/:id/agents/add', addAgentToInstance)
 app.post('/instances/:id/agents/remove', removeAgentFromInstance)
 

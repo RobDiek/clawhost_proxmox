@@ -245,6 +245,39 @@ export async function draftDuePlanItemsForInstance(
         item.status = 'awaiting_review' as PlanItem['status']
         ;(item as unknown as { outputId?: string }).outputId = outputId
         drafted.push(item.id)
+
+        // Phase M.1.4/M.1.6 — fire media generation in parallel with the
+        // remaining drafts. We await the brief so Opus can decide the
+        // visual direction first, but we don't block the whole sweep on
+        // fal.ai + SFTP (~20-40s). Errors are logged; plan item still
+        // goes to awaiting_review — user can manually regenerate media.
+        // Skip for channels that don't need images (email, google_ads).
+        const needsImage = !['email', 'google_ads', 'meta_ads', 'report'].includes(item.channel) &&
+            !['campaign_launch', 'campaign_optimize', 'report'].includes(item.type)
+        if (needsImage) {
+            // Fire-and-forget: the media_renders row gets attached to this output
+            // via metadata.contentPlanItemId; the Review UI joins the two.
+            const { generateMediaForPlanItem } = await import('./mediaOrchestrator')
+            generateMediaForPlanItem(instanceId, {
+                id: item.id,
+                hook: item.hook,
+                brief: item.brief,
+                pillar: item.pillar,
+                persona: item.persona,
+                channel: item.channel,
+                type: item.type,
+                productRef: item.productRef,
+                ctaType: item.ctaType,
+            }, { numVariantsPerChannel: 3 }).then(res => {
+                if (res) {
+                    console.log(`[planDraftRunner] ${item.id} media: ${res.renders.length} renders, $${res.totalCostUsd.toFixed(3)}`)
+                } else {
+                    console.warn(`[planDraftRunner] ${item.id} media generation returned null`)
+                }
+            }).catch(err => {
+                console.warn(`[planDraftRunner] ${item.id} media generation error:`, (err as Error).message)
+            })
+        }
     }
 
     // Persist final plan state

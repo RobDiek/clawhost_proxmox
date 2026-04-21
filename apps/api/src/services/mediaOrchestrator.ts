@@ -25,6 +25,7 @@ import { db } from '@/db'
 import { instances, contentPlanMedia } from '@/db/schema'
 import { generateImages, type FalImageModel } from './falAI'
 import { sshUploadBuffer, fetchBytes } from './sshUpload'
+import { generateCreativeBrief, type PlanItemContext } from './creativeBrief'
 
 export interface ChannelFormatSpec {
     channel: string             // 'instagram' | 'facebook' | 'blog' | 'reel' | 'story' | ...
@@ -197,4 +198,56 @@ export async function generateImagesForContentPlanItem(
 
     console.log(`[mediaOrchestrator] ${instanceId}/${opts.contentPlanItemId}: ${renders.length} renders, $${totalCostUsd.toFixed(3)}, ${failed.length} failed`)
     return { renders, totalCostUsd, failed }
+}
+
+/**
+ * High-level entry point used by planDraftRunner and manual "generate media"
+ * buttons. Chain: planItem → creativeBrief (Opus thinking) → generateImages
+ * (Flux Pro) → SFTP to VPS → DB rows.
+ *
+ * Returns null if brief generation fails (orchestrator never runs without a
+ * valid prompt; this avoids burning fal.ai budget on garbage inputs).
+ */
+export async function generateMediaForPlanItem(
+    instanceId: string,
+    item: PlanItemContext,
+    opts: {
+        channels?: string[]              // default: [item.channel]
+        numVariantsPerChannel?: number   // default 3
+        model?: FalImageModel            // default flux-pro-1.1
+    } = {},
+): Promise<(GenerateImagesResult & { briefRationale?: string; briefCostUsd?: number }) | null> {
+    const channels = opts.channels && opts.channels.length > 0 ? opts.channels : [item.channel]
+    const variants = opts.numVariantsPerChannel ?? 3
+    const model = opts.model ?? 'flux-pro-1.1'
+
+    // Pass 1: Creative brief
+    const brief = await generateCreativeBrief(instanceId, item)
+    if (!brief) {
+        console.warn(`[mediaOrchestrator] ${item.id}: brief generation failed; skipping`)
+        return null
+    }
+
+    // Pass 2: Compose final prompt (brief + styleAnchor + optional overlay instruction)
+    const overlayFragment = brief.textOverlayHe
+        ? ` In-image Hebrew typography overlay: "${brief.textOverlayHe}" — large, bold, legible, brand-colored, top or bottom third depending on composition.`
+        : ''
+    const finalPrompt = `${brief.imagePrompt} Style anchor: ${brief.styleAnchor}.${overlayFragment}`
+
+    const genResult = await generateImagesForContentPlanItem(instanceId, {
+        contentPlanItemId: item.id,
+        prompt: finalPrompt,
+        negativePrompt: brief.negativePrompt,
+        channels,
+        numVariantsPerChannel: variants,
+        model,
+        styleAnchor: brief.styleAnchor,
+    })
+
+    return {
+        ...genResult,
+        totalCostUsd: genResult.totalCostUsd + brief.costUsd,
+        briefRationale: brief.rationale,
+        briefCostUsd: brief.costUsd,
+    }
 }
