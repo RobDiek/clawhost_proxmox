@@ -42,15 +42,28 @@ function buildOverlaySvg(imgW: number, imgH: number, opts: OverlayOpts): string 
         backgroundColor = 'rgba(0,0,0,1)',
     } = opts
 
-    // Auto font-size: ~4.5% of short edge, but never shorter than what's
-    // needed to fit the text in the chosen third at 1.6× char width.
+    // Auto font-size with a CONSERVATIVE width budget.
+    // Empirical: Liberation Sans renders Hebrew glyphs at ~0.65× fontSize
+    // per char; Latin ~0.55×; mixed = ~0.62. Previous formula under-sized
+    // the shrinkage, which made "אסף, HubSpot לא לבד" at 1200px width
+    // overflow the right edge at 70px font.
+    //
+    // Algorithm:
+    //   1. Compute the max font that keeps the text inside the available
+    //      horizontal budget (85% of rect width — 7.5% padding each side).
+    //   2. Clamp from above by 9% of short edge (visual ceiling).
+    //   3. Clamp from below by 3.2% of short edge (still readable).
     const baseDim = Math.min(imgW, imgH)
-    const charBudget = Math.max(text.length, 8)
-    const autoFs = Math.max(
-        Math.round(baseDim * 0.045),
-        Math.round((imgW * 0.8) / charBudget * 1.6),
-    )
-    const fontSize = opts.fontSize || Math.min(autoFs, Math.round(baseDim * 0.11))
+    // Available horizontal room depends on position (top/bottom use full
+    // width; left/right use their side-column which is narrower)
+    const availW = (position === 'left' || position === 'right')
+        ? Math.round(imgW * 0.42) * 0.85
+        : imgW * 0.85
+    const glyphWidthRatio = 0.62  // conservative for mixed Hebrew + Latin
+    const budgetFs = Math.floor(availW / (text.length * glyphWidthRatio))
+    const ceilingFs = Math.round(baseDim * 0.09)
+    const floorFs = Math.round(baseDim * 0.032)
+    const fontSize = opts.fontSize || Math.max(floorFs, Math.min(ceilingFs, budgetFs))
     const safeText = escapeSvgText(text)
 
     // Geometry per position
