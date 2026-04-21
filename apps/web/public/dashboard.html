@@ -4713,11 +4713,14 @@ function renderTaskPopup(task) {
     }
   }
 
+  // Detect content plan item link — needed both for the media section below
+  // and the footer buttons. Plan-item popups use id prefix 'plan-'; agent_output
+  // popups carry the link in metadata.contentPlanItemId (set by planDraftRunner).
+  var isPlanItem = task.id && task.id.indexOf('plan-') === 0;
+  var linkedItemId = (task.metadata && task.metadata.contentPlanItemId) || '';
+  var planItemId = isPlanItem ? task.id.substring(5) : linkedItemId;
+
   // ── Media variants (ALWAYS shown when popup links to a content plan item) ──
-  // Lives outside the fallback branch so it renders for all three popup flows:
-  //   (1) agent_output popups from the approval queue with full content
-  //   (2) plan-item popups from the calendar (preview-only)
-  //   (3) type='content' fallback with only agent info
   if (planItemId) {
     bodyHtml += '<div class="task-popup-field" id="task-media-field">' +
       '<div class="task-popup-label">מדיה שנוצרה</div>' +
@@ -4729,12 +4732,6 @@ function renderTaskPopup(task) {
 
   // ── Footer actions based on status ──
   var footerHtml = '';
-  // Detect content plan item (id prefix "plan-")
-  var isPlanItem = task.id && task.id.indexOf('plan-') === 0;
-  // Media also shows for agent_output popups whose metadata ties back to a
-  // content plan item (drafts created by planDraftRunner).
-  var linkedItemId = (task.metadata && task.metadata.contentPlanItemId) || '';
-  var planItemId = isPlanItem ? task.id.substring(5) : linkedItemId;
   var manualPublishBtns = '';
   if (isPlanItem) {
     // "Draft now" for planned items (Phase 3 agent-to-plan binding)
