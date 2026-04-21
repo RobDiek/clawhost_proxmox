@@ -59,6 +59,24 @@ function connect(target: SshTarget): Promise<Client> {
  * Fixes ownership to openclaw:openclaw so nginx (which runs as www-data)
  * can still read them and the user owns them.
  */
+// Wrap conn.exec so we always drain stdout+stderr and add a fallback timeout.
+// ssh2 exec channels can stall indefinitely if stderr is not consumed; we
+// hit this in the first production run when chown wrote to stderr and nobody
+// read it.
+function runExec(conn: Client, cmd: string, timeoutMs = 30000): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error(`exec timeout: ${cmd.slice(0, 60)}...`)), timeoutMs)
+        conn.exec(cmd, (err, stream) => {
+            if (err) { clearTimeout(timer); return reject(err) }
+            let out = ''
+            stream.on('data', (d: Buffer) => { out += d.toString() })
+            stream.stderr.on('data', (d: Buffer) => { out += d.toString() })
+            stream.on('close', () => { clearTimeout(timer); resolve(out.trim()) })
+            stream.on('error', (e: Error) => { clearTimeout(timer); reject(e) })
+        })
+    })
+}
+
 export async function sshUploadBuffer(
     target: SshTarget,
     remotePath: string,
@@ -66,37 +84,26 @@ export async function sshUploadBuffer(
 ): Promise<{ bytes: number }> {
     const conn = await connect(target)
     try {
-        // Ensure parent directory exists
+        // Ensure parent directory exists (chown is advisory — don't fail on it)
         const parentDir = remotePath.substring(0, remotePath.lastIndexOf('/'))
         if (parentDir) {
-            await new Promise<void>((resolve, reject) => {
-                conn.exec(`mkdir -p ${JSON.stringify(parentDir)} && chown openclaw:openclaw ${JSON.stringify(parentDir)} 2>/dev/null || true`, (err, stream) => {
-                    if (err) return reject(err)
-                    stream.on('close', () => resolve())
-                    stream.on('error', reject)
-                })
-            })
+            await runExec(conn, `mkdir -p ${JSON.stringify(parentDir)} && chown -R openclaw:openclaw ${JSON.stringify(parentDir)} 2>/dev/null; true`)
         }
 
         // Upload via SFTP — handles binary transparently
         await new Promise<void>((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error('sftp upload timeout')), 60000)
             conn.sftp((err, sftp) => {
-                if (err) return reject(err)
+                if (err) { clearTimeout(timer); return reject(err) }
                 const ws = sftp.createWriteStream(remotePath, { mode: 0o644 })
-                ws.on('close', () => resolve())
-                ws.on('error', reject)
+                ws.on('close', () => { clearTimeout(timer); resolve() })
+                ws.on('error', (e: Error) => { clearTimeout(timer); reject(e) })
                 ws.end(data)
             })
         })
 
-        // Fix ownership (ran as root; VPS expects openclaw:openclaw for quota + backup)
-        await new Promise<void>((resolve) => {
-            conn.exec(`chown openclaw:openclaw ${JSON.stringify(remotePath)} 2>/dev/null || true`, (err, stream) => {
-                if (err) return resolve()
-                stream.on('close', () => resolve())
-                stream.on('error', () => resolve())
-            })
-        })
+        // Fix ownership (best-effort — drained via runExec so no hang)
+        await runExec(conn, `chown openclaw:openclaw ${JSON.stringify(remotePath)} 2>/dev/null; true`).catch(() => { /* best effort */ })
 
         return { bytes: data.length }
     } finally {
