@@ -2711,8 +2711,6 @@ input{font-family:inherit}
       <button class="cc-tab"               data-tab="mappings"    onclick="switchCreativeTab('mappings')">🔗 פרסום</button>
       <button class="cc-tab"               data-tab="weekly"      onclick="switchCreativeTab('weekly')">📰 דוח שבועי</button>
       <button class="cc-tab"               data-tab="scenarios"   onclick="switchCreativeTab('scenarios')">⚙️ תרחישים</button>
-      <div style="flex:1"></div>
-      <button class="btn btn-primary btn-sm" onclick="openYotzerTriggerDialog()" style="margin:4px 0">➕ Yotzer</button>
     </div>
     <style>
       .cc-tab {
@@ -14486,7 +14484,7 @@ function drawScenariosTab() {
   html += ' השינוי נשמר ב-instance שלכם בלבד ומשפיע על כל הרנדרים הבאים.';
   html += '</div>';
 
-  html += '<div id="scenariosSaveBar" style="display:none;background:#FEF3C7;border:1px solid #FCD34D;border-radius:6px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">';
+  html += '<div id="scenariosSaveBar" style="display:none;background:#FEF3C7;border:1px solid #FCD34D;border-radius:6px;padding:10px 14px;margin-bottom:14px;justify-content:space-between;align-items:center">';
   html += '<div style="font-size:0.85rem;color:#92400E"><b>שינויים לא שמורים</b> — <span id="scenariosDirtyCount">0</span> תרחישים עודכנו</div>';
   html += '<div style="display:flex;gap:8px">';
   html += '<button class="btn btn-outline btn-sm" onclick="revertScenarios()">בטלו</button>';
