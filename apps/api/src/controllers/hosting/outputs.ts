@@ -531,6 +531,8 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
         let publishSuccess = false
         let publishError = ''
         let publishErrorType: 'missing_integration' | 'api_error' | 'network_error' | '' = ''
+        let channelPostId = '' // captured platform-native post id for downstream metrics collection
+        let channelPostUrl = ''
 
         // ── Telegram publish ──
         if (platform === 'telegram') {
@@ -553,9 +555,12 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
                                 parse_mode: 'Markdown',
                             }),
                         })
-                        const tgData = await tgRes.json() as { ok?: boolean; description?: string }
+                        const tgData = await tgRes.json() as { ok?: boolean; description?: string; result?: { message_id?: number; chat?: { id?: number } } }
                         if (tgData.ok) {
                             publishSuccess = true
+                            if (tgData.result?.message_id && tgData.result?.chat?.id) {
+                                channelPostId = `${tgData.result.chat.id}/${tgData.result.message_id}`
+                            }
                         } else {
                             publishError = `Telegram API: ${tgData.description || 'unknown error'}`
                             publishErrorType = 'api_error'
@@ -613,6 +618,8 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
                                 const publishData = await publishRes.json() as { id?: string; error?: any }
                                 if (publishData.id) {
                                     publishSuccess = true
+                                    channelPostId = publishData.id
+                                    channelPostUrl = `https://www.instagram.com/p/${publishData.id}/`
                                 } else {
                                     publishError = `Instagram publish: ${publishData.error?.message || 'unknown'}`
                                     publishErrorType = 'api_error'
@@ -647,6 +654,10 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
                             const fbData = await fbRes.json() as { id?: string; error?: any }
                             if (fbData.id) {
                                 publishSuccess = true
+                                channelPostId = fbData.id
+                                // Facebook returns "pageId_postId" — URL uses raw post id part
+                                const postIdPart = fbData.id.includes('_') ? fbData.id.split('_')[1] : fbData.id
+                                channelPostUrl = `https://www.facebook.com/${pageId}/posts/${postIdPart}`
                             } else {
                                 publishError = `Facebook: ${fbData.error?.message || 'unknown'}`
                                 publishErrorType = 'api_error'
@@ -721,6 +732,8 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
                         if (wpRes.ok) {
                             const wpData = await wpRes.json() as { id?: number; link?: string }
                             publishSuccess = true
+                            if (wpData.id) channelPostId = String(wpData.id)
+                            if (wpData.link) channelPostUrl = wpData.link
                             console.log(`Published to WordPress: post ${wpData.id} at ${wpData.link}`)
                         } else {
                             const wpErr = await wpRes.text()
@@ -880,17 +893,53 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
         const existingMeta = (output.metadata as Record<string, unknown>) || {}
 
         if (publishSuccess) {
+            const publishedAtDate = new Date()
+            const publishedAtIso = publishedAtDate.toISOString()
             const [updated] = await db.update(agentOutputs)
                 .set({
                     status: 'published',
-                    publishedAt: new Date(),
-                    updatedAt: new Date(),
-                    metadata: { ...existingMeta, publishedTo: platform, publishedAt: new Date().toISOString() },
+                    publishedAt: publishedAtDate,
+                    updatedAt: publishedAtDate,
+                    metadata: {
+                        ...existingMeta,
+                        publishedTo: platform,
+                        publishedAt: publishedAtIso,
+                        channelPostId: channelPostId || undefined,
+                        channelPostUrl: channelPostUrl || undefined,
+                    },
                 })
                 .where(eq(agentOutputs.id, outputId))
                 .returning()
 
-            console.log(`Output ${outputId} published to ${platform}`)
+            // Sync to content plan item when the output is linked to one.
+            // Agents emit metadata.contentPlanItemId when they produce content
+            // for a specific planned slot; we write back channelPostId + publishedAt
+            // so the metrics collector can pull insights later.
+            const cpItemId = (existingMeta as any)?.contentPlanItemId as string | undefined
+            if (cpItemId && channelPostId) {
+                try {
+                    const rd = (instance.researchData as any) || {}
+                    const plan = Array.isArray(rd.contentPlan) ? rd.contentPlan : []
+                    const idx = plan.findIndex((p: any) => p.id === cpItemId)
+                    if (idx >= 0) {
+                        plan[idx] = {
+                            ...plan[idx],
+                            status: 'published',
+                            publishedAt: publishedAtIso,
+                            channelPostId,
+                            ...(channelPostUrl ? { channelPostUrl } : {}),
+                        }
+                        await db.update(instances).set({
+                            researchData: { ...rd, contentPlan: plan } as any,
+                        }).where(eq(instances.id, instanceId))
+                        console.log(`Content plan item ${cpItemId} marked published with channelPostId=${channelPostId}`)
+                    }
+                } catch (syncErr) {
+                    console.warn(`Plan item sync failed for ${cpItemId}:`, (syncErr as Error).message)
+                }
+            }
+
+            console.log(`Output ${outputId} published to ${platform} (channelPostId=${channelPostId || 'n/a'})`)
             return ok(c, updated, 'פורסם בהצלחה!')
         } else {
             // Save failure info but keep status as approved (recoverable)

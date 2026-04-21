@@ -54,6 +54,8 @@ import {
     getLatestOptimizationReport,
     saveHistoricalAssets,
     getHistoricalAssets,
+    collectMetrics,
+    markContentPlanItemPublished,
     addAgentToInstance,
     removeAgentFromInstance,
     setupPersonalAgent,
@@ -282,6 +284,8 @@ app.post('/instances/:id/optimization/weekly', generateOptimizationReport)
 app.get('/instances/:id/optimization/latest', getLatestOptimizationReport)
 app.post('/instances/:id/assets', saveHistoricalAssets)
 app.get('/instances/:id/assets', getHistoricalAssets)
+app.post('/instances/:id/metrics/collect', collectMetrics)
+app.post('/instances/:id/content-plan/items/:itemId/mark-published', markContentPlanItemPublished)
 app.post('/instances/:id/agents/add', addAgentToInstance)
 app.post('/instances/:id/agents/remove', removeAgentFromInstance)
 

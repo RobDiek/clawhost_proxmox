@@ -6166,6 +6166,63 @@ ${bottom3.map(t => `- ${t}`).join('\n')}
 Shift weight toward top-performing pillar + channel + persona combos. Reduce or rework underperforming pillars.`
 }
 
+// ─── POST /hosting/instances/:id/metrics/collect ─────────────────────────
+// Iterates published content plan items, pulls platform insights (Meta for
+// now; Google Ads / GA / email in later phases), writes results back.
+// Called: manually from dashboard ("Refresh metrics") OR daily from VPS cron.
+export const collectMetrics = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { collectContentPlanMetrics } = await import('@/services/contentPlanMetrics')
+        const result = await collectContentPlanMetrics(instanceId)
+        return ok(c, result, `Metrics refreshed: ${result.fetched} updated, ${result.skipped} skipped, ${result.failed} failed`)
+    } catch (err) {
+        console.error('collectMetrics error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/content-plan/items/:itemId/mark-published ───
+// Manual backup for when publisher didn't auto-capture channelPostId (e.g.
+// user posted externally or integration failed silently). User pastes the
+// platform post id, we record it + flip status to 'published' so the metrics
+// collector can include this item on next run.
+export const markContentPlanItemPublished = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const itemId = c.req.param('itemId')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        const body = await c.req.json<{ channelPostId?: string; channelPostUrl?: string; publishedAt?: string }>()
+        if (!body.channelPostId) return fail(c, 'channelPostId required', 400)
+
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const rd = (instance.researchData as any) || {}
+        const plan: ContentPlanItem[] = Array.isArray(rd.contentPlan) ? rd.contentPlan : []
+        const idx = plan.findIndex(p => p.id === itemId)
+        if (idx < 0) return fail(c, 'Content plan item not found', 404)
+
+        plan[idx] = {
+            ...plan[idx],
+            status: 'published',
+            publishedAt: body.publishedAt || new Date().toISOString(),
+            channelPostId: body.channelPostId,
+        }
+
+        await db.update(instances).set({
+            researchData: { ...rd, contentPlan: plan } as any,
+        }).where(eq(instances.id, instanceId))
+
+        return ok(c, { item: plan[idx] }, 'Marked as published')
+    } catch (err) {
+        console.error('markContentPlanItemPublished error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // ─── POST /hosting/instances/:id/optimization/weekly ─────────────────────────
 // Runs Opus 4.7 over the past 7-28 days of measured results + current strategy.
 // Produces a qualitative optimization report (wins, losses, tactical changes).
