@@ -9010,13 +9010,13 @@ function renderBrandInputs() {
   html += '</div>';
 
   html += '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:16px;margin-bottom:12px">';
-  html += '<label style="display:block;font-size:0.85rem;font-weight:600;color:#1E3A5F;margin-bottom:6px">URL של האתר שלכם (אופציונלי)</label>';
+  html += '<label style="display:block;font-size:0.85rem;font-weight:600;color:#1E3A5F;margin-bottom:6px">כתובת האתר שלכם <span style="color:#9CA3AF;font-weight:400">(אופציונלי)</span></label>';
   html += '<input type="url" id="brandUrl" placeholder="https://yourbusiness.co.il" style="width:100%;padding:10px 12px;border:1.5px solid #E5E7EB;border-radius:8px;font-size:0.9rem;direction:ltr">';
-  html += '<div style="font-size:0.75rem;color:#9CA3AF;margin-top:4px">נפיק חילוץ אוטומטי של לוגו, פלטת צבעים, פונטים, tone</div>';
+  html += '<div style="font-size:0.76rem;color:#9CA3AF;margin-top:4px">נחלץ אוטומטית לוגו, צבעים, גופנים וטון מהאתר</div>';
   html += '</div>';
 
   html += '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:16px;margin-bottom:12px">';
-  html += '<label style="display:block;font-size:0.85rem;font-weight:600;color:#1E3A5F;margin-bottom:8px">Vibe / אופי המותג</label>';
+  html += '<label style="display:block;font-size:0.85rem;font-weight:600;color:#1E3A5F;margin-bottom:8px">אופי המותג</label>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
   var vibes = [
     { id: 'premium',       label: 'יוקרתי',  desc: 'עושר, מומחיות, איכות' },
@@ -9072,7 +9072,7 @@ async function startBrandProcessing() {
   brandWizardState.url = urlInput ? urlInput.value.trim() : '';
 
   if (!brandWizardState.userInputs.vibePreset) {
-    showToast('בחרו vibe', 'warn');
+    showToast('בחרו אופי למותג', 'warn');
     return;
   }
 
@@ -9130,7 +9130,7 @@ async function startBrandProcessing() {
     }
 
     // Step C: compose draft
-    setStatus('מרכיב brand book עם AI...');
+    setStatus('מרכיב את ספר המותג בעזרת AI...');
     var draftRes = await fetch(API + '/hosting/instances/' + instanceId + '/brand/draft', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -9232,56 +9232,65 @@ function renderBrandReview() {
   );
 }
 
-// ─── Tier 2-R: Inline quick-edits for key fields ──────────────────────────
+// Hebrew labels for tone values (replaces raw English enum in dropdown)
+var TONE_LABEL_HE = {
+  professional: 'מקצועי',
+  casual: 'ידידותי',
+  authoritative: 'סמכותי',
+  intimate: 'אישי וחם',
+  mixed: 'משולב',
+};
+
+// Inline quick-edits — only the fields an SMB actually cares about.
 function renderBrandQuickEdits(d) {
-  var html = '<div style="background:#FFFBEB;border:1px dashed #F59E0B;border-radius:8px;padding:12px;margin-bottom:14px">';
-  html += '<div style="font-size:0.82rem;font-weight:600;color:#92400E;margin-bottom:8px">✎ ערכו לפני אישור (ישפיע על הגרסה המאושרת)</div>';
+  var html = '<div style="background:#FFFBEB;border:1px dashed #F59E0B;border-radius:8px;padding:14px;margin-bottom:14px">';
+  html += '<div style="font-size:0.86rem;font-weight:600;color:#92400E;margin-bottom:10px">✎ ערכו לפני אישור</div>';
 
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
 
   // Tagline HE
   html += '<div>';
-  html += '<label style="font-size:0.72rem;color:#78350F;display:block;margin-bottom:2px">Tagline (עברית)</label>';
-  html += '<input type="text" id="qe-taglineHe" value="' + escapeHtml(d.identity?.taglineHe || '') + '" style="width:100%;padding:6px 10px;border:1px solid #FDE68A;border-radius:6px;font-size:0.82rem;background:#FFF" maxlength="80">';
+  html += '<label style="font-size:0.74rem;color:#78350F;display:block;margin-bottom:3px">סלוגן (עברית)</label>';
+  html += '<input type="text" id="qe-taglineHe" value="' + escapeHtml(d.identity?.taglineHe || '') + '" style="width:100%;padding:6px 10px;border:1px solid #FDE68A;border-radius:6px;font-size:0.85rem;background:#FFF" maxlength="80">';
   html += '</div>';
 
   // Tagline EN
   html += '<div>';
-  html += '<label style="font-size:0.72rem;color:#78350F;display:block;margin-bottom:2px">Tagline (English)</label>';
-  html += '<input type="text" id="qe-taglineEn" value="' + escapeHtml(d.identity?.taglineEn || '') + '" style="width:100%;padding:6px 10px;border:1px solid #FDE68A;border-radius:6px;font-size:0.82rem;background:#FFF;direction:ltr" maxlength="80">';
+  html += '<label style="font-size:0.74rem;color:#78350F;display:block;margin-bottom:3px">סלוגן באנגלית <span style="color:#B45309;font-weight:400">(אופציונלי)</span></label>';
+  html += '<input type="text" id="qe-taglineEn" value="' + escapeHtml(d.identity?.taglineEn || '') + '" style="width:100%;padding:6px 10px;border:1px solid #FDE68A;border-radius:6px;font-size:0.85rem;background:#FFF;direction:ltr" maxlength="80">';
   html += '</div>';
 
   // Positioning line
   html += '<div style="grid-column:1/-1">';
-  html += '<label style="font-size:0.72rem;color:#78350F;display:block;margin-bottom:2px">Positioning (לא X, לא Y — אלא Z)</label>';
-  html += '<input type="text" id="qe-positioning" value="' + escapeHtml(d.identity?.positioningLine || '') + '" style="width:100%;padding:6px 10px;border:1px solid #FDE68A;border-radius:6px;font-size:0.82rem;background:#FFF" maxlength="200">';
+  html += '<label style="font-size:0.74rem;color:#78350F;display:block;margin-bottom:3px">מיצוב <span style="color:#B45309;font-weight:400">(מי אנחנו ומה אנחנו עושים אחרת)</span></label>';
+  html += '<input type="text" id="qe-positioning" value="' + escapeHtml(d.identity?.positioningLine || '') + '" style="width:100%;padding:6px 10px;border:1px solid #FDE68A;border-radius:6px;font-size:0.85rem;background:#FFF" maxlength="200" placeholder="לא X, לא Y — אלא Z">';
   html += '</div>';
 
   // Primary color
   var primaryHex = (d.colors && d.colors.primary && d.colors.primary.hex) || '#2563EB';
   html += '<div>';
-  html += '<label style="font-size:0.72rem;color:#78350F;display:block;margin-bottom:2px">Primary color</label>';
+  html += '<label style="font-size:0.74rem;color:#78350F;display:block;margin-bottom:3px">צבע ראשי</label>';
   html += '<div style="display:flex;gap:6px;align-items:center">';
   html += '<input type="color" id="qe-primaryColor" value="' + escapeHtml(primaryHex) + '" style="width:40px;height:32px;border:1px solid #FDE68A;border-radius:6px;cursor:pointer;padding:2px;background:#FFF" oninput="document.getElementById(\'qe-primaryHex\').value=this.value.toUpperCase()">';
   html += '<input type="text" id="qe-primaryHex" value="' + escapeHtml(primaryHex.toUpperCase()) + '" style="flex:1;padding:6px 10px;border:1px solid #FDE68A;border-radius:6px;font-size:0.82rem;background:#FFF;direction:ltr;font-family:monospace" maxlength="7" oninput="document.getElementById(\'qe-primaryColor\').value=this.value">';
   html += '</div>';
   html += '</div>';
 
-  // Tone
+  // Tone (Hebrew labels)
   var currentTone = (d.voice && d.voice.tone) || 'casual';
   html += '<div>';
-  html += '<label style="font-size:0.72rem;color:#78350F;display:block;margin-bottom:2px">Tone</label>';
-  html += '<select id="qe-tone" style="width:100%;padding:6px 10px;border:1px solid #FDE68A;border-radius:6px;font-size:0.82rem;background:#FFF">';
+  html += '<label style="font-size:0.74rem;color:#78350F;display:block;margin-bottom:3px">טון קול</label>';
+  html += '<select id="qe-tone" style="width:100%;padding:6px 10px;border:1px solid #FDE68A;border-radius:6px;font-size:0.85rem;background:#FFF;font-family:inherit">';
   ['professional', 'casual', 'authoritative', 'intimate', 'mixed'].forEach(function(t) {
     var sel = t === currentTone ? ' selected' : '';
-    html += '<option value="' + t + '"' + sel + '>' + t + '</option>';
+    html += '<option value="' + t + '"' + sel + '>' + (TONE_LABEL_HE[t] || t) + '</option>';
   });
   html += '</select>';
   html += '</div>';
 
-  html += '</div>';  // end grid
+  html += '</div>';
 
-  html += '<div style="font-size:0.7rem;color:#78350F;margin-top:6px">💡 שדות נוספים נערכים דרך "חדש עם משוב" למטה.</div>';
+  html += '<div style="font-size:0.72rem;color:#78350F;margin-top:8px;line-height:1.5">💡 רוצים לשנות עקרונות, פלטה מורחבת, סגנון ויזואלי? כתבו משוב ב-"חידוש עם משוב" למטה.</div>';
   html += '</div>';
   return html;
 }
@@ -9346,17 +9355,21 @@ async function approveBrandBookCall(edits) {
   }
 }
 
-// Shared rationale renderer — handles both string (legacy) and structured {overall,colors,...} form
+// Confidence label mapping — Hebrew-first, never show raw 'medium'/'high'/'low'
+var CONFIDENCE_LABEL = { high: 'גבוהה', medium: 'בינונית', low: 'נמוכה' };
+var CONFIDENCE_COLOR = { high: '#10B981', medium: '#F59E0B', low: '#EF4444' };
+
+// Render the top banner with AI explanation + Hebrew confidence + actionable CTAs.
 function renderBrandRationale(rationale, confidence, reasons) {
-  var confColor = { high: '#10B981', medium: '#F59E0B', low: '#EF4444' }[confidence] || '#9CA3AF';
-  var html = '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px;margin-bottom:14px">';
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
-  html += '<strong style="color:#1E40AF">💡 הסבר של mekhayev</strong>';
-  if (confidence) html += '<span style="font-size:0.72rem;color:#FFF;background:' + confColor + ';padding:2px 8px;border-radius:4px">ביטחון: ' + escapeHtml(confidence) + '</span>';
+  var label = CONFIDENCE_LABEL[confidence] || 'לא ידועה';
+  var color = CONFIDENCE_COLOR[confidence] || '#9CA3AF';
+  var html = '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px 14px;margin-bottom:14px">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:10px;flex-wrap:wrap">';
+  html += '<strong style="color:#1E40AF;font-size:0.92rem">💡 איך הסוכן ראה את המותג</strong>';
+  if (confidence) html += '<span style="font-size:0.74rem;color:#FFF;background:' + color + ';padding:3px 10px;border-radius:12px;font-weight:600">רמת ביטחון: ' + label + '</span>';
   html += '</div>';
 
   if (rationale && typeof rationale === 'object') {
-    // Structured — render sections
     if (rationale.overall) {
       html += '<div style="font-size:0.85rem;color:#1E40AF;line-height:1.65;margin-bottom:8px">' + annotate(rationale.overall) + '</div>';
     }
@@ -9366,8 +9379,8 @@ function renderBrandRationale(rationale, confidence, reasons) {
       { key: 'voice',      label: '🗣 טון ושפה' },
       { key: 'identity',   label: '🎯 זהות ומיצוב' },
     ];
-    var anySec = false;
     var secHtml = '';
+    var anySec = false;
     sections.forEach(function(s) {
       if (rationale[s.key]) {
         anySec = true;
@@ -9381,40 +9394,62 @@ function renderBrandRationale(rationale, confidence, reasons) {
       html += '<div style="margin-top:6px">' + secHtml + '</div></details>';
     }
   } else if (rationale) {
-    // Legacy flat string
     html += '<div style="font-size:0.82rem;color:#1E40AF;line-height:1.6">' + annotate(String(rationale)) + '</div>';
   }
 
-  // Confidence reasons (Tier 2-T)
   if (reasons && reasons.length) {
-    html += '<details style="margin-top:8px"><summary style="cursor:pointer;font-size:0.75rem;color:#1E40AF">למה ביטחון ' + escapeHtml(confidence || '') + '? (' + reasons.length + ' סיבות)</summary>';
+    html += '<details style="margin-top:8px"><summary style="cursor:pointer;font-size:0.75rem;color:#1E40AF">' +
+      'למה רמת הביטחון ' + label + '? (' + reasons.length + ' סיבות)</summary>';
     html += '<ul style="margin:4px 0 0;padding-right:18px;font-size:0.8rem;color:#1E3A5F;line-height:1.7">';
     reasons.forEach(function(r) { html += '<li style="margin-bottom:4px">' + annotate(r) + '</li>'; });
     html += '</ul></details>';
+  }
+
+  // Actionable CTAs based on confidence
+  if (confidence === 'low' || confidence === 'medium') {
+    html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid #BFDBFE;display:flex;gap:8px;flex-wrap:wrap">';
+    html += '<div style="font-size:0.78rem;color:#1E40AF;flex:1;min-width:140px">💡 לשיפור התוצאה אפשר:</div>';
+    html += '<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'brandFeedback\').focus();document.getElementById(\'brandFeedback\').scrollIntoView({behavior:\'smooth\',block:\'center\'})" style="font-size:0.76rem">💬 לכתוב משוב ולחדש</button>';
+    html += '<button class="btn btn-outline btn-sm" onclick="brandWizardState.step=\'inputs\';renderBrandInputs()" style="font-size:0.76rem">🔄 להתחיל מאפס</button>';
+    html += '</div>';
   }
 
   html += '</div>';
   return html;
 }
 
+// Hebrew description for common web fonts — so user sees "Heebo (גופן מודרני)" not bare "Heebo"
+var FONT_DESC_HE = {
+  'Heebo': 'גופן עברי מודרני',
+  'Rubik': 'גופן מעוגל וידידותי',
+  'Assistant': 'גופן נקי',
+  'Inter': 'גופן לטיני מודרני',
+  'Arial': 'סטנדרטי',
+  'Helvetica': 'קלאסי',
+  'Open Sans': 'קריא ונעים',
+  'Roboto': 'נקי ומרובע',
+};
+
+function fontWithDesc(family) {
+  if (!family) return '';
+  var desc = FONT_DESC_HE[family];
+  return escapeHtml(family) + (desc ? ' <span style="color:#6B7280;font-weight:400;font-size:0.82em">(' + desc + ')</span>' : '');
+}
+
+// Brand preview — Light mode shown by default (essentials), Advanced behind accordion.
 function renderBrandPreview(d) {
   if (!d) return '<div style="color:#9CA3AF">אין טיוטה</div>';
   var html = '';
 
-  // Identity
+  // ── Light mode (always visible): identity essentials + logo + core palette + fonts + voice ──
+
+  // Identity (light — name + tagline + positioning)
   html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
   html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">זהות</div>';
-  if (d.identity && d.identity.businessName) html += '<div style="font-size:1.1rem;font-weight:700;color:#1E3A5F">' + escapeHtml(d.identity.businessName) + '</div>';
-  if (d.identity && d.identity.taglineHe) html += '<div style="font-size:0.92rem;color:#374151;margin-top:4px">' + escapeHtml(d.identity.taglineHe) + '</div>';
-  if (d.identity && d.identity.taglineEn) html += '<div style="font-size:0.82rem;color:#6B7280;direction:ltr;text-align:left;margin-top:2px">EN: ' + escapeHtml(d.identity.taglineEn) + '</div>';
-  if (d.identity && d.identity.positioningLine) html += '<div style="font-size:0.78rem;color:#6B7280;margin-top:6px;font-style:italic">' + escapeHtml(d.identity.positioningLine) + '</div>';
-  if (d.identity && (d.identity.missionHe || d.identity.missionEn)) {
-    html += '<details style="margin-top:6px"><summary style="cursor:pointer;font-size:0.78rem;color:#2563EB">משימה (mission)</summary>';
-    if (d.identity.missionHe) html += '<div style="font-size:0.82rem;color:#4B5563;margin-top:4px;line-height:1.5">' + escapeHtml(d.identity.missionHe) + '</div>';
-    if (d.identity.missionEn) html += '<div style="font-size:0.78rem;color:#6B7280;direction:ltr;text-align:left;margin-top:4px;line-height:1.5">EN: ' + escapeHtml(d.identity.missionEn) + '</div>';
-    html += '</details>';
-  }
-  if (d.identity && d.identity.manifestoHe) html += '<details style="margin-top:6px"><summary style="cursor:pointer;font-size:0.78rem;color:#2563EB">מניפסט</summary><div style="font-size:0.82rem;color:#4B5563;margin-top:4px;line-height:1.5">' + escapeHtml(d.identity.manifestoHe) + '</div></details>';
+  if (d.identity && d.identity.businessName) html += '<div style="font-size:1.15rem;font-weight:700;color:#1E3A5F">' + escapeHtml(d.identity.businessName) + '</div>';
+  if (d.identity && d.identity.taglineHe) html += '<div style="font-size:0.94rem;color:#374151;margin-top:4px">' + escapeHtml(d.identity.taglineHe) + '</div>';
+  if (d.identity && d.identity.taglineEn) html += '<div style="font-size:0.82rem;color:#6B7280;direction:ltr;text-align:left;margin-top:2px">' + escapeHtml(d.identity.taglineEn) + '</div>';
+  if (d.identity && d.identity.positioningLine) html += '<div style="font-size:0.84rem;color:#6B7280;margin-top:8px;font-style:italic;padding-top:8px;border-top:1px dashed #E5E7EB">' + escapeHtml(d.identity.positioningLine) + '</div>';
   html += '</div>';
 
   // Logo
@@ -9425,40 +9460,110 @@ function renderBrandPreview(d) {
     html += '<div style="width:80px;height:80px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden">';
     html += '<img src="' + escapeHtml(d.logo.primary.url) + '" style="max-width:70px;max-height:70px;object-fit:contain" onerror="this.style.display=\'none\'">';
     html += '</div>';
-    html += '<div style="flex:1;font-size:0.8rem">';
+    html += '<div style="flex:1;font-size:0.84rem;line-height:1.6">';
     if (d.logo.style) html += '<div><strong>סגנון:</strong> ' + escapeHtml(d.logo.style) + '</div>';
-    if (d.logo.primary.format) html += '<div><strong>פורמט:</strong> ' + escapeHtml(d.logo.primary.format) + '</div>';
-    if (d.logo.primary.transparentBg) html += '<div style="color:#10B981">✓ רקע שקוף</div>';
+    if (d.logo.primary.format) html += '<div style="color:#6B7280">פורמט: ' + escapeHtml(d.logo.primary.format) + (d.logo.primary.transparentBg ? ' · רקע שקוף ✓' : '') + '</div>';
     html += '</div>';
     html += '</div>';
     html += '</div>';
   }
 
-  // Colors
+  // Colors — only primary + secondary + 2 accents + 2 neutrals (no tints/semantic in Light)
   if (d.colors) {
     html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
-    html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">פלטת צבעים</div>';
-    html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+    html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:8px">פלטת צבעים</div>';
+    html += '<div style="display:flex;gap:10px;flex-wrap:wrap">';
     var swatches = [];
     if (d.colors.primary) swatches.push({ c: d.colors.primary, label: 'ראשי' });
     if (d.colors.secondary) swatches.push({ c: d.colors.secondary, label: 'משני' });
-    (d.colors.accent || []).forEach(function(c, i) { swatches.push({ c: c, label: 'accent ' + (i + 1) }); });
-    (d.colors.neutrals || []).slice(0, 3).forEach(function(c, i) { swatches.push({ c: c, label: 'ניטרלי ' + (i + 1) }); });
+    (d.colors.accent || []).slice(0, 2).forEach(function(c, i) { swatches.push({ c: c, label: 'הדגשה ' + (i + 1) }); });
+    (d.colors.neutrals || []).slice(0, 2).forEach(function(c, i) { swatches.push({ c: c, label: 'ניטרלי ' + (i + 1) }); });
     swatches.forEach(function(s) {
       if (!s.c || !s.c.hex) return;
       html += '<div style="text-align:center">';
-      html += '<div style="width:56px;height:56px;background:' + escapeHtml(s.c.hex) + ';border:1px solid #E5E7EB;border-radius:8px;margin-bottom:2px"></div>';
-      html += '<div style="font-size:0.7rem;font-family:monospace">' + escapeHtml(s.c.hex) + '</div>';
-      html += '<div style="font-size:0.68rem;color:#6B7280">' + escapeHtml(s.label) + '</div>';
+      html += '<div style="width:56px;height:56px;background:' + escapeHtml(s.c.hex) + ';border:1px solid #E5E7EB;border-radius:8px;margin-bottom:4px"></div>';
+      html += '<div style="font-size:0.7rem;font-family:monospace;color:#6B7280">' + escapeHtml(s.c.hex) + '</div>';
+      html += '<div style="font-size:0.7rem;color:#374151;font-weight:600">' + escapeHtml(s.label) + '</div>';
       html += '</div>';
     });
     html += '</div>';
+    html += '</div>';
+  }
 
-    // Extended palette — brand tints
-    var ext = d.colors.paletteExtended || d.colors.palette_extended;
-    if (ext && ext.length) {
-      html += '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed #E5E7EB">';
-      html += '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:4px">Tints (וריאציות בהירות/כהות של המותג)</div>';
+  // Typography — render visually with Hebrew description
+  if (d.typography) {
+    html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
+    html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:8px">גופנים</div>';
+    if (d.typography.heading && d.typography.heading.family) {
+      html += '<div style="margin-bottom:8px"><div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:2px">כותרת · ' + fontWithDesc(d.typography.heading.family) + '</div>';
+      html += '<div style="font-family:\'' + escapeHtml(d.typography.heading.family) + '\',sans-serif;font-size:1.3rem;font-weight:700;color:#1E3A5F">שיווק עם AI בעברית</div></div>';
+    }
+    if (d.typography.body && d.typography.body.family) {
+      html += '<div><div style="font-size:0.72rem;color:#9CA3AF;margin-bottom:2px">גוף טקסט · ' + fontWithDesc(d.typography.body.family) + '</div>';
+      html += '<div style="font-family:\'' + escapeHtml(d.typography.body.family) + '\',sans-serif;font-size:0.92rem;color:#374151;line-height:1.6">זה איך שגוף טקסט ייראה בתוכן שלכם. קריא, נעים לקריאה בעברית, ומתאים לאורך שלוש-ארבע שורות.</div></div>';
+    }
+    html += '</div>';
+  }
+
+  // Voice — tone + personality + register (no English header)
+  if (d.voice) {
+    html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
+    html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">קול וטון</div>';
+    if (d.voice.tone) {
+      var toneHe = TONE_LABEL_HE[d.voice.tone] || d.voice.tone;
+      html += '<div style="font-size:0.88rem"><strong>טון:</strong> ' + escapeHtml(toneHe) + '</div>';
+    }
+    if (d.voice.personalityAdjectives && d.voice.personalityAdjectives.length) {
+      html += '<div style="font-size:0.84rem;margin-top:4px"><strong>אישיות:</strong> ' + d.voice.personalityAdjectives.map(escapeHtml).join(' · ') + '</div>';
+    }
+    if (d.voice.hebrewRegister) html += '<div style="font-size:0.84rem;margin-top:4px;color:#6B7280">רגיסטר: ' + escapeHtml(d.voice.hebrewRegister) + '</div>';
+    // Do/Don't vocabulary
+    var doWords = (d.voice.vocabularyDo || d.voice.vocabulary_do || []);
+    var dontWords = (d.voice.vocabularyDont || d.voice.vocabulary_dont || []);
+    if (doWords.length || dontWords.length) {
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">';
+      if (doWords.length) {
+        html += '<div><div style="font-size:0.74rem;color:#10B981;margin-bottom:4px;font-weight:600">✓ משתמשים במילים</div>';
+        html += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
+        doWords.slice(0, 8).forEach(function(w) { html += '<span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:4px;font-size:0.76rem">' + escapeHtml(w) + '</span>'; });
+        html += '</div></div>';
+      }
+      if (dontWords.length) {
+        html += '<div><div style="font-size:0.74rem;color:#EF4444;margin-bottom:4px;font-weight:600">✗ לא משתמשים</div>';
+        html += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
+        dontWords.slice(0, 8).forEach(function(w) { html += '<span style="background:#FEE2E2;color:#991B1B;padding:2px 8px;border-radius:4px;font-size:0.76rem">' + escapeHtml(w) + '</span>'; });
+        html += '</div></div>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  // ── Advanced section (collapsed by default) — manifesto, mission, tints, semantic, principles, imagery ──
+  var hasAdvanced = !!(
+    (d.identity && (d.identity.missionHe || d.identity.missionEn || d.identity.manifestoHe)) ||
+    (d.colors && ((d.colors.paletteExtended || d.colors.palette_extended || []).length || d.colors.semantic)) ||
+    (d.principles && d.principles.length) ||
+    d.imagery
+  );
+  if (hasAdvanced) {
+    html += '<details style="margin-bottom:10px"><summary style="cursor:pointer;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:10px 14px;font-size:0.85rem;color:#374151;font-weight:600">הגדרות מתקדמות — משימה, מניפסט, עקרונות, פלטה מורחבת</summary>';
+    html += '<div style="margin-top:10px">';
+
+    // Mission + Manifesto
+    if (d.identity && (d.identity.missionHe || d.identity.missionEn || d.identity.manifestoHe)) {
+      html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
+      html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">משימה ומניפסט</div>';
+      if (d.identity.missionHe) html += '<div style="font-size:0.86rem;color:#374151;line-height:1.6;margin-bottom:6px"><strong>משימה:</strong> ' + escapeHtml(d.identity.missionHe) + '</div>';
+      if (d.identity.manifestoHe) html += '<div style="font-size:0.84rem;color:#4B5563;line-height:1.5;background:#F9FAFB;border-right:3px solid #DBEAFE;padding:8px 10px;border-radius:4px">' + escapeHtml(d.identity.manifestoHe) + '</div>';
+      html += '</div>';
+    }
+
+    // Extended palette (tints)
+    var ext = (d.colors && (d.colors.paletteExtended || d.colors.palette_extended)) || [];
+    if (ext.length) {
+      html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
+      html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">פלטה מורחבת — גוונים</div>';
       html += '<div style="display:flex;gap:4px;flex-wrap:wrap">';
       ext.forEach(function(hex) {
         html += '<div style="width:36px;height:36px;background:' + escapeHtml(hex) + ';border:1px solid #E5E7EB;border-radius:6px" title="' + escapeHtml(hex) + '"></div>';
@@ -9466,76 +9571,51 @@ function renderBrandPreview(d) {
       html += '</div></div>';
     }
 
-    // Semantic colors (prominent — users should see them differ from brand)
-    if (d.colors.semantic) {
-      html += '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed #E5E7EB">';
-      html += '<div style="font-size:0.72rem;color:#6B7280;margin-bottom:4px">Semantic (UI state colors)</div>';
-      html += '<div style="display:flex;gap:6px">';
-      var semLabels = { success: '✓', warning: '⚠', danger: '✗', info: 'ℹ' };
+    // Semantic colors
+    if (d.colors && d.colors.semantic) {
+      html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
+      html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">צבעי סטטוס (UI)</div>';
+      html += '<div style="display:flex;gap:8px">';
+      var semLabels = { success: '✓ הצלחה', warning: '⚠ אזהרה', danger: '✗ שגיאה', info: 'ℹ מידע' };
       ['success', 'warning', 'danger', 'info'].forEach(function(key) {
         var h = d.colors.semantic[key];
         if (!h) return;
         html += '<div style="text-align:center">';
-        html += '<div style="width:40px;height:40px;background:' + escapeHtml(h) + ';border:1px solid #E5E7EB;border-radius:6px;color:#FFF;font-weight:700;font-size:0.85rem;display:flex;align-items:center;justify-content:center">' + semLabels[key] + '</div>';
-        html += '<div style="font-size:0.65rem;font-family:monospace;margin-top:1px">' + escapeHtml(h) + '</div>';
+        html += '<div style="width:50px;height:40px;background:' + escapeHtml(h) + ';border:1px solid #E5E7EB;border-radius:6px;color:#FFF;font-size:0.75rem;display:flex;align-items:center;justify-content:center">' + escapeHtml(semLabels[key].split(' ')[0]) + '</div>';
+        html += '<div style="font-size:0.65rem;color:#6B7280;margin-top:3px">' + escapeHtml(semLabels[key].split(' ').slice(1).join(' ')) + '</div>';
         html += '</div>';
       });
       html += '</div></div>';
     }
 
-    html += '</div>';
-  }
-
-  // Typography
-  if (d.typography) {
-    html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
-    html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">טיפוגרפיה</div>';
-    if (d.typography.heading) {
-      html += '<div style="font-family:\'' + escapeHtml(d.typography.heading.family) + '\',sans-serif;font-size:1.3rem;font-weight:700;margin-bottom:2px">כותרת (' + escapeHtml(d.typography.heading.family) + ')</div>';
-    }
-    if (d.typography.body) {
-      html += '<div style="font-family:\'' + escapeHtml(d.typography.body.family) + '\',sans-serif;font-size:0.9rem">טקסט בסיסי — Lorem ipsum נוסח עברי. זה דוגמה של גוף טקסט בעברית. (' + escapeHtml(d.typography.body.family) + ')</div>';
-    }
-    html += '</div>';
-  }
-
-  // Voice
-  if (d.voice) {
-    html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
-    html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">Voice & Tone</div>';
-    if (d.voice.tone) html += '<div style="font-size:0.85rem"><strong>טון:</strong> ' + escapeHtml(d.voice.tone) + '</div>';
-    if (d.voice.personalityAdjectives && d.voice.personalityAdjectives.length) {
-      html += '<div style="font-size:0.82rem;margin-top:4px"><strong>אישיות:</strong> ' + d.voice.personalityAdjectives.map(escapeHtml).join(' · ') + '</div>';
-    }
-    if (d.voice.hebrewRegister) html += '<div style="font-size:0.82rem;margin-top:4px"><strong>רגיסטר:</strong> ' + escapeHtml(d.voice.hebrewRegister) + '</div>';
-    html += '</div>';
-  }
-
-  // Principles
-  if (d.principles && d.principles.length) {
-    html += '<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:14px;margin-bottom:10px">';
-    html += '<div style="font-size:0.75rem;color:#92400E;margin-bottom:6px">📜 עקרונות מותג (Brand Constitution)</div>';
-    html += '<ul style="margin:0;padding-right:20px;font-size:0.85rem;color:#78350F">';
-    d.principles.forEach(function(p) { html += '<li style="margin-bottom:2px">' + escapeHtml(p) + '</li>'; });
-    html += '</ul>';
-    html += '</div>';
-  }
-
-  // Imagery
-  if (d.imagery) {
-    html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
-    html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">סגנון ויזואלי</div>';
-    if (d.imagery.photographyStyle) {
-      html += '<div style="font-size:0.82rem"><strong>צילום:</strong> ' + escapeHtml(d.imagery.photographyStyle.primary || '') + (d.imagery.photographyStyle.lightingPreference ? ' · תאורה: ' + escapeHtml(d.imagery.photographyStyle.lightingPreference) : '') + '</div>';
-    }
-    if (d.imagery.moodKeywords && d.imagery.moodKeywords.length) {
-      html += '<div style="margin-top:6px">';
-      d.imagery.moodKeywords.forEach(function(kw) {
-        html += '<span style="display:inline-block;background:#EFF6FF;color:#1E40AF;padding:2px 8px;border-radius:4px;font-size:0.75rem;margin:2px 4px 2px 0">' + escapeHtml(kw) + '</span>';
-      });
+    // Principles
+    if (d.principles && d.principles.length) {
+      html += '<div style="background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;padding:14px;margin-bottom:10px">';
+      html += '<div style="font-size:0.75rem;color:#92400E;margin-bottom:6px">📜 עקרונות המותג</div>';
+      html += '<ul style="margin:0;padding-right:20px;font-size:0.85rem;color:#78350F;line-height:1.6">';
+      d.principles.forEach(function(p) { html += '<li style="margin-bottom:3px">' + escapeHtml(p) + '</li>'; });
+      html += '</ul>';
       html += '</div>';
     }
-    html += '</div>';
+
+    // Imagery
+    if (d.imagery) {
+      html += '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:14px;margin-bottom:10px">';
+      html += '<div style="font-size:0.75rem;color:#6B7280;margin-bottom:6px">סגנון ויזואלי</div>';
+      if (d.imagery.photographyStyle) {
+        html += '<div style="font-size:0.84rem;color:#374151"><strong>צילום:</strong> ' + escapeHtml(d.imagery.photographyStyle.primary || '') + (d.imagery.photographyStyle.lightingPreference ? ' · תאורה: ' + escapeHtml(d.imagery.photographyStyle.lightingPreference) : '') + '</div>';
+      }
+      if (d.imagery.moodKeywords && d.imagery.moodKeywords.length) {
+        html += '<div style="margin-top:6px">';
+        d.imagery.moodKeywords.forEach(function(kw) {
+          html += '<span style="display:inline-block;background:#EFF6FF;color:#1E40AF;padding:2px 8px;border-radius:4px;font-size:0.75rem;margin:2px 4px 2px 0">' + escapeHtml(kw) + '</span>';
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+
+    html += '</div></details>';
   }
 
   return html;

@@ -5636,13 +5636,35 @@ interface GenContext {
     personaTitles: string[]
     strategy: string
     brandVoice: string
+    // Approved brand book (Hebrew) — feeds both skeleton and drafting prompts so
+    // content plan respects tagline, positioning, voice tone, and vocabulary.
+    brandBookBlock?: string
     performanceContext?: string
     historicalAssetsBlock?: string
-    // Resolved per sub-agent config (user can override in Settings → תת-סוכנים).
-    // menateachModel: strategic passes (Skeleton / QA Repair / Self-critique).
-    // yotzerModel: per-item draft pass (parallel Sonnet by default).
     menateachModel: string
     yotzerModel: string
+}
+
+// Build a compact Hebrew brand block for content-plan prompts.
+// Kept small (<1200 chars) to avoid bloating Opus skeleton pass.
+function formatBrandBookForPlan(bb: Record<string, unknown> | null | undefined): string {
+    if (!bb) return ''
+    const identity: any = (bb as any).identity || bb
+    const voice: any = (bb as any).voice || {}
+    const principles: any = (bb as any).principles || []
+    const lines: string[] = []
+    if (identity.businessName) lines.push(`**שם:** ${identity.businessName}`)
+    if (identity.taglineHe) lines.push(`**סלוגן:** ${identity.taglineHe}`)
+    if (identity.positioningLine) lines.push(`**מיצוב:** ${identity.positioningLine}`)
+    if (voice.tone) lines.push(`**טון:** ${voice.tone}${Array.isArray(voice.personalityAdjectives) && voice.personalityAdjectives.length ? ` · אישיות: ${voice.personalityAdjectives.slice(0, 4).join(', ')}` : ''}`)
+    if (voice.hebrewRegister) lines.push(`**רגיסטר עברי:** ${voice.hebrewRegister}`)
+    const vDo = Array.isArray(voice.vocabularyDo || voice.vocabulary_do) ? (voice.vocabularyDo || voice.vocabulary_do).slice(0, 6) : []
+    const vDont = Array.isArray(voice.vocabularyDont || voice.vocabulary_dont) ? (voice.vocabularyDont || voice.vocabulary_dont).slice(0, 6) : []
+    if (vDo.length) lines.push(`**משתמשים במילים:** ${vDo.join(', ')}`)
+    if (vDont.length) lines.push(`**לא משתמשים במילים:** ${vDont.join(', ')}`)
+    if (Array.isArray(principles) && principles.length) lines.push(`**עקרונות:** ${principles.slice(0, 3).join(' | ')}`)
+    if (!lines.length) return ''
+    return `## ספר מותג (חובה לכבד)\n${lines.join('\n')}\n`
 }
 
 function nanoid(n = 10): string {
@@ -5830,6 +5852,7 @@ ${ctx.personaTitles.length >= 2 ? ctx.personaTitles.map((p, i) => `${i + 1}. ${p
 
 ${ctx.performanceContext ? `\n## Previous period performance (adapt structure accordingly!)\n${ctx.performanceContext}\n` : ''}
 ${ctx.historicalAssetsBlock || ''}
+${ctx.brandBookBlock || ''}
 
 ## Hard constraints (auto-validator will reject plan on violation)
 - **Total: ${ctx.weeksAhead * 6}-${ctx.weeksAhead * 7} items** for ${ctx.weeksAhead} weeks
@@ -5954,6 +5977,7 @@ async function draftSingleItem(slot: ContentSlot, ctx: GenContext): Promise<Draf
 ## קול מותג / אסטרטגיה (תמצות)
 ${ctx.brandVoice.substring(0, 2500)}
 
+${ctx.brandBookBlock || ''}
 ## מוצרים
 ${productsBlock({ products: ctx.products, productsFunnel: ctx.productsFunnel })}
 
@@ -6207,6 +6231,7 @@ async function selfCritique(items: ContentPlanItem[], ctx: GenContext): Promise<
 ## Brand voice / strategy
 ${ctx.brandVoice.substring(0, 2000)}
 
+${ctx.brandBookBlock || ''}
 ## Products
 ${productsBlock({ products: ctx.products, productsFunnel: ctx.productsFunnel })}
 
@@ -6344,6 +6369,18 @@ async function generateContentPlan(
         resolveDirectModel(instanceId, 'yotzer'),
     ])
 
+    // Load approved brand book so plan items respect tagline, positioning, voice
+    let brandBookBlock = ''
+    try {
+        const { brandBooks } = await import('@/db/schema')
+        const rows = await db.select().from(brandBooks).where(eq(brandBooks.instanceId, instanceId))
+        const chosen = rows.find(r => r.status === 'approved')
+            || rows.sort((a, b) => (b.version || 0) - (a.version || 0))[0]
+        brandBookBlock = formatBrandBookForPlan(chosen as any)
+    } catch (e) {
+        console.warn('[contentPlan] brand book load failed (non-fatal):', (e as Error).message)
+    }
+
     const ctx: GenContext = {
         apiKey,
         businessName: answers.businessName || 'העסק',
@@ -6358,6 +6395,7 @@ async function generateContentPlan(
         personaTitles,
         strategy,
         brandVoice: strategy, // same source for now; could be refined later
+        brandBookBlock,
         performanceContext: opts.performanceContext,
         historicalAssetsBlock: formatHistoricalAssets(rd),
         menateachModel,

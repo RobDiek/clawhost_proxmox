@@ -58,28 +58,58 @@ async function loadBrandBook(instanceId: string): Promise<Record<string, unknown
     return (approved || rows.sort((a, b) => (b.version || 0) - (a.version || 0))[0]) as unknown as Record<string, unknown>
 }
 
+function hexFromColor(c: any): string | null {
+    if (!c) return null
+    if (typeof c === 'string') return c
+    if (typeof c === 'object' && c.hex) return c.hex
+    return null
+}
+
 function compactBrandBlock(bb: Record<string, unknown> | null): string {
     if (!bb) return '*(No brand book — use documentary/editorial photography aesthetic. Default palette: warm amber + deep charcoal + cream.)*'
     const colors = (bb.colors as any) || {}
     const logo = (bb.logo as any) || {}
     const imagery = (bb.imagery as any) || {}
     const voice = (bb.voice as any) || {}
-    const principles = (bb.principles as any) || {}
+    const typography = (bb.typography as any) || {}
+    const principles = (bb.principles as any) || []
 
-    const palette = [colors.primary, colors.secondary, colors.accent, ...(Array.isArray(colors.palette) ? colors.palette : [])]
-        .filter(Boolean).slice(0, 5).join(', ')
-    const imageryStyle = imagery.style || imagery.description || imagery.anchor || ''
+    // Extract hex codes from the various color shapes (object {hex,name,usage} or string)
+    const paletteHexes = [
+        hexFromColor(colors.primary),
+        hexFromColor(colors.secondary),
+        ...(Array.isArray(colors.accent) ? colors.accent.map(hexFromColor) : [hexFromColor(colors.accent)]),
+    ].filter(Boolean).slice(0, 5).join(', ')
+
+    // Imagery — prefer the new schema (photographyStyle) and fall back to old (style/dos/donts)
+    const photo = (imagery.photographyStyle as any) || {}
+    const imageryStyle = photo.primary || imagery.style || imagery.description || imagery.anchor || ''
+    const imageryLighting = photo.lightingPreference || ''
+    const moodKeywords = Array.isArray(imagery.moodKeywords) ? imagery.moodKeywords.slice(0, 6).join(', ') : ''
     const imageryDo = Array.isArray(imagery.dos) ? imagery.dos.join(' · ') : ''
     const imageryDont = Array.isArray(imagery.donts) ? imagery.donts.join(' · ') : ''
-    const voiceTone = voice.tone || voice.description || ''
-    const principleList = Array.isArray(principles.rules) ? principles.rules.slice(0, 3).join(' | ') : ''
 
-    return `**Brand name:** ${bb.businessName || ''}
-**Palette (hex):** ${palette || 'not specified'}
-**Logo:** ${logo.url ? `available at ${logo.url}` : 'not specified'}
-**Imagery style:** ${imageryStyle || 'documentary lifestyle, natural light'}
-${imageryDo ? `**Imagery DO:** ${imageryDo}\n` : ''}${imageryDont ? `**Imagery DON'T:** ${imageryDont}\n` : ''}**Tone of voice:** ${voiceTone || 'professional yet warm'}
-${principleList ? `**Brand principles:** ${principleList}` : ''}`
+    // Voice — tone + personality + vocabulary do/don't
+    const voiceTone = voice.tone || voice.description || ''
+    const personality = Array.isArray(voice.personalityAdjectives) ? voice.personalityAdjectives.slice(0, 5).join(', ') : ''
+    const vocabDo = Array.isArray(voice.vocabularyDo || voice.vocabulary_do) ? (voice.vocabularyDo || voice.vocabulary_do).slice(0, 8).join(', ') : ''
+    const vocabDont = Array.isArray(voice.vocabularyDont || voice.vocabulary_dont) ? (voice.vocabularyDont || voice.vocabulary_dont).slice(0, 8).join(', ') : ''
+    const hebrewRegister = voice.hebrewRegister || ''
+
+    // Identity — tagline + positioning (surface brand story to the image director)
+    const identity = (bb.identity as any) || bb
+    const taglineHe = identity.taglineHe || ''
+    const positioning = identity.positioningLine || ''
+
+    // Principles — keep as array of strings
+    const principleList = Array.isArray(principles) ? principles.slice(0, 3).join(' | ') : (Array.isArray((principles as any).rules) ? (principles as any).rules.slice(0, 3).join(' | ') : '')
+
+    return `**Brand:** ${(bb.businessName || identity.businessName || '')}${taglineHe ? ` — "${taglineHe}"` : ''}
+${positioning ? `**Positioning:** ${positioning}\n` : ''}**Palette (hex):** ${paletteHexes || 'not specified'}
+**Logo:** ${logo.url || (logo.primary && logo.primary.url) ? 'available' : 'not specified'}
+**Imagery:** ${imageryStyle || 'documentary lifestyle, natural light'}${imageryLighting ? ` · lighting: ${imageryLighting}` : ''}${moodKeywords ? ` · mood: ${moodKeywords}` : ''}
+${imageryDo ? `**Imagery DO:** ${imageryDo}\n` : ''}${imageryDont ? `**Imagery DON'T:** ${imageryDont}\n` : ''}**Voice & tone:** ${voiceTone || 'professional yet warm'}${personality ? ` · personality: ${personality}` : ''}${hebrewRegister ? ` · Hebrew register: ${hebrewRegister}` : ''}
+${vocabDo ? `**Use words:** ${vocabDo}\n` : ''}${vocabDont ? `**Avoid words:** ${vocabDont}\n` : ''}${principleList ? `**Principles:** ${principleList}` : ''}`
 }
 
 export async function generateCreativeBrief(
