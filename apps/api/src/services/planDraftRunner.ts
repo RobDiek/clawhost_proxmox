@@ -21,6 +21,48 @@ import { getApiKeyForInstance, formatAgentStats, formatLatestOptimizationReport,
 const RUNNER_INTERVAL_MS = 60 * 60 * 1000   // every 60 min
 const DUE_WINDOW_MS = 60 * 60 * 1000        // produce drafts up to 60 min before scheduled time
 const MAX_DRAFTS_PER_SWEEP = 3              // per instance, to rate-limit API spend
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://clawflow.flowmatic.co.il'
+
+// Send a short Telegram notification to the instance owner when a draft is
+// ready. Best-effort — never throws, never blocks the pipeline.
+async function notifyDraftReady(
+    instance: { id: string; telegramBotToken: string | null; telegramChatId: string | null },
+    item: PlanItem,
+    title: string,
+): Promise<void> {
+    if (!instance.telegramBotToken || !instance.telegramChatId) return
+
+    const channelHe: Record<string, string> = {
+        facebook: 'פייסבוק', instagram: 'אינסטגרם', blog: 'בלוג', email: 'ניוזלטר',
+        youtube: 'יוטיוב', linkedin: 'לינקדאין', tiktok: 'טיקטוק',
+        google_ads: 'גוגל אדס', meta_ads: 'מטא אדס', reddit: 'רדיט',
+    }
+    const channelLabel = channelHe[item.channel] || item.channel
+    const approvalsUrl = `${FRONTEND_URL}/dashboard#tab=home`
+
+    const text =
+        `🆕 *טיוטה חדשה מוכנה לאישור*\n\n` +
+        `*${title}*\n\n` +
+        `📅 ${item.date} · ${channelLabel}\n` +
+        `🎯 ${item.pillar}\n\n` +
+        `[לאישור →](${approvalsUrl})`
+
+    try {
+        await fetch(`https://api.telegram.org/bot${instance.telegramBotToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: instance.telegramChatId,
+                text,
+                parse_mode: 'Markdown',
+                disable_web_page_preview: true,
+            }),
+            signal: AbortSignal.timeout(10000),
+        })
+    } catch {
+        // Swallow — never block pipeline on notification failure
+    }
+}
 
 interface PlanItem {
     id: string
@@ -255,6 +297,11 @@ export async function draftDuePlanItemsForInstance(
         item.status = 'awaiting_review' as PlanItem['status']
         ;(item as unknown as { outputId?: string }).outputId = outputId
         drafted.push(item.id)
+
+        // Notify user via Telegram (non-blocking, best-effort)
+        notifyDraftReady(instance, item, generated.title).catch(err => {
+            console.warn(`[planDraftRunner] TG notify failed for ${item.id}:`, (err as Error).message)
+        })
 
         // Phase M.1.4/M.1.6 — fire media generation in parallel with the
         // remaining drafts. We await the brief so Opus can decide the
