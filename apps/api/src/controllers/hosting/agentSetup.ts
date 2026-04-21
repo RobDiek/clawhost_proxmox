@@ -838,6 +838,20 @@ async function getSubAgentModel(instanceId: string, role: string): Promise<strin
     return DEFAULT_ROLE_MODELS[role] || 'openai/gpt-4o'
 }
 
+// Same mapping but returns the provider-less model id (e.g. 'claude-opus-4-7')
+// for direct Anthropic API calls that don't route through the OpenClaw gateway.
+// Strips "anthropic/" / "openai/" prefix. If user picked an OpenAI model for a
+// role we currently only use Anthropic for, we fall back to the role's Anthropic
+// default — better than crashing on an unsupported provider.
+export async function resolveDirectModel(instanceId: string, role: string): Promise<string> {
+    const raw = await getSubAgentModel(instanceId, role)
+    const bare = raw.replace(/^(anthropic|openai)\//, '')
+    if (bare.startsWith('claude-')) return bare
+    // User picked OpenAI for this role — fall back to the role's Anthropic default
+    const fallback = (DEFAULT_ROLE_MODELS[role] || 'anthropic/claude-sonnet-4-6').replace(/^anthropic\//, '')
+    return fallback
+}
+
 // ── SINGLE SOURCE OF TRUTH: ensure all expected agents are registered on VPS ──
 // Called from: setupAgents (deploy), saveIntegration (first API key), addAgentToInstance (upgrade)
 const MATEH_AGENTS = ['sayer', 'menateach', 'meater', 'maazin', 'et', 'yotzer', 'shaliach', 'migdalor', 'mekhayev'] as const
@@ -1875,11 +1889,12 @@ ${extracted.validation}`
             return fail(c, 'מפתח API לא מוגדר', 400)
         }
 
-        // Model selection: default to Opus 4.7 for strategy (deepest reasoning)
+        // Model selection: requested override wins; otherwise resolve via
+        // user's sub-agent config for 'menateach' (strategic analysis).
         const ALLOWED_MODELS = ['claude-sonnet-4-6', 'claude-opus-4-6', 'claude-opus-4-7']
         const strategyModel = requestedModel && ALLOWED_MODELS.includes(requestedModel)
             ? requestedModel
-            : 'claude-opus-4-7'
+            : await resolveDirectModel(instanceId, 'menateach')
 
         console.log(`Strategy via direct API — model: ${strategyModel} (key: ${apiKey.substring(0, 12)}...)`)
 
@@ -2571,7 +2586,10 @@ KPIs **חייבים לשקף בפועל** את ההשקעה והמאמץ. אם �
 
         console.log(`Strategy scenarios for ${businessName}: prompt ${prompt.length} chars`)
 
-        // Call Opus with auto-retry on coherence violations.
+        // Model resolved from sub-agent config (menateach role — strategic).
+        const scenariosModel = await resolveDirectModel(instanceId, 'menateach')
+
+        // Call with auto-retry on coherence violations.
         // Prompt is CACHED — retries within 5min pay only for the feedback delta.
         let scenariosData: any = null
         let coherenceWarnings: string[] = []
@@ -2587,7 +2605,7 @@ KPIs **חייבים לשקף בפועל** את ההשקעה והמאמץ. אם �
                     'anthropic-version': '2023-06-01',
                 },
                 body: JSON.stringify({
-                    model: 'claude-opus-4-7',
+                    model: scenariosModel,
                     max_tokens: 8192,
                     messages: [{
                         role: 'user',
@@ -2614,7 +2632,7 @@ KPIs **חייבים לשקף בפועל** את ההשקעה והמאמץ. אם �
             console.log(`Scenarios attempt ${attempt}: ${rawText.length} chars`)
             if (data.usage) {
                 await logApiUsage({
-                    instanceId, purpose: `scenarios-attempt-${attempt}`, model: 'claude-opus-4-7',
+                    instanceId, purpose: `scenarios-attempt-${attempt}`, model: scenariosModel,
                     inputTokens: data.usage.input_tokens || 0,
                     outputTokens: data.usage.output_tokens || 0,
                     cacheCreationTokens: data.usage.cache_creation_input_tokens || 0,
@@ -2910,8 +2928,9 @@ ${recentOutputs.slice(0, 15).map(o => `- [${o.agentRole}] ${o.title || o.outputT
 ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי outputs שמעידים על לקוחות חדשים (proposal accepted, contract signed etc.). אם 0 → status=blocked + action להעצמת אורגני. אם >=2 → status=ready + action להפעלת paid.' : ''}
 - הפרד Tokens/Tools מ-Paid Ads בניתוח העלויות — הלקוח משלם נפרד לכל ספק`
 
-        // Ops Brief: structured JSON output with clear rules → Sonnet 4.6 sufficient (5x cheaper than Opus)
-        const briefModel = 'claude-sonnet-4-6'
+        // Ops Brief: menateach's job (strategic analysis). User can upgrade
+        // via Settings → תת-סוכנים if they want deeper reasoning.
+        const briefModel = await resolveDirectModel(instanceId, 'menateach')
         const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
@@ -5403,6 +5422,11 @@ interface GenContext {
     brandVoice: string
     performanceContext?: string
     historicalAssetsBlock?: string
+    // Resolved per sub-agent config (user can override in Settings → תת-סוכנים).
+    // menateachModel: strategic passes (Skeleton / QA Repair / Self-critique).
+    // yotzerModel: per-item draft pass (parallel Sonnet by default).
+    menateachModel: string
+    yotzerModel: string
 }
 
 function nanoid(n = 10): string {
@@ -5650,6 +5674,16 @@ NO "hook", NO "brief", NO "ctaType" — those come later. Structure only. Sort A
 
 **CRITICAL: Return ALL ~${Math.floor(ctx.weeksAhead * 6.5)} slots. Include Sundays. Vary channels and times. Mark ~20% reactive. Mark ≥3 amplification waves. Full JSON array.**`
 
+    const skeletonIsOpus = ctx.menateachModel.startsWith('claude-opus')
+    const skeletonBody: Record<string, unknown> = {
+        model: ctx.menateachModel,
+        max_tokens: 20000,
+        messages: [{ role: 'user', content: prompt }],
+    }
+    if (skeletonIsOpus) {
+        skeletonBody.thinking = { type: 'adaptive' }
+        skeletonBody.output_config = { effort: 'high' }
+    }
     const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -5657,15 +5691,7 @@ NO "hook", NO "brief", NO "ctaType" — those come later. Structure only. Sort A
             'x-api-key': ctx.apiKey,
             'anthropic-version': '2023-06-01',
         },
-        body: JSON.stringify({
-            model: 'claude-opus-4-7',
-            // 20K needed: adaptive thinking consumes part of max_tokens; skeleton
-            // JSON for 28 slots is ~5K. Previous 6K caused truncation → only 14 slots.
-            max_tokens: 20000,
-            thinking: { type: 'adaptive' },
-            output_config: { effort: 'high' },
-            messages: [{ role: 'user', content: prompt }],
-        }),
+        body: JSON.stringify(skeletonBody),
         signal: AbortSignal.timeout(300000),
     })
     if (!res.ok) throw new Error(`Skeleton API ${res.status}: ${(await res.text()).substring(0, 200)}`)
@@ -5800,7 +5826,7 @@ ctaType חייב להיות **בדיוק אחד** מהערכים הבאים — 
             'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-            model: 'claude-sonnet-4-6',
+            model: ctx.yotzerModel, // per-user override via subAgentModels.yotzer
             // 2500 = hook + full markdown-structured brief (~200-400 words) + ctaType.
             // Previous 600 was tight for unstructured brief; inadequate for markdown.
             max_tokens: 2500,
@@ -5909,13 +5935,16 @@ Apply **minimum** patches. JSON array only, no prose.`
                 'x-api-key': ctx.apiKey,
                 'anthropic-version': '2023-06-01',
             },
-            body: JSON.stringify({
-                model: 'claude-opus-4-7',
-                max_tokens: 12000, // adaptive thinking eats part of this
-                thinking: { type: 'adaptive' },
-                output_config: { effort: 'medium' },
-                messages: [{ role: 'user', content: prompt }],
-            }),
+            body: JSON.stringify((() => {
+                const isOpus = ctx.menateachModel.startsWith('claude-opus')
+                const b: Record<string, unknown> = {
+                    model: ctx.menateachModel,
+                    max_tokens: 12000,
+                    messages: [{ role: 'user', content: prompt }],
+                }
+                if (isOpus) { b.thinking = { type: 'adaptive' }; b.output_config = { effort: 'medium' } }
+                return b
+            })()),
             signal: AbortSignal.timeout(240000),
         })
         if (!res.ok) throw new Error(`QA API ${res.status}`)
@@ -5997,13 +6026,16 @@ JSON only.`
                 'x-api-key': ctx.apiKey,
                 'anthropic-version': '2023-06-01',
             },
-            body: JSON.stringify({
-                model: 'claude-opus-4-7',
-                max_tokens: 10000, // adaptive thinking eats part of this
-                thinking: { type: 'adaptive' },
-                output_config: { effort: 'medium' },
-                messages: [{ role: 'user', content: prompt }],
-            }),
+            body: JSON.stringify((() => {
+                const isOpus = ctx.menateachModel.startsWith('claude-opus')
+                const b: Record<string, unknown> = {
+                    model: ctx.menateachModel,
+                    max_tokens: 10000,
+                    messages: [{ role: 'user', content: prompt }],
+                }
+                if (isOpus) { b.thinking = { type: 'adaptive' }; b.output_config = { effort: 'medium' } }
+                return b
+            })()),
             signal: AbortSignal.timeout(240000),
         })
         if (!res.ok) throw new Error(`Critique API ${res.status}`)
@@ -6090,6 +6122,12 @@ async function generateContentPlan(
         if (n.length > 1 && !personaTitles.includes(n)) personaTitles.push(n)
     }
 
+    // Resolve models per user's sub-agent config.
+    const [menateachModel, yotzerModel] = await Promise.all([
+        resolveDirectModel(instanceId, 'menateach'),
+        resolveDirectModel(instanceId, 'yotzer'),
+    ])
+
     const ctx: GenContext = {
         apiKey,
         businessName: answers.businessName || 'העסק',
@@ -6106,6 +6144,8 @@ async function generateContentPlan(
         brandVoice: strategy, // same source for now; could be refined later
         performanceContext: opts.performanceContext,
         historicalAssetsBlock: formatHistoricalAssets(rd),
+        menateachModel,
+        yotzerModel,
     }
 
     // ─── Pass 1: Skeleton (Opus thinking) ───
@@ -6685,6 +6725,18 @@ ${JSON.stringify(plan.slice(0, 40).map(it => ({
 
 השתמש בנתונים ממש — לא generalities. ציין מספרים ספציפיים. JSON בלבד, בלי prose.`
 
+    // Optimization synthesis is menateach's job (strategic analysis).
+    const optModel = await resolveDirectModel(instanceId, 'menateach')
+    const optIsOpus = optModel.startsWith('claude-opus')
+    const optBody: Record<string, unknown> = {
+        model: optModel,
+        max_tokens: 12000,
+        messages: [{ role: 'user', content: prompt }],
+    }
+    if (optIsOpus) {
+        optBody.thinking = { type: 'adaptive' }
+        optBody.output_config = { effort: 'high' }
+    }
     const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -6692,13 +6744,7 @@ ${JSON.stringify(plan.slice(0, 40).map(it => ({
             'x-api-key': apiKey,
             'anthropic-version': '2023-06-01',
         },
-        body: JSON.stringify({
-            model: 'claude-opus-4-7',
-            max_tokens: 12000,
-            thinking: { type: 'adaptive' },
-            output_config: { effort: 'high' },
-            messages: [{ role: 'user', content: prompt }],
-        }),
+        body: JSON.stringify(optBody),
         signal: AbortSignal.timeout(180000),
     })
     if (!res.ok) return { generated: false, reason: `Anthropic API ${res.status}` }

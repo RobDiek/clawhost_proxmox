@@ -16,7 +16,7 @@ import { randomBytes } from 'crypto'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances, agentOutputs } from '@/db/schema'
-import { getApiKeyForInstance, formatAgentStats, formatLatestOptimizationReport } from '@/controllers/hosting/agentSetup'
+import { getApiKeyForInstance, formatAgentStats, formatLatestOptimizationReport, resolveDirectModel } from '@/controllers/hosting/agentSetup'
 
 const RUNNER_INTERVAL_MS = 60 * 60 * 1000   // every 60 min
 const DUE_WINDOW_MS = 60 * 60 * 1000        // produce drafts up to 60 min before scheduled time
@@ -52,6 +52,7 @@ interface GenContext {
 
 async function generateDraftContent(
     apiKey: string,
+    instanceId: string,
     item: PlanItem,
     ctx: GenContext,
 ): Promise<{ title: string; content: string } | null> {
@@ -91,6 +92,19 @@ ${ctx.statsBlock}
 }`
 
     try {
+        // Resolve model per user's sub-agent config — content draft is
+        // Yotzer's domain. User can upgrade to Opus in Settings → תת-סוכנים.
+        const model = await resolveDirectModel(instanceId, 'yotzer')
+        const isOpus = model.startsWith('claude-opus')
+        const body: Record<string, unknown> = {
+            model,
+            max_tokens: 3000,
+            messages: [{ role: 'user', content: prompt }],
+        }
+        if (isOpus) {
+            body.thinking = { type: 'adaptive' }
+            body.output_config = { effort: 'medium' }
+        }
         const res = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
@@ -98,12 +112,8 @@ ${ctx.statsBlock}
                 'x-api-key': apiKey,
                 'anthropic-version': '2023-06-01',
             },
-            body: JSON.stringify({
-                model: 'claude-sonnet-4-6',
-                max_tokens: 3000,
-                messages: [{ role: 'user', content: prompt }],
-            }),
-            signal: AbortSignal.timeout(120000),
+            body: JSON.stringify(body),
+            signal: AbortSignal.timeout(180000),
         })
         if (!res.ok) {
             console.warn(`[planDraftRunner] generate ${item.id} API ${res.status}`)
@@ -210,7 +220,7 @@ export async function draftDuePlanItemsForInstance(
             researchData: { ...rd, contentPlan: plan } as unknown as Record<string, unknown>,
         }).where(eq(instances.id, instanceId))
 
-        const generated = await generateDraftContent(apiKey, item, ctx)
+        const generated = await generateDraftContent(apiKey, instanceId, item, ctx)
         if (!generated) {
             failed.push(item.id)
             item.status = 'planned' // revert so retry works next sweep

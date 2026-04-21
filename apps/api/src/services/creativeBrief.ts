@@ -22,7 +22,7 @@
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances, brandBooks } from '@/db/schema'
-import { getApiKeyForInstance, formatLatestOptimizationReport, formatAgentStats } from '@/controllers/hosting/agentSetup'
+import { getApiKeyForInstance, formatLatestOptimizationReport, formatAgentStats, resolveDirectModel } from '@/controllers/hosting/agentSetup'
 
 export interface PlanItemContext {
     id: string
@@ -147,8 +147,25 @@ ${statsBlock}
 
 Return JSON only, nothing else.`
 
+    // Resolve the model per user's sub-agent config. Creative brief is
+    // Yotzer's domain — he's the creative director. User can upgrade to Opus
+    // in Settings → תת-סוכנים if they want richer visuals.
+    const model = await resolveDirectModel(instanceId, 'yotzer')
+    const isOpus = model.startsWith('claude-opus')
+
     const t0 = Date.now()
     try {
+        const body: Record<string, unknown> = {
+            model,
+            max_tokens: 4000,
+            messages: [{ role: 'user', content: prompt }],
+        }
+        // Opus 4.7 benefits from adaptive thinking — worth the extra latency
+        // for creative direction. Sonnet/Haiku don't support the same shape.
+        if (isOpus) {
+            body.thinking = { type: 'adaptive' }
+            body.output_config = { effort: 'medium' }
+        }
         const res = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
@@ -156,13 +173,7 @@ Return JSON only, nothing else.`
                 'x-api-key': apiKey,
                 'anthropic-version': '2023-06-01',
             },
-            body: JSON.stringify({
-                model: 'claude-opus-4-7',
-                max_tokens: 4000,
-                thinking: { type: 'adaptive' },
-                output_config: { effort: 'medium' },
-                messages: [{ role: 'user', content: prompt }],
-            }),
+            body: JSON.stringify(body),
             signal: AbortSignal.timeout(180_000),
         })
         if (!res.ok) {
@@ -184,14 +195,16 @@ Return JSON only, nothing else.`
             console.warn('[creativeBrief] missing imagePrompt in output')
             return null
         }
-        console.log(`[creativeBrief] ${item.id}: brief ready in ${((Date.now() - t0) / 1000).toFixed(1)}s`)
+        console.log(`[creativeBrief] ${item.id}: brief ready in ${((Date.now() - t0) / 1000).toFixed(1)}s (model=${model})`)
+        // Rough per-model cost estimate for budget tracking
+        const cost = isOpus ? 0.30 : model.startsWith('claude-sonnet') ? 0.04 : 0.01
         return {
             imagePrompt: String(parsed.imagePrompt),
             negativePrompt: String(parsed.negativePrompt || 'blurry, low quality, watermark, text artifacts, distorted text, extra fingers, deformed, amateur'),
             styleAnchor: String(parsed.styleAnchor || 'clean professional commercial photography'),
             textOverlayHe: parsed.textOverlayHe ? String(parsed.textOverlayHe) : undefined,
             rationale: String(parsed.rationale || ''),
-            costUsd: 0.30, // rough Opus thinking estimate
+            costUsd: cost,
         }
     } catch (err) {
         console.warn(`[creativeBrief] ${item.id} error:`, (err as Error).message)
