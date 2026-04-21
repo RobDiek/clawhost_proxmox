@@ -5065,6 +5065,38 @@ export const getContentPlanItemMedia = async (c: Context) => {
     }
 }
 
+// POST /instances/:id/content-plan/media/:renderId/status
+// Toggle an individual render between 'ready' and 'archived'. Used by the
+// Media Library UI to restore old variants or archive new ones without
+// triggering a full regeneration.
+export const updateRenderStatus = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const renderId = c.req.param('renderId')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        type StatusBody = { status?: 'ready' | 'archived' }
+        const body: StatusBody = await c.req.json<StatusBody>().catch(() => ({} as StatusBody))
+        if (body.status !== 'ready' && body.status !== 'archived') {
+            return fail(c, "status must be 'ready' or 'archived'", 400)
+        }
+
+        const { contentPlanMedia } = await import('@/db/schema')
+        const [updated] = await db.update(contentPlanMedia)
+            .set({ status: body.status })
+            .where(and(
+                eq(contentPlanMedia.id, renderId),
+                eq(contentPlanMedia.instanceId, instanceId),
+            ))
+            .returning()
+        if (!updated) return fail(c, 'Render not found', 404)
+        return ok(c, { id: updated.id, status: updated.status }, 'Status updated')
+    } catch (err) {
+        console.error('updateRenderStatus error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 // POST /instances/:id/content-plan/items/:itemId/media/regenerate
 // Body: { promptEdit?: string, channels?: string[], numVariants?: number }
 // Regenerate media for an item. If promptEdit supplied, it's merged into
