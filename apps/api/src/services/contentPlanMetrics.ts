@@ -99,6 +99,74 @@ async function fetchFacebookInsights(postId: string, pageToken: string): Promise
 }
 
 /**
+ * Google Search Console metrics for a blog post URL.
+ * Pulls last 28 days of search analytics filtered to the specific page.
+ * Returns clicks/impressions/ctr/position averages + top keywords embedded
+ * in the engagement field as a comma-separated summary (agents can read it).
+ *
+ * Permissions: webmasters.readonly scope (already requested at connect time).
+ * gscTokens shape: { accessToken, refreshToken, siteUrl, sites[], ... }
+ */
+async function fetchBlogInsights(url: string, gscTokens: Record<string, unknown>): Promise<ItemResults | null> {
+    const accessToken = gscTokens?.accessToken as string | undefined
+    const siteUrl = gscTokens?.siteUrl as string | undefined
+    if (!accessToken || !siteUrl) return null
+
+    const endDate = new Date()
+    const startDate = new Date(Date.now() - 28 * 24 * 3600 * 1000)
+    const queryUrl = `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`
+
+    try {
+        const res = await fetch(queryUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({
+                startDate: startDate.toISOString().slice(0, 10),
+                endDate: endDate.toISOString().slice(0, 10),
+                dimensions: ['query'],
+                dimensionFilterGroups: [{
+                    filters: [{ dimension: 'page', operator: 'equals', expression: url }],
+                }],
+                rowLimit: 10,
+            }),
+            signal: AbortSignal.timeout(15000),
+        })
+        if (!res.ok) {
+            const err = await res.text()
+            console.warn(`GSC insights ${url} failed ${res.status}: ${err.substring(0, 200)}`)
+            return null
+        }
+        const data = await res.json() as {
+            rows?: Array<{ keys: string[]; clicks: number; impressions: number; ctr: number; position: number }>
+        }
+        const rows = data.rows || []
+        if (rows.length === 0) {
+            return { impressions: 0, clicks: 0, ctr: 0, fetchedAt: new Date().toISOString() }
+        }
+        let totalClicks = 0
+        let totalImpressions = 0
+        rows.forEach(r => {
+            totalClicks += r.clicks
+            totalImpressions += r.impressions
+        })
+        return {
+            impressions: totalImpressions,
+            clicks: totalClicks,
+            ctr: totalImpressions > 0 ? totalClicks / totalImpressions : 0,
+            // reach ≈ impressions for SEO (no unique-user data from GSC)
+            reach: totalImpressions,
+            fetchedAt: new Date().toISOString(),
+        }
+    } catch (err) {
+        console.warn(`GSC insights ${url} network error:`, (err as Error).message)
+        return null
+    }
+}
+
+/**
  * Instagram media metrics.
  * Permissions: instagram_basic + instagram_manage_insights on the IG account.
  */
@@ -163,6 +231,41 @@ function computePerformanceScore(r: ItemResults): number {
     return parts > 0 ? Math.round(score / parts) : 0
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Cron starter — daily metrics sweep across all live instances
+// Called from index.ts at startup. Runs 10min after boot, then every 24h.
+// ═══════════════════════════════════════════════════════════════════════════
+const COLLECT_INTERVAL_MS = 24 * 3600 * 1000
+let _collectStarted = false
+export function startMetricsCollectorCron(): void {
+    if (_collectStarted) return
+    _collectStarted = true
+    console.log(`[metricsCollector] starting (interval ${COLLECT_INTERVAL_MS / 3600_000}h)`)
+    setTimeout(() => { collectAllInstances().catch(err => console.error('[metricsCollector] startup run failed:', err)) }, 10 * 60 * 1000)
+    setInterval(() => { collectAllInstances().catch(err => console.error('[metricsCollector] interval run failed:', err)) }, COLLECT_INTERVAL_MS)
+}
+
+async function collectAllInstances(): Promise<void> {
+    const live = await db.select({ id: instances.id }).from(instances)
+    console.log(`[metricsCollector] sweep: ${live.length} instances`)
+    let totalFetched = 0
+    let totalFailed = 0
+    for (const row of live) {
+        try {
+            const res = await collectContentPlanMetrics(row.id)
+            totalFetched += res.fetched
+            totalFailed += res.failed
+            if (res.fetched > 0) {
+                console.log(`[metricsCollector] ${row.id}: fetched=${res.fetched} skipped=${res.skipped} failed=${res.failed}`)
+            }
+        } catch (err) {
+            console.warn(`[metricsCollector] ${row.id} error:`, (err as Error).message)
+            totalFailed++
+        }
+    }
+    console.log(`[metricsCollector] sweep done: +${totalFetched} fetched, ${totalFailed} failed`)
+}
+
 export async function collectContentPlanMetrics(instanceId: string): Promise<CollectResult> {
     const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (!instance) throw new Error('Instance not found')
@@ -171,6 +274,7 @@ export async function collectContentPlanMetrics(instanceId: string): Promise<Col
     const plan = (Array.isArray(rd.contentPlan) ? rd.contentPlan : []) as PlanItem[]
     const metaTokens = (instance.metaTokens as Record<string, unknown> | null) || {}
     const pageToken = (metaTokens.pageAccessToken || metaTokens.userAccessToken || metaTokens.accessToken) as string | undefined
+    const gscTokens = (instance.gscTokens as Record<string, unknown> | null) || null
 
     const updates: CollectResult['updates'] = []
     let fetched = 0, skipped = 0, failed = 0
@@ -179,14 +283,19 @@ export async function collectContentPlanMetrics(instanceId: string): Promise<Col
         if (item.status !== 'published' || !item.channelPostId) { skipped++; continue }
 
         let result: ItemResults | null = null
+        const anyItem = item as PlanItem & { channelPostUrl?: string }
         if (item.channel === 'facebook') {
             if (!pageToken) { skipped++; updates.push({ id: item.id, channel: item.channel, error: 'no Meta token' }); continue }
             result = await fetchFacebookInsights(item.channelPostId, pageToken)
         } else if (item.channel === 'instagram') {
             if (!pageToken) { skipped++; updates.push({ id: item.id, channel: item.channel, error: 'no Meta token' }); continue }
             result = await fetchInstagramInsights(item.channelPostId, pageToken)
+        } else if (item.channel === 'blog') {
+            // For blog items we use the full URL (channelPostUrl) to query GSC.
+            if (!gscTokens || !anyItem.channelPostUrl) { skipped++; updates.push({ id: item.id, channel: item.channel, error: gscTokens ? 'no URL' : 'no GSC token' }); continue }
+            result = await fetchBlogInsights(anyItem.channelPostUrl, gscTokens)
         } else {
-            // Unsupported channel in this MVP
+            // Unsupported channel in this MVP (linkedin/email/youtube/tiktok/ads)
             skipped++
             continue
         }

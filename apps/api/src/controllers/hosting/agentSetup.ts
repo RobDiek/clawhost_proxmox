@@ -14,7 +14,7 @@ const TEMPLATES_DIR = resolve(TEMPLATES_BASE, 'mateh-system') // default for bac
 const PERSONAL_TEMPLATES_DIR = resolve(TEMPLATES_BASE, 'personal-system')
 
 // Get API key for an instance: DB first, then env fallback
-async function getApiKeyForInstance(instanceId: string): Promise<string> {
+export async function getApiKeyForInstance(instanceId: string): Promise<string> {
     const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
     if (inst?.aiProviderKey) return inst.aiProviderKey
     return process.env.ANTHROPIC_API_KEY || ''
@@ -6164,6 +6164,137 @@ ${bottom3.map(t => `- ${t}`).join('\n')}
 
 ### Tactical directive
 Shift weight toward top-performing pillar + channel + persona combos. Reduce or rework underperforming pillars.`
+}
+
+// ─── Agent stats helpers (Phase B.3: getMyStats for agent prompts) ──────────
+// Returns a compact markdown summary of published-item performance for use in
+// agent system prompts. Complements formatHistoricalAssets() (user-supplied
+// baseline) with actual results from platform integrations.
+//
+// Callers pass a filter to narrow scope:
+//   - pillar: "סיפורי כוויה"      → only items matching pillar
+//   - channel: "facebook"           → only facebook items
+//   - persona: "דורון"              → only items for that persona
+//   - sinceDays: 30                 → last N days
+//
+// Used in Yotzer/Ayat prompts to ground new content drafts in prior wins.
+interface GetMyStatsFilter {
+    pillar?: string
+    channel?: string
+    persona?: string
+    sinceDays?: number
+}
+
+export function formatAgentStats(rd: any, filter: GetMyStatsFilter = {}): string {
+    // eslint-disable-line @typescript-eslint/no-explicit-any
+    const plan: ContentPlanItem[] = Array.isArray(rd?.contentPlan) ? rd.contentPlan : []
+    let items = plan.filter(it => it.results && typeof it.results.engagement === 'number')
+    if (items.length === 0) return ''
+
+    if (filter.sinceDays) {
+        const cutoff = new Date(Date.now() - filter.sinceDays * 24 * 3600 * 1000).toISOString().slice(0, 10)
+        items = items.filter(it => it.date >= cutoff)
+    }
+    if (filter.pillar)  items = items.filter(it => it.pillar === filter.pillar)
+    if (filter.channel) items = items.filter(it => it.channel === filter.channel)
+    if (filter.persona) items = items.filter(it => it.persona === filter.persona || it.persona?.includes(filter.persona!))
+
+    if (items.length === 0) return ''
+
+    // Aggregate
+    const byPillar: Record<string, { count: number; engSum: number; reachSum: number }> = {}
+    items.forEach(it => {
+        const p = it.pillar || 'unknown'
+        const b = byPillar[p] || { count: 0, engSum: 0, reachSum: 0 }
+        b.count += 1
+        b.engSum += it.results?.engagement || 0
+        b.reachSum += it.results?.reach || 0
+        byPillar[p] = b
+    })
+    const pillarRows = Object.entries(byPillar)
+        .map(([p, s]) => ({ pillar: p, avgEng: Math.round(s.engSum / s.count), avgReach: Math.round(s.reachSum / s.count), count: s.count }))
+        .sort((a, b) => b.avgEng - a.avgEng)
+
+    const byChannel: Record<string, { count: number; engSum: number }> = {}
+    items.forEach(it => {
+        const c = it.channel
+        const b = byChannel[c] || { count: 0, engSum: 0 }
+        b.count += 1
+        b.engSum += it.results?.engagement || 0
+        byChannel[c] = b
+    })
+    const channelRows = Object.entries(byChannel)
+        .map(([c, s]) => ({ channel: c, avgEng: Math.round(s.engSum / s.count), count: s.count }))
+        .sort((a, b) => b.avgEng - a.avgEng)
+
+    const sorted = [...items].sort((a, b) => (b.performanceScore || 0) - (a.performanceScore || 0))
+    const top3 = sorted.slice(0, 3).map(it => `"${it.hook}" — ${it.channel}, engagement ${it.results?.engagement || 0}, score ${it.performanceScore || 0}`)
+    const bot3 = sorted.slice(-3).reverse().map(it => `"${it.hook}" — ${it.channel}, engagement ${it.results?.engagement || 0}, score ${it.performanceScore || 0}`)
+
+    return `
+## 📈 ביצועי תוכן קודמים שלי (${items.length} פריטים נמדדו)
+
+### לפי pillar (ממוצע engagement)
+${pillarRows.map(p => `- "${p.pillar}": ${p.avgEng} engagement, ${p.avgReach} reach (${p.count} פריטים)`).join('\n')}
+
+### לפי ערוץ
+${channelRows.map(c => `- ${c.channel}: ${c.avgEng} engagement ממוצע (${c.count} פריטים)`).join('\n')}
+
+### 3 הפריטים המובילים
+${top3.map(t => `- ${t}`).join('\n')}
+
+### 3 הפריטים החלשים ביותר
+${bot3.map(t => `- ${t}`).join('\n')}
+
+**השתמשו בנתונים האלה:** העתיקו מה שעובד (pillar/hook patterns מהמובילים), הימנעו מהדפוסים של הפריטים החלשים.
+---
+`
+}
+
+// GET /hosting/instances/:id/stats?pillar=...&channel=...&persona=...&sinceDays=...
+// JSON API for frontend or agent integrations to fetch the stats block.
+export const getAgentStats = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+        const rd = (instance.researchData as any) || {}
+        const filter: GetMyStatsFilter = {
+            pillar: c.req.query('pillar') || undefined,
+            channel: c.req.query('channel') || undefined,
+            persona: c.req.query('persona') || undefined,
+            sinceDays: c.req.query('sinceDays') ? Number(c.req.query('sinceDays')) : undefined,
+        }
+        const block = formatAgentStats(rd, filter)
+        return ok(c, { block, hasData: block.length > 0 }, 'Stats fetched')
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ─── POST /hosting/instances/:id/content-plan/items/:itemId/draft ────────
+// Manual trigger for generating a content draft from a plan item right now.
+// Same pipeline runs hourly as a cron, but power users can force a specific
+// item to be drafted ahead of schedule.
+export const draftContentPlanItem = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const itemId = c.req.param('itemId')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const { draftDuePlanItemsForInstance } = await import('@/services/planDraftRunner')
+        const res = await draftDuePlanItemsForInstance(instanceId, { onlyItemId: itemId })
+        if (res.drafted.includes(itemId)) {
+            return ok(c, { itemId, drafted: true }, 'Draft ready — check task queue')
+        }
+        if (res.failed.includes(itemId)) {
+            return fail(c, 'יצירת טיוטה נכשלה — נסו שוב', 500)
+        }
+        return ok(c, res, 'Item already drafted or not draftable')
+    } catch (err) {
+        console.error('draftContentPlanItem error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
 }
 
 // ─── POST /hosting/instances/:id/metrics/collect ─────────────────────────

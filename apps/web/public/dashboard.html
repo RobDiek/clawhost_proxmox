@@ -4712,10 +4712,28 @@ function renderTaskPopup(task) {
 
   // ── Footer actions based on status ──
   var footerHtml = '';
+  // Detect content plan item (id prefix "plan-")
+  var isPlanItem = task.id && task.id.indexOf('plan-') === 0;
+  var planItemId = isPlanItem ? task.id.substring(5) : '';
+  var manualPublishBtns = '';
+  if (isPlanItem) {
+    // "Draft now" for planned items (Phase 3 agent-to-plan binding)
+    if (task.status === 'planned') {
+      manualPublishBtns += '<button class="aq-btn edit" onclick="draftPlanItemNow(\'' + planItemId + '\')" title="הפעילו את הסוכן עכשיו — הוא ייצור טיוטה על בסיס הבריף">🧠 צרו טיוטה עכשיו</button>';
+    }
+    // Copy-for-manual-publish button (always available for plan items)
+    manualPublishBtns += '<button class="aq-btn edit" onclick="copyPlanItemForPublish(\'' + planItemId + '\')" title="העתיקו הוק+בריף ללוח — לפרסום ידני">📋 העתיקו</button>';
+    // Mark-as-published button (for non-published items)
+    if (task.status !== 'published') {
+      manualPublishBtns += '<button class="aq-btn approve" onclick="openMarkPublishedModal(\'' + planItemId + '\')" title="אחרי שפרסמתם חיצונית — סמנו כאן כדי שהמערכת תמשוך מדדים">✓ סמנו כמפורסם</button>';
+    }
+  }
+
   if (task.status === 'awaiting' || task.status === 'pending_review') {
     footerHtml = '<button class="aq-btn reject" onclick="apiArchiveOutput(\'' + task.id + '\');closeTaskPopup()">ארכיון</button>' +
       '<button class="aq-btn reject" onclick="apiRejectOutput(\'' + task.id + '\');closeTaskPopup()"><kbd>ד</kbd> דחו</button>' +
       '<button class="aq-btn edit" onclick="editTask(\'' + task.id + '\')"><kbd>ת</kbd> תקנו</button>' +
+      manualPublishBtns +
       '<button class="aq-btn approve" onclick="apiApproveOutput(\'' + task.id + '\');closeTaskPopup()"><kbd>א</kbd> אשרו</button>';
   } else if (task.status === 'approved') {
     var reportTypes = ['daily_brief', 'weekly_report', 'aeo_audit', 'competitive_scan'];
@@ -4723,12 +4741,18 @@ function renderTaskPopup(task) {
     var isReport = reportTypes.indexOf(task.type) !== -1 || reportAgents.indexOf(task.agentRole || '') !== -1;
     footerHtml = '<button class="aq-btn reject" onclick="apiArchiveOutput(\'' + task.id + '\');closeTaskPopup()">ארכיון</button>' +
       '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>' +
+      manualPublishBtns +
       (isReport ? '' : '<button class="aq-btn approve" onclick="apiPublishOutput(\'' + task.id + '\');closeTaskPopup()"><kbd>פ</kbd> פרסמו</button>');
   } else if (task.status === 'archived') {
     footerHtml = '<button class="aq-btn reject" onclick="apiDeleteOutput(\'' + task.id + '\');closeTaskPopup()">מחקו לצמיתות</button>' +
       '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
+  } else if (task.status === 'published') {
+    // Published plan item — show link to platform if URL is known
+    footerHtml = '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
   } else {
+    // planned / drafting / scheduled etc. — for plan items also show manual-publish buttons
     footerHtml = '<button class="aq-btn reject" onclick="apiArchiveOutput(\'' + task.id + '\');closeTaskPopup()">ארכיון</button>' +
+      manualPublishBtns +
       '<button class="aq-btn edit" onclick="closeTaskPopup()">סגרו</button>';
   }
   document.getElementById('taskPopupFooter').innerHTML = footerHtml;
@@ -7938,6 +7962,134 @@ function renderResearchReport() {
     if (statusEl2) statusEl2.textContent = '';
   }
   if (typeof toggleRebuildCard === 'function') toggleRebuildCard();
+}
+
+async function draftPlanItemNow(itemId) {
+  if (!instanceId) return;
+  showToast('הסוכן מייצר טיוטה... (30-60 שניות)', 'info');
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/content-plan/items/' + itemId + '/draft', { method: 'POST' });
+    if (!r.success) throw new Error(r.message || 'Draft failed');
+    showToast('✓ טיוטה מוכנה — בדקו את תור המשימות', 'success');
+    closeTaskPopup();
+    if (typeof renderContentCalendar === 'function') renderContentCalendar();
+    if (typeof refreshApprovalsQueue === 'function') refreshApprovalsQueue();
+  } catch (err) {
+    showToast('שגיאה: ' + err.message, 'error');
+  }
+}
+
+// ── Manual publish UX for content plan items ────────────────────────────
+// Flow: user sees a planned item → clicks "Copy" → pastes into FB/IG/LinkedIn
+// externally → comes back to ClawFlow → clicks "Mark as published" → pastes
+// platform post id or URL → our metrics collector starts tracking it.
+function copyPlanItemForPublish(itemId) {
+  var plan = (typeof getContentPlan === 'function') ? getContentPlan() : [];
+  var item = plan.find(function(p) { return p.id === itemId; });
+  if (!item) { showToast('פריט לא נמצא', 'error'); return; }
+  // Plain text formatted for any social platform
+  var parts = [];
+  if (item.hook) parts.push(item.hook);
+  parts.push('');
+  if (item.brief) {
+    // Strip markdown formatting so paste is clean into FB/LinkedIn
+    var clean = String(item.brief)
+      .replace(/^#{1,6}\s+/gm, '')     // strip heading marks
+      .replace(/\*\*(.+?)\*\*/g, '$1') // strip bold
+      .replace(/\*(.+?)\*/g, '$1')     // strip italic
+      .replace(/^[-*]\s+/gm, '• ')     // bullets → •
+      .replace(/```[^\n]*\n?|```/g, '') // strip code fences
+      .trim();
+    parts.push(clean);
+  }
+  var text = parts.join('\n').trim();
+
+  (navigator.clipboard && navigator.clipboard.writeText
+    ? navigator.clipboard.writeText(text)
+    : Promise.reject(new Error('clipboard unavailable'))
+  ).then(function() {
+    showToast('הועתק ללוח ✓ — ' + text.length + ' תווים. עכשיו הדביקו ב' + heChannel(item.channel || '') + ', פרסמו, ואז חזרו וסמנו כאן כמפורסם.', 'success');
+  }).catch(function() {
+    // Fallback: show text in a modal for manual copy
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:80vw;max-width:600px;height:60vh;z-index:10000;padding:14px;border-radius:8px;border:2px solid #2563EB;background:#FFF;font-family:inherit;font-size:14px;line-height:1.6';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    showToast('לחצו Ctrl+C להעתקה ידנית', 'info');
+    setTimeout(function() { document.body.removeChild(ta); }, 8000);
+  });
+}
+
+function openMarkPublishedModal(itemId) {
+  // Build a minimal inline modal
+  var existing = document.getElementById('mark-pub-modal');
+  if (existing) existing.remove();
+  var modal = document.createElement('div');
+  modal.id = 'mark-pub-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:9999;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML =
+    '<div style="background:#FFF;border-radius:12px;padding:20px;max-width:500px;width:90%;box-shadow:0 20px 50px rgba(0,0,0,0.3)">' +
+      '<div style="font-weight:700;font-size:1.05rem;margin-bottom:6px;color:#1F2937">סימון כמפורסם</div>' +
+      '<div style="color:#6B7280;font-size:0.85rem;line-height:1.6;margin-bottom:12px">הדביקו את מזהה הפוסט מהפלטפורמה (או את ה-URL המלא). אחרי זה המערכת תמשוך אוטומטית מדדי ביצועים עבור הפריט הזה.</div>' +
+      '<div style="margin-bottom:12px">' +
+        '<label style="display:block;font-size:0.82rem;color:#374151;margin-bottom:4px;font-weight:500">מזהה/URL של הפוסט</label>' +
+        '<input id="mark-pub-input" type="text" placeholder="למשל: https://www.facebook.com/yourpage/posts/1234567890" style="width:100%;padding:10px;border:1px solid #D1D5DB;border-radius:6px;font-size:0.88rem">' +
+      '</div>' +
+      '<div style="margin-bottom:14px">' +
+        '<label style="display:block;font-size:0.82rem;color:#374151;margin-bottom:4px;font-weight:500">מתי פרסמתם? (אופציונלי)</label>' +
+        '<input id="mark-pub-when" type="datetime-local" style="width:100%;padding:10px;border:1px solid #D1D5DB;border-radius:6px;font-size:0.88rem">' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+        '<button onclick="document.getElementById(\'mark-pub-modal\').remove()" style="padding:8px 16px;background:#F3F4F6;border:none;border-radius:6px;cursor:pointer;font-family:inherit">ביטול</button>' +
+        '<button id="mark-pub-confirm" onclick="confirmMarkPublished(\'' + itemId + '\')" style="padding:8px 16px;background:#10B981;color:#FFF;border:none;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:500">סמנו כמפורסם</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+  setTimeout(function() { var el = document.getElementById('mark-pub-input'); if (el) el.focus(); }, 50);
+}
+
+async function confirmMarkPublished(itemId) {
+  var inp = document.getElementById('mark-pub-input');
+  var whenEl = document.getElementById('mark-pub-when');
+  var raw = (inp && inp.value || '').trim();
+  if (!raw) { showToast('הזינו מזהה פוסט או URL', 'warning'); return; }
+  // Extract post id from URL if user pasted full link
+  // FB: .../posts/<id> or .../<pageid>/posts/<id>
+  // IG: .../p/<shortcode>/
+  // LinkedIn: .../feed/update/urn:li:activity:<id>
+  var postId = raw;
+  var postUrl = /^https?:\/\//.test(raw) ? raw : '';
+  var fbMatch = raw.match(/\/posts\/(\d+)/) || raw.match(/\/permalink\/(\d+)/);
+  if (fbMatch) postId = fbMatch[1];
+  var igMatch = raw.match(/\/p\/([\w-]+)/);
+  if (igMatch && !fbMatch) postId = igMatch[1];
+  var liMatch = raw.match(/activity[:-](\d+)/);
+  if (liMatch) postId = liMatch[1];
+
+  var publishedAt = whenEl && whenEl.value ? new Date(whenEl.value).toISOString() : null;
+  var btn = document.getElementById('mark-pub-confirm');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ שומר...'; }
+
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/content-plan/items/' + itemId + '/mark-published', {
+      method: 'POST',
+      body: JSON.stringify({
+        channelPostId: postId,
+        channelPostUrl: postUrl || undefined,
+        publishedAt: publishedAt || undefined,
+      }),
+    });
+    if (!r.success) throw new Error(r.message || 'Mark failed');
+    showToast('סומן כמפורסם ✓ המדדים יימשכו בריענון הבא', 'success');
+    document.getElementById('mark-pub-modal').remove();
+    closeTaskPopup();
+    if (typeof renderContentCalendar === 'function') renderContentCalendar();
+  } catch (err) {
+    showToast('שגיאה: ' + err.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'סמנו כמפורסם'; }
+  }
 }
 
 // ── Optimization Report + Metrics ─────────────────────────────────────────

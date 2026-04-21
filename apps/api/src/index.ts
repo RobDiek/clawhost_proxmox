@@ -96,6 +96,14 @@ startWeeklyCreativeReport()
 import { startFactsPusher } from '@/services/factsPusher'
 startFactsPusher()
 
+// Phase B — content plan metrics collector (every 24h)
+import { startMetricsCollectorCron } from '@/services/contentPlanMetrics'
+startMetricsCollectorCron()
+
+// Phase 3 — plan-to-agent draft runner (every 60min)
+import { startPlanDraftRunner } from '@/services/planDraftRunner'
+startPlanDraftRunner()
+
 // Trial manager — check trial expiry every hour
 import { runTrialManager } from '@/jobs/trialManager'
 setInterval(runTrialManager, 3600000) // every hour
