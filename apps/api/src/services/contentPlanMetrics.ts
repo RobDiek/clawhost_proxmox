@@ -245,6 +245,59 @@ export function startMetricsCollectorCron(): void {
     setInterval(() => { collectAllInstances().catch(err => console.error('[metricsCollector] interval run failed:', err)) }, COLLECT_INTERVAL_MS)
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Auto-Optimization Cron — the "marketing manager under the hood"
+//
+// Every 7 days, for each instance with ≥5 measured items in researchData:
+//   1. Run collectContentPlanMetrics (fresh data)
+//   2. Invoke generateOptimizationReportCore (Opus 4.7 thinking synthesis)
+//   3. Store result in researchData.optimizationReports[]
+//
+// The stored report is then automatically consumed by:
+//   - Content Plan regen (Skeleton prompt injection)
+//   - planDraftRunner (item drafting context)
+//   - Daily brief / weekly report (when agent asks about performance)
+//
+// No UI trigger — user never sees the report directly. They see its EFFECT
+// (sharper content plans, smarter drafts, performance-aware briefs).
+// ═══════════════════════════════════════════════════════════════════════════
+const OPTIMIZATION_INTERVAL_MS = 7 * 24 * 3600 * 1000 // weekly
+const FIRST_OPTIMIZATION_DELAY_MS = 2 * 3600 * 1000   // 2h after boot (let metrics collect first)
+let _optimizationStarted = false
+
+export function startOptimizationCron(): void {
+    if (_optimizationStarted) return
+    _optimizationStarted = true
+    console.log(`[autoOptimization] starting (weekly; first run in ${FIRST_OPTIMIZATION_DELAY_MS / 3600_000}h)`)
+    setTimeout(() => { optimizeAllInstances().catch(err => console.error('[autoOptimization] startup run failed:', err)) }, FIRST_OPTIMIZATION_DELAY_MS)
+    setInterval(() => { optimizeAllInstances().catch(err => console.error('[autoOptimization] interval run failed:', err)) }, OPTIMIZATION_INTERVAL_MS)
+}
+
+async function optimizeAllInstances(): Promise<void> {
+    const { generateOptimizationReportCore } = await import('@/controllers/hosting/agentSetup')
+    const live = await db.select({ id: instances.id, researchData: instances.researchData }).from(instances)
+    let generated = 0
+    let skipped = 0
+    for (const row of live) {
+        try {
+            const rd = (row.researchData as Record<string, unknown> | null) || {}
+            const plan = (Array.isArray(rd.contentPlan) ? rd.contentPlan : []) as Array<{ results?: { engagement?: number } }>
+            const measured = plan.filter(it => it.results && typeof it.results.engagement === 'number').length
+            if (measured < 5) { skipped++; continue }
+
+            // Fresh metrics first
+            await collectContentPlanMetrics(row.id).catch(() => { /* non-fatal */ })
+            // Then optimization synthesis
+            await generateOptimizationReportCore(row.id)
+            generated++
+            console.log(`[autoOptimization] ${row.id}: report generated (${measured} measured items)`)
+        } catch (err) {
+            console.warn(`[autoOptimization] ${row.id} error:`, (err as Error).message)
+        }
+    }
+    console.log(`[autoOptimization] sweep done: ${generated} generated, ${skipped} skipped (insufficient data)`)
+}
+
 async function collectAllInstances(): Promise<void> {
     const live = await db.select({ id: instances.id }).from(instances)
     console.log(`[metricsCollector] sweep: ${live.length} instances`)

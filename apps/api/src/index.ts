@@ -97,8 +97,12 @@ import { startFactsPusher } from '@/services/factsPusher'
 startFactsPusher()
 
 // Phase B — content plan metrics collector (every 24h)
-import { startMetricsCollectorCron } from '@/services/contentPlanMetrics'
+import { startMetricsCollectorCron, startOptimizationCron } from '@/services/contentPlanMetrics'
 startMetricsCollectorCron()
+
+// "Marketing manager under the hood" — weekly auto-optimization (Opus 4.7)
+// feeds insights silently into content plan + drafting + reports.
+startOptimizationCron()
 
 // Phase 3 — plan-to-agent draft runner (every 60min)
 import { startPlanDraftRunner } from '@/services/planDraftRunner'

@@ -2845,7 +2845,12 @@ export const generateOpsBrief = async (c: Context) => {
         const currentCustomers = chosen.kpis?.month1?.customers || 0 // target, not actual — placeholder
         const costs = chosen.costs || {}
 
+        const opsOptimizationBlock = formatLatestOptimizationReport(rd)
+        const opsStatsBlock = formatAgentStats(rd, { sinceDays: 14 })
         const prompt = `אתה VP Marketing בדירקג שמריץ Weekly Ops Brief. המטרה: לעדכן את המייסד איפה הוא עומד מול התוכנית, ולתת 3 פעולות ספציפיות לשבוע הבא.
+
+${opsOptimizationBlock}
+${opsStatsBlock}
 
 ## קונטקסט
 - **עסק:** ${(rd.answers?.businessName || 'העסק')}
@@ -6095,6 +6100,43 @@ function qaContentPlan(
 //  - Automatically once after commitStrategyScenario (initial seeding)
 //  - Monthly by mateh agent with performance data (tactical revision)
 //  - Manually by user clicking "Regenerate plan"
+// ─── Latest optimization report — compact block for prompt injection ───────
+// Pulled into Content Plan regen (Skeleton prompt) + drafting (planDraftRunner)
+// so the "marketing manager under the hood" directly influences content
+// decisions without the user seeing the report itself.
+export function formatLatestOptimizationReport(rd: any): string {
+    // eslint-disable-line @typescript-eslint/no-explicit-any
+    const reports = Array.isArray(rd?.optimizationReports) ? rd.optimizationReports : []
+    const latest = reports[0]
+    if (!latest || !latest.summary) return ''
+
+    const tc = latest.tactical_changes || {}
+    const wins = Array.isArray(latest.wins) ? latest.wins : []
+    const losses = Array.isArray(latest.losses) ? latest.losses : []
+    const changeLines = [
+        tc.pillar_rebalance    ? `- **איזון pillars:** ${tc.pillar_rebalance}` : '',
+        tc.persona_focus       ? `- **פרסונות:** ${tc.persona_focus}` : '',
+        tc.channel_shifts      ? `- **ערוצים:** ${tc.channel_shifts}` : '',
+        tc.timing_adjustments  ? `- **timing:** ${tc.timing_adjustments}` : '',
+        tc.hook_patterns       ? `- **hook patterns:** ${tc.hook_patterns}` : '',
+    ].filter(Boolean).join('\n')
+
+    return `
+## 🧠 דוח אופטימיזציה פעיל (יועץ שיווק בכיר — לחודש האחרון)
+
+**תקציר:** ${latest.summary}
+
+${wins.length ? `**מה עבד:**\n${wins.map((w: string) => `- ${w}`).join('\n')}\n` : ''}
+${losses.length ? `**מה לא עבד:**\n${losses.map((l: string) => `- ${l}`).join('\n')}\n` : ''}
+${changeLines ? `**שינויים טקטיים — חייבים להיות מיושמים:**\n${changeLines}\n` : ''}
+${latest.next_period_focus ? `**פוקוס לתקופה הבאה:** ${latest.next_period_focus}\n` : ''}
+
+⚠️ הדוח הזה מבוסס על נתוני ביצועים אמיתיים — **חובה** להתייחס אליו בבחירות טקטיות. אל תתעלם.
+
+---
+`
+}
+
 // ─── Performance context builder ────────────────────────────────────────────
 // Reads past plan items with results, computes a compact summary Opus can use
 // in Pass 1 (Skeleton). Returns empty string on first-ever generation.
@@ -6354,31 +6396,41 @@ export const markContentPlanItemPublished = async (c: Context) => {
     }
 }
 
-// ─── POST /hosting/instances/:id/optimization/weekly ─────────────────────────
-// Runs Opus 4.7 over the past 7-28 days of measured results + current strategy.
-// Produces a qualitative optimization report (wins, losses, tactical changes).
-// Stored in researchData.optimizationReports[] with timestamp.
-export const generateOptimizationReport = async (c: Context) => {
-    try {
-        const instanceId = c.req.param('id')
-        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
-        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        if (!instance) return fail(c, 'Instance not found', 404)
+// ─── Optimization Report Core (auto-run by cron, no UI trigger) ──────────
+// Runs Opus 4.7 over the past 7-28 days of measured results + current
+// strategy. Produces a qualitative report (summary/wins/losses/
+// tactical_changes/next_period_focus). Stored in researchData.
+// optimizationReports[] with timestamp.
+//
+// Called from:
+//   - autoOptimization cron (weekly)
+//   - generateOptimizationReport HTTP endpoint (legacy, still supported)
+//
+// The stored report is silently consumed by:
+//   - Content Plan Skeleton prompt (next regen)
+//   - planDraftRunner (drafting context)
+//   - daily brief / weekly report agents (when they mention performance)
+//   - stats API endpoint (agents queried by user)
+export async function generateOptimizationReportCore(instanceId: string): Promise<{
+    generated: boolean; reason?: string; report?: Record<string, unknown>
+}> {
+    const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+    if (!instance) return { generated: false, reason: 'Instance not found' }
 
-        const rd = (instance.researchData as any) || {}
-        const plan: ContentPlanItem[] = Array.isArray(rd.contentPlan) ? rd.contentPlan : []
-        const measured = plan.filter(it => it.results && typeof it.results.engagement === 'number')
-        if (measured.length < 5) {
-            return fail(c, `צריך לפחות 5 items עם נתונים כדי להפיק דוח (נמצאו ${measured.length})`, 400)
-        }
+    const rd = (instance.researchData as any) || {}
+    const plan: ContentPlanItem[] = Array.isArray(rd.contentPlan) ? rd.contentPlan : []
+    const measured = plan.filter(it => it.results && typeof it.results.engagement === 'number')
+    if (measured.length < 5) {
+        return { generated: false, reason: `Only ${measured.length} measured items (need ≥5)` }
+    }
 
-        const apiKey = await getApiKeyForInstance(instanceId)
-        if (!apiKey) return fail(c, 'Anthropic API key missing', 400)
+    const apiKey = await getApiKeyForInstance(instanceId)
+    if (!apiKey) return { generated: false, reason: 'No Anthropic API key' }
 
-        const businessName = rd.answers?.businessName || 'העסק'
-        const perfContext = buildPerformanceContext(rd)
+    const businessName = rd.answers?.businessName || 'העסק'
+    const perfContext = buildPerformanceContext(rd)
 
-        const prompt = `אתה יועץ שיווק בכיר עבור ${businessName}. המשימה שלך: לנתח ביצועי החודש החולף ולייצר דוח אופטימיזציה טקטי לחודש הבא.
+    const prompt = `אתה יועץ שיווק בכיר עבור ${businessName}. המשימה שלך: לנתח ביצועי החודש החולף ולייצר דוח אופטימיזציה טקטי לחודש הבא.
 
 ## נתוני ביצועים
 ${perfContext}
@@ -6407,44 +6459,59 @@ ${JSON.stringify(plan.slice(0, 40).map(it => ({
 
 השתמש בנתונים ממש — לא generalities. ציין מספרים ספציפיים. JSON בלבד, בלי prose.`
 
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01',
-            },
-            body: JSON.stringify({
-                model: 'claude-opus-4-7',
-                max_tokens: 12000, // adaptive thinking eats part of this
-                thinking: { type: 'adaptive' },
-                output_config: { effort: 'high' },
-                messages: [{ role: 'user', content: prompt }],
-            }),
-            signal: AbortSignal.timeout(180000),
-        })
-        if (!res.ok) return fail(c, `Anthropic API failed (${res.status})`, 500)
-        const data = await res.json() as { content?: Array<{ type?: string; text?: string }> }
-        const text = getAnthropicText(data)
-        const firstBrace = text.indexOf('{')
-        const lastBrace = text.lastIndexOf('}')
-        if (firstBrace < 0 || lastBrace < 0) return fail(c, 'Model returned no JSON object', 500)
-        const cleaned = sanitizeJsonControlChars(text.substring(firstBrace, lastBrace + 1).replace(/,\s*([}\]])/g, '$1'))
-        let report: any
-        try { report = JSON.parse(cleaned) } catch (e) {
-            console.error('optimization report JSON parse failed:', (e as Error).message)
-            return fail(c, 'Model output JSON malformed', 500)
-        }
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+            model: 'claude-opus-4-7',
+            max_tokens: 12000,
+            thinking: { type: 'adaptive' },
+            output_config: { effort: 'high' },
+            messages: [{ role: 'user', content: prompt }],
+        }),
+        signal: AbortSignal.timeout(180000),
+    })
+    if (!res.ok) return { generated: false, reason: `Anthropic API ${res.status}` }
 
-        const stamped = { ...report, generatedAt: new Date().toISOString(), measuredItems: measured.length }
-        const prior: any[] = Array.isArray(rd.optimizationReports) ? rd.optimizationReports : []
-        const updated = [stamped, ...prior].slice(0, 12) // keep last year of monthly reports
+    const data = await res.json() as { content?: Array<{ type?: string; text?: string }> }
+    const text = getAnthropicText(data)
+    const firstBrace = text.indexOf('{')
+    const lastBrace = text.lastIndexOf('}')
+    if (firstBrace < 0 || lastBrace < 0) return { generated: false, reason: 'No JSON in response' }
+    const cleaned = sanitizeJsonControlChars(text.substring(firstBrace, lastBrace + 1).replace(/,\s*([}\]])/g, '$1'))
+    let report: Record<string, unknown>
+    try {
+        report = JSON.parse(cleaned)
+    } catch (e) {
+        console.error('[optimizationReport] JSON parse failed:', (e as Error).message)
+        return { generated: false, reason: 'Malformed JSON output' }
+    }
 
-        await db.update(instances).set({
-            researchData: { ...rd, optimizationReports: updated } as any,
-        }).where(eq(instances.id, instanceId))
+    const stamped = { ...report, generatedAt: new Date().toISOString(), measuredItems: measured.length }
+    const prior: any[] = Array.isArray(rd.optimizationReports) ? rd.optimizationReports : []
+    const updated = [stamped, ...prior].slice(0, 12)
 
-        return ok(c, stamped, 'Optimization report generated')
+    await db.update(instances).set({
+        researchData: { ...rd, optimizationReports: updated } as any,
+    }).where(eq(instances.id, instanceId))
+
+    return { generated: true, report: stamped }
+}
+
+// ─── POST /hosting/instances/:id/optimization/weekly ────────────────────
+// Legacy HTTP endpoint — kept for programmatic triggers (e.g., agents
+// calling from VPS-side cron, or debug tools). Not exposed in UI anymore.
+export const generateOptimizationReport = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const r = await generateOptimizationReportCore(instanceId)
+        if (!r.generated) return fail(c, r.reason || 'Failed to generate', 400)
+        return ok(c, r.report, 'Optimization report generated')
     } catch (err) {
         console.error('generateOptimizationReport error:', err)
         return fail(c, (err as Error).message, 500)
@@ -6485,9 +6552,14 @@ export const regenerateContentPlan = async (c: Context) => {
         }
 
         const startDate = body.startDate ? new Date(body.startDate) : new Date()
-        // Auto-build performance context from prior results if caller didn't supply one.
-        // First regen has no results → empty string → Skeleton pass runs without it.
-        const autoPerfContext = body.performanceContext ?? buildPerformanceContext(rd)
+        // Auto-build performance context from prior results + latest optimization
+        // report. "Marketing manager under the hood" — insights the cron computed
+        // silently now steer the next plan regeneration.
+        const perfContextParts = [
+            body.performanceContext || buildPerformanceContext(rd),
+            formatLatestOptimizationReport(rd),
+        ].filter(Boolean)
+        const autoPerfContext = perfContextParts.join('\n\n')
         const plan = await generateContentPlan(instanceId, {
             weeksAhead: body.weeksAhead || 4,
             startDate,

@@ -16,7 +16,7 @@ import { randomBytes } from 'crypto'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { instances, agentOutputs } from '@/db/schema'
-import { getApiKeyForInstance, formatAgentStats } from '@/controllers/hosting/agentSetup'
+import { getApiKeyForInstance, formatAgentStats, formatLatestOptimizationReport } from '@/controllers/hosting/agentSetup'
 
 const RUNNER_INTERVAL_MS = 60 * 60 * 1000   // every 60 min
 const DUE_WINDOW_MS = 60 * 60 * 1000        // produce drafts up to 60 min before scheduled time
@@ -47,6 +47,7 @@ interface GenContext {
     products: unknown[]
     productsFunnel?: string
     statsBlock: string
+    optimizationBlock: string
 }
 
 async function generateDraftContent(
@@ -74,6 +75,7 @@ ${item.brief}
 ## קול מותג ואסטרטגיה
 ${ctx.brandVoice.substring(0, 3500)}
 
+${ctx.optimizationBlock}
 ${ctx.statsBlock}
 
 ## חוקים קריטיים
@@ -165,6 +167,7 @@ export async function draftDuePlanItemsForInstance(
         products: (answers.products as unknown[]) || [],
         productsFunnel: answers.productsFunnel as string | undefined,
         statsBlock: formatAgentStats(rd, { sinceDays: 60 }),
+        optimizationBlock: formatLatestOptimizationReport(rd),
     }
 
     const apiKey = await getApiKeyForInstance(instanceId)
