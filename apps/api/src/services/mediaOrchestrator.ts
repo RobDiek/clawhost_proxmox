@@ -26,6 +26,7 @@ import { instances, contentPlanMedia } from '@/db/schema'
 import { generateImages, type FalImageModel } from './falAI'
 import { sshUploadBuffer, fetchBytes } from './sshUpload'
 import { generateCreativeBrief, type PlanItemContext } from './creativeBrief'
+import { compositeHebrewOverlay, type OverlayPosition } from './mediaOverlay'
 
 export interface ChannelFormatSpec {
     channel: string             // 'instagram' | 'facebook' | 'blog' | 'reel' | 'story' | ...
@@ -88,6 +89,9 @@ export interface GenerateImagesOpts {
     model?: FalImageModel
     brandSnapshot?: unknown               // snapshot of brand book at render time
     styleAnchor?: string
+    // Phase M.1.5 — Hebrew typography composited post-generation via sharp+SVG
+    overlayText?: string
+    overlayPosition?: OverlayPosition
 }
 
 export interface GenerateImagesResult {
@@ -141,7 +145,20 @@ export async function generateImagesForContentPlanItem(
             for (let i = 0; i < images.length; i++) {
                 const img = images[i]
                 try {
-                    const bytes = await fetchBytes(img.url, { maxBytes: 20 * 1024 * 1024 })
+                    const rawBytes = await fetchBytes(img.url, { maxBytes: 20 * 1024 * 1024 })
+
+                    // Phase M.1.5 — composite Hebrew typography on top of the
+                    // raw image (sharp + SVG RTL). If no overlay requested, or
+                    // text is empty, or the model natively rendered text, pass
+                    // the raw bytes through.
+                    const shouldOverlay = !!(opts.overlayText && opts.overlayText.trim() && opts.overlayPosition && opts.overlayPosition !== 'none' && opts.model !== 'nano-banana-pro')
+                    const bytes = shouldOverlay
+                        ? await compositeHebrewOverlay(rawBytes, {
+                            text: opts.overlayText!,
+                            position: opts.overlayPosition!,
+                        })
+                        : rawBytes
+
                     const filename = genFilename('image', fmt.purpose, 'jpg')
                     const vpsPath = `/home/openclaw/.openclaw/media/${yearMonth}/${opts.contentPlanItemId}/${filename}`
 
@@ -214,25 +231,31 @@ export async function generateMediaForPlanItem(
     opts: {
         channels?: string[]              // default: [item.channel]
         numVariantsPerChannel?: number   // default 3
-        model?: FalImageModel            // default flux-pro-1.1
+        model?: FalImageModel            // explicit override; else uses brief.modelHint
     } = {},
-): Promise<(GenerateImagesResult & { briefRationale?: string; briefCostUsd?: number }) | null> {
+): Promise<(GenerateImagesResult & { briefRationale?: string; briefCostUsd?: number; modelUsed?: string }) | null> {
     const channels = opts.channels && opts.channels.length > 0 ? opts.channels : [item.channel]
     const variants = opts.numVariantsPerChannel ?? 3
-    const model = opts.model ?? 'flux-pro-1.1'
 
-    // Pass 1: Creative brief
+    // Pass 1: Creative brief — Opus picks the right model + overlay strategy
     const brief = await generateCreativeBrief(instanceId, item)
     if (!brief) {
         console.warn(`[mediaOrchestrator] ${item.id}: brief generation failed; skipping`)
         return null
     }
 
-    // Pass 2: Compose final prompt. We NEVER ask Flux to render in-image text
-    // anymore — even English comes out as "APPRO/XW" and Hebrew is garbage.
-    // Text overlays are the caption's job; if we ever need baked-in typography
-    // we'll add a post-processing compositing layer (sharp/FFmpeg) — not here.
-    const finalPrompt = `${brief.imagePrompt} Style anchor: ${brief.styleAnchor}. Clean visual content only, no text, no writing of any kind.`
+    // Model resolution priority:
+    //   1. Explicit opts.model (user forced in settings)
+    //   2. brief.modelHint from Opus (context-aware: text → nano-banana-pro, etc.)
+    //   3. Fallback to flux-2-pro (2026 default)
+    const model: FalImageModel = (opts.model as FalImageModel) || brief.modelHint || 'flux-2-pro'
+
+    // Final prompt — if Nano Banana Pro is chosen for in-image Hebrew, do
+    // NOT strip text instruction. Otherwise enforce "no text".
+    const noTextSuffix = model === 'nano-banana-pro'
+        ? ''
+        : ' Clean visual content only, no text, no writing, no letters anywhere in the frame.'
+    const finalPrompt = `${brief.imagePrompt} Style anchor: ${brief.styleAnchor}.${noTextSuffix}`
 
     const genResult = await generateImagesForContentPlanItem(instanceId, {
         contentPlanItemId: item.id,
@@ -242,12 +265,19 @@ export async function generateMediaForPlanItem(
         numVariantsPerChannel: variants,
         model,
         styleAnchor: brief.styleAnchor,
+        // Hebrew typography composited post-generation (skipped for
+        // nano-banana-pro which renders Hebrew natively in-image).
+        overlayText: brief.overlayText,
+        overlayPosition: brief.overlayPosition,
     })
+
+    console.log(`[mediaOrchestrator] ${item.id} done — model=${model}, overlay=${brief.overlayText ? brief.overlayPosition : 'none'}`)
 
     return {
         ...genResult,
         totalCostUsd: genResult.totalCostUsd + brief.costUsd,
         briefRationale: brief.rationale,
         briefCostUsd: brief.costUsd,
+        modelUsed: model,
     }
 }

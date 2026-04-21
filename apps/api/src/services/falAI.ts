@@ -1,27 +1,27 @@
 /**
- * fal.ai client — image generation (Flux Pro v1.1 / Flux Schnell).
+ * fal.ai client — multi-model image generation (April 2026 catalog).
  *
- * API docs: https://fal.ai/models/fal-ai/flux-pro/v1.1/api
- *           https://fal.ai/models/fal-ai/flux/schnell/api
+ * Each model has its own endpoint slug, request body shape, and cost model.
+ * Dispatch happens in `generateImages({ model, ... })` — one public entry.
  *
- * Auth: `Key {FAL_KEY}` header. Each instance brings its own key (stored in
- *       researchData.mediaKeys.falKey). Falls back to env FAL_KEY for the
- *       mgmt-side test instance.
+ * Supported models (per April 2026 research — see project_media_pipeline.md):
+ *   flux-2-pro       fal-ai/flux-2-pro                     $0.03/MP  DEFAULT
+ *   flux-pro-1.1     fal-ai/flux-pro/v1.1                  $0.04/MP  legacy
+ *   flux-schnell     fal-ai/flux/schnell                   $0.003/MP cheap drafts
+ *   nano-banana-pro  fal-ai/nano-banana-pro                ~$0.15/img Hebrew/typography
+ *   seedream-4.5     fal-ai/bytedance/seedream/v4.5/text-to-image  $0.03/img cinematic
+ *   ideogram-v3      fal-ai/ideogram/v3                    $0.03-$0.09 English typography
  *
- * Costs (April 2026 pricing):
- *   - Flux Pro v1.1:  $0.040 per megapixel
- *   - Flux Schnell:   $0.003 per megapixel (12x cheaper, "fast draft")
- *   - Kling 1.6 Pro:  ~$0.15 per second of video output (Phase M.2)
- *
- * Key endpoints (sync vs queue):
- *   - POST https://fal.run/{model_id}            → sync, waits for result
- *   - POST https://queue.fal.run/{model_id}      → async with polling
- *
- * We use QUEUE API with polling because Flux Pro generation takes 8-25s and
- * some Node runtimes drop long sync HTTP connections on proxies.
+ * Auth: `Key {FAL_KEY}` header. Queue API with polling (status → response).
  */
 
-export type FalImageModel = 'flux-pro-1.1' | 'flux-schnell'
+export type FalImageModel =
+    | 'flux-2-pro'
+    | 'flux-pro-1.1'
+    | 'flux-schnell'
+    | 'nano-banana-pro'
+    | 'seedream-4.5'
+    | 'ideogram-v3'
 
 export interface FalGenerateImageOpts {
     apiKey: string
@@ -29,73 +29,143 @@ export interface FalGenerateImageOpts {
     negativePrompt?: string
     width: number
     height: number
-    numImages?: number          // default 1, max 4
-    model?: FalImageModel       // default flux-pro-1.1
+    numImages?: number
+    model?: FalImageModel
     seed?: number
-    safety?: boolean            // default true
+    safety?: boolean
 }
 
 export interface FalImageResult {
-    url: string                 // fal.ai CDN url (valid ~7 days)
+    url: string
     width: number
     height: number
     seed: number
-    costUsd: number             // estimated cost for this single image
+    costUsd: number
 }
 
-const MODEL_ENDPOINTS: Record<FalImageModel, string> = {
-    'flux-pro-1.1': 'fal-ai/flux-pro/v1.1',
-    'flux-schnell': 'fal-ai/flux/schnell',
+interface ModelSpec {
+    endpoint: string
+    // Build the request body. May use any param shape the model expects.
+    buildBody: (opts: FalGenerateImageOpts) => Record<string, unknown>
+    // Parse the final result into FalImageResult[]. Defaults to standard shape.
+    parseResult?: (data: unknown, opts: FalGenerateImageOpts) => FalImageResult[]
+    // Per-image cost estimator (takes width/height; returns USD)
+    estimateCost: (w: number, h: number) => number
 }
 
-// Cost per megapixel (USD)
-const COST_PER_MP: Record<FalImageModel, number> = {
-    'flux-pro-1.1': 0.04,
-    'flux-schnell': 0.003,
+function costByMP(rate: number) {
+    return (w: number, h: number) => rate * ((w * h) / 1_000_000)
 }
 
-function estimateCost(model: FalImageModel, width: number, height: number): number {
-    const megapixels = (width * height) / 1_000_000
-    return COST_PER_MP[model] * megapixels
+// Map aspect ratio to fal.ai aspect_ratio strings used by newer models
+function aspectKey(w: number, h: number): string {
+    const r = w / h
+    if (Math.abs(r - 1) < 0.05) return '1:1'
+    if (Math.abs(r - 4 / 5) < 0.05) return '4:5'
+    if (Math.abs(r - 16 / 9) < 0.05) return '16:9'
+    if (Math.abs(r - 9 / 16) < 0.05) return '9:16'
+    if (Math.abs(r - 3 / 2) < 0.05) return '3:2'
+    if (Math.abs(r - 2 / 3) < 0.05) return '2:3'
+    if (Math.abs(r - 1.91) < 0.1) return '16:9' // FB feed — nearest common
+    return '1:1'
 }
 
-/**
- * Generate one batch of images from fal.ai.
- * Returns N image URLs (hosted on fal.ai CDN — valid ~7 days).
- * Caller must download bytes and push to VPS for long-term storage.
- */
-export async function generateImages(opts: FalGenerateImageOpts): Promise<FalImageResult[]> {
-    if (!opts.apiKey) throw new Error('fal.ai API key missing')
-    if (!opts.prompt) throw new Error('prompt required')
+const MODELS: Record<FalImageModel, ModelSpec> = {
+    'flux-2-pro': {
+        endpoint: 'fal-ai/flux-2-pro',
+        buildBody: (o) => {
+            const body: Record<string, unknown> = {
+                prompt: o.prompt,
+                image_size: { width: o.width, height: o.height },
+                num_images: Math.min(Math.max(o.numImages || 1, 1), 4),
+                output_format: 'jpeg',
+                enable_safety_checker: o.safety !== false,
+            }
+            if (o.negativePrompt) body.negative_prompt = o.negativePrompt
+            if (typeof o.seed === 'number') body.seed = o.seed
+            return body
+        },
+        estimateCost: costByMP(0.03),
+    },
+    'flux-pro-1.1': {
+        endpoint: 'fal-ai/flux-pro/v1.1',
+        buildBody: (o) => {
+            const body: Record<string, unknown> = {
+                prompt: o.prompt,
+                image_size: { width: o.width, height: o.height },
+                num_images: Math.min(Math.max(o.numImages || 1, 1), 4),
+                num_inference_steps: 28,
+                guidance_scale: 3.5,
+                output_format: 'jpeg',
+                enable_safety_checker: o.safety !== false,
+            }
+            if (o.negativePrompt) body.negative_prompt = o.negativePrompt
+            if (typeof o.seed === 'number') body.seed = o.seed
+            return body
+        },
+        estimateCost: costByMP(0.04),
+    },
+    'flux-schnell': {
+        endpoint: 'fal-ai/flux/schnell',
+        buildBody: (o) => ({
+            prompt: o.prompt,
+            image_size: { width: o.width, height: o.height },
+            num_images: Math.min(Math.max(o.numImages || 1, 1), 4),
+            num_inference_steps: 4,
+            output_format: 'jpeg',
+            enable_safety_checker: o.safety !== false,
+            ...(typeof o.seed === 'number' ? { seed: o.seed } : {}),
+        }),
+        estimateCost: costByMP(0.003),
+    },
+    'nano-banana-pro': {
+        // Google Gemini 3 Pro Image wrapped by fal — supports Hebrew + 100 langs
+        endpoint: 'fal-ai/nano-banana-pro',
+        buildBody: (o) => ({
+            prompt: o.prompt,
+            aspect_ratio: aspectKey(o.width, o.height),
+            num_images: Math.min(Math.max(o.numImages || 1, 1), 4),
+            resolution: o.width >= 2048 || o.height >= 2048 ? '4K' : o.width >= 1024 || o.height >= 1024 ? '2K' : '1K',
+            output_format: 'jpeg',
+        }),
+        // Flat cost per image — 1K/2K ~$0.15, 4K ~$0.24
+        estimateCost: (w, h) => (w >= 2048 || h >= 2048) ? 0.24 : 0.15,
+    },
+    'seedream-4.5': {
+        endpoint: 'fal-ai/bytedance/seedream/v4.5/text-to-image',
+        buildBody: (o) => ({
+            prompt: o.prompt,
+            image_size: `${o.width}x${o.height}`,
+            num_images: Math.min(Math.max(o.numImages || 1, 1), 4),
+            ...(typeof o.seed === 'number' ? { seed: o.seed } : {}),
+        }),
+        estimateCost: () => 0.03,
+    },
+    'ideogram-v3': {
+        endpoint: 'fal-ai/ideogram/v3',
+        buildBody: (o) => ({
+            prompt: o.prompt,
+            aspect_ratio: aspectKey(o.width, o.height),
+            num_images: Math.min(Math.max(o.numImages || 1, 1), 4),
+            rendering_speed: 'BALANCED', // TURBO | BALANCED | QUALITY
+            ...(o.negativePrompt ? { negative_prompt: o.negativePrompt } : {}),
+            ...(typeof o.seed === 'number' ? { seed: o.seed } : {}),
+        }),
+        estimateCost: () => 0.06,
+    },
+}
 
-    const model = opts.model || 'flux-pro-1.1'
-    const endpoint = MODEL_ENDPOINTS[model]
-    const numImages = Math.min(Math.max(opts.numImages || 1, 1), 4)
-
-    // Flux API shape — differs slightly between pro and schnell.
-    const body: Record<string, unknown> = {
-        prompt: opts.prompt,
-        image_size: { width: opts.width, height: opts.height },
-        num_images: numImages,
-        enable_safety_checker: opts.safety !== false,
-        output_format: 'jpeg',
-    }
-    if (model === 'flux-pro-1.1') {
-        body.num_inference_steps = 28
-        body.guidance_scale = 3.5
-    }
-    if (model === 'flux-schnell') {
-        body.num_inference_steps = 4
-    }
-    if (opts.negativePrompt) body.negative_prompt = opts.negativePrompt
-    if (typeof opts.seed === 'number') body.seed = opts.seed
-
+/** Shared queue-poll helper — most fal.ai models return the same shape. */
+async function submitAndPoll(
+    endpoint: string,
+    body: Record<string, unknown>,
+    apiKey: string,
+): Promise<unknown> {
     const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Key ${opts.apiKey}`,
+        'Authorization': `Key ${apiKey}`,
     }
 
-    // Submit job to queue
     const submitRes = await fetch(`https://queue.fal.run/${endpoint}`, {
         method: 'POST',
         headers,
@@ -106,49 +176,67 @@ export async function generateImages(opts: FalGenerateImageOpts): Promise<FalIma
         const err = await submitRes.text()
         throw new Error(`fal.ai submit ${submitRes.status}: ${err.substring(0, 300)}`)
     }
-    const submitData = await submitRes.json() as { request_id?: string; status?: string; response_url?: string; status_url?: string }
+    const submitData = await submitRes.json() as { request_id?: string; status_url?: string; response_url?: string }
     const requestId = submitData.request_id
     if (!requestId) throw new Error('fal.ai did not return request_id: ' + JSON.stringify(submitData).substring(0, 200))
 
-    // Poll status every 2s (up to 4 min — Flux Pro usually completes in 8-25s)
     const statusUrl = submitData.status_url || `https://queue.fal.run/${endpoint}/requests/${requestId}/status`
     const resultUrl = submitData.response_url || `https://queue.fal.run/${endpoint}/requests/${requestId}`
-    let attempts = 0
-    const maxAttempts = 120 // 4 min at 2s interval
-    while (attempts < maxAttempts) {
-        await new Promise(r => setTimeout(r, 2000))
-        attempts++
-        const statusRes = await fetch(statusUrl, { headers, signal: AbortSignal.timeout(10_000) })
-        if (!statusRes.ok) continue
-        const statusData = await statusRes.json() as { status?: string; queue_position?: number; logs?: unknown[] }
-        if (statusData.status === 'COMPLETED') break
-        if (statusData.status === 'FAILED') {
-            throw new Error(`fal.ai generation failed: ${JSON.stringify(statusData).substring(0, 300)}`)
-        }
-        // status === 'IN_QUEUE' | 'IN_PROGRESS' — keep polling
-    }
-    if (attempts >= maxAttempts) throw new Error('fal.ai polling timed out after 4 minutes')
 
-    // Fetch result
+    // Most models 8-60s; Nano Banana Pro at 4K can take 60-120s. Poll up to 5 min.
+    const maxAttempts = 150
+    for (let i = 0; i < maxAttempts; i++) {
+        await new Promise(r => setTimeout(r, 2000))
+        const sRes = await fetch(statusUrl, { headers, signal: AbortSignal.timeout(10_000) })
+        if (!sRes.ok) continue
+        const sData = await sRes.json() as { status?: string }
+        if (sData.status === 'COMPLETED') break
+        if (sData.status === 'FAILED') {
+            throw new Error(`fal.ai generation failed: ${JSON.stringify(sData).substring(0, 300)}`)
+        }
+    }
+
     const resultRes = await fetch(resultUrl, { headers, signal: AbortSignal.timeout(15_000) })
     if (!resultRes.ok) throw new Error(`fal.ai result fetch ${resultRes.status}`)
-    const result = await resultRes.json() as {
-        images?: Array<{ url: string; width: number; height: number; content_type?: string }>
+    return await resultRes.json()
+}
+
+/** Generic parser — fal.ai models mostly return { images: [{ url, width, height }] } */
+function defaultParse(data: unknown, opts: FalGenerateImageOpts, costPerImage: number): FalImageResult[] {
+    const d = data as {
+        images?: Array<{ url: string; width?: number; height?: number }>
         seed?: number
-        prompt?: string
-        has_nsfw_concepts?: boolean[]
     }
-
-    if (!Array.isArray(result.images) || result.images.length === 0) {
-        throw new Error('fal.ai returned no images: ' + JSON.stringify(result).substring(0, 300))
+    if (!Array.isArray(d.images) || d.images.length === 0) {
+        throw new Error('fal.ai returned no images: ' + JSON.stringify(data).substring(0, 300))
     }
-
-    const perImageCost = estimateCost(model, opts.width, opts.height)
-    return result.images.map((img, i) => ({
+    return d.images.map((img, i) => ({
         url: img.url,
-        width: img.width,
-        height: img.height,
-        seed: (result.seed || 0) + i,
-        costUsd: perImageCost,
+        width: img.width || opts.width,
+        height: img.height || opts.height,
+        seed: (d.seed || 0) + i,
+        costUsd: costPerImage,
     }))
+}
+
+/**
+ * Generate one batch of images from fal.ai. Routes to the right endpoint
+ * based on `opts.model`. Returns URLs on fal.ai CDN (valid ~7 days).
+ * Caller must download + persist for long-term storage (we SFTP to the
+ * client's VPS — see mediaOrchestrator).
+ */
+export async function generateImages(opts: FalGenerateImageOpts): Promise<FalImageResult[]> {
+    if (!opts.apiKey) throw new Error('fal.ai API key missing')
+    if (!opts.prompt) throw new Error('prompt required')
+
+    const model = opts.model || 'flux-2-pro'
+    const spec = MODELS[model]
+    if (!spec) throw new Error(`Unsupported model: ${model}`)
+
+    const body = spec.buildBody(opts)
+    const raw = await submitAndPoll(spec.endpoint, body, opts.apiKey)
+
+    const costPerImage = spec.estimateCost(opts.width, opts.height)
+    const parser = spec.parseResult || ((d: unknown, o: FalGenerateImageOpts) => defaultParse(d, o, costPerImage))
+    return parser(raw, opts)
 }

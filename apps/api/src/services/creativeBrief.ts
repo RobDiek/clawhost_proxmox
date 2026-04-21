@@ -1,23 +1,18 @@
 /**
- * Creative Brief Generator (Phase M.1.4)
+ * Creative Brief Generator v2 (Phase M.1.5 quality leap, April 2026 research)
  *
- * Reads a content plan item (hook, pillar, persona, channel, type) +
- * current brand book + latest optimization report + historical stats, then
- * uses Opus 4.7 (thinking) to output a structured creative brief:
- *   - One image prompt per requested channel (Flux Pro-optimized English,
- *     because Flux text fidelity is much stronger in English even when the
- *     final in-image text is Hebrew).
- *   - Optional Hebrew text-overlay string(s) (hook fragments embedded in
- *     the image itself — Flux 1.1 renders Hebrew typography well).
- *   - A "style anchor" that keeps visual identity consistent across
- *     iterations without a full LoRA.
- *   - negative_prompt for things to avoid.
+ * Opus 4.7 reads: content plan item + brand book + optimization report +
+ * per-channel stats. Returns a STRUCTURED brief for fal.ai image generation:
+ *   - imagePrompt: documentary/editorial style with film-stock vocabulary,
+ *     not "clean commercial photography" (that phrase attracts AI-stock).
+ *   - negativePrompt: aggressive AI-stock killers.
+ *   - styleAnchor: reused across iterations for visual identity consistency.
+ *   - modelHint: which fal.ai model fits best (flux-2-pro | nano-banana-pro |
+ *     seedream-4.5 | ideogram-v3).
+ *   - overlayText / overlayPosition: Hebrew typography is composited on mgmt
+ *     (sharp + SVG) AFTER generation — the image must have negative space.
  *
- * This is the "thinking" layer. The orchestrator (mediaOrchestrator) is
- * kept dumb and just consumes a prompt — so this generator can evolve
- * independently.
- *
- * Called from planDraftRunner (M.1.6) after the text draft is ready.
+ * See: project_media_pipeline.md for the architectural decisions.
  */
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
@@ -36,23 +31,26 @@ export interface PlanItemContext {
     ctaType?: string
 }
 
+// fal.ai model identifiers the orchestrator recognizes. See falAI.ts for
+// actual endpoint + body-builder mapping.
+export type ModelHint = 'flux-2-pro' | 'flux-pro-1.1' | 'flux-schnell' | 'nano-banana-pro' | 'seedream-4.5' | 'ideogram-v3'
+
+// Where the overlay should go (sharp composite targets one third of the image).
+export type OverlayPosition = 'top' | 'bottom' | 'left' | 'right' | 'none'
+
 export interface CreativeBriefOutput {
-    // Main English prompt for Flux Pro 1.1 — channel/format-agnostic
-    // (orchestrator will pass specific dimensions).
     imagePrompt: string
-    // Negative prompt (things to avoid). Always includes brand red-flags +
-    // the aggressive anti-cliche + no-text bans.
     negativePrompt: string
-    // Compact style anchor string — few brand-defining adjectives. Reused
-    // across iterations so re-generations keep visual identity.
     styleAnchor: string
-    // Why this creative direction (for dashboard + debugging; not sent to fal).
     rationale: string
-    // Cost estimate for logging
     costUsd: number
+
+    // New in v2 — decision outputs consumed by orchestrator
+    modelHint: ModelHint
+    overlayText: string            // Hebrew string to composite post-gen; '' = no overlay
+    overlayPosition: OverlayPosition
 }
 
-// Resolve current approved brand book (or latest draft if none approved).
 async function loadBrandBook(instanceId: string): Promise<Record<string, unknown> | null> {
     const rows = await db.select().from(brandBooks).where(eq(brandBooks.instanceId, instanceId))
     if (rows.length === 0) return null
@@ -61,7 +59,7 @@ async function loadBrandBook(instanceId: string): Promise<Record<string, unknown
 }
 
 function compactBrandBlock(bb: Record<string, unknown> | null): string {
-    if (!bb) return '*(No brand book — use clean, professional commercial photography aesthetic.)*'
+    if (!bb) return '*(No brand book — use documentary/editorial photography aesthetic. Default palette: warm amber + deep charcoal + cream.)*'
     const colors = (bb.colors as any) || {}
     const logo = (bb.logo as any) || {}
     const imagery = (bb.imagery as any) || {}
@@ -79,8 +77,8 @@ function compactBrandBlock(bb: Record<string, unknown> | null): string {
     return `**Brand name:** ${bb.businessName || ''}
 **Palette (hex):** ${palette || 'not specified'}
 **Logo:** ${logo.url ? `available at ${logo.url}` : 'not specified'}
-**Imagery style:** ${imageryStyle || 'clean, professional'}
-${imageryDo ? `**Imagery DO:** ${imageryDo}\n` : ''}${imageryDont ? `**Imagery DON'T:** ${imageryDont}\n` : ''}**Tone of voice:** ${voiceTone || 'professional, friendly'}
+**Imagery style:** ${imageryStyle || 'documentary lifestyle, natural light'}
+${imageryDo ? `**Imagery DO:** ${imageryDo}\n` : ''}${imageryDont ? `**Imagery DON'T:** ${imageryDont}\n` : ''}**Tone of voice:** ${voiceTone || 'professional yet warm'}
 ${principleList ? `**Brand principles:** ${principleList}` : ''}`
 }
 
@@ -102,7 +100,7 @@ export async function generateCreativeBrief(
     const optBlock = formatLatestOptimizationReport(rd)
     const statsBlock = formatAgentStats(rd, { channel: item.channel, sinceDays: 60 })
 
-    const prompt = `You are a senior creative director for ${businessName}. Produce a high-quality image prompt for Flux Pro 1.1 that will be used as the visual for one scheduled content item.
+    const prompt = `You are a senior creative director at a top-tier ad agency producing the visual for ONE scheduled social/blog/ad item for ${businessName}. Your output is an image prompt + model-selection + overlay plan. The pipeline routes this to fal.ai, downloads the result, composites Hebrew typography post-generation via sharp+SVG, and serves from the client's own VPS.
 
 ## The content item
 - **Hook (Hebrew):** ${item.hook}
@@ -120,75 +118,102 @@ ${brandBlock}
 ${optBlock}
 ${statsBlock}
 
-## 🚫 HARD BANS — do not request any of these
-Flux Pro (and every text-to-image model in 2026) fails hard on these. If your
-prompt produces any of these, the generation is rejected:
+## 🎬 WRITE LIKE A DIRECTOR OF PHOTOGRAPHY, NOT AI-STOCK
 
-1. **NO TEXT IN THE IMAGE.** No letters, no numbers, no words, no typography
-   overlays, no logos with readable text, no UI screenshots with captions,
-   no billboards, no signs, no book covers. Hebrew in particular renders
-   as garbage. Even English text like "APPROVE" comes out as "APPRO/XW".
-   Our system embeds actual Hebrew typography via a post-processing layer —
-   the IMAGE must be clean visual content only.
-2. **NO AI-STOCK CLICHÉS.** Specifically BANNED:
-   - Dashboards / UI mockups / app screenshots on a monitor
-   - Desk scenes with lamp + clock + monitor + plant
-   - Person in silhouette at sunset looking at horizon
-   - Glowing hologram / futuristic neural network / brain with circuits
-   - "Data flowing" abstract light streams
-   - Diverse team of stock models smiling at laptop
-   - Analog clock emphasizing "time saved"
-   - Split-screen "before/after" literal comparisons
-3. **NO LITERAL DATA VISUALIZATION.** The hook mentions numbers or concepts
-   ("45 min vs 2 min") — your image should NOT literally render those
-   numbers or show a stopwatch. Communicate the FEELING instead.
+The phrase "clean commercial photography" is an AI-STOCK MAGNET. Every model is trained on stock-labeled photos matching those exact words. Banned.
 
-## ✅ What makes a strong visual — aim for this
-Real marketing imagery works on emotion, metaphor, and aesthetic, not on
-literal depiction. Think like a creative director at a top agency:
+### ✅ Use documentary/editorial vocabulary:
+- **Film stocks:** "Kodak Portra 400", "Fujifilm Superia 400", "Cinestill 800T", "Kodak Gold 200", "Ilford HP5" (B&W)
+- **Authenticity markers:** "candid moment", "unposed", "shot on 35mm point-and-shoot", "documentary reportage", "editorial photograph", "street photography", "behind the scenes"
+- **Physical artifacts:** "fine organic film grain", "slight halation around highlights", "warm light leak from corner", "natural skin texture with visible pores", "slight motion blur", "uneven focus falloff"
+- **Lens + aperture:** "35mm f/2", "50mm f/1.4", "85mm f/1.8 portrait", "28mm wide documentary", "shallow depth of field", "bokeh balls"
+- **Light direction:** "morning window side-light", "late afternoon golden hour rim-light", "diffused overcast softbox quality", "single tungsten bulb key with practical", "dappled shadow through blinds"
+- **Color grading words:** "muted teal-orange", "warm earth tones", "desaturated editorial", "moody high-contrast", "washed pastel", "cross-processed"
 
-- **70% mood / emotion / aesthetic** — what feeling does the reader get
-  in the first 0.3 seconds of scroll? Freedom, tension, warmth, craft,
-  pride, quiet confidence?
-- **25% concrete human / object anchor** — one real element that grounds
-  the metaphor. A hand, a plant, a coffee cup, a street corner, morning
-  light on a wall, a founder's workspace (real, not stock-desk).
-- **5% composition / cinematography** — specific camera angle, depth of
-  field, lighting direction, film grain aesthetic.
+### ❌ Hard bans — NEVER request:
+- Dashboards, UI mockups, app screenshots on monitors, floating glass panels
+- "Generic modern office desk" with lamp + clock + plant + laptop
+- Silhouettes at sunset, diverse team of stock models smiling at laptop
+- Glowing holograms, neural networks, brain-with-circuits, data-flow light streams
+- Analog clocks, stopwatches, "45 min" numerals rendered literally
+- Split-screen before/after panels
+- 3D render look, CGI, plastic skin, symmetrical composition
+- ANY TEXT IN IMAGE — no letters, numbers, writing, logos with readable text, typography, captions, signs, billboards, book covers, packaging labels. We composite Hebrew typography in code afterward. Image = pure visuals.
 
-### Good example (for a "45 min saved on automation" story)
-- ❌ Bad: "dashboard on monitor showing 45 min counter on wooden desk"
-- ✅ Good: "close-up of a woman's hands holding a warm ceramic coffee cup,
-  morning sunlight streaming through a kitchen window, soft bokeh of
-  green plants behind, 35mm film aesthetic, cinematic color grading,
-  warm honey and sage palette, deep calm, unrushed — she has time"
+## 🎯 Craft ratio — 70/25/5
 
-### Good example (for "ClawFlow completes your stack" story)
-- ❌ Bad: "modern workspace with multiple monitors showing integration icons"
-- ✅ Good: "overhead flat-lay of an artisan's workbench with well-loved
-  hand tools arranged around a single new precision tool, natural wood
-  grain, dust motes in side-light, cinematic shadow, muted sage and
-  terracotta palette — craft, integration, belonging"
+- **70% mood/emotion/aesthetic** — what feeling hits in 0.3s of scroll?
+  Freedom, warmth, tension, craft, pride, quiet confidence, rebellion, patience, grit?
+- **25% concrete grounding anchor** — ONE specific real element: a founder's
+  hands on a notebook, dust motes in side-light, a plant on a Tel Aviv
+  windowsill, an espresso cup on worn wood, morning light on a kitchen wall.
+  Make it photographable, not abstract.
+- **5% composition/cinematography** — lens, film stock, light direction,
+  grain, color grade.
 
-## Channel-specific framing hints
-- Feed (FB/LinkedIn): horizontal or square, focal point slightly off-center
-- IG portrait: vertical composition, subject in upper third
-- Reel cover: high-contrast, face or object dominates frame
-- Blog hero: wide cinematic, negative space for headline overlay (we add it)
+## 🎨 MODEL SELECTION — pick the right fal.ai model for THIS job
 
-## Output — single JSON object, no markdown fences, no textOverlayHe field
+Return the BEST model in \`modelHint\`:
+
+- **nano-banana-pro** (Google Gemini 3 Pro Image) — $0.15/image.
+  **USE WHEN:** the visual needs Hebrew OR English typography baked in the
+  image (handwritten sign on a shop, packaging with brand name, storefront
+  signage). Only model with documented Hebrew support. Skip if our post-
+  generation overlay can handle it.
+
+- **flux-2-pro** — $0.03/MP. **DEFAULT for ads.** Strongest prompt-following,
+  editorial look, natural skin, rich color. Use when no in-image text needed
+  and you want a premium photographic feel.
+
+- **seedream-4.5** (ByteDance) — $0.03/image. **USE WHEN:** cinematic,
+  wide-aspect hero imagery or stylized/painterly direction. 4K-ready.
+  Strong for story cards and blog heroes.
+
+- **ideogram-v3** — $0.03–$0.09. **USE WHEN:** English-heavy poster or
+  graphic with typography integral to the design. Skip for Hebrew.
+
+- **flux-pro-1.1** — $0.04/MP. Legacy fallback, avoid unless Flux 2 unavailable.
+
+- **flux-schnell** — $0.003/image. Fast/cheap iteration only; output quality
+  lower. Use only when budget mode is on and preview is needed.
+
+## 🔤 Hebrew text overlay — composited by our sharp+SVG layer
+
+If the item's hook works better WITH a visible Hebrew line, return it in
+\`overlayText\` (≤7 words) and choose \`overlayPosition\` — top, bottom,
+left, or right. Leave composable negative space in that third of the image
+(your imagePrompt must explicitly mention "negative space in the [position]
+third for typography overlay").
+
+Rules:
+- Only short, punchy Hebrew fragments (≤7 words). Long prose goes in caption.
+- "none" is valid — if the image carries the message alone, don't force text.
+- For nano-banana-pro model: set overlayText='' because it'll render text in-image.
+- For all other models: use overlayText + overlayPosition when a headline
+  overlay would add value.
+
+## Channel-aware framing
+
+- FB/LinkedIn feed: horizontal 1.91:1, focal point slightly off-center
+- IG portrait feed: 4:5, subject upper third
+- IG story / Reel cover: 9:16 vertical, high-contrast top third
+- Blog hero: 16:9, wide cinematic, strong negative space
+- Email hero: 1.91:1, simple single focal point
+
+## OUTPUT — single JSON object, no markdown fences
+
 {
-  "imagePrompt": "<English Flux Pro prompt — 60-120 words. Follow the 70/25/5 ratio. NO text requests. NO UI mockups. NO clichés above.>",
-  "negativePrompt": "<60-90 words. ALWAYS include: text, letters, numbers, writing, typography, UI screenshot, dashboard, app interface, monitor display, generic office desk, stock photography, clock, watch, stopwatch, blurry, low quality, watermark, deformed, amateur. Add brand DON'Ts on top.>",
-  "styleAnchor": "<6-12 word visual style summary — reused across iterations for consistency>",
-  "rationale": "<1-2 sentences in Hebrew — WHY this metaphor/mood fits the hook and persona>"
+  "imagePrompt": "<English prompt, 70-140 words. Subject-action + setting + time-of-day + light direction + camera/lens + film stock + grain + color grade + mood + negative space spec. NO text requests. Be cinema-specific, not generic.>",
+  "negativePrompt": "<60-100 words. Include ALL: text, letters, numbers, writing, typography, logo, caption, watermark, dashboard, UI, screenshot, app interface, phone mockup, generic office desk, stock photo, clock, hologram, 3D render, CGI, plastic skin, symmetrical, plus brand DON'Ts>",
+  "styleAnchor": "<6-12 words reusable across iterations — film-stock + mood summary>",
+  "modelHint": "flux-2-pro | nano-banana-pro | seedream-4.5 | ideogram-v3 | flux-pro-1.1 | flux-schnell",
+  "overlayText": "<Hebrew ≤7 words OR '' when model handles it or none needed>",
+  "overlayPosition": "top | bottom | left | right | none",
+  "rationale": "<1-2 sentences in Hebrew explaining metaphor/mood/model choice>"
 }
 
-Return JSON only, nothing else.`
+JSON only, nothing else.`
 
-    // Resolve the model per user's sub-agent config. Creative brief is
-    // Yotzer's domain — he's the creative director. User can upgrade to Opus
-    // in Settings → תת-סוכנים if they want richer visuals.
     const model = await resolveDirectModel(instanceId, 'yotzer')
     const isOpus = model.startsWith('claude-opus')
 
@@ -199,8 +224,6 @@ Return JSON only, nothing else.`
             max_tokens: 4000,
             messages: [{ role: 'user', content: prompt }],
         }
-        // Opus 4.7 benefits from adaptive thinking — worth the extra latency
-        // for creative direction. Sonnet/Haiku don't support the same shape.
         if (isOpus) {
             body.thinking = { type: 'adaptive' }
             body.output_config = { effort: 'medium' }
@@ -234,22 +257,35 @@ Return JSON only, nothing else.`
             console.warn('[creativeBrief] missing imagePrompt in output')
             return null
         }
-        console.log(`[creativeBrief] ${item.id}: brief ready in ${((Date.now() - t0) / 1000).toFixed(1)}s (model=${model})`)
-        // Rough per-model cost estimate for budget tracking
+        console.log(`[creativeBrief] ${item.id}: brief ready in ${((Date.now() - t0) / 1000).toFixed(1)}s (model=${model}, hint=${parsed.modelHint})`)
         const cost = isOpus ? 0.30 : model.startsWith('claude-sonnet') ? 0.04 : 0.01
-        // Backstop: always append our hard-ban list to the negative prompt, even
-        // if Opus forgot. Flux 1.1 reliably respects these when listed explicitly.
-        const HARD_NEG = 'text, letters, numbers, writing, typography, lettering, caption, watermark, UI screenshot, dashboard, app interface, monitor display, phone mockup, generic office desk, stock photography look, clock, watch, stopwatch, neural network visualization, glowing hologram, deformed hands, extra fingers, low quality, blurry, amateur'
+
+        // Hard-ban backstop — always appended even if Opus forgot
+        const HARD_NEG = 'text, letters, numbers, writing, typography, lettering, caption, watermark, logo, UI screenshot, dashboard, app interface, monitor display, phone mockup, generic office desk, stock photography look, clock, watch, stopwatch, neural network visualization, glowing hologram, circuit brain, data flow, split-screen, 3d render, cgi, plastic skin, symmetrical composition, deformed hands, extra fingers, low quality, blurry, amateur, oversaturated, HDR overprocessed'
         const mergedNeg = parsed.negativePrompt
             ? `${parsed.negativePrompt}, ${HARD_NEG}`
             : HARD_NEG
 
+        // Validate + normalize modelHint
+        const validModels: ModelHint[] = ['flux-2-pro', 'flux-pro-1.1', 'flux-schnell', 'nano-banana-pro', 'seedream-4.5', 'ideogram-v3']
+        const modelHint: ModelHint = validModels.includes(parsed.modelHint as ModelHint)
+            ? (parsed.modelHint as ModelHint)
+            : 'flux-2-pro'
+
+        const validPos: OverlayPosition[] = ['top', 'bottom', 'left', 'right', 'none']
+        const overlayPosition: OverlayPosition = validPos.includes(parsed.overlayPosition as OverlayPosition)
+            ? (parsed.overlayPosition as OverlayPosition)
+            : 'none'
+
         return {
             imagePrompt: String(parsed.imagePrompt),
             negativePrompt: mergedNeg,
-            styleAnchor: String(parsed.styleAnchor || 'cinematic lifestyle photography, natural light, warm muted palette, subtle film grain'),
+            styleAnchor: String(parsed.styleAnchor || 'editorial documentary, Kodak Portra 400, natural light, warm muted palette'),
             rationale: String(parsed.rationale || ''),
             costUsd: cost,
+            modelHint,
+            overlayText: parsed.overlayText ? String(parsed.overlayText).substring(0, 80) : '',
+            overlayPosition,
         }
     } catch (err) {
         console.warn(`[creativeBrief] ${item.id} error:`, (err as Error).message)
