@@ -592,6 +592,68 @@ export const creativeRenders = pgTable(
     ]
 )
 
+// ── Content Plan Media (Phase M) — organic content renders ──
+// Separate from creativeRenders (which is for Ads with its B4 quality loop).
+// Every plan item gets 1-N media renders (one per channel variant). Files
+// live on the CLIENT VPS at /home/openclaw/.openclaw/media/... and are served
+// via nginx at https://agent.{id}.clawflow.flowmatic.co.il/media/...
+export const contentPlanMedia = pgTable(
+    'content_plan_media',
+    {
+        id: text('id').primaryKey(),                         // cpm_<hex>
+        instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+        contentPlanItemId: text('content_plan_item_id').notNull(), // "cp_..." key in researchData.contentPlan
+        outputId: text('output_id').references(() => agentOutputs.id, { onDelete: 'set null' }),
+
+        // What
+        renderType: text('render_type').notNull(),           // 'image' | 'video' | 'voice' | 'composite'
+        channel: text('channel').notNull(),                  // 'instagram' | 'facebook' | 'blog' | ...
+        formatSpec: jsonb('format_spec'),                     // { width, height, aspectRatio, durationSec }
+
+        // How (generation)
+        model: text('model').notNull(),                      // 'flux-pro-1.1' | 'kling-1.6' | 'elevenlabs-v2'
+        prompt: text('prompt').notNull(),
+        negativePrompt: text('negative_prompt'),
+        seed: integer('seed'),
+        brandSnapshot: jsonb('brand_snapshot'),               // brand book state at render time
+        styleAnchor: text('style_anchor'),
+
+        // Where (storage on client VPS)
+        vpsPath: text('vps_path'),                           // /home/openclaw/.openclaw/media/...
+        publicUrl: text('public_url'),                        // https URL for FB/IG/etc
+        thumbnailUrl: text('thumbnail_url'),
+        fileSizeBytes: integer('file_size_bytes'),
+
+        // Versioning (iterations on same plan item)
+        version: integer('version').default(1).notNull(),
+        parentId: text('parent_id'),                          // previous render in iteration chain
+
+        // Review workflow
+        status: text('status').notNull().default('queued'),
+        // queued → generating → uploading_to_vps → ready → approved | rejected | failed
+        rejectionReason: text('rejection_reason'),
+        userPromptEdit: text('user_prompt_edit'),             // natural-lang change user asked for
+
+        // Brand consistency score
+        brandScore: integer('brand_score'),                   // 0-100
+        brandScoreBreakdown: jsonb('brand_score_breakdown'),   // { colorMatch, logoPresence, styleMatch }
+
+        // Cost
+        costUsd: decimal('cost_usd', { precision: 8, scale: 4 }),
+
+        // Timestamps
+        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+        generatedAt: timestamp('generated_at', { withTimezone: true }),
+        approvedAt: timestamp('approved_at', { withTimezone: true }),
+        approvedBy: text('approved_by'),
+    },
+    (table) => [
+        index('cpm_instance_idx').on(table.instanceId),
+        index('cpm_item_idx').on(table.contentPlanItemId),
+        index('cpm_status_idx').on(table.instanceId, table.status),
+    ]
+)
+
 // ── Creative References (Phase B3) — mined competitor ads + DNA tags ──
 export const creativeReferences = pgTable(
     'creative_references',

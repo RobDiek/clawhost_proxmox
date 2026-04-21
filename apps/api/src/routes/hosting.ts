@@ -58,6 +58,8 @@ import {
     markContentPlanItemPublished,
     getAgentStats,
     draftContentPlanItem,
+    getMediaSettings,
+    updateMediaSettings,
     addAgentToInstance,
     removeAgentFromInstance,
     setupPersonalAgent,
@@ -290,6 +292,8 @@ app.post('/instances/:id/metrics/collect', collectMetrics)
 app.post('/instances/:id/content-plan/items/:itemId/mark-published', markContentPlanItemPublished)
 app.post('/instances/:id/content-plan/items/:itemId/draft', draftContentPlanItem)
 app.get('/instances/:id/stats', getAgentStats)
+app.get('/instances/:id/media/settings', getMediaSettings)
+app.post('/instances/:id/media/settings', updateMediaSettings)
 app.post('/instances/:id/agents/add', addAgentToInstance)
 app.post('/instances/:id/agents/remove', removeAgentFromInstance)
 

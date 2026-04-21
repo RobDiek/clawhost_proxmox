@@ -4913,6 +4913,117 @@ ${s4}
 
 // ── POST /hosting/instances/:id/setup/agents/research/reset ──
 // ═══════════════════════════════════════════════════════════════════════════
+// Phase M — Media Production Settings
+//
+// Per-instance settings for the media pipeline. User controls budget caps
+// (runaway AI spend prevention) and feature toggles (auto-gen on/off).
+// Stored in researchData.mediaSettings — no schema migration needed.
+//
+// Defaults = conservative; user can raise caps in Settings UI.
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface MediaSettings {
+    // Budget caps (USD)
+    perImageMaxUsd?: number       // default 0.15 (3 Flux Pro variants)
+    perVideoMaxUsd?: number       // default 2.00 (one 10-sec Kling clip)
+    perVoiceMaxUsd?: number       // default 0.50 (~800 words ElevenLabs)
+    monthlyCapUsd?: number         // default 40.00 — hard stop for the month
+
+    // Feature toggles
+    autoGenerateImages?: boolean   // default true — orchestrator makes images automatically
+    autoGenerateVideos?: boolean   // default false — video is expensive, opt-in
+    autoGenerateVoice?: boolean    // default false — voice is niche
+    paidLora?: { falLoraId?: string; trainedAt?: string }  // if user paid for brand LoRA
+
+    // Variants per generation
+    imageVariantsPerItem?: number  // default 3 (user can reduce to 1 to save cost)
+
+    // Quality preference
+    imageModel?: 'flux-pro-1.1' | 'flux-schnell'  // schnell = 5x cheaper, Pro default
+    videoModel?: 'kling-1.6-pro' | 'runway-gen-3' // Kling default (cheaper, good for IG Reels)
+
+    updatedAt?: string
+}
+
+const DEFAULT_MEDIA_SETTINGS: Required<Omit<MediaSettings, 'paidLora' | 'updatedAt'>> = {
+    perImageMaxUsd: 0.15,
+    perVideoMaxUsd: 2.00,
+    perVoiceMaxUsd: 0.50,
+    monthlyCapUsd: 40.00,
+    autoGenerateImages: true,
+    autoGenerateVideos: false,
+    autoGenerateVoice: false,
+    imageVariantsPerItem: 3,
+    imageModel: 'flux-pro-1.1',
+    videoModel: 'kling-1.6-pro',
+}
+
+export function resolveMediaSettings(rd: any): Required<MediaSettings> {
+    // eslint-disable-line @typescript-eslint/no-explicit-any
+    const saved: MediaSettings = rd?.mediaSettings || {}
+    return {
+        ...DEFAULT_MEDIA_SETTINGS,
+        paidLora: saved.paidLora || {},
+        updatedAt: saved.updatedAt || '',
+        ...saved, // saved values override defaults
+    } as Required<MediaSettings>
+}
+
+// GET /instances/:id/media/settings
+export const getMediaSettings = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+        const rd = (instance.researchData as any) || {}
+        return ok(c, { settings: resolveMediaSettings(rd), defaults: DEFAULT_MEDIA_SETTINGS }, 'Settings')
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// POST /instances/:id/media/settings
+export const updateMediaSettings = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const body = await c.req.json<Partial<MediaSettings>>()
+        const rd = (instance.researchData as any) || {}
+        const existing: MediaSettings = rd.mediaSettings || {}
+        // Validate numeric fields
+        const numChecks: Array<[keyof MediaSettings, number, number]> = [
+            ['perImageMaxUsd', 0.01, 5],
+            ['perVideoMaxUsd', 0.10, 20],
+            ['perVoiceMaxUsd', 0.01, 5],
+            ['monthlyCapUsd', 5, 500],
+            ['imageVariantsPerItem', 1, 6],
+        ]
+        for (const [k, min, max] of numChecks) {
+            if (k in body) {
+                const v = body[k] as number
+                if (typeof v !== 'number' || v < min || v > max) {
+                    return fail(c, `${k} must be between ${min} and ${max}`, 400)
+                }
+            }
+        }
+
+        const merged: MediaSettings = { ...existing, ...body, updatedAt: new Date().toISOString() }
+        await db.update(instances).set({
+            researchData: { ...rd, mediaSettings: merged } as any,
+        }).where(eq(instances.id, instanceId))
+
+        return ok(c, { settings: resolveMediaSettings({ mediaSettings: merged }) }, 'Settings saved')
+    } catch (err) {
+        console.error('updateMediaSettings error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Historical Assets — pre-strategy data intake
 //
 // Before research/strategy runs, user can supply historical marketing data

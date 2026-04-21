@@ -165,6 +165,9 @@ runcmd:
 
     # ── OpenClaw config ──
     - mkdir -p /home/openclaw/.openclaw
+    # Phase M — content plan media directory (served by nginx, backed up via
+    # the backup add-on, counted toward user's plan storage quota).
+    - mkdir -p /home/openclaw/.openclaw/media
     - |
         cat > /home/openclaw/.openclaw/openclaw.json << 'OCEOF'
         {
@@ -837,6 +840,22 @@ PYEOF
         server {
             listen 80;
             server_name {{SUBDOMAIN_NAME}}.clawflow.flowmatic.co.il;
+
+            # Phase M — Content Plan Media serving.
+            # Files live at /home/openclaw/.openclaw/media/{YYYY-MM}/{itemId}/{variant}
+            # Served directly by nginx (no OpenClaw gateway) for max performance
+            # and so that public CDNs (FB/IG) can fetch image URLs without auth.
+            location /media/ {
+                alias /home/openclaw/.openclaw/media/;
+                expires 30d;
+                add_header Cache-Control "public, immutable";
+                # Basic security: only serve known image/video extensions
+                location ~* \.(jpg|jpeg|png|webp|gif|mp4|mov|webm|mp3|wav|m4a)$ {
+                    try_files $uri =404;
+                }
+                # Anything else under /media/ → 404
+                try_files $uri =404;
+            }
 
             location / {
                 proxy_pass http://127.0.0.1:3000;
