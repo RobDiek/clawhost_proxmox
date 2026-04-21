@@ -18,7 +18,7 @@ input{font-family:inherit}
 .mono{font-family:'SF Mono','Fira Code','Courier New',monospace;font-size:.85rem;direction:ltr;unicode-bidi:isolate}
 
 /* ===== Header ===== */
-.header{position:fixed;top:0;right:0;left:0;height:52px;background:#fff;border-bottom:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:100}
+.header{position:fixed;top:0;right:0;left:0;height:60px;background:#fff;border-bottom:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:100}
 .header-right{display:flex;align-items:center;gap:12px}
 .header-logo{font-weight:700;font-size:1.15rem;color:#111827;display:flex;align-items:center;gap:0;direction:ltr;unicode-bidi:bidi-override}
 .header-logo .logo-claw{color:#2563EB}
@@ -35,7 +35,7 @@ input{font-family:inherit}
 /* Debug panel */
 .debug-btn{background:none;border:1px solid #E5E7EB;border-radius:8px;padding:6px 8px;cursor:pointer;color:#6B7280;transition:all .15s}
 .debug-btn:hover{background:#FEF2F2;border-color:#FECACA;color:#EF4444}
-.debug-panel{position:fixed;top:52px;left:20px;width:400px;background:#fff;border:1px solid #E5E7EB;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.12);padding:20px;z-index:200}
+.debug-panel{position:fixed;top:60px;left:20px;width:400px;background:#fff;border:1px solid #E5E7EB;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.12);padding:20px;z-index:200}
 .debug-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 
 .hamburger{display:none;background:none;border:none;color:#6B7280;padding:4px}
@@ -84,25 +84,38 @@ input{font-family:inherit}
 @media(max-width:768px){.dash-mascot{bottom:72px;left:12px}.dash-mascot-bubble{max-width:200px;font-size:.78rem}}
 
 /* ===== Sidebar (collapsed, expand on hover) ===== */
-.sidebar{position:fixed;top:52px;right:0;bottom:0;width:54px;background:#fff;border-left:1px solid #E5E7EB;display:flex;flex-direction:column;z-index:90;overflow:hidden;transition:width .25s ease}
+.sidebar{position:fixed;top:60px;right:0;bottom:0;width:54px;background:#fff;border-left:1px solid #E5E7EB;display:flex;flex-direction:column;z-index:90;overflow:hidden;transition:width .25s ease}
 .sidebar:hover{width:210px;box-shadow:-4px 0 20px rgba(0,0,0,.08)}
-.sidebar-nav{flex:1;padding:8px 6px}
-.sidebar-item{display:flex;align-items:center;gap:10px;padding:0 15px;height:44px;font-size:.88rem;color:#4B5563;cursor:pointer;border-radius:10px;transition:all .15s;margin-bottom:2px;white-space:nowrap;overflow:hidden}
+.sidebar-nav{flex:1;padding:8px 6px;display:flex;flex-direction:column}
+/* Collapsed width = 54px; sidebar-item padding centers the 22px icon */
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:0;height:44px;font-size:.88rem;color:#4B5563;cursor:pointer;border-radius:10px;transition:all .15s;margin-bottom:2px;white-space:nowrap;overflow:hidden;position:relative}
 .sidebar-item:hover{background:#F3F4F6}
 .sidebar-item.active{background:#EFF6FF;color:#2563EB;font-weight:500}
-.sidebar-item .icon{width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.sidebar-item .icon{width:42px;min-width:42px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .sidebar-item .icon svg{width:22px;height:22px}
 .sidebar-item:not(.active) .icon svg{color:#9CA3AF}
 .sidebar-item.active .icon svg{color:#2563EB}
 .sidebar-label{opacity:0;transition:opacity .2s;font-size:.85rem}
 .sidebar:hover .sidebar-label{opacity:1}
 .sidebar-separator{height:1px;background:#F3F4F6;margin:6px 10px}
-.sidebar-footer{padding:8px 12px;border-top:1px solid #F3F4F6}
+.sidebar-footer{padding:8px 0;border-top:1px solid #F3F4F6;display:flex;flex-direction:column;align-items:stretch}
+.sidebar-footer-pill{cursor:pointer;display:flex;align-items:center;gap:10px;padding:0;height:44px;margin:6px;border-radius:10px;background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1px solid #C7D2FE;font-size:.82rem;color:#4338CA;font-weight:600;transition:all .15s;white-space:nowrap;overflow:hidden;position:relative}
+.sidebar-footer-pill .icon{width:42px;min-width:42px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.sidebar-footer-pill:hover{background:linear-gradient(135deg,#E0E7FF,#C7D2FE)}
+.sidebar-footer-pill[data-tip]::after{content:attr(data-tip);position:absolute;right:56px;top:50%;transform:translateY(-50%);background:#0F172A;color:#fff;padding:10px 14px;border-radius:10px;font-size:.78rem;line-height:1.5;white-space:pre-line;max-width:280px;width:max-content;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .15s;z-index:150;direction:rtl;text-align:right;font-weight:400}
+.sidebar-footer-pill[data-tip]::before{content:'';position:absolute;right:50px;top:50%;transform:translateY(-50%);border:6px solid transparent;border-right-color:#0F172A;opacity:0;transition:opacity .15s;z-index:150}
+.sidebar:not(:hover) .sidebar-footer-pill[data-tip]:hover::after,
+.sidebar:not(:hover) .sidebar-footer-pill[data-tip]:hover::before{opacity:1}
+/* Hover tooltip (shown only while sidebar is collapsed) */
+.sidebar-item[data-tip]::after{content:attr(data-tip);position:absolute;right:56px;top:50%;transform:translateY(-50%);background:#0F172A;color:#fff;padding:10px 14px;border-radius:10px;font-size:.78rem;line-height:1.5;white-space:pre-line;max-width:280px;width:max-content;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .15s;z-index:150;direction:rtl;text-align:right}
+.sidebar-item[data-tip]::before{content:'';position:absolute;right:50px;top:50%;transform:translateY(-50%);border:6px solid transparent;border-right-color:#0F172A;opacity:0;transition:opacity .15s;z-index:150}
+.sidebar:not(:hover) .sidebar-item[data-tip]:hover::after,
+.sidebar:not(:hover) .sidebar-item[data-tip]:hover::before{opacity:1}
 .sidebar-plan-pill{display:inline-block;font-size:.72rem;color:#9CA3AF;line-height:1.5}
 .sidebar-dev-link{color:#EF4444;font-size:.82rem}
 
 /* ===== Main ===== */
-.main{margin-right:54px;margin-left:0;margin-top:52px;padding:12px 32px 16px 24px;max-width:1100px}
+.main{margin-right:54px;margin-left:0;margin-top:60px;padding:12px 32px 16px 24px;max-width:1100px}
 @media(min-width:1300px){.main{margin-left:auto;margin-right:auto;padding-right:70px}}
 .hidden{display:none!important}
 
@@ -770,7 +783,7 @@ input{font-family:inherit}
 <!-- Header -->
 <header class="header">
   <div class="header-right">
-    <a href="/dashboard" style="text-decoration:none"><img src="/logo-clawflow.png" alt="ClawFlow" style="height:24px"></a>
+    <a href="/dashboard" style="text-decoration:none"><img src="/logo-clawflow.png" alt="ClawFlow" style="height:36px"></a>
     <!-- Agent Switcher -->
     <div class="agent-switcher" id="agentSwitcher">
       <button class="agent-switcher-btn" id="agentSwitcherBtn" onclick="toggleAgentSwitcher()">
@@ -791,6 +804,10 @@ input{font-family:inherit}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div class="header-dropdown" id="headerDropdown">
+      <button class="header-dropdown-item" onclick="toggleUserDropdown();switchTab('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        הגדרות
+      </button>
       <button class="header-dropdown-item" onclick="logout()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         התנתקו
@@ -827,29 +844,31 @@ input{font-family:inherit}
 <!-- Sidebar (collapsed, expands on hover) -->
 <nav class="sidebar" id="sidebar">
   <div class="sidebar-nav">
-    <div class="sidebar-item active" data-tab="home" onclick="switchTab('home')">
+    <div class="sidebar-item active" data-tab="home" onclick="switchTab('home')"
+         data-tip="ראשי — לוח המחוונים המרכזי: התקדמות הגדרה, משימות פעילות לאישור, עדכונים מהסוכנים, יומן תוכן ל-14 הימים הקרובים והמלצות.">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></span>
       <span class="sidebar-label">ראשי</span>
     </div>
-    <div class="sidebar-item" data-tab="chat" onclick="switchTab('chat')">
+    <div class="sidebar-item" data-tab="chat" onclick="switchTab('chat')"
+         data-tip="צ'אט עם סוכן — שיחה חיה עם OpenClaw שרץ על ה-VPS שלכם. שאלות, משימות אד-הוק, חיפוש במסמכים, ניהול שוטף. הסוכן זוכר את ההקשר שלכם.">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"/></svg></span>
       <span class="sidebar-label">צ'אט עם סוכן</span>
     </div>
-    <div class="sidebar-item" data-tab="agents" onclick="switchTab('agents')">
+    <div class="sidebar-item" data-tab="agents" onclick="switchTab('agents')"
+         data-tip="סוכנים — 9 תתי-סוכנים שיווקיים (מנתח, יוצר, עורך, דובר...) עם תיאור תפקיד, מודל AI שמריץ, היסטוריה ופעולה ידנית. כאן פותחים את שאלון הפרופיל העסקי.">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/></svg></span>
       <span class="sidebar-label">סוכנים</span>
     </div>
-    <div class="sidebar-item" data-tab="integrations" onclick="switchTab('integrations')">
+    <div class="sidebar-item" data-tab="integrations" onclick="switchTab('integrations')"
+         data-tip="תוספים — חיבור Meta Ads, Google Ads, Google Search Console, WhatsApp, Firecrawl, DataForSEO, GitHub ועוד. בלי חיבורים אין נתוני ביצועים ואין פרסום אוטומטי.">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
       <span class="sidebar-label">תוספים</span>
     </div>
-    <div class="sidebar-item" data-tab="settings" onclick="switchTab('settings')">
-      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
-      <span class="sidebar-label">הגדרות</span>
-    </div>
+    <!-- Settings moved to header profile dropdown -->
     <!-- Twenty CRM removed — AGPLv3 license risk for managed hosting -->
     <div class="sidebar-separator"></div>
-    <div class="sidebar-item sidebar-dev-link" data-tab="developer" onclick="openDeveloperZone()">
+    <div class="sidebar-item sidebar-dev-link" data-tab="developer" onclick="openDeveloperZone()"
+         data-tip="אזור למפתחים — גישה לקבצים על ה-VPS, SSH, logs, מטריקות שרת, Docker. לשימוש מתקדם בלבד — שינויים כאן עלולים לפגוע בסוכנים.">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
       <span class="sidebar-label">אזור למפתחים</span>
     </div>
@@ -964,8 +983,8 @@ input{font-family:inherit}
             <span id="aqCounter" style="font-size:0.75rem;color:#9CA3AF"></span>
           </div>
           <div id="aqFilters" style="display:flex;gap:4px;margin-bottom:8px">
-            <button class="aq-filter active" data-filter="" onclick="setAqFilter('')">הכל</button>
-            <button class="aq-filter" data-filter="pending_review" onclick="setAqFilter('pending_review')">ממתינים</button>
+            <button class="aq-filter" data-filter="" onclick="setAqFilter('')">הכל</button>
+            <button class="aq-filter active" data-filter="pending_review" onclick="setAqFilter('pending_review')">ממתינים</button>
             <button class="aq-filter" data-filter="approved" onclick="setAqFilter('approved')">אושרו</button>
             <button class="aq-filter" data-filter="published" onclick="setAqFilter('published')">פורסמו</button>
             <button class="aq-filter" data-filter="archived" onclick="setAqFilter('archived')">ארכיון</button>
@@ -3804,18 +3823,23 @@ function renderHome() {
     } else {
       pendingCount++;
       if (pendingCount === 1) {
-        // Current active task — with action button
+        // Current active task — full card with description + action button
         tasksHtml += '<div class="task-item warning" style="border:2px solid #FDE68A">' +
           '<div style="flex:1"><span style="font-weight:600">' + t.label + '</span>' +
           '<div style="font-size:0.78rem;color:#6B7280;margin-top:2px">' + (t.desc || '') + '</div></div>' +
           '<button onclick="' + t.action + '" class="btn btn-primary btn-sm">' + t.actionLabel + ' &larr;</button></div>';
-      } else if (pendingCount === 2) {
-        // Next in queue — preview only, no action, "שלב הבא" tag
-        tasksHtml += '<div class="task-item" style="background:#F9FAFB;border:1px solid #E5E7EB;opacity:0.7">' +
-          '<span style="display:flex;align-items:center;gap:8px;flex:1;color:#9CA3AF">' + t.label + '</span>' +
-          '<span style="font-size:0.7rem;background:#F3F4F6;color:#9CA3AF;padding:2px 8px;border-radius:10px">שלב הבא</span></div>';
+      } else {
+        // Remaining pending — compact row, still actionable so user can
+        // jump ahead or complete out of order.
+        tasksHtml += '<div class="task-item" style="background:#F9FAFB;border:1px solid #E5E7EB">' +
+          '<span style="display:flex;align-items:center;gap:8px;flex:1;color:#6B7280">' +
+          '<span style="width:16px;height:16px;border:2px solid #D1D5DB;border-radius:50%;display:inline-block;flex-shrink:0"></span>' +
+          t.label + '</span>' +
+          (t.action
+            ? '<button onclick="' + t.action + '" class="notif-action" style="font-size:0.76rem">' + t.actionLabel + ' &larr;</button>'
+            : '<span style="font-size:0.7rem;background:#F3F4F6;color:#9CA3AF;padding:2px 8px;border-radius:10px">שלב הבא</span>') +
+          '</div>';
       }
-      // Don't show tasks beyond next one
     }
   });
 
@@ -4389,7 +4413,7 @@ function renderApprovalQueueData(el, counterEl, apiOutputs) {
 }
 
 var showAllTasksMode = false;
-var aqFilterStatus = ''; // '' = all
+var aqFilterStatus = 'pending_review'; // default — show pending review
 
 function showAllTasks() {
   showAllTasksMode = true;
@@ -7977,12 +8001,15 @@ function renderAdvanced() {
 
 function renderSidebarFooter() {
   var displayPlan = plan.name || '—';
+  // Footer "ניהול שיווק" pill — when collapsed it acts like a regular sidebar
+  // row: icon centered in a 42px icon slot, label hidden. When expanded on
+  // hover the label appears and the pill stretches to fill the 210px width.
   document.getElementById('sidebarFooter').innerHTML =
-    '<div onclick="window.open(\'/auto-pilot\',\'_blank\')" title="ניהול שיווק" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 13px;margin:8px 6px;border-radius:10px;background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1px solid #C7D2FE;font-size:0.82rem;color:#4338CA;font-weight:600;transition:all .2s;white-space:nowrap;overflow:hidden" onmouseover="this.style.background=\'linear-gradient(135deg,#E0E7FF,#C7D2FE)\'" onmouseout="this.style.background=\'linear-gradient(135deg,#EEF2FF,#E0E7FF)\'">' +
-    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#4338CA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>' +
+    '<div class="sidebar-footer-pill" onclick="window.open(\'/auto-pilot\',\'_blank\')" data-tip="ניהול שיווק מלא — עברו לטייס אוטומטי. הסוכנים מבצעים מחקר, יצירה ופרסום על סמך האסטרטגיה שלכם, אתם רק מאשרים. ₪299-₪1990 לחודש לפי היקף.">' +
+    '<span class="icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#4338CA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></span>' +
     '<span class="sidebar-label">ניהול שיווק</span>' +
-    '<svg class="sidebar-label" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:auto"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>' +
-    '<span class="sidebar-plan-pill sidebar-label">תוכנית ' + displayPlan + '</span>';
+    '<svg class="sidebar-label" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:auto;flex-shrink:0"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>' +
+    '<span class="sidebar-plan-pill sidebar-label" style="padding:4px 12px">תוכנית ' + displayPlan + '</span>';
 }
 
 /* ===== Tab switching ===== */
