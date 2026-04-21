@@ -1284,6 +1284,60 @@ input{font-family:inherit}
         </div>
       </div>
 
+      <!-- 4.5 Historical Assets (shown BEFORE research so user supplies baseline data) -->
+      <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>הנכסים שלכם — נתונים קיימים</span>
+        <span id="assets-saved-badge" style="display:none;font-size:0.72rem;color:#10B981;background:#D1FAE5;padding:3px 8px;border-radius:999px">&#10003; נשמר</span>
+      </div>
+      <div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:0.82rem;color:#92400E;line-height:1.6">
+        &#128161; <strong>לפני בניית האסטרטגיה</strong> — אם יש לכם כבר נתונים קיימים (פרסום בפייסבוק/גוגל, תנועה אורגנית, אנליטיקס) שתפו אותם כאן. האסטרטגיה תיבנה על בסיס המציאות שלכם, לא על בנצ'מרקים גנריים. זה אופציונלי — אפשר גם לדלג.
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <!-- Meta Ads -->
+        <div style="border:1px solid #E5E7EB;border-radius:10px;padding:12px;background:#FFF">
+          <div style="font-weight:600;margin-bottom:6px">&#128200; Meta Ads (פייסבוק + אינסטגרם)</div>
+          <div style="font-size:0.76rem;color:#6B7280;margin-bottom:8px">ייצאו דוח Ads Manager של 30-90 ימים (CSV), או כתבו סיכום קצר: הוצאה, CPA, ROAS, קמפיינים מובילים.</div>
+          <textarea id="asset-meta-text" rows="3" placeholder="לדוגמה: ₪5,000 לחודש ב-Meta, CPA ₪35, ROAS 2.1×, הקמפיין הכי טוב: Lookalike 1% של לקוחות קיימים..." style="width:100%;padding:8px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;resize:vertical;font-family:inherit"></textarea>
+          <div style="margin-top:6px">
+            <label style="font-size:0.76rem;color:#6B7280;cursor:pointer">
+              <input type="file" accept=".csv,.txt" style="display:none" onchange="handleAssetFile(event, 'meta')">
+              <span style="text-decoration:underline">📎 העלו CSV (אופציונלי)</span>
+              <span id="asset-meta-filename" style="margin-right:6px;color:#10B981"></span>
+            </label>
+          </div>
+        </div>
+        <!-- Google Ads -->
+        <div style="border:1px solid #E5E7EB;border-radius:10px;padding:12px;background:#FFF">
+          <div style="font-weight:600;margin-bottom:6px">&#127919; Google Ads</div>
+          <div style="font-size:0.76rem;color:#6B7280;margin-bottom:8px">ייצוא דוח ביצועים, או תיאור: מילות מפתח פעילות, CPC ממוצע, conversion rate.</div>
+          <textarea id="asset-gads-text" rows="3" placeholder="לדוגמה: 15 מילות מפתח פעילות, CPC ממוצע ₪4.2, 3.1% conversion, כולל brand terms..." style="width:100%;padding:8px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;resize:vertical;font-family:inherit"></textarea>
+          <div style="margin-top:6px">
+            <label style="font-size:0.76rem;color:#6B7280;cursor:pointer">
+              <input type="file" accept=".csv,.txt" style="display:none" onchange="handleAssetFile(event, 'gads')">
+              <span style="text-decoration:underline">📎 העלו CSV (אופציונלי)</span>
+              <span id="asset-gads-filename" style="margin-right:6px;color:#10B981"></span>
+            </label>
+          </div>
+        </div>
+        <!-- GA -->
+        <div style="border:1px solid #E5E7EB;border-radius:10px;padding:12px;background:#FFF">
+          <div style="font-weight:600;margin-bottom:6px">&#128202; Google Analytics / תעבורה אורגנית</div>
+          <div style="font-size:0.76rem;color:#6B7280;margin-bottom:8px">סשנים חודשיים, bounce rate, דפים מובילים, קונברסיות.</div>
+          <textarea id="asset-ga-text" rows="3" placeholder="לדוגמה: 3,200 סשנים/חודש, 58% bounce, הדף הכי נצפה: /pricing, 1.8% conversion..." style="width:100%;padding:8px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;resize:vertical;font-family:inherit"></textarea>
+        </div>
+        <!-- GSC / other -->
+        <div style="border:1px solid #E5E7EB;border-radius:10px;padding:12px;background:#FFF">
+          <div style="font-weight:600;margin-bottom:6px">&#128270; Search Console / מידע נוסף</div>
+          <div style="font-size:0.76rem;color:#6B7280;margin-bottom:8px">מילות מפתח אורגניות, פוזיציות, כל מידע שיווקי חשוב שלא נכנס למעלה.</div>
+          <textarea id="asset-gsc-text" rows="3" placeholder="לדוגמה: אנחנו מדורגים 4-7 על 'מנהל שיווק דיגיטלי', 12 על 'אוטומציה שיווק'. הטונליות שלנו אמורה להיות חברותית אבל מקצועית..." style="width:100%;padding:8px;border:1px solid #E5E7EB;border-radius:6px;font-size:0.82rem;resize:vertical;font-family:inherit"></textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:20px">
+        <button class="btn btn-primary" onclick="saveHistoricalAssets(false)" style="font-size:0.85rem">💾 שמרו את הנתונים</button>
+        <button class="btn" onclick="saveHistoricalAssets(true)" style="font-size:0.85rem;background:#F3F4F6;color:#6B7280">דלגו — אין לי נתונים קודמים</button>
+        <span id="assets-status" style="font-size:0.78rem;color:#6B7280;flex:1"></span>
+      </div>
+
       <!-- 5. Research Report -->
       <div class="section-title">מחקר שוק</div>
       <div id="agent-research-section">
@@ -7865,6 +7919,77 @@ function renderResearchReport() {
   if (typeof toggleRebuildCard === 'function') toggleRebuildCard();
 }
 
+// ── Historical Assets handlers ────────────────────────────────────────────
+// Stored per-instance on the server; surfaces in research + strategy + content
+// plan prompts so strategy is grounded in the user's real historical data.
+var _assetCsvs = { meta: '', gads: '' }; // stashed CSV bodies pending save
+
+async function loadHistoricalAssetsIntoUI() {
+  if (!instanceId) return;
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/assets');
+    if (!r.success) return;
+    var a = (r.data && r.data.assets) || {};
+    if (a.metaAds) {
+      if (a.metaAds.text) document.getElementById('asset-meta-text').value = a.metaAds.text;
+      if (a.metaAds.csvText) { _assetCsvs.meta = a.metaAds.csvText; document.getElementById('asset-meta-filename').textContent = '· נטען'; }
+    }
+    if (a.googleAds) {
+      if (a.googleAds.text) document.getElementById('asset-gads-text').value = a.googleAds.text;
+      if (a.googleAds.csvText) { _assetCsvs.gads = a.googleAds.csvText; document.getElementById('asset-gads-filename').textContent = '· נטען'; }
+    }
+    if (a.ga && a.ga.text) document.getElementById('asset-ga-text').value = a.ga.text;
+    if (a.gsc && a.gsc.text) document.getElementById('asset-gsc-text').value = a.gsc.text;
+    var hasAny = a.metaAds || a.googleAds || a.ga || a.gsc || a.freeText;
+    var badge = document.getElementById('assets-saved-badge');
+    if (badge && hasAny && !a.skipped) badge.style.display = 'inline-block';
+  } catch (_) {}
+}
+
+function handleAssetFile(event, key) {
+  var file = event.target.files && event.target.files[0];
+  if (!file) return;
+  if (file.size > 500 * 1024) { showToast('הקובץ גדול מ-500KB — ייתכן קצה', 'warning'); }
+  var reader = new FileReader();
+  reader.onload = function() {
+    _assetCsvs[key] = String(reader.result || '').substring(0, 30000);
+    var fnEl = document.getElementById('asset-' + key + '-filename');
+    if (fnEl) fnEl.textContent = '· ' + file.name;
+  };
+  reader.readAsText(file);
+}
+
+async function saveHistoricalAssets(skipped) {
+  if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
+  var status = document.getElementById('assets-status');
+  if (status) { status.textContent = 'שומר...'; status.style.color = '#6B7280'; }
+
+  var payload = skipped
+    ? { skipped: true }
+    : {
+        skipped: false,
+        metaAds:   { text: document.getElementById('asset-meta-text').value.trim(), csvText: _assetCsvs.meta || '' },
+        googleAds: { text: document.getElementById('asset-gads-text').value.trim(), csvText: _assetCsvs.gads || '' },
+        ga:        { text: document.getElementById('asset-ga-text').value.trim() },
+        gsc:       { text: document.getElementById('asset-gsc-text').value.trim() },
+      };
+
+  try {
+    var r = await apiFetch('/hosting/instances/' + instanceId + '/assets', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (!r.success) throw new Error(r.message || 'Save failed');
+    if (status) { status.textContent = skipped ? 'דולג — ממשיכים בלי נתונים היסטוריים' : '✓ נשמר בהצלחה — הנתונים ייכנסו למחקר ולאסטרטגיה'; status.style.color = '#10B981'; }
+    var badge = document.getElementById('assets-saved-badge');
+    if (badge && !skipped) badge.style.display = 'inline-block';
+    showToast(skipped ? 'דולגים על שלב הנתונים' : 'הנתונים נשמרו', 'success');
+  } catch (err) {
+    if (status) { status.textContent = '❌ ' + err.message; status.style.color = '#EF4444'; }
+    showToast('שגיאה בשמירה: ' + err.message, 'error');
+  }
+}
+
 async function runResearchFromAgent() {
   if (!instanceId) { showToast('לא נמצא Instance', 'error'); return; }
   var btn = document.getElementById('btn-run-research');
@@ -11413,6 +11538,7 @@ function openAgentDetail(agentType) {
     renderAgentProfile();
     renderSubAgents();
     renderResearchReport();
+    if (typeof loadHistoricalAssetsIntoUI === 'function') loadHistoricalAssetsIntoUI();
   } else if (isBareAgent) {
     // Bare agent — show quick access links
     var container = document.getElementById('agent-saved-profile');

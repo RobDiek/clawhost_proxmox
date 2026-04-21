@@ -1842,7 +1842,8 @@ export const buildStrategy = async (c: Context) => {
         const stageSpecificPrompt = stageConfig.prompt(businessName, RESEARCH_POINTER, answers, prevStrategy, emptyExtracted)
 
         // Stable cacheable block — research + extracted. Reused across all 4 stages within 5min TTL.
-        const cachedPreamble = `## נתוני מחקר מלאים (שלבים 1-5)
+        const haBlock = formatHistoricalAssets(rd)
+        const cachedPreamble = `${haBlock}## נתוני מחקר מלאים (שלבים 1-5)
 
 ${researchContext}
 
@@ -3837,9 +3838,11 @@ function buildResearchPrompt(stage: number, opts: {
     businessName: string; businessDesc: string; answers: any; feedback?: string;
     tools: { hasBrave: boolean; hasDataforseo: boolean; hasFirecrawl: boolean };
     summaries?: { s1: string; s2: string; s3: string };
+    historicalAssetsBlock?: string;
 }): { agentId: string; prompt: string; minLength: number } | null {
-    const { businessName, businessDesc, answers, feedback, tools } = opts
+    const { businessName, businessDesc, answers, feedback, tools, historicalAssetsBlock } = opts
     const feedbackLine = feedback ? `\nהערות המשתמש: ${feedback}` : ''
+    const haBlock = historicalAssetsBlock || ''
 
     const searchTool = tools.hasBrave
         ? `השתמש ב-brave_search MCP tool. בצע לפחות 5 חיפושים נפרדים בעברית ובאנגלית.`
@@ -3876,7 +3879,7 @@ function buildResearchPrompt(stage: number, opts: {
 ${businessDesc}
 ${answers.competitors ? `\nמתחרים שציין המשתמש: ${answers.competitors}` : ''}
 ${prodBlk ? `\n## המוצרים/שירותים של ${businessName} (כל אחד בנפרד — חשוב לניתוח תחרותי!)\n${prodBlk}\n` : ''}
-
+${haBlock}
 ## הוראות
 ${searchTool}${crawlTool}
 
@@ -3939,7 +3942,7 @@ ${RULES}`
             agentId: 'sayer',
             minLength: 1000,
             prompt: `# משימה: מחקר מילות מפתח עבור "${businessName}"
-
+${haBlock}
 ## הוראות
 קרא את research-data/RESEARCH_STAGE1.md (תוצאות שלב 1 — מתחרים).
 ${dfsTool}
@@ -4007,7 +4010,7 @@ ${RULES}`
             agentId: 'sayer',
             minLength: 1500,
             prompt: `# משימה: מחקר קהל יעד + Pricing Validation עבור "${businessName}"
-
+${haBlock}
 ## הוראות
 קרא את research-data/RESEARCH_STAGE1.md (מתחרים) ו-research-data/RESEARCH_STAGE2.md (מילות מפתח).
 ${searchTool}${crawlTool}
@@ -4429,9 +4432,10 @@ export const researchStage = async (c: Context) => {
         }
 
         // Build adaptive prompt based on stage + available tools
+        const historicalAssetsBlock = formatHistoricalAssets(rd)
         const promptData = buildResearchPrompt(stage, {
             businessName, businessDesc, answers, feedback,
-            tools, summaries,
+            tools, summaries, historicalAssetsBlock,
         })
         if (!promptData) { activeResearchRuns.delete(instanceId); return fail(c, 'Invalid stage (1-5)', 400) }
 
@@ -4903,6 +4907,135 @@ ${s4}
 }
 
 // ── POST /hosting/instances/:id/setup/agents/research/reset ──
+// ═══════════════════════════════════════════════════════════════════════════
+// Historical Assets — pre-strategy data intake
+//
+// Before research/strategy runs, user can supply historical marketing data
+// (Meta Ads CSV/summary, Google Ads, GA4, GSC, free-text notes). This data
+// informs research prompts so strategy is grounded in what's ALREADY working
+// for the user, not built from scratch on generic IL benchmarks.
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface HistoricalAssets {
+    metaAds?: { text?: string; csvText?: string }
+    googleAds?: { text?: string; csvText?: string }
+    ga?: { text?: string; csvText?: string }
+    gsc?: { text?: string; connected?: boolean }
+    freeText?: string
+    updatedAt?: string
+    skipped?: boolean // user explicitly said "I have no prior data"
+}
+
+// Compact markdown block injected into research/strategy/content-plan prompts.
+// Returns empty string if no assets supplied — prompt flows normally without.
+function formatHistoricalAssets(rd: any): string {
+    const ha: HistoricalAssets = rd?.historicalAssets || {}
+    if (!ha || ha.skipped) return ''
+    const blocks: string[] = []
+
+    if (ha.metaAds?.text || ha.metaAds?.csvText) {
+        const body = (ha.metaAds.text || '').trim()
+        const csv = (ha.metaAds.csvText || '').substring(0, 3000).trim()
+        blocks.push(`### Meta Ads (Facebook + Instagram) — נתונים היסטוריים${body ? `\n${body}` : ''}${csv ? `\n\n\`\`\`csv\n${csv}\n\`\`\`` : ''}`)
+    }
+    if (ha.googleAds?.text || ha.googleAds?.csvText) {
+        const body = (ha.googleAds.text || '').trim()
+        const csv = (ha.googleAds.csvText || '').substring(0, 3000).trim()
+        blocks.push(`### Google Ads — נתונים היסטוריים${body ? `\n${body}` : ''}${csv ? `\n\n\`\`\`csv\n${csv}\n\`\`\`` : ''}`)
+    }
+    if (ha.ga?.text || ha.ga?.csvText) {
+        const body = (ha.ga.text || '').trim()
+        const csv = (ha.ga.csvText || '').substring(0, 3000).trim()
+        blocks.push(`### Google Analytics — נתוני תעבורה וקונברסיה${body ? `\n${body}` : ''}${csv ? `\n\n\`\`\`csv\n${csv}\n\`\`\`` : ''}`)
+    }
+    if (ha.gsc?.text) {
+        blocks.push(`### Search Console (GSC)\n${ha.gsc.text}`)
+    }
+    if (ha.freeText) {
+        blocks.push(`### הערות נוספות של המשתמש\n${ha.freeText}`)
+    }
+
+    if (blocks.length === 0) return ''
+
+    return `
+## 📊 נתוני עבר של המשתמש (baseline — חובה להתייחס בעת המחקר/אסטרטגיה!)
+
+למשתמש יש כבר היסטוריה שיווקית. זה בסיס להשוואה וקבלת החלטות. **אל תתעלם מהם — גזור מהם insights ו-baseline למדדים ולטקטיקה.** היעדים בסטרטגיה צריכים להיות ריאליים ביחס למה שכבר עובד, לא הבטחות מנותקות.
+
+${blocks.join('\n\n')}
+
+**כללים לשימוש בנתונים האלה:**
+- אם CPA היסטורי הוא ₪35, הצעה של ₪10 CPA בלי ביסוס = לא רצינית. הצע ירידה של 20-40% מקסימום.
+- אם יש מילות מפתח שכבר מביאות תנועה אורגנית (GSC) — בנה עליהן, אל תמציא חדשות.
+- אם יש קמפיין Meta שעבד טוב (ROAS > 2) — נתח למה וחזור על הדפוס.
+- אם יש קמפיין שנכשל — הבן למה וימנע מלחזור.
+
+---
+`
+}
+
+// ── POST /instances/:id/assets — save historical marketing data ──
+export const saveHistoricalAssets = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const body = await c.req.json<Partial<HistoricalAssets>>()
+        const rd = (instance.researchData as any) || {}
+        const existing: HistoricalAssets = rd.historicalAssets || {}
+
+        // Merge: only overwrite fields that were explicitly provided in body
+        const merged: HistoricalAssets = {
+            ...existing,
+            ...body,
+            updatedAt: new Date().toISOString(),
+        }
+        // Sanitize: trim text fields, cap CSV size per source
+        const MAX_CSV = 30000
+        const MAX_TEXT = 8000
+        const clamp = (s: string | undefined, max: number) => s ? String(s).substring(0, max) : s
+        if (merged.metaAds) {
+            merged.metaAds.text = clamp(merged.metaAds.text, MAX_TEXT)
+            merged.metaAds.csvText = clamp(merged.metaAds.csvText, MAX_CSV)
+        }
+        if (merged.googleAds) {
+            merged.googleAds.text = clamp(merged.googleAds.text, MAX_TEXT)
+            merged.googleAds.csvText = clamp(merged.googleAds.csvText, MAX_CSV)
+        }
+        if (merged.ga) {
+            merged.ga.text = clamp(merged.ga.text, MAX_TEXT)
+            merged.ga.csvText = clamp(merged.ga.csvText, MAX_CSV)
+        }
+        if (merged.gsc) merged.gsc.text = clamp(merged.gsc.text, MAX_TEXT)
+        merged.freeText = clamp(merged.freeText, MAX_TEXT)
+
+        await db.update(instances).set({
+            researchData: { ...rd, historicalAssets: merged } as any,
+        }).where(eq(instances.id, instanceId))
+
+        return ok(c, { assets: merged }, 'Historical assets saved')
+    } catch (err) {
+        console.error('saveHistoricalAssets error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ── GET /instances/:id/assets — fetch current assets ──
+export const getHistoricalAssets = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+        const rd = (instance.researchData as any) || {}
+        return ok(c, { assets: rd.historicalAssets || {} }, 'Assets fetched')
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
 export const resetResearch = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
@@ -5038,6 +5171,7 @@ interface GenContext {
     strategy: string
     brandVoice: string
     performanceContext?: string
+    historicalAssetsBlock?: string
 }
 
 function nanoid(n = 10): string {
@@ -5224,6 +5358,7 @@ ${ctx.pillarWhitelist.map((p, i) => `${i + 1}. "${p}"`).join('\n')}
 ${ctx.personaTitles.length >= 2 ? ctx.personaTitles.map((p, i) => `${i + 1}. ${p}`).join('\n') : 'דורון, אסף, מיכל'}
 
 ${ctx.performanceContext ? `\n## Previous period performance (adapt structure accordingly!)\n${ctx.performanceContext}\n` : ''}
+${ctx.historicalAssetsBlock || ''}
 
 ## Hard constraints (auto-validator will reject plan on violation)
 - **Total: ${ctx.weeksAhead * 6}-${ctx.weeksAhead * 7} items** for ${ctx.weeksAhead} weeks
@@ -5739,6 +5874,7 @@ async function generateContentPlan(
         strategy,
         brandVoice: strategy, // same source for now; could be refined later
         performanceContext: opts.performanceContext,
+        historicalAssetsBlock: formatHistoricalAssets(rd),
     }
 
     // ─── Pass 1: Skeleton (Opus thinking) ───

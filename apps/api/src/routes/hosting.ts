@@ -52,6 +52,8 @@ import {
     getContentPlan,
     generateOptimizationReport,
     getLatestOptimizationReport,
+    saveHistoricalAssets,
+    getHistoricalAssets,
     addAgentToInstance,
     removeAgentFromInstance,
     setupPersonalAgent,
@@ -278,6 +280,8 @@ app.post('/instances/:id/setup/agents/content-plan/regenerate', regenerateConten
 app.get('/instances/:id/setup/agents/content-plan', getContentPlan)
 app.post('/instances/:id/optimization/weekly', generateOptimizationReport)
 app.get('/instances/:id/optimization/latest', getLatestOptimizationReport)
+app.post('/instances/:id/assets', saveHistoricalAssets)
+app.get('/instances/:id/assets', getHistoricalAssets)
 app.post('/instances/:id/agents/add', addAgentToInstance)
 app.post('/instances/:id/agents/remove', removeAgentFromInstance)
 
