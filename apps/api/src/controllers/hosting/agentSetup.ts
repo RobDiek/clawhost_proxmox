@@ -2818,12 +2818,29 @@ export const generateOpsBrief = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const result = await runOpsBriefForInstance(instanceId)
+        if (!result.ok) return fail(c, result.reason, (result.status as 400 | 404 | 500) || 500)
+        return ok(c, { brief: result.brief, history: result.historyCount }, 'Brief generated.')
+    } catch (err) {
+        console.error('generateOpsBrief error:', err)
+        return fail(c, 'Brief failed.', 500)
+    }
+}
+
+// Pure function: run weekly ops-brief generation for one instance.
+// Used by both the manual endpoint and the weekly cron. Persists to
+// researchData AND creates an approval-queue entry.
+export async function runOpsBriefForInstance(instanceId: string): Promise<
+    | { ok: true; brief: any; historyCount: number; outputId: string | null }
+    | { ok: false; reason: string; status?: number }
+> {
+    try {
         const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
-        if (!instance) return fail(c, 'Instance not found', 404)
+        if (!instance) return { ok: false, reason: 'Instance not found', status: 404 }
 
         const rd = (instance.researchData as any) || {}
         const chosen = rd.chosenScenario
-        if (!chosen) return fail(c, 'יש לבחור תחילה מסלול ביצוע', 400)
+        if (!chosen) return { ok: false, reason: 'יש לבחור תחילה מסלול ביצוע', status: 400 }
 
         // Calculate current week since commit
         const committedAt = new Date(chosen.chosenAt || Date.now())
@@ -2852,7 +2869,7 @@ export const generateOpsBrief = async (c: Context) => {
 
         // Build prompt
         const apiKey = await getApiKeyForInstance(instanceId)
-        if (!apiKey) return fail(c, 'מפתח API לא מוגדר', 400)
+        if (!apiKey) return { ok: false, reason: 'מפתח API לא מוגדר', status: 400 }
 
         const kpisTarget = chosen.kpis || {}
         const baselineMonth1 = kpisTarget.month1 || {}
@@ -2949,7 +2966,7 @@ ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי
         if (!apiRes.ok) {
             const errBody = await apiRes.text().catch(() => '')
             console.error(`Ops Brief Anthropic failed (${apiRes.status}):`, errBody.substring(0, 400))
-            return fail(c, 'ייצור Brief נכשל', 500)
+            return { ok: false, reason: 'ייצור Brief נכשל', status: 500 }
         }
 
         const data = await apiRes.json() as { content?: Array<{ text: string }>; usage?: { input_tokens?: number; output_tokens?: number } }
@@ -2967,7 +2984,7 @@ ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי
             brief = JSON.parse(jsonMatch ? jsonMatch[0] : rawText)
         } catch (parseErr) {
             console.error('Brief JSON parse failed:', parseErr, 'raw:', rawText.substring(0, 400))
-            return fail(c, 'Brief החזיר פורמט לא תקף', 500)
+            return { ok: false, reason: 'Brief החזיר פורמט לא תקף', status: 500 }
         }
 
         brief.generatedAt = new Date().toISOString()
@@ -2985,11 +3002,35 @@ ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי
             } as any,
         }).where(eq(instances.id, instanceId))
 
+        // Also land the brief in the approval queue so it appears in משימות פעילות
+        // alongside other operational outputs. Non-fatal if insert fails.
+        let outputId: string | null = null
+        try {
+            const { agentOutputs: aoSchema } = await import('@/db/schema')
+            outputId = `ob_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
+            const statusEmoji = brief.overallStatus === 'on_track' ? '✅'
+                : brief.overallStatus === 'behind' ? '🟡'
+                : brief.overallStatus === 'at_risk' ? '🟠' : '🔴'
+            await db.insert(aoSchema).values({
+                id: outputId,
+                instanceId,
+                agentRole: 'menateach',
+                outputType: 'weekly_ops_brief',
+                title: `${statusEmoji} דוח ביצועים שבועי #${currentWeek}`,
+                content: typeof brief === 'string' ? brief : JSON.stringify(brief, null, 2),
+                status: 'pending_review',
+                metadata: { weekNum: currentWeek, overallStatus: brief.overallStatus, statusReason: brief.statusReason } as any,
+            })
+        } catch (ingestErr) {
+            console.error('[opsBrief] approval-queue insert failed (non-fatal):', ingestErr)
+            outputId = null
+        }
+
         console.log(`Ops Brief generated for ${instanceId} week ${currentWeek}: ${brief.overallStatus}`)
-        return ok(c, { brief, history: history.length }, 'Brief generated.')
+        return { ok: true, brief, historyCount: history.length, outputId }
     } catch (err) {
-        console.error('generateOpsBrief error:', err)
-        return fail(c, 'Brief failed.', 500)
+        console.error('runOpsBriefForInstance error:', err)
+        return { ok: false, reason: 'Brief failed.', status: 500 }
     }
 }
 

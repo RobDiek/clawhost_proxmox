@@ -3709,7 +3709,9 @@ function renderHome() {
     }
     if (hasChosenScenario) {
       // Connections Wizard — required connections for the chosen scenario.
-      // Stays always-active so user can return to add optional connections later.
+      // Completion = all MUST connections made. Optional ones don't block.
+      // Card stays visible after completion (action flips to "ערכו חיבורים")
+      // so user can return anytime to add optional connections.
       var connReqs = computeConnectionsRequirements(instanceData.researchData.chosenScenario, instanceData);
       var mustReqs = connReqs.filter(function(r) { return r.must && !r.info; });
       var optReqs  = connReqs.filter(function(r) { return !r.must && !r.info; });
@@ -3722,70 +3724,22 @@ function renderHome() {
         : mustDone + '/' + mustTotal + ' חובה מחוברים';
       tasks.push({
         id: 'connections',
-        label: 'חיבור ערוצים ופלטפורמות',
-        done: false, // always active so user can return to tune optional connections
+        label: allMustConnected ? '✓ חיבור ערוצים ופלטפורמות' : 'חיבור ערוצים ופלטפורמות',
+        done: allMustConnected,
         action: "openConnectionsWizard()",
         actionLabel: mustDone === 0 ? 'התחילו לחבר' : (allMustConnected ? 'ערכו חיבורים' : 'המשיכו'),
         desc: progressLabel + ' · פלטפורמות פרסום, כלי ניתוח וחשבונות פרסום'
       });
 
-      var latestBrief = instanceData.researchData && instanceData.researchData.latestOpsBrief;
-      var briefWeek = latestBrief && latestBrief.weekNum;
-      tasks.push({
-        id: 'ops-brief',
-        label: latestBrief ? ('דוח שבועי #' + briefWeek + ' — ' + (latestBrief.overallStatus === 'on_track' ? '✅ על המסלול' : latestBrief.overallStatus === 'behind' ? '🟡 מפגר' : latestBrief.overallStatus === 'at_risk' ? '🟠 בסיכון' : '🔴 קריטי')) : 'דוח ביצועים שבועי',
-        done: !!latestBrief,
-        action: "openOpsBrief()",
-        actionLabel: latestBrief ? 'צפו בדוח' : 'ייצרו דוח ראשון',
-        desc: latestBrief ? latestBrief.statusReason : 'השוואת ביצועים מול KPI של המסלול + 3 פעולות לשבוע הבא'
-      });
-      // Facts Graph seed card — ensures knowledge graph is populated
-      var factsSeeded = !!(instanceData.researchData && instanceData.researchData.factsSeededAt);
-      tasks.push({
-        id: 'facts-seed',
-        label: factsSeeded ? '✓ גרף ידע שיווקי' : '🧠 הטעינו את גרף הידע',
-        done: factsSeeded,
-        action: factsSeeded ? "openFactsSeed()" : "runFactsSeed()",
-        actionLabel: factsSeeded ? 'סקירה' : 'הטען עובדות (~30ש\')',
-        desc: factsSeeded
-          ? 'עובדות שהתמצו מהמחקר נשמרות ב-Neo4j — הסוכנים שולפים אותן במקום לקרוא מחדש את STRATEGY.md'
-          : 'מיצוי חד-פעמי של עובדות מובנות מהמחקר (מתחרים, פרסונות, מילות מפתח, ערוצים) לשימוש חוזר על ידי הסוכנים'
-      });
-
-      // API Usage tracker — always visible card
-      tasks.push({
-        id: 'api-usage',
-        label: '🪙 צריכת API',
-        done: false,
-        action: "openApiUsage()",
-        actionLabel: 'ראו צריכה',
-        desc: 'צריכת tokens חודשית של Anthropic/OpenAI — השוואה מול תקציב המסלול'
-      });
-
-      tasks.push({ id: 'brief', label: 'הסוכנים פעילים', done: true, desc: 'דו״ח יומי, דוחות שבועיים, ביקורת AEO — אוטומטית' });
-
-      // HaaS tier card — always visible after scenario committed
-      var currentTier = instanceData.haasTier;
-      var tierMeta = currentTier && HAAS_TIERS[currentTier];
-      if (tierMeta) {
-        tasks.push({
-          id: 'haas-tier',
-          label: tierMeta.badge + ' ליווי HaaS: ' + tierMeta.nameHe,
-          done: true,
-          action: "window.open('https://clawflow.flowmatic.co.il/auto-pilot','_blank')",
-          actionLabel: 'שדרגו',
-          desc: '₪' + tierMeta.priceIls + '/חודש · ' + tierMeta.tagline
-        });
-      } else {
-        tasks.push({
-          id: 'haas-tier',
-          label: '🤝 עברו לטייס אוטומטי — ליווי HaaS',
-          done: false,
-          action: "window.open('https://clawflow.flowmatic.co.il/auto-pilot','_blank')",
-          actionLabel: 'ראו מסלולים',
-          desc: 'ניהול שיווק מלא החל מ-₪299/חודש · מאמרים · יצירה · פרסום ממומן'
-        });
-      }
+      // ── Operational items below — moved out of setup checklist ──
+      // After all must-connections are done, setup is 100%. These items
+      // are NOT setup steps — they're ongoing operational artifacts:
+      //   * ops-brief: weekly cron → lands in approval queue
+      //   * facts-seed: auto-triggered once strategy committed (backend)
+      //   * api-usage: always-live data, lives in Settings
+      //   * haas-tier: upsell, lives in sidebar footer ("ניהול שיווק" pill)
+      //   * brief status: always-true indicator, not a task
+      // None of them belong in a setup checklist.
     }
   }
 

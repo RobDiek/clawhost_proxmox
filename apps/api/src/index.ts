@@ -92,6 +92,10 @@ startHypothesisAnalyzer()
 import { startWeeklyCreativeReport } from '@/services/weeklyCreativeReport'
 startWeeklyCreativeReport()
 
+// Weekly Ops Brief — menateach strategic brief, lands in approval queue
+import { startWeeklyOpsBrief } from '@/services/weeklyOpsBrief'
+startWeeklyOpsBrief()
+
 // Phase F — facts pusher (every 6h)
 import { startFactsPusher } from '@/services/factsPusher'
 startFactsPusher()
