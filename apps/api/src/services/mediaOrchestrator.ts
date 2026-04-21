@@ -52,15 +52,17 @@ export function resolveChannelFormat(channel: string): ChannelFormatSpec {
     return DEFAULT_CHANNEL_FORMATS[channel] || DEFAULT_CHANNEL_FORMATS.instagram
 }
 
-// Resolve fal.ai key: instance-specific → env fallback
+// Resolve fal.ai / ElevenLabs key from standard `instances` columns.
+// Reuses the existing creative-integrations schema (falApiKey /
+// elevenlabsApiKey) that user onboarding already saves via
+// POST /hosting/instances/:id/integrations/creative/save.
+// Env vars are fallback for the mgmt-side test instance only.
 export async function resolveMediaKey(
     instanceId: string,
     provider: 'fal' | 'elevenlabs',
 ): Promise<{ key: string; source: 'instance' | 'env' | 'none' }> {
     const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
-    const rd = (instance?.researchData as Record<string, unknown> | null) || {}
-    const mediaKeys = (rd.mediaKeys as Record<string, string> | undefined) || {}
-    const instanceKey = provider === 'fal' ? mediaKeys.falKey : mediaKeys.elevenlabsKey
+    const instanceKey = provider === 'fal' ? instance?.falApiKey : instance?.elevenlabsApiKey
     if (instanceKey) return { key: instanceKey, source: 'instance' }
     const envKey = provider === 'fal' ? process.env.FAL_KEY : process.env.ELEVENLABS_API_KEY
     if (envKey) return { key: envKey, source: 'env' }

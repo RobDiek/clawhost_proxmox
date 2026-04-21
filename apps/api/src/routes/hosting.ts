@@ -60,8 +60,6 @@ import {
     draftContentPlanItem,
     getMediaSettings,
     updateMediaSettings,
-    getMediaKeysStatus,
-    saveMediaKeys,
     testGenerateMedia,
     addAgentToInstance,
     removeAgentFromInstance,
@@ -297,8 +295,6 @@ app.post('/instances/:id/content-plan/items/:itemId/draft', draftContentPlanItem
 app.get('/instances/:id/stats', getAgentStats)
 app.get('/instances/:id/media/settings', getMediaSettings)
 app.post('/instances/:id/media/settings', updateMediaSettings)
-app.get('/instances/:id/media/keys/status', getMediaKeysStatus)
-app.post('/instances/:id/media/keys', saveMediaKeys)
 app.post('/instances/:id/media/test-generate', testGenerateMedia)
 app.post('/instances/:id/agents/add', addAgentToInstance)
 app.post('/instances/:id/agents/remove', removeAgentFromInstance)
