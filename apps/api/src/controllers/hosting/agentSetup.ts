@@ -5043,17 +5043,21 @@ export const updateMediaSettings = async (c: Context) => {
 }
 
 // GET /instances/:id/content-plan/items/:itemId/media
-// Returns all media_renders rows for a given plan item, sorted by version.
-// Used by the Review UI to display variants the user can approve / edit.
+// Returns media renders for a plan item. Archived (superseded) versions are
+// excluded by default — they stay in DB for audit/revert but don't clutter
+// the Review UI. Pass ?includeArchived=1 to see them.
 export const getContentPlanItemMedia = async (c: Context) => {
     try {
         const instanceId = c.req.param('id')
         const itemId = c.req.param('itemId')
         if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const includeArchived = c.req.query('includeArchived') === '1'
         const { contentPlanMedia } = await import('@/db/schema')
-        const rows = await db.select().from(contentPlanMedia)
+        const all = await db.select().from(contentPlanMedia)
             .where(and(eq(contentPlanMedia.instanceId, instanceId), eq(contentPlanMedia.contentPlanItemId, itemId)))
-        rows.sort((a, b) => (b.version || 0) - (a.version || 0))
+        // Newest first; filter archived unless caller asked for them
+        const rows = (includeArchived ? all : all.filter(r => r.status !== 'archived'))
+            .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))
         return ok(c, { renders: rows, count: rows.length }, 'Media renders')
     } catch (err) {
         console.error('getContentPlanItemMedia error:', err)
@@ -5086,6 +5090,18 @@ export const regenerateItemMedia = async (c: Context) => {
         const briefWithEdit = body.promptEdit
             ? `${item.brief}\n\n## שינוי שביקש המשתמש\n${body.promptEdit}`
             : item.brief
+
+        // Archive all current 'ready' renders for this item so the UI shows
+        // only the fresh batch. Rows stay in DB with status='archived' for
+        // audit / possible future revert. Never delete.
+        const { contentPlanMedia } = await import('@/db/schema')
+        await db.update(contentPlanMedia)
+            .set({ status: 'archived' })
+            .where(and(
+                eq(contentPlanMedia.instanceId, instanceId),
+                eq(contentPlanMedia.contentPlanItemId, itemId),
+                eq(contentPlanMedia.status, 'ready'),
+            ))
 
         const { generateMediaForPlanItem } = await import('@/services/mediaOrchestrator')
         const res = await generateMediaForPlanItem(instanceId, {
