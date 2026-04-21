@@ -198,6 +198,8 @@ import {
     listCreativeRenders,
     getCreativeRender,
     triggerCreativeRender,
+    getCreativeRouting,
+    saveCreativeRouting,
     mineReferences,
     listReferences,
     decomposeReferences,
@@ -384,6 +386,8 @@ app.post('/instances/:id/integrations/creative/disconnect', disconnectCreativeKe
 app.get('/instances/:id/creative/renders',                  listCreativeRenders)
 app.get('/instances/:id/creative/renders/:renderId',        getCreativeRender)
 app.post('/instances/:id/creative/render',                  triggerCreativeRender)
+app.get('/instances/:id/creative/routing',                  getCreativeRouting)
+app.post('/instances/:id/creative/routing',                 saveCreativeRouting)
 
 // ── Creative References (Phase B3) — competitor ad mining + DNA decomposer ──
 app.post('/instances/:id/creative/references/mine',         mineReferences)

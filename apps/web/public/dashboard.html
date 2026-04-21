@@ -2710,6 +2710,7 @@ input{font-family:inherit}
       <button class="cc-tab"               data-tab="fatigue"     onclick="switchCreativeTab('fatigue')">⚠️ עייפות</button>
       <button class="cc-tab"               data-tab="mappings"    onclick="switchCreativeTab('mappings')">🔗 פרסום</button>
       <button class="cc-tab"               data-tab="weekly"      onclick="switchCreativeTab('weekly')">📰 דוח שבועי</button>
+      <button class="cc-tab"               data-tab="scenarios"   onclick="switchCreativeTab('scenarios')">⚙️ תרחישים</button>
       <div style="flex:1"></div>
       <button class="btn btn-primary btn-sm" onclick="openYotzerTriggerDialog()" style="margin:4px 0">➕ Yotzer</button>
     </div>
@@ -13582,6 +13583,7 @@ function switchCreativeTab(tab) {
     case 'fatigue':     renderFatigueTab(); break;
     case 'mappings':    renderMappingsTab(); break;
     case 'weekly':      renderWeeklyReportTab(); break;
+    case 'scenarios':   renderScenariosTab(); break;
   }
 }
 
@@ -14446,6 +14448,194 @@ async function triggerManualWeeklyReport() {
     renderWeeklyReportTab();
   } catch (err) { showToast('שגיאה: ' + err.message, 'error'); }
   finally { if (btn) { btn.disabled = false; btn.textContent = '↻ ייצר עכשיו'; } }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Tab: Scenarios / Creative Routing (Phase M.1.5)
+// Matrix: row = scenario, column = model dropdown. Save hits
+// POST /creative/routing. Expandable cards show logic + pros/cons.
+// ═══════════════════════════════════════════════════════════════════════════
+var _scenariosState = { scenarios: [], routing: {}, dirty: {} };
+
+async function renderScenariosTab() {
+  var body = document.getElementById('rendersBody');
+  body.innerHTML = '<div style="text-align:center;padding:40px;color:#9CA3AF">טוען...</div>';
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/routing', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var j = await res.json();
+    if (!j.success) { body.innerHTML = '<div style="color:#EF4444;padding:20px">' + escapeHtml(j.message) + '</div>'; return; }
+    _scenariosState.scenarios = j.data.scenarios || [];
+    _scenariosState.routing = Object.assign({}, j.data.routing || {});
+    _scenariosState.dirty = {};
+    drawScenariosTab();
+  } catch (err) {
+    body.innerHTML = '<div style="color:#EF4444;padding:20px">שגיאה: ' + escapeHtml(err.message) + '</div>';
+  }
+}
+
+function drawScenariosTab() {
+  var kinds = { image: '🖼️ תמונות', video: '🎬 וידאו', voice: '🎙️ קריינות', lipsync: '👄 סנכרון שפתיים' };
+  var grouped = { image: [], video: [], voice: [], lipsync: [] };
+  _scenariosState.scenarios.forEach(function(s) { (grouped[s.kind] || (grouped[s.kind] = [])).push(s); });
+
+  var html = '';
+  html += '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:0.82rem;color:#1E40AF">';
+  html += '💡 לכל תרחיש יצירה יש מודל ברירת-מחדל. אתם יכולים להחליף מודל לכל תרחיש בנפרד (למשל — להעדיף Seedream על Flux עבור סטוריז).';
+  html += ' השינוי נשמר ב-instance שלכם בלבד ומשפיע על כל הרנדרים הבאים.';
+  html += '</div>';
+
+  html += '<div id="scenariosSaveBar" style="display:none;background:#FEF3C7;border:1px solid #FCD34D;border-radius:6px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">';
+  html += '<div style="font-size:0.85rem;color:#92400E"><b>שינויים לא שמורים</b> — <span id="scenariosDirtyCount">0</span> תרחישים עודכנו</div>';
+  html += '<div style="display:flex;gap:8px">';
+  html += '<button class="btn btn-outline btn-sm" onclick="revertScenarios()">בטלו</button>';
+  html += '<button class="btn btn-primary btn-sm" onclick="saveScenarios()">שמרו שינויים</button>';
+  html += '</div>';
+  html += '</div>';
+
+  Object.keys(kinds).forEach(function(kind) {
+    if (!grouped[kind] || !grouped[kind].length) return;
+    html += '<h4 style="margin:18px 0 8px;color:#1F2937;font-size:0.95rem">' + kinds[kind] + '</h4>';
+    html += '<div style="display:flex;flex-direction:column;gap:8px">';
+    grouped[kind].forEach(function(s) { html += scenarioCardHtml(s); });
+    html += '</div>';
+  });
+
+  document.getElementById('rendersBody').innerHTML = html;
+  updateScenariosSaveBar();
+}
+
+function scenarioCardHtml(s) {
+  var current = _scenariosState.dirty[s.id] !== undefined
+    ? _scenariosState.dirty[s.id]
+    : (_scenariosState.routing[s.id] || s.defaultModel);
+  var isOverride = current !== s.defaultModel;
+  var safeId = 'sc-' + s.id.replace(/[^a-z0-9]/gi, '-');
+
+  var html = '<div style="background:#FFF;border:1px solid #E5E7EB;border-radius:8px;padding:12px 14px" id="' + safeId + '">';
+  // Header row
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">';
+  html += '<div style="flex:1;min-width:200px">';
+  html += '<div style="font-weight:600;color:#111827;font-size:0.92rem">' + escapeHtml(s.labelHe) + '</div>';
+  html += '<div style="font-size:0.78rem;color:#6B7280;margin-top:2px">' + escapeHtml(s.purpose) + '</div>';
+  html += '</div>';
+
+  html += '<div style="display:flex;align-items:center;gap:8px">';
+  html += '<label style="font-size:0.78rem;color:#6B7280">מודל:</label>';
+  html += '<select onchange="updateScenarioModel(\'' + s.id + '\', this.value)" style="padding:6px 10px;border:1.5px solid ' + (isOverride ? '#2563EB' : '#E5E7EB') + ';border-radius:6px;font-size:0.85rem;background:' + (isOverride ? '#EFF6FF' : '#FFF') + '">';
+  s.eligibleModels.forEach(function(m) {
+    var isDefault = m === s.defaultModel;
+    html += '<option value="' + escapeHtml(m) + '"' + (m === current ? ' selected' : '') + '>' + escapeHtml(m) + (isDefault ? ' (ברירת-מחדל)' : '') + '</option>';
+  });
+  html += '</select>';
+  if (isOverride) {
+    html += '<button class="btn btn-outline btn-sm" style="font-size:0.72rem;padding:4px 8px" onclick="resetScenario(\'' + s.id + '\')">↺</button>';
+  }
+  html += '<button class="btn btn-outline btn-sm" style="font-size:0.72rem;padding:4px 8px" onclick="toggleScenarioDetails(\'' + safeId + '\')">פרטים</button>';
+  html += '</div>';
+  html += '</div>';
+
+  html += '<div style="font-size:0.72rem;color:#9CA3AF;margin-top:6px">';
+  html += '📐 ' + escapeHtml(s.aspectRatio);
+  if (s.width && s.height) html += ' · ' + s.width + '×' + s.height;
+  html += ' · 💰 ~$' + (s.estCostUsd || 0).toFixed(2);
+  if (s.appliesWhen && s.appliesWhen.length) html += ' · מופעל עבור: ' + s.appliesWhen.slice(0, 2).join(', ');
+  html += '</div>';
+
+  // Expandable details
+  html += '<div class="scenario-details" style="display:none;margin-top:10px;padding-top:10px;border-top:1px dashed #E5E7EB">';
+  if (s.steps && s.steps.length) {
+    html += '<div style="margin-bottom:8px"><b style="font-size:0.8rem;color:#374151">שלבי הפעולה:</b><ol style="margin:4px 0 0 18px;padding-right:18px;font-size:0.78rem;color:#4B5563;line-height:1.6">';
+    s.steps.forEach(function(step) { html += '<li>' + escapeHtml(step) + '</li>'; });
+    html += '</ol></div>';
+  }
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.78rem">';
+  if (s.pros && s.pros.length) {
+    html += '<div><b style="color:#059669">✅ יתרונות:</b><ul style="margin:4px 0 0 14px;padding-right:14px;color:#4B5563;line-height:1.5">';
+    s.pros.forEach(function(p) { html += '<li>' + escapeHtml(p) + '</li>'; });
+    html += '</ul></div>';
+  }
+  if (s.cons && s.cons.length) {
+    html += '<div><b style="color:#DC2626">⚠️ חסרונות:</b><ul style="margin:4px 0 0 14px;padding-right:14px;color:#4B5563;line-height:1.5">';
+    s.cons.forEach(function(p) { html += '<li>' + escapeHtml(p) + '</li>'; });
+    html += '</ul></div>';
+  }
+  html += '</div>';
+  html += '</div>';
+
+  html += '</div>';
+  return html;
+}
+
+function toggleScenarioDetails(cardId) {
+  var card = document.getElementById(cardId);
+  if (!card) return;
+  var det = card.querySelector('.scenario-details');
+  if (!det) return;
+  det.style.display = det.style.display === 'none' ? '' : 'none';
+}
+
+function updateScenarioModel(scenarioId, model) {
+  var s = _scenariosState.scenarios.find(function(x) { return x.id === scenarioId; });
+  if (!s) return;
+  var saved = _scenariosState.routing[scenarioId] || s.defaultModel;
+  if (model === saved) delete _scenariosState.dirty[scenarioId];
+  else _scenariosState.dirty[scenarioId] = model;
+  updateScenariosSaveBar();
+  drawScenariosTab();
+}
+
+function resetScenario(scenarioId) {
+  var s = _scenariosState.scenarios.find(function(x) { return x.id === scenarioId; });
+  if (!s) return;
+  // Reset means "force default" — if currently saved as override, that's a dirty change
+  if (_scenariosState.routing[scenarioId] && _scenariosState.routing[scenarioId] !== s.defaultModel) {
+    _scenariosState.dirty[scenarioId] = s.defaultModel;
+  } else {
+    delete _scenariosState.dirty[scenarioId];
+  }
+  updateScenariosSaveBar();
+  drawScenariosTab();
+}
+
+function revertScenarios() {
+  _scenariosState.dirty = {};
+  drawScenariosTab();
+}
+
+function updateScenariosSaveBar() {
+  var count = Object.keys(_scenariosState.dirty).length;
+  var bar = document.getElementById('scenariosSaveBar');
+  var countEl = document.getElementById('scenariosDirtyCount');
+  if (bar) bar.style.display = count > 0 ? 'flex' : 'none';
+  if (countEl) countEl.textContent = String(count);
+}
+
+async function saveScenarios() {
+  // Build final routing: start from saved routing, apply dirty deltas.
+  // A dirty value equal to default means "clear override" (don't include).
+  var payload = {};
+  _scenariosState.scenarios.forEach(function(s) {
+    var dirtyVal = _scenariosState.dirty[s.id];
+    var current = dirtyVal !== undefined ? dirtyVal : _scenariosState.routing[s.id];
+    if (current && current !== s.defaultModel) payload[s.id] = current;
+  });
+  try {
+    var res = await fetch(API + '/hosting/instances/' + instanceId + '/creative/routing', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ routing: payload }),
+    });
+    var j = await res.json();
+    if (!j.success) { showToast(j.message || 'שמירה נכשלה', 'error'); return; }
+    showToast('הגדרות נשמרו ✓', 'success');
+    _scenariosState.routing = j.data.routing || {};
+    _scenariosState.dirty = {};
+    drawScenariosTab();
+  } catch (err) {
+    showToast('שגיאה: ' + err.message, 'error');
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

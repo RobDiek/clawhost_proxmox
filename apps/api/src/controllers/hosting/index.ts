@@ -37,7 +37,7 @@ export { deployCrewEndpoint, runCrewEndpoint, listCrewsEndpoint } from './crewai
 // Langfuse removed — custom API Usage Tracker covers observability needs
 export { listAgentIntegrations, getAgentIntegrationEndpoint, setAgentIntegrationEndpoint, deleteAgentIntegrationEndpoint } from './agentIntegrationRoutes'
 export { extractBrand, analyzeLogoEndpoint, draftBrandBook, approveBrandBook, getBrandBook, getBrandBookVersions } from './brand'
-export { saveCreativeKeys, getCreativeStatus, disconnectCreativeKey, listCreativeRenders, getCreativeRender, triggerCreativeRender } from './creative'
+export { saveCreativeKeys, getCreativeStatus, disconnectCreativeKey, listCreativeRenders, getCreativeRender, triggerCreativeRender, getCreativeRouting, saveCreativeRouting } from './creative'
 export { mineReferences, listReferences, decomposeReferences, deleteReference } from './references'
 export {
     attachMapping, listMappings, deleteMapping,

@@ -641,6 +641,12 @@ export const contentPlanMedia = pgTable(
         // Cost
         costUsd: decimal('cost_usd', { precision: 8, scale: 4 }),
 
+        // Scenario — which creative recipe produced this render
+        // (e.g., 'ad-hero-flux', 'ad-typography-nano', 'story-reel-vertical').
+        // Drives the optimization report: "ad-typography-nano ROI 2.3× higher
+        // than ad-hero-flux — consider switching default for this segment."
+        scenario: text('scenario'),
+
         // Timestamps
         createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
         generatedAt: timestamp('generated_at', { withTimezone: true }),
@@ -651,6 +657,7 @@ export const contentPlanMedia = pgTable(
         index('cpm_instance_idx').on(table.instanceId),
         index('cpm_item_idx').on(table.contentPlanItemId),
         index('cpm_status_idx').on(table.instanceId, table.status),
+        index('cpm_scenario_idx').on(table.instanceId, table.scenario),
     ]
 )
 

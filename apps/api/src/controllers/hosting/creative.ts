@@ -23,6 +23,7 @@ import { db } from '@/db'
 import { instances, creativeRenders } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import { resolveUserId, getOwnedInstance } from './authHelper'
+import { SCENARIOS, getScenario, type ScenarioSpec, type ScenarioModel } from '@/services/scenarioRegistry'
 
 const SSH_KEY_PATH = process.env.MASTER_SSH_KEY_PATH || '/root/.ssh/openclaw_master'
 let sshKeyCache: Buffer | null = null
@@ -323,4 +324,91 @@ print('creative plugin config updated')
         `systemctl start openclaw-gateway`,
         password, 30000,
     )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GET /hosting/instances/:id/creative/routing
+// Returns the scenario registry + user's per-scenario model overrides.
+// The UI renders a matrix (rows=scenarios, columns=model dropdown).
+// ═══════════════════════════════════════════════════════════════════════════
+export const getCreativeRouting = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = resolveUserId(c)
+        const instance = await getOwnedInstance(instanceId, userId)
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const rd = (instance.researchData as Record<string, unknown> | null) || {}
+        const routing = (rd.creativeRouting as Record<string, string> | undefined) || {}
+
+        // Hydrate effective model (fallback → default) per scenario
+        const scenarios = SCENARIOS.map((s: ScenarioSpec) => ({
+            id: s.id,
+            labelHe: s.labelHe,
+            kind: s.kind,
+            purpose: s.purpose,
+            defaultModel: s.defaultModel,
+            eligibleModels: s.eligibleModels,
+            aspectRatio: s.aspectRatio,
+            width: s.width,
+            height: s.height,
+            estCostUsd: s.estCostUsd,
+            appliesWhen: s.appliesWhen,
+            steps: s.steps,
+            pros: s.pros,
+            cons: s.cons,
+            effectiveModel: (routing[s.id] && s.eligibleModels.includes(routing[s.id] as ScenarioModel))
+                ? routing[s.id]
+                : s.defaultModel,
+            isOverridden: !!(routing[s.id] && s.eligibleModels.includes(routing[s.id] as ScenarioModel)),
+        }))
+
+        return ok(c, { scenarios, routing })
+    } catch (err) {
+        console.error('getCreativeRouting error:', err)
+        return fail(c, 'Routing fetch failed', 500)
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// POST /hosting/instances/:id/creative/routing
+// Body: { routing: Record<scenarioId, modelId> }
+// Validates every (scenarioId → modelId) pair against the registry.
+// Unknown scenarios or ineligible models are rejected (400).
+// ═══════════════════════════════════════════════════════════════════════════
+export const saveCreativeRouting = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        const userId = resolveUserId(c)
+        const instance = await getOwnedInstance(instanceId, userId)
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const body = await c.req.json<{ routing?: Record<string, string> }>()
+        const incoming = body.routing || {}
+        if (typeof incoming !== 'object' || Array.isArray(incoming)) {
+            return fail(c, 'routing must be an object', 400)
+        }
+
+        // Validate — only keep (scenarioId, model) pairs the registry recognizes
+        const clean: Record<string, string> = {}
+        for (const [scenarioId, model] of Object.entries(incoming)) {
+            const spec = getScenario(scenarioId)
+            if (!spec) return fail(c, `Unknown scenario: ${scenarioId}`, 400)
+            if (!model) continue // empty → revert to default (drop the key)
+            if (!spec.eligibleModels.includes(model as ScenarioModel)) {
+                return fail(c, `Model "${model}" not eligible for scenario "${scenarioId}"`, 400)
+            }
+            clean[scenarioId] = model
+        }
+
+        const rd = (instance.researchData as Record<string, unknown> | null) || {}
+        await db.update(instances).set({
+            researchData: { ...rd, creativeRouting: clean } as any,
+        }).where(eq(instances.id, instanceId))
+
+        return ok(c, { routing: clean }, 'Routing saved.')
+    } catch (err) {
+        console.error('saveCreativeRouting error:', err)
+        return fail(c, 'Routing save failed', 500)
+    }
 }

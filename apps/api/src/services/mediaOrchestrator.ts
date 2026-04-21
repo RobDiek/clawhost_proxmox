@@ -27,6 +27,7 @@ import { generateImages, type FalImageModel } from './falAI'
 import { sshUploadBuffer, fetchBytes } from './sshUpload'
 import { generateCreativeBrief, type PlanItemContext } from './creativeBrief'
 import { compositeHebrewOverlay, type OverlayPosition } from './mediaOverlay'
+import { pickScenarioForItem, resolveScenarioModel } from './scenarioRegistry'
 
 export interface ChannelFormatSpec {
     channel: string             // 'instagram' | 'facebook' | 'blog' | 'reel' | 'story' | ...
@@ -92,6 +93,8 @@ export interface GenerateImagesOpts {
     // Phase M.1.5 — Hebrew typography composited post-generation via sharp+SVG
     overlayText?: string
     overlayPosition?: OverlayPosition
+    // Scenario id from scenarioRegistry — stored on each render for optimization analytics
+    scenario?: string
 }
 
 export interface GenerateImagesResult {
@@ -178,7 +181,7 @@ export async function generateImagesForContentPlanItem(
                         renderType: 'image',
                         channel,
                         formatSpec: { ...fmt },
-                        model: opts.model || 'flux-pro-1.1',
+                        model: opts.model || 'flux-2-pro',
                         prompt: opts.prompt,
                         negativePrompt: opts.negativePrompt || null,
                         seed: img.seed,
@@ -190,6 +193,7 @@ export async function generateImagesForContentPlanItem(
                         version: 1,
                         status: 'ready',
                         costUsd: String(img.costUsd),
+                        scenario: opts.scenario || null,
                         generatedAt: new Date(),
                     })
 
@@ -231,27 +235,46 @@ export async function generateMediaForPlanItem(
     opts: {
         channels?: string[]              // default: [item.channel]
         numVariantsPerChannel?: number   // default 3
-        model?: FalImageModel            // explicit override; else uses brief.modelHint
+        model?: FalImageModel            // explicit override; else via scenario/brief
     } = {},
-): Promise<(GenerateImagesResult & { briefRationale?: string; briefCostUsd?: number; modelUsed?: string }) | null> {
+): Promise<(GenerateImagesResult & {
+    briefRationale?: string
+    briefCostUsd?: number
+    modelUsed?: string
+    scenarioUsed?: string
+}) | null> {
     const channels = opts.channels && opts.channels.length > 0 ? opts.channels : [item.channel]
     const variants = opts.numVariantsPerChannel ?? 3
 
-    // Pass 1: Creative brief — Opus picks the right model + overlay strategy
+    // Pass 1: Creative brief — Opus picks modelHint + overlay strategy
     const brief = await generateCreativeBrief(instanceId, item)
     if (!brief) {
         console.warn(`[mediaOrchestrator] ${item.id}: brief generation failed; skipping`)
         return null
     }
 
-    // Model resolution priority:
-    //   1. Explicit opts.model (user forced in settings)
-    //   2. brief.modelHint from Opus (context-aware: text → nano-banana-pro, etc.)
-    //   3. Fallback to flux-2-pro (2026 default)
-    const model: FalImageModel = (opts.model as FalImageModel) || brief.modelHint || 'flux-2-pro'
+    // Scenario resolution (M.1.5): pick the creative recipe, then apply
+    // user's per-scenario model override from Settings UI if any.
+    const scenarioId = pickScenarioForItem({
+        channel: item.channel,
+        type: item.type,
+        wantsTypography: !!brief.overlayText && brief.overlayPosition !== 'none',
+    })
+    const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+    const rd = (instance?.researchData as Record<string, unknown> | null) || {}
+    const userRouting = (rd.creativeRouting as Record<string, string> | undefined) || {}
+    const scenarioResolution = resolveScenarioModel(scenarioId, userRouting)
 
-    // Final prompt — if Nano Banana Pro is chosen for in-image Hebrew, do
-    // NOT strip text instruction. Otherwise enforce "no text".
+    // Final model priority:
+    //   1. Explicit opts.model (legacy force)
+    //   2. User-chosen model for this scenario (from Settings)
+    //   3. brief.modelHint from Opus (context-aware)
+    //   4. Scenario default
+    const model: FalImageModel = (opts.model as FalImageModel) ||
+        (scenarioResolution?.model as FalImageModel) ||
+        brief.modelHint ||
+        'flux-2-pro'
+
     const noTextSuffix = model === 'nano-banana-pro'
         ? ''
         : ' Clean visual content only, no text, no writing, no letters anywhere in the frame.'
@@ -265,13 +288,12 @@ export async function generateMediaForPlanItem(
         numVariantsPerChannel: variants,
         model,
         styleAnchor: brief.styleAnchor,
-        // Hebrew typography composited post-generation (skipped for
-        // nano-banana-pro which renders Hebrew natively in-image).
         overlayText: brief.overlayText,
         overlayPosition: brief.overlayPosition,
+        scenario: scenarioId,
     })
 
-    console.log(`[mediaOrchestrator] ${item.id} done — model=${model}, overlay=${brief.overlayText ? brief.overlayPosition : 'none'}`)
+    console.log(`[mediaOrchestrator] ${item.id} done — scenario=${scenarioId}, model=${model}, overlay=${brief.overlayText ? brief.overlayPosition : 'none'}`)
 
     return {
         ...genResult,
@@ -279,5 +301,6 @@ export async function generateMediaForPlanItem(
         briefRationale: brief.rationale,
         briefCostUsd: brief.costUsd,
         modelUsed: model,
+        scenarioUsed: scenarioId,
     }
 }
