@@ -5024,6 +5024,117 @@ export const updateMediaSettings = async (c: Context) => {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Phase M — Media API keys (per-instance BYO model)
+//
+// Each instance stores its own fal.ai + ElevenLabs keys in
+// researchData.mediaKeys. The mediaOrchestrator resolves these at runtime,
+// falling back to env vars for the mgmt-side test instance only.
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface MediaKeys {
+    falKey?: string
+    elevenlabsKey?: string
+    updatedAt?: string
+}
+
+// GET /instances/:id/media/keys/status — returns booleans only (never the key itself)
+export const getMediaKeysStatus = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+        const rd = (instance.researchData as any) || {}
+        const keys: MediaKeys = rd.mediaKeys || {}
+        return ok(c, {
+            hasFalKey: !!keys.falKey,
+            hasElevenlabsKey: !!keys.elevenlabsKey,
+            envFallbackAvailable: !!(process.env.FAL_KEY || process.env.ELEVENLABS_API_KEY),
+            updatedAt: keys.updatedAt || null,
+        }, 'Status')
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// POST /instances/:id/media/keys — merge save
+export const saveMediaKeys = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+        const [instance] = await db.select().from(instances).where(eq(instances.id, instanceId))
+        if (!instance) return fail(c, 'Instance not found', 404)
+
+        const body = await c.req.json<Partial<MediaKeys>>()
+        const rd = (instance.researchData as any) || {}
+        const existing: MediaKeys = rd.mediaKeys || {}
+        const merged: MediaKeys = {
+            ...existing,
+            ...(body.falKey !== undefined ? { falKey: String(body.falKey || '').trim() || undefined } : {}),
+            ...(body.elevenlabsKey !== undefined ? { elevenlabsKey: String(body.elevenlabsKey || '').trim() || undefined } : {}),
+            updatedAt: new Date().toISOString(),
+        }
+
+        await db.update(instances).set({
+            researchData: { ...rd, mediaKeys: merged } as any,
+        }).where(eq(instances.id, instanceId))
+
+        return ok(c, {
+            hasFalKey: !!merged.falKey,
+            hasElevenlabsKey: !!merged.elevenlabsKey,
+        }, 'Keys saved')
+    } catch (err) {
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// POST /instances/:id/media/test-generate
+// Manual end-to-end test — generates a single Flux Pro image from a free-form
+// prompt, uploads to VPS, returns public URL. Used to verify the pipeline
+// before wiring into the production flow.
+export const testGenerateMedia = async (c: Context) => {
+    try {
+        const instanceId = c.req.param('id')
+        if (!await getOwnedInstance(instanceId, resolveUserId(c))) return fail(c, 'Instance not found', 404)
+
+        type TestBody = {
+            prompt?: string
+            channels?: string[]
+            contentPlanItemId?: string
+            numVariants?: number
+            model?: 'flux-pro-1.1' | 'flux-schnell'
+        }
+        const body: TestBody = await c.req.json<TestBody>().catch(() => ({} as TestBody))
+
+        const prompt = (body.prompt || '').trim() || 'A minimalist product photography shot of a modern Israeli SMB dashboard on a laptop, clean white background, natural lighting, high detail, professional commercial photography'
+        const channels = Array.isArray(body.channels) && body.channels.length > 0
+            ? body.channels
+            : ['instagram']
+        const contentPlanItemId = body.contentPlanItemId || ('test_' + Date.now())
+
+        const { generateImagesForContentPlanItem } = await import('@/services/mediaOrchestrator')
+        const result = await generateImagesForContentPlanItem(instanceId, {
+            contentPlanItemId,
+            prompt,
+            channels,
+            numVariantsPerChannel: body.numVariants || 1,
+            model: body.model,
+        })
+
+        return ok(c, {
+            prompt,
+            channels,
+            renders: result.renders,
+            totalCostUsd: result.totalCostUsd,
+            failed: result.failed,
+        }, `Generated ${result.renders.length} images ($${result.totalCostUsd.toFixed(3)})`)
+    } catch (err) {
+        console.error('testGenerateMedia error:', err)
+        return fail(c, (err as Error).message, 500)
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Historical Assets — pre-strategy data intake
 //
 // Before research/strategy runs, user can supply historical marketing data
