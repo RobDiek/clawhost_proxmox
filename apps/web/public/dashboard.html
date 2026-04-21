@@ -9774,14 +9774,15 @@ function computeConnectionsRequirements(scenario, inst) {
     connectAction: "switchTab('integrations')"
   });
 
-  // Creative stack — in research phase, separate implementation track
+  // Creative stack — fal.ai (image/video) + ElevenLabs (hebrew voice) + external composer
   if (key !== 'conservative') {
     reqs.push({
-      id: 'creative-stack', icon: '🎨', label: 'סטאק יצירת מדיה',
-      must: false, group: 'creative',
-      desc: 'מחקר מתוכנן ומתמשך — נבחן שילוב של DALL-E 3, Midjourney API, Stable Diffusion, Canva API. יימסר למשתמש בעדכון נפרד.',
-      status: 'info',
-      info: true
+      id: 'creative-stack', icon: '🎨', label: 'יצירת מדיה',
+      must: true, group: 'creative',
+      desc: 'הסוכן מייצר באופן אוטומטי תמונות, וידאו וקריינות בעברית לכל פריט בתוכנית. ניתן לאשר, לערוך דרך prompt או ליצור מחדש. יסוד הטכנולוגיה: fal.ai Flux Pro + ElevenLabs + מרכיב וידאו חיצוני.',
+      status: 'soon',
+      soon: true,
+      soonLabel: 'בקרוב'
     });
   }
 
@@ -9795,8 +9796,8 @@ function computeConnectionsRequirements(scenario, inst) {
     var metaLabel = 'Meta (Facebook + Instagram + Ads)';
     reqs.push({
       id: 'meta', icon: '📘', label: metaLabel,
-      must: true, group: 'organic',
-      desc: 'OAuth אחד — פרסום אוטומטי בדף Facebook + Instagram, ניטור תגובות + DMs, וניהול פרסום ממומן (יצירת קמפיינים + insights).' +
+      must: false, group: 'organic',
+      desc: 'אופציונלי — OAuth אחד לפרסום אוטומטי בדף Facebook + Instagram + ניהול פרסום ממומן. תהליך האישור של Meta יכול לקחת שבועות. בינתיים הסוכן יכין את התוכן המלא — תעתיקו ותפרסמו ידנית בלחיצה.' +
             (metaConnected ? ' (מחובר: ' + (inst.metaTokens.pageName || '') + ')' : ''),
       status: st(!!metaConnected),
       connectAction: "switchTab('integrations')"
@@ -9868,9 +9869,9 @@ function computeConnectionsRequirements(scenario, inst) {
     } else {
       reqs.push({
         id: 'google-ads', icon: '🎯', label: 'Google Ads',
-        must: wantsImmediate && /google|adwords|paid search/.test(channels),
+        must: false,
         group: 'paid',
-        desc: 'קמפיינים ב-Google Search + YouTube. חיבור דרך Google OAuth עם הרשאת adwords. הקמה + ניהול אוטומטי של קמפיינים (דורש Developer Token — 1-3 ימים).',
+        desc: 'אופציונלי — קמפיינים אוטומטיים ב-Google Search + YouTube דרך OAuth + Developer Token (תהליך אישור 1-3 ימים). בלי זה: הסוכן יבנה תוכנית קמפיין מלאה שתעתיקו ידנית ל-Google Ads.',
         status: st(!!inst.hasGoogleAds),
         connectAction: "switchTab('integrations');setTimeout(function(){var e=document.getElementById('google-ads-card');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})},300)"
       });
