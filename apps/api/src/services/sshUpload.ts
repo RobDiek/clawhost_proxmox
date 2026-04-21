@@ -84,10 +84,18 @@ export async function sshUploadBuffer(
 ): Promise<{ bytes: number }> {
     const conn = await connect(target)
     try {
-        // Ensure parent directory exists (chown is advisory — don't fail on it)
+        // Ensure parent directory exists AND nginx (www-data) can traverse into
+        // /home/openclaw/.openclaw/* — OpenClaw periodically re-chmods its own
+        // dir to 700 for security, which blocks public media serving. We fix
+        // the path chain on every upload so newly-written files are reachable.
         const parentDir = remotePath.substring(0, remotePath.lastIndexOf('/'))
         if (parentDir) {
-            await runExec(conn, `mkdir -p ${JSON.stringify(parentDir)} && chown -R openclaw:openclaw ${JSON.stringify(parentDir)} 2>/dev/null; true`)
+            await runExec(conn,
+                `mkdir -p ${JSON.stringify(parentDir)} && ` +
+                `chown -R openclaw:openclaw ${JSON.stringify(parentDir)} 2>/dev/null; ` +
+                `chmod o+x /home/openclaw /home/openclaw/.openclaw 2>/dev/null; ` +
+                `true`,
+            )
         }
 
         // Upload via SFTP — handles binary transparently
