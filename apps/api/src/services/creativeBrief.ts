@@ -49,6 +49,23 @@ export interface CreativeBriefOutput {
     modelHint: ModelHint
     overlayText: string            // Hebrew string to composite post-gen; '' = no overlay
     overlayPosition: OverlayPosition
+
+    // Video extensions (populated only when item.type is reel/story/video) —
+    // drive the Kling/Veo I2V step + ElevenLabs VO + FFmpeg mux.
+    video?: {
+        motionPrompt: string         // Kling I2V motion description (camera, subject movement)
+        durationSec: 5 | 10          // Kling 2.5 Turbo Pro supports 5 or 10
+        voiceScriptHe: string        // Hebrew voiceover script (ElevenLabs input; '' = no VO)
+        voiceScriptEn?: string       // Optional English VO for global reuse
+        voiceStyle: 'casual' | 'confident' | 'intimate' | 'energetic' | 'narrator'
+        musicMood: string            // Tag for BGM pairing ('warm acoustic', 'chill beat', 'cinematic build')
+        overlayTimings: Array<{
+            text: string             // Hebrew ≤7 words per cue
+            startSec: number         // 0-indexed start time
+            endSec: number           // stays visible until
+            position: OverlayPosition
+        }>
+    }
 }
 
 async function loadBrandBook(instanceId: string): Promise<Record<string, unknown> | null> {
@@ -133,7 +150,12 @@ export async function generateCreativeBrief(
     const optBlock = formatLatestOptimizationReport(rd)
     const statsBlock = formatAgentStats(rd, { channel: item.channel, sinceDays: 60 })
 
-    const prompt = `You are a senior creative director at a top-tier ad agency producing the visual for ONE scheduled social/blog/ad item for ${businessName}. Your output is an image prompt + model-selection + overlay plan. The pipeline routes this to fal.ai, downloads the result, composites Hebrew typography post-generation via sharp+SVG, and serves from the client's own VPS.
+    // Video formats need motion + VO + overlay timings in the brief output.
+    // Images keep the compact output — Kling/Veo/ElevenLabs aren't called.
+    const isVideoFormat = item.type === 'reel' || item.type === 'story' ||
+        item.type === 'video' || item.channel === 'youtube' || item.channel === 'tiktok'
+
+    const prompt = `You are a senior creative director at a top-tier ad agency producing the visual for ONE scheduled social/blog/ad item for ${businessName}. Your output is an image prompt + model-selection + overlay plan${isVideoFormat ? ' + motion + voiceover + timed overlays for the video pipeline' : ''}. The pipeline routes this to fal.ai${isVideoFormat ? ' (Flux for first-frame → Kling I2V for motion) + ElevenLabs (Hebrew VO) + FFmpeg (overlay + mux)' : ', downloads the result, composites Hebrew typography post-generation via sharp+SVG'}, and serves from the client's own VPS.
 
 ## The content item
 - **Hook (Hebrew):** ${item.hook}
@@ -236,13 +258,26 @@ Rules:
 ## OUTPUT — single JSON object, no markdown fences
 
 {
-  "imagePrompt": "<English prompt, 70-140 words. Subject-action + setting + time-of-day + light direction + camera/lens + film stock + grain + color grade + mood + negative space spec. NO text requests. Be cinema-specific, not generic.>",
+  "imagePrompt": "<English prompt, 70-140 words. Subject-action + setting + time-of-day + light direction + camera/lens + film stock + grain + color grade + mood + negative space spec. NO text requests. Be cinema-specific, not generic.${isVideoFormat ? ' This is the FIRST FRAME of a video — the subject pose must be ready to start a natural motion (handing cup to mouth, turning head, lifting hand, etc.).' : ''}>",
   "negativePrompt": "<60-100 words. Include ALL: text, letters, numbers, writing, typography, logo, caption, watermark, dashboard, UI, screenshot, app interface, phone mockup, generic office desk, stock photo, clock, hologram, 3D render, CGI, plastic skin, symmetrical, plus brand DON'Ts>",
   "styleAnchor": "<6-12 words reusable across iterations — film-stock + mood summary>",
   "modelHint": "flux-2-pro | nano-banana-pro | seedream-4.5 | ideogram-v3 | flux-pro-1.1 | flux-schnell",
   "overlayText": "<Hebrew ≤7 words OR '' when model handles it or none needed>",
   "overlayPosition": "top | bottom | left | right | none",
-  "rationale": "<1-2 sentences in Hebrew explaining metaphor/mood/model choice>"
+  "rationale": "<1-2 sentences in Hebrew explaining metaphor/mood/model choice>"${isVideoFormat ? `,
+  "video": {
+    "motionPrompt": "<English motion description for Kling I2V — 40-80 words. Specify camera movement (breath, pan, push-in), subject action (lifts cup, turns head, types, gestures), environmental motion (steam curls, light shifts, leaves sway). Keep it PHYSICALLY PLAUSIBLE — small documentary movements, not action-movie cuts.>",
+    "durationSec": 5 | 10,   // 5 is cheaper ($0.35) and punchier; 10 ($0.70) lets VO breathe
+    "voiceScriptHe": "<Hebrew VO text. 1-2 full sentences, 15-40 words. Natural spoken Hebrew — short sentences, no run-ons. Narrate in second person (אתם/אתה/את) matching the persona. The final sentence should plant the CTA intention without reading it verbatim. '' = no voiceover (music-only reel).>",
+    "voiceScriptEn": "<OPTIONAL natural English VO, only if the brand's EN audience is relevant.>",
+    "voiceStyle": "casual | confident | intimate | energetic | narrator",
+    "musicMood": "<2-5 words tag: 'warm acoustic guitar', 'chill lo-fi beat', 'cinematic build', 'morning piano', 'upbeat indie'. Used by audio stage to pick BGM.>",
+    "overlayTimings": [
+      { "text": "<Hebrew ≤5 words>", "startSec": 0.3, "endSec": 3, "position": "top" },
+      { "text": "<optional 2nd beat>", "startSec": 3.5, "endSec": <duration-0.5>, "position": "bottom" }
+    ]
+  }
+` : ''}
 }
 
 JSON only, nothing else.`
@@ -310,6 +345,35 @@ JSON only, nothing else.`
             ? (parsed.overlayPosition as OverlayPosition)
             : 'none'
 
+        // Parse optional video block (present only when isVideoFormat was true)
+        let videoBlock: CreativeBriefOutput['video']
+        const rawVideo = (parsed as any).video
+        if (rawVideo && typeof rawVideo === 'object') {
+            const dur = rawVideo.durationSec === 10 ? 10 : 5
+            const validStyles = ['casual', 'confident', 'intimate', 'energetic', 'narrator']
+            const style = validStyles.includes(rawVideo.voiceStyle) ? rawVideo.voiceStyle : 'casual'
+            const timings = Array.isArray(rawVideo.overlayTimings)
+                ? (rawVideo.overlayTimings as any[])
+                    .filter(t => t && typeof t.text === 'string' && typeof t.startSec === 'number')
+                    .map(t => ({
+                        text: String(t.text).substring(0, 80),
+                        startSec: Math.max(0, Math.min(dur, Number(t.startSec))),
+                        endSec: Math.max(0, Math.min(dur, Number(t.endSec ?? dur))),
+                        position: (validPos.includes(t.position) ? t.position : 'top') as OverlayPosition,
+                    }))
+                    .slice(0, 4)
+                : []
+            videoBlock = {
+                motionPrompt: String(rawVideo.motionPrompt || ''),
+                durationSec: dur as 5 | 10,
+                voiceScriptHe: String(rawVideo.voiceScriptHe || '').substring(0, 500),
+                voiceScriptEn: rawVideo.voiceScriptEn ? String(rawVideo.voiceScriptEn).substring(0, 500) : undefined,
+                voiceStyle: style as NonNullable<CreativeBriefOutput['video']>['voiceStyle'],
+                musicMood: String(rawVideo.musicMood || 'warm acoustic'),
+                overlayTimings: timings,
+            }
+        }
+
         return {
             imagePrompt: String(parsed.imagePrompt),
             negativePrompt: mergedNeg,
@@ -319,6 +383,7 @@ JSON only, nothing else.`
             modelHint,
             overlayText: parsed.overlayText ? String(parsed.overlayText).substring(0, 80) : '',
             overlayPosition,
+            video: videoBlock,
         }
     } catch (err) {
         console.warn(`[creativeBrief] ${item.id} error:`, (err as Error).message)
