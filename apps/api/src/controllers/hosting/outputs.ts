@@ -671,15 +671,138 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
             }
         }
 
-        // ── LinkedIn (coming soon) ──
+        // ── LinkedIn organic post ──
         else if (platform === 'linkedin') {
-            publishError = 'LinkedIn בקרוב — עקבו אחרי העדכונים.'
+            try {
+                const { agentIntegrations } = await import('@/db/schema')
+                const [cfg] = await db.select().from(agentIntegrations)
+                    .where(and(
+                        eq(agentIntegrations.instanceId, instance.id),
+                        eq(agentIntegrations.integrationType, 'linkedin'),
+                    ))
+                const cfgData = (cfg?.config as any) || {}
+                if (!cfg || cfg.status !== 'connected' || !cfgData.accessToken) {
+                    publishError = 'LinkedIn לא מחובר. חברו בהגדרות תוספים → LinkedIn.'
+                    publishErrorType = 'missing_integration'
+                } else {
+                    // authorUrn e.g. "urn:li:person:abc123" or "urn:li:organization:987"
+                    const authorUrn = cfgData.authorUrn || cfgData.personUrn || cfgData.organizationUrn
+                    if (!authorUrn) {
+                        publishError = 'LinkedIn author URN חסר. הרשאו חיבור מחדש.'
+                        publishErrorType = 'missing_integration'
+                    } else {
+                        // LinkedIn v2 /rest/posts API — text-only post with optional media URL
+                        // Posts API docs: https://learn.microsoft.com/en-us/linkedin/marketing/community-management/shares/posts-api
+                        const postBody: any = {
+                            author: authorUrn,
+                            commentary: content.substring(0, 3000),  // LinkedIn cap
+                            visibility: 'PUBLIC',
+                            distribution: {
+                                feedDistribution: 'MAIN_FEED',
+                                targetEntities: [],
+                                thirdPartyDistributionChannels: [],
+                            },
+                            lifecycleState: 'PUBLISHED',
+                            isReshareDisabledByAuthor: false,
+                        }
+                        const liRes = await fetch('https://api.linkedin.com/rest/posts', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${cfgData.accessToken}`,
+                                'LinkedIn-Version': '202411',
+                                'X-Restli-Protocol-Version': '2.0.0',
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(postBody),
+                        })
+                        if (liRes.ok) {
+                            const postUrn = liRes.headers.get('x-restli-id') || ''
+                            publishSuccess = true
+                            channelPostId = postUrn
+                            // LinkedIn URN format: urn:li:share:1234567890 — public URL:
+                            const shareId = postUrn.split(':').pop() || ''
+                            channelPostUrl = shareId ? `https://www.linkedin.com/feed/update/urn:li:share:${shareId}/` : ''
+                        } else {
+                            const errBody = await liRes.text()
+                            publishError = `LinkedIn (${liRes.status}): ${errBody.substring(0, 200)}`
+                            publishErrorType = 'api_error'
+                        }
+                    }
+                }
+            } catch (liErr) {
+                publishError = `LinkedIn: ${String(liErr).substring(0, 150)}`
+                publishErrorType = 'api_error'
+            }
+        }
+
+        // ── Twitter/X (coming soon — requires Twitter API v2 + OAuth) ──
+        else if (platform === 'twitter') {
+            publishError = 'Twitter/X בקרוב — צריך OAuth API v2. בינתיים השתמשו ב-Export לקבלת תוכן מוכן להדבקה.'
             publishErrorType = 'missing_integration'
         }
 
-        // ── Twitter/X (coming soon) ──
-        else if (platform === 'twitter') {
-            publishError = 'Twitter/X בקרוב — עקבו אחרי העדכונים.'
+        // ── Reddit organic post ──
+        else if (platform === 'reddit') {
+            try {
+                const { agentIntegrations } = await import('@/db/schema')
+                const [cfg] = await db.select().from(agentIntegrations)
+                    .where(and(
+                        eq(agentIntegrations.instanceId, instance.id),
+                        eq(agentIntegrations.integrationType, 'reddit'),
+                    ))
+                const cfgData = (cfg?.config as any) || {}
+                if (!cfg || cfg.status !== 'connected' || !cfgData.accessToken) {
+                    publishError = 'Reddit לא מחובר. חברו בהגדרות תוספים → Reddit.'
+                    publishErrorType = 'missing_integration'
+                } else {
+                    // Subreddit comes from content plan metadata or a default in integration config
+                    const outMd = (output.metadata as any) || {}
+                    const subreddit = outMd.subreddit || cfgData.defaultSubreddit
+                    if (!subreddit) {
+                        publishError = 'Reddit: חסרה subreddit. ציינו ב-metadata.subreddit.'
+                        publishErrorType = 'missing_integration'
+                    } else {
+                        const form = new URLSearchParams({
+                            sr: String(subreddit),
+                            kind: 'self',
+                            title: (output.title || 'Post').substring(0, 300),
+                            text: content.substring(0, 40000),
+                            api_type: 'json',
+                            resubmit: 'true',
+                            sendreplies: 'true',
+                        })
+                        const rdRes = await fetch('https://oauth.reddit.com/api/submit', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${cfgData.accessToken}`,
+                                'User-Agent': cfgData.userAgent || 'ClawFlow/1.0',
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: form.toString(),
+                        })
+                        const rdJson = await rdRes.json() as any
+                        const url = rdJson?.json?.data?.url
+                        const fullname = rdJson?.json?.data?.name
+                        if (rdRes.ok && url) {
+                            publishSuccess = true
+                            channelPostId = fullname || ''
+                            channelPostUrl = url
+                        } else {
+                            const errText = JSON.stringify(rdJson?.json?.errors || rdJson).substring(0, 200)
+                            publishError = `Reddit (${rdRes.status}): ${errText}`
+                            publishErrorType = 'api_error'
+                        }
+                    }
+                }
+            } catch (rdErr) {
+                publishError = `Reddit: ${String(rdErr).substring(0, 150)}`
+                publishErrorType = 'api_error'
+            }
+        }
+
+        // ── YouTube (deferred — requires video file + resumable upload) ──
+        else if (platform === 'youtube') {
+            publishError = 'YouTube פרסום אוטונומי דורש קובץ וידאו + Resumable Upload. בינתיים השתמשו ב-Export לקבלת title/description/tags מוכנים להדבקה.'
             publishErrorType = 'missing_integration'
         }
 
@@ -1090,6 +1213,19 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
                 .where(eq(agentOutputs.id, outputId))
 
             console.error(`Publish failed for ${outputId}: ${publishError}`)
+
+            // Mode B fallback: if the only issue is a missing integration, hand
+            // the user a ready-to-paste export instead of a dead-end error.
+            if (publishErrorType === 'missing_integration') {
+                return c.json({
+                    success: false,
+                    message: publishError,
+                    manualMode: true,
+                    manualExportUrl: `/hosting/instances/${instanceId}/outputs/${outputId}/export?format=auto`,
+                    platformGuideKey: platform,    // UI maps to PUBLISH_GUIDES[platformGuideKey]
+                    helpText: 'החיבור לא פעיל — אפשר להוריד את התוכן מוכן להדבקה ידנית.',
+                }, 422)
+            }
             return fail(c, publishError, 422)
         }
     } catch (err) {

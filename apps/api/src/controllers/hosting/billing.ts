@@ -305,6 +305,30 @@ export const handleAllpayWebhook = async (c: Context) => {
                 .set({ status: 'paid', paidAt: new Date() })
                 .where(eq(payments.allpayOrderId, orderId))
 
+            // Sync the new customer into Meta Custom Audiences + Google
+            // Customer Match so cold paid campaigns exclude them automatically.
+            // Non-blocking — webhook returns 200 even if sync fails.
+            const md = metadata as Record<string, unknown>
+            const customerEmail = (md.customerEmail as string) || (md.email as string) || ''
+            if (customerEmail) {
+                import('@/services/customerAudienceSync').then(async ({ syncCustomerToAudiences }) => {
+                    try {
+                        const result = await syncCustomerToAudiences(instanceId, {
+                            email: customerEmail,
+                            cohort: 'existing_customer',
+                            firstName: md.customerName as string | undefined,
+                            revenueIls: typeof md.amount === 'number' ? (md.amount as number) : undefined,
+                        })
+                        console.log(`[allpay-webhook] customer audience sync for ${customerEmail}:`, JSON.stringify({
+                            meta: { ok: result.meta.ok, uploaded: result.meta.uploaded, error: result.meta.error },
+                            google: { ok: result.google.ok, uploaded: result.google.uploaded, error: result.google.error },
+                        }))
+                    } catch (err) {
+                        console.error('[allpay-webhook] customer sync error (non-fatal):', err)
+                    }
+                }).catch(() => { /* module not available — skip */ })
+            }
+
             const [instance] = await db.select()
                 .from(instances)
                 .where(eq(instances.id, instanceId))
