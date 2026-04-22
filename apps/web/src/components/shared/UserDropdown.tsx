@@ -100,8 +100,8 @@ const UserDropdown: FC<UserDropdownProps> = ({
                 className='border-border bg-popover w-56'
             >
                 <DropdownMenuItem
-                    onClick={() => navigate(ROUTES.CLAWS)}
-                    className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.CLAWS ? 'bg-foreground/10' : ''}`}
+                    onClick={() => navigate(ROUTES.AGENTS)}
+                    className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.AGENTS ? 'bg-foreground/10' : ''}`}
                 >
                     <RobotIcon className='h-4 w-4' />
                     {t('nav.claws')}
@@ -129,15 +129,13 @@ const UserDropdown: FC<UserDropdownProps> = ({
                     <UserIcon className='h-4 w-4' />
                     {t('nav.account')}
                 </DropdownMenuItem>
-                {isAdmin && (
-                    <DropdownMenuItem
-                        onClick={() => navigate(ROUTES.LICENSE)}
-                        className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.LICENSE ? 'bg-foreground/10' : ''}`}
-                    >
-                        <CertificateIcon className='h-4 w-4' />
-                        {t('nav.license')}
-                    </DropdownMenuItem>
-                )}
+                <DropdownMenuItem
+                    onClick={() => navigate(ROUTES.LICENSE)}
+                    className={`text-foreground/80 focus:bg-foreground/10 focus:text-foreground ${location.pathname === ROUTES.LICENSE ? 'bg-foreground/10' : ''}`}
+                >
+                    <CertificateIcon className='h-4 w-4' />
+                    {t('nav.license')}
+                </DropdownMenuItem>
 
                 {isAdmin && (
                     <DropdownMenuItem

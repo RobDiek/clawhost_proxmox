@@ -10,10 +10,10 @@ const useCustomerPortal = (): UseCustomerPortalReturn => {
     const toast = useToast()
 
     const openPortal = useCallback(
-        async (clawId?: string) => {
+        async (agentId?: string) => {
             setIsLoading(true)
             try {
-                const { url } = await api.getCustomerPortal(clawId)
+                const { url } = await api.getCustomerPortal(agentId)
                 window.open(url, '_blank')
             } catch {
                 toast.error(t('billing.failedToLoadPortal'))

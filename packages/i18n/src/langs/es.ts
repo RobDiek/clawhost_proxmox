@@ -243,7 +243,6 @@ const es: Translations = {
         features: 'Funciones',
         pricing: 'Precios',
         faq: 'Preguntas',
-        blog: 'Blog',
         changelog: 'Historial de cambios',
         compare: 'Comparación completa',
         legalAndMore: 'Otros',
@@ -479,8 +478,10 @@ const es: Translations = {
         failedToRotateGatewayToken: 'Error al rotar el token de gateway!',
         sshKeyUpdated: 'Clave SSH actualizada exitosamente.',
         failedToUpdateSSHKey: 'Error al actualizar la clave SSH!',
-        invalidPassword: 'La contraseña debe tener entre {{min}} y {{max}} caracteres!',
-        invalidGatewayToken: 'El token de pasarela debe tener entre {{min}} y {{max}} caracteres!',
+        invalidPassword:
+            'La contraseña debe tener entre {{min}} y {{max}} caracteres!',
+        invalidGatewayToken:
+            'El token de pasarela debe tener entre {{min}} y {{max}} caracteres!',
         enablePreviewSuccess: 'Modo de vista previa activado exitosamente.',
         failedToEnablePreview: 'Error al activar el modo de vista previa!',
         logsFetched: 'Registros obtenidos exitosamente.',
@@ -710,8 +711,10 @@ const es: Translations = {
         emailNotEditable: 'El correo no es editable. Contacta con soporte!',
         profileUpdatedSuccessfully: 'Perfil actualizado exitosamente.',
         billingAndSubscription: 'Facturación y Suscripción',
-        billingAndSubscriptionDescription: 'Administra tus métodos de pago, suscripciones y facturas.',
-        viewBillingHistory: 'Consulta tu historial de pagos, facturas y suscripciones.',
+        billingAndSubscriptionDescription:
+            'Administra tus métodos de pago, suscripciones y facturas.',
+        viewBillingHistory:
+            'Consulta tu historial de pagos, facturas y suscripciones.',
         connectedAccounts: 'Cuentas conectadas',
         connectedAccountsDescription:
             'Administra los métodos de inicio de sesión vinculados a tu cuenta.',
@@ -775,8 +778,6 @@ const es: Translations = {
         featureSupport: 'Soporte prioritario',
         featureCloud: 'Todas las funciones en la nube, localmente',
         whatsIncluded: 'Qué incluye',
-        permanentNote:
-            'Las licencias son permanentes e irrevocables. Una vez comprada, es tuya para siempre.',
         gateTitle: 'Licencia requerida',
         gateDescription:
             'Necesitas una licencia ClawHost Go para desplegar y gestionar instancias de OpenClaw localmente.'
@@ -871,7 +872,8 @@ const es: Translations = {
             'Tu pago falló. Si no se resuelve en 14 días, este claw será eliminado permanentemente.',
         updatePayment: 'Actualizar pago',
         cancelDeletion: 'Cancelar eliminación',
-        cancelDeletionConfirmation: '¿Estás seguro? Tu suscripción seguirá activa y se te seguirá cobrando. La instancia seguirá ejecutándose.',
+        cancelDeletionConfirmation:
+            '¿Estás seguro? Tu suscripción seguirá activa y se te seguirá cobrando. La instancia seguirá ejecutándose.',
         deletionCancelled: 'Eliminación cancelada.',
         scheduleDeletion: 'Programar eliminación',
         resumeCheckout: 'Continuar pago',
@@ -969,7 +971,8 @@ const es: Translations = {
             awaitingPayment: 'Esperando pago',
             unknown: 'Desconocido',
             checking: 'Verificando'
-        }
+        },
+        tabNotAvailableForAgent: 'No disponible para este tipo de agente'
     },
     createClaw: {
         title: 'Desplegar OpenClaw',
@@ -979,6 +982,10 @@ const es: Translations = {
         clawNameInvalidChars: 'Solo se permiten letras, números y guiones!',
         autoGenerateNameHint:
             'Dejar vacío para generar un nombre automáticamente.',
+        agentType: 'Tipo de agente',
+        agentTypeOpenClawDescription:
+            'Plataforma de agente IA orientada a gateway',
+        agentTypeHermesDescription: 'Framework de agente IA con auto-mejora',
         location: 'Ubicación',
         locationUnavailable: 'No disponible',
         locationUnavailableForPlan: 'No disponible',
@@ -1311,16 +1318,7 @@ const es: Translations = {
         demoStatus: '{{running}} ejecutándose, {{total}} en total'
     },
     blog: {
-        title: 'Blog',
-        description:
-            'Guías, tutoriales y noticias sobre OpenClaw e infraestructura auto-hospedada.',
         readingTime: '{{minutes}} min de lectura',
-        publishedOn: 'Publicado el {{date}}',
-        writtenBy: 'Por {{author}}',
-        backToBlog: 'Volver al blog',
-        noPosts: 'Sin publicaciones aún',
-        noPostsDescription:
-            'Las publicaciones del blog llegarán pronto. Vuelve más tarde.',
         ctaTitle: 'Despliega OpenClaw con un clic',
         ctaDescription:
             'Obtén un servidor dedicado con OpenClaw preinstalado. Acceso root completo, ubicaciones globales y listo en minutos. Es tuyo en todo momento. Desde $25.',
@@ -1618,27 +1616,37 @@ const es: Translations = {
         tabDisabledAwaitingPayment:
             'Disponible una vez que se procese el pago.',
         creatingTitle: 'Configurando tu agente',
-        creatingDescription: 'Esto suele tardar uno o dos minutos. Puedes cerrar esta página con seguridad y volver más tarde.',
+        creatingDescription:
+            'Esto suele tardar uno o dos minutos. Puedes cerrar esta página con seguridad y volver más tarde.',
         configuringTitle: 'Instalando OpenClaw',
-        configuringDescription: 'Esto suele tardar uno o dos minutos. Puedes cerrar esta página con seguridad y volver más tarde.',
+        configuringDescription:
+            'Esto suele tardar uno o dos minutos. Puedes cerrar esta página con seguridad y volver más tarde.',
         awaitingPaymentTitle: 'Esperando pago',
-        awaitingPaymentDescription: 'Completa el pago para comenzar a aprovisionar tu agente. Esta reserva expira en una hora.',
+        awaitingPaymentDescription:
+            'Completa el pago para comenzar a aprovisionar tu agente. Esta reserva expira en una hora.',
         awaitingPaymentAction: 'Completar pago',
         loadingTip1:
             '¿Sabías que puedes ejecutar múltiples agentes dentro de un solo OpenClaw?',
         loadingTip2: '¿Sabías que OpenClaw es de código abierto?',
         loadingTip3:
             'ClawHost es el primer proyecto en permitir hospedaje de OpenClaw con un solo clic.',
-        loadingTip4: 'Puedes acceder a tu agente mediante SSH o la terminal integrada.',
+        loadingTip4:
+            'Puedes acceder a tu agente mediante SSH o la terminal integrada.',
         loadingTip5: 'Tu agente obtiene su propio subdominio automáticamente.',
-        loadingTip6: 'Puedes personalizar el icono y el nombre de tu agente en cualquier momento desde Ajustes.',
+        loadingTip6:
+            'Puedes personalizar el icono y el nombre de tu agente en cualquier momento desde Ajustes.',
         loadingTip7: 'Todo el tráfico hacia tu agente está cifrado con TLS.',
-        loadingTip8: 'Puedes monitorear el uso de CPU, memoria y disco en la pestaña Monitor.',
+        loadingTip8:
+            'Puedes monitorear el uso de CPU, memoria y disco en la pestaña Monitor.',
         loadingTip9: '¿Necesitas ayuda? Únete a nuestra comunidad en Discord.',
-        loadingTip10: 'Puedes exportar toda la configuración de tu agente como respaldo.',
-        loadingTip11: 'Las claves SSH se pueden aplicar a instancias en ejecución sin reinstalar.',
-        loadingTip12: 'Puedes rotar tu contraseña root y token de gateway desde la pestaña Seguridad.',
-        loadingTip13: 'ClawHost admite servidores en múltiples regiones de Europa y EE. UU.',
+        loadingTip10:
+            'Puedes exportar toda la configuración de tu agente como respaldo.',
+        loadingTip11:
+            'Las claves SSH se pueden aplicar a instancias en ejecución sin reinstalar.',
+        loadingTip12:
+            'Puedes rotar tu contraseña root y token de gateway desde la pestaña Seguridad.',
+        loadingTip13:
+            'ClawHost admite servidores en múltiples regiones de Europa y EE. UU.',
         tabSettings: 'Ajustes',
         featureVersionUnsupported: '{{feature}} no compatible con {{version}}',
         featureVersionUnsupportedDescription:
@@ -1652,7 +1660,8 @@ const es: Translations = {
         tabVolumes: 'Almacenamiento',
         tabSecurity: 'Seguridad',
         securitySSHKey: 'Clave SSH',
-        securitySSHKeyHint: 'Se aplica a la instancia en ejecución y se usa al reinstalar.',
+        securitySSHKeyHint:
+            'Se aplica a la instancia en ejecución y se usa al reinstalar.',
         securityPassword: 'Contraseña root',
         securityGatewayToken: 'Token de gateway',
         securityHostKey: 'Huella de clave de host',
@@ -1700,7 +1709,8 @@ const es: Translations = {
         billingEmpty: 'No billing history for this instance.',
         tabServer: 'Servidor',
         serverIpAddress: 'Dirección IP',
-        reinstallDescription: 'Reinstalar OpenClaw en este servidor. Esto restablecerá la instalación de OpenClaw pero conservará tus datos. Solo haz esto si es necesario.',
+        reinstallDescription:
+            'Reinstalar OpenClaw en este servidor. Esto restablecerá la instalación de OpenClaw pero conservará tus datos. Solo haz esto si es necesario.',
         versionsSearch: 'Buscar versiones...',
         versionsSearchCount: 'Buscar {{count}} versiones...',
         versionsEmpty: 'No se encontraron versiones',
@@ -1747,8 +1757,10 @@ const es: Translations = {
         subdomainInUse: '¡Este subdominio es usado por otro claw!',
         settingsDetails: 'Detalles',
         settingsDangerZone: 'Zona de peligro',
-        settingsDangerZoneDescription: 'Tu instancia será eliminada al final de tu período de facturación actual.',
-        settingsScheduledDeletionDescription: 'Programada para eliminación el {{date}}. Cancela para mantener tu instancia en ejecución y tu suscripción activa.',
+        settingsDangerZoneDescription:
+            'Tu instancia será eliminada al final de tu período de facturación actual.',
+        settingsScheduledDeletionDescription:
+            'Programada para eliminación el {{date}}. Cancela para mantener tu instancia en ejecución y tu suscripción activa.',
         settingsSave: 'Guardar',
         settingsSaving: 'Guardando...',
         settingsUpdated: 'Configuración actualizada.',

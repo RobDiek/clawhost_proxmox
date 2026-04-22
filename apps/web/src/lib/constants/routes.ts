@@ -4,7 +4,7 @@ const ROUTES = {
     HOME: PATHS.HOME,
     GO: `/${PATHS.GO}`,
     LOGIN: `/${PATHS.LOGIN}`,
-    CLAWS: `/${PATHS.CLAWS}`,
+    AGENTS: `/${PATHS.AGENTS}`,
     SSH_KEYS: `/${PATHS.SSH_KEYS}`,
     ACCOUNT: `/${PATHS.ACCOUNT}`,
     ADMIN: `/${PATHS.ADMIN}`,
@@ -12,8 +12,7 @@ const ROUTES = {
     TERMS: `/${PATHS.TERMS}`,
     PRIVACY: `/${PATHS.PRIVACY}`,
     CHANGELOG: `/${PATHS.CHANGELOG}`,
-    BLOG: `/${PATHS.BLOG}`,
-    BLOG_POST: `/${PATHS.BLOG}/:slug`,
+    BLOG_POST: '/:slug',
     AFFILIATE: `/${PATHS.AFFILIATE}`,
     AFFILIATE_PROGRAM: `/${PATHS.AFFILIATE_PROGRAM}`,
     COMPARE: `/${PATHS.COMPARE}`

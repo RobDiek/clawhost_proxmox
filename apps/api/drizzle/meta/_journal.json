@@ -232,6 +232,20 @@
       "when": 1776384000000,
       "tag": "0032_drop_model_column",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1776470400000,
+      "tag": "0033_add_agent_type",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1776556800000,
+      "tag": "0034_rename_claws_to_agents",
+      "breakpoints": true
     }
   ]
 }

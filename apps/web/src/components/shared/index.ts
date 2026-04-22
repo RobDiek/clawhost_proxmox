@@ -1,8 +1,8 @@
 import ActionButton from '@/components/shared/ActionButton'
-import ClawAvatar from '@/components/shared/ClawAvatar'
+import AgentAvatar from '@/components/shared/AgentAvatar'
 import ConfirmationDialog from '@/components/shared/ConfirmationDialog'
-import ClawMascot from '@/components/shared/ClawMascot'
-import ClawMascotOutline from '@/components/shared/ClawMascotOutline'
+import AgentMascot from '@/components/shared/AgentMascot'
+import AgentMascotOutline from '@/components/shared/AgentMascotOutline'
 import EmptyState from '@/components/shared/EmptyState'
 import ErrorState from '@/components/shared/ErrorState'
 import LanguageSelector from '@/components/shared/LanguageSelector'
@@ -18,9 +18,9 @@ import UserDropdown from '@/components/shared/UserDropdown'
 
 export {
     ActionButton,
-    ClawAvatar,
-    ClawMascot,
-    ClawMascotOutline,
+    AgentAvatar,
+    AgentMascot,
+    AgentMascotOutline,
     ConfirmationDialog,
     EmptyState,
     ErrorState,

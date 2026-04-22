@@ -27,7 +27,7 @@ const HeroButtons: FC<HeroButtonsProps> = ({
                 <Link
                     to={
                         user
-                            ? `${ROUTES.CLAWS}?deploy=true`
+                            ? `${ROUTES.AGENTS}?deploy=true`
                             : `${ROUTES.LOGIN}?deploy=true`
                     }
                 >

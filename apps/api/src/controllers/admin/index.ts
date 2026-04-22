@@ -1,8 +1,8 @@
 import getAdminAnalytics from '@/controllers/admin/getAdminAnalytics'
 import getAdminBilling from '@/controllers/admin/getAdminBilling'
-import getAdminClaws from '@/controllers/admin/getAdminClaws'
+import getAdminAgents from '@/controllers/admin/getAdminAgents'
 import getAdminEmails from '@/controllers/admin/getAdminEmails'
-import getAdminPendingClaws from '@/controllers/admin/getAdminPendingClaws'
+import getAdminPendingAgents from '@/controllers/admin/getAdminPendingAgents'
 import getAdminReferrals from '@/controllers/admin/getAdminReferrals'
 import getAdminSSHKeys from '@/controllers/admin/getAdminSSHKeys'
 import getAdminStats from '@/controllers/admin/getAdminStats'
@@ -15,9 +15,9 @@ import updateAdminUser from '@/controllers/admin/updateAdminUser'
 export {
     getAdminAnalytics,
     getAdminBilling,
-    getAdminClaws,
+    getAdminAgents,
     getAdminEmails,
-    getAdminPendingClaws,
+    getAdminPendingAgents,
     getAdminReferrals,
     getAdminSSHKeys,
     getAdminStats,

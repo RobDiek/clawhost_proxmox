@@ -1,20 +1,18 @@
 import type { OAuthCredential } from 'firebase/auth'
+import type { OAuthWindowResult, PendingConflict } from '@/ts/Interfaces'
 import type {
-    OAuthWindowResult,
-    PendingConflict
-} from '@/ts/Interfaces'
-import type {
+    agentType,
     authMethod,
     billingInterval,
-    clawFileType,
-    clawStatus,
+    agentFileType,
+    agentStatus,
     userRole
 } from '@openclaw/shared'
 import type {
     AFFILIATE_PERIOD,
     CHANGELOG_FEATURE_TYPE,
-    CLAW_AVATAR_SIZE,
-    CLAW_DETAIL_TABS,
+    AGENT_AVATAR_SIZE,
+    AGENT_DETAIL_TABS,
     COMPARE_FEATURE_STATUS,
     COPIED_FIELD_TYPE,
     LOGIN_LOADING_METHOD,
@@ -28,9 +26,11 @@ import type {
     LANGUAGES
 } from '@/lib/constants'
 
+export type AgentType = (typeof agentType)[keyof typeof agentType]
+
 export type ToastType = (typeof TOAST_TYPE)[keyof typeof TOAST_TYPE]
 
-export type ClawStatus = (typeof clawStatus)[keyof typeof clawStatus]
+export type AgentStatus = (typeof agentStatus)[keyof typeof agentStatus]
 
 export type CopiedFieldType =
     | (typeof COPIED_FIELD_TYPE)[keyof typeof COPIED_FIELD_TYPE]
@@ -45,11 +45,10 @@ export type AuthMethod = (typeof authMethod)[keyof typeof authMethod]
 
 export type OAuthProvider = (typeof OAUTH_PROVIDER)[keyof typeof OAUTH_PROVIDER]
 
-export type ClawDetailTab =
-    (typeof CLAW_DETAIL_TABS)[keyof typeof CLAW_DETAIL_TABS]
+export type AgentDetailTab =
+    (typeof AGENT_DETAIL_TABS)[keyof typeof AGENT_DETAIL_TABS]
 
-export type PreviewStatus =
-    (typeof PREVIEW_STATUS)[keyof typeof PREVIEW_STATUS]
+export type PreviewStatus = (typeof PREVIEW_STATUS)[keyof typeof PREVIEW_STATUS]
 
 export type CompareFeatureStatus =
     (typeof COMPARE_FEATURE_STATUS)[keyof typeof COMPARE_FEATURE_STATUS]
@@ -57,8 +56,8 @@ export type CompareFeatureStatus =
 export type BillingInterval =
     (typeof billingInterval)[keyof typeof billingInterval]
 
-export type ClawAvatarSize =
-    (typeof CLAW_AVATAR_SIZE)[keyof typeof CLAW_AVATAR_SIZE]
+export type AgentAvatarSize =
+    (typeof AGENT_AVATAR_SIZE)[keyof typeof AGENT_AVATAR_SIZE]
 
 export type LoginLoadingMethod =
     | (typeof LOGIN_LOADING_METHOD)[keyof typeof LOGIN_LOADING_METHOD]
@@ -68,7 +67,7 @@ export type ThemeMode = (typeof THEMES)[keyof typeof THEMES]
 
 export type Language = (typeof LANGUAGES)[keyof typeof LANGUAGES]
 
-export type ClawFileType = (typeof clawFileType)[keyof typeof clawFileType]
+export type AgentFileType = (typeof agentFileType)[keyof typeof agentFileType]
 
 export type Product = (typeof PRODUCT)[keyof typeof PRODUCT]
 

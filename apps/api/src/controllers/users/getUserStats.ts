@@ -2,7 +2,7 @@ import type { AuthenticatedContext } from '@/ts/Types'
 
 import { eq, count } from 'drizzle-orm'
 import { db } from '@/db'
-import { claws, sshKeys, users } from '@/db/schema'
+import { agents, sshKeys, users } from '@/db/schema'
 import { orders } from '@/lib/polar'
 import { ok } from '@/lib/response'
 import { t } from '@openclaw/i18n'
@@ -17,8 +17,8 @@ const getUserStats = withErrorHandler(
     const [clawResult, sshKeyResult, userResult] = await Promise.all([
         db
             .select({ count: count() })
-            .from(claws)
-            .where(eq(claws.userId, userId)),
+            .from(agents)
+            .where(eq(agents.userId, userId)),
         db
             .select({ count: count() })
             .from(sshKeys)

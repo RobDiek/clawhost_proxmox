@@ -3,9 +3,9 @@ import type { SubscriptionWebhookData } from '@/ts/Interfaces'
 
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { claws } from '@/db/schema'
+import { agents } from '@/db/schema'
 import { getEnvironment, PROD } from '@/lib/environment'
-import { provisionClaw } from '@/controllers/agents'
+import { provisionAgent } from '@/controllers/agents'
 import { subscriptions } from '@/lib/polar'
 import trackReferral from '@/controllers/webhooks/polar/trackReferral'
 
@@ -18,19 +18,19 @@ const onSubscriptionActive = async (
 
     if (eventEnv !== currentEnv) return
 
-    const existingClaw = await db
-        .select({ id: claws.id })
-        .from(claws)
-        .where(eq(claws.polarSubscriptionId, data.id))
+    const existingAgent = await db
+        .select({ id: agents.id })
+        .from(agents)
+        .where(eq(agents.polarSubscriptionId, data.id))
         .limit(1)
 
-    if (existingClaw[0]) return
+    if (existingAgent[0]) return
 
-    const pendingClawId = data.metadata?.pendingClawId
-    if (!pendingClawId) return
+    const pendingAgentId = data.metadata?.pendingAgentId
+    if (!pendingAgentId) return
 
-    provisionClaw({
-        pendingClawId,
+    provisionAgent({
+        pendingAgentId,
         subscriptionId: data.id,
         customerId: data.customerId,
         productId: data.productId

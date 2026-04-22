@@ -59,7 +59,7 @@ const RESOURCES = [
         color: '#8b5cf6'
     },
     {
-        key: 'claws' as keyof AdminAnalyticsResponse,
+        key: 'agents' as keyof AdminAnalyticsResponse,
         label: 'admin.clawsTab' as const,
         icon: HardDrivesIcon,
         color: '#3b82f6'
@@ -77,7 +77,7 @@ const RESOURCES = [
         color: '#10b981'
     },
     {
-        key: 'pendingClaws' as keyof AdminAnalyticsResponse,
+        key: 'pendingAgents' as keyof AdminAnalyticsResponse,
         label: 'admin.pendingClawsTab' as const,
         icon: HourglassIcon,
         color: '#f97316'

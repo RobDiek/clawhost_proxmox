@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from 'ws'
 import { Client } from 'ssh2'
 import { verifyToken } from '@/services/firebase'
 import hostKeyStore from '@/services/hostKeyStore'
-import { findUserClaw, isAdmin } from '@/controllers/agents/helpers'
+import { findUserAgent, isAdmin } from '@/controllers/agents/helpers'
 import { apiPaths } from '@openclaw/shared'
 
 const TERMINAL_PATTERN = new RegExp(
@@ -27,7 +27,7 @@ const setupTerminalSocket = (server: Server) => {
                 return
             }
 
-            const clawId = match[1]
+            const agentId = match[1]
             const token = url.searchParams.get('token')
 
             if (!token) {
@@ -43,15 +43,15 @@ const setupTerminalSocket = (server: Server) => {
             }
 
             const admin = await isAdmin(decoded.uid)
-            const claw = await findUserClaw(decoded.uid, clawId, admin)
+            const agent = await findUserAgent(decoded.uid, agentId, admin)
 
-            if (!claw || !claw.ip || !claw.rootPassword) {
+            if (!agent || !agent.ip || !agent.rootPassword) {
                 socket.destroy()
                 return
             }
 
             wss.handleUpgrade(request, socket, head, (ws) => {
-                handleConnection(ws, claw.ip!, claw.rootPassword!)
+                handleConnection(ws, agent.ip!, agent.rootPassword!)
             })
         } catch {
             socket.destroy()
@@ -85,7 +85,8 @@ const handleConnection = (ws: WebSocket, ip: string, password: string) => {
                 }
 
                 stream.on('data', (data: Buffer) => {
-                    if (ws.readyState === WebSocket.OPEN) ws.send(data.toString('utf-8'))
+                    if (ws.readyState === WebSocket.OPEN)
+                        ws.send(data.toString('utf-8'))
                 })
 
                 stream.on('close', () => {

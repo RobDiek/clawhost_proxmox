@@ -15,18 +15,18 @@ const getCompareData = (): CompareData => ({
             highlighted: false
         },
         {
-            id: 'simpleclaw',
-            nameKey: 'compare.competitorSimpleClaw',
+            id: 'simpleagent',
+            nameKey: 'compare.competitorSimpleAgent',
             highlighted: false
         },
         {
-            id: 'myclawai',
-            nameKey: 'compare.competitorMyClawAi',
+            id: 'myagentai',
+            nameKey: 'compare.competitorMyAgentAi',
             highlighted: false
         },
         {
-            id: 'quickclaw',
-            nameKey: 'compare.competitorQuickClaw',
+            id: 'quickagent',
+            nameKey: 'compare.competitorQuickAgent',
             highlighted: false
         }
     ],
@@ -46,15 +46,15 @@ const getCompareData = (): CompareData => ({
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.dedicatedVps'
                         },
-                        simpleclaw: {
+                        simpleagent: {
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.sharedContainers'
                         },
-                        myclawai: {
+                        myagentai: {
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.isolatedContainers'
                         },
-                        quickclaw: {
+                        quickagent: {
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.cloudWorkspaces'
                         }
@@ -71,15 +71,15 @@ const getCompareData = (): CompareData => ({
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleProvider'
                         },
-                        simpleclaw: {
+                        simpleagent: {
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleProvider'
                         },
-                        myclawai: {
+                        myagentai: {
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleProvider'
                         },
-                        quickclaw: {
+                        quickagent: {
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleProvider'
                         }
@@ -96,15 +96,15 @@ const getCompareData = (): CompareData => ({
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.fullyDedicated'
                         },
-                        simpleclaw: {
+                        simpleagent: {
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.shared'
                         },
-                        myclawai: {
+                        myagentai: {
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.shared'
                         },
-                        quickclaw: {
+                        quickagent: {
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.shared'
                         }
@@ -121,9 +121,9 @@ const getCompareData = (): CompareData => ({
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.sshOnRequest'
                         },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
@@ -137,15 +137,15 @@ const getCompareData = (): CompareData => ({
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.fourLocations'
                         },
-                        simpleclaw: {
+                        simpleagent: {
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.limitedLocations'
                         },
-                        myclawai: {
+                        myagentai: {
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.limitedLocations'
                         },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
@@ -153,9 +153,9 @@ const getCompareData = (): CompareData => ({
                     values: {
                         clawhost: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.YES },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
@@ -163,9 +163,9 @@ const getCompareData = (): CompareData => ({
                     values: {
                         clawhost: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 }
             ]
@@ -185,15 +185,15 @@ const getCompareData = (): CompareData => ({
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.nineteenMonth'
                         },
-                        simpleclaw: {
+                        simpleagent: {
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.aboutFortyFourMonth'
                         },
-                        myclawai: {
+                        myagentai: {
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.fromNineteenMonth'
                         },
-                        quickclaw: {
+                        quickagent: {
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.creditBased'
                         }
@@ -210,15 +210,15 @@ const getCompareData = (): CompareData => ({
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.clearSpecsPricing'
                         },
-                        simpleclaw: {
+                        simpleagent: {
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.unclearPricing'
                         },
-                        myclawai: {
+                        myagentai: {
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.fixedTiers'
                         },
-                        quickclaw: {
+                        quickagent: {
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.creditBased'
                         }
@@ -229,9 +229,9 @@ const getCompareData = (): CompareData => ({
                     values: {
                         clawhost: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 }
             ]
@@ -251,15 +251,15 @@ const getCompareData = (): CompareData => ({
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.thirtySeconds'
                         },
-                        simpleclaw: {
+                        simpleagent: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.underOneMinute'
                         },
-                        myclawai: {
+                        myagentai: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.thirtySeconds'
                         },
-                        quickclaw: {
+                        quickagent: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.instant'
                         }
@@ -270,9 +270,9 @@ const getCompareData = (): CompareData => ({
                     values: {
                         clawhost: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.YES },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.YES },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.YES },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.YES }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.YES },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.YES },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.YES }
                     }
                 }
             ]
@@ -292,15 +292,15 @@ const getCompareData = (): CompareData => ({
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleInstance'
                         },
-                        simpleclaw: {
+                        simpleagent: {
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleInstance'
                         },
-                        myclawai: {
+                        myagentai: {
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleInstance'
                         },
-                        quickclaw: {
+                        quickagent: {
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.singleInstance'
                         }
@@ -311,9 +311,9 @@ const getCompareData = (): CompareData => ({
                     values: {
                         clawhost: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
@@ -324,9 +324,9 @@ const getCompareData = (): CompareData => ({
                             detailKey: 'compare.builtInTerminal'
                         },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 }
             ]
@@ -340,9 +340,9 @@ const getCompareData = (): CompareData => ({
                     values: {
                         clawhost: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.YES },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.PARTIAL },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.PARTIAL },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
@@ -356,9 +356,9 @@ const getCompareData = (): CompareData => ({
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.serverTransfer'
                         },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
@@ -366,12 +366,12 @@ const getCompareData = (): CompareData => ({
                     values: {
                         clawhost: { status: COMPARE_FEATURE_STATUS.NO },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: {
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.dailyBackups'
                         },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
@@ -382,12 +382,12 @@ const getCompareData = (): CompareData => ({
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.managed'
                         },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: {
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.managed'
                         },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
@@ -395,9 +395,9 @@ const getCompareData = (): CompareData => ({
                     values: {
                         clawhost: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.YES },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.YES },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.YES }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.YES },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.YES }
                     }
                 },
                 {
@@ -405,9 +405,9 @@ const getCompareData = (): CompareData => ({
                     values: {
                         clawhost: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 }
             ]
@@ -421,12 +421,12 @@ const getCompareData = (): CompareData => ({
                     values: {
                         clawhost: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.YES },
-                        simpleclaw: {
+                        simpleagent: {
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.manual'
                         },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.YES },
-                        quickclaw: {
+                        myagentai: { status: COMPARE_FEATURE_STATUS.YES },
+                        quickagent: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.appStore'
                         }
@@ -440,9 +440,9 @@ const getCompareData = (): CompareData => ({
                             detailKey: 'compare.liveMonitoring'
                         },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
@@ -453,9 +453,9 @@ const getCompareData = (): CompareData => ({
                             detailKey: 'compare.liveLogs'
                         },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
@@ -466,9 +466,9 @@ const getCompareData = (): CompareData => ({
                             detailKey: 'compare.oneClickRepair'
                         },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 }
             ]
@@ -488,15 +488,15 @@ const getCompareData = (): CompareData => ({
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.humanSupport'
                         },
-                        simpleclaw: {
+                        simpleagent: {
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.communityOnly'
                         },
-                        myclawai: {
+                        myagentai: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.prioritySupport'
                         },
-                        quickclaw: {
+                        quickagent: {
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.appSupport'
                         }
@@ -513,15 +513,15 @@ const getCompareData = (): CompareData => ({
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.englishOnly'
                         },
-                        simpleclaw: {
+                        simpleagent: {
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.englishOnly'
                         },
-                        myclawai: {
+                        myagentai: {
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.englishOnly'
                         },
-                        quickclaw: {
+                        quickagent: {
                             status: COMPARE_FEATURE_STATUS.NO,
                             detailKey: 'compare.englishOnly'
                         }
@@ -532,9 +532,9 @@ const getCompareData = (): CompareData => ({
                     values: {
                         clawhost: { status: COMPARE_FEATURE_STATUS.YES },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 },
                 {
@@ -545,9 +545,9 @@ const getCompareData = (): CompareData => ({
                             detailKey: 'compare.comingSoon'
                         },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: {
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickagent: {
                             status: COMPARE_FEATURE_STATUS.YES,
                             detailKey: 'compare.iosMacOs'
                         }
@@ -561,9 +561,9 @@ const getCompareData = (): CompareData => ({
                             detailKey: 'compare.comingSoon'
                         },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: {
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickagent: {
                             status: COMPARE_FEATURE_STATUS.PARTIAL,
                             detailKey: 'compare.macOsOnly'
                         }
@@ -577,9 +577,9 @@ const getCompareData = (): CompareData => ({
                             detailKey: 'compare.comingSoon'
                         },
                         lobsterfarm: { status: COMPARE_FEATURE_STATUS.NO },
-                        simpleclaw: { status: COMPARE_FEATURE_STATUS.NO },
-                        myclawai: { status: COMPARE_FEATURE_STATUS.NO },
-                        quickclaw: { status: COMPARE_FEATURE_STATUS.NO }
+                        simpleagent: { status: COMPARE_FEATURE_STATUS.NO },
+                        myagentai: { status: COMPARE_FEATURE_STATUS.NO },
+                        quickagent: { status: COMPARE_FEATURE_STATUS.NO }
                     }
                 }
             ]

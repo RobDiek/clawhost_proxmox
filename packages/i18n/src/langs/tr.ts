@@ -238,7 +238,6 @@ const tr: Translations = {
         features: 'Özellikler',
         pricing: 'Fiyatlandırma',
         faq: 'Sorular',
-        blog: 'Blog',
         changelog: 'Değişiklik Günlüğü',
         compare: 'Tam Karşılaştırma',
         legalAndMore: 'Diğer',
@@ -458,8 +457,10 @@ const tr: Translations = {
         failedToRotateGatewayToken: 'Ağ geçidi jetonu değiştirilemedi!',
         sshKeyUpdated: 'SSH anahtarı başarıyla güncellendi.',
         failedToUpdateSSHKey: 'SSH anahtarı güncellenemedi!',
-        invalidPassword: 'Şifre {{min}} ile {{max}} karakter arasında olmalıdır!',
-        invalidGatewayToken: 'Ağ geçidi jetonu {{min}} ile {{max}} karakter arasında olmalıdır!',
+        invalidPassword:
+            'Şifre {{min}} ile {{max}} karakter arasında olmalıdır!',
+        invalidGatewayToken:
+            'Ağ geçidi jetonu {{min}} ile {{max}} karakter arasında olmalıdır!',
         enablePreviewSuccess: 'Önizleme modu başarıyla etkinleştirildi.',
         failedToEnablePreview: 'Önizleme modu etkinleştirilemedi!',
         logsFetched: 'Günlükler başarıyla getirildi.',
@@ -688,8 +689,10 @@ const tr: Translations = {
         emailNotEditable: 'E-posta düzenlenemez. Destekle iletişime geçin.',
         profileUpdatedSuccessfully: 'Profil başarıyla güncellendi.',
         billingAndSubscription: 'Faturalama ve Abonelik',
-        billingAndSubscriptionDescription: 'Ödeme yöntemlerini, abonelikleri ve faturaları yönetin.',
-        viewBillingHistory: 'Ödeme geçmişinizi, faturalarınızı ve aboneliklerinizi görüntüleyin.',
+        billingAndSubscriptionDescription:
+            'Ödeme yöntemlerini, abonelikleri ve faturaları yönetin.',
+        viewBillingHistory:
+            'Ödeme geçmişinizi, faturalarınızı ve aboneliklerinizi görüntüleyin.',
         connectedAccounts: 'Bağlı Hesaplar',
         connectedAccountsDescription:
             'Hesabınıza bağlı giriş yöntemlerini yönetin.',
@@ -754,8 +757,6 @@ const tr: Translations = {
         featureSupport: 'Öncelikli Destek',
         featureCloud: 'Tüm Bulut Özellikleri, Yerel Olarak',
         whatsIncluded: 'Neler dahil',
-        permanentNote:
-            'Lisanslar kalıcıdır ve geri alınamaz. Satın aldıktan sonra sonsuza kadar sizindir.',
         gateTitle: 'Lisans Gerekli',
         gateDescription:
             'OpenClaw örneklerini yerel olarak dağıtmak ve yönetmek için ClawHost Go Lisansına ihtiyacınız var.'
@@ -849,7 +850,8 @@ const tr: Translations = {
             'Ödemeniz başarısız oldu. 14 gün içinde çözülmezse, bu claw kalıcı olarak silinecektir.',
         updatePayment: 'Ödemeyi Güncelle',
         cancelDeletion: 'Silmeyi İptal Et',
-        cancelDeletionConfirmation: 'Emin misiniz? Aboneliğiniz aktif kalacak ve ücretlendirilmeye devam edeceksiniz. Örnek çalışmaya devam edecek.',
+        cancelDeletionConfirmation:
+            'Emin misiniz? Aboneliğiniz aktif kalacak ve ücretlendirilmeye devam edeceksiniz. Örnek çalışmaya devam edecek.',
         deletionCancelled: 'Silme iptal edildi.',
         scheduleDeletion: 'Silme Planla',
         resumeCheckout: 'Ödemeye Devam Et',
@@ -946,7 +948,8 @@ const tr: Translations = {
             awaitingPayment: 'Ödeme Bekleniyor',
             unknown: 'Bilinmiyor',
             checking: 'Kontrol Ediliyor'
-        }
+        },
+        tabNotAvailableForAgent: 'Bu ajan türü için mevcut değil'
     },
     createClaw: {
         title: 'OpenClaw Dağıt',
@@ -956,6 +959,9 @@ const tr: Translations = {
         clawNamePlaceholder: 'örn. cozy-panda',
         clawNameInvalidChars: 'Yalnızca harf, rakam ve tire kullanılabilir!',
         autoGenerateNameHint: 'Otomatik ad oluşturmak için boş bırakın.',
+        agentType: 'Ajan Türü',
+        agentTypeOpenClawDescription: 'Ağ geçidi odaklı AI ajan platformu',
+        agentTypeHermesDescription: 'Kendini geliştiren AI ajan çatısı',
         location: 'Konum',
         locationUnavailable: 'Kullanılamaz',
         locationUnavailableForPlan: 'Kullanılamaz',
@@ -1285,16 +1291,7 @@ const tr: Translations = {
         demoStatus: '{{running}} çalışıyor, {{total}} toplam'
     },
     blog: {
-        title: 'Blog',
-        description:
-            'OpenClaw ve kendi kendine barındırılan altyapı hakkında rehberler, eğitimler ve haberler.',
         readingTime: '{{minutes}} dk okuma',
-        publishedOn: '{{date}} tarihinde yayınlandı',
-        writtenBy: '{{author}} tarafından',
-        backToBlog: "Blog'a Dön",
-        noPosts: 'Henüz Yazı Yok',
-        noPostsDescription:
-            'Blog yazıları yakında gelecek. Daha sonra tekrar kontrol edin.',
         ctaTitle: "OpenClaw'u Tek Tıkla Dağıtın",
         ctaDescription:
             "OpenClaw önceden yüklü özel bir sunucu edinin. Tam root erişimi, küresel konumlar ve dakikalar içinde hazır. Her zaman sahibi sizsiniz. $25'tan başlayan fiyatlar.",
@@ -1582,27 +1579,38 @@ const tr: Translations = {
             'Örnek yapılandırmayı bitirdiğinde kullanılabilir.',
         tabDisabledAwaitingPayment: 'Ödeme işlendikten sonra kullanılabilir.',
         creatingTitle: 'Ajanınız kuruluyor',
-        creatingDescription: 'Bu genellikle bir iki dakika sürer. Bu sayfayı güvenle kapatabilir ve daha sonra geri dönebilirsiniz.',
+        creatingDescription:
+            'Bu genellikle bir iki dakika sürer. Bu sayfayı güvenle kapatabilir ve daha sonra geri dönebilirsiniz.',
         configuringTitle: 'OpenClaw kuruluyor',
-        configuringDescription: 'Bu genellikle bir iki dakika sürer. Bu sayfayı güvenle kapatabilir ve daha sonra geri dönebilirsiniz.',
+        configuringDescription:
+            'Bu genellikle bir iki dakika sürer. Bu sayfayı güvenle kapatabilir ve daha sonra geri dönebilirsiniz.',
         awaitingPaymentTitle: 'Ödeme bekleniyor',
-        awaitingPaymentDescription: 'Ajanınızın sağlanmasını başlatmak için ödemeyi tamamlayın. Bu rezervasyon bir saat içinde sona erer.',
+        awaitingPaymentDescription:
+            'Ajanınızın sağlanmasını başlatmak için ödemeyi tamamlayın. Bu rezervasyon bir saat içinde sona erer.',
         awaitingPaymentAction: 'Ödemeyi tamamla',
         loadingTip1:
             'Tek bir OpenClaw içinde birden fazla ajan çalıştırabileceğinizi biliyor muydunuz?',
         loadingTip2: "OpenClaw'un açık kaynak olduğunu biliyor muydunuz?",
         loadingTip3:
             'ClawHost, tek tıkla OpenClaw barındırmaya izin veren ilk projedir.',
-        loadingTip4: 'Ajanınıza SSH veya yerleşik terminal aracılığıyla erişebilirsiniz.',
+        loadingTip4:
+            'Ajanınıza SSH veya yerleşik terminal aracılığıyla erişebilirsiniz.',
         loadingTip5: 'Ajanınız otomatik olarak kendi alt alan adını alır.',
-        loadingTip6: 'Ajanınızın simgesini ve adını istediğiniz zaman Ayarlar\'dan özelleştirebilirsiniz.',
+        loadingTip6:
+            "Ajanınızın simgesini ve adını istediğiniz zaman Ayarlar'dan özelleştirebilirsiniz.",
         loadingTip7: 'Ajanınıza giden tüm trafik TLS ile şifrelenir.',
-        loadingTip8: 'İzleme sekmesinde CPU, bellek ve disk kullanımını izleyebilirsiniz.',
-        loadingTip9: 'Yardıma mı ihtiyacınız var? Discord\'daki topluluğumuza katılın.',
-        loadingTip10: 'Tüm ajan yapılandırmanızı yedek olarak dışa aktarabilirsiniz.',
-        loadingTip11: 'SSH anahtarları yeniden yükleme yapmadan çalışan örneklere uygulanabilir.',
-        loadingTip12: 'Güvenlik sekmesinden root şifrenizi ve ağ geçidi jetonunuzu değiştirebilirsiniz.',
-        loadingTip13: 'ClawHost, Avrupa ve ABD genelinde birden fazla bölgede sunucuları destekler.',
+        loadingTip8:
+            'İzleme sekmesinde CPU, bellek ve disk kullanımını izleyebilirsiniz.',
+        loadingTip9:
+            "Yardıma mı ihtiyacınız var? Discord'daki topluluğumuza katılın.",
+        loadingTip10:
+            'Tüm ajan yapılandırmanızı yedek olarak dışa aktarabilirsiniz.',
+        loadingTip11:
+            'SSH anahtarları yeniden yükleme yapmadan çalışan örneklere uygulanabilir.',
+        loadingTip12:
+            'Güvenlik sekmesinden root şifrenizi ve ağ geçidi jetonunuzu değiştirebilirsiniz.',
+        loadingTip13:
+            'ClawHost, Avrupa ve ABD genelinde birden fazla bölgede sunucuları destekler.',
         tabSettings: 'Ayarlar',
         featureVersionUnsupported:
             '{{feature}} {{version}} üzerinde desteklenmiyor',
@@ -1617,7 +1625,8 @@ const tr: Translations = {
         tabVolumes: 'Depolama',
         tabSecurity: 'Güvenlik',
         securitySSHKey: 'SSH Anahtarı',
-        securitySSHKeyHint: 'Çalışan örneğe uygulanır ve yeniden yüklerken kullanılır.',
+        securitySSHKeyHint:
+            'Çalışan örneğe uygulanır ve yeniden yüklerken kullanılır.',
         securityPassword: 'Root Şifresi',
         securityGatewayToken: 'Ağ Geçidi Jetonu',
         securityHostKey: 'Ana Bilgisayar Anahtar Parmak İzi',
@@ -1664,7 +1673,8 @@ const tr: Translations = {
         billingEmpty: 'No billing history for this instance.',
         tabServer: 'Sunucu',
         serverIpAddress: 'IP Adresi',
-        reinstallDescription: 'Bu sunucuda OpenClaw\'u yeniden kurun. Bu, OpenClaw kurulumunu sıfırlar ancak verilerinizi korur. Bunu yalnızca gerekli olduğunda yapın.',
+        reinstallDescription:
+            "Bu sunucuda OpenClaw'u yeniden kurun. Bu, OpenClaw kurulumunu sıfırlar ancak verilerinizi korur. Bunu yalnızca gerekli olduğunda yapın.",
         versionsSearch: 'Sürüm ara...',
         versionsSearchCount: '{{count}} sürüm ara...',
         versionsEmpty: 'Sürüm bulunamadı',
@@ -1712,8 +1722,10 @@ const tr: Translations = {
             'Bu alt alan adı başka bir claw tarafından kullanılıyor!',
         settingsDetails: 'Detaylar',
         settingsDangerZone: 'Tehlikeli Bölge',
-        settingsDangerZoneDescription: 'Örneğiniz mevcut fatura döneminizin sonunda silinecektir.',
-        settingsScheduledDeletionDescription: '{{date}} tarihinde silinmek üzere planlandı. Örneğinizi çalışır ve aboneliğinizi aktif tutmak için iptal edin.',
+        settingsDangerZoneDescription:
+            'Örneğiniz mevcut fatura döneminizin sonunda silinecektir.',
+        settingsScheduledDeletionDescription:
+            '{{date}} tarihinde silinmek üzere planlandı. Örneğinizi çalışır ve aboneliğinizi aktif tutmak için iptal edin.',
         settingsSave: 'Kaydet',
         settingsSaving: 'Kaydediliyor...',
         settingsUpdated: 'Ayarlar güncellendi.',

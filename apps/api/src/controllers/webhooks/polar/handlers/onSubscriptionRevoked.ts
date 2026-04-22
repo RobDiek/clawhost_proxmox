@@ -1,69 +1,69 @@
 import type { SubscriptionWebhookData } from '@/ts/Interfaces'
 
 import { eq } from 'drizzle-orm'
-import { clawStatus } from '@openclaw/shared'
+import { agentStatus } from '@openclaw/shared'
 import { db } from '@/db'
-import { claws } from '@/db/schema'
+import { agents } from '@/db/schema'
 import { subscriptionStatus } from '@/lib/constants'
-import { cleanupClaw } from '@/controllers/agents/helpers'
+import { cleanupAgent } from '@/controllers/agents/helpers'
 import { getProvider } from '@/services/provider'
 
 const onSubscriptionRevoked = async (data: SubscriptionWebhookData) => {
-    const claw = await db
+    const agent = await db
         .select({
-            id: claws.id,
-            providerServerId: claws.providerServerId,
-            subdomain: claws.subdomain,
-            ip: claws.ip,
-            deletionScheduledAt: claws.deletionScheduledAt
+            id: agents.id,
+            providerServerId: agents.providerServerId,
+            subdomain: agents.subdomain,
+            ip: agents.ip,
+            deletionScheduledAt: agents.deletionScheduledAt
         })
-        .from(claws)
-        .where(eq(claws.polarSubscriptionId, data.id))
+        .from(agents)
+        .where(eq(agents.polarSubscriptionId, data.id))
         .limit(1)
 
-    if (!claw[0]) return
+    if (!agent[0]) return
 
-    if (claw[0].deletionScheduledAt) {
-        cleanupClaw(claw[0].id, {
-            providerServerId: claw[0].providerServerId,
-            subdomain: claw[0].subdomain,
-            ip: claw[0].ip
+    if (agent[0].deletionScheduledAt) {
+        cleanupAgent(agent[0].id, {
+            providerServerId: agent[0].providerServerId,
+            subdomain: agent[0].subdomain,
+            ip: agent[0].ip
         }).catch((error) => {
             console.error('onSubscriptionRevoked', error)
-            db.update(claws)
+            db.update(agents)
                 .set({
                     subscriptionStatus: subscriptionStatus.revoked,
-                    status: clawStatus.stopped
+                    status: agentStatus.stopped
                 })
-                .where(eq(claws.id, claw[0].id))
+                .where(eq(agents.id, agent[0].id))
                 .catch(() => {})
         })
         return
     }
 
-    if (claw[0].providerServerId) {
+    if (agent[0].providerServerId) {
         const provider = getProvider()
         Promise.all([
             db
-                .update(claws)
+                .update(agents)
                 .set({
                     subscriptionStatus: subscriptionStatus.revoked
                 })
-                .where(eq(claws.id, claw[0].id)),
+                .where(eq(agents.id, agent[0].id)),
             provider
-                .stopServer(claw[0].providerServerId)
+                .stopServer(agent[0].providerServerId)
                 .then(() =>
                     db
-                        .update(claws)
-                        .set({ status: clawStatus.stopped })
-                        .where(eq(claws.id, claw[0].id))
+                        .update(agents)
+                        .set({ status: agentStatus.stopped })
+                        .where(eq(agents.id, agent[0].id))
                 )
                 .catch((error) => console.error('onSubscriptionRevoked', error))
         ]).catch(() => {})
     } else {
-        db.update(claws)
+        db.update(agents)
             .set({ subscriptionStatus: subscriptionStatus.revoked })
-            .where(eq(claws.id, claw[0].id))
+            .where(eq(agents.id, agent[0].id))
             .catch(() => {})
     }
 }

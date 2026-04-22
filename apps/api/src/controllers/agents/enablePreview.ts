@@ -1,17 +1,19 @@
-import { withClaw, DOMAIN } from '@/controllers/agents/helpers'
+import { withAgent, getAgentConfig, DOMAIN } from '@/controllers/agents/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 import executeSSH from '@/services/ssh'
 
-const enablePreview = withClaw({ requireSSH: 'api.failedToEnablePreview' })(
-    async (c, claw) => {
+const enablePreview = withAgent({ requireSSH: 'api.failedToEnablePreview' })(
+    async (c, agent) => {
         try {
             const checkOnly = c.req.query('check') === 'true'
 
+            const { nginxSite } = getAgentConfig(agent.agentType)
+
             const checkResult = await executeSSH(
-                claw.ip!,
-                claw.rootPassword!,
-                "grep -q 'proxy_hide_header Content-Security-Policy' /etc/nginx/sites-available/openclaw && grep -q 'localhost' /etc/nginx/sites-available/openclaw && echo 'ENABLED' || echo 'DISABLED'"
+                agent.ip!,
+                agent.rootPassword!,
+                `grep -q 'proxy_hide_header Content-Security-Policy' /etc/nginx/sites-available/${nginxSite} && grep -q 'localhost' /etc/nginx/sites-available/${nginxSite} && echo 'ENABLED' || echo 'DISABLED'`
             )
 
             const alreadyEnabled = checkResult.trim() === 'ENABLED'
@@ -28,12 +30,12 @@ const enablePreview = withClaw({ requireSSH: 'api.failedToEnablePreview' })(
                 .join('\\n')
 
             const command = [
-                "sed -i '/proxy_hide_header Content-Security-Policy/d; /proxy_hide_header X-Frame-Options/d; /frame-ancestors/d' /etc/nginx/sites-available/openclaw",
-                `sed -i 's|proxy_send_timeout 86400;|proxy_send_timeout 86400;\\n${patchLines}|g' /etc/nginx/sites-available/openclaw`,
+                `sed -i '/proxy_hide_header Content-Security-Policy/d; /proxy_hide_header X-Frame-Options/d; /frame-ancestors/d' /etc/nginx/sites-available/${nginxSite}`,
+                `sed -i 's|proxy_send_timeout 86400;|proxy_send_timeout 86400;\\n${patchLines}|g' /etc/nginx/sites-available/${nginxSite}`,
                 'nginx -t && systemctl reload nginx'
             ].join(' && ')
 
-            await executeSSH(claw.ip!, claw.rootPassword!, command)
+            await executeSSH(agent.ip!, agent.rootPassword!, command)
 
             return ok(c, { enabled: true }, t('api.enablePreviewSuccess'))
         } catch (error) {

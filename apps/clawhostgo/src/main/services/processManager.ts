@@ -7,16 +7,16 @@ import { t } from '@openclaw/i18n'
 
 const childRefs = new Map<string, number>()
 
-const getPidPath = (clawDir: string): string => {
-    return path.join(clawDir, 'gateway.pid')
+const getPidPath = (agentDir: string): string => {
+    return path.join(agentDir, 'gateway.pid')
 }
 
-const writePid = (clawDir: string, pid: number): void => {
-    fs.writeFileSync(getPidPath(clawDir), String(pid))
+const writePid = (agentDir: string, pid: number): void => {
+    fs.writeFileSync(getPidPath(agentDir), String(pid))
 }
 
-const readPid = (clawDir: string): number | null => {
-    const pidPath = getPidPath(clawDir)
+const readPid = (agentDir: string): number | null => {
+    const pidPath = getPidPath(agentDir)
     if (!fs.existsSync(pidPath)) return null
     try {
         const pid = parseInt(fs.readFileSync(pidPath, 'utf-8').trim(), 10)
@@ -26,8 +26,8 @@ const readPid = (clawDir: string): number | null => {
     }
 }
 
-const removePid = (clawDir: string): void => {
-    const pidPath = getPidPath(clawDir)
+const removePid = (agentDir: string): void => {
+    const pidPath = getPidPath(agentDir)
     try {
         if (fs.existsSync(pidPath)) fs.unlinkSync(pidPath)
     } catch {}
@@ -77,32 +77,32 @@ const killProcessOnPort = (port: number): void => {
 }
 
 const startGateway = async (
-    clawId: string,
-    clawDir: string,
+    agentId: string,
+    agentDir: string,
     port: number,
     version: string,
     token: string
 ): Promise<void> => {
-    if (isRunning(clawId)) {
-        await stopGateway(clawId)
+    if (isRunning(agentId)) {
+        await stopGateway(agentId)
     }
 
     killProcessOnPort(port)
 
-    const clawBin = path.join(clawDir, 'node_modules', '.bin', 'openclaw')
+    const agentBin = path.join(agentDir, 'node_modules', '.bin', 'openclaw')
     const versionDir = configStore.getVersionDir(version)
     const sharedBin = path.join(versionDir, 'node_modules', '.bin', 'openclaw')
-    const openclawBin = fs.existsSync(clawBin) ? clawBin : sharedBin
+    const openclawBin = fs.existsSync(agentBin) ? agentBin : sharedBin
 
     if (!fs.existsSync(openclawBin)) {
         throw new Error(t('go.versionNotInstalled', { version }))
     }
 
     const nodePath = nodeBinary.getNodeBinaryPath()
-    const envPath = path.join(clawDir, '.env')
-    const logPath = path.join(clawDir, 'gateway.log')
-    const clawEnv = parseEnvFile(envPath)
-    const configPath = path.join(clawDir, 'openclaw.json')
+    const envPath = path.join(agentDir, '.env')
+    const logPath = path.join(agentDir, 'gateway.log')
+    const agentEnv = parseEnvFile(envPath)
+    const configPath = path.join(agentDir, 'openclaw.json')
 
     const logFd = fs.openSync(logPath, 'a')
 
@@ -110,12 +110,12 @@ const startGateway = async (
         nodePath,
         [openclawBin, 'gateway', '--port', String(port)],
         {
-            cwd: clawDir,
+            cwd: agentDir,
             env: {
                 ...process.env,
-                ...clawEnv,
+                ...agentEnv,
                 OPENCLAW_CONFIG_PATH: configPath,
-                OPENCLAW_STATE_DIR: clawDir,
+                OPENCLAW_STATE_DIR: agentDir,
                 ...(token && { OPENCLAW_GATEWAY_TOKEN: token }),
                 NODE_ENV: 'production'
             },
@@ -132,8 +132,8 @@ const startGateway = async (
         )
     }
 
-    writePid(clawDir, pid)
-    childRefs.set(clawId, pid)
+    writePid(agentDir, pid)
+    childRefs.set(agentId, pid)
     child.unref()
 
     let settled = false
@@ -150,9 +150,9 @@ const startGateway = async (
             if (isPidAlive(pid)) {
                 settle(() => resolve())
             } else {
-                removePid(clawDir)
-                childRefs.delete(clawId)
-                const logs = getLogs(clawDir, 20)
+                removePid(agentDir)
+                childRefs.delete(agentId)
+                const logs = getLogs(agentDir, 20)
                 settle(() =>
                     reject(
                         new Error(
@@ -167,10 +167,10 @@ const startGateway = async (
 
         child.once('exit', (code) => {
             clearTimeout(checkTimer)
-            removePid(clawDir)
-            childRefs.delete(clawId)
+            removePid(agentDir)
+            childRefs.delete(agentId)
             if (code !== null && code !== 0) {
-                const logs = getLogs(clawDir, 20)
+                const logs = getLogs(agentDir, 20)
                 settle(() =>
                     reject(
                         new Error(
@@ -194,8 +194,8 @@ const startGateway = async (
 
         child.once('error', (err) => {
             clearTimeout(checkTimer)
-            removePid(clawDir)
-            childRefs.delete(clawId)
+            removePid(agentDir)
+            childRefs.delete(agentId)
             settle(() =>
                 reject(
                     new Error(
@@ -207,25 +207,25 @@ const startGateway = async (
     })
 }
 
-const stopGateway = async (clawId: string): Promise<void> => {
-    const claw = configStore.findClaw(clawId)
-    const clawDir = claw ? configStore.getClawDir(claw.name) : null
+const stopGateway = async (agentId: string): Promise<void> => {
+    const agent = configStore.findAgent(agentId)
+    const agentDir = agent ? configStore.getAgentDir(agent.name) : null
 
-    let pid = childRefs.get(clawId) || null
-    if (!pid && clawDir) {
-        pid = readPid(clawDir)
+    let pid = childRefs.get(agentId) || null
+    if (!pid && agentDir) {
+        pid = readPid(agentDir)
     }
     if (!pid || !isPidAlive(pid)) {
-        childRefs.delete(clawId)
-        if (clawDir) removePid(clawDir)
+        childRefs.delete(agentId)
+        if (agentDir) removePid(agentDir)
         return
     }
 
     try {
         process.kill(pid, 'SIGTERM')
     } catch {
-        childRefs.delete(clawId)
-        if (clawDir) removePid(clawDir)
+        childRefs.delete(agentId)
+        if (agentDir) removePid(agentDir)
         return
     }
 
@@ -235,8 +235,8 @@ const stopGateway = async (clawId: string): Promise<void> => {
             elapsed += 200
             if (!isPidAlive(pid)) {
                 clearInterval(interval)
-                childRefs.delete(clawId)
-                if (clawDir) removePid(clawDir)
+                childRefs.delete(agentId)
+                if (agentDir) removePid(agentDir)
                 resolve()
                 return
             }
@@ -245,8 +245,8 @@ const stopGateway = async (clawId: string): Promise<void> => {
                 try {
                     process.kill(pid, 'SIGKILL')
                 } catch {}
-                childRefs.delete(clawId)
-                if (clawDir) removePid(clawDir)
+                childRefs.delete(agentId)
+                if (agentDir) removePid(agentDir)
                 resolve()
             }
         }, 200)
@@ -254,42 +254,42 @@ const stopGateway = async (clawId: string): Promise<void> => {
 }
 
 const restartGateway = async (
-    clawId: string,
-    clawDir: string,
+    agentId: string,
+    agentDir: string,
     port: number,
     version: string,
     token: string
 ): Promise<void> => {
-    await stopGateway(clawId)
-    await startGateway(clawId, clawDir, port, version, token)
+    await stopGateway(agentId)
+    await startGateway(agentId, agentDir, port, version, token)
 }
 
-const isRunning = (clawId: string): boolean => {
-    const pid = childRefs.get(clawId)
+const isRunning = (agentId: string): boolean => {
+    const pid = childRefs.get(agentId)
     if (pid && isPidAlive(pid)) return true
 
-    const claw = configStore.findClaw(clawId)
-    if (!claw) return false
-    const clawDir = configStore.getClawDir(claw.name)
-    const filePid = readPid(clawDir)
+    const agent = configStore.findAgent(agentId)
+    if (!agent) return false
+    const agentDir = configStore.getAgentDir(agent.name)
+    const filePid = readPid(agentDir)
     if (filePid && isPidAlive(filePid)) {
-        childRefs.set(clawId, filePid)
+        childRefs.set(agentId, filePid)
         return true
     }
 
-    childRefs.delete(clawId)
-    if (filePid) removePid(clawDir)
+    childRefs.delete(agentId)
+    if (filePid) removePid(agentDir)
     return false
 }
 
-const getProcessInfo = (clawId: string): { pid: number } | null => {
-    if (!isRunning(clawId)) return null
-    const pid = childRefs.get(clawId)
+const getProcessInfo = (agentId: string): { pid: number } | null => {
+    if (!isRunning(agentId)) return null
+    const pid = childRefs.get(agentId)
     return pid ? { pid } : null
 }
 
-const getLogs = (clawDir: string, lines: number = 100): string => {
-    const logPath = path.join(clawDir, 'gateway.log')
+const getLogs = (agentDir: string, lines: number = 100): string => {
+    const logPath = path.join(agentDir, 'gateway.log')
     if (!fs.existsSync(logPath)) return ''
     const content = fs.readFileSync(logPath, 'utf-8')
     const allLines = content.split('\n')
@@ -298,18 +298,18 @@ const getLogs = (clawDir: string, lines: number = 100): string => {
 
 const stopAll = async (): Promise<void> => {
     const config = configStore.readConfig()
-    const stopPromises = config.claws.map((claw) => stopGateway(claw.id))
+    const stopPromises = config.agents.map((agent) => stopGateway(agent.id))
     await Promise.all(stopPromises)
 }
 
 const cleanOrphanedProcesses = (): void => {
     const config = configStore.readConfig()
-    const clawNames = new Set(config.claws.map((c) => c.name))
-    const clawsDir = path.join(configStore.getBaseDir(), 'claws')
-    if (!fs.existsSync(clawsDir)) return
-    for (const dir of fs.readdirSync(clawsDir)) {
-        if (clawNames.has(dir)) continue
-        const pidPath = path.join(clawsDir, dir, 'gateway.pid')
+    const agentNames = new Set(config.agents.map((c) => c.name))
+    const agentsDir = path.join(configStore.getBaseDir(), 'agents')
+    if (!fs.existsSync(agentsDir)) return
+    for (const dir of fs.readdirSync(agentsDir)) {
+        if (agentNames.has(dir)) continue
+        const pidPath = path.join(agentsDir, dir, 'gateway.pid')
         if (!fs.existsSync(pidPath)) continue
         const pid = parseInt(fs.readFileSync(pidPath, 'utf-8').trim(), 10)
         if (!isNaN(pid) && isPidAlive(pid)) {

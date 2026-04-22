@@ -4,8 +4,8 @@ import type { LandingDemoPreviewProps } from '@/ts/Interfaces'
 import { Fragment, useState } from 'react'
 import { Logo } from '@/components/layout'
 
-import { demoClaws, demoPlan } from '@/data'
-import { ClawDetailPanel } from '@/components/dashboard'
+import { demoAgents, demoPlan } from '@/data'
+import { AgentDetailPanel } from '@/components/dashboard'
 import { ChatSidebar, ChatEmptyState } from '@/components/chat'
 import { getBaseDomain } from '@/lib'
 import { apiPaths } from '@openclaw/shared'
@@ -15,12 +15,12 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
     urlOverride,
     hideTitleBar = false
 }): ReactNode => {
-    const [demoChatSettingsClawId, setDemoChatSettingsClawId] = useState<
+    const [demoChatSettingsAgentId, setDemoChatSettingsAgentId] = useState<
         string | null
     >(null)
 
-    const demoChatSettingsClaw = demoChatSettingsClawId
-        ? demoClaws.find((c) => c.id === demoChatSettingsClawId) || null
+    const demoChatSettingsAgent = demoChatSettingsAgentId
+        ? demoAgents.find((c) => c.id === demoChatSettingsAgentId) || null
         : null
 
     return (
@@ -63,27 +63,27 @@ const LandingDemoPreview: FC<LandingDemoPreviewProps> = ({
                 <div className='relative flex min-w-0 flex-1 overflow-hidden'>
                     <div className='playground-grid pointer-events-none absolute inset-0 opacity-50' />
                     <ChatSidebar
-                        claws={demoClaws}
-                        selectedClawId={demoChatSettingsClawId}
+                        agents={demoAgents}
+                        selectedAgentId={demoChatSettingsAgentId}
                         readOnly
-                        onOpenClawSettings={(clawId) => {
-                            setDemoChatSettingsClawId(
-                                demoChatSettingsClawId === clawId
+                        onOpenAgentSettings={(agentId) => {
+                            setDemoChatSettingsAgentId(
+                                demoChatSettingsAgentId === agentId
                                     ? null
-                                    : clawId
+                                    : agentId
                             )
                         }}
                     />
                     <div className='relative flex min-h-0 min-w-0 flex-1 translate-x-0 overflow-hidden'>
                         <div className='min-w-0 flex-1'>
-                            {demoChatSettingsClaw ? (
-                                <ClawDetailPanel
-                                    key={`chat-settings-${demoChatSettingsClaw.id}`}
-                                    claw={demoChatSettingsClaw}
+                            {demoChatSettingsAgent ? (
+                                <AgentDetailPanel
+                                    key={`chat-settings-${demoChatSettingsAgent.id}`}
+                                    agent={demoChatSettingsAgent}
                                     plans={[demoPlan]}
                                     sshKeys={[]}
                                     onClose={() =>
-                                        setDemoChatSettingsClawId(null)
+                                        setDemoChatSettingsAgentId(null)
                                     }
                                     readOnly
                                     fullScreen

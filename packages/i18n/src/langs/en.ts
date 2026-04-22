@@ -236,7 +236,6 @@ const en = {
         features: 'Features',
         pricing: 'Pricing',
         faq: 'Questions',
-        blog: 'Blog',
         changelog: 'Changelog',
         compare: 'Full Comparison',
         legalAndMore: 'Others',
@@ -457,8 +456,10 @@ const en = {
         failedToRotateGatewayToken: 'Failed to rotate gateway token!',
         sshKeyUpdated: 'SSH key updated successfully.',
         failedToUpdateSSHKey: 'Failed to update SSH key!',
-        invalidPassword: 'Password must be between {{min}} and {{max}} characters!',
-        invalidGatewayToken: 'Gateway token must be between {{min}} and {{max}} characters!',
+        invalidPassword:
+            'Password must be between {{min}} and {{max}} characters!',
+        invalidGatewayToken:
+            'Gateway token must be between {{min}} and {{max}} characters!',
         enablePreviewSuccess: 'Preview mode enabled successfully.',
         failedToEnablePreview: 'Failed to enable preview mode!',
         logsFetched: 'Logs fetched successfully.',
@@ -679,8 +680,10 @@ const en = {
         emailNotEditable: 'Email is not editable. Contact support.',
         profileUpdatedSuccessfully: 'Profile updated successfully.',
         billingAndSubscription: 'Billing & Subscription',
-        billingAndSubscriptionDescription: 'Manage your payment methods, subscriptions, and invoices.',
-        viewBillingHistory: 'View your payment history, invoices, and subscriptions.',
+        billingAndSubscriptionDescription:
+            'Manage your payment methods, subscriptions, and invoices.',
+        viewBillingHistory:
+            'View your payment history, invoices, and subscriptions.',
         connectedAccounts: 'Connected Accounts',
         connectedAccountsDescription:
             'Manage the sign-in methods linked to your account.',
@@ -745,8 +748,6 @@ const en = {
         featureSupport: 'Priority Support',
         featureCloud: 'All Cloud Features, Locally',
         whatsIncluded: "What\'s included",
-        permanentNote:
-            'Licenses are permanent and non-revocable. Once purchased, you own it forever.',
         gateTitle: 'License Required',
         gateDescription:
             'You need a ClawHost Go License to deploy and manage OpenClaw instances locally.'
@@ -840,7 +841,8 @@ const en = {
             'Your payment failed. If not resolved within 14 days, this claw will be permanently deleted.',
         updatePayment: 'Update Payment',
         cancelDeletion: 'Cancel Deletion',
-        cancelDeletionConfirmation: 'Are you sure? Your subscription will remain active and you will continue to be charged. The instance will keep running.',
+        cancelDeletionConfirmation:
+            'Are you sure? Your subscription will remain active and you will continue to be charged. The instance will keep running.',
         deletionCancelled: 'Deletion cancelled.',
         scheduleDeletion: 'Schedule Deletion',
         resumeCheckout: 'Resume Checkout',
@@ -936,7 +938,8 @@ const en = {
             awaitingPayment: 'Awaiting Payment',
             unknown: 'Unknown',
             checking: 'Checking'
-        }
+        },
+        tabNotAvailableForAgent: 'Not available for this agent type'
     },
     createClaw: {
         title: 'Deploy Agent',
@@ -945,6 +948,9 @@ const en = {
         clawNamePlaceholder: 'e.g. cozy-panda',
         clawNameInvalidChars: 'Only letters, numbers, and dashes are allowed!',
         autoGenerateNameHint: 'Leave empty to auto-generate a name.',
+        agentType: 'Agent Type',
+        agentTypeOpenClawDescription: 'Gateway-first AI agent platform',
+        agentTypeHermesDescription: 'Self-improving AI agent framework',
         location: 'Location',
         locationUnavailable: 'Unavailable',
         locationUnavailableForPlan: 'Unavailable',
@@ -1271,15 +1277,7 @@ const en = {
         demoStatus: '{{running}} running, {{total}} total'
     },
     blog: {
-        title: 'Blog',
-        description:
-            'Guides, tutorials, and news about OpenClaw and self-hosted infrastructure.',
         readingTime: '{{minutes}} min read',
-        publishedOn: 'Published on {{date}}',
-        writtenBy: 'By {{author}}',
-        backToBlog: 'Back to Blog',
-        noPosts: 'No Posts Yet',
-        noPostsDescription: 'Blog posts are coming soon. Check back later.',
         ctaTitle: 'Deploy OpenClaw with One Click',
         ctaDescription:
             'Get a dedicated server with OpenClaw pre-installed. Full root access, global locations, and ready in minutes. You own it at all times. Starting from $25.',
@@ -1514,7 +1512,8 @@ const en = {
         overviewSessionLastActive: 'Last Active',
         overviewModels: 'Models',
         overviewError: 'Failed to load overview!',
-        overviewErrorDescription: 'Could not connect to the OpenClaw gateway. Please check that the instance is running.',
+        overviewErrorDescription:
+            'Could not connect to the OpenClaw gateway. Please check that the instance is running.',
         overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
         overviewUptimeHours: '{{hours}}h {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1561,25 +1560,37 @@ const en = {
             'Available once the instance finishes configuring.',
         tabDisabledAwaitingPayment: 'Available once the payment is processed.',
         creatingTitle: 'Setting up your agent',
-        creatingDescription: 'This usually takes a minute or two. You can safely close this page and come back later.',
+        creatingDescription:
+            'This usually takes a minute or two. You can safely close this page and come back later.',
         configuringTitle: 'Installing OpenClaw',
-        configuringDescription: 'This usually takes a minute or two. You can safely close this page and come back later.',
+        configuringDescription:
+            'This usually takes a minute or two. You can safely close this page and come back later.',
         awaitingPaymentTitle: 'Awaiting payment',
-        awaitingPaymentDescription: 'Complete the payment to start provisioning your agent. This reservation expires in one hour.',
+        awaitingPaymentDescription:
+            'Complete the payment to start provisioning your agent. This reservation expires in one hour.',
         awaitingPaymentAction: 'Complete Payment',
-        loadingTip1: 'Did you know you can run multiple agents within one OpenClaw?',
+        loadingTip1:
+            'Did you know you can run multiple agents within one OpenClaw?',
         loadingTip2: 'Did you know that OpenClaw is open-source?',
-        loadingTip3: 'ClawHost is the first ever project to allow one-click OpenClaw hosting.',
-        loadingTip4: 'You can access your agent via SSH or the built-in terminal.',
+        loadingTip3:
+            'ClawHost is the first ever project to allow one-click OpenClaw hosting.',
+        loadingTip4:
+            'You can access your agent via SSH or the built-in terminal.',
         loadingTip5: 'Your agent gets its own subdomain automatically.',
-        loadingTip6: 'You can customize your agent icon and name anytime from Settings.',
+        loadingTip6:
+            'You can customize your agent icon and name anytime from Settings.',
         loadingTip7: 'All traffic to your agent is encrypted with TLS.',
-        loadingTip8: 'You can monitor CPU, memory and disk usage in the Monitor tab.',
+        loadingTip8:
+            'You can monitor CPU, memory and disk usage in the Monitor tab.',
         loadingTip9: 'Need help? Join our community on Discord.',
-        loadingTip10: 'You can export your entire agent configuration as a backup.',
-        loadingTip11: 'SSH keys can be applied to running instances without reinstalling.',
-        loadingTip12: 'You can rotate your root password and gateway token from the Security tab.',
-        loadingTip13: 'ClawHost supports servers in multiple regions across Europe and the US.',
+        loadingTip10:
+            'You can export your entire agent configuration as a backup.',
+        loadingTip11:
+            'SSH keys can be applied to running instances without reinstalling.',
+        loadingTip12:
+            'You can rotate your root password and gateway token from the Security tab.',
+        loadingTip13:
+            'ClawHost supports servers in multiple regions across Europe and the US.',
         tabSettings: 'Settings',
         featureVersionUnsupported: '{{feature}} not supported on {{version}}',
         featureVersionUnsupportedDescription:
@@ -1593,7 +1604,8 @@ const en = {
         tabVolumes: 'Storage',
         tabSecurity: 'Security',
         securitySSHKey: 'SSH Key',
-        securitySSHKeyHint: 'Applied to the running instance and used when reinstalling.',
+        securitySSHKeyHint:
+            'Applied to the running instance and used when reinstalling.',
         securityPassword: 'Root Password',
         securityGatewayToken: 'Gateway Token',
         securityHostKey: 'Host Key Fingerprint',
@@ -1640,7 +1652,8 @@ const en = {
         billingEmpty: 'No billing history for this instance.',
         tabServer: 'Server',
         serverIpAddress: 'IP Address',
-        reinstallDescription: 'Reinstall OpenClaw on this server. This will reset the OpenClaw installation but preserve your data. Only do this if needed.',
+        reinstallDescription:
+            'Reinstall OpenClaw on this server. This will reset the OpenClaw installation but preserve your data. Only do this if needed.',
         versionsSearch: 'Search versions...',
         versionsSearchCount: 'Search {{count}} versions...',
         versionsEmpty: 'No versions found',
@@ -1687,8 +1700,10 @@ const en = {
         subdomainInUse: 'This subdomain is used by another claw!',
         settingsDetails: 'More Details',
         settingsDangerZone: 'Danger Zone',
-        settingsDangerZoneDescription: 'Your instance will be deleted at the end of your current billing period.',
-        settingsScheduledDeletionDescription: 'Scheduled for deletion on {{date}}. Cancel to keep your instance running and subscription active.',
+        settingsDangerZoneDescription:
+            'Your instance will be deleted at the end of your current billing period.',
+        settingsScheduledDeletionDescription:
+            'Scheduled for deletion on {{date}}. Cancel to keep your instance running and subscription active.',
         settingsSave: 'Save',
         settingsSaving: 'Saving...',
         settingsUpdated: 'Settings updated.',

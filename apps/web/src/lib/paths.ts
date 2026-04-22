@@ -2,7 +2,7 @@ const PATHS = {
     HOME: '/',
     GO: 'go',
     LOGIN: 'auth',
-    CLAWS: 'agents',
+    AGENTS: 'agents',
     SSH_KEYS: 'ssh-keys',
     ACCOUNT: 'account',
     ADMIN: 'admin',
@@ -10,7 +10,6 @@ const PATHS = {
     TERMS: 'terms',
     PRIVACY: 'privacy',
     CHANGELOG: 'changelog',
-    BLOG: 'blog',
     AFFILIATE: 'affiliate',
     AFFILIATE_PROGRAM: 'affiliate-program',
     COMPARE: 'full-comparison'

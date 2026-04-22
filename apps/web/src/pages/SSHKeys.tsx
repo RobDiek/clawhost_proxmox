@@ -70,7 +70,7 @@ const SSHKeys: FC = (): ReactNode => {
             {!isLocal && <PageBackground />}
             {isLocal ? (
                 <div className='border-border bg-background relative z-10 flex items-center justify-between border-b px-6 py-3'>
-                    <Logo to={ROUTES.CLAWS} />
+                    <Logo to={ROUTES.AGENTS} />
                     <div className='flex items-center gap-1.5 sm:gap-3'>
                         <LanguageSelector />
                         <ThemeToggle />

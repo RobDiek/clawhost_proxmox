@@ -242,7 +242,6 @@ const pt: Translations = {
         features: 'Recursos',
         pricing: 'Preços',
         faq: 'Perguntas',
-        blog: 'Blog',
         changelog: 'Changelog',
         compare: 'Comparação Completa',
         legalAndMore: 'Outros',
@@ -473,7 +472,8 @@ const pt: Translations = {
         sshKeyUpdated: 'Chave SSH atualizada com sucesso.',
         failedToUpdateSSHKey: 'Falha ao atualizar a chave SSH!',
         invalidPassword: 'A senha deve ter entre {{min}} e {{max}} caracteres!',
-        invalidGatewayToken: 'O token do gateway deve ter entre {{min}} e {{max}} caracteres!',
+        invalidGatewayToken:
+            'O token do gateway deve ter entre {{min}} e {{max}} caracteres!',
         enablePreviewSuccess: 'Modo de visualização ativado com sucesso.',
         failedToEnablePreview: 'Falha ao ativar o modo de visualização!',
         logsFetched: 'Logs obtidos com sucesso.',
@@ -703,8 +703,10 @@ const pt: Translations = {
         emailNotEditable: 'O email não pode ser editado. Contate o suporte.',
         profileUpdatedSuccessfully: 'Perfil atualizado com sucesso.',
         billingAndSubscription: 'Pagamentos e Assinatura',
-        billingAndSubscriptionDescription: 'Gerencie seus métodos de pagamento, assinaturas e faturas.',
-        viewBillingHistory: 'Veja seu histórico de pagamentos, faturas e assinaturas.',
+        billingAndSubscriptionDescription:
+            'Gerencie seus métodos de pagamento, assinaturas e faturas.',
+        viewBillingHistory:
+            'Veja seu histórico de pagamentos, faturas e assinaturas.',
         connectedAccounts: 'Contas Conectadas',
         connectedAccountsDescription:
             'Gerencie os métodos de login vinculados à sua conta.',
@@ -770,8 +772,6 @@ const pt: Translations = {
         featureSupport: 'Suporte Prioritário',
         featureCloud: 'Todos os Recursos da Nuvem, Localmente',
         whatsIncluded: 'O que está incluído',
-        permanentNote:
-            'As licenças são permanentes e não revogáveis. Uma vez adquirida, é sua para sempre.',
         gateTitle: 'Licença Necessária',
         gateDescription:
             'Você precisa de uma Licença ClawHost Go para implantar e gerenciar instâncias OpenClaw localmente.'
@@ -867,7 +867,8 @@ const pt: Translations = {
             'Seu pagamento falhou. Se não for resolvido em 14 dias, este claw será permanentemente excluído.',
         updatePayment: 'Atualizar pagamento',
         cancelDeletion: 'Cancelar Exclusão',
-        cancelDeletionConfirmation: 'Tem certeza? Sua assinatura permanecerá ativa e você continuará sendo cobrado. A instância continuará em execução.',
+        cancelDeletionConfirmation:
+            'Tem certeza? Sua assinatura permanecerá ativa e você continuará sendo cobrado. A instância continuará em execução.',
         deletionCancelled: 'Exclusão cancelada.',
         scheduleDeletion: 'Agendar Exclusão',
         resumeCheckout: 'Retomar Checkout',
@@ -964,7 +965,8 @@ const pt: Translations = {
             awaitingPayment: 'Aguardando Pagamento',
             unknown: 'Desconhecido',
             checking: 'Verificando'
-        }
+        },
+        tabNotAvailableForAgent: 'Não disponível para este tipo de agente'
     },
     createClaw: {
         title: 'Implantar OpenClaw',
@@ -973,6 +975,10 @@ const pt: Translations = {
         clawNamePlaceholder: 'ex. panda-acolhedor',
         clawNameInvalidChars: 'Apenas letras, números e hífens são permitidos!',
         autoGenerateNameHint: 'Deixe vazio para gerar um nome automaticamente.',
+        agentType: 'Tipo de agente',
+        agentTypeOpenClawDescription:
+            'Plataforma de agente IA orientada a gateway',
+        agentTypeHermesDescription: 'Framework de agente IA auto-aprimorante',
         location: 'Localização',
         locationUnavailable: 'Indisponível',
         locationUnavailableForPlan: 'Indisponível',
@@ -1302,16 +1308,7 @@ const pt: Translations = {
         demoStatus: '{{running}} em execução, {{total}} total'
     },
     blog: {
-        title: 'Blog',
-        description:
-            'Guias, tutoriais e notícias sobre OpenClaw e infraestrutura auto-hospedada.',
         readingTime: '{{minutes}} min de leitura',
-        publishedOn: 'Publicado em {{date}}',
-        writtenBy: 'Por {{author}}',
-        backToBlog: 'Voltar ao Blog',
-        noPosts: 'Sem Publicações',
-        noPostsDescription:
-            'Publicações no blog estão chegando em breve. Volte mais tarde.',
         ctaTitle: 'Implante OpenClaw com Um Clique',
         ctaDescription:
             'Obtenha um servidor dedicado com OpenClaw pré-instalado. Acesso root completo, localizações globais e pronto em minutos. Você é dono a todo momento. A partir de $25.',
@@ -1607,27 +1604,38 @@ const pt: Translations = {
         tabDisabledAwaitingPayment:
             'Disponível quando o pagamento for processado.',
         creatingTitle: 'Configurando seu agente',
-        creatingDescription: 'Isso geralmente leva um ou dois minutos. Você pode fechar esta página com segurança e voltar mais tarde.',
+        creatingDescription:
+            'Isso geralmente leva um ou dois minutos. Você pode fechar esta página com segurança e voltar mais tarde.',
         configuringTitle: 'Instalando OpenClaw',
-        configuringDescription: 'Isso geralmente leva um ou dois minutos. Você pode fechar esta página com segurança e voltar mais tarde.',
+        configuringDescription:
+            'Isso geralmente leva um ou dois minutos. Você pode fechar esta página com segurança e voltar mais tarde.',
         awaitingPaymentTitle: 'Aguardando pagamento',
-        awaitingPaymentDescription: 'Conclua o pagamento para iniciar o provisionamento do seu agente. Esta reserva expira em uma hora.',
+        awaitingPaymentDescription:
+            'Conclua o pagamento para iniciar o provisionamento do seu agente. Esta reserva expira em uma hora.',
         awaitingPaymentAction: 'Concluir pagamento',
         loadingTip1:
             'Você sabia que pode executar múltiplos agentes em um único OpenClaw?',
         loadingTip2: 'Você sabia que o OpenClaw é open-source?',
         loadingTip3:
             'ClawHost é o primeiro projeto a permitir hospedagem OpenClaw com um clique.',
-        loadingTip4: 'Você pode acessar seu agente via SSH ou pelo terminal integrado.',
+        loadingTip4:
+            'Você pode acessar seu agente via SSH ou pelo terminal integrado.',
         loadingTip5: 'Seu agente recebe automaticamente um subdomínio próprio.',
-        loadingTip6: 'Você pode personalizar o ícone e o nome do seu agente a qualquer momento em Configurações.',
+        loadingTip6:
+            'Você pode personalizar o ícone e o nome do seu agente a qualquer momento em Configurações.',
         loadingTip7: 'Todo o tráfego para seu agente é criptografado com TLS.',
-        loadingTip8: 'Você pode monitorar o uso de CPU, memória e disco na aba Monitor.',
-        loadingTip9: 'Precisa de ajuda? Junte-se à nossa comunidade no Discord.',
-        loadingTip10: 'Você pode exportar toda a configuração do seu agente como backup.',
-        loadingTip11: 'Chaves SSH podem ser aplicadas a instâncias em execução sem reinstalar.',
-        loadingTip12: 'Você pode rotacionar sua senha root e token de gateway na aba Segurança.',
-        loadingTip13: 'ClawHost suporta servidores em múltiplas regiões na Europa e nos EUA.',
+        loadingTip8:
+            'Você pode monitorar o uso de CPU, memória e disco na aba Monitor.',
+        loadingTip9:
+            'Precisa de ajuda? Junte-se à nossa comunidade no Discord.',
+        loadingTip10:
+            'Você pode exportar toda a configuração do seu agente como backup.',
+        loadingTip11:
+            'Chaves SSH podem ser aplicadas a instâncias em execução sem reinstalar.',
+        loadingTip12:
+            'Você pode rotacionar sua senha root e token de gateway na aba Segurança.',
+        loadingTip13:
+            'ClawHost suporta servidores em múltiplas regiões na Europa e nos EUA.',
         tabSettings: 'Configurações',
         featureVersionUnsupported: '{{feature}} não suportado em {{version}}',
         featureVersionUnsupportedDescription:
@@ -1641,7 +1649,8 @@ const pt: Translations = {
         tabVolumes: 'Armazenamento',
         tabSecurity: 'Segurança',
         securitySSHKey: 'Chave SSH',
-        securitySSHKeyHint: 'Aplicada à instância em execução e usada ao reinstalar.',
+        securitySSHKeyHint:
+            'Aplicada à instância em execução e usada ao reinstalar.',
         securityPassword: 'Senha root',
         securityGatewayToken: 'Token de gateway',
         securityHostKey: 'Impressão digital da chave do host',
@@ -1689,7 +1698,8 @@ const pt: Translations = {
         billingEmpty: 'No billing history for this instance.',
         tabServer: 'Servidor',
         serverIpAddress: 'Endereço IP',
-        reinstallDescription: 'Reinstalar OpenClaw neste servidor. Isso redefinirá a instalação do OpenClaw mas preservará seus dados. Faça isso apenas se necessário.',
+        reinstallDescription:
+            'Reinstalar OpenClaw neste servidor. Isso redefinirá a instalação do OpenClaw mas preservará seus dados. Faça isso apenas se necessário.',
         versionsSearch: 'Buscar versões...',
         versionsSearchCount: 'Pesquisar {{count}} versões...',
         versionsEmpty: 'Nenhuma versão encontrada',
@@ -1736,8 +1746,10 @@ const pt: Translations = {
         subdomainInUse: 'Este subdomínio é usado por outro claw!',
         settingsDetails: 'Detalhes',
         settingsDangerZone: 'Zona de perigo',
-        settingsDangerZoneDescription: 'Sua instância será excluída no final do seu período de faturamento atual.',
-        settingsScheduledDeletionDescription: 'Agendada para exclusão em {{date}}. Cancele para manter sua instância em execução e sua assinatura ativa.',
+        settingsDangerZoneDescription:
+            'Sua instância será excluída no final do seu período de faturamento atual.',
+        settingsScheduledDeletionDescription:
+            'Agendada para exclusão em {{date}}. Cancele para manter sua instância em execução e sua assinatura ativa.',
         settingsSave: 'Salvar',
         settingsSaving: 'Salvando...',
         settingsUpdated: 'Configurações atualizadas.',

@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron'
-import { clawProvider } from '@openclaw/shared'
+import { agentProvider } from '@openclaw/shared'
 import { t } from '@openclaw/i18n'
 import { configStore } from '@/main/services'
 
@@ -8,7 +8,7 @@ const registerStubHandlers = (): void => {
         return {
             plans: [
                 {
-                    id: clawProvider.local,
+                    id: agentProvider.local,
                     name: 'Local',
                     cpu: 0,
                     memory: 0,
@@ -24,7 +24,7 @@ const registerStubHandlers = (): void => {
     ipcMain.handle('getLocations', () => {
         return [
             {
-                id: clawProvider.local,
+                id: agentProvider.local,
                 name: 'Local',
                 city: 'Local',
                 country: 'Local',
@@ -53,13 +53,13 @@ const registerStubHandlers = (): void => {
         return { success: true }
     })
 
-    ipcMain.handle('purchaseClaw', () => {
+    ipcMain.handle('purchaseAgent', () => {
         throw new Error(t('go.purchasingNotAvailable'))
     })
 
-    ipcMain.handle('getAdminClaws', () => {
+    ipcMain.handle('getAdminAgents', () => {
         const config = configStore.readConfig()
-        return config.claws
+        return config.agents
     })
 }
 

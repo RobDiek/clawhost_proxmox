@@ -35,7 +35,7 @@ import {
     ConnectedAccountsSection
 } from '@/components/account'
 
-import { BlogCard, BlogCTA } from '@/components/blog'
+import { BlogCTA } from '@/components/blog'
 
 import {
     LegalContactSection,
@@ -49,8 +49,8 @@ import { LicenseRequired, ProtectedRoute } from '@/components/auth'
 
 import {
     ActionButton,
-    ClawMascot,
-    ClawMascotOutline,
+    AgentMascot,
+    AgentMascotOutline,
     EmptyState,
     ErrorState,
     LanguageSelector,
@@ -69,11 +69,10 @@ export {
     AnnouncementBanner,
     ActionButton,
     BetaBadge,
-    BlogCard,
     BlogCTA,
-    ClawMascot,
+    AgentMascot,
     ComparisonTable,
-    ClawMascotOutline,
+    AgentMascotOutline,
     DemoPreviewSection,
     EmptyState,
     ErrorState,

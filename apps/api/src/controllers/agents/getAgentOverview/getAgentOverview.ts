@@ -1,0 +1,50 @@
+import { withAgent, getAgentConfig } from '@/controllers/agents/helpers'
+import { t } from '@openclaw/i18n'
+import { ok, fail } from '@/lib/response'
+import executeSSH from '@/services/ssh'
+import parseOverviewOutput from '@/controllers/agents/getAgentOverview/parsers'
+
+const SEPARATOR = '---CLAWHOST_OVERVIEW_SEP---'
+
+const getAgentOverview = withAgent({
+    requireSSH: 'api.failedToGetOverview'
+})(async (c, agent) => {
+    try {
+        if (!agent.gatewayToken)
+            return fail(c, t('api.failedToGetOverview'), 400)
+
+        const agentConfig = getAgentConfig(agent.agentType)
+        const tokenBase64 = Buffer.from(agent.gatewayToken).toString('base64')
+
+        const command = [
+            `TOKEN=$(echo '${tokenBase64}' | base64 -d)`,
+            `curl -s http://127.0.0.1:18789/api/status 2>/dev/null || echo 'null'`,
+            `echo '${SEPARATOR}'`,
+            `curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:18789/api/sessions 2>/dev/null || echo 'null'`,
+            `echo '${SEPARATOR}'`,
+            `cat ${agentConfig.configFile} 2>/dev/null || echo 'null'`,
+            `echo '${SEPARATOR}'`,
+            `systemctl is-active ${agentConfig.serviceName} 2>/dev/null || echo inactive`,
+            `echo '${SEPARATOR}'`,
+            'ss -tlnp 2>/dev/null | grep 18789 || echo ""',
+            `echo '${SEPARATOR}'`,
+            `su - ${agentConfig.user} -c '${agentConfig.binary} status 2>/dev/null' 2>/dev/null || echo ''`
+        ].join('; ')
+
+        const output = await executeSSH(
+            agent.ip!,
+            agent.rootPassword!,
+            command,
+            20000
+        )
+
+        const result = parseOverviewOutput(output, SEPARATOR)
+
+        return ok(c, result, t('api.overviewFetched'))
+    } catch (error) {
+        console.error('getAgentOverview', error)
+        return fail(c, t('api.failedToGetOverview'), 500)
+    }
+})
+
+export default getAgentOverview

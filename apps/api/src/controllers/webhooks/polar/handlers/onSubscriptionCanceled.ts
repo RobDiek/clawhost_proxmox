@@ -2,7 +2,7 @@ import type { SubscriptionWebhookData } from '@/ts/Interfaces'
 
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { claws } from '@/db/schema'
+import { agents } from '@/db/schema'
 import { subscriptionStatus } from '@/lib/constants'
 
 const onSubscriptionCanceled = async (data: SubscriptionWebhookData) => {
@@ -11,12 +11,12 @@ const onSubscriptionCanceled = async (data: SubscriptionWebhookData) => {
         : null
 
     await db
-        .update(claws)
+        .update(agents)
         .set({
             subscriptionStatus: subscriptionStatus.canceled,
             ...(deletionScheduledAt ? { deletionScheduledAt } : {})
         })
-        .where(eq(claws.polarSubscriptionId, data.id))
+        .where(eq(agents.polarSubscriptionId, data.id))
 }
 
 export default onSubscriptionCanceled

@@ -1,9 +1,9 @@
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { claws } from '@/db/schema'
+import { agents } from '@/db/schema'
 import { subscriptions } from '@/lib/polar'
 import { subscriptionStatus } from '@/lib/constants'
-import { sanitizeClaw, withClaw } from '@/controllers/agents/helpers'
+import { sanitizeAgent, withAgent } from '@/controllers/agents/helpers'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
 import withErrorHandler from '@/lib/withErrorHandler'
@@ -12,18 +12,18 @@ const cancelDeletion = withErrorHandler(
     'cancelDeletion',
     'api.failedToCancelDeletion'
 )(
-    withClaw()(async (c, claw) => {
+    withAgent()(async (c, agent) => {
         const id = c.req.param('id')!
 
-        if (!claw.deletionScheduledAt)
+        if (!agent.deletionScheduledAt)
             return fail(c, t('api.clawNotScheduledForDeletion'), 400)
 
-        if (new Date(claw.deletionScheduledAt) <= new Date())
+        if (new Date(agent.deletionScheduledAt) <= new Date())
             return fail(c, t('api.clawDeletionAlreadyPassed'), 400)
 
-        if (claw.polarSubscriptionId) {
+        if (agent.polarSubscriptionId) {
             try {
-                await subscriptions.uncancel(claw.polarSubscriptionId)
+                await subscriptions.uncancel(agent.polarSubscriptionId)
             } catch (subError) {
                 console.error('cancelDeletion', subError)
                 return fail(c, t('api.failedToCancelScheduledDeletion'), 500)
@@ -31,17 +31,17 @@ const cancelDeletion = withErrorHandler(
         }
 
         await db
-            .update(claws)
+            .update(agents)
             .set({
                 deletionScheduledAt: null,
                 subscriptionStatus: subscriptionStatus.active
             })
-            .where(eq(claws.id, id))
+            .where(eq(agents.id, id))
 
         return ok(
             c,
-            sanitizeClaw({
-                ...claw,
+            sanitizeAgent({
+                ...agent,
                 deletionScheduledAt: null,
                 subscriptionStatus: subscriptionStatus.active
             }),

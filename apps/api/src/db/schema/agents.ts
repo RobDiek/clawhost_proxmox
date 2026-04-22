@@ -2,8 +2,8 @@ import { pgTable, text, timestamp, index } from 'drizzle-orm/pg-core'
 import users from '@/db/schema/users'
 import sshKeys from '@/db/schema/sshKeys'
 
-const claws = pgTable(
-    'claws',
+const agents = pgTable(
+    'agents',
     {
         id: text('id').primaryKey(),
         userId: text('user_id')
@@ -13,6 +13,7 @@ const claws = pgTable(
         emoji: text('emoji'),
         emojiColor: text('emoji_color'),
         providerServerId: text('provider_server_id'),
+        agentType: text('agent_type').notNull().default('openclaw'),
         status: text('status').notNull().default('creating'),
         ip: text('ip'),
         planId: text('plan_id').notNull(),
@@ -43,12 +44,15 @@ const claws = pgTable(
             .notNull()
     },
     (table) => [
-        index('claws_user_id_idx').on(table.userId),
-        index('claws_user_id_created_at_idx').on(table.userId, table.createdAt),
-        index('claws_polar_subscription_id_idx').on(table.polarSubscriptionId),
-        index('claws_subdomain_idx').on(table.subdomain),
-        index('claws_deletion_scheduled_at_idx').on(table.deletionScheduledAt)
+        index('agents_user_id_idx').on(table.userId),
+        index('agents_user_id_created_at_idx').on(
+            table.userId,
+            table.createdAt
+        ),
+        index('agents_polar_subscription_id_idx').on(table.polarSubscriptionId),
+        index('agents_subdomain_idx').on(table.subdomain),
+        index('agents_deletion_scheduled_at_idx').on(table.deletionScheduledAt)
     ]
 )
 
-export default claws
+export default agents

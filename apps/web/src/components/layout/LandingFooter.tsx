@@ -270,14 +270,6 @@ const LandingFooter: FC = (): ReactNode => {
                         <ul className='space-y-3 text-sm'>
                             <li>
                                 <Link
-                                    to={ROUTES.BLOG}
-                                    className={pageClass(ROUTES.BLOG)}
-                                >
-                                    {t('footer.blog')}
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
                                     to={ROUTES.COMPARE}
                                     className={pageClass(ROUTES.COMPARE)}
                                 >

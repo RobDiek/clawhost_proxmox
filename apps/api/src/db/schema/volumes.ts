@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp, integer, index } from 'drizzle-orm/pg-core'
 import users from '@/db/schema/users'
-import claws from '@/db/schema/agents'
+import agents from '@/db/schema/agents'
 
 const volumes = pgTable(
     'volumes',
@@ -9,7 +9,7 @@ const volumes = pgTable(
         userId: text('user_id')
             .notNull()
             .references(() => users.id, { onDelete: 'cascade' }),
-        clawId: text('claw_id').references(() => claws.id, {
+        agentId: text('agent_id').references(() => agents.id, {
             onDelete: 'cascade'
         }),
         name: text('name').notNull(),
@@ -23,7 +23,7 @@ const volumes = pgTable(
     },
     (table) => [
         index('volumes_user_id_idx').on(table.userId),
-        index('volumes_claw_id_idx').on(table.clawId)
+        index('volumes_agent_id_idx').on(table.agentId)
     ]
 )
 

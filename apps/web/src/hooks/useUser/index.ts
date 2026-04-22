@@ -1,6 +1,5 @@
 import PROFILE_QUERY_KEY from '@/hooks/useUser/PROFILE_QUERY_KEY'
 import USER_STATS_QUERY_KEY from '@/hooks/useUser/USER_STATS_QUERY_KEY'
-import BILLING_HISTORY_QUERY_KEY from '@/hooks/useUser/BILLING_HISTORY_QUERY_KEY'
 import useProfile from '@/hooks/useUser/useProfile'
 import useUpdateProfile from '@/hooks/useUser/useUpdateProfile'
 import useUserStats from '@/hooks/useUser/useUserStats'
@@ -9,7 +8,6 @@ import useBillingHistory from '@/hooks/useUser/useBillingHistory'
 export {
     PROFILE_QUERY_KEY,
     USER_STATS_QUERY_KEY,
-    BILLING_HISTORY_QUERY_KEY,
     useProfile,
     useUpdateProfile,
     useUserStats,

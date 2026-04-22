@@ -6,7 +6,7 @@ import os from 'os'
 import forge from 'node-forge'
 import configStore from '@/main/services/configStore'
 
-const CERTS_DIR = path.join(os.homedir(), '.clawhostgo', 'certs')
+const CERTS_DIR = path.join(os.homedir(), '.agenthostgo', 'certs')
 const CA_KEY_PATH = path.join(CERTS_DIR, 'ca.key')
 const CA_CERT_PATH = path.join(CERTS_DIR, 'ca.crt')
 const SERVER_KEY_PATH = path.join(CERTS_DIR, 'server.key')
@@ -49,7 +49,7 @@ const generateCa = (): void => {
 
 const getAllSubdomains = (): string[] => {
     const config = configStore.readConfig()
-    return config.claws.map((c) => c.subdomain).filter(Boolean)
+    return config.agents.map((c) => c.subdomain).filter(Boolean)
 }
 
 const generateServerCert = (subdomains: string[]): void => {
@@ -60,9 +60,9 @@ const generateServerCert = (subdomains: string[]): void => {
 
     const altNames = subdomains.map((s) => ({
         type: 2,
-        value: `${s}.clawhost`
+        value: `${s}.agenthost`
     }))
-    altNames.push({ type: 2, value: 'clawhost' })
+    altNames.push({ type: 2, value: 'agenthost' })
 
     const serverKeys = forge.pki.rsa.generateKeyPair(2048)
     const serverCert = forge.pki.createCertificate()
@@ -74,7 +74,7 @@ const generateServerCert = (subdomains: string[]): void => {
     serverCert.validity.notAfter = new Date(
         Date.now() + VALIDITY_DAYS * 24 * 60 * 60 * 1000
     )
-    serverCert.setSubject([{ name: 'commonName', value: 'clawhost' }])
+    serverCert.setSubject([{ name: 'commonName', value: 'agenthost' }])
     serverCert.setIssuer(caCert.subject.attributes)
     serverCert.setExtensions([
         { name: 'basicConstraints', cA: false },

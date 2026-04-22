@@ -66,10 +66,10 @@ const Login: FC = (): ReactNode => {
             const providerSuffix = providerParam
                 ? `&provider=${providerParam}`
                 : ''
-            return `${ROUTES.CLAWS}?plan=${planParam}${providerSuffix}`
+            return `${ROUTES.AGENTS}?plan=${planParam}${providerSuffix}`
         }
-        if (deployParam) return `${ROUTES.CLAWS}?deploy=true`
-        return ROUTES.CLAWS
+        if (deployParam) return `${ROUTES.AGENTS}?deploy=true`
+        return ROUTES.AGENTS
     }
 
     useEffect(() => {

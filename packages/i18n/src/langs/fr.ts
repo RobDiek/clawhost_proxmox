@@ -225,7 +225,8 @@ const fr: Translations = {
         diskFull: "Plus d'espace disponible sur le disque !",
         permissionDenied: 'Permission refusée !',
         networkTimeout: 'La requête réseau a expiré !',
-        failedToFetchLatestVersion: 'Impossible de récupérer la dernière version !'
+        failedToFetchLatestVersion:
+            'Impossible de récupérer la dernière version !'
     },
     footer: {
         website: 'Site web',
@@ -243,7 +244,6 @@ const fr: Translations = {
         features: 'Fonctions',
         pricing: 'Tarifs',
         faq: 'Questions',
-        blog: 'Blog',
         changelog: 'Journal des modifications',
         compare: 'Comparaison complète',
         legalAndMore: 'Autres',
@@ -481,7 +481,8 @@ const fr: Translations = {
         failedToGetMetrics:
             'Échec de la récupération des métriques du serveur !',
         overviewFetched: 'Aperçu récupéré avec succès.',
-        failedToGetOverview: "Échec de la récupération de l'aperçu du gateway !",
+        failedToGetOverview:
+            "Échec de la récupération de l'aperçu du gateway !",
         passwordRotated: 'Mot de passe root changé avec succès.',
         failedToRotatePassword: 'Échec du changement du mot de passe root !',
         gatewayTokenRotated: 'Jeton de passerelle changé avec succès.',
@@ -489,8 +490,10 @@ const fr: Translations = {
             'Échec du changement du jeton de passerelle !',
         sshKeyUpdated: 'Clé SSH mise à jour avec succès.',
         failedToUpdateSSHKey: 'Échec de la mise à jour de la clé SSH !',
-        invalidPassword: 'Le mot de passe doit contenir entre {{min}} et {{max}} caractères !',
-        invalidGatewayToken: 'Le jeton de passerelle doit contenir entre {{min}} et {{max}} caractères !',
+        invalidPassword:
+            'Le mot de passe doit contenir entre {{min}} et {{max}} caractères !',
+        invalidGatewayToken:
+            'Le jeton de passerelle doit contenir entre {{min}} et {{max}} caractères !',
         enablePreviewSuccess: 'Mode aperçu activé avec succès.',
         failedToEnablePreview: "Échec de l'activation du mode aperçu !",
         logsFetched: 'Journaux récupérés avec succès.',
@@ -725,8 +728,10 @@ const fr: Translations = {
             "L\'email n\'est pas modifiable. Contactez le support.",
         profileUpdatedSuccessfully: 'Profil mis à jour avec succès.',
         billingAndSubscription: 'Facturation & Abonnement',
-        billingAndSubscriptionDescription: 'Gérez vos moyens de paiement, abonnements et factures.',
-        viewBillingHistory: 'Consultez votre historique de paiement, factures et abonnements.',
+        billingAndSubscriptionDescription:
+            'Gérez vos moyens de paiement, abonnements et factures.',
+        viewBillingHistory:
+            'Consultez votre historique de paiement, factures et abonnements.',
         connectedAccounts: 'Comptes connectés',
         connectedAccountsDescription:
             'Gérez les méthodes de connexion liées à votre compte.',
@@ -792,8 +797,6 @@ const fr: Translations = {
         featureSupport: 'Support prioritaire',
         featureCloud: 'Toutes les fonctionnalités cloud, localement',
         whatsIncluded: 'Ce qui est inclus',
-        permanentNote:
-            'Les licences sont permanentes et non révocables. Une fois achetée, elle vous appartient pour toujours.',
         gateTitle: 'Licence requise',
         gateDescription:
             "Vous avez besoin d'une licence ClawHost Go pour déployer et gérer des instances OpenClaw localement."
@@ -843,7 +846,7 @@ const fr: Translations = {
             "Cela arrêtera tous les processus en cours sur le serveur, y compris OpenClaw. Aucune donnée ne sera perdue. Ne faites cela que si nécessaire. Vous pouvez le redémarrer à tout moment. L\'arrêt ne stoppe pas la facturation — supprimez le serveur pour ne plus être facturé.",
         restartClaw: 'Redémarrer le serveur',
         restartClawConfirmation:
-            "Cela arrêtera tous les processus en cours sur le serveur, y compris OpenClaw, et les redémarrera. Aucune donnée ne sera perdue. Ne faites cela que si nécessaire.",
+            'Cela arrêtera tous les processus en cours sur le serveur, y compris OpenClaw, et les redémarrera. Aucune donnée ne sera perdue. Ne faites cela que si nécessaire.',
         copyPassword: 'Copier le mot de passe',
         copySshWithKey: 'Copier SSH (avec clé)',
         copySshWithPassword: 'Copier SSH (avec mot de passe)',
@@ -888,7 +891,8 @@ const fr: Translations = {
             'Votre paiement a échoué. Si non résolu dans les 14 jours, ce claw sera définitivement supprimé.',
         updatePayment: 'Mettre à jour le paiement',
         cancelDeletion: 'Annuler la suppression',
-        cancelDeletionConfirmation: 'Êtes-vous sûr ? Votre abonnement restera actif et vous continuerez à être facturé. L\'instance continuera de fonctionner.',
+        cancelDeletionConfirmation:
+            "Êtes-vous sûr ? Votre abonnement restera actif et vous continuerez à être facturé. L'instance continuera de fonctionner.",
         deletionCancelled: 'Suppression annulée.',
         scheduleDeletion: 'Programmer la suppression',
         resumeCheckout: 'Reprendre le paiement',
@@ -992,7 +996,8 @@ const fr: Translations = {
             awaitingPayment: 'En attente de paiement',
             unknown: 'Inconnu',
             checking: 'Vérification'
-        }
+        },
+        tabNotAvailableForAgent: "Non disponible pour ce type d'agent"
     },
     createClaw: {
         title: 'Déployer OpenClaw',
@@ -1004,6 +1009,10 @@ const fr: Translations = {
             'Seuls les lettres, chiffres et tirets sont autorisés !',
         autoGenerateNameHint:
             'Laissez vide pour générer un nom automatiquement.',
+        agentType: "Type d'agent",
+        agentTypeOpenClawDescription:
+            "Plateforme d'agent IA orientée passerelle",
+        agentTypeHermesDescription: "Framework d'agent IA auto-améliorant",
         location: 'Emplacement',
         locationUnavailable: 'Indisponible',
         locationUnavailableForPlan: 'Indisponible',
@@ -1337,16 +1346,7 @@ const fr: Translations = {
         demoStatus: '{{running}} en cours, {{total}} au total'
     },
     blog: {
-        title: 'Blog',
-        description:
-            "Guides, tutoriels et actualités sur OpenClaw et l\'infrastructure auto-hébergée.",
         readingTime: '{{minutes}} min de lecture',
-        publishedOn: 'Publié le {{date}}',
-        writtenBy: 'Par {{author}}',
-        backToBlog: 'Retour au blog',
-        noPosts: 'Aucun article',
-        noPostsDescription:
-            'Les articles de blog arrivent bientôt. Revenez plus tard.',
         ctaTitle: 'Déployez OpenClaw en un clic',
         ctaDescription:
             'Obtenez un serveur dédié avec OpenClaw préinstallé. Accès root complet, emplacements mondiaux et prêt en quelques minutes. Vous en êtes propriétaire à tout moment. À partir de 25 $.',
@@ -1578,8 +1578,8 @@ const fr: Translations = {
         selectClawDescription:
             'Choisissez un Agent dans la barre latérale pour voir ses détails.',
         closeDetails: 'Fermer',
-        tabOverview: 'Vue d\'ensemble',
-        overviewTitle: 'Vue d\'ensemble du Gateway',
+        tabOverview: "Vue d'ensemble",
+        overviewTitle: "Vue d'ensemble du Gateway",
         overviewGatewayStatus: 'Statut du Gateway',
         overviewOnline: 'En ligne',
         overviewOffline: 'Hors ligne',
@@ -1593,9 +1593,9 @@ const fr: Translations = {
         overviewSessionMessages: 'Messages',
         overviewSessionLastActive: 'Dernière activité',
         overviewModels: 'Modèles',
-        overviewError: 'Échec du chargement de la vue d\'ensemble !',
+        overviewError: "Échec du chargement de la vue d'ensemble !",
         overviewErrorDescription:
-            'Impossible de se connecter au gateway OpenClaw. Veuillez vérifier que l\'instance est en cours d\'exécution.',
+            "Impossible de se connecter au gateway OpenClaw. Veuillez vérifier que l'instance est en cours d'exécution.",
         overviewUptimeDays: '{{days}}j {{hours}}h {{minutes}}m',
         overviewUptimeHours: '{{hours}}h {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1612,7 +1612,7 @@ const fr: Translations = {
         overviewCommands: 'Commandes Shell',
         overviewTools: 'Outils',
         overviewSubdomain: 'Sous-domaine',
-        overviewInstanceStatus: 'Statut de l\'instance',
+        overviewInstanceStatus: "Statut de l'instance",
         overviewModel: 'Model',
         overviewAgents: 'Agents',
         overviewMemoryStatus: 'Mémoire',
@@ -1643,27 +1643,38 @@ const fr: Translations = {
             "Disponible une fois la configuration de l\'instance terminée.",
         tabDisabledAwaitingPayment: 'Disponible une fois le paiement traité.',
         creatingTitle: 'Configuration de votre agent',
-        creatingDescription: 'Cela prend généralement une à deux minutes. Vous pouvez fermer cette page en toute sécurité et revenir plus tard.',
-        configuringTitle: 'Installation d\'OpenClaw',
-        configuringDescription: 'Cela prend généralement une à deux minutes. Vous pouvez fermer cette page en toute sécurité et revenir plus tard.',
+        creatingDescription:
+            'Cela prend généralement une à deux minutes. Vous pouvez fermer cette page en toute sécurité et revenir plus tard.',
+        configuringTitle: "Installation d'OpenClaw",
+        configuringDescription:
+            'Cela prend généralement une à deux minutes. Vous pouvez fermer cette page en toute sécurité et revenir plus tard.',
         awaitingPaymentTitle: 'En attente de paiement',
-        awaitingPaymentDescription: 'Complétez le paiement pour commencer le provisionnement de votre agent. Cette réservation expire dans une heure.',
+        awaitingPaymentDescription:
+            'Complétez le paiement pour commencer le provisionnement de votre agent. Cette réservation expire dans une heure.',
         awaitingPaymentAction: 'Compléter le paiement',
         loadingTip1:
             "Saviez-vous que vous pouvez exécuter plusieurs agents au sein d\'un même OpenClaw ?",
         loadingTip2: "Saviez-vous qu\'OpenClaw est open source ?",
         loadingTip3:
             "ClawHost est le tout premier projet permettant l\'hébergement d\'OpenClaw en un clic.",
-        loadingTip4: 'Vous pouvez accéder à votre agent via SSH ou le terminal intégré.',
-        loadingTip5: 'Votre agent obtient automatiquement son propre sous-domaine.',
-        loadingTip6: "Vous pouvez personnaliser l\'icône et le nom de votre agent à tout moment depuis les Paramètres.",
+        loadingTip4:
+            'Vous pouvez accéder à votre agent via SSH ou le terminal intégré.',
+        loadingTip5:
+            'Votre agent obtient automatiquement son propre sous-domaine.',
+        loadingTip6:
+            "Vous pouvez personnaliser l\'icône et le nom de votre agent à tout moment depuis les Paramètres.",
         loadingTip7: 'Tout le trafic vers votre agent est chiffré avec TLS.',
-        loadingTip8: "Vous pouvez surveiller l\'utilisation du CPU, de la mémoire et du disque dans l\'onglet Moniteur.",
-        loadingTip9: 'Besoin d\'aide ? Rejoignez notre communauté sur Discord.',
-        loadingTip10: 'Vous pouvez exporter la configuration complète de votre agent en tant que sauvegarde.',
-        loadingTip11: 'Les clés SSH peuvent être appliquées aux instances en cours d\'exécution sans réinstallation.',
-        loadingTip12: 'Vous pouvez renouveler votre mot de passe root et votre jeton de passerelle depuis l\'onglet Sécurité.',
-        loadingTip13: 'ClawHost prend en charge des serveurs dans plusieurs régions en Europe et aux États-Unis.',
+        loadingTip8:
+            "Vous pouvez surveiller l\'utilisation du CPU, de la mémoire et du disque dans l\'onglet Moniteur.",
+        loadingTip9: "Besoin d'aide ? Rejoignez notre communauté sur Discord.",
+        loadingTip10:
+            'Vous pouvez exporter la configuration complète de votre agent en tant que sauvegarde.',
+        loadingTip11:
+            "Les clés SSH peuvent être appliquées aux instances en cours d'exécution sans réinstallation.",
+        loadingTip12:
+            "Vous pouvez renouveler votre mot de passe root et votre jeton de passerelle depuis l'onglet Sécurité.",
+        loadingTip13:
+            'ClawHost prend en charge des serveurs dans plusieurs régions en Europe et aux États-Unis.',
         tabSettings: 'Paramètres',
         featureVersionUnsupported:
             '{{feature}} non pris en charge sur {{version}}',
@@ -1678,7 +1689,8 @@ const fr: Translations = {
         tabVolumes: 'Stockage',
         tabSecurity: 'Sécurité',
         securitySSHKey: 'Clé SSH',
-        securitySSHKeyHint: 'Appliquée à l\'instance en cours et utilisée lors de la réinstallation.',
+        securitySSHKeyHint:
+            "Appliquée à l'instance en cours et utilisée lors de la réinstallation.",
         securityPassword: 'Mot de passe root',
         securityGatewayToken: 'Jeton de passerelle',
         securityHostKey: 'Empreinte de la clé hôte',
@@ -1726,7 +1738,8 @@ const fr: Translations = {
         billingEmpty: 'No billing history for this instance.',
         tabServer: 'Serveur',
         serverIpAddress: 'Adresse IP',
-        reinstallDescription: 'Réinstaller OpenClaw sur ce serveur. Cela réinitialisera l\'installation d\'OpenClaw mais préservera vos données. Ne faites cela que si nécessaire.',
+        reinstallDescription:
+            "Réinstaller OpenClaw sur ce serveur. Cela réinitialisera l'installation d'OpenClaw mais préservera vos données. Ne faites cela que si nécessaire.",
         versionsSearch: 'Rechercher des versions...',
         versionsSearchCount: 'Rechercher {{count}} versions...',
         versionsEmpty: 'Aucune version trouvée',
@@ -1774,8 +1787,10 @@ const fr: Translations = {
         subdomainInUse: 'Ce sous-domaine est utilisé par un autre claw !',
         settingsDetails: 'Détails',
         settingsDangerZone: 'Zone de danger',
-        settingsDangerZoneDescription: 'Votre instance sera supprimée à la fin de votre période de facturation actuelle.',
-        settingsScheduledDeletionDescription: 'Suppression prévue le {{date}}. Annulez pour garder votre instance en cours d\'exécution et votre abonnement actif.',
+        settingsDangerZoneDescription:
+            'Votre instance sera supprimée à la fin de votre période de facturation actuelle.',
+        settingsScheduledDeletionDescription:
+            "Suppression prévue le {{date}}. Annulez pour garder votre instance en cours d'exécution et votre abonnement actif.",
         settingsSave: 'Enregistrer',
         settingsSaving: 'Enregistrement...',
         settingsUpdated: 'Paramètres mis à jour.',

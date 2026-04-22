@@ -1,20 +1,20 @@
 import type { FC, ReactNode } from 'react'
 import type {
     AdminDetailModalProps,
-    AdminClawListItem,
+    AdminAgentListItem,
     AdminSSHKeyListItem,
     AdminVolumeListItem,
-    AdminPendingClawListItem,
+    AdminPendingAgentListItem,
     AdminReferralListItem,
     AdminEmailListItem,
     BillingOrder
 } from '@/ts/Interfaces'
 
 import { Dialog, DialogContent } from '@/components/ui'
-import AdminClawDetailView from '@/components/admin/AdminClawDetailView'
+import AdminAgentDetailView from '@/components/admin/AdminAgentDetailView'
 import AdminSSHKeyDetailView from '@/components/admin/AdminSSHKeyDetailView'
 import AdminVolumeDetailView from '@/components/admin/AdminVolumeDetailView'
-import AdminPendingClawDetailView from '@/components/admin/AdminPendingClawDetailView'
+import AdminPendingAgentDetailView from '@/components/admin/AdminPendingAgentDetailView'
 import AdminReferralDetailView from '@/components/admin/AdminReferralDetailView'
 import AdminEmailDetailView from '@/components/admin/AdminEmailDetailView'
 import AdminBillingDetailView from '@/components/admin/AdminBillingDetailView'
@@ -33,10 +33,10 @@ const AdminDetailModal: FC<AdminDetailModalProps> = ({
                 return (
                     <AdminUserDetailView userId={entity.id} onClose={onClose} />
                 )
-            case 'claw':
+            case 'agent':
                 return (
-                    <AdminClawDetailView
-                        claw={entity.data as AdminClawListItem}
+                    <AdminAgentDetailView
+                        agent={entity.data as AdminAgentListItem}
                         onClose={onClose}
                         onNavigateToUser={onNavigateToUser}
                     />
@@ -57,10 +57,10 @@ const AdminDetailModal: FC<AdminDetailModalProps> = ({
                         onNavigateToUser={onNavigateToUser}
                     />
                 )
-            case 'pending-claw':
+            case 'pending-agent':
                 return (
-                    <AdminPendingClawDetailView
-                        pendingClaw={entity.data as AdminPendingClawListItem}
+                    <AdminPendingAgentDetailView
+                        pendingAgent={entity.data as AdminPendingAgentListItem}
                         onClose={onClose}
                         onNavigateToUser={onNavigateToUser}
                     />

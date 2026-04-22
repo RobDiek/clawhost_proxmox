@@ -19,9 +19,9 @@ import {
 import {
     AdminAnalyticsTab,
     AdminBillingTab,
-    AdminClawsTab,
+    AdminAgentsTab,
     AdminEmailsTab,
-    AdminPendingClawsTab,
+    AdminPendingAgentsTab,
     AdminReferralsTab,
     AdminSSHKeysTab,
     AdminDetailModal,
@@ -55,8 +55,8 @@ import { UsersTab } from '@/pages/Admin/tabs'
 const ADMIN_TABS = {
     ANALYTICS: 'analytics',
     USERS: 'users',
-    CLAWS: 'claws',
-    PENDING_CLAWS: 'pending',
+    AGENTS: 'agents',
+    PENDING_AGENTS: 'pending',
     SSH_KEYS: 'ssh-keys',
     VOLUMES: 'volumes',
     REFERRALS: 'referrals',
@@ -85,7 +85,7 @@ const Admin: FC = (): ReactNode => {
     }
 
     if (!authLoading && !isProfileLoading && !isAdmin)
-        return <Navigate to={ROUTES.CLAWS} replace />
+        return <Navigate to={ROUTES.AGENTS} replace />
 
     const isPageLoading = authLoading || isProfileLoading
 
@@ -149,10 +149,10 @@ const Admin: FC = (): ReactNode => {
                                         count: stats?.users
                                     },
                                     {
-                                        key: ADMIN_TABS.CLAWS,
+                                        key: ADMIN_TABS.AGENTS,
                                         icon: HardDrivesIcon,
                                         label: t('admin.clawsTab'),
-                                        count: stats?.claws
+                                        count: stats?.agents
                                     },
                                     {
                                         key: ADMIN_TABS.SSH_KEYS,
@@ -167,10 +167,10 @@ const Admin: FC = (): ReactNode => {
                                         count: stats?.volumes
                                     },
                                     {
-                                        key: ADMIN_TABS.PENDING_CLAWS,
+                                        key: ADMIN_TABS.PENDING_AGENTS,
                                         icon: HourglassIcon,
                                         label: t('admin.pendingClawsTab'),
-                                        count: stats?.pendingClaws
+                                        count: stats?.pendingAgents
                                     },
                                     {
                                         key: ADMIN_TABS.REFERRALS,
@@ -244,13 +244,13 @@ const Admin: FC = (): ReactNode => {
                         </TooltipProvider>
 
                         <div className='border-border bg-foreground/5 rounded-xl border p-4 backdrop-blur-sm sm:p-8'>
-                            {activeTab === ADMIN_TABS.CLAWS && (
-                                <AdminClawsTab
+                            {activeTab === ADMIN_TABS.AGENTS && (
+                                <AdminAgentsTab
                                     onSelectEntity={setSelectedEntity}
                                 />
                             )}
-                            {activeTab === ADMIN_TABS.PENDING_CLAWS && (
-                                <AdminPendingClawsTab
+                            {activeTab === ADMIN_TABS.PENDING_AGENTS && (
+                                <AdminPendingAgentsTab
                                     onSelectEntity={setSelectedEntity}
                                 />
                             )}

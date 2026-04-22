@@ -2,7 +2,7 @@ import type { AuthenticatedContext } from '@/ts/Types'
 
 import { asc, count, desc, ilike, or, sql } from 'drizzle-orm'
 import { db } from '@/db'
-import { users, claws, sshKeys } from '@/db/schema'
+import { users, agents, sshKeys } from '@/db/schema'
 import { ok } from '@/lib/response'
 import { t } from '@openclaw/i18n'
 import withErrorHandler from '@/lib/withErrorHandler'
@@ -34,15 +34,15 @@ const getAdminUsers = withErrorHandler(
 
     if (hasClaws === 'true') {
         const usersWithClaws = db
-            .select({ userId: claws.userId })
-            .from(claws)
-            .groupBy(claws.userId)
+            .select({ userId: agents.userId })
+            .from(agents)
+            .groupBy(agents.userId)
         conditions.push(sql`${users.id} IN (${usersWithClaws})`)
     } else if (hasClaws === 'false') {
         const usersWithClaws = db
-            .select({ userId: claws.userId })
-            .from(claws)
-            .groupBy(claws.userId)
+            .select({ userId: agents.userId })
+            .from(agents)
+            .groupBy(agents.userId)
         conditions.push(sql`${users.id} NOT IN (${usersWithClaws})`)
     }
 
@@ -82,11 +82,11 @@ const getAdminUsers = withErrorHandler(
     const [clawCounts, sshKeyCounts] = await Promise.all([
         db
             .select({
-                userId: claws.userId,
+                userId: agents.userId,
                 count: count()
             })
-            .from(claws)
-            .groupBy(claws.userId),
+            .from(agents)
+            .groupBy(agents.userId),
         db
             .select({
                 userId: sshKeys.userId,

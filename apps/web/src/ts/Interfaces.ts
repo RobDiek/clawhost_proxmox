@@ -12,16 +12,17 @@ import type { TranslationKey } from '@openclaw/i18n'
 import type {
     AdminAnalyticsRange,
     AffiliatePeriod,
+    AgentType,
     AuthMethod,
     BillingInterval,
-    ClawAvatarSize,
-    ClawStatus,
+    AgentAvatarSize,
+    AgentStatus,
     Language,
     LoginLoadingMethod,
     OAuthProvider,
-    ClawDetailTab,
+    AgentDetailTab,
     ThemeMode,
-    ClawFileType,
+    AgentFileType,
     CompareFeatureStatus,
     TerminalStatus,
     ToastType,
@@ -38,12 +39,13 @@ export interface Volume {
     status: string
 }
 
-export interface Claw {
+export interface Agent {
     id: string
     name: string
+    agentType: AgentType
     emoji: string | null
     emojiColor: string | null
-    status: ClawStatus
+    status: AgentStatus
     ip: string | null
     planId: string
     location: string | null
@@ -124,7 +126,7 @@ export interface LicenseCheckoutResponse {
 }
 
 export interface UserStats {
-    clawCount: number
+    agentCount: number
     sshKeyCount: number
     orderCount: number
 }
@@ -135,7 +137,7 @@ export interface AccountProfileSectionProps {
     email: string
     isLocal: boolean
     joinedDate: string | undefined
-    clawCount: number
+    agentCount: number
     sshKeyCount: number
     hasChanges: boolean
     isPending: boolean
@@ -215,8 +217,9 @@ export interface UseCopyWithFeedbackReturn {
     copy: (value: string) => void
 }
 
-export interface UseCreateClawFormValues {
+export interface UseCreateAgentFormValues {
     name: string
+    agentType: AgentType
     planId: string
     location: string
     password: string
@@ -230,16 +233,16 @@ export interface UseCreateClawFormValues {
     agreedToTerms: boolean
 }
 
-export interface UseCreateClawFormErrors {
+export interface UseCreateAgentFormErrors {
     name: string
 }
 
-export interface UseCreateClawFormReturn {
-    values: UseCreateClawFormValues
-    errors: UseCreateClawFormErrors
-    setField: <K extends keyof UseCreateClawFormValues>(
+export interface UseCreateAgentFormReturn {
+    values: UseCreateAgentFormValues
+    errors: UseCreateAgentFormErrors
+    setField: <K extends keyof UseCreateAgentFormValues>(
         key: K,
-        value: UseCreateClawFormValues[K]
+        value: UseCreateAgentFormValues[K]
     ) => void
     reset: () => void
 }
@@ -299,10 +302,10 @@ export interface TerminalState {
 }
 
 export interface DashboardState {
-    chatSettingsClawId: string | null
-    setChatSettingsClawId: (value: string | null) => void
-    chatClawTab: ClawDetailTab | null
-    setChatClawTab: (value: ClawDetailTab | null) => void
+    chatSettingsAgentId: string | null
+    setChatSettingsAgentId: (value: string | null) => void
+    chatAgentTab: AgentDetailTab | null
+    setChatAgentTab: (value: AgentDetailTab | null) => void
     showCreate: boolean
     setShowCreate: (value: boolean) => void
     preselectedPlanId: string | null
@@ -368,20 +371,24 @@ export interface LogoProps {
     to?: string
 }
 
+export interface IconProps {
+    size?: number
+}
+
 export interface NavLink {
     label: string
     href: string
     id: string
 }
 
-export interface ClawMascotProps {
+export interface AgentMascotProps {
     className?: string
 }
 
-export interface ClawAvatarProps {
+export interface AgentAvatarProps {
     emoji?: string | null
     emojiColor?: string | null
-    size?: ClawAvatarSize
+    size?: AgentAvatarSize
     className?: string
 }
 
@@ -511,7 +518,7 @@ export interface PlanAvailability {
     [planId: string]: string[]
 }
 
-export interface CreateClawModalProps {
+export interface CreateAgentModalProps {
     plans: Plan[]
     locations: Location[]
     sshKeys: SSHKey[]
@@ -522,7 +529,7 @@ export interface CreateClawModalProps {
     onNavigateToSSHKeys: () => void
 }
 
-export interface ClawCardActions {
+export interface AgentCardActions {
     onStart: () => void
     onShowStartModal: () => void
     onShowStopModal: () => void
@@ -544,15 +551,15 @@ export interface ExportRateLimitError extends Error {
     retryAfter: number
 }
 
-export interface ClawCredentialsDialogProps {
-    clawIp: string
+export interface AgentCredentialsDialogProps {
+    agentIp: string
     rootPassword: string | null
     open: boolean
     onOpenChange: (open: boolean) => void
 }
 
-export interface ClawCardDialogsProps {
-    clawName: string
+export interface AgentCardDialogsProps {
+    agentName: string
     showStartModal: boolean
     setShowStartModal: (open: boolean) => void
     showDeleteModal: boolean
@@ -583,20 +590,20 @@ export interface ClawCardDialogsProps {
     isCancelDeletionPending: boolean
 }
 
-export interface UseClawCardActionsParams {
-    claw: Claw | null
+export interface UseAgentCardActionsParams {
+    agent: Agent | null
 }
 
-export interface UseClawCardActionsReturn {
-    actions: ClawCardActions | null
+export interface UseAgentCardActionsReturn {
+    actions: AgentCardActions | null
     isMutating: boolean
-    dialogsProps: ClawCardDialogsBundleProps | null
+    dialogsProps: AgentCardDialogsBundleProps | null
 }
 
-export interface ClawCardDialogsBundleProps {
-    clawId: string
-    clawName: string
-    clawIp: string
+export interface AgentCardDialogsBundleProps {
+    agentId: string
+    agentName: string
+    agentIp: string
     showStartModal: boolean
     setShowStartModal: (open: boolean) => void
     showDeleteModal: boolean
@@ -705,8 +712,9 @@ export interface AuthProviderProps {
     children: ReactNode
 }
 
-export interface PurchaseClawData {
+export interface PurchaseAgentData {
     name: string
+    agentType: AgentType
     planId: string
     location: string
     password?: string
@@ -717,24 +725,24 @@ export interface PurchaseClawData {
     billingInterval?: 'month' | 'year'
 }
 
-export interface DeleteClawResponse {
+export interface DeleteAgentResponse {
     scheduled: boolean
     deletionScheduledAt?: string
-    claw?: Claw
+    agent?: Agent
 }
 
-export interface PurchaseClawResponse {
+export interface PurchaseAgentResponse {
     checkoutUrl: string
     checkoutId: string
-    pendingClawId: string
+    pendingAgentId: string
     expiresAt: string
 }
 
-export interface RenameClawData {
+export interface RenameAgentData {
     name: string
 }
 
-export interface UpdateClawSubdomainData {
+export interface UpdateAgentSubdomainData {
     subdomain: string
 }
 
@@ -756,7 +764,7 @@ export interface CustomerPortalResponse {
 }
 
 export interface UseCustomerPortalReturn {
-    openPortal: (clawId?: string) => Promise<void>
+    openPortal: (agentId?: string) => Promise<void>
     isLoading: boolean
 }
 
@@ -780,10 +788,6 @@ export interface BlogPostMeta extends BlogPostFrontmatter {
     readingTime: number
 }
 
-export interface BlogCardProps {
-    post: BlogPostMeta
-}
-
 export interface JsonLdProps {
     data: Record<string, unknown>
 }
@@ -805,32 +809,32 @@ export interface ArticleMeta {
     tags: string[]
 }
 
-export interface ClawVersionResponse {
+export interface AgentVersionResponse {
     version: string
 }
 
-export interface OpenClawVersionEntry {
+export interface OpenAgentVersionEntry {
     version: string
     publishedAt: string
     downloads: number
 }
 
-export interface ClawVersionsResponse {
+export interface AgentVersionsResponse {
     currentVersion: string
     latestVersion: string
-    versions: OpenClawVersionEntry[]
+    versions: OpenAgentVersionEntry[]
 }
 
-export interface InstallClawVersionResponse {
+export interface InstallAgentVersionResponse {
     version: string
 }
 
-export interface ClawVersionsContentProps {
-    clawId: string
+export interface AgentVersionsContentProps {
+    agentId: string
     readOnly?: boolean
 }
 
-export interface ClawCredentialsResponse {
+export interface AgentCredentialsResponse {
     rootPassword: string | null
     gatewayToken: string | null
     ip: string | null
@@ -846,37 +850,37 @@ export interface DiagnosticsLogsResponse {
     logs: string
 }
 
-export interface ClawMetricsCpu {
+export interface AgentMetricsCpu {
     usagePercent: number
     cores: number
 }
 
-export interface ClawMetricsMemory {
+export interface AgentMetricsMemory {
     total: number
     used: number
     available: number
 }
 
-export interface ClawMetricsDisk {
+export interface AgentMetricsDisk {
     total: number
     used: number
     available: number
     usagePercent: number
 }
 
-export interface ClawMetricsLoadAvg {
+export interface AgentMetricsLoadAvg {
     load1: number
     load5: number
     load15: number
 }
 
-export interface ClawMetricsNetwork {
+export interface AgentMetricsNetwork {
     rxBytes: number
     txBytes: number
     interface: string
 }
 
-export interface ClawMetricsProcess {
+export interface AgentMetricsProcess {
     pid: number
     user: string
     cpu: number
@@ -884,18 +888,18 @@ export interface ClawMetricsProcess {
     command: string
 }
 
-export interface ClawMetricsResponse {
-    cpu: ClawMetricsCpu
-    memory: ClawMetricsMemory
-    disk: ClawMetricsDisk
-    loadAvg: ClawMetricsLoadAvg
-    network: ClawMetricsNetwork
-    processes: ClawMetricsProcess[]
+export interface AgentMetricsResponse {
+    cpu: AgentMetricsCpu
+    memory: AgentMetricsMemory
+    disk: AgentMetricsDisk
+    loadAvg: AgentMetricsLoadAvg
+    network: AgentMetricsNetwork
+    processes: AgentMetricsProcess[]
     uptime: string
     timestamp: number
 }
 
-export interface ClawOverviewSession {
+export interface AgentOverviewSession {
     key: string
     name: string
     model: string
@@ -904,14 +908,14 @@ export interface ClawOverviewSession {
     messageCount: number
 }
 
-export interface ClawOverviewGateway {
+export interface AgentOverviewGateway {
     active: boolean
     reachable: boolean
     portListening: boolean
     ready: boolean
 }
 
-export interface ClawOverviewInstance {
+export interface AgentOverviewInstance {
     version: string | null
     model: string | null
     contextWindow: string | null
@@ -923,55 +927,55 @@ export interface ClawOverviewInstance {
     probes: string | null
 }
 
-export interface ClawOverviewConfig {
+export interface AgentOverviewConfig {
     browserEnabled: boolean
     commandsEnabled: boolean
     tools: string[]
 }
 
-export interface ClawOverviewResponse {
-    gateway: ClawOverviewGateway
-    instance: ClawOverviewInstance
-    config: ClawOverviewConfig | null
-    sessions: ClawOverviewSession[] | null
+export interface AgentOverviewResponse {
+    gateway: AgentOverviewGateway
+    instance: AgentOverviewInstance
+    config: AgentOverviewConfig | null
+    sessions: AgentOverviewSession[] | null
     apiStatus: Record<string, unknown> | null
     timestamp: number
 }
 
-export interface ClawOverviewContentProps {
-    clawId: string
+export interface AgentOverviewContentProps {
+    agentId: string
     readOnly?: boolean
 }
 
 export interface OverviewGatewayCardProps {
-    gateway: ClawOverviewGateway
-    clawId: string
+    gateway: AgentOverviewGateway
+    agentId: string
 }
 
 export interface OverviewInstanceCardProps {
-    instance: ClawOverviewInstance
+    instance: AgentOverviewInstance
 }
 
 export interface OverviewSessionsTableProps {
-    sessions: ClawOverviewSession[] | null
+    sessions: AgentOverviewSession[] | null
 }
 
 export interface OverviewConfigCardProps {
-    config: ClawOverviewConfig | null
+    config: AgentOverviewConfig | null
 }
 
-export interface ClawMonitorContentProps {
-    clawId: string
+export interface AgentMonitorContentProps {
+    agentId: string
     readOnly?: boolean
 }
 
-export interface ClawVolumesContentProps {
+export interface AgentVolumesContentProps {
     volumes: Volume[]
     readOnly?: boolean
 }
 
-export interface ClawSecurityContentProps {
-    claw: Claw
+export interface AgentSecurityContentProps {
+    agent: Agent
     sshKeys: SSHKey[]
     readOnly?: boolean
 }
@@ -989,7 +993,7 @@ export interface SecretFieldProps {
 }
 
 export interface SecuritySSHKeySectionProps {
-    clawId: string
+    agentId: string
     sshKeyId: string | null
     sshKeys: SSHKey[]
     readOnly?: boolean
@@ -1026,7 +1030,7 @@ export interface MonitorChartProps {
 }
 
 export interface MonitorProcessTableProps {
-    processes: ClawMetricsProcess[]
+    processes: AgentMetricsProcess[]
 }
 
 export interface MonitorLoadAvgChartProps {
@@ -1040,51 +1044,51 @@ export interface MonitorNetworkCardProps {
     txBytes: number
 }
 
-export interface ClawServerContentProps {
-    claw: Claw
+export interface AgentServerContentProps {
+    agent: Agent
     plans: Plan[]
     readOnly?: boolean
 }
 
-export interface ClawFileEntry {
+export interface AgentFileEntry {
     path: string
     name: string
-    fileType: ClawFileType
+    fileType: AgentFileType
 }
 
-export interface ClawFilesResponse {
-    files: ClawFileEntry[]
+export interface AgentFilesResponse {
+    files: AgentFileEntry[]
 }
 
-export interface ReadClawFileResponse {
+export interface ReadAgentFileResponse {
     content: string
     path: string
 }
 
-export interface UpdateClawFileData {
+export interface UpdateAgentFileData {
     path: string
     content: string
 }
 
-export interface UpdateClawFileParams {
+export interface UpdateAgentFileParams {
     id: string
-    data: UpdateClawFileData
+    data: UpdateAgentFileData
 }
 
-export interface ClawDiagnosticsDialogProps {
-    clawId: string
+export interface AgentDiagnosticsDialogProps {
+    agentId: string
     open: boolean
     onOpenChange: (open: boolean) => void
 }
 
-export interface ClawLogsDialogProps {
-    clawId: string
+export interface AgentLogsDialogProps {
+    agentId: string
     open: boolean
     onOpenChange: (open: boolean) => void
 }
 
-export interface ClawLogsContentProps {
-    clawId: string
+export interface AgentLogsContentProps {
+    agentId: string
     enabled: boolean
     embedded?: boolean
     mockLogs?: string
@@ -1095,45 +1099,39 @@ export interface ParsedLogLine {
     text: string
 }
 
-export interface ClawTerminalContentProps {
-    clawId: string
+export interface AgentTerminalContentProps {
+    agentId: string
     enabled: boolean
 }
 
-export interface ClawDiagnosticsContentProps {
-    clawId: string
+export interface AgentDiagnosticsContentProps {
+    agentId: string
     enabled: boolean
     mockData?: DiagnosticsStatusResponse
 }
 
-export interface ClawFileExplorerDialogProps {
-    clawId: string
-    open: boolean
-    onOpenChange: (open: boolean) => void
-}
-
-export interface ClawFileExplorerContentProps {
-    clawId: string
+export interface AgentFileExplorerContentProps {
+    agentId: string
     readOnly?: boolean
 }
 
 export interface FileTreeProps {
-    folders: [string, ClawFileEntry[]][]
-    rootFiles: ClawFileEntry[]
+    folders: [string, AgentFileEntry[]][]
+    rootFiles: AgentFileEntry[]
     selectedPath: string
     onSelectFile: (path: string) => void
 }
 
 export interface FileTreeItemProps {
-    file: ClawFileEntry
+    file: AgentFileEntry
     isLast: boolean
     selectedPath: string
     onSelectFile: (path: string) => void
 }
 
 export interface FileEditorProps {
-    selectedFile: ClawFileEntry | undefined
-    fileType: ClawFileType
+    selectedFile: AgentFileEntry | undefined
+    fileType: AgentFileType
     isEditable: boolean
     isJson: boolean
     displayContent: string
@@ -1148,8 +1146,8 @@ export interface FileEditorProps {
 }
 
 export interface UseFileEditorParams {
-    clawId: string
-    files: ClawFileEntry[] | undefined
+    agentId: string
+    files: AgentFileEntry[] | undefined
     readOnly?: boolean
 }
 
@@ -1157,8 +1155,8 @@ export interface UseFileEditorReturn {
     selectedPath: string
     editedContent: string
     jsonError: boolean
-    selectedFile: ClawFileEntry | undefined
-    fileType: ClawFileType
+    selectedFile: AgentFileEntry | undefined
+    fileType: AgentFileType
     isEditable: boolean
     isJson: boolean
     displayContent: string
@@ -1166,7 +1164,7 @@ export interface UseFileEditorReturn {
     fileContentIsPending: boolean
     fileContentIsError: boolean
     fileContentError: Error | null
-    fileContentData: ReadClawFileResponse | undefined
+    fileContentData: ReadAgentFileResponse | undefined
     isSaving: boolean
     handleSelectFile: (path: string) => void
     handleChange: (value: string) => void
@@ -1193,14 +1191,14 @@ export interface FaqSectionProps {
     faqs: Faq[]
 }
 
-export interface ClawDetailPanelProps {
-    claw: Claw
+export interface AgentDetailPanelProps {
+    agent: Agent
     plans: Plan[]
     sshKeys: SSHKey[]
     onClose: () => void
     readOnly?: boolean
-    initialTab?: ClawDetailTab
-    onTabChange?: (tab: ClawDetailTab) => void
+    initialTab?: AgentDetailTab
+    onTabChange?: (tab: AgentDetailTab) => void
     fullScreen?: boolean
 }
 
@@ -1209,25 +1207,25 @@ export interface UpdateAvailableBannerProps {
     onGoToVersions: () => void
 }
 
-export interface ClawBillingContentProps {
-    claw: Claw
+export interface AgentBillingContentProps {
+    agent: Agent
     plans: Plan[]
     readOnly?: boolean
 }
 
-export interface ClawBillingSubscriptionProps {
-    claw: Claw
+export interface AgentBillingSubscriptionProps {
+    agent: Agent
     plan: Plan | undefined
     readOnly?: boolean
 }
 
-export interface ClawBillingHistoryProps {
+export interface AgentBillingHistoryProps {
     polarSubscriptionId: string | null
     readOnly?: boolean
 }
 
-export interface ClawDetailSettingsTabProps {
-    claw: Claw
+export interface AgentDetailSettingsTabProps {
+    agent: Agent
     currentEmoji: string | null
     currentEmojiColor: string | null
     settingsName: string
@@ -1263,11 +1261,11 @@ export interface EmojiColorPickerProps {
 }
 
 export interface ExportSectionProps {
-    clawId: string
+    agentId: string
 }
 
-export interface ClawPreviewContentProps {
-    claw: Claw
+export interface AgentPreviewContentProps {
+    agent: Agent
     readOnly?: boolean
 }
 
@@ -1278,28 +1276,28 @@ export interface HeaderActionButtonProps {
     disabled: boolean
 }
 
-export interface ClawDetailHeaderProps {
-    claw: Claw
+export interface AgentDetailHeaderProps {
+    agent: Agent
     onClose: () => void
     fullScreen?: boolean
     versionDisplay?: string | null
     readOnly?: boolean
 }
 
-export interface ClawDetailTabBarProps {
-    activeTab: ClawDetailTab
+export interface AgentDetailTabBarProps {
+    activeTab: AgentDetailTab
     fullScreen?: boolean
-    isTabDisabled: (tabId: ClawDetailTab) => boolean
-    getDisabledTooltip: (tabId: ClawDetailTab) => string
-    setActiveTab: (tab: ClawDetailTab) => void
+    isTabDisabled: (tabId: AgentDetailTab) => boolean
+    getDisabledTooltip: (tabId: AgentDetailTab) => string
+    setActiveTab: (tab: AgentDetailTab) => void
 }
 
-export interface ClawDetailTabState {
-    tabStateMap: Record<string, ClawDetailTab>
-    setTab: (clawId: string, tab: ClawDetailTab) => void
+export interface AgentDetailTabState {
+    tabStateMap: Record<string, AgentDetailTab>
+    setTab: (agentId: string, tab: AgentDetailTab) => void
 }
 
-export interface UseClawSettingsFormReturn {
+export interface UseAgentSettingsFormReturn {
     settingsEmoji: string | null
     settingsEmojiColor: string | null
     settingsName: string
@@ -1320,16 +1318,6 @@ export interface LanguageOption {
     value: Language
     label: string
     flag: string
-}
-
-export interface SecretInputFieldProps {
-    label: string
-    value: string
-    onChange: (value: string) => void
-    placeholder?: string
-    existingValue?: string
-    configuredLabel?: string
-    helperText?: string
 }
 
 export interface HeroButtonsProps {
@@ -1426,8 +1414,8 @@ export interface SimplePlanCardProps {
     features: SimplePlanFeature[]
 }
 
-export interface AdminUserClawsSectionProps {
-    claws: AdminUserDetailClaw[]
+export interface AdminUserAgentsSectionProps {
+    agents: AdminUserDetailAgent[]
 }
 
 export interface AdminUserSSHKeysSectionProps {
@@ -1445,7 +1433,7 @@ export interface AdminUserBillingSectionProps {
     formatCurrency: (amount: number, currency?: string) => string
 }
 
-export interface ClawDetailTabConfig<T extends string = string> {
+export interface AgentDetailTabConfig<T extends string = string> {
     id: T
     label: string
     icon: ElementType
@@ -1533,15 +1521,15 @@ export interface OAuthWindowResult {
     code: string | null
 }
 
-export interface RenameClawMutationParams extends RenameClawData {
+export interface RenameAgentMutationParams extends RenameAgentData {
     id: string
 }
 
-export interface UpdateClawSubdomainMutationParams extends UpdateClawSubdomainData {
+export interface UpdateAgentSubdomainMutationParams extends UpdateAgentSubdomainData {
     id: string
 }
 
-export interface UpdateClawEmojiMutationParams {
+export interface UpdateAgentEmojiMutationParams {
     id: string
     emoji: string | null
     emojiColor: string | null
@@ -1579,12 +1567,6 @@ export interface SelectItemProps {
     value: string
     children: ReactNode
     className?: string
-}
-
-export interface SelectGroupProps {
-    label: string
-    children: ReactNode
-    isLast?: boolean
 }
 
 export interface FirebaseErrorLike {
@@ -1726,7 +1708,7 @@ export interface AdminUserListItem {
     hasLicense: boolean
     referralCode: string | null
     createdAt: string
-    clawCount: number
+    agentCount: number
     sshKeyCount: number
 }
 
@@ -1737,7 +1719,7 @@ export interface AdminUsersResponse {
     totalPages: number
 }
 
-export interface AdminUserDetailClaw {
+export interface AdminUserDetailAgent {
     id: string
     name: string
     status: string
@@ -1779,7 +1761,7 @@ export interface AdminUserDetail {
     referralCodeChanged: boolean
     referredBy: string | null
     createdAt: string
-    claws: AdminUserDetailClaw[]
+    agents: AdminUserDetailAgent[]
     sshKeys: AdminUserDetailSSHKey[]
     volumes: AdminUserDetailVolume[]
     billingOrders: BillingOrder[]
@@ -1801,8 +1783,8 @@ export interface AdminAnalyticsDataPoint {
 
 export interface AdminAnalyticsResponse {
     users: AdminAnalyticsDataPoint[]
-    claws: AdminAnalyticsDataPoint[]
-    pendingClaws: AdminAnalyticsDataPoint[]
+    agents: AdminAnalyticsDataPoint[]
+    pendingAgents: AdminAnalyticsDataPoint[]
     sshKeys: AdminAnalyticsDataPoint[]
     volumes: AdminAnalyticsDataPoint[]
     referrals: AdminAnalyticsDataPoint[]
@@ -1819,8 +1801,8 @@ export interface AdminAnalyticsChartProps {
 
 export interface AdminStats {
     users: number
-    claws: number
-    pendingClaws: number
+    agents: number
+    pendingAgents: number
     sshKeys: number
     volumes: number
     referrals: number
@@ -1840,7 +1822,7 @@ export interface AdminReferralListItem {
     referredEmail: string | null
 }
 
-export interface AdminPendingClawListItem {
+export interface AdminPendingAgentListItem {
     id: string
     name: string
     planId: string
@@ -1886,7 +1868,7 @@ export interface AdminPaginatedResponse<T> {
     totalPages: number
 }
 
-export interface AdminClawListItem {
+export interface AdminAgentListItem {
     id: string
     name: string
     status: string
@@ -1902,8 +1884,8 @@ export interface AdminClawListItem {
     ownerEmail: string | null
 }
 
-export interface AdminClawsResponse {
-    items: AdminClawListItem[]
+export interface AdminAgentsResponse {
+    items: AdminAgentListItem[]
     total: number
     page: number
     totalPages: number
@@ -1969,10 +1951,10 @@ export interface RangeBucketConfig {
 export interface AdminEntitySelection {
     type:
         | 'user'
-        | 'claw'
+        | 'agent'
         | 'ssh-key'
         | 'volume'
-        | 'pending-claw'
+        | 'pending-agent'
         | 'referral'
         | 'waitlist'
         | 'email'
@@ -2007,8 +1989,8 @@ export interface AdminStatusBadgeProps {
     status: string
 }
 
-export interface AdminClawDetailViewProps {
-    claw: AdminClawListItem
+export interface AdminAgentDetailViewProps {
+    agent: AdminAgentListItem
     onClose: () => void
     onNavigateToUser: (userId: string) => void
 }
@@ -2025,8 +2007,8 @@ export interface AdminVolumeDetailViewProps {
     onNavigateToUser: (userId: string) => void
 }
 
-export interface AdminPendingClawDetailViewProps {
-    pendingClaw: AdminPendingClawListItem
+export interface AdminPendingAgentDetailViewProps {
+    pendingAgent: AdminPendingAgentListItem
     onClose: () => void
     onNavigateToUser: (userId: string) => void
 }
@@ -2051,8 +2033,8 @@ export interface AdminUserDetailViewProps {
 export interface AdminUserFiltersProps {
     search: string
     onSearchChange: (value: string) => void
-    hasClaws: string
-    onHasClawsChange: (value: string) => void
+    hasAgents: string
+    onHasAgentsChange: (value: string) => void
     sortOrder: string
     onSortOrderChange: (value: string) => void
 }
@@ -2114,7 +2096,7 @@ export interface ChangelogRelease {
 export interface DashboardHeaderProps {
     isLocal: boolean
     isLoading: boolean
-    displayedClaws: Claw[]
+    displayedAgents: Agent[]
     displayName: string
     dnsSetup: boolean | null
     dnsLoading: boolean
@@ -2127,43 +2109,43 @@ export interface DashboardHeaderProps {
 }
 
 export interface DashboardChatViewProps {
-    displayedClaws: Claw[]
+    displayedAgents: Agent[]
     plans: Plan[]
     sshKeys: SSHKey[]
     adminMode: boolean
-    chatSettingsClawId: string | null
-    chatClawTab: ClawDetailTab | null
-    onSettingsClawChange: (clawId: string | null) => void
-    onClawTabChange: (tab: ClawDetailTab | null) => void
+    chatSettingsAgentId: string | null
+    chatAgentTab: AgentDetailTab | null
+    onSettingsAgentChange: (agentId: string | null) => void
+    onAgentTabChange: (tab: AgentDetailTab | null) => void
     onCreateClick: () => void
 }
 
 export interface ChatSidebarProps {
-    claws: Claw[]
-    selectedClawId: string | null
+    agents: Agent[]
+    selectedAgentId: string | null
     readOnly?: boolean
-    onOpenClawSettings: (clawId: string) => void
+    onOpenAgentSettings: (agentId: string) => void
     onClose?: () => void
 }
 
 export interface ChatSidebarTreeViewProps {
-    claws: Claw[]
-    selectedClawId: string | null
+    agents: Agent[]
+    selectedAgentId: string | null
     readOnly?: boolean
-    onOpenClawSettings: (clawId: string) => void
+    onOpenAgentSettings: (agentId: string) => void
 }
 
 export interface ChatSidebarSearchProps {
     value: string
     onChange: (value: string) => void
-    clawCount: number
+    agentCount: number
 }
 
-export interface ChatSidebarClawHeaderProps {
-    claw: Claw
+export interface ChatSidebarAgentHeaderProps {
+    agent: Agent
     isSelected: boolean
     statusConfig: StatusConfig
-    onOpenClawSettings: (clawId: string) => void
+    onOpenAgentSettings: (agentId: string) => void
 }
 
 export interface UseURLStateRestorationParams {
@@ -2172,14 +2154,14 @@ export interface UseURLStateRestorationParams {
         params: Record<string, string>,
         options?: { replace?: boolean }
     ) => void
-    chatSettingsClawId: string | null
-    setChatSettingsClawId: (value: string | null) => void
-    chatClawTab: ClawDetailTab | null
-    setChatClawTab: (value: ClawDetailTab | null) => void
+    chatSettingsAgentId: string | null
+    setChatSettingsAgentId: (value: string | null) => void
+    chatAgentTab: AgentDetailTab | null
+    setChatAgentTab: (value: AgentDetailTab | null) => void
     setShowCreate: (value: boolean) => void
     setPreselectedPlanId: (value: string | null) => void
     showToast: (message: string, type: ToastType) => void
-    awaitingClaw: boolean
+    awaitingAgent: boolean
 }
 
 export interface UseInfiniteScrollObserverParams {
@@ -2216,7 +2198,7 @@ export interface UsePaginationStateReturn<T> {
     skeletonCount: number
 }
 
-export interface ClawPendingViewProps {
+export interface AgentPendingViewProps {
     status: string
     checkoutUrl?: string | null
     onCancel?: () => void

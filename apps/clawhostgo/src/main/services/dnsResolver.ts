@@ -9,7 +9,7 @@ const DNS_PORT = 15353
 const PROXY_PORT = 18700
 const HTTPS_PROXY_PORT = 18701
 const RESOLVER_DIR = '/etc/resolver'
-const RESOLVER_PATH = path.join(RESOLVER_DIR, 'clawhost')
+const RESOLVER_PATH = path.join(RESOLVER_DIR, 'agenthost')
 
 let server: dgram.Socket | null = null
 let retryCount = 0
@@ -80,7 +80,7 @@ const buildResponse = (query: Buffer): Buffer => {
     return response.subarray(0, offset)
 }
 
-const isDomainClawhost = (query: Buffer): boolean => {
+const isDomainAgenthost = (query: Buffer): boolean => {
     let offset = 12
     const labels: string[] = []
     while (offset < query.length && query[offset] !== 0) {
@@ -90,7 +90,7 @@ const isDomainClawhost = (query: Buffer): boolean => {
         offset += len
     }
     const domain = labels.join('.')
-    return domain.endsWith('.clawhost') || domain === 'clawhost'
+    return domain.endsWith('.agenthost') || domain === 'agenthost'
 }
 
 const startDns = (): void => {
@@ -100,7 +100,7 @@ const startDns = (): void => {
 
     server.on('message', (msg, rinfo) => {
         if (msg.length < 12) return
-        if (!isDomainClawhost(msg)) return
+        if (!isDomainAgenthost(msg)) return
 
         const response = buildResponse(msg)
         server?.send(response, rinfo.port, rinfo.address)
@@ -129,8 +129,8 @@ const stopDns = (): void => {
     server = null
 }
 
-const PF_ANCHOR = 'com.clawhost'
-const PF_ANCHOR_FILE = '/etc/pf.anchors/com.clawhost'
+const PF_ANCHOR = 'com.agenthost'
+const PF_ANCHOR_FILE = '/etc/pf.anchors/com.agenthost'
 const PF_CONF = '/etc/pf.conf'
 const PF_RULE_HTTP = `rdr pass on lo0 inet proto tcp from any to 127.0.0.1 port 80 -> 127.0.0.1 port ${PROXY_PORT}`
 const PF_RULE_HTTPS = `rdr pass on lo0 inet proto tcp from any to 127.0.0.1 port 443 -> 127.0.0.1 port ${HTTPS_PROXY_PORT}`
@@ -150,7 +150,7 @@ const isDnsSetup = (): boolean => {
 
 const ensurePortRedirect = (): void => {
     if (!isDnsSetup()) return
-    exec('pfctl -a com.clawhost -sr 2>/dev/null', (err, stdout) => {
+    exec('pfctl -a com.agenthost -sr 2>/dev/null', (err, stdout) => {
         if (
             !err &&
             stdout.includes('rdr pass') &&
@@ -164,7 +164,7 @@ const ensurePortRedirect = (): void => {
             'pfctl -e 2>/dev/null',
             'exit 0'
         ].join('\n')
-        const tmpScript = path.join(os.tmpdir(), 'clawhost-pf.sh')
+        const tmpScript = path.join(os.tmpdir(), 'agenthost-pf.sh')
         fs.writeFileSync(tmpScript, script, { mode: 0o755 })
         exec(
             `osascript -e 'do shell script "${tmpScript}" with administrator privileges'`,
@@ -211,7 +211,7 @@ const setupResolver = (): Promise<boolean> => {
             'fi',
             'exit 0'
         ].join('\n')
-        const tmpScript = path.join(os.tmpdir(), 'clawhost-dns-setup.sh')
+        const tmpScript = path.join(os.tmpdir(), 'agenthost-dns-setup.sh')
         fs.writeFileSync(tmpScript, script, { mode: 0o755 })
         exec(
             `osascript -e 'do shell script "${tmpScript}" with administrator privileges'`,

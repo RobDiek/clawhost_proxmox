@@ -203,8 +203,8 @@ const installVersionTo = (
     })
 }
 
-const getClawBinaryPath = (clawDir: string): string => {
-    return path.join(clawDir, 'node_modules', '.bin', 'openclaw')
+const getAgentBinaryPath = (agentDir: string): string => {
+    return path.join(agentDir, 'node_modules', '.bin', 'openclaw')
 }
 
 const versionManager = {
@@ -214,7 +214,7 @@ const versionManager = {
     getAvailableVersions,
     getLatestVersion,
     getVersionBinaryPath,
-    getClawBinaryPath
+    getAgentBinaryPath
 }
 
 export default versionManager

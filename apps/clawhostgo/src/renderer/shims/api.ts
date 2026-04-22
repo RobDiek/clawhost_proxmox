@@ -1,27 +1,27 @@
 import type {
     BillingHistoryResponse,
     BillingInvoiceResponse,
-    Claw,
-    ClawCredentialsResponse,
-    RenameClawData,
-    UpdateClawSubdomainData,
-    ClawFilesResponse,
-    ClawVersionResponse,
-    ClawVersionsResponse,
-    InstallClawVersionResponse,
+    Agent,
+    AgentCredentialsResponse,
+    RenameAgentData,
+    UpdateAgentSubdomainData,
+    AgentFilesResponse,
+    AgentVersionResponse,
+    AgentVersionsResponse,
+    InstallAgentVersionResponse,
     CreateSSHKeyData,
     CustomerPortalResponse,
-    DeleteClawResponse,
+    DeleteAgentResponse,
     DiagnosticsLogsResponse,
     DiagnosticsStatusResponse,
     Location,
     PlansResponse,
     PlanAvailability,
-    PurchaseClawResponse,
-    ReadClawFileResponse,
+    PurchaseAgentResponse,
+    ReadAgentFileResponse,
     ResolveCredentialConflictData,
     SSHKey,
-    UpdateClawFileData,
+    UpdateAgentFileData,
     UpdateProfileData,
     UserProfile,
     UserStats,
@@ -86,64 +86,66 @@ const api = {
     getPlanAvailability: (_provider?: string) =>
         invoke('getPlanAvailability') as Promise<PlanAvailability>,
 
-    getClaws: () => invoke('getClaws') as Promise<Claw[]>,
-    getAdminClaws: () => invoke('getClaws') as Promise<Claw[]>,
-    getClaw: (id: string, _sync?: boolean) =>
-        invoke('getClaw', id) as Promise<Claw>,
-    syncClaw: (id: string) => invoke('syncClaw', id) as Promise<Claw>,
-    createClaw: (data: unknown) => invoke('createClaw', data) as Promise<Claw>,
-    purchaseClaw: (_data: unknown) =>
+    getAgents: () => invoke('getAgents') as Promise<Agent[]>,
+    getAdminAgents: () => invoke('getAgents') as Promise<Agent[]>,
+    getAgent: (id: string, _sync?: boolean) =>
+        invoke('getAgent', id) as Promise<Agent>,
+    syncAgent: (id: string) => invoke('syncAgent', id) as Promise<Agent>,
+    createAgent: (data: unknown) =>
+        invoke('createAgent', data) as Promise<Agent>,
+    purchaseAgent: (_data: unknown) =>
         Promise.reject(
             new Error('Purchasing is not available in local mode.')
-        ) as Promise<PurchaseClawResponse>,
-    startClaw: (id: string) => invoke('startClaw', id) as Promise<Claw>,
-    stopClaw: (id: string) => invoke('stopClaw', id) as Promise<Claw>,
-    restartClaw: (id: string) => invoke('restartClaw', id) as Promise<Claw>,
-    deleteClaw: (id: string) =>
-        invoke('deleteClaw', id) as Promise<DeleteClawResponse>,
-    renameClaw: (id: string, data: RenameClawData) =>
-        invoke('renameClaw', id, data) as Promise<Claw>,
-    updateClawSubdomain: (id: string, data: UpdateClawSubdomainData) =>
-        invoke('updateClawSubdomain', id, data) as Promise<Claw>,
+        ) as Promise<PurchaseAgentResponse>,
+    startAgent: (id: string) => invoke('startAgent', id) as Promise<Agent>,
+    stopAgent: (id: string) => invoke('stopAgent', id) as Promise<Agent>,
+    restartAgent: (id: string) => invoke('restartAgent', id) as Promise<Agent>,
+    deleteAgent: (id: string) =>
+        invoke('deleteAgent', id) as Promise<DeleteAgentResponse>,
+    renameAgent: (id: string, data: RenameAgentData) =>
+        invoke('renameAgent', id, data) as Promise<Agent>,
+    updateAgentSubdomain: (id: string, data: UpdateAgentSubdomainData) =>
+        invoke('updateAgentSubdomain', id, data) as Promise<Agent>,
     cancelDeletion: (id: string) =>
-        invoke('cancelDeletion', id) as Promise<Claw>,
-    hardDeleteClaw: (id: string) =>
-        invoke('hardDeleteClaw', id) as Promise<void>,
-    getClawDiagnostics: (id: string) =>
-        invoke('getClawDiagnostics', id) as Promise<DiagnosticsStatusResponse>,
-    getClawLogs: (id: string) =>
-        invoke('getClawLogs', id) as Promise<DiagnosticsLogsResponse>,
-    repairClaw: (id: string) => invoke('repairClaw', id) as Promise<void>,
-    reinstallClaw: (id: string) => invoke('reinstallClaw', id) as Promise<void>,
-    getClawCredentials: (id: string) =>
-        invoke('getClawCredentials', id) as Promise<ClawCredentialsResponse>,
-    getClawVersion: (id: string) =>
-        invoke('getClawVersion', id) as Promise<ClawVersionResponse>,
-    getClawVersions: (id: string) =>
-        invoke('getClawVersions', id) as Promise<ClawVersionsResponse>,
-    installClawVersion: (id: string, version: string) =>
+        invoke('cancelDeletion', id) as Promise<Agent>,
+    hardDeleteAgent: (id: string) =>
+        invoke('hardDeleteAgent', id) as Promise<void>,
+    getAgentDiagnostics: (id: string) =>
+        invoke('getAgentDiagnostics', id) as Promise<DiagnosticsStatusResponse>,
+    getAgentLogs: (id: string) =>
+        invoke('getAgentLogs', id) as Promise<DiagnosticsLogsResponse>,
+    repairAgent: (id: string) => invoke('repairAgent', id) as Promise<void>,
+    reinstallAgent: (id: string) =>
+        invoke('reinstallAgent', id) as Promise<void>,
+    getAgentCredentials: (id: string) =>
+        invoke('getAgentCredentials', id) as Promise<AgentCredentialsResponse>,
+    getAgentVersion: (id: string) =>
+        invoke('getAgentVersion', id) as Promise<AgentVersionResponse>,
+    getAgentVersions: (id: string) =>
+        invoke('getAgentVersions', id) as Promise<AgentVersionsResponse>,
+    installAgentVersion: (id: string, version: string) =>
         invoke(
-            'installClawVersion',
+            'installAgentVersion',
             id,
             version
-        ) as Promise<InstallClawVersionResponse>,
-    exportClaw: async (id: string, filename: string) => {
-        await invoke('exportClaw', id, filename)
+        ) as Promise<InstallAgentVersionResponse>,
+    exportAgent: async (id: string, filename: string) => {
+        await invoke('exportAgent', id, filename)
     },
-    listClawFiles: (id: string) =>
-        invoke('listClawFiles', id) as Promise<ClawFilesResponse>,
-    readClawFile: (id: string, filePath: string) =>
-        invoke('readClawFile', id, {
+    listAgentFiles: (id: string) =>
+        invoke('listAgentFiles', id) as Promise<AgentFilesResponse>,
+    readAgentFile: (id: string, filePath: string) =>
+        invoke('readAgentFile', id, {
             path: filePath
-        }) as Promise<ReadClawFileResponse>,
-    updateClawFile: (id: string, data: UpdateClawFileData) =>
-        invoke('updateClawFile', id, data) as Promise<void>,
+        }) as Promise<ReadAgentFileResponse>,
+    updateAgentFile: (id: string, data: UpdateAgentFileData) =>
+        invoke('updateAgentFile', id, data) as Promise<void>,
 
-    cancelPendingClaw: (_id: string) => Promise.resolve(),
+    cancelPendingAgent: (_id: string) => Promise.resolve(),
 
     purchaseLicense: () =>
         Promise.reject(
-            new Error('Purchase from clawhost.cloud/account#license')
+            new Error('Purchase from agenthost.cloud/account#license')
         ),
 
     getSSHKeys: () => Promise.resolve([] as SSHKey[]),

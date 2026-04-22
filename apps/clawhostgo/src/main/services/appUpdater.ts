@@ -2,7 +2,7 @@ import type { AppUpdateInfo } from '@/ts/Interfaces'
 
 import { net, app } from 'electron'
 
-const GITHUB_REPO = 'bfzli/clawhost'
+const GITHUB_REPO = 'bfzli/agenthost'
 const RELEASES_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases`
 const CHECK_INTERVAL = 60 * 60 * 1000
 

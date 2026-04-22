@@ -1,73 +1,73 @@
-import getClaws from '@/controllers/agents/getClaws'
-import getClaw from '@/controllers/agents/getClaw'
-import initiateClawPurchase from '@/controllers/agents/initiateClawPurchase'
-import syncClaw from '@/controllers/agents/syncClaw'
-import startClaw from '@/controllers/agents/startClaw'
-import stopClaw from '@/controllers/agents/stopClaw'
-import restartClaw from '@/controllers/agents/restartClaw'
-import deleteClaw from '@/controllers/agents/deleteClaw'
+import getAgents from '@/controllers/agents/getAgents'
+import getAgent from '@/controllers/agents/getAgent'
+import initiateAgentPurchase from '@/controllers/agents/initiateAgentPurchase'
+import syncAgent from '@/controllers/agents/syncAgent'
+import startAgent from '@/controllers/agents/startAgent'
+import stopAgent from '@/controllers/agents/stopAgent'
+import restartAgent from '@/controllers/agents/restartAgent'
+import deleteAgent from '@/controllers/agents/deleteAgent'
 import cancelDeletion from '@/controllers/agents/cancelDeletion'
-import hardDeleteClaw from '@/controllers/agents/hardDeleteClaw'
-import getClawDiagnostics from '@/controllers/agents/getClawDiagnostics'
-import getClawLogs from '@/controllers/agents/getClawLogs'
-import repairClaw from '@/controllers/agents/repairClaw'
-import listClawFiles from '@/controllers/agents/listClawFiles'
-import readClawFile from '@/controllers/agents/readClawFile'
-import updateClawFile from '@/controllers/agents/updateClawFile'
-import getAdminClaws from '@/controllers/agents/getAdminClaws'
-import reinstallClaw from '@/controllers/agents/reinstallClaw'
-import exportClaw from '@/controllers/agents/exportClaw'
-import getClawVersion from '@/controllers/agents/getClawVersion'
-import getClawVersions from '@/controllers/agents/getClawVersions'
-import installClawVersion from '@/controllers/agents/installClawVersion'
-import renameClaw from '@/controllers/agents/renameClaw'
-import getClawCredentials from '@/controllers/agents/getClawCredentials'
-import cancelPendingClaw from '@/controllers/agents/cancelPendingClaw'
-import updateClawSubdomain from '@/controllers/agents/updateClawSubdomain'
+import hardDeleteAgent from '@/controllers/agents/hardDeleteAgent'
+import getAgentDiagnostics from '@/controllers/agents/getAgentDiagnostics'
+import getAgentLogs from '@/controllers/agents/getAgentLogs'
+import repairAgent from '@/controllers/agents/repairAgent'
+import listAgentFiles from '@/controllers/agents/listAgentFiles'
+import readAgentFile from '@/controllers/agents/readAgentFile'
+import updateAgentFile from '@/controllers/agents/updateAgentFile'
+import getAdminAgents from '@/controllers/agents/getAdminAgents'
+import reinstallAgent from '@/controllers/agents/reinstallAgent'
+import exportAgent from '@/controllers/agents/exportAgent'
+import getAgentVersion from '@/controllers/agents/getAgentVersion'
+import getAgentVersions from '@/controllers/agents/getAgentVersions'
+import installAgentVersion from '@/controllers/agents/installAgentVersion'
+import renameAgent from '@/controllers/agents/renameAgent'
+import getAgentCredentials from '@/controllers/agents/getAgentCredentials'
+import cancelPendingAgent from '@/controllers/agents/cancelPendingAgent'
+import updateAgentSubdomain from '@/controllers/agents/updateAgentSubdomain'
 import checkSubdomainAvailability from '@/controllers/agents/checkSubdomainAvailability'
-import provisionClaw from '@/controllers/agents/provisionClaw'
-import getClawMetrics from '@/controllers/agents/getClawMetrics'
-import getClawOverview from '@/controllers/agents/getClawOverview'
+import provisionAgent from '@/controllers/agents/provisionAgent'
+import getAgentMetrics from '@/controllers/agents/getAgentMetrics'
+import getAgentOverview from '@/controllers/agents/getAgentOverview'
 import enablePreview from '@/controllers/agents/enablePreview'
 import rotatePassword from '@/controllers/agents/rotatePassword'
 import rotateGatewayToken from '@/controllers/agents/rotateGatewayToken'
-import updateClawEmoji from '@/controllers/agents/updateClawEmoji'
-import updateClawSSHKey from '@/controllers/agents/updateClawSSHKey'
+import updateAgentEmoji from '@/controllers/agents/updateAgentEmoji'
+import updateAgentSSHKey from '@/controllers/agents/updateAgentSSHKey'
 
 export {
-    getClaws,
-    getAdminClaws,
-    getClaw,
-    initiateClawPurchase,
-    syncClaw,
-    startClaw,
-    stopClaw,
-    restartClaw,
-    deleteClaw,
+    getAgents,
+    getAdminAgents,
+    getAgent,
+    initiateAgentPurchase,
+    syncAgent,
+    startAgent,
+    stopAgent,
+    restartAgent,
+    deleteAgent,
     cancelDeletion,
-    hardDeleteClaw,
-    getClawDiagnostics,
-    getClawLogs,
-    repairClaw,
-    listClawFiles,
-    readClawFile,
-    updateClawFile,
-    reinstallClaw,
-    exportClaw,
-    getClawVersion,
-    getClawVersions,
-    installClawVersion,
-    renameClaw,
-    getClawCredentials,
-    cancelPendingClaw,
-    updateClawSubdomain,
+    hardDeleteAgent,
+    getAgentDiagnostics,
+    getAgentLogs,
+    repairAgent,
+    listAgentFiles,
+    readAgentFile,
+    updateAgentFile,
+    reinstallAgent,
+    exportAgent,
+    getAgentVersion,
+    getAgentVersions,
+    installAgentVersion,
+    renameAgent,
+    getAgentCredentials,
+    cancelPendingAgent,
+    updateAgentSubdomain,
     checkSubdomainAvailability,
-    provisionClaw,
-    getClawMetrics,
-    getClawOverview,
+    provisionAgent,
+    getAgentMetrics,
+    getAgentOverview,
     enablePreview,
     rotatePassword,
     rotateGatewayToken,
-    updateClawEmoji,
-    updateClawSSHKey
+    updateAgentEmoji,
+    updateAgentSSHKey
 }

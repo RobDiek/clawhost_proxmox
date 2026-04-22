@@ -2,13 +2,13 @@ import type { SubscriptionWebhookData } from '@/ts/Interfaces'
 
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { claws } from '@/db/schema'
+import { agents } from '@/db/schema'
 
 const onSubscriptionUpdated = async (data: SubscriptionWebhookData) => {
     await db
-        .update(claws)
+        .update(agents)
         .set({ subscriptionStatus: data.status })
-        .where(eq(claws.polarSubscriptionId, data.id))
+        .where(eq(agents.polarSubscriptionId, data.id))
 }
 
 export default onSubscriptionUpdated

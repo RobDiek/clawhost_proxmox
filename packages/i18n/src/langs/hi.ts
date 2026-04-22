@@ -241,7 +241,6 @@ const hi: Translations = {
         features: 'विशेषताएँ',
         pricing: 'मूल्य निर्धारण',
         faq: 'प्रश्न',
-        blog: 'ब्लॉग',
         changelog: 'परिवर्तन लॉग',
         compare: 'पूर्ण तुलना',
         legalAndMore: 'अन्य',
@@ -465,8 +464,10 @@ const hi: Translations = {
         failedToRotateGatewayToken: 'गेटवे टोकन बदलने में विफल!',
         sshKeyUpdated: 'SSH कुंजी सफलतापूर्वक अपडेट की गई.',
         failedToUpdateSSHKey: 'SSH कुंजी अपडेट करने में विफल!',
-        invalidPassword: 'पासवर्ड {{min}} और {{max}} अक्षरों के बीच होना चाहिए!',
-        invalidGatewayToken: 'गेटवे टोकन {{min}} और {{max}} अक्षरों के बीच होना चाहिए!',
+        invalidPassword:
+            'पासवर्ड {{min}} और {{max}} अक्षरों के बीच होना चाहिए!',
+        invalidGatewayToken:
+            'गेटवे टोकन {{min}} और {{max}} अक्षरों के बीच होना चाहिए!',
         enablePreviewSuccess: 'प्रीव्यू मोड सफलतापूर्वक सक्रिय किया गया.',
         failedToEnablePreview: 'प्रीव्यू मोड सक्रिय करने में विफल!',
         logsFetched: 'लॉग सफलतापूर्वक प्राप्त हुए.',
@@ -695,7 +696,8 @@ const hi: Translations = {
         emailNotEditable: 'ईमेल संपादन योग्य नहीं है. सहायता से संपर्क करें.',
         profileUpdatedSuccessfully: 'प्रोफ़ाइल सफलतापूर्वक अपडेट हुई.',
         billingAndSubscription: 'बिलिंग और सदस्यता',
-        billingAndSubscriptionDescription: 'अपनी भुगतान विधियाँ, सदस्यताएँ और चालान प्रबंधित करें.',
+        billingAndSubscriptionDescription:
+            'अपनी भुगतान विधियाँ, सदस्यताएँ और चालान प्रबंधित करें.',
         viewBillingHistory: 'अपना भुगतान इतिहास, चालान और सदस्यताएँ देखें.',
         connectedAccounts: 'कनेक्टेड खाते',
         connectedAccountsDescription:
@@ -761,8 +763,6 @@ const hi: Translations = {
         featureSupport: 'प्राथमिकता सहायता',
         featureCloud: 'सभी क्लाउड सुविधाएँ, स्थानीय रूप से',
         whatsIncluded: 'क्या शामिल है',
-        permanentNote:
-            'लाइसेंस स्थायी और अप्रतिसंहरणीय हैं. एक बार खरीदने के बाद, आप इसे हमेशा के लिए रखते हैं.',
         gateTitle: 'लाइसेंस आवश्यक',
         gateDescription:
             'स्थानीय रूप से OpenClaw इंस्टेंस डिप्लॉय और प्रबंधित करने के लिए आपको ClawHost Go लाइसेंस की आवश्यकता है.'
@@ -856,7 +856,8 @@ const hi: Translations = {
             'आपका भुगतान विफल हो गया. यदि 14 दिनों में हल नहीं हुआ, तो यह क्लॉ स्थायी रूप से हटा दिया जाएगा.',
         updatePayment: 'भुगतान अपडेट करें',
         cancelDeletion: 'हटाना रद्द करें',
-        cancelDeletionConfirmation: 'क्या आप सुनिश्चित हैं? आपकी सदस्यता सक्रिय रहेगी और आपसे शुल्क लिया जाता रहेगा। इंस्टेंस चलता रहेगा।',
+        cancelDeletionConfirmation:
+            'क्या आप सुनिश्चित हैं? आपकी सदस्यता सक्रिय रहेगी और आपसे शुल्क लिया जाता रहेगा। इंस्टेंस चलता रहेगा।',
         deletionCancelled: 'हटाना रद्द किया गया.',
         scheduleDeletion: 'हटाना शेड्यूल करें',
         resumeCheckout: 'चेकआउट जारी रखें',
@@ -953,7 +954,8 @@ const hi: Translations = {
             awaitingPayment: 'भुगतान की प्रतीक्षा',
             unknown: 'अज्ञात',
             checking: 'जाँच हो रही है'
-        }
+        },
+        tabNotAvailableForAgent: 'इस एजेंट प्रकार के लिए उपलब्ध नहीं'
     },
     createClaw: {
         title: 'OpenClaw डिप्लॉय करें',
@@ -963,6 +965,9 @@ const hi: Translations = {
         clawNamePlaceholder: 'उदा. cozy-panda',
         clawNameInvalidChars: 'केवल अक्षर, संख्याएँ और डैश की अनुमति है!',
         autoGenerateNameHint: 'स्वतः नाम बनाने के लिए खाली छोड़ें.',
+        agentType: 'एजेंट प्रकार',
+        agentTypeOpenClawDescription: 'गेटवे-प्रथम AI एजेंट प्लेटफ़ॉर्म',
+        agentTypeHermesDescription: 'स्व-सुधार करने वाला AI एजेंट फ्रेमवर्क',
         location: 'स्थान',
         locationUnavailable: 'अनुपलब्ध',
         locationUnavailableForPlan: 'अनुपलब्ध',
@@ -1290,15 +1295,7 @@ const hi: Translations = {
         demoStatus: '{{running}} चल रहे हैं, {{total}} कुल'
     },
     blog: {
-        title: 'ब्लॉग',
-        description:
-            'OpenClaw और सेल्फ-होस्टेड बुनियादी ढाँचे के बारे में गाइड, ट्यूटोरियल और समाचार.',
         readingTime: '{{minutes}} मिनट पढ़ने का समय',
-        publishedOn: '{{date}} को प्रकाशित',
-        writtenBy: '{{author}} द्वारा',
-        backToBlog: 'ब्लॉग पर वापस',
-        noPosts: 'अभी तक कोई पोस्ट नहीं',
-        noPostsDescription: 'ब्लॉग पोस्ट जल्द आ रही हैं. बाद में वापस आएँ.',
         ctaTitle: 'एक क्लिक में OpenClaw डिप्लॉय करें',
         ctaDescription:
             'OpenClaw पूर्व-इंस्टॉल के साथ एक समर्पित सर्वर प्राप्त करें. पूर्ण रूट एक्सेस, वैश्विक स्थान और मिनटों में तैयार. आप हर समय इसके मालिक हैं. $25 से शुरू.',
@@ -1578,27 +1575,37 @@ const hi: Translations = {
             'इंस्टेंस का कॉन्फ़िगरेशन पूरा होने के बाद उपलब्ध.',
         tabDisabledAwaitingPayment: 'भुगतान प्रोसेस होने के बाद उपलब्ध.',
         creatingTitle: 'आपका एजेंट सेटअप किया जा रहा है',
-        creatingDescription: 'इसमें आमतौर पर एक या दो मिनट लगते हैं। आप इस पेज को सुरक्षित रूप से बंद कर सकते हैं और बाद में वापस आ सकते हैं।',
+        creatingDescription:
+            'इसमें आमतौर पर एक या दो मिनट लगते हैं। आप इस पेज को सुरक्षित रूप से बंद कर सकते हैं और बाद में वापस आ सकते हैं।',
         configuringTitle: 'OpenClaw इंस्टॉल किया जा रहा है',
-        configuringDescription: 'इसमें आमतौर पर एक या दो मिनट लगते हैं। आप इस पेज को सुरक्षित रूप से बंद कर सकते हैं और बाद में वापस आ सकते हैं।',
+        configuringDescription:
+            'इसमें आमतौर पर एक या दो मिनट लगते हैं। आप इस पेज को सुरक्षित रूप से बंद कर सकते हैं और बाद में वापस आ सकते हैं।',
         awaitingPaymentTitle: 'भुगतान की प्रतीक्षा में',
-        awaitingPaymentDescription: 'अपने एजेंट का प्रोविजनिंग शुरू करने के लिए भुगतान पूरा करें। यह आरक्षण एक घंटे में समाप्त हो जाएगा।',
+        awaitingPaymentDescription:
+            'अपने एजेंट का प्रोविजनिंग शुरू करने के लिए भुगतान पूरा करें। यह आरक्षण एक घंटे में समाप्त हो जाएगा।',
         awaitingPaymentAction: 'भुगतान पूरा करें',
         loadingTip1:
             'क्या आप जानते हैं कि आप एक OpenClaw में कई एजेंट चला सकते हैं?',
         loadingTip2: 'क्या आप जानते हैं कि OpenClaw ओपन-सोर्स है?',
         loadingTip3:
             'ClawHost एक-क्लिक OpenClaw होस्टिंग की अनुमति देने वाला पहला प्रोजेक्ट है.',
-        loadingTip4: 'आप अपने एजेंट को SSH या बिल्ट-इन टर्मिनल के माध्यम से एक्सेस कर सकते हैं.',
+        loadingTip4:
+            'आप अपने एजेंट को SSH या बिल्ट-इन टर्मिनल के माध्यम से एक्सेस कर सकते हैं.',
         loadingTip5: 'आपके एजेंट को स्वचालित रूप से अपना सबडोमेन मिलता है.',
-        loadingTip6: 'आप सेटिंग्स से कभी भी अपने एजेंट का आइकन और नाम बदल सकते हैं.',
+        loadingTip6:
+            'आप सेटिंग्स से कभी भी अपने एजेंट का आइकन और नाम बदल सकते हैं.',
         loadingTip7: 'आपके एजेंट का सारा ट्रैफ़िक TLS से एन्क्रिप्टेड है.',
-        loadingTip8: 'आप मॉनिटर टैब में CPU, मेमोरी और डिस्क उपयोग की निगरानी कर सकते हैं.',
+        loadingTip8:
+            'आप मॉनिटर टैब में CPU, मेमोरी और डिस्क उपयोग की निगरानी कर सकते हैं.',
         loadingTip9: 'मदद चाहिए? Discord पर हमारे समुदाय से जुड़ें.',
-        loadingTip10: 'आप अपने एजेंट की पूरी कॉन्फ़िगरेशन को बैकअप के रूप में एक्सपोर्ट कर सकते हैं.',
-        loadingTip11: 'SSH कुंजियाँ बिना पुनः इंस्टॉल किए चल रहे इंस्टेंस पर लागू की जा सकती हैं.',
-        loadingTip12: 'आप सुरक्षा टैब से अपना रूट पासवर्ड और गेटवे टोकन बदल सकते हैं.',
-        loadingTip13: 'ClawHost यूरोप और अमेरिका में कई क्षेत्रों में सर्वर का समर्थन करता है.',
+        loadingTip10:
+            'आप अपने एजेंट की पूरी कॉन्फ़िगरेशन को बैकअप के रूप में एक्सपोर्ट कर सकते हैं.',
+        loadingTip11:
+            'SSH कुंजियाँ बिना पुनः इंस्टॉल किए चल रहे इंस्टेंस पर लागू की जा सकती हैं.',
+        loadingTip12:
+            'आप सुरक्षा टैब से अपना रूट पासवर्ड और गेटवे टोकन बदल सकते हैं.',
+        loadingTip13:
+            'ClawHost यूरोप और अमेरिका में कई क्षेत्रों में सर्वर का समर्थन करता है.',
         tabSettings: 'सेटिंग्स',
         featureVersionUnsupported: '{{feature}} {{version}} पर समर्थित नहीं है',
         featureVersionUnsupportedDescription:
@@ -1612,7 +1619,8 @@ const hi: Translations = {
         tabVolumes: 'स्टोरेज',
         tabSecurity: 'सुरक्षा',
         securitySSHKey: 'SSH कुंजी',
-        securitySSHKeyHint: 'चल रहे इंस्टेंस पर लागू किया जाता है और पुनः इंस्टॉल करते समय उपयोग किया जाता है.',
+        securitySSHKeyHint:
+            'चल रहे इंस्टेंस पर लागू किया जाता है और पुनः इंस्टॉल करते समय उपयोग किया जाता है.',
         securityPassword: 'Root पासवर्ड',
         securityGatewayToken: 'गेटवे टोकन',
         securityHostKey: 'होस्ट कुंजी फिंगरप्रिंट',
@@ -1659,7 +1667,8 @@ const hi: Translations = {
         billingEmpty: 'No billing history for this instance.',
         tabServer: 'सर्वर',
         serverIpAddress: 'IP पता',
-        reinstallDescription: 'इस सर्वर पर OpenClaw को पुनः स्थापित करें। यह OpenClaw इंस्टॉलेशन को रीसेट करेगा लेकिन आपका डेटा सुरक्षित रहेगा। यह केवल आवश्यकता होने पर ही करें।',
+        reinstallDescription:
+            'इस सर्वर पर OpenClaw को पुनः स्थापित करें। यह OpenClaw इंस्टॉलेशन को रीसेट करेगा लेकिन आपका डेटा सुरक्षित रहेगा। यह केवल आवश्यकता होने पर ही करें।',
         versionsSearch: 'संस्करण खोजें...',
         versionsSearchCount: '{{count}} संस्करण खोजें...',
         versionsEmpty: 'कोई संस्करण नहीं मिला',
@@ -1705,8 +1714,10 @@ const hi: Translations = {
         subdomainInUse: 'यह सबडोमेन किसी अन्य क्लॉ द्वारा उपयोग में है!',
         settingsDetails: 'विवरण',
         settingsDangerZone: 'खतरनाक क्षेत्र',
-        settingsDangerZoneDescription: 'आपका इंस्टेंस आपकी वर्तमान बिलिंग अवधि के अंत में हटा दिया जाएगा।',
-        settingsScheduledDeletionDescription: '{{date}} को हटाने के लिए निर्धारित। अपना इंस्टेंस चालू और सदस्यता सक्रिय रखने के लिए रद्द करें।',
+        settingsDangerZoneDescription:
+            'आपका इंस्टेंस आपकी वर्तमान बिलिंग अवधि के अंत में हटा दिया जाएगा।',
+        settingsScheduledDeletionDescription:
+            '{{date}} को हटाने के लिए निर्धारित। अपना इंस्टेंस चालू और सदस्यता सक्रिय रखने के लिए रद्द करें।',
         settingsSave: 'सहेजें',
         settingsSaving: 'सहेजा जा रहा है...',
         settingsUpdated: 'सेटिंग्स अपडेट की गईं।',

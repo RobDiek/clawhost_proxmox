@@ -1,9 +1,9 @@
 import type { ServerLifecycleResult } from '@/ts/Interfaces'
-import type { ClawRow } from '@/ts/Types'
+import type { AgentRow } from '@/ts/Types'
 
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { claws } from '@/db/schema'
+import { agents } from '@/db/schema'
 import { getProvider, updateCachedServerStatus } from '@/services/provider'
 
 const LIFECYCLE_CONFIG = {
@@ -22,16 +22,16 @@ const LIFECYCLE_CONFIG = {
 }
 
 const executeServerLifecycle = async (
-    claw: ClawRow,
+    agent: AgentRow,
     operation: 'start' | 'stop' | 'restart'
 ): Promise<ServerLifecycleResult> => {
     const config = LIFECYCLE_CONFIG[operation]
-    const previousStatus = claw.status
+    const previousStatus = agent.status
 
     await db
-        .update(claws)
+        .update(agents)
         .set({ status: config.transitionalStatus })
-        .where(eq(claws.id, claw.id))
+        .where(eq(agents.id, agent.id))
 
     try {
         const provider = getProvider()
@@ -39,17 +39,17 @@ const executeServerLifecycle = async (
             provider[config.providerMethod as keyof typeof provider] as (
                 id: string
             ) => Promise<void>
-        )(claw.providerServerId!)
+        )(agent.providerServerId!)
         updateCachedServerStatus(
-            claw.providerServerId!,
+            agent.providerServerId!,
             config.transitionalStatus
         )
         return { success: true, status: config.transitionalStatus }
     } catch {
         await db
-            .update(claws)
+            .update(agents)
             .set({ status: previousStatus })
-            .where(eq(claws.id, claw.id))
+            .where(eq(agents.id, agent.id))
         return { success: false, status: previousStatus }
     }
 }

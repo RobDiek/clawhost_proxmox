@@ -239,7 +239,6 @@ const ru: Translations = {
         features: 'Возможности',
         pricing: 'Цены',
         faq: 'Вопросы',
-        blog: 'Блог',
         changelog: 'Список изменений',
         compare: 'Полное сравнение',
         legalAndMore: 'Прочее',
@@ -463,8 +462,10 @@ const ru: Translations = {
         failedToRotateGatewayToken: 'Не удалось изменить токен шлюза!',
         sshKeyUpdated: 'SSH-ключ успешно обновлён.',
         failedToUpdateSSHKey: 'Не удалось обновить SSH-ключ!',
-        invalidPassword: 'Пароль должен содержать от {{min}} до {{max}} символов!',
-        invalidGatewayToken: 'Токен шлюза должен содержать от {{min}} до {{max}} символов!',
+        invalidPassword:
+            'Пароль должен содержать от {{min}} до {{max}} символов!',
+        invalidGatewayToken:
+            'Токен шлюза должен содержать от {{min}} до {{max}} символов!',
         enablePreviewSuccess:
             'Режим предварительного просмотра успешно включён.',
         failedToEnablePreview:
@@ -690,7 +691,8 @@ const ru: Translations = {
         emailNotEditable: 'Email нельзя изменить. Обратитесь в поддержку.',
         profileUpdatedSuccessfully: 'Профиль успешно обновлён.',
         billingAndSubscription: 'Оплата и Подписка',
-        billingAndSubscriptionDescription: 'Управляйте способами оплаты, подписками и счетами.',
+        billingAndSubscriptionDescription:
+            'Управляйте способами оплаты, подписками и счетами.',
         viewBillingHistory: 'Просмотрите историю платежей, счета и подписки.',
         connectedAccounts: 'Подключённые аккаунты',
         connectedAccountsDescription:
@@ -755,8 +757,6 @@ const ru: Translations = {
         featureSupport: 'Приоритетная поддержка',
         featureCloud: 'Все облачные функции — локально',
         whatsIncluded: 'Что включено',
-        permanentNote:
-            'Лицензии постоянные и безотзывные. После покупки она ваша навсегда.',
         gateTitle: 'Требуется лицензия',
         gateDescription:
             'Вам нужна лицензия ClawHost Go для развёртывания и управления экземплярами OpenClaw локально.'
@@ -851,7 +851,8 @@ const ru: Translations = {
             'Ваш платёж не прошёл. Если не будет решено в течение 14 дней, этот клоу будет удалён навсегда.',
         updatePayment: 'Обновить оплату',
         cancelDeletion: 'Отменить удаление',
-        cancelDeletionConfirmation: 'Вы уверены? Ваша подписка останется активной, и с вас продолжат взимать плату. Экземпляр продолжит работу.',
+        cancelDeletionConfirmation:
+            'Вы уверены? Ваша подписка останется активной, и с вас продолжат взимать плату. Экземпляр продолжит работу.',
         deletionCancelled: 'Удаление отменено.',
         scheduleDeletion: 'Запланировать удаление',
         resumeCheckout: 'Продолжить оплату',
@@ -949,7 +950,8 @@ const ru: Translations = {
             awaitingPayment: 'Ожидание оплаты',
             unknown: 'Неизвестно',
             checking: 'Проверка'
-        }
+        },
+        tabNotAvailableForAgent: 'Недоступно для этого типа агента'
     },
     createClaw: {
         title: 'Развернуть OpenClaw',
@@ -958,6 +960,10 @@ const ru: Translations = {
         clawNamePlaceholder: 'напр. cozy-panda',
         clawNameInvalidChars: 'Допускаются только буквы, цифры и дефисы !',
         autoGenerateNameHint: 'Оставьте пустым для автогенерации имени.',
+        agentType: 'Тип агента',
+        agentTypeOpenClawDescription: 'Платформа ИИ-агента с фокусом на шлюз',
+        agentTypeHermesDescription:
+            'Самосовершенствующийся фреймворк ИИ-агента',
         location: 'Расположение',
         locationUnavailable: 'Недоступно',
         locationUnavailableForPlan: 'Недоступно',
@@ -1288,15 +1294,7 @@ const ru: Translations = {
         demoStatus: '{{running}} работает, {{total}} всего'
     },
     blog: {
-        title: 'Блог',
-        description:
-            'Руководства, обучающие материалы и новости об OpenClaw и самостоятельно размещаемой инфраструктуре.',
         readingTime: '{{minutes}} мин чтения',
-        publishedOn: 'Опубликовано {{date}}',
-        writtenBy: 'Автор: {{author}}',
-        backToBlog: 'Назад в блог',
-        noPosts: 'Записей пока нет',
-        noPostsDescription: 'Записи в блоге скоро появятся. Заходите позже.',
         ctaTitle: 'Разверните OpenClaw в один клик',
         ctaDescription:
             'Получите выделенный сервер с предустановленным OpenClaw. Полный root-доступ, глобальные локации и готовность за минуты. Вы владеете им в любое время. От $25.',
@@ -1578,27 +1576,38 @@ const ru: Translations = {
             'Доступно после завершения настройки экземпляра.',
         tabDisabledAwaitingPayment: 'Доступно после обработки платежа.',
         creatingTitle: 'Настройка вашего агента',
-        creatingDescription: 'Обычно это занимает одну-две минуты. Вы можете безопасно закрыть эту страницу и вернуться позже.',
+        creatingDescription:
+            'Обычно это занимает одну-две минуты. Вы можете безопасно закрыть эту страницу и вернуться позже.',
         configuringTitle: 'Установка OpenClaw',
-        configuringDescription: 'Обычно это занимает одну-две минуты. Вы можете безопасно закрыть эту страницу и вернуться позже.',
+        configuringDescription:
+            'Обычно это занимает одну-две минуты. Вы можете безопасно закрыть эту страницу и вернуться позже.',
         awaitingPaymentTitle: 'Ожидание оплаты',
-        awaitingPaymentDescription: 'Завершите оплату, чтобы начать настройку вашего агента. Эта резервация истекает через один час.',
+        awaitingPaymentDescription:
+            'Завершите оплату, чтобы начать настройку вашего агента. Эта резервация истекает через один час.',
         awaitingPaymentAction: 'Завершить оплату',
         loadingTip1:
             'Знаете ли вы, что можно запускать нескольких агентов в одном OpenClaw?',
         loadingTip2: 'Знаете ли вы, что OpenClaw — это открытый код?',
         loadingTip3:
             'ClawHost — первый в мире проект, позволяющий хостить OpenClaw в один клик.',
-        loadingTip4: 'Вы можете получить доступ к своему агенту через SSH или встроенный терминал.',
+        loadingTip4:
+            'Вы можете получить доступ к своему агенту через SSH или встроенный терминал.',
         loadingTip5: 'Ваш агент автоматически получает собственный поддомен.',
-        loadingTip6: 'Вы можете изменить иконку и имя агента в любое время в Настройках.',
+        loadingTip6:
+            'Вы можете изменить иконку и имя агента в любое время в Настройках.',
         loadingTip7: 'Весь трафик к вашему агенту зашифрован с помощью TLS.',
-        loadingTip8: 'Вы можете отслеживать использование CPU, памяти и диска во вкладке Мониторинг.',
-        loadingTip9: 'Нужна помощь? Присоединяйтесь к нашему сообществу в Discord.',
-        loadingTip10: 'Вы можете экспортировать всю конфигурацию агента в качестве резервной копии.',
-        loadingTip11: 'SSH-ключи можно применять к работающим экземплярам без переустановки.',
-        loadingTip12: 'Вы можете сменить пароль root и токен шлюза во вкладке Безопасность.',
-        loadingTip13: 'ClawHost поддерживает серверы в нескольких регионах Европы и США.',
+        loadingTip8:
+            'Вы можете отслеживать использование CPU, памяти и диска во вкладке Мониторинг.',
+        loadingTip9:
+            'Нужна помощь? Присоединяйтесь к нашему сообществу в Discord.',
+        loadingTip10:
+            'Вы можете экспортировать всю конфигурацию агента в качестве резервной копии.',
+        loadingTip11:
+            'SSH-ключи можно применять к работающим экземплярам без переустановки.',
+        loadingTip12:
+            'Вы можете сменить пароль root и токен шлюза во вкладке Безопасность.',
+        loadingTip13:
+            'ClawHost поддерживает серверы в нескольких регионах Европы и США.',
         tabSettings: 'Настройки',
         featureVersionUnsupported:
             '{{feature}} не поддерживается на {{version}}',
@@ -1613,7 +1622,8 @@ const ru: Translations = {
         tabVolumes: 'Хранилище',
         tabSecurity: 'Безопасность',
         securitySSHKey: 'SSH-ключ',
-        securitySSHKeyHint: 'Применяется к работающему экземпляру и используется при переустановке.',
+        securitySSHKeyHint:
+            'Применяется к работающему экземпляру и используется при переустановке.',
         securityPassword: 'Пароль root',
         securityGatewayToken: 'Токен шлюза',
         securityHostKey: 'Отпечаток ключа хоста',
@@ -1661,7 +1671,8 @@ const ru: Translations = {
         billingEmpty: 'No billing history for this instance.',
         tabServer: 'Сервер',
         serverIpAddress: 'IP-адрес',
-        reinstallDescription: 'Переустановить OpenClaw на этом сервере. Это сбросит установку OpenClaw, но сохранит ваши данные. Делайте это только при необходимости.',
+        reinstallDescription:
+            'Переустановить OpenClaw на этом сервере. Это сбросит установку OpenClaw, но сохранит ваши данные. Делайте это только при необходимости.',
         versionsSearch: 'Поиск версий...',
         versionsSearchCount: 'Поиск {{count}} версий...',
         versionsEmpty: 'Версии не найдены',
@@ -1707,8 +1718,10 @@ const ru: Translations = {
         subdomainInUse: 'Этот поддомен используется другим клоу !',
         settingsDetails: 'Подробности',
         settingsDangerZone: 'Опасная зона',
-        settingsDangerZoneDescription: 'Ваш экземпляр будет удалён в конце текущего расчётного периода.',
-        settingsScheduledDeletionDescription: 'Запланировано удаление на {{date}}. Отмените, чтобы сохранить экземпляр работающим и подписку активной.',
+        settingsDangerZoneDescription:
+            'Ваш экземпляр будет удалён в конце текущего расчётного периода.',
+        settingsScheduledDeletionDescription:
+            'Запланировано удаление на {{date}}. Отмените, чтобы сохранить экземпляр работающим и подписку активной.',
         settingsSave: 'Сохранить',
         settingsSaving: 'Сохранение...',
         settingsUpdated: 'Настройки обновлены.',

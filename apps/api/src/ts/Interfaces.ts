@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type {
+    AgentType,
     BillingInterval,
     FeatureEmailKey,
     SubscriptionStatus,
@@ -8,7 +9,7 @@ import type {
 import type { PgTable } from 'drizzle-orm/pg-core'
 import type { TranslationKey } from '@openclaw/i18n'
 
-export interface WithClawOptions {
+export interface WithAgentOptions {
     requireSSH?: boolean | TranslationKey
 }
 
@@ -377,21 +378,21 @@ export interface WebhookHandlers {
     onSubscriptionUncanceled?: (data: SubscriptionWebhookData) => Promise<void>
 }
 
-export interface ProvisionClawParams {
-    pendingClawId: string
+export interface ProvisionAgentParams {
+    pendingAgentId: string
     subscriptionId: string
     customerId: string
     productId: string
 }
 
-export interface ProvisionClawResponse {
+export interface ProvisionAgentResponse {
     success: boolean
-    clawId?: string
+    agentId?: string
     referralCode?: string | null
     error?: string
 }
 
-export interface ClawCleanupData {
+export interface AgentCleanupData {
     providerServerId: string | null
     subdomain: string | null
     ip: string | null
@@ -426,8 +427,9 @@ export interface UpdateProfileBody {
     name?: string
 }
 
-export interface InitiateClawPurchaseBody {
+export interface InitiateAgentPurchaseBody {
     name?: string
+    agentType?: AgentType
     planId: string
     location: string
     password?: string
@@ -436,6 +438,20 @@ export interface InitiateClawPurchaseBody {
     volumeSize?: number
     priceMonthly: number
     billingInterval?: BillingInterval
+}
+
+export interface AgentConfig {
+    user: string
+    homeDir: string
+    configDir: string
+    configFile: string
+    serviceName: string
+    logFile: string
+    nginxSite: string
+    binary: string
+    npmPackage: string | null
+    doctorCommand: string | null
+    versionCommand: string
 }
 
 export interface CloudflareDNSRecord {
@@ -448,11 +464,11 @@ export interface CloudflareDNSLookup {
     ip: string
 }
 
-export interface ReadClawFileBody {
+export interface ReadAgentFileBody {
     path: string
 }
 
-export interface UpdateClawFileBody {
+export interface UpdateAgentFileBody {
     path: string
     content: string
 }
@@ -490,16 +506,16 @@ export interface AuthCacheData {
     isAdmin: boolean
 }
 
-export interface RenameClawBody {
+export interface RenameAgentBody {
     name: string
 }
 
-export interface UpdateClawEmojiBody {
+export interface UpdateAgentEmojiBody {
     emoji: string | null
     emojiColor: string | null
 }
 
-export interface UpdateClawSubdomainBody {
+export interface UpdateAgentSubdomainBody {
     subdomain: string
 }
 
@@ -525,7 +541,7 @@ export interface InstallVersionBody {
     version: string
 }
 
-export interface UpdateClawSSHKeyBody {
+export interface UpdateAgentSSHKeyBody {
     sshKeyId: string | null
 }
 

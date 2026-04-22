@@ -2,7 +2,7 @@ import { api } from '@/lib/api'
 import cn from '@/lib/utils'
 import PATHS from '@/lib/paths'
 import {
-    CLAW_DETAIL_TABS,
+    AGENT_DETAIL_TABS,
     PREVIEW_STATUS,
     RELEASES,
     ROUTES,
@@ -25,7 +25,7 @@ export {
     PATHS,
     ROUTES,
     SCROLL_SECTIONS,
-    CLAW_DETAIL_TABS,
+    AGENT_DETAIL_TABS,
     PREVIEW_STATUS,
     THEMES,
     RELEASES,

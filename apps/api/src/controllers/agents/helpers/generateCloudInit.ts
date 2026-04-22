@@ -1,45 +1,180 @@
+import { agentType } from '@openclaw/shared'
 import applyToolsDefaults from '@/controllers/agents/helpers/applyToolsDefaults'
+
+const GATEWAY_PORT = 18789
+
+const generateOpenClawSteps = (
+    gatewayToken: string,
+    configJson: string
+): string => `
+  - npm install -g openclaw@latest
+
+  - useradd -r -m -d /home/openclaw -s /bin/bash openclaw
+  - echo 'openclaw ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/openclaw
+
+  - wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O /tmp/google-chrome.deb
+  - dpkg -i /tmp/google-chrome.deb || apt-get install -f -y
+  - rm -f /tmp/google-chrome.deb
+
+  - mkdir -p /home/openclaw/.openclaw
+  - mkdir -p /home/openclaw/.openclaw/agents/main/agent
+
+  - |
+    cat > /home/openclaw/.openclaw/openclaw.json << 'OCCONFIG'
+    ${configJson}
+    OCCONFIG
+
+  - chown -R openclaw:openclaw /home/openclaw
+
+  - |
+    cat > /etc/systemd/system/openclaw-gateway.service <<'SYSTEMD'
+    [Unit]
+    Description=OpenClaw Gateway
+    After=network.target
+
+    [Service]
+    Type=simple
+    User=openclaw
+    Group=openclaw
+    WorkingDirectory=/home/openclaw
+    Environment=HOME=/home/openclaw
+    Environment=NODE_ENV=production
+    ExecStart=/usr/bin/openclaw gateway --port ${GATEWAY_PORT} --bind loopback
+    Restart=always
+    RestartSec=10
+    StartLimitIntervalSec=0
+    StandardOutput=append:/var/log/openclaw-gateway.log
+    StandardError=append:/var/log/openclaw-gateway.log
+
+    [Install]
+    WantedBy=multi-user.target
+    SYSTEMD
+
+  - systemctl daemon-reload
+  - systemctl enable openclaw-gateway
+  - systemctl start openclaw-gateway
+
+  - |
+    for i in $(seq 1 30); do
+      if curl -sf -o /dev/null http://127.0.0.1:${GATEWAY_PORT}; then
+        break
+      fi
+      systemctl restart openclaw-gateway 2>/dev/null || true
+      sleep 10
+    done`
+
+const generateHermesSteps = (): string => `
+  - useradd -r -m -d /home/hermes -s /bin/bash hermes
+  - echo 'hermes ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/hermes
+
+  - |
+    su - hermes -c 'curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash'
+
+  - |
+    cat > /etc/systemd/system/hermes-gateway.service <<'SYSTEMD'
+    [Unit]
+    Description=Hermes Agent Gateway
+    After=network.target
+
+    [Service]
+    Type=simple
+    User=hermes
+    Group=hermes
+    WorkingDirectory=/home/hermes
+    Environment=HOME=/home/hermes
+    Environment=NODE_ENV=production
+    ExecStart=/home/hermes/.local/bin/hermes gateway start --port ${GATEWAY_PORT}
+    Restart=always
+    RestartSec=10
+    StartLimitIntervalSec=0
+    StandardOutput=append:/var/log/hermes-gateway.log
+    StandardError=append:/var/log/hermes-gateway.log
+
+    [Install]
+    WantedBy=multi-user.target
+    SYSTEMD
+
+  - systemctl daemon-reload
+  - systemctl enable hermes-gateway
+  - systemctl start hermes-gateway
+
+  - |
+    for i in $(seq 1 30); do
+      if curl -sf -o /dev/null http://127.0.0.1:${GATEWAY_PORT}; then
+        break
+      fi
+      systemctl restart hermes-gateway 2>/dev/null || true
+      sleep 10
+    done`
+
+const generateBrewStep = (username: string): string => `
+  - |
+    cat > /tmp/install-brew.sh << 'BREWSCRIPT'
+    #!/bin/bash
+    su - ${username} -c 'NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/${username}/.bashrc
+    BREWSCRIPT
+    chmod +x /tmp/install-brew.sh
+    nohup /tmp/install-brew.sh > /var/log/brew-install.log 2>&1 &`
 
 const generateCloudInit = (
     rootPassword: string,
     subdomain: string,
     domain: string,
-    gatewayToken: string
+    gatewayToken: string,
+    selectedAgentType?: string
 ): string => {
+    const isHermes = selectedAgentType === agentType.HERMES
     const fullDomain = `${subdomain}.${domain}`
-    const config: Record<string, unknown> = {
-        gateway: {
-            mode: 'local',
-            auth: {
-                mode: 'token',
-                token: gatewayToken
+
+    let agentSteps: string
+    let agentUser: string
+
+    if (isHermes) {
+        agentSteps = generateHermesSteps()
+        agentUser = 'hermes'
+    } else {
+        const config: Record<string, unknown> = {
+            gateway: {
+                mode: 'local',
+                auth: {
+                    mode: 'token',
+                    token: gatewayToken
+                },
+                remote: {
+                    token: gatewayToken
+                },
+                controlUi: {
+                    allowInsecureAuth: true,
+                    allowedOrigins: ['*'],
+                    dangerouslyDisableDeviceAuth: true
+                },
+                trustedProxies: ['127.0.0.1', '::1']
             },
-            remote: {
-                token: gatewayToken
+            commands: {
+                restart: true,
+                bash: true
             },
-            controlUi: {
-                allowInsecureAuth: true,
-                allowedOrigins: ['*'],
-                dangerouslyDisableDeviceAuth: true
-            },
-            trustedProxies: ['127.0.0.1', '::1']
-        },
-        commands: {
-            restart: true,
-            bash: true
-        },
-        browser: {
-            enabled: true,
-            executablePath: '/usr/bin/google-chrome-stable',
-            headless: true,
-            noSandbox: true
+            browser: {
+                enabled: true,
+                executablePath: '/usr/bin/google-chrome-stable',
+                headless: true,
+                noSandbox: true
+            }
         }
+
+        applyToolsDefaults(config)
+        config.agents = { defaults: { sandbox: { mode: 'off' } } }
+
+        const configJson = JSON.stringify(config, null, 2).replace(
+            /\n/g,
+            '\n    '
+        )
+        agentSteps = generateOpenClawSteps(gatewayToken, configJson)
+        agentUser = 'openclaw'
     }
 
-    applyToolsDefaults(config)
-    config.agents = { defaults: { sandbox: { mode: 'off' } } }
-
-    const configJson = JSON.stringify(config, null, 2).replace(/\n/g, '\n    ')
+    const serviceName = isHermes ? 'hermes-gateway' : 'openclaw-gateway'
 
     return `#cloud-config
 
@@ -75,62 +210,7 @@ runcmd:
   - echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
   - apt-get update -o Dir::Etc::sourcelist="sources.list.d/nodesource.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
   - apt-get install -y nodejs
-
-  - npm install -g openclaw@latest
-
-  - useradd -r -m -d /home/openclaw -s /bin/bash openclaw
-  - echo 'openclaw ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/openclaw
-
-  - wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O /tmp/google-chrome.deb
-  - dpkg -i /tmp/google-chrome.deb || apt-get install -f -y
-  - rm -f /tmp/google-chrome.deb
-
-  - mkdir -p /home/openclaw/.openclaw
-  - mkdir -p /home/openclaw/.openclaw/agents/main/agent
-
-  - |
-    cat > /home/openclaw/.openclaw/openclaw.json << 'OCCONFIG'
-    ${configJson}
-    OCCONFIG
-
-  - chown -R openclaw:openclaw /home/openclaw
-
-  - |
-    cat > /etc/systemd/system/openclaw-gateway.service <<'SYSTEMD'
-    [Unit]
-    Description=OpenClaw Gateway
-    After=network.target
-
-    [Service]
-    Type=simple
-    User=openclaw
-    Group=openclaw
-    WorkingDirectory=/home/openclaw
-    Environment=HOME=/home/openclaw
-    Environment=NODE_ENV=production
-    ExecStart=/usr/bin/openclaw gateway --port 18789 --bind loopback
-    Restart=always
-    RestartSec=10
-    StartLimitIntervalSec=0
-    StandardOutput=append:/var/log/openclaw-gateway.log
-    StandardError=append:/var/log/openclaw-gateway.log
-
-    [Install]
-    WantedBy=multi-user.target
-    SYSTEMD
-
-  - systemctl daemon-reload
-  - systemctl enable openclaw-gateway
-  - systemctl start openclaw-gateway
-
-  - |
-    for i in $(seq 1 30); do
-      if curl -sf -o /dev/null http://127.0.0.1:18789; then
-        break
-      fi
-      systemctl restart openclaw-gateway 2>/dev/null || true
-      sleep 10
-    done
+${agentSteps}
 
   - ufw allow 22/tcp
   - ufw allow 80/tcp
@@ -138,7 +218,7 @@ runcmd:
   - ufw --force enable
 
   - |
-    cat > /etc/nginx/sites-available/openclaw << 'NGINXEOF'
+    cat > /etc/nginx/sites-available/${serviceName} << 'NGINXEOF'
     map $http_upgrade $connection_upgrade {
         default upgrade;
         '' close;
@@ -157,7 +237,7 @@ runcmd:
         server_name ${fullDomain};
 
         location / {
-            proxy_pass http://127.0.0.1:18789;
+            proxy_pass http://127.0.0.1:${GATEWAY_PORT};
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection $connection_upgrade;
@@ -176,7 +256,7 @@ runcmd:
     }
     NGINXEOF
 
-  - ln -sf /etc/nginx/sites-available/openclaw /etc/nginx/sites-enabled/
+  - ln -sf /etc/nginx/sites-available/${serviceName} /etc/nginx/sites-enabled/
   - rm -f /etc/nginx/sites-enabled/default
   - mkdir -p /etc/systemd/system/nginx.service.d
   - |
@@ -201,17 +281,9 @@ runcmd:
 
   - echo "0 0,12 * * * root certbot renew --quiet --deploy-hook 'systemctl reload nginx'" > /etc/cron.d/certbot-renew
   - chmod 644 /etc/cron.d/certbot-renew
+${generateBrewStep(agentUser)}
 
-  - |
-    cat > /tmp/install-brew.sh << 'BREWSCRIPT'
-    #!/bin/bash
-    su - openclaw -c 'NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
-    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/openclaw/.bashrc
-    BREWSCRIPT
-    chmod +x /tmp/install-brew.sh
-    nohup /tmp/install-brew.sh > /var/log/brew-install.log 2>&1 &
-
-final_message: "OpenClaw instance ready! Access dashboard at https://${fullDomain}/"
+final_message: "${isHermes ? 'Hermes' : 'OpenClaw'} instance ready! Access dashboard at https://${fullDomain}/"
 `
 }
 

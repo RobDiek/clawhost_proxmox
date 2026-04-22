@@ -28,7 +28,7 @@ import AuthContext from '@/lib/auth/AuthContext'
 import STORAGE_KEYS from '@/lib/storageKeys'
 import {
     PROFILE_QUERY_KEY,
-    CLAWS_QUERY_KEY,
+    AGENTS_QUERY_KEY,
     USER_STATS_QUERY_KEY
 } from '@/hooks'
 import readCachedProfile from '@/lib/auth/AuthProvider/readCachedProfile'
@@ -158,8 +158,8 @@ const AuthProvider: FC<AuthProviderProps> = ({ children }): ReactNode => {
                             staleTime: 0
                         }),
                         queryClient.prefetchQuery({
-                            queryKey: CLAWS_QUERY_KEY,
-                            queryFn: () => api.getClaws()
+                            queryKey: AGENTS_QUERY_KEY,
+                            queryFn: () => api.getAgents()
                         }),
                         queryClient.prefetchQuery({
                             queryKey: USER_STATS_QUERY_KEY,

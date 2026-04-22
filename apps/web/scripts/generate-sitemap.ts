@@ -13,7 +13,6 @@ const staticRoutes: SitemapRoute[] = [
     { path: PATHS.HOME, priority: '1.0', changefreq: 'weekly' },
     { path: `/${PATHS.TERMS}`, priority: '0.3', changefreq: 'yearly' },
     { path: `/${PATHS.PRIVACY}`, priority: '0.3', changefreq: 'yearly' },
-    { path: `/${PATHS.BLOG}`, priority: '0.8', changefreq: 'weekly' },
     { path: `/${PATHS.CHANGELOG}`, priority: '0.6', changefreq: 'weekly' },
     { path: `/${PATHS.COMPARE}`, priority: '0.7', changefreq: 'monthly' }
 ]
@@ -50,7 +49,7 @@ const urls = [
         )
         const { data } = matter(raw)
         return {
-            loc: `${SITE_URL}/${PATHS.BLOG}/${slug}`,
+            loc: `${SITE_URL}/${slug}`,
             lastmod:
                 (data as BlogPostFrontmatter).updatedAt ??
                 (data as BlogPostFrontmatter).publishedAt,

@@ -1,12 +1,16 @@
 import type { Context } from 'hono'
-import type { billingInterval, clawFileType } from '@openclaw/shared'
+import type {
+    agentType,
+    billingInterval,
+    agentFileType
+} from '@openclaw/shared'
 import type {
     environment,
     featureEmailKey,
     subscriptionStatus,
     webhookEventType
 } from '@/lib/constants'
-import type { claws } from '@/db/schema'
+import type { agents } from '@/db/schema'
 
 export type HonoEnv = { Variables: { userId: string; isAdmin: boolean } }
 
@@ -20,14 +24,16 @@ export type WebhookEventType =
 
 export type Environment = (typeof environment)[keyof typeof environment]
 
-export type ClawFileType = (typeof clawFileType)[keyof typeof clawFileType]
+export type AgentFileType = (typeof agentFileType)[keyof typeof agentFileType]
+
+export type AgentType = (typeof agentType)[keyof typeof agentType]
 
 export type BillingInterval =
     (typeof billingInterval)[keyof typeof billingInterval]
 
 export type PolarPriceMap = Record<string, number>
 
-export type ClawRow = typeof claws.$inferSelect
+export type AgentRow = typeof agents.$inferSelect
 
 export type FeatureEmailKey =
     (typeof featureEmailKey)[keyof typeof featureEmailKey]

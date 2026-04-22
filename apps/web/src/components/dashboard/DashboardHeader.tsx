@@ -17,7 +17,7 @@ import { Button } from '@/components/ui'
 const DashboardHeader: FC<DashboardHeaderProps> = ({
     isLocal,
     isLoading,
-    displayedClaws,
+    displayedAgents,
     displayName,
     dnsSetup,
     dnsLoading,
@@ -39,8 +39,8 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({
 
                 <div className='flex items-center gap-1.5 sm:gap-3'>
                     {!isLoading &&
-                        displayedClaws &&
-                        displayedClaws.length > 0 && (
+                        displayedAgents &&
+                        displayedAgents.length > 0 && (
                             <Button
                                 onClick={onCreateClick}
                                 className='border-border bg-foreground text-background hover:bg-foreground/90 gap-2 border'
@@ -76,7 +76,7 @@ const DashboardHeader: FC<DashboardHeaderProps> = ({
                 </div>
             </div>
 
-            {isLocal && dnsSetup === false && displayedClaws.length > 0 && (
+            {isLocal && dnsSetup === false && displayedAgents.length > 0 && (
                 <div className='border-border bg-foreground/5 relative z-10 flex items-center justify-between border-b px-6 py-2.5'>
                     <p className='text-foreground text-xs'>
                         {t('dashboard.dnsSetupBanner')}

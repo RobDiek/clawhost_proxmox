@@ -18,7 +18,7 @@ const ADMIN_PAGE_SIZE = 20
 
 const UsersTab: FC<AdminUsersTabProps> = ({ onSelectEntity }): ReactNode => {
     const [search, setSearch] = useState('')
-    const [hasClaws, setHasClaws] = useState('all')
+    const [hasAgents, setHasAgents] = useState('all')
     const [sortOrder, setSortOrder] = useState('newest')
     const debouncedSearch = useDebouncedValue(search, 300)
 
@@ -33,7 +33,7 @@ const UsersTab: FC<AdminUsersTabProps> = ({ onSelectEntity }): ReactNode => {
     } = useAdminUsers(
         ADMIN_PAGE_SIZE,
         debouncedSearch || undefined,
-        hasClaws === 'all' ? undefined : hasClaws,
+        hasAgents === 'all' ? undefined : hasAgents,
         sortOrder
     )
 
@@ -50,8 +50,8 @@ const UsersTab: FC<AdminUsersTabProps> = ({ onSelectEntity }): ReactNode => {
             <AdminUserFilters
                 search={search}
                 onSearchChange={setSearch}
-                hasClaws={hasClaws}
-                onHasClawsChange={setHasClaws}
+                hasAgents={hasAgents}
+                onHasAgentsChange={setHasAgents}
                 sortOrder={sortOrder}
                 onSortOrderChange={setSortOrder}
             />

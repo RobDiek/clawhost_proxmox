@@ -10,8 +10,8 @@ import { sql } from 'drizzle-orm'
 import { db } from '@/db'
 import {
     users,
-    claws,
-    pendingClaws,
+    agents,
+    pendingAgents,
     sshKeys,
     volumes,
     referrals,
@@ -64,8 +64,8 @@ const safeBucketQuery = async (
 
 const TABLE_CONFIG: AnalyticsTableConfig[] = [
     { key: 'users', table: users, column: 'created_at' },
-    { key: 'claws', table: claws, column: 'created_at' },
-    { key: 'pendingClaws', table: pendingClaws, column: 'created_at' },
+    { key: 'agents', table: agents, column: 'created_at' },
+    { key: 'pendingAgents', table: pendingAgents, column: 'created_at' },
     { key: 'sshKeys', table: sshKeys, column: 'created_at' },
     { key: 'volumes', table: volumes, column: 'created_at' },
     { key: 'referrals', table: referrals, column: 'created_at' },

@@ -3,11 +3,11 @@ import type { DashboardState } from '@/ts/Interfaces'
 import { create } from 'zustand'
 
 const useDashboardStore = create<DashboardState>((set) => ({
-    chatSettingsClawId: null,
-    setChatSettingsClawId: (value) => set({ chatSettingsClawId: value }),
+    chatSettingsAgentId: null,
+    setChatSettingsAgentId: (value) => set({ chatSettingsAgentId: value }),
 
-    chatClawTab: null,
-    setChatClawTab: (value) => set({ chatClawTab: value }),
+    chatAgentTab: null,
+    setChatAgentTab: (value) => set({ chatAgentTab: value }),
 
     showCreate: false,
     setShowCreate: (value) => set({ showCreate: value }),
@@ -17,8 +17,8 @@ const useDashboardStore = create<DashboardState>((set) => ({
 
     resetDashboardState: () =>
         set({
-            chatSettingsClawId: null,
-            chatClawTab: null,
+            chatSettingsAgentId: null,
+            chatAgentTab: null,
             showCreate: false,
             preselectedPlanId: null
         })

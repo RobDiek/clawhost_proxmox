@@ -5,9 +5,9 @@ import { apiPaths } from '@openclaw/shared'
 import {
     getAdminAnalytics,
     getAdminBilling,
-    getAdminClaws,
+    getAdminAgents,
     getAdminEmails,
-    getAdminPendingClaws,
+    getAdminPendingAgents,
     getAdminReferrals,
     getAdminSSHKeys,
     getAdminStats,
@@ -28,8 +28,8 @@ app.get('/billing', getAdminBilling)
 app.get('/users', getAdminUsers)
 app.get('/users/:id', getAdminUserDetail)
 app.put('/users/:id', updateAdminUser)
-app.get(apiPaths.CLAWS.BASE, getAdminClaws)
-app.get(`/pending${apiPaths.CLAWS.BASE}`, getAdminPendingClaws)
+app.get(apiPaths.CLAWS.BASE, getAdminAgents)
+app.get(`/pending${apiPaths.CLAWS.BASE}`, getAdminPendingAgents)
 app.get('/ssh-keys', getAdminSSHKeys)
 app.get('/volumes', getAdminVolumes)
 app.get('/referrals', getAdminReferrals)
