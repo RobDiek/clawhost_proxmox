@@ -977,6 +977,32 @@ export const knowledgeChunks = pgTable(
     ]
 )
 
+// ── Strategy Lab (Phase G) — weekly auto-extracted learnings per tenant ──
+// Each row answers: "within dimension X, which value wins / loses for this
+// tenant, based on last 28d of creative performance?" Fed back into content
+// plan generation so the plan steers toward observed winners.
+export const strategyLearnings = pgTable('strategy_learnings', {
+    id: text('id').primaryKey(),
+    instanceId: text('instance_id').notNull().references(() => instances.id, { onDelete: 'cascade' }),
+    dimension: text('dimension').notNull(),          // channel | format | pillar | persona | hook_pattern | paid_organic
+    winnerValue: text('winner_value').notNull(),
+    loserValue: text('loser_value'),
+    metric: text('metric').notNull(),                // roas | leads | ctr | engagement_rate | conversion_rate
+    winnerScore: decimal('winner_score', { precision: 14, scale: 4 }),
+    loserScore: decimal('loser_score', { precision: 14, scale: 4 }),
+    effectSize: decimal('effect_size', { precision: 10, scale: 3 }),
+    dataPointsCount: integer('data_points_count').notNull(),
+    confidence: text('confidence').notNull().default('low'),  // high | medium | low
+    measuredSince: timestamp('measured_since', { withTimezone: true }).notNull(),
+    measuredUntil: timestamp('measured_until', { withTimezone: true }).notNull(),
+    recommendation: text('recommendation'),
+    breakdown: jsonb('breakdown'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+    index('sl_instance_dim_idx').on(table.instanceId, table.dimension, table.createdAt),
+    index('sl_instance_recent_idx').on(table.instanceId, table.measuredUntil),
+])
+
 // ── Google Business Profile ──
 export const gbpConfig = pgTable('gbp_config', {
     instanceId: text('instance_id').primaryKey().references(() => instances.id),

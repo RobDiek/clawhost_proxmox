@@ -2457,7 +2457,8 @@ ${validation.substring(0, 5000)}
         "ayat":      { "cadence": "daily|2xweek|weekly|off", "role": "Content Writer — טקסטים" },
         "yotzer":    { "cadence": "daily|weekly|off", "role": "Creative — ויזואלים" },
         "shaliach":  { "cadence": "daily|weekly|off", "role": "Distribution — פרסום בערוצים" },
-        "migdalor":  { "cadence": "monthly|weekly|off", "role": "AEO — בדיקה ב-LLMs" }
+        "migdalor":  { "cadence": "monthly|weekly|off", "role": "AEO — בדיקה ב-LLMs" },
+        "mazhir":    { "cadence": "daily|weekly|off", "role": "Paid Ads Manager — Meta+Google מודעות, תקציב, אופטימיזציה" }
       },
       "paidTrafficActivation": null,
       "expectedResults": "2-3 משפטים קונקרטיים על מה יקרה בסוף 90 ימים",
@@ -2519,7 +2520,12 @@ ${validation.substring(0, 5000)}
 ### שאר הכללים:
 - **שמות בדיוק:** conservative="שמרני" 🛡️, recommended="מאוזן" ⚖️, aggressive="אגרסיבי" 🚀
 - primaryChannels: שמרני=1-2 ערוצים, מאוזן=3-4, אגרסיבי=4-6
-- agentRoster: חובה לכל 8 הסוכנים, "off" מותר
+- agentRoster: חובה לכל 9 הסוכנים (כולל mazhir), "off" מותר
+- **mazhir cadence מתואם ל-paidTrafficActivation:**
+  - conservative (אין paid) → mazhir="off"
+  - recommended immediate → mazhir="daily" (ניהול 2+ קמפיינים שוטפים)
+  - recommended gatekeeper → mazhir="weekly" (נחנע עד לאקטיבציה, אז עולה ל-daily)
+  - aggressive → mazhir="daily"
 
 ### ⚠️ כללי שפה — חובה!
 
@@ -5639,6 +5645,9 @@ interface GenContext {
     // Approved brand book (Hebrew) — feeds both skeleton and drafting prompts so
     // content plan respects tagline, positioning, voice tone, and vocabulary.
     brandBookBlock?: string
+    // Strategy Lab learnings — top winners/losers per dimension from the last
+    // 28d of actual performance. Steers the plan toward measured winners.
+    learningsBlock?: string
     performanceContext?: string
     historicalAssetsBlock?: string
     menateachModel: string
@@ -5853,6 +5862,7 @@ ${ctx.personaTitles.length >= 2 ? ctx.personaTitles.map((p, i) => `${i + 1}. ${p
 ${ctx.performanceContext ? `\n## Previous period performance (adapt structure accordingly!)\n${ctx.performanceContext}\n` : ''}
 ${ctx.historicalAssetsBlock || ''}
 ${ctx.brandBookBlock || ''}
+${ctx.learningsBlock || ''}
 
 ## Hard constraints (auto-validator will reject plan on violation)
 - **Total: ${ctx.weeksAhead * 6}-${ctx.weeksAhead * 7} items** for ${ctx.weeksAhead} weeks
@@ -5863,6 +5873,33 @@ ${ctx.brandBookBlock || ''}
 - Instagram: reels ≥60% of all IG items
 - productRef "course_1499" ≥15%
 - **Balanced pillar load** — no single pillar > 25% of plan
+
+## 🧭 Scenario channel weighting (מסלול "${ctx.scenario?.name || '—'}") — RESPECT the chosen strategy
+The user committed to this scenario; the plan MUST mirror its channel priorities:
+
+**Primary channels (from scenario.primaryChannels):**
+${(ctx.scenario?.primaryChannels || []).length ? (ctx.scenario.primaryChannels as string[]).map((ch: string) => `- ${ch}`).join('\n') : '- (no primary channels specified — use judgement)'}
+
+Enforcement:
+- Each primary channel from the list above MUST receive ≥${Math.max(2, Math.floor(ctx.weeksAhead * 1.25))} items over the ${ctx.weeksAhead} weeks
+- Channels NOT in the primary list may appear but must NOT dominate (max 20% of plan combined)
+- Map Hebrew channel names to the enum: "קבוצות Facebook"→facebook, "LinkedIn אורגני"→linkedin, "YouTube + Newsletter"→youtube+email, "SEO אורגני"→blog, "Instagram"→instagram, "TikTok"→tiktok
+
+## 💰 Paid traffic activation — "${ctx.scenario?.paidTrafficActivation || 'none'}"
+${ctx.scenario?.paidTrafficActivation === 'immediate' ? `**Budget: ₪${ctx.scenario?.costs?.paidTrafficIls || 2000}/month. Paid ads MUST appear from week 1.**
+
+Hard requirement:
+- **≥${Math.max(3, Math.floor(ctx.weeksAhead * 1.5))} items** with channel in {meta_ads, google_ads}
+- Distribute: ≥1 campaign_launch in week 1 (channel=meta_ads OR google_ads, type=campaign_launch)
+- ≥1 campaign_optimize per week starting week 2 (type=campaign_optimize, reviewing prior launch)
+- Include retargeting lane: at least 1 meta_ads campaign_launch that amplifiesFrom an organic anchor (wave pattern)
+- Paid ads get agentRole="mazhir" (if available) or fall back to "ayat" with explicit paid-ads brief` : ctx.scenario?.paidTrafficActivation === 'gatekeeper' ? `**Gatekeeper mode: paid ads UNLOCKED only after 2 organic customers land.**
+
+Hard requirement:
+- Weeks 1-2: **0 paid ads items** — organic only. Focus: community engagement, SEO seeding, founder-led LinkedIn.
+- Week 3+: IF research signals suggest organic traction → ≥2 campaign_launch items (meta_ads + google_ads)
+- Always include 1 "report" item in week 3 (type=report, agentRole=menateach) that evaluates: "are we ready to unlock paid?"
+- Use flexibility="suggested" for all paid items — agent will confirm via ops-brief before actually launching` : `**No paid traffic in this scenario.** Plan must be fully organic. Do NOT add meta_ads or google_ads items.`}
 
 ## Cross-channel amplification (wave pattern)
 Plan SHOULD include at least 3 amplification waves. A wave = same topic/pillar amplified across 2-3 channels within 72h:
@@ -5904,7 +5941,7 @@ Each slot:
   "persona": "<one from personas list>",
   "productRef": "course_199|course_1499|clawflow|mixed|none",
   "flexibility": "fixed|suggested",
-  "agentRole": "ayat|yotzer|shaliach|mateh|menateach|sayer|migdalor",
+  "agentRole": "ayat|yotzer|shaliach|mateh|menateach|sayer|migdalor|mazhir",
   "isReactive": true|false,
   "amplifiesFrom": <index 0..N of anchor slot this amplifies, OR omit>
 }
@@ -5978,6 +6015,7 @@ async function draftSingleItem(slot: ContentSlot, ctx: GenContext): Promise<Draf
 ${ctx.brandVoice.substring(0, 2500)}
 
 ${ctx.brandBookBlock || ''}
+${ctx.learningsBlock || ''}
 ## מוצרים
 ${productsBlock({ products: ctx.products, productsFunnel: ctx.productsFunnel })}
 
@@ -6232,6 +6270,7 @@ async function selfCritique(items: ContentPlanItem[], ctx: GenContext): Promise<
 ${ctx.brandVoice.substring(0, 2000)}
 
 ${ctx.brandBookBlock || ''}
+${ctx.learningsBlock || ''}
 ## Products
 ${productsBlock({ products: ctx.products, productsFunnel: ctx.productsFunnel })}
 
@@ -6381,6 +6420,16 @@ export async function generateContentPlan(
         console.warn('[contentPlan] brand book load failed (non-fatal):', (e as Error).message)
     }
 
+    // Load Strategy Lab learnings from prior performance — recommendations
+    // that should steer this new plan
+    let learningsBlock = ''
+    try {
+        const { formatStrategyLearningsForPlan } = await import('@/services/strategyLearner')
+        learningsBlock = await formatStrategyLearningsForPlan(instanceId)
+    } catch (e) {
+        console.warn('[contentPlan] strategy learnings load failed (non-fatal):', (e as Error).message)
+    }
+
     const ctx: GenContext = {
         apiKey,
         businessName: answers.businessName || 'העסק',
@@ -6396,6 +6445,7 @@ export async function generateContentPlan(
         strategy,
         brandVoice: strategy, // same source for now; could be refined later
         brandBookBlock,
+        learningsBlock,
         performanceContext: opts.performanceContext,
         historicalAssetsBlock: formatHistoricalAssets(rd),
         menateachModel,

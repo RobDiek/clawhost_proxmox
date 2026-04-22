@@ -96,6 +96,12 @@ startWeeklyCreativeReport()
 import { startWeeklyOpsBrief } from '@/services/weeklyOpsBrief'
 startWeeklyOpsBrief()
 
+// Strategy Lab — weekly learner that ranks winners/losers across 6 dimensions
+// from actual performance data, then feeds recommendations back into the next
+// content plan generation.
+import { startStrategyLearner } from '@/services/strategyLearner'
+startStrategyLearner()
+
 // Phase F — facts pusher (every 6h)
 import { startFactsPusher } from '@/services/factsPusher'
 startFactsPusher()
