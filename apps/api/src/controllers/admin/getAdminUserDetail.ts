@@ -3,7 +3,7 @@ import type { AuthenticatedContext } from '@/ts/Types'
 
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { users, claws, sshKeys, volumes } from '@/db/schema'
+import { users, agents, sshKeys, volumes } from '@/db/schema'
 import { orders } from '@/lib/polar'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
@@ -39,20 +39,20 @@ const getAdminUserDetail = withErrorHandler(
     const [userClaws, userSshKeys, userVolumes] = await Promise.all([
         db
             .select({
-                id: claws.id,
-                name: claws.name,
-                status: claws.status,
-                ip: claws.ip,
-                planId: claws.planId,
-                location: claws.location,
-                subdomain: claws.subdomain,
-                subscriptionStatus: claws.subscriptionStatus,
-                billingInterval: claws.billingInterval,
-                deletionScheduledAt: claws.deletionScheduledAt,
-                createdAt: claws.createdAt
+                id: agents.id,
+                name: agents.name,
+                status: agents.status,
+                ip: agents.ip,
+                planId: agents.planId,
+                location: agents.location,
+                subdomain: agents.subdomain,
+                subscriptionStatus: agents.subscriptionStatus,
+                billingInterval: agents.billingInterval,
+                deletionScheduledAt: agents.deletionScheduledAt,
+                createdAt: agents.createdAt
             })
-            .from(claws)
-            .where(eq(claws.userId, userId)),
+            .from(agents)
+            .where(eq(agents.userId, userId)),
         db
             .select({
                 id: sshKeys.id,
@@ -88,7 +88,7 @@ const getAdminUserDetail = withErrorHandler(
         c,
         {
             ...user[0],
-            claws: userClaws,
+            agents: userClaws,
             sshKeys: userSshKeys,
             volumes: userVolumes,
             billingOrders

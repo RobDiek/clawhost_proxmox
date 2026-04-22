@@ -453,7 +453,8 @@ const ar: Translations = {
         sshKeyUpdated: 'تم تحديث مفتاح SSH بنجاح.',
         failedToUpdateSSHKey: 'فشل في تحديث مفتاح SSH!',
         invalidPassword: 'يجب أن تكون كلمة المرور بين {{min}} و {{max}} حرفًا!',
-        invalidGatewayToken: 'يجب أن يكون رمز البوابة بين {{min}} و {{max}} حرفًا!',
+        invalidGatewayToken:
+            'يجب أن يكون رمز البوابة بين {{min}} و {{max}} حرفًا!',
         enablePreviewSuccess: 'تم تفعيل وضع المعاينة بنجاح.',
         failedToEnablePreview: 'فشل في تفعيل وضع المعاينة!',
         logsFetched: 'تم جلب السجلات بنجاح.',
@@ -670,7 +671,8 @@ const ar: Translations = {
         emailNotEditable: 'البريد الإلكتروني غير قابل للتعديل. تواصل مع الدعم.',
         profileUpdatedSuccessfully: 'تم تحديث الملف الشخصي بنجاح.',
         billingAndSubscription: 'الفواتير والاشتراك',
-        billingAndSubscriptionDescription: 'إدارة طرق الدفع والاشتراكات والفواتير.',
+        billingAndSubscriptionDescription:
+            'إدارة طرق الدفع والاشتراكات والفواتير.',
         viewBillingHistory: 'عرض سجل المدفوعات والفواتير والاشتراكات.',
         connectedAccounts: 'الحسابات المتصلة',
         connectedAccountsDescription: 'إدارة طرق تسجيل الدخول المرتبطة بحسابك.',
@@ -826,7 +828,8 @@ const ar: Translations = {
             'فشل الدفع الخاص بك. إذا لم يتم حل المشكلة خلال 14 يومًا، سيتم حذف هذا الـ claw نهائيًا.',
         updatePayment: 'تحديث الدفع',
         cancelDeletion: 'إلغاء الحذف',
-        cancelDeletionConfirmation: 'هل أنت متأكد؟ سيبقى اشتراكك نشطًا وستستمر في الدفع. ستبقى المثيل قيد التشغيل.',
+        cancelDeletionConfirmation:
+            'هل أنت متأكد؟ سيبقى اشتراكك نشطًا وستستمر في الدفع. ستبقى المثيل قيد التشغيل.',
         deletionCancelled: 'تم إلغاء الحذف.',
         scheduleDeletion: 'جدولة الحذف',
         resumeCheckout: 'استئناف الدفع',
@@ -919,7 +922,8 @@ const ar: Translations = {
             awaitingPayment: 'في انتظار الدفع',
             unknown: 'غير معروف',
             checking: 'جارٍ الفحص'
-        }
+        },
+        tabNotAvailableForAgent: 'غير متاح لهذا النوع من الوكيل'
     },
     createClaw: {
         title: 'نشر OpenClaw',
@@ -928,6 +932,9 @@ const ar: Translations = {
         clawNamePlaceholder: 'مثال: cozy-panda',
         clawNameInvalidChars: 'يُسمح فقط بالأحرف والأرقام والشرطات !',
         autoGenerateNameHint: 'اتركه فارغاً لتوليد اسم تلقائياً.',
+        agentType: 'نوع الوكيل',
+        agentTypeOpenClawDescription: 'منصة وكيل ذكاء اصطناعي موجهة للبوابة',
+        agentTypeHermesDescription: 'إطار عمل وكيل ذكاء اصطناعي ذاتي التحسين',
         location: 'الموقع',
         locationUnavailable: 'غير متاح',
         locationUnavailableForPlan: 'غير متاح',
@@ -1521,11 +1528,14 @@ const ar: Translations = {
         tabDisabledConfiguring: 'متاح بمجرد انتهاء تهيئة النسخة.',
         tabDisabledAwaitingPayment: 'متاح بمجرد معالجة الدفع.',
         creatingTitle: 'جارٍ إعداد وكيلك',
-        creatingDescription: 'يستغرق هذا عادةً دقيقة أو دقيقتين. يمكنك إغلاق هذه الصفحة بأمان والعودة لاحقًا.',
+        creatingDescription:
+            'يستغرق هذا عادةً دقيقة أو دقيقتين. يمكنك إغلاق هذه الصفحة بأمان والعودة لاحقًا.',
         configuringTitle: 'جارٍ تثبيت OpenClaw',
-        configuringDescription: 'يستغرق هذا عادةً دقيقة أو دقيقتين. يمكنك إغلاق هذه الصفحة بأمان والعودة لاحقًا.',
+        configuringDescription:
+            'يستغرق هذا عادةً دقيقة أو دقيقتين. يمكنك إغلاق هذه الصفحة بأمان والعودة لاحقًا.',
         awaitingPaymentTitle: 'في انتظار الدفع',
-        awaitingPaymentDescription: 'أكمل الدفع لبدء تجهيز وكيلك. ينتهي هذا الحجز خلال ساعة واحدة.',
+        awaitingPaymentDescription:
+            'أكمل الدفع لبدء تجهيز وكيلك. ينتهي هذا الحجز خلال ساعة واحدة.',
         awaitingPaymentAction: 'إتمام الدفع',
         loadingTip1: 'هل تعلم أنه يمكنك تشغيل وكلاء متعددين في OpenClaw واحد؟',
         loadingTip2: 'هل تعلم أن OpenClaw مفتوح المصدر؟',
@@ -1534,12 +1544,16 @@ const ar: Translations = {
         loadingTip5: 'يحصل وكيلك على نطاق فرعي خاص به تلقائيًا.',
         loadingTip6: 'يمكنك تخصيص أيقونة واسم وكيلك في أي وقت من الإعدادات.',
         loadingTip7: 'جميع حركة المرور إلى وكيلك مشفرة بـ TLS.',
-        loadingTip8: 'يمكنك مراقبة استخدام المعالج والذاكرة والقرص في تبويب المراقبة.',
+        loadingTip8:
+            'يمكنك مراقبة استخدام المعالج والذاكرة والقرص في تبويب المراقبة.',
         loadingTip9: 'تحتاج مساعدة؟ انضم إلى مجتمعنا على Discord.',
         loadingTip10: 'يمكنك تصدير إعدادات وكيلك بالكامل كنسخة احتياطية.',
-        loadingTip11: 'يمكن تطبيق مفاتيح SSH على الخوادم العاملة دون إعادة التثبيت.',
-        loadingTip12: 'يمكنك تدوير كلمة مرور الجذر ورمز البوابة من تبويب الأمان.',
-        loadingTip13: 'يدعم ClawHost خوادم في مناطق متعددة عبر أوروبا والولايات المتحدة.',
+        loadingTip11:
+            'يمكن تطبيق مفاتيح SSH على الخوادم العاملة دون إعادة التثبيت.',
+        loadingTip12:
+            'يمكنك تدوير كلمة مرور الجذر ورمز البوابة من تبويب الأمان.',
+        loadingTip13:
+            'يدعم ClawHost خوادم في مناطق متعددة عبر أوروبا والولايات المتحدة.',
         tabSettings: 'الإعدادات',
         featureVersionUnsupported: '{{feature}} غير مدعوم على {{version}}',
         featureVersionUnsupportedDescription:
@@ -1553,7 +1567,8 @@ const ar: Translations = {
         tabVolumes: 'التخزين',
         tabSecurity: 'الأمان',
         securitySSHKey: 'مفتاح SSH',
-        securitySSHKeyHint: 'يُطبَّق على المثيل قيد التشغيل ويُستخدم عند إعادة التثبيت.',
+        securitySSHKeyHint:
+            'يُطبَّق على المثيل قيد التشغيل ويُستخدم عند إعادة التثبيت.',
         securityPassword: 'كلمة مرور Root',
         securityGatewayToken: 'رمز البوابة',
         securityHostKey: 'بصمة مفتاح المضيف',
@@ -1599,7 +1614,8 @@ const ar: Translations = {
         billingEmpty: 'No billing history for this instance.',
         tabServer: 'الخادم',
         serverIpAddress: 'عنوان IP',
-        reinstallDescription: 'إعادة تثبيت OpenClaw على هذا الخادم. سيؤدي ذلك إلى إعادة تعيين تثبيت OpenClaw مع الحفاظ على بياناتك. افعل ذلك فقط إذا لزم الأمر.',
+        reinstallDescription:
+            'إعادة تثبيت OpenClaw على هذا الخادم. سيؤدي ذلك إلى إعادة تعيين تثبيت OpenClaw مع الحفاظ على بياناتك. افعل ذلك فقط إذا لزم الأمر.',
         versionsSearch: 'البحث في الإصدارات...',
         versionsSearchCount: 'البحث في {{count}} إصدار...',
         versionsEmpty: 'لم يتم العثور على إصدارات',
@@ -1644,8 +1660,10 @@ const ar: Translations = {
         subdomainInUse: 'هذا النطاق الفرعي مستخدم من مخلب آخر !',
         settingsDetails: 'التفاصيل',
         settingsDangerZone: 'منطقة الخطر',
-        settingsDangerZoneDescription: 'سيتم حذف مثيلك في نهاية فترة الفوترة الحالية.',
-        settingsScheduledDeletionDescription: 'مجدول للحذف في {{date}}. قم بالإلغاء للإبقاء على مثيلك قيد التشغيل واشتراكك نشطًا.',
+        settingsDangerZoneDescription:
+            'سيتم حذف مثيلك في نهاية فترة الفوترة الحالية.',
+        settingsScheduledDeletionDescription:
+            'مجدول للحذف في {{date}}. قم بالإلغاء للإبقاء على مثيلك قيد التشغيل واشتراكك نشطًا.',
         settingsSave: 'حفظ',
         settingsSaving: 'جارٍ الحفظ...',
         settingsUpdated: 'تم تحديث الإعدادات.',

@@ -5,7 +5,7 @@ const prefetchedRoutes = new Set<string>()
 
 const routeImportMap: Record<string, () => Promise<unknown>> = {
     [ROUTES.LOGIN]: () => import('@/pages/Login'),
-    [ROUTES.CLAWS]: () => import('@/pages/Dashboard'),
+    [ROUTES.AGENTS]: () => import('@/pages/Dashboard'),
     [ROUTES.SSH_KEYS]: () => import('@/pages/SSHKeys'),
     [ROUTES.ACCOUNT]: () => import('@/pages/Account'),
     [ROUTES.AFFILIATE]: () => import('@/pages/Affiliate'),

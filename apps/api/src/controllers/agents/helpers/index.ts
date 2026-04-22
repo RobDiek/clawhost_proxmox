@@ -4,20 +4,22 @@ import generateSlug from '@/controllers/agents/helpers/generateSlug'
 import generatePassword from '@/controllers/agents/helpers/generatePassword'
 import generateServerName from '@/controllers/agents/helpers/generateServerName'
 import generateToken from '@/controllers/agents/helpers/generateToken'
-import cleanupClaw from '@/controllers/agents/helpers/cleanupClaw'
+import cleanupAgent from '@/controllers/agents/helpers/cleanupAgent'
 import isAdmin from '@/controllers/agents/helpers/isAdmin'
-import sanitizeClaw from '@/controllers/agents/helpers/sanitizeClaw'
+import sanitizeAgent from '@/controllers/agents/helpers/sanitizeAgent'
 import safeShellWrite from '@/controllers/agents/helpers/safeShellWrite'
-import findUserClaw from '@/controllers/agents/helpers/findUserClaw'
-import decryptClawSecrets from '@/controllers/agents/helpers/decryptClawSecrets'
+import findUserAgent from '@/controllers/agents/helpers/findUserAgent'
+import decryptAgentSecrets from '@/controllers/agents/helpers/decryptAgentSecrets'
 import BASE_DIR from '@/controllers/agents/helpers/baseDir'
 import DOMAIN from '@/controllers/agents/helpers/constants'
-import syncClawServers from '@/controllers/agents/helpers/syncClawServers'
+import syncAgentServers from '@/controllers/agents/helpers/syncAgentServers'
 import invalidateVersionCache from '@/controllers/agents/helpers/invalidateVersionCache'
-import fetchClawVersion from '@/controllers/agents/helpers/fetchClawVersion'
+import fetchAgentVersion from '@/controllers/agents/helpers/fetchAgentVersion'
 import executeServerLifecycle from '@/controllers/agents/helpers/executeServerLifecycle'
-import withClaw from '@/controllers/agents/helpers/withClaw'
-import generateClawName from '@/controllers/agents/helpers/generateClawName'
+import withAgent from '@/controllers/agents/helpers/withAgent'
+import generateAgentName from '@/controllers/agents/helpers/generateAgentName'
+import getAgentConfig from '@/controllers/agents/helpers/getAgentConfig'
+import getBaseDir from '@/controllers/agents/helpers/getBaseDir'
 import getPolarProductId from '@/controllers/agents/helpers/getPolarProductId'
 
 export {
@@ -27,19 +29,21 @@ export {
     generatePassword,
     generateServerName,
     generateToken,
-    cleanupClaw,
+    cleanupAgent,
     isAdmin,
-    findUserClaw,
-    decryptClawSecrets,
-    sanitizeClaw,
+    findUserAgent,
+    decryptAgentSecrets,
+    sanitizeAgent,
     safeShellWrite,
     BASE_DIR,
     DOMAIN,
-    syncClawServers,
+    syncAgentServers,
     executeServerLifecycle,
     invalidateVersionCache,
-    fetchClawVersion,
-    withClaw,
-    generateClawName,
+    fetchAgentVersion,
+    withAgent,
+    generateAgentName,
+    getAgentConfig,
+    getBaseDir,
     getPolarProductId
 }

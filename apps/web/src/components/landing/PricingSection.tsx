@@ -195,7 +195,7 @@ const PricingSection: FC<PricingSectionProps> = ({
                                                                 <Link
                                                                     to={
                                                                         user
-                                                                            ? `${ROUTES.CLAWS}?plan=${plan.id}`
+                                                                            ? `${ROUTES.AGENTS}?plan=${plan.id}`
                                                                             : `${ROUTES.LOGIN}?plan=${plan.id}`
                                                                     }
                                                                     aria-label={

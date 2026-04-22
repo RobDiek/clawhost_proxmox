@@ -59,7 +59,7 @@ const AdminUserRow: FC<AdminUserRowProps> = ({ user, onSelect }): ReactNode => {
                     <div className='hidden items-center gap-4 sm:flex'>
                         <div className='text-muted-foreground flex items-center gap-1 text-sm'>
                             <HardDrivesIcon className='h-4 w-4' />
-                            <span>{user.clawCount}</span>
+                            <span>{user.agentCount}</span>
                         </div>
                         <div className='text-muted-foreground flex items-center gap-1 text-sm'>
                             <KeyIcon className='h-4 w-4' />

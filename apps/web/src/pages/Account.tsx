@@ -115,7 +115,7 @@ const Account: FC = (): ReactNode => {
             {!isLocal && <PageBackground />}
             {isLocal ? (
                 <div className='border-border bg-background md:bg-background/80 relative z-10 flex shrink-0 items-center justify-between border-b px-6 py-3 md:backdrop-blur-xl'>
-                    <Logo to={ROUTES.CLAWS} />
+                    <Logo to={ROUTES.AGENTS} />
                     <div className='flex items-center gap-1.5 sm:gap-3'>
                         <div className='flex items-center gap-1.5'>
                             <LanguageSelector />
@@ -162,7 +162,7 @@ const Account: FC = (): ReactNode => {
                                 email={email}
                                 isLocal={!!isLocal}
                                 joinedDate={joinedDate}
-                                clawCount={userStats?.clawCount ?? 0}
+                                agentCount={userStats?.agentCount ?? 0}
                                 sshKeyCount={userStats?.sshKeyCount ?? 0}
                                 hasChanges={hasChanges}
                                 isPending={updateMutation.isPending}

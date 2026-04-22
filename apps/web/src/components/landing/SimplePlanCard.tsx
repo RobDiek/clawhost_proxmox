@@ -80,7 +80,7 @@ const SimplePlanCard: FC<SimplePlanCardProps> = ({
                 <Link
                     to={
                         user
-                            ? `${ROUTES.CLAWS}?plan=${planId}`
+                            ? `${ROUTES.AGENTS}?plan=${planId}`
                             : `${ROUTES.LOGIN}?plan=${planId}`
                     }
                 >

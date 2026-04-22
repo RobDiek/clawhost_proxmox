@@ -1,9 +1,9 @@
 import AdminAnalyticsTab from '@/components/admin/AdminAnalyticsTab'
 import AdminBillingTab from '@/components/admin/AdminBillingTab'
-import AdminClawsTab from '@/components/admin/AdminClawsTab'
+import AdminAgentsTab from '@/components/admin/AdminAgentsTab'
 import AdminDetailModal from '@/components/admin/AdminDetailModal'
 import AdminEmailsTab from '@/components/admin/AdminEmailsTab'
-import AdminPendingClawsTab from '@/components/admin/AdminPendingClawsTab'
+import AdminPendingAgentsTab from '@/components/admin/AdminPendingAgentsTab'
 import AdminReferralsTab from '@/components/admin/AdminReferralsTab'
 import AdminSettingsTab from '@/components/admin/AdminSettingsTab'
 import AdminSSHKeysTab from '@/components/admin/AdminSSHKeysTab'
@@ -15,10 +15,10 @@ import AdminWaitlistTab from '@/components/admin/AdminWaitlistTab'
 export {
     AdminAnalyticsTab,
     AdminBillingTab,
-    AdminClawsTab,
+    AdminAgentsTab,
     AdminDetailModal,
     AdminEmailsTab,
-    AdminPendingClawsTab,
+    AdminPendingAgentsTab,
     AdminReferralsTab,
     AdminSettingsTab,
     AdminSSHKeysTab,

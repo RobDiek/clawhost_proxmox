@@ -1,5 +1,5 @@
 import type { FC, ReactNode } from 'react'
-import type { Claw, ElectronWindow } from '@/ts/Interfaces'
+import type { Agent, ElectronWindow } from '@/ts/Interfaces'
 
 import { Fragment, useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -8,11 +8,11 @@ import { t } from '@openclaw/i18n'
 import { userRole } from '@openclaw/shared'
 import { useUIStore, usePreferencesStore, useDashboardStore } from '@/lib/store'
 import { TOAST_TYPE } from '@/lib/constants'
-import { ROUTES, CLAW_DETAIL_TABS } from '@/lib'
-import { tabs as clawDetailTabs } from '@/lib/clawDetailTabs'
+import { ROUTES, AGENT_DETAIL_TABS } from '@/lib'
+import { tabs as agentDetailTabs } from '@/lib/agentDetailTabs'
 import {
-    useClaws,
-    useAdminClaws,
+    useAgents,
+    useAdminAgents,
     useSSHKeys,
     usePlans,
     useLocations,
@@ -32,7 +32,7 @@ import {
     ProductHuntBanner
 } from '@/components'
 import {
-    CreateClawModal,
+    CreateAgentModal,
     DashboardChatView,
     DashboardHeader,
     DashboardLoadingState
@@ -42,14 +42,14 @@ import { useAuth } from '@/lib/auth'
 const Dashboard: FC = (): ReactNode => {
     const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams()
-    const [awaitingClaw, setAwaitingClaw] = useState(
+    const [awaitingAgent, setAwaitingAgent] = useState(
         () => searchParams.get('payment') === 'success'
     )
     const {
-        chatSettingsClawId,
-        setChatSettingsClawId,
-        chatClawTab,
-        setChatClawTab,
+        chatSettingsAgentId,
+        setChatSettingsAgentId,
+        chatAgentTab,
+        setChatAgentTab,
         showCreate,
         setShowCreate,
         preselectedPlanId,
@@ -119,39 +119,39 @@ const Dashboard: FC = (): ReactNode => {
     useURLStateRestoration({
         searchParams,
         setSearchParams,
-        chatSettingsClawId,
-        setChatSettingsClawId,
-        chatClawTab,
-        setChatClawTab,
+        chatSettingsAgentId,
+        setChatSettingsAgentId,
+        chatAgentTab,
+        setChatAgentTab,
         setShowCreate,
         setPreselectedPlanId,
         showToast,
-        awaitingClaw
+        awaitingAgent
     })
 
     const {
-        data: claws,
-        isLoading: isClawsLoading,
+        data: agents,
+        isLoading: isAgentsLoading,
         isError,
         refetch
-    } = useClaws()
+    } = useAgents()
     const {
-        data: adminClaws,
-        isLoading: isAdminClawsLoading,
-        isError: isAdminClawsError,
+        data: adminAgents,
+        isLoading: isAdminAgentsLoading,
+        isError: isAdminAgentsError,
         refetch: refetchAdmin
-    } = useAdminClaws(adminMode)
+    } = useAdminAgents(adminMode)
 
     useEffect(() => {
-        if (awaitingClaw && !isClawsLoading) {
-            setAwaitingClaw(false)
+        if (awaitingAgent && !isAgentsLoading) {
+            setAwaitingAgent(false)
         }
-    }, [awaitingClaw, isClawsLoading])
+    }, [awaitingAgent, isAgentsLoading])
 
-    const displayedClaws = useMemo((): Claw[] => {
-        if (adminMode) return adminClaws || []
-        return claws || []
-    }, [claws, adminMode, adminClaws])
+    const displayedAgents = useMemo((): Agent[] => {
+        if (adminMode) return adminAgents || []
+        return agents || []
+    }, [agents, adminMode, adminAgents])
 
     const { plans: hetznerPlans } = usePlans()
     const plans = [...(hetznerPlans || [])]
@@ -160,34 +160,36 @@ const Dashboard: FC = (): ReactNode => {
     const { data: volumePricing } = useVolumePricing()
     const { data: planAvailability } = usePlanAvailability()
 
-    const activeClawsLoading = adminMode ? isAdminClawsLoading : isClawsLoading
-    const activeIsError = adminMode ? isAdminClawsError : isError
+    const activeAgentsLoading = adminMode
+        ? isAdminAgentsLoading
+        : isAgentsLoading
+    const activeIsError = adminMode ? isAdminAgentsError : isError
     const activeRefetch = adminMode ? refetchAdmin : refetch
     const isLoading =
-        authLoading || activeClawsLoading || (!awaitingClaw && !minLoadingMet)
+        authLoading || activeAgentsLoading || (!awaitingAgent && !minLoadingMet)
 
-    const selectedClaw = useMemo(
+    const selectedAgent = useMemo(
         () =>
-            chatSettingsClawId
-                ? displayedClaws.find((c) => c.id === chatSettingsClawId)
+            chatSettingsAgentId
+                ? displayedAgents.find((c) => c.id === chatSettingsAgentId)
                 : null,
-        [chatSettingsClawId, displayedClaws]
+        [chatSettingsAgentId, displayedAgents]
     )
 
     const pageTitle = useMemo(() => {
-        if (!selectedClaw) return t('dashboard.title')
+        if (!selectedAgent) return t('dashboard.title')
         const tabConfig =
-            chatClawTab && chatClawTab !== CLAW_DETAIL_TABS.OVERVIEW
-                ? clawDetailTabs.find((tab) => tab.id === chatClawTab)
+            chatAgentTab && chatAgentTab !== AGENT_DETAIL_TABS.OVERVIEW
+                ? agentDetailTabs.find((tab) => tab.id === chatAgentTab)
                 : null
         const tabLabel = tabConfig
             ? ` ${t(tabConfig.label as Parameters<typeof t>[0])}`
             : ''
-        return `${selectedClaw.name}${tabLabel}`
-    }, [selectedClaw, chatClawTab])
+        return `${selectedAgent.name}${tabLabel}`
+    }, [selectedAgent, chatAgentTab])
 
     const chatEmpty =
-        !isLoading && !activeIsError && displayedClaws.length === 0
+        !isLoading && !activeIsError && displayedAgents.length === 0
     const showFullBackground = chatEmpty || activeIsError || isLoading
 
     const handleCreateClick = useCallback(() => {
@@ -213,7 +215,7 @@ const Dashboard: FC = (): ReactNode => {
                 <div className='playground-grid pointer-events-none fixed inset-0 opacity-50' />
             )}
             <div
-                className={`playground-gradient pointer-events-none fixed inset-0 ${isLocal || (!isLoading && !activeIsError && displayedClaws.length > 0) ? 'opacity-30' : ''}`}
+                className={`playground-gradient pointer-events-none fixed inset-0 ${isLocal || (!isLoading && !activeIsError && displayedAgents.length > 0) ? 'opacity-30' : ''}`}
             />
             <PageTitle
                 title={pageTitle}
@@ -224,7 +226,7 @@ const Dashboard: FC = (): ReactNode => {
             <DashboardHeader
                 isLocal={!!isLocal}
                 isLoading={isLoading}
-                displayedClaws={displayedClaws}
+                displayedAgents={displayedAgents}
                 displayName={displayName}
                 dnsSetup={dnsSetup}
                 dnsLoading={dnsLoading}
@@ -255,21 +257,21 @@ const Dashboard: FC = (): ReactNode => {
                     </div>
                 ) : (
                     <DashboardChatView
-                        displayedClaws={displayedClaws}
+                        displayedAgents={displayedAgents}
                         plans={plans}
                         sshKeys={sshKeys || []}
                         adminMode={adminMode}
-                        chatSettingsClawId={chatSettingsClawId}
-                        chatClawTab={chatClawTab}
-                        onSettingsClawChange={setChatSettingsClawId}
-                        onClawTabChange={setChatClawTab}
+                        chatSettingsAgentId={chatSettingsAgentId}
+                        chatAgentTab={chatAgentTab}
+                        onSettingsAgentChange={setChatSettingsAgentId}
+                        onAgentTabChange={setChatAgentTab}
                         onCreateClick={handleCreateClick}
                     />
                 )}
             </div>
 
             {showCreate && !isLocal && plans.length > 0 && (
-                <CreateClawModal
+                <CreateAgentModal
                     plans={plans}
                     locations={locations || []}
                     sshKeys={sshKeys || []}

@@ -1,6 +1,6 @@
-import type { ClawOverviewResponse } from '@/ts/Interfaces'
+import type { AgentOverviewResponse } from '@/ts/Interfaces'
 
-const demoOverview: ClawOverviewResponse = {
+const demoOverview: AgentOverviewResponse = {
     gateway: {
         active: true,
         reachable: true,

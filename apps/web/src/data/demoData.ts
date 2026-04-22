@@ -1,15 +1,15 @@
 import type {
-    ClawMetricsResponse,
-    ClawVersionsResponse,
-    ClawFilesResponse,
-    ReadClawFileResponse,
+    AgentMetricsResponse,
+    AgentVersionsResponse,
+    AgentFilesResponse,
+    ReadAgentFileResponse,
     Plan,
     BillingOrder
 } from '@/ts/Interfaces'
 
-import { clawFileType } from '@openclaw/shared'
+import { agentFileType } from '@openclaw/shared'
 
-const demoMetrics: ClawMetricsResponse = {
+const demoMetrics: AgentMetricsResponse = {
     cpu: {
         usagePercent: 23,
         cores: 2
@@ -37,8 +37,20 @@ const demoMetrics: ClawMetricsResponse = {
     },
     processes: [
         { pid: 1, user: 'root', cpu: 0.1, mem: 0.5, command: 'systemd' },
-        { pid: 847, user: 'openclaw', cpu: 12.3, mem: 8.2, command: 'openclaw-gateway' },
-        { pid: 912, user: 'openclaw', cpu: 8.7, mem: 15.4, command: 'openclaw' },
+        {
+            pid: 847,
+            user: 'openclaw',
+            cpu: 12.3,
+            mem: 8.2,
+            command: 'openclaw-gateway'
+        },
+        {
+            pid: 912,
+            user: 'openclaw',
+            cpu: 8.7,
+            mem: 15.4,
+            command: 'openclaw'
+        },
         { pid: 1024, user: 'openclaw', cpu: 2.1, mem: 3.8, command: 'node' },
         { pid: 1156, user: 'root', cpu: 0.3, mem: 1.2, command: 'sshd' }
     ],
@@ -46,7 +58,7 @@ const demoMetrics: ClawMetricsResponse = {
     timestamp: Date.now()
 }
 
-const demoVersions: ClawVersionsResponse = {
+const demoVersions: AgentVersionsResponse = {
     currentVersion: '2026.3.28',
     latestVersion: '2026.3.28',
     versions: [
@@ -78,29 +90,49 @@ const demoVersions: ClawVersionsResponse = {
     ]
 }
 
-const demoFiles: ClawFilesResponse = {
+const demoFiles: AgentFilesResponse = {
     files: [
-        { path: 'openclaw.json', name: 'openclaw.json', fileType: clawFileType.json },
-        { path: '.env', name: '.env', fileType: clawFileType.text },
-        { path: 'tools/browser.ts', name: 'browser.ts', fileType: clawFileType.typescript },
-        { path: 'tools/search.ts', name: 'search.ts', fileType: clawFileType.typescript },
-        { path: 'prompts/system.md', name: 'system.md', fileType: clawFileType.markdown }
+        {
+            path: 'openclaw.json',
+            name: 'openclaw.json',
+            fileType: agentFileType.json
+        },
+        { path: '.env', name: '.env', fileType: agentFileType.text },
+        {
+            path: 'tools/browser.ts',
+            name: 'browser.ts',
+            fileType: agentFileType.typescript
+        },
+        {
+            path: 'tools/search.ts',
+            name: 'search.ts',
+            fileType: agentFileType.typescript
+        },
+        {
+            path: 'prompts/system.md',
+            name: 'system.md',
+            fileType: agentFileType.markdown
+        }
     ]
 }
 
-const demoFileContent: ReadClawFileResponse = {
-    content: JSON.stringify({
-        version: '2026.3.28',
-        model: 'claude-sonnet-4-5-20250514',
-        contextWindow: '200k',
-        browser: { enabled: true },
-        commands: { enabled: true },
-        tools: ['computer', 'bash', 'text_editor', 'mcp'],
-        gateway: {
-            port: 18789,
-            auth: true
-        }
-    }, null, 4),
+const demoFileContent: ReadAgentFileResponse = {
+    content: JSON.stringify(
+        {
+            version: '2026.3.28',
+            model: 'claude-sonnet-4-5-20250514',
+            contextWindow: '200k',
+            browser: { enabled: true },
+            commands: { enabled: true },
+            tools: ['computer', 'bash', 'text_editor', 'mcp'],
+            gateway: {
+                port: 18789,
+                auth: true
+            }
+        },
+        null,
+        4
+    ),
     path: 'openclaw.json'
 }
 
@@ -164,9 +196,9 @@ const demoBillingOrders: BillingOrder[] = [
 ]
 
 const demoTerminalOutput = [
-    '\x1b[32mopenclaw@personal-claw\x1b[0m:\x1b[34m~\x1b[0m$ openclaw status',
+    '\x1b[32mopenclaw@personal-agent\x1b[0m:\x1b[34m~\x1b[0m$ openclaw status',
     '',
-    '\x1b[1mOpenClaw v2026.3.28\x1b[0m',
+    '\x1b[1mOpenAgent v2026.3.28\x1b[0m',
     '',
     '  Gateway:    \x1b[32m● running\x1b[0m  (port 18789)',
     '  Instance:   \x1b[32m● active\x1b[0m   (claude-sonnet-4-5)',
@@ -174,7 +206,7 @@ const demoTerminalOutput = [
     '  Memory:     1.2 GB / 4 GB',
     '  Uptime:     12d 4h 32m',
     '',
-    '\x1b[32mopenclaw@personal-claw\x1b[0m:\x1b[34m~\x1b[0m$ \x1b[?25h'
+    '\x1b[32mopenclaw@personal-agent\x1b[0m:\x1b[34m~\x1b[0m$ \x1b[?25h'
 ].join('\r\n')
 
 export {

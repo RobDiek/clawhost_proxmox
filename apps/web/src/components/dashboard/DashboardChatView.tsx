@@ -12,24 +12,24 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
 import { ListIcon, XIcon } from '@phosphor-icons/react'
-import { EmptyState, ClawMascot } from '@/components'
-import { ClawDetailPanel } from '@/components/dashboard'
+import { EmptyState, AgentMascot } from '@/components'
+import { AgentDetailPanel } from '@/components/dashboard'
 import { ChatSidebar } from '@/components/chat'
 import { ChatEmptyState } from '@/components/chat'
 
 const DashboardChatView: FC<DashboardChatViewProps> = ({
-    displayedClaws,
+    displayedAgents,
     plans,
     sshKeys,
     adminMode,
-    chatSettingsClawId,
-    chatClawTab,
-    onSettingsClawChange,
-    onClawTabChange,
+    chatSettingsAgentId,
+    chatAgentTab,
+    onSettingsAgentChange,
+    onAgentTabChange,
     onCreateClick
 }): ReactNode => {
-    const [settingsClawId, setSettingsClawId] = useState<string | null>(
-        chatSettingsClawId || null
+    const [settingsAgentId, setSettingsAgentId] = useState<string | null>(
+        chatSettingsAgentId || null
     )
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
     const isInitialMount = useRef(true)
@@ -40,52 +40,52 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
             isInitialMount.current = false
             return
         }
-        onSettingsClawChange?.(settingsClawId)
-    }, [settingsClawId])
+        onSettingsAgentChange?.(settingsAgentId)
+    }, [settingsAgentId])
 
     useEffect(() => {
         if (
             !hasAutoSelected.current &&
-            !settingsClawId &&
-            displayedClaws.length > 0
+            !settingsAgentId &&
+            displayedAgents.length > 0
         ) {
             hasAutoSelected.current = true
-            setSettingsClawId(displayedClaws[0].id)
+            setSettingsAgentId(displayedAgents[0].id)
         }
-    }, [settingsClawId, displayedClaws])
+    }, [settingsAgentId, displayedAgents])
 
-    const settingsClaw = useMemo(() => {
-        if (!settingsClawId) return null
-        return displayedClaws.find((c) => c.id === settingsClawId) || null
-    }, [displayedClaws, settingsClawId])
+    const settingsAgent = useMemo(() => {
+        if (!settingsAgentId) return null
+        return displayedAgents.find((c) => c.id === settingsAgentId) || null
+    }, [displayedAgents, settingsAgentId])
 
     const closeMobileSidebar = useCallback(() => {
         setMobileSidebarOpen(false)
     }, [])
 
-    const handleOpenClawSettings = useCallback(
-        (clawId: string) => {
-            if (settingsClawId === clawId) {
-                setSettingsClawId(null)
+    const handleOpenAgentSettings = useCallback(
+        (agentId: string) => {
+            if (settingsAgentId === agentId) {
+                setSettingsAgentId(null)
                 setMobileSidebarOpen(false)
                 return
             }
-            setSettingsClawId(clawId)
+            setSettingsAgentId(agentId)
             setMobileSidebarOpen(false)
         },
-        [settingsClawId]
+        [settingsAgentId]
     )
 
-    const handleCloseClawSettings = useCallback(() => {
-        setSettingsClawId(null)
+    const handleCloseAgentSettings = useCallback(() => {
+        setSettingsAgentId(null)
     }, [])
 
     const mobileLabel = useMemo(() => {
-        if (settingsClaw) return settingsClaw.name
+        if (settingsAgent) return settingsAgent.name
         return t('nav.claws')
-    }, [settingsClaw])
+    }, [settingsAgent])
 
-    if (displayedClaws.length === 0) {
+    if (displayedAgents.length === 0) {
         return (
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -96,7 +96,7 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
                 <div className='flex h-full min-w-0 flex-1 items-center justify-center'>
                     <div className='-mt-20'>
                         <EmptyState
-                            icon={<ClawMascot className='h-10 w-10' />}
+                            icon={<AgentMascot className='h-10 w-10' />}
                             title={
                                 adminMode
                                     ? t('dashboard.adminNoClaws')
@@ -127,13 +127,13 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
                 <div className='playground-grid pointer-events-none absolute inset-0 opacity-50' />
                 <div className='hidden md:block'>
                     <ChatSidebar
-                        claws={displayedClaws}
-                        selectedClawId={settingsClawId}
-                        onOpenClawSettings={handleOpenClawSettings}
+                        agents={displayedAgents}
+                        selectedAgentId={settingsAgentId}
+                        onOpenAgentSettings={handleOpenAgentSettings}
                     />
                 </div>
                 <div className='max-md:bg-background flex min-w-0 flex-1 flex-col max-md:relative max-md:z-10'>
-                    {!settingsClaw && mobileSidebarOpen && (
+                    {!settingsAgent && mobileSidebarOpen && (
                         <div className='border-border bg-background flex items-center gap-2 border-b px-4 py-2.5 md:hidden'>
                             <button
                                 onClick={() =>
@@ -175,10 +175,10 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
                                         className='bg-background absolute inset-0 z-30 overflow-y-auto md:hidden'
                                     >
                                         <ChatSidebar
-                                            claws={displayedClaws}
-                                            selectedClawId={settingsClawId}
-                                            onOpenClawSettings={
-                                                handleOpenClawSettings
+                                            agents={displayedAgents}
+                                            selectedAgentId={settingsAgentId}
+                                            onOpenAgentSettings={
+                                                handleOpenAgentSettings
                                             }
                                             onClose={closeMobileSidebar}
                                         />
@@ -186,15 +186,15 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
                                 </Fragment>
                             )}
                         </AnimatePresence>
-                        {settingsClaw ? (
-                            <ClawDetailPanel
-                                key={`fullscreen-${settingsClaw.id}`}
-                                claw={settingsClaw}
+                        {settingsAgent ? (
+                            <AgentDetailPanel
+                                key={`fullscreen-${settingsAgent.id}`}
+                                agent={settingsAgent}
                                 plans={plans}
                                 sshKeys={sshKeys}
-                                onClose={handleCloseClawSettings}
-                                initialTab={chatClawTab || undefined}
-                                onTabChange={onClawTabChange}
+                                onClose={handleCloseAgentSettings}
+                                initialTab={chatAgentTab || undefined}
+                                onTabChange={onAgentTabChange}
                                 fullScreen
                             />
                         ) : (
@@ -204,10 +204,10 @@ const DashboardChatView: FC<DashboardChatViewProps> = ({
                                 </div>
                                 <div className='flex-1 overflow-y-auto md:hidden'>
                                     <ChatSidebar
-                                        claws={displayedClaws}
-                                        selectedClawId={settingsClawId}
-                                        onOpenClawSettings={
-                                            handleOpenClawSettings
+                                        agents={displayedAgents}
+                                        selectedAgentId={settingsAgentId}
+                                        onOpenAgentSettings={
+                                            handleOpenAgentSettings
                                         }
                                     />
                                 </div>

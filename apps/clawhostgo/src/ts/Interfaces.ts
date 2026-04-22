@@ -12,7 +12,7 @@ interface ElectronAPI {
     onTerminalExit: (callback: (id: string) => void) => () => void
 }
 
-interface LocalClawConfig {
+interface LocalAgentConfig {
     id: string
     name: string
     port: number
@@ -24,7 +24,7 @@ interface LocalClawConfig {
 }
 
 interface ConfigFile {
-    claws: LocalClawConfig[]
+    agents: LocalAgentConfig[]
     defaultVersion: string
     portRange: {
         min: number
@@ -41,17 +41,17 @@ interface CertPaths {
     ca: string
 }
 
-interface CreateClawData {
+interface CreateAgentData {
     name?: string
     gatewayToken?: string
     password?: string
 }
 
-interface RenameClawData {
+interface RenameAgentData {
     name: string
 }
 
-interface ReadClawFileData {
+interface ReadAgentFileData {
     path: string
 }
 
@@ -78,12 +78,12 @@ interface AppUpdateInfo {
 
 export type {
     ElectronAPI,
-    LocalClawConfig,
+    LocalAgentConfig,
     ConfigFile,
     CertPaths,
-    CreateClawData,
-    RenameClawData,
-    ReadClawFileData,
+    CreateAgentData,
+    RenameAgentData,
+    ReadAgentFileData,
     UpdateProfileData,
     NpmVersionEntry,
     VersionEntry,

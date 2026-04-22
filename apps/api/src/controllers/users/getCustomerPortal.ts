@@ -3,7 +3,7 @@ import type { AuthenticatedContext } from '@/ts/Types'
 import { eq } from 'drizzle-orm'
 import { userRole } from '@openclaw/shared'
 import { db } from '@/db'
-import { users, claws } from '@/db/schema'
+import { users, agents } from '@/db/schema'
 import { getPolarClient } from '@/lib/polar'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
@@ -15,33 +15,33 @@ const getCustomerPortal = withErrorHandler(
 )(async (c: AuthenticatedContext) => {
     const userId = c.get('userId')
     const body = await c.req.json().catch(() => ({}))
-    const clawId = body.clawId as string | undefined
+    const agentId = body.agentId as string | undefined
 
     let polarCustomerId: string | null = null
 
-    if (clawId) {
+    if (agentId) {
         const authUser = await db
             .select({ role: users.role })
             .from(users)
             .where(eq(users.id, userId))
             .limit(1)
 
-        const claw = await db
-            .select({ userId: claws.userId })
-            .from(claws)
-            .where(eq(claws.id, clawId))
+        const agent = await db
+            .select({ userId: agents.userId })
+            .from(agents)
+            .where(eq(agents.id, agentId))
             .limit(1)
 
-        if (!claw[0]) return fail(c, t('api.clawNotFound'), 404)
+        if (!agent[0]) return fail(c, t('api.clawNotFound'), 404)
 
-        const ownerIsself = claw[0].userId === userId
+        const ownerIsself = agent[0].userId === userId
         if (!ownerIsself && authUser[0]?.role !== userRole.admin)
             return fail(c, t('api.unauthorized'), 403)
 
         const owner = await db
             .select({ polarCustomerId: users.polarCustomerId })
             .from(users)
-            .where(eq(users.id, claw[0].userId))
+            .where(eq(users.id, agent[0].userId))
             .limit(1)
 
         polarCustomerId = owner[0]?.polarCustomerId ?? null

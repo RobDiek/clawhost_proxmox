@@ -14,8 +14,8 @@ import { MagnifyingGlassIcon } from '@phosphor-icons/react'
 const AdminUserFilters: FC<AdminUserFiltersProps> = ({
     search,
     onSearchChange,
-    hasClaws,
-    onHasClawsChange,
+    hasAgents,
+    onHasAgentsChange,
     sortOrder,
     onSortOrderChange
 }): ReactNode => {
@@ -49,13 +49,13 @@ const AdminUserFilters: FC<AdminUserFiltersProps> = ({
                     </SelectItem>
                 </SelectContent>
             </Select>
-            <Select value={hasClaws} onValueChange={onHasClawsChange}>
+            <Select value={hasAgents} onValueChange={onHasAgentsChange}>
                 <SelectTrigger
                     className='h-10 w-full sm:w-40'
                     placeholder={
-                        hasClaws === 'all'
+                        hasAgents === 'all'
                             ? t('admin.filterAll')
-                            : hasClaws === 'true'
+                            : hasAgents === 'true'
                               ? t('admin.filterWithClaws')
                               : t('admin.filterWithoutClaws')
                     }

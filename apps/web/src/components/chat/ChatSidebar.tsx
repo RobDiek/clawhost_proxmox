@@ -4,10 +4,10 @@ import type { ChatSidebarProps } from '@/ts/Interfaces'
 import { useCallback, useMemo, useState } from 'react'
 import { t } from '@openclaw/i18n'
 import { SidebarSimpleIcon } from '@phosphor-icons/react'
-import { ClawMascot, ClawAvatar } from '@/components/shared'
+import { AgentMascot, AgentAvatar } from '@/components/shared'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui'
 import { usePreferencesStore } from '@/lib/store'
-import { CLAW_AVATAR_SIZE } from '@/lib/constants'
+import { AGENT_AVATAR_SIZE } from '@/lib/constants'
 import {
     ChatSidebarSearch,
     ChatSidebarSearchEmpty,
@@ -15,10 +15,10 @@ import {
 } from '@/components/chat'
 
 const ChatSidebar: FC<ChatSidebarProps> = ({
-    claws,
-    selectedClawId,
+    agents,
+    selectedAgentId,
     readOnly,
-    onOpenClawSettings,
+    onOpenAgentSettings,
     onClose
 }): ReactNode => {
     const [search, setSearch] = useState('')
@@ -27,29 +27,29 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
         (s) => s.setSidebarCollapsed
     )
 
-    const handleClawSettings = useCallback(
-        (clawId: string) => {
-            onOpenClawSettings(clawId)
+    const handleAgentSettings = useCallback(
+        (agentId: string) => {
+            onOpenAgentSettings(agentId)
             onClose?.()
         },
-        [onOpenClawSettings, onClose]
+        [onOpenAgentSettings, onClose]
     )
 
-    const filteredClaws = useMemo(() => {
-        if (!search.trim()) return claws
+    const filteredAgents = useMemo(() => {
+        if (!search.trim()) return agents
         const query = search.toLowerCase()
-        return claws.filter(
-            (claw) =>
-                claw.name.toLowerCase().includes(query) ||
-                claw.subdomain?.toLowerCase().includes(query)
+        return agents.filter(
+            (agent) =>
+                agent.name.toLowerCase().includes(query) ||
+                agent.subdomain?.toLowerCase().includes(query)
         )
-    }, [claws, search])
+    }, [agents, search])
 
-    if (claws.length === 0) {
+    if (agents.length === 0) {
         return (
             <div className='md:border-border flex h-full w-full shrink-0 flex-col items-center justify-center px-6 md:w-[250px] md:border-r'>
                 <div className='bg-foreground/5 flex h-10 w-10 items-center justify-center rounded-xl'>
-                    <ClawMascot className='h-5 w-5' />
+                    <AgentMascot className='h-5 w-5' />
                 </div>
                 <p className='text-muted-foreground mt-3 text-center text-xs'>
                     {t('clawDetail.noAgentsDescription')}
@@ -75,30 +75,30 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                     </TooltipContent>
                 </Tooltip>
                 <div className='scrollbar-hide mt-2 flex flex-1 flex-col items-center gap-0.5 overflow-y-auto'>
-                    {claws.map((claw) => {
-                        const isSelected = selectedClawId === claw.id
+                    {agents.map((agent) => {
+                        const isSelected = selectedAgentId === agent.id
                         return (
-                            <Tooltip key={claw.id}>
+                            <Tooltip key={agent.id}>
                                 <TooltipTrigger asChild>
                                     <button
                                         onClick={() =>
-                                            handleClawSettings(claw.id)
+                                            handleAgentSettings(agent.id)
                                         }
                                         className={`shrink-0 border-l-2 px-1.5 py-0.5 transition-colors ${
                                             isSelected
                                                 ? 'border-[#ef5350]'
-                                                : 'border-transparent hover:bg-foreground/5'
+                                                : 'hover:bg-foreground/5 border-transparent'
                                         }`}
                                     >
-                                        <ClawAvatar
-                                            emoji={claw.emoji}
-                                            emojiColor={claw.emojiColor}
-                                            size={CLAW_AVATAR_SIZE.SM}
+                                        <AgentAvatar
+                                            emoji={agent.emoji}
+                                            emojiColor={agent.emojiColor}
+                                            size={AGENT_AVATAR_SIZE.SM}
                                         />
                                     </button>
                                 </TooltipTrigger>
                                 <TooltipContent side='right'>
-                                    {claw.name}
+                                    {agent.name}
                                 </TooltipContent>
                             </Tooltip>
                         )
@@ -127,18 +127,18 @@ const ChatSidebar: FC<ChatSidebarProps> = ({
                 <ChatSidebarSearch
                     value={search}
                     onChange={setSearch}
-                    clawCount={claws.length}
+                    agentCount={agents.length}
                 />
             </div>
             <div className='flex-1 overflow-y-auto px-3 pb-3 pt-2'>
-                {filteredClaws.length === 0 ? (
+                {filteredAgents.length === 0 ? (
                     <ChatSidebarSearchEmpty />
                 ) : (
                     <ChatSidebarTreeView
-                        claws={filteredClaws}
-                        selectedClawId={selectedClawId}
+                        agents={filteredAgents}
+                        selectedAgentId={selectedAgentId}
                         readOnly={readOnly}
-                        onOpenClawSettings={handleClawSettings}
+                        onOpenAgentSettings={handleAgentSettings}
                     />
                 )}
             </div>

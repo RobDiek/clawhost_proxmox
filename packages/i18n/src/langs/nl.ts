@@ -467,8 +467,10 @@ const nl: Translations = {
         failedToRotateGatewayToken: 'Kan gateway-token niet roteren!',
         sshKeyUpdated: 'SSH-sleutel succesvol bijgewerkt.',
         failedToUpdateSSHKey: 'Kan SSH-sleutel niet bijwerken!',
-        invalidPassword: 'Wachtwoord moet tussen {{min}} en {{max}} tekens lang zijn!',
-        invalidGatewayToken: 'Gateway-token moet tussen {{min}} en {{max}} tekens lang zijn!',
+        invalidPassword:
+            'Wachtwoord moet tussen {{min}} en {{max}} tekens lang zijn!',
+        invalidGatewayToken:
+            'Gateway-token moet tussen {{min}} en {{max}} tekens lang zijn!',
         enablePreviewSuccess: 'Voorbeeldmodus succesvol geactiveerd.',
         failedToEnablePreview: 'Kan voorbeeldmodus niet activeren!',
         logsFetched: 'Logs succesvol opgehaald.',
@@ -697,8 +699,10 @@ const nl: Translations = {
             'E-mail is niet bewerkbaar. Neem contact op met support.',
         profileUpdatedSuccessfully: 'Profiel succesvol bijgewerkt.',
         billingAndSubscription: 'Facturering & Abonnement',
-        billingAndSubscriptionDescription: 'Beheer je betaalmethoden, abonnementen en facturen.',
-        viewBillingHistory: 'Bekijk je betalingsgeschiedenis, facturen en abonnementen.',
+        billingAndSubscriptionDescription:
+            'Beheer je betaalmethoden, abonnementen en facturen.',
+        viewBillingHistory:
+            'Bekijk je betalingsgeschiedenis, facturen en abonnementen.',
         connectedAccounts: 'Verbonden accounts',
         connectedAccountsDescription:
             'Beheer de inlogmethoden die aan je account zijn gekoppeld.',
@@ -856,7 +860,8 @@ const nl: Translations = {
             'Je betaling is mislukt. Als dit niet binnen 14 dagen wordt opgelost, wordt deze claw permanent verwijderd.',
         updatePayment: 'Betaling bijwerken',
         cancelDeletion: 'Verwijdering annuleren',
-        cancelDeletionConfirmation: 'Weet je het zeker? Je abonnement blijft actief en je wordt nog steeds in rekening gebracht. De instantie blijft draaien.',
+        cancelDeletionConfirmation:
+            'Weet je het zeker? Je abonnement blijft actief en je wordt nog steeds in rekening gebracht. De instantie blijft draaien.',
         deletionCancelled: 'Verwijdering geannuleerd.',
         scheduleDeletion: 'Verwijdering plannen',
         resumeCheckout: 'Afrekenen hervatten',
@@ -957,7 +962,8 @@ const nl: Translations = {
             awaitingPayment: 'Wachten op betaling',
             unknown: 'Onbekend',
             checking: 'Controleren'
-        }
+        },
+        tabNotAvailableForAgent: 'Niet beschikbaar voor dit agenttype'
     },
     createClaw: {
         title: 'OpenClaw deployen',
@@ -967,6 +973,9 @@ const nl: Translations = {
         clawNameInvalidChars:
             'Alleen letters, cijfers en streepjes zijn toegestaan!',
         autoGenerateNameHint: 'Laat leeg om automatisch een naam te genereren.',
+        agentType: 'Agenttype',
+        agentTypeOpenClawDescription: 'Gateway-gericht AI-agentplatform',
+        agentTypeHermesDescription: 'Zelfverbeterend AI-agent framework',
         location: 'Locatie',
         locationUnavailable: 'Niet beschikbaar',
         locationUnavailableForPlan: 'Niet beschikbaar',
@@ -1589,27 +1598,37 @@ const nl: Translations = {
         tabDisabledAwaitingPayment:
             'Beschikbaar zodra de betaling is verwerkt.',
         creatingTitle: 'Je agent wordt ingesteld',
-        creatingDescription: 'Dit duurt meestal een minuut of twee. Je kunt deze pagina veilig sluiten en later terugkomen.',
+        creatingDescription:
+            'Dit duurt meestal een minuut of twee. Je kunt deze pagina veilig sluiten en later terugkomen.',
         configuringTitle: 'OpenClaw wordt geïnstalleerd',
-        configuringDescription: 'Dit duurt meestal een minuut of twee. Je kunt deze pagina veilig sluiten en later terugkomen.',
+        configuringDescription:
+            'Dit duurt meestal een minuut of twee. Je kunt deze pagina veilig sluiten en later terugkomen.',
         awaitingPaymentTitle: 'Wacht op betaling',
-        awaitingPaymentDescription: 'Voltooi de betaling om het inrichten van je agent te starten. Deze reservering verloopt over een uur.',
+        awaitingPaymentDescription:
+            'Voltooi de betaling om het inrichten van je agent te starten. Deze reservering verloopt over een uur.',
         awaitingPaymentAction: 'Betaling voltooien',
         loadingTip1:
             'Wist je dat je meerdere agents kunt draaien binnen \u00e9\u00e9n OpenClaw?',
         loadingTip2: 'Wist je dat OpenClaw open-source is?',
         loadingTip3:
             'ClawHost is het allereerste project dat OpenClaw-hosting met \u00e9\u00e9n klik mogelijk maakt.',
-        loadingTip4: 'Je kunt je agent bereiken via SSH of de ingebouwde terminal.',
+        loadingTip4:
+            'Je kunt je agent bereiken via SSH of de ingebouwde terminal.',
         loadingTip5: 'Je agent krijgt automatisch een eigen subdomein.',
-        loadingTip6: 'Je kunt het pictogram en de naam van je agent op elk moment aanpassen via Instellingen.',
+        loadingTip6:
+            'Je kunt het pictogram en de naam van je agent op elk moment aanpassen via Instellingen.',
         loadingTip7: 'Al het verkeer naar je agent is versleuteld met TLS.',
-        loadingTip8: 'Je kunt CPU-, geheugen- en schijfgebruik monitoren in het Monitor-tabblad.',
+        loadingTip8:
+            'Je kunt CPU-, geheugen- en schijfgebruik monitoren in het Monitor-tabblad.',
         loadingTip9: 'Hulp nodig? Word lid van onze community op Discord.',
-        loadingTip10: 'Je kunt de volledige configuratie van je agent exporteren als back-up.',
-        loadingTip11: 'SSH-sleutels kunnen worden toegepast op draaiende instanties zonder opnieuw te installeren.',
-        loadingTip12: 'Je kunt je root-wachtwoord en gateway-token roteren vanuit het Beveiliging-tabblad.',
-        loadingTip13: 'ClawHost ondersteunt servers in meerdere regio\'s in Europa en de VS.',
+        loadingTip10:
+            'Je kunt de volledige configuratie van je agent exporteren als back-up.',
+        loadingTip11:
+            'SSH-sleutels kunnen worden toegepast op draaiende instanties zonder opnieuw te installeren.',
+        loadingTip12:
+            'Je kunt je root-wachtwoord en gateway-token roteren vanuit het Beveiliging-tabblad.',
+        loadingTip13:
+            "ClawHost ondersteunt servers in meerdere regio's in Europa en de VS.",
         tabSettings: 'Instellingen',
         featureVersionUnsupported:
             '{{feature}} niet ondersteund op {{version}}',
@@ -1624,7 +1643,8 @@ const nl: Translations = {
         tabVolumes: 'Opslag',
         tabSecurity: 'Beveiliging',
         securitySSHKey: 'SSH-sleutel',
-        securitySSHKeyHint: 'Wordt toegepast op de draaiende instantie en gebruikt bij het opnieuw installeren.',
+        securitySSHKeyHint:
+            'Wordt toegepast op de draaiende instantie en gebruikt bij het opnieuw installeren.',
         securityPassword: 'Root-wachtwoord',
         securityGatewayToken: 'Gateway-token',
         securityHostKey: 'Hostsleutel-vingerafdruk',
@@ -1671,7 +1691,8 @@ const nl: Translations = {
         billingEmpty: 'No billing history for this instance.',
         tabServer: 'Server',
         serverIpAddress: 'IP-adres',
-        reinstallDescription: 'OpenClaw opnieuw installeren op deze server. Dit zal de OpenClaw-installatie resetten maar je gegevens behouden. Doe dit alleen als het nodig is.',
+        reinstallDescription:
+            'OpenClaw opnieuw installeren op deze server. Dit zal de OpenClaw-installatie resetten maar je gegevens behouden. Doe dit alleen als het nodig is.',
         versionsSearch: 'Versies zoeken...',
         versionsSearchCount: '{{count}} versies doorzoeken...',
         versionsEmpty: 'Geen versies gevonden',
@@ -1719,8 +1740,10 @@ const nl: Translations = {
         subdomainInUse: 'Dit subdomein wordt gebruikt door een andere claw!',
         settingsDetails: 'Details',
         settingsDangerZone: 'Gevarenzone',
-        settingsDangerZoneDescription: 'Je instantie wordt verwijderd aan het einde van je huidige factureringsperiode.',
-        settingsScheduledDeletionDescription: 'Gepland voor verwijdering op {{date}}. Annuleer om je instantie draaiend en je abonnement actief te houden.',
+        settingsDangerZoneDescription:
+            'Je instantie wordt verwijderd aan het einde van je huidige factureringsperiode.',
+        settingsScheduledDeletionDescription:
+            'Gepland voor verwijdering op {{date}}. Annuleer om je instantie draaiend en je abonnement actief te houden.',
         settingsSave: 'Opslaan',
         settingsSaving: 'Opslaan...',
         settingsUpdated: 'Instellingen bijgewerkt.',

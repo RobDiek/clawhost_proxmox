@@ -39,7 +39,7 @@ const LicenseGate: FC<LicenseGateProps> = ({ children }): ReactNode => {
                 <div className='landing-grid pointer-events-none' />
 
                 <div className='border-border bg-background md:bg-background/80 relative z-10 flex shrink-0 items-center justify-between border-b px-6 py-3 md:backdrop-blur-xl'>
-                    <Logo to={ROUTES.CLAWS} />
+                    <Logo to={ROUTES.AGENTS} />
                     <div className='flex items-center gap-1.5 sm:gap-3'>
                         <div className='flex items-center gap-1.5'>
                             <LanguageSelector />

@@ -60,7 +60,7 @@ const App: FC = (): ReactNode => {
                         />
                         <Route path={ROUTES.COMPARE} element={<Compare />} />
                         <Route
-                            path={ROUTES.CLAWS}
+                            path={ROUTES.AGENTS}
                             element={
                                 <ProtectedRoute>
                                     <Dashboard />
@@ -83,7 +83,7 @@ const App: FC = (): ReactNode => {
                                 </ProtectedRoute>
                             }
                         />
-<Route
+                        <Route
                             path={ROUTES.AFFILIATE}
                             element={
                                 <ProtectedRoute>

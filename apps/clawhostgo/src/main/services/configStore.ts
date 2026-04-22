@@ -1,15 +1,15 @@
-import type { LocalClawConfig, ConfigFile } from '@/ts/Interfaces'
+import type { LocalAgentConfig, ConfigFile } from '@/ts/Interfaces'
 
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
 import crypto from 'crypto'
 
-const BASE_DIR = path.join(os.homedir(), '.clawhostgo')
+const BASE_DIR = path.join(os.homedir(), '.agenthostgo')
 const CONFIG_PATH = path.join(BASE_DIR, 'config.json')
 
 const DEFAULT_CONFIG: ConfigFile = {
-    claws: [],
+    agents: [],
     defaultVersion: '',
     portRange: { min: 18789, max: 18889 },
     createdAt: new Date().toISOString()
@@ -18,7 +18,7 @@ const DEFAULT_CONFIG: ConfigFile = {
 const ensureDirectories = (): void => {
     const dirs = [
         BASE_DIR,
-        path.join(BASE_DIR, 'claws'),
+        path.join(BASE_DIR, 'agents'),
         path.join(BASE_DIR, 'versions'),
         path.join(BASE_DIR, 'node'),
         path.join(BASE_DIR, 'certs')
@@ -37,9 +37,9 @@ const ensureDirectories = (): void => {
             config.createdAt = new Date().toISOString()
             dirty = true
         }
-        for (const claw of config.claws) {
-            if (!claw.subdomain) {
-                claw.subdomain = generateSlug(claw.id)
+        for (const agent of config.agents) {
+            if (!agent.subdomain) {
+                agent.subdomain = generateSlug(agent.id)
                 dirty = true
             }
         }
@@ -72,40 +72,40 @@ const generateSlug = (id: string): string => {
     return slug
 }
 
-const findClaw = (id: string): LocalClawConfig | null => {
+const findAgent = (id: string): LocalAgentConfig | null => {
     const config = readConfig()
-    return config.claws.find((c) => c.id === id) || null
+    return config.agents.find((c) => c.id === id) || null
 }
 
-const findClawBySubdomain = (subdomain: string): LocalClawConfig | null => {
+const findAgentBySubdomain = (subdomain: string): LocalAgentConfig | null => {
     const config = readConfig()
-    return config.claws.find((c) => c.subdomain === subdomain) || null
+    return config.agents.find((c) => c.subdomain === subdomain) || null
 }
 
-const addClaw = (claw: LocalClawConfig): void => {
+const addAgent = (agent: LocalAgentConfig): void => {
     const config = readConfig()
-    config.claws.push(claw)
+    config.agents.push(agent)
     writeConfig(config)
 }
 
-const removeClaw = (id: string): void => {
+const removeAgent = (id: string): void => {
     const config = readConfig()
-    config.claws = config.claws.filter((c) => c.id !== id)
+    config.agents = config.agents.filter((c) => c.id !== id)
     writeConfig(config)
 }
 
-const updateClaw = (id: string, updates: Partial<LocalClawConfig>): void => {
+const updateAgent = (id: string, updates: Partial<LocalAgentConfig>): void => {
     const config = readConfig()
-    const index = config.claws.findIndex((c) => c.id === id)
+    const index = config.agents.findIndex((c) => c.id === id)
     if (index !== -1) {
-        config.claws[index] = { ...config.claws[index], ...updates }
+        config.agents[index] = { ...config.agents[index], ...updates }
         writeConfig(config)
     }
 }
 
 const getNextAvailablePort = (): number => {
     const config = readConfig()
-    const usedPorts = new Set(config.claws.map((c) => c.port))
+    const usedPorts = new Set(config.agents.map((c) => c.port))
     for (
         let port = config.portRange.min;
         port <= config.portRange.max;
@@ -118,8 +118,8 @@ const getNextAvailablePort = (): number => {
     return config.portRange.max + 1
 }
 
-const getClawDir = (name: string): string => {
-    return path.join(BASE_DIR, 'claws', name)
+const getAgentDir = (name: string): string => {
+    return path.join(BASE_DIR, 'agents', name)
 }
 
 const getVersionDir = (version: string): string => {
@@ -133,13 +133,13 @@ const configStore = {
     readConfig,
     writeConfig,
     generateSlug,
-    findClaw,
-    findClawBySubdomain,
-    addClaw,
-    removeClaw,
-    updateClaw,
+    findAgent,
+    findAgentBySubdomain,
+    addAgent,
+    removeAgent,
+    updateAgent,
     getNextAvailablePort,
-    getClawDir,
+    getAgentDir,
     getVersionDir,
     getBaseDir
 }

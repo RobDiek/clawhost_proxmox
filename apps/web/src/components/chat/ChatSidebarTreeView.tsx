@@ -2,29 +2,29 @@ import type { FC, ReactNode } from 'react'
 import type { ChatSidebarTreeViewProps } from '@/ts/Interfaces'
 
 import { Fragment, useMemo } from 'react'
-import { getStatusConfig } from '@/lib/claw-utils'
-import ChatSidebarClawHeader from '@/components/chat/ChatSidebarClawHeader'
+import { getStatusConfig } from '@/lib/agent-utils'
+import ChatSidebarAgentHeader from '@/components/chat/ChatSidebarAgentHeader'
 
 const ChatSidebarTreeView: FC<ChatSidebarTreeViewProps> = ({
-    claws,
-    selectedClawId,
-    onOpenClawSettings
+    agents,
+    selectedAgentId,
+    onOpenAgentSettings
 }): ReactNode => {
     const statusConfigs = useMemo(() => getStatusConfig(), [])
 
     return (
         <Fragment>
-            {claws.map((claw) => {
+            {agents.map((agent) => {
                 const status =
-                    statusConfigs[claw.status] || statusConfigs.unknown
+                    statusConfigs[agent.status] || statusConfigs.unknown
 
                 return (
-                    <div key={claw.id} className='mb-1.5 last:mb-0'>
-                        <ChatSidebarClawHeader
-                            claw={claw}
-                            isSelected={selectedClawId === claw.id}
+                    <div key={agent.id} className='mb-1.5 last:mb-0'>
+                        <ChatSidebarAgentHeader
+                            agent={agent}
+                            isSelected={selectedAgentId === agent.id}
                             statusConfig={status}
-                            onOpenClawSettings={onOpenClawSettings}
+                            onOpenAgentSettings={onOpenAgentSettings}
                         />
                     </div>
                 )

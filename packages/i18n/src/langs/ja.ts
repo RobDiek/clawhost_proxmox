@@ -468,8 +468,10 @@ const ja: Translations = {
             'ゲートウェイトークンのローテーションに失敗しました!',
         sshKeyUpdated: 'SSH鍵の更新に成功しました.',
         failedToUpdateSSHKey: 'SSH鍵の更新に失敗しました!',
-        invalidPassword: 'パスワードは{{min}}文字以上{{max}}文字以下にしてください!',
-        invalidGatewayToken: 'ゲートウェイトークンは{{min}}文字以上{{max}}文字以下にしてください!',
+        invalidPassword:
+            'パスワードは{{min}}文字以上{{max}}文字以下にしてください!',
+        invalidGatewayToken:
+            'ゲートウェイトークンは{{min}}文字以上{{max}}文字以下にしてください!',
         enablePreviewSuccess: 'プレビューモードが正常に有効になりました.',
         failedToEnablePreview: 'プレビューモードの有効化に失敗しました!',
         logsFetched: 'ログを取得しました.',
@@ -689,7 +691,8 @@ const ja: Translations = {
             'メールアドレスは編集できません。サポートにお問い合わせください。',
         profileUpdatedSuccessfully: 'プロフィールを更新しました。',
         billingAndSubscription: '請求とサブスクリプション',
-        billingAndSubscriptionDescription: 'お支払い方法、サブスクリプション、請求書を管理。',
+        billingAndSubscriptionDescription:
+            'お支払い方法、サブスクリプション、請求書を管理。',
         viewBillingHistory: 'お支払い履歴、請求書、サブスクリプションを確認。',
         connectedAccounts: '連携アカウント',
         connectedAccountsDescription:
@@ -850,7 +853,8 @@ const ja: Translations = {
             '支払いに失敗しました。14日以内に解決されない場合、このClawは完全に削除されます。',
         updatePayment: '支払いを更新',
         cancelDeletion: '削除をキャンセル',
-        cancelDeletionConfirmation: '本当によろしいですか？サブスクリプションはアクティブなままで、引き続き課金されます。インスタンスは稼働し続けます。',
+        cancelDeletionConfirmation:
+            '本当によろしいですか？サブスクリプションはアクティブなままで、引き続き課金されます。インスタンスは稼働し続けます。',
         deletionCancelled: '削除をキャンセルしました。',
         scheduleDeletion: '削除をスケジュール',
         resumeCheckout: 'チェックアウトを再開',
@@ -944,7 +948,8 @@ const ja: Translations = {
             awaitingPayment: '支払い待ち',
             unknown: '不明',
             checking: '確認中'
-        }
+        },
+        tabNotAvailableForAgent: 'このエージェントタイプでは利用できません'
     },
     createClaw: {
         title: 'OpenClawをデプロイ',
@@ -953,6 +958,10 @@ const ja: Translations = {
         clawNamePlaceholder: '例: cozy-panda',
         clawNameInvalidChars: '英字、数字、ダッシュのみ使用できます！',
         autoGenerateNameHint: '空のままにすると自動生成されます。',
+        agentType: 'エージェントタイプ',
+        agentTypeOpenClawDescription:
+            'ゲートウェイファーストのAIエージェントプラットフォーム',
+        agentTypeHermesDescription: '自己改善型AIエージェントフレームワーク',
         location: 'ロケーション',
         locationUnavailable: '利用不可',
         locationUnavailableForPlan: '利用不可',
@@ -1553,27 +1562,39 @@ const ja: Translations = {
             'インスタンスの設定が完了すると利用可能になります。',
         tabDisabledAwaitingPayment: '支払いが処理されると利用可能になります。',
         creatingTitle: 'エージェントをセットアップ中',
-        creatingDescription: '通常1〜2分かかります。 このページを閉じて、後で戻ってきても問題ありません。',
+        creatingDescription:
+            '通常1〜2分かかります。 このページを閉じて、後で戻ってきても問題ありません。',
         configuringTitle: 'OpenClawをインストール中',
-        configuringDescription: '通常1〜2分かかります。 このページを閉じて、後で戻ってきても問題ありません。',
+        configuringDescription:
+            '通常1〜2分かかります。 このページを閉じて、後で戻ってきても問題ありません。',
         awaitingPaymentTitle: '支払い待ち',
-        awaitingPaymentDescription: 'エージェントのプロビジョニングを開始するには、支払いを完了してください。この予約は1時間で期限切れになります。',
+        awaitingPaymentDescription:
+            'エージェントのプロビジョニングを開始するには、支払いを完了してください。この予約は1時間で期限切れになります。',
         awaitingPaymentAction: '支払いを完了',
         loadingTip1:
             '1つのOpenClawで複数のエージェントを実行できることをご存知ですか？',
         loadingTip2: 'OpenClawがオープンソースであることをご存知ですか？',
         loadingTip3:
             'ClawHostは、ワンクリックOpenClawホスティングを可能にした史上初のプロジェクトです。',
-        loadingTip4: 'SSHまたは内蔵ターミナルからエージェントにアクセスできます。',
-        loadingTip5: 'エージェントには自動的に独自のサブドメインが割り当てられます。',
-        loadingTip6: '設定からいつでもエージェントのアイコンと名前をカスタマイズできます。',
-        loadingTip7: 'エージェントへのすべてのトラフィックはTLSで暗号化されています。',
-        loadingTip8: 'モニタータブでCPU、メモリ、ディスク使用量を監視できます。',
+        loadingTip4:
+            'SSHまたは内蔵ターミナルからエージェントにアクセスできます。',
+        loadingTip5:
+            'エージェントには自動的に独自のサブドメインが割り当てられます。',
+        loadingTip6:
+            '設定からいつでもエージェントのアイコンと名前をカスタマイズできます。',
+        loadingTip7:
+            'エージェントへのすべてのトラフィックはTLSで暗号化されています。',
+        loadingTip8:
+            'モニタータブでCPU、メモリ、ディスク使用量を監視できます。',
         loadingTip9: 'お困りですか？Discordのコミュニティにご参加ください。',
-        loadingTip10: 'エージェントの設定全体をバックアップとしてエクスポートできます。',
-        loadingTip11: 'SSHキーは再インストールなしで実行中のインスタンスに適用できます。',
-        loadingTip12: 'セキュリティタブからrootパスワードとゲートウェイトークンをローテーションできます。',
-        loadingTip13: 'ClawHostはヨーロッパとアメリカの複数のリージョンでサーバーをサポートしています。',
+        loadingTip10:
+            'エージェントの設定全体をバックアップとしてエクスポートできます。',
+        loadingTip11:
+            'SSHキーは再インストールなしで実行中のインスタンスに適用できます。',
+        loadingTip12:
+            'セキュリティタブからrootパスワードとゲートウェイトークンをローテーションできます。',
+        loadingTip13:
+            'ClawHostはヨーロッパとアメリカの複数のリージョンでサーバーをサポートしています。',
         tabSettings: '設定',
         featureVersionUnsupported:
             '{{feature}} は {{version}} でサポートされていません',
@@ -1588,7 +1609,8 @@ const ja: Translations = {
         tabVolumes: 'ストレージ',
         tabSecurity: 'セキュリティ',
         securitySSHKey: 'SSH鍵',
-        securitySSHKeyHint: '実行中のインスタンスに適用され、再インストール時にも使用されます.',
+        securitySSHKeyHint:
+            '実行中のインスタンスに適用され、再インストール時にも使用されます.',
         securityPassword: 'Rootパスワード',
         securityGatewayToken: 'ゲートウェイトークン',
         securityHostKey: 'ホスト鍵フィンガープリント',
@@ -1635,7 +1657,8 @@ const ja: Translations = {
         billingEmpty: 'No billing history for this instance.',
         tabServer: 'サーバー',
         serverIpAddress: 'IPアドレス',
-        reinstallDescription: 'このサーバーにOpenClawを再インストールします。OpenClawのインストールがリセットされますが、データは保持されます。必要な場合にのみ実行してください。',
+        reinstallDescription:
+            'このサーバーにOpenClawを再インストールします。OpenClawのインストールがリセットされますが、データは保持されます。必要な場合にのみ実行してください。',
         versionsSearch: 'バージョンを検索...',
         versionsSearchCount: '{{count}}個のバージョンを検索...',
         versionsEmpty: 'バージョンが見つかりません',
@@ -1682,8 +1705,10 @@ const ja: Translations = {
         subdomainInUse: 'このサブドメインは別のClawで使用されています！',
         settingsDetails: '詳細',
         settingsDangerZone: '危険ゾーン',
-        settingsDangerZoneDescription: 'インスタンスは現在の請求期間の終了時に削除されます。',
-        settingsScheduledDeletionDescription: '{{date}}に削除予定です。キャンセルするとインスタンスは稼働し続け、サブスクリプションもアクティブなままになります。',
+        settingsDangerZoneDescription:
+            'インスタンスは現在の請求期間の終了時に削除されます。',
+        settingsScheduledDeletionDescription:
+            '{{date}}に削除予定です。キャンセルするとインスタンスは稼働し続け、サブスクリプションもアクティブなままになります。',
         settingsSave: '保存',
         settingsSaving: '保存中...',
         settingsUpdated: '設定が更新されました。',

@@ -1,12 +1,12 @@
 import { ipcMain, app, BrowserWindow, net } from 'electron'
 import { execFile } from 'child_process'
-import registerClawHandlers from '@/main/ipc/claws'
-import registerClawProcessHandlers from '@/main/ipc/clawProcess'
+import registerAgentHandlers from '@/main/ipc/agents'
+import registerAgentProcessHandlers from '@/main/ipc/agentProcess'
 
-import registerClawFileHandlers from '@/main/ipc/clawFiles'
-import registerClawVersionHandlers from '@/main/ipc/clawVersions'
+import registerAgentFileHandlers from '@/main/ipc/agentFiles'
+import registerAgentVersionHandlers from '@/main/ipc/agentVersions'
 import registerStubHandlers from '@/main/ipc/stubs'
-import registerClawTerminalHandlers from '@/main/ipc/clawTerminal'
+import registerAgentTerminalHandlers from '@/main/ipc/agentTerminal'
 import { appUpdater, dnsResolver } from '@/main/services'
 import { t } from '@openclaw/i18n'
 
@@ -142,12 +142,12 @@ const registerAllHandlers = (): void => {
         }
     )
 
-    registerClawHandlers()
-    registerClawProcessHandlers()
-    registerClawFileHandlers()
-    registerClawVersionHandlers()
+    registerAgentHandlers()
+    registerAgentProcessHandlers()
+    registerAgentFileHandlers()
+    registerAgentVersionHandlers()
     registerStubHandlers()
-    registerClawTerminalHandlers()
+    registerAgentTerminalHandlers()
 }
 
 export { registerAllHandlers }

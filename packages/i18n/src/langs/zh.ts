@@ -804,7 +804,8 @@ const zh: Translations = {
             '您的支付失败。如果 14 天内未解决，此 Claw 将被永久删除。',
         updatePayment: '更新支付',
         cancelDeletion: '取消删除',
-        cancelDeletionConfirmation: '您确定吗？您的订阅将保持活跃状态，并将继续收费。实例将继续运行。',
+        cancelDeletionConfirmation:
+            '您确定吗？您的订阅将保持活跃状态，并将继续收费。实例将继续运行。',
         deletionCancelled: '删除已取消。',
         scheduleDeletion: '计划删除',
         resumeCheckout: '继续结账',
@@ -895,7 +896,8 @@ const zh: Translations = {
             awaitingPayment: '等待付款',
             unknown: '未知',
             checking: '正在检查'
-        }
+        },
+        tabNotAvailableForAgent: '此代理类型不可用'
     },
     createClaw: {
         title: '部署 OpenClaw',
@@ -904,6 +906,9 @@ const zh: Translations = {
         clawNamePlaceholder: '例如 cozy-panda',
         clawNameInvalidChars: '只允许使用字母、数字和连字符！',
         autoGenerateNameHint: '留空将自动生成名称。',
+        agentType: '代理类型',
+        agentTypeOpenClawDescription: '网关优先的AI代理平台',
+        agentTypeHermesDescription: '自我改进的AI代理框架',
         location: '位置',
         locationUnavailable: '不可用',
         locationUnavailableForPlan: '不可用',
@@ -1460,11 +1465,14 @@ const zh: Translations = {
         tabDisabledConfiguring: '实例配置完成后可用.',
         tabDisabledAwaitingPayment: '付款处理完成后可用.',
         creatingTitle: '正在设置您的代理',
-        creatingDescription: '这通常需要一两分钟。 您可以安全地关闭此页面，稍后再回来。',
+        creatingDescription:
+            '这通常需要一两分钟。 您可以安全地关闭此页面，稍后再回来。',
         configuringTitle: '正在安装 OpenClaw',
-        configuringDescription: '这通常需要一两分钟。 您可以安全地关闭此页面，稍后再回来。',
+        configuringDescription:
+            '这通常需要一两分钟。 您可以安全地关闭此页面，稍后再回来。',
         awaitingPaymentTitle: '等待支付',
-        awaitingPaymentDescription: '完成支付以开始配置您的代理。此预留将在一小时后过期。',
+        awaitingPaymentDescription:
+            '完成支付以开始配置您的代理。此预留将在一小时后过期。',
         awaitingPaymentAction: '完成支付',
         loadingTip1: '您知道吗？您可以在一个 OpenClaw 中运行多个代理.',
         loadingTip2: '您知道吗？OpenClaw 是开源的.',
@@ -1538,7 +1546,8 @@ const zh: Translations = {
         billingEmpty: 'No billing history for this instance.',
         tabServer: '服务器',
         serverIpAddress: 'IP 地址',
-        reinstallDescription: '在此服务器上重新安装 OpenClaw。这将重置 OpenClaw 安装但保留您的数据。仅在需要时执行此操作。',
+        reinstallDescription:
+            '在此服务器上重新安装 OpenClaw。这将重置 OpenClaw 安装但保留您的数据。仅在需要时执行此操作。',
         versionsSearch: '搜索版本...',
         versionsSearchCount: '搜索 {{count}} 个版本...',
         versionsEmpty: '未找到版本',
@@ -1582,7 +1591,8 @@ const zh: Translations = {
         settingsDetails: '详情',
         settingsDangerZone: '危险区域',
         settingsDangerZoneDescription: '您的实例将在当前计费周期结束时被删除。',
-        settingsScheduledDeletionDescription: '计划于 {{date}} 删除。取消以保持您的实例运行和订阅活跃。',
+        settingsScheduledDeletionDescription:
+            '计划于 {{date}} 删除。取消以保持您的实例运行和订阅活跃。',
         settingsSave: '保存',
         settingsSaving: '正在保存...',
         settingsUpdated: '设置已更新。',

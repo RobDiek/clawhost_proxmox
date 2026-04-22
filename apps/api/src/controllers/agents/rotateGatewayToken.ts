@@ -4,17 +4,19 @@ import { eq } from 'drizzle-orm'
 import { t } from '@openclaw/i18n'
 import { inputValidation } from '@openclaw/shared'
 import { db } from '@/db'
-import { claws } from '@/db/schema'
+import { agents } from '@/db/schema'
 import { ok, fail } from '@/lib/response'
 import executeSSH from '@/services/ssh'
 import { encrypt } from '@/lib/encryption'
-import { withClaw, generateToken } from '@/controllers/agents/helpers'
+import {
+    withAgent,
+    generateToken,
+    getAgentConfig
+} from '@/controllers/agents/helpers'
 
-const CONFIG_PATH = '/home/openclaw/.openclaw/openclaw.json'
-
-const rotateGatewayToken = withClaw({
+const rotateGatewayToken = withAgent({
     requireSSH: 'api.failedToRotateGatewayToken'
-})(async (c, claw) => {
+})(async (c, agent) => {
     try {
         const body = await c.req
             .json<RotateGatewayTokenBody>()
@@ -24,37 +26,49 @@ const rotateGatewayToken = withClaw({
         if (
             newToken.length < inputValidation.GATEWAY_TOKEN.MIN ||
             newToken.length > inputValidation.GATEWAY_TOKEN.MAX
-        ) return fail(c, t('api.invalidGatewayToken', {
-            min: inputValidation.GATEWAY_TOKEN.MIN,
-            max: inputValidation.GATEWAY_TOKEN.MAX
-        }), 400)
+        )
+            return fail(
+                c,
+                t('api.invalidGatewayToken', {
+                    min: inputValidation.GATEWAY_TOKEN.MIN,
+                    max: inputValidation.GATEWAY_TOKEN.MAX
+                }),
+                400
+            )
 
+        const agentConfig = getAgentConfig(agent.agentType)
+        const configPath = agentConfig.configFile
         const tokenBase64 = Buffer.from(newToken).toString('base64')
 
         const updateCommand = [
             `export TOKEN=$(echo '${tokenBase64}' | base64 -d)`,
-            `&& node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('${CONFIG_PATH}','utf8'));j.gateway.auth.token=process.env.TOKEN;j.gateway.remote.token=process.env.TOKEN;fs.writeFileSync('${CONFIG_PATH}',JSON.stringify(j,null,2))"`,
-            `&& chown openclaw:openclaw ${CONFIG_PATH}`,
-            '&& systemctl restart openclaw-gateway'
+            `&& node -e "const fs=require('fs');const j=JSON.parse(fs.readFileSync('${configPath}','utf8'));j.gateway.auth.token=process.env.TOKEN;j.gateway.remote.token=process.env.TOKEN;fs.writeFileSync('${configPath}',JSON.stringify(j,null,2))"`,
+            `&& chown ${agentConfig.user}:${agentConfig.user} ${configPath}`,
+            `&& systemctl restart ${agentConfig.serviceName}`
         ].join(' ')
 
-        const oldEncryptedToken = claw.gatewayToken
-            ? encrypt(claw.gatewayToken)
-            : claw.gatewayToken
+        const oldEncryptedToken = agent.gatewayToken
+            ? encrypt(agent.gatewayToken)
+            : agent.gatewayToken
 
         await db
-            .update(claws)
+            .update(agents)
             .set({ gatewayToken: encrypt(newToken) })
-            .where(eq(claws.id, claw.id))
+            .where(eq(agents.id, agent.id))
 
         try {
-            await executeSSH(claw.ip!, claw.rootPassword!, updateCommand, 30000)
+            await executeSSH(
+                agent.ip!,
+                agent.rootPassword!,
+                updateCommand,
+                30000
+            )
         } catch (sshError) {
             if (oldEncryptedToken) {
                 await db
-                    .update(claws)
+                    .update(agents)
                     .set({ gatewayToken: oldEncryptedToken })
-                    .where(eq(claws.id, claw.id))
+                    .where(eq(agents.id, agent.id))
             }
             throw sshError
         }

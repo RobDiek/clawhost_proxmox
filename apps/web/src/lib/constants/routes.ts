@@ -4,7 +4,7 @@ const ROUTES = {
     HOME: PATHS.HOME,
     GO: `/${PATHS.GO}`,
     LOGIN: `/${PATHS.LOGIN}`,
-    CLAWS: `/${PATHS.CLAWS}`,
+    AGENTS: `/${PATHS.AGENTS}`,
     SSH_KEYS: `/${PATHS.SSH_KEYS}`,
     ACCOUNT: `/${PATHS.ACCOUNT}`,
     ADMIN: `/${PATHS.ADMIN}`,

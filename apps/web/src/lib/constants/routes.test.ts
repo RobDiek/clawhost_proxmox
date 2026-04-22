@@ -15,7 +15,7 @@ describe('ROUTES', () => {
 
     it('routes are derived from PATHS', () => {
         expect(ROUTES.LOGIN).toBe(`/${PATHS.LOGIN}`)
-        expect(ROUTES.CLAWS).toBe(`/${PATHS.CLAWS}`)
+        expect(ROUTES.AGENTS).toBe(`/${PATHS.AGENTS}`)
         expect(ROUTES.TERMS).toBe(`/${PATHS.TERMS}`)
         expect(ROUTES.PRIVACY).toBe(`/${PATHS.PRIVACY}`)
     })

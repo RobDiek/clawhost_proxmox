@@ -17,7 +17,7 @@ const MAX_RECONNECT_ATTEMPTS = 5
 const RECONNECT_DELAY = 2000
 
 const useTerminalConnection = (
-    clawId: string,
+    agentId: string,
     enabled: boolean
 ): UseTerminalConnectionReturn => {
     const containerRef = useRef<HTMLDivElement>(null)
@@ -51,13 +51,13 @@ const useTerminalConnection = (
         cleanupListenersRef.current.forEach((fn) => fn())
         cleanupListenersRef.current = []
         const electronAPI = (window as unknown as ElectronWindow).electronAPI
-        if (electronAPI) electronAPI.invoke('terminal:kill', clawId)
+        if (electronAPI) electronAPI.invoke('terminal:kill', agentId)
         if (terminalRef.current) {
             terminalRef.current.dispose()
             terminalRef.current = null
         }
         fitAddonRef.current = null
-    }, [clawId])
+    }, [agentId])
 
     const createTerminal = useCallback((container: HTMLElement) => {
         const styles = getComputedStyle(document.documentElement)
@@ -156,7 +156,7 @@ const useTerminalConnection = (
             try {
                 await electronAPI.invoke(
                     'terminal:spawn',
-                    clawId,
+                    agentId,
                     terminal.cols,
                     terminal.rows
                 )
@@ -170,7 +170,7 @@ const useTerminalConnection = (
 
             const removeDataListener = electronAPI.onTerminalData(
                 (id, data) => {
-                    if (id === clawId) {
+                    if (id === agentId) {
                         terminal.write(data)
                     }
                 }
@@ -178,7 +178,7 @@ const useTerminalConnection = (
             cleanupListenersRef.current.push(removeDataListener)
 
             const removeExitListener = electronAPI.onTerminalExit((id) => {
-                if (id === clawId && connectIdRef.current === myId) {
+                if (id === agentId && connectIdRef.current === myId) {
                     setStatus(TERMINAL_STATUS.DISCONNECTED)
                 }
             })
@@ -191,14 +191,14 @@ const useTerminalConnection = (
             })
 
             terminal.onData((data) => {
-                electronAPI.invoke('terminal:write', clawId, data)
+                electronAPI.invoke('terminal:write', agentId, data)
             })
 
             terminal.onResize(({ cols, rows }) => {
-                electronAPI.invoke('terminal:resize', clawId, cols, rows)
+                electronAPI.invoke('terminal:resize', agentId, cols, rows)
             })
         },
-        [clawId, createTerminal]
+        [agentId, createTerminal]
     )
 
     const connectCloud = useCallback(
@@ -215,7 +215,7 @@ const useTerminalConnection = (
             const { terminal, fitAndCrop } = createTerminal(container)
 
             const apiUrl = Envs.VITE_API_URL
-            const terminalPath = `${apiPaths.CLAWS.TERMINAL(clawId)}?token=${encodeURIComponent(token)}`
+            const terminalPath = `${apiPaths.CLAWS.TERMINAL(agentId)}?token=${encodeURIComponent(token)}`
             const wsUrl = apiUrl.startsWith('http')
                 ? `${apiUrl.replace(/^http/, 'ws')}${terminalPath}`
                 : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws${terminalPath}`
@@ -280,7 +280,7 @@ const useTerminalConnection = (
                     ws.send(JSON.stringify({ type: 'resize', cols, rows }))
             })
         },
-        [clawId, createTerminal]
+        [agentId, createTerminal]
     )
 
     const connect = useCallback(async () => {

@@ -2,7 +2,7 @@ import type { AuthenticatedContext } from '@/ts/Types'
 
 import { eq, and } from 'drizzle-orm'
 import { db } from '@/db'
-import { sshKeys, claws, pendingClaws } from '@/db/schema'
+import { sshKeys, agents, pendingAgents } from '@/db/schema'
 import { getProvider } from '@/services/provider'
 import { ok, fail } from '@/lib/response'
 import { t } from '@openclaw/i18n'
@@ -25,14 +25,14 @@ const deleteSSHKey = withErrorHandler(
 
     const [references, pendingRefs] = await Promise.all([
         db
-            .select({ id: claws.id })
-            .from(claws)
-            .where(eq(claws.sshKeyId, id))
+            .select({ id: agents.id })
+            .from(agents)
+            .where(eq(agents.sshKeyId, id))
             .limit(1),
         db
-            .select({ id: pendingClaws.id })
-            .from(pendingClaws)
-            .where(eq(pendingClaws.sshKeyId, id))
+            .select({ id: pendingAgents.id })
+            .from(pendingAgents)
+            .where(eq(pendingAgents.sshKeyId, id))
             .limit(1)
     ])
 

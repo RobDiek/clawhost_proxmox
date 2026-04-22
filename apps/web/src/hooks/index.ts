@@ -1,9 +1,9 @@
 import {
     useAdminAnalytics,
     useAdminBillingList,
-    useAdminClawsList,
+    useAdminAgentsList,
     useAdminEmailsList,
-    useAdminPendingClawsList,
+    useAdminPendingAgentsList,
     useAdminReferralsList,
     useAdminSSHKeysList,
     useAdminStats,
@@ -22,35 +22,35 @@ import {
 } from '@/hooks/useAffiliate'
 
 import {
-    useClaws,
-    useAdminClaws,
-    usePurchaseClaw,
-    useStartClaw,
-    useStopClaw,
-    useRestartClaw,
-    useDeleteClaw,
+    useAgents,
+    useAdminAgents,
+    usePurchaseAgent,
+    useStartAgent,
+    useStopAgent,
+    useRestartAgent,
+    useDeleteAgent,
     useCancelDeletion,
-    useHardDeleteClaw,
-    useClawDiagnostics,
-    useClawLogs,
-    useRepairClaw,
-    useClawFiles,
-    useClawFile,
-    useUpdateClawFile,
-    useReinstallClaw,
-    useClawVersion,
-    useCancelPendingClaw,
-    CLAWS_QUERY_KEY,
-    CLAW_FILE_QUERY_KEY,
-    CLAW_VERSION_QUERY_KEY,
-    CLAW_VERSIONS_QUERY_KEY,
-    useClawMetrics,
-    useClawOverview,
-    useClawCredentials,
+    useHardDeleteAgent,
+    useAgentDiagnostics,
+    useAgentLogs,
+    useRepairAgent,
+    useAgentFiles,
+    useAgentFile,
+    useUpdateAgentFile,
+    useReinstallAgent,
+    useAgentVersion,
+    useCancelPendingAgent,
+    AGENTS_QUERY_KEY,
+    AGENT_FILE_QUERY_KEY,
+    AGENT_VERSION_QUERY_KEY,
+    AGENT_VERSIONS_QUERY_KEY,
+    useAgentMetrics,
+    useAgentOverview,
+    useAgentCredentials,
     useRotatePassword,
     useRotateGatewayToken,
-    useUpdateClawSSHKey
-} from '@/hooks/useClaws'
+    useUpdateAgentSSHKey
+} from '@/hooks/useAgents'
 
 import {
     useSSHKeys,
@@ -76,7 +76,7 @@ import {
 
 import { useGitHubStars, GITHUB_REPO_URL } from '@/hooks/useGitHubStars'
 
-import useClawCardActions from '@/hooks/useClawCardActions'
+import useAgentCardActions from '@/hooks/useAgentCardActions'
 import useScrollToBottom from '@/hooks/useScrollToBottom'
 import useDebouncedValue from '@/hooks/useDebouncedValue'
 import useNetworkStatus from '@/hooks/useNetworkStatus'
@@ -89,20 +89,20 @@ import useRoutePrefetch from '@/hooks/useRoutePrefetch'
 import useInfiniteScrollObserver from '@/hooks/useInfiniteScrollObserver'
 import usePaginationState from '@/hooks/usePaginationState'
 import useURLStateRestoration from '@/hooks/useURLStateRestoration'
-import useClawSettingsForm from '@/hooks/useClawSettingsForm'
+import useAgentSettingsForm from '@/hooks/useAgentSettingsForm'
 import useLinkedProvider from '@/hooks/useLinkedProvider'
 import useToast from '@/hooks/useToast'
 import useCopyWithFeedback from '@/hooks/useCopyWithFeedback'
-import useCreateClawForm from '@/hooks/useCreateClawForm'
+import useCreateAgentForm from '@/hooks/useCreateAgentForm'
 import useCustomerPortal from '@/hooks/useCustomerPortal'
 import useTerminalConnection from '@/hooks/useTerminalConnection'
 
 export {
     useAdminAnalytics,
     useAdminBillingList,
-    useAdminClawsList,
+    useAdminAgentsList,
     useAdminEmailsList,
-    useAdminPendingClawsList,
+    useAdminPendingAgentsList,
     useAdminReferralsList,
     useAdminSSHKeysList,
     useAdminStats,
@@ -115,34 +115,34 @@ export {
     useGenerateReferralCode,
     useUpdateReferralCode,
     AFFILIATE_QUERY_KEY,
-    useClaws,
-    useAdminClaws,
-    usePurchaseClaw,
-    useStartClaw,
-    useStopClaw,
-    useRestartClaw,
-    useDeleteClaw,
+    useAgents,
+    useAdminAgents,
+    usePurchaseAgent,
+    useStartAgent,
+    useStopAgent,
+    useRestartAgent,
+    useDeleteAgent,
     useCancelDeletion,
-    useHardDeleteClaw,
-    useClawDiagnostics,
-    useClawLogs,
-    useRepairClaw,
-    useClawFiles,
-    useClawFile,
-    useUpdateClawFile,
-    useReinstallClaw,
-    useClawVersion,
-    useCancelPendingClaw,
-    CLAWS_QUERY_KEY,
-    CLAW_FILE_QUERY_KEY,
-    CLAW_VERSION_QUERY_KEY,
-    CLAW_VERSIONS_QUERY_KEY,
-    useClawMetrics,
-    useClawOverview,
-    useClawCredentials,
+    useHardDeleteAgent,
+    useAgentDiagnostics,
+    useAgentLogs,
+    useRepairAgent,
+    useAgentFiles,
+    useAgentFile,
+    useUpdateAgentFile,
+    useReinstallAgent,
+    useAgentVersion,
+    useCancelPendingAgent,
+    AGENTS_QUERY_KEY,
+    AGENT_FILE_QUERY_KEY,
+    AGENT_VERSION_QUERY_KEY,
+    AGENT_VERSIONS_QUERY_KEY,
+    useAgentMetrics,
+    useAgentOverview,
+    useAgentCredentials,
     useRotatePassword,
     useRotateGatewayToken,
-    useUpdateClawSSHKey,
+    useUpdateAgentSSHKey,
     useSSHKeys,
     useCreateSSHKey,
     useDeleteSSHKey,
@@ -158,7 +158,7 @@ export {
     usePlanAvailability,
     useGitHubStars,
     GITHUB_REPO_URL,
-    useClawCardActions,
+    useAgentCardActions,
     useDebouncedValue,
     useNetworkStatus,
     useScrollToBottom,
@@ -171,11 +171,11 @@ export {
     useInfiniteScrollObserver,
     usePaginationState,
     useURLStateRestoration,
-    useClawSettingsForm,
+    useAgentSettingsForm,
     useLinkedProvider,
     useToast,
     useCopyWithFeedback,
-    useCreateClawForm,
+    useCreateAgentForm,
     useCustomerPortal,
     useTerminalConnection
 }

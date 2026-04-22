@@ -1,29 +1,29 @@
 import type { UseURLStateRestorationParams } from '@/ts/Interfaces'
-import type { ClawDetailTab } from '@/ts/Types'
+import type { AgentDetailTab } from '@/ts/Types'
 
 import { useEffect, useRef } from 'react'
 import { t } from '@openclaw/i18n'
 import { TOAST_TYPE } from '@/lib/constants'
-import { CLAW_DETAIL_TABS, fireConfetti } from '@/lib'
+import { AGENT_DETAIL_TABS, fireConfetti } from '@/lib'
 
 const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
     const {
         searchParams,
         setSearchParams,
-        chatSettingsClawId,
-        setChatSettingsClawId,
-        chatClawTab,
-        setChatClawTab,
+        chatSettingsAgentId,
+        setChatSettingsAgentId,
+        chatAgentTab,
+        setChatAgentTab,
         setShowCreate,
         setPreselectedPlanId,
         showToast,
-        awaitingClaw
+        awaitingAgent
     } = params
 
     const isRestoringFromUrl = useRef(false)
 
     useEffect(() => {
-        if (awaitingClaw) {
+        if (awaitingAgent) {
             showToast(t('dashboard.paymentSuccess'), TOAST_TYPE.SUCCESS)
             fireConfetti()
         }
@@ -49,34 +49,34 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
     }, [searchParams, setSearchParams])
 
     useEffect(() => {
-        const tabParam = searchParams.get('tab') as ClawDetailTab | null
+        const tabParam = searchParams.get('tab') as AgentDetailTab | null
         const settingsParam = searchParams.get('settings')
 
         if (!settingsParam) return
 
         isRestoringFromUrl.current = true
 
-        const validClawTabs: ClawDetailTab[] = [
-            CLAW_DETAIL_TABS.OVERVIEW,
-            CLAW_DETAIL_TABS.PREVIEW,
-            CLAW_DETAIL_TABS.TERMINAL,
-            CLAW_DETAIL_TABS.LOGS,
-            CLAW_DETAIL_TABS.VERSIONS,
-            CLAW_DETAIL_TABS.FILES,
-            CLAW_DETAIL_TABS.MONITOR,
-            CLAW_DETAIL_TABS.VOLUMES,
-            CLAW_DETAIL_TABS.SERVER,
-            CLAW_DETAIL_TABS.SECURITY,
-            CLAW_DETAIL_TABS.BILLING,
-            CLAW_DETAIL_TABS.SETTINGS
+        const validAgentTabs: AgentDetailTab[] = [
+            AGENT_DETAIL_TABS.OVERVIEW,
+            AGENT_DETAIL_TABS.PREVIEW,
+            AGENT_DETAIL_TABS.TERMINAL,
+            AGENT_DETAIL_TABS.LOGS,
+            AGENT_DETAIL_TABS.VERSIONS,
+            AGENT_DETAIL_TABS.FILES,
+            AGENT_DETAIL_TABS.MONITOR,
+            AGENT_DETAIL_TABS.VOLUMES,
+            AGENT_DETAIL_TABS.SERVER,
+            AGENT_DETAIL_TABS.SECURITY,
+            AGENT_DETAIL_TABS.BILLING,
+            AGENT_DETAIL_TABS.SETTINGS
         ]
 
         if (settingsParam) {
-            setChatSettingsClawId(settingsParam)
-            setChatClawTab(
-                tabParam && validClawTabs.includes(tabParam)
+            setChatSettingsAgentId(settingsParam)
+            setChatAgentTab(
+                tabParam && validAgentTabs.includes(tabParam)
                     ? tabParam
-                    : CLAW_DETAIL_TABS.OVERVIEW
+                    : AGENT_DETAIL_TABS.OVERVIEW
             )
         }
 
@@ -88,12 +88,12 @@ const useURLStateRestoration = (params: UseURLStateRestorationParams): void => {
     useEffect(() => {
         if (isRestoringFromUrl.current) return
         const urlParams: Record<string, string> = {}
-        if (chatSettingsClawId) {
-            urlParams.settings = chatSettingsClawId
-            if (chatClawTab) urlParams.tab = chatClawTab
+        if (chatSettingsAgentId) {
+            urlParams.settings = chatSettingsAgentId
+            if (chatAgentTab) urlParams.tab = chatAgentTab
         }
         setSearchParams(urlParams, { replace: true })
-    }, [chatSettingsClawId, chatClawTab])
+    }, [chatSettingsAgentId, chatAgentTab])
 }
 
 export default useURLStateRestoration

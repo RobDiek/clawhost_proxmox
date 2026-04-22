@@ -14,7 +14,7 @@ import {
     TooltipTrigger,
     TooltipContent
 } from '@/components/ui'
-import { ClawMascotOutline } from '@/components'
+import { AgentMascotOutline } from '@/components'
 import { CircleNotchIcon, CalendarIcon, KeyIcon } from '@phosphor-icons/react'
 
 const getInitials = (text: string): string => {
@@ -43,7 +43,7 @@ const AccountProfileSection: FC<AccountProfileSectionProps> = ({
     email,
     isLocal,
     joinedDate,
-    clawCount,
+    agentCount,
     sshKeyCount,
     hasChanges,
     isPending,
@@ -82,9 +82,9 @@ const AccountProfileSection: FC<AccountProfileSectionProps> = ({
                             </span>
                         </div>
                         <div className='flex items-center gap-1.5'>
-                            <ClawMascotOutline className='h-4 w-4' />
+                            <AgentMascotOutline className='h-4 w-4' />
                             <span>
-                                {clawCount} {t('account.claws')}
+                                {agentCount} {t('account.claws')}
                             </span>
                         </div>
                         {!isLocal && (
@@ -108,7 +108,8 @@ const AccountProfileSection: FC<AccountProfileSectionProps> = ({
                         value={name}
                         onChange={(e) => onNameChange(e.target.value)}
                         onKeyDown={(e) => {
-                            if (e.key === 'Enter' && hasChanges && !isPending) onSave()
+                            if (e.key === 'Enter' && hasChanges && !isPending)
+                                onSave()
                         }}
                         placeholder={t('account.enterYourName')}
                         maxLength={inputValidation.USER_NAME.MAX}

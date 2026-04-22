@@ -22,7 +22,7 @@ import {
 } from '@phosphor-icons/react'
 import { userRole } from '@openclaw/shared'
 import AdminDetailField from '@/components/admin/AdminDetailField'
-import AdminUserClawsSection from '@/components/admin/AdminUserClawsSection'
+import AdminUserAgentsSection from '@/components/admin/AdminUserAgentsSection'
 import AdminUserSSHKeysSection from '@/components/admin/AdminUserSSHKeysSection'
 import AdminUserVolumesSection from '@/components/admin/AdminUserVolumesSection'
 import AdminUserBillingSection from '@/components/admin/AdminUserBillingSection'
@@ -197,7 +197,7 @@ const AdminUserDetailView: FC<AdminUserDetailViewProps> = ({
                     </div>
                 </div>
 
-                <AdminUserClawsSection claws={user.claws} />
+                <AdminUserAgentsSection agents={user.agents} />
                 <AdminUserSSHKeysSection
                     sshKeys={user.sshKeys}
                     formatDate={formatDate}

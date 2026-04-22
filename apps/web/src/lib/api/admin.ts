@@ -1,10 +1,10 @@
 import type {
     AdminAnalyticsResponse,
     AdminBillingApiResponse,
-    AdminClawsResponse,
+    AdminAgentsResponse,
     AdminEmailListItem,
     AdminPaginatedResponse,
-    AdminPendingClawListItem,
+    AdminPendingAgentListItem,
     AdminReferralListItem,
     AdminSSHKeysResponse,
     AdminStats,
@@ -37,23 +37,23 @@ const admin = {
         page: number = 1,
         limit: number = 20,
         search?: string,
-        hasClaws?: string,
+        hasAgents?: string,
         sort?: string
     ) =>
         client.get<AdminUsersResponse>(
-            `${API_PATHS.ADMIN.USERS}?${buildAdminPaginatedQuery({ page, limit, search, sort, hasClaws })}`
+            `${API_PATHS.ADMIN.USERS}?${buildAdminPaginatedQuery({ page, limit, search, sort, hasAgents })}`
         ),
     getAdminUserDetail: (id: string) =>
         client.get<AdminUserDetail>(API_PATHS.ADMIN.USER(id)),
     updateAdminUser: (id: string, data: UpdateAdminUserData) =>
         client.put<void>(API_PATHS.ADMIN.UPDATE_USER(id), data),
-    listAdminClaws: (
+    listAdminAgents: (
         page: number = 1,
         limit: number = 20,
         search?: string,
         sort?: string
     ) =>
-        client.get<AdminClawsResponse>(
+        client.get<AdminAgentsResponse>(
             `${API_PATHS.ADMIN.CLAWS}?${buildAdminPaginatedQuery({ page, limit, search, sort })}`
         ),
     listAdminSSHKeys: (
@@ -69,12 +69,12 @@ const admin = {
         client.get<AdminVolumesResponse>(
             `${API_PATHS.ADMIN.VOLUMES}?${buildAdminPaginatedQuery({ page, limit, sort })}`
         ),
-    listAdminPendingClaws: (
+    listAdminPendingAgents: (
         page: number = 1,
         limit: number = 20,
         sort?: string
     ) =>
-        client.get<AdminPaginatedResponse<AdminPendingClawListItem>>(
+        client.get<AdminPaginatedResponse<AdminPendingAgentListItem>>(
             `${API_PATHS.ADMIN.PENDING_CLAWS}?${buildAdminPaginatedQuery({ page, limit, sort })}`
         ),
     listAdminReferrals: (page: number = 1, limit: number = 20, sort?: string) =>

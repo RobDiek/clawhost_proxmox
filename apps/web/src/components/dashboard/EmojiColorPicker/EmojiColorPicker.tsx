@@ -6,9 +6,9 @@ import { t } from '@openclaw/i18n'
 import { ShuffleIcon, TrashIcon } from '@phosphor-icons/react'
 import Picker from '@emoji-mart/react'
 import { usePreferencesStore } from '@/lib/store'
-import { AVATAR_COLORS, THEMES, CLAW_AVATAR_SIZE } from '@/lib/constants'
-import { randomColor } from '@/lib/claw-utils'
-import { ClawAvatar } from '@/components/shared'
+import { AVATAR_COLORS, THEMES, AGENT_AVATAR_SIZE } from '@/lib/constants'
+import { randomColor } from '@/lib/agent-utils'
+import { AgentAvatar } from '@/components/shared'
 import {
     DropdownMenu,
     DropdownMenuTrigger,
@@ -71,10 +71,10 @@ const EmojiColorPicker: FC<EmojiColorPickerProps> = ({
                     <DropdownMenu open={emojiOpen} onOpenChange={setEmojiOpen}>
                         <DropdownMenuTrigger asChild>
                             <button className='hover:bg-foreground/10 rounded-xl transition-colors'>
-                                <ClawAvatar
+                                <AgentAvatar
                                     emoji={emoji}
                                     emojiColor={emojiColor}
-                                    size={CLAW_AVATAR_SIZE.LG}
+                                    size={AGENT_AVATAR_SIZE.LG}
                                 />
                             </button>
                         </DropdownMenuTrigger>

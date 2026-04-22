@@ -29,10 +29,10 @@ const users = {
         client.get<BillingInvoiceResponse>(
             API_PATHS.USERS.ORDER_INVOICE(orderId)
         ),
-    getCustomerPortal: (clawId?: string) =>
+    getCustomerPortal: (agentId?: string) =>
         client.post<CustomerPortalResponse>(
             API_PATHS.USERS.BILLING_PORTAL,
-            clawId ? { clawId } : undefined
+            agentId ? { agentId } : undefined
         ),
     purchaseLicense: () =>
         client.post<LicenseCheckoutResponse>(

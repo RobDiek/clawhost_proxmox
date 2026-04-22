@@ -470,7 +470,8 @@ const pl: Translations = {
         sshKeyUpdated: 'Klucz SSH został pomyślnie zaktualizowany.',
         failedToUpdateSSHKey: 'Nie udało się zaktualizować klucza SSH!',
         invalidPassword: 'Hasło musi mieć od {{min}} do {{max}} znaków!',
-        invalidGatewayToken: 'Token bramy musi mieć od {{min}} do {{max}} znaków!',
+        invalidGatewayToken:
+            'Token bramy musi mieć od {{min}} do {{max}} znaków!',
         enablePreviewSuccess: 'Tryb podglądu włączony pomyślnie.',
         failedToEnablePreview: 'Nie udało się włączyć trybu podglądu!',
         logsFetched: 'Logi pobrane pomyślnie.',
@@ -699,7 +700,8 @@ const pl: Translations = {
             'Email nie jest edytowalny. Skontaktuj się ze wsparciem.',
         profileUpdatedSuccessfully: 'Profil zaktualizowany pomyślnie.',
         billingAndSubscription: 'Płatności i Subskrypcja',
-        billingAndSubscriptionDescription: 'Zarządzaj metodami płatności, subskrypcjami i fakturami.',
+        billingAndSubscriptionDescription:
+            'Zarządzaj metodami płatności, subskrypcjami i fakturami.',
         viewBillingHistory: 'Zobacz historię płatności, faktury i subskrypcje.',
         connectedAccounts: 'Połączone konta',
         connectedAccountsDescription:
@@ -860,7 +862,8 @@ const pl: Translations = {
             'Twoja płatność nie powiodła się. Jeśli nie zostanie rozwiązana w ciągu 14 dni, ten claw zostanie trwale usunięty.',
         updatePayment: 'Zaktualizuj płatność',
         cancelDeletion: 'Anuluj usunięcie',
-        cancelDeletionConfirmation: 'Czy na pewno? Twoja subskrypcja pozostanie aktywna i nadal będziesz obciążany. Instancja będzie nadal działać.',
+        cancelDeletionConfirmation:
+            'Czy na pewno? Twoja subskrypcja pozostanie aktywna i nadal będziesz obciążany. Instancja będzie nadal działać.',
         deletionCancelled: 'Usunięcie anulowane.',
         scheduleDeletion: 'Zaplanuj usunięcie',
         resumeCheckout: 'Wznów płatność',
@@ -958,7 +961,8 @@ const pl: Translations = {
             awaitingPayment: 'Oczekiwanie na płatność',
             unknown: 'Nieznany',
             checking: 'Sprawdzanie'
-        }
+        },
+        tabNotAvailableForAgent: 'Niedostępne dla tego typu agenta'
     },
     createClaw: {
         title: 'Wdróż OpenClaw',
@@ -968,6 +972,10 @@ const pl: Translations = {
         clawNameInvalidChars: 'Dozwolone są tylko litery, cyfry i myślniki !',
         autoGenerateNameHint:
             'Pozostaw puste, aby wygenerować nazwę automatycznie.',
+        agentType: 'Typ agenta',
+        agentTypeOpenClawDescription:
+            'Platforma agenta AI zorientowana na bramkę',
+        agentTypeHermesDescription: 'Samodoskonalący się framework agenta AI',
         location: 'Lokalizacja',
         locationUnavailable: 'Niedostępna',
         locationUnavailableForPlan: 'Niedostępna',
@@ -1581,27 +1589,39 @@ const pl: Translations = {
             'Dostępne po zakończeniu konfiguracji instancji.',
         tabDisabledAwaitingPayment: 'Dostępne po przetworzeniu płatności.',
         creatingTitle: 'Konfigurowanie agenta',
-        creatingDescription: 'Zwykle zajmuje to minutę lub dwie. Możesz bezpiecznie zamknąć tę stronę i wrócić później.',
+        creatingDescription:
+            'Zwykle zajmuje to minutę lub dwie. Możesz bezpiecznie zamknąć tę stronę i wrócić później.',
         configuringTitle: 'Instalowanie OpenClaw',
-        configuringDescription: 'Zwykle zajmuje to minutę lub dwie. Możesz bezpiecznie zamknąć tę stronę i wrócić później.',
+        configuringDescription:
+            'Zwykle zajmuje to minutę lub dwie. Możesz bezpiecznie zamknąć tę stronę i wrócić później.',
         awaitingPaymentTitle: 'Oczekiwanie na płatność',
-        awaitingPaymentDescription: 'Dokończ płatność, aby rozpocząć aprowizację agenta. Ta rezerwacja wygasa za godzinę.',
+        awaitingPaymentDescription:
+            'Dokończ płatność, aby rozpocząć aprowizację agenta. Ta rezerwacja wygasa za godzinę.',
         awaitingPaymentAction: 'Dokończ płatność',
         loadingTip1:
             'Czy wiesz, że możesz uruchomić wielu agentów w jednym OpenClaw?',
         loadingTip2: 'Czy wiesz, że OpenClaw jest open source?',
         loadingTip3:
             'ClawHost to pierwszy projekt umożliwiający hosting OpenClaw jednym kliknięciem.',
-        loadingTip4: 'Możesz uzyskać dostęp do swojego agenta przez SSH lub wbudowany terminal.',
+        loadingTip4:
+            'Możesz uzyskać dostęp do swojego agenta przez SSH lub wbudowany terminal.',
         loadingTip5: 'Twój agent automatycznie otrzymuje własną subdomenę.',
-        loadingTip6: 'Możesz dostosować ikonę i nazwę swojego agenta w dowolnym momencie w Ustawieniach.',
-        loadingTip7: 'Cały ruch do twojego agenta jest szyfrowany za pomocą TLS.',
-        loadingTip8: 'Możesz monitorować użycie CPU, pamięci i dysku w zakładce Monitor.',
-        loadingTip9: 'Potrzebujesz pomocy? Dołącz do naszej społeczności na Discord.',
-        loadingTip10: 'Możesz wyeksportować całą konfigurację swojego agenta jako kopię zapasową.',
-        loadingTip11: 'Klucze SSH mogą być zastosowane na działających instancjach bez ponownej instalacji.',
-        loadingTip12: 'Możesz zmienić hasło root i token bramy w zakładce Bezpieczeństwo.',
-        loadingTip13: 'ClawHost obsługuje serwery w wielu regionach w Europie i USA.',
+        loadingTip6:
+            'Możesz dostosować ikonę i nazwę swojego agenta w dowolnym momencie w Ustawieniach.',
+        loadingTip7:
+            'Cały ruch do twojego agenta jest szyfrowany za pomocą TLS.',
+        loadingTip8:
+            'Możesz monitorować użycie CPU, pamięci i dysku w zakładce Monitor.',
+        loadingTip9:
+            'Potrzebujesz pomocy? Dołącz do naszej społeczności na Discord.',
+        loadingTip10:
+            'Możesz wyeksportować całą konfigurację swojego agenta jako kopię zapasową.',
+        loadingTip11:
+            'Klucze SSH mogą być zastosowane na działających instancjach bez ponownej instalacji.',
+        loadingTip12:
+            'Możesz zmienić hasło root i token bramy w zakładce Bezpieczeństwo.',
+        loadingTip13:
+            'ClawHost obsługuje serwery w wielu regionach w Europie i USA.',
         tabSettings: 'Ustawienia',
         featureVersionUnsupported: '{{feature}} nie obsługiwane na {{version}}',
         featureVersionUnsupportedDescription:
@@ -1615,7 +1635,8 @@ const pl: Translations = {
         tabVolumes: 'Magazyn',
         tabSecurity: 'Bezpieczeństwo',
         securitySSHKey: 'Klucz SSH',
-        securitySSHKeyHint: 'Stosowany do działającej instancji i używany podczas ponownej instalacji.',
+        securitySSHKeyHint:
+            'Stosowany do działającej instancji i używany podczas ponownej instalacji.',
         securityPassword: 'Hasło root',
         securityGatewayToken: 'Token bramy',
         securityHostKey: 'Odcisk klucza hosta',
@@ -1662,7 +1683,8 @@ const pl: Translations = {
         billingEmpty: 'No billing history for this instance.',
         tabServer: 'Serwer',
         serverIpAddress: 'Adres IP',
-        reinstallDescription: 'Zainstaluj ponownie OpenClaw na tym serwerze. Spowoduje to zresetowanie instalacji OpenClaw, ale zachowa twoje dane. Rób to tylko wtedy, gdy jest to potrzebne.',
+        reinstallDescription:
+            'Zainstaluj ponownie OpenClaw na tym serwerze. Spowoduje to zresetowanie instalacji OpenClaw, ale zachowa twoje dane. Rób to tylko wtedy, gdy jest to potrzebne.',
         versionsSearch: 'Szukaj wersji...',
         versionsSearchCount: 'Szukaj {{count}} wersji...',
         versionsEmpty: 'Nie znaleziono wersji',
@@ -1707,8 +1729,10 @@ const pl: Translations = {
         subdomainInUse: 'Ta subdomena jest używana przez innego claw !',
         settingsDetails: 'Szczegóły',
         settingsDangerZone: 'Strefa zagrożenia',
-        settingsDangerZoneDescription: 'Twoja instancja zostanie usunięta na końcu bieżącego okresu rozliczeniowego.',
-        settingsScheduledDeletionDescription: 'Zaplanowano usunięcie na {{date}}. Anuluj, aby utrzymać instancję w działaniu i subskrypcję aktywną.',
+        settingsDangerZoneDescription:
+            'Twoja instancja zostanie usunięta na końcu bieżącego okresu rozliczeniowego.',
+        settingsScheduledDeletionDescription:
+            'Zaplanowano usunięcie na {{date}}. Anuluj, aby utrzymać instancję w działaniu i subskrypcję aktywną.',
         settingsSave: 'Zapisz',
         settingsSaving: 'Zapisywanie...',
         settingsUpdated: 'Ustawienia zaktualizowane.',

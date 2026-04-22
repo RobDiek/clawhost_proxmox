@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
-import { claws } from '@/db/schema'
+import { agents } from '@/db/schema'
 
 const memoryCache = new Map<string, string>()
 
@@ -13,9 +13,9 @@ const get = async (ip: string): Promise<string | null> => {
     if (cached) return cached
 
     const result = await db
-        .select({ hostKeyFingerprint: claws.hostKeyFingerprint })
-        .from(claws)
-        .where(eq(claws.ip, ip))
+        .select({ hostKeyFingerprint: agents.hostKeyFingerprint })
+        .from(agents)
+        .where(eq(agents.ip, ip))
         .limit(1)
 
     const stored = result[0]?.hostKeyFingerprint
@@ -28,9 +28,9 @@ const store = async (ip: string, key: Buffer): Promise<void> => {
     memoryCache.set(ip, fp)
 
     await db
-        .update(claws)
+        .update(agents)
         .set({ hostKeyFingerprint: fp })
-        .where(eq(claws.ip, ip))
+        .where(eq(agents.ip, ip))
 }
 
 const verify = async (ip: string, key: Buffer): Promise<boolean> => {

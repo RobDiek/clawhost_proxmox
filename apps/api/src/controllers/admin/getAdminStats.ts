@@ -5,8 +5,8 @@ import { count } from 'drizzle-orm'
 import { db } from '@/db'
 import {
     users,
-    claws,
-    pendingClaws,
+    agents,
+    pendingAgents,
     sshKeys,
     volumes,
     referrals,
@@ -34,7 +34,7 @@ const getAdminStats = withErrorHandler(
     const [
         userCount,
         clawCount,
-        pendingClawCount,
+        pendingAgentCount,
         sshKeyCount,
         volumeCount,
         referralCount,
@@ -43,8 +43,8 @@ const getAdminStats = withErrorHandler(
         billingData
     ] = await Promise.all([
         safeCount(users),
-        safeCount(claws),
-        safeCount(pendingClaws),
+        safeCount(agents),
+        safeCount(pendingAgents),
         safeCount(sshKeys),
         safeCount(volumes),
         safeCount(referrals),
@@ -57,8 +57,8 @@ const getAdminStats = withErrorHandler(
         c,
         {
             users: userCount,
-            claws: clawCount,
-            pendingClaws: pendingClawCount,
+            agents: clawCount,
+            pendingAgents: pendingAgentCount,
             sshKeys: sshKeyCount,
             volumes: volumeCount,
             referrals: referralCount,

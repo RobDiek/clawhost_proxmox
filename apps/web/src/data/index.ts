@@ -1,4 +1,4 @@
-import demoClaws from '@/data/demoClaws'
+import demoAgents from '@/data/demoAgents'
 import demoOverview from '@/data/demoOverview'
 import {
     demoMetrics,
@@ -13,7 +13,7 @@ import getCompareData from '@/data/compareData'
 import getLegalLinks from '@/data/legalLinks'
 
 export {
-    demoClaws,
+    demoAgents,
     demoOverview,
     demoMetrics,
     demoVersions,

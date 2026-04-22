@@ -49,8 +49,8 @@ import { LicenseRequired, ProtectedRoute } from '@/components/auth'
 
 import {
     ActionButton,
-    ClawMascot,
-    ClawMascotOutline,
+    AgentMascot,
+    AgentMascotOutline,
     EmptyState,
     ErrorState,
     LanguageSelector,
@@ -70,9 +70,9 @@ export {
     ActionButton,
     BetaBadge,
     BlogCTA,
-    ClawMascot,
+    AgentMascot,
     ComparisonTable,
-    ClawMascotOutline,
+    AgentMascotOutline,
     DemoPreviewSection,
     EmptyState,
     ErrorState,

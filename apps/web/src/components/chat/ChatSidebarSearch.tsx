@@ -7,11 +7,11 @@ import { MagnifyingGlassIcon, XIcon } from '@phosphor-icons/react'
 const ChatSidebarSearch: FC<ChatSidebarSearchProps> = ({
     value,
     onChange,
-    clawCount
+    agentCount
 }): ReactNode => {
     const placeholder =
-        clawCount > 1
-            ? t('dashboard.searchAgentsCount', { count: clawCount })
+        agentCount > 1
+            ? t('dashboard.searchAgentsCount', { count: agentCount })
             : t('dashboard.searchAgents')
 
     return (
