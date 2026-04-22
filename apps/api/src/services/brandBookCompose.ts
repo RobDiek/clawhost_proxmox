@@ -475,6 +475,12 @@ function buildComposerPrompt(params: {
 
 10. **Signature phrases ≠ CTA copy** — signaturePhrases הן הצהרות מותג (שברי manifesto), לא טקסט כפתור. **לעולם אל תעתיק משפטים מ-scraped.copy.ctas.**
 
+10b. **גיוון בין שדות (חובה)** — אסור להשתמש באותה פרזה פעמיים בשדות שונים. למשל:
+    - אם taglineHe = "AI לשיווק — בעברית, עכשיו" — אל תכלול "AI לשיווק" ב-vocabularyDo.
+    - אם signaturePhrase מכיל "גישה לכל החיים" — אל תחזור עליה ב-vocabularyDo.
+    - אם manifestoHe מכיל שאלה "מה אתה יכול להפעיל כבר היום?" — אל תכלול אותה שוב ב-signaturePhrases.
+    כל שדה תורם פרזות ייחודיות. חזרה = בזבוז tokens של הסוכן ו-shallow brand.
+
 11. **Mood keywords באיות עברית** — למשל "חם", "מקצועי", לא "warm" או "professional". **אל תכלול מילים שהן cultural identifiers** (כמו "ישראלי") — אלו שייכים לקונטקסט, לא למצב-רוח.
 
 12. **Principles ספציפיים** — לא generic ("להיות טוב"). נובעים מ-research + personas. **כל principle חייב להיות אכיף ברמת תוכן** (אפשר לומר "נכשל" או "עובר" לדוגמה קונקרטית).
@@ -609,6 +615,44 @@ function detectGaps(draft: BrandBookDraft, logoAnalysis?: LogoAnalysis | null): 
             priority: 'important',
             field: 'imagery.doUse',
             suggestion: 'חסרה רשימת "מה כן להשתמש" — יש רק רשימת "מה לא". הסוכנים היוצרים יעילים יותר כשהם יודעים מה לבחור, לא רק מה לדחות.',
+            canAutoGenerate: true,
+        })
+    }
+
+    // Phrase duplication across fields — "variety" enforcement.
+    // If the exact same phrase appears in multiple fields (tagline, manifesto,
+    // vocabularyDo, signaturePhrases) the brand reads shallow to downstream
+    // agents. Flag so user can regenerate with feedback.
+    const textByField: Record<string, string> = {}
+    if (draft.identity?.taglineHe) textByField['identity.taglineHe'] = draft.identity.taglineHe
+    if (draft.identity?.manifestoHe) textByField['identity.manifestoHe'] = draft.identity.manifestoHe
+    if (draft.identity?.missionHe) textByField['identity.missionHe'] = draft.identity.missionHe
+    const phraseSources: Array<{ phrase: string; fromField: string }> = []
+    const normalizePhrase = (s: string) => s.toLowerCase().replace(/[^\wא-ת\s]/g, ' ').replace(/\s+/g, ' ').trim()
+    // Collect phrases from vocabularyDo, signaturePhrases, principles
+    if (Array.isArray(draft.voice?.vocabularyDo)) {
+        draft.voice.vocabularyDo.forEach((p, i) => phraseSources.push({ phrase: p, fromField: `voice.vocabularyDo[${i}]` }))
+    }
+    if (Array.isArray(draft.voice?.signaturePhrases)) {
+        draft.voice.signaturePhrases.forEach((p, i) => phraseSources.push({ phrase: p, fromField: `voice.signaturePhrases[${i}]` }))
+    }
+    const dupes: string[] = []
+    for (const { phrase, fromField } of phraseSources) {
+        if (!phrase || phrase.length < 8) continue
+        const norm = normalizePhrase(phrase)
+        for (const [field, text] of Object.entries(textByField)) {
+            if (field === fromField) continue
+            if (normalizePhrase(text).includes(norm)) {
+                dupes.push(`"${phrase.slice(0, 40)}" מופיעה גם ב-${field}`)
+                break
+            }
+        }
+    }
+    if (dupes.length > 0) {
+        gaps.push({
+            priority: 'nice_to_have',
+            field: 'voice',
+            suggestion: `חזרה על אותן פרזות בין שדות — כדאי לגוון: ${dupes.slice(0, 3).join(' · ')}. כל שדה תורם פרזות ייחודיות.`,
             canAutoGenerate: true,
         })
     }
