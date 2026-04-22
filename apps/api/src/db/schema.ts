@@ -313,6 +313,9 @@ export const instances = pgTable(
         // Telegram
         telegramChatId: text('telegram_chat_id'),
         telegramBotToken: text('telegram_bot_token'),
+        // Secret token Telegram echoes back on every webhook call so we can
+        // verify the request genuinely came from Telegram (not a rando).
+        telegramWebhookSecret: text('telegram_webhook_secret'),
 
         // Referral / Trial
         freeUntil: timestamp('free_until', { withTimezone: true }),

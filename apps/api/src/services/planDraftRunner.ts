@@ -437,8 +437,11 @@ export async function draftDuePlanItemsForInstance(
         ;(item as unknown as { outputId?: string }).outputId = outputId
         drafted.push(item.id)
 
-        // Notify user via Telegram (non-blocking, best-effort)
-        notifyDraftReady(instance, item, generated.title).catch(err => {
+        // Unified approval-queue Telegram — inline buttons + DB link + live
+        // sync both ways. Replaces the older notifyDraftReady pattern.
+        import('@/services/approvalQueueTelegram').then(m =>
+            m.sendApprovalQueueMessage(outputId)
+        ).catch(err => {
             console.warn(`[planDraftRunner] TG notify failed for ${item.id}:`, (err as Error).message)
         })
 

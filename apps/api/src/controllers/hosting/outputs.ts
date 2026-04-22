@@ -171,6 +171,12 @@ export const ingestOutput = async (c: Context<HonoEnv>) => {
 
         console.log(`Agent output ingested: ${id} (${body.agentRole}/${body.outputType}) for ${instanceId}`)
 
+        // Fire-and-forget Telegram notification with inline approve/reject
+        // buttons. User can act from either surface — webhook keeps both in sync.
+        import('@/services/approvalQueueTelegram').then(m =>
+            m.sendApprovalQueueMessage(id)
+        ).catch(err => console.warn('[ingestOutput] TG notify failed (non-fatal):', (err as Error).message))
+
         return ok(c, { id, status: 'pending_review' }, 'Output ingested')
     } catch (err) {
         console.error('ingestOutput error:', err)
@@ -203,6 +209,11 @@ export const approveOutput = async (c: Context<HonoEnv>) => {
 
         // Post-approve triggers — run async, don't block response
         triggerPostApprove(updated).catch(err => console.error('Post-approve trigger error:', err))
+
+        // Mirror status to the Telegram approval message so chat stays in sync
+        import('@/services/approvalQueueTelegram').then(m =>
+            m.updateApprovalQueueMessage(outputId)
+        ).catch(() => { /* non-fatal */ })
 
         return ok(c, updated, 'Output approved')
     } catch (err) {
@@ -433,6 +444,11 @@ export const rejectOutput = async (c: Context<HonoEnv>) => {
         if (!updated) return fail(c, 'Output not found or already processed', 404)
 
         console.log(`Output ${outputId} rejected: ${reason || 'no reason'}`)
+
+        import('@/services/approvalQueueTelegram').then(m =>
+            m.updateApprovalQueueMessage(outputId)
+        ).catch(() => { /* non-fatal */ })
+
         return ok(c, updated, 'Output rejected')
     } catch (err) {
         console.error('rejectOutput error:', err)
@@ -1197,6 +1213,12 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
             }
 
             console.log(`Output ${outputId} published to ${platform} (channelPostId=${channelPostId || 'n/a'})`)
+
+            // Mirror "published" status into the Telegram approval message
+            import('@/services/approvalQueueTelegram').then(m =>
+                m.updateApprovalQueueMessage(outputId)
+            ).catch(() => { /* non-fatal */ })
+
             return ok(c, updated, 'פורסם בהצלחה!')
         } else {
             // Save failure info but keep status as approved (recoverable)
@@ -1248,6 +1270,11 @@ export const archiveOutput = async (c: Context<HonoEnv>) => {
             .returning()
 
         if (!updated) return fail(c, 'Output not found', 404)
+
+        import('@/services/approvalQueueTelegram').then(m =>
+            m.updateApprovalQueueMessage(outputId)
+        ).catch(() => { /* non-fatal */ })
+
         return ok(c, updated, 'Output archived')
     } catch (err) {
         console.error('archiveOutput error:', err)

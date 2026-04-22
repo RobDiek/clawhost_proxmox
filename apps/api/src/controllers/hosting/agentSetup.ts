@@ -3085,6 +3085,10 @@ ${hasPaidGate ? '- **Gatekeeper חובה:** חשב organicCustomersActual לפי
                 status: 'pending_review',
                 metadata: { weekNum: currentWeek, overallStatus: brief.overallStatus, statusReason: brief.statusReason } as any,
             })
+            // Sync to Telegram approval message (fire-and-forget)
+            import('@/services/approvalQueueTelegram').then(m =>
+                outputId ? m.sendApprovalQueueMessage(outputId) : Promise.resolve()
+            ).catch(() => { /* non-fatal */ })
         } catch (ingestErr) {
             console.error('[opsBrief] approval-queue insert failed (non-fatal):', ingestErr)
             outputId = null

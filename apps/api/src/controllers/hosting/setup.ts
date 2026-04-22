@@ -254,14 +254,32 @@ export const setupTelegram = async (c: Context) => {
         // For MATEH users, onboarding continues with research wizard
         const components = (instance.selectedComponents as string[]) || []
         const hasMATEH = components.includes('mt')
+        // Generate a per-instance webhook secret so Telegram → our approval
+        // webhook can be authenticated without exposing other tenants.
+        const { randomBytes } = await import('crypto')
+        const webhookSecret = randomBytes(24).toString('hex')
         await db.update(instances)
             .set({
                 telegramBotToken: botToken,
                 telegramChatId: chatId,
+                telegramWebhookSecret: webhookSecret,
                 onboardingStep: 3,
                 onboardingCompleted: !hasMATEH
             })
             .where(eq(instances.id, instanceId))
+
+        // Register our approval-queue webhook with Telegram. The OpenClaw
+        // conversational gateway uses long-polling (deleteWebhook above), so
+        // our setWebhook doesn't conflict. If it fails (e.g. test bot without
+        // public URL), the user still receives approval messages — only the
+        // inline button callbacks won't be handled here.
+        try {
+            const { registerTelegramWebhook } = await import('@/services/approvalQueueTelegram')
+            const webhookRes = await registerTelegramWebhook(botToken, instanceId, webhookSecret)
+            console.log(`[setupTelegram] setWebhook for ${instanceId}: ${webhookRes.ok ? 'ok' : webhookRes.error}`)
+        } catch (err) {
+            console.warn('[setupTelegram] setWebhook registration failed (non-fatal):', (err as Error).message)
+        }
 
         // Write to per-agent integrations table
         // agentType comes from request body or defaults to primary agent

@@ -13,6 +13,7 @@ export { googleAuth, googleCallback, googleDisconnect, googleStatus } from './go
 export { metaSaveCredentials, metaCallback, metaDisconnect, metaStatus } from './meta'
 export { microsoftAuth, microsoftCallback, microsoftDisconnect, microsoftStatus } from './microsoft'
 export { getOutputs, getOutput, ingestOutput, approveOutput, rejectOutput, editOutput, publishOutput, archiveOutput, deleteOutput, exportOutput } from './outputs'
+export { telegramWebhook } from './telegramWebhook'
 export { getMemories, deleteMemory, clearMemories } from './memories'
 export { healthReport, getHealthStatus, toggleAutoHeal } from './healthReport'
 export { getUsage } from './usage'

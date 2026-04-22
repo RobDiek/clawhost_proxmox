@@ -1,0 +1,260 @@
+/**
+ * Approval-Queue ↔ Telegram sync (bi-directional).
+ *
+ * Every pending_review agent_output sends a Telegram message to the
+ * instance owner's private chat with inline action buttons:
+ *   [✅ אישור]  [✏️ עריכה]  [🗑 דחייה]  [🔗 לוח בקרה]
+ *
+ * Press a button → Telegram posts a callback_query to our webhook:
+ *   POST /hosting/telegram/webhook/:instanceId
+ * Webhook verifies secret (stored per-instance), calls the existing
+ * approve/reject logic, and edits the message in place to reflect the
+ * new status.
+ *
+ * On dashboard actions (approve / reject / edit / publish / archive),
+ * updateApprovalQueueMessage() is called to mutate the same Telegram
+ * message so both surfaces stay in sync.
+ *
+ * Message identity stored in agent_outputs.metadata.telegram:
+ *   { chatId: string, messageId: number, sentAt: iso }
+ *
+ * Webhook secret stored in instances.telegramWebhookSecret (random 24-byte
+ * hex generated when the bot is first connected). Telegram's setWebhook
+ * accepts a `secret_token` which gets sent back as the
+ * X-Telegram-Bot-Api-Secret-Token header on every update — we compare that.
+ */
+import { eq } from 'drizzle-orm'
+
+import { db } from '@/db'
+import { agentOutputs, instances } from '@/db/schema'
+
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://clawflow.flowmatic.co.il'
+const API_URL = process.env.API_URL || 'https://api.clawflow.flowmatic.co.il'
+
+// ─── Hebrew channel/output-type labels ─────────────────────────────────────
+const CHANNEL_HE: Record<string, string> = {
+    facebook: 'פייסבוק', instagram: 'אינסטגרם', blog: 'בלוג', email: 'ניוזלטר',
+    youtube: 'יוטיוב', linkedin: 'לינקדאין', tiktok: 'טיקטוק',
+    google_ads: 'גוגל אדס', meta_ads: 'מטא אדס', reddit: 'רדיט', twitter: 'טוויטר',
+    whatsapp: 'וואטסאפ', newsletter: 'ניוזלטר',
+}
+const OUTPUT_TYPE_HE: Record<string, string> = {
+    blog_article: 'מאמר לבלוג',
+    content_post: 'פוסט',
+    weekly_ops_brief: 'דוח ביצועים שבועי',
+    weekly_creative_report: 'דוח קריאייטיב שבועי',
+    creative_final_draft: 'טיוטת קריאייטיב',
+    google_ads_campaign: 'קמפיין Google Ads',
+}
+
+// ─── Telegram low-level API wrapper ────────────────────────────────────────
+async function tgApi(token: string, method: string, body: Record<string, unknown>): Promise<any> {
+    try {
+        const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            signal: AbortSignal.timeout(10000),
+        })
+        const json = await res.json() as { ok: boolean; result?: any; description?: string }
+        return json
+    } catch (err) {
+        console.warn(`[approvalTg] ${method} failed:`, (err as Error).message)
+        return { ok: false, error: (err as Error).message }
+    }
+}
+
+// ─── Format message text ───────────────────────────────────────────────────
+function formatMessage(output: {
+    title: string | null
+    content: string | null
+    platform: string | null
+    outputType: string
+    agentRole: string
+    scheduledFor: Date | null
+    metadata: unknown
+    status: string
+}): string {
+    const md = (output.metadata as Record<string, unknown> | null) || {}
+    const channelLabel = output.platform ? (CHANNEL_HE[output.platform] || output.platform) : ''
+    const typeLabel = OUTPUT_TYPE_HE[output.outputType] || output.outputType
+    const pillar = (md.pillar as string) || ''
+    const persona = (md.persona as string) || ''
+    const schedLine = output.scheduledFor
+        ? `📅 ${new Date(output.scheduledFor).toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`
+        : ''
+
+    // Body preview — strip markdown and cap
+    const bodyRaw = (output.content || '').replace(/[*_`#>]/g, '').replace(/\n+/g, ' ').trim()
+    const bodyPreview = bodyRaw.length > 280 ? bodyRaw.substring(0, 277) + '…' : bodyRaw
+
+    const statusLine = statusLineFor(output.status)
+    const header = statusLine ? `${statusLine}\n\n` : ''
+
+    return `${header}🔔 <b>${escapeHtml(typeLabel)}</b> ${channelLabel ? `· ${channelLabel}` : ''}\n` +
+        `<b>${escapeHtml(output.title || '—')}</b>\n\n` +
+        (bodyPreview ? `${escapeHtml(bodyPreview)}\n\n` : '') +
+        (pillar ? `🎯 ${escapeHtml(pillar)}\n` : '') +
+        (persona ? `👤 ${escapeHtml(persona)}\n` : '') +
+        (schedLine ? `${schedLine}\n` : '')
+}
+
+function statusLineFor(status: string): string {
+    switch (status) {
+        case 'approved': return '✅ <b>אושר</b>'
+        case 'rejected': return '🗑 <b>נדחה</b>'
+        case 'published': return '🚀 <b>פורסם</b>'
+        case 'archived': return '📦 <b>ארכיון</b>'
+        case 'pending_review': return '⏳ <b>ממתין לאישור</b>'
+        default: return ''
+    }
+}
+
+function escapeHtml(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+// ─── Inline keyboard builders ──────────────────────────────────────────────
+function buildKeyboard(outputId: string, status: string, detailUrl: string) {
+    if (status === 'pending_review') {
+        return {
+            inline_keyboard: [
+                [
+                    { text: '✅ אישור', callback_data: `approve:${outputId}` },
+                    { text: '🗑 דחייה', callback_data: `reject:${outputId}` },
+                ],
+                [
+                    { text: '✏️ עריכה בלוח', url: detailUrl },
+                    { text: '🔗 פרטים', callback_data: `detail:${outputId}` },
+                ],
+            ],
+        }
+    }
+    if (status === 'approved') {
+        return {
+            inline_keyboard: [
+                [
+                    { text: '🚀 פרסום עכשיו', callback_data: `publish:${outputId}` },
+                    { text: '📦 ארכוב', callback_data: `archive:${outputId}` },
+                ],
+                [{ text: '🔗 לוח בקרה', url: detailUrl }],
+            ],
+        }
+    }
+    return {
+        inline_keyboard: [
+            [{ text: '🔗 לוח בקרה', url: detailUrl }],
+        ],
+    }
+}
+
+function detailUrlFor(instanceId: string, outputId: string): string {
+    return `${FRONTEND_URL}/dashboard#tab=home&approval=${outputId}`
+}
+
+// ─── Public: send initial message ──────────────────────────────────────────
+export async function sendApprovalQueueMessage(outputId: string): Promise<void> {
+    const [output] = await db.select().from(agentOutputs).where(eq(agentOutputs.id, outputId))
+    if (!output) return
+
+    const [instance] = await db.select().from(instances).where(eq(instances.id, output.instanceId))
+    if (!instance?.telegramBotToken || !instance?.telegramChatId) return
+
+    // Don't double-send if already sent
+    const md = (output.metadata as Record<string, unknown>) || {}
+    if (md.telegram && (md.telegram as any).messageId) return
+
+    const text = formatMessage(output as any)
+    const keyboard = buildKeyboard(outputId, output.status, detailUrlFor(output.instanceId, outputId))
+
+    const res = await tgApi(instance.telegramBotToken, 'sendMessage', {
+        chat_id: instance.telegramChatId,
+        text,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
+        reply_markup: keyboard,
+    })
+
+    if (res.ok && res.result?.message_id) {
+        await db.update(agentOutputs).set({
+            metadata: {
+                ...md,
+                telegram: {
+                    chatId: instance.telegramChatId,
+                    messageId: res.result.message_id,
+                    sentAt: new Date().toISOString(),
+                },
+            } as any,
+            updatedAt: new Date(),
+        }).where(eq(agentOutputs.id, outputId))
+    } else {
+        console.warn(`[approvalTg] sendApprovalQueueMessage ${outputId} failed:`, res.description || res.error)
+    }
+}
+
+// ─── Public: update existing message (after status change) ─────────────────
+export async function updateApprovalQueueMessage(outputId: string): Promise<void> {
+    const [output] = await db.select().from(agentOutputs).where(eq(agentOutputs.id, outputId))
+    if (!output) return
+    const md = (output.metadata as Record<string, unknown>) || {}
+    const tgMeta = md.telegram as { chatId: string; messageId: number } | undefined
+    if (!tgMeta?.messageId) return
+
+    const [instance] = await db.select().from(instances).where(eq(instances.id, output.instanceId))
+    if (!instance?.telegramBotToken) return
+
+    const text = formatMessage(output as any)
+    const keyboard = buildKeyboard(outputId, output.status, detailUrlFor(output.instanceId, outputId))
+
+    await tgApi(instance.telegramBotToken, 'editMessageText', {
+        chat_id: tgMeta.chatId,
+        message_id: tgMeta.messageId,
+        text,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
+        reply_markup: keyboard,
+    })
+}
+
+// ─── Public: answer a callback_query (removes the loading spinner) ─────────
+export async function answerCallbackQuery(botToken: string, callbackQueryId: string, text?: string): Promise<void> {
+    await tgApi(botToken, 'answerCallbackQuery', {
+        callback_query_id: callbackQueryId,
+        text: text || '',
+        show_alert: false,
+    })
+}
+
+// ─── Public: register webhook on bot connect ───────────────────────────────
+// Called from setupTelegram once the user pastes the bot token.
+export async function registerTelegramWebhook(
+    botToken: string,
+    instanceId: string,
+    secret: string,
+): Promise<{ ok: boolean; error?: string }> {
+    const webhookUrl = `${API_URL}/hosting/telegram/webhook/${instanceId}`
+    const res = await tgApi(botToken, 'setWebhook', {
+        url: webhookUrl,
+        secret_token: secret,
+        allowed_updates: ['callback_query', 'message'],
+        drop_pending_updates: false,
+        max_connections: 40,
+    })
+    if (!res.ok) {
+        console.warn(`[approvalTg] setWebhook failed for ${instanceId}:`, res.description)
+        return { ok: false, error: res.description || 'setWebhook failed' }
+    }
+    return { ok: true }
+}
+
+// ─── Public: callback_query resolver (used by webhook handler) ─────────────
+export interface CallbackAction {
+    action: 'approve' | 'reject' | 'publish' | 'archive' | 'detail' | string
+    outputId: string
+}
+
+export function parseCallbackData(data: string): CallbackAction | null {
+    const [action, outputId] = data.split(':')
+    if (!action || !outputId) return null
+    return { action, outputId }
+}

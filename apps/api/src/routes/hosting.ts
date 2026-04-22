@@ -138,6 +138,7 @@ import {
     archiveOutput,
     deleteOutput,
     exportOutput,
+    telegramWebhook,
     listBackups,
     createBackup,
     restoreBackup,
@@ -253,6 +254,7 @@ app.post('/webhooks/allpay', handleAllpayWebhook)
 app.post('/support', submitSupportRequest)
 app.get('/subdomain/check', checkSubdomain)
 app.post('/instances/:id/health-report', healthReport) // called from client VPS, no auth
+app.post('/telegram/webhook/:instanceId', telegramWebhook)   // called from Telegram, no auth (verified by secret_token header)
 
 // ── Instances ──
 app.get('/subscriptions', getSubscriptions)

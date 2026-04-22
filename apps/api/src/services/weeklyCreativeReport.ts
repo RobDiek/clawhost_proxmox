@@ -125,6 +125,11 @@ export async function generateInstanceReport(instanceId: string): Promise<{
         status: 'pending_review',
     })
 
+    // Push to user's Telegram with inline approval buttons
+    import('@/services/approvalQueueTelegram').then(m =>
+        m.sendApprovalQueueMessage(outputId)
+    ).catch(() => { /* non-fatal */ })
+
     return { generated: true, outputId }
 }
 
