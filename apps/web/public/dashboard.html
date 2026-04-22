@@ -6594,277 +6594,88 @@ function saveBlogIntegration() {
 // Publishing guides popup
 var PUBLISH_GUIDES = {
   meta: {
-    title: 'מדריך מלא — חיבור Meta (Facebook + Instagram) לסוכני Flowmatic',
-    subtitle: 'עדכון: אפריל 2026 · זמן כולל ~3-6 שבועות · עלות $0',
+    title: 'מדריך — חיבור Meta (Facebook + Instagram) לסוכני Flowmatic',
+    subtitle: 'חיבור חד-פעמי · ~5 דקות · הסוכן יוכל לפרסם, להגיב, לנהל DMs וקמפיינים ממומנים — אוטונומית',
     sections: [
       {
-        icon: '🎯',
-        title: 'מה נקבל בסוף',
+        icon: '🤖',
+        title: 'מה הסוכן יוכל לעשות אחרי החיבור',
         html:
-          '<p style="margin:0 0 10px;font-size:0.85rem;color:#4B5563">הסוכנים יוכלו, מעל חשבונך (או מעל חשבונות לקוחות אם תרצה), לבצע את הבא <strong>אוטונומית</strong>, בלי כניסה ידנית שלך בכל פעם:</p>' +
-          '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;background:#F9FAFB;border-radius:6px;overflow:hidden">' +
-            '<tr style="background:#E5E7EB"><th style="padding:6px 10px;text-align:right">תחום</th><th style="padding:6px 10px;text-align:right">יכולת</th></tr>' +
-            '<tr><td style="padding:6px 10px;font-weight:600">פרסום בעמוד Facebook</td><td style="padding:6px 10px">פוסטים, תמונות, ריילס, אירועים, סטוריות</td></tr>' +
-            '<tr style="background:#FFF"><td style="padding:6px 10px;font-weight:600">פרסום באינסטגרם</td><td style="padding:6px 10px">פוסטים רגילים, קרוסלות, ריילס, סטוריות</td></tr>' +
-            '<tr><td style="padding:6px 10px;font-weight:600">תגובות ב-FB</td><td style="padding:6px 10px">קריאת תגובות, מענה אוטומטי, סימון כספאם</td></tr>' +
-            '<tr style="background:#FFF"><td style="padding:6px 10px;font-weight:600">תגובות באינסטגרם</td><td style="padding:6px 10px">קריאה + מענה על פוסטים וסטוריות</td></tr>' +
-            '<tr><td style="padding:6px 10px;font-weight:600">DMs ב-Messenger + IG</td><td style="padding:6px 10px">קריאת הודעות, שליחת תשובות (תוך 24ש בלי template)</td></tr>' +
-            '<tr style="background:#FFF"><td style="padding:6px 10px;font-weight:600">ניהול פרסום ממומן</td><td style="padding:6px 10px">יצירת קמפיינים, מודעות, adsets, שינוי תקציב, pause/resume</td></tr>' +
-            '<tr><td style="padding:6px 10px;font-weight:600">אופטימיזציית פרסום</td><td style="padding:6px 10px">קריאת insights (CPM, CPC, CTR, ROAS), שינוי bidding, A/B</td></tr>' +
-            '<tr style="background:#FFF"><td style="padding:6px 10px;font-weight:600">שליפת לידים</td><td style="padding:6px 10px">לידים מקמפיינים Lead Ads</td></tr>' +
-          '</table>'
-      },
-      {
-        icon: '⚠️',
-        title: 'לפני שמתחילים — 5 דברים שחייבים להבין',
-        html:
-          '<ol style="margin:0;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
-            '<li><strong>Development Mode לעומת Live Mode.</strong> ב-Development, אפליקציה יכולה להתחבר רק ל-Admins/Developers/Testers. כדי שלקוח אחר יוכל להתחבר → צריך <strong>App Review</strong> של Meta (2-4 שבועות).</li>' +
-            '<li><strong>App Review = דרישה חובה.</strong> רוב ה-permissions הם "Advanced Access" → דורשים Review. יוצא מהכלל: public_profile, email, ads_read שהם "Standard Access".</li>' +
-            '<li><strong>Business Verification חובה.</strong> לפני App Review, Meta דורש <strong>אימות עסק</strong> (העלאת ח.פ., כתובת, נציג משפטי). תהליך 1-7 ימים.</li>' +
-            '<li><strong>Data Use Checkup שנתי.</strong> Meta יחייב מילוי שאלון "כיצד אתה משתמש בנתונים" אחת לשנה. אי-מילוי = אובדן גישה אוטומטי.</li>' +
-            '<li><strong>Instagram חייב להיות Business/Creator + מקושר לדף פייסבוק</strong> דרך Meta Business Suite. חשבון Personal לא יעבוד.</li>' +
-          '</ol>'
-      },
-      {
-        icon: '0',
-        title: 'שלב 0: הכנות מקדימות (~30 דק)',
-        html:
-          '<p style="margin:0 0 8px;font-weight:600;font-size:0.86rem">וודא שיש לך:</p>' +
-          '<ul style="margin:0 0 14px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
-            '<li>חשבון Facebook אישי (לא של העסק — אישי שלך כמנהל)</li>' +
-            '<li><strong>דף פייסבוק עסקי</strong> של Flowmatic (Page, לא פרופיל)</li>' +
-            '<li><strong>חשבון Instagram Business</strong> מקושר לדף הפייסבוק הזה</li>' +
-            '<li><a href="https://business.facebook.com" target="_blank" dir="ltr">Meta Business Manager</a> עם העסק מוגדר</li>' +
-            '<li><strong>Ad Account</strong> פעיל ב-Business Manager (יכול להיות ריק, לא חייב חיוב)</li>' +
-          '</ul>' +
-          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">אם חסר משהו:</p>' +
-          '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#6B7280;line-height:1.6">' +
-            '<li><strong>דף פייסבוק עסקי:</strong> facebook.com → Pages → Create New Page</li>' +
-            '<li><strong>IG Business:</strong> אפליקציית אינסטגרם → Settings → Account Type → Switch to Business → קשר לדף הפייסבוק</li>' +
-            '<li><strong>Business Manager:</strong> <a href="https://business.facebook.com" target="_blank" dir="ltr">business.facebook.com</a> → Create Account → הזן שם עסק + כתובת + אימייל</li>' +
-            '<li><strong>Ad Account:</strong> Business Manager → Business Settings → Accounts → Ad Accounts → Add → Create New</li>' +
-          '</ul>'
+          '<p style="margin:0 0 8px;font-size:0.86rem;color:#374151;line-height:1.6">הסוכן צריך גישה לדף הפייסבוק, לחשבון האינסטגרם ולחשבון המודעות שלכם — כדי לפרסם תוכן, לענות לתגובות ולנהל קמפיינים <strong>בלי שתצטרכו להיכנס ידנית בכל פעם</strong>.</p>'
       },
       {
         icon: '1',
-        title: 'שלב 1: יצירת האפליקציה (~10 דק)',
+        title: 'מה חייב להיות לכם לפני החיבור',
         html:
-          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">1.1 צור App חדש:</p>' +
-          '<ol style="margin:0 0 14px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
-            '<li>היכנס ל-<a href="https://developers.facebook.com/apps" target="_blank" dir="ltr">developers.facebook.com/apps</a></li>' +
-            '<li><strong>Create App</strong> (ימין למעלה)</li>' +
-            '<li><strong>Use Case</strong>: <strong>Other</strong> (הכי גמיש למערכת מולטי-תכליתית)</li>' +
-            '<li><strong>App Type</strong>: <strong>Business</strong></li>' +
-            '<li><strong>App Name</strong>: <code dir="ltr" style="background:#F3F4F6;padding:1px 5px;border-radius:3px">Flowmatic — Autonomous Marketing</code></li>' +
-            '<li><strong>Contact Email</strong>: האימייל שלך</li>' +
-            '<li><strong>Business Account</strong>: קשר ל-Business Manager שיצרת</li>' +
-            '<li>לחץ <strong>Create App</strong></li>' +
-          '</ol>' +
-          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">1.2 Settings → Basic:</p>' +
-          '<ul style="margin:0 0 14px;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
-            '<li><strong>App Domains</strong>: <code dir="ltr">clawflow.flowmatic.co.il</code> + <code dir="ltr">flowmatic.co.il</code></li>' +
-            '<li><strong>Privacy Policy URL</strong>: <code dir="ltr">https://flowmatic.co.il/privacy</code> (חובה!)</li>' +
-            '<li><strong>Terms of Service URL</strong>: <code dir="ltr">https://flowmatic.co.il/terms</code></li>' +
-            '<li><strong>User Data Deletion</strong>: <code dir="ltr">https://flowmatic.co.il/data-deletion</code></li>' +
-            '<li><strong>Category</strong>: Business and Pages</li>' +
-            '<li><strong>Icon</strong>: העלה לוגו 1024×1024 PNG</li>' +
-            '<li>לחץ <strong>Save Changes</strong></li>' +
-          '</ul>' +
-          '<p style="margin:0;font-size:0.82rem;color:#6B7280">📋 <strong>שמור:</strong> App ID + App Secret (Show → העתק).</p>'
+          '<ul style="margin:0;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li><strong>דף עסקי בפייסבוק</strong> (Facebook Page) — לא פרופיל אישי.</li>' +
+            '<li><strong>חשבון אינסטגרם Business או Creator</strong> — מקושר לדף הפייסבוק.<br>' +
+              '<span style="color:#6B7280;font-size:0.82rem">בדיקה: אינסטגרם → Settings → Account → Account type. אם כתוב Personal — החליפו ל-Business.</span></li>' +
+            '<li><strong>חשבון מודעות Meta (Ad Account)</strong> דרך <a href="https://business.facebook.com" target="_blank" dir="ltr">Meta Business Manager</a>.<br>' +
+              '<span style="color:#6B7280;font-size:0.82rem">אם אין — Business Settings → Ad Accounts → Add → Create a new ad account.</span></li>' +
+            '<li><strong>אמצעי תשלום</strong> על חשבון המודעות — אחרת קמפיינים לא ירוצו.</li>' +
+          '</ul>'
       },
       {
         icon: '2',
-        title: 'שלב 2: הוספת Products (~15 דק)',
+        title: 'קישור אינסטגרם לדף הפייסבוק',
         html:
-          '<p style="margin:0 0 10px;font-size:0.85rem;color:#4B5563">ב-Dashboard → <strong>Add Products</strong> → הוסף בזה אחר זה:</p>' +
-          '<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px 12px;margin-bottom:10px">' +
-            '<div style="font-weight:700;font-size:0.85rem;margin-bottom:4px">2.1 Facebook Login for Business</div>' +
-            '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
-              '<li>Add Product → Facebook Login for Business → Set Up</li>' +
-              '<li>בחר <strong>"Build Your Own"</strong> (לא "Authenticate via FB")</li>' +
-              '<li>Settings של המוצר:<br><strong>Client OAuth Login</strong>: ON · <strong>Web OAuth Login</strong>: ON · <strong>Enforce HTTPS</strong>: ON</li>' +
-              '<li><strong>Valid OAuth Redirect URIs</strong>:<br><code dir="ltr" style="background:#FFF;padding:2px 6px;border-radius:3px;font-size:0.78rem;display:inline-block;margin-top:2px">https://api.clawflow.flowmatic.co.il/hosting/integrations/meta/callback</code></li>' +
-              '<li>Save Changes</li>' +
-            '</ul>' +
-          '</div>' +
-          '<div style="background:#FDF2F8;border:1px solid #FBCFE8;border-radius:6px;padding:10px 12px;margin-bottom:10px">' +
-            '<div style="font-weight:700;font-size:0.85rem;margin-bottom:4px">2.2 Instagram Graph API</div>' +
-            '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
-              '<li>Add Product → חפש <strong>"Instagram"</strong> → Set Up (זו הגרסה של Instagram Graph API)</li>' +
-              '<li><strong>Instagram Basic Display</strong>: OFF (מופסק מאפריל 2025)</li>' +
-              '<li><strong>Instagram Graph API</strong>: ON</li>' +
-              '<li>חבר את Instagram Business Account דרך הכפתור</li>' +
-            '</ul>' +
-          '</div>' +
-          '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:6px;padding:10px 12px;margin-bottom:10px">' +
-            '<div style="font-weight:700;font-size:0.85rem;margin-bottom:4px">2.3 Marketing API</div>' +
-            '<p style="margin:0;font-size:0.82rem;color:#4B5563">Add Product → Marketing API → Set Up. נדרש לפרסום ממומן — יפעיל ads_management + ads_read.</p>' +
-          '</div>' +
-          '<div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:10px 12px;margin-bottom:10px">' +
-            '<div style="font-weight:700;font-size:0.85rem;margin-bottom:4px">2.4 Messenger Platform (לDMs)</div>' +
-            '<p style="margin:0;font-size:0.82rem;color:#4B5563">Add Product → Messenger → Set Up. זה הכרחי ל-pages_messaging + instagram_manage_messages.</p>' +
-          '</div>' +
-          '<div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:6px;padding:10px 12px">' +
-            '<div style="font-weight:700;font-size:0.85rem;margin-bottom:4px">2.5 Webhooks (אופציונלי, מומלץ)</div>' +
-            '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
-              '<li>Add Product → Webhooks → Set Up</li>' +
-              '<li><strong>Object</strong>: Page → Subscribe</li>' +
-              '<li><strong>Callback URL</strong>: <code dir="ltr">https://api.clawflow.flowmatic.co.il/hosting/integrations/meta/webhook</code></li>' +
-              '<li><strong>Fields</strong>: messages, messaging_postbacks, feed, comments, ratings, messaging_reactions</li>' +
-            '</ul>' +
-          '</div>'
+          '<p style="margin:0 0 8px;font-size:0.85rem;color:#6B7280">אם האינסטגרם כבר מחובר לדף — דלגו לשלב הבא.</p>' +
+          '<ol style="margin:0;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li>היכנסו ל-<a href="https://business.facebook.com" target="_blank" dir="ltr">Meta Business Suite</a>.</li>' +
+            '<li><strong>Settings → Business Assets → Instagram Accounts → Add</strong>.</li>' +
+            '<li>התחברו עם משתמש האינסטגרם → אשרו את הדף שאליו מצמידים.</li>' +
+          '</ol>'
       },
       {
         icon: '3',
-        title: 'שלב 3: Permissions (Scopes) — החשוב ביותר',
+        title: 'חיבור לסוכן Flowmatic',
         html:
-          '<p style="margin:0 0 10px;font-size:0.85rem;color:#4B5563">ב-<strong>App Review → Permissions and Features</strong> הוסף את כל ה-scopes הבאים ל-<strong>Advanced Access</strong>:</p>' +
-          '<div style="font-weight:700;font-size:0.85rem;color:#1F2937;margin-bottom:4px">3.1 Pages (Facebook)</div>' +
-          '<table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin-bottom:14px">' +
-            '<tr style="background:#F9FAFB"><th style="padding:5px 8px;text-align:right;border:1px solid #E5E7EB">Scope</th><th style="padding:5px 8px;text-align:right;border:1px solid #E5E7EB">למה</th><th style="padding:5px 8px;text-align:right;border:1px solid #E5E7EB">גישה</th></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_show_list</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">רשימת דפים</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Standard</td></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_read_engagement</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">קריאת תגובות, reach</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Advanced</td></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_read_user_content</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">תגובות ובקורות משתמשים</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Advanced</td></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_manage_posts</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">פרסום/עריכה/מחיקה של פוסטים</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Advanced</td></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_manage_engagement</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">מענה לתגובות, סימון</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Advanced</td></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_manage_metadata</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">שעות, about, metadata</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Advanced</td></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_messaging</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">DMs ב-Messenger</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Advanced</td></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">pages_manage_ads</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">פרסום ממומן מהעמוד</td><td style="padding:5px 8px;border:1px solid #E5E7EB">Advanced</td></tr>' +
-          '</table>' +
-          '<div style="font-weight:700;font-size:0.85rem;color:#1F2937;margin-bottom:4px">3.2 Instagram Business</div>' +
-          '<table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin-bottom:14px">' +
-            '<tr style="background:#F9FAFB"><th style="padding:5px 8px;text-align:right;border:1px solid #E5E7EB">Scope</th><th style="padding:5px 8px;text-align:right;border:1px solid #E5E7EB">למה</th></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">instagram_basic</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">זיהוי + metadata של IG account</td></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">instagram_content_publish</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">פרסום פוסטים + ריילס + סטוריות</td></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">instagram_manage_comments</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">מענה לתגובות + סימון</td></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">instagram_manage_messages</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">DMs ב-Instagram Direct</td></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">instagram_manage_insights</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">metrics (reach, saves, impressions)</td></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">instagram_shopping_tag_products</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">תיוג מוצרים (אם יש Shop)</td></tr>' +
-          '</table>' +
-          '<div style="font-weight:700;font-size:0.85rem;color:#1F2937;margin-bottom:4px">3.3 Ads &amp; Business</div>' +
-          '<table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin-bottom:10px">' +
-            '<tr style="background:#F9FAFB"><th style="padding:5px 8px;text-align:right;border:1px solid #E5E7EB">Scope</th><th style="padding:5px 8px;text-align:right;border:1px solid #E5E7EB">למה</th></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">ads_management</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">יצירה + עריכה + pause של קמפיינים</td></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">ads_read</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">קריאת insights</td></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">business_management</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">גישה ל-Business Manager assets</td></tr>' +
-            '<tr><td style="padding:5px 8px;border:1px solid #E5E7EB"><code dir="ltr">leads_retrieval</code></td><td style="padding:5px 8px;border:1px solid #E5E7EB">שליפת לידים מ-Lead Ads</td></tr>' +
-          '</table>' +
-          '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:6px;padding:8px 10px;font-size:0.8rem;color:#78350F">' +
-            '💡 <strong>טיפ</strong>: הגש את כל ה-scopes ב-<strong>batch אחד</strong> — Meta בודק יחד, זה מהיר יותר.' +
-          '</div>' +
-          '<p style="margin:10px 0 6px;font-weight:600;font-size:0.85rem">איך מבקשים כל scope:</p>' +
-          '<ol style="margin:0;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
-            '<li>App Review → Permissions and Features</li>' +
-            '<li>ליד כל scope → <strong>Request Advanced Access</strong></li>' +
-            '<li>Meta ידרוש: <strong>Screencast</strong> (וידאו 2-5 דקות של הפיצ\'ר בתוך Flowmatic), Platform=Web, הסבר ב-2-3 משפטים, שלבי בדיקה</li>' +
-          '</ol>'
+          '<ol style="margin:0 0 10px;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li>בדשבורד Flowmatic → <strong>Integrations → Meta → Connect</strong>.</li>' +
+            '<li>נפתח חלון Meta — התחברו עם המשתמש שמנהל את הדף.</li>' +
+            '<li>במסך ההרשאות סמנו את <strong>כל האסטים</strong> שהסוכן צריך:' +
+              '<ul style="margin:4px 0 0;padding-right:18px;font-size:0.84rem">' +
+                '<li>✅ דף הפייסבוק שלכם</li>' +
+                '<li>✅ חשבון האינסטגרם</li>' +
+                '<li>✅ חשבון המודעות (Ad Account)</li>' +
+              '</ul></li>' +
+            '<li style="color:#991B1B"><strong>אל תורידו הרשאות מהרשימה</strong> — אם תורידו, פעולות יתחילו להיכשל אחרי החיבור.</li>' +
+            '<li>לחצו <strong>Save</strong> → תועברו חזרה לדשבורד עם סטטוס <strong>Connected</strong>.</li>' +
+          '</ol>' +
+          '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:8px 10px;font-size:0.78rem;color:#6B7280;line-height:1.5">' +
+            '<strong>ההרשאות שנבקש</strong>: pages_manage_posts · pages_read_engagement · instagram_content_publish · instagram_manage_comments · ads_management · business_management' +
+          '</div>'
       },
       {
         icon: '4',
-        title: 'שלב 4: Business Verification (5 ימי עבודה)',
+        title: 'בדיקה שהכל עובד',
         html:
-          '<p style="margin:0 0 10px;font-size:0.85rem;color:#4B5563">חובה <strong>לפני</strong> שתקבל Advanced Access על רוב ה-scopes.</p>' +
-          '<ol style="margin:0;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
-            '<li><a href="https://business.facebook.com" target="_blank" dir="ltr">Business Manager</a> → <strong>Security Center</strong> → Start Verification</li>' +
-            '<li><strong>Legal Business Name</strong>: בדיוק כמו ב-ח.פ.</li>' +
-            '<li><strong>Business Address</strong>: כתובת רשמית (תואמת ל-ח.פ.)</li>' +
-            '<li><strong>Phone Number</strong>: מספר העסק (לא אישי)</li>' +
-            '<li>העלאת מסמכים:' +
-              '<ul style="margin:4px 0;padding-right:18px">' +
-                '<li><strong>Proof of Business</strong>: תעודת רישום ח.פ. מרשם החברות / עוסק מורשה ממע"מ</li>' +
-                '<li><strong>Proof of Address</strong>: חשבון חשמל/מים (&lt; 6 חודשים)</li>' +
-                '<li><strong>Legal Representative</strong>: צילום ת"ז + מסמך שמאשר שאתה מורשה חתימה</li>' +
-              '</ul>' +
-            '</li>' +
-            '<li>Meta תשלח code verification לטלפון/כתובת — הזן</li>' +
-            '<li>המתן 1-7 ימים לבדיקה</li>' +
-          '</ol>'
+          '<p style="margin:0 0 8px;font-size:0.85rem;color:#374151">בדשבורד → <strong>Meta → Test connection</strong>. שלוש בדיקות ירוצו:</p>' +
+          '<table style="width:100%;border-collapse:collapse;font-size:0.82rem">' +
+            '<tr style="background:#F9FAFB"><th style="padding:6px 10px;text-align:right;border:1px solid #E5E7EB">בדיקה</th><th style="padding:6px 10px;text-align:right;border:1px solid #E5E7EB">מה נבדק</th></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>Publish post</strong></td><td style="padding:6px 10px;border:1px solid #E5E7EB">פרסום פוסט בדיקה (נמחק אוטומטית)</td></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>Read insights</strong></td><td style="padding:6px 10px;border:1px solid #E5E7EB">קריאת נתוני דף</td></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>Ads access</strong></td><td style="padding:6px 10px;border:1px solid #E5E7EB">גישה לחשבון המודעות</td></tr>' +
+          '</table>' +
+          '<p style="margin:10px 0 0;font-size:0.82rem;color:#6B7280">אם אחת נכשלה — יופיע הסבר מדויק מה חסר (בדרך כלל הרשאה שלא אושרה בשלב 3).</p>'
       },
       {
         icon: '5',
-        title: 'שלב 5: App Review Submission (3-10 ימי עבודה)',
+        title: 'אם אתם מנהלים עבור לקוח (סוכנות)',
         html:
-          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">5.1 הכנה</p>' +
-          '<ul style="margin:0 0 12px;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
-            '<li>App Review → My Permissions and Features → וודא שכל 18 ה-scopes בסטטוס "Requested"</li>' +
-            '<li>App Review → Verification → וודא ש-Business Verified ✓</li>' +
-            '<li>Settings → Basic → Privacy + Terms URLs פעילים (לחץ עליהם, חייבים להחזיר 200)</li>' +
-          '</ul>' +
-          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">5.2 לכל scope הכן screencast (2-4 דקות)</p>' +
-          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
-            '<li>הרץ screen recording (OBS / Loom / QuickTime)</li>' +
-            '<li>הצג: Login ל-Flowmatic עם חשבון Facebook → אישור ה-permission → שימוש בפיצ\'ר (למשל פרסום פוסט דרך הסוכן) → תוצאה (הפוסט מופיע בדף)</li>' +
-            '<li>העלה ל-YouTube <strong>Unlisted</strong> (לא Private — Meta לא יוכל לראות)</li>' +
-            '<li>הדבק לינק לכל scope ב-Review form</li>' +
-          '</ol>' +
-          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">5.3 Test Users</p>' +
-          '<p style="margin:0 0 6px;font-size:0.82rem;color:#4B5563">צור 2-3 Test Users ב-App Roles → Test Users:</p>' +
-          '<ul style="margin:0 0 12px;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
-            '<li>אחד עם גישה לעמוד פייסבוק</li>' +
-            '<li>אחד עם גישה לחשבון Instagram</li>' +
-            '<li>אחד עם גישה ל-Ad Account</li>' +
-          '</ul>' +
-          '<p style="margin:0 0 10px;font-size:0.82rem;color:#4B5563">ציין את ה-credentials של ה-test users ב-Review form כדי ש-reviewer של Meta יוכל להתחבר.</p>' +
-          '<p style="margin:0;font-size:0.82rem;color:#4B5563"><strong>5.4 Submit for Review</strong> → המתן 3-10 ימי עבודה.</p>'
+          '<ul style="margin:0;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li>הלקוח חייב להוסיף אתכם כ-<strong>Partner</strong> ב-Business Settings של החשבון שלו, עם הרשאות על הדף + חשבון המודעות.</li>' +
+            '<li>החיבור לסוכן ייעשה מהמשתמש שלכם, אבל האסטים שתסמנו הם של הלקוח.</li>' +
+          '</ul>'
       },
       {
         icon: '6',
-        title: 'שלב 6: לאחר Review אושרה',
+        title: 'ניתוק / החלפת חשבון',
         html:
-          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">6.1 העבר ל-Live Mode</p>' +
-          '<p style="margin:0 0 12px;font-size:0.82rem;color:#4B5563">App Settings → Basic → <strong>App Mode</strong>: Development → <strong>Live</strong></p>' +
-          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">6.2 בדוק שהכל עובד</p>' +
-          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
-            '<li>חזור ל-Flowmatic → הגדרות → Integrations → Meta</li>' +
-            '<li>הזן App ID + App Secret</li>' +
-            '<li>לחץ <strong>"→ חברו Meta Ads"</strong></li>' +
-            '<li>תועבר ל-Facebook OAuth → <strong>אשר את כל ה-permissions</strong></li>' +
-            '<li>בחר את דף הפייסבוק + חשבון Instagram + Ad Account</li>' +
-            '<li>תועבר חזרה ל-Flowmatic עם "מחובר ✓"</li>' +
-          '</ol>' +
-          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">6.3 הפעל סוכנים</p>' +
-          '<p style="margin:0 0 6px;font-size:0.82rem;color:#4B5563">Flowmatic → סוכן MATEH → הגדרות → הפעל:</p>' +
-          '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.6">' +
-            '<li><strong>שליח (Distribution)</strong>: יפרסם ל-Facebook + Instagram לפי ה-Content Calendar</li>' +
-            '<li><strong>מאזין (Social Listening)</strong>: יעקוב תגובות + DMs ויחזיר אותם ל-Activity Queue לאישורך</li>' +
-            '<li><strong>Meta Ads Executor</strong>: יצור + יעדכן קמפיינים לפי האסטרטגיה</li>' +
-            '<li><strong>Meta Performance Sync</strong>: יסנכרן insights כל 24 שעות</li>' +
-          '</ul>'
+          '<p style="margin:0;font-size:0.85rem;color:#374151;line-height:1.6"><strong>Dashboard → Integrations → Meta → Disconnect</strong>. הסוכן יפסיק מיידית לפרסם ולנהל קמפיינים. אפשר לחבר חשבון חדש מיד אחרי.</p>'
       },
-      {
-        icon: '🔧',
-        title: 'תחזוקה שוטפת',
-        html:
-          '<ul style="margin:0;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.7">' +
-            '<li><strong>Data Use Checkup</strong>: כל שנה Meta ישלח מייל — מלא תוך 60 יום</li>' +
-            '<li><strong>App Events</strong>: הוסף Meta Pixel לאתר flowmatic.co.il (Events Manager → Pixels) — חובה לרוב ה-advanced targeting</li>' +
-            '<li><strong>Token Refresh</strong>: tokens תקפים 60 ימים — הקוד שלנו מרענן אוטומטית. אם אתה רואה "Token Expired" → בצע OAuth flow מחדש</li>' +
-            '<li>אם תשנה Privacy Policy או Terms → עדכן URLs ב-App Settings</li>' +
-          '</ul>'
-      },
-      {
-        icon: '✅',
-        title: 'Checklist סופי',
-        html:
-          '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.8;list-style:none">' +
-            '<li>☐ דף Facebook + IG Business + Business Manager + Ad Account קיימים</li>' +
-            '<li>☐ App נוצר ב-developers.facebook.com (Type=Business)</li>' +
-            '<li>☐ Products הוספת: FB Login for Business, Instagram Graph API, Marketing API, Messenger, Webhooks</li>' +
-            '<li>☐ Valid OAuth Redirect URI הוסף</li>' +
-            '<li>☐ Privacy Policy + Terms + Data Deletion URLs פעילים</li>' +
-            '<li>☐ Business Verification אושר</li>' +
-            '<li>☐ 18 scopes ב-Advanced Access (Requested / Approved)</li>' +
-            '<li>☐ Screencasts לכל scope הועלו (YouTube Unlisted)</li>' +
-            '<li>☐ Test Users נוצרו עם credentials</li>' +
-            '<li>☐ App Review הוגש והתקבל</li>' +
-            '<li>☐ App Mode=Live</li>' +
-            '<li>☐ חיבור ב-Flowmatic הצליח</li>' +
-            '<li>☐ Meta Pixel הוטמע באתר</li>' +
-          '</ul>' +
-          '<p style="margin:12px 0 0;font-size:0.82rem;color:#6B7280;background:#F9FAFB;padding:8px 10px;border-radius:6px"><strong>זמן כולל</strong>: ~3-6 שבועות (רוב הזמן Business Verification + App Review).<br><strong>עלות</strong>: $0 — Meta APIs חינם. היחיד שעולה: media spend שתכניס ל-Ad Account.</p>'
-      }
-    ]
+    ],
   },
   linkedin: {
     title: 'מדריך חיבור LinkedIn',
@@ -6898,197 +6709,89 @@ var PUBLISH_GUIDES = {
     ]
   },
   googleads: {
-    title: 'מדריך מלא — חיבור Google Ads לסוכני Flowmatic',
-    subtitle: 'עדכון: אפריל 2026 · זמן כולל ~1-3 שבועות · עלות $0 (מלבד תקציב מדיה)',
+    title: 'מדריך — חיבור Google Ads לסוכני Flowmatic',
+    subtitle: 'חיבור חד-פעמי · ~5 דקות · הסוכן יוכל ליצור קמפיינים, לנהל תקציבים, לבצע אופטימיזציה ולשלוף נתונים — אוטונומית',
     sections: [
       {
-        icon: '🎯',
-        title: 'מה נקבל בסוף',
+        icon: '🤖',
+        title: 'מה הסוכן יוכל לעשות אחרי החיבור',
         html:
-          '<p style="margin:0 0 10px;font-size:0.85rem;color:#4B5563">הסוכנים יוכלו, מעל חשבון Google Ads שלך, לבצע אוטונומית:</p>' +
-          '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;background:#F9FAFB;border-radius:6px;overflow:hidden">' +
-            '<tr style="background:#E5E7EB"><th style="padding:6px 10px;text-align:right">תחום</th><th style="padding:6px 10px;text-align:right">יכולת</th></tr>' +
-            '<tr><td style="padding:6px 10px;font-weight:600">יצירת קמפיינים</td><td style="padding:6px 10px">Search, Performance Max, Display, YouTube, Demand Gen</td></tr>' +
-            '<tr style="background:#FFF"><td style="padding:6px 10px;font-weight:600">ניהול Ad Groups</td><td style="padding:6px 10px">מילות מפתח, keyword match types, negative keywords, ad copy</td></tr>' +
-            '<tr><td style="padding:6px 10px;font-weight:600">אופטימיזציה אוטומטית</td><td style="padding:6px 10px">שינוי bidding strategy, budgets, pause/resume, A/B על קריאייטיב</td></tr>' +
-            '<tr style="background:#FFF"><td style="padding:6px 10px;font-weight:600">ניטור ביצועים</td><td style="padding:6px 10px">CPC, CPM, CTR, CPA, ROAS, conversion rate — עדכון כל 24 שעות</td></tr>' +
-            '<tr><td style="padding:6px 10px;font-weight:600">אשפוז מילות מפתח</td><td style="padding:6px 10px">הוספת negatives אוטומטית על queries לא רלוונטיות (מ-Search Terms Report)</td></tr>' +
-            '<tr style="background:#FFF"><td style="padding:6px 10px;font-weight:600">המלצות Google</td><td style="padding:6px 10px">קריאת Recommendations מ-API ויישום ידני (עם אישור שלך) / אוטומטי</td></tr>' +
-          '</table>'
-      },
-      {
-        icon: '⚠️',
-        title: 'לפני שמתחילים — חשוב להבין',
-        html:
-          '<ol style="margin:0;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
-            '<li><strong>Developer Token חובה.</strong> Google Ads API דורש <strong>Developer Token</strong> נפרד מה-API Key הרגיל. מקבלים אותו מ-Google ואורך 1-3 ימי עבודה לאישור Basic Access, עד 4 שבועות ל-Standard Access.</li>' +
-            '<li><strong>Basic vs Standard Access.</strong> Basic = 15,000 API calls/day, Standard = ללא הגבלה. לרוב SMBs Basic מספיק. נתחיל איתו ונעבור ל-Standard רק אם צריך.</li>' +
-            '<li><strong>MCC (Manager Account) אופציונלי.</strong> אם יש לך סוכנות שמנהלת כמה חשבונות — MCC נוח. אם רק חשבון אחד שלך — לא חובה.</li>' +
-            '<li><strong>OAuth 2.0 refresh token.</strong> Flowmatic מקבלת refresh token שתקף לצמיתות (כל עוד לא תבטל ב-Google Account). אין תפוגה של 60 יום כמו ב-Meta.</li>' +
-            '<li><strong>Token יחיד לכל הסוכנים.</strong> כל 9 הסוכנים של Flowmatic משתמשים באותו חיבור — לא צריך לחבר פעמיים.</li>' +
-          '</ol>'
-      },
-      {
-        icon: '0',
-        title: 'שלב 0: הכנות מקדימות (~20 דק)',
-        html:
-          '<p style="margin:0 0 8px;font-weight:600;font-size:0.86rem">וודא שיש לך:</p>' +
-          '<ul style="margin:0 0 14px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
-            '<li>חשבון <a href="https://ads.google.com" target="_blank" dir="ltr">Google Ads</a> פעיל (גם ריק — העיקר שהוא מוגדר עם billing)</li>' +
-            '<li><strong>Customer ID</strong> של החשבון (פינה ימנית עליונה ב-Google Ads, פורמט <code dir="ltr">XXX-XXX-XXXX</code>)</li>' +
-            '<li>Billing פעיל ב-Google Ads — גם ללא קמפיין פעיל, חייב <strong>payment method מאושר</strong></li>' +
-            '<li>Google Cloud Project — נצטרך ליצור אחד חדש ייעודי ל-Flowmatic</li>' +
-          '</ul>' +
-          '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:6px;padding:10px;font-size:0.82rem;color:#78350F">' +
-            '💡 <strong>טיפ</strong>: אם יש לך כבר Google Cloud Project אחר — עדיין צור <strong>חדש</strong> ייעודי לFlowmatic, כדי לשמור על separation ובטיחות.' +
-          '</div>'
+          '<p style="margin:0 0 8px;font-size:0.86rem;color:#374151;line-height:1.6">הסוכן צריך גישה לחשבון Google Ads שלכם (ואופציונלית ל-Google Analytics + Search Console) — כדי לפתוח קמפיינים, לנהל מילות מפתח, לשנות תקציבים, לקרוא נתוני ביצועים ולעדכן מודעות <strong>בלי שתצטרכו להיכנס ידנית בכל פעם</strong>.</p>'
       },
       {
         icon: '1',
-        title: 'שלב 1: Google Cloud Project + OAuth Credentials (~15 דק)',
+        title: 'מה חייב להיות לכם לפני החיבור',
         html:
-          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">1.1 צור Project חדש</p>' +
-          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
-            '<li>היכנס ל-<a href="https://console.cloud.google.com" target="_blank" dir="ltr">console.cloud.google.com</a></li>' +
-            '<li>ראש הדף → Select Project → <strong>New Project</strong></li>' +
-            '<li><strong>Project name</strong>: <code dir="ltr">flowmatic-ads</code></li>' +
-            '<li>Organization: "No organization" (או שלך אם יש)</li>' +
-            '<li>Create → המתן 30 שניות</li>' +
-          '</ol>' +
-          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">1.2 הפעל Google Ads API</p>' +
-          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
-            '<li>בתוך ה-project → <strong>APIs &amp; Services</strong> → <strong>Enabled APIs</strong></li>' +
-            '<li>Enable APIs and Services → חפש <strong>"Google Ads API"</strong> → Enable</li>' +
-          '</ol>' +
-          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">1.3 OAuth Consent Screen</p>' +
-          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
-            '<li>APIs &amp; Services → <strong>OAuth consent screen</strong></li>' +
-            '<li>User Type: <strong>External</strong> → Create</li>' +
-            '<li><strong>App name</strong>: <code dir="ltr">Flowmatic Ads Manager</code></li>' +
-            '<li><strong>User support email</strong>: האימייל שלך</li>' +
-            '<li><strong>Authorized domains</strong>: <code dir="ltr">flowmatic.co.il</code></li>' +
-            '<li><strong>Developer contact</strong>: האימייל שלך</li>' +
-            '<li>Save and Continue</li>' +
-            '<li><strong>Scopes</strong>: Add or Remove Scopes → חפש והוסף: <code dir="ltr">https://www.googleapis.com/auth/adwords</code> → Save</li>' +
-            '<li><strong>Test users</strong>: הוסף את האימייל שלך (זה הכרחי לפני Publishing)</li>' +
-          '</ol>' +
-          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">1.4 Credentials (Client ID + Secret)</p>' +
-          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
-            '<li>APIs &amp; Services → <strong>Credentials</strong></li>' +
-            '<li>Create Credentials → <strong>OAuth Client ID</strong></li>' +
-            '<li><strong>Application type</strong>: Web application</li>' +
-            '<li><strong>Name</strong>: <code dir="ltr">Flowmatic OAuth Client</code></li>' +
-            '<li><strong>Authorized redirect URIs</strong> → Add URI:<br><code dir="ltr" style="background:#F3F4F6;padding:2px 6px;border-radius:3px;font-size:0.78rem">https://api.clawflow.flowmatic.co.il/hosting/integrations/google/callback</code></li>' +
-            '<li>Create → תקבל popup עם <strong>Client ID</strong> + <strong>Client Secret</strong></li>' +
-            '<li>📋 <strong>שמור את שניהם</strong> — נצטרך אותם ב-Flowmatic</li>' +
-          '</ol>'
+          '<ul style="margin:0;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li><strong>חשבון Google Ads פעיל</strong> עם <strong>Customer ID</strong> (בפורמט XXX-XXX-XXXX, בפינה הימנית העליונה של ads.google.com).<br>' +
+              '<span style="color:#6B7280;font-size:0.82rem">אין חשבון? <a href="https://ads.google.com" target="_blank" dir="ltr">ads.google.com</a> → Create Account → אפשר לדלג על יצירת קמפיין ראשון.</span></li>' +
+            '<li><strong>אמצעי תשלום מאושר</strong> ב-Billing — אחרת קמפיינים לא ירוצו. Google Ads לא דורש תשלום מראש, אבל צריך כרטיס אשראי רשום.</li>' +
+            '<li><strong>יעדי המרה מוגדרים</strong> (Conversion Goals). אם אין — הסוכן יציע אחרי החיבור איך להגדיר (טופס יצירת קשר / רכישה / lead submit).</li>' +
+            '<li><strong>Google Analytics 4 (מומלץ)</strong> מקושר לחשבון Google Ads — נותן לסוכן נתוני התנהגות באתר, לא רק קליקים.</li>' +
+          '</ul>'
       },
       {
         icon: '2',
-        title: 'שלב 2: Developer Token (1-3 ימי עבודה)',
+        title: 'קישור Google Analytics לחשבון Google Ads',
         html:
-          '<p style="margin:0 0 10px;font-size:0.85rem;color:#4B5563">Google Ads API דורש Developer Token נפרד. זה חינם אבל דורש אישור ידני מ-Google (בדרך כלל מהיר — 1-3 ימים).</p>' +
-          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">2.1 בקש Token</p>' +
-          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
-            '<li>היכנס ל-Google Ads → הגדרות (ימין למעלה) → <strong>API Center</strong><br>(URL: <code dir="ltr">ads.google.com/aw/apicenter</code>)</li>' +
-            '<li>אם זו הפעם הראשונה — מלא את הטופס <strong>"Apply for access"</strong>:' +
-              '<ul style="margin:4px 0;padding-right:18px">' +
-                '<li><strong>Company name</strong>: Flowmatic</li>' +
-                '<li><strong>Website</strong>: <code dir="ltr">https://flowmatic.co.il</code></li>' +
-                '<li><strong>Contact email</strong>: האימייל שלך</li>' +
-                '<li><strong>Intended use</strong>: בחר "Reporting and campaign management"</li>' +
-                '<li><strong>Describe usage</strong> (באנגלית): <em>"Building an autonomous AI agent platform that manages Google Ads campaigns for Israeli SMBs — creating campaigns, optimizing bids, pulling performance reports."</em></li>' +
-                '<li><strong>Integration type</strong>: Own company / own clients</li>' +
-              '</ul>' +
-            '</li>' +
-            '<li>Submit → המתן לאימייל מ-Google (1-3 ימי עבודה)</li>' +
-          '</ol>' +
-          '<p style="margin:0 0 6px;font-weight:600;font-size:0.86rem">2.2 אחרי שיאושר</p>' +
-          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
-            '<li>חזור ל-API Center</li>' +
-            '<li>תמצא שם <strong>Developer Token</strong> — מחרוזת ארוכה (22 תווים)</li>' +
-            '<li><strong>Access Level</strong> יהיה "Basic Access" — מספיק להתחלה (15K API calls/day)</li>' +
-            '<li>📋 <strong>שמור את ה-Developer Token</strong></li>' +
-          '</ol>' +
-          '<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:6px;padding:10px;font-size:0.82rem;color:#78350F">' +
-            '💡 <strong>Standard Access (אופציונלי)</strong>: אם תגיע ל-15K/day אפשר לבקש Standard Access (ללא limit) — דורש הצגת דוגמאות שימוש ותהליך של 2-4 שבועות. לא נצטרך בהתחלה.' +
-          '</div>'
-      },
-      {
-        icon: '3',
-        title: 'שלב 3: חיבור ב-Flowmatic (~5 דק)',
-        html:
-          '<ol style="margin:0 0 12px;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.65">' +
-            '<li>חזור ל-Flowmatic → הגדרות → Integrations → Google Ads</li>' +
-            '<li>לחץ <strong>"חברו Google Ads"</strong> — תתבצע הפניה ל-Google OAuth</li>' +
-            '<li>בחר את חשבון Google עם הרשאות Ads</li>' +
-            '<li>אשר הרשאה: <strong>"Manage your AdWords campaigns"</strong></li>' +
-            '<li>תחזור ל-Flowmatic עם form להשלים 3 שדות:' +
-              '<ul style="margin:4px 0;padding-right:18px">' +
-                '<li><strong>Customer ID</strong>: XXX-XXX-XXXX (מ-Google Ads פינה ימנית)</li>' +
-                '<li><strong>Developer Token</strong>: 22 תווים (מ-API Center)</li>' +
-                '<li><strong>Login Customer ID</strong> (אופציונלי): רק אם אתה משתמש ב-MCC, הזן את ה-Customer ID של ה-Manager</li>' +
-              '</ul>' +
-            '</li>' +
-            '<li>Save → "Google Ads מחובר ✓"</li>' +
+          '<p style="margin:0 0 8px;font-size:0.85rem;color:#6B7280">אם GA4 כבר מקושר — דלגו. אופציונלי אבל מוסיף איכות משמעותית לאופטימיזציה.</p>' +
+          '<ol style="margin:0;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li>ב-<a href="https://ads.google.com" target="_blank" dir="ltr">Google Ads</a> → Tools → <strong>Linked accounts</strong>.</li>' +
+            '<li>בחרו <strong>Google Analytics (GA4)</strong> → Link → בחרו את ה-Property הרלוונטי.</li>' +
+            '<li>הפעילו <strong>Import site metrics</strong> ו-<strong>Auto-tagging</strong> — שניהם חובה לאופטימיזציה נכונה.</li>' +
           '</ol>'
       },
       {
+        icon: '3',
+        title: 'חיבור לסוכן Flowmatic',
+        html:
+          '<ol style="margin:0 0 10px;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li>בדשבורד Flowmatic → <strong>Integrations → Google Ads → Connect</strong>.</li>' +
+            '<li>נפתח חלון Google — התחברו עם חשבון Google שמנהל את ה-Ad Account.</li>' +
+            '<li>במסך ההרשאות אשרו גישה ל:' +
+              '<ul style="margin:4px 0 0;padding-right:18px;font-size:0.84rem">' +
+                '<li>✅ חשבון Google Ads שלכם (קריאה + ניהול)</li>' +
+                '<li>✅ Google Analytics 4 (אם קיים — לקריאת נתוני התנהגות)</li>' +
+                '<li>✅ Google Search Console (אופציונלי — נותן נתוני SEO ל-pMax אוטומטי)</li>' +
+              '</ul></li>' +
+            '<li style="color:#991B1B"><strong>אל תורידו הרשאות מהרשימה</strong> — אם תורידו, פעולות יתחילו להיכשל.</li>' +
+            '<li>לחצו <strong>Allow</strong> → תועברו חזרה לדשבורד.</li>' +
+            '<li>אם יש לכם כמה חשבונות Google Ads — בחרו את ה-Customer ID הנכון (הסוכן יציג רשימה).</li>' +
+          '</ol>' +
+          '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:8px 10px;font-size:0.78rem;color:#6B7280;line-height:1.5">' +
+            '<strong>ההרשאות שנבקש</strong>: adwords (ניהול מלא של Google Ads) · analytics.readonly (קריאת GA4) · webmasters.readonly (Search Console — אופציונלי)' +
+          '</div>'
+      },
+      {
         icon: '4',
-        title: 'שלב 4: הפעל סוכני פרסום',
+        title: 'בדיקה שהכל עובד',
         html:
-          '<p style="margin:0 0 10px;font-size:0.85rem;color:#4B5563">Flowmatic → סוכן MATEH → הגדרות → הפעל:</p>' +
-          '<ul style="margin:0;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.7">' +
-            '<li><strong>Google Ads Executor</strong>: יצור קמפיינים חדשים לפי האסטרטגיה (דורש אישור שלך בכל קמפיין לפני launch)</li>' +
-            '<li><strong>Google Ads Performance Sync</strong>: סנכרון ביצועים כל 24 שעות (CPC, CTR, CPA, ROAS) → דוחות ב-Flowmatic</li>' +
-            '<li><strong>Google Ads Optimizer</strong>: ניתוח שבועי + המלצות אוטומטיות (הוספת negative keywords, שינוי bidding, pause של ad groups חלשים) — כולן עוברות אישור שלך לפני ביצוע</li>' +
-            '<li><strong>Keyword Hygiene</strong>: קריאת Search Terms Report יומית, זיהוי queries לא רלוונטיות → הצעה להוסיף negatives</li>' +
+          '<p style="margin:0 0 8px;font-size:0.85rem;color:#374151">בדשבורד → <strong>Google Ads → Test connection</strong>. שלוש בדיקות ירוצו:</p>' +
+          '<table style="width:100%;border-collapse:collapse;font-size:0.82rem">' +
+            '<tr style="background:#F9FAFB"><th style="padding:6px 10px;text-align:right;border:1px solid #E5E7EB">בדיקה</th><th style="padding:6px 10px;text-align:right;border:1px solid #E5E7EB">מה נבדק</th></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>List campaigns</strong></td><td style="padding:6px 10px;border:1px solid #E5E7EB">קריאת רשימת קמפיינים קיימים (גם אם ריקה)</td></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>Read insights</strong></td><td style="padding:6px 10px;border:1px solid #E5E7EB">קריאת נתוני 7 הימים האחרונים</td></tr>' +
+            '<tr><td style="padding:6px 10px;border:1px solid #E5E7EB"><strong>Create draft campaign</strong></td><td style="padding:6px 10px;border:1px solid #E5E7EB">יצירת קמפיין טיוטה (לא מתפרסם — נמחק אוטומטית)</td></tr>' +
+          '</table>' +
+          '<p style="margin:10px 0 0;font-size:0.82rem;color:#6B7280">אם אחת נכשלה — יופיע הסבר מדויק (בד"כ הרשאה חסרה או Developer Token של הסוכן עדיין ב-approval).</p>'
+      },
+      {
+        icon: '5',
+        title: 'אם אתם מנהלים עבור לקוח (MCC / סוכנות)',
+        html:
+          '<ul style="margin:0;padding-right:18px;font-size:0.85rem;color:#374151;line-height:1.7">' +
+            '<li>הלקוח חייב להעניק לחשבון ה-MCC שלכם גישה של <strong>Admin</strong> על ה-Customer ID שלו.<br>' +
+              '<span style="color:#6B7280;font-size:0.82rem">Google Ads → Admin → Access and security → Managers → Invite.</span></li>' +
+            '<li>בעת חיבור, בחרו את ה-Customer ID של הלקוח מהרשימה (ולא את ה-MCC עצמו).</li>' +
+            '<li>כל הפעולות של הסוכן ירוצו דרך ה-MCC שלכם — הלקוח לא מקבל התראות על כל שינוי.</li>' +
           '</ul>'
       },
       {
-        icon: '🔧',
-        title: 'תחזוקה שוטפת',
+        icon: '6',
+        title: 'ניתוק / החלפת חשבון',
         html:
-          '<ul style="margin:0;padding-right:18px;font-size:0.85rem;color:#4B5563;line-height:1.7">' +
-            '<li><strong>Developer Token לא פג תוקף</strong> — רק אם לא תשתמש בו 90 יום Google יכולה לבטל</li>' +
-            '<li><strong>Refresh Token</strong> לא פג תוקף כל עוד אתה לא:' +
-              '<ul style="margin:4px 0;padding-right:18px">' +
-                '<li>מבטל ידנית ב-<a href="https://myaccount.google.com/permissions" target="_blank" dir="ltr">myaccount.google.com/permissions</a></li>' +
-                '<li>משנה סיסמת Google</li>' +
-                '<li>עובר 6 חודשים ללא שימוש</li>' +
-              '</ul>' +
-            '</li>' +
-            '<li><strong>API Quota</strong>: Basic Access = 15K calls/day. Flowmatic משתמש בד"כ ב-500-2,000 calls/day לחשבון פעיל.</li>' +
-            '<li><strong>Conversion Tracking</strong>: ודא שיש ב-Google Ads Conversion Actions מוגדרות (למשל "Form submit", "Purchase") — בלעדיהן אין ROAS אמיתי.</li>' +
-          '</ul>'
+          '<p style="margin:0;font-size:0.85rem;color:#374151;line-height:1.6"><strong>Dashboard → Integrations → Google Ads → Disconnect</strong>. הסוכן יפסיק מיידית לנהל קמפיינים. הקמפיינים הקיימים ממשיכים לרוץ כרגיל (רק לא יעברו אופטימיזציה אוטומטית). אפשר לחבר חשבון חדש מיד אחרי.</p>'
       },
-      {
-        icon: '✅',
-        title: 'Checklist סופי',
-        html:
-          '<ul style="margin:0;padding-right:18px;font-size:0.82rem;color:#4B5563;line-height:1.8;list-style:none">' +
-            '<li>☐ Google Ads account פעיל עם billing מאושר</li>' +
-            '<li>☐ Google Cloud Project נוצר (flowmatic-ads)</li>' +
-            '<li>☐ Google Ads API הופעל ב-project</li>' +
-            '<li>☐ OAuth Consent Screen הוגדר עם scope adwords</li>' +
-            '<li>☐ Client ID + Client Secret הופקו ונשמרו</li>' +
-            '<li>☐ Authorized Redirect URI הוסף: <code dir="ltr">.../hosting/integrations/google/callback</code></li>' +
-            '<li>☐ Developer Token נתבקש ואושר (1-3 ימים)</li>' +
-            '<li>☐ Customer ID הועתק (XXX-XXX-XXXX)</li>' +
-            '<li>☐ חיבור ב-Flowmatic הצליח</li>' +
-            '<li>☐ סוכני Ads הופעלו בהגדרות MATEH</li>' +
-            '<li>☐ Conversion Actions מוגדרות ב-Google Ads</li>' +
-          '</ul>' +
-          '<p style="margin:12px 0 0;font-size:0.82rem;color:#6B7280;background:#F9FAFB;padding:8px 10px;border-radius:6px"><strong>זמן כולל</strong>: ~1-3 שבועות (רוב הזמן ממתינים לאישור Developer Token).<br><strong>עלות</strong>: $0 — Google Ads API חינם. העלות היחידה = media spend שתשים בקמפיינים.</p>'
-      }
-    ],
-    // Legacy flat steps kept for backward compat — will be ignored when sections[] present
-    steps: [
-      { title: 'צרו חשבון Google Ads', desc: 'אם אין לכם — <a href="https://ads.google.com" target="_blank" dir="ltr">ads.google.com</a> ← צרו חשבון חדש. ניתן לדלג על יצירת קמפיין ראשון (הסוכנים יעשו זאת בשבילכם).' },
-      { title: 'שמרו את ה-Customer ID', desc: 'בפינה הימנית העליונה של Google Ads — מספר בפורמט <strong>XXX-XXX-XXXX</strong>. העתיקו אותו.' },
-      { title: 'חברו Google Workspace עם הרשאת Ads', desc: 'ב-ClawFlow ← כלי עבודה ← Google Workspace ← סמנו <strong>📢 Google Ads</strong> ← לחצו "חברו".' },
-      { title: 'הגדירו Conversion Tracking', desc: 'הסוכן ייצור אוטומטית קוד מעקב המרות. <strong>הדביקו אותו באתר שלכם</strong> (לפני </head>) — זה קריטי לאופטימיזציה.' },
-      { title: 'הכל מוכן!', desc: 'הסוכנים יכינו תוכנית קמפיין על בסיס המחקר והאסטרטגיה. תוכלו לערוך את הקמפיין לפני אישור — <strong>תקציב, מילות מפתח, טקסטים</strong>. תוכלו לבחור להפעיל מיד או ליצור בהשהיה.' }
     ]
   }
 };
