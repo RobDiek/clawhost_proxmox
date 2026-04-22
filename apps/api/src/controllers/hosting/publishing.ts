@@ -23,6 +23,48 @@ import {
     listGoogleAdsAdGroups,
     type GoogleAdsPublishParams,
 } from '@/services/googleAdsPublisher'
+import { appendUtm } from '@/services/utmBuilder'
+import { contentPlanMedia, instances as instancesTable } from '@/db/schema'
+
+// Resolve render → content plan item to get rich UTM context (hook + persona)
+// before appending utm params. Falls back to just channel+campaign if the
+// render isn't linked to a plan item yet (manual/one-off publish).
+async function enrichWithUtm(
+    instanceId: string,
+    renderId: string,
+    rawUrl: string,
+    channel: string,
+    campaignName: string,
+): Promise<string> {
+    try {
+        // Try to find content plan item via media → plan snapshot
+        const [media] = await db.select().from(contentPlanMedia)
+            .where(eq(contentPlanMedia.id, renderId))
+            .limit(1)
+        let hook: string | undefined
+        let persona: string | undefined
+        let contentPlanItemId: string | undefined
+        if (media?.contentPlanItemId) {
+            contentPlanItemId = media.contentPlanItemId
+            const [inst] = await db.select().from(instancesTable).where(eq(instancesTable.id, instanceId))
+            const plan = (inst?.researchData as any)?.contentPlan
+            if (Array.isArray(plan)) {
+                const item = plan.find((p: any) => p?.id === media.contentPlanItemId)
+                if (item) { hook = item.hook; persona = item.persona }
+            }
+        }
+        return appendUtm(rawUrl, {
+            channel,
+            contentPlanItemId,
+            hook,
+            persona,
+            paidCampaignName: campaignName,
+        })
+    } catch (err) {
+        console.warn('[publish/utm] enrich failed, using basic:', (err as Error).message)
+        return appendUtm(rawUrl, { channel, paidCampaignName: campaignName })
+    }
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // POST .../creative/publish
@@ -41,6 +83,10 @@ export const publishToMeta = async (c: Context) => {
         if (!/^https?:\/\//i.test(body.linkUrl)) {
             return fail(c, 'linkUrl must be http(s) URL', 400)
         }
+
+        // Auto-tag with UTMs so GA4/Mixpanel/Plausible attribute conversions.
+        // Skip if the caller already set utm_source (respects manual override).
+        body.linkUrl = await enrichWithUtm(instanceId, body.renderId, body.linkUrl, 'meta_ads', body.name)
 
         const result = await publishRenderToMeta({ ...body, instanceId })
         if (!result.ok) return fail(c, result.error || 'Publish failed', 500)
@@ -142,6 +188,11 @@ export const publishToGoogleAds = async (c: Context) => {
         if (!body.renderId || !body.customerId || !body.adGroupId || !body.adName || !body.finalUrls || !body.headlines || !body.descriptions || !body.businessName) {
             return fail(c, 'renderId, customerId, adGroupId, adName, finalUrls, headlines, descriptions, businessName — all required', 400)
         }
+
+        // Auto-tag every Final URL with UTMs (Google Ads accepts multiple)
+        body.finalUrls = await Promise.all(
+            body.finalUrls.map(u => enrichWithUtm(instanceId, body.renderId, u, 'google_ads', body.adName))
+        )
 
         const result = await publishRenderToGoogleAds({ ...body, instanceId })
         if (!result.ok) return fail(c, result.error || 'Publish failed', 500)

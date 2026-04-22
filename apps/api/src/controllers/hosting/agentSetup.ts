@@ -401,7 +401,7 @@ async function deployAgentSystem(ip: string, userMd: string, brandMd: string, br
 
     // Deploy agent SOUL.md files (only for MATEH — Personal has no sub-agents)
     if (agentType === 'mt') {
-        const agents = ['sayer', 'meater', 'maazin', 'menateach', 'et', 'yotzer', 'shaliach', 'migdalor', 'mekhayev']
+        const agents = ['sayer', 'meater', 'maazin', 'menateach', 'et', 'yotzer', 'shaliach', 'migdalor', 'mekhayev', 'mazhir']
         for (const agent of agents) {
             const soulPath = join(TEMPLATES_DIR, 'agents', agent, 'SOUL.md')
             try {
@@ -413,6 +413,8 @@ async function deployAgentSystem(ip: string, userMd: string, brandMd: string, br
                 if (agent === 'mekhayev') {
                     const stub = `# מעצב (mekhayev) — Brand Designer\n\nתפקיד: בניית ותחזוקת brand book מלא לעסק — לוגו, פלטת צבעים, טיפוגרפיה, סגנון ויזואלי, voice & tone.\nמגיב ל-on-demand בקשות: "עדכן brand book", "נתח אתר של לקוח חדש", "צור מערכת מותג מאפס".\n`
                     await sshWriteFile(ip, `${baseDir}/agents/${agent}/SOUL.md`, stub, password).catch(() => {})
+                } else if (agent === 'mazhir') {
+                    await sshWriteFile(ip, `${baseDir}/agents/${agent}/SOUL.md`, MAZHIR_SOUL_TEMPLATE, password).catch(() => {})
                 } else {
                     console.error(`Missing template: ${soulPath}`)
                 }
@@ -826,6 +828,7 @@ const DEFAULT_ROLE_MODELS: Record<string, string> = {
     'shaliach': 'anthropic/claude-haiku-4-5-20251001', // distribution — fast
     'migdalor': 'anthropic/claude-opus-4-7',            // AEO audit — precision reasoning
     'mekhayev': 'anthropic/claude-sonnet-4-6',          // brand design — reasoning + visual judgment
+    'mazhir': 'anthropic/claude-sonnet-4-6',            // Paid Ads Manager — judgment + math (bids, exclude lists)
 }
 
 async function getSubAgentModel(instanceId: string, role: string): Promise<string> {
@@ -854,7 +857,62 @@ export async function resolveDirectModel(instanceId: string, role: string): Prom
 
 // ── SINGLE SOURCE OF TRUTH: ensure all expected agents are registered on VPS ──
 // Called from: setupAgents (deploy), saveIntegration (first API key), addAgentToInstance (upgrade)
-const MATEH_AGENTS = ['sayer', 'menateach', 'meater', 'maazin', 'et', 'yotzer', 'shaliach', 'migdalor', 'mekhayev'] as const
+// "mazhir" = Paid Ads Manager — owns meta_ads + google_ads campaigns:
+// exclude-list maintenance, budget moves, bid strategy, retargeting waves.
+// Skipped automatically on VPS for scenarios with paidTrafficActivation=null.
+const MATEH_AGENTS = ['sayer', 'menateach', 'meater', 'maazin', 'et', 'yotzer', 'shaliach', 'migdalor', 'mekhayev', 'mazhir'] as const
+
+// SOUL template for mazhir — shipped as a stub until templates/agents/mazhir/SOUL.md
+// lands in the deploy bundle. Keeps the agent operational out-of-the-box.
+const MAZHIR_SOUL_TEMPLATE = `# מזהיר (mazhir) — Paid Ads Manager
+
+## תפקיד
+ניהול קמפיינים ממומנים ב-Meta Ads (פייסבוק + אינסטגרם) וב-Google Ads —
+השקה, אופטימיזציה, ניהול תקציבים, retargeting, rate-card של CPA/ROAS.
+
+## עקרונות עבודה (חובה, כל קמפיין)
+
+### 1. Audience exclusions — חובה לכל campaign cold
+לפני השקה:
+- **Meta Custom Audience "existing_customers"** — טען רשימת מייל לקוחות
+  קיימים דרך Custom Audiences API. החרג את ה-CA הזה מקהלי יעד קרים.
+- **Meta CA "trial_users"** — משתמשים פעילים שעוד לא קנו. החרג מ-cold,
+  כלול ב-retargeting בלבד.
+- **Google Ads: Customer Match** — העלה list_email של לקוחות קיימים
+  כ-observation audience עם bid modifier -100%.
+- **Google Ads: Placement exclusions** — תמיד חסום: youtube kids,
+  apps תוכן מבוגרים, partners network (אלא אם נבחר במפורש).
+
+### 2. Lookalike / Similar seed
+- **Meta Lookalike 1%** — seed מה-top 10% לקוחות לפי revenue.
+- **Meta Lookalike 2-5%** — scale כשה-1% נגמר (שבוע 3+).
+- **Google Ads Similar Segments** — auto-generated מה-Customer Match.
+
+### 3. Frequency caps
+- Meta cold campaigns: 2 חשיפות ל-7 ימים ליוזר.
+- Meta retargeting: 3 חשיפות ל-14 ימים.
+- Google Ads Display: lifetime 10 חשיפות ליוזר.
+
+### 4. Budget discipline
+- שבוע 1: $80-120/יום per campaign (בדיקה).
+- שבוע 2+: הגדלה של 20% ליום max (לא לשבור את האלגוריתם).
+- עצירה אוטומטית אם CPA > 2× target ל-3 ימים רצוף.
+
+### 5. UTM tagging
+כל URL שיוצא לקמפיין חייב UTMs. הפלטפורמה מייצרת אותם אוטומטית ב-
+shaliach → publishing step, אבל מזהיר מוודא שהם נשמרו בפועל.
+
+## קלטים (על הפלטפורמה)
+- \`research_data.chosenScenario.costs.paidTrafficIls\` — תקציב חודשי בש"ח
+- \`creativeBriefs[itemId]\` — brief מוכן מה-yotzer
+- \`creative_performance\` — תוצאות ROAS/CPA מהשבוע האחרון
+- \`strategy_learnings\` — winners/losers להפעלה מהירה
+
+## פלטים (agent_outputs)
+- \`campaign_launch_plan\` — הגדרת קמפיין חדש (audience, budget, creatives, UTMs)
+- \`campaign_optimization_note\` — שבועית — מה להגדיל / מה לכבות
+- \`fatigue_alert\` — כש-CTR/ROAS נפל >30% (triggers yotzer רענון creative)
+`
 
 export async function ensureAgentsRegistered(instance: {
     id: string; ip: string | null; rootPassword?: string | null;
@@ -5025,7 +5083,7 @@ const DEFAULT_MEDIA_SETTINGS: Required<Omit<MediaSettings, 'paidLora' | 'updated
 }
 
 export function resolveMediaSettings(rd: any): Required<MediaSettings> {
-    // eslint-disable-line @typescript-eslint/no-explicit-any
+     
     const saved: MediaSettings = rd?.mediaSettings || {}
     return {
         ...DEFAULT_MEDIA_SETTINGS,
@@ -5697,7 +5755,7 @@ function nanoid(n = 10): string {
 
 // Helper: extract JSON array from model output, handling fences/thinking blocks/truncation
 function extractJsonArray(text: string): any[] | null {
-    // eslint-disable-line @typescript-eslint/no-explicit-any
+     
     let t = text.replace(/```(?:json)?\s*/gi, '').replace(/```\s*$/g, '').trim()
     const firstBracket = t.indexOf('[')
     let lastBracket = t.lastIndexOf(']')
@@ -5727,7 +5785,7 @@ function extractJsonArray(text: string): any[] | null {
 
 // Helper: get text from Anthropic response (handles thinking-mode multi-block)
 function getAnthropicText(data: any): string {
-    // eslint-disable-line @typescript-eslint/no-explicit-any
+     
     const blocks = (data?.content || []).filter((c: any) => c.type === 'text' && c.text)
     return (blocks[blocks.length - 1]?.text || data?.content?.[0]?.text || '')
 }
@@ -6027,7 +6085,16 @@ ${productsBlock({ products: ctx.products, productsFunnel: ctx.productsFunnel })}
 - פרסונת יעד: ${slot.persona}
 - מוצר במוקד: ${slot.productRef || 'משולב'}
 
-## חוקי שפה — חובה מוחלטת!
+${(slot.channel === 'meta_ads' || slot.channel === 'google_ads') ? `## ⚠️ זה פריט של פרסום ממומן — חובת exclusion lists
+בכל קמפיין ממומן חובה להגדיר:
+1. **Custom Audience של לקוחות קיימים (exclude)** — להוציא את מי שכבר קנה את הקורס/הפלטפורמה מקהל היעד של campaigns קרים. תיאור: "מייל לקוחות (${slot.productRef || 'all SKUs'}) שהצטרפו ב-30 הימים האחרונים".
+2. **Seed של lookalike (include)** — 10% הלקוחות עם ההכנסה הגבוהה ביותר משמשים כ-seed ל-lookalike 1% באותו שוק.
+3. **Exclude: דומיינים תחרותיים** (Google Ads בלבד) — אתרי מתחרים שמחפשים את מילות המפתח שלנו לא צריכים לראות את המודעות.
+4. **Frequency cap**: ${slot.channel === 'meta_ads' ? 'Meta — 2-3 חשיפות לשבוע ליוזר' : 'Google Ads — lifetime max 10 חשיפות ליוזר'}.
+5. בבריף חייבים לציין במפורש: "Custom Audience: קיימים/מוצא" + שם רשימה.
+
+ציין את זה בחלק "הערות פורמט" של הבריף.
+` : ''}## חוקי שפה — חובה מוחלטת!
 - **100% עברית** ב-hook וב-brief. אפס מילים באנגלית.
 - אל תכתוב "workflow" → תכתוב "זרימת עבודה".
 - אל תכתוב "AI" → תכתוב "בינה מלאכותית".
@@ -6675,7 +6742,7 @@ function qaContentPlan(
 // so the "marketing manager under the hood" directly influences content
 // decisions without the user seeing the report itself.
 export function formatLatestOptimizationReport(rd: any): string {
-    // eslint-disable-line @typescript-eslint/no-explicit-any
+     
     const reports = Array.isArray(rd?.optimizationReports) ? rd.optimizationReports : []
     const latest = reports[0]
     if (!latest || !latest.summary) return ''
@@ -6711,7 +6778,7 @@ ${latest.next_period_focus ? `**פוקוס לתקופה הבאה:** ${latest.nex
 // Reads past plan items with results, computes a compact summary Opus can use
 // in Pass 1 (Skeleton). Returns empty string on first-ever generation.
 function buildPerformanceContext(rd: any): string {
-    // eslint-disable-line @typescript-eslint/no-explicit-any
+     
     const past: ContentPlanItem[] = Array.isArray(rd?.contentPlan) ? rd.contentPlan : []
     const withResults = past.filter(it => it.results && typeof it.results.engagement === 'number')
     if (withResults.length < 5) return '' // need at least 5 measured items to infer patterns
@@ -6798,7 +6865,7 @@ interface GetMyStatsFilter {
 }
 
 export function formatAgentStats(rd: any, filter: GetMyStatsFilter = {}): string {
-    // eslint-disable-line @typescript-eslint/no-explicit-any
+     
     const plan: ContentPlanItem[] = Array.isArray(rd?.contentPlan) ? rd.contentPlan : []
     let items = plan.filter(it => it.results && typeof it.results.engagement === 'number')
     if (items.length === 0) return ''
@@ -7165,11 +7232,63 @@ export const regenerateContentPlan = async (c: Context) => {
         }).where(eq(instances.id, instanceId))
 
         console.log(`Content plan regenerated for ${instanceId}: ${finalPlan.length} items (${plan.length} new + ${finalPlan.length - plan.length} preserved)`)
+
+        // Fire-and-forget: pre-generate creative briefs for paid-ad items so
+        // they're ready in approval queue the moment media buyer opens them.
+        // No image render here (expensive + wasteful until approved) — just
+        // the structured brief (prompt + model + overlay) stored in researchData.
+        prefetchCreativeBriefsForPaidItems(instanceId, plan).catch(err =>
+            console.error('[regenerateContentPlan] paid brief prefetch failed (non-fatal):', err),
+        )
+
         return ok(c, { plan: finalPlan, count: finalPlan.length }, 'Content plan ready')
     } catch (err) {
         console.error('regenerateContentPlan error:', err)
         return fail(c, 'שגיאה בייצור לוח תוכן: ' + ((err as Error).message || ''), 500)
     }
+}
+
+// Background: pre-generate structured creative brief for every paid-ad item
+// so the media buyer sees a ready-to-review brief (prompt + model + overlay +
+// exclude audiences hint) the moment they open the approval queue. Stored
+// under researchData.creativeBriefs keyed by content plan item id.
+async function prefetchCreativeBriefsForPaidItems(instanceId: string, plan: ContentPlanItem[]): Promise<void> {
+    const paidItems = plan.filter(it => it.channel === 'meta_ads' || it.channel === 'google_ads')
+    if (paidItems.length === 0) return
+
+    const { generateCreativeBrief } = await import('@/services/creativeBrief')
+    const briefs: Record<string, unknown> = {}
+    // Run sequentially to avoid burning user's Anthropic rate limit on many parallel calls
+    for (const item of paidItems) {
+        try {
+            const brief = await generateCreativeBrief(instanceId, {
+                id: item.id,
+                hook: item.hook,
+                brief: item.brief,
+                channel: item.channel,
+                type: item.type,
+                pillar: item.pillar,
+                persona: item.persona,
+                productRef: item.productRef,
+                ctaType: item.ctaType,
+            })
+            if (brief) briefs[item.id] = brief
+        } catch (err) {
+            console.error(`[prefetchCreativeBriefs] item ${item.id} failed:`, (err as Error).message)
+        }
+    }
+
+    if (Object.keys(briefs).length === 0) return
+
+    // Merge into researchData.creativeBriefs
+    const [inst] = await db.select().from(instances).where(eq(instances.id, instanceId))
+    if (!inst) return
+    const rd = (inst.researchData as any) || {}
+    const existing = (rd.creativeBriefs as Record<string, unknown>) || {}
+    await db.update(instances).set({
+        researchData: { ...rd, creativeBriefs: { ...existing, ...briefs } } as any,
+    }).where(eq(instances.id, instanceId))
+    console.log(`[prefetchCreativeBriefs] ${instanceId}: stored ${Object.keys(briefs).length} briefs`)
 }
 
 // ── GET /hosting/instances/:id/setup/agents/content-plan ──
