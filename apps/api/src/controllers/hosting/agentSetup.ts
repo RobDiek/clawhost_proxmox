@@ -6304,7 +6304,7 @@ JSON only.`
 // Generate 4-week content plan via v4 pipeline (Skeleton → Drafts → QA Repair → Self-Critique).
 // Smart mode: each item has flexibility level so agents can propose pivots later.
 // Monthly revision: re-call with performanceContext to adjust next 4 weeks.
-async function generateContentPlan(
+export async function generateContentPlan(
     instanceId: string,
     opts: { weeksAhead?: number; startDate?: Date; performanceContext?: string } = {}
 ): Promise<ContentPlanItem[]> {
