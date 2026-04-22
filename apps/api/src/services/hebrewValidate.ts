@@ -28,8 +28,8 @@ import type { BrandBookDraft, Gap } from './brandBookCompose'
 
 interface Correction {
     path: string         // dot-path like "identity.taglineHe" or "voice.vocabularyDont[4]"
-    original: string
-    fixed: string | null // null = remove from list
+    original: string     // the original content (may be substring of the field, or the full field)
+    fixed: string | null // null = remove from list; otherwise new value (substring replacement if length mismatch)
     issue: string        // reason in Hebrew
 }
 
@@ -86,11 +86,12 @@ export async function validateHebrew(
             if (m) {
                 const idx = parseInt(m[1], 10)
                 if (patchedGaps[idx] && c.fixed !== null) {
+                    // Gap suggestions are short free-text, full replacement is safe
                     patchedGaps[idx] = { ...patchedGaps[idx], suggestion: c.fixed }
                 }
             }
         } else {
-            applyPatch(patched, c.path, c.fixed)
+            applyPatch(patched, c.path, c.fixed, c.original)
         }
     }
 
@@ -136,8 +137,20 @@ function harvest(obj: unknown, path: string, out: Array<{ path: string; text: st
 // Apply correction by dot-path
 // ═══════════════════════════════════════════════════════════════════════════
 
-function applyPatch(obj: unknown, path: string, fixed: string | null): void {
-    // Parse path like "voice.vocabularyDont[3]" or "identity.taglineHe"
+// Apply a validator correction safely.
+// The validator often returns a SHORT substring as `fixed` and `original`,
+// intending a substring replacement — but earlier code would clobber the
+// entire field, turning a 300-char manifesto into a 20-char fragment.
+// Behavior:
+//   1. If fixed === null: delete key / splice array item.
+//   2. If current value at path is a short string or matches original exactly:
+//      do full-field replacement.
+//   3. If current value is a longer string AND original is a substring of it:
+//      replace just that substring (preserves surrounding sentences).
+//   4. If current value is much longer than fixed and original is NOT found:
+//      skip this correction (log warning) — safer to leave original than to
+//      destroy the field.
+export function applyPatch(obj: unknown, path: string, fixed: string | null, original?: string): void {
     const parts: Array<string | number> = []
     const re = /[^.[\]]+|\[(\d+)\]/g
     let m: RegExpExecArray | null
@@ -146,7 +159,6 @@ function applyPatch(obj: unknown, path: string, fixed: string | null): void {
         else parts.push(m[0])
     }
 
-    // Navigate to parent
     let cur: any = obj
     for (let i = 0; i < parts.length - 1; i++) {
         if (cur == null) return
@@ -155,18 +167,39 @@ function applyPatch(obj: unknown, path: string, fixed: string | null): void {
     if (cur == null) return
 
     const last = parts[parts.length - 1]
-    if (typeof last === 'number') {
-        // Array index
-        if (fixed === null) {
-            // Remove (caller's responsibility to track splice effect)
-            cur.splice(last, 1)
-        } else {
-            cur[last] = fixed
-        }
-    } else {
-        if (fixed === null) delete cur[last]
-        else cur[last] = fixed
+
+    // null = delete
+    if (fixed === null) {
+        if (typeof last === 'number') cur.splice(last, 1)
+        else delete cur[last]
+        return
     }
+
+    // Read current value
+    const existing = cur[last]
+
+    // Simple case: slot is empty or short (treat as full replacement)
+    if (typeof existing !== 'string' || existing.length < 50) {
+        cur[last] = fixed
+        return
+    }
+
+    // Length-guard: fixed is drastically shorter than existing — suspicious
+    const shrinkRatio = fixed.length / existing.length
+    if (shrinkRatio < 0.5) {
+        // Try substring replacement if `original` is found in `existing`
+        if (original && existing.includes(original)) {
+            cur[last] = existing.replace(original, fixed)
+            return
+        }
+        // Otherwise bail — do not destroy the field. Log so the validator
+        // return shape can be tightened over time.
+        console.warn(`[hebrewValidate] skipping suspicious correction on ${path} — fixed shorter than 50% of existing and original not found`)
+        return
+    }
+
+    // Normal length replacement
+    cur[last] = fixed
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -185,14 +218,20 @@ async function callHebrewValidator(
 (a) תקין — אל תכלול בתשובה
 (b) מכיל שגיאה — החזר תיקון
 
+**חוקי טופס חובה (אל תפר):**
+- \`original\` חייב להיות מחרוזת שקיימת בדיוק בטקסט המקורי של הפריט (case + spaces matching).
+- \`fixed\` הוא מחרוזת חליפית שתחליף את \`original\` בתוך הפריט. אם ברצונך לתקן מילה אחת בתוך משפט ארוך — \`original\` = המילה השגויה, \`fixed\` = המילה המתוקנת. השאר הפריט יישמר.
+- אסור להחליף פריט ארוך (50+ תווים) במחרוזת קצרה שאינה תחליף בתוכו — זה יהרוס את השדה.
+- \`fixed\` יכול להיות null רק אם ברור שצריך למחוק את הפריט כולו (למשל מילה hallucination בתוך vocabularyDo).
+
 החזר JSON יחיד בלי markdown, במבנה:
 {
   "corrections": [
     {
       "path": "<path כמו בקלט>",
-      "original": "<הטקסט המקורי>",
-      "fixed": "<הטקסט המתוקן, או null אם פשוט למחוק מילה / פריט>",
-      "issue": "<הסבר קצר בעברית מה היה לא תקין>"
+      "original": "<המחרוזת הבעייתית בדיוק כפי שמופיעה — תיאום תווים מלא>",
+      "fixed": "<המחרוזת החליפית, או null למחיקה>",
+      "issue": "<הסבר קצר בעברית>"
     }
   ]
 }
