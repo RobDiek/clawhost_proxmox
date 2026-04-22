@@ -28,6 +28,8 @@ type LogoAnalysis = {
         description: string
         descriptionHe: string
         hasText: boolean
+        textDetected?: string[]
+        textConfidence?: 'high' | 'medium' | 'low'
         dominantColors: string[]
         hasTransparentBackground: boolean
         inferredDimensions: { width: number; height: number } | null
@@ -106,6 +108,7 @@ export interface BrandBookDraft {
         photographyStyle: { primary: string; lightingPreference: string }
         illustrationStyle: { present: boolean; style: string | null }
         moodKeywords: string[]
+        doUse: string[]
         doNotUse: string[]
     }
     voice: {
@@ -315,6 +318,12 @@ function buildComposerPrompt(params: {
         }
         prompt += `- Transparent bg: ${logoAnalysis.visual.hasTransparentBackground}\n`
         if (logoAnalysis.visual.aspectRatio) prompt += `- Aspect: ${logoAnalysis.visual.aspectRatio}\n`
+        // Explicit textDetected signal — enables the composer to self-flag a name mismatch
+        // rather than relying on post-hoc regex gap detection.
+        if (logoAnalysis.visual.hasText && Array.isArray(logoAnalysis.visual.textDetected) && logoAnalysis.visual.textDetected.length) {
+            prompt += `- Text read from logo: ${logoAnalysis.visual.textDetected.join(' | ')} (OCR confidence: ${logoAnalysis.visual.textConfidence || 'low'})\n`
+            prompt += `  ⚠ If this text does not match the businessName, set confidence="low" and add a critical gap with a request to re-upload a correct logo file.\n`
+        }
     }
 
     // User inputs
@@ -352,12 +361,12 @@ function buildComposerPrompt(params: {
     "identity": {
       "businessName": "...",
       "legalName": null,
-      "taglineHe":       "עד 60 תווים, בעברית — מסר רגשי/מכירתי",
-      "taglineEn":       "English up to 60 chars — natural, not literal translation",
-      "missionHe":       "2-3 משפטים על המטרה של העסק",
-      "missionEn":       "2-3 English sentences — mission",
-      "manifestoHe":     "3-4 משפטים של brand manifesto — קצת יותר עמוק ממטרה",
-      "positioningLine": "משפט מיצוב אחד בעברית — 'לא X, לא Y — אלא Z' (חייב לנקוב בקטגוריה שמוחלפת)"
+      "taglineHe":       "סלוגן: 3-7 מילים, 20-55 תווים. משפט אחד שלם. פעיל (פועל + מה/למי). לא תיאורי.",
+      "taglineEn":       "English tagline: 3-7 words, 15-50 chars. Natural, not literal translation.",
+      "missionHe":       "משימה: 2 משפטים שלמים (פועל+מושא). סה״כ 25-55 מילים, 120-280 תווים. אסור שברים.",
+      "missionEn":       "Mission: 2 complete sentences. 25-50 words total. No fragments.",
+      "manifestoHe":     "מניפסט: 3-4 משפטים שלמים. סה״כ 40-120 מילים, 200-600 תווים. כל משפט מכיל נושא + פועל. אסור פתאים כמו 'עם גישה לכל החיים' — זה שבר, לא משפט.",
+      "positioningLine": "מיצוב: משפט אחד בעברית במבנה 'לא X, לא Y — אלא Z'. חייב לנקוב בקטגוריה שמוחלפת. 15-40 מילים."
     },
     "logo": {
       "primary": null,  // נמלא אוטומטית מ-logoAnalysis
@@ -384,8 +393,9 @@ function buildComposerPrompt(params: {
     "imagery": {
       "photographyStyle": { "primary": "lifestyle|editorial|product|minimal|dramatic", "lightingPreference": "natural|studio|moody" },
       "illustrationStyle": { "present": true, "style": "flat|3d|hand-drawn|geometric|null" },
-      "moodKeywords": ["5-8 מילים — bright, warm, מקצועי, צעיר, ..."],
-      "doNotUse": ["stock photos גנריים", "אנשים בחליפות", "..."]
+      "moodKeywords": ["5-8 מילים — חם, נגיש, מעשי, אמין, ..."],
+      "doUse": ["3-5 הנחיות על מה כן להשתמש — למשל 'פנים אמיתיות של מייסדים', 'מסכי מוצר עם נתונים אמיתיים', 'אור חלון טבעי'. ספציפי ומעשי."],
+      "doNotUse": ["3-5 הנחיות על מה לא להשתמש — 'stock של אנשים בחליפות', 'רובוטים עתידניים', 'ניאון כחול-סגול'. ספציפי."]
     },
     "voice": {
       "tone": "professional|casual|authoritative|intimate|mixed",
@@ -401,9 +411,9 @@ function buildComposerPrompt(params: {
       "shapes": { "cornerRadius": "none|small|medium|large|full", "borderStyle": "solid|soft|none" }
     },
     "principles": [
-      "עקרונות brand constitution — 3-5 חוקים שאי אפשר לשבור",
-      "דוגמה: לעולם לא fear-based marketing",
-      "דוגמה: תמיד להתחיל בעברית"
+      "עקרונות המותג — **בדיוק 3** חוקים אכיפים. לא 4, לא 5 — 3.",
+      "כל עקרון: משפט שלם, אכיף ברמת תוכן (אפשר לומר 'עבר' או 'נכשל' לתוכן קונקרטי). 10-25 מילים.",
+      "דוגמאות טובות: 'עברית קודמת בכל copy — אנגלית רק כשאין ברירה', 'כל מסר נגמר בצעד שהלקוח יכול לבצע היום', 'ללא הפחדה — לא מוכרים מפחד תחרות'. דוגמאות רעות: 'להיות טוב', 'איכות'."
     ],
     "compliance": { "aiGeneratedDisclosure": false, "trademarkRegistered": false }
   },
@@ -521,40 +531,86 @@ function detectGaps(draft: BrandBookDraft, logoAnalysis?: LogoAnalysis | null): 
         })
     }
 
-    // Logo text mismatch: if logoAnalysis detected text that doesn't match businessName,
-    // the file might be a placeholder or outdated. Surface as critical, not buried in rationale.
-    // Fires when Claude Vision's description/OCR mentions a different brand name in the logo.
+    // Logo text mismatch — prefer explicit textDetected from vision schema;
+    // fall back to regex scraping of the description for older rows.
     if (logoAnalysis?.ok && logoAnalysis.visual.hasText && draft.identity.businessName) {
-        const businessLower = draft.identity.businessName.toLowerCase().split(/[\s—|·:•]/)[0]
-        const desc = (logoAnalysis.visual.description || '').toLowerCase()
-        const descHe = (logoAnalysis.visual.descriptionHe || '').toLowerCase()
+        const bizTokens = draft.identity.businessName
+            .toLowerCase().replace(/[^a-z0-9א-ת\s]/g, ' ')
+            .split(/\s+/).filter(w => w.length >= 2)
 
-        // Extract quoted strings from description (e.g. "logo shows 'POWER'" → "POWER")
-        const quotedMatches = [...`${desc} ${descHe}`.matchAll(/["'"״״]([A-Za-zא-ת][\w\s-]{1,40}?)["'"״״]/g)]
-        const quotedTexts = quotedMatches.map(m => m[1].trim().toLowerCase()).filter(Boolean)
+        // Prefer structured textDetected field (new schema from Sonnet vision)
+        const detectedRaw: string[] = Array.isArray(logoAnalysis.visual.textDetected)
+            ? logoAnalysis.visual.textDetected.flatMap((s: string) => String(s).split('|')).map((s: string) => s.trim().toLowerCase()).filter(Boolean)
+            : []
 
-        // Also check unquoted capitalized words — less reliable but catches "the logo reads POWER"
-        const capitalWords = [...desc.matchAll(/\b([A-Z]{3,}[A-Z0-9]*)\b/g)].map(m => m[1].toLowerCase())
+        // Fallback: mine description strings (legacy rows before the schema upgrade)
+        let fallbackDetected: string[] = []
+        if (detectedRaw.length === 0) {
+            const desc = (logoAnalysis.visual.description || '').toLowerCase()
+            const descHe = (logoAnalysis.visual.descriptionHe || '').toLowerCase()
+            const quotedMatches = [...`${desc} ${descHe}`.matchAll(/["'"״״]([A-Za-zא-ת][\w\s-]{1,40}?)["'"״״]/g)]
+            const quotedTexts = quotedMatches.map(m => m[1].trim().toLowerCase()).filter(Boolean)
+            const capitalWords = [...(logoAnalysis.visual.description || '').matchAll(/\b([A-Z]{3,}[A-Z0-9]*)\b/g)].map(m => m[1].toLowerCase())
+            fallbackDetected = [...quotedTexts, ...capitalWords]
+        }
 
-        const allDetectedText = [...quotedTexts, ...capitalWords]
-
-        // If any detected text is a valid brand-like word (not generic) AND doesn't match business
-        for (const detected of allDetectedText) {
-            // Skip common style descriptors
-            if (['svg', 'png', 'jpg', 'brand', 'logo', 'icon', 'text'].includes(detected)) continue
-            // Skip if it contains business name
-            if (detected.includes(businessLower) || businessLower.includes(detected)) continue
-            // Skip if very short
+        const pool = detectedRaw.length ? detectedRaw : fallbackDetected
+        let mismatchText: string | null = null
+        for (const detected of pool) {
+            if (['svg', 'png', 'jpg', 'brand', 'logo', 'icon', 'text', '?'].includes(detected)) continue
             if (detected.length < 3) continue
-            // We have a mismatch
+            const partial = bizTokens.some(n => n.length >= 3 && (detected.includes(n) || n.includes(detected)))
+            if (!partial) { mismatchText = detected; break }
+        }
+        if (mismatchText) {
             gaps.push({
                 priority: 'critical',
                 field: 'logo.primary',
-                suggestion: `⚠️ הלוגו המנותח מזהה טקסט "${detected.toUpperCase()}" אך שם העסק הוא "${draft.identity.businessName}". ייתכן שהקובץ placeholder או גרסה ישנה — בדקו.`,
+                suggestion: `⚠️ הלוגו המנותח מזהה טקסט "${mismatchText.toUpperCase()}" אך שם העסק הוא "${draft.identity.businessName}". ייתכן שהקובץ placeholder או גרסה ישנה — העלו קובץ לוגו נכון.`,
                 canAutoGenerate: false,
             })
-            break   // only flag once
         }
+    }
+
+    // Manifesto quality — catches broken fragments like "עם גישה לכל החיים"
+    // which bypass the LLM's own instruction. 200 chars ≈ ~35 Hebrew words,
+    // ensures the field is actually 2+ sentences.
+    const manifesto = (draft.identity.manifestoHe || '').trim()
+    if (manifesto && manifesto.length < 120) {
+        gaps.push({
+            priority: 'critical',
+            field: 'identity.manifestoHe',
+            suggestion: `⚠️ המניפסט קצר מדי (${manifesto.length} תווים, נדרש 200-600). ייתכן שבר משפט — כתבו 3-4 משפטים שלמים על למה המותג קיים ומה הוא מבטיח.`,
+            canAutoGenerate: false,
+        })
+    } else if (manifesto && manifesto.split(/[.!?]/).filter(s => s.trim().length > 8).length < 2) {
+        gaps.push({
+            priority: 'critical',
+            field: 'identity.manifestoHe',
+            suggestion: `⚠️ המניפסט חסר משפטים שלמים — כתבו לפחות 2-3 משפטים שלמים (נושא + פועל בכל משפט).`,
+            canAutoGenerate: false,
+        })
+    }
+
+    // Principles cap — over-5 principles dilute the signal for downstream agents
+    if (Array.isArray(draft.principles) && draft.principles.length > 4) {
+        gaps.push({
+            priority: 'important',
+            field: 'principles',
+            suggestion: `${draft.principles.length} עקרונות — מומלץ לקצץ ל-3 עקרונות מרכזיים. סוכני AI עוקבים טוב יותר אחרי 3 חוקים ברורים מ-5 מעורפלים.`,
+            canAutoGenerate: true,
+        })
+    }
+
+    // Imagery doUse — agents need BOTH what to use and what to avoid, not only the blacklist
+    const doUseArr = Array.isArray((draft.imagery as any)?.doUse) ? (draft.imagery as any).doUse : []
+    if (doUseArr.length === 0 && draft.imagery) {
+        gaps.push({
+            priority: 'important',
+            field: 'imagery.doUse',
+            suggestion: 'חסרה רשימת "מה כן להשתמש" — יש רק רשימת "מה לא". הסוכנים היוצרים יעילים יותר כשהם יודעים מה לבחור, לא רק מה לדחות.',
+            canAutoGenerate: true,
+        })
     }
 
     if (!draft.colors.primary?.hex) {

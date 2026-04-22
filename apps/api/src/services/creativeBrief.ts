@@ -86,8 +86,11 @@ function compactBrandBlock(bb: Record<string, unknown> | null): string {
     const imageryStyle = photo.primary || imagery.style || imagery.description || imagery.anchor || ''
     const imageryLighting = photo.lightingPreference || ''
     const moodKeywords = Array.isArray(imagery.moodKeywords) ? imagery.moodKeywords.slice(0, 6).join(', ') : ''
-    const imageryDo = Array.isArray(imagery.dos) ? imagery.dos.join(' · ') : ''
-    const imageryDont = Array.isArray(imagery.donts) ? imagery.donts.join(' · ') : ''
+    // Support both new (doUse/doNotUse) and legacy (dos/donts) field names
+    const doList = imagery.doUse || imagery.dos || []
+    const dontList = imagery.doNotUse || imagery.donts || []
+    const imageryDo = Array.isArray(doList) ? doList.slice(0, 5).join(' · ') : ''
+    const imageryDont = Array.isArray(dontList) ? dontList.slice(0, 5).join(' · ') : ''
 
     // Voice — tone + personality + vocabulary do/don't
     const voiceTone = voice.tone || voice.description || ''

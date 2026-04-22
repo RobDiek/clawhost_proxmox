@@ -94,9 +94,19 @@ export const extractBrand = async (c: Context) => {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // POST /hosting/instances/:id/brand/analyze-logo
-// Body: { logoUrl: string }
-// Returns: LogoAnalysisResult
-// Uses instance.anthropicKey (BYOK)
+// Body: {
+//   logoUrl: string,            // primary candidate
+//   candidates?: string[],       // additional candidates to try if primary fails
+//   businessName?: string,       // if provided, we verify logo textDetected matches
+// }
+// Returns: { analysis: LogoAnalysisResult, candidatesTried?: number, matchedUrl?: string }
+//
+// When candidates + businessName are supplied the endpoint iterates through
+// up to 4 candidates and picks the first one whose OCR text matches the
+// business name (case-insensitive, partial match). If none match, returns the
+// primary candidate's analysis with a critical nameMismatch gap still flagged.
+// Fixes the prior behavior where a placeholder PNG at logo.png caused the
+// entire brand book to be built on wrong-logo data (April 2026 Flowmatic case).
 // ═══════════════════════════════════════════════════════════════════════════
 export const analyzeLogoEndpoint = async (c: Context) => {
     try {
@@ -108,17 +118,53 @@ export const analyzeLogoEndpoint = async (c: Context) => {
         const key = (instance as any).aiProviderKey || process.env.ANTHROPIC_API_KEY
         if (!key) return fail(c, 'Anthropic API key not configured (needed for logo Vision analysis)', 400)
 
-        const body = await c.req.json<{ logoUrl: string }>()
+        const body = await c.req.json<{ logoUrl: string; candidates?: string[]; businessName?: string }>()
         if (!body.logoUrl) return fail(c, 'logoUrl required', 400)
 
-        console.log(`[brand/analyze-logo] ${instanceId} analyzing ${body.logoUrl.substring(0, 100)}`)
-        const analysis = await analyzeLogo(body.logoUrl, key)
+        // Dedupe and cap at 4 candidates total (primary + 3 fallbacks)
+        const ordered = [body.logoUrl, ...(body.candidates || [])].filter(Boolean)
+        const seen = new Set<string>()
+        const toTry = ordered.filter(u => { if (seen.has(u)) return false; seen.add(u); return true }).slice(0, 4)
 
-        return ok(c, { analysis }, analysis.ok ? 'Analyzed.' : (analysis.error || 'Analysis failed'))
+        let best: Awaited<ReturnType<typeof analyzeLogo>> | null = null
+        let matchedUrl: string | null = null
+        let tried = 0
+        const nameTokens = tokenize(body.businessName || '')
+
+        for (const url of toTry) {
+            tried++
+            console.log(`[brand/analyze-logo] ${instanceId} try ${tried}/${toTry.length}: ${url.substring(0, 100)}`)
+            const analysis = await analyzeLogo(url, key)
+            if (!best) best = analysis
+            if (!analysis.ok || nameTokens.length === 0) continue
+            const detected = (analysis.visual.textDetected || []).flatMap(s => s.split('|'))
+            const detectedTokens = detected.flatMap(tokenize)
+            const matches = nameTokens.some(n => detectedTokens.some(d => d.includes(n) || n.includes(d)))
+            if (matches) {
+                best = analysis
+                matchedUrl = url
+                console.log(`[brand/analyze-logo] ${instanceId} matched on try ${tried}: ${detected.join(',')}`)
+                break
+            }
+            console.log(`[brand/analyze-logo] ${instanceId} try ${tried} no name match (detected=${detected.join(',')} want=${nameTokens.join(',')})`)
+        }
+
+        if (!best) return fail(c, 'Logo analysis failed', 500)
+        return ok(c, {
+            analysis: best,
+            candidatesTried: tried,
+            matchedUrl,
+        }, best.ok ? 'Analyzed.' : (best.error || 'Analysis failed'))
     } catch (err) {
         console.error('analyzeLogoEndpoint error:', err)
         return fail(c, 'Logo analysis failed', 500)
     }
+}
+
+// Lowercase alphanumeric tokens ≥2 chars — used for fuzzy name/text matching
+function tokenize(s: string): string[] {
+    return (s || '').toLowerCase().replace(/[^a-z0-9א-ת\s]/g, ' ')
+        .split(/\s+/).map(w => w.trim()).filter(w => w.length >= 2)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

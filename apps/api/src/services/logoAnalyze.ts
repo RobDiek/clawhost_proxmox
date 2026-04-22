@@ -36,6 +36,8 @@ interface LogoAnalysisResult {
         description: string                // 1-2 sentence English description
         descriptionHe: string               // Hebrew version
         hasText: boolean
+        textDetected: string[]              // verbatim words/glyphs read by vision (empty if hasText=false)
+        textConfidence: 'high' | 'medium' | 'low'
         dominantColors: string[]            // hex codes from the logo itself (2-5)
         hasTransparentBackground: boolean
         inferredDimensions: { width: number; height: number } | null  // approx px
@@ -76,7 +78,8 @@ export async function analyzeLogo(
         source: { url: logoUrl, format: 'unknown', sizeBytes: 0, isDataUri: logoUrl.startsWith('data:') },
         visual: {
             style: 'unknown', description: '', descriptionHe: '',
-            hasText: false, dominantColors: [], hasTransparentBackground: false,
+            hasText: false, textDetected: [], textConfidence: 'low',
+            dominantColors: [], hasTransparentBackground: false,
             inferredDimensions: null, aspectRatio: null,
         },
         usageRules: { ...DEFAULT_RULES },
@@ -277,6 +280,8 @@ interface VisionPayload {
     descriptionEn: string
     descriptionHe: string
     hasText: boolean
+    textDetected?: string[]
+    textConfidence?: 'high' | 'medium' | 'low'
     dominantColors: string[]
     hasTransparentBackground: boolean
     aspectRatio: LogoAnalysisResult['visual']['aspectRatio']
@@ -306,27 +311,34 @@ async function callClaudeVision(
   "descriptionEn": "1-2 sentences in English describing the logo",
   "descriptionHe": "אותו דבר בעברית, משפט-שניים",
   "hasText": true | false,
+  "textDetected": ["..."],               // ⚠ CRITICAL: array of EVERY individual word, letter group, or
+                                          //   initial visible in the logo, verbatim (e.g. ["Flowmatic","Academy"]).
+                                          //   Include in the order they appear. Empty array if hasText=false.
+                                          //   If the glyphs are stylized/cropped and ambiguous, list your best
+                                          //   candidates separated by "|" inside ONE string (e.g. ["POWER|TOWER|TOWNE"]).
+                                          //   Do NOT hallucinate — if unreadable, use ["?"].
+  "textConfidence": "high" | "medium" | "low", // your confidence in textDetected
   "dominantColors": ["#RRGGBB", ...],   // 2-5 hex codes actually used in the logo
   "hasTransparentBackground": true | false,
   "aspectRatio": "square" | "horizontal" | "vertical" | "circular" | null,
-  "inferredWidth": null | number,        // approx px if clear
+  "inferredWidth": null | number,
   "inferredHeight": null | number,
-  "minSizePx": 32,                        // smallest size that remains legible (16-64 typical)
-  "safeZonePx": 16,                       // clear space around logo
-  "allowedBackgrounds": ["#FFFFFF", ...], // hex codes where logo works (based on color/contrast)
+  "minSizePx": 32,
+  "safeZonePx": 16,
+  "allowedBackgrounds": ["#FFFFFF", ...],
   "forbiddenContexts": ["busy photographic backgrounds", ...],
   "recommendedVariants": ["full-color", "monochrome-dark", "monochrome-light"],
   "defaultOverlayPosition": "top_left" | "top_right" | "bottom_left" | "bottom_right" | "center",
-  "requiresLightBackground": true | false,   // true if logo is dark and needs light bg
+  "requiresLightBackground": true | false,
   "requiresDarkBackground": true | false
 }
 
 Guidelines:
-- Style definitions: wordmark = text-only; lettermark = initials; pictorial = recognizable icon; abstract = geometric symbol; combination = text + symbol; emblem = text inside a badge/shield.
-- Be conservative on transparency — only claim transparent if you clearly see it.
-- dominantColors: use a color picker mindset — pick the 2-5 hex codes that appear in the logo itself, not white space.
-- forbiddenContexts: be specific (e.g. "photos with similar color range", "dark mode without inverted variant").
-- If logo is very small or unclear, set style=unknown but still attempt colors + text detection.
+- Style: wordmark = text-only; lettermark = initials; pictorial = icon; abstract = geometric; combination = text+symbol; emblem = text inside badge.
+- textDetected is THE MOST IMPORTANT FIELD — downstream code uses it to verify the logo matches the business name. Read carefully; zoom on stylized letters; if unsure, provide candidates separated by "|".
+- Be conservative on transparency — only claim transparent if you clearly see checkerboard.
+- dominantColors: pick 2-5 hex codes that appear in the logo itself, not white space.
+- forbiddenContexts: be specific.
 - Return valid JSON only. No trailing commas. No comments.`
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -337,8 +349,11 @@ Guidelines:
             'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-            model: 'claude-haiku-4-5',
-            max_tokens: 1500,
+            // Sonnet 4.6 — stronger OCR than Haiku, worth the extra cost for a
+            // one-shot brand analysis. Haiku misreads stylized Latin glyphs
+            // (produced "TOWNE" for a "Flowmatic" wordmark in April 2026 test).
+            model: 'claude-sonnet-4-6',
+            max_tokens: 2000,
             system: systemPrompt,
             messages: [{
                 role: 'user',
@@ -384,6 +399,11 @@ function mergeVisionResult(base: LogoAnalysisResult, v: VisionPayload): LogoAnal
     base.visual.description = v.descriptionEn || ''
     base.visual.descriptionHe = v.descriptionHe || ''
     base.visual.hasText = !!v.hasText
+    base.visual.textDetected = Array.isArray(v.textDetected)
+        ? v.textDetected.map(s => String(s).trim()).filter(Boolean).slice(0, 8)
+        : []
+    base.visual.textConfidence = (v.textConfidence === 'high' || v.textConfidence === 'medium' || v.textConfidence === 'low')
+        ? v.textConfidence : 'low'
     base.visual.dominantColors = (v.dominantColors || []).filter(c => /^#[0-9A-Fa-f]{6}$/.test(c)).map(c => c.toUpperCase())
     base.visual.hasTransparentBackground = !!v.hasTransparentBackground
     base.visual.aspectRatio = v.aspectRatio || null

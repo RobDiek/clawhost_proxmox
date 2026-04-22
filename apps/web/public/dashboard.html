@@ -9109,19 +9109,32 @@ async function startBrandProcessing() {
       }
       brandWizardState.scraped = extractJson.data.signals;
 
-      // Step B: analyze top logo candidate (if any)
-      var topLogo = brandWizardState.scraped.logo && brandWizardState.scraped.logo.candidates[0];
-      if (topLogo && !topLogo.url.endsWith('#inline-svg-logo')) {
+      // Step B: analyze logo candidates — backend iterates through up to 4,
+      // picks the first whose OCR text matches the businessName (fixes the
+      // "TOWNE instead of Flowmatic" case where top candidate is a placeholder)
+      var candidates = (brandWizardState.scraped.logo && brandWizardState.scraped.logo.candidates) || [];
+      var rasterCandidates = candidates
+        .filter(function(c) { return c && c.url && !c.url.endsWith('#inline-svg-logo'); })
+        .map(function(c) { return c.url; });
+      if (rasterCandidates.length > 0) {
         setStatus('מנתח את הלוגו...');
         try {
           var logoRes = await fetch(API + '/hosting/instances/' + instanceId + '/brand/analyze-logo', {
             method: 'POST',
             headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ logoUrl: topLogo.url }),
+            body: JSON.stringify({
+              logoUrl: rasterCandidates[0],
+              candidates: rasterCandidates.slice(1),
+              businessName: (brandWizardState.scraped.identity && brandWizardState.scraped.identity.businessName) || '',
+            }),
           });
           var logoJson = await logoRes.json();
           if (logoJson.success && logoJson.data.analysis && logoJson.data.analysis.ok) {
             brandWizardState.logoAnalysis = logoJson.data.analysis;
+            if (logoJson.data.matchedUrl) {
+              brandWizardState.logoAnalysis.source = brandWizardState.logoAnalysis.source || {};
+              brandWizardState.logoAnalysis.source.url = logoJson.data.matchedUrl;
+            }
           }
         } catch (logoErr) {
           console.warn('Logo analyze failed (non-fatal):', logoErr);
