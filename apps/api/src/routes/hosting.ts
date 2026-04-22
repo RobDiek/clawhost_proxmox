@@ -137,6 +137,7 @@ import {
     publishOutput,
     archiveOutput,
     deleteOutput,
+    exportOutput,
     listBackups,
     createBackup,
     restoreBackup,
@@ -448,6 +449,7 @@ app.patch('/instances/:id/outputs/:outputId/edit', editOutput)
 app.patch('/instances/:id/outputs/:outputId/publish', publishOutput)
 app.patch('/instances/:id/outputs/:outputId/archive', archiveOutput)
 app.delete('/instances/:id/outputs/:outputId', deleteOutput)
+app.get('/instances/:id/outputs/:outputId/export', exportOutput)
 
 // ── Diagnostics ──
 app.post('/instances/:id/diagnose', diagnoseError)

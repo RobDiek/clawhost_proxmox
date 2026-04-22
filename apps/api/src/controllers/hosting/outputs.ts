@@ -701,32 +701,166 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
                         publishError = 'הגדרות WordPress חסרות. בדקו URL, שם משתמש ו-Application Password.'
                         publishErrorType = 'missing_integration'
                     } else {
-                        // WordPress REST API — create post
+                        // WordPress REST API — professional post with SEO + featured media
                         const wpUrl = wpConfig.url.replace(/\/$/, '')
                         const auth = Buffer.from(`${wpConfig.user}:${wpConfig.appPassword}`).toString('base64')
 
-                        // Convert markdown content to HTML (basic)
-                        let htmlContent = content
-                            .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-                            .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-                            .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-                            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                            .replace(/\*(.+?)\*/g, '<em>$1</em>')
-                            .replace(/\n\n/g, '</p><p>')
-                            .replace(/\n/g, '<br>')
-                        htmlContent = '<p>' + htmlContent + '</p>'
+                        // Pull SEO extras + featured image from agent_output metadata
+                        const outMeta = (output.metadata as any) || {}
+                        const seo = (outMeta.seo as any) || {}
+                        const itemId = outMeta.contentPlanItemId as string | undefined
+
+                        // Convert markdown → HTML with heading + list + FAQ block support
+                        const mdToHtml = (md: string): string => {
+                            const html = md
+                                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+                                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+                                .replace(/\n\n/g, '</p><p>')
+                                .replace(/\n/g, '<br>')
+                            return '<p>' + html + '</p>'
+                        }
+                        let htmlContent = mdToHtml(content)
+
+                        // Append FAQ block if present (great for AEO / Google's People Also Ask)
+                        if (Array.isArray(seo.faq) && seo.faq.length) {
+                            htmlContent += '<h2>שאלות נפוצות</h2>'
+                            for (const q of seo.faq) {
+                                htmlContent += `<h3>${String(q.question).replace(/</g, '&lt;')}</h3><p>${String(q.answer).replace(/</g, '&lt;')}</p>`
+                            }
+                        }
+
+                        // Inject JSON-LD Article + FAQPage schema at the bottom
+                        const schemas: unknown[] = []
+                        if (seo.schemaJsonLd && typeof seo.schemaJsonLd === 'object') {
+                            schemas.push(seo.schemaJsonLd)
+                        }
+                        if (Array.isArray(seo.faq) && seo.faq.length) {
+                            schemas.push({
+                                '@context': 'https://schema.org', '@type': 'FAQPage',
+                                mainEntity: seo.faq.map((q: any) => ({
+                                    '@type': 'Question', name: q.question,
+                                    acceptedAnswer: { '@type': 'Answer', text: q.answer },
+                                })),
+                            })
+                        }
+                        if (schemas.length > 0) {
+                            htmlContent += '<script type="application/ld+json">' +
+                                JSON.stringify(schemas.length === 1 ? schemas[0] : schemas) + '</script>'
+                        }
+
+                        // Step 1: if we have a featured image, upload it first and get its ID
+                        let featuredMediaId: number | undefined
+                        if (itemId) {
+                            try {
+                                const { contentPlanMedia } = await import('@/db/schema')
+                                const media = await db.select().from(contentPlanMedia)
+                                    .where(eq(contentPlanMedia.contentPlanItemId, itemId))
+                                const chosen = media.find(m => m.status === 'approved')
+                                    || media.find(m => m.status === 'ready')
+                                    || media[0]
+                                if (chosen?.publicUrl) {
+                                    const imgBytes = await fetch(chosen.publicUrl).then(r => r.ok ? r.arrayBuffer() : null)
+                                    if (imgBytes) {
+                                        const filename = `featured-${Date.now()}.jpg`
+                                        const mediaRes = await fetch(`${wpUrl}/wp-json/wp/v2/media`, {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'image/jpeg',
+                                                'Content-Disposition': `attachment; filename="${filename}"`,
+                                                'Authorization': `Basic ${auth}`,
+                                            },
+                                            body: imgBytes,
+                                        })
+                                        if (mediaRes.ok) {
+                                            const mediaJson = await mediaRes.json() as { id?: number }
+                                            featuredMediaId = mediaJson.id
+                                        } else {
+                                            console.warn(`[wp-publish] media upload failed: ${mediaRes.status}`)
+                                        }
+                                    }
+                                }
+                            } catch (mediaErr) {
+                                console.warn('[wp-publish] featured media non-fatal error:', (mediaErr as Error).message)
+                            }
+                        }
+
+                        // Step 2: resolve category + tag slugs → IDs (WP REST requires IDs, not names)
+                        const resolveTaxonomyIds = async (taxonomy: 'categories' | 'tags', names: string[]): Promise<number[]> => {
+                            if (!names.length) return []
+                            const ids: number[] = []
+                            for (const name of names) {
+                                try {
+                                    // Try to find existing
+                                    const findRes = await fetch(`${wpUrl}/wp-json/wp/v2/${taxonomy}?search=${encodeURIComponent(name)}&per_page=5`, {
+                                        headers: { 'Authorization': `Basic ${auth}` },
+                                    })
+                                    if (findRes.ok) {
+                                        const found = await findRes.json() as Array<{ id: number; name: string; slug: string }>
+                                        const exact = found.find(f => f.name === name || f.slug === name.toLowerCase())
+                                        if (exact) { ids.push(exact.id); continue }
+                                    }
+                                    // Create new
+                                    const createRes = await fetch(`${wpUrl}/wp-json/wp/v2/${taxonomy}`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${auth}` },
+                                        body: JSON.stringify({ name }),
+                                    })
+                                    if (createRes.ok) {
+                                        const created = await createRes.json() as { id: number }
+                                        if (created.id) ids.push(created.id)
+                                    }
+                                } catch {
+                                    // Non-fatal per name — keep going
+                                }
+                            }
+                            return ids
+                        }
+
+                        const categoryIds = Array.isArray(seo.categories) ? await resolveTaxonomyIds('categories', seo.categories) : []
+                        const tagIds = Array.isArray(seo.tags) ? await resolveTaxonomyIds('tags', seo.tags) : []
+
+                        // Step 3: determine status — 'future' if scheduledFor in future, else 'publish'
+                        const scheduledFor = output.scheduledFor ? new Date(output.scheduledFor) : null
+                        const isFuture = scheduledFor && scheduledFor.getTime() > Date.now() + 5 * 60 * 1000
+                        const postStatus = isFuture ? 'future' : 'publish'
+
+                        // Step 4: assemble post payload with Yoast + Rank Math meta fields
+                        const postPayload: Record<string, unknown> = {
+                            title: output.title,
+                            content: htmlContent,
+                            status: postStatus,
+                            slug: seo.slug || undefined,
+                            excerpt: seo.excerpt || seo.metaDescription || undefined,
+                            categories: categoryIds.length ? categoryIds : undefined,
+                            tags: tagIds.length ? tagIds : undefined,
+                            featured_media: featuredMediaId || undefined,
+                            date: isFuture && scheduledFor ? scheduledFor.toISOString() : undefined,
+                            // Yoast SEO fields (plugin: yoast/wordpress-seo)
+                            yoast_meta: seo.metaDescription ? {
+                                yoast_wpseo_metadesc: seo.metaDescription,
+                                yoast_wpseo_focuskw: seo.primaryKeyword || undefined,
+                                yoast_wpseo_title: output.title,
+                            } : undefined,
+                            // Rank Math fields (plugin: rankmath/seo-by-rank-math)
+                            meta: seo.metaDescription ? {
+                                rank_math_description: seo.metaDescription,
+                                rank_math_focus_keyword: seo.primaryKeyword || undefined,
+                                rank_math_title: output.title,
+                            } : undefined,
+                        }
+                        // Strip undefined
+                        for (const k of Object.keys(postPayload)) {
+                            if (postPayload[k] === undefined) delete postPayload[k]
+                        }
 
                         const wpRes = await fetch(`${wpUrl}/wp-json/wp/v2/posts`, {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Basic ${auth}`,
-                            },
-                            body: JSON.stringify({
-                                title: output.title,
-                                content: htmlContent,
-                                status: 'publish',
-                            }),
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${auth}` },
+                            body: JSON.stringify(postPayload),
                         })
 
                         if (wpRes.ok) {
@@ -734,7 +868,7 @@ export const publishOutput = async (c: Context<HonoEnv>) => {
                             publishSuccess = true
                             if (wpData.id) channelPostId = String(wpData.id)
                             if (wpData.link) channelPostUrl = wpData.link
-                            console.log(`Published to WordPress: post ${wpData.id} at ${wpData.link}`)
+                            console.log(`Published to WordPress: post ${wpData.id} at ${wpData.link} (status=${postStatus}, featured=${featuredMediaId || 'none'}, cats=${categoryIds.length}, tags=${tagIds.length})`)
                         } else {
                             const wpErr = await wpRes.text()
                             publishError = `WordPress API (${wpRes.status}): ${wpErr.substring(0, 150)}`
@@ -1003,5 +1137,224 @@ export const deleteOutput = async (c: Context<HonoEnv>) => {
     } catch (err) {
         console.error('deleteOutput error:', err)
         return fail(c, 'Failed to delete', 500)
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /hosting/instances/:id/outputs/:outputId/export?format=mdx|wordpress
+// Mode-B fallback: when the user hasn't connected GitHub / WordPress / email
+// etc., we still need to give them something to paste. Returns:
+//   - mdx       : full file with YAML frontmatter + body + JSON-LD (ready for
+//                 any static site: Next/Astro/Hugo/Gatsby)
+//   - wordpress : HTML body + separate metadata block (paste each field
+//                 into the WP editor manually)
+//   - plaintext : copy-paste-ready text for social posts
+//   - instructions: step-by-step Hebrew guide specific to the channel
+// ─────────────────────────────────────────────────────────────────────────────
+export const exportOutput = async (c: Context<HonoEnv>) => {
+    try {
+        const outputId = c.req.param('outputId')
+        const format = (c.req.query('format') || 'auto').toLowerCase()
+
+        const [output] = await db.select().from(agentOutputs).where(eq(agentOutputs.id, outputId))
+        if (!output) return fail(c, 'Output not found', 404)
+
+        const md = (output.metadata as any) || {}
+        const seo = (md.seo as any) || {}
+        const itemId = md.contentPlanItemId as string | undefined
+        const channel = output.platform || 'unknown'
+
+        // Featured image lookup (first approved/ready render for this plan item)
+        let featuredImage: string | undefined
+        if (itemId) {
+            const { contentPlanMedia } = await import('@/db/schema')
+            const media = await db.select().from(contentPlanMedia)
+                .where(eq(contentPlanMedia.contentPlanItemId, itemId))
+            const chosen = media.find(m => m.status === 'approved')
+                || media.find(m => m.status === 'ready')
+                || media[0]
+            if (chosen?.publicUrl) featuredImage = chosen.publicUrl
+        }
+
+        // Auto-pick format if not specified
+        const isArticle = output.outputType === 'blog_article' || channel === 'blog'
+        const effectiveFormat = format === 'auto' ? (isArticle ? 'mdx' : 'plaintext') : format
+
+        // ─── MDX: full file for static-site repos ───
+        if (effectiveFormat === 'mdx') {
+            const esc = (s: string) => String(s).replace(/'/g, "''")
+            const fm: string[] = ['---']
+            fm.push(`title: '${esc(output.title || '')}'`)
+            if (seo.slug) fm.push(`slug: '${esc(seo.slug)}'`)
+            fm.push(`date: '${(output.scheduledFor || output.createdAt || new Date()).toISOString().slice(0, 10)}'`)
+            fm.push(`lang: 'he'`)
+            if (seo.metaDescription) fm.push(`description: '${esc(seo.metaDescription)}'`)
+            if (seo.excerpt) fm.push(`excerpt: '${esc(seo.excerpt)}'`)
+            if (seo.primaryKeyword) fm.push(`primaryKeyword: '${esc(seo.primaryKeyword)}'`)
+            if (Array.isArray(seo.secondaryKeywords) && seo.secondaryKeywords.length) {
+                fm.push(`secondaryKeywords:`)
+                for (const k of seo.secondaryKeywords) fm.push(`  - '${esc(k)}'`)
+            }
+            if (Array.isArray(seo.categories)) {
+                fm.push(`categories:`)
+                for (const cc of seo.categories) fm.push(`  - '${esc(cc)}'`)
+            }
+            if (Array.isArray(seo.tags)) {
+                fm.push(`tags:`)
+                for (const t of seo.tags) fm.push(`  - '${esc(t)}'`)
+            }
+            if (featuredImage) fm.push(`featuredImage: '${esc(featuredImage)}'`)
+            fm.push('---', '', output.content || '')
+
+            if (Array.isArray(seo.faq) && seo.faq.length) {
+                fm.push('', '## שאלות נפוצות')
+                for (const q of seo.faq) fm.push('', `### ${q.question}`, '', q.answer)
+            }
+            const schemas: unknown[] = []
+            if (seo.schemaJsonLd) schemas.push({ ...seo.schemaJsonLd, ...(featuredImage ? { image: featuredImage } : {}) })
+            if (Array.isArray(seo.faq) && seo.faq.length) {
+                schemas.push({
+                    '@context': 'https://schema.org', '@type': 'FAQPage',
+                    mainEntity: seo.faq.map((q: any) => ({
+                        '@type': 'Question', name: q.question,
+                        acceptedAnswer: { '@type': 'Answer', text: q.answer },
+                    })),
+                })
+            }
+            if (schemas.length) {
+                fm.push('', '<script type="application/ld+json">',
+                    JSON.stringify(schemas.length === 1 ? schemas[0] : schemas, null, 2),
+                    '</script>')
+            }
+            return ok(c, {
+                format: 'mdx',
+                filename: (seo.slug || `post-${outputId}`) + '.mdx',
+                content: fm.join('\n') + '\n',
+                featuredImageUrl: featuredImage,
+                instructions: [
+                    '1. שמרו את הקובץ בתיקיית content/blog/ של ה-repo (או היכן שהסטטיק-סייט מצפה).',
+                    '2. הקפידו ש-slug בשם הקובץ תואם לפילד slug ב-frontmatter.',
+                    '3. אם השתמשתם בתמונה ראשית — הורידו מ-URL לעיל ושימרו ליד הקובץ או ב-CDN.',
+                    '4. Commit + push. הסטטיק-סייט יבנה אוטומטית.',
+                ],
+            }, 'MDX export ready')
+        }
+
+        // ─── WordPress manual copy: HTML + separate metadata block ───
+        if (effectiveFormat === 'wordpress') {
+            const mdToHtml = (s: string) => s
+                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>')
+            let html = '<p>' + mdToHtml(output.content || '') + '</p>'
+            if (Array.isArray(seo.faq) && seo.faq.length) {
+                html += '<h2>שאלות נפוצות</h2>'
+                for (const q of seo.faq) html += `<h3>${q.question}</h3><p>${q.answer}</p>`
+            }
+            return ok(c, {
+                format: 'wordpress',
+                title: output.title,
+                slug: seo.slug,
+                html,
+                metaDescription: seo.metaDescription,
+                focusKeyword: seo.primaryKeyword,
+                excerpt: seo.excerpt,
+                categories: seo.categories || [],
+                tags: seo.tags || [],
+                featuredImageUrl: featuredImage,
+                instructions: [
+                    '1. היכנסו ל-WordPress Admin → Posts → Add New.',
+                    '2. הדביקו את ה-title למעלה.',
+                    '3. עברו ל-"Code editor" (⋮ מימין-למעלה) והדביקו את ה-html.',
+                    '4. תחת "Settings":',
+                    '   · Slug: הדביקו את הערך.',
+                    '   · Categories + Tags: הוסיפו מהרשימה (צרו אם חסר).',
+                    '   · Featured image: הורידו את התמונה מ-URL לעיל ← Upload.',
+                    '5. אם מותקן Yoast SEO / Rank Math — הדביקו:',
+                    '   · Meta description = metaDescription',
+                    '   · Focus keyword = focusKeyword',
+                    '6. לחצו Publish (או Schedule לפי הצורך).',
+                ],
+            }, 'WordPress export ready')
+        }
+
+        // ─── Plaintext: social posts, emails ───
+        return ok(c, {
+            format: 'plaintext',
+            title: output.title,
+            content: output.content,
+            platform: channel,
+            featuredImageUrl: featuredImage,
+            hashtags: Array.isArray(md.hashtags) ? md.hashtags : undefined,
+            instructions: buildChannelInstructions(channel, output.title || '', featuredImage),
+        }, 'Export ready')
+    } catch (err) {
+        console.error('exportOutput error:', err)
+        return fail(c, 'Export failed', 500)
+    }
+}
+
+// Channel-specific paste instructions for Mode-B users
+function buildChannelInstructions(channel: string, title: string, featuredImage?: string): string[] {
+    const hasImage = !!featuredImage
+    switch (channel) {
+        case 'facebook':
+            return [
+                '1. היכנסו לדף הפייסבוק העסקי שלכם ← "Create post".',
+                ...(hasImage ? ['2. הורידו את התמונה מ-URL לעיל ← גררו לתוך ה-composer.'] : []),
+                `${hasImage ? '3' : '2'}. הדביקו את הטקסט.`,
+                `${hasImage ? '4' : '3'}. לחצו Publish (או Schedule להזמנה עתידית).`,
+            ]
+        case 'instagram':
+            return [
+                '1. פתחו את אפליקציית Instagram בנייד (פרסום לא נתמך בדסקטופ ללא Creator Studio).',
+                '2. לחצו "+" ← Post / Reel / Story.',
+                ...(hasImage ? ['3. בחרו את התמונה מהגלריה (אחרי שהורדתם מ-URL).'] : []),
+                '4. הדביקו את הטקסט ב-Caption.',
+                '5. הוסיפו hashtags בתחתית.',
+                '6. Share.',
+            ]
+        case 'linkedin':
+            return [
+                '1. היכנסו ל-LinkedIn ← "Start a post".',
+                ...(hasImage ? ['2. הוסיפו תמונה מ-URL לעיל.'] : []),
+                `${hasImage ? '3' : '2'}. הדביקו את הטקסט.`,
+                `${hasImage ? '4' : '3'}. לחצו Post.`,
+            ]
+        case 'email':
+            return [
+                '1. היכנסו למערכת ה-email שלכם (Mailchimp / Klaviyo / SendGrid / ActiveCampaign).',
+                '2. צרו קמפיין חדש.',
+                '3. הדביקו את title כנושא המייל.',
+                '4. הדביקו את content בגוף — המערכת תרנדר Markdown או תצטרכו להמיר ל-HTML.',
+                ...(hasImage ? ['5. הוסיפו את התמונה הראשית מ-URL לעיל.'] : []),
+                '6. בחרו קהל יעד ← Send / Schedule.',
+            ]
+        case 'youtube':
+            return [
+                '1. היכנסו ל-YouTube Studio ← Upload.',
+                '2. העלו את קובץ הווידאו.',
+                '3. הדביקו title + description.',
+                '4. הוסיפו tags רלוונטיים.',
+                '5. Publish.',
+            ]
+        case 'tiktok':
+            return [
+                '1. פתחו את TikTok בנייד ← "+" ← Upload.',
+                '2. העלו את הווידאו.',
+                '3. הדביקו caption + hashtags.',
+                '4. Post.',
+            ]
+        default:
+            return [
+                `1. היכנסו לפלטפורמת ${channel} שלכם.`,
+                '2. הדביקו את title + content.',
+                hasImage ? '3. הוסיפו את התמונה הראשית מ-URL לעיל.' : '3. פרסמו.',
+            ]
     }
 }

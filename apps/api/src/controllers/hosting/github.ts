@@ -199,19 +199,36 @@ export const publishToGithub = async (c: Context) => {
         if (!config?.token) return fail(c, 'GitHub not connected', 400)
 
         const body = await c.req.json<{
-            filePath: string    // e.g. "content/guides/seo-pricing-2026.mdx"
-            content: string     // full MDX content with frontmatter
-            commitMessage: string
+            // Mode 1: publish an approved agent_output by id — server auto-builds
+            // the MDX (frontmatter + schema.org + FAQ + featured image).
+            outputId?: string
+            // Mode 2: raw MDX content + explicit filePath (legacy / manual).
+            filePath?: string
+            content?: string
+            commitMessage?: string
         }>()
 
-        if (!body.filePath || !body.content) {
-            return fail(c, 'filePath and content required', 400)
+        let filePath: string
+        let content: string
+        let commitMessage: string
+
+        if (body.outputId) {
+            const built = await buildMdxFromOutput(instanceId, body.outputId, config)
+            if (!built) return fail(c, 'Output not found or not publishable', 400)
+            filePath = built.filePath
+            content = built.content
+            commitMessage = body.commitMessage || built.commitMessage
+        } else if (body.filePath && body.content) {
+            filePath = body.filePath
+            content = body.content
+            commitMessage = body.commitMessage || `Add ${body.filePath.split('/').pop()}`
+        } else {
+            return fail(c, 'Either outputId OR (filePath + content) required', 400)
         }
 
         // Create or update file via GitHub API
-        const apiUrl = `https://api.github.com/repos/${config.repo}/contents/${body.filePath}`
+        const apiUrl = `https://api.github.com/repos/${config.repo}/contents/${filePath}`
 
-        // Check if file exists (for update — need sha)
         let existingSha: string | undefined
         try {
             const existing = await fetch(apiUrl, {
@@ -227,10 +244,9 @@ export const publishToGithub = async (c: Context) => {
             }
         } catch { /* file doesn't exist — create new */ }
 
-        // Create/update file
         const payload: Record<string, string> = {
-            message: body.commitMessage || `Add ${body.filePath.split('/').pop()}`,
-            content: Buffer.from(body.content).toString('base64'),
+            message: commitMessage,
+            content: Buffer.from(content, 'utf-8').toString('base64'),
             branch: config.branch || 'main',
         }
         if (existingSha) payload.sha = existingSha
@@ -252,17 +268,114 @@ export const publishToGithub = async (c: Context) => {
         }
 
         const result = await res.json() as { content?: { html_url?: string } }
-        console.log(`Published to GitHub: ${config.repo}/${body.filePath}`)
+        console.log(`Published to GitHub: ${config.repo}/${filePath}`)
 
         return ok(c, {
-            url: result.content?.html_url || `https://github.com/${config.repo}/blob/${config.branch}/${body.filePath}`,
+            url: result.content?.html_url || `https://github.com/${config.repo}/blob/${config.branch}/${filePath}`,
             repo: config.repo,
-            filePath: body.filePath,
+            filePath,
         }, 'Published to GitHub.')
     } catch (err) {
         console.error('publishToGithub error:', err)
         return fail(c, 'Failed to publish', 500)
     }
+}
+
+// Build a full MDX file (YAML frontmatter + body + JSON-LD + FAQ) from an
+// approved agent_output. Pulls the featured image from content_plan_media
+// (first approved render). Returns null if the output is not a blog article.
+async function buildMdxFromOutput(
+    instanceId: string,
+    outputId: string,
+    config: { contentPath?: string },
+): Promise<{ filePath: string; content: string; commitMessage: string } | null> {
+    const { agentOutputs, contentPlanMedia } = await import('@/db/schema')
+    const { eq, and } = await import('drizzle-orm')
+
+    const [row] = await db.select().from(agentOutputs)
+        .where(and(eq(agentOutputs.id, outputId), eq(agentOutputs.instanceId, instanceId)))
+    if (!row) return null
+    const md = (row.metadata as any) || {}
+    const seo = (md.seo as any) || {}
+    const itemId = md.contentPlanItemId as string | undefined
+
+    // Featured image — prefer the approved render if exists, else first ready
+    let featuredImage: string | undefined
+    if (itemId) {
+        const media = await db.select().from(contentPlanMedia)
+            .where(eq(contentPlanMedia.contentPlanItemId, itemId))
+        const chosen = media.find(m => m.status === 'approved')
+            || media.find(m => m.status === 'ready')
+            || media[0]
+        if (chosen?.publicUrl) featuredImage = chosen.publicUrl
+    }
+
+    // Build YAML frontmatter (safe single-quoted strings, double-quote list)
+    const fm: string[] = ['---']
+    const esc = (s: string) => String(s).replace(/'/g, "''")
+    fm.push(`title: '${esc(row.title || '')}'`)
+    if (seo.slug) fm.push(`slug: '${esc(seo.slug)}'`)
+    fm.push(`date: '${(row.scheduledFor || row.createdAt || new Date()).toISOString().slice(0, 10)}'`)
+    fm.push(`lang: 'he'`)
+    if (seo.metaDescription) fm.push(`description: '${esc(seo.metaDescription)}'`)
+    if (seo.excerpt) fm.push(`excerpt: '${esc(seo.excerpt)}'`)
+    if (seo.primaryKeyword) fm.push(`primaryKeyword: '${esc(seo.primaryKeyword)}'`)
+    if (Array.isArray(seo.secondaryKeywords) && seo.secondaryKeywords.length) {
+        fm.push(`secondaryKeywords:`)
+        for (const k of seo.secondaryKeywords) fm.push(`  - '${esc(k)}'`)
+    }
+    if (Array.isArray(seo.categories) && seo.categories.length) {
+        fm.push(`categories:`)
+        for (const c of seo.categories) fm.push(`  - '${esc(c)}'`)
+    }
+    if (Array.isArray(seo.tags) && seo.tags.length) {
+        fm.push(`tags:`)
+        for (const t of seo.tags) fm.push(`  - '${esc(t)}'`)
+    }
+    if (featuredImage) fm.push(`featuredImage: '${esc(featuredImage)}'`)
+    fm.push(`author: 'ClawFlow'`)
+    fm.push('---')
+
+    // Body = content (markdown) + FAQ section (if present) + JSON-LD script
+    const parts: string[] = [fm.join('\n'), '', row.content || '']
+
+    if (Array.isArray(seo.faq) && seo.faq.length) {
+        parts.push('', '## שאלות נפוצות')
+        for (const q of seo.faq) {
+            parts.push('', `### ${q.question}`, '', q.answer)
+        }
+    }
+
+    // schema.org JSON-LD — inject FAQPage if FAQ present, plus the Article schema
+    const schemas: unknown[] = []
+    if (seo.schemaJsonLd && typeof seo.schemaJsonLd === 'object') {
+        const article = { ...seo.schemaJsonLd }
+        if (featuredImage && !article.image) article.image = featuredImage
+        schemas.push(article)
+    }
+    if (Array.isArray(seo.faq) && seo.faq.length) {
+        schemas.push({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: seo.faq.map((q: any) => ({
+                '@type': 'Question',
+                name: q.question,
+                acceptedAnswer: { '@type': 'Answer', text: q.answer },
+            })),
+        })
+    }
+    if (schemas.length > 0) {
+        parts.push('', '<script type="application/ld+json">')
+        parts.push(JSON.stringify(schemas.length === 1 ? schemas[0] : schemas, null, 2))
+        parts.push('</script>')
+    }
+
+    const folder = (config.contentPath || 'content/blog').replace(/\/$/, '')
+    const safeSlug = seo.slug || ('post-' + outputId)
+    const filePath = `${folder}/${safeSlug}.mdx`
+    const commitMessage = `Add ${row.title} (${safeSlug})`
+
+    return { filePath, content: parts.join('\n') + '\n', commitMessage }
 }
 
 // Deploy GitHub MCP server to VPS

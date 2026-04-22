@@ -12,7 +12,7 @@ export { listBackups, createBackup, restoreBackup, backupReport } from './backup
 export { googleAuth, googleCallback, googleDisconnect, googleStatus } from './google'
 export { metaSaveCredentials, metaCallback, metaDisconnect, metaStatus } from './meta'
 export { microsoftAuth, microsoftCallback, microsoftDisconnect, microsoftStatus } from './microsoft'
-export { getOutputs, getOutput, ingestOutput, approveOutput, rejectOutput, editOutput, publishOutput, archiveOutput, deleteOutput } from './outputs'
+export { getOutputs, getOutput, ingestOutput, approveOutput, rejectOutput, editOutput, publishOutput, archiveOutput, deleteOutput, exportOutput } from './outputs'
 export { getMemories, deleteMemory, clearMemories } from './memories'
 export { healthReport, getHealthStatus, toggleAutoHeal } from './healthReport'
 export { getUsage } from './usage'

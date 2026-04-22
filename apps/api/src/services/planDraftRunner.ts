@@ -92,12 +92,30 @@ interface GenContext {
     optimizationBlock: string
 }
 
+// SEO/AEO output shape for articles + blog posts.
+// Non-article items return just { title, content } — the extras are ignored.
+export interface DraftSeoExtras {
+    slug?: string                   // URL-safe, ≤60 chars, derived from title
+    metaDescription?: string         // 140-160 chars, includes primary keyword
+    excerpt?: string                 // 40-80 word human-readable teaser
+    primaryKeyword?: string          // main keyword this article targets
+    secondaryKeywords?: string[]     // 3-5 related keywords
+    categories?: string[]            // taxonomy labels (matched to WP cats by slug)
+    tags?: string[]                  // up to 8 tags
+    headings?: Array<{ level: 1 | 2 | 3; text: string }>   // extracted H1/H2/H3 structure
+    schemaJsonLd?: Record<string, unknown>   // schema.org Article / BlogPosting JSON-LD
+    faq?: Array<{ question: string; answer: string }>     // 3-5 Q&A pairs for AEO
+}
+
 async function generateDraftContent(
     apiKey: string,
     instanceId: string,
     item: PlanItem,
     ctx: GenContext,
-): Promise<{ title: string; content: string } | null> {
+): Promise<{ title: string; content: string; seo?: DraftSeoExtras } | null> {
+    // Longer-form content types (blog/article/email) get SEO+AEO fields in the
+    // JSON response. Shorter platforms (FB/IG/LI posts, reels) skip them.
+    const wantsSeoExtras = item.channel === 'blog' || item.type === 'article'
     const prompt = `אתם ${item.agentRole}, סוכן תוכן של ${ctx.businessName}. המשימה: לכתוב את התוכן המלא של הפריט הבא (לא בריף — התוכן הסופי שייכנס לפלטפורמה).
 
 ## הקשר הפריט
@@ -156,10 +174,46 @@ ${ctx.statsBlock}
 - אם הפלטפורמה היא email או blog — החזירו גם כותרת בפורמט "title:" בשורה ראשונה
 
 ## תפוקה — JSON בלבד
-{
+${wantsSeoExtras ? `{
+  "title": "<כותרת — 6-12 מילים, מכילה את המילה המרכזית, 100% עברית>",
+  "content": "<התוכן המלא ב-markdown. חובה מבנה H2/H3. פתיחה + 4-6 מקטעים + מסקנה + קריאה לפעולה. 800-1500 מילים.>",
+  "slug": "<slug URL-safe באנגלית או תעתיק לטיני של הכותרת, עד 60 תווים, מקפים במקום רווחים, אותיות קטנות בלבד. אם הכותרת בעברית — עשה תעתיק פשוט או תרגום קצר>",
+  "metaDescription": "<140-160 תווים בעברית, כולל את המילה המרכזית פעם אחת, מפתה לקליק>",
+  "excerpt": "<40-80 מילים בעברית — תקציר שמופיע ברשימות בלוג / social previews>",
+  "primaryKeyword": "<המילה/ביטוי המרכזי שהמאמר ממקד (עברית)>",
+  "secondaryKeywords": ["<3-5 ביטויים משניים>"],
+  "categories": ["<1-3 קטגוריות בלוג רלוונטיות בעברית>"],
+  "tags": ["<5-8 תגים בעברית>"],
+  "headings": [
+    { "level": 2, "text": "<כותרת H2 ראשונה>" },
+    { "level": 3, "text": "<כותרת H3 תחתיה (אם יש)>" }
+  ],
+  "schemaJsonLd": {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "<אותה כותרת כמו title>",
+    "description": "<אותו metaDescription>",
+    "datePublished": "${item.date}",
+    "inLanguage": "he-IL",
+    "author": { "@type": "Organization", "name": "${ctx.businessName}" },
+    "publisher": { "@type": "Organization", "name": "${ctx.businessName}" }
+  },
+  "faq": [
+    { "question": "<שאלה טבעית שמשתמשים שואלים את ChatGPT/Gemini/Google>", "answer": "<תשובה 40-80 מילים, ישירה, כוללת את המילה המרכזית>" },
+    { "question": "<שאלה 2>", "answer": "<תשובה 2>" },
+    { "question": "<שאלה 3>", "answer": "<תשובה 3>" }
+  ]
+}
+
+**חוקים ספציפיים ל-SEO/AEO:**
+- \`content\` חייב להיות Markdown תקין עם H2 (## ) ו-H3 (### ) — לא HTML.
+- \`slug\` — אותיות קטנות בלבד, רק a-z 0-9 ומקפים. בעברית → תעתיק לטיני פשוט.
+- \`metaDescription\` — בדיוק 140-160 תווים. לא ארוך יותר.
+- \`faq\` — 3 שאלות **טבעיות**, כמו שמשתמש היה מקליד ל-ChatGPT. לא מאולצות.
+- \`primaryKeyword\` — ביטוי עברי 2-4 מילים שבני אדם באמת מחפשים.` : `{
   "title": "<כותרת הפריט — קצרה, 3-8 מילים, 100% עברית>",
   "content": "<התוכן המלא בעברית טהורה — מוכן לפרסום, כולל הוק פתיחה, גוף, קריאה לפעולה והאשטגים אם רלוונטי>"
-}`
+}`}`
 
     try {
         // Resolve model per user's sub-agent config — content draft is
@@ -168,7 +222,9 @@ ${ctx.statsBlock}
         const isOpus = model.startsWith('claude-opus')
         const body: Record<string, unknown> = {
             model,
-            max_tokens: 3000,
+            // Article + SEO block needs more tokens (~800-1500 word article +
+            // schema.org JSON + FAQ). Short posts use the smaller budget.
+            max_tokens: wantsSeoExtras ? 6000 : 3000,
             messages: [{ role: 'user', content: prompt }],
         }
         if (isOpus) {
@@ -203,11 +259,36 @@ ${ctx.statsBlock}
             if (code < 32 && ch !== '\n' && ch !== '\t' && ch !== '\r') return ''
             return ch
         }).join('')
-        const parsed = JSON.parse(raw) as { title?: string; content?: string }
+        const parsed = JSON.parse(raw) as {
+            title?: string; content?: string
+            slug?: string; metaDescription?: string; excerpt?: string
+            primaryKeyword?: string; secondaryKeywords?: unknown
+            categories?: unknown; tags?: unknown; headings?: unknown
+            schemaJsonLd?: unknown; faq?: unknown
+        }
         if (!parsed.content) return null
+
+        // Harvest SEO extras (only present when wantsSeoExtras produced them).
+        // Silently tolerate missing / malformed fields so legacy rows don't crash.
+        const seo: DraftSeoExtras | undefined = wantsSeoExtras ? {
+            slug: typeof parsed.slug === 'string' ? parsed.slug.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 60) : undefined,
+            metaDescription: typeof parsed.metaDescription === 'string' ? parsed.metaDescription.trim().slice(0, 170) : undefined,
+            excerpt: typeof parsed.excerpt === 'string' ? parsed.excerpt.trim() : undefined,
+            primaryKeyword: typeof parsed.primaryKeyword === 'string' ? parsed.primaryKeyword.trim() : undefined,
+            secondaryKeywords: Array.isArray(parsed.secondaryKeywords) ? parsed.secondaryKeywords.map(String).slice(0, 6) : undefined,
+            categories: Array.isArray(parsed.categories) ? parsed.categories.map(String).slice(0, 3) : undefined,
+            tags: Array.isArray(parsed.tags) ? parsed.tags.map(String).slice(0, 8) : undefined,
+            headings: Array.isArray(parsed.headings) ? (parsed.headings as any[]).filter(h => h && typeof h === 'object' && typeof h.text === 'string')
+                .map(h => ({ level: (h.level === 1 || h.level === 3 ? h.level : 2) as 1 | 2 | 3, text: String(h.text) })).slice(0, 20) : undefined,
+            schemaJsonLd: parsed.schemaJsonLd && typeof parsed.schemaJsonLd === 'object' ? parsed.schemaJsonLd as Record<string, unknown> : undefined,
+            faq: Array.isArray(parsed.faq) ? (parsed.faq as any[]).filter(q => q && typeof q.question === 'string' && typeof q.answer === 'string')
+                .map(q => ({ question: String(q.question), answer: String(q.answer) })).slice(0, 8) : undefined,
+        } : undefined
+
         return {
             title: String(parsed.title || item.hook || 'תוכן חדש'),
             content: String(parsed.content),
+            seo,
         }
     } catch (err) {
         console.warn(`[planDraftRunner] generate ${item.id} error:`, (err as Error).message)
@@ -343,6 +424,10 @@ export async function draftDuePlanItemsForInstance(
                 hook: item.hook,
                 generatedAt: new Date().toISOString(),
                 generatedBy: 'planDraftRunner',
+                // SEO/AEO extras for article / blog items — empty for short posts.
+                // Consumed by GitHub + WordPress publishers to build frontmatter
+                // + schema.org + featured media + Yoast meta.
+                seo: generated.seo || undefined,
             },
             status: 'pending_review',
         })
