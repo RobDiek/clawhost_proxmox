@@ -34,7 +34,7 @@ const MacosDesktopPreview: FC<MacosDesktopPreviewProps> = ({
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
                 style={{ scale: previewScale }}
-                className='relative overflow-hidden rounded-2xl border border-white/10'
+                className='border-border relative overflow-hidden rounded-2xl border'
             >
                 <div
                     className='relative flex flex-col'

@@ -11,7 +11,7 @@ import withErrorHandler from '@/lib/withErrorHandler'
 
 const hardDeleteAgent = withErrorHandler(
     'hardDeleteAgent',
-    'api.failedToHardDeleteClaw'
+    'api.failedToHardDeleteAgent'
 )(async (c: AuthenticatedContext) => {
     const id = c.req.param('id')!
     const agent = await db
@@ -20,10 +20,10 @@ const hardDeleteAgent = withErrorHandler(
         .where(eq(agents.id, id))
         .limit(1)
 
-    if (!agent[0]) return fail(c, t('api.clawNotFound'), 404)
+    if (!agent[0]) return fail(c, t('api.agentNotFound'), 404)
 
     if (!agent[0].deletionScheduledAt)
-        return fail(c, t('api.clawNotScheduledForDeletion'), 400)
+        return fail(c, t('api.agentNotScheduledForDeletion'), 400)
 
     await Promise.all([
         agent[0].polarSubscriptionId
@@ -40,7 +40,7 @@ const hardDeleteAgent = withErrorHandler(
         })
     ])
 
-    return ok(c, null, t('api.clawHardDeleted'))
+    return ok(c, null, t('api.agentHardDeleted'))
 })
 
 export default hardDeleteAgent

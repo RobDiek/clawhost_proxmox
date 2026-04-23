@@ -15,7 +15,9 @@ const ROUTES = {
     BLOG_POST: '/:slug',
     AFFILIATE: `/${PATHS.AFFILIATE}`,
     AFFILIATE_PROGRAM: `/${PATHS.AFFILIATE_PROGRAM}`,
-    COMPARE: `/${PATHS.COMPARE}`
+    COMPARE: `/${PATHS.COMPARE}`,
+    HERMES: `/${PATHS.HERMES}`,
+    HERMES_GO: `/${PATHS.HERMES_GO}`
 } as const
 
 export default ROUTES

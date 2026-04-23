@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { ClawStatus, UserRole } from '@/ts/Types'
+import type { AgentStatus, UserRole } from '@/ts/Types'
 
 export interface Volume {
     id: string
@@ -11,8 +11,8 @@ export interface Volume {
 export interface Claw {
     id: string
     name: string
-    provider: string
-    status: ClawStatus
+    agentType: string
+    status: AgentStatus
     ip: string | null
     planId: string
     location: string | null
@@ -92,7 +92,7 @@ export interface CopyableFieldProps {
 }
 
 export interface StatusBadgeProps {
-    status: ClawStatus
+    status: AgentStatus
     config: StatusConfig
 }
 

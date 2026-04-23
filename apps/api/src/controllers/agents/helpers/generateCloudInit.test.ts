@@ -1,71 +1,134 @@
 import { generateCloudInit } from '@/controllers/agents/helpers'
 
 describe('generateCloudInit', () => {
-    const output = generateCloudInit(
-        'myP@ss123',
-        'test-claw',
-        'clawhost.cloud',
-        'tok_abc123'
-    )
+    describe('openclaw', () => {
+        const output = generateCloudInit(
+            'myP@ss123',
+            'test-claw',
+            'clawhost.cloud',
+            'tok_abc123'
+        )
 
-    it('starts with #cloud-config', () => {
-        expect(output.startsWith('#cloud-config')).toBe(true)
+        it('starts with #cloud-config', () => {
+            expect(output.startsWith('#cloud-config')).toBe(true)
+        })
+
+        it('includes the root password', () => {
+            expect(output).toContain('root:myP@ss123')
+        })
+
+        it('includes the full domain', () => {
+            expect(output).toContain('test-claw.clawhost.cloud')
+        })
+
+        it('includes the gateway token in config', () => {
+            expect(output).toContain('tok_abc123')
+        })
+
+        it('includes required packages', () => {
+            expect(output).toContain('- curl')
+            expect(output).toContain('- nginx')
+            expect(output).toContain('- certbot')
+            expect(output).toContain('- ufw')
+            expect(output).toContain('- git')
+        })
+
+        it('sets up systemd service', () => {
+            expect(output).toContain('openclaw-gateway.service')
+            expect(output).toContain('systemctl enable openclaw-gateway')
+        })
+
+        it('configures nginx reverse proxy', () => {
+            expect(output).toContain('proxy_pass http://127.0.0.1:18789')
+        })
+
+        it('enables firewall rules', () => {
+            expect(output).toContain('ufw allow 22/tcp')
+            expect(output).toContain('ufw allow 80/tcp')
+            expect(output).toContain('ufw allow 443/tcp')
+        })
+
+        it('sets up certbot SSL', () => {
+            expect(output).toContain('certbot --nginx')
+            expect(output).toContain('certbot renew')
+        })
+
+        it('includes swap setup', () => {
+            expect(output).toContain('fallocate -l 2G /swapfile')
+        })
+
+        it('creates openclaw user', () => {
+            expect(output).toContain('useradd -r -m -d /home/openclaw')
+        })
+
+        it('includes openclaw config JSON with tools defaults', () => {
+            expect(output).toContain('"profile": "full"')
+            expect(output).toContain('"host": "gateway"')
+        })
+
+        it('includes final message', () => {
+            expect(output).toContain('OpenClaw instance ready!')
+        })
     })
 
-    it('includes the root password', () => {
-        expect(output).toContain('root:myP@ss123')
-    })
+    describe('hermes', () => {
+        const output = generateCloudInit(
+            'myP@ss123',
+            'test-hermes',
+            'clawhost.cloud',
+            'tok_hermes456',
+            'hermes'
+        )
 
-    it('includes the full domain', () => {
-        expect(output).toContain('test-claw.clawhost.cloud')
-    })
+        it('starts with #cloud-config', () => {
+            expect(output.startsWith('#cloud-config')).toBe(true)
+        })
 
-    it('includes the gateway token in config', () => {
-        expect(output).toContain('tok_abc123')
-    })
+        it('includes the root password', () => {
+            expect(output).toContain('root:myP@ss123')
+        })
 
-    it('includes required packages', () => {
-        expect(output).toContain('- curl')
-        expect(output).toContain('- nginx')
-        expect(output).toContain('- certbot')
-        expect(output).toContain('- ufw')
-        expect(output).toContain('- git')
-    })
+        it('includes the full domain', () => {
+            expect(output).toContain('test-hermes.clawhost.cloud')
+        })
 
-    it('sets up systemd service', () => {
-        expect(output).toContain('openclaw-gateway.service')
-        expect(output).toContain('systemctl enable openclaw-gateway')
-    })
+        it('creates hermes user', () => {
+            expect(output).toContain('useradd -r -m -d /home/hermes')
+        })
 
-    it('configures nginx reverse proxy', () => {
-        expect(output).toContain('proxy_pass http://127.0.0.1:18789')
-    })
+        it('runs hermes install script', () => {
+            expect(output).toContain('NousResearch/hermes-agent/main/scripts/install.sh')
+        })
 
-    it('enables firewall rules', () => {
-        expect(output).toContain('ufw allow 22/tcp')
-        expect(output).toContain('ufw allow 80/tcp')
-        expect(output).toContain('ufw allow 443/tcp')
-    })
+        it('sets up hermes-gateway systemd service', () => {
+            expect(output).toContain('hermes-gateway.service')
+            expect(output).toContain('systemctl enable hermes-gateway')
+        })
 
-    it('sets up certbot SSL', () => {
-        expect(output).toContain('certbot --nginx')
-        expect(output).toContain('certbot renew')
-    })
+        it('writes hermes config with gateway token', () => {
+            expect(output).toContain('hermes.json')
+            expect(output).toContain('tok_hermes456')
+        })
 
-    it('includes swap setup', () => {
-        expect(output).toContain('fallocate -l 2G /swapfile')
-    })
+        it('includes gateway auth structure in config', () => {
+            expect(output).toContain('"auth"')
+            expect(output).toContain('"token"')
+        })
 
-    it('creates openclaw user', () => {
-        expect(output).toContain('useradd -r -m -d /home/openclaw')
-    })
+        it('configures nginx reverse proxy', () => {
+            expect(output).toContain('proxy_pass http://127.0.0.1:18789')
+        })
 
-    it('includes openclaw config JSON with tools defaults', () => {
-        expect(output).toContain('"profile": "full"')
-        expect(output).toContain('"host": "gateway"')
-    })
+        it('includes required packages', () => {
+            expect(output).toContain('- curl')
+            expect(output).toContain('- nginx')
+            expect(output).toContain('- certbot')
+            expect(output).toContain('- ufw')
+            expect(output).toContain('- git')
+        })
 
-    it('includes final message', () => {
-        expect(output).toContain('OpenClaw instance ready!')
+        it('includes final message', () => {
+            expect(output).toContain('Hermes instance ready!')
+        })
     })
 })

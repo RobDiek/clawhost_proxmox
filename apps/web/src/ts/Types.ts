@@ -15,6 +15,7 @@ import type {
     AGENT_DETAIL_TABS,
     COMPARE_FEATURE_STATUS,
     COPIED_FIELD_TYPE,
+    AGENT,
     LOGIN_LOADING_METHOD,
     OAUTH_PROVIDER,
     PREVIEW_STATUS,
@@ -71,6 +72,8 @@ export type AgentFileType = (typeof agentFileType)[keyof typeof agentFileType]
 
 export type Product = (typeof PRODUCT)[keyof typeof PRODUCT]
 
+export type AgentSelection = (typeof AGENT)[keyof typeof AGENT]
+
 export type TerminalStatus =
     (typeof TERMINAL_STATUS)[keyof typeof TERMINAL_STATUS]
 
@@ -81,6 +84,8 @@ export type ChangelogFeatureType =
     (typeof CHANGELOG_FEATURE_TYPE)[keyof typeof CHANGELOG_FEATURE_TYPE]
 
 export type AdminAnalyticsRange = 'day' | 'week' | 'month' | 'year' | 'all'
+
+export type LoginStep = 'email' | 'code'
 
 export type ResolveConflictFn = (
     credential: OAuthCredential | null,

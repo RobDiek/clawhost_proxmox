@@ -6,6 +6,7 @@ import { t } from '@openclaw/i18n'
 import { agentType, billingInterval } from '@openclaw/shared'
 import { Link } from 'react-router-dom'
 import { ROUTES, isSafeRedirectUrl } from '@/lib'
+import { DownloadSimpleIcon } from '@phosphor-icons/react'
 import { OpenClawIcon, HermesIcon } from '@/components/icons'
 import {
     usePurchaseAgent,
@@ -283,9 +284,11 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                                 <OpenClawIcon size={24} />
                                 <div>
                                     <div className='font-medium'>OpenClaw</div>
-                                    <div className='text-muted-foreground text-xs'>
+                                    <div className='text-muted-foreground flex items-center gap-1 text-xs'>
+                                        <DownloadSimpleIcon size={12} />
                                         {t(
-                                            'createClaw.agentTypeOpenClawDescription'
+                                            'createClaw.agentTypeOpenClawDescription',
+                                            { count: '14.2k' }
                                         )}
                                     </div>
                                 </div>
@@ -304,8 +307,9 @@ const CreateAgentModal: FC<CreateAgentModalProps> = ({
                                 <HermesIcon size={24} />
                                 <div>
                                     <div className='font-medium'>Hermes</div>
-                                    <div className='text-muted-foreground text-xs'>
-                                        {t('createClaw.agentTypeHermesDescription')}
+                                    <div className='text-muted-foreground flex items-center gap-1 text-xs'>
+                                        <DownloadSimpleIcon size={12} />
+                                        {t('createClaw.agentTypeHermesDescription', { count: '8.7k' })}
                                     </div>
                                 </div>
                             </button>

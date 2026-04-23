@@ -16,7 +16,7 @@ import withErrorHandler from '@/lib/withErrorHandler'
 
 const deleteAgent = withErrorHandler(
     'deleteAgent',
-    'api.failedToDeleteClaw'
+    'api.failedToDeleteAgent'
 )(async (c: AuthenticatedContext) => {
     const userId = c.get('userId')
     const id = c.req.param('id')!
@@ -33,7 +33,7 @@ const deleteAgent = withErrorHandler(
             )
             .returning()
 
-        if (!result[0]) return fail(c, t('api.pendingClawNotFound'), 404)
+        if (!result[0]) return fail(c, t('api.pendingAgentNotFound'), 404)
 
         const pending = result[0]
         try {
@@ -45,12 +45,12 @@ const deleteAgent = withErrorHandler(
             console.error('deleteAgent', subError)
         }
 
-        return ok(c, { scheduled: false }, t('api.clawDeleted'))
+        return ok(c, { scheduled: false }, t('api.agentDeleted'))
     }
 
     const agent = await findUserAgent(userId, id, c.get('isAdmin'))
 
-    if (!agent) return fail(c, t('api.clawNotFound'), 404)
+    if (!agent) return fail(c, t('api.agentNotFound'), 404)
 
     if (
         agent.polarSubscriptionId &&
@@ -81,7 +81,7 @@ const deleteAgent = withErrorHandler(
                             subscriptionStatus: subscriptionStatus.canceled
                         })
                     },
-                    t('api.clawDeletionScheduled')
+                    t('api.agentDeletionScheduled')
                 )
             }
         } catch (subError) {
@@ -104,7 +104,7 @@ const deleteAgent = withErrorHandler(
         })
     ])
 
-    return ok(c, { scheduled: false }, t('api.clawDeleted'))
+    return ok(c, { scheduled: false }, t('api.agentDeleted'))
 })
 
 export default deleteAgent

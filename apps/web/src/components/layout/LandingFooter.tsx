@@ -30,7 +30,10 @@ const LANDING_SECTIONS = ['features', 'pricing', 'comparison', 'faq']
 
 const LandingFooter: FC = (): ReactNode => {
     const { pathname } = useLocation()
-    const isLanding = pathname === ROUTES.HOME
+    const isLanding =
+        pathname === ROUTES.HOME ||
+        pathname === ROUTES.HERMES ||
+        pathname === ROUTES.HERMES_GO
     const [activeSection, setActiveSection] = useState('')
 
     useEffect(() => {

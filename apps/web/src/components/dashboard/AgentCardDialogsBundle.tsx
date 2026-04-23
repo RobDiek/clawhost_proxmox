@@ -10,6 +10,7 @@ import AgentLogsDialog from '@/components/dashboard/AgentLogsDialog'
 const AgentCardDialogsBundle: FC<AgentCardDialogsBundleProps> = ({
     agentId,
     agentName,
+    agentType,
     agentIp,
     showStartModal,
     setShowStartModal,
@@ -51,6 +52,7 @@ const AgentCardDialogsBundle: FC<AgentCardDialogsBundleProps> = ({
         <Fragment>
             <AgentCardDialogs
                 agentName={agentName}
+                agentType={agentType}
                 showStartModal={showStartModal}
                 setShowStartModal={setShowStartModal}
                 showDeleteModal={showDeleteModal}

@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { AgentOverviewContentProps } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
-import { GaugeIcon } from '@phosphor-icons/react'
+import { GaugeIcon, ArrowsClockwiseIcon } from '@phosphor-icons/react'
 import { Skeleton } from '@/components/ui'
 import { PanelPlaceholder, LiveBadge } from '@/components/shared'
 import { useAgentOverview } from '@/hooks'
@@ -14,12 +14,33 @@ import {
     OverviewSessionsTable
 } from '@/components/dashboard/AgentOverviewContent'
 
+const isUnsupportedError = (error: Error | null): boolean => {
+    if (!error || !('code' in error)) return false
+    return (error as Error & { code: number }).code === 422
+}
+
 const AgentOverviewContent: FC<AgentOverviewContentProps> = ({
     agentId,
     readOnly
 }): ReactNode => {
-    const { data: liveData, isPending, isError } = useAgentOverview(agentId, !readOnly)
+    const { data: liveData, isPending, isError, error } = useAgentOverview(agentId, !readOnly)
     const data = readOnly ? demoOverview : liveData
+
+    if (isError && isUnsupportedError(error))
+        return (
+            <div className='flex h-full items-center justify-center p-5'>
+                <PanelPlaceholder
+                    icon={
+                        <ArrowsClockwiseIcon
+                            className='text-muted-foreground h-6 w-6'
+                            weight='duotone'
+                        />
+                    }
+                    title={t('clawDetail.overviewUnsupportedTitle')}
+                    description={t('clawDetail.overviewUnsupportedDescription')}
+                />
+            </div>
+        )
 
     if (isError)
         return (

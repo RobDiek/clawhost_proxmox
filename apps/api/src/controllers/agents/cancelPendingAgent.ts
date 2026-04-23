@@ -9,7 +9,7 @@ import withErrorHandler from '@/lib/withErrorHandler'
 
 const cancelPendingAgent = withErrorHandler(
     'cancelPendingAgent',
-    'api.failedToCancelPendingClaw'
+    'api.failedToCancelPendingAgent'
 )(async (c: AuthenticatedContext) => {
     const userId = c.get('userId')
     const id = c.req.param('id')!
@@ -19,9 +19,9 @@ const cancelPendingAgent = withErrorHandler(
         .where(and(eq(pendingAgents.id, id), eq(pendingAgents.userId, userId)))
         .returning()
 
-    if (!result[0]) return fail(c, t('api.pendingClawNotFound'), 404)
+    if (!result[0]) return fail(c, t('api.pendingAgentNotFound'), 404)
 
-    return ok(c, null, t('api.pendingClawCancelled'))
+    return ok(c, null, t('api.pendingAgentCancelled'))
 })
 
 export default cancelPendingAgent

@@ -1,6 +1,6 @@
 import type { FC, ReactNode } from 'react'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, type FormEvent } from 'react'
 import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
 import { useUIStore } from '@/lib/store'
@@ -65,7 +65,7 @@ const GoWaitlistCTA: FC = (): ReactNode => {
     const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(waitlistEmail.trim())
 
     const handleEmailSubmit = useCallback(
-        (e: React.FormEvent) => {
+        (e: FormEvent) => {
             e.preventDefault()
             if (!isValidEmail) return
             handleJoinWaitlist(waitlistEmail.trim())
@@ -79,12 +79,12 @@ const GoWaitlistCTA: FC = (): ReactNode => {
         return (
             <div className='flex flex-col gap-2 sm:flex-row'>
                 <div className='relative'>
-                    <EnvelopeSimpleIcon className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40' />
+                    <EnvelopeSimpleIcon className='text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2' />
                     <Input
                         type='email'
                         readOnly
                         value={user.email || ''}
-                        className='h-10 w-full rounded-lg border-white/20 bg-white/5 pl-9 text-white placeholder:text-white/40 sm:w-60'
+                        className='border-border bg-muted text-foreground placeholder:text-muted-foreground h-10 w-full rounded-lg pl-9 sm:w-60'
                     />
                 </div>
                 <Button
@@ -109,7 +109,7 @@ const GoWaitlistCTA: FC = (): ReactNode => {
     return (
         <form onSubmit={handleEmailSubmit} className='flex gap-2'>
             <div className='relative'>
-                <EnvelopeSimpleIcon className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40' />
+                <EnvelopeSimpleIcon className='text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2' />
                 <Input
                     type='email'
                     required
@@ -117,7 +117,7 @@ const GoWaitlistCTA: FC = (): ReactNode => {
                     value={waitlistEmail}
                     onChange={(e) => setWaitlistEmail(e.target.value)}
                     placeholder={t('go.waitlistEmailPlaceholder')}
-                    className='h-10 w-full rounded-lg border-white/20 bg-white/5 pl-9 text-white placeholder:text-white/40 sm:w-60'
+                    className='border-border bg-muted text-foreground placeholder:text-muted-foreground h-10 w-full rounded-lg pl-9 sm:w-60'
                 />
             </div>
             <Button

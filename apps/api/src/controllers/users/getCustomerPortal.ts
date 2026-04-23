@@ -32,7 +32,7 @@ const getCustomerPortal = withErrorHandler(
             .where(eq(agents.id, agentId))
             .limit(1)
 
-        if (!agent[0]) return fail(c, t('api.clawNotFound'), 404)
+        if (!agent[0]) return fail(c, t('api.agentNotFound'), 404)
 
         const ownerIsself = agent[0].userId === userId
         if (!ownerIsself && authUser[0]?.role !== userRole.admin)

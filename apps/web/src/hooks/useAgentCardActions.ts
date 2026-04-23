@@ -169,6 +169,7 @@ const useAgentCardActions = ({
         return {
             agentId: agent.id,
             agentName: agent.name,
+            agentType: agent.agentType,
             agentIp: agent.ip || '',
             showStartModal,
             setShowStartModal,

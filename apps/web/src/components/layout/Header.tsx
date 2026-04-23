@@ -8,11 +8,14 @@ import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
 import { useProfile, useRoutePrefetch } from '@/hooks'
 import { Button, Skeleton } from '@/components/ui'
-import AnnouncementBanner from '@/components/layout/AnnouncementBanner'
-import BetaBadge from '@/components/layout/BetaBadge'
-import Logo from '@/components/layout/Logo'
-import ProductHuntBanner from '@/components/layout/ProductHuntBanner'
-import ProductSwitcher from '@/components/layout/ProductSwitcher'
+import {
+    AgentSwitcher,
+    AnnouncementBanner,
+    BetaBadge,
+    Logo,
+    ProductHuntBanner,
+    ProductSwitcher
+} from '@/components/layout'
 import {
     LanguageSelector,
     ThemeToggle,
@@ -67,7 +70,10 @@ const Header: FC<HeaderProps> = ({
         ''
 
     const isLandingPage =
-        location.pathname === ROUTES.HOME || location.pathname === ROUTES.GO
+        location.pathname === ROUTES.HOME ||
+        location.pathname === ROUTES.GO ||
+        location.pathname === ROUTES.HERMES ||
+        location.pathname === ROUTES.HERMES_GO
 
     return (
         <Fragment>
@@ -80,14 +86,13 @@ const Header: FC<HeaderProps> = ({
                           : 'border-b border-transparent bg-transparent'
                 }`}
             >
+                <AgentSwitcher />
                 <AnnouncementBanner />
                 <ProductHuntBanner />
                 <div className='mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4'>
                     <div className='flex items-center gap-3'>
                         <Logo />
-                        {(isDesktop || location.pathname === ROUTES.GO) && (
-                            <BetaBadge />
-                        )}
+                        {isDesktop && <BetaBadge />}
                         <ProductSwitcher />
                     </div>
 

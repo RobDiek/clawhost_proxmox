@@ -3,7 +3,7 @@ import type { StatusBadgeProps } from '@/ts/Interfaces'
 
 import { useEffect, useRef } from 'react'
 import { Animated, StyleSheet, Text, View } from 'react-native'
-import { clawStatus } from '@openclaw/shared'
+import { agentStatus } from '@openclaw/shared'
 
 const StatusBadge: FC<StatusBadgeProps> = ({ status, config }): ReactNode => {
     const pulseAnim = useRef(new Animated.Value(1)).current
@@ -31,7 +31,7 @@ const StatusBadge: FC<StatusBadgeProps> = ({ status, config }): ReactNode => {
         return undefined
     }, [config.pulse, pulseAnim])
 
-    const isRunning = status === clawStatus.running
+    const isRunning = status === agentStatus.running
 
     return (
         <View style={[styles.badge, { backgroundColor: config.bgColor }]}>

@@ -1,3 +1,4 @@
+import AGENT from '@/lib/constants/agent'
 import AFFILIATE_PERIOD from '@/lib/constants/affiliatePeriod'
 import AVATAR_COLORS from '@/lib/constants/avatarColors'
 import STORAGE_KEYS from '@/lib/storageKeys'
@@ -20,6 +21,7 @@ import THEMES from '@/lib/constants/themes'
 import TOAST_TYPE from '@/lib/constants/toastType'
 
 export {
+    AGENT,
     AFFILIATE_PERIOD,
     AVATAR_COLORS,
     CHANGELOG_FEATURE_TYPE,

@@ -37,7 +37,7 @@ const AgentDiagnosticsContent: FC<AgentDiagnosticsContentProps> = ({
             },
             onError: (err) => {
                 showToast(
-                    err.message || t('api.failedToRepairClaw'),
+                    err.message || t('api.failedToRepairAgent'),
                     TOAST_TYPE.ERROR
                 )
             }

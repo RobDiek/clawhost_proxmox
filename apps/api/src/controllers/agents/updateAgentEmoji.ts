@@ -24,13 +24,13 @@ const updateAgentEmoji = withErrorHandler('updateAgentEmoji')(async (
 
     const agent = await findUserAgent(userId, id, c.get('isAdmin'))
 
-    if (!agent) return fail(c, t('api.clawNotFound'), 404)
+    if (!agent) return fail(c, t('api.agentNotFound'), 404)
 
     await db.update(agents).set({ emoji, emojiColor }).where(eq(agents.id, id))
 
     const updated = { ...agent, emoji, emojiColor }
 
-    return ok(c, sanitizeAgent(updated), t('api.clawEmojiUpdated'))
+    return ok(c, sanitizeAgent(updated), t('api.agentEmojiUpdated'))
 })
 
 export default updateAgentEmoji

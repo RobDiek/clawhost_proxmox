@@ -12,7 +12,9 @@ const PATHS = {
     CHANGELOG: 'changelog',
     AFFILIATE: 'affiliate',
     AFFILIATE_PROGRAM: 'affiliate-program',
-    COMPARE: 'full-comparison'
+    COMPARE: 'full-comparison',
+    HERMES: 'hermes',
+    HERMES_GO: 'hermes-go'
 } as const
 
 export default PATHS

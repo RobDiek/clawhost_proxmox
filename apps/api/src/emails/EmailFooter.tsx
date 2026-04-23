@@ -2,9 +2,7 @@ import type { CSSProperties, FC, ReactNode } from 'react'
 
 import { t } from '@openclaw/i18n'
 import { externalUrls } from '@openclaw/shared'
-import { Link, Section, Text } from '@react-email/components'
-
-import { paragraphMuted } from '@/lib/emailStyles'
+import { Link, Section } from '@react-email/components'
 
 const socialSection: CSSProperties = {
     textAlign: 'center',

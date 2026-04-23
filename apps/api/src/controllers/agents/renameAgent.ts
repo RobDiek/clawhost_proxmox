@@ -22,7 +22,7 @@ const renameAgent = withErrorHandler('renameAgent')(async (
     if (!name || name.length > inputValidation.CLAW_NAME.MAX) {
         return fail(
             c,
-            t('api.invalidClawName', {
+            t('api.invalidAgentName', {
                 max: inputValidation.CLAW_NAME.MAX
             }),
             400
@@ -31,13 +31,13 @@ const renameAgent = withErrorHandler('renameAgent')(async (
 
     const agent = await findUserAgent(userId, id, c.get('isAdmin'))
 
-    if (!agent) return fail(c, t('api.clawNotFound'), 404)
+    if (!agent) return fail(c, t('api.agentNotFound'), 404)
 
     await db.update(agents).set({ name }).where(eq(agents.id, id))
 
     const updated = { ...agent, name }
 
-    return ok(c, sanitizeAgent(updated), t('api.clawRenamed'))
+    return ok(c, sanitizeAgent(updated), t('api.agentRenamed'))
 })
 
 export default renameAgent

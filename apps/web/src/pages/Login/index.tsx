@@ -1,4 +1,5 @@
 import type { FC, FormEvent, ReactNode } from 'react'
+import type { LoginStep } from '@/ts/Types'
 
 import { Fragment, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -8,6 +9,7 @@ import { useAuth } from '@/lib/auth'
 import { useNetworkStatus } from '@/hooks'
 import { ROUTES } from '@/lib'
 import {
+    AgentSwitcher,
     AnnouncementBanner,
     Logo,
     NetworkStatus,
@@ -23,7 +25,7 @@ import useOtpFlow from '@/pages/Login/useOtpFlow'
 
 const Login: FC = (): ReactNode => {
     const [email, setEmail] = useState('')
-    const [step, setStep] = useState<'email' | 'code'>('email')
+    const [step, setStep] = useState<LoginStep>('email')
     const {
         user,
         loading: authLoading,
@@ -108,6 +110,7 @@ const Login: FC = (): ReactNode => {
         <div
             className={`bg-background text-foreground ${isLocal ? 'fixed inset-0 flex flex-col overflow-hidden' : 'relative min-h-screen'}`}
         >
+            <AgentSwitcher />
             {isOffline ? (
                 <NetworkStatus />
             ) : (

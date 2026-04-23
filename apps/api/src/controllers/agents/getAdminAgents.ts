@@ -79,7 +79,7 @@ const getAdminAgents = withErrorHandler('getAdminAgents')(async (
         agentsWithVolumes.map((agent) =>
             sanitizeAgent(decryptAgentSecrets(agent))
         ),
-        t('api.clawsFetched')
+        t('api.agentsFetched')
     )
 })
 

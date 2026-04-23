@@ -450,6 +450,7 @@ export interface AgentConfig {
     nginxSite: string
     binary: string
     npmPackage: string | null
+    githubRepo: string | null
     doctorCommand: string | null
     versionCommand: string
 }
@@ -535,6 +536,13 @@ export interface NpmRegistryVersionsResponse {
 
 export interface NpmDownloadsResponse {
     downloads: Record<string, number>
+}
+
+export interface GitHubRelease {
+    tag_name: string
+    published_at: string
+    prerelease: boolean
+    draft: boolean
 }
 
 export interface InstallVersionBody {

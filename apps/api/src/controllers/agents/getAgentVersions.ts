@@ -3,30 +3,38 @@ import type {
     CacheEntry,
     NpmRegistryVersionsResponse,
     NpmDownloadsResponse,
+    GitHubRelease,
     VersionsCacheData
 } from '@/ts/Interfaces'
 
 import { externalUrls } from '@openclaw/shared'
-import { findUserAgent, fetchAgentVersion } from '@/controllers/agents/helpers'
+import {
+    findUserAgent,
+    fetchAgentVersion,
+    getAgentConfig
+} from '@/controllers/agents/helpers'
 import { t } from '@openclaw/i18n'
 import { ok, fail } from '@/lib/response'
 
-const NPM_REGISTRY_URL = externalUrls.NPM.REGISTRY('openclaw')
-const NPM_DOWNLOADS_URL = externalUrls.NPM.DOWNLOADS('openclaw')
-
 const VERSIONS_CACHE_TTL = 30 * 60 * 1000
 
-let versionsCache: CacheEntry<VersionsCacheData> | null = null
+const versionsCaches: Record<string, CacheEntry<VersionsCacheData> | null> = {}
 
-const fetchVersionsData = async (): Promise<VersionsCacheData> => {
-    if (versionsCache && Date.now() < versionsCache.expiry)
-        return versionsCache.data
+const fetchNpmVersions = async (
+    npmPackage: string
+): Promise<VersionsCacheData> => {
+    const cacheKey = `npm:${npmPackage}`
+    const cached = versionsCaches[cacheKey]
+    if (cached && Date.now() < cached.expiry) return cached.data
+
+    const registryUrl = externalUrls.NPM.REGISTRY(npmPackage)
+    const downloadsUrl = externalUrls.NPM.DOWNLOADS(npmPackage)
 
     const [registryResponse, downloadsResponse] = await Promise.all([
-        fetch(NPM_REGISTRY_URL, {
+        fetch(registryUrl, {
             headers: { Accept: 'application/json' }
         }),
-        fetch(NPM_DOWNLOADS_URL).catch(() => null)
+        fetch(downloadsUrl).catch(() => null)
     ])
 
     if (!registryResponse.ok) throw new Error('npm_registry_error')
@@ -58,7 +66,40 @@ const fetchVersionsData = async (): Promise<VersionsCacheData> => {
         )
 
     const data = { latestVersion, versions }
-    versionsCache = { data, expiry: Date.now() + VERSIONS_CACHE_TTL }
+    versionsCaches[cacheKey] = { data, expiry: Date.now() + VERSIONS_CACHE_TTL }
+    return data
+}
+
+const fetchGitHubVersions = async (
+    repo: string
+): Promise<VersionsCacheData> => {
+    const cacheKey = `gh:${repo}`
+    const cached = versionsCaches[cacheKey]
+    if (cached && Date.now() < cached.expiry) return cached.data
+
+    const response = await fetch(
+        `${externalUrls.GITHUB.API}/repos/${repo}/releases?per_page=100`,
+        { headers: { Accept: 'application/vnd.github+json' } }
+    )
+
+    if (!response.ok) throw new Error('github_registry_error')
+
+    const releases = (await response.json()) as GitHubRelease[]
+
+    const stableReleases = releases.filter((r) => !r.prerelease && !r.draft)
+
+    const latestVersion = stableReleases[0]
+        ? stableReleases[0].tag_name.replace(/^v/, '')
+        : 'unknown'
+
+    const versions = stableReleases.map((r) => ({
+        version: r.tag_name.replace(/^v/, ''),
+        publishedAt: r.published_at,
+        downloads: 0
+    }))
+
+    const data = { latestVersion, versions }
+    versionsCaches[cacheKey] = { data, expiry: Date.now() + VERSIONS_CACHE_TTL }
     return data
 }
 
@@ -68,14 +109,25 @@ const getAgentVersions = async (c: AuthenticatedContext) => {
         const id = c.req.param('id')!
         const agent = await findUserAgent(userId, id, c.get('isAdmin'))
 
-        if (!agent) return fail(c, t('api.clawNotFound'), 404)
+        if (!agent) return fail(c, t('api.agentNotFound'), 404)
 
         if (!agent.ip || !agent.rootPassword)
             return fail(c, t('api.failedToGetVersions'), 400)
 
+        const agentConfig = getAgentConfig(agent.agentType)
+
+        const fetchVersionsData = agentConfig.githubRepo
+            ? fetchGitHubVersions(agentConfig.githubRepo)
+            : agentConfig.npmPackage
+                ? fetchNpmVersions(agentConfig.npmPackage)
+                : null
+
+        if (!fetchVersionsData)
+            return fail(c, t('api.failedToGetVersions'), 400)
+
         const [currentVersion, cached] = await Promise.all([
             fetchAgentVersion(agent.ip, agent.rootPassword, agent.agentType),
-            fetchVersionsData()
+            fetchVersionsData
         ])
 
         return ok(c, {
@@ -86,6 +138,11 @@ const getAgentVersions = async (c: AuthenticatedContext) => {
     } catch (error) {
         console.error('getAgentVersions', error)
         if (error instanceof Error && error.message === 'npm_registry_error')
+            return fail(c, t('api.failedToGetVersions'), 502)
+        if (
+            error instanceof Error &&
+            error.message === 'github_registry_error'
+        )
             return fail(c, t('api.failedToGetVersions'), 502)
         return fail(c, t('api.failedToGetVersions'), 500)
     }
