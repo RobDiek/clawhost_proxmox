@@ -10,7 +10,6 @@ import sanitizeAgent from '@/controllers/agents/helpers/sanitizeAgent'
 import safeShellWrite from '@/controllers/agents/helpers/safeShellWrite'
 import findUserAgent from '@/controllers/agents/helpers/findUserAgent'
 import decryptAgentSecrets from '@/controllers/agents/helpers/decryptAgentSecrets'
-import BASE_DIR from '@/controllers/agents/helpers/baseDir'
 import DOMAIN from '@/controllers/agents/helpers/constants'
 import syncAgentServers from '@/controllers/agents/helpers/syncAgentServers'
 import invalidateVersionCache from '@/controllers/agents/helpers/invalidateVersionCache'
@@ -35,7 +34,6 @@ export {
     decryptAgentSecrets,
     sanitizeAgent,
     safeShellWrite,
-    BASE_DIR,
     DOMAIN,
     syncAgentServers,
     executeServerLifecycle,

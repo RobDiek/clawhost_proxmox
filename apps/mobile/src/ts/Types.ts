@@ -1,8 +1,8 @@
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
 
-import type { clawStatus } from '@openclaw/shared'
+import type { agentStatus } from '@openclaw/shared'
 
-export type ClawStatus = (typeof clawStatus)[keyof typeof clawStatus]
+export type AgentStatus = (typeof agentStatus)[keyof typeof agentStatus]
 
 export type UserRole = 'user' | 'admin'
 

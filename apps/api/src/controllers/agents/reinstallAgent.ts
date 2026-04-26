@@ -27,7 +27,7 @@ const reinstallAgent = async (c: AuthenticatedContext) => {
         const id = c.req.param('id')!
         const existing = await findUserAgent(userId, id, c.get('isAdmin'))
 
-        if (!existing) return fail(c, t('api.clawNotFound'), 404)
+        if (!existing) return fail(c, t('api.agentNotFound'), 404)
 
         const nonReinstallableStatuses: string[] = [
             agentStatus.creating,
@@ -35,7 +35,7 @@ const reinstallAgent = async (c: AuthenticatedContext) => {
         ]
 
         if (nonReinstallableStatuses.includes(existing.status)) {
-            return fail(c, t('api.clawBusy'), 400)
+            return fail(c, t('api.agentBusy'), 400)
         }
 
         if (!c.get('isAdmin') && existing.lastReinstalledAt) {
@@ -150,7 +150,7 @@ const reinstallAgent = async (c: AuthenticatedContext) => {
         return ok(c, null, t('api.reinstallSuccess'))
     } catch (error) {
         console.error('reinstallAgent', error)
-        return fail(c, t('api.failedToReinstallClaw'), 500)
+        return fail(c, t('api.failedToReinstallAgent'), 500)
     }
 }
 

@@ -1,6 +1,7 @@
 import type { FC, FormEvent, ReactNode } from 'react'
+import type { LoginStep } from '@/ts/Types'
 
-import { Fragment, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
@@ -8,7 +9,7 @@ import { useAuth } from '@/lib/auth'
 import { useNetworkStatus } from '@/hooks'
 import { ROUTES } from '@/lib'
 import {
-    AnnouncementBanner,
+    AgentSwitcher,
     Logo,
     NetworkStatus,
     PageBackground,
@@ -23,7 +24,7 @@ import useOtpFlow from '@/pages/Login/useOtpFlow'
 
 const Login: FC = (): ReactNode => {
     const [email, setEmail] = useState('')
-    const [step, setStep] = useState<'email' | 'code'>('email')
+    const [step, setStep] = useState<LoginStep>('email')
     const {
         user,
         loading: authLoading,
@@ -108,13 +109,11 @@ const Login: FC = (): ReactNode => {
         <div
             className={`bg-background text-foreground ${isLocal ? 'fixed inset-0 flex flex-col overflow-hidden' : 'relative min-h-screen'}`}
         >
+            <AgentSwitcher />
             {isOffline ? (
                 <NetworkStatus />
             ) : (
-                <Fragment>
-                    <ProductHuntBanner />
-                    {!isLocal && <AnnouncementBanner />}
-                </Fragment>
+                <ProductHuntBanner />
             )}
             <div className='flex min-h-screen items-center justify-center px-4'>
                 <PageTitle

@@ -1,3 +1,4 @@
+import getAgentDisplayName from '@/lib/agent-utils/getAgentDisplayName'
 import generatePassword from '@/lib/agent-utils/generatePassword'
 import generateToken from '@/lib/agent-utils/generateToken'
 import generateSlug from '@/lib/agent-utils/generateSlug'
@@ -7,6 +8,7 @@ import getStatusConfig from '@/lib/agent-utils/getStatusConfig'
 import randomColor from '@/lib/agent-utils/randomColor'
 
 export {
+    getAgentDisplayName,
     generatePassword,
     generateToken,
     generateSlug,

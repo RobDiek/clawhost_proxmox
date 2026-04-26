@@ -18,9 +18,9 @@ const getAgentOverview = withAgent({
 
         const command = [
             `TOKEN=$(echo '${tokenBase64}' | base64 -d)`,
-            `curl -s http://127.0.0.1:18789/api/status 2>/dev/null || echo 'null'`,
+            `curl -sf -m 15 http://127.0.0.1:18789/api/status 2>/dev/null || curl -sf -m 15 http://127.0.0.1:18789/health 2>/dev/null || echo 'null'`,
             `echo '${SEPARATOR}'`,
-            `curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:18789/api/sessions 2>/dev/null || echo 'null'`,
+            `curl -sf -m 15 -H "Authorization: Bearer $TOKEN" http://127.0.0.1:18789/api/sessions 2>/dev/null || echo 'null'`,
             `echo '${SEPARATOR}'`,
             `cat ${agentConfig.configFile} 2>/dev/null || echo 'null'`,
             `echo '${SEPARATOR}'`,
@@ -28,7 +28,7 @@ const getAgentOverview = withAgent({
             `echo '${SEPARATOR}'`,
             'ss -tlnp 2>/dev/null | grep 18789 || echo ""',
             `echo '${SEPARATOR}'`,
-            `su - ${agentConfig.user} -c '${agentConfig.binary} status 2>/dev/null' 2>/dev/null || echo ''`
+            `timeout 15 su - ${agentConfig.user} -c '${agentConfig.binary} status 2>/dev/null' 2>/dev/null || echo ''`
         ].join('; ')
 
         const output = await executeSSH(
@@ -39,6 +39,9 @@ const getAgentOverview = withAgent({
         )
 
         const result = parseOverviewOutput(output, SEPARATOR)
+
+        if (result.gateway.active && result.gateway.portListening && !result.gateway.reachable)
+            return fail(c, t('api.overviewUnsupported'), 422)
 
         return ok(c, result, t('api.overviewFetched'))
     } catch (error) {

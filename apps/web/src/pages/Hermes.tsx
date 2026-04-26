@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useScroll, useTransform } from 'framer-motion'
 import { t } from '@openclaw/i18n'
-import { externalUrls } from '@openclaw/shared'
+import { getBaseDomain, PATHS, SCROLL_SECTIONS } from '@/lib'
 import {
     PageTitle,
     Header,
@@ -20,34 +20,24 @@ import {
     ComparisonTable,
     FaqSection,
     LandingCTA,
-    VideoModal,
     JsonLd
 } from '@/components'
-import { getBaseDomain, SCROLL_SECTIONS } from '@/lib'
-import {
-    TWITTER_URL,
-    FACEBOOK_URL,
-    INSTAGRAM_URL,
-    YOUTUBE_URL,
-    TIKTOK_URL,
-    TUTORIAL_URL
-} from '@/lib/links'
-import { usePlans, GITHUB_REPO_URL } from '@/hooks'
+import { usePlans } from '@/hooks'
 import { useUIStore, usePreferencesStore } from '@/lib/store'
 import { AGENT, PRODUCT } from '@/lib/constants'
 import {
-    ShieldCheckIcon,
     GlobeIcon,
     ClockIcon,
     TerminalIcon,
-    LockIcon,
+    BrainIcon,
+    CalendarBlankIcon,
+    GitBranchIcon,
+    ShieldCheckIcon,
     GaugeIcon,
     CreditCardIcon,
     LinkIcon,
     SlidersHorizontalIcon,
-    GearSixIcon,
-    StackIcon,
-    GitBranchIcon
+    StackIcon
 } from '@phosphor-icons/react'
 
 const getFaqs = (): Faq[] => [
@@ -81,17 +71,15 @@ const getFaqs = (): Faq[] => [
     }
 ]
 
-const Landing: FC = (): ReactNode => {
+const Hermes: FC = (): ReactNode => {
     const { hash } = useLocation()
     const { phBannerVisible } = useUIStore()
     const setProduct = usePreferencesStore((s) => s.setProduct)
     const setAgent = usePreferencesStore((s) => s.setAgent)
     useEffect(() => {
         setProduct(PRODUCT.CLOUD)
-        setAgent(AGENT.OPENCLAW)
+        setAgent(AGENT.HERMES)
     }, [setProduct, setAgent])
-    const showTutorialBadge = true
-    const [videoOpen, setVideoOpen] = useState(false)
     const {
         plans: hetznerPlans,
         isLoading: hetznerLoading,
@@ -161,47 +149,23 @@ const Landing: FC = (): ReactNode => {
     return (
         <div className='font-satoshi bg-background text-foreground min-h-screen'>
             <PageTitle
-                title={t('landing.title')}
-                description={t('landing.description')}
-                url={`https://${getBaseDomain()}`}
+                title={t('hermes.title')}
+                description={t('hermes.description')}
+                image={`https://${getBaseDomain()}/og-image.webp`}
+                url={`https://${getBaseDomain()}/${PATHS.HERMES}`}
             />
             <JsonLd
                 data={{
                     '@context': 'https://schema.org',
-                    '@type': 'Organization',
-                    name: 'ClawHost',
-                    url: `https://${getBaseDomain()}`,
-                    logo: `${externalUrls.CLAWHOST.CDN_GENERALS}/clawhost-logo-light.png`,
-                    sameAs: [
-                        TWITTER_URL,
-                        FACEBOOK_URL,
-                        INSTAGRAM_URL,
-                        YOUTUBE_URL,
-                        TIKTOK_URL,
-                        GITHUB_REPO_URL
-                    ]
-                }}
-            />
-            <JsonLd
-                data={{
-                    '@context': 'https://schema.org',
-                    '@type': 'WebSite',
-                    name: 'ClawHost',
-                    url: `https://${getBaseDomain()}`
-                }}
-            />
-            <JsonLd
-                data={{
-                    '@context': 'https://schema.org',
-                    '@type': 'FAQPage',
-                    mainEntity: getFaqs().map((faq) => ({
-                        '@type': 'Question',
-                        name: faq.question,
-                        acceptedAnswer: {
-                            '@type': 'Answer',
-                            text: faq.answer
-                        }
-                    }))
+                    '@type': 'WebPage',
+                    name: 'Deploy Hermes Agent',
+                    url: `https://${getBaseDomain()}/hermes`,
+                    description: t('hermes.description'),
+                    publisher: {
+                        '@type': 'Organization',
+                        name: 'ClawHost',
+                        url: `https://${getBaseDomain()}`
+                    }
                 }}
             />
 
@@ -221,22 +185,18 @@ const Landing: FC = (): ReactNode => {
 
                     <div className='animate-hero-fade-in relative mx-auto max-w-6xl'>
                         <div className='flex flex-col items-center text-center'>
-                            <HeroBadge
-                                label={t('landing.badge')}
-                                tutorialBadge={showTutorialBadge}
-                                onTutorialClick={() => setVideoOpen(true)}
-                            />
+                            <HeroBadge label={t('hermes.badge')} />
 
                             <HeroTitle
-                                line1={t('landing.heroTitle1')}
-                                line2={t('landing.heroTitle2')}
-                                description={t('landing.heroDescription')}
+                                line1={t('hermes.heroTitle1')}
+                                line2={t('hermes.heroTitle2')}
+                                description={t('hermes.heroDescription')}
                             />
 
                             <div className='mb-16 flex flex-col gap-4 sm:flex-row'>
                                 <HeroButtons
-                                    deployLabel={t('nav.deployOpenClaw')}
-                                    githubLabel={t('landing.selfHostInstead')}
+                                    deployLabel={t('hermes.deployButton')}
+                                    githubLabel={t('hermes.githubButton')}
                                     showStars={true}
                                 />
                             </div>
@@ -274,33 +234,48 @@ const Landing: FC = (): ReactNode => {
 
                 <FeaturesGrid
                     badge={t('landing.features')}
-                    heading={t('landing.whyClawHost')}
-                    description={t('landing.featuresDescription')}
+                    heading={t('hermes.whyHermes')}
+                    description={t('hermes.featuresDescription')}
                     features={[
+                        {
+                            icon: GlobeIcon,
+                            title: t('hermes.feature1Title'),
+                            description: t('hermes.feature1Description')
+                        },
+                        {
+                            icon: BrainIcon,
+                            title: t('hermes.feature2Title'),
+                            description: t('hermes.feature2Description')
+                        },
+                        {
+                            icon: CalendarBlankIcon,
+                            title: t('hermes.feature3Title'),
+                            description: t('hermes.feature3Description')
+                        },
+                        {
+                            icon: GitBranchIcon,
+                            title: t('hermes.feature4Title'),
+                            description: t('hermes.feature4Description')
+                        },
+                        {
+                            icon: ShieldCheckIcon,
+                            title: t('hermes.feature5Title'),
+                            description: t('hermes.feature5Description')
+                        },
+                        {
+                            icon: TerminalIcon,
+                            title: t('hermes.feature6Title'),
+                            description: t('hermes.feature6Description')
+                        },
                         {
                             icon: ClockIcon,
                             title: t('landing.zeroConfig'),
                             description: t('landing.zeroConfigDescription')
                         },
                         {
-                            icon: LockIcon,
-                            title: t('landing.ownedData'),
-                            description: t('landing.ownedDataDescription')
-                        },
-                        {
                             icon: GaugeIcon,
                             title: t('landing.fullSpeed'),
                             description: t('landing.fullSpeedDescription')
-                        },
-                        {
-                            icon: GlobeIcon,
-                            title: t('landing.globalLocations'),
-                            description: t('landing.globalLocationsDescription')
-                        },
-                        {
-                            icon: TerminalIcon,
-                            title: t('landing.fullSshAccess'),
-                            description: t('landing.fullSshAccessDescription')
                         },
                         {
                             icon: CreditCardIcon,
@@ -315,24 +290,9 @@ const Landing: FC = (): ReactNode => {
                             )
                         },
                         {
-                            icon: ShieldCheckIcon,
-                            title: t('landing.secure'),
-                            description: t('landing.secureDescription')
-                        },
-                        {
-                            icon: GitBranchIcon,
-                            title: t('landing.autoUpdates'),
-                            description: t('landing.autoUpdatesDescription')
-                        },
-                        {
                             icon: SlidersHorizontalIcon,
                             title: t('landing.openclawControl'),
                             description: t('landing.openclawControlDescription')
-                        },
-                        {
-                            icon: GearSixIcon,
-                            title: t('landing.clawHostControl'),
-                            description: t('landing.clawHostControlDescription')
                         },
                         {
                             icon: StackIcon,
@@ -416,26 +376,20 @@ const Landing: FC = (): ReactNode => {
                 />
 
                 <LandingCTA
-                    title={t('blog.ctaTitle')}
-                    description={t('blog.ctaDescription')}
+                    title={t('hermes.ctaTitle')}
+                    description={t('hermes.ctaDescription')}
                 >
                     <HeroButtons
-                        deployLabel={t('blog.ctaDeploy')}
-                        githubLabel={t('blog.ctaGitHub')}
+                        deployLabel={t('hermes.ctaDeploy')}
+                        githubLabel={t('hermes.ctaGitHub')}
                         showStars={true}
                     />
                 </LandingCTA>
             </main>
 
             <LandingFooter />
-
-            <VideoModal
-                open={videoOpen}
-                onClose={() => setVideoOpen(false)}
-                videoUrl={TUTORIAL_URL}
-            />
         </div>
     )
 }
 
-export default Landing
+export default Hermes

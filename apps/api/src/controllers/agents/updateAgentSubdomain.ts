@@ -72,13 +72,13 @@ const updateAgentSubdomain = withErrorHandler('updateAgentSubdomain')(async (
         return fail(c, t('api.invalidSubdomain'), 400)
 
     const agent = await findUserAgent(userId, id, c.get('isAdmin'))
-    if (!agent) return fail(c, t('api.clawNotFound'), 404)
+    if (!agent) return fail(c, t('api.agentNotFound'), 404)
 
     if (agent.status !== agentStatus.running)
-        return fail(c, t('api.clawBusy'), 400)
+        return fail(c, t('api.agentBusy'), 400)
 
     if (!agent.ip || !agent.rootPassword || !agent.subdomain)
-        return fail(c, t('api.clawBusy'), 400)
+        return fail(c, t('api.agentBusy'), 400)
 
     if (subdomain === agent.subdomain) return ok(c, sanitizeAgent(agent))
 

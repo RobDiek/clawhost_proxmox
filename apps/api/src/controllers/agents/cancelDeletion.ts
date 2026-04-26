@@ -16,10 +16,10 @@ const cancelDeletion = withErrorHandler(
         const id = c.req.param('id')!
 
         if (!agent.deletionScheduledAt)
-            return fail(c, t('api.clawNotScheduledForDeletion'), 400)
+            return fail(c, t('api.agentNotScheduledForDeletion'), 400)
 
         if (new Date(agent.deletionScheduledAt) <= new Date())
-            return fail(c, t('api.clawDeletionAlreadyPassed'), 400)
+            return fail(c, t('api.agentDeletionAlreadyPassed'), 400)
 
         if (agent.polarSubscriptionId) {
             try {
@@ -45,7 +45,7 @@ const cancelDeletion = withErrorHandler(
                 deletionScheduledAt: null,
                 subscriptionStatus: subscriptionStatus.active
             }),
-            t('api.clawDeletionCancelled')
+            t('api.agentDeletionCancelled')
         )
     })
 )

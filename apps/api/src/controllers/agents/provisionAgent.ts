@@ -40,7 +40,7 @@ const provisionAgent = async (
             .returning()
 
         if (!claimed[0])
-            return { success: false, error: t('api.pendingClawNotFound') }
+            return { success: false, error: t('api.pendingAgentNotFound') }
 
         const pending = claimed[0]
 
@@ -81,7 +81,7 @@ const provisionAgent = async (
         }
 
         if (!pending.rootPassword)
-            return { success: false, error: t('api.failedToProvisionClaw') }
+            return { success: false, error: t('api.failedToProvisionAgent') }
 
         const plainRootPassword = decrypt(pending.rootPassword)
 
@@ -184,7 +184,7 @@ const provisionAgent = async (
         console.error('provisionAgent', error)
         return {
             success: false,
-            error: t('api.failedToProvisionClaw')
+            error: t('api.failedToProvisionAgent')
         }
     }
 }

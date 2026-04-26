@@ -18,10 +18,10 @@ const repairAgent = async (c: AuthenticatedContext) => {
             .where(eq(agents.id, id))
             .limit(1)
 
-        if (!agent[0]) return fail(c, t('api.clawNotFound'), 404)
+        if (!agent[0]) return fail(c, t('api.agentNotFound'), 404)
 
         if (!agent[0].ip || !agent[0].rootPassword)
-            return fail(c, t('api.failedToRepairClaw'), 400)
+            return fail(c, t('api.failedToRepairAgent'), 400)
 
         const agentConfig = getAgentConfig(agent[0].agentType)
         const serviceFile = `/etc/systemd/system/${agentConfig.serviceName}.service`
@@ -65,7 +65,7 @@ const repairAgent = async (c: AuthenticatedContext) => {
         return fail(c, t('api.repairGatewayNotResponding'), 500)
     } catch (error) {
         console.error('repairAgent', error)
-        return fail(c, t('api.failedToRepairClaw'), 500)
+        return fail(c, t('api.failedToRepairAgent'), 500)
     }
 }
 

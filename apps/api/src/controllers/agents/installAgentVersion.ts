@@ -20,6 +20,61 @@ import { ok, fail } from '@/lib/response'
 const VERSION_REGEX = /^[a-zA-Z0-9._-]+$/
 const OUTDATED_CUTOFF = new Date('2026-02-01')
 
+const buildNpmInstallCommands = async (
+    version: string,
+    npmPackage: string,
+    serviceName: string,
+    user: string,
+    doctorCommand: string | null,
+    nginxSite: string
+): Promise<string> => {
+    const registryUrl = externalUrls.NPM.REGISTRY(npmPackage)
+    const registryResponse = await fetch(registryUrl, {
+        headers: { Accept: 'application/json' }
+    })
+
+    if (registryResponse.ok) {
+        const registry =
+            (await registryResponse.json()) as NpmRegistryTimeResponse
+        const publishedAt = registry.time?.[version]
+        if (publishedAt && new Date(publishedAt) < OUTDATED_CUTOFF)
+            throw new Error('outdated_version')
+    }
+
+    const nginxPatch = `(grep -q 'proxy_hide_header Content-Security-Policy' /etc/nginx/sites-available/${nginxSite} || sed -i 's|proxy_send_timeout 86400;|proxy_send_timeout 86400;\\n            proxy_hide_header Content-Security-Policy;\\n            proxy_hide_header X-Frame-Options;\\n            add_header Content-Security-Policy "frame-ancestors https://${DOMAIN} https://*.${DOMAIN} http://localhost:* https://localhost:*" always;|g' /etc/nginx/sites-available/${nginxSite}) && nginx -t && systemctl reload nginx || true`
+
+    return [
+        `systemctl stop ${serviceName} || true`,
+        `npm install -g ${npmPackage}@${version}`,
+        ...(doctorCommand
+            ? [`su - ${user} -c "${doctorCommand}" || true`]
+            : []),
+        nginxPatch,
+        `systemctl restart ${serviceName}`,
+        'sleep 15',
+        'curl -sf -o /dev/null --max-time 5 http://127.0.0.1:18789 && echo "GATEWAY_OK" || echo "GATEWAY_FAILED"'
+    ].join(' && ')
+}
+
+const buildGitHubInstallCommands = (
+    version: string,
+    githubRepo: string,
+    serviceName: string,
+    user: string,
+    nginxSite: string
+): string => {
+    const nginxPatch = `(grep -q 'proxy_hide_header Content-Security-Policy' /etc/nginx/sites-available/${nginxSite} || sed -i 's|proxy_send_timeout 86400;|proxy_send_timeout 86400;\\n            proxy_hide_header Content-Security-Policy;\\n            proxy_hide_header X-Frame-Options;\\n            add_header Content-Security-Policy "frame-ancestors https://${DOMAIN} https://*.${DOMAIN} http://localhost:* https://localhost:*" always;|g' /etc/nginx/sites-available/${nginxSite}) && nginx -t && systemctl reload nginx || true`
+
+    return [
+        `systemctl stop ${serviceName} || true`,
+        `curl -fsSL https://raw.githubusercontent.com/${githubRepo}/main/scripts/install.sh | HERMES_VERSION=${version} su - ${user} -c bash`,
+        nginxPatch,
+        `systemctl restart ${serviceName}`,
+        'sleep 15',
+        'curl -sf -o /dev/null --max-time 5 http://127.0.0.1:18789 && echo "GATEWAY_OK" || echo "GATEWAY_FAILED"'
+    ].join(' && ')
+}
+
 const installAgentVersion = async (c: AuthenticatedContext) => {
     try {
         const id = c.req.param('id')!
@@ -34,44 +89,44 @@ const installAgentVersion = async (c: AuthenticatedContext) => {
 
         const agent = agentResult
 
-        if (!agent[0]) return fail(c, t('api.clawNotFound'), 404)
+        if (!agent[0]) return fail(c, t('api.agentNotFound'), 404)
 
         if (!agent[0].ip || !agent[0].rootPassword)
             return fail(c, t('api.failedToInstallVersion'), 400)
 
         const agentConfig = getAgentConfig(agent[0].agentType)
 
-        if (!agentConfig.npmPackage)
+        let installCommands: string
+
+        if (agentConfig.githubRepo) {
+            installCommands = buildGitHubInstallCommands(
+                version,
+                agentConfig.githubRepo,
+                agentConfig.serviceName,
+                agentConfig.user,
+                agentConfig.nginxSite
+            )
+        } else if (agentConfig.npmPackage) {
+            try {
+                installCommands = await buildNpmInstallCommands(
+                    version,
+                    agentConfig.npmPackage,
+                    agentConfig.serviceName,
+                    agentConfig.user,
+                    agentConfig.doctorCommand,
+                    agentConfig.nginxSite
+                )
+            } catch (error) {
+                if (
+                    error instanceof Error &&
+                    error.message === 'outdated_version'
+                )
+                    return fail(c, t('api.outdatedVersion'), 400)
+                throw error
+            }
+        } else {
             return fail(c, t('api.failedToInstallVersion'), 400)
-
-        const registryUrl = externalUrls.NPM.REGISTRY(agentConfig.npmPackage)
-        const registryResponse = await fetch(registryUrl, {
-            headers: { Accept: 'application/json' }
-        })
-
-        if (registryResponse.ok) {
-            const registry =
-                (await registryResponse.json()) as NpmRegistryTimeResponse
-            const publishedAt = registry.time?.[version]
-            if (publishedAt && new Date(publishedAt) < OUTDATED_CUTOFF)
-                return fail(c, t('api.outdatedVersion'), 400)
         }
-
-        const nginxPatch = `(grep -q 'proxy_hide_header Content-Security-Policy' /etc/nginx/sites-available/${agentConfig.nginxSite} || sed -i 's|proxy_send_timeout 86400;|proxy_send_timeout 86400;\\n            proxy_hide_header Content-Security-Policy;\\n            proxy_hide_header X-Frame-Options;\\n            add_header Content-Security-Policy "frame-ancestors https://${DOMAIN} https://*.${DOMAIN} http://localhost:* https://localhost:*" always;|g' /etc/nginx/sites-available/${agentConfig.nginxSite}) && nginx -t && systemctl reload nginx || true`
-
-        const installCommands = [
-            `systemctl stop ${agentConfig.serviceName} || true`,
-            `npm install -g ${agentConfig.npmPackage}@${version}`,
-            ...(agentConfig.doctorCommand
-                ? [
-                      `su - ${agentConfig.user} -c "${agentConfig.doctorCommand}" || true`
-                  ]
-                : []),
-            nginxPatch,
-            `systemctl restart ${agentConfig.serviceName}`,
-            'sleep 15',
-            'curl -sf -o /dev/null --max-time 5 http://127.0.0.1:18789 && echo "GATEWAY_OK" || echo "GATEWAY_FAILED"'
-        ].join(' && ')
 
         const output = await executeSSH(
             agent[0].ip,

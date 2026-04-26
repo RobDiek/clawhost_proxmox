@@ -8,6 +8,16 @@ import type {
 } from '@/ts/Types'
 import type { PgTable } from 'drizzle-orm/pg-core'
 import type { TranslationKey } from '@openclaw/i18n'
+import type { Client, ClientChannel } from 'ssh2'
+
+export interface TerminalSocketData {
+    ip: string
+    password: string
+    sshConn?: Client
+    stream?: ClientChannel
+    pingTimer?: Timer
+    sshReady?: boolean
+}
 
 export interface WithAgentOptions {
     requireSSH?: boolean | TranslationKey
@@ -450,6 +460,7 @@ export interface AgentConfig {
     nginxSite: string
     binary: string
     npmPackage: string | null
+    githubRepo: string | null
     doctorCommand: string | null
     versionCommand: string
 }
@@ -535,6 +546,13 @@ export interface NpmRegistryVersionsResponse {
 
 export interface NpmDownloadsResponse {
     downloads: Record<string, number>
+}
+
+export interface GitHubRelease {
+    tag_name: string
+    published_at: string
+    prerelease: boolean
+    draft: boolean
 }
 
 export interface InstallVersionBody {

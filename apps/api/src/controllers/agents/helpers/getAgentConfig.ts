@@ -12,6 +12,7 @@ const OPENCLAW_CONFIG: AgentConfig = {
     nginxSite: 'openclaw',
     binary: 'openclaw',
     npmPackage: 'openclaw',
+    githubRepo: null,
     doctorCommand: 'openclaw doctor --fix',
     versionCommand: 'openclaw --version'
 }
@@ -26,6 +27,7 @@ const HERMES_CONFIG: AgentConfig = {
     nginxSite: 'hermes-gateway',
     binary: 'hermes',
     npmPackage: null,
+    githubRepo: 'NousResearch/hermes-agent',
     doctorCommand: null,
     versionCommand: 'hermes --version'
 }

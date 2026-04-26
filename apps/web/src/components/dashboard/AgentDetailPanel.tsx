@@ -281,6 +281,7 @@ const AgentDetailPanel: FC<AgentDetailPanelProps> = ({
                                 <Suspense fallback={<TabFallback />}>
                                     <AgentVersionsContent
                                         agentId={agent.id}
+                                        agentType={agent.agentType}
                                         readOnly={readOnly}
                                     />
                                 </Suspense>

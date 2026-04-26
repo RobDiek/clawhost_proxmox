@@ -36,7 +36,7 @@ const getAgent = withErrorHandler('getAgent')(
                             status: serverStatus.status,
                             ip: serverStatus.ip
                         }),
-                        t('api.clawFetched')
+                        t('api.agentFetched')
                     )
                 }
             } catch (error) {
@@ -44,7 +44,7 @@ const getAgent = withErrorHandler('getAgent')(
             }
         }
 
-        return ok(c, sanitizeAgent(agent), t('api.clawFetched'))
+        return ok(c, sanitizeAgent(agent), t('api.agentFetched'))
     })
 )
 

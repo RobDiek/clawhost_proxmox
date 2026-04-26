@@ -14,12 +14,12 @@ import withErrorHandler from '@/lib/withErrorHandler'
 
 const syncAgent = withErrorHandler(
     'syncAgent',
-    'api.failedToSyncClaw'
+    'api.failedToSyncAgent'
 )(
     withAgent()(async (c, agent) => {
         const id = c.req.param('id')!
 
-        if (!agent.providerServerId) return fail(c, t('api.clawNotFound'), 404)
+        if (!agent.providerServerId) return fail(c, t('api.agentNotFound'), 404)
 
         const provider = getProvider()
         const serverStatus = await provider.getServer(agent.providerServerId)
@@ -46,7 +46,7 @@ const syncAgent = withErrorHandler(
                             status: agentStatus.running,
                             ip: serverStatus.ip
                         }),
-                        t('api.clawSynced')
+                        t('api.agentSynced')
                     )
                 }
             }
@@ -62,7 +62,7 @@ const syncAgent = withErrorHandler(
                     ...agent,
                     ip: serverStatus.ip
                 }),
-                t('api.clawSynced')
+                t('api.agentSynced')
             )
         }
 
@@ -78,7 +78,7 @@ const syncAgent = withErrorHandler(
                 status: serverStatus.status,
                 ip: serverStatus.ip
             }),
-            t('api.clawSynced')
+            t('api.agentSynced')
         )
     })
 )

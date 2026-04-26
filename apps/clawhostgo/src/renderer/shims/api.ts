@@ -172,4 +172,5 @@ const api = {
         client.post<CustomerPortalResponse>('/users/me/billing/portal')
 }
 
+export { api }
 export default api

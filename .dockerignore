@@ -19,5 +19,5 @@ apps/api/models
 .idea
 .DS_Store
 scripts
-fly.toml
 CLAUDE.md
+package-lock.json

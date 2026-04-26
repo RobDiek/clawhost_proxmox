@@ -14,10 +14,10 @@ const exportAgent = async (c: AuthenticatedContext) => {
         const id = c.req.param('id')!
         const agent = await findUserAgent(userId, id, c.get('isAdmin'))
 
-        if (!agent) return fail(c, t('api.clawNotFound'), 404)
+        if (!agent) return fail(c, t('api.agentNotFound'), 404)
 
         if (!agent.ip || !agent.rootPassword)
-            return fail(c, t('api.clawNotReady'), 400)
+            return fail(c, t('api.agentNotReady'), 400)
 
         const retryAfter = await checkRateLimit(
             `export:${id}`,
@@ -49,7 +49,7 @@ const exportAgent = async (c: AuthenticatedContext) => {
         })
     } catch (error) {
         console.error('exportAgent', error)
-        return fail(c, t('api.failedToExportClaw'), 500)
+        return fail(c, t('api.failedToExportAgent'), 500)
     }
 }
 

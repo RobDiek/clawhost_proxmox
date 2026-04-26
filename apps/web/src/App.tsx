@@ -7,6 +7,8 @@ import { ScrollToTop, Toast, ProtectedRoute } from '@/components'
 import { TooltipProvider } from '@/components/ui'
 import { ROUTES } from '@/lib'
 import { useThemeEffect, useLanguageEffect, useRefer } from '@/hooks'
+import { usePreferencesStore } from '@/lib/store'
+import { AGENT } from '@/lib/constants'
 
 import Go from '@/pages/Go'
 import Landing from '@/pages/Landing'
@@ -23,19 +25,23 @@ const Changelog = lazy(() => import('@/pages/Changelog'))
 const BlogPost = lazy(() => import('@/pages/BlogPost'))
 const AffiliateProgram = lazy(() => import('@/pages/AffiliateProgram'))
 const Compare = lazy(() => import('@/pages/Compare'))
+const Hermes = lazy(() => import('@/pages/Hermes'))
+const HermesGo = lazy(() => import('@/pages/HermesGo'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
 
 const App: FC = (): ReactNode => {
     useThemeEffect()
     useRefer()
     const language = useLanguageEffect()
+    const agent = usePreferencesStore((s) => s.agent)
 
     return (
-        <TooltipProvider delayDuration={300}>
-            <AuthProvider>
-                <ScrollToTop />
-                <Toast />
-                <Suspense
+        <div className={agent === AGENT.HERMES ? 'hermes' : ''}>
+            <TooltipProvider delayDuration={300}>
+                <AuthProvider>
+                    <ScrollToTop />
+                    <Toast />
+                    <Suspense
                     key={language}
                     fallback={
                         <div className='bg-background flex min-h-screen items-center justify-center'>
@@ -59,6 +65,11 @@ const App: FC = (): ReactNode => {
                             element={<AffiliateProgram />}
                         />
                         <Route path={ROUTES.COMPARE} element={<Compare />} />
+                        <Route path={ROUTES.HERMES} element={<Hermes />} />
+                        <Route
+                            path={ROUTES.HERMES_GO}
+                            element={<HermesGo />}
+                        />
                         <Route
                             path={ROUTES.AGENTS}
                             element={
@@ -112,6 +123,7 @@ const App: FC = (): ReactNode => {
                 </Suspense>
             </AuthProvider>
         </TooltipProvider>
+        </div>
     )
 }
 

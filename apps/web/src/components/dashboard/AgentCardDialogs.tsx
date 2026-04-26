@@ -4,9 +4,11 @@ import type { AgentCardDialogsProps } from '@/ts/Interfaces'
 import { Fragment } from 'react'
 import { t } from '@openclaw/i18n'
 import { ConfirmationDialog } from '@/components/shared'
+import { getAgentDisplayName } from '@/lib/agent-utils'
 
 const AgentCardDialogs: FC<AgentCardDialogsProps> = ({
     agentName,
+    agentType,
     showStartModal,
     setShowStartModal,
     showDeleteModal,
@@ -112,7 +114,7 @@ const AgentCardDialogs: FC<AgentCardDialogsProps> = ({
                 open={showReinstallModal}
                 onOpenChange={setShowReinstallModal}
                 title={t('dashboard.reinstallClaw')}
-                description={t('dashboard.reinstallClawConfirmation')}
+                description={t('dashboard.reinstallClawConfirmation', { agentName: getAgentDisplayName(agentType) })}
                 confirmLabel={t('common.confirm')}
                 onConfirm={() => {
                     onReinstall()

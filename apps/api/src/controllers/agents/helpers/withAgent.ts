@@ -15,14 +15,14 @@ const withAgent = (options: WithAgentOptions = {}) => {
             const id = c.req.param('id')!
             const agent = await findUserAgent(userId, id, c.get('isAdmin'))
 
-            if (!agent) return fail(c, t('api.clawNotFound'), 404)
+            if (!agent) return fail(c, t('api.agentNotFound'), 404)
 
             if (options.requireSSH) {
                 if (!agent.ip || !agent.rootPassword) {
                     const key: TranslationKey =
                         typeof options.requireSSH === 'string'
                             ? options.requireSSH
-                            : 'api.clawNotFound'
+                            : 'api.agentNotFound'
                     return fail(c, t(key), 400)
                 }
             }

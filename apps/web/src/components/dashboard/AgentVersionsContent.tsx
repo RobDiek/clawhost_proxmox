@@ -5,7 +5,7 @@ import { Fragment, useState, useMemo, useRef } from 'react'
 import { useDebouncedValue } from '@/hooks'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { t } from '@openclaw/i18n'
-import { isVersionSupported } from '@openclaw/shared'
+import { agentType as agentTypeConst, isVersionSupported } from '@openclaw/shared'
 import {
     CircleNotchIcon,
     MagnifyingGlassIcon,
@@ -34,12 +34,17 @@ import { TOAST_TYPE } from '@/lib/constants'
 import { AGENT_VERSIONS_QUERY_KEY, AGENT_VERSION_QUERY_KEY } from '@/hooks'
 import { demoVersions } from '@/data'
 
-const CHANGELOG_BASE_URL = 'https://www.npmjs.com/package/openclaw/v/'
+const CHANGELOG_URLS: Record<string, string> = {
+    [agentTypeConst.OPENCLAW]: 'https://www.npmjs.com/package/openclaw/v/',
+    [agentTypeConst.HERMES]: 'https://github.com/NousResearch/hermes-agent/releases/tag/v'
+}
 
 const AgentVersionsContent: FC<AgentVersionsContentProps> = ({
     agentId,
+    agentType,
     readOnly
 }): ReactNode => {
+    const changelogBaseUrl = CHANGELOG_URLS[agentType] || CHANGELOG_URLS[agentTypeConst.OPENCLAW]
     const [search, setSearch] = useState('')
     const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300)
     const {
@@ -254,7 +259,7 @@ const AgentVersionsContent: FC<AgentVersionsContentProps> = ({
                                                         ·
                                                     </span>
                                                     <a
-                                                        href={`${CHANGELOG_BASE_URL}${entry.version}`}
+                                                        href={`${changelogBaseUrl}${entry.version}`}
                                                         target='_blank'
                                                         rel='noopener noreferrer'
                                                         onClick={(e) =>

@@ -10,7 +10,7 @@ const getAgentVersion = async (c: AuthenticatedContext) => {
         const id = c.req.param('id')!
         const agent = await findUserAgent(userId, id, c.get('isAdmin'))
 
-        if (!agent) return fail(c, t('api.clawNotFound'), 404)
+        if (!agent) return fail(c, t('api.agentNotFound'), 404)
 
         if (!agent.ip || !agent.rootPassword)
             return fail(c, t('api.failedToGetVersion'), 400)

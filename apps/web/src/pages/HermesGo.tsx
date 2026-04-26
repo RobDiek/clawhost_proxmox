@@ -19,25 +19,51 @@ import {
     MacosDesktopPreview,
     GoPricingCard,
     LandingCTA,
-    GoWaitlistForm
+    GoWaitlistForm,
+    JsonLd
 } from '@/components'
 import { usePreferencesStore, useUIStore } from '@/lib/store'
 import { AGENT, PRODUCT, TOAST_TYPE } from '@/lib/constants'
 import { useAuth } from '@/lib/auth'
 import { api } from '@/lib'
 import {
+    GlobeIcon,
+    BrainIcon,
+    CalendarBlankIcon,
+    GitBranchIcon,
+    ShieldCheckIcon,
+    TerminalIcon,
     ClockIcon,
     LockIcon,
-    TerminalIcon,
-    CreditCardIcon,
-    LinkIcon,
-    ShieldCheckIcon,
-    GitBranchIcon,
-    SlidersHorizontalIcon,
-    GearSixIcon
+    CreditCardIcon
 } from '@phosphor-icons/react'
 
-const getGoFeatures = (): FeatureItem[] => [
+const getHermesGoFeatures = (): FeatureItem[] => [
+    {
+        icon: GlobeIcon,
+        title: t('hermes.feature1Title'),
+        description: t('hermes.feature1Description')
+    },
+    {
+        icon: BrainIcon,
+        title: t('hermes.feature2Title'),
+        description: t('hermes.feature2Description')
+    },
+    {
+        icon: CalendarBlankIcon,
+        title: t('hermes.feature3Title'),
+        description: t('hermes.feature3Description')
+    },
+    {
+        icon: ShieldCheckIcon,
+        title: t('hermes.feature5Title'),
+        description: t('hermes.feature5Description')
+    },
+    {
+        icon: TerminalIcon,
+        title: t('hermes.feature6Title'),
+        description: t('hermes.feature6Description')
+    },
     {
         icon: ClockIcon,
         title: t('landing.zeroConfig'),
@@ -49,43 +75,18 @@ const getGoFeatures = (): FeatureItem[] => [
         description: t('go.ownedDataDescription')
     },
     {
-        icon: TerminalIcon,
-        title: t('landing.fullSshAccess'),
-        description: t('go.terminalAccessDescription')
-    },
-    {
         icon: CreditCardIcon,
         title: t('go.simplePricing'),
         description: t('go.simplePricingDescription')
     },
     {
-        icon: LinkIcon,
-        title: t('go.localDomain'),
-        description: t('go.localDomainDescription')
-    },
-    {
-        icon: ShieldCheckIcon,
-        title: t('landing.secure'),
-        description: t('go.secureDescription')
-    },
-    {
         icon: GitBranchIcon,
         title: t('landing.autoUpdates'),
         description: t('landing.autoUpdatesDescription')
-    },
-    {
-        icon: SlidersHorizontalIcon,
-        title: t('landing.openclawControl'),
-        description: t('landing.openclawControlDescription')
-    },
-    {
-        icon: GearSixIcon,
-        title: t('landing.clawHostControl'),
-        description: t('landing.clawHostControlDescription')
     }
 ]
 
-const getGoFaqs = (): Faq[] => [
+const getHermesGoFaqs = (): Faq[] => [
     {
         question: t('go.faq1Question'),
         answer: t('go.faq1Answer')
@@ -112,12 +113,12 @@ const getGoFaqs = (): Faq[] => [
     }
 ]
 
-const Go: FC = (): ReactNode => {
+const HermesGo: FC = (): ReactNode => {
     const setProduct = usePreferencesStore((s) => s.setProduct)
     const setAgent = usePreferencesStore((s) => s.setAgent)
     useEffect(() => {
         setProduct(PRODUCT.GO)
-        setAgent(AGENT.OPENCLAW)
+        setAgent(AGENT.HERMES)
     }, [setProduct, setAgent])
     const { user, loading: authLoading } = useAuth()
     const showToast = useUIStore((s) => s.showToast)
@@ -230,10 +231,24 @@ const Go: FC = (): ReactNode => {
     return (
         <div className='font-satoshi bg-background text-foreground min-h-screen'>
             <PageTitle
-                title={t('go.pageTitle')}
-                description={t('go.description')}
-                image={`https://${getBaseDomain()}/og-go.webp`}
-                url={`https://${getBaseDomain()}/${PATHS.GO}`}
+                title={t('hermesGo.pageTitle')}
+                description={t('hermesGo.description')}
+                image={`https://${getBaseDomain()}/og-image.webp`}
+                url={`https://${getBaseDomain()}/${PATHS.HERMES_GO}`}
+            />
+            <JsonLd
+                data={{
+                    '@context': 'https://schema.org',
+                    '@type': 'WebPage',
+                    name: 'ClawHost Go - Hermes Agent',
+                    url: `https://${getBaseDomain()}/${PATHS.HERMES_GO}`,
+                    description: t('hermesGo.description'),
+                    publisher: {
+                        '@type': 'Organization',
+                        name: 'ClawHost',
+                        url: `https://${getBaseDomain()}`
+                    }
+                }}
             />
 
             <div className='landing-gradient pointer-events-none fixed inset-0' />
@@ -250,12 +265,12 @@ const Go: FC = (): ReactNode => {
 
                     <div className='animate-hero-fade-in relative mx-auto max-w-6xl'>
                         <div className='flex flex-col items-center text-center'>
-                            <HeroBadge label={t('go.badge')} />
+                            <HeroBadge label={t('hermesGo.badge')} />
 
                             <HeroTitle
-                                line1={t('go.heroTitle1')}
-                                line2={t('go.heroTitle2')}
-                                description={t('go.description')}
+                                line1={t('hermesGo.heroTitle1')}
+                                line2={t('hermesGo.heroTitle2')}
+                                description={t('hermesGo.heroDescription')}
                             />
 
                             <div className='mb-16 flex flex-col gap-4 sm:flex-row'>
@@ -295,9 +310,9 @@ const Go: FC = (): ReactNode => {
 
                 <FeaturesGrid
                     badge={t('go.features')}
-                    heading={t('go.whyClawHostGo')}
-                    description={t('go.featuresDescription')}
-                    features={getGoFeatures()}
+                    heading={t('hermesGo.whyHermesGo')}
+                    description={t('hermesGo.featuresDescription')}
+                    features={getHermesGoFeatures()}
                 />
 
                 <section
@@ -372,12 +387,12 @@ const Go: FC = (): ReactNode => {
                     badge={t('go.faqTitle')}
                     heading={t('go.faqHeading')}
                     description={t('go.faqDescription')}
-                    faqs={getGoFaqs()}
+                    faqs={getHermesGoFaqs()}
                 />
 
                 <LandingCTA
-                    title={t('go.ctaTitle')}
-                    description={t('go.ctaDescription')}
+                    title={t('hermesGo.ctaTitle')}
+                    description={t('hermesGo.ctaDescription')}
                 >
                     <GoWaitlistForm
                         {...waitlistFormProps}
@@ -391,4 +406,4 @@ const Go: FC = (): ReactNode => {
     )
 }
 
-export default Go
+export default HermesGo

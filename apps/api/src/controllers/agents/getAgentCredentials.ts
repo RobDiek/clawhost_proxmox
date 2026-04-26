@@ -4,7 +4,7 @@ import withErrorHandler from '@/lib/withErrorHandler'
 
 const getAgentCredentials = withErrorHandler(
     'getAgentCredentials',
-    'api.clawNotFound'
+    'api.agentNotFound'
 )(
     withAgent()(async (c, agent) => {
         return ok(c, {

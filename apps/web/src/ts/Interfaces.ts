@@ -12,6 +12,7 @@ import type { TranslationKey } from '@openclaw/i18n'
 import type {
     AdminAnalyticsRange,
     AffiliatePeriod,
+    AgentSelection,
     AgentType,
     AuthMethod,
     BillingInterval,
@@ -268,6 +269,8 @@ export interface PreferencesState {
     setOpenLinksWindowed: (value: boolean) => void
     product: Product
     setProduct: (product: Product) => void
+    agent: AgentSelection
+    setAgent: (agent: AgentSelection) => void
     affiliatePeriod: AffiliatePeriod
     setAffiliatePeriod: (period: AffiliatePeriod) => void
     sidebarCollapsed: boolean
@@ -560,6 +563,7 @@ export interface AgentCredentialsDialogProps {
 
 export interface AgentCardDialogsProps {
     agentName: string
+    agentType: string
     showStartModal: boolean
     setShowStartModal: (open: boolean) => void
     showDeleteModal: boolean
@@ -603,6 +607,7 @@ export interface UseAgentCardActionsReturn {
 export interface AgentCardDialogsBundleProps {
     agentId: string
     agentName: string
+    agentType: string
     agentIp: string
     showStartModal: boolean
     setShowStartModal: (open: boolean) => void
@@ -831,6 +836,7 @@ export interface InstallAgentVersionResponse {
 
 export interface AgentVersionsContentProps {
     agentId: string
+    agentType: string
     readOnly?: boolean
 }
 

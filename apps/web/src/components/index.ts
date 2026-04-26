@@ -1,4 +1,5 @@
 import {
+    AgentSwitcher,
     AnnouncementBanner,
     BetaBadge,
     Header,
@@ -66,6 +67,7 @@ export {
     AccountSettingsSection,
     AccountBillingSection,
     ConnectedAccountsSection,
+    AgentSwitcher,
     AnnouncementBanner,
     ActionButton,
     BetaBadge,

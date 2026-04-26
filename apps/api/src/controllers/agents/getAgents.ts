@@ -136,7 +136,7 @@ const getAgents = withErrorHandler('getAgents')(async (
                 sanitizeAgent(decryptAgentSecrets(agent))
             )
         ],
-        t('api.clawsFetched')
+        t('api.agentsFetched')
     )
 })
 

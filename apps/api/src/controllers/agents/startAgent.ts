@@ -9,19 +9,19 @@ import withErrorHandler from '@/lib/withErrorHandler'
 
 const startAgent = withErrorHandler(
     'startAgent',
-    'api.failedToStartClaw'
+    'api.failedToStartAgent'
 )(
     withAgent()(async (c, agent) => {
-        if (!agent.providerServerId) return fail(c, t('api.clawNotFound'), 404)
+        if (!agent.providerServerId) return fail(c, t('api.agentNotFound'), 404)
 
         const result = await executeServerLifecycle(agent, 'start')
 
-        if (!result.success) return fail(c, t('api.failedToStartClaw'), 500)
+        if (!result.success) return fail(c, t('api.failedToStartAgent'), 500)
 
         return ok(
             c,
             sanitizeAgent({ ...agent, status: result.status }),
-            t('api.clawStarted')
+            t('api.agentStarted')
         )
     })
 )

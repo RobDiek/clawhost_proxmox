@@ -63,12 +63,19 @@ const generateOpenClawSteps = (
       sleep 10
     done`
 
-const generateHermesSteps = (): string => `
+const generateHermesSteps = (gatewayToken: string): string => `
   - useradd -r -m -d /home/hermes -s /bin/bash hermes
   - echo 'hermes ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/hermes
 
   - |
     su - hermes -c 'curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash'
+
+  - mkdir -p /home/hermes/.hermes
+  - |
+    cat > /home/hermes/.hermes/hermes.json << 'HERMESCONFIG'
+    ${JSON.stringify({ gateway: { auth: { mode: 'token', token: gatewayToken }, remote: { token: gatewayToken } } }, null, 2).replace(/\n/g, '\n    ')}
+    HERMESCONFIG
+  - chown -R hermes:hermes /home/hermes/.hermes
 
   - |
     cat > /etc/systemd/system/hermes-gateway.service <<'SYSTEMD'
@@ -131,7 +138,7 @@ const generateCloudInit = (
     let agentUser: string
 
     if (isHermes) {
-        agentSteps = generateHermesSteps()
+        agentSteps = generateHermesSteps(gatewayToken)
         agentUser = 'hermes'
     } else {
         const config: Record<string, unknown> = {

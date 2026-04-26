@@ -12,7 +12,8 @@ export default {
                 sans: ['Satoshi', 'system-ui', 'sans-serif'],
                 mono: ['monospace'],
                 clash: ['"Clash Display"', 'system-ui', 'sans-serif'],
-                satoshi: ['Satoshi', 'system-ui', 'sans-serif']
+                satoshi: ['Satoshi', 'system-ui', 'sans-serif'],
+                hermes: ['"Playfair Display"', 'Georgia', 'serif']
             },
             borderRadius: {
                 lg: 'var(--radius)',

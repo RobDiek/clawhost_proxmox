@@ -88,7 +88,9 @@ const pl: Translations = {
         cloud: 'Cloud',
         cloudSubtitle: 'Techniczny',
         go: 'Go',
-        goSubtitle: 'Nietechniczny'
+        goSubtitle: 'Nietechniczny',
+        hermes: 'Hermes',
+        openClaw: 'OpenClaw'
     },
     go: {
         pageTitle: 'ClawHost Go',
@@ -291,18 +293,18 @@ const pl: Translations = {
     },
     api: {
         missingRequiredFields: 'Brak wymaganych pól !',
-        clawNotFound: 'Nie znaleziono claw !',
-        clawRenamed: 'Nazwa claw została zmieniona.',
-        clawEmojiUpdated: 'Emoji agenta zaktualizowane.',
+        agentNotFound: 'Nie znaleziono agent !',
+        agentRenamed: 'Nazwa agent została zmieniona.',
+        agentEmojiUpdated: 'Emoji agenta zaktualizowane.',
         failedToUpdateEmoji: 'Nie udało się zaktualizować emoji!',
-        invalidClawName: 'Nazwa claw musi mieć od 1 do {{max}} znaków !',
+        invalidAgentName: 'Nazwa agent musi mieć od 1 do {{max}} znaków !',
         userNotFound: 'Nie znaleziono użytkownika !',
         sshKeyNotFound: 'Nie znaleziono klucza SSH !',
-        pendingClawNotFound: 'Nie znaleziono oczekującego claw !',
-        clawNotScheduledForDeletion: 'Claw nie jest zaplanowany do usunięcia !',
-        clawDeletionAlreadyPassed: 'Data usunięcia już minęła!',
-        clawLimitReached:
-            'Osiągnięto limit {{max}} claws. Skontaktuj się ze wsparciem, aby zwiększyć ten limit !',
+        pendingAgentNotFound: 'Nie znaleziono oczekującego agent !',
+        agentNotScheduledForDeletion: 'Agent nie jest zaplanowany do usunięcia !',
+        agentDeletionAlreadyPassed: 'Data usunięcia już minęła!',
+        agentLimitReached:
+            'Osiągnięto limit {{max}} agents. Skontaktuj się ze wsparciem, aby zwiększyć ten limit !',
         sshKeyLimitReached:
             'Osiągnięto limit {{max}} kluczy SSH. Skontaktuj się ze wsparciem, aby zwiększyć ten limit !',
         volumeSizeInvalid:
@@ -311,7 +313,7 @@ const pl: Translations = {
             'Płatność nie jest skonfigurowana dla tego planu !',
         invalidSshKeyFormat: 'Nieprawidłowy format klucza publicznego SSH !',
         sshKeyInUse:
-            'Ten klucz SSH jest obecnie używany przez jeden lub więcej claws !',
+            'Ten klucz SSH jest obecnie używany przez jeden lub więcej agents !',
         inputTooLong: 'Dane przekraczają maksymalną dozwoloną długość !',
         invalidEmailFormat: 'Nieprawidłowy format adresu email !',
         plusAddressingNotAllowed:
@@ -327,11 +329,11 @@ const pl: Translations = {
         emailRequired: 'Adres email jest wymagany !',
         redirectUrlRequired: 'Adres URL przekierowania jest wymagany !',
         invalidWebhook: 'Nieprawidłowy webhook !',
-        failedToStartClaw: 'Nie udało się uruchomić claw !',
-        failedToStopClaw: 'Nie udało się zatrzymać claw !',
-        failedToRestartClaw: 'Nie udało się zrestartować claw !',
-        failedToDeleteClaw: 'Nie udało się usunąć claw !',
-        failedToCreateClaw: 'Nie udało się utworzyć claw !',
+        failedToStartAgent: 'Nie udało się uruchomić agent !',
+        failedToStopAgent: 'Nie udało się zatrzymać agent !',
+        failedToRestartAgent: 'Nie udało się zrestartować agent !',
+        failedToDeleteAgent: 'Nie udało się usunąć agent !',
+        failedToCreateAgent: 'Nie udało się utworzyć agent !',
         invalidProvider: 'Nieprawidłowy dostawca !',
         providerNotAllowed: 'Ten dostawca nie jest obecnie dostępny !',
         invalidPlan: 'Wybrany plan jest nieprawidłowy !',
@@ -340,11 +342,11 @@ const pl: Translations = {
         invalidLocation: 'Wybrana lokalizacja jest nieprawidłowa !',
         planNotAvailableAtLocation:
             'Ten plan nie jest dostępny w wybranej lokalizacji !',
-        failedToSyncClaw: 'Nie udało się zsynchronizować statusu serwera !',
-        failedToProvisionClaw: 'Nie udało się zainicjować claw !',
+        failedToSyncAgent: 'Nie udało się zsynchronizować statusu serwera !',
+        failedToProvisionAgent: 'Nie udało się zainicjować agent !',
         failedToInitiatePurchase: 'Nie udało się rozpocząć zakupu !',
         failedToCancelDeletion: 'Nie udało się anulować usunięcia !',
-        failedToHardDeleteClaw: 'Nie udało się trwale usunąć claw !',
+        failedToHardDeleteAgent: 'Nie udało się trwale usunąć agent !',
         failedToCancelScheduledDeletion:
             'Nie udało się anulować zaplanowanego usunięcia !',
         failedToCreateSshKey: 'Nie udało się utworzyć klucza SSH !',
@@ -387,7 +389,7 @@ const pl: Translations = {
         failedToGetLogs: 'Nie udało się załadować logów !',
         failedToGetLogsDescription:
             'Nie udało się pobrać logów dla tej instancji. Spróbuj ponownie później.',
-        failedToReinstallClaw:
+        failedToReinstallAgent:
             'Nie udało się ponownie zainstalować instancji !',
         reinstallSuccess: 'Instancja ponownie zainstalowana pomyślnie.',
         reinstallRateLimited:
@@ -398,17 +400,17 @@ const pl: Translations = {
         invalidSubdomain:
             'Nieprawidłowa subdomena. Użyj 3-20 małych liter i cyfr !',
         subdomainAlreadyInUse: 'Ta subdomena jest już w użyciu !',
-        clawBusy: 'Claw jest obecnie inicjalizowany lub usuwany !',
+        agentBusy: 'Agent jest obecnie inicjalizowany lub usuwany !',
         reinstallGatewayNotResponding:
             'Ponowna instalacja zakończona, ale gateway jeszcze nie odpowiada. Może potrzebować więcej czasu na uruchomienie.',
-        failedToRepairClaw: 'Failed to repair the instance!',
+        failedToRepairAgent: 'Failed to repair the instance!',
         repairSuccess: 'Instance repaired successfully.',
         repairGatewayNotResponding:
             'Repair applied but gateway is not responding yet. It may need more time to start.',
-        failedToExportClaw: 'Nie udało się wyeksportować danych claw !',
-        clawNotReady: 'Claw nie jest gotowy do eksportu !',
+        failedToExportAgent: 'Nie udało się wyeksportować danych agent !',
+        agentNotReady: 'Agent nie jest gotowy do eksportu !',
         exportRateLimited:
-            'Ten claw był niedawno wyeksportowany. Poczekaj przed ponownym eksportem !',
+            'Ten agent był niedawno wyeksportowany. Poczekaj przed ponownym eksportem !',
         failedToListFiles: 'Nie udało się wyświetlić plików instancji !',
         failedToReadFile: 'Nie udało się odczytać pliku !',
         failedToUpdateFile: 'Nie udało się zapisać pliku !',
@@ -431,20 +433,20 @@ const pl: Translations = {
         accountLinked: 'Konto połączone pomyślnie.',
         webhookProcessingFailed: 'Przetwarzanie webhooka nie powiodło się !',
         adminAccessDenied: 'Wymagany dostęp administratora !',
-        clawsFetched: 'Claws pobrane pomyślnie.',
-        clawFetched: 'Claw pobrany pomyślnie.',
-        clawSynced: 'Claw zsynchronizowany pomyślnie.',
-        clawStarted: 'Claw uruchomiony pomyślnie.',
-        clawStopped: 'Claw zatrzymany pomyślnie.',
-        clawRestarted: 'Claw zrestartowany pomyślnie.',
-        clawCreated: 'Claw utworzony pomyślnie.',
-        clawDeleted: 'Claw usunięty pomyślnie.',
-        clawDeletionScheduled: 'Usunięcie claw zaplanowane.',
-        clawDeletionCancelled: 'Usunięcie claw anulowane.',
-        clawHardDeleted: 'Claw trwale usunięty.',
-        pendingClawCancelled: 'Zakup anulowany.',
-        failedToCancelPendingClaw: 'Nie udało się anulować zakupu !',
-        clawPurchaseInitiated: 'Zakup rozpoczęty pomyślnie.',
+        agentsFetched: 'Agents pobrane pomyślnie.',
+        agentFetched: 'Agent pobrany pomyślnie.',
+        agentSynced: 'Agent zsynchronizowany pomyślnie.',
+        agentStarted: 'Agent uruchomiony pomyślnie.',
+        agentStopped: 'Agent zatrzymany pomyślnie.',
+        agentRestarted: 'Agent zrestartowany pomyślnie.',
+        agentCreated: 'Agent utworzony pomyślnie.',
+        agentDeleted: 'Agent usunięty pomyślnie.',
+        agentDeletionScheduled: 'Usunięcie agent zaplanowane.',
+        agentDeletionCancelled: 'Usunięcie agent anulowane.',
+        agentHardDeleted: 'Agent trwale usunięty.',
+        pendingAgentCancelled: 'Zakup anulowany.',
+        failedToCancelPendingAgent: 'Nie udało się anulować zakupu !',
+        agentPurchaseInitiated: 'Zakup rozpoczęty pomyślnie.',
         sshKeysFetched: 'Klucze SSH pobrane pomyślnie.',
         sshKeyCreated: 'Klucz SSH utworzony pomyślnie.',
         sshKeyDeleted: 'Klucz SSH usunięty pomyślnie.',
@@ -463,6 +465,7 @@ const pl: Translations = {
         failedToGetMetrics: 'Nie udało się pobrać metryk serwera!',
         overviewFetched: 'Przegląd pobrany pomyślnie.',
         failedToGetOverview: 'Nie udało się pobrać przeglądu bramy!',
+        overviewUnsupported: 'Ta wersja OpenClaw nie obsługuje funkcji przeglądu!',
         passwordRotated: 'Hasło root zostało pomyślnie zmienione.',
         failedToRotatePassword: 'Nie udało się zmienić hasła root!',
         gatewayTokenRotated: 'Token bramy został pomyślnie zmieniony.',
@@ -521,16 +524,16 @@ const pl: Translations = {
         failedToGetAdminAnalytics: 'Nie udało się pobrać analityki!',
         adminBillingFetched: 'Rozliczenia pobrane pomyślnie.',
         failedToGetAdminBilling: 'Nie udało się pobrać rozliczeń!',
-        adminClawsFetched: 'Claws pobrane.',
-        failedToGetAdminClaws: 'Nie udało się pobrać claws!',
+        adminAgentsFetched: 'Agents pobrane.',
+        failedToGetAdminAgents: 'Nie udało się pobrać agents!',
         adminSSHKeysFetched: 'Klucze SSH pobrane.',
         failedToGetAdminSSHKeys: 'Nie udało się pobrać kluczy SSH!',
         adminVolumesFetched: 'Woluminy pobrane.',
         failedToGetAdminVolumes: 'Nie udało się pobrać woluminów!',
         adminReferralsFetched: 'Referrals fetched.',
         failedToGetAdminReferrals: 'Failed to fetch referrals!',
-        adminPendingClawsFetched: 'Pending claws fetched.',
-        failedToGetAdminPendingClaws: 'Failed to fetch pending claws!',
+        adminPendingAgentsFetched: 'Pending agents fetched.',
+        failedToGetAdminPendingAgents: 'Failed to fetch pending agents!',
         adminWaitlistFetched: 'Waitlist fetched.',
         failedToGetAdminWaitlist: 'Failed to fetch waitlist!',
         adminExportsFetched: 'Exports fetched.',
@@ -911,7 +914,7 @@ const pl: Translations = {
         reinstallInstance: 'Zainstaluj ponownie instancję',
         reinstallClaw: 'Zainstaluj ponownie instancję',
         reinstallClawConfirmation:
-            'Spowoduje to całkowitą ponowną instalację OpenClaw na tej instancji. Wszystkie konfiguracje, agenci i dane zostaną zresetowane. Tej akcji nie można cofnąć. Kontynuować?',
+            'Spowoduje to całkowitą ponowną instalację {{agentName}} na tej instancji. Wszystkie konfiguracje, agenci i dane zostaną zresetowane. Tej akcji nie można cofnąć. Kontynuować?',
         reinstallInstanceSuccess: 'Instancja ponownie zainstalowana pomyślnie.',
         reinstallInstanceFailed:
             'Nie udało się ponownie zainstalować instancji !',
@@ -973,9 +976,8 @@ const pl: Translations = {
         autoGenerateNameHint:
             'Pozostaw puste, aby wygenerować nazwę automatycznie.',
         agentType: 'Typ agenta',
-        agentTypeOpenClawDescription:
-            'Platforma agenta AI zorientowana na bramkę',
-        agentTypeHermesDescription: 'Samodoskonalący się framework agenta AI',
+        agentTypeOpenClawDescription: '{{count}} instalacji',
+        agentTypeHermesDescription: '{{count}} instalacji',
         location: 'Lokalizacja',
         locationUnavailable: 'Niedostępna',
         locationUnavailableForPlan: 'Niedostępna',
@@ -1321,7 +1323,7 @@ const pl: Translations = {
         upcomingReleaseFeature1:
             'Natywna aplikacja mobilna do monitorowania i zarządzania instancjami OpenClaw w podróży',
         upcomingReleaseFeature13:
-            'Wersja beta ClawHost Go dla macOS i Windows — wdrażaj OpenClaw lokalnie jednym kliknięciem',
+            'ClawHost Go dla macOS i Windows — wdrażaj OpenClaw lokalnie jednym kliknięciem',
         upcomingReleaseFeature14:
             'Wdrażanie jednym kliknięciem dla agentów Hermes takich jak OpenClaw',
         upcomingReleaseFeature3: 'Obsługa jasnego i ciemnego motywu',
@@ -1543,6 +1545,9 @@ const pl: Translations = {
         overviewError: 'Nie udało się załadować przeglądu!',
         overviewErrorDescription:
             'Nie można połączyć się z bramą OpenClaw. Sprawdź, czy instancja jest uruchomiona.',
+        overviewUnsupportedTitle: 'Przegląd nieobsługiwany',
+        overviewUnsupportedDescription:
+            'Twoja wersja OpenClaw nie obsługuje funkcji przeglądu. Zaktualizuj do najnowszej wersji.',
         overviewUptimeDays: '{{days}}d {{hours}}h {{minutes}}m',
         overviewUptimeHours: '{{hours}}h {{minutes}}m',
         overviewUptimeMinutes: '{{minutes}}m',
@@ -1684,7 +1689,7 @@ const pl: Translations = {
         tabServer: 'Serwer',
         serverIpAddress: 'Adres IP',
         reinstallDescription:
-            'Zainstaluj ponownie OpenClaw na tym serwerze. Spowoduje to zresetowanie instalacji OpenClaw, ale zachowa twoje dane. Rób to tylko wtedy, gdy jest to potrzebne.',
+            'Zainstaluj ponownie {{agentName}} na tym serwerze. Spowoduje to zresetowanie instalacji, ale zachowa twoje dane. Rób to tylko wtedy, gdy jest to potrzebne.',
         versionsSearch: 'Szukaj wersji...',
         versionsSearchCount: 'Szukaj {{count}} wersji...',
         versionsEmpty: 'Nie znaleziono wersji',
@@ -2302,6 +2307,46 @@ const pl: Translations = {
         contactTitle: '12. Kontakt',
         contactText:
             'Jeśli masz pytania dotyczące programu partnerskiego, potrzebujesz pomocy z kodem polecającym lub chcesz zgłosić naruszenie, skontaktuj się z nami pod adresem'
+    },
+    hermes: {
+        title: 'Deploy Hermes Agent - ClawHost',
+        description: 'Deploy Hermes Agent on your own VPS with one click. An autonomous agent that grows with you.',
+        badge: 'Hermes Agent',
+        heroTitle1: 'Deploy Hermes Agent',
+        heroTitle2: 'With One Click.',
+        heroDescription: 'An autonomous agent that lives on your server, remembers what it learns, and gets more capable the longer it runs. Deploy it instantly on ClawHost.',
+        deployButton: 'Deploy Hermes Agent',
+        githubButton: 'Self-Host Instead',
+        whyHermes: 'Why Hermes Agent',
+        featuresDescription: 'Hermes Agent is a powerful autonomous agent with persistent memory, real sandboxing, and multi-platform support.',
+        feature1Title: 'Lives Where You Do',
+        feature1Description: 'Telegram, Discord, Slack, WhatsApp, Signal, Email, CLI \u2013 and a growing list of platforms. Start on one, pick up on another.',
+        feature2Title: 'Grows The Longer It Runs',
+        feature2Description: 'Persistent memory and auto-generated skills \u2013 it learns your projects and never forgets how it solved a problem.',
+        feature3Title: 'Scheduled Automations',
+        feature3Description: 'Natural language cron scheduling for reports, backups, and briefings \u2013 running unattended through the gateway.',
+        feature4Title: 'Delegates & Parallelizes',
+        feature4Description: 'Isolated subagents with their own conversations, terminals, and Python RPC scripts for zero-context-cost pipelines.',
+        feature5Title: 'Real Sandboxing',
+        feature5Description: 'Five backends \u2013 local, Docker, SSH, Singularity, Modal \u2013 with container hardening and namespace isolation.',
+        feature6Title: 'Full Web & Browser Control',
+        feature6Description: 'Web search, browser automation, vision, image generation, text-to-speech, and multi-model reasoning.',
+        ctaTitle: 'Ready to deploy Hermes Agent?',
+        ctaDescription: 'Get your own Hermes Agent running on a dedicated VPS in under 60 seconds. No configuration needed.',
+        ctaDeploy: 'Deploy Now',
+        ctaGitHub: 'View on GitHub'
+    },
+    hermesGo: {
+        pageTitle: 'ClawHost Go - Hermes Agent',
+        description: 'Lekki klient desktopowy do lokalnego wdrażania Hermes Agent. Wdrażaj, monitoruj i kontroluj swoich agentów — bezpośrednio z Twojej maszyny.',
+        badge: 'Hermes Agent Go',
+        heroTitle1: 'Wdróż Hermes.',
+        heroTitle2: 'Lokalnie. Natychmiast.',
+        heroDescription: 'Lekki klient desktopowy do zarządzania instancjami Hermes Agent. Wdrażaj, monitoruj i kontroluj swoich agentów — bezpośrednio z Twojej maszyny.',
+        whyHermesGo: 'Funkcje wszystko w jednym',
+        featuresDescription: 'Dlaczego warto spróbować — funkcje nie kłamią.',
+        ctaTitle: 'Uruchom Hermes Agent lokalnie',
+        ctaDescription: 'Jednorazowa płatność, dożywotnia licencja. Wdróż Hermes Agent na własnej maszynie — bez chmury, bez subskrypcji, bez limitów. Twoje dane, Twoje zasady.'
     }
 }
 

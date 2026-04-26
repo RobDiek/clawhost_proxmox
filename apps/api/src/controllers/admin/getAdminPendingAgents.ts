@@ -9,7 +9,7 @@ import withErrorHandler from '@/lib/withErrorHandler'
 
 const getAdminPendingAgents = withErrorHandler(
     'getAdminPendingAgents',
-    'api.failedToGetAdminPendingClaws'
+    'api.failedToGetAdminPendingAgents'
 )(async (c: AuthenticatedContext) => {
     const page = Math.max(1, parseInt(c.req.query('page') || '1', 10))
     const limit = Math.min(
@@ -51,7 +51,7 @@ const getAdminPendingAgents = withErrorHandler(
     return ok(
         c,
         { items: rows, total, page, totalPages },
-        t('api.adminPendingClawsFetched')
+        t('api.adminPendingAgentsFetched')
     )
 })
 

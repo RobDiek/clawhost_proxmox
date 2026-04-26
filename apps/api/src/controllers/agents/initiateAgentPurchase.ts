@@ -131,7 +131,7 @@ const initiateAgentPurchase = withErrorHandler(
     if (agentCountResult[0].value >= inputValidation.CLAWS_PER_ACCOUNT.MAX) {
         return fail(
             c,
-            t('api.clawLimitReached', {
+            t('api.agentLimitReached', {
                 max: inputValidation.CLAWS_PER_ACCOUNT.MAX
             }),
             400
@@ -211,7 +211,7 @@ const initiateAgentPurchase = withErrorHandler(
             pendingAgentId: pendingId,
             expiresAt: expiresAt.toISOString()
         },
-        t('api.clawPurchaseInitiated')
+        t('api.agentPurchaseInitiated')
     )
 })
 

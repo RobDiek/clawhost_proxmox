@@ -35,7 +35,7 @@ const OverviewGatewayCard: FC<OverviewGatewayCardProps> = ({
             },
             onError: (error) => {
                 showToast(
-                    error.message || t('api.failedToRepairClaw'),
+                    error.message || t('api.failedToRepairAgent'),
                     TOAST_TYPE.ERROR
                 )
             }
