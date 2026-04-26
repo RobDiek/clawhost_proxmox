@@ -108,8 +108,9 @@ const AdminAnalyticsChart: FC<AdminAnalyticsChartProps> = ({
     color,
     range
 }): ReactNode => {
-    const chartData = useMemo(() => fillBuckets(data, range), [data, range])
-    const total = data.reduce((sum, d) => sum + d.count, 0)
+    const safeData = data || []
+    const chartData = useMemo(() => fillBuckets(safeData, range), [safeData, range])
+    const total = safeData.reduce((sum, d) => sum + d.count, 0)
 
     return (
         <div
