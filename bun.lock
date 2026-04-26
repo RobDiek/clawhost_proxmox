@@ -24,7 +24,7 @@
     },
     "apps/api": {
       "name": "api",
-      "version": "0.0.217",
+      "version": "0.0.225",
       "dependencies": {
         "@openclaw/i18n": "workspace:*",
         "@openclaw/shared": "workspace:*",
@@ -51,7 +51,7 @@
     },
     "apps/clawhostgo": {
       "name": "clawhostgo",
-      "version": "0.0.185",
+      "version": "0.0.190",
       "dependencies": {
         "@openclaw/i18n": "workspace:*",
         "@openclaw/shared": "workspace:*",
@@ -97,7 +97,7 @@
     },
     "apps/mobile": {
       "name": "mobile",
-      "version": "0.0.188",
+      "version": "0.0.193",
       "dependencies": {
         "@openclaw/i18n": "workspace:*",
         "@openclaw/shared": "workspace:*",
@@ -128,10 +128,12 @@
     },
     "apps/web": {
       "name": "web",
-      "version": "0.0.216",
+      "version": "0.0.221",
       "dependencies": {
         "@codemirror/language": "^6.12.3",
         "@codemirror/language-data": "^6.5.2",
+        "@codemirror/state": "^6.5.0",
+        "@codemirror/view": "^6.36.0",
         "@emoji-mart/data": "^1.2.1",
         "@emoji-mart/react": "^1.1.1",
         "@lezer/highlight": "^1.2.3",
