@@ -10,7 +10,6 @@ import { useProfile, useRoutePrefetch } from '@/hooks'
 import { Button, Skeleton } from '@/components/ui'
 import {
     AgentSwitcher,
-    AnnouncementBanner,
     BetaBadge,
     Logo,
     ProductHuntBanner,
@@ -87,7 +86,6 @@ const Header: FC<HeaderProps> = ({
                 }`}
             >
                 <AgentSwitcher />
-                <AnnouncementBanner />
                 <ProductHuntBanner />
                 <div className='mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4'>
                     <div className='flex items-center gap-3'>

@@ -1,7 +1,7 @@
 {
     "name": "clawhostgo",
     "productName": "ClawHostGo",
-    "version": "0.0.185",
+    "version": "0.0.187",
     "private": true,
     "main": ".vite/build/main.js",
     "scripts": {
@@ -13,7 +13,7 @@
         "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.renderer.json",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
-        "check": "pnpm typecheck && pnpm lint"
+        "check": "bun run typecheck && bun run lint"
     },
     "dependencies": {
         "@openclaw/i18n": "workspace:*",

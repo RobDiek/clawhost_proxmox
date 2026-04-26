@@ -95,19 +95,12 @@ node --version
 npm --version
 ```
 
-### Installing pnpm
+### Installing Bun
 
-OpenClaw uses pnpm as its package manager:
-
-```bash
-corepack enable
-corepack prepare pnpm@latest --activate
-```
-
-Or install it directly:
+OpenClaw uses Bun as its package manager and runtime:
 
 ```bash
-npm install -g pnpm
+curl -fsSL https://bun.sh/install | bash
 ```
 
 ## The Filesystem Question
@@ -135,7 +128,7 @@ If you clone OpenClaw into `/mnt/c/Users/YourName/projects/openclaw`, every file
 cd ~
 git clone <your-openclaw-repo> openclaw
 cd openclaw
-pnpm install
+bun install
 ```
 
 If you need to access the files from Windows (for example, to edit them in a Windows-based text editor), you can reach the Linux filesystem through the network path `\\wsl$\Ubuntu\home\your-username\` in File Explorer. Editing files through this path is fine for occasional use, but the files themselves should live on the Linux side.
@@ -178,8 +171,8 @@ With the environment set up and the project stored on the Linux filesystem, runn
 
 ```bash
 cd ~/openclaw
-pnpm install
-pnpm dev
+bun install
+bun dev
 ```
 
 The development server will start, and you can access the web interface from your Windows browser at the appropriate address (typically `http://localhost:1111` for the web frontend).
@@ -276,7 +269,7 @@ Here is a workflow that works well for OpenClaw development on Windows with WSL2
 
 1. **Open your WSL2 terminal** (Ubuntu from Start menu or `wsl` in PowerShell)
 2. **Navigate to your project** on the Linux filesystem (`cd ~/openclaw`)
-3. **Run the development servers** (`pnpm dev`)
+3. **Run the development servers** (`bun dev`)
 4. **Edit code** using VS Code with the WSL extension, or any editor that supports remote editing
 5. **Access the web interface** from your Windows browser at `localhost:1111`
 6. **Use the integrated terminal** in VS Code for running commands, or keep a separate WSL2 terminal window open

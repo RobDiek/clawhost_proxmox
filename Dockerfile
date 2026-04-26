@@ -1,25 +1,20 @@
-FROM node:20-slim AS deps
-
-RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
+FROM oven/bun:1 AS deps
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json bun.lock ./
 COPY apps/api/package.json apps/api/
 COPY packages/shared/package.json packages/shared/
 COPY packages/i18n/package.json packages/i18n/
 
-RUN pnpm install --frozen-lockfile
+RUN bun install --frozen-lockfile
 
-FROM node:20-slim AS runtime
-
-RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
+FROM oven/bun:1 AS runtime
 
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
-COPY package.json pnpm-workspace.yaml ./
+COPY package.json ./
 COPY apps/api/package.json apps/api/
 COPY packages/shared/package.json packages/shared/
 COPY packages/i18n/package.json packages/i18n/
@@ -34,4 +29,4 @@ ENV NODE_ENV=production
 ENV PORT=2222
 EXPOSE 2222
 
-CMD ["pnpm", "--filter", "api", "exec", "tsx", "src/index.ts"]
+CMD ["bun", "apps/api/src/index.ts"]

@@ -15,8 +15,8 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" />
-  <img src="https://img.shields.io/badge/node-%3E%3D20-green" alt="Node 20+" />
-  <img src="https://img.shields.io/badge/pnpm-9.14%2B-orange" alt="pnpm 9.14+" />
+  <img src="https://img.shields.io/badge/bun-%3E%3D1.0-green" alt="Bun 1.0+" />
+  <img src="https://img.shields.io/badge/bun-%3E%3D1.0-orange" alt="Bun 1.0+" />
   <img src="https://img.shields.io/badge/TypeScript-strict-blue" alt="TypeScript" />
 </p>
 
@@ -47,7 +47,7 @@ ClawHost is an open-source, self-hostable cloud hosting platform that lets anyon
 
 ## Architecture
 
-ClawHost is a TypeScript monorepo built with [Turborepo](https://turbo.build) and managed with [pnpm](https://pnpm.io).
+ClawHost is a TypeScript monorepo built with [Turborepo](https://turbo.build) and managed with [Bun](https://bun.sh).
 
 ```
 clawhost/
@@ -63,14 +63,14 @@ clawhost/
 │   ├── cloud-init.yaml      # Server initialization template
 │   └── configure-polar-portal.ts  # Polar portal configuration
 ├── turbo.json               # Turborepo build orchestration
-└── pnpm-workspace.yaml      # Workspace definition
+└── bun.lock                 # Bun lockfile
 ```
 
 ### Tech Stack
 
 | Layer                   | Technology                                                                                                      |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **API Framework**       | [Hono](https://hono.dev) on Node.js                                                                             |
+| **API Framework**       | [Hono](https://hono.dev) on [Bun](https://bun.sh)                                                               |
 | **Database**            | PostgreSQL ([Neon](https://neon.tech)) with [Drizzle ORM](https://orm.drizzle.team)                             |
 | **Authentication**      | [Firebase](https://firebase.google.com) (OTP email, Google, GitHub)                                             |
 | **Server Provisioning** | [Hetzner Cloud](https://docs.hetzner.cloud)                                                                     |
@@ -90,7 +90,7 @@ clawhost/
 | **Blog**                | MDX with frontmatter                                                                                            |
 | **Mobile**              | [React Native](https://reactnative.dev) + [Expo](https://expo.dev)                                              |
 | **Desktop**             | [Electron](https://www.electronjs.org) with Electron Forge                                                      |
-| **Monorepo**            | [Turborepo](https://turbo.build) + [pnpm](https://pnpm.io)                                                      |
+| **Monorepo**            | [Turborepo](https://turbo.build) + [Bun](https://bun.sh)                                                        |
 
 ### Database Schema
 
@@ -108,8 +108,7 @@ clawhost/
 
 ### Prerequisites
 
-- **Node.js** 20+
-- **pnpm** 9.14+
+- **Bun** 1.0+
 - **PostgreSQL** database (Neon, Supabase, or self-hosted)
 
 ### External Services
@@ -129,7 +128,7 @@ A Hetzner Cloud API token is required for server provisioning.
 ```bash
 git clone https://github.com/bfzli/clawhost.git
 cd clawhost
-pnpm install
+bun install
 ```
 
 ### 2. Configure Environment Variables
@@ -250,13 +249,13 @@ All three sign-in methods (OTP, Google, GitHub) are always displayed in the UI, 
 ### 4. Initialize Database
 
 ```bash
-pnpm --filter api db:migrate
+bun --filter api db:migrate
 ```
 
 ### 5. Start Development
 
 ```bash
-pnpm dev
+bun dev
 ```
 
 This starts both apps:
@@ -273,32 +272,32 @@ The web dev server proxies `/api` requests to the API and `/ws` requests to the 
 
 ### Root Commands
 
-| Command             | Description                                     |
-| ------------------- | ----------------------------------------------- |
-| `pnpm dev`          | Start all apps in development mode              |
-| `pnpm dev:web`      | Start web app only                              |
-| `pnpm dev:api`      | Start API only                                  |
-| `pnpm dev:mobile`   | Start mobile app (Expo)                         |
-| `pnpm dev:desktop`  | Start desktop app (Electron)                    |
-| `pnpm build`        | Build all apps for production                   |
-| `pnpm lint`         | Run ESLint across the monorepo                  |
-| `pnpm lint:fix`     | Auto-fix ESLint issues                          |
-| `pnpm format`       | Format all files with Prettier                  |
-| `pnpm format:check` | Check formatting without writing                |
-| `pnpm check`        | Run TypeScript type-check + ESLint for all apps |
+| Command            | Description                                     |
+| ------------------ | ----------------------------------------------- |
+| `bun dev`          | Start all apps in development mode              |
+| `bun dev:web`      | Start web app only                              |
+| `bun dev:api`      | Start API only                                  |
+| `bun dev:mobile`   | Start mobile app (Expo)                         |
+| `bun dev:desktop`  | Start desktop app (Electron)                    |
+| `bun build`        | Build all apps for production                   |
+| `bun lint`         | Run ESLint across the monorepo                  |
+| `bun lint:fix`     | Auto-fix ESLint issues                          |
+| `bun format`       | Format all files with Prettier                  |
+| `bun format:check` | Check formatting without writing                |
+| `bun check`        | Run TypeScript type-check + ESLint for all apps |
 
 ### Database Commands
 
-| Command                         | Description                                   |
-| ------------------------------- | --------------------------------------------- |
-| `pnpm --filter api db:generate` | Generate a new migration after schema changes |
-| `pnpm --filter api db:migrate`  | Apply pending migrations                      |
-| `pnpm --filter api db:studio`   | Open Drizzle Studio (database GUI)            |
+| Command                        | Description                                   |
+| ------------------------------ | --------------------------------------------- |
+| `bun --filter api db:generate` | Generate a new migration after schema changes |
+| `bun --filter api db:migrate`  | Apply pending migrations                      |
+| `bun --filter api db:studio`   | Open Drizzle Studio (database GUI)            |
 
 ### Email Development
 
 ```bash
-pnpm --filter api email:dev    # Preview email templates at localhost:3333
+bun --filter api email:dev    # Preview email templates at localhost:3333
 ```
 
 ## API Reference
@@ -406,17 +405,16 @@ The web app builds to `apps/web/dist/` as a static SPA with pre-rendered pages a
 - Nginx / Apache
 
 ```bash
-pnpm build
+bun build
 ```
 
 ### API
 
-The API runs as a Hono.js application on Node.js with a separate WebSocket server for terminal access:
+The API runs as a Hono.js application on Bun with native WebSocket for terminal access:
 
 ```bash
 cd apps/api
-pnpm build
-pnpm start    # HTTP on PORT (default 2222), WebSocket on WS_PORT (default 2223)
+bun start    # HTTP + WebSocket on PORT (default 2222)
 ```
 
 ## How It Works
@@ -488,8 +486,8 @@ New subdomains may take 1-5 minutes to propagate through Cloudflare. Check that 
 <summary><strong>Database connection errors</strong></summary>
 
 1. Verify `DATABASE_URL` is correct and includes `?sslmode=require` for hosted databases
-2. Run `pnpm --filter api db:migrate` to apply any pending migrations
-3. Use `pnpm --filter api db:studio` to inspect the database directly
+2. Run `bun --filter api db:migrate` to apply any pending migrations
+3. Use `bun --filter api db:studio` to inspect the database directly
 
 </details>
 
@@ -500,8 +498,8 @@ Contributions are welcome! Please open an issue first to discuss what you'd like
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/my-feature`)
 3. Make your changes following the project's code conventions
-4. Run `pnpm check` to verify TypeScript and linting pass
-5. Run `pnpm format` to ensure formatting is correct
+4. Run `bun check` to verify TypeScript and linting pass
+5. Run `bun format` to ensure formatting is correct
 6. Commit and push your changes
 7. Open a pull request
 

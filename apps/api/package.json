@@ -1,47 +1,43 @@
 {
     "name": "api",
-    "version": "0.0.217",
+    "version": "0.0.222",
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "tsx watch src/index.ts",
-        "start": "tsx src/index.ts",
+        "dev": "bun --watch src/index.ts",
+        "start": "bun src/index.ts",
         "typecheck": "tsc --noEmit",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
-        "check": "pnpm typecheck && pnpm lint",
+        "check": "bun run typecheck && bun run lint",
         "db:generate": "drizzle-kit generate",
         "db:migrate": "drizzle-kit migrate",
         "db:studio": "drizzle-kit studio",
-        "email:dev": "pnpm exec email dev -p 3333 --dir src/emails",
+        "email:dev": "bunx email dev -p 3333 --dir src/emails",
         "test": "vitest run",
         "test:watch": "vitest"
     },
     "dependencies": {
-        "@hono/node-server": "^1.13.0",
-        "@neondatabase/serverless": "^0.10.0",
         "@openclaw/i18n": "workspace:*",
         "@openclaw/shared": "workspace:*",
         "@polar-sh/sdk": "^0.42.5",
         "@react-email/components": "^1.0.6",
         "cloudflare": "^5.2.0",
-        "dotenv": "^16.4.5",
-        "drizzle-orm": "^0.36.0",
+        "drizzle-orm": "^0.44.0",
+        "postgres": "^3.4.0",
         "firebase-admin": "^13.0.0",
         "hono": "^4.6.0",
         "openai": "^6.33.0",
         "react": "^18.3.1",
         "resend": "^6.9.1",
-        "ssh2": "^1.17.0",
-        "ws": "^8.19.0"
+        "ssh2": "^1.17.0"
     },
     "devDependencies": {
-        "@types/node": "^22.9.0",
+        "@types/bun": "^1.3.13",
+        "@types/react": "^18.3.12",
         "@types/ssh2": "^1.15.5",
-        "@types/ws": "^8.18.1",
-        "drizzle-kit": "^0.28.0",
+        "drizzle-kit": "^0.31.0",
         "react-email": "^3.0.7",
-        "tsx": "^4.19.0",
         "typescript": "^5.6.3"
     }
 }

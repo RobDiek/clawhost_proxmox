@@ -12,7 +12,7 @@
     },
     "scripts": {
         "typecheck": "tsc --noEmit",
-        "validate": "tsx scripts/validate.ts",
+        "validate": "bun scripts/validate.ts",
         "test": "vitest run",
         "test:watch": "vitest"
     },

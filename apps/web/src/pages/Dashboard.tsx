@@ -1,7 +1,7 @@
 import type { FC, ReactNode } from 'react'
 import type { Agent, ElectronWindow } from '@/ts/Interfaces'
 
-import { Fragment, useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { t } from '@openclaw/i18n'
@@ -25,7 +25,6 @@ import {
     useURLStateRestoration
 } from '@/hooks'
 import {
-    AnnouncementBanner,
     ErrorState,
     NetworkStatus,
     PageTitle,
@@ -206,10 +205,7 @@ const Dashboard: FC = (): ReactNode => {
             {isOffline ? (
                 <NetworkStatus />
             ) : (
-                <Fragment>
-                    <ProductHuntBanner />
-                    {!isLocal && <AnnouncementBanner />}
-                </Fragment>
+                <ProductHuntBanner />
             )}
             {isLocal && showFullBackground && (
                 <div className='playground-grid pointer-events-none fixed inset-0 opacity-50' />

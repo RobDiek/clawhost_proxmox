@@ -2,7 +2,7 @@ dist
 build
 node_modules
 .turbo
-pnpm-lock.yaml
+bun.lock
 drizzle
 *.sql
 .expo
