@@ -20,7 +20,7 @@
         "test": "turbo test",
         "test:watch": "turbo test:watch",
         "check": "bun --filter api check && bun --filter web check && bun --filter clawhostgo check",
-        "version:patch": "bun -e \"const fs=require('fs');['apps/api','apps/web','apps/mobile','apps/clawhostgo'].forEach(d=>{const p=d+'/package.json';const j=JSON.parse(fs.readFileSync(p));const v=j.version.split('.'); v[2]=String(Number(v[2])+1);j.version=v.join('.');fs.writeFileSync(p,JSON.stringify(j,null,4))})\"",
+        "version-patch": "bun scripts/version-patch.ts",
         "prepare": "husky"
     },
     "devDependencies": {

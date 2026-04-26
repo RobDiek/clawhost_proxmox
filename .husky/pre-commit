@@ -1,5 +1,5 @@
 bun --filter @openclaw/i18n validate
 bun run test
 bun check
-bun version:patch
+bun scripts/version-patch.ts
 git add apps/api/package.json apps/web/package.json apps/mobile/package.json apps/clawhostgo/package.json
