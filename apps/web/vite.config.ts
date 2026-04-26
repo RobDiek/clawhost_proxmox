@@ -15,23 +15,26 @@ export default defineConfig(({ mode }) => {
     const pkg = JSON.parse(
         readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')
     )
-    const wrangler = JSON.parse(
-        readFileSync(path.resolve(__dirname, 'wrangler.json'), 'utf-8')
-    )
-    const wranglerEnv =
+    const wranglerPath = path.resolve(__dirname, 'wrangler.json')
+    const wranglerVars = existsSync(wranglerPath)
+        ? JSON.parse(readFileSync(wranglerPath, 'utf-8')).vars || {}
+        : {}
+    const envVars =
         mode === 'production'
             ? Object.fromEntries(
-                  Object.entries(wrangler.vars || {}).map(([key, value]) => [
-                      `import.meta.env.${key}`,
-                      JSON.stringify(value)
-                  ])
+                  Object.entries({ ...wranglerVars, ...process.env })
+                      .filter(([key]) => key.startsWith('VITE_'))
+                      .map(([key, value]) => [
+                          `import.meta.env.${key}`,
+                          JSON.stringify(value)
+                      ])
               )
             : {}
 
     return {
         define: {
             __APP_VERSION__: JSON.stringify(`v${pkg.version}`),
-            ...wranglerEnv
+            ...envVars
         },
         plugins: [
             viteMdxSanitize(),
