@@ -75,7 +75,6 @@ export default defineConfig(({ mode }) => {
                             '@codemirror/language',
                             '@codemirror/lang-json'
                         ],
-                        recharts: ['recharts'],
                         phosphor: ['@phosphor-icons/react'],
                         firebase: ['firebase/app', 'firebase/auth'],
                         tanstack: ['@tanstack/react-query']
