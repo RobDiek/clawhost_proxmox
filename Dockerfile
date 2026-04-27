@@ -1,4 +1,4 @@
-FROM oven/bun:1 AS deps
+FROM oven/bun:1.3.2 AS deps
 
 WORKDIR /app
 
@@ -9,7 +9,7 @@ COPY packages/i18n/package.json packages/i18n/
 
 RUN bun install --frozen-lockfile
 
-FROM oven/bun:1 AS runtime
+FROM oven/bun:1.3.2 AS runtime
 
 WORKDIR /app
 
