@@ -65,19 +65,17 @@ export default defineConfig(({ mode }) => {
         },
         build: {
             sourcemap: false,
+            modulePreload: false,
             rollupOptions: {
                 output: {
-                    manualChunks: {
-                        'framer-motion': ['framer-motion'],
-                        codemirror: [
-                            '@codemirror/state',
-                            '@codemirror/view',
-                            '@codemirror/language',
-                            '@codemirror/lang-json'
-                        ],
-                        phosphor: ['@phosphor-icons/react'],
-                        firebase: ['firebase/app', 'firebase/auth'],
-                        tanstack: ['@tanstack/react-query']
+                    manualChunks(id) {
+                        if (id.includes('recharts') || id.includes('d3-') || id.includes('victory-vendor')) return 'recharts'
+                        if (id.includes('framer-motion')) return 'framer-motion'
+                        if (id.includes('@codemirror') || id.includes('@lezer')) return 'codemirror'
+                        if (id.includes('@phosphor-icons')) return 'phosphor'
+                        if (id.includes('firebase')) return 'firebase'
+                        if (id.includes('@tanstack')) return 'tanstack'
+                        return undefined
                     }
                 }
             }

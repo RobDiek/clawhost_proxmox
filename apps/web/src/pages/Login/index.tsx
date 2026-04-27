@@ -12,7 +12,6 @@ import {
     AgentSwitcher,
     Logo,
     NetworkStatus,
-    PageBackground,
     PageTitle,
     ProductHuntBanner
 } from '@/components'
@@ -99,7 +98,6 @@ const Login: FC = (): ReactNode => {
     if (authLoading || user) {
         return (
             <div className='bg-background text-foreground relative flex min-h-screen items-center justify-center px-4'>
-                <PageBackground />
                 <CircleNotchIcon className='text-foreground/50 h-7 w-7 animate-spin' />
             </div>
         )
@@ -115,7 +113,9 @@ const Login: FC = (): ReactNode => {
             ) : (
                 <ProductHuntBanner />
             )}
-            <div className='flex min-h-screen items-center justify-center px-4'>
+            <div className='relative flex min-h-screen items-center justify-center px-4'>
+                <div className='landing-gradient pointer-events-none absolute inset-0' />
+                <div className='landing-grid pointer-events-none absolute inset-0' />
                 <PageTitle
                     title={
                         step === 'email'
@@ -125,7 +125,6 @@ const Login: FC = (): ReactNode => {
                     description={t('auth.signInDescription')}
                     noIndex
                 />
-                <PageBackground />
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
