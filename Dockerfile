@@ -4,9 +4,6 @@ WORKDIR /app
 
 COPY package.json bun.lock ./
 COPY apps/api/package.json apps/api/
-COPY apps/web/package.json apps/web/
-COPY apps/clawhostgo/package.json apps/clawhostgo/
-COPY apps/mobile/package.json apps/mobile/
 COPY packages/shared/package.json packages/shared/
 COPY packages/i18n/package.json packages/i18n/
 

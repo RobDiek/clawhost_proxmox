@@ -6,13 +6,10 @@ dist
 .git
 .env
 .env.*
-apps/web/*
-!apps/web/package.json
+apps/web
 apps/auth
-apps/mobile/*
-!apps/mobile/package.json
-apps/clawhostgo/*
-!apps/clawhostgo/package.json
+apps/mobile
+apps/clawhostgo
 apps/api/.next
 apps/api/node_modules
 apps/api/models
