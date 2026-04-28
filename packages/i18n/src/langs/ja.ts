@@ -250,7 +250,7 @@ const ja: Translations = {
         affiliateProgram: 'アフィリエイトプログラム',
         documentation: 'ドキュメント',
         productDescription:
-            'ワンクリックでクラウドまたはローカルにOpenClawエージェントをデプロイ — ClawHostでAIエージェントをより速く構築、接続、スケーリング.',
+            'ワンクリックでクラウドまたはローカルにOpenClawとHermesエージェントをデプロイ — ClawHostでAIエージェントをより速く構築、接続、スケーリング.',
         downloadAndroid: 'Google Playで入手',
         downloadIos: 'App Storeからダウンロード',
         ariaGithub: 'GitHub',
@@ -1077,7 +1077,7 @@ const ja: Translations = {
         heroTitle1: 'OpenClawをデプロイ。',
         heroTitle2: 'ワンクリック。完了。',
         heroDescription:
-            'ワンクリックでクラウドまたはローカルにOpenClawエージェントをデプロイ — ClawHostでAIエージェントをより速く構築、接続、スケール。',
+            'ワンクリックでクラウドまたはローカルにOpenClawとHermesエージェントをデプロイ — ClawHostでAIエージェントをより速く構築、接続、スケール。',
         goToClaws: 'Clawに移動',
         selfHost: 'オープンソース',
         startingPrice: '開始価格',
@@ -2377,6 +2377,7 @@ const ja: Translations = {
         faq6Answer: '米国、ヨーロッパ、アジアを含む世界30以上のサーバーロケーションを提供しています。異なるリージョンの複数のサーバーにエージェントをデプロイできます。',
         faq7Question: '料金はいくらですか？',
         faq7Answer: '選択するサーバーに応じて月額40ドルから。エントリーレベルからハイパフォーマンスまで複数のオプション。隠れた料金なし、いつでもキャンセル可能。',
+        footerDescription: 'ワンクリックでOpenClawとHermesエージェントをクラウドにデプロイ — Agentistで AIエージェントをより速く構築、接続、スケールしましょう。',
         ctaTitle: 'デプロイの準備はできましたか？',
         ctaDescription: '次世代のエージェントデプロイメントに参加しましょう。あなたのインフラ、あなたのエージェント、あなたのルール。',
         stats1Value: 'OpenClaw & Hermes',

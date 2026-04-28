@@ -96,6 +96,8 @@ import useCopyWithFeedback from '@/hooks/useCopyWithFeedback'
 import useCreateAgentForm from '@/hooks/useCreateAgentForm'
 import useCustomerPortal from '@/hooks/useCustomerPortal'
 import useTerminalConnection from '@/hooks/useTerminalConnection'
+import useVideoSync from '@/hooks/useVideoSync'
+import useDitherHover from '@/hooks/useDitherHover'
 
 export {
     useAdminAnalytics,
@@ -177,5 +179,7 @@ export {
     useCopyWithFeedback,
     useCreateAgentForm,
     useCustomerPortal,
-    useTerminalConnection
+    useTerminalConnection,
+    useVideoSync,
+    useDitherHover
 }

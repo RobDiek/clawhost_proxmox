@@ -77,7 +77,7 @@ const FooterV2: FC = (): ReactNode => {
                         <div className='md:col-span-2'>
                             <LogoV2 />
                             <p className='mt-4 font-mono max-w-sm text-sm leading-relaxed text-white/40'>
-                                {t('footer.productDescription')}
+                                {t('v2.footerDescription')}
                             </p>
                             <div className='mt-6 flex items-center gap-3'>
                                 {socialLinks.map((link) => (

@@ -240,7 +240,7 @@ const zh: Translations = {
         affiliateProgram: '联盟计划',
         documentation: '文档',
         productDescription:
-            '一键在云端或本地部署 OpenClaw 代理 — 使用 ClawHost 更快地构建、连接和扩展您的 AI 代理.',
+            '一键在云端或本地部署 OpenClaw 和 Hermes 代理 — 使用 ClawHost 更快地构建、连接和扩展您的 AI 代理.',
         downloadAndroid: '在 Google Play 上获取',
         downloadIos: '在 App Store 上下载',
         ariaGithub: 'GitHub',
@@ -1022,7 +1022,7 @@ const zh: Translations = {
         heroTitle1: '部署 OpenClaw。',
         heroTitle2: '一键完成。',
         heroDescription:
-            '一键在云端或本地部署 OpenClaw 代理——使用 ClawHost 更快地构建、连接和扩展您的 AI 代理。',
+            '一键在云端或本地部署 OpenClaw 和 Hermes 代理——使用 ClawHost 更快地构建、连接和扩展您的 AI 代理。',
         goToClaws: '前往 Claws',
         selfHost: '开源',
         startingPrice: '起步价',
@@ -2239,6 +2239,7 @@ const zh: Translations = {
         faq6Answer: '我们在全球提供 30 多个服务器位置，包括美国、欧洲和亚洲。您可以在不同区域的多台服务器上部署代理。',
         faq7Question: '费用是多少？',
         faq7Answer: '根据您选择的服务器，价格从每月 40 美元起。从入门级到高性能有多种选择。没有隐藏费用，随时取消。',
+        footerDescription: '一键将 OpenClaw 和 Hermes 代理部署到云端 — 使用 Agentist 更快地构建、连接和扩展您的 AI 代理。',
         ctaTitle: '准备好部署了吗？',
         ctaDescription: '加入下一代代理部署。您的基础设施，您的代理，您的规则。',
         stats1Value: 'OpenClaw & Hermes',

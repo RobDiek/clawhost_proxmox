@@ -253,7 +253,7 @@ const fr: Translations = {
         affiliateProgram: "Programme d'affiliation",
         documentation: 'Documentation',
         productDescription:
-            'Déployez vos agents OpenClaw dans le cloud ou en local en un clic — créez, connectez et faites évoluer vos agents IA plus vite avec ClawHost.',
+            'Déployez vos agents OpenClaw et Hermes dans le cloud ou en local en un clic — créez, connectez et faites évoluer vos agents IA plus vite avec ClawHost.',
         downloadAndroid: 'Télécharger sur Google Play',
         downloadIos: "Télécharger sur l\'App Store",
         ariaGithub: 'GitHub',
@@ -1131,7 +1131,7 @@ const fr: Translations = {
         heroTitle1: 'Déployez OpenClaw.',
         heroTitle2: "Un clic. C\'est fait.",
         heroDescription:
-            'Déployez vos agents OpenClaw dans le cloud ou en local en un clic — créez, connectez et faites évoluer vos agents IA plus vite avec ClawHost.',
+            'Déployez vos agents OpenClaw et Hermes dans le cloud ou en local en un clic — créez, connectez et faites évoluer vos agents IA plus vite avec ClawHost.',
         goToClaws: 'Voir les Claws',
         selfHost: 'Open Source',
         startingPrice: 'À partir de',
@@ -2476,6 +2476,7 @@ const fr: Translations = {
         faq6Answer: 'Nous proposons plus de 30 emplacements de serveurs dans le monde, y compris aux États-Unis, en Europe et en Asie. Vous pouvez déployer des agents sur plusieurs serveurs dans différentes régions.',
         faq7Question: 'Combien ça coûte ?',
         faq7Answer: 'Les tarifs commencent à 40 $/mois selon le serveur que vous sélectionnez. Plusieurs options de l\'entrée de gamme à la haute performance. Pas de frais cachés, annulez à tout moment.',
+        footerDescription: 'Déployez des agents OpenClaw et Hermes dans le cloud en un clic — créez, connectez et faites évoluer vos agents IA plus rapidement avec Agentist.',
         ctaTitle: 'Prêt à Déployer ?',
         ctaDescription: 'Rejoignez la prochaine génération de déploiement d\'agents. Votre infrastructure, vos agents, vos règles.',
         stats1Value: 'OpenClaw & Hermes',

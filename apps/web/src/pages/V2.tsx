@@ -1,7 +1,6 @@
-import type { FC, MouseEvent, ReactNode } from 'react'
-import type { Faq } from '@/ts/Interfaces'
+import type { FC, ReactNode } from 'react'
 
-import { useCallback, useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { motion } from 'framer-motion'
@@ -19,53 +18,27 @@ import {
 } from '@/components'
 import { getBaseDomain, ROUTES } from '@/lib'
 import { useAuth } from '@/lib/auth'
-import { usePlans, useGitHubStars, GITHUB_REPO_URL } from '@/hooks'
+import {
+    usePlans,
+    useGitHubStars,
+    GITHUB_REPO_URL,
+    useVideoSync,
+    useDitherHover
+} from '@/hooks'
 import { OpenClawIcon, HermesIcon } from '@/components/icons'
 import {
-    CubeIcon,
-    GlobeIcon,
-    ShieldCheckIcon,
-    CreditCardIcon,
-    ClockIcon,
-    LockIcon,
-    GaugeIcon,
-    LinkIcon,
-    SlidersHorizontalIcon,
-    StackIcon,
-    GitBranchIcon,
+    v2Agents,
+    getV2Faqs,
+    getV2Features,
+    getV2ComparisonRows,
+    getV2Stats,
+    v2VideoUrls
+} from '@/data'
+import {
     ArrowRightIcon,
     GithubLogoIcon,
-    RocketLaunchIcon,
-    TerminalIcon
+    RocketLaunchIcon
 } from '@phosphor-icons/react'
-
-const NORMAL_VIDEO = 'https://s3.amazonaws.com/webflow-prod-assets/698212678435dd6c87683be3/69970cf01991478bec7e632b_normal-groq-preset.mp4'
-const DITHER_VIDEO = 'https://s3.amazonaws.com/webflow-prod-assets/6984977952142a5f2fc3c5a8/6985f7cc9473caa2e4979c9b_dither_1080p.mp4'
-
-const agents = [
-    {
-        nameKey: 'v2.agentOpenclawName' as const,
-        descKey: 'v2.agentOpenclawDescription' as const,
-        tag: 'CLOUD_MGMT',
-        iconType: 'openclaw' as const
-    },
-    {
-        nameKey: 'v2.agentHermesName' as const,
-        descKey: 'v2.agentHermesDescription' as const,
-        tag: 'AUTONOMOUS',
-        iconType: 'hermes' as const
-    }
-]
-
-const getFaqs = (): Faq[] => [
-    { question: t('v2.faq1Question'), answer: t('v2.faq1Answer') },
-    { question: t('v2.faq2Question'), answer: t('v2.faq2Answer') },
-    { question: t('v2.faq3Question'), answer: t('v2.faq3Answer') },
-    { question: t('v2.faq4Question'), answer: t('v2.faq4Answer') },
-    { question: t('v2.faq5Question'), answer: t('v2.faq5Answer') },
-    { question: t('v2.faq6Question'), answer: t('v2.faq6Answer') },
-    { question: t('v2.faq7Question'), answer: t('v2.faq7Answer') }
-]
 
 const V2: FC = (): ReactNode => {
     const { user } = useAuth()
@@ -78,67 +51,12 @@ const V2: FC = (): ReactNode => {
 
     const baseVideoRef = useRef<HTMLVideoElement>(null)
     const ditherVideoRef = useRef<HTMLVideoElement>(null)
+    useVideoSync(baseVideoRef, ditherVideoRef)
+    const { onMouseMove, onMouseLeave } = useDitherHover()
 
     const deployLink = user
         ? `${ROUTES.AGENTS}?deploy=true`
         : `${ROUTES.LOGIN}?deploy=true`
-
-    useEffect(() => {
-        const base = baseVideoRef.current
-        const dither = ditherVideoRef.current
-        if (!base || !dither) return
-
-        const sync = () => {
-            if (Math.abs(base.currentTime - dither.currentTime) > 0.1) {
-                dither.currentTime = base.currentTime
-            }
-        }
-
-        base.addEventListener('play', sync)
-        base.addEventListener('seeked', sync)
-        const interval = setInterval(sync, 1000)
-
-        return () => {
-            base.removeEventListener('play', sync)
-            base.removeEventListener('seeked', sync)
-            clearInterval(interval)
-        }
-    }, [])
-
-    const handleVideoMouseMove = useCallback((e: MouseEvent<HTMLElement>) => {
-        const el = e.currentTarget
-        const rect = el.getBoundingClientRect()
-        const mx = e.clientX - rect.left
-        const videoOffset = rect.height * 0.2
-        const my = e.clientY - rect.top + videoOffset
-        const videoHeight = rect.height + videoOffset
-        const size = 200
-        const half = size / 2
-        const top = Math.max(0, my - half)
-        const left = Math.max(0, mx - half)
-        const bottom = Math.max(0, videoHeight - my - half)
-        const right = Math.max(0, rect.width - mx - half)
-        el.style.setProperty('--sq-clip-top', `${top}px`)
-        el.style.setProperty('--sq-clip-right', `${right}px`)
-        el.style.setProperty('--sq-clip-bottom', `${bottom}px`)
-        el.style.setProperty('--sq-clip-left', `${left}px`)
-        el.style.setProperty('--sq-x', `${mx - half}px`)
-        el.style.setProperty('--sq-y', `${my - half}px`)
-        el.style.setProperty('--sq-w', `${size}px`)
-        el.style.setProperty('--sq-h', `${size}px`)
-    }, [])
-
-    const handleVideoMouseLeave = useCallback((e: MouseEvent<HTMLElement>) => {
-        const el = e.currentTarget
-        el.style.setProperty('--sq-clip-top', '100%')
-        el.style.setProperty('--sq-clip-right', '100%')
-        el.style.setProperty('--sq-clip-bottom', '100%')
-        el.style.setProperty('--sq-clip-left', '100%')
-        el.style.setProperty('--sq-x', '-999px')
-        el.style.setProperty('--sq-y', '-999px')
-        el.style.setProperty('--sq-w', '0px')
-        el.style.setProperty('--sq-h', '0px')
-    }, [])
 
     const navLinks = [
         { label: t('landing.features'), href: ROUTES.FEATURES, id: 'features' },
@@ -176,8 +94,8 @@ const V2: FC = (): ReactNode => {
             <main className='v2-content'>
                 <section
                     className='v2-video-wrap relative flex h-[85vh] cursor-crosshair flex-col justify-start overflow-hidden px-6 pt-[18vh]'
-                    onMouseMove={handleVideoMouseMove}
-                    onMouseLeave={handleVideoMouseLeave}
+                    onMouseMove={onMouseMove}
+                    onMouseLeave={onMouseLeave}
                 >
                     <video
                         ref={baseVideoRef}
@@ -187,7 +105,7 @@ const V2: FC = (): ReactNode => {
                         loop
                         playsInline
                     >
-                        <source src={NORMAL_VIDEO} type='video/mp4' />
+                        <source src={v2VideoUrls.NORMAL} type='video/mp4' />
                     </video>
                     <video
                         ref={ditherVideoRef}
@@ -197,7 +115,7 @@ const V2: FC = (): ReactNode => {
                         loop
                         playsInline
                     >
-                        <source src={DITHER_VIDEO} type='video/mp4' />
+                        <source src={v2VideoUrls.DITHER} type='video/mp4' />
                     </video>
 
                     <div className='pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(10,10,15,0.9)_0%,rgba(10,10,15,0.3)_30%,#020204_70%)]' />
@@ -241,7 +159,7 @@ const V2: FC = (): ReactNode => {
                                     to={deployLink}
                                     className='group/deploy pointer-events-auto inline-flex items-center gap-2 bg-[#6B5CE7] px-6 py-3 font-mono text-xs font-semibold tracking-[0.1em] text-white transition-opacity hover:opacity-90'
                                 >
-                                    <RocketLaunchIcon className='h-3.5 w-3.5' />
+                                    <RocketLaunchIcon className='h-3.5 w-3.5 transition-transform duration-200 group-hover/deploy:-translate-y-0.5' />
                                     {t('v2.deployButton').toUpperCase()}
                                     <ArrowRightIcon className='h-3.5 w-3.5 transition-transform duration-200 group-hover/deploy:translate-x-1' />
                                 </Link>
@@ -270,25 +188,21 @@ const V2: FC = (): ReactNode => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 1.0 }}
-                    className='relative z-10 mx-auto max-w-6xl px-6'
+                    className='relative z-10 px-6'
                 >
-                    <div className='-mt-1 grid grid-cols-2 border border-white/10 md:grid-cols-5'>
-                        {[
-                            { value: t('landing.startingPriceValue', { price: 25 }), label: t('landing.pricing') },
-                            { value: t('go.statsZero'), label: t('go.statsZeroConfig') },
-                            { value: t('v2.stats2Value'), label: t('v2.stats2Label') },
-                            { value: t('v2.stats3Value'), label: t('v2.stats3Label') },
-                            { value: t('v2.stats4Value'), label: t('v2.stats4Label') }
-                        ].map((stat, i) => (
-                            <div key={i} className='border-white/10 bg-[#020204] p-5 [&:not(:last-child)]:border-r'>
-                                <div className='font-syne text-2xl font-bold text-white md:text-3xl'>
-                                    {stat.value}
+                    <div className='mx-auto max-w-6xl'>
+                        <div className='-mt-1 grid grid-cols-2 border border-white/10 md:grid-cols-5'>
+                            {getV2Stats().map((stat, i) => (
+                                <div key={i} className='border-white/10 bg-[#020204] p-5 [&:not(:last-child)]:border-r'>
+                                    <div className='font-syne text-2xl font-bold text-white md:text-3xl'>
+                                        {stat.value}
+                                    </div>
+                                    <div className='font-mono text-[10px] tracking-[0.15em] text-white/40'>
+                                        {stat.label.toUpperCase()}
+                                    </div>
                                 </div>
-                                <div className='font-mono text-[10px] tracking-[0.15em] text-white/40'>
-                                    {stat.label.toUpperCase()}
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </motion.div>
 
@@ -305,7 +219,7 @@ const V2: FC = (): ReactNode => {
                         </ScrollRevealV2>
 
                         <ScrollRevealV2 delay={0.2} className='relative z-[15] grid gap-px border border-white/10 md:grid-cols-2'>
-                            {agents.map((agent, i) => (
+                            {v2Agents.map((agent, i) => (
                                 <div
                                     key={i}
                                     className='group relative border-white/10 bg-[#070709] p-8 [&:not(:last-child)]:border-r'
@@ -328,11 +242,11 @@ const V2: FC = (): ReactNode => {
 
                                     <Link
                                         to={deployLink}
-                                        className='inline-flex items-center gap-2 bg-[#6B5CE7] px-4 py-2.5 font-mono text-[10px] font-semibold tracking-[0.15em] text-white transition-opacity hover:opacity-80'
+                                        className='group/deploy inline-flex items-center gap-2 bg-[#6B5CE7] px-4 py-2.5 font-mono text-[10px] font-semibold tracking-[0.15em] text-white transition-opacity hover:opacity-90'
                                     >
-                                        <RocketLaunchIcon className='h-3 w-3' />
-                                        DEPLOY
-                                        <ArrowRightIcon className='h-3 w-3' />
+                                        <RocketLaunchIcon className='h-3 w-3 transition-transform duration-200 group-hover/deploy:-translate-y-0.5' />
+                                        {t('v2.deployButton').toUpperCase()}
+                                        <ArrowRightIcon className='h-3 w-3 transition-transform duration-200 group-hover/deploy:translate-x-1' />
                                     </Link>
                                 </div>
                             ))}
@@ -344,20 +258,7 @@ const V2: FC = (): ReactNode => {
                     badge={t('landing.features')}
                     heading={t('v2.featuresTitle')}
                     description={t('v2.featuresDescription')}
-                    features={[
-                        { icon: CubeIcon, title: t('v2.feature1Title'), description: t('v2.feature1Description') },
-                        { icon: ClockIcon, title: t('landing.zeroConfig'), description: t('v2.zeroConfigDescription') },
-                        { icon: LockIcon, title: t('landing.ownedData'), description: t('landing.ownedDataDescription') },
-                        { icon: GaugeIcon, title: t('landing.fullSpeed'), description: t('landing.fullSpeedDescription') },
-                        { icon: GlobeIcon, title: t('landing.globalLocations'), description: t('v2.globalLocationsDescription') },
-                        { icon: TerminalIcon, title: t('landing.fullSshAccess'), description: t('landing.fullSshAccessDescription') },
-                        { icon: CreditCardIcon, title: t('landing.payAsYouGo'), description: t('landing.payAsYouGoDescription') },
-                        { icon: LinkIcon, title: t('landing.customSubdomains'), description: t('v2.onlineAccessDescription') },
-                        { icon: ShieldCheckIcon, title: t('landing.secure'), description: t('landing.secureDescription') },
-                        { icon: GitBranchIcon, title: t('landing.autoUpdates'), description: t('v2.versionControlDescription') },
-                        { icon: SlidersHorizontalIcon, title: t('v2.agentControlTitle'), description: t('v2.agentControlDescription') },
-                        { icon: StackIcon, title: t('v2.multipleAgentsTitle'), description: t('v2.multipleAgentsDescription') }
-                    ]}
+                    features={getV2Features()}
                 />
 
                 <PricingSectionV2
@@ -371,28 +272,14 @@ const V2: FC = (): ReactNode => {
                     badge={t('landing.comparison')}
                     heading={t('landing.comparisonTitle')}
                     description={t('landing.comparisonDescription')}
-                    rows={[
-                        { us: t('v2.comparisonUsLabel'), others: t('v2.comparisonOthersLabel') },
-                        { us: t('v2.comparisonAgentAccessUs'), others: t('landing.comparisonOpenClawOthers') },
-                        { us: t('landing.comparisonPricingUs'), others: t('landing.comparisonPricingOthers') },
-                        { us: t('landing.comparisonOwnershipUs'), others: t('landing.comparisonOwnershipOthers') },
-                        { us: t('landing.comparisonSubdomainUs'), others: t('landing.comparisonSubdomainOthers') },
-                        { us: t('landing.comparisonInfraUs'), others: t('landing.comparisonInfraOthers') },
-                        { us: t('landing.comparisonDataUs'), others: t('landing.comparisonDataOthers') },
-                        { us: t('v2.comparisonMultipleAgentsUs'), others: t('v2.comparisonMultipleAgentsOthers') },
-                        { us: t('landing.comparisonOpenSourceUs'), others: t('landing.comparisonOpenSourceOthers') },
-                        { us: t('v2.comparisonExportAgentsUs'), others: t('landing.comparisonExportOthers') },
-                        { us: t('landing.comparisonProvidersUs'), others: t('landing.comparisonProvidersOthers') },
-                        { us: t('landing.comparisonVersionUs'), others: t('landing.comparisonVersionOthers') },
-                        { us: t('landing.comparisonTerminalUs'), others: t('landing.comparisonTerminalOthers') }
-                    ]}
+                    rows={getV2ComparisonRows()}
                 />
 
                 <FaqSectionV2
                     badge={t('landing.faqTitle')}
                     heading={t('landing.frequentlyAskedQuestions')}
                     description={t('landing.faqDescription')}
-                    faqs={getFaqs()}
+                    faqs={getV2Faqs()}
                 />
 
                 <section className='v2-section relative px-6 py-32'>
@@ -411,7 +298,7 @@ const V2: FC = (): ReactNode => {
                                         to={deployLink}
                                         className='group/deploy inline-flex items-center gap-2 bg-[#6B5CE7] px-8 py-4 font-mono text-xs font-semibold tracking-[0.15em] text-white transition-opacity hover:opacity-90'
                                     >
-                                        <RocketLaunchIcon className='h-3.5 w-3.5' />
+                                        <RocketLaunchIcon className='h-3.5 w-3.5 transition-transform duration-200 group-hover/deploy:-translate-y-0.5' />
                                         {t('v2.deployButton').toUpperCase()}
                                         <ArrowRightIcon className='h-3.5 w-3.5 transition-transform duration-200 group-hover/deploy:translate-x-1' />
                                     </Link>

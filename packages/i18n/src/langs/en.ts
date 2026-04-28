@@ -245,7 +245,7 @@ const en = {
         affiliateProgram: 'Affiliate Program',
         documentation: 'Documentation',
         productDescription:
-            'Deploy OpenClaw agents in the cloud or locally with one click — build, connect, and scale your AI agents faster with ClawHost.',
+            'Deploy OpenClaw and Hermes agents in the cloud or locally with one click — build, connect, and scale your AI agents faster with ClawHost.',
         downloadAndroid: 'Get it on Google Play',
         downloadIos: 'Download on the App Store',
         ariaGithub: 'GitHub',
@@ -1067,7 +1067,7 @@ const en = {
         heroTitle1: 'Deploy OpenClaw.',
         heroTitle2: 'One click. Done.',
         heroDescription:
-            'Deploy OpenClaw agents in the cloud or locally with one click — build, connect, and scale your AI agents faster with ClawHost.',
+            'Deploy OpenClaw and Hermes agents in the cloud or locally with one click — build, connect, and scale your AI agents faster with ClawHost.',
         goToClaws: 'Go to Claws',
         selfHost: 'Open Source',
         startingPrice: 'Starting',
@@ -2380,6 +2380,7 @@ const en = {
         faq6Answer: 'We offer 30+ server locations worldwide, including US, Europe, and Asia. You can deploy agents on multiple servers in different regions.',
         faq7Question: 'How much does it cost?',
         faq7Answer: 'Pricing starts at $40/month based on the server you select. Multiple options from entry-level to high-performance. No hidden fees, cancel anytime.',
+        footerDescription: 'Deploy OpenClaw and Hermes agents in the cloud with one click — build, connect, and scale your AI agents faster with Agentist.',
         ctaTitle: 'Ready to Deploy?',
         ctaDescription: 'Join the next generation of agent deployment. Your infrastructure, your agents, your rules.',
         stats1Value: 'OpenClaw & Hermes',

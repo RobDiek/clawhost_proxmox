@@ -5,10 +5,8 @@ import { Link } from 'react-router-dom'
 import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
 import { ROUTES } from '@/lib'
-import { CheckIcon, XIcon } from '@phosphor-icons/react'
-import buildV2Plans from '@/components/v2/buildV2Plans'
-import ScrollRevealV2 from '@/components/v2/ScrollRevealV2'
-import SectionLabelV2 from '@/components/v2/SectionLabelV2'
+import { CheckIcon, XIcon, RocketLaunchIcon, ArrowRightIcon } from '@phosphor-icons/react'
+import { buildV2Plans, ScrollRevealV2, SectionLabelV2 } from '@/components/v2'
 
 const PricingSectionV2: FC<PricingSectionProps> = ({
     plans,
@@ -97,15 +95,17 @@ const PricingSectionV2: FC<PricingSectionProps> = ({
                                             ? `${ROUTES.AGENTS}?plan=${sp.planId}`
                                             : `${ROUTES.LOGIN}?plan=${sp.planId}`
                                     }
-                                    className={`block w-full py-2.5 text-center font-mono text-[10px] tracking-[0.15em] transition-opacity ${
+                                    className={`group/deploy flex w-full items-center justify-center gap-2 py-2.5 font-mono text-[10px] tracking-[0.15em] transition-opacity ${
                                         sp.popular
                                             ? 'bg-[#6B5CE7] text-white hover:opacity-80'
                                             : 'border border-white/10 bg-white/5 text-white/70 hover:bg-white/10'
                                     }`}
                                 >
+                                    <RocketLaunchIcon className='h-3 w-3 transition-transform duration-200 group-hover/deploy:-translate-y-0.5' />
                                     {user
                                         ? t('landing.deploy').toUpperCase()
                                         : t('landing.select').toUpperCase()}
+                                    <ArrowRightIcon className='h-3 w-3 transition-transform duration-200 group-hover/deploy:translate-x-1' />
                                 </Link>
                             </div>
                         ))}

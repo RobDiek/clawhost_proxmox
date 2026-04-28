@@ -251,7 +251,7 @@ const pt: Translations = {
         affiliateProgram: 'Programa de afiliados',
         documentation: 'Documentação',
         productDescription:
-            'Implante agentes OpenClaw na nuvem ou localmente com um clique — crie, conecte e escale seus agentes de IA mais rápido com o ClawHost.',
+            'Implante agentes OpenClaw e Hermes na nuvem ou localmente com um clique — crie, conecte e escale seus agentes de IA mais rápido com o ClawHost.',
         downloadAndroid: 'Disponível no Google Play',
         downloadIos: 'Baixe na App Store',
         ariaGithub: 'GitHub',
@@ -1096,7 +1096,7 @@ const pt: Translations = {
         heroTitle1: 'Implante OpenClaw.',
         heroTitle2: 'Um clique. Pronto.',
         heroDescription:
-            'Implante agentes OpenClaw na nuvem ou localmente com um clique — construa, conecte e escale seus agentes de IA mais rápido com o ClawHost.',
+            'Implante agentes OpenClaw e Hermes na nuvem ou localmente com um clique — construa, conecte e escale seus agentes de IA mais rápido com o ClawHost.',
         goToClaws: 'Ir para Claws',
         selfHost: 'Código Aberto',
         startingPrice: 'A partir de',
@@ -2431,6 +2431,7 @@ const pt: Translations = {
         faq6Answer: 'Oferecemos mais de 30 localizações de servidores em todo o mundo, incluindo EUA, Europa e Ásia. Você pode implantar agentes em vários servidores em diferentes regiões.',
         faq7Question: 'Quanto custa?',
         faq7Answer: 'Os preços começam em 40 $/mês com base no servidor selecionado. Múltiplas opções desde nível básico até alto desempenho. Sem taxas ocultas, cancele a qualquer momento.',
+        footerDescription: 'Implante agentes OpenClaw e Hermes na nuvem com um clique — crie, conecte e escale seus agentes de IA mais rápido com Agentist.',
         ctaTitle: 'Pronto para Implantar?',
         ctaDescription: 'Junte-se à próxima geração de implantação de agentes. Sua infraestrutura, seus agentes, suas regras.',
         stats1Value: 'OpenClaw & Hermes',

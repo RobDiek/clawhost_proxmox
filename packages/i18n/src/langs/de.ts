@@ -252,7 +252,7 @@ const de: Translations = {
         affiliateProgram: 'Partnerprogramm',
         documentation: 'Dokumentation',
         productDescription:
-            'OpenClaw-Agenten in der Cloud oder lokal mit einem Klick bereitstellen – erstelle, verbinde und skaliere deine KI-Agenten schneller mit ClawHost.',
+            'OpenClaw- und Hermes-Agenten in der Cloud oder lokal mit einem Klick bereitstellen – erstelle, verbinde und skaliere deine KI-Agenten schneller mit ClawHost.',
         downloadAndroid: 'Jetzt bei Google Play',
         downloadIos: 'Laden im App Store',
         ariaGithub: 'GitHub',
@@ -1114,7 +1114,7 @@ const de: Translations = {
         heroTitle1: 'OpenClaw bereitstellen.',
         heroTitle2: 'Ein Klick. Fertig.',
         heroDescription:
-            'OpenClaw-Agenten in der Cloud oder lokal mit einem Klick bereitstellen – erstelle, verbinde und skaliere deine KI-Agenten schneller mit ClawHost.',
+            'OpenClaw- und Hermes-Agenten in der Cloud oder lokal mit einem Klick bereitstellen – erstelle, verbinde und skaliere deine KI-Agenten schneller mit ClawHost.',
         goToClaws: 'Zu Claws',
         selfHost: 'Open Source',
         startingPrice: 'Ab',
@@ -2452,6 +2452,7 @@ const de: Translations = {
         faq6Answer: 'Wir bieten über 30 Serverstandorte weltweit an, darunter USA, Europa und Asien. Du kannst Agenten auf mehreren Servern in verschiedenen Regionen bereitstellen.',
         faq7Question: 'Was kostet es?',
         faq7Answer: 'Die Preise beginnen bei 40 $/Monat je nach gewähltem Server. Mehrere Optionen von Einstiegs- bis Hochleistungsklasse. Keine versteckten Gebühren, jederzeit kündbar.',
+        footerDescription: 'Deploye OpenClaw- und Hermes-Agenten mit einem Klick in der Cloud — erstelle, verbinde und skaliere deine KI-Agenten schneller mit Agentist.',
         ctaTitle: 'Bereit zum Deployen?',
         ctaDescription: 'Werde Teil der nächsten Generation von Agent-Deployment. Deine Infrastruktur, deine Agents, deine Regeln.',
         stats1Value: 'OpenClaw & Hermes',

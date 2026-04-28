@@ -245,7 +245,7 @@ const ar: Translations = {
         affiliateProgram: 'برنامج الإحالة',
         documentation: 'التوثيق',
         productDescription:
-            'انشر وكلاء OpenClaw في السحابة أو محلياً بنقرة واحدة — ابنِ واربط ووسّع وكلاء الذكاء الاصطناعي أسرع مع ClawHost.',
+            'انشر وكلاء OpenClaw وHermes في السحابة أو محلياً بنقرة واحدة — ابنِ واربط ووسّع وكلاء الذكاء الاصطناعي أسرع مع ClawHost.',
         downloadAndroid: 'احصل عليه من Google Play',
         downloadIos: 'حمّله من App Store',
         ariaGithub: 'GitHub',
@@ -1050,7 +1050,7 @@ const ar: Translations = {
         heroTitle1: 'انشر OpenClaw.',
         heroTitle2: 'بنقرة واحدة. انتهى.',
         heroDescription:
-            'انشر وكلاء OpenClaw في السحابة أو محلياً بنقرة واحدة — ابنِ واربط ووسّع وكلاء الذكاء الاصطناعي بشكل أسرع مع ClawHost.',
+            'انشر وكلاء OpenClaw وHermes في السحابة أو محلياً بنقرة واحدة — ابنِ واربط ووسّع وكلاء الذكاء الاصطناعي بشكل أسرع مع ClawHost.',
         goToClaws: 'انتقل إلى المخالب',
         selfHost: 'مفتوح المصدر',
         startingPrice: 'بدءاً من',
@@ -2328,6 +2328,7 @@ const ar: Translations = {
         faq6Answer: 'نقدم أكثر من 30 موقع خادم حول العالم، بما في ذلك الولايات المتحدة وأوروبا وآسيا. يمكنك نشر الوكلاء على خوادم متعددة في مناطق مختلفة.',
         faq7Question: 'كم يكلف؟',
         faq7Answer: 'تبدأ الأسعار من 40 $/شهرياً بناءً على الخادم الذي تختاره. خيارات متعددة من المستوى الأساسي إلى الأداء العالي. بدون رسوم مخفية، ألغِ في أي وقت.',
+        footerDescription: 'انشر وكلاء OpenClaw و Hermes في السحابة بنقرة واحدة — أنشئ وكلاء الذكاء الاصطناعي الخاصة بك واربطها ووسّع نطاقها بشكل أسرع مع Agentist.',
         ctaTitle: 'مستعد للنشر؟',
         ctaDescription: 'انضم إلى الجيل القادم من نشر الوكلاء. بنيتك التحتية، وكلاؤك، قواعدك.',
         stats1Value: 'OpenClaw & Hermes',

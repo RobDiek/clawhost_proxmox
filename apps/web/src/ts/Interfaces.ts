@@ -422,6 +422,11 @@ export interface ScrollRevealV2Props {
     className?: string
 }
 
+export interface DitherHoverHandlers {
+    onMouseMove: (e: import('react').MouseEvent<HTMLElement>) => void
+    onMouseLeave: (e: import('react').MouseEvent<HTMLElement>) => void
+}
+
 export interface HeaderProps {
     showNavLinks?: boolean
     navLinks?: NavLink[]

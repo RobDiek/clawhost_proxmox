@@ -252,7 +252,7 @@ const es: Translations = {
         affiliateProgram: 'Programa de afiliados',
         documentation: 'Documentación',
         productDescription:
-            'Despliega agentes OpenClaw en la nube o en local con un clic — crea, conecta y escala tus agentes de IA más rápido con ClawHost.',
+            'Despliega agentes OpenClaw y Hermes en la nube o en local con un clic — crea, conecta y escala tus agentes de IA más rápido con ClawHost.',
         downloadAndroid: 'Disponible en Google Play',
         downloadIos: 'Descargar en el App Store',
         ariaGithub: 'GitHub',
@@ -1104,7 +1104,7 @@ const es: Translations = {
         heroTitle1: 'Despliega OpenClaw.',
         heroTitle2: 'Un clic. Listo.',
         heroDescription:
-            'Despliega agentes OpenClaw en la nube o en local con un clic — crea, conecta y escala tus agentes de IA más rápido con ClawHost.',
+            'Despliega agentes OpenClaw y Hermes en la nube o en local con un clic — crea, conecta y escala tus agentes de IA más rápido con ClawHost.',
         goToClaws: 'Ir a Claws',
         selfHost: 'Código abierto',
         startingPrice: 'Desde',
@@ -2444,6 +2444,7 @@ const es: Translations = {
         faq6Answer: 'Ofrecemos más de 30 ubicaciones de servidores en todo el mundo, incluyendo EE.UU., Europa y Asia. Puedes desplegar agentes en múltiples servidores en diferentes regiones.',
         faq7Question: '¿Cuánto cuesta?',
         faq7Answer: 'Los precios comienzan en 40 $/mes según el servidor que selecciones. Múltiples opciones desde nivel básico hasta alto rendimiento. Sin costes ocultos, cancela en cualquier momento.',
+        footerDescription: 'Despliega agentes OpenClaw y Hermes en la nube con un solo clic — crea, conecta y escala tus agentes de IA más rápido con Agentist.',
         ctaTitle: '¿Listo para Desplegar?',
         ctaDescription: 'Únete a la próxima generación de despliegue de agentes. Tu infraestructura, tus agentes, tus reglas.',
         stats1Value: 'OpenClaw & Hermes',

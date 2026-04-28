@@ -251,7 +251,7 @@ const nl: Translations = {
         affiliateProgram: 'Partnerprogramma',
         documentation: 'Documentatie',
         productDescription:
-            'Deploy OpenClaw-agents in de cloud of lokaal met één klik — bouw, verbind en schaal je AI-agents sneller met ClawHost.',
+            'Deploy OpenClaw- en Hermes-agents in de cloud of lokaal met één klik — bouw, verbind en schaal je AI-agents sneller met ClawHost.',
         downloadAndroid: 'Downloaden op Google Play',
         downloadIos: 'Downloaden in de App Store',
         ariaGithub: 'GitHub',
@@ -1096,7 +1096,7 @@ const nl: Translations = {
         heroTitle1: 'Implementeer OpenClaw.',
         heroTitle2: 'E\u00e9n klik. Klaar.',
         heroDescription:
-            'Deploy OpenClaw-agents in de cloud of lokaal met \u00e9\u00e9n klik \u2014 bouw, verbind en schaal je AI-agents sneller met ClawHost.',
+            'Deploy OpenClaw- en Hermes-agents in de cloud of lokaal met \u00e9\u00e9n klik \u2014 bouw, verbind en schaal je AI-agents sneller met ClawHost.',
         goToClaws: 'Naar Claws',
         selfHost: 'Open Source',
         startingPrice: 'Vanaf',
@@ -2427,6 +2427,7 @@ const nl: Translations = {
         faq6Answer: 'We bieden meer dan 30 serverlocaties wereldwijd, waaronder de VS, Europa en Azië. Je kunt agents deployen op meerdere servers in verschillende regio\'s.',
         faq7Question: 'Hoeveel kost het?',
         faq7Answer: 'Prijzen beginnen vanaf 40 $/maand op basis van de server die je selecteert. Meerdere opties van instapniveau tot high-performance. Geen verborgen kosten, op elk moment opzegbaar.',
+        footerDescription: 'Deploy OpenClaw- en Hermes-agents in de cloud met een klik — bouw, verbind en schaal je AI-agents sneller met Agentist.',
         ctaTitle: 'Klaar om te Deployen?',
         ctaDescription: 'Sluit je aan bij de volgende generatie agentdeployment. Jouw infrastructuur, jouw agents, jouw regels.',
         stats1Value: 'OpenClaw & Hermes',

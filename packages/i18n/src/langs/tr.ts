@@ -247,7 +247,7 @@ const tr: Translations = {
         affiliateProgram: 'Ortaklık Programı',
         documentation: 'Belgeler',
         productDescription:
-            'OpenClaw ajanlarını bulutta veya yerel olarak tek tıkla dağıtın — ClawHost ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
+            'OpenClaw ve Hermes ajanlarını bulutta veya yerel olarak tek tıkla dağıtın — ClawHost ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
         downloadAndroid: "Google Play'den İndirin",
         downloadIos: "App Store'dan İndirin",
         ariaGithub: 'GitHub',
@@ -1080,7 +1080,7 @@ const tr: Translations = {
         heroTitle1: 'OpenClaw Dağıt.',
         heroTitle2: 'Tek tık. Tamam.',
         heroDescription:
-            'OpenClaw ajanlarını bulutta veya yerel olarak tek tıkla dağıtın — ClawHost ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
+            'OpenClaw ve Hermes ajanlarını bulutta veya yerel olarak tek tıkla dağıtın — ClawHost ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
         goToClaws: "Claw'lara Git",
         selfHost: 'Açık Kaynak',
         startingPrice: 'Başlangıç',
@@ -2405,6 +2405,7 @@ const tr: Translations = {
         faq6Answer: 'ABD, Avrupa ve Asya dahil dünya genelinde 30\'dan fazla sunucu konumu sunuyoruz. Farklı bölgelerdeki birden fazla sunucuya ajan dağıtabilirsiniz.',
         faq7Question: 'Ne kadara mal olur?',
         faq7Answer: 'Fiyatlar seçtiğiniz sunucuya göre aylık 40 $\'dan başlar. Giriş seviyesinden yüksek performansa kadar birden fazla seçenek. Gizli ücret yok, istediğiniz zaman iptal edin.',
+        footerDescription: 'OpenClaw ve Hermes ajanlarını tek tıkla bulutta dağıtın — Agentist ile yapay zeka ajanlarınızı daha hızlı oluşturun, bağlayın ve ölçeklendirin.',
         ctaTitle: 'Dağıtmaya Hazır mısınız?',
         ctaDescription: 'Ajan dağıtımının yeni nesline katılın. Altyapınız, ajanlarınız, kurallarınız.',
         stats1Value: 'OpenClaw & Hermes',

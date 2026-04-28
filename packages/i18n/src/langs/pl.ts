@@ -250,7 +250,7 @@ const pl: Translations = {
         affiliateProgram: 'Program partnerski',
         documentation: 'Dokumentacja',
         productDescription:
-            'Wdrażaj agentów OpenClaw w chmurze lub lokalnie jednym kliknięciem — buduj, łącz i skaluj swoich agentów AI szybciej z ClawHost.',
+            'Wdrażaj agentów OpenClaw i Hermes w chmurze lub lokalnie jednym kliknięciem — buduj, łącz i skaluj swoich agentów AI szybciej z ClawHost.',
         downloadAndroid: 'Pobierz z Google Play',
         downloadIos: 'Pobierz z App Store',
         ariaGithub: 'GitHub',
@@ -1091,7 +1091,7 @@ const pl: Translations = {
         heroTitle1: 'Wdróż OpenClaw.',
         heroTitle2: 'Jedno kliknięcie. Gotowe.',
         heroDescription:
-            'Wdrażaj agentów OpenClaw w chmurze lub lokalnie jednym kliknięciem — buduj, łącz i skaluj swoich agentów AI szybciej z ClawHost.',
+            'Wdrażaj agentów OpenClaw i Hermes w chmurze lub lokalnie jednym kliknięciem — buduj, łącz i skaluj swoich agentów AI szybciej z ClawHost.',
         goToClaws: 'Przejdź do Claws',
         selfHost: 'Open Source',
         startingPrice: 'Od',
@@ -2412,6 +2412,7 @@ const pl: Translations = {
         faq6Answer: 'Oferujemy ponad 30 lokalizacji serwerów na całym świecie, w tym w USA, Europie i Azji. Możesz wdrażać agentów na wielu serwerach w różnych regionach.',
         faq7Question: 'Ile to kosztuje?',
         faq7Answer: 'Ceny zaczynają się od 40 $/miesiąc w zależności od wybranego serwera. Wiele opcji od podstawowych po wysokowydajne. Bez ukrytych opłat, anuluj w dowolnym momencie.',
+        footerDescription: 'Wdróż agentów OpenClaw i Hermes w chmurze jednym kliknięciem — twórz, łącz i skaluj swoich agentów AI szybciej z Agentist.',
         ctaTitle: 'Gotowy do Wdrożenia?',
         ctaDescription: 'Dołącz do nowej generacji wdrażania agentów. Twoja infrastruktura, Twoi agenci, Twoje zasady.',
         stats1Value: 'OpenClaw & Hermes',
