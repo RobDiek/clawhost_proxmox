@@ -17,7 +17,10 @@ const ROUTES = {
     AFFILIATE_PROGRAM: `/${PATHS.AFFILIATE_PROGRAM}`,
     COMPARE: `/${PATHS.COMPARE}`,
     HERMES: `/${PATHS.HERMES}`,
-    HERMES_GO: `/${PATHS.HERMES_GO}`
+    HERMES_GO: `/${PATHS.HERMES_GO}`,
+    V2: `/${PATHS.V2}`,
+    PRICING: `/${PATHS.PRICING}`,
+    FEATURES: `/${PATHS.FEATURES}`
 } as const
 
 export default ROUTES

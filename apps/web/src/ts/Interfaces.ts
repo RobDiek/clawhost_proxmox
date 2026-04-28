@@ -256,6 +256,8 @@ export interface UIState {
     hideToast: () => void
     phBannerVisible: boolean
     dismissPhBanner: () => void
+    rebrandBannerVisible: boolean
+    dismissRebrandBanner: () => void
 }
 
 export interface PreferencesState {
@@ -397,6 +399,10 @@ export interface AgentAvatarProps {
 
 export interface SupportButtonProps {
     showLabel?: boolean
+}
+
+export interface SectionLabelV2Props {
+    label: string
 }
 
 export interface HeaderProps {

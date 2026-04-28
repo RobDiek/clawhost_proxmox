@@ -2,9 +2,8 @@ import type { FC, ReactNode } from 'react'
 
 import { t } from '@openclaw/i18n'
 import { Button, Img, Section, Text } from '@react-email/components'
+import { FeatureEmailLayout } from '@/emails'
 
-import CDN_ASSETS from '@/lib/cdn'
-import FeatureEmailLayout from '@/emails/FeatureEmailLayout'
 import {
     subheading,
     heading,
@@ -14,6 +13,8 @@ import {
     featureGifSection,
     featureGif
 } from '@/lib/emailStyles'
+
+import CDN_ASSETS from '@/lib/cdn'
 
 const ReinstallEmail: FC = (): ReactNode => {
     return (

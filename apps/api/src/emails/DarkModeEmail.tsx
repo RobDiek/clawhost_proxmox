@@ -1,10 +1,11 @@
 import type { FC, ReactNode } from 'react'
 
+import CDN_ASSETS from '@/lib/cdn'
+
 import { t } from '@openclaw/i18n'
 import { Button, Img, Section, Text } from '@react-email/components'
+import { FeatureEmailLayout } from '@/emails'
 
-import CDN_ASSETS from '@/lib/cdn'
-import FeatureEmailLayout from '@/emails/FeatureEmailLayout'
 import {
     subheading,
     heading,

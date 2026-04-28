@@ -2,17 +2,20 @@ import type { FeatureEmailDefinition } from '@/ts/Interfaces'
 
 import { t } from '@openclaw/i18n'
 import { featureEmailKey } from '@/lib/constants'
-import TerminalEmail from '@/emails/TerminalEmail'
-import LogsEmail from '@/emails/LogsEmail'
-import FileExplorerEmail from '@/emails/FileExplorerEmail'
-import DiagnosticsEmail from '@/emails/DiagnosticsEmail'
-import SshKeysEmail from '@/emails/SshKeysEmail'
-import ExportConfigEmail from '@/emails/ExportConfigEmail'
-import MultiLanguageEmail from '@/emails/MultiLanguageEmail'
-import SubdomainEmail from '@/emails/SubdomainEmail'
-import DarkModeEmail from '@/emails/DarkModeEmail'
-import ReinstallEmail from '@/emails/ReinstallEmail'
-import YearlyPlansEmail from '@/emails/YearlyPlansEmail'
+
+import { 
+    TerminalEmail,
+    LogsEmail,
+    FileExplorerEmail,
+    DiagnosticsEmail,
+    SshKeysEmail,
+    ExportConfigEmail,
+    MultiLanguageEmail,
+    SubdomainEmail,
+    DarkModeEmail,
+    ReinstallEmail,
+    YearlyPlansEmail
+} from '@/emails'
 
 const FEATURE_EMAILS: FeatureEmailDefinition[] = [
     {

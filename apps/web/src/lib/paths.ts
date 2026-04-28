@@ -14,7 +14,10 @@ const PATHS = {
     AFFILIATE_PROGRAM: 'affiliate-program',
     COMPARE: 'full-comparison',
     HERMES: 'hermes',
-    HERMES_GO: 'hermes-go'
+    HERMES_GO: 'hermes-go',
+    V2: 'v2',
+    PRICING: 'pricing',
+    FEATURES: 'features'
 } as const
 
 export default PATHS
