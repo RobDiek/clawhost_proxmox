@@ -8,6 +8,7 @@ import {
     JsonLd,
     HeaderV2,
     FeaturesGridV2,
+    ComparisonTableV2,
     FaqSectionV2,
     FooterV2,
     SectionLabelV2
@@ -15,6 +16,7 @@ import {
 import { getBaseDomain, ROUTES } from '@/lib'
 import { useAuth } from '@/lib/auth'
 import { GITHUB_REPO_URL } from '@/hooks'
+import { OpenClawIcon, HermesIcon } from '@/components/icons'
 import {
     CubeIcon,
     GlobeIcon,
@@ -29,8 +31,25 @@ import {
     GitBranchIcon,
     TerminalIcon,
     LightningIcon,
-    GithubLogoIcon
+    GithubLogoIcon,
+    RocketLaunchIcon,
+    ArrowRightIcon
 } from '@phosphor-icons/react'
+
+const agents = [
+    {
+        nameKey: 'v2.agentOpenclawName' as const,
+        descKey: 'v2.agentOpenclawDescription' as const,
+        tag: 'CLOUD_MGMT',
+        iconType: 'openclaw' as const
+    },
+    {
+        nameKey: 'v2.agentHermesName' as const,
+        descKey: 'v2.agentHermesDescription' as const,
+        tag: 'AUTONOMOUS',
+        iconType: 'hermes' as const
+    }
+]
 
 const FeaturesV2: FC = (): ReactNode => {
     const { user } = useAuth()
@@ -104,6 +123,85 @@ const FeaturesV2: FC = (): ReactNode => {
                     ]}
                 />
 
+                <section className='v2-section relative scroll-mt-24 border-t border-white/5 px-6 py-24'>
+                    <div className='mx-auto max-w-6xl'>
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: '-100px' }}
+                            transition={{ duration: 0.6 }}
+                            className='mb-16'
+                        >
+                            <SectionLabelV2 label='Agent Catalog' />
+                            <h2 className='font-syne mb-4 text-4xl font-extrabold uppercase tracking-tight text-white md:text-5xl'>
+                                {t('v2.agentsTitle')}
+                            </h2>
+                            <p className='max-w-lg font-mono text-sm leading-relaxed text-white/40'>
+                                {t('v2.agentsDescription')}
+                            </p>
+                        </motion.div>
+
+                        <div className='grid gap-px border border-white/10 md:grid-cols-2'>
+                            {agents.map((agent, i) => (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true, margin: '-50px' }}
+                                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                                    className='group relative border-white/10 bg-white/[0.02] p-8 [&:not(:last-child)]:border-r'
+                                >
+                                    <div className='mb-6 flex items-center justify-between'>
+                                        <div className='text-white'>
+                                            {agent.iconType === 'openclaw' ? <OpenClawIcon size={32} /> : <HermesIcon size={32} />}
+                                        </div>
+                                        <span className='font-mono text-[10px] tracking-[0.2em] text-white/30'>
+                                            {agent.tag}
+                                        </span>
+                                    </div>
+
+                                    <h3 className='font-syne mb-2 text-xl font-extrabold uppercase tracking-wide text-white'>
+                                        {t(agent.nameKey)}
+                                    </h3>
+                                    <p className='mb-8 font-mono text-xs leading-relaxed text-white/40'>
+                                        {t(agent.descKey)}
+                                    </p>
+
+                                    <Link
+                                        to={deployLink}
+                                        className='inline-flex items-center gap-2 bg-[#6B5CE7] px-4 py-2.5 font-mono text-[10px] font-semibold tracking-[0.15em] text-white transition-opacity hover:opacity-80'
+                                    >
+                                        <RocketLaunchIcon className='h-3 w-3' />
+                                        DEPLOY
+                                        <ArrowRightIcon className='h-3 w-3' />
+                                    </Link>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                <ComparisonTableV2
+                    badge={t('landing.comparison')}
+                    heading={t('landing.comparisonTitle')}
+                    description={t('landing.comparisonDescription')}
+                    rows={[
+                        { us: t('nav.cloudSubtitle'), others: t('nav.goSubtitle') },
+                        { us: t('landing.comparisonOpenClawUs'), others: t('landing.comparisonOpenClawOthers') },
+                        { us: t('landing.comparisonPricingUs'), others: t('landing.comparisonPricingOthers') },
+                        { us: t('landing.comparisonOwnershipUs'), others: t('landing.comparisonOwnershipOthers') },
+                        { us: t('landing.comparisonSubdomainUs'), others: t('landing.comparisonSubdomainOthers') },
+                        { us: t('landing.comparisonInfraUs'), others: t('landing.comparisonInfraOthers') },
+                        { us: t('landing.comparisonDataUs'), others: t('landing.comparisonDataOthers') },
+                        { us: t('landing.comparisonMultipleUs'), others: t('landing.comparisonMultipleOthers') },
+                        { us: t('landing.comparisonOpenSourceUs'), others: t('landing.comparisonOpenSourceOthers') },
+                        { us: t('landing.comparisonExportUs'), others: t('landing.comparisonExportOthers') },
+                        { us: t('landing.comparisonProvidersUs'), others: t('landing.comparisonProvidersOthers') },
+                        { us: t('landing.comparisonVersionUs'), others: t('landing.comparisonVersionOthers') },
+                        { us: t('landing.comparisonTerminalUs'), others: t('landing.comparisonTerminalOthers') }
+                    ]}
+                />
+
                 <FaqSectionV2
                     badge={t('landing.faqTitle')}
                     heading={t('landing.frequentlyAskedQuestions')}
@@ -112,7 +210,10 @@ const FeaturesV2: FC = (): ReactNode => {
                         { question: t('landing.faq1Question'), answer: t('landing.faq1Answer') },
                         { question: t('landing.faq2Question'), answer: t('landing.faq2Answer') },
                         { question: t('landing.faq3Question'), answer: t('landing.faq3Answer') },
-                        { question: t('landing.faq4Question'), answer: t('landing.faq4Answer') }
+                        { question: t('landing.faq4Question'), answer: t('landing.faq4Answer') },
+                        { question: t('landing.faq5Question'), answer: t('landing.faq5Answer') },
+                        { question: t('landing.faq6Question'), answer: t('landing.faq6Answer') },
+                        { question: t('landing.faq7Question'), answer: t('landing.faq7Answer') }
                     ]}
                 />
 

@@ -546,8 +546,6 @@ html {
 }
 
 .v2-video-wrap .v2-hover-video {
-    position: absolute;
-    inset: 0;
     pointer-events: none;
     clip-path: inset(
         var(--sq-clip-top, 100%) var(--sq-clip-right, 100%)

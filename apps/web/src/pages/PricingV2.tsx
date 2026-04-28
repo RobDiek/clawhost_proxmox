@@ -7,7 +7,9 @@ import {
     PageTitle,
     JsonLd,
     HeaderV2,
+    FeaturesGridV2,
     PricingSectionV2,
+    ComparisonTableV2,
     FaqSectionV2,
     FooterV2,
     SectionLabelV2
@@ -16,6 +18,18 @@ import { getBaseDomain, ROUTES } from '@/lib'
 import { useAuth } from '@/lib/auth'
 import { usePlans, GITHUB_REPO_URL } from '@/hooks'
 import {
+    CubeIcon,
+    GlobeIcon,
+    ShieldCheckIcon,
+    CreditCardIcon,
+    ClockIcon,
+    LockIcon,
+    GaugeIcon,
+    LinkIcon,
+    SlidersHorizontalIcon,
+    StackIcon,
+    GitBranchIcon,
+    TerminalIcon,
     LightningIcon,
     GithubLogoIcon
 } from '@phosphor-icons/react'
@@ -83,15 +97,59 @@ const PricingV2: FC = (): ReactNode => {
                     allDoneLoading={!hetznerLoading}
                 />
 
+                <FeaturesGridV2
+                    badge={t('landing.features')}
+                    heading={t('v2.featuresTitle')}
+                    description={t('v2.featuresDescription')}
+                    features={[
+                        { icon: CubeIcon, title: t('v2.feature1Title'), description: t('v2.feature1Description') },
+                        { icon: ClockIcon, title: t('landing.zeroConfig'), description: t('landing.zeroConfigDescription') },
+                        { icon: LockIcon, title: t('landing.ownedData'), description: t('landing.ownedDataDescription') },
+                        { icon: GaugeIcon, title: t('landing.fullSpeed'), description: t('landing.fullSpeedDescription') },
+                        { icon: GlobeIcon, title: t('landing.globalLocations'), description: t('landing.globalLocationsDescription') },
+                        { icon: TerminalIcon, title: t('landing.fullSshAccess'), description: t('landing.fullSshAccessDescription') },
+                        { icon: CreditCardIcon, title: t('landing.payAsYouGo'), description: t('landing.payAsYouGoDescription') },
+                        { icon: LinkIcon, title: t('landing.customSubdomains'), description: t('landing.customSubdomainsDescription') },
+                        { icon: ShieldCheckIcon, title: t('landing.secure'), description: t('landing.secureDescription') },
+                        { icon: GitBranchIcon, title: t('landing.autoUpdates'), description: t('landing.autoUpdatesDescription') },
+                        { icon: SlidersHorizontalIcon, title: t('v2.agentControlTitle'), description: t('v2.agentControlDescription') },
+                        { icon: StackIcon, title: t('v2.multipleAgentsTitle'), description: t('v2.multipleAgentsDescription') }
+                    ]}
+                />
+
+                <ComparisonTableV2
+                    badge={t('landing.comparison')}
+                    heading={t('landing.comparisonTitle')}
+                    description={t('landing.comparisonDescription')}
+                    rows={[
+                        { us: t('nav.cloudSubtitle'), others: t('nav.goSubtitle') },
+                        { us: t('landing.comparisonOpenClawUs'), others: t('landing.comparisonOpenClawOthers') },
+                        { us: t('landing.comparisonPricingUs'), others: t('landing.comparisonPricingOthers') },
+                        { us: t('landing.comparisonOwnershipUs'), others: t('landing.comparisonOwnershipOthers') },
+                        { us: t('landing.comparisonSubdomainUs'), others: t('landing.comparisonSubdomainOthers') },
+                        { us: t('landing.comparisonInfraUs'), others: t('landing.comparisonInfraOthers') },
+                        { us: t('landing.comparisonDataUs'), others: t('landing.comparisonDataOthers') },
+                        { us: t('landing.comparisonMultipleUs'), others: t('landing.comparisonMultipleOthers') },
+                        { us: t('landing.comparisonOpenSourceUs'), others: t('landing.comparisonOpenSourceOthers') },
+                        { us: t('landing.comparisonExportUs'), others: t('landing.comparisonExportOthers') },
+                        { us: t('landing.comparisonProvidersUs'), others: t('landing.comparisonProvidersOthers') },
+                        { us: t('landing.comparisonVersionUs'), others: t('landing.comparisonVersionOthers') },
+                        { us: t('landing.comparisonTerminalUs'), others: t('landing.comparisonTerminalOthers') }
+                    ]}
+                />
+
                 <FaqSectionV2
                     badge={t('landing.faqTitle')}
                     heading={t('landing.frequentlyAskedQuestions')}
                     description={t('landing.faqDescription')}
                     faqs={[
-                        { question: t('landing.faq6Question'), answer: t('landing.faq6Answer') },
                         { question: t('landing.faq1Question'), answer: t('landing.faq1Answer') },
+                        { question: t('landing.faq2Question'), answer: t('landing.faq2Answer') },
                         { question: t('landing.faq3Question'), answer: t('landing.faq3Answer') },
-                        { question: t('landing.faq4Question'), answer: t('landing.faq4Answer') }
+                        { question: t('landing.faq4Question'), answer: t('landing.faq4Answer') },
+                        { question: t('landing.faq5Question'), answer: t('landing.faq5Answer') },
+                        { question: t('landing.faq6Question'), answer: t('landing.faq6Answer') },
+                        { question: t('landing.faq7Question'), answer: t('landing.faq7Answer') }
                     ]}
                 />
 

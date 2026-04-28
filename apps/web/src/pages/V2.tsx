@@ -159,10 +159,11 @@ const V2: FC = (): ReactNode => {
     }, [])
 
     const navLinks = [
-        { label: t('landing.features'), href: '#features', id: 'features' },
-        { label: t('landing.pricing'), href: '#pricing', id: 'pricing' },
-        { label: t('landing.comparison'), href: '#comparison', id: 'comparison' },
-        { label: t('landing.faqTitle'), href: '#faq', id: 'faq' }
+        { label: t('landing.features'), href: ROUTES.FEATURES, id: 'features' },
+        { label: t('landing.pricing'), href: ROUTES.PRICING, id: 'pricing' },
+        { label: t('landing.comparison'), href: ROUTES.COMPARE, id: 'comparison' },
+        { label: t('nav.openClaw'), href: ROUTES.HOME, id: 'openclaw' },
+        { label: t('nav.hermes'), href: ROUTES.HERMES, id: 'hermes' }
     ]
 
     return (
@@ -194,13 +195,13 @@ const V2: FC = (): ReactNode => {
 
             <main className='v2-content'>
                 <section
-                    className='v2-video-wrap relative flex min-h-screen cursor-crosshair flex-col justify-start overflow-hidden px-6 pt-[18vh]'
+                    className='v2-video-wrap relative flex h-[85vh] cursor-crosshair flex-col justify-start overflow-hidden bg-black px-6 pt-[18vh]'
                     onMouseMove={handleVideoMouseMove}
                     onMouseLeave={handleVideoMouseLeave}
                 >
                     <video
                         ref={baseVideoRef}
-                        className='v2-base-video absolute inset-0 h-full w-full object-cover object-bottom'
+                        className='v2-base-video absolute inset-0 h-full w-full object-cover'
                         autoPlay
                         muted
                         loop
@@ -210,7 +211,7 @@ const V2: FC = (): ReactNode => {
                     </video>
                     <video
                         ref={ditherVideoRef}
-                        className='v2-hover-video absolute inset-0 h-full w-full object-cover object-bottom brightness-125 contrast-110'
+                        className='v2-hover-video absolute inset-0 h-full w-full object-cover brightness-125 contrast-110'
                         autoPlay
                         muted
                         loop
@@ -225,7 +226,7 @@ const V2: FC = (): ReactNode => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 1.2 }}
-                        className='z-10 mx-auto w-full absolute max-w-6xl inset-0 flex flex-col justify-start px-6 pt-36'
+                        className='z-10 mx-auto w-full absolute max-w-6xl inset-0 flex flex-col justify-end px-6 pb-16'
                     >
                         <div className='mb-6 flex items-center gap-4'>
                             <SectionLabelV2 label='Multi Agent Platform' />
