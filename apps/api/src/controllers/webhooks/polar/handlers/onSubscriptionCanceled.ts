@@ -7,7 +7,7 @@ import { subscriptionStatus } from '@/lib/constants'
 
 const onSubscriptionCanceled = async (data: SubscriptionWebhookData) => {
     const deletionScheduledAt = data.currentPeriodEnd
-        ? new Date(data.currentPeriodEnd)
+        ? new Date(data.currentPeriodEnd.endsWith('Z') ? data.currentPeriodEnd : `${data.currentPeriodEnd}Z`)
         : null
 
     await db

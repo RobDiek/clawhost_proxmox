@@ -7,14 +7,15 @@ import { inputValidation } from '@openclaw/shared'
 import { getResend, FROM_EMAIL } from '@/services/resend'
 import { db } from '@/db'
 import { otpCodes, users } from '@/db/schema'
-import OtpCodeEmail from '@/emails/OtpCodeEmail'
+import { OtpCodeEmail } from '@/emails'
 import { t } from '@openclaw/i18n'
+import { ok, fail } from '@/lib/response'
+
 import {
     getClientIp,
     checkRateLimit,
     setRateLimit
 } from '@/controllers/auth/rateLimit'
-import { ok, fail } from '@/lib/response'
 
 const OTP_EXPIRY_MS = 10 * 60 * 1000
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/

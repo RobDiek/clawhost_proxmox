@@ -72,7 +72,10 @@ const Header: FC<HeaderProps> = ({
         location.pathname === ROUTES.HOME ||
         location.pathname === ROUTES.GO ||
         location.pathname === ROUTES.HERMES ||
-        location.pathname === ROUTES.HERMES_GO
+        location.pathname === ROUTES.HERMES_GO ||
+        location.pathname === ROUTES.V2 ||
+        location.pathname === ROUTES.PRICING ||
+        location.pathname === ROUTES.FEATURES
 
     return (
         <Fragment>
@@ -85,7 +88,7 @@ const Header: FC<HeaderProps> = ({
                           : 'border-b border-transparent bg-transparent'
                 }`}
             >
-                <AgentSwitcher />
+                {isLandingPage && <AgentSwitcher />}
                 <ProductHuntBanner />
                 <div className='mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4'>
                     <div className='flex items-center gap-3'>

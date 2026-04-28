@@ -1,7 +1,6 @@
 import type { FC, ReactNode } from 'react'
 import type { FeatureEmailLayoutProps } from '@/ts/Interfaces'
 
-import { t } from '@openclaw/i18n'
 import {
     Body,
     Container,
@@ -13,9 +12,10 @@ import {
     Text
 } from '@react-email/components'
 
+import { t } from '@openclaw/i18n'
 import { externalUrls } from '@openclaw/shared'
-import CDN_ASSETS from '@/lib/cdn'
-import EmailFooter from '@/emails/EmailFooter'
+import { EmailFooter } from '@/emails'
+
 import {
     main,
     container,
@@ -24,6 +24,8 @@ import {
     logoSection,
     logo
 } from '@/lib/emailStyles'
+
+import CDN_ASSETS from '@/lib/cdn'
 
 const FeatureEmailLayout: FC<FeatureEmailLayoutProps> = ({
     preview,
