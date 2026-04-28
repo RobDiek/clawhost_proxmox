@@ -1343,35 +1343,12 @@ const it: Translations = {
             'Segui aggiornamenti, nuove funzionalità e miglioramenti di ClawHost.',
         subtitle:
             'Tutti gli aggiornamenti, le nuove funzionalità e i miglioramenti di ClawHost.',
-        upcomingRelease: 'In Corso',
-        upcomingReleaseTitle: 'App Mobile e Altro',
-        upcomingReleaseDescription:
-            "Gestisci le tue istanze OpenClaw da qualsiasi luogo. Un'app mobile nativa, più miglioramenti continui della piattaforma.",
-        upcomingReleaseFeature1:
-            'App mobile nativa per monitorare e gestire le tue istanze OpenClaw in mobilità',
-        upcomingReleaseFeature13:
-            'ClawHost Go per macOS e Windows, deploy di OpenClaw in locale con un clic',
-        upcomingReleaseFeature14:
-            'Deploy con un clic per agenti Hermes come OpenClaw',
-        upcomingReleaseFeature3: 'Supporto tema chiaro e scuro',
-        upcomingReleaseFeature4:
-            'Miglioramenti di prestazioni, stabilità e reattività',
-        upcomingReleaseFeature5:
-            'Supporto multilingua con inglese, francese, spagnolo e tedesco',
-        upcomingReleaseFeature6:
-            'Pagine di confronto con analisi complete rispetto ai concorrenti',
-        upcomingReleaseFeature7:
-            'Refactoring della struttura delle funzionalità del playground e semplificazioni',
-        upcomingReleaseFeature8:
-            'Richieste di funzionalità gestite e pubblicate automaticamente dagli agenti OpenClaw',
-        upcomingReleaseFeature9:
-            'Modalità Vocale per interagire con gli agenti OpenClaw ospitati su ClawHost (Beta)',
-        upcomingReleaseFeature10:
-            'Reinstalla OpenClaw sulla tua istanza per ricominciare da zero, disponibile una volta al giorno',
-        upcomingReleaseFeature11:
-            'Pagina di presentazione per ClawHost Go, hosting locale con ClawHost',
-        upcomingReleaseFeature12:
-            'App desktop per macOS e Windows per distribuire OpenClaw in locale con un clic',
+        release17Date: '28 aprile 2026',
+        release17Title: 'Hermes Agent Support',
+        release17Description:
+            'Deployment con un clic per gli agenti Hermes su ClawHost, proprio come OpenClaw.',
+        release17Feature1:
+            'Deployment con un clic per gli agenti Hermes come OpenClaw',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1981,6 +1958,11 @@ const it: Translations = {
         title: 'ClawHost ora è Agentist',
         mission: "Costruire l'infrastruttura per gli agenti IA autonomi."
     },
+    hermesBanner: {
+        title: 'Hermes Agent',
+        message: 'Gli agenti Hermes sono ora supportati per il deployment su ClawHost.',
+        deploy: 'Distribuisci ora'
+    },
     compare: {
         title: 'Confronto Completo',
         description:
@@ -2391,7 +2373,7 @@ const it: Translations = {
         deployButton: 'Distribuisci Ora',
         learnMore: 'Scopri di Più',
         agentsTitle: 'I Tuoi Agenti. Il Tuo Cloud.',
-        agentsDescription: 'Scegli da un catalogo in crescita di agenti AI, ognuno in esecuzione sul proprio VPS dedicato.',
+        agentsDescription: 'Scegli da un catalogo in crescita di agenti AI, ognuno in esecuzione sul proprio server cloud dedicato.',
         agentOpenclawName: 'OpenClaw',
         agentOpenclawDescription: 'Piattaforma di gestione cloud self-hostable con SSH completo, terminale, file explorer ed editor di configurazione.',
         agentHermesName: 'Hermes',
@@ -2411,9 +2393,9 @@ const it: Translations = {
         feature1Title: 'Piattaforma Multi-Agente',
         feature1Description: 'Distribuisci e gestisci più tipi di agenti da un\'unica dashboard.',
         agentControlTitle: 'Controllo completo degli agenti',
-        agentControlDescription: 'Gestisci, configura e personalizza ogni aspetto dei tuoi agenti da una dashboard unificata.',
+        agentControlDescription: 'Configura e personalizza ogni aspetto dei tuoi agenti da un\'unica dashboard.',
         multipleAgentsTitle: 'Agenti multipli',
-        multipleAgentsDescription: 'Distribuisci e gestisci più istanze di agenti in regioni e configurazioni diverse.',
+        multipleAgentsDescription: 'Esegui più istanze di agenti in regioni e configurazioni diverse.',
         feature2Title: 'Infrastruttura Dedicata',
         feature2Description: 'Ogni agente gira sul proprio VPS. Nessuna risorsa condivisa, nessun vicino rumoroso.',
         feature3Title: 'Rete Edge Globale',
@@ -2425,9 +2407,9 @@ const it: Translations = {
         feature6Title: 'Paga a Consumo',
         feature6Description: 'Nessun impegno. Scala su o giù. Paga solo per ciò che usi.',
         zeroConfigDescription: 'Evita ore di configurazione. OpenClaw e Hermes sono preinstallati e pronti in pochi minuti.',
-        globalLocationsDescription: 'Distribuisci OpenClaw e Hermes in più regioni globali e scegli la posizione più vicina a te.',
-        onlineAccessDescription: 'Dimentica le reti locali. Accedi a OpenClaw e Hermes in modo sicuro da qualsiasi luogo con un sottodominio.',
-        versionControlDescription: 'Passa a qualsiasi versione dell\'agente con un solo clic. Resta sempre aggiornato o torna indietro quando necessario.',
+        globalLocationsDescription: 'Distribuisci agenti in oltre 30 regioni globali. Scegli la posizione più vicina a te.',
+        onlineAccessDescription: 'Accedi ai tuoi agenti in modo sicuro da qualsiasi luogo con un sottodominio personalizzato.',
+        versionControlDescription: 'Cambia versione dell\'agente con un solo clic. Resta aggiornato o torna indietro.',
         agentsPreinstalled: 'Agenti preinstallati',
         comparisonAgentAccessUs: 'Accesso completo a tutti gli agenti',
         comparisonMultipleAgentsUs: 'Più agenti per server',

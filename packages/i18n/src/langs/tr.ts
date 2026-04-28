@@ -1308,35 +1308,12 @@ const tr: Translations = {
             'ClawHost güncellemelerini, yeni özelliklerini ve iyileştirmelerini takip edin.',
         subtitle:
             "ClawHost'un tüm güncellemeleri, yeni özellikleri ve iyileştirmeleri.",
-        upcomingRelease: 'Süreçte',
-        upcomingReleaseTitle: 'Mobil Uygulama ve Daha Fazlası',
-        upcomingReleaseDescription:
-            'OpenClaw örneklerinizi her yerden yönetin. Yerel bir mobil uygulama ve devam eden platform iyileştirmeleri.',
-        upcomingReleaseFeature1:
-            'Hareket halindeyken OpenClaw örneklerinizi izlemek ve yönetmek için yerel mobil uygulama',
-        upcomingReleaseFeature13:
-            'macOS ve Windows için ClawHost Go, tek tıkla OpenClaw yerel olarak dağıtın',
-        upcomingReleaseFeature14:
-            'OpenClaw gibi Hermes ajanları için tek tıkla dağıtım',
-        upcomingReleaseFeature3: 'Koyu ve açık tema desteği',
-        upcomingReleaseFeature4:
-            'Performans, kararlılık ve yanıt verme iyileştirmeleri',
-        upcomingReleaseFeature5:
-            'İngilizce, Fransızca, İspanyolca ve Almanca ile çoklu dil desteği',
-        upcomingReleaseFeature6:
-            'Rakiplere karşı tam karşılaştırmalı karşılaştırma sayfaları',
-        upcomingReleaseFeature7:
-            'Playground özellik yapısının yeniden düzenlenmesi ve sadeleştirilmesi',
-        upcomingReleaseFeature8:
-            'OpenClaw ajanları tarafından otomatik olarak yönetilen ve yayınlanan özellik istekleri',
-        upcomingReleaseFeature9:
-            "ClawHost'ta barındırılan OpenClaw ajanlarıyla etkileşim için Ses Modu (Beta)",
-        upcomingReleaseFeature10:
-            "Temiz başlangıç için örneğinizde OpenClaw'u yeniden yükleyin, günde bir kez kullanılabilir",
-        upcomingReleaseFeature11:
-            'ClawHost Go için açılış sayfası, ClawHost ile yerel barındırma',
-        upcomingReleaseFeature12:
-            'macOS ve Windows için tek tıkla yerel OpenClaw dağıtımı için masaüstü uygulaması',
+        release17Date: '28 Nisan 2026',
+        release17Title: 'Hermes Agent Support',
+        release17Description:
+            'ClawHost üzerinde Hermes ajanları için tek tıkla dağıtım, tıpkı OpenClaw gibi.',
+        release17Feature1:
+            'Hermes ajanları için OpenClaw gibi tek tıkla dağıtım',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1937,6 +1914,11 @@ const tr: Translations = {
         title: 'ClawHost artık Agentist',
         mission: 'Otonom yapay zeka ajanları için altyapı katmanını inşa ediyoruz.'
     },
+    hermesBanner: {
+        title: 'Hermes Agent',
+        message: 'Hermes ajanları artık ClawHost üzerinde dağıtım için desteklenmektedir.',
+        deploy: 'Şimdi dağıt'
+    },
     compare: {
         title: 'Tam Karşılaştırma',
         description:
@@ -2347,7 +2329,7 @@ const tr: Translations = {
         deployButton: 'Şimdi Dağıt',
         learnMore: 'Daha Fazla Bilgi',
         agentsTitle: 'Ajanlarınız. Bulutunuz.',
-        agentsDescription: 'Büyüyen AI ajan kataloğundan seçin, her biri kendi özel VPS\'inde çalışır.',
+        agentsDescription: 'Büyüyen AI ajan kataloğundan seçin, her biri kendi özel bulut sunucusunda çalışır.',
         agentOpenclawName: 'OpenClaw',
         agentOpenclawDescription: 'Tam SSH, terminal, dosya gezgini ve yapılandırma düzenleyicisi ile kendi kendine barındırılabilir bulut yönetim platformu.',
         agentHermesName: 'Hermes',
@@ -2367,9 +2349,9 @@ const tr: Translations = {
         feature1Title: 'Çoklu Ajan Platformu',
         feature1Description: 'Tek bir panodan birden fazla ajan türünü dağıtın ve yönetin.',
         agentControlTitle: 'Tam ajan kontrolü',
-        agentControlDescription: 'Birleşik bir panelden ajanlarınızın her yönünü yönetin, yapılandırın ve özelleştirin.',
+        agentControlDescription: 'Ajanlarınızın her yönünü tek bir panelden yapılandırın ve özelleştirin.',
         multipleAgentsTitle: 'Çoklu ajanlar',
-        multipleAgentsDescription: 'Farklı bölgelerde ve yapılandırmalarda birden fazla ajan örneği dağıtın ve yönetin.',
+        multipleAgentsDescription: 'Farklı bölgelerde ve yapılandırmalarda birden fazla ajan örneği çalıştırın.',
         feature2Title: 'Özel Altyapı',
         feature2Description: 'Her ajan kendi VPS\'inde çalışır. Paylaşılan kaynak yok, gürültülü komşu yok.',
         feature3Title: 'Küresel Edge Ağı',
@@ -2381,9 +2363,9 @@ const tr: Translations = {
         feature6Title: 'Kullandığın Kadar Öde',
         feature6Description: 'Taahhüt yok. Yukarı veya aşağı ölçeklendirin. Sadece kullandığınız kadar ödeyin.',
         zeroConfigDescription: 'Saatlerce kurulumu atlayın. OpenClaw ve Hermes önceden yüklenmiş ve dakikalar içinde hazır.',
-        globalLocationsDescription: 'OpenClaw ve Hermes\'i birden fazla küresel bölgede dağıtın ve size en yakın konumu seçin.',
-        onlineAccessDescription: 'Yerel ağları unutun. OpenClaw ve Hermes\'e bir alt alan adıyla her yerden güvenle erişin.',
-        versionControlDescription: 'Tek tıklamayla herhangi bir ajan sürümüne geçin. Her zaman güncel kalın veya gerektiğinde geri dönün.',
+        globalLocationsDescription: 'Ajanları 30\'dan fazla küresel bölgede dağıtın. Size en yakın konumu seçin.',
+        onlineAccessDescription: 'Ajanlarınıza özel bir alt alan adıyla her yerden güvenle erişin.',
+        versionControlDescription: 'Tek tıklamayla ajan sürümlerini değiştirin. Güncel kalın veya geri dönün.',
         agentsPreinstalled: 'Ajanlar ön yüklü',
         comparisonAgentAccessUs: 'Tüm ajanlara tam erişim',
         comparisonMultipleAgentsUs: 'Sunucu başına birden fazla ajan',

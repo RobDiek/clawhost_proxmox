@@ -7,8 +7,6 @@ import { ScrollToTop, Toast, ProtectedRoute } from '@/components'
 import { TooltipProvider } from '@/components/ui'
 import { ROUTES } from '@/lib'
 import { useThemeEffect, useLanguageEffect, useRefer } from '@/hooks'
-import { usePreferencesStore } from '@/lib/store'
-import { AGENT } from '@/lib/constants'
 
 import Go from '@/pages/Go'
 import Landing from '@/pages/Landing'
@@ -25,8 +23,6 @@ const Changelog = lazy(() => import('@/pages/Changelog'))
 const BlogPost = lazy(() => import('@/pages/BlogPost'))
 const AffiliateProgram = lazy(() => import('@/pages/AffiliateProgram'))
 const Compare = lazy(() => import('@/pages/Compare'))
-const Hermes = lazy(() => import('@/pages/Hermes'))
-const HermesGo = lazy(() => import('@/pages/HermesGo'))
 const V2 = lazy(() => import('@/pages/V2'))
 const PricingV2 = lazy(() => import('@/pages/PricingV2'))
 const FeaturesV2 = lazy(() => import('@/pages/FeaturesV2'))
@@ -36,11 +32,9 @@ const App: FC = (): ReactNode => {
     useThemeEffect()
     useRefer()
     const language = useLanguageEffect()
-    const agent = usePreferencesStore((s) => s.agent)
 
     return (
-        <div className={agent === AGENT.HERMES ? 'hermes' : ''}>
-            <TooltipProvider delayDuration={300}>
+        <TooltipProvider delayDuration={300}>
                 <AuthProvider>
                     <ScrollToTop />
                     <Toast />
@@ -68,11 +62,6 @@ const App: FC = (): ReactNode => {
                             element={<AffiliateProgram />}
                         />
                         <Route path={ROUTES.COMPARE} element={<Compare />} />
-                        <Route path={ROUTES.HERMES} element={<Hermes />} />
-                        <Route
-                            path={ROUTES.HERMES_GO}
-                            element={<HermesGo />}
-                        />
                         <Route path={ROUTES.V2} element={<V2 />} />
                         <Route path={ROUTES.PRICING} element={<PricingV2 />} />
                         <Route path={ROUTES.FEATURES} element={<FeaturesV2 />} />
@@ -129,7 +118,6 @@ const App: FC = (): ReactNode => {
                 </Suspense>
             </AuthProvider>
         </TooltipProvider>
-        </div>
     )
 }
 

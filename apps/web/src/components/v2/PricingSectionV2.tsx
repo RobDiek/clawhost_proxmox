@@ -6,7 +6,9 @@ import { t } from '@openclaw/i18n'
 import { useAuth } from '@/lib/auth'
 import { ROUTES } from '@/lib'
 import { CheckIcon, XIcon, RocketLaunchIcon, ArrowRightIcon } from '@phosphor-icons/react'
-import { buildV2Plans, ScrollRevealV2, SectionLabelV2 } from '@/components/v2'
+import buildV2Plans from '@/components/v2/buildV2Plans'
+import ScrollRevealV2 from '@/components/v2/ScrollRevealV2'
+import SectionLabelV2 from '@/components/v2/SectionLabelV2'
 
 const PricingSectionV2: FC<PricingSectionProps> = ({
     plans,
@@ -18,7 +20,7 @@ const PricingSectionV2: FC<PricingSectionProps> = ({
     return (
         <section
             id='pricing'
-            className='v2-section scroll-mt-24 px-6 py-24'
+            className='v2-section scroll-mt-24 border-t border-white/10 px-6 py-24'
         >
             <div className='mx-auto max-w-6xl'>
                 <ScrollRevealV2 className='mb-16'>
@@ -115,7 +117,6 @@ const PricingSectionV2: FC<PricingSectionProps> = ({
                         {t('errors.unableToLoadPricing')}
                     </div>
                 )}
-
             </div>
         </section>
     )

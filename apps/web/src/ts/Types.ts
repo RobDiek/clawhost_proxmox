@@ -15,7 +15,6 @@ import type {
     AGENT_DETAIL_TABS,
     COMPARE_FEATURE_STATUS,
     COPIED_FIELD_TYPE,
-    AGENT,
     LOGIN_LOADING_METHOD,
     OAUTH_PROVIDER,
     PREVIEW_STATUS,
@@ -71,8 +70,6 @@ export type Language = (typeof LANGUAGES)[keyof typeof LANGUAGES]
 export type AgentFileType = (typeof agentFileType)[keyof typeof agentFileType]
 
 export type Product = (typeof PRODUCT)[keyof typeof PRODUCT]
-
-export type AgentSelection = (typeof AGENT)[keyof typeof AGENT]
 
 export type TerminalStatus =
     (typeof TERMINAL_STATUS)[keyof typeof TERMINAL_STATUS]

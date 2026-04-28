@@ -1317,35 +1317,6 @@ const pl: Translations = {
         title: 'Lista zmian',
         description: 'Śledź aktualizacje, nowe funkcje i ulepszenia ClawHost.',
         subtitle: 'Wszystkie aktualizacje, nowe funkcje i ulepszenia ClawHost.',
-        upcomingRelease: 'W trakcie',
-        upcomingReleaseTitle: 'Aplikacja mobilna i więcej',
-        upcomingReleaseDescription:
-            'Zarządzaj instancjami OpenClaw z dowolnego miejsca. Natywna aplikacja mobilna oraz ciągłe ulepszenia platformy.',
-        upcomingReleaseFeature1:
-            'Natywna aplikacja mobilna do monitorowania i zarządzania instancjami OpenClaw w podróży',
-        upcomingReleaseFeature13:
-            'ClawHost Go dla macOS i Windows — wdrażaj OpenClaw lokalnie jednym kliknięciem',
-        upcomingReleaseFeature14:
-            'Wdrażanie jednym kliknięciem dla agentów Hermes takich jak OpenClaw',
-        upcomingReleaseFeature3: 'Obsługa jasnego i ciemnego motywu',
-        upcomingReleaseFeature4:
-            'Ulepszenia wydajności, stabilności i responsywności',
-        upcomingReleaseFeature5:
-            'Obsługa wielu języków: angielski, francuski, hiszpański i niemiecki',
-        upcomingReleaseFeature6:
-            'Strony porównawcze z pełnym zestawieniem z konkurencją',
-        upcomingReleaseFeature7:
-            'Refaktoryzacja struktury funkcji playground i uproszczenia',
-        upcomingReleaseFeature8:
-            'Prośby o funkcje automatycznie zarządzane i publikowane przez agentów OpenClaw',
-        upcomingReleaseFeature9:
-            'Tryb głosowy do interakcji z agentami OpenClaw hostowanymi na ClawHost (Beta)',
-        upcomingReleaseFeature10:
-            'Ponowna instalacja OpenClaw na instancji dla świeżego startu, dostępna raz dziennie',
-        upcomingReleaseFeature11:
-            'Strona docelowa ClawHost Go, hosting lokalny z ClawHost',
-        upcomingReleaseFeature12:
-            'Aplikacja desktopowa dla macOS i Windows do lokalnego wdrażania OpenClaw jednym kliknięciem',
         release14Date: '1 kwietnia 2026',
         release14Title: 'Migracja na Hetzner, system afiliacyjny i nowe języki',
         release14Description:
@@ -1358,6 +1329,12 @@ const pl: Translations = {
             'Dodano 10 nowych języków: chiński, hindi, arabski, rosyjski, japoński, turecki, włoski, polski, holenderski i portugalski',
         release14Feature4:
             'Wewnętrzne narzędzia zapewniające stabilne wsparcie funkcji dla bieżących wersji OpenClaw, bez obsługi starszych wersji',
+        release17Date: '28 kwietnia 2026',
+        release17Title: 'Hermes Agent Support',
+        release17Description:
+            'Wdrażanie jednym kliknięciem dla agentów Hermes na ClawHost, tak jak OpenClaw.',
+        release17Feature1:
+            'Wdrażanie jednym kliknięciem dla agentów Hermes jak OpenClaw',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1943,6 +1920,11 @@ const pl: Translations = {
         title: 'ClawHost to teraz Agentist',
         mission: 'Budujemy warstwę infrastruktury dla autonomicznych agentów AI.'
     },
+    hermesBanner: {
+        title: 'Hermes Agent',
+        message: 'Agenci Hermes są teraz obsługiwani do wdrażania na ClawHost.',
+        deploy: 'Wdróż teraz'
+    },
     compare: {
         title: 'Pełne porównanie',
         description:
@@ -2354,7 +2336,7 @@ const pl: Translations = {
         deployButton: 'Wdróż Teraz',
         learnMore: 'Dowiedz się Więcej',
         agentsTitle: 'Twoi Agenci. Twoja Chmura.',
-        agentsDescription: 'Wybieraj z rosnącego katalogu agentów AI, każdy działający na własnym dedykowanym VPS.',
+        agentsDescription: 'Wybieraj z rosnącego katalogu agentów AI, każdy działający na własnym dedykowanym serwerze chmurowym.',
         agentOpenclawName: 'OpenClaw',
         agentOpenclawDescription: 'Samodzielnie hostowana platforma zarządzania chmurą z pełnym SSH, terminalem, eksploratorem plików i edytorem konfiguracji.',
         agentHermesName: 'Hermes',
@@ -2374,9 +2356,9 @@ const pl: Translations = {
         feature1Title: 'Platforma Wieloagentowa',
         feature1Description: 'Wdrażaj i zarządzaj wieloma typami agentów z jednego panelu.',
         agentControlTitle: 'Pełna kontrola agentów',
-        agentControlDescription: 'Zarządzaj, konfiguruj i dostosowuj każdy aspekt swoich agentów z jednolitego panelu.',
+        agentControlDescription: 'Konfiguruj i dostosowuj każdy aspekt swoich agentów z jednego panelu.',
         multipleAgentsTitle: 'Wielu agentów',
-        multipleAgentsDescription: 'Wdrażaj i zarządzaj wieloma instancjami agentów w różnych regionach i konfiguracjach.',
+        multipleAgentsDescription: 'Uruchamiaj wiele instancji agentów w różnych regionach i konfiguracjach.',
         feature2Title: 'Dedykowana Infrastruktura',
         feature2Description: 'Każdy agent działa na własnym VPS. Brak współdzielonych zasobów, brak hałaśliwych sąsiadów.',
         feature3Title: 'Globalna Sieć Edge',
@@ -2388,9 +2370,9 @@ const pl: Translations = {
         feature6Title: 'Płać za Użycie',
         feature6Description: 'Bez zobowiązań. Skaluj w górę lub w dół. Płać tylko za to, czego używasz.',
         zeroConfigDescription: 'Pomiń godziny konfiguracji. OpenClaw i Hermes są preinstalowane i gotowe w kilka minut.',
-        globalLocationsDescription: 'Wdrażaj OpenClaw i Hermes w wielu globalnych regionach i wybierz lokalizację najbliższą Tobie.',
-        onlineAccessDescription: 'Zapomnij o sieciach lokalnych. Uzyskaj bezpieczny dostęp do OpenClaw i Hermes z dowolnego miejsca za pomocą subdomeny.',
-        versionControlDescription: 'Przełącz się na dowolną wersję agenta jednym kliknięciem. Zawsze bądź na bieżąco lub wróć do poprzedniej wersji w razie potrzeby.',
+        globalLocationsDescription: 'Wdrażaj agentów w ponad 30 globalnych regionach. Wybierz lokalizację najbliższą Tobie.',
+        onlineAccessDescription: 'Uzyskaj bezpieczny dostęp do swoich agentów z dowolnego miejsca za pomocą własnej subdomeny.',
+        versionControlDescription: 'Zmieniaj wersję agenta jednym kliknięciem. Bądź na bieżąco lub wróć do poprzedniej wersji.',
         agentsPreinstalled: 'Agenci preinstalowani',
         comparisonAgentAccessUs: 'Pełny dostęp do wszystkich agentów',
         comparisonMultipleAgentsUs: 'Wielu agentów na serwer',

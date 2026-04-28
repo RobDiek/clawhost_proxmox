@@ -1309,34 +1309,12 @@ const ru: Translations = {
         description:
             'Отслеживайте обновления, новые функции и улучшения ClawHost.',
         subtitle: 'Все обновления, новые функции и улучшения ClawHost.',
-        upcomingRelease: 'В процессе',
-        upcomingReleaseTitle: 'Мобильное приложение и другое',
-        upcomingReleaseDescription:
-            'Управляйте экземплярами OpenClaw из любого места. Нативное мобильное приложение и постоянные улучшения платформы.',
-        upcomingReleaseFeature1:
-            'Нативное мобильное приложение для мониторинга и управления экземплярами OpenClaw на ходу',
-        upcomingReleaseFeature13:
-            'ClawHost Go для macOS и Windows, локальное развёртывание OpenClaw в один клик',
-        upcomingReleaseFeature14:
-            'Развёртывание в один клик для агентов Hermes, таких как OpenClaw',
-        upcomingReleaseFeature3: 'Поддержка тёмной и светлой тем',
-        upcomingReleaseFeature4:
-            'Улучшения производительности, стабильности и отзывчивости',
-        upcomingReleaseFeature5:
-            'Мультиязычная поддержка: английский, французский, испанский и немецкий',
-        upcomingReleaseFeature6:
-            'Страницы сравнения с подробным разбором конкурентов',
-        upcomingReleaseFeature7: 'Рефакторинг структуры Playground и упрощения',
-        upcomingReleaseFeature8:
-            'Запросы функций, автоматически управляемые и публикуемые агентами OpenClaw',
-        upcomingReleaseFeature9:
-            'Голосовой режим для взаимодействия с агентами OpenClaw на ClawHost (бета)',
-        upcomingReleaseFeature10:
-            'Переустановка OpenClaw на экземпляре для чистого старта, доступна раз в день',
-        upcomingReleaseFeature11:
-            'Лендинг для ClawHost Go, локальный хостинг с ClawHost',
-        upcomingReleaseFeature12:
-            'Настольное приложение для macOS и Windows для локального развёртывания OpenClaw в один клик',
+        release17Date: '28 апреля 2026',
+        release17Title: 'Hermes Agent Support',
+        release17Description:
+            'Развёртывание в один клик для агентов Hermes на ClawHost, как и OpenClaw.',
+        release17Feature1:
+            'Развёртывание в один клик для агентов Hermes, как OpenClaw',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1936,6 +1914,11 @@ const ru: Translations = {
         title: 'ClawHost теперь Agentist',
         mission: 'Создаём инфраструктуру для автономных ИИ-агентов.'
     },
+    hermesBanner: {
+        title: 'Hermes Agent',
+        message: 'Агенты Hermes теперь поддерживаются для развёртывания на ClawHost.',
+        deploy: 'Развернуть сейчас'
+    },
     compare: {
         title: 'Полное сравнение',
         description:
@@ -2347,7 +2330,7 @@ const ru: Translations = {
         deployButton: 'Развернуть Сейчас',
         learnMore: 'Узнать Больше',
         agentsTitle: 'Ваши Агенты. Ваше Облако.',
-        agentsDescription: 'Выбирайте из растущего каталога AI-агентов, каждый из которых работает на собственном выделенном VPS.',
+        agentsDescription: 'Выбирайте из растущего каталога AI-агентов, каждый из которых работает на собственном выделенном облачном сервере.',
         agentOpenclawName: 'OpenClaw',
         agentOpenclawDescription: 'Самостоятельно размещаемая платформа управления облаком с полным SSH, терминалом, файловым менеджером и редактором конфигурации.',
         agentHermesName: 'Hermes',
@@ -2367,9 +2350,9 @@ const ru: Translations = {
         feature1Title: 'Мультиагентная Платформа',
         feature1Description: 'Разворачивайте и управляйте несколькими типами агентов из одной панели управления.',
         agentControlTitle: 'Полный контроль агентов',
-        agentControlDescription: 'Управляйте, настраивайте и кастомизируйте каждый аспект ваших агентов из единой панели управления.',
+        agentControlDescription: 'Настраивайте и кастомизируйте каждый аспект ваших агентов из одной панели управления.',
         multipleAgentsTitle: 'Несколько агентов',
-        multipleAgentsDescription: 'Разворачивайте и управляйте несколькими экземплярами агентов в разных регионах и конфигурациях.',
+        multipleAgentsDescription: 'Запускайте несколько экземпляров агентов в разных регионах и конфигурациях.',
         feature2Title: 'Выделенная Инфраструктура',
         feature2Description: 'Каждый агент работает на собственном VPS. Никаких общих ресурсов, никаких шумных соседей.',
         feature3Title: 'Глобальная Edge Сеть',
@@ -2381,9 +2364,9 @@ const ru: Translations = {
         feature6Title: 'Оплата по Использованию',
         feature6Description: 'Без обязательств. Масштабируйте вверх или вниз. Платите только за то, что используете.',
         zeroConfigDescription: 'Пропустите часы настройки. OpenClaw и Hermes предустановлены и готовы за считанные минуты.',
-        globalLocationsDescription: 'Разворачивайте OpenClaw и Hermes в нескольких глобальных регионах и выбирайте ближайшую локацию.',
-        onlineAccessDescription: 'Забудьте о локальных сетях. Получайте безопасный доступ к OpenClaw и Hermes откуда угодно через поддомен.',
-        versionControlDescription: 'Переключайтесь на любую версию агента одним кликом. Всегда оставайтесь в курсе обновлений или откатывайтесь при необходимости.',
+        globalLocationsDescription: 'Разворачивайте агентов в более чем 30 глобальных регионах. Выбирайте ближайшую локацию.',
+        onlineAccessDescription: 'Получайте безопасный доступ к вашим агентам откуда угодно через собственный поддомен.',
+        versionControlDescription: 'Переключайте версии агента одним кликом. Оставайтесь в курсе обновлений или откатывайтесь.',
         agentsPreinstalled: 'Агенты предустановлены',
         comparisonAgentAccessUs: 'Полный доступ ко всем агентам',
         comparisonMultipleAgentsUs: 'Несколько агентов на сервер',

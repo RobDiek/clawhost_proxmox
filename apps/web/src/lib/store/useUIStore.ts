@@ -5,10 +5,16 @@ import { TOAST_TYPE } from '@/lib/constants'
 import STORAGE_KEYS from '@/lib/storageKeys'
 
 const REBRAND_BANNER_EXPIRY = new Date('2026-05-28T00:00:00Z')
+const HERMES_BANNER_EXPIRY = new Date('2026-06-28T00:00:00Z')
 
 const isRebrandBannerActive = (): boolean => {
     if (new Date() > REBRAND_BANNER_EXPIRY) return false
     return !localStorage.getItem(STORAGE_KEYS.REBRAND_BANNER_DISMISSED)
+}
+
+const isHermesBannerActive = (): boolean => {
+    if (new Date() > HERMES_BANNER_EXPIRY) return false
+    return !localStorage.getItem(STORAGE_KEYS.HERMES_BANNER_DISMISSED)
 }
 
 const useUIStore = create<UIState>((set) => ({
@@ -30,6 +36,12 @@ const useUIStore = create<UIState>((set) => ({
     dismissRebrandBanner: () => {
         localStorage.setItem(STORAGE_KEYS.REBRAND_BANNER_DISMISSED, '1')
         set({ rebrandBannerVisible: false })
+    },
+
+    hermesBannerVisible: isHermesBannerActive(),
+    dismissHermesBanner: () => {
+        localStorage.setItem(STORAGE_KEYS.HERMES_BANNER_DISMISSED, '1')
+        set({ hermesBannerVisible: false })
     }
 }))
 

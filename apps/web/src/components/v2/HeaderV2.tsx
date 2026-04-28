@@ -5,7 +5,7 @@ import { Fragment, useState, useEffect, useCallback } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { t } from '@openclaw/i18n'
-import { ListIcon, XIcon } from '@phosphor-icons/react'
+import { ListIcon, XIcon, RocketLaunchIcon, ArrowRightIcon } from '@phosphor-icons/react'
 import { LanguageSelector, ThemeToggle, UserDropdown } from '@/components'
 import LogoV2 from '@/components/v2/LogoV2'
 import RebrandBannerV2 from '@/components/v2/RebrandBannerV2'
@@ -116,9 +116,11 @@ const HeaderV2: FC<HeaderProps> = ({
                                 </Link>
                                 <Link
                                     to={ROUTES.LOGIN}
-                                    className='bg-[#6B5CE7] px-4 py-2 font-mono text-xs tracking-[0.1em] text-white transition hover:bg-[#5a4bd6]'
+                                    className='group/deploy inline-flex items-center gap-2 bg-[#6B5CE7] px-4 py-2 font-mono text-xs tracking-[0.1em] text-white transition hover:bg-[#5a4bd6]'
                                 >
+                                    <RocketLaunchIcon className='h-3 w-3 transition-transform duration-200 group-hover/deploy:-translate-y-0.5' />
                                     {t('nav.deploy')}
+                                    <ArrowRightIcon className='h-3 w-3 transition-transform duration-200 group-hover/deploy:translate-x-1' />
                                 </Link>
                             </div>
                         )}

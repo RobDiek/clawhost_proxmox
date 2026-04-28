@@ -188,10 +188,10 @@ const V2: FC = (): ReactNode => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 1.0 }}
-                    className='relative z-10 px-6'
+                    className='v2-section relative px-6 pb-16 pt-6'
                 >
                     <div className='mx-auto max-w-6xl'>
-                        <div className='-mt-1 grid grid-cols-2 border border-white/10 md:grid-cols-5'>
+                        <div className='grid grid-cols-2 border border-white/10 md:grid-cols-5'>
                             {getV2Stats().map((stat, i) => (
                                 <div key={i} className='border-white/10 bg-[#020204] p-5 [&:not(:last-child)]:border-r'>
                                     <div className='font-syne text-2xl font-bold text-white md:text-3xl'>
@@ -206,7 +206,7 @@ const V2: FC = (): ReactNode => {
                     </div>
                 </motion.div>
 
-                <section id='agents' className='v2-section relative scroll-mt-24 px-6 py-24'>
+                <section id='agents' className='v2-section relative scroll-mt-24 border-t border-white/10 px-6 py-24'>
                     <div className='mx-auto max-w-6xl'>
                         <ScrollRevealV2 className='mb-16'>
                             <SectionLabelV2 label='Agent Catalog' />
@@ -222,7 +222,7 @@ const V2: FC = (): ReactNode => {
                             {v2Agents.map((agent, i) => (
                                 <div
                                     key={i}
-                                    className='group relative border-white/10 bg-[#070709] p-8 [&:not(:last-child)]:border-r'
+                                    className='group relative border-white/10 bg-[#0c0c12] p-8 [&:not(:last-child)]:border-r'
                                 >
                                     <div className='mb-6 flex items-center justify-between'>
                                         <div className='text-white'>
@@ -282,7 +282,7 @@ const V2: FC = (): ReactNode => {
                     faqs={getV2Faqs()}
                 />
 
-                <section className='v2-section relative px-6 py-32'>
+                <section className='v2-section relative border-t border-white/10 px-6 py-32'>
                     <ScrollRevealV2 className='mx-auto max-w-6xl'>
                         <div className='relative z-[15] border border-white/10 bg-[#070709] p-12 md:p-16'>
                             <div className='flex flex-col items-center text-center'>

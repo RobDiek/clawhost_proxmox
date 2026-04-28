@@ -1274,31 +1274,12 @@ const ar: Translations = {
         title: 'سجل التغييرات',
         description: 'تتبع التحديثات والميزات الجديدة والتحسينات في ClawHost.',
         subtitle: 'جميع التحديثات والميزات الجديدة والتحسينات في ClawHost.',
-        upcomingRelease: 'قيد التنفيذ',
-        upcomingReleaseTitle: 'تطبيق الهاتف والمزيد',
-        upcomingReleaseDescription:
-            'أدر نسخ OpenClaw من أي مكان. تطبيق هاتف أصلي بالإضافة إلى تحسينات مستمرة للمنصة.',
-        upcomingReleaseFeature1:
-            'تطبيق هاتف أصلي لمراقبة وإدارة نسخ OpenClaw أثناء التنقل',
-        upcomingReleaseFeature13:
-            'ClawHost Go لنظامي macOS وWindows، انشر OpenClaw محلياً بنقرة واحدة',
-        upcomingReleaseFeature14: 'نشر بنقرة واحدة لوكلاء Hermes مثل OpenClaw',
-        upcomingReleaseFeature3: 'دعم السمات الداكنة والفاتحة',
-        upcomingReleaseFeature4: 'تحسينات في الأداء والاستقرار والاستجابة',
-        upcomingReleaseFeature5:
-            'دعم متعدد اللغات مع الإنجليزية والفرنسية والإسبانية والألمانية',
-        upcomingReleaseFeature6: 'صفحات مقارنة مع تفصيلات كاملة ضد المنافسين',
-        upcomingReleaseFeature7: 'إعادة هيكلة بنية ميزة Playground وتبسيطات',
-        upcomingReleaseFeature8:
-            'طلبات الميزات تُدار وتُنشر تلقائياً بواسطة وكلاء OpenClaw',
-        upcomingReleaseFeature9:
-            'وضع الصوت للتفاعل مع وكلاء OpenClaw المستضافين على ClawHost (بيتا)',
-        upcomingReleaseFeature10:
-            'إعادة تثبيت OpenClaw على نسختك للبدء من جديد، متاح مرة واحدة يومياً',
-        upcomingReleaseFeature11:
-            'صفحة هبوط لـ ClawHost Go، الاستضافة المحلية مع ClawHost',
-        upcomingReleaseFeature12:
-            'تطبيق سطح المكتب لـ macOS وWindows لنشر OpenClaw محلياً بنقرة واحدة',
+        release17Date: '28 أبريل 2026',
+        release17Title: 'Hermes Agent Support',
+        release17Description:
+            'نشر بنقرة واحدة لوكلاء Hermes على ClawHost، تمامًا مثل OpenClaw.',
+        release17Feature1:
+            'نشر بنقرة واحدة لوكلاء Hermes مثل OpenClaw',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1864,6 +1845,11 @@ const ar: Translations = {
         title: 'ClawHost أصبح الآن Agentist',
         mission: 'بناء طبقة البنية التحتية لوكلاء الذكاء الاصطناعي المستقلين.'
     },
+    hermesBanner: {
+        title: 'Hermes Agent',
+        message: 'أصبح وكلاء Hermes مدعومين الآن للنشر على ClawHost.',
+        deploy: 'انشر الآن'
+    },
     compare: {
         title: 'المقارنة الكاملة',
         description: 'شاهد كيف يقارن ClawHost بمنصات استضافة OpenClaw الأخرى.',
@@ -2270,7 +2256,7 @@ const ar: Translations = {
         deployButton: 'انشر الآن',
         learnMore: 'اعرف المزيد',
         agentsTitle: 'وكلاؤك. سحابتك.',
-        agentsDescription: 'اختر من كتالوج متنامٍ من وكلاء الذكاء الاصطناعي، كل منهم يعمل على VPS مخصص خاص به.',
+        agentsDescription: 'اختر من كتالوج متنامٍ من وكلاء الذكاء الاصطناعي، كل منهم يعمل على خادم سحابي مخصص خاص به.',
         agentOpenclawName: 'OpenClaw',
         agentOpenclawDescription: 'منصة إدارة سحابية قابلة للاستضافة الذاتية مع SSH كامل وطرفية ومستكشف ملفات ومحرر إعدادات.',
         agentHermesName: 'Hermes',
@@ -2290,9 +2276,9 @@ const ar: Translations = {
         feature1Title: 'منصة متعددة الوكلاء',
         feature1Description: 'انشر وأدر أنواعاً متعددة من الوكلاء من لوحة تحكم واحدة.',
         agentControlTitle: 'تحكم كامل بالوكلاء',
-        agentControlDescription: 'إدارة وتكوين وتخصيص كل جانب من وكلائك من لوحة تحكم موحدة.',
+        agentControlDescription: 'قم بتكوين وتخصيص كل جانب من وكلائك من لوحة تحكم واحدة.',
         multipleAgentsTitle: 'وكلاء متعددون',
-        multipleAgentsDescription: 'نشر وإدارة عدة نسخ من الوكلاء عبر مناطق وتكوينات مختلفة.',
+        multipleAgentsDescription: 'شغّل عدة نسخ من الوكلاء عبر مناطق وإعدادات مختلفة.',
         feature2Title: 'بنية تحتية مخصصة',
         feature2Description: 'كل وكيل يعمل على VPS خاص به. لا موارد مشتركة، لا جيران مزعجين.',
         feature3Title: 'شبكة حافة عالمية',
@@ -2304,9 +2290,9 @@ const ar: Translations = {
         feature6Title: 'ادفع حسب الاستخدام',
         feature6Description: 'لا التزامات. وسّع أو قلّص. ادفع فقط مقابل ما تستخدمه.',
         zeroConfigDescription: 'تخطَّ ساعات الإعداد. OpenClaw وHermes مثبتان مسبقاً وجاهزان في دقائق.',
-        globalLocationsDescription: 'انشر OpenClaw وHermes في مناطق عالمية متعددة واختر الموقع الأقرب إليك.',
-        onlineAccessDescription: 'انسَ الشبكات المحلية. ادخل إلى OpenClaw وHermes بأمان من أي مكان باستخدام نطاق فرعي.',
-        versionControlDescription: 'انتقل إلى أي إصدار وكيل بنقرة واحدة. ابقَ محدّثاً دائماً أو ارجع عند الحاجة.',
+        globalLocationsDescription: 'انشر الوكلاء في أكثر من 30 منطقة عالمية. اختر الموقع الأقرب إليك.',
+        onlineAccessDescription: 'ادخل إلى وكلائك بأمان من أي مكان باستخدام نطاق فرعي مخصص.',
+        versionControlDescription: 'بدّل إصدارات الوكيل بنقرة واحدة. ابقَ محدّثاً أو ارجع عند الحاجة.',
         agentsPreinstalled: 'الوكلاء مثبتون مسبقاً',
         comparisonAgentAccessUs: 'وصول كامل إلى جميع الوكلاء',
         comparisonMultipleAgentsUs: 'وكلاء متعددون لكل خادم',

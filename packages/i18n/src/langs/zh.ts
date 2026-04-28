@@ -1242,28 +1242,12 @@ const zh: Translations = {
         title: '更新日志',
         description: '跟踪 ClawHost 的更新、新功能和改进。',
         subtitle: 'ClawHost 的所有更新、新功能和改进。',
-        upcomingRelease: '进行中',
-        upcomingReleaseTitle: '移动应用及更多',
-        upcomingReleaseDescription:
-            '随时随地管理您的 OpenClaw 实例。原生移动应用，加上持续的平台改进。',
-        upcomingReleaseFeature1:
-            '原生移动应用，随时监控和管理您的 OpenClaw 实例',
-        upcomingReleaseFeature3: '深色和浅色主题支持',
-        upcomingReleaseFeature4: '性能、稳定性和响应性增强',
-        upcomingReleaseFeature5: '多语言支持，包括英语、法语、西班牙语和德语',
-        upcomingReleaseFeature6: '与竞争对手的完整对比页面',
-        upcomingReleaseFeature7: '工作台功能结构重构和简化',
-        upcomingReleaseFeature8: '由 OpenClaw 代理自动管理和发布的功能请求',
-        upcomingReleaseFeature9:
-            '语音模式，与 ClawHost 上托管的 OpenClaw 代理交互（测试版）',
-        upcomingReleaseFeature10: '重新安装 OpenClaw 以全新开始，每天可用一次',
-        upcomingReleaseFeature11:
-            'ClawHost Go 着陆页，使用 ClawHost 进行本地托管',
-        upcomingReleaseFeature12:
-            '适用于 macOS 和 Windows 的桌面应用，一键本地部署 OpenClaw',
-        upcomingReleaseFeature13:
-            'ClawHost Go macOS 和 Windows 版，一键本地部署 OpenClaw',
-        upcomingReleaseFeature14: '一键部署 Hermes 代理（如 OpenClaw）',
+        release17Date: '2026年4月28日',
+        release17Title: 'Hermes Agent Support',
+        release17Description:
+            '在 ClawHost 上一键部署 Hermes 代理，就像 OpenClaw 一样。',
+        release17Feature1:
+            '像 OpenClaw 一样一键部署 Hermes 代理',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1784,6 +1768,11 @@ const zh: Translations = {
         title: 'ClawHost 现已更名为 Agentist',
         mission: '为自主 AI 代理构建基础设施层。'
     },
+    hermesBanner: {
+        title: 'Hermes Agent',
+        message: 'Hermes 代理现已支持在 ClawHost 上部署。',
+        deploy: '立即部署'
+    },
     compare: {
         title: '完整对比',
         description: '了解 ClawHost 与其他 OpenClaw 托管平台的对比。',
@@ -2181,7 +2170,7 @@ const zh: Translations = {
         deployButton: '立即部署',
         learnMore: '了解更多',
         agentsTitle: '您的代理。您的云。',
-        agentsDescription: '从不断增长的 AI 代理目录中选择，每个代理都运行在自己的专用 VPS 上。',
+        agentsDescription: '从不断增长的 AI 代理目录中选择，每个代理都运行在自己的专用云服务器上。',
         agentOpenclawName: 'OpenClaw',
         agentOpenclawDescription: '可自托管的云管理平台，具备完整的 SSH、终端、文件浏览器和配置编辑器。',
         agentHermesName: 'Hermes',
@@ -2201,9 +2190,9 @@ const zh: Translations = {
         feature1Title: '多代理平台',
         feature1Description: '从单一仪表板部署和管理多种代理类型。',
         agentControlTitle: '完全代理控制',
-        agentControlDescription: '从统一仪表板管理、配置和自定义代理的各个方面。',
+        agentControlDescription: '从一个仪表板配置和自定义代理的各个方面。',
         multipleAgentsTitle: '多个代理',
-        multipleAgentsDescription: '在不同区域和配置中部署和管理多个代理实例。',
+        multipleAgentsDescription: '在不同区域和配置中运行多个代理实例。',
         feature2Title: '专用基础设施',
         feature2Description: '每个代理运行在自己的 VPS 上。无共享资源，无嘈杂邻居。',
         feature3Title: '全球边缘网络',
@@ -2215,9 +2204,9 @@ const zh: Translations = {
         feature6Title: '按用量付费',
         feature6Description: '无承诺。随时扩展或缩减。只为使用的部分付费。',
         zeroConfigDescription: '跳过数小时的设置。OpenClaw和Hermes已预装，几分钟内即可就绪。',
-        globalLocationsDescription: '在全球多个区域部署OpenClaw和Hermes，选择离您最近的位置。',
-        onlineAccessDescription: '忘掉本地网络。通过子域名从任何地方安全访问OpenClaw和Hermes。',
-        versionControlDescription: '一键切换到任何代理版本。始终保持最新，或在需要时回滚。',
+        globalLocationsDescription: '在全球30多个区域部署代理。选择离您最近的位置。',
+        onlineAccessDescription: '通过自定义子域名从任何地方安全访问您的代理。',
+        versionControlDescription: '一键切换代理版本。保持最新，或在需要时回滚。',
         agentsPreinstalled: '代理预安装',
         comparisonAgentAccessUs: '完全访问所有代理',
         comparisonMultipleAgentsUs: '每台服务器多个代理',

@@ -1154,7 +1154,7 @@ const en = {
         pricing: 'Pricing',
         simpleTransparentPricing: 'Simple, Transparent Pricing',
         pricingDescription:
-            'Choose a plan that fits your needs. No hidden fees.',
+            'Choose a plan that fits your workload and scale as you grow. No hidden fees, no surprises.',
         planColumn: 'Server',
         vCpuColumn: 'vCPU',
         ramColumn: 'RAM',
@@ -1209,7 +1209,7 @@ const en = {
         emailSupport: 'Email Support',
         faqTitle: 'Questions',
         frequentlyAskedQuestions: 'Common Questions',
-        faqDescription: 'Every single frequently asked question, answered.',
+        faqDescription: 'Every single frequently asked question, answered. If you have more, reach out to us.',
         faq1Question: 'What is ClawHost?',
         faq1Answer:
             'ClawHost is a platform built to make OpenClaw accessible to everyone. It lets both non-technical users and developers run OpenClaw without managing infrastructure. We handle servers, uptime, security, and maintenance — you just use OpenClaw.',
@@ -1293,35 +1293,12 @@ const en = {
         description:
             'Track updates, new features, and improvements to ClawHost.',
         subtitle: 'All updates, new features, and improvements to ClawHost.',
-        upcomingRelease: 'In Process',
-        upcomingReleaseTitle: 'Mobile App & More',
-        upcomingReleaseDescription:
-            'Manage your OpenClaw instances from anywhere. A native mobile app, plus ongoing platform improvements.',
-        upcomingReleaseFeature1:
-            'Native mobile app to monitor and manage your OpenClaw instances on the go',
-        upcomingReleaseFeature13:
-            'ClawHost Go for macOS and Windows, deploy OpenClaw locally with one click',
-        upcomingReleaseFeature14:
+        release17Date: 'April 28, 2026',
+        release17Title: 'Hermes Agent Support',
+        release17Description:
+            'One click deploy for Hermes agents on ClawHost, just like OpenClaw.',
+        release17Feature1:
             'One click deploy for Hermes agents like OpenClaw',
-        upcomingReleaseFeature3: 'Dark and light theme support',
-        upcomingReleaseFeature4:
-            'Performance, stability, and responsiveness enhancements',
-        upcomingReleaseFeature5:
-            'Multi-language support with English, French, Spanish, and German',
-        upcomingReleaseFeature6:
-            'Comparison pages with full breakdowns against competitors',
-        upcomingReleaseFeature7:
-            'Refactoring of the playground feature structure and simplifications',
-        upcomingReleaseFeature8:
-            'Feature requests automatically managed and published by OpenClaw agents',
-        upcomingReleaseFeature9:
-            'Voice Mode to interact with the OpenClaw agents hosted on ClawHost (Beta)',
-        upcomingReleaseFeature10:
-            'Reinstall OpenClaw on your instance to start fresh, available once per day',
-        upcomingReleaseFeature11:
-            'Landing page for ClawHost Go, local hosting with ClawHost',
-        upcomingReleaseFeature12:
-            'Desktop app for macOS and Windows to deploy OpenClaw locally with one click',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1914,6 +1891,11 @@ const en = {
         title: 'ClawHost is now Agentist',
         mission: 'Building the infrastructure layer for autonomous AI agents.'
     },
+    hermesBanner: {
+        title: 'Hermes Agent',
+        message: 'Hermes agents are now supported for deployment on ClawHost.',
+        deploy: 'Deploy Now'
+    },
     compare: {
         title: 'Full Comparison',
         description:
@@ -2322,7 +2304,7 @@ const en = {
         deployButton: 'Deploy Now',
         learnMore: 'Learn More',
         agentsTitle: 'Choose Your Agent.',
-        agentsDescription: 'Choose from a growing catalog of AI agents, each running on its own dedicated cloud server with full root access, SSH terminal, and complete infrastructure control.',
+        agentsDescription: 'Choose from a growing catalog of AI agents, each running on its own dedicated cloud server.',
         agentOpenclawName: 'OpenClaw',
         agentOpenclawDescription: 'Self-hostable cloud management platform with full SSH, terminal, file explorer, and config editor.',
         agentHermesName: 'Hermes',
@@ -2338,13 +2320,13 @@ const en = {
         step3Title: 'Deploy Instantly',
         step3Description: 'One click. Your agent is live on dedicated infrastructure.',
         featuresTitle: 'Built for the Future',
-        featuresDescription: 'Everything you need to run AI agents at scale.',
+        featuresDescription: 'Everything you need to deploy, manage, and scale AI agents on dedicated infrastructure.',
         feature1Title: 'Multi-Agent Platform',
         feature1Description: 'Deploy and manage multiple agent types from a single dashboard.',
         agentControlTitle: 'Full Agent Control',
-        agentControlDescription: 'Manage, configure, and customize every aspect of your agents from a unified dashboard.',
+        agentControlDescription: 'Configure and customize every aspect of your agents from one dashboard.',
         multipleAgentsTitle: 'Multiple Agents',
-        multipleAgentsDescription: 'Deploy and manage multiple agent instances across different regions and configurations.',
+        multipleAgentsDescription: 'Run multiple agent instances across different regions and configs.',
         feature2Title: 'Dedicated Infrastructure',
         feature2Description: 'Each agent runs on its own VPS. No shared resources, no noisy neighbors.',
         feature3Title: 'Global Edge Network',
@@ -2356,9 +2338,9 @@ const en = {
         feature6Title: 'Pay As You Go',
         feature6Description: 'No commitments. Scale up or down. Only pay for what you use.',
         zeroConfigDescription: 'Skip hours of setup. OpenClaw and Hermes are pre-installed and ready within minutes.',
-        globalLocationsDescription: 'Deploy OpenClaw and Hermes across multiple global regions and choose the location closest to you.',
-        onlineAccessDescription: 'Forget local networks. Access OpenClaw and Hermes securely from anywhere with a subdomain.',
-        versionControlDescription: 'Switch to any agent version with a single click. Always stay up to date or roll back when needed.',
+        globalLocationsDescription: 'Deploy agents across 30+ global regions. Choose the location closest to you.',
+        onlineAccessDescription: 'Access your agents securely from anywhere with a custom subdomain.',
+        versionControlDescription: 'Switch agent versions with a single click. Stay up to date or roll back.',
         agentsPreinstalled: 'Agents Pre-Installed',
         comparisonAgentAccessUs: 'Full access to all agents',
         comparisonMultipleAgentsUs: 'Multiple agents per server',

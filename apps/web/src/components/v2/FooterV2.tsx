@@ -56,20 +56,20 @@ const FooterV2: FC = (): ReactNode => {
         `transition ${pathname === route || pathname.startsWith(route + '/') ? 'text-white' : 'text-white/40 hover:text-white'}`
 
     return (
-        <footer className='relative v2-section overflow-visible'>
+        <footer className='relative v2-section'>
             <video
                 autoPlay
                 loop
                 muted
                 playsInline
-                className='v2-footer-video pointer-events-none absolute inset-0 z-[1] h-full w-full object-[left_bottom]'
+                className='v2-footer-video pointer-events-none absolute bottom-0 left-0 z-[1] h-[70vh] w-full object-cover'
             >
                 <source
                     src='https://framerusercontent.com/assets/FsU7HaCWP7lS7TPY07jh2mCkb1o.mp4'
                     type='video/mp4'
                 />
             </video>
-            <div className='pointer-events-none absolute inset-0 z-[2] bg-[linear-gradient(to_bottom,#020204_0%,rgba(2,2,4,0.6)_40%,transparent_70%,#020204_100%)]' />
+            <div className='pointer-events-none absolute bottom-0 left-0 z-[2] h-[70vh] w-full bg-[linear-gradient(to_bottom,rgba(2,2,4,0.6)_0%,rgba(2,2,4,0.2)_40%,transparent_70%)]' />
 
             <div className='font-syne relative z-10 px-6 py-16 h-auto'>
                 <div className='mx-auto max-w-6xl'>

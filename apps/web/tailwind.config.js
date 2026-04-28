@@ -13,7 +13,6 @@ export default {
                 mono: ['"JetBrains Mono"', 'monospace'],
                 clash: ['"Clash Display"', 'system-ui', 'sans-serif'],
                 satoshi: ['Satoshi', 'system-ui', 'sans-serif'],
-                hermes: ['"Playfair Display"', 'Georgia', 'serif'],
                 grotesk: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
                 syne: ['Syne', 'system-ui', 'sans-serif']
             },

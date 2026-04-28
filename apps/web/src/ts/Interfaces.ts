@@ -12,7 +12,6 @@ import type { TranslationKey } from '@openclaw/i18n'
 import type {
     AdminAnalyticsRange,
     AffiliatePeriod,
-    AgentSelection,
     AgentType,
     AuthMethod,
     BillingInterval,
@@ -258,6 +257,8 @@ export interface UIState {
     dismissPhBanner: () => void
     rebrandBannerVisible: boolean
     dismissRebrandBanner: () => void
+    hermesBannerVisible: boolean
+    dismissHermesBanner: () => void
 }
 
 export interface PreferencesState {
@@ -271,8 +272,6 @@ export interface PreferencesState {
     setOpenLinksWindowed: (value: boolean) => void
     product: Product
     setProduct: (product: Product) => void
-    agent: AgentSelection
-    setAgent: (agent: AgentSelection) => void
     affiliatePeriod: AffiliatePeriod
     setAffiliatePeriod: (period: AffiliatePeriod) => void
     sidebarCollapsed: boolean
@@ -2124,7 +2123,6 @@ export interface ChangelogRelease {
     titleKey: TranslationKey
     descriptionKey: TranslationKey
     features: ChangelogFeature[]
-    upcoming?: boolean
 }
 
 export interface DashboardHeaderProps {

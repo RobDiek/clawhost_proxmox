@@ -1301,32 +1301,12 @@ const ja: Translations = {
         title: '変更履歴',
         description: 'ClawHostのアップデート、新機能、改善を追跡。',
         subtitle: 'ClawHostのすべてのアップデート、新機能、改善。',
-        upcomingRelease: '進行中',
-        upcomingReleaseTitle: 'モバイルアプリ & その他',
-        upcomingReleaseDescription:
-            'どこからでもOpenClawインスタンスを管理。ネイティブモバイルアプリと継続的なプラットフォーム改善。',
-        upcomingReleaseFeature1:
-            '外出先でOpenClawインスタンスを監視・管理するネイティブモバイルアプリ',
-        upcomingReleaseFeature13:
-            'macOSとWindows向けClawHost Go、ワンクリックでOpenClawをローカルデプロイ',
-        upcomingReleaseFeature14:
-            'OpenClawのようなHermesエージェントをワンクリックでデプロイ',
-        upcomingReleaseFeature3: 'ダーク・ライトテーマ対応',
-        upcomingReleaseFeature4: 'パフォーマンス、安定性、レスポンシブの向上',
-        upcomingReleaseFeature5:
-            '英語、フランス語、スペイン語、ドイツ語の多言語対応',
-        upcomingReleaseFeature6: '競合他社との詳細な比較ページ',
-        upcomingReleaseFeature7: 'Playground機能構造のリファクタリングと簡素化',
-        upcomingReleaseFeature8:
-            'OpenClawエージェントによる自動管理・公開の機能リクエスト',
-        upcomingReleaseFeature9:
-            'ClawHostでホストされたOpenClawエージェントとのボイスモード（ベータ版）',
-        upcomingReleaseFeature10:
-            'インスタンスにOpenClawを再インストールして新しく開始、1日1回利用可能',
-        upcomingReleaseFeature11:
-            'ClawHost Goのランディングページ、ClawHostでローカルホスティング',
-        upcomingReleaseFeature12:
-            'macOSとWindows用デスクトップアプリでワンクリックでOpenClawをローカルデプロイ',
+        release17Date: '2026年4月28日',
+        release17Title: 'Hermes Agent Support',
+        release17Description:
+            'ClawHostでHermesエージェントをワンクリックデプロイ、OpenClawと同様に。',
+        release17Feature1:
+            'OpenClawと同様のHermesエージェントのワンクリックデプロイ',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1911,6 +1891,11 @@ const ja: Translations = {
         title: 'ClawHostはAgentistになりました',
         mission: '自律型AIエージェントのためのインフラ基盤を構築。'
     },
+    hermesBanner: {
+        title: 'Hermes Agent',
+        message: 'HermesエージェントがClawHostでのデプロイに対応しました。',
+        deploy: '今すぐデプロイ'
+    },
     compare: {
         title: '詳細比較',
         description:
@@ -2319,7 +2304,7 @@ const ja: Translations = {
         deployButton: '今すぐデプロイ',
         learnMore: '詳しく見る',
         agentsTitle: 'あなたのエージェント。あなたのクラウド。',
-        agentsDescription: '成長し続けるAIエージェントカタログから選択。各エージェントは専用のVPSで動作します。',
+        agentsDescription: '成長し続けるAIエージェントカタログから選択。各エージェントは専用のクラウドサーバーで動作します。',
         agentOpenclawName: 'OpenClaw',
         agentOpenclawDescription: '完全なSSH、ターミナル、ファイルエクスプローラー、設定エディタを備えたセルフホスト可能なクラウド管理プラットフォーム。',
         agentHermesName: 'Hermes',
@@ -2339,9 +2324,9 @@ const ja: Translations = {
         feature1Title: 'マルチエージェントプラットフォーム',
         feature1Description: '単一のダッシュボードから複数のエージェントタイプをデプロイ・管理。',
         agentControlTitle: '完全なエージェント制御',
-        agentControlDescription: '統合ダッシュボードからエージェントのあらゆる側面を管理、設定、カスタマイズ。',
+        agentControlDescription: 'ひとつのダッシュボードからエージェントのあらゆる側面を設定、カスタマイズ。',
         multipleAgentsTitle: '複数エージェント',
-        multipleAgentsDescription: '複数のエージェントインスタンスを異なるリージョンと設定でデプロイおよび管理。',
+        multipleAgentsDescription: '異なるリージョンと設定で複数のエージェントインスタンスを実行。',
         feature2Title: '専用インフラ',
         feature2Description: '各エージェントは独自のVPSで動作。共有リソースなし、ノイジーネイバーなし。',
         feature3Title: 'グローバルエッジネットワーク',
@@ -2353,9 +2338,9 @@ const ja: Translations = {
         feature6Title: '従量課金',
         feature6Description: 'コミットメントなし。スケールアップもダウンも自由。使った分だけお支払い。',
         zeroConfigDescription: '何時間ものセットアップをスキップ。OpenClawとHermesがプリインストール済みで数分で準備完了。',
-        globalLocationsDescription: 'OpenClawとHermesを世界中の複数リージョンにデプロイし、最寄りのロケーションを選択。',
-        onlineAccessDescription: 'ローカルネットワークは不要。サブドメインでどこからでもOpenClawとHermesに安全にアクセス。',
-        versionControlDescription: 'ワンクリックで任意のエージェントバージョンに切り替え。常に最新を維持、または必要に応じてロールバック。',
+        globalLocationsDescription: 'エージェントを30以上のグローバルリージョンにデプロイ。最寄りのロケーションを選択。',
+        onlineAccessDescription: 'カスタムサブドメインでどこからでもエージェントに安全にアクセス。',
+        versionControlDescription: 'ワンクリックでエージェントバージョンを切り替え。最新を維持、または必要に応じてロールバック。',
         agentsPreinstalled: 'エージェント プリインストール',
         comparisonAgentAccessUs: 'すべてのエージェントへのフルアクセス',
         comparisonMultipleAgentsUs: 'サーバーあたり複数のエージェント',

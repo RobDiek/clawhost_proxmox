@@ -13,8 +13,6 @@ const PATHS = {
     AFFILIATE: 'affiliate',
     AFFILIATE_PROGRAM: 'affiliate-program',
     COMPARE: 'comparison',
-    HERMES: 'hermes',
-    HERMES_GO: 'hermes-go',
     V2: 'v2',
     PRICING: 'pricing',
     FEATURES: 'features'

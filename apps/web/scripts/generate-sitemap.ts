@@ -12,8 +12,6 @@ const SITE_URL = 'https://clawhost.cloud'
 const staticRoutes: SitemapRoute[] = [
     { path: PATHS.HOME, priority: '1.0', changefreq: 'weekly' },
     { path: `/${PATHS.GO}`, priority: '0.8', changefreq: 'monthly' },
-    { path: `/${PATHS.HERMES}`, priority: '0.8', changefreq: 'monthly' },
-    { path: `/${PATHS.HERMES_GO}`, priority: '0.8', changefreq: 'monthly' },
     { path: `/${PATHS.COMPARE}`, priority: '0.7', changefreq: 'monthly' },
     { path: `/${PATHS.CHANGELOG}`, priority: '0.6', changefreq: 'weekly' },
     { path: `/${PATHS.AFFILIATE_PROGRAM}`, priority: '0.5', changefreq: 'monthly' },

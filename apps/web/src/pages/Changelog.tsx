@@ -54,33 +54,15 @@ const Changelog: FC = (): ReactNode => {
                             className='cv-auto relative md:pl-14'
                         >
                             <div className='absolute left-0 top-1 hidden md:block'>
-                                {release.upcoming ? (
-                                    <div className='flex h-10 w-10 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10'>
-                                        <div className='h-2 w-2 animate-pulse rounded-full bg-amber-400' />
-                                    </div>
-                                ) : (
-                                    <div className='border-border bg-foreground/[0.04] flex h-10 w-10 items-center justify-center rounded-full border'>
-                                        <div className='bg-foreground/60 h-2 w-2 rounded-full' />
-                                    </div>
-                                )}
+                                <div className='border-border bg-foreground/[0.04] flex h-10 w-10 items-center justify-center rounded-full border'>
+                                    <div className='bg-foreground/60 h-2 w-2 rounded-full' />
+                                </div>
                             </div>
 
-                            <div
-                                className={
-                                    release.upcoming
-                                        ? 'rounded-2xl border border-amber-500/10 bg-amber-500/[0.02] p-8'
-                                        : 'border-border bg-foreground/[0.02] rounded-2xl border p-8'
-                                }
-                            >
-                                {release.upcoming ? (
-                                    <span className='mb-4 block text-sm font-medium text-amber-600 dark:text-amber-400'>
-                                        {t(release.dateKey)}
-                                    </span>
-                                ) : (
-                                    <time className='text-muted-foreground mb-4 block text-sm'>
-                                        {t(release.dateKey)}
-                                    </time>
-                                )}
+                            <div className='border-border bg-foreground/[0.02] rounded-2xl border p-8'>
+                                <time className='text-muted-foreground mb-4 block text-sm'>
+                                    {t(release.dateKey)}
+                                </time>
 
                                 <h2 className='font-clash mb-2 text-2xl font-bold'>
                                     {t(release.titleKey)}
@@ -96,12 +78,7 @@ const Changelog: FC = (): ReactNode => {
                                             key={feature.key}
                                             className='flex items-center gap-3'
                                         >
-                                            {release.upcoming ? (
-                                                <CircleIcon
-                                                    className='h-2.5 w-2.5 flex-shrink-0 text-amber-600 dark:text-amber-400'
-                                                    weight='fill'
-                                                />
-                                            ) : feature.type ===
+                                            {feature.type ===
                                               CHANGELOG_FEATURE_TYPE.DROPPED ? (
                                                 <CircleIcon
                                                     className='h-2.5 w-2.5 flex-shrink-0 text-red-600 dark:text-red-400'

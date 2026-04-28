@@ -1325,35 +1325,6 @@ const nl: Translations = {
             'Volg updates, nieuwe functies en verbeteringen aan ClawHost.',
         subtitle:
             'Alle updates, nieuwe functies en verbeteringen aan ClawHost.',
-        upcomingRelease: 'In ontwikkeling',
-        upcomingReleaseTitle: 'Mobiele app & meer',
-        upcomingReleaseDescription:
-            'Beheer je OpenClaw-instanties vanaf overal. Een native mobiele app, plus voortdurende platformverbeteringen.',
-        upcomingReleaseFeature1:
-            'Native mobiele app om je OpenClaw-instanties onderweg te monitoren en te beheren',
-        upcomingReleaseFeature13:
-            'ClawHost Go voor macOS en Windows, deploy OpenClaw lokaal met één klik',
-        upcomingReleaseFeature14:
-            'Eén-klik deploy voor Hermes-agents zoals OpenClaw',
-        upcomingReleaseFeature3: 'Ondersteuning voor donker en licht thema',
-        upcomingReleaseFeature4:
-            'Verbeteringen in prestaties, stabiliteit en responsiviteit',
-        upcomingReleaseFeature5:
-            'Meertalige ondersteuning met Engels, Frans, Spaans en Duits',
-        upcomingReleaseFeature6:
-            "Vergelijkingspagina's met volledige uitsplitsingen tegen concurrenten",
-        upcomingReleaseFeature7:
-            'Herstructurering van de playground-functiestructuur en vereenvoudigingen',
-        upcomingReleaseFeature8:
-            'Functieverzoeken automatisch beheerd en gepubliceerd door OpenClaw-agents',
-        upcomingReleaseFeature9:
-            'Spraakmodus om te communiceren met de OpenClaw-agents gehost op ClawHost (Beta)',
-        upcomingReleaseFeature10:
-            'Herinstalleer OpenClaw op je instantie voor een nieuwe start, eenmaal per dag beschikbaar',
-        upcomingReleaseFeature11:
-            'Landingspagina voor ClawHost Go, lokale hosting met ClawHost',
-        upcomingReleaseFeature12:
-            'Desktop-app voor macOS en Windows om OpenClaw lokaal te deployen met \u00e9\u00e9n klik',
         release14Date: '1 april 2026',
         release14Title: 'Hetzner-migratie, affiliate-systeem & nieuwe talen',
         release14Description:
@@ -1366,6 +1337,12 @@ const nl: Translations = {
             '10 nieuwe talen toegevoegd: Chinees, Hindi, Arabisch, Russisch, Japans, Turks, Italiaans, Pools, Nederlands en Portugees',
         release14Feature4:
             'Interne tools voor stabiele functieondersteuning voor huidige OpenClaw-versies, zonder ondersteuning voor oudere versies',
+        release17Date: '28 april 2026',
+        release17Title: 'Hermes Agent Support',
+        release17Description:
+            'Eén-klik deployment voor Hermes-agenten op ClawHost, net als OpenClaw.',
+        release17Feature1:
+            'Eén-klik deployment voor Hermes-agenten zoals OpenClaw',
         release16Date: 'April 12, 2026',
         release16Title: 'New Dashboard Experience & Advanced Tabs',
         release16Description:
@@ -1957,6 +1934,11 @@ const nl: Translations = {
         title: 'ClawHost is nu Agentist',
         mission: 'De infrastructuur bouwen voor autonome AI-agenten.'
     },
+    hermesBanner: {
+        title: 'Hermes Agent',
+        message: 'Hermes-agenten worden nu ondersteund voor deployment op ClawHost.',
+        deploy: 'Nu deployen'
+    },
     compare: {
         title: 'Volledige vergelijking',
         description:
@@ -2369,7 +2351,7 @@ const nl: Translations = {
         deployButton: 'Nu Deployen',
         learnMore: 'Meer Informatie',
         agentsTitle: 'Jouw Agents. Jouw Cloud.',
-        agentsDescription: 'Kies uit een groeiende catalogus van AI-agents, elk draaiend op een eigen dedicated VPS.',
+        agentsDescription: 'Kies uit een groeiende catalogus van AI-agents, elk draaiend op een eigen dedicated cloudserver.',
         agentOpenclawName: 'OpenClaw',
         agentOpenclawDescription: 'Zelf te hosten cloudmanagementplatform met volledige SSH, terminal, bestandsverkenner en configuratie-editor.',
         agentHermesName: 'Hermes',
@@ -2389,9 +2371,9 @@ const nl: Translations = {
         feature1Title: 'Multi-Agent Platform',
         feature1Description: 'Deploy en beheer meerdere agenttypen vanuit één dashboard.',
         agentControlTitle: 'Volledige agent-controle',
-        agentControlDescription: 'Beheer, configureer en pas elk aspect van uw agents aan vanuit een uniform dashboard.',
+        agentControlDescription: 'Configureer en pas elk aspect van je agents aan vanuit één dashboard.',
         multipleAgentsTitle: 'Meerdere agents',
-        multipleAgentsDescription: 'Implementeer en beheer meerdere agent-instanties in verschillende regio\'s en configuraties.',
+        multipleAgentsDescription: 'Draai meerdere agent-instanties in verschillende regio\'s en configuraties.',
         feature2Title: 'Dedicated Infrastructuur',
         feature2Description: 'Elke agent draait op zijn eigen VPS. Geen gedeelde resources, geen lawaaierige buren.',
         feature3Title: 'Wereldwijd Edge Netwerk',
@@ -2403,9 +2385,9 @@ const nl: Translations = {
         feature6Title: 'Betaal per Gebruik',
         feature6Description: 'Geen verplichtingen. Schaal op of af. Betaal alleen voor wat je gebruikt.',
         zeroConfigDescription: 'Sla uren configuratie over. OpenClaw en Hermes zijn voorgeïnstalleerd en binnen minuten klaar.',
-        globalLocationsDescription: 'Deploy OpenClaw en Hermes in meerdere wereldwijde regio\'s en kies de locatie die het dichtst bij je is.',
-        onlineAccessDescription: 'Vergeet lokale netwerken. Krijg veilig toegang tot OpenClaw en Hermes vanaf overal met een subdomein.',
-        versionControlDescription: 'Schakel met één klik naar elke agentversie. Blijf altijd up-to-date of ga terug wanneer nodig.',
+        globalLocationsDescription: 'Deploy agents in meer dan 30 wereldwijde regio\'s. Kies de locatie die het dichtst bij je is.',
+        onlineAccessDescription: 'Krijg veilig toegang tot je agents vanaf overal met een eigen subdomein.',
+        versionControlDescription: 'Wissel van agentversie met één klik. Blijf up-to-date of ga terug.',
         agentsPreinstalled: 'Agents voorgeïnstalleerd',
         comparisonAgentAccessUs: 'Volledige toegang tot alle agents',
         comparisonMultipleAgentsUs: 'Meerdere agents per server',
